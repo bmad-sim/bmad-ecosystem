@@ -2,23 +2,30 @@ no_digested
 parameter[geometry] = open
 parameter[e_tot] = 1e6
 
-q1: quadrupole, l = 1, k1 = 1
+q1: quadrupole, l = 2, k1 = 1
 q2: quadrupole, l = 2, k1 = 2
-q3: quadrupole, l = 1, superimpose, ref = q2
+q3: quadrupole, l = 2, k1 = 3
+
+q4: quadrupole, l = 4, superimpose, ref = q2, offset = 0.5, ref_origin = center
 
 ov1: overlay = {q1[k1]:-1, q1[tilt]:2}, hkick = 10
 ov2: overlay = {q1[k1]:3, q1[tilt], q1}, hkick = 20
+ov3: overlay = {q2}, l = 6
 
-g1: group = {ov1[hkick]}, k3 = 5
-g2: group = {q1}, end_edge
+gr1: group = {ov1[hkick]}, k3 = 5
+gr2: group = {q3}, end_edge
+gr3: group = {q3}, l
 
-ov3: group = {q3}, l
+s: solenoid, l = 10
+lc: lcavity, l = 6, superimpose, ref =  s, create_jumbo_slave = T
 
-a_line: line = (q1, q2)
+gr4: group = {lc}, l = 8
+
+a_line: line = (q1, q2, q3, s)
 use, a_line
 
 expand_lattice
 
-g1[command] = 7
-g2[command] = 1
-ov3[command] = 0.2
+gr1[command] = 7
+gr2[command] = 1
+gr3[command] = 0.2
