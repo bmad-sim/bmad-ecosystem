@@ -778,39 +778,21 @@ The switch to set the type of tracking for a lattice is
 \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
 
 There are advantages and disadvantages to using either relative or
-absolute time tracking. Absolute time tracking is more correct
-since RF cavities are in reality synced to some clock. The problem
-with absolute time tracking is that the transfer map through the
-cavity is now a function of time and cannot be written as a function
-of $z$ unless the total lattice length is a multiple of the RF
-wavelength.  Another way of saying this is that if the lattice length
-is not a multiple of the RF wavelength, the transfer map as a function
-of $z$ will vary from turn to turn. This complicates lattice analysis
-in terms of finding closed orbits, etc. [Interesting side note: Given
-a ring with two cavities with incommensurate frequencies, there is no
-closed orbit.] 
+absolute time tracking. Absolute time tracking is more correct since
+RF cavities are in reality synced to some clock. The problem with
+absolute time tracking is that the transfer map through the cavity is
+now a function of time and cannot be written as a function of $z$
+unless the total lattice length is a multiple of the RF wavelength.
+This complicates lattice analysis.
 
 With relative time tracking the transfer map problem is swept under
-the rug and, for example, the closed orbit analysis is straight
-forward. The penelty for using relative time tracking is that results
+the rug. The penelty for using relative time tracking is that results
 can be unphysical. For example, the closed orbit is essentially
 independent of the RF frequency. From a different angle this can be
 viewed as a good feature since if one is only interested in, say,
 calculating the Twiss parameters, it can be an annoyance to have to
 worry that the ring one has constructed have the spacing between RF
-cavities be multiples of the RF wavelength.
-
-In a storage ring or recirculating linac, a particle
-goes through the same cavity multiple times. In such a situation, if
-the distance from a cavity back to itself is not a multiple of the
-fundamental mode wavelength, the simulation will not be self
-consistent. This can be seen by a simple example: In a storage ring, a
-particle simulated by \bmad traveling on the reference orbit with zero
-$z$ will never see a kick from the fundamental mode of a cavity with
-zero phase offsets. But, in reality, if the length of the ring is not
-a multiple of the fundamental mode wavelength, there will be
-kicks. The choice to have \bmad behave unphysically was made since it
-can be very confusing otherwise. For example, it is potentially very
+cavities be multiples of the RF wavelength and it is potentially
 confusing to see non-zero closed orbits when one is not expecting it.
 
 The above discussion is limited to the cavity fundamental mode.
