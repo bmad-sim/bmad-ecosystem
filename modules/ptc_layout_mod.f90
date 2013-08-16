@@ -1033,11 +1033,13 @@ branch => pointer_to_branch(ele)
 
 call update_this_real (ele%value(l$), fib%mag%p%ld)
 
-call update_this_real (ele%value(num_steps$), real(fib%mag%p%nst, rp))
-if (ele%value(num_steps$) == 0) then
-  ele%value(ds_step$) = 0
-else
-  ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
+if (attribute_name(ele, num_steps$) == 'NUM_STEPS') then
+  call update_this_real (ele%value(num_steps$), real(fib%mag%p%nst, rp))
+  if (ele%value(num_steps$) == 0) then
+    ele%value(ds_step$) = 0
+  else
+    ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
+  endif
 endif
 
 ! If integrator_order is defined for this element then update

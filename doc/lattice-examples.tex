@@ -72,34 +72,70 @@ this is not desirable for tracking in a storage ring since
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=5in]{erl.pdf}
-  \caption[
-Example Energy Recovery Linac. The ERL consists of an injection line,
-accelerating linac, return arc, decellerating linac, and finally a
-beam dump.}
+  \includegraphics[width=6in]{erl.pdf}
+  \caption[Example Energy Recovery Linac.]{
+Example Energy Recovery Linac. A) The ERL consists of an injection
+line, accelerating linac, return arc, decellerating linac, and finally
+a beam dump. B) Close up of the section where the end of the injector
+and the end of the arc inject into the beginning of the linac. C)
+Close up of the end of the linac which injects into the dump and the
+beginning of the arc.}
   \label{f:erl}
 \end{figure}
 
-An Energy Recovery Linac (ERL) is illustrated in \fig{f:erl}. The ERL
+An Energy Recovery Linac (ERL) is illustrated in \fig{f:erl}A. The ERL
 starts with an injection line that feeds a linac which accelerates the
-beam to some energy. The beam then transverses a \vn{return arc} which
+beam to some energy. The beam then transverses a return \vn{arc} which
 reinjects the bunches into the linac. The length of the return arc is
 such that, on the second pass, the beam is decelleratied giving its
 energy back to the RF cavities. Finally, the decelleratied beam is
-steered through a dump line where, at the end, an absorber stops the beam.
+steered through a dump line where, at the end, an absorber stops the
+beam.
 
  A lattice file for modeling this ERL:
 \begin{example}
-  inj_patch: patch, flexible = T
-  dump_patch: patch, x_pitch = 0.34
+  parameter[geometry] = open
+  parameter[absolute_time_tracking] = T
+
+  BEND_L1: sbend, angle = -25*pi/180, l = 0.2, ...
+  BEND_L2: BEND_L1
+
+  A_PATCH: patch, flexible = T
+  D_PATCH: patch, x_offset = 0.034, x_offset = asin(0.32) 
   INJECT: line = (...)
-  LINAC: line[multipass] = (...)
-  ARC: line = (...)
+  LINAC: line[multipass] = (BEND_L1, ..., BEND_L2)
+  ARC: line = (..., BEND_A7)
   DUMP: line = (...)
-  ERL: line = (INJECT, LINAC, ARC, inj_patch, LINAC, dump_patch, DUMP)
+
+  ERL: line = (INJECT, LINAC, ARC, A_PATCH, LINAC, D_PATCH, DUMP)
 \end{example}
 
+\index{patch!example}
+\fig{f:erl}B shows the injector and arc merging into the beginning of
+the linac. The first element of the linac is a bend named
+\vn{BEND_L1}. The bending angle for \vn{BEND_L1} has been set at the
+appropriate value for injection from the injector. To get the correct
+geometry for injection from the arc, a \vn{patch} element, named
+\vn{A_PATCH}, is placed in the \vn{ERL} line between the arc and the
+linac. \vn{A_PATCH} is a flexible patch which means that the exit edge
+of \vn{A_PATCH} will automatically be aligned with the entrance edge
+of the next element which is \vn{BEND_L1}. 
 
+Note that this use of a flexible patch works since the orientation of
+\vn{BEND_L1} has been determined before the orientaiton of
+\vn{A_PATCH} is determined. The orientaiton of elements is determined
+in order starting from the first element in the line (the exception to
+this rule is if there is a \vn{floor_position} element) and the
+orientation of \vn{BEND_L1} is thus determined right after the
+injector section on the first pass through the linac.
+
+
+
+\fig{f:erl}C shows the end of the linac splitting off into the dump
+and arc sections. The l
+
+A patch
+element named \vn{A_PATCH} is used
 
 %-----------------------------------------------------------------------------
 \section{Example: Patch Between reversed and non-reversed elements}
@@ -149,29 +185,6 @@ opposite from the counterclockwise direction of the bend. To counter
 this, \vn{g_err} is set so the total bending field \vn{g_tot = g +
 g_err} is opposite the design field. That is, \vn{g_err} is set so
 that \vn{g_tot = -g}.
-
-%-----------------------------------------------------------------------------
-%%\subsection{Example: Flexible Patch in an ERL}
-%%\label{s:ex.erl}
-%%
-%%\more_\needed
-%%
-%%Consider the case of an Energy Recovery Linac (ERL) where the beam
-%%goes through the linac section of the ERL twice. Once to accelerate
-%%the beam and once to decelerate and recover the energy from the
-%%beam. The basic ERL lattice is then
-%%\begin{example}
-%%  erl: line = (injector, merge, linac, arc, linac, dump)
-%%  injector: line = (...)
-%%  linac: line[multipass] = (..., rf1, ...)
-%%  arc: line = (..., patch2)
-%%  dump: line = (...)
-%%  patch2: patch, flexible = True
-%%  ...
-%%  expand_lattice
-%%  rf1\B2[dphi0] = 0.5
-%%  ...
-%%\end{example}
 
 %-----------------------------------------------------------------------------
 \section{Example: Colliding Beam Storage Rings}

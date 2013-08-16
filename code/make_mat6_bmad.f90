@@ -895,6 +895,10 @@ case (sbend$)
       st = sin(angle)
 
       pxy2 = px**2 + py**2
+      if (rel_p2 < pxy2) then
+        if (present(err)) err = .true.
+        return
+      endif
 
       p_long = sqrt(rel_p2 - pxy2)
       dp_long_dpx = -px/p_long

@@ -340,7 +340,7 @@ type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
-real(rp) old_delta_ref_time, old_p0c
+real(rp) old_delta_ref_time, old_p0c, velocity
 integer key
 logical err_flag, err, changed
 
@@ -419,7 +419,8 @@ case (patch$)
     ele%value(p0c$) = p0c_start
   endif
 
-  ele%ref_time = ref_time_start + ele%value(t_offset$)
+  velocity = c_light * ele%value(p0c$) / ele%value(E_tot$)
+  ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(z_offset$) / velocity
 
 case default
   ele%value(E_tot$) = E_tot_start
