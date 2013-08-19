@@ -728,7 +728,7 @@ integer, parameter :: tilt$=2, command$=2, roll$=2  ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$=3, direction$=3
 integer, parameter :: old_command$=3, kick$=3, x_gain_err$=3
 integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
-integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4
+integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
 integer, parameter :: flexible$ = 5, crunch$=5, ref_orbit_follows$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6

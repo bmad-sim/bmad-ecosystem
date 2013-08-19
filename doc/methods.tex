@@ -103,7 +103,10 @@ permission to use the MAD tracking code within \bmad.
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
-accurate. This method is non-symplectic.
+accurate. This method is non-symplectic. Warning: When using
+\vn{custom} fields, if the fields do not obey Maxwell's equation,
+there is the possibility of the \vn{runge_kutta} tracking halting mid
+way through an element. See section~\sref{s:integ} for more details.
 
 \index{symp_lie_Bmad!tracking_method}
 \item[\vn{Symp_Lie_Bmad}]
@@ -639,12 +642,27 @@ Possible values for \vn{field_calc} are:
   grid
   map  
 \end{example}
-\index{custom}
+\index{custom}\index{runge_kutta}
 \vn{Custom} means that the field calculations are done outside of the
 \bmad software. A program doing \vn{Custom} field calculations will
 need the appropriate custom routine (\sref{s:custom.ele}). Elements
 that set \vn{field_calc} to \vn{grid} or \vn{map} need the appropriate
-\vn{field} attribute (\sref{s:em.fields}).
+\vn{field} attribute (\sref{s:em.fields}).  
+
+Warning: When tracking a particle through a custom field using
+\vn{runge_kutta}, it is important that the field obey Maxwell's
+equations. Fields that do not obey Maxwell's Equations may cause the
+\vn{runge_kutta} adaptive step size control algorithm to take smaller
+and smaller steps until the step size becomes so small the tracking
+will stop. What happens is that the step size control algorithm takes
+a step and then takes two half steps over the same region and from
+this estimates the error in the calculation. If the error is larger
+than the allowed tolerance the control algorithm shortens the step and
+tries again. A field that does not obey Maxwell's equations can fool
+the control algorithm into thinking that the error is always larger
+than the allowed tolerance for any finite step size. A typical
+situation is where the field has an unphysical step across some
+boundary.
 
 \index{boris}
 The phase space coordinates used with \vn{boris} tracking are not the

@@ -676,30 +676,11 @@ else
 endif
 
 !------------------
-! If using a continuous aperture...
+! Error check
 
 if (.not. associated(wall3d_ele%wall3d)) then
-  value => wall3d_ele%value
-  if (wall3d_ele%aperture_type == rectangular$) then
-    allocate (v(4))
-    v(1:4)%x = [value(x1_limit$), -value(x2_limit$), -value(x2_limit$),  value(x1_limit$)]
-    v(1:4)%y = [value(y1_limit$),  value(y1_limit$), -value(y2_limit$), -value(y2_limit$)]
-    do i = 1, 4
-      v(i)%angle = atan2(v(i)%y, v(i)%x)
-      if (i == 1) cycle
-      if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
-    enddo
-  else
-    allocate (v(1))
-    v(1) = wall3d_vertex_struct(0.0_rp, 0.0_rp, value(x1_limit$), value(y1_limit$), &
-                                0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
-  endif
-
-  call calc_wall_radius (v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-  d_radius = r_particle - r1_wall
-  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
-  if (present(err_flag)) err_flag = .false.
+  call out_io (s_fatal$, r_name, 'Wall not present for: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
@@ -781,25 +762,11 @@ end function wall3d_d_radius
 !
 ! Function to return a pointer to the element containing the wall associated
 ! with a given lattice element. 
-! Note: 
-!   1) An aperture wall happens when all %value(x1_limit$), etc. are > 0 and
-!      the aperture is continuous (%aperture_at == continuous$). 
-!   2) If a %wall3d exists, it take precedence over an aperture wall.
 !
 ! Normally, wall_ele and ele are the same. However:
-!   1) The wall3d_ele associated with a multipass slave is the first multipass_slave in the chain.
+!   1) The wall3d_ele associated with a multipass slave is the multipass_lord.
 !   2) The wall3d_ele associated with a super_slave will be the super_lord except
 !      if the super_lord is also a multipass_slave in which case rule (1) is applied.
-!
-! Logic to be used by the calling routine:
-!   1) There is a wall3d wall if wall3d_ele and wall3d_ele%wall3d are associated.
-!   2) There is an aperture wall if wall3d_ele is associated but wall3d_ele%wall3d is not.
-!   3) There is no wall of any sort if not associated(wall3d_ele).
-!
-! Why is the wall3d stored in the first multipass_slave instead of the multipass_lord?
-! The reason is that the reference trajectory can be different for different multipass_slaves.
-! By convention, the wall structure is defined with respect to the reference trajectory 
-! of the first multipass_slave so that slave is returned by this routine.
 !
 ! Module needed:
 !   use wall3d_mod
@@ -829,7 +796,7 @@ real(rp) dz_offset
 integer i
 
 logical err_flag
-logical wall3d_conflict, aperture_conflict
+logical wall3d_conflict
 
 ! First find element with a wall.
 
@@ -839,21 +806,18 @@ nullify (wall3d_ele)
 nullify (aperture_ele)
 
 wall3d_conflict = .false.
-aperture_conflict = .false.
 
 if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     ele2 => pointer_to_lord(ele, i)
     if (ele2%slave_status == multipass_slave$) then
       ele2 => pointer_to_lord(ele2, 1)
-      ele2 => pointer_to_slave(ele2, 1) ! Gives first multipass_slave in chain.
     endif
     call this_pointer_to_wall3d_ele (ele2)
   enddo
 
 elseif (ele%slave_status == multipass_slave$) then
   ele2 => pointer_to_lord(ele, 1)
-  ele2 => pointer_to_slave(ele2, 1) ! Gives first multipass_slave in chain.
   call this_pointer_to_wall3d_ele(ele2)
 
 else
@@ -868,7 +832,6 @@ if (associated(wall3d_ele)) then
     return
   endif
 elseif (associated(aperture_ele)) then
-  if (aperture_conflict) return
   wall3d_ele => aperture_ele
 endif
 
@@ -890,13 +853,6 @@ type (ele_struct), target :: this_ele
 
 !
 
-if (this_ele%aperture_at == continuous$ .and. this_ele%value(x1_limit$) > 0 .and. &
-    this_ele%value(x2_limit$) > 0 .and. this_ele%value(y1_limit$) > 0 .and. &
-    this_ele%value(y2_limit$) > 0) then
-  if (associated(aperture_ele)) aperture_conflict = .true.
-  aperture_ele => this_ele
-endif
-
 if (.not. associated(this_ele%wall3d)) return
 if (this_ele%wall3d%priority == ignore$) return
 
@@ -911,5 +867,118 @@ wall3d_ele => this_ele
 end subroutine this_pointer_to_wall3d_ele
 
 end function pointer_to_wall3d_ele
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine next_wall3d_section (ele0, ds_particle, direction, section, sec_ele, patch_between)
+!
+! Routine to return pointers to the closest wall3d cross-section in a given direction relative
+! to a given logitudinal particle position
+!
+! Module needed:
+!   use wall3d_mod
+!
+! Input:
+!   ele0          -- ele_struct: Element particle is in.
+!   ds_particle   -- real(rp): offset of particle from upstream end of element.
+!   direction     -- integer: +1 to find next downstream cross-section. 
+!                      -1 to find next upstream cross-section.
+!
+! Output:
+!   section       -- wall3d_section_struct, pointer: Pointer to appropriate section.
+!                      Not associated if there is no such section.
+!   sec_ele       -- ele_struct, pointer: Pointer to element containing the cross-section.
+!                      Note: sec_ele will be in the tracking part of the lattice so
+!                      sec_ele may be a slave to the lord that actually holds the cross-sections.
+!   patch_between -- logical: Set true if a patch element is between ele0 and sec_ele
+!-
+
+subroutine next_wall3d_section (ele0, ds_particle, direction, section, sec_ele, patch_between)
+
+implicit none
+
+type (ele_struct), target :: ele0
+type (ele_struct), pointer :: sec_ele, ele, s_ele
+type (wall3d_section_struct), pointer :: section
+
+real(rp) ds_particle, dz_offset
+integer i, direction
+logical err_flag, patch_between, bend_between
+
+character(*), parameter :: r_name = 'next_wall3d_section'
+
+! See if there is an appropriate cross-section in this element 
+
+nullify(section)
+nullify(sec_ele)
+patch_between = .false.
+bend_between = .false.
+
+ele => ele0
+s_ele => pointer_to_wall3d_ele (ele, dz_offset, err_flag)
+if (err_flag) return
+
+if (associated(s_ele)) then
+  if (direction > 0) then
+    do i = 1, size(s_ele%wall3d%section)
+      if (s_ele%wall3d%section(i)%s >= ds_particle+dz_offset) then
+        sec_ele => s_ele
+        section => s_ele%wall3d%section(i)
+        return
+      endif
+    enddo
+
+  else
+    do i = size(s_ele%wall3d%section), 1, -1
+      if (s_ele%wall3d%section(i)%s <= ds_particle+dz_offset) then
+        sec_ele => s_ele
+        section => s_ele%wall3d%section(i)
+        return
+      endif
+    enddo
+
+  endif
+endif
+
+! No cross section found in ele0 so start searching neighboring elements
+! Only wrap around branch if the geometry is closed. 
+
+if (.not. associated(ele%branch)) return
+
+do
+  ele => pointer_to_next_ele (ele, direction)
+  if (.not. associated(ele)) return
+
+  if (patch_between .and. bend_between) then
+    call out_io (s_error$, r_name, 'BOTH PATCH AND SBEND ELEMENTS FOUND!')
+    return
+  endif
+
+  if (ele%key == patch$) patch_between = .true.
+  if (ele%key == sbend$) bend_between = .true.
+
+  if (ele%ix_ele == ele0%ix_ele) return  ! Not found
+  if (ele%branch%param%geometry == open$) then
+    if (direction > 0 .and. ele%ix_ele < ele0%ix_ele) return
+    if (direction < 0 .and. ele%ix_ele > ele0%ix_ele) return
+  endif
+
+  s_ele => pointer_to_wall3d_ele (ele, dz_offset, err_flag)
+  if (.not. associated(s_ele)) cycle  
+
+  sec_ele => s_ele
+
+  if (direction > 0) then
+    section => s_ele%wall3d%section(1)
+  else
+    section => s_ele%wall3d%section(size(s_ele%wall3d%section))
+  endif
+
+  return
+enddo
+
+end subroutine next_wall3d_section
 
 end module

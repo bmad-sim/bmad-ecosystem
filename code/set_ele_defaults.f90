@@ -85,6 +85,7 @@ case (multipole$, ab_multipole$)
 case (patch$)
   ele%value(flexible$) = 0 ! False
   ele%value(new_branch$) = 1    ! True
+  ele%value(ref_coordinates$)= exit_end$
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$

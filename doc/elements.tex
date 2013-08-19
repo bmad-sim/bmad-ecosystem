@@ -2419,7 +2419,7 @@ to its entrance face.}
   \label{f:patch}
 \end{figure}
 
-%---------------------------------------------------------------------------------
+%-----------------
 
 A \vn{patch} element shifts the reference orbit and time. Also see
 \vn{floor_shift} (\sref{s:floor.ele}) and \vn{fiducial}
@@ -2519,6 +2519,12 @@ $p_x$, $p_y$ and $p_z$ coordinates via \Eqs{ppp} and \eq{ppppp}.
 Notice that \vn{e_tot_offset} does not affect a particle's actual
 energy, it just affects the difference between the particle energy and
 the reference energy. 
+
+\vn{Important}: The \vn{E_tot_offset}, transformation may be applied
+either before or after the coordinate transformation. This matters
+when the particle speed is less than $c$. If necessary, use two
+patches in a row to ensure the \vn{E_tot_offset} is applied in the
+correct order.
 
 The \vn{t_offset} attribute offsets the reference time:
 \begin{example}

@@ -41,7 +41,11 @@ real(rp) rel_tol, abs_tol, dref_time, beta0, s0, s1, ds_ref
 
 logical err_flag
 
-! Convert to element coords
+! Convert to element coords.
+! For a patch, convert to the downstream coords so that the downstream face 
+! can be simply described as being at s = s1. Also with a patch s is the distance
+! before the downstream face so the s0 starting position is negative and the
+! s1 stopping position is 0.
 
 start2_orb = start_orb
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
@@ -73,10 +77,12 @@ endif
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.
-! dref_time is reference time for transversing the element under the assumption, used by odeint_bmad, that 
-! the reference velocity is constant and equal to the velocity at the final enegy.
+! dref_time is reference time for transversing the element under the assumption, used by 
+! odeint_bmad, that the reference velocity is constant and equal to the velocity at the final enegy.
 
-dref_time = ele%value(l$) / (beta0 * c_light)
-end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
+if (ele%key /= patch$) then
+  dref_time = ele%value(l$) / (beta0 * c_light)
+  end_orb%vec(5) = end_orb%vec(5) + (ele%value(delta_ref_time$) - dref_time) * end_orb%beta * c_light
+endif
 
 end subroutine

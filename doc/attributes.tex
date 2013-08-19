@@ -1108,10 +1108,7 @@ defined, the following syntax is used:
   ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
 \end{example}
 
-As an alternative, if an element defines an aperture (\sref{s:limit}
-with \vn{aperture_at} set to \vn{continuous}, and the element does
-{\it not} have a \vn{wall} structure defined for it, then the aperture
-defines the wall. By definition, such a wall has a constant cross-section.
+Note that element apertures (\sref{s:limit} are independent of walls.
 
 When superimposing elements (\sref{s:super}), there is the problem of
 how to superimpose walls. If only one of the superimposed elements has
@@ -1149,11 +1146,20 @@ one exception is for an \vn{rbend}, the length \vn{l} set in the
 lattice file is the chord length (\sref{s:bend}). internally, \bmad
 converts all \vn{rbend}s to \vn{sbend}s and stores the chord length
 under the \vn{l_chord} attribute.
+Example:
+\begin{example}
+  q: quadrupole, l = 0.6, k1 = 0.3425
+\end{example}
 
 \index{wiggler}
-Note that for \vn{wiggler}s,
-the length \vn{l} is not the same as the path length for a particle
-with the reference energy starting on the reference orbit.
+Note that for \vn{wiggler}s, the length \vn{l} is not the same as the
+path length for a particle with the reference energy starting on the
+reference orbit. See~\sref{s:ref}.
+
+\index{patch}
+For \vn{patch} elements the \vn{l} length is, by definition, equal to
+\vn{z_offset}. For \vn{patch} elements, \vn{l} is a dependent
+attribute and will be automatically set to \vn{z_offset} by \bmad.
 
 %-----------------------------------------------------------------
 \section{Is_on Attribute}
