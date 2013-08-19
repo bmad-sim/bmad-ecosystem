@@ -1301,6 +1301,10 @@ case ('MAT6_CALC_METHOD')
   endif
   ele%mat6_calc_method = switch
 
+case ('REF_COORDINATES')
+  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag)
+  ele%value(ref_coordinates$) = ix
+
 case ('REF_ORBIT_FOLLOWS')
   call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag)
   ele%value(ref_orbit_follows$) = ix

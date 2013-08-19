@@ -781,7 +781,7 @@ call init_attribute_name1 (bend_sol_quad$, field$,                  'FIELD')
 call init_attribute_name1 (bend_sol_quad$, E_tot_start$,            'E_tot_start', private$)
 call init_attribute_name1 (bend_sol_quad$, p0c_start$,              'p0c_start', private$)
 
-call init_attribute_name1 (patch$, l$,                              'L')
+call init_attribute_name1 (patch$, l$,                              'L', dependent$)
 call init_attribute_name1 (patch$, t_offset$,                       'T_OFFSET')
 call init_attribute_name1 (patch$, p0c_start$,                      'P0C_START', dependent$)
 call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START', dependent$)
@@ -789,6 +789,7 @@ call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSE
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', private$)
+call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
@@ -1225,7 +1226,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', 'ORIGIN_ELE_REF_PT', &
       'PARTICLE', 'PTC_FIELD_GEOMETRY', 'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', &
-      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS')
+      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1451,7 +1452,7 @@ case ('MAT6_CALC_METHOD')
 
 case ('ORIGIN_ELE_REF_PT')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ref_pt_name, lbound(ref_pt_name, 1))
-  is_default = (ix_attrib == center_pt$)
+    if (present(is_default)) is_default = (ix_attrib == center_pt$)
 
 case ('PARTICLE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
@@ -1466,12 +1467,16 @@ case ('PARTICLE')
 case ('PTC_FIELD_GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
                                                   lbound(ptc_field_geometry_name, 1))
-  is_default = (ix_attrib == sector$)
+  if (present(is_default)) is_default = (ix_attrib == sector$)
 
 case ('PTC_INTEGRATION_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_integration_type_name, &
                                                   lbound(ptc_integration_type_name, 1))
-  is_default = (ix_attrib == matrix_kick$)
+  if (present(is_default)) is_default = (ix_attrib == matrix_kick$)
+
+case ('REF_COORDINATES')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name(1:2), 1)
+  if (present(is_default)) is_default = (ix_attrib == exit_end$)
 
 case ('REF_ORBIT_FOLLOWS')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
@@ -1495,7 +1500,6 @@ case ('SPIN_TRACKING_METHOD')
 case ('TRACKING_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib, tracking_method_name, lbound(tracking_method_name, 1))
   if (present(is_default)) then
-!!!    call init_ele (ele2, ele%key)
     is_default = (ix_attrib == ele2%tracking_method)
   endif
 
