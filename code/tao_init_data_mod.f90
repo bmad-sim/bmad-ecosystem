@@ -472,8 +472,6 @@ else
 
   do j = n1, n2
 
-    if (u%data(j)%exists) cycle
-
     if (u%data(j)%ele_name == '') cycle
     call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
     call element_locator (u%data(j)%ele_name, u%design%lat, ix)
@@ -582,7 +580,8 @@ do j = n1, n2
     endif
   endif
 
-  if (u%design%lat%param%geometry == closed$ .and. &
+  if (data_type(1:11) == 'expression:' .or. &
+              u%design%lat%param%geometry == closed$ .and. &
               (data_type(1:12)  == 'chrom.dtune.' .or. data_type(1:5)  == 'damp.' .or. &
                data_type(1:17) == 'multi_turn_orbit.' .or. data_type(1:5) == 'tune.' .or. &
                data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0)) then
