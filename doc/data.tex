@@ -528,16 +528,16 @@ The \vn{expression:} The data type can be an expression (\sref{s:arithmetic.exp}
 In this case the \vn{data_type} must begin with the string ``\vn{expression:}''.
 For example:
 \begin{example}
-  datum(i)%data_type = "expression: 1@lat::q10w[beta_a] - 2@lat::q10w[beta_a]"
+  datum(i)%data_type = "expression: 1@ele::q10w[beta_a] - 2@ele::q10w[beta_a]"
 \end{example}
 With this, the value of the datum will be the difference between
 the a-mode beta at element \vn{q10w}
 for universe 1 and universe 2. In this example,
-the source of both terms in the expression is explicitly given as \vn{lat}.
-This is not necessary if the \vn{datum%data_source} is set to \vn{lat}
+the source of both terms in the expression is explicitly given as \vn{ele}.
+This is not necessary if the \vn{datum%data_source} is set to \vn{ele}
 \begin{example}
   datum(i)%data_type = "expression: 1@q10w[beta_a] - 2@q10w[beta_a]"
-  datum(i)%data_source = "lat"
+  datum(i)%data_source = "ele"
 \end{example}
 An expression can also be used as the
 \vn{default_data_type}. In this case, the 
