@@ -563,7 +563,7 @@ end subroutine photon_vert_angle_init
 ! Subroutine photon_energy_init (E_rel, r_in)
 !
 ! Routine to convert a random number in the interval [0,1] to a photon energy.
-! The photon probability splinetrum is:
+! The photon probability spectrum is:
 !   P(E_rel) = 0.1909859 * Integral_{E_rel}^{Infty} K_{5/3}(x) dx
 ! Where
 !   P(E_rel)) = Probability of finding a photon at relative energy E_rel.
@@ -598,9 +598,8 @@ type (photon_init_spline_struct), save :: spline(5)
 real(rp) E_rel
 real(rp), optional :: r_in
 real(rp) rr, x, r_rel, rr0, x0, xp0, x1, xp1, v, vp
-real(rp), save :: a, b, c
 
-integer i, is, ns, n
+integer i, is, n
 
 logical, save :: init_needed = .true.
 character(20) :: r_name = 'photon_energy_init'
@@ -677,13 +676,13 @@ if (init_needed) then
   ! In the range above rr = 0.9999 we use a simple extrapolation.
 
   n = ubound(spline(4)%pt, 1)
-  x1 = spline(4)%pt(n)%c0
+  x1  = spline(4)%pt(n)%c0
   xp1 = spline(4)%pt(n)%c1 * spline(5)%del_x
 
-  x0 = spline(4)%pt(n-1)%c0
+  x0  = spline(4)%pt(n-1)%c0
   xp0 = spline(4)%pt(n-1)%c1 * spline(5)%del_x
 
-  v = x1 - x0 - xp0
+  v  = x1 - x0 - xp0
   vp = xp1 - xp0
 
   spline(5)%pt(0)%c0 = x1
