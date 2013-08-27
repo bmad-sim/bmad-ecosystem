@@ -778,23 +778,25 @@ end subroutine sbend_body_with_k1_map
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
+! Subroutine multipole_kick_mat (knl, tilt, c00, factor, mat6)
 !
-! Subroutine to add to a transfer matrix the effect of a multipole kick.
+! Subroutine to return the multipole kick components needed to
+! construct the transfer matrix.
 ! This routine is not meant for general use.
 !
 ! Input:
-!   knl  -- Real(rp): Strength of multipole
-!   tilt -- Real(rp): Tilt of multipole
-!   c00  -- Coord_struct: coordinates of particle around which the
-!             multipole kick matrix is computed.
-!   mat6(6,6) -- Real(rp): Transfer matrix.
+!   knl(0:)   -- Real(rp): Strength of multipoles
+!   tilt(0:)  -- Real(rp): Tilt of multipoles
+!   c00       -- Coord_struct: coordinates of particle around which the
+!                  multipole kick matrix is computed.
+!   factor    -- real(rp): Factor to scale knl by.
 !
 ! Output:
-!   mat6(6,6) -- Real(rp): Transfer matrix with effect of a multiplole added.
+!   mat6(6,6) -- Real(rp): matrix with kick values at mat6(2:4:2, 1:3:2).
+!                 The rest of the matrix is untouched.
 !-
 
-subroutine mat6_multipole (knl, tilt, c00, factor, mat6)
+subroutine multipole_kick_mat (knl, tilt, c00, factor, mat6)
 
 implicit none
 
@@ -806,6 +808,7 @@ integer n
 
 !                        
 
+mat6(2:4:2, 1:3:2) = 0
 if (c00(1) == 0 .and. c00(3) == 0 .and. knl(1) == 0) return
 
 do n = 1, ubound(knl, 1)
@@ -815,7 +818,7 @@ do n = 1, ubound(knl, 1)
   endif
 enddo
 
-end subroutine mat6_multipole
+end subroutine multipole_kick_mat
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

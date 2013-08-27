@@ -122,7 +122,7 @@ if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$
 if (any (key == [drift$, capillary$])) then
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
   call drift_mat6_calc (mat6, length, ele, param, c00)
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
   return
 endif
@@ -185,7 +185,7 @@ case (beambeam$)
 
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -265,7 +265,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, &
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -512,7 +512,7 @@ case (lcavity$)
 
   if (v(tilt_tot$) /= 0) call tilt_mat6 (mat6, v(tilt_tot$))
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -564,7 +564,7 @@ case (multipole$, ab_multipole$)
   call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
 
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
-  call mat6_multipole (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
+  call multipole_kick_mat (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
 
   ! if knl(0) is non-zero then the reference orbit itself is bent
   ! and we need to account for this.
@@ -606,7 +606,7 @@ case (octupole$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -712,7 +712,7 @@ case (quadrupole$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
@@ -801,7 +801,7 @@ case (rfcavity$)
 
   if (v(tilt_tot$) /= 0) call tilt_mat6 (mat6, v(tilt_tot$))
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -842,9 +842,12 @@ case (sbend$)
 
   ! If we have a sextupole component then step through in steps of length ds_step
 
+  call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
+
   n_slice = 1  
-  if (k2 /= 0) n_slice = max(nint(v(l$) / v(ds_step$)), 1)
+  if (k2 /= 0 .or. has_nonzero_pole) n_slice = max(nint(v(l$) / v(ds_step$)), 1)
   length = length / n_slice
+  knl = knl / n_slice
   k2l = charge_dir * v(k2$) * length  
   
   call transfer_ele(ele, temp_ele1, .true.)
@@ -853,10 +856,20 @@ case (sbend$)
   call transfer_ele(ele, temp_ele2, .true.)
   call zero_ele_offsets(temp_ele2)
   temp_ele2%value(l$) = length
+  temp_ele2%value(k2$) = 0
   temp_ele2%value(e1$) = 0
   temp_ele2%value(e2$) = 0
-  temp_ele2%value(k2$) = 0
- 
+  if (associated(temp_ele2%a_pole)) then
+    nullify (temp_ele2%a_pole)
+    nullify (temp_ele2%b_pole)
+  endif
+
+  ! Add multipole kick
+
+  if (has_nonzero_pole) then
+    call add_multipole_slice (knl, tilt, 0.5_rp, c00, mat6)
+  endif
+
   ! 1/2 sextupole kick at the beginning.
 
   if (k2l /= 0) then
@@ -1044,11 +1057,17 @@ case (sbend$)
     c_int = c00
     call track_a_bend (c_int, temp_ele2, param, c00)
 
-    if (i == n_slice) k2l = k2l/2
+    factor = 1
+    if (i == n_slice) factor = 0.5
+
+    if (has_nonzero_pole) then
+      call add_multipole_slice (knl, tilt, factor, c00, mat6)
+    endif
+
     if (k2l /= 0) then
-      call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat4)
-      c00%vec(2) = c00%vec(2) + k2l * (c00%vec(3)**2 - c00%vec(1)**2)/2
-      c00%vec(4) = c00%vec(4) + k2l * c00%vec(1) * c00%vec(3)
+      call mat4_multipole (k2l*factor, 0.0_rp, 2, c00%vec, kmat4)
+      c00%vec(2) = c00%vec(2) + k2l * factor * (c00%vec(3)**2 - c00%vec(1)**2)/2
+      c00%vec(4) = c00%vec(4) + k2l * factor * c00%vec(1) * c00%vec(3)
       mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
     end if
 
@@ -1084,7 +1103,7 @@ case (sbend$)
 
   if (v(ref_tilt_tot$) /= 0) call tilt_mat6 (mat6, v(ref_tilt_tot$))
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.false.)
   call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
@@ -1116,7 +1135,7 @@ case (sextupole$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -1204,7 +1223,7 @@ case (solenoid$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
@@ -1221,7 +1240,7 @@ case (sol_quad$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
@@ -1243,7 +1262,7 @@ case (wiggler$, undulator$)
   call mat_make_unit (mat6)     ! make a unit matrix
 
   if (length == 0) then
-    call add_multipoles_and_z_offset ()
+    call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
     return
   endif
@@ -1292,7 +1311,7 @@ case (wiggler$, undulator$)
     call tilt_mat6 (mat6, v(tilt_tot$))
   endif
 
-  call add_multipoles_and_z_offset ()
+  call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
@@ -1310,28 +1329,44 @@ case default
 end select
 
 !--------------------------------------------------------
-! put in multipole components
-
 contains
 
-subroutine add_multipoles_and_z_offset ()
+subroutine add_multipole_slice (knl, tilt, factor, orb, mat6)
 
-implicit none
-
-real(rp) mat6_m(6,6)
-logical has_nonzero_pole
+type (coord_struct) orb
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp) mat6(6,6), factor, mat6_m(6,6)
 
 !
 
-if (key /= multipole$ .and. key /= ab_multipole$) then
+call multipole_kick_mat (knl, tilt, orb%vec, factor, mat6_m)
+
+mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
+mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
+
+call multipole_kicks (knl*factor, tilt, orb)
+
+end subroutine
+
+!--------------------------------------------------------
+! contains
+
+! put in multipole components
+
+subroutine add_multipoles_and_z_offset (add_pole)
+
+real(rp) mat6_m(6,6)
+logical has_nonzero_pole, add_pole
+
+!
+
+if (add_pole) then
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
-    mat6_m = 0
-    call mat6_multipole (knl, tilt, c0%vec, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, c0%vec, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    mat6_m = 0
-    call mat6_multipole (knl, tilt, c1%vec, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, c1%vec, 0.5_rp, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif
