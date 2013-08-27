@@ -42,16 +42,17 @@ rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 
                              x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
                              tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1
-sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
-sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
+sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
 sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, 
-                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
 sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, 
-                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+                          x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend6:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, 
                           y_pitch = 0.001, ref_tilt = 0.1
-sbend7:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
+sbend7:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, 
+                          a1 = 10, a3 = 100
 sextupole1:        sextupole, l = 0.6, k2 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 solenoid1:         solenoid, l = 2.6, ks = 1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 solenoid2:         solenoid, l = 2.6, ks = 1e-12, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1

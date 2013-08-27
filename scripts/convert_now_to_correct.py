@@ -15,9 +15,9 @@ for now_line in now_file:
     temp_file.write(now_line)    # comment line
 
   else:
-    split = now_line.split('"', 2)
+    split = now_line.split('"', 4)
 
-    if split[0].strip() != '' or len(split) != 3:
+    if split[0].strip() != '':
       print('Cannot parse line: ' + now_line.strip())
       continue
 
@@ -28,8 +28,8 @@ for now_line in now_file:
       print('Cannot subparse line: ' + now_line)
       continue
 
-    if (s2[0] == 'STR'):
-      temp_file.write('"' + split[1] + '"   ' + '  '.join(s2[1:]) + '\n')
+    if (s2[0].strip() == 'STR'):
+      temp_file.write('"' + split[1] + '"    "' + split[3] + '"\n')
     else:
       temp_file.write('"' + split[1] + '"   ' + '  '.join(s2[2:]) + '\n')
 
