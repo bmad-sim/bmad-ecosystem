@@ -79,7 +79,7 @@ do i = 1, branch%n_ele_track
 
   enddo
 
-  write (1, '(4a)') '"IN-OUT:', trim(ele%name), '" STR ', str
+  write (1, '(6a)') '"IN-OUT:', trim(ele%name), '" STR  "', trim(str), '"'
 
 enddo
 
@@ -217,8 +217,7 @@ else
   if (abs(val-val2) / abs(val+val2) < 1e-10) return
 endif
 
-write (str, '(a, i0, 2a, 2es20.10, a)') &
-        '"', ix_attrib, ':', trim(attribute_name(ele, ix_attrib)), val, val2, '"'
+write (str, '(i0, 2a, 2es20.10)') ix_attrib, ':', trim(attribute_name(ele, ix_attrib)), val, val2
 
 end subroutine
 
