@@ -87,6 +87,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     branch => tao_lat%lat%branch(ib)
     u%info%lat_len_tot = u%info%lat_len_tot + branch%param%total_length
 
+    call tao_data_coupling_init(branch)
+
     do j = 1, 6
       tao_lat%lat_branch(ib)%orbit%vec(j) = 0.0
     enddo
