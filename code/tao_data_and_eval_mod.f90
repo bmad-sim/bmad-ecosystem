@@ -353,10 +353,6 @@ character(20) :: r_name = 'tao_load_data_array'
 
 logical good
 
-!
-
-if (ix_ele == 0) call tao_data_coupling_init (u) 
-  
 ! find which datums to evaluate here
 
 if (.not. allocated(u%uni_branch(ix_branch)%ele(ix_ele)%ix_datum)) return
@@ -383,24 +379,23 @@ end subroutine tao_load_data_array
 !+
 ! Subroutine tao_data_coupling_init (u)
 !
-! Subroutine to initialize the coupling structure for a universe.
-! This subroutine should be called before tao_evaluate_a_datum is
-! called for a particular universe.
+! Routine to initialize the coupling structure for a lattice branch.
+! This routine is called by tao_lattic_calc and is not meant for general use.
 !
 ! Input:
-!   u -- Tao_universe_struct: New universe.
+!   branch -- branch_struct: New lattice branch.
 !-
 
-subroutine tao_data_coupling_init (u)
+subroutine tao_data_coupling_init (branch)
 
 implicit none
 
-type (tao_universe_struct) u
+type (branch_struct) branch
 integer m
 
 ! 
 
-m = u%model%lat%n_ele_max
+m = branch%n_ele_max
 if (.not. allocated(scratch%cc)) allocate (scratch%cc(0:m))
 if (ubound(scratch%cc, 1) < m) then
   deallocate(scratch%cc)
