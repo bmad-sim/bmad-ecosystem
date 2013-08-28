@@ -165,7 +165,7 @@ write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es15.7)'
 
-if (ele%lord_status == overlay_lord$) then
+if (ele%key == overlay$) then
   i = ele%ix_value
   call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
   if (err_flag) call err_exit

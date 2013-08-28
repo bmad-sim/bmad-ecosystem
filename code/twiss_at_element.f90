@@ -37,7 +37,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   type (ele_pointer_struct), allocatable :: slaves(:)
 
   integer ix_ele, ix1, ix2
-  integer i, ix, n_slave, ct
+  integer i, ix, n_slave, key
 
   real(rp) rr, tot, l_now
 
@@ -81,7 +81,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
       end = ele
     endif
 
-  case default   ! overlay_lord$ or group_lord$
+  case default   ! overlay$ or group$
 
     call get_slave_list (ele, slaves, n_slave)
     ix1 = lat%n_ele_track;  ix2 = 0
@@ -108,12 +108,12 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   if (.not. present(average)) return
   call zero_ave (average)
   if (ele%n_slave == 0) return
-  ct = ele%lord_status
+  key = ele%key
 
   tot = 0
   do i = ele%ix1_slave, ele%ix2_slave
     ix = lat%control(i)%ix_slave
-    if (ct == group_lord$ .or. ct == overlay_lord$) then
+    if (key == group$ .or. key == overlay$) then
       tot = tot + abs(lat%control(i)%coef) * lat%ele(ix)%value(l$)
     else
       tot = tot + lat%ele(ix)%value(l$)
@@ -126,7 +126,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
     call twiss_at_element (lat, ix, average = slave_ave)
     if (tot == 0) then
       rr = 1.0 / ele%n_slave
-    elseif (ct == group_lord$ .or. ct == overlay_lord$) then
+    elseif (key == group$ .or. key == overlay$) then
       rr = abs(lat%control(i)%coef) * slave_ave%value(l$) / tot
     else
       rr = slave_ave%value(l$) / tot

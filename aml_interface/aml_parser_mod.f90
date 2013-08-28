@@ -464,7 +464,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
   found = parser_set_attribute_value (attrib_node, 'coef', coef_str)
   found = parser_set_attribute_value (attrib_node, 'attribute', dflt_attrib)
 
-  if (ele%lord_status == overlay_lord$) then
+  if (ele%key == overlay$) then
     call str_upcase (dflt_attrib, dflt_attrib)
     ele%component_name = dflt_attrib
     ele%ix_value = attribute_index(ele, dflt_attrib)
@@ -552,7 +552,7 @@ enddo
 
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
-  if (lat%ele(ix)%lord_status == group_lord$) cycle
+  if (lat%ele(ix)%key == group$) cycle
   ix = lat%control(i)%ix_slave
   lat%ele(ix)%n_lord = lat%ele(ix)%n_lord + 1
 enddo
@@ -569,7 +569,7 @@ enddo
 
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
-  if (lat%ele(ix)%lord_status == group_lord$) cycle
+  if (lat%ele(ix)%key == group$) cycle
   ix = lat%control(i)%ix_slave
   slave_ele => lat%ele(ix)
   if (slave_ele%n_lord == 0) cycle

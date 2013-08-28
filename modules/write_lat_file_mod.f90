@@ -253,8 +253,8 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Overlays and groups
 
-    if (ele%lord_status == overlay_lord$ .or. ele%lord_status == group_lord$) then
-      if (ele%lord_status == overlay_lord$) then
+    if (ele%key == overlay$ .or. ele%key == group$) then
+      if (ele%key == overlay$) then
         write (line, '(2a)') trim(ele%name), ': overlay = {'
       else
         write (line, '(2a)') trim(ele%name), ': group = {'
@@ -283,7 +283,7 @@ do ib = 0, ubound(lat%branch, 1)
       else
         line = trim(line) // ', ' // ele%component_name
       endif
-      if (ele%lord_status == overlay_lord$) then
+      if (ele%key == overlay$) then
         ix = ele%ix_value
         if (ele%value(ix) /= 0) write (line, '(3a)') &
                             trim(line), ' = ', str(ele%value(ix))
@@ -298,7 +298,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Girder
 
-    if (ele%lord_status == girder_lord$) then
+    if (ele%key == girder$) then
       write (line, '(2a)') trim(ele%name), ': girder = {'
       do j = 1, ele%n_slave
         slave => pointer_to_slave(ele, j)
