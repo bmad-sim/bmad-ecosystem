@@ -368,10 +368,10 @@ if (use_cache .or. init_cache) then
           do ip = 0, ubound(a_pole, 1)
             if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
             call ab_multipole_kick (a_pole(ip), b_pole(ip), ip, orb_end, kx, ky, dk)
-            c_pt%dgx_dx = c_pt%dgx_dx + dk(1,1)
-            c_pt%dgx_dy = c_pt%dgx_dy + dk(1,2)
-            c_pt%dgy_dx = c_pt%dgy_dx + dk(2,1)
-            c_pt%dgy_dy = c_pt%dgy_dy + dk(2,2)
+            c_pt%dgx_dx = c_pt%dgx_dx - dk(1,1) / ele2%value(l$)
+            c_pt%dgx_dy = c_pt%dgx_dy - dk(1,2) / ele2%value(l$)
+            c_pt%dgy_dx = c_pt%dgy_dx - dk(2,1) / ele2%value(l$)
+            c_pt%dgy_dy = c_pt%dgy_dy - dk(2,2) / ele2%value(l$)
           enddo
         endif
 
