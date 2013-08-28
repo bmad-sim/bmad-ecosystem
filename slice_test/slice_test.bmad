@@ -13,9 +13,12 @@ beam_start[px] = 0e-4
 bend: sbend, rho = 1, angle = pi/10, y_pitch = 1e-4, ref_tilt = 1.5, roll = 2e-4,
           x_offset = 0.1, y_offset = 0.2
 bend2: bend
-m: marker, superimpose, ref = bend, offset = 0.1
+bend3: bend, rho = 1, angle = 1, b1 = 1
 
-lat: line = (bend, bend2)
+m: marker, superimpose, ref = bend, offset = 0.1
+m3: marker, superimpose, ref = bend3
+
+lat: line = (bend, bend2, bend3)
 
 ! branch 1
 
