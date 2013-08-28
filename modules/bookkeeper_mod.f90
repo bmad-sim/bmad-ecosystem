@@ -328,7 +328,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
 
   ! Lord bookkeeping
 
-  if (ele%lord_status == group_lord$) then
+  if (ele%key == group$) then
     call makeup_group_lord (lat, ele)
     call_a_bookkeeper = .true.
   endif
@@ -1766,9 +1766,9 @@ do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, ix_con)
 
   if (lord%lord_status == multipass_lord$) cycle
-  if (lord%lord_status == group_lord$) cycle
+  if (lord%key == group$) cycle
 
-  if (lord%lord_status == girder_lord$ .and. has_orientation_attributes(slave)) then
+  if (lord%key == girder$ .and. has_orientation_attributes(slave)) then
     v => lord%value
     vs => slave%value
 
@@ -1819,8 +1819,8 @@ do i = 1, slave%n_lord
     cycle
   endif
 
-  if (lord%lord_status /= overlay_lord$) then
-    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY_LORD \i\ ', ix_slave)
+  if (lord%key /= overlay$) then
+    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
     call type_ele (slave, .true., 0, .false., 0, .true.)
     if (global_com%exit_on_error) call err_exit
   endif     
@@ -2060,7 +2060,7 @@ if (.not. bmad_com%auto_bookkeeper) then
     call set_ele_status_stale (ele, s_position_group$)
   endif
 
-  if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
+  if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
       ele%lord_status /= multipass_lord$) then
     call set_ele_status_stale (ele, mat6_group$)
   endif
@@ -2706,7 +2706,7 @@ endif
 
 ! Transfer matrix calc needs to be flagged
 
-if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$ .and. &
+if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
     ele%lord_status /= multipass_lord$) then
   call set_ele_status_stale (ele, mat6_group$)
 endif
@@ -2730,7 +2730,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 ! A length change involves changes in the floor position.
 
 if (associated(a_ptr, ele%value(l$))) then
-  if (ele%lord_status /= overlay_lord$ .and. ele%lord_status /= group_lord$) then
+  if (ele%key /= overlay$ .and. ele%key /= group$) then
     call set_ele_status_stale (ele, s_position_group$)
     call set_ele_status_stale (ele, floor_position_group$)
   endif

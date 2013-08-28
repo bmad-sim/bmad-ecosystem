@@ -84,8 +84,8 @@ do i = 1, girder_ele%n_slave
 
   ! You cannot control super_slaves, group_lords or overlay_lords
 
-  if (slave%slave_status == super_slave$ .or. slave%lord_status == group_lord$ .or. &
-                                          slave%lord_status == overlay_lord$) then
+  if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. &
+                                          slave%key == overlay$) then
     print *, 'ERROR IN CREATE_GIRDER: ILLEGAL GIRDER ON ', slave%name
     print *, '      BY: ', girder_ele%name
     if (global_com%exit_on_error) call err_exit

@@ -188,7 +188,7 @@ if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
-elseif (ele%lord_status == overlay_lord$) then
+elseif (ele%key == overlay$) then
   if (ix_att == ele%ix_value) then
     attrib_name = ele%component_name
   else
@@ -254,7 +254,7 @@ if (ele%key <= 0 .or. ele%key > n_key$) then
   attrib_info%name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_info%name = '!BAD INDEX'
-elseif (ele%lord_status == overlay_lord$) then
+elseif (ele%key == overlay$) then
   if (ix_att == ele%ix_value) then
     attrib_info%name = ele%component_name
     attrib_info%type = free$

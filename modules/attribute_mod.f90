@@ -1143,7 +1143,7 @@ endif
 
 ! only one particular attribute of an overlay lord is allowed to be adjusted
 
-if (ele%lord_status == overlay_lord$) then
+if (ele%key == overlay$) then
   if (ix_attrib /= ele%ix_value) then
     if (do_print) call print_error (ele, ix_attrib, &
            'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
@@ -1153,7 +1153,7 @@ if (ele%lord_status == overlay_lord$) then
   return
 endif
 
-if (ele%lord_status == group_lord$) then
+if (ele%key == group$) then
   if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
     if (do_print) call print_error (ele, ix_attrib, &
           'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
@@ -1207,9 +1207,9 @@ if (.not. do_except_overlay) then
     lord => pointer_to_lord(ele, i, ix)
     if (present(ix_lord)) then
       if (ix_lord == lord%ix_ele) cycle
-      if (lat%ele(ix_lord)%lord_status == overlay_lord$) cycle
+      if (lat%ele(ix_lord)%key == overlay$) cycle
     endif
-    if (lord%lord_status == overlay_lord$) then
+    if (lord%key == overlay$) then
       if (lat%control(ix)%ix_attrib == ix_attrib) then 
         if (do_print) call print_error (ele, ix_attrib, & 
            'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lord%name)

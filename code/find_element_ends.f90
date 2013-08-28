@@ -59,7 +59,7 @@ if (ele%n_slave == 0) then
     ele2 => ele
   endif
 
-elseif (ele%lord_status == super_lord$ .or. ele%lord_status == girder_lord$ .or. &
+elseif (ele%lord_status == super_lord$ .or. ele%key == girder$ .or. &
         ele%lord_status == multipass_lord$) then
   ele1 => ele
   do

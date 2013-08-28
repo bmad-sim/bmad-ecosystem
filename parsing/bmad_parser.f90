@@ -945,7 +945,7 @@ enddo
 
 do i = 1, n_max
   lord => in_lat%ele(i)
-  if (lord%lord_status /= girder_lord$) cycle
+  if (lord%key /= girder$) cycle
   pele => plat%ele(i)
   j = 0
   do 
@@ -992,7 +992,7 @@ do i = 1, n_max
   endif
 enddo
 
-! Now put in the overlay_lord, girder, and group elements
+! Now put in the overlay, girder, and group elements
 
 call parser_add_lord (in_lat, n_max, plat, lat)
 

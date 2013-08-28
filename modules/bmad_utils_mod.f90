@@ -1551,8 +1551,8 @@ endif
 contains
 
 subroutine set_attributes
-  if (ele%lord_status == overlay_lord$) return
-  if (ele%lord_status == group_lord$) return
+  if (ele%key == overlay$) return
+  if (ele%key == group$) return
   ele%bookkeeping_state%attributes = stale$
   if (associated(state)) state%attributes = stale$
 end subroutine set_attributes
@@ -1619,8 +1619,8 @@ end subroutine set_ptc
 ! must always check a branch due to possible reference orbit shifts.
 
 subroutine set_mat6
-  if (ele%lord_status == overlay_lord$) return
-  if (ele%lord_status == group_lord$) return
+  if (ele%key == overlay$) return
+  if (ele%key == group$) return
   if (ele%lord_status == multipass_lord$) return
   ele%bookkeeping_state%mat6 = stale$
 end subroutine set_mat6

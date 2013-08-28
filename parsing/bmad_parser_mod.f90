@@ -3898,8 +3898,8 @@ do
 
     ref_ele => branch%ele(i_ele)
      
-    if (ref_ele%lord_status == group_lord$ .or. ref_ele%slave_status == super_slave$) cycle
-    if (ref_ele%lord_status == girder_lord$) cycle
+    if (ref_ele%key == group$ .or. ref_ele%slave_status == super_slave$) cycle
+    if (ref_ele%key == girder$) cycle
     if (ref_ele%old_is_on) cycle
     if (.not. match_wild(ref_ele%name, pele%ref_name)) cycle
 
@@ -4097,7 +4097,7 @@ type (ele_struct), pointer :: slave
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix, ct
+integer i, ix
 
 real(rp) s_ref_begin, s_ref_end
 
@@ -4116,8 +4116,8 @@ endif
 
 ! Find the refernce point in the lattice.
 
-ct = ref_ele%lord_status
-if (ct == overlay_lord$ .or. ct == girder_lord$) then
+select case (ref_ele%key)
+case (overlay$, girder$)
   s_ref_begin = 1e10
   s_ref_end = 0
   do i = 1, ref_ele%n_slave
@@ -4125,13 +4125,13 @@ if (ct == overlay_lord$ .or. ct == girder_lord$) then
     s_ref_begin = min(s_ref_begin, slave%s - slave%value(l$))
     s_ref_end = max(s_ref_end, slave%s)
   enddo
-elseif (ct == group_lord$) then
+case (group$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON GROUP' // pele%ref_name)
   return
-else
+case default
   s_ref_begin = ref_ele%s - ref_ele%value(l$)
   s_ref_end = ref_ele%s
-endif
+end select
 
 ! Now compute the s position at the end of the element and put it in ele%s.
 
@@ -4593,8 +4593,8 @@ main_loop: do n = 1, n2
   !-----------------------------------------------------
   ! overlay and groups
 
-  select case (lord%lord_status)
-  case (overlay_lord$, group_lord$)
+  select case (lord%key)
+  case (overlay$, group$)
  
     call new_control (lat, ix_lord)  ! get index in lat where lord goes
     lat%ele(ix_lord) = lord
@@ -4656,7 +4656,7 @@ main_loop: do n = 1, n2
         ix = attribute_index(slave, attrib_name)
         ! If attribute not found it may be a special attribute like accordian_edge$.
         ! A special attribute will have ix > num_ele_attrib$
-        if (ix < 1 .and. lord%lord_status == group_lord$) then
+        if (ix < 1 .and. lord%key == group$) then
           ix = attribute_index(lord, attrib_name)
           if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
         endif
@@ -4705,10 +4705,10 @@ main_loop: do n = 1, n2
 
     ns = lord%n_slave
 
-    select case (lord%lord_status)
-    case (overlay_lord$)
+    select case (lord%key)
+    case (overlay$)
       call create_overlay (lat, ix_lord, lord%component_name, cs(1:ns), err)
-    case (group_lord$)
+    case (group$)
       call create_group (lat, ix_lord, cs(1:ns), err)
     end select
     if (err) call parser_error ('ELEMENT OR GROUP: ' // lord%name, &
@@ -4722,7 +4722,7 @@ main_loop: do n = 1, n2
   ! this girder is for a different lattice and ignore the girder. If some do match and 
   ! some don't then flag this as an error.
 
-  case (girder_lord$)
+  case (girder$)
 
     ! Loop over all elements in the lattice.
 
@@ -4856,7 +4856,7 @@ if (match_wild(ele%name, input_slave_name)) then
 
   ! If match to a girder then move pointers to element after latst girder slave
 
-  if (ele%lord_status == girder_lord$) then
+  if (ele%key == girder$) then
     call find_element_ends (ele, slave1, slave2)
     ix_ele_now = slave2%ix_ele + 1
   endif

@@ -194,7 +194,7 @@ integer i
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord(ele, i)
-  if (lord%lord_status /= girder_lord$) cycle
+  if (lord%key /= girder$) cycle
   if (lord%bookkeeping_state%floor_position /= stale$) cycle
   call girder_lord_geometry (lord)
 enddo
