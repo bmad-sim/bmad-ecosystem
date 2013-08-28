@@ -188,7 +188,7 @@ do i = 1, n_control
   slave%n_lord = slave%n_lord + 1
   call add_lattice_control_structs (lat, slave)
   lat%ic(slave%ic2_lord) = n_con
-  if (slave%slave_status == free$) slave%slave_status = group_slave$
+  if (slave%slave_status == free$) slave%slave_status = control_slave$
 
 enddo
 

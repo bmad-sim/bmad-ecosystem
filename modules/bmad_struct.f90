@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 127
+integer, parameter :: bmad_inc_version$ = 128
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -892,17 +892,17 @@ character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'OPEN        '
 logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 ! control element logicals
+! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
 
 integer, parameter :: free$ = 1, super_slave$ = 2, control_slave$ = 3
 integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, group_slave$ = 11, slice_slave$ = 12
-integer, parameter :: overlay_slave$ = 3  ! Depracated name.
+integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
 
 character(16), parameter :: control_name(12) = [ &
             'FREE           ', 'SUPER_SLAVE    ', 'CONTROL_SLAVE  ', 'GROUP_LORD     ', &
             'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
-            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'GROUP_SLAVE    ', 'SLICE_SLAVE    ']
+            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
 
 logical, parameter :: set$ = .true., unset$ = .false.
 
