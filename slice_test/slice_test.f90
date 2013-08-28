@@ -7,6 +7,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele0
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
 type (coord_struct) start_orb, end_orb, end_orb2, orbit
@@ -38,46 +39,6 @@ call bmad_parser ('slice_test.bmad', lat)
 open (1, file = 'output.now')
 
 !------------------------------------------------
-! Test branch 2
-
-branch => lat%branch(2)
-call init_coord (start_orb, lat%beam_start, branch%ele(0), .true.)
-
-s_end = branch%ele(1)%s
-orbit = start_orb
-ele = branch%ele(0)
-do i = 1, 100
-  call twiss_and_track_from_s_to_s (branch, orbit, i * s_end / 100, orbit, ele, ele)
-enddo
-
-call reallocate_coord (ref_orb, lat, branch%ix_branch)
-ref_orb(0) = start_orb
-call track_all (lat, ref_orb, branch%ix_branch)
-call lat_make_mat6(lat, -1, ref_orb, branch%ix_branch)
-call twiss_propagate_all (lat, branch%ix_branch)
-
-end_orb = ref_orb(branch%n_ele_track)
-end_ele = branch%ele(branch%n_ele_track)
-
-write (1, '(a, 2es22.12)') '"B2:vec(1)" ABS  1e-14', end_orb%vec(1), end_orb%vec(1) - orbit%vec(1)
-write (1, '(a, 2es22.12)') '"B2:vec(2)" ABS  1e-14', end_orb%vec(2), end_orb%vec(2) - orbit%vec(2)
-write (1, '(a, 2es22.12)') '"B2:vec(3)" ABS  1e-14', end_orb%vec(3), end_orb%vec(3) - orbit%vec(3)
-write (1, '(a, 2es22.12)') '"B2:vec(4)" ABS  1e-14', end_orb%vec(4), end_orb%vec(4) - orbit%vec(4)
-write (1, '(a, 2es22.12)') '"B2:vec(5)" ABS  1e-14', end_orb%vec(5), end_orb%vec(5) - orbit%vec(5)
-write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  1e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
-write (1, '(a, 2es22.12)') '"B2:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
-
-write (1, *)
-write (1, '(a, 2f22.14)') '"B2:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele%a%beta
-write (1, '(a, 2f22.14)') '"B2:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele%b%beta
-write (1, '(a, 2f22.14)') '"B2:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele%a%alpha
-write (1, '(a, 2f22.14)') '"B2:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele%b%alpha
-write (1, '(a, 2f22.14)') '"B2:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele%a%eta
-write (1, '(a, 2f22.14)') '"B2:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele%b%eta
-
-if (print_extra) stop
-
-!------------------------------------------------
 ! Test branch 0
 
 branch => lat%branch(0)
@@ -91,6 +52,18 @@ call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
 
 write (1, '(a, 6es18.9)') '"bend:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
 write (1, '(a, es18.9)')  '"bend:dt" ABS 1e-14  ', end_orb2%t - end_orb%t
+
+! track slice
+
+ele = branch%ele(0)
+call init_coord (start_orb, start_orb, branch%ele(5), .true.)
+start_orb%s = branch%ele(4)%s + 0.1
+start_orb%location = inside$
+call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
+write (1, '(a, 2es18.9)') '"slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
+write (1, '(a, 2es18.9)') '"slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+
+if (print_extra) stop
 
 !------------------------------------------------
 ! Test branch 1
@@ -201,6 +174,46 @@ write (1, '(a, 6f17.12)') '"Dd:xmat_c(4,:)" ABS  1e-10', xmat_c(4,:) - xmat_d(4,
 write (1, '(a, 6f17.12)') '"Dd:xmat_c(5,:)" ABS  1e-10', xmat_c(5,:) - xmat_d(5,:)
 write (1, '(a, 6f17.12)') '"Dd:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - xmat_d(6,:)
 write (1, '(a, 6f17.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
+
+!------------------------------------------------
+! Test branch 2
+
+branch => lat%branch(2)
+call init_coord (start_orb, lat%beam_start, branch%ele(0), .true.)
+
+s_end = branch%ele(1)%s
+orbit = start_orb
+ele = branch%ele(0)
+do i = 1, 100
+  call twiss_and_track_from_s_to_s (branch, orbit, i * s_end / 100, orbit, ele, ele)
+enddo
+
+call reallocate_coord (ref_orb, lat, branch%ix_branch)
+ref_orb(0) = start_orb
+call track_all (lat, ref_orb, branch%ix_branch)
+call lat_make_mat6(lat, -1, ref_orb, branch%ix_branch)
+call twiss_propagate_all (lat, branch%ix_branch)
+
+end_orb = ref_orb(branch%n_ele_track)
+end_ele = branch%ele(branch%n_ele_track)
+
+write (1, '(a, 2es22.12)') '"B2:vec(1)" ABS  1e-14', end_orb%vec(1), end_orb%vec(1) - orbit%vec(1)
+write (1, '(a, 2es22.12)') '"B2:vec(2)" ABS  1e-14', end_orb%vec(2), end_orb%vec(2) - orbit%vec(2)
+write (1, '(a, 2es22.12)') '"B2:vec(3)" ABS  1e-14', end_orb%vec(3), end_orb%vec(3) - orbit%vec(3)
+write (1, '(a, 2es22.12)') '"B2:vec(4)" ABS  1e-14', end_orb%vec(4), end_orb%vec(4) - orbit%vec(4)
+write (1, '(a, 2es22.12)') '"B2:vec(5)" ABS  1e-14', end_orb%vec(5), end_orb%vec(5) - orbit%vec(5)
+write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  1e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
+write (1, '(a, 2es22.12)') '"B2:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
+
+write (1, *)
+write (1, '(a, 2f22.14)') '"B2:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele%a%beta
+write (1, '(a, 2f22.14)') '"B2:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele%b%beta
+write (1, '(a, 2f22.14)') '"B2:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele%a%alpha
+write (1, '(a, 2f22.14)') '"B2:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele%b%alpha
+write (1, '(a, 2f22.14)') '"B2:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele%a%eta
+write (1, '(a, 2f22.14)') '"B2:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele%b%eta
+
+!
 
 close (1)
 
