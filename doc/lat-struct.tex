@@ -343,15 +343,11 @@ and sometimes convenient, for programs to set the \vn{%lord_status} of
 a lord element to \vn{not_a_lord\$}.
 
 \index{super_slave\$}\index{multipass_slave\$}
-\index{control_slave\$}\index{group_slave\$}\index{free\$}\index{slice_slave\$}
+\index{control_slave\$}\index{free\$}\index{slice_slave\$}
 The possible values for the \vn{ele%slave_status} component are:
   \begin{description}
   \item[free\$]\Newline
 Free elements do not have any lord elements controlling them.
-  \item[group_slave\$]\Newline
-A \vn{group_slave} is an element that has one or more \vn{group_lord}
-elements controlling the slave's attributes.  A \vn{group_slave} 
-will not have any other types of lords.
   \item[multipass_slave\$]\Newline
 A \vn{multipass_slave} element is the slave of a \vn{multipass_lord}
 (\sref{s:multipass}).
@@ -393,7 +389,6 @@ be in either the tracking or control parts of the branch.
     \\ \midrule
     %                         NL  GR  GI  O   M   S
     \vn{free\$}             & X & X & X & X & X & X \\ 
-    \vn{group_slave\$}      & X & X & X & X & X & X \\ 
     \vn{control_slave\$}    & X & X & X & X & X & X \\ 
     \vn{multipass_slave\$}  & X &   &   &   &   & X \\ 
     \vn{slice_slave\$}      & X &   &   &   &   &   \\
@@ -418,7 +413,6 @@ be in either the tracking or control parts of the branch.
     \\ \midrule
     %                         NL  GR  GI  O   M   S
     \vn{free\$}             &   &   &   &   &   &   \\ 
-    \vn{group_slave\$}      &   & X &   &   &   &   \\ 
     \vn{control_slave\$}    &   & X & X & X &   &   \\ 
     \vn{multipass_slave\$}  &   & X &   & X & 1 &   \\ 
     \vn{super_slave\$}      &   & X &   & X &   & X \\ \bottomrule

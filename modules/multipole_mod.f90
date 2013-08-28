@@ -153,7 +153,7 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   b = 0
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (ele%slave_status == super_slave$ .and. lord%lord_status /= super_lord$) cycle
+    if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     call multipole_ele_to_ab (lord, param, use_ele_tilt, has_nonzero, this_a, this_b)
     if (.not. has_nonzero) cycle
     has_nonzero_pole = .true.
@@ -323,7 +323,7 @@ endif
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (lord%lord_status /= super_lord$) cycle
+    if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     call convert_this_ab (lord, this_a, this_b)
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
