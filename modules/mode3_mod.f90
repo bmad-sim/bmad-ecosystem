@@ -16,6 +16,7 @@ REAL(rp), PARAMETER :: Qinv_i(6,6) = RESHAPE( [o,-m,o,o,o,o, o,m,o,o,o,o, o,o,o,
 REAL(rp), PARAMETER :: S(6,6) = RESHAPE( [o,-l,o,o,o,o, l,o,o,o,o,o,  &
                                           o,o,o,-l,o,o, o,o,l,o,o,o,  &
                                           o,o,o,o,o,-l, o,o,o,o,l,o],[6,6] )
+REAL(rp), PARAMETER :: I2(2,2) = RESHAPE( [1,0, 0,1],[2,2] )
 
 PRIVATE m, o, l
 PRIVATE Qr, Qi
@@ -66,6 +67,125 @@ SUBROUTINE normal_mode3_calc (mat, tune, G, V, synchrotron_motion)
   CALL make_V(N,gamma,V)
 
 END SUBROUTINE normal_mode3_calc
+
+!+
+! Subroutine mode3_PBRH (mat, tune, B, R, H)
+!
+! Parameterizes the eigen-decomposition of the 6x6 transfer matrix into PBRH as defined in:
+! "From the beam-envelop matrix to synchrotron-radiation integrals" by Ohmi, Hirata, and Oide.
+!
+! M = Inverse[V].U.V where U is block diagonal and the blocks are 2x2 rotation matrices.
+! V = P.B.R.H
+! P has the same free parameters as B
+! B has 6 free parameters (Twiss alphas and betas)
+! R has 4 free parameters (xy, xpy, ypx, and pxpy coupling)
+! H has 8 free parameters (xz, xpz, pxz, pxpz, yz, ypz, pyz, pypz coupling)
+! 
+!
+! Input:
+!  mat(6,6)            -- real(rp): 1-turn transfer matrix
+!
+! Output:
+!  tune(3)             -- real(rp): Tunes of the 3 normal modes (radians)
+!  B(6,6)              -- real(rp): Block diagonal matrix of Twiss parameters
+!  R(6,6)              -- real(rp): horizontal-vertical coupling information
+!  H(6,6)              -- real(rp): horizontal-longitudinal and vertical-longitudinal coupling information
+!
+!-
+SUBROUTINE mode3_PBRH (mat, tune, B, R, H)
+  USE bmad
+
+  IMPLICIT NONE
+
+  REAL(rp) mat(6,6)
+  REAL(rp) tune(3)
+  REAL(rp) B(6,6)
+  REAL(rp) R(6,6)
+  REAL(rp) H(6,6)
+
+  INTEGER i
+  LOGICAL :: synchrotron_motion = .true.
+
+  ! Note: the variables are named here to according to the convention in the above mentioned paper.
+  REAL(rp) N(6,6)
+  REAL(rp) V(6,6)
+  REAL(rp) throwaway_Ninv(6,6)
+  REAL(rp) throwaway_gamma(3)
+  REAL(rp) a, ax, ay
+  REAL(rp) PcBc(2,2)
+  REAL(rp) Hx(2,2)
+  REAL(rp) Hy(2,2)
+  REAL(rp) PBR(6,6)
+  REAL(rp) mu
+  REAL(rp) PbBb(2,2)
+  REAL(rp) R2(2,2)
+  REAL(rp) PB(6,6)
+  REAL(rp) cospa, sinpa
+  REAL(rp) cospb, sinpb
+  REAL(rp) cospc, sinpc
+  REAL(rp) P(6,6)
+
+  LOGICAL error
+
+  CALL make_N(mat, N, throwaway_Ninv, throwaway_gamma, error, tune, synchrotron_motion)
+  !- for debugging
+  V = dagger6(N)
+
+  a = SQRT(determinant(V(5:6,5:6)))
+  PcBc = V(5:6,5:6) / a
+  Hx = dagger2(MATMUL(dagger2(PcBc),V(5:6,1:2)))
+  Hy = dagger2(MATMUL(dagger2(PcBc),V(5:6,3:4)))
+  ax = determinant(Hx)/(1.0d0+a)
+  ay = determinant(Hy)/(1.0d0+a)
+
+  H(1:2,1:2) = (1.0d0-ax)*I2
+  H(3:4,3:4) = (1.0d0-ay)*I2
+  H(5:6,5:6) = a*I2
+  H(1:2,5:6) = -1.0d0 * Hx
+  H(3:4,5:6) = -1.0d0 * Hy
+  H(5:6,1:2) = dagger2(Hx)
+  H(5:6,3:4) = dagger2(Hy)
+  H(1:2,3:4) = -1.0d0 * MATMUL(Hx,dagger2(Hy)) / (1.0d0 + a)
+  H(3:4,1:2) = -1.0d0 * MATMUL(Hy,dagger2(Hx)) / (1.0d0 + a)
+
+  PBR = MATMUL(V,dagger6(H))
+
+  mu = SQRT(determinant(PBR(1:2,1:2)))
+  PbBb = PBR(3:4,3:4)/mu
+  R2 = MATMUL(dagger2(PbBb),PBR(3:4,1:2))
+
+  R = 0.0d0
+  R(1:2,1:2) = mu*I2
+  R(3:4,3:4) = mu*I2
+  R(5:6,5:6) = I2
+  R(1:2,3:4) = -1.0d0 * dagger2(R2)
+  R(3:4,1:2) = R2
+
+  PB = MATMUL(PBR,dagger6(R))
+
+  !- The following convention for P, puts B (the Twiss matrix) into the form where the upper right element is zero.
+  cospa = 1.0d0 / SQRT(1.0d0 + (PB(1,2)/PB(2,2))**2)
+  sinpa = -1.0d0 * PB(1,2) / PB(2,2) * cospa
+  cospb = 1.0d0 / SQRT(1.0d0 + (PB(3,4)/PB(4,4))**2)
+  sinpb = -1.0d0 * PB(3,4) / PB(4,4) * cospb
+  cospc = 1.0d0 / SQRT(1.0d0 + (PB(5,6)/PB(6,6))**2)
+  sinpc = -1.0d0 * PB(5,6) / PB(6,6) * cospc
+  P = 0.0d0
+  P(1,1) = cospa
+  P(2,2) = cospa
+  P(1,2) = -1.0d0 * sinpa
+  P(2,1) = sinpa
+  P(3,3) = cospb
+  P(4,4) = cospb
+  P(3,4) = -1.0d0 * sinpb
+  P(4,3) = sinpb
+  P(5,5) = cospc
+  P(6,6) = cospc
+  P(5,6) = -1.0d0 * sinpc
+  P(6,5) = sinpc
+
+  B = MATMUL(dagger6(P),PB)
+END SUBROUTINE mode3_PBRH
 
 !+
 ! Subroutine xyz_to_action(ring,ix,X,J,error)
@@ -654,6 +774,27 @@ SUBROUTINE cplx_symp_conj(evec_r, evec_i, symp_evec_r, symp_evec_i)
 END SUBROUTINE cplx_symp_conj
 
 !+
+! Function dagger6(A) RESULT(Ad)
+!
+! Return the complex symplectic conjugate of a 6x6 matrix.
+!
+! A_dagger = -S.Transpose(A).S
+!
+! Input:
+!  A(6,6)   -- real(rp): 6x6 matrix
+! Output:
+!  Ad(6,6)  -- real(rp): A_dagger
+!-
+FUNCTION dagger6(A) RESULT(Ad)
+  USE bmad
+
+  REAL(rp) A(6,6)
+  REAL(rp) Ad(6,6)
+
+  Ad = -1.0_rp * MATMUL(S,MATMUL(TRANSPOSE(A),S))
+END FUNCTION dagger6
+
+!+
 ! Function dagger2(A) RESULT(Ad)
 !
 ! Return the complex symplectic conjugate of a 2x2 matrix.
@@ -750,6 +891,7 @@ SUBROUTINE adjust_evec_phase(evec_r, evec_i, adj_evec_r, adj_evec_i)
     adj_evec_r(:,ix+1) = ( evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth)
     adj_evec_i(:,ix+1) = ( evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh)
   ENDDO
+
 END SUBROUTINE adjust_evec_phase
 
 !+
