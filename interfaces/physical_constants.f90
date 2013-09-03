@@ -33,13 +33,13 @@ real(rp), parameter :: eps_0_vac = 1 / (c_light*c_light * mu_0_vac) ! Permittivi
 ! Radiation constants
 
 real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi eps_0) [m*eV]
-                                                                 !  = classical radius * mass. 
+                                                                 !  = classical_radius * mass * c^2. 
                                                                  ! Is same for all particles of charge +/- 1.
 
-! Anomalous gyro-magnetic moment
+! Anomalous magnetic moment
 
-real(rp), parameter :: g_factor_electron = 0.001159652193
-real(rp), parameter :: g_factor_proton   = 1.79285
+real(rp), parameter :: anomalous_mag_moment_electron = 0.001159652193
+real(rp), parameter :: anomalous_mag_moment_proton   = 1.79285
 
 complex(rp), parameter :: i_imaginary = (0.0d0, 1.0d0)
   
