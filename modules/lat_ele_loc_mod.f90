@@ -508,7 +508,7 @@ end subroutine get_slave_list
 ! This is a list of elements that possibly have field info for a given element. 
 ! For example: a slice_slave under a super_slave under a multipass_slave. In this case
 ! the multipass_lord will store the field info.
-! Note: group_lords, overlay_lords, and girder_lords will never have field info.
+! Note: groups, overlays, and girders will never have field info.
 !
 ! If the given element does not have any lords, 
 ! the element list will just consist of the element itself.
