@@ -11,13 +11,17 @@ use bmad_struct
 use bmad_interface
 use spline_mod
 
+type photon_init_spline_struct
+  type (spline_struct), allocatable :: energy_prob(:)
+end type
+
 contains
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon__init_spline (spline_dir, photon_orb)
+! Subroutine photon_read_spline (spline_dir, splines)
 !
 ! Routine to initialize a photon using a set of spline fits.
 !
@@ -25,25 +29,26 @@ contains
 !   spline_dir -- character(*): Root directory for the spline fits.
 !
 ! Output:
-!   photon_orb -- coord_struct: Photon position.
+!   splines   -- photon_init_spline_struct: Spline structure
 !-
 
-subroutine photon__init_spline (spline_dir, photon_orb)
+subroutine photon_read_spline (spline_dir, splines)
 
 implicit none
 
-type (coord_struct) photon_orb
+type (photon_init_spline_struct) splines
 type (spline_struct), allocatable, target :: prob_spline(:), pl_spline(:), pc_spline(:), pl45_spline(:)
 
 character(*) spline_dir
 character(len(spline_dir)+1) s_dir
 character(20) source_type, basename
 
-real(rp) dE_spline_max, dP_spline_max, dum
+real(rp) dE_spline_max, dP_spline_max
 
 integer i, j, n, ix, num_rows_energy, num_rows_angle, iu, n_rows
 
-namelist / master_params / source_type, dE_spline_max, dP_spline_max, num_rows_energy, num_rows_angle
+namelist / master_params / source_type, dE_spline_max, dP_spline_max, num_rows_energy, &
+            num_rows_angle
 namelist / params / n_rows
 namelist / spline / prob_spline, pl_spline, pc_spline, pl45_spline
 
@@ -70,7 +75,9 @@ allocate (prob_spline(n_rows))
 read(iu, nml = spline)
 close (iu)
 
-end subroutine photon__init_spline
+call move_alloc (prob_spline, splines%energy_prob)
+
+end subroutine photon_read_spline
 
 
 end module

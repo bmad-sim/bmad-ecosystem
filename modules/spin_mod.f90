@@ -3,9 +3,6 @@ module spin_mod
 use bmad_struct
 use bmad_interface
 
-! right now, just for electrons (and positrons)
-real(rp), parameter :: g_factor = 0.001159657
-
 ! This includes the phase of the spinor.
 ! Polarization is not 1 when the spin_polar struct represents an ensamble of spins.
 
@@ -42,8 +39,9 @@ type (spin_map_struct), save, target :: maps(n_key$)
 
 private initialize_pauli_vector
 
-real(rp), parameter :: g_factor_of(-2:2) = [g_factor_proton, g_factor_electron, 0.0_rp, &
-                                            g_factor_electron, g_factor_proton]
+real(rp), parameter :: anomalous_moment_of(-2:2) = [ &
+                        anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
+                        anomalous_mag_moment_electron, anomalous_mag_moment_proton]
 
 contains
 
@@ -614,7 +612,7 @@ real(rp) a(4) ! quaternion four-vector
 real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
 real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
-real(rp) g_factor, m_particle, sign_k, abs_a
+real(rp) anomalous_moment, m_particle, sign_k, abs_a
 
 integer key
 
@@ -625,7 +623,7 @@ character(16), parameter :: r_name = 'track1_spin_bmad'
 !
 
 m_particle = mass_of(param%particle)
-g_factor = g_factor_of(param%particle)
+anomalous_moment = anomalous_moment_of(param%particle)
 
 end_orb%spin = start_orb%spin     ! transfer start to end
 
@@ -696,7 +694,7 @@ if(isTreatedHere) then
     omega1 = sqrt(abs(ele%value(k1$)))
     u = omega1*ele%value(l$)
 
-    xi = 1 + g_factor * &
+    xi = 1 + anomalous_moment * &
           ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
 
     map => maps(quadrupole$)
@@ -729,9 +727,9 @@ if(isTreatedHere) then
   case (sbend$)
 
     gamma0 = ((1+temp_middle%vec(6)) * ele%value(E_TOT$)) / m_particle
-    xi = 1 + g_factor * gamma0
+    xi = 1 + anomalous_moment * gamma0
     v = ele%value(g$)*ele%value(l$)
-    x = g_factor*gamma0*v
+    x = anomalous_moment*gamma0*v
 
     map => maps(sbend$)
 
@@ -746,7 +744,7 @@ if(isTreatedHere) then
     map%gamma2(3)%expn(:) = [0, 1, 0, 0, 0, 0]
     map%gamma2(3)%coef   = -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2
     map%gamma2(4)%expn(:) = [0, 0, 0, 0, 0, 1]
-    map%gamma2(4)%coef = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
+    map%gamma2(4)%coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / &
         (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
 
     map%gamma3(1)%expn(:) = [0, 0, 0, 1, 0, 0]
@@ -759,7 +757,7 @@ if(isTreatedHere) then
     map%kappa(3)%expn(:) = [0, 1, 0, 0, 0, 0]
     map%kappa(3)%coef   =  -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0)
     map%kappa(4)%expn(:) = [0, 0, 0, 0, 0, 1]
-    map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - g_factor * (1+gamma0) * (gamma0-1) * v) / &
+    map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / &
          (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
 
   !-----------------------------------------------
@@ -770,7 +768,7 @@ if(isTreatedHere) then
     ! This is a simple zeroeth order transfer matrix
 
     ! rotation angle
-    alpha = - (1-g_factor)*ele%value(bs_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
+    alpha = - (1-anomalous_moment)*ele%value(bs_field$)*ele%value(l$) / (ele%value(p0c$)/c_light)
 
     map => maps(solenoid$)
 
@@ -881,11 +879,11 @@ subroutine lcav_edge_track (pc, grad, gam, map)
 real(rp) pc, grad, gam
 type (spin_map_struct) map
 
-!
+! Is this correct? e_mass is in GeV and not eV!
 
 k_el = abs(grad / (2 * pc))
 omega_el = sqrt(k_el)
-k_el_tilde = (e_charge * k_el * (1 + g_factor + (g_factor*gam))) / &
+k_el_tilde = (e_charge * k_el * (1 + anomalous_moment + (anomalous_moment*gam))) / &
                 (omega_el * e_mass * c_light**2 * (1 + gam))
 
 ! Focusing kick
@@ -1035,7 +1033,7 @@ type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 real(rp) omega(3),  p_vec(3)
-real(rp) g_factor, charge, m_particle, p_z, gamma0
+real(rp) anomalous_moment, charge, m_particle, p_z, gamma0
 real(rp) s, e_particle, pc, phase, cos_phi, gradient
 
 !
@@ -1060,7 +1058,7 @@ else
 endif
 
 ! want everything in units of Ev
-g_factor = g_factor_of (param%particle)
+anomalous_moment = anomalous_moment_of (param%particle)
 charge = charge_of(param%particle)
 m_particle = mass_of(param%particle)
 gamma0 = e_particle / m_particle
@@ -1069,12 +1067,12 @@ p_z = (ele%value(p0c$)/c_light)*&
 p_vec(1:2) = (ele%value(p0c$)/c_light)* [coord%vec(2), coord%vec(4)]
 p_vec(3) = p_z
 
-omega = (1 + g_factor*gamma0) * field%B
+omega = (1 + anomalous_moment*gamma0) * field%B
 
-omega = omega - ( g_factor*dot_product(p_vec,field%B)   /&
+omega = omega - ( anomalous_moment*dot_product(p_vec,field%B)   /&
                   ((gamma0+1)*(m_particle**2/c_light**2))  )*p_vec
 
-omega = omega - (1/m_particle) * (g_factor + 1/(1+gamma0))*&
+omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0))*&
                    cross_product(p_vec,field%E)
 
 omega = (charge/p_z)*omega
@@ -1232,7 +1230,7 @@ if (set_t .and. ele%key == sbend$) then
   endif
 endif
 
-a_gamma_plus = g_factor_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
+a_gamma_plus = anomalous_moment_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
 
 !----------------------------------------------------------------
 ! Set...
@@ -1552,7 +1550,7 @@ if ( kick_angle /= 0. ) then
   Bx = aimag(kick)
   By = real(kick)
   ! precession_angle = kick_angle*(a*gamma+1)
-  kick_angle = kick_angle * (g_factor_of(param%particle) * ele%value(e_tot$) * &
+  kick_angle = kick_angle * (anomalous_moment_of(param%particle) * ele%value(e_tot$) * &
                         (1 + vec(6)) / mass_of(param%particle) + 1)
   call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle, a_field)
   call quaternion_track (a_field, spin)
