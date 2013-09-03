@@ -4,7 +4,7 @@ use equal_mod
 
 ! The type of an attribute may be one of:
 !   does_not_exist$ -- Does not exist.
-!   is_free$        -- Free to vary as long as attribute has not controlled by, eg, overlay_lord.
+!   is_free$        -- Free to vary as long as attribute has not controlled by, eg, overlay.
 !   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
 !   dependent$      -- Cannot be varied as an independent parameter..
 !   private$        -- Internal, parameter used in calculations. Is dependent by definition.

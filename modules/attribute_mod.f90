@@ -28,7 +28,7 @@ private check_this_attribute_free, print_error
 !
 ! Attributes that cannot be changed directly include super_slave attributes (since
 ! these attributes are controlled by their super_lords) and attributes that
-! are controlled by an overlay_lord.
+! are controlled by an overlay.
 !
 ! Also dependent variables such as the angle of a bend cannot be 
 !   freely variable.
@@ -842,7 +842,7 @@ subroutine set_it (ix_attrib)
 
 type (ele_struct) ele
 integer ix_attrib, ix, i
-character(40) old_str, a_str
+character(40) old_attrib, a_str
 
 ! If alias_str is of the form "ele_class::alias_name" then need to split string
 
@@ -867,20 +867,12 @@ if (str_find_first_not_in_set(trim(a_str), 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
 endif
 
 ! Set
-! def_parameter$ type elements are not set since the def_parameter$ type is only
-! used by bmad_parser and setting this would mess up the parser's bookkeeping.
 
 do i = 1, n_key$
-  if (i == def_parameter$) cycle
   if (ix /= 0 .and. ix /= i) cycle
   ele%key = i
-  old_str = attribute_name (ele, ix_attrib)
-  if (old_str /= null_name$ .and. old_str /= a_str) then
-    call out_io (s_error$, r_name, 'ATTRIBUTE NAME ALIAS MAY NOT BE REDEFINED: ' // &
-                    trim(attrib_str) // ' -> ' // alias_str)
-    err_flag = .true.
-    return
-  endif
+  old_attrib = attribute_name (ele, ix_attrib)
+  if (old_attrib(1:16) /= 'CUSTOM_ATTRIBUTE') cycle
   call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
 enddo
 
@@ -1212,7 +1204,7 @@ if (.not. do_except_overlay) then
     if (lord%key == overlay$) then
       if (lat%control(ix)%ix_attrib == ix_attrib) then 
         if (do_print) call print_error (ele, ix_attrib, & 
-           'IT IS CONTROLLED BY THE OVERLAY_LORD: ' // lord%name)
+           'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif
     endif

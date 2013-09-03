@@ -82,7 +82,7 @@ do i = 1, girder_ele%n_slave
 
   if (slave%slave_status == free$) slave%slave_status = control_slave$
 
-  ! You cannot control super_slaves, group_lords or overlay_lords
+  ! You cannot control super_slaves, group or overlay elements
 
   if (slave%slave_status == super_slave$ .or. slave%key == group$ .or. &
                                           slave%key == overlay$) then

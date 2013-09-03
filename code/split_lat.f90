@@ -237,7 +237,7 @@ lat%control(ixc+1)%ix_slave  = ix_split + 1
 lat%control(ixc+1)%ix_branch = ix_branch
 lat%control(ixc+1)%coef = len2 / len_orig
 
-! overlay lord elements of the split element must now point towards the
+! overlay elements of the split element must now point towards the
 ! super lord
 
 do i = 1, ele%n_lord

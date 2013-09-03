@@ -92,7 +92,7 @@ elseif (ele%lord_status == super_lord$ .or. ele%key == girder$ .or. &
 ! So we must "recursively" follow the slave tree.
 ! ix_slave_array/ix_branch_array holds the list of slaves we need to look at.
 
-else  ! overlay_lord$, group_lord$
+else  ! overlay$, group$
 
   ix_start = 1000000
   ix_start_branch = 100000

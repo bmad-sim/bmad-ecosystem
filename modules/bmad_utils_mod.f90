@@ -28,7 +28,7 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! To get the branch where the element is located, simply use ele%ix_branch.
 ! 
 ! Note: Result is ambiguous if ele argument is associated with multiple branches 
-! which can happen, for example, with overlay_lord elements.
+! which can happen, for example, with overlay elements.
 !
 ! Modules Needed:
 !   use bmad_utils_mod
