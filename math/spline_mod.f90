@@ -101,7 +101,7 @@ end subroutine spline_evaluate
 ! This subroutine computes the semi-hermite cubic spline developed by 
 ! Hiroshi Akima. The spline goes thorugh all the points (that is, it is 
 ! not a smoothing spline). For interpolation use:
-!           spline_evaluate or
+!           spline_evaluate
 !
 ! Reference: 
 !   H Akima, "A New Method of Interpolation and Smooth Curve Fitting Based 
