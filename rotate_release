@@ -141,6 +141,7 @@ def send_notification_email(old_relname):
 
 # Perform the rotation of active release to archive link
 # and requested build to active release.
+#
 archive_linkname = build_mgmt.NewLinkName(release_type)
 for platform in platforms:
     platform_dir = builds_basedir+'/'+platform+'/'
@@ -167,23 +168,24 @@ for platform in platforms:
     online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
     online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
 
-    #print online_cmd_mkdir
-    step1 = sub.Popen(online_cmd_mkdir,
-                      bufsize=1,
-                      shell=True,
-                      stdout=sub.PIPE,
-                      stderr=sub.STDOUT )
-    print 'Making directory ' + online_basedir + buildname
-    step1.communicate()
+    if not os.path.exists(online_basedir+buildname):
+      #print online_cmd_mkdir
+      step1 = sub.Popen(online_cmd_mkdir,
+                        bufsize=1,
+                        shell=True,
+                        stdout=sub.PIPE,
+                        stderr=sub.STDOUT )
+      print 'Making directory ' + online_basedir + buildname
+      step1.communicate()
 
-    #print online_cmd_remote_tar
-    print ''
-    step2 = sub.Popen(online_cmd_remote_tar,
-                      bufsize=1,
-                      shell=True,
-                      stderr=sub.STDOUT )
-    print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
-    step2.communicate()
+      #print online_cmd_remote_tar
+      print ''
+      step2 = sub.Popen(online_cmd_remote_tar,
+                        bufsize=1,
+                        shell=True,
+                        stderr=sub.STDOUT )
+      print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
+      step2.communicate()
 
     #print online_cmd_rm_link
     print ''
