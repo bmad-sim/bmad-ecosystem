@@ -130,7 +130,6 @@ logical set_polarization
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
 e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
-
 if (E_max == 0) then
   call photon_energy_init (E_rel)
 else
@@ -296,8 +295,7 @@ end subroutine photon_polarization_init
 ! Output:
 !   gamma_phi -- Real(rp): gamma * phi where gamma is the beam relativistic factor and
 !                  phi is the vertical photon angle (in radians).
-!                  Note: gamma_phi is an increasing monotonic function of r_in except 
-!                  at one point where it is discontinuous.
+!                  Note: gamma_phi is an increasing monotonic function of r_in.
 !-
 
 subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
