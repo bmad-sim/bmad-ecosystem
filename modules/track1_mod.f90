@@ -924,11 +924,8 @@ integer ix_fringe
 ix_fringe = nint(ele%value(fringe_type$))
 if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
 
-if (associated(ele%branch)) then
-  charge_dir = ele%branch%param%rel_tracking_charge * ele%orientation
-else
-  charge_dir = ele%orientation
-endif
+charge_dir = ele%orientation * orbit%direction
+if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
 
 k1 = charge_dir * ele%value(k1$) / (1 + orbit%vec(6))
 

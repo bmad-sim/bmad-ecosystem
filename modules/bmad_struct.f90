@@ -101,13 +101,13 @@ type wall3d_section_struct
   integer n_vertex_input                ! Number of vertices specified by the user.
   type (wall3d_vertex_struct), allocatable :: v(:) 
                                         ! Array of vertices
-  ! Center of wall spline
-  real(rp) :: x0 = 0, y0 = 0            ! Center of wall
+  real(rp) :: x0 = 0, y0 = 0            ! Center of section
+  ! Section-to-section spline interpolation of the center of the section
   real(rp) :: dx0_ds = 0                ! Center of wall derivative
   real(rp) :: dy0_ds = 0                ! Center of wall derivative
   real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
   real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
-  ! Wall radius spline
+  ! Section-to_section spline interpolation of the wall.
   real(rp) :: dr_ds = real_garbage$     ! derivative of wall radius 
   real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
   real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
@@ -663,9 +663,9 @@ integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
-integer, parameter :: undulator$ = 51
+integer, parameter :: undulator$ = 51, apeture = 52
 
-integer, parameter :: n_key$ = 51
+integer, parameter :: n_key$ = 52
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -682,7 +682,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
-    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ']
+    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'APERTURE         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

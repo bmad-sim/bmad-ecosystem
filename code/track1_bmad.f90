@@ -2,18 +2,10 @@
 ! Subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 !
 ! Particle tracking through a single element BMAD_standard style.
-! This routine is NOT meant for long term tracking since it does not get 
-! all the 2nd order terms for the longitudinal motion.
-!
-! It is assumed that HKICK and VKICK are the kicks in the horizontal
-! and vertical kicks irregardless of the value for TILT.
 !
 ! Note: track1_bmad *never* relies on ele%mat6 for tracking excect for 
 ! hybrid elements.
 ! 
-! Note: end_orb%vec(6) will be set < -1 if the 
-! particle fails to make it through an lcavity
-!
 ! Modules Needed:
 !   use bmad
 !
@@ -70,7 +62,7 @@ real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3), charge_dir
 
 complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
-integer i, n, n_slice, key, ix_fringe
+integer i, n, n_slice, key, ix_fringe, orientation
 
 logical, optional :: err_flag
 logical err, has_nonzero_pole
@@ -92,7 +84,8 @@ if (param%particle /= photon$) then
 endif
 length = ele%value(l$)
 rel_pc = 1 + start_orb%vec(6)
-charge_dir = param%rel_tracking_charge * ele%orientation
+orientation = ele%orientation * start_orb%direction
+charge_dir = param%rel_tracking_charge * orientation
 
 !-----------------------------------------------
 ! Select
@@ -538,7 +531,7 @@ case (rfcavity$)
 
   phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(dphi0_ref$) - &
           (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
-  if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
+  if (orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
 
   t0 = end_orb%t
@@ -646,7 +639,7 @@ case (sol_quad$)
 
 case (taylor$)
 
-  if (ele%orientation == 1) then
+  if (orientation == 1) then
     call track1_taylor (start_orb, ele, param, end_orb)
 
   else

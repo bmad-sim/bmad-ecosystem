@@ -408,20 +408,21 @@ do i = 1, n_key$
   call init_attribute_name1 (i, x_pitch_tot$,   'X_PITCH_TOT', dependent$)
   call init_attribute_name1 (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
 
-  if (i == mirror$)     cycle
-  if (i == crystal$)    cycle
   if (i == multilayer_mirror$) cycle
+  if (i == mirror$)       cycle
+  if (i == crystal$)      cycle
   if (i == capillary$)    cycle
+  if (i == aperture$)     cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
   if (i == photon_branch$) cycle
-  if (i == branch$)       cycle
-  if (i == marker$)       cycle
-  if (i == beambeam$)     cycle
-  if (i == hom$)          cycle
-  if (i == multipole$)    cycle 
-  if (i == ab_multipole$) cycle
+  if (i == branch$)        cycle
+  if (i == marker$)        cycle
+  if (i == beambeam$)      cycle
+  if (i == hom$)           cycle
+  if (i == multipole$)     cycle 
+  if (i == ab_multipole$)  cycle
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')

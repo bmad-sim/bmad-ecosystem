@@ -21,7 +21,8 @@ type photon_init_v_angle_spline_struct
 end type
 
 type photon_init_splines_struct
-  character(16) type
+  character(16) source_type                ! 'bend', 'wiggler', 'undulator'
+  integer spline_space_dimensions          ! Dimensions: [energy, v_angle, h_angle, x, y]
   type (spline_struct), allocatable :: energy_prob(:)
   type (photon_init_v_angle_spline_struct), allocatable :: v_angle(:)
 end type
@@ -58,9 +59,10 @@ character(200) v_angle_spline_file
 real(rp) dE_spline_max, dP_spline_max
 
 integer i, j, n, ix, num_rows_energy, num_rows_v_angle, iu, n_rows
+integer spline_space_dimensions
 
 namelist / master_params / source_type, dE_spline_max, dP_spline_max, num_rows_energy, &
-            num_rows_v_angle
+            num_rows_v_angle, spline_space_dimensions
 namelist / energy_params / n_rows
 namelist / v_angle_params / n_rows
 namelist / spline / prob_spline, pl_spline, pc_spline, pl45_spline
@@ -77,6 +79,9 @@ iu = lunget()
 open (iu, file = trim(s_dir) // 'spline.params')
 read (iu, nml = master_params)
 close(iu)
+
+splines%source_type = source_type
+splines%spline_space_dimensions = spline_space_dimensions
 
 ! Read energy spline
 
@@ -99,14 +104,17 @@ do i = 1, num_rows_energy
   open (iu, file = v_angle_spline_file)
 
   read (iu, nml = v_angle_params)
-  allocate (prob_spline(n_rows), pl_spline(n_rows), pc_spline(n_rows), pl45_spline(n_rows))
+  allocate (prob_spline(n_rows))
+  if (spline_space_dimensions == 2) allocate (pl_spline(n_rows), pc_spline(n_rows), pl45_spline(n_rows))
   read(iu, nml = spline)
   close (iu)
 
   call move_alloc (prob_spline, splines%v_angle(i)%prob)
-  call move_alloc (pl_spline, splines%v_angle(i)%pl)
-  call move_alloc (pc_spline, splines%v_angle(i)%pc)
-  call move_alloc (pl45_spline, splines%v_angle(i)%pl45)
+  if (spline_space_dimensions == 2) then
+    call move_alloc (pl_spline, splines%v_angle(i)%pl)
+    call move_alloc (pc_spline, splines%v_angle(i)%pc)
+    call move_alloc (pl45_spline, splines%v_angle(i)%pl45)
+  endif
 enddo
 
 end subroutine photon_read_spline
