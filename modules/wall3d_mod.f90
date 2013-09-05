@@ -813,7 +813,7 @@ if (ele%slave_status == super_slave$) then
     if (super_lord%slave_status == multipass_slave$) then
       ele2 => pointer_to_lord(super_lord, 1)
     endif
-    call this_pointer_to_wall3d_ele (ele2, super_lord)
+    call this_pointer_to_wall3d_ele (super_lord, super_lord)
   enddo
 
 elseif (ele%slave_status == multipass_slave$) then
@@ -980,5 +980,81 @@ do
 enddo
 
 end subroutine next_wall3d_section
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine create_concatenated_wall3d (lat)
+!
+! Routine to concatinate lat%branch(i)ele(:)%wall3d%section(:) arrays into
+! one lat%branch(i)%wall3d%section(:) array.
+!
+! Exceptions: capillary and aperture elements do not have their walls included.
+!
+! Module needed:
+!   use wall3d_mod
+!
+! Input:
+!   lat      -- lat_struct: lattice
+!
+! Output:
+!   lat      -- lat_struct: Lattice
+!   err_flag -- logical: Set True if there is an error, false otherwise.
+!-
+
+Subroutine create_concatenated_wall3d (lat, err)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+
+integer i, j, n, n_wall
+logical err
+
+!
+
+err = .false.
+return
+
+do i = 0, ubound(lat%branch, 1)
+  branch => lat%branch(i)
+
+  n_wall = 0
+  do j = 0, branch%n_ele_max
+    ele => branch%ele(j)
+    if (.not. associated(ele%wall3d)) cycle
+    if (ele%key == capillary$) cycle
+    if (ele%key == diffraction_plate$) cycle
+    n_wall = n_wall + size(ele%wall3d%section)
+  enddo
+
+  ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
+
+  ! NOTE: This code needs to be modified to take care of continuous aperture walls and 
+  ! wall priorities.
+
+  if (n_wall == 0) cycle
+  cycle   ! NOTE: AGGRAGATING CODE DISABLED FOR NOW UNTIL SOMEONE NEEDS IT!
+
+  allocate (branch%wall3d)
+  allocate (branch%wall3d%section(n_wall))
+  n_wall = 0
+  do j = 0, branch%n_ele_track
+    ele => branch%ele(j)
+    if (ele%key == capillary$) cycle
+    if (.not. associated(ele%wall3d)) cycle
+    n = size(ele%wall3d%section)
+    branch%wall3d%section(n_wall+1:n_wall+n) = ele%wall3d%section
+    branch%wall3d%section(n_wall+1:n_wall+n)%s = branch%wall3d%section(n_wall+1:n_wall+n)%s + &
+                                                                              ele%s - ele%value(l$)
+    n_wall = n_wall + n
+  enddo
+
+enddo
+
+end subroutine create_concatenated_wall3d
 
 end module
