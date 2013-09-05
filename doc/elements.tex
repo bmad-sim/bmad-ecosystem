@@ -57,11 +57,11 @@ particle and photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}      & {\it Section}         & {\it Element}       & {\it Section}      \HH
-  Aperture           & \ref{s:aperture}      &  Instrument         & \ref{s:monitor}    \HH
-  Branch             & \ref{s:branch}        &  Marker             & \ref{s:mark}       \HH
-  Capillary          & \ref{s:capillary}     &  Match              & \ref{s:match}      \HH
-  Crystal            & \ref{s:crystal}       &  Monitor            & \ref{s:monitor}    \HH 
-  Custom             & \ref{s:custom}        &  Mirror             & \ref{s:mirror}     \HH
+  Branch             & \ref{s:branch}        &  Instrument         & \ref{s:monitor}    \HH
+  Capillary          & \ref{s:capillary}     &  Marker             & \ref{s:mark}       \HH
+  Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \HH
+  Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \HH 
+  Diffraction_Plate  & \ref{s:diff_plate}    &  Mirror             & \ref{s:mirror}     \HH
   Drift              & \ref{s:drift}         &  Multilayer_Mirror  & \ref{s:multilayer} \HH
   Fiducial           & \ref{s:fiducial}      &  Patch              & \ref{s:patch}      \HH
   Floor_Shift        & \ref{s:floor.ele}     &  Photon_Branch      & \ref{s:branch}     \HH
@@ -124,112 +124,6 @@ Example:
 \begin{example}
   abc: ab_multipole, a2 = 0.034e-2, b3 = 5.7, a11 = 5.6e6/2
 \end{example}
-
-%-----------------------------------------------------------------
-\section{Aperture}
-\label{s:aperture}
-\index{aperture|hyperbf}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{aperture-ele.pdf}
-  \caption[Example aperture element]{
-Example \vn{aperture} element. A) The aperture wall is divided in
-``clear'' (white) and ``mask'' (black) sections. In this example there
-are three clear sections labeled \#1, \#2, and \#3. B) All sections
-must be star shaped with respect to the section's origin. In this
-example, The section is {\em not} start shapped since a line drawn
-from the origin point $o$ to the point $p$ on the boundary intersects
-the boundary twice in between. In this case the section can be made
-star shapped by moving the origin to $o'$. 
-  }
-  \label{f:aperture.ele}
-\end{figure}
-
-An \vn{aperture} element is something like a Fresnel zone plate and is
-used in places where diffraction effects must be taken into
-account. This is in contrast to setting an aperture attribute
-(\sref{s:limit} for other elements where diffraction effects are
-ignored.
-
-General \vn{aperture} element attributes are:
-\begin{center}
-\tt 
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-\end{tabular}
-\end{center}
-\toffset
-
-NOTE: \vn{APERTURE} ELEMENT TRACKING IS IN DEVELOPMENT AND IS NOT USABLE AT THIS TIME...
-
-The aperture ``wall'' defines the two dimensional plate that the
-x-rays hit. An example is shown in \fig{f:aperture.ele}A. 
-The general syntax for defining a wall is:
-\begin{example}
-  wall = \{
-    thickness = <real>
-    mask_material = <material_type>
-    clear_material = <material_type>
-    section = \{ 
-      type = <section_type>   ! "clear" or "mask"
-      x0 = <x_origin>, y0 = <y_origin>,
-      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
-      v(2) = \{ ... \},
-      ...\},
-    section = \{
-      type = ...
-      v(1) = \{... \},
-      ... \},
-    ... \}
-\end{example}
-
-A wall is comprised a a set of ``clear'' ``sections''. Each clear
-section can have associated with it zero or more ``mask'' sections.
-An ``opening'' is a clear section along with its associated mask
-sections. In the figure, there are three openings labeled \#1, \#2,
-and \#3. 
-
-The default behavior is that a photon will be transmitted if it
-``hits'' any opening. Otherwise it will be considered to have hit a
-mask section. A photon is considered to have hit a given opening if
-its $(x,y)$ coordinates put in within the clear section of the opening
-but not within any mask section of the opening.
-
-The mask section surrounding all of the clear sections does not have
-to be explicitly specified.  
-
-For computational reasons, All sections must be ``star shapped'' with
-respect to the section origin. That is, a line drawn from the section
-origin to any point on the section boundary must not pass through any
-boundary points of the section in between. This is illustrated in
-\fig{f:section.ele}B where the section is not star shapped since a
-line drawn from the origin $o$ to the point $p$ on the boundary passes
-through two boundary points in between. In this case the section can
-trivially be made star shapped by moving the origin to point $o'$. If
-it is not possible to make a section star shapped by moving the
-origin, then the section must be divided into multiple sections.
-
-Example:
-\begin{example}
-  wall = \{
-    thickness = <real>
-    mask_material = <material_type>
-    clear_material = <material_type>
-    section = \{ 
-      type = <section_type>   ! "clear" or "mask"
-      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
-      v(2) = \{ ... \},
-      ...\},
-    section = \{
-      type = 
-      v(1) = \{... \},
-      ... \},
-    ... \}
-\end{example}
-
 
 %-----------------------------------------------------------------
 \section{BeamBeam}
@@ -1110,6 +1004,118 @@ Example:
 \end{example}
 In this example the \vn{descrip} string is being used to specify a
 file that contains parameters for the element.
+
+%-----------------------------------------------------------------
+\section{Diffraction_Plate}
+\label{s:diffraction_plate
+\index{diffraction_plate|hyperbf}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{diffraction_plate.pdf}
+  \caption[Example diffraction_plate element]{
+Example \vn{diffraction_plate} element. A) The wall of the diffraction
+plate is divided into ``clear'' (white) and ``mask'' (black)
+sections. In this example there are three clear sections labeled \#1,
+\#2, and \#3. B) All sections must be star shaped with respect to the
+section's origin. In this example, The section is {\em not} start
+shapped since a line drawn from the origin point $o$ to the point $p$
+on the boundary intersects the boundary twice in between. In this case
+the section can be made star shapped by moving the origin to $o'$.
+  }
+  \label{f:diff.plate}
+\end{figure}
+
+A \vn{diffraction_plate} element is something like a Fresnel zone plate and is
+used in places where diffraction effects must be taken into
+account. This is in contrast to setting an aperture attribute
+(\sref{s:limit} for other elements where diffraction effects are
+ignored.
+
+General \vn{diffraction_plate} element attributes are:
+\begin{center}
+\tt 
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+NOTE: \vn{DIFFRACTION_PLATE} ELEMENT TRACKING IS IN DEVELOPMENT AND IS NOT USABLE AT THIS TIME...
+
+An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
+The geometry of the plate is definded using the ``wall'' attribute of
+the element. EXample:
+\begin{example}
+  fresnel: diffraction_plate, wall = {...}, ...
+\end{example}
+And the syntax for defining a wall is:
+\begin{example}
+  wall = \{
+    thickness = <real>
+    mask_material = <material_type>
+    clear_material = <material_type>
+    section = \{ 
+      type = <section_type>   ! "clear" or "mask"
+      x0 = <x_origin>, y0 = <y_origin>,
+      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      v(2) = \{ ... \},
+      ...\},
+    section = \{
+      type = ...
+      v(1) = \{... \},
+      ... \},
+    ... \}
+\end{example}
+
+A wall is comprised a a set of ``clear'' ``sections''. Each clear
+section can have associated with it zero or more ``mask'' sections.
+An ``opening'' is a clear section along with its associated mask
+sections. In the figure, there are three openings labeled \#1, \#2,
+and \#3. 
+
+The default behavior is that a photon will be transmitted if it
+``hits'' any opening. Otherwise it will be considered to have hit a
+mask section. A photon is considered to have hit a given opening if
+its $(x,y)$ coordinates put in within the clear section of the opening
+but not within any mask section of the opening.
+
+The mask section surrounding all of the clear sections does not have
+to be explicitly specified.  
+
+For computational reasons, All sections must be ``star shapped'' with
+respect to the section origin. That is, a line drawn from the section
+origin to any point on the section boundary must not pass through any
+boundary points of the section in between. This is illustrated in
+\fig{f:section.ele}B where the section is not star shapped since a
+line drawn from the origin $o$ to the point $p$ on the boundary passes
+through two boundary points in between. In this case the section can
+trivially be made star shapped by moving the origin to point $o'$. If
+it is not possible to make a section star shapped by moving the
+origin, then the section must be divided into multiple sections.
+
+Example:
+\begin{example}
+  wall = \{
+    thickness = <real>
+    mask_material = <material_type>
+    clear_material = <material_type>
+    section = \{ 
+      type = <section_type>   ! "clear" or "mask"
+      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      v(2) = \{ ... \},
+      ...\},
+    section = \{
+      type = 
+      v(1) = \{... \},
+      ... \},
+    ... \}
+\end{example}
+
+Nominally, a diffraction plate is orientated transversly to the
+beam. Like all other elements, the diffraction plate can be reoriented using the element's
 
 %-----------------------------------------------------------------
 \section{Drift}

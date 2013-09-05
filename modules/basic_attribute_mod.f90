@@ -409,10 +409,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, y_pitch_tot$,   'Y_PITCH_TOT', dependent$)
 
   if (i == multilayer_mirror$) cycle
-  if (i == mirror$)       cycle
-  if (i == crystal$)      cycle
-  if (i == capillary$)    cycle
-  if (i == aperture$)     cycle
+  if (i == mirror$)            cycle
+  if (i == crystal$)           cycle
+  if (i == capillary$)         cycle
+  if (i == diffraction_plate$) cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 

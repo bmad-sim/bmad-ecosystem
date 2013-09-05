@@ -38,6 +38,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, e
 use bmad_parser_mod, except_dummy => bmad_parser
 use ptc_interface_mod, dummy2 => bmad_parser
 use random_mod
+use wall3d_mod
 
 implicit none
 
@@ -56,7 +57,7 @@ real(rp) beta
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
-integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_wall, n_track
+integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
 integer ib, ie, ib2, ie2, flip, n_branch, n_branch_ele, i_loop, n_branch_max
@@ -1077,8 +1078,7 @@ if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1)
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
 
-  n_wall = 0
-  do j = 0, branch%n_ele_track
+  do j = 0, branch%n_ele_max
     ele => branch%ele(j)
     if (.not. associated(ele%wall3d)) cycle
     call wall3d_initializer (ele%wall3d, err)
@@ -1087,32 +1087,14 @@ do i = 0, ubound(lat%branch, 1)
       return
     endif
     if (ele%key == capillary$) cycle
-    n_wall = n_wall + size(ele%wall3d%section)
   enddo
-
-  ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
-
-  ! NOTE: This code needs to be modified to take care of continuous aperture walls and 
-  ! wall priorities. OR: Is the branch%wall3d component even needed?
-
-  if (n_wall == 0) cycle
-  cycle   ! NOTE: AGGRAGATING CODE DISABLED FOR NOW UNTIL SOMEONE NEEDS IT!
-
-  allocate (branch%wall3d)
-  allocate (branch%wall3d%section(n_wall))
-  n_wall = 0
-  do j = 0, branch%n_ele_track
-    ele => branch%ele(j)
-    if (ele%key == capillary$) cycle
-    if (.not. associated(ele%wall3d)) cycle
-    n = size(ele%wall3d%section)
-    branch%wall3d%section(n_wall+1:n_wall+n) = ele%wall3d%section
-    branch%wall3d%section(n_wall+1:n_wall+n)%s = branch%wall3d%section(n_wall+1:n_wall+n)%s + &
-                                                                              ele%s - ele%value(l$)
-    n_wall = n_wall + n
-  enddo
-
 enddo
+
+call create_concatenated_wall3d (lat, err)
+if (err) then
+  call parser_end_stuff (.false.)
+  return
+endif
 
 ! Correct beam_start info
 
