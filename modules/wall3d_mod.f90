@@ -789,7 +789,7 @@ implicit none
 character(32), parameter :: r_name = 'pointer_to_wall3d_ele'
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: wall3d_ele, aperture_ele, ele2
+type (ele_struct), pointer :: wall3d_ele, super_lord, ele2, super_lord_saved
 
 real(rp) dz_offset
 
@@ -803,17 +803,17 @@ logical wall3d_conflict
 err_flag = .true.
 
 nullify (wall3d_ele)
-nullify (aperture_ele)
+nullify (super_lord_saved)
 
 wall3d_conflict = .false.
 
 if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
-    ele2 => pointer_to_lord(ele, i)
-    if (ele2%slave_status == multipass_slave$) then
-      ele2 => pointer_to_lord(ele2, 1)
+    super_lord => pointer_to_lord(ele, i)
+    if (super_lord%slave_status == multipass_slave$) then
+      ele2 => pointer_to_lord(super_lord, 1)
     endif
-    call this_pointer_to_wall3d_ele (ele2)
+    call this_pointer_to_wall3d_ele (ele2, super_lord)
   enddo
 
 elseif (ele%slave_status == multipass_slave$) then
@@ -831,25 +831,24 @@ if (associated(wall3d_ele)) then
     nullify(wall3d_ele)
     return
   endif
-elseif (associated(aperture_ele)) then
-  wall3d_ele => aperture_ele
 endif
 
-! Offset
+! The dz_offset can only be nonzero if ele is a super_slave.
 
 err_flag = .false.
 dz_offset = 0
 
-if (associated(wall3d_ele)) then
-  dz_offset = (ele%s - ele%value(l$)) - (wall3d_ele%s - wall3d_ele%value(l$))
+if (associated(super_lord_saved)) then
+  dz_offset = (ele%s - ele%value(l$)) - (super_lord_saved%s - super_lord_saved%value(l$))
 endif
 
 !----------------------------------------------------------------------------------------------
 contains
 
-subroutine this_pointer_to_wall3d_ele (this_ele)
+subroutine this_pointer_to_wall3d_ele (this_ele, this_super_lord)
 
 type (ele_struct), target :: this_ele
+type (ele_struct), target, optional :: this_super_lord
 
 !
 
@@ -857,12 +856,13 @@ if (.not. associated(this_ele%wall3d)) return
 if (this_ele%wall3d%priority == ignore$) return
 
 if (associated(wall3d_ele)) then
-  if (this_ele%wall3d%priority > wall3d_ele%wall3d%priority) return ! Higher number -> lowerpriority.
+  if (this_ele%wall3d%priority > wall3d_ele%wall3d%priority) return ! Higher number -> lower priority.
   if (wall3d_ele%wall3d%priority == this_ele%wall3d%priority) wall3d_conflict = .true.
   if (wall3d_ele%wall3d%priority < this_ele%wall3d%priority) wall3d_conflict = .false.
 endif
 
 wall3d_ele => this_ele
+if (present(this_super_lord)) super_lord_saved => this_super_lord
 
 end subroutine this_pointer_to_wall3d_ele
 

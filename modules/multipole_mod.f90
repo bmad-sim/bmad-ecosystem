@@ -520,8 +520,9 @@ end subroutine multipole_kicks
 !   tilt  -- Real(rp): Multipole tilt.
 !   n     -- Real(rp): Multipole order.
 !   coord -- Coord_struct:
-!     %vec(1) -- X position.
-!     %vec(3) -- Y position.
+!     %vec(1)     -- X position.
+!     %vec(3)     -- Y position.
+!     %direction  -- Direction of travel
 !   ref_orb_offset -- Logical, optional: If present and n = 0 then the
 !                       multipole simulates a zero length bend with bending
 !                       angle knl.
@@ -573,8 +574,8 @@ endif
 ! ref_orb_offset with n = 0 means that we are simulating a zero length dipole.
 
 if (n == 0 .and. present(ref_orb_offset)) then
-  coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
-  coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
+  coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6) * coord%direction
+  coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6) * coord%direction
   coord%vec(5) = coord%vec(5) - knl * &
                   (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
   return
@@ -598,8 +599,8 @@ ENDIF
 x_value = SUM(cc(n,0:n:2) * x_terms(0:n:2) * y_terms(0:n:2))
 y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
 
-x_vel = knl * x_value
-y_vel = knl * y_value
+x_vel = knl * x_value * coord%direction
+y_vel = knl * y_value * coord%direction
 
 if (tilt == 0) then
   coord%vec(2) = coord%vec(2) + x_vel
@@ -618,7 +619,8 @@ end subroutine multipole_kick
 ! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
-!
+! Note: If coord%direction == -1 then kick is reversed
+
 ! Modules Needed:
 !   use bmad
 !                          
@@ -666,14 +668,14 @@ y = coord%vec(3)
 
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + b * f
-  ky = ky - a * f
+  kx = kx + b * f * coord%direction
+  ky = ky - a * f * coord%direction
 enddo
 
 do m = 1, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + a * f
-  ky = ky + b * f
+  kx = kx + a * f * coord%direction
+  ky = ky + b * f * coord%direction
 enddo
 
 ! dk calc

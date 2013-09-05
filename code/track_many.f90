@@ -170,9 +170,8 @@ ix_last = ix2-1  ! last index we expect to track.
 do n = ix1, ix2, -1
 
   ele => branch%ele(n)
-  ele%orientation = -ele%orientation
+  orbit(n)%direction = -1 
   call track1 (orbit(n), ele, branch%param, orbit(n-1))
-  ele%orientation = -ele%orientation
 
   ! check for lost particles
 
