@@ -170,18 +170,7 @@ time = particle_time(start_orb, ele)
 !Check wall
 
 if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
-   
-  !save state
-  !i = end_orb%state
-  !Allocate track array and set value
-  !if ( present(track) ) then
-  !  call init_saved_orbit (track, 0)
-  !  track%n_pt = 0
-  !  track%orb(0) = end_orb
-  !  track%orb(0)%ix_ele = ele%ix_ele
-  !endif
 
-  !
   call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name)//", SETTING TO LOST")
   !Particle won't be tracked, so set end = start with the saved state
   end_orb = start_orb
