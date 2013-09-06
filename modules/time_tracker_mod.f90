@@ -548,13 +548,15 @@ now_orb = orb_new
 ! Do nothing if orb_new is inside the wall
 if ( wall3d_d_radius(now_orb%vec, ele) < 0) return
 
-! Check that old_orb was inside the wall
+! Check that old_orb was inside the wall. An edge kick can make this happen. 
 d_radius = wall3d_d_radius(old_orb%vec, ele)
 if (d_radius > 0) then
-  call out_io (s_fatal$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN &
+  call out_io (s_warn$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN &
      WALL3D_ELE: '//trim(wall3d_ele%name)//', D_RADIUS =  \f12.6\', d_radius )
   !write(*, '(a, 3es15.8)') 's, r, d_radius: ', old_orb%s, sqrt(old_orb%vec(1)**2 + old_orb%vec(3)**2), d_radius
-  if (global_com%exit_on_error) call err_exit
+  orb_new%state = lost$
+  return
+  !if (global_com%exit_on_error) call err_exit
 endif
 
 !Change from particle coordinates to photon coordinates
@@ -726,7 +728,7 @@ end function particle_in_new_frame_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_in_global_frame (orb, branch) result (particle) 
+! Function particle_in_global_frame (orb, in_time_coordinates, w_mat_out) result (particle) 
 !
 ! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
 !   
@@ -867,7 +869,6 @@ end subroutine convert_particle_coordinates_t_to_s
 !   particle   -- coord_struct: input particle
 !                       %vec(2), %vec(4), %vec(6)
 !                       %s, %p0c
-!   p0c        -- real: Reference momentum. The sign indicates direction of p_s 
 ! Output:
 !    particle   -- coord_struct: output particle 
 !-
@@ -957,22 +958,29 @@ end subroutine drift_orbit_time
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_time_particle_distribution  (time_file_unit, bunch, mc2, err)
+! Subroutine write_time_particle_distribution  (time_file_unit, bunch, style, branch, err)
 !
-! Subroutine to write an time-based bunch from a standard Bmad bunch
+! Subroutine to write a time-based bunch from a standard Bmad bunch
 ! 
-! Note: The time-based file format is
-!       n_particles
-!       x/m  m*c^2 \beta_x*\gamma/eV  y/m m*c^2\beta_y*\gamma/eV s/m m*c^2\beta_z*\gamma/eV time/s charge/C
-!       . . .
-!       all at the same time. 
-!       This is very similar to subroutine write_opal_particle_distribution
+! Note: 'BMAD' style (absolute curvilinear coordinates): 
+!       n_particles_alive 
+!       x/m  m*c^2 \beta_x*\gamma/eV y/m m*c^2\beta_y*\gamma/eV s/m m*c^2\beta_z*\gamma/eV time/s charge/C
+!      
+!       'OPAL' style (absolute curvilinear coordinates): 
+!       n_particles_alive
+!       x/m  \beta_x*\gamma  y/m \beta_y*\gamma s/m \beta_s*\gamma
+!
+!       'ASTRA' style (global Cartesian coordinates, first line is the reference particle used for z, pz, and t calculation):
+!       x/m y/m  z/m  m*c^2 \beta_x*\gamma/eV m*c^2 \beta_y*\gamma/eV m*c^2 \beta_z*\gamma/eV time/ns charge/nC species status
+!       
 !
 ! Input:
 !   time_file_unit -- Integer: unit number to write to, if > 0
 !   bunch          -- bunch_struct: bunch to be written.
 !                            Particles are drifted to bmad_bunch%t_center for output
-!   mc2            -- real(rp): particle mass in eV
+!   style          -- character(16), optional: Style of output file:
+!                            'BMAD' (default), 'OPAL', 'ASTRA'
+!   branch         -- branch_struct, optional: Required for 'ASTRA' style
 !
 ! Output:          
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
@@ -980,38 +988,89 @@ end subroutine drift_orbit_time
 
 
 
-subroutine write_time_particle_distribution (time_file_unit, bunch, mc2, err)
+subroutine write_time_particle_distribution (time_file_unit, bunch, style, branch, err)
 
 implicit none
 
 integer			    :: time_file_unit
 type (bunch_struct) :: bunch
-real(rp)            :: mc2
+type (branch_struct), optional :: branch
+
+
+
+type (coord_struct) :: orb, orb_ref
+real(rp)        :: dt, pc, gmc, gammabeta(3), charge_alive
+
+character(10)   ::  rfmt 
+integer :: n_alive
+integer :: i, i_style, a_particle_index, a_status
+integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3
 logical, optional   :: err
 
-type (coord_struct) :: orb
-real(rp)        :: dt, pc, gmc
+character(*), optional  :: style 
+character(16) :: style_names(3) = ['BMAD        ', &
+								   'OPAL        ', &
+								   'ASTRA       ']
 character(40)	:: r_name = 'write_time_particle_distribution'
-character(10)   ::  rfmt 
-integer n_particle, i
-
 
 !
-if (present(err)) err = .true.
 
-n_particle = size(bunch%particle)
+if (present(style)) then
+  call match_word (style, style_names, i_style)
+  if (i_style == 0) then
+    call out_io (s_error$, r_name, 'Invalid style: '//trim(style))
+  endif
+else
+  i_style = bmad$
+endif
+
+if (present(err)) err = .true.
 
 !Format for numbers
   rfmt = 'es13.5'
 
-!Write number of particles to first line
-write(time_file_unit, '(i8)') n_particle
+! Number of alive particles
+n_alive = count(bunch%particle(:)%state == alive$)
 
-!\gamma m c
+! First line
+select case (i_style)
+  case (bmad$, opal$)
+    ! Number of particles
+    write(time_file_unit, '(i8)') n_alive !was: size(bunch%particle)
+  case (astra$)
+    ! Reference particle is the average of all particles
+    if (.not. present(branch)) call out_io (s_error$, r_name, 'Branch must be specified for ASTRA style')
+    charge_alive = sum(bunch%particle(:)%charge, mask = (bunch%particle%state == alive$))
+    if (charge_alive == 0) then
+      call out_io (s_warn$, r_name, 'Zero alive charge in bunch, nothing written to file')
+      return
+    endif
+    do i = 1, 6
+      orb_ref%vec(i) = sum( bunch%particle(:)%vec(i) *  bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$)) / charge_alive
+    enddo  
+    ! For now just use the first particle as a reference. 
+    orb = bunch%particle(1)
+    orb_ref%t = branch%ele(bunch%ix_ele)%ref_time
+    orb_ref%ix_ele = bunch%ix_ele
+    orb_ref%p0c = orb%p0c
+    orb_ref%species = orb%species
+    a_particle_index = astra_particle_index(orb_ref%species)
+    orb_ref = particle_in_global_frame (orb_ref,  branch)
+    if (orb_ref%p0c == 0) then
+      a_status = -1 ! Starting at cathode
+    else 
+      a_status = 5
+    endif
+    write(time_file_unit, '(8'//rfmt//', 2i8)') orb_ref%vec(1:5:2), orb_ref%vec(2:6:2), &
+                     1e9_rp*orb_ref%t, 1e9_rp*orb_ref%charge, a_particle_index, a_status
+end select
 
-!Write out all particles to file
-do i = 1, n_particle
+! All particles
+do i = 1, size(bunch%particle) 
   orb = bunch%particle(i)
+  
+  ! Only write live particles
+  if (orb%state /= alive$) cycle
   
   !Get time to track backwards by
   dt = orb%t - bunch%t_center
@@ -1023,15 +1082,63 @@ do i = 1, n_particle
   call convert_particle_coordinates_s_to_t (orb)
   
   !get \gamma m c
-  gmc = sqrt(pc**2 + mc2**2) / c_light
+  gmc = sqrt(pc**2 + mass_of(orb%species)**2) / c_light
   
   !'track' particles backwards in time and write to file
   ! (x, y, s) - dt mc2 \beta_x \gamma / \gamma m c
-  write(time_file_unit, '(8'//rfmt//')')  orb%vec(1) - dt*orb%vec(2)/gmc, orb%vec(2), &
-                                          orb%vec(3) - dt*orb%vec(4)/gmc, orb%vec(4), &
-                                          orb%vec(5) - dt*orb%vec(6)/gmc, orb%vec(6), &
-                    										  bunch%t_center, bunch%particle(i)%charge 
+  orb%vec(1) = orb%vec(1) - dt*orb%vec(2)/gmc
+  orb%vec(3) = orb%vec(3) - dt*orb%vec(2)/gmc
+  orb%vec(5) = orb%vec(5) - dt*orb%vec(2)/gmc
+  orb%t = orb%t - dt
+  
+  ! 
+  select case (i_style)
+  case (bmad$) 
+    write(time_file_unit, '(8'//rfmt//')')  orb%vec(1:6), bunch%t_center, bunch%particle(i)%charge 
+  
+  case (opal$)  
+    gammabeta =  orb%vec(2:6:2) / mass_of(orb%species)
+     ! OPAL has a problem with zero beta_s
+    if ( gammabeta(3) == 0 ) gammabeta(3) = 1e-30 
+    write(time_file_unit, '(6'//rfmt//')')  orb%vec(1), gammabeta(1), &
+										    orb%vec(3), gammabeta(2), &
+											orb%vec(5), gammabeta(3)
+  case (astra$)
+     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
+     a_particle_index = astra_particle_index(orb_ref%species)
+     ! The reference particle is used for z, pz, and t
+     write(time_file_unit, '(8'//rfmt//', 2i8)') orb%vec(1), &
+	    	 									 orb%vec(3), &
+	    	 									 orb%vec(5) - orb_ref%vec(5), &
+	    	 									 orb%vec(2), &
+	    	 									 orb%vec(4), &
+	    	 									 orb%vec(6) - orb_ref%vec(6), &
+                                                 1e9_rp*(orb%t - orb_ref%t), &
+                                                 1e9_rp*orb%charge, &
+                                                 a_particle_index, &
+                                                 a_status
+  
+  end select
+
 end do 
+
+if (present(err)) err = .false.
+
+contains
+
+function astra_particle_index(species) result (index)
+implicit none
+integer :: species, index
+select case (species)
+      case (electron$)
+        index = 1
+      case (positron$)
+        index = 2
+      case default
+        call out_io (s_warn$, r_name, 'Only electrons or positrons allowed for Astra. Setting index to -1')
+        index = -1
+end select
+end function
 
 end subroutine  write_time_particle_distribution
 
