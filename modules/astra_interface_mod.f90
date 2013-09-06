@@ -255,7 +255,7 @@ case (sbend$)
     floor1%r = [0.0_rp, 0.0_rp, s]
     floor2 = position_in_global_frame (floor1, ele)
     x = floor2%r ! Center
-    floor1%r = [w1, 0, s] ! Offset
+    floor1%r = [w1, 0.0_rp, s] ! Offset
     floor2 = position_in_global_frame (floor1, ele)
     dx = floor2%r - x
     if (i_slice == 0) dx = rotate3(dx, -ele%value(e1$)) 
@@ -266,7 +266,7 @@ case (sbend$)
     floor1%r = [0.0_rp, 0.0_rp, s]
     floor2 = position_in_global_frame (floor1, ele)
     x = floor2%r ! Center
-    floor1%r = [w1, 0, s] ! Offset
+    floor1%r = [w1, 0.0_rp, s] ! Offset
     floor2 = position_in_global_frame (floor1, ele)
     dx = floor2%r - x
     if (i_slice == n_slice) dx = rotate3(dx, ele%value(e2$)) 
