@@ -1,6 +1,6 @@
 !+
 ! Subroutine multi_turn_tracking_analysis (track, i_dim, track0, ele,
-!                                                stable, growth_rate, chi)
+!                                                stable, growth_rate, chi, err_flag)
 !
 ! Subroutine to analyze multi-turn tracking data. 
 ! Calculated is the symplectified 1-turn matrix and the Twiss parameters. 
