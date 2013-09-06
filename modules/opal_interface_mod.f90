@@ -182,12 +182,13 @@ ele_loop: do ie = ix_start, ix_end
   ! Sbend -----------------------------------       
   !----------------------------------------------------------
   case (sbend$)
-	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(l$)
-	call value_to_line (line, q_sign*val(b_field$), 'k0', rfmt, 'R')
-	call value_to_line (line, val(e_tot$), 'designenergy', rfmt, 'R')
-	!Edge angles are (unfortunately) in degrees
-	call value_to_line (line, val(e1$)*180.0_rp/pi, 'E1', rfmt, 'R')
-	call value_to_line (line, val(e2$)*180.0_rp/pi, 'E2', rfmt, 'R')
+	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(L_CHORD$)
+	call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
+   ! OPAL's designenergy is in MeV (!!) 
+	call value_to_line (line, 1e-6_rp*val(e_tot$), 'designenergy', rfmt, 'R')
+	!Edge angles are in radians
+	call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
+	call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
    ! Full GAP (OPAL) =  2*H_GAP (BMAD)
    ! OPAL will the default fieldmap if the gap is zero  
     if ( val(hgap$) == 0) then
@@ -695,7 +696,7 @@ case (lcavity$, rfcavity$, e_gun$)
     write (opal_file_unit, '(a,'//rfmt//', 2a )' ) '1DProfile1 1 1 ', 100*gap, '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(3'//rfmt//', i8, a)') -100*edge_range, 0.0_rp, 100*edge_range, 666,  &
           ' #entrance: edge start(cm), edge center(cm), edge end(cm), unusued'
-    write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L$) - edge_range) , 100*ele%value(L$), 100*(ele%value(L$) + edge_range), 666,  &
+    write (opal_file_unit, '(3'//rfmt//', i8, a)') 100*(ele%value(L_CHORD$) - edge_range) , 100*ele%value(L_CHORD$), 100*(ele%value(L_CHORD$) + edge_range), 666,  &
           ' #exit:     edge start(cm), edge center(cm), edge end(cm), unusued'
     ! Entrance coefficients
     write (opal_file_unit, '('//rfmt//')')  0.0_rp   
