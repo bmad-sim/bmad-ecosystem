@@ -7,7 +7,6 @@ program anaylzer
   use bookkeeper_mod
   use bsim_interface
   use mode3_mod
-  use reverse_mod
 
   implicit none
 
@@ -239,8 +238,9 @@ program anaylzer
 
    if(line(1:4) == 'REVE')then
      ring_1 = ring
-     call lat_reverse(ring_1, ring_2)
-     print '(a)', "RING 2 is the reverse of RING 1"
+     !!! call lat_reverse(ring_1, ring_2)
+     !!! print '(a)', "RING 2 is the reverse of RING 1"
+     print *, 'Ring reversal disabled. Please contact DCS for mor info.'
      exit
    endif
 
