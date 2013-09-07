@@ -193,6 +193,7 @@ fact_f = 0
 if (bmad_com%radiation_fluctuations_on) then
   call ran_gauss (this_ran)
   fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
+  if (param%reverse_time_tracking) fact_f = -fact_f
 endif
 
 dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 

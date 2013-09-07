@@ -621,7 +621,28 @@ interface
     logical, optional :: err_flag
   end subroutine
 
+  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
+    import
+    implicit none
+    type (lat_struct) lat
+    type (coord_struct) orbit_start, orbit_end
+    type (coord_struct), optional, allocatable :: all_orb(:)
+    real(rp) s_start, s_end
+    integer, optional :: ix_branch, track_state
+  end subroutine
+
   subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
+    import
+    implicit none
+    type (lat_struct)  lat
+    type (coord_struct)  orbit(0:)
+    integer ix_start
+    integer ix_end
+    integer direction
+    integer, optional :: ix_branch, track_state
+  end subroutine
+
+  subroutine track_reverse (lat, orbit, ix_start, ix_end, ix_branch, track_state)
     import
     implicit none
     type (lat_struct)  lat
@@ -643,6 +664,45 @@ interface
     logical, optional :: err_flag, ignore_radiation
   end subroutine
 
+  subroutine track1_backup (end_orb, ele, param, start_orb, err_flag)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    logical, optional :: err_flag
+  end subroutine
+
+  subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    logical, optional :: err_flag
+  end subroutine
+
+  subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    logical, optional :: err_flag
+  end subroutine
+
+  subroutine track1_linear (start_orb, ele, param, end_orb)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+  end subroutine
+
   subroutine track1_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)
     import
     implicit none
@@ -654,7 +714,16 @@ interface
     type (track_struct), optional :: track
   end subroutine
 
-  subroutine track1_linear (start_orb, ele, param, end_orb)
+  subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
+    import
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+  end subroutine
+
+  subroutine track1_symp_map (start_orb, ele, param, end_orb)
     import
     implicit none
     type (coord_struct) :: start_orb
@@ -681,54 +750,6 @@ interface
     type (lat_param_struct), target :: param
     logical err_flag
     type (track_struct), optional :: track
-  end subroutine
-
-  subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
-    import
-    implicit none
-    type (coord_struct) :: start_orb
-    type (coord_struct) :: end_orb
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-    logical, optional :: err_flag
-  end subroutine
-
-  subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
-    import
-    implicit none
-    type (coord_struct) :: start_orb
-    type (coord_struct) :: end_orb
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-    logical, optional :: err_flag
-  end subroutine
-
-  subroutine track1_symp_lie_ptc (start_orb, ele, param, end_orb)
-    import
-    implicit none
-    type (coord_struct) :: start_orb
-    type (coord_struct) :: end_orb
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-  end subroutine
-
-  subroutine track1_symp_map (start_orb, ele, param, end_orb)
-    import
-    implicit none
-    type (coord_struct) :: start_orb
-    type (coord_struct) :: end_orb
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-  end subroutine
-
-  subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state)
-    import
-    implicit none
-    type (lat_struct) lat
-    type (coord_struct) orbit_start, orbit_end
-    type (coord_struct), optional, allocatable :: all_orb(:)
-    real(rp) s_start, s_end
-    integer, optional :: ix_branch, track_state
   end subroutine
 
   subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, ele_start, ele_end, err)

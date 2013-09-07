@@ -531,18 +531,19 @@ end type
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
 
 type lat_param_struct
-  real(rp) :: n_part = 0                  ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0            ! total_length of branch
-  real(rp) :: unstable_factor = 0         ! growth rate/turn for closed branches. 
-                                          ! |orbit/limit| for open branches.
-  real(rp) :: t1_with_RF(6,6) = 0         ! Full 1-turn matrix with RF on.
-  real(rp) :: t1_no_RF(6,6) = 0           ! Full 1-turn matrix with RF off.
-  real(rp) :: rel_tracking_charge = 1     ! Charge relative to referece charge
-  integer :: particle = positron$         ! Reference particle: positron$, electron$, etc.
-  integer :: geometry = 0                 ! open$ or closed$
-  integer :: ixx = 0                      ! Integer for general use
-  logical :: stable = .false.             ! is closed lat stable?
-  logical :: aperture_limit_on = .true.   ! use apertures in tracking?
+  real(rp) :: n_part = 0                     ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0               ! total_length of branch
+  real(rp) :: unstable_factor = 0            ! growth rate/turn for closed branches. 
+                                             ! |orbit/limit| for open branches.
+  real(rp) :: t1_with_RF(6,6) = 0            ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0              ! Full 1-turn matrix with RF off.
+  real(rp) :: rel_tracking_charge = 1        ! Charge relative to referece charge
+  integer :: particle = positron$            ! Reference particle: positron$, electron$, etc.
+  integer :: geometry = 0                    ! open$ or closed$
+  integer :: ixx = 0                         ! Integer for general use
+  logical :: stable = .false.                ! is closed lat stable?
+  logical :: aperture_limit_on = .true.      ! use apertures in tracking?
+  logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type

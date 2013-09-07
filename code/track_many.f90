@@ -1,23 +1,26 @@
 !+
 ! Subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 !
-! Subroutine to track from one point in the lattice to another.
+! Subroutine to track from one point in the lat to another.
 !
-! Note: Tracking with direction = -1 means that the particle is moving in
-!   the -s direction. The particle is still moving forward in time though.
+! Tracking with direction = -1 is "backup" tracking where time is going backwards.
+! For true "reverse" tracking, where the particle is traveling forward in time
+! in the -s direction, use the routine track_reverse.
 !
-! Note: The coordinates for tracking backward are the same as for tracking 
-!   forward: That is, +z always points in the direction of increasing s, not 
-!   in the actual direction that the particle is traveling.
+! Note: The coordinates for backup tracking are the same as for tracking 
+!   forward: That is, +z points in the +s direction.
 !
 ! Note: Starting and ending points are just after the elements with index
 !   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
 !   tracked through is element ix_start+1. If DIRECTION = -1 then the first
 !   element tracked through is element ix_start.
 !
-! Note: If needed, the subroutine will track through from the end of the lat
+! Note: If needed the subroutine will track through from the end of the lat
 !   to the beginning (or vice versa) to get to the end point. 
 !   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
+!
+! Note: If x_limit (or y_limit) for an element is zero then track_many will
+!   take x_limit (or y_limit) as infinite (this is standard Bmad).
 !
 ! Modules Needed:
 !   use bmad
@@ -44,6 +47,7 @@
 
 subroutine track_many (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
 
+use bmad_struct
 use bmad_interface, except_dummy => track_many
 use bookkeeper_mod, only: control_bookkeeper
 
@@ -57,6 +61,7 @@ integer ix_start, ix_end, direction, ix_br, n_ele_track, track_end_state
 integer, optional :: ix_branch, track_state
 
 logical :: debug = .false.
+logical err
 
 character(16) :: r_name = 'track_many'
 
@@ -70,9 +75,6 @@ if (present(track_state)) track_state = moving_forward$
 track_end_state = moving_forward$
 
 n_ele_track = branch%n_ele_track
-
-if (orbit(ix_start)%state == not_set$) call init_coord(orbit(ix_start), orbit(ix_start)%vec, &
-                                                       branch%ele(ix_start), .true., branch%param%particle)
 
 ! Track forward through the elements.
 
@@ -130,11 +132,11 @@ integer i, n, ix1, ix2, track_end_state
 do n = ix1, ix2
 
   ele => branch%ele(n)
-  call track1 (orbit(n-1), ele, branch%param, orbit(n))
+  call track1 (orbit(n-1), ele, branch%param, orbit(n), err_flag = err)
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n))) then
+  if (.not. particle_is_moving_forward(orbit(n)) .or. err) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
@@ -158,9 +160,15 @@ end subroutine
 !--------------------------------------------------------------------------
 ! contains
 
+! ele_reverse is used to reverse an element for tracking backwards.
+! However, a reversed element has a different coordinate system so
+! we need to transform to the flipped coordinate system, then track, then
+! flip back to the standard coord system.
+
 subroutine track_back (ix1, ix2, track_end_state)
 
-type (ele_struct), pointer :: ele
+type (ele_struct) :: ele
+
 integer i, n, ix1, ix2, ix_last, track_end_state
 
 ! track
@@ -169,13 +177,11 @@ ix_last = ix2-1  ! last index we expect to track.
 
 do n = ix1, ix2, -1
 
-  ele => branch%ele(n)
-  orbit(n)%direction = -1 
-  call track1 (orbit(n), ele, branch%param, orbit(n-1))
+  call track1_backup (orbit(n), branch%ele(n), branch%param, orbit(n-1), err)
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n-1))) then
+  if (.not. particle_is_moving_forward(orbit(n-1)) .or. err) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
@@ -191,7 +197,6 @@ do n = ix1, ix2, -1
     print *, branch%ele(n)%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
-
 
 enddo
 
