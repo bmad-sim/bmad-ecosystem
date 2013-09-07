@@ -37,8 +37,8 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, e
 
 use bmad_parser_mod, except_dummy => bmad_parser
 use ptc_interface_mod, dummy2 => bmad_parser
+use wall3d_mod, dummy3 => bmad_parser
 use random_mod
-use wall3d_mod
 
 implicit none
 
