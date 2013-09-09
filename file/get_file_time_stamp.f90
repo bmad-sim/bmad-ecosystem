@@ -27,29 +27,7 @@ integer iu, ix, ios
 
 time_stamp = ''  ! In case of error
 
-#if defined (CESR_VMS)
-
-call lib$spawn ('directory/full/out=file_date.temp ' // file)
-
-iu = lunget()
-open (iu, file = 'file_date.temp', status = 'old')
-
-do
-  read (iu, '(a)', iostat = ios) line
-  if (ios /= 0) exit
-  if (line(1:8) == 'Revised:') then
-    call string_trim (line(10:), line, ix)
-    time_stamp = line(1:23)
-    exit
-  endif
-enddo
-close (iu)
-
-call lib$spawn ('delete file_date.temp;*')
-
-#else
-  print *, 'ERROR: GET_FILE_TIME_STAMP NOT IMPLEMENTED FOR UNIX.'
-  if (global_com%exit_on_error) call err_exit
-#endif
+print *, 'ERROR: GET_FILE_TIME_STAMP NOT IMPLEMENTED FOR UNIX.'
+if (global_com%exit_on_error) call err_exit
 
 end subroutine
