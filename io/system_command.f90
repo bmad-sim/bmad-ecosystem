@@ -16,10 +16,6 @@ implicit none
 character(*) line
 !
 
-#if defined (CESR_VMS)
-  call lib$spawn (line)
-#else
-  call system (line)
-#endif
+call system (line)
 
 end subroutine

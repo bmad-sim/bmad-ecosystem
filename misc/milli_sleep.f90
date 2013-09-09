@@ -20,10 +20,6 @@ integer milli_sec
 
 !
 
-#if defined (CESR_VMS)
-call lib$wait(.001*float(milli_sec))
-#else
 call program_sleep (real(1d-3 * milli_sec, dp))
-#endif
 
 end subroutine

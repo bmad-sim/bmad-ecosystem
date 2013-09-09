@@ -23,26 +23,12 @@ contains
 
 function cesr_iargc()
 
-  implicit none
+implicit none
 
-  integer cesr_iargc
+integer cesr_iargc
 
-#ifndef CESR_VMS
-  integer iargc
-  cesr_iargc = iargc()
-#endif
-
-#if defined (CESR_VMS)
-  character(200) :: raw_line
-  integer :: n_args, i, pos
-  call lib$get_foreign(raw_line)
-  cesr_iargc = 0
-  do while (len_trim(raw_line) > 0)
-     pos = index(raw_line, ' ')
-     raw_line = raw_line(pos+1:)
-     cesr_iargc = cesr_iargc + 1
-  end do
-#endif
+integer iargc
+cesr_iargc = iargc()
 
 end function cesr_iargc
 
@@ -79,30 +65,15 @@ subroutine cesr_getarg(i_arg, arg)
 
 !
 
-#ifndef CESR_VMS
-  if (i_arg == 0) then
-    call getarg (1, arg)
-    do i = 2, cesr_iargc()
-      call getarg (i, raw)
-      arg = trim(arg) // ' ' // trim(raw)
-    enddo
-  else
-    call getarg(i_arg, arg)
-  endif
-#endif
-
-#if defined (CESR_VMS)
-  call lib$get_foreign(raw)
-  if (i_arg == 0) then
-    arg = raw
-  else
-    do i = 1, i_arg
-       pos = index(raw, ' ')
-       arg = raw(:pos-1)
-       raw = raw(pos+1:)
-    enddo
-  endif
-#endif
+if (i_arg == 0) then
+  call getarg (1, arg)
+  do i = 2, cesr_iargc()
+    call getarg (i, raw)
+    arg = trim(arg) // ' ' // trim(raw)
+  enddo
+else
+  call getarg(i_arg, arg)
+endif
 
 end subroutine cesr_getarg
 

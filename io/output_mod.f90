@@ -25,11 +25,7 @@ type output_mod_com_struct
   logical :: do_print(-1:9) = .true.
   integer :: file_unit(-1:9) = 0
   integer :: to_routine(-1:9) = 0
-#if defined (CESR_VMS)
-  integer :: indent_num(-1:9) = [1, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5 ]
-#else
   integer :: indent_num(-1:9) = [0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
-#endif
 end type
 
 type (output_mod_com_struct), save, private :: output_com
@@ -214,11 +210,7 @@ elseif (output_com%to_routine(level) == -1) then
   call out_io_line(trim(line_out) // char(0))
 endif
 
-#if defined (CESR_VMS)
-  if (output_com%do_print(level)) write (*, '(1x, a)') trim(line_out)
-#else
-  if (output_com%do_print(level)) write (*, '(a)') trim(line_out)
-#endif
+if (output_com%do_print(level)) write (*, '(a)') trim(line_out)
 
 end subroutine out_io_line_out
 

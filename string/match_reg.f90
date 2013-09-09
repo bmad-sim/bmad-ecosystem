@@ -15,28 +15,24 @@
 !-
 
 function match_reg(str, pat)
-  implicit none
-  logical :: match_reg
-  character(*), intent(in) :: str, pat
-  integer stat
 
-  interface
-     function match_reg_c(str, pat)
-       implicit none
-       integer match_reg_c
-       character(*) str, pat
-     end function match_reg_c
-  end interface
+implicit none
 
-  match_reg = .false.
+logical :: match_reg
+character(*), intent(in) :: str, pat
+integer stat
 
-#if defined(CESR_VMS)
-  write(*,*) "function match_reg not supported on VMS"
-  if (global_com%exit_on_error) call err_exit
+interface
+   function match_reg_c(str, pat)
+     implicit none
+     integer match_reg_c
+     character(*) str, pat
+   end function match_reg_c
+end interface
 
-#else
-  stat = match_reg_c(trim(str)//char(0),trim(pat)//char(0))
-  if (stat==1) match_reg = .true.
-#endif
+match_reg = .false.
+
+stat = match_reg_c(trim(str)//char(0),trim(pat)//char(0))
+if (stat==1) match_reg = .true.
 
 end function match_reg
