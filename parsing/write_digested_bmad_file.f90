@@ -448,15 +448,12 @@ logical write_wall
 if (write_wall) then
 
   write (d_unit) size(wall3d%section)
-  write (d_unit) wall3d%ele_anchor_pt, wall3d%priority, &
-      wall3d%crotch%location, wall3d%crotch%ix_section, &
-      wall3d%crotch%ix_v1_cut, wall3d%crotch%ix_v2_cut
+  write (d_unit) wall3d%ele_anchor_pt, wall3d%superimpose, &
+      wall3d%thickness, wall3d%clear_material, wall3d%opaque_material
 
   do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
     call write_this_wall3d_section (wall3d%section(j))
   enddo
-
-  if (wall3d%crotch%ix_section /= 0) call write_this_wall3d_section(wall3d%crotch%section)
 
 else
   write (d_unit) 0
@@ -482,7 +479,8 @@ else
 endif
 
 write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input
+                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, &
+                   sec%type
 do k = 1, nv
   write (d_unit) sec%v(k)
 enddo

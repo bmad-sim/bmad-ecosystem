@@ -904,19 +904,18 @@ the radius (or radii for an ellipse section) is negative.}
 The vacuum chamber wall shape may be defined for an element using the
 \vn{wall} attribute as detailed below. For X-ray capillary elements
 (\sref{s:capillary}), this construct is used to define the inside wall
-of the capillary.
-
-NOTE: This construct is currently under development. Unless a program
-is specifically enabled, the presence of a chamber wall for a
-non-capillary element will not affect particle tracking.
+of the capillary. Additionally, the \vn{diffraction_plate}
+(\sref{s:diff.plate}) element uses a wall construct to define the
+geometry of the clear areas on the plate.
 
 The wall is defined by a number of cross-sectional slices as shown in
 \fig{f:chamber.wall}A. Each cross-section is defined by a number of
-vertices. The arc between each vertex may be either a straight line,
-an arc of a circle, or a section of an ellipse. For a capillary it is
-mandatory that a cross-section be convex. That is, given any two
-points within the cross-section, all points on the line segment
-connecting them must be within the cross-section.
+vertices. The verticies are defined with respect to the local sector
+origin $(x_0, y_0)$. The arc between each vertex may be either a
+straight line, an arc of a circle, or a section of an ellipse. For a
+capillary it is mandatory that a cross-section be convex. That is,
+given any two points within the cross-section, all points on the line
+segment connecting them must be within the cross-section.
 
 \index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
 \index{dr_ds1}\index{dr_ds1}\index{n_slice_spline}
@@ -924,9 +923,11 @@ The \vn{wall} structure defines the capillary wall. The
 syntax of the wall structure is:
 \begin{example}
   wall = \{
-    priority= <rank>,
+    superimpose = <T/F>,
     section = \{ 
       s = <longitudinal_position>, 
+      x0 = <value>,
+      y0 = <value>,
       dr_ds = <value>,
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
@@ -937,12 +938,10 @@ syntax of the wall structure is:
       ... \},
     ... \}
 \end{example}
-Note: Specifying \vn{priority}, \vn{s_spline} or
-\vn{n_cut_spline} is optional. Example:
+Example:
 \begin{example}
   this_cap: capillary, 
     wall = \{   
-      priority = primary,
       section = \{ ! cross-section with top/bottom symmetry
         s = 0, v(1) =  \{0.02, 0.00\}, 
         v(2) = \{0.00, 0.02, 0.02\}, v(3) = \{-0.01, 0.01\} \}, 
@@ -958,12 +957,14 @@ The wall structure begins with ``\vn{wall = \{}'' and ends with a
 structures. Each individual cross-section begins with ``\vn{section =
 \{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
 cross-section gives the longitudinal position of the cross-section.
+
 For a capillary, \vn{s} must be zero for the first cross-section and
 the length of the capillary is given by the value of \vn{s} of the
 last cross-section.
 
-The \vn{v(<j>)} within a cross-section define the vertices
-for each cross-section. Each \vn{v(<j>)} in turn has five
+The \vn{v(<j>)} within a cross-section define the vertices for each
+cross-section. The vertices are defined with respect to the section
+origin given by \vn{x0} and \vn{y0}. Each \vn{v(<j>)} has five
 parameters. It is mandatory to specify the first two parameters
 \vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
 \vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
@@ -1003,15 +1004,14 @@ the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
 rotates in counter clockwise as shown in
 \fig{f:chamber.wall}B. In general, there are two solutions for
 constructing such an arc. For positive radii, the solution chosen is
-the one whose center is closest to the origin.  
+the one whose center is closest to the section origin $(x_0, y_0)$.  
 
-A restriction on cross-sections is that the origin $(0,0)$ must be in the
-interior of any cross-section and that for any cross-section a line
-drawn from the origin at any given angle $\theta$ will intersect the
-cross-section at exactly one point as shown in
-\fig{f:chamber.wall}B. This is an important point in the
-construction of the wall between cross-sections as explained
-below.
+A restriction on cross-sections is that the section origin $(x_0,
+y_0)$ must be in the interior of any cross-section and that for any
+cross-section a line drawn from the origin at any given angle $\theta$
+will intersect the cross-section at exactly one point as shown in
+\fig{f:chamber.wall}B. This is an important point in the construction
+of the wall between cross-sections as explained below.
 
 The last vertex specified, call it \vn{<v(n)>}, should not have the
 same \vn{<x>}, \vn{<y>} values as the first vertex \vn{<v(1)>}. That
@@ -1108,24 +1108,26 @@ defined, the following syntax is used:
   ele_name[wall.section(n).v(j).x]   ! x value of j^th vertex of n^th cross-section
 \end{example}
 
-Note that element apertures (\sref{s:limit} are independent of walls.
+%-----------------------------------------------------------------
+\subsection{Vacuum Chamber Wall}
+\label{s:chamber}
 
-When superimposing elements (\sref{s:super}), there is the problem of
-how to superimpose walls. If only one of the superimposed elements has
-a wall then this wall is used. If more than one superimposed elements
-has a wall then the wall with the highest \vn{priority} is used. The
-\vn{priority} switch in the wall structure can be set to one of
-\begin{example}
-  ignore
-  secondary  [default]
-  primary
-\end{example}
-a wall with \vn{priority} set to \vn{primary} takes precidence over a
-\vn{priority} of \vn{secondary}. A wall with \vn{priority} set to
-\vn{ignore} is always ignored even when there is no superposition. It
-is an error if there are multiple walls with the highest priority are
-superimposed. For example, two elements with walls whose \vn{priority}
-is set to \vn{secondary} cannot be superimposed on top of one another.
+The vacuum chamber wall is independent of the element apertures
+(\sref{s:limit}. Indeed, unless a program is specifically setup, the
+presence of a vacuum chamber wall will not affect particle tracking.
+
+The vacuum chamber wall defined for an element may be shorter or
+longer than the element.
+
+The vacuum chamber wall for a particular lattice branch is the sum of
+all the chamber walls of the individual elements. The chamber walls of
+any two elements may not overlap. The exception is when the
+\vn{superimpose} attribute for a wall of an element is set to True. In
+this case, any other wall cross-sections from any other elements that
+overlap the superimposed wall are discarded.
+
+If a branch has a closed geometry (\sref{s:param}), wall sections that
+extend beyound the ends of the branch are ``wrapped'' around.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

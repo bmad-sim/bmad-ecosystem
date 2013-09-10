@@ -6,11 +6,11 @@ use bmad_interface
 !
 
 interface re_allocate
-  module procedure re_allocate_section_array
+  module procedure re_allocate_wall3d_section_array
 end interface
 
 interface re_allocate
-  module procedure re_allocate_vertex_array
+  module procedure re_allocate_wall3d_vertex_array
 end interface
 
 contains
@@ -19,7 +19,7 @@ contains
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_vertex_array (v, n, exact)
+! Subroutine re_allocate_wall3d_vertex_array (v, n, exact)
 !
 ! Routine to reallocate an array of vertex structures.
 ! Overloaded by re_allocate.
@@ -38,7 +38,7 @@ contains
 !   v(:)  -- Wall3d_vertex_struct: Allocated array.
 !-
 
-subroutine re_allocate_vertex_array (v, n, exact)
+subroutine re_allocate_wall3d_vertex_array (v, n, exact)
 
 implicit none
 
@@ -66,13 +66,13 @@ else
   allocate (v(n))
 endif
 
-end subroutine re_allocate_vertex_array
+end subroutine re_allocate_wall3d_vertex_array
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_section_array (section, n, exact)
+! Subroutine re_allocate_wall3d_section_array (section, n, exact)
 !
 ! Routine to reallocate an array of wall3d%section(:).
 ! Overloaded by re_allocate.
@@ -91,7 +91,7 @@ end subroutine re_allocate_vertex_array
 !   section(:) -- Wall3d_section_struct, pointer: Allocated array.
 !-
 
-subroutine re_allocate_section_array (section, n, exact)
+subroutine re_allocate_wall3d_section_array (section, n, exact)
 
 implicit none
 
@@ -124,7 +124,7 @@ else
   allocate (section(n))
 endif
 
-end subroutine re_allocate_section_array
+end subroutine re_allocate_wall3d_section_array
 
 
 !---------------------------------------------------------------------------------------
@@ -630,14 +630,13 @@ function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_r
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: wall3d_ele
 type (wall3d_section_struct), pointer :: sec1, sec2
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct), allocatable :: v(:)
 
 real(rp) d_radius, r_particle, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
-real(rp) p1, p2, dp1, dp2, s_particle, dz_offset
+real(rp) p1, p2, dp1, dp2, s_particle, dz_offset, x, y, x0, y0
 real(rp), intent(in) :: position(:)
 real(rp), optional :: perp(3)
 real(rp), pointer :: vec(:), value(:)
@@ -655,39 +654,12 @@ character(32), parameter :: r_name = 'wall3d_d_radius'
 if (present(err_flag)) err_flag = .true.
 d_radius = -1
 
-wall3d_ele => pointer_to_wall3d_ele (ele, dz_offset, err)
-if (err) then
- call out_io (s_error$, r_name, 'Wall priority conflict for: ' // ele%name)
- return
-endif
-
-if (.not. associated(wall3d_ele)) return
-
-! Calc particle radius
-
-if (position(1) == 0 .and. position(3) == 0) then
-  r_particle = 0
-  cos_theta = 1
-  sin_theta = 0
-else
-  r_particle = sqrt(position(1)**2 + position(3)**2)
-  cos_theta = position(1) / r_particle
-  sin_theta = position(3) / r_particle
-endif
-
-!------------------
-! Error check
-
-if (.not. associated(wall3d_ele%wall3d)) then
-  call out_io (s_fatal$, r_name, 'Wall not present for: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
-  return
-endif
+wall3d => pointer_to_wall3d (ele, dz_offset)
+if (.not. associated(wall3d)) return
 
 !------------------
 ! Init
 
-wall3d => wall3d_ele%wall3d
 s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
 
@@ -699,6 +671,16 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     sec1 => wall3d%section(1)
   else
     sec1 => wall3d%section(n_sec)
+  endif
+
+  x = position(1) - sec1%x0; y = position(3) - sec1%y0
+  r_particle = sqrt(x**2 + y**2)
+  if (r_particle == 0) then
+    cos_theta = 1
+    sin_theta = 0
+  else
+    cos_theta = x / r_particle
+    sin_theta = y / r_particle
   endif
 
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
@@ -727,13 +709,25 @@ if (present(ix_section)) ix_section = ix_w
 sec1 => wall3d%section(ix_w)
 sec2 => wall3d%section(ix_w+1)
 
+ds = sec2%s - sec1%s
+s_rel = (s_particle - sec1%s) / ds
+x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
+y0 = (1 - s_rel) * sec1%y0 + s_rel * sec2%y0
+x = position(1) - x0; y = position(3) - y0
+r_particle = sqrt(x**2 + y**2)
+if (r_particle == 0) then
+  cos_theta = 1
+  sin_theta = 0
+else
+  cos_theta = x / r_particle
+  sin_theta = y / r_particle
+endif
+
 call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
 
 ! Interpolate to get d_radius
 
-ds = sec2%s - sec1%s
-s_rel = (s_particle - sec1%s) / ds
 p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
 p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
@@ -758,228 +752,51 @@ end function wall3d_d_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_wall3d_ele (ele, dz_offset, err_flag) result (wall3d_ele)
+! Function pointer_to_wall3d (ele, dz_offset) result (wall3d)
 !
-! Function to return a pointer to the element containing the wall associated
+! Function to return a pointer to the wall3d structure associated
 ! with a given lattice element. 
 !
-! Normally, wall_ele and ele are the same. However:
-!   1) The wall3d_ele associated with a multipass slave is the multipass_lord.
-!   2) The wall3d_ele associated with a super_slave will be the super_lord except
-!      if the super_lord is also a multipass_slave in which case rule (1) is applied.
-!
-! Module needed:
-!   use wall3d_mod
+! Note: the wall associated with a diffraction_plate element is the branch%wall3d wall.
 !
 ! Input:
-!   ele        -- ele_struct: Lattice element
+!   ele        -- Ele_struct: lattice element.
 !
 ! Output:
-!   wall3d_ele -- ele_struct, pointer: Pointer to the element containing the associated wall.
+!   wall3d     -- wall3d_struct, pointer: Pointer to the associated wall structure.
 !                   Will be nullified if there is no associated wall.
-!   dz_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d_ele)
-!   err_flag   -- logical: Set True if there is a priority conflict between multiple walls. 
-!                   False otherwise.
+!   dz_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
 !-
 
-function pointer_to_wall3d_ele (ele, dz_offset, err_flag) result (wall3d_ele)
+function pointer_to_wall3d (ele, dz_offset) result (wall3d)
 
 implicit none
 
-character(32), parameter :: r_name = 'pointer_to_wall3d_ele'
+character(32), parameter :: r_name = 'pointer_to_wall3d'
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: wall3d_ele, super_lord, ele2, super_lord_saved
+type (wall3d_struct), pointer :: wall3d
 
 real(rp) dz_offset
 
-integer i
+! 
 
-logical err_flag
-logical wall3d_conflict
-
-! First find element with a wall.
-
-err_flag = .true.
-
-nullify (wall3d_ele)
-nullify (super_lord_saved)
-
-wall3d_conflict = .false.
-
-if (ele%slave_status == super_slave$) then
-  do i = 1, ele%n_lord
-    super_lord => pointer_to_lord(ele, i)
-    if (super_lord%slave_status == multipass_slave$) then
-      ele2 => pointer_to_lord(super_lord, 1)
-    endif
-    call this_pointer_to_wall3d_ele (super_lord, super_lord)
-  enddo
-
-elseif (ele%slave_status == multipass_slave$) then
-  ele2 => pointer_to_lord(ele, 1)
-  call this_pointer_to_wall3d_ele(ele2)
-
-else
-  call this_pointer_to_wall3d_ele(ele)
-endif
-
-! Look for a conflict
-
-if (associated(wall3d_ele)) then
-  if (wall3d_conflict) then
-    nullify(wall3d_ele)
-    return
-  endif
-endif
-
-! The dz_offset can only be nonzero if ele is a super_slave.
-
-err_flag = .false.
-dz_offset = 0
-
-if (associated(super_lord_saved)) then
-  dz_offset = (ele%s - ele%value(l$)) - (super_lord_saved%s - super_lord_saved%value(l$))
-endif
-
-!----------------------------------------------------------------------------------------------
-contains
-
-subroutine this_pointer_to_wall3d_ele (this_ele, this_super_lord)
-
-type (ele_struct), target :: this_ele
-type (ele_struct), target, optional :: this_super_lord
-
-!
-
-if (.not. associated(this_ele%wall3d)) return
-if (this_ele%wall3d%priority == ignore$) return
-
-if (associated(wall3d_ele)) then
-  if (this_ele%wall3d%priority > wall3d_ele%wall3d%priority) return ! Higher number -> lower priority.
-  if (wall3d_ele%wall3d%priority == this_ele%wall3d%priority) wall3d_conflict = .true.
-  if (wall3d_ele%wall3d%priority < this_ele%wall3d%priority) wall3d_conflict = .false.
-endif
-
-wall3d_ele => this_ele
-if (present(this_super_lord)) super_lord_saved => this_super_lord
-
-end subroutine this_pointer_to_wall3d_ele
-
-end function pointer_to_wall3d_ele
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Subroutine next_wall3d_section (ele0, ds_particle, direction, section, sec_ele, patch_between)
-!
-! Routine to return pointers to the closest wall3d cross-section in a given direction relative
-! to a given logitudinal particle position
-!
-! Module needed:
-!   use wall3d_mod
-!
-! Input:
-!   ele0          -- ele_struct: Element particle is in.
-!   ds_particle   -- real(rp): offset of particle from upstream end of element.
-!   direction     -- integer: +1 to find next downstream cross-section. 
-!                      -1 to find next upstream cross-section.
-!
-! Output:
-!   section       -- wall3d_section_struct, pointer: Pointer to appropriate section.
-!                      Not associated if there is no such section.
-!   sec_ele       -- ele_struct, pointer: Pointer to element containing the cross-section.
-!                      Note: sec_ele will be in the tracking part of the lattice so
-!                      sec_ele may be a slave to the lord that actually holds the cross-sections.
-!   patch_between -- logical: Set true if a patch element is between ele0 and sec_ele
-!-
-
-subroutine next_wall3d_section (ele0, ds_particle, direction, section, sec_ele, patch_between)
-
-implicit none
-
-type (ele_struct), target :: ele0
-type (ele_struct), pointer :: sec_ele, ele, s_ele
-type (wall3d_section_struct), pointer :: section
-
-real(rp) ds_particle, dz_offset
-integer i, direction
-logical err_flag, patch_between, bend_between
-
-character(*), parameter :: r_name = 'next_wall3d_section'
-
-! See if there is an appropriate cross-section in this element 
-
-nullify(section)
-nullify(sec_ele)
-patch_between = .false.
-bend_between = .false.
-
-ele => ele0
-s_ele => pointer_to_wall3d_ele (ele, dz_offset, err_flag)
-if (err_flag) return
-
-if (associated(s_ele)) then
-  if (direction > 0) then
-    do i = 1, size(s_ele%wall3d%section)
-      if (s_ele%wall3d%section(i)%s >= ds_particle+dz_offset) then
-        sec_ele => s_ele
-        section => s_ele%wall3d%section(i)
-        return
-      endif
-    enddo
-
-  else
-    do i = size(s_ele%wall3d%section), 1, -1
-      if (s_ele%wall3d%section(i)%s <= ds_particle+dz_offset) then
-        sec_ele => s_ele
-        section => s_ele%wall3d%section(i)
-        return
-      endif
-    enddo
-
-  endif
-endif
-
-! No cross section found in ele0 so start searching neighboring elements
-! Only wrap around branch if the geometry is closed. 
-
-if (.not. associated(ele%branch)) return
-
-do
-  ele => pointer_to_next_ele (ele, direction)
-  if (.not. associated(ele)) return
-
-  if (patch_between .and. bend_between) then
-    call out_io (s_error$, r_name, 'BOTH PATCH AND SBEND ELEMENTS FOUND!')
-    return
-  endif
-
-  if (ele%key == patch$) patch_between = .true.
-  if (ele%key == sbend$) bend_between = .true.
-
-  if (ele%ix_ele == ele0%ix_ele) return  ! Not found
-  if (ele%branch%param%geometry == open$) then
-    if (direction > 0 .and. ele%ix_ele < ele0%ix_ele) return
-    if (direction < 0 .and. ele%ix_ele > ele0%ix_ele) return
-  endif
-
-  s_ele => pointer_to_wall3d_ele (ele, dz_offset, err_flag)
-  if (.not. associated(s_ele)) cycle  
-
-  sec_ele => s_ele
-
-  if (direction > 0) then
-    section => s_ele%wall3d%section(1)
-  else
-    section => s_ele%wall3d%section(size(s_ele%wall3d%section))
-  endif
-
+if (associated (ele%branch)) then
+  wall3d => ele%branch%wall3d
+  dz_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   return
-enddo
+endif
 
-end subroutine next_wall3d_section
+wall3d => ele%wall3d
+if (.not. associated(ele%wall3d)) return
+
+select case (wall3d%ele_anchor_pt)
+case (anchor_beginning$); dz_offset = -ele%value(l$)
+case (anchor_center$);    dz_offset = -ele%value(l$) / 2
+case (anchor_end$);       dz_offset = 0 
+end select
+
+end function pointer_to_wall3d
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1007,20 +824,34 @@ Subroutine create_concatenated_wall3d (lat, err)
 
 implicit none
 
+type section_ptr_struct
+  type (wall3d_section_struct), pointer :: sec
+  real(rp) s
+  integer ix_ele
+end type
+
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
+type (section_ptr_struct), allocatable :: sp(:)
+type (wall3d_section_struct), pointer :: ws
 
-integer i, j, n, n_wall
+real(rp) s_min, s_max
+
+integer i, j, k, n, n_wall
 logical err
 
-!
+character(*), parameter :: r_name = 'create_concatenated_wall3d'
+
+! Count number of sections. This may be an overcount if there is superimpose.
 
 err = .false.
-return
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
+
+  s_min = branch%ele(0)%s
+  s_max = branch%ele(branch%n_ele_track)%s
 
   n_wall = 0
   do j = 0, branch%n_ele_max
@@ -1028,32 +859,214 @@ do i = 0, ubound(lat%branch, 1)
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
+    if (ele%lord_status == multipass_lord$) cycle  ! wall info also in slaves
     n_wall = n_wall + size(ele%wall3d%section)
   enddo
 
+  if (n_wall == 0) then
+    if (associated (branch%wall3d)) deallocate (branch%wall3d)
+    cycle
+  endif
+
   ! Aggragate vacuum chamber wall info for a branch to branch%wall3d structure
+  ! First work on non-superimpose element
 
-  ! NOTE: This code needs to be modified to take care of continuous aperture walls and 
-  ! wall priorities.
+  if (allocated(sp)) deallocate (sp)
+  allocate (sp(n_wall))
 
-  if (n_wall == 0) cycle
-  cycle   ! NOTE: AGGRAGATING CODE DISABLED FOR NOW UNTIL SOMEONE NEEDS IT!
-
-  allocate (branch%wall3d)
-  allocate (branch%wall3d%section(n_wall))
   n_wall = 0
-  do j = 0, branch%n_ele_track
+  do j = 0, branch%n_ele_max
     ele => branch%ele(j)
-    if (ele%key == capillary$) cycle
     if (.not. associated(ele%wall3d)) cycle
-    n = size(ele%wall3d%section)
-    branch%wall3d%section(n_wall+1:n_wall+n) = ele%wall3d%section
-    branch%wall3d%section(n_wall+1:n_wall+n)%s = branch%wall3d%section(n_wall+1:n_wall+n)%s + &
-                                                                              ele%s - ele%value(l$)
-    n_wall = n_wall + n
+    if (ele%key == capillary$) cycle
+    if (ele%key == diffraction_plate$) cycle
+    if (ele%wall3d%superimpose) cycle
+    if (ele%lord_status == multipass_lord$) cycle
+    call aggragate_this_wall (ele, ele) ; if (err) return
+  enddo
+
+  ! Check for consistancy
+
+  do j = 1, n_wall-1
+    if (sp(j)%s > sp(j+1)%s) then
+      call out_io (s_error$, r_name, 'WALL SECTIONS LONGITUDINALLY OUT-OF-ORDER', &
+                     'SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(branch%ele(sp(j)%ix_ele)%name) // ' (\i0\)', &
+                     'NEXT SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(branch%ele(sp(j+1)%ix_ele)%name) // ' (\i0\)', &
+                     i_array = [sp(j)%ix_ele, sp(j+1)%ix_ele], r_array = [sp(j)%s, sp(j+1)%s])
+      err = .true.
+      return
+    endif
+  enddo
+
+  ! Add superposition sections
+
+  do j = 0, branch%n_ele_max
+    ele => branch%ele(j)
+    if (.not. associated(ele%wall3d)) cycle
+    if (ele%key == capillary$) cycle
+    if (ele%key == diffraction_plate$) cycle
+    if (.not. ele%wall3d%superimpose) cycle
+    if (ele%lord_status == multipass_lord$) cycle
+    call superimpose_this_wall (ele, ele) ; if (err) return
+  enddo
+
+  ! Transfer info from sp to branch%wall3d
+  ! branch%wall3d is never mutiply linked.
+
+  if (.not. associated(branch%wall3d)) allocate (branch%wall3d)
+  call re_allocate(branch%wall3d%section, n_wall)
+
+  do j = 1, n_wall
+    ws => branch%wall3d%section(j)
+    call re_allocate(ws%v, size(sp(j)%sec%v))
+    ws = sp(j)%sec
+    ws%s = sp(j)%s
+    ws%ix_ele = sp(j)%ix_ele
   enddo
 
 enddo
+
+!-----------------------------------------------------------------------------------------------
+contains
+
+subroutine aggragate_this_wall (wall_ele, fiducial_ele)
+
+type (ele_struct), target :: wall_ele, fiducial_ele
+type (wall3d_struct), pointer :: wall
+real(rp) s_ref, s
+integer ii, k, ixw, nw, n, ix_wrap1, ix_wrap2
+
+!
+
+wall => wall_ele%wall3d
+nw = size(wall%section)
+
+select case (wall%ele_anchor_pt)
+case (anchor_beginning$); s_ref = fiducial_ele%s - fiducial_ele%value(l$)
+case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
+case (anchor_end$);       s_ref = fiducial_ele%s 
+end select
+
+s = wall%section(1)%s + s_ref
+call bracket_index (sp%s, 1, n_wall, s, ixw)
+
+if (ixw < n_wall) then
+  sp(ixw+1+nw:n_wall+nw) = sp(ixw+1:n_wall)
+endif
+
+ix_wrap1 = 0; ix_wrap2 = 0
+do ii = 1, nw
+  k = ii + ixw
+  sp(k)%sec => wall%section(ii)
+  sp(k)%s = wall%section(ii)%s + s_ref
+  sp(k)%ix_ele = wall_ele%ix_ele
+
+  if (sp(k)%s < s_min)                     ix_wrap1 = k
+  if (sp(k)%s > s_max .and. ix_wrap2 == 0) ix_wrap2 = k
+enddo
+
+n_wall = n_wall + nw
+
+n = nw+ixw
+if (n < n_wall) then
+  if (sp(n)%s > sp(n+1)%s) then
+    call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
+                       'ELEMENT: ' // trim(branch%ele(sp(n)%ix_ele)%name) // ' (\i0\)', &
+                       'AND ELEMENT: ' // trim(branch%ele(sp(n+1)%ix_ele)%name) // ' (\i0\)', &
+                       i_array = [sp(n)%ix_ele, sp(n+1)%ix_ele])
+    err = .true.
+    return
+  endif
+endif
+
+! Wrap sections if needed
+
+if (ix_wrap1 /= 0 .and. branch%param%geometry == closed$) then
+  sp(1:ix_wrap1)%s = sp(1:ix_wrap1)%s + (s_max - s_min)
+  sp(1:n_wall) = [sp(ix_wrap1+1:n_wall), sp(1:ix_wrap1)]
+endif
+
+if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
+  sp(ix_wrap1:n_wall)%s = sp(ix_wrap1:n_wall)%s - (s_max - s_min)
+  sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
+endif
+
+end subroutine aggragate_this_wall
+
+!-----------------------------------------------------------------------------------------------
+! contains
+
+subroutine superimpose_this_wall (wall_ele, fiducial_ele)
+
+type (ele_struct), target :: wall_ele, fiducial_ele
+type (wall3d_struct), pointer :: wall
+real(rp) s_ref, s
+integer ii, ixw1, ixw2, nw, n_del, ix_wrap1, ix_wrap2
+
+!
+
+wall => wall_ele%wall3d
+nw = size(wall%section)
+
+select case (wall%ele_anchor_pt)
+case (anchor_beginning$); s_ref = fiducial_ele%s - fiducial_ele%value(l$)
+case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
+case (anchor_end$);       s_ref = fiducial_ele%s 
+end select
+
+s = wall%section(1)%s + s_ref
+call bracket_index (sp%s, 1, n_wall, s, ixw1)
+
+s = wall%section(nw)%s + s_ref
+call bracket_index (sp%s, 1, n_wall, s, ixw2)
+
+
+n_del = nw - (ixw2 - ixw1)  ! net number of sections added.
+
+if (ixw2 < n_wall) then
+  sp(ixw2+1+n_del:n_wall+n_del) = sp(ixw2+1:n_wall)
+endif
+
+ix_wrap1 = 0; ix_wrap2 = 0
+
+do ii = 1, nw
+  k = ii + ixw1
+  sp(k)%sec => wall%section(ii)
+  sp(k)%s = wall%section(ii)%s + s_ref
+  sp(k)%ix_ele = wall_ele%ix_ele
+
+  if (sp(k)%s < s_min)                     ix_wrap1 = k
+  if (sp(k)%s > s_max .and. ix_wrap2 == 0) ix_wrap2 = k
+enddo
+
+n_wall = n_wall + n_del
+
+! Wrap sections if needed.
+! Remember to discard any sections in the overlap region.
+
+if (ix_wrap1 /= 0 .and. branch%param%geometry == closed$) then
+  sp(1:ix_wrap1)%s = sp(1:ix_wrap1)%s + (s_max - s_min)
+  do ii = ix_wrap1+1, n_wall
+    if (sp(ii)%s <= sp(1)%s) cycle
+    n_wall = ii - 1
+    exit
+  enddo    
+  sp(1:n_wall) = [sp(ix_wrap1+1:n_wall), sp(1:ix_wrap1)]
+endif
+
+if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
+  sp(ix_wrap2:n_wall)%s = sp(ix_wrap2:n_wall)%s - (s_max - s_min)
+  do ii = ix_wrap2-1, 1, -1
+    if (sp(ii)%s >= sp(n_wall)%s) cycle
+    sp(1:n_wall-ii) = sp(ii+1:n_wall)
+    n_wall = n_wall - ii
+    ix_wrap2 = ix_wrap2 - ii
+    exit
+  enddo    
+  sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
+endif
+
+end subroutine superimpose_this_wall 
 
 end subroutine create_concatenated_wall3d
 

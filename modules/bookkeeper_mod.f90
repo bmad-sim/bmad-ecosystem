@@ -1357,30 +1357,53 @@ type (ele_struct) :: ele2
 type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
-real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start
+real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start, r
 
 logical at_upstream_end, at_downstream_end, err_flag, err2_flag
 
 character(24) :: r_name = 'create_element_slice'
 
-! Err check. Remember: the element length may be negative
+! Init
 
 err_flag = .true.
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 
-if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
-  call out_io (s_fatal$, r_name, &
-        'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
-        'CANNOT SLICE: ' // ele_in%name)
-  if (global_com%exit_on_error) call err_exit
+! Patch
+! The rotation part of the patch is applied at the entrance end of the patch.
+! Excluding the rotation, a patch is just a drift.
+
+if (ele_in%key == patch$) then
+  if (at_upstream_end .and. ele_in%orientation == 1 .or. at_downstream_end .and. ele_in%orientation == -1) then
+    if (ele_in%value(l$) /= 0) then
+      r = l_slice / ele_in%value(l$)
+      sliced_ele%value(x_offset$) = ele_in%value(x_offset$) * r
+      sliced_ele%value(y_offset$) = ele_in%value(y_offset$) * r
+      sliced_ele%value(z_offset$) = ele_in%value(z_offset$) * r
+    endif
+  else
+    sliced_ele%key = drift$
+    sliced_ele%value(l$) = l_slice
+  endif
+
   return
+
 endif
+
+! Err check. Remember: the element length may be negative
 
 e_len = ele_in%value(l$)
 if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_length) then
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
         'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
+  call out_io (s_fatal$, r_name, &
+        'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
+        'CANNOT SLICE: ' // ele_in%name)
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -1968,10 +1991,11 @@ end subroutine makeup_control_slave
 ! Note: This routine does not do any other bookkeeping. Consider using
 ! control_bookkeeper or lattice_bookkeeper instead.
 ! 
+! Note: The following is an old, incomplete list.
+!
 ! BEAMBEAM:   
 !     bbi_const$ = param%n_part * charge$ * classical_radius_factor /
 !                           (2 * pi * p0c$ * (sig_x$ + sig_y$)
-!
 ! CRYSTAL:
 !     bragg_angle_in$
 !     bragg_angle_out$
@@ -2031,6 +2055,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
+real(rp) w_inv(3,3)
 real(rp), pointer :: val(:), tt
 
 integer i, n
@@ -2214,104 +2239,6 @@ val(num_steps$) = max(1, nint(abs(val(l$) / val(ds_step$))))
 
 select case (ele%key)
 
-! Quadrupole
-
-case (quadrupole$)
-
-    val(l_hard_edge$) = val(l$) ! In case of edge kicks
-
-! Bends
-
-case (sbend$)
-
-  val(angle$) = val(l$) * val(g$)
-
-  if (val(l$) == 0 .or. val(g$) == 0) then
-    val(l_chord$) = 0
-  else
-    val(l_chord$) = 2 * sin(val(angle$)/2) / val(g$)
-  endif
-
-  if (val(g$) == 0) then
-    val(rho$) = 0
-  else
-    val(rho$) = 1 / val(g$)
-  endif
-
-  if (ele%old_value(g$) /= val(g$)) then
-    call set_ele_status_stale (ele, floor_position_group$)
-  endif
-
-  val(l_hard_edge$) = val(l$)
-
-! Lcavity
-
-case (lcavity$)
-  if (ele%lord_status /= multipass_lord$) then
-    if (val(phi0$) /= ele%old_value(phi0$) .or. val(dphi0$) /= ele%old_value(dphi0$) .or. &
-        val(gradient$) /= ele%old_value(gradient$) .or. val(e_loss$) /= ele%old_value(e_loss$) .or. &
-        val(l$) /= ele%old_value(l$)) then
-      call set_ele_status_stale (ele, ref_energy_group$)
-    endif
-  endif
-
-  val(voltage$) = val(gradient$) * val(l$)
-  if (val(rf_frequency$) == 0) then
-    val(l_hard_edge$) = 0
-  else
-    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
-  endif
-
-! E_Gun
-
-case (e_gun$)
-  if (ele%lord_status /= multipass_lord$) then
-    if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
-      call set_ele_status_stale (ele, ref_energy_group$)
-      val(voltage$) = val(gradient$) * val(l$)
-      val(voltage_err$) = val(gradient_err$) * val(l$)
-    endif
-    val(l_hard_edge$) = val(l$)
-  endif
-
-
-! RFcavity
-
-case (rfcavity$)
-  if (param%geometry == closed$ .and. associated(ele%branch) .and. val(p0c$) /= 0) then
-    branch => ele%branch
-    time = branch%ele(branch%n_ele_track)%ref_time
-    if (time /= 0) then
-      if (ele%field_master) then
-        val(rf_frequency$) = val(harmon$) / time
-      else
-        val(harmon$) = val(rf_frequency$) * time
-      endif
-    endif
-  endif
-
-  if (val(rf_frequency$) == 0) then
-    val(l_hard_edge$) = 0
-  else
-    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
-  endif
-
-  if (val(l$) == 0) then
-    val(gradient$) = 1d30    ! Something large
-  else
-    val(gradient$) = val(voltage$) / val(l$)
-  endif
-
-! Solenoid
-
-case (solenoid$)
-  val(l_hard_edge$) = val(l$)
-
-! Sol_quad
-
-case (sol_quad$)
-  val(l_hard_edge$) = val(l$)
-
 ! Bend_sol_quad
 
 case (bend_sol_quad$)
@@ -2354,6 +2281,18 @@ case (crystal$, multilayer_mirror$)
 
   ele%surface%has_curvature = (any(ele%surface%curvature_xy /= 0))
 
+! E_Gun
+
+case (e_gun$)
+  if (ele%lord_status /= multipass_lord$) then
+    if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
+      call set_ele_status_stale (ele, ref_energy_group$)
+      val(voltage$) = val(gradient$) * val(l$)
+      val(voltage_err$) = val(gradient_err$) * val(l$)
+    endif
+    val(l_hard_edge$) = val(l$)
+  endif
+
 ! Elseparator
 
 case (elseparator$)
@@ -2366,6 +2305,100 @@ case (elseparator$)
     val(voltage$) = val(e_field$) * val(gap$) 
   endif
 
+
+! Lcavity
+
+case (lcavity$)
+  if (ele%lord_status /= multipass_lord$) then
+    if (val(phi0$) /= ele%old_value(phi0$) .or. val(dphi0$) /= ele%old_value(dphi0$) .or. &
+        val(gradient$) /= ele%old_value(gradient$) .or. val(e_loss$) /= ele%old_value(e_loss$) .or. &
+        val(l$) /= ele%old_value(l$)) then
+      call set_ele_status_stale (ele, ref_energy_group$)
+    endif
+  endif
+
+  val(voltage$) = val(gradient$) * val(l$)
+  if (val(rf_frequency$) == 0) then
+    val(l_hard_edge$) = 0
+  else
+    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  endif
+
+! Patch
+
+case (patch$) 
+  call floor_angles_to_w_mat (val(x_pitch$), val(y_pitch$), val(tilt$), w_mat_inv = w_inv)
+  val(l$) = w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$)
+  val(ds_step$) = val(l$)
+  val(num_steps$) = 1
+
+
+! Quadrupole
+
+case (quadrupole$)
+
+    val(l_hard_edge$) = val(l$) ! In case of edge kicks
+
+! RFcavity
+
+case (rfcavity$)
+  if (param%geometry == closed$ .and. associated(ele%branch) .and. val(p0c$) /= 0) then
+    branch => ele%branch
+    time = branch%ele(branch%n_ele_track)%ref_time
+    if (time /= 0) then
+      if (ele%field_master) then
+        val(rf_frequency$) = val(harmon$) / time
+      else
+        val(harmon$) = val(rf_frequency$) * time
+      endif
+    endif
+  endif
+
+  if (val(rf_frequency$) == 0) then
+    val(l_hard_edge$) = 0
+  else
+    val(l_hard_edge$) = c_light * nint(val(n_cell$)) / (2 * val(rf_frequency$))
+  endif
+
+  if (val(l$) == 0) then
+    val(gradient$) = 1d30    ! Something large
+  else
+    val(gradient$) = val(voltage$) / val(l$)
+  endif
+
+! Sbend
+
+case (sbend$)
+
+  val(angle$) = val(l$) * val(g$)
+
+  if (val(l$) == 0 .or. val(g$) == 0) then
+    val(l_chord$) = 0
+  else
+    val(l_chord$) = 2 * sin(val(angle$)/2) / val(g$)
+  endif
+
+  if (val(g$) == 0) then
+    val(rho$) = 0
+  else
+    val(rho$) = 1 / val(g$)
+  endif
+
+  if (ele%old_value(g$) /= val(g$)) then
+    call set_ele_status_stale (ele, floor_position_group$)
+  endif
+
+  val(l_hard_edge$) = val(l$)
+
+! Sol_quad
+
+case (sol_quad$)
+  val(l_hard_edge$) = val(l$)
+
+! Solenoid
+
+case (solenoid$)
+  val(l_hard_edge$) = val(l$)
 
 ! Wiggler
 

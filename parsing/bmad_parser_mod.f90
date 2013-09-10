@@ -419,16 +419,6 @@ if (word(1:5) == 'WALL.') then
 
   select case (word(6:))
 
-  ! Priority redef
-
-  case ('PRIORITY')
-    if (delim /= '=') then
-      call parser_error ('MALFORMED WALL PRIORITY REDEF IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-    call get_switch ('wall3d.priority', wall3d_priority_name(1:), ele%wall3d%priority, err_flag)
-
   ! Section redef
 
   case ('SECTION')
@@ -522,136 +512,84 @@ if (attrib_word == 'WALL') then
     return
   endif
 
-  allocate (ele%wall3d)
-
-  ! Expect "= {"
-  call get_next_word (word, ix_word, '{,()', delim2, delim_found, call_check = .true.)
-  if (delim /= '=' .or. delim2 /= '{' .or. word /= '') then
-    call parser_error ('NO "= {" FOUND AFTER "WALL"', 'FOR ELEMENT: ' // ele%name)
-    return
-  endif
-
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
-  ! Loop over all sections or ele_anchor_pt
-
   i_section = 0
-  section_loop: do    
+  allocate (ele%wall3d)
+  if (.not. expect_this ('={', .true., .true., 'AFTER "WALL"')) return
+
+  ! Loop wall3d_struct components.
+
+  wall3d_loop: do    
+
+    call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
     ! Possible "}" is end of wall 
     if (delim /= '}' .and. word == '') exit
+    if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
 
-    ! Is "priority = ..." ?
+    select case (word)
 
-    if (word == 'PRIORITY') then
-      if (delim /= '=') then
-        call parser_error ('NO "=" FOUND AFTER WALL PRIORITY FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      call get_next_word (word2, ix_word, ',}', delim, delim_found)
-      call match_word(word2, anchor_pt_name(1:), ele%wall3d%priority, can_abbreviate = .false.)
-      if (ele%wall3d%priority < 1) then
-        call parser_error ('BAD WALL3D PRIORITY: ' // word2, 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      ! delim is parsed below so just put it back on the parse line.
-      bp_com%parse_line = delim // bp_com%parse_line
+    case ('THICKNESS') 
+      call evaluate_value (err_str, ele%wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
+      if (err_flag) return
 
-    ! Is "ele_anchor_pt = ..." ?
+    case ('ELE_ANCHOR_PT')
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, err_flag2)
+      if (err_flag2) return
 
-    elseif (word == 'ELE_ANCHOR_PT') then
-      if (delim /= '=') then
-        call parser_error ('NO "=" FOUND AFTER WALL ELE_ANCHOR_PT FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      call get_next_word (word2, ix_word, ',}', delim, delim_found)
-      call match_word(word2, anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, can_abbreviate = .false.)
-      if (ele%wall3d%ele_anchor_pt < 1) then
-        call parser_error ('BAD WALL3D ELE_ANCHOR_PT: ' // word2, 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
-      ! delim is parsed below so just put it back on the parse line.
-      bp_com%parse_line = delim // bp_com%parse_line
+    case ('SUPERIMPOSE')
+      call get_logical ('WALL SUPERIMPOSE', ele%wall3d%superimpose, err_flag2); if (err_flag2) return
 
-    ! Must be section
-    ! Expect "section = {" 
+    ! Must be "section = {"
 
-    else
-      call get_next_word (word2, ix_word, '{},()', delim2, delim_found)
-
-      if (word /= 'SECTION' .or. delim /= '=' .or. word2 /= '' .or. delim2 /= '{') then
-        call parser_error ('NO "SECTION = {" SIGN FOUND IN WALL STRUCTURE', 'FOR ELEMENT: ' // ele%name)
-        return
-      endif
+    case ('SECTION')
 
       ! Read in section
 
+      if (.not. expect_this ('{', .false., .true., 'AFTER "SECTION =" IN WALL CONSTRUCT')) return
+
       i_section = i_section + 1
+      ix_v = 0
       call re_allocate (ele%wall3d%section, i_section)
       section => ele%wall3d%section(i_section)
 
-      ! Expect "S ="
-      call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+      wall3d_section_loop: do
 
-      if (word /= 'S' .or. delim /= '=') then
-        call parser_error ('EXPECTED "S =" AT START OF WALL SECTION BUT GOT: ' // trim(word) // delim, &
-                             'FOR: ' // ele%name)
-        return
-      endif
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
-      call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',')
-      if (err_flag) return
-      if (ele%key == capillary$) ele%value(l$) = section%s
+        ! Possible "}" is end of wall 
+        if (delim /= '}' .and. word == '') exit
+        if (word == 'V') then
+          if (.not. expect_this ('(', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
+        else
+          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN WALL CONSTRUCT')) return
+        endif
 
-      ! Parse "V() = ..." constructs.
+        select case (word)
 
-      ix_v = 0
+        case ('TYPE') 
+          call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2)
+          if (err_flag2) return
 
-      do
-        ! Expect "V(" or "dr_ds ="
-        call get_next_word (word, ix_word, '{},()=', delim, delim_found)
+        case ('S')
+          call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+          if (ele%key == capillary$) ele%value(l$) = section%s
 
-        if (word == 'DR_DS') then
-          if (delim /= '=') then
-            call parser_error ('NO "=" AFTER "DR_DS" IN WALL SECTION FOR:' // ele%name)
-            return
-          endif
+        case ('DR_DS') 
           call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
                   
-        elseif (word == 'CROTCH') then
-          ! Set ix_section
-          ele%wall3d%crotch%ix_section = i_section
-
-          ! Expect form: crotch = {upstream_end, 1, 3}, 
-          if (delim /= '=') then
-            call parser_error ('NO "=" AFTER "CROTCH" IN WALL SECTION FOR:' // ele%name)
-            return
-          endif
-          call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-          if (delim /= '{' .or. word /= '') then        
-            call parser_error ('NO { AFTER "CROTCH = " FOR ELEMENT '// ele%name)
-            return
-          endif
-          ! get %location
-          call get_switch ('LOCATION', end_at_name(1:),  ele%wall3d%crotch%location, err_flag)
-		  ! get %ix_v1_cut
-		  call get_integer(ele%wall3d%crotch%ix_v1_cut, err_flag)
-		  ! get %ix_v1_cut
-          call get_integer(ele%wall3d%crotch%ix_v2_cut, err_flag)
+        case ('X0') 
+          call evaluate_value (trim(ele%name), section%x0, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
-          ! Look for closing },
-          if (delim /= '}') then        
-            call parser_error ('NO } AFTER "CROTCH = {..." FOR ELEMENT '// ele%name)
-            return
-          endif
-          call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-          if (delim /= ',' .or. word /= '') then        
-            call parser_error ('NO "," AFTER "CROTCH = {...}" FOR '// ele%name)
-            return
-          endif
+                  
+        case ('Y0') 
+          call evaluate_value (trim(ele%name), section%y0, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
 
-        elseif (word == 'V' .and. delim == '(') then
+        ! Parse "V() = ..." constructs.
+
+        case ('V')
 
           ix_v = ix_v + 1
           section%n_vertex_input = ix_v
@@ -664,11 +602,7 @@ if (attrib_word == 'WALL') then
             return
           endif
 
-          call get_next_word (word, ix_word, '{},()', delim2, delim_found)
-          if (delim /= ')' .or. word /= '=' .or. delim2 /= '{') then        
-            call parser_error ('MALFORMED ORDER WALL SECTION VERTEX FOR: ' // ele%name)
-            return
-          endif
+          if (.not. expect_this (')={', .true., .false., 'AFTER "V(n)" IN WALL CONSTRUCT')) return
 
           call evaluate_value (trim(ele%name), section%v(ix_v)%x, lat, delim, delim_found, err_flag, ',')
           if (err_flag) return
@@ -697,43 +631,29 @@ if (attrib_word == 'WALL') then
             return
           endif
 
-        else
-          call parser_error ('EXPECTED "V(" BUT GOT: ' // trim(word) // delim, &
-                               'IN WALL SECTION DEFINITION FOR ELEMENT: ' // ele%name)
+        case default
+          call parser_error ('WALL SECTION COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
           return
+        end select   ! section components
+
+        if (.not. expect_either (',}', .true.)) return
+        if (delim == '}') then
+          if (.not. expect_either(',}', .false.)) return
+          exit
         endif
+      enddo wall3d_section_loop
 
-        if (delim == '}') exit
+      case default
+        call parser_error ('WALL COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+        return
+      end select   ! wall components
 
-      enddo
-
-    endif
-
-    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-
-    ! Possible "}" is end of wall structure
-    if (delim == '}' .and. word == '') exit
-
-    ! Must be ","
-    if (word /= '' .or. delim /= ',') then
-      call parser_error ('BAD SYNTAX IN WALL DEFINITION FOR ELEMENT: ' // ele%name)
-    endif
-
-    ! Expect "section" or "ele_anchor_pt"
-
-    call get_next_word (word, ix_word, '{},()=', delim, delim_found)
-
-    if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-    if (word /= 'SECTION' .and. word /= 'ELE_ANCHOR_PT') then
-      call parser_error('DO NOT UNDERSTAND: ' // word, 'IN WALL STRUCTURE IN ELEMENT: ' // ele%name)
-      return
-    endif
-
-  enddo section_loop
+      if (.not. expect_either (',}', .true.)) return
+      if (delim == '}') then
+        if (.not. expect_either(', ', .false.)) return
+        exit
+      endif
+    enddo wall3d_loop
 
   ! Check for next thing on line and return
 
