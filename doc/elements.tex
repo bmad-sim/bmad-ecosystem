@@ -61,7 +61,7 @@ particle and photon use.
   Capillary          & \ref{s:capillary}     &  Marker             & \ref{s:mark}       \HH
   Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \HH
   Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \HH 
-  Diffraction_Plate  & \ref{s:diff_plate}    &  Mirror             & \ref{s:mirror}     \HH
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Mirror             & \ref{s:mirror}     \HH
   Drift              & \ref{s:drift}         &  Multilayer_Mirror  & \ref{s:multilayer} \HH
   Fiducial           & \ref{s:fiducial}      &  Patch              & \ref{s:patch}      \HH
   Floor_Shift        & \ref{s:floor.ele}     &  Photon_Branch      & \ref{s:branch}     \HH
@@ -99,11 +99,12 @@ General \vn{ab_multipole} Attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  a$n$, b$n$ multipoles  & \ref{s:multip}  & Offsets \& tilt            & \ref{s:offset}  \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}  & Offsets \& tilt            & \ref{s:offset}  \HH
+  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Reference energy           & \ref{s:energy}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -140,10 +141,11 @@ General \vn{beambeam} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Aperture Limits        & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Reference energy           & \ref{s:energy}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -576,11 +578,11 @@ General \vn{branch} and \vn{photon_branch} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-                         &                 & Is_on                      & \ref{s:is.on}   \HH 
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Reference energy           & \ref{s:energy}  & Is_on                      & \ref{s:is.on}   \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -801,11 +803,11 @@ General \vn{crystal} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
-  Chamber Wall           & \ref{s:wall}    & Surface Properties         & \ref{s:s.curve} \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Description strings        & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
+  Reference energy           & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Surface Properties         & \ref{s:s.curve} &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1007,12 +1009,12 @@ file that contains parameters for the element.
 
 %-----------------------------------------------------------------
 \section{Diffraction_Plate}
-\label{s:diffraction_plate
+\label{s:diff.plate}
 \index{diffraction_plate|hyperbf}
 
 \begin{figure}[tb]
   \centering
-  \includegraphics[width=5in]{diffraction_plate.pdf}
+  \includegraphics[width=5in]{diffraction-plate.pdf}
   \caption[Example diffraction_plate element]{
 Example \vn{diffraction_plate} element. A) The wall of the diffraction
 plate is divided into ``clear'' (white) and ``mask'' (black)
@@ -1089,7 +1091,7 @@ For computational reasons, All sections must be ``star shapped'' with
 respect to the section origin. That is, a line drawn from the section
 origin to any point on the section boundary must not pass through any
 boundary points of the section in between. This is illustrated in
-\fig{f:section.ele}B where the section is not star shapped since a
+\fig{f:diff.plate}B where the section is not star shapped since a
 line drawn from the origin $o$ to the point $p$ on the boundary passes
 through two boundary points in between. In this case the section can
 trivially be made star shapped by moving the origin to point $o'$. If
@@ -1130,10 +1132,9 @@ General \vn{drift} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Aperture Limits        & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Chamber wall           & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH 
-  Description strings    & \ref{s:alias}   & Symplectify                & \ref{s:symp}    \HH 
-  Integration settings   & \ref{s:integ}   & Tracking \& transfer map   & \ref{c:methods} \HH
-  Length                 & \ref{s:l}       &                            &                 \HH
+  Description strings    & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings   & \ref{s:integ}   & Symplectify                & \ref{s:symp}    \HH 
+  Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1142,6 +1143,9 @@ Example:
 \begin{example}
   d21: drift, l = 4.5
 \end{example}
+
+Note: If a chamber wall (\sref{s:wall}) is needed for a field free
+space, use a \vn{pipe} element instead of a \vn{drift}.
 
 %-----------------------------------------------------------------
 \section{E_Gun}
@@ -1155,7 +1159,7 @@ General \vn{e_gun} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
   Symplectify            & \ref{s:symp}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
@@ -2068,11 +2072,11 @@ General \vn{marker} attributes are:
 \begin{center} 
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s                  & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}       & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}      & Offsets \& tilt            & \ref{s:offset}  \HH
-  Aperture Limits        & \ref{s:limit}       & Tracking \& transfer map   & \ref{c:methods} \HH
-  Instrumental variables & \ref{s:meas.attrib} &                            &                 \HH
+  {\sl Attribute Class}      & \s                  & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}       & Instrumental variables     & \ref{s:meas.attrib} \HH
+  Chamber wall               & \ref{s:wall}        & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings        & \ref{s:alias}       & Offsets \& tilt            & \ref{s:offset}  \HH
+  Reference energy           & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2112,7 +2116,7 @@ General \vn{match} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
@@ -2236,11 +2240,10 @@ General \vn{mirror} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Chamber wall               & \ref{s:wall}    \HH
-  Surface Properties     & \ref{s:s.curve} &                            &                 \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Description strings        & \ref{s:alias}   & Surface Properties         & \ref{s:s.curve} \HH
+  Offsets, pitches, \& tilt  & \ref{s:offset}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2276,11 +2279,11 @@ General \vn{multipole} attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  K$n$L, T$n$ multipoles & \ref{s:multip}  & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   &                            &                 \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings        & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  K$n$L, T$n$ multipoles     & \ref{s:multip}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2313,11 +2316,11 @@ General \vn{crystal} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
-  Chamber Wall           & \ref{s:wall}    & Surface Properties         & \ref{s:s.curve} \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Description strings        & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
+  Reference energy           & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  Surface Properties         & \ref{s:s.curve} &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2525,9 +2528,11 @@ as a \vn{group} element or for an \vn{overlay} element to control a
 \begin{figure}[tb]
   \centering
   \includegraphics[width=5in]{patch.pdf}
-  \caption[Patch transformation.]
-{A \vn{patch} element can align its exit face arbitrarily with respect
-to its entrance face.}
+  \caption[Patch Element.]
+{A) A \vn{patch} element can align its exit face arbitrarily with
+respect to its entrance face. B) The length of a \vn{patch} element is
+the longitudinal distance from the entrance origin to the exit origin
+using the reference coordinates at the exit end.}
   \label{f:patch}
 \end{figure}
 
@@ -2550,7 +2555,7 @@ General \vn{patch} element attributes are:
 \end{center}
 \toffset
 
-\index{flexible}\index\index{e_tot_offset}
+\index{flexible}\index{e_tot_offset}
 \index{x_offset}\index{y_offset}\index{z_offset}\index{tilt}
 \index{x_pitch}\index{y_pitch}\index{t_offset}
 Attributes specific to a \vn{patch} elements are:
@@ -2570,19 +2575,23 @@ Attributes specific to a \vn{patch} elements are:
 A straight line element like a \vn{drift} or a \vn{quadrupole} has the
 the exit face parallel to the entrance face. With a \vn{patch}
 element, the entrance and exit faces can be arbitrarily oriented with
-respect to one another as shown in \fig{f:patch}. There are two
-different ways the orientation of the exit face is determined. Which
-way is determined by the setting of the \vn{flexible} attribute.
+respect to one another as shown in \fig{f:patch}A. The length \vn{l}
+of a \vn{patch} a dependent (\sref{s:depend}) parameter and is the
+longitudinal ($z$ component) distance from the entrance origin to the
+exit origin using the exit end reference coordinates as shown in
+\fig{f:patch}B.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
-With the \vn{flexible} attribute set to \vn{False}, the default, The
-exit face of the \vn{patch} will be determined from the offset, tilt
-and pitch attributes as described in \sref{s:patch.coords}. This type
-of \vn{patch} is called ``rigid'' or ``inflexible'' since the geometry
-of the \vn{patch} is solely determined by the \vn{patch}'s attributes
-and is independent of everything else.
-Example:
+There are two different ways the orientation of the exit face is
+determined. Which way is determined by the setting of the
+\vn{flexible} attribute.  With the \vn{flexible} attribute set to
+\vn{False}, the default, The exit face of the \vn{patch} will be
+determined from the offset, tilt and pitch attributes as described in
+\sref{s:patch.coords}. This type of \vn{patch} is called ``rigid'' or
+``inflexible'' since the geometry of the \vn{patch} is solely
+determined by the \vn{patch}'s attributes and is independent of
+everything else.  Example:
 \begin{example}
   pt: patch, z_offset = 3.2   ! Equivalent to a drift
 \end{example}

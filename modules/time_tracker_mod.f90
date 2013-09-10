@@ -522,7 +522,7 @@ type (coord_struct) :: orb, orb_new
 type (coord_struct), pointer :: old_orb, now_orb
 type (lat_param_struct) :: param
 type (ele_struct) :: ele
-type (ele_struct), pointer :: wall3d_ele
+type (wall3d_struct), pointer :: wall3d
 type (photon_track_struct), target :: particle
 integer :: section_ix
 real(rp) :: d_radius, norm, perp(3), dummy_real, p_tot
@@ -534,9 +534,9 @@ character(30), parameter :: r_name = 'particle_hit_wall_check_time'
 !-----------------------------------------------
 !Do nothing if there is no wall
 
-! Check that wall3d_ele exists, otherwise just return
-wall3d_ele => pointer_to_wall3d_ele (ele, dummy_real, err)
-if (.not. associated(wall3d_ele)) return
+! Check that wall3d exists, otherwise just return
+wall3d => pointer_to_wall3d(ele, dummy_real)
+if (.not. associated(wall3d)) return
 
 old_orb => particle%old%orb
 now_orb => particle%now%orb
@@ -550,10 +550,9 @@ if ( wall3d_d_radius(now_orb%vec, ele) < 0) return
 
 ! Check that old_orb was inside the wall. An edge kick can make this happen. 
 d_radius = wall3d_d_radius(old_orb%vec, ele)
-if (d_radius > 0) then
-  call out_io (s_warn$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN &
-     WALL3D_ELE: '//trim(wall3d_ele%name)//', D_RADIUS =  \f12.6\', d_radius )
-  !write(*, '(a, 3es15.8)') 's, r, d_radius: ', old_orb%s, sqrt(old_orb%vec(1)**2 + old_orb%vec(3)**2), d_radius
+if (d_radius > 0) then 
+  call out_io (s_warn$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN WALL3D: ' // &
+     trim(ele%name) // ', D_RADIUS =  \f12.6\ ', d_radius )
   orb_new%state = lost$
   return
   !if (global_com%exit_on_error) call err_exit

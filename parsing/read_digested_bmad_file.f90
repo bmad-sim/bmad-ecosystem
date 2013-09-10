@@ -778,9 +778,9 @@ if (ios /= 0) then
 endif
 
 allocate(wall3d)
-read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%priority, &
-      wall3d%crotch%location, wall3d%crotch%ix_section, &
-      wall3d%crotch%ix_v1_cut, wall3d%crotch%ix_v2_cut
+read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%superimpose, &
+      wall3d%thickness, wall3d%clear_material, wall3d%opaque_material
+
 if (ios /= 0) then
   if (global_com%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
@@ -795,8 +795,6 @@ call re_allocate (wall3d%section, n_wall_section)
 do j = 1, n_wall_section
   call read_this_wall3d_section (wall3d%section(j))
 enddo
-
-if (wall3d%crotch%ix_section /= 0) call read_this_wall3d_section(wall3d%crotch%section)
 
 error = .false.
 
@@ -814,7 +812,8 @@ integer nv
 !
 
 read (d_unit, iostat = ios) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                 sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input
+                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, &
+                   sec%type
 if (ios /= 0) then
   if (global_com%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &

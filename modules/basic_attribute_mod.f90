@@ -377,7 +377,6 @@ do i = 1, n_key$
 
   call init_attribute_name1 (i, create_jumbo_slave$,     'CREATE_JUMBO_SLAVE')
 
-  call init_attribute_name1 (i, wall_attribute$,         'WALL')
   call init_attribute_name1 (i, x_limit$,                'X_LIMIT')
   call init_attribute_name1 (i, x1_limit$,               'X1_LIMIT')
   call init_attribute_name1 (i, x2_limit$,               'X2_LIMIT')
@@ -411,6 +410,9 @@ do i = 1, n_key$
   if (i == multilayer_mirror$) cycle
   if (i == mirror$)            cycle
   if (i == crystal$)           cycle
+
+  if (i /= drift$) call init_attribute_name1 (i, wall_attribute$,         'WALL')
+
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
 

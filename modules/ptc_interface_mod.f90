@@ -2878,6 +2878,7 @@ case (sol_quad$)
 
 case (marker$, branch$, photon_branch$, init_ele$, patch$, floor_shift$, fiducial$)
   ptc_key%magnet = 'marker'
+  ptc_key%nstep = 1
 
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'

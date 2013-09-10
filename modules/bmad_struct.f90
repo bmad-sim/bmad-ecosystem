@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 128
+integer, parameter :: bmad_inc_version$ = 129
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -43,9 +43,6 @@ character(20), parameter :: ref_orbit_follows_name(0:3) = [character(20) :: 'GAR
 
 integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
 character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Center   ', 'End      ']
-
-integer, parameter :: primary$ = 1, secondary$ = 2, ignore$ = 3
-character(12), parameter :: wall3d_priority_name(0:3) = ['GARBAGE! ', 'Primary  ', 'Secondary', 'Ignore   ']
 
 ! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$
 
@@ -74,7 +71,6 @@ character(16), parameter :: ref_pt_name(0:3) = [ &
 character(16), parameter :: location_name(0:3) = [ &
       'GARBAGE!      ', 'Upstream_End  ', 'Downstream_End', 'Inside        ']
 
-
 ! Structures for defining cross-sections of beam pipes and capillaries
 ! A cross-section is defined by an array v(:) of wall3d_section_vertex_structs.
 ! Each vertex v(i) defines a point on the pipe/capillary.
@@ -83,6 +79,11 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
+integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, crotch$ = 4, crotch1$ = 5
+integer, parameter :: crotch2$ = 6, leg1$ = 7, leg2$ = 8
+character(16), parameter :: wall3d_section_type_name(8) = [ &
+                                                   'Normal  ', 'Clear   ', 'Opaque  ', 'Crotch  ', &
+                                                   'Crotch1 ', 'Crotch2 ', 'Leg1    ', 'Leg2    ']
 type wall3d_vertex_struct
   real(rp) x, y             ! Coordinates of the vertex.
   real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
@@ -96,39 +97,32 @@ end type
 ! Vertices are always ordered in increasing angle.
 
 type wall3d_section_struct
-  integer type
-  real(rp) :: s = 0                     ! Longitudinal position
-  integer n_vertex_input                ! Number of vertices specified by the user.
-  type (wall3d_vertex_struct), allocatable :: v(:) 
-                                        ! Array of vertices
-  real(rp) :: x0 = 0, y0 = 0            ! Center of section
+  integer :: type = normal$                 ! normal$, clear$, opaque$, crotch$, crotch1$, leg2$, ...
+  real(rp) :: s = 0                         ! Longitudinal position
+  integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
+  integer :: ix_ele = 0                     ! index of lattice element containing section
+  type (wall3d_vertex_struct), allocatable :: v(:)     ! Array of vertices
+  real(rp) :: x0 = 0, y0 = 0                ! Center of section
   ! Section-to-section spline interpolation of the center of the section
-  real(rp) :: dx0_ds = 0                ! Center of wall derivative
-  real(rp) :: dy0_ds = 0                ! Center of wall derivative
-  real(rp) :: x0_coef(0:3) = 0          ! Spline coefs for x-center
-  real(rp) :: y0_coef(0:3) = 0          ! Spline coefs for y-center
+  real(rp) :: dx0_ds = 0                    ! Center of wall derivative
+  real(rp) :: dy0_ds = 0                    ! Center of wall derivative
+  real(rp) :: x0_coef(0:3) = 0              ! Spline coefs for x-center
+  real(rp) :: y0_coef(0:3) = 0              ! Spline coefs for y-center
   ! Section-to_section spline interpolation of the wall.
-  real(rp) :: dr_ds = real_garbage$     ! derivative of wall radius 
-  real(rp) :: p1_coef(3) = 0            ! Spline coefs for p0 function
-  real(rp) :: p2_coef(3) = 0            ! Spline coefs for p1 function
-end type
-
-! Wall3d crotch info
-
-type wall3d_crotch_struct
-  integer :: location = no_end$  ! or upstream_end$, downstream_end$, both_ends$
-  integer :: ix_section = 0      ! 0 -> crotch section not defined here.
-  integer :: ix_v1_cut, ix_v2_cut
-  type (wall3d_section_struct) section
+  real(rp) :: dr_ds = real_garbage$         ! derivative of wall radius 
+  real(rp) :: p1_coef(3) = 0                ! Spline coefs for p0 function
+  real(rp) :: p2_coef(3) = 0                ! Spline coefs for p1 function
 end type
 
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
 type wall3d_struct
-  integer :: n_link = 1                             ! For memory management of %section
-  integer :: priority = secondary$                  ! ignore$, secondary$, primary$
-  integer :: ele_anchor_pt = anchor_beginning$      ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (wall3d_crotch_struct) crotch                ! Info on if there is a crotch
+  integer :: n_link = 1                           ! For memory management of %section
+  real(rp) :: thickness = 0                       ! For diffraction_plate elements
+  character(20) :: clear_material = ''            !
+  character(20) :: opaque_material = ''           !
+  logical :: superimpose = .false.                ! Can overlap another wall
+  integer :: ele_anchor_pt = anchor_beginning$    ! anchor_beginning$, anchor_center$, or anchor_end$
   type (wall3d_section_struct), allocatable :: section(:)
 end type  
 

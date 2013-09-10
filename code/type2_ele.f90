@@ -361,7 +361,15 @@ if (associated(ele%wall3d)) then
   nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
   if (logic_option(.false., type_wall)) then
     nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(ele%wall3d%ele_anchor_pt)
-    nl=nl+1; write (li(nl), '(2a)') 'Wall%priority      = ', wall3d_priority_name(ele%wall3d%priority)
+    select case (ele%key)
+    case (capillary$)
+    case (diffraction_plate$)
+      nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', ele%wall3d%thickness
+      nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(ele%wall3d%clear_material), '"'
+      nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(ele%wall3d%opaque_material), '"'
+    case default
+      nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', ele%wall3d%superimpose
+    end select
     n = min(size(ele%wall3d%section), 100)
     do i = 1, n
       call re_associate (li, nl+100, .false.) 
@@ -374,6 +382,9 @@ if (associated(ele%wall3d)) then
       else
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a, es12.4)') &
               'Wall%Section(', i, '):  S =', section%s, ',  dr_ds =', section%dr_ds
+      endif
+      if (ele%key /= capillary$) then
+        nl=nl+1; write (li(nl), '(4x, 2a)') 'Type = ', trim(wall3d_section_type_name(section%type))
       endif
       do j = 1, size(section%v)
         v => section%v(j)

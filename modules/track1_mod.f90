@@ -1740,7 +1740,7 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, w_mat_inv)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv)
 ! 
 ! Routine to track through a patch element.
 ! The steps for tracking are:

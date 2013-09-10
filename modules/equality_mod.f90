@@ -19,12 +19,12 @@ interface operator (==)
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
-  module procedure eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d_crotch, eq_wall3d
-  module procedure eq_taylor_term, eq_taylor, eq_control, eq_lat_param, eq_mode_info
-  module procedure eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field
-  module procedure eq_track_map, eq_track, eq_synch_rad_common, eq_bmad_common, eq_rad_int1
-  module procedure eq_rad_int_all_ele, eq_ele, eq_normal_form, eq_branch, eq_lat
-  module procedure eq_bunch, eq_beam
+  module procedure eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term
+  module procedure eq_taylor, eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker
+  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map
+  module procedure eq_track, eq_synch_rad_common, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
+  module procedure eq_ele, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam
 end interface
 
 contains
@@ -850,6 +850,8 @@ is_eq = is_eq .and. (f1%type == f2%type)
 is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%v) .eqv. allocated(f2%v))
 if (.not. is_eq) return
@@ -880,32 +882,6 @@ end function eq_wall3d_section
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_wall3d_crotch (f1, f2) result (is_eq)
-
-implicit none
-
-type(wall3d_crotch_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%location == f2%location)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_section == f2%ix_section)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_v1_cut == f2%ix_v1_cut)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_v2_cut == f2%ix_v2_cut)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%section == f2%section)
-
-end function eq_wall3d_crotch
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_wall3d (f1, f2) result (is_eq)
 
 implicit none
@@ -918,12 +894,16 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_link == f2%n_link)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%priority == f2%priority)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%thickness == f2%thickness)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%clear_material == f2%clear_material)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%opaque_material == f2%opaque_material)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%superimpose .eqv. f2%superimpose)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%crotch == f2%crotch)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%section) .eqv. allocated(f2%section))
 if (.not. is_eq) return
@@ -1038,6 +1018,8 @@ is_eq = is_eq .and. (f1%ixx == f2%ixx)
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 
@@ -1362,6 +1344,8 @@ is_eq = is_eq .and. (f1%radiation_damping_on .eqv. f2%radiation_damping_on)
 is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuations_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%photon_tracking_uses_field .eqv. f2%photon_tracking_uses_field)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
