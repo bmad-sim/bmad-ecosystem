@@ -4,16 +4,17 @@
 ! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
 ! If s >= s_arr(i_max) then ix = i_max
+! If i_max < i_min (array size zero) then ix = i_min - 1
 !
 ! This routine assumes that s_arr is in assending order.
 !
 ! This routine uses ix0 as an initial guess.
 ! See also bracket_index which does not need an initial guess.
 !
-! The reason for using this routine over bracket_index is speed
-! when dealing with large arrays.
+! The reason for using this routine over bracket_index is speed when 
+! dealing with large arrays.
 ! However, if ix0 is not near ix, this routine can be up to a 
-! factor of 2 slower than bracked_index.
+! factor of 2 slower than bracket_index.
 !
 ! Modules needed:
 !   use sim_utils
@@ -39,6 +40,13 @@ real(rp) s_arr(i_min:), s
 
 integer i_min, i_max
 integer ix0, ix, n1, n2, n3, n_del
+
+! Easy case
+
+if (i_max < i_min) then
+  ix = i_min - 1
+  return
+endif
 
 ! Start from ix0
 
