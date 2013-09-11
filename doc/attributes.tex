@@ -925,6 +925,7 @@ syntax of the wall structure is:
   wall = \{
     superimpose = <T/F>,
     section = \{ 
+      type = <section_type>,
       s = <longitudinal_position>, 
       x0 = <value>,
       y0 = <value>,
@@ -1128,6 +1129,28 @@ overlap the superimposed wall are discarded.
 
 If a branch has a closed geometry (\sref{s:param}), wall sections that
 extend beyound the ends of the branch are ``wrapped'' around.
+
+\index{crotch chamber geometry}
+Each section has a \vn{type} attribute. This attribute is not used for 
+\vn{capillary} elements. For a vacuum chamber wall, the \vn{type} 
+attribute is used to dscribe a ``crotch'' geometry where
+two pipes merge into one pipe. The possible values for the \vn{type} 
+attribute are:
+\begin{example}
+  normal     ! default
+  leg1
+  leg2
+  trunk1
+  trunk2
+  trunk
+\end{example}
+The geometry of a crotch is shown in \fig{f:crotch}. Two pipes,
+called ``leg1'' and ``leg2'', merge into
+one pipe called the ``trunk'' pipe. 
+The trunk pipe can be either upstream or downstream of the leg pipes.
+To describe this situation, five sections are needed: One section 
+in each leg pipe which need to have their \vn{type} attribute to 
+\vn{leg1} and \vn{leg2}, and three sections in the trunk
 
 %-----------------------------------------------------------------
 \section{Length Attributes}
