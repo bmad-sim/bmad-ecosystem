@@ -4,6 +4,7 @@
 ! Subroutine to find the index ix so that s_arr(ix) <= s < s_arr(ix+1).
 ! If s <  s_arr(i_min) then ix = i_min - 1
 ! If s >= s_arr(i_max) then ix = i_max
+! If i_max < i_min (array size zero) then ix = i_min - 1
 !
 ! This routine assumes that s_arr is in assending order.
 ! Also see bracket_index2
@@ -32,7 +33,12 @@ real(rp) s_arr(i_min:), s
 
 integer ix, n1, n2, n3
 
-!
+! Easy cases
+
+if (i_max < i_min) then
+  ix = i_min - 1
+  return
+endif
 
 if (s < s_arr(i_min)) then
   ix = i_min - 1
