@@ -49,8 +49,8 @@ def print_help():
 results = open('regression.results', 'w')
 
 bin_dir = '../production/bin/'
-dir_list = []
-dir_name = 'tests.list'
+test_dir_list = []
+test_list_file = 'tests.list'
 
 i = 1
 while i < len(sys.argv):
@@ -58,10 +58,10 @@ while i < len(sys.argv):
     bin_dir = sys.argv[i+1]
     i += 1
   elif sys.argv[i] == '-test':
-    dir_list = [sys.argv[i+1]]
+    test_dir_list = [sys.argv[i+1]]
     i += 1
   elif sys.argv[i] == '-list':
-    dir_name = [sys.argv[i+1]]
+    test_list_file = [sys.argv[i+1]]
     i += 1
   elif sys.argv[i] == '-debug':
     bin_dir = '../debug/bin'
@@ -73,18 +73,19 @@ while i < len(sys.argv):
 if bin_dir[0] != '/' and bin_dir[0] != '$': bin_dir = '../' + bin_dir
 if bin_dir[-1] != '/': bin_dir = bin_dir + '/'
 
-if len(dir_list) == 0:
-  dir_file = open (dir_name, 'r')
-  dir_list = dir_file.readlines()
+if len(test_dir_list) == 0:
+  dir_file = open (test_list_file, 'r')
+  test_dir_list = dir_file.readlines()
 
-for line in dir_list:
-  line = line.strip()
-  if len(line) == 0: continue
+for test_dir in test_dir_list:
+  test_dir = test_dir.strip()
+  if len(test_dir) == 0: continue
+  if test_dir[0] == '!': continue
 
   #-----------------------------------------------------------
   # Run the programs
 
-  dir_split = line.split()
+  dir_split = test_dir.split()
   num_programs += 1
   num_local_tests = 0
   num_local_failures = 0

@@ -1,6 +1,7 @@
 program photon_test
 
 use photon_init_mod
+use photon_init_spline_mod
 
 implicit none
 
