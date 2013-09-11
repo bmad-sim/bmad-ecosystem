@@ -1,5 +1,5 @@
 !+
-! Program girder_test
+! Program patch_test
 !
 ! This program is part of the Bmad regression testing suite.
 !-
@@ -33,7 +33,9 @@ do ip = 1, lat%n_ele_max
   call init_coord (start_orb, lat%beam_start, patch, .false.)
   call track1 (start_orb, patch, lat%param, end_orb)
   write (1, '(3a, 6es14.6)') '"', trim(patch%name), '" ABS 0', end_orb%vec
-
+  if (patch%key == patch$) then
+    write (1, '(a, f20.14)') '"L" REL 1E-12 ', patch%value(l$)
+  endif
 enddo
 
 !
