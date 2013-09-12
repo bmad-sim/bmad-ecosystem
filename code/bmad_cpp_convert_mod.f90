@@ -269,15 +269,6 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine wall3d_crotch_to_f (C, Fp) bind(c)
-    import c_ptr
-    type(c_ptr), value :: C, Fp
-  end subroutine
-end interface
-
-!--------------------------------------------------------------------------
-
-interface 
   subroutine wall3d_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -3298,8 +3289,9 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_section_to_c2 (C, z_type, z_s, z_n_vertex_input, z_v, n1_v, z_x0, z_y0, &
-      z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+  subroutine wall3d_section_to_c2 (C, z_type, z_s, z_n_vertex_input, z_ix_ele, z_ix_branch, &
+      z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
+      z_p2_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -3307,7 +3299,7 @@ interface
     real(c_double) :: z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
     real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
     type(c_ptr) :: z_v(*)
-    integer(c_int) :: z_type, z_n_vertex_input
+    integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
   end subroutine
 end interface
 
@@ -3334,9 +3326,9 @@ if (allocated(F%v)) then
 endif
 
 !! f_side.to_c2_call
-call wall3d_section_to_c2 (C, F%type, F%s, F%n_vertex_input, z_v, n1_v, F%x0, F%y0, F%dx0_ds, &
-    F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
-    fvec2vec(F%p2_coef, 3))
+call wall3d_section_to_c2 (C, F%type, F%s, F%n_vertex_input, F%ix_ele, F%ix_branch, z_v, n1_v, &
+    F%x0, F%y0, F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, &
+    fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -3356,8 +3348,9 @@ end subroutine wall3d_section_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_section_to_f2 (Fp, z_type, z_s, z_n_vertex_input, z_v, n1_v, z_x0, z_y0, &
-    z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+subroutine wall3d_section_to_f2 (Fp, z_type, z_s, z_n_vertex_input, z_ix_ele, z_ix_branch, z_v, &
+    n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) &
+    bind(c)
 
 
 implicit none
@@ -3370,7 +3363,7 @@ integer(c_int), value :: n1_v
 real(c_double) :: z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
 real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
 type(c_ptr) :: z_v(*)
-integer(c_int) :: z_type, z_n_vertex_input
+integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
 
 call c_f_pointer (Fp, F)
 
@@ -3380,6 +3373,10 @@ F%type = z_type
 F%s = z_s
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_vertex_input = z_n_vertex_input
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_branch = z_ix_branch
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_v == 0) then
   if (allocated(F%v)) deallocate(F%v)
@@ -3419,98 +3416,6 @@ end subroutine wall3d_section_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine wall3d_crotch_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad wall3d_crotch_struct to a C++ CPP_wall3d_crotch structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad wall3d_crotch_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_wall3d_crotch struct.
-!-
-
-subroutine wall3d_crotch_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_crotch_to_c2 (C, z_location, z_ix_section, z_ix_v1_cut, z_ix_v2_cut, &
-      z_section) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    type(c_ptr), value :: z_section
-    integer(c_int) :: z_location, z_ix_section, z_ix_v1_cut, z_ix_v2_cut
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(wall3d_crotch_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call wall3d_crotch_to_c2 (C, F%location, F%ix_section, F%ix_v1_cut, F%ix_v2_cut, &
-    c_loc(F%section))
-
-end subroutine wall3d_crotch_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine wall3d_crotch_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_wall3d_crotch structure to a Bmad wall3d_crotch_struct structure.
-! This routine is called by wall3d_crotch_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the wall3d_crotch_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad wall3d_crotch_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine wall3d_crotch_to_f2 (Fp, z_location, z_ix_section, z_ix_v1_cut, z_ix_v2_cut, &
-    z_section) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(wall3d_crotch_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_section
-integer(c_int) :: z_location, z_ix_section, z_ix_v1_cut, z_ix_v2_cut
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%location = z_location
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_section = z_ix_section
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_v1_cut = z_ix_v1_cut
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_v2_cut = z_ix_v2_cut
-!! f_side.to_f2_trans[type, 0, NOT]
-call wall3d_section_to_f(z_section, c_loc(F%section))
-
-end subroutine wall3d_crotch_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine wall3d_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad wall3d_struct to a C++ CPP_wall3d structure
@@ -3528,15 +3433,17 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_to_c2 (C, z_n_link, z_priority, z_ele_anchor_pt, z_crotch, z_section, &
-      n1_section) bind(c)
+  subroutine wall3d_to_c2 (C, z_n_link, z_thickness, z_clear_material, z_opaque_material, &
+      z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
+    integer(c_int) :: z_n_link, z_ele_anchor_pt
     integer(c_int), value :: n1_section
-    type(c_ptr), value :: z_crotch
+    logical(c_bool) :: z_superimpose
+    character(c_char) :: z_clear_material(*), z_opaque_material(*)
+    real(c_double) :: z_thickness
     type(c_ptr) :: z_section(*)
-    integer(c_int) :: z_n_link, z_priority, z_ele_anchor_pt
   end subroutine
 end interface
 
@@ -3563,7 +3470,8 @@ if (allocated(F%section)) then
 endif
 
 !! f_side.to_c2_call
-call wall3d_to_c2 (C, F%n_link, F%priority, F%ele_anchor_pt, c_loc(F%crotch), z_section, &
+call wall3d_to_c2 (C, F%n_link, F%thickness, trim(F%clear_material) // c_null_char, &
+    trim(F%opaque_material) // c_null_char, c_logic(F%superimpose), F%ele_anchor_pt, z_section, &
     n1_section)
 
 end subroutine wall3d_to_c
@@ -3584,8 +3492,8 @@ end subroutine wall3d_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_to_f2 (Fp, z_n_link, z_priority, z_ele_anchor_pt, z_crotch, z_section, &
-    n1_section) bind(c)
+subroutine wall3d_to_f2 (Fp, z_n_link, z_thickness, z_clear_material, z_opaque_material, &
+    z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
 
 
 implicit none
@@ -3594,21 +3502,27 @@ type(c_ptr), value :: Fp
 type(wall3d_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_n_link, z_ele_anchor_pt
 integer(c_int), value :: n1_section
-type(c_ptr), value :: z_crotch
+logical(c_bool) :: z_superimpose
+character(c_char) :: z_clear_material(*), z_opaque_material(*)
+real(c_double) :: z_thickness
 type(c_ptr) :: z_section(*)
-integer(c_int) :: z_n_link, z_priority, z_ele_anchor_pt
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_link = z_n_link
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%priority = z_priority
+!! f_side.to_f2_trans[real, 0, NOT]
+F%thickness = z_thickness
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_clear_material, F%clear_material)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_opaque_material, F%opaque_material)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%superimpose = f_logic(z_superimpose)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ele_anchor_pt = z_ele_anchor_pt
-!! f_side.to_f2_trans[type, 0, NOT]
-call wall3d_crotch_to_f(z_crotch, c_loc(F%crotch))
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_section == 0) then
   if (allocated(F%section)) deallocate(F%section)
@@ -3929,11 +3843,11 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_param_to_c2 (C, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
       z_t1_no_rf, z_rel_tracking_charge, z_particle, z_geometry, z_ixx, z_stable, &
-      z_aperture_limit_on, z_bookkeeping_state) bind(c)
+      z_aperture_limit_on, z_reverse_time_tracking, z_bookkeeping_state) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_stable, z_aperture_limit_on
+    logical(c_bool) :: z_stable, z_aperture_limit_on, z_reverse_time_tracking
     type(c_ptr), value :: z_bookkeeping_state
     real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_rel_tracking_charge
     integer(c_int) :: z_particle, z_geometry, z_ixx
@@ -3954,7 +3868,8 @@ call c_f_pointer (Fp, F)
 !! f_side.to_c2_call
 call lat_param_to_c2 (C, F%n_part, F%total_length, F%unstable_factor, mat2vec(F%t1_with_rf, &
     6*6), mat2vec(F%t1_no_rf, 6*6), F%rel_tracking_charge, F%particle, F%geometry, F%ixx, &
-    c_logic(F%stable), c_logic(F%aperture_limit_on), c_loc(F%bookkeeping_state))
+    c_logic(F%stable), c_logic(F%aperture_limit_on), c_logic(F%reverse_time_tracking), &
+    c_loc(F%bookkeeping_state))
 
 end subroutine lat_param_to_c
 
@@ -3976,7 +3891,7 @@ end subroutine lat_param_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_param_to_f2 (Fp, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
     z_t1_no_rf, z_rel_tracking_charge, z_particle, z_geometry, z_ixx, z_stable, &
-    z_aperture_limit_on, z_bookkeeping_state) bind(c)
+    z_aperture_limit_on, z_reverse_time_tracking, z_bookkeeping_state) bind(c)
 
 
 implicit none
@@ -3985,7 +3900,7 @@ type(c_ptr), value :: Fp
 type(lat_param_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_stable, z_aperture_limit_on
+logical(c_bool) :: z_stable, z_aperture_limit_on, z_reverse_time_tracking
 type(c_ptr), value :: z_bookkeeping_state
 real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_rel_tracking_charge
 integer(c_int) :: z_particle, z_geometry, z_ixx
@@ -4014,6 +3929,8 @@ F%ixx = z_ixx
 F%stable = f_logic(z_stable)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%aperture_limit_on = f_logic(z_aperture_limit_on)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%reverse_time_tracking = f_logic(z_reverse_time_tracking)
 !! f_side.to_f2_trans[type, 0, NOT]
 call bookkeeping_state_to_f(z_bookkeeping_state, c_loc(F%bookkeeping_state))
 
@@ -4937,14 +4854,15 @@ interface
       z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, &
       z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, &
       z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
-      z_conserve_taylor_maps, z_absolute_time_tracking_default, z_rf_auto_scale_phase_default, &
-      z_rf_auto_scale_amp_default, z_use_ptc_layout_default, z_debug) bind(c)
+      z_conserve_taylor_maps, z_photon_tracking_uses_field, z_absolute_time_tracking_default, &
+      z_rf_auto_scale_phase_default, z_rf_auto_scale_amp_default, z_use_ptc_layout_default, &
+      z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
-    logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_rf_auto_scale_phase_default, z_rf_auto_scale_amp_default
-    logical(c_bool) :: z_use_ptc_layout_default, z_debug
+    logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_photon_tracking_uses_field, z_absolute_time_tracking_default, z_rf_auto_scale_phase_default
+    logical(c_bool) :: z_rf_auto_scale_amp_default, z_use_ptc_layout_default, z_debug
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking
     integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -4971,9 +4889,9 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), c_logic(F%space_charge_on), &
     c_logic(F%coherent_synch_rad_on), c_logic(F%spin_tracking_on), &
     c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
-    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
-    c_logic(F%rf_auto_scale_phase_default), c_logic(F%rf_auto_scale_amp_default), &
-    c_logic(F%use_ptc_layout_default), c_logic(F%debug))
+    c_logic(F%conserve_taylor_maps), c_logic(F%photon_tracking_uses_field), &
+    c_logic(F%absolute_time_tracking_default), c_logic(F%rf_auto_scale_phase_default), &
+    c_logic(F%rf_auto_scale_amp_default), c_logic(F%use_ptc_layout_default), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -4999,9 +4917,9 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, &
     z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
     z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
-    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_rf_auto_scale_phase_default, z_rf_auto_scale_amp_default, z_use_ptc_layout_default, &
-    z_debug) bind(c)
+    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_photon_tracking_uses_field, &
+    z_absolute_time_tracking_default, z_rf_auto_scale_phase_default, &
+    z_rf_auto_scale_amp_default, z_use_ptc_layout_default, z_debug) bind(c)
 
 
 implicit none
@@ -5011,8 +4929,8 @@ type(bmad_common_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
-logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_rf_auto_scale_phase_default, z_rf_auto_scale_amp_default
-logical(c_bool) :: z_use_ptc_layout_default, z_debug
+logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_photon_tracking_uses_field, z_absolute_time_tracking_default, z_rf_auto_scale_phase_default
+logical(c_bool) :: z_rf_auto_scale_amp_default, z_use_ptc_layout_default, z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking
 integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -5067,6 +4985,8 @@ F%radiation_damping_on = f_logic(z_radiation_damping_on)
 F%radiation_fluctuations_on = f_logic(z_radiation_fluctuations_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%conserve_taylor_maps = f_logic(z_conserve_taylor_maps)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%photon_tracking_uses_field = f_logic(z_photon_tracking_uses_field)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
 !! f_side.to_f2_trans[logical, 0, NOT]

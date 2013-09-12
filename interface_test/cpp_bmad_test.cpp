@@ -1891,6 +1891,12 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 3 + offset; C.n_vertex_input = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 5 + offset; C.ix_branch = rhs;
+
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.v.resize(0);
@@ -1900,32 +1906,32 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.x0 = rhs;
+  rhs = 8 + offset; C.x0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.y0 = rhs;
+  rhs = 9 + offset; C.y0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.dx0_ds = rhs;
+  rhs = 10 + offset; C.dx0_ds = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.dy0_ds = rhs;
+  rhs = 11 + offset; C.dy0_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.x0_coef.size(); i++)
-    {int rhs = 101 + i + 10 + offset; C.x0_coef[i] = rhs;}
+    {int rhs = 101 + i + 12 + offset; C.x0_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.y0_coef.size(); i++)
-    {int rhs = 101 + i + 11 + offset; C.y0_coef[i] = rhs;}
+    {int rhs = 101 + i + 13 + offset; C.y0_coef[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.dr_ds = rhs;
+  rhs = 14 + offset; C.dr_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p1_coef.size(); i++)
-    {int rhs = 101 + i + 13 + offset; C.p1_coef[i] = rhs;}
+    {int rhs = 101 + i + 15 + offset; C.p1_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p2_coef.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.p2_coef[i] = rhs;}
+    {int rhs = 101 + i + 16 + offset; C.p2_coef[i] = rhs;}
 
 }
 
@@ -1968,69 +1974,6 @@ extern "C" void test_c_wall3d_section (Bmad_wall3d_section_class* F, bool& c_ok)
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_wall3d_crotch (CPP_wall3d_crotch&, bool&);
-
-void set_CPP_wall3d_crotch_test_pattern (CPP_wall3d_crotch& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.location = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.ix_section = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ix_v1_cut = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.ix_v2_cut = rhs;
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_wall3d_section_test_pattern(C.section, ix_patt);
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_wall3d_crotch (Bmad_wall3d_crotch_class* F, bool& c_ok) {
-
-  CPP_wall3d_crotch C, C2;
-
-  c_ok = true;
-
-  wall3d_crotch_to_c (F, C);
-  set_CPP_wall3d_crotch_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " wall3d_crotch: C side convert F->C: Good" << endl;
-  } else {
-    cout << " wall3d_crotch: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wall3d_crotch_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_wall3d_crotch (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_wall3d_crotch_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " wall3d_crotch: F side convert F->C: Good" << endl;
-  } else {
-    cout << " wall3d_crotch: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_wall3d_crotch_test_pattern (C2, 4);
-  wall3d_crotch_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_wall3d (CPP_wall3d&, bool&);
 
 void set_CPP_wall3d_test_pattern (CPP_wall3d& C, int ix_patt) {
@@ -2040,14 +1983,22 @@ void set_CPP_wall3d_test_pattern (CPP_wall3d& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 1 + offset; C.n_link = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.priority = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.thickness = rhs;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.clear_material.resize(20);
+  for (unsigned int i = 0; i < C.clear_material.size(); i++)
+    {int rhs = 101 + i + 3 + offset; C.clear_material[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
+  C.opaque_material.resize(20);
+  for (unsigned int i = 0; i < C.opaque_material.size(); i++)
+    {int rhs = 101 + i + 4 + offset; C.opaque_material[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 5 + offset; C.superimpose = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ele_anchor_pt = rhs;
-
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_wall3d_crotch_test_pattern(C.crotch, ix_patt);
+  rhs = 6 + offset; C.ele_anchor_pt = rhs;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -2313,6 +2264,9 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 11 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -3039,19 +2993,22 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 24 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 25 + offset; C.photon_tracking_uses_field = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
+  rhs = 26 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
+  rhs = 27 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
+  rhs = 28 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 29 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

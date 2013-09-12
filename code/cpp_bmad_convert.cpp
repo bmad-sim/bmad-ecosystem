@@ -1285,8 +1285,8 @@ extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3
 
 // c_side.to_f2_arg
 extern "C" void wall3d_section_to_f2 (Bmad_wall3d_section_class*, c_Int&, c_Real&, c_Int&,
-    const CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&, c_Real&, c_RealArr, c_RealArr,
-    c_Real&, c_RealArr, c_RealArr);
+    c_Int&, c_Int&, const CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_RealArr, c_RealArr, c_Real&, c_RealArr, c_RealArr);
 
 extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_section_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1298,8 +1298,9 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_se
   }
 
   // c_side.to_f2_call
-  wall3d_section_to_f2 (F, C.type, C.s, C.n_vertex_input, z_v, n1_v, C.x0, C.y0, C.dx0_ds,
-      C.dy0_ds, &C.x0_coef[0], &C.y0_coef[0], C.dr_ds, &C.p1_coef[0], &C.p2_coef[0]);
+  wall3d_section_to_f2 (F, C.type, C.s, C.n_vertex_input, C.ix_ele, C.ix_branch, z_v, n1_v,
+      C.x0, C.y0, C.dx0_ds, C.dy0_ds, &C.x0_coef[0], &C.y0_coef[0], C.dr_ds, &C.p1_coef[0],
+      &C.p2_coef[0]);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_v;
@@ -1307,9 +1308,9 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_se
 
 // c_side.to_c2_arg
 extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Real& z_s, c_Int&
-    z_n_vertex_input, Bmad_wall3d_vertex_class** z_v, Int n1_v, c_Real& z_x0, c_Real& z_y0,
-    c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr z_y0_coef, c_Real&
-    z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
+    z_n_vertex_input, c_Int& z_ix_ele, c_Int& z_ix_branch, Bmad_wall3d_vertex_class** z_v, Int
+    n1_v, c_Real& z_x0, c_Real& z_y0, c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef,
+    c_RealArr z_y0_coef, c_Real& z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
@@ -1317,6 +1318,10 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Re
   C.s = z_s;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_vertex_input = z_n_vertex_input;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_ele = z_ix_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_branch = z_ix_branch;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.v.resize(n1_v);
   for (int i = 0; i < n1_v; i++) wall3d_vertex_to_c(z_v[i], C.v[i]);
@@ -1343,47 +1348,13 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Re
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_wall3d_crotch
-
-extern "C" void wall3d_crotch_to_c (const Bmad_wall3d_crotch_class*, CPP_wall3d_crotch&);
-
-// c_side.to_f2_arg
-extern "C" void wall3d_crotch_to_f2 (Bmad_wall3d_crotch_class*, c_Int&, c_Int&, c_Int&, c_Int&,
-    const CPP_wall3d_section&);
-
-extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch& C, Bmad_wall3d_crotch_class* F) {
-
-  // c_side.to_f2_call
-  wall3d_crotch_to_f2 (F, C.location, C.ix_section, C.ix_v1_cut, C.ix_v2_cut, C.section);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void wall3d_crotch_to_c2 (CPP_wall3d_crotch& C, c_Int& z_location, c_Int&
-    z_ix_section, c_Int& z_ix_v1_cut, c_Int& z_ix_v2_cut, const Bmad_wall3d_section_class*
-    z_section) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.location = z_location;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_section = z_ix_section;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_v1_cut = z_ix_v1_cut;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_v2_cut = z_ix_v2_cut;
-  // c_side.to_c2_set[type, 0, NOT]
-  wall3d_section_to_c(z_section, C.section);
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_wall3d
 
 extern "C" void wall3d_to_c (const Bmad_wall3d_class*, CPP_wall3d&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_to_f2 (Bmad_wall3d_class*, c_Int&, c_Int&, c_Int&, const
-    CPP_wall3d_crotch&, const CPP_wall3d_section**, Int);
+extern "C" void wall3d_to_f2 (Bmad_wall3d_class*, c_Int&, c_Real&, c_Char, c_Char, c_Bool&,
+    c_Int&, const CPP_wall3d_section**, Int);
 
 extern "C" void wall3d_to_f (const CPP_wall3d& C, Bmad_wall3d_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1395,25 +1366,30 @@ extern "C" void wall3d_to_f (const CPP_wall3d& C, Bmad_wall3d_class* F) {
   }
 
   // c_side.to_f2_call
-  wall3d_to_f2 (F, C.n_link, C.priority, C.ele_anchor_pt, C.crotch, z_section, n1_section);
+  wall3d_to_f2 (F, C.n_link, C.thickness, C.clear_material.c_str(), C.opaque_material.c_str(),
+      C.superimpose, C.ele_anchor_pt, z_section, n1_section);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_section;
 }
 
 // c_side.to_c2_arg
-extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Int& z_n_link, c_Int& z_priority, c_Int&
-    z_ele_anchor_pt, const Bmad_wall3d_crotch_class* z_crotch, Bmad_wall3d_section_class**
-    z_section, Int n1_section) {
+extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Int& z_n_link, c_Real& z_thickness, c_Char
+    z_clear_material, c_Char z_opaque_material, c_Bool& z_superimpose, c_Int& z_ele_anchor_pt,
+    Bmad_wall3d_section_class** z_section, Int n1_section) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_link = z_n_link;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.priority = z_priority;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.thickness = z_thickness;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.clear_material = z_clear_material;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.opaque_material = z_opaque_material;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.superimpose = z_superimpose;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ele_anchor_pt = z_ele_anchor_pt;
-  // c_side.to_c2_set[type, 0, NOT]
-  wall3d_crotch_to_c(z_crotch, C.crotch);
   // c_side.to_c2_set[type, 1, ALLOC]
   C.section.resize(n1_section);
   for (int i = 0; i < n1_section; i++) wall3d_section_to_c(z_section[i], C.section[i]);
@@ -1522,7 +1498,7 @@ extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const
+    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
     CPP_bookkeeping_state&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
@@ -1534,7 +1510,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
       C.rel_tracking_charge, C.particle, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
-      C.bookkeeping_state);
+      C.reverse_time_tracking, C.bookkeeping_state);
 
 }
 
@@ -1542,8 +1518,8 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
-    z_stable, c_Bool& z_aperture_limit_on, const Bmad_bookkeeping_state_class*
-    z_bookkeeping_state) {
+    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, const
+    Bmad_bookkeeping_state_class* z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -1567,6 +1543,8 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.stable = z_stable;
   // c_side.to_c2_set[logical, 0, NOT]
   C.aperture_limit_on = z_aperture_limit_on;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.reverse_time_tracking = z_reverse_time_tracking;
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
 }
@@ -1935,7 +1913,7 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&,
     c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -1947,8 +1925,9 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.ptc_max_fringe_order, C.use_hard_edge_drifts, C.sr_wakes_on, C.lr_wakes_on,
       C.mat6_track_symmetric, C.auto_bookkeeper, C.space_charge_on, C.coherent_synch_rad_on,
       C.spin_tracking_on, C.radiation_damping_on, C.radiation_fluctuations_on,
-      C.conserve_taylor_maps, C.absolute_time_tracking_default, C.rf_auto_scale_phase_default,
-      C.rf_auto_scale_amp_default, C.use_ptc_layout_default, C.debug);
+      C.conserve_taylor_maps, C.photon_tracking_uses_field, C.absolute_time_tracking_default,
+      C.rf_auto_scale_phase_default, C.rf_auto_scale_amp_default, C.use_ptc_layout_default,
+      C.debug);
 
 }
 
@@ -1962,9 +1941,9 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
     z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_rf_auto_scale_phase_default, c_Bool& z_rf_auto_scale_amp_default, c_Bool&
-    z_use_ptc_layout_default, c_Bool& z_debug) {
+    z_conserve_taylor_maps, c_Bool& z_photon_tracking_uses_field, c_Bool&
+    z_absolute_time_tracking_default, c_Bool& z_rf_auto_scale_phase_default, c_Bool&
+    z_rf_auto_scale_amp_default, c_Bool& z_use_ptc_layout_default, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2014,6 +1993,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.radiation_fluctuations_on = z_radiation_fluctuations_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.conserve_taylor_maps = z_conserve_taylor_maps;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.photon_tracking_uses_field = z_photon_tracking_uses_field;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
   // c_side.to_c2_set[logical, 0, NOT]

@@ -2842,6 +2842,10 @@ rhs = 1 + offset; F%type = rhs
 rhs = 2 + offset; F%s = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 3 + offset; F%n_vertex_input = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%ix_branch = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -2853,131 +2857,37 @@ else
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%x0 = rhs
+rhs = 8 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%y0 = rhs
+rhs = 9 + offset; F%y0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%dx0_ds = rhs
+rhs = 10 + offset; F%dx0_ds = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%dy0_ds = rhs
+rhs = 11 + offset; F%dy0_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%x0_coef,1); lb1 = lbound(F%x0_coef,1) - 1
-  rhs = 100 + jd1 + 10 + offset
+  rhs = 100 + jd1 + 12 + offset
   F%x0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%y0_coef,1); lb1 = lbound(F%y0_coef,1) - 1
-  rhs = 100 + jd1 + 11 + offset
+  rhs = 100 + jd1 + 13 + offset
   F%y0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%dr_ds = rhs
+rhs = 14 + offset; F%dr_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p1_coef,1); lb1 = lbound(F%p1_coef,1) - 1
-  rhs = 100 + jd1 + 13 + offset
+  rhs = 100 + jd1 + 15 + offset
   F%p1_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p2_coef,1); lb1 = lbound(F%p2_coef,1) - 1
-  rhs = 100 + jd1 + 14 + offset
+  rhs = 100 + jd1 + 16 + offset
   F%p2_coef(jd1+lb1) = rhs
 enddo
 
 end subroutine set_wall3d_section_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_wall3d_crotch (ok)
-
-implicit none
-
-type(wall3d_crotch_struct), target :: f_wall3d_crotch, f2_wall3d_crotch
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_wall3d_crotch (c_wall3d_crotch, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_wall3d_crotch
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_wall3d_crotch_test_pattern (f2_wall3d_crotch, 1)
-
-call test_c_wall3d_crotch(c_loc(f2_wall3d_crotch), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_wall3d_crotch_test_pattern (f_wall3d_crotch, 4)
-if (f_wall3d_crotch == f2_wall3d_crotch) then
-  print *, 'wall3d_crotch: C side convert C->F: Good'
-else
-  print *, 'wall3d_crotch: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_wall3d_crotch
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_wall3d_crotch (c_wall3d_crotch, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_wall3d_crotch
-type(wall3d_crotch_struct), target :: f_wall3d_crotch, f2_wall3d_crotch
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call wall3d_crotch_to_f (c_wall3d_crotch, c_loc(f_wall3d_crotch))
-
-call set_wall3d_crotch_test_pattern (f2_wall3d_crotch, 2)
-if (f_wall3d_crotch == f2_wall3d_crotch) then
-  print *, 'wall3d_crotch: F side convert C->F: Good'
-else
-  print *, 'wall3d_crotch: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_wall3d_crotch_test_pattern (f2_wall3d_crotch, 3)
-call wall3d_crotch_to_c (c_loc(f2_wall3d_crotch), c_wall3d_crotch)
-
-end subroutine test2_f_wall3d_crotch
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_wall3d_crotch_test_pattern (F, ix_patt)
-
-implicit none
-
-type(wall3d_crotch_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%location = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%ix_section = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%ix_v1_cut = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 4 + offset; F%ix_v2_cut = rhs
-!! f_side.test_pat[type, 0, NOT]
-call set_wall3d_section_test_pattern (F%section, ix_patt)
-
-end subroutine set_wall3d_crotch_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -3062,12 +2972,20 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 1 + offset; F%n_link = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%thickness = rhs
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%clear_material)
+  F%clear_material(jd1:jd1) = char(ichar("a") + modulo(100+3+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%opaque_material)
+  F%opaque_material(jd1:jd1) = char(ichar("a") + modulo(100+4+offset+jd1, 26))
+enddo
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 5 + offset; F%superimpose = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%priority = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%ele_anchor_pt = rhs
-!! f_side.test_pat[type, 0, NOT]
-call set_wall3d_crotch_test_pattern (F%crotch, ix_patt)
+rhs = 6 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -3473,6 +3391,8 @@ rhs = 9 + offset; F%ixx = rhs
 rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 12 + offset; F%reverse_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 
@@ -4522,15 +4442,17 @@ rhs = 23 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 24 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 25 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 25 + offset; F%photon_tracking_uses_field = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

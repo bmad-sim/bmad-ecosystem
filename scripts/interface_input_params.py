@@ -43,7 +43,6 @@ struct_list = [
     'photon_surface_struct',
     'wall3d_vertex_struct',
     'wall3d_section_struct',
-    'wall3d_crotch_struct',
     'wall3d_struct',
     'taylor_term_struct',
     'taylor_struct',

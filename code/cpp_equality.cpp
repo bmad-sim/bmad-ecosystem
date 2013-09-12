@@ -513,6 +513,8 @@ bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.n_vertex_input == y.n_vertex_input);
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_branch == y.ix_branch);
   is_eq = is_eq && is_all_equal(x.v, y.v);
   is_eq = is_eq && (x.x0 == y.x0);
   is_eq = is_eq && (x.y0 == y.y0);
@@ -531,27 +533,14 @@ template bool is_all_equal (const CPP_wall3d_section_MATRIX&, const CPP_wall3d_s
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_wall3d_crotch& x, const CPP_wall3d_crotch& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.location == y.location);
-  is_eq = is_eq && (x.ix_section == y.ix_section);
-  is_eq = is_eq && (x.ix_v1_cut == y.ix_v1_cut);
-  is_eq = is_eq && (x.ix_v2_cut == y.ix_v2_cut);
-  is_eq = is_eq && (x.section == y.section);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_wall3d_crotch_ARRAY&, const CPP_wall3d_crotch_ARRAY&);
-template bool is_all_equal (const CPP_wall3d_crotch_MATRIX&, const CPP_wall3d_crotch_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_wall3d& x, const CPP_wall3d& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.n_link == y.n_link);
-  is_eq = is_eq && (x.priority == y.priority);
+  is_eq = is_eq && (x.thickness == y.thickness);
+  is_eq = is_eq && (x.clear_material == y.clear_material);
+  is_eq = is_eq && (x.opaque_material == y.opaque_material);
+  is_eq = is_eq && (x.superimpose == y.superimpose);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
-  is_eq = is_eq && (x.crotch == y.crotch);
   is_eq = is_eq && is_all_equal(x.section, y.section);
   return is_eq;
 };
@@ -613,6 +602,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
+  is_eq = is_eq && (x.reverse_time_tracking == y.reverse_time_tracking);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
 };
@@ -789,6 +779,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
+  is_eq = is_eq && (x.photon_tracking_uses_field == y.photon_tracking_uses_field);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default);
   is_eq = is_eq && (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default);

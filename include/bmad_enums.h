@@ -2,17 +2,18 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 126;
+  const int BMAD_INC_VERSION = 129;
   const int NUM_ELE_ATTRIB = 70;
   const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
-  const int PRIMARY = 1, SECONDARY = 2, IGNORE = 3;
   const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4;
   const int CONTINUOUS = 5, SURFACE = 6;
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3;
+  const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5;
+  const int TRUNK2 = 6, LEG1 = 7, LEG2 = 8;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
   const int MOVING_FORWARD = -9;
@@ -44,8 +45,8 @@ namespace Bmad {
   const int BRANCH = 41, MIRROR = 42, CRYSTAL = 43;
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
-  const int UNDULATOR = 51;
-  const int N_KEY = 51;
+  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52;
+  const int N_KEY = 52;
   const int N_PART = 2, TAYLOR_ORDER = 3, PARTICLE = 14;
   const int GEOMETRY = 15, LATTICE_TYPE = 16, SYMMETRY = 6;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
@@ -72,7 +73,7 @@ namespace Bmad {
   const int REF_TILT = 3, RF_FREQUENCY=3, DIRECTION=3;
   const int OLD_COMMAND=3, KICK=3, X_GAIN_ERR=3;
   const int RF_FREQUENCY_ERR=4, K1=4, SIG_X=4, HARMON=4, H_DISPLACE=4, Y_GAIN_ERR=4;
-  const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4;
+  const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
   const int LR_FREQ_SPREAD=5, GRAZE_ANGLE=5, K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5;
   const int FLEXIBLE = 5, CRUNCH=5, REF_ORBIT_FOLLOWS=5;
   const int GRADIENT=6, K3=6, SIG_Z=6, NOISE=6, NEW_BRANCH = 6;
@@ -212,8 +213,7 @@ namespace Bmad {
   const int FREE = 1, SUPER_SLAVE = 2, CONTROL_SLAVE = 3;
   const int GROUP_LORD = 4, SUPER_LORD = 5, OVERLAY_LORD = 6;
   const int GIRDER_LORD = 7, MULTIPASS_LORD = 8, MULTIPASS_SLAVE = 9;
-  const int NOT_A_LORD = 10, GROUP_SLAVE = 11, SLICE_SLAVE = 12;
-  const int OVERLAY_SLAVE = 3;
+  const int NOT_A_LORD = 10, SLICE_SLAVE = 11, CONTROL_LORD = 12;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -272,8 +272,8 @@ namespace Bmad {
   const double MU_0_VAC = FOURPI * 1E-7;
   const double EPS_0_VAC = 1 / (C_LIGHT*C_LIGHT * MU_0_VAC);
   const double CLASSICAL_RADIUS_FACTOR = 1.439964416E-9;
-  const double G_FACTOR_ELECTRON = 0.001159652193;
-  const double G_FACTOR_PROTON   = 1.79285;
+  const double ANOMALOUS_MAG_MOMENT_ELECTRON = 0.001159652193;
+  const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
 

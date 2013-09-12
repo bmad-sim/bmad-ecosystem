@@ -36,7 +36,6 @@ call test1_f_segmented_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_vertex(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d_section(ok); if (.not. ok) all_ok = .false.
-call test1_f_wall3d_crotch(ok); if (.not. ok) all_ok = .false.
 call test1_f_wall3d(ok); if (.not. ok) all_ok = .false.
 call test1_f_taylor_term(ok); if (.not. ok) all_ok = .false.
 call test1_f_taylor(ok); if (.not. ok) all_ok = .false.

@@ -192,11 +192,6 @@ typedef valarray<CPP_wall3d_section>          CPP_wall3d_section_ARRAY;
 typedef valarray<CPP_wall3d_section_ARRAY>    CPP_wall3d_section_MATRIX;
 typedef valarray<CPP_wall3d_section_MATRIX>   CPP_wall3d_section_TENSOR;
 
-class CPP_wall3d_crotch;
-typedef valarray<CPP_wall3d_crotch>          CPP_wall3d_crotch_ARRAY;
-typedef valarray<CPP_wall3d_crotch_ARRAY>    CPP_wall3d_crotch_MATRIX;
-typedef valarray<CPP_wall3d_crotch_MATRIX>   CPP_wall3d_crotch_TENSOR;
-
 class CPP_wall3d;
 typedef valarray<CPP_wall3d>          CPP_wall3d_ARRAY;
 typedef valarray<CPP_wall3d_ARRAY>    CPP_wall3d_MATRIX;
@@ -1242,6 +1237,8 @@ public:
   Int type;
   Real s;
   Int n_vertex_input;
+  Int ix_ele;
+  Int ix_branch;
   CPP_wall3d_vertex_ARRAY v;
   Real x0;
   Real y0;
@@ -1254,9 +1251,11 @@ public:
   Real_ARRAY p2_coef;
 
   CPP_wall3d_section() :
-    type(0),
+    type(Bmad::NORMAL),
     s(0.0),
     n_vertex_input(0),
+    ix_ele(0),
+    ix_branch(0),
     v(CPP_wall3d_vertex_ARRAY(CPP_wall3d_vertex(), 0)),
     x0(0.0),
     y0(0.0),
@@ -1281,38 +1280,6 @@ bool operator== (const CPP_wall3d_section&, const CPP_wall3d_section&);
 
 
 //--------------------------------------------------------------------
-// CPP_wall3d_crotch
-
-class Bmad_wall3d_crotch_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_wall3d_crotch {
-public:
-  Int location;
-  Int ix_section;
-  Int ix_v1_cut;
-  Int ix_v2_cut;
-  CPP_wall3d_section section;
-
-  CPP_wall3d_crotch() :
-    location(Bmad::NO_END),
-    ix_section(0),
-    ix_v1_cut(0),
-    ix_v2_cut(0),
-    section()
-    {}
-
-  ~CPP_wall3d_crotch() {
-  }
-
-};   // End Class
-
-extern "C" void wall3d_crotch_to_c (const Bmad_wall3d_crotch_class*, CPP_wall3d_crotch&);
-extern "C" void wall3d_crotch_to_f (const CPP_wall3d_crotch&, Bmad_wall3d_crotch_class*);
-
-bool operator== (const CPP_wall3d_crotch&, const CPP_wall3d_crotch&);
-
-
-//--------------------------------------------------------------------
 // CPP_wall3d
 
 class Bmad_wall3d_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1320,16 +1287,20 @@ class Bmad_wall3d_class {};  // Opaque class for pointers to corresponding fortr
 class CPP_wall3d {
 public:
   Int n_link;
-  Int priority;
+  Real thickness;
+  string clear_material;
+  string opaque_material;
+  Bool superimpose;
   Int ele_anchor_pt;
-  CPP_wall3d_crotch crotch;
   CPP_wall3d_section_ARRAY section;
 
   CPP_wall3d() :
     n_link(1),
-    priority(Bmad::SECONDARY),
+    thickness(0.0),
+    clear_material(),
+    opaque_material(),
+    superimpose(false),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
-    crotch(),
     section(CPP_wall3d_section_ARRAY(CPP_wall3d_section(), 0))
     {}
 
@@ -1446,6 +1417,7 @@ public:
   Int ixx;
   Bool stable;
   Bool aperture_limit_on;
+  Bool reverse_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1460,6 +1432,7 @@ public:
     ixx(0),
     stable(false),
     aperture_limit_on(true),
+    reverse_time_tracking(false),
     bookkeeping_state()
     {}
 
@@ -1805,6 +1778,7 @@ public:
   Bool radiation_damping_on;
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
+  Bool photon_tracking_uses_field;
   Bool absolute_time_tracking_default;
   Bool rf_auto_scale_phase_default;
   Bool rf_auto_scale_amp_default;
@@ -1836,6 +1810,7 @@ public:
     radiation_damping_on(false),
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
+    photon_tracking_uses_field(false),
     absolute_time_tracking_default(false),
     rf_auto_scale_phase_default(true),
     rf_auto_scale_amp_default(true),
