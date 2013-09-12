@@ -704,12 +704,14 @@ end function patch_flips_propagation_direction
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Subroutine shift_reference_frame (floor0, dr, theta, phi, psi, floor1)
+! Function local_to_floor (floor0, dr, theta, phi, psi) result (floor1)
 !
 ! Starting from a given reference frame specified by its orientation and
 ! position in the global (floor) coordinates, and given a shift in position
 ! and angular orientation with respect to this reference frame, return the 
 ! resulting reference frame orientation and position.
+!
+! Also see: floor_to_local
 !
 ! Module needed:
 !   use lat_geometry_mod
@@ -718,19 +720,21 @@ end function patch_flips_propagation_direction
 !   floor0   -- floor_position_struct: Initial reference frame.
 !   dr(3)    -- real(rp): (x, y, z) positional shift of the reference frame.
 !   theta, phi, psi
-!            -- real(rp): Angular shift of the reference frame. See the 
+!            -- real(rp), optional: Angular shift of the reference frame. See the 
 !                 Bmad manual on the Global Coordinate system for more details.
+!                 All angles must either be absent or present.
 !
 ! Output:
 !   floor1   -- floor_position_struct: Shifted reference frame.
 !-
 
-subroutine shift_reference_frame (floor0, dr, theta, phi, psi, floor1)
+function local_to_floor (floor0, dr, theta, phi, psi) result (floor1)
 
 implicit none
 
 type (floor_position_struct) floor0, floor1
-real(rp) dr(3), theta, phi, psi
+real(rp) dr(3)
+real(rp), optional :: theta, phi, psi
 real(rp) w_mat(3,3), w0_mat(3,3)
 
 !
@@ -739,11 +743,13 @@ call floor_angles_to_w_mat (floor0%theta, floor0%phi, floor0%psi, w0_mat)
 
 floor1%r = matmul(w0_mat, dr) + floor0%r
 
-call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-w_mat = matmul(w0_mat, w_mat)
-call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi, floor0)
+if (present(theta)) then
+  call floor_angles_to_w_mat (theta, phi, psi, w_mat)
+  w_mat = matmul(w0_mat, w_mat)
+  call floor_w_mat_to_angles (w_mat, 0.0_rp, floor1%theta, floor1%phi, floor1%psi, floor0)
+endif
 
-end subroutine shift_reference_frame
+end function local_to_floor
 
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
@@ -752,7 +758,7 @@ end subroutine shift_reference_frame
 ! Function floor_to_local (floor0, global_position, calculate_angles = .true.) result (local_position)
 !
 ! Returns local floor position relative to floor0 given a global floor position.
-! This is an essentially an inverse of subroutine shift_reference_frame.
+! This is an essentially an inverse of routine local_to_floor.
 !
 ! Input:
 !   floor0           -- floor_position_struct: reference position
@@ -981,7 +987,7 @@ else
 endif 
 
 ! Get global floor coordinates
-call shift_reference_frame (floor, dr, local_position%theta, local_position%phi, local_position%psi, global_position)
+global_position = local_to_floor (floor, dr, local_position%theta, local_position%phi, local_position%psi)
 
 ! Optionally return w_mat
 if (present(w_mat) ) then

@@ -79,11 +79,11 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
-integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, crotch$ = 4, crotch1$ = 5
-integer, parameter :: crotch2$ = 6, leg1$ = 7, leg2$ = 8
+integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, trunk$ = 4, trunk1$ = 5
+integer, parameter :: trunk2$ = 6, leg1$ = 7, leg2$ = 8
 character(16), parameter :: wall3d_section_type_name(8) = [ &
-                                                   'Normal  ', 'Clear   ', 'Opaque  ', 'Crotch  ', &
-                                                   'Crotch1 ', 'Crotch2 ', 'Leg1    ', 'Leg2    ']
+                                         'Normal ', 'Clear  ', 'Opaque ', 'Trunk  ', &
+                                         'Trunk1 ', 'Trunk2 ', 'Leg1   ', 'Leg2   ']
 type wall3d_vertex_struct
   real(rp) x, y             ! Coordinates of the vertex.
   real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
@@ -101,6 +101,7 @@ type wall3d_section_struct
   real(rp) :: s = 0                         ! Longitudinal position
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
+  integer :: ix_branch = 0                  ! Index of branch lattice element is in.
   type (wall3d_vertex_struct), allocatable :: v(:)     ! Array of vertices
   real(rp) :: x0 = 0, y0 = 0                ! Center of section
   ! Section-to-section spline interpolation of the center of the section
