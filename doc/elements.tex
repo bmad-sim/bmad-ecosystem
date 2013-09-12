@@ -935,7 +935,7 @@ Example:
 \end{example}
 
 The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are
-the computed Darwin width, in radians, for sigma andd pi polarized
+the computed Darwin width, in radians, for sigma and pi polarized
 photons respectively. Here the Darwin width is defined as the width
 at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
 \Begineq
@@ -1021,9 +1021,9 @@ plate is divided into ``clear'' (white) and ``mask'' (black)
 sections. In this example there are three clear sections labeled \#1,
 \#2, and \#3. B) All sections must be star shaped with respect to the
 section's origin. In this example, The section is {\em not} start
-shapped since a line drawn from the origin point $o$ to the point $p$
+shaped since a line drawn from the origin point $o$ to the point $p$
 on the boundary intersects the boundary twice in between. In this case
-the section can be made star shapped by moving the origin to $o'$.
+the section can be made star shaped by moving the origin to $o'$.
   }
   \label{f:diff.plate}
 \end{figure}
@@ -1048,8 +1048,8 @@ General \vn{diffraction_plate} element attributes are:
 NOTE: \vn{DIFFRACTION_PLATE} ELEMENT TRACKING IS IN DEVELOPMENT AND IS NOT USABLE AT THIS TIME...
 
 An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
-The geometry of the plate is definded using the ``wall'' attribute of
-the element. EXample:
+The geometry of the plate is defined using the ``wall'' attribute of
+the element. Example:
 \begin{example}
   fresnel: diffraction_plate, wall = {...}, ...
 \end{example}
@@ -1087,15 +1087,15 @@ but not within any mask section of the opening.
 The mask section surrounding all of the clear sections does not have
 to be explicitly specified.  
 
-For computational reasons, All sections must be ``star shapped'' with
+For computational reasons, All sections must be ``star shaped'' with
 respect to the section origin. That is, a line drawn from the section
 origin to any point on the section boundary must not pass through any
 boundary points of the section in between. This is illustrated in
-\fig{f:diff.plate}B where the section is not star shapped since a
+\fig{f:diff.plate}B where the section is not star shaped since a
 line drawn from the origin $o$ to the point $p$ on the boundary passes
 through two boundary points in between. In this case the section can
-trivially be made star shapped by moving the origin to point $o'$. If
-it is not possible to make a section star shapped by moving the
+trivially be made star shaped by moving the origin to point $o'$. If
+it is not possible to make a section star shaped by moving the
 origin, then the section must be divided into multiple sections.
 
 Example:
@@ -1116,7 +1116,7 @@ Example:
     ... \}
 \end{example}
 
-Nominally, a diffraction plate is orientated transversly to the
+Nominally, a diffraction plate is orientated transversely to the
 beam. Like all other elements, the diffraction plate can be reoriented using the element's
 
 %-----------------------------------------------------------------
@@ -1145,7 +1145,10 @@ Example:
 \end{example}
 
 Note: If a chamber wall (\sref{s:wall}) is needed for a field free
-space, use a \vn{pipe} element instead of a \vn{drift}.
+space, use a \vn{pipe} element instead of a \vn{drift} [a wall for a
+drift is not allowed due to the way drifts are treated with
+superposition. That is, drifts ``disappear'' when superimposed
+upon. (\sref{s:super})].
 
 %-----------------------------------------------------------------
 \section{E_Gun}

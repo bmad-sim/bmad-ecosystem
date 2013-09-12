@@ -715,7 +715,7 @@ elements
 \end{example}
 For these elements, the \vn{surface} setting is the default. Due to
 the complicated geometry of these elements, to keep things
-coceptionally simple, the rule is imposed that, for an aperture at the
+conceptionally simple, the rule is imposed that, for an aperture at the
 surface, the \vn{offset_moves_aperture} setting must be left in its
 default state of True. Additionally, For \vn{entrance_end} or
 \vn{exit_end} apertures, \vn{offset_moves_aperture} must be set to
@@ -882,18 +882,12 @@ the radius $R_t$ needed for foucusing is
 \begin{figure}[tb]
   \centering
   \includegraphics[width=6in]{chamber-wall.pdf}
-  \caption[cross-sectional slices of a capillary.]
+  \caption[Capillary or vacuum chamber wall.]
 {A) The inside wall of a capillary or the vacuum chamber wall of a
 non-capillary element is defined by a number of cross-sectional
 slices.  B) Each cross-section is made up of a number of vertices. The
 segments between the vertices can be either a line segment, the arc of
-a circle, or a section of an ellipse. The red line segment with one
-end at the center of the arc and the other end traversing the arc
-from, in this case $V(2)$ to $V(3)$, rotates in counter clockwise
-manner. There are two solutions for constructing an arc between two
-vertices. The solution with the center point furthest from the origin,
-the dashed line between $V(2)$ and $V(3)$ in the figure, is used if
-the radius (or radii for an ellipse section) is negative.}
+a circle, or a section of an ellipse.}
   \label{f:chamber.wall}
 \end{figure}
 
@@ -1003,9 +997,16 @@ vertex. For vertices connected by an arc, ``counter clockwise manner''
 means that the line segment with one end at the center of the arc and
 the other end traversing the arc from \vn{<v(i)>} to \vn{<v(i+1)>}
 rotates in counter clockwise as shown in
-\fig{f:chamber.wall}B. In general, there are two solutions for
-constructing such an arc. For positive radii, the solution chosen is
-the one whose center is closest to the section origin $(x_0, y_0)$.  
+\fig{f:chamber.wall}B. 
+
+The red line segment with one end at the center of the arc and the
+other end traversing the arc from, in this case, $V(2)$ to $V(3)$,
+rotates in counter clockwise manner. In general, there are two
+solutions for constructing such an arc. For positive radii, the
+solution chosen is the one whose center is closest to the section
+origin $(x_0, y_0)$. If the radii are negative, the center point will
+be the point farthest from the origin (the dashed line between $V(2)$
+and $V(3)$ in the figure).
 
 A restriction on cross-sections is that the section origin $(x_0,
 y_0)$ must be in the interior of any cross-section and that for any
@@ -1110,25 +1111,52 @@ defined, the following syntax is used:
 \end{example}
 
 %-----------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{crotch.pdf}
+  \caption[vacuum chamber crotch geometry.]
+{A) The five wall sections that define a vacuum chamber wall
+crotch. B) Layout of the crotch1, crotch2 and crotch wall sections.}
+  \label{f:crotch}
+\end{figure}
+
+%-----------------------------------------------------------------
 \subsection{Vacuum Chamber Wall}
 \label{s:chamber}
 
 The vacuum chamber wall is independent of the element apertures
-(\sref{s:limit}. Indeed, unless a program is specifically setup, the
+(\sref{s:limit}. Unless a program is specifically constructed, the
 presence of a vacuum chamber wall will not affect particle tracking.
 
 The vacuum chamber wall defined for an element may be shorter or
-longer than the element.
+longer than the element.  The vacuum chamber wall for a particular
+lattice branch is the sum of all the chamber walls of the individual
+elements. That is, the chamber wall at any given point is determined
+by interpolation of the nearest sections upstream and downstream to
+the point.  Thus a given lattice element need not contain a \vn{wall}
+component for the chamber wall to be well defined at the element.
 
-The vacuum chamber wall for a particular lattice branch is the sum of
-all the chamber walls of the individual elements. The chamber walls of
-any two elements may not overlap. The exception is when the
-\vn{superimpose} attribute for a wall of an element is set to True. In
-this case, any other wall cross-sections from any other elements that
-overlap the superimposed wall are discarded.
+The chamber walls of any two elements may not overlap. The exception
+is when the \vn{superimpose} attribute for a wall of an element is set
+to True. In this case, any other wall cross-sections from any other
+elements that overlap the superimposed wall are discarded.
 
 If a branch has a closed geometry (\sref{s:param}), wall sections that
 extend beyound the ends of the branch are ``wrapped'' around.
+
+The chamber wall is defined with respect to the local coordinate
+system (\sref{s:ref}). That is, in a bend a wall that has a constant
+cross section is a section of a torus.
+
+\index{patch!and chamber wall}
+\vn{Patch} elements complicate the wall geometry since the coordinate
+system at the end of the \vn{patch} may be arbitrarily located
+relative to the beginning of the patch. To avoid confusion as to what
+coordinate system a wall section belongs to, \vn{patch} elements are
+not allowed to define a wall. The wall through a patch is determined
+by the closest wall sections of neighboring elements. These wall
+sections need to be placed at the edge of the \vn{patch}.
 
 \index{crotch chamber geometry}
 Each section has a \vn{type} attribute. This attribute is not used for 
@@ -1144,12 +1172,11 @@ attribute are:
   trunk2
   trunk
 \end{example}
-The geometry of a crotch is shown in \fig{f:crotch}. Two pipes,
-called ``leg1'' and ``leg2'', merge into
-one pipe called the ``trunk'' pipe. 
+The geometry of a crotch is shown in \fig{f:crotch}. Two pipes, called
+``leg1'' and ``leg2'', merge into one pipe called the ``trunk'' pipe.
 The trunk pipe can be either upstream or downstream of the leg pipes.
-To describe this situation, five sections are needed: One section 
-in each leg pipe which need to have their \vn{type} attribute to 
+To describe this situation, five sections are needed: One section in
+each leg pipe which need to have their \vn{type} attribute to
 \vn{leg1} and \vn{leg2}, and three sections in the trunk
 
 %-----------------------------------------------------------------
