@@ -852,6 +852,8 @@ is_eq = is_eq .and. (f1%s == f2%s)
 is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%v) .eqv. allocated(f2%v))
 if (.not. is_eq) return
