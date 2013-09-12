@@ -17,6 +17,7 @@ set(SRC_DIRS
   old_utils 
   plot 
   string
+  geodesic_lm
 )
 
 # set (FFLAGS "-pg")  # For profiling
