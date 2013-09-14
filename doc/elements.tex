@@ -1012,22 +1012,6 @@ file that contains parameters for the element.
 \label{s:diff.plate}
 \index{diffraction_plate|hyperbf}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{diffraction-plate.pdf}
-  \caption[Example diffraction_plate element]{
-Example \vn{diffraction_plate} element. A) The wall of the diffraction
-plate is divided into ``clear'' (white) and ``mask'' (black)
-sections. In this example there are three clear sections labeled \#1,
-\#2, and \#3. B) All sections must be star shaped with respect to the
-section's origin. In this example, The section is {\em not} start
-shaped since a line drawn from the origin point $o$ to the point $p$
-on the boundary intersects the boundary twice in between. In this case
-the section can be made star shaped by moving the origin to $o'$.
-  }
-  \label{f:diff.plate}
-\end{figure}
-
 A \vn{diffraction_plate} element is something like a Fresnel zone plate and is
 used in places where diffraction effects must be taken into
 account. This is in contrast to setting an aperture attribute
@@ -1045,7 +1029,21 @@ General \vn{diffraction_plate} element attributes are:
 \end{center}
 \toffset
 
-NOTE: \vn{DIFFRACTION_PLATE} ELEMENT TRACKING IS IN DEVELOPMENT AND IS NOT USABLE AT THIS TIME...
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{diffraction-plate.pdf}
+  \caption[Example diffraction_plate element]{
+Example \vn{diffraction_plate} element. A) The wall of the diffraction
+plate is divided into ``clear'' (white) and ``mask'' (black)
+sections. In this example there are three clear sections labeled \#1,
+\#2, and \#3. B) All sections must be star shaped with respect to the
+section's origin. In this example, The section is {\em not} star
+shaped since a line drawn from the origin point $o$ to the point $p$
+on the boundary intersects the boundary twice in between. In this case
+the section can be made star shaped by moving the origin to $o'$.
+  }
+  \label{f:diff.plate}
+\end{figure}
 
 An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
 The geometry of the plate is defined using the ``wall'' attribute of
@@ -1087,16 +1085,17 @@ but not within any mask section of the opening.
 The mask section surrounding all of the clear sections does not have
 to be explicitly specified.  
 
-For computational reasons, All sections must be ``star shaped'' with
+To enable \bmad to quickly calculate whether a photon has landed on a
+clear or mask section, All sections must be ``star shaped'' with
 respect to the section origin. That is, a line drawn from the section
 origin to any point on the section boundary must not pass through any
 boundary points of the section in between. This is illustrated in
-\fig{f:diff.plate}B where the section is not star shaped since a
-line drawn from the origin $o$ to the point $p$ on the boundary passes
+\fig{f:diff.plate}B where the section is not star shaped since a line
+drawn from the origin $o$ to the point $p$ on the boundary passes
 through two boundary points in between. In this case the section can
 trivially be made star shaped by moving the origin to point $o'$. If
-it is not possible to make a section star shaped by moving the
-origin, then the section must be divided into multiple sections.
+it is not possible to make a section star shaped by moving the origin,
+then the section must be divided into multiple sections.
 
 Example:
 \begin{example}
@@ -1105,8 +1104,9 @@ Example:
     mask_material = <material_type>
     clear_material = <material_type>
     section = \{ 
-      type = <section_type>   ! "clear" or "mask"
-      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
+      type = clear, 
+      x0 = -0.3, y0 = 0, 
+      v(1) = \{\}, 
       v(2) = \{ ... \},
       ...\},
     section = \{
@@ -1117,7 +1117,8 @@ Example:
 \end{example}
 
 Nominally, a diffraction plate is orientated transversely to the
-beam. Like all other elements, the diffraction plate can be reoriented using the element's
+beam. Like all other elements, the diffraction plate can be reoriented
+using the element's offsets, pitches and tilt attributes (\sref{s:offset}).
 
 %-----------------------------------------------------------------
 \section{Drift}
