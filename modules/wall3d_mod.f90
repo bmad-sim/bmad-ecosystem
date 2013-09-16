@@ -178,7 +178,7 @@ do i = 1, size(wall3d%section) - 1
   s2 => wall3d%section(i+1)
 
   ! Only do the calc if dr_ds has been set on both sections.
-  if (s1%dr_ds == real_garbage$ .and. s2%dr_ds == real_garbage$) cycle
+  if (s1%dr_ds == real_garbage$ .or. s2%dr_ds == real_garbage$) cycle
 
   ! calc average radius
   
@@ -197,14 +197,13 @@ do i = 1, size(wall3d%section) - 1
 
   ds = s2%s - s1%s
   a1 = 0; a2 = 0
-  if (s1%dr_ds /= real_garbage$) a1 = s1%dr_ds * ds - (r2_ave - r1_ave)  
-  if (s2%dr_ds /= real_garbage$) a2 = s2%dr_ds * ds - (r2_ave - r1_ave)  
+  a1 = s1%dr_ds * ds - (r2_ave - r1_ave)  
+  a2 = s2%dr_ds * ds - (r2_ave - r1_ave)  
 
   s1%p1_coef = [a1, -2*a1-a2, a1+a2] / (2 * r1_ave)
   s1%p2_coef = [a1, -2*a1-a2, a1+a2] / (2 * r2_ave)
 
 enddo
-
 
 end subroutine wall3d_initializer
 
@@ -629,7 +628,8 @@ end subroutine calc_wall_radius
 !   perp(3)    -- real(rp), optional: Perpendicular normal to the wall.
 !   ix_section -- integer, optional: Set to wall slice section particle is in. 
 !                  That is between ix_section and ix_section+1.
-!   origin(2)  -- real(rp), optional: (x,y) origin with respect to the radius is measured.
+!   origin(3)  -- real(rp), optional: (x, y, s) origin with respect to the radius is measured.
+!                   Uses the same coords as position.
 !   err_flag   -- Logical, optional: Set True if error (for example no wall), false otherwise.
 !-
 
@@ -647,7 +647,7 @@ type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p,
 type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
 
 real(rp), intent(in) :: position(:)
-real(rp), optional :: perp(3), origin(2)
+real(rp), optional :: perp(3), origin(3)
 
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
@@ -703,7 +703,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
   d_radius = r_particle - r1_wall
   if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
                             [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
-  if (present(origin)) origin = [sec1%x0, sec1%y0]
+  if (present(origin)) origin = [sec1%x0, sec1%y0, position(5)]
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -774,9 +774,8 @@ if (ele%key == patch$) then
   dr0 = loc_2_0%r - loc_1_0%r
   dr0 = dr0 / norm2(dr0)
   drp = loc_p%r - loc_1_0%r
-  alpha = dot_product(drp, dr0)
-  dr = drp - alpha * dr0
   s1 = drp(3) / dr0(3)
+  dr = drp - s1 * dr0  ! should have dr(3) = 0
   r_norm = norm2(dr(1:2))
   if (r_norm /= 0) then
     cos_theta = dr(1) / r_norm
@@ -784,7 +783,7 @@ if (ele%key == patch$) then
   endif
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 
-  ! floor1_p is the particle coords projected onto the sec1 plane in global ref fram
+  ! floor1_p is the particle coords projected onto the sec1 plane in global ref frame
   ! floor1_w  is sec1 wall pt in global reference frame
 
   alpha = drp(3) / dr0(3)
@@ -805,9 +804,9 @@ if (ele%key == patch$) then
     floor1_dw%r = floor1_dw%r - ele1%floor%r
   endif
 
-  ! loc_p  is coordinates of particle in ele1 ref frame
-  ! loc_1_0 is coordinates of sec1 origin in ele1 ref frame
-  ! loc_2_0 is coordinates of sec2 origin in ele1 ref frame
+  ! loc_p  is coordinates of particle in ele2 ref frame
+  ! loc_1_0 is coordinates of sec1 origin in ele2 ref frame
+  ! loc_2_0 is coordinates of sec2 origin in ele2 ref frame
   loc_p = floor_to_local (ele2%floor, floor_particle, .false.)
   loc_1_0 = floor_to_local (ele2%floor, floor1_0, .false.)
   loc_2_0%r = [sec2%x0, sec2%y0, sec2%s - ele2%s]
@@ -816,9 +815,8 @@ if (ele%key == patch$) then
   dr0 = loc_1_0%r - loc_2_0%r
   dr0 = dr0 / norm2(dr0)
   drp = loc_p%r - loc_2_0%r
-  alpha = dot_product(drp, dr0)
-  dr = drp - alpha * dr0
   s2 = drp(3) / dr0(3)
+  dr = drp - s2 * dr0
   r_norm = norm2(dr(1:2))
   if (r_norm /= 0) then
     cos_theta = dr(1) / r_norm
@@ -869,7 +867,12 @@ if (ele%key == patch$) then
     d_radius = norm2(r_p - r0) - norm2(rw - r0)
   endif
 
-  if (present(origin)) origin = r0(1:2)
+  if (present(origin)) then
+    floor%r = r0
+    floor = floor_to_local (ele%floor, floor, .false.) 
+    origin = floor%r
+    origin(3) = origin(3) + ele%value(l$)
+  endif
 
   ! Calculate the surface normal vector
 
@@ -911,7 +914,7 @@ else
 
   ! Calculate the surface normal vector
 
-  if (present(origin)) origin = [x0, y0]
+  if (present(origin)) origin = [x0, y0, position(5)]
 
   if (present (perp)) then
     perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
@@ -1160,9 +1163,9 @@ n = nw+ixw
 if (n < n_wall) then
   if (sp(n)%s > sp(n+1)%s) then
     call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
-                       'ELEMENT: ' // trim(sp(n)%ele%name) // ' (\i0\)', &
-                       'AND ELEMENT: ' // trim(sp(n+1)%ele%name) // ' (\i0\)', &
-                       i_array = [sp(n)%ele%ix_ele, sp(n+1)%ele%ix_ele])
+           'ELEMENT: ' // trim(sp(n)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
+           'AND ELEMENT: ' // trim(sp(n+1)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
+           i_array = [sp(n)%ele%ix_ele, sp(n+1)%ele%ix_ele], r_array = [sp(n)%s, sp(n+1)%s])
     err = .true.
     return
   endif

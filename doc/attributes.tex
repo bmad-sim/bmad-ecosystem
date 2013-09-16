@@ -1008,15 +1008,15 @@ and $p_1$ and $p_2$ are cubic polynomials parameterized by
   p_2 &= \stilde + b_1 \, \stilde + b_2 \, \stilde^2 + b_3 \, \stilde^3 
 \end{align}
 If $a_i = b_i = 0$ for all $i = 1, 2, 3$, the interpolation is linear
-and this is the default if the parameters \vn{dr_ds1} and \vn{dr_ds2}
-are not given in the wall definition. These parameters are the
-slopes of the wall with respect to $s$ at the end points
+and this is the default if either of the parameters \vn{dr_ds1} and
+\vn{dr_ds2} are not given in the wall definition. These parameters are
+the slopes of the wall with respect to $s$ at the end points
 \begin{equation}
   \mbox{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
   \mbox{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
 \end{equation}
 where $\overline{r}$ is the average $r$ averaged over all
-$\theta$. When \vn{dr_ds1} and \vn{dr_ds2} are specified, the $a_i$
+$\theta$. When {\em both} \vn{dr_ds1} and \vn{dr_ds2} are specified, the $a_i$
 and $b_i$ are calculated so that the slopes of the wall match 
 the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
 \begin{align}
@@ -1133,7 +1133,7 @@ after \vn{trunk2}.
 The \vn{trunk1} and \vn{trunk2} sections must not overlap and the
 \vn{trunk} section must be constructed so that its area is the union
 of the areas of \vn{trunk1} and \vn{trunk2}. An example is illustrated
-in \fig{s:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are
+in \fig{f:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are
 squares with origins labeled $O_1$ and $O_2$ in the figure. By
 necessity, these origins must be different since each must lie within
 the boundaries of their respective areas. The \vn{trunk} section is a
