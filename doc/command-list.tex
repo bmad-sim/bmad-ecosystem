@@ -627,9 +627,10 @@ used. To stop the optimizer before it is finished press the period
 ``.''  key. If you want the optimizer to run forever run the optimizer
 in \vn{single mode}. Valid optimizers are:
 \begin{example}
+  de            ! Differential Evolution
+  geodesic_lm   ! ``Geodesic'' Levenburg-Marquardt 
   lm            ! Levenburg-Marquardt from Numerical Recipes 
   lmdif         ! Levenburg-Marquardt 
-  de            ! Differential Evolution
 \end{example}
 See \sref{s:lattice.correction} for more details on the different
 optimizers.
@@ -701,6 +702,7 @@ variables, etc. Format:
   set data <data_name>|<component> = <value>
   set element <element_list> <attribute> = <value>
   set floor_plan <component> = <value>
+  set geodesic_lm <component> = <value>
   set global <component> = <value>
   set graph <graph> <component> = <value>
   set lat_layout <component> = <value>
@@ -885,6 +887,22 @@ Example:
 \begin{example}
   set floor_plan shape2%draw = F  ! Veto drawing of ele_shape(2)
   set floor_plan beam_chamber_scale = 0.5
+\end{example}
+
+%% set global --------------------------------------------------------------
+
+\vskip 0.1 in
+
+\item[set geodesic_lm <component> = <value>] \Newline
+
+\vskip -0.2in
+
+For \vn{set geodesic_lm}: The \vn{show optimizer geodesic_lm} command will give a list of 
+\vn{<component>}s.
+
+Example:
+\begin{example}
+  set geodesic_lm imethod = 10
 \end{example}
 
 %% set global --------------------------------------------------------------
@@ -1172,7 +1190,7 @@ Format:
          \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-lords\} \{-middle\} 
          \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
          \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
-   optimizer
+   optimizer \{-geodesic_lm\}
    particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
          \{-element <element_name_or_index>\} \{-lost\} \{-all\}
    plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
@@ -1616,11 +1634,17 @@ Example:
 
 %% show optimizer --------------------------------------------------------------
 
-\item[show optimizer] \Newline
+\item[show optimizer \{-geodesic_lm\}] \Newline
 
 \vskip -0.2in
 
-Shows information pertinent to optimization: Data and variables used, etc.
+Shows parameters pertinent to optimization: Data and variables used,
+etc. 
+
+If \vn{-geodesic_lm} option is present, parameters for the
+\vn{geodesic_lm} oiptimizer will be shown. These parameters are shown in any case
+if the opeimizer has been set to use \vn{geodesic_lm}.
+
 
 %% show opt_vars --------------------------------------------------------------
 
