@@ -22,6 +22,7 @@ use tao_mod, dummy => tao_run_cmd
 use tao_lm_optimizer_mod, only: tao_lm_optimizer
 use tao_svd_optimizer_mod, only: tao_svd_optimizer
 use tao_var_mod, only: tao_get_opt_vars
+use tao_geodesic_lm_optimizer_mod, only: tao_geodesic_lm_optimizer
 
 implicit none
 
@@ -42,7 +43,8 @@ logical, allocatable :: do_rad_int_data(:), do_chrom_data(:)
 call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()
 
-if (all (which /= ['      ', 'de    ', 'lm    ', 'lmdif ', 'custom', 'svd   '])) then
+if (all (which /= ['           ', 'de         ', 'lm         ', 'lmdif      ', &
+                   'custom     ', 'svd        ', 'geodesic_lm'])) then
   call out_io (s_error$, r_name, 'OPTIMIZER NOT RECOGNIZED: ' // which)
   return
 endif
@@ -126,6 +128,9 @@ do i = 1, s%global%n_opti_loops
 
   case ('svd')
     call tao_svd_optimizer (abort)
+
+  case ('geodesic_lm')
+    call tao_geodesic_lm_optimizer (abort)
 
   case ('custom')
     call tao_hook_optimizer (abort)
