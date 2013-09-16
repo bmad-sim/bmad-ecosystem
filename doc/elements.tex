@@ -1306,7 +1306,7 @@ General \vn{fiducial} element attributes are:
 \index{x_origin}\index{y_origin}
 \index{z_origin}\index{theta_origin}
 \index{phi_origin}\index{psi_origin}
-Attributes specific to a \vn{floor_shift} elements are:
+Attributes specific to a \vn{fiducial} elements are:
 \begin{example}
   origin_ele        = <Name>     ! Reference element.
   origin_ele_ref_pt = <location> ! Reference pt on reference ele.
@@ -1428,17 +1428,19 @@ General \vn{floor_shift} element attributes are:
 \index{x_pitch}\index{y_pitch}
 Attributes specific to a \vn{floor_shift} elements are:
 \begin{example}
-  l               = <Real>    ! Length
-  x_offset        = <Real>    ! x offset from previous element
-  y_offset        = <Real>    ! y offset from previous element
-  z_offset        = <Real>    ! z offset from previous element
-  x_pitch         = <Real>    ! rotation in the reference coords.
-  y_pitch         = <Real>    ! rotation in the reference coords.
-  tilt            = <Real>    ! rotation in the reference coords.
+  l                 = <Real>    ! Length
+  x_offset          = <Real>    ! x offset from previous element
+  y_offset          = <Real>    ! y offset from previous element
+  z_offset          = <Real>    ! z offset from previous element
+  x_pitch           = <Real>    ! rotation in the reference coords.
+  y_pitch           = <Real>    ! rotation in the reference coords.
+  tilt              = <Real>    ! rotation in the reference coords.
+  origin_ele        = <Name>     ! Reference element.
+  origin_ele_ref_pt = <location> ! Reference pt on reference ele.
 \end{example}
 
 The \vn{floor_shift} element shifts the reference orbit relative to the
-proceeding element. Unlike the \vn{patch element} \sref{s:patch}, the
+\vn{origin_ele}. Unlike the \vn{patch element} \sref{s:patch}, the
 transfer map through a \vn{floor_shift} element will be the unit
 map. That is, the phase space coordinates of a particle will not
 change when tracking through a \vn{floor_shift} element. The reference
@@ -1448,9 +1450,18 @@ Section~\sref{s:patch.coords}.
 The \vn{l} attribute can be used to adjust the longitudinal $s$
 position.
 
-The \vn{floor_shift} element can be used, for
-example, to restore the correct geometry when a section of the lattice
-is represented by, say, a \vn{taylor} type element.
+The \vn{floor_shift} element can be used, for example, to restore the
+correct geometry when a section of the lattice is represented by, say,
+a \vn{taylor} type element.
+
+If \vn{origin_ele} is not specified, previous element is used. If the
+\vn{origin_ele} has a finite length, the reference point may be chosen
+using the \vn{origin_ele_ref_pt} attribute which may be set to one of
+\begin{example}
+  entrance_end
+  center
+  exit_end         ! Default
+\end{example}
 
 PTC does not have an analogous element for the \vn{Floor_shift}
 element. When converting to PTC, a \vn{floor_shift} element will be treated

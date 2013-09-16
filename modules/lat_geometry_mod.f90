@@ -289,10 +289,12 @@ if (key == multipole$) then
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
 endif
 
-! Fiducial and girder elements.
-! Note that these elements are independent of floor0
+! Fiducial, floor_shift and girder elements.
+! Note that fiducial, and girder elements are independent of floor0
 
-if (key == fiducial$ .or. key == girder$) then
+if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
+
+  ele0 => null()
   if (ele%component_name /= '') then
     call lat_ele_locator (ele%component_name, ele%branch%lat, eles, n_loc, err)
     if (n_loc /= 1) then
@@ -304,8 +306,12 @@ if (key == fiducial$ .or. key == girder$) then
     endif
 
     ele0 => eles(1)%ele
-    calc_done = .false.
+  elseif (key == floor_shift$) then
+    ele0 => pointer_to_next_ele(ele, -1)
+  endif
 
+  if (associated(ele0)) then
+    calc_done = .false.
     select case (stream_ele_end(nint(ele%value(origin_ele_ref_pt$)), ele%orientation))
     case (upstream_end$)
       call ele_geometry (ele0%floor, ele0, floor_ref, -1.0_rp)
@@ -380,10 +386,16 @@ if (key == fiducial$ .or. key == girder$) then
   endif
 
   ! Now offset from origin pt.
+  if (ele%key == floor_shift$) then
+    r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
+    theta = ele%value(x_pitch$);  phi = ele%value(y_pitch$);  psi = ele%value(tilt$)
+  else
+    r_vec = [ele%value(dx_origin$), ele%value(dy_origin$), ele%value(dz_origin$)]
+    theta = ele%value(dtheta_origin$);  phi = ele%value(dphi_origin$); psi = ele%value(dpsi_origin$)
+  endif
 
-  r_vec = [ele%value(dx_origin$), ele%value(dy_origin$), ele%value(dz_origin$)]
   floor%r = r0 + matmul(w_mat, r_vec)
-  call floor_angles_to_w_mat (ele%value(dtheta_origin$), ele%value(dphi_origin$), ele%value(dpsi_origin$), s_mat)
+  call floor_angles_to_w_mat (theta, phi, psi, s_mat)
   w_mat = matmul(w_mat, s_mat)
   call floor_w_mat_to_angles (w_mat, 0.0_rp, floor%theta, floor%phi, floor%psi, floor0)
 
@@ -394,8 +406,7 @@ endif
 ! Note: 
 
 if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
-         ele%value(ref_tilt$) /= 0) .or. &
-         phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == floor_shift$ .or. &
+         ele%value(ref_tilt$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
          (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   call floor_angles_to_w_mat (theta, phi, psi, w_mat)
@@ -471,7 +482,7 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
 
   ! patch
 
-  case (patch$, floor_shift$)
+  case (patch$)
 
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 

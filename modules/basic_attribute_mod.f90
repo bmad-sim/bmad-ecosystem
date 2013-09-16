@@ -803,6 +803,8 @@ call init_attribute_name1 (floor_shift$, y_offset$,                'Y_OFFSET', d
 call init_attribute_name1 (floor_shift$, z_offset$,                'Z_OFFSET', dependent$)
 call init_attribute_name1 (floor_shift$, x_pitch$,                 'X_PITCH', dependent$)
 call init_attribute_name1 (floor_shift$, y_pitch$,                 'Y_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, origin_ele$,              'ORIGIN_ELE')
+call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,       'ORIGIN_ELE_REF_PT')
 
 call init_attribute_name1 (fiducial$, l$,                          'l', private$)
 call init_attribute_name1 (fiducial$, origin_ele$,                 'ORIGIN_ELE')
