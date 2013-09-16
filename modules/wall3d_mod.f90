@@ -178,7 +178,7 @@ do i = 1, size(wall3d%section) - 1
   s2 => wall3d%section(i+1)
 
   ! Only do the calc if dr_ds has been set on both sections.
-  if (s1%dr_ds == real_garbage$ .or. s2%dr_ds == real_garbage$) cycle
+  if (s1%dr_ds == real_garbage$ .and. s2%dr_ds == real_garbage$) cycle
 
   ! calc average radius
   
@@ -196,8 +196,9 @@ do i = 1, size(wall3d%section) - 1
   ! Calc coefficients
 
   ds = s2%s - s1%s
-  a1 = s1%dr_ds * ds - (r2_ave - r1_ave)  
-  a2 = s2%dr_ds * ds - (r2_ave - r1_ave)  
+  a1 = 0; a2 = 0
+  if (s1%dr_ds /= real_garbage$) a1 = s1%dr_ds * ds - (r2_ave - r1_ave)  
+  if (s2%dr_ds /= real_garbage$) a2 = s2%dr_ds * ds - (r2_ave - r1_ave)  
 
   s1%p1_coef = [a1, -2*a1-a2, a1+a2] / (2 * r1_ave)
   s1%p2_coef = [a1, -2*a1-a2, a1+a2] / (2 * r2_ave)
@@ -607,9 +608,8 @@ end subroutine calc_wall_radius
 ! Function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = particle_radius - wall_radius.
-!
-! Note: If the longitudinal position, position(5), is outside the wall, the
-! wall is taken to have a uniform cross-section. 
+! The radius is measured from the line connecting the section centers and not 
+! the (x,y) = (0,0) origin
 !
 ! Note: If the longitudinal position is at a trunk section, the results are not well defined.
 ! Solution: Always make sure the particle's position is at a trunk section. 
@@ -625,14 +625,15 @@ end subroutine calc_wall_radius
 !   ele          -- ele_struct: Element with wall
 !
 ! Output:
-!   d_radius   -- Real(rp), Normalized radius: r_particle - r_wall
-!   perp(3)    -- Real(rp), optional: Perpendicular normal to the wall.
-!   ix_section -- Integer, optional: Set to wall slice section particle is in. 
+!   d_radius   -- real(rp), Normalized radius: r_particle - r_wall
+!   perp(3)    -- real(rp), optional: Perpendicular normal to the wall.
+!   ix_section -- integer, optional: Set to wall slice section particle is in. 
 !                  That is between ix_section and ix_section+1.
+!   origin(2)  -- real(rp), optional: (x,y) origin with respect to the radius is measured.
 !   err_flag   -- Logical, optional: Set True if error (for example no wall), false otherwise.
 !-
 
-function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
+function wall3d_d_radius (position, ele, perp, ix_section, origin, err_flag) result (d_radius)
 
 implicit none
 
@@ -642,18 +643,19 @@ type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct), allocatable :: v(:)
 type (ele_struct), pointer :: ele1, ele2
 type (floor_position_struct) floor_particle, floor1_0, floor2_0
-type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw
-type (floor_position_struct) loc_p, loc_1_0, loc_2_0
+type (floor_position_struct) floor1_w, floor2_w, floor1_dw, floor2_dw, floor1_p, floor2_p
+type (floor_position_struct) loc_p, loc_1_0, loc_2_0, floor
 
 real(rp), intent(in) :: position(:)
-real(rp), optional :: perp(3)
+real(rp), optional :: perp(3), origin(2)
 
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
-real(rp) p1, p2, dp1, dp2, s_particle, dz_offset, x, y, x0, y0
+real(rp) p1, p2, dp1, dp2, s_particle, dz_offset, x, y, x0, y0, f
 real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
+real(rp) s1, s2, r_p(3)
 
 integer i, ix_w, n_slice, n_sec
 integer, optional :: ix_section
@@ -701,6 +703,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
   d_radius = r_particle - r1_wall
   if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
                             [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
+  if (present(origin)) origin = [sec1%x0, sec1%y0]
   if (present(err_flag)) err_flag = .false.
   return
 endif
@@ -767,32 +770,39 @@ if (ele%key == patch$) then
   loc_1_0%r = [sec1%x0, sec1%y0, sec1%s - ele1%s]
   loc_2_0 = floor_to_local (ele1%floor, floor2_0, .false.)
 
-  ! Now find offset of particle from centerline from sec1 origin to sec2 origin.
+  ! Find wall radius for sec1.
   dr0 = loc_2_0%r - loc_1_0%r
+  dr0 = dr0 / norm2(dr0)
   drp = loc_p%r - loc_1_0%r
-  alpha = dot_product(drp, dr0) / dot_product(dr0, dr0)
+  alpha = dot_product(drp, dr0)
   dr = drp - alpha * dr0
-  r_particle = norm2(dr)
-  s_rel = 1 - alpha
-  r_norm = sqrt(dr(1)**2 + dr(2)**2)
-  ! Now  find the angle at which to find the sec1 wall pt.
+  s1 = drp(3) / dr0(3)
+  r_norm = norm2(dr(1:2))
   if (r_norm /= 0) then
     cos_theta = dr(1) / r_norm
     sin_theta = dr(2) / r_norm
   endif
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
 
-  ! floor1_w  is sec1 wall pt in patch reference frame
-  ! floor1_dw is sec1 wall pt derivative with respect to theta in patch reference frame
+  ! floor1_p is the particle coords projected onto the sec1 plane in global ref fram
+  ! floor1_w  is sec1 wall pt in global reference frame
+
+  alpha = drp(3) / dr0(3)
+  floor1_p%r = loc_p%r - alpha * dr0 
+  floor1_p = local_to_floor (ele1%floor, floor1_p%r)
 
   r = loc_1_0%r + r1_wall * [cos_theta, sin_theta, 0.0_rp]
   floor1_w = local_to_floor (ele1%floor, r)
+
+  ! floor1_dw is sec1 wall pt derivative with respect to theta in global reference frame. 
+  ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
+
   if (present(perp)) then
-    beta = sqrt( (dr(2)**2 + dr(3)**2) / (dr(1)**2 + dr(3)**2) )
+    beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
-    floor1_dw = local_to_floor (ele1%floor, r + dr1_dtheta * dtheta_dphi * r1_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor1_dw = floor_to_local(ele%floor, floor1_dw, .false.)
-    floor1_dw%r = floor1_dw%r - floor1_w%r
+    r = dtheta_dphi * (dr1_dtheta * [cos_theta, sin_theta, 0.0_rp] + r1_wall * [-sin_theta, cos_theta, 0.0_rp])
+    floor1_dw = local_to_floor (ele1%floor, r)
+    floor1_dw%r = floor1_dw%r - ele1%floor%r
   endif
 
   ! loc_p  is coordinates of particle in ele1 ref frame
@@ -802,51 +812,75 @@ if (ele%key == patch$) then
   loc_1_0 = floor_to_local (ele2%floor, floor1_0, .false.)
   loc_2_0%r = [sec2%x0, sec2%y0, sec2%s - ele2%s]
 
-  ! Now find offset of particle from centerline from sec2 origin to sec1 origin.
+  ! Find wall radius for sec2.
   dr0 = loc_1_0%r - loc_2_0%r
+  dr0 = dr0 / norm2(dr0)
   drp = loc_p%r - loc_2_0%r
-  alpha = dot_product(drp, dr0) / dot_product(dr0, dr0)
+  alpha = dot_product(drp, dr0)
   dr = drp - alpha * dr0
-  r_norm = sqrt(dr(1)**2 + dr(2)**2)
-  ! Now  find the angle at which to find the sec1 wall pt.
+  s2 = drp(3) / dr0(3)
+  r_norm = norm2(dr(1:2))
   if (r_norm /= 0) then
     cos_theta = dr(1) / r_norm
     sin_theta = dr(2) / r_norm
   endif
   call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
 
-  ! floor2_w  is sec2 wall pt in patch reference frame
-  ! floor2_dw is sec2 wall pt derivative with respect to theta in patch reference frame
+  ! floor2_p is the particle coords projected onto the sec2 plane in global ref frame
+  ! floor2_w  is sec2 wall pt in global reference frame
+
+  alpha = drp(3) / dr0(3)
+  floor2_p%r = loc_p%r - alpha * dr0 
+  floor2_p = local_to_floor (ele2%floor, floor2_p%r)
 
   r = loc_2_0%r + r2_wall * [cos_theta, sin_theta, 0.0_rp]
   floor2_w = local_to_floor (ele2%floor, r)
+
+  ! floor2_dw is sec2 wall pt derivative with respect to theta in global reference frame
+  ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
+
   if (present(perp)) then
-    beta = sqrt( (dr(2)**2 + dr(3)**2) / (dr(1)**2 + dr(3)**2) )
+    beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
-    floor2_dw = local_to_floor (ele2%floor, r + dr2_dtheta * dtheta_dphi * r2_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor2_dw = floor_to_local(ele%floor, floor2_dw, .false.)
-    floor2_dw%r = floor2_dw%r - floor2_w%r
+    r = dtheta_dphi * (dr2_dtheta * [cos_theta, sin_theta, 0.0_rp] + r2_wall * [-sin_theta, cos_theta, 0.0_rp])
+    floor2_dw = local_to_floor (ele2%floor, r)
+    floor2_dw%r = floor2_dw%r - ele2%floor%r
   endif
   
-  ! Interpolate to get d_radius
+  ! Interpolate to get r0 which is on the line between the section origins
+  ! and rp which is on the line between floor1_p and floor2_p. 
+  ! Note: If there is no spline then rp is the particle position.
 
+  s_rel = s1 / (s1 + s2)
   p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
   p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
-  r0 = p1 * floor1_0%r + p2 * floor2_0%r
-  alpha = dot_product(floor1_w%r - r0, r0) / dot_product(floor2_w%r - floor1_w%r, r0)
-  rw = (floor1_w%r - r0) - alpha * (floor2_w%r - floor1_w%r)
-  d_radius = r_particle - norm2(rw)
+  r0  = p1 * floor1_0%r + p2 * floor2_0%r
+  r_p = p1 * floor1_p%r + p2 * floor2_p%r
+
+  ! Calculate rw which is the point on the wall that intersects the line through r0 & r_p
+
+  f = norm2(cross_product(r_p - r0, floor2_w%r - floor1_w%r))
+  if (f == 0) then  ! At origin so give something approximate
+    d_radius = -norm2(p1 * floor1_w%r + p2 * floor2_w%r - r0)
+  else
+    alpha = norm2(cross_product(floor1_w%r - r0, floor2_w%r - floor1_w%r)) / f
+    rw = r0 + alpha * (r_p - r0)
+    d_radius = norm2(r_p - r0) - norm2(rw - r0)
+  endif
+
+  if (present(origin)) origin = r0(1:2)
 
   ! Calculate the surface normal vector
 
   if (present (perp)) then
-    dalpha = dot_product(floor1_dw%r, r0) / dot_product(floor2_w%r - floor1_w%r, r0) - &
-             dot_product(floor1_w%r - r0, r0) * dot_product(floor2_dw%r - floor1_dw%r, r0) / &
-                                                                 dot_product(floor2_w%r - floor1_w%r, r0)**2
-    drw = floor1_dw%r - alpha * (floor2_dw%r - floor1_dw%r) - dalpha * (floor2_w%r - floor1_w%r)
-    perp = cross_product(drw, floor2_w%r - floor1_w%r)
-    perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
+    p1 = norm2(rw - floor2_w%r)
+    p2 = norm2(rw - floor1_w%r)
+    drw = p1 * floor1_dw%r + p2 * floor2_dw%r
+    floor%r = cross_product(drw, floor2_w%r - floor1_w%r)
+    floor = floor_to_local (ele%floor, floor, .false., .true.)  ! To patch coords
+    perp = floor%r / norm2(floor%r)  ! Normalize vector length to 1.
+    
   endif
 
 !----------------------------
@@ -877,20 +911,22 @@ else
 
   ! Calculate the surface normal vector
 
+  if (present(origin)) origin = [x0, y0]
+
   if (present (perp)) then
     perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
                           (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_particle
     dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
     dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
     perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
-    perp = perp / sqrt(sum(perp**2))  ! Normalize vector length to 1.
+    perp = perp / norm2(perp)  ! Normalize vector length to 1.
     ! If section origin line is not aligned with the z-axis then the wall has a "shear"
     ! and the perpendicular vector must be corrected.
-    if (sec1%x0 /= sec2%x0 .or. sec1%y0 /= sec2%y0) then
-      dx = sec2%x0 - sec1%x0
-      dy = sec2%y0 - sec1%y0
-      call axis_angle_to_w_mat ([-dy, dx, 0], atan(sqrt(dx**2+dy**2)/ds), w_mat)
-      perp = matmul(w_mat, perp)
+    dx = sec2%x0 - sec1%x0
+    dy = sec2%y0 - sec1%y0
+    if (dx /= 0 .or. dy /= 0) then
+      perp(3) = perp(3) - (perp(1) * dx + perp(2) * dy) / ds
+      perp = perp / norm2(perp)
     endif
   endif
 
@@ -1140,7 +1176,7 @@ if (ix_wrap1 /= 0 .and. branch%param%geometry == closed$) then
 endif
 
 if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
-  sp(ix_wrap1:n_wall)%s = sp(ix_wrap1:n_wall)%s - (s_max - s_min)
+  sp(ix_wrap2:n_wall)%s = sp(ix_wrap2:n_wall)%s - (s_max - s_min)
   sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
 endif
 

@@ -316,54 +316,70 @@ case (lcavity$)
   endif
   end_orb%vec(5) = end_orb%vec(5) * (beta_end / beta_start) - beta_end * (dp_dg - c_light * ele%value(delta_ref_time$))
 
-  ! Body tracking transverse
+  ! Body tracking transverse. Kick is only with standing wave cavities.
 
-  sqrt_8 = 2 * sqrt_2
-  voltage_max = gradient_max * length
+  if (is_true(ele%value(traveling_wave$))) then
+    end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
+    end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
 
-  if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
-    f = voltage_max / E_start
-    alpha = f * (1 + f * cos_phi / 2)  / sqrt_8
-    coef = length * beta_start * (1 - voltage_max * cos_phi / (2 * E_start))
+    end_orb%vec(1) = end_orb%vec(1) + end_orb%vec(2) * length
+    end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * length
+
+    end_orb%vec(5) = end_orb%vec(5) - (end_orb%vec(2)**2 + end_orb%vec(4)**2) * beta_end * dp_dg / 2
+
+    end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
+    end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
+
+
   else
-    alpha = log(E_ratio) / (sqrt_8 * cos_phi)
-    coef = sqrt_8 * pc_start * sin(alpha) / gradient_max
+    sqrt_8 = 2 * sqrt_2
+    voltage_max = gradient_max * length
+
+    if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
+      f = voltage_max / E_start
+      alpha = f * (1 + f * cos_phi / 2)  / sqrt_8
+      coef = length * beta_start * (1 - voltage_max * cos_phi / (2 * E_start))
+    else
+      alpha = log(E_ratio) / (sqrt_8 * cos_phi)
+      coef = sqrt_8 * pc_start * sin(alpha) / gradient_max
+    endif
+
+    cos_a = cos(alpha)
+    sin_a = sin(alpha)
+
+    r_mat(1,1) =  cos_a
+    r_mat(1,2) =  coef 
+    r_mat(2,1) = -sin_a * gradient_max / (sqrt_8 * pc_end)
+    r_mat(2,2) =  cos_a * pc_start / pc_end
+
+    end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
+    end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
+
+    k1 = -gradient_net / (2 * E_start)
+    end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
+    end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)    ! Entrance kick
+
+    xp1 = end_orb%vec(2)
+    yp1 = end_orb%vec(4)
+
+    end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
+    end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
+
+    xp2 = end_orb%vec(2)
+    yp2 = end_orb%vec(4)
+
+    ! Correction of z for finite transverse velocity assumes a uniform change in slope.
+    end_orb%vec(5) = end_orb%vec(5) - (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * beta_end * dp_dg / 6
+    !
+
+    k2 = gradient_net / (2 * E_end) 
+    end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)         ! Exit kick
+    end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)         ! Exit kick
+
+    end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
+    end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
+
   endif
-
-  cos_a = cos(alpha)
-  sin_a = sin(alpha)
-
-  r_mat(1,1) =  cos_a
-  r_mat(1,2) =  coef 
-  r_mat(2,1) = -sin_a * gradient_max / (sqrt_8 * pc_end)
-  r_mat(2,2) =  cos_a * pc_start / pc_end
-
-  end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
-  end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
-
-  k1 = -gradient_net / (2 * E_start)
-  end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
-  end_orb%vec(4) = end_orb%vec(4) + k1 * end_orb%vec(3)    ! Entrance kick
-
-  xp1 = end_orb%vec(2)
-  yp1 = end_orb%vec(4)
-
-  end_orb%vec(1:2) = matmul(r_mat, end_orb%vec(1:2))   ! R&S Eq 9.
-  end_orb%vec(3:4) = matmul(r_mat, end_orb%vec(3:4))
-
-  xp2 = end_orb%vec(2)
-  yp2 = end_orb%vec(4)
-
-  ! Correction of z for finite transverse velocity assumes a uniform change in slope.
-  end_orb%vec(5) = end_orb%vec(5) - (xp1**2 + xp2**2 + xp1*xp2 + yp1**2 + yp2**2 + yp1*yp2) * beta_end * dp_dg / 6
-  !
-
-  k2 = gradient_net / (2 * E_end) 
-  end_orb%vec(2) = end_orb%vec(2) + k2 * end_orb%vec(1)         ! Exit kick
-  end_orb%vec(4) = end_orb%vec(4) + k2 * end_orb%vec(3)         ! Exit kick
-
-  end_orb%vec(2) = end_orb%vec(2) * (1 + end_orb%vec(6))  ! Convert back to px
-  end_orb%vec(4) = end_orb%vec(4) * (1 + end_orb%vec(6))  ! Convert back to py
 
   ! Coupler kick
 

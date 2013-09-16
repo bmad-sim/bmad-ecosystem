@@ -2895,8 +2895,10 @@ case (rfcavity$, lcavity$)
   beta = ele%value(p0c$) / ele%value(e_tot$)
   if (is_true(ele%value(traveling_wave$))) then
     ptc_key%magnet = 'twcavity'
+    ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
   else
     ptc_key%magnet = 'rfcavity'
+    ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
   endif
 
@@ -2910,7 +2912,6 @@ case (rfcavity$, lcavity$)
     ptc_key%list%lag = twopi * phi_tot
   endif
 
-  ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
   ptc_key%list%delta_e = 0     ! For radiation calc.
   ptc_key%list%cavity_totalpath = 1  ! 
 
