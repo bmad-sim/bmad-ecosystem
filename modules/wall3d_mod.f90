@@ -940,7 +940,7 @@ end function wall3d_d_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_wall3d (ele, dz_offset) result (wall3d)
+! Function pointer_to_wall3d (ele, ds_offset) result (wall3d)
 !
 ! Function to return a pointer to the wall3d structure associated
 ! with a given lattice element. 
@@ -953,10 +953,10 @@ end function wall3d_d_radius
 ! Output:
 !   wall3d     -- wall3d_struct, pointer: Pointer to the associated wall structure.
 !                   Will be nullified if there is no associated wall.
-!   dz_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
+!   ds_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
 !-
 
-function pointer_to_wall3d (ele, dz_offset) result (wall3d)
+function pointer_to_wall3d (ele, ds_offset) result (wall3d)
 
 implicit none
 
@@ -965,13 +965,13 @@ character(32), parameter :: r_name = 'pointer_to_wall3d'
 type (ele_struct), target :: ele
 type (wall3d_struct), pointer :: wall3d
 
-real(rp) dz_offset
+real(rp) ds_offset
 
 ! 
 
 if (associated (ele%branch)) then
   wall3d => ele%branch%wall3d
-  dz_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
+  ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   return
 endif
 
@@ -979,9 +979,9 @@ wall3d => ele%wall3d
 if (.not. associated(ele%wall3d)) return
 
 select case (wall3d%ele_anchor_pt)
-case (anchor_beginning$); dz_offset = -ele%value(l$)
-case (anchor_center$);    dz_offset = -ele%value(l$) / 2
-case (anchor_end$);       dz_offset = 0 
+case (anchor_beginning$); ds_offset = -ele%value(l$)
+case (anchor_center$);    ds_offset = -ele%value(l$) / 2
+case (anchor_end$);       ds_offset = 0 
 end select
 
 end function pointer_to_wall3d

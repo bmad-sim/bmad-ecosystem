@@ -57,6 +57,9 @@ case (ecollimator$)
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
+case (floor_shift$)
+  ele%value(origin_ele_ref_pt$) = exit_end$
+
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
 
