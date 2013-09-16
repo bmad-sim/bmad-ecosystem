@@ -755,29 +755,32 @@ end function local_to_floor
 !---------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------
 !+
-! Function floor_to_local (floor0, global_position, calculate_angles = .true.) result (local_position)
+! Function floor_to_local (floor0, global_position, calculate_angles, is_delta_position) result (local_position)
 !
 ! Returns local floor position relative to floor0 given a global floor position.
 ! This is an essentially an inverse of routine local_to_floor.
 !
 ! Input:
-!   floor0           -- floor_position_struct: reference position
-!   global_position  -- floor_position_struct: global position 
-!   calculate_angles -- logical (optional): calculate angles for local_position 
-!                         Default: True
-!                         False returns local_position angles (%theta, %phi, %psi) = 0.
+!   floor0            -- floor_position_struct: reference position
+!   global_position   -- floor_position_struct: global position 
+!   calculate_angles  -- logical, optional: calculate angles for local_position 
+!                          Default: True.
+!                          False returns local_position angles (%theta, %phi, %psi) = 0.
+!   is_delta_position -- logical, optional: If True then treat global_position%r as a difference
+!                           position in global space and only rotate the position but not shift it.
+!                           Default: False.
 !
 ! Output:
 !  local_position -- floor_position_struct: position relative to floor0
 !-
 
-function floor_to_local (floor0, global_position, calculate_angles) result (local_position)
+function floor_to_local (floor0, global_position, calculate_angles, is_delta_position) result (local_position)
 
 implicit none
 
 type (floor_position_struct) floor0, global_position, local_position
 real(rp) :: w0_mat(3,3), w_mat(3,3)
-logical, optional :: calculate_angles
+logical, optional :: calculate_angles, is_delta_position
 
 ! Get w0_mat and invert
 
@@ -786,7 +789,11 @@ w0_mat = transpose(w0_mat)
 
 ! Solve for r_local = [x, y, z]_local
    
-local_position%r = matmul(w0_mat, global_position%r - floor0%r)
+if (logic_option(.false., is_delta_position)) then
+  local_position%r = matmul(w0_mat, global_position%r)
+else
+  local_position%r = matmul(w0_mat, global_position%r - floor0%r)
+endif
 
 ! If angles are not needed, just return zeros; 
 if (.not. logic_option(.true., calculate_angles) ) then

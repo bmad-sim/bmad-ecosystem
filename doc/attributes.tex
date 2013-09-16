@@ -1065,7 +1065,7 @@ be the radius function at the next defined cross-section at $s =
 s_2$. The wall $r_c(\theta, s)$ at any point $s$ between $s_1$ and
 $s_2$ is defined by the equation
 \Begineq
-  r_c(\theta, s) p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
+  r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
 \Endeq
 where 
 \Begineq
@@ -1111,17 +1111,6 @@ defined, the following syntax is used:
 \end{example}
 
 %-----------------------------------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=6in]{crotch.pdf}
-  \caption[vacuum chamber crotch geometry.]
-{A) The five wall sections that define a vacuum chamber wall
-crotch. B) Layout of the crotch1, crotch2 and crotch wall sections.}
-  \label{f:crotch}
-\end{figure}
-
-%-----------------------------------------------------------------
 \subsection{Vacuum Chamber Wall}
 \label{s:chamber}
 
@@ -1158,6 +1147,23 @@ not allowed to define a wall. The wall through a patch is determined
 by the closest wall sections of neighboring elements. These wall
 sections need to be placed at the edge of the \vn{patch}.
 
+%-----------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{crotch.pdf}
+  \caption[vacuum chamber crotch geometry.]
+{A) Crotch geometry: Two pipes labeled ``leg1'' and ``leg2'' merge
+into a single pipe called the ``trunk'' pipe. Five wall sections are
+used to define the crotch geometry (solid lines). Dashed lines
+represent sections not involved in defining the crotch. For purposes
+of illustration the three trunk sections are displaced longitudinally
+but in reality must have the same longitudinal coordinate.  B) Example
+layout of the crotch1, crotch2 and crotch wall sections. $O_1$, $O_2$
+and $O$ are the $x_0, y_0$ origins of the sections.}
+  \label{f:crotch}
+\end{figure}
+
 \index{crotch chamber geometry}
 Each section has a \vn{type} attribute. This attribute is not used for 
 \vn{capillary} elements. For a vacuum chamber wall, the \vn{type} 
@@ -1172,12 +1178,43 @@ attribute are:
   trunk2
   trunk
 \end{example}
-The geometry of a crotch is shown in \fig{f:crotch}. Two pipes, called
-``leg1'' and ``leg2'', merge into one pipe called the ``trunk'' pipe.
-The trunk pipe can be either upstream or downstream of the leg pipes.
-To describe this situation, five sections are needed: One section in
-each leg pipe which need to have their \vn{type} attribute to
-\vn{leg1} and \vn{leg2}, and three sections in the trunk
+The geometry of a crotch is shown in \fig{f:crotch}A. Two pipes,
+called ``leg1'' and ``leg2'', merge into one pipe called the ``trunk''
+pipe.  The trunk pipe can be either upstream or downstream of the leg
+pipes.  To describe this situation, five sections are needed: One
+section in each leg pipe which need to have their \vn{type} attribute
+set to \vn{leg1} and \vn{leg2}, and three sections in the trunk with
+one having a a \vn{type} attribute of \vn{trunk1}, another having a
+\vn{type} attribute of \vn{trunk2} and the third haveing a \vn{type}
+attribute of \vn{trunk}. There can be no sections between the leg
+sections and the trunk sections.
+
+All three trunk sections must be associated with the same element and
+have the same \vn{s} value. In the list of sections of the element
+containing the trunk elements, the \vn{trunk1} and \vn{trunk2}
+sections must be listed first if the leg pipes are upstream of the
+trunk pipe (the situation shown in the figure) and must be listed last
+if the leg pipes are downstream. That is, the \vn{trunk1} and
+\vn{trunk2} sections are ``between'' the leg sections and the
+\vn{trunk} section. It does not matter if \vn{trunk1} is before or
+after \vn{trunk2}.
+
+The \vn{trunk1} and \vn{trunk2} sections must not overlap and the
+\vn{trunk} section must be constructed so that its area is the union
+of the areas of \vn{trunk1} and \vn{trunk2}. An example is illustrated
+in \fig{s:crotch}B. Here the \vn{trunk1} and \vn{trunk2} sections are
+squares with origins labeled $O_1$ and $O_2$ in the figure. By
+necessity, these origins must be different since each must lie within
+the boundaries of their respective areas. The \vn{trunk} section is a
+rectagle encomposing the two squares and has an origin labeled $O$.
+
+Between \vn{leg1} and \vn{trunk1} sections the wall is interpolated
+using these two section. Similarly for the region between \vn{leg2}
+and \vn{trunk2} sections. Away from these regions interpolation is
+done as outlined above but these regions need a different
+interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well as
+\vn{leg2} and \vn{trunk2} sections do not have to be parallel to each
+other.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

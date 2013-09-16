@@ -643,22 +643,19 @@ if (attrib_word == 'WALL') then
         endif
       enddo wall3d_section_loop
 
-      case default
-        call parser_error ('WALL COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
-        return
-      end select   ! wall components
+    case default
+      call parser_error ('WALL COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+      return
+    end select   ! wall components
 
-      if (.not. expect_either (',}', .true.)) return
-      if (delim == '}') then
-        if (.not. expect_either(', ', .false.)) return
-        exit
-      endif
-    enddo wall3d_loop
+    if (.not. expect_either (',}', .true.)) return
+    if (delim == '}') exit
 
-  ! Check for next thing on line and return
+  enddo wall3d_loop
 
-  call get_next_word (word, ix_word, '{},()', delim, delim_found)
-  if (word /= '') call parser_error('EXTRA CHARACTERS AT END OF WALL SPECIFICATION IN ELEMENT: ' // ele%name) 
+  ! Next thing on line should be either a "," or end-of-line
+
+  logic = expect_either(', ', .false.)
   return
 
 endif

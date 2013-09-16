@@ -350,17 +350,24 @@ select case (ele%field_calc)
 
   !------------------------------------------
   ! RFcavity and Lcavity
-  ! Use N_cell half-wave pillbox formulas for standing wave TM_011 mode with infinite wall radius.
+  !
+  ! For standing wave cavity:
+  ! Use N_cell half-wave pillbox formulas for TM_011 mode with infinite wall radius.
   ! See S.Y. Lee, "Accelerator Physics"
   !   E_s   = 2 * gradient * cos(k s) * cos(omega t + phase)
-  !   E_r   = gradient * k * r * sin(k s) * cos(omega t + phase)
-  !   B_phi = -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
+  !   E_r   =     gradient * k * r * sin(k s) * cos(omega t + phase)
+  !   B_phi =    -gradient * k * r * cos(k s) * sin(omega t + phase) / c_light
   ! where
   !   k = n_cell * pi / L
   !   omega = c * k
   ! Field extends to +/- c_light * freq / 2 from centerline of element.
   ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
   !  discontinuity can be handled in the apply_hard_edge_kick routine.
+  !
+  ! For traveling wave cavity:
+  !   E_s   =  gradient * cos(omega t + phase - k s)
+  !   E_r   = -gradient * k * r * sin(omega t + phase - k s) / 2
+  !   B_phi = -gradient * k * r * sin(omega t + phase - k s) / c_light / 2
 
   case(rfcavity$, lcavity$)
 
@@ -385,13 +392,21 @@ select case (ele%field_calc)
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
     t_eff = time - s_hard_offset / (c_light * beta_start)
 
-    E_r_coef = gradient * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
+    if (is_true(ele%value(traveling_wave$))) then
+      phi = omega * t_eff + phase - k_wave * s_eff
+      E_z        =  gradient * cos(phi)
+      E_r_coef   = -gradient * k_wave * sin(phi) / 2
+      B_phi_coef = -gradient * k_wave * sin(phi) / c_light / 2
+    else
+      E_z        = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_eff + phase)
+      E_r_coef   =     gradient * k_wave * sin(k_wave*s_eff) * cos(omega * t_eff + phase)
+      B_phi_coef =    -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * t_eff + phase) / c_light 
+    endif
 
     field%E(1) = E_r_coef * x
     field%E(2) = E_r_coef * y
-    field%E(3) = 2 * gradient * cos(k_wave * s_eff) * cos(omega * t_eff + phase)
+    field%E(3) = E_z
     
-    B_phi_coef = -gradient * k_wave * cos(k_wave*s_eff) * sin(omega * t_eff + phase) / c_light 
     field%B(1) = -B_phi_coef * y
     field%B(2) =  B_phi_coef * x
 
