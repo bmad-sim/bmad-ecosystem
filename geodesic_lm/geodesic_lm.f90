@@ -1,7 +1,6 @@
-module geodesic_lm_mod
+module geodesic_lm
 
 use sim_utils
-use geolevmar_module !contained in leastsq.f90
 
 type geodesic_lm_param_struct
   integer :: mode = 0           !LM damping matrix. 0->id, 1->dynamic jacob-based
@@ -129,6 +128,73 @@ end subroutine type_geodesic_lm
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !+
-! Subroutine type_geodesic_lm (printit, lines, n_lines)
+! Subroutine run_geodesic_lm (geo_func, jacobian, Avv, a, y_fit, fjac, callback, info, &
+!                             dtd,  niters, nfev, njev, naev, converged)
+!-
+
+subroutine run_geodesic_lm (geo_func, jacobian, Avv, a, y_fit, fjac, callback, info, &
+                             dtd,  niters, nfev, njev, naev, converged)
+
+use geolevmar_module, only: geolevmar ! contained in leastsq.f90
+
+implicit none
+
+type (geodesic_lm_param_struct), pointer :: g
+
+real(rp) a(:), y_fit(:)
+real(rp) dtd(:,:), fjac(:,:)
+
+integer info, niters, nfev, njev, naev, converged
+integer m, n
+
+interface
+  subroutine geo_func (mm,nn, a, y_fit)
+    import
+    implicit none
+    ! a is the array of variables, y_fit is the model data
+    integer :: mm, nn
+    real(rp) :: a(nn)
+    real(rp) :: y_fit(mm)
+  end subroutine
+
+  subroutine jacobian(m, n, x, fjac)
+    implicit none
+    integer :: m, n
+    real(8) :: x(n), fjac(m,n)
+  end subroutine
+
+  subroutine Avv(m,n,x,v,acc)
+    implicit none
+    integer :: m,n
+    real(8) :: x(n),v(n),acc(n)
+  end subroutine
+
+  subroutine callback(m,n,x,fvec,fjac,accepted,info)     
+    implicit none
+    integer m, n, info, accepted
+    real(8) x(n), fvec(m)
+    real(8) fjac(m,n)
+  end subroutine
+end interface
+
+!
+
+g => geodesic_lm_param
+
+m = size(fjac, 1)
+n = size(fjac, 2)
+
+call geolevmar(geo_func, jacobian, Avv, a, y_fit, fjac, n, m, callback, info, &
+            g%analytic_jac, g%analytic_Avv, g%center_diff, g%eps, g%h1, g%h2, &
+            dtd, g%mode, niters, nfev, njev, naev, &
+            g%maxiter, g%maxfev, g%maxjev, g%maxaev, g%maxlam, &
+            g%artol, g%Cgoal, g%gtol, g%xtol, g%xrtol, g%ftol, g%frtol, &
+            converged, g%print_level, g%print_unit, &
+            g%imethod, g%iaccel, g%ibold, g%ibroyden, &
+            g%initialfactor, g%factoraccept, g%factorreject, g%avmax)
+
+end subroutine run_geodesic_lm
+
+               
 
 end module
