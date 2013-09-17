@@ -809,52 +809,44 @@ the radius $R_t$ needed for foucusing is
 \Endeq
 
 %-----------------------------------------------------------------
+\section{Walls: Vacuum Chamber, Capillary and Diffraction Plate}
+\label{s:wall}
+\index{wall}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=6in]{chamber-wall.pdf}
-  \caption[Capillary or vacuum chamber wall.]
-{A) The inside wall of a capillary or the vacuum chamber wall of a
-non-capillary element is defined by a number of cross-sectional
-slices.  B) Each cross-section is made up of a number of vertices. The
-segments between the vertices can be either a line segment, the arc of
-a circle, or a section of an ellipse.}
-  \label{f:chamber.wall}
-\end{figure}
+The \vn{wall} attribute for an element is used to define:
+\begin{example}
+  vacuum chamber wall
+  capillary element (\sref{s:capillary}) inside wall
+  diffraction_plate (\sref{s:diff.plate}) geometry
+\end{example}
+
+The topics of the following subsections are:
+\begin{example}
+  \sref{s:wall.syntax}      General wall syntax.
+  \sref{s:wall.section}      Cross-section construction. 
+  \sref{s:wall.interpolation}      Capillary and vacuum chamber wall interpolation.
+  \sref{s:wall.capillary}      Capillary specific.
+  \sref{s:wall.vacuum}      Vacuum chamber specific.
+  \sref{s:wall.diff.plate}      Diffraction_plate specific.
+\end{example}
 
 %-----------------------------------------------------------------
-\section{Chamber and Capillary Wall}
-\label{s:wall}
+\subsection{Wall Syntax}
+\label{s:wall.syntax}
 
-The vacuum chamber wall shape may be defined for an element using the
-\vn{wall} attribute as detailed below. For X-ray capillary elements
-(\sref{s:capillary}), this construct is used to define the inside wall
-of the capillary. Additionally, the \vn{diffraction_plate}
-(\sref{s:diff.plate}) element uses a wall construct to define the
-geometry of the clear areas on the plate.
-
-The wall is defined by a number of cross-sectional slices as shown in
-\fig{f:chamber.wall}A. Each cross-section is defined by a number of
-vertices. The verticies are defined with respect to the local sector
-origin $(x_0, y_0)$. The arc between each vertex may be either a
-straight line, an arc of a circle, or a section of an ellipse. For a
-capillary it is mandatory that a cross-section be convex. That is,
-given any two points within the cross-section, all points on the line
-segment connecting them must be within the cross-section.
-
-\index{wall}\vn{section}\index{s (capillary attribute)}\index{v (capillary attribute)}
-\index{dr_ds1}\index{dr_ds1}\index{n_slice_spline}
-The \vn{wall} structure defines the capillary wall. The
-syntax of the wall structure is:
+The syntax of the \vn{wall} attribute is:
 \begin{example}
   wall = \{
-    superimpose = <T/F>,
+    superimpose = <T/F>,                     ! Chamber wall only
+    thickness = <real>                       ! Diffraction_plate only
+    opaque_material = <material_type>        ! Diffraction_plate only
+    clear_material = <material_type>         ! Diffraction_plate only
     section = \{ 
-      type = <section_type>,
-      s = <longitudinal_position>, 
+      type = <section_type>,                 ! Chamber and Diffraction_plate only
+      s = <longitudinal_position>,           ! Capillary and Chamber only
       x0 = <value>,
       y0 = <value>,
-      dr_ds = <value>,
+      dr_ds = <value>,                       ! Capillary and Chamber only
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
       ...\},
@@ -864,6 +856,11 @@ syntax of the wall structure is:
       ... \},
     ... \}
 \end{example}
+A \vn{wall} begins with ``\vn{wall = \{}'' and ends with a
+``\vn{\}}''. In between are a number of individual cross-section
+structures. Each individual cross-section begins with ``\vn{section =
+\{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
+cross-section gives the longitudinal position of the cross-section.
 Example:
 \begin{example}
   this_cap: capillary, 
@@ -878,15 +875,33 @@ Example:
 In this example an element called \vn{this_cap} is a \vn{capillary}
 whose wall is defined by two cross-sections.
 
-The wall structure begins with ``\vn{wall = \{}'' and ends with a
-``\vn{\}}''. In between are a number of individual cross-section
-structures. Each individual cross-section begins with ``\vn{section =
-\{}'' and ends with a ``\vn{\}}''. The \vn{s} parameter of a
-cross-section gives the longitudinal position of the cross-section.
+%------------------
 
-For a capillary, \vn{s} must be zero for the first cross-section and
-the length of the capillary is given by the value of \vn{s} of the
-last cross-section.
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=6in]{chamber-wall.pdf}
+  \caption[Capillary or vacuum chamber wall.]
+{A) The inside wall of a capillary or the vacuum chamber wall of a
+non-capillary element is defined by a number of cross-sectional
+slices.  B) Each cross-section is made up of a number of vertices. The
+segments between the vertices can be either a line segment, the arc of
+a circle, or a section of an ellipse.}
+  \label{f:chamber.wall}
+\end{figure}
+
+%-----------------------------------------------------------------
+\subsection{Wall Sections}
+\label{s:wall.section}
+
+The wall is defined by a number of cross-sectional slices. For
+\fig{f:chamber.wall}A shows the geometry for \vn{capillary} or vacuum
+chamber walls.  Each cross-section is defined by a number of
+vertices. The verticies are defined with respect to the local sector
+origin $(x_0, y_0)$. The arc between each vertex may be either a
+straight line, an arc of a circle, or a section of an ellipse. For a
+capillary it is mandatory that a cross-section be convex. That is,
+given any two points within the cross-section, all points on the line
+segment connecting them must be within the cross-section.
 
 The \vn{v(<j>)} within a cross-section define the vertices for each
 cross-section. The vertices are defined with respect to the section
@@ -978,6 +993,10 @@ not specified, the cross-section is a rectangle. For example
     section = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
 \end{example}
 
+%-----------------------------------------------------------------
+\subsection{Interpolation Between Sections}
+\label{s:wall.interpolation}
+
 \begin{figure}[tb]
   \centering
   \includegraphics[width=4in]{concave-capillary.pdf}
@@ -989,12 +1008,13 @@ as shown in (B).}
   \label{f:concave.capillary}
 \end{figure}
 
-Between cross-sections, the wall is defined by interpolation. Let
-$r_{c1}(\theta)$ be the radius of the wall as a function of $\theta$
-for a given cross-section defined at $s = s_1$. Let $r_{c2}(\theta)$
-be the radius function at the next defined cross-section at $s =
-s_2$. The wall $r_c(\theta, s)$ at any point $s$ between $s_1$ and
-$s_2$ is defined by the equation
+For \vn{capillary} and vacuum chamber walls, the wall between
+cross-sections, is defined by interpolation. Let $r_{c1}(\theta)$ be
+the radius of the wall as a function of $\theta$ for a given
+cross-section defined at $s = s_1$. Let $r_{c2}(\theta)$ be the radius
+function at the next defined cross-section at $s = s_2$. The wall
+$r_c(\theta, s)$ at any point $s$ between $s_1$ and $s_2$ is defined
+by the equation
 \Begineq
   r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
 \Endeq
@@ -1027,14 +1047,6 @@ the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
 \end{align}
 The last constraint ensures a ``smooth'' transition between the two cross-sections.
 
-For a capillary, in order for \bmad to quickly track photons,
-\bmad assumes that the volume between the cross-sections is
-convex. The volume will be convex if each cross-section $r_c(\theta,
-s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
-for $r_c(\theta, s)$ to be convex at the specified cross-sections as
-shown in \fig{f:concave.capillary}. Also note that it is perfectly
-fine for the total capillary volume to not be convex.
-
 To refer to a cross-section parameters after an element has been
 defined, the following syntax is used:
 \begin{example}
@@ -1042,11 +1054,28 @@ defined, the following syntax is used:
 \end{example}
 
 %-----------------------------------------------------------------
+\subsection{Capillary Wall}
+\label{s:wall.capillary}
+\index{capillary!wall}
+
+For a \vn{capillary}, \vn{s} must be zero for the first cross-section and
+the length of the capillary is given by the value of \vn{s} of the
+last cross-section.
+
+For a \vn{capillary}, in order for \bmad to quickly track photons,
+\bmad assumes that the volume between the cross-sections is
+convex. The volume will be convex if each cross-section $r_c(\theta,
+s)$ at any given $s$ is convex. Note that it is {\em not} sufficient
+for $r_c(\theta, s)$ to be convex at the specified cross-sections as
+shown in \fig{f:concave.capillary}. Also note that it is perfectly
+fine for the total capillary volume to not be convex.
+
+%-----------------------------------------------------------------
 \subsection{Vacuum Chamber Wall}
-\label{s:chamber}
+\label{s:wall.vacuum}
 
 The vacuum chamber wall is independent of the element apertures
-(\sref{s:limit}. Unless a program is specifically constructed, the
+(\sref{s:limit}). Unless a program is specifically constructed, the
 presence of a vacuum chamber wall will not affect particle tracking.
 
 The vacuum chamber wall defined for an element may be shorter or
@@ -1078,7 +1107,7 @@ not allowed to define a wall. The wall through a patch is determined
 by the closest wall sections of neighboring elements. These wall
 sections need to be placed at the edge of the \vn{patch}.
 
-%-----------------------------------------------------------------
+%-------------------
 
 \begin{figure}[tb]
   \centering
@@ -1094,6 +1123,8 @@ layout of the crotch1, crotch2 and crotch wall sections. $O_1$, $O_2$
 and $O$ are the $x_0, y_0$ origins of the sections.}
   \label{f:crotch}
 \end{figure}
+
+%-------------------
 
 \index{crotch chamber geometry}
 Each section has a \vn{type} attribute. This attribute is not used for 
@@ -1146,6 +1177,91 @@ done as outlined above but these regions need a different
 interpolation scheme since, \vn{leg1} and \vn{trunk1}, as well as
 \vn{leg2} and \vn{trunk2} sections do not have to be parallel to each
 other.
+
+%-----------------------------------------------------------------
+\subsection{Diffraction Plate Wall}
+\label{s:wall.diff.plate}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{diffraction-plate.pdf}
+  \caption[Example diffraction_plate element]{
+Example \vn{diffraction_plate} element. A) The wall of the diffraction
+plate is divided into ``clear'' (white) and ``opaque'' (black)
+sections. In this example there are two clear sections labeled \#1 and
+\#2. B) All sections must be star shaped with respect to the
+section's origin. In this example, The section is {\em not} star
+shaped since a line drawn from the origin point $o$ to the point $p$
+on the boundary intersects the boundary twice in between. In this case
+the section can be made star shaped by moving the origin to $o'$.
+  }
+  \label{f:diff.plate}
+\end{figure}
+
+The wall of a \vn{diffraction_plate} (\sref{s:diff.plate}) specifies
+where the openings in the plate are.
+
+A \vn{wall} is comprised a a set of sections
+(\sref{s:wall.section}). Each section must have its \vn{type}
+attribute set to one of:
+\begin{example}
+  clear
+  opaque
+\end{example}
+A section is called ``clear'' or ``opaque'' depending upon the
+setting of its \vn{type} attribute.
+
+A wall is comprised a a set of ``openings''. An opening is a clear
+section along with a set of zero or more associated opaque sections.
+The opaque sections associated with an opening are the opaque sections
+immediatly following the clear section of the opening up to the next
+clear section. Thus the number of openings is equal to the number of
+clear sections and the first section of the wall must be a clear section.
+
+The default behavior is that a photon will be transmitted if it
+``hits'' any opening. A
+photon is considered to have hit a given opening if its $(x,y)$
+coordinates put in within the clear section of the opening but not
+within any opaque section of the opening.
+
+An example diffraction plate geometry
+is shown in \fig{f:diff.plate}A.
+ In the figure, there are two openings labeled \#1,
+and \#2
+
+
+There are no restructions as to overlap between various sections. 
+
+To enable \bmad to quickly calculate whether a photon has landed on a
+clear or opaque section, All sections must be ``star shaped'' with
+respect to the section origin. That is, a line drawn from the section
+origin to any point on the section boundary must not pass through any
+boundary points of the section in between. This is illustrated in
+\fig{f:diff.plate}B where the section is not star shaped since a line
+drawn from the origin $o$ to the point $p$ on the boundary passes
+through two boundary points in between. In this case the section can
+trivially be made star shaped by moving the origin to point $o'$. If
+it is not possible to make a section star shaped by moving the origin,
+the section must be divided into multiple sections.
+
+Example:
+\begin{example}
+  wall = \{
+    thickness = <real>
+    opaque_material = <material_type>
+    clear_material = <material_type>
+    section = \{ 
+      type = clear, 
+      x0 = -0.3, y0 = 0, 
+      v(1) = \{\}, 
+      v(2) = \{ ... \},
+      ...\},
+    section = \{
+      type = 
+      v(1) = \{... \},
+      ... \},
+    ... \}
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

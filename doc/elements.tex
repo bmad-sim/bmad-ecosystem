@@ -1012,8 +1012,11 @@ file that contains parameters for the element.
 \label{s:diff.plate}
 \index{diffraction_plate|hyperbf}
 
-A \vn{diffraction_plate} element is something like a Fresnel zone plate and is
-used in places where diffraction effects must be taken into
+A \vn{diffraction_plate} element is a flat surface oriented, more or
+less, transversely to a x-ray beam through which photon can travel. A
+\vn{diffraction_plate} can be used, for example, to model a Fresnel
+zone plate or Young's double slits. A \vn{diffraction_plate} element
+is used in places where diffraction effects must be taken into
 account. This is in contrast to setting an aperture attribute
 (\sref{s:limit} for other elements where diffraction effects are
 ignored.
@@ -1022,103 +1025,25 @@ General \vn{diffraction_plate} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & \s              & {\sl Attribute Class}      & \s              \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{diffraction-plate.pdf}
-  \caption[Example diffraction_plate element]{
-Example \vn{diffraction_plate} element. A) The wall of the diffraction
-plate is divided into ``clear'' (white) and ``mask'' (black)
-sections. In this example there are three clear sections labeled \#1,
-\#2, and \#3. B) All sections must be star shaped with respect to the
-section's origin. In this example, The section is {\em not} star
-shaped since a line drawn from the origin point $o$ to the point $p$
-on the boundary intersects the boundary twice in between. In this case
-the section can be made star shaped by moving the origin to $o'$.
-  }
-  \label{f:diff.plate}
-\end{figure}
-
-An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
-The geometry of the plate is defined using the ``wall'' attribute of
-the element. Example:
-\begin{example}
-  fresnel: diffraction_plate, wall = {...}, ...
-\end{example}
-And the syntax for defining a wall is:
-\begin{example}
-  wall = \{
-    thickness = <real>
-    mask_material = <material_type>
-    clear_material = <material_type>
-    section = \{ 
-      type = <section_type>   ! "clear" or "mask"
-      x0 = <x_origin>, y0 = <y_origin>,
-      v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
-      v(2) = \{ ... \},
-      ...\},
-    section = \{
-      type = ...
-      v(1) = \{... \},
-      ... \},
-    ... \}
-\end{example}
-
-A wall is comprised a a set of ``clear'' ``sections''. Each clear
-section can have associated with it zero or more ``mask'' sections.
-An ``opening'' is a clear section along with its associated mask
-sections. In the figure, there are three openings labeled \#1, \#2,
-and \#3. 
-
-The default behavior is that a photon will be transmitted if it
-``hits'' any opening. Otherwise it will be considered to have hit a
-mask section. A photon is considered to have hit a given opening if
-its $(x,y)$ coordinates put in within the clear section of the opening
-but not within any mask section of the opening.
-
-The mask section surrounding all of the clear sections does not have
-to be explicitly specified.  
-
-To enable \bmad to quickly calculate whether a photon has landed on a
-clear or mask section, All sections must be ``star shaped'' with
-respect to the section origin. That is, a line drawn from the section
-origin to any point on the section boundary must not pass through any
-boundary points of the section in between. This is illustrated in
-\fig{f:diff.plate}B where the section is not star shaped since a line
-drawn from the origin $o$ to the point $p$ on the boundary passes
-through two boundary points in between. In this case the section can
-trivially be made star shaped by moving the origin to point $o'$. If
-it is not possible to make a section star shaped by moving the origin,
-then the section must be divided into multiple sections.
-
-Example:
-\begin{example}
-  wall = \{
-    thickness = <real>
-    mask_material = <material_type>
-    clear_material = <material_type>
-    section = \{ 
-      type = clear, 
-      x0 = -0.3, y0 = 0, 
-      v(1) = \{\}, 
-      v(2) = \{ ... \},
-      ...\},
-    section = \{
-      type = 
-      v(1) = \{... \},
-      ... \},
-    ... \}
-\end{example}
+The geometry of the plate, that is, where the openings are, is defined
+using the ``wall'' attribute (\sref{s:wall}).
 
 Nominally, a diffraction plate is orientated transversely to the
 beam. Like all other elements, the diffraction plate can be reoriented
 using the element's offsets, pitches and tilt attributes (\sref{s:offset}).
+
+Example:
+\begin{example}
+  fresnel: diffraction_plate, wall = {...}, ...
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Drift}
