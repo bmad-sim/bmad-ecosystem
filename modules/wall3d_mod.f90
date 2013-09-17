@@ -1025,6 +1025,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele1, ele2
 type (section_ptr_struct), allocatable :: sp(:)
+type (section_ptr_struct) sp_temp
 type (wall3d_section_struct), pointer :: ws
 
 real(rp) s_min, s_max
@@ -1077,15 +1078,25 @@ do i = 0, ubound(lat%branch, 1)
   enddo
 
   ! Check for consistancy
+  ! If there is an overlap but within significant_length then switch ordering but 
+  ! keep s-position the same.
 
   do j = 1, n_wall-1
     if (sp(j)%s > sp(j+1)%s) then
-      call out_io (s_error$, r_name, 'WALL SECTIONS LONGITUDINALLY OUT-OF-ORDER', &
+      if (sp(j)%s < sp(j+1)%s + bmad_com%significant_length) then
+        sp_temp = sp(j)
+        sp(j) = sp(j+1)
+        sp(j+1) = sp_temp
+        sp(j+1)%s = sp(j)%s
+        sp(j)%s   = sp_temp%s
+      else
+        call out_io (s_error$, r_name, 'WALL SECTIONS LONGITUDINALLY OUT-OF-ORDER', &
                      'SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j)%ele%name) // ' (\i0\)', &
                      'NEXT SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j+1)%ele%name) // ' (\i0\)', &
                      i_array = [sp(j)%ele%ix_ele, sp(j+1)%ele%ix_ele], r_array = [sp(j)%s, sp(j+1)%s])
-      err = .true.
-      return
+        err = .true.
+        return
+      endif
     endif
   enddo
 
@@ -1125,6 +1136,7 @@ subroutine aggragate_this_wall (wall_ele, fiducial_ele)
 
 type (ele_struct), target :: wall_ele, fiducial_ele
 type (wall3d_struct), pointer :: wall
+type (section_ptr_struct) :: sp_temp
 real(rp) s_ref, s
 integer ii, k, ixw, nw, n, ix_wrap1, ix_wrap2
 
@@ -1160,14 +1172,26 @@ enddo
 n_wall = n_wall + nw
 
 n = nw+ixw
+
+! If there is an overlap but within significant_length then switch ordering but 
+! keep s-position the same.
+
 if (n < n_wall) then
   if (sp(n)%s > sp(n+1)%s) then
-    call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
+    if (sp(n)%s < sp(n+1)%s + bmad_com%significant_length) then
+      sp_temp = sp(n)
+      sp(n) = sp(n+1)
+      sp(n+1) = sp_temp
+      sp(n+1)%s = sp(n)%s
+      sp(n)%s   = sp_temp%s
+    else
+      call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
            'ELEMENT: ' // trim(sp(n)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
            'AND ELEMENT: ' // trim(sp(n+1)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
            i_array = [sp(n)%ele%ix_ele, sp(n+1)%ele%ix_ele], r_array = [sp(n)%s, sp(n+1)%s])
-    err = .true.
-    return
+      err = .true.
+      return
+    endif
   endif
 endif
 

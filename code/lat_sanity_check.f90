@@ -118,6 +118,30 @@ do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = ele_loc_to_string(ele)
 
+    ! diffraction_plate must have an associated wall3d and all sections must be clear or opaque
+
+    if (ele%key == diffraction_plate$) then
+      if (.not. associated (ele%wall3d)) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'DOES NOT HAVE AN ASSOCIATED WALL')
+        err_flag = .true.
+      else
+        do j = 1, size(ele%wall3d%section)
+          ii = ele%wall3d%section(j)%type
+          if (ii == opaque$ .or. ii == clear$) cycle
+          call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'HAS A SECTION WITH TYPE NOT CLEAR OR OPAQUE.')
+          err_flag = .true.
+          exit
+        enddo          
+      endif
+    endif
+
+
     ! Check that a true rbend has e1 + e2 = angle.
 
     if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
