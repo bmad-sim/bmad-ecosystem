@@ -948,7 +948,7 @@ end function wall3d_d_radius
 ! Function to return a pointer to the wall3d structure associated
 ! with a given lattice element. 
 !
-! Note: the wall associated with a diffraction_plate element is the branch%wall3d wall.
+! Note: The wall associated with a the vacuum chamber is the branch%wall3d.
 !
 ! Input:
 !   ele        -- Ele_struct: lattice element.
@@ -972,14 +972,14 @@ real(rp) ds_offset
 
 ! 
 
-if (associated (ele%branch)) then
+if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. associated (ele%branch)) then
   wall3d => ele%branch%wall3d
   ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   return
 endif
 
 wall3d => ele%wall3d
-if (.not. associated(ele%wall3d)) return
+if (.not. associated(wall3d)) return
 
 select case (wall3d%ele_anchor_pt)
 case (anchor_beginning$); ds_offset = -ele%value(l$)
@@ -1074,7 +1074,7 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%key == diffraction_plate$) cycle
     if (ele%wall3d%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
-    call aggragate_this_wall (ele, ele) ; if (err) return
+    call add_in_ele_wall_sections (ele, ele) ; if (err) return
   enddo
 
   ! Check for consistancy
@@ -1132,7 +1132,7 @@ enddo
 !-----------------------------------------------------------------------------------------------
 contains
 
-subroutine aggragate_this_wall (wall_ele, fiducial_ele)
+subroutine add_in_ele_wall_sections (wall_ele, fiducial_ele)
 
 type (ele_struct), target :: wall_ele, fiducial_ele
 type (wall3d_struct), pointer :: wall
@@ -1151,8 +1151,14 @@ case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
 case (anchor_end$);       s_ref = fiducial_ele%s 
 end select
 
+! If the element wall has more than one section (so the wall has a finite length), add
+! significant_length/10 to s to avoid a roundoff bug.
+
 s = wall%section(1)%s + s_ref
+if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
 call bracket_index (sp%s, 1, n_wall, s, ixw)
+
+! Move existing sections if needed to make room for the sections of wall_ele.
 
 if (ixw < n_wall) then
   sp(ixw+1+nw:n_wall+nw) = sp(ixw+1:n_wall)
@@ -1207,7 +1213,7 @@ if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
   sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
 endif
 
-end subroutine aggragate_this_wall
+end subroutine add_in_ele_wall_sections
 
 !-----------------------------------------------------------------------------------------------
 ! contains
@@ -1230,12 +1236,18 @@ case (anchor_center$);    s_ref = fiducial_ele%s - fiducial_ele%value(l$) / 2
 case (anchor_end$);       s_ref = fiducial_ele%s 
 end select
 
+! If the element wall has more than one section (so the wall has a finite length), add
+! significant_length/10 to s to avoid a roundoff bug.
+
 s = wall%section(1)%s + s_ref
+if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
 call bracket_index (sp%s, 1, n_wall, s, ixw1)
 
 s = wall%section(nw)%s + s_ref
+if (size(wall%section) /= 1) s = s - bmad_com%significant_length/10
 call bracket_index (sp%s, 1, n_wall, s, ixw2)
 
+!
 
 n_del = nw - (ixw2 - ixw1)  ! net number of sections added.
 

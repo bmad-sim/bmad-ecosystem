@@ -374,9 +374,7 @@ if (associated(ele%wall3d)) then
     do i = 1, n
       call re_associate (li, nl+100, .false.) 
       section => ele%wall3d%section(i)
-      if (i == size(ele%wall3d%section)) then
-        nl=nl+1; write (li(nl), '(a, i0, a, f10.6)') 'Wall%Section(', i, '):  S =', section%s
-      elseif (section%dr_ds == real_garbage$) then
+      if (section%dr_ds == real_garbage$) then
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a)') &
               'Wall%Section(', i, '):  S =', section%s, ',  dr_ds = Not-set'
       else
