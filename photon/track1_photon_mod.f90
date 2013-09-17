@@ -1,8 +1,7 @@
 module track1_photon_mod
 
-use bmad_struct
-use bmad_interface
 use track1_mod
+use wall3d_mod
 
 ! This is for passing info into the field_calc_routine
 
@@ -19,13 +18,108 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Subroutine diffraction_plate_hit_spot (ele, orbit, is_clear, ix_section)
+!
+! Routine to determine where a photon hits on a diffraction_plate element.
+!
+! Note: It is assumed that orbit is in the frame of reference of the element.
+! That is, offset_photon needs to be called before this routine.
+!
+! Input:
+!   ele     -- ele_struct: diffraction_plate element.
+!   orbit   -- coord_struct: photon position.
+!
+! Output:
+!   is_clear   -- logical, optional: True if hitting clear section. False otherwise.
+!   ix_section -- integer, optional: Set to index of section hit. Set to zero if
+!                   photon is outside all sections.
+!-
+
+subroutine diffraction_plate_hit_spot (ele, orbit, is_clear, ix_section)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (coord_struct) orbit
+type (wall3d_section_struct), pointer :: sec
+
+integer, optional :: ix_section
+logical, optional :: is_clear
+
+integer i, ix_sec
+logical opening_found, in_this_aperture, cleared
+
+! Logic: A particle is in a clear section if it is inside the section and outside
+! all subsiquent opaque sections up to the next clear section.
+
+in_this_aperture = .false.
+cleared = .false.
+ix_sec = 0
+
+do i = 1, size(ele%wall3d%section)
+  sec => ele%wall3d%section(i)
+
+  if (sec%type == clear$) then
+    if (cleared) exit
+    if (.not. in_section(sec)) then
+      in_this_aperture = .false.
+      cycle
+    endif
+    in_this_aperture = .true.
+    ix_sec = i
+
+  else    ! opaque
+    if (.not. in_this_aperture) cycle
+    if (.not. in_section(sec)) cycle
+    in_this_aperture = .false.
+    cleared = .false.
+    ix_sec = i
+
+  endif
+
+enddo
+  
+if (present(ix_section)) ix_section = ix_sec
+if (present(is_clear)) is_clear = cleared
+
+!------------------------------------------------------------
+contains
+
+function in_section(sec) result (is_in)
+
+type (wall3d_section_struct) sec
+logical is_in
+
+real(rp) x, y, norm, r_wall, dr_dtheta
+
+!
+
+x = orbit%vec(1) - sec%x0;  y = orbit%vec(3) - sec%y0
+
+if (x == 0 .and. y == 0) then
+  is_in = .true.
+  return
+endif
+
+norm = norm2([x, y])
+call calc_wall_radius (sec%v, x/norm, y/norm, r_wall, dr_dtheta)
+is_in = (norm <= r_wall)
+
+end function in_section
+
+end subroutine diffraction_plate_hit_spot
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track1_mirror (ele, param, orbit)
 !
 ! Routine to track reflection from a mirror.
 !
 ! Input:
-!   ele    -- ele_struct: Element tracking through.
-!   param  -- lat_param_struct: lattice parameters.
+!   ele      -- ele_struct: Element tracking through.
+!   param    -- lat_param_struct: lattice parameters.
 !   orbit    -- Coord_struct: phase-space coords to be transformed
 !
 ! Output:
