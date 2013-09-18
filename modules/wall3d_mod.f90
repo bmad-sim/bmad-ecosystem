@@ -1025,10 +1025,9 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele1, ele2
 type (section_ptr_struct), allocatable :: sp(:)
-type (section_ptr_struct) sp_temp
 type (wall3d_section_struct), pointer :: ws
 
-real(rp) s_min, s_max
+real(rp) s_min, s_max, s_temp
 
 integer i, j, k, n, n_wall
 logical err
@@ -1077,29 +1076,6 @@ do i = 0, ubound(lat%branch, 1)
     call add_in_ele_wall_sections (ele, ele) ; if (err) return
   enddo
 
-  ! Check for consistancy
-  ! If there is an overlap but within significant_length then switch ordering but 
-  ! keep s-position the same.
-
-  do j = 1, n_wall-1
-    if (sp(j)%s > sp(j+1)%s) then
-      if (sp(j)%s < sp(j+1)%s + bmad_com%significant_length) then
-        sp_temp = sp(j)
-        sp(j) = sp(j+1)
-        sp(j+1) = sp_temp
-        sp(j+1)%s = sp(j)%s
-        sp(j)%s   = sp_temp%s
-      else
-        call out_io (s_error$, r_name, 'WALL SECTIONS LONGITUDINALLY OUT-OF-ORDER', &
-                     'SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j)%ele%name) // ' (\i0\)', &
-                     'NEXT SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j+1)%ele%name) // ' (\i0\)', &
-                     i_array = [sp(j)%ele%ix_ele, sp(j+1)%ele%ix_ele], r_array = [sp(j)%s, sp(j+1)%s])
-        err = .true.
-        return
-      endif
-    endif
-  enddo
-
   ! Add superposition sections
 
   do j = 0, branch%n_ele_max
@@ -1110,6 +1086,26 @@ do i = 0, ubound(lat%branch, 1)
     if (.not. ele%wall3d%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
     call superimpose_this_wall (ele, ele) ; if (err) return
+  enddo
+
+  ! Check for consistancy
+  ! If there is an overlap but within significant_length then switch s-positions
+
+  do j = 1, n_wall-1
+    if (sp(j)%s > sp(j+1)%s) then
+      if (sp(j)%s < sp(j+1)%s + bmad_com%significant_length) then
+        s_temp = sp(j)%s
+        sp(j)%s = sp(j+1)%s
+        sp(j+1)%s = s_temp
+      else
+        call out_io (s_error$, r_name, 'WALL SECTIONS LONGITUDINALLY OUT-OF-ORDER', &
+                     'SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j)%ele%name) // ' (\i0\)', &
+                     'NEXT SECTION AT: \es20.8\ FROM ELEMENT: ' // trim(sp(j+1)%ele%name) // ' (\i0\)', &
+                     i_array = [sp(j)%ele%ix_ele, sp(j+1)%ele%ix_ele], r_array = [sp(j)%s, sp(j+1)%s])
+        err = .true.
+        return
+      endif
+    endif
   enddo
 
   ! Transfer info from sp to branch%wall3d
@@ -1136,7 +1132,6 @@ subroutine add_in_ele_wall_sections (wall_ele, fiducial_ele)
 
 type (ele_struct), target :: wall_ele, fiducial_ele
 type (wall3d_struct), pointer :: wall
-type (section_ptr_struct) :: sp_temp
 real(rp) s_ref, s
 integer ii, k, ixw, nw, n, ix_wrap1, ix_wrap2
 
@@ -1179,17 +1174,14 @@ n_wall = n_wall + nw
 
 n = nw+ixw
 
-! If there is an overlap but within significant_length then switch ordering but 
-! keep s-position the same.
+! If there is an overlap but within significant_length then switch s-positions.
 
 if (n < n_wall) then
   if (sp(n)%s > sp(n+1)%s) then
     if (sp(n)%s < sp(n+1)%s + bmad_com%significant_length) then
-      sp_temp = sp(n)
-      sp(n) = sp(n+1)
-      sp(n+1) = sp_temp
-      sp(n+1)%s = sp(n)%s
-      sp(n)%s   = sp_temp%s
+      s = sp(n)%s
+      sp(n)%s = sp(n+1)%s
+      sp(n+1)%s = s
     else
       call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
            'ELEMENT: ' // trim(sp(n)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &

@@ -381,6 +381,7 @@ if (associated(ele%wall3d)) then
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a, es12.4)') &
               'Wall%Section(', i, '):  S =', section%s, ',  dr_ds =', section%dr_ds
       endif
+      nl=nl+1; write (li(nl), '(3(a, f10.6))') '(x0, y0) = (', section%x0, ',', section%y0, ')'
       if (ele%key /= capillary$) then
         nl=nl+1; write (li(nl), '(4x, 2a)') 'Type = ', trim(wall3d_section_type_name(section%type))
       endif
@@ -391,6 +392,8 @@ if (associated(ele%wall3d)) then
       enddo
     enddo
   endif
+elseif (logic_option(.false., type_wall)) then
+  nl=nl+1; write (li(nl), '(a)') 'No associated Wall.'
 endif
 
 ! Encode methods, etc.
