@@ -257,7 +257,7 @@ do istep = 1, nstep
   ! Loop over calculation repetitions
   do irep = 1,bbu_param%nrep
 
-     beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
+    beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
     if (bbu_param%stable_orbit_anal) then
 
@@ -289,10 +289,12 @@ do istep = 1, nstep
       do i = 1, lat0%n_ele_max
         call randomize_lr_wake_frequencies (lat0%ele(i))
       enddo
-! Skip threshold calculation
+      ! Skip threshold calculation
       cycle
 
     endif
+
+    ! If not bbu_param%stable_orbit_anal...
 
     charge0 = 0
     charge1 = -1      ! Mark as not set yet 
