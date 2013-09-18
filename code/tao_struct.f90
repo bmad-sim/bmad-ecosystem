@@ -131,11 +131,13 @@ type tao_curve_struct
   real(rp), allocatable :: symb_size(:)  ! Symbol size. Used with symbol_size_scale. 
   integer, allocatable :: ix_symb(:)     ! Corresponding index in d1_data%d(:) array.
   real(rp) :: y_axis_scale_factor = 1    ! y-axis conversion from internal to plotting units.
+  real(rp) :: s = 0                      ! longitudinal position
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%u_view
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
+  integer :: index = 1
   integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
   integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0                ! Bunch to plot.

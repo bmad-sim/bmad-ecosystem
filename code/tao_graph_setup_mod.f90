@@ -778,7 +778,7 @@ integer ix, ir, jg, i, j, ix_this, ix_uni, ix1, ix2
 logical err, err_flag, smooth_curve, found, zero_average_phase, ok
 logical straight_line_between_syms, valid, in_graph
 
-character(60) data_type, name
+character(200) data_type, name
 character(16) data_source
 character(12) :: u_view_char
 character(20), parameter :: r_name = 'tao_curve_data_setup'

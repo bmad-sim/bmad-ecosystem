@@ -1172,38 +1172,39 @@ Format:
 
 \vn{<what_to_show>} may be one of:
 \begin{example}
-   alias
-   beam \{<element_name_or_index>\}
-   branch \{\{-branch\} <branch>\} \{-universe <universe>\} 
-   building_wall  
-   constraints
-   curve \{-symbol\} \{-line\} <curve_name> 
-   data \{<data_name>\} 
-   derivative <data_name(s)> <var_name(s)>
-   element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
-         \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
-   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
-   graph <graph_name>
-   hom
-   key_bindings
-   lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
-         \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-lords\} \{-middle\} 
-         \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
-         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
-   optimizer \{-geodesic_lm\}
-   particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
-         \{-element <element_name_or_index>\} \{-lost\} \{-all\}
-   plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
-   taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
-   top10 \{-derivative\}
-   twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
-   universe \{universe_number\}
-   use
-   value <expression>
-   variable \{-no_label_lines\} \{<var_name>\}
-   variable \{-no_label_lines\} <universe_number>@
-   variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
-   wave
+  alias
+  beam \{<element_name_or_index>\}
+  branch \{\{-branch\} <branch>\} \{-universe <universe>\} 
+  building_wall  
+  constraints
+  curve \{-symbol\} \{-line\} <curve_name> 
+  data \{<data_name>\} 
+  derivative <data_name(s)> <var_name(s)>
+  element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
+        \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
+  global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
+  graph <graph_name>
+  hom
+  key_bindings
+  lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
+        \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-lords\} \{-middle\} 
+        \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
+        \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+  optimizer \{-geodesic_lm\}
+  particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
+        \{-element <element_name_or_index>\} \{-lost\} \{-all\}
+  plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
+  taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
+  top10 \{-derivative\}
+  twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
+  universe \{universe_number\}
+  use
+  value <expression>
+  variable \{-no_label_lines\} \{<var_name>\}
+  variable \{-no_label_lines\} <universe_number>@
+  variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
+  wall \{-branch <name>\} \{-section <index>\} \{-angle <angle>\} \{-s <s1>:<s2>\} \{<n1>:<n2>\}
+  wave
 \end{example}
 
 \vskip 0.2in 
@@ -1281,7 +1282,10 @@ Example:
 \vskip -0.2in 
 
 List all building wall (\sref{s:building.wall}) sections
-along with the points that define the sections.
+along with the points that define the sections. 
+
+For vacuum_chamber, capillary, and diffraction_plate walls use the
+``show wall'' command.
 
 %% show constraints --------------------------------------------------------------
 
@@ -1852,11 +1856,51 @@ Examples:
   show var -bmad       ! List variables in Bmad Lattice format.
 \end{example}
 
+%% show wall --------------------------------------------------------------
+
+\vskip 0.1in
+
+\item[\protect\parbox{6in}{
+    show wall \{-branch <name>\}\{-section <index>\} \{-angle <angle>} \\
+    \hspace*{0.35in} \{-s <s1>:<s2>\} \{<n1>:<n2>\}] \Newline
+
+\vskip -0.1in 
+
+The \vn{show wall} command shows the vacuum chamber wall associated
+with a lattice branch.
+
+For the building wall, use the ``show building_wall'' command.
+
+For showing the wall associated with a given element, use the ``show
+ele -wall'' command.
+
+The \vn{-branch} switch is used to select a particular branch.
+
+The \vn{-section} switch is used to show information about a specific
+chamber wall cross-section. In this case, all the other options are
+ignored except for \vn{-branch}.
+
+If \vn{-section} is not present, a list of vacuum chamber wall
+sections is presented. In this case, the range of wall sections shown
+is given by \vn{<n1>:<n2>} except if \vn{-s} is present in which case
+all sections within a range of \vn{s} values is given within the range
+\vn{<s1>} to \vn{<s2>}. With each section, a wall radius is given. The
+angle in the $(x,y)$ plane at which the radius is computed is
+determined by the \vn{-angle} option. The default angle is 0 which
+corresponds to the $+x$ direction.
+
+Examples:
+\begin{example}
+  show wall 45:100       ! Show vacuum chamber wall sections 45 through 100.
+  show wall -s 10.0:37.5 ! Show wall sections that have S-position between 10 and 37.5.
+  show wall -section 49  ! Show chamber wall section 49.
+\end{example}
+
 %% show wave --------------------------------------------------------------
 
 \vskip 0.1 in
 
-\item[show wave]
+\item[show wave] \Newline
 The \vn{show wave} command shows the results of the current wave 
 analysis (\sref{c:wave}).
 
