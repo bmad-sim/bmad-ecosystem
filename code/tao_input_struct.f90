@@ -24,7 +24,7 @@ type tao_d1_data_input
 end type
 
 type tao_data_input
-  character(100) :: data_type
+  character(200) :: data_type
   character(40) :: ele0_name
   character(40) :: ele_name
   character(20) :: merit_type
@@ -37,7 +37,7 @@ type tao_data_input
 end type
 
 type tao_datum_input
-  character(100) :: data_type
+  character(200) :: data_type
   character(40) :: ele_ref_name
   character(40) :: ele_start_name
   character(40) :: ele_name

@@ -173,6 +173,9 @@ type (taylor_struct) taylor(6)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (branch_struct), pointer :: branch
 type (tao_universe_branch_struct), pointer :: uni_branch
+type (wall3d_struct), pointer :: wall
+type (wall3d_section_struct), pointer :: wall_sec
+type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
 
 type show_lat_column_struct
@@ -185,7 +188,7 @@ end type
 
 type (show_lat_column_struct) column(50)
 
-real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z
+real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, angle, r
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
@@ -202,32 +205,32 @@ character(60) nam
 character(3) undef_str
 character(40) replacement_for_blank
 
-character(16) :: show_what, show_names(27) = [ &
+character(16) :: show_what, show_names(28) = [ &
    'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
    'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
    'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
    'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
    'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
-   'twiss_and_orbit', 'building_wall  ']
+   'twiss_and_orbit', 'building_wall  ', 'wall           ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
 character(n_char_show) line, line1, line2, line3
 character(n_char_show) stuff2
-character(9) angle
+character(9) angle_str
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
-integer xfer_mat_print, twiss_out
+integer xfer_mat_print, twiss_out, ix_sec
 
 logical bmad_format, good_opt_only, show_lords, show_custom, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
-logical valid_value, print_floor
+logical valid_value, print_floor, show_section
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -255,6 +258,7 @@ ramt = '(a, f0.3, 2x, 9a)'
 
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
+branch => lat%branch(0)
 
 if (s%global%phase_units == radians$) f_phi = 1
 if (s%global%phase_units == degrees$) f_phi = 180 / pi
@@ -1351,10 +1355,10 @@ case ('hom')
     nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
     do j = 1, size(ele%rf_wake%lr)
       lr => ele%rf_wake%lr(j)
-      angle = '-'
-      if (lr%polarized) write (angle, '(f9.4)') lr%angle
+      angle_str = '-'
+      if (lr%polarized) write (angle_str, '(f9.4)') lr%angle
       nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
-                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle
+                  lr%freq, lr%R_over_Q, lr%Q, lr%m, angle_str
     enddo
     nl=nl+1; lines(nl) = ' '
   enddo
@@ -1823,7 +1827,8 @@ case ('lattice')
 
   if (limited) then
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Note: Since no range is given, the number of elements shown is limited to 200.'
+    nl=nl+1; write (lines(nl), '(a, i0)') &
+          'NOTE: Since no range given, the number of elements shown is first 200 of ', branch%n_ele_track
   endif
 
   deallocate(picked_ele)
@@ -2807,6 +2812,144 @@ case ('variable')
     nl=1; lines(1) = '???'
     result_id = 'variable:?'
   endif
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! wall
+
+case ('wall')
+
+  by_s = .false.
+  ix_sec = -1
+  angle = 0
+  sub_name = ''
+
+  do
+    call tao_next_switch (stuff2, ['-section            ', '-element   ', '-angle    ', '-s        '], &
+              switch, err, ix_s2)
+    if (err) return
+    if (switch == '') exit
+    select case (switch)
+
+    case ('-angle')
+      read (stuff2(1:ix_s2), *, iostat = ios) angle
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ ANGLE.'
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    case ('-branch')
+      branch => pointer_to_branch(stuff2(1:ix_s2), u%model%lat)
+      if (.not. associated(branch)) then
+        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        return
+      endif
+      ix_branch = branch%ix_branch
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    case ('-section')
+      read (stuff2(1:ix_s2), *, iostat = ios) ix_sec
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ SECTION INDEX.'
+        return
+      endif
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
+
+    case ('-s')
+      by_s = .true.
+    end select
+
+  enddo
+
+  !-------
+
+  if (.not. associated(branch%wall3d)) then
+    nl=1; lines(nl) = 'No associated vacuum chamber wall.'
+    result_id = 'wall:none'
+    return
+  endif
+
+  wall => branch%wall3d
+
+  if (ix_sec > 0) then 
+    if (ix_sec > size(wall%section)) then
+      nl=1; write (lines(nl), '(a, i0)') 'Section index larger than number of sections: ', size(wall%section)
+      result_id = 'wall:sec:large'
+      return
+    endif
+
+    wall_sec => wall%section(ix_sec)
+    ele => pointer_to_ele(lat, wall_sec%ix_ele, wall_sec%ix_branch)
+    nl=nl+1; write (lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_to_string(ele)), ')'
+    nl=nl+1; write (lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
+    nl=nl+1; write (lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
+    nl=nl+1; write (lines(nl), '(3(a, f10.6))')  '(x0, y0):  (', wall_sec%x0, ',', wall_sec%y0, ')'
+    if (wall_sec%dr_ds == real_garbage$) then
+      nl=nl+1; write (lines(nl), '(3(a, f10.6))')  'dr_ds:       Not-Set'
+    else
+      nl=nl+1; write (lines(nl), '(3(a, f10.6))')  'dr_ds:      ', wall_sec%dr_ds
+    endif
+
+    do j = 1, size(wall_sec%v)
+      v => wall_sec%v(j)
+      nl=nl+1; write (lines(nl), '(a, i0, a, 5f11.6)') &
+                            'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
+    enddo
+
+    return
+
+  endif
+
+  !-------
+
+  if (by_s) then
+    ix_s2 = index(stuff2, ':')
+    if (ix_s2 == 0) then
+      nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
+      return
+    endif
+    read (stuff2(1:ix_s2-1), *, iostat = ios1) s1
+    read (stuff2(ix_s2+1:), *, iostat = ios2) s2
+    if (ios1 /= 0 .or. ios2 /= 0) then
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      return
+    endif
+
+    call bracket_index (wall%section%s, 1, size(wall%section), s1 - 1d-10, ix1)
+    call bracket_index (wall%section%s, 1, size(wall%section), s2 + 1d-10, ix2)
+    ix1 = ix1 + 1
+
+  elseif (ix_s2 /= 0) then
+    ix_s2 = index(stuff2, ':')
+    if (ix_s2 == 0) then
+      nl=1; lines(nl) = 'NO ":" FOUND FOR RANGE SELECTION'
+      return
+    endif
+    read (stuff2(1:ix_s2-1), *, iostat = ios1) ix1
+    read (stuff2(ix_s2+1:), *, iostat = ios2) ix2
+    if (ios1 /= 0 .or. ios2 /= 0) then
+      nl=1; lines(1) = 'ERROR READING RANGE SELECTION: ' // stuff2
+      return
+    endif
+
+  else
+    ix1 = 1; ix2 = min(200, size(wall%section))
+  endif
+
+  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele      Type   Radius (mm)'
+
+  do i = ix1, ix2
+    wall_sec => wall%section(i)
+    ele => pointer_to_ele (lat, wall_sec%ix_ele, wall_sec%ix_branch)
+    
+    call calc_wall_radius (wall%section(i)%v, cos(angle), sin(angle), r, z)
+    nl=nl+1; write (lines(nl), '(i6, f14.6, a10, a20, a10, f14.3)') i, wall_sec%s, &
+                trim(ele_loc_to_string(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
+  enddo
+
+  nl=nl+1; lines(nl) = '    Ix             S    ix_ele                 Ele      Type   Radius (mm)'
 
   result_id = show_what
 
