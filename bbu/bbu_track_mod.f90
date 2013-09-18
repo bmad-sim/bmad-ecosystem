@@ -42,6 +42,7 @@ end type
 
 type bbu_param_struct
   character(80) :: lat_file_name = 'erl.lat'     ! Bmad lattice file name
+  character(100) :: bunch_by_bunch_info_file = '' ! For outputting bunch-by-bunch info.
   type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
   logical :: write_hom_info = .true.             ! Write HOM parameters to main output file?
@@ -404,6 +405,10 @@ do j = ix_ele_start+1, ix_ele_end
   endif
 
 enddo
+
+! Write info to file if needed
+
+if (bbu_param%bunch_by_bunch_info_file /= '') call write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 ! If the next stage does not have any bunches waiting to go through then the
 ! tracked bunch becomes the head bunch for that stage.
@@ -866,5 +871,25 @@ deallocate (erlmat, erltime)
 
 end subroutine write_homs
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+
+subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
+
+implicit none
+
+type (lat_struct), target :: lat
+type (bbu_beam_struct), target :: bbu_beam
+type (bbu_param_struct) bbu_param
+type (bbu_stage_struct), pointer :: this_stage
+
+integer, save :: iu = 0
+
+!
+
+if (iu == 0) iu = lunget()
+
+end subroutine write_bunch_by_bunch_info
 
 end module
