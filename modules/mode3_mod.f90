@@ -71,15 +71,15 @@ END SUBROUTINE normal_mode3_calc
 !+
 ! Subroutine mode3_PBRH (mat, tune, B, R, H)
 !
-! Parameterizes the eigen-decomposition of the 6x6 transfer matrix into PBRH as defined in:
+! Parameterizes the eigen-decomposition of the 6x6 transfer matrix into HVBP as defined in:
 ! "From the beam-envelop matrix to synchrotron-radiation integrals" by Ohmi, Hirata, and Oide.
 !
-! M = Inverse[V].U.V where U is block diagonal and the blocks are 2x2 rotation matrices.
-! V = P.B.R.H
+! M = N.U.Inverse[N] where U is block diagonal and the blocks are 2x2 rotation matrices.
+! V = H.V.B.P
 ! P has the same free parameters as B
-! B has 6 free parameters (Twiss alphas and betas)
-! R has 4 free parameters (xy, xpy, ypx, and pxpy coupling)
-! H has 8 free parameters (xz, xpz, pxz, pxpz, yz, ypz, pyz, pypz coupling)
+! B "Twiss matrix" has 6 free parameters (Twiss alphas and betas)
+! V "Teng matrix" has 4 free parameters (xy, xpy, ypx, and pxpy coupling)
+! H "Dispersion matrix" has 8 free parameters (xz, xpz, pxz, pxpz, yz, ypz, pyz, pypz coupling)
 ! 
 !
 ! Input:
@@ -88,11 +88,11 @@ END SUBROUTINE normal_mode3_calc
 ! Output:
 !  tune(3)             -- real(rp): Tunes of the 3 normal modes (radians)
 !  B(6,6)              -- real(rp): Block diagonal matrix of Twiss parameters
-!  R(6,6)              -- real(rp): horizontal-vertical coupling information
+!  V(6,6)              -- real(rp): horizontal-vertical coupling information
 !  H(6,6)              -- real(rp): horizontal-longitudinal and vertical-longitudinal coupling information
 !
 !-
-SUBROUTINE mode3_PBRH (mat, tune, B, R, H)
+SUBROUTINE mode3_PBRH (mat, tune, B, V, H)
   USE bmad
 
   IMPLICIT NONE
@@ -112,14 +112,15 @@ SUBROUTINE mode3_PBRH (mat, tune, B, R, H)
   REAL(rp) throwaway_Ninv(6,6)
   REAL(rp) throwaway_gamma(3)
   REAL(rp) a, ax, ay
-  REAL(rp) PcBc(2,2)
+  REAL(rp) BcPc(2,2)
   REAL(rp) Hx(2,2)
   REAL(rp) Hy(2,2)
-  REAL(rp) PBR(6,6)
+  REAL(rp) VBP(6,6)
   REAL(rp) mu
-  REAL(rp) PbBb(2,2)
-  REAL(rp) R2(2,2)
-  REAL(rp) PB(6,6)
+  REAL(rp) BbPb(2,2)
+  REAL(rp) BaPa(2,2)
+  REAL(rp) V2(2,2)
+  REAL(rp) BP(6,6)
   REAL(rp) cospa, sinpa
   REAL(rp) cospb, sinpb
   REAL(rp) cospc, sinpc
@@ -128,48 +129,56 @@ SUBROUTINE mode3_PBRH (mat, tune, B, R, H)
   LOGICAL error
 
   CALL make_N(mat, N, throwaway_Ninv, throwaway_gamma, error, tune, synchrotron_motion)
-  !- for debugging
-  V = dagger6(N)
+  ! WRITE(*,*) "FOO N:"
+  ! DO i=1,6
+  !   WRITE(*,'(6ES14.4)') N(i,:)
+  ! ENDDO
+  ! STOP
+  ! !END FOO
 
-  a = SQRT(determinant(V(5:6,5:6)))
-  PcBc = V(5:6,5:6) / a
-  Hx = dagger2(MATMUL(dagger2(PcBc),V(5:6,1:2)))
-  Hy = dagger2(MATMUL(dagger2(PcBc),V(5:6,3:4)))
-  ax = determinant(Hx)/(1.0d0+a)
-  ay = determinant(Hy)/(1.0d0+a)
+  a = SQRT(ABS(determinant(N(5:6,5:6))))
+  BcPc = N(5:6,5:6) / a
+  Hx = MATMUL(N(1:2,5:6),dagger2(BcPc))
+  Hy = MATMUL(N(3:4,5:6),dagger2(BcPc))
+  ax = determinant(Hx)/(1.0d0+a)  !shorthand
+  ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
   H(1:2,1:2) = (1.0d0-ax)*I2
   H(3:4,3:4) = (1.0d0-ay)*I2
   H(5:6,5:6) = a*I2
-  H(1:2,5:6) = -1.0d0 * Hx
-  H(3:4,5:6) = -1.0d0 * Hy
-  H(5:6,1:2) = dagger2(Hx)
-  H(5:6,3:4) = dagger2(Hy)
+  H(1:2,5:6) = Hx
+  H(3:4,5:6) = Hy
+  H(5:6,1:2) = -1.0d0*dagger2(Hx)
+  H(5:6,3:4) = -1.0d0*dagger2(Hy)
   H(1:2,3:4) = -1.0d0 * MATMUL(Hx,dagger2(Hy)) / (1.0d0 + a)
   H(3:4,1:2) = -1.0d0 * MATMUL(Hy,dagger2(Hx)) / (1.0d0 + a)
 
-  PBR = MATMUL(V,dagger6(H))
+  VBP = MATMUL(dagger6(H),N)
 
-  mu = SQRT(determinant(PBR(1:2,1:2)))
-  PbBb = PBR(3:4,3:4)/mu
-  R2 = MATMUL(dagger2(PbBb),PBR(3:4,1:2))
+  mu = SQRT(ABS(determinant(VBP(1:2,1:2))))
+  BaPa = VBP(1:2,1:2)/mu
+  BbPb = VBP(3:4,3:4)/mu
+  V2 = MATMUL(VBP(1:2,3:4),dagger2(BbPb))
 
-  R = 0.0d0
-  R(1:2,1:2) = mu*I2
-  R(3:4,3:4) = mu*I2
-  R(5:6,5:6) = I2
-  R(1:2,3:4) = -1.0d0 * dagger2(R2)
-  R(3:4,1:2) = R2
+  V = 0.0d0
+  V(1:2,1:2) = mu*I2
+  V(3:4,3:4) = mu*I2
+  V(5:6,5:6) = I2
+  V(1:2,3:4) = V2
+  V(3:4,1:2) = -1.0d0*dagger2(V2)
 
-  PB = MATMUL(PBR,dagger6(R))
+  BP = 0.0d0
+  BP(1:2,1:2) = BaPa
+  BP(3:4,3:4) = BbPb
+  BP(5:6,5:6) = BcPc
 
   !- The following convention for P, puts B (the Twiss matrix) into the form where the upper right element is zero.
-  cospa = 1.0d0 / SQRT(1.0d0 + (PB(1,2)/PB(2,2))**2)
-  sinpa = -1.0d0 * PB(1,2) / PB(2,2) * cospa
-  cospb = 1.0d0 / SQRT(1.0d0 + (PB(3,4)/PB(4,4))**2)
-  sinpb = -1.0d0 * PB(3,4) / PB(4,4) * cospb
-  cospc = 1.0d0 / SQRT(1.0d0 + (PB(5,6)/PB(6,6))**2)
-  sinpc = -1.0d0 * PB(5,6) / PB(6,6) * cospc
+  cospa = 1.0d0 / SQRT(1.0d0 + (BP(1,2)/BP(2,2))**2)
+  sinpa = -1.0d0 * BP(1,2) / BP(2,2) * cospa
+  cospb = 1.0d0 / SQRT(1.0d0 + (BP(3,4)/BP(4,4))**2)
+  sinpb = -1.0d0 * BP(3,4) / BP(4,4) * cospb
+  cospc = 1.0d0 / SQRT(1.0d0 + (BP(5,6)/BP(6,6))**2)
+  sinpc = -1.0d0 * BP(5,6) / BP(6,6) * cospc
   P = 0.0d0
   P(1,1) = cospa
   P(2,2) = cospa
@@ -184,7 +193,7 @@ SUBROUTINE mode3_PBRH (mat, tune, B, R, H)
   P(5,6) = -1.0d0 * sinpc
   P(6,5) = sinpc
 
-  B = MATMUL(dagger6(P),PB)
+  B = MATMUL(BP,dagger6(P))
 END SUBROUTINE mode3_PBRH
 
 !+
