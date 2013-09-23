@@ -1094,6 +1094,13 @@ elements that overlap the superimposed wall are discarded.
 If a branch has a closed geometry (\sref{s:param}), wall sections that
 extend beyound the ends of the branch are ``wrapped'' around.
 
+If a particle is past the last wall cross-section or before the first
+wall cross-section, The following rules are used: If the branch has a
+\vn{closed geometry}, the wall will be interpolated between the last
+and first cross-sections. If the branch has an \vn{open} geometry, the
+wall is taken to have a constant cross-section in these regions.
+
+
 The chamber wall is defined with respect to the local coordinate
 system (\sref{s:ref}). That is, in a bend a wall that has a constant
 cross section is a section of a torus.

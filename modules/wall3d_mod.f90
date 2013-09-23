@@ -661,7 +661,7 @@ integer i, ix_w, n_slice, n_sec
 integer, optional :: ix_section
 
 logical, optional :: err_flag
-logical err, is_branch_wall, wrap
+logical err, is_branch_wall, wrapped
 
 character(32), parameter :: r_name = 'wall3d_d_radius' 
 
@@ -679,6 +679,10 @@ if (.not. associated(wall3d)) return
 s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
 
+! The outward normal vector is discontinuous at the wall points.
+! If the particle is at a wall point, use the correct interval.
+! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
+
 ! Case where particle is outside the wall region. 
 ! In this case wrap if it is a chamber wall with a branch with closed geometry.
 ! Otherwise assume a constant cross-section.
@@ -687,6 +691,8 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
   if (wrap_wall()) then
     sec1 => wall3d%section(n_sec)
     sec2 => wall3d%section(1)
+    if (present(ix_section)) ix_section = n_sec
+    wrapped = .true.
   else
     call d_radius_at_section(wall3d%section(1))
     return
@@ -696,30 +702,32 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
   if (wrap_wall()) then
     sec1 => wall3d%section(n_sec)
     sec2 => wall3d%section(1)
+    if (present(ix_section)) ix_section = n_sec
+    wrapped = .true.
   else
     call d_radius_at_section(wall3d%section(n_sec))
     return
   endif
 
+else
+
+  ! Find the wall points (defined cross-sections) to either side of the particle.
+  ! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
+
+  call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
+  if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+
+  ! sec1 and sec2 are the cross-sections to either side of the particle.
+  ! Calculate the radius values at the cross-sections.
+
+  sec1 => wall3d%section(ix_w)
+  sec2 => wall3d%section(ix_w+1)
+  if (present(ix_section)) ix_section = ix_w
+  wrapped = .false.
+
 endif
 
-! Find the wall points (defined cross-sections) to either side of the particle.
-! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
-
-! The outward normal vector is discontinuous at the wall points.
-! If the particle is at a wall point, use the correct interval.
-! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
-
-call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
-if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
-
-if (present(ix_section)) ix_section = ix_w
-
-! sec1 and sec2 are the cross-sections to either side of the particle.
-! Calculate the radius values at the cross-sections.
-
-sec1 => wall3d%section(ix_w)
-sec2 => wall3d%section(ix_w+1)
+! Crotch
 
 if (sec1%type /= normal$ .and. sec2%type /= normal$) then
 
@@ -896,6 +904,7 @@ else
     return
   endif
 
+  if (wrapped) ds = ds + ele%branch%param%total_length
   s_rel = (s_particle - sec1%s) / ds
 
   x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
