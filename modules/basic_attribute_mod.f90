@@ -1043,6 +1043,7 @@ call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAM
 call init_attribute_name1 (crystal$, darwin_width_sigma$,           'DARWIN_WIDTH_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDTH_PI', dependent$)
 
+call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
 call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPLINE')
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')

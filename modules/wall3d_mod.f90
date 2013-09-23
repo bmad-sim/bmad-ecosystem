@@ -661,7 +661,7 @@ integer i, ix_w, n_slice, n_sec
 integer, optional :: ix_section
 
 logical, optional :: err_flag
-logical err
+logical err, is_branch_wall, wrap
 
 character(32), parameter :: r_name = 'wall3d_d_radius' 
 
@@ -670,7 +670,7 @@ character(32), parameter :: r_name = 'wall3d_d_radius'
 if (present(err_flag)) err_flag = .true.
 d_radius = -1
 
-wall3d => pointer_to_wall3d (ele, dz_offset)
+wall3d => pointer_to_wall3d (ele, dz_offset, is_branch_wall)
 if (.not. associated(wall3d)) return
 
 !------------------
@@ -679,33 +679,28 @@ if (.not. associated(wall3d)) return
 s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
 
-! Case where particle is outside the wall region. No interpolation needed.
+! Case where particle is outside the wall region. 
+! In this case wrap if it is a chamber wall with a branch with closed geometry.
+! Otherwise assume a constant cross-section.
 
-if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0) .or. &
-    s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(n_sec)%s .and. position(6) < 0)) then
-  if (s_particle <= wall3d%section(1)%s) then 
-    sec1 => wall3d%section(1)
-  else
+if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0)) then
+  if (wrap_wall()) then
     sec1 => wall3d%section(n_sec)
-  endif
-
-  x = position(1) - sec1%x0; y = position(3) - sec1%y0
-  r_particle = sqrt(x**2 + y**2)
-  if (r_particle == 0) then
-    cos_theta = 1
-    sin_theta = 0
+    sec2 => wall3d%section(1)
   else
-    cos_theta = x / r_particle
-    sin_theta = y / r_particle
+    call d_radius_at_section(wall3d%section(1))
+    return
   endif
 
-  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-  d_radius = r_particle - r1_wall
-  if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                            [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
-  if (present(origin)) origin = [sec1%x0, sec1%y0, position(5)]
-  if (present(err_flag)) err_flag = .false.
-  return
+elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(n_sec)%s .and. position(6) < 0)) then
+  if (wrap_wall()) then
+    sec1 => wall3d%section(n_sec)
+    sec2 => wall3d%section(1)
+  else
+    call d_radius_at_section(wall3d%section(n_sec))
+    return
+  endif
+
 endif
 
 ! Find the wall points (defined cross-sections) to either side of the particle.
@@ -891,6 +886,16 @@ if (ele%key == patch$) then
 
 else
   ds = sec2%s - sec1%s
+
+  if (ds == 0) then
+    if (position(6) > 0) then
+      call d_radius_at_section(sec1)
+    else
+      call d_radius_at_section(sec2)
+    endif
+    return
+  endif
+
   s_rel = (s_particle - sec1%s) / ds
 
   x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
@@ -937,13 +942,57 @@ endif
 
 if (present(err_flag)) err_flag = .false.
 
+!---------------------------------------------------------------------------
+contains
+
+subroutine d_radius_at_section (this_sec)
+
+type (wall3d_section_struct) this_sec
+
+!
+
+x = position(1) - this_sec%x0; y = position(3) - this_sec%y0
+r_particle = sqrt(x**2 + y**2)
+if (r_particle == 0) then
+  cos_theta = 1
+  sin_theta = 0
+else
+  cos_theta = x / r_particle
+  sin_theta = y / r_particle
+endif
+
+call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+d_radius = r_particle - r1_wall
+if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
+                          [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
+if (present(origin)) origin = [this_sec%x0, this_sec%y0, position(5)]
+if (present(err_flag)) err_flag = .false.
+
+end subroutine d_radius_at_section
+
+!---------------------------------------------------------------------------
+! contains
+
+function wrap_wall() result (yes_wrap)
+
+logical yes_wrap
+
+!
+
+yes_wrap = .false.
+if (.not. is_branch_wall) return
+if (ele%branch%param%geometry == open$) return
+yes_wrap = .true.
+
+end function wrap_wall
+
 end function wall3d_d_radius
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_wall3d (ele, ds_offset) result (wall3d)
+! Function pointer_to_wall3d (ele, ds_offset, is_branch_wall) result (wall3d)
 !
 ! Function to return a pointer to the wall3d structure associated
 ! with a given lattice element. 
@@ -951,15 +1000,16 @@ end function wall3d_d_radius
 ! Note: The wall associated with a the vacuum chamber is the branch%wall3d.
 !
 ! Input:
-!   ele        -- Ele_struct: lattice element.
+!   ele            -- Ele_struct: lattice element.
 !
 ! Output:
-!   wall3d     -- wall3d_struct, pointer: Pointer to the associated wall structure.
-!                   Will be nullified if there is no associated wall.
-!   ds_offset  -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
+!   wall3d         -- wall3d_struct, pointer: Pointer to the associated wall structure.
+!                       Will be nullified if there is no associated wall.
+!   ds_offset      -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
+!   is_branch_wall -- logical, optional: Set True if wall3d points to branch%wall3d.
 !-
 
-function pointer_to_wall3d (ele, ds_offset) result (wall3d)
+function pointer_to_wall3d (ele, ds_offset, is_branch_wall) result (wall3d)
 
 implicit none
 
@@ -969,14 +1019,18 @@ type (ele_struct), target :: ele
 type (wall3d_struct), pointer :: wall3d
 
 real(rp) ds_offset
+logical, optional :: is_branch_wall
 
 ! 
 
 if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. associated (ele%branch)) then
   wall3d => ele%branch%wall3d
   ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
+  if (present(is_branch_wall)) is_branch_wall = .true.
   return
 endif
+
+if (present(is_branch_wall)) is_branch_wall = .false.
 
 wall3d => ele%wall3d
 if (.not. associated(wall3d)) return
