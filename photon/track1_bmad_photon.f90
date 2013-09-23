@@ -64,7 +64,7 @@ if (.not. ele%is_on) key = drift$
 select case (key)
 
 !-----------------------------------------------
-! capillary
+! Capillary
 
 case (capillary$) 
 
@@ -73,7 +73,7 @@ case (capillary$)
   call offset_photon (ele, end_orb, unset$)  
 
 !-----------------------------------------------
-! crystal
+! Crystal
 
 case (crystal$) 
 
@@ -82,16 +82,21 @@ case (crystal$)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
-! drift
+! Drift
  
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
+
+  if (end_orb%vec(6) * end_orb%direction < 0) then  ! Heading backwards
+    end_orb%state = lost_z_aperture$
+    return
+  endif
 
   call offset_photon (ele, end_orb, set$)
   call track_a_drift_photon (end_orb, length)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
-! marker, etc.
+! Marker, etc.
 
 case (marker$, branch$, photon_branch$, floor_shift$, fiducial$)
 
@@ -99,7 +104,7 @@ case (marker$, branch$, photon_branch$, floor_shift$, fiducial$)
   return
 
 !-----------------------------------------------
-! match
+! Match
 
 case (match$)
 
@@ -130,7 +135,7 @@ case (match$)
   end_orb%s = ele%s
 
 !-----------------------------------------------
-! mirror
+! Mirror
 
 case (mirror$)
 
@@ -139,7 +144,7 @@ case (mirror$)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
-! multilayer_mirror
+! Multilayer_Mirror
 
 case (multilayer_mirror$) 
 
@@ -148,7 +153,7 @@ case (multilayer_mirror$)
   call offset_photon (ele, end_orb, unset$)
 
 !-----------------------------------------------
-! patch
+! Patch
 
 case (patch$)
 
@@ -172,6 +177,15 @@ case (patch$)
   end_orb%vec(5) = -r_vec(3)
 
 !-----------------------------------------------
+! Sample
+
+case (sample$)
+
+  call offset_photon (ele, end_orb, set$)
+  call track1_sample (ele, param, end_orb)
+  call offset_photon (ele, end_orb, unset$)
+
+!-----------------------------------------------
 ! Taylor
 
 case (taylor$)
@@ -179,6 +193,18 @@ case (taylor$)
   call track1_taylor (start_orb, ele, param, end_orb)
   end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
   end_orb%s = ele%s
+
+!-----------------------------------------------
+! Not recognized
+
+case default
+
+  if (present(err_flag)) err_flag = .true.
+  call out_io (s_fatal$, r_name, &
+          'BMAD_STANDARD TRACKING_METHOD NOT IMPLMENTED FOR PHOTONS FOR: ' // key_name(ele%key), &
+          'FOR ELEMENT: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  return
 
 end select
 

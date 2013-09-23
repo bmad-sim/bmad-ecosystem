@@ -492,7 +492,7 @@ endif
 if (ix_s /= 0) then
   allocate (ele%surface)
   surf => ele%surface
-  read (d_unit, err = 9360) surf%curvature_xy, surf%has_curvature, surf%grid%type, &
+  read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                             surf%grid%dr, surf%grid%r0, is_alloc
   if (is_alloc) then
     read (d_unit) i, j

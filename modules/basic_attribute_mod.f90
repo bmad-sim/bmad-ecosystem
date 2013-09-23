@@ -301,9 +301,12 @@ do i = 1, n_key$
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
-  if (i == crystal$ .or. i == multilayer_mirror$ .or. i == mirror$) then
+  select case (i)
+  case (crystal$, multilayer_mirror$, mirror$, sample$)
     call init_attribute_name1 (i, surface_attrib$,            'SURFACE')
-    call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
+    if (i /= sample$) then
+      call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
+    endif
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)
     do iy = 0, ubound(surface%curvature_xy, 2)
@@ -314,7 +317,7 @@ do i = 1, n_key$
       call init_attribute_name1 (i, num, word) 
     enddo
     enddo
-  endif
+  end select
 
   select case(i)
   case (monitor$, instrument$, marker$, pipe$)
@@ -410,11 +413,13 @@ do i = 1, n_key$
   if (i == multilayer_mirror$) cycle
   if (i == mirror$)            cycle
   if (i == crystal$)           cycle
+  if (i == sample$)            cycle
 
   if (i /= drift$) call init_attribute_name1 (i, wall_attribute$,         'WALL')
 
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
+  if (i == source$)            cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
@@ -921,6 +926,8 @@ call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_star
 call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
+
+call init_attribute_name1 (sample$, l$,                             'L', dependent$)
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)

@@ -667,71 +667,90 @@ if (attrib_word == 'SURFACE') then
 
   if (.not. expect_this ('={', .true., .true., 'AFTER "SURFACE"')) return
 
-  ! Expect "GRID ={"
+  surface_loop: do
 
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-  if (word /= 'GRID') then 
-    call parser_error ('UNKNOWN SURFACE COMPONENT: ' // word2, 'FOR: ' // ele%name)
-    return
-  endif
+    ! Expect "GRID ={" or "TYPE ="
 
-  if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"')) return
-
-  do
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-    if (word /= 'PT') then
-      if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT')) return
-    endif
 
     select case (word)
-    case ('DR')
-      if (.not. parse_real_list (trim(ele%name) // ' GRID DR', ele%surface%grid%dr, .true.)) return
 
-    case ('R0')
-      if (.not. parse_real_list (trim(ele%name) // ' GRID R0', ele%surface%grid%r0, .true.)) return
+    case ('GRID')
 
-    case ('PT_MAX')
-      if (.not. parse_integer_list (trim(ele%name) // ' GRID R0', i_vec, .true.)) return
-      if (any(i_vec < 0)) then
-        call parser_error ('SURFACE PT_MAX VALUE IS NEGATIVE', trim(ele%name))
-        return
-      endif
-      if (allocated (ele%surface%grid%pt)) deallocate (ele%surface%grid%pt)
-      allocate (ele%surface%grid%pt(0:i_vec(1), 0:i_vec(2)))
+      if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"')) return
 
-    case ('PT')
-      bp_com%parse_line = delim // bp_com%parse_line
-      if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', i_vec, .true.)) return
-      if (.not. allocated(ele%surface%grid%pt)) then
-        call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
-        return
-      endif
-      if (any(i_vec < 0) .or. any(i_vec > ubound(ele%surface%grid%pt))) then
-        call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
-        return
-      endif
-      if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
-      if (.not. parse_real_list (trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
-      ele%surface%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+      do
+        call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+        if (word /= 'PT') then
+          if (.not. expect_this ('=', .true., .false., 'AFTER ' // trim(word) // ' IN SURFACE CONSTRUCT')) return
+        endif
+
+        select case (word)
+        case ('DR')
+          if (.not. parse_real_list (trim(ele%name) // ' GRID DR', ele%surface%grid%dr, .true.)) return
+
+        case ('R0')
+          if (.not. parse_real_list (trim(ele%name) // ' GRID R0', ele%surface%grid%r0, .true.)) return
+
+        case ('PT_MAX')
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID R0', i_vec, .true.)) return
+          if (any(i_vec < 0)) then
+            call parser_error ('SURFACE PT_MAX VALUE IS NEGATIVE', trim(ele%name))
+            return
+          endif
+          if (allocated (ele%surface%grid%pt)) deallocate (ele%surface%grid%pt)
+          allocate (ele%surface%grid%pt(0:i_vec(1), 0:i_vec(2)))
+
+        case ('PT')
+          bp_com%parse_line = delim // bp_com%parse_line
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', i_vec, .true.)) return
+          if (.not. allocated(ele%surface%grid%pt)) then
+            call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
+            return
+          endif
+          if (any(i_vec < 0) .or. any(i_vec > ubound(ele%surface%grid%pt))) then
+            call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
+            return
+          endif
+          if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
+          if (.not. parse_real_list (trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
+          ele%surface%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+
+        case ('TYPE')
+          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ele%surface%grid%type, err_flag2)
+          if (err_flag2) return
+          bp_com%parse_line = delim // bp_com%parse_line
+
+        case default
+          call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+          return
+        end select
+
+        if (.not. expect_either (',}', .false.)) return
+        if (delim == '}') then
+          if (.not. expect_either (',}', .false.)) return
+          exit
+        endif
+
+      enddo
 
     case ('TYPE')
-      call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ele%surface%grid%type, err_flag2)
+      call get_switch ('SURFACE TYPE', surface_type_name(1:), ele%surface%type, err_flag2)
       if (err_flag2) return
-      bp_com%parse_line = delim // bp_com%parse_line
 
     case default
-      call parser_error ('GRID COMPONENT NOT RECOGNIZED: ' // word, 'FOR ELEMENT: ' // ele%name)
+      call parser_error ('UNKNOWN SURFACE COMPONENT: ' // word2, 'FOR: ' // ele%name)
       return
     end select
 
-    if (.not. expect_either (',}', .false.)) return
     if (delim == '}') exit
-  enddo
 
-  if (.not. expect_this ('}', .false., .false., 'BAD DELIMITOR FOR ELEMENT: ' // ele%name)) return
+  enddo surface_loop
+
   if (.not. expect_either(', ', .false.)) return
   err_flag = .false.
   return
+
 endif
 
 !-------------------------------
@@ -1508,7 +1527,7 @@ logical err
 
 !
 
-call get_next_word (word, ix_word, ':,=()', delim, delim_found, .true.)
+call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
 call match_word (word, name_list, this_switch, can_abbreviate = .false.)
 if (this_switch < 1) then
   call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)

@@ -57,15 +57,16 @@ particle and photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}      & {\it Section}         & {\it Element}       & {\it Section}      \HH
-  Branch             & \ref{s:branch}        &  Instrument         & \ref{s:monitor}    \HH
-  Capillary          & \ref{s:capillary}     &  Marker             & \ref{s:mark}       \HH
-  Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \HH
-  Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \HH 
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Mirror             & \ref{s:mirror}     \HH
-  Drift              & \ref{s:drift}         &  Multilayer_Mirror  & \ref{s:multilayer} \HH
-  Fiducial           & \ref{s:fiducial}      &  Patch              & \ref{s:patch}      \HH
-  Floor_Shift        & \ref{s:floor.ele}     &  Photon_Branch      & \ref{s:branch}     \HH
-  Init_Ele           & \ref{s:init.ele}      &  Pipe               & \ref{s:monitor}    \HH
+  Branch             & \ref{s:branch}        &  Marker             & \ref{s:mark}       \HH
+  Capillary          & \ref{s:capillary}     &  Match              & \ref{s:match}      \HH
+  Crystal            & \ref{s:crystal}       &  Monitor            & \ref{s:monitor}    \HH 
+  Custom             & \ref{s:custom}        &  Mirror             & \ref{s:mirror}     \HH
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror  & \ref{s:multilayer} \HH
+  Drift              & \ref{s:drift}         &  Patch              & \ref{s:patch}      \HH
+  Fiducial           & \ref{s:fiducial}      &  Photon_Branch      & \ref{s:branch}     \HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \HH
+  Init_Ele           & \ref{s:init.ele}      &  Sample             & \ref{s:sample}     \HH 
+  Instrument         & \ref{s:monitor}       &  Source             & \ref{s:source}     \HH
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons.}
@@ -2748,6 +2749,28 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Sample}
+\label{s:sample}
+\index{sample|hyperbf}
+
+A \vn{sample} element is used to simulate a material sample which is illuminated by x-rays.
+
+General \vn{sample} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+This element is in development.
+
+%-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
 \index{sextupole|hyperbf}
@@ -2865,6 +2888,28 @@ Example:
 \begin{example}
   sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy]
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Source}
+\label{s:source}
+\index{source|hyperbf}
+
+A \vn{source} element is used to simulate an x-ray source.
+
+General \vn{source} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+This element is in development.
 
 %-----------------------------------------------------------------
 \section{Taylor}
