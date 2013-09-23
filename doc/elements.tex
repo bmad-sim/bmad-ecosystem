@@ -747,6 +747,11 @@ constant of critical angle * energy is given by the \vn{critical_angle_factor}.
 The inside wall of a capillary is defined using the same syntax used
 to define the chamber wall for other elements (\sref{s:wall}).
 
+The length of the capillary is a dependent variable and is given by
+the value of \vn{s} of the last wall cross-section
+(\sref{s:wall.capillary}).
+
+
 %-----------------------------------------------------------------
 \section{Collimators: Ecollimator and Rcollimator} 
 \label{s:col}
@@ -2760,10 +2765,11 @@ General \vn{sample} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Aperture Limits            & \ref{s:limit}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \HH 
+  Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:s.curve} \HH
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+  Length                     & \ref{s:l}         &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
