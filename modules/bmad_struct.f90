@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 129
+integer, parameter :: bmad_inc_version$ = 130
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -152,6 +152,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
   real(rp) :: charge = 0          ! macro charge (Coul).
+  real(rp) :: path_len = 0        ! path length (used by coherent photons).
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
   real(rp) :: beta = -1           ! Velocity / c_light.
@@ -421,11 +422,17 @@ end type
 ! Main surface container structure
 
 type photon_surface_struct
+  integer :: type = value_not_set$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
-  logical :: has_curvature = .false.
+  logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
 end type
+
+! Surface types
+
+integer, parameter :: isotropic_emission$ = 1
+character(20), parameter :: surface_type_name(0:1) = ['Not_Set.          ', 'Isotropic_Emission']
 
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
@@ -660,8 +667,8 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52
-
-integer, parameter :: n_key$ = 52
+integer, parameter :: source$ = 53, sample$ = 54
+integer, parameter :: n_key$ = 54
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -678,7 +685,8 @@ character(40), parameter :: key_name(n_key$) = [ &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
-    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE']
+    'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
+    'SOURCE           ', 'SAMPLE           ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

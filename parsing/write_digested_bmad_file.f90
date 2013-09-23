@@ -393,7 +393,7 @@ endif
 
 surf => ele%surface
 if (associated(surf)) then
-  write (d_unit) surf%curvature_xy, surf%has_curvature, surf%grid%type, &
+  write (d_unit) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, allocated(surf%grid%pt)
   if (allocated(surf%grid%pt)) then
     write (d_unit) ubound(surf%grid%pt)

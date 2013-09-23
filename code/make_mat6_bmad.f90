@@ -191,7 +191,7 @@ case (beambeam$)
 !--------------------------------------------------------
 ! Crystal
 
-case (crystal$)
+case (crystal$, sample$, source$)
 
   ! Not yet implemented
 

@@ -106,6 +106,11 @@ case (rfcavity$)
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = 0
 
+case (sample$)
+  ele%aperture_at = surface$
+  if (.not. associated(ele%surface)) allocate(ele%surface)
+  ele%surface = photon_surface_struct()
+
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 

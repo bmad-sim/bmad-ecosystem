@@ -113,6 +113,77 @@ end subroutine diffraction_plate_hit_spot
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Subroutine track1_sample (ele, param, orbit)
+!
+! Routine to track reflection from a sample element.
+!
+! Input:
+!   ele      -- ele_struct: Element tracking through.
+!   param    -- lat_param_struct: lattice parameters.
+!   orbit    -- Coord_struct: phase-space coords to be transformed
+!
+! Output:
+!   orbit    -- Coord_struct: final phase-space coords
+!-
+
+subroutine track1_sample (ele, param, orbit)
+
+implicit none
+
+type (ele_struct), target:: ele
+type (coord_struct), target:: orbit
+type (lat_param_struct) :: param
+
+real(rp) wavelength, r(2), phi, y, rad
+real(rp), pointer :: val(:)
+
+character(*), parameter :: r_name = 'track1_sample'
+
+!
+
+val => ele%value
+wavelength = c_light * h_planck / orbit%p0c
+
+call to_surface_coords (ele, orbit)
+if (orbit%state /= alive$) return
+
+! Check aperture
+
+if (ele%aperture_at == surface$) then
+  call check_aperture_limit (orbit, ele, surface$, param)
+  if (orbit%state /= alive$) return
+endif
+
+! Reflect 
+
+select case (ele%surface%type)
+case (isotropic_emission$)
+
+  call ran_uniform(r)
+  y = 2 * r(1) - 1
+  phi = pi * (r(2) - 0.5_rp)
+  rad = sqrt(1 - y**2)
+  orbit%vec(2:6:2) = [rad * sin(phi), y, -rad * cos(phi)]
+
+  orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
+
+case default
+  call out_io (s_error$, r_name, 'SURFACE TYPE NOT SET.')
+  orbit%state = lost$
+end select
+
+! Rotate back to uncurved element coords
+
+if (ele%surface%has_curvature) then
+  call rotate_for_curved_surface (ele, orbit, unset$)
+endif
+
+end subroutine track1_sample
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track1_mirror (ele, param, orbit)
 !
 ! Routine to track reflection from a mirror.
@@ -137,7 +208,7 @@ type (lat_param_struct) :: param
 real(rp) wavelength
 real(rp), pointer :: val(:)
 
-character(32), parameter :: r_name = 'track1_mirror'
+character(*), parameter :: r_name = 'track1_mirror'
 
 !
 
@@ -197,7 +268,7 @@ real(rp), pointer :: val(:)
 
 complex(rp) zero, xi_1, xi_2, kz1, kz2, c1, c2
 
-character(32), parameter :: r_name = 'track1_multilayer_mirror'
+character(*), parameter :: r_name = 'track1_multilayer_mirror'
 
 !
 

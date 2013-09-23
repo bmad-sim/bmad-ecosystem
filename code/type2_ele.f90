@@ -41,7 +41,7 @@
 !   type_wall         -- Logical, optional: If True then print wall info. Default is False.
 !
 ! Output       
-!   lines(:)     -- Character(100), allocatable :: Character array to hold the 
+!   lines(:)     -- Character(200), allocatable :: Character array to hold the 
 !                     output. The array size of lines(:) will be set by
 !                     this subroutine.
 !   n_lines      -- Number of lines in lines(:).
@@ -66,6 +66,7 @@ type (rf_wake_lr_struct), pointer :: lr
 type (rf_wake_sr_table_struct), pointer :: sr_table
 type (rf_wake_sr_mode_struct), pointer :: sr_m
 type (em_field_mode_struct), pointer :: rfm
+type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (photon_surface_struct), pointer :: s
@@ -85,6 +86,7 @@ real(rp), pointer :: r_ptr
 character(*), allocatable :: lines(:)
 character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
+character(40) str1, str2, str3
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str, fmt
 character(12) val_str
 character(8) angle, index_str
@@ -354,48 +356,6 @@ if (associated(ele%wig)) then
   endif
 endif
 
-! wall3d cross-sections.
-! Do not print more than 100 sections.
-
-if (associated(ele%wall3d)) then
-  nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(ele%wall3d%section)
-  if (logic_option(.false., type_wall)) then
-    nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(ele%wall3d%ele_anchor_pt)
-    select case (ele%key)
-    case (capillary$)
-    case (diffraction_plate$)
-      nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', ele%wall3d%thickness
-      nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(ele%wall3d%clear_material), '"'
-      nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(ele%wall3d%opaque_material), '"'
-    case default
-      nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', ele%wall3d%superimpose
-    end select
-    n = min(size(ele%wall3d%section), 100)
-    do i = 1, n
-      call re_associate (li, nl+100, .false.) 
-      section => ele%wall3d%section(i)
-      if (section%dr_ds == real_garbage$) then
-        nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a)') &
-              'Wall%Section(', i, '):  S =', section%s, ',  dr_ds = Not-set'
-      else
-        nl=nl+1; write (li(nl), '(a, i0, a, f10.6, a, es12.4)') &
-              'Wall%Section(', i, '):  S =', section%s, ',  dr_ds =', section%dr_ds
-      endif
-      nl=nl+1; write (li(nl), '(3(a, f10.6))') '(x0, y0) = (', section%x0, ',', section%y0, ')'
-      if (ele%key /= capillary$) then
-        nl=nl+1; write (li(nl), '(4x, 2a)') 'Type = ', trim(wall3d_section_type_name(section%type))
-      endif
-      do j = 1, size(section%v)
-        v => section%v(j)
-        nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
-                              'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
-      enddo
-    enddo
-  endif
-elseif (logic_option(.false., type_wall)) then
-  nl=nl+1; write (li(nl), '(a)') 'No associated Wall.'
-endif
-
 ! Encode methods, etc.
 
 nl=nl+1; write (li(nl), *) ' '
@@ -468,6 +428,55 @@ if (attribute_index(ele, 'CSR_CALC_ON') /= 0) then
   nl=nl+1; write (li(nl), fmt_l) 'CSR_CALC_ON', '=', ele%csr_calc_on
 endif
 
+! wall3d cross-sections.
+! Do not print more than 100 sections.
+
+wall3d => ele%wall3d
+if (associated(wall3d)) then
+  nl=nl+1; write (li(nl), '(a, i5)') ''
+  nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(wall3d%section)
+  nl=nl+1; write (li(nl), '(a, 2f11.5)') 'Wall region:',  wall3d%section(1)%s, wall3d%section(size(wall3d%section))%s
+  if (logic_option(.false., type_wall)) then
+    nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(wall3d%ele_anchor_pt)
+    select case (ele%key)
+    case (capillary$)
+    case (diffraction_plate$)
+      nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', wall3d%thickness
+      nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(wall3d%clear_material), '"'
+      nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(wall3d%opaque_material), '"'
+    case default
+      nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', wall3d%superimpose
+    end select
+    n = min(size(wall3d%section), 100)
+    do i = 1, n
+      call re_associate (li, nl+100, .false.) 
+      section => wall3d%section(i)
+      if (section%dr_ds == real_garbage$) then
+        write (str1, '(a)')        ',  dr_ds = Not-set'
+      else
+        write (str1, '(a, f10.6)') ',  dr_ds =', section%dr_ds
+      endif
+      str2 = ''
+      if (ele%key /= capillary$) then
+        write (str2, '(2a)') ',   Type = ', trim(wall3d_section_type_name(section%type))
+      endif
+
+      nl=nl+1; write (li(nl), '(a, i0, a, f10.6, 2a, 2(f11.6, a), a)') &
+                  'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   (x0, y0) = (', &
+                  section%x0, ',', section%y0, ')', trim(str2)
+
+
+      do j = 1, size(section%v)
+        v => section%v(j)
+        nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
+                              'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
+      enddo
+    enddo
+  endif
+elseif (logic_option(.false., type_wall)) then
+  nl=nl+1; write (li(nl), '(a)') 'No associated Wall.'
+endif
+
 ! surface info
 
 s => ele%surface
@@ -485,7 +494,8 @@ if (associated(s)) then
   else
     nl=nl+1; li(nl) = '    No Curvature'
   endif
-  nl=nl+1; write (li(nl), '(4x, 2a)') 'Grid type: ', surface_grid_type_name(s%grid%type)
+  nl=nl+1; write (li(nl), '(4x, 2a)') 'Surface type: ', surface_type_name(s%grid%type)
+  nl=nl+1; write (li(nl), '(4x, 2a)') 'Grid type:    ', surface_grid_type_name(s%grid%type)
   if (s%grid%type /= off$) then
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', s%grid%dr
     if (allocated(s%grid%pt)) then

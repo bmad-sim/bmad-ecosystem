@@ -1153,6 +1153,13 @@ s = wall%section(1)%s + s_ref
 if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
 call bracket_index (sp%s, 1, n_wall, s, ixw)
 
+if (ixw > 1 .and. ixw < n_wall) then
+  if (sp(ixw-1)%ele%ix_ele == sp(ixw+1)%ele%ix_ele) then
+    call print_overlap_error (section_ptr_struct(wall%section(1), ele, s), sp(ixw+1))
+    return
+  endif
+endif
+
 ! Move existing sections if needed to make room for the sections of wall_ele.
 
 if (ixw < n_wall) then
@@ -1183,11 +1190,7 @@ if (n < n_wall) then
       sp(n)%s = sp(n+1)%s
       sp(n+1)%s = s
     else
-      call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
-           'ELEMENT: ' // trim(sp(n)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
-           'AND ELEMENT: ' // trim(sp(n+1)%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
-           i_array = [sp(n)%ele%ix_ele, sp(n+1)%ele%ix_ele], r_array = [sp(n)%s, sp(n+1)%s])
-      err = .true.
+      call print_overlap_error (sp(n), sp(n+1))
       return
     endif
   endif
@@ -1206,6 +1209,23 @@ if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
 endif
 
 end subroutine add_in_ele_wall_sections
+
+!-----------------------------------------------------------------------------------------------
+! contains
+
+subroutine print_overlap_error (sp1, sp2)
+
+type (section_ptr_struct) sp1, sp2
+
+!
+
+call out_io (s_error$, r_name, 'WALLS OVERLAP LONGITUDINALLY BETWEEN', &
+           'ELEMENT: ' // trim(sp1%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
+           'AND ELEMENT: ' // trim(sp2%ele%name) // ' (\i0\) Section S = \f14.6\ ', &
+           i_array = [sp1%ele%ix_ele, sp2%ele%ix_ele], r_array = [sp1%s, sp2%s])
+err = .true.
+
+end subroutine print_overlap_error
 
 !-----------------------------------------------------------------------------------------------
 ! contains

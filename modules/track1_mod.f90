@@ -297,17 +297,18 @@ subroutine track_a_drift_photon (orb, length)
 implicit none
 
 type (coord_struct) orb
-type (lat_param_struct) param
-real(rp) length, rel_pc, dz, px, py, pxy2
+real(rp) length, dpath
 
 ! Photon tracking uses a different coordinate system. 
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
 
-orb%vec(1) = orb%vec(1) + length * orb%vec(2) / orb%vec(6)
-orb%vec(3) = orb%vec(3) + length * orb%vec(4) / orb%vec(6)
+dpath = length / orb%vec(6)
+orb%vec(1) = orb%vec(1) + dpath * orb%vec(2)
+orb%vec(3) = orb%vec(3) + dpath * orb%vec(4)
 orb%vec(5) = orb%vec(5) + length
 orb%s      = orb%s      + length
-orb%t = orb%t + length * orb%vec(6) / c_light
+orb%t = orb%t + dpath / c_light
+orb%path_len = orb%path_len + dpath
 
 end subroutine track_a_drift_photon
 
