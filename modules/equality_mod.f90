@@ -57,6 +57,8 @@ is_eq = is_eq .and. all(f1%phase == f2%phase)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%charge == f2%charge)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%path_len == f2%path_len)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%p0c == f2%p0c)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%beta == f2%beta)
@@ -788,6 +790,8 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
