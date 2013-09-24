@@ -114,19 +114,21 @@ enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%charge = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%p0c = rhs
+rhs = 8 + offset; F%path_len = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%beta = rhs
+rhs = 9 + offset; F%p0c = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%beta = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%ix_ele = rhs
+rhs = 11 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%state = rhs
+rhs = 12 + offset; F%state = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%direction = rhs
+rhs = 13 + offset; F%direction = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%species = rhs
+rhs = 14 + offset; F%species = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%location = rhs
+rhs = 15 + offset; F%location = rhs
 
 end subroutine set_coord_test_pattern
 
@@ -2640,6 +2642,8 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -2647,11 +2651,11 @@ call set_segmented_surface_test_pattern (F%segment, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%curvature_xy,1); lb1 = lbound(F%curvature_xy,1) - 1
 do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 3 + offset
+  rhs = 100 + jd1 + 10*jd2 + 4 + offset
   F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 4 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 

@@ -167,21 +167,22 @@ extern "C" void coord_to_c (const Bmad_coord_class*, CPP_coord&);
 
 // c_side.to_f2_arg
 extern "C" void coord_to_f2 (Bmad_coord_class*, c_RealArr, c_Real&, c_Real&, c_ComplexArr,
-    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&);
+    c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_Int&);
 
 extern "C" void coord_to_f (const CPP_coord& C, Bmad_coord_class* F) {
 
   // c_side.to_f2_call
-  coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge, C.p0c,
-      C.beta, C.ix_ele, C.state, C.direction, C.species, C.location);
+  coord_to_f2 (F, &C.vec[0], C.s, C.t, &C.spin[0], &C.field[0], &C.phase[0], C.charge,
+      C.path_len, C.p0c, C.beta, C.ix_ele, C.state, C.direction, C.species, C.location);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real& z_t,
-    c_ComplexArr z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real& z_p0c,
-    c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int& z_direction, c_Int& z_species,
-    c_Int& z_location) {
+    c_ComplexArr z_spin, c_RealArr z_field, c_RealArr z_phase, c_Real& z_charge, c_Real&
+    z_path_len, c_Real& z_p0c, c_Real& z_beta, c_Int& z_ix_ele, c_Int& z_state, c_Int&
+    z_direction, c_Int& z_species, c_Int& z_location) {
 
   // c_side.to_c2_set[real, 1, NOT]
   C.vec << z_vec;
@@ -197,6 +198,8 @@ extern "C" void coord_to_c2 (CPP_coord& C, c_RealArr z_vec, c_Real& z_s, c_Real&
   C.phase << z_phase;
   // c_side.to_c2_set[real, 0, NOT]
   C.charge = z_charge;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.path_len = z_path_len;
   // c_side.to_c2_set[real, 0, NOT]
   C.p0c = z_p0c;
   // c_side.to_c2_set[real, 0, NOT]
@@ -1210,23 +1213,25 @@ extern "C" void segmented_surface_to_c2 (CPP_segmented_surface& C, c_Int& z_ix, 
 extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
 
 // c_side.to_f2_arg
-extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, const CPP_surface_grid&,
-    const CPP_segmented_surface&, c_RealArr, c_Bool&);
+extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_Int&, const
+    CPP_surface_grid&, const CPP_segmented_surface&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.grid, C.segment, z_curvature_xy, C.has_curvature);
+  photon_surface_to_f2 (F, C.type, C.grid, C.segment, z_curvature_xy, C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Bmad_surface_grid_class*
-    z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr z_curvature_xy, c_Bool&
-    z_has_curvature) {
+extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, const
+    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr
+    z_curvature_xy, c_Bool& z_has_curvature) {
 
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
   // c_side.to_c2_set[type, 0, NOT]
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]

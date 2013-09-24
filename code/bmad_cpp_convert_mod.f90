@@ -496,14 +496,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_p0c, &
-      z_beta, z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
+  subroutine coord_to_c2 (C, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_path_len, &
+      z_p0c, z_beta, z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_spin(*)
-    real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_p0c
-    real(c_double) :: z_beta
+    real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_path_len
+    real(c_double) :: z_p0c, z_beta
     integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
   end subroutine
 end interface
@@ -521,8 +521,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 2), fvec2vec(F%field, 2), &
-    fvec2vec(F%phase, 2), F%charge, F%p0c, F%beta, F%ix_ele, F%state, F%direction, F%species, &
-    F%location)
+    fvec2vec(F%phase, 2), F%charge, F%path_len, F%p0c, F%beta, F%ix_ele, F%state, F%direction, &
+    F%species, F%location)
 
 end subroutine coord_to_c
 
@@ -542,8 +542,8 @@ end subroutine coord_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine coord_to_f2 (Fp, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_p0c, z_beta, &
-    z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
+subroutine coord_to_f2 (Fp, z_vec, z_s, z_t, z_spin, z_field, z_phase, z_charge, z_path_len, &
+    z_p0c, z_beta, z_ix_ele, z_state, z_direction, z_species, z_location) bind(c)
 
 
 implicit none
@@ -553,8 +553,8 @@ type(coord_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 complex(c_double_complex) :: z_spin(*)
-real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_p0c
-real(c_double) :: z_beta
+real(c_double) :: z_vec(*), z_s, z_t, z_field(*), z_phase(*), z_charge, z_path_len
+real(c_double) :: z_p0c, z_beta
 integer(c_int) :: z_ix_ele, z_state, z_direction, z_species, z_location
 
 call c_f_pointer (Fp, F)
@@ -573,6 +573,8 @@ F%field = z_field(1:2)
 F%phase = z_phase(1:2)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%charge = z_charge
+!! f_side.to_f2_trans[real, 0, NOT]
+F%path_len = z_path_len
 !! f_side.to_f2_trans[real, 0, NOT]
 F%p0c = z_p0c
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -3100,14 +3102,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
-      bind(c)
+  subroutine photon_surface_to_c2 (C, z_type, z_grid, z_segment, z_curvature_xy, &
+      z_has_curvature) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_has_curvature
     type(c_ptr), value :: z_grid, z_segment
     real(c_double) :: z_curvature_xy(*)
+    integer(c_int) :: z_type
   end subroutine
 end interface
 
@@ -3123,8 +3126,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, 7*7), &
-    c_logic(F%has_curvature))
+call photon_surface_to_c2 (C, F%type, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, &
+    7*7), c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
 
@@ -3144,8 +3147,8 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
-    bind(c)
+subroutine photon_surface_to_f2 (Fp, z_type, z_grid, z_segment, z_curvature_xy, &
+    z_has_curvature) bind(c)
 
 
 implicit none
@@ -3157,9 +3160,12 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 logical(c_bool) :: z_has_curvature
 type(c_ptr), value :: z_grid, z_segment
 real(c_double) :: z_curvature_xy(*)
+integer(c_int) :: z_type
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]

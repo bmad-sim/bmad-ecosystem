@@ -2,7 +2,7 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 129;
+  const int BMAD_INC_VERSION = 130;
   const int NUM_ELE_ATTRIB = 70;
   const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
@@ -27,6 +27,7 @@ namespace Bmad {
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8;
   const int SEGMENTED = 2, H_MISALIGN = 3;
+  const int ISOTROPIC_EMISSION = 1;
   const int OPAL = 1, IMPACTT = 2;
   const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4;
   const int SEXTUPOLE = 5, OVERLAY = 6, CUSTOM = 7, TAYLOR = 8;
@@ -46,7 +47,8 @@ namespace Bmad {
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
   const int UNDULATOR = 51, DIFFRACTION_PLATE = 52;
-  const int N_KEY = 52;
+  const int SOURCE = 53, SAMPLE = 54;
+  const int N_KEY = 54;
   const int N_PART = 2, TAYLOR_ORDER = 3, PARTICLE = 14;
   const int GEOMETRY = 15, LATTICE_TYPE = 16, SYMMETRY = 6;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
@@ -237,6 +239,7 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 20;
   const int NOT_SET = -999;
+  const int VALUE_NOT_SET = 0;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;

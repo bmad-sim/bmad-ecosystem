@@ -81,6 +81,7 @@ bool operator== (const CPP_coord& x, const CPP_coord& y) {
   is_eq = is_eq && is_all_equal(x.field, y.field);
   is_eq = is_eq && is_all_equal(x.phase, y.phase);
   is_eq = is_eq && (x.charge == y.charge);
+  is_eq = is_eq && (x.path_len == y.path_len);
   is_eq = is_eq && (x.p0c == y.p0c);
   is_eq = is_eq && (x.beta == y.beta);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
@@ -478,6 +479,7 @@ template bool is_all_equal (const CPP_segmented_surface_MATRIX&, const CPP_segme
 
 bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.segment == y.segment);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);

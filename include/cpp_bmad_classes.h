@@ -321,6 +321,7 @@ public:
   Real_ARRAY field;
   Real_ARRAY phase;
   Real charge;
+  Real path_len;
   Real p0c;
   Real beta;
   Int ix_ele;
@@ -337,6 +338,7 @@ public:
     field(0.0, 2),
     phase(0.0, 2),
     charge(0.0),
+    path_len(0.0),
     p0c(0.0),
     beta(-1),
     ix_ele(-1),
@@ -1166,12 +1168,14 @@ class Bmad_photon_surface_class {};  // Opaque class for pointers to correspondi
 
 class CPP_photon_surface {
 public:
+  Int type;
   CPP_surface_grid grid;
   CPP_segmented_surface segment;
   Real_MATRIX curvature_xy;
   Bool has_curvature;
 
   CPP_photon_surface() :
+    type(Bmad::VALUE_NOT_SET),
     grid(),
     segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),

@@ -45,25 +45,28 @@ void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
   rhs = 7 + offset; C.charge = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.p0c = rhs;
+  rhs = 8 + offset; C.path_len = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.beta = rhs;
+  rhs = 9 + offset; C.p0c = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.beta = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.ix_ele = rhs;
+  rhs = 11 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.state = rhs;
+  rhs = 12 + offset; C.state = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.direction = rhs;
+  rhs = 13 + offset; C.direction = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.species = rhs;
+  rhs = 14 + offset; C.species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 14 + offset; C.location = rhs;
+  rhs = 15 + offset; C.location = rhs;
 
 
 }
@@ -1750,6 +1753,9 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.type = rhs;
+
   // c_side.test_pat[type, 0, NOT]
   set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
 
@@ -1758,9 +1764,9 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
 
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.curvature_xy[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.curvature_xy[i][j] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 4 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
