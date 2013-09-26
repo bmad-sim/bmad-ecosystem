@@ -1,6 +1,7 @@
-!!no_digested
+no_digested
 
- c: crystal, surface = {
+c: crystal, surface = {
+      type = isotropic_emission,
       grid = {
         dr = (1, 2),
         r0 = (3,4), 
@@ -11,6 +12,11 @@
       } }
 
 
+cap: capillary, wall = {
+  section = {s = 0, v(1) = {1, 1}},
+  section = {s = 1, v(1) = {1, 1}}}
+
+
  B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
  B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
  B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! RHO = 140.6264
@@ -18,7 +24,7 @@
  B06: RBEND, L = 3.287171, ANGLE = 0.037400530 ! RHO =  87.8915
  B07: SBEND, L = 3.177222, ANGLE = 0.091254660 ! RHO =  34.81718
  B08: SBEND, L = 6.575289, ANGLE = 0.112200220, E1=0.02805, E2=0.02805 ! 58.60
- 
+
 IP_L0: MARKER 
 DET_00W: MARKER, ALIAS = "0W" 
 Q00W: QUAD, L =  1.524800, ALIAS = "Q00W" 
@@ -55,7 +61,11 @@ b*[k1] = 1
 sextupole::cc[k2] = 3
 
 ll: line = (aa, aa, bb, bb, cc)
-use, ll
+use, ll, pp
+
+pp: line = (cap)
+pp[E_tot] = 1e4
+pp[particle] = photon
 
 expand_lattice
 
