@@ -811,9 +811,9 @@ integer nv
 
 !
 
-read (d_unit, iostat = ios) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, &
-                   sec%type
+read (d_unit, iostat = ios) sec%type, sec%material, sec%thickness, sec%s, sec%x0, sec%y0, &
+                   sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, &
+                   sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, sec%type
 if (ios /= 0) then
   if (global_com%type_out) then
      call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &

@@ -11,20 +11,20 @@ use bmad_struct
 use bmad_interface
 use spline_mod
 
-type photon_init_h_angle_spline_struct
+type photon_init_x_angle_spline_struct
   type (spline_struct), allocatable :: prob(:), pl(:), pc(:), pl45(:)
 end type
 
-type photon_init_v_angle_spline_struct
+type photon_init_y_angle_spline_struct
   type (spline_struct), allocatable :: prob(:), pl(:), pc(:), pl45(:)
-  type (photon_init_h_angle_spline_struct), allocatable :: h_angle(:)
+  type (photon_init_x_angle_spline_struct), allocatable :: x_angle(:)
 end type
 
 type photon_init_splines_struct
   character(16) source_type                ! 'bend', 'wiggler', 'undulator'
-  integer spline_space_dimensions          ! Dimensions: [energy, v_angle, h_angle, x, y]
+  integer spline_space_dimensions          ! Dimensions: [energy, y_angle, x_angle, x, y]
   type (spline_struct), allocatable :: energy_prob(:)
-  type (photon_init_v_angle_spline_struct), allocatable :: v_angle(:)
+  type (photon_init_y_angle_spline_struct), allocatable :: y_angle(:)
 end type
 
 contains
@@ -54,17 +54,15 @@ type (spline_struct), allocatable, target :: prob_spline(:), pl_spline(:), pc_sp
 character(*) spline_dir
 character(len(spline_dir)+1) s_dir
 character(20) source_type, basename
-character(200) v_angle_spline_file
+character(200) angle_spline_file
 
 real(rp) dE_spline_max, dP_spline_max
 
-integer i, j, n, ix, num_rows_energy, num_rows_v_angle, iu, n_rows
+integer i, j, n, ix, num_rows_energy, num_rows_y_angle, num_rows_x_angle, iu
 integer spline_space_dimensions
 
 namelist / master_params / source_type, dE_spline_max, dP_spline_max, num_rows_energy, &
-            num_rows_v_angle, spline_space_dimensions
-namelist / energy_params / n_rows
-namelist / v_angle_params / n_rows
+            num_rows_y_angle, num_rows_x_angle, spline_space_dimensions
 namelist / spline / prob_spline, pl_spline, pc_spline, pl45_spline
 
 ! Add '/' suffix if needed
@@ -76,7 +74,7 @@ if (spline_dir(n:n) /= '/') s_dir = trim(s_dir) // '/'
 ! Read general parameters
 
 iu = lunget()
-open (iu, file = trim(s_dir) // 'spline.params')
+open (iu, file = trim(s_dir) // 'spline.params', status = 'old')
 read (iu, nml = master_params)
 close(iu)
 
@@ -86,36 +84,43 @@ splines%spline_space_dimensions = spline_space_dimensions
 ! Read energy spline
 
 iu = lunget()
-open (iu, file = trim(s_dir) // 'spline/energy.spline')
-
-read (iu, nml = energy_params)
-allocate (prob_spline(n_rows))
+open (iu, file = trim(s_dir) // 'spline/energy.spline', status = 'old')
+allocate (prob_spline(num_rows_energy))
 read(iu, nml = spline)
 close (iu)
 
 call move_alloc (prob_spline, splines%energy_prob)
 
-! Read vertical angle splines
+!---------------------------------
+! Read bend vertical angle splines
 
-allocate (splines%v_angle(num_rows_energy))
+if (spline_space_dimensions == 2) then
 
-do i = 1, num_rows_energy
-  write (v_angle_spline_file, '(2a, i0, a)') trim(s_dir), 'spline/v_angle', i, '.spline'
-  open (iu, file = v_angle_spline_file)
+  allocate (splines%y_angle(num_rows_energy))
 
-  read (iu, nml = v_angle_params)
-  allocate (prob_spline(n_rows))
-  if (spline_space_dimensions == 2) allocate (pl_spline(n_rows), pc_spline(n_rows), pl45_spline(n_rows))
-  read(iu, nml = spline)
-  close (iu)
+  do i = 1, num_rows_energy
+    write (angle_spline_file, '(2a, i0, a)') trim(s_dir), 'spline/e', i, '_y.spline'
+    open (iu, file = angle_spline_file, status = 'old')
+    allocate (prob_spline(num_rows_y_angle))
+    if (spline_space_dimensions == 2) allocate (pl_spline(num_rows_y_angle),  &
+                                 pc_spline(num_rows_y_angle), pl45_spline(num_rows_y_angle))
+    read(iu, nml = spline)
+    close (iu)
 
-  call move_alloc (prob_spline, splines%v_angle(i)%prob)
-  if (spline_space_dimensions == 2) then
-    call move_alloc (pl_spline, splines%v_angle(i)%pl)
-    call move_alloc (pc_spline, splines%v_angle(i)%pc)
-    call move_alloc (pl45_spline, splines%v_angle(i)%pl45)
-  endif
-enddo
+    call move_alloc (prob_spline, splines%y_angle(i)%prob)
+    if (spline_space_dimensions == 2) then
+      call move_alloc (pl_spline, splines%y_angle(i)%pl)
+      call move_alloc (pc_spline, splines%y_angle(i)%pc)
+      call move_alloc (pl45_spline, splines%y_angle(i)%pl45)
+    endif
+  enddo
+  return
+
+endif
+
+!---------------------------------
+! 3D
+
 
 end subroutine photon_read_spline
 

@@ -104,7 +104,7 @@ do ib = 0, ubound(lat%branch, 1)
   ix_e_gun = 0
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
-    if (ele%key == marker$) cycle
+    if (ele%key == marker$ .or. ele%key == detector$) cycle
     if (ele%key == null_ele$) cycle
     ! Test first non-marker, non-null_ele element...
     if (ele%slave_status == super_slave$) then

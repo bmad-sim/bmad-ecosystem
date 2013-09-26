@@ -191,7 +191,7 @@ case (beambeam$)
 !--------------------------------------------------------
 ! Crystal
 
-case (crystal$, sample$, source$)
+case (crystal$, sample$, x_ray_init$)
 
   ! Not yet implemented
 
@@ -213,7 +213,7 @@ case (elseparator$)
    call make_mat6_mad (ele, param, c00, c11)
 
 !--------------------------------------------------------
-! Kicker
+! Kicker, etc.
 
 case (kicker$, hkicker$, vkicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, pipe$)
@@ -542,7 +542,7 @@ case (lcavity$)
 !--------------------------------------------------------
 ! Marker, branch, photon_branch, etc.
 
-case (marker$, branch$, photon_branch$, floor_shift$, fiducial$) 
+case (marker$, detector$, branch$, photon_branch$, floor_shift$, fiducial$) 
   return
 
 !--------------------------------------------------------

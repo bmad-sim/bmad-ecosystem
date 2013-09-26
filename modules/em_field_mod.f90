@@ -327,7 +327,7 @@ select case (ele%field_calc)
   !------------------------------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements
 
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$)
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, detector$)
 
   !------------------------------------------
   ! E_Gun
