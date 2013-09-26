@@ -98,7 +98,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 !-----------------------------------------------
 ! Marker, etc.
 
-case (marker$, branch$, photon_branch$, floor_shift$, fiducial$)
+case (marker$, x_ray_init$, detector$, branch$, photon_branch$, floor_shift$, fiducial$)
 
   end_orb%vec(5) = 0
   return

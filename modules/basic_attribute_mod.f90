@@ -320,7 +320,7 @@ do i = 1, n_key$
   end select
 
   select case(i)
-  case (monitor$, instrument$, marker$, pipe$)
+  case (monitor$, instrument$, marker$, pipe$, x_ray_init$, detector$)
     call init_attribute_name1 (i, x_gain_err$,      'X_GAIN_ERR')
     call init_attribute_name1 (i, y_gain_err$,      'Y_GAIN_ERR')
     call init_attribute_name1 (i, crunch$,          'CRUNCH')
@@ -419,13 +419,14 @@ do i = 1, n_key$
 
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
-  if (i == source$)            cycle
+  if (i == x_ray_init$)        cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
   if (i == photon_branch$) cycle
   if (i == branch$)        cycle
   if (i == marker$)        cycle
+  if (i == detector$)      cycle
   if (i == beambeam$)      cycle
   if (i == hom$)           cycle
   if (i == multipole$)     cycle 
@@ -610,6 +611,10 @@ call init_attribute_name1 (marker$, l$,                             'l', private
 call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
+
+call init_attribute_name1 (detector$, l$,                             'l', private$)
+call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
+call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
 call init_attribute_name1 (match$, l$,                              'L')
 call init_attribute_name1 (match$, beta_a0$,                        'BETA_A0')

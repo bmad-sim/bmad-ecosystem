@@ -2876,7 +2876,7 @@ case (sol_quad$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
 
-case (marker$, branch$, photon_branch$, init_ele$, patch$, floor_shift$, fiducial$)
+case (marker$, detector$, branch$, photon_branch$, init_ele$, patch$, floor_shift$, fiducial$)
   ptc_key%magnet = 'marker'
   ptc_key%nstep = 1
 
@@ -3283,7 +3283,7 @@ add_kick = .true.
 
 select case (key)
 
-case (marker$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$, floor_shift$)
+case (marker$, detector$, branch$, photon_branch$, init_ele$, em_field$, patch$, fiducial$, floor_shift$)
   return
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &

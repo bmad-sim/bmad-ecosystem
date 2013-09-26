@@ -402,7 +402,7 @@ case (lcavity$)
 !-----------------------------------------------
 ! marker, etc.
 
-case (marker$, branch$, photon_branch$, floor_shift$, fiducial$)
+case (marker$, branch$, photon_branch$, floor_shift$, fiducial$, detector$)
 
   return
 

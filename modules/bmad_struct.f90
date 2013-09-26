@@ -98,6 +98,8 @@ end type
 
 type wall3d_section_struct
   integer :: type = normal$                 ! normal$, clear$, opaque$, crotch$, crotch1$, leg2$, ...
+  character(20) :: material = ''            ! Material.
+  real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
@@ -422,7 +424,7 @@ end type
 ! Main surface container structure
 
 type photon_surface_struct
-  integer :: type = value_not_set$
+  integer :: type = not_defined$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
@@ -667,11 +669,11 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52
-integer, parameter :: source$ = 53, sample$ = 54
-integer, parameter :: n_key$ = 54
+integer, parameter :: x_ray_init$ = 53, sample$ = 54, detector$ = 55
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
+integer, parameter :: n_key$ = 55
 character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
@@ -686,7 +688,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'SOURCE           ', 'SAMPLE           ']
+    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

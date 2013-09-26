@@ -213,7 +213,7 @@ case (lcavity$)
     is_valid = .true.
   end select
 
-case (marker$)
+case (marker$, detector$)
   if (present(num_valid)) num_valid = 6
   select case (tracking_method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, custom$)
@@ -286,7 +286,7 @@ case (rfcavity$)
 case (sbend$)
   if (present(num_valid)) num_valid = 7
   select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
+  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
   end select
 
@@ -505,7 +505,7 @@ case (lcavity$)
     is_valid = .true.
   end select
 
-case (marker$)
+case (marker$, detector$)
   if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)

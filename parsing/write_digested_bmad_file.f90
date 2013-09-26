@@ -478,9 +478,9 @@ else
   nv = 0
 endif
 
-write (d_unit) sec%type, sec%s, sec%x0, sec%y0, sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, &
-                   sec%dr_ds, sec%p1_coef, sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, &
-                   sec%type
+write (d_unit) sec%type, sec%material, sec%thickness, sec%s, sec%x0, sec%y0, &
+                   sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, &
+                   sec%p2_coef, nv, sec%n_vertex_input, sec%ix_ele, sec%type
 do k = 1, nv
   write (d_unit) sec%v(k)
 enddo

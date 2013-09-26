@@ -37,15 +37,15 @@ character(40) :: r_name = 'check_if_ele_is_monitor'
 
 !
 
-if (ele%key /= monitor$ .and. ele%key /= instrument$ .and. ele%key /= marker$) then
+select case (ele%key)
+case (monitor$, instrument$, marker$, detector$) 
+  err = .false.
+case default
   call out_io (s_error$, r_name, &
                 'MONITOR CALCULATION CALLED FOR ELEMENT THAT IS NEITHER', &
                 'A MONITOR, INSTRUMENT OR MARKER: ' // ele%name)
   err = .true.
-  return
-else
-  err = .false.
-endif
+end select
 
 end subroutine
 

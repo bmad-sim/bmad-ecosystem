@@ -129,7 +129,7 @@ call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
 
 select case (ele%key)
 
-case (drift$)
+case (drift$, pipe$, ecollimator$, rcollimator$, instrument$, monitor$)
   call mad_drift (ele, energy, map)
 
 case (sbend$)
@@ -150,7 +150,7 @@ case (rfcavity$)
 case (solenoid$)
   call mad_solenoid (ele, energy, map)
 
-case (marker$, pipe$)
+case (marker$, detector$)
   call make_unit_mad_map (map)
 
 case default

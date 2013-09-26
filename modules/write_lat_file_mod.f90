@@ -1674,7 +1674,7 @@ do ix_ele = ie1, ie2
 
      select case (ele%key)
 
-     case (marker$)
+     case (marker$, detector$)
         write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
         call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
@@ -1793,7 +1793,7 @@ do ix_ele = ie1, ie2
 
   ! marker
 
-  case (marker$, branch$, photon_branch$)
+  case (detector$, marker$, branch$, photon_branch$)
 
     line_out = trim(ele%name) // ': marker'
 
