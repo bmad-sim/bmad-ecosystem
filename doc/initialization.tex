@@ -1138,42 +1138,6 @@ using the notation \vn{"S:<s_distance>"}. This will match to the
 element whose longitudinal position at the exit end is closest to
 \vn{<s_distance>}.
 
-In the present data format there are three elements that are
-associated with a given datum: \vn{ele_ref}, \vn{ele_start}, and
-\vn{ele}. There exists an old, deprecated, data format where only two
-elements are given for a given datum. These elements are called
-\vn{ele0} and \vn{ele}. In this old format, \vn{data} is used in place
-of \vn{datum}. For example:
-\begin{example}
-  &tao_d1_data
-    !          data_      ele0_     ele_     merit_   meas_    weight good_
-    !            type       name      name     type     value           user
-    data( 1) = "beta.a"   "S:12.3"  "Q16_1"  "max"      30      0.1     T
-    data( 2) = "phase.b"  "Q09_1"   "Q16_1"  "max"      30      0.1     T
-    data( 3) = "floor.x"  " "       "end"    "target"    3      0.01    T       
-    data( 4) = "floor.x"  "B1"      "B2"     "target"    3      0.01    T       
-    ... etc. ...
-  /
-\end{example}
-The interpretation of \vn{ele0} was dependent upon the data type. With
-data types denoted as ``\vn{relative}'', \vn{ele0} was interpreted as
-\vn{ele_ref}. For non-relative data types, \vn{ele0} was interpreted
-as being equivalent to \vn{ele_start}. The relative data types where:
-\begin{example}
-  floor.x, floor.y, floor.z, floor.theta
-  momentum_compaction         
-  periodic.tt.\(ijklm\ldots\)    
-  phase.a, phase.b             
-  phase_frac.a, phase_frac.b            
-  phase_frac_diff            
-  r.\(ij\)                       
-  rel_floor.x, rel_floor.y,
-  rel_floor.z, rel_floor.theta
-  s_position                  
-  t.\(ijk\)                      
-  tt.\(ijklm\ldots\)
-\end{example}
-
 \index{data_source}
 \index{default_data_source}
 The \vn{datum(:)%data_source} component specifies where the data is 
@@ -1241,6 +1205,46 @@ Chapter~\ref{c:prog.customizing} for details.
 \vn{datum(:)%weight} gives the weight coefficient for a datum in the
 merit function. If not present then the default weight of
 \vni{default_weight} is used. 
+
+%-----------------------------------------------------------------
+\subsection{Old Data Format}
+
+In the present data format there are three elements that are
+associated with a given datum: \vn{ele_ref}, \vn{ele_start}, and
+\vn{ele}. There exists an old, deprecated, data format where only two
+elements are given for a given datum. These elements are called
+\vn{ele0} and \vn{ele}. In this old format, \vn{data} is used in place
+of \vn{datum}. For example:
+\begin{example}
+  &tao_d1_data
+    ! OLD SYNTAX. DO NOT USE!
+    !          data_      ele0_     ele_     merit_   meas_    weight good_
+    !            type       name      name     type     value           user
+    data( 1) = "beta.a"   "S:12.3"  "Q16_1"  "max"      30      0.1     T
+    data( 2) = "phase.b"  "Q09_1"   "Q16_1"  "max"      30      0.1     T
+    data( 3) = "floor.x"  " "       "end"    "target"    3      0.01    T       
+    data( 4) = "floor.x"  "B1"      "B2"     "target"    3      0.01    T       
+    ... etc. ...
+  /
+\end{example}
+The interpretation of \vn{ele0} was dependent upon the data type. With
+data types denoted as ``\vn{relative}'', \vn{ele0} was interpreted as
+\vn{ele_ref}. For non-relative data types, \vn{ele0} was interpreted
+as being equivalent to \vn{ele_start}. The relative data types where:
+\begin{example}
+  floor.x, floor.y, floor.z, floor.theta
+  momentum_compaction         
+  periodic.tt.\(ijklm\ldots\)    
+  phase.a, phase.b             
+  phase_frac.a, phase_frac.b            
+  phase_frac_diff            
+  r.\(ij\)                       
+  rel_floor.x, rel_floor.y,
+  rel_floor.z, rel_floor.theta
+  s_position                  
+  t.\(ijk\)                      
+  tt.\(ijklm\ldots\)
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Initializing a Building Wall}

@@ -900,7 +900,7 @@ subroutine tao_setup_default_plotting()
 
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
 type (tao_plot_struct), allocatable :: temp_template(:)
-type (tao_ele_shape_struct) :: dflt_lat_layout(1:21) = [&
+type (tao_ele_shape_struct) :: dflt_lat_layout(1:24) = [&
           tao_ele_shape_struct('BRANCH::*',        'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('CRYSTAL::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('E_GUN::*',         'XBOX',   'RED',     0.40_rp, 'name', .true.), &
@@ -911,6 +911,9 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(1:21) = [&
           tao_ele_shape_struct('MARKER::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.), &
           tao_ele_shape_struct('MIRROR::*',        'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('MONITOR::*',       'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
+          tao_ele_shape_struct('X_RAY_INIT::*',    'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
+          tao_ele_shape_struct('DETECTOR::*',      'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
+          tao_ele_shape_struct('SAMPLE::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
           tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('OCTUPOLE::*',      'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
           tao_ele_shape_struct('PHOTON_BRANCH::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
