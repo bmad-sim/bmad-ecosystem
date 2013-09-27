@@ -269,17 +269,17 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 
 
-      write (2, '(2f11.6, i7, 6x, a1, 3x, a)') aperture%x, &
+      write (2, '(2f11.6, i7, 6x, a, 3x, a)') aperture%x, &
               aperture%y,  &
               aperture%i_turn, &
-              plane_name(aperture%plane),  &
+              coord_state_name(aperture%plane),  &
               ring%ele(aperture%ix_lat)%name
 
 
-      write (3, '(2f11.6, i7, 6x, a1, 3x, a)') aperture%x, &
+      write (3, '(2f11.6, i7, 6x, a, 3x, a)') aperture%x, &
                aperture%y,  &
               aperture%i_turn, &
-              plane_name(aperture%plane),  &
+              coord_state_name(aperture%plane),  &
               ring%ele(aperture%ix_lat)%name
 
 
