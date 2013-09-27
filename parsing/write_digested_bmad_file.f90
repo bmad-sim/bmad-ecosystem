@@ -395,7 +395,7 @@ surf => ele%surface
 if (associated(surf)) then
   write (d_unit) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, surf%segment, surf%direction%n_phi, surf%direction%n_z, &
-                 surf%direction%enabled, allocated(surf%grid%pt), allocated(surf%direction%tile)
+                 surf%direction%ix_tile, surf%direction%enabled, allocated(surf%grid%pt), allocated(surf%direction%tile)
 
   if (allocated(surf%grid%pt)) then
     write (d_unit) ubound(surf%grid%pt)

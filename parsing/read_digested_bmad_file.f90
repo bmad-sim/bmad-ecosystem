@@ -494,7 +494,7 @@ if (ix_s /= 0) then
   surf => ele%surface
   read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, surf%segment, surf%direction%n_phi, surf%direction%n_z, &
-                 surf%direction%enabled, is_alloc_pt, is_alloc_tile
+                 surf%direction%ix_tile, surf%direction%enabled, is_alloc_pt, is_alloc_tile
   if (is_alloc_pt) then
     read (d_unit) i, j
     allocate(surf%grid%pt(0:i, 0:j))
