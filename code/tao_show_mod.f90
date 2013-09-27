@@ -2826,8 +2826,8 @@ case ('wall')
   sub_name = ''
 
   do
-    call tao_next_switch (stuff2, ['-section            ', '-element   ', '-angle    ', '-s        '], &
-              switch, err, ix_s2)
+    call tao_next_switch (stuff2, ['-section  ', '-element  ', &
+                                   '-angle    ', '-s        '], switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
