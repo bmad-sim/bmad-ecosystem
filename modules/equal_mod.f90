@@ -39,7 +39,7 @@ type (ele_struct), intent(inout) :: ele1
 type (ele_struct), intent(in) :: ele2
 type (ele_struct) ele_save
 
-integer i, n2
+integer i, n2, ub(2), ub1
 
 ! 1) Save ele1 pointers in ele_save
 ! 2) Set ele1 = ele2.
@@ -156,6 +156,27 @@ endif
 if (associated(ele2%surface)) then
   ele1%surface => ele_save%surface  ! reinstate
   if (.not. associated(ele1%surface)) allocate(ele1%surface)
+
+  if (allocated (ele2%surface%grid%pt)) then
+    ub = ubound(ele2%surface%grid%pt)
+    if (allocated (ele1%surface%grid%pt)) then
+      if (any(ub /= ubound(ele1%surface%grid%pt))) deallocate (ele1%surface%grid%pt)
+    endif
+    if (.not. allocated (ele1%surface%grid%pt)) allocate (ele1%surface%grid%pt(0:ub(1), 0:ub(2)))
+  else
+    if (allocated(ele1%surface%grid%pt)) deallocate (ele1%surface%grid%pt)
+  endif
+
+  if (allocated (ele2%surface%direction%tile)) then
+    ub1 = ubound(ele2%surface%direction%tile, 1)
+    if (allocated (ele1%surface%direction%tile)) then
+      if (ub1 /= ubound(ele1%surface%direction%tile, 1)) deallocate (ele1%surface%direction%tile)
+    endif
+    if (.not. allocated (ele1%surface%direction%tile)) allocate (ele1%surface%direction%tile(1:ub1))
+  else
+    if (allocated(ele1%surface%direction%tile)) deallocate (ele1%surface%direction%tile)
+  endif
+
   ele1%surface = ele2%surface
 else
   if (associated (ele_save%surface)) deallocate (ele_save%surface)

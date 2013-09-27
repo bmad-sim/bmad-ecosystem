@@ -395,11 +395,37 @@ type rad_int_ele_cache_struct
   logical :: stale = .true.
 end type 
 
+! The direction tile structure is for the case where particles can be emitted
+! from the element in any direction but for computational efficiency the direction of emission
+! is restriced to directions where the particle will not get "lost". 
+!
+! The coordinates of the unit sphere representing the directions a particle can be emitted are:
+! (phi, z) with:
+!   range phi = [-pi, pi],  range z = [-1, 1] 
+! A point on the unit sphere is:
+!   (x, y, z) = (sqrt(1-z^2) * cos(phi), sqrt(1-z^2) * sin(phi), z)
+! with range:
+! The unit sphere is divided into n_phi x n_z "tiles". Each tile is indexed by integers (i_phi, i_z) where
+! i_phi is in the range [0, n_phi-1] and i_z is in the range [0, n_z-1].  
+! Each tile covers the area:
+!   phi: [2*i_phi - n_phi, 2*(i_phi+1) - n_phi] * pi / n_phi
+!   z:   [2*i_z - n_z, 2*(i_z+1) - n_z] / n_z
+
+type direction_tile1_struct
+  integer :: i_phi = 0, i_z = 0
+end type
+  
+type direction_tile_struct
+  integer :: n_phi = 0, n_z = 0
+  logical :: enabled = .false.  ! Set to true when direction tiles are used in tracking.
+  type (direction_tile1_struct), allocatable :: tile(:)
+end type
+
 ! Structure for surfaces of mirrors, crystals, etc.
-! Rule: This structure is always allocated in the ele_struct for elements that need it.
+! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
 
 type surface_grid_pt_struct
-  real(rp) x_pitch, y_pitch, x_pitch_rms, y_pitch_rms
+  real(rp) :: x_pitch = 0, y_pitch = 0, x_pitch_rms = 0, y_pitch_rms = 0
 end type
 
 integer, parameter :: segmented$ = 2, h_misalign$ = 3
@@ -410,7 +436,7 @@ type surface_grid_struct
   character(200) :: file = ''
   integer :: type = off$   ! or segmented$, or h_misalign$
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:)
+  type (surface_grid_pt_struct), allocatable :: pt(:,:)   ! Lower bound: (0,0)
 end type
 
 ! Scratch space for segmented surface calculations
@@ -427,6 +453,7 @@ type photon_surface_struct
   integer :: type = not_defined$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
+  type (direction_tile_struct) :: direction = direction_tile_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
 end type
