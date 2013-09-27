@@ -120,8 +120,8 @@ type (tao_universe_struct), pointer :: u
 
 integer mm, nn
 
-real(rp), intent(in) :: a(nn)
-real(rp), intent(out) :: y_fit(mm)
+real(rp) :: a(nn)
+real(rp) :: y_fit(mm)
 real(rp) merit0
 real(rp), allocatable, save :: var_delta(:)
 
@@ -189,7 +189,7 @@ implicit none
 integer m, n, info, accepted
 real(8) x(n), fvec(m), fjac(m, n)
 
-if (geolevmar_limit_flag == .true. .and. accepted > 0) then
+if (geolevmar_limit_flag .and. accepted > 0) then
   info = 1      ! ends geolevmar, returns control
   write(*, *) "limit hit"
 endif
