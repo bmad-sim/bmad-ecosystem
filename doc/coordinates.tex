@@ -761,25 +761,30 @@ Unlike other elements, the kick given a particle going through an
 \vn{lcavity}, \vn{rfcavity}, or possibly an \vn{em_field} element
 depends upon the time that the particle enters the element relative to
 some ``RF clock''. \bmad has two modes for calculating this time
-called \vn{relative time tracking} and \vn{absolute time tracking}.
+called ``\vn{relative time tracking}'' and ``\vn{absolute time
+tracking}''.
 
 With \vn{relative time tracking}, which \bmad uses by default, the RF
-clock is determined by the reference particle. That is, the RF phase
-is directly proportional to the $z$ phase space coordinate
+clock is determined by the reference particle. That is, the RF phase,
+\vn{phi_RF}, seen by a particle is directly related to the particles's
+$z$ phase space coordinate (\sref{s:phase.space})
 \begin{example}
-  phi_RF = -z * rf_frequency / particle_velocity
+  phi_RF = phi_particle + phi_ref
+  phi_particle = -z * rf_frequency / particle_velocity
 \end{example}
-With \vn{absolute time tracking} the RF phase is simply determined by the 
+where \vn{phi_ref} is a fixed phase offset (generally set in the
+lattice file) and independent of the particle coordinates. With
+\vn{absolute time tracking}, the RF phase is simply determined by the
 absolute time the particle enters the element
 \begin{example}
-  phi_RF = t_particle * rf_frequency
+  phi_particle = t_particle * rf_frequency
 \end{example}
 The switch to set the type of tracking for a lattice is
 \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
 
 There are advantages and disadvantages to using either relative or
 absolute time tracking. Absolute time tracking is more correct since
-RF cavities are in reality synced to some clock. The problem with
+RF cavities are in reality synched to some clock. The problem with
 absolute time tracking is that the transfer map through the cavity is
 now a function of time and cannot be written as a function of $z$
 unless the total lattice length is a multiple of the RF wavelength.
