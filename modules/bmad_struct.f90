@@ -405,11 +405,13 @@ end type
 ! A point on the unit sphere is:
 !   (x, y, z) = (sqrt(1-z^2) * cos(phi), sqrt(1-z^2) * sin(phi), z)
 ! with range:
-! The unit sphere is divided into n_phi x n_z "tiles". Each tile is indexed by integers (i_phi, i_z) where
+! The unit sphere is divided into n_phi x n_z "tiles". 
+! Each tile is indexed by integers (i_phi, i_z) where
 ! i_phi is in the range [0, n_phi-1] and i_z is in the range [0, n_z-1].  
 ! Each tile covers the area:
 !   phi: [2*i_phi - n_phi, 2*(i_phi+1) - n_phi] * pi / n_phi
 !   z:   [2*i_z - n_z, 2*(i_z+1) - n_z] / n_z
+! Notice that the area of each tile is the same and equal to 4pi / (n_phi * n_z)
 
 type direction_tile1_struct
   integer :: i_phi = 0, i_z = 0
@@ -417,6 +419,7 @@ end type
   
 type direction_tile_struct
   integer :: n_phi = 0, n_z = 0
+  integer :: ix_tile = 0        ! For distributing particles uniformly.
   logical :: enabled = .false.  ! Set to true when direction tiles are used in tracking.
   type (direction_tile1_struct), allocatable :: tile(:)
 end type
@@ -453,7 +456,7 @@ type photon_surface_struct
   integer :: type = not_defined$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
-  type (direction_tile_struct) :: direction = direction_tile_struct()
+  type (direction_tile_struct) :: direction = direction_tile_struct(0, 0, 0, .false., null())
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
 end type

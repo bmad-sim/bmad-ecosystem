@@ -133,9 +133,12 @@ implicit none
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
+type (direction_tile_struct), pointer :: dir
 
-real(rp) wavelength, r(2), phi, y, rad
+real(rp) wavelength, r(2), phi, y, rad, z, rho
 real(rp), pointer :: val(:)
+
+integer n, ix
 
 character(*), parameter :: r_name = 'track1_sample'
 
@@ -160,12 +163,27 @@ select case (ele%surface%type)
 case (isotropic_emission$)
 
   call ran_uniform(r)
-  y = 2 * r(1) - 1
-  phi = pi * (r(2) - 0.5_rp)
-  rad = sqrt(1 - y**2)
-  orbit%vec(2:6:2) = [rad * sin(phi), y, -rad * cos(phi)]
 
-  orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
+  dir => ele%surface%direction
+  if (dir%enabled) then
+    n = size(dir%tile)
+    dir%ix_tile = modulo(dir%ix_tile, n) + 1
+    ix = dir%ix_tile
+    z = (2 * dir%tile(ix)%i_z - dir%n_z + 2 * r(1)) / dir%n_z    
+    rho = sqrt(1 - z*z)
+    phi = (2 * dir%tile(ix)%i_phi - dir%n_phi + 2 * r(2)) * pi / dir%n_phi
+    orbit%vec(2:6:2) = [rho * cos(phi), rho *sin(phi), z]
+
+    orbit%field = orbit%field * sqrt (real(n, rp) / (dir%n_phi * dir%n_z))
+
+  else
+    y = 2 * r(1) - 1
+    phi = pi * (r(2) - 0.5_rp)
+    rad = sqrt(1 - y**2)
+    orbit%vec(2:6:2) = [rad * sin(phi), y, -rad * cos(phi)]
+
+    orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
+  endif
 
 case default
   call out_io (s_error$, r_name, 'SURFACE TYPE NOT SET.')

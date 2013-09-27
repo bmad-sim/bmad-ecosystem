@@ -730,6 +730,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%n_phi == f2%n_phi)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_z == f2%n_z)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_tile == f2%ix_tile)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%enabled .eqv. f2%enabled)
 !! f_side.equality_test[type, 1, ALLOC]
