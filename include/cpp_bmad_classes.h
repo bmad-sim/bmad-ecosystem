@@ -162,6 +162,16 @@ typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
 typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
 typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
 
+class CPP_direction_tile1;
+typedef valarray<CPP_direction_tile1>          CPP_direction_tile1_ARRAY;
+typedef valarray<CPP_direction_tile1_ARRAY>    CPP_direction_tile1_MATRIX;
+typedef valarray<CPP_direction_tile1_MATRIX>   CPP_direction_tile1_TENSOR;
+
+class CPP_direction_tile;
+typedef valarray<CPP_direction_tile>          CPP_direction_tile_ARRAY;
+typedef valarray<CPP_direction_tile_ARRAY>    CPP_direction_tile_MATRIX;
+typedef valarray<CPP_direction_tile_MATRIX>   CPP_direction_tile_TENSOR;
+
 class CPP_surface_grid_pt;
 typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
 typedef valarray<CPP_surface_grid_pt_ARRAY>    CPP_surface_grid_pt_MATRIX;
@@ -1064,6 +1074,64 @@ bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 
 
 //--------------------------------------------------------------------
+// CPP_direction_tile1
+
+class Bmad_direction_tile1_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_direction_tile1 {
+public:
+  Int i_phi;
+  Int i_z;
+
+  CPP_direction_tile1() :
+    i_phi(0),
+    i_z(0)
+    {}
+
+  ~CPP_direction_tile1() {
+  }
+
+};   // End Class
+
+extern "C" void direction_tile1_to_c (const Bmad_direction_tile1_class*, CPP_direction_tile1&);
+extern "C" void direction_tile1_to_f (const CPP_direction_tile1&, Bmad_direction_tile1_class*);
+
+bool operator== (const CPP_direction_tile1&, const CPP_direction_tile1&);
+
+
+//--------------------------------------------------------------------
+// CPP_direction_tile
+
+class Bmad_direction_tile_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_direction_tile {
+public:
+  Int n_phi;
+  Int n_z;
+  Int ix_tile;
+  Bool enabled;
+  CPP_direction_tile1_ARRAY tile;
+
+  CPP_direction_tile() :
+    n_phi(0),
+    n_z(0),
+    ix_tile(0),
+    enabled(false),
+    tile(CPP_direction_tile1_ARRAY(CPP_direction_tile1(), 0))
+    {}
+
+  ~CPP_direction_tile() {
+  }
+
+};   // End Class
+
+extern "C" void direction_tile_to_c (const Bmad_direction_tile_class*, CPP_direction_tile&);
+extern "C" void direction_tile_to_f (const CPP_direction_tile&, Bmad_direction_tile_class*);
+
+bool operator== (const CPP_direction_tile&, const CPP_direction_tile&);
+
+
+//--------------------------------------------------------------------
 // CPP_surface_grid_pt
 
 class Bmad_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1171,13 +1239,15 @@ public:
   Int type;
   CPP_surface_grid grid;
   CPP_segmented_surface segment;
+  CPP_direction_tile direction;
   Real_MATRIX curvature_xy;
   Bool has_curvature;
 
   CPP_photon_surface() :
-    type(Bmad::VALUE_NOT_SET),
+    type(Bmad::NOT_DEFINED),
     grid(),
     segment(),
+    direction(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
     has_curvature(false)
     {}
@@ -1239,6 +1309,8 @@ class Bmad_wall3d_section_class {};  // Opaque class for pointers to correspondi
 class CPP_wall3d_section {
 public:
   Int type;
+  string material;
+  Real thickness;
   Real s;
   Int n_vertex_input;
   Int ix_ele;
@@ -1256,6 +1328,8 @@ public:
 
   CPP_wall3d_section() :
     type(Bmad::NORMAL),
+    material(),
+    thickness(-1),
     s(0.0),
     n_vertex_input(0),
     ix_ele(0),

@@ -47,8 +47,8 @@ namespace Bmad {
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
   const int UNDULATOR = 51, DIFFRACTION_PLATE = 52;
-  const int SOURCE = 53, SAMPLE = 54;
-  const int N_KEY = 54;
+  const int X_RAY_INIT = 53, SAMPLE = 54, DETECTOR = 55;
+  const int N_KEY = 55;
   const int N_PART = 2, TAYLOR_ORDER = 3, PARTICLE = 14;
   const int GEOMETRY = 15, LATTICE_TYPE = 16, SYMMETRY = 6;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
@@ -239,7 +239,7 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 20;
   const int NOT_SET = -999;
-  const int VALUE_NOT_SET = 0;
+  const int NOT_DEFINED = 0;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;

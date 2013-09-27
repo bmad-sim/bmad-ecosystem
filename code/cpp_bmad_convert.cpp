@@ -1090,6 +1090,75 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_direction_tile1
+
+extern "C" void direction_tile1_to_c (const Bmad_direction_tile1_class*, CPP_direction_tile1&);
+
+// c_side.to_f2_arg
+extern "C" void direction_tile1_to_f2 (Bmad_direction_tile1_class*, c_Int&, c_Int&);
+
+extern "C" void direction_tile1_to_f (const CPP_direction_tile1& C, Bmad_direction_tile1_class* F) {
+
+  // c_side.to_f2_call
+  direction_tile1_to_f2 (F, C.i_phi, C.i_z);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void direction_tile1_to_c2 (CPP_direction_tile1& C, c_Int& z_i_phi, c_Int& z_i_z) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.i_phi = z_i_phi;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.i_z = z_i_z;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_direction_tile
+
+extern "C" void direction_tile_to_c (const Bmad_direction_tile_class*, CPP_direction_tile&);
+
+// c_side.to_f2_arg
+extern "C" void direction_tile_to_f2 (Bmad_direction_tile_class*, c_Int&, c_Int&, c_Int&,
+    c_Bool&, const CPP_direction_tile1**, Int);
+
+extern "C" void direction_tile_to_f (const CPP_direction_tile& C, Bmad_direction_tile_class* F) {
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_tile = C.tile.size();
+  const CPP_direction_tile1** z_tile = NULL;
+  if (n1_tile != 0) {
+    z_tile = new const CPP_direction_tile1*[n1_tile];
+    for (int i = 0; i < n1_tile; i++) z_tile[i] = &C.tile[i];
+  }
+
+  // c_side.to_f2_call
+  direction_tile_to_f2 (F, C.n_phi, C.n_z, C.ix_tile, C.enabled, z_tile, n1_tile);
+
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_tile;
+}
+
+// c_side.to_c2_arg
+extern "C" void direction_tile_to_c2 (CPP_direction_tile& C, c_Int& z_n_phi, c_Int& z_n_z,
+    c_Int& z_ix_tile, c_Bool& z_enabled, Bmad_direction_tile1_class** z_tile, Int n1_tile) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_phi = z_n_phi;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_z = z_n_z;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_tile = z_ix_tile;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.enabled = z_enabled;
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.tile.resize(n1_tile);
+  for (int i = 0; i < n1_tile; i++) direction_tile1_to_c(z_tile[i], C.tile[i]);
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_surface_grid_pt
 
 extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
@@ -1214,21 +1283,24 @@ extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photo
 
 // c_side.to_f2_arg
 extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_Int&, const
-    CPP_surface_grid&, const CPP_segmented_surface&, c_RealArr, c_Bool&);
+    CPP_surface_grid&, const CPP_segmented_surface&, const CPP_direction_tile&, c_RealArr,
+    c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.type, C.grid, C.segment, z_curvature_xy, C.has_curvature);
+  photon_surface_to_f2 (F, C.type, C.grid, C.segment, C.direction, z_curvature_xy,
+      C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, const
-    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr
-    z_curvature_xy, c_Bool& z_has_curvature) {
+    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, const
+    Bmad_direction_tile_class* z_direction, c_RealArr z_curvature_xy, c_Bool& z_has_curvature)
+    {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
@@ -1236,6 +1308,8 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, cons
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
   segmented_surface_to_c(z_segment, C.segment);
+  // c_side.to_c2_set[type, 0, NOT]
+  direction_tile_to_c(z_direction, C.direction);
   // c_side.to_c2_set[real, 2, NOT]
   C.curvature_xy << z_curvature_xy;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -1289,9 +1363,9 @@ extern "C" void wall3d_vertex_to_c2 (CPP_wall3d_vertex& C, c_Real& z_x, c_Real& 
 extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3d_section&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_section_to_f2 (Bmad_wall3d_section_class*, c_Int&, c_Real&, c_Int&,
-    c_Int&, c_Int&, const CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_RealArr, c_RealArr, c_Real&, c_RealArr, c_RealArr);
+extern "C" void wall3d_section_to_f2 (Bmad_wall3d_section_class*, c_Int&, c_Char, c_Real&,
+    c_Real&, c_Int&, c_Int&, c_Int&, const CPP_wall3d_vertex**, Int, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_RealArr, c_RealArr, c_Real&, c_RealArr, c_RealArr);
 
 extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_section_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1303,22 +1377,27 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_se
   }
 
   // c_side.to_f2_call
-  wall3d_section_to_f2 (F, C.type, C.s, C.n_vertex_input, C.ix_ele, C.ix_branch, z_v, n1_v,
-      C.x0, C.y0, C.dx0_ds, C.dy0_ds, &C.x0_coef[0], &C.y0_coef[0], C.dr_ds, &C.p1_coef[0],
-      &C.p2_coef[0]);
+  wall3d_section_to_f2 (F, C.type, C.material.c_str(), C.thickness, C.s, C.n_vertex_input,
+      C.ix_ele, C.ix_branch, z_v, n1_v, C.x0, C.y0, C.dx0_ds, C.dy0_ds, &C.x0_coef[0],
+      &C.y0_coef[0], C.dr_ds, &C.p1_coef[0], &C.p2_coef[0]);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_v;
 }
 
 // c_side.to_c2_arg
-extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Real& z_s, c_Int&
-    z_n_vertex_input, c_Int& z_ix_ele, c_Int& z_ix_branch, Bmad_wall3d_vertex_class** z_v, Int
-    n1_v, c_Real& z_x0, c_Real& z_y0, c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef,
-    c_RealArr z_y0_coef, c_Real& z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
+extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Int& z_type, c_Char z_material,
+    c_Real& z_thickness, c_Real& z_s, c_Int& z_n_vertex_input, c_Int& z_ix_ele, c_Int&
+    z_ix_branch, Bmad_wall3d_vertex_class** z_v, Int n1_v, c_Real& z_x0, c_Real& z_y0, c_Real&
+    z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr z_y0_coef, c_Real& z_dr_ds,
+    c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
+  // c_side.to_c2_set[character, 0, NOT]
+  C.material = z_material;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.thickness = z_thickness;
   // c_side.to_c2_set[real, 0, NOT]
   C.s = z_s;
   // c_side.to_c2_set[integer, 0, NOT]

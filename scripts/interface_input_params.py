@@ -37,6 +37,8 @@ struct_list = [
     'mode3_struct',
     'bookkeeping_state_struct',
     'rad_int_ele_cache_struct',
+    'direction_tile1_struct',
+    'direction_tile_struct',
     'surface_grid_pt_struct',
     'surface_grid_struct',
     'segmented_surface_struct',

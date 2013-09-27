@@ -431,6 +431,33 @@ template bool is_all_equal (const CPP_rad_int_ele_cache_MATRIX&, const CPP_rad_i
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_direction_tile1& x, const CPP_direction_tile1& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.i_phi == y.i_phi);
+  is_eq = is_eq && (x.i_z == y.i_z);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_direction_tile1_ARRAY&, const CPP_direction_tile1_ARRAY&);
+template bool is_all_equal (const CPP_direction_tile1_MATRIX&, const CPP_direction_tile1_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_direction_tile& x, const CPP_direction_tile& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.n_phi == y.n_phi);
+  is_eq = is_eq && (x.n_z == y.n_z);
+  is_eq = is_eq && (x.ix_tile == y.ix_tile);
+  is_eq = is_eq && (x.enabled == y.enabled);
+  is_eq = is_eq && is_all_equal(x.tile, y.tile);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_direction_tile_ARRAY&, const CPP_direction_tile_ARRAY&);
+template bool is_all_equal (const CPP_direction_tile_MATRIX&, const CPP_direction_tile_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x_pitch == y.x_pitch);
@@ -482,6 +509,7 @@ bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.segment == y.segment);
+  is_eq = is_eq && (x.direction == y.direction);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
@@ -513,6 +541,8 @@ template bool is_all_equal (const CPP_wall3d_vertex_MATRIX&, const CPP_wall3d_ve
 bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && (x.material == y.material);
+  is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.n_vertex_input == y.n_vertex_input);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);

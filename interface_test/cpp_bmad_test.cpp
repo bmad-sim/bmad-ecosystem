@@ -1543,6 +1543,128 @@ extern "C" void test_c_rad_int_ele_cache (Bmad_rad_int_ele_cache_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_direction_tile1 (CPP_direction_tile1&, bool&);
+
+void set_CPP_direction_tile1_test_pattern (CPP_direction_tile1& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.i_phi = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.i_z = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_direction_tile1 (Bmad_direction_tile1_class* F, bool& c_ok) {
+
+  CPP_direction_tile1 C, C2;
+
+  c_ok = true;
+
+  direction_tile1_to_c (F, C);
+  set_CPP_direction_tile1_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " direction_tile1: C side convert F->C: Good" << endl;
+  } else {
+    cout << " direction_tile1: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_direction_tile1_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_direction_tile1 (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_direction_tile1_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " direction_tile1: F side convert F->C: Good" << endl;
+  } else {
+    cout << " direction_tile1: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_direction_tile1_test_pattern (C2, 4);
+  direction_tile1_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_direction_tile (CPP_direction_tile&, bool&);
+
+void set_CPP_direction_tile_test_pattern (CPP_direction_tile& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.n_phi = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_z = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.ix_tile = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 4 + offset; C.enabled = (rhs % 2 == 0);
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.tile.resize(0);
+  else {
+    C.tile.resize(3);
+    for (unsigned int i = 0; i < C.tile.size(); i++)  {set_CPP_direction_tile1_test_pattern(C.tile[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_direction_tile (Bmad_direction_tile_class* F, bool& c_ok) {
+
+  CPP_direction_tile C, C2;
+
+  c_ok = true;
+
+  direction_tile_to_c (F, C);
+  set_CPP_direction_tile_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " direction_tile: C side convert F->C: Good" << endl;
+  } else {
+    cout << " direction_tile: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_direction_tile_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_direction_tile (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_direction_tile_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " direction_tile: F side convert F->C: Good" << endl;
+  } else {
+    cout << " direction_tile: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_direction_tile_test_pattern (C2, 4);
+  direction_tile_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_surface_grid_pt (CPP_surface_grid_pt&, bool&);
 
 void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) {
@@ -1762,11 +1884,14 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_segmented_surface_test_pattern(C.segment, ix_patt);
 
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_direction_tile_test_pattern(C.direction, ix_patt);
+
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.curvature_xy[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.curvature_xy[i][j] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 6 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -1891,17 +2016,24 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 1 + offset; C.type = rhs;
 
+  // c_side.test_pat[character, 0, NOT]
+  C.material.resize(20);
+  for (unsigned int i = 0; i < C.material.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.material[i] = 'a' + rhs % 26;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.s = rhs;
+  rhs = 3 + offset; C.thickness = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.s = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.n_vertex_input = rhs;
+  rhs = 5 + offset; C.n_vertex_input = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.ix_ele = rhs;
+  rhs = 6 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ix_branch = rhs;
+  rhs = 7 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -1912,32 +2044,32 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.x0 = rhs;
+  rhs = 10 + offset; C.x0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.y0 = rhs;
+  rhs = 11 + offset; C.y0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.dx0_ds = rhs;
+  rhs = 12 + offset; C.dx0_ds = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.dy0_ds = rhs;
+  rhs = 13 + offset; C.dy0_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.x0_coef.size(); i++)
-    {int rhs = 101 + i + 12 + offset; C.x0_coef[i] = rhs;}
+    {int rhs = 101 + i + 14 + offset; C.x0_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.y0_coef.size(); i++)
-    {int rhs = 101 + i + 13 + offset; C.y0_coef[i] = rhs;}
+    {int rhs = 101 + i + 15 + offset; C.y0_coef[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.dr_ds = rhs;
+  rhs = 16 + offset; C.dr_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p1_coef.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.p1_coef[i] = rhs;}
+    {int rhs = 101 + i + 17 + offset; C.p1_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p2_coef.size(); i++)
-    {int rhs = 101 + i + 16 + offset; C.p2_coef[i] = rhs;}
+    {int rhs = 101 + i + 18 + offset; C.p2_coef[i] = rhs;}
 
 }
 

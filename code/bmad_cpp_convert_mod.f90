@@ -215,6 +215,24 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine direction_tile1_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine direction_tile_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine surface_grid_pt_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -2779,6 +2797,205 @@ end subroutine rad_int_ele_cache_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine direction_tile1_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad direction_tile1_struct to a C++ CPP_direction_tile1 structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad direction_tile1_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_direction_tile1 struct.
+!-
+
+subroutine direction_tile1_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine direction_tile1_to_c2 (C, z_i_phi, z_i_z) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_i_phi, z_i_z
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(direction_tile1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call direction_tile1_to_c2 (C, F%i_phi, F%i_z)
+
+end subroutine direction_tile1_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine direction_tile1_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_direction_tile1 structure to a Bmad direction_tile1_struct structure.
+! This routine is called by direction_tile1_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the direction_tile1_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad direction_tile1_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine direction_tile1_to_f2 (Fp, z_i_phi, z_i_z) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(direction_tile1_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_i_phi, z_i_z
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%i_phi = z_i_phi
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%i_z = z_i_z
+
+end subroutine direction_tile1_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine direction_tile_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad direction_tile_struct to a C++ CPP_direction_tile structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad direction_tile_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_direction_tile struct.
+!-
+
+subroutine direction_tile_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine direction_tile_to_c2 (C, z_n_phi, z_n_z, z_ix_tile, z_enabled, z_tile, n1_tile) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    logical(c_bool) :: z_enabled
+    integer(c_int), value :: n1_tile
+    type(c_ptr) :: z_tile(*)
+    integer(c_int) :: z_n_phi, z_n_z, z_ix_tile
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(direction_tile_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_tile(:)
+integer(c_int) :: n1_tile
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_tile = 0
+if (allocated(F%tile)) then
+  n1_tile = size(F%tile); lb1 = lbound(F%tile, 1) - 1
+  allocate (z_tile(n1_tile))
+  do jd1 = 1, n1_tile
+    z_tile(jd1) = c_loc(F%tile(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call direction_tile_to_c2 (C, F%n_phi, F%n_z, F%ix_tile, c_logic(F%enabled), z_tile, n1_tile)
+
+end subroutine direction_tile_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine direction_tile_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_direction_tile structure to a Bmad direction_tile_struct structure.
+! This routine is called by direction_tile_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the direction_tile_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad direction_tile_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine direction_tile_to_f2 (Fp, z_n_phi, z_n_z, z_ix_tile, z_enabled, z_tile, n1_tile) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(direction_tile_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+logical(c_bool) :: z_enabled
+integer(c_int), value :: n1_tile
+type(c_ptr) :: z_tile(*)
+integer(c_int) :: z_n_phi, z_n_z, z_ix_tile
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_phi = z_n_phi
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_z = z_n_z
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_tile = z_ix_tile
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%enabled = f_logic(z_enabled)
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_tile == 0) then
+  if (allocated(F%tile)) deallocate(F%tile)
+else
+  if (allocated(F%tile)) then
+    if (n1_tile == 0 .or. any(shape(F%tile) /= [n1_tile])) deallocate(F%tile)
+    if (any(lbound(F%tile) /= 1)) deallocate(F%tile)
+  endif
+  if (.not. allocated(F%tile)) allocate(F%tile(1:n1_tile+1-1))
+  do jd1 = 1, n1_tile
+    call direction_tile1_to_f (z_tile(jd1), c_loc(F%tile(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine direction_tile_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine surface_grid_pt_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad surface_grid_pt_struct to a C++ CPP_surface_grid_pt structure
@@ -3102,13 +3319,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_type, z_grid, z_segment, z_curvature_xy, &
+  subroutine photon_surface_to_c2 (C, z_type, z_grid, z_segment, z_direction, z_curvature_xy, &
       z_has_curvature) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_has_curvature
-    type(c_ptr), value :: z_grid, z_segment
+    type(c_ptr), value :: z_grid, z_segment, z_direction
     real(c_double) :: z_curvature_xy(*)
     integer(c_int) :: z_type
   end subroutine
@@ -3126,8 +3343,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, F%type, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, &
-    7*7), c_logic(F%has_curvature))
+call photon_surface_to_c2 (C, F%type, c_loc(F%grid), c_loc(F%segment), c_loc(F%direction), &
+    mat2vec(F%curvature_xy, 7*7), c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
 
@@ -3147,7 +3364,7 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_type, z_grid, z_segment, z_curvature_xy, &
+subroutine photon_surface_to_f2 (Fp, z_type, z_grid, z_segment, z_direction, z_curvature_xy, &
     z_has_curvature) bind(c)
 
 
@@ -3158,7 +3375,7 @@ type(photon_surface_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_has_curvature
-type(c_ptr), value :: z_grid, z_segment
+type(c_ptr), value :: z_grid, z_segment, z_direction
 real(c_double) :: z_curvature_xy(*)
 integer(c_int) :: z_type
 
@@ -3170,6 +3387,8 @@ F%type = z_type
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
 call segmented_surface_to_f(z_segment, c_loc(F%segment))
+!! f_side.to_f2_trans[type, 0, NOT]
+call direction_tile_to_f(z_direction, c_loc(F%direction))
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_curvature_xy, F%curvature_xy)
 !! f_side.to_f2_trans[logical, 0, NOT]
@@ -3295,17 +3514,18 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_section_to_c2 (C, z_type, z_s, z_n_vertex_input, z_ix_ele, z_ix_branch, &
-      z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
-      z_p2_coef) bind(c)
+  subroutine wall3d_section_to_c2 (C, z_type, z_material, z_thickness, z_s, z_n_vertex_input, &
+      z_ix_ele, z_ix_branch, z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, &
+      z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int), value :: n1_v
-    real(c_double) :: z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
-    real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+    real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*)
+    real(c_double) :: z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
     type(c_ptr) :: z_v(*)
     integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
+    character(c_char) :: z_material(*)
   end subroutine
 end interface
 
@@ -3332,9 +3552,10 @@ if (allocated(F%v)) then
 endif
 
 !! f_side.to_c2_call
-call wall3d_section_to_c2 (C, F%type, F%s, F%n_vertex_input, F%ix_ele, F%ix_branch, z_v, n1_v, &
-    F%x0, F%y0, F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, &
-    fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
+call wall3d_section_to_c2 (C, F%type, trim(F%material) // c_null_char, F%thickness, F%s, &
+    F%n_vertex_input, F%ix_ele, F%ix_branch, z_v, n1_v, F%x0, F%y0, F%dx0_ds, F%dy0_ds, &
+    fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
+    fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -3354,9 +3575,9 @@ end subroutine wall3d_section_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_section_to_f2 (Fp, z_type, z_s, z_n_vertex_input, z_ix_ele, z_ix_branch, z_v, &
-    n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) &
-    bind(c)
+subroutine wall3d_section_to_f2 (Fp, z_type, z_material, z_thickness, z_s, z_n_vertex_input, &
+    z_ix_ele, z_ix_branch, z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, &
+    z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
 
 
 implicit none
@@ -3366,15 +3587,20 @@ type(wall3d_section_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int), value :: n1_v
-real(c_double) :: z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
-real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*)
+real(c_double) :: z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
 type(c_ptr) :: z_v(*)
 integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
+character(c_char) :: z_material(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%type = z_type
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_material, F%material)
+!! f_side.to_f2_trans[real, 0, NOT]
+F%thickness = z_thickness
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
 !! f_side.to_f2_trans[integer, 0, NOT]
