@@ -1181,7 +1181,7 @@ type bmad_common_struct
   logical :: debug = .false.                            ! Used for code debugging.
 end type
   
-type (bmad_common_struct), save :: bmad_com
+type (bmad_common_struct), save, target :: bmad_com
 
 ! Some routines need to keep track of where elements are when elements are added or removed from
 ! the lattice. 
