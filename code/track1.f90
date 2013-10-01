@@ -212,7 +212,7 @@ if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele,
 
 ! check for particles outside aperture
 
-call check_aperture_limit (start2_orb, ele, second_track_edge$, param)
+call check_aperture_limit (end_orb, ele, second_track_edge$, param)
 
 if (present(err_flag)) err_flag = .false.
 
