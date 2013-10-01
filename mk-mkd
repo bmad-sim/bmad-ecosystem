@@ -18,7 +18,17 @@
 #  cmake pass immediately prior.
 #  This allows for 
 #        mk[mkd] clean  -to clean the build and output trees
-#                        of object, library, and executables files.
+#                         of object, library, and executables files.
+#
+#        mk[mkd] cleaner  -removes all bin/lib/module files in the current
+#                          project production/debug directory tree and the 
+#                          upper level production/debug directory tree 
+#                        
+#        mk[mkd] obliterate  -removes ALL bin/lib/module files for ALL 
+#                             projects in ALL production/debug directories.
+#                             PLEASE USE WISELY!
+#                            
+# 
 #---------------------------------------------------------------------------
 
 THIS_SCRIPT=`basename $0`
@@ -48,6 +58,8 @@ if ( [ ! -d ${BUILD_TYPE} ] ) then
   mkdir ${BUILD_TYPE}
 fi
 
+# Just incase the gmake -j level is not set, we'll set it here, to "2".
+if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ] ; then export ACC_SET_GMAKE_JOBS=2 ; fi
 
 cd ${BUILD_TYPE}
 # Only invoke cmake if the user has not requested a 'clean'.
@@ -82,7 +94,7 @@ else
 	./acc_build -"${BUILD_TYPE}" || exit 1
     else
 	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
-	gmake -j2 ${@}
+	gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
     fi
 fi
 #

@@ -9,7 +9,7 @@ for DIR in ${DIRLIST}
 do
   cd ${DIST_BASE_DIR}/${DIR};
   echo -e "\nBuilding directory: ${DIR}\n"
-  mkd ${1}
+  mkd -j ${ACC_SET_GMAKE_JOBS} ${1}
   if ( [ ${?} != 0 ] ) then
     echo -e "\nError in distribution build.\n"
     exit 1
