@@ -184,7 +184,7 @@ for platform in platforms:
                         bufsize=1,
                         shell=True,
                         stderr=sub.STDOUT )
-      print 'Coping '  + buildname + ' to ' + online_basedir + buildname 
+      print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
       step2.communicate()
 
     #print online_cmd_rm_link
@@ -221,4 +221,3 @@ for platform in platforms:
 
 if send_mail:
     send_notification_email(old_releasename)
-
