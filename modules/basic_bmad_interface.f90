@@ -323,6 +323,16 @@ interface
     logical, optional :: err
   end subroutine
 
+  subroutine make_mat6_bmad_photon (ele, param, start_orb, end_orb, end_in, err)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    type (coord_struct) :: start_orb, end_orb
+    type (lat_param_struct) param
+    logical, optional :: end_in
+    logical, optional :: err
+  end subroutine
+
   subroutine make_mat6_runge_kutta (ele, param, start_orb, end_orb)
     import
     implicit none

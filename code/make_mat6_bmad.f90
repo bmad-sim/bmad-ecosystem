@@ -189,13 +189,6 @@ case (beambeam$)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
-! Crystal
-
-case (crystal$, sample$, x_ray_init$)
-
-  ! Not yet implemented
-
-!--------------------------------------------------------
 ! Custom
 
 case (custom$)
@@ -570,13 +563,6 @@ case (mirror$)
   ! Offsets?
 
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-
-!--------------------------------------------------------
-! multilayer_mirror
-
-case (multilayer_mirror$) 
-
-  ! Not yet implemented
 
 !--------------------------------------------------------
 ! Multipole, AB_Multipole
