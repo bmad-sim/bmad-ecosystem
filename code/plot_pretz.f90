@@ -152,7 +152,7 @@ subroutine plot_pretz(lat,ncross, cross)
      magg=0.6
      if(ele%key == wiggler$)magg=magg_wig
      if(ele%key == quadrupole$ .or. ele%key == sbend$ .or.ele%key == rbend$ &
-                             .or. ele%key == wiggler$ .or. ele%key == rfcavity$)then
+                             .or. ele%key == wiggler$ .or. ele%key == rfcavity$ .or. ele%key == undulator$)then
        
        xpast = lat%ele(i-1)%floor%r(3)
        ypast = lat%ele(i-1)%floor%r(1)
@@ -211,6 +211,15 @@ subroutine plot_pretz(lat,ncross, cross)
       end do
         write(45,'(2f10.3)')-xx(1),-yy(1)
       write(45,*)
+     endif
+
+     if(ele%key == undulator$)then
+      write(46,'(a,/)')'#'
+      do l=1,4
+        write(46,'(2f10.3)')-xx(l),-yy(l)
+      end do
+        write(46,'(2f10.3)')-xx(1),-yy(1)
+      write(46,*)
      endif
 
 
