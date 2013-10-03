@@ -30,6 +30,8 @@ use basic_bmad_interface
 ! Additionally, if ele is an init_ele, and vec is zero or not present, orb%vec(6) is shifted
 ! so that the particle's energy is maintained at ele%value(p0c_start$).
 !
+! Note: For a photon, orb%vec(5) is set depending upon where the photon is relative to the element.
+!
 ! Modules needed:
 !   use bmad
 !
@@ -1022,6 +1024,12 @@ if (orb2%species == photon$) then
 
   if (orb2%vec(6) >= 0) orb2%vec(6) = sqrt(1 - orb2%vec(2)**2 - orb2%vec(4)**2)
   orb2%beta = 1
+
+  if (logic_option(.false., at_downstream_end)) then
+    orb2%vec(5) = ele%value(l$)
+  else
+    orb2%vec(5) = 0
+  endif
 
 endif
 

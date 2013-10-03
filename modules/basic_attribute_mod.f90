@@ -932,7 +932,7 @@ call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start'
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
-call init_attribute_name1 (sample$, l$,                             'L', dependent$)
+call init_attribute_name1 (sample$, l$,                             'L')
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)

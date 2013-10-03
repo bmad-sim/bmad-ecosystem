@@ -286,7 +286,7 @@ end subroutine track_a_drift
 !
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
-!   length   -- Real(rp): Length to drift through.
+!   length   -- Real(rp): Longitudinal length to drift through.
 !
 ! Output:
 !   orb      -- coord_struct: Orbit at end of the drift
@@ -297,16 +297,24 @@ subroutine track_a_drift_photon (orb, length)
 implicit none
 
 type (coord_struct) orb
-real(rp) length, dpath
+real(rp) length, dpath, l
+
+! Check for lost
+
+if (orb%vec(6) == 0) then
+  orb%state = lost$
+  return
+endif
 
 ! Photon tracking uses a different coordinate system. 
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
 
-dpath = length / orb%vec(6)
+l = length  ! In case actual length argument is a component of orb.
+dpath = l / orb%vec(6)
 orb%vec(1) = orb%vec(1) + dpath * orb%vec(2)
 orb%vec(3) = orb%vec(3) + dpath * orb%vec(4)
-orb%vec(5) = orb%vec(5) + length
-orb%s      = orb%s      + length
+orb%vec(5) = orb%vec(5) + l
+orb%s      = orb%s      + l
 orb%t = orb%t + dpath / c_light
 orb%path_len = orb%path_len + dpath
 
@@ -1004,60 +1012,6 @@ else
 end if
 
 end subroutine bend_edge_kick
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!+
-! Subroutine pitches_to_rotation_matrix (x_pitch, y_pitch, set, rot_mat)
-!
-! Routine to create a rotation matrix form the pitches and tilt
-!
-! Input:
-!   x_pitch -- Real(rp): X-pitch
-!   y_pitch -- Real(rp): Y-pitch
-!   set     -- Logical: set$ (True)    -> rot translates from lab to element coords.
-!                       unset$ (False) -> rot translates from element to lab coords.
-! Output:
-!   rot_mat(3,3) -- Real(rp): Rotation matrix.
-!-
-
-subroutine pitches_to_rotation_matrix (x_pitch, y_pitch, set, rot_mat)
-
-implicit none
-
-real(rp) x_pitch, y_pitch, rot_mat(3,3)
-real(rp) sx, sy, nx, ny, cos_t, norm
-
-logical set
-
-! Degenerate case
-
-if (x_pitch == 0 .and. y_pitch == 0) then
-  call mat_make_unit(rot_mat)
-  return
-endif
-
-!
-
-sx = sin(x_pitch)
-sy = sin(y_pitch)
-
-if (set) then
-  sx = -sx
-  sy = -sy
-endif
-
-norm = sqrt(sx**2 + sy**2)
-nx = -sy / norm
-ny =  sx / norm
-cos_t = sqrt(1 - norm**2)
-
-rot_mat(1,:) = [nx**2 + ny**2 * cos_t, nx * ny * (1 - cos_t), sx]
-rot_mat(2,:) = [nx * ny * (1 - cos_t), ny**2 + nx**2 * cos_t, sy]
-rot_mat(3,:) = [-sx,                   -sy,                   cos_t]
-
-end subroutine pitches_to_rotation_matrix
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

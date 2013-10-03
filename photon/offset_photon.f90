@@ -32,8 +32,8 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), target :: orbit
 
-real(rp) graze2, offset(6), tilt, r(3), ds_center, rot_angle, sin_g, cos_g
-real(rp) off(3), rot(3), project(3,3), rot_mat(3,3)
+real(rp) graze2, offset(6), tilt, r(3), rot_angle, sin_g, cos_g
+real(rp) off(3), rot(3), project(3,3), rot_mat(3,3), s, vec6_0
 real(rp), pointer :: p(:), vec(:)
 
 complex(rp) field(2)
@@ -42,15 +42,15 @@ logical :: set
 logical, optional :: offset_position_only
 logical is_reflective_element
 
+character(*), parameter :: r_name = 'offset_photon'
+
 !
 
 select case (ele%key)
 case (crystal$, mirror$, multilayer_mirror$)
   is_reflective_element = .true.
-  ds_center = 0
 case default
   is_reflective_element = .false.
-  ds_center = orbit%vec(5) - ele%value(l$)/2
 end select
 
 p   => ele%value  ! parameter
@@ -61,25 +61,19 @@ vec => orbit%vec
 
 if (set) then
 
-  ! Set: z_offset
+  vec6_0 = vec(6)
 
-  if (p(z_offset_tot$) /= 0) then
-    vec(1) = vec(1) + vec(2) * p(z_offset_tot$) / vec(6)
-    vec(3) = vec(3) + vec(4) * p(z_offset_tot$) / vec(6)
-    orbit%t = orbit%t + p(z_offset_tot$)  / vec(6) / c_light 
-    orbit%s = orbit%s + p(z_offset_tot$)
-  endif
-
-  ! Set: X and Y offsets
+  ! Set: Offsets
 
   vec(1) = vec(1) - p(x_offset_tot$)
   vec(3) = vec(3) - p(y_offset_tot$)
+  vec(5) = vec(5) - p(z_offset_tot$)
 
   ! Set: pitch
 
   if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
-    call pitches_to_rotation_matrix (p(x_pitch_tot$), p(y_pitch_tot$), set, rot_mat)
-    r = [vec(1:3:2), ds_center]
+    call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat_inv = rot_mat)
+    r = [vec(1), vec(3), vec(5) - ele%value(l$)/2]
     vec(1:5:2) = matmul(rot_mat, r)
     vec(5) = vec(5) + ele%value(l$)/2
     vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
@@ -134,6 +128,16 @@ if (set) then
     orbit%vec(2:6:2) =  [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
     orbit%vec(1:5:2) = [cos_g * orbit%vec(1), orbit%vec(3), -sin_g * orbit%vec(1)]
+  endif
+
+  ! Transport to z = 0.
+  ! Track_a_drift_photon assumes particle is in lab coords so need to correct s-position
+
+  if (orbit%vec(5) /= 0) then
+    s = orbit%s - orbit%vec(5) * vec6_0 / vec(6)
+    call track_a_drift_photon (orbit, -orbit%vec(5))
+    if (orbit%state /= alive$) return
+    orbit%s = s
   endif
 
 !----------------------------------------------------------------
@@ -202,14 +206,14 @@ else
     ! Since the pitches are with respect to the lab input coord system, we have
     ! to translate to the local output coords.
 
-    if (p(x_pitch_tot$) /= 0) then
-      call axis_angle_to_w_mat (project(3,:), p(x_pitch_tot$), rot_mat)
+    if (p(y_pitch_tot$) /= 0) then
+      call axis_angle_to_w_mat (-project(1,:), p(y_pitch_tot$), rot_mat)
       vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
       vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
     endif
 
-    if (p(y_pitch_tot$) /= 0) then
-      call axis_angle_to_w_mat (-project(2,:), p(y_pitch_tot$), rot_mat)
+    if (p(x_pitch_tot$) /= 0) then
+      call axis_angle_to_w_mat (project(2,:), p(x_pitch_tot$), rot_mat)
       vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
       vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
     endif
@@ -220,14 +224,7 @@ else
     off = project(1,:) * p(x_offset_tot$) + project(2,:) * p(y_offset_tot$) + &
           project(3,:) * p(z_offset_tot$)
 
-    vec(1) = vec(1) + off(1)
-    vec(3) = vec(3) + off(2)
-    if (off(3) /= 0) then
-      vec(1) = vec(1) - vec(2) * off(3)
-      vec(3) = vec(3) - vec(4) * off(3)
-      orbit%t = orbit%t - p(z_offset_tot$)  / vec(6) / c_light 
-      orbit%s = orbit%s - p(z_offset_tot$)
-    endif
+    vec(1:5:2) = vec(1:5:2) + off
 
   ! non-reflective element
 
@@ -242,27 +239,29 @@ else
     ! Unset: Pitch
 
     if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
-      call pitches_to_rotation_matrix (-p(x_pitch_tot$), -p(y_pitch_tot$), set, rot_mat)
-      r = [vec(1:3:2), ds_center]
+      call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat = rot_mat)
+      r = [vec(1), vec(3), vec(5) - ele%value(l$)/2]
       vec(1:5:2) = matmul(rot_mat, r)
-      vec(5) = vec(5) - ele%value(l$)/2
+      vec(5) = vec(5) + ele%value(l$)/2
       vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
     endif
 
     ! Unset: X and Y Offsets
 
-    vec(1) = vec(1) - p(x_offset_tot$)
-    vec(3) = vec(3) - p(y_offset_tot$)
+    vec(1) = vec(1) + p(x_offset_tot$)
+    vec(3) = vec(3) + p(y_offset_tot$)
+    vec(5) = vec(5) + p(z_offset_tot$)
 
-    ! Unset S Offset
+  endif
 
-    if (p(z_offset_tot$) /= 0) then
-      vec(1) = vec(1) - vec(2) * p(z_offset_tot$) / vec(6)
-      vec(3) = vec(3) - vec(4) * p(z_offset_tot$) / vec(6)
-      orbit%t = orbit%t - p(z_offset_tot$)  / vec(6) / c_light 
-      orbit%s = orbit%s - p(z_offset_tot$)
-    endif
+  ! Unset: Transport to element nominal end.
+  ! The s-position calc breaks down for reflective elements in track_a_drift_photon so 
+  ! simply set orbit%s to what it should be.
 
+  if (vec(5) /= ele%value(l$)) then
+    call track_a_drift_photon (orbit, ele%value(l$) - vec(5))
+    if (orbit%state /= alive$) return
+    orbit%s = ele%s
   endif
 
   ! Unset: intensities

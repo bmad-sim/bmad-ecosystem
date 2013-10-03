@@ -157,7 +157,7 @@ respect to the exit coordinate frame and not the entrance coordinate
 frame. If field must be calculated in the entrance coordinate frame, 
 a transformation between entance and exit frames must be done:
 \begin{example}
-  subroutine em_field_custom (ele, param, s_rel, t_rel, orb, &
+  subroutine em_field_custom (ele, param, s_rel, time, orb, &
                                   local_ref_frame, field, calc_dfield, err_flag)
   use lat_geometry_mod
   ...
