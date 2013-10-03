@@ -70,6 +70,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   real(rdef) phy_x_set, phy_y_set
   real(rdef) delta_e/1.e-4/, chrom_x, chrom_y
   real(rdef) delta_fRF, fRF
+  real(rdef) a(6,6)
+  real(rdef) sinmuz, betaz, gammaz, alphaz, cosmuz
 
   logical aperture_bracketed, track_on
   logical ok
@@ -188,7 +190,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
    ring%param%aperture_limit_on = .true.
 
 ! write output
-  call file_suffixer (in_file, in_file, '_back.dat', .true.)
+  call file_suffixer (in_file, in_file, '.dat', .true.)
   open (unit = 2, file = trim(in_file)//'_back')
   write (2, *) 'Lattice  = ', ring%lattice
   write (2, '(a11,i5,3(a10,f10.5))') ' N_turn   =', track_input%n_turn
@@ -227,6 +229,16 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
      call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
 
      orb0 = co(0)
+     print '(a,6es12.4)',' orb0%vec(1:6) ',orb0%vec(1:6)
+
+!
+  call transfer_matrix_calc (ring, .true., a)
+  orb0%vec(5) = -0.5*(a(5,5)-a(6,6))/a(6,5) * orb0%vec(6)
+  print '(a,2es12.4)',' a(5,5), a(5,6) ', a(5,5), a(5,6)
+  print '(a,2es12.4)',' a(6,5), a(6,6) ', a(6,5), a(6,6)
+  print '(a,es12.4)',' orb0%vec(5) ',orb0%vec(5)
+!
+
 !     orb0%vec(6) = e_init
 
     call string_trim (in_file, in_file, ix)
