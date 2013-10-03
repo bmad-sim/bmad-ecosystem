@@ -174,6 +174,7 @@ read (d_unit, err = 9030)  &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, &
         lat%rf_auto_scale_amp, lat%use_ptc_layout, lat%pre_tracker
+read (d_unit, err = 9070) n_branch
 
 ! custom attribute names
 
@@ -190,30 +191,19 @@ endif
 call allocate_lat_ele_array(lat, lat%n_ele_max+10)
 call reallocate_control (lat, lat%n_control_max+10)
 
-!
+! Branches
 
-branch => lat%branch(0)
 do i = 0, lat%n_ele_max
   call read_this_ele(lat%ele(i), i, error)
   if (error) return
 enddo
 
-do i = 1, lat%n_control_max
-  read (d_unit, err = 9040) lat%control(i)
-enddo
-
-do i = 1, lat%n_ic_max
-  read (d_unit, err = 9050) lat%ic(i)
-enddo
-
-read (d_unit, err = 9060) lat%beam_start
-
-! read branch lines
-
-read (d_unit, err = 9070) n_branch
 call allocate_branch_array (lat, n_branch)  ! Initial allocation
 
-do i = 0, n_branch
+call read_this_wall3d (lat%branch(0)%wall3d, error)
+if (error) return
+
+do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
@@ -228,7 +218,20 @@ do i = 0, n_branch
 
   call read_this_wall3d (branch%wall3d, error)
   if (error) return
+
 enddo
+
+! read the control info, etc
+
+do i = 1, lat%n_control_max
+  read (d_unit, err = 9040) lat%control(i)
+enddo
+
+do i = 1, lat%n_ic_max
+  read (d_unit, err = 9050) lat%ic(i)
+enddo
+
+read (d_unit, err = 9060) lat%beam_start
 
 ! Read PTC info
 
@@ -398,10 +401,11 @@ logical error, is_alloc_pt, is_alloc_tile
 
 error = .true.
 
-read (d_unit, err = 9100) mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
+read (d_unit, err = 9100, end = 9100) &
+        mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
         idum2, idum3, ix_d, ix_m, ix_t, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, &
         ix_lr, ix_wall3d, n_em_field_mode, idum4
-read (d_unit, err = 9100) &
+read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
         ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
         ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
@@ -537,7 +541,7 @@ enddo
 
 if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_rf_wake (branch%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
+    call transfer_rf_wake (ele%branch%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
 
   else
     call init_wake (ele%rf_wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)

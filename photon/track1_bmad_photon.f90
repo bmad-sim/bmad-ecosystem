@@ -68,18 +68,18 @@ select case (key)
 
 case (capillary$) 
 
-  call offset_photon (ele, end_orb, set$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track_a_capillary (end_orb, ele)
-  call offset_photon (ele, end_orb, unset$)  
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Crystal
 
 case (crystal$) 
 
-  call offset_photon (ele, end_orb, set$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track1_crystal (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Drift
@@ -91,9 +91,9 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
     return
   endif
 
-  call offset_photon (ele, end_orb, set$)
-  call track_a_drift_photon (end_orb, length)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
+  call track_a_drift_photon (end_orb, length); if (end_orb%state /= alive$) return
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Marker, etc.
@@ -139,18 +139,18 @@ case (match$)
 
 case (mirror$)
 
-  call offset_photon (ele, end_orb, set$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track1_mirror (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Multilayer_Mirror
 
 case (multilayer_mirror$) 
 
-  call offset_photon (ele, end_orb, set$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track1_multilayer_mirror (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Patch
@@ -181,9 +181,9 @@ case (patch$)
 
 case (sample$)
 
-  call offset_photon (ele, end_orb, set$)
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track1_sample (ele, param, end_orb)
-  call offset_photon (ele, end_orb, unset$)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
 ! Taylor

@@ -100,8 +100,9 @@ write (d_unit) &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
         lat%absolute_time_tracking, lat%rf_auto_scale_phase, lat%rf_auto_scale_amp, &
         lat%use_ptc_layout, lat%pre_tracker
+write (d_unit) ubound(lat%branch, 1)
 
-! General parameter names
+! custom attribute names
 
 if (allocated(lat%attribute_alias)) then
   n = size(lat%attribute_alias)
@@ -113,14 +114,27 @@ else
   write (d_unit) 0
 endif
 
-!
+! Branches
 
-n_wake = 0  ! number of wakes written to the digested file for main branch.
 allocate (ix_wake(100))
-branch => lat%branch(0)
 
+n_wake = 0  ! number of wakes written to the digested file for this branch.
 do i = 0, lat%n_ele_max
   call write_this_ele (lat%ele(i))
+enddo
+
+call write_this_wall3d (lat%branch(0)%wall3d, associated(lat%branch(0)%wall3d))
+
+do i = 1, ubound(lat%branch, 1)
+  n_wake = 0  ! number of wakes written to the digested file for this branch.
+  branch => lat%branch(i)
+  write (d_unit) branch%param
+  write (d_unit) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, 0
+  do j = 0, branch%n_ele_max
+    call write_this_ele(branch%ele(j))
+  enddo
+  call write_this_wall3d (branch%wall3d, associated(branch%wall3d))
 enddo
 
 ! write the control info, etc
@@ -134,21 +148,6 @@ do i = 1, lat%n_ic_max
 enddo
 
 write (d_unit) lat%beam_start
-
-! Write the branch line info
-
-write (d_unit) ubound(lat%branch, 1)
-do i = 0, ubound(lat%branch, 1)
-  n_wake = 0  ! number of wakes written to the digested file for this branch.
-  branch => lat%branch(i)
-  write (d_unit) branch%param
-  write (d_unit) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, 0
-  do j = 0, branch%n_ele_max
-    call write_this_ele(branch%ele(j))
-  enddo
-  call write_this_wall3d (branch%wall3d, associated(branch%wall3d))
-enddo
 
 ! Write PTC info
 
@@ -224,7 +223,7 @@ if (associated(ele%em_field))       n_em_field_mode = size(ele%em_field%mode)
 write_wake = .true.
 if (associated(ele%rf_wake)) then
   do j = 1, n_wake
-    if (.not. branch%ele(ix_wake(j))%rf_wake == ele%rf_wake) cycle
+    if (.not. ele%branch%ele(ix_wake(j))%rf_wake == ele%rf_wake) cycle
     write_wake = .false.
     ix_lr = -ix_wake(j)        
   enddo
