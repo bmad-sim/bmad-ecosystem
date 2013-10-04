@@ -21,7 +21,7 @@ subroutine plot_pretz(lat,ncross, cross)
   real(rp) r,xp,yp,xe,ye, x, y
   real(rp) xlast, ylast
   real(rp) slast,s, z, xc, yc,xlow,xhigh,ylow,yhigh,bar/1.5/,mag/3.0/
-  real(rp) magg/1.5/, magg_wig/1.5/
+  real(rp) magg/1.5/, magg_wig/1.5/, magg_und/1.25/
   real(rp) spast, xpast, ypast
   real(rp) inj/0.02/
   real(rp) zero/0.0/
@@ -151,6 +151,7 @@ subroutine plot_pretz(lat,ncross, cross)
 
      magg=0.6
      if(ele%key == wiggler$)magg=magg_wig
+     if(ele%key == undulator$) magg = magg_und
      if(ele%key == quadrupole$ .or. ele%key == sbend$ .or.ele%key == rbend$ &
                              .or. ele%key == wiggler$ .or. ele%key == rfcavity$ .or. ele%key == undulator$)then
        
@@ -186,6 +187,14 @@ subroutine plot_pretz(lat,ncross, cross)
      endif
 
    if(ele%key == sbend$ .or. ele%key == rbend$)then
+     if(index(ele%name,'CANT')/= 0) then
+      write(47,'(a,/)')'#'
+      do l=1,4
+        write(47,'(2f10.3)')-xx(l),-yy(l)
+      end do
+        write(47,'(2f10.3)')-xx(1),-yy(1)
+      write(47,*)
+    else
       write(42,'(a,/)')'#'
       do l=1,4
         write(42,'(2f10.3)')-xx(l),-yy(l)
@@ -193,6 +202,7 @@ subroutine plot_pretz(lat,ncross, cross)
         write(42,'(2f10.3)')-xx(1),-yy(1)
       write(42,*)
      endif
+    endif
 
    if(ele%key == wiggler$)then
       write(44,'(a,/)')'#'
