@@ -1869,6 +1869,69 @@ extern "C" void test_c_segmented_surface (Bmad_segmented_surface_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_target_rectangle (CPP_target_rectangle&, bool&);
+
+void set_CPP_target_rectangle_test_pattern (CPP_target_rectangle& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.x1 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.y1 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.s = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_target_rectangle (Bmad_target_rectangle_class* F, bool& c_ok) {
+
+  CPP_target_rectangle C, C2;
+
+  c_ok = true;
+
+  target_rectangle_to_c (F, C);
+  set_CPP_target_rectangle_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " target_rectangle: C side convert F->C: Good" << endl;
+  } else {
+    cout << " target_rectangle: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_target_rectangle_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_target_rectangle (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_target_rectangle_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " target_rectangle: F side convert F->C: Good" << endl;
+  } else {
+    cout << " target_rectangle: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_target_rectangle_test_pattern (C2, 4);
+  target_rectangle_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_photon_surface (CPP_photon_surface&, bool&);
 
 void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
@@ -1929,6 +1992,114 @@ extern "C" void test_c_photon_surface (Bmad_photon_surface_class* F, bool& c_ok)
 
   set_CPP_photon_surface_test_pattern (C2, 4);
   photon_surface_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_photon_target (CPP_photon_target&, bool&);
+
+void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_target_rectangle_test_pattern(C.r0, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_target_rectangle_test_pattern(C.r1, ix_patt);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_photon_target (Bmad_photon_target_class* F, bool& c_ok) {
+
+  CPP_photon_target C, C2;
+
+  c_ok = true;
+
+  photon_target_to_c (F, C);
+  set_CPP_photon_target_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " photon_target: C side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_target: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_target_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_photon_target (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_photon_target_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " photon_target: F side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_target: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_target_test_pattern (C2, 4);
+  photon_target_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_photon_element (CPP_photon_element&, bool&);
+
+void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_photon_surface_test_pattern(C.surface, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_photon_target_test_pattern(C.target, ix_patt);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_photon_element (Bmad_photon_element_class* F, bool& c_ok) {
+
+  CPP_photon_element C, C2;
+
+  c_ok = true;
+
+  photon_element_to_c (F, C);
+  set_CPP_photon_element_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " photon_element: C side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_element: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_element_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_photon_element (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_photon_element_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " photon_element: F side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_element: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_element_test_pattern (C2, 4);
+  photon_element_to_f (C2, F);
 
 }
 
@@ -3439,10 +3610,10 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
-    C.surface = NULL;
+    C.photon = NULL;
   else {
-    C.surface = new CPP_photon_surface;
-    set_CPP_photon_surface_test_pattern((*C.surface), ix_patt);
+    C.photon = new CPP_photon_element;
+    set_CPP_photon_element_test_pattern((*C.photon), ix_patt);
   }
 
   // c_side.test_pat[type, 1, NOT]

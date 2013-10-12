@@ -260,7 +260,34 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine target_rectangle_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine photon_surface_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine photon_target_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine photon_element_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -3302,6 +3329,93 @@ end subroutine segmented_surface_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine target_rectangle_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad target_rectangle_struct to a C++ CPP_target_rectangle structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad target_rectangle_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_target_rectangle struct.
+!-
+
+subroutine target_rectangle_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine target_rectangle_to_c2 (C, z_x0, z_x1, z_y0, z_y1, z_s) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_x0, z_x1, z_y0, z_y1, z_s
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(target_rectangle_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call target_rectangle_to_c2 (C, F%x0, F%x1, F%y0, F%y1, F%s)
+
+end subroutine target_rectangle_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine target_rectangle_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_target_rectangle structure to a Bmad target_rectangle_struct structure.
+! This routine is called by target_rectangle_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the target_rectangle_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad target_rectangle_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine target_rectangle_to_f2 (Fp, z_x0, z_x1, z_y0, z_y1, z_s) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(target_rectangle_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_x0, z_x1, z_y0, z_y1, z_s
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x0 = z_x0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x1 = z_x1
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y1 = z_y1
+!! f_side.to_f2_trans[real, 0, NOT]
+F%s = z_s
+
+end subroutine target_rectangle_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine photon_surface_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad photon_surface_struct to a C++ CPP_photon_surface structure
@@ -3395,6 +3509,168 @@ call vec2mat(z_curvature_xy, F%curvature_xy)
 F%has_curvature = f_logic(z_has_curvature)
 
 end subroutine photon_surface_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_target_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad photon_target_struct to a C++ CPP_photon_target structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad photon_target_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_photon_target struct.
+!-
+
+subroutine photon_target_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine photon_target_to_c2 (C, z_r0, z_r1) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr), value :: z_r0, z_r1
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(photon_target_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call photon_target_to_c2 (C, c_loc(F%r0), c_loc(F%r1))
+
+end subroutine photon_target_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_target_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_photon_target structure to a Bmad photon_target_struct structure.
+! This routine is called by photon_target_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the photon_target_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad photon_target_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine photon_target_to_f2 (Fp, z_r0, z_r1) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(photon_target_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr), value :: z_r0, z_r1
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 0, NOT]
+call target_rectangle_to_f(z_r0, c_loc(F%r0))
+!! f_side.to_f2_trans[type, 0, NOT]
+call target_rectangle_to_f(z_r1, c_loc(F%r1))
+
+end subroutine photon_target_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_element_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad photon_element_struct to a C++ CPP_photon_element structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad photon_element_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_photon_element struct.
+!-
+
+subroutine photon_element_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine photon_element_to_c2 (C, z_surface, z_target) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr), value :: z_surface, z_target
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(photon_element_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call photon_element_to_c2 (C, c_loc(F%surface), c_loc(F%target))
+
+end subroutine photon_element_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_element_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_photon_element structure to a Bmad photon_element_struct structure.
+! This routine is called by photon_element_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the photon_element_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad photon_element_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine photon_element_to_f2 (Fp, z_surface, z_target) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(photon_element_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr), value :: z_surface, z_target
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 0, NOT]
+call photon_surface_to_f(z_surface, c_loc(F%surface))
+!! f_side.to_f2_trans[type, 0, NOT]
+call photon_target_to_f(z_target, c_loc(F%target))
+
+end subroutine photon_element_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -5481,7 +5757,7 @@ interface
   subroutine ele_to_c2 (C, z_name, z_type, z_alias, z_component_name, z_descrip, n_descrip, &
       z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field, n_em_field, z_floor, z_mode3, &
       n_mode3, z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, &
-      n_space_charge, z_surface, n_surface, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, &
+      n_space_charge, z_photon, n_photon, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, &
       z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, &
       z_old_value, z_gen0, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, &
       n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_key, z_sub_key, z_ix_ele, &
@@ -5498,7 +5774,7 @@ interface
     integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer
     integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc
     integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
-    integer(c_int), value :: n_descrip, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_surface
+    integer(c_int), value :: n_descrip, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_photon
     integer(c_int), value :: n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
@@ -5506,7 +5782,7 @@ interface
     real(c_double) :: z_value(*), z_old_value(*), z_gen0(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c
     real(c_double) :: z_s, z_ref_time, z_r(*), z_a_pole(*), z_b_pole(*)
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field
-    type(c_ptr), value :: z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_surface, z_wall3d
+    type(c_ptr), value :: z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_photon, z_wall3d
     type(c_ptr), value :: z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
     type(c_ptr) :: z_taylor(*)
   end subroutine
@@ -5524,7 +5800,7 @@ integer(c_int) :: n_mode3
 integer(c_int) :: n_rad_int_cache
 integer(c_int) :: n_rf_wake
 integer(c_int) :: n_space_charge
-integer(c_int) :: n_surface
+integer(c_int) :: n_photon
 type(c_ptr) :: z_taylor(6)
 integer(c_int) :: n_wall3d
 integer(c_int) :: n_wig
@@ -5560,8 +5836,8 @@ if (associated(F%rf_wake)) n_rf_wake = 1
 n_space_charge = 0
 if (associated(F%space_charge)) n_space_charge = 1
 !! f_side.to_c_trans[type, 0, PTR]
-n_surface = 0
-if (associated(F%surface)) n_surface = 1
+n_photon = 0
+if (associated(F%photon)) n_photon = 1
 !! f_side.to_c_trans[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
   z_taylor(jd1) = c_loc(F%taylor(jd1+lb1))
@@ -5597,7 +5873,7 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     c_loc(F%b), c_loc(F%z), c_loc(F%x), c_loc(F%y), c_loc(F%bookkeeping_state), &
     c_loc(F%em_field), n_em_field, c_loc(F%floor), c_loc(F%mode3), n_mode3, &
     c_loc(F%rad_int_cache), n_rad_int_cache, c_loc(F%rf_wake), n_rf_wake, &
-    c_loc(F%space_charge), n_space_charge, c_loc(F%surface), n_surface, z_taylor, &
+    c_loc(F%space_charge), n_space_charge, c_loc(F%photon), n_photon, z_taylor, &
     c_loc(F%wall3d), n_wall3d, c_loc(F%wig), n_wig, c_loc(F%map_ref_orb_in), &
     c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), &
     fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
@@ -5634,7 +5910,7 @@ end subroutine ele_to_c
 subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, n_descrip, z_a, &
     z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field, n_em_field, z_floor, z_mode3, n_mode3, &
     z_rad_int_cache, n_rad_int_cache, z_rf_wake, n_rf_wake, z_space_charge, n_space_charge, &
-    z_surface, n_surface, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, &
+    z_photon, n_photon, z_taylor, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, &
     z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, z_old_value, z_gen0, &
     z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, &
     n1_a_pole, z_b_pole, n1_b_pole, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, &
@@ -5652,7 +5928,8 @@ type(c_ptr), value :: Fp
 type(ele_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(photon_surface_struct), pointer :: f_surface
+logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, z_field_master, z_is_on
+logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
 type(rf_wake_struct), pointer :: f_rf_wake
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, z_n_slave
 integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer
@@ -5660,13 +5937,12 @@ integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tr
 integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
 type(mode3_struct), pointer :: f_mode3
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
-integer(c_int), value :: n_descrip, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_surface
+integer(c_int), value :: n_descrip, n_em_field, n_mode3, n_rad_int_cache, n_rf_wake, n_space_charge, n_photon
 integer(c_int), value :: n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole, n1_b_pole
 type(wig_struct), pointer :: f_wig
-logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_map_with_offsets, z_field_master, z_is_on
-logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
+type(photon_element_struct), pointer :: f_photon
 type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field
-type(c_ptr), value :: z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_surface, z_wall3d
+type(c_ptr), value :: z_floor, z_mode3, z_rad_int_cache, z_rf_wake, z_space_charge, z_photon, z_wall3d
 type(c_ptr), value :: z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_r, z_a_pole
 type(c_ptr), value :: z_b_pole
 real(c_double), pointer :: f_r(:), f_a_pole(:), f_b_pole(:)
@@ -5752,11 +6028,11 @@ else
 endif
 
 !! f_side.to_f2_trans[type, 0, PTR]
-if (n_surface == 0) then
-  if (associated(F%surface)) deallocate(F%surface)
+if (n_photon == 0) then
+  if (associated(F%photon)) deallocate(F%photon)
 else
-  if (.not. associated(F%surface)) allocate(F%surface)
-  call photon_surface_to_f (z_surface, c_loc(F%surface))
+  if (.not. associated(F%photon)) allocate(F%photon)
+  call photon_element_to_f (z_photon, c_loc(F%photon))
 endif
 
 !! f_side.to_f2_trans[type, 1, NOT]

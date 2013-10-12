@@ -187,10 +187,25 @@ typedef valarray<CPP_segmented_surface>          CPP_segmented_surface_ARRAY;
 typedef valarray<CPP_segmented_surface_ARRAY>    CPP_segmented_surface_MATRIX;
 typedef valarray<CPP_segmented_surface_MATRIX>   CPP_segmented_surface_TENSOR;
 
+class CPP_target_rectangle;
+typedef valarray<CPP_target_rectangle>          CPP_target_rectangle_ARRAY;
+typedef valarray<CPP_target_rectangle_ARRAY>    CPP_target_rectangle_MATRIX;
+typedef valarray<CPP_target_rectangle_MATRIX>   CPP_target_rectangle_TENSOR;
+
 class CPP_photon_surface;
 typedef valarray<CPP_photon_surface>          CPP_photon_surface_ARRAY;
 typedef valarray<CPP_photon_surface_ARRAY>    CPP_photon_surface_MATRIX;
 typedef valarray<CPP_photon_surface_MATRIX>   CPP_photon_surface_TENSOR;
+
+class CPP_photon_target;
+typedef valarray<CPP_photon_target>          CPP_photon_target_ARRAY;
+typedef valarray<CPP_photon_target_ARRAY>    CPP_photon_target_MATRIX;
+typedef valarray<CPP_photon_target_MATRIX>   CPP_photon_target_TENSOR;
+
+class CPP_photon_element;
+typedef valarray<CPP_photon_element>          CPP_photon_element_ARRAY;
+typedef valarray<CPP_photon_element_ARRAY>    CPP_photon_element_MATRIX;
+typedef valarray<CPP_photon_element_MATRIX>   CPP_photon_element_TENSOR;
 
 class CPP_wall3d_vertex;
 typedef valarray<CPP_wall3d_vertex>          CPP_wall3d_vertex_ARRAY;
@@ -1230,6 +1245,38 @@ bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
 
 
 //--------------------------------------------------------------------
+// CPP_target_rectangle
+
+class Bmad_target_rectangle_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_target_rectangle {
+public:
+  Real x0;
+  Real x1;
+  Real y0;
+  Real y1;
+  Real s;
+
+  CPP_target_rectangle() :
+    x0(0.0),
+    x1(0.0),
+    y0(0.0),
+    y1(0.0),
+    s(0.0)
+    {}
+
+  ~CPP_target_rectangle() {
+  }
+
+};   // End Class
+
+extern "C" void target_rectangle_to_c (const Bmad_target_rectangle_class*, CPP_target_rectangle&);
+extern "C" void target_rectangle_to_f (const CPP_target_rectangle&, Bmad_target_rectangle_class*);
+
+bool operator== (const CPP_target_rectangle&, const CPP_target_rectangle&);
+
+
+//--------------------------------------------------------------------
 // CPP_photon_surface
 
 class Bmad_photon_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1261,6 +1308,58 @@ extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photo
 extern "C" void photon_surface_to_f (const CPP_photon_surface&, Bmad_photon_surface_class*);
 
 bool operator== (const CPP_photon_surface&, const CPP_photon_surface&);
+
+
+//--------------------------------------------------------------------
+// CPP_photon_target
+
+class Bmad_photon_target_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_target {
+public:
+  CPP_target_rectangle r0;
+  CPP_target_rectangle r1;
+
+  CPP_photon_target() :
+    r0(),
+    r1()
+    {}
+
+  ~CPP_photon_target() {
+  }
+
+};   // End Class
+
+extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
+extern "C" void photon_target_to_f (const CPP_photon_target&, Bmad_photon_target_class*);
+
+bool operator== (const CPP_photon_target&, const CPP_photon_target&);
+
+
+//--------------------------------------------------------------------
+// CPP_photon_element
+
+class Bmad_photon_element_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_element {
+public:
+  CPP_photon_surface surface;
+  CPP_photon_target target;
+
+  CPP_photon_element() :
+    surface(),
+    target()
+    {}
+
+  ~CPP_photon_element() {
+  }
+
+};   // End Class
+
+extern "C" void photon_element_to_c (const Bmad_photon_element_class*, CPP_photon_element&);
+extern "C" void photon_element_to_f (const CPP_photon_element&, Bmad_photon_element_class*);
+
+bool operator== (const CPP_photon_element&, const CPP_photon_element&);
 
 
 //--------------------------------------------------------------------
@@ -2011,7 +2110,7 @@ public:
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_rf_wake* rf_wake;
   CPP_space_charge* space_charge;
-  CPP_photon_surface* surface;
+  CPP_photon_element* photon;
   CPP_taylor_ARRAY taylor;
   CPP_wall3d* wall3d;
   CPP_wig* wig;
@@ -2108,7 +2207,7 @@ public:
     rad_int_cache(NULL),
     rf_wake(NULL),
     space_charge(NULL),
-    surface(NULL),
+    photon(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     wall3d(NULL),
     wig(NULL),
@@ -2176,7 +2275,7 @@ public:
     delete rad_int_cache;
     delete rf_wake;
     delete space_charge;
-    delete surface;
+    delete photon;
     delete wall3d;
     delete wig;
   }

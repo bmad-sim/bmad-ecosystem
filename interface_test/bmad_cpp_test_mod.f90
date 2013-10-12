@@ -2755,6 +2755,100 @@ end subroutine set_segmented_surface_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_target_rectangle (ok)
+
+implicit none
+
+type(target_rectangle_struct), target :: f_target_rectangle, f2_target_rectangle
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_target_rectangle (c_target_rectangle, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_target_rectangle
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_target_rectangle_test_pattern (f2_target_rectangle, 1)
+
+call test_c_target_rectangle(c_loc(f2_target_rectangle), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_target_rectangle_test_pattern (f_target_rectangle, 4)
+if (f_target_rectangle == f2_target_rectangle) then
+  print *, 'target_rectangle: C side convert C->F: Good'
+else
+  print *, 'target_rectangle: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_target_rectangle
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_target_rectangle (c_target_rectangle, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_target_rectangle
+type(target_rectangle_struct), target :: f_target_rectangle, f2_target_rectangle
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call target_rectangle_to_f (c_target_rectangle, c_loc(f_target_rectangle))
+
+call set_target_rectangle_test_pattern (f2_target_rectangle, 2)
+if (f_target_rectangle == f2_target_rectangle) then
+  print *, 'target_rectangle: F side convert C->F: Good'
+else
+  print *, 'target_rectangle: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_target_rectangle_test_pattern (f2_target_rectangle, 3)
+call target_rectangle_to_c (c_loc(f2_target_rectangle), c_target_rectangle)
+
+end subroutine test2_f_target_rectangle
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_target_rectangle_test_pattern (F, ix_patt)
+
+implicit none
+
+type(target_rectangle_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%x1 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%y1 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%s = rhs
+
+end subroutine set_target_rectangle_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_photon_surface (ok)
 
 implicit none
@@ -2850,6 +2944,182 @@ enddo; enddo
 rhs = 6 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_photon_target (ok)
+
+implicit none
+
+type(photon_target_struct), target :: f_photon_target, f2_photon_target
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_photon_target (c_photon_target, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_photon_target
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_photon_target_test_pattern (f2_photon_target, 1)
+
+call test_c_photon_target(c_loc(f2_photon_target), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_photon_target_test_pattern (f_photon_target, 4)
+if (f_photon_target == f2_photon_target) then
+  print *, 'photon_target: C side convert C->F: Good'
+else
+  print *, 'photon_target: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_photon_target
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_photon_target (c_photon_target, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_photon_target
+type(photon_target_struct), target :: f_photon_target, f2_photon_target
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call photon_target_to_f (c_photon_target, c_loc(f_photon_target))
+
+call set_photon_target_test_pattern (f2_photon_target, 2)
+if (f_photon_target == f2_photon_target) then
+  print *, 'photon_target: F side convert C->F: Good'
+else
+  print *, 'photon_target: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_photon_target_test_pattern (f2_photon_target, 3)
+call photon_target_to_c (c_loc(f2_photon_target), c_photon_target)
+
+end subroutine test2_f_photon_target
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_photon_target_test_pattern (F, ix_patt)
+
+implicit none
+
+type(photon_target_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 0, NOT]
+call set_target_rectangle_test_pattern (F%r0, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_target_rectangle_test_pattern (F%r1, ix_patt)
+
+end subroutine set_photon_target_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_photon_element (ok)
+
+implicit none
+
+type(photon_element_struct), target :: f_photon_element, f2_photon_element
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_photon_element (c_photon_element, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_photon_element
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_photon_element_test_pattern (f2_photon_element, 1)
+
+call test_c_photon_element(c_loc(f2_photon_element), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_photon_element_test_pattern (f_photon_element, 4)
+if (f_photon_element == f2_photon_element) then
+  print *, 'photon_element: C side convert C->F: Good'
+else
+  print *, 'photon_element: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_photon_element
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_photon_element (c_photon_element, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_photon_element
+type(photon_element_struct), target :: f_photon_element, f2_photon_element
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call photon_element_to_f (c_photon_element, c_loc(f_photon_element))
+
+call set_photon_element_test_pattern (f2_photon_element, 2)
+if (f_photon_element == f2_photon_element) then
+  print *, 'photon_element: F side convert C->F: Good'
+else
+  print *, 'photon_element: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_photon_element_test_pattern (f2_photon_element, 3)
+call photon_element_to_c (c_loc(f2_photon_element), c_photon_element)
+
+end subroutine test2_f_photon_element
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_photon_element_test_pattern (F, ix_patt)
+
+implicit none
+
+type(photon_element_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 0, NOT]
+call set_photon_surface_test_pattern (F%surface, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_photon_target_test_pattern (F%target, ix_patt)
+
+end subroutine set_photon_element_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5032,11 +5302,11 @@ else
 endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
-  if (associated(F%surface)) deallocate (F%surface)
+  if (associated(F%photon)) deallocate (F%photon)
 else
-  if (.not. associated(F%surface)) allocate (F%surface)
+  if (.not. associated(F%photon)) allocate (F%photon)
   rhs = 24 + offset
-  call set_photon_surface_test_pattern (F%surface, ix_patt)
+  call set_photon_element_test_pattern (F%photon, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1

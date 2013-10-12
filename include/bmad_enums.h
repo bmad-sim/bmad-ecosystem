@@ -2,10 +2,11 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 130;
+  const int BMAD_INC_VERSION = 131;
   const int NUM_ELE_ATTRIB = 70;
   const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
+  const int REFLECTION = 1, TRANSMISSION = 2;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
   const int ENTRANCE_END = 1, EXIT_END = 2, BOTH_ENDS = 3, NO_END = 4;
   const int CONTINUOUS = 5, SURFACE = 6;
@@ -49,8 +50,7 @@ namespace Bmad {
   const int UNDULATOR = 51, DIFFRACTION_PLATE = 52;
   const int X_RAY_INIT = 53, SAMPLE = 54, DETECTOR = 55;
   const int N_KEY = 55;
-  const int N_PART = 2, TAYLOR_ORDER = 3, PARTICLE = 14;
-  const int GEOMETRY = 15, LATTICE_TYPE = 16, SYMMETRY = 6;
+  const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
             VAL6=9, VAL7=10, VAL8=11, VAL9=12, VAL10=13, VAL11=14,
             VAL12=15;
@@ -79,7 +79,7 @@ namespace Bmad {
   const int LR_FREQ_SPREAD=5, GRAZE_ANGLE=5, K2=5, SIG_Y=5, B_MAX=5, V_DISPLACE=5;
   const int FLEXIBLE = 5, CRUNCH=5, REF_ORBIT_FOLLOWS=5;
   const int GRADIENT=6, K3=6, SIG_Z=6, NOISE=6, NEW_BRANCH = 6;
-  const int G=6, BRAGG_ANGLE_IN = 6;
+  const int G=6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6;
   const int G_ERR=7, N_POLE=7, BBI_CONST=7, OSC_AMPLITUDE=7;
   const int GRADIENT_ERR=7, CRITICAL_ANGLE = 7;
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH=7;
@@ -95,16 +95,15 @@ namespace Bmad {
   const int TRAVELING_WAVE = 12;
   const int FINT=12, FINTX=13, HGAP=14, HGAPX=15, H1=16, H2=17;
   const int PHI0=13, TILT_CALIB=13, F0_RE=13, F0_RE1=13;
-  const int PHI0_ERR=14, COEF=14, CURRENT=14, L_POLE=14;
-  const int DE_ETA_MEAS=14, F0_IM=14, F0_IM1 = 14;
-  const int QUAD_TILT=14, BEND_TILT=15, X_QUAD=16, Y_QUAD=17;
+  const int PHI0_ERR=14, COEF=14, CURRENT=14, L_POLE=14, PARTICLE = 14;
+  const int QUAD_TILT=14, DE_ETA_MEAS=14, F0_IM=14, F0_IM1 = 14;
+  const int GEOMETRY = 15, BEND_TILT=15;
   const int DPHI0=15, N_SAMPLE=15, FH_RE=15, F0_RE2=15, ORIGIN_ELE_REF_PT=15;
   const int DPHI0_REF = 16, FH_IM=16, F0_IM2=16, X_HALF_LENGTH=16, DX_ORIGIN= 16;
-  const int DPHI0_MAX=17, REF_POLARIZATION=17, Y_HALF_LENGTH=17, DY_ORIGIN = 17;
-  const int DZ_ORIGIN = 18;
-  const int FRINGE_TYPE = 18, FLOOR_SET = 18, PTC_DIR = 18;
-  const int KILL_FRINGE = 19, DTHETA_ORIGIN = 19;
-  const int B_PARAM = 19;
+  const int LATTICE_TYPE = 16, X_QUAD=16;
+  const int DPHI0_MAX=17, REF_POLARIZATION=17, Y_HALF_LENGTH=17, DY_ORIGIN = 17, Y_QUAD=17;
+  const int FRINGE_TYPE = 18, FLOOR_SET = 18, PTC_DIR = 18, DZ_ORIGIN = 18;
+  const int KILL_FRINGE = 19, DTHETA_ORIGIN = 19, B_PARAM = 19;
   const int L_HARD_EDGE = 20, DPHI_ORIGIN = 20, REF_CAP_GAMMA = 20;
   const int FIELD_SCALE = 21, DPSI_ORIGIN = 21, DARWIN_WIDTH_SIGMA = 21;
   const int ANGLE=22, N_CELL=22, X_RAY_LINE_LEN=22, DARWIN_WIDTH_PI = 22;

@@ -504,6 +504,21 @@ template bool is_all_equal (const CPP_segmented_surface_MATRIX&, const CPP_segme
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_target_rectangle& x, const CPP_target_rectangle& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.x1 == y.x1);
+  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.y1 == y.y1);
+  is_eq = is_eq && (x.s == y.s);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_target_rectangle_ARRAY&, const CPP_target_rectangle_ARRAY&);
+template bool is_all_equal (const CPP_target_rectangle_MATRIX&, const CPP_target_rectangle_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.type == y.type);
@@ -517,6 +532,30 @@ bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
 
 template bool is_all_equal (const CPP_photon_surface_ARRAY&, const CPP_photon_surface_ARRAY&);
 template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_surface_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_photon_target& x, const CPP_photon_target& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.r0 == y.r0);
+  is_eq = is_eq && (x.r1 == y.r1);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_target_ARRAY&, const CPP_photon_target_ARRAY&);
+template bool is_all_equal (const CPP_photon_target_MATRIX&, const CPP_photon_target_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.surface == y.surface);
+  is_eq = is_eq && (x.target == y.target);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_element_ARRAY&, const CPP_photon_element_ARRAY&);
+template bool is_all_equal (const CPP_photon_element_MATRIX&, const CPP_photon_element_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -894,9 +933,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.space_charge == NULL) == (y.space_charge == NULL));
   if (!is_eq) return false;
   if (x.space_charge != NULL) is_eq = (*x.space_charge == *y.space_charge);
-  is_eq = is_eq && ((x.surface == NULL) == (y.surface == NULL));
+  is_eq = is_eq && ((x.photon == NULL) == (y.photon == NULL));
   if (!is_eq) return false;
-  if (x.surface != NULL) is_eq = (*x.surface == *y.surface);
+  if (x.photon != NULL) is_eq = (*x.photon == *y.photon);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
   is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
   if (!is_eq) return false;
