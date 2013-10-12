@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
+  cmake.coord_test
   cmake.wall3d_test
   cmake.abs_time_test
   cmake.control_test
