@@ -302,10 +302,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
   select case (i)
-  case (crystal$, multilayer_mirror$, mirror$, sample$)
-    call init_attribute_name1 (i, surface_attrib$,            'SURFACE')
+  case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$)
+    call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
     if (i /= sample$) then
-      call init_attribute_name1 (i, ref_tilt_tot$,              'REF_TILT_TOT', dependent$)
+      call init_attribute_name1 (i, ref_tilt_tot$, 'REF_TILT_TOT', dependent$)
     endif
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)
@@ -933,6 +933,7 @@ call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start'
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
 call init_attribute_name1 (sample$, l$,                             'L')
+call init_attribute_name1 (sample$, geometry$,                      'GEOMETRY')
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)
@@ -1054,6 +1055,8 @@ call init_attribute_name1 (capillary$, n_slice_spline$,             'N_SLICE_SPL
 call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_ANGLE_FACTOR')
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
+
+call init_attribute_name1 (diffraction_plate$, geometry$,           'GEOMETRY')
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -1380,8 +1383,7 @@ end function is_a_tot_attribute
 ! Input:
 !   attrib_name  -- Character(*): Name of the attribute. Must be upper case.
 !   attrib_value -- Real(rp): Value of the attribute.
-!   ele          -- ele_struct, optional: Lattice element that the attribute is contained in.
-!                     This argument is only needed if is_default is present.
+!   ele          -- ele_struct" Lattice element that the attribute is contained in.
 !
 ! Output:
 !   attrib_val_name -- Character(40): Name corresponding to the value.
@@ -1394,7 +1396,7 @@ function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default) r
 
 implicit none
 
-type (ele_struct), optional :: ele
+type (ele_struct) :: ele
 type (ele_struct) ele2
 character(*) attrib_name
 real(rp) attrib_value
@@ -1450,9 +1452,17 @@ case ('FRINGE_TYPE')
   endif
 
 case ('GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib == open$)
+  if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
+    call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_mode_name, lbound(geometry_mode_name, 1))
+    if (present(is_default)) then
+      call init_ele (ele2, ele%key)
+      is_default = (ix_attrib == ele%value(geometry$))
+    endif
+  else
+    call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
+    if (present(is_default)) then
+      is_default = (ix_attrib == open$)
+    endif
   endif
 
 case ('KILL_FRINGE')

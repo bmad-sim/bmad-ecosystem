@@ -151,35 +151,35 @@ else
   if (associated (ele_save%r)) deallocate (ele_save%r)
 endif
 
-! %surface
+! %photon
 
-if (associated(ele2%surface)) then
-  ele1%surface => ele_save%surface  ! reinstate
-  if (.not. associated(ele1%surface)) allocate(ele1%surface)
+if (associated(ele2%photon)) then
+  ele1%photon => ele_save%photon  ! reinstate
+  if (.not. associated(ele1%photon)) allocate(ele1%photon)
 
-  if (allocated (ele2%surface%grid%pt)) then
-    ub = ubound(ele2%surface%grid%pt)
-    if (allocated (ele1%surface%grid%pt)) then
-      if (any(ub /= ubound(ele1%surface%grid%pt))) deallocate (ele1%surface%grid%pt)
+  if (allocated (ele2%photon%surface%grid%pt)) then
+    ub = ubound(ele2%photon%surface%grid%pt)
+    if (allocated (ele1%photon%surface%grid%pt)) then
+      if (any(ub /= ubound(ele1%photon%surface%grid%pt))) deallocate (ele1%photon%surface%grid%pt)
     endif
-    if (.not. allocated (ele1%surface%grid%pt)) allocate (ele1%surface%grid%pt(0:ub(1), 0:ub(2)))
+    if (.not. allocated (ele1%photon%surface%grid%pt)) allocate (ele1%photon%surface%grid%pt(0:ub(1), 0:ub(2)))
   else
-    if (allocated(ele1%surface%grid%pt)) deallocate (ele1%surface%grid%pt)
+    if (allocated(ele1%photon%surface%grid%pt)) deallocate (ele1%photon%surface%grid%pt)
   endif
 
-  if (allocated (ele2%surface%direction%tile)) then
-    ub1 = ubound(ele2%surface%direction%tile, 1)
-    if (allocated (ele1%surface%direction%tile)) then
-      if (ub1 /= ubound(ele1%surface%direction%tile, 1)) deallocate (ele1%surface%direction%tile)
+  if (allocated (ele2%photon%surface%direction%tile)) then
+    ub1 = ubound(ele2%photon%surface%direction%tile, 1)
+    if (allocated (ele1%photon%surface%direction%tile)) then
+      if (ub1 /= ubound(ele1%photon%surface%direction%tile, 1)) deallocate (ele1%photon%surface%direction%tile)
     endif
-    if (.not. allocated (ele1%surface%direction%tile)) allocate (ele1%surface%direction%tile(1:ub1))
+    if (.not. allocated (ele1%photon%surface%direction%tile)) allocate (ele1%photon%surface%direction%tile(1:ub1))
   else
-    if (allocated(ele1%surface%direction%tile)) deallocate (ele1%surface%direction%tile)
+    if (allocated(ele1%photon%surface%direction%tile)) deallocate (ele1%photon%surface%direction%tile)
   endif
 
-  ele1%surface = ele2%surface
+  ele1%photon = ele2%photon
 else
-  if (associated (ele_save%surface)) deallocate (ele_save%surface)
+  if (associated (ele_save%photon)) deallocate (ele_save%photon)
 endif
 
 ! %taylor

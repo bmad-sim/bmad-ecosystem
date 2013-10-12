@@ -555,7 +555,7 @@ case (mirror$)
   mat6(2, 2) = -1
   mat6(4, 3) =  0
 
-  if (ele%surface%has_curvature) then
+  if (ele%photon%surface%has_curvature) then
     print *, 'MIRROR CURVATURE NOT YET IMPLEMENTED!'
     call err_exit
   endif

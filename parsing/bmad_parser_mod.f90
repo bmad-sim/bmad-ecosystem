@@ -225,6 +225,7 @@ type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
 type (em_field_mode_struct), pointer :: em_mode
+type (photon_surface_struct), pointer :: surf
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
 real(rp), pointer :: r_ptr
@@ -664,6 +665,7 @@ endif
 ! Reflecting Surface
 
 if (attrib_word == 'SURFACE') then
+  surf => ele%photon%surface
 
   if (.not. expect_this ('={', .true., .true., 'AFTER "SURFACE"')) return
 
@@ -687,10 +689,10 @@ if (attrib_word == 'SURFACE') then
 
         select case (word)
         case ('DR')
-          if (.not. parse_real_list (trim(ele%name) // ' GRID DR', ele%surface%grid%dr, .true.)) return
+          if (.not. parse_real_list (trim(ele%name) // ' GRID DR', surf%grid%dr, .true.)) return
 
         case ('R0')
-          if (.not. parse_real_list (trim(ele%name) // ' GRID R0', ele%surface%grid%r0, .true.)) return
+          if (.not. parse_real_list (trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
 
         case ('PT_MAX')
           if (.not. parse_integer_list (trim(ele%name) // ' GRID R0', i_vec, .true.)) return
@@ -698,26 +700,26 @@ if (attrib_word == 'SURFACE') then
             call parser_error ('SURFACE PT_MAX VALUE IS NEGATIVE', trim(ele%name))
             return
           endif
-          if (allocated (ele%surface%grid%pt)) deallocate (ele%surface%grid%pt)
-          allocate (ele%surface%grid%pt(0:i_vec(1), 0:i_vec(2)))
+          if (allocated (surf%grid%pt)) deallocate (surf%grid%pt)
+          allocate (surf%grid%pt(0:i_vec(1), 0:i_vec(2)))
 
         case ('PT')
           bp_com%parse_line = delim // bp_com%parse_line
           if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', i_vec, .true.)) return
-          if (.not. allocated(ele%surface%grid%pt)) then
+          if (.not. allocated(surf%grid%pt)) then
             call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
             return
           endif
-          if (any(i_vec < 0) .or. any(i_vec > ubound(ele%surface%grid%pt))) then
+          if (any(i_vec < 0) .or. any(i_vec > ubound(surf%grid%pt))) then
             call parser_error ('SURFACE PT(I,J) INDEX OUT OF BOUNDS', 'FOR: ' // ele%name)
             return
           endif
           if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
           if (.not. parse_real_list (trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
-          ele%surface%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+          surf%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), ele%surface%grid%type, err_flag2)
+          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2)
           if (err_flag2) return
           bp_com%parse_line = delim // bp_com%parse_line
 
@@ -735,7 +737,7 @@ if (attrib_word == 'SURFACE') then
       enddo
 
     case ('TYPE')
-      call get_switch ('SURFACE TYPE', surface_type_name(1:), ele%surface%type, err_flag2)
+      call get_switch ('SURFACE TYPE', surface_type_name(1:), surf%type, err_flag2)
       if (err_flag2) return
 
     case default
@@ -1262,7 +1264,11 @@ case ('PTC_FIELD_GEOMETRY')
   endif
 
 case ('GEOMETRY')
-  call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
+  if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
+    call get_switch (attrib_word, geometry_mode_name(1:), ix, err_flag)
+  else
+    call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
+  endif
   ele%value(geometry$) = ix
 
 case ('LATTICE_TYPE')   ! Old style
@@ -1854,7 +1860,7 @@ integer, parameter :: f_maxx = 20
 type (stack_file_struct), save, target :: file(0:f_maxx)
 
 integer, save :: i_level
-integer i, ix, ios, n
+integer i, ix, ios, n, n_file
 
 character(*) how
 character(*), optional :: file_name_in
@@ -1949,9 +1955,17 @@ case ('push', 'push_inline')
   bp_com%current_file%i_line = 0
 
   n = size(bp_com%lat_file_names)
-  if (n < bp_com%num_lat_files + 1) call re_allocate (bp_com%lat_file_names, n + 100)
-  bp_com%num_lat_files = bp_com%num_lat_files + 1 
-  inquire (file = file_name, name = bp_com%lat_file_names(bp_com%num_lat_files))
+  n_file = bp_com%num_lat_files + 1
+  if (n < n_file) call re_allocate (bp_com%lat_file_names, n + 100)
+  bp_com%num_lat_files = n_file
+  inquire (file = file_name, name = bp_com%lat_file_names(n_file))
+
+  do i = 1, n_file - 1
+    if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
+    call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
+                       warn_only = .true.)
+    exit
+  enddo
 
 ! "pop" means close the current file and pop its name off the stack
 

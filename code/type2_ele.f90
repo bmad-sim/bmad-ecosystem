@@ -479,7 +479,7 @@ endif
 
 ! surface info
 
-s => ele%surface
+s => ele%photon%surface
 if (associated(s)) then
   nl=nl+1; write (li(nl), *)
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'

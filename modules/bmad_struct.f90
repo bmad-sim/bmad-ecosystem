@@ -39,6 +39,9 @@ integer, parameter :: bragg_diffracted$ = 1, forward_diffracted$ = 2, undiffract
 character(20), parameter :: ref_orbit_follows_name(0:3) = [character(20) :: 'GARBAGE!', &
                                              'Bragg_Diffracted', 'Forward_Diffracted', 'Undefracted']
 
+integer, parameter :: reflection$ = 1, transmission$ = 2
+character(16), parameter :: geometry_mode_name(0:2) = [character(16) :: 'GARBAGE!', 'Reflection', 'Transmission']
+
 ! wall3d definitions.
 
 integer, parameter :: anchor_beginning$ = 1, anchor_center$ = 2, anchor_end$ = 3
@@ -450,7 +453,7 @@ type segmented_surface_struct
   real(rp) :: slope_x = 0, slope_y = 0  ! Slopes of segment
 end type
 
-! Main surface container structure
+! Surface container structure
 
 type photon_surface_struct
   integer :: type = not_defined$
@@ -459,6 +462,26 @@ type photon_surface_struct
   type (direction_tile_struct) :: direction = direction_tile_struct(0, 0, 0, .false., null())
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
+end type
+
+! Target
+
+type target_rectangle_struct
+  real(rp) :: x0 = 0, x1 = 0
+  real(rp) :: y0 = 0, y1 = 0
+  real(rp) :: s = 0
+end type
+
+type photon_target_struct
+  type (target_rectangle_struct) :: r0 = target_rectangle_struct()
+  type (target_rectangle_struct) :: r1 = target_rectangle_struct()
+end type
+
+! Photon container structure
+
+type photon_element_struct
+  type (photon_surface_struct) :: surface = photon_surface_struct()
+  type (photon_target_struct) :: target = photon_target_struct()
 end type
 
 ! Surface types
@@ -494,7 +517,7 @@ type ele_struct
                                                         ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()   ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
-  type (photon_surface_struct), pointer :: surface => null()
+  type (photon_element_struct), pointer :: photon => null()
   type (taylor_struct) :: taylor(6)                     ! Taylor terms
   type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
@@ -733,8 +756,7 @@ logical has_kick_attributes(n_key$)
 
 ! Element attribute name logical definitions
 
-integer, parameter :: n_part$ = 2, taylor_order$ = 3, particle$ = 14
-integer, parameter :: geometry$ = 15, lattice_type$ = 16, symmetry$ = 6
+integer, parameter :: n_part$ = 2, taylor_order$ = 3
 
 integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
           val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
@@ -768,7 +790,7 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinate
 integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
 integer, parameter :: flexible$ = 5, crunch$=5, ref_orbit_follows$=5
 integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
-integer, parameter :: g$=6, bragg_angle_in$ = 6
+integer, parameter :: g$=6, bragg_angle_in$ = 6, symmetry$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$=7
@@ -784,20 +806,18 @@ integer, parameter :: y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
 integer, parameter :: traveling_wave$ = 12
 integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
 integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
-integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14
-integer, parameter :: de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: quad_tilt$=14, bend_tilt$=15, x_quad$=16, y_quad$=17
+integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14, particle$ = 14
+integer, parameter :: quad_tilt$=14, de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
+integer, parameter :: geometry$ = 15, bend_tilt$=15
 integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15, origin_ele_ref_pt$=15
 integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
-integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17
-integer, parameter :: dz_origin$ = 18
-integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18
-integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19
-integer, parameter :: b_param$ = 19
+integer, parameter :: lattice_type$ = 16, x_quad$=16
+integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17, y_quad$=17
+integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18, dz_origin$ = 18
+integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19, b_param$ = 19
 integer, parameter :: l_hard_edge$ = 20, dphi_origin$ = 20, ref_cap_gamma$ = 20
 integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, darwin_width_sigma$ = 21
 integer, parameter :: angle$=22, n_cell$=22, x_ray_line_len$=22, darwin_width_pi$ = 22
-
 integer, parameter :: x_pitch$ = 23
 integer, parameter :: y_pitch$ = 24  
 integer, parameter :: x_offset$ = 25

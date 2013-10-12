@@ -939,7 +939,7 @@ nullify (ptr_attrib)
 do_print = logic_option (.true., err_print_flag)
 
 ! Multipole or curvature attribute
-! Note that elements that have surface curvature automatically have ele%surface allocated.
+! Note that elements that have surface curvature automatically have ele%photon allocated.
 
 if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   
   a_name = attribute_name(ele, ix_attrib)
@@ -948,7 +948,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then
   if (a_name(1:4) == 'CURV') then
     read (a_name(12:12), *) ix
     read (a_name(15:15), *) iy
-    ptr_attrib => ele%surface%curvature_xy(ix,iy)
+    ptr_attrib => ele%photon%surface%curvature_xy(ix,iy)
 
   ! Multipole
   else

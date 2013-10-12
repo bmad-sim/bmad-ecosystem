@@ -72,7 +72,14 @@ if (start2_orb%state == not_set$) then
   call init_coord(start2_orb, start2_orb%vec, ele, .false., param%particle) 
 endif
 
-!
+! Photons get the z-coordinate reset to zero.
+
+if (start2_orb%species == photon$ .and. start2_orb%state == downstream_end$) then
+  start2_orb%state = upstream_end$
+  start2_orb%vec(5) = 0
+endif
+
+! Check for particle lost even before we begin
 
 if (start2_orb%state /= alive$) then
   end_orb = start_orb

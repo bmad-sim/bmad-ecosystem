@@ -42,13 +42,21 @@ case (crystal$)
   ele%value(ref_polarization$) = sigma_polarization$ 
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%surface)) allocate(ele%surface)
-  ele%surface = photon_surface_struct()
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
 
 case (custom$)  
   ele%mat6_calc_method = custom$
   ele%tracking_method  = custom$
   ele%field_calc       = custom$
+
+case (diffraction_plate$)
+  ele%value(geometry$) = transmission$
+
+case (e_gun$)
+  ele%tracking_method = time_runge_kutta$
+  ele%mat6_calc_method = tracking$
+  ele%value(field_scale$) = 1
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
@@ -72,15 +80,15 @@ case (lcavity$)
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%surface)) allocate(ele%surface)
-  ele%surface = photon_surface_struct()
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%surface)) allocate(ele%surface)
-  ele%surface = photon_surface_struct()
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
 
 case (multipole$, ab_multipole$)
   call multipole_init (ele, .true.)
@@ -108,8 +116,9 @@ case (rfcavity$)
 
 case (sample$)
   ele%aperture_at = surface$
-  if (.not. associated(ele%surface)) allocate(ele%surface)
-  ele%surface = photon_surface_struct()
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
+  ele%value(geometry$) = reflection$
 
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
@@ -121,10 +130,9 @@ case (wiggler$, undulator$)
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
 
-case (e_gun$)
-  ele%tracking_method = time_runge_kutta$
-  ele%mat6_calc_method = tracking$
-  ele%value(field_scale$) = 1
+case (x_ray_init$)
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
 
 end select
 

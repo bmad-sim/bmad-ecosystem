@@ -128,12 +128,13 @@ interface
     type (lat_struct), target :: lat
   end subroutine
 
-  subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)
+  subroutine create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
     import
     implicit none
     type (ele_struct) ele, sliced_ele
     type (lat_param_struct) param
     integer i_slice, n_slice_tot
+    real(rp), optional :: s_start, s_end
   end subroutine
 
   subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)

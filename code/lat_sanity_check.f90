@@ -224,21 +224,21 @@ do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! photon elements with a surface must have ele%surface associated.
+    ! photon elements with a surface must have ele%photon associated.
 
     if (ele%key == crystal$ .or. ele%key == mirror$ .or. ele%key == multilayer_mirror$) then
-      if (.not. associated(ele%surface)) then
+      if (.not. associated(ele%photon)) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
-                  'SHOULD HAVE AN ASSOCIATED %SURFACE COMPONENT BUT IT DOES NOT!')
+                  'SHOULD HAVE AN ASSOCIATED %PHOTON COMPONENT BUT IT DOES NOT!')
         err_flag = .true.
       endif
     endif
 
     ! photonic element surface consistancy check
 
-    if (associated(ele%surface)) then
-      surf => ele%surface
+    if (associated(ele%photon)) then
+      surf => ele%photon%surface
       if (all (surf%grid%type /= [off$, segmented$, h_misalign$])) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
