@@ -19,12 +19,13 @@ interface operator (==)
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_direction_tile1, eq_direction_tile, eq_surface_grid_pt
-  module procedure eq_surface_grid, eq_segmented_surface, eq_photon_surface, eq_wall3d_vertex, eq_wall3d_section
-  module procedure eq_wall3d, eq_taylor_term, eq_taylor, eq_control, eq_lat_param
-  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
-  module procedure eq_em_field, eq_track_map, eq_track, eq_synch_rad_common, eq_bmad_common
-  module procedure eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_normal_form, eq_branch
-  module procedure eq_lat, eq_bunch, eq_beam
+  module procedure eq_surface_grid, eq_segmented_surface, eq_target_rectangle, eq_photon_surface, eq_photon_target
+  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term
+  module procedure eq_taylor, eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker
+  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map
+  module procedure eq_track, eq_synch_rad_common, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
+  module procedure eq_ele, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam
 end interface
 
 contains
@@ -830,6 +831,32 @@ end function eq_segmented_surface
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_target_rectangle (f1, f2) result (is_eq)
+
+implicit none
+
+type(target_rectangle_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x0 == f2%x0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x1 == f2%x1)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y1 == f2%y1)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%s == f2%s)
+
+end function eq_target_rectangle
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_photon_surface (f1, f2) result (is_eq)
 
 implicit none
@@ -854,6 +881,46 @@ is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 is_eq = is_eq .and. (f1%has_curvature .eqv. f2%has_curvature)
 
 end function eq_photon_surface
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_photon_target (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_target_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%r0 == f2%r0)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%r1 == f2%r1)
+
+end function eq_photon_target
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_photon_element (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_element_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%surface == f2%surface)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%target == f2%target)
+
+end function eq_photon_element
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1560,9 +1627,9 @@ if (.not. is_eq) return
 if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
 !! f_side.equality_test[type, 0, PTR]
 
-is_eq = is_eq .and. (associated(f1%surface) .eqv. associated(f2%surface))
+is_eq = is_eq .and. (associated(f1%photon) .eqv. associated(f2%photon))
 if (.not. is_eq) return
-if (associated(f1%surface)) is_eq = (f1%surface == f2%surface)
+if (associated(f1%photon)) is_eq = (f1%photon == f2%photon)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[type, 0, PTR]

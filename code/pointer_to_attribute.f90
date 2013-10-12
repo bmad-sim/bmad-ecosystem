@@ -206,9 +206,9 @@ if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) 
   ix = index('0123456789', a_name(12:12)) - 1
   iy = index('0123456789', a_name(15:15)) - 1
   if (ix == -1 .or. iy == -1) return
-  if (ix > ubound(ele%surface%curvature_xy, 1)) return
-  if (iy > ubound(ele%surface%curvature_xy, 2)) return
-  ptr_attrib => ele%surface%curvature_xy(ix,iy)
+  if (ix > ubound(ele%photon%surface%curvature_xy, 1)) return
+  if (iy > ubound(ele%photon%surface%curvature_xy, 2)) return
+  ptr_attrib => ele%photon%surface%curvature_xy(ix,iy)
 endif
 
 if (a_name(1:5) == "XMAT_") then

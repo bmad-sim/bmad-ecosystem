@@ -494,8 +494,8 @@ if (ix_r /= 0) then
 endif
 
 if (ix_s /= 0) then
-  allocate (ele%surface)
-  surf => ele%surface
+  allocate (ele%photon)
+  surf => ele%photon%surface
   read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, surf%segment, surf%direction%n_phi, surf%direction%n_z, &
                  surf%direction%ix_tile, surf%direction%enabled, is_alloc_pt, is_alloc_tile
@@ -648,7 +648,7 @@ return
 9360  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING %SURFACE FOR ELEMENT: ' // ele%name)
+          'ERROR READING %PHOTON%SURFACE FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return

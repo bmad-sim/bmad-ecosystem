@@ -35,7 +35,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
-real(rp) length, w_mat_inv(3,3), vec0(6), mat6(6,6), r_vec(3), p_vec(3)
+real(rp) length, w_mat_inv(3,3), vec0(6), mat6(6,6)
 real(rp) vel_vec(3), hit_point(3), cos_g, sin_g
 
 integer i, n, n_slice, key
@@ -159,22 +159,16 @@ case (patch$)
 
   end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
   end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-  r_vec = [end_orb%vec(1), end_orb%vec(3), -ele%value(z_offset$)]
+  end_orb%vec(5) = -ele%value(z_offset$)   ! Assume particle satrts at upstream face with z = 0.
   
-  p_vec = end_orb%vec(2:6:2)
-
   if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
     call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-    p_vec = matmul(w_mat_inv, p_vec)
-    r_vec = matmul(w_mat_inv, r_vec)
-    end_orb%vec(2) = p_vec(1)
-    end_orb%vec(4) = p_vec(2)
-    end_orb%vec(6) = p_vec(3)
+    end_orb%vec(2:6:2) = matmul(w_mat_inv, end_orb%vec(2:6:2))
+    end_orb%vec(1:5:2) = matmul(w_mat_inv, end_orb%vec(1:5:2))
   endif
 
-  end_orb%vec(1) = r_vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
-  end_orb%vec(3) = r_vec(2) - r_vec(3) * p_vec(2) / p_vec(3)
-  end_orb%vec(5) = -r_vec(3)
+  call track_a_drift_photon (end_orb, -end_orb%vec(5))
+  end_orb%s = ele%s
 
 !-----------------------------------------------
 ! Sample

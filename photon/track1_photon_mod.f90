@@ -147,7 +147,7 @@ character(*), parameter :: r_name = 'track1_sample'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call to_surface_coords (ele, orbit)
+call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
 ! Check aperture
@@ -159,12 +159,12 @@ endif
 
 ! Reflect 
 
-select case (ele%surface%type)
+select case (ele%photon%surface%type)
 case (isotropic_emission$)
 
   call ran_uniform(r)
 
-  dir => ele%surface%direction
+  dir => ele%photon%surface%direction
   if (dir%enabled) then
     n = size(dir%tile)
     dir%ix_tile = modulo(dir%ix_tile, n) + 1
@@ -192,7 +192,7 @@ end select
 
 ! Rotate back to uncurved element coords
 
-if (ele%surface%has_curvature) then
+if (ele%photon%surface%has_curvature) then
   call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
@@ -233,7 +233,7 @@ character(*), parameter :: r_name = 'track1_mirror'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call to_surface_coords (ele, orbit)
+call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
 ! Check aperture
@@ -249,7 +249,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%surface%has_curvature) then
+if (ele%photon%surface%has_curvature) then
   call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
@@ -293,7 +293,7 @@ character(*), parameter :: r_name = 'track1_multilayer_mirror'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call to_surface_coords (ele, orbit)
+call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
 ! Check aperture
@@ -327,7 +327,7 @@ orbit%vec(6) = -orbit%vec(6)
 
 ! Rotate back to uncurved element coords
 
-if (ele%surface%has_curvature) then
+if (ele%photon%surface%has_curvature) then
   call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
@@ -452,7 +452,7 @@ wavelength = c_light * h_planck / orbit%p0c
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
 ! k0_outside_norm is normalized to 1.
 
-call to_surface_coords (ele, orbit)
+call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
 old_vec = orbit%vec
@@ -468,7 +468,7 @@ endif
 
 
 h_bar = [ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] 
-if (ele%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
+if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
 h_bar = h_bar * wavelength / ele%value(d_spacing$)
 
 ! kh_outside_norm is the normalized outgoing wavevector outside the crystal
@@ -500,7 +500,7 @@ call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! S
 
 ! Rotate back from curved body coords to element coords
 
-if (ele%surface%has_curvature) then
+if (ele%photon%surface%has_curvature) then
   call rotate_for_curved_surface (ele, orbit, unset$)
 endif
 
@@ -578,20 +578,23 @@ end subroutine e_field_calc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine to_surface_coords (ele, orbit)
+! Subroutine track_to_surface (ele, orbit)
 !
-! Routine to adjust the photon position to be at the surface
+! Routine to track a photon to the surface of the element.
+!
+! If the surface is curved, the photon's velocity coordinates are rotated so that 
+! orbit%vec(6) is maintained to be normal to the local surface and pointed inward.
 !
 ! Input:
 !   ele        -- ele_struct: Element
-!   orbit      -- coord_struct: Input coordinates
+!   orbit      -- coord_struct: Coordinates in the element coordinate frame
 !
 ! Output:
-!   orbit      -- coord_struct: Input coordinates
+!   orbit      -- coord_struct: At surface in local surface coordinate frame
 !   err        -- logical: Set true if surface intersection cannot be found. 
 !-
 
-subroutine to_surface_coords (ele, orbit)
+subroutine track_to_surface (ele, orbit)
 
 use nr, only: zbrent
 
@@ -602,14 +605,14 @@ type (coord_struct) orbit
 type (segmented_surface_struct), pointer :: segment
 
 real(rp) :: s_len, s1, s2, s_center, x0, y0
-character(*), parameter :: r_name = 'to_surface_coords'
+character(*), parameter :: r_name = 'track_to_surface'
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
 
-if (ele%surface%has_curvature) then
+if (ele%photon%surface%has_curvature) then
 
-  ele%surface%segment%ix = int_garbage$; ele%surface%segment%iy = int_garbage$
+  ele%photon%surface%segment%ix = int_garbage$; ele%photon%surface%segment%iy = int_garbage$
 
   ! Assume flat crystal, compute s required to hit the intersection
   ! Choose a Bracket of 1m around this point.
@@ -623,8 +626,8 @@ if (ele%surface%has_curvature) then
       s1 = s1 - 0.1
       if (photon_depth_in_crystal(s1) < 0) exit
       if (s1 < -10) then
-        call out_io (s_warn$, r_name, &
-              'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
+        !! call out_io (s_warn$, r_name, &
+        !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
         orbit%state = lost$
         return
       endif
@@ -634,8 +637,8 @@ if (ele%surface%has_curvature) then
       s2 = s2 + 0.1
       if (photon_depth_in_crystal(s2) > 0) exit
       if (s1 > 10) then
-        call out_io (s_warn$, r_name, &
-              'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
+        !! call out_io (s_warn$, r_name, &
+        !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
         orbit%state = lost$
         return
       endif
@@ -690,7 +693,7 @@ integer ix, iy, i_pt
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
 
-surf => ele%surface
+surf => ele%photon%surface
 x = point(1)
 y = point(2)
 
@@ -705,7 +708,7 @@ else
   delta_h = point(3)
   do ix = 0, ubound(surf%curvature_xy, 1)
   do iy = 0, ubound(surf%curvature_xy, 2) - ix
-    if (ele%surface%curvature_xy(ix, iy) == 0) cycle
+    if (ele%photon%surface%curvature_xy(ix, iy) == 0) cycle
     delta_h = delta_h + surf%curvature_xy(ix, iy) * x**ix * y**iy
   enddo
   enddo
@@ -713,7 +716,7 @@ endif
 
 end function photon_depth_in_crystal
 
-end subroutine to_surface_coords
+end subroutine track_to_surface
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -751,7 +754,7 @@ logical set
 ! Compute the slope of the crystal at that the point of impact.
 ! curverot transforms from standard body element coords to body element coords at point of impact.
 
-s => ele%surface
+s => ele%photon%surface
 x = orbit%vec(1)
 y = orbit%vec(3)
 
@@ -792,7 +795,7 @@ end subroutine rotate_for_curved_surface
 !+
 ! Subroutine init_surface_segment (x, y, ele)
 !
-! Routine to init the componentes in ele%surface%segment for use with segmented surface calculations.
+! Routine to init the componentes in ele%photon%surface%segment for use with segmented surface calculations.
 ! The segment used is determined by the (x,y) photon coordinates
 !
 ! Input:
@@ -800,7 +803,7 @@ end subroutine rotate_for_curved_surface
 !   ele    -- ele_struct: Elment containing a surface.
 !
 ! Output:
-!   ele    -- ele_struct: Element with ele%surface%segment initialized.
+!   ele    -- ele_struct: Element with ele%photon%surface%segment initialized.
 !-
 
 subroutine init_surface_segment (x, y, ele)
@@ -814,7 +817,7 @@ integer ix, iy
 
 ! Only redo the cacluation if needed
 
-s => ele%surface
+s => ele%photon%surface
 seg => s%segment
 
 ix = nint(x / s%grid%dr(1))
@@ -902,7 +905,7 @@ character(*), parameter :: r_name = 'crystal_h_misalign'
 
 !
 
-s => ele%surface
+s => ele%photon%surface
 
 ij = nint((orbit%vec(1:3:2) + s%grid%r0) / s%grid%dr)
 

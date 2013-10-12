@@ -205,7 +205,7 @@ if (ele%tracking_method == custom$) then
   return
 endif
 
-! CSR tracking
+! Tracking
 
 csr_on = bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on
 if (csr_param%ix1_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele > csr_param%ix1_ele_csr) 
@@ -214,14 +214,15 @@ if (csr_param%ix2_ele_csr > -1) csr_on = csr_on .and. (ele%ix_ele <= csr_param%i
 if (csr_on) then
   call track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)
   bunch_end%ix_ele = ele%ix_ele
-  return
-endif
 
 ! Non csr / non space-charge tracking
+else
+  err = .false.
+  call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)
+  bunch_end%ix_ele = ele%ix_ele
+endif
 
-err = .false.
-call track1_bunch_hom (bunch_start, ele, lat%param, bunch_end)
-bunch_end%ix_ele = ele%ix_ele
+if (err) return
 
 ! If there are wakes...
 

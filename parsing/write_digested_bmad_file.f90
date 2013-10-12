@@ -210,7 +210,7 @@ mode3 = .false.; ix_wall3d = 0; n_em_field_mode = 0; ix_wig_branch = 0
 if (associated(ele%mode3))          mode3 = .true.
 if (associated(ele%wig))            ix_wig = size(ele%wig%term)
 if (associated(ele%r))              ix_r = 1
-if (associated(ele%surface))        ix_s = 1
+if (associated(ele%photon))         ix_s = 1
 if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
 if (associated(ele%taylor(1)%term)) ix_t = [(size(ele%taylor(j)%term), j = 1, 6)]
@@ -390,7 +390,7 @@ if (associated(ele%r)) then
   enddo
 endif
 
-surf => ele%surface
+surf => ele%photon%surface
 if (associated(surf)) then
   write (d_unit) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, surf%segment, surf%direction%n_phi, surf%direction%n_z, &

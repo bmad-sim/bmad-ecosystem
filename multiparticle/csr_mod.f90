@@ -83,23 +83,13 @@ end type
 
 type (csr_parameter_struct), save, target :: csr_param
 
-interface 
-  subroutine save_bunch_track (bunch, ele, s_travel)
-    use beam_def_struct, only: bunch_struct, ele_struct, rp
-    implicit none
-    type (bunch_struct) bunch
-    type (ele_struct) ele
-    real(rp) s_travel
-  end subroutine
-end interface
-
 contains
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)
+! Subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)
 !
 ! Routine to track a bunch of particles through an element with csr radiation effects.
 !
@@ -116,7 +106,7 @@ contains
 !   err       -- Logical: Set true if there is an error. EG: Too many particles lost.
 !-
 
-subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)
+subroutine track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)
 
 implicit none
 
@@ -127,7 +117,8 @@ type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
-real(rp) s_start
+real(rp), optional :: s_start, s_end
+real(rp) s0_step
 integer i, j, ns, nb, n_step, n_live
 
 character(20) :: r_name = 'track1_bunch_csr'
@@ -178,12 +169,13 @@ do i = 0, n_step
   ! track through the runt
 
   if (i /= 0) then
-    call create_uniform_element_slice (ele, lat%param, i, n_step, runt)
+    call create_uniform_element_slice (ele, lat%param, i, n_step, runt, s_start, s_end)
     runt%csr_calc_on = .false.
     call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif
 
-  s_start = i * bin%ds_track_step
+  s0_step = i * bin%ds_track_step
+  if (present(s_start)) s0_step = s0_step + s_start
 
   ! Cannot do a realistic calculation if there are less particles than bins
 
@@ -214,13 +206,13 @@ do i = 0, n_step
     bin%y2 = ns * csr_param%beam_chamber_height
 
     if (ns == 0) then
-      call csr_bin_kicks (lat, ele, s_start, bin, csr_param%small_angle_approx)
+      call csr_bin_kicks (lat, ele, s0_step, bin, csr_param%small_angle_approx)
 
     else
       ! The factor of two is due to there being image currents both above and below.
       ! The factor of -1^ns accounts for the sign of the image currents
       bin%kick_factor = bin%kick_factor * 2 * (-1)**ns
-      call csr_bin_kicks (lat, ele, s_start, bin, .false.)
+      call csr_bin_kicks (lat, ele, s0_step, bin, .false.)
     endif
 
   enddo
@@ -231,8 +223,6 @@ do i = 0, n_step
     if (bunch_end%particle(j)%state /= alive$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
-
-  call save_bunch_track (bunch_end, ele, s_start)
 
 enddo
 
@@ -1251,7 +1241,7 @@ type (ele_struct) :: ele
 type (ele_struct), save :: runt
 type (csr_bin_struct), save :: bin
 
-real(rp) s_start
+real(rp) s0_step
 integer i, j, ns, nb, n_step, n_live
 
 character(20) :: r_name = 'track1_bunch_csr'
@@ -1307,7 +1297,7 @@ do i = 0, n_step
     call track1_bunch_hom (bunch_end, runt, lat%param, bunch_end)
   endif
 
-  s_start = i * bin%ds_track_step
+  s0_step = i * bin%ds_track_step
 
   ! Cannot do a realistic calculation if there are less particles than bins
 
@@ -1337,13 +1327,13 @@ do i = 0, n_step
     bin%y2 = ns * csr_param%beam_chamber_height
 
     if (ns == 0) then
-      call csr_bin_kicks (lat, ele, s_start, bin, csr_param%small_angle_approx)
+      call csr_bin_kicks (lat, ele, s0_step, bin, csr_param%small_angle_approx)
 
     else
       ! The factor of two is due to there being image currents both above and below.
       ! The factor of -1^ns accounts for the sign of the image currents
       bin%kick_factor = bin%kick_factor * 2 * (-1)**ns
-      call csr_bin_kicks (lat, ele, s_start, bin, .false.)
+      call csr_bin_kicks (lat, ele, s0_step, bin, .false.)
     endif
 
   enddo
@@ -1354,8 +1344,6 @@ do i = 0, n_step
     if (bunch_end%particle(j)%state /= alive$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
-
-  call save_bunch_track (bunch_end, ele, s_start)
 
 enddo
 
