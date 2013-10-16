@@ -15,9 +15,7 @@
 !                                     element coords.
 !                   F (= unset$) -> Translate from outgoing local coords to lab coords.
 !   offset_position_only
-!           -- Logical, optional: If present and True then only offset the position
-!                coordinates. This is used for example, aperture calculations where
-!                offsetting the field is not needed.
+!           -- Logical, optional: If present and True, only offset the position coordinates.
 !
 ! Output:
 !     orbit -- Coord_struct: Coordinates of particle.

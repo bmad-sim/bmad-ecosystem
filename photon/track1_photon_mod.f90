@@ -133,12 +133,14 @@ implicit none
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
-type (direction_tile_struct), pointer :: dir
+type (photon_target_struct), pointer :: target
+type (target_point_struct) corner(4)
 
-real(rp) wavelength, r(2), phi, y, rad, z, rho
+real(rp) wavelength, ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3), w_to_surface(3,3)
+real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3)
 real(rp), pointer :: val(:)
 
-integer n, ix
+integer n, i, ix
 
 character(*), parameter :: r_name = 'track1_sample'
 
@@ -147,8 +149,12 @@ character(*), parameter :: r_name = 'track1_sample'
 val => ele%value
 wavelength = c_light * h_planck / orbit%p0c
 
-call track_to_surface (ele, orbit)
+call track_to_surface (ele, orbit, curved_surface_rot = .false.)
 if (orbit%state /= alive$) return
+
+if (ele%photon%surface%has_curvature) then
+  call rotate_for_curved_surface (ele, orbit, set$, w_to_surface)
+endif
 
 ! Check aperture
 
@@ -162,27 +168,44 @@ endif
 select case (ele%photon%surface%type)
 case (isotropic_emission$)
 
-  call ran_uniform(r)
+  call ran_uniform(ran)
 
-  dir => ele%photon%surface%direction
-  if (dir%enabled) then
-    n = size(dir%tile)
-    dir%ix_tile = modulo(dir%ix_tile, n) + 1
-    ix = dir%ix_tile
-    z = (2 * dir%tile(ix)%i_z - dir%n_z + 2 * r(1)) / dir%n_z    
-    rho = sqrt(1 - z*z)
-    phi = (2 * dir%tile(ix)%i_phi - dir%n_phi + 2 * r(2)) * pi / dir%n_phi
-    orbit%vec(2:6:2) = [rho * cos(phi), rho *sin(phi), z]
-
-    orbit%field = orbit%field * sqrt (real(n, rp) / (dir%n_phi * dir%n_z))
+  target => ele%photon%target
+  if (target%enabled) then
+    r_particle = orbit%vec(1:5:2)
+    r = target%center%r - r_particle
+    if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+    call target_rot_mats (r, w_to_target, w_to_ele)
+    do i = 1, 4
+      corner(i)%r = matmul(w_to_target, target%corner(i)%r - r_particle)
+      if (ele%photon%surface%has_curvature) corner(i)%r = matmul(w_to_surface, corner(i)%r)
+      corner(i)%r = corner(i)%r / norm2(corner(i)%r)
+    enddo
+    call target_min_max_calc (corner(4)%r, corner(1)%r, y_min, y_max, phi_min, phi_max, .true.)
+    call target_min_max_calc (corner(1)%r, corner(2)%r, y_min, y_max, phi_min, phi_max)
+    call target_min_max_calc (corner(2)%r, corner(3)%r, y_min, y_max, phi_min, phi_max)
+    call target_min_max_calc (corner(3)%r, corner(4)%r, y_min, y_max, phi_min, phi_max)
+    y = y_min + (y_max-y_min) * ran(1)
+    phi = phi_min + (phi_max-phi_min) * ran(2)
+    rho = sqrt(1 - y*y)
+    orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
+    orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
+    if (param%tracking_type == coherent$) then
+      orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / fourpi
+    else
+      orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / fourpi)
+    endif
 
   else
-    y = 2 * r(1) - 1
-    phi = pi * (r(2) - 0.5_rp)
-    rad = sqrt(1 - y**2)
-    orbit%vec(2:6:2) = [rad * sin(phi), y, -rad * cos(phi)]
-
-    orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
+    y = 2 * ran(1) - 1
+    phi = pi * (ran(2) - 0.5_rp)
+    rho = sqrt(1 - y**2)
+    orbit%vec(2:6:2) = [rho * sin(phi), y, -rho * cos(phi)]
+    if (param%tracking_type == coherent$) then
+      orbit%field = orbit%field / 2       ! Half the photons get lost by being emitted into the bulk.
+    else
+      orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
+    endif
   endif
 
 case default
@@ -578,23 +601,26 @@ end subroutine e_field_calc
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track_to_surface (ele, orbit)
+! Subroutine track_to_surface (ele, orbit, curved_surface_rot)
 !
 ! Routine to track a photon to the surface of the element.
 !
 ! If the surface is curved, the photon's velocity coordinates are rotated so that 
 ! orbit%vec(6) is maintained to be normal to the local surface and pointed inward.
 !
+! Notice that, to save time, the photon's position is not rotated when there is a curved surface.
+!
 ! Input:
-!   ele        -- ele_struct: Element
-!   orbit      -- coord_struct: Coordinates in the element coordinate frame
+!   ele                 -- ele_struct: Element
+!   orbit               -- coord_struct: Coordinates in the element coordinate frame
+!   curved_surface_rot  -- Logical, optional, If present and False then do not rotate velocity coords.
 !
 ! Output:
 !   orbit      -- coord_struct: At surface in local surface coordinate frame
 !   err        -- logical: Set true if surface intersection cannot be found. 
 !-
 
-subroutine track_to_surface (ele, orbit)
+subroutine track_to_surface (ele, orbit, curved_surface_rot)
 
 use nr, only: zbrent
 
@@ -606,6 +632,7 @@ type (segmented_surface_struct), pointer :: segment
 
 real(rp) :: s_len, s1, s2, s_center, x0, y0
 character(*), parameter :: r_name = 'track_to_surface'
+logical, optional :: curved_surface_rot
 
 ! If there is curvature, compute the reflection point which is where 
 ! the photon intersects the surface.
@@ -615,7 +642,6 @@ if (ele%photon%surface%has_curvature) then
   ele%photon%surface%segment%ix = int_garbage$; ele%photon%surface%segment%iy = int_garbage$
 
   ! Assume flat crystal, compute s required to hit the intersection
-  ! Choose a Bracket of 1m around this point.
 
   s_center = orbit%vec(5) / orbit%vec(6)
 
@@ -652,7 +678,7 @@ if (ele%photon%surface%has_curvature) then
   orbit%vec(1:5:2) = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
   orbit%t = orbit%t + s_len / c_light
 
-  call rotate_for_curved_surface (ele, orbit, set$)
+  if (logic_option(.true., curved_surface_rot)) call rotate_for_curved_surface (ele, orbit, set$)
 
 else
   s_len = -orbit%vec(5) / orbit%vec(6)
@@ -722,10 +748,10 @@ end subroutine track_to_surface
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine rotate_for_curved_surface (ele, orbit, set)
+! Subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
 !
-! Routine to rotate between element body coords and effective body coords ("curved body coords") with 
-! respect to the surface at the point of photon impact.
+! Routine to rotate just the velocity coords between element body coords and effective 
+! body coords ("curved body coords") with respect to the surface at the point of photon impact.
 !
 ! Input:
 !   ele      -- ele_struct: reflecting element
@@ -734,10 +760,11 @@ end subroutine track_to_surface
 !                        False -> Transform curved body to body.
 !
 ! Output:
-!   orbit    -- coord_struct: Photon position.
+!   orbit        -- coord_struct: Photon position.
+!   rot_mat(3,3) -- real(rp), optional: rotation matrix applied to 
 !-
 
-subroutine rotate_for_curved_surface (ele, orbit, set)
+subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
 
 implicit none
 
@@ -745,14 +772,15 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
 
-real(rp) curverot(3,3), angle
+real(rp), optional :: rot_mat(3,3)
+real(rp) curve_rot(3,3), angle
 real(rp) slope_y, slope_x, x, y
 integer ix, iy
 
 logical set
 
 ! Compute the slope of the crystal at that the point of impact.
-! curverot transforms from standard body element coords to body element coords at point of impact.
+! curve_rot transforms from standard body element coords to body element coords at point of impact.
 
 s => ele%photon%surface
 x = orbit%vec(1)
@@ -783,9 +811,10 @@ if (slope_x == 0 .and. slope_y == 0) return
 
 angle = atan2(sqrt(slope_x**2 + slope_y**2), 1.0_rp)
 if (set) angle = -angle
-call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, curverot)
+call axis_angle_to_w_mat ([slope_y, -slope_x, 0.0_rp], angle, curve_rot)
 
-orbit%vec(2:6:2) = matmul(curverot, orbit%vec(2:6:2))
+orbit%vec(2:6:2) = matmul(curve_rot, orbit%vec(2:6:2))
+if (present(rot_mat)) rot_mat = curve_rot
 
 end subroutine rotate_for_curved_surface
 
@@ -929,5 +958,112 @@ endif
 h_vec(3) = sqrt(1 - h_vec(1)**2 - h_vec(2)**2)
 
 end subroutine crystal_h_misalign
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine target_rot_mats (r_center, w_to_target, w_to_ele)
+!
+! Routine to calculate the rotation matrices between ele coords and "target" coords.
+! By definition, in target coords r_center = [0, 0, 1].
+!
+! Input:
+!   r_center(3)   -- real(rp): In lab coords: Center of target relative to phton emission point.
+!
+! Output:
+!   w_to_target(3,3) -- real(rp): Rotation matrix from lab to target coords.
+!   w_to_ele(3,3)    -- real(rp): Rotation matrix from target to ele coords.
+!-
+
+subroutine target_rot_mats (r_center, w_to_target, w_to_ele)
+
+implicit none
+
+real(rp) r_center(3), w_to_target(3,3), w_to_ele(3,3)
+real(rp) r(3), cos_theta, sin_theta, cos_phi, sin_phi
+
+!
+
+r = r_center / norm2(r_center)
+sin_phi = r(2)
+cos_phi = sqrt(r(1)**2 + r(3)**2)
+if (cos_phi == 0) then
+  sin_theta = 0  ! Arbitrary
+  cos_theta = 1
+else
+  sin_theta = r(1) / cos_phi
+  cos_theta = r(3) / cos_phi
+endif
+
+w_to_ele(1,:) = [ cos_theta, -sin_theta * sin_phi, sin_theta * cos_phi]
+w_to_ele(2,:) = [ 0.0_rp,     cos_phi,             sin_phi]
+w_to_ele(3,:) = [-sin_theta, -cos_theta * sin_phi, cos_theta * cos_phi]
+
+w_to_target(1,:) = [ cos_theta,           0,       -sin_theta]
+w_to_target(2,:) = [-sin_theta * sin_phi, cos_phi, -cos_theta * sin_phi]
+w_to_target(3,:) = [ sin_theta * cos_phi, sin_phi,  cos_theta * cos_phi]
+
+end subroutine target_rot_mats
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine target_min_max_calc (r_corner1, r_corner2, y_min, y_max, phi_min, phi_max, initial)
+!
+! Routine to calculate the min/max values for (y, phi).
+! min/max values are cumulative.
+!
+! Input:
+!   r_corner1(3)     -- real(rp): In target coords: A corner of the target. Must be normalized to 1.
+!   r_corner2(3)     -- real(rp): In target coords: Adjacent corner of the target. Must be normalized to 1.
+!   y_min, y_max     -- real(rp): min/max values. Only needed if initial = False.
+!   phi_min, phi_max -- real(rp): min/max values. Only needed if initial = False.
+!   initial          -- logical, optional: If present and True then this is the first edge for computation.
+!
+! Output:
+!   y_min, y_max     -- real(rp): min/max values. 
+!   phi_min, phi_max -- real(rp): min/max values. 
+!-
+
+subroutine target_min_max_calc (r_corner1, r_corner2, y_min, y_max, phi_min, phi_max, initial)
+
+implicit none
+
+real(rp)  r_corner1(3), r_corner2(3), y_min, y_max, phi_min, phi_max
+real(rp) phi1, phi2, k, t, alpha, beta, y
+
+logical, optional :: initial
+
+!
+
+phi1 = atan2(r_corner1(1), r_corner1(3))
+phi2 = atan2(r_corner2(1), r_corner2(3))
+
+if (logic_option(.false., initial)) then
+  y_max = max(r_corner1(2), r_corner2(2))
+  y_min = min(r_corner1(2), r_corner2(2))
+  phi_max = max(phi1, phi2)
+  phi_min = min(phi1, phi2)
+else
+  y_max = max(y_max, r_corner1(2), r_corner2(2))
+  y_min = min(y_min, r_corner1(2), r_corner2(2))
+  phi_max = max(phi_max, phi1, phi2)
+  phi_min = min(phi_min, phi1, phi2)
+endif
+
+k = dot_product(r_corner1, r_corner2)
+t = abs(k * r_corner1(2) - r_corner2(2)) 
+alpha = t / sqrt((1-k**2)*(1-k**2 + t**2))
+
+if (alpha < 1) then
+  beta = sqrt((alpha * k)**2 + 1 - alpha**2) - alpha * k
+  y = r_corner1(2) * alpha + r_corner2(2) * beta
+  y_max = max(y_max, y)
+  y_min = min(y_min, y)
+endif
+
+end subroutine target_min_max_calc
 
 end module

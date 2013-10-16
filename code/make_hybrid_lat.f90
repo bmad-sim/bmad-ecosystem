@@ -62,7 +62,7 @@ use ptc_interface_mod, except_dummy => make_hybrid_lat
 implicit none
 
 type (lat_struct), target :: r_in, r_out
-type (coord_struct), optional, volatile :: orb0(0:)
+type (coord_struct), optional :: orb0(0:)
 type (coord_struct) c0, c2
 type (ele_struct), pointer :: ele_in, ele_out
 

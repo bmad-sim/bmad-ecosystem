@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 131
+integer, parameter :: bmad_inc_version$ = 132
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -165,7 +165,7 @@ type coord_struct                 ! Particle coordinates at a single point
                                   !   May be -1 if element is not associated with a lattice.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
   integer :: direction = 1        ! Longitudinal direction of motion
-  integer :: species = not_set$   ! Species being tracked.
+  integer :: species = not_set$   ! positron$, proton$, etc.  
   integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type
 
@@ -398,35 +398,6 @@ type rad_int_ele_cache_struct
   logical :: stale = .true.
 end type 
 
-! The direction tile structure is for the case where particles can be emitted
-! from the element in any direction but for computational efficiency the direction of emission
-! is restriced to directions where the particle will not get "lost". 
-!
-! The coordinates of the unit sphere representing the directions a particle can be emitted are:
-! (phi, z) with:
-!   range phi = [-pi, pi],  range z = [-1, 1] 
-! A point on the unit sphere is:
-!   (x, y, z) = (sqrt(1-z^2) * cos(phi), sqrt(1-z^2) * sin(phi), z)
-! with range:
-! The unit sphere is divided into n_phi x n_z "tiles". 
-! Each tile is indexed by integers (i_phi, i_z) where
-! i_phi is in the range [0, n_phi-1] and i_z is in the range [0, n_z-1].  
-! Each tile covers the area:
-!   phi: [2*i_phi - n_phi, 2*(i_phi+1) - n_phi] * pi / n_phi
-!   z:   [2*i_z - n_z, 2*(i_z+1) - n_z] / n_z
-! Notice that the area of each tile is the same and equal to 4pi / (n_phi * n_z)
-
-type direction_tile1_struct
-  integer :: i_phi = 0, i_z = 0
-end type
-  
-type direction_tile_struct
-  integer :: n_phi = 0, n_z = 0
-  integer :: ix_tile = 0        ! For distributing particles uniformly.
-  logical :: enabled = .false.  ! Set to true when direction tiles are used in tracking.
-  type (direction_tile1_struct), allocatable :: tile(:)
-end type
-
 ! Structure for surfaces of mirrors, crystals, etc.
 ! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
 
@@ -450,31 +421,29 @@ end type
 type segmented_surface_struct
   integer :: ix = int_garbage$, iy = int_garbage$    ! Index of segment
   real(rp) :: x0 = 0, y0 = 0, z0 = 0         ! Center of segment
-  real(rp) :: slope_x = 0, slope_y = 0  ! Slopes of segment
+  real(rp) :: slope_x = 0, slope_y = 0       ! Slopes of segment
 end type
 
 ! Surface container structure
 
 type photon_surface_struct
-  integer :: type = not_defined$
+  integer :: type = not_set$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
-  type (direction_tile_struct) :: direction = direction_tile_struct(0, 0, 0, .false., null())
   real(rp) :: curvature_xy(0:6,0:6) = 0
   logical :: has_curvature = .false.     ! Dependent var. Will be set by Bmad
 end type
 
-! Target
+! Target points are in element coordinates.
 
-type target_rectangle_struct
-  real(rp) :: x0 = 0, x1 = 0
-  real(rp) :: y0 = 0, y1 = 0
-  real(rp) :: s = 0
+type target_point_struct
+  real(rp) :: r(3) = 0   ! (x, y, z)
 end type
 
 type photon_target_struct
-  type (target_rectangle_struct) :: r0 = target_rectangle_struct()
-  type (target_rectangle_struct) :: r1 = target_rectangle_struct()
+  logical :: enabled = .false.
+  type (target_point_struct) :: corner(4) = target_point_struct()
+  type (target_point_struct) :: center = target_point_struct()
 end type
 
 ! Photon container structure
@@ -587,6 +556,8 @@ end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
 
+integer, parameter :: incoherent$ = 1, coherent$ = 2
+
 type lat_param_struct
   real(rp) :: n_part = 0                     ! Particles/bunch (for BeamBeam elements).
   real(rp) :: total_length = 0               ! total_length of branch
@@ -601,6 +572,7 @@ type lat_param_struct
   logical :: stable = .false.                ! is closed lat stable?
   logical :: aperture_limit_on = .true.      ! use apertures in tracking?
   logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
+  integer :: tracking_type = incoherent$     ! For photons.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type

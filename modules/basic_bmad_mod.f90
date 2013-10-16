@@ -13,7 +13,6 @@ integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
 ! Species ID, mass, and charge.
 
 integer, parameter :: not_set$ = -999
-integer, parameter :: not_defined$ = 0
 
 integer, parameter :: antimuon$   = +3
 integer, parameter :: proton$     = +2
