@@ -15,6 +15,8 @@ interface assignment (=)
   module procedure real_8_equal_taylor
   module procedure taylor_equal_real_8
   module procedure universal_equal_universal
+  module procedure complex_taylor_equal_c_taylor
+  module procedure complex_taylors_equal_c_taylors
 end interface
 
 interface operator (+)
@@ -1788,7 +1790,7 @@ end subroutine real_8_init
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
+! Elemental subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
 !
 ! Subroutine to convert from a universal_taylor map in Etienne's PTC 
 ! to a taylor map in Bmad.
@@ -1803,38 +1805,111 @@ end subroutine real_8_init
 !   bmad_taylor(:)   -- Taylor_struct:
 !-
 
-Subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
+elemental subroutine universal_to_bmad_taylor (u_taylor, bmad_taylor)
 
 use definition, only: universal_taylor
 
 implicit none
 
-type (universal_taylor), intent(in) :: u_taylor(:)
-type (taylor_struct) :: bmad_taylor(:)
+type (universal_taylor), intent(in) :: u_taylor
+type (taylor_struct), intent(inout) :: bmad_taylor
 
-integer i, j, k, n, n_taylor
+integer :: j, k, n
 
 ! Remember to suppress any terms that have a zero coef.  
 
-n_taylor = size(u_taylor)
-do i = 1, n_taylor
+if (associated(bmad_taylor%term)) deallocate(bmad_taylor%term)
 
-  if (associated(bmad_taylor(i)%term)) deallocate(bmad_taylor(i)%term)
+n = count(u_taylor%c(:) /= 0)
+allocate(bmad_taylor%term(n))
 
-  n = count(u_taylor(i)%c(:) /= 0)
-  allocate(bmad_taylor(i)%term(n))
-
-  k = 0
-  do j = 1, u_taylor(i)%n
-    if (u_taylor(i)%c(j) == 0) cycle
-    k = k + 1
-    bmad_taylor(i)%term(k)%expn  = u_taylor(i)%j(j,:)
-    bmad_taylor(i)%term(k)%coef = u_taylor(i)%c(j)
-  enddo
-
+k = 0
+do j = 1, u_taylor%n
+  if (u_taylor%c(j) == 0) cycle
+  k = k + 1
+  bmad_taylor%term(k)%expn = u_taylor%j(j,:)
+  bmad_taylor%term(k)%coef = u_taylor%c(j)
 enddo
 
+
 end subroutine universal_to_bmad_taylor
+
+
+!------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_equal_c_taylor (bmad_complex_taylor, ptc_c_taylor)
+!
+! Subroutine to convert a PTC c_taylor to a bmad_complex_taylor
+!
+! Subroutine overloads "=" in expressions
+!       bmad_complex_taylor = ptc_c_taylor
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   ptc_c_taylor -- c_taylor: PTC complex Taylor series
+!
+! Output:
+!   bmad_complex_taylor -- complex_taylor_struct: Bmad complex Taylor series
+!-
+
+subroutine complex_taylor_equal_c_taylor (bmad_complex_taylor, ptc_c_taylor)
+
+use polymorphic_taylor, only: assignment (=), universal_taylor, real_8, complextaylor, c_taylor
+use c_TPSA, only: assignment(=)
+
+implicit none
+
+type (c_taylor), intent(in) :: ptc_c_taylor
+type (complextaylor) :: ct
+type (complex_taylor_struct), intent(inout) :: bmad_complex_taylor
+type (universal_taylor) :: re_u, im_u
+type (taylor_struct) :: re, im
+
+integer :: i, n_taylor
+
+! Convert to complextaylor
+call alloc(ct)
+ct = ptc_c_taylor
+
+! Convert to two universal_taylor
+re_u = 0
+im_u = 0
+re_u = ct%r
+im_u = ct%i
+call universal_to_bmad_taylor (re_u, re)
+call universal_to_bmad_taylor (re_u, im)
+
+! Form 
+call form_complex_taylor(re, im, bmad_complex_taylor)
+
+! Cleanup
+call kill(ct)
+re_u = -1
+im_u = -1
+
+end subroutine complex_taylor_equal_c_taylor
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+!  Subroutine complex_taylors_equal_c_taylors (bmad_complex_taylors(:), ptc_c_taylors(:))
+!  Vector version of complex_taylor_equal_c_taylor
+!-
+subroutine complex_taylors_equal_c_taylors (bmad_complex_taylors, ptc_c_taylors)
+use polymorphic_taylor, only: c_taylor
+implicit none
+type (c_taylor), intent(in) :: ptc_c_taylors(:)
+type (complex_taylor_struct), intent(inout) :: bmad_complex_taylors(:)
+integer :: i
+!
+do i = 1, size(ptc_c_taylors)
+  bmad_complex_taylors(i) = ptc_c_taylors(i)
+enddo
+
+end subroutine complex_taylors_equal_c_taylors
 
 
 !------------------------------------------------------------------------
