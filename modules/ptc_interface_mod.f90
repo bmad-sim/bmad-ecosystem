@@ -9,6 +9,7 @@ module ptc_interface_mod
 
 use multipole_mod
 use bookkeeper_mod
+use bmad_complex_taylor_mod
 
 interface assignment (=)
   module procedure real_8_equal_taylor
@@ -1834,6 +1835,151 @@ do i = 1, n_taylor
 enddo
 
 end subroutine universal_to_bmad_taylor
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine form_complex_taylor(re_taylor, im_taylor, complex_taylor)
+!
+! Subroutine to form a complex taylor from two taylor series representing 
+!   the real and imaginary parts
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   re_taylor       -- taylor_struct: Real part
+!   im_taylor       -- taylor_struct: Imaginary part
+!
+! Output:
+!   complex_taylor  -- complex_taylor_struct: combined complex taylor
+!-
+subroutine form_complex_taylor(re_taylor, im_taylor, complex_taylor)
+
+implicit none
+
+type (complex_taylor_struct) :: complex_taylor
+type (taylor_struct) :: re_taylor, im_taylor
+type (taylor_struct) :: taylor1, taylor2
+real(rp) :: re, im
+integer :: n, n1, n2, n_tot, t1, t2, ix1, ix2, expn(6)
+!
+
+n1 = size(re_taylor%term)
+n2 = size(im_taylor%term)
+
+! Easy cases
+if (n1 == 0 .or. n2 ==0 ) then 
+  
+  if (n1 > 0) then
+  ! purely real
+     call init_complex_taylor_series (complex_taylor, n1)
+     complex_taylor%ref = cmplx(re_taylor%ref, 0.0_rp)
+     do n = 1, n1
+       complex_taylor%term(n)%coef = cmplx(re_taylor%term(n)%coef, 0.0_rp)
+       complex_taylor%term(n)%expn = re_taylor%term(n)%expn
+     enddo
+ 
+  else if (n2 > 0) then
+  ! purely imaginary
+    call init_complex_taylor_series (complex_taylor, n2)
+    complex_taylor%ref = cmplx(0.0_rp, im_taylor%ref)
+    do n = 1, n2
+      complex_taylor%term(n)%coef = cmplx(0.0_rp, im_taylor%term(n)%coef)
+      complex_taylor%term(n)%expn = im_taylor%term(n)%expn
+    enddo
+  
+  else if (n1 == 0 .and. n2 == 0 ) then
+    ! No terms!
+    call init_complex_taylor_series (complex_taylor, 0)
+  endif
+  
+  return
+endif
+
+! Init scratch series for sort
+call init_taylor_series (taylor1, n1)
+call init_taylor_series (taylor2, n2)
+
+! Sort
+call sort_taylor_terms (re_taylor, taylor1)
+call sort_taylor_terms (im_taylor, taylor2)
+
+! First pass to count unique terms
+t1 = 1
+t2 = 1
+n_tot = 0
+ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+do
+  if (ix1 == ix2) then
+    ! re and im parts      
+    if (t1 < n1) t1 = t1 + 1; ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+    if (t2 < n2) t2 = t2 + 1; ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+  
+  else if (ix1 < ix2) then
+    ! re term only
+    if (t1 < n1) t1 = t1 + 1; ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+  
+  else
+  	! im term only
+    if (t2 < n2) t2 = t2 + 1; ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+  endif
+  
+  n_tot = n_tot + 1
+  if (t1 == n1 .and. t2 == n2) exit
+end do
+
+! Initialize output taylor
+call init_complex_taylor_series(complex_taylor, n_tot)
+complex_taylor%ref = cmplx(taylor1%ref, taylor2%ref)
+
+! Second pass to assign values
+n = 0
+t1 = 1
+t2 = 1
+ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+do
+  n = n + 1
+  if (ix1 == ix2) then
+    ! re and im parts  
+    expn = taylor1%term(t1)%expn
+    re = taylor1%term(t1)%coef
+    im = taylor2%term(t2)%coef
+    if (t1 < n1) t1 = t1 + 1; ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+    if (t2 < n2) t2 = t2 + 1; ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+  
+  else if (ix1 < ix2) then
+    ! re term only
+    expn = taylor1%term(t1)%expn
+    re = taylor1%term(t1)%coef
+    im = 0.0_rp
+    if (t1 < n1) t1 = t1 + 1; ix1 = taylor_exponent_index(taylor1%term(t1)%expn)
+  
+  else
+  	! im term only
+    expn = taylor2%term(t2)%expn
+    re = 0.0_rp
+    im = taylor2%term(t2)%coef
+    if (t2 < n2) t2 = t2 + 1; ix2 = taylor_exponent_index(taylor2%term(t2)%expn)
+  endif
+  
+  ! Assign complex coef
+  complex_taylor%term(n)%coef = cmplx(re, im)
+  complex_taylor%term(n)%expn = expn
+  if (t1 == n1 .and. t2 == n2) exit
+end do
+
+! Cleanup
+deallocate(taylor1%term)
+deallocate(taylor2%term)
+
+end subroutine
+
+
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
