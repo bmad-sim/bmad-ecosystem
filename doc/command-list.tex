@@ -1187,8 +1187,8 @@ Format:
   hom
   key_bindings
   lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
-        \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-lords\} \{-middle\} 
-        \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
+        \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} 
+        \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
   optimizer \{-geodesic_lm\}
   particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
@@ -1489,8 +1489,8 @@ Shows all key bindings.
 
 \item[\protect\parbox{6in}{
   show lattice \{-0undef\} \{-all\_tracking\} \{-base\} \{-blank_replacement <string>\}  \\
-  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-lords\} \{-middle\}  \\
-  \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-radiation_integrals\} \\
+  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-lords\} \{-floor_coords\} \\
+  \hspace*{0.35in} \{-middle\}  \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-radiation_integrals\} \\
   \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
 
 Show a table of Twiss and orbit data, etc. at the specified
@@ -1514,6 +1514,9 @@ in by another program. The \vn{-no_tail_lines} just suppress the header
 lines at the bottom of the table.
 
 If present, the \vn{-lords} switch will print a list of lord elements only.
+
+If present, the \vn{-floor_coords} switch will print the global floor
+(laboratory) coordinates for each element.
 
 The \vn{-branch} can be used to specify the branch of the lattice.
 The default is the main branch (\# 0).

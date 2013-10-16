@@ -196,7 +196,7 @@ character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
-character(24) show_name, show2_name
+character(24) show_name, show2_name, what_to_print
 character(100), allocatable :: alloc_lines(:)
 character(100) file_name, name, why_invalid
 character(120) header, str
@@ -225,11 +225,11 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_r
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 integer xfer_mat_print, twiss_out, ix_sec
 
-logical bmad_format, good_opt_only, show_lords, show_custom, print_wall, show_lost
+logical bmad_format, good_opt_only, show_lords, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
-logical print_global, print_optimization, print_bmad_com, print_csr_param, print_rad_int
+logical print_global, print_optimization, print_bmad_com, print_csr_param
 logical valid_value, print_floor, show_section
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -1396,8 +1396,7 @@ case ('lattice')
   ix_branch = 0
   undef_str = '---'
   show_lords = .false.
-  show_custom = .false.
-  print_rad_int = .false.
+  what_to_print = 'standard'
   ix_remove = -1
   lat_type = model$
 
@@ -1412,7 +1411,7 @@ case ('lattice')
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base               ', '-design             '], &
+        '-base               ', '-design             ', '-floor_coords'], &
               switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1441,7 +1440,7 @@ case ('lattice')
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-custom')
-      show_custom = .true.
+      what_to_print = 'custom'
       file_name = stuff2(1:ix_s2)
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
       iu = lunget()
@@ -1462,6 +1461,9 @@ case ('lattice')
     case ('-design')
       lat_type = design$
 
+    case ('-floor_coords')
+      what_to_print = 'floor_coords'
+
     case ('-lords')
       show_lords = .true.
 
@@ -1476,7 +1478,7 @@ case ('lattice')
       print_tail_lines = .false.
 
     case ('-radiation_integrals')
-      print_rad_int = .true.
+      what_to_print = 'rad_int'
 
     case ('-remove_line_if_zero')
       read (stuff2(1:ix_s2), *, iostat = ios) ix_remove
@@ -1500,54 +1502,67 @@ case ('lattice')
 
   ! Construct columns if needed.
 
-  if (.not. show_custom) then
-    if (show_lords) then
-      column(1)  = show_lat_column_struct('#',                   'i6',        6, '', .false.)
-      column(2)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
-      column(3)  = show_lat_column_struct('ele::#[name]',        'a',         0, '', .false.)
-      column(4)  = show_lat_column_struct('ele::#[key]',         'a16',      16, '', .false.)
-      column(5)  = show_lat_column_struct('ele::#[s]',           'f10.3',    10, '', .false.)
-      column(6)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
-      column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
-    elseif (print_rad_int) then
-      column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false.)
-      column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false.)
-      column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false.)
-      column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '', .false.)
-      column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false.)
-      if (branch%param%geometry == open$) then
-        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
-        column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false.)
-        column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false.)
-        column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false.)
-        column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false.)
-      else
-        column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
-        column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false.)
-        column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false.)
-        column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false.)
-        column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false.)
-        column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false.)
-        column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false.)
-        column(13) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false.)
-      endif
+  select case (what_to_print)
+  case ('floor_coords')
+    column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
+    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
+    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
+    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
+    column( 6)  = show_lat_column_struct('ele::#[x_position]',     'f12.5',    12, 'X',     .false.)
+    column( 7)  = show_lat_column_struct('ele::#[y_position]',     'f12.5',    12, 'Y',     .false.)
+    column( 8)  = show_lat_column_struct('ele::#[z_position]',     'f12.5',    12, 'Z',     .false.)
+    column( 9)  = show_lat_column_struct('ele::#[theta_position]', 'f12.5',    12, 'Theta', .false.)
+    column(10)  = show_lat_column_struct('ele::#[phi_position]',   'f12.5',    12, 'Phi',   .false.)
+    column(11)  = show_lat_column_struct('ele::#[psi_position]',   'f12.5',    12, 'Psi',   .false.)
+
+  case ('rad_int')
+    column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false.)
+    column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false.)
+    column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false.)
+    column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '', .false.)
+    column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false.)
+    if (branch%param%geometry == open$) then
+      column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
+      column(7)  = show_lat_column_struct('lat::rad_int1.i2_e4[#]',  'es10.2',  10, '', .false.)
+      column(8)  = show_lat_column_struct('lat::rad_int1.i3_e7[#]',  'es10.2',  10, '', .false.)
+      column(9)  = show_lat_column_struct('lat::rad_int1.i5a_e6[#]', 'es10.2',  10, '', .false.)
+      column(10) = show_lat_column_struct('lat::rad_int1.i5b_e6[#]', 'es10.2',  10, '', .false.)
     else
-      column(1)  = show_lat_column_struct('#',                 'i6',        6, '', .false.)
-      column(2)  = show_lat_column_struct('x',                 'x',         2, '', .false.)
-      column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '', .false.)
-      column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '', .false.)
-      column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '', .false.)
-      column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '', .false.)
-      column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f8.2',      8, 'beta|  a', .false.)
-      column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '', .false.)
-      column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '', .false.)
-      column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '', .false.)
-      column(11) = show_lat_column_struct('ele::#[beta_b]',    'f8.2',      8, '', .false.)
-      column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '', .false.)
-      column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '', .false.)
-      column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '', .false.)
+      column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
+      column(7)  = show_lat_column_struct('lat::rad_int1.i2[#]',     'es10.2',  10, '', .false.)
+      column(8)  = show_lat_column_struct('lat::rad_int1.i3[#]',     'es10.2',  10, '', .false.)
+      column(9)  = show_lat_column_struct('lat::rad_int1.i4a[#]',    'es10.2',  10, '', .false.)
+      column(10) = show_lat_column_struct('lat::rad_int1.i5a[#]',    'es10.2',  10, '', .false.)
+      column(11) = show_lat_column_struct('lat::rad_int1.i4b[#]',    'es10.2',  10, '', .false.)
+      column(12) = show_lat_column_struct('lat::rad_int1.i5b[#]',    'es10.2',  10, '', .false.)
+      column(13) = show_lat_column_struct('lat::rad_int1.i6b[#]',    'es10.2',  10, '', .false.)
     endif
+
+  case ('standard')
+    column(1)  = show_lat_column_struct('#',                 'i6',        6, '', .false.)
+    column(2)  = show_lat_column_struct('x',                 'x',         2, '', .false.)
+    column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '', .false.)
+    column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '', .false.)
+    column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '', .false.)
+    column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '', .false.)
+    column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f8.2',      8, 'beta|  a', .false.)
+    column(8)  = show_lat_column_struct('ele::#[phi_a]',     'f8.3',      8, '', .false.)
+    column(9)  = show_lat_column_struct('ele::#[eta_a]',     'f5.1',      5, '', .false.)
+    column(10) = show_lat_column_struct('ele::#[orbit_x]',   '3p, f8.3',  8, '', .false.)
+    column(11) = show_lat_column_struct('ele::#[beta_b]',    'f8.2',      8, '', .false.)
+    column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '', .false.)
+    column(13) = show_lat_column_struct('ele::#[eta_b]',     'f5.1',      5, '', .false.)
+    column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, '', .false.)
+  end select
+
+  if (what_to_print /= 'custom' .and. show_lords) then
+    n = size(column)
+    column(8:n) = column(6:n-2)
+    column(6)  = show_lat_column_struct('x',                   'x',         2, '', .false.)
+    column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
   endif
+
 
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
 
