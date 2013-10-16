@@ -1090,75 +1090,6 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_direction_tile1
-
-extern "C" void direction_tile1_to_c (const Bmad_direction_tile1_class*, CPP_direction_tile1&);
-
-// c_side.to_f2_arg
-extern "C" void direction_tile1_to_f2 (Bmad_direction_tile1_class*, c_Int&, c_Int&);
-
-extern "C" void direction_tile1_to_f (const CPP_direction_tile1& C, Bmad_direction_tile1_class* F) {
-
-  // c_side.to_f2_call
-  direction_tile1_to_f2 (F, C.i_phi, C.i_z);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void direction_tile1_to_c2 (CPP_direction_tile1& C, c_Int& z_i_phi, c_Int& z_i_z) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.i_phi = z_i_phi;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.i_z = z_i_z;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_direction_tile
-
-extern "C" void direction_tile_to_c (const Bmad_direction_tile_class*, CPP_direction_tile&);
-
-// c_side.to_f2_arg
-extern "C" void direction_tile_to_f2 (Bmad_direction_tile_class*, c_Int&, c_Int&, c_Int&,
-    c_Bool&, const CPP_direction_tile1**, Int);
-
-extern "C" void direction_tile_to_f (const CPP_direction_tile& C, Bmad_direction_tile_class* F) {
-  // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_tile = C.tile.size();
-  const CPP_direction_tile1** z_tile = NULL;
-  if (n1_tile != 0) {
-    z_tile = new const CPP_direction_tile1*[n1_tile];
-    for (int i = 0; i < n1_tile; i++) z_tile[i] = &C.tile[i];
-  }
-
-  // c_side.to_f2_call
-  direction_tile_to_f2 (F, C.n_phi, C.n_z, C.ix_tile, C.enabled, z_tile, n1_tile);
-
-  // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_tile;
-}
-
-// c_side.to_c2_arg
-extern "C" void direction_tile_to_c2 (CPP_direction_tile& C, c_Int& z_n_phi, c_Int& z_n_z,
-    c_Int& z_ix_tile, c_Bool& z_enabled, Bmad_direction_tile1_class** z_tile, Int n1_tile) {
-
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_phi = z_n_phi;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_z = z_n_z;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_tile = z_ix_tile;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.enabled = z_enabled;
-  // c_side.to_c2_set[type, 1, ALLOC]
-  C.tile.resize(n1_tile);
-  for (int i = 0; i < n1_tile; i++) direction_tile1_to_c(z_tile[i], C.tile[i]);
-
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
 // CPP_surface_grid_pt
 
 extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
@@ -1277,35 +1208,25 @@ extern "C" void segmented_surface_to_c2 (CPP_segmented_surface& C, c_Int& z_ix, 
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_target_rectangle
+// CPP_target_point
 
-extern "C" void target_rectangle_to_c (const Bmad_target_rectangle_class*, CPP_target_rectangle&);
+extern "C" void target_point_to_c (const Bmad_target_point_class*, CPP_target_point&);
 
 // c_side.to_f2_arg
-extern "C" void target_rectangle_to_f2 (Bmad_target_rectangle_class*, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&);
+extern "C" void target_point_to_f2 (Bmad_target_point_class*, c_RealArr);
 
-extern "C" void target_rectangle_to_f (const CPP_target_rectangle& C, Bmad_target_rectangle_class* F) {
+extern "C" void target_point_to_f (const CPP_target_point& C, Bmad_target_point_class* F) {
 
   // c_side.to_f2_call
-  target_rectangle_to_f2 (F, C.x0, C.x1, C.y0, C.y1, C.s);
+  target_point_to_f2 (F, &C.r[0]);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void target_rectangle_to_c2 (CPP_target_rectangle& C, c_Real& z_x0, c_Real& z_x1,
-    c_Real& z_y0, c_Real& z_y1, c_Real& z_s) {
+extern "C" void target_point_to_c2 (CPP_target_point& C, c_RealArr z_r) {
 
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x0 = z_x0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x1 = z_x1;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y0 = z_y0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y1 = z_y1;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.s = z_s;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.r << z_r;
 }
 
 //--------------------------------------------------------------------
@@ -1316,24 +1237,21 @@ extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photo
 
 // c_side.to_f2_arg
 extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_Int&, const
-    CPP_surface_grid&, const CPP_segmented_surface&, const CPP_direction_tile&, c_RealArr,
-    c_Bool&);
+    CPP_surface_grid&, const CPP_segmented_surface&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.type, C.grid, C.segment, C.direction, z_curvature_xy,
-      C.has_curvature);
+  photon_surface_to_f2 (F, C.type, C.grid, C.segment, z_curvature_xy, C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, const
-    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, const
-    Bmad_direction_tile_class* z_direction, c_RealArr z_curvature_xy, c_Bool& z_has_curvature)
-    {
+    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr
+    z_curvature_xy, c_Bool& z_has_curvature) {
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
@@ -1341,8 +1259,6 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, cons
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
   segmented_surface_to_c(z_segment, C.segment);
-  // c_side.to_c2_set[type, 0, NOT]
-  direction_tile_to_c(z_direction, C.direction);
   // c_side.to_c2_set[real, 2, NOT]
   C.curvature_xy << z_curvature_xy;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -1356,24 +1272,29 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, cons
 extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
 
 // c_side.to_f2_arg
-extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, const CPP_target_rectangle&,
-    const CPP_target_rectangle&);
+extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Bool&, const
+    CPP_target_point**, const CPP_target_point&);
 
 extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_target_class* F) {
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_target_point* z_corner[4];
+  for (int i = 0; i < 4; i++) {z_corner[i] = &C.corner[i];}
 
   // c_side.to_f2_call
-  photon_target_to_f2 (F, C.r0, C.r1);
+  photon_target_to_f2 (F, C.enabled, z_corner, C.center);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_target_to_c2 (CPP_photon_target& C, const Bmad_target_rectangle_class*
-    z_r0, const Bmad_target_rectangle_class* z_r1) {
+extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_enabled, const
+    Bmad_target_point_class** z_corner, const Bmad_target_point_class* z_center) {
 
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.enabled = z_enabled;
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.corner.size(); i++) target_point_to_c(z_corner[i], C.corner[i]);
   // c_side.to_c2_set[type, 0, NOT]
-  target_rectangle_to_c(z_r0, C.r0);
-  // c_side.to_c2_set[type, 0, NOT]
-  target_rectangle_to_c(z_r1, C.r1);
+  target_point_to_c(z_center, C.center);
 }
 
 //--------------------------------------------------------------------
@@ -1669,7 +1590,7 @@ extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
+    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Int&, const
     CPP_bookkeeping_state&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
@@ -1681,7 +1602,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
       C.rel_tracking_charge, C.particle, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
-      C.reverse_time_tracking, C.bookkeeping_state);
+      C.reverse_time_tracking, C.tracking_type, C.bookkeeping_state);
 
 }
 
@@ -1689,8 +1610,8 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
-    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, const
-    Bmad_bookkeeping_state_class* z_bookkeeping_state) {
+    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, c_Int&
+    z_tracking_type, const Bmad_bookkeeping_state_class* z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -1716,6 +1637,8 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.aperture_limit_on = z_aperture_limit_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.reverse_time_tracking = z_reverse_time_tracking;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.tracking_type = z_tracking_type;
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
 }

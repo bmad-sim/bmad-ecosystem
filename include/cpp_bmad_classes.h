@@ -162,16 +162,6 @@ typedef valarray<CPP_rad_int_ele_cache>          CPP_rad_int_ele_cache_ARRAY;
 typedef valarray<CPP_rad_int_ele_cache_ARRAY>    CPP_rad_int_ele_cache_MATRIX;
 typedef valarray<CPP_rad_int_ele_cache_MATRIX>   CPP_rad_int_ele_cache_TENSOR;
 
-class CPP_direction_tile1;
-typedef valarray<CPP_direction_tile1>          CPP_direction_tile1_ARRAY;
-typedef valarray<CPP_direction_tile1_ARRAY>    CPP_direction_tile1_MATRIX;
-typedef valarray<CPP_direction_tile1_MATRIX>   CPP_direction_tile1_TENSOR;
-
-class CPP_direction_tile;
-typedef valarray<CPP_direction_tile>          CPP_direction_tile_ARRAY;
-typedef valarray<CPP_direction_tile_ARRAY>    CPP_direction_tile_MATRIX;
-typedef valarray<CPP_direction_tile_MATRIX>   CPP_direction_tile_TENSOR;
-
 class CPP_surface_grid_pt;
 typedef valarray<CPP_surface_grid_pt>          CPP_surface_grid_pt_ARRAY;
 typedef valarray<CPP_surface_grid_pt_ARRAY>    CPP_surface_grid_pt_MATRIX;
@@ -187,10 +177,10 @@ typedef valarray<CPP_segmented_surface>          CPP_segmented_surface_ARRAY;
 typedef valarray<CPP_segmented_surface_ARRAY>    CPP_segmented_surface_MATRIX;
 typedef valarray<CPP_segmented_surface_MATRIX>   CPP_segmented_surface_TENSOR;
 
-class CPP_target_rectangle;
-typedef valarray<CPP_target_rectangle>          CPP_target_rectangle_ARRAY;
-typedef valarray<CPP_target_rectangle_ARRAY>    CPP_target_rectangle_MATRIX;
-typedef valarray<CPP_target_rectangle_MATRIX>   CPP_target_rectangle_TENSOR;
+class CPP_target_point;
+typedef valarray<CPP_target_point>          CPP_target_point_ARRAY;
+typedef valarray<CPP_target_point_ARRAY>    CPP_target_point_MATRIX;
+typedef valarray<CPP_target_point_MATRIX>   CPP_target_point_TENSOR;
 
 class CPP_photon_surface;
 typedef valarray<CPP_photon_surface>          CPP_photon_surface_ARRAY;
@@ -1089,64 +1079,6 @@ bool operator== (const CPP_rad_int_ele_cache&, const CPP_rad_int_ele_cache&);
 
 
 //--------------------------------------------------------------------
-// CPP_direction_tile1
-
-class Bmad_direction_tile1_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_direction_tile1 {
-public:
-  Int i_phi;
-  Int i_z;
-
-  CPP_direction_tile1() :
-    i_phi(0),
-    i_z(0)
-    {}
-
-  ~CPP_direction_tile1() {
-  }
-
-};   // End Class
-
-extern "C" void direction_tile1_to_c (const Bmad_direction_tile1_class*, CPP_direction_tile1&);
-extern "C" void direction_tile1_to_f (const CPP_direction_tile1&, Bmad_direction_tile1_class*);
-
-bool operator== (const CPP_direction_tile1&, const CPP_direction_tile1&);
-
-
-//--------------------------------------------------------------------
-// CPP_direction_tile
-
-class Bmad_direction_tile_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_direction_tile {
-public:
-  Int n_phi;
-  Int n_z;
-  Int ix_tile;
-  Bool enabled;
-  CPP_direction_tile1_ARRAY tile;
-
-  CPP_direction_tile() :
-    n_phi(0),
-    n_z(0),
-    ix_tile(0),
-    enabled(false),
-    tile(CPP_direction_tile1_ARRAY(CPP_direction_tile1(), 0))
-    {}
-
-  ~CPP_direction_tile() {
-  }
-
-};   // End Class
-
-extern "C" void direction_tile_to_c (const Bmad_direction_tile_class*, CPP_direction_tile&);
-extern "C" void direction_tile_to_f (const CPP_direction_tile&, Bmad_direction_tile_class*);
-
-bool operator== (const CPP_direction_tile&, const CPP_direction_tile&);
-
-
-//--------------------------------------------------------------------
 // CPP_surface_grid_pt
 
 class Bmad_surface_grid_pt_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1245,35 +1177,27 @@ bool operator== (const CPP_segmented_surface&, const CPP_segmented_surface&);
 
 
 //--------------------------------------------------------------------
-// CPP_target_rectangle
+// CPP_target_point
 
-class Bmad_target_rectangle_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_target_point_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_target_rectangle {
+class CPP_target_point {
 public:
-  Real x0;
-  Real x1;
-  Real y0;
-  Real y1;
-  Real s;
+  Real_ARRAY r;
 
-  CPP_target_rectangle() :
-    x0(0.0),
-    x1(0.0),
-    y0(0.0),
-    y1(0.0),
-    s(0.0)
+  CPP_target_point() :
+    r(0.0, 3)
     {}
 
-  ~CPP_target_rectangle() {
+  ~CPP_target_point() {
   }
 
 };   // End Class
 
-extern "C" void target_rectangle_to_c (const Bmad_target_rectangle_class*, CPP_target_rectangle&);
-extern "C" void target_rectangle_to_f (const CPP_target_rectangle&, Bmad_target_rectangle_class*);
+extern "C" void target_point_to_c (const Bmad_target_point_class*, CPP_target_point&);
+extern "C" void target_point_to_f (const CPP_target_point&, Bmad_target_point_class*);
 
-bool operator== (const CPP_target_rectangle&, const CPP_target_rectangle&);
+bool operator== (const CPP_target_point&, const CPP_target_point&);
 
 
 //--------------------------------------------------------------------
@@ -1286,7 +1210,6 @@ public:
   Int type;
   CPP_surface_grid grid;
   CPP_segmented_surface segment;
-  CPP_direction_tile direction;
   Real_MATRIX curvature_xy;
   Bool has_curvature;
 
@@ -1294,7 +1217,6 @@ public:
     type(Bmad::NOT_DEFINED),
     grid(),
     segment(),
-    direction(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
     has_curvature(false)
     {}
@@ -1317,12 +1239,14 @@ class Bmad_photon_target_class {};  // Opaque class for pointers to correspondin
 
 class CPP_photon_target {
 public:
-  CPP_target_rectangle r0;
-  CPP_target_rectangle r1;
+  Bool enabled;
+  CPP_target_point_ARRAY corner;
+  CPP_target_point center;
 
   CPP_photon_target() :
-    r0(),
-    r1()
+    enabled(false),
+    corner(CPP_target_point_ARRAY(CPP_target_point(), 4)),
+    center()
     {}
 
   ~CPP_photon_target() {
@@ -1595,6 +1519,7 @@ public:
   Bool stable;
   Bool aperture_limit_on;
   Bool reverse_time_tracking;
+  Int tracking_type;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1610,6 +1535,7 @@ public:
     stable(false),
     aperture_limit_on(true),
     reverse_time_tracking(false),
+    tracking_type(Bmad::INCOHERENT),
     bookkeeping_state()
     {}
 

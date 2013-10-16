@@ -2263,196 +2263,6 @@ end subroutine set_rad_int_ele_cache_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_direction_tile1 (ok)
-
-implicit none
-
-type(direction_tile1_struct), target :: f_direction_tile1, f2_direction_tile1
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_direction_tile1 (c_direction_tile1, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_direction_tile1
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_direction_tile1_test_pattern (f2_direction_tile1, 1)
-
-call test_c_direction_tile1(c_loc(f2_direction_tile1), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_direction_tile1_test_pattern (f_direction_tile1, 4)
-if (f_direction_tile1 == f2_direction_tile1) then
-  print *, 'direction_tile1: C side convert C->F: Good'
-else
-  print *, 'direction_tile1: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_direction_tile1
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_direction_tile1 (c_direction_tile1, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_direction_tile1
-type(direction_tile1_struct), target :: f_direction_tile1, f2_direction_tile1
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call direction_tile1_to_f (c_direction_tile1, c_loc(f_direction_tile1))
-
-call set_direction_tile1_test_pattern (f2_direction_tile1, 2)
-if (f_direction_tile1 == f2_direction_tile1) then
-  print *, 'direction_tile1: F side convert C->F: Good'
-else
-  print *, 'direction_tile1: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_direction_tile1_test_pattern (f2_direction_tile1, 3)
-call direction_tile1_to_c (c_loc(f2_direction_tile1), c_direction_tile1)
-
-end subroutine test2_f_direction_tile1
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_direction_tile1_test_pattern (F, ix_patt)
-
-implicit none
-
-type(direction_tile1_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%i_phi = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%i_z = rhs
-
-end subroutine set_direction_tile1_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_direction_tile (ok)
-
-implicit none
-
-type(direction_tile_struct), target :: f_direction_tile, f2_direction_tile
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_direction_tile (c_direction_tile, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_direction_tile
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_direction_tile_test_pattern (f2_direction_tile, 1)
-
-call test_c_direction_tile(c_loc(f2_direction_tile), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_direction_tile_test_pattern (f_direction_tile, 4)
-if (f_direction_tile == f2_direction_tile) then
-  print *, 'direction_tile: C side convert C->F: Good'
-else
-  print *, 'direction_tile: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_direction_tile
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_direction_tile (c_direction_tile, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_direction_tile
-type(direction_tile_struct), target :: f_direction_tile, f2_direction_tile
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call direction_tile_to_f (c_direction_tile, c_loc(f_direction_tile))
-
-call set_direction_tile_test_pattern (f2_direction_tile, 2)
-if (f_direction_tile == f2_direction_tile) then
-  print *, 'direction_tile: F side convert C->F: Good'
-else
-  print *, 'direction_tile: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_direction_tile_test_pattern (f2_direction_tile, 3)
-call direction_tile_to_c (c_loc(f2_direction_tile), c_direction_tile)
-
-end subroutine test2_f_direction_tile
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_direction_tile_test_pattern (F, ix_patt)
-
-implicit none
-
-type(direction_tile_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%n_phi = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%n_z = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%ix_tile = rhs
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 4 + offset; F%enabled = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%tile)) deallocate (F%tile)
-else
-  if (.not. allocated(F%tile)) allocate (F%tile(-1:1))
-  do jd1 = 1, size(F%tile,1); lb1 = lbound(F%tile,1) - 1
-    call set_direction_tile1_test_pattern (F%tile(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-
-end subroutine set_direction_tile_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
 subroutine test1_f_surface_grid_pt (ok)
 
 implicit none
@@ -2755,18 +2565,18 @@ end subroutine set_segmented_surface_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_target_rectangle (ok)
+subroutine test1_f_target_point (ok)
 
 implicit none
 
-type(target_rectangle_struct), target :: f_target_rectangle, f2_target_rectangle
+type(target_point_struct), target :: f_target_point, f2_target_point
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_target_rectangle (c_target_rectangle, c_ok) bind(c)
+  subroutine test_c_target_point (c_target_point, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_target_rectangle
+    type(c_ptr), value :: c_target_point
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -2774,76 +2584,71 @@ end interface
 !
 
 ok = .true.
-call set_target_rectangle_test_pattern (f2_target_rectangle, 1)
+call set_target_point_test_pattern (f2_target_point, 1)
 
-call test_c_target_rectangle(c_loc(f2_target_rectangle), c_ok)
+call test_c_target_point(c_loc(f2_target_point), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_target_rectangle_test_pattern (f_target_rectangle, 4)
-if (f_target_rectangle == f2_target_rectangle) then
-  print *, 'target_rectangle: C side convert C->F: Good'
+call set_target_point_test_pattern (f_target_point, 4)
+if (f_target_point == f2_target_point) then
+  print *, 'target_point: C side convert C->F: Good'
 else
-  print *, 'target_rectangle: C SIDE CONVERT C->F: FAILED!'
+  print *, 'target_point: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_target_rectangle
+end subroutine test1_f_target_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_target_rectangle (c_target_rectangle, c_ok) bind(c)
+subroutine test2_f_target_point (c_target_point, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_target_rectangle
-type(target_rectangle_struct), target :: f_target_rectangle, f2_target_rectangle
+type(c_ptr), value ::  c_target_point
+type(target_point_struct), target :: f_target_point, f2_target_point
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call target_rectangle_to_f (c_target_rectangle, c_loc(f_target_rectangle))
+call target_point_to_f (c_target_point, c_loc(f_target_point))
 
-call set_target_rectangle_test_pattern (f2_target_rectangle, 2)
-if (f_target_rectangle == f2_target_rectangle) then
-  print *, 'target_rectangle: F side convert C->F: Good'
+call set_target_point_test_pattern (f2_target_point, 2)
+if (f_target_point == f2_target_point) then
+  print *, 'target_point: F side convert C->F: Good'
 else
-  print *, 'target_rectangle: F SIDE CONVERT C->F: FAILED!'
+  print *, 'target_point: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_target_rectangle_test_pattern (f2_target_rectangle, 3)
-call target_rectangle_to_c (c_loc(f2_target_rectangle), c_target_rectangle)
+call set_target_point_test_pattern (f2_target_point, 3)
+call target_point_to_c (c_loc(f2_target_point), c_target_point)
 
-end subroutine test2_f_target_rectangle
+end subroutine test2_f_target_point
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_target_rectangle_test_pattern (F, ix_patt)
+subroutine set_target_point_test_pattern (F, ix_patt)
 
 implicit none
 
-type(target_rectangle_struct) F
+type(target_point_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%x1 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%y0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%y1 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%s = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%r,1); lb1 = lbound(F%r,1) - 1
+  rhs = 100 + jd1 + 1 + offset
+  F%r(jd1+lb1) = rhs
+enddo
 
-end subroutine set_target_rectangle_test_pattern
+end subroutine set_target_point_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -2932,16 +2737,14 @@ rhs = 1 + offset; F%type = rhs
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_segmented_surface_test_pattern (F%segment, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_direction_tile_test_pattern (F%direction, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%curvature_xy,1); lb1 = lbound(F%curvature_xy,1) - 1
 do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 5 + offset
+  rhs = 100 + jd1 + 10*jd2 + 4 + offset
   F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 6 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 
@@ -3026,10 +2829,15 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 1 + offset; F%enabled = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[type, 1, NOT]
+do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  call set_target_point_test_pattern (F%corner(jd1+lb1), ix_patt+jd1)
+enddo
 !! f_side.test_pat[type, 0, NOT]
-call set_target_rectangle_test_pattern (F%r0, ix_patt)
-!! f_side.test_pat[type, 0, NOT]
-call set_target_rectangle_test_pattern (F%r1, ix_patt)
+call set_target_point_test_pattern (F%center, ix_patt)
 
 end subroutine set_photon_target_test_pattern
 
@@ -3865,6 +3673,8 @@ rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%reverse_time_tracking = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 13 + offset; F%tracking_type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 

@@ -1543,128 +1543,6 @@ extern "C" void test_c_rad_int_ele_cache (Bmad_rad_int_ele_cache_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_direction_tile1 (CPP_direction_tile1&, bool&);
-
-void set_CPP_direction_tile1_test_pattern (CPP_direction_tile1& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.i_phi = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.i_z = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_direction_tile1 (Bmad_direction_tile1_class* F, bool& c_ok) {
-
-  CPP_direction_tile1 C, C2;
-
-  c_ok = true;
-
-  direction_tile1_to_c (F, C);
-  set_CPP_direction_tile1_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " direction_tile1: C side convert F->C: Good" << endl;
-  } else {
-    cout << " direction_tile1: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_direction_tile1_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_direction_tile1 (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_direction_tile1_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " direction_tile1: F side convert F->C: Good" << endl;
-  } else {
-    cout << " direction_tile1: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_direction_tile1_test_pattern (C2, 4);
-  direction_tile1_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_direction_tile (CPP_direction_tile&, bool&);
-
-void set_CPP_direction_tile_test_pattern (CPP_direction_tile& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.n_phi = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_z = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ix_tile = rhs;
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 4 + offset; C.enabled = (rhs % 2 == 0);
-
-  // c_side.test_pat[type, 1, ALLOC]
-  if (ix_patt < 3) 
-    C.tile.resize(0);
-  else {
-    C.tile.resize(3);
-    for (unsigned int i = 0; i < C.tile.size(); i++)  {set_CPP_direction_tile1_test_pattern(C.tile[i], ix_patt+i+1);}
-  }
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_direction_tile (Bmad_direction_tile_class* F, bool& c_ok) {
-
-  CPP_direction_tile C, C2;
-
-  c_ok = true;
-
-  direction_tile_to_c (F, C);
-  set_CPP_direction_tile_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " direction_tile: C side convert F->C: Good" << endl;
-  } else {
-    cout << " direction_tile: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_direction_tile_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_direction_tile (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_direction_tile_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " direction_tile: F side convert F->C: Good" << endl;
-  } else {
-    cout << " direction_tile: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_direction_tile_test_pattern (C2, 4);
-  direction_tile_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
 extern "C" void test2_f_surface_grid_pt (CPP_surface_grid_pt&, bool&);
 
 void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) {
@@ -1869,63 +1747,51 @@ extern "C" void test_c_segmented_surface (Bmad_segmented_surface_class* F, bool&
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_target_rectangle (CPP_target_rectangle&, bool&);
+extern "C" void test2_f_target_point (CPP_target_point&, bool&);
 
-void set_CPP_target_rectangle_test_pattern (CPP_target_rectangle& C, int ix_patt) {
+void set_CPP_target_point_test_pattern (CPP_target_point& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.x0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.x1 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.y0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.y1 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.s = rhs;
-
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.r[i] = rhs;}
 
 }
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_target_rectangle (Bmad_target_rectangle_class* F, bool& c_ok) {
+extern "C" void test_c_target_point (Bmad_target_point_class* F, bool& c_ok) {
 
-  CPP_target_rectangle C, C2;
+  CPP_target_point C, C2;
 
   c_ok = true;
 
-  target_rectangle_to_c (F, C);
-  set_CPP_target_rectangle_test_pattern (C2, 1);
+  target_point_to_c (F, C);
+  set_CPP_target_point_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " target_rectangle: C side convert F->C: Good" << endl;
+    cout << " target_point: C side convert F->C: Good" << endl;
   } else {
-    cout << " target_rectangle: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " target_point: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_target_rectangle_test_pattern (C2, 2);
+  set_CPP_target_point_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_target_rectangle (C2, c_ok2);
+  test2_f_target_point (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_target_rectangle_test_pattern (C, 3);
+  set_CPP_target_point_test_pattern (C, 3);
   if (C == C2) {
-    cout << " target_rectangle: F side convert F->C: Good" << endl;
+    cout << " target_point: F side convert F->C: Good" << endl;
   } else {
-    cout << " target_rectangle: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " target_point: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_target_rectangle_test_pattern (C2, 4);
-  target_rectangle_to_f (C2, F);
+  set_CPP_target_point_test_pattern (C2, 4);
+  target_point_to_f (C2, F);
 
 }
 
@@ -1947,14 +1813,11 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_segmented_surface_test_pattern(C.segment, ix_patt);
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_direction_tile_test_pattern(C.direction, ix_patt);
-
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.curvature_xy[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.curvature_xy[i][j] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 6 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -2004,11 +1867,14 @@ void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_target_rectangle_test_pattern(C.r0, ix_patt);
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 1 + offset; C.enabled = (rhs % 2 == 0);
 
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.corner.size(); i++)
+    {int rhs = 101 + i + 2 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, NOT]
-  set_CPP_target_rectangle_test_pattern(C.r1, ix_patt);
+  set_CPP_target_point_test_pattern(C.center, ix_patt);
 
 
 }
@@ -2576,6 +2442,9 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 13 + offset; C.tracking_type = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);

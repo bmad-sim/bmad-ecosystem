@@ -431,33 +431,6 @@ template bool is_all_equal (const CPP_rad_int_ele_cache_MATRIX&, const CPP_rad_i
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_direction_tile1& x, const CPP_direction_tile1& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.i_phi == y.i_phi);
-  is_eq = is_eq && (x.i_z == y.i_z);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_direction_tile1_ARRAY&, const CPP_direction_tile1_ARRAY&);
-template bool is_all_equal (const CPP_direction_tile1_MATRIX&, const CPP_direction_tile1_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_direction_tile& x, const CPP_direction_tile& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.n_phi == y.n_phi);
-  is_eq = is_eq && (x.n_z == y.n_z);
-  is_eq = is_eq && (x.ix_tile == y.ix_tile);
-  is_eq = is_eq && (x.enabled == y.enabled);
-  is_eq = is_eq && is_all_equal(x.tile, y.tile);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_direction_tile_ARRAY&, const CPP_direction_tile_ARRAY&);
-template bool is_all_equal (const CPP_direction_tile_MATRIX&, const CPP_direction_tile_MATRIX&);
-
-//--------------------------------------------------------------
-
 bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.x_pitch == y.x_pitch);
@@ -504,18 +477,14 @@ template bool is_all_equal (const CPP_segmented_surface_MATRIX&, const CPP_segme
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_target_rectangle& x, const CPP_target_rectangle& y) {
+bool operator== (const CPP_target_point& x, const CPP_target_point& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.x0 == y.x0);
-  is_eq = is_eq && (x.x1 == y.x1);
-  is_eq = is_eq && (x.y0 == y.y0);
-  is_eq = is_eq && (x.y1 == y.y1);
-  is_eq = is_eq && (x.s == y.s);
+  is_eq = is_eq && is_all_equal(x.r, y.r);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_target_rectangle_ARRAY&, const CPP_target_rectangle_ARRAY&);
-template bool is_all_equal (const CPP_target_rectangle_MATRIX&, const CPP_target_rectangle_MATRIX&);
+template bool is_all_equal (const CPP_target_point_ARRAY&, const CPP_target_point_ARRAY&);
+template bool is_all_equal (const CPP_target_point_MATRIX&, const CPP_target_point_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -524,7 +493,6 @@ bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.segment == y.segment);
-  is_eq = is_eq && (x.direction == y.direction);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
   is_eq = is_eq && (x.has_curvature == y.has_curvature);
   return is_eq;
@@ -537,8 +505,9 @@ template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_s
 
 bool operator== (const CPP_photon_target& x, const CPP_photon_target& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.r0 == y.r0);
-  is_eq = is_eq && (x.r1 == y.r1);
+  is_eq = is_eq && (x.enabled == y.enabled);
+  is_eq = is_eq && is_all_equal(x.corner, y.corner);
+  is_eq = is_eq && (x.center == y.center);
   return is_eq;
 };
 
@@ -674,6 +643,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.reverse_time_tracking == y.reverse_time_tracking);
+  is_eq = is_eq && (x.tracking_type == y.tracking_type);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
 };
