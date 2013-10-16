@@ -2132,7 +2132,9 @@ end function pointer_to_field_ele
 !
 ! Function to return a pointer to the N^th element relative to this_ele
 ! in the array of elements in a lattice branch.
-! Will wrap around. 
+! 
+! If the element is a super_lord element, the appropriate element in the tracking 
+! part of the lattice is returned.
 !
 ! Notice that the first eleemnt in a lattice is the beginning element.
 !

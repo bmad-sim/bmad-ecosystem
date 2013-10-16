@@ -140,9 +140,13 @@ case default
     if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
     orb2 = orb
     s_here = orb2%s - (ele%s - ele%value(l$))
-    call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
+    if (orb2%species == photon$) then
+      call offset_photon (ele, orb2, set$)
+    else
+      call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
                  set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
                  ds_pos = s_here)
+    endif
     x_particle = orb2%vec(1)
     y_particle = orb2%vec(3)
 

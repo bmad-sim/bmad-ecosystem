@@ -36,7 +36,7 @@ use bookkeeper_mod, only: control_bookkeeper
 implicit none
                                        
 type (lat_struct), target :: lat
-type (coord_struct), optional, volatile :: ref_orb(0:)
+type (coord_struct), optional :: ref_orb(0:)
 type (coord_struct) orb_start
 type (ele_struct), pointer :: ele, slave, lord, slave0, slave1
 type (branch_struct), pointer :: branch

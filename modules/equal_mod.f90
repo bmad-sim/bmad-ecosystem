@@ -167,16 +167,6 @@ if (associated(ele2%photon)) then
     if (allocated(ele1%photon%surface%grid%pt)) deallocate (ele1%photon%surface%grid%pt)
   endif
 
-  if (allocated (ele2%photon%surface%direction%tile)) then
-    ub1 = ubound(ele2%photon%surface%direction%tile, 1)
-    if (allocated (ele1%photon%surface%direction%tile)) then
-      if (ub1 /= ubound(ele1%photon%surface%direction%tile, 1)) deallocate (ele1%photon%surface%direction%tile)
-    endif
-    if (.not. allocated (ele1%photon%surface%direction%tile)) allocate (ele1%photon%surface%direction%tile(1:ub1))
-  else
-    if (allocated(ele1%photon%surface%direction%tile)) deallocate (ele1%photon%surface%direction%tile)
-  endif
-
   ele1%photon = ele2%photon
 else
   if (associated (ele_save%photon)) deallocate (ele_save%photon)

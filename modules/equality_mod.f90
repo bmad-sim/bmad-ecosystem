@@ -18,14 +18,13 @@ interface operator (==)
   module procedure eq_rf_wake_sr_table, eq_rf_wake_sr_mode, eq_rf_wake_lr, eq_rf_wake, eq_em_field_map_term
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_direction_tile1, eq_direction_tile, eq_surface_grid_pt
-  module procedure eq_surface_grid, eq_segmented_surface, eq_target_rectangle, eq_photon_surface, eq_photon_target
-  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term
-  module procedure eq_taylor, eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker
-  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map
-  module procedure eq_track, eq_synch_rad_common, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
-  module procedure eq_ele, eq_normal_form, eq_branch, eq_lat, eq_bunch
-  module procedure eq_beam
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
+  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_element, eq_wall3d_vertex
+  module procedure eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
+  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
+  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
+  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_normal_form
+  module procedure eq_branch, eq_lat, eq_bunch, eq_beam
 end interface
 
 contains
@@ -697,56 +696,6 @@ end function eq_rad_int_ele_cache
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_direction_tile1 (f1, f2) result (is_eq)
-
-implicit none
-
-type(direction_tile1_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%i_phi == f2%i_phi)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%i_z == f2%i_z)
-
-end function eq_direction_tile1
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_direction_tile (f1, f2) result (is_eq)
-
-implicit none
-
-type(direction_tile_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_phi == f2%n_phi)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_z == f2%n_z)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_tile == f2%ix_tile)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%enabled .eqv. f2%enabled)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%tile) .eqv. allocated(f2%tile))
-if (.not. is_eq) return
-if (allocated(f1%tile)) is_eq = all(shape(f1%tile) == shape(f2%tile))
-if (.not. is_eq) return
-if (allocated(f1%tile)) is_eq = all(f1%tile == f2%tile)
-
-end function eq_direction_tile
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
 elemental function eq_surface_grid_pt (f1, f2) result (is_eq)
 
 implicit none
@@ -831,28 +780,20 @@ end function eq_segmented_surface
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_target_rectangle (f1, f2) result (is_eq)
+elemental function eq_target_point (f1, f2) result (is_eq)
 
 implicit none
 
-type(target_rectangle_struct), intent(in) :: f1, f2
+type(target_point_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x0 == f2%x0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x1 == f2%x1)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y0 == f2%y0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y1 == f2%y1)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%s == f2%s)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r == f2%r)
 
-end function eq_target_rectangle
+end function eq_target_point
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -873,8 +814,6 @@ is_eq = is_eq .and. (f1%type == f2%type)
 is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%segment == f2%segment)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%direction == f2%direction)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%curvature_xy == f2%curvature_xy)
 !! f_side.equality_test[logical, 0, NOT]
@@ -895,10 +834,12 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%enabled .eqv. f2%enabled)
+!! f_side.equality_test[type, 1, NOT]
+is_eq = is_eq .and. all(f1%corner == f2%corner)
 !! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%r0 == f2%r0)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%r1 == f2%r1)
+is_eq = is_eq .and. (f1%center == f2%center)
 
 end function eq_photon_target
 
@@ -1149,6 +1090,8 @@ is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%tracking_type == f2%tracking_type)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 

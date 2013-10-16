@@ -395,7 +395,7 @@ integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
 
-logical error, is_alloc_pt, is_alloc_tile
+logical error, is_alloc_pt
 
 !
 
@@ -497,8 +497,7 @@ if (ix_s /= 0) then
   allocate (ele%photon)
   surf => ele%photon%surface
   read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
-                 surf%grid%dr, surf%grid%r0, surf%segment, surf%direction%n_phi, surf%direction%n_z, &
-                 surf%direction%ix_tile, surf%direction%enabled, is_alloc_pt, is_alloc_tile
+                 surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
   if (is_alloc_pt) then
     read (d_unit) i, j
     allocate(surf%grid%pt(0:i, 0:j))
@@ -507,12 +506,6 @@ if (ix_s /= 0) then
       if (i == -1) exit
       read (d_unit) surf%grid%pt(i,j)
     enddo
-  endif
-
-  if (is_alloc_tile) then
-    read (d_unit) i
-    allocate(surf%direction%tile(i))
-    read (d_unit) surf%direction%tile
   endif
 
 endif
