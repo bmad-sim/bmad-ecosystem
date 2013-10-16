@@ -1,5 +1,10 @@
 module bmad_taylor_mod
 
+! Note: The companion bmad_complex_taylor_mod is the same as this one, with 
+!   taylor -> complex_taylor
+!   real -> complex
+! When editing this file, please update bmad_complex_taylor_mod
+
 use sim_utils
 
 ! Note: the taylor_struct uses the Bmad standard (x, p_x, y, p_y, z, p_z) 
@@ -661,11 +666,9 @@ end subroutine
 !
 ! Subroutine to sort the taylor terms from "lowest" to "highest" of
 ! a taylor series.
-! This subroutine is needed since what comes out of PTC is not sorted.
+! This subroutine is needed because what comes out of PTC is not sorted.
 !
-! The number associated with a taylor_term that is used for the sort is:
-!     number = sum(exp(i))*10^6 + exp(6)*10^5 + ... + exp(1)*10^0
-! Where exp(1) is the exponent for x, exp(2) is the exponent for P_x, etc.
+! Uses function taylor_exponent_index to sort.
 !
 ! Note: taylor_sorted needs to have been initialized.
 ! Note: taylor_sorted cannot be taylor_in. That is it is not legal to write:
@@ -707,8 +710,7 @@ tt = taylor_in%term
 
 do i = 1, n
   expn = tt(i)%expn
-  ord(i) = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
-              expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
+  ord(i) = taylor_exponent_index(expn)
 enddo
 
 call indexx (ord, ix)
@@ -720,6 +722,33 @@ enddo
 deallocate(ord, ix, tt)
 
 end subroutine
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function taylor_exponent_index(expn) result(index)
+!
+! Function to associate a unique number with a taylor exponent.
+!
+! The number associated with a taylor_term that is used for the sort is:
+!     number = sum(exp(i))*10^6 + exp(6)*10^5 + ... + exp(1)*10^0
+! where exp(1) is the exponent for x, exp(2) is the exponent for P_x, etc.
+! 
+! Input:
+!   expn(6)  -- integer: taylor exponent
+!
+! Output:
+!   index    -- integer: Sorted taylor series.
+!-
+function taylor_exponent_index(expn) result(index)
+implicit none
+integer :: expn(6), index
+!
+index = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
+              expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
+end function
+
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -896,7 +925,6 @@ type (taylor_struct), intent(in) :: bmad_taylor(:)
 real(rp), intent(in) :: start_orb(:)
 real(rp), intent(out) :: end_orb(:)
 real(rp) s0(6)
-real(rp) delta
 real(rp), allocatable :: expn(:, :)
 
 integer i, j, k, ie, e_max, i_max

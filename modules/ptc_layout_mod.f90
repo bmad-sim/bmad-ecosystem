@@ -824,6 +824,73 @@ call init (DEFAULT, bmad_com%taylor_order, 0)
 
 end subroutine
 
+
+
+
+
+subroutine normal_form_complex_taylors(one_turn_taylor, rf_on)
+
+use madx_ptc_module
+
+implicit none
+
+type (taylor_struct) :: one_turn_taylor(6)
+type (c_damap) :: cda, cdaLinear
+type (damap) :: da
+type (real_8) :: map8(6)
+type (complextaylor) :: ct(6)
+type (universal_taylor) :: ut
+type (c_normal_form) :: complex_normal_form
+type(c_vector_field) :: f
+type (internal_state) :: state
+integer :: i
+logical :: rf_on
+!
+
+if (rf_on) then
+  state = default - nocavity0
+else
+  state = default + nocavity0
+endif
+
+call init (state, bmad_com%taylor_order, 0) 
+call alloc(map8)
+call alloc(cda)
+call alloc(complex_normal_form)
+
+
+! Convert to real_8, then a da map, then complex da map
+map8 = one_turn_taylor
+da = map8
+cda = da
+
+! Complex normal form
+call c_normal(cda, complex_normal_form, dospin=my_false)
+
+cda=complex_normal_form%a_t**(-1)*cda*complex_normal_form%a_t
+cda=from_phasor(-1)*cda*from_phasor(1)
+
+call c_factor_map(cda, cdaLinear, f, 1) ! 1 => Dragt-Finn direction
+! Zero out small coefficients 
+call c_clean_vector_field(f, f, 1.d-8 )
+
+call alloc(ct)
+
+ct(1)= f%v(1)
+ut = ct(1)%r
+
+! FINISH!!!
+
+!im8 = aimag(f%v)
+
+call kill(map8)
+call kill(da)
+call kill(cda)
+call kill(complex_normal_form)
+call kill(f)
+
+end subroutine
+
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
