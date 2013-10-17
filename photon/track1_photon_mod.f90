@@ -1011,7 +1011,7 @@ w_to_ele(1,:) = [ cos_theta, -sin_theta * sin_phi, sin_theta * cos_phi]
 w_to_ele(2,:) = [ 0.0_rp,     cos_phi,             sin_phi]
 w_to_ele(3,:) = [-sin_theta, -cos_theta * sin_phi, cos_theta * cos_phi]
 
-w_to_target(1,:) = [ cos_theta,           0,       -sin_theta]
+w_to_target(1,:) = [ cos_theta,       0.0_rp,      -sin_theta]
 w_to_target(2,:) = [-sin_theta * sin_phi, cos_phi, -cos_theta * sin_phi]
 w_to_target(3,:) = [ sin_theta * cos_phi, sin_phi,  cos_theta * cos_phi]
 
