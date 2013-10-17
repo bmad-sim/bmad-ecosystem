@@ -870,14 +870,14 @@ call c_normal(cda, complex_normal_form, dospin=my_false)
 cda=complex_normal_form%a_t**(-1)*cda*complex_normal_form%a_t
 cda=from_phasor(-1)*cda*from_phasor(1)
 
-call c_factor_map(cda, cdaLinear, f, 1) ! 1 => Dragt-Finn direction
+!call c_factor_map(cda, cdaLinear, f, 1) ! 1 => Dragt-Finn direction
 ! Zero out small coefficients 
-call c_clean_vector_field(f, f, 1.d-8 )
+!call c_clean_vector_field(f, f, 1.d-8 )
 
-call alloc(ct)
+!call alloc(ct)
 
-ct(1)= f%v(1)
-ut = ct(1)%r
+!ct(1)= f%v(1)
+!ut = ct(1)%r
 
 ! FINISH!!!
 

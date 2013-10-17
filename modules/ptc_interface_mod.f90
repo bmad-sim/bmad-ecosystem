@@ -1843,6 +1843,8 @@ end subroutine universal_to_bmad_taylor
 !
 ! Subroutine overloads "=" in expressions
 !       bmad_complex_taylor = ptc_c_taylor
+! 
+!
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1856,7 +1858,7 @@ end subroutine universal_to_bmad_taylor
 
 subroutine complex_taylor_equal_c_taylor (bmad_complex_taylor, ptc_c_taylor)
 
-use polymorphic_taylor, only: assignment (=), universal_taylor, real_8, complextaylor, c_taylor
+use polymorphic_taylor, only: assignment (=), alloc, universal_taylor, real_8, complextaylor, c_taylor
 use c_TPSA, only: assignment(=)
 
 implicit none
@@ -1897,6 +1899,9 @@ end subroutine complex_taylor_equal_c_taylor
 !+
 !  Subroutine complex_taylors_equal_c_taylors (bmad_complex_taylors(:), ptc_c_taylors(:))
 !  Vector version of complex_taylor_equal_c_taylor
+!
+!  Subroutine overloads '=' for bmad_complex_taylor(:) = ptc_c_taylor(:)
+!
 !-
 subroutine complex_taylors_equal_c_taylors (bmad_complex_taylors, ptc_c_taylors)
 use polymorphic_taylor, only: c_taylor
