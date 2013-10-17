@@ -1834,7 +1834,8 @@ enddo
 
 end subroutine universal_to_bmad_taylor
 
-
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
 ! Subroutine complex_taylor_equal_c_taylor (bmad_complex_taylor, ptc_c_taylor)
@@ -1858,7 +1859,8 @@ end subroutine universal_to_bmad_taylor
 
 subroutine complex_taylor_equal_c_taylor (bmad_complex_taylor, ptc_c_taylor)
 
-use polymorphic_taylor, only: assignment (=), alloc, universal_taylor, real_8, complextaylor, c_taylor
+use polymorphic_taylor, only: assignment (=), alloc, universal_taylor, real_8, &
+                              complextaylor, c_taylor, kill
 use c_TPSA, only: assignment(=)
 
 implicit none
