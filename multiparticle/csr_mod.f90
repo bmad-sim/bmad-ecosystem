@@ -100,6 +100,8 @@ contains
 !   bunch_start -- Bunch_struct: Starting bunch position.
 !   lat         -- lat_struct: Lattice.
 !   ele         -- Ele_struct: The element to track through.
+!   s_start     -- real(rp), optional: Starting position relative to ele. Default = 0
+!   s_end       -- real(rp), optional: Ending position. Default is ele length.
 !
 ! Output:
 !   bunch_end -- Bunch_struct: Ending bunch position.

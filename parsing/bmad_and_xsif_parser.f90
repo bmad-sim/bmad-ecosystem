@@ -4,7 +4,7 @@
 ! Subroutine to parse either a Bmad or XSIF (extended standard input format) lattice file.
 !
 ! This routine will assume that the lattice file uses Bmad syntax except when 
-! lat_file is prefixed by the string 'xsif::'. Example:
+! lat_file is prefixed by the string 'xsif::' or has a '.xsif' suffix. Example:
 !   lat_file = 'xsif::/nfs/user/dcs/this_lat'
 !
 ! Note: The presence of an LCavity element in the lattice will make lat%geometry = open$.
@@ -47,7 +47,9 @@ if (ix /= 0) then
   if (lat_file(1:ix-1) /= '') ix = 0
 endif
 
-if (ix == 0) then
+if (index(lat_file, '.xsif') /= 0) then
+  call xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+elseif (ix == 0) then
   call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 else
   call xsif_parser (lat_file(ix+6:), lat, make_mats6, digested_read_ok, use_line, err_flag)
