@@ -176,20 +176,31 @@ case (isotropic_emission$)
     r = target%center%r - r_particle
     if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
     call target_rot_mats (r, w_to_target, w_to_ele)
+
     do i = 1, 4
-      corner(i)%r = matmul(w_to_target, target%corner(i)%r - r_particle)
-      if (ele%photon%surface%has_curvature) corner(i)%r = matmul(w_to_surface, corner(i)%r)
-      corner(i)%r = corner(i)%r / norm2(corner(i)%r)
+      r = target%corner(i)%r - r_particle
+      if (r(3) > 0) r(3) = 0   ! photon cannot be emitted into the sample
+      r = matmul(w_to_target, r)
+      if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+      corner(i)%r = r / norm2(r)
     enddo
+
     call target_min_max_calc (corner(4)%r, corner(1)%r, y_min, y_max, phi_min, phi_max, .true.)
     call target_min_max_calc (corner(1)%r, corner(2)%r, y_min, y_max, phi_min, phi_max)
     call target_min_max_calc (corner(2)%r, corner(3)%r, y_min, y_max, phi_min, phi_max)
     call target_min_max_calc (corner(3)%r, corner(4)%r, y_min, y_max, phi_min, phi_max)
+
+    if (y_min >= y_max .or. phi_min >= phi_max) then
+      orbit%state = lost$
+      return
+    endif
+
     y = y_min + (y_max-y_min) * ran(1)
     phi = phi_min + (phi_max-phi_min) * ran(2)
     rho = sqrt(1 - y*y)
     orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
     orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
+
     if (param%tracking_type == coherent$) then
       orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / fourpi
     else

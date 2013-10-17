@@ -2,7 +2,7 @@
 ! Subroutine offset_photon (ele, orbit, set, offset_position_only)
 !
 ! Routine to effectively offset an element by instead offsetting
-! the photon position and field to correspond to the local crystal or mirror coordinates.
+! the photon position and field to correspond to the local element coordinates.
 !
 ! Modules Needed:
 !   use bmad
@@ -30,7 +30,7 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), target :: orbit
 
-real(rp) graze2, offset(6), tilt, r(3), rot_angle, sin_g, cos_g
+real(rp) graze2, offset(6), tilt, r(3), rot_angle, sin_g, cos_g, cos_t, sin_t
 real(rp) off(3), rot(3), project(3,3), rot_mat(3,3), s, vec6_0
 real(rp), pointer :: p(:), vec(:)
 
@@ -79,35 +79,28 @@ if (set) then
 
   ! Set: tilt
 
-  select case (ele%key)
-  case (crystal$)
-    tilt = p(ref_tilt_tot$) + p(tilt_tot$) + p(tilt_corr$)
-  case (mirror$, multilayer_mirror$)
-    tilt = p(ref_tilt_tot$) + p(tilt_tot$)
-  case default
-    tilt = p(tilt_tot$)
-  end select
-
+  tilt = p(tilt_tot$)
+  if (ele%key == crystal$) tilt = tilt + p(tilt_corr$)
   call tilt_coords (tilt, vec)
 
   ! Set: intensity and phase rotation due to the tilt
 
-  if (logic_option(.false., offset_position_only)) return
+  if (.not. logic_option(.false., offset_position_only)) then
 
-  field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
-           orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
+    field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
+             orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
 
-  field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
-          -sin(tilt) * field(1) + cos(tilt)*field(2)]
+    field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
+            -sin(tilt) * field(1) + cos(tilt)*field(2)]
 
-  orbit%field(1) = abs(field(1))
-  orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
+    orbit%field(1) = abs(field(1))
+    orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
 
-  orbit%field(2) = abs(field(2))
-  orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+    orbit%field(2) = abs(field(2))
+    orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+  endif
 
-  ! Set: Rotate to ele coords. Note vec(5) = 0 initially.
-  ! Note: Laue crystals have ele coords such that the rotation is in the opposite direction
+  ! Set: Rotate to ele coords. 
 
   select case (ele%key)
   case (crystal$)
@@ -123,19 +116,31 @@ if (set) then
     sin_g = sin(rot_angle)
     cos_g = cos(rot_angle)
 
-    orbit%vec(2:6:2) =  [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
-                        -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
-    orbit%vec(1:5:2) = [cos_g * orbit%vec(1), orbit%vec(3), -sin_g * orbit%vec(1)]
+    if (p(ref_tilt_tot$) == 0) then
+      orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
+      orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                         -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+    else
+      cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
+      rot_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
+      rot_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
+      rot_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
+      orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
+      orbit%vec(1:5:2) = matmul(rot_mat, orbit%vec(1:5:2))
+    endif
   endif
 
   ! Transport to z = 0.
   ! Track_a_drift_photon assumes particle is in lab coords so need to correct s-position
 
-  if (orbit%vec(5) /= 0) then
-    s = orbit%s - orbit%vec(5) * vec6_0 / vec(6)
-    call track_a_drift_photon (orbit, -orbit%vec(5))
-    if (orbit%state /= alive$) return
-    orbit%s = s
+  if (.not. logic_option(.false., offset_position_only)) then
+    if (orbit%vec(5) /= 0) then
+      s = orbit%s - orbit%vec(5) * vec6_0 / vec(6)
+      call track_a_drift_photon (orbit, -orbit%vec(5))
+      if (orbit%state /= alive$) return
+      orbit%s = s
+    endif
   endif
 
 !----------------------------------------------------------------
@@ -161,17 +166,24 @@ else
     ! Translate momentum to laboratory exit coords
     ! and compute position, backpropagating the ray.
 
-    orbit%vec(2:6:2) = [orbit%vec(2) * cos_g + orbit%vec(6) * sin_g, orbit%vec(4), &
-                       -orbit%vec(2) * sin_g + orbit%vec(6) * cos_g]
+    if (p(ref_tilt_tot$) == 0) then
+      orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
 
-    orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
-                       -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+      orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                         -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+    else
+      cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
+      rot_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
+      rot_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
+      rot_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
+      orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
+      orbit%vec(1:5:2) = matmul(rot_mat, orbit%vec(1:5:2))
+    endif
 
-    orbit%vec(1:5:2) = orbit%vec(1:5:2) - orbit%vec(2:6:2) * (orbit%vec(5) / orbit%vec(6))
-
-    ! Unset: tilt
-
-    call tilt_coords (-p(ref_tilt_tot$), vec)
+    if (.not. logic_option(.false., offset_position_only)) then
+      orbit%vec(1:5:2) = orbit%vec(1:5:2) - orbit%vec(2:6:2) * (orbit%vec(5) / orbit%vec(6))
+    endif
 
     ! Unset: tilt_tot
     ! The difference between ref_tilt_tot and tilt_tot is that ref_tilt_tot also rotates the output 
@@ -255,6 +267,8 @@ else
   ! Unset: Transport to element nominal end.
   ! The s-position calc breaks down for reflective elements in track_a_drift_photon so 
   ! simply set orbit%s to what it should be.
+
+  if (logic_option(.false., offset_position_only)) return
 
   if (vec(5) /= ele%value(l$)) then
     call track_a_drift_photon (orbit, ele%value(l$) - vec(5))

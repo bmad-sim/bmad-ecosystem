@@ -266,9 +266,9 @@ if (set) then
       sin_r = sin(ele%value(roll$)); cos_r = cos(ele%value(roll$))
       sin_a = sin(angle);            cos_a = cos(angle)
 
-      m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, cos_a * sin_r, (cos_r - 1) * cos_a * sin_a]
-      m_trans(2,1:3) = [-cos_a * sin_r,              cos_r,         -sin_r * sin_a]
-      m_trans(3,1:3) = [(cos_r - 1) * cos_a * sin_a, sin_r * sin_a, cos_r * sin_a**2 + cos_a**2]
+      m_trans(1,:) = [cos_r * cos_a**2 + sin_a**2, cos_a * sin_r, (cos_r - 1) * cos_a * sin_a]
+      m_trans(2,:) = [-cos_a * sin_r,              cos_r,         -sin_r * sin_a]
+      m_trans(3,:) = [(cos_r - 1) * cos_a * sin_a, sin_r * sin_a, cos_r * sin_a**2 + cos_a**2]
       off = matmul(m_trans, off)
       pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
 
@@ -351,9 +351,9 @@ else
     if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
       sin_r = sin(ele%value(roll$));    cos_r = cos(ele%value(roll$))
       sin_a = sin(ele%value(angle$)/2); cos_a = cos(ele%value(angle$)/2)
-      m_trans(1,1:3) = [cos_r * cos_a**2 + sin_a**2, -cos_a * sin_r, (1 - cos_r) * cos_a * sin_a]
-      m_trans(2,1:3) = [cos_a * sin_r,               cos_r,          -sin_r * sin_a]
-      m_trans(3,1:3) = [(1 - cos_r) * cos_a * sin_a, sin_r * sin_a,  cos_r * sin_a**2 + cos_a**2]
+      m_trans(1,:) = [cos_r * cos_a**2 + sin_a**2, -cos_a * sin_r, (1 - cos_r) * cos_a * sin_a]
+      m_trans(2,:) = [cos_a * sin_r,               cos_r,          -sin_r * sin_a]
+      m_trans(3,:) = [(1 - cos_r) * cos_a * sin_a, sin_r * sin_a,  cos_r * sin_a**2 + cos_a**2]
       off =  matmul(m_trans, [coord%vec(1), coord%vec(3), 0.0_rp])
       pvec = matmul(m_trans, [coord%vec(2), coord%vec(4), sqrt(E_rel**2 - coord%vec(2)**2 - coord%vec(4)**2)])
       coord%vec(1) = off(1); coord%vec(3) = off(2)
