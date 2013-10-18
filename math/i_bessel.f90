@@ -21,6 +21,8 @@ function I_bessel(m, arg) result (i_bes)
 use physical_constants
 use nr
 
+implicit none
+
 integer m
 real(rp) arg
 complex(rp) i_bes
