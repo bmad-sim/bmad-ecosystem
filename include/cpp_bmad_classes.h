@@ -1214,7 +1214,7 @@ public:
   Bool has_curvature;
 
   CPP_photon_surface() :
-    type(Bmad::NOT_DEFINED),
+    type(Bmad::NOT_SET),
     grid(),
     segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),

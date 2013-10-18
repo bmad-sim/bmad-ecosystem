@@ -2,7 +2,7 @@
 #ifndef BMAD_ENUMS
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 131;
+  const int BMAD_INC_VERSION = 132;
   const int NUM_ELE_ATTRIB = 70;
   const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
@@ -29,6 +29,7 @@ namespace Bmad {
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8;
   const int SEGMENTED = 2, H_MISALIGN = 3;
   const int ISOTROPIC_EMISSION = 1;
+  const int INCOHERENT = 1, COHERENT = 2;
   const int OPAL = 1, IMPACTT = 2;
   const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4;
   const int SEXTUPOLE = 5, OVERLAY = 6, CUSTOM = 7, TAYLOR = 8;
@@ -238,7 +239,6 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 20;
   const int NOT_SET = -999;
-  const int NOT_DEFINED = 0;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;
