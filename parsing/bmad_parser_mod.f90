@@ -5773,7 +5773,7 @@ complex(rp), pointer :: c_ptr(:)
 integer ix_word, i_term
 
 character(1) delim, delim2
-character(40) word, word2, name
+character(40) word, word2, name, attrib_name
 
 logical err_flag, delim_found
 
@@ -5797,14 +5797,14 @@ endif
 do
 
   ! Read attriubute
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found)
 
-  select case (word)
+  select case (attrib_name)
 
   case ('ELE_ANCHOR_PT')
     ! Expect "<component> = "
     if (delim /= '=') then
-      call parser_error ('NO "=" SIGN FOUND AFTER MAP ' // word,  &
+      call parser_error ('NO "=" SIGN FOUND AFTER MAP ' // attrib_name,  &
                          'IN MAP STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5812,9 +5812,7 @@ do
 
     ! Evaluate string into integer.
 
-    if (word == 'ELE_ANCHOR_PT') then
-      call match_word(word2, anchor_pt_name(1:), map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
-    endif
+    call match_word(word2, anchor_pt_name(1:), map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
   
     if (name == '') then
       call parser_error ('UNKNKOWN MAP ' // trim(word) // ': ' // word2, &
@@ -5827,7 +5825,7 @@ do
     ! Expect "("
     call get_next_word (word, ix_word, ',({', delim, delim_found)
     if (word /= '' .or. delim /= '(') then
-      call parser_error ('NO "(" FOUND AFTER "' // trim(word2) // ' =" ', &
+      call parser_error ('NO "(" FOUND AFTER "' // trim(attrib_name) // ' =" ', &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif
@@ -5856,14 +5854,14 @@ do
       allocate(map%term(i_term))
     endif
 
-    select case (word2)
+    select case (attrib_name)
     case ('E_COEF_RE', 'E_COEF_IM'); c_ptr => map%term%e_coef 
     case ('B_COEF_RE', 'B_COEF_IM'); c_ptr => map%term%b_coef
     end select
 
-    if (word2(8:9) == 'RE') then
+    if (attrib_name(8:9) == 'RE') then
       if (any(real(c_ptr) /= 0)) then
-        call parser_error ('DUPLICATE ARRAY FOR: ' // word2, &
+        call parser_error ('DUPLICATE ARRAY FOR: ' // attrib_name, &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5871,7 +5869,7 @@ do
 
     else
       if (any(aimag(c_ptr) /= 0)) then
-        call parser_error ('DUPLICATE ARRAY FOR: ' // word2, &
+        call parser_error ('DUPLICATE ARRAY FOR: ' // attrib_name, &
                            'IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
         return
       endif
@@ -5881,7 +5879,7 @@ do
     ! Expect "," or "}"
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     if (word /= '' .or. (delim /= ',' .and. delim /= '}')) then
-      call parser_error ('BAD ' // trim(word2) // ' = (...) CONSTRUCT', &
+      call parser_error ('BAD ' // trim(attrib_name) // ' = (...) CONSTRUCT', &
                            'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
       return
     endif

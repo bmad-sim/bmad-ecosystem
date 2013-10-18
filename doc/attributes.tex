@@ -745,6 +745,132 @@ the entrance and exit reference orbit.}
 \end{figure}
 
 %-----------------------------------------------------------------
+\section{Crystals \& Compounds for X-Rays}
+\label{s:cryst.list}
+
+For basic crystalographic and X-ray matter interaction cross-sections,
+\bmad uses the XRAYLIB\cite{b:xraylib} library. Crystal structure
+parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
+with some structre parameters comming from NIST. The list of available
+structures is:
+\begin{center}
+\begin{tabular}{llll}
+AlphaAlumina & GaP       & KCl        & Platinum  \\
+AlphaQuartz  & GaSb      & KTP        & RbAP      \\
+Aluminum     & Ge        & LaB6       & Sapphire  \\
+Be           & Gold      & LaB6_NIST  & Si        \\
+Beryl        & Graphite  & LiF        & Si_NIST   \\
+Copper       & InAs      & LiNbO3     & Si2       \\
+CsCl         & InP       & Muscovite  & SiC       \\
+CsF          & InSb      & NaCl       & Titanium  \\
+Diamond      & Iron      & PET        & TlAP      \\
+GaAs         & KAP       &            &           \\
+\end{tabular}
+\end{center}
+
+
+\begin{center}
+\footnotesize
+\begin{longtable}{lll}
+\multicolumn{3}{r}{{\normalsize Continued on next page}} \\
+\endfoot
+\endlastfoot
+A_150_TISSUE_EQUIVALENT_PLASTIC     & LITHIUM_TETRABORATE                       \\
+ACETONE                             & LUNG_ICRP                                 \\
+ACETYLENE                           & M3_WAX                                    \\
+ADENINE                             & MAGNESIUM_CARBONATE                       \\
+ADIPOSE_TISSUE_ICRP                 & MAGNESIUM_FLUORIDE                        \\
+AIR_DRY_NEAR_SEA_LEVEL              & MAGNESIUM_OXIDE                           \\
+ALANINE                             & MAGNESIUM_TETRABORATE                     \\
+ALUMINUM_OXIDE                      & MERCURIC_IODIDE                           \\
+AMBER                               & METHANE                                   \\
+AMMONIA                             & METHANOL                                  \\
+ANILINE                             & MIX_D_WAX                                 \\
+ANTHRACENE                          & MS20_TISSUE_SUBSTITUTE                    \\
+B_100_BONE_EQUIVALENT_PLASTIC       & MUSCLE_SKELETAL                           \\
+BAKELITE                            & MUSCLE_STRIATED                           \\
+BARIUM_FLUORIDE                     & MUSCLE_EQUIVALENT_LIQUID_WITH_SUCROSE     \\
+BARIUM_SULFATE                      & MUSCLE_EQUIVALENT_LIQUID_WITHOUT_SUCROSE  \\
+BENZENE                             & NAPHTHALENE                               \\
+BERYLLIUM_OXIDE                     & NITROBENZENE                              \\
+BISMUTH_GERMANIUM_OXIDE             & NITROUS_OXIDE                             \\
+BLOOD_ICRP                          & NYLON_DU_PONT_ELVAMIDE_8062               \\
+BONE_COMPACT_ICRU                   & NYLON_TYPE_6_AND_TYPE_66                  \\
+BONE_CORTICAL_ICRP                  & NYLON_TYPE_610                            \\
+BORON_CARBIDE                       & NYLON_TYPE_11_RILSAN                      \\
+BORON_OXIDE                         & OCTANE_LIQUID                             \\
+BRAIN_ICRP                          & PARAFFIN_WAX                              \\
+BUTANE                              & N_PENTANE                                 \\
+N_BUTYL_ALCOHOL                     & PHOTOGRAPHIC_EMULSION                     \\
+C_552_AIR_EQUIVALENT_PLASTIC        & PLASTIC_SCINTILLATOR_VINYLTOLUENE_BASED   \\
+CADMIUM_TELLURIDE                   & PLUTONIUM_DIOXIDE                         \\
+CADMIUM_TUNGSTATE                   & POLYACRYLONITRILE                         \\
+CALCIUM_CARBONATE                   & POLYCARBONATE_MAKROLON_LEXAN              \\
+CALCIUM_FLUORIDE                    & POLYCHLOROSTYRENE                         \\
+CALCIUM_OXIDE                       & POLYETHYLENE                              \\
+CALCIUM_SULFATE                     & POLYETHYLENE_TEREPHTHALATE_MYLAR          \\
+CALCIUM_TUNGSTATE                   & POLYMETHYL_METHACRALATE_LUCITE_PERSPEX    \\
+CARBON_DIOXIDE                      & POLYOXYMETHYLENE                          \\
+CARBON_TETRACHLORIDE                & POLYPROPYLENE                             \\
+CELLULOSE_ACETATE_CELLOPHANE        & POLYSTYRENE                               \\
+CELLULOSE_ACETATE_BUTYRATE          & POLYTETRAFLUOROETHYLENE_TEFLON            \\
+CELLULOSE_NITRATE                   & POLYTRIFLUOROCHLOROETHYLENE               \\
+CERIC_SULFATE_DOSIMETER_SOLUTION    & POLYVINYL_ACETATE                         \\
+CESIUM_FLUORIDE                     & POLYVINYL_ALCOHOL                         \\
+CESIUM_IODIDE                       & POLYVINYL_BUTYRAL                         \\
+CHLOROBENZENE                       & POLYVINYL_CHLORIDE                        \\
+CHLOROFORM                          & POLYVINYLIDENE_CHLORIDE_SARAN             \\
+CONCRETE_PORTLAND                   & POLYVINYLIDENE_FLUORIDE                   \\
+CYCLOHEXANE                         & POLYVINYL_PYRROLIDONE                     \\
+12_DDIHLOROBENZENE                  & POTASSIUM_IODIDE                          \\
+DICHLORODIETHYL_ETHER               & POTASSIUM_OXIDE                           \\
+12_DICHLOROETHANE                   & PROPANE                                   \\
+DIETHYL_ETHER                       & PROPANE_LIQUID                            \\
+NN_DIMETHYL_FORMAMIDE               & N_PROPYL_ALCOHOL                          \\
+DIMETHYL_SULFOXIDE                  & PYRIDINE                                  \\
+ETHANE                              & RUBBER_BUTYL                              \\
+ETHYL_ALCOHOL                       & RUBBER_NATURAL                            \\
+ETHYL_CELLULOSE                     & RUBBER_NEOPRENE                           \\
+ETHYLENE                            & SILICON_DIOXIDE                           \\
+EYE_LENS_ICRP                       & SILVER_BROMIDE                            \\
+FERRIC_OXIDE                        & SILVER_CHLORIDE                           \\
+FERROBORIDE                         & SILVER_HALIDES_IN_PHOTOGRAPHIC_EMULSION   \\
+FERROUS_OXIDE                       & SILVER_IODIDE                             \\
+FERROUS_SULFATE_DOSIMETER_SOLUTION  & SKIN_ICRP                                 \\
+FREON_12                            & SODIUM_CARBONATE                          \\
+FREON_12B2                          & SODIUM_IODIDE                             \\
+FREON_13                            & SODIUM_MONOXIDE                           \\
+FREON_13B1                          & SODIUM_NITRATE                            \\
+FREON_13I1                          & STILBENE                                  \\
+GADOLINIUM_OXYSULFIDE               & SUCROSE                                   \\
+GALLIUM_ARSENIDE                    & TERPHENYL                                 \\
+GEL_IN_PHOTOGRAPHIC_EMULSION        & TESTES_ICRP                               \\
+GLASS_PYREX                         & TETRACHLOROETHYLENE                       \\
+GLASS_LEAD                          & THALLIUM_CHLORIDE                         \\
+GLASS_PLATE                         & TISSUE_SOFT_ICRP                          \\
+GLUCOSE                             & TISSUE_SOFT_ICRU_FOUR_COMPONENT           \\
+GLUTAMINE                           & TISSUE_EQUIVALENT_GAS_METHANE_BASED       \\
+GLYCEROL                            & TISSUE_EQUIVALENT_GAS_PROPANE_BASED       \\
+GUANINE                             & TITANIUM_DIOXIDE                          \\
+GYPSUM_PLASTER_OF_PARIS             & TOLUENE                                   \\
+N_HEPTANE                           & TRICHLOROETHYLENE                         \\
+N_HEXANE                            & TRIETHYL_PHOSPHATE                        \\
+KAPTON_POLYIMIDE_FILM               & TUNGSTEN_HEXAFLUORIDE                     \\
+LANTHANUM_OXYBROMIDE                & URANIUM_DICARBIDE                         \\
+LANTHANUM_OXYSULFIDE                & URANIUM_MONOCARBIDE                       \\
+LEAD_OXIDE                          & URANIUM_OXIDE                             \\
+LITHIUM_AMIDE                       & UREA                                      \\
+LITHIUM_CARBONATE                   & VALINE                                    \\
+LITHIUM_FLUORIDE                    & VITON_FLUOROELASTOMER                     \\
+LITHIUM_HYDRIDE                     & WATER_LIQUID                              \\
+LITHIUM_IODIDE                      & WATER_VAPOR                               \\
+LITHIUM_OXIDE                       & XYLENE                                    \\
+\end{longtable}
+\end{center}
+
+
+
+%-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
 \label{s:s.curve}
 
@@ -1766,30 +1892,6 @@ on the PTC side is:
   basic_bend      & False            & True             \\    
   full_bend       & True             & True             \\    
   full_straight   & True             & False            \\    
-\end{tabular}
-\end{center}
-
-%-----------------------------------------------------------------
-\section{Crystals}
-\label{s:cryst.list}
-
-For basic crystalographic and X-ray matter interaction cross-sections,
-\bmad uses the XRAYLIB\cite{b:xraylib} library. Crystal structure
-parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
-with some structre parameters comming from NIST. The list of available
-structures is:
-\begin{center}
-\begin{tabular}{llll}
-AlphaAlumina & GaP       & KCl        & Platinum  \\
-AlphaQuartz  & GaSb      & KTP        & RbAP      \\
-Aluminum     & Ge        & LaB6       & Sapphire  \\
-Be           & Gold      & LaB6_NIST  & Si        \\
-Beryl        & Graphite  & LiF        & Si_NIST   \\
-Copper       & InAs      & LiNbO3     & Si2       \\
-CsCl         & InP       & Muscovite  & SiC       \\
-CsF          & InSb      & NaCl       & Titanium  \\
-Diamond      & Iron      & PET        & TlAP      \\
-GaAs         & KAP       &            &           \\
 \end{tabular}
 \end{center}
 

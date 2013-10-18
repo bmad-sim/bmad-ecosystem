@@ -19,8 +19,8 @@ For printing information about an element, the
 can be used (\sref{s:first.program}). The difference between the two is
 that \vn{type_ele} will print to the terminal window while \vn{type2_ele}
 will return an array of strings containing the element information.
-
-\begin{figure}[tb]
+\nopagebreak[4]
+\begin{figure}[htb]
 \centering
 \footnotesize
 \begin{verbatim}
@@ -45,6 +45,20 @@ type ele_struct
   type (rf_wake_struct), pointer :: rf_wake    ! Wakes
   type (space_charge_struct), pointer :: space_charge 
   type (taylor_struct) :: taylor(6)            ! Taylor terms
+    ele_struct definition continued on next figure...
+\end{verbatim}
+\caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
+The complete structure is shown in this and the following figure.}
+\label{f:ele.struct1}
+\end{figure}
+
+%--------------------------------------------------------------------------
+
+\begin{figure}[tb]
+\centering
+\footnotesize
+\begin{verbatim}
+    ... ele_struct definition continued from previous figure.
   type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type (wig_struct), pointer :: wig            ! Wiggler field
   type(coord_struct) map_ref_orb_in(6)         ! Transfer map ref orbit at upstream end of element.
@@ -64,20 +78,6 @@ type ele_struct
   real(rp), pointer :: a_pole(:)               ! multipole
   real(rp), pointer :: b_pole(:)               ! multipoles
   real(rp), pointer :: const(:)                ! Working constants.
-    ele_struct definition continued on next figure...
-\end{verbatim}
-\caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
-The complete structure is shown in this and the following figure.}
-\label{f:ele.struct1}
-\end{figure}
-
-%--------------------------------------------------------------------------
-
-\begin{figure}[tb]
-\centering
-\footnotesize
-\begin{verbatim}
-    ... ele_struct definition continued from previous figure.
   integer key                    ! key value
   integer sub_key                ! EG for wigglers: map_type$, periodic_type$
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].

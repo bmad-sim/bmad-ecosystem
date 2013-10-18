@@ -288,7 +288,13 @@ if (do_scale_amp) then
     int_old = int_tot
     int_tot = ((n_pts_tot - n_pts) * int_tot + n_pts * integral) / n_pts_tot
     if (n_pts_tot > 16) then
-      if (abs(int_tot - int_old) < 0.2 * (int_tot + int_old)) then
+      if (int_tot == 0 .and. int_old == 0) then
+        call out_io (s_error$, r_name, 'FIELD IS ZERO FOR: ' // ele%name) 
+        call cleanup_this()
+        return
+      endif
+
+      if (abs(int_tot - int_old) <= 0.2 * (int_tot + int_old)) then
         field_scale = field_scale * dE_peak_wanted / integral
         exit
       endif
