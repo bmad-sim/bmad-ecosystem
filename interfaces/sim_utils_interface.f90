@@ -156,7 +156,8 @@ interface
     import
     implicit none
     integer m
-    real(rp) arg, i_bes
+    real(rp) arg
+    complex(rp) i_bes
   end function
 
   subroutine if_error (idelim, icmd, error_string, line_number, end_check)
