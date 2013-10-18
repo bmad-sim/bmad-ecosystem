@@ -5893,8 +5893,6 @@ do
   ! Possible "}" is end of mode
   if (delim == '}') exit
 
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
-
 enddo
 
 ! Get final separator after grid construct.
