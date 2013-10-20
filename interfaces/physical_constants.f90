@@ -27,7 +27,7 @@ real(rp), parameter :: e_charge = 1.6021892d-19          ! electron charge [Coul
 real(rp), parameter :: h_planck = 4.13566733d-15         ! Planck's constant [eV*sec]
 real(rp), parameter :: h_bar_planck = 6.58211899d-16     ! h_planck/twopi [eV*sec]
 
-real(rp), parameter :: mu_0_vac = fourpi * 1e-7                     ! Permeability of free space
+real(rp), parameter :: mu_0_vac = fourpi * 1d-7                     ! Permeability of free space
 real(rp), parameter :: eps_0_vac = 1 / (c_light*c_light * mu_0_vac) ! Permittivity of free space
 
 ! Radiation constants
@@ -35,6 +35,9 @@ real(rp), parameter :: eps_0_vac = 1 / (c_light*c_light * mu_0_vac) ! Permittivi
 real(rp), parameter :: classical_radius_factor = 1.439964416d-9  ! e^2 / (4 pi eps_0) [m*eV]
                                                                  !  = classical_radius * mass * c^2. 
                                                                  ! Is same for all particles of charge +/- 1.
+! Chemistry
+
+real(rp), parameter :: N_avogadro = 6.02214129d23    ! Number / mole
 
 ! Anomalous magnetic moment
 
