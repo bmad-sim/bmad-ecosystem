@@ -124,13 +124,13 @@ Overrides the \vn{design_lattice}
 lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
-  \$ACC_EXE/tao -init my.init -lat xsif::slac.xsif
+  \$ACC_EXE/tao -init my.init -lat slac.xsif
 \end{example}
 If there is more than one universe and the universes have different
 lattices, separate the different lattice names using a "|" character.
 Do not put any spaces in between. Example:
 \begin{example}
-  \$ACC_EXE/tao -lat xsif::slac.xsif|cesr.bmad
+  \$ACC_EXE/tao -lat xsif::slac.lat|cesr.bmad
 \end{example}
   \item[\vn{-log_startup}]
 If there is a problem with \tao is started, \vn{-log_startup} can be used
@@ -284,9 +284,10 @@ universe \vn{i}.  Example:
 \end{example}
 In this example, the lattice of universe 1 is given by the file
 \vn{this.lat} and the lattice of universe 2 is given by the file
-\vn{that.lat}. The \vn{xsif::} prefix for \vn{design_lattice(2)}
-indicates that the xsif parser is to be used. Possible
-choices for the parser are:
+\vn{that.lat}. The \vn{"xsif::"} prefix for \vn{design_lattice(2)}
+indicates that the xsif parser is to be used. Alternatively, a
+\vn{".xsif"} suffix signals that a file uses the \vn{xsif}
+format. Possible choices for the parser are:
 \index{bmad}\index{xsif}\index{digested}
 \begin{example}
   bmad      ! For a standard bmad lattice file. This is the default.

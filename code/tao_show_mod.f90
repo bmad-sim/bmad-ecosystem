@@ -1411,7 +1411,7 @@ case ('lattice')
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base               ', '-design             ', '-floor_coords'], &
+        '-base               ', '-design             ', '-floor_coords       '], &
               switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
