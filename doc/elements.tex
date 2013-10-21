@@ -2271,11 +2271,11 @@ General \vn{crystal} attributes are:
 \end{center}
 \toffset
 
-\index{crystal_type}\index{d1_thickness}\index{d2_thickness}
+\index{material_type}\index{d1_thickness}\index{d2_thickness}
 \index{n_cell}
 The attributes specific to a \vn{multilayer_mirror} are 
 \begin{example}
-  crystal_type         = <String>  ! Materials in each layer.
+  material_type        = <String>  ! Materials in each layer.
   d1_thickness         = <Real>    ! Thickness of layer 1
   d2_thickness         = <Real>    ! Thickness of layer 2
   n_cell               = <Integer> ! Number of cells (= Number of layers / 2)
@@ -2299,18 +2299,20 @@ Dependent attributes (\sref{s:depend}) are
 A \vn{multilayer_mirror} is constructed of a number of ``cells''. The
 number of cells is set by \vn{n_cell}. Each cell consists of two
 layers of dielectric material. The materials used is given by
-the \vn{crystal_type} attribute. The format for this is
+the \vn{material_type} attribute. The format for this is
 \begin{example}
-  crystal_type = "<material_1>:<material_2>"
+  material_type = "<material_1>:<material_2>"
 \end{example}
 where \vn{<material_1>} and \vn{<material_2>} are the material names
 for the first and second layers of the cell respectively. The first
-layer is the bottom layer and the second layer is the top layer of the cell.
-Material names are case sensitive. So ``FE'' cannot be used in place of ``Fe''
+layer is the bottom layer and the second layer is the top layer of the
+cell.  Material names are case sensitive. So ``FE'' cannot be used in
+place of ``Fe'' A list of materials is given in \sref{s:cryst.list}
+and can include crystal materials or elemental materials.
 
 Example:
 \begin{example}
-  mm: multilayer_mirror, crystal_type = 'W:B4C', n_cell = 100, &
+  mm: multilayer_mirror, material_type = 'W:BORON_CARBIDE', n_cell = 100, &
             d1_thickness = 1e-9, d2_thickness = 1.5e-9
 \end{example}
 
