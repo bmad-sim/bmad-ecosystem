@@ -26,7 +26,7 @@ PRIVATE S
 CONTAINS
 
 !+
-! Subroutine normal_mode3_calc (mat, tune, G, V, synchrotron_motion)
+! Subroutine normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
 !
 ! Does an Eigen decomposition of the 1-turn transfer matrix (mat) and generates
 ! B, V, H.  Betatron and synchrotron tunes are places in tune.
@@ -60,8 +60,11 @@ SUBROUTINE normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
   LOGICAL error
 
   CALL make_N(mat, N, error, tune, synchrotron_motion)
+  !CALL make_HVBP (N, dagger6(B), V, H)
   CALL make_HVBP (N, B, V, H)
   HV = MATMUL(H,V)
+
+  B = dagger6(B)  !for legacy compatability
 
 END SUBROUTINE normal_mode3_calc
 
@@ -481,6 +484,44 @@ SUBROUTINE get_abc_from_updated_smat(ring, ix, sigma_mat, normal, error)
 END SUBROUTINE get_abc_from_updated_smat
 
 !+
+! Subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz)
+!
+! Given a 6x6 matrix of second-order moments, this routine returns
+! the beam tilts.
+!
+! angle_xy is obtained from the projection of the beam envelop into the
+! xy plane.  The angle is that between the major axis of the projected
+! beam envelope and the +x axis.  Positive angles are measured towards the
+! +y axis.
+!
+! angle_xz is obtained from the projection of the beam envelop into the
+! xy plane.  The angle is that between the major axis of the projected beam envelope
+! and the +z axis.  Positive angles are measured towards the +x axis.
+!
+! angle_yz is obtained from the projection of the beam envelop into the
+! yz plane.  The angle is that between the major axis of the projected beam envelope
+! and the +z axis.  Positive angles are measured towards the +y axis.
+!
+! Input:
+!   S(6,6)              -- real(rp): matrix of second order moments of beam envelope
+! Output:
+!   angle_xy(3,3)       -- real(rp): transverse tilt of beam envelope
+!   angle_xz(3,3)       -- real(rp): horizontal crabbing of beam envelope
+!   angle_yz(3,3)       -- real(rp): vertical crabbing of beam envelope
+!
+!-
+SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz)
+  IMPLICIT NONE
+
+  REAL(rp) S(6,6)
+  REAL(rp) angle_xy, angle_xz, angle_yz
+
+  angle_xy = 0.5_rp * ATAN2( 2.0d0*S(1,3), S(1,1)-S(3,3) )
+  angle_xz = 0.5_rp * ATAN2( 2.0d0*S(1,5), S(5,5)-S(1,1) )
+  angle_yz = 0.5_rp * ATAN2( 2.0d0*S(3,5), S(5,5)-S(3,3) )
+END SUBROUTINE beam_tilts
+
+!+
 ! Subroutine make_smat_from_abc(t6, mode, sigma_mat, error)
 !
 ! Given the 1-turn transfer matrix and a normal_modes_struct containing the normal mode
@@ -630,81 +671,6 @@ FUNCTION dagger2(A) RESULT(Ad)
 END FUNCTION dagger2
 
 !+
-! Subroutine adjust_evec_phase(evec_r, evec_i, adj_evec_r, adj_evec_i)
-!
-! This subroutine assumes that the eigenvectors are arranged in complex-conjugate pairs: (e1 e1* e2 e2* e3 e3*)
-!
-! The following normalizations are applied to the matrix of eigenvectors.  The result is still a matrix of eigenvectors,
-! but it is normalized and the phase adjusted such that G and V can be easily extracted.
-! The resulting matrix of eigenvectors is unique
-!
-! 1) Swap columns to make determinant of diagonal blocks have positive imaginary part.
-! 2) Adjust the phase of the eigenvectors such that the (1,1 and 1,2) and (3,3 and 3,4) and (5,5 and 5,6) elements are real.
-! 3) Fixes the sign of the pairs so that the 1,1 3,3 and 5,5 elements are positive.
-!
-! Input:
-!  evec_r(6,6)      -- real(rp): real part of Eigen matrix
-!  evec_i(6,6)      -- real(rp): imaginary part of Eigen matrix
-!  tunes(3)         -- real(rp): Tunes of the 3 normal modes.
-! Output:
-!  adj_evec_r(6,6)  -- real(rp): real part of Eigen matrix: normalized, phased, and signs fixed
-!  adj_evec_i(6,6)  -- real(rp): imaginary part of Eigen matrix: normalized, phased, and signs fixed
-!  tunes(3)         -- real(rp): Tunes of the 3 normal modes.  The ambiguity in tune is resolved so that det(G) = 1.
-!
-!-
-SUBROUTINE adjust_evec_phase(evec_r, evec_i, adj_evec_r, adj_evec_i)
-  REAL(rp) evec_r(6,6)
-  REAL(rp) evec_i(6,6)
-  REAL(rp) adj_evec_r(6,6)
-  REAL(rp) adj_evec_i(6,6)
-  REAL(rp) evec_r_temp(6)
-  REAL(rp) evec_i_temp(6)
-
-  REAL(rp) theta  
-  REAL(rp) costh, sinth
-  REAL(rp) det(3)
-
-  INTEGER i, j, ix
-
-  det(1) = AIMAG( CMPLX(evec_r(1,1),evec_i(1,1))*CMPLX(evec_r(2,2),evec_i(2,2)) - &
-                CMPLX(evec_r(1,2),evec_i(1,2))*CMPLX(evec_r(2,1),evec_i(2,1)) )
-  det(2) = AIMAG( CMPLX(evec_r(3,3),evec_i(3,3))*CMPLX(evec_r(4,4),evec_i(4,4)) - &
-                CMPLX(evec_r(3,4),evec_i(3,4))*CMPLX(evec_r(4,3),evec_i(4,3)) )
-  det(3) = AIMAG( CMPLX(evec_r(5,5),evec_i(5,5))*CMPLX(evec_r(6,6),evec_i(6,6)) - &
-                CMPLX(evec_r(5,6),evec_i(5,6))*CMPLX(evec_r(6,5),evec_i(6,5)) )
-
-  DO i=1,3
-    ix = i*2-1
-    IF( det(i) < 0 ) THEN
-      evec_r_temp = evec_r(:,ix+1)
-      evec_i_temp = evec_i(:,ix+1)
-      evec_r(:,ix+1) = evec_r(:,ix)
-      evec_i(:,ix+1) = evec_i(:,ix)
-      evec_r(:,ix) = evec_r_temp
-      evec_i(:,ix) = evec_i_temp
-    ENDIF
-  ENDDO
-
-  DO i=1,3
-    ix = i*2-1
-
-    ! For each element of the eigenvector, rotate the eigenvector in the complex plane
-    ! by an angle that makes the (1,1 and 1,2) or (3,3 and 3,4) or (5,5 and 5,6) elements of the eigen matrix real.
-    theta = ATAN2(evec_i(ix,ix),evec_r(ix,ix)) 
-
-    ! Apply the normalization and rotation
-    costh = COS(theta)
-    sinth = SIN(theta)
-    adj_evec_r(:,ix) = ( evec_r(:,ix)*costh + evec_i(:,ix)*sinth)
-    adj_evec_i(:,ix) = (-evec_r(:,ix)*sinth + evec_i(:,ix)*costh)
-
-    adj_evec_r(:,ix+1) = ( evec_r(:,ix+1)*costh - evec_i(:,ix+1)*sinth)
-    adj_evec_i(:,ix+1) = ( evec_r(:,ix+1)*sinth + evec_i(:,ix+1)*costh)
-  ENDDO
-
-END SUBROUTINE adjust_evec_phase
-
-!+
 ! Subroutine real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
 !
 ! Applies a normalization to the columns of a 6x6 matrix of eigenvectors, where the columns are complex
@@ -851,7 +817,6 @@ END SUBROUTINE real_and_symp
 SUBROUTINE project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 
   USE bmad
-  USE eigen_mod
 
   IMPLICIT NONE
 
