@@ -6,19 +6,19 @@ use utilities_mod
 use measurement_mod
 use lat_geometry_mod
 
-! used for parsing expressions
+! Used for parsing expressions
 
 integer, parameter :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
 integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
 integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
+integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
 integer, parameter :: numeric$ = 100, var_num$ = 101, lat_num$ = 102, data_num$ = 103
 integer, parameter :: ele_num$ = 104
 
-integer, parameter, private :: eval_level(22) = (/ 1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9 /)
+integer, parameter, private :: eval_level(23) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 contains
 
@@ -3069,6 +3069,8 @@ parsing_loop: do
         call pushit (op, i_op, acos$)
       case ('atan') 
         call pushit (op, i_op, atan$)
+      case ('atan2') 
+        call pushit (op, i_op, atan2$)
       case ('abs') 
         call pushit (op, i_op, abs$)
       case ('sqrt') 
@@ -3214,6 +3216,7 @@ parsing_loop: do
   do i = i_op, 1, -1
     if (eval_level(op(i)) >= eval_level(i_delim)) then
       if (op(i) == l_parens$) then
+        if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
         call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)
         return
       endif
@@ -3672,6 +3675,10 @@ do i = 1, size(stack)
 
   case (atan$) 
     stk2(i2)%value = atan(stk2(i2)%value)
+
+  case (atan2$) 
+    stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
+    i2 = i2 - 1
 
   case (abs$) 
     stk2(i2)%value = abs(stk2(i2)%value)
