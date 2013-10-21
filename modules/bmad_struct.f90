@@ -879,7 +879,7 @@ integer, parameter :: descrip$ = 102
 integer, parameter :: scale_multipoles$ = 103
 integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall3d$
 integer, parameter :: field$ = 105
-integer, parameter :: phi_b$ = 106, crystal_type$ = 106
+integer, parameter :: phi_b$ = 106, crystal_type$ = 106, material_type$ = 106
 integer, parameter :: type$ = 107
 integer, parameter :: ref_origin$ = 108
 integer, parameter :: ele_origin$ = 109

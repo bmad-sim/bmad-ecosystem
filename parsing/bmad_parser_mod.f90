@@ -93,10 +93,10 @@ integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: numeric$ = 100
+integer, parameter, private :: atan2$ = 23, numeric$ = 100
 
-integer, parameter, private :: eval_level(22) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter, private :: eval_level(23) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 type eval_stack_struct
   integer type
@@ -1092,7 +1092,7 @@ case ('OFFSET')
   pele%s = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
-     'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'ORIGIN_ELE')
+     'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE')
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('PTC_MAX_FRINGE_ORDER')
@@ -2379,6 +2379,8 @@ parsing_loop: do
         call pushit (op, i_op, acos$)
       case ('ATAN') 
         call pushit (op, i_op, atan$)
+      case ('ATAN2') 
+        call pushit (op, i_op, atan2$)
       case ('ABS') 
         call pushit (op, i_op, abs$)
       case ('SQRT') 
@@ -2504,6 +2506,7 @@ parsing_loop: do
   do i = i_op, 1, -1
     if (eval_level(op(i)) >= eval_level(i_delim)) then
       if (op(i) == l_parens$) then
+        if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
         call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
         return
       endif
@@ -2574,6 +2577,9 @@ do i = 1, i_lev
     stk(i2)%value = acos(stk(i2)%value)
   elseif (stk(i)%type == atan$) then
     stk(i2)%value = atan(stk(i2)%value)
+  elseif (stk(i)%type == atan2$) then
+    stk(i2-1)%value = atan2(stk(i2-1)%value, stk(i2)%value)
+    i2 = i2 - 1
   elseif (stk(i)%type == abs$) then
     stk(i2)%value = abs(stk(i2)%value)
   elseif (stk(i)%type == sqrt$) then
@@ -2884,7 +2890,7 @@ case ('TO', 'TO_LINE', 'ORIGIN_ELE')
 case ('TO_ELEMENT')
   pele%ele_name = type_name
   call upcase_string (pele%ele_name)
-case ('CRYSTAL_TYPE')
+case ('CRYSTAL_TYPE', 'MATERIAL_TYPE')
   ele%component_name = type_name
 case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
       'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')

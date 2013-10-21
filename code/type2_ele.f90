@@ -368,6 +368,10 @@ if (attribute_name(ele, crystal_type$) == 'CRYSTAL_TYPE') then
   nl=nl+1; write (li(nl), fmt_a) 'CRYSTAL_TYPE', '=', ele%component_name
 endif
 
+if (attribute_name(ele, material_type$) == 'MATERIAL_TYPE') then
+  nl=nl+1; write (li(nl), fmt_a) 'MATERIAL_TYPE', '=', ele%component_name
+endif
+
 if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
   nl=nl+1; write (li(nl), fmt_a) 'ORIGIN_ELE', '=', '"', trim(ele%component_name), '"'
 endif

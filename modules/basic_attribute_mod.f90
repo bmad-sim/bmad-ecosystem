@@ -1011,7 +1011,7 @@ call init_attribute_name1 (multilayer_mirror$, f0_im1$,               'F0_IM1')
 call init_attribute_name1 (multilayer_mirror$, f0_re2$,               'F0_RE2')
 call init_attribute_name1 (multilayer_mirror$, f0_im2$,               'F0_IM2')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH')
-call init_attribute_name1 (multilayer_mirror$, crystal_type$,         'CRYSTAL_TYPE')
+call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')  ! Note: Not currently used
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
@@ -1251,7 +1251,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_C
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
-     'CRYSTAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE')
+     'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE')
   attrib_type = is_string$
 
 case default
