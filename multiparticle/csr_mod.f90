@@ -226,6 +226,8 @@ do i = 0, n_step
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
 
+  call save_bunch_track (bunch_end, ele, s0_step)
+
 enddo
 
 bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
@@ -1346,6 +1348,8 @@ do i = 0, n_step
     if (bunch_end%particle(j)%state /= alive$) cycle
     call csr_kick_calc (bin, bunch_end%particle(j))
   enddo
+
+  call save_bunch_track (bunch_end, ele, s0_step)
 
 enddo
 
