@@ -126,8 +126,8 @@ end type
 
 !
 
-integer, parameter :: line$ = 1, list$ = 2, element$ = 3
-integer, parameter :: replacement_line$ = 4
+integer, parameter :: line$ = 1001, list$ = 1002, element$ = 1003
+integer, parameter :: replacement_line$ = 1004
 integer, parameter :: def$ = 1, redef$ = 2
 
 !------------------------------------------------

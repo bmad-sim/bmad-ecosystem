@@ -572,14 +572,16 @@ parsing_loop: do
     sequence(iseq_tot)%name = word_1
     sequence(iseq_tot)%multipass = multipass
 
+    call new_element_init(err)
+    ele => in_lat%ele(n_max)
+
     if (delim /= '=') call parser_error ('EXPECTING: "=" BUT GOT: ' // delim)
     if (word_2(:ix_word) == 'LINE') then
       if (arg_list_found) then
         sequence(iseq_tot)%type = replacement_line$
+        ele%key = replacement_line$
       else
         sequence(iseq_tot)%type = line$
-        call new_element_init(err)
-        ele => in_lat%ele(n_max)
         ele%key = init_ele$
         ele%value(particle$) = real_garbage$
         ele%value(geometry$) = real_garbage$
@@ -589,6 +591,7 @@ parsing_loop: do
       endif
     else
       sequence(iseq_tot)%type = list$
+      ele%key = list$
     endif
     call seq_expand1 (sequence, iseq_tot, in_lat, .true.)
 
