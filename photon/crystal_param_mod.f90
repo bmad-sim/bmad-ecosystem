@@ -118,7 +118,7 @@ complex f0
 select case (material_name)
 case ('Si') 
   f0 = atomic_f0_calc('Si', ele%value(e_tot$))
-  cp => pointer_to_crystal_params('SI')
+  cp => pointer_to_crystal_params('Si')
 
 ! Boron Carbide
 
