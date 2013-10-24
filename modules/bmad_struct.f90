@@ -1149,7 +1149,8 @@ type bmad_common_struct
   real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
   real(rp) :: abs_tol_adaptive_tracking = 1e-10    ! Adaptive tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1e-3     ! Initial step size
-  real(rp) :: min_ds_adaptive_tracking = 1e-8      ! Min step size.
+  real(rp) :: min_ds_adaptive_tracking = 0         ! Min step size to take.
+  real(rp) :: fatal_ds_adaptive_tracking = 1e-8    ! If actual step size is below this particle is lost.
   integer :: taylor_order = 3                      ! 3rd order is default
   integer :: default_integ_order = 2               ! PTC integration order. 
   integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2 => Quadrupole !). 

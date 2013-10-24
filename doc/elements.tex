@@ -1039,12 +1039,27 @@ General \vn{diffraction_plate} element attributes are:
 \end{center}
 \toffset
 
-The geometry of the plate, that is, where the openings are, is defined
-using the ``wall'' attribute (\sref{s:wall}).
+\index{mode}
+Attributes specific to a \vn{diffraction_plate} element are:
+\begin{example}
+  mode               = <type>       ! reflection or transmission
+\end{example}
+The \vn{mode} switch sets whether X-rays are transmitted through the
+\vn{diffraction_plate} or or reflected. Possible values for the
+\vn{mode} switch are:
+\begin{example}
+  reflection
+  transmission        ! Default
+\end{example}
 
-Nominally, a diffraction plate is orientated transversely to the
-beam. Like all other elements, the diffraction plate can be reoriented
-using the element's offsets, pitches and tilt attributes (\sref{s:offset}).
+The geometry of the plate, that is, where the openings (in
+transmission mode) or reflection regions are, is defined using the
+``wall'' attribute. See (\sref{s:wall}) for more details.
+
+In transmission mode, a \vn{diffraction_plate} is nominally orientated
+transversely to the beam. Like all other elements, the
+\vn{diffraction_plate} can be reoriented using the element's offsets,
+pitches and tilt attributes (\sref{s:offset}).
 
 Example:
 \begin{example}
