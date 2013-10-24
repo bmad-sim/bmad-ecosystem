@@ -70,7 +70,7 @@ type (lat_param_struct) param
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2
-real(rp), parameter :: tiny = 1.0e-30_rp, ds_safe = 1e-12_rp
+real(rp), parameter :: tiny = 1.0e-30_rp, ds_tiny = 1e-12_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
 real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
 
@@ -127,17 +127,17 @@ do n_step = 1, max_step
 
   do
     if (.not. associated(hard_ele)) exit
-    if ((s-s_edge_track)*direction < -ds_safe) exit
+    if ((s-s_edge_track)*direction < -ds_tiny) exit
     call apply_hard_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
     call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    s = s + ds_safe * direction
+    s = s + ds_tiny * direction
   enddo
 
   ! Check if we are done.
 
-  if ((s-s2)*direction > -ds_safe) then
+  if ((s-s2)*direction > -ds_tiny) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
     err_flag = .false.
     return
@@ -154,7 +154,7 @@ do n_step = 1, max_step
   if ((s+ds-s_edge_track)*direction > 0.0) then
     at_hard_edge = .true.
     ds_save = ds
-    ds = s_edge_track - s - ds_safe*direction / 2
+    ds = s_edge_track - s - ds_tiny*direction / 2
   endif
 
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
@@ -178,13 +178,20 @@ do n_step = 1, max_step
   ! Calculate next step size. If there was a hard edge then take into account the step that would have
   ! been taken if no hard edge was present.
 
-  if (at_hard_edge .and. ds_next >= ds) then
+  if (at_hard_edge .and. abs(ds_next) >= abs(ds)) then
     ds_next = max(abs(ds_save), abs(ds_next)) * direction
   endif
 
+  if ((s + ds_next - s2) * direction > 0) then
+    ds_next = s2 - s
+    at_hard_edge = .true.
+  endif
+
+  if (abs(ds_next) <  bmad_com%min_ds_adaptive_tracking) ds_next = direction * bmad_com%min_ds_adaptive_tracking
+
   ! Check for step size smaller than minimum. If so we consider the particle lost
  
-  if (abs(ds) < bmad_com%min_ds_adaptive_tracking) exit
+  if (.not. at_hard_edge .and. abs(ds) < bmad_com%fatal_ds_adaptive_tracking) exit
 
 end do
 

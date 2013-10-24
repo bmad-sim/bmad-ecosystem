@@ -1325,54 +1325,57 @@ other.
   \centering
   \includegraphics[width=5in]{diffraction-plate.pdf}
   \caption[Example diffraction_plate element]{
-Example \vn{diffraction_plate} element. A) The wall of the diffraction
-plate is divided into ``clear'' (white) and ``opaque'' (black)
-sections. In this example there are two clear sections labeled \#1 and
-\#2. B) All sections must be star shaped with respect to the
-section's origin. In this example, The section is {\em not} star
-shaped since a line drawn from the origin point $o$ to the point $p$
-on the boundary intersects the boundary twice in between. In this case
-the section can be made star shaped by moving the origin to $o'$.
+A) The diffraction plate surface is divided into ``clear'' (white) and
+``opaque'' (black) areas. In this example there are two clear sections
+labeled \#1 and \#2. B) All wall sections must be star shaped with
+respect to the section's origin. In this example, The section is {\em
+not} star shaped since a line drawn from the origin point $o$ to the
+point $p$ on the boundary intersects the boundary twice in between. In
+this case the section can be made star shaped by moving the origin to
+$o'$.
   }
   \label{f:diff.plate}
 \end{figure}
 
-The wall of a \vn{diffraction_plate} (\sref{s:diff.plate}) specifies
-where the openings in the plate are.
+The \vn{wall} of a \vn{diffraction_plate} (\sref{s:diff.plate})
+specifies the topology of the plate in terms of what areas of the
+plate will transmit or reflect X-rays and what areas will not.  The
+areas where there is transmission or reflection are called ``clear''
+areas and everything else is called ``opaque''. 
 
-A \vn{wall} is comprised a a set of sections
-(\sref{s:wall.section}). Each section must have its \vn{type}
-attribute set to one of:
-\begin{example}
-  clear
-  opaque
-\end{example}
-A section is called ``clear'' or ``opaque'' depending upon the
-setting of its \vn{type} attribute.
+A \vn{wall} is comprised a a set of \vn{sections} as discussed in
+\sref{s:wall.section}.
 
-A wall is comprised a a set of ``openings''. An opening is a clear
-section along with a set of zero or more associated opaque sections.
-The opaque sections associated with an opening are the opaque sections
+
+A wall is comprised a a set of ``clears''. An opening is a clear
+section along with a set of zero or more associated mask sections.
+The mask sections associated with an opening are the mask sections
 immediatly following the clear section of the opening up to the next
 clear section. Thus the number of openings is equal to the number of
 clear sections and the first section of the wall must be a clear section.
+
+A \vn{wall} is comprised a a set of sections (\sref{s:wall.section}).
+Each section must have its \vn{type} attribute set to one of:
+\begin{example}
+  clear
+  mask
+\end{example}
+A section is called ``clear'' or ``mask'' depending upon the
+setting of its \vn{type} attribute.
 
 The default behavior is that a photon will be transmitted if it
 ``hits'' any opening. A
 photon is considered to have hit a given opening if its $(x,y)$
 coordinates put in within the clear section of the opening but not
-within any opaque section of the opening.
+within any mask section of the opening.
 
-An example diffraction plate geometry
-is shown in \fig{f:diff.plate}A.
- In the figure, there are two openings labeled \#1,
-and \#2
-
+An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
+In the figure, there are two openings labeled \#1, and \#2
 
 There are no restructions as to overlap between various sections. 
 
 To enable \bmad to quickly calculate whether a photon has landed on a
-clear or opaque section, All sections must be ``star shaped'' with
+clear or mask section, All sections must be ``star shaped'' with
 respect to the section origin. That is, a line drawn from the section
 origin to any point on the section boundary must not pass through any
 boundary points of the section in between. This is illustrated in
