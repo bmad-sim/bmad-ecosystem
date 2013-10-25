@@ -18,7 +18,59 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine diffraction_plate_hit_spot (ele, orbit, is_clear, ix_section)
+! Subroutine track1_diffraction_plate (ele, param, orbit)
+!
+! Routine to track through a diffraction plate element.
+!
+! Input:
+!   ele      -- ele_struct: Diffraction plate element.
+!   param    -- lat_param_struct: lattice parameters.
+!   orbit    -- Coord_struct: phase-space coords to be transformed
+!
+! Output:
+!   orbit    -- Coord_struct: final phase-space coords
+!-
+
+subroutine track1_diffraction_plate (ele, param, orbit)
+
+implicit none
+
+type (ele_struct), target:: ele
+type (coord_struct), target:: orbit
+type (lat_param_struct) :: param
+type (wall3d_section_struct), pointer :: sec
+
+real(rp) w_to_surface(3,3)
+
+integer ix_sec
+
+! Photon is lost if in an opaque section
+
+ix_sec = diffraction_plate_hit_spot (ele, orbit)
+
+if (ix_sec == 0) then
+  orbit%state = lost$
+  return
+endif
+
+sec => ele%wall3d%section(ix_sec)
+if (sec%type == mask$) then
+  orbit%state = lost$
+  return
+endif
+
+! Choose outgoing direction
+
+call isotropic_photon_emission (ele, param, orbit, +1, twopi)
+
+
+end subroutine track1_diffraction_plate
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function diffraction_plate_hit_spot (ele, orbit) result (ix_section)
 !
 ! Routine to determine where a photon hits on a diffraction_plate element.
 !
@@ -30,57 +82,63 @@ contains
 !   orbit   -- coord_struct: photon position.
 !
 ! Output:
-!   is_clear   -- logical, optional: True if hitting clear section. False otherwise.
-!   ix_section -- integer, optional: Set to index of section hit. Set to zero if
-!                   photon is outside all sections.
+!   ix_section -- integer, Set to index of clear section hit. Set to zero if
+!                   photon is outside all clear areas.
 !-
 
-subroutine diffraction_plate_hit_spot (ele, orbit, is_clear, ix_section)
+function diffraction_plate_hit_spot (ele, orbit) result (ix_section)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (wall3d_section_struct), pointer :: sec
+type (wall3d_struct), pointer :: wall3d
 
-integer, optional :: ix_section
-logical, optional :: is_clear
-
-integer i, ix_sec
-logical opening_found, in_this_aperture, cleared
+integer :: ix_section
+integer i, ix_sec, ix_mask
 
 ! Logic: A particle is in a clear section if it is inside the section and outside
-! all subsiquent opaque sections up to the next clear section.
+! all subsiquent mask sections up to the next clear section.
 
-in_this_aperture = .false.
-cleared = .false.
+wall3d => ele%wall3d
 ix_sec = 0
+ix_mask = 0
 
-do i = 1, size(ele%wall3d%section)
-  sec => ele%wall3d%section(i)
+section_loop: do 
 
-  if (sec%type == clear$) then
-    if (cleared) exit
-    if (.not. in_section(sec)) then
-      in_this_aperture = .false.
-      cycle
+  ! Skip any mask sections
+
+  do
+    if (ix_sec == size(wall3d%section)) exit
+    if (wall3d%section(ix_sec+1)%type == clear$) exit
+    ix_sec = ix_sec + 1
+  enddo
+
+  ! Next section must be clear. Check if photon is within the section
+
+  if (ix_sec == size(wall3d%section)) exit
+  ix_sec = ix_sec + 1
+  ix_section = ix_sec
+
+  if (.not. in_section(wall3d%section(ix_sec))) cycle
+
+  ! Now check if photon is within a mask section
+
+  do
+    if (ix_sec == size(wall3d%section)) return
+    if (wall3d%section(ix_sec+1)%type == clear$) return
+    ix_sec = ix_sec + 1
+    if (in_section(wall3d%section(ix_sec+1))) then
+      if (ix_mask == 0) ix_mask = ix_sec
+      cycle section_loop
     endif
-    in_this_aperture = .true.
-    ix_sec = i
+  enddo
 
-  else    ! opaque
-    if (.not. in_this_aperture) cycle
-    if (.not. in_section(sec)) cycle
-    in_this_aperture = .false.
-    cleared = .false.
-    ix_sec = i
+enddo section_loop
 
-  endif
+! Not in a clear area...
 
-enddo
-  
-if (present(ix_section)) ix_section = ix_sec
-if (present(is_clear)) is_clear = cleared
+ix_section = ix_mask
 
 !------------------------------------------------------------
 contains
@@ -107,7 +165,7 @@ is_in = (norm <= r_wall)
 
 end function in_section
 
-end subroutine diffraction_plate_hit_spot
+end function diffraction_plate_hit_spot
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -133,21 +191,13 @@ implicit none
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
-type (photon_target_struct), pointer :: target
-type (target_point_struct) corner(4)
 
-real(rp) wavelength, ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3), w_to_surface(3,3)
-real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3)
-real(rp), pointer :: val(:)
-
-integer n, i, ix
+real(rp) w_to_surface(3,3)
 
 character(*), parameter :: r_name = 'track1_sample'
 
 !
 
-val => ele%value
-wavelength = c_light * h_planck / orbit%p0c
 
 call track_to_surface (ele, orbit, curved_surface_rot = .false.)
 if (orbit%state /= alive$) return
@@ -168,56 +218,7 @@ endif
 select case (ele%photon%surface%type)
 case (isotropic_emission$)
 
-  call ran_uniform(ran)
-
-  target => ele%photon%target
-  if (target%enabled) then
-    r_particle = orbit%vec(1:5:2)
-    r = target%center%r - r_particle
-    if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
-    call target_rot_mats (r, w_to_target, w_to_ele)
-
-    do i = 1, 4
-      r = target%corner(i)%r - r_particle
-      if (r(3) > 0) r(3) = 0   ! photon cannot be emitted into the sample
-      r = matmul(w_to_target, r)
-      if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
-      corner(i)%r = r / norm2(r)
-    enddo
-
-    call target_min_max_calc (corner(4)%r, corner(1)%r, y_min, y_max, phi_min, phi_max, .true.)
-    call target_min_max_calc (corner(1)%r, corner(2)%r, y_min, y_max, phi_min, phi_max)
-    call target_min_max_calc (corner(2)%r, corner(3)%r, y_min, y_max, phi_min, phi_max)
-    call target_min_max_calc (corner(3)%r, corner(4)%r, y_min, y_max, phi_min, phi_max)
-
-    if (y_min >= y_max .or. phi_min >= phi_max) then
-      orbit%state = lost$
-      return
-    endif
-
-    y = y_min + (y_max-y_min) * ran(1)
-    phi = phi_min + (phi_max-phi_min) * ran(2)
-    rho = sqrt(1 - y*y)
-    orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
-    orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
-
-    if (param%tracking_type == coherent$) then
-      orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / fourpi
-    else
-      orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / fourpi)
-    endif
-
-  else
-    y = 2 * ran(1) - 1
-    phi = pi * (ran(2) - 0.5_rp)
-    rho = sqrt(1 - y**2)
-    orbit%vec(2:6:2) = [rho * sin(phi), y, -rho * cos(phi)]
-    if (param%tracking_type == coherent$) then
-      orbit%field = orbit%field / 2       ! Half the photons get lost by being emitted into the bulk.
-    else
-      orbit%field = orbit%field / sqrt_2  ! Half the photons get lost by being emitted into the bulk.
-    endif
-  endif
+  call isotropic_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
 
 case default
   call out_io (s_error$, r_name, 'SURFACE TYPE NOT SET.')
@@ -231,6 +232,105 @@ if (ele%photon%surface%has_curvature) then
 endif
 
 end subroutine track1_sample
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+!
+! Routine to emit a photon from a surface in a random direction.
+!
+! Input:
+!   ele                -- ele_struct: Emitting element.
+!   param              -- lat_param_struct: lattice parameters.
+!   orbit              -- Coord_struct: phase-space coords of photon.
+!   direction          -- Integer: +1 -> Emit in forward +z direction, -1 -> emit backwards.
+!   solid_angle        -- real(rp): Solid angle photons may be emitted over.
+!   w_to_surface(3,3)  -- real(rp), optional: Rotation matrix for curved surface.
+!
+! Output:
+!   orbit    -- Coord_struct: Final phase-space coords
+!-
+
+subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+
+implicit none
+
+type (ele_struct), target:: ele
+type (coord_struct), target:: orbit
+type (lat_param_struct) :: param
+type (photon_target_struct), pointer :: target
+type (target_point_struct) corner(4)
+
+real(rp), optional :: w_to_surface(3,3)
+real(rp) ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
+real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), solid_angle
+
+integer direction
+integer n, i, ix
+
+!
+
+call ran_uniform(ran)
+
+target => ele%photon%target
+if (target%enabled) then
+  r_particle = orbit%vec(1:5:2)
+  r = target%center%r - r_particle
+  if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+  call target_rot_mats (r, w_to_target, w_to_ele)
+
+  do i = 1, 4
+    r = target%corner(i)%r - r_particle
+    if (direction == 1) then
+      if (r(3) > 0) r(3) = 0   ! photon cannot be emitted backward
+    elseif (direction == -1) then
+      if (r(3) > 0) r(3) = 0   ! photon cannot be emitted forward
+    else
+      call err_exit
+    endif
+    r = matmul(w_to_target, r)
+    if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+    corner(i)%r = r / norm2(r)
+  enddo
+
+  call target_min_max_calc (corner(4)%r, corner(1)%r, y_min, y_max, phi_min, phi_max, .true.)
+  call target_min_max_calc (corner(1)%r, corner(2)%r, y_min, y_max, phi_min, phi_max)
+  call target_min_max_calc (corner(2)%r, corner(3)%r, y_min, y_max, phi_min, phi_max)
+  call target_min_max_calc (corner(3)%r, corner(4)%r, y_min, y_max, phi_min, phi_max)
+
+  if (y_min >= y_max .or. phi_min >= phi_max) then
+    orbit%state = lost$
+    return
+  endif
+
+  y = y_min + (y_max-y_min) * ran(1)
+  phi = phi_min + (phi_max-phi_min) * ran(2)
+  rho = sqrt(1 - y*y)
+  orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
+  orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
+
+  if (param%tracking_type == coherent$) then
+    orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
+  else
+    orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / solid_angle)
+  endif
+
+else
+  y = 2 * ran(1) - 1
+  phi = pi * (ran(2) - 0.5_rp)
+  rho = sqrt(1 - y**2)
+  orbit%vec(2:6:2) = [rho * sin(phi), y, direction * rho * cos(phi)]
+  ! Without targeting photons are emitted into twopi solid angle.
+  if (param%tracking_type == coherent$) then
+    orbit%field = orbit%field * twopi / solid_angle
+  else
+    orbit%field = orbit%field * sqrt(twopi / solid_angle)
+  endif
+endif
+
+end subroutine isotropic_photon_emission 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

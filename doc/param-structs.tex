@@ -59,6 +59,9 @@ this structure along with the default values are:
     real(rp) abs_tol_tracking = 1e-8           ! Runge-Kutta: Absolute tolerance.
     real(rp) rel_tol_adaptive_tracking = 1e-8  ! Tracking relative tolerance.
     real(rp) abs_tol_adaptive_tracking = 1e-10 ! Tracking absolute tolerance.
+    real(rp) init_ds_adaptive_tracking = 1e-3  ! Initial step size.
+    real(rp) min_ds_adaptive_tracking = 0      ! Minimum step size to use.
+    real(rp) fatal_ds_adaptive_tracking = 1e-8 ! Threshold for loosing particles.
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
     logical sr_wakes_on = T                    ! Short range wake fields?
@@ -117,6 +120,25 @@ Relative tolerance to use in adaptive tracking. This is used in
 \item[\vn{\%abs_tol_adaptive_tracking}] \Newline
 Absolute tolerance to use in adaptive tracking. This is used in
 \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+
+\item[\vn{\%init_ds_adaptive_tracking}] \Newline
+Initial step to use for adaptive tracking. This is used in
+\vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:integ}).
+
+\item[\vn{\%min_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
+(\sref{s:integ}). Minimum step size to use for adaptive tracking. If
+To be useful, \vn{\%min_ds_adaptive_tracking} must be set larger than
+the value of \vn{\%fatal_ds_adaptive_tracking}. In this case,
+particles are never lost due to taking too small a step.
+
+\item[\vn{\%fatal_ds_adaptive_tracking}] \Newline
+This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
+(\sref{s:integ}).  If the step size falls below the value set for
+\vn{\%fatal_ds_adaptive_tracking}, a particle is considered lost.
+This prevents a program from ``hanging'' due to taking a large number
+of exremely small steps. The most common cause of small step size is
+an ``unphysical'' magnetic or electric field.
 
 \item[\vn{\%taylor_order}] \Newline
 Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.

@@ -82,10 +82,10 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
-integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, trunk$ = 4, trunk1$ = 5
+integer, parameter :: normal$ = 1, clear$ = 2, mask$ = 3, trunk$ = 4, trunk1$ = 5
 integer, parameter :: trunk2$ = 6, leg1$ = 7, leg2$ = 8
 character(16), parameter :: wall3d_section_type_name(8) = [ &
-                                         'Normal ', 'Clear  ', 'Opaque ', 'Trunk  ', &
+                                         'Normal ', 'Clear  ', 'Mask   ', 'Trunk  ', &
                                          'Trunk1 ', 'Trunk2 ', 'Leg1   ', 'Leg2   ']
 type wall3d_vertex_struct
   real(rp) x, y             ! Coordinates of the vertex.
