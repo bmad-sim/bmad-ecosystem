@@ -52,6 +52,8 @@ case (custom$)
 
 case (diffraction_plate$)
   ele%value(geometry$) = transmission$
+  if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%photon = photon_element_struct()
 
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$

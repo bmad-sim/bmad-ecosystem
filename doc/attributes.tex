@@ -751,7 +751,7 @@ the entrance and exit reference orbit.}
 For basic crystalographic and X-ray matter interaction cross-sections,
 \bmad uses the XRAYLIB\cite{b:xraylib} library. Crystal structure
 parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
-with some structre parameters comming from NIST. The list of available
+with some structure parameters coming from NIST. The list of available
 structures is:
 \begin{center}
 \begin{tabular}{llll}
@@ -1343,67 +1343,80 @@ plate will transmit or reflect X-rays and what areas will not.  The
 areas where there is transmission or reflection are called ``clear''
 areas and everything else is called ``opaque''. 
 
-A \vn{wall} is comprised a a set of \vn{sections} as discussed in
-\sref{s:wall.section}.
-
-
-A wall is comprised a a set of ``clears''. An opening is a clear
-section along with a set of zero or more associated mask sections.
-The mask sections associated with an opening are the mask sections
-immediatly following the clear section of the opening up to the next
-clear section. Thus the number of openings is equal to the number of
-clear sections and the first section of the wall must be a clear section.
-
-A \vn{wall} is comprised a a set of sections (\sref{s:wall.section}).
-Each section must have its \vn{type} attribute set to one of:
+A \vn{wall} is comprised a a ordered list of \vn{sections} as
+discussed in \sref{s:wall.section}. Each section of a
+\vn{diffraction_plate} element must have its \vn{type} attribute set
+to one of:
 \begin{example}
   clear
   mask
 \end{example}
-A section is called ``clear'' or ``mask'' depending upon the
-setting of its \vn{type} attribute.
+A section is called ``clear'' or ``mask'' depending upon the setting
+of its \vn{type} attribute. Do not confuse ``clear section'' with 
+``clear area''.
 
-The default behavior is that a photon will be transmitted if it
-``hits'' any opening. A
-photon is considered to have hit a given opening if its $(x,y)$
-coordinates put in within the clear section of the opening but not
-within any mask section of the opening.
+A clear area is defined by one or more consecutive wall sections. The
+first section that defines a clear area must be a clear section.  All
+the other sections associated with a clear area must be mask sections.
+That is, a clear area starts with a clear section and any preceeding
+mask sections up to the next clear section or the end of the section
+list. As a consequence of the above rules, the fist section of the
+wall must be a clear section and the number of clear areas is equal to
+the number of clear sections.
 
-An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
-In the figure, there are two openings labeled \#1, and \#2
+The default behavior is that a photon will be transmitted if it is
+within any clear area. A photon is considered to be within a given
+clear area if its $(x,y)$ coordinates put in within the corresponding
+clear section but not within any mask section of the clear area.
 
-There are no restructions as to overlap between various sections. 
+
 
 To enable \bmad to quickly calculate whether a photon has landed on a
-clear or mask section, All sections must be ``star shaped'' with
-respect to the section origin. That is, a line drawn from the section
-origin to any point on the section boundary must not pass through any
-boundary points of the section in between. This is illustrated in
-\fig{f:diff.plate}B where the section is not star shaped since a line
-drawn from the origin $o$ to the point $p$ on the boundary passes
-through two boundary points in between. In this case the section can
-trivially be made star shaped by moving the origin to point $o'$. If
-it is not possible to make a section star shaped by moving the origin,
-the section must be divided into multiple sections.
+clear or mask section, All sections, both clear and mask, must be
+``star shaped'' with respect to the $(x_0, y_0)$ origin used by the
+section. That is, a line drawn from the section origin to any point on
+the section boundary must not pass through any boundary points of the
+section in between. This is illustrated in \fig{f:diff.plate}B where
+the section is not star shaped since a line drawn from the origin $o$
+to the point $p$ on the boundary passes through two boundary points in
+between. In this case the section can trivially be made star shaped by
+moving the origin to point $o'$. If it is not possible to make a
+section star shaped by moving the origin, the section must be divided
+into multiple sections.
 
-Example:
+An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
+In the figure, there are two openings labeled \#1, and \#2. A
+wall that constructs this geometry is:
 \begin{example}
   wall = \{
     thickness = <real>
     opaque_material = <material_type>
     clear_material = <material_type>
-    section = \{ 
+    section = \{           ! Clear area \# 1
       type = clear, 
-      x0 = -0.3, y0 = 0, 
-      v(1) = \{\}, 
-      v(2) = \{ ... \},
-      ...\},
+      v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
+      v(3) = \{0, 0.03\},
     section = \{
-      type = 
-      v(1) = \{... \},
-      ... \},
-    ... \}
+      type = mask,
+      v(1) = \{0.032, 0.016\},
+    section = \{          ! Clear area \# 2
+      type = clear,
+      v(1) = \{0, 0, 0.03, 0.013\},
+    section = \{
+      type = mask,
+      v(1) = \{0, 0, 0.005\},
+    section = \{
+      type = mask,
+      x0 = 0.02,
+      v(1) = \{0, 0, 0.005\} \}
 \end{example}
+Clear area \#1 has a clear section and one mask section. These
+sections rely on the four fold symmetry of the sections so that only
+points in the first quadrant need be specified. Clear area \#2 has one
+clear section in the shape of an ellipse with two mask circles.
+
+Sections may overlap and a mask section does not have to be wholly
+within the corresponding clear section.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

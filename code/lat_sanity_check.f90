@@ -118,7 +118,8 @@ do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = ele_loc_to_string(ele)
 
-    ! diffraction_plate must have an associated wall3d and all sections must be clear or opaque
+    ! diffraction_plate must have an associated wall3d and all sections must be clear or mask.
+    ! Additionally the first section must be clear
 
     if (ele%key == diffraction_plate$) then
       if (.not. associated (ele%wall3d)) then
@@ -127,10 +128,19 @@ do i_b = 0, ubound(lat%branch, 1)
                       'WHICH IS A DIFFRACTION_PLATE.', &
                       'DOES NOT HAVE AN ASSOCIATED WALL')
         err_flag = .true.
+
       else
+        if (ele%wall3d%section(1)%type /= clear$) then
+          call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'MUST HAVE ITS FIRST SECTION BE OF TYPE CLEAR')
+          err_flag = .true.
+        endif
+
         do j = 1, size(ele%wall3d%section)
           ii = ele%wall3d%section(j)%type
-          if (ii == opaque$ .or. ii == clear$) cycle
+          if (ii == mask$ .or. ii == clear$) cycle
           call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
                       'WHICH IS A DIFFRACTION_PLATE.', &

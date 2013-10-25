@@ -147,11 +147,13 @@ if (csr_param%n_bin <= csr_param%particle_bin_span + 1) then
   call out_io (s_fatal$, r_name, &
             'CSR_PARAM%N_BIN MUST BE GREATER THAN CSR_PARAM%PARTICLE_BIN_SPAN+1!')
   if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 if (csr_param%ds_track_step == 0) then
   call out_io (s_fatal$, r_name, 'CSR_PARAM%DS_TRACK_STEP NOT SET!')
   if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 ! make sure that ele_len / track_step is an integer.
