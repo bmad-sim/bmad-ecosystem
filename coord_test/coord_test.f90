@@ -45,7 +45,6 @@ write (1, '(a, 6es20.12)') '"length1-photon" ABS 1E-15', orbit%s, c_light * orbi
 
 
 ele => branch%ele(2)
-!!orb0%vec = [0, 0, 0, 0, 0, 1]
 orb0%t = 0
 call init_coord (orbit, orb0%vec, ele, .false.)
 call offset_photon (ele, orbit, set$)
@@ -53,6 +52,15 @@ call offset_photon (ele, orbit, unset$)
 
 write (1, '(a, 6es20.12)') '"orbit2-photon"  ABS 1E-15', orbit%vec
 write (1, '(a, 6es20.12)') '"length2-photon" ABS 1E-15', orbit%s-branch%ele(1)%s, c_light * orbit%t, orbit%path_len
+
+ele => branch%ele(3)
+orb0%t = 0
+call init_coord (orbit, orb0%vec, ele, .false.)
+call offset_photon (ele, orbit, set$)
+call offset_photon (ele, orbit, unset$)
+
+write (1, '(a, 6es20.12)') '"orbit3-photon"  ABS 1E-15', orbit%vec
+write (1, '(a, 6es20.12)') '"length3-photon" ABS 1E-15', orbit%s-branch%ele(1)%s, c_light * orbit%t, orbit%path_len
 
 
 close(1)
