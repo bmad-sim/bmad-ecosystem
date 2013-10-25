@@ -79,8 +79,9 @@ if len(test_dir_list) == 0:
 
 for test_dir in test_dir_list:
   test_dir = test_dir.strip()
+  ix = test_dir.find('!')
+  if ix != -1: test_dir = test_dir[:ix]
   if len(test_dir) == 0: continue
-  if test_dir[0] == '!': continue
 
   #-----------------------------------------------------------
   # Run the programs
