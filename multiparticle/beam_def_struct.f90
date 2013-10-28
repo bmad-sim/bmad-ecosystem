@@ -103,6 +103,82 @@ type bunch_params_struct
   integer n_particle_lost_in_ele
 end type
 
+!-------------------------------------------------------------------------
+! CSR parameters
+
+type csr_kick_factor_struct
+  real(rp) g            ! Bending strength = 1 / R at source.
+  real(rp) v, v1, v3
+  real(rp) w2
+  real(rp) theta        ! Kicked particle angle.
+  real(rp) L, L_vec(3)  ! Vector between source and kick locations.
+end type
+
+! Structure for a single bin.
+
+type csr_bin1_struct   ! Structure for a single particle bin.
+  real(rp) x0, y0      ! Transverse center of the particle distrubution
+  real(rp) z0_edge     ! Left (min z) edge of bin
+  real(rp) z1_edge     ! Right (max z) edge of bin
+  real(rp) z_center    ! z at center of bin.
+  real(rp) sig_x       ! particle's RMS width
+  real(rp) sig_y       ! particle's RMS width
+  real(rp) lsc_d0
+  real(rp) lsc_d1
+  real(rp) charge      ! charge of the particles
+  real(rp) dcharge_density_dz ! gradiant between this and preceeding bin
+  real(rp) kick_csr    ! CSR kick
+  real(rp) kick_lsc    ! LSC Kick.
+end type
+
+! Kicks in this structure are a function of the particle separation
+
+type csr_kick1_struct ! Sub-structure for csr calculation cache
+  real(rp) I_csr         ! Kick integral.
+  real(rp) I_int_csr     ! Integrated Kick integral.
+  real(rp) k_csr         ! Kick.
+  real(rp) phi           ! Source point angle.
+  real(rp) d             ! Distance between source point and end of element.
+  real(rp) dz_particles  ! Distance between source and kicked particles.
+  real(rp) s_prime       ! Source point location.
+end type
+
+type csr_bin_struct             ! Structurture for binning particle averages
+  real(rp) gamma, gamma2        ! Relativistic gamma factor.
+  real(rp) rel_mass             ! m_particle / m_electron
+  real(rp) beta                 ! Relativistic beta factor.
+  real(rp) :: dz_bin = 0        ! Bin width
+  real(rp) ds_track_step        ! True step size
+  real(rp) y2                   ! Height of source particle.
+  real(rp) kick_factor          ! Coefficient to scale the kick
+  integer particle              ! Particle type
+  type (csr_bin1_struct), allocatable :: bin1(:)  
+  type (csr_kick1_struct), allocatable :: kick1(:) ! Array of caches
+end type
+
+!+
+! Note: Shielding is simulated via the image current due to the 
+! top and bottom walls. The side walls are neglected.
+!-
+
+type csr_parameter_struct                ! Common block for csr calc
+  real(rp) :: ds_track_step = 0          ! Tracking step size
+  real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
+  real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
+                                         !  is < cutoff * sigma_ave then ignore.
+  integer :: n_bin = 0                   ! Number of bins used
+  integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
+  integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
+  integer :: ix1_ele_csr = -1            ! Start index for csr tracking
+  integer :: ix2_ele_csr = -1            ! Stop index for csr tracking
+  logical :: lcsr_component_on = .true.  ! Longitudinal csr component
+  logical :: lsc_component_on = .true.   ! Longitudinal space charge component
+  logical :: tsc_component_on = .false.  ! Transverse space charge component
+  logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
+end type
+
+type (csr_parameter_struct), save, target :: csr_param
+
 ! This is to suppress the ranlib "has no symbols" message
 integer, private :: private_dummy
 
