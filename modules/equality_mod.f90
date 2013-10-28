@@ -23,8 +23,8 @@ interface operator (==)
   module procedure eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
-  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_normal_form
-  module procedure eq_branch, eq_lat, eq_bunch, eq_beam
+  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
+  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam
 end interface
 
 contains
@@ -1358,6 +1358,46 @@ end function eq_synch_rad_common
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_csr_parameter (f1, f2) result (is_eq)
+
+implicit none
+
+type(csr_parameter_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%ds_track_step == f2%ds_track_step)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%sigma_cutoff == f2%sigma_cutoff)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_bin == f2%n_bin)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%particle_bin_span == f2%particle_bin_span)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_shield_images == f2%n_shield_images)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix1_ele_csr == f2%ix1_ele_csr)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix2_ele_csr == f2%ix2_ele_csr)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%lcsr_component_on .eqv. f2%lcsr_component_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%lsc_component_on .eqv. f2%lsc_component_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%tsc_component_on .eqv. f2%tsc_component_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
+
+end function eq_csr_parameter
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_bmad_common (f1, f2) result (is_eq)
 
 implicit none
@@ -1388,6 +1428,8 @@ is_eq = is_eq .and. (f1%abs_tol_adaptive_tracking == f2%abs_tol_adaptive_trackin
 is_eq = is_eq .and. (f1%init_ds_adaptive_tracking == f2%init_ds_adaptive_tracking)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%min_ds_adaptive_tracking == f2%min_ds_adaptive_tracking)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%fatal_ds_adaptive_tracking == f2%fatal_ds_adaptive_tracking)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order)
 !! f_side.equality_test[integer, 0, NOT]

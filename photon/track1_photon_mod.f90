@@ -40,7 +40,8 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (wall3d_section_struct), pointer :: sec
 
-real(rp) w_to_surface(3,3)
+real(rp) w_to_surface(3,3), vz0
+real(rp) wavelength
 
 integer ix_sec
 
@@ -61,8 +62,14 @@ endif
 
 ! Choose outgoing direction
 
+vz0 = orbit%vec(6)
 call isotropic_photon_emission (ele, param, orbit, +1, twopi)
 
+! Rescale field
+
+wavelength = c_light * h_planck / orbit%p0c
+orbit%field = orbit%field * (vz0 + orbit%vec(6)) / (2 * wavelength)
+orbit%phase = orbit%phase - pi / 2
 
 end subroutine track1_diffraction_plate
 
