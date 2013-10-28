@@ -71,6 +71,8 @@ struct_list = [
     'branch_struct',
     'lat_struct',
     'bunch_struct',
+    'beam_spin_struct',
+    'bunch_params_struct',
     'beam_struct',
 ]
 

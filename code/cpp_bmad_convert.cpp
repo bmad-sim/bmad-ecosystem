@@ -2984,6 +2984,90 @@ extern "C" void bunch_to_c2 (CPP_bunch& C, Bmad_coord_class** z_particle, Int n1
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_beam_spin
+
+extern "C" void beam_spin_to_c (const Bmad_beam_spin_class*, CPP_beam_spin&);
+
+// c_side.to_f2_arg
+extern "C" void beam_spin_to_f2 (Bmad_beam_spin_class*, c_Real&, c_Real&, c_Real&);
+
+extern "C" void beam_spin_to_f (const CPP_beam_spin& C, Bmad_beam_spin_class* F) {
+
+  // c_side.to_f2_call
+  beam_spin_to_f2 (F, C.polarization, C.theta, C.phi);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void beam_spin_to_c2 (CPP_beam_spin& C, c_Real& z_polarization, c_Real& z_theta,
+    c_Real& z_phi) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.polarization = z_polarization;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.theta = z_theta;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi = z_phi;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_bunch_params
+
+extern "C" void bunch_params_to_c (const Bmad_bunch_params_class*, CPP_bunch_params&);
+
+// c_side.to_f2_arg
+extern "C" void bunch_params_to_f2 (Bmad_bunch_params_class*, const CPP_twiss&, const
+    CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const CPP_twiss&, const
+    CPP_coord&, const CPP_beam_spin&, c_RealArr, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
+
+extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Bmad_bunch_params_class* F) {
+
+  // c_side.to_f2_call
+  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, C.spin, &C.sigma[0], C.s,
+      C.charge_live, C.n_particle_tot, C.n_particle_live, C.n_particle_lost_in_ele);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Bmad_twiss_class* z_x, const
+    Bmad_twiss_class* z_y, const Bmad_twiss_class* z_z, const Bmad_twiss_class* z_a, const
+    Bmad_twiss_class* z_b, const Bmad_twiss_class* z_c, const Bmad_coord_class* z_centroid,
+    const Bmad_beam_spin_class* z_spin, c_RealArr z_sigma, c_Real& z_s, c_Real& z_charge_live,
+    c_Int& z_n_particle_tot, c_Int& z_n_particle_live, c_Int& z_n_particle_lost_in_ele) {
+
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_x, C.x);
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_y, C.y);
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_z, C.z);
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_a, C.a);
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_b, C.b);
+  // c_side.to_c2_set[type, 0, NOT]
+  twiss_to_c(z_c, C.c);
+  // c_side.to_c2_set[type, 0, NOT]
+  coord_to_c(z_centroid, C.centroid);
+  // c_side.to_c2_set[type, 0, NOT]
+  beam_spin_to_c(z_spin, C.spin);
+  // c_side.to_c2_set[real, 1, NOT]
+  C.sigma << z_sigma;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.s = z_s;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.charge_live = z_charge_live;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_particle_tot = z_n_particle_tot;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_particle_live = z_n_particle_live;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_particle_lost_in_ele = z_n_particle_lost_in_ele;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_beam
 
 extern "C" void beam_to_c (const Bmad_beam_class*, CPP_beam&);

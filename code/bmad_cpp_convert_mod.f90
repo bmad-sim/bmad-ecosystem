@@ -503,6 +503,24 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine beam_spin_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine bunch_params_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine beam_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -6883,6 +6901,205 @@ F%ix_ele = z_ix_ele
 F%ix_bunch = z_ix_bunch
 
 end subroutine bunch_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine beam_spin_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad beam_spin_struct to a C++ CPP_beam_spin structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad beam_spin_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_beam_spin struct.
+!-
+
+subroutine beam_spin_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine beam_spin_to_c2 (C, z_polarization, z_theta, z_phi) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_polarization, z_theta, z_phi
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(beam_spin_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call beam_spin_to_c2 (C, F%polarization, F%theta, F%phi)
+
+end subroutine beam_spin_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine beam_spin_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_beam_spin structure to a Bmad beam_spin_struct structure.
+! This routine is called by beam_spin_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the beam_spin_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad beam_spin_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine beam_spin_to_f2 (Fp, z_polarization, z_theta, z_phi) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(beam_spin_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_polarization, z_theta, z_phi
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%polarization = z_polarization
+!! f_side.to_f2_trans[real, 0, NOT]
+F%theta = z_theta
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi = z_phi
+
+end subroutine beam_spin_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine bunch_params_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad bunch_params_struct to a C++ CPP_bunch_params structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad bunch_params_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_bunch_params struct.
+!-
+
+subroutine bunch_params_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine bunch_params_to_c2 (C, z_x, z_y, z_z, z_a, z_b, z_c, z_centroid, z_spin, z_sigma, &
+      z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    type(c_ptr), value :: z_x, z_y, z_z, z_a, z_b, z_c, z_centroid
+    type(c_ptr), value :: z_spin
+    real(c_double) :: z_sigma(*), z_s, z_charge_live
+    integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(bunch_params_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call bunch_params_to_c2 (C, c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), c_loc(F%b), &
+    c_loc(F%c), c_loc(F%centroid), c_loc(F%spin), fvec2vec(F%sigma, 21), F%s, F%charge_live, &
+    F%n_particle_tot, F%n_particle_live, F%n_particle_lost_in_ele)
+
+end subroutine bunch_params_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine bunch_params_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_bunch_params structure to a Bmad bunch_params_struct structure.
+! This routine is called by bunch_params_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the bunch_params_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad bunch_params_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine bunch_params_to_f2 (Fp, z_x, z_y, z_z, z_a, z_b, z_c, z_centroid, z_spin, z_sigma, &
+    z_s, z_charge_live, z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(bunch_params_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr), value :: z_x, z_y, z_z, z_a, z_b, z_c, z_centroid
+type(c_ptr), value :: z_spin
+real(c_double) :: z_sigma(*), z_s, z_charge_live
+integer(c_int) :: z_n_particle_tot, z_n_particle_live, z_n_particle_lost_in_ele
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_x, c_loc(F%x))
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_y, c_loc(F%y))
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_z, c_loc(F%z))
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_a, c_loc(F%a))
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_b, c_loc(F%b))
+!! f_side.to_f2_trans[type, 0, NOT]
+call twiss_to_f(z_c, c_loc(F%c))
+!! f_side.to_f2_trans[type, 0, NOT]
+call coord_to_f(z_centroid, c_loc(F%centroid))
+!! f_side.to_f2_trans[type, 0, NOT]
+call beam_spin_to_f(z_spin, c_loc(F%spin))
+!! f_side.to_f2_trans[real, 1, NOT]
+F%sigma = z_sigma(1:21)
+!! f_side.to_f2_trans[real, 0, NOT]
+F%s = z_s
+!! f_side.to_f2_trans[real, 0, NOT]
+F%charge_live = z_charge_live
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_particle_tot = z_n_particle_tot
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_particle_live = z_n_particle_live
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_particle_lost_in_ele = z_n_particle_lost_in_ele
+
+end subroutine bunch_params_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

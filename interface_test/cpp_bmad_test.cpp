@@ -4259,6 +4259,153 @@ extern "C" void test_c_bunch (Bmad_bunch_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_beam_spin (CPP_beam_spin&, bool&);
+
+void set_CPP_beam_spin_test_pattern (CPP_beam_spin& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.polarization = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.theta = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.phi = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_beam_spin (Bmad_beam_spin_class* F, bool& c_ok) {
+
+  CPP_beam_spin C, C2;
+
+  c_ok = true;
+
+  beam_spin_to_c (F, C);
+  set_CPP_beam_spin_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " beam_spin: C side convert F->C: Good" << endl;
+  } else {
+    cout << " beam_spin: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_spin_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_beam_spin (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_beam_spin_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " beam_spin: F side convert F->C: Good" << endl;
+  } else {
+    cout << " beam_spin: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_beam_spin_test_pattern (C2, 4);
+  beam_spin_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_bunch_params (CPP_bunch_params&, bool&);
+
+void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.x, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.y, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.z, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.a, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.b, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_twiss_test_pattern(C.c, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_coord_test_pattern(C.centroid, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_beam_spin_test_pattern(C.spin, ix_patt);
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.sigma.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.sigma[i] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.s = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.charge_live = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 12 + offset; C.n_particle_tot = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 13 + offset; C.n_particle_live = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 14 + offset; C.n_particle_lost_in_ele = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_bunch_params (Bmad_bunch_params_class* F, bool& c_ok) {
+
+  CPP_bunch_params C, C2;
+
+  c_ok = true;
+
+  bunch_params_to_c (F, C);
+  set_CPP_bunch_params_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " bunch_params: C side convert F->C: Good" << endl;
+  } else {
+    cout << " bunch_params: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_bunch_params_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_bunch_params (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_bunch_params_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " bunch_params: F side convert F->C: Good" << endl;
+  } else {
+    cout << " bunch_params: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_bunch_params_test_pattern (C2, 4);
+  bunch_params_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_beam (CPP_beam&, bool&);
 
 void set_CPP_beam_test_pattern (CPP_beam& C, int ix_patt) {

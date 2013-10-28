@@ -322,6 +322,16 @@ typedef valarray<CPP_bunch>          CPP_bunch_ARRAY;
 typedef valarray<CPP_bunch_ARRAY>    CPP_bunch_MATRIX;
 typedef valarray<CPP_bunch_MATRIX>   CPP_bunch_TENSOR;
 
+class CPP_beam_spin;
+typedef valarray<CPP_beam_spin>          CPP_beam_spin_ARRAY;
+typedef valarray<CPP_beam_spin_ARRAY>    CPP_beam_spin_MATRIX;
+typedef valarray<CPP_beam_spin_MATRIX>   CPP_beam_spin_TENSOR;
+
+class CPP_bunch_params;
+typedef valarray<CPP_bunch_params>          CPP_bunch_params_ARRAY;
+typedef valarray<CPP_bunch_params_ARRAY>    CPP_bunch_params_MATRIX;
+typedef valarray<CPP_bunch_params_MATRIX>   CPP_bunch_params_TENSOR;
+
 class CPP_beam;
 typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
@@ -2469,6 +2479,84 @@ extern "C" void bunch_to_c (const Bmad_bunch_class*, CPP_bunch&);
 extern "C" void bunch_to_f (const CPP_bunch&, Bmad_bunch_class*);
 
 bool operator== (const CPP_bunch&, const CPP_bunch&);
+
+
+//--------------------------------------------------------------------
+// CPP_beam_spin
+
+class Bmad_beam_spin_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_beam_spin {
+public:
+  Real polarization;
+  Real theta;
+  Real phi;
+
+  CPP_beam_spin() :
+    polarization(1.0),
+    theta(0.0),
+    phi(0.0)
+    {}
+
+  ~CPP_beam_spin() {
+  }
+
+};   // End Class
+
+extern "C" void beam_spin_to_c (const Bmad_beam_spin_class*, CPP_beam_spin&);
+extern "C" void beam_spin_to_f (const CPP_beam_spin&, Bmad_beam_spin_class*);
+
+bool operator== (const CPP_beam_spin&, const CPP_beam_spin&);
+
+
+//--------------------------------------------------------------------
+// CPP_bunch_params
+
+class Bmad_bunch_params_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_bunch_params {
+public:
+  CPP_twiss x;
+  CPP_twiss y;
+  CPP_twiss z;
+  CPP_twiss a;
+  CPP_twiss b;
+  CPP_twiss c;
+  CPP_coord centroid;
+  CPP_beam_spin spin;
+  Real_ARRAY sigma;
+  Real s;
+  Real charge_live;
+  Int n_particle_tot;
+  Int n_particle_live;
+  Int n_particle_lost_in_ele;
+
+  CPP_bunch_params() :
+    x(),
+    y(),
+    z(),
+    a(),
+    b(),
+    c(),
+    centroid(),
+    spin(),
+    sigma(0.0, 21),
+    s(0.0),
+    charge_live(0.0),
+    n_particle_tot(0),
+    n_particle_live(0),
+    n_particle_lost_in_ele(0)
+    {}
+
+  ~CPP_bunch_params() {
+  }
+
+};   // End Class
+
+extern "C" void bunch_params_to_c (const Bmad_bunch_params_class*, CPP_bunch_params&);
+extern "C" void bunch_params_to_f (const CPP_bunch_params&, Bmad_bunch_params_class*);
+
+bool operator== (const CPP_bunch_params&, const CPP_bunch_params&);
 
 
 //--------------------------------------------------------------------

@@ -5988,6 +5988,211 @@ end subroutine set_bunch_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_beam_spin (ok)
+
+implicit none
+
+type(beam_spin_struct), target :: f_beam_spin, f2_beam_spin
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_beam_spin (c_beam_spin, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_beam_spin
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_beam_spin_test_pattern (f2_beam_spin, 1)
+
+call test_c_beam_spin(c_loc(f2_beam_spin), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_beam_spin_test_pattern (f_beam_spin, 4)
+if (f_beam_spin == f2_beam_spin) then
+  print *, 'beam_spin: C side convert C->F: Good'
+else
+  print *, 'beam_spin: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_beam_spin
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_beam_spin (c_beam_spin, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_beam_spin
+type(beam_spin_struct), target :: f_beam_spin, f2_beam_spin
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call beam_spin_to_f (c_beam_spin, c_loc(f_beam_spin))
+
+call set_beam_spin_test_pattern (f2_beam_spin, 2)
+if (f_beam_spin == f2_beam_spin) then
+  print *, 'beam_spin: F side convert C->F: Good'
+else
+  print *, 'beam_spin: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_beam_spin_test_pattern (f2_beam_spin, 3)
+call beam_spin_to_c (c_loc(f2_beam_spin), c_beam_spin)
+
+end subroutine test2_f_beam_spin
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_beam_spin_test_pattern (F, ix_patt)
+
+implicit none
+
+type(beam_spin_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%polarization = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%theta = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%phi = rhs
+
+end subroutine set_beam_spin_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_bunch_params (ok)
+
+implicit none
+
+type(bunch_params_struct), target :: f_bunch_params, f2_bunch_params
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_bunch_params (c_bunch_params, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_bunch_params
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_bunch_params_test_pattern (f2_bunch_params, 1)
+
+call test_c_bunch_params(c_loc(f2_bunch_params), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_bunch_params_test_pattern (f_bunch_params, 4)
+if (f_bunch_params == f2_bunch_params) then
+  print *, 'bunch_params: C side convert C->F: Good'
+else
+  print *, 'bunch_params: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_bunch_params
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_bunch_params (c_bunch_params, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_bunch_params
+type(bunch_params_struct), target :: f_bunch_params, f2_bunch_params
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call bunch_params_to_f (c_bunch_params, c_loc(f_bunch_params))
+
+call set_bunch_params_test_pattern (f2_bunch_params, 2)
+if (f_bunch_params == f2_bunch_params) then
+  print *, 'bunch_params: F side convert C->F: Good'
+else
+  print *, 'bunch_params: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_bunch_params_test_pattern (f2_bunch_params, 3)
+call bunch_params_to_c (c_loc(f2_bunch_params), c_bunch_params)
+
+end subroutine test2_f_bunch_params
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_bunch_params_test_pattern (F, ix_patt)
+
+implicit none
+
+type(bunch_params_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%x, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%y, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%z, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%a, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%b, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_twiss_test_pattern (F%c, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_coord_test_pattern (F%centroid, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_beam_spin_test_pattern (F%spin, ix_patt)
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%sigma,1); lb1 = lbound(F%sigma,1) - 1
+  rhs = 100 + jd1 + 9 + offset
+  F%sigma(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%s = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%charge_live = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 12 + offset; F%n_particle_tot = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 13 + offset; F%n_particle_live = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 14 + offset; F%n_particle_lost_in_ele = rhs
+
+end subroutine set_bunch_params_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_beam (ok)
 
 implicit none

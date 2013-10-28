@@ -1106,6 +1106,43 @@ template bool is_all_equal (const CPP_bunch_MATRIX&, const CPP_bunch_MATRIX&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_beam_spin& x, const CPP_beam_spin& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.polarization == y.polarization);
+  is_eq = is_eq && (x.theta == y.theta);
+  is_eq = is_eq && (x.phi == y.phi);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_beam_spin_ARRAY&, const CPP_beam_spin_ARRAY&);
+template bool is_all_equal (const CPP_beam_spin_MATRIX&, const CPP_beam_spin_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_bunch_params& x, const CPP_bunch_params& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.x == y.x);
+  is_eq = is_eq && (x.y == y.y);
+  is_eq = is_eq && (x.z == y.z);
+  is_eq = is_eq && (x.a == y.a);
+  is_eq = is_eq && (x.b == y.b);
+  is_eq = is_eq && (x.c == y.c);
+  is_eq = is_eq && (x.centroid == y.centroid);
+  is_eq = is_eq && (x.spin == y.spin);
+  is_eq = is_eq && is_all_equal(x.sigma, y.sigma);
+  is_eq = is_eq && (x.s == y.s);
+  is_eq = is_eq && (x.charge_live == y.charge_live);
+  is_eq = is_eq && (x.n_particle_tot == y.n_particle_tot);
+  is_eq = is_eq && (x.n_particle_live == y.n_particle_live);
+  is_eq = is_eq && (x.n_particle_lost_in_ele == y.n_particle_lost_in_ele);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_bunch_params_ARRAY&, const CPP_bunch_params_ARRAY&);
+template bool is_all_equal (const CPP_bunch_params_MATRIX&, const CPP_bunch_params_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_beam& x, const CPP_beam& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.bunch, y.bunch);

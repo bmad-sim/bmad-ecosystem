@@ -62,6 +62,8 @@ call test1_f_normal_form(ok); if (.not. ok) all_ok = .false.
 call test1_f_branch(ok); if (.not. ok) all_ok = .false.
 call test1_f_lat(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch(ok); if (.not. ok) all_ok = .false.
+call test1_f_beam_spin(ok); if (.not. ok) all_ok = .false.
+call test1_f_bunch_params(ok); if (.not. ok) all_ok = .false.
 call test1_f_beam(ok); if (.not. ok) all_ok = .false.
 
 if (all_ok) then
