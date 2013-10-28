@@ -43,7 +43,8 @@ case (crystal$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
 
 case (custom$)  
   ele%mat6_calc_method = custom$
@@ -53,7 +54,8 @@ case (custom$)
 case (diffraction_plate$)
   ele%value(geometry$) = transmission$
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
 
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
@@ -83,14 +85,16 @@ case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
 
 case (multilayer_mirror$)
   ele%value(ref_polarization$) = sigma_polarization$  
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
 
 case (multipole$, ab_multipole$)
   call multipole_init (ele, .true.)
@@ -119,7 +123,8 @@ case (rfcavity$)
 case (sample$)
   ele%aperture_at = surface$
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
   ele%value(geometry$) = reflection$
 
 case (taylor$)   ! start with unit matrix
@@ -134,7 +139,8 @@ case (wiggler$, undulator$)
 
 case (x_ray_init$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
-  ele%photon = photon_element_struct()
+!!! Due to ifort bug:  ele%photon = photon_element_struct()
+  call init_photon_element_struct(ele%photon)
 
 end select
 
@@ -183,6 +189,17 @@ case default
   ele%bookkeeping_state%control        = ok$
 
 end select
+
+!------------------------------
+contains
+
+subroutine init_photon_element_struct(photon_element)
+type (photon_element_struct) photon_element
+
+photon_element%surface = photon_surface_struct()
+photon_element%target  = photon_target_struct() 
+
+end subroutine init_photon_element_struct
 
 end subroutine set_ele_defaults
 

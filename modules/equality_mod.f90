@@ -24,7 +24,8 @@ interface operator (==)
   module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
   module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
   module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
-  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam
+  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam_spin
+  module procedure eq_bunch_params, eq_beam
 end interface
 
 contains
@@ -1973,6 +1974,72 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 is_eq = is_eq .and. (f1%ix_bunch == f2%ix_bunch)
 
 end function eq_bunch
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_beam_spin (f1, f2) result (is_eq)
+
+implicit none
+
+type(beam_spin_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%polarization == f2%polarization)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%theta == f2%theta)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi == f2%phi)
+
+end function eq_beam_spin
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_bunch_params (f1, f2) result (is_eq)
+
+implicit none
+
+type(bunch_params_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%x == f2%x)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%y == f2%y)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%z == f2%z)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%a == f2%a)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%b == f2%b)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%c == f2%c)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%centroid == f2%centroid)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%spin == f2%spin)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%sigma == f2%sigma)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%s == f2%s)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_particle_tot == f2%n_particle_tot)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_particle_live == f2%n_particle_live)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_particle_lost_in_ele == f2%n_particle_lost_in_ele)
+
+end function eq_bunch_params
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
