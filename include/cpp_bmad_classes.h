@@ -277,6 +277,11 @@ typedef valarray<CPP_synch_rad_common>          CPP_synch_rad_common_ARRAY;
 typedef valarray<CPP_synch_rad_common_ARRAY>    CPP_synch_rad_common_MATRIX;
 typedef valarray<CPP_synch_rad_common_MATRIX>   CPP_synch_rad_common_TENSOR;
 
+class CPP_csr_parameter;
+typedef valarray<CPP_csr_parameter>          CPP_csr_parameter_ARRAY;
+typedef valarray<CPP_csr_parameter_ARRAY>    CPP_csr_parameter_MATRIX;
+typedef valarray<CPP_csr_parameter_MATRIX>   CPP_csr_parameter_TENSOR;
+
 class CPP_bmad_common;
 typedef valarray<CPP_bmad_common>          CPP_bmad_common_ARRAY;
 typedef valarray<CPP_bmad_common_ARRAY>    CPP_bmad_common_MATRIX;
@@ -1851,6 +1856,52 @@ bool operator== (const CPP_synch_rad_common&, const CPP_synch_rad_common&);
 
 
 //--------------------------------------------------------------------
+// CPP_csr_parameter
+
+class Bmad_csr_parameter_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_csr_parameter {
+public:
+  Real ds_track_step;
+  Real beam_chamber_height;
+  Real sigma_cutoff;
+  Int n_bin;
+  Int particle_bin_span;
+  Int n_shield_images;
+  Int ix1_ele_csr;
+  Int ix2_ele_csr;
+  Bool lcsr_component_on;
+  Bool lsc_component_on;
+  Bool tsc_component_on;
+  Bool small_angle_approx;
+
+  CPP_csr_parameter() :
+    ds_track_step(0.0),
+    beam_chamber_height(0.0),
+    sigma_cutoff(0.1),
+    n_bin(0),
+    particle_bin_span(2),
+    n_shield_images(0),
+    ix1_ele_csr(-1),
+    ix2_ele_csr(-1),
+    lcsr_component_on(true),
+    lsc_component_on(true),
+    tsc_component_on(false),
+    small_angle_approx(true)
+    {}
+
+  ~CPP_csr_parameter() {
+  }
+
+};   // End Class
+
+extern "C" void csr_parameter_to_c (const Bmad_csr_parameter_class*, CPP_csr_parameter&);
+extern "C" void csr_parameter_to_f (const CPP_csr_parameter&, Bmad_csr_parameter_class*);
+
+bool operator== (const CPP_csr_parameter&, const CPP_csr_parameter&);
+
+
+//--------------------------------------------------------------------
 // CPP_bmad_common
 
 class Bmad_bmad_common_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1867,6 +1918,7 @@ public:
   Real abs_tol_adaptive_tracking;
   Real init_ds_adaptive_tracking;
   Real min_ds_adaptive_tracking;
+  Real fatal_ds_adaptive_tracking;
   Int taylor_order;
   Int default_integ_order;
   Int ptc_max_fringe_order;
@@ -1898,7 +1950,8 @@ public:
     rel_tol_adaptive_tracking(1e-8),
     abs_tol_adaptive_tracking(1e-10),
     init_ds_adaptive_tracking(1e-3),
-    min_ds_adaptive_tracking(1e-8),
+    min_ds_adaptive_tracking(0.0),
+    fatal_ds_adaptive_tracking(1e-8),
     taylor_order(3),
     default_integ_order(2),
     ptc_max_fringe_order(2),

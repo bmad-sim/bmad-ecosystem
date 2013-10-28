@@ -13,7 +13,7 @@ namespace Bmad {
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3;
-  const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5;
+  const int NORMAL = 1, CLEAR = 2, MASK = 3, TRUNK = 4, TRUNK1 = 5;
   const int TRUNK2 = 6, LEG1 = 7, LEG2 = 8;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
@@ -192,7 +192,7 @@ namespace Bmad {
   const int SCALE_MULTIPOLES = 103;
   const int WALL_ATTRIBUTE = 104;
   const int FIELD = 105;
-  const int PHI_B = 106, CRYSTAL_TYPE = 106;
+  const int PHI_B = 106, CRYSTAL_TYPE = 106, MATERIAL_TYPE = 106;
   const int TYPE = 107;
   const int REF_ORIGIN = 108;
   const int ELE_ORIGIN = 109;
@@ -274,6 +274,7 @@ namespace Bmad {
   const double MU_0_VAC = FOURPI * 1E-7;
   const double EPS_0_VAC = 1 / (C_LIGHT*C_LIGHT * MU_0_VAC);
   const double CLASSICAL_RADIUS_FACTOR = 1.439964416E-9;
+  const double N_AVOGADRO = 6.02214129E23;
   const double ANOMALOUS_MAG_MOMENT_ELECTRON = 0.001159652193;
   const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285;
   const int INT_GARBAGE = -987654;

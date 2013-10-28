@@ -4595,6 +4595,114 @@ end subroutine set_synch_rad_common_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_csr_parameter (ok)
+
+implicit none
+
+type(csr_parameter_struct), target :: f_csr_parameter, f2_csr_parameter
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_csr_parameter (c_csr_parameter, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_csr_parameter
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_csr_parameter_test_pattern (f2_csr_parameter, 1)
+
+call test_c_csr_parameter(c_loc(f2_csr_parameter), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_csr_parameter_test_pattern (f_csr_parameter, 4)
+if (f_csr_parameter == f2_csr_parameter) then
+  print *, 'csr_parameter: C side convert C->F: Good'
+else
+  print *, 'csr_parameter: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_csr_parameter
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_csr_parameter (c_csr_parameter, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_csr_parameter
+type(csr_parameter_struct), target :: f_csr_parameter, f2_csr_parameter
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call csr_parameter_to_f (c_csr_parameter, c_loc(f_csr_parameter))
+
+call set_csr_parameter_test_pattern (f2_csr_parameter, 2)
+if (f_csr_parameter == f2_csr_parameter) then
+  print *, 'csr_parameter: F side convert C->F: Good'
+else
+  print *, 'csr_parameter: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_csr_parameter_test_pattern (f2_csr_parameter, 3)
+call csr_parameter_to_c (c_loc(f2_csr_parameter), c_csr_parameter)
+
+end subroutine test2_f_csr_parameter
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_csr_parameter_test_pattern (F, ix_patt)
+
+implicit none
+
+type(csr_parameter_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%ds_track_step = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%beam_chamber_height = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%sigma_cutoff = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%n_bin = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%particle_bin_span = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 6 + offset; F%n_shield_images = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 7 + offset; F%ix1_ele_csr = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%ix2_ele_csr = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 9 + offset; F%lcsr_component_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 10 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 11 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+
+end subroutine set_csr_parameter_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_bmad_common (ok)
 
 implicit none
@@ -4695,46 +4803,48 @@ rhs = 8 + offset; F%abs_tol_adaptive_tracking = rhs
 rhs = 9 + offset; F%init_ds_adaptive_tracking = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 10 + offset; F%min_ds_adaptive_tracking = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%fatal_ds_adaptive_tracking = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%taylor_order = rhs
+rhs = 12 + offset; F%taylor_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%default_integ_order = rhs
+rhs = 13 + offset; F%default_integ_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%ptc_max_fringe_order = rhs
+rhs = 14 + offset; F%ptc_max_fringe_order = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 14 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 15 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 15 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 16 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 16 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 17 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 17 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
+rhs = 18 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 18 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
+rhs = 19 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 19 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 20 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 20 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
+rhs = 21 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 21 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 22 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 22 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 23 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 23 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 24 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 24 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 25 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 25 + offset; F%photon_tracking_uses_field = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%photon_tracking_uses_field = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

@@ -3092,6 +3092,90 @@ extern "C" void test_c_synch_rad_common (Bmad_synch_rad_common_class* F, bool& c
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_csr_parameter (CPP_csr_parameter&, bool&);
+
+void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.ds_track_step = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.beam_chamber_height = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.sigma_cutoff = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.n_bin = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 5 + offset; C.particle_bin_span = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 6 + offset; C.n_shield_images = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.ix1_ele_csr = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.ix2_ele_csr = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 9 + offset; C.lcsr_component_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 10 + offset; C.lsc_component_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 11 + offset; C.tsc_component_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 12 + offset; C.small_angle_approx = (rhs % 2 == 0);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_csr_parameter (Bmad_csr_parameter_class* F, bool& c_ok) {
+
+  CPP_csr_parameter C, C2;
+
+  c_ok = true;
+
+  csr_parameter_to_c (F, C);
+  set_CPP_csr_parameter_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " csr_parameter: C side convert F->C: Good" << endl;
+  } else {
+    cout << " csr_parameter: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_csr_parameter_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_csr_parameter (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_csr_parameter_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " csr_parameter: F side convert F->C: Good" << endl;
+  } else {
+    cout << " csr_parameter: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_csr_parameter_test_pattern (C2, 4);
+  csr_parameter_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_bmad_common (CPP_bmad_common&, bool&);
 
 void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
@@ -3128,65 +3212,68 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 10 + offset; C.min_ds_adaptive_tracking = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.taylor_order = rhs;
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.fatal_ds_adaptive_tracking = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 12 + offset; C.default_integ_order = rhs;
+  rhs = 12 + offset; C.taylor_order = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.ptc_max_fringe_order = rhs;
+  rhs = 13 + offset; C.default_integ_order = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 14 + offset; C.ptc_max_fringe_order = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 14 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 15 + offset; C.use_hard_edge_drifts = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 15 + offset; C.sr_wakes_on = (rhs % 2 == 0);
+  rhs = 16 + offset; C.sr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 16 + offset; C.lr_wakes_on = (rhs % 2 == 0);
+  rhs = 17 + offset; C.lr_wakes_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 17 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
+  rhs = 18 + offset; C.mat6_track_symmetric = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 18 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
+  rhs = 19 + offset; C.auto_bookkeeper = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 19 + offset; C.space_charge_on = (rhs % 2 == 0);
+  rhs = 20 + offset; C.space_charge_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 20 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
+  rhs = 21 + offset; C.coherent_synch_rad_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 21 + offset; C.spin_tracking_on = (rhs % 2 == 0);
+  rhs = 22 + offset; C.spin_tracking_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 22 + offset; C.radiation_damping_on = (rhs % 2 == 0);
+  rhs = 23 + offset; C.radiation_damping_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 23 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
+  rhs = 24 + offset; C.radiation_fluctuations_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 24 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
+  rhs = 25 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 25 + offset; C.photon_tracking_uses_field = (rhs % 2 == 0);
+  rhs = 26 + offset; C.photon_tracking_uses_field = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 27 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
+  rhs = 28 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
+  rhs = 29 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
+  rhs = 30 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 31 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

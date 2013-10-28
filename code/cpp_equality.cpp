@@ -794,6 +794,28 @@ template bool is_all_equal (const CPP_synch_rad_common_MATRIX&, const CPP_synch_
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ds_track_step == y.ds_track_step);
+  is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
+  is_eq = is_eq && (x.sigma_cutoff == y.sigma_cutoff);
+  is_eq = is_eq && (x.n_bin == y.n_bin);
+  is_eq = is_eq && (x.particle_bin_span == y.particle_bin_span);
+  is_eq = is_eq && (x.n_shield_images == y.n_shield_images);
+  is_eq = is_eq && (x.ix1_ele_csr == y.ix1_ele_csr);
+  is_eq = is_eq && (x.ix2_ele_csr == y.ix2_ele_csr);
+  is_eq = is_eq && (x.lcsr_component_on == y.lcsr_component_on);
+  is_eq = is_eq && (x.lsc_component_on == y.lsc_component_on);
+  is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
+  is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_csr_parameter_ARRAY&, const CPP_csr_parameter_ARRAY&);
+template bool is_all_equal (const CPP_csr_parameter_MATRIX&, const CPP_csr_parameter_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.max_aperture_limit == y.max_aperture_limit);
@@ -806,6 +828,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.abs_tol_adaptive_tracking == y.abs_tol_adaptive_tracking);
   is_eq = is_eq && (x.init_ds_adaptive_tracking == y.init_ds_adaptive_tracking);
   is_eq = is_eq && (x.min_ds_adaptive_tracking == y.min_ds_adaptive_tracking);
+  is_eq = is_eq && (x.fatal_ds_adaptive_tracking == y.fatal_ds_adaptive_tracking);
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);
