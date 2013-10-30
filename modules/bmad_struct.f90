@@ -40,7 +40,7 @@ character(20), parameter :: ref_orbit_follows_name(0:3) = [character(20) :: 'GAR
                                              'Bragg_Diffracted', 'Forward_Diffracted', 'Undefracted']
 
 integer, parameter :: reflection$ = 1, transmission$ = 2
-character(16), parameter :: geometry_mode_name(0:2) = [character(16) :: 'GARBAGE!', 'Reflection', 'Transmission']
+character(16), parameter :: mode_name(0:2) = [character(16) :: 'GARBAGE!', 'Reflection', 'Transmission']
 
 ! wall3d definitions.
 
@@ -455,8 +455,7 @@ end type
 
 ! Surface types
 
-integer, parameter :: isotropic_emission$ = 1
-character(20), parameter :: surface_type_name(0:1) = ['Not_Set.          ', 'Isotropic_Emission']
+character(20), parameter :: surface_type_name(0:1) = ['Not_Set.', 'Garbage!']
 
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:
@@ -780,7 +779,7 @@ integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
 integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14, particle$ = 14
 integer, parameter :: quad_tilt$=14, de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: geometry$ = 15, bend_tilt$=15
+integer, parameter :: geometry$ = 15, bend_tilt$=15, mode$=15
 integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15, origin_ele_ref_pt$=15
 integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
 integer, parameter :: lattice_type$ = 16, x_quad$=16
@@ -913,7 +912,7 @@ character(40), parameter :: blank_name$ = ' '
 integer, parameter :: open$ = 1, closed$ = 2
 
 character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
-character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'OPEN        ', 'CLOSED      ']
+character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        ', 'Closed      ']
 
 ! logicals for MAKE_HYBIRD_lat
 

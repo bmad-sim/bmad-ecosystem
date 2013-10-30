@@ -51,7 +51,7 @@ integer in_type, out_type
 
 real(rp) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 
-integer :: lab$ = 1, mode$ = 2, normalized$ = 3, action_angle$ = 4
+integer :: lab$ = 1, normal_mode$ = 2, normalized$ = 3, action_angle$ = 4
 character(16) :: type_names(5) = ['LAB         ', 'MODE        ', &
                     'NORMALIZED  ', 'ACTION-ANGLE', '            ' ]
 
@@ -101,13 +101,13 @@ if (out_type > in_type) then
     coord_out%vec(1:4) = matmul (mat_inv, coord_out%vec(1:4))
     eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap ]
     coord_out%vec(1:4) = coord_out%vec(1:4) - eta_vec * coord_out%vec(6)
-    if (out_type == mode$) return
-    in_type = mode$
+    if (out_type == normal_mode$) return
+    in_type = normal_mode$
   endif
 
 ! normal mode to normalized normal mode
 
-  if (in_type == mode$) then
+  if (in_type == normal_mode$) then
     call make_g_mats (ele, mat, mat_inv)
     coord_out%vec(1:4) = matmul (mat, coord_out%vec(1:4))
     call make_g2_mats (ele%z, mat2, mat2_inv)
@@ -145,7 +145,7 @@ if (in_type == normalized$) then
   coord_out%vec(1:4) = matmul (mat_inv, coord_out%vec(1:4))
   call make_g2_mats (ele%z, mat2, mat2_inv)
   coord_out%vec(5:6) = matmul (mat2_inv, coord_out%vec(5:6))
-  if (out_type == mode$) return
+  if (out_type == normal_mode$) return
 endif
 
 ! normal mode to lab

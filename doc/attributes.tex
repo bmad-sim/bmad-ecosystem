@@ -646,6 +646,17 @@ an error:
   q2: quad, aperture = q1[x1_limit]   ! Correct
 \end{example}
 
+Examples:
+\begin{example}
+  q1[y1_limit] = 0.03
+  q1[y2_limit] = 0.03
+  q1[y_limit] = 0.03  ! equivalent to the proceeding 2 lines.  
+  q1[aperture_at] = both_ends
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Apertures and Element Offsets}
+
 \index{tilt}
 \index{x_offset}
 \index{y_offset}
@@ -678,6 +689,14 @@ exception here is that tilting an \vn{rcollimator} or \vn{ecollimator}
 element will tilt the aperture. Additionally, when the aperture is at
 the \vn{surface} (see below), any \vn{tilt} will be used in the
 calculation.
+
+Examples:
+\begin{example}
+  q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Aperture Placement}
 
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
 \index{entrance_end|hyperbf}\index{exit_end|hyperbf}
@@ -725,27 +744,23 @@ Examples:
 \begin{example}
   q2: quad, aperture_type = elliptical, aperture_at = continuous
   q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
-  q1[y1_limit] = 0.03
-  q1[y2_limit] = 0.03
-  q1[y_limit] = 0.03  ! equivalent to the proceeding 2 lines.  
-  q1[aperture_at] = both_ends
 \end{example}
 
 %-----------------------------------------------------------------
+\subsection{Apertures and X-Ray Generation}
+\label{s:aper.x.ray}
 
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{surface-curvature.pdf}
-  \caption[Surface curvature geometry.]
-{Surface curvature geometry. The element reference frame used to
-describe surface curvature has the $x$ axis pointing towards the
-interior of the element, and the $z$ axis along the plane defined by
-the entrance and exit reference orbit.}
-  \label{f:surface}
-\end{figure}
+With X-ray simulation apertures can be used by \bmad to limit the
+directions in which photons are generated. This can greatly decrease
+simulation times. For example, a photon passing through a
+\vn{diffraction_plate} element will diffract in an arbitrary
+direction. If a {\em downstream} element has an aperture set, \bmad
+can restrict the velocity directions so that the photons will fill the
+downstream aperture and the amount of time wasted tracking photons
+that ultimately would be collimated is minimal.
 
 %-----------------------------------------------------------------
-\section{Crystals \& Compounds for X-Rays}
+\section{X-Rays Crystal \& Compound Materials}
 \label{s:cryst.list}
 
 For basic crystalographic and X-ray matter interaction cross-sections,
@@ -874,7 +889,18 @@ LITHIUM_OXIDE                       & XYLENE                                    
 \end{longtable}
 \end{center}
 
+%-----------------------------------------------------------------
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{surface-curvature.pdf}
+  \caption[Surface curvature geometry.]
+{Surface curvature geometry. The element reference frame used to
+describe surface curvature has the $x$ axis pointing towards the
+interior of the element, and the $z$ axis along the plane defined by
+the entrance and exit reference orbit.}
+  \label{f:surface}
+\end{figure}
 
 %-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
@@ -882,9 +908,12 @@ LITHIUM_OXIDE                       & XYLENE                                    
 
 The following X-ray elements have a surface which X-rays impinge upon:
 \begin{example}
-  crystal
-  mirror, and
-  multilayer_mirror
+  crystal               \sref{s:crystal}
+  detector              \sref{s:det
+  diffraction_plate     \sref{s:diff.plate}
+  mirror, and           \sref{s:mirror}
+  multilayer_mirror     \sref{s:multilayer}
+  sample                \sref{s:sample}
 \end{example}
 [There is also the \vn{capillary} element but this element specifies
 its surface differently.]
@@ -922,7 +951,7 @@ are not permitted), element offsets and pitches can be used
 
 Some useful formulas: Series expansion for a circle of radius $R$:
 \Begineq
-  {-x} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
+  {-z} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
          \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
          \frac{x^2 \, y^2}{4 \, R^3} + \frac{3 \, x^4 \, y^2}{16 \, R^5} +
          \frac{3 \, x^2 \, y^4}{16 \, R^5} 
@@ -939,6 +968,39 @@ the radius $R_t$ needed for foucusing is
 \Begineq
   \frac{\sin^2\theta_{g,in}}{p} + \frac{\sin^2\theta_{g,out}}{q} = \frac{\sin\theta_{g,in} + \sin\theta_{g,out}}{R_t}
 \Endeq
+
+Example:
+\begin{example}
+  t_bragg = 1.3950647
+  rt = 1  ! Crystal transverse radius
+  rs = rt*(sin(t_bragg))^2
+  c: crystal, crystal_type =  'Si(553)', b_param = -1,
+        curvature_x0_y2 =  1 / (2 * rs), curvature_x0_y4 = 1 / (8 * rs^3),
+        curvature_x2_y0 = 1 / (2 * rt), curvature_x4_y0 = 1 / (8 * rt^3),
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Surface Grid}
+\label{s:surf.grid}
+\index{surface grid}
+
+A surface can be broken up into rectangles. This is useful, for
+example, in breaking up a \vn{detector} element into pixel photo
+receptors or in simulating a rough serface for \vn{crystal}s and other
+elements. The general
+
+r0                  ! Optional. Default is (0, 0)
+dr                  ! Required components must be positive
+x_bounds, y_bounds  ! Required
+
+Example:
+\begin{example}
+  ccd: detector, surface = {
+          grid = {
+            r0 = (0.0, 0.01), dr = (0.005, 0.005),
+            x_bounds = (-57, 57), y_bounds = (-30, 10)
+          } }
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Diffraction Plate}
@@ -1388,7 +1450,7 @@ An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
 In the figure, there are two openings labeled \#1, and \#2. A
 wall that constructs this geometry is:
 \begin{example}
-  wall = \{
+  zone1: diffraction_plate, wall = \{
     thickness = <real>
     opaque_material = <material_type>
     clear_material = <material_type>
