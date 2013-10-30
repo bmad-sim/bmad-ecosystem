@@ -1,4 +1,4 @@
-parameter[geometry] = OPEN            
+parameter[geometry] = Open            
 parameter[taylor_order] = 3
  
 parameter[p0c]                    =9.9999986944E8
@@ -33,7 +33,7 @@ L1: line = ( x__D1, slave_drift_001, FORK, slave_drift_002, M)
  
 L2: line = ( D2, FORK2)
  
-L2[geometry]            = OPEN            
+L2[geometry]            = Open            
 L2[rel_tracking_charge] = 1                       
 L2[particle] = PHOTON          
 L2[p0c]      = 100                     

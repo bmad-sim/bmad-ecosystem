@@ -1,7 +1,11 @@
 no_digested
+beginning[beta_a] = 10
+beginning[beta_b] = 10
 
-c: crystal, surface = {
-      type = isotropic_emission,
+parameter[custom_attribute1] = quadrupole::my_custom
+
+c: diffraction_plate, mode = reflection, 
+    surface = {
       grid = {
         dr = (1, 2),
         r0 = (3,4), 
@@ -47,7 +51,7 @@ beam, energy =   5.28900
 parameter[lattice] =  L9A18A000-_MOVEREC
 parameter[geometry] = open 
 
-aa: quadrupole, l = 1
+aa: quadrupole, l = 1, my_custom = 123
 bb: aa, l = 2
 
 b2: sextupole
@@ -66,6 +70,8 @@ use, ll, pp
 pp: line = (cap)
 pp[E_tot] = 1e4
 pp[particle] = photon
+pp[beta_a] = 10
+pp[beta_b] = 10
 
 expand_lattice
 
