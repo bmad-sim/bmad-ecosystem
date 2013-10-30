@@ -61,12 +61,13 @@ particle and photon use.
   Capillary          & \ref{s:capillary}     &  Match              & \ref{s:match}      \HH
   Crystal            & \ref{s:crystal}       &  Monitor            & \ref{s:monitor}    \HH 
   Custom             & \ref{s:custom}        &  Mirror             & \ref{s:mirror}     \HH
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror  & \ref{s:multilayer} \HH
-  Drift              & \ref{s:drift}         &  Patch              & \ref{s:patch}      \HH
-  Fiducial           & \ref{s:fiducial}      &  Photon_Branch      & \ref{s:branch}     \HH
-  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \HH
-  Init_Ele           & \ref{s:init.ele}      &  Sample             & \ref{s:sample}     \HH 
-  Instrument         & \ref{s:monitor}       &  Source             & \ref{s:source}     \HH
+  Detector           & \ref{s:detector}      &  Multilayer_Mirror  & \ref{s:multilayer} \HH
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Patch              & \ref{s:patch}      \HH
+  Drift              & \ref{s:drift}         &  Photon_Branch      & \ref{s:branch}     \HH
+  Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Sample             & \ref{s:sample}     \HH 
+  Init_Ele           & \ref{s:init.ele}      &  X_Ray_Init         & \ref{s:x.init}     \HH
+  Instrument         & \ref{s:monitor}       &                     &                    \HH
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons.}
@@ -565,6 +566,18 @@ one of them in a row.
 \index{branch|hyperbf}
 \index{photon_branch|hyperbf}
 
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{x-branch.pdf}
+  \caption[Example showing X-ray lines branches.]
+  {
+Example use of \vn{photon_branch} elements showing four X-ray lines
+branching from a machine.
+  }
+  \label{f:x.branch}
+\end{figure}
+
+
 A \vn{branch} or \vn{photon_branch} element marks the start of an
 alternative line for the beam. The only difference between \vn{branch}
 and \vn{photon_branch} is that the default particle type for a
@@ -572,8 +585,8 @@ and \vn{photon_branch} is that the default particle type for a
 occurs. The default particle type for a \vn{photon_branch} element is
 a photon.
 
-Collectively \vn{branch} and \vn{photon_branch} elements can be called
-branching elements.
+Collectively \vn{branch} and \vn{photon_branch} elements are called
+branching elements. An example geometry is shown in \fig{f:x.branch}.
 
 General \vn{branch} and \vn{photon_branch} attributes are:
 \begin{center}
@@ -1014,6 +1027,30 @@ In this example the \vn{descrip} string is being used to specify a
 file that contains parameters for the element.
 
 %-----------------------------------------------------------------
+\section{Detector}
+\label{s:detector}
+\index{detector|hyperbf}
+
+A \vn{detector} element is used to detect particles and X-rays.  A
+\vn{detector} is modeled as a plate upon which particles and x-rays
+can impinge.
+
+General \vn{diffraction_plate} element attributes are:
+\begin{center}
+\tt 
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Chamber wall               & \ref{s:wall}    & Surface Properties         & \ref{s:s.curve} \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                 \HH
+\end{tabular}
+\end{center}
+\toffset
+
+
+
+%-----------------------------------------------------------------
 \section{Diffraction_Plate}
 \label{s:diff.plate}
 \index{diffraction_plate|hyperbf}
@@ -1032,9 +1069,9 @@ General \vn{diffraction_plate} element attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
-  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1063,7 +1100,7 @@ pitches and tilt attributes (\sref{s:offset}).
 
 Example:
 \begin{example}
-  fresnel: diffraction_plate, wall = {...}, ...
+  fresnel: diffraction_plate, wall = {...}, x_limit = 0.1, y_limit = 0.08
 \end{example}
 
 %-----------------------------------------------------------------
@@ -2793,6 +2830,24 @@ General \vn{sample} attributes are:
 
 This element is in development.
 
+Attributes specific to an \vn{solenoid} element are:
+\begin{example}
+  mode       = <Switch> ! Reflection or transmission.
+  material   = <type>   ! Type of material.
+\end{example}
+
+The \vn{mode} parameter can be set to:
+\begin{example}
+  reflection
+  transmission
+\end{example}
+
+
+Example:
+\begin{example}
+  plate: sample, x_limit = 10e-3, y_limit = 20e-3, mode = reflection
+\end{example}
+
 %-----------------------------------------------------------------
 \section{Sextupole}
 \label{s:sex}
@@ -2911,28 +2966,6 @@ Example:
 \begin{example}
   sq02: sol_quad, l = 2.6, k1 = 0.632, ks = 1.5*beam[energy]
 \end{example}
-
-%-----------------------------------------------------------------
-\section{Source}
-\label{s:source}
-\index{source|hyperbf}
-
-A \vn{source} element is used to simulate an x-ray source.
-
-General \vn{source} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
-  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
-\end{tabular}
-\end{center}
-\toffset
-
-This element is in development.
 
 %-----------------------------------------------------------------
 \section{Taylor}
@@ -3200,3 +3233,25 @@ both types of wigglers have the following attributes:
 light line measured from the exit end of the element. This is used for
 machine geometry calculations and is irrelevant for lattice
 computations.
+
+%-----------------------------------------------------------------
+\section{X_Ray_Init}
+\label{s:x.init}
+\index{x_ray_init|hyperbf}
+
+A \vn{x_ray_init} element is used to simulate an x-ray x_ray_init.
+
+General \vn{x_ray_init} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & \s                & {\sl Attribute Class}      & \s              \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+This element is in development.

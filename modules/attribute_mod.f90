@@ -150,6 +150,14 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
     end select
   endif
 
+case (diffraction_plate$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+  
+
 case (drift$)
   if (present(num_valid)) num_valid = 10
   select case (tracking_method)
@@ -283,6 +291,13 @@ case (rfcavity$)
     is_valid = .true.
   end select
 
+case (sample$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (sbend$)
   if (present(num_valid)) num_valid = 7
   select case (tracking_method)
@@ -339,6 +354,13 @@ case (wiggler$, undulator$)
       is_valid = .true.
     end select
   endif
+
+case (x_ray_init$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
 
 case default
   call err_exit
@@ -441,6 +463,13 @@ case (crystal$, mirror$, multilayer_mirror$, capillary$)
       is_valid = .true.
     end select
   endif
+
+case (diffraction_plate$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
 
 case (drift$)
   if (present(num_valid)) num_valid = 7
@@ -568,6 +597,13 @@ case (rcollimator$)
     is_valid = .true.
   end select
 
+case (sample$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (sbend$, sextupole$, rfcavity$)
   if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
@@ -617,6 +653,14 @@ case (wiggler$, undulator$)
       is_valid = .true.
     end select
   endif
+
+case (x_ray_init$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 
 case default
   call err_exit
@@ -870,9 +914,6 @@ endif
 
 do i = 1, n_key$
   if (ix /= 0 .and. ix /= i) cycle
-  ele%key = i
-  old_attrib = attribute_name (ele, ix_attrib)
-  if (old_attrib(1:16) /= 'CUSTOM_ATTRIBUTE') cycle
   call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
 enddo
 

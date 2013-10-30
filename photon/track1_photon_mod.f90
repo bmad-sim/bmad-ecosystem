@@ -63,7 +63,7 @@ endif
 ! Choose outgoing direction
 
 vz0 = orbit%vec(6)
-call isotropic_photon_emission (ele, param, orbit, +1, twopi)
+call isotropic_photon_reflection (ele, param, orbit, +1, twopi)
 
 ! Rescale field
 
@@ -205,7 +205,6 @@ character(*), parameter :: r_name = 'track1_sample'
 
 !
 
-
 call track_to_surface (ele, orbit, curved_surface_rot = .false.)
 if (orbit%state /= alive$) return
 
@@ -222,13 +221,13 @@ endif
 
 ! Reflect 
 
-select case (ele%photon%surface%type)
-case (isotropic_emission$)
+select case (nint(ele%value(mode$)))
+case (reflection$)
 
-  call isotropic_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
+  call isotropic_photon_reflection (ele, param, orbit, -1, fourpi, w_to_surface)
 
 case default
-  call out_io (s_error$, r_name, 'SURFACE TYPE NOT SET.')
+  call out_io (s_error$, r_name, 'MODE NOT SET.')
   orbit%state = lost$
 end select
 
@@ -244,7 +243,7 @@ end subroutine track1_sample
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+! Subroutine isotropic_photon_reflection (ele, param, orbit, direction, solid_angle, w_to_surface)
 !
 ! Routine to emit a photon from a surface in a random direction.
 !
@@ -260,7 +259,7 @@ end subroutine track1_sample
 !   orbit    -- Coord_struct: Final phase-space coords
 !-
 
-subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+subroutine isotropic_photon_reflection (ele, param, orbit, direction, solid_angle, w_to_surface)
 
 implicit none
 
@@ -337,7 +336,7 @@ else
   endif
 endif
 
-end subroutine isotropic_photon_emission 
+end subroutine isotropic_photon_reflection 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

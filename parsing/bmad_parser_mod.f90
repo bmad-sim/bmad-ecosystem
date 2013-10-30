@@ -149,7 +149,7 @@ type bp_common_struct
   type (bp_var_struct), allocatable :: var(:)   ! variable name
   type (extra_parsing_info_struct) extra
   integer num_lat_files               ! Number of files opened
-  integer ivar_tot, ivar_init
+  integer ivar_tot, ivar_init, x_bounds(2), y_bounds(2)
   character(200), allocatable :: lat_file_names(:) ! List of all files used to create lat
   character(n_parse_line) parse_line
   character(n_parse_line) input_line1          ! For debug messages
@@ -1247,6 +1247,10 @@ case ('REF_ORBIT_FOLLOWS')
   call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag)
   ele%value(ref_orbit_follows$) = ix
 
+case ('MODE')
+  call get_switch (attrib_word, mode_name(1:), ix, err_flag)
+  ele%value(geometry$) = ix
+
 case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
 
@@ -1264,11 +1268,7 @@ case ('PTC_FIELD_GEOMETRY')
   endif
 
 case ('GEOMETRY')
-  if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
-    call get_switch (attrib_word, geometry_mode_name(1:), ix, err_flag)
-  else
-    call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
-  endif
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
   ele%value(geometry$) = ix
 
 case ('LATTICE_TYPE')   ! Old style

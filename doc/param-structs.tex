@@ -128,14 +128,14 @@ Initial step to use for adaptive tracking. This is used in
 \item[\vn{\%min_ds_adaptive_tracking}] \Newline
 This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 (\sref{s:integ}). Minimum step size to use for adaptive tracking. If
-To be useful, \vn{\%min_ds_adaptive_tracking} must be set larger than
-the value of \vn{\%fatal_ds_adaptive_tracking}. In this case,
+To be useful, \vn{%min_ds_adaptive_tracking} must be set larger than
+the value of \vn{%fatal_ds_adaptive_tracking}. In this case,
 particles are never lost due to taking too small a step.
 
 \item[\vn{\%fatal_ds_adaptive_tracking}] \Newline
 This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 (\sref{s:integ}).  If the step size falls below the value set for
-\vn{\%fatal_ds_adaptive_tracking}, a particle is considered lost.
+\vn{%fatal_ds_adaptive_tracking}, a particle is considered lost.
 This prevents a program from ``hanging'' due to taking a large number
 of exremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
@@ -376,11 +376,18 @@ Here the number of particle is $300 \times 600$. Notice that when
 \vn{RAN_GAUSS} is mixed with other distributions, the value of
 \vn{beam_init%n_particle} is ignored.
 
-%\item[\%use_t_coords] \Newline
-If \vn{use_t_coords} is true, then the distributions are taken as describing particles in $t$-coordinates (\sref{s:time.phase.space}).
-Furthermore, if \vn{use_z_as_t} is true, then the $z$ coordinates from the distribution will be taken as describing the time coordinates. For example, particles may originate at a cathode at the same $s$, but different times. 
-If false, then the $z$ coordinate from the distribution describes particles at the same time but different $s$ positions, and each particle gets \vn{\% location=inside\$}. In this case, the bunch will need to be tracked with a tracking method that can handle inside particles, such as \vn{time_runge_kutta}. 
-All particles are finally converted to proper $s$-coordinate distributions for Bmad to use. 
+%\item[\%use_t_coords] \Newline If \vn{use_t_coords} is true, then the
+distributions are taken as describing particles in $t$-coordinates
+(\sref{s:time.phase.space}).  Furthermore, if \vn{use_z_as_t} is true,
+then the $z$ coordinates from the distribution will be taken as
+describing the time coordinates. For example, particles may originate
+at a cathode at the same $s$, but different times.  If false, then the
+$z$ coordinate from the distribution describes particles at the same
+time but different $s$ positions, and each particle gets
+\vn{%location=inside\$}. In this case, the bunch will need to be
+tracked with a tracking method that can handle inside particles, such
+as \vn{time_runge_kutta}.  All particles are finally converted to
+proper $s$-coordinate distributions for Bmad to use.
 
 %-----------------------------------------------------------------
 \section{CSR Parameters}

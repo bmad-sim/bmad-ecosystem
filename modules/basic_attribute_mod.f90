@@ -933,7 +933,7 @@ call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start'
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
 call init_attribute_name1 (sample$, l$,                             'L')
-call init_attribute_name1 (sample$, geometry$,                      'GEOMETRY')
+call init_attribute_name1 (sample$, mode$,                          'MODE')
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)
@@ -1056,7 +1056,7 @@ call init_attribute_name1 (capillary$, critical_angle_factor$,      'CRITICAL_AN
 call init_attribute_name1 (capillary$, e_tot_start$,                'e_tot_start', private$)
 call init_attribute_name1 (capillary$, p0c_start$,                  'p0c_start', private$)
 
-call init_attribute_name1 (diffraction_plate$, geometry$,           'GEOMETRY')
+call init_attribute_name1 (diffraction_plate$, mode$,               'MODE')
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -1247,7 +1247,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', 'ORIGIN_ELE_REF_PT', &
       'PARTICLE', 'PTC_FIELD_GEOMETRY', 'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', &
-      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES')
+      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1451,12 +1451,12 @@ case ('FRINGE_TYPE')
     endif
   endif
 
-case ('GEOMETRY')
+case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
-    call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_mode_name, lbound(geometry_mode_name, 1))
+    call get_this_attrib_name (attrib_val_name, ix_attrib, mode_name, lbound(mode_name, 1))
     if (present(is_default)) then
       call init_ele (ele2, ele%key)
-      is_default = (ix_attrib == ele%value(geometry$))
+      is_default = (ix_attrib == ele2%value(mode$))
     endif
   else
     call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))

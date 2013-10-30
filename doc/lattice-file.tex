@@ -402,12 +402,12 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
 \label{s:custom.attrib}
 \index{element attributes!defining custom attributes}
 
-Custom element attributes may be defined for any class of element.
-Custom element attributes are useful with programs that need to
-associate ``extra'' information with particular lattice elements and
-it is desired that this extra information be settable from within a
-lattice file. For example, a program might need error tollerances for
-the strength of quadrupoles.
+Real scaler custom element attributes may be defined for any class of
+element.  Custom element attributes are useful with programs that need
+to associate ``extra'' information with particular lattice elements
+and it is desired that this extra information be settable from within
+a lattice file. For example, a program might need error tollerances
+for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not
 designed to use the custom attributes. Currently, up to five custom
@@ -426,18 +426,13 @@ and "\vn{attribute_name}" is the name of the attribute. To restrict the
 custom attribute to a particular element class, the element class
 can be prefixed to the attribute name. Examples:
 \begin{example}
+  parameter[custom_attribute1] = "mag_id"
   parameter[custom_attribute1] = "quadrupole::error_k1"
-  parameter[custom_attribute1] = "sextupole::error_k2"
-  parameter[custom_attribute2] = "mag_id"
+  parameter[custom_attribute2] = "color"
 \end{example}
-The first example assigns a custom attribute name of \vn{error} to all
-quadrupoles.  The third example assigns a custom attributge name of
-\vn{mag_id} to all elements. Once a particular \vn{custom_attributeN}
-has been assigned to a particular element class, the particular
-\vn{custom_attributeN} may not be reassigned for that element class
-but may be used for classes that have not been set. Thus, in the above
-example, the set of \vn{custom_attribute1} for quadrupoles and
-sextupoles is valid.
+The first line in the example assigns a custom attributge name of
+\vn{mag_id} to all elements.  The second line in the example overrides
+the setting of \vn{custom_attribute1} for quadrupole elements only. 
 
 Once a custom attribute has been defined it may be set for an element
 of the correct type. Example:
