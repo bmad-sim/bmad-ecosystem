@@ -37,11 +37,14 @@ integer, optional :: ix_branch
 logical, optional :: err_flag
 logical err
 
-! Make sure gamma for ele(0) is correct.
+! Twiss parameters for photons do not make much sense so do not bother to calculate anything.
 
 branch => lat%branch(integer_option(0, ix_branch))
-ele => branch%ele(0)
+if (branch%param%particle == photon$) return
 
+! Make sure gamma for ele(0) is correct.
+
+ele => branch%ele(0)
 if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 

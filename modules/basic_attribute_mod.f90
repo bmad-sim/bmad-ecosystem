@@ -302,11 +302,8 @@ do i = 1, n_key$
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
 
   select case (i)
-  case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$)
+  case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, surface_attrib$, 'SURFACE')
-    if (i /= sample$) then
-      call init_attribute_name1 (i, ref_tilt_tot$, 'REF_TILT_TOT', dependent$)
-    endif
     num = a0$ - 1
     do ix = 0, ubound(surface%curvature_xy, 1)
     do iy = 0, ubound(surface%curvature_xy, 2)
@@ -996,11 +993,13 @@ call init_attribute_name1 (mirror$, l$,                             'l', private
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')
 call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_ANGLE')
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
+call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'l', private$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attribute_name1 (multilayer_mirror$, ref_tilt$,             'REF_TILT')
+call init_attribute_name1 (multilayer_mirror$, ref_tilt_tot$,         'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (multilayer_mirror$, n_cell$,               'N_CELL')
 call init_attribute_name1 (multilayer_mirror$, d1_thickness$,         'D1_THICKNESS')
 call init_attribute_name1 (multilayer_mirror$, d2_thickness$,         'D2_THICKNESS')
@@ -1022,6 +1021,7 @@ call init_attribute_name1 (crystal$, bragg_angle_out$,              'BRAGG_ANGLE
 call init_attribute_name1 (crystal$, psi_angle$,                    'PSI_ANGLE')
 call init_attribute_name1 (crystal$, alpha_angle$,                  'ALPHA_ANGLE', dependent$)
 call init_attribute_name1 (crystal$, ref_tilt$,                     'REF_TILT')
+call init_attribute_name1 (crystal$, ref_tilt_tot$,                 'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (crystal$, tilt_corr$,                    'TILT_CORR', dependent$)
 call init_attribute_name1 (crystal$, d_spacing$,                    'D_SPACING')
 call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL', dependent$)

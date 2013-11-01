@@ -771,7 +771,7 @@ map calculations.  These are:
 See Chapter~\sref{c:tracking} for more details.
 
 %--------------------------------------------------------------------------
-\section{General Use Components}
+\section{Custom and General Use Attributes}
 \index{ele_struct!components not used by Bmad}
 \label{s:ele.gen}
 
@@ -811,9 +811,21 @@ file, to associate \vn{"time_stamp"} with \vn{custom_attribute1}:
   parameter[custom_attribute1] = "time_stamp"
 \end{example}
 Defining the custom attribute in the lattice file allows the
-\Hyperref{r:type.ele}{type_ele} routine to print the custom information. To setup the
-association between a string and a custom attribute from within a
-program, the \Hyperref{r:set.attribute.alias}{set_attribute_alias} routine is used
+\Hyperref{r:type.ele}{type_ele} routine to print the custom
+information. To setup the association between a string and a custom
+attribute from within a program
+\begin{example}
+  type (lat_struct), target :: lat
+  type (ele_struct), pointer :: ele
+  integer, parameter :: time_stamp$ = custom_attribute1$
+  ...
+  ele => lat%branch(1)%ele(2)   ! Point to some element
+  print *, attribute_name(ele, time_stamp$), ' Has value:' ele%value(time_stamp$)
+\end{example}
+
+If not defined through a lattice file, custom attributes can also be
+defined directly from within a program using the 
+\Hyperref{r:set.attribute.alias}{set_attribute_alias} routine
 \begin{example}
   type (lat_struct) lat
   logical err_flag
