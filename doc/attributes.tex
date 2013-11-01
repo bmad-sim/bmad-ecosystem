@@ -763,7 +763,7 @@ that ultimately would be collimated is minimal.
 \section{X-Rays Crystal \& Compound Materials}
 \label{s:cryst.list}
 
-For basic crystalographic and X-ray matter interaction cross-sections,
+For basic crystallographic and X-ray matter interaction cross-sections,
 \bmad uses the XRAYLIB\cite{b:xraylib} library. Crystal structure
 parameters in XRAYLIB are mainly from R.~W.~G.~Wyckoff\cite{b:wyckoff}
 with some structure parameters coming from NIST. The list of available
@@ -909,7 +909,7 @@ the entrance and exit reference orbit.}
 The following X-ray elements have a surface which X-rays impinge upon:
 \begin{example}
   crystal               \sref{s:crystal}
-  detector              \sref{s:det
+  detector              \sref{s:det}
   diffraction_plate     \sref{s:diff.plate}
   mirror, and           \sref{s:mirror}
   multilayer_mirror     \sref{s:multilayer}
@@ -984,23 +984,84 @@ Example:
 \label{s:surf.grid}
 \index{surface grid}
 
-A surface can be broken up into rectangles. This is useful, for
-example, in breaking up a \vn{detector} element into pixel photo
+A surface can be broken up into a grid of rectangles. This is useful,
+for example, in breaking up a \vn{detector} element into pixel photo
 receptors or in simulating a rough serface for \vn{crystal}s and other
-elements. The general
-
-r0                  ! Optional. Default is (0, 0)
-dr                  ! Required components must be positive
-x_bounds, y_bounds  ! Required
-
+elements. The general syntax is:
+\begin{example}
+  surface = \{
+    grid = \{                
+      type = <type_name>,               ! Crystals: Off, Segmented, or H_Misalign
+      x_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      y_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>),                ! width and height of pixels.
+      pt(<i>,<j>) = (<x_pitch>, <y_pitch>, <x_pitch_rms>, <x_pitch_rms>),
+          \} \}
+\end{example}
 Example:
 \begin{example}
-  ccd: detector, surface = {
-          grid = {
+  ccd: crystal, surface = \{
+          grid = \{
+            type = h_misalign,
             r0 = (0.0, 0.01), dr = (0.005, 0.005),
-            x_bounds = (-57, 57), y_bounds = (-30, 10)
-          } }
+            x_bounds = (1, 57), y_bounds = (-30, 10),
+            pt(1,-30) = (0.001, -0.002, 0, 0), 
+            pt(1,-29) = ..., 
+          \} \}
 \end{example}
+
+The grid is a two dimensional with bounds given by the \vn{x_bounds}
+and \vn{y_bounds} components. These two components must be present. In
+the above example the grid is 57 pixels in $x$ and 41 pixels in $y$.
+
+The physical placement of the grid on the element is determined by the
+\vn{r0} and \vn{dr} components. \vn{r0} is optional and gives the
+$(x,y)$ coordinates of the center of the pixel with index $(0,0)$. The
+\vn{dr} component, which must be present, gives the pixal width and
+height. Thus the center of the $(i,j)$ pixel is:
+\begin{example}
+  (x,y) = (r0(1), r0(2)) + (i*dr(1), j*dr(2))
+\end{example}
+
+The \vn{type} component of the grid is used for
+\vn{crystal} elements only. Possible \vn{type} values are:
+\begin{example}
+  H_Misalign         ! Misalignment of crystal H vector
+  Off               ⁄! Ignore grid
+  Segmented          ! Surface is a matrix of flat rectangles
+\end{example}
+\vn{H_Misalign} misaligns the $H$ vector which is the normal to the
+diffracting planes of the the crystal (\sref{s:crystal.tracking}).
+When using \vn{H_Misalign}, each \vn{pt(i,j)} component gives the
+misalignment of $H$ for the corresponding pixel. For an individual
+photon, the misalignt of $H$ will be
+\begin{example}
+  x_pitch_tot = <x_pitch> + r1 * <x_pitch_rms>
+  y_pitch_tot = <y_pitch> + r2 * <y_pitch_rms>
+\end{example}
+where \vn{x_pitch_tot} and \vn{y_pitch_tot} are the rotational
+misalignment (\sref{s:offset}) used in the calculation, the quantities
+in brackets \vn{<...>} are components of \vn{pt}, and \vn{r1} and
+\vn{r2} are Gaussian distributed random numbers with unit rms. These
+random numbers are regenerated for each photon. Note: \vn{pt} is only
+used with \vn{H_Misalign}.
+
+When the \vn{type} component is set to \vn{Segmented}, the crystal
+surface is modeled as a grid of flat ``rectangles'' (the actual shape
+is very close but not quite rectangular). Using a segmented crystal
+only makes sense when the crystal is curved. There is one rectangle
+for each pixel. Each rectangle has an extent in the $(x,y)$ transverse
+dimensions equal to the extent of the corresponding pixel. The $z$
+coordinate of the vertices of the rectangular are adjusted so that 
+\begin{example}
+  1) The rectangle is flat
+  2) The rectangle contacts the unsegmented surface two diagonally opposite vertices.
+  3) The other two diagonnaly opposite vertices will be as close as possible in the
+     least squares sense from the unsegmented surface.
+\end{example}
+
+When the \vn{type} component is set to \vn{Off}, the grid will not be used.
 
 %-----------------------------------------------------------------
 \section{Walls: Vacuum Chamber, Capillary and Diffraction Plate}
