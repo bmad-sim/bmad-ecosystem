@@ -1,0 +1,31 @@
+! Lattice for XES CHESS line
+
+! The first element is the source element
+
+graze_angle = 0.998290
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 8.905e3
+parameter[particle] = photon
+beginning[theta_position] = pi/2 + graze_angle
+parameter[no_end_marker] = T
+
+rt = 1  ! Crystal transverse radius 
+t_bragg = 1.39527
+dft_len = rt*sin(t_bragg)
+rs = rt*(sin(t_bragg))^2
+
+source: instrument, l = 0.001, x_offset = 0, y_offset = 0, z_offset = 0,
+                    x_pitch = 0, y_pitch = 0, tilt = 0, 
+			x_half_length = 0.0005, y_half_length = 0.0005
+drift1: pipe, l = dft_len
+cryst: crystal, crystal_type = 'Si(553)', b_param = -1, 
+	curvature_x0_y2 =  1 / (2 * rs), curvature_x0_y4 = 1 / (8 * rs^3),
+	curvature_x2_y0 = 1 / (2 * rt), curvature_x4_y0 = 1 / (8 * rt^3),
+	x_limit = 0.05, y_limit = 0.05
+drift2: drift, l = dft_len
+det: marker, x_limit = 0.1, y_limit = 0.1
+
+xes_line: line = (source, drift1, cryst, drift2, det)
+use, xes_line

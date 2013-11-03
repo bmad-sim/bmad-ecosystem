@@ -1,0 +1,773 @@
+\documentclass[11pt]{article}
+\usepackage{moreverb}    % Defines {listing} environment.
+\usepackage{tocloft}
+\usepackage{geometry}            % See geometry.pdf to learn the layout options. There are lots.
+\usepackage{xspace}
+\geometry{letterpaper}           % ... or a4paper or a5paper or ... 
+%\usepackage[parfill]{parskip}   % To begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{alltt}
+\usepackage[T1]{fontenc}   % so _, <, and > print correctly in text.
+\usepackage[strings]{underscore}    % to use "_" in text
+\usepackage[pdftex,colorlinks=true]{hyperref}
+
+\newcommand{\fig}[1]{Figure~\ref{#1}}
+\newcommand{\lux}{Lux\xspace}
+\newcommand{\chess}{CHESS\xspace}
+\newcommand{\Begineq}{\begin{equation}}
+\newcommand{\Endeq}{\end{equation}}
+\newcommand{\CRNO}{\nonumber \\}
+
+\newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
+\newcommand\dottcmd[1]{\texttt{#1}\endgroup}
+\newcommand{\vn}{\ttcmd}   
+
+\newcommand{\Newline}{\hfil \\}
+\newcommand{\sref}[1]{$\S$\ref{#1}}
+
+\newenvironment{example}
+  {\vspace{\ExBeg} \begin{alltt}}
+  {\end{alltt} \vspace{\ExEnd}}
+
+%---------------------------------------------------------------------------------
+
+\newlength{\dPar}
+\newlength{\ExBeg}
+\newlength{\ExEnd}
+\setlength{\dPar}{1.5ex}
+\setlength{\ExBeg}{-\dPar}
+\addtolength{\ExBeg}{-0.5ex}
+\setlength{\ExEnd}{-\dPar}
+\addtolength{\ExEnd}{-0.0ex}
+
+\setlength{\textwidth}{6.25in}
+\setlength{\hoffset}{0.0in}
+\setlength{\oddsidemargin}{0.25in}
+\setlength{\evensidemargin}{0.0in}
+\setlength{\textheight}{8.5in}
+\setlength{\topmargin}{0in}
+
+\setlength{\parskip}{\dPar}
+\setlength{\parindent}{0ex}
+
+\setlength\cftparskip{0pt}
+\setlength\cftbeforesecskip{3pt}
+\setlength\cftaftertoctitleskip{15pt}
+
+%---------------------------------------------------------------------------------
+
+\title{Lux Program}
+\author{D. Sagan, K. Finkelstein}
+\date{Revision 1.1 \\ August 1, 2013}
+
+%---------------------------------------------------------------------------------
+
+\begin{document}
+\maketitle
+
+\pdfbookmark[1]{Contents}{Contents}
+\tableofcontents
+
+%------------------------------------------------------------------
+\section{Introduction} 
+\label{s:intro}
+
+\lux is a program for Monte Carlo simulations of X-rays using either
+coherent or incoherent ray tracing. \lux works by generating
+Photons at a source element and tracking them through to the
+detector. \lux uses the Bmad subroutine library\cite{b:bmad} for
+tracking and lattice bookkeeping.
+
+%------------------------------------------------------------------
+\section{Running \lux} 
+\label{s:run}
+
+Syntax for invoking \lux:
+\begin{example}
+  lux \{options\} \{<master_input_file_name>\}
+\end{example}
+Examples:
+\begin{example}
+  lux my_input_file.init
+  lux -plot tiles  my_input_file.init
+\end{example}
+
+The \vn{<master_input_file_name>} optional argument is used to set the
+master input file name. The default is ``\vn{lux.init}''. 
+
+The command line options for \lux are:
+\begin{example}
+  -plot <what>  ! For viewing diagnostic plots.
+\end{example}
+
+The \vn{-plot <what>} option is used for diagnostic purposes. 
+Currently only one plotting option is available:
+\begin{example}
+  -plot tiles   ! Plot active direction tiles.
+\end{example}
+See below of an explanation of \vn{direction tiles}
+
+%------------------------------------------------------------------
+\section{Fortran Namelist}
+\label{s:namelist}
+
+Fortran namelist syntax is used for \lux. The general form
+of a namelist is
+\begin{example}
+  &<namelist_name>
+    <var1> = ...
+    <var2> = ...
+    ...
+  /
+\end{example}
+The tag \vn{"\&<namelist_name>"} starts the namelist where
+\vn{<namelist_name>} is the name of the namelist. The namelist ends
+with the slash \vn{"/"} tag. Anything outside of this is
+ignored. Within the namelist, anything after an exclamation mark
+\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
+\vn{<var2>}, etc. are variable names. Example:
+\begin{example}
+  &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
+\end{example}
+here \vn{section_def} is the namelist name and \vn{section} is a variable
+name.  Notice that here \vn{section} is a ``structure'' which has five
+components.
+
+%------------------------------------------------------------------
+\section{Master Input File} 
+\label{s:master.file}
+
+The master input file consists of a single \vn{namelist} called \vn{params}.
+An example is:
+\begin{example}
+  &params
+  	lattice_file = 'test.bmad'                     ! Defines experimental layout.
+    emission_tile_out_file = 'lux.tile'
+    det_pix_out_file = 'lux.det_pix#'
+
+    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
+    lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
+    ix_ele_photon1 = -1                            ! Index of element for photon1_out file.
+    reject_dead_at_det_photon1 = False             ! Reject photons dead at detector.
+
+    random_seed = 0                                ! 0 => Use system clock
+    intensity_normalization_coef = 1e6             ! photon intensities norm.
+
+    lux_param%sig_E = 0.000                        ! Init energy width (eV).
+    lux_param%dE_center = 0                        ! Init energy shift (eV).
+    lux_param%dE_relative_to_ref = True            ! dE_center is Relative or absolute?
+    lux_param%energy_spectrum = 'GAUSSIAN'         ! or 'UNIFORM'.
+    lux_param%transverse_distribution = 'GAUSSIAN' ! or 'UNIFORM'. 
+
+    lux_param%source_type = 'SPHERICAL'            ! or 'PLANAR' or 'BEND'
+    lux_param%use_all_tiles = False
+    lux_param%del_y =   0.0075                     ! direction tile height.
+    lux_param%del_phi = 0.0075                     ! direction tile width.
+    lux_param%y_max = 0.1                          ! total tile height.
+    lux_param%phi_max = 0.1                        ! total tile width.
+
+    lux_param%e_field_x = 0                        ! Polarization. 
+    lux_param%e_field_y = 0                        ! x & y = 0 -> random
+
+    lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
+    lux_param%stop_num_photons = 0                 ! Max number of photons to track.
+
+    lux_param%dx_det_pixel = 50e-6                 ! Detector pixel width
+    lux_param%dy_det_pixel = 50e-6                 ! Detector pixel height
+    lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
+  /
+\end{example}
+
+The components of this namelist are:
+  \begin{description}
+  \item[\vn{lattice_file}] \Newline
+This file defines the X-ray optics setup. See
+Section~\sref{s:lat.file} and the Bmad manual for more details.
+  \item[\vn{emission_tile_out_file}] \Newline
+Name of the output data file recording the X-ray intensity being
+emitted on a \vn{tile} by \vn{tile} basis. See
+section~\sref{s:tile.file} for more details. The file name may be
+``numbered'' using a ``\#'' character (\sref{s:number}). A blank file
+name will prevent a file being generated.
+  \item[\vn{photon1_out_file}] \Newline
+Name of the output data file recording the starting and ending
+positions of individual photons. See section~\sref{s:photon1.file} for
+more details. The file name may be ``numbered'' using 
+a ``\#'' character (\sref{s:number}). A blank file name will prevent a
+file being generated.
+  \item[\vn{det_pix_out_file}] \Newline
+Name of the output data file recording the X-ray intensity on the
+detector. See section~\sref{s:det.pix.file} for more details. The file
+name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
+blank file name will prevent a file being generated.
+  \item[\vn{random_seed}] \Newline
+Random number seed used in by the random number generator. If set to
+0, the system clock will be used. That is, if set to 0, the output
+results will vary from run to run.
+  \item[\vn{intensity_normalization_coef}] \Newline
+Coefficient used to normalize the photon intensity with (\sref{s:det}).
+  \item[\vn{lux_param\%sig_E}] \Newline
+Energy width of initial photon distribution in eV (\sref{s:photon.start}).
+  \item[\vn{lux_param\%dE_center}] \Newline
+Average initial photon energy in eV. If
+\vn{lux_param%dE_relative_to_ref} is set to True (default)
+then \vn{lux_param%dE_center} will be relative to the reference energy
+(\sref{s:photon.start}).
+  \item[\vn{lux_param\%dE_relative_to_ref}] \Newline
+Is \vn{lux_param%dE_center} with respect to the reference energy or
+an absolute value (\sref{s:photon.start})?
+  \item[\vn{lux_param\%energy_spectrum}] \Newline
+Type of energy spectrum (\sref{s:photon.start}). 
+  \item[\vn{lux_param\%transverse_distribution}] \Newline
+Type of spacial spectrum (\sref{s:photon.start}).
+  \item[\vn{lux_param\%source_type}] \Newline
+Type of source used for photon generation (\sref{s:photon.start}).
+  \item[\vn{lux_param\%use_all_tiles}] \Newline
+Use all direction tiles within the rectangle defined by \vn{lux_param%del_y}
+and \vn{lux_param%del_phi} (\sref{s:photon.start})?
+  \item[\vn{lux_param\%del_y}] \Newline
+Height of an individual direction tile (\sref{s:photon.start}).
+  \item[\vn{lux_param\%del_phi}] \Newline
+Width of an individual direction tile (\sref{s:photon.start}).
+  \item[\vn{lux_param\%y_max}] \Newline
+Height extent of the direction tiles  (\sref{s:photon.start}).
+  \item[\vn{lux_param\%phi_max}] \Newline
+Width extent of the direction tiles  (\sref{s:photon.start}).
+  \item[\vn{lux_param\%e_field_x}] \Newline
+Electric field component of initial photons in the x-plane (\sref{s:photon.start}).
+  \item[\vn{lux_param\%e_field_y}] \Newline
+Electric field component of initial photons in the y-plane (\sref{s:photon.start}).
+  \item[\vn{lux_param\%stop_total_intensity}] \Newline
+Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
+  \item[\vn{lux_param\%stop_num_photons}] \Newline
+Maximum number of photons to track (\sref{s:det}).
+  \item[\vn{lux_param\%dx_det_pixel}] \Newline
+Detector pixel width (\sref{s:det}).
+  \item[\vn{lux_param\%dy_det_pixel}] \Newline
+Detector pixel height (\sref{s:det}).
+  \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
+Cutoff intensity below which a photon will not be included in
+the photon1_out file (\sref{s:photon1.file}).
+  \item[\vn{ix_ele_photon1}] \Newline
+The photon position recorded in the photon1_out file will be the
+photon position at the lattice element whose lattice index is given by
+\vn{ix_ele_photon1}. If \vn{ix_ele_photon1} is less than 1 then the
+lattice element used will be the detector element (\sref{s:photon1.file}).
+  \item[\vn{reject_dead_at_det_photon1}] \Newline
+If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
+photon_out file any photons that do not reach the detector. This switch
+is only relavent when the lattice element at which the photon positions
+are being evaluated is not the detector (\sref{s:photon1.file}).
+  \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
+Minimum intensity, relative to the maximum pixel intensity, below
+which a pixel will not be included in the det_pix_out file (\sref{s:det.pix.file}).
+  \end{description}
+
+%------------------------------------------------------------------
+\section{Lattice Description File}
+\label{s:lat.file}
+
+The name of the lattice description file which defines the
+experimental setup is given by the \vn{lattice_file} variable in the
+master input file (\sref{s:master.file}). Bmad standard syntax is
+used\cite{b:bmad}. 
+
+%------------------------------------------------------------------
+\subsection{Example Lattice File for SPHERICAL or PLANAR Sources}
+\label{s:spherical.lat}
+
+An example lattice is valid for \vn{'SPHERICAL'} or
+\vn{'PLANAR'} type sources (cf.~\sref{s:photon.start}):
+\begin{listing}{1}
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 1e4
+parameter[particle] = photon
+parameter[no_end_marker] = T
+
+c_rad = 75e-3  ! Crystal transverse radius 
+r0 = 0.2
+angle  = 80 * pi / 180
+qq = r0 * tan(pi/2-graze_angle)
+dft_len = sqrt(qq^2 + r0^2)
+
+source: instrument, l = 0, x_offset = 0, y_offset = 0, z_offset = 0, tilt = 0,
+        x_pitch = 0, y_pitch = 0, x_half_length = 0, y_half_length = 0
+drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
+cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
+        a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
+drift2: drift, l = dft_len
+det: marker, x_limit = 0.01, y_limit = 0.01
+
+lux_line: line = (source, drift1, cryst, drift2, det)
+use, lux_line
+\end{listing}
+
+The list of lattice elements is given in line 21.  This lattice
+constructs of five elements: The source, a crystal, and a detector
+with two drift spaces in between. The source element must be the first
+element of the lattice. The detector element must be the last
+line. Line 5 prevents a final end marker element from being inserted
+into the lattice and being mistaken for the detector element.
+
+The definitions of the lattice elements is given in lines 13 through
+19.  The reference photon energy is specified in line 3 as 10~KeV and
+line 4 sets photons as the reference particle. Lines 1 and 2 set the
+``beta'' parameters at the beginning of the lattice. While these
+parameters are not used by \lux, they need to be present to prevent
+warning messages if this lattice is used by programs other than \lux.
+
+%------------------------------------------------------------------
+\subsection{Example Lattice File for BEND Sources}
+\label{s:bend.lat}
+
+For \vn{'BEND'} type sources (cf.~\sref{s:photon.start}), a dipole
+bend, wiggler, or udulator element must be specified in the lattice
+file. This source element must be in a branch suitable for tracking
+electrons (or any other charged particle) and a \vn{photon_branch}
+element must connect this branch to a branch representing the x-ray
+line. Example:
+\begin{listing}{1}
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 1e4
+parameter[particle] = photon
+parameter[no_end_marker] = T
+
+c_rad = 75e-3  ! Crystal transverse radius 
+r0 = 0.2
+angle  = 80 * pi / 180
+qq = r0 * tan(pi/2-graze_angle)
+dft_len = sqrt(qq^2 + r0^2)
+
+source: instrument, l = 0, x_offset = 0, y_offset = 0, z_offset = 0, tilt = 0,
+        x_pitch = 0, y_pitch = 0, x_half_length = 0, y_half_length = 0
+drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
+cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
+        a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
+drift2: drift, l = dft_len
+det: marker, x_limit = 0.01, y_limit = 0.01
+
+lux_line: line = (source, drift1, cryst, drift2, det)
+use, lux_line
+\end{listing}
+
+%------------------------------------------------------------------
+\section{Photon Description}
+\label{s:photon.descrip}
+
+Photons are described by:
+\begin{example}
+  (x, vx, y, vy, z, vz)   ! six dimensional phase space vector 
+  E                       ! Photon energy 
+  e_field_x, e_field_y    ! Electric field vector
+  phase_x, phase_y        ! Electric field phase 
+\end{example}
+$(x, y, z)$ is the spatial position of the photon with $z$ being the
+longitudinal coordinate and $z=0$ corresponds to the beginning of the
+element the photon is passing though (Thus $z$ is generally not
+interesting). $(vx, vy, vz)$ is the photon velocity normalized to 1.
+Generally photons that make it to the detector will have $vz$ close to
+1 and $vx$ and $vy$ relatively ``small''.
+
+%------------------------------------------------------------------
+\section{Photon Generation}
+\label{s:photon.start}
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=4in]{sphere.pdf}
+  \caption[Direction sphere.] {
+Direction sphere used with \vn{lux_param\%source_type} set to
+"SPHERICAL". The sphere is tiled in rectangular regions in $(\phi, y)$
+space.
+  }
+  \label{f:sphere}
+  \end{figure}
+   
+%----------------------------------------------
+
+The type of source that is used to generate photons is given by the
+parameter \vn{lux_param%source_type}. This parameter may have the following
+values
+\begin{example}
+  'SPHERICAL'
+  'PLANAR'
+  'BEND'      ! Includes wigglers and undulators
+\end{example}
+
+%------------------------------------------------------------------
+\subsection{'SPHERICAL' Source Type}
+
+Photons are generated from the first element of the lattice. 
+Example source definition in the lattice input file:
+\begin{example}
+  source: instrument, l = 0, x_offset = 0, y_offset = 0, z_offset = 0,
+        x_pitch = 0, y_pitch = 0, tilt = 0, x_half_length = 0, y_half_length = 0
+\end{example}
+The physical extent of the source is given by the parameters
+\begin{example}
+  l              ! Longitudinal length (\(2 \sigma\))
+  x_half_length  ! Half length in x-direction (\(1 \sigma\))
+  y_half_length  ! Half length in the y-direction (\(1 \sigma\)).
+\end{example}
+With Gaussian spatial distributions, \vn{l} is the $2\sigma$
+longitudinal length of the source and \vn{x_half_length} and
+\vn{y_half_length} are the $1\sigma$ transverse extents.
+
+The source can be moved spatially by setting the parameters
+\begin{example}
+  x_offset, y_offset, z_offset
+  x_pitch, y_pitch, tilt
+\end{example}
+See the Bmad manual for more details.
+
+The emission spectrum is governed by the master input file parameters:
+\begin{example}
+  lux_param%sig_E
+  lux_param%dE_center
+  lux_param%dE_relative_to_ref
+  lux_param%energy_spectrum
+  lux_param%transverse_distribution     ! (x, y) spacial distribution
+\end{example}
+If \vn{lux_param%dE_relative_to_ref} is set to True, The average
+starting photon energy is
+\begin{example}
+  E_average = lux_param%dE_center + beginning[e_tot]
+\end{example}
+where the reference energy \vn{beginning[e_tot]} is set in the lattice file. 
+If \vn{lux_param%dE_relative_to_ref} is set to False, The average
+starting photon energy is simply \vn{lux_param%dE_center}.
+
+The width of the energy distribution, in eV, is set by \vn{%sig_E}.
+The \vn{%energy_spectrum} and \vn{%transverse_distribution} parameters
+establish the type of energy and spatial spectrum used. Possible
+settings for these parameters are:
+\begin{example}
+  "UNIFORM"
+  "GAUSSIAN"
+\end{example}
+A \vn{UNIFORM} spectrum has a constant probability of emission out to
+1~sigma and zero outside of this range.
+
+The simulation assumes that in the actual experiment that photons will
+be generated uniformly in all directions. Most of these direction will
+be ``uninteresting''. An uninteresting direction is a direction in
+which a photon has no chance of making its way to the detector. To
+reduce computation time, \lux tries to only generate photons in
+interesting directions. The prescription for doing this is as follows.
+
+A photon direction $(vx, vy, vz)$ can be represented as a point on the
+unit sphere as shown in \fig{f:sphere}. Any point on the sphere can be
+characterized by a $(\phi, y)$ where
+\begin{align}
+  y &= v_y \CRNO
+  \tan(\phi) &= \frac{v_x}{v_z}
+\end{align}
+$y$ must be in the range $(-1, 1)$ and $\phi$ must be in the range
+$(-\pi, \pi)$.  The surface of the sphere is broken up into a set of
+``tiles''. Each tile covers a rectangular area in $(\phi, y)$ space of
+\begin{example}
+  lux_param%del_y       ! Tile height
+  lux_param%del_phi     ! Tile width
+\end{example}
+When \lux starts, the program launches a number of photons in the
+direction of each tile. If the program determines that a photon headed
+in the direction of a given tile has a chance of making it to the
+detector, that tile is marked as ``alive''. Otherwise the tile is
+marked as ``dead''. When \lux now does the Monte Carlo simulation,
+photons are generated only in the direction of live tiles. This is
+done to reduce simulation time and should not affect the results.
+
+To cut down on the time it takes to determine which tiles are alive,
+only tiles within a rectangle centered about $(\phi, y) = (0, 0)$ are
+sampled. The rest are assumed dead. The half with and height of this
+rectangle is given in the master input file by
+\begin{example}
+  lux_param%y_max
+  lux_param%phi_max
+\end{example}
+
+If \vn{lux_param%use_all_tiles} is set to \vn{True} then all tiles
+within the rectangle determined by \vn{lux_param%y_max} and
+\vn{lux_param%phi_max} will be used for generating photons.
+This can be used as a check to see if the algorithm for deciding
+which tiles are alive is accurate.
+
+%------------------------------------------------------------------
+\subsection{'PLANAR' Source Type}
+
+The \vn{'PLANAR'} source type is similar to the \vn{'SPHERICAL'}
+source type except with \vn{'PLANAR'} all photons are generated
+traveling in the same direction. This direction is determined by the
+setting of \vn{beam_start} in the lattice file (See the Bmad manual
+for details on the \vn{beam_start} parameter).
+
+With a \vn{'PLANAR'} source, there is only one direction tile and the
+settings of the following parameters are ignored:
+\begin{example}
+  lux_param%del_y       
+  lux_param%del_phi      
+  lux_param%y_max
+  lux_param%phi_max
+\end{example}
+Additionally, the electric field is determined from the source and the setting
+of the field in the input file is ignored
+\begin{example}
+  lux_param%e_field_x
+  lux_param%e_field_y
+\end{example}
+
+%------------------------------------------------------------------
+\subsection{'BEND' Source Type}
+
+The \vn{'BEND'} source type simulates readiation coming from dipole
+bending magnets, wigglers, or undulators. In this case, photons are
+generated using the first element in the lattice. There must be a
+\vn{photon_branch} element in the lattice that branches to the x-ray
+line. 
+
+%------------------------------------------------------------------
+\subsection{Polarization Init}
+
+The polarization of the photons is set in the master input file by
+\begin{example}
+  lux_param%e_field_x     ! Polarization along the x-axis
+  lux_param%e_field_y     ! polarization along the y-axis
+\end{example}
+\lux will scale the field of each photon to 1 at the start of
+tracking. If both field components are set to zero, random
+polarization will be set. The intensity of a photon is defined as the
+square of the field so the initial photon intensity is one. As photons
+travel, they can loose intensity via, for example, diffraction from a
+crystal. This photon intensity is called the ``unnormalized'' photon
+intensity. [See \sref{s:det} for an explanation of ``normalized'' intensity.]
+
+%------------------------------------------------------------------
+\section{Photon Detection}
+\label{s:det}
+
+Photons are tracked until they are lost (hit an aperture) or until
+they get to the detector which is the last element in the lattice.
+
+Two parameters in the master input file determine when the simulation
+is stopped:
+\begin{example}
+    lux_param%stop_total_intensity
+    lux_param%stop_num_photons
+\end{example}
+If \vn{lux_param%stop_total_intensity} is positive, the simulation
+ends when the total accumulated unnormalized intensity at the detector
+passes this threshold. Intensity is the square of the photon electric
+field and the unnormalized photon intensity will vary from zero to one for
+each photon.
+
+If \vn{lux_param%stop_num_photons} is positive, the simulation is
+stopped when the number of photons generated passes this threshold. If
+both stop parameters are positive, the simulation is stopped when either
+the intensity or the number of photons passes the set threshold.
+
+To properly normalize the intensity at the detector in the output
+files, a normalization factor $f_n$ is applied.
+\Begineq
+  I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
+\Endeq
+$f_n$ is constructed so that the normalized intensity will be
+independent of the number of simulation photons and independent of the
+tiling parameters. Explicitly:
+\Begineq
+  f_n = \frac{C_f \, A_t}{4 \, \pi \, N_p}
+\Endeq
+where $A_t$ is the total area of the live tiles, $N_p$ is the number
+of photons tracked, and $C_f$ is a normalization coefficient set by
+the \vn{intensity_normalization_coef} parameter in the master input
+file, $C_f$ can be used, for example, to scale the output numbers to
+correspond to actual measured values.
+
+The detector size is set by the aperture limits of the detector
+element in the lattice file. The detector is divided up into a matrix
+of pixels. The size of the pixels is given by
+\begin{example}
+  lux_param%dx_det_pixel
+  lux_param%dy_det_pixel
+\end{example}
+
+%------------------------------------------------------------------
+\section{Numbering the Output Data Files}
+\label{s:number}
+
+The names of the output data files are specified by the following
+variables (\sref{s:master.file}):
+\begin{example}
+  emission_tile_out_file
+  photon1_out_file
+  det_pix_out_file
+\end{example}
+
+If an output data file name contains a pound character ``\#'', then a
+number will substituted for the pound character and the number
+substituted will be increased by one each time \lux is run. For example,
+if \vn{det_pix_out_file} is defined by
+\begin{example}
+  det_pix_out_file = 'lux.det_pix#'
+\end{example}
+Then the first time \lux is run, the pixel data file will be named
+``lux.det_pix1''.  The next time \lux is run, the data file will be
+named ``lux.det_pix2'', etc.
+
+Using a numbering system prevents data files from being
+overwritten. If more than one output file name has a pound character,
+all such files will receive the same number on a given run. To set the
+number given, one can edit the file:
+\begin{example}
+  lux_out_file.number
+\end{example}
+
+%------------------------------------------------------------------
+\section{Emission Tile Data File}
+\label{s:tile.file}
+
+The \vn{emission_tile_out_file} parameter (set in the master input file)
+is the name of an output data file containing statistics on photon
+survival on a tile-by-tile basis.
+
+If the file name is blank then no file will be generated. The file
+name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
+
+Only information on live tiles is displayed in the file. Each row
+represents one tile. The columns of this file are:
+\begin{example}
+  index          ! Tile index starting from 1.
+  i_phi          ! Tile phi coordinate index 
+  i_y            ! Tile y coordinate index
+  phi            ! Tile phi coordinate of center of tile
+  y              ! Tile y coordinate
+  n_photon       ! Number of photons generated from this tile
+  n_photon_live  ! Number of photons making it to the detector
+  intensity      ! Normalized photon intensity at the detector 
+                 !   from these photons.
+\end{example}
+
+%------------------------------------------------------------------
+\section{Photon1 Data File}
+\label{s:photon1.file}
+
+The \vn{photon1_out_file} parameter (set in the master input file) is
+the name of an output data file containing beginning and ``end''
+coordinates of a set of photons.
+
+The location where the ``end'' coordinates are evaluated is set by the
+\vn{ix_ele_photon} parameter from the master input file. If
+\vn{ix_ele_photon} is less than 1 then the end coordinates are
+evalueated at the detector element. If \vn{ix_ele_photon} is 1 or more
+then the end coordinates are evaluated at the exit end of the lattice
+element with index \vn{ix_ele_photon}. 
+
+If \vn{reject_dead_at_det_photon1} is set to True, photons that do not
+make it to the detector will not be included in the photon1_out
+file. In any case, a photon that does not reach the \vn{ix_ele_photon}
+element will not be included. Thus, if the lattice element where the
+photon position is being evaluated at is the detector, it will always
+be the case that photons that do not make it to the detector will not
+be included in the photon1_out file irregardless of the setting of
+\vn{reject_dead_at_det_photon1}.
+
+If the file name is blank then no file will be generated. The file
+name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
+
+If a photon at the detector has an intensity of less than
+\vn{lux_param%intensity_min_photon1_cutoff} then the photon is not
+counted.
+
+Each row in the file is a single photon. The columns in the file are:
+\begin{example}
+  n_live           ! Index of this photon.
+  beginning_orbit  ! Six columns: (x, vx, y, vy, z, vz) at the source
+  orbit_at_ix_ele  ! Six columns: (x, vx, y, vy, z, vz)
+  energy           ! Photon energy (eV).
+  intensity        ! Unnormalized photon intensity
+\end{example}
+
+%------------------------------------------------------------------
+\section{Detector Pixel Data Files}
+\label{s:det.pix.file}
+
+The \vn{det_pix_out_file} parameter (set in the master input file) is
+the name of an output data file containing pixel-by-pixel information.
+
+If the file name is blank then no file will be generated. The file
+name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
+
+The intensity of a pixel is the accumulated intensity of the photons
+hitting the pixel. Only pixels whose intensity is greater than
+\vn{lux_param%intensity_min_det_pixel_cutoff} are recorded in the
+output file. This cutoff is relative to the intensity of the pixel
+with the highest intensity.
+\vn{lux_param%intensity_min_det_pixel_cutoff} is useful for keeping
+the data file sizes small.
+
+Each row in this file represents a single pixel. The columns in this
+file are:
+\begin{example}
+  ix_pix            ! $x$-axis index
+  iy_pix            ! $y$-axis index
+  x_pix             ! $x$ coordinate of pixel center
+  y_pix             ! $y$ coordinate of pixel center
+  intensity         ! Normalized pixel intensity
+  n_photon          ! Number of photons hitting pixel
+  E_ave             ! Average energy deviation from reference (eV)
+  E_rms             ! RMS about the average energy (eV)
+\end{example}
+\vn{E_ave} is an intensity weighted average photon energy deviation
+from the reference energy at a pixel. \vn{E_rms} is the RMS variation
+of the photon energy with respect to \vn{E_ave}.
+
+In addition to the pixel-by-pixel data file, two additional files will
+be generated containing data projected on the $x$ and $y$ detector
+alux. The name of these files will be the same as
+\vn{det_pix_out_file} with ``.x'' and ``.y'' suffilux indicating
+projected data on the $x$ and $y$ alux respectively. The columns for
+the $x$-axis projected data is
+\begin{example}
+  ix_pix            ! $x$-axis index
+  x_pix             ! $x$ coordinate of pixel center
+  intensity         ! Normalized pixel intensity sum
+  n_photon          ! Number of photons hitting pixels
+  E_ave             ! Average energy deviation from reference (eV)
+  E_rms             ! RMS about the average energy (eV)
+\end{example}
+With similar columns for the $y$-axis file. The columns for the
+$x$-axis projected file records the sum of the intensities for all
+pixels with a common \vn{y_pix}. Since this can include pixels not
+recorded in the pixel-by-pixel file (due to a non-zero
+\vn{lux_param%intensity_min_det_pixel_cutoff} setting), quantities
+like the total number of photon need not match between the
+pixel-by-pixel file and the projected files.
+
+%------------------------------------------------------------------
+\section{Data Visualization}
+\label{s:vis}
+
+There is a python script for making an intensity plot of the
+\vn{det_pix_out_file} in:
+\begin{example}
+  lux/plot/det_pix_plot.py
+\end{example}
+For help run the script
+\begin{example}
+  <path_to_script>/det_pix_plot.py -help
+\end{example}
+
+%------------------------------------------------------------------
+\begin{thebibliography}{9}
+
+\bibitem{b:bmad}
+D. Sagan,
+"Bmad: A Relativistic Charged Particle Simulation Library"
+Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
+
+\end{thebibliography}
+\end{document}  

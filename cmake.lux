@@ -1,0 +1,15 @@
+set (EXENAME lux)
+
+FILE (GLOB SRC_FILES "*.f90")
+
+set (LINK_LIBS
+	bmad
+  xsif
+  xrlf03
+	xrl
+	sim_utils
+  ${PLOT_LINK_LIBS}
+	recipes_f-90_LEPP
+	forest
+	xsif
+)

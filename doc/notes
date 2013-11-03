@@ -1,0 +1,8 @@
+New stuff:
+
+xes_param%
+	del_z_sample
+	del_phi_sample
+	use_all_tiles_sample
+
+Has sample -> xes_param_use_all_tiles set to True.

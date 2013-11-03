@@ -1,0 +1,35 @@
+&params
+	lattice_file = 'spherical.bmad'                ! Defines experimental layout.
+  emission_tile_out_file = 'lux.tile'
+  det_pix_out_file = 'spherical.det_pix'
+
+  random_seed = 0                                ! Random seed. 0 => Use system clock
+  intensity_normalization_coef = 1e6             ! For normalizing photon intensities.
+
+  lux_param%use_all_tiles = True
+  lux_param%sig_E = 0                            ! Initial photon energy width (eV).
+  lux_param%dE_center = 2                        ! Initial photon energy shift (eV).
+  lux_param%dE_relative_to_ref = True            ! dE_center relative to reference E?
+  lux_param%energy_spectrum = 'GAUSSIAN'         ! or 'UNIFORM'. Energy spectrum.
+  lux_param%transverse_distribution = 'GAUSSIAN' ! or 'UNIFORM'. 
+
+  lux_param%del_y =   0.0075                     ! Individaul direction tile height.
+  lux_param%del_phi = 0.0075                     ! Individual direction tile width.
+  lux_param%y_max = 0.5                          ! Direction tile height.
+  lux_param%phi_max = 0.5                        ! Direction tile width.
+
+  lux_param%e_field_x = 0                        ! Polarization. x & y = 0 -> random
+  lux_param%e_field_y = 0
+
+  lux_param%stop_total_intensity = 30            ! Cumulative intensity to stop at.
+  lux_param%stop_num_photons = 100               ! Max number of photons to track
+
+  lux_param%dx_det_pixel = 50e-6                 ! Detector pixal width
+  lux_param%dy_det_pixel = 50e-6                 ! Detector pixal height
+  lux_param%intensity_min_det_pixel_cutoff = 0.1 ! Cutoff for det_pix_out file
+
+  photon1_out_file = 'lux.photon1'
+  lux_param%intensity_min_photon1_cutoff = 1e-3  ! Cutoff for photon1_out file
+  ix_ele_photon1 = -1                            ! Index of element for photon1_out file
+
+/
