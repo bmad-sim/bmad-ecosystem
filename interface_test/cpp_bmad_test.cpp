@@ -1561,6 +1561,24 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   // c_side.test_pat[real, 0, NOT]
   rhs = 4 + offset; C.y_pitch_rms = rhs;
 
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.e_x.size(); i++)
+    {int rhs = 101 + i + 5 + offset; C.e_x[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.e_y.size(); i++)
+    {int rhs = 101 + i + 6 + offset; C.e_y[i] = rhs;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.intensity = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.n_photon = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.energy_ave = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.energy_rms = rhs;
+
 
 }
 
@@ -2444,7 +2462,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.tracking_type = rhs;
+  rhs = 13 + offset; C.tracking_mode = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -3542,6 +3560,14 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
+    C.photon = NULL;
+  else {
+    C.photon = new CPP_photon_element;
+    set_CPP_photon_element_test_pattern((*C.photon), ix_patt);
+  }
+
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
     C.rad_int_cache = NULL;
   else {
     C.rad_int_cache = new CPP_rad_int_ele_cache;
@@ -3562,14 +3588,6 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.space_charge = new CPP_space_charge;
     set_CPP_space_charge_test_pattern((*C.space_charge), ix_patt);
-  }
-
-  // c_side.test_pat[type, 0, PTR]
-  if (ix_patt < 3) 
-    C.photon = NULL;
-  else {
-    C.photon = new CPP_photon_element;
-    set_CPP_photon_element_test_pattern((*C.photon), ix_patt);
   }
 
   // c_side.test_pat[type, 1, NOT]

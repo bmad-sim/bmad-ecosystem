@@ -2348,6 +2348,24 @@ rhs = 2 + offset; F%y_pitch = rhs
 rhs = 3 + offset; F%x_pitch_rms = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%y_pitch_rms = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%e_x,1); lb1 = lbound(F%e_x,1) - 1
+  rhs = 100 + jd1 + 5 + offset
+  F%e_x(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%e_y,1); lb1 = lbound(F%e_y,1) - 1
+  rhs = 100 + jd1 + 6 + offset
+  F%e_y(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%intensity = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%n_photon = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%energy_ave = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%energy_rms = rhs
 
 end subroutine set_surface_grid_pt_test_pattern
 
@@ -3674,7 +3692,7 @@ rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%reverse_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%tracking_type = rhs
+rhs = 13 + offset; F%tracking_mode = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 
@@ -5198,10 +5216,18 @@ else
 endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
+  if (associated(F%photon)) deallocate (F%photon)
+else
+  if (.not. associated(F%photon)) allocate (F%photon)
+  rhs = 18 + offset
+  call set_photon_element_test_pattern (F%photon, ix_patt)
+endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
   if (associated(F%rad_int_cache)) deallocate (F%rad_int_cache)
 else
   if (.not. associated(F%rad_int_cache)) allocate (F%rad_int_cache)
-  rhs = 18 + offset
+  rhs = 20 + offset
   call set_rad_int_ele_cache_test_pattern (F%rad_int_cache, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5209,7 +5235,7 @@ if (ix_patt < 3) then
   if (associated(F%rf_wake)) deallocate (F%rf_wake)
 else
   if (.not. associated(F%rf_wake)) allocate (F%rf_wake)
-  rhs = 20 + offset
+  rhs = 22 + offset
   call set_rf_wake_test_pattern (F%rf_wake, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5217,16 +5243,8 @@ if (ix_patt < 3) then
   if (associated(F%space_charge)) deallocate (F%space_charge)
 else
   if (.not. associated(F%space_charge)) allocate (F%space_charge)
-  rhs = 22 + offset
-  call set_space_charge_test_pattern (F%space_charge, ix_patt)
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
-  if (associated(F%photon)) deallocate (F%photon)
-else
-  if (.not. associated(F%photon)) allocate (F%photon)
   rhs = 24 + offset
-  call set_photon_element_test_pattern (F%photon, ix_patt)
+  call set_space_charge_test_pattern (F%space_charge, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1

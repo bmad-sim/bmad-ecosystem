@@ -1104,12 +1104,24 @@ public:
   Real y_pitch;
   Real x_pitch_rms;
   Real y_pitch_rms;
+  Real_ARRAY e_x;
+  Real_ARRAY e_y;
+  Real intensity;
+  Int n_photon;
+  Real energy_ave;
+  Real energy_rms;
 
   CPP_surface_grid_pt() :
     x_pitch(0.0),
     y_pitch(0.0),
     x_pitch_rms(0.0),
-    y_pitch_rms(0.0)
+    y_pitch_rms(0.0),
+    e_x(0.0, 2),
+    e_y(0.0, 2),
+    intensity(0.0),
+    n_photon(0),
+    energy_ave(0.0),
+    energy_rms(0.0)
     {}
 
   ~CPP_surface_grid_pt() {
@@ -1534,7 +1546,7 @@ public:
   Bool stable;
   Bool aperture_limit_on;
   Bool reverse_time_tracking;
-  Int tracking_type;
+  Int tracking_mode;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1550,7 +1562,7 @@ public:
     stable(false),
     aperture_limit_on(true),
     reverse_time_tracking(false),
-    tracking_type(Bmad::INCOHERENT),
+    tracking_mode(Bmad::INCOHERENT),
     bookkeeping_state()
     {}
 
@@ -2096,10 +2108,10 @@ public:
   CPP_em_fields* em_field;
   CPP_floor_position floor;
   CPP_mode3* mode3;
+  CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_rf_wake* rf_wake;
   CPP_space_charge* space_charge;
-  CPP_photon_element* photon;
   CPP_taylor_ARRAY taylor;
   CPP_wall3d* wall3d;
   CPP_wig* wig;
@@ -2193,10 +2205,10 @@ public:
     em_field(NULL),
     floor(),
     mode3(NULL),
+    photon(NULL),
     rad_int_cache(NULL),
     rf_wake(NULL),
     space_charge(NULL),
-    photon(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     wall3d(NULL),
     wig(NULL),
@@ -2261,10 +2273,10 @@ public:
     delete descrip;
     delete em_field;
     delete mode3;
+    delete photon;
     delete rad_int_cache;
     delete rf_wake;
     delete space_charge;
-    delete photon;
     delete wall3d;
     delete wig;
   }

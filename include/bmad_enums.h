@@ -28,7 +28,6 @@ namespace Bmad {
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
   const int RAD_INT_GROUP = 7, ALL_GROUPS = 8;
   const int SEGMENTED = 2, H_MISALIGN = 3;
-  const int ISOTROPIC_EMISSION = 1;
   const int INCOHERENT = 1, COHERENT = 2;
   const int OPAL = 1, IMPACTT = 2;
   const int DRIFT = 1, SBEND = 2, QUADRUPOLE = 3, GROUP = 4;
@@ -98,7 +97,7 @@ namespace Bmad {
   const int PHI0=13, TILT_CALIB=13, F0_RE=13, F0_RE1=13;
   const int PHI0_ERR=14, COEF=14, CURRENT=14, L_POLE=14, PARTICLE = 14;
   const int QUAD_TILT=14, DE_ETA_MEAS=14, F0_IM=14, F0_IM1 = 14;
-  const int GEOMETRY = 15, BEND_TILT=15;
+  const int GEOMETRY = 15, BEND_TILT=15, MODE=15;
   const int DPHI0=15, N_SAMPLE=15, FH_RE=15, F0_RE2=15, ORIGIN_ELE_REF_PT=15;
   const int DPHI0_REF = 16, FH_IM=16, F0_IM2=16, X_HALF_LENGTH=16, DX_ORIGIN= 16;
   const int LATTICE_TYPE = 16, X_QUAD=16;

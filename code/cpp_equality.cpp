@@ -437,6 +437,12 @@ bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   is_eq = is_eq && (x.y_pitch == y.y_pitch);
   is_eq = is_eq && (x.x_pitch_rms == y.x_pitch_rms);
   is_eq = is_eq && (x.y_pitch_rms == y.y_pitch_rms);
+  is_eq = is_eq && is_all_equal(x.e_x, y.e_x);
+  is_eq = is_eq && is_all_equal(x.e_y, y.e_y);
+  is_eq = is_eq && (x.intensity == y.intensity);
+  is_eq = is_eq && (x.n_photon == y.n_photon);
+  is_eq = is_eq && (x.energy_ave == y.energy_ave);
+  is_eq = is_eq && (x.energy_rms == y.energy_rms);
   return is_eq;
 };
 
@@ -643,7 +649,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.reverse_time_tracking == y.reverse_time_tracking);
-  is_eq = is_eq && (x.tracking_type == y.tracking_type);
+  is_eq = is_eq && (x.tracking_mode == y.tracking_mode);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
 };
@@ -917,6 +923,9 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.mode3 == NULL) == (y.mode3 == NULL));
   if (!is_eq) return false;
   if (x.mode3 != NULL) is_eq = (*x.mode3 == *y.mode3);
+  is_eq = is_eq && ((x.photon == NULL) == (y.photon == NULL));
+  if (!is_eq) return false;
+  if (x.photon != NULL) is_eq = (*x.photon == *y.photon);
   is_eq = is_eq && ((x.rad_int_cache == NULL) == (y.rad_int_cache == NULL));
   if (!is_eq) return false;
   if (x.rad_int_cache != NULL) is_eq = (*x.rad_int_cache == *y.rad_int_cache);
@@ -926,9 +935,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.space_charge == NULL) == (y.space_charge == NULL));
   if (!is_eq) return false;
   if (x.space_charge != NULL) is_eq = (*x.space_charge == *y.space_charge);
-  is_eq = is_eq && ((x.photon == NULL) == (y.photon == NULL));
-  if (!is_eq) return false;
-  if (x.photon != NULL) is_eq = (*x.photon == *y.photon);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
   is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
   if (!is_eq) return false;
