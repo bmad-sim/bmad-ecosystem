@@ -31,9 +31,10 @@ type lux_source_struct
   integer n_tile_tot           ! Total number of tiles
   type (ele_struct), pointer :: source_ele, branch_ele, det_ele
   type (lux_direction_tile_struct), allocatable :: tile(:)   ! List of live tiles
-  integer n_slice                                            ! Number of slices
-  type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_slice)
+  integer n_bend_slice                                       ! Number of slices
+  type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   real(rp) E_min, E_max                                      ! Photon energy range 
+  integer n_energy_pts
 end type
 
 type lux_params_struct
@@ -53,6 +54,7 @@ type lux_params_struct
   logical :: use_all_tiles = .false.
   logical :: dE_relative_to_ref = .true.
   integer :: ix_tile_count = 0
+  integer :: ix_tracking_mode
   logical :: debug = .false.     ! For debugging
 end type
 
@@ -78,24 +80,23 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine generate_photon (photon, lat, lux_param, source, position, direction, E_edge)
+! Subroutine generate_photon (photon, lat, ix_energy, lux_param, source, position, direction)
 !
 ! Routine to generate the starting photon coordinates
 !
 ! Input:
 !   lat           -- lat_struct: Lattice.
+!   ix_energy     -- Integer: Energy slice index.
 !   source        -- lux_source_struct: Source parameters
 !   position(3)   -- real(rp), optional: Normalized position [x, y, z] with 0 < x < 1, etc.
 !                     If not present then random numbers will be used.
 !   direction(2)  -- real(rp), optional: Photon direction of travel: [d1, d2, sqrt(1-d1^2-d2^2)]
-!   E_edge        -- integer, optional: Set photon energy at edge of spectrum? 
-!                      Edge = 3*sigma for Gaussian distributeion. +1 = +edge, -1 => -edge.
 !
 ! Ouput:
 !   photon     -- lux_photon_struct: Initialized starting coords.
 !-
 
-subroutine generate_photon (photon, lat, lux_param, source, position, direction, E_edge)
+subroutine generate_photon (photon, lat, ix_energy, lux_param, source, position, direction)
 
 implicit none
 
@@ -114,8 +115,7 @@ real(rp) x, y, phi, r(3), dir(2), ds, rr, r_emit(5), prob, f
 real(rp) v_mat(4,4), v_inv_mat(4,4), vec(4), dE, e(3), b(3)
 real(rp) g_bend(3), gamma_electron
 
-integer, optional :: E_edge
-integer ix, n_tile, n_slice
+integer ix, n_tile, n_slice, ix_energy
 
 !
 
@@ -177,7 +177,12 @@ case ('BEND')
 
   gamma_electron = source_ele%value(p0c$) * &
                       (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-  call photon_init (g_bend(1), g_bend(2), gamma_electron, source%E_min, source%E_max, .true., orb)
+  if (lux_param%ix_tracking_mode == coherent$ .and. ix_energy > 0) then
+    rr = (ix_energy - 0.5_rp) / source%n_energy_pts
+    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, source%E_min, source%E_max, rr)
+  else
+    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, source%E_min, source%E_max, -1.0_rp)
+  endif
   call absolute_photon_position (charged_orb, orb)
   orb%s = source_ele%s - (1 - rr) * source_ele%value(l$) 
 
@@ -236,19 +241,11 @@ end select
 ! Set energy
 
 if (lux_param%energy_spectrum == 'UNIFORM') then
-  if (present(E_edge)) then
-    rr = (E_edge + 1.0) / 2 
-  else
-    call ran_uniform(rr)
-    rr = (2 * rr - 1) / 2.0
-  endif
+  call ran_uniform(rr)
+  rr = (2 * rr - 1) / 2.0
 
 else if (lux_param%energy_spectrum == 'GAUSSIAN') then
-  if (present(E_edge)) then
-    rr = 3 * E_edge 
-  else
-    call ran_gauss(rr)
-  endif
+  call ran_gauss(rr)
 
 else
   print *, 'BAD LUX_PARAM%ENERGY_SPECTRUM SETTING: ', lux_param%energy_spectrum 
@@ -374,7 +371,7 @@ enddo
 if (lux_param%source_type == 'BEND') then
   allocate (source%tile(1))
   n_slice = max(1, nint(source%source_ele%value(l$) / source%source_ele%value(ds_step$)))
-  source%n_slice = n_slice
+  source%n_bend_slice = n_slice
   allocate (source%bend_slice(0:n_slice))
 
   source%E_min = lux_param%dE_center - lux_param%sig_E
@@ -464,7 +461,7 @@ do ip = -n_phi-1, n_phi
 
     i_loop: do i = 0, 1;  do j = 0, 1;  do k = 0, 1
       position = [i, j, k]
-      call generate_photon (photon, lat, lux_param, source, position, direction, 0)
+      call generate_photon (photon, lat, 0, lux_param, source, position, direction)
       call track_all (lat, photon%orb, branch%ix_branch, track_state)
 
       if (lux_param%debug) then

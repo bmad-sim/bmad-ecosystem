@@ -1,8 +1,11 @@
 New stuff:
 
-xes_param%
-	del_z_sample
-	del_phi_sample
-	use_all_tiles_sample
+Has sample -> lux%use_all_tiles set to True.
 
-Has sample -> xes_param_use_all_tiles set to True.
+lux%n_energy_pt:
+	Only used with coherent photons
+	
+
+coherent photons
+	input parameter: tracking_mode 
+	stop vales are per energy point

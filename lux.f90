@@ -12,19 +12,19 @@ type (lux_photon_struct), target :: photon
 type (lux_direction_tile_struct), pointer :: tt
 type (surface_grid_struct), pointer :: detector
 type (coord_struct), pointer :: end_orb, this_orb
-type (surface_grid_point_struct), pointer :: pix
-type (surface_grid_point_struct) :: pixel
+type (surface_grid_pt_struct), pointer :: pix
+type (surface_grid_pt_struct) :: pixel
 type (branch_struct), pointer :: branch
 
-real(rp) intensity, intens_max, total_intensity, dtime
+real(rp) intensity, intens_max, intensity_sum, intensity_tot, dtime
 real(rp) cut, normalization, intensity_normalization_coef, area
-real(rp) total_dead_intens, pix_in_file_intensity, x
-real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_sum, e2_sum, e_ave, e_ref
+real(rp) total_dead_intens, pix_in_file_intensity, x, phase
+real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 
-integer i, j, n, ie, nt, n_track, n_live, track_state, ix_tile
-integer nx, ny, nx_min, nx_max, ny_min, ny_max, ix_tracking_mode
+integer i, j, n, ie, nt, n_track, n_track_tot, n_live, track_state, ix_tile
+integer nx, ny, nx_min, nx_max, ny_min, ny_max, ie_max
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
-integer random_seed, n_photon1_file, n_throw, ix_ele_photon1, 
+integer random_seed, n_photon1_file, n_throw, ix_ele_photon1
 
 character(3) num_str
 character(16) random_engine, tracking_mode
@@ -94,8 +94,8 @@ if (random_engine == 'quasi') then
   enddo
 endif
 
-call match_word (tracking_mode, tracking_mode_name, ix_tracking_mode)
-if (ix_tracking_mode < 1) then
+call match_word (tracking_mode, tracking_mode_name, lux_param%ix_tracking_mode)
+if (lux_param%ix_tracking_mode < 1) then
   print *, 'Unknown tracking mode: ' // tracking_mode
   stop
 endif
@@ -153,7 +153,7 @@ call reallocate_coord (photon%orb, branch%n_ele_track)
 nt = branch%n_ele_track
 detec_ele => branch%ele(nt)
 source%det_ele => detec_ele
-detector => detec_ele%surface%grid
+detector => detec_ele%photon%surface%grid
 
 if (detec_ele%value(x1_limit$) == 0 .or. detec_ele%value(x2_limit$) == 0 .or. &
     detec_ele%value(y1_limit$) == 0 .or. detec_ele%value(y2_limit$) == 0) then
@@ -181,8 +181,6 @@ if (photon1_out_file /= '') then
   open (1, file = photon1_out_file, recl = 200)
 endif
 
-n_live = 0
-n_track = 0
 call reallocate_coord (photon%orb, lat, branch%ix_branch)
 
 nx_min = lbound(detector%pt, 1)
@@ -190,85 +188,118 @@ nx_max = ubound(detector%pt, 1)
 ny_min = lbound(detector%pt, 2)
 ny_max = ubound(detector%pt, 2)
 
-total_intensity = 0
 n_photon1_file = 0
 
 x_sum = 0; x2_sum = 0
 y_sum = 0; y2_sum = 0
-e_sum = 0; e2_sum = 0
+e_ave = 0; e_rms = 0
 
 !------------------------------------------
-! Track photons
 
-do 
-  if (lux_param%stop_num_photons > 0 .and. n_track >= lux_param%stop_num_photons) exit
-  n_track = n_track + 1
+ie_max = 1
+if (lux_param%ix_tracking_mode == coherent$) then
+  ie_max = source%n_energy_pts
+endif
 
-  call generate_photon (photon, lat, lux_param, source)
-  if (lux_param%debug) then
-    call init_coord (photon%orb(0), lat%beam_start, branch%ele(0), .true., photon$, &
-                                        1, branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
-  endif
+n_live = 0
+n_track_tot = 0
+intensity_tot = 0
 
-  call track_all (lat, photon%orb, branch%ix_branch, track_state)
+energy_loop: do ie = 1, ie_max
 
-  end_orb => photon%orb(nt)
-  call offset_photon (detec_ele, end_orb, set$)
+  n_track = 0
+  intensity_sum = 0
 
-  intensity = end_orb%field(1)**2 + end_orb%field(2)**2
+  do 
+    if (lux_param%stop_total_intensity > 0 .and. intensity_sum >= lux_param%stop_total_intensity) exit
+    if (lux_param%stop_num_photons > 0 .and. n_track >= lux_param%stop_num_photons) exit
+    n_track = n_track + 1
+    n_track_tot = n_track_tot + 1
 
-  ! Write results
-
-  if (photon1_out_file /= '' .and. intensity >= lux_param%intensity_min_photon1_cutoff) then
-    if (ix_ele_photon1 < 1) then
-      this_orb => end_orb
-    else
-      this_orb => photon%orb(ix_ele_photon1)
+    call generate_photon (photon, lat, ie, lux_param, source)
+    if (lux_param%debug) then
+      call init_coord (photon%orb(0), lat%beam_start, branch%ele(0), .true., photon$, &
+                                          1, branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
     endif
 
-    accept = .true.
-    if (reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
-    if (this_orb%state /= alive$) accept = .false.
-    if (accept) then
-      write (1, '(i9, 6f15.10, a, 6f10.5, f11.3, f10.6)') n_live, photon%orb(1)%vec, ' : ', &
-                      this_orb%vec, this_orb%p0c, intensity
-      n_photon1_file = n_photon1_file + 1
+    call track_all (lat, photon%orb, branch%ix_branch, track_state)
+
+    end_orb => photon%orb(nt)
+    call offset_photon (detec_ele, end_orb, set$)
+
+    intensity = end_orb%field(1)**2 + end_orb%field(2)**2
+
+    ! Write results
+
+    if (photon1_out_file /= '' .and. intensity >= lux_param%intensity_min_photon1_cutoff) then
+      if (ix_ele_photon1 < 1) then
+        this_orb => end_orb
+      else
+        this_orb => photon%orb(ix_ele_photon1)
+      endif
+
+      accept = .true.
+      if (reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
+      if (this_orb%state /= alive$) accept = .false.
+      if (accept) then
+        write (1, '(i9, 6f15.10, a, 6f10.5, f11.3, f10.6)') n_live, photon%orb(1)%vec, ' : ', &
+                        this_orb%vec, this_orb%p0c, intensity
+        n_photon1_file = n_photon1_file + 1
+      endif
     endif
+
+    !
+
+    if (track_state /= moving_forward$) cycle
+
+    ! Go to coordinates of the detector
+
+    n_live = n_live + 1
+    intensity_tot = intensity_tot + intensity
+    intensity_sum = intensity_sum + intensity
+
+    E_ref = detec_ele%value(e_tot$)
+    x_sum  = x_sum  + intensity * end_orb%vec(1)
+    x2_sum = x2_sum + intensity * end_orb%vec(1)**2
+    y_sum  = y_sum  + intensity * end_orb%vec(3)
+    y2_sum = y2_sum + intensity * end_orb%vec(3)**2
+    e_ave  = e_ave  + intensity * (end_orb%p0c - e_ref)
+    e_rms = e_rms + intensity * (end_orb%p0c - e_ref)**2
+
+    source%tile(photon%ix_tile)%n_photon_live = source%tile(photon%ix_tile)%n_photon_live + 1
+    source%tile(photon%ix_tile)%det_intensity = source%tile(photon%ix_tile)%det_intensity + intensity
+
+    nx = nint((end_orb%vec(1) - detector%r0(1)) / detector%dr(1))
+    ny = nint((end_orb%vec(3) - detector%r0(2)) / detector%dr(2))
+
+    if (nx_min <= nx .and. nx <= nx_max .and. ny_min <= ny .and. ny <= ny_max) then
+      pix => detector%pt(nx,ny)
+      pix%n_photon  = pix%n_photon + 1
+      if (lux_param%ix_tracking_mode == coherent$) then
+        phase = end_orb%phase(1) + end_orb%t * end_orb%p0c / h_bar_planck
+        pix%E_x = pix%E_x + end_orb%field(1) * [cos(phase), sin(phase)]
+        phase = end_orb%phase(2) + end_orb%t * end_orb%p0c / h_bar_planck
+        pix%E_y = pix%E_y + end_orb%field(2) * [cos(phase), sin(phase)]
+      else
+        pix%intensity = pix%intensity + intensity
+        pix%energy_ave  = pix%energy_ave  + intensity * (end_orb%p0c - e_ref)
+        pix%energy_rms = pix%energy_rms + intensity * (end_orb%p0c - e_ref)**2
+      endif
+    endif
+
+  enddo
+
+  if (lux_param%ix_tracking_mode == coherent$) then
+    do nx= nx_min, nx_max; do ny= ny_min, ny_max
+      pix => detector%pt(nx,ny)
+      intensity = pix%E_x(1)**2 + pix%E_x(2)**2 + pix%E_y(1)**2 + pix%E_y(2)**2
+      pix%intensity = pix%intensity + intensity
+      pix%energy_ave  = pix%energy_ave  + intensity * (end_orb%p0c - e_ref)
+      pix%energy_rms = pix%energy_rms + intensity * (end_orb%p0c - e_ref)**2
+    enddo; enddo
   endif
 
-  !
-
-  if (track_state /= moving_forward$) cycle
-
-  ! Go to coordinates of the detector
-
-  n_live = n_live + 1
-  total_intensity = total_intensity + intensity
-
-  E_ref = detec_ele%value(e_tot$)
-  x_sum  = x_sum  + intensity * end_orb%vec(1)
-  x2_sum = x2_sum + intensity * end_orb%vec(1)**2
-  y_sum  = y_sum  + intensity * end_orb%vec(3)
-  y2_sum = y2_sum + intensity * end_orb%vec(3)**2
-  e_sum  = e_sum  + intensity * (end_orb%p0c - e_ref)
-  e2_sum = e2_sum + intensity * (end_orb%p0c - e_ref)**2
-
-  source%tile(photon%ix_tile)%n_photon_live = source%tile(photon%ix_tile)%n_photon_live + 1
-  source%tile(photon%ix_tile)%det_intensity = source%tile(photon%ix_tile)%det_intensity + intensity
-
-  nx = nint((end_orb%vec(1) - detector%r0(1)) / detector%dr(1))
-  ny = nint((end_orb%vec(3) - detector%r0(2)) / detector%dr(2))
-
-  if (nx_min <= nx .and. nx <= nx_max .and. ny_min <= ny .and. ny <= ny_max) then
-    pix => detector%pt(nx,ny)
-    pix%intensity = pix%intensity + intensity
-    pix%n_photon  = pix%n_photon + 1
-    pix%e_sum  = pix%e_sum  + intensity * (end_orb%p0c - e_ref)
-    pix%e2_sum = pix%e2_sum + intensity * (end_orb%p0c - e_ref)**2
-  endif
-
-  if (lux_param%stop_total_intensity > 0 .and. total_intensity >= lux_param%stop_total_intensity) exit
-enddo
+enddo energy_loop
 
 if (lux_param%source_type == 'SPHERICAL') then
   area = size(source%tile) * lux_param%del_phi * lux_param%del_y
@@ -276,7 +307,7 @@ else
   area = fourpi
 endif
 
-normalization = intensity_normalization_coef * area / (n_track * fourpi)
+normalization = intensity_normalization_coef * area / (n_track_tot * fourpi)
 
 close(1)
 
@@ -286,7 +317,7 @@ close(1)
 pix_in_file_intensity = 0
 
 if (det_pix_out_file /= '') then
-  open (3, file = det_pix_out_file)
+  open (3, file = det_pix_out_file, recl = 160)
   intens_max = maxval(detector%pt%intensity)
   cut = intens_max * lux_param%intensity_min_det_pixel_cutoff
 
@@ -320,10 +351,10 @@ if (det_pix_out_file /= '') then
   do j = ny_min, ny_max
     pix => detector%pt(i,j)
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
-    pix%e_ave = pix%e_sum / pix%intensity
-    pix%e_rms = sqrt(max(0.0_rp, pix%e2_sum / pix%intensity - pix%e_ave**2)) 
+    pix%energy_ave = pix%energy_ave / pix%intensity
+    pix%energy_rms = sqrt(max(0.0_rp, pix%energy_rms / pix%intensity - pix%energy_ave**2)) 
     write (3, '(2i8, 2f11.6, es16.5, i8, 2f10.3)') i, j, [i,j]*detector%dr+detector%r0, &
-           pix%intensity * normalization, pix%n_photon, pix%e_ave, pix%e_rms
+           pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
     pix_in_file_intensity = pix_in_file_intensity + pix%intensity 
   enddo
   enddo
@@ -334,14 +365,14 @@ if (det_pix_out_file /= '') then
   write (3, '(a)')        '#-----------------------------------------------------'
   write (3, '(a)')        '#     ix      x_pix      Intensity  N_photn     E_ave     E_rms'
   do i = nx_min, nx_max
-    pixel = lux_detector_pixel_struct()
+    pixel = surface_grid_pt_struct()
     pixel%intensity = sum(detector%pt(i,:)%intensity)
     pixel%n_photon  = sum(detector%pt(i,:)%n_photon)
     if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
-    pixel%e_ave = sum(detector%pt(i,:)%e_sum) / pixel%intensity
-    pixel%e_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%e2_sum) / pixel%intensity - pixel%e_ave**2))
+    pixel%energy_ave = sum(detector%pt(i,:)%energy_ave) / pixel%intensity
+    pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
     write (3, '(i8, f11.6, es16.5, i8, 2f10.3)') i, i*detector%dr(1)+detector%r0(1), &
-                       pixel%intensity * normalization, pixel%n_photon, pixel%e_ave, pixel%e_rms
+                       pixel%intensity * normalization, pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
   close(3)
 
@@ -349,14 +380,14 @@ if (det_pix_out_file /= '') then
   write (3, '(a)')        '#-----------------------------------------------------'
   write (3, '(a)')        '#     iy      y_pix      Intensity  N_photn     E_ave     E_rms'
   do j = ny_min, ny_max
-    pixel = lux_detector_pixel_struct()
+    pixel = surface_grid_pt_struct()
     pixel%intensity = sum(detector%pt(:,j)%intensity)
     pixel%n_photon  = sum(detector%pt(:,j)%n_photon)
     if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
-    pixel%e_ave = sum(detector%pt(:,j)%e_sum) / pixel%intensity
-    pixel%e_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%e2_sum) / pixel%intensity - pixel%e_ave**2)) 
+    pixel%energy_ave = sum(detector%pt(:,j)%energy_ave) / pixel%intensity
+    pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
     write (3, '(i8, f11.6, es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
-                       pixel%intensity * normalization, pixel%n_photon, pixel%e_ave, pixel%e_rms
+                       pixel%intensity * normalization, pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
   close(3)
 
@@ -373,9 +404,9 @@ if (emission_tile_out_file /= '') then
                       i, tt%iphi, tt%iy, tt%iphi * lux_param%del_phi, tt%iy * lux_param%del_y, &
                       tt%n_photon, tt%n_photon_live, tt%det_intensity * normalization, tt%alive
     if (tt%alive .or. tt%n_photon_live == 0) cycle
-    if (tt%det_intensity > 1d-5 * total_intensity) then
+    if (tt%det_intensity > 1d-5 * intensity_tot) then
       print '(a, 2i5, f10.5)', '*** NOTE! PHOTONS ARE REACHING DETECTOR FROM DEAD TILE I_PHI, I_Y: ', &
-              tt%iphi, tt%iy, tt%det_intensity / total_intensity
+              tt%iphi, tt%iy, tt%det_intensity / intensity_tot
     endif
   enddo
   close(10)
@@ -389,35 +420,35 @@ do i = 1, size(source%tile)
   if (tt%alive) cycle
   total_dead_intens = total_dead_intens + tt%det_intensity
 enddo
-if (total_dead_intens > 1e-4 * total_intensity) then
-  print '(a, f10.5, a)', 'TOTAL INTENSITY FROM DEAD TILES:', 100 * total_dead_intens / total_intensity, '%'
-elseif (total_intensity == 0) then
+if (total_dead_intens > 1e-4 * intensity_tot) then
+  print '(a, f10.5, a)', 'TOTAL INTENSITY FROM DEAD TILES:', 100 * total_dead_intens / intensity_tot, '%'
+elseif (intensity_tot == 0) then
   print '(a, f10.5, a)', 'Total intensity from dead tiles:', 0.0_rp, '%'
 else
-  print '(a, f10.5, a)', 'Total intensity from dead tiles:', 100 * total_dead_intens / total_intensity, '%'
+  print '(a, f10.5, a)', 'Total intensity from dead tiles:', 100 * total_dead_intens / intensity_tot, '%'
 endif
 
 !
 
 call run_timer ('READ', dtime)
 
-print *, 'Photons Tracked:                       ', n_track
+print *, 'Photons Tracked:                       ', n_track_tot
 print *, 'Photons at detector:                   ', n_live
 print *, 'Normalization factor:                  ', normalization
-print *, 'Total intensity (unnormalized):        ', total_intensity
-print *, 'Total intensity (normalized):          ', total_intensity * normalization
+print *, 'Total intensity (unnormalized):        ', intensity_tot
+print *, 'Total intensity (normalized):          ', intensity_tot * normalization
 print *
 print *, 'Photons at detector making photon1 cut:', n_photon1_file
-if (total_intensity /= 0) then
-  x_ave = x_sum / total_intensity; y_ave = y_sum / total_intensity
-  e_ave = e_sum / total_intensity
+if (intensity_tot /= 0) then
+  x_ave = x_sum / intensity_tot; y_ave = y_sum / intensity_tot
+  e_ave = e_ave / intensity_tot
   print '(a, f10.3)', &
-          ' %Intensity at pixels not in det_pix file:', 100 * (total_intensity - pix_in_file_intensity) / total_intensity
+          ' %Intensity at pixels not in det_pix file:', 100 * (intensity_tot - pix_in_file_intensity) / intensity_tot
   print '(a, 2f12.5)', 'Average position at det (x, y) (mm):     ', 1000 * x_ave, 1000 * y_ave
-  print '(a, 2f12.5)', 'RMS at det (x, y) (mm):                  ', 1000 * sqrt(x2_sum / total_intensity - x_ave**2), &
-                                                                    1000 * sqrt(y2_sum / total_intensity - y_ave**2)
+  print '(a, 2f12.5)', 'RMS at det (x, y) (mm):                  ', 1000 * sqrt(x2_sum / intensity_tot - x_ave**2), &
+                                                                    1000 * sqrt(y2_sum / intensity_tot - y_ave**2)
   print '(a, 2f12.5)', 'Average energy deviation at det (eV):    ', e_ave
-  print '(a, 2f12.5)', 'RMS energy at det (eV):                  ', sqrt(max(0.0_rp, e2_sum / total_intensity - e_ave**2))
+  print '(a, 2f12.5)', 'RMS energy at det (eV):                  ', sqrt(max(0.0_rp, e_rms / intensity_tot - e_ave**2))
 endif
 print '(a, f10.2)', &
         ' Simulation time (min):               ', dtime/60

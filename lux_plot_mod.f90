@@ -35,7 +35,7 @@ call qp_set_margin (0.07_rp, 0.05_rp, 0.10_rp, 0.05_rp, '%PAGE')
 call qp_calc_and_set_axis ('X', -lux_param%phi_max, lux_param%phi_max, 6, 10, 'GENERAL')
 call qp_calc_and_set_axis ('Y', -lux_param%y_max, lux_param%y_max, 6, 10, 'GENERAL')
 
-call qp_draw_alux ('Phi', 'Y', 'Emission Direction Tiles')
+call qp_draw_axes ('Phi', 'Y', 'Emission Direction Tiles')
 
 do ix = 1, size(source%tile)
   x1 = (source%tile(ix)%iphi - 0.5) * lux_param%del_phi
@@ -64,7 +64,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (lux_detector_struct) detector
+type (surface_grid_struct) detector
 type (lux_params_struct) lux_param
 
 real(rp) x1, x2, y1, y2
@@ -81,10 +81,10 @@ ele => lat%ele(lat%n_ele_track)
 call qp_calc_and_set_axis ('X', -ele%value(x1_limit$), ele%value(x2_limit$), 6, 10, 'GENERAL')
 call qp_calc_and_set_axis ('Y', -ele%value(y1_limit$), ele%value(y2_limit$), 6, 10, 'GENERAL')
 
-call qp_draw_alux ('X', 'Y', 'Detector Pixels')
+call qp_draw_axes ('X', 'Y', 'Detector Pixels')
 
-do ix = 1, lbound(detector%pixel, 1), ubound(detector%pixel, 1)
-do iy = 1, lbound(detector%pixel, 2), ubound(detector%pixel, 2)
+do ix = 1, lbound(detector%pt, 1), ubound(detector%pt, 1)
+do iy = 1, lbound(detector%pt, 2), ubound(detector%pt, 2)
   call qp_paint_rectangle (x1, x2, y1, y2, color = red$)
 enddo
 enddo
