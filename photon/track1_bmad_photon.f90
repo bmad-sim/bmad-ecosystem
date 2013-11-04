@@ -43,7 +43,7 @@ integer i, n, n_slice, key
 logical, optional :: err_flag
 logical err
 
-character(16) :: r_name = 'track1_bmad_photon'
+character(*), parameter :: r_name = 'track1_bmad_photon'
 
 ! initially set end_orb = start_orb
 
@@ -79,6 +79,15 @@ case (crystal$)
 
   call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
   call track1_crystal (ele, param, end_orb)
+  call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
+
+!-----------------------------------------------
+! Diffraction_plate
+ 
+case (diffraction_plate$)
+
+  call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
+  call track1_diffraction_plate (ele, param, end_orb)
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------

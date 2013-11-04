@@ -396,16 +396,12 @@ if (associated(surf)) then
                  surf%grid%dr, surf%grid%r0, surf%segment, allocated(surf%grid%pt)
 
   if (allocated(surf%grid%pt)) then
-    write (d_unit) ubound(surf%grid%pt)
-    do i = 0, ubound(surf%grid%pt, 1)
-    do j = 0, ubound(surf%grid%pt, 2)
-      s_pt => surf%grid%pt(i,j)
-      if (all ([s_pt%x_pitch, s_pt%y_pitch, s_pt%x_pitch_rms, s_pt%y_pitch_rms] == 0)) cycle
-      write (d_unit), i, j
-      write (d_unit) s_pt
+    write (d_unit) lbound(surf%grid%pt), ubound(surf%grid%pt)
+    do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
+    do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
+      write (d_unit) surf%grid%pt(i,j)
     enddo
     enddo
-    write (d_unit), -1, -1
   endif
 
 endif

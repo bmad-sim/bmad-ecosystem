@@ -725,15 +725,22 @@ and $(x, y, z)$ are the reference orbit coordinates with $z$ being the
 distance from the start of the lattice element the photon is in.
 
 In \bmad, the information associated with a photon include its phase
-space coordinates along with the photon energy and four parameters
-$E_x, \phi_x$, and $E_y, \phi_y$ specifying the intensity and phase of
-the field along the $x$ and $y$ axes.
+space coordinates and time along with the photon energy and four
+parameters $E_x, \phi_x$, and $E_y, \phi_y$ specifying the intensity
+and phase of the field along the $x$ and $y$ axes transverse to the
+direction of propagation.  the field in the vicinity of the photon is
 \begin{align}
-  E_x (\Bf r, t) &\sim |E_x| \, e^{i (k \, z - \omega \, t + \phi_x)} \CRNO
-  E_y (\Bf r, t) &\sim |E_y| \, e^{i (k \, z - \omega \, t + \phi_y)} \CRNO
+  E_x (\Bf r, t) &\sim E_x \, e^{i (k \, (z - z_0) - \omega \, (t - t_0) + \phi_x)} \CRNO
+  E_y (\Bf r, t) &\sim E_y \, e^{i (k \, (z - z_0) - \omega \, (t - t_0) + \phi_y)} \CRNO
 \end{align}
-The normalization between field and intensity is determined by the
-individual simulation programs and is not part of the \bmad standard.
+where $z_0$ and $t_0$ are the photon $z$ position and time
+respectively.  The use of $z_0$ and $t_0$ in the above equation is one
+of convienience and the photon serves as the origin for the
+calculation of the field.
+
+The normalization between field and intensity is dependent upon the
+particular parameters of any given simulation and so must be
+determined by the program using \bmad.
 
 %-----------------------------------------------------------------------------
 \section{Time-based Phase Space Coordinate System}

@@ -709,7 +709,6 @@ if (attrib_word == 'SURFACE') then
             endif
             if (allocated (surf%grid%pt)) deallocate (surf%grid%pt)
             allocate (surf%grid%pt(x_bounds(1):x_bounds(2), y_bounds(1):y_bounds(2)))
-            return
           endif
 
         case ('PT')

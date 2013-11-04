@@ -715,6 +715,18 @@ is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
 is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%e_x == f2%e_x)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%e_y == f2%e_y)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity == f2%intensity)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%energy_ave == f2%energy_ave)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%energy_rms == f2%energy_rms)
 
 end function eq_surface_grid_pt
 
@@ -1092,7 +1104,7 @@ is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%tracking_type == f2%tracking_type)
+is_eq = is_eq .and. (f1%tracking_mode == f2%tracking_mode)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 
@@ -1598,6 +1610,11 @@ if (.not. is_eq) return
 if (associated(f1%mode3)) is_eq = (f1%mode3 == f2%mode3)
 !! f_side.equality_test[type, 0, PTR]
 
+is_eq = is_eq .and. (associated(f1%photon) .eqv. associated(f2%photon))
+if (.not. is_eq) return
+if (associated(f1%photon)) is_eq = (f1%photon == f2%photon)
+!! f_side.equality_test[type, 0, PTR]
+
 is_eq = is_eq .and. (associated(f1%rad_int_cache) .eqv. associated(f2%rad_int_cache))
 if (.not. is_eq) return
 if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
@@ -1611,11 +1628,6 @@ if (associated(f1%rf_wake)) is_eq = (f1%rf_wake == f2%rf_wake)
 is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge))
 if (.not. is_eq) return
 if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
-!! f_side.equality_test[type, 0, PTR]
-
-is_eq = is_eq .and. (associated(f1%photon) .eqv. associated(f2%photon))
-if (.not. is_eq) return
-if (associated(f1%photon)) is_eq = (f1%photon == f2%photon)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
 !! f_side.equality_test[type, 0, PTR]

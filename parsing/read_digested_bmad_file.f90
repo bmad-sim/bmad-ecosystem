@@ -38,7 +38,7 @@ real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
+integer ierr, stat, ios, n_wall_section, garbage, idum2, i0, i1, j0, j1, j2
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
@@ -499,12 +499,12 @@ if (ix_s /= 0) then
   read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
                  surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
   if (is_alloc_pt) then
-    read (d_unit) i, j
-    allocate(surf%grid%pt(0:i, 0:j))
-    do 
-      read (d_unit) i, j
-      if (i == -1) exit
-      read (d_unit) surf%grid%pt(i,j)
+    read (d_unit, err = 9360) i0, j0, i1, j1
+    allocate(surf%grid%pt(i0:i1, j0:j1))
+    do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
+    do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
+      read (d_unit, err = 9360) surf%grid%pt(i,j)
+    enddo
     enddo
   endif
 

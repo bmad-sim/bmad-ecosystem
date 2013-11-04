@@ -89,13 +89,21 @@ end subroutine absolute_photon_position
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_init (g_bend_x, g_bend_y, gamma, E_min, E_max, set_polarization, orbit)
+! Subroutine photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
 !
 ! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
-! The photon's energy will be in the range [E_min, E_max].
-! To not restrict the photon's energy, set E_max = 0.
 ! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
-! The photon's polarization, if set, will have unit amplitude.
+!
+! The photon's energy will be in the range [E_min, E_max].
+! To not restrict the photon's energy, set E_max = 0 in which case effectively [E_min, E_max] = [0, Infinity].
+!
+! integ_prob is the integrated probability of the generated photon having the energy it does.
+! If integ_prob is negative then a random number is used to determine the photon's energy.
+! If integ_prob is zero or positive it must be in the range [0, 1].
+! An integ_prob of zero means that the generated photon will have energy E_min.
+! An integ_prob of one means that the generated photon will have energy E_max.
+!
+! The photon's polarization, will have unit amplitude.
 !
 ! This routine assumes that the emitting charged particle is on-axis and moving in 
 ! the forward direction. To correct for the actual charged particle postion use the routine
@@ -105,39 +113,52 @@ end subroutine absolute_photon_position
 !   use photon_init_mod
 !
 ! Input:
-!   g_bend_x -- Real(rp): Bending 1/rho component in horizontal plane.
-!   g_bend_y -- Real(rp): Bending 1/rho component in vertical plane.
-!   gamma    -- Real(rp): Relativistic gamma factor of generating charged particle.
-!   E_min    -- Real(rp): Minimum photon energy.
-!   E_max    -- Real(rp): Maximum phton energy. Set E_max = 0 to not restrict the energy.
-!   set_polarization -- Logical: If False then the polarization is not set
+!   g_bend_x     -- Real(rp): Bending 1/rho component in horizontal plane.
+!   g_bend_y     -- Real(rp): Bending 1/rho component in vertical plane.
+!   gamma        -- Real(rp): Relativistic gamma factor of generating charged particle.
+!   E_min        -- Real(rp): Minimum photon energy.
+!   E_max        -- Real(rp): Maximum phton energy. Set E_max = 0 to not restrict the energy.
+!   E_integ_prob -- real(rp):, optional :: integrated energy probability.
 !
 ! output:
 !   orbit             -- coord_struct: Initialized photon.
 !-
 
-subroutine photon_init (g_bend_x, g_bend_y, gamma, E_min, E_max, set_polarization, orbit)
+subroutine photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
 
 implicit none
 
 type (coord_struct) orbit
-real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor
+real(rp), optional :: E_integ_prob
+real(rp) g_bend_x, g_bend_y, g_bend, gamma, phi, e_factor, integ_prob
 real(rp) E_rel, gamma_phi, E_photon, E_min, E_max, r_min, r_max, r
-logical set_polarization
 
 ! Photon energy
 
 g_bend = sqrt(g_bend_x**2 + g_bend_y**2)
 e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2 
 
-if (E_max == 0) then
-  call photon_energy_init (E_rel)
+integ_prob = real_option(-1.0_rp, E_integ_prob)
+if (integ_prob >= 0) then
+  if (E_max <= 0) then
+    call photon_energy_init (E_rel, integ_prob)
+  else
+    r_min = photon_energy_integ_prob(E_min, g_bend, gamma)
+    r_max = photon_energy_integ_prob(E_max, g_bend, gamma)
+    r = r_min + integ_prob * (r_max - r_min)
+    call photon_energy_init (E_rel, r)
+  endif
+  
 else
-  r_min = photon_energy_integ_prob(E_min, g_bend, gamma)
-  r_max = photon_energy_integ_prob(E_max, g_bend, gamma)
-  call ran_uniform(r)
-  r = r_min + r * (r_max - r_min)
-  call photon_energy_init (E_rel, r)
+  if (E_max <= 0) then
+    call photon_energy_init (E_rel)
+  else
+    r_min = photon_energy_integ_prob(E_min, g_bend, gamma)
+    r_max = photon_energy_integ_prob(E_max, g_bend, gamma)
+    call ran_uniform(r)
+    r = r_min + r * (r_max - r_min)
+    call photon_energy_init (E_rel, r)
+  endif
 endif
 
 E_photon = E_rel * e_factor
@@ -156,7 +177,7 @@ call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
 ! Polaraization
 
-if (set_polarization) call photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+call photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
 end subroutine photon_init
 

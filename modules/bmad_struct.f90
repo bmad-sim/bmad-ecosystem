@@ -403,6 +403,9 @@ end type
 
 type surface_grid_pt_struct
   real(rp) :: x_pitch = 0, y_pitch = 0, x_pitch_rms = 0, y_pitch_rms = 0
+  real(rp) :: E_x(2)  = 0, E_y(2) = 0, intensity = 0
+  integer :: n_photon = 0
+  real(rp) :: energy_ave = 0, energy_rms = 0
 end type
 
 integer, parameter :: segmented$ = 2, h_misalign$ = 3
@@ -479,13 +482,13 @@ type ele_struct
   type (floor_position_struct) floor                    ! Reference position in global coords.
   type (ele_struct), pointer :: lord => null()          ! Pointer to a slice lord.
   type (mode3_struct), pointer :: mode3 => null()       ! 6D normal mode structure.
+  type (photon_element_struct), pointer :: photon => null()
   type (fibre), pointer :: ptc_fibre => null()          ! PTC tracking.
   type (genfield), pointer :: ptc_genfield => null()    ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                         ! Radiation integral calc cached values 
   type (rf_wake_struct), pointer :: rf_wake => null()   ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
-  type (photon_element_struct), pointer :: photon => null()
   type (taylor_struct) :: taylor(6)                     ! Taylor terms
   type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
@@ -556,6 +559,7 @@ end type
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
 
 integer, parameter :: incoherent$ = 1, coherent$ = 2
+character(16), parameter :: tracking_mode_name(1:2) = ['Incoherent', 'Coherent  ']
 
 type lat_param_struct
   real(rp) :: n_part = 0                     ! Particles/bunch (for BeamBeam elements).
@@ -571,7 +575,7 @@ type lat_param_struct
   logical :: stable = .false.                ! is closed lat stable?
   logical :: aperture_limit_on = .true.      ! use apertures in tracking?
   logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
-  integer :: tracking_type = incoherent$     ! For photons.
+  integer :: tracking_mode = incoherent$     ! For photons.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type
