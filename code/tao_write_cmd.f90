@@ -36,12 +36,12 @@ character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(19) = [ &
+character(20) :: names(20) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
-      'pdf              ', 'pdf-l            ', 'opal_lattice     ']
+      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word
@@ -69,6 +69,24 @@ endif
 action = names(ix)
 
 select case (action)
+
+!---------------------------------------------------
+! 3d_floor_plot
+
+case ('3d_floor_plot')
+
+  file_name = '3d_floor_plot.py'
+  if (word(1) /= '') file_name = word(1)
+
+  if (word(2) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
+
+  ix = max(1, len_trim(file_name) - 2)
+  if (file_name(ix:ix+2) /= '.py') file_name(ix+3:) = '.py'
+
+  call tao_write_3d_floor_plan(file_name, s%u(s%global%u_view))
 
 !---------------------------------------------------
 ! beam

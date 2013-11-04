@@ -9,7 +9,8 @@
 
 module tao_struct
 
-use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct, rad_int_all_ele_struct
+use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct, &
+                       rad_int_all_ele_struct
 use equal_mod
 use quick_plot_struct
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
