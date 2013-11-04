@@ -463,7 +463,7 @@ SUBROUTINE ibs_lifetime(lat,tau_a,maxratio,lifetime,formula,granularity,clog_to_
 END SUBROUTINE ibs_lifetime
 
 !+
-!  Subroutine ibs_delta_eV1(lat, ix, delta_eV, formula)
+!  Subroutine ibs_delta_eV1(lat, tau_a, ix, delta_eV, formula, clog_to_use)
 !
 !  Calculates change in energy spread due to IBS for one element.
 !
@@ -476,7 +476,8 @@ END SUBROUTINE ibs_lifetime
 !  Input:
 !    lat             -- lat_struct: lattice for tracking
 !      %param$n_part  -- Real: number of particles in bunch
-!    mode             -- normal_modes_struct: beam parameters 
+!    tau_a            -- Real(rp): damping time (ignored if clog_to use is set to 1)
+!    ix               -- Integer: element index at which to run the calculation
 !    formula          -- character*4: IBS formulation to use
 !
 !  Output:
