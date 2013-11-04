@@ -914,7 +914,7 @@ integer photon_direction
 ! Get photon energy and "vertical angle".
 
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call photon_init (gx, gy, gamma, 0.0_rp, 0.0_rp, .false., orb_init)
+call photon_init (gx, gy, gamma, orb_init, 0.0_rp, 0.0_rp, 0.0_rp)
 p_orb%energy = orb_init%p0c
 p_orb%vec = orb_init%vec
 
