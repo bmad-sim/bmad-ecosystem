@@ -290,7 +290,7 @@ if (target%enabled) then
   do i = 1, 4
     r = target%corner(i)%r - r_particle
     if (direction == 1) then
-      if (r(3) > 0) r(3) = 0   ! photon cannot be emitted backward
+      if (r(3) < 0) r(3) = 0   ! photon cannot be emitted backward
     elseif (direction == -1) then
       if (r(3) > 0) r(3) = 0   ! photon cannot be emitted forward
     else
@@ -317,7 +317,7 @@ if (target%enabled) then
   orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
   orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
 
-  if (param%tracking_type == coherent$) then
+  if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
   else
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / solid_angle)
@@ -329,7 +329,7 @@ else
   rho = sqrt(1 - y**2)
   orbit%vec(2:6:2) = [rho * sin(phi), y, direction * rho * cos(phi)]
   ! Without targeting photons are emitted into twopi solid angle.
-  if (param%tracking_type == coherent$) then
+  if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * twopi / solid_angle
   else
     orbit%field = orbit%field * sqrt(twopi / solid_angle)

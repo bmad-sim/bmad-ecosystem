@@ -321,6 +321,7 @@ orb%vec(5) = orb%vec(5) + l
 orb%s      = orb%s      + l
 orb%t = orb%t + dpath / c_light
 orb%path_len = orb%path_len + dpath
+!!orb%phase = orb%phase + dpath * orb%p0c / (c_light * h_bar_planck)
 
 end subroutine track_a_drift_photon
 
