@@ -1668,7 +1668,7 @@ end subroutine calc_bunch_params_slice
 !
 ! Output     
 !   bunch_params -- bunch_params_struct:
-!     %a,%b,%z       -- Projected parameters
+!     %x,%y,%z       -- Projected parameters
 !       %alpha; %beta; %gamma
 !       %eta, %etap, %norm_emit
 !     %a,%b,%c       -- Normal-Mode parameters
