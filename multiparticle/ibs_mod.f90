@@ -46,6 +46,10 @@ PUBLIC bane1
 PUBLIC bjmt1
 
 CONTAINS
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
 !  Subroutine ibsequilibrium2(lat,inmode,ibsmode,formula,ratio,initial_blow_up,granularity)
 !  Iterates to equilibrium beam conditions using relaxation method
@@ -270,6 +274,9 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,formula,ratio,initial
 
 END SUBROUTINE ibs_equib_rlx
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
 !  Subroutine ibs_equilibrium(lat,inmode,ibsmode,formula,coupling)
 !
@@ -411,6 +418,9 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,formula,ratio,granula
 
 END SUBROUTINE ibs_equib_der
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
 !  Subroutine ibs_lifetime(lat, mode, maxratio, lifetime, formula)
 !
@@ -462,10 +472,15 @@ SUBROUTINE ibs_lifetime(lat,tau_a,maxratio,lifetime,formula,granularity,clog_to_
   lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tz
 END SUBROUTINE ibs_lifetime
 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
-!  Subroutine ibs_delta_eV1(lat, tau_a, ix, delta_eV, formula, clog_to_use)
+!  Subroutine ibs_delta_calc (lat, tau_a, ix, formula, clog_to_use, 
+!                              delta_sigma_energy, delta_emit_a, delta_emit_b)
 !
-!  Calculates change in energy spread due to IBS for one element.
+!  Calculates change in energy spread and emittances due to IBS.
 !
 !  Available IBS formulas:
 !    cimp - Modified Piwinski
@@ -474,24 +489,29 @@ END SUBROUTINE ibs_lifetime
 !    mtto - Mtingwa-Tollerstrup formulation
 !
 !  Input:
-!    lat             -- lat_struct: lattice for tracking
-!      %param$n_part  -- Real: number of particles in bunch
-!    tau_a            -- Real(rp): damping time (ignored if clog_to use is set to 1)
-!    ix               -- Integer: element index at which to run the calculation
+!    lat              -- lat_struct: lattice for tracking
+!      %param%n_part  -- real(rp): number of particles in bunch
+!    ix               -- integer: index of element to use: lat%ele(ix)
+!    tau_a            -- real(rp) :: Horizontal damping rate. See See ibs_sim_param_struct.
+!                                    Only used if clog_to_use == (Raubenheimer tail cut)
 !    formula          -- character*4: IBS formulation to use
+!    clog_to_use      -- integer: Coulomb log to use. See ibs_sim_param_struct
+!
 !
 !  Output:
-!    delta_eV         -- change in energy spread in eV
+!    delta_sigma_energy -- real(rp), optional: change in energy spread in eV
+!    delta_emit_a       -- real(rp), optional: change in a-mode emittance (geometric)
+!    delta_emit_b       -- real(rp), optional: change in b-mode emittance (geometric)
 !-
-SUBROUTINE ibs_delta_eV1(lat, tau_a, ix, delta_eV, formula, clog_to_use)
+SUBROUTINE ibs_delta_calc (lat, ix, tau_a, formula, clog_to_use, delta_sigma_energy, delta_emit_a, delta_emit_b)
   IMPLICIT NONE
 
   TYPE(lat_struct), INTENT(IN) :: lat
   REAL(rp) tau_a
   TYPE(ibs_sim_param_struct) :: ibs_sim_params
   INTEGER, INTENT(IN) :: ix
-  REAL(rp), INTENT(OUT) :: delta_eV
   CHARACTER*4, INTENT(IN) ::  formula
+  real(rp), optional :: delta_sigma_energy, delta_emit_a, delta_emit_b
   TYPE(ibs_struct) rates1ele
   INTEGER clog_to_use
 
@@ -518,9 +538,11 @@ SUBROUTINE ibs_delta_eV1(lat, tau_a, ix, delta_eV, formula, clog_to_use)
     ENDIF
   ENDIF
 
-  delta_eV = lat%ele(ix)%value(l$)/c_light*2.0*rates1ele%inv_Tz*lat%ele(ix)%z%sigma_p*lat%ele(ix)%value(E_TOT$)
+  if (present(delta_sigma_energy)) delta_sigma_energy = lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Tz*lat%ele(ix)%z%sigma_p*lat%ele(ix)%value(E_TOT$)
+  if (present(delta_emit_a))       delta_emit_a     = 2*lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Ta*lat%ele(ix)%a%emit
+  if (present(delta_emit_b))       delta_emit_b     = 2*lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Tb*lat%ele(ix)%b%emit
 
-END SUBROUTINE ibs_delta_eV1
+END SUBROUTINE ibs_delta_calc
 
 !+
 !  Subroutine ibs_rates1turn(lat, rates1turn, formula, granularity)
