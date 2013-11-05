@@ -1,0 +1,201 @@
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! program ibs_linac
+!
+! Simple program to calculate IBS in a linac.  
+!
+! Usage: ibs_linac (looks for ibs_linac.in file)
+!        ibs_linac file.in
+!
+!-
+
+
+program ibs_linac
+
+use bmad_struct
+use beam_mod
+use twiss_and_track_mod
+use ibs_mod
+
+implicit none
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+type (coord_struct) :: orb0
+type (coord_struct), allocatable :: orbit(:)
+type (rad_int_all_ele_struct), target :: rad_int_ele
+type (normal_modes_struct) :: normal_mode
+type (rad_int1_struct), pointer :: rad_int1
+type (beam_init_struct) :: beam_init
+type (bunch_struct) :: bunch
+type (bunch_params_struct) :: bunch_params
+type (ibs_struct) :: ibs_rates
+
+real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, tau_a, rad_delta_eV2, gamma
+real(rp), parameter :: c_q = 3.84e-13
+real(rp) :: energy_spread_eV
+
+integer :: ix
+integer :: namelist_file, n_char
+integer :: coulomb_log_to_use
+
+character(100) :: lat_name, lat_path, base_name, in_file
+character(30), parameter :: r_name = 'ibs_linac'
+character(4) :: ibs_formula
+
+logical :: radiation_damping_on, radiation_fluctuations_on, ISR_energy_spread_on
+logical :: err, ok, use_beam, verbose
+
+namelist / ibs_linac_params / &
+    lat_name, coulomb_log_to_use, tau_a, ibs_formula, &
+    use_beam, beam_init, radiation_damping_on, radiation_fluctuations_on, &
+    ISR_energy_spread_on, &
+    verbose
+
+!------------------------------------------
+!Defaults for namelist
+lat_name = 'lat.bmad'
+ibs_formula = 'bjmt'   ! See ibs_mod
+coulomb_log_to_use = 1 ! 1=Wolski, 2=Raubenheimer Tail Cut, 3=Bane Tail Cut
+tau_a = 0              ! only used with Raubenheimer Tail Cut
+use_beam = .true.      ! Beam is tracked to set sigma_z, emittances for every element 
+ISR_energy_spread_on = .true.      ! For energy spread calc
+radiation_damping_on = .false.     ! For bunch tracking
+radiation_fluctuations_on = .true. ! For bunch tracking
+verbose = .false. 
+beam_init%n_bunch = 1
+
+!Read namelist
+in_file = 'ibs_linac.in'
+if (command_argument_count() > 0) call get_command_argument(1, in_file)
+
+namelist_file = lunget()
+print *, 'Opening: ', trim(in_file)
+open (namelist_file, file = in_file, status = "old")
+read (namelist_file, nml = ibs_linac_params)
+close (namelist_file)
+
+!Trim filename
+n_char= SplitFileName(lat_name, lat_path, base_name) 
+
+!Parse Lattice
+call bmad_parser (lat_name, lat)
+!branch => lat%branch(0)
+
+!--------------------
+! Radiation 
+bmad_com%radiation_damping_on = radiation_damping_on
+bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
+print *, 'bmad_com%radiation_damping_on: ', bmad_com%radiation_damping_on
+print *, 'bmad_com%radiation_fluctuations_on: ', bmad_com%radiation_fluctuations_on
+
+call twiss_and_track(lat, orbit, ok)
+if (.not. ok) then
+  print *, 'problem with twiss_and_track'
+  stop
+endif
+
+if (verbose) print *, 'radiation_integrals'
+call radiation_integrals (lat, orbit, normal_mode, rad_int_by_ele = rad_int_ele)
+
+! Set element 0
+ele => lat%ele(0)
+call init_bunch_distribution (ele, lat%param, beam_init, bunch)
+call calc_bunch_params (bunch, bunch_params, err, print_err = .true.)
+
+! Set running energy spread
+energy_spread_eV = sqrt(bunch_params%sigma(s66$))*ele%value(e_tot$)
+
+if (verbose) print *, 'Bunch initialized'
+
+! Set first element
+call set_ele(lat%ele(0), bunch_params)
+
+! Set 
+lat%param%n_part = bunch_params%charge_live / e_charge
+write (*, '(a)')           'Beginning bunch:'
+write (*, '(a, f15.7, a)') '      energy      : ', 1e-6_rp*ele%value(e_tot$), ' MeV'
+write (*, '(a, f15.7, a)') '      charge      : ', 1e12_rp*bunch_params%charge_live, ' pC'
+write (*, '(a, f15.7, a)') '      norm_emit_a : ', 1e6_rp*bunch_params%a%norm_emit, ' mm-mrad'
+write (*, '(a, f15.7, a)') '      norm_emit_b : ', 1e6_rp*bunch_params%b%norm_emit, ' mm-mrad'
+write (*, '(a, f15.7, a)') '      sigma_z/c   : ', 1e12_rp*sqrt(bunch_params%sigma(s55$))/c_light, ' ps'
+write (*, '(a, f15.7, a)') '      sigma_E     : ', energy_spread_eV, ' eV'
+if (use_beam) then
+  write (*,'(a)')  'Using beam for sigma_z calc'
+else
+  write(*,'(a)')   'Not tracking beam'
+endif
+
+write (*, '(2a)') 'Using IBS formula: ', ibs_formula 
+if (ISR_energy_spread_on) write (*, '(a)') 'ISR included in energy spread calculation'
+
+! IBS loop
+
+write (*, '(a)') 'BEGIN_DATA'
+write (*, '(9a15)') 's', 'gamma', 'norm_emit_a', 'norm_emit_b ', 'sigma_z/c ', 'sigma_E', 'demit_a', 'demit_b', 'dsigma_E'
+write (*, '(9a15)') 'm', '1', 'mm-mrad', 'mm-mrad', 'fs', 'eV', 'mm-mrad', 'mm-mrad', 'eV'
+
+do ix=1, lat%n_ele_track
+  ele => lat%ele(ix)
+  rad_int1 => rad_int_ele%ele(ix)
+  call convert_total_energy_to(ele%value(e_tot$), lat%param%particle, gamma)
+  
+  if (use_beam) then
+    call track1_bunch (bunch, lat, ele, bunch, err)
+    if (err) then
+      print *, 'Bunch tracking error in ele: ', trim(ele%name)
+      stop
+    endif
+    ! Don't worry about calc_bunc_params errors
+    call calc_bunch_params (bunch, bunch_params, err, print_err = .false.)
+  endif  
+  
+  ! Set ele's emittances from the bunch. Note the the energy spread is overwritten below.
+  call set_ele(ele, bunch_params)
+  
+  ! Radiation integral contribution
+  if (ISR_energy_spread_on) then
+    rad_delta_eV2 = (4./3.)*c_q*r_e*(m_electron**2)*rad_int1%lin_i3_E7
+  else
+    rad_delta_eV2 = 0
+  endif
+  
+  ! IBS deltas
+  call ibs_delta_calc(lat, ix, tau_a, ibs_formula, coulomb_log_to_use, &
+  	delta_emit_a = delta_emit_a, &
+  	delta_emit_b = delta_emit_b, &
+  	delta_sigma_energy = delta_sigma_energy)
+  !if (verbose) write (*, '(a20, 3es15.7)') trim(ele%name), delta_emit_a, delta_emit_b, delta_sigma_energy
+  
+  energy_spread_eV = sqrt( (energy_spread_eV + delta_sigma_energy)**2 + rad_delta_ev2)
+  ele%a%emit = ele%a%emit + delta_emit_a
+  ele%b%emit = ele%b%emit + delta_emit_b
+  ele%z%sigma_p = energy_spread_eV/ele%value(e_tot$)
+  
+   write (*, '(6f15.7, 9es15.7)') ele%s, gamma, 1e6_rp*ele%a%emit*gamma, 1e6_rp*ele%b%emit*gamma, 1e15_rp*ele%z%sigma/c_light, energy_spread_eV, &
+     1e6_rp*gamma*delta_emit_a, 1e6_rp*gamma*delta_emit_b, delta_sigma_energy
+  
+enddo
+write (*, '(a)') 'END_DATA'
+
+
+contains
+
+
+subroutine set_ele(ele, bunch_params)
+implicit none
+type (ele_struct) :: ele
+type (bunch_params_struct) :: bunch_params
+real (rp) :: gamma
+!
+call convert_total_energy_to(ele%value(e_tot$), lat%param%particle, gamma)
+ele%z%sigma   = sqrt(bunch_params%sigma(s55$))
+ele%z%sigma_p = sqrt(bunch_params%sigma(s66$))
+ele%a%emit    = bunch_params%a%norm_emit / gamma
+ele%b%emit    = bunch_params%b%norm_emit / gamma
+end subroutine
+
+end program
