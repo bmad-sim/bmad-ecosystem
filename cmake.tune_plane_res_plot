@@ -13,6 +13,9 @@ set (LINK_LIBS
   bmadz
   cesr_utils
   bmad
+  xsif
+  xrlf03
+  xrl
   sim_utils
   recipes_f-90_LEPP
   forest
