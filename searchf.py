@@ -594,6 +594,12 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'instr_utils', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'rfnet', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'rf', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'timing', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'hard', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'save', '/CMakeLists.txt', '')
+    choose_path (dir_list, root_dir, 'vac', '/CMakeLists.txt', '')
 
   if search_com.doc == 'LIST':
     search_com.match_str = '(\w+)'
