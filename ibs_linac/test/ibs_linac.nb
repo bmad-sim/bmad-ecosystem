@@ -1,0 +1,241 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 9.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       157,          7]
+NotebookDataLength[      7454,        232]
+NotebookOptionsPosition[      6871,        208]
+NotebookOutlinePosition[      7252,        225]
+CellTagsIndexPosition[      7209,        222]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"opts", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"BaseStyle", "\[Rule]", 
+      RowBox[{"{", 
+       RowBox[{"FontSize", "\[Rule]", "15"}], "}"}]}], ",", " ", 
+     RowBox[{"Frame", "\[Rule]", "True"}], ",", " ", 
+     RowBox[{"PlotStyle", "\[Rule]", "Black"}], ",", " ", 
+     RowBox[{"ImageSize", "\[Rule]", "600"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"SetOptions", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"Plot", ",", "ListLogPlot"}], "}"}], ",", " ", "opts"}], "]"}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.592664241067569*^9, 3.592664268788616*^9}, {
+  3.5926645718894863`*^9, 3.5926646017733707`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["ibs_linac", "Section",
+ CellChangeTimes->{{3.592664271025017*^9, 3.5926642770179977`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"workdir", " ", "=", " ", 
+  RowBox[{
+   RowBox[{"NotebookDirectory", "[", "]"}], "<>", 
+   "\"\<LCLS2/\>\""}]}]], "Input",
+ CellChangeTimes->{{3.5926642920816593`*^9, 3.592664304984951*^9}, 
+   3.59266436261767*^9}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"outfile", " ", "=", " ", 
+   RowBox[{"workdir", "<>", "\"\<ibs.out\>\""}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rdat", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{"outfile", ",", " ", "\"\<Table\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Grid", "[", 
+  RowBox[{"rdat", "[", 
+   RowBox[{"[", 
+    RowBox[{"1", ";;", "16"}], "]"}], "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.592664315243541*^9, 3.5926643914475107`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"header", "=", 
+   RowBox[{"rdat", "\[LeftDoubleBracket]", "15", "\[RightDoubleBracket]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"units", " ", "=", " ", 
+   RowBox[{"rdat", "\[LeftDoubleBracket]", "16", "\[RightDoubleBracket]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"ix1", " ", "=", " ", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Position", "[", 
+     RowBox[{"rdat", ",", " ", "\"\<BEGIN_DATA\>\""}], "]"}], 
+    "\[LeftDoubleBracket]", 
+    RowBox[{"1", ",", "1"}], "\[RightDoubleBracket]"}], " ", "+", " ", 
+   "3"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"ix2", " ", "=", " ", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"Position", "[", 
+       RowBox[{"rdat", ",", " ", "\"\<END_DATA\>\""}], "]"}], 
+      "\[LeftDoubleBracket]", 
+      RowBox[{"1", ",", "1"}], "\[RightDoubleBracket]"}], " ", "-", "1"}]}], 
+   ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dat", " ", "=", " ", 
+   RowBox[{"rdat", "\[LeftDoubleBracket]", 
+    RowBox[{"ix1", ";;", "ix2"}], "\[RightDoubleBracket]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.592664399005772*^9, 3.5926644840403557`*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ListLogPlot", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+       ",", " ", 
+       RowBox[{"#", "\[LeftDoubleBracket]", "5", "\[RightDoubleBracket]"}]}], 
+      "}"}], "&"}], "/@", "dat"}], ",", " ", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<s (m)\>\"", ",", " ", 
+      "\"\<\!\(\*SubscriptBox[\(\[Sigma]\), \(z\)]\)/c (fs)\>\""}], "}"}]}], 
+   ",", " ", 
+   RowBox[{"Joined", "\[Rule]", "True"}], " ", ",", " ", 
+   RowBox[{"AspectRatio", "\[Rule]", 
+    RowBox[{"1", "/", "4"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.592664486988592*^9, 3.592664615904463*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"c1", "=", "Red"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"c2", "=", "Green"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"ListPlot", "[", 
+  RowBox[{
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Legended", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{
+           "#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], ",", 
+           " ", 
+           RowBox[{
+           "#", "\[LeftDoubleBracket]", "3", "\[RightDoubleBracket]"}]}], 
+          "}"}], "&"}], "/@", "dat"}], ",", 
+       "\"\<\!\(\*SubscriptBox[\(\[Gamma]\[Epsilon]\), \(a\)]\)\>\""}], "]"}],
+      ",", "\[IndentingNewLine]", 
+     RowBox[{"Legended", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{
+           "#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], ",", 
+           " ", 
+           RowBox[{
+           "#", "\[LeftDoubleBracket]", "4", "\[RightDoubleBracket]"}]}], 
+          "}"}], "&"}], "/@", "dat"}], ",", 
+       "\"\<\!\(\*SubscriptBox[\(\[Gamma]\[Epsilon]\), \(b\)]\)\>\""}], 
+      "]"}]}], "}"}], ",", " ", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<s (m)\>\"", ",", " ", "\"\<normalized emittance\\n(mm-mrad)\>\""}], 
+     "}"}]}], ",", " ", 
+   RowBox[{"Joined", "\[Rule]", "True"}], " ", ",", " ", 
+   RowBox[{"AspectRatio", "\[Rule]", 
+    RowBox[{"1", "/", "4"}]}], ",", " ", 
+   RowBox[{"PlotRange", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "0.5"}], "}"}]}], ",", " ", 
+   RowBox[{"PlotStyle", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"c1", ",", "c2"}], "}"}]}]}], "]"}]}], "Input",
+ CellChangeTimes->{
+  3.592664626353828*^9, {3.5926646589276667`*^9, 3.592664777557002*^9}, {
+   3.592664828443409*^9, 3.592664859905485*^9}, {3.5926649108917294`*^9, 
+   3.592664980798285*^9}}],
+
+Cell[BoxData[
+ RowBox[{"ListPlot", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"#", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+       ",", " ", 
+       RowBox[{"#", "\[LeftDoubleBracket]", "6", "\[RightDoubleBracket]"}]}], 
+      "}"}], "&"}], "/@", "dat"}], ",", " ", 
+   RowBox[{"FrameLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<s (m)\>\"", ",", " ", 
+      "\"\<\!\(\*SubscriptBox[\(\[Sigma]\), \(E\)]\) (eV)\>\""}], "}"}]}], 
+   ",", " ", 
+   RowBox[{"Joined", "\[Rule]", "True"}], " ", ",", " ", 
+   RowBox[{"AspectRatio", "\[Rule]", 
+    RowBox[{"1", "/", "4"}]}], ",", 
+   RowBox[{"PlotRange", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"0", ",", "All"}], "}"}]}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.592665041748765*^9, 3.592665061326521*^9}}]
+}, Open  ]]
+},
+WindowSize->{1325, 784},
+WindowMargins->{{Automatic, -1471}, {Automatic, 10}},
+ShowSelection->True,
+FrontEndVersion->"9.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (January 25, \
+2013)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[557, 20, 703, 19, 46, "Input"],
+Cell[CellGroupData[{
+Cell[1285, 43, 96, 1, 80, "Section"],
+Cell[1384, 46, 239, 6, 28, "Input"],
+Cell[1626, 54, 507, 14, 63, "Input"],
+Cell[2136, 70, 1188, 32, 114, "Input"],
+Cell[3327, 104, 739, 20, 28, "Input"],
+Cell[4069, 126, 1948, 54, 114, "Input"],
+Cell[6020, 182, 835, 23, 28, "Input"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
