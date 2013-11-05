@@ -15,6 +15,7 @@ set (EXE_SPECS
   cmake.analyzer
   cmake.bbu
   cmake.dynamic_aperture
+  cmake.ibs_linac
   cmake.synrad
   cmake.synrad3d
   cmake.synrad_aperture_to_wall

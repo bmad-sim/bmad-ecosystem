@@ -1,0 +1,26 @@
+set (EXENAME ibs_linac)
+set (SRC_FILES
+  ibs_linac/ibs_linac.f90
+)
+
+
+set (INC_DIRS
+  include
+)
+
+set (LINK_LIBS
+  bsim
+  bmadz
+  cesr_utils
+  bmad
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  xrlf03
+  xrl
+  fgsl_ifort
+  gsl
+  gslcblas
+  ${PLOT_LINK_LIBS}
+  xsif
+)
