@@ -10,9 +10,11 @@ set (INC_DIRS
 set (LINK_LIBS
   tao 
   bmad 
+  xsif
+  xrlf03
+  xrl
   sim_utils
   recipes_f-90_LEPP 
-  xsif 
   ${PLOT_LINK_LIBS}
   forest 
 	lapack
