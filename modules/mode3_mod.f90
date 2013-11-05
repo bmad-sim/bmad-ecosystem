@@ -78,8 +78,8 @@ END SUBROUTINE normal_mode3_calc
 ! N = H.V.B.P
 ! P has the same free parameters as B
 ! B "Twiss matrix" has 6 free parameters (Twiss alphas and betas)
-! B blocks have the form /    sqrt(beta)         0       \
-!                        \ alpha/sqrt(beta) 1/sqrt(beta) /
+! B blocks have the form /     sqrt(beta)         0       \
+!                        \ -alpha/sqrt(beta) 1/sqrt(beta) /
 ! V "Teng matrix" has 4 free parameters (xy, xpy, ypx, and pxpy coupling)
 ! H "Dispersion matrix" has 8 free parameters (xz, xpz, pxz, pxpz, yz, ypz, pyz, pypz coupling)
 ! 
@@ -510,15 +510,19 @@ END SUBROUTINE get_abc_from_updated_smat
 !   angle_yz(3,3)       -- real(rp): vertical crabbing of beam envelope
 !
 !-
-SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz)
+SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
   IMPLICIT NONE
 
   REAL(rp) S(6,6)
   REAL(rp) angle_xy, angle_xz, angle_yz
+  REAL(rp) angle_xpz, angle_ypz
 
   angle_xy = 0.5_rp * ATAN2( 2.0d0*S(1,3), S(1,1)-S(3,3) )
   angle_xz = 0.5_rp * ATAN2( 2.0d0*S(1,5), S(5,5)-S(1,1) )
   angle_yz = 0.5_rp * ATAN2( 2.0d0*S(3,5), S(5,5)-S(3,3) )
+
+  angle_xpz = 0.5_rp * ATAN2( 2.0d0*S(1,6), S(6,6)-S(1,1) )
+  angle_ypz = 0.5_rp * ATAN2( 2.0d0*S(3,6), S(6,6)-S(3,3) )
 END SUBROUTINE beam_tilts
 
 !+
