@@ -1,6 +1,6 @@
-set (EXENAME element_attributes)
+set (EXENAME f77_to_f90)
 set (SRC_FILES
-  element_attributes/element_attributes.f90
+  f77_to_f90/f77_to_f90.f90
 )
 
 set (INC_DIRS
@@ -11,6 +11,9 @@ set (INC_DIRS
 set (LINK_LIBS
   bsim
   bmad 
+  xsif
+  xrlf03
+  xrl
   sim_utils
   recipes_f-90_LEPP 
   forest 

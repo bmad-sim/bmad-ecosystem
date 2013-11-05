@@ -12,14 +12,14 @@ set(SRC_DIRS
 )
 
 set (EXE_SPECS 
-  bmad_to_autocad.cmake
-  bmad_to_csrtrack.cmake
-  bmad_to_mad_and_xsif.cmake
-  compare_tracking_methods_plot.cmake
-  compare_tracking_methods_text.cmake
-  element_attributes.cmake
-  f77_to_f90.cmake
-  lat_to_wolski_orm_format.cmake
+  cmake.bmad_to_autocad
+  cmake.bmad_to_csrtrack
+  cmake.bmad_to_mad_and_xsif
+  cmake.compare_tracking_methods_plot
+  cmake.compare_tracking_methods_text
+  cmake.element_attributes
+  cmake.f77_to_f90
+  cmake.lat_to_wolski_orm_format
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

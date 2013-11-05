@@ -1,4 +1,4 @@
- 2013-06-14 11:53:22 
+ 2013-10-23 09:34:39 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -11,45 +11,50 @@
    9   RFCAVITY                                  21   DEF_BEAM
   10   ELSEPARATOR                               39   DEF_BEAM_START
   11   BEAMBEAM                                  26   DEF_PARAMETER
-  12   WIGGLER                                    1   DRIFT
-  13   SOL_QUAD                                  36   ECOLLIMATOR
-  14   MARKER                                    10   ELSEPARATOR
-  15   KICKER                                    48   EM_FIELD
-  16   HYBRID                                    47   E_GUN
-  17   OCTUPOLE                                  50   FIDUCIAL
-  18   RBEND                                     49   FLOOR_SHIFT
-  19   MULTIPOLE                                 37   GIRDER
-  20   BEND_SOL_                                  4   GROUP
-  21   DEF_BEAM                                  33   HKICKER
-  22   AB_MULTIPOLE                              29   HOM
-  23   SOLENOID                                  16   HYBRID
-  24   PATCH                                     28   INIT_ELE
-  25   LCAVITY                                   32   INSTRUMENT
-  26   DEF_PARAMETER                             15   KICKER
-  27   NULL_ELE                                  25   LCAVITY
-  28   INIT_ELE                                  14   MARKER
-  29   HOM                                       30   MATCH
-  30   MATCH                                     42   MIRROR
-  31   MONITOR                                   31   MONITOR
-  32   INSTRUMENT                                46   MULTILAYER_MIRROR
-  33   HKICKER                                   19   MULTIPOLE
-  34   VKICKER                                   27   NULL_ELE
-  35   RCOLLIMATOR                               17   OCTUPOLE
-  36   ECOLLIMATOR                                6   OVERLAY
-  37   GIRDER                                    24   PATCH
-  38   BEND_SOL_QUAD                             40   PHOTON_BRANCH
-  39   DEF_BEAM_START                            44   PIPE
-  40   PHOTON_BRANCH                              3   QUADRUPOLE
-  41   BRANCH                                    18   RBEND
-  42   MIRROR                                    35   RCOLLIMATOR
-  43   CRYSTAL                                    9   RFCAVITY
-  44   PIPE                                       2   SBEND
-  45   CAPILLARY                                  5   SEXTUPOLE
-  46   MULTILAYER_MIRROR                         23   SOLENOID
-  47   E_GUN                                     13   SOL_QUAD
-  48   EM_FIELD                                   8   TAYLOR
-  49   FLOOR_SHIFT                               34   VKICKER
-  50   FIDUCIAL                                  12   WIGGLER
+  12   WIGGLER                                   55   DETECTOR
+  13   SOL_QUAD                                  52   DIFFRACTION_PLATE
+  14   MARKER                                     1   DRIFT
+  15   KICKER                                    36   ECOLLIMATOR
+  16   HYBRID                                    10   ELSEPARATOR
+  17   OCTUPOLE                                  48   EM_FIELD
+  18   RBEND                                     47   E_GUN
+  19   MULTIPOLE                                 50   FIDUCIAL
+  20   BEND_SOL_                                 49   FLOOR_SHIFT
+  21   DEF_BEAM                                  37   GIRDER
+  22   AB_MULTIPOLE                               4   GROUP
+  23   SOLENOID                                  33   HKICKER
+  24   PATCH                                     29   HOM
+  25   LCAVITY                                   16   HYBRID
+  26   DEF_PARAMETER                             28   INIT_ELE
+  27   NULL_ELE                                  32   INSTRUMENT
+  28   INIT_ELE                                  15   KICKER
+  29   HOM                                       25   LCAVITY
+  30   MATCH                                     14   MARKER
+  31   MONITOR                                   30   MATCH
+  32   INSTRUMENT                                42   MIRROR
+  33   HKICKER                                   31   MONITOR
+  34   VKICKER                                   46   MULTILAYER_MIRROR
+  35   RCOLLIMATOR                               19   MULTIPOLE
+  36   ECOLLIMATOR                               27   NULL_ELE
+  37   GIRDER                                    17   OCTUPOLE
+  38   BEND_SOL_QUAD                              6   OVERLAY
+  39   DEF_BEAM_START                            24   PATCH
+  40   PHOTON_BRANCH                             40   PHOTON_BRANCH
+  41   BRANCH                                    44   PIPE
+  42   MIRROR                                     3   QUADRUPOLE
+  43   CRYSTAL                                   18   RBEND
+  44   PIPE                                      35   RCOLLIMATOR
+  45   CAPILLARY                                  9   RFCAVITY
+  46   MULTILAYER_MIRROR                         54   SAMPLE
+  47   E_GUN                                      2   SBEND
+  48   EM_FIELD                                   5   SEXTUPOLE
+  49   FLOOR_SHIFT                               23   SOLENOID
+  50   FIDUCIAL                                  13   SOL_QUAD
+  51   UNDULATOR                                  8   TAYLOR
+  52   DIFFRACTION_PLATE                         51   UNDULATOR
+  53   X_RAY_INIT                                34   VKICKER
+  54   SAMPLE                                    12   WIGGLER
+  55   DETECTOR                                  53   X_RAY_INIT
  
  !---------------------------------
  22  AB_MULTIPOLE                            
@@ -174,9 +179,6 @@
        117  REF_CENTER                              
        118  REF_END                                 
        119  CREATE_JUMBO_SLAVE                      
- 
- !---------------------------------
- 20  BEND_SOL_                               
  
  !---------------------------------
  38  BEND_SOL_QUAD                           
@@ -340,6 +342,7 @@
  
  !---------------------------------
  45  CAPILLARY                               
+         1  L                                       
          2  TILT                                    
          4  CRITICAL_ANGLE_FACTOR                   
         23  X_PITCH                                 
@@ -406,8 +409,8 @@
          3  REF_TILT                                
          4  TILT_CORR                               
          5  REF_ORBIT_FOLLOWS                       
-         6  GRAZE_ANGLE_IN                          
-         7  GRAZE_ANGLE_OUT                         
+         6  BRAGG_ANGLE_IN                          
+         7  BRAGG_ANGLE_OUT                         
          9  BRAGG_ANGLE                             
         10  ALPHA_ANGLE                             
         11  PSI_ANGLE                               
@@ -427,8 +430,12 @@
         26  Y_OFFSET                                
         27  Z_OFFSET                                
         28  D_SPACING                               
-        37  kh_x_norm                                 [private]
-        38  kh_z_norm                                 [private]
+        29  l_x                                       [private]
+        30  l_y                                       [private]
+        31  l_z                                       [private]
+        36  h_x_norm                                  [private]
+        37  h_y_norm                                  [private]
+        38  h_z_norm                                  [private]
         39  DELTA_REF_TIME                          
         40  p0c_start                                 [private]
         41  e_tot_start                               [private]
@@ -441,12 +448,8 @@
         48  Z_OFFSET_TOT                            
         49  TILT_TOT                                
         50  REF_TILT_TOT                            
-        52  kh_y_norm                                 [private]
         53  ref_time_start                            [private]
         54  THICKNESS                               
-        55  l_x                                       [private]
-        56  l_y                                       [private]
-        57  l_z                                       [private]
         58  REF_WAVELENGTH                          
         59  scratch                                   [private]
         61  CUSTOM_ATTRIBUTE1                         [private]
@@ -462,6 +465,7 @@
         72  ALIAS                                   
         76  DIFFRACTION_TYPE                        
         77  APERTURE_TYPE                           
+        78  SURFACE                                 
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
         83  PTC_INTEGRATION_TYPE                    
@@ -470,11 +474,8 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  D_SOURCE                                
-        95  D_DETEC                                 
         98  APERTURE_AT                             
        102  DESCRIP                                 
-       104  WALL                                    
        106  CRYSTAL_TYPE                            
        107  TYPE                                    
        108  REF_ORIGIN                              
@@ -489,7 +490,7 @@
        117  REF_CENTER                              
        118  REF_END                                 
        119  CREATE_JUMBO_SLAVE                      
-       120  CURVATURE_Z0_Y2                         
+       120  CURVATURE_X0_Y2                         
  
  !---------------------------------
   7  CUSTOM                                  
@@ -605,10 +606,11 @@
          5  Z                                       
          6  PZ                                      
          8  T                                       
-        10  E_FIELD_X                               
-        11  E_FIELD_Y                               
+        10  FIELD_X                                 
+        11  FIELD_Y                                 
         12  PHASE_X                                 
         13  PHASE_Y                                 
+        14  E_PHOTON                                
         59  scratch                                   [private]
         61  CUSTOM_ATTRIBUTE1                         [private]
         62  CUSTOM_ATTRIBUTE2                         [private]
@@ -645,6 +647,141 @@
         91  USE_PTC_LAYOUT                          
         92  PTC_EXACT_MODEL                         
         99  RAN_SEED                                
+ 
+ !---------------------------------
+ 55  DETECTOR                                
+         1  l                                         [private]
+         2  TILT                                    
+         3  X_GAIN_ERR                              
+         4  Y_GAIN_ERR                              
+         5  CRUNCH                                  
+         6  NOISE                                   
+         7  OSC_AMPLITUDE                           
+         8  X_GAIN_CALIB                            
+         9  Y_GAIN_CALIB                            
+        10  CRUNCH_CALIB                            
+        11  X_OFFSET_CALIB                          
+        12  Y_OFFSET_CALIB                          
+        13  TILT_CALIB                              
+        14  DE_ETA_MEAS                             
+        15  N_SAMPLE                                
+        16  X_HALF_LENGTH                           
+        17  Y_HALF_LENGTH                           
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        39  DELTA_REF_TIME                          
+        40  p0c_start                                 [private]
+        41  E_tot_start                               [private]
+        42  P0C                                     
+        43  E_TOT                                   
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  Z_OFFSET_TOT                            
+        49  TILT_TOT                                
+        53  ref_time_start                            [private]
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        64  CUSTOM_ATTRIBUTE4                         [private]
+        65  CUSTOM_ATTRIBUTE5                         [private]
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        95  IS_ON                                   
+        98  APERTURE_AT                             
+       102  DESCRIP                                 
+       104  WALL                                    
+       107  TYPE                                    
+       108  REF_ORIGIN                              
+       109  ELE_ORIGIN                              
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
+ 52  DIFFRACTION_PLATE                       
+         2  TILT                                    
+        15  GEOMETRY                                
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  Z_OFFSET_TOT                            
+        49  TILT_TOT                                
+        50  REF_TILT_TOT                            
+        53  ref_time_start                            [private]
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        64  CUSTOM_ATTRIBUTE4                         [private]
+        65  CUSTOM_ATTRIBUTE5                         [private]
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        78  SURFACE                                 
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        98  APERTURE_AT                             
+       102  DESCRIP                                 
+       104  WALL                                    
+       107  TYPE                                    
+       108  REF_ORIGIN                              
+       109  ELE_ORIGIN                              
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_JUMBO_SLAVE                      
+       120  CURVATURE_X0_Y2                         
  
  !---------------------------------
   1  DRIFT                                   
@@ -707,7 +844,6 @@
         98  APERTURE_AT                             
        101  FIELD_MASTER                            
        102  DESCRIP                                 
-       104  WALL                                    
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -1094,6 +1230,7 @@
  49  FLOOR_SHIFT                             
          1  L                                       
          2  TILT                                    
+        15  ORIGIN_ELE_REF_PT                       
         23  X_PITCH                                 
         24  Y_PITCH                                 
         25  X_OFFSET                                
@@ -1125,8 +1262,8 @@
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
         98  APERTURE_AT                             
+        99  ORIGIN_ELE                              
        102  DESCRIP                                 
-       104  WALL                                    
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -1601,6 +1738,7 @@
          8  VOLTAGE                                 
         10  E_LOSS                                  
         11  grad_loss_sr_wake                         [private]
+        12  TRAVELING_WAVE                          
         13  PHI0                                    
         14  PHI0_ERR                                
         15  DPHI0                                   
@@ -1832,7 +1970,6 @@
         95  IS_ON                                   
         98  APERTURE_AT                             
        102  DESCRIP                                 
-       104  WALL                                    
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -1884,6 +2021,7 @@
         70  check_sum                                 [private]
         72  ALIAS                                   
         77  APERTURE_TYPE                           
+        78  SURFACE                                 
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
         83  PTC_INTEGRATION_TYPE                    
@@ -1892,11 +2030,8 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  D_SOURCE                                
-        95  D_DETEC                                 
         98  APERTURE_AT                             
        102  DESCRIP                                 
-       104  WALL                                    
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -1910,7 +2045,7 @@
        117  REF_CENTER                              
        118  REF_END                                 
        119  CREATE_JUMBO_SLAVE                      
-       120  CURVATURE_Z0_Y2                         
+       120  CURVATURE_X0_Y2                         
  
  !---------------------------------
  31  MONITOR                                 
@@ -2056,6 +2191,7 @@
         70  check_sum                                 [private]
         72  ALIAS                                   
         77  APERTURE_TYPE                           
+        78  SURFACE                                 
         81  MAT6_CALC_METHOD                        
         82  TRACKING_METHOD                         
         83  PTC_INTEGRATION_TYPE                    
@@ -2064,12 +2200,9 @@
         86  X_LIMIT                                 
         87  Y_LIMIT                                 
         88  OFFSET_MOVES_APERTURE                   
-        94  D_SOURCE                                
-        95  D_DETEC                                 
         98  APERTURE_AT                             
        102  DESCRIP                                 
-       104  WALL                                    
-       106  CRYSTAL_TYPE                            
+       106  MATERIAL_TYPE                           
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -2083,7 +2216,7 @@
        117  REF_CENTER                              
        118  REF_END                                 
        119  CREATE_JUMBO_SLAVE                      
-       120  CURVATURE_Z0_Y2                         
+       120  CURVATURE_X0_Y2                         
  
  !---------------------------------
  19  MULTIPOLE                               
@@ -2257,6 +2390,7 @@
  24  PATCH                                   
          1  L                                       
          2  TILT                                    
+         4  REF_COORDINATES                         
          5  FLEXIBLE                                
         18  ptc_dir                                   [private]
         23  X_PITCH                                 
@@ -2296,7 +2430,6 @@
         96  FIELD_CALC                              
         98  APERTURE_AT                             
        102  DESCRIP                                 
-       104  WALL                                    
        107  TYPE                                    
        108  REF_ORIGIN                              
        109  ELE_ORIGIN                              
@@ -2830,7 +2963,7 @@
         95  IS_ON                                   
         96  FIELD_CALC                              
         98  APERTURE_AT                             
-       101  FIELD_MASTER                            
+       101  HARMON_MASTER                           
        102  DESCRIP                                 
        104  WALL                                    
        105  FIELD                                   
@@ -2847,6 +2980,65 @@
        117  REF_CENTER                              
        118  REF_END                                 
        119  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
+ 54  SAMPLE                                  
+         1  L                                       
+         2  TILT                                    
+        15  GEOMETRY                                
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  Z_OFFSET_TOT                            
+        49  TILT_TOT                                
+        53  ref_time_start                            [private]
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        64  CUSTOM_ATTRIBUTE4                         [private]
+        65  CUSTOM_ATTRIBUTE5                         [private]
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        78  SURFACE                                 
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        98  APERTURE_AT                             
+       102  DESCRIP                                 
+       107  TYPE                                    
+       108  REF_ORIGIN                              
+       109  ELE_ORIGIN                              
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_JUMBO_SLAVE                      
+       120  CURVATURE_X0_Y2                         
  
  !---------------------------------
   2  SBEND                                   
@@ -3288,6 +3480,100 @@
        119  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
+ 51  UNDULATOR                               
+         1  L                                       
+         2  TILT                                    
+         4  K1                                      
+         5  B_MAX                                   
+         7  N_POLE                                  
+         8  RHO                                     
+        10  POLARITY                                
+        14  L_POLE                                  
+        18  FRINGE_TYPE                             
+        19  KILL_FRINGE                             
+        20  L_HARD_EDGE                             
+        21  FIELD_SCALE                             
+        22  X_RAY_LINE_LEN                          
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        28  HKICK                                   
+        29  VKICK                                   
+        30  BL_HKICK                                
+        31  BL_VKICK                                
+        39  DELTA_REF_TIME                          
+        40  p0c_start                                 [private]
+        41  E_tot_start                               [private]
+        42  P0C                                     
+        43  E_TOT                                   
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  Z_OFFSET_TOT                            
+        49  TILT_TOT                                
+        51  N_REF_PASS                              
+        52  RADIUS                                  
+        53  ref_time_start                            [private]
+        54  INTEGRATOR_ORDER                        
+        55  NUM_STEPS                               
+        56  DS_STEP                                 
+        57  LORD_PAD1                               
+        58  LORD_PAD2                               
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        64  CUSTOM_ATTRIBUTE4                         [private]
+        65  CUSTOM_ATTRIBUTE5                         [private]
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        73  START_EDGE                              
+        74  END_EDGE                                
+        75  ACCORDION_EDGE                          
+        77  APERTURE_TYPE                           
+        78  MAP_WITH_OFFSETS                        
+        79  CSR_CALC_ON                             
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        91  TERM                                    
+        93  SYMPLECTIFY                             
+        95  IS_ON                                   
+        96  FIELD_CALC                              
+        98  APERTURE_AT                             
+       101  FIELD_MASTER                            
+       102  DESCRIP                                 
+       103  SCALE_MULTIPOLES                        
+       104  WALL                                    
+       105  FIELD                                   
+       107  TYPE                                    
+       108  REF_ORIGIN                              
+       109  ELE_ORIGIN                              
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_JUMBO_SLAVE                      
+       120  A0                                      
+ 
+ !---------------------------------
  34  VKICKER                                 
          1  L                                       
          2  TILT                                    
@@ -3465,128 +3751,199 @@
        120  A0                                      
  
  !---------------------------------
+ 53  X_RAY_INIT                              
+         2  TILT                                    
+         3  X_GAIN_ERR                              
+         4  Y_GAIN_ERR                              
+         5  CRUNCH                                  
+         6  NOISE                                   
+         7  OSC_AMPLITUDE                           
+         8  X_GAIN_CALIB                            
+         9  Y_GAIN_CALIB                            
+        10  CRUNCH_CALIB                            
+        11  X_OFFSET_CALIB                          
+        12  Y_OFFSET_CALIB                          
+        13  TILT_CALIB                              
+        14  DE_ETA_MEAS                             
+        15  N_SAMPLE                                
+        16  X_HALF_LENGTH                           
+        17  Y_HALF_LENGTH                           
+        23  X_PITCH                                 
+        24  Y_PITCH                                 
+        25  X_OFFSET                                
+        26  Y_OFFSET                                
+        27  Z_OFFSET                                
+        39  DELTA_REF_TIME                          
+        42  P0C                                     
+        43  E_TOT                                   
+        44  X_PITCH_TOT                             
+        45  Y_PITCH_TOT                             
+        46  X_OFFSET_TOT                            
+        47  Y_OFFSET_TOT                            
+        48  Z_OFFSET_TOT                            
+        49  TILT_TOT                                
+        53  ref_time_start                            [private]
+        59  scratch                                   [private]
+        61  CUSTOM_ATTRIBUTE1                         [private]
+        62  CUSTOM_ATTRIBUTE2                         [private]
+        63  CUSTOM_ATTRIBUTE3                         [private]
+        64  CUSTOM_ATTRIBUTE4                         [private]
+        65  CUSTOM_ATTRIBUTE5                         [private]
+        66  X1_LIMIT                                
+        67  X2_LIMIT                                
+        68  Y1_LIMIT                                
+        69  Y2_LIMIT                                
+        70  check_sum                                 [private]
+        72  ALIAS                                   
+        77  APERTURE_TYPE                           
+        81  MAT6_CALC_METHOD                        
+        82  TRACKING_METHOD                         
+        83  PTC_INTEGRATION_TYPE                    
+        84  SPIN_TRACKING_METHOD                    
+        85  APERTURE                                
+        86  X_LIMIT                                 
+        87  Y_LIMIT                                 
+        88  OFFSET_MOVES_APERTURE                   
+        98  APERTURE_AT                             
+       102  DESCRIP                                 
+       104  WALL                                    
+       107  TYPE                                    
+       108  REF_ORIGIN                              
+       109  ELE_ORIGIN                              
+       110  SUPERIMPOSE                             
+       111  OFFSET                                  
+       112  REFERENCE                               
+       113  ELE_BEGINNING                           
+       114  ELE_CENTER                              
+       115  ELE_END                                 
+       116  REF_BEGINNING                           
+       117  REF_CENTER                              
+       118  REF_END                                 
+       119  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
  Index usage:
     Ix Count
-     1    42
-     2    45
-     3    22
-     4    19
-     5    20
-     6    19
-     7    17
-     8    20
-     9    16
-    10    15
-    11    14
-    12    12
-    13    13
-    14    18
-    15    17
-    16    16
-    17    13
-    18    29
-    19    28
-    20    27
-    21    28
-    22    10
-    23    38
-    24    38
-    25    40
-    26    40
-    27    40
-    28    21
-    29    19
-    30    19
-    31    19
+     1    46
+     2    50
+     3    24
+     4    23
+     5    23
+     6    21
+     7    20
+     8    23
+     9    18
+    10    18
+    11    16
+    12    15
+    13    15
+    14    22
+    15    22
+    16    18
+    17    15
+    18    30
+    19    29
+    20    28
+    21    29
+    22    11
+    23    43
+    24    43
+    25    45
+    26    45
+    27    45
+    28    22
+    29    21
+    30    21
+    31    21
     32     5
     33     6
     34     4
     35     6
-    36     3
+    36     4
     37     2
     38     6
-    39    42
-    40    32
-    41    32
-    42    43
-    43    43
-    44    36
-    45    35
-    46    37
-    47    37
-    48    37
-    49    37
-    50    13
-    51    24
+    39    47
+    40    34
+    41    34
+    42    48
+    43    48
+    44    41
+    45    40
+    46    42
+    47    42
+    48    42
+    49    42
+    50    14
+    51    25
     52    12
-    53    42
-    54    25
+    53    47
+    54    26
     55    25
     56    25
     57    26
-    58    28
-    59    48
+    58    29
+    59    53
     60     0
-    61    48
-    62    48
-    63    48
-    64    48
-    65    48
-    66    39
-    67    39
-    68    39
-    69    39
-    70    48
+    61    53
+    62    53
+    63    53
+    64    53
+    65    53
+    66    44
+    67    44
+    68    44
+    69    44
+    70    53
     71     4
-    72    45
-    73    26
-    74    26
-    75    26
+    72    50
+    73    27
+    74    27
+    75    27
     76     3
-    77    40
-    78    26
-    79    25
+    77    45
+    78    32
+    79    26
     80     2
-    81    41
-    82    41
-    83    41
-    84    40
-    85    40
-    86    40
-    87    40
-    88    39
+    81    46
+    82    46
+    83    46
+    84    45
+    85    45
+    86    45
+    87    45
+    88    44
     89     1
     90     4
-    91     2
+    91     3
     92     3
-    93    28
-    94     4
-    95    36
-    96    22
+    93    29
+    94     1
+    95    35
+    96    23
     97     1
-    98    40
-    99     4
+    98    45
+    99     5
    100     2
-   101    23
-   102    43
-   103    13
-   104    40
-   105    12
+   101    24
+   102    48
+   103    14
+   104    37
+   105    13
    106     3
-   107    43
-   108    41
-   109    41
-   110    41
-   111    41
-   112    41
-   113    41
-   114    41
-   115    41
-   116    41
-   117    41
-   118    41
-   119    39
-   120    18
+   107    48
+   108    46
+   109    46
+   110    46
+   111    46
+   112    46
+   113    46
+   114    46
+   115    46
+   116    46
+   117    46
+   118    46
+   119    44
+   120    21
    121     0
    122     0
    123     0
@@ -3677,11 +4034,15 @@ Index: 1
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
+    CAPILLARY                               
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 2
@@ -3730,6 +4091,11 @@ Index: 2
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 3
@@ -3755,6 +4121,8 @@ Index: 3
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 4
@@ -3768,6 +4136,7 @@ Index: 4
     MARKER                                  
     KICKER                                  
     RBEND                                   
+    PATCH                                   
     INIT_ELE                                
     MATCH                                   
     MONITOR                                 
@@ -3777,6 +4146,9 @@ Index: 4
     CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 5
@@ -3800,6 +4172,9 @@ Index: 5
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 6
@@ -3822,6 +4197,8 @@ Index: 6
     CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 7
@@ -3842,6 +4219,9 @@ Index: 7
     CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 8
@@ -3865,6 +4245,9 @@ Index: 8
     BRANCH                                  
     PIPE                                    
     E_GUN                                   
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 9
@@ -3884,6 +4267,8 @@ Index: 9
     PIPE                                    
     MULTILAYER_MIRROR                       
     E_GUN                                   
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 10
@@ -3902,6 +4287,9 @@ Index: 10
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 11
@@ -3919,6 +4307,8 @@ Index: 11
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 12
@@ -3927,6 +4317,7 @@ Index: 12
     RFCAVITY                                
     MARKER                                  
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -3934,6 +4325,8 @@ Index: 12
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 13
@@ -3950,6 +4343,8 @@ Index: 13
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 14
@@ -3968,9 +4363,13 @@ Index: 14
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 15
@@ -3990,7 +4389,12 @@ Index: 15
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    FLOOR_SHIFT                             
     FIDUCIAL                                
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 16
@@ -4010,6 +4414,8 @@ Index: 16
     PIPE                                    
     MULTILAYER_MIRROR                       
     FIDUCIAL                                
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 17
@@ -4026,6 +4432,8 @@ Index: 17
     PIPE                                    
     MULTILAYER_MIRROR                       
     FIDUCIAL                                
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 18
@@ -4058,6 +4466,7 @@ Index: 18
     E_GUN                                   
     EM_FIELD                                
     FIDUCIAL                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 19
@@ -4089,36 +4498,10 @@ Index: 19
     E_GUN                                   
     EM_FIELD                                
     FIDUCIAL                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 20
-    SBEND                                   
-    QUADRUPOLE                              
-    SEXTUPOLE                               
-    CUSTOM                                  
-    RFCAVITY                                
-    ELSEPARATOR                             
-    WIGGLER                                 
-    SOL_QUAD                                
-    KICKER                                  
-    OCTUPOLE                                
-    RBEND                                   
-    SOLENOID                                
-    LCAVITY                                 
-    MATCH                                   
-    MONITOR                                 
-    INSTRUMENT                              
-    HKICKER                                 
-    VKICKER                                 
-    RCOLLIMATOR                             
-    ECOLLIMATOR                             
-    GIRDER                                  
-    BEND_SOL_QUAD                           
-    CRYSTAL                                 
-    PIPE                                    
-    E_GUN                                   
-    EM_FIELD                                
-    FIDUCIAL                                
  
  !---------------------------------
 Index: 21
@@ -4150,6 +4533,7 @@ Index: 21
     E_GUN                                   
     EM_FIELD                                
     FIDUCIAL                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 22
@@ -4163,6 +4547,7 @@ Index: 22
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
  
  !---------------------------------
 Index: 23
@@ -4204,6 +4589,11 @@ Index: 23
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 24
@@ -4245,6 +4635,11 @@ Index: 24
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 25
@@ -4288,6 +4683,11 @@ Index: 25
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 26
@@ -4331,6 +4731,11 @@ Index: 26
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 27
@@ -4374,6 +4779,11 @@ Index: 27
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 28
@@ -4398,6 +4808,7 @@ Index: 28
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 29
@@ -4419,7 +4830,9 @@ Index: 29
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    CRYSTAL                                 
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 30
@@ -4441,7 +4854,9 @@ Index: 30
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    CRYSTAL                                 
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 31
@@ -4463,7 +4878,9 @@ Index: 31
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    CRYSTAL                                 
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 32
@@ -4503,6 +4920,7 @@ Index: 36
     SBEND                                   
     SEXTUPOLE                               
     RBEND                                   
+    CRYSTAL                                 
  
  !---------------------------------
 Index: 37
@@ -4562,6 +4980,11 @@ Index: 39
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 40
@@ -4597,6 +5020,8 @@ Index: 40
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DETECTOR                                
  
  !---------------------------------
 Index: 41
@@ -4632,6 +5057,8 @@ Index: 41
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DETECTOR                                
  
  !---------------------------------
 Index: 42
@@ -4678,6 +5105,11 @@ Index: 42
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 43
@@ -4724,6 +5156,11 @@ Index: 43
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 44
@@ -4763,6 +5200,11 @@ Index: 44
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 45
@@ -4801,6 +5243,11 @@ Index: 45
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 46
@@ -4841,6 +5288,11 @@ Index: 46
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 47
@@ -4881,6 +5333,11 @@ Index: 47
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 48
@@ -4921,6 +5378,11 @@ Index: 48
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 49
@@ -4961,6 +5423,11 @@ Index: 49
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 50
@@ -4977,6 +5444,7 @@ Index: 50
     MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
+    DIFFRACTION_PLATE                       
  
  !---------------------------------
 Index: 51
@@ -5004,6 +5472,7 @@ Index: 51
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 52
@@ -5018,7 +5487,7 @@ Index: 52
     RBEND                                   
     SOLENOID                                
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
+    UNDULATOR                               
  
  !---------------------------------
 Index: 53
@@ -5064,6 +5533,11 @@ Index: 53
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 54
@@ -5092,6 +5566,7 @@ Index: 54
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 55
@@ -5116,10 +5591,10 @@ Index: 55
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 56
@@ -5144,10 +5619,10 @@ Index: 56
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 57
@@ -5173,10 +5648,10 @@ Index: 57
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 58
@@ -5208,6 +5683,7 @@ Index: 58
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 59
@@ -5259,6 +5735,11 @@ Index: 59
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 60
@@ -5313,6 +5794,11 @@ Index: 61
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 62
@@ -5364,6 +5850,11 @@ Index: 62
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 63
@@ -5415,6 +5906,11 @@ Index: 63
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 64
@@ -5466,6 +5962,11 @@ Index: 64
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 65
@@ -5517,6 +6018,11 @@ Index: 65
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 66
@@ -5559,6 +6065,11 @@ Index: 66
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 67
@@ -5601,6 +6112,11 @@ Index: 67
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 68
@@ -5643,6 +6159,11 @@ Index: 68
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 69
@@ -5685,6 +6206,11 @@ Index: 69
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 70
@@ -5736,6 +6262,11 @@ Index: 70
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 71
@@ -5791,6 +6322,11 @@ Index: 72
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 73
@@ -5820,6 +6356,7 @@ Index: 73
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 74
@@ -5849,6 +6386,7 @@ Index: 74
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 75
@@ -5878,6 +6416,7 @@ Index: 75
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 76
@@ -5927,6 +6466,11 @@ Index: 77
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 78
@@ -5953,9 +6497,15 @@ Index: 78
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    MIRROR                                  
+    CRYSTAL                                 
     PIPE                                    
+    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    SAMPLE                                  
  
  !---------------------------------
 Index: 79
@@ -5984,6 +6534,7 @@ Index: 79
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 80
@@ -6033,6 +6584,11 @@ Index: 81
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 82
@@ -6077,6 +6633,11 @@ Index: 82
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 83
@@ -6121,6 +6682,11 @@ Index: 83
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 84
@@ -6164,6 +6730,11 @@ Index: 84
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 85
@@ -6207,6 +6778,11 @@ Index: 85
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 86
@@ -6250,6 +6826,11 @@ Index: 86
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 87
@@ -6293,6 +6874,11 @@ Index: 87
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 88
@@ -6335,6 +6921,11 @@ Index: 88
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 89
@@ -6351,6 +6942,7 @@ Index: 90
 Index: 91
     WIGGLER                                 
     DEF_PARAMETER                           
+    UNDULATOR                               
  
  !---------------------------------
 Index: 92
@@ -6388,13 +6980,11 @@ Index: 93
     CAPILLARY                               
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 94
     INIT_ELE                                
-    MIRROR                                  
-    CRYSTAL                                 
-    MULTILAYER_MIRROR                       
  
  !---------------------------------
 Index: 95
@@ -6428,12 +7018,11 @@ Index: 95
     BEND_SOL_QUAD                           
     PHOTON_BRANCH                           
     BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
     PIPE                                    
-    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
+    DETECTOR                                
  
  !---------------------------------
 Index: 96
@@ -6459,6 +7048,7 @@ Index: 96
     BEND_SOL_QUAD                           
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 97
@@ -6506,12 +7096,18 @@ Index: 98
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 99
     DEF_PARAMETER                           
     INIT_ELE                                
     GIRDER                                  
+    FLOOR_SHIFT                             
     FIDUCIAL                                
  
  !---------------------------------
@@ -6544,6 +7140,7 @@ Index: 101
     PHOTON_BRANCH                           
     BRANCH                                  
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 102
@@ -6590,6 +7187,11 @@ Index: 102
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 103
@@ -6606,10 +7208,10 @@ Index: 103
     HKICKER                                 
     VKICKER                                 
     BEND_SOL_QUAD                           
+    UNDULATOR                               
  
  !---------------------------------
 Index: 104
-    DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
@@ -6627,11 +7229,9 @@ Index: 104
     MULTIPOLE                               
     AB_MULTIPOLE                            
     SOLENOID                                
-    PATCH                                   
     LCAVITY                                 
     INIT_ELE                                
     HOM                                     
-    MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     HKICKER                                 
@@ -6641,14 +7241,14 @@ Index: 104
     BEND_SOL_QUAD                           
     PHOTON_BRANCH                           
     BRANCH                                  
-    MIRROR                                  
-    CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
-    MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
-    FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    DETECTOR                                
  
  !---------------------------------
 Index: 105
@@ -6664,6 +7264,7 @@ Index: 105
     BEND_SOL_QUAD                           
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 106
@@ -6716,6 +7317,11 @@ Index: 107
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 108
@@ -6760,6 +7366,11 @@ Index: 108
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 109
@@ -6804,6 +7415,11 @@ Index: 109
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 110
@@ -6848,6 +7464,11 @@ Index: 110
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 111
@@ -6892,6 +7513,11 @@ Index: 111
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 112
@@ -6936,6 +7562,11 @@ Index: 112
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 113
@@ -6980,6 +7611,11 @@ Index: 113
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 114
@@ -7024,6 +7660,11 @@ Index: 114
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 115
@@ -7068,6 +7709,11 @@ Index: 115
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 116
@@ -7112,6 +7758,11 @@ Index: 116
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 117
@@ -7156,6 +7807,11 @@ Index: 117
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 118
@@ -7200,6 +7856,11 @@ Index: 118
     EM_FIELD                                
     FLOOR_SHIFT                             
     FIDUCIAL                                
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 119
@@ -7242,6 +7903,11 @@ Index: 119
     E_GUN                                   
     EM_FIELD                                
     FLOOR_SHIFT                             
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_INIT                              
+    SAMPLE                                  
+    DETECTOR                                
  
  !---------------------------------
 Index: 120
@@ -7263,3 +7929,6 @@ Index: 120
     MIRROR                                  
     CRYSTAL                                 
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    SAMPLE                                  

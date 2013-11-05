@@ -11,6 +11,9 @@ set (INC_DIRS
 set (LINK_LIBS
   cesr_utils
   bmad 
+  xsif
+  xrlf03
+  xrl
   sim_utils
   recipes_f-90_LEPP 
   forest

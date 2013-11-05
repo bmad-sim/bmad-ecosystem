@@ -1,6 +1,6 @@
-set (EXENAME bmad_to_csrtrack)
+set (EXENAME bmad_to_autocad)
 set (SRC_FILES
-  bmad_to_csrtrack/bmad_to_csrtrack.f90
+  bmad_to_autocad/bmad_to_autocad.f90
 )
 
 set (INC_DIRS
@@ -9,7 +9,11 @@ set (INC_DIRS
 )
 
 set (LINK_LIBS
+  bsim
   bmad 
+  xsif
+  xrlf03
+  xrl
   sim_utils
   recipes_f-90_LEPP 
   forest 
