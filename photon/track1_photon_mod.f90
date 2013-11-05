@@ -63,7 +63,7 @@ endif
 ! Choose outgoing direction
 
 vz0 = orbit%vec(6)
-call isotropic_photon_reflection (ele, param, orbit, +1, twopi)
+call isotropic_photon_emission (ele, param, orbit, +1, twopi)
 
 ! Rescale field
 
@@ -224,7 +224,7 @@ endif
 select case (nint(ele%value(mode$)))
 case (reflection$)
 
-  call isotropic_photon_reflection (ele, param, orbit, -1, fourpi, w_to_surface)
+  call isotropic_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
 
 case default
   call out_io (s_error$, r_name, 'MODE NOT SET.')
@@ -243,7 +243,7 @@ end subroutine track1_sample
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine isotropic_photon_reflection (ele, param, orbit, direction, solid_angle, w_to_surface)
+! Subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
 !
 ! Routine to emit a photon from a surface in a random direction.
 !
@@ -259,7 +259,7 @@ end subroutine track1_sample
 !   orbit    -- Coord_struct: Final phase-space coords
 !-
 
-subroutine isotropic_photon_reflection (ele, param, orbit, direction, solid_angle, w_to_surface)
+subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
 
 implicit none
 
@@ -336,7 +336,7 @@ else
   endif
 endif
 
-end subroutine isotropic_photon_reflection 
+end subroutine isotropic_photon_emission 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
