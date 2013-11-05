@@ -197,7 +197,8 @@ for buildpass, target in enumerate(targets):
         set_nightly_link = True
     else:
         print target + ' : ERROR'
-        mail_command = 'echo  "ERROR IN RELEASE" | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
+        error_log_message_cmd = 'grep -C 10 Error ' + logfile
+        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
         p = sub.call(mail_command,
                       bufsize=1,
                       shell=True)
