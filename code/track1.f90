@@ -74,7 +74,7 @@ endif
 
 ! Photons get the z-coordinate reset to zero.
 
-if (start2_orb%species == photon$ .and. start2_orb%state == downstream_end$) then
+if (start2_orb%species == photon$ .and. start2_orb%location == downstream_end$) then
   start2_orb%state = upstream_end$
   start2_orb%vec(5) = 0
 endif
