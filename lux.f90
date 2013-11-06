@@ -9,7 +9,6 @@ type (ele_struct), pointer :: detec_ele
 type (lux_source_struct), target :: source
 type (lux_params_struct) lux_param
 type (lux_photon_struct), target :: photon
-type (lux_direction_tile_struct), pointer :: tt
 type (surface_grid_struct), pointer :: detector
 type (coord_struct), pointer :: end_orb, this_orb
 type (surface_grid_pt_struct), pointer :: pix
@@ -21,7 +20,7 @@ real(rp) cut, normalization, intensity_normalization_coef, area
 real(rp) total_dead_intens, pix_in_file_intensity, x, phase
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 
-integer i, j, n, ie, nt, n_track, n_track_tot, n_live, track_state, ix_tile
+integer i, j, n, ie, nt, n_track, n_track_tot, n_live, track_state
 integer nx, ny, nx_min, nx_max, ny_min, ny_max, ie_max
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 integer random_seed, n_photon1_file, n_throw, ix_ele_photon1
@@ -30,12 +29,11 @@ character(3) num_str
 character(16) random_engine, tracking_mode
 character(40) arg, plotting, number_file
 character(100) param_file, lattice_file, photon1_out_file, det_pix_out_file
-character(100) emission_tile_out_file
 
 logical ok, is_there, reject_dead_at_det_photon1, accept
 
 namelist / params / lattice_file, random_seed, photon1_out_file, det_pix_out_file, lux_param, &
-    emission_tile_out_file, intensity_normalization_coef, random_engine, ix_ele_photon1, &
+    intensity_normalization_coef, random_engine, ix_ele_photon1, &
     reject_dead_at_det_photon1, tracking_mode
 
 ! Get inputs
@@ -66,7 +64,6 @@ photon1_out_file = ''
 ix_ele_photon1 = -1  ! Use detector
 reject_dead_at_det_photon1 = .false.
 det_pix_out_file = ''
-emission_tile_out_file = ''
 random_seed = 0
 random_engine = 'pseudo'
 intensity_normalization_coef = 1e6
@@ -102,8 +99,8 @@ endif
 
 ! Add number to file name
 
-if (index(photon1_out_file, '#') /= 0 .or. index(det_pix_out_file, '#') /= 0 .or. &
-    index(emission_tile_out_file, '#') /= 0) then
+if (index(photon1_out_file, '#') /= 0 .or. index(det_pix_out_file, '#') /= 0) then
+
 
   number_file = 'lux_out_file.number'
   inquire(file = number_file, exist = is_there)
@@ -116,7 +113,6 @@ if (index(photon1_out_file, '#') /= 0 .or. index(det_pix_out_file, '#') /= 0 .or
   call increment_file_number (number_file, 3, n, num_str)
   call sub_in (photon1_out_file)
   call sub_in (det_pix_out_file)
-  call sub_in (emission_tile_out_file)
 
 endif
 
@@ -160,22 +156,12 @@ if (detec_ele%value(x1_limit$) == 0 .or. detec_ele%value(x2_limit$) == 0 .or. &
   print *, 'LIMITS NOT SET AT DETECTOR!'
 endif
 
-! Divide the sphere of initial photon propagation directions into 
-! a grid of roughly rectangular tiles 
+
+! Some init
 
 call run_timer('START')
 
 call lux_setup (photon, lat, lux_param, source)
-
-! Plot tiles
-
-if (plotting /= '') then
-  if (index('tiles', trim(plotting)) == 1) then
-    call lux_plot_tiles (lux_param, source)
-  endif
-endif
-
-! Some init
 
 if (photon1_out_file /= '') then
   open (1, file = photon1_out_file, recl = 200)
@@ -198,9 +184,10 @@ e_ave = 0; e_rms = 0
 
 ie_max = 1
 if (lux_param%ix_tracking_mode == coherent$) then
-  ie_max = source%n_energy_pts
+  ie_max = lux_param%n_energy_pts
 endif
 
+branch%param%tracking_mode = lux_param%ix_tracking_mode
 n_live = 0
 n_track_tot = 0
 intensity_tot = 0
@@ -266,9 +253,6 @@ energy_loop: do ie = 1, ie_max
     e_ave  = e_ave  + intensity * (end_orb%p0c - e_ref)
     e_rms = e_rms + intensity * (end_orb%p0c - e_ref)**2
 
-    source%tile(photon%ix_tile)%n_photon_live = source%tile(photon%ix_tile)%n_photon_live + 1
-    source%tile(photon%ix_tile)%det_intensity = source%tile(photon%ix_tile)%det_intensity + intensity
-
     nx = nint((end_orb%vec(1) - detector%r0(1)) / detector%dr(1))
     ny = nint((end_orb%vec(3) - detector%r0(2)) / detector%dr(2))
 
@@ -301,12 +285,7 @@ energy_loop: do ie = 1, ie_max
 
 enddo energy_loop
 
-if (lux_param%source_type == 'SPHERICAL') then
-  area = size(source%tile) * lux_param%del_phi * lux_param%del_y
-else
-  area = fourpi
-endif
-
+area = fourpi
 normalization = intensity_normalization_coef * area / (n_track_tot * fourpi)
 
 close(1)
@@ -334,9 +313,6 @@ if (det_pix_out_file /= '') then
 
   write (3, '(3a)')        'master_input_file = "', trim(param_file), '"'
   write (3, '(3a)')        'lattice_file      = "', trim(lattice_file), '"'
-  write (3, '(a, i8)')     'n_tile_tot        =', source%n_tile_tot
-  write (3, '(a, i8)')     'n_used_tiles      =', size(source%tile)
-  write (3, '(a, es14.6)') 'area_used_tiles   =', area
   write (3, '(a, es14.6)') 'normalization     =', normalization
   write (3, '(a, f10.6)')  'dx_pixel          =', detector%dr(1)
   write (3, '(a, f10.6)')  'dy_pixel          =', detector%dr(2)
@@ -394,41 +370,6 @@ if (det_pix_out_file /= '') then
 endif
 
 !------------------------------------------
-! emission_tile_out_file
-
-if (emission_tile_out_file /= '') then
-  open (10, file = emission_tile_out_file)
-  do i = 1, size(source%tile)
-    tt => source%tile(i)
-    write (10, '(i6, 2x, 2i5, 2x, 2f8.3, 2x, 2i5, es11.3, l4)') &
-                      i, tt%iphi, tt%iy, tt%iphi * lux_param%del_phi, tt%iy * lux_param%del_y, &
-                      tt%n_photon, tt%n_photon_live, tt%det_intensity * normalization, tt%alive
-    if (tt%alive .or. tt%n_photon_live == 0) cycle
-    if (tt%det_intensity > 1d-5 * intensity_tot) then
-      print '(a, 2i5, f10.5)', '*** NOTE! PHOTONS ARE REACHING DETECTOR FROM DEAD TILE I_PHI, I_Y: ', &
-              tt%iphi, tt%iy, tt%det_intensity / intensity_tot
-    endif
-  enddo
-  close(10)
-endif
-
-!------------------------------------------
-
-total_dead_intens = 0
-do i = 1, size(source%tile)
-  tt => source%tile(i)
-  if (tt%alive) cycle
-  total_dead_intens = total_dead_intens + tt%det_intensity
-enddo
-if (total_dead_intens > 1e-4 * intensity_tot) then
-  print '(a, f10.5, a)', 'TOTAL INTENSITY FROM DEAD TILES:', 100 * total_dead_intens / intensity_tot, '%'
-elseif (intensity_tot == 0) then
-  print '(a, f10.5, a)', 'Total intensity from dead tiles:', 0.0_rp, '%'
-else
-  print '(a, f10.5, a)', 'Total intensity from dead tiles:', 100 * total_dead_intens / intensity_tot, '%'
-endif
-
-!
 
 call run_timer ('READ', dtime)
 
@@ -455,7 +396,6 @@ print '(a, f10.2)', &
 print *
 print *, 'Photon1 data file:        ', trim(photon1_out_file)
 print *, 'Detector pixel data file: ', trim(det_pix_out_file)
-print *, 'Emission tile data file:  ', trim(emission_tile_out_file)
 
 ! End plotting
 

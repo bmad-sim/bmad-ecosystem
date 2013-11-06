@@ -88,26 +88,10 @@ Syntax for invoking \lux:
 \begin{example}
   lux \{options\} \{<master_input_file_name>\}
 \end{example}
-Examples:
-\begin{example}
-  lux my_input_file.init
-  lux -plot tiles  my_input_file.init
-\end{example}
-
 The \vn{<master_input_file_name>} optional argument is used to set the
 master input file name. The default is ``\vn{lux.init}''. 
 
-The command line options for \lux are:
-\begin{example}
-  -plot <what>  ! For viewing diagnostic plots.
-\end{example}
-
-The \vn{-plot <what>} option is used for diagnostic purposes. 
-Currently only one plotting option is available:
-\begin{example}
-  -plot tiles   ! Plot active direction tiles.
-\end{example}
-See below of an explanation of \vn{direction tiles}
+Currently there are no \{options\}.
 
 %------------------------------------------------------------------
 \section{Fortran Namelist}
@@ -144,7 +128,6 @@ An example is:
 \begin{example}
   &params
   	lattice_file = 'test.bmad'                     ! Defines experimental layout.
-    emission_tile_out_file = 'lux.tile'
     det_pix_out_file = 'lux.det_pix#'
 
     photon1_out_file = 'lux.photon1'               ! Individual photon positions.
@@ -162,9 +145,7 @@ An example is:
     lux_param%transverse_distribution = 'GAUSSIAN' ! or 'UNIFORM'. 
 
     lux_param%source_type = 'SPHERICAL'            ! or 'PLANAR' or 'BEND'
-    lux_param%use_all_tiles = False
-    lux_param%del_y =   0.0075                     ! direction tile height.
-    lux_param%del_phi = 0.0075                     ! direction tile width.
+    lux_param%use_tile = False
     lux_param%y_max = 0.1                          ! total tile height.
     lux_param%phi_max = 0.1                        ! total tile width.
 
@@ -185,12 +166,6 @@ The components of this namelist are:
   \item[\vn{lattice_file}] \Newline
 This file defines the X-ray optics setup. See
 Section~\sref{s:lat.file} and the Bmad manual for more details.
-  \item[\vn{emission_tile_out_file}] \Newline
-Name of the output data file recording the X-ray intensity being
-emitted on a \vn{tile} by \vn{tile} basis. See
-section~\sref{s:tile.file} for more details. The file name may be
-``numbered'' using a ``\#'' character (\sref{s:number}). A blank file
-name will prevent a file being generated.
   \item[\vn{photon1_out_file}] \Newline
 Name of the output data file recording the starting and ending
 positions of individual photons. See section~\sref{s:photon1.file} for
@@ -224,17 +199,13 @@ Type of energy spectrum (\sref{s:photon.start}).
 Type of spacial spectrum (\sref{s:photon.start}).
   \item[\vn{lux_param\%source_type}] \Newline
 Type of source used for photon generation (\sref{s:photon.start}).
-  \item[\vn{lux_param\%use_all_tiles}] \Newline
+  \item[\vn{lux_param\%use_tile}] \Newline
 Use all direction tiles within the rectangle defined by \vn{lux_param%del_y}
 and \vn{lux_param%del_phi} (\sref{s:photon.start})?
-  \item[\vn{lux_param\%del_y}] \Newline
-Height of an individual direction tile (\sref{s:photon.start}).
-  \item[\vn{lux_param\%del_phi}] \Newline
-Width of an individual direction tile (\sref{s:photon.start}).
   \item[\vn{lux_param\%y_max}] \Newline
-Height extent of the direction tiles  (\sref{s:photon.start}).
+Height extent of the direction tile (\sref{s:photon.start}).
   \item[\vn{lux_param\%phi_max}] \Newline
-Width extent of the direction tiles  (\sref{s:photon.start}).
+Width extent of the direction tile  (\sref{s:photon.start}).
   \item[\vn{lux_param\%e_field_x}] \Newline
 Electric field component of initial photons in the x-plane (\sref{s:photon.start}).
   \item[\vn{lux_param\%e_field_y}] \Newline
@@ -602,7 +573,6 @@ of pixels. The size of the pixels is given by
 The names of the output data files are specified by the following
 variables (\sref{s:master.file}):
 \begin{example}
-  emission_tile_out_file
   photon1_out_file
   det_pix_out_file
 \end{example}
@@ -624,31 +594,6 @@ all such files will receive the same number on a given run. To set the
 number given, one can edit the file:
 \begin{example}
   lux_out_file.number
-\end{example}
-
-%------------------------------------------------------------------
-\section{Emission Tile Data File}
-\label{s:tile.file}
-
-The \vn{emission_tile_out_file} parameter (set in the master input file)
-is the name of an output data file containing statistics on photon
-survival on a tile-by-tile basis.
-
-If the file name is blank then no file will be generated. The file
-name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
-
-Only information on live tiles is displayed in the file. Each row
-represents one tile. The columns of this file are:
-\begin{example}
-  index          ! Tile index starting from 1.
-  i_phi          ! Tile phi coordinate index 
-  i_y            ! Tile y coordinate index
-  phi            ! Tile phi coordinate of center of tile
-  y              ! Tile y coordinate
-  n_photon       ! Number of photons generated from this tile
-  n_photon_live  ! Number of photons making it to the detector
-  intensity      ! Normalized photon intensity at the detector 
-                 !   from these photons.
 \end{example}
 
 %------------------------------------------------------------------
