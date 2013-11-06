@@ -730,13 +730,10 @@ parameters $E_x, \phi_x$, and $E_y, \phi_y$ specifying the intensity
 and phase of the field along the $x$ and $y$ axes transverse to the
 direction of propagation.  the field in the vicinity of the photon is
 \begin{align}
-  E_x (\Bf r, t) &\sim E_x \, e^{i (k \, (z - z_0) - \omega \, (t - t_0) + \phi_x)} \CRNO
-  E_y (\Bf r, t) &\sim E_y \, e^{i (k \, (z - z_0) - \omega \, (t - t_0) + \phi_y)} \CRNO
+  E_x (\Bf r, t) &\sim E_x \, e^{i (k \, (z - z_0) - \omega \, (t - t_{ref}) + \phi_x)} \CRNO
+  E_y (\Bf r, t) &\sim E_y \, e^{i (k \, (z - z_0) - \omega \, (t - t_{ref}) + \phi_y)} \CRNO
 \end{align}
-where $z_0$ and $t_0$ are the photon $z$ position and time
-respectively.  The use of $z_0$ and $t_0$ in the above equation is one
-of convienience and the photon serves as the origin for the
-calculation of the field.
+where $z_0$ is the photon $z$ position and and $t_ref$ is the reference time.
 
 The normalization between field and intensity is dependent upon the
 particular parameters of any given simulation and so must be
