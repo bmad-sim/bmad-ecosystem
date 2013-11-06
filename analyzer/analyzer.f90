@@ -7,6 +7,7 @@ program anaylzer
   use bookkeeper_mod
   use bsim_interface
   use mode3_mod
+  use space_charge_mod
 
   implicit none
 
@@ -83,6 +84,7 @@ program anaylzer
   real(rp) delta_frf, frf
   real(rp) betah_tot, betav_tot
   real(rp) energy
+  real(rp) n_part
      
   character*40 lattice
   character*120 lat_file
@@ -106,6 +108,7 @@ program anaylzer
   logical set_synchronous_phase/.false./
   logical err_flag
   logical error/.false./
+  logical calc_on
 !
   nargs = cesr_iargc()
   if (nargs == 1)then
@@ -367,6 +370,21 @@ program anaylzer
          radiation = .true.
      endif
      if(index(line, 'noc') /= 0) set_synchronous_phase = .false.
+     exit
+   endif
+
+   if(line(1:5) == 'SPACE')then  !space charge
+     call string_trim(line(1:),line,ix)
+     if (ix /= 0)then
+       read(line(ix+1:),*)n_part
+       calc_on = .true.
+       call setup_ultra_rel_space_charge_calc (calc_on, ring, n_part, mode)
+       print '(a,es12.4,1x,a)', 'Number particles = ',n_part, ' for space charge' 
+     else  
+      print '(a)',' Type <SPACE_CHARGE> <n_part> ' 
+      calc_on = .false.
+    endif
+      cycle
      exit
    endif
 
@@ -1274,7 +1292,7 @@ program anaylzer
                                               '   theta     ','    phi     ','    psi     ' 
 
        do i=1,ring%n_ele_track
-  write(34,'(1x,a13,6es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
+  write(34,'(1x,a13,8es15.7)')ring%ele(i)%name, ring%ele(i)%s, &
 !                        ring%ele(i)%floor%x,ring%ele(i)%floor%y,ring%ele(i)%floor%z, &
                         ring%ele(i)%floor%r, ring%ele(i)%floor%theta,ring%ele(i)%floor%phi,ring%ele(i)%floor%psi
 
@@ -1560,7 +1578,7 @@ program anaylzer
 
   ring%param%aperture_limit_on = .true.
 
-  orbit(ix_start)%vec = traj%vec
+  call init_coord(orbit(ix_start), traj%vec, ring%ele(ix_start), .true.)
   open(unit = 51, file = 'phase_space_cesr_bpm.dat')
   open(unit = 52, file = 'phase_space_start.dat')
    write(51,'(a6,a12,6a12)')' turn ','  Element   ','     x      ','     xp     ','     y      ','    yp      ', &
@@ -1572,7 +1590,7 @@ program anaylzer
 
     do j =1, size(ix_det)
      if(ix_det(j) <= 0)cycle
-      call track_many(ring, orbit, istart, ix_det(j), 1)
+      call track_many(ring, orbit, istart, ix_det(j), 1, track_state = track_state)
       psp_all%vec(1:6)= (orbit(ix_det(j))%vec(1:6) - co(ix_det(j))%vec(1:6))*1000.
      
       write(51,'(i6,a12,6e12.4)')i,detector(j),psp_all%vec(1:6)
@@ -1582,23 +1600,23 @@ program anaylzer
     end do
 
     if(ix_end > ix_start)then
-       call track_many(ring, orbit, ix_start, ix_end, 1, 0, track_state)
+       call track_many(ring, orbit, ix_start, ix_end, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
-       call track_many(ring, orbit, ix_end, ring%n_ele_track, 1, 0, track_state)
+       call track_many(ring, orbit, ix_end, ring%n_ele_track, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
        orbit(0)%vec = orbit(ring%n_ele_track)%vec
-       call track_many(ring, orbit, 0, ix_start, 1, 0, track_state)
+       call track_many(ring, orbit, 0, ix_start, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
 
      else
-       call track_many(ring, orbit, ix_start, ring%n_ele_track, 1, 0, track_state)
+       call track_many(ring, orbit, ix_start, ring%n_ele_track, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
        orbit(0)%vec = orbit(ring%n_ele_track)%vec
-       call track_many(ring, orbit, 0, ix_end, 1, 0, track_state)
+       call track_many(ring, orbit, 0, ix_end, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
        psp_save(i)%vec(1:6) = (orbit(ix_end)%vec(1:6) - co(ix_end)%vec(1:6))*1000.
-       call track_many(ring, orbit, ix_end, ix_start, 1, 0, track_state)
+       call track_many(ring, orbit, ix_end, ix_start, 1, 0, track_state = track_state)
        if(track_state /= moving_forward$) exit
 
     endif
