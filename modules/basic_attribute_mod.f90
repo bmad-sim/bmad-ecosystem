@@ -434,9 +434,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, lord_pad1$,           'LORD_PAD1', quasi_free$)
   call init_attribute_name1 (i, lord_pad2$,           'LORD_PAD2', quasi_free$)
 
+  call init_attribute_name1 (i, l$,                   'L')
+
   if (i == taylor$)       cycle
 
-  call init_attribute_name1 (i, l$,                   'L')
   call init_attribute_name1 (i, start_edge$,          'START_EDGE', dependent$)
   call init_attribute_name1 (i, end_edge$,            'END_EDGE', dependent$)
   call init_attribute_name1 (i, accordion_edge$,      'ACCORDION_EDGE', dependent$)
@@ -600,7 +601,6 @@ call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START',
 call init_attribute_name1 (em_field$, field$,                       'FIELD')
 call init_attribute_name1 (em_field$, field_calc$,                  'FIELD_CALC')
 
-call init_attribute_name1 (taylor$, l$,                             'L')
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
 

@@ -161,20 +161,21 @@ end type
 ! top and bottom walls. The side walls are neglected.
 !-
 
-type csr_parameter_struct                ! Common block for csr calc
-  real(rp) :: ds_track_step = 0          ! Tracking step size
-  real(rp) :: beam_chamber_height = 0    ! Used in shielding calculation.
-  real(rp) :: sigma_cutoff = 0.1         ! Cutoff for the lsc calc. If a bin sigma
-                                         !  is < cutoff * sigma_ave then ignore.
-  integer :: n_bin = 0                   ! Number of bins used
-  integer :: particle_bin_span = 2       ! Longitudinal particle length / dz_bin
-  integer :: n_shield_images = 0         ! Chamber wall shielding. 0 = no shielding.
-  integer :: ix1_ele_csr = -1            ! Start index for csr tracking
-  integer :: ix2_ele_csr = -1            ! Stop index for csr tracking
-  logical :: lcsr_component_on = .true.  ! Longitudinal csr component
-  logical :: lsc_component_on = .true.   ! Longitudinal space charge component
-  logical :: tsc_component_on = .false.  ! Transverse space charge component
-  logical :: small_angle_approx = .true. ! Use lcsr small angle approximation?
+type csr_parameter_struct                  ! Common block for csr calc
+  real(rp) :: ds_track_step = 0            ! Tracking step size
+  real(rp) :: beam_chamber_height = 0      ! Used in shielding calculation.
+  real(rp) :: sigma_cutoff = 0.1           ! Cutoff for the lsc calc. If a bin sigma
+                                           !  is < cutoff * sigma_ave then ignore.
+  integer :: n_bin = 0                     ! Number of bins used
+  integer :: particle_bin_span = 2         ! Longitudinal particle length / dz_bin
+  integer :: n_shield_images = 0           ! Chamber wall shielding. 0 = no shielding.
+  integer :: ix1_ele_csr = -1              ! Start index for csr tracking
+  integer :: ix2_ele_csr = -1              ! Stop index for csr tracking
+  logical :: lcsr_component_on = .true.    ! Longitudinal csr component
+  logical :: lsc_component_on = .true.     ! Longitudinal space charge component
+  logical :: tsc_component_on = .false.    ! Transverse space charge component
+  logical :: small_angle_approx = .true.   ! Use lcsr small angle approximation?
+  logical :: print_taylor_warning = .true. ! Print warning if Taylor element is present?
 end type
 
 type (csr_parameter_struct), save, target :: csr_param
