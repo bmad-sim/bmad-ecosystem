@@ -43,13 +43,14 @@ type (bunch_struct), target :: bunch_start, bunch_end
 type (coord_struct), pointer :: pt
 type (ele_struct) :: ele
 type (ele_struct), save :: runt
+type (ele_struct), pointer :: ele0
 type (csr_bin_struct), save :: bin
 
 real(rp), optional :: s_start, s_end
 real(rp) s0_step
 integer i, j, ns, nb, n_step, n_live
 
-character(20) :: r_name = 'track1_bunch_csr'
+character(*), parameter :: r_name = 'track1_bunch_csr'
 logical err, auto_bookkeeper
 
 ! Init
@@ -57,11 +58,18 @@ logical err, auto_bookkeeper
 err = .true.
 
 ! No CSR for a zero length element.
+! And taylor elements get ignored.
 
-if (ele%value(l$) == 0) then
+if (ele%value(l$) == 0 .or. ele%key == taylor$) then
   ele%csr_calc_on = .false.
   call track1_bunch_hom (bunch_end, ele, lat%param, bunch_end)
   err = .false.
+  ! Only do warning if previous element needed
+  if (ele%key == taylor$ .and. csr_param%print_taylor_warning) then
+    ele0 => pointer_to_next_ele (ele, -1)
+    if (ele0%csr_calc_on == .true.) call out_io (s_warn$, r_name, &
+                        'CSR calc for taylor element not done: ' // ele%name)
+  endif
   return
 endif
 
@@ -400,6 +408,7 @@ type (csr_kick1_struct), pointer :: kick1
 type (csr_kick_factor_struct) k_factor
 
 real(rp) s_travel, s_kick, s0_kick_ele, coef, e_tot, f1
+real(rp), allocatable :: g_i(:), d_i(:)
 
 integer i, n_ele_pp, n_bin
 
@@ -501,7 +510,6 @@ type (ele_struct), pointer :: source_ele
 integer i, n_ele_pp, ix_source
 
 real(rp) phi, dphi, s0_kick_ele
-real(rp), allocatable :: g_i(:), d_i(:)
 
 ! n_ele_pp is the number of elements between P' and P excluding the 
 ! P and P' elements
@@ -527,10 +535,10 @@ endif
 k_factor%g = 0
 if (source_ele%key == sbend$) k_factor%g = source_ele%value(g$)
 
-if (.not. allocated(g_i)) allocate(g_i(100), d_i(100))
+if (.not. allocated(g_i)) allocate(g_i(n_ele_pp+100), d_i(n_ele_pp+100))
 if (size(g_i) <= n_ele_pp) then
-  call re_allocate (g_i, 2*size(g_i))
-  call re_allocate (d_i, 2*size(d_i))
+  call re_allocate (g_i, n_ele_pp + 100)
+  call re_allocate (d_i, n_ele_pp + 100)
 endif
 
 g_i(n_ele_pp+1) = k_factor%g
@@ -982,6 +990,8 @@ real(rp), optional :: dz_dd
 
 logical small_angle_approx
 
+character(*), parameter :: r_name = 'z_calc_csr'
+
 ! Special cases
 
 if (k_factor%v1 == 0 .and. d == 0 .and. bin%y2 == 0) then
@@ -1005,6 +1015,11 @@ kf => k_factor
 ! General case with small angle approx
 
 if (small_angle_approx) then
+  if (v1d == 0 .or. bin%gamma2 == 0) then
+    call out_io (s_fatal$, r_name, 'ERROR IN CSR CALC.') 
+    if (global_com%exit_on_error) call err_exit
+  endif
+
   w2d = 2*k_factor%w2 - phi*d
   y22 = 4 * bin%y2**2
   z_this = v1d / (2 * bin%gamma2) + &

@@ -415,6 +415,7 @@ This structure has components
     logical lsc_component_on = T      ! Longitudinal space charge component
     logical tsc_component_on = T      ! Transverse space charge component
     logical small_angle_approx = T    ! Use lcsr small angle approximation?
+    logical print_taylor_warning = .true. ! Print Taylor element warning?
   end type
 \end{example}
 The values for the various quantities shown above are their default values. 
@@ -466,6 +467,12 @@ does not have any affect.
 \vn{small_angle_approx} toggles whether the small angle approximation
 is used in the calculation. This is generally an excellent
 approximation.
+
+\vn{Taylor} map elements (\sref{s:taylor}) that have a finite length
+cannot be subdivided for the CSR calculaton. \bmad will ignore any
+\vn{taylor} elements present in the lattice but will print a warning
+that it is doing so. So suppress the warning, \vn{print_taylor_warning}
+should be set to False.
 
 %-----------------------------------------------------------------
 \section{DE Optimizer Parameters}
