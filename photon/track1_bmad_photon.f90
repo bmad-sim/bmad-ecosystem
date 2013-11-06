@@ -101,7 +101,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   endif
 
   call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track_a_drift_photon (end_orb, length); if (end_orb%state /= alive$) return
+  call track_a_drift_photon (end_orb, length, .true.); if (end_orb%state /= alive$) return
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------
@@ -176,7 +176,7 @@ case (patch$)
     end_orb%vec(1:5:2) = matmul(w_mat_inv, end_orb%vec(1:5:2))
   endif
 
-  call track_a_drift_photon (end_orb, -end_orb%vec(5))
+  call track_a_drift_photon (end_orb, -end_orb%vec(5), .false.)
   end_orb%s = ele%s
 
 !-----------------------------------------------

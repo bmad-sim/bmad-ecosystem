@@ -137,7 +137,7 @@ if (set) then
   if (.not. logic_option(.false., offset_position_only)) then
     if (orbit%vec(5) /= 0) then
       s = orbit%s - orbit%vec(5) * vec6_0 / vec(6)
-      call track_a_drift_photon (orbit, -orbit%vec(5))
+      call track_a_drift_photon (orbit, -orbit%vec(5), .false.)
       if (orbit%state /= alive$) return
       orbit%s = s
     endif
@@ -271,7 +271,7 @@ else
   if (logic_option(.false., offset_position_only)) return
 
   if (vec(5) /= ele%value(l$)) then
-    call track_a_drift_photon (orbit, ele%value(l$) - vec(5))
+    call track_a_drift_photon (orbit, ele%value(l$) - vec(5), .false.)
     if (orbit%state /= alive$) return
     orbit%s = ele%s
   endif

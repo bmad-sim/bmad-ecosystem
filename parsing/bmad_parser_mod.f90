@@ -691,10 +691,10 @@ if (attrib_word == 'SURFACE') then
 
         select case (word)
         case ('DR')
-          if (.not. parse_real_list (trim(ele%name) // ' GRID DR', surf%grid%dr, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID DR', surf%grid%dr, .true.)) return
 
         case ('R0')
-          if (.not. parse_real_list (trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
 
         case ('X_BOUNDS', 'Y_BOUNDS')
           if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), i_vec, .true.)) return
@@ -723,7 +723,7 @@ if (attrib_word == 'SURFACE') then
             return
           endif
           if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
-          if (.not. parse_real_list (trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
           surf%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
@@ -2310,7 +2310,7 @@ first_get_next_word_call = .true.
 
 parsing_loop: do
 
-! get a word
+  ! get a word
 
   if (first_get_next_word_call) then
     call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found, call_check = .true.)
@@ -2330,12 +2330,12 @@ parsing_loop: do
     return
   endif
 
-!--------------------------
-! Preliminary: If we have split up something that should have not been split
-! then put it back together again...
+  !--------------------------
+  ! Preliminary: If we have split up something that should have not been split
+  ! then put it back together again...
 
-! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
-! get split at the "-" even though "-" is a delimiter
+  ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
+  ! get split at the "-" even though "-" is a delimiter
 
   split = .true.         ! assume initially that we have a split number
   if (ix_word == 0) then
@@ -2348,7 +2348,7 @@ parsing_loop: do
     if (index('.0123456789', word(i:i)) == 0) split = .false.
   enddo
 
-! If still SPLIT = .TRUE. then we need to unsplit
+  ! If still SPLIT = .TRUE. then we need to unsplit
 
   if (split) then
     word = word(:ix_word) // delim
@@ -2357,7 +2357,7 @@ parsing_loop: do
     ix_word = ix_word + ix_word2
   endif
 
-! Something like "lcav[lr(2).freq]" will get split on the "("
+  ! Something like "lcav[lr(2).freq]" will get split on the "("
 
   if (delim == '(' .and. index(word, '[LR') /= 0) then
     call get_next_word (word2, ix_word2, '+-*/(^,:}', delim, delim_found)
@@ -2365,10 +2365,10 @@ parsing_loop: do
     ix_word = ix_word + ix_word2 + 1
   endif
 
-!---------------------------
-! Now see what we got...
+  !---------------------------
+  ! Now see what we got...
 
-! For a "(" delim we must have a function
+  ! For a "(" delim we must have a function
 
   if (delim == '(') then
 
@@ -2415,19 +2415,19 @@ parsing_loop: do
     call pushit (op, i_op, l_parens$)
     cycle parsing_loop
 
-! for a unary "-"
+  ! for a unary "-"
 
   elseif (delim == '-' .and. ix_word == 0) then
     call pushit (op, i_op, unary_minus$)
     cycle parsing_loop
 
-! for a unary "+"
+  ! for a unary "+"
 
   elseif (delim == '+' .and. ix_word == 0) then
     call pushit (op, i_op, unary_plus$)
     cycle parsing_loop
 
-! for a ")" delim
+  ! for a ")" delim
 
   elseif (delim == ')') then
     if (ix_word == 0) then
@@ -2449,6 +2449,7 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
+        if (index(end_delims, ')') /= 0) exit   ! End of expression
         call parser_error ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
         return
       endif
@@ -2471,7 +2472,7 @@ parsing_loop: do
       return
     endif
 
-! For binary "+-/*^" delims
+  ! For binary "+-/*^" delims
 
   else
     if (ix_word == 0) then
@@ -2483,7 +2484,7 @@ parsing_loop: do
     stk(i_lev)%value = value
   endif
 
-! If we are here then we have an operation that is waiting to be identified
+  ! If we are here then we have an operation that is waiting to be identified
 
   if (.not. delim_found) delim = ':'
 
@@ -2496,11 +2497,9 @@ parsing_loop: do
     i_delim = times$
   case ('/')
     i_delim = divide$
-  case (')')
-    i_delim = r_parens$
   case ('^')
     i_delim = power$
-  case (',', '}', ':')
+  case (',', '}', ':', ')')   ! End of expression delims
     i_delim = no_delim$
   case default
     call parser_error ('MALFORMED EXPRESSION')
@@ -2508,8 +2507,8 @@ parsing_loop: do
     return
   end select
 
-! now see if there are operations on the OP stack that need to be transferred
-! to the STK stack
+  ! now see if there are operations on the OP stack that need to be transferred
+  ! to the STK stack
 
   do i = i_op, 1, -1
     if (eval_level(op(i)) >= eval_level(i_delim)) then
@@ -2524,7 +2523,7 @@ parsing_loop: do
     endif
   enddo
 
-! put the pending operation on the OP stack
+  ! put the pending operation on the OP stack
 
   i_op = i
   if (i_delim == no_delim$) then
@@ -6030,7 +6029,7 @@ do
       return
     endif
     ! expect ( 1. ) or (1. , 2.) or (1., 2., 3.)
-    if (.not. parse_real_list(trim(ele%name) // ' GRID', grid%r0, .false.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%r0, .false.)) return
     ! Expect , or }
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
@@ -6047,7 +6046,7 @@ do
       return
     endif      
     ! expect ( 1.) or (1. , 2.) or (1., 2., 3.)
-    if (.not. parse_real_list(trim(ele%name) // ' GRID', grid%dr, .false.)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GRID', grid%dr, .false.)) return
     call get_next_word (word, ix_word, ',}', delim, delim_found)     
     if (word /= '') then
       call parser_error ('BAD INPUT AFTER DR DEFINITION: ' // word , &
@@ -6393,7 +6392,7 @@ end function parse_integer_list2
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_list (err_str, real_array, exact_size, open_delim, 
+! Function parse_real_list (lat, err_str, real_array, exact_size, open_delim, 
 !           separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
@@ -6404,10 +6403,12 @@ end function parse_integer_list2
 ! See parse_real_list2 for more details
 !-
 
-function parse_real_list (err_str, real_array, exact_size, open_delim, &
+function parse_real_list (lat, err_str, real_array, exact_size, open_delim, &
                           separator, close_delim, default_value) result (is_ok)
 
 implicit none
+
+type (lat_struct) lat
 
 real(rp) real_array(:)
 real(rp), optional :: default_value
@@ -6423,7 +6424,7 @@ logical is_ok, exact_size
 !
 
 is_ok = .false.
-if (.not. parse_real_list2 (err_str, vec, num_found, size(real_array), &
+if (.not. parse_real_list2 (lat, err_str, vec, num_found, size(real_array), &
                           open_delim, separator, close_delim, default_value)) return
 
 if (num_found > size(real_array) .or. (exact_size .and. num_found < size(real_array))) then
@@ -6441,7 +6442,7 @@ end function parse_real_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_real_list2 (err_str, real_array, num_found, num_expected, open_delim, 
+! Function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, open_delim, 
 !                            separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of reals of the form:
@@ -6449,6 +6450,7 @@ end function parse_real_list
 ! Example:   "(1.2, 2.3, 4.4, 8.5)"
 !
 ! Input:
+!  lat        -- lat_struct: lattice
 !  err_str    -- character(*): Error string to print if there is an error. 
 !  real_array -- real(rp), allocatable: the array to be read in 
 !
@@ -6466,10 +6468,12 @@ end function parse_real_list
 !   num_found               -- integer : number of elements
 !-
 
-function parse_real_list2 (err_str, real_array, num_found, num_expected, open_delim, &
+function parse_real_list2 (lat, err_str, real_array, num_found, num_expected, open_delim, &
           separator, close_delim, default_value) result (is_ok)
 
 ! Arguments
+
+type (lat_struct) lat
 
 real(rp), allocatable :: real_array(:)
 integer :: num_found
@@ -6484,8 +6488,8 @@ integer num_expect
 character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
 integer  ix_word
-logical delim_found
-real(rp) :: default_val
+logical delim_found, err_flag
+real(rp) :: default_val, value
 
 ! Optional arguments
 
@@ -6511,17 +6515,13 @@ end if
 call re_allocate(real_array, num_expected, .false.)
 real_array = default_val
 
-! counter
+! Get reals
+
 num_found = 0
 
-! Get reals
 do 
-
-  call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
-  if (.not. is_real(word) ) then 
-    call parser_error ('BAD REAL NUMBER IN: ' // err_str)
-    return
-   end if    
+  call evaluate_value ('BAD REAL NUMBER IN: ' // err_str, value, lat, delim, delim_found, err_flag, sep // cl_delim)
+  if (err_flag) return
   ! real is found
   num_found = num_found + 1
   ! reallocate if needed  
@@ -6530,8 +6530,8 @@ do
     real_array(num_found:2*num_found) = default_val
   endif
 
-  ! Read value
-   read (word, *)  real_array(num_found) 
+  ! Set value
+   real_array(num_found) = value
   
   ! Exit if cl_delim is found
   if (delim == cl_delim) exit

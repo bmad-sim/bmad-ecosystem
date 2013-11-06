@@ -230,7 +230,7 @@ end subroutine check_aperture_limit
 ! Subroutine to track a particle as through a drift.
 !
 ! Modules needed:
-!   use precision_def
+!   use track1_mod
 !
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
@@ -281,27 +281,30 @@ end subroutine track_a_drift
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track_a_drift_photon (orb, length)
+! Subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
 !
 ! Subroutine to track a particle as through a drift.
 !
 ! Modules needed:
-!   use precision_def
+!   use track1_mod
 !
 ! Input:
 !   orb      -- coord_struct: Orbit at start of the drift.
-!   length   -- Real(rp): Longitudinal length to drift through.
+!   length   -- real(rp): Longitudinal length to drift through.
+!   phase_relative_to_ref
+!            -- logical: If true then E field phase shift is relative to ref particle.
 !
 ! Output:
 !   orb      -- coord_struct: Orbit at end of the drift
 !-
 
-subroutine track_a_drift_photon (orb, length)
+subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
 
 implicit none
 
 type (coord_struct) orb
-real(rp) length, dpath, l
+real(rp) length, path_len, l, v2, dp
+logical phase_relative_to_ref
 
 ! Check for lost
 
@@ -314,15 +317,25 @@ endif
 ! Notice that if orb%vec(6) is negative then the photon will be going back in time.
 
 l = length  ! In case actual length argument is a component of orb.
-dpath = l / orb%vec(6)
-orb%vec(1) = orb%vec(1) + dpath * orb%vec(2)
-orb%vec(3) = orb%vec(3) + dpath * orb%vec(4)
+path_len = l / orb%vec(6)
+orb%vec(1) = orb%vec(1) + path_len * orb%vec(2)
+orb%vec(3) = orb%vec(3) + path_len * orb%vec(4)
 orb%vec(5) = orb%vec(5) + l
 orb%s      = orb%s      + l
-orb%t = orb%t + dpath / c_light
-orb%path_len = orb%path_len + dpath
-!!orb%phase = orb%phase + dpath * orb%p0c / (c_light * h_bar_planck)
+orb%t = orb%t + path_len / c_light
+orb%path_len = orb%path_len + path_len
 
+if (phase_relative_to_ref) then
+  v2 = orb%vec(2)**2 + orb%vec(4)**2
+  if (v2 < 1d-4) then
+    dp = abs(l) * v2 * (0.5_rp + 3 * v2 / 8 + 5 * v2**2 / 16)
+  else
+    dp = abs(path_len) - abs(l)
+  endif
+  orb%phase = orb%phase + sign(dp, path_len) * orb%p0c / (c_light * h_bar_planck)
+else
+  orb%phase = orb%phase + path_len * orb%p0c / (c_light * h_bar_planck)
+endif
 end subroutine track_a_drift_photon
 
 !---------------------------------------------------------------------------
@@ -360,7 +373,7 @@ g = ele%value(g$)
 ! g = 0 case
 
 if (g == 0) then
-  call track_a_drift_photon (orb, length)
+  call track_a_drift_photon (orb, length, .true.)
   return
 endif
 
