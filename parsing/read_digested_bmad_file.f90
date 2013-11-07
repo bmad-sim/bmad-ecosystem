@@ -38,7 +38,7 @@ real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section, garbage, idum2, i0, i1, j0, j1, j2
+integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
@@ -394,6 +394,7 @@ integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m
 integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
+integer i0, i1, j0, j1, j2
 
 logical error, is_alloc_pt
 
