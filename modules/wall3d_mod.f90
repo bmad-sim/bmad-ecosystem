@@ -604,7 +604,7 @@ end subroutine calc_wall_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function wall3d_d_radius (position, ele, perp, ix_section, err_flag) result (d_radius)
+! Function wall3d_d_radius (position, ele, perp, ix_section, origin, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = particle_radius - wall_radius.
 ! The radius is measured from the line connecting the section centers and not 
@@ -679,8 +679,8 @@ if (.not. associated(wall3d)) return
 s_particle = position(5) + dz_offset
 n_sec = size(wall3d%section)
 
-! The outward normal vector is discontinuous at the wall points.
-! If the particle is at a wall point, use the correct interval.
+! The outward normal vector is discontinuous at the wall sections.
+! If the particle is at a wall section, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
 ! Case where particle is outside the wall region. 
@@ -694,6 +694,7 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
     if (present(ix_section)) ix_section = n_sec
     wrapped = .true.
   else
+    if (s_particle < wall3d%section(1)%s .and. wall3d%section(1)%type == wall_start$) return
     call d_radius_at_section(wall3d%section(1))
     return
   endif
@@ -705,6 +706,7 @@ elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(
     if (present(ix_section)) ix_section = n_sec
     wrapped = .true.
   else
+    if (s_particle > wall3d%section(n_sec)%s .and. wall3d%section(n_sec)%type == wall_end$) return
     call d_radius_at_section(wall3d%section(n_sec))
     return
   endif
@@ -726,6 +728,10 @@ else
   wrapped = .false.
 
 endif
+
+! Check if there is a wall here
+
+if (sec1%type == wall_end$ .or. sec2%type == wall_start$) return
 
 ! Crotch
 
