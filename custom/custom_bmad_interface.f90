@@ -10,9 +10,15 @@ interface
     integer particle_at
     logical err_flag
   end subroutine
-end interface
 
-interface 
+  subroutine wall_hit_handler_custom (orb, ele, s, t)
+    use bmad_struct, only: coord_struct, ele_struct, rp
+    implicit none
+    type (coord_struct) :: orb
+    type (ele_struct) :: ele
+    real(rp) s, t
+  end subroutine
+
   subroutine em_field_custom (ele, param, s_rel, t_rel, orb, local_ref_frame, field, calc_dfield, err_flag)
     use bmad_struct
     implicit none
@@ -25,9 +31,7 @@ interface
     logical, optional :: err_flag
     logical, optional :: calc_dfield
   end subroutine
-end interface
 
-interface
   subroutine radiation_integrals_custom (lat, ir, orb, err_flag)
     use bmad_struct, only: lat_struct, coord_struct
     implicit none
@@ -36,18 +40,14 @@ interface
     integer ir
     logical err_flag
   end subroutine
-end interface
 
-interface
   subroutine init_custom (ele, err_flag)
     use bmad_struct, only: ele_struct
     implicit none
     type (ele_struct), target :: ele
     logical err_flag
   end subroutine
-end interface
 
-interface
   subroutine make_mat6_custom (ele, param, start_orb, end_orb, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
@@ -56,9 +56,7 @@ interface
     type (lat_param_struct) param
     logical err_flag
   end subroutine
-end interface
 
-interface
   subroutine make_mat6_custom2 (ele, param, start_orb, end_orb, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
     implicit none
@@ -67,9 +65,7 @@ interface
     type (lat_param_struct) param
     logical err_flag
   end subroutine
-end interface
 
-interface
   subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
@@ -80,9 +76,7 @@ interface
     logical err_flag
     type (track_struct), optional :: track
   end subroutine
-end interface
 
-interface
   subroutine track1_custom2 (start_orb, ele, param, end_orb, track, err_flag)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
@@ -93,9 +87,7 @@ interface
     logical err_flag
     type (track_struct), optional :: track
   end subroutine
-end interface
 
-interface
   subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)
     use bmad_struct, only: lat_struct, ele_struct
     use beam_def_struct, only: bunch_struct
@@ -105,9 +97,7 @@ interface
     type (ele_struct) :: ele
     logical err_flag
   end subroutine
-end interface
 
-interface
   subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none

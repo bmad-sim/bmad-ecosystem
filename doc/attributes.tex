@@ -909,7 +909,7 @@ the entrance and exit reference orbit.}
 The following X-ray elements have a surface which X-rays impinge upon:
 \begin{example}
   crystal               \sref{s:crystal}
-  detector              \sref{s:det}
+  detector              \sref{s:detector}
   diffraction_plate     \sref{s:diff.plate}
   mirror, and           \sref{s:mirror}
   multilayer_mirror     \sref{s:multilayer}
@@ -1339,12 +1339,30 @@ lattice branch is the sum of all the chamber walls of the individual
 elements. That is, the chamber wall at any given point is determined
 by interpolation of the nearest sections upstream and downstream to
 the point.  Thus a given lattice element need not contain a \vn{wall}
-component for the chamber wall to be well defined at the element.
+component for the chamber wall to be well defined at the element. 
+
+The exception to the above rule is when a \vn{section} has its
+\vn{type} component set to either:
+\begin{example}
+  wall_start
+  wall_end
+\end{example}
+If a section has a \vn{type} of \vn{wall_start}, the region between
+that section and the previous section will be considered to have no
+wall. If the \vn{wall_start} section is the first section of the
+containing lattice branch, and if the lattice branch has an open
+geometry, then the region of no wall will start at the end of the
+branch. Similarly, if a section has a \vn{type} of \vn{wall_end}, the
+region between that section and the next section (or the end of the
+lattice branch if there is no next seciton and the branch has an open
+geometry) will not have a wall.
 
 The chamber walls of any two elements may not overlap. The exception
 is when the \vn{superimpose} attribute for a wall of an element is set
 to True. In this case, any other wall cross-sections from any other
 elements that overlap the superimposed wall are discarded.
+Superposition of a wall is useful, for example, in introducing mask
+regions into the wall.
 
 If a branch has a closed geometry (\sref{s:param}), wall sections that
 extend beyound the ends of the branch are ``wrapped'' around.
@@ -1353,8 +1371,7 @@ If a particle is past the last wall cross-section or before the first
 wall cross-section, The following rules are used: If the branch has a
 \vn{closed geometry}, the wall will be interpolated between the last
 and first cross-sections. If the branch has an \vn{open} geometry, the
-wall is taken to have a constant cross-section in these regions.
-
+wall is taken to have a constant cross-section in these regions. 
 
 The chamber wall is defined with respect to the local coordinate
 system (\sref{s:ref}). That is, in a bend a wall that has a constant

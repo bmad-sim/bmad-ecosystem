@@ -3,6 +3,16 @@ module runge_kutta_mod
 use em_field_mod
 use tracking_integration_mod
 use track1_mod
+use wall3d_mod
+
+integer, parameter :: outside_wall$ = 1, wall_transition$ = 2
+
+type runge_kutta_common_struct
+  logical :: check_wall_aperture = .false.
+  integer :: hit_when = outside_wall$   ! or wall_transition$
+end type
+
+type (runge_kutta_common_struct), save :: runge_kutta_com
 
 contains
 
@@ -60,10 +70,13 @@ contains
 
 subroutine odeint_bmad (orb_start, ele, param, orb_end, s1, s2, local_ref_frame, err_flag, track)
 
+use nr, only: zbrent
+
 implicit none
 
 type (coord_struct), intent(in) :: orb_start
 type (coord_struct), intent(out) :: orb_end
+type (coord_struct) orb_save
 type (ele_struct) ele
 type (ele_struct), pointer :: hard_ele
 type (lat_param_struct) param
@@ -72,12 +85,15 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp, ds_tiny = 1e-12_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction
+real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction, position(6)
+real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect
 
 integer, parameter :: max_step = 10000
 integer :: n_step, hard_end
 
-logical local_ref_frame, err_flag, err, at_hard_edge
+logical local_ref_frame, err_flag, err, at_hard_edge, has_hit
+
+character(*), parameter :: r_name = 'odeint_bmad'
 
 ! Init. Note:
 !   rel_tol: Same as eps for odeint scalled by sqrt(ds/(s2-s1))
@@ -166,6 +182,44 @@ do n_step = 1, max_step
                       rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
   if (err) return
 
+  ! Check if hit wall.
+  ! If so, interpolate position particle at the hit point
+
+  if (runge_kutta_com%check_wall_aperture) then
+    position = [orb_end%vec(1:4), s, 1.0_rp]
+    wall_d_radius = wall3d_d_radius (position, ele)
+    select case (runge_kutta_com%hit_when)
+    case (outside_wall$)
+      has_hit = (wall_d_radius > 0)
+    case (wall_transition$)
+      has_hit = (wall_d_radius * old_wall_d_radius < 0 .and. n_step > 1)
+      old_wall_d_radius = wall_d_radius
+    case default
+      call out_io (s_fatal$, r_name, 'BAD RUNGE_KUTTA_COM%HIT_WHEN SWITCH SETTING!')
+      if (global_com%exit_on_error) call err_exit
+    end select
+
+    ! Cannot do anything if already hit
+    if (has_hit .and. n_step == 1) then
+      orb_end%state = lost$
+      return
+    endif
+
+    if (has_hit) then
+      ds_intersect = zbrent (wall_intersection_func, 0.0_rp, ds_did, 1d-10)
+      orb_end%state = lost$
+      call wall_hit_handler_custom (orb_end, ele, s, t)
+      if (orb_end%state /= alive$) return
+    endif
+
+    orb_save = orb_end
+    s_save = s
+    t_save = t
+
+  endif
+
+  ! Save track
+
   if (present(track)) then
     if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
     if (ds_did == ds) then
@@ -199,6 +253,27 @@ end do
 
 orb_end%state = lost$
 err_flag = .false.
+
+!-----------------------------------------------------------------
+contains
+
+function wall_intersection_func (ds) result (d_radius)
+
+real(rp), intent(in) :: ds
+real(rp) d_radius
+real(rp) t_new, r_err(7), dr_ds(7)
+
+!
+
+call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
+position = [orb_end%vec(1:4), s, 1.0_rp]
+wall_d_radius = wall3d_d_radius (position, ele)
+
+s = s_save + ds
+orb_end%s = s
+orb_end%t = orb_save%t + (t - t_save)
+
+end function wall_intersection_func
 
 end subroutine odeint_bmad
 
