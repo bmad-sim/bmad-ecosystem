@@ -84,7 +84,7 @@ program anaylzer
   real(rp) delta_frf, frf
   real(rp) betah_tot, betav_tot
   real(rp) energy
-  real(rp) n_part
+  real(rp) n_part, bemit
      
   character*40 lattice
   character*120 lat_file
@@ -376,12 +376,18 @@ program anaylzer
    if(line(1:5) == 'SPACE')then  !space charge
      call string_trim(line(1:),line,ix)
      if (ix /= 0)then
-       read(line(ix+1:),*)n_part
+     call string_trim(line(ix+1:), line, ix)
+     read(line(1:ix),*)n_part
+     call string_trim(line(ix+1:), line, ix)
+     if(ix == 0)bemit = mode%b%emittance
+     read(line(1:ix),*)bemit
+
+       mode%b%emittance = bemit
        calc_on = .true.
        call setup_ultra_rel_space_charge_calc (calc_on, ring, n_part, mode)
-       print '(a,es12.4,1x,a)', 'Number particles = ',n_part, ' for space charge' 
+       print '(a,es12.4,1x,a,1x,a,es12.4)', 'Number particles = ',n_part, ' for space charge,' ,' b mode emittance =',bemit
      else  
-      print '(a)',' Type <SPACE_CHARGE> <n_part> ' 
+      print '(a)',' Type <SPACE_CHARGE> <n_part> <bmode_emit> ' 
       calc_on = .false.
     endif
       cycle
