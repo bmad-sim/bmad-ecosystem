@@ -67,7 +67,7 @@ if (ele%value(l$) == 0 .or. ele%key == taylor$) then
   ! Only do warning if previous element needed
   if (ele%key == taylor$ .and. csr_param%print_taylor_warning) then
     ele0 => pointer_to_next_ele (ele, -1)
-    if (ele0%csr_calc_on == .true.) call out_io (s_warn$, r_name, &
+    if (ele0%csr_calc_on) call out_io (s_warn$, r_name, &
                         'CSR calc for taylor element not done: ' // ele%name)
   endif
   return
