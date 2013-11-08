@@ -72,6 +72,7 @@ build_specs = {
                 '/trunk/src/BeamInstSupport',
                 '/trunk/src/CBPM-TSHARC',
                 '/trunk/src/bmad',
+		'/Comm/Comm_libs/rfnet',
                 '/trunk/src/cesr_utils',
                 '/trunk/src/CesrBPM',                
                 '/trunk/src/mpm_utils',
@@ -93,25 +94,32 @@ build_specs = {
                 '/trunk/src/logit',
                 '/trunk/src/magstat',
                 '/trunk/src/simcon',
-		'/CESR/CESR_services/intloc'
-		'/trunk/src/err_mon'
-		'/trunk/src/fastlog'
-		'/trunk/src/newin'
-		'/trunk/src/show'
-		'/trunk/src/vacmon'
-		'/trunk/src/xscope'
-		'/CESR/CESR_services/condx'
-		'/CESR/CESR_services/dt80_logger'
-		'/CESR/CESR_services/event_wat'
-		'/CESR/CESR_services/htcmon'
-		'/CESR/CESR_progs/DB_utils'
-		'/CESR/CESR_progs/chfeed'
-		'/CESR/CESR_progs/diagnose'
-		'/CESR/CESR_progs/gdl'
-		'/CESR/CESR_progs/lat_utils'
-		'/CESR/CESR_progs/magnet'
-		'/CESR/CESR_progs/save'
-		'/CESR/CESR_progs/scopeget'
+		'/CESR/CESR_services/intloc',
+		'/trunk/src/err_mon',
+		'/trunk/src/fastlog',
+		'/trunk/src/newin',
+		'/trunk/src/show',
+		'/trunk/src/vacmon',
+		'/trunk/src/xscope',
+		'/CESR/CESR_services/condx',
+		'/CESR/CESR_services/dt80_logger',
+		'/CESR/CESR_services/event_wat',
+		'/CESR/CESR_services/htcmon',
+		'/CESR/CESR_progs/DB_utils',
+		'/CESR/CESR_progs/chfeed',
+		'/CESR/CESR_progs/diagnose',
+		'/CESR/CESR_progs/gdl',
+		'/CESR/CESR_progs/hard',
+		'/CESR/CESR_progs/lat_utils',
+		'/CESR/CESR_progs/magnet',
+		'/CESR/CESR_progs/rfnet',
+		'/CESR/CESR_progs/save',
+		'/CESR/CESR_progs/timing',
+		'/CESR/CESR_progs/vac',
+		'/CESR/CESR_libs/rf',
+		'/CESR/CESR_progs/crf',
+		'/CESR/CESR_progs/lrf',
+		'/CESR/CESR_progs/srf',
             ]
         }
     },
@@ -136,6 +144,7 @@ build_specs = {
                 '/trunk/src/BeamInstSupport',
                 '/trunk/src/CBPM-TSHARC',
                 '/trunk/src/bmad',
+		'/Comm/Comm_libs/rfnet',
                 '/trunk/src/cesr_utils',
                 '/trunk/src/CesrBPM',                
                 '/trunk/src/mpm_utils',
@@ -167,9 +176,25 @@ build_specs = {
                 '/trunk/src/tao_cesr',
                 '/trunk/src/vacmon',
                 '/trunk/src/xscope',
-		'/CESR/CESR_services/intloc',
+		'/CESR/CESR_services/condx',
+		'/CESR/CESR_services/dt80_logger',
+		'/CESR/CESR_services/event_wat',
+		'/CESR/CESR_services/htcmon',
+		'/CESR/CESR_progs/DB_utils',
+		'/CESR/CESR_progs/chfeed',
+		'/CESR/CESR_progs/diagnose',
+		'/CESR/CESR_progs/gdl',
+		'/CESR/CESR_progs/hard',
+		'/CESR/CESR_progs/lat_utils',
+		'/CESR/CESR_progs/magnet',
+		'/CESR/CESR_progs/rfnet',
+		'/CESR/CESR_progs/save',
+		'/CESR/CESR_progs/timing',
 		'/CESR/CESR_progs/vac',
-		'/CESR/CESR_progs/linac'
+		'/CESR/CESR_libs/rf',
+		'/CESR/CESR_progs/crf',
+		'/CESR/CESR_progs/lrf',
+		'/CESR/CESR_progs/srf',
             ]
         }
     },
@@ -222,7 +247,7 @@ build_specs = {
                 '/trunk/packages/lapack/LAPACK95',
 		    # Gets built when lapack is built.
                     # Please see /trunk/packages/lapack/acc_build_lapack95 for build flags  
-                'fftw3'
+                'fftw3',
 		    # Production pass
 		    # ./configure --enable-shared --disable-dependency-tracking --enable-threads --prefix=`pwd`/../production --includedir=`pwd`/../include
 		    # make
@@ -243,6 +268,10 @@ build_specs = {
 		    # make install
                     # FOR AN ONLINE BUILD:
                     # perl -pi~ -e 's!/.fs/cesr/online!\$\{CESR_ONLINE}!' bin/thisroot.sh
+                'xraylib',
+                    # mk
+                    # mkd
+                    # Please see /trunk/packages/xraylib/acc_build for build flags
 
             ]
         }
