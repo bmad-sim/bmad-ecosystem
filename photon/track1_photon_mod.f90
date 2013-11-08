@@ -2,6 +2,7 @@ module track1_photon_mod
 
 use track1_mod
 use wall3d_mod
+use photon_utils_mod
 
 ! This is for passing info into the field_calc_routine
 
@@ -267,7 +268,7 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (photon_target_struct), pointer :: target
-type (target_point_struct) corner(4)
+type (target_point_struct) corner(8)
 
 real(rp), optional :: w_to_surface(3,3)
 real(rp) ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
@@ -287,7 +288,7 @@ if (target%enabled) then
   if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
   call target_rot_mats (r, w_to_target, w_to_ele)
 
-  do i = 1, 4
+  do i = 1, target%n_corner
     r = target%corner(i)%r - r_particle
     if (direction == 1) then
       if (r(3) < 0) r(3) = 0   ! photon cannot be emitted backward
@@ -305,6 +306,13 @@ if (target%enabled) then
   call target_min_max_calc (corner(1)%r, corner(2)%r, y_min, y_max, phi_min, phi_max)
   call target_min_max_calc (corner(2)%r, corner(3)%r, y_min, y_max, phi_min, phi_max)
   call target_min_max_calc (corner(3)%r, corner(4)%r, y_min, y_max, phi_min, phi_max)
+
+  if (target%n_corner == 8) then
+    call target_min_max_calc (corner(8)%r, corner(5)%r, y_min, y_max, phi_min, phi_max)
+    call target_min_max_calc (corner(5)%r, corner(6)%r, y_min, y_max, phi_min, phi_max)
+    call target_min_max_calc (corner(6)%r, corner(7)%r, y_min, y_max, phi_min, phi_max)
+    call target_min_max_calc (corner(7)%r, corner(8)%r, y_min, y_max, phi_min, phi_max)
+  endif
 
   if (y_min >= y_max .or. phi_min >= phi_max) then
     orbit%state = lost$
@@ -764,10 +772,10 @@ if (ele%photon%surface%has_curvature) then
 
   s1 = s_center
   s2 = s_center
-  if (photon_depth_in_crystal(s_center) > 0) then
+  if (photon_depth_in_element(s_center) > 0) then
     do
       s1 = s1 - 0.1
-      if (photon_depth_in_crystal(s1) < 0) exit
+      if (photon_depth_in_element(s1) < 0) exit
       if (s1 < -10) then
         !! call out_io (s_warn$, r_name, &
         !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
@@ -778,7 +786,7 @@ if (ele%photon%surface%has_curvature) then
   else
     do
       s2 = s2 + 0.1
-      if (photon_depth_in_crystal(s2) > 0) exit
+      if (photon_depth_in_element(s2) > 0) exit
       if (s1 > 10) then
         !! call out_io (s_warn$, r_name, &
         !!      'PHOTON INTERSECTION WITH SURFACE NOT FOUND FOR ELEMENT: ' // ele%name)
@@ -788,7 +796,7 @@ if (ele%photon%surface%has_curvature) then
     enddo
   endif
 
-  s_len = zbrent (photon_depth_in_crystal, s1, s2, 1d-10)
+  s_len = zbrent (photon_depth_in_element, s1, s2, 1d-10)
 
   ! Compute the intersection point
 
@@ -807,12 +815,12 @@ contains
 
 !-----------------------------------------------------------------------------------------------
 !+
-! Function photon_depth_in_crystal (s_len) result (delta_h)
+! Function photon_depth_in_element (s_len) result (delta_h)
 ! 
 ! Private routine to be used as an argument in zbrent. Propagates
 ! photon forward by a distance s_len. Returns delta_h = z-z0
-! where z0 is the height of the crystal surface. 
-! Since positive z points inward, positive delta_h => inside crystal.
+! where z0 is the height of the element surface. 
+! Since positive z points inward, positive delta_h => inside element.
 !
 ! Input:
 !   s_len   -- Real(rp): Place to position the photon.
@@ -821,43 +829,20 @@ contains
 !   delta_h -- Real(rp): Depth of photon below surface in crystal coordinates.
 !-
 
-function photon_depth_in_crystal (s_len) result (delta_h)
+function photon_depth_in_element (s_len) result (delta_h)
 
 implicit none
 
-type (photon_surface_struct), pointer :: surf
-
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
-real(rp) :: point(3), x, y
-integer ix, iy, i_pt
+real(rp) :: point(3)
 
 !
 
 point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
+delta_h = point(3) - z_at_surface(ele, point(1), point(2))
 
-surf => ele%photon%surface
-x = point(1)
-y = point(2)
-
-
-if (surf%grid%type == segmented$) then
-  call init_surface_segment (x, y, ele)
-
-  delta_h = point(3) - surf%segment%z0 + (x - surf%segment%x0) * surf%segment%slope_x + &
-                                         (y - surf%segment%y0) * surf%segment%slope_y
-
-else
-  delta_h = point(3)
-  do ix = 0, ubound(surf%curvature_xy, 1)
-  do iy = 0, ubound(surf%curvature_xy, 2) - ix
-    if (ele%photon%surface%curvature_xy(ix, iy) == 0) cycle
-    delta_h = delta_h + surf%curvature_xy(ix, iy) * x**ix * y**iy
-  enddo
-  enddo
-endif
-
-end function photon_depth_in_crystal
+end function photon_depth_in_element
 
 end subroutine track_to_surface
 
@@ -934,90 +919,6 @@ orbit%vec(2:6:2) = matmul(curve_rot, orbit%vec(2:6:2))
 if (present(rot_mat)) rot_mat = curve_rot
 
 end subroutine rotate_for_curved_surface
-
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!+
-! Subroutine init_surface_segment (x, y, ele)
-!
-! Routine to init the componentes in ele%photon%surface%segment for use with segmented surface calculations.
-! The segment used is determined by the (x,y) photon coordinates
-!
-! Input:
-!   x, y   -- Real(rp): Coordinates of the photon.
-!   ele    -- ele_struct: Elment containing a surface.
-!
-! Output:
-!   ele    -- ele_struct: Element with ele%photon%surface%segment initialized.
-!-
-
-subroutine init_surface_segment (x, y, ele)
-
-type (ele_struct), target :: ele
-type (photon_surface_struct), pointer :: s
-type (segmented_surface_struct), pointer :: seg
-
-real(rp) x, y, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag
-integer ix, iy
-
-! Only redo the cacluation if needed
-
-s => ele%photon%surface
-seg => s%segment
-
-ix = nint(x / s%grid%dr(1))
-iy = nint(y / s%grid%dr(2))
-
-if (ix == seg%ix .and. iy == seg%iy) return
-
-!
-
-x0 = ix * s%grid%dr(1)
-y0 = iy * s%grid%dr(2)
-
-seg%ix = ix
-seg%iy = iy
-
-seg%x0 = x0
-seg%y0 = y0
-seg%z0 = 0
-
-seg%slope_x = 0
-seg%slope_y = 0
-coef_xx = 0; coef_xy = 0; coef_yy = 0
-
-do ix = 0, ubound(s%curvature_xy, 1)
-do iy = 0, ubound(s%curvature_xy, 2) - ix
-  if (s%curvature_xy(ix, iy) == 0) cycle
-  seg%z0 = seg%z0 - s%curvature_xy(ix, iy) * x0**ix * y0**iy
-  if (ix > 0) seg%slope_x = seg%slope_x - ix * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**iy
-  if (iy > 0) seg%slope_y = seg%slope_y - iy * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-1)
-  if (ix > 1) coef_xx = coef_xx - ix * (ix-1) * s%curvature_xy(ix, iy) * x0**(ix-2) * y0**iy / 2
-  if (iy > 1) coef_yy = coef_yy - iy * (iy-1) * s%curvature_xy(ix, iy) * x0**ix * y0**(iy-2) / 2
-  if (ix > 0 .and. iy > 0) coef_xy = coef_xy - ix * iy * s%curvature_xy(ix, iy) * x0**(ix-1) * y0**(iy-1)
-enddo
-enddo
-
-! Correct for fact that segment is supported at the corners of the segment
-! This correction only affects z0 and not the slopes
-
-dx = s%grid%dr(1) / 2
-dy = s%grid%dr(2) / 2
-coef_xx = coef_xx * dx**2
-coef_xy = coef_xy * dx * dy
-coef_yy = coef_yy * dy**2
-coef_diag = coef_xx + coef_yy - abs(coef_xy)
-
-if (coef_diag < coef_xx .and. coef_diag < coef_yy) then
-  seg%z0 = seg%z0 + coef_diag
-else if (coef_xx < coef_yy) then
-  seg%z0 = seg%z0 + coef_xx
-else
-  seg%z0 = seg%z0 + coef_yy
-endif
-
-end Subroutine init_surface_segment 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

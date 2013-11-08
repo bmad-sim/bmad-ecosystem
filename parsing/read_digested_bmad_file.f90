@@ -497,16 +497,19 @@ endif
 if (ix_s /= 0) then
   allocate (ele%photon)
   surf => ele%photon%surface
-  read (d_unit, err = 9360) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
-                 surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
+  read (d_unit, err = 9360) ele%photon%target, surf%type, surf%curvature_xy, surf%has_curvature, &
+                 surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
   if (is_alloc_pt) then
     read (d_unit, err = 9360) i0, j0, i1, j1
     allocate(surf%grid%pt(i0:i1, j0:j1))
-    do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
-    do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-      read (d_unit, err = 9360) surf%grid%pt(i,j)
-    enddo
-    enddo
+    ! Detectors do not have any grid data that needs saving
+    if (ele%key /= detector$) then
+      do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
+      do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
+        read (d_unit, err = 9360) surf%grid%pt(i,j)
+      enddo
+      enddo
+    endif
   endif
 
 endif
