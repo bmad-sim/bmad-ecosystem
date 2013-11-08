@@ -14,7 +14,7 @@
   bbu_param%begdr = 5.234
   bbu_param%enddr = 6.135
 
-  beam_init%n_particle = 1000
+  beam_init%n_particle = 100
   beam_init%sig_e = 0.2e-3
 
   bbu_param%ran_seed = 1234
