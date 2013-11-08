@@ -446,7 +446,8 @@ end type
 
 type photon_target_struct
   logical :: enabled = .false.
-  type (target_point_struct) :: corner(4) = target_point_struct()
+  integer :: n_corner = 0
+  type (target_point_struct) :: corner(8) = target_point_struct()
   type (target_point_struct) :: center = target_point_struct()
 end type
 

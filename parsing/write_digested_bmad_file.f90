@@ -390,18 +390,22 @@ if (associated(ele%r)) then
   enddo
 endif
 
-surf => ele%photon%surface
-if (associated(surf)) then
-  write (d_unit) surf%type, surf%curvature_xy, surf%has_curvature, surf%grid%type, &
-                 surf%grid%dr, surf%grid%r0, surf%segment, allocated(surf%grid%pt)
+if (associated (ele%photon)) then
+
+  surf => ele%photon%surface
+  write (d_unit) ele%photon%target, surf%type, surf%curvature_xy, surf%has_curvature, &
+          surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, allocated(surf%grid%pt)
 
   if (allocated(surf%grid%pt)) then
     write (d_unit) lbound(surf%grid%pt), ubound(surf%grid%pt)
-    do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
-    do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-      write (d_unit) surf%grid%pt(i,j)
-    enddo
-    enddo
+    ! Detectors do not have any grid data that needs saving
+    if (ele%key /= detector$) then
+      do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
+      do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
+        write (d_unit) surf%grid%pt(i,j)
+      enddo
+      enddo
+    endif
   endif
 
 endif
