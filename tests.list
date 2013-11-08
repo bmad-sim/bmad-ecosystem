@@ -17,3 +17,4 @@ time_runge_kutta_test
 tracking_method_test
 twiss_track_test
 wall3d_test
+xraylib_test
