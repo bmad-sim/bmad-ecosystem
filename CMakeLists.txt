@@ -19,6 +19,7 @@ set (EXE_SPECS
   cmake.time_runge_kutta_test
   cmake.tracking_method_test
   cmake.twiss_track_test
+  cmake.xraylib_test
 )
 
 set(SRC_DIRS
