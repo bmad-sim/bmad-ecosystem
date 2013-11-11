@@ -82,7 +82,7 @@ if (.not. at_this_ele_end (physical_end, ele%aperture_at)) return
 
 ! Custom
 
-if (ele%aperture_type == custom$) then
+if (ele%aperture_type == custom_aperture$) then
   call check_aperture_limit_custom (orb, ele, particle_at, param, err)
   return
 endif
@@ -199,7 +199,7 @@ case (elliptical$)
     param%unstable_factor = sqrt(r) - 1
   endif
 
-case (rectangular$)
+case (rectangular$, wall_aperture$, Surface_aperture$)
 
   if (abs(x_particle) > x_lim .or. abs(y_particle) > y_lim) then
     if (abs(x_particle)/x_lim > abs(y_particle)/y_lim) then

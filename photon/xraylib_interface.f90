@@ -8,9 +8,112 @@ module xraylib_interface
 
 use bmad_utils_mod
 
-integer, parameter, private :: z_max = 98  ! Maximum atomic Z value 
+integer, parameter :: xraylib_z_max$ = 98  ! Maximum atomic Z value of tables.
 
 contains
+
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!+
+! Subroutine photon_absorption_and_phase_shift (material, Energy, absorption, phase_shift, err_flag)
+!
+! Routine to calcualte the absorption and phase shift values for a photon with a given 
+! energy going through a particular material.
+!
+! Input:
+!   material -- character(*): Material name.
+!   Energy   -- real(rp): Photon energy (eV).
+!
+! Output:
+!   absorption    -- real(rp): E_field ~ Exp(-absorption * length)
+!   phase_shift   -- real(rp): E_field Phase shift (radians) per unit length relative to vacuum.
+!   err_flag      -- logical: Set true if material not recognized.
+!-
+
+subroutine photon_absorption_and_phase_shift (material, Energy, absorption, phase_shift, err_flag)
+
+use xraylib, dummy => r_e
+
+implicit none
+
+type (crystal_struct), pointer :: cryst
+type (compoundDataNIST), pointer :: compound
+
+character(*) material
+
+real(rp) Energy, absorption, phase_shift
+real(rp) wavelength, factor, volume, number_fraction
+real(c_float) debye_temp_factor, f0, fp, fpp, rel_angle, q, E_kev
+
+complex(rp) f0_tot
+
+integer n, ix
+
+logical err_flag
+
+character(*), parameter :: r_name = 'photon_absorption_and_phase_shift'
+
+!
+
+err_flag = .false.
+E_kev = Energy * 1d-3
+debye_temp_factor = 1.0          
+q = 0   
+wavelength = c_light * h_planck / energy
+
+! Is this a crystal?
+
+cryst => Crystal_GetCrystal (material)
+if (associated(cryst)) then
+  f0_tot = Crystal_F_H_StructureFactor (cryst, E_kev, 0, 0, 0, debye_temp_factor, rel_angle)
+  factor = r_e * wavelength  / (1d-30 * cryst%volume)
+  phase_shift = factor * real(f0_tot)
+  absorption = factor * aimag(f0_tot)
+  return
+endif
+
+! Is this an element?
+
+do n = 1, xraylib_z_max$
+  if (material /= AtomicNumberToSymbol(n)) cycle
+  volume = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
+  factor = r_e * wavelength  / volume
+  call Atomic_Factors (n, E_kev, q, debye_temp_factor, f0, fp, fpp)
+  phase_shift = factor * (f0 + fp)
+  absorption = factor * fpp
+  return
+enddo
+
+! Is this a NIST material?
+
+ix = xraylib_nist_compound(material)
+if (ix > -1) then
+  compound => GetCompoundDataNISTByIndex(ix)
+
+  f0_tot = 0
+  do n = 1, compound%nElements
+    number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
+    call Atomic_Factors (compound%elements(n), E_kev, q, debye_temp_factor, f0, fp, fpp)
+    f0_tot = f0_tot + cmplx(f0 + fp, fpp) * number_fraction
+  enddo
+
+  volume = 1d-6 / (N_avogadro * compound%density)
+  factor = r_e * wavelength  / volume
+  phase_shift = factor * real(f0_tot)
+  absorption = factor * aimag(f0_tot)
+
+  call FreeCompoundDataNIST(compound)
+  return
+endif
+
+! Fail
+
+call out_io (s_fatal$, r_name, 'MATERIAL NOT RECOGNIZED: ' // trim(material))
+
+err_flag = .true.
+
+end subroutine photon_absorption_and_phase_shift
 
 !----------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------
@@ -125,12 +228,13 @@ cryst => Crystal_GetCrystal (material_name)
 if (associated(cryst)) then
   f0_tot = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel_angle)
   f0_re = real(f0_tot); f0_im = aimag(f0_tot)
+  v_unitcell = 1d-30 * cryst%volume
   return
 endif
 
 ! Is this an element?
 
-do n = 1, z_max
+do n = 1, xraylib_z_max$
   if (material_name /= AtomicNumberToSymbol(n)) cycle
   v_unitcell = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
   call Atomic_Factors (n, energy, q, debye_temp_factor, f0, fp, fpp)

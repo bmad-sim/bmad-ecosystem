@@ -4896,6 +4896,12 @@ logical kick_set, length_set, set_done
 
 !
 
+if (ele%aperture_type == surface_aperture$ .or. ele%aperture_type == wall_aperture$) then
+  call aperture_bookkeeper (ele)
+endif
+
+!
+
 kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
 
 select case (ele%key)

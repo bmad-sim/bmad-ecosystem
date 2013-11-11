@@ -3,6 +3,7 @@ module track1_photon_mod
 use track1_mod
 use wall3d_mod
 use photon_utils_mod
+use xraylib_interface
 
 ! This is for passing info into the field_calc_routine
 
@@ -42,23 +43,45 @@ type (lat_param_struct) :: param
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) w_to_surface(3,3), vz0
-real(rp) wavelength
+real(rp) wavelength, thickness, absorption, phase_shift
 
 integer ix_sec
+
+logical err_flag
+
+character(60) material
 
 ! Photon is lost if in an opaque section
 
 ix_sec = diffraction_plate_hit_spot (ele, orbit)
 
 if (ix_sec == 0) then
-  orbit%state = lost$
-  return
+  if (ele%wall3d%opaque_material == '') then
+    orbit%state = lost$
+    return
+  endif
+  material = ele%wall3d%opaque_material
+  thickness = ele%wall3d%thickness
+
+else
+  material = ele%wall3d%clear_material
+  thickness = ele%wall3d%thickness
+  sec => ele%wall3d%section(ix_sec)
+  if (sec%material /= '') material = sec%material
+  if (sec%thickness >= 0) thickness = sec%thickness
 endif
 
-sec => ele%wall3d%section(ix_sec)
-if (sec%type == mask$) then
-  orbit%state = lost$
-  return
+! Transmit through material
+
+if (material /= '') then
+  call photon_absorption_and_phase_shift (material, orbit%p0c, absorption, phase_shift, err_flag)
+  if (err_flag) then
+    orbit%state = lost$
+    return
+  endif
+
+  orbit%field = orbit%field * exp(-absorption * thickness)
+  orbit%phase = orbit%phase - phase_shift * thickness
 endif
 
 ! Choose outgoing direction
@@ -103,50 +126,43 @@ type (coord_struct) orbit
 type (wall3d_struct), pointer :: wall3d
 
 integer :: ix_section
-integer i, ix_sec, ix_mask
+integer i, ix_sec
 
 ! Logic: A particle is in a clear section if it is inside the section and outside
 ! all subsiquent mask sections up to the next clear section.
 
 wall3d => ele%wall3d
-ix_sec = 0
-ix_mask = 0
+ix_section = 0
 
 section_loop: do 
 
   ! Skip any mask sections
 
   do
-    if (ix_sec == size(wall3d%section)) exit
-    if (wall3d%section(ix_sec+1)%type == clear$) exit
     ix_sec = ix_sec + 1
+    if (ix_sec > size(wall3d%section)) exit section_loop
+    if (wall3d%section(ix_sec)%type == clear$) exit
   enddo
 
-  ! Next section must be clear. Check if photon is within the section
-
-  if (ix_sec == size(wall3d%section)) exit
-  ix_sec = ix_sec + 1
-  ix_section = ix_sec
+  ! Section must be clear. Check if photon is within the section
 
   if (.not. in_section(wall3d%section(ix_sec))) cycle
+  ix_section = ix_sec
 
   ! Now check if photon is within a mask section
 
   do
-    if (ix_sec == size(wall3d%section)) return
-    if (wall3d%section(ix_sec+1)%type == clear$) return
     ix_sec = ix_sec + 1
-    if (in_section(wall3d%section(ix_sec+1))) then
-      if (ix_mask == 0) ix_mask = ix_sec
-      cycle section_loop
-    endif
+    if (ix_sec > size(wall3d%section)) return           ! In this clear area
+    if (wall3d%section(ix_sec)%type == clear$) return   ! In this clear area
+    if (in_section(wall3d%section(ix_sec))) cycle section_loop  ! Is masked
   enddo
 
 enddo section_loop
 
 ! Not in a clear area...
 
-ix_section = ix_mask
+ix_section = 0
 
 !------------------------------------------------------------
 contains

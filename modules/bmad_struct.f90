@@ -125,7 +125,7 @@ end type
 
 type wall3d_struct
   integer :: n_link = 1                           ! For memory management of %section
-  real(rp) :: thickness = 0                       ! For diffraction_plate elements
+  real(rp) :: thickness = -1                      ! For diffraction_plate elements
   character(20) :: clear_material = ''            !
   character(20) :: opaque_material = ''           !
   logical :: superimpose = .false.                ! Can overlap another wall
@@ -531,7 +531,7 @@ type ele_struct
   integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
   integer field_calc             ! bmad_standard$, grid$, refer_to_lords$, or custom$
   integer aperture_at            ! Aperture location: downstream_end$, ...
-  integer aperture_type          ! rectangular$, elliptical$, wall3d$, or custom$
+  integer aperture_type          ! rectangular$, elliptical$, wall_aperture$, ...
   integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
   logical mode_flip              ! Have the normal modes traded places?
@@ -1092,12 +1092,13 @@ type (synch_rad_common_struct), save :: synch_rad_com
 
 integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 
-! Note: custom$ = 7 is taken from element key names.
+!
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall3d$ = 3
+integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall_aperture$ = 3, surface_aperture$ = 4
+integer, parameter :: custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall3D     ', &
-                                     'garbage!   ', 'garbage!   ', 'garbage!   ', 'Custom     ']
+                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall       ', &
+                                     'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
 character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']

@@ -619,12 +619,16 @@ rectangular except that an \vn{ecollimator} has a elliptical aperture.
 This can be changed by setting the \vn{aperture_type} attribute. The possible 
 values of this attribute are:
 \begin{example}
-  rectangular
-  elliptical
   custom
+  elliptical
+  rectangular
+  surface
+  wall
 \end{example}
 The \vn{custom} setting is used in the case where programs have been
-compiled with custom, non-Bmad, code to handle the aperture calculation.
+compiled with custom, non-Bmad, code to handle the aperture
+calculation.  The \vn{surface} setting is used to set the aperture
+limits to just cover a surface grid (\sref{s:surf.grid}). I
 
 To avoid numerical overflow and other errors in tracking, a particle
 will be considered to have hit an aperture in an element, even if
@@ -784,9 +788,10 @@ GaAs         & KAP       &            &           \\
 \end{center}
 These names are case sensitive
 
-From XRAYLIB, bmad knows about the following materials. Material
-properties are from NIST. These names are case sensitive (that is, the
-names must generally be uppercase). As noted in the table, several of
+Besides the above crystal list, \bmad can calculate structure factors
+for all the elements and the following list of materials. Material
+properties are from NIST. These names are case sensitive. That is, the
+NIST materials all use upper case. As noted in the table, several of
 the materials may be specified using the appropriate chemical
 formula. For example, liquid water may be referenced using the name
 \vn{H2O}.
@@ -1093,14 +1098,15 @@ The syntax of the \vn{wall} attribute is:
 \begin{example}
   wall = \{
     superimpose = <T/F>,                     ! Chamber wall only
-    thickness = <real>                       ! Diffraction_plate only
-    opaque_material = <material_type>        ! Diffraction_plate only
-    clear_material = <material_type>         ! Diffraction_plate only
+    thickness = <real>                       ! Default thickness. Diffraction_plate only
+    opaque_material = <material_type>        ! Default. Diffraction_plate only
+    clear_material = <material_type>         ! Default. Diffraction_plate only
     section = \{ 
       type = <section_type>,                 ! Chamber and Diffraction_plate only
       s = <longitudinal_position>,           ! Capillary and Chamber only
-      x0 = <value>,
-      y0 = <value>,
+      x0 = <value>, y0 = <value>,            ! Section origin
+      material = <material_type>             ! Diffraction_plate only.
+      thickness = <real>                     ! Diffraction_plate only.
       dr_ds = <value>,                       ! Capillary and Chamber only
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
@@ -1507,9 +1513,16 @@ the number of clear sections.
 The default behavior is that a photon will be transmitted if it is
 within any clear area. A photon is considered to be within a given
 clear area if its $(x,y)$ coordinates put in within the corresponding
-clear section but not within any mask section of the clear area.
+clear section but not within any \vn{mask} section of the clear area.
+\vn{Mask} sections only affect the clear area they are associated
+with. See the example below.
 
-
+Any clear section can be given a \vn{material} and
+\vn{thickness}. Available materials are listed in
+\sref{s:cryst.list}. A photon transversing a clear area with a defined
+material will be attenuated and have a phase shift. Note that
+\vn{material} and \vn{thickness} properties are not to be assigned to
+\vn{mask} sections.
 
 To enable \bmad to quickly calculate whether a photon has landed on a
 clear or mask section, All sections, both clear and mask, must be
@@ -1553,10 +1566,14 @@ wall that constructs this geometry is:
 Clear area \#1 has a clear section and one mask section. These
 sections rely on the four fold symmetry of the sections so that only
 points in the first quadrant need be specified. Clear area \#2 has one
-clear section in the shape of an ellipse with two mask circles.
+clear section in the shape of an ellipse with two mask circles. Notice
+that the \vn{mask} section of clear area \#1 does not affect the clear
+area \#2 even though it (completely) overlaps clear area \#2.
 
 Sections may overlap and a mask section does not have to be wholly
-within the corresponding clear section.
+within the corresponding clear section. If a photon is within multiple
+clear areas then, for the purposes of calculation, it is considered to
+be within the first possible clear area in the list.
 
 %-----------------------------------------------------------------
 \section{Length Attributes}

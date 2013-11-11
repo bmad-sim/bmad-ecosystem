@@ -2546,6 +2546,87 @@ end subroutine attribute_bookkeeper
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Subroutine aperture_bookkeeper (ele)
+!
+! Routine to calculate aperture limits when ele%attribute_type is set to wall_aperture$ or
+! wall_aperture$ or surface_aperture$
+!
+! Input:
+!   ele   -- ele_struct: Element with aperture.
+!
+! Output:
+!   ele   -- ele_struct: Element with apertures set.
+!-
+
+subroutine aperture_bookkeeper (ele)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (surface_grid_struct), pointer :: grid
+type (wall3d_section_struct), pointer :: sec
+
+real(rp) angle, r_wall, dr_dtheta, x, y
+
+integer i, j
+
+character(*), parameter :: r_name = 'aperture_bookkeeper'
+
+!
+
+select case (ele%aperture_type)
+case (wall_aperture$)   ! For diffraction plate
+  if (.not. associated(ele%wall3d)) then
+    call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "WALL" BUT', &
+                                   'THERE IS NOT A WALL ASSOCIATED WITH ELEMENT: ' // ele%name)
+    return
+  endif
+
+  ele%value(x1_limit$) = -100
+  ele%value(y1_limit$) = -100
+  ele%value(x2_limit$) = -100
+  ele%value(y2_limit$) = -100
+
+  do i = 1, size(ele%wall3d%section)
+    sec => ele%wall3d%section(i)
+    if (sec%type == mask$) cycle
+    do j = 1, 100
+      angle = twopi * j / 100.0_rp
+      call calc_wall_radius (sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
+      x = sec%x0 + 1.001 * r_wall * cos(angle)
+      y = sec%y0 + 1.001 * r_wall * sin(angle)
+      ele%value(x1_limit$) = max(ele%value(x1_limit$), -x)
+      ele%value(y1_limit$) = max(ele%value(y1_limit$), -y)
+      ele%value(x2_limit$) = max(ele%value(x1_limit$), x)
+      ele%value(y2_limit$) = max(ele%value(y1_limit$), y)
+    enddo
+  enddo
+
+case (surface_aperture$)
+  if (.not. associated (ele%photon)) then
+    call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
+                                   'THERE IS NOT A SURFACE ASSOCIATED WITH ELEMENT: ' // ele%name)
+    return
+  endif
+  grid => ele%photon%surface%grid
+  if (.not. allocated(grid%pt)) then
+    call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
+                                   'NO SURFACE GRID IS DEFINED: ' // ele%name)
+    return
+  endif
+  ele%value(x1_limit$) = -(grid%r0(1) + (lbound(grid%pt, 1) - 0.5) * grid%dr(1))
+  ele%value(y1_limit$) = -(grid%r0(2) + (lbound(grid%pt, 2) - 0.5) * grid%dr(2))
+  ele%value(x2_limit$) =  (grid%r0(1) + (ubound(grid%pt, 1) + 0.5) * grid%dr(1))
+  ele%value(y2_limit$) =  (grid%r0(2) + (ubound(grid%pt, 2) + 0.5) * grid%dr(2))
+
+end select
+
+end subroutine aperture_bookkeeper
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Subroutine set_flags_for_changed_integer_attribute (ele, attrib)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
