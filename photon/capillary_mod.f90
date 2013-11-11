@@ -374,7 +374,7 @@ vec => photon%now%orb%vec
 cos_perp = dot_product (vec(2:6:2), perp)
 vec(2:6:2) = vec(2:6:2) - 2 * cos_perp * perp
 
-! Check for absorbtion if the graze angle is too large.
+! Check for absorption if the graze angle is too large.
 
 graze_angle = pi/2 - acos(cos_perp)
 energy = photon%now%orb%p0c 

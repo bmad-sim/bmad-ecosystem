@@ -509,7 +509,7 @@ end subroutine read_surface_reflection_file
 ! Subroutine photon_reflectivity (angle, energy, surface, p_reflect, rel_p_specular)
 !
 ! Routine to evaluate the photon reflectivity.
-!   probability of absorbtion          = 1 - p_reflect
+!   probability of absorption          = 1 - p_reflect
 !   probability of reflection          = p_reflect
 !   probability of specular reflection = p_reflect * rel_p_specular
 !   probability of diffuse reflection  = p_reflect * (1 - rel_p_specular)

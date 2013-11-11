@@ -1059,7 +1059,7 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
     if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
         ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
-        ele%aperture_type == custom$) then
+        ele%aperture_type == custom_aperture$) then
       call init_custom (ele, err)
       if (err) bp_com%error_flag = .true.
     endif
