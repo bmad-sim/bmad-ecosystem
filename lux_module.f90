@@ -179,7 +179,7 @@ case ('BEND')
   if (source_ele%key == sbend$) then
     call track_a_bend_photon (orb, ele, ds)
   else
-    call track_a_drift_photon (orb, ds)
+    call track_a_drift_photon (orb, ds, .true.)
   endif
 
   return
@@ -280,7 +280,7 @@ endif
 
 call offset_photon (source%source_ele, orb, unset$)
 
-call track_a_drift_photon (orb, -orb%s)
+call track_a_drift_photon (orb, -orb%s, .true.)
 
 end subroutine generate_photon
 

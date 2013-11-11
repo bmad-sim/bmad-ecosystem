@@ -15,7 +15,7 @@ type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
 type (branch_struct), pointer :: branch
 
-real(rp) intensity, intens_max, intensity_sum, intensity_tot, dtime
+real(rp) intensity, intens_max, intensity_tot, dtime
 real(rp) cut, normalization, intensity_normalization_coef, area
 real(rp) total_dead_intens, pix_in_file_intensity, x, phase
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
@@ -23,7 +23,7 @@ real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 integer i, j, n, ie, nt, n_track, n_track_tot, n_live, track_state
 integer nx, ny, nx_min, nx_max, ny_min, ny_max, ie_max
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
-integer random_seed, n_photon1_file, n_throw, ix_ele_photon1
+integer random_seed, n_photon1_file, n_throw, ix_ele_photon1_file
 
 character(3) num_str
 character(16) random_engine, tracking_mode
@@ -33,7 +33,7 @@ character(100) param_file, lattice_file, photon1_out_file, det_pix_out_file
 logical ok, is_there, reject_dead_at_det_photon1, accept
 
 namelist / params / lattice_file, random_seed, photon1_out_file, det_pix_out_file, lux_param, &
-    intensity_normalization_coef, random_engine, ix_ele_photon1, &
+    intensity_normalization_coef, random_engine, ix_ele_photon1_file, &
     reject_dead_at_det_photon1, tracking_mode
 
 ! Get inputs
@@ -61,7 +61,7 @@ enddo
 
 tracking_mode = 'incoherent'
 photon1_out_file = ''
-ix_ele_photon1 = -1  ! Use detector
+ix_ele_photon1_file = -1  ! Use detector
 reject_dead_at_det_photon1 = .false.
 det_pix_out_file = ''
 random_seed = 0
@@ -185,6 +185,9 @@ e_ave = 0; e_rms = 0
 ie_max = 1
 if (lux_param%ix_tracking_mode == coherent$) then
   ie_max = lux_param%n_energy_pts
+  if (lux_param%e_field_x == 0 .and. lux_param%e_field_y == 0) then
+    print *, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!'
+  endif
 endif
 
 branch%param%tracking_mode = lux_param%ix_tracking_mode
@@ -195,10 +198,10 @@ intensity_tot = 0
 energy_loop: do ie = 1, ie_max
 
   n_track = 0
-  intensity_sum = 0
+  intensity_tot = 0
 
   do 
-    if (lux_param%stop_total_intensity > 0 .and. intensity_sum >= lux_param%stop_total_intensity) exit
+    if (lux_param%stop_total_intensity > 0 .and. intensity_tot >= lux_param%stop_total_intensity) exit
     if (lux_param%stop_num_photons > 0 .and. n_track >= lux_param%stop_num_photons) exit
     n_track = n_track + 1
     n_track_tot = n_track_tot + 1
@@ -219,10 +222,10 @@ energy_loop: do ie = 1, ie_max
     ! Write results
 
     if (photon1_out_file /= '' .and. intensity >= lux_param%intensity_min_photon1_cutoff) then
-      if (ix_ele_photon1 < 1) then
+      if (ix_ele_photon1_file < 1) then
         this_orb => end_orb
       else
-        this_orb => photon%orb(ix_ele_photon1)
+        this_orb => photon%orb(ix_ele_photon1_file)
       endif
 
       accept = .true.
@@ -243,7 +246,6 @@ energy_loop: do ie = 1, ie_max
 
     n_live = n_live + 1
     intensity_tot = intensity_tot + intensity
-    intensity_sum = intensity_sum + intensity
 
     E_ref = detec_ele%value(e_tot$)
     x_sum  = x_sum  + intensity * end_orb%vec(1)
@@ -260,9 +262,9 @@ energy_loop: do ie = 1, ie_max
       pix => detector%pt(nx,ny)
       pix%n_photon  = pix%n_photon + 1
       if (lux_param%ix_tracking_mode == coherent$) then
-        phase = end_orb%phase(1) + end_orb%t * end_orb%p0c / h_bar_planck
+        phase = end_orb%phase(1) 
         pix%E_x = pix%E_x + end_orb%field(1) * [cos(phase), sin(phase)]
-        phase = end_orb%phase(2) + end_orb%t * end_orb%p0c / h_bar_planck
+        phase = end_orb%phase(2) 
         pix%E_y = pix%E_y + end_orb%field(2) * [cos(phase), sin(phase)]
       else
         pix%intensity = pix%intensity + intensity
@@ -294,6 +296,7 @@ close(1)
 ! det_pix_out_file
 
 pix_in_file_intensity = 0
+intensity_tot = 0
 
 if (det_pix_out_file /= '') then
   open (3, file = det_pix_out_file, recl = 160)
@@ -321,15 +324,16 @@ if (det_pix_out_file /= '') then
   write (3, '(a, i8)')     'ny_active_min     =', ny_active_min
   write (3, '(a, i8)')     'ny_active_max     =', ny_active_max
   write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#     ix      iy      x_pix      y_pix      Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')         '#     ix      iy        x_pix        y_pix      Intensity  N_photn     E_ave     E_rms'
 
   do i = nx_min, nx_max
   do j = ny_min, ny_max
     pix => detector%pt(i,j)
+    intensity_tot = intensity_tot + pix%intensity 
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
     pix%energy_ave = pix%energy_ave / pix%intensity
     pix%energy_rms = sqrt(max(0.0_rp, pix%energy_rms / pix%intensity - pix%energy_ave**2)) 
-    write (3, '(2i8, 2f11.6, es16.5, i8, 2f10.3)') i, j, [i,j]*detector%dr+detector%r0, &
+    write (3, '(2i8, 2f13.8, es16.5, i8, 2f10.3)') i, j, [i,j]*detector%dr+detector%r0, &
            pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
     pix_in_file_intensity = pix_in_file_intensity + pix%intensity 
   enddo
@@ -339,7 +343,7 @@ if (det_pix_out_file /= '') then
 
   open (3, file = trim(det_pix_out_file) // '.x')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     ix      x_pix      Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')        '#     ix        x_pix      Intensity  N_photn     E_ave     E_rms'
   do i = nx_min, nx_max
     pixel = surface_grid_pt_struct()
     pixel%intensity = sum(detector%pt(i,:)%intensity)
@@ -347,14 +351,14 @@ if (det_pix_out_file /= '') then
     if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
     pixel%energy_ave = sum(detector%pt(i,:)%energy_ave) / pixel%intensity
     pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
-    write (3, '(i8, f11.6, es16.5, i8, 2f10.3)') i, i*detector%dr(1)+detector%r0(1), &
+    write (3, '(i8, f13.8, es16.5, i8, 2f10.3)') i, i*detector%dr(1)+detector%r0(1), &
                        pixel%intensity * normalization, pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
   close(3)
 
   open (3, file = trim(det_pix_out_file) // '.y')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     iy      y_pix      Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')        '#     iy        y_pix      Intensity  N_photn     E_ave     E_rms'
   do j = ny_min, ny_max
     pixel = surface_grid_pt_struct()
     pixel%intensity = sum(detector%pt(:,j)%intensity)
@@ -362,7 +366,7 @@ if (det_pix_out_file /= '') then
     if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
     pixel%energy_ave = sum(detector%pt(:,j)%energy_ave) / pixel%intensity
     pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
-    write (3, '(i8, f11.6, es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
+    write (3, '(i8, f13.8, es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
                        pixel%intensity * normalization, pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
   close(3)
