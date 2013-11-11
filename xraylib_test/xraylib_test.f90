@@ -8,6 +8,8 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
+real(rp) absorption, phase_shift, energy
+
 integer i, ix, n
 
 character (kind=c_char, len=nist_list_string_length), pointer :: nistcompounds(:)
@@ -21,6 +23,33 @@ open (1, file = 'output.now')
 
 !
 
+energy = 1e3
+
+call photon_absorption_and_phase_shift ('B4C', Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"B4C-E1"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"B4C-E1"   REL 1E-8', phase_shift
+
+call photon_absorption_and_phase_shift ('B4C', 2*Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"B4C-E2"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"B4C-E2"   REL 1E-8', phase_shift
+
+call photon_absorption_and_phase_shift ('NaCl', Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"NaCl-E1"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"NaCl-E1"   REL 1E-8', phase_shift
+
+call photon_absorption_and_phase_shift ('NaCl', 2*Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"NaCl-E2"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"NaCl-E2"   REL 1E-8', phase_shift
+
+call photon_absorption_and_phase_shift ('Fe', Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"Fe-E1"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"Fe-E1"   REL 1E-8', phase_shift
+
+call photon_absorption_and_phase_shift ('Fe', 2*Energy, absorption, phase_shift, err_flag)
+write (1, '(a, es18.9)') '"Fe-E2"   REL 1E-8', absorption
+write (1, '(a, es18.9)') '"Fe-E2"   REL 1E-8', phase_shift
+
+!
 
 out_str = '"OK"'
 
