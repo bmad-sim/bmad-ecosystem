@@ -627,8 +627,12 @@ values of this attribute are:
 \end{example}
 The \vn{custom} setting is used in the case where programs have been
 compiled with custom, non-Bmad, code to handle the aperture
-calculation.  The \vn{surface} setting is used to set the aperture
-limits to just cover a surface grid (\sref{s:surf.grid}). I
+calculation.  The \vn{surface} and \vn{wall} settings are used to
+define a rectangular aperture. The \vn{surface} setting causes \bmad
+to set the four limits (\vn{x1_limit}, etc.) to just cover the surface
+grid (\sref{s:surf.grid}) associated with the element. The \vn{wall}
+setting causes \bmad to set the four limits to just cover the clear
+area of a \vn{diffraction_plate} (\sref{s:wall.diff.plate}).
 
 To avoid numerical overflow and other errors in tracking, a particle
 will be considered to have hit an aperture in an element, even if

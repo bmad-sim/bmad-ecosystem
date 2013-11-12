@@ -931,6 +931,7 @@ attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
 call init_attribute_name1 (sample$, l$,                             'L')
 call init_attribute_name1 (sample$, mode$,                          'MODE')
+call init_attribute_name1 (sample$, material_type$,                 'MATERIAL_TYPE')
 
 call init_attribute_name1 (sol_quad$, k1$,                          'K1', quasi_free$)
 call init_attribute_name1 (sol_quad$, ks$,                          'KS', quasi_free$)

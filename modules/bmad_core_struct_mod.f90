@@ -1016,6 +1016,10 @@ endif
 
 if (orb2%species == photon$) then
 
+  orb2%phase = orb%phase
+  orb2%field = orb%field
+  orb2%path_len = 0
+
   if (present(ele)) orb2%p0c = p0c
 
   if (present(E_photon)) then
@@ -1030,6 +1034,9 @@ if (orb2%species == photon$) then
   else
     orb2%vec(5) = 0
   endif
+
+else
+  orb2%spin = orb%spin
 
 endif
 

@@ -133,6 +133,7 @@ integer i, ix_sec
 
 wall3d => ele%wall3d
 ix_section = 0
+ix_sec = 0
 
 section_loop: do 
 
@@ -216,7 +217,9 @@ type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 
-real(rp) w_to_surface(3,3)
+real(rp) w_to_surface(3,3), absorption, phase_shift
+
+logical err_flag
 
 character(*), parameter :: r_name = 'track1_sample'
 
@@ -242,6 +245,16 @@ select case (nint(ele%value(mode$)))
 case (reflection$)
 
   call isotropic_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
+
+case (transmission$)
+  call photon_absorption_and_phase_shift (ele%component_name, orbit%p0c, absorption, phase_shift, err_flag)
+  if (err_flag) then
+    orbit%state = lost$
+    return
+  endif
+
+  orbit%field = orbit%field * exp(-absorption * ele%value(l$))
+  orbit%phase = orbit%phase - phase_shift * ele%value(l$)
 
 case default
   call out_io (s_error$, r_name, 'MODE NOT SET.')
@@ -343,6 +356,8 @@ if (target%enabled) then
 
   if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
+    orbit%field = orbit%field * orbit%path_len
+    orbit%path_len = 0
   else
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / solid_angle)
   endif
@@ -355,6 +370,8 @@ else
   ! Without targeting photons are emitted into twopi solid angle.
   if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * twopi / solid_angle
+    orbit%field = orbit%field * orbit%path_len
+    orbit%path_len = 0
   else
     orbit%field = orbit%field * sqrt(twopi / solid_angle)
   endif

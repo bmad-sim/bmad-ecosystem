@@ -500,13 +500,13 @@ if (ix_s /= 0) then
   read (d_unit, err = 9360) ele%photon%target, surf%type, surf%curvature_xy, surf%has_curvature, &
                  surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
   if (is_alloc_pt) then
-    read (d_unit, err = 9360) i0, j0, i1, j1
+    read (d_unit, err = 9361) i0, j0, i1, j1
     allocate(surf%grid%pt(i0:i1, j0:j1))
     ! Detectors do not have any grid data that needs saving
     if (ele%key /= detector$) then
       do i = lbound(surf%grid%pt, 1), ubound(surf%grid%pt, 1)
       do j = lbound(surf%grid%pt, 2), ubound(surf%grid%pt, 2)
-        read (d_unit, err = 9360) surf%grid%pt(i,j)
+        read (d_unit, err = 9362) surf%grid%pt(i,j)
       enddo
       enddo
     endif
@@ -645,7 +645,23 @@ return
 9360  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING %PHOTON%SURFACE FOR ELEMENT: ' // ele%name)
+          'ERROR READING %PHOTON FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+return
+
+9361  continue
+if (global_com%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %PHOTON%GRID BOUNDS FOR ELEMENT: ' // ele%name)
+endif
+close (d_unit)
+return
+
+9362  continue
+if (global_com%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+          'ERROR READING %PHOTON%SURFACE%GRID FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return
