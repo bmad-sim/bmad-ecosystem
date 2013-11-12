@@ -164,7 +164,7 @@ call run_timer('START')
 call lux_setup (photon, lat, lux_param, source)
 
 if (photon1_out_file /= '') then
-  open (1, file = photon1_out_file, recl = 200)
+  open (1, file = photon1_out_file, recl = 240)
 endif
 
 call reallocate_coord (photon%orb, lat, branch%ix_branch)
@@ -232,7 +232,7 @@ energy_loop: do ie = 1, ie_max
       if (reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
       if (this_orb%state /= alive$) accept = .false.
       if (accept) then
-        write (1, '(i9, 6f15.10, a, 6f10.5, f11.3, f10.6)') n_live, photon%orb(1)%vec, ' : ', &
+        write (1, '(i7, 6f13.8, 3x, 6f13.8, 3x, f11.3, es14.4)') n_track_tot, photon%orb(1)%vec, &
                         this_orb%vec, this_orb%p0c, intensity
         n_photon1_file = n_photon1_file + 1
       endif

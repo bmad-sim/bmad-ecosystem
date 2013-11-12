@@ -103,10 +103,22 @@ real(rp) g_bend(3), gamma_electron
 
 integer ix, n_slice, ix_energy
 
-!
+! Init
 
 orb => photon%orb(0)
 source_ele => source%source_ele
+
+! Field
+
+x = lux_param%e_field_x; y = lux_param%e_field_y
+if (x == 0 .and. y == 0) then
+  call ran_uniform(rr)
+  orb%field(1) = cos(twopi * rr)
+  orb%field(2) = sin(twopi * rr)
+else
+ orb%field(1) = x / sqrt(x**2 + y**2)
+ orb%field(2) = y / sqrt(x**2 + y**2)
+endif
 
 !-----------------------------------------------------
 ! Bend
@@ -264,16 +276,6 @@ if (lux_param%dE_relative_to_ref) orb%p0c = orb%p0c + source%source_ele%value(p0
 call init_coord (orb, orb%vec, source%source_ele, .false., photon$, 1, orb%p0c) 
 orb%s = orb%vec(5) + orb%s - source%source_ele%value(l$) + source%source_ele%value(z_offset_tot$)
 orb%t = 0
-
-x = lux_param%e_field_x; y = lux_param%e_field_y
-if (x == 0 .and. y == 0) then
-  call ran_uniform(rr)
-  orb%field(1) = cos(twopi * rr)
-  orb%field(2) = sin(twopi * rr)
-else
- orb%field(1) = x / sqrt(x**2 + y**2)
- orb%field(2) = y / sqrt(x**2 + y**2)
-endif
 
 ! Translate from element to lab coordinates
 ! and track to entrance end of source%source_ele
