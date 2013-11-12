@@ -245,6 +245,24 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    if ((ele%key == sample$ .and. nint(ele%value(mode$)) == transmission$) .or. ele%key == multilayer_mirror$) then
+      if (ele%component_name == '') then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'DOES NOT HAVE ITS MATERIAL_TYPE SET.')
+        err_flag = .true.
+      endif
+    endif
+
+    if (ele%key == crystal$) then
+      if (ele%component_name == '') then
+        call out_io (s_fatal$, r_name, &
+                  'ELEMENT: ' // ele%name, &
+                  'DOES NOT HAVE ITS CRYSTAL_TYPE SET.')
+        err_flag = .true.
+      endif
+    endif
+
     ! photonic element surface consistancy check
 
     if (associated(ele%photon)) then

@@ -1076,23 +1076,6 @@ call remove_eles_from_lat (lat, .false.)
 
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, -1) 
 
-! Wall3d init.
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-
-  do j = 0, branch%n_ele_max
-    ele => branch%ele(j)
-    if (.not. associated(ele%wall3d)) cycle
-    call wall3d_initializer (ele%wall3d, err)
-    if (err) then
-      call parser_end_stuff (.false.)
-      return
-    endif
-    if (ele%key == capillary$) cycle
-  enddo
-enddo
-
 call create_concatenated_wall3d (lat, err)
 if (err) then
   call parser_end_stuff (.false.)

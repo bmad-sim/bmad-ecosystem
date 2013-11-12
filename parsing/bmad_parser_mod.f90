@@ -530,6 +530,12 @@ if (attrib_word == 'WALL') then
 
     select case (word)
 
+    case ('OPAQUE_MATERIAL') 
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d%opaque_material)
+
+    case ('CLEAR_MATERIAL') 
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d%clear_material)
+
     case ('THICKNESS') 
       call evaluate_value (err_str, ele%wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
@@ -571,6 +577,14 @@ if (attrib_word == 'WALL') then
         case ('TYPE') 
           call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2)
           if (err_flag2) return
+
+        case ('MATERIAL') 
+          call bmad_parser_type_get (ele, word, delim, delim_found, str_out = section%material)
+
+        case ('THICKNESS')
+          call evaluate_value (trim(ele%name), section%thickness, lat, delim, delim_found, err_flag, ',}')
+          if (err_flag) return
+          if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('S')
           call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',}')
@@ -2837,7 +2851,7 @@ end subroutine parser_add_variable
 ! This subroutine is not intended for general use.
 !-
 
-subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name, pele)
+subroutine bmad_parser_type_get (ele, attrib_name, delim, delim_found, name, pele, str_out)
 
 implicit none
 
@@ -2847,7 +2861,7 @@ type (parser_ele_struct), optional :: pele
 integer ix, ix_word
 
 character(*) attrib_name
-character(*), optional :: name
+character(*), optional :: name, str_out
 character(40)  word
 character(1)   delim, str_end
 character(200) type_name
@@ -2863,7 +2877,7 @@ if (str_end == '"' .or. str_end == "'") then
   bp_com%parse_line = bp_com%parse_line(2:)
   ix = index(bp_com%parse_line, str_end)
   if (ix == 0) then
-    call parser_error ('MISSING ENDING QUOTE MARK FOR TYPE = "attribute"',  &
+    call parser_error ('MISSING ENDING QUOTE MARK FOR: ' // attrib_name,  &
                         'FOR ELEMENT: ' // ele%name)
     type_name = ' '
   else
@@ -2871,7 +2885,8 @@ if (str_end == '"' .or. str_end == "'") then
     bp_com%parse_line = bp_com%parse_line(ix+1:)
     call get_next_word (word, ix_word, ',=', delim, delim_found, .true.)
     if (ix_word /= 0) call parser_error ( &
-              'EXTRA CHARACTERS FOUND AFTER TYPE ATTRIBUTE: ' // word,  &
+              'EXTRA CHARACTERS FOUND AFTER VALUE OF: ' // attrib_name, &
+              'I DO NOT UNDERSTAND: ' // word,  &
               'FOR ELEMENT: ' // ele%name)
   endif
 else
@@ -2879,26 +2894,28 @@ else
 endif
 
 select case (attrib_name)
-case ('TYPE')
-  ele%type = type_name
 case ('ALIAS')
   ele%alias = type_name
   ele%alias = type_name
+case ('CRYSTAL_TYPE', 'MATERIAL_TYPE')
+  ele%component_name = type_name
 case ('DESCRIP', 'LATTICE')
   if (.not. associated(ele%descrip)) allocate (ele%descrip) 
   ele%descrip = type_name
-case ('SR_WAKE_FILE') 
-  call read_sr_wake (ele, type_name)
 case ('LR_WAKE_FILE') 
   call read_lr_wake (ele, type_name)
+case ('MATERIAL', 'CLEAR_MATERIAL', 'OPAQUE_MATERIAL')
+  str_out = type_name
 case ('TO', 'TO_LINE', 'ORIGIN_ELE')
   ele%component_name = type_name
   call upcase_string (ele%component_name)
 case ('TO_ELEMENT')
   pele%ele_name = type_name
   call upcase_string (pele%ele_name)
-case ('CRYSTAL_TYPE', 'MATERIAL_TYPE')
-  ele%component_name = type_name
+case ('SR_WAKE_FILE') 
+  call read_sr_wake (ele, type_name)
+case ('TYPE')
+  ele%type = type_name
 case ('CUSTOM_ATTRIBUTE1', 'CUSTOM_ATTRIBUTE2', 'CUSTOM_ATTRIBUTE3', &
       'CUSTOM_ATTRIBUTE4', 'CUSTOM_ATTRIBUTE5')
   name = type_name
@@ -4892,9 +4909,19 @@ type (branch_struct), pointer :: branch
 
 real(rp) angle, rr
 integer n
-logical kick_set, length_set, set_done
+logical kick_set, length_set, set_done, err_flag
 
-!
+! Wall3d init.
+
+if (associated(ele%wall3d)) then
+  call wall3d_initializer (ele%wall3d, err_flag)
+  if (err_flag) then
+    call parser_error ('WALL INIT ERROR FOR ELEMENT: ' // ele%name)
+    return
+  endif
+endif
+
+! Aperture init
 
 if (ele%aperture_type == surface_aperture$ .or. ele%aperture_type == wall_aperture$) then
   call aperture_bookkeeper (ele)

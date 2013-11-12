@@ -2833,7 +2833,7 @@ This element is in development.
 Attributes specific to an \vn{solenoid} element are:
 \begin{example}
   mode       = <Switch> ! Reflection or transmission.
-  material   = <type>   ! Type of material.
+  material   = <type>   ! Type of material. \sref{s:cryst.list}
 \end{example}
 
 The \vn{mode} parameter can be set to:
@@ -2841,7 +2841,12 @@ The \vn{mode} parameter can be set to:
   reflection
   transmission
 \end{example}
-
+With \vn{mode} set to \vn{reflection}, photons will be scattered from
+the sample surface isotropically. In this case the material properties
+will not matter.  With \vn{mode} set to \vn{transmission}, photons
+will be transmitted through the sample. In this case \vn{material}
+will be used to determine the attenuation and phase shift of the
+photons.
 
 Example:
 \begin{example}
