@@ -2849,9 +2849,11 @@ offset = 100 * ix_patt
 
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 1 + offset; F%enabled = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%n_corner = rhs
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
-  rhs = 100 + jd1 + 2 + offset
+  rhs = 100 + jd1 + 3 + offset
   call set_target_point_test_pattern (F%corner(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]
@@ -4714,6 +4716,8 @@ rhs = 10 + offset; F%lsc_component_on = (modulo(rhs, 2) == 0)
 rhs = 11 + offset; F%tsc_component_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%small_angle_approx = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 13 + offset; F%print_taylor_warning = (modulo(rhs, 2) == 0)
 
 end subroutine set_csr_parameter_test_pattern
 

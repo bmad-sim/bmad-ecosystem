@@ -367,7 +367,7 @@ public:
     spin(0.0, 2),
     field(0.0, 2),
     phase(0.0, 2),
-    charge(0.0),
+    charge(1),
     path_len(0.0),
     p0c(0.0),
     beta(-1),
@@ -1267,12 +1267,14 @@ class Bmad_photon_target_class {};  // Opaque class for pointers to correspondin
 class CPP_photon_target {
 public:
   Bool enabled;
+  Int n_corner;
   CPP_target_point_ARRAY corner;
   CPP_target_point center;
 
   CPP_photon_target() :
     enabled(false),
-    corner(CPP_target_point_ARRAY(CPP_target_point(), 4)),
+    n_corner(0),
+    corner(CPP_target_point_ARRAY(CPP_target_point(), 8)),
     center()
     {}
 
@@ -1424,7 +1426,7 @@ public:
 
   CPP_wall3d() :
     n_link(1),
-    thickness(0.0),
+    thickness(-1),
     clear_material(),
     opaque_material(),
     superimpose(false),
@@ -1896,6 +1898,7 @@ public:
   Bool lsc_component_on;
   Bool tsc_component_on;
   Bool small_angle_approx;
+  Bool print_taylor_warning;
 
   CPP_csr_parameter() :
     ds_track_step(0.0),
@@ -1909,7 +1912,8 @@ public:
     lcsr_component_on(true),
     lsc_component_on(true),
     tsc_component_on(false),
-    small_angle_approx(true)
+    small_angle_approx(true),
+    print_taylor_warning(true)
     {}
 
   ~CPP_csr_parameter() {

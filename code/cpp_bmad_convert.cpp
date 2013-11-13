@@ -1286,25 +1286,28 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, cons
 extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
 
 // c_side.to_f2_arg
-extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Bool&, const
+extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Bool&, c_Int&, const
     CPP_target_point**, const CPP_target_point&);
 
 extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_target_class* F) {
   // c_side.to_f_setup[type, 1, NOT]
-  const CPP_target_point* z_corner[4];
-  for (int i = 0; i < 4; i++) {z_corner[i] = &C.corner[i];}
+  const CPP_target_point* z_corner[8];
+  for (int i = 0; i < 8; i++) {z_corner[i] = &C.corner[i];}
 
   // c_side.to_f2_call
-  photon_target_to_f2 (F, C.enabled, z_corner, C.center);
+  photon_target_to_f2 (F, C.enabled, C.n_corner, z_corner, C.center);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_enabled, const
-    Bmad_target_point_class** z_corner, const Bmad_target_point_class* z_center) {
+extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_enabled, c_Int&
+    z_n_corner, const Bmad_target_point_class** z_corner, const Bmad_target_point_class*
+    z_center) {
 
   // c_side.to_c2_set[logical, 0, NOT]
   C.enabled = z_enabled;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_corner = z_n_corner;
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.corner.size(); i++) target_point_to_c(z_corner[i], C.corner[i]);
   // c_side.to_c2_set[type, 0, NOT]
@@ -2019,14 +2022,15 @@ extern "C" void csr_parameter_to_c (const Bmad_csr_parameter_class*, CPP_csr_par
 
 // c_side.to_f2_arg
 extern "C" void csr_parameter_to_f2 (Bmad_csr_parameter_class*, c_Real&, c_Real&, c_Real&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void csr_parameter_to_f (const CPP_csr_parameter& C, Bmad_csr_parameter_class* F) {
 
   // c_side.to_f2_call
   csr_parameter_to_f2 (F, C.ds_track_step, C.beam_chamber_height, C.sigma_cutoff, C.n_bin,
       C.particle_bin_span, C.n_shield_images, C.ix1_ele_csr, C.ix2_ele_csr,
-      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.small_angle_approx);
+      C.lcsr_component_on, C.lsc_component_on, C.tsc_component_on, C.small_angle_approx,
+      C.print_taylor_warning);
 
 }
 
@@ -2035,7 +2039,7 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
     z_beam_chamber_height, c_Real& z_sigma_cutoff, c_Int& z_n_bin, c_Int& z_particle_bin_span,
     c_Int& z_n_shield_images, c_Int& z_ix1_ele_csr, c_Int& z_ix2_ele_csr, c_Bool&
     z_lcsr_component_on, c_Bool& z_lsc_component_on, c_Bool& z_tsc_component_on, c_Bool&
-    z_small_angle_approx) {
+    z_small_angle_approx, c_Bool& z_print_taylor_warning) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ds_track_step = z_ds_track_step;
@@ -2061,6 +2065,8 @@ extern "C" void csr_parameter_to_c2 (CPP_csr_parameter& C, c_Real& z_ds_track_st
   C.tsc_component_on = z_tsc_component_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.small_angle_approx = z_small_angle_approx;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.print_taylor_warning = z_print_taylor_warning;
 }
 
 //--------------------------------------------------------------------

@@ -3349,13 +3349,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_target_to_c2 (C, z_enabled, z_corner, z_center) bind(c)
+  subroutine photon_target_to_c2 (C, z_enabled, z_n_corner, z_corner, z_center) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_enabled
     type(c_ptr), value :: z_center
     type(c_ptr) :: z_corner(*)
+    integer(c_int) :: z_n_corner
   end subroutine
 end interface
 
@@ -3364,7 +3365,7 @@ type(c_ptr), value :: C
 type(photon_target_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr) :: z_corner(4)
+type(c_ptr) :: z_corner(8)
 
 !
 
@@ -3376,7 +3377,7 @@ do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
 enddo
 
 !! f_side.to_c2_call
-call photon_target_to_c2 (C, c_logic(F%enabled), z_corner, c_loc(F%center))
+call photon_target_to_c2 (C, c_logic(F%enabled), F%n_corner, z_corner, c_loc(F%center))
 
 end subroutine photon_target_to_c
 
@@ -3396,7 +3397,7 @@ end subroutine photon_target_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_target_to_f2 (Fp, z_enabled, z_corner, z_center) bind(c)
+subroutine photon_target_to_f2 (Fp, z_enabled, z_n_corner, z_corner, z_center) bind(c)
 
 
 implicit none
@@ -3408,11 +3409,14 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 logical(c_bool) :: z_enabled
 type(c_ptr), value :: z_center
 type(c_ptr) :: z_corner(*)
+integer(c_int) :: z_n_corner
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%enabled = f_logic(z_enabled)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_corner = z_n_corner
 !! f_side.to_f2_trans[type, 1, NOT]
 do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
   call target_point_to_f(z_corner(jd1), c_loc(F%corner(jd1+lb1)))
@@ -5191,12 +5195,12 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine csr_parameter_to_c2 (C, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
       z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-      z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx) &
-      bind(c)
+      z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
+      z_print_taylor_warning) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx
+    logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning
     real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
     integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
   end subroutine
@@ -5217,7 +5221,7 @@ call c_f_pointer (Fp, F)
 call csr_parameter_to_c2 (C, F%ds_track_step, F%beam_chamber_height, F%sigma_cutoff, F%n_bin, &
     F%particle_bin_span, F%n_shield_images, F%ix1_ele_csr, F%ix2_ele_csr, &
     c_logic(F%lcsr_component_on), c_logic(F%lsc_component_on), c_logic(F%tsc_component_on), &
-    c_logic(F%small_angle_approx))
+    c_logic(F%small_angle_approx), c_logic(F%print_taylor_warning))
 
 end subroutine csr_parameter_to_c
 
@@ -5239,7 +5243,8 @@ end subroutine csr_parameter_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine csr_parameter_to_f2 (Fp, z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff, &
     z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr, &
-    z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx) bind(c)
+    z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, &
+    z_print_taylor_warning) bind(c)
 
 
 implicit none
@@ -5248,7 +5253,7 @@ type(c_ptr), value :: Fp
 type(csr_parameter_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx
+logical(c_bool) :: z_lcsr_component_on, z_lsc_component_on, z_tsc_component_on, z_small_angle_approx, z_print_taylor_warning
 real(c_double) :: z_ds_track_step, z_beam_chamber_height, z_sigma_cutoff
 integer(c_int) :: z_n_bin, z_particle_bin_span, z_n_shield_images, z_ix1_ele_csr, z_ix2_ele_csr
 
@@ -5278,6 +5283,8 @@ F%lsc_component_on = f_logic(z_lsc_component_on)
 F%tsc_component_on = f_logic(z_tsc_component_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%small_angle_approx = f_logic(z_small_angle_approx)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%print_taylor_warning = f_logic(z_print_taylor_warning)
 
 end subroutine csr_parameter_to_f2
 

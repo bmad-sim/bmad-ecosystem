@@ -512,6 +512,7 @@ template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_s
 bool operator== (const CPP_photon_target& x, const CPP_photon_target& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.enabled == y.enabled);
+  is_eq = is_eq && (x.n_corner == y.n_corner);
   is_eq = is_eq && is_all_equal(x.corner, y.corner);
   is_eq = is_eq && (x.center == y.center);
   return is_eq;
@@ -814,6 +815,7 @@ bool operator== (const CPP_csr_parameter& x, const CPP_csr_parameter& y) {
   is_eq = is_eq && (x.lsc_component_on == y.lsc_component_on);
   is_eq = is_eq && (x.tsc_component_on == y.tsc_component_on);
   is_eq = is_eq && (x.small_angle_approx == y.small_angle_approx);
+  is_eq = is_eq && (x.print_taylor_warning == y.print_taylor_warning);
   return is_eq;
 };
 

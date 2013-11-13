@@ -1888,9 +1888,12 @@ void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 1 + offset; C.enabled = (rhs % 2 == 0);
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.n_corner = rhs;
+
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.corner.size(); i++)
-    {int rhs = 101 + i + 2 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 3 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, NOT]
   set_CPP_target_point_test_pattern(C.center, ix_patt);
 
@@ -3151,6 +3154,9 @@ void set_CPP_csr_parameter_test_pattern (CPP_csr_parameter& C, int ix_patt) {
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.small_angle_approx = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 13 + offset; C.print_taylor_warning = (rhs % 2 == 0);
 
 
 }
