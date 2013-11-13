@@ -425,7 +425,6 @@ do i = 1, n_key$
   if (i == marker$)        cycle
   if (i == detector$)      cycle
   if (i == beambeam$)      cycle
-  if (i == hom$)           cycle
   if (i == multipole$)     cycle 
   if (i == ab_multipole$)  cycle
 
@@ -454,6 +453,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
   call init_attribute_name1 (i, kill_fringe$,        'KILL_FRINGE')
+  call init_attribute_name1 (i, sr_wake_file$,                'SR_WAKE_FILE')
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -684,10 +684,9 @@ call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
 call init_attribute_name1 (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
 call init_attribute_name1 (lcavity$, e_loss$,                       'E_LOSS')
 call init_attribute_name1 (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
-call init_attribute_name1 (lcavity$, sr_wake_file$,                 'SR_WAKE_FILE')
-call init_attribute_name1 (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
 call init_attribute_name1 (lcavity$, field_calc$,                   'FIELD_CALC')
 call init_attribute_name1 (lcavity$, field_master$,                 'FIELD_MASTER')
+call init_attribute_name1 (lcavity$, lr_wake_file$,                 'LR_WAKE_FILE')
 call init_attribute_name1 (lcavity$, lr_freq_spread$,               'LR_FREQ_SPREAD')
 call init_attribute_name1 (lcavity$, coupler_strength$,             'COUPLER_STRENGTH')
 call init_attribute_name1 (lcavity$, coupler_angle$,                'COUPLER_ANGLE')
@@ -871,7 +870,6 @@ call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
 call init_attribute_name1 (rfcavity$, field_calc$,                  'FIELD_CALC')
 call init_attribute_name1 (rfcavity$, harmon_master$,               'HARMON_MASTER')
-call init_attribute_name1 (rfcavity$, sr_wake_file$,                'SR_WAKE_FILE')
 call init_attribute_name1 (rfcavity$, lr_wake_file$,                'LR_WAKE_FILE')
 call init_attribute_name1 (rfcavity$, lr_freq_spread$,              'LR_FREQ_SPREAD')
 call init_attribute_name1 (rfcavity$, coupler_strength$,            'COUPLER_STRENGTH')

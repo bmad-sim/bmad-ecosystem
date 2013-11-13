@@ -39,9 +39,12 @@ private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 !   lat          -- lat_struct: Lattice being modified.
 !   ele          -- ele_struct, Element being modified.
 !   real_attrib  -- real(rp), optional: Attribute that has been changed.
+!                     For example: ele%value(hkick$).
 !                     If not present then assume everything has potentially changed.
 !   int_attrib   -- integer: Attribute that has been changed.
+!                     For example: ele%mat6_calc_method.
 !   logic_attrib -- logical; Attribute that has been changed.
+!                     For example: ele%is_on.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
