@@ -849,6 +849,8 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%enabled .eqv. f2%enabled)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_corner == f2%n_corner)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%corner == f2%corner)
 !! f_side.equality_test[type, 0, NOT]
@@ -1405,6 +1407,8 @@ is_eq = is_eq .and. (f1%lsc_component_on .eqv. f2%lsc_component_on)
 is_eq = is_eq .and. (f1%tsc_component_on .eqv. f2%tsc_component_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%small_angle_approx .eqv. f2%small_angle_approx)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%print_taylor_warning .eqv. f2%print_taylor_warning)
 
 end function eq_csr_parameter
 
