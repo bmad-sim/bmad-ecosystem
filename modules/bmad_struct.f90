@@ -690,7 +690,7 @@ integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
 integer, parameter :: multipole$ = 19, key_dummy$ = 20
 integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
-integer, parameter :: null_ele$ = 27, init_ele$ = 28, hom$ = 29
+integer, parameter :: null_ele$ = 27, init_ele$ = 28
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
@@ -712,7 +712,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'OCTUPOLE         ', 'RBEND            ', 'MULTIPOLE        ', 'BEND_SOL_        ', &
     'DEF_BEAM         ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
     'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'INIT_ELE         ', &
-    'HOM              ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
+    'Garbage!         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
