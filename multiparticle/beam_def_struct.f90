@@ -77,10 +77,10 @@ type beam_init_struct
   real(rp) :: b_emit = 0              ! b-mode emittance
   real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
   real(rp) :: center(6) = 0           ! Bench center offset relative to reference.
-  real(rp) dt_bunch                   ! Time between bunches.
-  real(rp) sig_z                      ! Z sigma in m.
-  real(rp) sig_e                      ! e_sigma in dE/E.
-  real(rp) bunch_charge               ! charge in a bunch.
+  real(rp) :: dt_bunch = 0            ! Time between bunches.
+  real(rp) :: sig_z = 0               ! Z sigma in m.
+  real(rp) :: sig_e = 0               ! e_sigma in dE/E.
+  real(rp) :: bunch_charge = 1        ! charge in a bunch. Default is something non-zero.
   integer :: n_bunch = 1              ! Number of bunches.
   logical :: init_spin     = .false.  ! initialize beam spinors
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
