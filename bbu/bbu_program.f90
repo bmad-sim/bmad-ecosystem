@@ -88,7 +88,7 @@ if (bbu_param%hom_order_cutoff > 0) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
     if (.not. associated(ele%rf_wake)) cycle
-    if (.not. associated(ele%rf_wake%lr)) cycle
+    if (.not. allocated(ele%rf_wake%lr)) cycle
     n = count(ele%rf_wake%lr(:)%m > bbu_param%hom_order_cutoff)
     if (n == 0) cycle  ! Nothing to remove
     if (n == size(ele%rf_wake%lr)) then
