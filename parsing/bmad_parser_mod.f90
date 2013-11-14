@@ -2969,10 +2969,9 @@ namelist / long_range_modes / lr
 ! Init
 
 if (.not. associated(ele%rf_wake)) allocate (ele%rf_wake)
-if (.not. associated(ele%rf_wake%sr_table))       allocate (ele%rf_wake%sr_table(0))
-if (.not. associated(ele%rf_wake%sr_mode_long))  allocate (ele%rf_wake%sr_mode_long(0))
-if (.not. associated(ele%rf_wake%sr_mode_trans)) allocate (ele%rf_wake%sr_mode_trans(0))
-if (associated(ele%rf_wake%lr)) deallocate (ele%rf_wake%lr)
+if (.not. allocated(ele%rf_wake%sr_long))  allocate (ele%rf_wake%sr_long(0))
+if (.not. allocated(ele%rf_wake%sr_trans)) allocate (ele%rf_wake%sr_trans(0))
+if (allocated(ele%rf_wake%lr)) deallocate (ele%rf_wake%lr)
 
 ! get data
 
@@ -3059,8 +3058,8 @@ end subroutine read_lr_wake
 ! Output:
 !   ele -- Ele_struct: Element with wake information.
 !     %rf_wake%sr_table(:)       -- Short-range wake potential.
-!     %rf_wake%sr_mode_long(:)  -- Short-range wake potential.
-!     %rf_wake%sr_mode_trans(:) -- Short-range wake potential.
+!     %rf_wake%sr_long(:)  -- Short-range wake potential.
+!     %rf_wake%sr_trans(:) -- Short-range wake potential.
 !-
 
 subroutine read_sr_wake (ele, sr_file_name)
@@ -3068,11 +3067,10 @@ subroutine read_sr_wake (ele, sr_file_name)
 implicit none
 
 type (ele_struct) ele
-type (rf_wake_sr_mode_struct) longitudinal(100), transverse(100)
+type (rf_wake_sr_struct) longitudinal(100), transverse(100)
 
-real(rp) dz, z_max
-real(rp), allocatable :: col1(:), col2(:), col3(:)
-integer n_row, n, j, iu, ios, ix, i
+real(rp) z_max
+integer n, j, iu, ios, ix, i
 
 character(*) sr_file_name
 character(80) line
@@ -3084,109 +3082,12 @@ namelist / short_range_modes / z_max, longitudinal, transverse
 
 ! init
 
-if (.not. associated(ele%rf_wake)) allocate (ele%rf_wake)
-if (.not. associated(ele%rf_wake%lr)) allocate (ele%rf_wake%lr(0))
-if (associated(ele%rf_wake%sr_table))       deallocate (ele%rf_wake%sr_table)
-if (associated(ele%rf_wake%sr_mode_long))  deallocate (ele%rf_wake%sr_mode_long)
-if (associated(ele%rf_wake%sr_mode_trans)) deallocate (ele%rf_wake%sr_mode_trans)
+if (.not. associated(ele%rf_wake))   allocate (ele%rf_wake)
+if (.not. allocated(ele%rf_wake%lr)) allocate (ele%rf_wake%lr(0))
+if (allocated(ele%rf_wake%sr_long))  deallocate (ele%rf_wake%sr_long)
+if (allocated(ele%rf_wake%sr_trans)) deallocate (ele%rf_wake%sr_trans)
 
-allocate (ele%rf_wake%sr_table(0), ele%rf_wake%sr_mode_long(0), ele%rf_wake%sr_mode_trans(0))
-
-! get sr_table data
-
-iu = 0
-ele%rf_wake%sr_file = sr_file_name
-call find_this_file (iu, sr_file_name, full_file_name)
-if (iu < 0) return
-
-
-! count number of lines in the file
-
-i = 0
-do
-  read (iu, '(a)', iostat = ios) line
-  if (ios < 0) then   ! end-of-file
-    allocate (col1(i), col2(i), col3(i))
-    exit
-  endif
-  i = i + 1
-enddo
-rewind (iu)
-
-!
-
-i = 0
-
-do
-  read (iu, '(a)', iostat = ios) line
-  if (ios < 0) then   ! end-of-file
-    close (iu)
-    iu = 0
-    exit
-  endif
-  if (ios > 0) then
-    call parser_error ('ERROR READING WAKE FILE: ' // full_file_name)
-    return
-  endif
-  call string_trim (line, line, ix)
-  if (line(1:1) == '!') cycle  ! skip comments.
-  if (ix == 0) cycle          ! skip blank lines.
-  call str_upcase (line, line)
-  if (line(1:) == 'END_SECTION') exit
-  i = i + 1
-  n_row = i
-  read (line, *, iostat = ios) col1(i), col2(i), col3(i)
-
-  if (ios /= 0) then
-    call parser_error ('ERROR PARSING WAKE FILE: ' // full_file_name, &
-                                        'CANNOT READ LINE: ' // line)
-    return
-  endif
-
-enddo
-
-allocate (ele%rf_wake%sr_table(0:n_row-1))
-ele%rf_wake%sr_table%z     = col1(1:n_row)
-ele%rf_wake%sr_table%long  = col2(1:n_row)
-ele%rf_wake%sr_table%trans = col3(1:n_row)
-
-deallocate (col1, col2, col3)
-
-! err check
-
-if (n_row > 1) then
-  if (ele%rf_wake%sr_table(0)%z /= 0) then
-    call parser_error ('WAKEFIELDS DO NOT START AT Z = 0!', &
-                                  'IN FILE: ' // ele%rf_wake%sr_file)
-    return
-  endif
-
-  n = n_row - 1
-  dz = ele%rf_wake%sr_table(n)%z / n
-
-  do j = 1, n
-    if (abs(ele%rf_wake%sr_table(j)%z - dz * j) > 1e-4 * abs(dz)) then
-      write (line, '(a, i5)') &
-               'WAKEFIELD POINTS DO NOT HAVE UNIFORM DZ FOR POINT:', j
-      call parser_error (line, 'IN FILE: ' // ele%rf_wake%sr_file)
-      return
-    endif
-  enddo               
-
-  ! if dz > 0 means that an old-style file is being used.
-
-  if (dz > 0) call parser_error ( &
-          'SHORT-RANGE WAKEFIELD FILE TABLES NOW MUST HAVE Z < 0! ' // full_file_name, &
-          'REMEMBER THAT Wt NEEDS TO BE NEGATIVE ALSO!')
-
-  if (ele%rf_wake%sr_table(1)%trans > 0) call parser_error ( &
-           'POSITIVE Wt IN WAKEFIELD FILE INDICATES SIGN ERROR! ' // full_file_name)
-
-endif
-
-if (iu == 0) return  ! end of file reached
-
-! Get sr_mode_long data
+! Get data
 
 longitudinal(:)%phi = real_garbage$
 transverse(:)%phi = real_garbage$
@@ -3201,21 +3102,21 @@ if (ios /= 0) then
 endif
 
 n = count(longitudinal%phi /= real_garbage$)
-allocate (ele%rf_wake%sr_mode_long(n))
-ele%rf_wake%sr_mode_long = longitudinal(1:n)
+allocate (ele%rf_wake%sr_long(n))
+ele%rf_wake%sr_long = longitudinal(1:n)
 if (any(longitudinal(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 n = count(transverse%phi /= real_garbage$)
-allocate (ele%rf_wake%sr_mode_trans(n))
-ele%rf_wake%sr_mode_trans = transverse(1:n)
+allocate (ele%rf_wake%sr_trans(n))
+ele%rf_wake%sr_trans = transverse(1:n)
 if (any(transverse(1:n)%phi == real_garbage$)) call parser_error ( &
     'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)
 
 
-ele%rf_wake%z_sr_mode_max = z_max
+ele%rf_wake%z_sr_max = z_max
 if (z_max == real_garbage$) call parser_error ( &
     'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
     // full_file_name, 'FOR ELEMENT: ' // ele%name)

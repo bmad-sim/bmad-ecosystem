@@ -446,14 +446,7 @@ do ie = npos1, npos2-1
       endif
 
       if ((ix1 /= 0) .and. (ix2 /= 0)) then
-        allocate (ele%rf_wake)
-        allocate (ele%rf_wake%sr_mode_long(0), ele%rf_wake%sr_mode_trans(0), ele%rf_wake%lr(0))
-        name1 = arr_to_str(lwake_file(ix1)%fnam_ptr)
-        name2 = arr_to_str(twake_file(ix2)%fnam_ptr)
-        ele%rf_wake%sr_file = 'xsif:: ' // trim(name1) // ' | ' // trim(name2)
-        call read_xsif_wake (ele%rf_wake%sr_table, name1, 'LONG')
-        call read_xsif_wake (ele%rf_wake%sr_table, name2, 'TRANS')
-        ele%rf_wake%z_sr_mode_max = 0
+        call xsif_error ('LCAVITY WAKES CANNOT BE TRANSLATED!', 'FOR ELEMENT: ' // ele%name)
       endif
 
       lat%param%geometry = open$
@@ -680,99 +673,6 @@ do j = ip1, ip2
   ix = 6 - ip2 + j
   term(it)%expn(ix) = term(it)%expn(ix) + 1
 enddo
-
-end subroutine
-
-!------------------------------------------------------------------------
-! contains
-
-subroutine read_xsif_wake (wake, file_name, this)
-
-type (rf_wake_sr_table_struct), pointer :: wake(:)
-
-real(rp) s_pos(1000), field(1000), ds
-
-integer iu, k, n, ios, ix
-
-character(*) file_name, this
-character(80) line
-
-!
-
-iu = lunget()
-open (iu, file = file_name, status = 'old', iostat = ios)
-if (ios /= 0) then
-  call xsif_error ('CANNOT OPEN WAKE FILE: ' // file_name)
-  if (global_com%exit_on_error) call err_exit
-endif
-
-n = 0
-do
-  read (iu, '(a)', iostat = ios) line
-  if (ios /= 0) exit
-  if (line(1:1) == '(') cycle
-  call string_trim(line, line, ix)
-  if (ix == 0) cycle
-  n = n + 1
-  read (line, *, iostat = ios) k, s_pos(n), field(n)
-  if (ios /= 0) then
-    call xsif_error ('CANNOT READ WAKEFILE: ' // file_name, &
-                                    'CANNOT READ LINE: ' // line)
-    if (global_com%exit_on_error) call err_exit
-  endif
-enddo
-close (iu)
-
-if (n < 1) then
-  call xsif_error ('WAKE FILE SEEMS TO BE EMPTY: ' // file_name)
-  if (global_com%exit_on_error) call err_exit
-endif
-
-! Signs: In Bmad +z is pointing forward. In XSIF/LIAR this is the opposite.
-
-s_pos = -s_pos
-
-! Check that the wake is ordered correctly.
-
-ds = s_pos(n) / (n - 1)
-do i = 1, n
-  if (abs(s_pos(i) - ds * (i - 1)) > -1e-4 * ds) then
-    write (line, '(a, i5)') 'NOT UNIFORMLY ASSENDING. PROBLEM IS INDEX:', i
-    call xsif_error ('"S" VALUES IN WAKE FILE: ' // file_name, line)
-    if (global_com%exit_on_error) call err_exit
-  endif
-enddo
-
-! If we have already read in one wake file check for consistancey between
-! the current file and the previous one.
-
-if (associated(wake)) then
-  if (size(wake) /= n) then
-    call xsif_error ('WAKE FILES HAVE UNEQUAL LENGTHS!', &
-                                  'FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-  endif
-  if (abs(ds - wake(n-1)%z / (n-1)) > -1e-4 * ds) then
-    call xsif_error ('WAKE FILES HAVE DIFFERENT dZ BETWEEN POINTS.', &
-                                                'FOR ELEMENT: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-  endif
-else
-  allocate (wake(0:n-1))
-endif
-
-! Load wake structure.
-! Signs: Bmad has a different sign convention for the transverse wake.
-
-wake%z = s_pos(1:n)  
-if (this == 'LONG') then
-  wake%long = field(1:n)
-elseif (this == 'TRANS') then
-  wake%trans = -field(1:n)
-else
-  call xsif_error ('INTERNAL ERROR!')
-  if (global_com%exit_on_error) call err_exit
-endif
 
 end subroutine
 

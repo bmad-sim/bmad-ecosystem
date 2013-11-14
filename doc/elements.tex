@@ -41,7 +41,7 @@ particle and photon use.
   Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
-  Init_Ele          & \ref{s:init.ele}    &  Solenoid          & \ref{s:sol}      \HH
+  Beginning_Ele     & \ref{s:begin.ele}   &  Solenoid          & \ref{s:sol}      \HH
   Instrument        & \ref{s:monitor}     &  Sol_Quad          & \ref{s:sq}       \HH
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \HH
   Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \HH  
@@ -66,7 +66,7 @@ particle and photon use.
   Drift              & \ref{s:drift}         &  Photon_Branch      & \ref{s:branch}     \HH
   Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
   Floor_Shift        & \ref{s:floor.ele}     &  Sample             & \ref{s:sample}     \HH 
-  Init_Ele           & \ref{s:init.ele}      &  X_Ray_Init         & \ref{s:x.init}     \HH
+  Beginning_Ele      & \ref{s:begin.ele}     &  X_Ray_Init         & \ref{s:x.init}     \HH
   Instrument         & \ref{s:monitor}       &                     &                    \HH
 \end{tabular}
 }
@@ -1791,16 +1791,16 @@ other element together. \vn{hybrid} elements are not part of the input
 lattice file but are created by a program, usually for speed purposes.
 
 %-----------------------------------------------------------------
-\section{Init_Ele}
-\label{s:init.ele}
-\index{init_ele|hyperbf}
+\section{Beginning_Ele}
+\label{s:begin.ele}
+\index{beginning_ele|hyperbf}
 
-An \vn{init_ele} element, named \vn{BEGINNING}, is placed at the
+An \vn{beginning_ele} element, named \vn{BEGINNING}, is placed at the
 beginning of every branch (\sref{s:branch}) of a lattice to mark
-the start of the branch. The \vn{init_ele} always has element index 0
+the start of the branch. The \vn{beginning_ele} always has element index 0
 (\sref{c:lat.concepts}).
 
-\vn{init_ele} attributes are generally set using either \vn{parameter}
+\vn{beginning_ele} attributes are generally set using either \vn{parameter}
 (\sref{s:param}) or \vn{beginning} (\sref{s:beginning}) statements.
 In particular the initial energy may be set (\sref{s:energy}).
 

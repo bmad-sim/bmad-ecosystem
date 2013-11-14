@@ -307,7 +307,7 @@ lat%n_ele_max = n_track
 ! Init some stuff
 
 lat%ele(0)%name = 'BEGINNING'
-lat%ele(0)%key  = init_ele$
+lat%ele(0)%key  = beginning_ele$
 lat%param%geometry = closed$
 lat%param%particle = positron$
 
@@ -611,7 +611,7 @@ do i = lbound(param_node%children, 1), ubound(param_node%children, 1)
 
   call str_upcase (class_str, child_node%name)
   select case (class_str)
-  case ('BEGINNING');  param_ele%key = init_ele$
+  case ('BEGINNING');  param_ele%key = beginning_ele$
   case ('BEAM_START'); param_ele%key = def_beam_start$
   case ('PARAMETER');  param_ele%key = def_parameter$
   case default

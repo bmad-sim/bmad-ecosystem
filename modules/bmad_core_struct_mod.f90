@@ -638,25 +638,23 @@ subroutine transfer_rf_wake (wake_in, wake_out)
 implicit none
 
 type (rf_wake_struct), pointer :: wake_in, wake_out
-integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
+integer n_sr_long, n_sr_trans, n_lr
 
 !
 
 if (associated (wake_in)) then
-  n_sr_table       = size(wake_in%sr_table)
-  n_sr_mode_long   = size(wake_in%sr_mode_long)
-  n_sr_mode_trans  = size(wake_in%sr_mode_trans)
-  n_lr             = size(wake_in%lr)
-  call init_wake (wake_out, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
-  wake_out%sr_file        = wake_in%sr_file
-  wake_out%lr_file        = wake_in%lr_file
-  wake_out%z_sr_mode_max  = wake_in%z_sr_mode_max
-  wake_out%sr_table       = wake_in%sr_table
-  wake_out%sr_mode_long   = wake_in%sr_mode_long
-  wake_out%sr_mode_trans  = wake_in%sr_mode_trans
-  wake_out%lr             = wake_in%lr
+  n_sr_long   = size(wake_in%sr_long)
+  n_sr_trans  = size(wake_in%sr_trans)
+  n_lr        = size(wake_in%lr)
+  call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr)
+  wake_out%sr_file   = wake_in%sr_file
+  wake_out%lr_file   = wake_in%lr_file
+  wake_out%sr_long   = wake_in%sr_long
+  wake_out%sr_trans  = wake_in%sr_trans
+  wake_out%lr        = wake_in%lr
+  wake_out%z_sr_max  = wake_in%z_sr_max
 else
-  if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0, 0)
+  if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0)
 endif
 
 end subroutine transfer_rf_wake
@@ -725,14 +723,7 @@ if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-
-if (associated (ele%rf_wake)) then
-  if (associated (ele%rf_wake%sr_table))      deallocate (ele%rf_wake%sr_table)
-  if (associated (ele%rf_wake%sr_mode_long))  deallocate (ele%rf_wake%sr_mode_long)
-  if (associated (ele%rf_wake%sr_mode_trans)) deallocate (ele%rf_wake%sr_mode_trans)
-  if (associated (ele%rf_wake%lr))            deallocate (ele%rf_wake%lr)
-  deallocate (ele%rf_wake)
-endif
+if (associated (ele%rf_wake))        deallocate (ele%rf_wake)
 
 call deallocate_wall3d_pointer (ele%wall3d)
 
@@ -999,7 +990,7 @@ if (present(ele)) then
     call out_io (s_fatal$, r_name, 'Rule: "at_downstream_end" argument must be present if "ele" argument is.')
     call err_exit
   endif
-  if (at_downstream_end .or. ele%key == init_ele$) then
+  if (at_downstream_end .or. ele%key == beginning_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
@@ -1049,14 +1040,14 @@ if (present(ele)) then
   orb2%ix_ele = ele%ix_ele
   if (ele%slave_status == slice_slave$) orb2%ix_ele = ele%lord%ix_ele
 
-  if (ele%key == init_ele$) orb2%location = downstream_end$
+  if (ele%key == beginning_ele$) orb2%location = downstream_end$
 
   if (orb2%species /= photon$) then
 
     orb2%p0c = p0c
 
     ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
-    if (ele%key == init_ele$ .and. logic_option(.true., shift_vec6)) then
+    if (ele%key == beginning_ele$ .and. logic_option(.true., shift_vec6)) then
       orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
     endif
 
@@ -1473,7 +1464,7 @@ end subroutine init_em_field
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
+! Subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr)
 !
 ! Subroutine to initialize a wake struct.
 !
@@ -1481,9 +1472,8 @@ end subroutine init_em_field
 !   use bmad
 !
 ! Input:
-!   n_sr_table      -- Integer: Number of terms: wake%sr_table(0:n_sr-1).
-!   n_sr_mode_long  -- Integer: Number of terms: wake%nr(n_sr_mode_long).
-!   n_sr_mode_trans -- Integer: Number of terms: wake%nr(n_sr_mode_trans).
+!   n_sr_long  -- Integer: Number of terms: wake%nr(n_sr_long).
+!   n_sr_trans -- Integer: Number of terms: wake%nr(n_sr_trans).
 !   n_lr            -- Integer: Number of terms: wake%nr(n_lr)
 !
 ! Output:
@@ -1491,40 +1481,30 @@ end subroutine init_em_field
 !               If all inputs are 0 then wake is deallocated.
 !-
 
-subroutine init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)
+subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr)
 
 implicit none
 
 type (rf_wake_struct), pointer :: wake
-integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr
+integer n_sr_long, n_sr_trans, n_lr
 
 ! Deallocate wake if all inputs are zero.
 
-if (n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0 .and. n_lr == 0) then
-  if (associated(wake)) then
-    deallocate (wake%sr_table)
-    deallocate (wake%sr_mode_long)
-    deallocate (wake%sr_mode_trans)
-    deallocate (wake%lr)
-    deallocate (wake)
-  endif
+if (n_sr_long == 0 .and. n_sr_trans == 0 .and. n_lr == 0) then
+  if (associated(wake)) deallocate (wake)
   return
 endif
 
 !
 
 if (associated (wake)) then
-  if (size(wake%sr_table) /= n_sr_table) then
-    deallocate (wake%sr_table)
-    allocate (wake%sr_table(0:n_sr_table-1))
+  if (size(wake%sr_long) /= n_sr_long) then
+    deallocate (wake%sr_long)
+    allocate (wake%sr_long(n_sr_long))
   endif
-  if (size(wake%sr_mode_long) /= n_sr_mode_long) then
-    deallocate (wake%sr_mode_long)
-    allocate (wake%sr_mode_long(n_sr_mode_long))
-  endif
-  if (size(wake%sr_mode_trans) /= n_sr_mode_trans) then
-    deallocate (wake%sr_mode_trans)
-    allocate (wake%sr_mode_trans(n_sr_mode_trans))
+  if (size(wake%sr_trans) /= n_sr_trans) then
+    deallocate (wake%sr_trans)
+    allocate (wake%sr_trans(n_sr_trans))
   endif
   if (size(wake%lr) /= n_lr) then
     deallocate (wake%lr)
@@ -1533,9 +1513,8 @@ if (associated (wake)) then
 
 else
   allocate (wake)
-  allocate (wake%sr_table(0:n_sr_table-1))
-  allocate (wake%sr_mode_long(n_sr_mode_long))
-  allocate (wake%sr_mode_trans(n_sr_mode_trans))
+  allocate (wake%sr_long(n_sr_long))
+  allocate (wake%sr_trans(n_sr_trans))
   allocate (wake%lr(n_lr))
 endif
 
@@ -1622,7 +1601,7 @@ end subroutine allocate_lat_ele_array
 !                    Default: 1.3*ubound(ele(:)) or 100 if ele is not allocated.
 !   init_ele0   -- Logical, optional: If present and True and ele(:) array has not been allocated then set:
 !                     ele(0)%name = 'BEGINNING'
-!                     ele(0)%key = init_ele$
+!                     ele(0)%key = beginning_ele$
 !                     ele(0)%mat6 = unit matrix
 !
 ! Output:
@@ -1675,7 +1654,7 @@ end do
 
 if (logic_option(.false., init_ele0) .and. curr_ub == -1) then
   ele(0)%name = 'BEGINNING'
-  ele(0)%key = init_ele$
+  ele(0)%key = beginning_ele$
   call mat_make_unit (ele(0)%mat6)
   call set_ele_defaults(ele(0))
 endif

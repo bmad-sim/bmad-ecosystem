@@ -186,7 +186,7 @@ case (girder$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
 
-case (init_ele$)
+case (beginning_ele$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%control        = ok$
 

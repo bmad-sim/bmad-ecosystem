@@ -196,16 +196,16 @@ the dependent attributes
 \end{example}
 which are just the reference energy and momentum at the start of the element.
 
-\index{init_ele}
-The \vn{init_ele} element (\sref{s:init.ele}) also has associated
+\index{beginning_ele}
+The \vn{beginning_ele} element (\sref{s:begin.ele}) also has associated
 \vn{e_tot_start} and \vn{p0c_start} attributes as well as \vn{e_tot}
-and \vn{p0c}. Generally, for an \vn{init_ele}, \vn{p0c_start} and
+and \vn{p0c}. Generally, for an \vn{beginning_ele}, \vn{p0c_start} and
 \vn{p0c} are the same and \vn{e_tot_start} and \vn{e_tot} are the same
 and the values for these attributes are set in the lattice file with
 the appropriate \vn{parameter} (\sref{s:param}) or \vn{beginning}
 (\sref{s:beginning}) statement. The exception occurs when there is an
 \vn{e_gun} element in the lattice (\sref{s:e.gun}). In this case, the
-\vn{p0c_start} and \vn{e_tot_start} attributes of the \vn{init_ele}
+\vn{p0c_start} and \vn{e_tot_start} attributes of the \vn{beginning_ele}
 are set to the values as set in the lattice file and \vn{e_tot} is set
 to
 \begin{example}
@@ -218,7 +218,7 @@ particle being tracked. For example, if the lattice file contained:
   gun: e_gun, voltage = 0.5e6
   injector: line = (gun, ...)
 \end{example}
-Then the following energy values will be set for the beginning \vn{init_ele} element:
+Then the following energy values will be set for the beginning \vn{beginning_ele} element:
 \begin{example}
   p0c_start   = 0
   e_tot_start = mc2
@@ -1880,15 +1880,15 @@ The energy kick is needed to keep things symplectic.
 
 Example:
 \begin{example}
-  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends, rf
+  rf1: lcav, l = 4.5, gradient = 1.2e6, coupler_at = both_ends,
                                                   coupler_strength = 0.037
 \end{example}
 
 %-----------------------------------------------------------------
-\section{RF Wakes}
+\section{Wakefields}
 \label{s:rf.wakes}
 
-Wake fields can be specified for \vn{lcavity} and \vn{rfcavity} elements.
+Wake fields can be specified for many elements.
 The attributes that characterize the wakes are:
 \index{sr_wake_file}\index{lr_wake_file}\index{lr_freq_spread}
 \begin{example}
@@ -1898,25 +1898,18 @@ The attributes that characterize the wakes are:
 \end{example}
 
 The formulas used to compute the wake field are given in
-\sref{s:wake.fields}.  The input file name for the short--range
+\sref{s:wake.fields}. The wake field is only used when tracking
+bunches and not when tracking single particles.
+
+%-----------------------------------------------------------------
+\subsection{Short-Range Wakes}
+
+The input file name for the short--range
 wake fields is specified using the \vn{sr_wake_file} attribute. The
 file gives both monopole longitudinal and dipole transverse
-wakes. Comment lines may be included by starting a line with an
-exclamation mark (!). Blank lines are also ignored.  An example input
+wakes. An example input
 file is:
 \begin{example}
-  !    z           Wz             Wt
-  !   [m]       [V/C/m]       [V/C/m^2]
-   0.000E+00  1.61125E+15   0.00000E+00     1 
-  -1.000E-05  1.44516E+15  -1.30560E+15     2 
-  -2.000E-05  1.38148E+15  -2.50665E+15     3 
-  .. etc ..
-  -1.970E-03  3.49958E+14  -7.95507E+16   198 
-  -1.980E-03  3.48606E+14  -7.97253E+16   199  
-  -1.990E-03  3.47263E+14  -7.98989E+16   200
-     END_SECTION
-
-
   ! Pseudo Wake modes:
   !                      Amp       damp          k      phase
   ! Longitudinal:      [V/C/m]     [1/m]      [1/m]     [rad]  
@@ -1932,32 +1925,15 @@ file is:
     z_max = -1.3e-3
   /
 \end{example}
-The file is divided into two sections with a line containing the word
-\vn{END_SECTION} marking the division between the sections.  Wakes can
-be specified via a table of wake versus longitudinal position $z$
-and/or using a set of ``pseudo'' modes (\sref{s:wake.fields}). The
-first section gives the wake vs $z$ table, and the second section
-gives the longitudinal monopole and transverse dipole pseudo modes.
-The range of the table is from $0$ to $z_{cut}$ where $z_{cut}$ is the
-$z$ value in the last line of the table. If the longitudinal distance
-$dz$ between two particles is within the range of the table then the
-table will be used to calculate the wake kick for this pair. If $dz$
-is larger than $z_{cut}$ the pseudo modes will be used. The pseudo
-modes are valid from $z_{cut}$ to \vn{z_max}. 
+Wakes are specified via a set of ``pseudo'' modes
+(\sref{s:wake.fields}). The magnitude of \vn{z_max} should be set to
+the maximum $z$ value at which the pseudo mode fit is valid. \bmad
+uses \vn{z_max} to check that the wake simulation is valid. That is,
+to be valid, the maximum distance between any two simulated particles
+should be less than the magnitude of \vn{z_max}.
 
-In the first section with the table of wake vs. $z$, the first column is the
-longitudinal distance $z$. $z$ must start at 0 and must increment by the a
-constant amount from row to row. $z$ is negative since the wake extends behind
-a particle. The second column is the longitudinal wake function in $V/C/m$. The
-third column is the transverse wake in $V/C/m^2$. Any additional columns are
-ignored.  Wake field formulas are to be found in \sref{s:wake.fields}.  The
-wake field file is only used with macroparticle and particle distribution
-tracking.  When the short--range wake field file is used with either of these
-the \vn{e_loss} attribute is ignored. However, even in this case, a finite
-\vn{e_loss} value will affect the reference energy. Since the quantities like
-quadrupole k1 strengths and bend strengths are referenced to the reference
-energy, The value of \vn{e_loss} will affect the results even with a
-short--range wake field file.
+%-----------------------------------------------------------------
+\subsection{Long-Range Wakes}
 
 The input file name for the long--range wake fields is specified using
 the \vn{lr_wake_file} attribute. The file gives the

@@ -1424,13 +1424,11 @@ type (ele_struct) ele
 type (lat_param_struct) param
 real(rp) grad_shift
 
-! ele%value(grad_loss_sr_wake$) is an internal variable used with bunches.
-! It accounts for the longitudinal short-range wakefields between particles.
-! It is continually being modified for each bunch.
+! 
 
 if (bmad_com%sr_wakes_on .and. ele%value(l$) /= 0) then
   grad_shift = ele%value(e_loss$) * param%n_part * abs(charge_of(param%particle)) * &
-                                      e_charge / ele%value(l$) - ele%value(grad_loss_sr_wake$) 
+                                                                  e_charge / ele%value(l$) 
 else
   grad_shift = 0
 endif

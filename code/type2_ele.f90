@@ -63,8 +63,7 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor
 type (wig_term_struct), pointer :: term
 type (rf_wake_lr_struct), pointer :: lr
-type (rf_wake_sr_table_struct), pointer :: sr_table
-type (rf_wake_sr_mode_struct), pointer :: sr_m
+type (rf_wake_sr_struct), pointer :: sr
 type (em_field_mode_struct), pointer :: rfm
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
@@ -699,48 +698,32 @@ endif
 
 if (associated(ele%rf_wake)) then
 
-  if (size(ele%rf_wake%sr_table) /= 0) then
+  if (size(ele%rf_wake%sr_long) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_table)+100, .false.)
-      nl=nl+1; li(nl) = 'Short-range wake table:'
-      nl=nl+1; li(nl) = &
-            '   #           Z   Longitudinal     Transverse'
-      do i = 0, ubound(ele%rf_wake%sr_table,1)
-        sr_table => ele%rf_wake%sr_table(i)
-        nl=nl+1; write (li(nl), '(i4, es12.4, 2es15.4)') i, sr_table%z, sr_table%long, sr_table%trans
-      enddo
-    else
-      nl=nl+1; write (li(nl), *) 'Number of short-range wake table rows:', size(ele%rf_wake%sr_table)
-    endif
-  endif
-
-  if (size(ele%rf_wake%sr_mode_long) /= 0) then
-    nl=nl+1; write (li(nl), *)
-    if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_mode_long)+100, .false.)
-      nl=nl+1; li(nl) = 'Short-range pseudo modes:'
+      call re_associate (li, nl+size(ele%rf_wake%sr_long)+100, .false.)
+      nl=nl+1; li(nl) = 'Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%rf_wake%sr_mode_long)
-        sr_m => ele%rf_wake%sr_mode_long(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
+      do i = 1, size(ele%rf_wake%sr_long)
+        sr => ele%rf_wake%sr_long(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr%amp, sr%damp, sr%k, sr%phi
       enddo
     else
       nl=nl+1; li(nl) = 'No short-range longitudinal pseudo modes.'
     endif
   endif
 
-  if (size(ele%rf_wake%sr_mode_trans) /= 0) then
+  if (size(ele%rf_wake%sr_trans) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_mode_trans)+100, .false.)
-      nl=nl+1; li(nl) = 'Short-range pseudo modes:'
+      call re_associate (li, nl+size(ele%rf_wake%sr_trans)+100, .false.)
+      nl=nl+1; li(nl) = 'Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%rf_wake%sr_mode_trans)
-        sr_m => ele%rf_wake%sr_mode_trans(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr_m%amp, sr_m%damp, sr_m%k, sr_m%phi
+      do i = 1, size(ele%rf_wake%sr_trans)
+        sr => ele%rf_wake%sr_trans(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr%amp, sr%damp, sr%k, sr%phi
       enddo
     else
      nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'
@@ -774,7 +757,7 @@ endif
 
 if (logic_option(.false., type_floor_coords)) then
   select case (ele%key)
-  case (floor_shift$, group$, overlay$, hybrid$, init_ele$, match$, null_ele$, patch$)
+  case (floor_shift$, group$, overlay$, hybrid$, beginning_ele$, match$, null_ele$, patch$)
     floor = ele%floor
   case (crystal$, mirror$, multilayer_mirror$)
     call ele_geometry (ele%floor, ele, floor, -1.0_rp)

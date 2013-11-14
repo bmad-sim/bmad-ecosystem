@@ -213,13 +213,7 @@ end type
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-type rf_wake_sr_table_struct    ! Tabular short-Range Wake struct
-  real(rp) z            ! Distance behind the leading particle
-  real(rp) long         ! Longitudinal wake in V/C/m
-  real(rp) trans        ! Transverse wake in V/C/m^2
-end type
-
-type rf_wake_sr_mode_struct  ! Psudo-mode short-Range Wake struct 
+type rf_wake_sr_struct  ! Psudo-mode short-Range Wake struct 
   real(rp) amp        ! Amplitude
   real(rp) damp       ! Dampling factor.
   real(rp) k          ! k factor
@@ -249,17 +243,15 @@ type rf_wake_lr_struct    ! Long-Range Wake struct.
   logical polarized    ! Polaraized mode?
 end type
 
-! Note: Bmad routines observe the following rule: 
-!   All pointers within a rf_wake_struct are assumed to be allocated.
+!
 
 type rf_wake_struct
   character(200) :: sr_file = ' '
   character(200) :: lr_file = ' '
-  type (rf_wake_sr_table_struct), pointer :: sr_table(:) => null()
-  type (rf_wake_sr_mode_struct), pointer :: sr_mode_long(:) => null()
-  type (rf_wake_sr_mode_struct), pointer :: sr_mode_trans(:) => null()
-  type (rf_wake_lr_struct), pointer :: lr(:) => null()
-  real(rp) :: z_sr_mode_max = 0   ! Max allowable z value sr_mode. 
+  type (rf_wake_sr_struct), allocatable :: sr_long(:)
+  type (rf_wake_sr_struct), allocatable :: sr_trans(:)
+  type (rf_wake_lr_struct), allocatable :: lr(:)
+  real(rp) :: z_sr_max = 0   ! Max allowable z value sr_mode. 
 end type
 
 type em_field_map_term_struct
@@ -697,7 +689,7 @@ integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
 integer, parameter :: multipole$ = 19, key_dummy$ = 20
 integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
-integer, parameter :: null_ele$ = 27, init_ele$ = 28
+integer, parameter :: null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
@@ -718,8 +710,8 @@ character(40), parameter :: key_name(n_key$) = [ &
     'SOL_QUAD         ', 'MARKER           ', 'KICKER           ', 'HYBRID           ', &
     'OCTUPOLE         ', 'RBEND            ', 'MULTIPOLE        ', 'BEND_SOL_        ', &
     'DEF_BEAM         ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
-    'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'INIT_ELE         ', &
-    'Garbage!         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
+    'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'BEGINNING_ELE    ', &
+    'LINE_ELE         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
     'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
@@ -784,7 +776,7 @@ integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 
 integer, parameter :: l_chord$=9, ks$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
 integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
 integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
-integer, parameter :: grad_loss_sr_wake$=11, ds_path_length$=11
+integer, parameter :: ds_path_length$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
 integer, parameter :: traveling_wave$ = 12
