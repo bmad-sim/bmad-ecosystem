@@ -57,6 +57,7 @@ type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (rf_wake_lr_struct), pointer :: lr
+type (rf_wake_sr_struct), pointer :: sr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (em_field_mode_struct), pointer :: mode
 type (em_field_grid_struct), pointer :: grid
@@ -551,12 +552,22 @@ do ib = 0, ubound(lat%branch, 1)
             call out_io (s_info$, r_name, 'Creating SR Wake file: ' // trim(wake_name))
             iuw = lunget()
             open (iuw, file = wake_name)
-            write (iuw, *) '!        z             Wz               Wt'
-            write (iuw, *) '!       [m]         [V/C/m]         [V/C/m^2]'
-            do n = lbound(ele%rf_wake%sr_table, 1), ubound(ele%rf_wake%sr_table, 1)
-              write (iuw, '(3es16.7)') ele%rf_wake%sr_table(n)%z, &
-                                    ele%rf_wake%sr_table(n)%long, ele%rf_wake%sr_table(n)%trans
+            write (iuw, *) '! Pseudo Wake modes:'
+            write (iuw, *) '!                 Amp	  damp    k   phase'
+            write (iuw, *) '! Longitudinal: [V/C/m] [1/m] [1/m] [rad]'
+            write (iuw, *) '! Transverse: [V/C/m^2] [1/m] [1/m] [rad]'
+            write (iuw, *) ''
+            write (iuw, *) '&short_range_modes'
+            do n = 1, size(ele%rf_wake%sr_long)
+              sr => ele%rf_wake%sr_long(n)
+              write (iuw, '(a, i0, a, 4es15.5)') 'logitudinal(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi 
             enddo
+            write (iuw, *) ''
+            do n = 1, size(ele%rf_wake%sr_trans)
+              sr => ele%rf_wake%sr_trans(n)
+              write (iuw, '(a, i0, a, 4es15.5)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi 
+            enddo
+            write (iuw, *) '/'
             close(iuw)
           endif
         endif

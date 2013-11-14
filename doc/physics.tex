@@ -1566,31 +1566,14 @@ kick $dE$ for the $i$\Th macroparticle is computed from the equation
 \Begineq
   \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
         \frac{1}{2}\WlS(0) \,  |q_i| +
-        \sum_{j \ne i} \tWl(dz_{ij}) \, |q_j| \right)
+        \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \right)
   \label{delvp}
 \Endeq
 where $v$ is the particle velocity, $e$ is the charge on an electron,
 $q$ is the macroparticle charge, $L$ is the cavity length, $dz_{ij}$
 is the longitudinal distance between the $i$\Th and $j$\Th
 macroparticles, $\WlS$ is the short--range longitudinal wake field
-function, and $\tWl$ is a modified wake field function
-\Begineq
-  \tWl(dz) = 
-  \begin{cases}
-    \WlS(0) \cdot \frac{dz + \sigma_{zij}}{2\sigma_{zij}} & 
-                                    -\sigma_{zij} < dz < \sigma_{zij} \\
-    \WlS(dz)                                            & \text{otherwise}
-  \end{cases}
-\Endeq
-$\tWl$ is used instead of $\WlS$ to avoid simulation artifacts 
-is due to the discontinuity of $\WlS$ at $dz = 0$. 
-$\sigma_{zij}$ is the combined macroparticle length
-\Begineq
-  \sigma_{zij} = \sigma_{zi} + \sigma_{zj} + \sigma_{z0}
-\Endeq
-where $\sigma_{zi}$ and $\sigma_{zj}$ are the longitudinal sizes for
-the $i$\Th and $j$\Th particles respectively, and $\sigma_{z0}$ is a
-small fudge factor needed when $\sigma_{zi} = \sigma_{zj} = 0$.
+function.
 
 The transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wake field is modeled with the equation
@@ -1610,18 +1593,11 @@ where
   \label{wadzk}
 \Endeq
 The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit
-the calculated wake potential. The advantage of the mode approach is that
-the calculation time scales as the number of particles $N$ while the
-calculation based upon a table scales as $N^2$. The disadvantage is that
-initially there is an extra step in that a fit to the wake potential must
-be performed to generate the mode parameter values. Furthermore, since the
-transverse wake typically has a form that looks something like $\sqrt{-z}$ 
-for small $z$ (small here means small in magnitude, $z$ is always negative)
-a set of pseudo modes may not fit the wake function well at small $z$. 
-\bmad implements a hybrid scheme where for small $z$ below some cutoff
-$z_{\rm{cut}}$ the wake vs $z$ table is used and for larger $z$ the pseudo
-modes are used.
-
+the calculated wake potential. The advantage of the mode approach is
+that the calculation time scales as the number of particles $N$ while
+the calculation based upon a table of wake vs $z$ would scale as
+$N^2$. [The disadvantage is that initially the user must proform a fit
+to the wake potential to generate the mode parameter values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}

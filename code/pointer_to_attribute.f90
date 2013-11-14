@@ -72,7 +72,7 @@ if (a_name(1:3) == 'LR(') then
 
   if (.not. associated (ele%rf_wake)) then
     if (.not. do_allocation) goto 9100
-    call init_wake (ele%rf_wake, 0, 0, 0, n)
+    call init_wake (ele%rf_wake, 0, 0, n)
   endif
 
   n_lr = size(ele%rf_wake%lr)

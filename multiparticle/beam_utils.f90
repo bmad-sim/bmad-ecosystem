@@ -19,14 +19,7 @@ contains
 !+
 ! Subroutine track1_bunch_hom (bunch_start, ele, param, bunch_end)
 !
-! Subroutine to track a bunch of particles through an element.
-!
-! Note: This routine is overloaded by the routine track1_bunch. See this
-! routine for more details.
-!
-! Each particle experiences a different longitudinal short-range wakefield.
-! ele%value(grad_loss_sr_wake$) is used to tell track1_bmad the appropriate loss
-! for each particle.
+! Subroutine to track a bunch of particles through an element including wakefields.
 !
 ! Modules needed:
 !   use beam_mod
@@ -50,7 +43,7 @@ type (ele_struct) ele, half_ele
 type (lat_param_struct) param
 
 real(rp) charge
-integer i, j, n, ix_z
+integer i, j, n
 logical err_flag
 
 character(20) :: r_name = 'track1_bunch_hom'
@@ -62,7 +55,7 @@ bunch_end = bunch_start
 !------------------------------------------------
 ! Without wakefields just track through.
 
-if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
+if (.not. associated (ele%rf_wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
@@ -75,9 +68,8 @@ if (ele%key /= lcavity$ .or. .not. associated(ele%rf_wake) .or. &
 endif
 
 !------------------------------------------------
-! This calculation is for an cavity with wakefields.
-! Put the sr wakefield transverse kicks at the half way point.
-! First track half way through. This includes the sr longitudinal wakes 
+! This calculation is for an element with wakefields.
+! Put the wakefield kicks at the half way point.
 
 call transfer_ele (ele, half_ele, .true.)
 call create_element_slice (half_ele, ele, ele%value(l$)/2, 0.0_rp, param, .true., .false., err_flag)
@@ -86,15 +78,10 @@ if (err_flag) then
   return
 endif
 
-call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%state /= alive$) cycle
-  call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1 (bunch_end%particle(ix_z), half_ele, param, bunch_end%particle(ix_z))
+  if (bunch_end%particle(j)%state /= alive$) cycle
+  call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
-
-ele%value(grad_loss_sr_wake$) = 0.0
 
 ! Put in the transverse wakefields
 
@@ -105,91 +92,14 @@ call track1_lr_wake (bunch_end, ele)
 
 call create_element_slice (half_ele, ele, ele%value(l$)/2, ele%value(l$)/2, param, .false., .true., err_flag, half_ele)
 
-call order_particles_in_z (bunch_end)
 do j = 1, size(bunch_end%particle)
-  ix_z = bunch_end%ix_z(j) ! z-ordered index of the particles
-  if (bunch_end%particle(ix_z)%state /= alive$) cycle
-  call add_sr_long_wake (ele, param, bunch_end, j-1, ix_z)
-  call track1 (bunch_end%particle(ix_z), half_ele, param, bunch_end%particle(ix_z))
+  if (bunch_end%particle(j)%state /= alive$) cycle
+  call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
 
-ele%value(grad_loss_sr_wake$) = 0.0
-
-bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                         mask = (bunch_end%particle(:)%state == alive$))
+bunch_end%charge = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
 
 end subroutine track1_bunch_hom
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine add_sr_long_wake (ele, param, bunch, num_in_front, follower)
-!
-! Adds the longitudinal wake for all particles in front of the follower.
-!
-! Input:
-!  ele      -- Ele_struct: Element with wakefields.
-!  param    -- lat_param_struct: For param%particle.
-!  bunch    -- Bunch_struct: Bunch of particles
-!  num_in_front -- Integer: number of particles in front of this one
-!                   This will be the bunch%particle index number right before
-!                   the follower
-!  follower -- Integer: index of particle wakes being applied to.
-!
-! Output:
-!  ele%value(grad_loss_sr_wake$) -- Real(rp): net gradient loss due to the leaders.
-!-
-
-subroutine add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (bunch_struct) bunch
-type (coord_struct), pointer :: leader
-
-integer ix_follower, i, num_in_front
-integer n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
-
-!-----------------------------------
-! If there is no wake for this element, or the sr wakes are turned off, then just 
-! use the e_loss attribute (as set in track1_bmad).
-
-ele%value(grad_loss_sr_wake$) = 0.0
-
-n_sr_table = size(ele%rf_wake%sr_table) 
-n_sr_mode_long = size(ele%rf_wake%sr_mode_long)
-n_sr_mode_trans = size(ele%rf_wake%sr_mode_trans)
-
-if ((n_sr_table == 0 .and. n_sr_mode_long == 0 .and. n_sr_mode_trans == 0) .or. &
-                                          .not. bmad_com%sr_wakes_on) then 
-  ele%value(grad_loss_sr_wake$) = 0.0
-  return 
-endif
-
-! the self wake only sees the charge of each real particle, not the "macro"
-! charge of the simulated particle
-
-if (n_sr_table > 0) then
-
-  ele%value(grad_loss_sr_wake$) = ele%value(grad_loss_sr_wake$) + &
-         ele%rf_wake%sr_table(0)%long * e_charge * abs(charge_of(bunch%particle(1)%species)) / 2.0
-
-  !-----------------------------------
-  ! add up all wakes from front of bunch to follower
-
-  do i = 1, num_in_front
-    if (bunch%particle(bunch%ix_z(i))%state == alive$) &
-      call sr_table_add_long_kick (ele, bunch%particle(bunch%ix_z(i)), &
-               bunch%particle(bunch%ix_z(i))%charge, &
-               bunch%particle(ix_follower))
-  enddo
-
-endif
-
-end subroutine add_sr_long_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -216,11 +126,11 @@ implicit none
 
 type (bunch_struct), target :: bunch
 type (ele_struct) ele
-type (coord_struct), pointer :: particle, leader
+type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
 
-real(rp) dz_sr_table, sr02, z_sr_table_max
-integer i, j, k, i1, i2, i_sr_mode, n_sr_table, n_sr_mode_long, n_sr_mode_trans, k_start
+real(rp) sr02
+integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start
 
 logical wake_here
 character(16) :: r_name = 'track1_sr_wake'
@@ -234,67 +144,38 @@ p => bunch%particle
 ! error check and zero wake sums and order particles in z
 
 call order_particles_in_z (bunch)  
-if (size(ele%rf_wake%sr_mode_long) /= 0) then
+if (size(ele%rf_wake%sr_long) /= 0) then
   i1 = bunch%ix_z(1) 
   i2 = bunch%ix_z(size(p))
-  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_mode_max) then
+  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_max) then
     call out_io (s_abort$, r_name, &
-        'Bunch longer than sr_mode wake can handle for element: ' // ele%name)
+        'Bunch longer than sr wake can handle for element: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
   endif
 endif
 
-do i = 1, size(ele%rf_wake%sr_mode_long)
-  ele%rf_wake%sr_mode_long%b_sin = 0
-  ele%rf_wake%sr_mode_long%b_cos = 0
-  ele%rf_wake%sr_mode_long%a_sin = 0
-  ele%rf_wake%sr_mode_long%a_cos = 0
+do i = 1, size(ele%rf_wake%sr_long)
+  ele%rf_wake%sr_long%b_sin = 0
+  ele%rf_wake%sr_long%b_cos = 0
+  ele%rf_wake%sr_long%a_sin = 0
+  ele%rf_wake%sr_long%a_cos = 0
 enddo
 
-!
-
-n_sr_table = size(ele%rf_wake%sr_table) 
-z_sr_table_max = 0
-if (n_sr_table > 0) then
-  z_sr_table_max = ele%rf_wake%sr_table(n_sr_table-1)%z
-  dz_sr_table = z_sr_table_max / (n_sr_table - 1)
-endif
-
-! loop over all particles in the bunch and apply the wake
-
-i_sr_mode = 1  ! index of next particle to be added to the sr_mode wake sums.
+! Loop over all particles in the bunch and apply the wake
+! This includes a self wake
 
 do j = 1, size(p)
-  particle => p(bunch%ix_z(j))
+  particle => p(bunch%ix_z(j))  ! Particle to kick
 
-  ! Particle_j is kicked by particles k = 1, ..., j-1.
-  ! The particles 1, ... i_sr_mode-1 have already had their wakes added to the 
-  ! sr_mode wake sums so the loop is from i_sr_mode, ..., j-1.
+  call sr_long_wake_apply_kick (ele, particle%charge, particle)
+  call sr_trans_wake_apply_kick(ele, particle)
 
-  k_start = i_sr_mode
-  do k = k_start, j-1
-    leader => p(bunch%ix_z(k))
-    if ((particle%vec(5) - leader%vec(5)) > z_sr_table_max) then
-      ! use sr_table table to add to particle j the wake of particle k
-      call sr_table_apply_trans_kick (ele, leader, leader%charge, particle)
-    else
-      ! add contribution of particle(k) to wake sums
-      i_sr_mode = k  ! update i_sr_mode
-      call sr_mode_long_wake_add_to (ele, leader, leader%charge)
-      call sr_mode_trans_wake_add_to (ele, leader, leader%charge)
-    endif
-  enddo
-
-  ! apply wake to particle(j)
-
-  ! apply longitudinal self wake
-
-  call sr_mode_long_wake_apply_kick (ele, particle%charge, particle)
-  call sr_mode_trans_wake_apply_kick(ele, particle)
+  call sr_long_wake_add_to (ele, particle, particle%charge)
+  call sr_trans_wake_add_to (ele, particle, particle%charge)
 
 enddo
 
-end subroutine
+end subroutine track1_sr_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -363,7 +244,7 @@ do k = 1, size(bunch%particle)
   call lr_wake_add_to (ele, bunch%t_center, particle, particle%charge)
 enddo
 
-end subroutine
+end subroutine track1_lr_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -1969,7 +1850,7 @@ enddo
 
 err = .false.
 
-end subroutine
+end subroutine normalize_e
   
 end subroutine calc_bunch_params
   

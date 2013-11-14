@@ -471,7 +471,7 @@ parsing_loop: do
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
       ! No wild card matches permitted for these.
-      if (ele%key == init_ele$ .or. ele%key == def_beam$ .or. &
+      if (ele%key == beginning_ele$ .or. ele%key == def_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
@@ -582,7 +582,7 @@ parsing_loop: do
         ele%key = replacement_line$
       else
         sequence(iseq_tot)%type = line$
-        ele%key = init_ele$
+        ele%key = line_ele$
         ele%value(particle$) = real_garbage$
         ele%value(geometry$) = real_garbage$
         ele%value(rel_tracking_charge$) = real_garbage$

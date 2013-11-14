@@ -392,8 +392,8 @@ type (surface_grid_pt_struct), pointer :: s_pt
 
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max
-integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, ix_d, ix_m
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d_branch
+integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, idum5, ix_d, ix_m
+integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch
 integer i0, i1, j0, j1, j2
 
 logical error, is_alloc_pt
@@ -404,8 +404,8 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
-        idum2, idum3, ix_d, ix_m, ix_t, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, &
-        ix_lr, ix_wall3d, n_em_field_mode, idum4
+        idum2, idum3, ix_d, ix_m, ix_t, idum4, ix_sr_long, ix_sr_trans, &
+        ix_lr, ix_wall3d, n_em_field_mode, idum5
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
         ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
@@ -537,19 +537,18 @@ enddo
 ! If ix_lr is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.
 
-if (ix_sr_table /= 0 .or. ix_sr_mode_long /= 0 .or. ix_sr_mode_trans /= 0 .or. ix_lr /= 0) then
+if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
     call transfer_rf_wake (ele%branch%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
 
   else
-    call init_wake (ele%rf_wake, ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr)
+    call init_wake (ele%rf_wake, ix_sr_long, ix_sr_trans, ix_lr)
     read (d_unit, err = 9800) ele%rf_wake%sr_file
-    read (d_unit, err = 9810) ele%rf_wake%sr_table
-    read (d_unit, err = 9840) ele%rf_wake%sr_mode_long
-    read (d_unit, err = 9850) ele%rf_wake%sr_mode_trans
+    read (d_unit, err = 9840) ele%rf_wake%sr_long
+    read (d_unit, err = 9850) ele%rf_wake%sr_trans
     read (d_unit, err = 9820) ele%rf_wake%lr_file
     read (d_unit, err = 9830) ele%rf_wake%lr
-    read (d_unit, err = 9860) ele%rf_wake%z_sr_mode_max
+    read (d_unit, err = 9860) ele%rf_wake%z_sr_max
   endif
 endif
 
@@ -715,14 +714,6 @@ endif
 close (d_unit)
 return
 
-9810  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_table FOR ELEMENT: ' // ele%name)
-endif
-close (d_unit)
-return
-
 9820  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
@@ -742,7 +733,7 @@ return
 9840  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_mode_long FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_long FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return
@@ -750,7 +741,7 @@ return
 9850  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_mode_trans FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_trans FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return
@@ -758,7 +749,7 @@ return
 9860  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%Z_CUT_SR FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%Z_SR_MAX FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return

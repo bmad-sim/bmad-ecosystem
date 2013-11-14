@@ -2861,7 +2861,7 @@ endif
 if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
   call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
   call set_ele_status_stale (ele, ref_energy_group$)
-  if (ele%key == init_ele$) then
+  if (ele%key == beginning_ele$) then
     ele%value(e_tot_start$) = ele%value(e_tot$)
     ele%value(p0c_start$) = ele%value(p0c$)
   endif
@@ -2871,7 +2871,7 @@ endif
 if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
   call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
   call set_ele_status_stale (ele, ref_energy_group$)
-  if (ele%key == init_ele$) then
+  if (ele%key == beginning_ele$) then
     ele%value(e_tot_start$) = ele%value(e_tot$)
     ele%value(p0c_start$) = ele%value(p0c$)
   endif
@@ -2893,7 +2893,7 @@ endif
 !
 
 select case (ele%key)
-case (init_ele$) 
+case (beginning_ele$) 
   coupling_change = .false.
 
   if (associated(a_ptr, ele%a%beta) .or. associated(a_ptr, ele%a%alpha)) then

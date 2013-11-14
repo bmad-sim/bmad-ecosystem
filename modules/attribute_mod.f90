@@ -1215,7 +1215,7 @@ case ('FIELD_SCALE', 'DPHI0_REF')
   return
 
 case ('E_TOT', 'P0C')
-  if (ele%key == init_ele$) then
+  if (ele%key == beginning_ele$) then
     free = .true.
     return
   endif

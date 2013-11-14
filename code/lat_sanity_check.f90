@@ -167,7 +167,7 @@ do i_b = 0, ubound(lat%branch, 1)
     ! Check wakes
 
     if (associated(ele%rf_wake)) then
-      if (associated(ele%rf_wake%lr)) then
+      if (allocated(ele%rf_wake%lr)) then
         do iw = 1, size(ele%rf_wake%lr)
           if (ele%rf_wake%lr(iw)%Q < 0) then
             call out_io (s_fatal$, r_name, &

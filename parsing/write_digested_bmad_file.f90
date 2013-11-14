@@ -196,7 +196,7 @@ type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
 
 integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_t(6), ie, ib, ix_wall3d_branch
-integer ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ie_max, ix_s
+integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s
 integer i, j, k, n, ng, nf, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
 
 logical write_wake, mode3
@@ -204,7 +204,7 @@ logical write_wake, mode3
 !
 
 ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_r = 0; ix_s = 0
-ix_sr_table = 0; ix_sr_mode_long = 0; ix_sr_mode_trans = 0; ix_lr = 0
+ix_sr_long = 0; ix_sr_trans = 0; ix_lr = 0
 mode3 = .false.; ix_wall3d = 0; n_em_field_mode = 0; ix_wig_branch = 0
 
 if (associated(ele%mode3))          mode3 = .true.
@@ -229,10 +229,9 @@ if (associated(ele%rf_wake)) then
   enddo
 
   if (write_wake) then
-    if (associated(ele%rf_wake%sr_table))      ix_sr_table      = size(ele%rf_wake%sr_table)
-    if (associated(ele%rf_wake%sr_mode_long))  ix_sr_mode_long  = size(ele%rf_wake%sr_mode_long)
-    if (associated(ele%rf_wake%sr_mode_trans)) ix_sr_mode_trans = size(ele%rf_wake%sr_mode_trans)
-    if (associated(ele%rf_wake%lr))            ix_lr            = size(ele%rf_wake%lr)
+    if (allocated(ele%rf_wake%sr_long))  ix_sr_long  = size(ele%rf_wake%sr_long)
+    if (allocated(ele%rf_wake%sr_trans)) ix_sr_trans = size(ele%rf_wake%sr_trans)
+    if (allocated(ele%rf_wake%lr))       ix_lr       = size(ele%rf_wake%lr)
     n_wake = n_wake + 1
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
@@ -281,7 +280,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, 0, 0, ix_d, ix_m, ix_t, &
-          ix_sr_table, ix_sr_mode_long, ix_sr_mode_trans, ix_lr, ix_wall3d, n_em_field_mode, 0
+          0, ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d, n_em_field_mode, 0
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -424,12 +423,11 @@ enddo
 
 if (associated(ele%rf_wake) .and. write_wake) then
   write (d_unit) ele%rf_wake%sr_file
-  write (d_unit) ele%rf_wake%sr_table
-  write (d_unit) ele%rf_wake%sr_mode_long
-  write (d_unit) ele%rf_wake%sr_mode_trans
+  write (d_unit) ele%rf_wake%sr_long
+  write (d_unit) ele%rf_wake%sr_trans
   write (d_unit) ele%rf_wake%lr_file
   write (d_unit) ele%rf_wake%lr
-  write (d_unit) ele%rf_wake%z_sr_mode_max
+  write (d_unit) ele%rf_wake%z_sr_max
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))
