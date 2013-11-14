@@ -69,6 +69,7 @@ type (em_field_mode_struct), pointer :: rfm
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
+type (photon_element_struct), pointer :: p
 type (photon_surface_struct), pointer :: s
 type (ele_attribute_struct) attrib
 type (lat_param_struct) param
@@ -483,8 +484,9 @@ endif
 
 ! surface info
 
-s => ele%photon%surface
-if (associated(s)) then
+p => ele%photon
+if (associated(p)) then
+  s => ele%photon%surface
   nl=nl+1; write (li(nl), *)
   nl=nl+1; write (li(nl), *) 'Surface Curvature:'
  
@@ -511,6 +513,13 @@ if (associated(s)) then
                         '(', -s%grid%r0(2), ',', -s%grid%r0(2) + ubound(s%grid%pt, 2) * s%grid%dr(2), ')' 
     endif
   endif
+
+  if (p%material%f_h /= 0) then
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_H:             ', real(p%material%f_h), ' + I ', aimag(p%material%f_h)
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_Hbar:          ', real(p%material%f_hbar), ' + I ', aimag(p%material%f_hbar)
+    nl = nl+1; write (li(nl), '(2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(p%material%f_hkl), ' + I ', aimag(p%material%f_hkl)
+  endif
+
 endif
 
 ! Encode branch info

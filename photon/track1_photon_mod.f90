@@ -9,7 +9,7 @@ use xraylib_interface
 
 type, private :: crystal_param_struct
   real(rp) cap_gamma, dtheta_sin_2theta, b_eff
-  complex(rp) f0, fh
+  complex(rp) f0, f_hkl
 end type
 
 private e_field_calc
@@ -673,7 +673,7 @@ gamma_h = orbit%vec(6)
 c_param%b_eff             = gamma_0 / gamma_h
 c_param%dtheta_sin_2theta = -dot_product(h_bar + 2 * old_vec(2:6:2), h_bar) / 2
 c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
-c_param%fh                = cmplx(ele%value(fh_re$), ele%value(fh_im$))
+c_param%f_hkl             = ele%photon%material%f_hkl
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
 call e_field_calc (c_param, ele, p_factor, orbit%field(1), orbit%phase(1))
@@ -719,9 +719,9 @@ complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b
 sqrt_b = sqrt(abs(cp%b_eff))
 
 eta = (cp%b_eff * cp%dtheta_sin_2theta + cp%f0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
-                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * cp%fh) 
+                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * cp%f_hkl) 
 eta1 = sqrt(eta**2 + sign(1.0_rp, cp%b_eff))
-f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * cp%fh / 2
+f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * cp%f_hkl / 2
 
 xi_0k_b = f_cmp * (eta - eta1)
 xi_hk_b = f_cmp / (abs(cp%b_eff) * (eta - eta1))
@@ -733,9 +733,9 @@ xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
 
 if (ele%value(b_param$) < 0) then 
   if (abs(eta+eta1) > abs(eta-eta1)) then
-    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%fh)
+    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%f_hkl)
   else
-    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%fh)
+    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%f_hkl)
   endif
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
@@ -748,8 +748,8 @@ if (ele%value(b_param$) < 0) then
 
 else 
 
-  e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%fh)
-  e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%fh)
+  e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%f_hkl)
+  e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%f_hkl)
 
 endif
 

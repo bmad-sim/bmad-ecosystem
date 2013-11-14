@@ -298,15 +298,7 @@ end subroutine multilayer_type_to_multilayer_params
 !     %value(e_tot$)  -- Photon energy in eV.
 !
 ! Output:
-!   ele      -- ele_struct: Crystal element.
-!     %value(d_spacing$)
-!     %value(v_unitcell$)
-!     %value(f0_re$)
-!     %value(f0_im$)
-!     %value(fh_re$)
-!     %value(fh_im$)
-!     %value(bragg_angle$)
-!     %value(alpha_angle$)
+!   ele      -- ele_struct: Crystal element with computed parameter..
 !   err_flag -- Logical: Set True if crystal type is unrecognized. False otherwise.
 !-
 
@@ -380,9 +372,9 @@ f0 = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel
 ele%value(f0_re$) = real(f0)
 ele%value(f0_im$) = aimag(f0)
 
-fh = Crystal_F_H_StructureFactor (cryst, energy, hkl(1), hkl(2), hkl(3), debye_temp_factor, rel_angle)
-ele%value(fh_re$) = real(fh)
-ele%value(fh_im$) = aimag(fh)
+ele%photon%material%f_h    = Crystal_F_H_StructureFactor (cryst, energy, hkl(1), hkl(2), hkl(3), debye_temp_factor, rel_angle)
+ele%photon%material%f_hbar = Crystal_F_H_StructureFactor (cryst, energy, -hkl(1), -hkl(2), -hkl(3), debye_temp_factor, rel_angle)
+ele%photon%material%f_hkl = sqrt(ele%photon%material%f_h * ele%photon%material%f_hbar)
 
 ! Set bragg and alpha angles to zero if bragg condition is not satisfied.
 

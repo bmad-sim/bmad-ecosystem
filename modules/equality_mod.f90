@@ -19,13 +19,13 @@ interface operator (==)
   module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
   module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
   module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
-  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_element, eq_wall3d_vertex
-  module procedure eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
-  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
-  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
-  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
-  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam_spin
-  module procedure eq_bunch_params, eq_beam
+  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
+  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor
+  module procedure eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
+  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map, eq_track
+  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
+  module procedure eq_ele, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam_spin, eq_bunch_params, eq_beam
 end interface
 
 contains
@@ -861,6 +861,28 @@ end function eq_photon_target
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_photon_material (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_material_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f_h == f2%f_h)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f_hbar == f2%f_hbar)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f_hkl == f2%f_hkl)
+
+end function eq_photon_material
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_photon_element (f1, f2) result (is_eq)
 
 implicit none
@@ -875,6 +897,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%surface == f2%surface)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%target == f2%target)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%material == f2%material)
 
 end function eq_photon_element
 

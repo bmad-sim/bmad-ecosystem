@@ -1026,8 +1026,6 @@ call init_attribute_name1 (crystal$, d_spacing$,                    'D_SPACING')
 call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL', dependent$)
 call init_attribute_name1 (crystal$, f0_re$,                        'F0_RE', dependent$)
 call init_attribute_name1 (crystal$, f0_im$,                        'F0_IM', dependent$)
-call init_attribute_name1 (crystal$, fh_re$,                        'FH_RE', dependent$)
-call init_attribute_name1 (crystal$, fh_im$,                        'FH_IM', dependent$)
 call init_attribute_name1 (crystal$, b_param$,                      'B_PARAM')
 call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' , dependent$)
 call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELENGTH', dependent$)
@@ -1449,6 +1447,9 @@ case ('FRINGE_TYPE')
       is_default = (ix_attrib == none$)
     endif
   endif
+
+case ('GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
 
 case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
