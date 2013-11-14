@@ -77,15 +77,10 @@ typedef valarray<CPP_wig>          CPP_wig_ARRAY;
 typedef valarray<CPP_wig_ARRAY>    CPP_wig_MATRIX;
 typedef valarray<CPP_wig_MATRIX>   CPP_wig_TENSOR;
 
-class CPP_rf_wake_sr_table;
-typedef valarray<CPP_rf_wake_sr_table>          CPP_rf_wake_sr_table_ARRAY;
-typedef valarray<CPP_rf_wake_sr_table_ARRAY>    CPP_rf_wake_sr_table_MATRIX;
-typedef valarray<CPP_rf_wake_sr_table_MATRIX>   CPP_rf_wake_sr_table_TENSOR;
-
-class CPP_rf_wake_sr_mode;
-typedef valarray<CPP_rf_wake_sr_mode>          CPP_rf_wake_sr_mode_ARRAY;
-typedef valarray<CPP_rf_wake_sr_mode_ARRAY>    CPP_rf_wake_sr_mode_MATRIX;
-typedef valarray<CPP_rf_wake_sr_mode_MATRIX>   CPP_rf_wake_sr_mode_TENSOR;
+class CPP_rf_wake_sr;
+typedef valarray<CPP_rf_wake_sr>          CPP_rf_wake_sr_ARRAY;
+typedef valarray<CPP_rf_wake_sr_ARRAY>    CPP_rf_wake_sr_MATRIX;
+typedef valarray<CPP_rf_wake_sr_MATRIX>   CPP_rf_wake_sr_TENSOR;
 
 class CPP_rf_wake_lr;
 typedef valarray<CPP_rf_wake_lr>          CPP_rf_wake_lr_ARRAY;
@@ -191,6 +186,11 @@ class CPP_photon_target;
 typedef valarray<CPP_photon_target>          CPP_photon_target_ARRAY;
 typedef valarray<CPP_photon_target_ARRAY>    CPP_photon_target_MATRIX;
 typedef valarray<CPP_photon_target_MATRIX>   CPP_photon_target_TENSOR;
+
+class CPP_photon_material;
+typedef valarray<CPP_photon_material>          CPP_photon_material_ARRAY;
+typedef valarray<CPP_photon_material_ARRAY>    CPP_photon_material_MATRIX;
+typedef valarray<CPP_photon_material_MATRIX>   CPP_photon_material_TENSOR;
 
 class CPP_photon_element;
 typedef valarray<CPP_photon_element>          CPP_photon_element_ARRAY;
@@ -516,39 +516,11 @@ bool operator== (const CPP_wig&, const CPP_wig&);
 
 
 //--------------------------------------------------------------------
-// CPP_rf_wake_sr_table
+// CPP_rf_wake_sr
 
-class Bmad_rf_wake_sr_table_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_rf_wake_sr_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_rf_wake_sr_table {
-public:
-  Real z;
-  Real long_wake;
-  Real trans_wake;
-
-  CPP_rf_wake_sr_table() :
-    z(0.0),
-    long_wake(0.0),
-    trans_wake(0.0)
-    {}
-
-  ~CPP_rf_wake_sr_table() {
-  }
-
-};   // End Class
-
-extern "C" void rf_wake_sr_table_to_c (const Bmad_rf_wake_sr_table_class*, CPP_rf_wake_sr_table&);
-extern "C" void rf_wake_sr_table_to_f (const CPP_rf_wake_sr_table&, Bmad_rf_wake_sr_table_class*);
-
-bool operator== (const CPP_rf_wake_sr_table&, const CPP_rf_wake_sr_table&);
-
-
-//--------------------------------------------------------------------
-// CPP_rf_wake_sr_mode
-
-class Bmad_rf_wake_sr_mode_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_rf_wake_sr_mode {
+class CPP_rf_wake_sr {
 public:
   Real amp;
   Real damp;
@@ -559,7 +531,7 @@ public:
   Real a_sin;
   Real a_cos;
 
-  CPP_rf_wake_sr_mode() :
+  CPP_rf_wake_sr() :
     amp(0.0),
     damp(0.0),
     k(0.0),
@@ -570,15 +542,15 @@ public:
     a_cos(0.0)
     {}
 
-  ~CPP_rf_wake_sr_mode() {
+  ~CPP_rf_wake_sr() {
   }
 
 };   // End Class
 
-extern "C" void rf_wake_sr_mode_to_c (const Bmad_rf_wake_sr_mode_class*, CPP_rf_wake_sr_mode&);
-extern "C" void rf_wake_sr_mode_to_f (const CPP_rf_wake_sr_mode&, Bmad_rf_wake_sr_mode_class*);
+extern "C" void rf_wake_sr_to_c (const Bmad_rf_wake_sr_class*, CPP_rf_wake_sr&);
+extern "C" void rf_wake_sr_to_f (const CPP_rf_wake_sr&, Bmad_rf_wake_sr_class*);
 
-bool operator== (const CPP_rf_wake_sr_mode&, const CPP_rf_wake_sr_mode&);
+bool operator== (const CPP_rf_wake_sr&, const CPP_rf_wake_sr&);
 
 
 //--------------------------------------------------------------------
@@ -636,20 +608,18 @@ class CPP_rf_wake {
 public:
   string sr_file;
   string lr_file;
-  CPP_rf_wake_sr_table_ARRAY sr_table;
-  CPP_rf_wake_sr_mode_ARRAY sr_mode_long;
-  CPP_rf_wake_sr_mode_ARRAY sr_mode_trans;
+  CPP_rf_wake_sr_ARRAY sr_long;
+  CPP_rf_wake_sr_ARRAY sr_trans;
   CPP_rf_wake_lr_ARRAY lr;
-  Real z_sr_mode_max;
+  Real z_sr_max;
 
   CPP_rf_wake() :
     sr_file(),
     lr_file(),
-    sr_table(CPP_rf_wake_sr_table_ARRAY(CPP_rf_wake_sr_table(), 0)),
-    sr_mode_long(CPP_rf_wake_sr_mode_ARRAY(CPP_rf_wake_sr_mode(), 0)),
-    sr_mode_trans(CPP_rf_wake_sr_mode_ARRAY(CPP_rf_wake_sr_mode(), 0)),
+    sr_long(CPP_rf_wake_sr_ARRAY(CPP_rf_wake_sr(), 0)),
+    sr_trans(CPP_rf_wake_sr_ARRAY(CPP_rf_wake_sr(), 0)),
     lr(CPP_rf_wake_lr_ARRAY(CPP_rf_wake_lr(), 0)),
-    z_sr_mode_max(0.0)
+    z_sr_max(0.0)
     {}
 
   ~CPP_rf_wake() {
@@ -1290,6 +1260,34 @@ bool operator== (const CPP_photon_target&, const CPP_photon_target&);
 
 
 //--------------------------------------------------------------------
+// CPP_photon_material
+
+class Bmad_photon_material_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_material {
+public:
+  Complex f_h;
+  Complex f_hbar;
+  Complex f_hkl;
+
+  CPP_photon_material() :
+    f_h(0.0),
+    f_hbar(0.0),
+    f_hkl(0.0)
+    {}
+
+  ~CPP_photon_material() {
+  }
+
+};   // End Class
+
+extern "C" void photon_material_to_c (const Bmad_photon_material_class*, CPP_photon_material&);
+extern "C" void photon_material_to_f (const CPP_photon_material&, Bmad_photon_material_class*);
+
+bool operator== (const CPP_photon_material&, const CPP_photon_material&);
+
+
+//--------------------------------------------------------------------
 // CPP_photon_element
 
 class Bmad_photon_element_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1298,10 +1296,12 @@ class CPP_photon_element {
 public:
   CPP_photon_surface surface;
   CPP_photon_target target;
+  CPP_photon_material material;
 
   CPP_photon_element() :
     surface(),
-    target()
+    target(),
+    material()
     {}
 
   ~CPP_photon_element() {

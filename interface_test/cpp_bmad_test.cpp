@@ -369,66 +369,9 @@ extern "C" void test_c_wig (Bmad_wig_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_rf_wake_sr_table (CPP_rf_wake_sr_table&, bool&);
+extern "C" void test2_f_rf_wake_sr (CPP_rf_wake_sr&, bool&);
 
-void set_CPP_rf_wake_sr_table_test_pattern (CPP_rf_wake_sr_table& C, int ix_patt) {
-
-  int rhs, offset = 100 * ix_patt;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.z = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.long_wake = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.trans_wake = rhs;
-
-
-}
-
-//--------------------------------------------------------------
-
-extern "C" void test_c_rf_wake_sr_table (Bmad_rf_wake_sr_table_class* F, bool& c_ok) {
-
-  CPP_rf_wake_sr_table C, C2;
-
-  c_ok = true;
-
-  rf_wake_sr_table_to_c (F, C);
-  set_CPP_rf_wake_sr_table_test_pattern (C2, 1);
-
-  if (C == C2) {
-    cout << " rf_wake_sr_table: C side convert F->C: Good" << endl;
-  } else {
-    cout << " rf_wake_sr_table: C SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_rf_wake_sr_table_test_pattern (C2, 2);
-  bool c_ok2;
-  test2_f_rf_wake_sr_table (C2, c_ok2);
-  if (!c_ok2) c_ok = false;
-
-  set_CPP_rf_wake_sr_table_test_pattern (C, 3);
-  if (C == C2) {
-    cout << " rf_wake_sr_table: F side convert F->C: Good" << endl;
-  } else {
-    cout << " rf_wake_sr_table: F SIDE CONVERT F->C: FAILED!" << endl;
-    c_ok = false;
-  }
-
-  set_CPP_rf_wake_sr_table_test_pattern (C2, 4);
-  rf_wake_sr_table_to_f (C2, F);
-
-}
-
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-extern "C" void test2_f_rf_wake_sr_mode (CPP_rf_wake_sr_mode&, bool&);
-
-void set_CPP_rf_wake_sr_mode_test_pattern (CPP_rf_wake_sr_mode& C, int ix_patt) {
+void set_CPP_rf_wake_sr_test_pattern (CPP_rf_wake_sr& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -461,37 +404,37 @@ void set_CPP_rf_wake_sr_mode_test_pattern (CPP_rf_wake_sr_mode& C, int ix_patt) 
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_rf_wake_sr_mode (Bmad_rf_wake_sr_mode_class* F, bool& c_ok) {
+extern "C" void test_c_rf_wake_sr (Bmad_rf_wake_sr_class* F, bool& c_ok) {
 
-  CPP_rf_wake_sr_mode C, C2;
+  CPP_rf_wake_sr C, C2;
 
   c_ok = true;
 
-  rf_wake_sr_mode_to_c (F, C);
-  set_CPP_rf_wake_sr_mode_test_pattern (C2, 1);
+  rf_wake_sr_to_c (F, C);
+  set_CPP_rf_wake_sr_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " rf_wake_sr_mode: C side convert F->C: Good" << endl;
+    cout << " rf_wake_sr: C side convert F->C: Good" << endl;
   } else {
-    cout << " rf_wake_sr_mode: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rf_wake_sr: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rf_wake_sr_mode_test_pattern (C2, 2);
+  set_CPP_rf_wake_sr_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_rf_wake_sr_mode (C2, c_ok2);
+  test2_f_rf_wake_sr (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_rf_wake_sr_mode_test_pattern (C, 3);
+  set_CPP_rf_wake_sr_test_pattern (C, 3);
   if (C == C2) {
-    cout << " rf_wake_sr_mode: F side convert F->C: Good" << endl;
+    cout << " rf_wake_sr: F side convert F->C: Good" << endl;
   } else {
-    cout << " rf_wake_sr_mode: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " rf_wake_sr: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_rf_wake_sr_mode_test_pattern (C2, 4);
-  rf_wake_sr_mode_to_f (C2, F);
+  set_CPP_rf_wake_sr_test_pattern (C2, 4);
+  rf_wake_sr_to_f (C2, F);
 
 }
 
@@ -596,31 +539,23 @@ void set_CPP_rf_wake_test_pattern (CPP_rf_wake& C, int ix_patt) {
   C.lr_file.resize(200);
   for (unsigned int i = 0; i < C.lr_file.size(); i++)
     {int rhs = 101 + i + 2 + offset; C.lr_file[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[type, 1, PTR]
+  // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.sr_table.resize(0);
+    C.sr_long.resize(0);
   else {
-    C.sr_table.resize(3);
-    for (unsigned int i = 0; i < C.sr_table.size(); i++)  {set_CPP_rf_wake_sr_table_test_pattern(C.sr_table[i], ix_patt+i+1);}
+    C.sr_long.resize(3);
+    for (unsigned int i = 0; i < C.sr_long.size(); i++)  {set_CPP_rf_wake_sr_test_pattern(C.sr_long[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 1, PTR]
+  // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.sr_mode_long.resize(0);
+    C.sr_trans.resize(0);
   else {
-    C.sr_mode_long.resize(3);
-    for (unsigned int i = 0; i < C.sr_mode_long.size(); i++)  {set_CPP_rf_wake_sr_mode_test_pattern(C.sr_mode_long[i], ix_patt+i+1);}
+    C.sr_trans.resize(3);
+    for (unsigned int i = 0; i < C.sr_trans.size(); i++)  {set_CPP_rf_wake_sr_test_pattern(C.sr_trans[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[type, 1, PTR]
-  if (ix_patt < 3) 
-    C.sr_mode_trans.resize(0);
-  else {
-    C.sr_mode_trans.resize(3);
-    for (unsigned int i = 0; i < C.sr_mode_trans.size(); i++)  {set_CPP_rf_wake_sr_mode_test_pattern(C.sr_mode_trans[i], ix_patt+i+1);}
-  }
-
-  // c_side.test_pat[type, 1, PTR]
+  // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.lr.resize(0);
   else {
@@ -629,7 +564,7 @@ void set_CPP_rf_wake_test_pattern (CPP_rf_wake& C, int ix_patt) {
   }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.z_sr_mode_max = rhs;
+  rhs = 9 + offset; C.z_sr_max = rhs;
 
 
 }
@@ -1939,6 +1874,63 @@ extern "C" void test_c_photon_target (Bmad_photon_target_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_photon_material (CPP_photon_material&, bool&);
+
+void set_CPP_photon_material_test_pattern (CPP_photon_material& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 1 + offset; C.f_h = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 2 + offset; C.f_hbar = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 3 + offset; C.f_hkl = Complex(rhs, 100+rhs);
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_photon_material (Bmad_photon_material_class* F, bool& c_ok) {
+
+  CPP_photon_material C, C2;
+
+  c_ok = true;
+
+  photon_material_to_c (F, C);
+  set_CPP_photon_material_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " photon_material: C side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_material: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_material_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_photon_material (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_photon_material_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " photon_material: F side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_material: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_material_test_pattern (C2, 4);
+  photon_material_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_photon_element (CPP_photon_element&, bool&);
 
 void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
@@ -1950,6 +1942,9 @@ void set_CPP_photon_element_test_pattern (CPP_photon_element& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_photon_target_test_pattern(C.target, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_photon_material_test_pattern(C.material, ix_patt);
 
 
 }

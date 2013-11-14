@@ -156,20 +156,7 @@ template bool is_all_equal (const CPP_wig_MATRIX&, const CPP_wig_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_rf_wake_sr_table& x, const CPP_rf_wake_sr_table& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.z == y.z);
-  is_eq = is_eq && (x.long_wake == y.long_wake);
-  is_eq = is_eq && (x.trans_wake == y.trans_wake);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_rf_wake_sr_table_ARRAY&, const CPP_rf_wake_sr_table_ARRAY&);
-template bool is_all_equal (const CPP_rf_wake_sr_table_MATRIX&, const CPP_rf_wake_sr_table_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_rf_wake_sr_mode& x, const CPP_rf_wake_sr_mode& y) {
+bool operator== (const CPP_rf_wake_sr& x, const CPP_rf_wake_sr& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.amp == y.amp);
   is_eq = is_eq && (x.damp == y.damp);
@@ -182,8 +169,8 @@ bool operator== (const CPP_rf_wake_sr_mode& x, const CPP_rf_wake_sr_mode& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_rf_wake_sr_mode_ARRAY&, const CPP_rf_wake_sr_mode_ARRAY&);
-template bool is_all_equal (const CPP_rf_wake_sr_mode_MATRIX&, const CPP_rf_wake_sr_mode_MATRIX&);
+template bool is_all_equal (const CPP_rf_wake_sr_ARRAY&, const CPP_rf_wake_sr_ARRAY&);
+template bool is_all_equal (const CPP_rf_wake_sr_MATRIX&, const CPP_rf_wake_sr_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -213,11 +200,10 @@ bool operator== (const CPP_rf_wake& x, const CPP_rf_wake& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.sr_file == y.sr_file);
   is_eq = is_eq && (x.lr_file == y.lr_file);
-  is_eq = is_eq && is_all_equal(x.sr_table, y.sr_table);
-  is_eq = is_eq && is_all_equal(x.sr_mode_long, y.sr_mode_long);
-  is_eq = is_eq && is_all_equal(x.sr_mode_trans, y.sr_mode_trans);
+  is_eq = is_eq && is_all_equal(x.sr_long, y.sr_long);
+  is_eq = is_eq && is_all_equal(x.sr_trans, y.sr_trans);
   is_eq = is_eq && is_all_equal(x.lr, y.lr);
-  is_eq = is_eq && (x.z_sr_mode_max == y.z_sr_mode_max);
+  is_eq = is_eq && (x.z_sr_max == y.z_sr_max);
   return is_eq;
 };
 
@@ -523,10 +509,24 @@ template bool is_all_equal (const CPP_photon_target_MATRIX&, const CPP_photon_ta
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_photon_material& x, const CPP_photon_material& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.f_h == y.f_h);
+  is_eq = is_eq && (x.f_hbar == y.f_hbar);
+  is_eq = is_eq && (x.f_hkl == y.f_hkl);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_material_ARRAY&, const CPP_photon_material_ARRAY&);
+template bool is_all_equal (const CPP_photon_material_MATRIX&, const CPP_photon_material_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_photon_element& x, const CPP_photon_element& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.surface == y.surface);
   is_eq = is_eq && (x.target == y.target);
+  is_eq = is_eq && (x.material == y.material);
   return is_eq;
 };
 

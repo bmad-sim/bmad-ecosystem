@@ -369,54 +369,24 @@ extern "C" void wig_to_c2 (CPP_wig& C, c_Int& z_n_link, Bmad_wig_term_class** z_
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_rf_wake_sr_table
+// CPP_rf_wake_sr
 
-extern "C" void rf_wake_sr_table_to_c (const Bmad_rf_wake_sr_table_class*, CPP_rf_wake_sr_table&);
+extern "C" void rf_wake_sr_to_c (const Bmad_rf_wake_sr_class*, CPP_rf_wake_sr&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_sr_table_to_f2 (Bmad_rf_wake_sr_table_class*, c_Real&, c_Real&,
-    c_Real&);
+extern "C" void rf_wake_sr_to_f2 (Bmad_rf_wake_sr_class*, c_Real&, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&);
 
-extern "C" void rf_wake_sr_table_to_f (const CPP_rf_wake_sr_table& C, Bmad_rf_wake_sr_table_class* F) {
+extern "C" void rf_wake_sr_to_f (const CPP_rf_wake_sr& C, Bmad_rf_wake_sr_class* F) {
 
   // c_side.to_f2_call
-  rf_wake_sr_table_to_f2 (F, C.z, C.long_wake, C.trans_wake);
+  rf_wake_sr_to_f2 (F, C.amp, C.damp, C.k, C.phi, C.b_sin, C.b_cos, C.a_sin, C.a_cos);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void rf_wake_sr_table_to_c2 (CPP_rf_wake_sr_table& C, c_Real& z_z, c_Real&
-    z_long_wake, c_Real& z_trans_wake) {
-
-  // c_side.to_c2_set[real, 0, NOT]
-  C.z = z_z;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.long_wake = z_long_wake;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.trans_wake = z_trans_wake;
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_rf_wake_sr_mode
-
-extern "C" void rf_wake_sr_mode_to_c (const Bmad_rf_wake_sr_mode_class*, CPP_rf_wake_sr_mode&);
-
-// c_side.to_f2_arg
-extern "C" void rf_wake_sr_mode_to_f2 (Bmad_rf_wake_sr_mode_class*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
-
-extern "C" void rf_wake_sr_mode_to_f (const CPP_rf_wake_sr_mode& C, Bmad_rf_wake_sr_mode_class* F) {
-
-  // c_side.to_f2_call
-  rf_wake_sr_mode_to_f2 (F, C.amp, C.damp, C.k, C.phi, C.b_sin, C.b_cos, C.a_sin, C.a_cos);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void rf_wake_sr_mode_to_c2 (CPP_rf_wake_sr_mode& C, c_Real& z_amp, c_Real& z_damp,
-    c_Real& z_k, c_Real& z_phi, c_Real& z_b_sin, c_Real& z_b_cos, c_Real& z_a_sin, c_Real&
-    z_a_cos) {
+extern "C" void rf_wake_sr_to_c2 (CPP_rf_wake_sr& C, c_Real& z_amp, c_Real& z_damp, c_Real&
+    z_k, c_Real& z_phi, c_Real& z_b_sin, c_Real& z_b_cos, c_Real& z_a_sin, c_Real& z_a_cos) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.amp = z_amp;
@@ -492,33 +462,25 @@ extern "C" void rf_wake_lr_to_c2 (CPP_rf_wake_lr& C, c_Real& z_freq, c_Real& z_f
 extern "C" void rf_wake_to_c (const Bmad_rf_wake_class*, CPP_rf_wake&);
 
 // c_side.to_f2_arg
-extern "C" void rf_wake_to_f2 (Bmad_rf_wake_class*, c_Char, c_Char, const
-    CPP_rf_wake_sr_table**, Int, const CPP_rf_wake_sr_mode**, Int, const CPP_rf_wake_sr_mode**,
-    Int, const CPP_rf_wake_lr**, Int, c_Real&);
+extern "C" void rf_wake_to_f2 (Bmad_rf_wake_class*, c_Char, c_Char, const CPP_rf_wake_sr**,
+    Int, const CPP_rf_wake_sr**, Int, const CPP_rf_wake_lr**, Int, c_Real&);
 
 extern "C" void rf_wake_to_f (const CPP_rf_wake& C, Bmad_rf_wake_class* F) {
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_sr_table = C.sr_table.size();
-  const CPP_rf_wake_sr_table** z_sr_table = NULL;
-  if (n1_sr_table != 0) {
-    z_sr_table = new const CPP_rf_wake_sr_table*[n1_sr_table];
-    for (int i = 0; i < n1_sr_table; i++) z_sr_table[i] = &C.sr_table[i];
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_sr_long = C.sr_long.size();
+  const CPP_rf_wake_sr** z_sr_long = NULL;
+  if (n1_sr_long != 0) {
+    z_sr_long = new const CPP_rf_wake_sr*[n1_sr_long];
+    for (int i = 0; i < n1_sr_long; i++) z_sr_long[i] = &C.sr_long[i];
   }
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_sr_mode_long = C.sr_mode_long.size();
-  const CPP_rf_wake_sr_mode** z_sr_mode_long = NULL;
-  if (n1_sr_mode_long != 0) {
-    z_sr_mode_long = new const CPP_rf_wake_sr_mode*[n1_sr_mode_long];
-    for (int i = 0; i < n1_sr_mode_long; i++) z_sr_mode_long[i] = &C.sr_mode_long[i];
+  // c_side.to_f_setup[type, 1, ALLOC]
+  int n1_sr_trans = C.sr_trans.size();
+  const CPP_rf_wake_sr** z_sr_trans = NULL;
+  if (n1_sr_trans != 0) {
+    z_sr_trans = new const CPP_rf_wake_sr*[n1_sr_trans];
+    for (int i = 0; i < n1_sr_trans; i++) z_sr_trans[i] = &C.sr_trans[i];
   }
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_sr_mode_trans = C.sr_mode_trans.size();
-  const CPP_rf_wake_sr_mode** z_sr_mode_trans = NULL;
-  if (n1_sr_mode_trans != 0) {
-    z_sr_mode_trans = new const CPP_rf_wake_sr_mode*[n1_sr_mode_trans];
-    for (int i = 0; i < n1_sr_mode_trans; i++) z_sr_mode_trans[i] = &C.sr_mode_trans[i];
-  }
-  // c_side.to_f_setup[type, 1, PTR]
+  // c_side.to_f_setup[type, 1, ALLOC]
   int n1_lr = C.lr.size();
   const CPP_rf_wake_lr** z_lr = NULL;
   if (n1_lr != 0) {
@@ -527,48 +489,40 @@ extern "C" void rf_wake_to_f (const CPP_rf_wake& C, Bmad_rf_wake_class* F) {
   }
 
   // c_side.to_f2_call
-  rf_wake_to_f2 (F, C.sr_file.c_str(), C.lr_file.c_str(), z_sr_table, n1_sr_table,
-      z_sr_mode_long, n1_sr_mode_long, z_sr_mode_trans, n1_sr_mode_trans, z_lr, n1_lr,
-      C.z_sr_mode_max);
+  rf_wake_to_f2 (F, C.sr_file.c_str(), C.lr_file.c_str(), z_sr_long, n1_sr_long, z_sr_trans,
+      n1_sr_trans, z_lr, n1_lr, C.z_sr_max);
 
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_sr_table;
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_sr_mode_long;
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_sr_mode_trans;
-  // c_side.to_f_cleanup[type, 1, PTR]
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_sr_long;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
+ delete[] z_sr_trans;
+  // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_lr;
 }
 
 // c_side.to_c2_arg
 extern "C" void rf_wake_to_c2 (CPP_rf_wake& C, c_Char z_sr_file, c_Char z_lr_file,
-    Bmad_rf_wake_sr_table_class** z_sr_table, Int n1_sr_table, Bmad_rf_wake_sr_mode_class**
-    z_sr_mode_long, Int n1_sr_mode_long, Bmad_rf_wake_sr_mode_class** z_sr_mode_trans, Int
-    n1_sr_mode_trans, Bmad_rf_wake_lr_class** z_lr, Int n1_lr, c_Real& z_z_sr_mode_max) {
+    Bmad_rf_wake_sr_class** z_sr_long, Int n1_sr_long, Bmad_rf_wake_sr_class** z_sr_trans, Int
+    n1_sr_trans, Bmad_rf_wake_lr_class** z_lr, Int n1_lr, c_Real& z_z_sr_max) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.sr_file = z_sr_file;
   // c_side.to_c2_set[character, 0, NOT]
   C.lr_file = z_lr_file;
-  // c_side.to_c2_set[type, 1, PTR]
-  C.sr_table.resize(n1_sr_table);
-  for (int i = 0; i < n1_sr_table; i++) rf_wake_sr_table_to_c(z_sr_table[i], C.sr_table[i]);
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.sr_long.resize(n1_sr_long);
+  for (int i = 0; i < n1_sr_long; i++) rf_wake_sr_to_c(z_sr_long[i], C.sr_long[i]);
 
-  // c_side.to_c2_set[type, 1, PTR]
-  C.sr_mode_long.resize(n1_sr_mode_long);
-  for (int i = 0; i < n1_sr_mode_long; i++) rf_wake_sr_mode_to_c(z_sr_mode_long[i], C.sr_mode_long[i]);
+  // c_side.to_c2_set[type, 1, ALLOC]
+  C.sr_trans.resize(n1_sr_trans);
+  for (int i = 0; i < n1_sr_trans; i++) rf_wake_sr_to_c(z_sr_trans[i], C.sr_trans[i]);
 
-  // c_side.to_c2_set[type, 1, PTR]
-  C.sr_mode_trans.resize(n1_sr_mode_trans);
-  for (int i = 0; i < n1_sr_mode_trans; i++) rf_wake_sr_mode_to_c(z_sr_mode_trans[i], C.sr_mode_trans[i]);
-
-  // c_side.to_c2_set[type, 1, PTR]
+  // c_side.to_c2_set[type, 1, ALLOC]
   C.lr.resize(n1_lr);
   for (int i = 0; i < n1_lr; i++) rf_wake_lr_to_c(z_lr[i], C.lr[i]);
 
   // c_side.to_c2_set[real, 0, NOT]
-  C.z_sr_mode_max = z_z_sr_mode_max;
+  C.z_sr_max = z_z_sr_max;
 }
 
 //--------------------------------------------------------------------
@@ -1316,29 +1270,61 @@ extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_enabled, c_
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_photon_material
+
+extern "C" void photon_material_to_c (const Bmad_photon_material_class*, CPP_photon_material&);
+
+// c_side.to_f2_arg
+extern "C" void photon_material_to_f2 (Bmad_photon_material_class*, c_Complex&, c_Complex&,
+    c_Complex&);
+
+extern "C" void photon_material_to_f (const CPP_photon_material& C, Bmad_photon_material_class* F) {
+
+  // c_side.to_f2_call
+  photon_material_to_f2 (F, C.f_h, C.f_hbar, C.f_hkl);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void photon_material_to_c2 (CPP_photon_material& C, c_Complex& z_f_h, c_Complex&
+    z_f_hbar, c_Complex& z_f_hkl) {
+
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f_h = z_f_h;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f_hbar = z_f_hbar;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f_hkl = z_f_hkl;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_photon_element
 
 extern "C" void photon_element_to_c (const Bmad_photon_element_class*, CPP_photon_element&);
 
 // c_side.to_f2_arg
 extern "C" void photon_element_to_f2 (Bmad_photon_element_class*, const CPP_photon_surface&,
-    const CPP_photon_target&);
+    const CPP_photon_target&, const CPP_photon_material&);
 
 extern "C" void photon_element_to_f (const CPP_photon_element& C, Bmad_photon_element_class* F) {
 
   // c_side.to_f2_call
-  photon_element_to_f2 (F, C.surface, C.target);
+  photon_element_to_f2 (F, C.surface, C.target, C.material);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void photon_element_to_c2 (CPP_photon_element& C, const Bmad_photon_surface_class*
-    z_surface, const Bmad_photon_target_class* z_target) {
+    z_surface, const Bmad_photon_target_class* z_target, const Bmad_photon_material_class*
+    z_material) {
 
   // c_side.to_c2_set[type, 0, NOT]
   photon_surface_to_c(z_surface, C.surface);
   // c_side.to_c2_set[type, 0, NOT]
   photon_target_to_c(z_target, C.target);
+  // c_side.to_c2_set[type, 0, NOT]
+  photon_material_to_c(z_material, C.material);
 }
 
 //--------------------------------------------------------------------
