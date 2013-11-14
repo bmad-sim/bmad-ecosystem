@@ -451,11 +451,18 @@ type photon_target_struct
   type (target_point_struct) :: center = target_point_struct()
 end type
 
+type photon_material_struct
+  complex(rp) :: f_h = 0     ! Structure factor for H direction.
+  complex(rp) :: f_hbar = 0  ! Structure factor for -H direction.
+  complex(rp) :: f_hkl = 0   ! = sqrt(f_h * f_hbar)
+end type
+
 ! Photon container structure
 
 type photon_element_struct
   type (photon_surface_struct) :: surface = photon_surface_struct()
   type (photon_target_struct) :: target !! = photon_target_struct() IFORT bug prevents set!
+  type (photon_material_struct) :: material = photon_material_struct()
 end type
 
 ! Surface types
@@ -786,8 +793,8 @@ integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14, particle$ = 14
 integer, parameter :: quad_tilt$=14, de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: geometry$ = 15, bend_tilt$=15, mode$=15
-integer, parameter :: dphi0$=15, n_sample$=15, fh_re$=15, f0_re2$=15, origin_ele_ref_pt$=15
-integer, parameter :: dphi0_ref$ = 16, fh_im$=16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
+integer, parameter :: dphi0$=15, n_sample$=15, f0_re2$=15, origin_ele_ref_pt$=15
+integer, parameter :: dphi0_ref$ = 16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
 integer, parameter :: lattice_type$ = 16, x_quad$=16
 integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17, y_quad$=17
 integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18, dz_origin$ = 18

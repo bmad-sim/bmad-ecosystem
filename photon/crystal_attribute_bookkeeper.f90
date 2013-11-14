@@ -112,7 +112,7 @@ endif
 
 ele%value(ref_cap_gamma$) = gamma
 total_angle = ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)
-ele%value(darwin_width_sigma$) = 2 * gamma * ele%value(fh_re$) / &
+ele%value(darwin_width_sigma$) = 2 * gamma * real(ele%photon%material%f_hkl) / &
                       (abs(sin(total_angle)) * sqrt(abs(ele%value(b_param$))))
 ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(total_angle))
 

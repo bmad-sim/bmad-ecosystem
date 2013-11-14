@@ -393,7 +393,8 @@ endif
 if (associated (ele%photon)) then
 
   surf => ele%photon%surface
-  write (d_unit) ele%photon%target, surf%type, surf%curvature_xy, surf%has_curvature, &
+  write (d_unit) ele%photon%target, ele%photon%material, &
+          surf%type, surf%curvature_xy, surf%has_curvature, &
           surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, allocated(surf%grid%pt)
 
   if (allocated(surf%grid%pt)) then
