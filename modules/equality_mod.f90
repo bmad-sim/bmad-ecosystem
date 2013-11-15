@@ -1975,7 +1975,9 @@ if (allocated(f1%ix_z)) is_eq = all(shape(f1%ix_z) == shape(f2%ix_z))
 if (.not. is_eq) return
 if (allocated(f1%ix_z)) is_eq = all(f1%ix_z == f2%ix_z)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%charge == f2%charge)
+is_eq = is_eq .and. (f1%charge_tot == f2%charge_tot)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%charge_live == f2%charge_live)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%z_center == f2%z_center)
 !! f_side.equality_test[real, 0, NOT]
