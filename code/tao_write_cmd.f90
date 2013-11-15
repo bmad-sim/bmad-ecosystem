@@ -165,9 +165,9 @@ case ('beam')
           bunch => beam%bunch(ib)
           write (iu, *) 'BEGIN_BUNCH'
           write (iu, *) '  ', trim(particle_name(bunch%particle(1)%species))
-          write (iu, *) bunch%charge,   '  ! bunch_charge'
-          write (iu, *) bunch%z_center, '  ! z_center'
-          write (iu, *) bunch%t_center, '  ! t_center'
+          write (iu, *) bunch%charge_tot, '  ! bunch_charge_tot'
+          write (iu, *) bunch%z_center,   '  ! z_center'
+          write (iu, *) bunch%t_center,   '  ! t_center'
           do ip = 1, size(bunch%particle)
             p => bunch%particle(ip)
             write (iu, '(6es19.10, es14.5, i6, 2(a, es19.10, a, es19.10, a), 3i3)') &
@@ -180,7 +180,7 @@ case ('beam')
         write (iu) ie, size(beam%bunch), size(beam%bunch(1)%particle)
         do ib = 1, size(beam%bunch)
           bunch => beam%bunch(ib)
-          write (iu) bunch%particle(1)%species, bunch%charge, bunch%z_center, bunch%t_center, size(bunch%particle)
+          write (iu) bunch%particle(1)%species, bunch%charge_tot, bunch%z_center, bunch%t_center, size(bunch%particle)
           do ip = 1, size(bunch%particle)
             p => bunch%particle(ip)
             write (iu) p%vec, p%charge, p%state, p%spin, p%ix_ele, p%location

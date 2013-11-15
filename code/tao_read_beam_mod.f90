@@ -272,7 +272,7 @@ do i = 1, n_bunch
     endif
     bunch%particle%species = ix + lbound(particle_name, 1) - 1
 
-    read (rb_com%iu, *, iostat = ios) bunch%charge
+    read (rb_com%iu, *, iostat = ios) bunch%charge_tot
     if (ios /= 0) then
       call this_error_out ('ERROR READING BUNCH')
       return
@@ -377,11 +377,11 @@ do i = 1, n_bunch
 
   else
     if (rb_com%file_type == 'BIN:1') then
-      read (rb_com%iu, iostat = ios) bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+      read (rb_com%iu, iostat = ios) bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
       bunch%particle%species = electron$
       call this_error_out ('OLD STYLE BEAM0 FILE WITHOUT SPECIES INFO. ASSUMING ELECTRONS...') 
     else
-      read (rb_com%iu, iostat = ios) species, bunch%charge, bunch%z_center, bunch%t_center, n_particle_lines
+      read (rb_com%iu, iostat = ios) species, bunch%charge_tot, bunch%z_center, bunch%t_center, n_particle_lines
       p%species = species
     endif
 
@@ -401,14 +401,14 @@ do i = 1, n_bunch
     enddo
   endif
 
-  if (rb_com%bunch_charge /= 0) bunch%charge = rb_com%bunch_charge
+  if (rb_com%bunch_charge /= 0) bunch%charge_tot = rb_com%bunch_charge
   sum_charge = sum(p(:)%charge)
-  if (bunch%charge == 0) then
-    bunch%charge = sum_charge
+  if (bunch%charge_tot == 0) then
+    bunch%charge_tot = sum_charge
   elseif (sum_charge == 0) then
-    p%charge = bunch%charge / n_particle
+    p%charge = bunch%charge_tot / n_particle
   else
-    p%charge = p%charge * bunch%charge / sum_charge
+    p%charge = p%charge * bunch%charge_tot / sum_charge
   endif
 enddo
 
