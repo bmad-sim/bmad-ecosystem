@@ -524,7 +524,7 @@ if (bbu_param%current_vary%variation_on) then
   endif
 
   if (d_charge /= 0) then
-    bunch%charge = bunch%charge * d_charge
+    bunch%charge_tot = bunch%charge_tot * d_charge
     bunch%particle%charge = bunch%particle%charge * (d_charge / size(bunch%particle))
   endif
 endif
