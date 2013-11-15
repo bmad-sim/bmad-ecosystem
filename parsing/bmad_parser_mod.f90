@@ -3087,6 +3087,13 @@ if (.not. allocated(ele%rf_wake%lr)) allocate (ele%rf_wake%lr(0))
 if (allocated(ele%rf_wake%sr_long))  deallocate (ele%rf_wake%sr_long)
 if (allocated(ele%rf_wake%sr_trans)) deallocate (ele%rf_wake%sr_trans)
 
+! Open file
+
+iu = 0
+ele%rf_wake%sr_file = sr_file_name
+call find_this_file (iu, sr_file_name, full_file_name)
+if (iu < 0) return
+
 ! Get data
 
 longitudinal(:)%phi = real_garbage$
