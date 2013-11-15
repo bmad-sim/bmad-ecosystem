@@ -367,7 +367,7 @@ public:
     spin(0.0, 2),
     field(0.0, 2),
     phase(0.0, 2),
-    charge(1),
+    charge(0.0),
     path_len(0.0),
     p0c(0.0),
     beta(-1),
@@ -2470,7 +2470,8 @@ class CPP_bunch {
 public:
   CPP_coord_ARRAY particle;
   Int_ARRAY ix_z;
-  Real charge;
+  Real charge_tot;
+  Real charge_live;
   Real z_center;
   Real t_center;
   Int ix_ele;
@@ -2479,7 +2480,8 @@ public:
   CPP_bunch() :
     particle(CPP_coord_ARRAY(CPP_coord(), 0)),
     ix_z(0, 0),
-    charge(0.0),
+    charge_tot(0.0),
+    charge_live(0.0),
     z_center(0.0),
     t_center(0.0),
     ix_ele(0),

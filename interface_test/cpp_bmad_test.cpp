@@ -4222,19 +4222,22 @@ void set_CPP_bunch_test_pattern (CPP_bunch& C, int ix_patt) {
       {int rhs = 101 + i + 3 + offset; C.ix_z[i] = rhs;}  }
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.charge = rhs;
+  rhs = 5 + offset; C.charge_tot = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.z_center = rhs;
+  rhs = 6 + offset; C.charge_live = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.t_center = rhs;
+  rhs = 7 + offset; C.z_center = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.t_center = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.ix_ele = rhs;
+  rhs = 9 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 9 + offset; C.ix_bunch = rhs;
+  rhs = 10 + offset; C.ix_bunch = rhs;
 
 
 }

@@ -5986,15 +5986,17 @@ else
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%charge = rhs
+rhs = 5 + offset; F%charge_tot = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%z_center = rhs
+rhs = 6 + offset; F%charge_live = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%t_center = rhs
+rhs = 7 + offset; F%z_center = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%t_center = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%ix_ele = rhs
+rhs = 9 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 9 + offset; F%ix_bunch = rhs
+rhs = 10 + offset; F%ix_bunch = rhs
 
 end subroutine set_bunch_test_pattern
 

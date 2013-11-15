@@ -1101,7 +1101,8 @@ bool operator== (const CPP_bunch& x, const CPP_bunch& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.particle, y.particle);
   is_eq = is_eq && is_all_equal(x.ix_z, y.ix_z);
-  is_eq = is_eq && (x.charge == y.charge);
+  is_eq = is_eq && (x.charge_tot == y.charge_tot);
+  is_eq = is_eq && (x.charge_live == y.charge_live);
   is_eq = is_eq && (x.z_center == y.z_center);
   is_eq = is_eq && (x.t_center == y.t_center);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
