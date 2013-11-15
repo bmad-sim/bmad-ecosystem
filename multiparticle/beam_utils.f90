@@ -62,8 +62,8 @@ if (.not. associated (ele%rf_wake) .or. &
     call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
   enddo
 
-  bunch_end%charge = sum (bunch_end%particle(:)%charge, &
-                      mask = (bunch_end%particle(:)%state == alive$))
+  bunch_end%charge_live = sum (bunch_end%particle(:)%charge, &
+                                        mask = (bunch_end%particle(:)%state == alive$))
   return
 endif
 
@@ -97,7 +97,7 @@ do j = 1, size(bunch_end%particle)
   call track1 (bunch_end%particle(j), half_ele, param, bunch_end%particle(j))
 enddo
 
-bunch_end%charge = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
+bunch_end%charge_live = sum (bunch_end%particle(:)%charge, mask = (bunch_end%particle(:)%state == alive$))
 
 end subroutine track1_bunch_hom
 
@@ -627,12 +627,12 @@ else
   call make_v_mats(ele, v_mat, v_inv)
 endif
 
-bunch%charge = beam_init%bunch_charge
+bunch%charge_tot = beam_init%bunch_charge
 bunch%ix_ele = ele%ix_ele
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  p%charge = bunch%charge * p%charge
+  p%charge = bunch%charge_tot * p%charge
   ! Include Dispersion and coupling
   if (beam_init%full_6D_coupling_calc) then
     p%vec(1:6) = matmul(V6mat, p%vec(1:6))
@@ -1484,7 +1484,7 @@ subroutine calc_bunch_params_slice (bunch, bunch_params, &
 implicit none
 
 type (bunch_struct), intent(in) :: bunch
-type (beam_struct) :: beam
+type (bunch_struct) :: sliced_bunch
 type (bunch_params_struct) bunch_params
 
 real(rp) slice_center, slice_spread
@@ -1498,28 +1498,29 @@ logical err
 !
 
 n_part = 0
+sliced_bunch%charge_tot = 0
+
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%vec(plane) .ge. slice_center - abs(slice_spread)) &
-            n_part = n_part + 1
+  if (bunch%particle(i)%vec(plane) > slice_center + abs(slice_spread) .or. &
+      bunch%particle(i)%vec(plane) < slice_center - abs(slice_spread)) cycle
+  n_part = n_part + 1
+  sliced_bunch%charge_tot = sliced_bunch%charge_tot + bunch%particle(i)%charge
 enddo
 
-call reallocate_beam (beam, 1, n_part)
+call reallocate_bunch (sliced_bunch, n_part)
 
-beam%bunch(1)%charge = bunch%charge
-beam%bunch(1)%z_center = bunch%z_center
-beam%bunch(1)%t_center = bunch%t_center
+sliced_bunch%z_center   = bunch%z_center
+sliced_bunch%t_center   = bunch%t_center
 
 n_part = 1
 do i = 1, size(bunch%particle)
-  if (bunch%particle(i)%vec(plane) .le. slice_center + abs(slice_spread) .and. &
-      bunch%particle(i)%vec(plane) .ge. slice_center - abs(slice_spread)) then
-            beam%bunch(1)%particle(n_part) = bunch%particle(i)
-            n_part = n_part + 1
-  endif
+  if (bunch%particle(i)%vec(plane) > slice_center + abs(slice_spread) .or. &
+      bunch%particle(i)%vec(plane) < slice_center - abs(slice_spread)) cycle
+  sliced_bunch%particle(n_part) = bunch%particle(i)
+  n_part = n_part + 1
 enddo
 
-call calc_bunch_params (beam%bunch(1), bunch_params, err, print_err)
+call calc_bunch_params (sliced_bunch, bunch_params, err, print_err)
 
 end subroutine calc_bunch_params_slice
 
@@ -1589,9 +1590,15 @@ integer i, j, species
 logical, optional :: print_err
 logical err, err1
 
-character(18) :: r_name = "calc_bunch_params"
+character(*), parameter :: r_name = "calc_bunch_params"
 
 ! Init
+
+if (bunch%charge_tot == 0) then
+  call out_io (s_error$, r_name, 'CHARGE OF PARTICLES IN BUNCH NOT SET. CALCULATION CANNOT BE DONE.')
+  err = .true.
+  return
+endif
 
 s = 0.0
 
@@ -2082,10 +2089,13 @@ if (size(bunch1%particle) /= size(bunch2%particle)) then
   allocate (bunch1%particle(n_particle))
 endif
 
-bunch1%particle  = bunch2%particle
-bunch1%charge    = bunch2%charge
-bunch1%z_center  = bunch2%z_center
-bunch1%t_center  = bunch2%t_center
+bunch1%particle    = bunch2%particle
+bunch1%charge_tot  = bunch2%charge_tot
+bunch1%charge_live = bunch2%charge_live
+bunch1%z_center    = bunch2%z_center
+bunch1%t_center    = bunch2%t_center
+bunch1%ix_ele      = bunch2%ix_ele
+bunch1%ix_bunch    = bunch2%ix_bunch
 
 end subroutine bunch_equal_bunch
 

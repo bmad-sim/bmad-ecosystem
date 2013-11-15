@@ -157,7 +157,7 @@ type coord_struct                 ! Particle coordinates at a single point
   complex(rp) :: spin(2) = 0      ! Spin in spinor notation
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
   real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y)
-  real(rp) :: charge = 1          ! macro charge. Default is uniform charge.
+  real(rp) :: charge = 0          ! Macro charge of particle. 
   real(rp) :: path_len = 0        ! path length (used by coherent photons).
   real(rp) :: p0c = 0             ! For non-photons: Reference momentum.
                                   !     For photons: Photon momentum (not reference).
