@@ -22,9 +22,10 @@ struct_list = [
     'bpm_phase_coupling_struct',
     'wig_term_struct',
     'wig_struct',
-    'rf_wake_sr_struct',
-    'rf_wake_lr_struct',
-    'rf_wake_struct',
+    'wake_sr_mode_struct',
+    'wake_sr_struct',
+    'wake_lr_struct',
+    'wake_struct',
     'em_field_map_term_struct',
     'em_field_map_struct',
     'em_field_grid_pt_struct',
@@ -106,8 +107,8 @@ interface_ignore_list = set([
 # Translations on C++ side to avoid clash with reserved words
 
 c_side_name_translation = {
-    'rf_wake_sr_table_struct%long' : 'long_wake',
-    'rf_wake_sr_table_struct%trans' : 'trans_wake',
+    'wake_sr_table_struct%long' : 'long_wake',
+    'wake_sr_table_struct%trans' : 'trans_wake',
 }
 
 # Directory where the output is put

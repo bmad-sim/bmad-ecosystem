@@ -526,18 +526,18 @@ end subroutine set_wig_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_rf_wake_sr (ok)
+subroutine test1_f_wake_sr_mode (ok)
 
 implicit none
 
-type(rf_wake_sr_struct), target :: f_rf_wake_sr, f2_rf_wake_sr
+type(wake_sr_mode_struct), target :: f_wake_sr_mode, f2_wake_sr_mode
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_rf_wake_sr (c_rf_wake_sr, c_ok) bind(c)
+  subroutine test_c_wake_sr_mode (c_wake_sr_mode, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_rf_wake_sr
+    type(c_ptr), value :: c_wake_sr_mode
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -545,58 +545,58 @@ end interface
 !
 
 ok = .true.
-call set_rf_wake_sr_test_pattern (f2_rf_wake_sr, 1)
+call set_wake_sr_mode_test_pattern (f2_wake_sr_mode, 1)
 
-call test_c_rf_wake_sr(c_loc(f2_rf_wake_sr), c_ok)
+call test_c_wake_sr_mode(c_loc(f2_wake_sr_mode), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_rf_wake_sr_test_pattern (f_rf_wake_sr, 4)
-if (f_rf_wake_sr == f2_rf_wake_sr) then
-  print *, 'rf_wake_sr: C side convert C->F: Good'
+call set_wake_sr_mode_test_pattern (f_wake_sr_mode, 4)
+if (f_wake_sr_mode == f2_wake_sr_mode) then
+  print *, 'wake_sr_mode: C side convert C->F: Good'
 else
-  print *, 'rf_wake_sr: C SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr_mode: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_rf_wake_sr
+end subroutine test1_f_wake_sr_mode
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_rf_wake_sr (c_rf_wake_sr, c_ok) bind(c)
+subroutine test2_f_wake_sr_mode (c_wake_sr_mode, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_rf_wake_sr
-type(rf_wake_sr_struct), target :: f_rf_wake_sr, f2_rf_wake_sr
+type(c_ptr), value ::  c_wake_sr_mode
+type(wake_sr_mode_struct), target :: f_wake_sr_mode, f2_wake_sr_mode
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call rf_wake_sr_to_f (c_rf_wake_sr, c_loc(f_rf_wake_sr))
+call wake_sr_mode_to_f (c_wake_sr_mode, c_loc(f_wake_sr_mode))
 
-call set_rf_wake_sr_test_pattern (f2_rf_wake_sr, 2)
-if (f_rf_wake_sr == f2_rf_wake_sr) then
-  print *, 'rf_wake_sr: F side convert C->F: Good'
+call set_wake_sr_mode_test_pattern (f2_wake_sr_mode, 2)
+if (f_wake_sr_mode == f2_wake_sr_mode) then
+  print *, 'wake_sr_mode: F side convert C->F: Good'
 else
-  print *, 'rf_wake_sr: F SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr_mode: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_rf_wake_sr_test_pattern (f2_rf_wake_sr, 3)
-call rf_wake_sr_to_c (c_loc(f2_rf_wake_sr), c_rf_wake_sr)
+call set_wake_sr_mode_test_pattern (f2_wake_sr_mode, 3)
+call wake_sr_mode_to_c (c_loc(f2_wake_sr_mode), c_wake_sr_mode)
 
-end subroutine test2_f_rf_wake_sr
+end subroutine test2_f_wake_sr_mode
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_rf_wake_sr_test_pattern (F, ix_patt)
+subroutine set_wake_sr_mode_test_pattern (F, ix_patt)
 
 implicit none
 
-type(rf_wake_sr_struct) F
+type(wake_sr_mode_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -620,24 +620,24 @@ rhs = 7 + offset; F%a_sin = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 8 + offset; F%a_cos = rhs
 
-end subroutine set_rf_wake_sr_test_pattern
+end subroutine set_wake_sr_mode_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_rf_wake_lr (ok)
+subroutine test1_f_wake_sr (ok)
 
 implicit none
 
-type(rf_wake_lr_struct), target :: f_rf_wake_lr, f2_rf_wake_lr
+type(wake_sr_struct), target :: f_wake_sr, f2_wake_sr
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_rf_wake_lr (c_rf_wake_lr, c_ok) bind(c)
+  subroutine test_c_wake_sr (c_wake_sr, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_rf_wake_lr
+    type(c_ptr), value :: c_wake_sr
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -645,58 +645,154 @@ end interface
 !
 
 ok = .true.
-call set_rf_wake_lr_test_pattern (f2_rf_wake_lr, 1)
+call set_wake_sr_test_pattern (f2_wake_sr, 1)
 
-call test_c_rf_wake_lr(c_loc(f2_rf_wake_lr), c_ok)
+call test_c_wake_sr(c_loc(f2_wake_sr), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_rf_wake_lr_test_pattern (f_rf_wake_lr, 4)
-if (f_rf_wake_lr == f2_rf_wake_lr) then
-  print *, 'rf_wake_lr: C side convert C->F: Good'
+call set_wake_sr_test_pattern (f_wake_sr, 4)
+if (f_wake_sr == f2_wake_sr) then
+  print *, 'wake_sr: C side convert C->F: Good'
 else
-  print *, 'rf_wake_lr: C SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_rf_wake_lr
+end subroutine test1_f_wake_sr
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_rf_wake_lr (c_rf_wake_lr, c_ok) bind(c)
+subroutine test2_f_wake_sr (c_wake_sr, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_rf_wake_lr
-type(rf_wake_lr_struct), target :: f_rf_wake_lr, f2_rf_wake_lr
+type(c_ptr), value ::  c_wake_sr
+type(wake_sr_struct), target :: f_wake_sr, f2_wake_sr
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call rf_wake_lr_to_f (c_rf_wake_lr, c_loc(f_rf_wake_lr))
+call wake_sr_to_f (c_wake_sr, c_loc(f_wake_sr))
 
-call set_rf_wake_lr_test_pattern (f2_rf_wake_lr, 2)
-if (f_rf_wake_lr == f2_rf_wake_lr) then
-  print *, 'rf_wake_lr: F side convert C->F: Good'
+call set_wake_sr_test_pattern (f2_wake_sr, 2)
+if (f_wake_sr == f2_wake_sr) then
+  print *, 'wake_sr: F side convert C->F: Good'
 else
-  print *, 'rf_wake_lr: F SIDE CONVERT C->F: FAILED!'
+  print *, 'wake_sr: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_rf_wake_lr_test_pattern (f2_rf_wake_lr, 3)
-call rf_wake_lr_to_c (c_loc(f2_rf_wake_lr), c_rf_wake_lr)
+call set_wake_sr_test_pattern (f2_wake_sr, 3)
+call wake_sr_to_c (c_loc(f2_wake_sr), c_wake_sr)
 
-end subroutine test2_f_rf_wake_lr
+end subroutine test2_f_wake_sr
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_rf_wake_lr_test_pattern (F, ix_patt)
+subroutine set_wake_sr_test_pattern (F, ix_patt)
 
 implicit none
 
-type(rf_wake_lr_struct) F
+type(wake_sr_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%mode)) deallocate (F%mode)
+else
+  if (.not. allocated(F%mode)) allocate (F%mode(-1:1))
+  do jd1 = 1, size(F%mode,1); lb1 = lbound(F%mode,1) - 1
+    call set_wake_sr_mode_test_pattern (F%mode(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%z_ref = rhs
+
+end subroutine set_wake_sr_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_wake_lr (ok)
+
+implicit none
+
+type(wake_lr_struct), target :: f_wake_lr, f2_wake_lr
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_wake_lr (c_wake_lr, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_wake_lr
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_wake_lr_test_pattern (f2_wake_lr, 1)
+
+call test_c_wake_lr(c_loc(f2_wake_lr), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_wake_lr_test_pattern (f_wake_lr, 4)
+if (f_wake_lr == f2_wake_lr) then
+  print *, 'wake_lr: C side convert C->F: Good'
+else
+  print *, 'wake_lr: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_wake_lr
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_wake_lr (c_wake_lr, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_wake_lr
+type(wake_lr_struct), target :: f_wake_lr, f2_wake_lr
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call wake_lr_to_f (c_wake_lr, c_loc(f_wake_lr))
+
+call set_wake_lr_test_pattern (f2_wake_lr, 2)
+if (f_wake_lr == f2_wake_lr) then
+  print *, 'wake_lr: F side convert C->F: Good'
+else
+  print *, 'wake_lr: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_wake_lr_test_pattern (f2_wake_lr, 3)
+call wake_lr_to_c (c_loc(f2_wake_lr), c_wake_lr)
+
+end subroutine test2_f_wake_lr
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_wake_lr_test_pattern (F, ix_patt)
+
+implicit none
+
+type(wake_lr_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -728,24 +824,24 @@ rhs = 11 + offset; F%m = rhs
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%polarized = (modulo(rhs, 2) == 0)
 
-end subroutine set_rf_wake_lr_test_pattern
+end subroutine set_wake_lr_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_rf_wake (ok)
+subroutine test1_f_wake (ok)
 
 implicit none
 
-type(rf_wake_struct), target :: f_rf_wake, f2_rf_wake
+type(wake_struct), target :: f_wake, f2_wake
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_rf_wake (c_rf_wake, c_ok) bind(c)
+  subroutine test_c_wake (c_wake, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_rf_wake
+    type(c_ptr), value :: c_wake
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -753,58 +849,58 @@ end interface
 !
 
 ok = .true.
-call set_rf_wake_test_pattern (f2_rf_wake, 1)
+call set_wake_test_pattern (f2_wake, 1)
 
-call test_c_rf_wake(c_loc(f2_rf_wake), c_ok)
+call test_c_wake(c_loc(f2_wake), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_rf_wake_test_pattern (f_rf_wake, 4)
-if (f_rf_wake == f2_rf_wake) then
-  print *, 'rf_wake: C side convert C->F: Good'
+call set_wake_test_pattern (f_wake, 4)
+if (f_wake == f2_wake) then
+  print *, 'wake: C side convert C->F: Good'
 else
-  print *, 'rf_wake: C SIDE CONVERT C->F: FAILED!'
+  print *, 'wake: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_rf_wake
+end subroutine test1_f_wake
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_rf_wake (c_rf_wake, c_ok) bind(c)
+subroutine test2_f_wake (c_wake, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_rf_wake
-type(rf_wake_struct), target :: f_rf_wake, f2_rf_wake
+type(c_ptr), value ::  c_wake
+type(wake_struct), target :: f_wake, f2_wake
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call rf_wake_to_f (c_rf_wake, c_loc(f_rf_wake))
+call wake_to_f (c_wake, c_loc(f_wake))
 
-call set_rf_wake_test_pattern (f2_rf_wake, 2)
-if (f_rf_wake == f2_rf_wake) then
-  print *, 'rf_wake: F side convert C->F: Good'
+call set_wake_test_pattern (f2_wake, 2)
+if (f_wake == f2_wake) then
+  print *, 'wake: F side convert C->F: Good'
 else
-  print *, 'rf_wake: F SIDE CONVERT C->F: FAILED!'
+  print *, 'wake: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_rf_wake_test_pattern (f2_rf_wake, 3)
-call rf_wake_to_c (c_loc(f2_rf_wake), c_rf_wake)
+call set_wake_test_pattern (f2_wake, 3)
+call wake_to_c (c_loc(f2_wake), c_wake)
 
-end subroutine test2_f_rf_wake
+end subroutine test2_f_wake
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_rf_wake_test_pattern (F, ix_patt)
+subroutine set_wake_test_pattern (F, ix_patt)
 
 implicit none
 
-type(rf_wake_struct) F
+type(wake_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -819,26 +915,10 @@ enddo
 do jd1 = 1, len(F%lr_file)
   F%lr_file(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
 enddo
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%sr_long)) deallocate (F%sr_long)
-else
-  if (.not. allocated(F%sr_long)) allocate (F%sr_long(-1:1))
-  do jd1 = 1, size(F%sr_long,1); lb1 = lbound(F%sr_long,1) - 1
-    call set_rf_wake_sr_test_pattern (F%sr_long(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-!! f_side.test_pat[type, 1, ALLOC]
-
-if (ix_patt < 3) then
-  if (allocated(F%sr_trans)) deallocate (F%sr_trans)
-else
-  if (.not. allocated(F%sr_trans)) allocate (F%sr_trans(-1:1))
-  do jd1 = 1, size(F%sr_trans,1); lb1 = lbound(F%sr_trans,1) - 1
-    call set_rf_wake_sr_test_pattern (F%sr_trans(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
+!! f_side.test_pat[type, 0, NOT]
+call set_wake_sr_test_pattern (F%sr_long, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_wake_sr_test_pattern (F%sr_trans, ix_patt)
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -846,13 +926,13 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%lr)) allocate (F%lr(-1:1))
   do jd1 = 1, size(F%lr,1); lb1 = lbound(F%lr,1) - 1
-    call set_rf_wake_lr_test_pattern (F%lr(jd1+lb1), ix_patt+jd1)
+    call set_wake_lr_test_pattern (F%lr(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%z_sr_max = rhs
+rhs = 7 + offset; F%z_sr_max = rhs
 
-end subroutine set_rf_wake_test_pattern
+end subroutine set_wake_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5228,25 +5308,25 @@ else
 endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
-  if (associated(F%rf_wake)) deallocate (F%rf_wake)
-else
-  if (.not. associated(F%rf_wake)) allocate (F%rf_wake)
-  rhs = 22 + offset
-  call set_rf_wake_test_pattern (F%rf_wake, ix_patt)
-endif
-!! f_side.test_pat[type, 0, PTR]
-if (ix_patt < 3) then
   if (associated(F%space_charge)) deallocate (F%space_charge)
 else
   if (.not. associated(F%space_charge)) allocate (F%space_charge)
-  rhs = 24 + offset
+  rhs = 22 + offset
   call set_space_charge_test_pattern (F%space_charge, ix_patt)
 endif
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
-  rhs = 100 + jd1 + 26 + offset
+  rhs = 100 + jd1 + 24 + offset
   call set_taylor_test_pattern (F%taylor(jd1+lb1), ix_patt+jd1)
 enddo
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%wake)) deallocate (F%wake)
+else
+  if (.not. associated(F%wake)) allocate (F%wake)
+  rhs = 25 + offset
+  call set_wake_test_pattern (F%wake, ix_patt)
+endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
