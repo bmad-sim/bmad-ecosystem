@@ -13,7 +13,7 @@ type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele, ele2
-type (rf_wake_lr_struct), pointer :: lr(:)
+type (wake_lr_struct), pointer :: lr(:)
 
 integer i, ix, j, n_hom, n, nn, n_ele, ix_pass, i_lr, ie
 integer irep
@@ -87,21 +87,21 @@ call run_timer ('START')
 if (bbu_param%hom_order_cutoff > 0) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
-    if (.not. associated(ele%rf_wake)) cycle
-    if (.not. allocated(ele%rf_wake%lr)) cycle
-    n = count(ele%rf_wake%lr(:)%m > bbu_param%hom_order_cutoff)
+    if (.not. associated(ele%wake)) cycle
+    if (.not. allocated(ele%wake%lr)) cycle
+    n = count(ele%wake%lr(:)%m > bbu_param%hom_order_cutoff)
     if (n == 0) cycle  ! Nothing to remove
-    if (n == size(ele%rf_wake%lr)) then
-      deallocate (ele%rf_wake%lr)
+    if (n == size(ele%wake%lr)) then
+      deallocate (ele%wake%lr)
       cycle
     endif
-    lr => ele%rf_wake%lr
-    nn = size(ele%rf_wake%lr) - n
-    allocate(ele%rf_wake%lr(nn))
+    lr => ele%wake%lr
+    nn = size(ele%wake%lr) - n
+    allocate(ele%wake%lr(nn))
     n = 0
     do j = 1, size(lr)
       if (lr(j)%m > bbu_param%hom_order_cutoff) cycle
-      n = n + 1; ele%rf_wake%lr(n) = lr(j)
+      n = n + 1; ele%wake%lr(n) = lr(j)
     enddo
     deallocate(lr)
   enddo
@@ -184,8 +184,8 @@ do istep = 1, nstep
       endif
       if (lat_in%ele(i)%key /= lcavity$) cycle
       if (.not. bbu_param%keep_all_lcavities) then
-        if (.not. associated (lat_in%ele(i)%rf_wake)) cycle
-        if (size(lat_in%ele(i)%rf_wake%lr) == 0) cycle
+        if (.not. associated (lat_in%ele(i)%wake)) cycle
+        if (size(lat_in%ele(i)%wake%lr) == 0) cycle
       endif
       call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
     enddo
@@ -274,9 +274,9 @@ do istep = 1, nstep
                      j = bbu_beam%stage(i)%ix_stage_pass1
           write(56,'(i10,5(1x,e15.8),i10/,4(6(1x,e15.6)/))')i,bbu_beam%stage(i)%time_at_wake_ele, &
                       real(bbu_beam%stage(j)%hom_voltage_max), &
-                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%rf_wake%lr(bbu_beam%stage(j)%ix_hom_max)%freq), &
-                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%rf_wake%lr(bbu_beam%stage(j)%ix_hom_max)%R_over_Q), &
-                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%rf_wake%lr(bbu_beam%stage(j)%ix_hom_max)%Q), &
+                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(j)%ix_hom_max)%freq), &
+                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(j)%ix_hom_max)%R_over_Q), &
+                      real(lat%ele(bbu_beam%stage(i)%ix_ele_lr_wake)%wake%lr(bbu_beam%stage(j)%ix_hom_max)%Q), &
                       bbu_beam%stage(i)%n_orb, & 
                       bbu_beam%stage(i)%ave_orb, bbu_beam%stage(i)%rms_orb, &
                       bbu_beam%stage(i)%min_orb, bbu_beam%stage(i)%max_orb
@@ -337,16 +337,16 @@ do istep = 1, nstep
       endif
       i_lr = bbu_beam%stage(i)%ix_hom_max
       if (bbu_param%verbose) print *, 'Element with critical HOM:', ele2%ix_ele, ':   ', ele2%name
-      if (bbu_param%verbose) print *, 'Critical HOM: Input Frequency: ', ele%rf_wake%lr(i_lr)%freq_in 
-      if (bbu_param%verbose) print *, 'Critical HOM: Actual Frequency:', ele%rf_wake%lr(i_lr)%freq
-      if (bbu_param%verbose) print *, 'Critical HOM: R_overQ:         ', ele%rf_wake%lr(i_lr)%r_over_q
-      if (bbu_param%verbose) print *, 'Critical HOM: Q:               ', ele%rf_wake%lr(i_lr)%q
-      if (bbu_param%verbose) print *, 'Critical HOM: Angle:           ', ele%rf_wake%lr(i_lr)%angle
+      if (bbu_param%verbose) print *, 'Critical HOM: Input Frequency: ', ele%wake%lr(i_lr)%freq_in 
+      if (bbu_param%verbose) print *, 'Critical HOM: Actual Frequency:', ele%wake%lr(i_lr)%freq
+      if (bbu_param%verbose) print *, 'Critical HOM: R_overQ:         ', ele%wake%lr(i_lr)%r_over_q
+      if (bbu_param%verbose) print *, 'Critical HOM: Q:               ', ele%wake%lr(i_lr)%q
+      if (bbu_param%verbose) print *, 'Critical HOM: Angle:           ', ele%wake%lr(i_lr)%angle
 
       if (bbu_param%nrep.gt.1)write(55,'(i6,e14.6,2i7,6(e14.6,1x))') &
           irep, beam_init%bunch_charge / beam_init%dt_bunch, ele%ix_ele, ele2%ix_ele, ele%s, &
-          ele%rf_wake%lr(i_lr)%freq_in, ele%rf_wake%lr(i_lr)%freq, ele%rf_wake%lr(i_lr)%r_over_q, &
-          ele%rf_wake%lr(i_lr)%q, ele%rf_wake%lr(i_lr)%angle
+          ele%wake%lr(i_lr)%freq_in, ele%wake%lr(i_lr)%freq, ele%wake%lr(i_lr)%r_over_q, &
+          ele%wake%lr(i_lr)%q, ele%wake%lr(i_lr)%angle
 
     ! Re-randomize HOM frequencies
 
