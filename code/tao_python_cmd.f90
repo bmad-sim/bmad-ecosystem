@@ -48,7 +48,7 @@ type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (bunch_struct), pointer :: bunch
-type (rf_wake_lr_struct), pointer :: lr
+type (wake_lr_struct), pointer :: lr
 type (ele_struct), pointer :: ele
 type (coord_struct), target :: orb
 type (ele_struct), target :: ele3
