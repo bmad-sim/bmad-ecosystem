@@ -55,7 +55,7 @@ bunch_end = bunch_start
 !------------------------------------------------
 ! Without wakefields just track through.
 
-if (.not. associated (ele%rf_wake) .or. &
+if (.not. associated (ele%wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
   do j = 1, size(bunch_start%particle)
@@ -137,29 +137,27 @@ character(16) :: r_name = 'track1_sr_wake'
 
 !-----------------------------------
 
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
   
 p => bunch%particle
   
 ! error check and zero wake sums and order particles in z
 
 call order_particles_in_z (bunch)  
-if (size(ele%rf_wake%sr_long) /= 0) then
+if (size(ele%wake%sr_long%mode) /= 0) then
   i1 = bunch%ix_z(1) 
   i2 = bunch%ix_z(size(p))
-  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%rf_wake%z_sr_max) then
+  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%z_sr_max) then
     call out_io (s_abort$, r_name, &
         'Bunch longer than sr wake can handle for element: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
   endif
 endif
 
-do i = 1, size(ele%rf_wake%sr_long)
-  ele%rf_wake%sr_long%b_sin = 0
-  ele%rf_wake%sr_long%b_cos = 0
-  ele%rf_wake%sr_long%a_sin = 0
-  ele%rf_wake%sr_long%a_cos = 0
-enddo
+ele%wake%sr_long%mode%b_sin = 0
+ele%wake%sr_long%mode%b_cos = 0
+ele%wake%sr_long%mode%a_sin = 0
+ele%wake%sr_long%mode%a_cos = 0
 
 ! Loop over all particles in the bunch and apply the wake
 ! This includes a self wake
@@ -188,10 +186,10 @@ end subroutine track1_sr_wake
 ! Note: It is the responsibility of the calling routine to zero the wakefield
 ! components before the first bunch is sent through. The wakefield components 
 ! are:
-!     ele%rf_wake%lr%b_sin
-!     ele%rf_wake%lr%b_cos
-!     ele%rf_wake%lr%a_sin
-!     ele%rf_wake%lr%a_cos
+!     ele%wake%lr%b_sin
+!     ele%wake%lr%b_cos
+!     ele%wake%lr%a_sin
+!     ele%wake%lr%a_cos
 !
 ! Modules needed:
 !   use beam_mod
@@ -216,12 +214,12 @@ type (coord_struct), pointer :: particle
 integer n_mode, j, k
 
 if (.not. bmad_com%lr_wakes_on) return
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
   
 ! Check to see if we need to do any calc
 
-if (.not. associated(ele%rf_wake)) return
-n_mode = size(ele%rf_wake%lr)
+if (.not. associated(ele%wake)) return
+n_mode = size(ele%wake%lr)
 if (n_mode == 0) return  
 
 call order_particles_in_z (bunch)  ! needed for wakefield calc.

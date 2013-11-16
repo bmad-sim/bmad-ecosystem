@@ -27,7 +27,7 @@ contains
 !
 ! Output:
 !   ele      -- ele_struct: Element with wake frequencies set.
-!     %rf_wake%lr(:)%freq -- Set frequency.
+!     %wake%lr(:)%freq -- Set frequency.
 !   set_done -- Logical, optional: Set True if there where lr wakes to be set.
 !                 False otherwise.
 !-
@@ -44,11 +44,11 @@ real(rp) rr
 !
 
 if (present(set_done)) set_done = .false.
-if (ele%value(lr_freq_spread$) == 0 .or. .not. associated(ele%rf_wake)) return
+if (ele%value(lr_freq_spread$) == 0 .or. .not. associated(ele%wake)) return
 
-do n = 1, size(ele%rf_wake%lr)
+do n = 1, size(ele%wake%lr)
   call ran_gauss (rr)
-  ele%rf_wake%lr(n)%freq = ele%rf_wake%lr(n)%freq_in * (1 + ele%value(lr_freq_spread$) * rr)
+  ele%wake%lr(n)%freq = ele%wake%lr(n)%freq_in * (1 + ele%value(lr_freq_spread$) * rr)
   if (present(set_done)) set_done = .true.
 enddo
 
@@ -72,10 +72,10 @@ end subroutine randomize_lr_wake_frequencies
 ! Output:
 !   lat -- Lat_struct: Lattice
 !     %ele(:) -- Lattice elements
-!       %rf_wake%lr(:)%b_sin -> Set to zero
-!       %rf_wake%lr(:)%b_cos -> Set to zero
-!       %rf_wake%lr(:)%a_sin -> Set to zero
-!       %rf_wake%lr(:)%a_cos -> Set to zero
+!       %wake%lr(:)%b_sin -> Set to zero
+!       %wake%lr(:)%b_cos -> Set to zero
+!       %wake%lr(:)%a_sin -> Set to zero
+!       %wake%lr(:)%a_cos -> Set to zero
 !-       
 
 subroutine zero_lr_wakes_in_lat (lat)
@@ -88,10 +88,10 @@ integer i
 !
 
 do i = 1, lat%n_ele_max
-  if (.not. associated(lat%ele(i)%rf_wake)) cycle
-  lat%ele(i)%rf_wake%lr%b_sin = 0; lat%ele(i)%rf_wake%lr%b_cos = 0
-  lat%ele(i)%rf_wake%lr%a_sin = 0; lat%ele(i)%rf_wake%lr%a_cos = 0
-  lat%ele(i)%rf_wake%lr%t_ref = 0
+  if (.not. associated(lat%ele(i)%wake)) cycle
+  lat%ele(i)%wake%lr%b_sin = 0; lat%ele(i)%wake%lr%b_cos = 0
+  lat%ele(i)%wake%lr%a_sin = 0; lat%ele(i)%wake%lr%a_cos = 0
+  lat%ele(i)%wake%lr%t_ref = 0
 enddo
 
 end subroutine zero_lr_wakes_in_lat
@@ -116,18 +116,18 @@ end subroutine zero_lr_wakes_in_lat
 !
 ! Output:
 !   ele      -- Ele_struct: Element with wakes.
-!     %rf_wake%lr(:)%b_sin -- Non-skew sin-like wake components.
-!     %rf_wake%lr(:)%b_cos -- Non-skew cos-like wake components.
-!     %rf_wake%lr(:)%a_sin -- Skew sin-like wake components.
-!     %rf_wake%lr(:)%a_cos -- Skew cos-like wake components.
-!     %rf_wake%lr(:)%t_ref -- Set to t0_bunch.
+!     %wake%lr(:)%b_sin -- Non-skew sin-like wake components.
+!     %wake%lr(:)%b_cos -- Non-skew cos-like wake components.
+!     %wake%lr(:)%a_sin -- Skew sin-like wake components.
+!     %wake%lr(:)%a_cos -- Skew cos-like wake components.
+!     %wake%lr(:)%t_ref -- Set to t0_bunch.
 !+
 
 subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (rf_wake_lr_struct), pointer :: lr
+type (wake_lr_struct), pointer :: lr
 
 integer i
 real(rp) charge, t0_bunch, dt, omega, f_exp, ff, c, s, kx, ky
@@ -136,7 +136,7 @@ real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%lr_wakes_on) return  
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
   
 ! Loop over all modes
 ! We use the following trick: The spatial variation of the normal and skew
@@ -145,9 +145,9 @@ if (.not. associated(ele%rf_wake)) return
 ! To prevent floating point overflow, the %a and %b factors are shifted 
 ! to be with respect to lr%t_ref.
 
-do i = 1, size(ele%rf_wake%lr)
+do i = 1, size(ele%wake%lr)
 
-  lr => ele%rf_wake%lr(i)
+  lr => ele%wake%lr(i)
 
   omega = twopi * lr%freq
   if (lr%freq == 0) omega = twopi * ele%value(rf_frequency$)  ! fundamental mode wake.
@@ -227,7 +227,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (rf_wake_lr_struct), pointer :: lr
+type (wake_lr_struct), pointer :: lr
 
 integer i
 real(rp) t0_bunch, charge, dt, dt_part, omega, f_exp, ff, c, s
@@ -236,13 +236,13 @@ real(rp) w_norm, w_skew, kx, ky, k_dum, ff_self, kx_self, ky_self, c_a, s_a
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%lr_wakes_on) return
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%rf_wake%lr)
+do i = 1, size(ele%wake%lr)
 
-  lr => ele%rf_wake%lr(i)
+  lr => ele%wake%lr(i)
   dt_part = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$)) 
   dt = t0_bunch + dt_part - lr%t_ref
 
@@ -322,7 +322,7 @@ end subroutine lr_wake_apply_kick
 subroutine sr_long_wake_add_to (ele, orbit, charge)
 
 type (ele_struct), target :: ele
-type (rf_wake_sr_struct), pointer :: sr_long
+type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
@@ -331,24 +331,23 @@ real(rp) charge, arg, ff, c, s
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
 
 ! Add to wake
 ! The monipole wake does not have any skew components.
 
-do i = 1, size(ele%rf_wake%sr_long)
+do i = 1, size(ele%wake%sr_long%mode)
 
-  sr_long => ele%rf_wake%sr_long(i)
+  mode => ele%wake%sr_long%mode(i)
 
-  ff = abs(charge) * sr_long%amp * exp(-orbit%vec(5) * &
-                   sr_long%damp) * ele%value(l$) / ele%value(p0c$)
+  ff = abs(charge) * mode%amp * exp(-orbit%vec(5) * mode%damp) * ele%value(l$) / ele%value(p0c$)
 
-  arg = sr_long%phi - orbit%vec(5) * sr_long%k 
+  arg = mode%phi - orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  sr_long%b_sin = sr_long%b_sin + ff * c
-  sr_long%b_cos = sr_long%b_cos + ff * s
+  mode%b_sin = mode%b_sin + ff * c
+  mode%b_cos = mode%b_cos + ff * s
 
 enddo
 
@@ -380,7 +379,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (rf_wake_sr_struct), pointer :: sr_long
+type (wake_sr_mode_struct), pointer :: mode
 
 integer i
 real(rp) arg, ff, c, s, w_norm, charge
@@ -388,27 +387,27 @@ real(rp) arg, ff, c, s, w_norm, charge
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%rf_wake%sr_long)
+do i = 1, size(ele%wake%sr_long%mode)
 
-  sr_long => ele%rf_wake%sr_long(i)
+  mode => ele%wake%sr_long%mode(i)
 
-  ff = exp(orbit%vec(5) * sr_long%damp)
+  ff = exp(orbit%vec(5) * mode%damp)
 
-  arg = orbit%vec(5) * sr_long%k 
+  arg = orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr_long%b_sin * ff * s + sr_long%b_cos * ff * c
+  w_norm = mode%b_sin * ff * s + mode%b_cos * ff * c
   orbit%vec(6) = orbit%vec(6) - w_norm
 
   ! Self kick
 
-  orbit%vec(6) = orbit%vec(6) - abs(charge) * sin(sr_long%phi) * &
-                         sr_long%amp * ele%value(l$) / (2 * ele%value(p0c$))
+  orbit%vec(6) = orbit%vec(6) - abs(charge) * sin(mode%phi) * &
+                         mode%amp * ele%value(l$) / (2 * ele%value(p0c$))
 enddo
 
 end subroutine sr_long_wake_apply_kick
@@ -437,7 +436,7 @@ end subroutine sr_long_wake_apply_kick
 subroutine sr_trans_wake_add_to (ele, orbit, charge)
 
 type (ele_struct), target :: ele
-type (rf_wake_sr_struct), pointer :: sr_trans
+type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
@@ -446,26 +445,25 @@ real(rp) charge, arg, ff, c, s
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%sr_wakes_on) return  
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
 
 ! Add to wake
 ! The monipole wake does not have any skew components.
 
-do i = 1, size(ele%rf_wake%sr_trans)
+do i = 1, size(ele%wake%sr_trans%mode)
 
-  sr_trans => ele%rf_wake%sr_trans(i)
+  mode => ele%wake%sr_trans%mode(i)
 
-  ff = abs(charge) * sr_trans%amp * exp(-orbit%vec(5) * sr_trans%damp) * &
-                                           ele%value(l$) / ele%value(p0c$)
+  ff = abs(charge) * mode%amp * exp(-orbit%vec(5) * mode%damp) * ele%value(l$) / ele%value(p0c$)
 
-  arg =  sr_trans%phi - orbit%vec(5) * sr_trans%k 
+  arg =  mode%phi - orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  sr_trans%b_sin = sr_trans%b_sin + ff * orbit%vec(1) * c
-  sr_trans%b_cos = sr_trans%b_cos + ff * orbit%vec(1) * s
-  sr_trans%a_sin = sr_trans%a_sin + ff * orbit%vec(3) * c
-  sr_trans%a_cos = sr_trans%a_cos + ff * orbit%vec(3) * s
+  mode%b_sin = mode%b_sin + ff * orbit%vec(1) * c
+  mode%b_cos = mode%b_cos + ff * orbit%vec(1) * s
+  mode%a_sin = mode%a_sin + ff * orbit%vec(3) * c
+  mode%a_cos = mode%a_cos + ff * orbit%vec(3) * s
 
 enddo
 
@@ -496,7 +494,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (rf_wake_sr_struct), pointer :: sr_trans
+type (wake_sr_mode_struct), pointer :: mode
 
 integer i
 real(rp) arg, ff, c, s, w_norm, w_skew
@@ -504,22 +502,22 @@ real(rp) arg, ff, c, s, w_norm, w_skew
 ! Check if we have to do any calculations
 
 if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%rf_wake)) return
+if (.not. associated(ele%wake)) return
 
 ! Loop over all modes
 
-do i = 1, size(ele%rf_wake%sr_trans)
+do i = 1, size(ele%wake%sr_trans%mode)
 
-  sr_trans => ele%rf_wake%sr_trans(i)
+  mode => ele%wake%sr_trans%mode(i)
 
-  ff = exp(orbit%vec(5) * sr_trans%damp)
+  ff = exp(orbit%vec(5) * mode%damp)
 
-  arg = orbit%vec(5) * sr_trans%k 
+  arg = orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = sr_trans%b_sin * ff * s + sr_trans%b_cos * ff * c
-  w_skew = sr_trans%a_sin * ff * s + sr_trans%a_cos * ff * c
+  w_norm = mode%b_sin * ff * s + mode%b_cos * ff * c
+  w_skew = mode%a_sin * ff * s + mode%a_cos * ff * c
 
   orbit%vec(2) = orbit%vec(2) - w_norm
   orbit%vec(4) = orbit%vec(4) - w_skew

@@ -213,7 +213,7 @@ end type
 ! Wakefield structs...
 ! Each sr_wake_struct represents a point on the wake vs. z curve.
 
-type rf_wake_sr_struct  ! Psudo-mode short-Range Wake struct 
+type wake_sr_mode_struct  ! Psudo-mode Short-range wake struct 
   real(rp) amp        ! Amplitude
   real(rp) damp       ! Dampling factor.
   real(rp) k          ! k factor
@@ -224,10 +224,16 @@ type rf_wake_sr_struct  ! Psudo-mode short-Range Wake struct
   real(rp) a_cos      ! skew cos-like component of the wake
 end type
 
-! Each rf_wake_lr_struct represents a different mode.
+type wake_sr_struct  ! Psudo-mode short-Range Wake struct 
+  type (wake_sr_mode_struct), allocatable :: mode(:)
+  real(rp) z_ref      ! z reference value for computing the wake amplitude.
+                      !  This is used to prevent value overflow with long bunches.
+end type
+
+! Each wake_lr_struct represents a different mode.
 ! A non-zero lr_freq_spread attribute value will make freq different from freq_in.
 
-type rf_wake_lr_struct    ! Long-Range Wake struct.
+type wake_lr_struct    ! Long-Range Wake struct.
   real(rp) freq        ! Actual Frequency in Hz.
   real(rp) freq_in     ! Input frequency in Hz.
   real(rp) R_over_Q    ! Strength in V/C/m^2.
@@ -245,12 +251,12 @@ end type
 
 !
 
-type rf_wake_struct
-  character(200) :: sr_file = ' '
-  character(200) :: lr_file = ' '
-  type (rf_wake_sr_struct), allocatable :: sr_long(:)
-  type (rf_wake_sr_struct), allocatable :: sr_trans(:)
-  type (rf_wake_lr_struct), allocatable :: lr(:)
+type wake_struct
+  character(200) :: sr_file = ''
+  character(200) :: lr_file = ''
+  type (wake_sr_struct) :: sr_long
+  type (wake_sr_struct) :: sr_trans
+  type (wake_lr_struct), allocatable :: lr(:)
   real(rp) :: z_sr_max = 0   ! Max allowable z value sr_mode. 
 end type
 
@@ -479,18 +485,18 @@ type ele_struct
   type (xy_disp_struct) x, y                   ! Projected dispersions.
   type (bookkeeping_state_struct) bookkeeping_state     ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch => null()     ! Pointer to branch containing element.
-  type (em_fields_struct), pointer :: em_field => null()! DC and AC E/M fields
-  type (floor_position_struct) floor                    ! Reference position in global coords.
   type (ele_struct), pointer :: lord => null()          ! Pointer to a slice lord.
+  type (em_fields_struct), pointer :: em_field => null()! DC and AC E/M fields
+  type (fibre), pointer :: ptc_fibre => null()          ! PTC tracking.
+  type (floor_position_struct) floor                    ! Reference position in global coords.
+  type (genfield), pointer :: ptc_genfield => null()    ! For symp_map$
   type (mode3_struct), pointer :: mode3 => null()       ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
-  type (fibre), pointer :: ptc_fibre => null()          ! PTC tracking.
-  type (genfield), pointer :: ptc_genfield => null()    ! For symp_map$
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                         ! Radiation integral calc cached values 
-  type (rf_wake_struct), pointer :: rf_wake => null()   ! Wakes
   type (space_charge_struct), pointer :: space_charge => null()
   type (taylor_struct) :: taylor(6)                     ! Taylor terms
+  type (wake_struct), pointer :: wake => null()         ! Wakes
   type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
   type (coord_struct) map_ref_orb_in     ! Transfer map ref orbit at entrance end of element.

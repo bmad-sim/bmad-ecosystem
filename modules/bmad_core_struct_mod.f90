@@ -619,7 +619,7 @@ end subroutine transfer_em_field
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine transfer_rf_wake (wake_in, wake_out)
+! Subroutine transfer_wake (wake_in, wake_out)
 !
 ! Subroutine to transfer the wake info from one struct to another.
 !
@@ -633,31 +633,26 @@ end subroutine transfer_em_field
 !   wake_out -- Wake_struct, pointer: Output wake.
 !-
 
-subroutine transfer_rf_wake (wake_in, wake_out)
+subroutine transfer_wake (wake_in, wake_out)
 
 implicit none
 
-type (rf_wake_struct), pointer :: wake_in, wake_out
+type (wake_struct), pointer :: wake_in, wake_out
 integer n_sr_long, n_sr_trans, n_lr
 
 !
 
 if (associated (wake_in)) then
-  n_sr_long   = size(wake_in%sr_long)
-  n_sr_trans  = size(wake_in%sr_trans)
+  n_sr_long   = size(wake_in%sr_long%mode)
+  n_sr_trans  = size(wake_in%sr_trans%mode)
   n_lr        = size(wake_in%lr)
   call init_wake (wake_out, n_sr_long, n_sr_trans, n_lr)
-  wake_out%sr_file   = wake_in%sr_file
-  wake_out%lr_file   = wake_in%lr_file
-  wake_out%sr_long   = wake_in%sr_long
-  wake_out%sr_trans  = wake_in%sr_trans
-  wake_out%lr        = wake_in%lr
-  wake_out%z_sr_max  = wake_in%z_sr_max
+  wake_out    = wake_in
 else
   if (associated(wake_out)) call init_wake (wake_out, 0, 0, 0)
 endif
 
-end subroutine transfer_rf_wake
+end subroutine transfer_wake
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -704,7 +699,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%r)
   nullify (ele%descrip)
   nullify (ele%a_pole, ele%b_pole)
-  nullify (ele%rf_wake)
+  nullify (ele%wake)
   nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
   nullify (ele%ptc_genfield)
@@ -723,7 +718,7 @@ if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
 if (associated (ele%mode3))          deallocate (ele%mode3)
-if (associated (ele%rf_wake))        deallocate (ele%rf_wake)
+if (associated (ele%wake))        deallocate (ele%wake)
 
 call deallocate_wall3d_pointer (ele%wall3d)
 
@@ -1485,7 +1480,7 @@ subroutine init_wake (wake, n_sr_long, n_sr_trans, n_lr)
 
 implicit none
 
-type (rf_wake_struct), pointer :: wake
+type (wake_struct), pointer :: wake
 integer n_sr_long, n_sr_trans, n_lr
 
 ! Deallocate wake if all inputs are zero.
@@ -1498,13 +1493,13 @@ endif
 !
 
 if (associated (wake)) then
-  if (size(wake%sr_long) /= n_sr_long) then
-    deallocate (wake%sr_long)
-    allocate (wake%sr_long(n_sr_long))
+  if (size(wake%sr_long%mode) /= n_sr_long) then
+    deallocate (wake%sr_long%mode)
+    allocate (wake%sr_long%mode(n_sr_long))
   endif
-  if (size(wake%sr_trans) /= n_sr_trans) then
-    deallocate (wake%sr_trans)
-    allocate (wake%sr_trans(n_sr_trans))
+  if (size(wake%sr_trans%mode) /= n_sr_trans) then
+    deallocate (wake%sr_trans%mode)
+    allocate (wake%sr_trans%mode(n_sr_trans))
   endif
   if (size(wake%lr) /= n_lr) then
     deallocate (wake%lr)
@@ -1513,8 +1508,8 @@ if (associated (wake)) then
 
 else
   allocate (wake)
-  allocate (wake%sr_long(n_sr_long))
-  allocate (wake%sr_trans(n_sr_trans))
+  allocate (wake%sr_long%mode(n_sr_long))
+  allocate (wake%sr_trans%mode(n_sr_trans))
   allocate (wake%lr(n_lr))
 endif
 

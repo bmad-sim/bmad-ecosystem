@@ -190,7 +190,7 @@ subroutine write_this_ele (ele)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele2
-type (rf_wake_struct), pointer :: wake
+type (wake_struct), pointer :: wake
 type (em_field_mode_struct), pointer :: mode, mode2
 type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
@@ -221,17 +221,17 @@ if (associated(ele%em_field))       n_em_field_mode = size(ele%em_field%mode)
 ! we only write a wake when needed and ix_lr serves as a pointer to a previously written wake.
 
 write_wake = .true.
-if (associated(ele%rf_wake)) then
+if (associated(ele%wake)) then
   do j = 1, n_wake
-    if (.not. ele%branch%ele(ix_wake(j))%rf_wake == ele%rf_wake) cycle
+    if (.not. ele%branch%ele(ix_wake(j))%wake == ele%wake) cycle
     write_wake = .false.
     ix_lr = -ix_wake(j)        
   enddo
 
   if (write_wake) then
-    if (allocated(ele%rf_wake%sr_long))  ix_sr_long  = size(ele%rf_wake%sr_long)
-    if (allocated(ele%rf_wake%sr_trans)) ix_sr_trans = size(ele%rf_wake%sr_trans)
-    if (allocated(ele%rf_wake%lr))       ix_lr       = size(ele%rf_wake%lr)
+    if (allocated(ele%wake%sr_long%mode))  ix_sr_long  = size(ele%wake%sr_long%mode)
+    if (allocated(ele%wake%sr_trans%mode)) ix_sr_trans = size(ele%wake%sr_trans%mode)
+    if (allocated(ele%wake%lr))       ix_lr       = size(ele%wake%lr)
     n_wake = n_wake + 1
     if (n_wake > size(ix_wake)) call re_allocate(ix_wake, 2*size(ix_wake))
     ix_wake(n_wake) = ele%ix_ele
@@ -421,13 +421,13 @@ do j = 1, 6
   enddo
 enddo
 
-if (associated(ele%rf_wake) .and. write_wake) then
-  write (d_unit) ele%rf_wake%sr_file
-  write (d_unit) ele%rf_wake%sr_long
-  write (d_unit) ele%rf_wake%sr_trans
-  write (d_unit) ele%rf_wake%lr_file
-  write (d_unit) ele%rf_wake%lr
-  write (d_unit) ele%rf_wake%z_sr_max
+if (associated(ele%wake) .and. write_wake) then
+  write (d_unit) ele%wake%sr_file
+  write (d_unit) ele%wake%sr_long%mode
+  write (d_unit) ele%wake%sr_trans%mode
+  write (d_unit) ele%wake%lr_file
+  write (d_unit) ele%wake%lr
+  write (d_unit) ele%wake%z_sr_max
 endif
 
 call write_this_wall3d (ele%wall3d, (ix_wall3d > 0))

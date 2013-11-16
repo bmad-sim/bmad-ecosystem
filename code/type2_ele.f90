@@ -30,7 +30,7 @@
 !   type_wake         -- Logical, optional: If True then print the long-range and 
 !                          short-range wakes information. If False then just print
 !                          how many terms the wake has. Default is True.
-!                          If ele%rf_wake is not allocated then this is ignored.
+!                          If ele%wake is not allocated then this is ignored.
 !   type_floor_coords -- Logical, optional: If True then print the global ("floor")
 !                          coordinates at the exit end of the element.
 !                          Default is False.
@@ -62,8 +62,8 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor
 type (wig_term_struct), pointer :: term
-type (rf_wake_lr_struct), pointer :: lr
-type (rf_wake_sr_struct), pointer :: sr
+type (wake_lr_struct), pointer :: lr
+type (wake_sr_mode_struct), pointer :: mode
 type (em_field_mode_struct), pointer :: rfm
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
@@ -696,50 +696,50 @@ endif
 
 ! Encode HOM info
 
-if (associated(ele%rf_wake)) then
+if (associated(ele%wake)) then
 
-  if (size(ele%rf_wake%sr_long) /= 0) then
+  if (size(ele%wake%sr_long%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_long)+100, .false.)
+      call re_associate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
       nl=nl+1; li(nl) = 'Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%rf_wake%sr_long)
-        sr => ele%rf_wake%sr_long(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr%amp, sr%damp, sr%k, sr%phi
+      do i = 1, size(ele%wake%sr_long%mode)
+        mode => ele%wake%sr_long%mode(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, mode%amp, mode%damp, mode%k, mode%phi
       enddo
     else
       nl=nl+1; li(nl) = 'No short-range longitudinal pseudo modes.'
     endif
   endif
 
-  if (size(ele%rf_wake%sr_trans) /= 0) then
+  if (size(ele%wake%sr_trans%mode) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%sr_trans)+100, .false.)
+      call re_associate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
       nl=nl+1; li(nl) = 'Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
             '   #        Amp        Damp           K         Phi'
-      do i = 1, size(ele%rf_wake%sr_trans)
-        sr => ele%rf_wake%sr_trans(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, sr%amp, sr%damp, sr%k, sr%phi
+      do i = 1, size(ele%wake%sr_trans%mode)
+        mode => ele%wake%sr_trans%mode(i)
+        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, mode%amp, mode%damp, mode%k, mode%phi
       enddo
     else
      nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'
     endif
   endif
 
-  if (size(ele%rf_wake%lr) /= 0) then
+  if (size(ele%wake%lr) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_associate (li, nl+size(ele%rf_wake%lr)+100, .false.)
+      call re_associate (li, nl+size(ele%wake%lr)+100, .false.)
       nl=nl+1; li(nl) = 'Long-range HOM modes:'
       nl=nl+1; li(nl) = &
             '  #       Freq         R/Q           Q   m   Angle' // &
             '    b_sin     b_cos     a_sin     a_cos     t_ref'
-      do i = 1, size(ele%rf_wake%lr)
-        lr => ele%rf_wake%lr(i)
+      do i = 1, size(ele%wake%lr)
+        lr => ele%wake%lr(i)
         angle = ' unpolar'
         if (lr%polarized) write (angle, '(f8.3)') lr%angle
         nl=nl+1; write (li(nl), '(i3, 3es12.4, i3, a, 5es10.2)') i, &

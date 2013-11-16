@@ -189,7 +189,7 @@ type (bunch_struct) bunch_start, bunch_end
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, slave
-type (rf_wake_lr_struct), pointer :: lr, lr_chain
+type (wake_lr_struct), pointer :: lr, lr_chain
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 
 integer i, j, n, im, ix_pass, ixs, ix, n_links
@@ -226,7 +226,7 @@ if (err) return
 
 ! If there are wakes...
 
-if (associated(ele%rf_wake)) then
+if (associated(ele%wake)) then
 
   ! If a super_slave, the lr wake in the lord is the sum of the slaves.
 
@@ -234,15 +234,15 @@ if (associated(ele%rf_wake)) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%lord_status /= super_lord$) cycle
-      lord%rf_wake%lr%b_sin = 0;  lord%rf_wake%lr%b_cos = 0
-      lord%rf_wake%lr%a_sin = 0;  lord%rf_wake%lr%a_cos = 0
-      lord%rf_wake%lr%t_ref = 0
+      lord%wake%lr%b_sin = 0;  lord%wake%lr%b_cos = 0
+      lord%wake%lr%a_sin = 0;  lord%wake%lr%a_cos = 0
+      lord%wake%lr%t_ref = 0
       do j = 1, lord%n_slave
         slave => pointer_to_slave(lord, 1)
-        lord%rf_wake%lr%b_sin = lord%rf_wake%lr%b_sin + slave%rf_wake%lr%b_sin
-        lord%rf_wake%lr%b_cos = lord%rf_wake%lr%b_cos + slave%rf_wake%lr%b_cos
-        lord%rf_wake%lr%a_sin = lord%rf_wake%lr%a_sin + slave%rf_wake%lr%a_sin
-        lord%rf_wake%lr%a_cos = lord%rf_wake%lr%a_cos + slave%rf_wake%lr%a_cos
+        lord%wake%lr%b_sin = lord%wake%lr%b_sin + slave%wake%lr%b_sin
+        lord%wake%lr%b_cos = lord%wake%lr%b_cos + slave%wake%lr%b_cos
+        lord%wake%lr%a_sin = lord%wake%lr%a_sin + slave%wake%lr%a_sin
+        lord%wake%lr%a_cos = lord%wake%lr%a_cos + slave%wake%lr%a_cos
       enddo
     enddo
   endif
@@ -254,9 +254,9 @@ if (associated(ele%rf_wake)) then
   call multipass_chain (ele, ix_pass, n_links, chain_ele)
   do i = 1, n_links
     if (i == ix_pass) cycle
-    do j = 1, size(ele%rf_wake%lr)
-      lr       => ele%rf_wake%lr(j)
-      lr_chain => chain_ele(i)%ele%rf_wake%lr(j)
+    do j = 1, size(ele%wake%lr)
+      lr       => ele%wake%lr(j)
+      lr_chain => chain_ele(i)%ele%wake%lr(j)
       lr_chain%b_sin = lr%b_sin
       lr_chain%b_cos = lr%b_cos
       lr_chain%a_sin = lr%a_sin
@@ -267,9 +267,9 @@ if (associated(ele%rf_wake)) then
 
   lord => pointer_to_multipass_lord (ele)
   if (associated(lord)) then 
-    do j = 1, size(ele%rf_wake%lr)
-      lr       => ele%rf_wake%lr(j)
-      lr_chain => lord%rf_wake%lr(j)
+    do j = 1, size(ele%wake%lr)
+      lr       => ele%wake%lr(j)
+      lr_chain => lord%wake%lr(j)
       lr_chain%b_sin = lr%b_sin
       lr_chain%b_cos = lr%b_cos
       lr_chain%a_sin = lr%a_sin

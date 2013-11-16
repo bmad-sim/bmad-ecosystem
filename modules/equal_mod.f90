@@ -235,10 +235,10 @@ else
   if (associated (ele_save%space_charge)) deallocate (ele_save%space_charge)
 endif
 
-! %rf_wake
+! %wake
 
-ele1%rf_wake => ele_save%rf_wake  ! reinstate
-call transfer_rf_wake (ele2%rf_wake, ele1%rf_wake)
+ele1%wake => ele_save%wake  ! reinstate
+call transfer_wake (ele2%wake, ele1%wake)
 
 ! %ptc_genfields are hard because it involves pointers in PTC.
 ! just kill the ptc_genfield in ele1 for now.

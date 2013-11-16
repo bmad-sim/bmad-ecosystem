@@ -15,17 +15,17 @@ use beam_def_struct
 
 interface operator (==)
   module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_wig_term, eq_wig
-  module procedure eq_rf_wake_sr, eq_rf_wake_lr, eq_rf_wake, eq_em_field_map_term, eq_em_field_map
-  module procedure eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields, eq_floor_position
-  module procedure eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state
-  module procedure eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point
-  module procedure eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex
-  module procedure eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor, eq_control
-  module procedure eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode
-  module procedure eq_normal_modes, eq_em_field, eq_track_map, eq_track, eq_synch_rad_common
-  module procedure eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele
-  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam_spin
-  module procedure eq_bunch_params, eq_beam
+  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_wake, eq_em_field_map_term
+  module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
+  module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
+  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
+  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
+  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor
+  module procedure eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
+  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map, eq_track
+  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
+  module procedure eq_ele, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam_spin, eq_bunch_params, eq_beam
 end interface
 
 contains
@@ -189,11 +189,11 @@ end function eq_wig
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_rf_wake_sr (f1, f2) result (is_eq)
+elemental function eq_wake_sr_mode (f1, f2) result (is_eq)
 
 implicit none
 
-type(rf_wake_sr_struct), intent(in) :: f1, f2
+type(wake_sr_mode_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -216,16 +216,40 @@ is_eq = is_eq .and. (f1%a_sin == f2%a_sin)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%a_cos == f2%a_cos)
 
-end function eq_rf_wake_sr
+end function eq_wake_sr_mode
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_rf_wake_lr (f1, f2) result (is_eq)
+elemental function eq_wake_sr (f1, f2) result (is_eq)
 
 implicit none
 
-type(rf_wake_lr_struct), intent(in) :: f1, f2
+type(wake_sr_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%mode) .eqv. allocated(f2%mode))
+if (.not. is_eq) return
+if (allocated(f1%mode)) is_eq = all(shape(f1%mode) == shape(f2%mode))
+if (.not. is_eq) return
+if (allocated(f1%mode)) is_eq = all(f1%mode == f2%mode)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%z_ref == f2%z_ref)
+
+end function eq_wake_sr
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_wake_lr (f1, f2) result (is_eq)
+
+implicit none
+
+type(wake_lr_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -256,16 +280,16 @@ is_eq = is_eq .and. (f1%m == f2%m)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%polarized .eqv. f2%polarized)
 
-end function eq_rf_wake_lr
+end function eq_wake_lr
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_rf_wake (f1, f2) result (is_eq)
+elemental function eq_wake (f1, f2) result (is_eq)
 
 implicit none
 
-type(rf_wake_struct), intent(in) :: f1, f2
+type(wake_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -275,18 +299,10 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%sr_file == f2%sr_file)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%lr_file == f2%lr_file)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%sr_long) .eqv. allocated(f2%sr_long))
-if (.not. is_eq) return
-if (allocated(f1%sr_long)) is_eq = all(shape(f1%sr_long) == shape(f2%sr_long))
-if (.not. is_eq) return
-if (allocated(f1%sr_long)) is_eq = all(f1%sr_long == f2%sr_long)
-!! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%sr_trans) .eqv. allocated(f2%sr_trans))
-if (.not. is_eq) return
-if (allocated(f1%sr_trans)) is_eq = all(shape(f1%sr_trans) == shape(f2%sr_trans))
-if (.not. is_eq) return
-if (allocated(f1%sr_trans)) is_eq = all(f1%sr_trans == f2%sr_trans)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%sr_long == f2%sr_long)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%sr_trans == f2%sr_trans)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%lr) .eqv. allocated(f2%lr))
 if (.not. is_eq) return
@@ -296,7 +312,7 @@ if (allocated(f1%lr)) is_eq = all(f1%lr == f2%lr)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%z_sr_max == f2%z_sr_max)
 
-end function eq_rf_wake
+end function eq_wake
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1620,16 +1636,16 @@ if (.not. is_eq) return
 if (associated(f1%rad_int_cache)) is_eq = (f1%rad_int_cache == f2%rad_int_cache)
 !! f_side.equality_test[type, 0, PTR]
 
-is_eq = is_eq .and. (associated(f1%rf_wake) .eqv. associated(f2%rf_wake))
-if (.not. is_eq) return
-if (associated(f1%rf_wake)) is_eq = (f1%rf_wake == f2%rf_wake)
-!! f_side.equality_test[type, 0, PTR]
-
 is_eq = is_eq .and. (associated(f1%space_charge) .eqv. associated(f2%space_charge))
 if (.not. is_eq) return
 if (associated(f1%space_charge)) is_eq = (f1%space_charge == f2%space_charge)
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%taylor == f2%taylor)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%wake) .eqv. associated(f2%wake))
+if (.not. is_eq) return
+if (associated(f1%wake)) is_eq = (f1%wake == f2%wake)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
