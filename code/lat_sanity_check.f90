@@ -166,14 +166,14 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! Check wakes
 
-    if (associated(ele%rf_wake)) then
-      if (allocated(ele%rf_wake%lr)) then
-        do iw = 1, size(ele%rf_wake%lr)
-          if (ele%rf_wake%lr(iw)%Q < 0) then
+    if (associated(ele%wake)) then
+      if (allocated(ele%wake%lr)) then
+        do iw = 1, size(ele%wake%lr)
+          if (ele%wake%lr(iw)%Q < 0) then
             call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
                       'HAS LR wake (#\i0\) with negative Q!  \es10.1\ ', &
-                      i_array = [iw], r_array = [ele%rf_wake%lr(iw)%Q])
+                      i_array = [iw], r_array = [ele%wake%lr(iw)%Q])
             err_flag = .true.
           endif
         enddo
@@ -598,10 +598,10 @@ do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
-    if (s_stat == super_slave$ .and. associated(ele%rf_wake)) then
+    if (s_stat == super_slave$ .and. associated(ele%wake)) then
       call out_io (s_fatal$, r_name, &
                 'SUPER_SLAVE: ' // trim(ele%name) // '  (\i0\)', &
-                'HAS ASSOCIATED %RF_WAKE COMPONENT.', i_array = [i_t] )
+                'HAS ASSOCIATED %WAKE COMPONENT.', i_array = [i_t] )
       err_flag = .true.
     endif
 

@@ -539,16 +539,16 @@ enddo
 
 if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_lr /= 0) then
   if (ix_lr < 0) then
-    call transfer_rf_wake (ele%branch%ele(abs(ix_lr))%rf_wake, ele%rf_wake)
+    call transfer_wake (ele%branch%ele(abs(ix_lr))%wake, ele%wake)
 
   else
-    call init_wake (ele%rf_wake, ix_sr_long, ix_sr_trans, ix_lr)
-    read (d_unit, err = 9800) ele%rf_wake%sr_file
-    read (d_unit, err = 9840) ele%rf_wake%sr_long
-    read (d_unit, err = 9850) ele%rf_wake%sr_trans
-    read (d_unit, err = 9820) ele%rf_wake%lr_file
-    read (d_unit, err = 9830) ele%rf_wake%lr
-    read (d_unit, err = 9860) ele%rf_wake%z_sr_max
+    call init_wake (ele%wake, ix_sr_long, ix_sr_trans, ix_lr)
+    read (d_unit, err = 9800) ele%wake%sr_file
+    read (d_unit, err = 9840) ele%wake%sr_long%mode
+    read (d_unit, err = 9850) ele%wake%sr_trans%mode
+    read (d_unit, err = 9820) ele%wake%lr_file
+    read (d_unit, err = 9830) ele%wake%lr
+    read (d_unit, err = 9860) ele%wake%z_sr_max
   endif
 endif
 
@@ -733,7 +733,7 @@ return
 9840  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_long FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_long%mode FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return
@@ -741,7 +741,7 @@ return
 9850  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-          'ERROR READING WAKE%sr_trans FOR ELEMENT: ' // ele%name)
+          'ERROR READING WAKE%sr_trans%mode FOR ELEMENT: ' // ele%name)
 endif
 close (d_unit)
 return

@@ -15,7 +15,6 @@ solely meant for \bmad internal use.
   Beam: Low Level Routines                    & \ref{r:low.beam}       \\ \hline
   Beam: Tracking and Manipulation             & \ref{r:beam}           \\ \hline
   Branch Handling                             & \ref{r:branch}         \\ \hline
-  \cpp Interface                              & \ref{r:cpp}            \\ \hline
   Coherent Synchrotron Radiation (CSR)        & \ref{r:csr}            \\ \hline
   Collective Effects                          & \ref{r:collective}     \\ \hline
   Electro-Magnetic Fields                     & \ref{r:em.fields}      \\ \hline
@@ -197,112 +196,6 @@ This is a plain transfer of information not using the overloaded equal.
 \item[transfer_branches (branch1, branch2)] \Newline 
 Routine to set branch2 = branch1. 
 This is a plain transfer of information not using the overloaded equal.
-
-\end{description}
-
-%------------------------------------------------------------------------
-\section{C++ Interface}
-\label{r:cpp}      
-\index{C++ interface!list of routines}
-
-\begin{description}
-
-\index[routine]{arr2mat}
-\label{r:arr2mat}
-\item[arr2mat (arr, n1, n2) result (mat)] \Newline 
-Function to take a an array and turn it into a matrix.
-
-\index[routine]{bmad_com_to_c}
-\label{r:bmad.com.to.c}
-\item[bmad_com_to_c (c_bmad_com)] \Newline 
-Routine to convert the Bmad bmad_com_struct common block to 
-a C++ C_bmad_com.
-
-\index[routine]{c_logic}
-\label{r:c.logic}
-\item[c_logic (logic) result (c_log)] \Newline 
-Function to convert from a Fortran logical to a C logical.
-
-\index[routine]{c_str}
-\label{r:c.str}
-\item[c_str (str) result (c_string)] \Newline 
-Function to append a null (0) character at the end of a string (trimmed
-of trailing blanks) so it will look like a C character array. 
-
-\index[routine]{control_to_c}
-\label{r:control.to.c}
-\item[control_to_c (f_control, c_control)] \Newline 
-Routine to convert a Bmad control_struct to a C++ C_control.
-
-\index[routine]{coord_to_c}
-\label{r:coord.to.c}
-\item[coord_to_c (f_coord, c_coord)] \Newline 
-Routine to convert a Bmad coord_struct to a C++ C_coord.
-
-\index[routine]{ele_to_c}
-\label{r:ele.to.c}
-\item[ele_to_c (f_ele, c_ele)] \Newline 
-Routine to convert a Bmad ele_struct to a C++ C_ele.
-
-\index[routine]{em_field_to_c}
-\label{r:em.field.to.c}
-\item[em_field_to_c (f_em_field, c_em_field)] \Newline 
-Routine to convert a Bmad em_field_struct to a C++ C_em_field.
-
-\index[routine]{f_logic}
-\label{r:f.logic}
-\item[f_logic (logic) result (f_log)] \Newline 
-Function to convert from a Fortran logical to a C logical.
-
-\index[routine]{floor_position_to_c}
-\label{r:floor.position.to.c}
-\item[floor_position_to_c (f_floor_position, c_floor_position)] \Newline 
-Routine to convert a Bmad floor_position_struct to a C++ C_floor_position.
-
-\index[routine]{mat2arr}
-\label{r:mat2arr}
-\item[mat2arr (mat) result (arr)] \Newline 
-Function to take a matrix and turn it into an array.
-
-\index[routine]{mode_info_to_c}
-\label{r:mode.info.to.c}
-\item[mode_info_to_c (f_mode_info, c_mode_info)] \Newline 
-Routine to convert a Bmad mode_info_struct to a C++ C_mode_info.
-
-\index[routine]{lat_to_c}
-\label{r:lat.to.c}
-\item[lat_to_c (f_lat, c_lat)] \Newline 
-Routine to convert a Bmad lat_struct to a C++ C_lat.
-
-\index[routine]{twiss_to_c}
-\label{r:twiss.to.c}
-\item[twiss_to_c (f_twiss, c_twiss)] \Newline 
-Routine to convert a Bmad twiss_struct to a C++ C_twiss.
-
-\index[routine]{taylor_term_to_c}
-\label{r:taylor.term.to.c}
-\item[taylor_term_to_c (f_taylor_term, c_taylor_term)] \Newline 
-Routine to convert a Bmad taylor_term_struct to a C++ C_taylor_term.
-
-\index[routine]{taylor_to_c}
-\label{r:taylor.to.c}
-\item[taylor_to_c (f_taylor, c_taylor)] \Newline 
-Routine to convert a Bmad taylor_struct to a C++ C_taylor.
-
-\index[routine]{rf_wake_to_c}
-\label{r:rf.wake.to.c}
-\item[rf_wake_to_c (f_rf_wake, c_rf_wake)] \Newline 
-Routine to convert a Bmad wake_struct to a C++ C_wake.
-
-\index[routine]{wig_term_to_c}
-\label{r:wig.term.to.c}
-\item[wig_term_to_c (f_wig_term, c_wig_term)] \Newline 
-Routine to convert a Bmad wig_term_struct to a C++ C_wig_term.
-
-\index[routine]{xy_disp_to_c}
-\label{r:xy.disp.to.c}
-\item[xy_disp_to_c (f_xy_disp, c_xy_disp)] \Newline
-Routine to convert a Bmad xy_disp_struct to a C++ C_xy_disp.
 
 \end{description}
 

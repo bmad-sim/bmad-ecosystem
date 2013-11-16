@@ -740,11 +740,11 @@ endif
 
 ! RF wakes
 
-call transfer_rf_wake (lord%rf_wake, slave%rf_wake)
+call transfer_wake (lord%wake, slave%wake)
 
-if (associated (slave%rf_wake)) then
-  do i = 1, size(lord%rf_wake%lr)
-    slave%rf_wake%lr(i)%t_ref = lord%rf_wake%lr(i)%t_ref - slave%ref_time
+if (associated (slave%wake)) then
+  do i = 1, size(lord%wake%lr)
+    slave%wake%lr(i)%t_ref = lord%wake%lr(i)%t_ref - slave%ref_time
   enddo
 endif
 
@@ -931,7 +931,7 @@ do j = 1, slave%n_lord
 
   ! Do some error checking.
 
-  if (associated(lord%rf_wake)) then
+  if (associated(lord%wake)) then
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
@@ -1679,14 +1679,14 @@ endif
 
 ! If there are long range wakes they must be scaled.
 
-if (associated (slave%rf_wake)) then
-  slave%rf_wake%lr%freq_in   = lord%rf_wake%lr%freq_in
-  slave%rf_wake%lr%freq      = lord%rf_wake%lr%freq
-  slave%rf_wake%lr%Q         = lord%rf_wake%lr%Q
-  slave%rf_wake%lr%angle     = lord%rf_wake%lr%angle
-  slave%rf_wake%lr%m         = lord%rf_wake%lr%m
-  slave%rf_wake%lr%polarized = lord%rf_wake%lr%polarized
-  slave%rf_wake%lr%r_over_q  = lord%rf_wake%lr%r_over_q * coef
+if (associated (slave%wake)) then
+  slave%wake%lr%freq_in   = lord%wake%lr%freq_in
+  slave%wake%lr%freq      = lord%wake%lr%freq
+  slave%wake%lr%Q         = lord%wake%lr%Q
+  slave%wake%lr%angle     = lord%wake%lr%angle
+  slave%wake%lr%m         = lord%wake%lr%m
+  slave%wake%lr%polarized = lord%wake%lr%polarized
+  slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
 endif
 
 !
