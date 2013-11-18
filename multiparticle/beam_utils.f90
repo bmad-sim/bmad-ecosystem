@@ -11,6 +11,11 @@ private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
 private recenter_bunch, combine_bunch_distributions, calc_this_emit
 
+interface assignment (=)
+  module procedure bunch_equal_bunch
+  module procedure beam_equal_beam
+end interface
+
 contains
 
 !--------------------------------------------------------------------------
@@ -140,19 +145,18 @@ character(16) :: r_name = 'track1_sr_wake'
 
 if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
+if (size(ele%wake%sr_long%mode) == 0 .and. size(ele%wake%sr_trans%mode) == 0) return
 
 p => bunch%particle
-  
+
 ! error check and zero wake sums and order particles in z
 
-if (size(ele%wake%sr_long%mode) /= 0) then
-  i1 = bunch%ix_z(1) 
-  i2 = bunch%ix_z(size(p))
-  if (p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%z_sr_max) then
-    call out_io (s_abort$, r_name, &
-        'Bunch longer than sr wake can handle for element: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-  endif
+i1 = bunch%ix_z(1) 
+i2 = bunch%ix_z(size(p))
+if (p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%z_sr_max) then
+  call out_io (s_abort$, r_name, &
+      'Bunch longer than sr wake can handle for element: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ele%wake%sr_long%mode%b_sin = 0
@@ -269,6 +273,8 @@ end subroutine track1_lr_wake
 
 Subroutine order_particles_in_z (bunch)
 
+use nr, only: indexx
+
 implicit none
 
 type (bunch_struct), target :: bunch
@@ -278,16 +284,20 @@ integer i, k, nm, i0, i1
 real(rp) z1, z2
 logical ordered
 
-! Init if needed
+! Init if needed. 
 
 particle => bunch%particle
 nm = size(particle)
 
 if (bunch%ix_z(1) == 0) then
-  forall (i = 1:nm) bunch%ix_z(i) = i
+  call indexx (bunch%particle%vec(5), bunch%ix_z)
+  bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
+  return  
 endif
 
 ! Order is from large z (head of bunch) to small z.
+! This ordering calc is efficient when the particles are already more-or-less 
+! ordered to start with.  
 
 do
   ordered = .true.
@@ -301,7 +311,7 @@ do
   if (ordered) exit
 enddo
 
-end subroutine
+end subroutine order_particles_in_z
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -349,7 +359,7 @@ do i = 1, n_bunch
   call reallocate_bunch (beam%bunch(i), n_particle)
 enddo
 
-end subroutine
+end subroutine reallocate_beam
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -388,7 +398,7 @@ if (.not. allocated(bunch%particle)) then
   bunch%ix_z = 0
 endif
 
-end subroutine
+end subroutine reallocate_bunch
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -431,18 +441,10 @@ type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 
 integer i_bunch, i, n, n_kv
-real(rp) old_cutoff
 
-character(16) old_engine, old_converter  
 character(22) :: r_name = "init_beam_distribution"
 
 call reallocate_beam (beam, beam_init%n_bunch, 0)
-
-! Save and set the random number generator parameters.
-
-call ran_engine (beam_init%random_engine, old_engine)
-call ran_gauss_converter (beam_init%random_gauss_converter, &
-                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
 
 ! Loop over all bunches
 ! Note z_center is negative and t_center is posive for trailing bunches.
@@ -459,11 +461,6 @@ do i_bunch = 1, size(beam%bunch)
 
 enddo
   
-! Reset the random number generator parameters.
-
-call ran_engine (old_engine)
-call ran_gauss_converter (old_converter, old_cutoff)
-
 end subroutine init_beam_distribution
 
 !--------------------------------------------------------------------------
@@ -525,6 +522,7 @@ type (kv_beam_init_struct), pointer :: kv
 
 real(rp) beta(3), alpha(3), emit(3), covar
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
+real(rp) old_cutoff
 
 real(rp) tunes(1:3)
 REAL(rp) G6mat(6,6)
@@ -536,6 +534,7 @@ integer i, j, k, n, species
 integer :: n_kv     ! counts how many phase planes are of KV type
 integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 
+character(16) old_engine, old_converter  
 character(22) :: r_name = "init_bunch_distribution"
 
 logical ok, correct_for_coupling(6)
@@ -547,6 +546,12 @@ if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
 endif
+
+! Save and set the random number generator parameters.
+
+call ran_engine (beam_init%random_engine, old_engine)
+call ran_gauss_converter (beam_init%random_gauss_converter, &
+                  beam_init%random_sigma_cutoff, old_converter, old_cutoff)
 
 ! Compute the Twiss parameters beta and alpha, and the emittance for each plane
 ! 1 = (x,px), 2 = (y,py), 3 = (z,pz)
@@ -708,6 +713,10 @@ else
   enddo
 endif
 
+! Reset the random number generator parameters.
+
+call ran_engine (old_engine)
+call ran_gauss_converter (old_converter, old_cutoff)
   
 end subroutine init_bunch_distribution
 
@@ -2056,8 +2065,7 @@ end subroutine find_bunch_sigma_matrix
 !+
 ! Subroutine bunch_equal_bunch (bunch1, bunch2)
 !
-! Subroutine to set one particle bunch equal to another taking care of
-! pointers so that they don't all point to the same place.
+! Subroutine to set one particle bunch equal to another.
 !
 ! Note: This subroutine is called by the overloaded equal sign:
 !    bunch1 = bunch2
@@ -2076,18 +2084,23 @@ implicit none
 type (bunch_struct), intent(inout) :: bunch1
 type (bunch_struct), intent(in)    :: bunch2
 
-integer i, n_particle
+integer i, np
 
 !
 
-n_particle = size(bunch2%particle)
-
-if (size(bunch1%particle) /= size(bunch2%particle)) then
-  deallocate (bunch1%particle)
-  allocate (bunch1%particle(n_particle))
+if (.not. allocated(bunch2%particle)) then
+  if (allocated(bunch1%particle)) deallocate (bunch1%particle, bunch1%ix_z)
+else
+  np = size(bunch2%particle)
+  if (.not. allocated(bunch1%particle)) allocate(bunch1%particle(np), bunch1%ix_z(np))
+  if (size(bunch1%particle) /= size(bunch2%particle)) then
+    deallocate (bunch1%particle, bunch1%ix_z)
+    allocate (bunch1%particle(np), bunch1%ix_z(np))
+  endif
+  bunch1%particle = bunch2%particle
+  bunch1%ix_z     = bunch2%ix_z
 endif
 
-bunch1%particle    = bunch2%particle
 bunch1%charge_tot  = bunch2%charge_tot
 bunch1%charge_live = bunch2%charge_live
 bunch1%z_center    = bunch2%z_center
