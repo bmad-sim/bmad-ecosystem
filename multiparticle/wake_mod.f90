@@ -327,6 +327,11 @@ type (coord_struct) orbit
 integer i
 real(rp) arg, ff, c, s, dz, exp_factor, w_norm
 
+!
+
+dz = orbit%vec(5) - ele%wake%sr_long%z_ref ! Should be negative
+ele%wake%sr_long%z_ref = orbit%vec(5)
+
 ! Check if we have to do any calculations
 
 do i = 1, size(ele%wake%sr_long%mode)
@@ -335,7 +340,7 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   ! Kick particle
 
-  exp_factor = exp(orbit%vec(5) * mode%damp)
+  exp_factor = exp(dz * mode%damp)
 
   arg = orbit%vec(5) * mode%k 
   c = cos (arg)
