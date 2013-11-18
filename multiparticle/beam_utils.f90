@@ -85,6 +85,7 @@ enddo
 
 ! Put in the transverse wakefields
 
+call order_particles_in_z (bunch_end)  
 call track1_sr_wake (bunch_end, ele)
 call track1_lr_wake (bunch_end, ele)
 
@@ -137,13 +138,13 @@ character(16) :: r_name = 'track1_sr_wake'
 
 !-----------------------------------
 
+if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
-  
+
 p => bunch%particle
   
 ! error check and zero wake sums and order particles in z
 
-call order_particles_in_z (bunch)  
 if (size(ele%wake%sr_long%mode) /= 0) then
   i1 = bunch%ix_z(1) 
   i2 = bunch%ix_z(size(p))
@@ -158,19 +159,20 @@ ele%wake%sr_long%mode%b_sin = 0
 ele%wake%sr_long%mode%b_cos = 0
 ele%wake%sr_long%mode%a_sin = 0
 ele%wake%sr_long%mode%a_cos = 0
+ele%wake%sr_long%z_ref = p(i1)%vec(5)
+
+ele%wake%sr_trans%mode%b_sin = 0
+ele%wake%sr_trans%mode%b_cos = 0
+ele%wake%sr_trans%mode%a_sin = 0
+ele%wake%sr_trans%mode%a_cos = 0
+ele%wake%sr_trans%z_ref = p(i1)%vec(5)
 
 ! Loop over all particles in the bunch and apply the wake
-! This includes a self wake
 
 do j = 1, size(p)
   particle => p(bunch%ix_z(j))  ! Particle to kick
-
-  call sr_long_wake_apply_kick (ele, particle%charge, particle)
-  call sr_trans_wake_apply_kick(ele, particle)
-
-  call sr_long_wake_add_to (ele, particle, particle%charge)
-  call sr_trans_wake_add_to (ele, particle, particle%charge)
-
+  call sr_long_wake_particle (ele, particle)
+  call sr_trans_wake_particle (ele, particle)
 enddo
 
 end subroutine track1_sr_wake
@@ -222,15 +224,13 @@ if (.not. associated(ele%wake)) return
 n_mode = size(ele%wake%lr)
 if (n_mode == 0) return  
 
-call order_particles_in_z (bunch)  ! needed for wakefield calc.
-
 ! Give the particles a kick
 
 do k = 1, size(bunch%particle)
   j = bunch%ix_z(k)
   particle => bunch%particle(j)
   if (particle%state /= alive$) cycle
-  call lr_wake_apply_kick (ele, bunch%t_center, particle, particle%charge)
+  call lr_wake_apply_kick (ele, bunch%t_center, particle)
 enddo
 
 ! Add the wakes left by this bunch to the existing wakes.
@@ -239,7 +239,7 @@ do k = 1, size(bunch%particle)
   j = bunch%ix_z(k)
   particle => bunch%particle(j)
   if (particle%state /= alive$) cycle
-  call lr_wake_add_to (ele, bunch%t_center, particle, particle%charge)
+  call lr_wake_add_to (ele, bunch%t_center, particle)
 enddo
 
 end subroutine track1_lr_wake
