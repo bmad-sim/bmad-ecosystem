@@ -100,7 +100,7 @@ end subroutine zero_lr_wakes_in_lat
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
+! Subroutine lr_wake_add_to (ele, t0_bunch, orbit)
 !
 ! Subroutine to add to the existing long-range wake the contribution from
 ! a passing particle.
@@ -111,8 +111,7 @@ end subroutine zero_lr_wakes_in_lat
 ! Input:
 !   ele      -- Ele_struct: Element with wakes.
 !   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
-!   orbit    -- Coord_struct: Starting coords.
-!   charge   -- Real(rp): Charge of passing particle.
+!   orbit    -- Coord_struct: Particle coords.
 !
 ! Output:
 !   ele      -- Ele_struct: Element with wakes.
@@ -123,14 +122,14 @@ end subroutine zero_lr_wakes_in_lat
 !     %wake%lr(:)%t_ref -- Set to t0_bunch.
 !+
 
-subroutine lr_wake_add_to (ele, t0_bunch, orbit, charge)
+subroutine lr_wake_add_to (ele, t0_bunch, orbit)
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (wake_lr_struct), pointer :: lr
 
 integer i
-real(rp) charge, t0_bunch, dt, omega, f_exp, ff, c, s, kx, ky
+real(rp) t0_bunch, dt, omega, f_exp, ff, c, s, kx, ky
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin
 
 ! Check if we have to do any calculations
@@ -139,11 +138,11 @@ if (.not. bmad_com%lr_wakes_on) return
 if (.not. associated(ele%wake)) return
   
 ! Loop over all modes
-! We use the following trick: The spatial variation of the normal and skew
+! Note: The spatial variation of the normal and skew
 ! components is the same as the spatial variation of a multipole kick.
 
 ! To prevent floating point overflow, the %a and %b factors are shifted 
-! to be with respect to lr%t_ref.
+! to be with respect to lr%t_ref which is the bunch reference time.
 
 do i = 1, size(ele%wake%lr)
 
@@ -162,6 +161,7 @@ do i = 1, size(ele%wake%lr)
     lr%b_cos = exp_shift * lr%b_cos
     lr%a_sin = exp_shift * lr%a_sin
     lr%a_cos = exp_shift * lr%a_cos
+    ! Need to shift a_sin, etc, since particle z is with respect to the bunch center.
     if (lr%freq /= 0) then  ! If not fundamental mode
       c = cos (dt * omega)
       s = sin (dt * omega)
@@ -177,7 +177,7 @@ do i = 1, size(ele%wake%lr)
   dt = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
   if (lr%freq == 0) dt = dt + ele%value(dphi0$) / omega
 
-  ff = abs(charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
+  ff = abs(orbit%charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
 
   call ab_multipole_kick (0.0_rp, ff, lr%m, orbit, kx, ky)
 
@@ -204,7 +204,7 @@ end subroutine lr_wake_add_to
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lr_wake_apply_kick (ele, t0_bunch, orbit, charge)
+! Subroutine lr_wake_apply_kick (ele, t0_bunch, orbit)
 !
 ! Subroutine to apply the long-range wake kick to a particle.
 !
@@ -215,13 +215,12 @@ end subroutine lr_wake_add_to
 !   ele      -- Ele_struct: Element with wakes
 !   t0_bunch -- Real(rp): Time when the bench center was at the start of the lattice.
 !   orbit    -- Coord_struct: Starting coords of the particle.
-!   charge   -- Real(rp): Charge of passing particle. Needed for self wake.
 !
 ! Output:
 !   orbit    -- Coord_struct: coords after the kick.
 !+
 
-subroutine lr_wake_apply_kick (ele, t0_bunch, orbit, charge)
+subroutine lr_wake_apply_kick (ele, t0_bunch, orbit)
 
 implicit none
 
@@ -230,7 +229,7 @@ type (coord_struct) orbit
 type (wake_lr_struct), pointer :: lr
 
 integer i
-real(rp) t0_bunch, charge, dt, dt_part, omega, f_exp, ff, c, s
+real(rp) t0_bunch, dt, dt_part, omega, f_exp, ff, c, s
 real(rp) w_norm, w_skew, kx, ky, k_dum, ff_self, kx_self, ky_self, c_a, s_a
 
 ! Check if we have to do any calculations
@@ -259,7 +258,7 @@ do i = 1, size(ele%wake%lr)
 
   ! Self wake component
 
-  ff_self = abs(charge) * lr%r_over_q * omega / (2 * ele%value(p0c$))
+  ff_self = abs(orbit%charge) * lr%r_over_q * omega / (2 * ele%value(p0c$))
 
   call ab_multipole_kick (0.0_rp, ff_self, lr%m, orbit, kx_self, ky_self)
 
@@ -302,228 +301,140 @@ end subroutine lr_wake_apply_kick
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_long_wake_add_to (ele, orbit, charge)
+! Subroutine sr_long_wake_particle (ele, orbit)
 !
-! Subroutine to add to the existing short-range wake the contribution from
-! a passing particle.
+! Subroutine to apply the short-range wake kick to a particle and then add 
+! to the existing short-range wake the contribution from the particle.
 !
 ! Modules needed:
 !   use wake_mod
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
-!   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing particle.
+!   orbit   -- Coord_struct: Particle coords.
 !
 ! Output:
 !   ele     -- Ele_struct: Element with wakes.
+!   orbit   -- Coord_struct: coords after the kick.
 !+
 
-subroutine sr_long_wake_add_to (ele, orbit, charge)
+subroutine sr_long_wake_particle (ele, orbit)
 
 type (ele_struct), target :: ele
 type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
-real(rp) charge, arg, ff, c, s
+real(rp) arg, ff, c, s, dz, exp_factor, w_norm
 
 ! Check if we have to do any calculations
-
-if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%wake)) return
-
-! Add to wake
-! The monipole wake does not have any skew components.
 
 do i = 1, size(ele%wake%sr_long%mode)
 
   mode => ele%wake%sr_long%mode(i)
 
-  ff = abs(charge) * mode%amp * exp(-orbit%vec(5) * mode%damp) * ele%value(l$) / ele%value(p0c$)
+  ! Kick particle
+
+  exp_factor = exp(orbit%vec(5) * mode%damp)
+
+  arg = orbit%vec(5) * mode%k 
+  c = cos (arg)
+  s = sin (arg)
+
+  ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
+
+  w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
+  orbit%vec(6) = orbit%vec(6) - w_norm
+
+  ! Self kick
+
+  orbit%vec(6) = orbit%vec(6) - ff * sin(mode%phi) / 2
+
+  ! Add to wake
 
   arg = mode%phi - orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  mode%b_sin = mode%b_sin + ff * c
-  mode%b_cos = mode%b_cos + ff * s
+  ! The monipole wake does not have any skew components.
+
+  mode%b_sin = mode%b_sin * exp_factor + ff * c
+  mode%b_cos = mode%b_cos * exp_factor + ff * s
 
 enddo
 
-end subroutine sr_long_wake_add_to
+end subroutine sr_long_wake_particle
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_long_wake_apply_kick (ele, charge, orbit)
+! Subroutine sr_trans_wake_particle (ele, orbit)
 !
-! Subroutine to put in the kick for the short-range wakes.
-!
-! Modules needed:
-!   use wake_mod
-!
-! Input:
-!   ele     -- Ele_struct: Element with wakes
-!   charge  -- Real(rp): Charge of passing particle.
-!   orbit   -- Coord_struct: Starting coords.
-!
-! Output:
-!   orbit   -- Coord_struct: coords after the kick.
-!+
-
-subroutine sr_long_wake_apply_kick (ele, charge, orbit)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (coord_struct) orbit
-type (wake_sr_mode_struct), pointer :: mode
-
-integer i
-real(rp) arg, ff, c, s, w_norm, charge
-
-! Check if we have to do any calculations
-
-if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%wake)) return
-
-! Loop over all modes
-
-do i = 1, size(ele%wake%sr_long%mode)
-
-  mode => ele%wake%sr_long%mode(i)
-
-  ff = exp(orbit%vec(5) * mode%damp)
-
-  arg = orbit%vec(5) * mode%k 
-  c = cos (arg)
-  s = sin (arg)
-
-  w_norm = mode%b_sin * ff * s + mode%b_cos * ff * c
-  orbit%vec(6) = orbit%vec(6) - w_norm
-
-  ! Self kick
-
-  orbit%vec(6) = orbit%vec(6) - abs(charge) * sin(mode%phi) * &
-                         mode%amp * ele%value(l$) / (2 * ele%value(p0c$))
-enddo
-
-end subroutine sr_long_wake_apply_kick
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine sr_trans_wake_add_to (ele, orbit, charge)
-!
-! Subroutine to add to the existing short-range wake the contribution from
-! a passing particle.
+! Subroutine to apply the short-range wake kick to a particle and then add 
+! to the existing short-range wake the contribution from the particle.
 !
 ! Modules needed:
 !   use wake_mod
 !
 ! Input:
 !   ele     -- Ele_struct: Element with wakes.
-!   orbit   -- Coord_struct: Starting coords.
-!   charge  -- Real(rp): Charge of passing particle.
+!   orbit   -- Coord_struct: Starting particle coords.
 !
 ! Output:
 !   ele     -- Ele_struct: Element with wakes.
+!   orbit   -- Coord_struct: Ending particle coords.
 !+
 
-subroutine sr_trans_wake_add_to (ele, orbit, charge)
+subroutine sr_trans_wake_particle (ele, orbit)
 
 type (ele_struct), target :: ele
 type (wake_sr_mode_struct), pointer :: mode
 type (coord_struct) orbit
 
 integer i
-real(rp) charge, arg, ff, c, s
+real(rp) arg, ff, c, s, dz, exp_factor, w_norm, w_skew
 
-! Check if we have to do any calculations
+!
 
-if (.not. bmad_com%sr_wakes_on) return  
-if (.not. associated(ele%wake)) return
+dz = orbit%vec(5) - ele%wake%sr_trans%z_ref ! Should be negative
+ele%wake%sr_trans%z_ref = orbit%vec(5)
 
 ! Add to wake
-! The monipole wake does not have any skew components.
 
 do i = 1, size(ele%wake%sr_trans%mode)
 
   mode => ele%wake%sr_trans%mode(i)
 
-  ff = abs(charge) * mode%amp * exp(-orbit%vec(5) * mode%damp) * ele%value(l$) / ele%value(p0c$)
+  ! Kick particle
+
+  exp_factor = exp(dz * mode%damp)
+
+  arg = orbit%vec(5) * mode%k 
+  c = cos (arg)
+  s = sin (arg)
+
+  w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
+  w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
+
+  orbit%vec(2) = orbit%vec(2) - w_norm
+  orbit%vec(4) = orbit%vec(4) - w_skew
+
+  ! Add to wake
+
+  ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
 
   arg =  mode%phi - orbit%vec(5) * mode%k 
   c = cos (arg)
   s = sin (arg)
 
-  mode%b_sin = mode%b_sin + ff * orbit%vec(1) * c
-  mode%b_cos = mode%b_cos + ff * orbit%vec(1) * s
-  mode%a_sin = mode%a_sin + ff * orbit%vec(3) * c
-  mode%a_cos = mode%a_cos + ff * orbit%vec(3) * s
+  mode%b_sin = mode%b_sin * exp_factor + ff * orbit%vec(1) * c
+  mode%b_cos = mode%b_cos * exp_factor + ff * orbit%vec(1) * s
+  mode%a_sin = mode%a_sin * exp_factor + ff * orbit%vec(3) * c
+  mode%a_cos = mode%a_cos * exp_factor + ff * orbit%vec(3) * s
 
 enddo
 
-end subroutine sr_trans_wake_add_to
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine sr_trans_wake_apply_kick (ele, orbit)
-!
-! Subroutine to put in the kick for the short-range wakes
-!
-! Modules needed:
-!   use wake_mod
-!
-! Input:
-!   ele     -- Ele_struct: Element with wakes
-!   orbit   -- Coord_struct: Starting coords.
-!
-! Output:
-!   orbit   -- Coord_struct: coords after the kick.
-!+
-
-subroutine sr_trans_wake_apply_kick (ele, orbit)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (coord_struct) orbit
-type (wake_sr_mode_struct), pointer :: mode
-
-integer i
-real(rp) arg, ff, c, s, w_norm, w_skew
-
-! Check if we have to do any calculations
-
-if (.not. bmad_com%sr_wakes_on) return
-if (.not. associated(ele%wake)) return
-
-! Loop over all modes
-
-do i = 1, size(ele%wake%sr_trans%mode)
-
-  mode => ele%wake%sr_trans%mode(i)
-
-  ff = exp(orbit%vec(5) * mode%damp)
-
-  arg = orbit%vec(5) * mode%k 
-  c = cos (arg)
-  s = sin (arg)
-
-  w_norm = mode%b_sin * ff * s + mode%b_cos * ff * c
-  w_skew = mode%a_sin * ff * s + mode%a_cos * ff * c
-
-  orbit%vec(2) = orbit%vec(2) - w_norm
-  orbit%vec(4) = orbit%vec(4) - w_skew
-
-enddo
-
-end subroutine sr_trans_wake_apply_kick
+end subroutine sr_trans_wake_particle
 
 end module
