@@ -3,11 +3,6 @@ module beam_mod
 use csr_mod
 use multipass_mod
 
-interface assignment (=)
-  module procedure bunch_equal_bunch
-  module procedure beam_equal_beam
-end interface
-
 contains
 
 !--------------------------------------------------------------------------
