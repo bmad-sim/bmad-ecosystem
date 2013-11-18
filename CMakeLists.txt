@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
-  cmake.coord_test
-  cmake.wall3d_test
   cmake.abs_time_test
+  cmake.coord_test
   cmake.control_test
   cmake.girder_test
   cmake.mat6_calc_method_test
@@ -19,6 +18,8 @@ set (EXE_SPECS
   cmake.time_runge_kutta_test
   cmake.tracking_method_test
   cmake.twiss_track_test
+  cmake.wake_test
+  cmake.wall3d_test
   cmake.xraylib_test
 )
 

@@ -1,0 +1,16 @@
+parameter[e_tot]    = 1e9
+parameter[particle] = ELECTRON        
+parameter[geometry] = open
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+beam_start[z] = -0.001
+
+p1: pipe, L = 1
+p1[sr_wake_file] = 'resistive_wall_modes.bmad'
+
+lat: line = (p1)
+
+use, lat
+
