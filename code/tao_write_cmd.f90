@@ -14,7 +14,8 @@ use write_lat_file_mod
 use tao_mod, dummy => tao_write_cmd
 use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
-use tao_top10_mod,dummy4 => tao_write_cmd
+use tao_top10_mod, dummy4 => tao_write_cmd
+use tao_write_3d_mod, dummy5 => tao_write_cmd
 
 implicit none
 
@@ -86,7 +87,7 @@ case ('3d_floor_plot')
   ix = max(1, len_trim(file_name) - 2)
   if (file_name(ix:ix+2) /= '.py') file_name(ix+3:) = '.py'
 
-  call tao_write_3d_floor_plan(file_name, s%u(s%global%u_view))
+  call tao_write_3d_floor_plan(file_name, s%u(s%global%u_view)%model%lat)
 
 !---------------------------------------------------
 ! beam

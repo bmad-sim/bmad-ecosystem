@@ -197,7 +197,7 @@ character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(80) :: word1, fmt, fmt2, fmt3
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name, what_to_print
-character(100), allocatable :: alloc_lines(:)
+character(200), allocatable :: alloc_lines(:)
 character(100) file_name, name, why_invalid
 character(120) header, str
 character(40) ele_name, sub_name, ele1, ele2, switch
