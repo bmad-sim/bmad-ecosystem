@@ -1,5 +1,5 @@
 #--------------------------------------------------------------
-# acc_vars_sh
+# acc_vars.sh
 #
 # ACCelerator libraries management and software build system
 # environment setup script.
@@ -53,20 +53,37 @@
 #   acc_vars.csh  instead.
 #--------------------------------------------------------------
 
-ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
-ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
-
-ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin'
-ONLINE_IFORT_SETUP_COMMAND='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64'
+#--------------------------------------------------------------
+# For User defined compiler, check how ACC_SET_F_COMPILER
+# is defined, if not defined then set to default "ifort"
+#--------------------------------------------------------------
+if ( [ -z ${ACC_SET_F_COMPILER} ] ) then
+    export ACC_SET_F_COMPILER="ifort"
+fi
 
 #--------------------------------------------------------------
 
+ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
+ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+
+OFFLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013.1.117/bin'
+#OFFLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013_sp1.1.106/bin'
+ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
+
+ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-1.1/'
+ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
+
+#--------------------------------------------------------------
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
 OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
 
 OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013.1.117/bin'
-OFFLINE_IFORT_SETUP_COMMAND='/nfs/opt/intel/composer_xe_2013.1.117/bin/compilervars.sh intel64'
+#OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013_sp1.1.106/bin'
+OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
+
+OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-1.1/'
+OFFLINE_GFORTRAN_SETUP_COMMAND=(${OFFLINE_GFORTRAN_SETUP_DIR}/enable)
 
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
@@ -142,6 +159,10 @@ export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 # following variable to 'true' to use the online libs.
 #--------------------------------------------------------------
 USE_CESR_ONLINE_LOC='false'
+#case $(uname -n) in
+#    cesr*) USE_CESR_ONLINE_LOC='true';;
+#        *) USE_CESR_ONLINE_LOC='false';;
+esac
 
 
 
@@ -158,15 +179,16 @@ else
     #-- CESR OFFLINE Host
     SETUP_SCRIPTS_DIR=${OFFLINE_RELEASE_MGMT_DIR}
     RELEASE_ARCHIVE_BASE_DIR=${OFFLINE_ARCHIVE_BASE_DIR}
-    IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
     HOST_TYPE="CESR OFFLINE"
 
 fi 
 
 # Online computers should use the online compiler 
 case $(uname -n) in
-cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND};; 
-    *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND};;
+    cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
+           GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND};;
+        *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
+           GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND};;
 esac
 
 
@@ -186,21 +208,12 @@ unset UTIL_DIR_REQUEST
 ACC_OS="`uname`"
 export ACC_ARCH="`uname -m`"
 export ACC_OS_ARCH="${ACC_OS}_${ACC_ARCH}"
-case ${ACC_OS_ARCH} in
 
-    "Linux_i686" )
-	export ACC_FC="intel";;
-
-    "Linux_x86_64" )
-	export ACC_FC="intel";;
-
-    "Darwin_i386" )
-	export ACC_FC="gfortran";;
-
-    * )
-	export ACC_FC="gfortran";;
-esac
-
+if ( [ "${ACC_SET_F_COMPILER}" == "ifort" ] ) then
+    export ACC_FC="intel"
+else
+    export ACC_FC="gfortran"
+fi
 
 
 #--------------------------------------------------------------
@@ -313,11 +326,17 @@ case ${ACC_OS_ARCH} in
 	#has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
 	#if [ "${?}" == "1" ]; then
             # FIXME: Inherit from LIBRARY_PATH (not duplicated) as set by ifort setup scripts.
-            source ${IFORT_SETUP_COMMAND}
+            # source ${IFORT_SETUP_COMMAND}
 	#fi
+	if ( [ "${ACC_SET_F_COMPILER}" == "ifort" ] ) then
+	    source ${IFORT_SETUP_COMMAND}
+	else
+	    source ${GFORTRAN_SETUP_COMMAND}
+	fi
 	;;
 
 esac
+
 
 
 #--------------------------------------------------------------
@@ -382,11 +401,11 @@ LD_LIBRARY_PATH=${LD_LIBRARY_PATH_TEMP}
     # To prevent multiple sourcing
     #has_substring ${PATH} "root/../bin" 
     #if [ "${?}" == "1" ]; then
-	source ${ACC_RELEASE_DIR}/packages/root/bin/thisroot.sh
+	source ${ACC_PKG}/production/bin/thisroot.sh
     #fi
 #fi
 
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${ACC_RELEASE_DIR}/packages/lib
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ACC_RELEASE_DIR}/production/lib:${ACC_RELEASE_DIR}/packages/production/lib
 
 
 #--------------------------------------------------------------
