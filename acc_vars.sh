@@ -162,7 +162,7 @@ USE_CESR_ONLINE_LOC='false'
 #case $(uname -n) in
 #    cesr*) USE_CESR_ONLINE_LOC='true';;
 #        *) USE_CESR_ONLINE_LOC='false';;
-esac
+#esac
 
 
 
