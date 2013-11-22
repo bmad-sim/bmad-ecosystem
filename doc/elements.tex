@@ -906,11 +906,20 @@ The \vn{ref_orbit_follows} parameter sets how the outgoing reference
 orbit is constructed. This is only relevant with Laue diffraction.
 The possible settings of this parameter are:
 \begin{example}
-  brag_diffracted
+  bragg_diffracted
   forward_diffracted
   undiffracted
 \end{example}
-The geometry of this situation is shown in \fig{f:crystal}B.
+The geometry of this situation is shown in \fig{f:crystal}B. The
+reference orbit for the \vn{undiffracted} beam is just a straight line
+extension of the incoming reference tranjectory. This trajectory is
+that trajectory that photons whose energy is far from the Bragg
+condition (that is, far from the referennce energy) will follow. The
+\vn{forward_diffracted} reference orbit is parallel to the
+\vn{undefracted} trajectory and is the trajectory of the forward
+diffracted photons whose energy is the reference energy and whose
+incoming orbit is on the incoming reference rajectory. Finally, the
+\vn{bragg_diffracted} reference orbit is the backward diffracted orbit.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
@@ -2841,12 +2850,15 @@ The \vn{mode} parameter can be set to:
   reflection
   transmission
 \end{example}
-With \vn{mode} set to \vn{reflection}, photons will be scattered from
-the sample surface isotropically. In this case the material properties
-will not matter.  With \vn{mode} set to \vn{transmission}, photons
-will be transmitted through the sample. In this case \vn{material}
-will be used to determine the attenuation and phase shift of the
-photons.
+With \vn{mode} set to \vn{reflection}, photons will be back scattered
+from the sample surface isotropically. In this case the material
+properties will not matter. Additionally, a \vn{patch}
+(\sref{s:patch}) element will be needed after the \vn{sample} element
+to properly reorient the reference orbit.
+
+With \vn{mode} set to \vn{transmission}, photons will be transmitted
+through the sample. In this case \vn{material} will be used to
+determine the attenuation and phase shift of the photons.
 
 Example:
 \begin{example}

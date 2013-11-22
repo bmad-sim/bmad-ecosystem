@@ -53,13 +53,13 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
 
-integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4
+integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4
 integer, parameter :: continuous$ = 5, surface$ = 6
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12
 
 character(16), parameter :: aperture_at_name(0:6) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
-      'No_End       ', 'Continuous   ', 'Surface      ']
+      'No_Aperture  ', 'Continuous   ', 'Surface      ']
 
 character(16), parameter :: end_at_name(0:4) = [ &
       'GARBAGE!     ', 'Entrance_End ', 'Exit_End     ', 'Both_Ends    ', &
@@ -535,7 +535,7 @@ type ele_struct
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
   integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
   integer field_calc             ! bmad_standard$, grid$, refer_to_lords$, or custom$
-  integer aperture_at            ! Aperture location: downstream_end$, ...
+  integer aperture_at            ! Aperture location: entrance_end$, ...
   integer aperture_type          ! rectangular$, elliptical$, wall_aperture$, ...
   integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
@@ -703,8 +703,8 @@ integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
 integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
-integer, parameter :: undulator$ = 51, diffraction_plate$ = 52
-integer, parameter :: x_ray_init$ = 53, sample$ = 54, detector$ = 55
+integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
+integer, parameter :: sample$ = 54, detector$ = 55, rel_controller$ = 56, abs_controller$ = 57
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 

@@ -498,8 +498,8 @@ if (ix_s /= 0) then
   allocate (ele%photon)
   surf => ele%photon%surface
   read (d_unit, err = 9360) ele%photon%target, ele%photon%material, &
-                 surf%type, surf%curvature_xy, surf%has_curvature, &
-                 surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
+         surf%type, surf%curvature_xy, surf%has_curvature, &
+         surf%grid%type, surf%grid%dr, surf%grid%r0, surf%segment, is_alloc_pt
   if (is_alloc_pt) then
     read (d_unit, err = 9361) i0, j0, i1, j1
     allocate(surf%grid%pt(i0:i1, j0:j1))

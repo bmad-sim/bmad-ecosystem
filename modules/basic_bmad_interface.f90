@@ -401,13 +401,14 @@ interface
     real(rp), optional, intent(in) :: ds_pos
   end subroutine
 
-  subroutine offset_photon (ele, coord, set, offset_position_only)
+  subroutine offset_photon (ele, coord, set, offset_position_only, rot_mat)
     import
     implicit none
     type (ele_struct) :: ele
     type (coord_struct) :: coord
     logical :: set
     logical, optional :: offset_position_only
+    real(rp), optional :: rot_mat(3,3)
   end subroutine
 
   subroutine one_turn_mat_at_ele (ele, phi_a, phi_b, mat4)
