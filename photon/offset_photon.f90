@@ -1,5 +1,5 @@
 !+
-! Subroutine offset_photon (ele, orbit, set, offset_position_only)
+! Subroutine offset_photon (ele, orbit, set, offset_position_only, rot_mat)
 !
 ! Routine to effectively offset an element by instead offsetting
 ! the photon position and field to correspond to the local element coordinates.
@@ -8,20 +8,21 @@
 !   use bmad
 !
 ! Input:
-!   ele       -- Ele_struct: Element
-!   orbit     -- Coord_struct: Coordinates of the particle.
-!   set       -- Logical: 
-!                   T (= set$)   -> Translate from lab coords to local 
-!                                     element coords.
-!                   F (= unset$) -> Translate from outgoing local coords to lab coords.
+!   ele          -- Ele_struct: Element
+!   orbit        -- Coord_struct: Coordinates of the particle.
+!   set          -- Logical: 
+!                      T (= set$)   -> Translate from lab coords to local 
+!                                        element coords.
+!                      F (= unset$) -> Translate from outgoing local coords to lab coords.
 !   offset_position_only
-!           -- Logical, optional: If present and True, only offset the position coordinates.
+!                -- Logical, optional: If present and True, only offset the position coordinates.
+!   rot_mat(3,3) -- real(rp), optional: Rotation matrix from starting coords to ending coords.
 !
 ! Output:
 !     orbit -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_photon (ele, orbit, set, offset_position_only)
+subroutine offset_photon (ele, orbit, set, offset_position_only, rot_mat)
 
 use track1_mod, dummy => offset_photon
 
@@ -30,8 +31,9 @@ implicit none
 type (ele_struct), target :: ele
 type (coord_struct), target :: orbit
 
+real(rp), optional :: rot_mat(3,3)
 real(rp) graze2, offset(6), tilt, r(3), rot_angle, sin_g, cos_g, cos_t, sin_t
-real(rp) off(3), rot(3), project(3,3), rot_mat(3,3), s, vec6_0
+real(rp) off(3), rot(3), project(3,3), r_mat(3,3), s, vec6_0
 real(rp), pointer :: p(:), vec(:)
 
 complex(rp) field(2)
@@ -53,6 +55,7 @@ end select
 
 p   => ele%value  ! parameter
 vec => orbit%vec
+if (present(rot_mat)) call mat_make_unit(rot_mat)
 
 !----------------------------------------------------------------
 ! Set...
@@ -70,11 +73,12 @@ if (set) then
   ! Set: pitch
 
   if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
-    call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat_inv = rot_mat)
+    call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat_inv = r_mat)
     r = [vec(1), vec(3), vec(5) - ele%value(l$)/2]
-    vec(1:5:2) = matmul(rot_mat, r)
+    vec(1:5:2) = matmul(r_mat, r)
     vec(5) = vec(5) + ele%value(l$)/2
-    vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+    vec(2:6:2) = matmul(r_mat, vec(2:6:2))
+    if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
   endif
 
   ! Set: tilt
@@ -121,13 +125,20 @@ if (set) then
                          -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
       orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
                          -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+      if (present(rot_mat)) then
+        r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
+        r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
+        r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
+        rot_mat = matmul(r_mat, rot_mat)
+      endif
     else
       cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
-      rot_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
-      rot_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
-      rot_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
-      orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
-      orbit%vec(1:5:2) = matmul(rot_mat, orbit%vec(1:5:2))
+      r_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
+      r_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
+      r_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
+      orbit%vec(2:6:2) = matmul(r_mat, orbit%vec(2:6:2))
+      orbit%vec(1:5:2) = matmul(r_mat, orbit%vec(1:5:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
   endif
 
@@ -172,13 +183,20 @@ else
 
       orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
                          -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+      if (present(rot_mat)) then
+        r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
+        r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
+        r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
+        rot_mat = matmul(r_mat, rot_mat)
+      endif
     else
       cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
-      rot_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
-      rot_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
-      rot_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
-      orbit%vec(2:6:2) = matmul(rot_mat, orbit%vec(2:6:2))
-      orbit%vec(1:5:2) = matmul(rot_mat, orbit%vec(1:5:2))
+      r_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
+      r_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
+      r_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
+      orbit%vec(2:6:2) = matmul(r_mat, orbit%vec(2:6:2))
+      orbit%vec(1:5:2) = matmul(r_mat, orbit%vec(1:5:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
 
     if (.not. logic_option(.false., offset_position_only)) then
@@ -207,9 +225,10 @@ else
     call axis_angle_to_w_mat (rot, graze2, project)
 
     if (tilt /= 0) then
-      call axis_angle_to_w_mat (project(3,:), tilt, rot_mat)
-      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
-      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+      call axis_angle_to_w_mat (project(3,:), tilt, r_mat)
+      vec(1:5:2) = matmul(r_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(r_mat, vec(2:6:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
 
     ! Unset: pitch
@@ -217,15 +236,17 @@ else
     ! to translate to the local output coords.
 
     if (p(y_pitch_tot$) /= 0) then
-      call axis_angle_to_w_mat (-project(1,:), p(y_pitch_tot$), rot_mat)
-      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
-      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+      call axis_angle_to_w_mat (-project(1,:), p(y_pitch_tot$), r_mat)
+      vec(1:5:2) = matmul(r_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(r_mat, vec(2:6:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
 
     if (p(x_pitch_tot$) /= 0) then
-      call axis_angle_to_w_mat (project(2,:), p(x_pitch_tot$), rot_mat)
-      vec(1:5:2) = matmul(rot_mat, vec(1:5:2))
-      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+      call axis_angle_to_w_mat (project(2,:), p(x_pitch_tot$), r_mat)
+      vec(1:5:2) = matmul(r_mat, vec(1:5:2))
+      vec(2:6:2) = matmul(r_mat, vec(2:6:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
 
     ! Unset: offset
@@ -249,11 +270,12 @@ else
     ! Unset: Pitch
 
     if (p(x_pitch_tot$) /= 0 .or. p(y_pitch_tot$) /= 0) then
-      call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat = rot_mat)
+      call floor_angles_to_w_mat(p(x_pitch_tot$), p(y_pitch_tot$), 0.0_rp, w_mat = r_mat)
       r = [vec(1), vec(3), vec(5) - ele%value(l$)/2]
-      vec(1:5:2) = matmul(rot_mat, r)
+      vec(1:5:2) = matmul(r_mat, r)
       vec(5) = vec(5) + ele%value(l$)/2
-      vec(2:6:2) = matmul(rot_mat, vec(2:6:2))
+      vec(2:6:2) = matmul(r_mat, vec(2:6:2))
+      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
     endif
 
     ! Unset: X and Y Offsets

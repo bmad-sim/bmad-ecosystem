@@ -145,7 +145,7 @@ end function lord_edge_aligned
 ! Input:
 !   now_at      -- Integer: Which end is under consideration: entrance_end$, exit_end$, or surface$.
 !   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$
-!                     exit_end$, continuous$, both_ends$, no_ends$, surface$.
+!                     exit_end$, continuous$, both_ends$, no_aperture$, surface$.
 !
 ! Output:
 !   is_at_this_end   -- Logical: True if at this end. False otherwise.
@@ -159,6 +159,11 @@ integer now_at, where_at
 logical is_at_this_end
 
 !
+
+if (where_at == no_aperture$) then
+  is_at_this_end = .false.
+  return
+endif
 
 if (now_at == surface$ .or. where_at == surface$) then
   is_at_this_end = (now_at == where_at)

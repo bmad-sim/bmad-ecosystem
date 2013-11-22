@@ -1,4 +1,4 @@
-\chapter{Bmad Library Routine List}
+chapter{Bmad Library Routine List}
 
 Below are a list of \bmad and sim_utils routines sorted by their
 functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf}) 
@@ -65,14 +65,9 @@ The following helper routines are generally not useful for general use.
 
 \begin{description}
 
-\index[routine]{add_sr_long_wake}
-\label{r:add.sr.long.wake}
-\item[add_sr_long_wake (ele, param, bunch, num_in_front, ix_follower)] \Newline 
-Adds the longitudinal wake for all particles in front of the follower.
-
 \index[routine]{bend_edge_kick}
 \label{r:bend.edge.kick}
-\item[bend_edge_kick (orb, ele, param, stream_end, in_to_out, mat6)] \Newline 
+\item[bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -223,11 +218,6 @@ Routine to calculate the longitudinal coherent synchrotron radiation kick.
 \index[routine]{i_csr}
 \label{r:i.csr}
 \item[i_csr (kick1, i_bin, k_factor, bin) result (i_this)] \Newline 
-Routine to calculate the CSR kick integral.
-
-\index[routine]{kick_csr_lsc}
-\label{r:kick.csr.lsc}
-\item[kick_csr_lsc (kick1, k_factor, bin)] \Newline 
 Routine to calculate the CSR kick integral.
 
 \index[routine]{z_calc_csr}
@@ -866,7 +856,7 @@ in the global "floor" coordinates. See the Bmad manual for more details.
 
 \index[routine]{floor_w_mat_to_angles}
 \label{r:floor.w.mat.to.angles}
-\item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi)] \Newline 
+\item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)] \Newline 
 Routine to construct the angles that define the orientation of an element
 in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
 
@@ -886,11 +876,11 @@ That is, the physical machine layout on the floor.
 \item[s_calc (lat)] \Newline
 Routine to calculate the longitudinal distance S for the elements in a lat. 
 
-\index[routine]{shift_reference_frame}
-\label{r:shift.reference.frame}
-\item[shift_reference_frame (floor0, dr, theta, phi, psi, floor1)] \Newline 
-Starting from a given reference frame, and given a shift in position,
-return the resulting reference frame.
+\index[routine]{local_to_floor}
+\label{r:local.to.floor}
+\item[local_to_floor (floor0, dr, theta, phi, psi) result (floor1)] \Newline 
+Starting from a given reference frame and given a shift in position, return
+the resulting reference frame.
 
 \index[routine]{theta_floor}
 \label{r:theta.floor}
@@ -1058,12 +1048,12 @@ Like \vn{type_twiss} but the output is stored in a string array.
 
 \index[routine]{valid_tracking_method}
 \label{r:valid.tracking.method}
-\item[valid_tracking_method (ele, tracking_method, num_valid) result (is_valid)] \Newline 
+\item[valid_tracking_method (ele, species, tracking_method, num_valid) result (is_valid)] \Newline 
 Routine to return whether a given tracking method is valid for a given element.
 
 \index[routine]{valid_mat6_calc_method}
 \label{r:valid.mat6.calc.method}
-\item[valid_mat6_calc_method (ele, mat6_calc_method, num_valid) result (is_valid)] \Newline 
+\item[valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)] \Newline 
 Routine to return whether a given mat6_calc method is valid for a given element.
 
 \end{description}
@@ -1150,12 +1140,6 @@ Routine to initialize a Bmad lat.
 \item[lattice_bookkeeper (lat, err_flag)] \Newline 
 Routine to do bookkeeping for the entire lattice.
 
-\index[routine]{lat_reverse}
-\label{r:lat.reverse}
-\item[lat_reverse (lat_in, lat_rev)] \Newline
-Routine to construct a lat structure with the elements in reversed 
-order. This may be used for backward tracking through the lat. 
-
 \index[routine]{reallocate_coord}
 \label{r:reallocate.coord}
 \item[reallocate_coord (coord, n_coord)] \Newline 
@@ -1173,12 +1157,6 @@ the proper size for a lattice.
 \item[set_attribute_alias (attrib_name, alias_name, err_flag, lat)] \Newline 
 Routine to setup an alias for element attributes like custom_attribute1\$, etc. in
 the attribute name table.
-
-\index[routine]{set_design_linear}
-\label{r:set.design.linear}
-\item[set_design_linear (lat)] \Newline
-Routine to set only those elements on that constitute the "design" 
-lattice. That is, only quadrupoles, bends and wigglers will be set on. 
 
 \index[routine]{set_ele_defaults}
 \label{r:set.ele.defaults}
@@ -1354,7 +1332,7 @@ a lat_struct.
 
 \index[routine]{write_digested_bmad_file}
 \label{r:write.digested.bmad.file}
-\item[write_digested_bmad_file (digested_name, lat, n_files, file_names, ran_p, err_flag)] \Newline
+\item[write_digested_bmad_file (digested_name, lat, n_files, file_names, extra, err_flag)] \Newline
 Routine to write a digested file. 
 
 \index[routine]{xsif_parser}
@@ -1450,7 +1428,7 @@ and the closed orbit offset.
 
 \index[routine]{transfer_matrix_calc}
 \label{r:transfer.matrix.calc}
-\item[transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch)] \Newline
+\item[transfer_matrix_calc (lat, rf_on, xfer_mat, xfer_vec, ix1, ix2, ix_branch, one_turn)] \Newline
 Routine to calculate the transfer matrix between two elements. If
 ix1 and ix2 are not present the full 1--turn matrix is calculated.
 
@@ -1785,7 +1763,7 @@ Routine to type out a coordinate.
 
 \index[routine]{photon_init}
 \label{r:photon.init}
-\item[photon_init (g_bend, gamma, orbit)] \Newline 
+\item[photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)] \Newline 
 Routine to initialize a photon
 
 \index[routine]{photon_vert_angle_init}
@@ -2185,7 +2163,7 @@ The default color is the background color (white\$).
 
 \index[routine]{qp_eliminate_xy_distortion}
 \label{r:qp.eliminate.xy.distortion}
-\item[qp_eliminate_xy_distortion(axis_to_scale, mirror_axes)] \Newline 
+\item[qp_eliminate_xy_distortion(axis_to_scale)] \Newline 
 This routine will increase the x or y margins so that the conversion
 between data units and page units is the same for the x and y axes.
 
@@ -2820,12 +2798,12 @@ The following routines perform tracking and closed orbit calculations.
 
 \index[routine]{check_aperture_limit}
 \label{r:check.aperture.limit}
-\item[check_aperture_limit (orb, ele, edge_at, param, check_momentum)] \Newline
+\item[check_aperture_limit (orb, ele, particle_at, param, check_momentum)] \Newline
 Routine to check if an orbit is outside an element's aperture. 
 
 \index[routine]{check_aperture_limit_custom}
 \label{r:check.aperture.limit.custom}
-\item[check_aperture_limit_custom (orb, ele, at, param, err_flag)] \Newline
+\item[check_aperture_limit_custom (orb, ele, particle_at, param, err_flag)] \Newline
 Routine to check if an orbit is outside an element's aperture.
 Used when \vn{ele%aperture_type} is set to \vn{custom\$} 
 
@@ -2918,7 +2896,7 @@ This routine does *not* include multiparticle effects.
 
 \index[routine]{track1_bunch_csr}
 \label{r:track1.bunch.csr}
-\item[track1_bunch_csr (bunch_start, lat, ele, bunch_end, err)] \Newline 
+\item[track1_bunch_csr (bunch_start, lat, ele, bunch_end, err, s_start, s_end)] \Newline 
 Routine to track a bunch of particles through the element lat\%ele(ix_ele)
 with csr radiation effects.
 
@@ -2991,7 +2969,7 @@ Routine to do Runge Kutta tracking.
 
 \index[routine]{create_uniform_element_slice}
 \label{r:create.uniform.element.slice}
-\item[create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele)] \Newline 
+\item[create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)] \Newline 
 Routine to create an element that represents a slice of another element.
 This routine can be used for detailed tracking through an element.
 
@@ -3168,12 +3146,12 @@ Particle tracking through a single element BMAD_standard style.
 
 \index[routine]{track1_custom}
 \label{r:track1.custom}
-\item[track1_custom (start_orb, ele, param, end_orb, err_flag, track)] \Newline
+\item[track1_custom (start_orb, ele, param, end_orb, track, err_flag)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_custom2}
 \label{r:track1.custom2}
-\item[track1_custom2 (start, ele, param, end, err_flag, track)] \Newline
+\item[track1_custom2 (start, ele, param, end, track, err_flag)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}
@@ -3339,7 +3317,7 @@ Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 
 \index[routine]{normal_mode3_calc}
 \label{r:normal.mode3.calc}
-\item[normal_mode3_calc (mat, tune, G, V, synchrotron_motion)] \Newline 
+\item[normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)] \Newline 
 Decompose a 2n x 2n symplectic matrix into normal modes.
 For more details see:
 
@@ -3370,12 +3348,12 @@ Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{init_wake}
 \label{r:init.wake}
-\item[init_wake (wake, n_sr_table, n_sr_mode_long, n_sr_mode_trans, n_lr)] \Newline 
+\item[init_wake (wake, n_sr_long, n_sr_trans, n_lr)] \Newline 
 Routine to initialize a wake struct.
 
 \index[routine]{lr_wake_apply_kick}
 \label{r:lr.wake.apply.kick}
-\item[lr_wake_apply_kick (ele, t0_bunch, orbit, charge)] \Newline 
+\item[lr_wake_apply_kick (ele, t0_bunch, orbit)] \Newline 
 Routine to apply the long-range wake kick to a particle.
 
 \index[routine]{randomize_lr_wake_frequencies}
@@ -3383,32 +3361,17 @@ Routine to apply the long-range wake kick to a particle.
 \item[randomize_lr_wake_frequencies (ele, set_done)] \Newline 
 Routine to randomize the frequencies of the lr wake HOMs.
 
-\index[routine]{sr_table_apply_trans_kick}
-\label{r:sr.table.apply.trans.kick}
-\item[sr_table_apply_trans_kick (ele, leader, charge, follower)] \Newline 
-Routine to put in the kick for the short-range wakes.
+\index[routine]{sr_long_wake_particle}
+\label{r:sr.long.wake.particle}
+\item[sr_long_wake_particle (ele, orbit)] \Newline 
+Subroutine to apply the short-range wake kick to a particle and then add 
+to the existing short-range wake the contribution from the particle.
 
-\index[routine]{sr_mode_long_wake_add_to}
-\label{r:sr.mode.long.wake.add.to}
-\item[sr_mode_long_wake_add_to (ele, orbit, charge)] \Newline 
-Routine to add to the existing short-range wake the contribution from
-a passing (macro)particle.
-
-\index[routine]{sr_mode_long_wake_apply_kick}
-\label{r:sr.mode.long.wake.apply.kick}
-\item[sr_mode_long_wake_apply_kick (ele, charge, orbit)] \Newline 
-Routine to put in the kick for the short-range wakes.
-
-\index[routine]{sr_mode_trans_wake_add_to}
-\label{r:sr.mode.trans.wake.add.to}
-\item[sr_mode_trans_wake_add_to (ele, orbit, charge)] \Newline 
-Routine to add to the existing short-range wake the contribution from
-a passing (macro)particle.
-
-\index[routine]{sr_mode_trans_wake_apply_kick}
-\label{r:sr.mode.trans.wake.apply.kick}
-\item[sr_mode_trans_wake_apply_kick (ele, orbit)] \Newline 
-Routine to put in the kick for the short-range wakes
+\index[routine]{sr_trans_wake_particle}
+\label{r:sr.trans.wake.particle}
+\item[sr_trans_wake_particle (ele, orbit)] \Newline 
+Subroutine to apply the short-range wake kick to a particle and then add 
+to the existing short-range wake the contribution from the particle.
 
 \index[routine]{track1_sr_wake}
 \label{r:track1.sr.wake}
