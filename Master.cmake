@@ -11,7 +11,7 @@ cmake_minimum_required(VERSION 2.8)
 # behvaior that appends relative path information to the
 # CMAKE_CURRENT_SOURCE_DIR value.
 #-----------------------------------------------------------
-cmake_policy(SET CMP0015 NEW)
+cmake_policy (SET CMP0015 NEW)
 
 
 #------------------------------------------
@@ -23,6 +23,7 @@ IF ($ENV{ACC_ENABLE_OPENMP})
 ELSE ()
   SET (ACC_ENABLE_OPENMP 0)
 ENDIF ()
+
 
 #------------------------------------------
 # Honor requests for compiling with OpenMPI
@@ -50,6 +51,8 @@ ENDIF ()
 IF ($ENV{ACC_ENABLE_GFORTRAN_OPTIMIZATION}) 
   IF ("$ENV{DIST_F90}" MATCHES "gfortran")
     SET (ACC_GFORTRAN_OPTIMIZATION_FLAG "-O2")
+  ELSEIF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
+    SET (ACC_GFORTRAN_OPTIMIZATION_FLAG "-O2")
   ELSE ()
     SET (ACC_GFORTRAN_OPTIMIZATION_FLAG)
   ENDIF ()
@@ -59,12 +62,16 @@ ENDIF ()
 #-------------------------------------------------------
 # Import environment variables that influence the build
 #-------------------------------------------------------
-set(DISTRIBUTION_BUILD $ENV{DIST_BUILD})
+set (DISTRIBUTION_BUILD $ENV{DIST_BUILD})
 
 IF (${DISTRIBUTION_BUILD})
   set (FORTRAN_COMPILER $ENV{DIST_F90})
   set (RELEASE_DIR $ENV{DIST_BASE_DIR})
   set (PACKAGES_DIR ${RELEASE_DIR})
+ELSEIF ("$ENV{ACC_SET_F_COMPILER}" MATCHES "gfortran")
+  set (FORTRAN_COMPILER "gfortran")
+  set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
+  set (PACKAGES_DIR ${RELEASE_DIR}/packages)
 ELSE ()
   set (FORTRAN_COMPILER "ifort")
   set (RELEASE_DIR $ENV{ACC_RELEASE_DIR})
@@ -73,23 +80,25 @@ ENDIF ()
   
 IF (FORTRAN_COMPILER MATCHES "gfortran")
 
-  set (RELEASE_NAME $ENV{DIST_BASE_DIR})
-  set (RELEASE_NAME_TRUE "Off-site Distribution")
-  set (COMPILER_CHOICE $ENV{DIST_F90})
-  set (CMAKE_Fortran_COMPILER gfortran)
+  SET (RELEASE_NAME $ENV{DIST_BASE_DIR})
+  IF ("$ENV{DIST_F90}" MATCHES "gfortran")
+    SET (RELEASE_NAME_TRUE "Off-site Distribution")
+  ENDIF ()
+  SET (COMPILER_CHOICE ${FORTRAN_COMPILER})
+  SET (CMAKE_Fortran_COMPILER gfortran)
      IF ("${ACC_ENABLE_OPENMP}")
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none -fopenmp")
        SET (OPENMP_LINK_LIBS "gomp")
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-cpp -fno-range-check -fdollar-ok -fbacktrace -Bstatic -ffree-line-length-none")
-     ENDIF () 
-  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0 -fno-range-check -fbounds-check -Wuninitialized")
+     ENDIF ()
+  SET (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-O0 -fno-range-check -fbounds-check -Wuninitialized")
 
 ELSE ()
 
-  set (RELEASE_NAME $ENV{ACC_RELEASE})
-  set (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
-  set (CMAKE_Fortran_COMPILER ifort)
+  SET (RELEASE_NAME $ENV{ACC_RELEASE})
+  SET (RELEASE_NAME_TRUE $ENV{ACC_TRUE_RELEASE})
+  SET (CMAKE_Fortran_COMPILER ifort)
      IF ("${ACC_ENABLE_OPENMP}")
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp -openmp")
        SET (ACC_LINK_FLAGS "-openmp")
@@ -97,7 +106,7 @@ ELSE ()
      ELSE ()
        SET (COMPILER_SPECIFIC_F_FLAGS "-fpp")
      ENDIF ()
-  set (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
+  SET (COMPILER_SPECIFIC_DEBUG_F_FLAGS "-check bounds -check format -check uninit -warn declarations -ftrapuv")
 
 ENDIF ()
 
@@ -262,7 +271,6 @@ ENDIF()
 message("FFLAGS               : ${FFLAGS}")
 message("${FORTRAN_COMPILER} Compiler Flags : ${BASE_Fortran_FLAGS}")
 message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}\n")
-
 
 #-----------------------------------
 # Output path definitions
@@ -740,4 +748,3 @@ FOREACH(target ${TARGETS})
   ENDIF()
 
 ENDFOREACH()
-
