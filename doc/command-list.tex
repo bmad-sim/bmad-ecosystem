@@ -2108,7 +2108,7 @@ If \vn{<file_name>} is not given then the defaults are:
 \begin{example}
   Command                        Default File Name
   ------------------             ------------------
-  write 3d_floor_plan            3d_floor_plan.py
+  write 3d_floor_plan            3d_floor_plan.jou
   write bmad_lattice             lat_#.bmad
   write beam                     beam_#.dat
   write curve                    curve
@@ -2137,10 +2137,23 @@ scale for the PostScript file. The default is 0 which autoscales to fit an
 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
 2.0 will double the size, etc.
 
-The \vn{write 3d_floor_plan} creates a python script which can then be
-run externally to \tao. This script will create a 3D display of the
-currently viewed (\sref{s:view}) lattice lattice. The suffix '.py'
-will be appended if the given file name does not have it.
+The \vn{write 3d_floor_plan} creates a script which can then be run
+read in by the \vn{cubit} program\cite{b:cubit}. This script will
+create a 3D display of the currently viewed (\sref{s:view})
+lattice. The suffix '.jou' will be appended if the given file name
+does not have it. To read in the script to \vn{cubit}:
+\begin{example}
+  0) Run cubit
+  1) Click on the ``Play Journal File'' button (near the upper right hand corner).
+     And then choose the correct file from the file view popup window.
+\end{example}
+Note: To change the 3D rotation center in \vn{cubit}, use the command:
+\begin{example}
+  view at <volume-name>
+\end{example}
+or choose a volume, right click in the Graphics Window, and choose
+``Rotate About''.  See the \vn{cubit} manual for instructions
+for panning, zooming, etc.
 
 The \vn{write variable} command has an optional \vn{-good_var_only}
 switch.  If present, only the information on variables that are

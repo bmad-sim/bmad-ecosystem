@@ -76,7 +76,7 @@ select case (action)
 
 case ('3d_floor_plot')
 
-  file_name = '3d_floor_plot.py'
+  file_name = '3d_floor_plot.jou'
   if (word(1) /= '') file_name = word(1)
 
   if (word(2) /= '') then
@@ -84,8 +84,8 @@ case ('3d_floor_plot')
     return
   endif
 
-  ix = max(1, len_trim(file_name) - 2)
-  if (file_name(ix:ix+2) /= '.py') file_name(ix+3:) = '.py'
+  ix = max(1, len_trim(file_name) - 3)
+  if (file_name(ix:ix+3) /= '.jou') file_name(ix+3:) = '.jou'
 
   call tao_write_3d_floor_plan(file_name, s%u(s%global%u_view)%model%lat)
 

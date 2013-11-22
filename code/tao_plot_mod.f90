@@ -1520,6 +1520,7 @@ end subroutine tao_draw_curve_data
 !   graph     -- Tao_graph_struct: Graph containing the histogram.
 !   curve     -- Tao_curve_struct: Histogram to draw.
 !   have_data -- Logical: Intitial state.
+!
 ! Output:
 !    have_data -- Logical: Is there any data to plot? Set True if so.
 !                   But never reset to False. 

@@ -466,39 +466,17 @@ do  ! Loop over plot files
       graph = default_graph
       graph%x = plot%x      
       write (graph%name, '(a, i0)') 'g', i_graph
+      curve(:) = tao_curve_input()
       do j = 1, size(curve)
         write (curve(j)%name, '(a, i0)') 'c', j
       enddo
-      curve(:)%data_source = 'lat'
-      curve(:)%data_index  = ''
-      curve(:)%data_type_x = ''
-      curve(:)%data_type   = ''
-      curve(:)%y_axis_scale_factor = 1
-      curve(:)%symbol_every = 1
-      curve(:)%ix_universe = -1
-      curve(:)%ix_branch = 0
-      curve(:)%ix_bunch = 0
-      curve(:)%draw_line = .true.
       if (plt%x_axis_type == 's' .or. plt%x_axis_type == 'lat' .or. plt%x_axis_type == 'var') then
         curve(:)%draw_symbols = .false.
       else
         curve(:)%draw_symbols = .true.
       endif
-      curve(:)%draw_symbol_index = .false.
-      curve(:)%use_y2 = .false.
-      curve(:)%symbol = default_symbol
-      curve(:)%line   = default_line
-      curve(:)%ele_ref_name   = ' '
-      curve(:)%ix_ele_ref = -1
-      curve(:)%smooth_line_calc = .true.
-      curve(:)%draw_interpolated_curve = .true.
-      curve(:)%line%width = -1
-      curve(:)%legend_text = ''
-      curve(:)%x_axis_scale_factor = 0  ! This is old syntax. Not used.
-      curve(2:7)%symbol%type = [times_sym$, square_sym$, &
-                  plus_sym$, triangle_sym$, x_symbol_sym$, diamond_sym$]
-      curve(2:7)%symbol%color = &
-                  [blue$, red$, green$, cyan$, magenta$, yellow$]
+      curve(2:7)%symbol%type = [times_sym$, square_sym$, plus_sym$, triangle_sym$, x_symbol_sym$, diamond_sym$]
+      curve(2:7)%symbol%color = [blue$, red$, green$, cyan$, magenta$, yellow$]
       curve(2:7)%line%color = curve(2:7)%symbol%color
       ! to get around gfortran compiler bug.
       curve1 = curve(1); curve2 = curve(2); curve3 = curve(3); curve4 = curve(4)
@@ -660,6 +638,13 @@ do  ! Loop over plot files
         crv%ix_bunch             = curve(j)%ix_bunch
         crv%ix_branch            = curve(j)%ix_branch
         crv%legend_text          = curve(j)%legend_text
+        crv%hist%density_normalized = curve(j)%hist_density_normalized
+        crv%hist%weight_by_charge   = curve(j)%hist_weight_by_charge
+        crv%hist%minimum            = curve(j)%hist_minimum
+        crv%hist%maximum            = curve(j)%hist_maximum
+        crv%hist%width              = curve(j)%hist_width
+        crv%hist%center             = curve(j)%hist_center
+        crv%hist%number             = curve(j)%hist_number
 
         ! Convert old syntax to new
 
@@ -667,22 +652,6 @@ do  ! Loop over plot files
         if (crv%data_source == 'lattice')       crv%data_source = 'lat'
         if (crv%data_source == 'data_array')    crv%data_source = 'dat'
         if (crv%data_source == 'var_array')     crv%data_source = 'var'
-
-        if (curve(j)%x_axis_scale_factor /= 0) then
-          call out_io (s_error$, r_name, [&
-            '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************', &
-            '***** SYNTAX CHANGE:                                 *****', &
-            '*****         CURVE%X_AXIS_SCALE_FACTOR              *****', &
-            '***** NEEDS TO BE CHANGED TO:                        *****', &
-            '*****         GRAPH%X_AXIS_SCALE_FACTOR              *****', &
-            '***** TAO WILL RUN NORMALLY FOR NOW...               *****', &
-            '**********************************************************', &
-            '**********************************************************', &
-            '**********************************************************'] )
-          crv%smooth_line_calc = .false.
-        endif
 
         if (.not. curve(j)%draw_interpolated_curve) then
           call out_io (s_error$, r_name, [&

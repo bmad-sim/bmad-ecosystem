@@ -85,28 +85,32 @@ type tao_place_input
 end type
 
 type tao_curve_input
-  character(40) name
-  character(40) data_source
-  character(100) data_type_x
-  character(100) data_type
-  character(100) data_index
-  character(40) legend_text
-  real(rp) y_axis_scale_factor
-  integer symbol_every
-  integer ix_universe
-  logical draw_line
-  logical draw_symbols
-  logical draw_symbol_index
-  logical use_y2
-  logical draw_interpolated_curve
-  logical smooth_line_calc
-  character(40) ele_ref_name
-  integer ix_branch
-  integer ix_ele_ref
-  integer ix_bunch
-  real(rp) x_axis_scale_factor
-  type (qp_line_struct) line
-  type (qp_symbol_struct) symbol
+  character(40) :: name = ''
+  character(40) :: data_source = 'lat'
+  character(100) :: data_type_x = ''
+  character(100) :: data_type = ''
+  character(100) :: data_index = ''
+  character(40) :: legend_text = ''
+  real(rp) :: y_axis_scale_factor = 1
+  integer :: symbol_every = 1
+  integer :: ix_universe = -1
+  logical :: draw_line = .true.
+  logical :: draw_symbols = .true.
+  logical :: draw_symbol_index = .false.
+  logical :: use_y2 = .false.
+  logical :: draw_interpolated_curve = .true.
+  logical :: smooth_line_calc = .true.
+  character(40) :: ele_ref_name = ''
+  integer :: ix_branch = 0
+  integer :: ix_ele_ref = -1
+  integer :: ix_bunch = 0
+  type (qp_line_struct) :: line = qp_line_struct()
+  type (qp_symbol_struct) :: symbol = qp_symbol_struct()
+  logical :: hist_density_normalized = .false.
+  logical :: hist_weight_by_charge = .true.
+  real(rp) :: hist_minimum = 0, hist_maximum = 0
+  real(rp) :: hist_width = 0, hist_center = 0
+  integer :: hist_number = 0
 end type
 
 type tao_graph_input

@@ -16,7 +16,7 @@ contains
 !+
 ! Subroutine tao_write_3d_floor_plan (floor_file, lat)
 !
-! Routine to write a 3D floor plan file for the 3D_floor_plan.py script.
+! Routine to write a 3D floor plan file for the 3D_floor_plan.jou script.
 !
 ! Input:
 !   floor_file -- character(*): Name of output file.
@@ -38,9 +38,6 @@ logical shape_drawn
 character(*), parameter :: r_name = 'tao_write_3d_floor_plan'
 
 !
-
-print *, '3D Floor Plan not yet implemented.'
-return
 
 iu = lunget()
 open (iu, file = floor_file, iostat = ios)
@@ -85,12 +82,13 @@ shape_drawn = .false.
 ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%floor_plan%ele_shape)
 if (.not. associated(ele_shape)) return
 if (.not. ele_shape%draw) return
+if (ele%value(x1_limit$) == 0) return
+!select case (ele%key)
+!case (diffraction_plate$)
 
-select case (ele%key)
-case (diffraction_plate$)
-  call ele_draw_limit_box (ele, ele_shape)
+call ele_draw_limit_box (ele, ele_shape)
 
-end select
+! end select
 
 
 shape_drawn = .true.
@@ -105,8 +103,10 @@ subroutine ele_draw_limit_box (ele, ele_shape)
 
 type (ele_struct) ele
 type (tao_ele_shape_struct) ele_shape
+type (coord_struct) orbit
 
 real(rp) r0(3), r1(3)
+real(rp) w_mat(3,3), axis(3), angle
 
 character(40) cubit_name
 
@@ -117,6 +117,18 @@ r1 = [ ele%value(x2_limit$),  ele%value(y2_limit$), max(ele%value(l$), 0.001_rp)
 
 call construct_cubit_name (ele, cubit_name)
 call draw_box (r0, r1, ele_shape%color, cubit_name)
+
+if (ele%aperture_at == surface$) then
+  orbit%vec = 0
+  call init_coord (orbit, orbit%vec, ele, .false., photon$)
+  call offset_photon (ele, orbit, unset$, rot_mat = w_mat)
+  call w_mat_to_axis_angle (w_mat, axis, angle)
+  if (angle /= 0) then
+    write (iu, '(3a, f9.2, a, 3f11.6, a)') &
+            'cubit.cmd("rotate ', trim(cubit_name), ' angle ', 180*angle/pi, ' about origin 0 0 0 direction', axis, '")'
+  endif
+endif
+
 call orient_body (cubit_name, ele%floor)
 
 end subroutine ele_draw_limit_box
@@ -149,14 +161,14 @@ character(*) color, cubit_name
 ! 
 
 write (iu, '(a)')  '#'
-write (iu, '(2a)') 'Draw: ', trim(cubit_name)
+write (iu, '(2a)') '# Draw: ', trim(cubit_name)
 write (iu, '(4(a, f12.6))') &
                   'cubit.cmd("brick x', r1(1)-r0(1), ' y', &
                                         r1(2)-r0(2), ' z', r1(3) - r0(3), '")'
 write (iu, '(a)')  'id = cubit.get_last_id("volume")'
-write (iu, '(3a)') 'cubit.cmd("Volume " + str(id) + " rename ', trim(cubit_name), '")'
+write (iu, '(5a)') 'cubit.cmd("Volume " + str(id) + " rename ', "'", trim(cubit_name), "'", '")'
 write (iu, '(3a, f12.6, a)') &
-                  'cubit.cmd("move ', trim(cubit_name), 'x 0 y 0 z ', (r1(3) - r0(3)) / 2, '")'
+                  'cubit.cmd("move ', trim(cubit_name), ' x 0 y 0 z ', (r1(3) - r0(3)) / 2, '")'
 
 end subroutine draw_box
 
@@ -176,8 +188,10 @@ real(rp) w_mat(3,3), axis(3), angle
 call floor_angles_to_w_mat (floor%theta, floor%phi, floor%psi, w_mat)
 call w_mat_to_axis_angle (w_mat, axis, angle)
 
-write (iu, '(3a, f9.2, a, 3f11.6, a)') &
+if (angle /= 0) then
+  write (iu, '(3a, f9.2, a, 3f11.6, a)') &
           'cubit.cmd("rotate ', trim(cubit_name), ' angle ', 180*angle/pi, ' about origin 0 0 0 direction', axis, '")'
+endif
 
 ! Translate
 

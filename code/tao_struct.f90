@@ -110,6 +110,14 @@ type tao_data_var_component_struct    ! Components to plot
   real(rp) sign              ! +1 or -1
 end type
 
+type tao_histogram_struct
+  logical :: density_normalized = .false.
+  logical :: weight_by_charge = .true.
+  real(rp) :: minimum, maximum
+  real(rp) :: width, center
+  integer :: number
+end type
+
 ! A curve is defined by a set of (x,y) points and the axis parameters.
 ! for example the horizontal orbit is one curve.
 
@@ -123,6 +131,7 @@ type tao_curve_struct
   character(40) :: legend_text = ''      ! String to draw in a curve legend. 
   character(40) :: message_text = ''     ! Informational message to draw with graph.
   type (tao_graph_struct), pointer :: g  ! pointer to parent graph
+  type (tao_histogram_struct) hist
   real(rp), allocatable :: x_line(:)     ! Coords for drawing a curve
   real(rp), allocatable :: y_line(:) 
   real(rp), allocatable :: y2_line(:)    ! Second array needed for beam chamber curve. 
