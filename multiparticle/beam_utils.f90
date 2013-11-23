@@ -1,6 +1,6 @@
 module beam_utils
 
-use beam_def_struct
+use beam_file_io
 use spin_mod
 use eigen_mod
 use wake_mod
@@ -317,93 +317,6 @@ end subroutine order_particles_in_z
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine reallocate_beam (beam, n_bunch, n_particle)
-! 
-! Subroutine to reallocate memory within a beam_struct.
-!
-! If n_bunch = 0 then all macro beam pointers will be deallocated.
-! Rule: If beam%bunch(:) is allocated, beam%bunch(i)%particle(:) will be allocated.
-!
-! Modules needed:
-!   use beam_mod
-!
-! Input:
-!   n_bunch    -- Integer: Number of bunches.
-!   n_particle -- Integer: Number of particles. Must be non-negative.
-!
-! Output:
-!   beam -- beam_struct: Allocated beam_struct structure.
-!-
-
-subroutine reallocate_beam (beam, n_bunch, n_particle)
-
-implicit none
-
-type (beam_struct) beam
-
-integer i, n_bunch, n_particle
-
-! Deallocate if needed
-
-if (allocated(beam%bunch)) then
-  if (n_bunch == 0 .or. size(beam%bunch) /= n_bunch) deallocate (beam%bunch)
-endif
-
-if (n_bunch == 0) return
-  
-! Allocate
-
-if (.not. allocated (beam%bunch)) allocate (beam%bunch(n_bunch))
-
-do i = 1, n_bunch
-  call reallocate_bunch (beam%bunch(i), n_particle)
-enddo
-
-end subroutine reallocate_beam
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine reallocate_bunch (bunch, n_particle)
-! 
-! Subroutine to reallocate particles within a bunch_struct.
-!
-! Modules needed:
-!   use bunch_mod
-!
-! Input:
-!   n_particle -- Integer: Number of particles. Must be non-negative.
-!
-! Output:
-!   bunch -- bunch_struct: Allocated bunch_struct structure.
-!-
-
-subroutine reallocate_bunch (bunch, n_particle)
-
-implicit none
-
-type (bunch_struct) bunch
-
-integer i, n_particle
-
-! Deallocate if needed
-
-if (allocated(bunch%particle)) then
-  if (size(bunch%particle) /= n_particle) deallocate (bunch%particle, bunch%ix_z)
-endif
-
-if (.not. allocated(bunch%particle)) then
-  allocate (bunch%particle(n_particle), bunch%ix_z(n_particle))
-  bunch%ix_z = 0
-endif
-
-end subroutine reallocate_bunch
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine init_beam_distribution (ele, param, beam_init, beam)
 !
 ! Subroutine to initialize a beam of particles. 
@@ -443,6 +356,8 @@ type (bunch_struct), pointer :: bunch
 integer i_bunch, i, n, n_kv
 
 character(22) :: r_name = "init_beam_distribution"
+
+!
 
 call reallocate_beam (beam, beam_init%n_bunch, 0)
 
