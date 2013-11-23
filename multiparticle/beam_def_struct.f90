@@ -53,8 +53,9 @@ type grid_beam_init_struct
 end type
 
 type beam_init_struct
+  character(200) :: file_name = ''           ! For distribution_type(1) = 'FILE'
   character(16) :: distribution_type(3) = '' ! distribution type (in x-px, y-py, and z-pz planes)
-                                             ! "ELLIPSE", "KV", "GRID", "", or "RAN_GAUSS" 
+                                             ! "ELLIPSE", "KV", "GRID", "FILE", "", or "RAN_GAUSS" 
   type (ellipse_beam_init_struct) ellipse(3) ! Parameters for ellipse beam distribution
   type (kv_beam_init_struct) KV              ! Parameters for KV beam distribution
   type (grid_beam_init_struct) grid(3)       ! Parameters for grid beam distribution
@@ -181,7 +182,93 @@ end type
 
 type (csr_parameter_struct), save, target :: csr_param
 
-! This is to suppress the ranlib "has no symbols" message
-integer, private :: private_dummy
+contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine reallocate_beam (beam, n_bunch, n_particle)
+! 
+! Subroutine to reallocate memory within a beam_struct.
+!
+! If n_bunch = 0 then all macro beam pointers will be deallocated.
+! Rule: If beam%bunch(:) is allocated, beam%bunch(i)%particle(:) will be allocated.
+!
+! Modules needed:
+!   use beam_mod
+!
+! Input:
+!   n_bunch    -- Integer: Number of bunches.
+!   n_particle -- Integer: Number of particles. Must be non-negative.
+!
+! Output:
+!   beam -- beam_struct: Allocated beam_struct structure.
+!-
+
+subroutine reallocate_beam (beam, n_bunch, n_particle)
+
+implicit none
+
+type (beam_struct) beam
+
+integer i, n_bunch, n_particle
+
+! Deallocate if needed
+
+if (allocated(beam%bunch)) then
+  if (n_bunch == 0 .or. size(beam%bunch) /= n_bunch) deallocate (beam%bunch)
+endif
+
+if (n_bunch == 0) return
+  
+! Allocate
+
+if (.not. allocated (beam%bunch)) allocate (beam%bunch(n_bunch))
+
+do i = 1, n_bunch
+  call reallocate_bunch (beam%bunch(i), n_particle)
+enddo
+
+end subroutine reallocate_beam
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine reallocate_bunch (bunch, n_particle)
+! 
+! Subroutine to reallocate particles within a bunch_struct.
+!
+! Modules needed:
+!   use bunch_mod
+!
+! Input:
+!   n_particle -- Integer: Number of particles. Must be non-negative.
+!
+! Output:
+!   bunch -- bunch_struct: Allocated bunch_struct structure.
+!-
+
+subroutine reallocate_bunch (bunch, n_particle)
+
+implicit none
+
+type (bunch_struct) bunch
+
+integer i, n_particle
+
+! Deallocate if needed
+
+if (allocated(bunch%particle)) then
+  if (size(bunch%particle) /= n_particle) deallocate (bunch%particle, bunch%ix_z)
+endif
+
+if (.not. allocated(bunch%particle)) then
+  allocate (bunch%particle(n_particle), bunch%ix_z(n_particle))
+  bunch%ix_z = 0
+endif
+
+end subroutine reallocate_bunch
 
 end module
