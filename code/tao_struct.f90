@@ -113,9 +113,9 @@ end type
 type tao_histogram_struct
   logical :: density_normalized = .false.
   logical :: weight_by_charge = .true.
-  real(rp) :: minimum, maximum
-  real(rp) :: width, center
-  integer :: number
+  real(rp) :: minimum = 0, maximum = 0
+  real(rp) :: width = 0, center = 0
+  integer :: number = 0
 end type
 
 ! A curve is defined by a set of (x,y) points and the axis parameters.

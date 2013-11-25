@@ -638,13 +638,7 @@ do  ! Loop over plot files
         crv%ix_bunch             = curve(j)%ix_bunch
         crv%ix_branch            = curve(j)%ix_branch
         crv%legend_text          = curve(j)%legend_text
-        crv%hist%density_normalized = curve(j)%hist_density_normalized
-        crv%hist%weight_by_charge   = curve(j)%hist_weight_by_charge
-        crv%hist%minimum            = curve(j)%hist_minimum
-        crv%hist%maximum            = curve(j)%hist_maximum
-        crv%hist%width              = curve(j)%hist_width
-        crv%hist%center             = curve(j)%hist_center
-        crv%hist%number             = curve(j)%hist_number
+        crv%hist                 = curve(j)%hist
 
         ! Convert old syntax to new
 

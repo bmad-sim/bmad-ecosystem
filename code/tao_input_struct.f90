@@ -106,11 +106,7 @@ type tao_curve_input
   integer :: ix_bunch = 0
   type (qp_line_struct) :: line = qp_line_struct()
   type (qp_symbol_struct) :: symbol = qp_symbol_struct()
-  logical :: hist_density_normalized = .false.
-  logical :: hist_weight_by_charge = .true.
-  real(rp) :: hist_minimum = 0, hist_maximum = 0
-  real(rp) :: hist_width = 0, hist_center = 0
-  integer :: hist_number = 0
+  type (tao_histogram_struct) :: hist = tao_histogram_struct()
 end type
 
 type tao_graph_input
