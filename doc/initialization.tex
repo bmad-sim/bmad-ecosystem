@@ -2316,39 +2316,56 @@ namelist.
 \index{histogram drawing}
 \label{s:histogram}
 
-A \vn{historgram} drawing displays a histogram of phase space beam
+
+
+A \vn{histogram} drawing displays a histogram of phase space beam
 density. Histogram plotting is associated with a \vn{graph} by setting
 \vn{graph%type} equal to \vn{"histogram"}. The concepts here are
-similar to \vn{phase space} plotting (\sref{s:phase.space}). Example
+similar to \vn{phase space} plotting (\sref{s:phase.space}). An example is shown in
+Fig.~\ref{f:histogram}, using the example
 histogram template:
 \begin{example}
-  &tao_template_plot
-    plot%name = "zphase"
-    plot%x%min =   -10e-3
-    plot%x%max = 10e-3
-    plot%x%major_div_nominal = 4
-    plot%x%label = "z"
-    plot%n_graph = 1
-  /
+&tao_template_plot
+  plot%name = 'zhist'
+  plot%x%min = -6
+  plot%x%max =  6
+  plot%x%label = 'z (mm)'	
+  plot%n_graph = 1
+/
 
-  &tao_template_graph
-    graph_index = 1
-    graph%name = "z"
-    graph%type = "histogram"
-    graph%box = 1, 1, 1, 1
-    graph%title = "Z"
-    graph%margin =  0.12, 0.12, 0.12, 0.12, "%BOX"
-    graph%y%label = "Density"
-    graph%y%max = 3
-    graph%y%min = -3
-    graph%y%major_div_nominal = 4
-    graph%n_curve = 1
-    graph%bin_width = 1e-4
-    curve(1)%data_type = "z" 
-    curve(1)%data_source = "beam"
-    curve(1)%ele_ref_name = "BEGINNING"
-  /
+&tao_template_graph
+  graph_index = 1
+  graph%name = 'z'
+  graph%type = 'histogram'
+  graph%box = 1, 1, 1, 1
+  graph%title = 'Bunch Histogram: Z'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%y%label = 'Current (A)'
+  graph%n_curve = 1
+  graph%bin_width = 1 
+  graph%y%label_offset = .1
+  graph%x_axis_scale_factor = 1000.00 !m->mm
+
+  curve1%hist%density_normalized = T
+  curve1%hist%weight_by_charge = T
+  curve1%hist%number = 100
+  curve1%line%color = 4
+  curve1%line%pattern = 2
+  curve1%y_axis_scale_factor = 299792458  !Q/m * c_light
+  curve1%data_type = 'z' 
+  curve1%data_source = 'beam_tracking'
+  curve1%ele_ref_name = "BEGINNING"
+  curve1%symbol%type = 1
+/
+/
 \end{example}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{histogram.png}
+  \caption{Example histogram plot.}
+  \label{f:histogram}
+\end{figure}
 
 For a \vn{"histogram"} type graph, \vn{curve%data_type} determines
 what coordinate is plotted along the x-axis.
@@ -2370,7 +2387,16 @@ Valid \vn{curve%data_type} values are:
 In this example above, the $x$-axis of the plot will correspond to the
 $z$ phase space coordinate.
 
-The \vn{graph%bin_width} establishes the width of the histogram bins.
+The maximum and minimum of the bins is set automatically to fit the data.
+The \vn{curve%hist%number} establishes the number of bins. Alternatively, 
+if \vn{curve%hist%number = 0}, then \vn{curve%hist%width}  establishes
+ the width of the histogram bins and sets the number automatically. 
+
+If \vn{curve%hist%density_normalized = T}, then the height of a bin will be
+divided by its width. If \vn{curve%hist%weight_by_charge = T}, then the particle
+charge will be used to bin, otherwise the particle count will be used to bin.
+
+The \vn{curve%hist%center} will insure that a bin will be centered at this location.
 
 \index{curve!ele_ref_name}\index{curve!ix_ele_ref}
 To change the place in the lattice where the data for the
