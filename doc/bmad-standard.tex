@@ -21,9 +21,10 @@ The general procedure for tracking through an element makes use of the
 \vn{element reference coordinates} Without any offsets, pitches or
 tilt, (henceforth called ``misalignments''), the element reference
 coordinates are the same as the \vn{laboratory reference coordinates}
-(\sref{s:ref}). With misalignments, the \vn{element reference
-coordinates} will stay fixed relative to the element and will
-therefore shift as the element shifts in the laboratory frame.
+(\sref{s:ref}). The \vn{element reference coordinates} stays fixed
+relative to the element. Therefore, if the element is misaliged, the
+\vn{element reference coordinates} will follow as the element
+shifts in the laboratory frame.
 
 \index{crystal}\index{mirror}\index{multilayer_mirror}
 For \vn{crystal} (\sref{s:crystal}), \vn{mirror} (\sref{s:mirror}),
@@ -316,7 +317,7 @@ $\theta_{B,out}$ as well as calculating the transformations between
 the various coordinate systems. This is done in \sref{ss:crystal.ref},
 \sref{ss:crystal.trans}, and \sref{ss:crystal.dlaue}.  The second part
 is the actual tracking of the photon and this is covered in
-\sref{ss:crystal.track}.
+\sref{ss:bragg.track} and \sref{ss:laue.track}.
 
 %-------------------------------------------------------------------------
 \subsection{Calculation of Entrance and Exit Bragg Angles}
@@ -630,9 +631,8 @@ where
 and $t$ is the crystal thickness.
 
 %-------------------------------------------------------------------------
-\subsection{Crystal Element Tracking}
-\label{ss:crystal.track}
-
+\subsection{Bragg Crystal Tracking}
+\label{ss:bragg.track}
 
 The starting photon coordinates are specified in the laboratory
 entrance coordinates. The transformation from laboratory entrance
@@ -717,6 +717,10 @@ Using the above two equations gives
   \bfE_{0\beta} &= -\bfE_0 \, \frac{r_\alpha}{r_\beta - r_\alpha} \qquad\qquad
   \bfE_{H\beta}  = -\bfE_0 \, \frac{r_\alpha \, r_\beta}{r_\beta - r_\alpha} 
 \end{align}
+
+%-------------------------------------------------------------------------
+\subsection{Laue Crystal Tracking}
+\label{ss:laue.track}
 
 For Laue diffraction the photon has to be tracked from the entrance
 surface to the exit surface. It is assumed that the two interior wave

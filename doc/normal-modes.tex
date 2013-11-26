@@ -71,7 +71,7 @@ routine can be used. Example:
   ...
   attrib_ptr => lat%ele(ix_ele)%value(k1$) ! Point to some attribute.
   attrib_ptr = value                       ! Change the value.
-  call set_flags_for_changed_attribute (lat, lat%ele(ix_ele), attrib_ptr)
+  call set_flags_for_changed_attribute (lat%ele(ix_ele), attrib_ptr)
 \end{example}
 
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates

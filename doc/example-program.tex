@@ -49,7 +49,7 @@ call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
 call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
 cleo => eles(1)%ele                        ! Point to cleo_sol element.
 cleo%value(ks$) = cleo%value(ks$) + 0.001  ! Modify ks component.
-call set_flags_for_changed_attribute (lat, cleo, cleo%value(ks$))
+call set_flags_for_changed_attribute (cleo, cleo%value(ks$))
 call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
 
 ! Calculate starting Twiss params if the lattice is closed, 

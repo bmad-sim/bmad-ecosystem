@@ -732,7 +732,7 @@ the core bookkeeping. Example
   bmad_com%auto_bookkeeper = .false.    ! Only needs to be done once.
   ...
   lat%ele(i)%value(gradient$) = 1.05e6  ! Change, say, the gradient of an RFCavity
-  call set_flags_for_changed_attribute (lat, lat%ele(i), lat%ele(i)%value(gradient$))
+  call set_flags_for_changed_attribute (lat%ele(i), lat%ele(i)%value(gradient$))
 
   ... Set attributes of other elements ...
 
@@ -740,7 +740,7 @@ the core bookkeeping. Example
 \end{example}
 The argument list for \vn{set_flags_for_changed_attribute} is 
 \begin{example}
-  set_flags_for_changed_attribute (lat, ele, attribute)
+  set_flags_for_changed_attribute (ele, attribute)
 \end{example}
 The \vn{attribute} argument may be either real, integer, or logical.
 
