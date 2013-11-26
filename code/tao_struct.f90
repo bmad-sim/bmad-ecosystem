@@ -181,7 +181,6 @@ type tao_graph_struct
   type (qp_rect_struct) scale_margin  ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
   real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
-  real(rp) :: bin_width = 0              ! bin width for histogram
   integer box(4)                      ! Defines which box the plot is put in.
   integer :: ix_branch = 0            ! Branch in lattice.
   integer :: ix_universe = -1         ! Used for lat_layout plots.
@@ -504,7 +503,7 @@ type tao_global_struct
   real(rp) :: y_axis_plot_dmin = 1e-4    ! Minimum y_max-y_min allowed for a graph.
   real(rp) :: lm_opt_deriv_reinit = -1   ! Reinit derivative matrix cutoff
   real(rp) :: de_lm_step_ratio = 1       ! Scaling for step sizes between DE and LM optimizers.
-  real(rp) :: de_var_to_population_factor = 5.0_rp
+  real(rp) :: de_var_to_population_factor = 5.0_rp ! DE population = max(n_var*factor, 20)
   real(rp) :: lmdif_eps = 1e-12          ! tollerance for lmdif optimizer.
   real(rp) :: svd_cutoff = 1e-5          ! SVD singular value cutoff.
   real(rp) :: unstable_penalty = 1e-3    ! Used in unstable_ring datum merit calculation.
@@ -743,7 +742,7 @@ type tao_mpi_struct
   logical :: master = .true.     ! Is this the master task? If yes, rank == 0
   integer :: rank = 0            ! Rank of task (rank is 0, 1, 2, ... n_tasks-1 ) 
   integer :: max_rank = 0        ! Maximum rank, should be n_tasks-1
-  character(160) :: host_name    ! Name of the host machine
+  character(160) :: host_name  =''  ! Name of the host machine
 end type
 
 

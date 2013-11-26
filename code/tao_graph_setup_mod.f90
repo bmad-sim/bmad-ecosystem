@@ -467,6 +467,8 @@ end subroutine tao_graph_phase_space_setup
 
 subroutine tao_graph_histogram_setup (plot, graph)
 
+use bin_mod
+
 implicit none
 
 type (tao_plot_struct) plot
@@ -478,11 +480,12 @@ type (beam_struct), pointer :: beam
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1
 type (coord_struct), pointer :: p(:)
+type (bin_struct) :: bins
 
 real(rp) v_mat(4,4), v_inv_mat(4,4), g_mat(4,4), g_inv_mat(4,4)
 real(rp) mat4(4,4), sigma_mat(4,4), theta, theta_xy, rx, ry, phi
-real(rp) emit_a, emit_b
-real(rp), allocatable :: data(:)
+real(rp) emit_a, emit_b, bin_shift
+real(rp), allocatable :: data(:), weight(:)
 
 integer k, n, m, ib, ix1_ax, ix, i
 integer, allocatable :: number_in_bin(:)
@@ -496,11 +499,6 @@ character(40) :: r_name = 'tao_graph_histogram_setup'
 
 graph%valid = .false.
 if (size(graph%curve) == 0) return
-
-if (graph%bin_width <= 0) then
-  graph%why_invalid = 'graph%bin_width not positive.'
-  return
-endif
 
 ! Set up the graph suffix
 
@@ -569,13 +567,15 @@ do k = 1, size(graph%curve)
     endif
 
     allocate (data(n))
-
+    if (curve%hist%weight_by_charge) allocate (weight(n))
+    
     n = 0
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
       m = size(p)
       call tao_phase_space_axis (curve%data_type, ix1_ax, p, scratch%axis1)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
+      if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + count(p%state == alive$)
     enddo
 
@@ -615,7 +615,50 @@ do k = 1, size(graph%curve)
 
   ! Bin the data
 
+   ! Automatically scale data
+  curve%hist%minimum = minval(data)
+  curve%hist%maximum = maxval(data)
 
+  ! Automatically select the number of bins
+  if (curve%hist%number == 0) then
+    if (curve%hist%width == 0) then
+      curve%hist%number = n_bins_automatic(size((data)))
+    else
+      ! Set the number according to this width, and set a new maximum
+      curve%hist%number = nint((curve%hist%maximum - curve%hist%minimum)/curve%hist%width)
+      curve%hist%maximum = curve%hist%number*curve%hist%width + curve%hist%minimum
+    endif
+  else
+    ! Number is set, now set the width
+    curve%hist%width = (curve%hist%maximum - curve%hist%minimum)/curve%hist%number
+  endif
+   
+  ! Shift for the center bin
+  bin_shift = curve%hist%center - bin_x(bin_index(curve%hist%center, curve%hist%minimum, curve%hist%width), &
+                              curve%hist%minimum, curve%hist%width)
+  curve%hist%minimum =  curve%hist%minimum + bin_shift         
+  curve%hist%maximum =  curve%hist%maximum + bin_shift           
+                                
+  if (curve%hist%width == 0 ) curve%hist%width = (curve%hist%maximum - curve%hist%minimum)/(curve%hist%number - 1)
+                            
+  if (curve%hist%weight_by_charge) then
+    bins = bin(data, weight = weight, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
+  else
+    bins = bin(data, min = curve%hist%minimum, max = curve%hist%maximum, n_bins = curve%hist%number)
+           
+  endif
+  ! Set width actually used
+ 
+  curve%hist%width = bins%delta
+  
+  allocate(curve%x_line(bins%n))
+  allocate(curve%y_line(bins%n))
+  do i=1, bins%n
+    curve%x_line(i) = bin_x(i, bins%min, bins%delta)
+    curve%y_line(i) = bins%count(i)
+  enddo
+  if (curve%hist%density_normalized) curve%y_line = curve%y_line/bins%delta
+  
 enddo
 
 graph%valid = .true.
@@ -663,6 +706,8 @@ case ('intensity')
     p%charge = p%field(1)**2 + p%field(2)**2
     axis = p%charge
   endif
+
+
 
 case default
   call out_io (s_abort$, r_name, 'BAD PHASE_SPACE CURVE DATA_TYPE: ' // data_type)

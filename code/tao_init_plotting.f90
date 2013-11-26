@@ -143,7 +143,6 @@ default_graph%scale_margin        = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_r
 default_graph%n_curve             = 0
 default_graph%x_axis_scale_factor = 1
 default_graph%symbol_size_scale   = 0
-default_graph%bin_width           = 0
 
 ! If there is no plot file then use the built-in defaults.
 
@@ -548,7 +547,6 @@ do  ! Loop over plot files
       grph%correct_xy_distortion = graph%correct_xy_distortion
       grph%draw_only_good_user_data_or_vars = &
                                    graph%draw_only_good_user_data_or_vars
-      grph%bin_width             = graph%bin_width
       grph%draw_curve_legend     = graph%draw_curve_legend
       grph%title_suffix          = ''
       grph%text_legend           = ''
@@ -949,7 +947,7 @@ grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
-grph%y%label_offset       = 0.1
+grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
@@ -972,7 +970,7 @@ grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 2, 1, 2]
 grph%y                    = init_axis
-grph%y%label_offset       = 0.1
+grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
@@ -1009,7 +1007,7 @@ grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
-grph%y%label_offset       = 0.1
+grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
@@ -1055,7 +1053,7 @@ grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
-grph%y%label_offset       = 0.1
+grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
@@ -1090,6 +1088,7 @@ grph => plt%graph(1)
 grph%p => plt
 grph%title               = 'Beta Function'
 grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
+
 
 crv => grph%curve(1)
 crv%name         = 'a'
