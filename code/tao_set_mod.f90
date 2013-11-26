@@ -924,6 +924,23 @@ case ('data_type')
 case ('data_type_x')
   this_curve%data_type_x = set_value
 
+case ('hist%number')
+  this_curve%hist%width = 0
+  call tao_integer_set_value (this_curve%hist%number, component, set_value, error, min_val = 0)
+
+case ('hist%density_normalized')
+  call tao_logical_set_value (this_curve%hist%density_normalized, component, set_value, error)
+  
+case ('hist%weight_by_charge')
+  call tao_logical_set_value (this_curve%hist%weight_by_charge, component, set_value, error)
+  
+case ('hist%center')  
+  call tao_real_set_value (this_curve%hist%center, component, set_value, error)
+  
+case ('hist%width')  
+  this_curve%hist%number = 0
+  call tao_real_set_value (this_curve%hist%width, component, set_value, error)  
+  
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return
@@ -1082,8 +1099,6 @@ select case (comp)
 
   case ('component')
     this_graph%component = set_value
-  case ('bin_width')
-    call tao_real_set_value(this_graph%bin_width, comp, set_value, error)
   case ('clip')
     call tao_logical_set_value (this_graph%clip, comp, set_value, error)
   case ('draw_axes')
@@ -1696,10 +1711,20 @@ if (ios /= 0 .or. len_trim(value_str) == 0) then
   return
 endif
 
-if (ix < min_val .or. ix > max_val) then
-  call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
-  return
+if (present(min_val)) then
+  if (ix < min_val) then
+    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    return 
+  endif
 endif
+
+if (present(max_val)) then
+  if (ix > max_val) then
+    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    return 
+  endif
+endif
+
 
 var = ix      
 error = .false.
@@ -1750,9 +1775,18 @@ if (ios /= 0 .or. len_trim(var_str) == 0) then
   return
 endif
 
-if (var_value < min_val .or. var_value > max_val) then
-  call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
-  return
+if (present(min_val)) then
+  if (var_value < min_val) then
+    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    return
+  endif
+endif
+
+if (present(max_val)) then
+  if (var_value > max_val) then
+    call out_io (s_error$, r_name, var_str // ' VALUE OUT OF RANGE.')
+    return
+  endif
 endif
 
 var = var_value

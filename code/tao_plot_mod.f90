@@ -1538,6 +1538,12 @@ integer i
 logical have_data
 character(16) num_str
 
+
+! Draw
+call qp_draw_histogram (curve%x_line, curve%y_line, line_color = curve%line%color, &
+	                    fill_color = curve%line%color, fill_pattern = curve%line%pattern) !, fill_color, fill_pattern, line_color, clip)
+have_data = .true.
+
 end subroutine tao_draw_histogram_data
 
 !--------------------------------------------------------------------------

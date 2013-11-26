@@ -54,7 +54,7 @@ logical opened, err, doprint
 what2 = what
 stuff2 = stuff
 opened = .false.
-doprint = .true.
+doprint = tao_com%print_to_terminal
 
 ! See if the results need to be written to a file.
 
@@ -114,7 +114,7 @@ endif
 
 ! Finish
 
-call output_direct (0, .true.)  ! reset to not write to a file
+call output_direct (0, do_print=tao_com%print_to_terminal)  ! reset to not write to a file
 
 if (opened) then
   close (iu)
@@ -658,6 +658,17 @@ case ('curve')
     nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
     nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
     nl=nl+1; write (lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
+    
+    ! Histogram specific components
+    if (c1%g%type == 'histogram') then
+      nl=nl+1; write (lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
+      nl=nl+1; write (lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
+      nl=nl+1; write (lines(nl), rmt)  'hist%minimum            = ', c1%hist%minimum
+      nl=nl+1; write (lines(nl), rmt)  'hist%maximum            = ', c1%hist%maximum
+      nl=nl+1; write (lines(nl), rmt)  'hist%width              = ', c1%hist%width
+      nl=nl+1; write (lines(nl), rmt)  'hist%center             = ', c1%hist%center
+      nl=nl+1; write (lines(nl), imt)  'hist%number             = ', c1%hist%number
+    endif
     
     if (show_sym) then
       n = nl + size(c1%x_symb) + 10
@@ -1295,7 +1306,6 @@ case ('graph')
 
     nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
     nl=nl+1; write (lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
-    nl=nl+1; write (lines(nl), rmt) 'bin_width             = ', g%bin_width
     nl=nl+1; write (lines(nl), amt) 'x%label               = ', g%x%label
     nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
     nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
@@ -1307,6 +1317,7 @@ case ('graph')
 
     nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
     nl=nl+1; write (lines(nl), amt) 'y%label               = ', g%y%label
+    nl=nl+1; write (lines(nl), rmt) 'y%label_offset        = ', g%y%label_offset
     nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
     nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
     nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
@@ -1316,6 +1327,7 @@ case ('graph')
     nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
 
     nl=nl+1; write (lines(nl), amt) 'y2%label              = ', g%y2%label
+    nl=nl+1; write (lines(nl), rmt) 'y2%label_offset       = ', g%y2%label_offset
     nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
     nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
     nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
