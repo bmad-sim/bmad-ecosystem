@@ -644,12 +644,15 @@ do ib = 0, ubound(lat%branch, 1)
     do j = 1, num_ele_attrib$
       attrib = attribute_info(ele, j)
       val = ele%value(j)
-      if (val == 0) cycle
+      if (val == ele_dflt%value(j)) cycle
+      if (ele%key == sbend$) then
+        if (j == fintx$ .and. ele%value(fintx$) == ele%value(fint$)) cycle
+        if (j == hgapx$ .and. ele%value(hgapx$) == ele%value(hgap$)) cycle
+      endif
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
       if (.not. attribute_free (ele, attrib%name, lat, .false., .true.)) cycle
-      if (val == ele_dflt%value(j)) cycle
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.

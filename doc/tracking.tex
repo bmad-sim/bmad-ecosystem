@@ -577,30 +577,16 @@ PTC (\sref{c:ptc}) currently implements integrators of order 2, 4, or 6.
 \label{s:reverse.track}
 \index{tracking!reverse}
 
-There are two ways to do reverse tracking in which the particle goes
-in the direction of decreasing \vn{s}. The first way is to use the
-\Hyperref{r:track.many}{track_many} routine. See the \vn{track_many}
-routine for more details. The advantage of using \vn{track_many} is
-that it is simple. The disadvantage is that it can slow things down
-some since each element goes through a reversal process every time it
-is tracked through. If a program is doing a lot of tracking the other
-option is to form a reversed lattice with the elements in the reverse
-order and track through that. The routine
-\Hyperref{r:lat.reverse}{lat_reverse} will do this. One must be
-somewhat careful since the reversed lattice uses a reversed coordinate
-system. The transformation between the reversed and unreversed
-lattices is
-\Begineq
-  (x, p_x, y, p_y, z, p_z) -> (x, -p_x, -y, p_y, -z, p_z)
-\Endeq
-See the \vn{lat_reverse} routine for more details.
+Reverse tracking in when a particle goes in the direction of
+decreasing \vn{s}. The \Hyperref{r:track.many}{track_many} routine can
+be used for this. See the \vn{track_many} routine for more details.
 
-Generally tracking backwards is simply the reverse of tracking
+For static fields tracking backwards is simply the reverse of tracking
 forwards (time reversal symmetry). That is, if you start at some
 place, track forward for some distance and then track back to the
 starting place the ending orbit will be equal to the starting
 orbit. However, it should always be kept in mind that radiation
-damping or excitation breaks this symmetry.
+damping or excitation or RF cavities break this symmetry.
 
 %----------------------------------------------------------------
 \section{Beam (Particle Distribution) Tracking}
