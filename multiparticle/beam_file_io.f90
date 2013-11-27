@@ -237,11 +237,11 @@ do i = 1, n_bunch
       return
     endif
 
-    bunch_charge = bunch%charge_tot
+    
     if (set_from_beam_init) then
       if (beam_init%bunch_charge /= 0) bunch_charge = beam_init%bunch_charge
     else
-      bunch_charge = beam_init%bunch_charge
+      bunch_charge = bunch%charge_tot
     endif
 
     read (iu, *, iostat = ios) bunch%z_center
