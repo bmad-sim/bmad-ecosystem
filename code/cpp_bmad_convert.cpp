@@ -2080,7 +2080,7 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&,
     c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2092,9 +2092,9 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.default_integ_order, C.ptc_max_fringe_order, C.use_hard_edge_drifts, C.sr_wakes_on,
       C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper, C.space_charge_on,
       C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
-      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.photon_tracking_uses_field,
-      C.absolute_time_tracking_default, C.rf_auto_scale_phase_default,
-      C.rf_auto_scale_amp_default, C.use_ptc_layout_default, C.debug);
+      C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
+      C.rf_auto_scale_phase_default, C.rf_auto_scale_amp_default, C.use_ptc_layout_default,
+      C.debug);
 
 }
 
@@ -2109,9 +2109,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_space_charge_on, c_Bool&
     z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool& z_radiation_damping_on,
     c_Bool& z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_photon_tracking_uses_field, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_rf_auto_scale_phase_default, c_Bool& z_rf_auto_scale_amp_default, c_Bool&
-    z_use_ptc_layout_default, c_Bool& z_debug) {
+    z_absolute_time_tracking_default, c_Bool& z_rf_auto_scale_phase_default, c_Bool&
+    z_rf_auto_scale_amp_default, c_Bool& z_use_ptc_layout_default, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2163,8 +2162,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.radiation_fluctuations_on = z_radiation_fluctuations_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.conserve_taylor_maps = z_conserve_taylor_maps;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.photon_tracking_uses_field = z_photon_tracking_uses_field;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
   // c_side.to_c2_set[logical, 0, NOT]

@@ -1990,7 +1990,6 @@ public:
   Bool radiation_damping_on;
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
-  Bool photon_tracking_uses_field;
   Bool absolute_time_tracking_default;
   Bool rf_auto_scale_phase_default;
   Bool rf_auto_scale_amp_default;
@@ -2023,7 +2022,6 @@ public:
     radiation_damping_on(false),
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
-    photon_tracking_uses_field(false),
     absolute_time_tracking_default(false),
     rf_auto_scale_phase_default(true),
     rf_auto_scale_amp_default(true),

@@ -4928,17 +4928,15 @@ rhs = 24 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 25 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%photon_tracking_uses_field = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

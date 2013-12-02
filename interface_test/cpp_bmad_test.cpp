@@ -3326,22 +3326,19 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 25 + offset; C.conserve_taylor_maps = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 26 + offset; C.photon_tracking_uses_field = (rhs % 2 == 0);
+  rhs = 26 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
+  rhs = 27 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
+  rhs = 28 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
+  rhs = 29 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

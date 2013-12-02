@@ -863,7 +863,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_damping_on == y.radiation_damping_on);
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
-  is_eq = is_eq && (x.photon_tracking_uses_field == y.photon_tracking_uses_field);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default);
   is_eq = is_eq && (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default);
