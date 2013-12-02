@@ -1488,8 +1488,6 @@ is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuation
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%photon_tracking_uses_field .eqv. f2%photon_tracking_uses_field)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%rf_auto_scale_phase_default .eqv. f2%rf_auto_scale_phase_default)

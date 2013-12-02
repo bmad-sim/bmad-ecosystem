@@ -1,8 +1,9 @@
 !+
 ! Subroutine offset_photon (ele, orbit, set, offset_position_only, rot_mat)
 !
-! Routine to effectively offset an element by instead offsetting
-! the photon position and field to correspond to the local element coordinates.
+! Routine to effectively offset an element by instead offsetting the photon position and field.
+! For cyrstal, mirror, and multilayer_mirror elements, the element coordinates correspond to 
+! the element surface coordinates.
 !
 ! Modules Needed:
 !   use bmad
@@ -11,9 +12,8 @@
 !   ele          -- Ele_struct: Element
 !   orbit        -- Coord_struct: Coordinates of the particle.
 !   set          -- Logical: 
-!                      T (= set$)   -> Translate from lab coords to local 
-!                                        element coords.
-!                      F (= unset$) -> Translate from outgoing local coords to lab coords.
+!                      T (= set$)   -> Translate from lab coords to element coords.
+!                      F (= unset$) -> Translate from element coords to lab coords.
 !   offset_position_only
 !                -- Logical, optional: If present and True, only offset the position coordinates.
 !   rot_mat(3,3) -- real(rp), optional: Rotation matrix from starting coords to ending coords.

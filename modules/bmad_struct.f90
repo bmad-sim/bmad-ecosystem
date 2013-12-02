@@ -1177,7 +1177,6 @@ type bmad_common_struct
   logical :: radiation_damping_on = .false.        ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%map_with_offsets = F?
-  logical :: photon_tracking_uses_field = .false.  ! False => Track intensity (photons are incoherent).
   logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
   logical :: rf_auto_scale_phase_default = .true.       ! Default for lat%rf_auto_scale_phase
   logical :: rf_auto_scale_amp_default = .true.         ! Default for lat%rf_auto_scale_amp

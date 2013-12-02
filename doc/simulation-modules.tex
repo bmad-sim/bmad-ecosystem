@@ -188,14 +188,14 @@ This channel responds faster than the integrated channel and so helps
 the tune tracker track sudden changes in the frequency of the beam.
 In practice, it also damps tune tracker oscillations.  If $K_P$ is too
 small, the VCO may oscillate indefinitely around the fractional tune
-of the beam.  See section \ref{Tuning} below for more details.
+of the beam.  See section~\sref{Tuning} below for more details.
 
 \item[Gain $K_D$ $\times$ filtered derivative]  
 This is the (D)ifferential channel fo the PID controller.  Provides a
 filtered first derivative of the output of the phase detector.  The
 derivative is obtained a polynomial fitted to a history of the phase
 detector output.  This channel can be used to smooth out the VCO
-response and reduce overshoot.  See section \ref{Tuning} below for
+response and reduce overshoot.  See section~\sref{Tuning} below for
 more details.
 
 \item[$\boldsymbol +$ (sum)]  

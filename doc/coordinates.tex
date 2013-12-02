@@ -38,7 +38,7 @@ plane. Notice that, by construction, the particle is always at $z =
 0$. The coordinate system so constructed is called the \vn{``local
 coordinate system''} or sometimes the \vn{``laboratory coordinate
 system''} when there is need to distinguish it from the \vn{``element
-coordinate system''} (\sref{s:misalign.track}) which is attached to
+coordinate system''} (\sref{s:ele.coords}) which is attached to
 the physical element.
 
 There is a separate reference orbit for each branch
@@ -231,84 +231,89 @@ override these defaults.
 
 \index{MAD}
 Following \mad, the global position of an element is characterized by
-a vector $\Bf V$ 
+a vector $\bfV$ 
 \Begineq
-  \Bf V = 
+  \bfV = 
   \begin{pmatrix}
     X \\ Y \\ Z 
   \end{pmatrix}
 \Endeq
-The orientation of an element is described by a unitary matrix $\Bf
-W$.  The column vectors of $\Bf W$ are the unit vectors spanning the
-local coordinate axes in the order $(x, y, z)$. $\Bf W$ can be
-expressed in terms of the angles $\theta$, $\phi$, and $\psi$ via the
-formula
+The orientation of an element is described by a unitary matrix $\bfW$.
+The column vectors of $\bfW$ are the unit vectors spanning the local
+coordinate axes in the order $(x, y, z)$. $\bfW$ can be expressed in
+terms of the angles $\theta$, $\phi$, and $\psi$ via the formula
 \Begineq
-  \Bf W = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
+  \bfW = \bfW_\Theta \, \bfW_\Phi \, \bfW_\Psi
   \label{wwww}
 \Endeq
 where
 \Begineq
-  \Bf W_\Theta(\theta) = 
+  \bfW_\Theta(\theta) = 
   \begin{pmatrix}
     \cos\theta  & 0 & \sin\theta \\
     0           & 1 & 0          \\
     -\sin\theta & 0 & \cos\theta 
   \end{pmatrix}, \quad
-  \Bf W_\Phi(\phi) = 
+  \bfW_\Phi(\phi) = 
   \begin{pmatrix}
     1 & 0 & 0                \\
     0 & \cos\phi  & \sin\phi \\
     0 & -\sin\phi & \cos\phi 
   \end{pmatrix}, \quad
-  \Bf W_\Psi(\psi) = 
+  \bfW_\Psi(\psi) = 
   \begin{pmatrix}
     \cos\psi & -\sin\psi & 0 \\
     \sin\psi &  \cos\psi & 0 \\
     0        &  0        & 1                
   \end{pmatrix}
+  \label{wtt0t}
 \Endeq
 \index{MAD}
-\bmad, again following \mad, computes $\Bf V$ and $\Bf W$ by starting
+\bmad, again following \mad, computes $\bfV$ and $\bfW$ by starting
 at the first element of the lattice and iteratively using the
 equations
 \begin{align}
-  \Bf V_i &= \Bf W_{i-1} \, \Bf L_i + \Bf V_{i-1}, 
+  \bfV_i &= \bfW_{i-1} \, \bfL_i + \bfV_{i-1}, 
     \label{vwlv} \\
-  \Bf W_i &= \Bf W_{i-1} \, \Bf S_i
+  \bfW_i &= \bfW_{i-1} \, \bfS_i
     \label{wws}
 \end{align}
-$\Bf L_i$ is the displacement vector for the $i$\Th element and matrix
-$\Bf S_i$ is the rotation of the local reference system of the exit
+$\bfL_i$ is the displacement vector for the $i$\Th element and matrix
+$\bfS_i$ is the rotation of the local reference system of the exit
 end with respect to the entrance end. For clarity, the subscript $i$ in 
 the equations below will be dripped. For all elements whose
 reference orbit through them is a straight line, the corresponding
-$\Bf L$ and $\Bf S$ are
+$\bfL$ and $\bfS$ are
 \Begineq
-  \Bf L = 
+  \bfL = 
   \begin{pmatrix}
       0 \\ 0 \\ L
   \end{pmatrix},
   \quad
-  \Bf S = 
+  \bfS = 
   \begin{pmatrix}
       1 & 0 & 0 \\ 
       0 & 1 & 0 \\
       0 & 0 & 1
   \end{pmatrix},
 \Endeq
+Where $L$ is the length of the element. 
 
 %-----------------------------------------------------------------------
 
 \begin{figure}
-  \centering \includegraphics{tilt-bend.pdf} 
-\caption[Orientation of the local coordinate system after a bend] {
-Orientation of the local coordinate system after a bend shown for a
-positive bend angle $\alpha_b$ and for \vn{ref_tilt} angles $\theta_t$
-of 0, $\pm \pi/2$, and $\pi$. The local coordinates axes before the
-bend are labeled $x_0$ and $y_0$ with the $z_0$ axis being directed
-into the page.
-  }  
+\centering \includegraphics{tilt-bend.pdf} 
+\caption[Orientation of a Bend.] 
+  {
+A) Rotation axes for four different \vn{ref_tilt} angles of $\theta_t$
+= 0, $\pm \pi/2$, and $\pi$. $(x_0, y_0, z_0)$ are the local
+coordinates at the entrance end of the bend with the $z_0$ axis being
+directed into the page. Any rotation axis will be displaced by a
+distance of the bend radius \vn{rho} from the origin. B) The $(x, y,
+z)$ coordinates at the exit end of the bend for the same four
+\vn{ref_tilt} angles. In this case the bend angle is taken to be
+$\pi/2$.
+  }
   \label{f:tilt.bend}
 \end{figure}
 
@@ -316,11 +321,21 @@ into the page.
 
 \index{rbend}\index{sbend}
 \index{rho}\index{tilt}\index{angle}
-Where $L$ is the length of the element. For a \vn{bend}, $\Bf L$ and
-$\Bf S$ are given by
+For a \vn{bend}, the axis of rotation is dependent upon the bend's
+\vn{ref_tilt} attribute as shown in \fig{f:tilt.bend}A. The axis of
+rotation points in the negative $y_0$ direction for \vn{ref_tilt} = 0
+and is offset by the bend radius \vn{rho}. Here $(x_0, y_0, z_0)$ are
+the local coordinates at the entrance end of the bend with the $z_0$
+axis being directed into the page in the figure.  For a non-zero
+\vn{ref_tilt}, the rotation axis is itself rotated about the $z_0$
+axis by the value of \vn{ref_tilt}. \fig{f:tilt.bend}B shows the
+exit coordinates for four different values of \vn{ref_tilt} and for a
+bend angle \vn{angle} of $\pi/2$.
+
+For a bend, $\bfL$ and $\bfS$ are given by
 \Begineq
-  \Bf L = \Bf T \, \bftilde L, \quad
-  \Bf S = \Bf T \, \bftilde S \, \Bf T^{-1}
+  \bfL = \bfT \, \bftilde L, \quad
+  \bfS = \bfT \, \bftilde S \, \bfT^{-1}
   \label{ltl}
 \Endeq
 where
@@ -337,7 +352,7 @@ where
     \sin\alpha_b & 0 & \cos\alpha_b
   \end{pmatrix},
   \quad
-  \Bf T = 
+  \bfT = 
   \begin{pmatrix}
     \cos\theta_t & -\sin\theta_t & 0 \\
     \sin\theta_t &  \cos\theta_t & 0 \\
@@ -347,8 +362,8 @@ where
 \Endeq
 with $\rho$ being the bend radius (\vn{rho}), $\alpha_b$ is the bend
 \vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{ref_tilt} angle
-(\sref{s:offset}). Without a \vn{ref_tilt}, $\Bf T$ is the unit matrix
-resulting in $\Bf L = \bftilde L$ and $\Bf S = \bftilde
+(\sref{s:offset}). Without a \vn{ref_tilt}, $\bfT$ is the unit matrix
+resulting in $\bfL = \bftilde L$ and $\bfS = \bftilde
 S$. Notice that for a bend in the horizontal $X-Z$ plane, a positive
 bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
 
@@ -404,7 +419,7 @@ particle's position $\bfr = (x,y,z)$ and momentum $\bfP = (P_x, P_y,
 P_z)$ when the coordinate frame is transformed from frame
 $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
 \begin{align}
-  \bfr_i &= \Bf S_i^{-1} \, \left( \bfr_{i-1} - \bfL_i \right), 
+  \bfr_i &= \bfS_i^{-1} \, \left( \bfr_{i-1} - \bfL_i \right), 
     \label{rwlr} \\
   \bfP_i &= \bfS_i^{-1} \, \bfP_{i-1}
     \label{pps}
@@ -461,7 +476,7 @@ plane}.  For a mirror, the graze angle is a parameter supplied by the
 user. For a crystal, the Bragg angles are calculated so that the
 reference trajectory is in the middle of the Darwin curve. Calculation
 of the Bragg angles for a crystal is given in
-Section~\ref{ss:crystal.ref}.
+Section~\sref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
 \subsection{Element Misalignment and Origin Shift Transformation}
@@ -479,7 +494,7 @@ where
 \end{example}
 and the $\bfS$ matrix is defined by 
 \Begineq
-  \bfS = \Bf W_\Theta \, \Bf W_\Phi \, \Bf W_\Psi
+  \bfS = \bfW_\Theta \, \bfW_\Phi \, \bfW_\Psi
   \label{swww}
 \Endeq
 with

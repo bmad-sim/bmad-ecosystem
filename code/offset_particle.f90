@@ -178,7 +178,7 @@ if (set) then
           m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
           off = matmul(m_trans, [x_off, y_off, z_off])
           rot = matmul(m_trans, [-yp, xp, 0.0_rp])
-          dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
+          dr = [cos_t * dr(1) - sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
         endif
 
         if (any(rot /= 0)) then
@@ -447,7 +447,7 @@ else
           m_trans(3,:) = [-cos_t * sin_a, -sin_a * sin_t, cos_a]
           off = matmul(m_trans, [x_off, y_off, z_off])
           rot = matmul(m_trans, [-yp, xp, 0.0_rp])
-          dr = [cos_t * dr(1) + sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
+          dr = [cos_t * dr(1) - sin_t * dr(2), sin_t * dr(1) + cos_t * dr(2), dr(3)]
         endif
 
         if (any(rot /= 0)) then
