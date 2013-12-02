@@ -64,6 +64,7 @@ this structure along with the default values are:
     real(rp) fatal_ds_adaptive_tracking = 1e-8 ! Threshold for loosing particles.
     integer taylor_order = 3                   ! 3rd order is default
     integer default_integ_order = 2            ! PTC integration order
+    integer ptc_max_fringe_order = 2           ! PTC max fringe order (2 => Quadrupole !).
     logical sr_wakes_on = T                    ! Short range wake fields?
     logical lr_wakes_on = T                    ! Long range wake fields
     logical mat6_track_symmetric = T           ! symmetric offsets
@@ -79,6 +80,7 @@ this structure along with the default values are:
     logical absolute_time_tracking_default = F ! Default for lat%absolute_time_tracking
     logical rf_auto_scale_phase_default = T    ! Default for lat%rf_auto_scale_phase
     logical rf_auto_scale_amp_default = T      ! Default for lat%rf_auto_scale_amp
+    logical debug = F                          ! Used for code debugging.
   end type
 \end{example}
 
@@ -146,6 +148,9 @@ Cutoff Taylor order of maps produced by \vn{sym_lie_ptc}.
 \item[\vn{\%default_integ_order}] \Newline
 Order of the the integrator used by Etienne Forest's PTC code (\sref{s:libs}).
 
+\item{ptc_max_fringe_order} \Newline
+Maximum order for computing fringe field effects in PTC. 
+
 \item[\vn{\%sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wake field effects.
 
@@ -206,6 +211,9 @@ Default setting to be applied to a lattice if \vn{rf_auto_scale_amp}
 an element that is not associated with a lattice is tracked, this
 parameter will be used to determine whether amplitude auto scaling is
 done.
+
+\item[\vn{%debug}] \Newline
+Used for communication between program units for debugging purposes.
 
 \end{description}
 

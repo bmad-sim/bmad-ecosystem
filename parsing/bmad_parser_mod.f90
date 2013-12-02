@@ -1982,12 +1982,17 @@ case ('push', 'push_inline')
   bp_com%num_lat_files = n_file
   inquire (file = file_name, name = bp_com%lat_file_names(n_file))
 
-  do i = 1, n_file - 1
-    if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
-    call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
-                       warn_only = .true.)
-    exit
-  enddo
+  ! The same file may be validly called multiple times if it is an inline file.
+  ! EG: A wall file called inline.
+
+  if (how == 'push') then
+    do i = 1, n_file - 1
+      if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
+      call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
+                         warn_only = .true.)
+      exit
+    enddo
+  endif
 
 ! "pop" means close the current file and pop its name off the stack
 
