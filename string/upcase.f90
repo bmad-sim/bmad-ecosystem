@@ -10,7 +10,7 @@
 !   str_in  -- Character(*): Input string.
 !
 ! Output:
-!   str_out -- Character(*): String with all letters converted to lower case.
+!   str_out -- Character(*): String with all letters converted to upper case.
 !-
 
 function upcase(str_in) result (str_out)
