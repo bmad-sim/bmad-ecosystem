@@ -352,12 +352,35 @@ type (lat_param_struct) param
 type (beam_init_struct), target :: beam_init
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
+type (coord_struct), pointer :: p
 
+real(rp) :: beta_vel
 integer i_bunch, i, n, n_kv
+logical :: err_flag
 
 character(22) :: r_name = "init_beam_distribution"
 
 !
+
+! Special init from file
+if (upcase(beam_init%distribution_type(1)) == 'FILE') then
+  call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_flag)
+  if (err_flag) call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+  do i_bunch = 1, size(beam%bunch)
+    bunch => beam%bunch(i_bunch)
+    do i = 1, size(bunch%particle)
+      p => bunch%particle(i)
+      p%s = ele%s
+      call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = beta_vel)
+      p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
+      call init_coord (p, p, ele, .true.)
+    enddo
+  enddo
+  return
+endif
+
+
+! Normal init
 
 call reallocate_beam (beam, beam_init%n_bunch, 0)
 
@@ -521,7 +544,7 @@ do i = 1, 3
     n_kv = n_kv + 1
     ix_kv(n_kv) = i
   case default
-    call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED')
+    call out_io (s_abort$, r_name, 'PHASE SPACE DISTRIBUTION TYPE NOT RECOGNIZED: '//trim(beam_init%distribution_type(i)))
     if (global_com%exit_on_error) call err_exit
     return
   end select
