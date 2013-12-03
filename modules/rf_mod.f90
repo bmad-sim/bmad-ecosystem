@@ -7,7 +7,7 @@ real(rp), pointer, private :: field_scale, dphi0_ref
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
-integer, private, save :: n_loop ! Used for debugging.
+integer, private, save :: n_call ! Used for debugging.
 logical, private, save :: is_lost
 
 contains
@@ -89,12 +89,13 @@ real(rp) value_saved(num_ele_attrib$), dphi0_ref_original, pz_arr(0:n_sample-1),
 real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
-integer n_pts, n_pts_tot
+integer n_pts, n_pts_tot, n_loop, n_loop_max
 
 logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, amp_scale_good
 logical, optional :: scale_phase, scale_amp
+logical :: debug = .false.
 
-character(28), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
+character(*), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
 
 ! Check if auto scale is needed.
 
@@ -196,7 +197,7 @@ endif
 ! scale_tol = E_tol / dE_peak_wanted corresponds to a tolerance in dE_peak_wanted of E_tol. 
 
 E_tol = 0.1 ! eV
-scale_tol = max(1d-7, E_tol / dE_peak_wanted) ! tolerance for scale_correct
+scale_tol = max(1d-6, E_tol / dE_peak_wanted) ! tolerance for scale_correct
 phi_tol = 1d-5
 
 !------------------------------------------------------
@@ -352,11 +353,15 @@ endif
 
 ! Now adjust %field_scale for the correct acceleration at the phase for maximum acceleration. 
 
-n_loop = 0  ! For debug purposes.
+n_call = 0  ! For debug purposes.
+n_loop_max = 10000
 num_times_lost = 0
 dphi = 0.05
 
-main_loop: do
+if (debug) print *, '------------------------------------------'
+if (debug) print *, 'TOL: ', scale_tol, phi_tol
+
+main_loop: do n_loop = 1, n_loop_max
 
   ! Find approximately the phase for maximum acceleration.
   ! First go in +phi direction until pz decreases.
@@ -366,12 +371,13 @@ main_loop: do
   do i = 1, 100
     phi = phi_max + dphi
     pz = pz_calc(phi, err_flag); if (err_flag) return
+    if (debug) print *, 'FWD:', i, trim(ele%name), '  ', phi, pz
 
     if (is_lost) then
       do j = -19, 20
-        print *, j, phi_max+j/40.0, pz_calc(phi_max + j / 40.0, err_flag)
+        if (debug) print *, j, phi_max+j/40.0, pz_calc(phi_max + j / 40.0, err_flag)
       enddo
-      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE!')
+      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE FOR ELEMENT: ' // ele%name)
       err_flag = .true.
       return
     endif
@@ -393,6 +399,7 @@ main_loop: do
     do
       phi = phi_max - dphi
       pz = pz_calc(phi, err_flag); if (err_flag) return
+      if (debug) print *, 'REV:', i, trim(ele%name), '  ', phi, pz
       if (pz < pz_max) then
         pz_minus = pz
         exit
@@ -412,6 +419,8 @@ main_loop: do
   phi_max = phi_max - b * dphi / (2 * c)
   pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
 
+  if (debug) print '(a, 3es18.10, f10.6)', 'MAX:', phi_max, pz_max, field_scale, dphi
+
   ! Now scale %field_scale
   ! scale_correct = dE(design) / dE (from tracking)
   ! Can overshoot so if scale_correct is too large then scale back by a factor of 10
@@ -424,6 +433,8 @@ main_loop: do
     scale_correct = 1
   endif
 
+  if (debug) print '(a, i5, 2es12.3)', 'TEST:', n_loop, abs(scale_correct - 1), abs(phi_max-phi_max_old) 
+
   if (abs(scale_correct - 1) < scale_tol .and. abs(phi_max-phi_max_old) < phi_tol) exit
   phi_max_old = phi_max
 
@@ -432,6 +443,10 @@ main_loop: do
 
   if (do_scale_phase) then
     pz_max = pz_calc(phi_max, err_flag); if (err_flag) return
+  endif
+
+  if (n_loop == n_loop_max) then
+    call out_io (s_warn$, r_name, 'AUTO SCALING NOT CONVERGING FOR ELEMENT: ' // ele%name)
   endif
 
 enddo main_loop
@@ -539,7 +554,7 @@ pz = end_orb%vec(6)
 is_lost = .not. particle_is_moving_forward(end_orb)
 if (is_lost) pz = -1
 
-n_loop = n_loop + 1
+n_call = n_call + 1
 
 end function pz_calc
 
