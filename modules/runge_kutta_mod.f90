@@ -251,6 +251,11 @@ end do
 
 ! Here if step size too small or too many steps
 
+call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL WHILE TRACKING THROUGH: ' // ele%name, &
+                               'AT S-POSITION FROM ENTRANCE: \F10.5\ ', &
+                               'COULD BE DUE TO A DISCONTINUITY IN THE FIELD ', &
+                               r_array = [s])
+
 orb_end%state = lost$
 err_flag = .false.
 
