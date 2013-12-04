@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag)
+! Subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
 !
 ! Subroutine to get input from the terminal.
 !
@@ -7,12 +7,16 @@
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
 !   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
+!   cmd_line   -- Character(*): Command from something like Python if tao_com%shell_interactive = F.
 !
 ! Output:
 !   cmd_line -- Character(*): Command line from the user.
+!   will_need_cmd_line_input
+!              -- logical, optional :: If tao_com%shell_interactive = F, This argument is set to True
+!                   when more input is needed from the calling program.
 !-
 
-subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag)
+subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
 
 use tao_mod, dummy => tao_get_user_input
 use input_mod
@@ -41,7 +45,7 @@ character(40) tag, name
 character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
-logical, optional :: wait_flag
+logical, optional :: wait_flag, will_need_cmd_line_input
 logical err, wait, flush
 logical, save :: init_needed = .true.
 
@@ -188,11 +192,20 @@ endif
 
 ! Here if no command file is being used.
 
-if (.not. tao_com%multi_commands_here) then
-  cmd_line = ' '
-  tag = trim(prompt_string) // '> '
-  tao_com%cmd_from_cmd_file = .false.
-  call read_a_line (tag, cmd_line)
+if (tao_com%shell_interactive) then
+  if (.not. tao_com%multi_commands_here) then
+    cmd_line = ' '
+    tag = trim(prompt_string) // '> '
+    tao_com%cmd_from_cmd_file = .false.
+    call read_a_line (tag, cmd_line)
+  endif
+endif
+
+if (present (will_need_cmd_line_input)) then
+  will_need_cmd_line_input = .false.
+  if (.not. tao_com%multi_commands_here .and. (tao_com%cmd_file_level == 0 .or. tao_com%cmd_file(n_level)%paused)) then
+     will_need_cmd_line_input = .true.
+  endif
 endif
 
 call alias_translate (cmd_line, err)

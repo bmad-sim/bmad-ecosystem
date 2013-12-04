@@ -646,9 +646,11 @@ case ('x_scale')
     return
   endif
 
+  call tao_cmd_split (cmd_line, 5, cmd_word, .true., err); if (err) return
+
   gang_str = ''
   do 
-    if (cmd_word(1) /= '-') exit
+    if (cmd_word(1)(1:1) /= '-') exit
     call match_word (cmd_word(1), ['-nogang', '-gang  '], ix, .true., matched_name=switch)
 
     select case (switch)
@@ -661,7 +663,6 @@ case ('x_scale')
     cmd_word(1:4) = cmd_word(2:5)
   enddo
 
-  call tao_cmd_split (cmd_line, 4, cmd_word, .true., err); if (err) return
   if (cmd_word(2) == ' ') then
     call tao_x_scale_cmd (cmd_word(1), 0.0_rp, 0.0_rp, err, gang_str)
   else
