@@ -64,11 +64,11 @@ interface
 end interface
  
 interface
-  subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag)
+  subroutine tao_get_user_input (cmd_line, prompt_str, wait_flag, will_need_cmd_line_input)
     implicit none
     character(*) :: cmd_line
     character(*), optional :: prompt_str 
-    logical, optional :: wait_flag
+    logical, optional :: wait_flag, will_need_cmd_line_input
   end subroutine
 end interface
  

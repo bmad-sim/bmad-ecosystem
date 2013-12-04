@@ -149,16 +149,18 @@ do j = 1, size(plot%graph)
   call tao_x_scale_graph (plot%graph(j), x_min, x_max)
 enddo
 
-! if auto scale is needed...
+! if ganging is needed...
 
 do_gang = plot%autoscale_gang_x
 if (present(gang)) then
-  if (gang == 'gang') do_gang = .true.
-  if (gang == 'nogang') do_gang = .false.
-  if (gang /= '') then
+  select case (gang)
+  case ('gang');   do_gang = .true.
+  case ('nogang'); do_gang = .false.
+  case ('')
+  case default
     call out_io (s_error$, r_name, 'BAD GANG SWITCH: ' // gang)
-    call err_exit
-  endif
+    return
+  end select
 endif
 
 if (do_gang) then
