@@ -325,9 +325,9 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   LWORK = 3*n-1
   WORK(:) = 0.0d+0
 
-  OPEN(unit = 15, file = 'debug_data', access='append')
-  WRITE(15,*) "No. Jac. Evals versus Cost"
-  WRITE(*,*) "initialfactor = ", initialfactor
+  !OPEN(unit = 15, file = 'debug_data', access='append')
+  !WRITE(15,*) "No. Jac. Evals versus Cost"
+  !WRITE(*,*) "initialfactor = ", initialfactor
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   accepted = 0
@@ -735,7 +735,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   ENDIF
 
 !C!               
-  CLOSE(unit = 15)
+  !CLOSE(unit = 15)
 !C!
 END SUBROUTINE geolevmar
      

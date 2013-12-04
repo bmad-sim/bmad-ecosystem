@@ -10,7 +10,7 @@ type geodesic_lm_param_struct
   integer :: maxaev = 0         !max number of dir second derivs (0->no limit)
   integer :: print_level = 5    !how many details to be printed (0-5) 
   integer :: print_unit = 10    !unit number details written to
-  integer :: imethod = 10        !method choice for updating LM parameter
+  integer :: imethod = 10       !method choice for updating LM parameter
   integer :: iaccel = 1         ! use geodesic acceleration or not
   integer :: ibold = 0          ! 'boldness' in accepting uphill (0->downhill)
   integer :: ibroyden = 0       ! number of iterations using approximate jacobian
@@ -37,7 +37,7 @@ type geodesic_lm_param_struct
   logical :: analytic_avv = .false.
   logical :: center_diff = .true.
 
-  logical :: geo_hit_limit= .true.
+  logical :: geo_hit_limit= .false.  !flag for when limits are hit
 end type 
 
 type (geodesic_lm_param_struct), save, target ::  geodesic_lm_param
@@ -127,6 +127,8 @@ end subroutine type_geodesic_lm
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
+!Perhaps remove geo_func, jacobian, Avv, callback from signature as they don't
+!need to be there
 !+
 ! Subroutine run_geodesic_lm (geo_func, jacobian, Avv, a, y_fit, fjac, callback, info, &
 !                             dtd,  niters, nfev, njev, naev, converged)
@@ -147,6 +149,10 @@ real(rp) dtd(:,:), fjac(:,:)
 integer info, niters, nfev, njev, naev, converged
 integer m, n
 
+!User provides these subroutines. Can be trivial if parameters in
+!geodesic_lm_param are set to not use jacobian, Avv. geo_func and callback are
+!necessary for all cases.
+
 interface
   subroutine geo_func (mm,nn, a, y_fit)
     import
@@ -155,18 +161,22 @@ interface
     integer :: mm, nn
     real(rp) :: a(nn)
     real(rp) :: y_fit(mm)
+    !returns an array of residuals
   end subroutine
 
   subroutine jacobian(m, n, x, fjac)
     implicit none
     integer :: m, n
     real(8) :: x(n), fjac(m,n)
+    !calculates the jacobian of the residuals w.r.t. parameters
   end subroutine
 
   subroutine Avv(m,n,x,v,acc)
     implicit none
     integer :: m,n
     real(8) :: x(n),v(n),acc(n)
+    !Calculates second directional derivative of geo_func along direction v
+    !returning acceleration vector acc
   end subroutine
 
   subroutine callback(m,n,x,fvec,fjac,accepted,info)     
@@ -174,6 +184,7 @@ interface
     integer m, n, info, accepted
     real(8) x(n), fvec(m)
     real(8) fjac(m,n)
+    !Handles cases when algorithm oversteps bounds of calling routine
   end subroutine
 end interface
 
@@ -181,8 +192,8 @@ end interface
 
 g => geodesic_lm_param
 
-m = size(fjac, 1)
-n = size(fjac, 2)
+m = size(fjac, 1) !number of parameters
+n = size(fjac, 2) !number of functions
 
 call geolevmar(geo_func, jacobian, Avv, a, y_fit, fjac, n, m, callback, info, &
             g%analytic_jac, g%analytic_Avv, g%center_diff, g%eps, g%h1, g%h2, &
@@ -194,7 +205,5 @@ call geolevmar(geo_func, jacobian, Avv, a, y_fit, fjac, n, m, callback, info, &
             g%initialfactor, g%factoraccept, g%factorreject, g%avmax)
 
 end subroutine run_geodesic_lm
-
-               
 
 end module
