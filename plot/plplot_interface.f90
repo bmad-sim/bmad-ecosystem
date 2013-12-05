@@ -800,7 +800,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   select case (page_type)
   case ('X')
     call plsdev ('xwin')
-    call plsetopt('drvopt', 'nobuffered=1')
+    call plsetopt('drvopt', 'nobuffered=1') ! nobuffered: Sets unbuffered operation
 
   case ('TK')
     call plsdev ('tk')
@@ -854,9 +854,10 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
 ! Set size of x-window.
 ! Work around for bug in plplot-5.9.5 is to set the geometry
 
-  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
-    ix_len = nint(85*x_len)
-    iy_len = nint(85*y_len)
+  if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT' &
+     .or. page_type(1:3) == 'GIF') then
+    ix_len = nint(72*x_len)  ! 72 pixels per inch for a screen
+    iy_len = nint(72*y_len)
     call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
     !write (geom, '(i0, a, i0, a)') ix_len, 'x', iy_len, '+10+10'
     !call plsetopt ("geometry", trim(geom))
@@ -899,7 +900,7 @@ subroutine qp_open_page_basic (page_type, x_len, y_len, plot_file, &
   pl_com%i_chan = i_ch
   pl_com%char_size = d*h
   pl_com%sym_size = 10
-  pl_com%page_scale = 1    ! real_option(1.0_rp, page_scale)
+  pl_com%page_scale = real_option(1.0_rp, page_scale)
   pl_com%page_type = page_type
 
   if (page_type == 'X' .or. page_type == 'TK' .or. page_type == 'QT') then
