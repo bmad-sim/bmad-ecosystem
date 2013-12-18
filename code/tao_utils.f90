@@ -3309,10 +3309,10 @@ if (plane == x_plane$) then
   if (emit_type == projected_emit$) then
     emit = bunch_params%x%emit
   elseif (emit_type == apparent_emit$) then
-    if (bunch_params%sigma(s66$) == 0) then
-      emit = bunch_params%sigma(s11$) / ele%a%beta
+    if (bunch_params%sigma(6,6) == 0) then
+      emit = bunch_params%sigma(1,1) / ele%a%beta
     else
-      emit = (bunch_params%sigma(s11$) - bunch_params%sigma(s16$)**2 / bunch_params%sigma(s66$)) / ele%a%beta
+      emit = (bunch_params%sigma(1,1) - bunch_params%sigma(1,6)**2 / bunch_params%sigma(6,6)) / ele%a%beta
     endif
   else
     call err_exit    
@@ -3322,10 +3322,10 @@ elseif (plane == y_plane$) then
   if (emit_type == projected_emit$) then
     emit = bunch_params%y%emit
   elseif (emit_type == apparent_emit$) then
-    if (bunch_params%sigma(s66$) == 0) then
-      emit = bunch_params%sigma(s33$) / ele%b%beta
+    if (bunch_params%sigma(6,6) == 0) then
+      emit = bunch_params%sigma(3,3) / ele%b%beta
     else
-      emit = (bunch_params%sigma(s33$) - bunch_params%sigma(s36$)**2 / bunch_params%sigma(s66$)) / ele%b%beta
+      emit = (bunch_params%sigma(3,3) - bunch_params%sigma(3,6)**2 / bunch_params%sigma(6,6)) / ele%b%beta
     endif
   else
     call err_exit    
