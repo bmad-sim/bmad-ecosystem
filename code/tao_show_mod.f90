@@ -450,7 +450,8 @@ case ('beam')
     endif
     nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
     nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
-                              sqrt(bunch_p%sigma([s11$, s22$, s33$, s44$, s55$, s66$]))
+                      sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
+                      sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
     if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
       nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
       nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
