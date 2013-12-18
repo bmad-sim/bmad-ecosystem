@@ -1602,14 +1602,14 @@ avg_energy = avg_energy * bunch%particle(1)%p0c / charge_live
 call find_bunch_sigma_matrix (bunch%particle, charge, bunch_params%centroid%vec, bunch_params%sigma, sigma_s)
 
 ! X, Y, & Z Projected Parameters
-call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(s11$), bunch_params%sigma(s22$), &
-                      bunch_params%sigma(s12$), bunch_params%sigma(s16$), bunch_params%sigma(s26$))
+call projected_twiss_calc ('X', bunch_params%x, bunch_params%sigma(1,1), bunch_params%sigma(2,2), &
+                      bunch_params%sigma(1,2), bunch_params%sigma(1,6), bunch_params%sigma(2,6))
 
-call projected_twiss_calc ('Y', bunch_params%y, bunch_params%sigma(s33$), bunch_params%sigma(s44$), &
-                      bunch_params%sigma(s34$), bunch_params%sigma(s36$), bunch_params%sigma(s46$))
+call projected_twiss_calc ('Y', bunch_params%y, bunch_params%sigma(3,3), bunch_params%sigma(4,4), &
+                      bunch_params%sigma(3,4), bunch_params%sigma(3,6), bunch_params%sigma(4,6))
 
-call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(s55$), bunch_params%sigma(s66$), &
-                      bunch_params%sigma(s56$), 0.0_rp, 0.0_rp)
+call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(5,5), bunch_params%sigma(6,6), &
+                      bunch_params%sigma(5,6), 0.0_rp, 0.0_rp)
      
 ! Normal-Mode Parameters.
 ! Use Andy Wolski's eigemode method to find normal-mode beam parameters.
@@ -1728,19 +1728,19 @@ character(*) plane
 
 !
 
-if (bunch_params%sigma(s66$) /= 0) then
-  twiss%eta   = exp_x_d / bunch_params%sigma(s66$)
-  twiss%etap  = exp_px_d / bunch_params%sigma(s66$)
+if (bunch_params%sigma(6,6) /= 0) then
+  twiss%eta   = exp_x_d / bunch_params%sigma(6,6)
+  twiss%etap  = exp_px_d / bunch_params%sigma(6,6)
 endif
 
-if (bunch_params%sigma(s66$) == 0) then
+if (bunch_params%sigma(6,6) == 0) then
   x2   = exp_x2 
   x_px = exp_x_px 
   px2  = exp_px2  
 else
-  x2   = exp_x2 - exp_x_d**2 / bunch_params%sigma(s66$)
-  x_px = exp_x_px - exp_x_d * exp_px_d / bunch_params%sigma(s66$)
-  px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(s66$)
+  x2   = exp_x2 - exp_x_d**2 / bunch_params%sigma(6,6)
+  x_px = exp_x_px - exp_x_d * exp_px_d / bunch_params%sigma(6,6)
+  px2  = exp_px2  - exp_px_d**2 / bunch_params%sigma(6,6)
 endif
 
 emit = sqrt(max(0.0_rp, x2*px2 - x_px**2)) ! Roundoff may give negative argument.
@@ -1888,7 +1888,7 @@ implicit none
 
 type (coord_struct) :: particle(:)
 
-real(rp) charge_live, avg(6), sigma(21)
+real(rp) charge_live, avg(6), sigma(6,6)
 real(rp) sigma_s(6,6), s(6,6), charge(:)
 
 integer i
@@ -1901,66 +1901,31 @@ do i = 1, 6
   avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%state == alive$)) / charge_live
 enddo
 
-sigma(s11$) = exp_calc (particle, charge, 1, 1, avg)
-sigma(s12$) = exp_calc (particle, charge, 1, 2, avg)
-sigma(s13$) = exp_calc (particle, charge, 1, 3, avg)
-sigma(s14$) = exp_calc (particle, charge, 1, 4, avg)
-sigma(s15$) = exp_calc (particle, charge, 1, 5, avg)
-sigma(s16$) = exp_calc (particle, charge, 1, 6, avg)
-sigma(s22$) = exp_calc (particle, charge, 2, 2, avg)
-sigma(s23$) = exp_calc (particle, charge, 2, 3, avg)
-sigma(s24$) = exp_calc (particle, charge, 2, 4, avg)
-sigma(s25$) = exp_calc (particle, charge, 2, 5, avg)
-sigma(s26$) = exp_calc (particle, charge, 2, 6, avg)
-sigma(s33$) = exp_calc (particle, charge, 3, 3, avg)
-sigma(s34$) = exp_calc (particle, charge, 3, 4, avg)
-sigma(s35$) = exp_calc (particle, charge, 3, 5, avg)
-sigma(s36$) = exp_calc (particle, charge, 3, 6, avg)
-sigma(s44$) = exp_calc (particle, charge, 4, 4, avg)
-sigma(s45$) = exp_calc (particle, charge, 4, 5, avg)
-sigma(s46$) = exp_calc (particle, charge, 4, 6, avg)
-sigma(s55$) = exp_calc (particle, charge, 5, 5, avg)
-sigma(s56$) = exp_calc (particle, charge, 5, 6, avg)
-sigma(s66$) = exp_calc (particle, charge, 6, 6, avg)
+sigma(1,1) = exp_calc (particle, charge, 1, 1, avg)
+sigma(1,2) = exp_calc (particle, charge, 1, 2, avg);  sigma(2,1) = sigma(1,2)
+sigma(1,3) = exp_calc (particle, charge, 1, 3, avg);  sigma(3,1) = sigma(1,3)
+sigma(1,4) = exp_calc (particle, charge, 1, 4, avg);  sigma(4,1) = sigma(1,4)
+sigma(1,5) = exp_calc (particle, charge, 1, 5, avg);  sigma(5,1) = sigma(1,5)
+sigma(1,6) = exp_calc (particle, charge, 1, 6, avg);  sigma(6,1) = sigma(1,6)
+sigma(2,2) = exp_calc (particle, charge, 2, 2, avg)
+sigma(2,3) = exp_calc (particle, charge, 2, 3, avg);  sigma(3,2) = sigma(2,3)
+sigma(2,4) = exp_calc (particle, charge, 2, 4, avg);  sigma(4,2) = sigma(2,4)
+sigma(2,5) = exp_calc (particle, charge, 2, 5, avg);  sigma(5,2) = sigma(2,5)
+sigma(2,6) = exp_calc (particle, charge, 2, 6, avg);  sigma(6,2) = sigma(2,6)
+sigma(3,3) = exp_calc (particle, charge, 3, 3, avg)
+sigma(3,4) = exp_calc (particle, charge, 3, 4, avg);  sigma(4,3) = sigma(3,4)
+sigma(3,5) = exp_calc (particle, charge, 3, 5, avg);  sigma(5,3) = sigma(3,5)
+sigma(3,6) = exp_calc (particle, charge, 3, 6, avg);  sigma(6,3) = sigma(3,6)
+sigma(4,4) = exp_calc (particle, charge, 4, 4, avg)
+sigma(4,5) = exp_calc (particle, charge, 4, 5, avg);  sigma(5,4) = sigma(4,5)
+sigma(4,6) = exp_calc (particle, charge, 4, 6, avg);  sigma(6,4) = sigma(4,6)
+sigma(5,5) = exp_calc (particle, charge, 5, 5, avg)
+sigma(5,6) = exp_calc (particle, charge, 5, 6, avg);  sigma(6,5) = sigma(5,6)
+sigma(6,6) = exp_calc (particle, charge, 6, 6, avg)
 
 ! make sigma.S matrix
 
-sigma_s(1,1) = sigma(s11$)
-sigma_s(1,2) = sigma(s12$)
-sigma_s(1,3) = sigma(s13$)
-sigma_s(1,4) = sigma(s14$)
-sigma_s(1,5) = sigma(s15$)
-sigma_s(1,6) = sigma(s16$)
-sigma_s(2,1) = sigma(s12$)
-sigma_s(2,2) = sigma(s22$)
-sigma_s(2,3) = sigma(s23$)
-sigma_s(2,4) = sigma(s24$)
-sigma_s(2,5) = sigma(s25$)
-sigma_s(2,6) = sigma(s26$)
-sigma_s(3,1) = sigma(s13$)
-sigma_s(3,2) = sigma(s23$)
-sigma_s(3,3) = sigma(s33$)
-sigma_s(3,4) = sigma(s34$)
-sigma_s(3,5) = sigma(s35$)
-sigma_s(3,6) = sigma(s36$)
-sigma_s(4,1) = sigma(s14$)
-sigma_s(4,2) = sigma(s24$)
-sigma_s(4,3) = sigma(s34$)
-sigma_s(4,4) = sigma(s44$)
-sigma_s(4,5) = sigma(s45$)
-sigma_s(4,6) = sigma(s46$)
-sigma_s(5,1) = sigma(s15$)
-sigma_s(5,2) = sigma(s25$)
-sigma_s(5,3) = sigma(s35$)
-sigma_s(5,4) = sigma(s45$)
-sigma_s(5,5) = sigma(s55$)
-sigma_s(5,6) = sigma(s56$)
-sigma_s(6,1) = sigma(s16$)
-sigma_s(6,2) = sigma(s26$)
-sigma_s(6,3) = sigma(s36$)
-sigma_s(6,4) = sigma(s46$)
-sigma_s(6,5) = sigma(s56$)
-sigma_s(6,6) = sigma(s66$)
+sigma_s = sigma
 
 s = 0.0
 
