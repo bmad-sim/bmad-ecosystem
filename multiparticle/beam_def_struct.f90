@@ -2,13 +2,6 @@ module beam_def_struct
 
 use bmad_struct
 
-! Sigma matrix elements (21 total)
-integer, parameter :: s11$ = 1, s12$ = 2, s13$ = 3, s14$ =  4, s15$ =  5
-integer, parameter :: s16$ = 6, s22$ = 7, s23$ = 8, s24$ = 9
-integer, parameter :: s25$ = 10, s26$ = 11, s33$ = 12, s34$ = 13, s35$ = 14
-integer, parameter :: s36$ = 15, s44$ = 16, s45$ = 17, s46$ = 18
-integer, parameter :: s55$ = 19, s56$ = 20, s66$ = 21
-
 type beam_spin_struct
   real(rp) :: polarization = 1.0 ! 100% polarized is default.
   real(rp) :: theta = 0.0        ! polarization direction in polar coordinates
@@ -97,7 +90,7 @@ type bunch_params_struct
   type (twiss_struct) :: x, y, z, a, b, c
   type (coord_struct) :: centroid  ! Lab frame
   type (beam_spin_struct) :: spin  ! polarization
-  real(rp) sigma(21)               ! projected sigma matrix
+  real(rp) sigma(6,6)              ! beam size matrix
   real(rp) s                       ! Longitudinal position.
   real(rp) charge_live             ! Charge of all non-lost particle
   integer n_particle_tot
