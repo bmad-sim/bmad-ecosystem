@@ -3647,7 +3647,7 @@ if (creating_fibre) then
   enddo
   n_max  = n
 else
-  n_max = n_relavent
+  n_max = min(n_pole_maxx, size(k))
 endif
 
 end subroutine ele_to_an_bn
