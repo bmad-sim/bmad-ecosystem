@@ -120,7 +120,7 @@ bunch => beam%bunch(1)
 call calc_bunch_params (bunch, bunch_params, err, print_err = .true.)
 
 ! Set running energy spread and sigma_z
-sigma_z = sqrt(bunch_params%sigma(s55$))
+sigma_z = sqrt(bunch_params%sigma(5,5))
 energy_spread_eV = initial_slice_energy_spread_eV !Old: sqrt(bunch_params%sigma(s66$))*ele%value(e_tot$)
 
 if (verbose) print *, 'Bunch initialized'
@@ -135,7 +135,7 @@ write (*, '(a, f15.7, a)') '      energy            : ', 1e-6_rp*ele%value(e_tot
 write (*, '(a, f15.7, a)') '      charge            : ', 1e12_rp*bunch_params%charge_live, ' pC'
 write (*, '(a, f15.7, a)') '      norm_emit_a       : ', 1e6_rp*bunch_params%a%norm_emit, ' mm-mrad'
 write (*, '(a, f15.7, a)') '      norm_emit_b       : ', 1e6_rp*bunch_params%b%norm_emit, ' mm-mrad'
-write (*, '(a, f15.7, a)') '      sigma_z/c         : ', 1e12_rp*sqrt(bunch_params%sigma(s55$))/c_light, ' ps'
+write (*, '(a, f15.7, a)') '      sigma_z/c         : ', 1e12_rp*sqrt(bunch_params%sigma(5,5))/c_light, ' ps'
 write (*, '(a, f15.7, a)') '      slice sigma_E     : ', energy_spread_eV, ' eV'
 if (use_beam) then
   write (*,'(a)')  'Using beam for sigma_z calc'
@@ -176,8 +176,8 @@ do ix=1, lat%n_ele_track
   
   ! Take into account bunch compression by magnifying the previous energy spread by the compression ratio
   !  (using previous sigma_z, then set sigma_z
-  energy_spread_eV = energy_spread_eV * sigma_z /  sqrt(bunch_params%sigma(s55$)) 
-  sigma_z = sqrt(bunch_params%sigma(s55$)) 
+  energy_spread_eV = energy_spread_eV * sigma_z /  sqrt(bunch_params%sigma(5,5)) 
+  sigma_z = sqrt(bunch_params%sigma(5,5)) 
   
   ! Set ele's emittances and sigma_z from the bunch. The energy spread is set separately
   call set_ele(ele, bunch_params, energy_spread_eV)
@@ -223,7 +223,7 @@ type (bunch_params_struct) :: bunch_params
 real (rp) :: gamma, energy_spread_eV
 !
 call convert_total_energy_to(ele%value(e_tot$), lat%param%particle, gamma)
-ele%z%sigma   = sqrt(bunch_params%sigma(s55$))
+ele%z%sigma   = sqrt(bunch_params%sigma(5,5))
 ele%z%sigma_p = energy_spread_eV / ele%value(e_tot$)
 ele%a%emit    = bunch_params%a%norm_emit / gamma
 ele%b%emit    = bunch_params%b%norm_emit / gamma
