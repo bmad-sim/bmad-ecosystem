@@ -966,6 +966,8 @@ character(*), parameter :: r_name = 'update_ptc_fibre_from_bmad'
 branch => pointer_to_branch(ele)
 call ele_to_an_bn (ele, branch%param, .false., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
+! Must set all poles even if zero since they might have been non-zero beforehand.
+
 do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre,  i, 0, ptc_key%list%k(i))
   call add (ele%ptc_fibre, -i, 0, ptc_key%list%ks(i))
