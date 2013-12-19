@@ -56,14 +56,14 @@ do ib = 0, ubound(lat%branch, 1)
     stale = .true.
   else
     if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
-    stale = .false.
+    stale = (ele_init%bookkeeping_state%ref_energy == stale$)
   endif
 
   branch%param%bookkeeping_state%ref_energy = ok$
 
   ! Init energy at beginning of branch if needed.
 
-  if (stale .or. ele_init%bookkeeping_state%ref_energy == stale$) then
+  if (stale) then
     if (branch%ix_from_branch >= 0) then
 
       branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
@@ -87,7 +87,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele_init%value(p0c_start$) = ele_init%value(p0c$)
   endif
 
-  if (stale .or. ele_init%bookkeeping_state%ref_energy == stale$) then
+  if (stale) then
     if (branch%ix_from_branch >= 0) then
       call init_coord (ele_init%time_ref_orb_in, zero6, ele_init, .false.)
       call init_coord (ele_init%time_ref_orb_out, zero6, ele_init, .true.)

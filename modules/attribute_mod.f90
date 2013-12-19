@@ -982,7 +982,7 @@ do_print = logic_option (.true., err_print_flag)
 ! Multipole or curvature attribute
 ! Note that elements that have surface curvature automatically have ele%photon allocated.
 
-if (ix_attrib >= a0$ .and. ix_attrib <= b20$) then   
+if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then   
   a_name = attribute_name(ele, ix_attrib)
 
   ! Curvature

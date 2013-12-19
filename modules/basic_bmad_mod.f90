@@ -8,7 +8,7 @@ module basic_bmad_mod
 
 use sim_utils
 
-integer, parameter :: n_pole_maxx = 20  ! maximum multipole order
+integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
 ! Species ID, mass, and charge.
 

@@ -19,7 +19,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 132
+integer, parameter :: bmad_inc_version$ = 133
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -130,7 +130,7 @@ type wall3d_struct
   character(20) :: opaque_material = ''           !
   logical :: superimpose = .false.                ! Can overlap another wall
   integer :: ele_anchor_pt = anchor_beginning$    ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (wall3d_section_struct), allocatable :: section(:)
+  type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 0:
 end type  
 
 ! plane list, etc
@@ -704,7 +704,8 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, rel_controller$ = 56, abs_controller$ = 57
+integer, parameter :: sample$ = 54, detector$ = 55
+!!! rel_controller$ = , abs_controller$ = 
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
@@ -908,12 +909,12 @@ integer, parameter :: ref_end$        = 118
 integer, parameter :: create_jumbo_slave$ = 119
 
 integer, parameter :: a0$  = 120, k0l$  = 120
-integer, parameter :: a20$ = 140, k20l$ = 140
+integer, parameter :: a21$ = 141, k21l$ = 141
 
 integer, parameter :: b0$  = 150, t0$  = 150
-integer, parameter :: b20$ = 170, t20$ = 170 
+integer, parameter :: b21$ = 171, t21$ = 171
 
-integer, parameter :: num_ele_attrib_extended$ = t20$
+integer, parameter :: num_ele_attrib_extended$ = t21$
 
 character(40), parameter :: null_name$ = '!NULL' 
 character(40), parameter :: blank_name$ = ' '
