@@ -415,6 +415,10 @@ else
       print *, 'Time from start (min):', nint(timer_time/60)
       print *, '    Num photons generated:          ', n_photon_generated
       print *, '    Num photons passed filter tests:', n_photon_array
+      if (n_photon_generated == 0) then
+        print *, 'NO PHOTONS GENERATED. N_PHOTONS OR N_PHOTONS_PER_PASS IS TOO SMALL!'
+        call err_exit
+      endif
     endif
 
     ix_ele = ix_ele + 1
