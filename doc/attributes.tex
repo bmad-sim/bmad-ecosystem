@@ -1658,49 +1658,50 @@ off an \vn{lcavity} will not affect the reference energy.
 \section{Multipole Attributes: An, Bn, KnL, Tn}
 \label{s:multip}
 
-\index{multipole!an, bn|hyperbf} 
+Multipole formulas for are given in \sref{s:fields}. 
+
 \index{multipole!knl, tn|hyperbf} 
-\index{ab_multipole}
 \index{multipole}
-\index{radius}
 A \vn{multipole} (\sref{s:mult}) element specifies its multipole
 components using an Amplitude (\vn{KnL}) and a tilt (\vn{Tn})
 \begin{example}
   KnL = <Real>
   Tn  = <Real>  ! Default is $pi$/(2n + 2)
 \end{example}
-\vn{ab_Multipole} (\sref{s:ab.m}) and all other elements that
-have multipole attributes specify the multipoles using normal
-(\vn{Bn}) and skew (\vn{An}) components 
+Here \vn{n} ranges from 0 (dipole component) through 21.  If \vn{Tn}
+is given without a value, a default of $pi$/(2n + 2) will be used
+producing a skew field. Example:
+\begin{example}
+  m: multipole, k1l = 0.328, t1  ! Skew quadrupole
+\end{example}
+Following \vn{MAD}, a non-zero dipole (\vn{K0L} component will affect
+the reference orbit (just like a normal dipole will). This is not true
+for any other element.
+
+\index{ab_multipole}
+\index{multipole!an, bn|hyperbf} 
+An \vn{ab_multipole} (\sref{s:ab.m}) specifies multipoles using normal
+(\vn{Bn}) and skew (\vn{An}) components:
 \begin{example}
   An = <Real>
   Bn = <Real>
 \end{example}
-Here \vn{n} ranges from 0
-(dipole component) through 20. Example:
+Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \begin{example}
   q1: ab_multipole, b0 = 0.12, a20 = 1e7
 \end{example}
 
-Multipole formulas for are given in \sref{s:fields}.  Note that for
-\vn{multipole} and \vn{ab_multipole} (but not any other element) a
-non-zero dipole component will affect the reference orbit (just like a
-normal dipole will).
-
-The \vn{Tn} tilt component without a value takes a default of $pi$/(2n
-+ 2) which makes the component \vn{skew}.  Example:
-\begin{example}
-  m: multipole, k1l = 0.45, t1  ! Skew quadrupole
-\end{example}
-
-For everything other than a \vn{multipole} and \vn{ab_multipole}, the
-multipole strength is scaled by a factor $F \, r_0^{n_\text{ref}} /
-r_0^n$ (cf.~\Eq{ababf}) where $F$ is the strength of the element (for
-example $F$ is $K1 \cdot L$ for a quadrupole), and $r_0$ is the
-``measurement radius'' and is set by the \vn{radius} attribute. The
-default value of $r_0$, if the \vn{radius} is not given, is 1.0.  This
-behavior may be turned off by setting the \vn{scale_multipoles}
-attribute.  Example:
+\index{radius}
+Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned
+to them multipole fields. In this case, the fields are specified using
+the same convention as the \vn{ab_multipole}.
+For such non-multipole elements, the multipole strength is scaled by a
+factor $F \, r_0^{n_\text{ref}} / r_0^n$ (cf.~\Eq{ababf}) where $F$ is
+the strength of the element (for example $F$ is $K1 \cdot L$ for a
+quadrupole), and $r_0$ is the ``measurement radius'' and is set by the
+\vn{radius} attribute. The default value of $r_0$, if the \vn{radius}
+is not given, is 1.0.  This behavior may be turned off by setting the
+\vn{scale_multipoles} attribute.  Example:
 \begin{example}
   q1: quadrupole, b0 = 0.12, a20 = 1e7, scale_multipoles = F
 \end{example}

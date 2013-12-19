@@ -147,9 +147,9 @@ ds_wall = pt(ix2)%s - pt(ix0)%s
 denom = sqrt (dx_wall**2 + ds_wall**2)
 
 del0 = (dx_wall*(ray0%now%vec(5) - pt(ix0)%s) - &
-     ds_wall*(ray0%now%vec(1) - pt(ix0)%x)) / denom
+     ds_wall*(ray0%now%vec(1) - pt(ix0)%x)) / denom**2
 del2 = (dx_wall*(ray2%now%vec(5) - pt(ix0)%s) - &
-     ds_wall*(ray2%now%vec(1) - pt(ix0)%x)) / denom
+     ds_wall*(ray2%now%vec(1) - pt(ix0)%x)) / denom**2
 
 ! Linear interpolation can be very slow to converge in a small radius bend
 ! so each loop does a linear interpolation step followed by bisection step.
@@ -229,7 +229,7 @@ endif
 call propagate_ray (ray1, s1, lat, .false.)
 
 del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
-                    ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom
+                    ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom**2
 
 if (s1 < ray0%now%vec(5)) then
   ray2 = ray0; del2 = del0

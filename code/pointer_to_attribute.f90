@@ -39,6 +39,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (wake_lr_struct), allocatable :: lr(:)
+type (em_field_mode_struct), pointer :: mode
 
 real(rp), pointer :: ptr_attrib
 
@@ -55,12 +56,15 @@ logical, optional :: err_print_flag
 ! init check
 
 err_flag = .true.
+out_of_bounds = .false.
+
 nullify (ptr_attrib)
 
 do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
 if (present(ix_attrib)) ix_attrib = 0
 
+!--------------------
 ! Check to see if the attribute is a long-range wake
 
 if (a_name(1:3) == 'LR(') then
@@ -101,13 +105,31 @@ if (a_name(1:3) == 'LR(') then
 
 endif
 
-! Wall3d section: s_spline
+!--------------------
+! em_fields
 
-out_of_bounds = .false.
+if (a_name(1:11) == 'FIELD.MODE(') then
+  if (.not. associated(ele%em_field)) goto 9130
+  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%em_field%mode))
+  if (err) goto 9140
+  mode => ele%em_field%mode(n_cc)
 
-! Wall3d section: dr_ds1
+  select case (a_name)
+  case ('F_DAMP');        ptr_attrib => mode%f_damp
+  case ('DPHI0_REF');     ptr_attrib => mode%dphi0_ref
+  case ('STORED_ENERGY'); ptr_attrib => mode%stored_energy
+  case ('PHI0_AZIMUTH');  ptr_attrib => mode%phi0_azimuth
+  case ('FIELD_SCALE');   ptr_attrib => mode%field_scale
+  case default;           goto 9000
+  end select
 
-! Wall3d section
+  err_flag = .false.
+  return
+
+endif
+
+!--------------------
+! wall3d section
 
 if (a_name(1:10) == 'WALL.SECTION') then
   if (.not. associated(ele%wall3d)) goto 9210
@@ -244,6 +266,28 @@ return
 9100 continue
 if (do_print) call out_io (s_error$, r_name, &
                  'WAKE ATTRIBUTE NOT ALLOCATED: ' // a_name, &
+                 'FOR THIS ELEMENT: ' // ele%name)
+return
+
+!----------------------------------------
+9130 continue
+if (do_print) then
+  if (out_of_bounds) then
+    call out_io (s_error$, r_name, &
+        'INDEX OUT OF BOUNDS IN ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+  else
+    call out_io (s_error$, r_name, &
+        'MALFORMED ATTRIBUTE: ' // attrib_name, &
+        'FOR THIS ELEMENT: ' // ele%name)
+  endif
+endif
+return
+
+!----------------------------------------
+9140 continue
+if (do_print) call out_io (s_error$, r_name, &
+                 '(EM) FIELD ATTRIBUTE NOT ALLOCATED: ' // a_name, &
                  'FOR THIS ELEMENT: ' // ele%name)
 return
 
