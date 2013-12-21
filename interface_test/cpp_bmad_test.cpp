@@ -4414,9 +4414,9 @@ void set_CPP_bunch_params_test_pattern (CPP_bunch_params& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_beam_spin_test_pattern(C.spin, ix_patt);
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.sigma.size(); i++)
-    {int rhs = 101 + i + 9 + offset; C.sigma[i] = rhs;}
+  // c_side.test_pat[real, 2, NOT]
+  for (unsigned int i = 0; i < C.sigma.size(); i++)  for (unsigned int j = 0; j < C.sigma[0].size(); j++) 
+    {int rhs = 101 + i + 10*(j+1) + 9 + offset; C.sigma[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
   rhs = 10 + offset; C.s = rhs;
 

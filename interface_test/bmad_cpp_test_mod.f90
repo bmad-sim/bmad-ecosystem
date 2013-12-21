@@ -6265,11 +6265,12 @@ call set_twiss_test_pattern (F%c, ix_patt)
 call set_coord_test_pattern (F%centroid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_beam_spin_test_pattern (F%spin, ix_patt)
-!! f_side.test_pat[real, 1, NOT]
+!! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%sigma,1); lb1 = lbound(F%sigma,1) - 1
-  rhs = 100 + jd1 + 9 + offset
-  F%sigma(jd1+lb1) = rhs
-enddo
+do jd2 = 1, size(F%sigma,2); lb2 = lbound(F%sigma,2) - 1
+  rhs = 100 + jd1 + 10*jd2 + 9 + offset
+  F%sigma(jd1+lb1,jd2+lb2) = rhs
+enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 10 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]

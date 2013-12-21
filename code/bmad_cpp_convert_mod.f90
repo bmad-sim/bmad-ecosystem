@@ -7104,7 +7104,7 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call bunch_params_to_c2 (C, c_loc(F%x), c_loc(F%y), c_loc(F%z), c_loc(F%a), c_loc(F%b), &
-    c_loc(F%c), c_loc(F%centroid), c_loc(F%spin), fvec2vec(F%sigma, 21), F%s, F%charge_live, &
+    c_loc(F%c), c_loc(F%centroid), c_loc(F%spin), mat2vec(F%sigma, 6*6), F%s, F%charge_live, &
     F%n_particle_tot, F%n_particle_live, F%n_particle_lost_in_ele)
 
 end subroutine bunch_params_to_c
@@ -7158,8 +7158,8 @@ call twiss_to_f(z_c, c_loc(F%c))
 call coord_to_f(z_centroid, c_loc(F%centroid))
 !! f_side.to_f2_trans[type, 0, NOT]
 call beam_spin_to_f(z_spin, c_loc(F%spin))
-!! f_side.to_f2_trans[real, 1, NOT]
-F%sigma = z_sigma(1:21)
+!! f_side.to_f2_trans[real, 2, NOT]
+call vec2mat(z_sigma, F%sigma)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
 !! f_side.to_f2_trans[real, 0, NOT]

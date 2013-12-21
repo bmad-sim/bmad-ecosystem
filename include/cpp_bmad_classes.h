@@ -2571,7 +2571,7 @@ public:
   CPP_twiss c;
   CPP_coord centroid;
   CPP_beam_spin spin;
-  Real_ARRAY sigma;
+  Real_MATRIX sigma;
   Real s;
   Real charge_live;
   Int n_particle_tot;
@@ -2587,7 +2587,7 @@ public:
     c(),
     centroid(),
     spin(),
-    sigma(0.0, 21),
+    sigma(Real_ARRAY(0.0, 6), 6),
     s(0.0),
     charge_live(0.0),
     n_particle_tot(0),

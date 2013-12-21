@@ -3042,9 +3042,11 @@ extern "C" void bunch_params_to_f2 (Bmad_bunch_params_class*, const CPP_twiss&, 
     CPP_coord&, const CPP_beam_spin&, c_RealArr, c_Real&, c_Real&, c_Int&, c_Int&, c_Int&);
 
 extern "C" void bunch_params_to_f (const CPP_bunch_params& C, Bmad_bunch_params_class* F) {
+  // c_side.to_f_setup[real, 2, NOT]
+  Real z_sigma[6*6]; matrix_to_vec(C.sigma, z_sigma);
 
   // c_side.to_f2_call
-  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, C.spin, &C.sigma[0], C.s,
+  bunch_params_to_f2 (F, C.x, C.y, C.z, C.a, C.b, C.c, C.centroid, C.spin, z_sigma, C.s,
       C.charge_live, C.n_particle_tot, C.n_particle_live, C.n_particle_lost_in_ele);
 
 }
@@ -3072,7 +3074,7 @@ extern "C" void bunch_params_to_c2 (CPP_bunch_params& C, const Bmad_twiss_class*
   coord_to_c(z_centroid, C.centroid);
   // c_side.to_c2_set[type, 0, NOT]
   beam_spin_to_c(z_spin, C.spin);
-  // c_side.to_c2_set[real, 1, NOT]
+  // c_side.to_c2_set[real, 2, NOT]
   C.sigma << z_sigma;
   // c_side.to_c2_set[real, 0, NOT]
   C.s = z_s;
