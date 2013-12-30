@@ -9,11 +9,11 @@ use bmad_utils_mod
 ! call a phantom.
 
 type wall_pt_struct   ! struct for input points
-  character(16) name  ! name of element (sliding_joint, etc.)
+  character(40) name  ! name of element (sliding_joint, etc.)
   real(rp) x, s       ! position of wall point
   integer n_seg       ! how many segments it will be broken up into
   integer ix_seg      ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
-  integer type        ! no_alley$, outer_wall$, etc.
+  integer type        ! possible_alley$, no_alley$, outer_wall$, etc.
   integer ix_pt       ! ordered (in s) index to pt() array
   integer closed_end_direct  ! For alleys: direction of the closed end
   logical phantom     ! is the face an opening?
@@ -59,7 +59,7 @@ end type alley_struct
 
 type wall_struct           ! either positive_x or negative_x side wall
   integer side             ! positive_x$ or negative_x$ 
-  type (wall_pt_struct), allocatable :: pt(:)
+  type (wall_pt_struct), allocatable :: pt(:)  ! Indexed from 0.
   type (wall_seg_struct), allocatable :: seg(:)
   type (alley_struct) :: alley(100)
   integer n_pt_tot
