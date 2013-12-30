@@ -211,7 +211,7 @@ if (ele%slave_status == super_slave$) then
 
 endif   ! split element is a super_slave
 
-! Here if a free or overlay element
+! Here if split element is not a super_slave.
 ! Need to make a super lord to control the split elements.
 
 call new_control (lat, ix_super_lord)
@@ -237,8 +237,7 @@ lat%control(ixc+1)%ix_slave  = ix_split + 1
 lat%control(ixc+1)%ix_branch = ix_branch
 lat%control(ixc+1)%coef = len2 / len_orig
 
-! overlay elements of the split element must now point towards the
-! super lord
+! lord elements of the split element must now point towards the super lord
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord(ele, i)
@@ -250,7 +249,7 @@ do i = 1, ele%n_lord
   enddo
 enddo
 
-! split elements must now be pointing towards their lord
+! point split elements towards their lord
 
 if (lat%n_ic_max+2 > size(lat%ic)) call reallocate_control (lat, lat%n_ic_max+100)
 
@@ -270,36 +269,9 @@ ele2%n_lord = 1
 lat%n_ic_max = inc
 lat%ic(inc) = ixc + 1
 
-! last details:
-!     1) Groups that point to the split element must be redirected to the lord.
-!     2) Call control_bookkeeper to remake the split elements.
+! last details
 
 8000  continue
-
-do i = lat%n_ele_track+1, lat%n_ele_max
-  ct = lat%ele(i)%lord_status
-  if (ct /= group_lord$ .and. ct /= girder_lord$) cycle
-
-  do k = 1, lat%ele(i)%n_slave
-    slave => pointer_to_slave(lat%ele(i), k, j) 
-    if (slave%ix_ele /= ix_split+1 .or. slave%ix_branch /= ix_branch) cycle
-    if (lat%control(j)%ix_attrib == l$) then
-      call out_io (s_warn$, r_name, 'GROUP: ' // lat%ele(i)%name, &
-                                    'CONTROLS L$ OF SPLIT ELEMENT: ' // ele%name)
-    elseif (ix_super_lord /= 0) then
-      lat%control(j)%ix_slave  = ix_super_lord
-      lat%control(j)%ix_branch = 0
-    else
-      call out_io (s_warn$, r_name, &
-                    'GROUP: ' // lat%ele(i)%name, &
-                    'CONTROLS SPLIT ELEMENT: ' // ele%name, &
-                    'BUT NO LORD WAS MADE!')
-      if (global_com%exit_on_error) call err_exit
-    endif
-  enddo
-
-enddo
-
 
 ele1%bookkeeping_state%attributes = stale$
 ele1%bookkeeping_state%floor_position = stale$
