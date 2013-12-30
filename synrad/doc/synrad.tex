@@ -218,8 +218,7 @@ Example main input file:
     seg_len = 0.1                    ! Segment length for calculation.
     beam_direction = 0               ! -1 = track backwards only,
                                      !  0 = track both directions, 1 = forward.
-    wall_file = "wall.dat"           ! "NONE" => Use a wall with a fixed offset from the beam.
-    wall_offset = 0.045              ! Used when wall_file is set to "NONE"
+    wall_file = "wall.dat"           ! Name of file specifying the wall.
     forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
     backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
     use_ele_ix = 0   ! If using only a single element, this is the element index number to use
@@ -262,10 +261,6 @@ directions.
 The \vn{wall_file} parameter specifies a file giving a list of
 x inside, x outside, and s vertices to define the horizontal aperture 
 of the wall. See below for more details.
-  \item[\vn{wall_offset}] \Newline
-The \vn{wall_offset} parameter specifies an offset (meters) to use if
-a wall file is not specified.  In this case, the wall would be defined 
-as plus and minus the offset from the centerline.
   \item[\vn{forward_beam}] \Newline
 The \vn{forward_beam} parameter specifies which species moves in the
 positive s direction.  Should be "POSITRON" for CESR. This parameter

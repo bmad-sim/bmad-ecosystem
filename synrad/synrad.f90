@@ -18,16 +18,19 @@ type (ele_power_struct), allocatable :: fwd_power(:), back_power(:)
 integer i, n, ix, n_arg, n_wall, ios, beam_direction
 integer use_ele_ix, use_ele_ix2
 
+character(40) name
 character(100) this_lat, line, temp
 character(100) lat_file, in_file, wall_file
 character(16) forward_beam, backward_beam
 
 real(rp) end_s, wall_offset, s, x_in, x_out, seg_len
 
-logical err_flag
+logical err_flag, phantom
 
 namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
                            forward_beam, backward_beam, use_ele_ix, use_ele_ix2
+
+namelist / wall_pt / s, x_in, x_out, name, phantom
 
 ! set pointers
 pos_x_wall => walls%positive_x_wall
@@ -96,111 +99,19 @@ allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
 neg_x_wall%side = negative_x$
 pos_x_wall%side = positive_x$
 
-if (wall_file == 'NONE') then
+! Old or new style wall file?
 
-  allocate (pos_x_wall%pt(0:1), neg_x_wall%pt(0:1))
+open (1, file = wall_file, status = 'old')
+read (1, nml = wall_pt, iostat = ios)
+close (1)
 
-  pos_x_wall%pt(0)%s = 0.0
-  pos_x_wall%pt(0)%ix_pt = 0
-  pos_x_wall%pt(1)%s = end_s
-  pos_x_wall%pt(1)%ix_pt = 1
-
-  pos_x_wall%n_pt_tot = 1
-  pos_x_wall%pt(:)%type = no_alley$
-  pos_x_wall%pt(:)%name = 'POS_X_WALL'
-  pos_x_wall%pt(:)%x = wall_offset
-  pos_x_wall%pt(:)%phantom = .false.
-
-  neg_x_wall%pt(0)%s = 0.0
-  neg_x_wall%pt(0)%ix_pt = 0
-  neg_x_wall%pt(1)%s = end_s
-  neg_x_wall%pt(1)%ix_pt = 1
-
-  neg_x_wall%n_pt_tot = 1
-  neg_x_wall%pt(:)%type = no_alley$
-  neg_x_wall%pt(:)%name = 'NEG_X_WALL'
-  neg_x_wall%pt(:)%x = -wall_offset
-  neg_x_wall%pt(:)%phantom = .false.
-
+if (ios == 0) then  ! New style
+  call synrad_read_vac_wall_geometry (wall_file, lat%ele(lat%n_ele_track)%s, closed$, walls)
 else
-  open (1, file = wall_file, status = 'old')
-
-  call skip_header (1, err_flag)
-
-  ! count lines
-
-  i = -1
-  do     
-    read (1, '(a)', iostat = ios) line
-    if (ios < 0) exit
-    if (ios > 0) then
-      print *, 'READ ERROR IN FILE: ', trim(wall_file)
-      call err_exit
-    endif
-    if (line == '') cycle
-    i = i + 1
-  enddo
-
-  ! Allocate arrays read in data
-
-  n_wall = i
-  allocate (pos_x_wall%pt(0:n_wall), neg_x_wall%pt(0:n_wall))
-  rewind (1)
-  call skip_header (1, err_flag)
-  i = -1
-  do 
-    read (1, '(a)', iostat = ios) line
-    if (ios < 0) exit
-    if (line == '') cycle
-    i = i + 1
-    read (line, *) s, x_in, x_out
-    pos_x_wall%pt(i)%s = s
-    pos_x_wall%pt(i)%x = x_out
-    pos_x_wall%pt(i)%name = 'POS_X_WALL'
-    pos_x_wall%pt(i)%type = no_alley$
-    pos_x_wall%pt(i)%phantom = .false.
-    pos_x_wall%pt(i)%ix_pt = i
-
-    neg_x_wall%pt(i)%s = s
-    neg_x_wall%pt(i)%x = x_in
-    neg_x_wall%pt(i)%name = 'NEG_X_WALL'
-    neg_x_wall%pt(i)%type = no_alley$
-    neg_x_wall%pt(i)%phantom = .false.
-    neg_x_wall%pt(i)%ix_pt = i
-  enddo
-  close (1)
-
-  pos_x_wall%n_pt_tot = i
-  neg_x_wall%n_pt_tot = i
-
+  call old_read_wall_file ()
 endif
 
 !
-
-call delete_overlapping_wall_points(pos_x_wall)
-call delete_overlapping_wall_points(neg_x_wall)
-
-! Must do this set after deleting overlapping wall points
-
-neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
-pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
- 
-!
-
-call break_wall_into_segments(neg_x_wall, seg_len)
-call break_wall_into_segments(pos_x_wall, seg_len)
-
-! calculate power densities
-
-call init_wall(pos_x_wall)
-call init_wall(neg_x_wall)
-
-call init_wall_ends(walls)
-
-n = lat%n_ele_track
-call check_wall (pos_x_wall, lat%ele(n)%s, lat%param%geometry)
-call check_wall (neg_x_wall, lat%ele(n)%s, lat%param%geometry)
-
 
 ! Synch calculation
 
@@ -301,6 +212,89 @@ else if (beam_type == 'POSITRON') then
   print *,'Positron horiz emittance:',mode%a%emittance
 endif
 
-end subroutine
+end subroutine synch_calc
+
+!-----------------------------------------------------------------------
+! contains
+
+subroutine old_read_wall_file ()
+
+!
+
+open (1, file = wall_file, status = 'old')
+  
+call skip_header (1, err_flag)
+
+! count lines
+
+i = -1
+do     
+  read (1, '(a)', iostat = ios) line
+  if (ios < 0) exit
+  if (ios > 0) then
+    print *, 'READ ERROR IN FILE: ', trim(wall_file)
+    call err_exit
+  endif
+  if (line == '') cycle
+  i = i + 1
+enddo
+
+! Allocate arrays read in data
+
+n_wall = i
+allocate (pos_x_wall%pt(0:n_wall), neg_x_wall%pt(0:n_wall))
+rewind (1)
+call skip_header (1, err_flag)
+i = -1
+do 
+  read (1, '(a)', iostat = ios) line
+  if (ios < 0) exit
+  if (line == '') cycle
+  i = i + 1
+  read (line, *) s, x_in, x_out
+  pos_x_wall%pt(i)%s = s
+  pos_x_wall%pt(i)%x = x_out
+  pos_x_wall%pt(i)%name = 'POS_X_WALL'
+  pos_x_wall%pt(i)%type = no_alley$
+  pos_x_wall%pt(i)%phantom = .false.
+  pos_x_wall%pt(i)%ix_pt = i
+
+  neg_x_wall%pt(i)%s = s
+  neg_x_wall%pt(i)%x = x_in
+  neg_x_wall%pt(i)%name = 'NEG_X_WALL'
+  neg_x_wall%pt(i)%type = no_alley$
+  neg_x_wall%pt(i)%phantom = .false.
+  neg_x_wall%pt(i)%ix_pt = i
+enddo
+close (1)
+
+pos_x_wall%n_pt_tot = i
+neg_x_wall%n_pt_tot = i
+
+call delete_overlapping_wall_points(pos_x_wall)
+call delete_overlapping_wall_points(neg_x_wall)
+
+! Must do this set after deleting overlapping wall points
+
+neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
+pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
+ 
+!
+
+call break_wall_into_segments(neg_x_wall, seg_len)
+call break_wall_into_segments(pos_x_wall, seg_len)
+
+! calculate power densities
+
+call init_wall(pos_x_wall)
+call init_wall(neg_x_wall)
+
+call init_wall_ends(walls)
+
+n = lat%n_ele_track
+call check_wall (pos_x_wall, lat%ele(n)%s, lat%param%geometry)
+call check_wall (neg_x_wall, lat%ele(n)%s, lat%param%geometry)
+
+end subroutine old_read_wall_file
 
 end program
