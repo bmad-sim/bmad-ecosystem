@@ -76,15 +76,15 @@ type walls_struct
   type (wall_seg_struct) :: start_end, exit_end
 end type walls_struct
 
-! The computation tracks a set of synchrotron light rays from their source
-! to the wall
+! The computation tracks a set of synchrotron light rays from their source to the wall.
+! Note: (Vx, Vy, Vz) vector of ray will always have Vz > 0 irregardless of direction.
 
 type ray_struct       ! struct for a light ray
   integer direction       ! direction of travel, +1 = forward direction
   integer ix_ele          ! index of element we are now tracking through
   integer alley_status
   real(rp) track_len      ! length of the track from the start
-  type (coord_struct) start, old, now  ! coords
+  type (coord_struct) start, old, now  ! coords. Will always have %vec(6) > 0
   logical crossed_end     ! ray crossed the lat end?
   integer ix_source       ! element index at source of ray
   integer ix_wall_pt      ! index of wall point where hit
