@@ -88,6 +88,7 @@ case (wiggler$, undulator$)
     g_max = c_light * ele%value(b_max$) / (ele%value(E_TOT$))
     ray%g_bend = abs(g_max * cos (k_wig * l_offset))
     orb0%vec(2) = orb0%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
+    orb0%vec(6) = sqrt(1 - orb0%vec(2)**2)
 
   else  ! map type
 
@@ -108,8 +109,13 @@ case default
 end select
 
 ray%ix_source = ix_ele
-ray%start = orb0
+ray%start%vec(1) = orb0%vec(1)
+ray%start%vec(2) = atan(orb0%vec(2))
+ray%start%vec(3) = orb0%vec(3)
+ray%start%vec(4) = atan(orb0%vec(4))
 ray%start%vec(5) = ele0%s + l_offset                    ! s position
+ray%start%s      = ray%start%vec(5)
+ray%start%vec(6) = sqrt (1 - orb0%vec(2)**2 - orb0%vec(4)**2)
 ray%now = ray%start
 ray%ix_ele = ix_ele
 ray%crossed_end = .false.

@@ -53,7 +53,7 @@ subroutine create_alley (wall)
       ! At end cleanup: possible_alley -> no_alley$
 
       if (i3 == wall%n_pt_tot) then
-        do i = 1, wall%n_pt_tot
+        do i = 0, wall%n_pt_tot
           if (pt(i)%type == possible_alley$) pt(i)%type = no_alley$
         enddo
         return

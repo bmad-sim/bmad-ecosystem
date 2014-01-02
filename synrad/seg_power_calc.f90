@@ -160,8 +160,8 @@ do i = 2, i_ray
   ! theta_floor1 and theta_floor2 are the ray angles in the floor coordinate system.
 
   theta_base = theta_floor(ray1%now%vec(5), lat) 
-  theta_floor1 = ray1%now%vec(2) + theta_base
-  theta_floor2 = ray2%now%vec(2) + theta_floor(ray2%now%vec(5), lat, theta_base)
+  theta_floor1 = atan2(ray1%now%vec(2), ray1%now%vec(6)) + theta_base
+  theta_floor2 = atan2(ray2%now%vec(2), ray2%now%vec(6)) + theta_floor(ray2%now%vec(5), lat, theta_base)
 
   ! Loop over all segments that have light hitting it.
 
@@ -233,6 +233,8 @@ do i = 2, i_ray
       ray%alley_status = in_alley$
     elseif (type0 == middle_wall$ .or. type1 == middle_wall$) then
       ray%alley_status = in_alley$
+    elseif (type0 == closed_end$ .or. type1 == closed_end$) then
+      ray%alley_status = in_alley$
     elseif (type0 == inner_wall$ .or. type1 == inner_wall$) then
       ray%alley_status = out_of_alley$
     else
@@ -243,15 +245,18 @@ do i = 2, i_ray
     ! If a ray can travel backwards a distance equal to the distance the rays 
     ! traveled forward without hitting a wall then there is no shadow.
 
+    ray%direction = -ray2%direction  ! track backwards
     ray%start%vec(1) = seg%x_mid
     ray%start%vec(5) = seg%s_mid
-    ray%start%vec(2) = theta
+    ray%start%s      = seg%s_mid
+    ray%start%vec(2) = sin(theta)
+    ray%start%vec(6) = cos(theta)
     ray%ix_ele = ray2%ix_ele
     ray%ix_source = ray2%ix_ele
-    ray%direction = -ray2%direction  ! track backwards
     ray%now = ray%start
     ray%now%vec(1) = ray%start%vec(1) + 1.0e-7 * ray%direction * tan(theta)
     ray%now%vec(5) = modulo (ray%start%vec(5) + 1.0e-7 * ray%direction, lat%param%total_length)
+    ray%now%s = ray%now%vec(5)
     ray%track_len = 0
     ray%crossed_end = ray2%crossed_end
     track_len = abs((1 - rr)*ray1%start%vec(5) + &

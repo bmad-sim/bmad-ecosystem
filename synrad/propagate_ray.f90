@@ -50,6 +50,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
           if (ray%ix_ele > lat%n_ele_track) then
             ray%ix_ele = 1
             ray%now%vec(5) = ray%now%vec(5) - lat%param%total_length
+            ray%now%s = ray%now%vec(5)
             s_target = s_target - lat%param%total_length
             ray%crossed_end = .not. ray%crossed_end
           endif
@@ -71,6 +72,7 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
           if (ray%ix_ele .le. 0) then
             ray%ix_ele = lat%n_ele_track
             ray%now%vec(5) = ray%now%vec(5) + lat%param%total_length
+            ray%now%s = ray%now%vec(5)
             s_target = s_target + lat%param%total_length
             ray%crossed_end = .not. ray%crossed_end
           endif
@@ -103,8 +105,8 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
 
     if (lat%ele(ray%ix_ele)%key == sbend$ .and. lat%ele(ray%ix_ele)%value(g$) /= 0) then
       g = lat%ele(ray%ix_ele)%value(g$)
-      theta0 = ray%now%vec(2)
-      theta1 = ray%now%vec(2) + del_s * g
+      theta0 = atan2(ray%now%vec(2), ray%now%vec(6))
+      theta1 = theta0 + del_s * g
       ! if theta has changed sign then there is an extremum 
       if (stop_at_extremum .and. theta0 * theta1 < 0) then 
         del_s = -theta0 / g            ! step to extremum
@@ -116,15 +118,17 @@ subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
       c_t1 = -(theta1**2)/2 + theta1**4/24
       new_x = ((c_t0 - c_t1) / g + ray%now%vec(1) * cos(theta0)) / cos(theta1)
       ray%now%vec(1) = new_x
-      ray%now%vec(2) = theta1
+      ray%now%vec(2) = sin(theta1)
+      ray%now%vec(6) = cos(theta1)
     else
-      ray%now%vec(1) = ray%now%vec(1) + del_s * tan(ray%now%vec(2))
+      ray%now%vec(1) = ray%now%vec(1) + del_s * ray%now%vec(2)
     endif
 
-    ray%now%vec(3) = ray%now%vec(3) + del_s * tan(ray%now%vec(4))
+    ray%now%vec(3) = ray%now%vec(3) + del_s * ray%now%vec(4)
 
     ray%track_len = ray%track_len + abs(del_s)
     ray%now%vec(5) = s_next
+    ray%now%s      = s_next
 
     if (ray%crossed_end .and. lat%param%geometry == open$) return
 
