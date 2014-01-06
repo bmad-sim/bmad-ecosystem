@@ -1,5 +1,5 @@
 !+
-! Subroutine synrad_read_vac_wall_geometry (wall_file, s_lat, geometry, walls)
+! Subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, s_lat, geometry, walls)
 !
 ! Routine to read the vacuum wall geometry from two files: A file specifying the outline
 ! of the components used in constructing the machine and a file specifying where the components
@@ -7,6 +7,7 @@
 !
 ! Input:
 !   wall_file      -- Character(*): Name of the wall file.
+!   seg_len_max    -- Real(rp): Maximum length of wall segments.
 !   s_lat          -- Real(rp): Lattice length
 !   geometry       -- Integer: Type of lattice. open$ or closed$
 !
@@ -14,7 +15,7 @@
 !   walls -- Walls_struct: wall structure.
 !-
 
-subroutine synrad_read_vac_wall_geometry (wall_file, s_lat, geometry, walls)
+subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, s_lat, geometry, walls)
 
 use synrad_mod, except => synrad_read_vac_wall_geometry
 use filename_mod
@@ -39,8 +40,6 @@ logical phantom
 namelist / wall_pt / s, x_in, x_out, name, phantom
  
 ! init
-
-seg_len_max = 0.1
 
 outside => walls%positive_x_wall
 inside  => walls%negative_x_wall

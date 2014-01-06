@@ -155,12 +155,12 @@ interface
 end interface
 
 interface
-  subroutine synrad_read_vac_wall_geometry (wall_file, s_lat, lat_type, walls)
+  subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, s_lat, lat_type, walls)
     use synrad_struct, only: walls_struct, rp
     implicit none
     character(*) wall_file
     type (walls_struct) walls
-    real(rp) s_lat
+    real(rp) seg_len_max, s_lat
     integer lat_type
     logical type_warning
   end subroutine

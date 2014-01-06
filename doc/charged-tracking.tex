@@ -75,16 +75,16 @@ Track as in a drift a distance \vn{z_offset_tot}.
 Apply offsets and pitches
 \vspace{-1ex}
 \begin{align}
-  x_1    &= x_0 - x_{\mbox{off}} + \frac{L}{2} \, x'_{pitch} \CRNO
+  x_1    &= x_0 - x_{\text{off}} + \frac{L}{2} \, x'_{pitch} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
-  y_1    &= y_0 - y_{\mbox{off}} + \frac{L}{2} \, y'_{pitch} \\
+  y_1    &= y_0 - y_{\text{off}} + \frac{L}{2} \, y'_{pitch} \\
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
   z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch}) \nonumber
 \end{align}
 where $x'_{pitch}$ and $y'_{pitch}$ are the \vn{x_pitch_tot} and
 \vn{y_pitch_tot} attributes of the element (\sref{s:offset}), and
-$x_{\mbox{off}}$, and $y_{\mbox{off}}$ are the \vn{x_offset_tot} and
+$x_{\text{off}}$, and $y_{\text{off}}$ are the \vn{x_offset_tot} and
 \vn{y_offset_tot} attributes.
 Notice that $z_1$ is written in terms of $x_1$ and $y_1$
 \item
@@ -122,7 +122,7 @@ In the laboratory entrance coordinates, the pitches and offset are
     \end{pmatrix} \\
   \bfV &= \bfS \, 
     \begin{pmatrix}
-      x_{\mbox{off}} \\ y_{\mbox{off}} \\ z_{\mbox{off}} + 
+      x_{\text{off}} \\ y_{\text{off}} \\ z_{\text{off}} + 
     \end{pmatrix} +
     \bfS \, \bfL_c - \bfL_c
 \end{align}
@@ -178,9 +178,9 @@ Apply tilt $\theta_t$
 Apply offsets and pitches
 \vspace{-1ex}
 \begin{align}
-  x_2    &= x_1 + x_{\mbox{off}} + \frac{L}{2} x'_{pitch}     \CRNO
+  x_2    &= x_1 + x_{\text{off}} + \frac{L}{2} x'_{pitch}     \CRNO
   p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}        \CRNO
-  y_2    &= y_1 + y_{\mbox{off}} + \frac{L}{2} y'_{pitch}     \\
+  y_2    &= y_1 + y_{\text{off}} + \frac{L}{2} y'_{pitch}     \\
   p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}        \CRNO
   z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber

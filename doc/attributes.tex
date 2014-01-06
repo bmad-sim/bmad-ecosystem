@@ -1309,8 +1309,8 @@ and this is the default if either of the parameters \vn{dr_ds1} and
 \vn{dr_ds2} are not given in the wall definition. These parameters are
 the slopes of the wall with respect to $s$ at the end points
 \begin{equation}
-  \mbox{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
-  \mbox{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
+  \text{dr_ds1} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_1} \comma \qquad
+  \text{dr_ds2} \equiv \left. \frac{d\overline{r}}{ds} \right|_{s = s_2} 
 \end{equation}
 where $\overline{r}$ is the average $r$ averaged over all
 $\theta$. When {\em both} \vn{dr_ds1} and \vn{dr_ds2} are specified, the $a_i$
@@ -1319,7 +1319,7 @@ the values of \vn{dr_ds1} and \vn{dr_ds2} along with the constraints.
 \begin{align}
   p_1(0) &= 1 \comma \qquad p_1(1) = 0 \CRNO
   p_2(0) &= 0 \comma \qquad p_2(1) = 1 \\
-  M &\equiv a_1^2 + a_2^2 + a_3^2 + b_1^2 + b_2^2 + b_3^2 \mbox{ is a minimum}
+  M &\equiv a_1^2 + a_2^2 + a_3^2 + b_1^2 + b_2^2 + b_3^2 \text{ is a minimum}
   \nonumber
 \end{align}
 The last constraint ensures a ``smooth'' transition between the two cross-sections.
@@ -1780,7 +1780,7 @@ running from 0 to $N-1$, is associated with a wavelength $k_n$
 \begin{equation}
   k_n = \begin{cases}
     \frac{2 \, \pi \, n}{N \, dz} & n < \frac{N}{2} \\
-    \frac{2 \, \pi \, (n-N)}{N \, dz} & \mbox{otherwise}
+    \frac{2 \, \pi \, (n-N)}{N \, dz} & \text{otherwise}
   \end{cases}
 \end{equation}
 This convention follows the convention used by Numerical
@@ -1789,7 +1789,7 @@ Recipes\cite{b:nr}.
 The longitudinal length
 of the field is
 \begin{equation}
-  L_{\mbox{field}} = \frac{N - 1}{dz}
+  L_{\text{field}} = \frac{N - 1}{dz}
 \end{equation}
 this may be different from the length \vn{l} specified for the
 element. If there is a difference, the field is assumed to be centered
@@ -1839,10 +1839,10 @@ $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
-    \mbox{dphi0_ref} + \dsfrac{f}{f_0} \, (\mbox{phi_ref} + \mbox{phi0_err}) & 
-    \mbox{lcavity element} \\
-    \mbox{dphi0_ref} - \dsfrac{f}{f_0} \, \mbox{phi_ref} & 
-    \mbox{rfcavity element}
+    \text{dphi0_ref} + \dsfrac{f}{f_0} \, (\text{phi_ref} + \text{phi0_err}) & 
+    \text{lcavity element} \\
+    \text{dphi0_ref} - \dsfrac{f}{f_0} \, \text{phi_ref} & 
+    \text{rfcavity element}
   \end{cases}
 \Endeq
 where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
@@ -2086,21 +2086,21 @@ measurements. These attributes are:
 \begin{tabular}{llll}
   {\em Attribute}     &            &! {\em Symbol} (\sref{s:meas.calc}) & \\
   \vn{tilt}           &= <Real>    &! $\theta_t$            & See \sref{s:offset} \\ 
-  \vn{x_offset}       &= <Real>    &! $x_{\mss{err}}$       & See \sref{s:offset} \\ 
-  \vn{y_offset}       &= <Real>    &! $y_{\mss{err}}$       & See \sref{s:offset} \\ 
-  \vn{x_gain_err}     &= <Real>    &! $dg_{x,\mss{err}}$    & Horizontal gain error \\ 
-  \vn{y_gain_err}     &= <Real>    &! $dg_{y,\mss{err}}$    & Vertical gain error \\ 
-  \vn{crunch}         &= <Real>    &! $\psi_{\mss{err}}$    & Crunch angle \\ 
-  \vn{tilt_calib}     &= <Real>    &! $\theta_{\mss{err}}$  & tilt angle calibration \\ 
-  \vn{x_offset_calib} &= <Real>    &! $x_{\mss{cal}}$       & Horizontal offset calibration \\ 
-  \vn{y_offset_calib} &= <Real>    &! $y_{\mss{cal}}$       & Vertical offset calibration \\ 
-  \vn{x_gain_calib}   &= <Real>    &! $dg_{x,\mss{cal}}$    & Horizontal gain calibration \\ 
-  \vn{y_gain_calib}   &= <Real>    &! $dg_{y,\mss{cal}}$    & Vertical gain calibration \\ 
-  \vn{crunch_calib}   &= <Real>    &! $\psi_{\mss{cal}}$    & Crunch angle calibration \\ 
+  \vn{x_offset}       &= <Real>    &! $x_{\text{err}}$       & See \sref{s:offset} \\ 
+  \vn{y_offset}       &= <Real>    &! $y_{\text{err}}$       & See \sref{s:offset} \\ 
+  \vn{x_gain_err}     &= <Real>    &! $dg_{x,\text{err}}$    & Horizontal gain error \\ 
+  \vn{y_gain_err}     &= <Real>    &! $dg_{y,\text{err}}$    & Vertical gain error \\ 
+  \vn{crunch}         &= <Real>    &! $\psi_{\text{err}}$    & Crunch angle \\ 
+  \vn{tilt_calib}     &= <Real>    &! $\theta_{\text{err}}$  & tilt angle calibration \\ 
+  \vn{x_offset_calib} &= <Real>    &! $x_{\text{cal}}$       & Horizontal offset calibration \\ 
+  \vn{y_offset_calib} &= <Real>    &! $y_{\text{cal}}$       & Vertical offset calibration \\ 
+  \vn{x_gain_calib}   &= <Real>    &! $dg_{x,\text{cal}}$    & Horizontal gain calibration \\ 
+  \vn{y_gain_calib}   &= <Real>    &! $dg_{y,\text{cal}}$    & Vertical gain calibration \\ 
+  \vn{crunch_calib}   &= <Real>    &! $\psi_{\text{cal}}$    & Crunch angle calibration \\ 
   \vn{noise}          &= <Real>    &! $n_f$                 & Noise factor \\ 
   \vn{de_eta_meas}    &= <Real>    &! $dE/E$                & Percent change in energy \\ 
   \vn{n_sample}       &= <Real>    &! $N_s$                 & Number of sampling points \\ 
-  \vn{osc_amplitude}  &= <Real>    &! $A_{\mss{osc}}$       & Oscillation amplitude \\ 
+  \vn{osc_amplitude}  &= <Real>    &! $A_{\text{osc}}$       & Oscillation amplitude \\ 
 \end{tabular}
 \hfill\break
 A program can use these quantities to calculate ``measured'' values from the
