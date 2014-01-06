@@ -1986,9 +1986,14 @@ endif
 lat => slave%branch%lat
 
 if (slave%slave_status == slice_slave$) then
-  lord_ptr => slave%lord
   if (present(ix_control)) ix_control = -1
   if (present(ix_slave)) ix_slave = -1
+  if (associated(slave%lord)) then
+    lord_ptr => slave%lord
+  else
+    icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+    lord_ptr => lat%ele(lat%control(icon)%ix_lord)
+  endif
   return
 endif
 

@@ -44,18 +44,19 @@ longitudinal position in the lattice. The definition of the
     real(rp) s          ! Longitudinal position
     real(rp) t          ! Absolute time (not relative to reference).
     complex(rp) spin(2) ! Spin in spinor notation
-    real(rp) field_x    ! Photon field intensity, x-axis component
-    real(rp) field_y    ! Photon field intensity, y-axis component
-    real(rp) phase_x    ! Photon phase, x-axis component
-    real(rp) phase_y    ! Photon phase, y-axis component
+    real(rp) field(2)   ! Photon (x, y) field intensity.
+    real(rp) phase(2)   ! Photon (x, y) phase.
     real(rp) charge     ! charge in a particle (Coul).
+    real(rp) path_len   ! path length (used by coherent photons).
     real(rp) p0c        ! For non-photons: Reference momentum. Negative -> going backwards.
                         !     For photons: Photon momentum (not reference).
     real(rp) beta       ! Velocity / c_light. 
     integer ix_ele      ! Index of element particle was tracked through.
                         !   May be -1 or -2 if element is not associated with a lattice.
     integer state       ! alive\$, lost\$, lost_neg_x_aperture\$, etc.
-    integer location    ! entrance_end\$, inside\$, or exit_end\$
+    integer direction   ! Longitudinal direction of motion = +/- 1
+    integer species     ! Positron\$, proton\$, etc.
+    integer location    ! upstream_end\$, inside\$, or downstream_end\$
 end type
 \end{example}
 

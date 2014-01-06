@@ -1033,7 +1033,7 @@ orb2%ix_ele = -1
 if (present(ele)) then
 
   orb2%ix_ele = ele%ix_ele
-  if (ele%slave_status == slice_slave$) orb2%ix_ele = ele%lord%ix_ele
+  if (ele%slave_status == slice_slave$ .and. associated(ele%lord)) orb2%ix_ele = ele%lord%ix_ele
 
   if (ele%key == beginning_ele$) orb2%location = downstream_end$
 
