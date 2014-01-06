@@ -69,13 +69,9 @@ open (1, file = in_file, status = "old")
 read (1, nml = synrad_params)
 close (1)
 
-!
+! Read lattice
 
-if (sr_param%lat_file(1:6) == 'xsif::') then
-  call xsif_parser(sr_param%lat_file(7:), lat)
-else
-  call bmad_parser(sr_param%lat_file, lat)
-endif
+call bmad_and_xsif_parser (sr_param%lat_file, lat)
 
 if (use_ele_ix > 0) then
   if (use_ele_ix2 == 0) use_ele_ix2 = use_ele_ix
@@ -90,15 +86,6 @@ endif
 call reallocate_coord (orb, lat%n_ele_max)
 allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
 
-! create a wall outline and break into segments
-
-end_s = lat%ele(lat%n_ele_track)%s
-n = 2 * end_s / seg_len + 2
-allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
-
-neg_x_wall%side = negative_x$
-pos_x_wall%side = positive_x$
-
 ! Old or new style wall file?
 
 open (1, file = wall_file, status = 'old')
@@ -106,7 +93,7 @@ read (1, nml = wall_pt, iostat = ios)
 close (1)
 
 if (ios == 0) then  ! New style
-  call synrad_read_vac_wall_geometry (wall_file, lat%ele(lat%n_ele_track)%s, closed$, walls)
+  call synrad_read_vac_wall_geometry (wall_file, seg_len, lat%ele(lat%n_ele_track)%s, closed$, walls)
 else
   call old_read_wall_file ()
 endif
@@ -190,6 +177,15 @@ type (normal_modes_struct) :: mode
 type (ele_power_struct), allocatable :: power(:)
 integer direction
 character(*) beam_type
+
+! create a wall outline and break into segments
+
+end_s = lat%ele(lat%n_ele_track)%s
+n = 2 * end_s / seg_len + 2
+allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
+
+neg_x_wall%side = negative_x$
+pos_x_wall%side = positive_x$
 
 !
 
