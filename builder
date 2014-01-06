@@ -79,6 +79,8 @@ def manifest_to_build_list( manifest ):
             full_dir = normpath(invars.full_release_dir) + '/' + basename(normpath(dir))
 	    if os.path.exists(full_dir + '/CMakeLists.txt'):
 		build_list.append(full_dir)
+	    if os.path.exists(full_dir + '/acc_build'):
+		build_list.append(full_dir)
     return build_list
 
 
@@ -127,8 +129,9 @@ def build_directory( dir, statlist, target ):
     make_command = 'mk'
     if target == 'debug':
         make_command = 'mkd'
-    build_command = 'ACCLIB='+invars.build_name + \
-                    ' UTIL_DIR_REQUEST='+invars.util_dir + \
+    build_command = 'ACCLIB='+ invars.build_name + \
+                    '; export ACC_SET_F_COMPILER=' + os.environ["ACC_SET_F_COMPILER"] + \
+                    '; UTIL_DIR_REQUEST='+ invars.util_dir + \
                     '; source ' + invars.util_dir + '/acc_vars.sh;' + \
                     ' export ACC_BUILD_EXES=Y; export ACC_ENABLE_SHARED=Y; ' + make_command
     print build_command

@@ -99,16 +99,24 @@ argparser.add_argument('--online',
                        action='store_true',
                        dest='build_online_release',
                        help='Build the collection of libraries and programs for CESR online use.')
+argparser.add_argument('--packages',
+                       action='store_true',
+                       dest='packages',
+                       help='Build the collection of external Packages used for CESR online.')
 
 
 argresults = argparser.parse_args()
 
 build_online_release = argresults.build_online_release
 
+build_packages = argresults.packages
+
 build_request = 'release'
 if build_online_release:
     build_request = 'online-release'
 
+if build_packages:
+    build_request = 'packages'
 
 class BuildController(threading.Thread):
 
@@ -310,8 +318,9 @@ class BuildController(threading.Thread):
         """Execute the build process."""
         self.write_log_stub()
         self.checkout_files()
-        build_command = 'rsh -x '+self.hostname+' ~/usr/bin/python ' + \
-                        self.util_dir+'/builder '+ self.full_logname
+        build_command = 'rsh -x ' + self.hostname + \
+                        ' export ACC_SET_F_COMPILER=' + os.environ["ACC_SET_F_COMPILER"] + \
+                        ' ; ~/usr/bin/python ' + self.util_dir + '/builder ' + self.full_logname
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]
 
