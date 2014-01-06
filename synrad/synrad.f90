@@ -178,15 +178,6 @@ type (ele_power_struct), allocatable :: power(:)
 integer direction
 character(*) beam_type
 
-! create a wall outline and break into segments
-
-end_s = lat%ele(lat%n_ele_track)%s
-n = 2 * end_s / seg_len + 2
-allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
-
-neg_x_wall%side = negative_x$
-pos_x_wall%side = positive_x$
-
 !
 
 if (beam_type == 'ELECTRON') then
@@ -214,6 +205,15 @@ end subroutine synch_calc
 ! contains
 
 subroutine old_read_wall_file ()
+
+! create a wall outline and break into segments
+
+end_s = lat%ele(lat%n_ele_track)%s
+n = 2 * end_s / seg_len + 2
+allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
+
+neg_x_wall%side = negative_x$
+pos_x_wall%side = positive_x$
 
 !
 
