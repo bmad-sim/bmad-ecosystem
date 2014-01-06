@@ -661,6 +661,19 @@ This method for finding the lords of an element is considered
 ``private''. That is, no code outside of the official \bmad library
 should rely on this.
 
+\vn{slice_slave} element bookkeeping has is different depending upon
+whether the element being sliced is a \vn{super_slave} or not. If the
+element being sliced is a \vn{super_slave}, a \vn{slice_slave} element
+that is created is, for bookkeeping purposes, considered to be a slave
+of the \vn{super_slave}'s lords. In this case, the bookkeeping is
+exactly the same as that of any \vn{super_slave}, and
+\vn{pointer_to_lord} will return a pointer to one of the
+\vn{super_slave}'s lords.
+
+On the other hand, if a non \vn{super_slave} element is being sliced,
+the \vn{%lord} pointer component of the \vn{slice_slave} will be set to
+point to the element being sliced.
+
 %----------------------------------------------------------------------------
 \section{Lattice Bookkeeping}
 \label{s:lat.bookkeeping}

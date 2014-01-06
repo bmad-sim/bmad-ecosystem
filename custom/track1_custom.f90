@@ -46,4 +46,9 @@ character(32) :: r_name = 'track1_custom'
 call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
 err_flag = .true.
 
+! Remember to also set end_orb%t
+
+end_orb = start_orb
+end_orb%s = ele%s 
+
 end subroutine

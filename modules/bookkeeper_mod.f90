@@ -1433,11 +1433,13 @@ endif
 ! as the original element.
 
 sliced_ele%value(l$) = l_slice
+sliced_ele%slave_status = slice_slave$
 
 if (ele_in%slave_status /= super_slave$) then
-  sliced_ele%slave_status = slice_slave$
   sliced_ele%n_lord = 1
-  sliced_ele%lord   => ele_in
+  sliced_ele%lord => ele_in
+else
+  nullify(sliced_ele%lord)
 endif
 
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_upstream_end, at_downstream_end, err2_flag)
