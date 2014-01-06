@@ -668,38 +668,44 @@ SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
 
   n_part = lat%param%n_part
 
-  IF(lat%ele(i)%value(l$) .eq. 0.0) THEN
-    rates%inv_Tz = 0.0
-    rates%inv_Ta = 0.0
-    rates%inv_Tb = 0.0
-  ELSE
-    IF(ibs_sim_params%formula == 'kubo') THEN
+  IF(ibs_sim_params%formula == 'kubo') THEN
+    IF( PRESENT(i) ) THEN
       CALL kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix=i)
     ELSE
-      IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+      WRITE(*,*) "If formula='kubo', then element index i must be specified ... terminating"
+      STOP
+    ENDIF
+  ELSE
+    IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
+      IF(lat%ele(i)%value(l$) .eq. 0.0) THEN
+        rates%inv_Tz = 0.0
+        rates%inv_Ta = 0.0
+        rates%inv_Tb = 0.0
+        RETURN
+      ELSE
         ele => lat%ele(i)
-      ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
-        CALL twiss_and_track_at_s(lat,s,stubele)
-        ele => stubele
-      ELSE
-        WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
-        STOP
       ENDIF
+    ELSEIF(PRESENT(s) .and. .not.PRESENT(i)) THEN
+      CALL twiss_and_track_at_s(lat,s,stubele)
+      ele => stubele
+    ELSE
+      WRITE(*,*) "FATAL ERROR IN ibs_mod: Either i or s (and not both) must be specified"
+      STOP
+    ENDIF
 
-      IF(ibs_sim_params%formula == 'cimp') THEN
-        CALL cimp1(ele, ibs_sim_params, rates, n_part)
-      ELSEIF(ibs_sim_params%formula == 'bjmt') THEN
-        CALL bjmt1(ele, ibs_sim_params, rates, n_part)
-      ELSEIF(ibs_sim_params%formula == 'bane') THEN
-        CALL bane1(ele, ibs_sim_params, rates, n_part)
-      ELSEIF(ibs_sim_params%formula == 'mpzt') THEN
-        CALL mpzt1(ele, ibs_sim_params, rates, n_part)
-      ELSEIF(ibs_sim_params%formula == 'mpxx') THEN
-        CALL mpxx1(ele, ibs_sim_params, rates, n_part)
-      ELSE
-        WRITE(*,*) "Invalid IBS formula selected ... terminating"
-        STOP
-      ENDIF
+    IF(ibs_sim_params%formula == 'cimp') THEN
+      CALL cimp1(ele, ibs_sim_params, rates, n_part)
+    ELSEIF(ibs_sim_params%formula == 'bjmt') THEN
+      CALL bjmt1(ele, ibs_sim_params, rates, n_part)
+    ELSEIF(ibs_sim_params%formula == 'bane') THEN
+      CALL bane1(ele, ibs_sim_params, rates, n_part)
+    ELSEIF(ibs_sim_params%formula == 'mpzt') THEN
+      CALL mpzt1(ele, ibs_sim_params, rates, n_part)
+    ELSEIF(ibs_sim_params%formula == 'mpxx') THEN
+      CALL mpxx1(ele, ibs_sim_params, rates, n_part)
+    ELSE
+      WRITE(*,*) "Invalid IBS formula selected ... terminating"
+      STOP
     ENDIF
   ENDIF
 
