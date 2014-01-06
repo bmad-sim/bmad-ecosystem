@@ -63,9 +63,9 @@ the entrance coordinates.
 \item
 Apply offsets
 \begin{align}
-  x_1    &= x_0 - x_{\mbox{off}}
-  y_1    &= y_0 - y_{\mbox{off}}
-  z_1    &= z_0 - z_{\mbox{off}}
+  x_1    &= x_0 - x_{\text{off}} \CRNO
+  y_1    &= y_0 - y_{\text{off}} \\
+  z_1    &= z_0 - z_{\text{off}} \nonumber
 \end{align}
 \item
 Apply pitches
@@ -94,9 +94,9 @@ Apply any tilt $\theta_t$
 \item
 Apply offsets and pitches
 \begin{align}
-  x_2    &= x_1 + x_{\mbox{off}} + \frac{L}{2} x'_{pitch}     \CRNO
+  x_2    &= x_1 + x_{\text{off}} + \frac{L}{2} x'_{pitch}     \CRNO
   p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}        \CRNO
-  y_2    &= y_1 + y_{\mbox{off}} + \frac{L}{2} y'_{pitch}     \\
+  y_2    &= y_1 + y_{\text{off}} + \frac{L}{2} y'_{pitch}     \\
   p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}        \CRNO
   z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
     \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber
@@ -131,13 +131,13 @@ Apply offsets and pitches: The effective ``length'' of the element is
 zero (\sref{s:mirror.coords}) so the origin of the element coordinates
 is the same point around which the element is pitched so
 \begin{align}
-  x_1    &= x_0 - x_{\mbox{off}} \CRNO
+  x_1    &= x_0 - x_{\text{off}} \CRNO
   p_{x1} &= p_{x0} - (1 + p_{z0}) \, x'_{pitch} \CRNO
-  y_1    &= y_0 - y_{\mbox{off}} \\
+  y_1    &= y_0 - y_{\text{off}} \\
   p_{y1} &= p_{x0} - (1 + p_{z0}) \, y'_{pitch} \CRNO
   z_1    &= z_0 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 \nonumber
 \end{align}
-where $x_{\mbox{off}} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
+where $x_{\text{off}} \equiv \vn{x_offset}$, $x'_{pitch} \equiv \vn{x_pitch}$, etc.
 \item
 Apply \vn{ref_tilt} and \vn{tilt}:
 \begin{align}
@@ -195,7 +195,7 @@ the help of the $\bfS$ matrix of \Eq{ltl} with $\alpha$ given by
 vector $\Bf e_{in}$ in the entrance laboratory coordinates pointing
 along the $z$-axis
 \Begineq
- \Bf e_{in} = (0, 0, \mbox{tilt})
+ \Bf e_{in} = (0, 0, \text{tilt})
 \Endeq
 In the exit laboratory coordinates, the vector $\Bf e_{out}$ is
 \Begineq
@@ -211,7 +211,7 @@ the transformation
   \begin{pmatrix} \bfE_{x2} \\ \bfE_{y2} \end{pmatrix} &=
     \bfR (-\theta_{t}) \,   \begin{pmatrix} \bfE_{x1} \\ \bfE_{y1} \end{pmatrix} \nonumber
 \end{align}
-where $\theta_t$ is $\mbox{ref_tilt} + \Bf e_{out,z}$. The $x$ and $y$ components
+where $\theta_t$ is $\text{ref_tilt} + \Bf e_{out,z}$. The $x$ and $y$ components
 of $\Bf e_{out}$ give rotations around the $x$ and $y$ axes
 \begin{align}
   p_{x3} &= p_{x2} - \Bf e_{out,y} \CRNO
@@ -239,7 +239,7 @@ entrance laboratory coordinates. Like pitches, the translation is
 \Begineq
   \bfO_{out} = \bfS \, \bfO_{in}
 \Endeq
-where $\bfO_{in} = (x_{\mbox{off}}, y_{\mbox{off}}, s_{\mbox{off}})$ is the offset in the
+where $\bfO_{in} = (x_{\text{off}}, y_{\text{off}}, s_{\text{off}})$ is the offset in the
 entrance laboratory frame. The transformation is
 \begin{align}
   x_5 &= x_4 + \bfO_{out,x} - p_{x4} \, \bfO_{out,z} \CRNO
@@ -351,7 +351,7 @@ in the form
     0 \\
     \sin\theta_0
     \end{pmatrix}
-  & \qquad &\mbox{[Bragg]} \CRNO
+  & \qquad &\text{[Bragg]} \CRNO
   \bfkbar_0 &= \frac{1}{\lambda} \, 
     \begin{pmatrix}
     \sin\theta_{B,in} \\
@@ -365,7 +365,7 @@ in the form
     0 \\
     \cos\theta_0
     \end{pmatrix}
-  &\qquad & \mbox{[Laue]} 
+  &\qquad & \text{[Laue]} 
   \label{k1lst}
 \end{alignat}
 Where, as shown in \fig{f:crystal.diffraction}, $\theta_{B,in}$, and
@@ -412,8 +412,8 @@ where
 \Endeq
 Once $\theta_0$ has been calculated, $\theta_{B,in}$ can be calculated from \Eq{kkqn1}
 \begin{align}
-  \cos\theta_{B,in} &= \frac{\cos\theta_0}{1 + \delta} \quad [\mbox{Bragg}] \\
-  \sin\theta_{B,in} &= \frac{\sin\theta_0}{1 + \delta} \quad [\mbox{Laue}] 
+  \cos\theta_{B,in} &= \frac{\cos\theta_0}{1 + \delta} \quad [\text{Bragg}] \\
+  \sin\theta_{B,in} &= \frac{\sin\theta_0}{1 + \delta} \quad [\text{Laue}] 
 \end{align}
 
 The outgoing reference wave vector $k_H$ is computed using the equation
@@ -487,18 +487,18 @@ axis
      0                 & 1 & 0                 \\
     -\sin\theta_{B,in} & 0 & \cos\theta_{B,in} \\
   \end{pmatrix}
-  \qquad &\mbox{[Laue]}
+  \qquad &\text{[Laue]}
   \label{mt0t010} \\
   &= \bfR_y(\theta_{B,in} - \frac{\pi}{2})
-  \qquad &\mbox{[Bragg]} \nonumber
+  \qquad &\text{[Bragg]} \nonumber
 \end{align}
 The transformation from element surface coordinates to element exit
 coordinates, $\Bf\Sigma_3$, is another rotation around the $y$ axis 
 \begin{align}
   \Bf\Sigma_3 &= \bfR_y(\theta_{B,out})
-  \qquad &\mbox{[Laue]} \\
+  \qquad &\text{[Laue]} \\
   &= \bfR_y(\theta_{B,out} + \frac{\pi}{2})
-  \qquad &\mbox{[Bragg]} \nonumber
+  \qquad &\text{[Bragg]} \nonumber
 \end{align}
 and the transformation from element exit coordinates
 to laboratory exit coordinates, $\Bf\Sigma_{out}$ is the unity matrix
@@ -672,8 +672,8 @@ and $P$ is the polarization factor
 \Begineq
   P = 
   \begin{cases}
-    1               & \sigma \mbox{ polarization state} \\
-    \cos 2\theta_g  & \pi \mbox{ polarization state}
+    1               & \sigma \text{ polarization state} \\
+    \cos 2\theta_g  & \pi \text{ polarization state}
   \end{cases}
 \Endeq
 $2\theta_g$ is the angle between $\bfK_0$ and $\bfK_H$ which is well

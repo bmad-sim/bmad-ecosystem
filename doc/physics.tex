@@ -236,7 +236,7 @@ series and truncated at some order. Each Taylor series is in the form
 Where the $C_{ij}$ are coefficients and the $e_{ijk}$ are integer exponents.
 The order of the map is
 \Begineq
-  \mbox{order} = \max_{i,j} \left( \sum_{k = 1}^6 e_{ijk} \right)
+  \text{order} = \max_{i,j} \left( \sum_{k = 1}^6 e_{ijk} \right)
 \Endeq
 
 The standard \bmad routine for printing a Taylor map might produce something 
@@ -298,8 +298,8 @@ Then a Taylor map to 1\St order is
 \Endeq
 where
 \begin{align}
-  c_1 &= A \, k \, \cos(k \, x_{\mbox{ref}}) \\
-  c_0 &= A \, \sin(k \, x_{\mbox{ref}}) - c_1 \, x_{\mbox{ref}} \nonumber
+  c_1 &= A \, k \, \cos(k \, x_{\text{ref}}) \\
+  c_0 &= A \, \sin(k \, x_{\text{ref}}) - c_1 \, x_{\text{ref}} \nonumber
 \end{align}
 Notice that once the coefficient values are determined the reference
 point does not play any role when the Taylor map is evaluated to
@@ -837,13 +837,13 @@ the conversion formulas are outlined below.
 \index{orbit!measurement}
 
 For orbits, the
-relationship between measured position $(x, y)_{\mss{meas}}$ and true position 
+relationship between measured position $(x, y)_{\text{meas}}$ and true position 
 $(x, y)_{true}$ is
 \Begineq
   \begin{pmatrix}
     x \\
     y
-  \end{pmatrix}_{\! \mss{meas}}
+  \end{pmatrix}_{\! \text{meas}}
   =
   n_f \, 
   \begin{pmatrix}
@@ -873,8 +873,8 @@ with
   \end{pmatrix}_{\! 0}
   =
   \begin{pmatrix}
-    x_{\mss{err}} - x_{\mss{cal}} \\
-    y_{\mss{err}} - y_{\mss{cal}}
+    x_{\text{err}} - x_{\text{cal}} \\
+    y_{\text{err}} - y_{\text{cal}}
   \end{pmatrix}
 \Endeq
 and 
@@ -888,19 +888,19 @@ and
 \Endeq
 where
 \begin{alignat}{1}
-  d\psi   &= \psi_{\mss{err}}   - \psi_{\mss{cal}} \CRNO
-  d\theta &= \theta_{\mss{err}} - \theta_{\mss{cal}} \CRNO
-  g_x     &= 1 + dg_{x,\mss{err}} - dg_{x,\mss{cal}} \CRNO
-  g_y     &= 1 + dg_{y,\mss{err}} - dg_{y,\mss{cal}}
+  d\psi   &= \psi_{\text{err}}   - \psi_{\text{cal}} \CRNO
+  d\theta &= \theta_{\text{err}} - \theta_{\text{cal}} \CRNO
+  g_x     &= 1 + dg_{x,\text{err}} - dg_{x,\text{cal}} \CRNO
+  g_y     &= 1 + dg_{y,\text{err}} - dg_{y,\text{cal}}
 \end{alignat}
 $r_1$ and $r_2$ are Gaussian random numbers whose distribution
 is centered at zero and has unit width. 
-$n_f$ is the noise factor inherent in the measurement, $(x, y)_{\mss{err}}$
-are monitor offset errors and $(x, y)_{\mss{cal}}$ are the offset calibration
-factors. $\theta_{\mss{err}}$ and $\phi_{\mss{err}}$ are error tilt and ``crunch''
-angles, and $\theta_{\mss{cal}}$ and $\phi_{\mss{cal}}$ are the corresponding
-calibration angles. Finally, $dg_{x,\mss{err}}$ and $dg_{y,\mss{err}}$ are the
-horizontal and vertical gain errors, and $dg_{x,\mss{cal}}$ and $dg_{y,\mss{cal}}$
+$n_f$ is the noise factor inherent in the measurement, $(x, y)_{\text{err}}$
+are monitor offset errors and $(x, y)_{\text{cal}}$ are the offset calibration
+factors. $\theta_{\text{err}}$ and $\phi_{\text{err}}$ are error tilt and ``crunch''
+angles, and $\theta_{\text{cal}}$ and $\phi_{\text{cal}}$ are the corresponding
+calibration angles. Finally, $dg_{x,\text{err}}$ and $dg_{y,\text{err}}$ are the
+horizontal and vertical gain errors, and $dg_{x,\text{cal}}$ and $dg_{y,\text{cal}}$
 are the corresponding calibration gains.
 
 The calibration variables are useful for simulating the process where
@@ -919,7 +919,7 @@ orbit at two different energies. The measured values are then
   \begin{pmatrix}
     \eta_x \\
     \eta_y
- \end{pmatrix}_{\! \mss{meas}}
+ \end{pmatrix}_{\! \text{meas}}
   =
   \frac{\sqrt{2} \, n_f}{dE/E} \, 
   \begin{pmatrix}
@@ -941,20 +941,20 @@ The factor of $\sqrt{2}$ comes from the fact that there are two measurements.
 
 The coupling measurement is considered to be the result of measuring
 the beam at a detector over $N_s$ turns while the beam oscillates at a
-normal mode frequency with some amplitude $A_{\mss{osc}}$.  The
+normal mode frequency with some amplitude $A_{\text{osc}}$.  The
 measured coupling is computed as follows. First, consider excitation
 of the $a$-mode which can be written in the form:
 \Begineq
   \begin{pmatrix}
     x_i \\
     y_i
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   =
-  A_{\mss{osc}} \,
+  A_{\text{osc}} \,
   \begin{pmatrix}
     \cos \phi_i \\
     K_{22a} \, \cos \phi_i + K_{12a} \sin \phi_i
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   \label{xyapk}
 \Endeq
 $i$ is the turn number and $\phi_i$ is the oscillation phase on the $i$\Th turn.
@@ -973,18 +973,18 @@ same frequency as the beam) and a component oscillating out-of-phase:
   \begin{pmatrix}
     x_i \\
     y_i
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   =
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
-  \end{pmatrix}_{\! \mss{true}}
-  \, A_{\mss{osc}} \, \cos (\phi_i + d\phi) +
+  \end{pmatrix}_{\! \text{true}}
+  \, A_{\text{osc}} \, \cos (\phi_i + d\phi) +
   \begin{pmatrix}
     q_{a2x} \\
     q_{a2y}
-  \end{pmatrix}_{\! \mss{true}}
-  \, A_{\mss{osc}} \, \sin (\phi_i + d\phi)
+  \end{pmatrix}_{\! \text{true}}
+  \, A_{\text{osc}} \, \sin (\phi_i + d\phi)
   \label{xykkap}
 \Endeq
 where $d\phi$ is the phase of the reference oscillator with respect to
@@ -996,39 +996,39 @@ the beam.  Comparing \Eq{xyapk} with \Eq{xykkap} gives the relation
 \end{alignat}
 This equation is general and can be applied in either the true or
 measurement frame of reference.  \Eq{xynrr} can be used to transform
-$(x_i, y_i)_{\mss{true}}$ in \Eq{xyapk} to the measurement frame of
+$(x_i, y_i)_{\text{true}}$ in \Eq{xyapk} to the measurement frame of
 reference. Only the oscillating part is of interest.  Averaging over
 many turns gives
 \Begineq
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
-  \end{pmatrix}_{\! \mss{meas}}
+  \end{pmatrix}_{\! \text{meas}}
   =  
   \bfM_m \, 
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   \comma \qquad
   \begin{pmatrix}
     q_{a2x} \\
     q_{a2y}
-  \end{pmatrix}_{\! \mss{meas}}
+  \end{pmatrix}_{\! \text{meas}}
   =  
   \bfM_m \, 
   \begin{pmatrix}
     q_{a2x} \\
     q_{a2y}
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   \label{kkmkk}
 \Endeq
 This neglects the measurement noise. A calculation shows that the noise gives a 
 contribution to the measured $K_{22a}$ and $K_{12a}$ of
 \Begineq
-  K_{22a} \rightarrow K_{22a} + r_1 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  K_{22a} \rightarrow K_{22a} + r_1 \, \frac{n_f}{N_s \, A_{\text{osc}}} 
   \comma \qquad
-  K_{12a} \rightarrow K_{12a} + r_2 \, \frac{n_f}{N_s \, A_{\mss{osc}}} 
+  K_{12a} \rightarrow K_{12a} + r_2 \, \frac{n_f}{N_s \, A_{\text{osc}}} 
   \label{kkrnn}
 \Endeq
 Using the above equations, the transformation from the true
@@ -1041,22 +1041,22 @@ be zero.  Comparing this to \Eq{xyapk} gives
   \begin{pmatrix}
     q_{a1x} \\
     q_{a1y}
-  \end{pmatrix}_{\mss{true}}
+  \end{pmatrix}_{\text{true}}
   =
   \begin{pmatrix}
     1 \\
     K_{22a}
-  \end{pmatrix}_{\mss{true}}
+  \end{pmatrix}_{\text{true}}
   \comma \qquad
   \begin{pmatrix}
     q_{a2x} \\
     q_{a2y}
-  \end{pmatrix}_{\mss{true}}
+  \end{pmatrix}_{\text{true}}
   =
   \begin{pmatrix}
     0 \\
     K_{12a}
-  \end{pmatrix}_{\mss{true}}
+  \end{pmatrix}_{\text{true}}
 \Endeq
 Now \Eq{kkmkk} is used to convert to the measured $q$'s and
 \Eq{kaqqqq} then gives the measured $K_{22a}$ and $K_{12a}$. Finally,
@@ -1070,13 +1070,13 @@ $K_{11b}$ and $K_{12b}$ are defined by
   \begin{pmatrix}
     x_i \\
     y_i
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   =
-  A_{\mss{osc}} \,
+  A_{\text{osc}} \,
   \begin{pmatrix}
     K_{11b} \, \cos \phi_i + K_{12b} \sin \phi_i \\
     \cos \phi_i
-  \end{pmatrix}_{\! \mss{true}}
+  \end{pmatrix}_{\! \text{true}}
   \label{xyakp}
 \Endeq
 Comparing this to David and Rubin\cite{b:coupling} Eq.~55 gives
@@ -1102,20 +1102,20 @@ relationship between $K$ and $q$ is then
 Like the coupling measurement, the betatron phase measurement is
 considered to be the result of measuring the beam at a detector over
 $N_s$ turns while the beam oscillates at a normal mode frequency with
-some amplitude $A_{\mss{osc}}$.  Following the analysis of the
+some amplitude $A_{\text{osc}}$.  Following the analysis of the
 previous subsection, the phase $\phi$ is
 \Begineq
   \begin{pmatrix}
     \phi_a \\
     \phi_b
-  \end{pmatrix}_{\! \mss{meas}}
+  \end{pmatrix}_{\! \text{meas}}
   =
   \begin{pmatrix}
     \phi_a \\
     \phi_b
   \end{pmatrix}_{\! true}
   +
-  \frac{n_f}{N_s \, A_{\mss{osc}}} \, 
+  \frac{n_f}{N_s \, A_{\text{osc}}} \, 
   \begin{pmatrix}
     r_1 \\ 
     r_2
@@ -1124,7 +1124,7 @@ previous subsection, the phase $\phi$ is
   \begin{pmatrix}
     \tan^{-1} \left( \frac{q_{a2x}}{q_{a1x}} \right) \\
     \tan^{-1} \left( \frac{q_{b2y}}{q_{b1y}} \right)
-  \end{pmatrix}_{\! \mss{meas}}
+  \end{pmatrix}_{\! \text{meas}}
 \Endeq
 
 %-----------------------------------------------------------------
@@ -1396,7 +1396,7 @@ determined by the local Twiss parameters:
   \sigma(3,4) &= -\epsilon_y \alpha_b \CRNEG
   \sigma(3,4) &= \epsilon_y \, \gamma_y = 
       \epsilon_y \, (1 + \alpha_b^2) / \beta_y \CRNEG
-  \sigma(i,j) &= 0 \quad \mbox{otherwise} \nonumber
+  \sigma(i,j) &= 0 \quad \text{otherwise} \nonumber
 \end{align}
 The centroid energy of the $k$\Th macroparticle is
 \Begineq
@@ -1680,7 +1680,7 @@ wake components
 \end{alignat}
 These are added to the existing wake components. The total is
 \Begineq
-  a_{\sin, m} = \sum_{\mbox{particles}} \delta a_{\sin, m}
+  a_{\sin, m} = \sum_{\text{particles}} \delta a_{\sin, m}
 \Endeq
 with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles
 that cross the cavity before the kicked particle. To calculate the kick
@@ -1706,10 +1706,10 @@ where $a' \equiv da/dt$ and $b' \equiv db/dt$.
 
 When simulating trains of bunches, the exponential factor $\omega \, t_w / 2
 Q$ in \Eq{ac2rq} can become very large. To prevent numerical overflow,
-\bmad uses a reference time $z_{\mbox{ref}}$ so that all times
+\bmad uses a reference time $z_{\text{ref}}$ so that all times
 $t$ in the above equations are replaced by
 \Begineq
-  t \longrightarrow t - t_{\mbox{ref}}
+  t \longrightarrow t - t_{\text{ref}}
 \Endeq
 
 The above equations were developed assuming cylindrical symmetry. With
@@ -1899,7 +1899,7 @@ over one turn, and the ``classical radius factor'' $r_{\! f}$ is
   \Begineq
     r_{\! f} = \frac{e^2}{4 \, \pi \, \epsilon_0} 
   \Endeq
-$r_{\! f}$ has a value of $1.4399644 \cdot 10^{-9} \; \mbox{meters-eV}$
+$r_{\! f}$ has a value of $1.4399644 \cdot 10^{-9} \; \text{meters-eV}$
 for all particles of charge $\pm 1$.
 
 In a dipole a non--zero $e_1$ or $e_2$ gives a contribution to $I_4$
@@ -1940,7 +1940,7 @@ generalized).
 The damping partition numbers are
   \Begineq
     J_a = 1 - \frac{I_{4a}}{I_2} \comma \quad
-    J_b = 1 - \frac{I_{4b}}{I_2} \comma \, \mbox{and} \quad \label{j1ii}
+    J_b = 1 - \frac{I_{4b}}{I_2} \comma \, \text{and} \quad \label{j1ii}
     J_z = 2 + \frac{I_{4z}}{I_2} \period
   \Endeq
 Since 
@@ -1952,7 +1952,7 @@ Robinson's theorem, $J_a + J_b + J_z = 4$, is satisfied.
 Alternatively, the exponential damping coefficients per turn are
   \Begineq
     \alpha_a = \frac{U_0 \, J_a}{2 E_0} \comma \quad
-    \alpha_b = \frac{U_0 \, J_b}{2 E_0} \comma \, \mbox{and} \quad
+    \alpha_b = \frac{U_0 \, J_b}{2 E_0} \comma \, \text{and} \quad
     \alpha_z = \frac{U_0 \, J_z}{2 E_0} \period
   \Endeq
 The energy spread is given by
@@ -1963,7 +1963,7 @@ The energy spread is given by
 where $\gamma_0$ is the usual energy factor and 
   \Begineq
     C_q = \frac{55}{32 \, \sqrt{3}} \, \frac{\hbar}{mc} = 
-    3.84 \times 10^{-13} \, \mbox{meter for electrons}
+    3.84 \times 10^{-13} \, \text{meter for electrons}
   \Endeq
 If the synchrotron frequency is not too large the bunch length is given by
   \Begineq
