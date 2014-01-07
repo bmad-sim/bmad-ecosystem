@@ -444,7 +444,7 @@ SUBROUTINE ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)
 END SUBROUTINE ibs_lifetime
 
 !+
-!  Subroutine ibs_delta_calc(lat, ix, tau_a, ibs_formula, clog_to_use, delta_sigma_energy, delta_emit_a, delta_emit_b)
+!  Subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
 ! 
 !  Calculates change in energy spread and emittances due to IBS for a single element.
 !
@@ -452,16 +452,14 @@ END SUBROUTINE ibs_lifetime
 !    lat              -- lat_struct: lattice for tracking
 !      %param%n_part  -- real(rp): number of particles in bunch
 !    ix               -- integer: index of element to use: lat%ele(ix)
-!    tau_a            -- real(rp) :: Horizontal damping rate. See See ibs_sim_param_struct.
-!    clog_to_use      -- integer: Coulomb log to use. See ibs_sim_param_struct
-!
+!    ibs_sim_params   -- ibs_sim_params_struct: parameters for calculation of IBS rates.
+!    sigma_mat(6,6)   -- real(rp), optional: Beam's sigma matrix. Required for 'kubo' method.
 !
 !  Output:
 !    delta_sigma_energy -- real(rp), optional: change in energy spread in eV
 !    delta_emit_a       -- real(rp), optional: change in a-mode emittance (geometric)
 !    delta_emit_b       -- real(rp), optional: change in b-mode emittance (geometric)
 !-
-!SUBROUTINE ibs_delta_calc (lat, ix, tau_a, ibs_formula, clog_to_use, delta_sigma_energy, delta_emit_a, delta_emit_b)
 subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
 use mode3_mod, only: normal_sigma_mat
 
@@ -480,7 +478,6 @@ character(20) :: r_name = 'ibs_delta_calc'
 ele => lat%ele(ix)
 
 if ( ibs_sim_params%formula == 'kubo') then
-print *, "KUBO"
   if (.not. present(sigma_mat)) call out_io(s_fatal$, r_name, 'sigma_mat must be present for kubo calc')
   ! Extracted from kubo1_twiss_wrapper. Use sigma matrix only. 
   call kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, ele%value(L$), ele%value(E_TOT$), lat%param%n_part)
@@ -489,7 +486,9 @@ print *, "KUBO"
   call normal_sigma_mat(sigma_mat_updated, emit_updated)
   if (present(delta_emit_a))  delta_emit_a = emit_updated(1) - emit(1)
   if (present(delta_emit_b))  delta_emit_b = emit_updated(2) - emit(2)
-  if (present(delta_sigma_energy)) delta_sigma_energy = sqrt(sigma_mat_updated(6,6) - sigma_mat(6,6))*ele%value(E_TOT$)
+  ! Slice energy spread is sqrt(s_66 - s_56^2/s_55)
+  if (present(delta_sigma_energy)) delta_sigma_energy = (sqrt(sigma_mat_updated(6,6) - sigma_mat_updated(5,6)**2 / sigma_mat_updated(5,5)) &
+        -  sqrt(sigma_mat(6,6) - sigma_mat(5,6)**2 / sigma_mat(5,5)))*ele%value(E_TOT$)
 else
   call ibs1(lat, ibs_sim_params, rates1ele, i=ix)
   if (present(delta_sigma_energy)) delta_sigma_energy = ele%value(l$)/c_light*rates1ele%inv_Tz*ele%z%sigma_p*ele%value(E_TOT$)
