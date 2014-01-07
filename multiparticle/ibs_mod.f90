@@ -461,27 +461,43 @@ END SUBROUTINE ibs_lifetime
 !    delta_emit_a       -- real(rp), optional: change in a-mode emittance (geometric)
 !    delta_emit_b       -- real(rp), optional: change in b-mode emittance (geometric)
 !-
-SUBROUTINE ibs_delta_calc (lat, ix, tau_a, ibs_formula, clog_to_use, delta_sigma_energy, delta_emit_a, delta_emit_b)
-  IMPLICIT NONE
+!SUBROUTINE ibs_delta_calc (lat, ix, tau_a, ibs_formula, clog_to_use, delta_sigma_energy, delta_emit_a, delta_emit_b)
+subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
+use mode3_mod, only: normal_sigma_mat
 
-  TYPE(lat_struct), INTENT(IN) :: lat
-  INTEGER, INTENT(IN) :: ix
-  REAL(rp) tau_a
-  INTEGER clog_to_use
-  TYPE(ibs_sim_param_struct) :: ibs_sim_params
-  real(rp), optional :: delta_sigma_energy, delta_emit_a, delta_emit_b
-  TYPE(ibs_struct) rates1ele
-  CHARACTER*4 ibs_formula
+implicit none
 
-  ibs_sim_params%tau_a = tau_a
-  ibs_sim_params%clog_to_use = clog_to_use
-  ibs_sim_params%formula = ibs_formula
+type(lat_struct), intent(in) :: lat
+type (ele_struct), pointer :: ele
+type(ibs_sim_param_struct) :: ibs_sim_params
+type(ibs_struct) :: rates1ele
+real(rp), optional :: sigma_mat(6,6)
+real(rp) :: dt, emit(3), emit_updated(3), sigma_mat_updated(6,6)
+real(rp), optional :: delta_sigma_energy, delta_emit_a, delta_emit_b
+integer :: ix
+character(20) :: r_name = 'ibs_delta_calc'
+!
+ele => lat%ele(ix)
 
-  CALL ibs1(lat, ibs_sim_params, rates1ele, i=ix)
+if ( ibs_sim_params%formula == 'kubo') then
+print *, "KUBO"
+  if (.not. present(sigma_mat)) call out_io(s_fatal$, r_name, 'sigma_mat must be present for kubo calc')
+  ! Extracted from kubo1_twiss_wrapper. Use sigma matrix only. 
+  call kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, ele%value(L$), ele%value(E_TOT$), lat%param%n_part)
+  ! Get emittances
+  call normal_sigma_mat(sigma_mat, emit)
+  call normal_sigma_mat(sigma_mat_updated, emit_updated)
+  if (present(delta_emit_a))  delta_emit_a = emit_updated(1) - emit(1)
+  if (present(delta_emit_b))  delta_emit_b = emit_updated(2) - emit(2)
+  if (present(delta_sigma_energy)) delta_sigma_energy = sqrt(sigma_mat_updated(6,6) - sigma_mat(6,6))*ele%value(E_TOT$)
+else
+  call ibs1(lat, ibs_sim_params, rates1ele, i=ix)
+  if (present(delta_sigma_energy)) delta_sigma_energy = ele%value(l$)/c_light*rates1ele%inv_Tz*ele%z%sigma_p*ele%value(E_TOT$)
+  if (present(delta_emit_a))       delta_emit_a     = 2*ele%value(l$)/c_light*rates1ele%inv_Ta*ele%a%emit
+  if (present(delta_emit_b))       delta_emit_b     = 2*ele%value(l$)/c_light*rates1ele%inv_Tb*ele%b%emit
+endif
 
-  if (present(delta_sigma_energy)) delta_sigma_energy = lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Tz*lat%ele(ix)%z%sigma_p*lat%ele(ix)%value(E_TOT$)
-  if (present(delta_emit_a))       delta_emit_a     = 2*lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Ta*lat%ele(ix)%a%emit
-  if (present(delta_emit_b))       delta_emit_b     = 2*lat%ele(ix)%value(l$)/c_light*rates1ele%inv_Tb*lat%ele(ix)%b%emit
+
 
 END SUBROUTINE ibs_delta_calc
 
