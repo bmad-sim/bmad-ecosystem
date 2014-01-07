@@ -536,16 +536,21 @@ Format:
 \section{read}\index{commands!read}
 \label{s:read}
 
-The \vn{read} command is used to modify the currently
-viewed \vn{model} lattice. Format:
+The \vn{read} command is used to modify the currently viewed
+\vn{model} lattice using a ``secondary'' lattice file. Format:
 \begin{example}
   read lattice <file_name>
 \end{example}
 
 \vskip 0.2in 
-For example, with the appropriate file,
-the \vn{read} command can be used to misalign the lattice
-elements. The input file must be in Bmad standard lattice format.
+For example, with the appropriate file, the \vn{read} command can be
+used to misalign the lattice elements. The input file must be in Bmad
+standard lattice format.
+
+Note: Due to bookkeeping complications, the number of lattice elements
+may not be modified. If it is desired to initiate \tao using both
+``primary'' and secondary lattice files, this can be done as
+illustrated in \sref{s:init.lat}.
 
 %% restore --------------------------------------------------------------
 \section{restore}\index{commands!restore}

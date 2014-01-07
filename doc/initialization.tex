@@ -294,16 +294,19 @@ format. Possible choices for the parser are:
   xsif      ! For an xsif lattice file.
   digested  ! For a digested BMAD file.
 \end{example}
-\vn{design_lattice(2)} in the example also specifies a secondary
-lattice file called \vn{floor_coords.bmad} which will be parsed after
-the primary \vn{that.lat} file is read. A secondary lattice file can
-be used to modify the primary lattice file. This file must be in Bmad
-standard format. This can be especially useful if \vn{lattice_file} is
-not a bmad file. For example, a \vn{lattice2_file} can be used to set
-non-zero floor coordinates to an XSIF lattice file. If there is no
-\vn{design_lattice} specified for a given universe then the last
-\vn{design_lattice} is used. Thus, in the above example, universes 4
-use the same lattice as universe 3.
+\vn{design_lattice(2)} in the example also specifies a ``secondary
+lattice file'' called \vn{floor_coords.bmad} which will be parsed
+after the ``primary'' \vn{that.lat} file is read. This seconday
+lattice file must only have statements that are valid post lattice
+expansion.  See the \bmad manual manual for a discussion of lattice
+expansion. A secondary lattice file must be in Bmad standard
+format. This can be especially useful if \vn{lattice_file} is not a
+bmad file. For example, a \vn{lattice2_file} can be used to set
+non-zero floor coordinates to an XSIF lattice file. 
+
+If there is no \vn{design_lattice} specified for a given universe then
+the last \vn{design_lattice} is used. Thus, in the above example,
+universes 4 use the same lattice as universe 3.
 
 Normally, a lattice file will specify which ``line'' will be used to
 specify the lattice. Occasionally, it is convenient to override this
