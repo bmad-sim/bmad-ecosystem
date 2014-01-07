@@ -7,7 +7,7 @@ USE, INTRINSIC :: iso_c_binding
 
 TYPE ibs_sim_param_struct
   REAL(rp) tau_a           ! horizontal damping rate (needed for coulomb log tail cut)
-  INTEGER clog_to_use      ! see multi_coulomb_log subroutine for valid settings
+  INTEGER clog_to_use      ! see multi_coulomb_log subroutine for valid settings.  Set to 1 to disable tail-cut.  Set to 1 for linacs.
   LOGICAL set_dispersion   ! True: add vertical dispersion to transfer matrix.  Valid for kubo method.
   REAL(rp) eta_set         ! If set_dispersion, then this value is used to add y-z coupling to the transfer matrix.
   REAL(rp) etap_set        ! If set_dispersion, then this value is used to add y-z coupling to the transfer matrix.
@@ -1138,10 +1138,15 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
 
   bn = (vol/n_part)**(1.0d0/3.0d0)
   bmax = MIN( bm, bn )  !minimum dimension or debye radius
-  bmin1 = r_e/(ptrans*gamma)**2
-  bmin2 = SQRT(ABS(vol/n_part/pi/(ptrans*c_light)/ibs_sim_params%tau_a))
-  bmin = MAX( bmin1, bmin2 )
-  !bmin = bmin1 !Disable Tail-Cut
+  IF( ibs_sim_params%clog_to_use .NE. 1 ) THEN
+    !kubo's tail cut formula
+    bmin1 = r_e/(ptrans*gamma)**2
+    bmin2 = SQRT(ABS(vol/n_part/pi/(ptrans*c_light)/ibs_sim_params%tau_a))
+    bmin = MAX( bmin1, bmin2 )
+  ELSE
+    !no tail cut
+    bmin = r_e/(ptrans*gamma)**2
+  ENDIF
   clog = LOG(bmax/bmin)
 
   cI = (r_e**2)*n_part*clog/4.0d0/pi/(gamma**4)/vol1/pvol * element_length
