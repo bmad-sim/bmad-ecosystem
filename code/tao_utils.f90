@@ -2579,7 +2579,7 @@ do
         '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
         '-var          ', '-data         ', '-building_wall', '-plot         ', &
         '-startup      ', 'help          ', '-help         ', '?             ', &
-        '-geometry     ', '-rf_on        '], ix, .true., matched_name=switch)
+        '-geometry     ', '-rf_on        ', '-debug        '], ix, .true., matched_name=switch)
 
   select case (switch)
 
@@ -2606,6 +2606,9 @@ do
 
   case ('-data')
     call get_next_arg (tao_com%data_file)
+
+  case ('-debug')
+    s%global%debug_on = .true.
 
   case ('-geometry')
     call get_next_arg (tao_com%plot_geometry)

@@ -199,7 +199,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! When reading digested files there are parser errors associated with, for example, the file
   ! having been moved. Do not exit for such stuff.
 
-  if (design_lat%language /= 'digested' .and. err) then
+  if (design_lat%language /= 'digested' .and. err .and. .not. s%global%debug_on) then
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
             'EXITING...', & 
