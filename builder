@@ -50,11 +50,8 @@ sys.stdout = file
 
 
 hostname = socket.gethostname()
-#p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib/' + hostname,
-#              bufsize=1,
-#              shell=True,
-#              stdout=sub.PIPE )
 p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
+#p = sub.Popen('kinit -k -t /home/amd275/etc/amd275-keytab amd275',
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
@@ -126,17 +123,22 @@ def build_directory( dir, statlist, target ):
 
     # New build system
     #---------------------
+
+    if invars.intel:
+        ACC_SET_F_COMPILER = 'ifort'
+    if invars.gfortran:
+        ACC_SET_F_COMPILER = 'gfortran'
+    else:
+        ACC_SET_F_COMPILER = 'ifort'
+
     make_command = 'mk'
     if target == 'debug':
         make_command = 'mkd'
     build_command = 'ACCLIB='+ invars.build_name + \
-                    '; export ACC_SET_F_COMPILER=' + os.environ["ACC_SET_F_COMPILER"] + \
+                    '; export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
                     '; UTIL_DIR_REQUEST='+ invars.util_dir + \
                     '; source ' + invars.util_dir + '/acc_vars.sh;' + \
                     ' export ACC_BUILD_EXES=Y; export ACC_ENABLE_SHARED=Y; ' + make_command
-    print build_command
-
-
 
     
     p = sub.Popen(build_command,
@@ -202,6 +204,7 @@ for buildpass, target in enumerate(targets):
         print target + ' : ERROR'
         error_log_message_cmd = 'grep -C 10 Error ' + logfile
         mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
+#        mail_command = error_log_message_cmd + ' | /bin/mail -s "Test Build System: Nightly build error" defalco@cornell.edu' 
         p = sub.call(mail_command,
                       bufsize=1,
                       shell=True)
@@ -211,6 +214,7 @@ for buildpass, target in enumerate(targets):
 
 # If all passes succeeded, AND a nighly build was requested
 # from the build_supervisor, then rotate the nightly link.
+# Create searcf_namelist index files.
 if invars.nightly:
     rotate_nightly = True
     for entry in all_OK:

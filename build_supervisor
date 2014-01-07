@@ -32,10 +32,10 @@ os.system('svn st -u ' + utildir + '/../build_system')
 # Get 'repositories' and 'source_trees' dictionaries.
 import build_config
 
-
 # Get kerberos key for remote execution
 hostname = socket.gethostname()
 p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
+#p = sub.Popen('kinit -k -t /home/amd275/etc/amd275-keytab amd275',
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
@@ -103,6 +103,14 @@ argparser.add_argument('--packages',
                        action='store_true',
                        dest='packages',
                        help='Build the collection of external Packages used for CESR online.')
+argparser.add_argument('--intel',
+                       action='store_true',
+                       dest='intel',
+                       help='Build using the Intel ifort compiler.')
+argparser.add_argument('--gfortran',
+                       action='store_true',
+                       dest='gfortran',
+                       help='Build using the GCC gfotran compiler.')
 
 
 argresults = argparser.parse_args()
@@ -111,12 +119,46 @@ build_online_release = argresults.build_online_release
 
 build_packages = argresults.packages
 
-build_request = 'release'
-if build_online_release:
-    build_request = 'online-release'
+compiler_intel = argresults.intel
 
-if build_packages:
-    build_request = 'packages'
+compiler_gfortran = argresults.gfortran
+
+
+ACC_FC = 'intel'
+
+ACC_SET_F_COMPILER = 'ifort'
+
+build_request = 'release_intel'
+
+
+if compiler_intel:
+    ACC_FC = 'intel'
+    ACC_SET_F_COMPILER = 'ifort'
+    build_request = 'release_intel'
+
+    if build_online_release:
+        build_request = 'online-release_intel'
+
+    if build_packages:
+        build_request = 'packages_intel'
+
+    #if build_dist:
+        #build_request = 'dist_intel'
+
+if compiler_gfortran:
+    ACC_FC = 'gfortran'
+    ACC_SET_F_COMPILER = 'gfortran'
+    build_request = 'release_gfortran'
+
+    if build_online_release:
+        build_request = 'online-release_gfortran'
+
+    if build_packages:
+        build_request = 'packages_gfortran'
+
+    #if build_dist:
+        #build_request = 'dist_gfortran'
+
 
 class BuildController(threading.Thread):
 
@@ -134,9 +176,9 @@ class BuildController(threading.Thread):
     makefile_dir = makefile_dir_default
 
     prefixes = {
-        'release' : 'cesr',
+        'release'  : 'cesr',
         'packages' : 'packages',
-        'dist' : 'CLASSE_accel_dist'
+        'dist'     : 'CLASSE_accel_dist'
         }
     # Default numerical precision is 'double': IEEE 754-2008 (8 bytes)
     precision = 'double' 
@@ -152,6 +194,8 @@ class BuildController(threading.Thread):
         self.basedir = build_config.build_specs[spec]['basedir']
         self.util_dir = build_config.build_specs[spec]['util_dir']
         self.nightly = argresults.nightly
+        self.intel = argresults.intel
+        self.gfortran = argresults.gfortran
         
         if not self.is_platform_supported():
             print 'Quitting.'
@@ -263,6 +307,8 @@ class BuildController(threading.Thread):
         self.log.write('full_release_dir  ' + self.full_release_dir +'\n')
         self.log.write('packages_name     ' + self.packages_name +'\n')
         self.log.write('nightly           ' + str(self.nightly) +'\n')
+        self.log.write('intel             ' + str(self.intel) +'\n')
+        self.log.write('gfortran          ' + str(self.gfortran) +'\n')
         self.write_checkout_manifest()
         self.log.write('[builder] - STARTING SUBSCRIPT\n')
         self.log.flush()
@@ -319,8 +365,9 @@ class BuildController(threading.Thread):
         self.write_log_stub()
         self.checkout_files()
         build_command = 'rsh -x ' + self.hostname + \
-                        ' export ACC_SET_F_COMPILER=' + os.environ["ACC_SET_F_COMPILER"] + \
+                        ' export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
                         ' ; ~/usr/bin/python ' + self.util_dir + '/builder ' + self.full_logname
+        print build_command
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]
 
