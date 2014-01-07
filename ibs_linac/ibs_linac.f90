@@ -34,15 +34,15 @@ type (beam_init_struct) :: beam_init
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
 type (bunch_params_struct) :: bunch_params
+type (ibs_sim_param_struct) :: ibs_sim_params
 type (ibs_struct) :: ibs_rates
 
-real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, tau_a, rad_delta_eV2, gamma
+real(rp) :: delta_sigma_energy, delta_emit_a, delta_emit_b, rad_delta_eV2, gamma
 real(rp), parameter :: c_q = 3.84e-13
 real(rp) :: initial_slice_energy_spread_eV, energy_spread_eV, sigma_z
 
 integer :: ix
 integer :: namelist_file, n_char
-integer :: coulomb_log_to_use
 
 character(100) :: lat_name, lat_path, base_name, in_file
 character(30), parameter :: r_name = 'ibs_linac'
@@ -52,7 +52,7 @@ logical :: radiation_damping_on, radiation_fluctuations_on, ISR_energy_spread_on
 logical :: err, ok, use_beam, verbose, ibs_affects_bunch, ibs_on
 
 namelist / ibs_linac_params / &
-    lat_name, coulomb_log_to_use, tau_a, ibs_formula, &
+    lat_name, ibs_formula, &
     use_beam, beam_init, radiation_damping_on, radiation_fluctuations_on, &
     ISR_energy_spread_on, ibs_affects_bunch, ibs_on, &
     initial_slice_energy_spread_eV, verbose
@@ -61,8 +61,6 @@ namelist / ibs_linac_params / &
 !Defaults for namelist
 lat_name = 'lat.bmad'
 ibs_formula = 'bjmt'   ! See ibs_mod
-coulomb_log_to_use = 1 ! 1=Wolski, 2=Raubenheimer Tail Cut, 3=Bane Tail Cut
-tau_a = 0              ! only used with Raubenheimer Tail Cut
 use_beam = .true.      ! Beam is tracked to set sigma_z, emittances for every element 
 initial_slice_energy_spread_eV = 5e3 ! Slice energy spread is kept track of separate from the bunch
 ISR_energy_spread_on = .true.      ! For energy spread calc
@@ -82,6 +80,11 @@ print *, 'Opening: ', trim(in_file)
 open (namelist_file, file = in_file, status = "old")
 read (namelist_file, nml = ibs_linac_params)
 close (namelist_file)
+
+! Set params
+ibs_sim_params%tau_a = 0            ! No damping time in a linac
+ibs_sim_params%clog_to_use = 1      ! This disables the tail-cut in 'kubo'
+ibs_sim_params%formula = ibs_formula
 
 !Trim filename
 n_char= SplitFileName(lat_name, lat_path, base_name) 
@@ -143,7 +146,7 @@ else
   write(*,'(a)')   'Not tracking beam'
 endif
 if (ibs_on) then
-  write (*, '(2a)') 'Using IBS formula: ', ibs_formula 
+  write (*, '(2a)') 'Using IBS formula: ', ibs_sim_params%formula
 else
   delta_sigma_energy = 0
   delta_emit_a = 0
@@ -190,7 +193,7 @@ do ix=1, lat%n_ele_track
   endif
   
   ! IBS deltas
-  if (ibs_on) call ibs_delta_calc(lat, ix, tau_a, ibs_formula, coulomb_log_to_use, &
+  if (ibs_on) call ibs_delta_calc(lat, ix, ibs_sim_params, sigma_mat = bunch_params%sigma, & ! sigma_mat only used for 'kubo' formula
   	delta_emit_a = delta_emit_a, &
   	delta_emit_b = delta_emit_b, &
   	delta_sigma_energy = delta_sigma_energy)
