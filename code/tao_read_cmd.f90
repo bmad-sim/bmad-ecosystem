@@ -19,7 +19,7 @@ type (tao_universe_struct), pointer :: u
 character(*) who, file_name
 character(20) action
 character(20) :: names(1) = (/ 'lattice' /)
-character(20) :: r_name = 'tao_read_cmd'
+character(*), parameter :: r_name = 'tao_read_cmd'
 
 integer i, j, ix, iu, nd, ii
 logical err
@@ -47,7 +47,16 @@ case ('lattice')
   u => tao_pointer_to_universe(-1)
   call bmad_parser2 (file_name, u%model%lat)
   u%calc%lattice = .true.
-  
+
+  do i = 0, ubound(u%model%lat%branch, 1)
+    if (u%model%lat%branch(i)%n_ele_track /= u%design%lat%branch(i)%n_ele_track .or. &
+        u%model%lat%branch(i)%n_ele_max /= u%design%lat%branch(i)%n_ele_max) then
+      call out_io (s_fatal$, r_name, &
+              'IT IS FORBIDDEN TO USE THE "read Lattice" COMMAND TO MODIFY THE NUMBER OF LATTICE ELEMENTS.', &
+              'WILL STOP HERE.')
+      stop
+    endif
+  enddo
 
 end select
 
