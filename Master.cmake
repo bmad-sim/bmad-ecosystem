@@ -310,11 +310,11 @@ IF (${DISTRIBUTION_BUILD})
 ELSE()
   SET (MASTER_INC_DIRS
     ${MASTER_INC_DIRS}
-    ${PACKAGES_DIR}/include
-    ${PACKAGES_DIR}/forest/include
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/forest/include
     ${PACKAGES_DIR}/recipes_c-ansi/include
     ${PACKAGES_DIR}/cfortran/include
-    ${PACKAGES_DIR}/root/include
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/root
     ${PACKAGES_OUTPUT_BASEDIR}/modules
   )
 ENDIF()
