@@ -906,7 +906,7 @@ type (coord_struct) :: orb_here, orb_init
 type (sr3d_photon_coord_struct) :: p_orb
 type (twiss_struct), pointer :: t
 
-real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma
+real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2
 real(rp) r(3), vec(4), v_mat(4,4)
 
 integer photon_direction
@@ -942,10 +942,18 @@ p_orb%vec(1:4) = p_orb%vec(1:4) + orb_here%vec(1:4)
 
 p_orb%vec(5) = ele_here%s
 
-! Note: phase space coords here are different from the normal beam and photon coords.
-! Here vec(2)^2 + vec(4)^2 + vec(6)^2 = 1
+! Above equations are valid in the small angle limit.
+! Sometimes a large-angle photon is generated so make sure
+! there is no problem with the sqrt() evaluation.
 
-p_orb%vec(6) = photon_direction * sqrt(1 - p_orb%vec(2)**2 - p_orb%vec(4)**2)
+v2 = p_orb%vec(2)**2 + p_orb%vec(4)**2
+if (v2 >= 0.99) then
+  p_orb%vec(2) = p_orb%vec(2) * 0.99 / v2
+  p_orb%vec(4) = p_orb%vec(4) * 0.99 / v2
+  v2 = p_orb%vec(2)**2 + p_orb%vec(4)**2
+endif
+
+p_orb%vec(6) = photon_direction * sqrt(1 - v2)
 
 end subroutine sr3d_emit_photon
 
