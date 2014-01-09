@@ -28,7 +28,6 @@
 !                           = cycles$   => Print Twiss, phi in radians/2pi.
 !   type_control       -- Logical, optional: Print control status? Default is True.
 !                           If ele%branch%lat is not associated cannot print status info.
-!   lattice            -- lat_struct, optional: Needed for control typeout.
 !   type_wake          -- Logical, optional: If True then print the long-range and 
 !                           short-range wakes information. If False then just print
 !                           how many terms the wake has. Default is True.

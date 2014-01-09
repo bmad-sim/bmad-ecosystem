@@ -488,19 +488,20 @@ is {\em defined} to be any offset, pitch or tilt (\sref{s:offset}),
 the laboratory and element body coordinates are the same. With
 misalignments, the transformation is given by \Eqs{vwlv} and \eq{wws}
 where 
-\begin{example}
-          \(\bfL\) =  (x_offset, y_offset, z_offset)
+\Begineq
+  \bfL =  (\text{x_offset}, \, \text{y_offset}, \, \text{z_offset})
   \label{lxyz}
-\end{example}
+\Endeq
 and the $\bfS$ matrix is defined by 
 \Begineq
   \bfS = \bfW_\Theta \, \bfW_\Phi \, \bfW_\Psi
   \label{swww}
 \Endeq
 with
-\begin{example}
-          \(\Theta\) = x_pitch,  \(\Phi\) = y_pitch,  \(\Psi\) = tilt
-\end{example} 
+\Begineq
+  \Theta = \text{x_pitch},  \qquad \Phi = \text{y_pitch},  \qquad \Psi = \text{tilt}
+  \label{txppyp}
+\Endeq
 The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}.
 
 \index{patch}\index{floor_shift}
@@ -512,9 +513,9 @@ the element.
 \index{rbend}\index{sbend}\index{roll}\index{tilt}
 For \vn{rbend} and \vn{sbend} elements the above equations are modified
 by using 
-\begin{example}
-          \(\Psi\) = 0
-\end{example}
+\Begineq
+  \Psi = 0
+\Endeq
 This is used since, unlike other elements, the \vn{ref_tilt} attribute of
 a bend affects the reference orbit (cf.~\Eq{ltl}). In the place of a
 \vn{tilt}, the \vn{roll} attribute can be used (\sref{s:offset}). For
@@ -537,13 +538,13 @@ For \vn{fiducial} and \vn{girder} elements the above equations are
 used to calculate the alignment of reference coordinates with respect
 to ``\vn{origin}'' coordinates. In this case, the vector $\bfL$ is
 constructed via
-\begin{example}
-          \(\bfL\) = (dx_origin, dy_origin, dz_origin)
-\end{example}
+\Begineq
+  \bfL = (\text{dx_origin}, \qquad \text{dy_origin}, \qquad \text{dz_origin})
+\Endeq
 And the attributes use to shift the reference coordinates orientation are:
-\begin{example}
-          \(\Theta\) = dtheta_origin,  \(\Phi\) = dphi_origin,  \(\Psi\) = dpsi_origin
-\end{example} 
+\Begineq
+  \Theta = \text{dtheta_origin}, \qquad \Phi = \text{dphi_origin}, \qquad \Psi = \text{dpsi_origin}
+\Endeq
 
 %-----------------------------------------------------------------------------
 \subsection{Reflection Patch}
@@ -731,7 +732,7 @@ phase space is used:
   (x, \beta_x, y, \beta_y, z, \beta_z)
   \label{xbybzb}
 \Endeq
-Here $(\beta_x, \beta_y, \beta_z)$ is the normalized velocity component with
+Here $(\beta_x, \beta_y, \beta_z)$ is the normalized photon velocity with
 \Begineq
   \beta_x^2 + \beta_y^2 + \beta_z^2 = 1 
   \label{bbb1}
@@ -746,7 +747,8 @@ and phase of the field along the $x$ and $y$ axes transverse to the
 direction of propagation.  the field in the vicinity of the photon is
 \begin{align}
   E_x (\Bf r, t) &\sim E_x \, e^{i (k \, (z - z_0) - \omega \, (t - t_{ref}) + \phi_x)} \CRNO
-  E_y (\Bf r, t) &\sim E_y \, e^{i (k \, (z - z_0) - \omega \, (t - t_{ref}) + \phi_y)} \CRNO
+  E_y (\Bf r, t) &\sim E_y \, e^{i (k \, (z - z_0) - \omega \, (t - t_{ref}) + \phi_y)} 
+  \label{ertee}
 \end{align}
 where $z_0$ is the photon $z$ position and and $t_ref$ is the reference time.
 
@@ -764,9 +766,9 @@ space coordinates with time $t$ as the independent variable. The
 positions $x$, $y$, and $s$ are the same as in
 \fig{f:local.coords}. The momenta are defined as
 \begin{align}
-c p_x &\equiv m c^2 \gamma \beta_x \\
+c p_x &\equiv m c^2 \gamma \beta_x \CRNO
 c p_y &\equiv m c^2 \gamma \beta_y \\
-c p_s &\equiv m c^2 \gamma \beta_s,
+c p_s &\equiv m c^2 \gamma \beta_s, \nonumber
 \end{align}
 and internally are stored in units of eV.
 

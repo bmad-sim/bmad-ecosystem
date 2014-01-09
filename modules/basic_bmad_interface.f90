@@ -874,13 +874,13 @@ interface
   end subroutine
 
   subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-        twiss_type, type_control, type_wake, type_floor_coords, &
+        twiss_out, type_control, type_wake, type_floor_coords, &
         type_field, type_wall, nunit)
     import
     implicit none
     type (ele_struct) ele
     integer, optional :: type_mat6
-    integer, optional :: twiss_type
+    integer, optional :: twiss_out
     logical, optional :: type_zero_attrib, type_floor_coords
     logical, optional :: type_control, type_taylor, type_wake
     logical, optional :: type_field, type_wall
@@ -895,14 +895,14 @@ interface
   end subroutine
 
   subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-        type_taylor, twiss_type, type_control, type_wake, &
+        type_taylor, twiss_out, type_control, type_wake, &
         type_floor_coords, type_field, type_wall)
     import
     implicit none
     type (ele_struct), target :: ele
     integer, optional, intent(in) :: type_mat6
     integer, intent(out) :: n_lines
-    integer, optional, intent(in) :: twiss_type
+    integer, optional, intent(in) :: twiss_out
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
     logical, optional :: type_field, type_wall
