@@ -59,22 +59,15 @@ For elements that have a reference orbit kink
 \vn{surface} coordinates. Otherwise the element coordinates are
 the entrance coordinates.
 
-\begin{enumerate}
-\item
-Apply offsets
-\begin{align}
-  x_1    &= x_0 - x_{\text{off}} \CRNO
-  y_1    &= y_0 - y_{\text{off}} \\
-  z_1    &= z_0 - z_{\text{off}} \nonumber
-\end{align}
-\item
-Apply pitches
-\begin{align}
-  x_2    &=  x_1    \, \cos\theta_t + y_1    \, \sin\theta_t \CRNO
-  p_{x2} &=  p_{x1} \, \cos\theta_t + p_{y1} \, \sin\theta_t \CRNO
-  y_2    &= -x_1    \, \sin\theta_t + y_1    \, \cos\theta_t \\
-  p_{y2} &= -p_{x1} \, \sin\theta_t + p_{y1} \, \cos\theta_t \nonumber
-\end{align}
+  \begin{enumerate}
+  \item
+Apply offsets, pitches and tilt using the formulas in
+\sref{s:pos.trans} along with \Eqs{lxyz}, \eq{swww}, and \eq{txppyp}.
+  \item
+Apply the \vn{tilt} to the electric field (\Eq{ertee}).
+  \item
+For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements:
+
 \end{enumerate}
 
 %-------------------------------------------------------------------------

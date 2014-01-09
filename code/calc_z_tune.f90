@@ -20,36 +20,43 @@
 
 subroutine calc_z_tune (lat)
 
-  use bmad_interface, except_dummy => calc_z_tune
-  use nrtype
-  use nr
+use bmad_interface, except_dummy => calc_z_tune
+use nrtype
+use nr
 
-  implicit none
+implicit none
 
-  type (lat_struct) lat
+type (lat_struct) lat
 
-  real(rp) a(6,6), wr(6), wi(6), cos_z
+real(rp) a(6,6), wr(6), wi(6), cos_z, denom
 
-  integer i
+integer i
+
 !
 
-  call transfer_matrix_calc (lat, .true., a)
-  lat%param%t1_with_RF = a
+call transfer_matrix_calc (lat, .true., a)
+lat%param%t1_with_RF = a
 
-  cos_z = (a(5,5) + a(6,6)) / (2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5)))
+denom = 2 * (a(5,5)*a(6,6) - a(5,6)*a(6,5))
+if (denom == 0) then
+  lat%z%tune = 0
+  return
+endif
 
-  if (cos_z > 0.9999999) then
-    lat%z%tune = 0
-    return
-  endif
+cos_z = (a(5,5) + a(6,6)) / denom
 
-  call balanc(a)
-  call elmhes(a)
-  call hqr(a,wr,wi)
+if (cos_z > 0.9999999) then
+  lat%z%tune = 0
+  return
+endif
+
+call balanc(a)
+call elmhes(a)
+call hqr(a,wr,wi)
 
 ! we need to find which eigen-value is closest to the z_tune
 
-  i = minloc(abs(wr-cos_z), 1)
-  lat%z%tune = -abs(atan2(wi(i),wr(i)))
+i = minloc(abs(wr-cos_z), 1)
+lat%z%tune = -abs(atan2(wi(i),wr(i)))
 
 end subroutine

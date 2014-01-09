@@ -331,8 +331,6 @@ file, branches are not formed until the lattice is expanded
 (\sref{s:expand}). Therefore an \vn{expand_lattice} statement is
 required before full names can be used in statements.
 
-
-
 %---------------------------------------------------------------------------
 \section{Lattice Element Attributes}
 \label{s:lat.attribs}
@@ -790,7 +788,7 @@ the file.
 At some point in parsing a lattice file, the ordered sequence of
 elements that form a lattice must be constructed. This process is called
 \vn{lattice expansion} since the element sequence can be built up from
-sub--sequences (\sref{c:sequence}). Normally lattice expansion happens
+sub--sequences (\sref{c:sequence}). Normally, lattice expansion happens
 automatically at the end of the parsing of the lattice file but an
 explicit \vn{expand_lattice} statement in a lattice file will cause
 immediate expansion. The reason why this can be important is that there
@@ -803,7 +801,12 @@ before or after lattice expansion:
 The \vn{ran} and \rn{ran_gauss} functions, when used with elements
 that show up multiple times in a lattice, generally need to be used
 after lattice expansion. See \sref{s:functions}.
-\item 
+\item
+\index{line}\index{list}\index{use}
+All \vn{line}s (\sref{s:line.wo.arg}), \vn{list}s
+(\sref{s:replace.list}), and \vn{use} (\sref{s:use}) statements must
+come before lattice expansion.
+\item
 Some dependent variables may be set as if they are independent
 variables but only if done before lattice expansion. See \sref{s:depend}.
 \index{multipass}
@@ -819,6 +822,19 @@ after lattice expansion (\sref{s:tag}).
 
 Lattice expansion is only done once so it is an error if multiple
 \vn{expand_lattice} statements are present.
+
+\index{secondary lattice file}
+A lattice file where all the statements are post lattice expansion
+valid is called a ``\vn{secondary lattice file}''.  To promote
+flexibility, \bmad has methods for parsing lattices in a two step
+process: First, a ``primary'' lattice file that defines the basic
+lattice is read. After the promary lattice has been parsed and lattice
+expansion has been done, the second step is to read in one or more
+secondary lattice files. Such secondary lattice files can be used, for
+example, to set such things as element misalignments. The point here
+is that there are no calls (\sref{s:call}) of the secondary files in
+the primary file so the primary lattice file does not have to get
+modified when different secondary files are to be used.
 
 %--------------------------------------------------------------------------
 \section{Debugging Statements}
