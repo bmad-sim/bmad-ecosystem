@@ -653,6 +653,8 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
   ! Encode mat6 info
 
   n = integer_option (6, type_mat6)
+  if (n > 6) n = 6
+  if (n < 0) n = 0
 
   if (n /= 0) then
     nl=nl+1; li(nl) = ' '
@@ -661,16 +663,14 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
   endif
 
   if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then
-    do i = 1, n
-      nl=nl+1; write (li(nl), '(6es11.3, a, es11.3)') &
-                          (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
-    enddo
+    write (fmt, '(a, i0, a)') '(', n, 'es11.3, a, es11.3)'
   else
-    do i = 1, n
-      nl=nl+1; write (li(nl), '(6f10.5, a, es11.3)') &
-                          (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
-    enddo
+    write (fmt, '(a, i0, a)') '(', n, 'f10.5, a, es11.3)'
   endif
+
+  do i = 1, n
+    nl=nl+1; write (li(nl), fmt) (ele%mat6(i, j), j = 1, n), '   : ', ele%vec0(i)
+  enddo
 
   ! Encode taylor series
 
