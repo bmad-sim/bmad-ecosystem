@@ -315,6 +315,7 @@ ELSE()
     ${PACKAGES_DIR}/recipes_c-ansi/include
     ${PACKAGES_DIR}/cfortran/include
     ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/root
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
     ${PACKAGES_OUTPUT_BASEDIR}/modules
   )
 ENDIF()
