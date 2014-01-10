@@ -44,7 +44,7 @@ interface
     implicit none
     real(rp), intent(in) :: x
     real(rp) :: func
-    end function func
+  end function func
 end interface
 
 integer(i4b), parameter :: itmax=100
@@ -62,17 +62,18 @@ a=x1
 b=x2
 fa=func(a)
 fb=func(b)
-if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) &
-call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
 c=b
 fc=fb
+
 do iter=1,ITMAX
-if ((fb > 0.0 .and. fc > 0.0) .or. (fb < 0.0 .and. fc < 0.0)) then
-c=a
-fc=fa
+  if ((fb > 0.0 .and. fc > 0.0) .or. (fb < 0.0 .and. fc < 0.0)) then
+    c=a
+    fc=fa
     d=b-a
     e=d
   end if
+
   if (abs(fc) < abs(fb)) then
     a=b
     b=c
@@ -81,13 +82,21 @@ fc=fa
     fb=fc
     fc=fa
   end if
+
   tol1=2.0_rp*EPS*abs(b)+0.5_rp*tol
   xm=0.5_rp*(c-b)
+
   if (abs(xm) <= tol1 .or. fb == 0.0) then
-    x_min=b
+    !! x_min=b
+    if (fb == 0) then
+      x_min = b
+    else
+      x_min = (b * fc - c * fb) / (fc - fb)   ! Linear interpolation.
+    endif
     err_flag = .false.
     RETURN
   end if
+
   if (abs(e) >= tol1 .and. abs(fa) > abs(fb)) then
     s=fb/fa
     if (a == c) then
@@ -112,11 +121,14 @@ fc=fa
     d=xm
     e=d
   end if
+
   a=b
   fa=fb
   b=b+merge(d,sign(tol1,xm), abs(d) > tol1 )
   fb=func(b)
+
 end do
+
 call out_io (s_fatal$, r_name, 'EXCEEDED MAXIMUM ITERATIONS!')
 x_min=b
 
