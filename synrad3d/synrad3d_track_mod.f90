@@ -3,16 +3,6 @@ module synrad3d_track_mod
 use synrad3d_utils
 use synrad3d_output_mod
 
-! These common variables are needed for the Num Rec routine zbrent.
-
-private sr3d_photon_hit_func
-type (sr3d_photon_track_struct), pointer, private, save :: photon_com
-type (sr3d_photon_track_struct), private, save :: photon1_com
-type (sr3d_wall_struct), pointer, private, save :: wall_com
-type (lat_struct), pointer, private, save :: lat_com
-real(rp), private, save :: track_len0, track_len1, d_rad0, d_rad1
-logical, private, save :: in_zbrent
-
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -587,13 +577,15 @@ type (lat_struct), target :: lat
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_photon_track_struct) :: photon1
 
 real(rp) r0, r1, track_len
-! track_len0, track_len1, d_rad0, d_rad1 are in common
+real(rp) track_len0, track_len1, d_rad0, d_rad1
 
 integer i
 
 logical err
+logical :: in_zbrent
 
 ! For debugging
 
@@ -611,11 +603,8 @@ endif
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
 
-photon1_com = photon
-photon_com => photon
-wall_com => wall
-lat_com => lat
-photon_com%now%ix_triangle = -1
+photon1 = photon
+photon%now%ix_triangle = -1
 track_len1 = photon%now%track_len
 d_rad0 = real_garbage$
 d_rad1 = real_garbage$
@@ -629,7 +618,7 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
       print *, 'track_len, d_rad0:', track_len0, d_rad0
-      print *, 'photon1_com%now:', i, photon1_com%now%vec, photon1_com%now%track_len
+      print *, 'photon1%now:', i, photon1%now%vec, photon1%now%track_len
     endif
     if (d_rad0 < 0) exit
     track_len1 = track_len0; d_rad1 = d_rad0
@@ -668,13 +657,11 @@ endif
 photon%now = photon%old
 call sr3d_propagate_photon_a_step (photon, track_len-photon%now%track_len, lat, wall, .false.)
 call sr3d_photon_d_radius (photon%now, wall, d_rad0, in_antechamber = photon%hit_antechamber)
-photon_com%now%ix_triangle = photon1_com%now%ix_triangle
-
-end subroutine sr3d_photon_hit_spot_calc 
+photon%now%ix_triangle = photon1%now%ix_triangle
 
 !---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
+contains
+
 !+
 ! Function sr3d_photon_hit_func (track_len) result (d_radius)
 ! 
@@ -712,36 +699,38 @@ endif
 ! At the beginning of the track the mesh calc has problems with zero length steps.
 ! So just interpolate from the end
 
-if (track_len == photon_com%old%track_len .and. &
-      wall_com%section(photon_com%now%ix_wall+1)%basic_shape == 'triangular') then
-  call sr3d_mesh_d_radius (photon_com, wall_com, d_radius)
-  d_radius = d_radius - (photon_com%now%track_len - photon_com%old%track_len)  
+if (track_len == photon%old%track_len .and. &
+      wall%section(photon%now%ix_wall+1)%basic_shape == 'triangular') then
+  call sr3d_mesh_d_radius (photon, wall, d_radius)
+  d_radius = d_radius - (photon%now%track_len - photon%old%track_len)  
   return
 endif
 
 ! Determine start of tracking.
-! If track_length > photon1_com%now%track_len: 
-!   Track starting from the present position (photon1_com%now).
+! If track_length > photon1%now%track_len: 
+!   Track starting from the present position (photon1%now).
 ! Otherwise:
-!   Track starting from the beginning of the region (photon_com%old).
+!   Track starting from the beginning of the region (photon%old).
 
-if (track_len < photon1_com%now%track_len) then
-  photon1_com = photon_com
-  photon1_com%now = photon_com%old
+if (track_len < photon1%now%track_len) then
+  photon1 = photon
+  photon1%now = photon%old
 endif
 
 ! And track to track_len position.
 
-d_track = track_len - photon1_com%now%track_len
-call sr3d_propagate_photon_a_step (photon1_com, d_track, lat_com, wall_com, .false.)
+d_track = track_len - photon1%now%track_len
+call sr3d_propagate_photon_a_step (photon1, d_track, lat, wall, .false.)
 
-if (wall_com%section(photon_com%now%ix_wall+1)%basic_shape == 'triangular') then
-  call sr3d_mesh_d_radius (photon1_com, wall_com, d_radius)
+if (wall%section(photon%now%ix_wall+1)%basic_shape == 'triangular') then
+  call sr3d_mesh_d_radius (photon1, wall, d_radius)
 else
-  call sr3d_photon_d_radius (photon1_com%now, wall_com, d_radius)
+  call sr3d_photon_d_radius (photon1%now, wall, d_radius)
 endif
 
 end function sr3d_photon_hit_func
+
+end subroutine sr3d_photon_hit_spot_calc 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
