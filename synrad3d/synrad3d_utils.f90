@@ -368,7 +368,8 @@ do i = 0, wall%n_section_max
   ! Check s ordering
 
   if (i > 0) then
-    if (sec%s <= wall%section(i-1)%s) then
+    if (sec%s == wall%section(i-1)%s) sec%s = sec%s + 1000*sr3d_params%significant_length
+    if (sec%s < wall%section(i-1)%s) then
       call out_io (s_fatal$, r_name, &
                 'WALL%SECTION(i)%S: \f0.4\ ', &
                 '    IS LESS THAN SECTION(i-1)%S: \f0.4\ ', &
