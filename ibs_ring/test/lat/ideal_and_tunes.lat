@@ -1,0 +1,3 @@
+call, file='/nfs/cesr/online/machine_data/lattice/cesr/bmad/cta_2085_xr40m_cd_20111210.lat'
+call, file='tuned_quads.out'
+call, file='rf.out'

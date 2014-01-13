@@ -10,12 +10,15 @@ set (SRC_DIRS
   code
   synrad3d
 )
+#set (FFLAGS "-openmp")
+#set (LINK_FLAGS "-openmp")
 
 set (EXE_SPECS
   cmake.analyzer
   cmake.bbu
   cmake.dynamic_aperture
-  #cmake.ibs_linac
+  cmake.ibs_linac
+  cmake.ibs_ring
   cmake.synrad
   cmake.synrad3d
   cmake.synrad_aperture_to_wall
@@ -27,3 +30,4 @@ set (FFLAGS "-pg")  # For profiling
 set (CFLAGS "-pg")
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
+#include(../Master.cmake)
