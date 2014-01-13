@@ -106,6 +106,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   REAL(rp) Vrf
   REAL(rp) U0
   REAL(rp) rf_freq, rf_omega
+  REAL(rp) sig_z
 
   CHARACTER(20) :: r_name = 'ibsequilibrium2'
 
@@ -168,6 +169,15 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   half = SIZE(running_emit_x) / 2
 
   DO WHILE(.not.converged)
+    IF( ibs_sim_params%do_pwd ) THEN
+      ! CALL bl_via_vlassov(cur,alpha_c,energy,ibsmode%sigE_E,Vrf,rf_omega,U0,lat%param%total_length, &
+      !                     ibs_sim_params%resistance,ibs_sim_params%inductance,sigma_z_vlassov)
+      CALL bl_via_mat(lat, ibs_sim_params, ibsmode, sig_z)
+      ibsmode%sig_z = sig_z
+    ELSE
+      ibsmode%sig_z = L_ratio * ibsmode%sigE_E
+    ENDIF
+
     DO i=1, lat%n_ele_track
       lat%ele(i)%a%emit = ibsmode%a%emittance
       lat%ele(i)%b%emit = ibsmode%b%emittance
@@ -175,7 +185,9 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
       lat%ele(i)%z%sigma_p = ibsmode%sigE_E
       lat%ele(i)%z%emit = ibsmode%sig_z * ibsmode%sigE_E
     ENDDO
+
     CALL ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
+
     counter = counter + 1
     !It is possible that this method can give negative emittances
     !at some point in the iterative process, in which case the case
@@ -189,7 +201,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
     ELSE
       CALL out_io(s_abort$, r_name, &
          'FATAL ERROR: Negative emittance encountered: ', &
-         'Try adjusting initial_blow_up.')
+         'Try adjusting initial_blow_up or switch to derivatives method "der".')
       STOP
     ENDIF
     IF( rates%inv_Tb .gt. 0.0 ) THEN
@@ -247,13 +259,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
       ibsmode%a%emittance = emit_a
       ibsmode%b%emittance = emit_b
       ibsmode%sigE_E = sigE_E 
-      ! ibsmode%sig_z = L_ratio * sigE_E
-      ! sigma_z_nat = L_ratio * sigE_E
-      ! CALL potential_well_distortion(cur,alpha_c,energy,lat%z%tune/twopi,lat%param%total_length,inductance,sigma_z_nat,pwd_ratio)
-      ! ibsmode%sig_z = sigma_z_nat * pwd_ratio
-      CALL bl_via_vlassov(cur,alpha_c,energy,sigE_E,Vrf,rf_omega,U0,lat%param%total_length,ibs_sim_params%resistance, &
-                          ibs_sim_params%inductance,sigma_z_vlassov)
-      ibsmode%sig_z = sigma_z_vlassov
+      ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
     ENDIF
 
   ENDDO
@@ -308,13 +314,14 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
   REAL(rp) energy
   REAL(rp) sigma_z_nat
   REAL(rp) pwd_ratio
+  REAL(rp) sig_z
 
   REAL(rp) Vrf
   REAL(rp) U0
   REAL(rp) rf_freq, rf_omega
 
   LOGICAL converged
-  INTEGER counter, i
+  INTEGER i
 
   !natural mode here means emittances before IBS effects
   naturalmode = inmode
@@ -349,9 +356,17 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
   converged = .false.
   dT = tau_a / 10.0 !Time to advance per iteration
 
-  counter = 0
   ibsmode = naturalmode
   DO WHILE(.not.converged)
+    IF( ibs_sim_params%do_pwd ) THEN
+      ! CALL bl_via_vlassov(cur,alpha_c,energy,ibsmode%sigE_E,Vrf,rf_omega,U0,lat%param%total_length, &
+      !                     ibs_sim_params%resistance,ibs_sim_params%inductance,sigma_z_vlassov)
+      CALL bl_via_mat(lat, ibs_sim_params, ibsmode, sig_z)
+      ibsmode%sig_z = sig_z
+    ELSE
+      ibsmode%sig_z = L_ratio * ibsmode%sigE_E
+    ENDIF
+
     DO i=1, lat%n_ele_track
       lat%ele(i)%a%emit = ibsmode%a%emittance
       lat%ele(i)%b%emit = ibsmode%b%emittance
@@ -359,8 +374,9 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
       lat%ele(i)%z%sigma_p = ibsmode%sigE_E
       lat%ele(i)%z%emit = ibsmode%sig_z * ibsmode%sigE_E
     ENDDO
+
     CALL ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
-    counter = counter + 1
+
     Ta = 1.0/rates%inv_Ta
     Tb = 1.0/rates%inv_Tb
     Tz = 1.0/rates%inv_Tz
@@ -385,17 +401,9 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
       ibsmode%a%emittance = emit_a + dadt*dT
       ibsmode%b%emittance = emit_b + dbdt*dT
       ibsmode%sigE_E = ibsmode%sigE_E + dsEdt*dT
-
-      IF( ibs_sim_params%do_pwd ) THEN
-        CALL bl_via_vlassov(cur,alpha_c,energy,ibsmode%sigE_E,Vrf,rf_omega,U0,lat%param%total_length, &
-                            ibs_sim_params%resistance,ibs_sim_params%inductance,sigma_z_vlassov)
-        ibsmode%sig_z = sigma_z_vlassov
-      ELSE
-        ibsmode%sig_z = L_ratio * ibsmode%sigE_E
-      ENDIF
+      ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
     ENDIF
   ENDDO
-
 END SUBROUTINE ibs_equib_der
 
 !+
@@ -500,35 +508,35 @@ endif
 
 END SUBROUTINE ibs_delta_calc
 
-!+
-!  Subroutine ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
-!
-!  Calculates IBS risetimes for given element and mode.
-!  This is basically a front-end for the various formulas 
-!  available in this module of calculating IBS rates.
-!
-!  Input:
-!    lat             -- lat_struct: lattice for tracking
-!      %param%n_part  -- Real: number of particles in bunch
-!    ibs_sim_params   -- type(ibs_sim_param_struct): additional parameters for IBS calculation
-!    mode             -- normal_modes_struct: beam parameters 
-!    ix               -- integer: element at which to calculate IBS rate
-!
-!  Output:
-!    rates1ele        -- ibs_struct: ibs rates in x,y,z 
-!-
-SUBROUTINE ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
-  !FOO delete this routine
-  IMPLICIT NONE
-
-  TYPE(lat_struct) :: lat
-  TYPE(ibs_sim_param_struct) :: ibs_sim_params
-  TYPE(ibs_struct) :: rates1ele
-  INTEGER ix
-
-  CALL ibs1(lat, ibs_sim_params, rates1ele, i=ix)
-
-END SUBROUTINE ibs_rates1ele
+! !+
+! !  Subroutine ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
+! !
+! !  Calculates IBS risetimes for given element and mode.
+! !  This is basically a front-end for the various formulas 
+! !  available in this module of calculating IBS rates.
+! !
+! !  Input:
+! !    lat             -- lat_struct: lattice for tracking
+! !      %param%n_part  -- Real: number of particles in bunch
+! !    ibs_sim_params   -- type(ibs_sim_param_struct): additional parameters for IBS calculation
+! !    mode             -- normal_modes_struct: beam parameters 
+! !    ix               -- integer: element at which to calculate IBS rate
+! !
+! !  Output:
+! !    rates1ele        -- ibs_struct: ibs rates in x,y,z 
+! !-
+! SUBROUTINE ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
+!   !FOO delete this routine
+!   IMPLICIT NONE
+! 
+!   TYPE(lat_struct) :: lat
+!   TYPE(ibs_sim_param_struct) :: ibs_sim_params
+!   TYPE(ibs_struct) :: rates1ele
+!   INTEGER ix
+! 
+!   CALL ibs1(lat, ibs_sim_params, rates1ele, i=ix)
+! 
+! END SUBROUTINE ibs_rates1ele
 
 !+
 !  Subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
@@ -540,7 +548,7 @@ END SUBROUTINE ibs_rates1ele
 !  Input:
 !    lat              -- lat_struct: lattice for tracking.
 !      %param$n_part  -- Real: number of particles in bunch.
-!    ibs_sim_params   -- ibs_param_struct: parameters for IBS calculation.
+!    ibs_sim_params   -- ibs_sim_param_struct: parameters for IBS calculation.
 !    granularity      -- real(rp): slice length.  -1 for element-by-element.
 !
 !  Output:
@@ -560,14 +568,12 @@ SUBROUTINE ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
   REAL(rp), ALLOCATABLE :: steps(:)
   REAL(rp) step_size
   REAL(rp) length_multiplier
-!  REAL(rp) clog_avg !FOO
 
 
   sum_inv_Tz = 0.0
   sum_inv_Ta = 0.0
   sum_inv_Tb = 0.0
 
-!  clog_avg = 0.0d0 !FOO
 
   IF( granularity .lt. 0.0 ) THEN
     DO i=1,lat%n_ele_track
@@ -614,7 +620,7 @@ END SUBROUTINE ibs_rates1turn
 !
 !  Input:
 !    lat              -- lat_struct: lattice for tracking
-!    ibs_sim_params   -- ibs_param_struct: Parameters for calculation of IBS rates
+!    ibs_sim_params   -- ibs_sim_param_struct: Parameters for calculation of IBS rates
 !
 !  Output:
 !    Emittances after 1-turn:
@@ -908,6 +914,7 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
   USE mode3_mod
+  USE longitudinal_profile_mod
 
   IMPLICIT NONE
 
@@ -968,13 +975,15 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   CALL convert_total_energy_to(energy, -1, gamma, KE, rbeta)
 
   ! make sigma matrix in x,px,y,py,z,pz form
-  mode%a%emittance = ele%a%emit
-  mode%b%emittance = ele%b%emit
-  mode%z%emittance = ele%z%emit
   CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
+  CALL pwd_mat(lat, t6, t6, ibs_sim_params%inductance, lat%ele(ix)%z%sigma)
+  ! CALL transfer_matrix_calc_special(lat, .true., t6, ix1=ix, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix)%z%sigma)
   IF( ibs_sim_params%set_dispersion ) THEN
     t6 = MATMUL(t6,W) 
   ENDIF
+  mode%a%emittance = ele%a%emit
+  mode%b%emittance = ele%b%emit
+  mode%z%emittance = ele%z%emit
   CALL make_smat_from_abc(t6, mode, sigma_mat, lerr)
   IF( lerr ) THEN
     WRITE(*,'(A)') "BAD: make_smat_from_abc failed"
@@ -1659,6 +1668,10 @@ SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
   rates%inv_Tz = inv_Tz
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
+!  rates%inv_Tz = 0.0
+!  rates%inv_Ta = 0.0
+!  rates%inv_Tb = 0.0
+
 END SUBROUTINE cimp1
 
 !+
@@ -1961,6 +1974,51 @@ SUBROUTINE bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sig
 
   CALL get_bl_from_fwhm(bound,args,sigma_z)
 END SUBROUTINE bl_via_vlassov
+
+!+
+! Subroutine bl_via_mat(lat, ix, ibs_sim_params, mode, sig_z)
+!
+!-
+SUBROUTINE bl_via_mat(lat, ibs_sim_params, mode, sig_z)
+
+  USE nr
+  USE mode3_mod
+  USE longitudinal_profile_mod
+
+  IMPLICIT none
+
+  TYPE(lat_struct) lat
+  TYPE(ibs_sim_param_struct) ibs_sim_params
+  TYPE(normal_modes_struct) mode
+  REAL(rp) sig_z
+  REAL(rp) lb, mb, ub, min_val
+
+  lb = 0.90 * mode%sig_z
+  mb = mode%sig_z
+  ub = 1.50 * mode%sig_z
+
+  min_val = brent(lb,mb,ub,residual_pwd_sig_z, 0.00001d0, sig_z)
+
+  CONTAINS
+
+    FUNCTION residual_pwd_sig_z(zz)
+      REAL(rp) residual_pwd_sig_z
+      REAL(rp) sigma_mat(6,6)
+      REAL(rp) t6(6,6)
+      REAL(rp) zz
+      LOGICAL error
+
+      mode%z%emittance = zz * mode%sigE_E
+
+      CALL transfer_matrix_calc (lat, .true., t6, ix1=0, one_turn=.TRUE.)
+      CALL pwd_mat(lat, t6, t6, ibs_sim_params%inductance, zz)
+      ! CALL transfer_matrix_calc_special (lat, .true., t6, ix1=0, one_turn=.true., inductance=ibs_sim_params%inductance, sig_z=zz)
+      CALL make_smat_from_abc(t6, mode, sigma_mat, error)
+
+      residual_pwd_sig_z = (ABS(SQRT(sigma_mat(5,5)) - zz))/zz
+    END FUNCTION residual_pwd_sig_z
+
+END SUBROUTINE bl_via_mat
 
 END MODULE ibs_mod
 
