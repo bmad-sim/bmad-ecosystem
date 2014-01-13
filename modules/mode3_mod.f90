@@ -29,7 +29,7 @@ CONTAINS
 ! Subroutine normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
 !
 ! Does an Eigen decomposition of the 1-turn transfer matrix (mat) and generates
-! B, V, H.  Betatron and synchrotron tunes are places in tune.
+! B, V, H.
 !
 ! Input:
 !  mat(6,6)            -- real(rp): 1-turn transfer matrix
@@ -64,6 +64,7 @@ SUBROUTINE normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
   CALL make_HVBP (N, B, V, H)
   HV = MATMUL(H,V)
 
+!  HV=dagger6(HV) 
   B = dagger6(B)  !for legacy compatability
 
 END SUBROUTINE normal_mode3_calc
