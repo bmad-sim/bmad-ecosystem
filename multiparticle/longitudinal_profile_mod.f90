@@ -173,9 +173,9 @@ SUBROUTINE solve_psi_adaptive(t0,t1,p0,args,p1)
   REAL(fgsl_double) y(1)
   REAL(fgsl_double) default_step
   REAL(fgsl_double), PARAMETER :: abs_err_goal = 0.0_fgsl_double
-  REAL(fgsl_double), PARAMETER :: rel_err_goal = 1.0d-7
+  REAL(fgsl_double), PARAMETER :: rel_err_goal = 1.0d-8
 
-  default_step = (t1-t0)/100.
+  default_step = (t1-t0)/100.d0
 
   ptr = c_loc(args)
   ode_system = fgsl_odeiv2_system_init(psi_prime, 1_c_size_t, ptr, jac)
@@ -434,7 +434,7 @@ SUBROUTINE find_fwhm(bound,args,fwhm)
       xmax = xnew
     ENDIF
 
-    IF(ABS((xmax-xmin)/xmax) .lt. 1.0d-7) EXIT
+    IF(ABS((xmax-xmin)/xmax) .lt. 1.0d-8) EXIT
   ENDDO
 
   max_time = xnew
@@ -457,7 +457,7 @@ SUBROUTINE find_fwhm(bound,args,fwhm)
     x(1) = x(2) - f(2) * (x(2)-x(3)) / (f(2)-f(3))
     x(1) = MIN(x(1), max_time)
 
-    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-7 ) EXIT
+    IF( ABS((x(1)-x(2))/x(1)) .lt. 1.0d-8 ) EXIT
 
     x(3) = x(2)
     f(3) = f(2)
@@ -514,13 +514,53 @@ SUBROUTINE get_bl_from_fwhm(bound,args,sigma)
   REAL(rp) args(1:8)
   REAL(rp) sigma
   REAL(rp) fwhm
-  REAL(rp), PARAMETER :: TwoRtTwoLnTwo = 2.354820045
+  REAL(rp), PARAMETER :: TwoRtTwoLnTwo = 2.354820045030949
 
   CALL find_fwhm(bound,args,fwhm)
 
   sigma = fwhm * c_light / TwoRtTwoLnTwo
 END SUBROUTINE get_bl_from_fwhm
 
+!+
+! Subroutine pwd_mat(t6, t6_pwd, inductance, sig_z)
+!
+! Calculates potential well distortion as RF defocusing.  Calculates t6_pwd=t6.Mpwd,
+! where Mpwd is identity with 65 element proportional to the inductance.
+!
+! Vpwd = -inductance * lat%param%n_part * e_charge * c_light**3 / SQRT(twopi) / sig_z**3 / omega_RF  !effective RF voltage from PWD
+! Mpwd(6,5) = omega_RF * Vpwd / c_light / lat%ele(0)%value(E_TOT$) * branch%ele(i)%value(l$) / lat%param%total_length
+!
+! Input:
+!   lat                      -- TYPE(lat_struct)
+!      %param%n_part         -- real(rp): Bunch current in # per bunch
+!      %ele(0)%value(E_TOT$) -- real(rp): Beam energy
+!   t6(6,6)                  -- real(rp): 1-turn transfer matrix
+!   inductance               -- real(rp): Longitudinal inductance in Henrys.  Something on the order of nH.
+!   sig_z                    -- real(rp): Bunch length.
+! Output:
+!   t6_pwd(6,6)              -- real(rp): 1-turn transfer matrix with PWD defocusing applied
+!-
+SUBROUTINE pwd_mat(lat, t6, t6_pwd, inductance, sig_z)
+  TYPE(lat_struct) lat
+  REAL(rp) t6(6,6)
+  REAL(rp) t6_pwd(6,6)
+  REAL(rp) inductance
+  REAL(rp) sig_z
+
+  real(rp) Mpwd(6,6)
+  real(rp) Vpwd
+
+  Mpwd = 0
+  Mpwd(1,1) = 1
+  Mpwd(2,2) = 1
+  Mpwd(3,3) = 1
+  Mpwd(4,4) = 1
+  Mpwd(5,5) = 1
+  Mpwd(6,6) = 1
+  Mpwd(6,5) = -inductance * lat%param%n_part * e_charge * c_light**2 / SQRT(twopi) / sig_z**3 / lat%ele(0)%value(E_TOT$)
+
+  t6_pwd = MATMUL(Mpwd,t6)
+END SUBROUTINE pwd_mat
 
 END MODULE longitudinal_profile_mod
 
