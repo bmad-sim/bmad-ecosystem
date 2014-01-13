@@ -1,0 +1,20 @@
+set (EXENAME ibs_ring)
+set (SRC_FILES
+  ibs_ring/ibs_ring.f90
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  cesr_utils
+  recipes_f-90_LEPP
+  bmadz
+  forest
+  fgsl_ifort
+  gsl
+  gslcblas
+  util
+  xrlf03
+  xrl
+)
