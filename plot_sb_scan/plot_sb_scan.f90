@@ -91,11 +91,11 @@
     call str_upcase(hv,hv)
     call string_trim(title, title, word_len)
     if(index(hv,'H') /= 0)then
-      iz  = 6
+      iz  = 4
       title = title(1:word_len)//' Horizontal'
       exit
      elseif(index(hv,'V') /= 0)then
-      iz = 7
+      iz = 5
       title = title(1:word_len)//' Vertical'
       exit
      else
@@ -113,7 +113,7 @@
       ix =1
       iy=2
       qs=column(1)%row(3)
-      call query_real (' synchrotron tune ', qs,'f5.3')
+      call query_real (' synchrotron tune ', qs,'f7.4')
       exit
      elseif(index(plane,'LV') /= 0)then
       ix=2
@@ -415,7 +415,10 @@ end
    end do
 100 continue
   size = n
-!  print *,' at return from read scan, n=',n
+  print '(a,1x,i10,a,1x,i10)','read scan: number of columns =',n_columns,' number rows =', n
+! do i=1,n
+!print '(i10, 7es12.4)',i,column(i)%row(1:7)
+! end do
   close(unit=2)
   return
  end
