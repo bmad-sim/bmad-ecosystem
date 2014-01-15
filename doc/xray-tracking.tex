@@ -6,14 +6,21 @@ with X-rays. Charged particles are handled in chapter~\sref{c:charged.track}.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
-\section{Tracking with Non-Zero Offsets, Pitches, or Tilt}
+\section{Element Coordinate System}
 \label{s:photon.ele.coords}
 
 \index{element coordinates}
-\index{crystal}\index{mirror}\index{multilayer_mirror}
-As explained in section~\sref{s:ele.coords}, \vn{element} coordinates
-are used for tracking calculations.
+The general procedure for tracking through an element makes use of
+\vn{element reference} coordinates (also called just \vn{element}
+coordinates). Without any offsets, pitches or tilt (\sref{s:offset}), henceforth
+called ``misalignments'', the \vn{element} coordinates are the same
+as the \vn{laboratory reference} coordinates (or simply \vn{laboratory}
+coordinates) (\sref{s:ref}). The \vn{element} coordinates stay fixed
+relative to the element. Therefore, if the element is misaliged, the
+\vn{element coordinates} will follow as the element shifts in the
+laboratory frame as shown in \fig{f:ele.coord}.
 
+\index{crystal}\index{mirror}\index{multilayer_mirror}
 For \vn{crystal} (\sref{s:crystal}), \vn{mirror} (\sref{s:mirror}),
 and \vn{multilayer_mirror} (\sref{s:multilayer}) elements, the
 ``kinked'' reference trajectory through the element complicates the
@@ -66,7 +73,14 @@ Apply offsets, pitches and tilt using the formulas in
   \item
 Apply the \vn{tilt} to the electric field (\Eq{ertee}).
   \item
-For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements:
+For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements
+rotate to element surface coordinates.
+ \item
+Transform the photon's position as if in a drift by a distance $-z$
+where $z$ is the photon's longitudinal coordinate. That is, $z$ will
+be zero at the end of the transform to element coordinates (remember
+that $z$ is the distance from the start of the element
+(\sref{s:photon.phase.space})).
 
 \end{enumerate}
 
@@ -75,28 +89,16 @@ For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements:
 
 The back transformation from element to laboratory coordinates is
 accomplished by the transformation
-\begin{enumerate}
-\item
-Apply any tilt $\theta_t$
-\begin{align}c
-  x_1    &=  x_0    \, \cos\theta_t - y_0    \, \sin\theta_t \CRNO
-  p_{x1} &=  p_{x0} \, \cos\theta_t - p_{y0} \, \sin\theta_t \CRNO
-  y_1    &=  x_0    \, \sin\theta_t + y_0    \, \cos\theta_t \\
-  p_{y1} &=  p_{x0} \, \sin\theta_t + p_{y0} \, \cos\theta_t \nonumber
-\end{align}
-\item
-Apply offsets and pitches
-\begin{align}
-  x_2    &= x_1 + x_{\text{off}} + \frac{L}{2} x'_{pitch}     \CRNO
-  p_{x2} &= p_{x1} + (1 + p_{z1}) \, x'_{pitch}        \CRNO
-  y_2    &= y_1 + y_{\text{off}} + \frac{L}{2} y'_{pitch}     \\
-  p_{y2} &= p_{x1} + (1 + p_{z1}) \, y'_{pitch}        \CRNO
-  z_2    &= z_1 + x'_{pitch} \, x_1 + y'_{pitch} \, y_1 - 
-    \frac{L}{4} (x^{\prime2}_{pitch} + y^{\prime2}_{pitch})      \nonumber
-\end{align}
-\item
-Track as in a drift a distance \vn{-z_offset_tot}.
-\end{enumerate}
+  \begin{enumerate}
+  \item
+For \vn{crystal}, \vn{mirror}, and \vn{multilayer_mirror} elements
+rotate to element from element surface coordinates to element exit coordinates
+  \item
+Apply the reverse \vn{tilt} to the electric field (\Eq{ertee}).
+  \item
+Apply reverse offsets, pitches and tilt using the formulas in
+\sref{s:pos.trans} along with \Eqs{lxyz}, \eq{swww}, and \eq{txppyp}.
+  \end{enumerate}
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------

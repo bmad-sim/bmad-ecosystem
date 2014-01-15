@@ -428,6 +428,7 @@ do i = 1, n_key$
   if (i == beambeam$)      cycle
   if (i == multipole$)     cycle 
   if (i == ab_multipole$)  cycle
+  if (i == sad_multipole$) cycle
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
@@ -454,7 +455,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
   call init_attribute_name1 (i, kill_fringe$,        'KILL_FRINGE')
-  call init_attribute_name1 (i, sr_wake_file$,                'SR_WAKE_FILE')
+  call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
 
   if (i == hkicker$)      cycle
   if (i == vkicker$)      cycle
@@ -475,7 +476,7 @@ do i = 1, n_key$
   select case (i)
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, bend_sol_quad$, &
-         hkicker$, vkicker$)
+         hkicker$, vkicker$, sad_multipole$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -488,6 +489,7 @@ do i = 1, n_key$
                                    'B16', 'B17', 'B18', 'B19', 'B20', 'B21']
     attrib_array(i, a0$:b21$)%type = is_free$
     if (i == ab_multipole$) cycle
+    if (i == sad_multipole$) cycle
     call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
   end select
 enddo
@@ -963,6 +965,22 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
+call init_attribute_name1 (sad_multipole$, l$,                      'L')
+call init_attribute_name1 (sad_multipole$, angle$,                  'ANGLE')
+call init_attribute_name1 (sad_multipole$, e1$,                     'E1')
+call init_attribute_name1 (sad_multipole$, e2$,                     'E2')
+call init_attribute_name1 (sad_multipole$, rf_frequency$,           'RF_FREQUENCY')  ! SAD: freq
+call init_attribute_name1 (sad_multipole$, phi0$,                   'PHI0')
+call init_attribute_name1 (sad_multipole$, voltage$,                'VOLTAGE')      ! SAD: volt
+call init_attribute_name1 (sad_multipole$, harmon$,                 'HARMON')       ! SAD: harm
+call init_attribute_name1 (sad_multipole$, kill_fringe$,            'KILL_FRINGE')  ! SAD: fringe
+call init_attribute_name1 (sad_multipole$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
+call init_attribute_name1 (sad_multipole$, f1$,                     'F1')
+!!call init_attribute_name1 (sad_multipole$, f2$,                     'F2')
+! Attributes with no SAD equivalent
+!!call init_attribute_name1 (sad_multipole$, rho$,                    'RHO')   
+call init_attribute_name1 (sad_multipole$, g$,                      'G')
+
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')
 call init_attribute_name1 (custom$, val3$,                          'VAL3')
@@ -1242,9 +1260,10 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
-      'FRINGE_TYPE', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', 'ORIGIN_ELE_REF_PT', &
-      'PARTICLE', 'PTC_FIELD_GEOMETRY', 'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', &
-      'SPIN_TRACKING_METHOD', 'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
+      'FRINGE_TYPE', 'FRINGE_KIND', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', &
+      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
+      'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', 'SPIN_TRACKING_METHOD', &
+      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1437,6 +1456,12 @@ case ('DIFFRACTION_TYPE')
 case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib == bmad_standard$)
+
+case ('FRINGE_KIND')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_kind_name, lbound(fringe_kind_name, 1))
+  if (present(is_default)) then
+    is_default = none$
+  endif
 
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
