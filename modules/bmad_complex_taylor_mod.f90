@@ -3,7 +3,7 @@ module bmad_complex_taylor_mod
 ! Note: This module is an exact copy of bmad_taylor_mod, with:
 !   taylor -> complex_taylor
 !   real -> complex
-! This file should not be edited. 
+!   format modifications to: type2_complex_taylors 
 
 use sim_utils
 
@@ -365,7 +365,7 @@ integer, optional :: max_order
 integer i, j, k, nl, ix
 
 character(*), allocatable :: lines(:)
-character(40) fmt1, fmt2, fmt
+character(100) fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
 
@@ -380,7 +380,7 @@ endif
 ! Normal case
 
 deallocate (lines, stat = ix)
-n_lines = 8 + sum( [(size(bmad_complex_taylor(i)%term), i = 1, 6) ])
+n_lines = 14 + sum( [(size(bmad_complex_taylor(i)%term), i = 1, 6) ])
 allocate(lines(n_lines))
 
 write (lines(1), *) 'complex_taylor Terms:'
@@ -389,8 +389,8 @@ write (lines(2), *) &
 nl = 2
 
 
-fmt1 = '(i4, a, 2f20.12, 6i3, i9, 2f18.9)'
-fmt2 = '(i4, a, 1p, 2e20.11, 0p, 6i3, i9, 2f18.9)'
+fmt1 = '(i4, a, 2f20.12, 6i3, i9)'
+fmt2 = '(i4, a, 1p, 2e20.11, 0p, 6i3, i9)'
 
 do i = 1, 6
   nl=nl+1; lines(nl) = ' -----------------------------------------------------------------------'
@@ -412,13 +412,17 @@ do i = 1, 6
       fmt = fmt2
     endif
 
-    if (j == 1) then
-      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_complex_taylor(i)%ref
-    else
+    !if (j == 1) then
+    !  nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
+    !              (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_complex_taylor(i)%ref
+    !else
+    if (j==1) then
+      nl=nl+1
+      write(lines(nl), '(a, 2f18.9)') '   Reference: ', bmad_complex_taylor(i)%ref
+    endif
       nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
                   (tt%expn(k), k = 1, 6), sum(tt%expn)
-    endif
+    !endif
   enddo
 
   deallocate (tlr%term)

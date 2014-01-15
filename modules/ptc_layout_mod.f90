@@ -827,24 +827,27 @@ end subroutine normal_form_taylors
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
-
-subroutine normal_form_complex_taylors (one_turn_taylor, rf_on)
+!+
+! Subroutine normal_form_complex_taylors
+!
+! UNDER DEVELOPMENT
+!-
+subroutine normal_form_complex_taylors(one_turn_taylor, rf_on, f_complex_taylor, L_complex_taylor)
 
 use madx_ptc_module
 
 implicit none
 
 type (taylor_struct) :: one_turn_taylor(6)
+type (complex_taylor_struct) :: f_complex_taylor(6), L_complex_taylor(6)
 type (c_damap) :: cda, cdaLinear
 type (damap) :: da
 type (real_8) :: map8(6)
-type (complextaylor) :: ct(6)
-type (universal_taylor) :: ut
 type (c_normal_form) :: complex_normal_form
 type(c_vector_field) :: f
 type (internal_state) :: state
 integer :: i
-logical :: rf_on
+logical :: rf_on, c_verbose_save
 !
 
 if (rf_on) then
@@ -853,9 +856,16 @@ else
   state = default + nocavity0
 endif
 
+! Set PTC state
+use_complex_in_ptc=my_true
+c_verbose_save = c_verbose
+c_verbose = .false.
 call init (state, bmad_com%taylor_order, 0) 
 call alloc(map8)
+call alloc(da)
 call alloc(cda)
+call alloc(cdaLinear)
+call alloc(f)
 call alloc(complex_normal_form)
 
 
@@ -864,32 +874,49 @@ map8 = one_turn_taylor
 da = map8
 cda = da
 
-! Complex normal form
-call c_normal(cda, complex_normal_form, dospin=my_false)
-
-cda=complex_normal_form%a_t**(-1)*cda*complex_normal_form%a_t
+! Complex normal form in phasor basis
+! See: fpp-ptc-read-only/build_book_example_g95/the_fpp_on_line_glossary/complex_normal.htm
+! M = A1 o N o A1_inverse, where A1 is first order only (a matrix).
+call c_normal(cda, complex_normal_form, dospin=my_false, no_used=1) ! Normalize to first order only, t
+cda = complex_normal_form%N
+! Move to the phasor basis
 cda=from_phasor(-1)*cda*from_phasor(1)
 
-!call c_factor_map(cda, cdaLinear, f, 1) ! 1 => Dragt-Finn direction
+! Factor N = L exp(F.grad), where L is the linear (rotation) map. 
+call c_factor_map(cda, cdaLinear, f, 1) ! 1 => Dragt-Finn direction
+
 ! Zero out small coefficients 
-!call c_clean_vector_field(f, f, 1.d-8 )
+call c_clean_vector_field(f, f, 1.d-8 )
 
-!call alloc(ct)
+! Output
+L_complex_taylor(1:6) = cdaLinear%v(1:6)
+f_complex_taylor(1:6) = f%v(1:6)
 
-!ct(1)= f%v(1)
-!ut = ct(1)%r
-
-! FINISH!!!
-
-!im8 = aimag(f%v)
-
+! Cleanup
 call kill(map8)
 call kill(da)
 call kill(cda)
-call kill(complex_normal_form)
+call kill(cdaLinear)
 call kill(f)
+call kill(complex_normal_form)
+
+! Reset PTC state
+use_complex_in_ptc=my_false
+c_verbose = c_verbose_save
+call init (DEFAULT, bmad_com%taylor_order, 0)
 
 end subroutine normal_form_complex_taylors
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+subroutine set_ptc_verbose(on)
+use madx_ptc_module
+implicit none
+logical :: on
+c_verbose = on
+end subroutine set_ptc_verbose
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
