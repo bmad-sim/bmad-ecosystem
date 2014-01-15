@@ -1207,6 +1207,10 @@ case ('COUPLER_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
   ele%value(coupler_at$) = ix
 
+case ('FRINGE_KIND')
+  call get_switch (attrib_word, fringe_kind_name(1:), ix, err_flag)
+  ele%value(fringe_kind$) = ix
+
 case ('FRINGE_TYPE')
   call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
   ele%value(fringe_type$) = ix

@@ -704,12 +704,12 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55
+integer, parameter :: sample$ = 54, detector$ = 55, sad_multipole$ = 56
 !!! rel_controller$ = , abs_controller$ = 
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 55
+integer, parameter :: n_key$ = 56
 character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
@@ -724,7 +724,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ']
+    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULTIPOLE    ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -764,6 +764,8 @@ integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
 
+integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
+
 integer, parameter :: l$=1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$=2, command$=2, roll$=2  ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$=3, direction$=3
@@ -786,9 +788,8 @@ integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
 integer, parameter :: ds_path_length$=11
 integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
 integer, parameter :: y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
-integer, parameter :: traveling_wave$ = 12
-integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
-integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13
+integer, parameter :: traveling_wave$ = 12, f1$ = 12
+integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, f2$ = 13
 integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14, particle$ = 14
 integer, parameter :: quad_tilt$=14, de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
 integer, parameter :: geometry$ = 15, bend_tilt$=15, mode$=15
@@ -796,7 +797,7 @@ integer, parameter :: dphi0$=15, n_sample$=15, f0_re2$=15, origin_ele_ref_pt$=15
 integer, parameter :: dphi0_ref$ = 16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
 integer, parameter :: lattice_type$ = 16, x_quad$=16
 integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17, y_quad$=17
-integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18, dz_origin$ = 18
+integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18, dz_origin$ = 18, fringe_kind$ = 18
 integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19, b_param$ = 19
 integer, parameter :: l_hard_edge$ = 20, dphi_origin$ = 20, ref_cap_gamma$ = 20
 integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, darwin_width_sigma$ = 21
@@ -1109,11 +1110,15 @@ character(16), parameter :: aperture_type_name(0:7) = &
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
 character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
 
-! fringe_type$ 
+! fringe_type and fringe_kind (used by sad_multipole)
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
 character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &
-                'FULL_STRAIGHT ', 'FULL_BEND     ',  'NONE          ', 'BASIC_BEND    ']
+                'Full_Straight ', 'Full_Bend     ',  'None          ', 'Basic_Bend    ']
+
+integer, parameter :: full$ = 1, nonlin_only$ = 2
+character(16), parameter :: fringe_kind_name(0:4) = ['Garbage!   ', 'Full       ', &
+                                  'Nonlin_Only', 'None       ', 'Linear     ']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:

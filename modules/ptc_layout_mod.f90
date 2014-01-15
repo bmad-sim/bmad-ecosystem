@@ -761,7 +761,7 @@ end Subroutine ptc_one_turn_map_at_ele
 !   A_t_inverse     -- taylor_struct, optional: Map from Lab coordinates to Floquet coordinates
 !   dhdj            -- taylor_struct, optional: Map from Floquet coordinates to phase advances
 !-
-subroutine normal_form_taylors(one_turn_taylor, rf_on, dhdj, A_t, A_t_inverse)
+subroutine normal_form_taylors (one_turn_taylor, rf_on, dhdj, A_t, A_t_inverse)
 
 use madx_ptc_module
 
@@ -822,13 +822,13 @@ call kill(normal)
 
 call init (DEFAULT, bmad_com%taylor_order, 0)
 
-end subroutine
+end subroutine normal_form_taylors
 
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
 
-
-
-
-subroutine normal_form_complex_taylors(one_turn_taylor, rf_on)
+subroutine normal_form_complex_taylors (one_turn_taylor, rf_on)
 
 use madx_ptc_module
 
@@ -889,7 +889,7 @@ call kill(cda)
 call kill(complex_normal_form)
 call kill(f)
 
-end subroutine
+end subroutine normal_form_complex_taylors
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -1372,6 +1372,5 @@ call thin_lens_restart(r, universe=.true.)
 call thin_lens_resplit(r, dKL_max, even, crossover, l_max, bend_dorb, sex_dx, universe=.true.)
 
 end subroutine ptc_layouts_resplit
-
 
 end module
