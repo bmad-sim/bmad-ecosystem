@@ -5,6 +5,7 @@
 module bmad_struct
 
 use bmad_taylor_mod
+use bmad_complex_taylor_mod
 use random_mod
 use twiss_mod
 use basic_bmad_mod
@@ -608,12 +609,15 @@ type mode_info_struct
 end type
 
 type normal_form_struct
-  type (taylor_struct) :: M(6)             ! One-turn taylor map: M = A o R o A_inv, R = exp(:h:)
+  type (taylor_struct) :: M(6)             ! One-turn taylor map: M = A o N o A_inv, N = exp(:h:)
   type (taylor_struct) :: A(6)             ! Map from Floquet -> Lab coordinates
   type (taylor_struct) :: A_inv(6)         ! Map from Lab -> Floquet coordinates
   type (taylor_struct) :: dhdj(6)          ! Nonlinear tune function operating on Floquet coordinates
+  type (complex_taylor_struct) :: F(6)     ! Vector field factorization in phasor basis:
+  type (complex_taylor_struct) :: L(6)     ! M = A1 o c_inv o L exp(F.grad) o c o A1_inv
+                                           ! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
   type (ele_struct), pointer :: ele_origin ! Element at which the on-turn map was created.
-                                           ! See subroutine: normal_form_taylors
+                                           ! See subroutines: normal_form_taylors and normal_form_complex_taylors
 end type
 
 !
