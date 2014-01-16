@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 133
+integer, parameter :: bmad_inc_version$ = 134
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -768,7 +768,7 @@ integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
 
-integer, parameter :: fint$=12, fintx$=13, hgap$=14, hgapx$=15, h1$=16, h2$=17
+integer, parameter :: fint$=13, fintx$=14, hgap$=15, hgapx$=16, h1$=17, h2$=18
 
 integer, parameter :: l$=1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$=2, command$=2, roll$=2  ! Important: tilt$ = roll$
@@ -783,67 +783,67 @@ integer, parameter :: g$=6, bragg_angle_in$ = 6, symmetry$ = 6
 integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
 integer, parameter :: gradient_err$=7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$=7
-integer, parameter :: rho$=8, voltage$=8, delta_e$ = 8
+integer, parameter :: rho$=8, delta_e$ = 8
 integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
-integer, parameter :: d1_thickness$ = 9, voltage_err$=9, rel_tracking_charge$ = 9
-integer, parameter :: l_chord$=9, ks$=9, n_slice$=9, y_gain_calib$=9, bragg_angle$=9
-integer, parameter :: polarity$=10, crunch_calib$=10, alpha_angle$=10, d2_thickness$ = 10
-integer, parameter :: e1$=10, e_loss$=10, dks_ds$=10, gap$=10
-integer, parameter :: ds_path_length$=11
-integer, parameter :: e2$=11, x_offset_calib$=11, v1_unitcell$=11, psi_angle$=11
-integer, parameter :: y_offset_calib$=12, v_unitcell$=12, v2_unitcell$=12
-integer, parameter :: traveling_wave$ = 12, f1$ = 12
-integer, parameter :: phi0$=13, tilt_calib$=13, f0_re$=13, f0_re1$=13, f2$ = 13
-integer, parameter :: phi0_err$=14, coef$=14, current$=14, l_pole$=14, particle$ = 14
-integer, parameter :: quad_tilt$=14, de_eta_meas$=14, f0_im$=14, f0_im1$ = 14
-integer, parameter :: geometry$ = 15, bend_tilt$=15, mode$=15
-integer, parameter :: dphi0$=15, n_sample$=15, f0_re2$=15, origin_ele_ref_pt$=15
-integer, parameter :: dphi0_ref$ = 16, f0_im2$=16, x_half_length$=16, dx_origin$= 16
-integer, parameter :: lattice_type$ = 16, x_quad$=16
-integer, parameter :: dphi0_max$=17, ref_polarization$=17, y_half_length$=17, dy_origin$ = 17, y_quad$=17
-integer, parameter :: fringe_type$ = 18, floor_set$ = 18, ptc_dir$ = 18, dz_origin$ = 18, fringe_kind$ = 18
-integer, parameter :: kill_fringe$ = 19, dtheta_origin$ = 19, b_param$ = 19
-integer, parameter :: l_hard_edge$ = 20, dphi_origin$ = 20, ref_cap_gamma$ = 20
-integer, parameter :: field_scale$ = 21, dpsi_origin$ = 21, darwin_width_sigma$ = 21
-integer, parameter :: angle$=22, n_cell$=22, x_ray_line_len$=22, darwin_width_pi$ = 22
-integer, parameter :: x_pitch$ = 23
-integer, parameter :: y_pitch$ = 24  
-integer, parameter :: x_offset$ = 25
-integer, parameter :: y_offset$ = 26 
-integer, parameter :: z_offset$ = 27 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 28, d_spacing$ = 28, t_offset$ = 28
-integer, parameter :: vkick$ = 29, l_x$ = 29
-integer, parameter :: BL_hkick$ = 30, l_y$ = 30        ! l_y$ = l_x$ + 1
-integer, parameter :: BL_vkick$ = 31, l_z$ = 31        ! l_z$ = l_x$ + 2
-integer, parameter :: BL_kick$ = 32, coupler_at$ = 32
-integer, parameter :: B_field$ = 33, E_field$ = 33, coupler_phase$ = 33
-integer, parameter :: coupler_angle$ = 34, B_field_err$ = 34
-integer, parameter :: coupler_strength$ = 35
-integer, parameter :: B1_gradient$ = 35, E1_gradient$ = 35
-integer, parameter :: B2_gradient$ = 36, E2_gradient$ = 36, h_x_norm$ = 36
-integer, parameter :: B3_gradient$ = 37, E3_gradient$ = 37, h_y_norm$ = 37, ptc_field_geometry$ = 38
-integer, parameter :: Bs_field$ = 38, e_tot_offset$ = 38, h_z_norm$ = 38
-integer, parameter :: delta_ref_time$ = 39 ! Assumed unique Do not overload.
-integer, parameter :: p0c_start$ = 40
-integer, parameter :: e_tot_start$ = 41   
-integer, parameter :: p0c$ = 42         ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$ = 43       ! Assumed unique. Do not overload.
-integer, parameter :: x_pitch_tot$ = 44, no_end_marker$ = 44
-integer, parameter :: y_pitch_tot$ = 45
-integer, parameter :: x_offset_tot$ = 46
-integer, parameter :: y_offset_tot$ = 47
-integer, parameter :: z_offset_tot$ = 48
-integer, parameter :: tilt_tot$ = 49, roll_tot$ = 49  ! Important: tilt_tot$ = roll_tot$
-integer, parameter :: pole_radius$ = 50, ref_tilt_tot$ = 50
-integer, parameter :: n_ref_pass$ = 51
-integer, parameter :: radius$ = 52
-integer, parameter :: ref_time_start$ = 53
-integer, parameter :: thickness$ = 54, integrator_order$ = 54   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 55
-integer, parameter :: ds_step$ = 56
-integer, parameter :: lord_pad1$ = 57
-integer, parameter :: lord_pad2$ = 58, ref_wavelength$ = 58
-integer, parameter :: scratch$ = 59
+integer, parameter :: voltage$=9
+integer, parameter :: d1_thickness$ = 10, voltage_err$=10, rel_tracking_charge$ = 10
+integer, parameter :: l_chord$=10, ks$=10, n_slice$=10, y_gain_calib$=10, bragg_angle$=10
+integer, parameter :: polarity$=11, crunch_calib$=11, alpha_angle$=11, d2_thickness$ = 11
+integer, parameter :: e1$=11, e_loss$=11, dks_ds$=11, gap$=11
+integer, parameter :: ds_path_length$=12
+integer, parameter :: e2$=12, x_offset_calib$=12, v1_unitcell$=12, psi_angle$=12
+integer, parameter :: y_offset_calib$=13, v_unitcell$=13, v2_unitcell$=13
+integer, parameter :: traveling_wave$ = 13
+integer, parameter :: phi0$=14, tilt_calib$=14, f0_re$=14, f0_re1$=14
+integer, parameter :: phi0_err$=15, coef$=15, current$=15, l_pole$=15, particle$ = 15
+integer, parameter :: quad_tilt$=15, de_eta_meas$=15, f0_im$=15, f0_im1$ = 15, f1$ = 15
+integer, parameter :: geometry$ = 16, bend_tilt$=16, mode$=16
+integer, parameter :: dphi0$=16, n_sample$=16, f0_re2$=16, origin_ele_ref_pt$=16, f2$ = 16
+integer, parameter :: dphi0_ref$ = 17, f0_im2$=17, x_half_length$=17, dx_origin$= 17
+integer, parameter :: lattice_type$ = 17, x_quad$=17
+integer, parameter :: dphi0_max$=18, ref_polarization$=18, y_half_length$=18, dy_origin$ = 18, y_quad$=18
+integer, parameter :: fringe_type$ = 19, floor_set$ = 19, ptc_dir$ = 19, dz_origin$ = 19, fringe_kind$ = 19
+integer, parameter :: kill_fringe$ = 20, dtheta_origin$ = 20, b_param$ = 20
+integer, parameter :: l_hard_edge$ = 21, dphi_origin$ = 21, ref_cap_gamma$ = 21
+integer, parameter :: field_scale$ = 22, dpsi_origin$ = 22, darwin_width_sigma$ = 22
+integer, parameter :: angle$ = 23, n_cell$ = 23, x_ray_line_len$ = 23, darwin_width_pi$ = 23
+integer, parameter :: x_pitch$ = 24
+integer, parameter :: y_pitch$ = 25  
+integer, parameter :: x_offset$ = 26
+integer, parameter :: y_offset$ = 27 
+integer, parameter :: z_offset$ = 28 ! Assumed unique. Do not overload further.
+integer, parameter :: hkick$ = 29, d_spacing$ = 29, t_offset$ = 29
+integer, parameter :: vkick$ = 30, l_x$ = 30
+integer, parameter :: BL_hkick$ = 31, l_y$ = 31        ! l_y$ = l_x$ + 1
+integer, parameter :: BL_vkick$ = 32, l_z$ = 32        ! l_z$ = l_x$ + 2
+integer, parameter :: BL_kick$ = 33, coupler_at$ = 33
+integer, parameter :: B_field$ = 34, E_field$ = 34, coupler_phase$ = 34
+integer, parameter :: coupler_angle$ = 35, B_field_err$ = 35
+integer, parameter :: B1_gradient$ = 36, E1_gradient$ = 36, coupler_strength$ = 36
+integer, parameter :: B2_gradient$ = 37, E2_gradient$ = 37, h_x_norm$ = 37
+integer, parameter :: B3_gradient$ = 38, E3_gradient$ = 38, h_y_norm$ = 38
+integer, parameter :: Bs_field$ = 39, e_tot_offset$ = 39, h_z_norm$ = 39, ptc_field_geometry$ = 39
+integer, parameter :: delta_ref_time$ = 40 ! Assumed unique Do not overload.
+integer, parameter :: p0c_start$ = 41
+integer, parameter :: e_tot_start$ = 42   
+integer, parameter :: p0c$ = 43         ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$ = 44       ! Assumed unique. Do not overload.
+integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
+integer, parameter :: y_pitch_tot$ = 46
+integer, parameter :: x_offset_tot$ = 47
+integer, parameter :: y_offset_tot$ = 48
+integer, parameter :: z_offset_tot$ = 49
+integer, parameter :: tilt_tot$ = 50, roll_tot$ = 50  ! Important: tilt_tot$ = roll_tot$
+integer, parameter :: pole_radius$ = 51, ref_tilt_tot$ = 51
+integer, parameter :: n_ref_pass$ = 52
+integer, parameter :: radius$ = 53
+integer, parameter :: ref_time_start$ = 54
+integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: num_steps$ = 56
+integer, parameter :: ds_step$ = 57
+integer, parameter :: lord_pad1$ = 58
+integer, parameter :: lord_pad2$ = 59, ref_wavelength$ = 59
+integer, parameter :: scratch$ = 60
 integer, parameter :: custom_attribute1$ = 61   ! For general use
 integer, parameter :: custom_attribute2$ = 62   ! For general use
 integer, parameter :: custom_attribute3$ = 63   ! For general use
@@ -887,7 +887,7 @@ integer, parameter :: is_on$ = 95, theta_position$ = 95
 integer, parameter :: field_calc$ = 96, phi_position$ = 96
 integer, parameter :: psi_position$ = 97
 integer, parameter :: aperture_at$ = 98, beta_a$ = 98
-integer, parameter :: ran_seed$ = 99, beta_b$ = 99, origin_ele$= 99
+integer, parameter :: ran_seed$ = 99, beta_b$ = 99, origin_ele$ = 99
 
 integer, parameter :: to_line$ = 100
 integer, parameter :: field_master$ = 101, harmon_master$ = 101, to_element$ = 101
