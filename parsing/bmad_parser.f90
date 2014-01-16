@@ -109,9 +109,9 @@ if (present(use_line)) then
 endif
 
 if (.not. err .and. .not. bp_com%always_parse) then
-  call set_taylor_order (lat%input_taylor_order, .false.)
-  call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
   if (lat%input_taylor_order == bmad_com%taylor_order) then
+    call set_taylor_order (lat%input_taylor_order, .false.)
+    call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
     if (present(digested_read_ok)) digested_read_ok = .true.
     call parser_end_stuff (.false.)
     return
