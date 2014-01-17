@@ -1242,7 +1242,7 @@ case ('global')
   if (print_bmad_com) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
-    nl=nl+1; write (lines(nl), imt) '  %taylor_order              = ', bmad_com%taylor_order
+    nl=nl+1; write (lines(nl), imt) '  ptc_com%taylor_order_ptc   = ', ptc_com%taylor_order_ptc
     nl=nl+1; write (lines(nl), imt) '  %ptc_max_fringe_order      = ', bmad_com%ptc_max_fringe_order
     nl=nl+1; write (lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
     nl=nl+1; write (lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
