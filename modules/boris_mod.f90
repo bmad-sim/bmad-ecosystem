@@ -67,7 +67,7 @@ type (ele_struct), pointer :: hard_ele
 
 real(rp), optional, intent(in) :: s_start, s_end
 real(rp) s1, s2, s_sav, ds, s, t, beta, s_edge_track, s_target, s_edge_hard
-real(rp) beta0, dref_time
+real(rp) dref_time, s0, ds_ref, beta0
 
 integer i, n_step, hard_end
 
@@ -104,7 +104,14 @@ call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, d
 orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 
-call lcavity_reference_energy_correction (ele, param, orb_end)
+if (ele%key == patch$) then
+  call track_a_patch (ele, orb_end, .false., s0, ds_ref)
+  beta0 = ele%value(p0c$) / ele%value(e_tot$)
+  orb_end%vec(5) = orb_end%vec(5) + ds_ref * orb_end%beta / beta0 + s0
+endif
+
+call reference_energy_correction (ele, orb_end)
+
 call offset_particle (ele, orb_end, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)
 

@@ -112,7 +112,7 @@ orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
 
-call lcavity_reference_energy_correction (ele, param, orb_end)
+call reference_energy_correction (ele, orb_end)
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.

@@ -18,50 +18,6 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine lcavity_reference_energy_correction (ele, param, orbit)
-!
-! For elements where the reference energy is changing the reference energy in the body is 
-! taken by convention to be the reference energy at the exit end.
-! Elements where the reference energy can change:
-!   lcavity
-!   custom
-!
-! This routine should be called at the start of any tracking integration.
-!
-! Input:
-!   ele       -- Ele_struct: Element being tracked through.
-!   param     -- lat_param_struct:
-!   orbit     -- Coord_struct: Coordinates to correct.
-!
-! Output:
-!   orbit     -- Coord_struct: Coordinates to correct.
-!-
-
-subroutine lcavity_reference_energy_correction (ele, param, orbit)
-
-implicit none
-
-type (ele_struct) :: ele
-type (lat_param_struct), intent(in) :: param
-type (coord_struct) :: orbit
-
-real(rp) p0, p1, e_start
-character(40), parameter :: r_name = 'lcavity_reference_energy_correction'
-
-!
-
-if (ele%value(p0c$) == ele%value(p0c_start$)) return
-
-orbit%vec(2:4:2) = orbit%vec(2:4:2) * ele%value(p0c_start$) / ele%value(p0c$)
-orbit%vec(6) = (1 + orbit%vec(6)) * ele%value(p0c_start$) / ele%value(p0c$) - 1
-orbit%p0c = ele%value(p0c$)
-
-end subroutine lcavity_reference_energy_correction
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
 ! Subroutine spin_track_a_step (ele, param, field, s_here, ds, orbit) 
 !
 ! Routine to track the spin for one step of length ds.

@@ -109,8 +109,7 @@ if (present(use_line)) then
 endif
 
 if (.not. err .and. .not. bp_com%always_parse) then
-  if (lat%input_taylor_order == bmad_com%taylor_order) then
-    call set_taylor_order (lat%input_taylor_order, .false.)
+  if (bmad_com%taylor_order == 0 .or. lat%input_taylor_order == bmad_com%taylor_order) then
     call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
     if (present(digested_read_ok)) digested_read_ok = .true.
     call parser_end_stuff (.false.)
@@ -164,7 +163,6 @@ endif
 
 bp_com%extra%ran_function_was_called = .false.
 bp_com%extra%deterministic_ran_function_was_called = .false.
-bp_com%extra%taylor_order_set = .false.
 bp_com%extra%ptc_max_fringe_order_set = .false. 
 bp_com%extra%use_hard_edge_drifts_set = .false.
 
@@ -980,10 +978,9 @@ enddo
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the
 ! true reference energy is used.
 
-lat%input_taylor_order = bmad_com%taylor_order
-if (lat%input_taylor_order /= 0) call set_taylor_order (lat%input_taylor_order, .false.)
-
+if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
 call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
+lat%input_taylor_order = ptc_com%taylor_order_ptc
 
 ! Error check that if a superposition attribute was set that "superposition" was set.
 

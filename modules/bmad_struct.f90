@@ -1138,8 +1138,8 @@ type extra_parsing_info_struct
   integer deterministic   
   logical ran_function_was_called 
   logical deterministic_ran_function_was_called 
-  logical taylor_order_set, ptc_max_fringe_order_set, use_hard_edge_drifts_set
-  integer taylor_order, ptc_max_fringe_order
+  logical ptc_max_fringe_order_set, use_hard_edge_drifts_set
+  integer ptc_max_fringe_order
   logical use_hard_edge_drifts
 end type
 
@@ -1152,11 +1152,6 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 !------------------------------------------------------------------------------
 ! common stuff
 
-! %taylor_order_ptc is what ptc has been set to.
-! %taylor_order is what the user wants.
-! The reason why there are two taylor_orders is that the Taylor order of PTC
-!   cannot be set until the energy is set so Bmad must sometimes cache the 
-!   taylor order until the energy is known.
 ! %max_aperture_limit is used when no limit is specified or when 
 !   lat%param%aperture_limit_on = False.
 
@@ -1172,7 +1167,9 @@ type bmad_common_struct
   real(rp) :: init_ds_adaptive_tracking = 1e-3     ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0         ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1e-8    ! If actual step size is below this particle is lost.
-  integer :: taylor_order = 3                      ! 3rd order is default
+  integer :: taylor_order = 0                      ! Input Taylor order for maps. 
+                                                   !   0 -> default = ptc%taylor_order_saved
+                                                   !   ptc_com%taylor_order_ptc gives actual order in use. 
   integer :: default_integ_order = 2               ! PTC integration order. 
   integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2 => Quadrupole !). 
                                                    !   Must call set_ptc after changing.
@@ -1195,6 +1192,19 @@ type bmad_common_struct
 end type
   
 type (bmad_common_struct), save, target :: bmad_com
+
+! ptc_com common block.
+! %taylor_order_saved is what is used if bmad_com%taylor_order is not set (= 0).
+! %taylor_order_saved is initially 3.
+! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
+
+type ptc_common_struct
+  integer :: real_8_map_init                  ! See PTC doc.
+  integer :: taylor_order_ptc = 0             ! What has been set in PTC. 0 -> not yet set
+  integer :: taylor_order_saved = 3         ! Default to use.
+end type
+
+type (ptc_common_struct), save :: ptc_com
 
 ! Some routines need to keep track of where elements are when elements are added or removed from
 ! the lattice. 

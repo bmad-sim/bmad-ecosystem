@@ -1730,7 +1730,8 @@ end subroutine rf_coupler_kick
 !   ele           -- ele_struct: patch, branch, or photon_branch element.
 !   orbit         -- coord_struct: Starting phase space coords
 !   drift_to_exit -- Logical, optional: If False then do not drift the particle from
-!                      Entrance to exit faces. Default is True. 
+!                      Entrance to exit faces. Also do not correct for a reference energy shift.
+!                      Default is True. 
 !
 ! Output:
 !   orbit      -- coord_struct: Coords after applying a patch transformation.
@@ -1774,20 +1775,6 @@ else
   call mat_make_unit (winv)
 endif
 
-if (v(p0c_start$) /= v(p0c$)) then
-  if (orbit%direction == 1) then
-    orbit%vec(2) = orbit%vec(2) * v(p0c_start$) / v(p0c$)
-    orbit%vec(4) = orbit%vec(4) * v(p0c_start$) / v(p0c$)
-    orbit%vec(6) = (rel_pc * v(p0c_start$) - v(p0c$)) / v(p0c$) 
-    orbit%p0c = v(p0c$)
-  else
-    orbit%vec(2) = orbit%vec(2) * v(p0c$) / v(p0c_start$)
-    orbit%vec(4) = orbit%vec(4) * v(p0c$) / v(p0c_start$)
-    orbit%vec(6) = (rel_pc * v(p0c$) - v(p0c_start$)) / v(p0c_start$) 
-    orbit%p0c = v(p0c_start$)
-  endif
-endif
-
 orbit%vec(1) = r_vec(1)
 orbit%vec(3) = r_vec(2)
 orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
@@ -1802,6 +1789,7 @@ if (present(w_inv)) w_inv = winv
 ! Notice that the drift distance is -r_vec(3). 
 
 if (logic_option(.true., drift_to_exit)) then
+  call reference_energy_correction (ele, orbit)
   beta0 = v(p0c$) / v(e_tot$)
   orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
@@ -1810,5 +1798,56 @@ if (logic_option(.true., drift_to_exit)) then
 endif
 
 end subroutine track_a_patch
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine reference_energy_correction (ele, orbit)
+!
+! For elements where the reference energy is changing the reference energy in the body is 
+! taken by convention to be the reference energy at the exit end.
+! Elements where the reference energy can change:
+!   lcavity
+!   patch
+!   custom
+!
+! This routine should be called at the start of any tracking integration.
+!
+! Input:
+!   ele       -- Ele_struct: Element being tracked through.
+!   orbit     -- Coord_struct: Coordinates to correct.
+!
+! Output:
+!   orbit     -- Coord_struct: Coordinates to correct.
+!-
+
+subroutine reference_energy_correction (ele, orbit)
+
+implicit none
+
+type (ele_struct) :: ele
+type (coord_struct) :: orbit
+
+real(rp) p0, p1, e_start
+character(*), parameter :: r_name = 'reference_energy_correction'
+
+!
+
+if (ele%value(p0c$) == ele%value(p0c_start$)) return
+
+if (orbit%direction == 1) then
+  orbit%vec(2) = orbit%vec(2) * ele%value(p0c_start$) / ele%value(p0c$)
+  orbit%vec(4) = orbit%vec(4) * ele%value(p0c_start$) / ele%value(p0c$)
+  orbit%vec(6) = ((1 + orbit%vec(6)) * ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$) 
+  orbit%p0c = ele%value(p0c$)
+else
+  orbit%vec(2) = orbit%vec(2) * ele%value(p0c$) / ele%value(p0c_start$)
+  orbit%vec(4) = orbit%vec(4) * ele%value(p0c$) / ele%value(p0c_start$)
+  orbit%vec(6) = ((1 + orbit%vec(6)) * ele%value(p0c$) - ele%value(p0c_start$)) / ele%value(p0c_start$) 
+  orbit%p0c = ele%value(p0c_start$)
+endif
+
+end subroutine reference_energy_correction
 
 end module
