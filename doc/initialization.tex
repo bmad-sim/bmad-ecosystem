@@ -260,7 +260,6 @@ variables that are set in the \vn{tao_design_lattice} namelist are:
 \begin{example}
   &tao_design_lattice
     n_universes        = <integer>      ! Number of universes. Default = 1.
-    taylor_order       = <num>
     aperture_limit_on  = <logical>
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
@@ -315,9 +314,6 @@ name of the line to be used to specify the lattice can be appended to
 the lattice file name. Thus, in the example above, universe 3 will
 have the lattice specified by the line ``my\_line'' from the lattice
 ``third.lat''.
-
-\vn{taylor_order} is the order of the Taylor maps. This will override
-the Taylor order set in the lattice files. 
 
 \vn{global%combine_consecutive_elements_of_like_name} takes a lattice
 and combines all pairs of consecutive elements that have the same name
@@ -505,26 +501,41 @@ the RF off, the beam energy will be independent of the closed orbit
 which is not the case when the RF is on.
 
 The \vn{bmad_com_struct} holds bmad global variables. 
-\index{radiation_damping_on}
+\index{radiation_damping_on}\index{taylor_order}
 \index{radiation_fluctuations_on}\index{sr_wakes_on}\index{lr_wakes_on}
 \begin{example}
   type bmad_com_struct
-    real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
     real(rp) max_aperture_limit = 1e3    
-    real(rp) rel_tolerance = 1e-5
-    real(rp) abs_tolerance = 1e-8
+    real(rp) d_orb(6) = 1e-5  ! for the make_mat6_tracking routine
+    real(rp) default_ds_step    = 0.2_rp    ! Integration step size.
+    real(rp) significant_length = 1e-10     ! meter
+    real(rp) rel_tol_tracking = 1e-8
+    real(rp) abs_tol_tracking = 1e-10
+    real(rp) rel_tol_adaptive_tracking = 1e-8   ! Adaptive tracking relative tolerance.
+    real(rp) abs_tol_adaptive_tracking = 1e-10  ! Adaptive tracking absolute tolerance.
+    real(rp) init_ds_adaptive_tracking = 1e-3   ! Initial step size
+    real(rp) min_ds_adaptive_tracking = 0       ! Min step size to take.
+    real(rp) fatal_ds_adaptive_tracking = 1e-8  ! particle lost if step size is below this.
     integer taylor_order = 3               ! 3rd order is default
-    logical use_liar_lcavity = F           ! Liar like tracking?
+    integer default_integ_order = 2        ! PTC integration order.
+    integer ptc_max_fringe_order = 2       ! PTC max fringe order (2 => Quadrupole !).
+                                           !   Must call set_ptc after changing.
+    logical use_hard_edge_drifts = T       ! Insert drifts when tracking through cavity?
     logical sr_wakes_on = T                ! Short range wakefields?
     logical lr_wakes_on = T                ! Long range wakefields
     logical mat6_track_symmetric = T       ! symmetric offsets
     logical auto_bookkeeper = T            ! Automatic bookkeeping?
-    logical radiation_damping_on = F       ! Damping toggle.
-    logical radiation_fluctuations_on = F  ! Fluctuations toggle.
-    logical compute_ref_energy = T         ! Enable recomputation?
     logical space_charge_on = F            ! Space charge switch
     logical coherent_synch_rad_on = F      ! Longitudinal csr 
     logical spin_tracking_on = T           ! Do particle spin tracking
+    logical radiation_damping_on = F       ! Damping toggle.
+    logical radiation_fluctuations_on = F  ! Fluctuations toggle.
+    logical conserve_taylor_maps = T       ! Enable bookkeeper to set ele%map_with_offsets = F?
+    logical absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
+    logical rf_auto_scale_phase_default = T     ! Default for lat%rf_auto_scale_phase
+    logical rf_auto_scale_amp_default = T       ! Default for lat%rf_auto_scale_amp
+    logical use_ptc_layout_default = F          ! Default for lat%use_ptc_layout
+
   end type
 \end{example}
 See the \bmad manual for more details.

@@ -28,13 +28,13 @@ character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 character(16) aperture_limit_on
 
-integer i, j, k, n, iu, ios, version, taylor_order, ix, key, n_universes
+integer i, j, k, n, iu, ios, version, ix, key, n_universes
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice
 logical err
 
-namelist / tao_design_lattice / design_lattice, taylor_order, &
+namelist / tao_design_lattice / design_lattice, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
        aperture_limit_on, common_lattice, n_universes
 
@@ -68,7 +68,6 @@ if (tao_com%init_read_lat_info) then
 
   common_lattice = .false.
   n_universes = tao_com%n_universes
-  taylor_order = 0
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
   aperture_limit_on = ''
@@ -85,7 +84,6 @@ if (tao_com%init_read_lat_info) then
     close (iu)
   endif
 
-  if (taylor_order /= 0) call set_taylor_order (taylor_order)
   tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
   tao_com%common_lattice = common_lattice
   tao_com%n_universes = n_universes
