@@ -1496,45 +1496,45 @@ endif
 select case (status_group)
 
 case (attribute_group$)
-  call set_attributes
-  call set_mat6
-  call set_ptc
+  call set_attributes_status
+  call set_mat6_status
+  call set_ptc_status
 
 case (control_group$)
-  call set_control
+  call set_control_status
 
 case (floor_position_group$)
-  call set_floor_position
-  call set_mat6
-  call set_ptc
+  call set_floor_position_status
+  call set_mat6_status
+  call set_ptc_status
 
 case (s_position_group$)
-  call set_s_position
-  call set_floor_position
-  call set_mat6
-  call set_ptc
+  call set_s_position_status
+  call set_floor_position_status
+  call set_mat6_status
+  call set_ptc_status
 
 case (ref_energy_group$)
-  call set_ref_energy
-  call set_mat6
-  call set_attributes ! EG: k1 <--> b1_gradient calc needed 
-  call set_ptc
+  call set_ref_energy_status
+  call set_mat6_status
+  call set_attributes_status ! EG: k1 <--> b1_gradient calc needed 
+  call set_ptc_status
 
 case (mat6_group$)
-  call set_mat6
+  call set_mat6_status
 
 case (rad_int_group$)
-  call set_rad_int
+  call set_rad_int_status
 
 case (all_groups$)
-  call set_attributes
-  call set_control
-  call set_ref_energy
-  call set_floor_position
-  call set_s_position
-  call set_mat6
-  call set_rad_int
-  call set_ptc
+  call set_attributes_status
+  call set_control_status
+  call set_ref_energy_status
+  call set_floor_position_status
+  call set_s_position_status
+  call set_mat6_status
+  call set_rad_int_status
+  call set_ptc_status
 
 case default
    if (global_com%exit_on_error) call err_exit   ! Should not be here
@@ -1553,66 +1553,66 @@ endif
 !----------------------------------------------------------------------------
 contains
 
-subroutine set_attributes
+subroutine set_attributes_status
   if (ele%key == overlay$) return
   if (ele%key == group$) return
   ele%bookkeeping_state%attributes = stale$
   if (associated(state)) state%attributes = stale$
-end subroutine set_attributes
+end subroutine set_attributes_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_control
+subroutine set_control_status
   if (ele%lord_status == not_a_lord$ .and. ele%slave_status == free$) return
   ele%bookkeeping_state%control = stale$
   if (associated(state)) state%control = stale$
-end subroutine set_control
+end subroutine set_control_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_floor_position
+subroutine set_floor_position_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%floor_position = stale$
   if (associated(state)) state%floor_position = stale$
-end subroutine set_floor_position
+end subroutine set_floor_position_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_s_position
+subroutine set_s_position_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%s_position = stale$
   if (associated(state)) state%s_position = stale$
-end subroutine set_s_position
+end subroutine set_s_position_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_ref_energy
+subroutine set_ref_energy_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%ref_energy = stale$
   if (associated(state)) state%ref_energy = stale$
-end subroutine set_ref_energy
+end subroutine set_ref_energy_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_rad_int
+subroutine set_rad_int_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%rad_int = stale$
   if (associated(state)) state%rad_int = stale$
-end subroutine set_rad_int
+end subroutine set_rad_int_status
 
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine set_ptc
+subroutine set_ptc_status
   if (ele%key == overlay$ .or. ele%key == group$) return
   ele%bookkeeping_state%ptc = stale$
   if (associated(state)) state%ptc = stale$
-end subroutine set_ptc
+end subroutine set_ptc_status
 
 !----------------------------------------------------------------------------
 ! contains
@@ -1621,12 +1621,12 @@ end subroutine set_ptc
 ! Also the branch status does not get set since the transfer map calc
 ! must always check a branch due to possible reference orbit shifts.
 
-subroutine set_mat6
+subroutine set_mat6_status
   if (ele%key == overlay$) return
   if (ele%key == group$) return
   if (ele%lord_status == multipass_lord$) return
   ele%bookkeeping_state%mat6 = stale$
-end subroutine set_mat6
+end subroutine set_mat6_status
 
 end subroutine set_ele_status_stale 
 

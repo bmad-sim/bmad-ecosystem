@@ -461,7 +461,7 @@ call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
 call kill(normal)
 call kill(da_map)
 call kill(x_probe8)
-call init (DEFAULT, bmad_com%taylor_order, 0)
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine ptc_emit_calc 
 
@@ -695,7 +695,7 @@ logical rf_on
 
 !
 
-map_order = integer_option(order, bmad_com%taylor_order)
+map_order = integer_option(order, ptc_com%taylor_order_ptc)
 
 if (rf_on) then
   ptc_state = default - nocavity0
@@ -724,7 +724,7 @@ call real_8_to_taylor(ray, fib%beta0, map)
 
 call kill(ray)
 call kill(da_map)
-call init (DEFAULT, bmad_com%taylor_order, 0)
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end Subroutine ptc_one_turn_map_at_ele
 
@@ -782,7 +782,7 @@ else
   state = default + nocavity0
 endif
 
-call init (state, bmad_com%taylor_order, 0) 
+call init (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da_map)
 call alloc(normal)
@@ -820,7 +820,7 @@ call kill(map8)
 call kill(da_map)
 call kill(normal)
 
-call init (DEFAULT, bmad_com%taylor_order, 0)
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_taylors
 
@@ -860,7 +860,7 @@ endif
 use_complex_in_ptc=my_true
 c_verbose_save = c_verbose
 c_verbose = .false.
-call init (state, bmad_com%taylor_order, 0) 
+call init (state, ptc_com%taylor_order_ptc, 0) 
 call alloc(map8)
 call alloc(da)
 call alloc(cda)
@@ -903,7 +903,7 @@ call kill(complex_normal_form)
 ! Reset PTC state
 use_complex_in_ptc=my_false
 c_verbose = c_verbose_save
-call init (DEFAULT, bmad_com%taylor_order, 0)
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 
 end subroutine normal_form_complex_taylors
 

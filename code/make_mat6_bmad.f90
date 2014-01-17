@@ -634,6 +634,8 @@ case (patch$)
   mc2 = mass_of(param%particle)
   c00%vec(5) = 0
   call track_a_patch (ele, c00, .false., s_ent, ds_ref, w_inv)
+  call reference_energy_correction (ele, c00)
+
   dp_ratio = v(p0c_start$) / v(p0c$)
   pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2)
   beta_ref = v(p0c$) / v(e_tot$)

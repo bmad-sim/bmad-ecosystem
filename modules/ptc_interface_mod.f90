@@ -33,14 +33,6 @@ type ptc_parameter_struct
   real(dp) phase0
 end type
 
-type ptc_common_struct
-  integer :: real_8_map_init               ! See PTC doc.
-  integer :: taylor_order_ptc = 0          ! 0 -> not yet set 
-  logical :: taylor_order_set = .false.    ! Used by set_taylor_order
-end type
-
-type (ptc_common_struct), private, save :: ptc_com
-
 contains
 
 !----------------------------------------------------------------------
@@ -73,7 +65,7 @@ integer i
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 !
 
@@ -126,7 +118,7 @@ integer i
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 !
 
@@ -148,64 +140,6 @@ call kill (y2)
 call kill (y3)
 
 end function taylor_minus_taylor
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine set_taylor_order (order, override_flag)
-!
-! Subroutine to set the taylor order for the Taylor maps.
-!
-! Note: override_flag = .false. is generally only used by bmad_parser so that
-! if the taylor order has been previously set then the setting in the 
-! lattice file will not override it.
-!
-! Note: Calling this routine after calling bmad_parser will not reset any
-! taylor maps made by bmad_parser. Thus when in doubt, call this routine
-! before calling bmad_parser.
-!
-! Note: This routine does not call any of Etienne's PTC routines since this
-! routine may be called before PTC has been initialized. This routine
-! just sets a global variable and returns.
-!
-! Modules needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   order         -- Integer: Taylor order.
-!                     If order = 0. then nothing is done.
-!   override_flag -- Logical, optional: If False then if the taylor order 
-!                     has been previously set do not reset. Default is True.
-!-
-
-subroutine set_taylor_order (order, override_flag)
-
-implicit none
-
-integer, intent(in) :: order
-logical, optional :: override_flag
-character(16), parameter :: r_name = 'set_taylor_order'
-
-! do nothing if order = 0
-
-if (order == 0) return
-
-if (order < 0 .or. order > 100) then
-  call out_io (s_fatal$, r_name, 'ORDER OUT OF BOUNDS: /i0/ ', order)
-  if (global_com%exit_on_error) call err_exit
-endif
-
-! check for override_flag and do nothing if the taylor order has been set
-
-if (.not. logic_option(.true., override_flag) .and. ptc_com%taylor_order_set) return
-
-! set the taylor order.
-
-bmad_com%taylor_order = order
-ptc_com%taylor_order_set = .true.    
-
-end subroutine set_taylor_order
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -761,7 +695,7 @@ end subroutine is_associated
 function patch_name (patch) result (patch_str)
 
 integer(2), pointer :: patch
-character(16) patch_str
+character(40) patch_str
 
 !
 
@@ -770,13 +704,17 @@ if (.not. associated(patch)) then
   return
 endif
 
-!
+! Internal patches are used with energy offsets where the information about the before and
+! after reference energies is contained within the fibre and not contained in the 
+! previous or next fibres.
 
 select case (patch)
 case (0); patch_str = 'No patches (0)'
 case (1); patch_str = 'Entrance patch (1)'
 case (2); patch_str = 'Exit patch (2)'
 case (3); patch_str = 'Patch both ends (3)'
+case (4); patch_str = 'Internal entrance patch (4)'
+case (5); patch_str = 'Internal exit patch (5)'
 case default; write (patch_str, '(a, i0, a)') 'UNKNOWN! [', patch, ']'
 end select
 
@@ -1049,17 +987,17 @@ end function kind_name
 !                               n_step, no_cavity, exact_modeling, exact_misalign)
 !
 ! Subroutine to initialize PTC.
-! Note: At some point before you use PTC to compute Taylor maps etc.
-!   you have to call set_ptc with both e_tot and particle args
-!   present. Always supply both of these args together or not at all. 
-! Note: If you just want to use FPP without PTC then call init directly.
-! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
-! This subroutine replaces:
+! This subroutine uses the FPP/PTC routines:
 !     make_states
 !     set_mad
 !     init
+!
+! Note: At some point before you use PTC to compute Taylor maps etc.
+!   you have to call set_ptc with both e_tot and particle args present. 
+!   Always supply both of these args together or not at all. 
+! Note: If you just want to use FPP without PTC then call the FPP routine init directly.
+! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
 ! Note: Use the routine get_ptc_param to get the state of PTC parameters.
-
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1069,6 +1007,7 @@ end function kind_name
 !   particle     -- Integer, optional: Type of particle:
 !                     electron$, proton$, etc.
 !   taylor_order -- Integer, optional: Maximum order of the taylor polynomials.
+!                     0 => Use default.
 !   integ_order  -- Integer, optional: Default Order for the drift-kick-drift 
 !                     sympletic integrator. Possibilities are: 2, 4, or 6
 !                     Default = 2
@@ -1098,7 +1037,7 @@ implicit none
 
 integer, optional :: integ_order, particle, n_step, taylor_order
 integer this_method, this_steps
-integer nd2
+integer nd2, t_order
 
 real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
@@ -1160,6 +1099,12 @@ else
   this_steps = 10
 endif
 
+if (present(taylor_order)) then     
+  t_order = taylor_order
+  if (t_order == 0) t_order = ptc_com%taylor_order_saved 
+  ptc_com%taylor_order_saved = t_order  
+endif
+
 if (params_present) then
   if (init_needed .or. old_e_tot /= e_tot .or. present(integ_order) .or. present(n_step)) then
     this_energy = 1e-9 * e_tot
@@ -1179,13 +1124,14 @@ endif
 
 ! Do not call init before the call to make_states
 
-if (present(taylor_order)) then  
-  if (init_needed) then                   ! make_states has not been called
-    bmad_com%taylor_order = taylor_order  ! store the order for next time
-  elseif (ptc_com%taylor_order_ptc /= taylor_order) then
-    call init (DEFAULT, taylor_order, 0, berz, nd2, ptc_com%real_8_map_init)
-    ptc_com%taylor_order_ptc = taylor_order
-    bmad_com%taylor_order     = taylor_order
+if (.not. init_needed) then  ! If make_states has been called
+  t_order = 0
+  if (present(taylor_order)) t_order = taylor_order
+  if (t_order == 0) t_order = bmad_com%taylor_order
+  if (t_order == 0) t_order = ptc_com%taylor_order_saved
+  if (ptc_com%taylor_order_ptc /= t_order) then
+    call init (DEFAULT, t_order, 0, berz, nd2, ptc_com%real_8_map_init)
+    ptc_com%taylor_order_ptc = t_order
   endif
 endif
 
@@ -2118,7 +2064,7 @@ type (damap) da1, da2, da3
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
 
@@ -2181,7 +2127,7 @@ real(rp), intent(out) :: c0(:)
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Remove constant terms from the taylor map first. This is probably
 ! not needed but we do it to make sure everything is alright.
@@ -2264,7 +2210,7 @@ do i = 1, size(taylor_in)
       c0(i) = taylor_in(i)%term(j)%coef
     endif
     if (remove_higher_order_terms) then
-      if (sum(taylor_in(i)%term(j)%expn) > bmad_com%taylor_order) n = n - 1
+      if (sum(taylor_in(i)%term(j)%expn) > ptc_com%taylor_order_ptc) n = n - 1
     endif
   enddo
 
@@ -2276,7 +2222,7 @@ do i = 1, size(taylor_in)
   nn = 0
   do j = 1, size(taylor_in(i)%term)
     ss = sum(taylor_in(i)%term(j)%expn)
-    if (ss == 0 .or. (remove_higher_order_terms .and. ss > bmad_com%taylor_order)) cycle
+    if (ss == 0 .or. (remove_higher_order_terms .and. ss > ptc_com%taylor_order_ptc)) cycle
     nn = nn + 1
     taylor_out(i)%term(nn) = taylor_in(i)%term(j)
   enddo
@@ -2333,7 +2279,7 @@ character(16) :: r_name = 'taylor_inverse'
 
 ! Set the taylor order in PTC if not already done so.
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 call alloc(da)
 call alloc(y)
@@ -2451,7 +2397,7 @@ type (real_8) y1(size(taylor1)), y2(size(taylor1)), y3(size(taylor1))
 
 ! Set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Allocate temp vars
 
@@ -2533,7 +2479,7 @@ endif
 ! Here when we need to include the misalignment effects.
 ! First set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Init
 
@@ -2631,7 +2577,7 @@ real(rp) beta0, m2_rel, z_patch
 
 ! set the taylor order in PTC if not already done so
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) call set_ptc (taylor_order = bmad_com%taylor_order)
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 ! Init ptc map with bmad map
 
@@ -2731,9 +2677,7 @@ character(16) :: r_name = 'ele_to_taylor'
 
 ! Init
 
-if (ptc_com%taylor_order_ptc /= bmad_com%taylor_order) then
-  call set_ptc (taylor_order = bmad_com%taylor_order)
-endif
+if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -3339,7 +3283,7 @@ real(dp) mis_rot(6)
 real(dp) omega(3), basis(3,3), angle(3)
 real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
-logical use_offsets, energy
+logical use_offsets
 
 character(*), parameter :: r_name = 'misalign_ele_to_fibre'
 
@@ -3384,15 +3328,15 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
   ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
 
   if (ele%value(e_tot_offset$) == 0) then
-    energy = .false.
+    ptc_fibre%patch%energy = 0
   else
-    energy = .true.
-    call out_io (s_fatal$, r_name, 'ENERGY PATCH NOT YET IMPLEMENTED!')
-    call err_exit
+    ptc_fibre%patch%energy = 5 ! Internal exit patch.
+    ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
+    ptc_fibre%patch%b0b = ele%value(p0c_start$) / ele%value(E_tot_start$)
   endif
 
   call survey (dummy_fibre, exi, dr)
-  call find_patch (ptc_fibre, dummy_fibre, next = .false., energy_patch = energy)
+  call find_patch (ptc_fibre, dummy_fibre, next = .false.)
 
   call super_zero_fibre(dummy_fibre, -1)
 

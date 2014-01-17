@@ -77,7 +77,7 @@ endif
 
 if (.not. err) then
   if (present(digested_read_ok)) digested_read_ok = .true.
-  call set_taylor_order (lat%input_taylor_order, .false.)
+  if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
   call set_ptc (lat%ele(0)%value(e_tot$), lat%param%particle)
   if (present(err_flag)) err_flag = .false.  
   return
@@ -576,7 +576,6 @@ endif
 
 call convert_total_energy_to (ele0%value(e_tot$), lat%param%particle, pc = ele0%value(p0c$))
 
-call set_taylor_order (lat%input_taylor_order, .false.)
 call set_ptc (ele0%value(e_tot$), lat%param%particle)
 
 ! Element cleanup

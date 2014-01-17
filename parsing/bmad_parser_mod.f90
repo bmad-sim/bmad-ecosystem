@@ -1123,9 +1123,12 @@ case ('PTC_MAX_FRINGE_ORDER')
   bp_com%extra%ptc_max_fringe_order = bmad_com%ptc_max_fringe_order
 
 case ('TAYLOR_ORDER')
-  call get_integer (bmad_com%taylor_order, err_flag)
-  bp_com%extra%taylor_order_set = .true.
-  bp_com%extra%taylor_order = bmad_com%taylor_order
+  call get_integer (ix, err_flag)
+  if (ix <= 0) then
+    call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
+    return
+  endif
+  ptc_com%taylor_order_saved = ix
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then

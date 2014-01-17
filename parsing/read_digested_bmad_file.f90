@@ -251,7 +251,6 @@ endif
 read (d_unit, iostat = ios) found_it
 if (found_it) then
   read (d_unit, iostat = ios) extra
-  if (extra%taylor_order_set)         bmad_com%taylor_order         = extra%taylor_order
   if (extra%ptc_max_fringe_order_set) bmad_com%ptc_max_fringe_order = extra%ptc_max_fringe_order
   if (extra%use_hard_edge_drifts_set) bmad_com%use_hard_edge_drifts = extra%use_hard_edge_drifts
 endif

@@ -257,7 +257,7 @@ case (octupole$)
   end select
 
 case (patch$)
-  if (present(num_valid)) num_valid = 4
+  if (present(num_valid)) num_valid = 5
   select case (tracking_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$)
     is_valid = .true.
