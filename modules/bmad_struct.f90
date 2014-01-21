@@ -708,7 +708,7 @@ integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_multipole$ = 56
+integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56
 !!! rel_controller$ = , abs_controller$ = 
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
@@ -728,7 +728,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULTIPOLE    ']
+    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1114,7 +1114,7 @@ character(16), parameter :: aperture_type_name(0:7) = &
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
 character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
 
-! fringe_type and fringe_kind (used by sad_multipole)
+! fringe_type and fringe_kind (used by sad_mult)
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
 character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &

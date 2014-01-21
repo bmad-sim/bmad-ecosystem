@@ -428,7 +428,7 @@ do i = 1, n_key$
   if (i == beambeam$)      cycle
   if (i == multipole$)     cycle 
   if (i == ab_multipole$)  cycle
-  if (i == sad_multipole$) cycle
+  if (i == sad_mult$)      cycle
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
@@ -476,7 +476,7 @@ do i = 1, n_key$
   select case (i)
   case (elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, bend_sol_quad$, &
-         hkicker$, vkicker$, sad_multipole$)
+         hkicker$, vkicker$, sad_mult$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -489,7 +489,7 @@ do i = 1, n_key$
                                    'B16', 'B17', 'B18', 'B19', 'B20', 'B21']
     attrib_array(i, a0$:b21$)%type = is_free$
     if (i == ab_multipole$) cycle
-    if (i == sad_multipole$) cycle
+    if (i == sad_mult$) cycle
     call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
   end select
 enddo
@@ -965,21 +965,21 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
-call init_attribute_name1 (sad_multipole$, l$,                      'L')
-call init_attribute_name1 (sad_multipole$, angle$,                  'ANGLE')
-call init_attribute_name1 (sad_multipole$, e1$,                     'E1')
-call init_attribute_name1 (sad_multipole$, e2$,                     'E2')
-call init_attribute_name1 (sad_multipole$, rf_frequency$,           'RF_FREQUENCY')  ! SAD: freq
-call init_attribute_name1 (sad_multipole$, phi0$,                   'PHI0')
-call init_attribute_name1 (sad_multipole$, voltage$,                'VOLTAGE')      ! SAD: volt
-call init_attribute_name1 (sad_multipole$, harmon$,                 'HARMON')       ! SAD: harm
-call init_attribute_name1 (sad_multipole$, kill_fringe$,            'KILL_FRINGE')  ! SAD: fringe
-call init_attribute_name1 (sad_multipole$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
-call init_attribute_name1 (sad_multipole$, f1$,                     'F1')
-!!call init_attribute_name1 (sad_multipole$, f2$,                     'F2')
+call init_attribute_name1 (sad_mult$, l$,                      'L')
+call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
+call init_attribute_name1 (sad_mult$, e1$,                     'E1')
+call init_attribute_name1 (sad_mult$, e2$,                     'E2')
+call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY')  ! SAD: freq
+call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')
+call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
+call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
+call init_attribute_name1 (sad_mult$, kill_fringe$,            'KILL_FRINGE')  ! SAD: fringe
+call init_attribute_name1 (sad_mult$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
+call init_attribute_name1 (sad_mult$, f1$,                     'F1')
+!!call init_attribute_name1 (sad_mult$, f2$,                     'F2')
 ! Attributes with no SAD equivalent
-!!call init_attribute_name1 (sad_multipole$, rho$,                    'RHO')   
-call init_attribute_name1 (sad_multipole$, g$,                      'G')
+!!call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
+call init_attribute_name1 (sad_mult$, g$,                      'G')
 
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')
