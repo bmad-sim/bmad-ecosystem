@@ -27,18 +27,18 @@ particle and photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}     & {\it Section}       & {\it Element}      & {\it Section}    \HH
-  AB_Multipole      & \ref{s:ab.m}        &  Match             & \ref{s:match}    \HH
-  BeamBeam          & \ref{s:bbi}         &  Monitor           & \ref{s:monitor}  \HH 
-  Bend_Sol_Quad     & \ref{s:bsq}         &  Multipole         & \ref{s:mult}     \HH
-  Branch            & \ref{s:branch}      &  Null_Ele          & \ref{s:null.ele} \HH
-  Custom            & \ref{s:custom}      &  Octupole          & \ref{s:oct}      \HH
-  Drift             & \ref{s:drift}       &  Patch             & \ref{s:patch}    \HH
-  E_Gun             & \ref{s:e.gun}       &  Photon_Branch     & \ref{s:branch}   \HH
-  Ecollimator       & \ref{s:col}         &  Pipe              & \ref{s:monitor}  \HH
-  ElSeparator       & \ref{s:elsep}       &  Quadrupole        & \ref{s:quad}     \HH
-  EM_Field          & \ref{s:em.field}    &  Rbend             & \ref{s:bend}     \HH
-  Fiducial          & \ref{s:fiducial}    &  Rcollimator       & \ref{s:col}      \HH
-  Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
+  AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \HH
+  BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \HH
+  Bend_Sol_Quad     & \ref{s:bsq}         &  Null_Ele          & \ref{s:null.ele} \HH
+  Branch            & \ref{s:branch}      &  Octupole          & \ref{s:oct}      \HH
+  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \HH
+  Drift             & \ref{s:drift}       &  Photon_Branch     & \ref{s:branch}   \HH
+  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \HH
+  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \HH
+  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \HH
+  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \HH
+  Fiducial          & \ref{s:fiducial}    &  RFcavity          & \ref{s:rfcav}    \HH
+  Floor_Shift       & \ref{s:floor.ele}   &  Sad_Mult          & \ref{s:sad.mult} \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
   Beginning_Ele     & \ref{s:begin.ele}   &  Solenoid          & \ref{s:sol}      \HH
@@ -46,6 +46,7 @@ particle and photon use.
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \HH
   Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \HH  
   Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \HH
+  Match             & \ref{s:match}       &                    &                  \HH
 \end{tabular}
 }
 \caption{Table of element types suitable for use with relativistic particles.}
@@ -2815,6 +2816,31 @@ Example:
 \begin{example}
   rf1: rfcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
+
+%-----------------------------------------------------------------
+\section{Sad_Mult}
+\label{s:sad.mult}
+\index{sad_mult|hyperbf}
+
+A \vn{sad_mult} element is equivalent to a SAD\cite{b:sad} \vn{mult}
+element. This element is a combination solenoid, multipole, bend, and
+RF cavity.
+
+General \vn{sample} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+This element is in development.
+
 
 %-----------------------------------------------------------------
 \section{Sample}
