@@ -12,7 +12,8 @@
 
 import os
 
-platforms = ['Linux_x86_64_intel', 'Linux_x86_64_gfortran', 'packages_intel', 'packages_gfortran']
+platforms = ['Linux_x86_64_intel']
+#platforms = ['Linux_x86_64_intel', 'Linux_x86_64_gfortran', 'packages_intel', 'packages_gfortran']
 promotion_labels = ['devel', 'current']
 release_prefix = 'cesr'
 builds_basedir = '/nfs/acc/libs/'
