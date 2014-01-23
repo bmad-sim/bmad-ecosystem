@@ -62,13 +62,12 @@ if (tracking_uses_end_drifts(ele)) then
   call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 endif  
 
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
 call vec_ptc_to_bmad (re, beta0, end_orb%vec)
-if (ele%value(p0c$) /= ele%value(p0c_start$)) &
-      call vec_bmad_ref_energy_correct(end_orb%vec, ele%value(p0c$) / ele%value(p0c_start$))
 
 ! 
 
-if (ele%value(p0c$) /= ele%value(p0c_start$)) then
+if (ele%value(p0c$) /= ele%value(p0c_start$) .or. start2_orb%vec(6) /= end_orb%vec(6)) then
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
 endif
 

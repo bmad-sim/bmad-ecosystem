@@ -720,7 +720,7 @@ da_map = 1   ! Identity
 ray = da_map + x
 call track_probe_x (ray, ptc_state, fibre1 = fib)
 
-call real_8_to_taylor(ray, fib%beta0, map)
+call real_8_to_taylor(ray, fib%beta0, fib%beta0, map)
 
 call kill(ray)
 call kill(da_map)
