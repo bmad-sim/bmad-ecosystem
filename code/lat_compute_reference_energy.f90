@@ -419,8 +419,8 @@ case (patch$)
     ele%value(p0c$) = p0c_start
   endif
 
-  velocity = c_light * ele%value(p0c_start$) / ele%value(E_tot_start$)
-  ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(z_offset$) / velocity
+  velocity = c_light * ele%value(p0c$) / ele%value(E_tot$)
+  ele%ref_time = ref_time_start + ele%value(t_offset$) + ele%value(l$) / velocity
 
 case default
   ele%value(E_tot$) = E_tot_start

@@ -85,11 +85,11 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp, ds_tiny = 1e-12_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, direction, position(6)
+real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, position(6)
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect
 
 integer, parameter :: max_step = 10000
-integer :: n_step, hard_end
+integer :: n_step, direction, hard_end
 
 logical local_ref_frame, err_flag, err, at_hard_edge, has_hit
 
@@ -118,7 +118,7 @@ call reference_energy_correction (ele, orb_end)
 ! to apply the appropriate hard edge kick.
 
 nullify (hard_ele)
-call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+call calc_next_fringe_edge (ele, direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
 
 ! Initial time
 

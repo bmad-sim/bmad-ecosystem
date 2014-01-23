@@ -1292,7 +1292,7 @@ end subroutine real_8_equal_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_real_8 (bmad_taylor, beta0, y8)
+! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1302,13 +1302,14 @@ end subroutine real_8_equal_taylor
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
-!   beta0 -- real(rp): Reference particle velocity
+!   beta0 -- real(rp): Reference particle velocity at beginning of map
+!   beta1 -- real(rp): Reference particle velocity at end of map
 !
 ! Output:
 !   y8(6) -- real_8: PTC Taylor map.
 !-
 
-subroutine taylor_to_real_8 (bmad_taylor, beta0, y8)
+subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8)
 
 use s_fibre_bundle
 
@@ -1319,7 +1320,7 @@ type (real_8) y8(:)
 type (damap) bm, id, s, si
 type (taylor) bet
 
-real(dp) beta0, fix0(6), fix1(6)
+real(dp) beta0, beta1, fix0(6), fix1(6)
 
 !
 
@@ -1341,15 +1342,15 @@ s%v(6) = (2.d0*id%v(5)/beta0+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta0+id%v(5)**
 bet = (1.d0+s%v(6))/(1.d0/beta0+id%v(5))
 s%v(5) = -bet*id%v(6)
 
-si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+id%v(6)**2+2.d0*id%v(6)) )
-bet = (1.d0+id%v(6))/(1.d0/beta0+si%v(5))
+si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+id%v(6)**2+2.d0*id%v(6)) )
+bet = (1.d0+id%v(6))/(1.d0/beta1+si%v(5))
 si%v(6) = -id%v(5)/bet
 
 bm = si*bm*s   ! Convert bm map from Bmad units to PTC units
 
 fix0 = fix1    ! Convert fixed point from Bmad units to PTC units.
-fix0(5) = (fix1(6)**2+2.d0*fix1(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+fix1(6)**2+2.d0*fix1(6)) )
-fix0(6) = -fix1(5)/((1.d0+fix1(6))/(1.d0/beta0+fix0(5)))
+fix0(5) = (fix1(6)**2+2.d0*fix1(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+fix1(6)**2+2.d0*fix1(6)) )
+fix0(6) = -fix1(5)/((1.d0+fix1(6))/(1.d0/beta1+fix0(5)))
 
 bm = fix0      ! Add the fixed point back in.
 y8 = bm
@@ -1363,7 +1364,7 @@ end subroutine taylor_to_real_8
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine real_8_to_taylor (y8, beta0, bmad_taylor)
+! Subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
 !
 ! Routine to convert a PTC real_8 map to a Bmad Taylor map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1373,13 +1374,14 @@ end subroutine taylor_to_real_8
 !
 ! Input:
 !   y8(6) -- real_8: PTC Taylor map.
-!   beta0 -- real(rp): Reference particle velocity
+!   beta0 -- real(rp): Reference particle velocity at beginning of map
+!   beta1 -- real(rp): Reference particle velocity at end of map
 !
 ! Output:
 !   bmad_taylor(6) -- Taylor_struct: Bmad Taylor map.
 !-
 
-subroutine real_8_to_taylor (y8, beta0, bmad_taylor)
+subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
 
 use s_fibre_bundle
 
@@ -1390,7 +1392,7 @@ type (real_8) y8(:)
 type (damap) bm, id, s, si
 type (taylor) bet
 
-real(rp) beta0, fix0(6), fix1(6)
+real(rp) beta0, beta1, fix0(6), fix1(6)
 
 !
 
@@ -1407,8 +1409,8 @@ id = 1            ! Unit map
 s = 1             ! PTC to Bmad map
 si = 1            ! Bmad to PTC map
 
-s%v(6) = (2.d0*id%v(5)/beta0+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta0+id%v(5)**2)+1.d0)
-bet = (1.d0+s%v(6))/(1.d0/beta0+id%v(5))
+s%v(6) = (2.d0*id%v(5)/beta1+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta1+id%v(5)**2)+1.d0)
+bet = (1.d0+s%v(6))/(1.d0/beta1+id%v(5))
 s%v(5) = -bet*id%v(6)
 
 si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+id%v(6)**2+2.d0*id%v(6)) )
@@ -1418,8 +1420,8 @@ si%v(6) = -id%v(5)/bet
 bm = s*bm*si      ! Convert bm map from PTC units to Bmad units
 
 fix0 = fix1       ! Convert fixed point from PTC units to Bmad units
-fix0(6) = (2.d0*fix1(5)/beta0+fix1(5)**2)/(sqrt(1.d0+2.d0*fix1(5)/beta0+fix1(5)**2)+1.d0)
-fix0(5) = -fix1(6)*((1.d0+fix0(6))/(1.d0/beta0+fix1(5)))
+fix0(6) = (2.d0*fix1(5)/beta1+fix1(5)**2)/(sqrt(1.d0+2.d0*fix1(5)/beta1+fix1(5)**2)+1.d0)
+fix0(5) = -fix1(6)*((1.d0+fix0(6))/(1.d0/beta1+fix1(5)))
 
 bm = fix0         ! Add the fixed point back in.
 y8 = bm
@@ -1429,42 +1431,6 @@ call kill(bm, id, s, si)
 call kill(bet)
 
 end subroutine real_8_to_taylor
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine taylor_ref_energy_correct (taylor, p0c_rel)
-!
-! Routine to correct a Bmad Taylor map due to a reference energy shift.
-!
-! Modules needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   taylor(6)   -- taylor_struct: Bmad Taylor map
-!   p0c_rel     -- real(rp): Relative momentum: p0c[New ref] / p0c[Old ref].
-!
-! Output:
-!   taylor(6)   -- taylor_struct: Corrected Bmad Taylor map
-!-
-
-subroutine taylor_ref_energy_correct (taylor, p0c_rel)
-
-implicit none
-
-type (taylor_struct) taylor(6)
-type (taylor_struct), save :: taylor_temp
-real(rp) p0c_rel
-
-!
-
-taylor(2)%term(:)%coef = taylor(2)%term(:)%coef / p0c_rel
-taylor(4)%term(:)%coef = taylor(4)%term(:)%coef / p0c_rel
-taylor(6)%term(:)%coef = taylor(6)%term(:)%coef / p0c_rel
-call add_taylor_term(taylor(6), 1/p0c_rel - 1, [0, 0, 0, 0, 0, 0])
-
-end subroutine taylor_ref_energy_correct
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1610,39 +1576,6 @@ sigma_mat_bmad(5,5) = temp_mat(6,6) * beta0**2
 sigma_mat_bmad(6,6) = temp_mat(5,5) / beta0**2
 
 end subroutine sigma_mat_ptc_to_bmad 
-
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!+
-! Subroutine vec_bmad_ref_energy_correct (vec_bmad, p0c_rel)
-!
-! Routine to correct a Bmad coordinate vector due to reference energy shift.
-!
-! Modules needed:
-!   use ptc_interface_mod
-!
-! Input:
-!   vec_bmad(6) -- real(rp): Bmad coordinates.
-!   p0c_rel     -- real(rp): Relative momentum: p0c[New ref] / p0c[Old ref].
-!
-! Output:
-!   vec_bmad(6) -- real(rp): Corrected Bmad coordinates.
-!-
-
-subroutine vec_bmad_ref_energy_correct (vec_bmad, p0c_rel)
-
-implicit none
-
-real(rp) vec_bmad(6), p0c_rel
-
-!
-
-vec_bmad(2) = vec_bmad(2) / p0c_rel
-vec_bmad(4) = vec_bmad(4) / p0c_rel
-vec_bmad(6) = (1 + vec_bmad(6)) / p0c_rel - 1
-
-end subroutine vec_bmad_ref_energy_correct
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2457,7 +2390,7 @@ type (lat_param_struct) param
 type (real_8) x_ele(6), x_body(6), x1(6), x3(6)
 type (fibre), pointer :: fib
 
-real(rp) beta0, tilt
+real(rp) beta0, beta1, tilt
 real(8) x_dp(6)
 
 ! Match elements are not implemented in PTC so just use the matrix.
@@ -2488,7 +2421,8 @@ call real_8_init(x_body)
 call real_8_init(x1)
 call real_8_init(x3)
 
-beta0 = ele%value(p0c$)/ele%value(e_tot$)
+beta0 = ele%value(p0c_start$)/ele%value(e_tot_start$)
+beta1 = ele%value(p0c$)/ele%value(e_tot$)
 
 ! Create a PTC fibre that holds the misalignment info
 ! and create map corresponding to ele%taylor.
@@ -2508,7 +2442,7 @@ endif
 call dtiltd (1, tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
-call taylor_to_real_8 (ele%taylor, beta0, x_body)
+call taylor_to_real_8 (ele%taylor, beta0, beta1, x_body)
 
 call concat_real_8 (x_ele, x_body, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
@@ -2516,16 +2450,13 @@ call dtiltd (1, tilt, 2, x_ele)
 
 ! Concat with taylor1
 
-call taylor_to_real_8 (taylor1, beta0, x1)
+call taylor_to_real_8 (taylor1, beta0, beta0, x1)
 call concat_real_8 (x1, x_ele, x3)
 
 ! convert x3 to final result taylor3
 
-call real_8_to_taylor(x3, beta0, taylor3)
+call real_8_to_taylor(x3, beta0, beta1, taylor3)
 taylor3(:)%ref = taylor1(:)%ref
-
-if (ele%value(p0c$) /= ele%value(p0c_start$)) &
-      call taylor_ref_energy_correct(taylor3, ele%value(p0c$) / ele%value(p0c_start$))
 
 ! Cleanup
 
@@ -2573,7 +2504,7 @@ type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
 type (fibre), pointer :: ptc_fibre
 
-real(rp) beta0, m2_rel, z_patch
+real(rp) beta0, beta1, m2_rel, z_patch
 
 ! set the taylor order in PTC if not already done so
 
@@ -2581,10 +2512,11 @@ if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_
 
 ! Init ptc map with bmad map
 
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
+beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
+beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
 call real_8_init (ptc_tlr)
-call taylor_to_real_8 (bmad_taylor, beta0, ptc_tlr)
+call taylor_to_real_8 (bmad_taylor, beta0, beta0, ptc_tlr)
 
 ! Track entrance drift if PTC is using a hard edge model
 
@@ -2609,10 +2541,7 @@ endif
 
 ! transfer ptc map back to bmad map
 
-call real_8_to_taylor(ptc_tlr, beta0, bmad_taylor)
-
-if (ele%value(p0c$) /= ele%value(p0c_start$)) &
-      call taylor_ref_energy_correct(bmad_taylor, ele%value(p0c$) / ele%value(p0c_start$))
+call real_8_to_taylor(ptc_tlr, beta0, beta1, bmad_taylor)
 
 ! cleanup
 
@@ -2664,7 +2593,7 @@ type (coord_struct) start0, end0, c0
 type (fibre), pointer :: ptc_fibre
 type (real_8) y(6), y2(6)
 
-real(dp) x(6), beta0
+real(dp) x(6), beta0, beta1
 real(rp) z_patch
 
 integer i, ix
@@ -2745,12 +2674,10 @@ endif
 
 ! convert to bmad_taylor  
 
-beta0 = ele%value(p0c$) / ele%value(e_tot$)
+beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
+beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
-call real_8_to_taylor (y, beta0, ele%taylor)
-
-if (ele%value(p0c$) /= ele%value(p0c_start$)) &
-      call taylor_ref_energy_correct(ele%taylor, ele%value(p0c$) / ele%value(p0c_start$))
+call real_8_to_taylor (y, beta0, beta1, ele%taylor)
 
 call kill(y)
 
@@ -2952,10 +2879,8 @@ type (ele_pointer_struct), allocatable :: field_eles(:)
 type (work) energy_work
 type (el_list) ptc_el_list
 
-real(dp) beta, phi_tot
-
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3086,7 +3011,6 @@ case (rfcavity$, lcavity$)
     return
   endif
 
-  beta = ele%value(p0c$) / ele%value(e_tot$)
   if (is_true(ele%value(traveling_wave$))) then
     ptc_key%magnet = 'twcavity'
     ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
@@ -3186,12 +3110,12 @@ endif
 
 ptc_fibre%dir = ele%orientation
 
-!
-
 lielib_print(12) = n
 
+! Set reference energy to the exit reference energy.
+
 energy_work = 0
-call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c_start$))
+call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
 
 ! wiggler
@@ -3261,6 +3185,7 @@ end subroutine ele_to_fibre
 ! Input:
 !   ele -- ele_struct: Bmad element with misalignments.
 !   use_offsets -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
+!                   This argument is ignored if the element is a patch or floor_shit element.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element with misalignments.
@@ -3279,7 +3204,7 @@ type (fibre), pointer :: ptc_fibre
 type (fibre) dummy_fibre
 
 real(rp) dr(3), ang(3), exi(3,3)
-real(dp) mis_rot(6)
+real(dp) mis_rot(6), beta_start, beta_end
 real(dp) omega(3), basis(3,3), angle(3)
 real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
@@ -3327,21 +3252,35 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
 
   ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
 
-  if (ele%value(e_tot_offset$) == 0) then
-    ptc_fibre%patch%energy = 0
-  else
-    ptc_fibre%patch%energy = 5 ! Internal exit patch.
-    ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
-    ptc_fibre%patch%b0b = ele%value(p0c_start$) / ele%value(E_tot_start$)
-  endif
-
   call survey (dummy_fibre, exi, dr)
   call find_patch (ptc_fibre, dummy_fibre, next = .false.)
 
   call super_zero_fibre(dummy_fibre, -1)
 
-!---------------------------------------
-! Not patch nor floor shift elements.
+  ! energy and time patches
+
+  if (ele%key == patch$) then
+
+    beta_start = ele%value(p0c_start$) / ele%value(E_tot_start$)
+    beta_end = ele%value(p0c$) / ele%value(E_tot$)
+
+    if (ele%value(e_tot_offset$) == 0) then
+      ptc_fibre%patch%energy = 0
+    else
+      ptc_fibre%patch%energy = 4 ! Internal entrance patch. Must be done after find_patch call.
+      ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
+      ptc_fibre%patch%b0b = beta_start  ! beta velocity
+    endif
+
+    ! PTC uses beta_start for the reference time calculation while Bmad uses beta_end so
+    ! renormalize the patch length to get PTC to agree with Bmad.
+
+    ptc_fibre%patch%time = 2     ! Subtract off reference time (which affects z in tracking).
+    ptc_fibre%patch%b_t = ele%value(l$) + ele%value(t_offset$) * c_light * beta_end
+  endif
+
+!----------------------------------------------------------------------
+! Not patch nor floor_shift element.
 
 elseif (use_offsets) then
 
@@ -3366,8 +3305,14 @@ elseif (use_offsets) then
     angle(3) = -ptc_fibre%mag%p%tiltd
     omega = ptc_fibre%chart%f%o
     basis = ptc_fibre%chart%f%mid
-    call geo_rot(basis, angle, 1, basis)                 ! PTC call
+    call geo_rot(basis, angle, 1, basis)                     ! PTC call
     call misalign_fibre (ptc_fibre, mis_rot, omega, basis)   ! PTC call
+  endif
+
+  if (ele%value(e_tot_start$) /= ele%value(e_tot$)) then
+    ptc_fibre%patch%energy = 4   ! Entrance energy patch
+    ptc_fibre%patch%p0b = ele%value(p0c_start$) * 1d-9
+    ptc_fibre%patch%b0b = ele%value(p0c_start$) / ele%value(E_tot_start$)  ! beta velocity
   endif
 
 endif
@@ -3385,34 +3330,28 @@ use madx_ptc_module
 
 implicit none
 
-real(dp) ent(3,3), exi(3,3), e(3), kak(3)
+real(dp) ent(3,3), exi(3,3)
 real(dp) a(3), ang(3)
-real(dp) dd(3)
 
 !
 
 ent=global_frame
 exi=ent
-dd=0.0_dp
+
 a=0.0_dp
 a(3)=ang(3)
-
 call geo_rot(ent, a, 1, basis=exi)
-exi=ent
+!exi=ent
+
 a=0.0_dp
 a(1)=-ang(1)
-
 call geo_rot(ent, a, 1, basis=exi)
-exi=ent
+!exi=ent
+
 a=0.0_dp
 a(2)=-ang(2)
-
 call geo_rot(ent, a, 1, basis=exi)
 exi=ent
-!ent=global_frame
-
-!call find_patch(dd, ent, d, exi, e, kak)
-!print *, 'e-kak', e, kak
 
 end subroutine bmad_patch_parameters_to_ptc
 

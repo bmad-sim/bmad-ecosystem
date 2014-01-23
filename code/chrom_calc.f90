@@ -1,6 +1,6 @@
 !+
 ! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
-!                        low_E_lat, high_E_lat, low_E_orb, high_E_orb)
+!                        low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
 !
 ! Subroutine to calculate the chromaticities by computing the tune change
 ! when then energy is changed.
@@ -10,8 +10,9 @@
 !
 ! Input:
 !   lat          -- lat_struct: Lat
-!   delta_e       -- Real(rp): Delta energy used for the calculation.
+!   delta_e      -- Real(rp): Delta energy used for the calculation.
 !                      If 0 then default of 1.0e-4 is used.
+!   ix_branch    -- Integer, optional: Index of the lattice branch to use. Default is 0.
 !
 ! Output:
 !   delta_e      -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
@@ -25,33 +26,38 @@
 !-
 
 subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
-                       low_E_lat, high_E_lat, low_E_orb, high_E_orb)
+                       low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
 
 use bookkeeper_mod, except_dummy => chrom_calc
 
 implicit none
 
-type (lat_struct)  lat
+type (lat_struct), target :: lat
 type (lat_struct), optional, target :: low_E_lat, high_E_lat
 type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
 type (lat_struct), target :: this_lat
 type (lat_struct), pointer :: lat2
 type (coord_struct), allocatable, target :: this_orb(:)
+type (branch_struct), pointer :: branch, branch2
 
 real(rp) high_tune_x, high_tune_y, low_tune_x, low_tune_y
 real(rp) delta_e, chrom_x, chrom_y
 
-integer nt, stat
+integer, optional :: ix_branch
+integer nt, stat, ix_br
 
 logical, optional, intent(out) :: err_flag
 logical err, used_this_lat
 
 ! Init setup
 
+ix_br = integer_option(0, ix_branch)
+branch => lat%branch(ix_br)
+
 if (present(err_flag)) err_flag = .true.
 if (delta_e <= 0) delta_e = 1.0e-4
 
-nt = lat%n_ele_track
+nt = branch%n_ele_track
 
 ! lower energy tune
 
@@ -64,25 +70,27 @@ else
 endif
 
 lat2 = lat
-call set_on_off (rfcavity$, lat2, off$)
+branch2 => lat2%branch(ix_br)
+
+call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
 
 if (present(low_E_orb)) then
-  call reallocate_coord (low_E_orb, lat%n_ele_max)
+  call reallocate_coord (low_E_orb, branch%n_ele_max)
   low_E_orb(0)%vec(6) = -delta_e
-  call closed_orbit_calc (lat2, low_E_orb, 4, err_flag = err)
+  call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
   if (err) return
-  call lat_make_mat6 (lat2, -1, low_E_orb)
+  call lat_make_mat6 (lat2, -1, low_E_orb, ix_br)
 else
-  call reallocate_coord (this_orb, lat%n_ele_max)
+  call reallocate_coord (this_orb, branch%n_ele_max)
   this_orb(0)%vec(6) = -delta_e
-  call closed_orbit_calc (lat2, this_orb, 4, err_flag = err)
+  call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   if (err) return
-  call lat_make_mat6 (lat2, -1, this_orb)
+  call lat_make_mat6 (lat2, -1, this_orb, ix_br)
 endif
 
-call twiss_at_start (lat2, stat)
+call twiss_at_start (lat2, stat, ix_br)
 if (stat /= ok$) return
-call twiss_propagate_all (lat2)
+call twiss_propagate_all (lat2, ix_br)
 low_tune_x = lat2%ele(nt)%a%phi / twopi
 low_tune_y = lat2%ele(nt)%b%phi / twopi
 
@@ -97,28 +105,28 @@ endif
 
 if (.not. used_this_lat) then
   lat2 = lat
-  call set_on_off (rfcavity$, lat2, off$)
+  call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
 endif
 
 if (present(high_E_orb)) then
-  call reallocate_coord (high_E_orb, lat%n_ele_max)
+  call reallocate_coord (high_E_orb, branch%n_ele_max)
   high_E_orb(0)%vec(6) = delta_e
-  call closed_orbit_calc (lat2, high_E_orb, 4, err_flag = err)
+  call closed_orbit_calc (lat2, high_E_orb, 4, 1, ix_br, err)
   if (err) return
-  call lat_make_mat6 (lat2, -1, high_E_orb)
+  call lat_make_mat6 (lat2, -1, high_E_orb, ix_br)
 else
-  call reallocate_coord (this_orb, lat%n_ele_max)
+  call reallocate_coord (this_orb, branch%n_ele_max)
   this_orb(0)%vec(6) = delta_e
-  call closed_orbit_calc (lat2, this_orb, 4, err_flag = err)
+  call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   if (err) return
-  call lat_make_mat6 (lat2, -1, this_orb)
+  call lat_make_mat6 (lat2, -1, this_orb, ix_br)
 endif
 
-call twiss_at_start (lat2, stat)
+call twiss_at_start (lat2, stat, ix_br)
 if (stat /= ok$) return
-call twiss_propagate_all (lat2)
-high_tune_x = lat2%ele(nt)%a%phi / twopi
-high_tune_y = lat2%ele(nt)%b%phi / twopi
+call twiss_propagate_all (lat2, ix_br)
+high_tune_x = branch2%ele(nt)%a%phi / twopi
+high_tune_y = branch2%ele(nt)%b%phi / twopi
 
 ! compute the chrom
 

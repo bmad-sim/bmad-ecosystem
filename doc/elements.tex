@@ -655,13 +655,12 @@ simply related to the particle energy.
 Example showing an injection line branching to a ring branching to two
 x-ray lines:
 \begin{example}
-  inj: line = (..., ring_br, ...)            ! Define the injection line
-  use, inj                                   ! Injection line is the root
-  ring_br: branch, to_line = ring, 
-          geometry = closed                  ! Branch to the ring
-  ring: line = (..., x_br, ..., x_br, ...)   ! Define the ring
-  x_br: photon_branch, to_line = x_line 
-  x_line: line = (...)                       ! Define the x-ray line
+  inj: line = (..., br_ele, ...)            ! Define the injection line
+  use, inj                                  ! Injection line is the root
+  br_ele: branch, to_line = ring            ! Branch elementto ring
+  ring: line = (..., x_br, ..., x_br, ...)  ! Define the ring
+  x_br: photon_branch, to_line = x_line     ! Branch element to x-ray line
+  x_line: line = (...)                      ! Define the x-ray line
   x_line[E_tot] = 1e3
 \end{example}
 
@@ -1400,9 +1399,10 @@ Example:
 \index{floor_shift|hyperbf}
 
 A \vn{floor_shift} element shifts the reference orbit in the global
-coordinate system without affecting particle tracking. Also see
-\vn{patch} (\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial})
-elements.
+coordinate system without affecting particle tracking. That is, int
+terms of tracking a \vn{floor_shift} element is equivalent to a
+\vn{marker} (\sref{s:marker}) element. Also see \vn{patch}
+(\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial}) elements.
 
 General \vn{floor_shift} element attributes are:
 \begin{center}
@@ -2540,9 +2540,9 @@ as a \vn{group} element or for an \vn{overlay} element to control a
   \includegraphics[width=5in]{patch.pdf}
   \caption[Patch Element.]
 {A) A \vn{patch} element can align its exit face arbitrarily with
-respect to its entrance face. B) The length of a \vn{patch} element is
-the longitudinal distance from the entrance origin to the exit origin
-using the reference coordinates at the exit end.}
+respect to its entrance face. B) The reference length of a \vn{patch}
+element is the longitudinal distance from the entrance origin to the
+exit origin using the reference coordinates at the exit end.}
   \label{f:patch}
 \end{figure}
 
@@ -2578,7 +2578,8 @@ Attributes specific to a \vn{patch} elements are:
   y_pitch         = <Real>  ! Exit face orientation from Entrance.
   tilt            = <Real>  ! Exit face orientation from Entrance.
   e_tot_offset    = <Real>  ! Reference energy offset (eV).
-  flexible        = <Logic>  ! Default: False.
+  flexible        = <Logic> ! Default: False.
+  l               = <Real>  ! Reference length. Dependent attribute (\sref{s:depend}). 
 \end{example}
 \index{x_offset}
 
@@ -2662,8 +2663,21 @@ The \vn{t_offset} attribute offsets the reference time:
   t_ref(exit) = t_ref(entrance) + t_offset + dt_travel_ref
 \end{example}
 where \vn{dt_transit_ref} is the time for the reference particle to
-travel through the patch.  Setting the \vn{t_offset} attribute will
-affect a particle's $z$ coordinate via \Eqs{zbctt}.
+travel through the patch and \vn{dt_travel_ref} is the time the reference particle
+takes to travel the patch. Setting the \vn{t_offset} attribute will affect a
+particle's $z$ coordinate via \Eqs{zbctt}.
+
+\vn{dt_travel_ref} in the above equation is computed by:
+\begin{example}
+  dt_travel_ref = L / beta_ref
+\end{example}
+Where \vn{L} is the length of the \vn{patch} as shown in \fig{f:patch}
+and \vn{beta_ref} is the reference velocity/c at the exit end of the
+element. That is, the reference energy offset is applied {\em before}
+the reference particle is tracked through the patch. Since this point
+can be confusing, it i recommended that a \vn{patch} element be split
+into two consecutive patches if the \vn{patch} has finite \vn{l} and
+\vn{E_tot_offset} values.
 
 When a lattice branch contains both normally oriented and reversed elements
 (\sref{s:ref.construct}), a \vn{patch}, (or series of \vn{patches}),

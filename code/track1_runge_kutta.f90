@@ -43,9 +43,9 @@ logical err_flag
 
 ! Convert to element coords.
 ! For a patch, convert to the downstream coords so that the downstream face 
-! can be simply described as being at s = s1. Also with a patch s is the distance
-! before the downstream face so the s0 starting position is negative and the
-! s1 stopping position is 0.
+! can be simply described as being at s = s1. Additionally, with a patch, s 
+! is the distance before the downstream face so the s0 starting position is 
+! negative and the s1 stopping position is 0.
 
 start2_orb = start_orb
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
@@ -53,7 +53,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 if (ele%key == patch$) then
   call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
   s1 = 0
-  start2_orb%vec(5) = start2_orb%vec(5) + ds_ref * start2_orb%beta / beta0 + s0
+  start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
 else
   call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
                                              set_hvkicks = .false., set_multipoles = .false.)

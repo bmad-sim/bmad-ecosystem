@@ -56,8 +56,7 @@ dtime_ref = ele%value(delta_ref_time$)
 if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) then
-  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / &
-                                                                                 (end_orb%beta * c_light)
+  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 else
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
   end_orb%t = start2_orb%t + dtime_ref + &
@@ -81,12 +80,12 @@ endif
 ! track and add the constant term back in
 
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-
 call vec_bmad_to_ptc (end_orb%vec, beta0, re(1:6))
+
 re = ele%ptc_genfield * re
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
 call vec_ptc_to_bmad (re(1:6), beta0, end_orb%vec)
-if (ele%value(p0c$) /= ele%value(p0c_start$)) &
-      call vec_bmad_ref_energy_correct(end_orb%vec, ele%value(p0c$) / ele%value(p0c_start$))
 end_orb%vec = end_orb%vec + ele%gen0
 
 end subroutine
