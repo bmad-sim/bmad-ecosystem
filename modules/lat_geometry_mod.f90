@@ -138,7 +138,7 @@ do n = 0, ubound(lat%branch, 1)
 
     call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
 
-    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ib = nint(ele%value(ix_to_branch$))
       lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
     endif

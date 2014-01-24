@@ -28,7 +28,7 @@ use rf_mod, dummy2 => lat_compute_ref_energy_and_time
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, branch_ele, ele0, gun_ele, ele_init
+type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, ele_init
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
@@ -66,11 +66,11 @@ do ib = 0, ubound(lat%branch, 1)
   if (stale) then
     if (branch%ix_from_branch >= 0) then
 
-      branch_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+      fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
 
-      if (branch_ele%branch%param%particle == branch%param%particle) then
-        ele_init%value(E_tot$) = branch_ele%value(E_tot$)
-        ele_init%value(p0c$) = branch_ele%value(p0c$)
+      if (fork_ele%branch%param%particle == branch%param%particle) then
+        ele_init%value(E_tot$) = fork_ele%value(E_tot$)
+        ele_init%value(p0c$) = fork_ele%value(p0c$)
       endif
 
       ele_init%value(delta_ref_time$) = 0
@@ -178,7 +178,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     stale = .true.
 
-    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ibb = nint(ele%value(ix_to_branch$))
       call set_ele_status_stale (lat%branch(ibb)%ele(0), ref_energy_group$)
     endif

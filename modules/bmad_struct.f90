@@ -703,8 +703,8 @@ integer, parameter :: null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
 integer, parameter :: hkicker$ = 33, vkicker$ = 34, rcollimator$ = 35
 integer, parameter :: ecollimator$ = 36, girder$ = 37, bend_sol_quad$ = 38
-integer, parameter :: def_beam_start$ = 39, photon_branch$ = 40
-integer, parameter :: branch$ = 41, mirror$ = 42, crystal$ = 43
+integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40
+integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53

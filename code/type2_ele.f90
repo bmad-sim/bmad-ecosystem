@@ -523,7 +523,7 @@ endif
 
 ! Encode branch info
 
-if (ele%key == branch$ .or. ele%key == photon_branch$) then
+if (ele%key == fork$ .or. ele%key == photon_fork$) then
   
   if (li(nl) /= '') then
     nl=nl+1; li(nl) = ' '

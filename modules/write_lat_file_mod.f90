@@ -315,7 +315,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Branch
 
-    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
       n = nint(ele%value(ix_to_branch$))
       line = trim(line) // ', to_line = ' // trim(lat%branch(n)%name)
       if (ele%value(ix_to_element$) > 0) then
@@ -1807,7 +1807,7 @@ do ix_ele = ie1, ie2
 
   ! marker
 
-  case (detector$, marker$, branch$, photon_branch$)
+  case (detector$, marker$, fork$, photon_fork$)
 
     line_out = trim(ele%name) // ': marker'
 

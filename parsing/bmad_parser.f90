@@ -616,6 +616,8 @@ parsing_loop: do
   endif
 
   if (.not. match_found) then
+    if (word_2 == 'BRANCH') word_2 = 'FORK'
+    if (word_2 == 'PHOTON_BRANCH') word_2 = 'PHOTON_FORK'
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
     if (in_lat%ele(n_max)%key > 0) then
       call set_ele_defaults (in_lat%ele(n_max))
@@ -725,7 +727,7 @@ branch_loop: do i_loop = 1, n_branch_max
     ele => branch_ele(1)%ele
     call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
     this_name = ele%component_name
-    is_photon_branch = (ele%key == photon_branch$)
+    is_photon_branch = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
     branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
     if (.not. created_new_branch) cycle 
@@ -857,7 +859,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   j = 0
   do i = 1, branch%n_ele_max
-    if (branch%ele(i)%key /= photon_branch$ .and. branch%ele(i)%key /= branch$) cycle
+    if (branch%ele(i)%key /= photon_fork$ .and. branch%ele(i)%key /= fork$) cycle
     j = j + 1
     n_branch_ele = n_branch_ele + 1
     call re_allocate_eles (branch_ele, n_branch_ele + 10, .true., .false.)

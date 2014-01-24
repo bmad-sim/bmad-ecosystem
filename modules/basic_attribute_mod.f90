@@ -421,8 +421,8 @@ do i = 1, n_key$
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
-  if (i == photon_branch$) cycle
-  if (i == branch$)        cycle
+  if (i == photon_fork$)   cycle
+  if (i == fork$)          cycle
   if (i == marker$)        cycle
   if (i == detector$)      cycle
   if (i == beambeam$)      cycle
@@ -496,15 +496,15 @@ enddo
 
 !
 
-call init_attribute_name1 (photon_branch$, l$,                       'l', private$)
-call init_attribute_name1 (photon_branch$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
-call init_attribute_name1 (photon_branch$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
-call init_attribute_name1 (photon_branch$, direction$,               'DIRECTION')
-call init_attribute_name1 (photon_branch$, to_line$,                 'TO_LINE')
-call init_attribute_name1 (photon_branch$, to_element$,              'TO_ELEMENT')
-call init_attribute_name1 (photon_branch$, new_branch$,              'NEW_BRANCH')
+call init_attribute_name1 (photon_fork$, l$,                       'l', private$)
+call init_attribute_name1 (photon_fork$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
+call init_attribute_name1 (photon_fork$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
+call init_attribute_name1 (photon_fork$, direction$,               'DIRECTION')
+call init_attribute_name1 (photon_fork$, to_line$,                 'TO_LINE')
+call init_attribute_name1 (photon_fork$, to_element$,              'TO_ELEMENT')
+call init_attribute_name1 (photon_fork$, new_branch$,              'NEW_BRANCH')
 
-attrib_array(branch$, :) = attrib_array(photon_branch$, :)
+attrib_array(fork$, :) = attrib_array(photon_fork$, :)
 
 call init_attribute_name1 (beginning_ele$, floor_set$,                   'floor_set', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
@@ -1510,7 +1510,7 @@ case ('ORIGIN_ELE_REF_PT')
 case ('PARTICLE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
   if (present(is_default)) then
-    if (ele%key == photon_branch$) then
+    if (ele%key == photon_fork$) then
       is_default = (ix_attrib == photon$)
     else
       is_default = .false. ! Cannot tell so assume the worst.
