@@ -1,3 +1,10 @@
+!+
+! NOTE: THIS MODULE IS DEPRECATED.
+! PLEASE USE INSTEAD:
+!   fortran_cpp_utils.f90
+!   cpp_fortran_utils.cpp
+!-
+
 module fortran_and_cpp
 
 use precision_def
