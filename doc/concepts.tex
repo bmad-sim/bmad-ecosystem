@@ -25,49 +25,53 @@ of other elements.
 Chapter~\sref{c:elements} lists the complete set of different element
 types that \bmad knows about.
 
+\index{beginning element}\index{end element}
+In a lattice \vn{branch} (\sref{s:branch.def}), The ordered array of
+elements are assigned a number (the element index) starting from
+zero. The zeroth \vn{beginning_ele} (\sref{s:begin.ele}) element,
+which is always named \vn{BEGINNING}, is automatically included in
+every branch and is used as a marker for the beginning of the branch.
+Additionally, every branch will, by default, have a final marker
+element (\sref{s:mark}) named \vn{END}.
+
 %---------------------------------------------------------------------------
 \section{Lattice Branches}
 \label{s:branch.def}
 
 \index{branch}
 The next level up from a \vn{lattice} \vn{element} is the \vn{lattice}
-\vn{branch} (\sref{s:branch}). A \vn{lattice} \vn{branch} is not to
-be confused with a \vn{branch} element (\sref{s:branch}). A
-\vn{lattice} \vn{branch} is just an ordered sequence of lattice
-elements that a particle will travel through. A branch can represent a
-LINAC, X-Ray beam line, storage ring or anything else that can be
-represented as a simple ordered list of elements.
+\vn{branch} (\sref{s:branch}). A \vn{lattice} \vn{branch} contains an
+ordered sequence of lattice elements that a particle will travel
+through. A branch can represent a LINAC, X-Ray beam line, storage ring
+or anything else that can be represented as a simple ordered list of
+elements.
 
 Chapter~\sref{c:sequence} shows how a \vn{branch} is defined in a
 lattice file with \vn{line}, \vn{list}, and \vn{use} statements.
 
-\index{beginning element}\index{end element}
-All elements in a branch are assigned a number starting from zero. The
-zeroth \vn{beginning_ele} (\sref{s:begin.ele}) element, which is always
-named \vn{BEGINNING}, is automatically included in every branch and is
-used as a marker for the beginning of the branch.  Additionally, every
-branch will, by default, have a final marker element (\sref{s:mark})
-named \vn{END}.
+A \vn{lattice} (\sref{s:lattice.def}), has an array of
+\vn{branches}. Each \vn{branch} in this array is assigned an index
+starting from 0. Additionally, each \vn{branch} is assigned a name
+which is the \vn{line} that defines the branch (\sref{s:use}).
 
 %---------------------------------------------------------------------------
 \section{Lattice}
 \label{s:lattice.def}
 
 \index{lattice}\index{branch} 
-A \vn{lattice} is just an array of \vn{branches} that can be
-interconnected together to describe an entire machine complex.  The
-array of \vn{branches} in a \vn{lattice} is numbered starting from
-zero. A \vn{lattice} can include such things as transfer lines, dump
-lines, x-ray beam lines, colliding beam storage rings, etc. All of
-which are connected together to form a coherent whole. In addition, a
-lattice may contain \vn{controller elements} (Table~\ref{t:control.classes}) which
-can simulate such things as magnet power supplies and lattice element
-mechanical support structures.
+an array of \vn{branches} that can be interconnected together to
+describe an entire machine complex. A \vn{lattice} can include such
+things as transfer lines, dump lines, x-ray beam lines, colliding beam
+storage rings, etc. All of which are connected together to form a
+coherent whole. In addition, a lattice may contain \vn{controller
+elements} (Table~\ref{t:control.classes}) which can simulate such
+things as magnet power supplies and lattice element mechanical support
+structures.
 
 \index{root branch}
-Branches can be interconnected using \vn{branch} and
-\vn{photon_branch} elements (\sref{s:branch}). This is used to
-simulate forking beam lines (\sref{s:branch}) such as a connections
+Branches can be interconnected using \vn{fork} and
+\vn{photon_fork} elements (\sref{s:fork}). This is used to
+simulate forking beam lines such as a connections
 to a transfer line, dump line, or an X-ray beam line. The \vn{branch}
 from which other \vn{branches} fork is called a \vn{root} branch.
 

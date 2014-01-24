@@ -17,7 +17,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{rf_auto_scale_phase}\index{rf_auto_scale_amp}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
-other variables. If branching is present (\sref{s:branch}), these
+other variables. If multiple branches are present (\sref{s:branch.def}), these
 variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
@@ -177,8 +177,9 @@ transverse coordinates.
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{field_x}\index{field_y}\index{phase_x}\index{phase_y}
 The \vn{beam_start} statement is used to set the starting coordinates
-for particle tracking. If branching is present (\sref{s:branch}), these variables
-pertain to the \vn{root} branch.
+for particle tracking. If multiple branches are present
+(\sref{s:branch.def}), these variables pertain to the \vn{root}
+branch.
 \begin{example}
   beam_start[x]           = <Real>   ! Horizontal position.
   beam_start[px]          = <Real>   ! Horizontal momentum.
@@ -302,7 +303,7 @@ name of a parameter. The parameters that can be set here are identical
 to the parameters that can be set with the \vn{beginning} statement.
 Example:
 \begin{example}
-  x_ray_branch: branch, to_line = x_ray
+  x_ray_fork: fork, to_line = x_ray
   x_ray = (...)
   x_ray[E_tot] = 100
 \end{example}

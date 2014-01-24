@@ -18,7 +18,7 @@ use lat_geometry_mod
 !
 ! The essential difference between these two procedures is that
 ! twiss_and_track_main only does the main branch while twiss_and_track_all
-! does everything but the photon_branches.
+! does everything but the photon_fork elements.
 !
 ! Note: This is not necessarily the fastest way to do things since this
 ! routine does the entire calculation from scratch.

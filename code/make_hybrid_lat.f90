@@ -112,7 +112,7 @@ do j_in = 1, r_in%n_ele_track
     ! on to the next out-element which is a simple element
 
     if (remove_markers .and. (ele_in%key == marker$ .or. &
-              ele_in%key == photon_branch$ .or. ele_in%key == branch$)) then
+              ele_in%key == photon_fork$ .or. ele_in%key == fork$)) then
       ele_in%ixx = i_out
     else
       i_out = i_out + 1                     ! starting next element
@@ -169,7 +169,7 @@ do j_in = 1, r_in%n_ele_track
       init_hybrid_needed = .false.
 
     else
-      if (ele_in%key == marker$ .or. ele_in%key == photon_branch$ .or. ele_in%key == branch$) cycle
+      if (ele_in%key == marker$ .or. ele_in%key == photon_fork$ .or. ele_in%key == fork$) cycle
 
       if (do_taylor) then
         if (associated(ele_in%taylor(1)%term)) then
@@ -204,7 +204,7 @@ do j_in = 1, r_in%n_ele_track
 
       o_key = ele_out%key 
       if (ele_in%key == drift$ .and. (o_key == drift$ .or. &
-           o_key == marker$ .or. o_key == photon_branch$ .or. o_key == branch$)) then
+           o_key == marker$ .or. o_key == photon_fork$ .or. o_key == fork$)) then
         ele_out%name = 'DRIFT_HYBRID' 
         ele_out%key = drift$
       else

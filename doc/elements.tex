@@ -30,15 +30,15 @@ particle and photon use.
   AB_Multipole      & \ref{s:ab.m}        &  Monitor           & \ref{s:monitor}  \HH
   BeamBeam          & \ref{s:bbi}         &  Multipole         & \ref{s:mult}     \HH
   Bend_Sol_Quad     & \ref{s:bsq}         &  Null_Ele          & \ref{s:null.ele} \HH
-  Branch            & \ref{s:branch}      &  Octupole          & \ref{s:oct}      \HH
-  Custom            & \ref{s:custom}      &  Patch             & \ref{s:patch}    \HH
-  Drift             & \ref{s:drift}       &  Photon_Branch     & \ref{s:branch}   \HH
-  E_Gun             & \ref{s:e.gun}       &  Pipe              & \ref{s:monitor}  \HH
-  Ecollimator       & \ref{s:col}         &  Quadrupole        & \ref{s:quad}     \HH
-  ElSeparator       & \ref{s:elsep}       &  Rbend             & \ref{s:bend}     \HH
-  EM_Field          & \ref{s:em.field}    &  Rcollimator       & \ref{s:col}      \HH
-  Fiducial          & \ref{s:fiducial}    &  RFcavity          & \ref{s:rfcav}    \HH
-  Floor_Shift       & \ref{s:floor.ele}   &  Sad_Mult          & \ref{s:sad.mult} \HH
+  Custom            & \ref{s:custom}      &  Octupole          & \ref{s:oct}      \HH
+  Drift             & \ref{s:drift}       &  Patch             & \ref{s:patch}    \HH
+  E_Gun             & \ref{s:e.gun}       &  Photon_Fork       & \ref{s:fork}     \HH
+  Ecollimator       & \ref{s:col}         &  Pipe              & \ref{s:monitor}  \HH
+  ElSeparator       & \ref{s:elsep}       &  Quadrupole        & \ref{s:quad}     \HH
+  EM_Field          & \ref{s:em.field}    &  Rbend             & \ref{s:bend}     \HH
+  Fiducial          & \ref{s:fiducial}    &  Rcollimator       & \ref{s:col}      \HH
+  Floor_Shift       & \ref{s:floor.ele}   &  RFcavity          & \ref{s:rfcav}    \HH
+  Fork              & \ref{s:fork}        &  Sad_Mult          & \ref{s:sad.mult} \HH
   HKicker           & \ref{s:hvkicker}    &  Sbend             & \ref{s:bend}     \HH
   Hybrid            & \ref{s:hybrid}      &  Sextupole         & \ref{s:sex}      \HH
   Beginning_Ele     & \ref{s:begin.ele}   &  Solenoid          & \ref{s:sol}      \HH
@@ -58,15 +58,15 @@ particle and photon use.
 {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}      & {\it Section}         & {\it Element}       & {\it Section}      \HH
-  Branch             & \ref{s:branch}        &  Marker             & \ref{s:mark}       \HH
-  Capillary          & \ref{s:capillary}     &  Match              & \ref{s:match}      \HH
-  Crystal            & \ref{s:crystal}       &  Monitor            & \ref{s:monitor}    \HH 
-  Custom             & \ref{s:custom}        &  Mirror             & \ref{s:mirror}     \HH
-  Detector           & \ref{s:detector}      &  Multilayer_Mirror  & \ref{s:multilayer} \HH
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Patch              & \ref{s:patch}      \HH
-  Drift              & \ref{s:drift}         &  Photon_Branch      & \ref{s:branch}     \HH
-  Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
-  Floor_Shift        & \ref{s:floor.ele}     &  Sample             & \ref{s:sample}     \HH 
+  Capillary          & \ref{s:capillary}     &  Marker             & \ref{s:mark}       \HH
+  Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \HH
+  Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \HH 
+  Detector           & \ref{s:detector}      &  Mirror             & \ref{s:mirror}     \HH
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror  & \ref{s:multilayer} \HH
+  Drift              & \ref{s:drift}         &  Patch              & \ref{s:patch}      \HH
+  Fiducial           & \ref{s:fiducial}      &  Photon_Fork        & \ref{s:fork}       \HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \HH
+  Fork               & \ref{s:fork}          &  Sample             & \ref{s:sample}     \HH 
   Beginning_Ele      & \ref{s:begin.ele}     &  X_Ray_Init         & \ref{s:x.init}     \HH
   Instrument         & \ref{s:monitor}       &                     &                    \HH
 \end{tabular}
@@ -560,172 +560,6 @@ shown in the figure. This can be an advantage in some situations but
 Etienne discourages use of \vn{true_rbend} due to complications of how
 to handle the reference frames in particular when you have more than
 one of them in a row.
-
-%-----------------------------------------------------------------
-\section{Branch and Photon_Branch}
-\label{s:branch}
-\index{branch|hyperbf}
-\index{photon_branch|hyperbf}
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics[width=5in]{x-branch.pdf}
-  \caption[Example showing X-ray lines branches.]
-  {
-Example use of \vn{photon_branch} elements showing four X-ray lines
-branching from a machine.
-  }
-  \label{f:x.branch}
-\end{figure}
-
-
-A \vn{branch} or \vn{photon_branch} element marks the start of an
-alternative line for the beam. The only difference between \vn{branch}
-and \vn{photon_branch} is that the default particle type for a
-\vn{branch} is the same particle type in use at where the branching
-occurs. The default particle type for a \vn{photon_branch} element is
-a photon.
-
-Collectively \vn{branch} and \vn{photon_branch} elements are called
-branching elements. An example geometry is shown in \fig{f:x.branch}.
-
-General \vn{branch} and \vn{photon_branch} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
-  Reference energy           & \ref{s:energy}  & Is_on                      & \ref{s:is.on}   \HH 
-\end{tabular}
-\end{center}
-\toffset
-
-Attributes specific to \vn{branch} and \vn{photon_branch} elements are:
-\begin{example}
-  direction    = <+/- 1>      ! Direction of branch.
-  to_line      = <LineName>   ! What line to branch to.
-  to_element   = <ElementID>  ! What element to in the line to attach to.
-  new_branch   = <T/F>        ! Make a new branch from the to_line? Default = True.
-\end{example}
-
-Branch lines can themselves have branching elements. A branch line
-always starts out tangential to the line it is branching from. The
-\vn{direction} attribute of the branch element indicates whether the
-branch line is outgoing in the forward direction (\vn{direction} = +1)
-or incoming (\vn{direction} = -1). A \vn{patch} element
-(\sref{s:patch}) can be used at the beginning of a branch line to
-reorient the reference orbit as needed.
-
-The offset, pitch, and tilt attributes of a branching element can be
-used to offset the reference orbit of the element being branched
-to. This is analogous to using a rigid \vn{patch} element
-(\sref{s:patch}) to modify the reference orbit within a branch. See
-Section~\sref{s:patch} for more details.  Example:
-\begin{example}
-  from_line: line = (... A, PB, B, ...)  ! Line containing a branch
-  x_line: line = (X1, X2, ...)           ! Line branched to
-  pb: photon_branch, x_offset = 0.01, to_line = x_line
-  use, from_line
-\end{example}
-In this example, a photon generated at the branch element \vn{PB} with
-$x = 0$ with respect to the \vn{from_line} reference orbit through
-\vn{PB} will, when transferred to the \vn{x_line}, have an initial
-value for $x$ of $-0.01$ due to the setting of the \vn{x_offset} 
-parameter of \vn{PB}.
-
-Branching elements have zero length and within a lattice branch, a
-branching element acts like a \vn{marker}. Using the above example, a
-particle that is being tracked down the \vn{from_line} will have the
-same phase space coordinates at the end of element \vn{PB} as it had
-at the end of element \vn{A}. That is, the offset, pitches, and tilt
-attributes of a branching element only affect particles that are
-transferred to the \vn{to_line} when arriving at the branching element.
-particles that remain on the original lattice branch will be
-unaffected by any offset, pitches or tilt settings. 
-
-If the branch line is to transport particles different from the
-originating line the particle type and the beginning reference energy
-must be set for that line using line parameter statements
-(\sref{s:beginning}). This is useful, for example, for a photon branch
-that is branching from a storage ring where the photon energy is not
-simply related to the particle energy. 
-
-Example showing an injection line branching to a ring branching to two
-x-ray lines:
-\begin{example}
-  inj: line = (..., br_ele, ...)            ! Define the injection line
-  use, inj                                  ! Injection line is the root
-  br_ele: branch, to_line = ring            ! Branch elementto ring
-  ring: line = (..., x_br, ..., x_br, ...)  ! Define the ring
-  x_br: photon_branch, to_line = x_line     ! Branch element to x-ray line
-  x_line: line = (...)                      ! Define the x-ray line
-  x_line[E_tot] = 1e3
-\end{example}
-
-The \vn{new_branch} attribute is, by default, \vn{True} which means
-that the lattice branch created out of the \vn{to_line} line is distinct
-from other lattice branches of the same name. Thus, in the above example,
-the two lattice branches made from the \vn{x_line}
-will be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
-branch will not be created if a lattice branch created from the same
-line already exists. This is useful, for example, when a chicane line
-branches off from the main line and then branches back to it.
-
-The root branches of a lattice are defined by the \vn{use}
-(\sref{s:use}) statement. To further define such things as dump lines,
-x-ray beam lines, transfer lines, etc., that branch off from a root
-branch, a branching element is used.  \vn{Branch} elements can define
-where the particle beam can branch off, say to a beam
-dump. \vn{photon_branch} elements can define the source point for
-X-ray beams.  Example:
-\begin{example}
-  erl: line = (..., dump, ...)               ! Define the root branch 
-  use, erl
-  dump: branch, to = d_line                  ! Define the branch point
-
-  d_line: line = (..., q3d, ...)             ! Define the branch line
-\end{example}
-The difference between a \vn{branch} element and a \vn{photon_branch}
-element is that for a \vn{branch} element the default particle for the
-branch is the same as the line that the branch branches off from. The
-default particle of the branch from a \vn{photon_branch} element is a
-\vn{photon}. The actual particle associated with a branch can be set
-by setting the \vn{particle} attribute of the branching element
-(\sref{s:branch}).
-
-Like the root branch \bmad always automatically creates an element
-with \vn{element index} 0 at the beginning of each branch called
-\vn{beginning}. The longitudinal \vn{s} position of an element in a
-branch is determined by the distance from the beginning of the branch.
-
-Branch parameters, like whether the branch is open
-(``open'') or closed (``closed''), can be set
-by setting the appropriate attribute of the \vn{branch} or
-\vn{photon_branch} element used to orient the branch.
-See \sref{s:branch} for more details.
-
-Branches are named after the branching element name. In the above
-example, the branch line would be named \vn{DUMP}. The root branch, by
-default, is called after the name in the \vn{use} statement
-(\sref{s:use}).
-
-For branch lines (\sref{s:branch}), the ``branch
-qualified'' name of an element is of the form
-\begin{example}
-  branch_name>>element_name
-\end{example}
-where \vn{branch_name} is the name of the branch and \vn{element_name} is the
-``regular'' name of the element. Example:
-\begin{example}
-  root>>q10w
-  xline>>cryst3
-\end{example}
-When parsing a lattice file, branches are not formed until the lattice
-is expanded (\sref{s:expand}). Therefore an \vn{expand_lattice}
-statement is required before branch qualified names can be used in
-statements.  See \sref{s:ele.names} for more details.
 
 %-----------------------------------------------------------------
 \section{Capillary}
@@ -1369,7 +1203,7 @@ but is positioned upstream from the \vn{fiducial} element and there is
 a \vn{flexible} \vn{patch} in between the two elements.
   \item
 If a \vn{fiducial} element affects the position of element 0 in the
-lattice branch (that is, there are no flexible \vn{branch} elements
+lattice branch (that is, there are no flexible \vn{patch} elements
 in between), any positioning of element 0 via \vn{beginning} or
 \vn{line parameter} statements (\sref{s:beginning}) are ignored.
   \item
@@ -1381,7 +1215,7 @@ Another example is that if there are no flexible \vn{patch} elements
 in the lattice, and if branch \vn{A} has a \vn{branch} element
 connecting to branch \vn{B}, the geometry of branch \vn{A} will be
 calculated first and the geometry of branch \vn{B} can then be
-calculated from the known coordinates of the \vn{branch} element. If
+calculated from the known coordinates of the \vn{fork} element. If
 branch \vn{B} contains a \vn{fiducial} element then this is an error
 since the coordinate calculation never backtracks to recalculate the
 coordinates of the elements of a branch once the calculation has
@@ -1465,6 +1299,164 @@ Example:
   floor: floor_shift, z_offset = 3.2
 \end{example}
 This is equivalent to a drift.
+
+%-----------------------------------------------------------------
+\section{Fork and Photon_Fork}
+\label{s:fork}
+\index{fork|hyperbf}
+\index{photon_fork|hyperbf}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{x-fork.pdf}
+  \caption[Example with photon_fork elements.]
+  {
+Example use of \vn{photon_fork} elements showing four X-ray lines (branches)
+attached to a machine.
+  }
+  \label{f:x.fork}
+\end{figure}
+
+A \vn{fork} or \vn{photon_fork} element marks the start of an
+alternative line for the beam. The only difference between \vn{fork}
+and \vn{photon_fork} is that the default particle type for the
+\vn{branch} that branches from a \vn{fork} is the same particle type
+of the \vn{branch} which contains the \vn{fork} The default particle
+type for a \vn{branch} that branches from a \vn{photon_branch} element
+is a photon.
+
+Collectively \vn{fork} and \vn{photon_fork} elements are called
+forking elements. An example geometry is shown in \fig{f:x.fork}.
+
+General \vn{fork} and \vn{photon_fork} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
+  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}    & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Reference energy           & \ref{s:energy}  & Is_on                      & \ref{s:is.on}   \HH 
+\end{tabular}
+\end{center}
+\toffset
+
+Attributes specific to \vn{fork} and \vn{photon_fork} elements are:
+\begin{example}
+  direction    = <+/- 1>      ! Direction of branch being forked to.
+  to_line      = <LineName>   ! What line to fork to.
+  to_element   = <ElementID>  ! What element to attach to in the line being forked to.
+  new_branch   = <T/F>        ! Make a new branch from the to_line? Default = True.
+\end{example}
+
+Branch lines can themselves have forking elements. A branch line
+always starts out tangential to the line it is branching from. The
+\vn{direction} attribute of the \vn{fork} element indicates whether the
+branch line is outgoing in the forward direction (\vn{direction} = +1)
+or incoming (\vn{direction} = -1). A \vn{patch} element
+(\sref{s:patch}) can be used at the beginning of a branch line to
+reorient the reference orbit as needed.
+
+The offset, pitch, and tilt attributes of a forking element can be
+used to offset the reference orbit of the element being branched
+to. This is analogous to using a rigid \vn{patch} element
+(\sref{s:patch}) to modify the reference orbit within a branch. See
+Section~\sref{s:patch} for more details.  Example:
+\begin{example}
+  from_line: line = (... A, PB, B, ...)  ! Line containing a fork
+  x_line: line = (X1, X2, ...)           ! Line branched to
+  pb: photon_fork, x_offset = 0.01, to_line = x_line
+  use, from_line
+\end{example}
+In this example, a photon generated at the fork element \vn{PB} with
+$x = 0$ with respect to the \vn{from_line} reference orbit through
+\vn{PB} will, when transferred to the \vn{x_line}, have an initial
+value for $x$ of $-0.01$ due to the setting of the \vn{x_offset} 
+parameter of \vn{PB}.
+
+Forking elements have zero length and within a lattice branch, a
+forking element acts like a \vn{marker}. Using the above example, a
+particle that is being tracked down the \vn{from_line} will have the
+same phase space coordinates at the end of element \vn{PB} as it had
+at the end of element \vn{A}. That is, the offset, pitches, and tilt
+attributes of a forking element only affect particles that are
+transferred to the \vn{to_line} when arriving at the forking element.
+particles that remain on the original lattice branch will be
+unaffected by any offset, pitches or tilt settings. 
+
+If the branch line is to transport particles different from the
+originating line the particle type and the beginning reference energy
+must be set for that line using line parameter statements
+(\sref{s:beginning}). This is useful, for example, for a photon branch line
+that is branching from a storage ring where the photon energy is not
+simply related to the particle energy. 
+
+Example showing an injection line branching to a ring which, in turn,
+branches to two x-ray lines:
+\begin{example}
+  inj: line = (..., br_ele, ...)            ! Define the injection line
+  use, inj                                  ! Injection line is the root
+  br_ele: fork, to_line = ring              ! Fork element to ring
+  ring: line = (..., x_br, ..., x_br, ...)  ! Define the ring
+  x_br: photon_fork, to_line = x_line       ! Fork element to x-ray line
+  x_line: line = (...)                      ! Define the x-ray line
+  x_line[E_tot] = 1e3
+\end{example}
+
+The \vn{new_branch} attribute is, by default, \vn{True} which means
+that the lattice branch created out of the \vn{to_line} line is distinct
+from other lattice branches of the same name. Thus, in the above example,
+the two lattice branches made from the \vn{x_line}
+will be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
+branch will not be created if a lattice branch created from the same
+line already exists. This is useful, for example, when a chicane line
+branches off from the main line and then branches back to it.
+
+The root branches of a lattice are defined by the \vn{use}
+(\sref{s:use}) statement. To further define such things as dump lines,
+x-ray beam lines, transfer lines, etc., that branch off from a root
+branch, a forking element is used.  \vn{Fork} elements can define
+where the particle beam can branch off, say to a beam
+dump. \vn{photon_fork} elements can define the source point for
+X-ray beams.  Example:
+\begin{example}
+  erl: line = (..., dump, ...)               ! Define the root branch 
+  use, erl
+  dump: fork, to = d_line                    ! Define the fork point
+  d_line: line = (..., q3d, ...)             ! Define the branch line
+\end{example}
+The difference between a \vn{fork} element and a \vn{photon_fork}
+element is that for a \vn{fork} element the default particle for the
+branch is the same as the line that the branch branches off from. The
+default particle of the branch from a \vn{photon_fork} element is a
+\vn{photon}. The actual particle associated with a branch can be set
+by setting the \vn{particle} attribute of the forking element.
+
+
+Like the root branch \bmad always automatically creates an element
+with \vn{element index} 0 at the beginning of each branch called
+\vn{beginning}. The longitudinal \vn{s} position of an element in a
+branch is determined by the distance from the beginning of the branch.
+
+Branches are named after the line that defines the \vn{branch}. In the
+above example, the branch line would be named \vn{d_line}. The root
+branch, by default, is called after the name in the \vn{use} statement
+(\sref{s:use}).
+
+The ``branch qualified'' name of an element is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the
+``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  xline>>cryst3
+\end{example}
+When parsing a lattice file, branches are not formed until the lattice
+is expanded (\sref{s:expand}). Therefore, an \vn{expand_lattice}
+statement is required before branch qualified names can be used in
+statements. See \sref{s:ele.names} for more details.
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -1806,7 +1798,7 @@ lattice file but are created by a program, usually for speed purposes.
 \index{beginning_ele|hyperbf}
 
 An \vn{beginning_ele} element, named \vn{BEGINNING}, is placed at the
-beginning of every branch (\sref{s:branch}) of a lattice to mark
+beginning of every branch (\sref{s:branch.def}) of a lattice to mark
 the start of the branch. The \vn{beginning_ele} always has element index 0
 (\sref{c:lat.concepts}).
 

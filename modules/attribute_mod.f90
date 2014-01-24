@@ -101,7 +101,7 @@ if (present(num_valid)) num_valid = 0
 if (species == photon$) then
 
   select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$, drift$, branch$, photon_branch$, capillary$)
+  case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
     if (present(num_valid)) num_valid = 2
     select case (tracking_method)
     case (bmad_standard$, custom$)
@@ -134,7 +134,7 @@ case (beambeam$)
     is_valid = .true.
   end select
 
-case (branch$, photon_branch$)
+case (fork$, photon_fork$)
   if (present(num_valid)) num_valid = 3
   select case (tracking_method)
   case (bmad_standard$, linear$, custom$)
@@ -409,7 +409,7 @@ if (present(num_valid)) num_valid = 0
 if (species == photon$) then
 
   select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$, drift$, branch$, photon_branch$, capillary$)
+  case (crystal$, mirror$, multilayer_mirror$, drift$, fork$, photon_fork$, capillary$)
     if (present(num_valid)) num_valid = 4
     select case (mat6_calc_method)
     case (bmad_standard$, static$, tracking$, custom$)
@@ -449,7 +449,7 @@ case (bend_sol_quad$)
     is_valid = .true.
   end select
 
-case (branch$, photon_branch$)
+case (fork$, photon_fork$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)

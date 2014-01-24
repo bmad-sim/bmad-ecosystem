@@ -91,7 +91,7 @@ do i_b = 0, ubound(lat%branch, 1)
       slave => lat%branch(ix)%ele(branch%ix_from_ele)
       str_ix_slave = ele_loc_to_string(slave)
 
-      if (slave%key /= branch$ .and. slave%key /= photon_branch$) then
+      if (slave%key /= fork$ .and. slave%key /= photon_fork$) then
         call out_io (s_fatal$, r_name, &
               'BRANCH: ' // branch%name, &
               'HAS A FROM ELEMENT THAT IS NOT A BRANCH NOR A PHOTON_BRANCH ELEMENT: ' // slave%name)
@@ -209,7 +209,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! branch check
 
-    if (ele%key == branch$ .or. ele%key == photon_branch$) then
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ix = nint(ele%value(ix_to_branch$))
       if (ix < 0 .or. ix > ubound(lat%branch, 1) .or. ix == i_b) then
         call out_io (s_fatal$, r_name, &
@@ -318,7 +318,8 @@ do i_b = 0, ubound(lat%branch, 1)
     endif
 
 
-    if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0 .and. abs(ele%orientation) == 1) then
+    if (i_t <  branch%n_ele_track .and. ele%value(l$) /= 0 .and. abs(ele%orientation) == 1 .and. &
+        ele%key /= patch$ .and. ele%key /= floor_shift$) then
       do i2 = i_t + 1, branch%n_ele_track
         ele2 => branch%ele(i2)
         if (abs(ele2%orientation) /= 1) exit

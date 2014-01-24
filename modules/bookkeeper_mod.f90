@@ -2946,7 +2946,7 @@ case (beginning_ele$)
     return
   endif
 
-case (branch$, photon_branch$)
+case (fork$, photon_fork$)
   if (associated(a_ptr, ele%value(direction$)) .and. associated(branch)) then
     branch%param%bookkeeping_state%floor_position = stale$
     branch%ele(0)%bookkeeping_state%floor_position = stale$

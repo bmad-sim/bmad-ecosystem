@@ -281,7 +281,7 @@ element surface.
   \item[\vn{Reference orbit manipulator elements}] \Newline
 Elements that are used to manipulate the reference orbit are
 \begin{example}
-  branch \& photon_branch    ! \sref{s:branch}
+  fork \& photon_fork        ! \sref{s:fork}
   floor_shift               ! \sref{s:floor.ele}
   patch                     ! \sref{s:patch}
 \end{example}
@@ -457,7 +457,7 @@ axis is the sum \vn{tilt} + \vn{ref_tilt}.
 %-----------------------------------------------------------------
 \subsection{Reference Orbit Manipulator Element Orientation}
 
-The \vn{branch}, \vn{photon_branch}, \vn{floor_shift}, and \vn{patch} elements
+The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements
 use the following attributes to orient their exit edge with respect to their
 entrance edge:
 \begin{example}
@@ -468,10 +468,10 @@ entrance edge:
   y_pitch  = <Real>
   tilt     = <Real>    
 \end{example}
-Here "exit" edge for \vn{branch} and \vn{photon_branch} elements is defined
+Here "exit" edge for \vn{fork} and \vn{photon_fork} elements is defined
 to be the start of the line being branched to. [Within the line containing
-the branch, the branch is considered to have zero length so the exit face
-in the line containing the branch is coincident with the entrance face.]
+the fork, the \vn{fork} elementis considered to have zero length so the exit face
+in the line containing the fork is coincident with the entrance face.]
 The placement of the exit edge for these elements defines the reference orbit.
 Thus, unlike the corresponding attributes for other elements, 
 the orientational attributes here directly control the reference orbit.

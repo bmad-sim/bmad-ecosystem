@@ -1720,14 +1720,14 @@ end subroutine rf_coupler_kick
 !   1) Transform from entrance to exit coordinates.
 !   2) Drift particle from the entrance to the exit coordinants.
 !
-! This routine can also be used with branch or photon_branch elements to transform a particle's 
+! This routine can also be used with fork or photon_fork elements to transform a particle's 
 ! phase space coordinates from the "from" lattice branch to the "to" lattice branch.
 !
 ! Moudle needed:
 !   use track1_mod
 !
 ! Input:
-!   ele           -- ele_struct: patch, branch, or photon_branch element.
+!   ele           -- ele_struct: patch, fork, or photon_fork element.
 !   orbit         -- coord_struct: Starting phase space coords
 !   drift_to_exit -- Logical, optional: If False then do not drift the particle from
 !                      Entrance to exit faces. Also do not correct for a reference energy shift.

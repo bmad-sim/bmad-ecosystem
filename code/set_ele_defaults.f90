@@ -32,7 +32,7 @@ case (bend_sol_quad$)
   ele%mat6_calc_method = symp_lie_bmad$
   ele%tracking_method  = symp_lie_bmad$
 
-case (branch$, photon_branch$)
+case (fork$, photon_fork$)
   ele%value(direction$) = 1
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = open$

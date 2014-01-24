@@ -80,7 +80,7 @@ endif
 !---------------------------------------------------------------------
 ! markers are easy
 
-if (key2 == marker$ .or. key2 == photon_branch$ .or. key2 == branch$) then
+if (key2 == marker$ .or. key2 == photon_fork$ .or. key2 == fork$) then
   call transfer_twiss (ele1, ele2)
   if (present(err_flag)) err_flag = .false.
   return
