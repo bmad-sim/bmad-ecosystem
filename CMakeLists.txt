@@ -8,7 +8,6 @@ set(INC_DIRS
 
 set(SRC_DIRS
   code
-  util
 )
 
 set(EXE_SPECS 
