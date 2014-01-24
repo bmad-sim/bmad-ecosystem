@@ -79,7 +79,7 @@ logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
 logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wild_and_key0
-logical auto_bookkeeper_saved, is_photon_branch, created_new_branch
+logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
@@ -616,8 +616,16 @@ parsing_loop: do
   endif
 
   if (.not. match_found) then
-    if (word_2 == 'BRANCH') word_2 = 'FORK'
-    if (word_2 == 'PHOTON_BRANCH') word_2 = 'PHOTON_FORK'
+    if (word_2 == 'BRANCH') then
+      call parser_error ('"BRANCH" ELEMENT IS NOW NAMED A "FORK" ELEMENT.', &
+                       'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+      word_2 = 'FORK'
+    endif
+    if (word_2 == 'PHOTON_BRANCH') then
+      call parser_error ('"PHOTON_BRANCH" ELEMENT IS NOW NAMED A "PHOTON_FORK" ELEMENT.', &
+                       'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+      word_2 = 'PHOTON_FORK'
+    endif
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
     if (in_lat%ele(n_max)%key > 0) then
       call set_ele_defaults (in_lat%ele(n_max))
@@ -727,7 +735,7 @@ branch_loop: do i_loop = 1, n_branch_max
     ele => branch_ele(1)%ele
     call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
     this_name = ele%component_name
-    is_photon_branch = (ele%key == photon_fork$)
+    is_photon_fork = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
     branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
     if (.not. created_new_branch) cycle 
@@ -744,7 +752,7 @@ branch_loop: do i_loop = 1, n_branch_max
     endif
 
     call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
-    is_photon_branch = .false.
+    is_photon_fork = .false.
   endif
 
   n_branch = ubound(lat%branch, 1)
@@ -819,7 +827,7 @@ branch_loop: do i_loop = 1, n_branch_max
   !----
 
   if (ele%value(particle$) == real_garbage$) then
-    if (is_photon_branch) then
+    if (is_photon_fork) then
       branch%param%particle = photon$
     else
       branch%param%particle = lat%param%particle

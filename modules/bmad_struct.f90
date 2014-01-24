@@ -668,7 +668,7 @@ type lat_struct
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
   type (ele_struct)  ele_init                 ! For use by any program
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
-  type (branch_struct), allocatable :: branch(:)   ! Branch arrays
+  type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
   type (coord_struct) beam_start          ! Starting coords
   type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
@@ -724,8 +724,8 @@ character(40), parameter :: key_name(n_key$) = [ &
     'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'BEGINNING_ELE    ', &
     'LINE_ELE         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
-    'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_BRANCH    ', &
-    'BRANCH           ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
+    'GIRDER           ', 'BEND_SOL_QUAD    ', 'DEF_BEAM_START   ', 'PHOTON_FORK      ', &
+    'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
     'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
