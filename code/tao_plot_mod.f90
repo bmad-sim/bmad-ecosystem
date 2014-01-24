@@ -797,7 +797,7 @@ endif
 ! Draw x-ray line
 
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
-  drift%key = photon_branch$
+  drift%key = photon_fork$
   drift%name = ele%name
   branch_shape => tao_pointer_to_ele_shape (drift, s%plotting%floor_plan%ele_shape)
   if (associated(branch_shape)) then

@@ -24,8 +24,8 @@ logical found, err
 
 ! init
 
-s_ptr => s
-t_ptr => tao_com
+s_ptr => s       ! Used for debugging
+t_ptr => tao_com ! Used for debugging
 
 ! Read command line arguments.
 
@@ -40,7 +40,7 @@ if (err) then
   stop
 endif
 
-u => s%u(1)
+u => s%u(1)  ! Used for debugging
 
 ! Command loop
 

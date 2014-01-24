@@ -340,7 +340,7 @@ do i = 0, ubound(u%model%lat%branch, 1)
   u%uni_branch(i)%ele(0)%save_beam = .true.
   u%uni_branch(i)%ele(branch%n_ele_track)%save_beam = .true.
   do j = 1, ubound(branch%ele, 1)
-    if (branch%ele(j)%key == branch$) u%uni_branch(i)%ele(j)%save_beam = .true.
+    if (branch%ele(j)%key == fork$) u%uni_branch(i)%ele(j)%save_beam = .true.
   enddo
 enddo
 
