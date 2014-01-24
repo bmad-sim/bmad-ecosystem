@@ -83,6 +83,45 @@ connect together lattice elements that are physically shared between
 branches, for example, the interaction region in colliding beam
 machines, \vn{multipass} lines (\sref{s:multipass}) can be used.
 
+The root branches of a lattice are defined by the \vn{use}
+(\sref{s:use}) statement. To further define such things as dump lines,
+x-ray beam lines, transfer lines, etc., that branch off from a root
+branch, a forking element is used.  \vn{Fork} elements can define
+where the particle beam can branch off, say to a beam
+dump. \vn{photon_fork} elements can define the source point for
+X-ray beams.  Example:
+\begin{example}
+  erl: line = (..., dump, ...)               ! Define the root branch 
+  use, erl
+  dump: fork, to = d_line                    ! Define the fork point
+  d_line: line = (..., q3d, ...)             ! Define the branch line
+\end{example}
+
+Like the root branch \bmad always automatically creates an element
+with \vn{element index} 0 at the beginning of each branch called
+\vn{beginning}. The longitudinal \vn{s} position of an element in a
+branch is determined by the distance from the beginning of the branch.
+
+Branches are named after the line that defines the \vn{branch}. In the
+above example, the branch line would be named \vn{d_line}. The root
+branch, by default, is called after the name in the \vn{use} statement
+(\sref{s:use}).
+
+The ``branch qualified'' name of an element is of the form
+\begin{example}
+  branch_name>>element_name
+\end{example}
+where \vn{branch_name} is the name of the branch and \vn{element_name} is the
+``regular'' name of the element. Example:
+\begin{example}
+  root>>q10w
+  xline>>cryst3
+\end{example}
+When parsing a lattice file, branches are not formed until the lattice
+is expanded (\sref{s:expand}). Therefore, an \vn{expand_lattice}
+statement is required before branch qualified names can be used in
+statements. See \sref{s:ele.names} for more details.
+
 %---------------------------------------------------------------------------
 \section{Lord and Slave Elements}
 \label{s:lord.slave}
