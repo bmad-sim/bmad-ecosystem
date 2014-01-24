@@ -425,8 +425,8 @@ do j = ie1, ie2
       call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost)
     endif
 
-    if (uni_ele(j)%save_beam .or. ele%key == branch$ .or. &
-                                  ele%key == photon_branch$) uni_ele(j)%beam = beam
+    if (uni_ele(j)%save_beam .or. ele%key == fork$ .or. &
+                                  ele%key == photon_fork$) uni_ele(j)%beam = beam
   endif
  
   ! Lost particles
@@ -565,13 +565,7 @@ i_br_from  = branch%ix_from_branch
 if (i_br_from > -1) then
   i_ele_from = branch%ix_from_ele
   from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
-  branch%ele(0)%x = from_ele%x
-  branch%ele(0)%y = from_ele%y
-  branch%ele(0)%a = from_ele%a
-  branch%ele(0)%b = from_ele%b
-  branch%ele(0)%z = from_ele%z
-  branch%ele(0)%c_mat   = from_ele%c_mat
-  branch%ele(0)%gamma_c = from_ele%gamma_c
+  call transfer_twiss (from_ele, branch%ele(0))
   orb0 => model%lat_branch(ix_branch)%orbit(0)
   orb0 = model%lat_branch(i_br_from)%orbit(i_ele_from)
   call track_a_patch (from_ele, orb0)
