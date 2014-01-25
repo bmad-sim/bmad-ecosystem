@@ -2005,7 +2005,7 @@ SUBROUTINE bl_via_mat(lat, ibs_sim_params, mode, sig_z)
       REAL(rp) residual_pwd_sig_z
       REAL(rp) sigma_mat(6,6)
       REAL(rp) t6(6,6)
-      REAL(rp) zz
+      REAL(rp), intent(in) :: zz
       LOGICAL error
 
       mode%z%emittance = zz * mode%sigE_E

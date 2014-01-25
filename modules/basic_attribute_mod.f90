@@ -428,14 +428,16 @@ do i = 1, n_key$
   if (i == beambeam$)      cycle
   if (i == multipole$)     cycle 
   if (i == ab_multipole$)  cycle
-  if (i == sad_mult$)      cycle
+
+  call init_attribute_name1 (i, l$,                   'L')
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
   call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
+
+  if (i == sad_mult$)      cycle
+
   call init_attribute_name1 (i, lord_pad1$,           'LORD_PAD1', quasi_free$)
   call init_attribute_name1 (i, lord_pad2$,           'LORD_PAD2', quasi_free$)
-
-  call init_attribute_name1 (i, l$,                   'L')
 
   if (i == taylor$)       cycle
 
@@ -965,7 +967,9 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
-call init_attribute_name1 (sad_mult$, l$,                      'L')
+call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', quasi_free$)
+call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP')
+call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
 call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')
 call init_attribute_name1 (sad_mult$, e2$,                     'E2')
@@ -976,10 +980,16 @@ call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       !
 call init_attribute_name1 (sad_mult$, kill_fringe$,            'KILL_FRINGE')  ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
 call init_attribute_name1 (sad_mult$, f1$,                     'F1')
-!!call init_attribute_name1 (sad_mult$, f2$,                     'F2')
-! Attributes with no SAD equivalent
-!!call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
+call init_attribute_name1 (sad_mult$, f2$,                     'F2')
+call init_attribute_name1 (sad_mult$, bs_field$,               'BS_FIELD')
+call init_attribute_name1 (sad_mult$, x_offset_sol$,           'X_OFFSET_SOL')
+call init_attribute_name1 (sad_mult$, y_offset_sol$,           'Y_OFFSET_SOL')
+call init_attribute_name1 (sad_mult$, x_pitch_sol$,            'X_PITCH_SOL')
+call init_attribute_name1 (sad_mult$, y_pitch_sol$,            'Y_PITCH_SOL')
+! sad_mult Attributes with no SAD equivalent
+call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
 call init_attribute_name1 (sad_mult$, g$,                      'G')
+call init_attribute_name1 (sad_mult$, ks$,                     'KS')
 
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')
