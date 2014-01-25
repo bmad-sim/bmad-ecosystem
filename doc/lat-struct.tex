@@ -3,9 +3,8 @@
 \index{lat_struct|hyperbf}
 
 The \vn{lat_struct} is the structure that holds of all the information
-about a lattice including any \vn{branch} and \vn{photon_branch} lines
-(\sref{s:branch}). The components of a \vn{lat_struct} are listed in
-\fig{f:lat.struct}.
+about a lattice (\sref{s:lattice.def}). The components of a
+\vn{lat_struct} are listed in \fig{f:lat.struct}.
 \begin{figure}[htb]
 \centering
 \begin{verbatim}
@@ -101,40 +100,38 @@ memory. Typically using the save attribute will be the best choice.
 \label {s:lat.struct}
 
 \index{lat_struct!\%branch(:)}
-\index{branch}\index{photon_branch}\index{branch!root}
-The lattice is divided up into the ``root branch'' and, if there are
-\vn{branch} or \vn{photon_branch} elements, a number of other
-branches (\sref{s:branch}).
+\index{fork}\index{photon_fork}\index{branch!root}
+The lattice is divided up into the ``root branch'' (\sref{s:use}) and,
+if there are \vn{fork} or \vn{photon_fork} elements, a number ``forked''
+\vn{branches}.
 
 \index{branch_struct}
-The branch information is contained in the \vn{%branch(0:)} array. The
-\vn{%branch} array is always indexed from 0 with the $0$ branch
-being the root branch.  The upper bound of this array will be equal to
-the number of \vn{branch} plus \vn{photon_branch} elements present. The
-definition of the \vn{branch_struct} structure is
+The branches of a lattice is contained in the \vn{lat%branch(0:)}
+array. The \vn{%branch(0:)} array is always indexed from 0 with the
+$0$ branch being a root branch. The definition of the
+\vn{branch_struct} structure is
 \begin{example}
   type branch_struct
     character(40) name
-    integer key                          ! photon_branch$, branch$, etc.
     integer ix_branch                    ! Index in lat%branch(:) array.
-    integer ix_from_branch               ! 0 => root branch 
-    integer ix_from_ele                  ! Index of branching element
+    integer ix_from_branch               ! -1 => No forking element to this branch.
+    integer ix_from_ele                  ! Index of forking element
     integer, pointer :: n_ele_track      ! Number of tracking elements
     integer, pointer :: n_ele_max
-    type (ele_struct), pointer :: ele(:) ! Element array
+    type (mode_info_struct), pointer :: a, b, z
+    type (ele_struct), pointer :: ele(:)
     type (lat_param_struct), pointer :: param
+    type (wall3d_struct), pointer :: wall3d
+    type (ptc_branch1_info_struct) ptc
+    type (normal_form_struct) normal_form_with_rf, normal_form_no_rf
   end type
 \end{example}
-\Hyperref{r:key.name}{key_name}
-The \vn{branch(i)%key} component is set to either \vn{photon_branch\$}
-or \vn{branch\$}. The \Hyperref{r:key.name}{key_name} function will
-convert the integer key value to a string for printing. The value of the
-\vn{%branch(i)%ix_branch} conponent is the branch index and will thus
-have the value \vn{i}. This can be useful when passing a branch to a
-subroutine.  The \vn{%branch(i)%ix_from_branch} component gives the
-branch index of the branch that the $i$\Th branch branched off from.
-\vn{%branch(i)%ix_from_ele} gives the index in the
-\vn{%branch(j)%ele(:)} array of the \vn{branch} or \vn{photon_branch}
+The value of the \vn{%branch(i)%ix_branch} conponent is the branch
+index and will thus have the value \vn{i}. This can be useful when
+passing a branch to a subroutine.  The \vn{%branch(i)%ix_from_branch}
+component gives the branch index of the branch that the $i$\Th branch
+branched off from.  \vn{%branch(i)%ix_from_ele} gives the index in the
+\vn{%branch(j)%ele(:)} array of the \vn{fork} or \vn{photon_fork}
 element that marks the beginning of the $i$\Th branch. Example:
 \begin{example}
   type (lat_struct), target :: lat
@@ -142,19 +139,11 @@ element that marks the beginning of the $i$\Th branch. Example:
   ...
   ib = lat%branch(3)%ix_from_branch
   ie = lat%branch(3)%ix_from_ele
-  ! ele is the branch or photon_branch element for lat%branch(3)
+  ! ele is the fork or photon_fork element for lat%branch(3)
   ele => lat%branch(ib)%ele(ie)
   ! This is the same as the above.
   ele => pointer_to_ele(lat%branch(3)%ix_from_branch, lat%branch(3)%ix_from_ele)
 \end{example}
-
-Future plans include the simulation of multiple intersecting
-machines. For example, a double ring collider. In this case,
-individual branches could represent machines that are not connected.
-To lessen the work needed to implement this plan, a branch that is not
-connected to a prior branch has \vn{branch%ix_from_branch} set to
--1. Currently, only the root branch has \vn{branch%ix_from_branch} set
-to -1.
 
 \index{lat_struct!\%ele(:)}\index{lat_struct!\%n_ele_track}
 \index{lat_struct!\%n_ele_max}\index{ele_struct!in lat_struct} 
@@ -202,15 +191,15 @@ all other branches. Since the root branch can also be accessed via the \vn{lat%e
 array, code that deals with the lord section of the lattice may use \vn{lat%ele(:)}
 in place of \vn{lat%branch(0)%ele(:)}.
 
-for a given \vn{branch} or \vn{photon_branch} element, the index of
-the branch that is being branched to and the index of the element that
-is being branched to is stored in:
+for a given \vn{fork} or \vn{photon_fork} element, the index of
+the branch that is being forked to and the index of the element that
+is being forked to is stored in:
 \begin{example}
   ix_branch  = nint(branch_ele%value(ix_branch_to$))  ! branch index
   ix_element = nint(branch_ele%value(ix_element_to$)) ! element index
   direction  = nint(branch_ele%value(direction$))
 \end{example}
-The direction will be +1 for forward branching and -1 for backward branching.
+The direction will be +1 for forward forking and -1 for backward forking.
 
 %----------------------------------------------------------------------------
 \section{Param_struct Component}
@@ -855,7 +844,7 @@ The \vn{ele_pointer_struct} array returned by \vn{lat_ele_locator} is
 an array of pointers to \vn{ele_struct} elements
 \begin{example}
   type ele_pointer_struct
-    type (ele_struct), pointer :: ele => null()
+    type (ele_struct), pointer :: ele
   end type
 \end{example}
 The \vn{n_loc} argument is the number of elements found and the \vn{err} argument
