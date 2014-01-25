@@ -526,7 +526,6 @@ case ('branch')
 
     nl=nl+1; lines(nl) =                   '%name                      = ' // trim(branch%name)
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_branch                 =', branch%ix_branch 
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_root_branch            =', branch%ix_root_branch 
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from_branch            =', branch%ix_from_branch 
     nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from ele               =', branch%ix_from_ele
     nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_track               =', branch%n_ele_track
