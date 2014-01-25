@@ -174,3 +174,20 @@ element on par with all other elements be they quadrupoles, bends,
 etc. When translating a \vn{patch} from \bmad to PTC, the \vn{patch}
 is represented in PTC as a \vn{marker} element with a patch at the
 exit end.
+
+%--------------------------------------------------------------------------
+\section{Number of Integration Steps}
+\label{s:ptc.step}
+
+``Drift like'' elements in PTC will use, by default, only one
+integration step. \bmad uses the default when translating from \bmad
+lattice elements to PTC fibres. The \bmad lattice elements that are
+drift like are:
+\begin{example}
+  drift
+  ecollimator 
+  instrument 
+  monitor 
+  pipe
+  rcollimator 
+\end{example}

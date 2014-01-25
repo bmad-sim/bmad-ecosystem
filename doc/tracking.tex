@@ -318,21 +318,70 @@ exit end of the $n$\Th element.
 %----------------------------------------------------------------
 \section{Forking from Branch to Branch}
 
+\index{fork}\index{photon_fork}
 Tracking from a \vn{fork} or \vn{photon_fork} (\sref{s:fork}) element
-to the forked \vn{branch} 
+to the forked \vn{branch} is not ``automatic''. That is, since the
+requirements of how to handle forking can vary greatly from one
+situation to the next, \bmad does not try to track from one \vn{branch}
+to the next in any one of its tracking routines. 
 
+The discussion here is restriced to the case where the paticle being
+tracked is simply transfered from the forking element to the forked
+branch. [Thus the subject of photon generation is not covered here.]
 
-i_br_from  = branch%ix_from_branch
+There are two cases discussed here. The first case is when a given
+branch (called \vn{to_branch}) has an associated forking element in
+the \vn{from_branch} that forks to the beginning of the
+\vn{to_branch}. Appropriate code is:
+\begin{example}
+  type (lat_struct), target :: lat   ! Lattice 
+  type (branch_struct) :: to_branch  ! Given forked branch
+  type (branch_struct), pointer  :: from_branch ! Base branch
+  type (ele_struct), pointer :: fork_ele
+  type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
+  integer ib_from, ie_from
 
-if (i_br_from > -1) then
-  i_ele_from = branch%ix_from_ele
-  from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
-  call transfer_twiss (from_ele, branch%ele(0))
-  orb0 => model%lat_branch(ix_branch)%orbit(0)
-  orb0 = model%lat_branch(i_br_from)%orbit(i_ele_from)
-  call track_a_patch (from_ele, orb0)
-  return
-endif
+  ib_from  = to_branch%ix_from_branch
+
+  if (ib_from < 0) then
+    ! Not forked to ...
+
+  else
+    from_branch => lat%branch(ib_from)
+    ie_from = to_branch%ix_from_ele
+    fork_ele => from_branch%ele(ie_from)
+    to_orbit(0) = from_orbit(ie_from)
+    call track_a_patch (fork_ele, to_orbit(0))
+    call transfer_twiss (fork_ele, to_branch%ele(0))
+  endif
+\end{example}
+\vn{from_orbit(0:)} and \vn{to_orbit(0:)} are arrays holding the
+orbits at the exit end of the elements for the \vn{from_branch} and
+\vn{to_branch} respectively. The call to \Hyperref{r:transfer.twiss}{transfer_twiss}
+transfers the Twiss values to the \vn{to_branch} which can then be
+propagated through the \vn{to_branch} using \vn{twiss_propagate_all}.
+
+The second case starts with the \vn{fork_ele} forking element.  This
+is similar to the first case but is a bit more general since here the
+element, called \vn{to_ele} in the \vn{to_branch} that is connected to
+\vn{fork_ele} need not be the starting element of \vn{to_branch}.
+\begin{example}
+  type (lat_struct), target :: lat   ! Lattice 
+  type (branch_struct), pointer :: to_branch  ! Forked branch
+  type (ele_struct), pointer :: to_ele
+  type (coord_struct), allocatable :: from_orbit(:), to_orbit(:)
+  integer ib_to, ie_to
+
+  ib_to  = nint(fork_ele%value(ix_to_branch\$))
+  ie_to  = nint(fork_ele%value(ix_to_element\$))
+
+  to_branch => lat%branch(ib_to)
+  to_ele => to_branch%ele(ie_to)
+  to_orbit(to_ele%ix_ele) = from_orbit(fork_ele%ix_ele)
+  call track_a_patch (fork_ele, to_orbit(to_ele%ix_ele))
+\end{example}  
+Notice that, by convention, the transferred orbit is located at the
+exit end of the \vn{to_ele}.
 
 %----------------------------------------------------------------
 \section{Multi-turn Tracking}

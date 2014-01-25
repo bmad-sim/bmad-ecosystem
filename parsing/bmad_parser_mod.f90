@@ -5189,7 +5189,6 @@ if (created_new_branch) then
 
   branch%ix_from_branch     = branch_ele%ix_branch
   branch%ix_from_ele        = branch_ele%ix_ele
-  branch%ix_root_branch     = lat%branch(branch_ele%ix_branch)%ix_root_branch
 endif
 
 name = plat%ele(branch_ele%ixx)%ele_name

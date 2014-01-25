@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 134
+integer, parameter :: bmad_inc_version$ = 135
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -623,11 +623,10 @@ end type
 !
 
 type branch_struct
-  character(40) :: name = ''
+  character(40) :: name = ''       ! Set to name of line that defines the branch.
   integer :: ix_branch = -1        ! Index of this branch. 0 => Main branch
-  integer :: ix_root_branch = -1   ! Root branch index for this machine.
-  integer :: ix_from_branch = -1   ! -1 => Not connected/
-  integer :: ix_from_ele = -1      ! Branch ele in from_branch index.
+  integer :: ix_from_branch = -1   ! -1 => No forking element to beginning of branch.
+  integer :: ix_from_ele = -1      ! Forking element which forks to beginning of branch.
   integer, pointer :: n_ele_track => null()
   integer, pointer :: n_ele_max => null()
   type (lat_struct), pointer :: lat => null()

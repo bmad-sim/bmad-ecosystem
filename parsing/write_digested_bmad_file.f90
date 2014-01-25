@@ -129,7 +129,7 @@ do i = 1, ubound(lat%branch, 1)
   n_wake = 0  ! number of wakes written to the digested file for this branch.
   branch => lat%branch(i)
   write (d_unit) branch%param
-  write (d_unit) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
+  write (d_unit) branch%name, branch%ix_from_branch, &
                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, 0
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))

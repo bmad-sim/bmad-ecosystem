@@ -207,7 +207,7 @@ do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit, err = 9070) branch%param
-  read (d_unit, err = 9070) branch%name, branch%ix_root_branch, branch%ix_from_branch, &
+  read (d_unit, err = 9070) branch%name, branch%ix_from_branch, &
                  branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, idum1
 
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
