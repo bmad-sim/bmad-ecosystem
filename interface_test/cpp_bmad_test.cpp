@@ -3899,6 +3899,12 @@ void set_CPP_normal_form_test_pattern (CPP_normal_form& C, int ix_patt) {
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.dhdj.size(); i++)
     {int rhs = 101 + i + 4 + offset; set_CPP_taylor_test_pattern(C.dhdj[i], ix_patt+i+1);}
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.f.size(); i++)
+    {int rhs = 101 + i + 5 + offset; set_CPP_complex_taylor_test_pattern(C.f[i], ix_patt+i+1);}
+  // c_side.test_pat[type, 1, NOT]
+  for (unsigned int i = 0; i < C.l.size(); i++)
+    {int rhs = 101 + i + 6 + offset; set_CPP_complex_taylor_test_pattern(C.l[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
     C.ele_origin = NULL;
@@ -3949,6 +3955,119 @@ extern "C" void test_c_normal_form (Bmad_normal_form_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_complex_taylor (CPP_complex_taylor&, bool&);
+
+void set_CPP_complex_taylor_test_pattern (CPP_complex_taylor& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 1 + offset; C.ref = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[type, 1, PTR]
+  if (ix_patt < 3) 
+    C.term.resize(0);
+  else {
+    C.term.resize(3);
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_complex_taylor_term_test_pattern(C.term[i], ix_patt+i+1);}
+  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_complex_taylor (Bmad_complex_taylor_class* F, bool& c_ok) {
+
+  CPP_complex_taylor C, C2;
+
+  c_ok = true;
+
+  complex_taylor_to_c (F, C);
+  set_CPP_complex_taylor_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " complex_taylor: C side convert F->C: Good" << endl;
+  } else {
+    cout << " complex_taylor: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_complex_taylor_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_complex_taylor (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_complex_taylor_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " complex_taylor: F side convert F->C: Good" << endl;
+  } else {
+    cout << " complex_taylor: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_complex_taylor_test_pattern (C2, 4);
+  complex_taylor_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_complex_taylor_term (CPP_complex_taylor_term&, bool&);
+
+void set_CPP_complex_taylor_term_test_pattern (CPP_complex_taylor_term& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 1 + offset; C.coef = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[integer, 1, NOT]
+  for (unsigned int i = 0; i < C.expn.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.expn[i] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_complex_taylor_term (Bmad_complex_taylor_term_class* F, bool& c_ok) {
+
+  CPP_complex_taylor_term C, C2;
+
+  c_ok = true;
+
+  complex_taylor_term_to_c (F, C);
+  set_CPP_complex_taylor_term_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " complex_taylor_term: C side convert F->C: Good" << endl;
+  } else {
+    cout << " complex_taylor_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_complex_taylor_term_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_complex_taylor_term (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_complex_taylor_term_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " complex_taylor_term: F side convert F->C: Good" << endl;
+  } else {
+    cout << " complex_taylor_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_complex_taylor_term_test_pattern (C2, 4);
+  complex_taylor_term_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_branch (CPP_branch&, bool&);
 
 void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
@@ -3963,20 +4082,17 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
   rhs = 2 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ix_root_branch = rhs;
+  rhs = 3 + offset; C.ix_from_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.ix_from_branch = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ix_from_ele = rhs;
+  rhs = 4 + offset; C.ix_from_ele = rhs;
 
   // c_side.test_pat[integer, 0, PTR]
   if (ix_patt < 3) 
     C.n_ele_track = NULL;
   else {
     C.n_ele_track = new Int;
-    rhs = 6 + offset; (*C.n_ele_track) = rhs;
+    rhs = 5 + offset; (*C.n_ele_track) = rhs;
   }
 
   // c_side.test_pat[integer, 0, PTR]
@@ -3984,7 +4100,7 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
     C.n_ele_max = NULL;
   else {
     C.n_ele_max = new Int;
-    rhs = 8 + offset; (*C.n_ele_max) = rhs;
+    rhs = 7 + offset; (*C.n_ele_max) = rhs;
   }
 
   // c_side.test_pat[type, 0, PTR]

@@ -485,6 +485,24 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine complex_taylor_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine complex_taylor_term_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine branch_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -6218,14 +6236,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, z_ele_origin, n_ele_origin) &
-      bind(c)
+  subroutine normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, z_f, z_l, z_ele_origin, &
+      n_ele_origin) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_ele_origin
     integer(c_int), value :: n_ele_origin
-    type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*)
+    type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*), z_f(*), z_l(*)
   end subroutine
 end interface
 
@@ -6238,6 +6256,8 @@ type(c_ptr) :: z_m(6)
 type(c_ptr) :: z_a(6)
 type(c_ptr) :: z_a_inv(6)
 type(c_ptr) :: z_dhdj(6)
+type(c_ptr) :: z_f(6)
+type(c_ptr) :: z_l(6)
 integer(c_int) :: n_ele_origin
 
 !
@@ -6260,12 +6280,21 @@ enddo
 do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
   z_dhdj(jd1) = c_loc(F%dhdj(jd1+lb1))
 enddo
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%f,1); lb1 = lbound(F%f,1) - 1
+  z_f(jd1) = c_loc(F%f(jd1+lb1))
+enddo
+!! f_side.to_c_trans[type, 1, NOT]
+do jd1 = 1, size(F%l,1); lb1 = lbound(F%l,1) - 1
+  z_l(jd1) = c_loc(F%l(jd1+lb1))
+enddo
 !! f_side.to_c_trans[type, 0, PTR]
 n_ele_origin = 0
 if (associated(F%ele_origin)) n_ele_origin = 1
 
 !! f_side.to_c2_call
-call normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, c_loc(F%ele_origin), n_ele_origin)
+call normal_form_to_c2 (C, z_m, z_a, z_a_inv, z_dhdj, z_f, z_l, c_loc(F%ele_origin), &
+    n_ele_origin)
 
 end subroutine normal_form_to_c
 
@@ -6285,8 +6314,8 @@ end subroutine normal_form_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine normal_form_to_f2 (Fp, z_m, z_a, z_a_inv, z_dhdj, z_ele_origin, n_ele_origin) &
-    bind(c)
+subroutine normal_form_to_f2 (Fp, z_m, z_a, z_a_inv, z_dhdj, z_f, z_l, z_ele_origin, &
+    n_ele_origin) bind(c)
 
 
 implicit none
@@ -6298,7 +6327,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 type(ele_struct), pointer :: f_ele_origin
 type(c_ptr), value :: z_ele_origin
 integer(c_int), value :: n_ele_origin
-type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*)
+type(c_ptr) :: z_m(*), z_a(*), z_a_inv(*), z_dhdj(*), z_f(*), z_l(*)
 
 call c_f_pointer (Fp, F)
 
@@ -6318,6 +6347,14 @@ enddo
 do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
   call taylor_to_f(z_dhdj(jd1), c_loc(F%dhdj(jd1+lb1)))
 enddo
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%f,1); lb1 = lbound(F%f,1) - 1
+  call complex_taylor_to_f(z_f(jd1), c_loc(F%f(jd1+lb1)))
+enddo
+!! f_side.to_f2_trans[type, 1, NOT]
+do jd1 = 1, size(F%l,1); lb1 = lbound(F%l,1) - 1
+  call complex_taylor_to_f(z_l(jd1), c_loc(F%l(jd1+lb1)))
+enddo
 !! f_side.to_f2_trans[type, 0, PTR]
 if (n_ele_origin == 0) then
   if (associated(F%ele_origin)) deallocate(F%ele_origin)
@@ -6328,6 +6365,197 @@ endif
 
 
 end subroutine normal_form_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad complex_taylor_struct to a C++ CPP_complex_taylor structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor struct.
+!-
+
+subroutine complex_taylor_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine complex_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    complex(c_double_complex) :: z_ref
+    integer(c_int), value :: n1_term
+    type(c_ptr) :: z_term(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(complex_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_term(:)
+integer(c_int) :: n1_term
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_term = 0
+if (associated(F%term)) then
+  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
+  allocate (z_term(n1_term))
+  do jd1 = 1, n1_term
+    z_term(jd1) = c_loc(F%term(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call complex_taylor_to_c2 (C, F%ref, z_term, n1_term)
+
+end subroutine complex_taylor_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_complex_taylor structure to a Bmad complex_taylor_struct structure.
+! This routine is called by complex_taylor_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the complex_taylor_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad complex_taylor_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine complex_taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(complex_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+complex(c_double_complex) :: z_ref
+integer(c_int), value :: n1_term
+type(c_ptr) :: z_term(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%ref = z_ref
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_term == 0) then
+  if (associated(F%term)) deallocate(F%term)
+else
+  if (associated(F%term)) then
+    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
+    if (any(lbound(F%term) /= 1)) deallocate(F%term)
+  endif
+  if (.not. associated(F%term)) allocate(F%term(1:n1_term+1-1))
+  do jd1 = 1, n1_term
+    call complex_taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine complex_taylor_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad complex_taylor_term_struct to a C++ CPP_complex_taylor_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor_term struct.
+!-
+
+subroutine complex_taylor_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine complex_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    complex(c_double_complex) :: z_coef
+    integer(c_int) :: z_expn(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(complex_taylor_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call complex_taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 6))
+
+end subroutine complex_taylor_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_complex_taylor_term structure to a Bmad complex_taylor_term_struct structure.
+! This routine is called by complex_taylor_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the complex_taylor_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad complex_taylor_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine complex_taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(complex_taylor_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+complex(c_double_complex) :: z_coef
+integer(c_int) :: z_expn(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[integer, 1, NOT]
+F%expn = z_expn(1:6)
+
+end subroutine complex_taylor_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -6350,10 +6578,10 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
-      z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, &
-      n_b, z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, &
-      z_normal_form_with_rf, z_normal_form_no_rf) bind(c)
+  subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
+      z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
+      z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
+      z_normal_form_no_rf) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6361,7 +6589,7 @@ interface
     integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
     integer(c_int), value :: n_wall3d
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_wall3d, z_normal_form_with_rf, z_normal_form_no_rf
-    integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele, z_n_ele_track, z_n_ele_max
+    integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_n_ele_track, z_n_ele_max
     character(c_char) :: z_name(*)
   end subroutine
 end interface
@@ -6417,10 +6645,10 @@ n_wall3d = 0
 if (associated(F%wall3d)) n_wall3d = 1
 
 !! f_side.to_c2_call
-call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_root_branch, &
-    F%ix_from_branch, F%ix_from_ele, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, &
-    c_loc(F%a), n_a, c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, &
-    c_loc(F%wall3d), n_wall3d, c_loc(F%normal_form_with_rf), c_loc(F%normal_form_no_rf))
+call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_from_branch, &
+    F%ix_from_ele, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, c_loc(F%a), n_a, &
+    c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, c_loc(F%wall3d), &
+    n_wall3d, c_loc(F%normal_form_with_rf), c_loc(F%normal_form_no_rf))
 
 end subroutine branch_to_c
 
@@ -6440,9 +6668,9 @@ end subroutine branch_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_root_branch, z_ix_from_branch, &
-    z_ix_from_ele, z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, &
-    z_z, n_z, z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
+subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
+    z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
+    z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
     z_normal_form_no_rf) bind(c)
 
 
@@ -6452,7 +6680,7 @@ type(c_ptr), value :: Fp
 type(branch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_ix_branch, z_ix_root_branch, z_ix_from_branch, z_ix_from_ele
+integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele
 type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_wall3d
 type(c_ptr), value :: z_normal_form_with_rf, z_normal_form_no_rf
 type(lat_param_struct), pointer :: f_param
@@ -6470,8 +6698,6 @@ call c_f_pointer (Fp, F)
 call to_f_str(z_name, F%name)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_branch = z_ix_branch
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_root_branch = z_ix_root_branch
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_from_branch = z_ix_from_branch
 !! f_side.to_f2_trans[integer, 0, NOT]

@@ -2618,7 +2618,8 @@ extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form
 
 // c_side.to_f2_arg
 extern "C" void normal_form_to_f2 (Bmad_normal_form_class*, const CPP_taylor**, const
-    CPP_taylor**, const CPP_taylor**, const CPP_taylor**, const CPP_ele&, Int);
+    CPP_taylor**, const CPP_taylor**, const CPP_taylor**, const CPP_complex_taylor**, const
+    CPP_complex_taylor**, const CPP_ele&, Int);
 
 extern "C" void normal_form_to_f (const CPP_normal_form& C, Bmad_normal_form_class* F) {
   // c_side.to_f_setup[type, 1, NOT]
@@ -2633,18 +2634,25 @@ extern "C" void normal_form_to_f (const CPP_normal_form& C, Bmad_normal_form_cla
   // c_side.to_f_setup[type, 1, NOT]
   const CPP_taylor* z_dhdj[6];
   for (int i = 0; i < 6; i++) {z_dhdj[i] = &C.dhdj[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_complex_taylor* z_f[6];
+  for (int i = 0; i < 6; i++) {z_f[i] = &C.f[i];}
+  // c_side.to_f_setup[type, 1, NOT]
+  const CPP_complex_taylor* z_l[6];
+  for (int i = 0; i < 6; i++) {z_l[i] = &C.l[i];}
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_ele_origin = 0; if (C.ele_origin != NULL) n_ele_origin = 1;
 
   // c_side.to_f2_call
-  normal_form_to_f2 (F, z_m, z_a, z_a_inv, z_dhdj, *C.ele_origin, n_ele_origin);
+  normal_form_to_f2 (F, z_m, z_a, z_a_inv, z_dhdj, z_f, z_l, *C.ele_origin, n_ele_origin);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void normal_form_to_c2 (CPP_normal_form& C, const Bmad_taylor_class** z_m, const
     Bmad_taylor_class** z_a, const Bmad_taylor_class** z_a_inv, const Bmad_taylor_class**
-    z_dhdj, Bmad_ele_class* z_ele_origin, Int n_ele_origin) {
+    z_dhdj, const Bmad_complex_taylor_class** z_f, const Bmad_complex_taylor_class** z_l,
+    Bmad_ele_class* z_ele_origin, Int n_ele_origin) {
 
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.m.size(); i++) taylor_to_c(z_m[i], C.m[i]);
@@ -2654,6 +2662,10 @@ extern "C" void normal_form_to_c2 (CPP_normal_form& C, const Bmad_taylor_class**
   for (unsigned int i = 0; i < C.a_inv.size(); i++) taylor_to_c(z_a_inv[i], C.a_inv[i]);
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.dhdj.size(); i++) taylor_to_c(z_dhdj[i], C.dhdj[i]);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.f.size(); i++) complex_taylor_to_c(z_f[i], C.f[i]);
+  // c_side.to_c2_set[type, 1, NOT]
+  for (unsigned int i = 0; i < C.l.size(); i++) complex_taylor_to_c(z_l[i], C.l[i]);
   // c_side.to_c2_set[type, 0, PTR]
   if (n_ele_origin == 0)
     delete C.ele_origin;
@@ -2666,13 +2678,78 @@ extern "C" void normal_form_to_c2 (CPP_normal_form& C, const Bmad_taylor_class**
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_complex_taylor
+
+extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
+
+// c_side.to_f2_arg
+extern "C" void complex_taylor_to_f2 (Bmad_complex_taylor_class*, c_Complex&, const
+    CPP_complex_taylor_term**, Int);
+
+extern "C" void complex_taylor_to_f (const CPP_complex_taylor& C, Bmad_complex_taylor_class* F) {
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_term = C.term.size();
+  const CPP_complex_taylor_term** z_term = NULL;
+  if (n1_term != 0) {
+    z_term = new const CPP_complex_taylor_term*[n1_term];
+    for (int i = 0; i < n1_term; i++) z_term[i] = &C.term[i];
+  }
+
+  // c_side.to_f2_call
+  complex_taylor_to_f2 (F, C.ref, z_term, n1_term);
+
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_term;
+}
+
+// c_side.to_c2_arg
+extern "C" void complex_taylor_to_c2 (CPP_complex_taylor& C, c_Complex& z_ref,
+    Bmad_complex_taylor_term_class** z_term, Int n1_term) {
+
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.ref = z_ref;
+  // c_side.to_c2_set[type, 1, PTR]
+  C.term.resize(n1_term);
+  for (int i = 0; i < n1_term; i++) complex_taylor_term_to_c(z_term[i], C.term[i]);
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_complex_taylor_term
+
+extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
+
+// c_side.to_f2_arg
+extern "C" void complex_taylor_term_to_f2 (Bmad_complex_taylor_term_class*, c_Complex&,
+    c_IntArr);
+
+extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term& C, Bmad_complex_taylor_term_class* F) {
+
+  // c_side.to_f2_call
+  complex_taylor_term_to_f2 (F, C.coef, &C.expn[0]);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void complex_taylor_term_to_c2 (CPP_complex_taylor_term& C, c_Complex& z_coef,
+    c_IntArr z_expn) {
+
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.coef = z_coef;
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.expn << z_expn;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_branch
 
 extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
 
 // c_side.to_f2_arg
-extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_IntArr, Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
+extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_IntArr,
+    Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
     CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d&,
     Int, const CPP_normal_form&, const CPP_normal_form&);
 
@@ -2700,10 +2777,9 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   unsigned int n_wall3d = 0; if (C.wall3d != NULL) n_wall3d = 1;
 
   // c_side.to_f2_call
-  branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_root_branch, C.ix_from_branch,
-      C.ix_from_ele, C.n_ele_track, n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b,
-      n_b, *C.z, n_z, z_ele, n1_ele, *C.param, n_param, *C.wall3d, n_wall3d,
-      C.normal_form_with_rf, C.normal_form_no_rf);
+  branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_from_branch, C.ix_from_ele, C.n_ele_track,
+      n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b, n_b, *C.z, n_z, z_ele, n1_ele,
+      *C.param, n_param, *C.wall3d, n_wall3d, C.normal_form_with_rf, C.normal_form_no_rf);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
@@ -2711,19 +2787,17 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
 
 // c_side.to_c2_arg
 extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, c_Int&
-    z_ix_root_branch, c_Int& z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track,
-    Int n_n_ele_track, c_IntArr z_n_ele_max, Int n_n_ele_max, Bmad_mode_info_class* z_a, Int
-    n_a, Bmad_mode_info_class* z_b, Int n_b, Bmad_mode_info_class* z_z, Int n_z,
-    Bmad_ele_class** z_ele, Int n1_ele, Bmad_lat_param_class* z_param, Int n_param,
-    Bmad_wall3d_class* z_wall3d, Int n_wall3d, const Bmad_normal_form_class*
-    z_normal_form_with_rf, const Bmad_normal_form_class* z_normal_form_no_rf) {
+    z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track, Int n_n_ele_track, c_IntArr
+    z_n_ele_max, Int n_n_ele_max, Bmad_mode_info_class* z_a, Int n_a, Bmad_mode_info_class*
+    z_b, Int n_b, Bmad_mode_info_class* z_z, Int n_z, Bmad_ele_class** z_ele, Int n1_ele,
+    Bmad_lat_param_class* z_param, Int n_param, Bmad_wall3d_class* z_wall3d, Int n_wall3d,
+    const Bmad_normal_form_class* z_normal_form_with_rf, const Bmad_normal_form_class*
+    z_normal_form_no_rf) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_branch = z_ix_branch;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.ix_root_branch = z_ix_root_branch;
   // c_side.to_c2_set[integer, 0, NOT]
   C.ix_from_branch = z_ix_from_branch;
   // c_side.to_c2_set[integer, 0, NOT]

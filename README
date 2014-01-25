@@ -25,7 +25,9 @@ There are two scipts to generate files:
   For example, the proton$ parameter on the Fortran side is translated to PROTON on the C++ side.
 
 * scripts/create_interface.py:
-	You must have a local copy of bmad in the same directory as cpp_bmad_interface
+	You must have a local copy of bmad in the same directory as cpp_bmad_interface.
+	If the Bmad structures are modified then the file scripts/interface_input_params.py must
+    be appropriately updatted. See this file for more instructions.
   See the script for execution directions.
   This script generates:
     A) The include/cpp_bmad_classes.h file defining the C++ classes 

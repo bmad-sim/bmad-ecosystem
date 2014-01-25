@@ -1021,6 +1021,8 @@ bool operator== (const CPP_normal_form& x, const CPP_normal_form& y) {
   is_eq = is_eq && is_all_equal(x.a, y.a);
   is_eq = is_eq && is_all_equal(x.a_inv, y.a_inv);
   is_eq = is_eq && is_all_equal(x.dhdj, y.dhdj);
+  is_eq = is_eq && is_all_equal(x.f, y.f);
+  is_eq = is_eq && is_all_equal(x.l, y.l);
   is_eq = is_eq && ((x.ele_origin == NULL) == (y.ele_origin == NULL));
   if (!is_eq) return false;
   if (x.ele_origin != NULL) is_eq = (*x.ele_origin == *y.ele_origin);
@@ -1032,11 +1034,34 @@ template bool is_all_equal (const CPP_normal_form_MATRIX&, const CPP_normal_form
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_complex_taylor& x, const CPP_complex_taylor& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ref == y.ref);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_complex_taylor_ARRAY&, const CPP_complex_taylor_ARRAY&);
+template bool is_all_equal (const CPP_complex_taylor_MATRIX&, const CPP_complex_taylor_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_complex_taylor_term& x, const CPP_complex_taylor_term& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && is_all_equal(x.expn, y.expn);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_complex_taylor_term_ARRAY&, const CPP_complex_taylor_term_ARRAY&);
+template bool is_all_equal (const CPP_complex_taylor_term_MATRIX&, const CPP_complex_taylor_term_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_branch& x, const CPP_branch& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
-  is_eq = is_eq && (x.ix_root_branch == y.ix_root_branch);
   is_eq = is_eq && (x.ix_from_branch == y.ix_from_branch);
   is_eq = is_eq && (x.ix_from_ele == y.ix_from_ele);
   is_eq = is_eq && ((x.n_ele_track == NULL) == (y.n_ele_track == NULL));

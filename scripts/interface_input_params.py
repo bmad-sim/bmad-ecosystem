@@ -5,7 +5,8 @@ struct_def_files = [
     '../bmad/modules/twiss_mod.f90', 
     '../bmad/modules/bmad_taylor_mod.f90',
     '../bmad/multiparticle/beam_def_struct.f90',
-    '../bmad/multiparticle/csr_mod.f90'
+    '../bmad/multiparticle/csr_mod.f90',
+    '../bmad/modules/bmad_complex_taylor_mod.f90'
 ]
 
 # List of use statements needed in various Fortran modules
@@ -69,6 +70,8 @@ struct_list = [
     'rad_int_all_ele_struct',
     'ele_struct',
     'normal_form_struct',
+    'complex_taylor_struct',
+    'complex_taylor_term_struct',
     'branch_struct',
     'lat_struct',
     'bunch_struct',

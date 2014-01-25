@@ -5597,16 +5597,213 @@ do jd1 = 1, size(F%dhdj,1); lb1 = lbound(F%dhdj,1) - 1
   rhs = 100 + jd1 + 4 + offset
   call set_taylor_test_pattern (F%dhdj(jd1+lb1), ix_patt+jd1)
 enddo
+!! f_side.test_pat[type, 1, NOT]
+do jd1 = 1, size(F%f,1); lb1 = lbound(F%f,1) - 1
+  rhs = 100 + jd1 + 5 + offset
+  call set_complex_taylor_test_pattern (F%f(jd1+lb1), ix_patt+jd1)
+enddo
+!! f_side.test_pat[type, 1, NOT]
+do jd1 = 1, size(F%l,1); lb1 = lbound(F%l,1) - 1
+  rhs = 100 + jd1 + 6 + offset
+  call set_complex_taylor_test_pattern (F%l(jd1+lb1), ix_patt+jd1)
+enddo
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%ele_origin)) deallocate (F%ele_origin)
 else
   if (.not. associated(F%ele_origin)) allocate (F%ele_origin)
-  rhs = 5 + offset
+  rhs = 7 + offset
   call set_ele_test_pattern (F%ele_origin, ix_patt)
 endif
 
 end subroutine set_normal_form_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_complex_taylor (ok)
+
+implicit none
+
+type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_complex_taylor (c_complex_taylor, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_complex_taylor
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_complex_taylor_test_pattern (f2_complex_taylor, 1)
+
+call test_c_complex_taylor(c_loc(f2_complex_taylor), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_complex_taylor_test_pattern (f_complex_taylor, 4)
+if (f_complex_taylor == f2_complex_taylor) then
+  print *, 'complex_taylor: C side convert C->F: Good'
+else
+  print *, 'complex_taylor: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_complex_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_complex_taylor (c_complex_taylor, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_complex_taylor
+type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call complex_taylor_to_f (c_complex_taylor, c_loc(f_complex_taylor))
+
+call set_complex_taylor_test_pattern (f2_complex_taylor, 2)
+if (f_complex_taylor == f2_complex_taylor) then
+  print *, 'complex_taylor: F side convert C->F: Good'
+else
+  print *, 'complex_taylor: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_complex_taylor_test_pattern (f2_complex_taylor, 3)
+call complex_taylor_to_c (c_loc(f2_complex_taylor), c_complex_taylor)
+
+end subroutine test2_f_complex_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_complex_taylor_test_pattern (F, ix_patt)
+
+implicit none
+
+type(complex_taylor_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 1 + offset; F%ref = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[type, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%term)) deallocate (F%term)
+else
+  if (.not. associated(F%term)) allocate (F%term(-1:1))
+  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
+    call set_complex_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_complex_taylor_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_complex_taylor_term (ok)
+
+implicit none
+
+type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_complex_taylor_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 1)
+
+call test_c_complex_taylor_term(c_loc(f2_complex_taylor_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_complex_taylor_term_test_pattern (f_complex_taylor_term, 4)
+if (f_complex_taylor_term == f2_complex_taylor_term) then
+  print *, 'complex_taylor_term: C side convert C->F: Good'
+else
+  print *, 'complex_taylor_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_complex_taylor_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_complex_taylor_term
+type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call complex_taylor_term_to_f (c_complex_taylor_term, c_loc(f_complex_taylor_term))
+
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 2)
+if (f_complex_taylor_term == f2_complex_taylor_term) then
+  print *, 'complex_taylor_term: F side convert C->F: Good'
+else
+  print *, 'complex_taylor_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 3)
+call complex_taylor_term_to_c (c_loc(f2_complex_taylor_term), c_complex_taylor_term)
+
+end subroutine test2_f_complex_taylor_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_complex_taylor_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(complex_taylor_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 1 + offset; F%coef = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[integer, 1, NOT]
+do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%expn(jd1+lb1) = rhs
+enddo
+
+end subroutine set_complex_taylor_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -5696,17 +5893,15 @@ enddo
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 2 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%ix_root_branch = rhs
+rhs = 3 + offset; F%ix_from_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 4 + offset; F%ix_from_branch = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%ix_from_ele = rhs
+rhs = 4 + offset; F%ix_from_ele = rhs
 !! f_side.test_pat[integer, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%n_ele_track)) deallocate (F%n_ele_track)
 else
   if (.not. associated(F%n_ele_track)) allocate (F%n_ele_track)
-  rhs = 6 + offset
+  rhs = 5 + offset
   F%n_ele_track = rhs
 endif
 !! f_side.test_pat[integer, 0, PTR]
@@ -5714,7 +5909,7 @@ if (ix_patt < 3) then
   if (associated(F%n_ele_max)) deallocate (F%n_ele_max)
 else
   if (.not. associated(F%n_ele_max)) allocate (F%n_ele_max)
-  rhs = 8 + offset
+  rhs = 7 + offset
   F%n_ele_max = rhs
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5722,7 +5917,7 @@ if (ix_patt < 3) then
   if (associated(F%a)) deallocate (F%a)
 else
   if (.not. associated(F%a)) allocate (F%a)
-  rhs = 10 + offset
+  rhs = 9 + offset
   call set_mode_info_test_pattern (F%a, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5730,7 +5925,7 @@ if (ix_patt < 3) then
   if (associated(F%b)) deallocate (F%b)
 else
   if (.not. associated(F%b)) allocate (F%b)
-  rhs = 12 + offset
+  rhs = 11 + offset
   call set_mode_info_test_pattern (F%b, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5738,7 +5933,7 @@ if (ix_patt < 3) then
   if (associated(F%z)) deallocate (F%z)
 else
   if (.not. associated(F%z)) allocate (F%z)
-  rhs = 14 + offset
+  rhs = 13 + offset
   call set_mode_info_test_pattern (F%z, ix_patt)
 endif
 !! f_side.test_pat[type, 1, PTR]
@@ -5756,7 +5951,7 @@ if (ix_patt < 3) then
   if (associated(F%param)) deallocate (F%param)
 else
   if (.not. associated(F%param)) allocate (F%param)
-  rhs = 18 + offset
+  rhs = 17 + offset
   call set_lat_param_test_pattern (F%param, ix_patt)
 endif
 !! f_side.test_pat[type, 0, PTR]
@@ -5764,7 +5959,7 @@ if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
 else
   if (.not. associated(F%wall3d)) allocate (F%wall3d)
-  rhs = 20 + offset
+  rhs = 19 + offset
   call set_wall3d_test_pattern (F%wall3d, ix_patt)
 endif
 !! f_side.test_pat[type, 0, NOT]
