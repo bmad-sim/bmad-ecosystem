@@ -211,14 +211,15 @@ directions. Notice that \vn{time_runge_kutta} is different from using
   \vn{rbend}                   & D &   & X & X & X &     &     &  X  &  X  &  X  &    \\ 
   \vn{rcollimator}             & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{rfcavity}                & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
+  \vn{sad_mult}                & D &   & X &   &   &     &     &     &     &     &    \\
+  \vn{sample}                  & D &   & X &   &   &     &     &     &     &     &    \\
   \vn{sbend}                   & D &   & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{sextupole}               & D & X & X & X & X &  X  &     &  X  &  X  &  X  & X  \\ 
   \vn{solenoid}                & D & X & X & X & X &  X  &  X  &  X  &  X  &  X  & X  \\ 
   \vn{sol_quad}                & D & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
   \vn{taylor}                  & X &   & X & X &   &     &     &     &     &  D  &    \\ 
   \vn{vkicker}                 & D & X & X & X &   &  X  &     &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (map type)      &   & X & X & X &   &  X  &  X  &  X  &  X  &  X  & X  \\ 
-  \vn{wiggler} (periodic type) & D & X & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$&    \\ \bottomrule
+  \vn{wiggler}                 & D & X & X & X &   &X$^a$&X$^a$&X$^a$&X$^a$&X$^a$& X  \\ \bottomrule
    \multicolumn{12}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
@@ -394,18 +395,18 @@ is that it is directly related to any tracking results.
   \vn{rbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{rcollimator}             & D & X &   & X &     &  X  &  X  & X \\ 
   \vn{rfcavity}                & D & X & X & X &     &  X  &  X  & X \\ 
+  \vn{sad_mult}                & D & X &   & X &     &     &     & X \\ 
+  \vn{sample}                  & D & X &   & X &     &     &     & X \\ 
   \vn{sbend}                   & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{sextupole}               & D & X & X & X &     &  X  &  X  & X \\ 
   \vn{solenoid}                & D & X & X & X &  X  &  X  &  X  & X \\ 
   \vn{sol_quad}                & D & X & X & X &  X  &  X  &  X  & X \\ 
   \vn{taylor}                  & X & X &   & X &     &     &  D  &   \\ 
   \vn{vkicker}                 & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{wiggler} (map type)      & D & X &   & X &  X  &  X  &  X  & X \\ 
-  \vn{wiggler} (periodic type) & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ \bottomrule
+  \vn{wiggler}                 & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ \bottomrule
   \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 }
-
 \caption[Table of available \vn{mat6_calc_method}\ switches for a
 given element class.]{Table of available \vn{mat6_calc_method}\
 switches for a given element class. ``D'' denotes the default
@@ -486,40 +487,41 @@ Example:
 \\ \midrule
 %                               BS   C  SLP Trk 
   \vn{ab_multipole}            & D & X &   &   \\  
-  \vn{beambeam}                & D & X &   & X \\  
+  \vn{beambeam}                &   & X &   &   \\  
   \vn{bend_sol_quad}           & D & X & X & X \\  
   \vn{capillary}               &   &   &   &   \\  
   \vn{crystal}                 &   &   &   &   \\  
   \vn{custom}                  &   & D &   & X \\  
   \vn{drift}                   & D & X & X & X \\  
-  \vn{e_gun}                   & D & X & X & D \\  
+  \vn{e_gun}                   &   & X &   & D \\  
   \vn{ecollimator}             & D & X & X & X \\  
   \vn{elseparator}             & D & X & X & X \\  
-  \vn{em_field}                &   &   &   & D \\  
+  \vn{em_field}                &   & X &   & D \\  
   \vn{hkicker}                 & D & X & X & X \\  
   \vn{instrument}              & D & X & X & X \\  
   \vn{kicker}                  & D & X & X & X \\  
   \vn{lcavity}                 & D & X & X & X \\  
   \vn{marker}                  & D & X & X & X \\  
-  \vn{match}                   & D & X &   &   \\  
+  \vn{match}                   &   & X &   &   \\  
   \vn{mirror}                  &   &   &   &   \\  
   \vn{monitor}                 & D & X & X & X \\  
   \vn{multipole}               & D & X & X &   \\  
   \vn{multilayer}              &   &   &   &   \\  
   \vn{octupole}                & D & X & X & X \\ 
-  \vn{patch}                   & D & X &   &   \\ 
+  \vn{patch}                   &   & X & X &   \\ 
   \vn{quadrupole}              & D & X & X & X \\ 
   \vn{rbend}                   & D & X & X & X \\ 
   \vn{rcollimator}             & D & X & X & X \\ 
   \vn{rfcavity}                & D & X & X & X \\ 
+  \vn{sad_mult}                &   & X &   &   \\  
+  \vn{sample}                  &   &   &   &   \\  
   \vn{sbend}                   & D & X & X & X \\ 
   \vn{sextupole}               & D & X & X & X \\ 
   \vn{solenoid}                & D & X & X & X \\ 
   \vn{sol_quad}                & D & X & X & X \\ 
   \vn{taylor}                  &   &   &   &   \\ 
   \vn{vkicker}                 & D & X & X & X \\ 
-  \vn{wiggler} (map type)      & D & X & X & X \\ 
-  \vn{wiggler} (periodic type) & D & X & X & X \\ \bottomrule
+  \vn{wiggler}                 & D & X & X & X \\ \bottomrule
 \end{tabular}
 }
 

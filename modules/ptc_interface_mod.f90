@@ -3074,10 +3074,10 @@ if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid a
   ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
 endif
 
-if (attribute_index(ele, 'KILL_FRINGE') > 0) then  ! If kill_fringe is a valid attribute
-  ix = nint(ele%value(kill_fringe$))
-  ptc_key%list%kill_ent_fringe = (ix == upstream_end$ .or. ix == both_ends$)
-  ptc_key%list%kill_exi_fringe = (ix == downstream_end$ .or. ix == both_ends$)
+if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
+  ix = nint(ele%value(fringe_at$))
+  ptc_key%list%kill_ent_fringe = (ix == exit_end$ .or. ix == no_end$)
+  ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
 endif
 
 ! Multipole components

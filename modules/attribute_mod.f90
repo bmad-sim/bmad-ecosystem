@@ -78,7 +78,7 @@ contains
 !   tracking_method -- integer: bmad_standard$, etc.
 !
 ! Output:
-!   num_valid -- integer, optional: Number of valid methods.
+!   num_valid -- integer, optional: Number of valid methods. 
 !   is_valid  -- logical: True if a valid method. False otherwise.
 !-
 
@@ -291,6 +291,13 @@ case (rfcavity$)
     is_valid = .true.
   end select
 
+case (sad_mult$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (sample$)
   if (present(num_valid)) num_valid = 2
   select case (tracking_method)
@@ -341,19 +348,11 @@ case (vkicker$)
   end select
 
 case (wiggler$, undulator$)
-  if (ele%sub_key == map_type$) then
-    if (present(num_valid)) num_valid = 9
-    select case (tracking_method)
-    case (symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
-      is_valid = .true.
-    end select
-  elseif (ele%sub_key == periodic_type$) then
-    if (present(num_valid)) num_valid = 9
-    select case (tracking_method)
-    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, time_runge_kutta$, custom$)
-      is_valid = .true.
-    end select
-  endif
+  if (present(num_valid)) num_valid = 10
+  select case (tracking_method)
+  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, symp_lie_bmad$, boris$, time_runge_kutta$, custom$)
+    is_valid = .true.
+  end select
 
 case (x_ray_init$)
   if (present(num_valid)) num_valid = 2
@@ -597,6 +596,13 @@ case (rcollimator$)
     is_valid = .true.
   end select
 
+case (sad_mult$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 case (sample$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
@@ -700,10 +706,33 @@ logical is_valid
 
 !
 
-is_valid = .false.
-if (present(num_valid)) num_valid = 0
 
 select case (ele%key)
+case (ab_multipole$)
+  if (present(num_valid)) num_valid = 2
+  select case (spin_tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
+case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
+  if (present(num_valid)) num_valid = 0
+  is_valid = .false.
+
+case (custom$)
+  if (present(num_valid)) num_valid = 2
+  select case (spin_tracking_method)
+  case (tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (sad_mult$, patch$)
+  if (present(num_valid)) num_valid = 1
+  select case (spin_tracking_method)
+  case (custom$, symp_lie_ptc$)
+    is_valid = .true.
+  end select
+
 case default
   if (present(num_valid)) num_valid = 3
   select case (spin_tracking_method)

@@ -24,7 +24,7 @@ interface operator (==)
   module procedure eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
   module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map, eq_track
   module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
-  module procedure eq_ele, eq_normal_form, eq_complex_taylor, eq_complex_taylor_term, eq_branch
+  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch
   module procedure eq_lat, eq_bunch, eq_beam_spin, eq_bunch_params, eq_beam
 end interface
 
@@ -1776,6 +1776,50 @@ end function eq_ele
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
+elemental function eq_complex_taylor_term (f1, f2) result (is_eq)
+
+implicit none
+
+type(complex_taylor_term_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%coef == f2%coef)
+!! f_side.equality_test[integer, 1, NOT]
+is_eq = is_eq .and. all(f1%expn == f2%expn)
+
+end function eq_complex_taylor_term
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_complex_taylor (f1, f2) result (is_eq)
+
+implicit none
+
+type(complex_taylor_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%ref == f2%ref)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%term) .eqv. associated(f2%term))
+if (.not. is_eq) return
+if (associated(f1%term)) is_eq = all(shape(f1%term) == shape(f2%term))
+if (.not. is_eq) return
+if (associated(f1%term)) is_eq = all(f1%term == f2%term)
+
+end function eq_complex_taylor
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
 elemental function eq_normal_form (f1, f2) result (is_eq)
 
 implicit none
@@ -1805,50 +1849,6 @@ if (.not. is_eq) return
 if (associated(f1%ele_origin)) is_eq = (f1%ele_origin == f2%ele_origin)
 
 end function eq_normal_form
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_complex_taylor (f1, f2) result (is_eq)
-
-implicit none
-
-type(complex_taylor_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[complex, 0, NOT]
-is_eq = is_eq .and. (f1%ref == f2%ref)
-!! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%term) .eqv. associated(f2%term))
-if (.not. is_eq) return
-if (associated(f1%term)) is_eq = all(shape(f1%term) == shape(f2%term))
-if (.not. is_eq) return
-if (associated(f1%term)) is_eq = all(f1%term == f2%term)
-
-end function eq_complex_taylor
-
-!--------------------------------------------------------------------------------
-!--------------------------------------------------------------------------------
-
-elemental function eq_complex_taylor_term (f1, f2) result (is_eq)
-
-implicit none
-
-type(complex_taylor_term_struct), intent(in) :: f1, f2
-logical is_eq
-
-!
-
-is_eq = .true.
-!! f_side.equality_test[complex, 0, NOT]
-is_eq = is_eq .and. (f1%coef == f2%coef)
-!! f_side.equality_test[integer, 1, NOT]
-is_eq = is_eq .and. all(f1%expn == f2%expn)
-
-end function eq_complex_taylor_term
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
