@@ -476,7 +476,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine normal_form_to_f (C, Fp) bind(c)
+  subroutine complex_taylor_term_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -494,7 +494,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine complex_taylor_term_to_f (C, Fp) bind(c)
+  subroutine normal_form_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -6219,6 +6219,197 @@ end subroutine ele_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
+! Subroutine complex_taylor_term_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad complex_taylor_term_struct to a C++ CPP_complex_taylor_term structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_term_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor_term struct.
+!-
+
+subroutine complex_taylor_term_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine complex_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    complex(c_double_complex) :: z_coef
+    integer(c_int) :: z_expn(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(complex_taylor_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call complex_taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 6))
+
+end subroutine complex_taylor_term_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_term_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_complex_taylor_term structure to a Bmad complex_taylor_term_struct structure.
+! This routine is called by complex_taylor_term_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the complex_taylor_term_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad complex_taylor_term_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine complex_taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(complex_taylor_term_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+complex(c_double_complex) :: z_coef
+integer(c_int) :: z_expn(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%coef = z_coef
+!! f_side.to_f2_trans[integer, 1, NOT]
+F%expn = z_expn(1:6)
+
+end subroutine complex_taylor_term_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad complex_taylor_struct to a C++ CPP_complex_taylor structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor struct.
+!-
+
+subroutine complex_taylor_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine complex_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    complex(c_double_complex) :: z_ref
+    integer(c_int), value :: n1_term
+    type(c_ptr) :: z_term(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(complex_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_term(:)
+integer(c_int) :: n1_term
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_term = 0
+if (associated(F%term)) then
+  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
+  allocate (z_term(n1_term))
+  do jd1 = 1, n1_term
+    z_term(jd1) = c_loc(F%term(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call complex_taylor_to_c2 (C, F%ref, z_term, n1_term)
+
+end subroutine complex_taylor_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine complex_taylor_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_complex_taylor structure to a Bmad complex_taylor_struct structure.
+! This routine is called by complex_taylor_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the complex_taylor_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad complex_taylor_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine complex_taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(complex_taylor_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+complex(c_double_complex) :: z_ref
+integer(c_int), value :: n1_term
+type(c_ptr) :: z_term(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%ref = z_ref
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_term == 0) then
+  if (associated(F%term)) deallocate(F%term)
+else
+  if (associated(F%term)) then
+    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
+    if (any(lbound(F%term) /= 1)) deallocate(F%term)
+  endif
+  if (.not. associated(F%term)) allocate(F%term(1:n1_term+1-1))
+  do jd1 = 1, n1_term
+    call complex_taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+  enddo
+endif
+
+
+end subroutine complex_taylor_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
 ! Subroutine normal_form_to_c (Fp, C) bind(c)
 !
 ! Routine to convert a Bmad normal_form_struct to a C++ CPP_normal_form structure
@@ -6365,197 +6556,6 @@ endif
 
 
 end subroutine normal_form_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine complex_taylor_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad complex_taylor_struct to a C++ CPP_complex_taylor structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor struct.
-!-
-
-subroutine complex_taylor_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine complex_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    complex(c_double_complex) :: z_ref
-    integer(c_int), value :: n1_term
-    type(c_ptr) :: z_term(*)
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(complex_taylor_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-type(c_ptr), allocatable :: z_term(:)
-integer(c_int) :: n1_term
-
-!
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_c_trans[type, 1, PTR]
- n1_term = 0
-if (associated(F%term)) then
-  n1_term = size(F%term); lb1 = lbound(F%term, 1) - 1
-  allocate (z_term(n1_term))
-  do jd1 = 1, n1_term
-    z_term(jd1) = c_loc(F%term(jd1+lb1))
-  enddo
-endif
-
-!! f_side.to_c2_call
-call complex_taylor_to_c2 (C, F%ref, z_term, n1_term)
-
-end subroutine complex_taylor_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine complex_taylor_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_complex_taylor structure to a Bmad complex_taylor_struct structure.
-! This routine is called by complex_taylor_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the complex_taylor_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad complex_taylor_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine complex_taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(complex_taylor_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-complex(c_double_complex) :: z_ref
-integer(c_int), value :: n1_term
-type(c_ptr) :: z_term(*)
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%ref = z_ref
-!! f_side.to_f2_trans[type, 1, PTR]
-if (n1_term == 0) then
-  if (associated(F%term)) deallocate(F%term)
-else
-  if (associated(F%term)) then
-    if (n1_term == 0 .or. any(shape(F%term) /= [n1_term])) deallocate(F%term)
-    if (any(lbound(F%term) /= 1)) deallocate(F%term)
-  endif
-  if (.not. associated(F%term)) allocate(F%term(1:n1_term+1-1))
-  do jd1 = 1, n1_term
-    call complex_taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
-  enddo
-endif
-
-
-end subroutine complex_taylor_to_f2
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine complex_taylor_term_to_c (Fp, C) bind(c)
-!
-! Routine to convert a Bmad complex_taylor_term_struct to a C++ CPP_complex_taylor_term structure
-!
-! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad complex_taylor_term_struct structure.
-!
-! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_complex_taylor_term struct.
-!-
-
-subroutine complex_taylor_term_to_c (Fp, C) bind(c)
-
-implicit none
-
-interface
-  !! f_side.to_c2_f2_sub_arg
-  subroutine complex_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
-    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
-    !! f_side.to_c2_type :: f_side.to_c2_name
-    type(c_ptr), value :: C
-    complex(c_double_complex) :: z_coef
-    integer(c_int) :: z_expn(*)
-  end subroutine
-end interface
-
-type(c_ptr), value :: Fp
-type(c_ptr), value :: C
-type(complex_taylor_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_c_var
-
-!
-
-call c_f_pointer (Fp, F)
-
-
-!! f_side.to_c2_call
-call complex_taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 6))
-
-end subroutine complex_taylor_term_to_c
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine complex_taylor_term_to_f2 (Fp, ...etc...) bind(c)
-!
-! Routine used in converting a C++ CPP_complex_taylor_term structure to a Bmad complex_taylor_term_struct structure.
-! This routine is called by complex_taylor_term_to_c and is not meant to be called directly.
-!
-! Input:
-!   ...etc... -- Components of the structure. See the complex_taylor_term_to_f2 code for more details.
-!
-! Output:
-!   Fp -- type(c_ptr), value :: Bmad complex_taylor_term_struct structure.
-!-
-
-!! f_side.to_c2_f2_sub_arg
-subroutine complex_taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
-
-
-implicit none
-
-type(c_ptr), value :: Fp
-type(complex_taylor_term_struct), pointer :: F
-integer jd, jd1, jd2, jd3, lb1, lb2, lb3
-!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-complex(c_double_complex) :: z_coef
-integer(c_int) :: z_expn(*)
-
-call c_f_pointer (Fp, F)
-
-!! f_side.to_f2_trans[complex, 0, NOT]
-F%coef = z_coef
-!! f_side.to_f2_trans[integer, 1, NOT]
-F%expn = z_expn(1:6)
-
-end subroutine complex_taylor_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

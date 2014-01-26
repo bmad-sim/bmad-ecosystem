@@ -5500,6 +5500,193 @@ end subroutine set_ele_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_complex_taylor_term (ok)
+
+implicit none
+
+type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_complex_taylor_term
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 1)
+
+call test_c_complex_taylor_term(c_loc(f2_complex_taylor_term), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_complex_taylor_term_test_pattern (f_complex_taylor_term, 4)
+if (f_complex_taylor_term == f2_complex_taylor_term) then
+  print *, 'complex_taylor_term: C side convert C->F: Good'
+else
+  print *, 'complex_taylor_term: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_complex_taylor_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_complex_taylor_term
+type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call complex_taylor_term_to_f (c_complex_taylor_term, c_loc(f_complex_taylor_term))
+
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 2)
+if (f_complex_taylor_term == f2_complex_taylor_term) then
+  print *, 'complex_taylor_term: F side convert C->F: Good'
+else
+  print *, 'complex_taylor_term: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 3)
+call complex_taylor_term_to_c (c_loc(f2_complex_taylor_term), c_complex_taylor_term)
+
+end subroutine test2_f_complex_taylor_term
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_complex_taylor_term_test_pattern (F, ix_patt)
+
+implicit none
+
+type(complex_taylor_term_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 1 + offset; F%coef = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[integer, 1, NOT]
+do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
+  rhs = 100 + jd1 + 2 + offset
+  F%expn(jd1+lb1) = rhs
+enddo
+
+end subroutine set_complex_taylor_term_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_complex_taylor (ok)
+
+implicit none
+
+type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_complex_taylor (c_complex_taylor, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_complex_taylor
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_complex_taylor_test_pattern (f2_complex_taylor, 1)
+
+call test_c_complex_taylor(c_loc(f2_complex_taylor), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_complex_taylor_test_pattern (f_complex_taylor, 4)
+if (f_complex_taylor == f2_complex_taylor) then
+  print *, 'complex_taylor: C side convert C->F: Good'
+else
+  print *, 'complex_taylor: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_complex_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_complex_taylor (c_complex_taylor, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_complex_taylor
+type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call complex_taylor_to_f (c_complex_taylor, c_loc(f_complex_taylor))
+
+call set_complex_taylor_test_pattern (f2_complex_taylor, 2)
+if (f_complex_taylor == f2_complex_taylor) then
+  print *, 'complex_taylor: F side convert C->F: Good'
+else
+  print *, 'complex_taylor: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_complex_taylor_test_pattern (f2_complex_taylor, 3)
+call complex_taylor_to_c (c_loc(f2_complex_taylor), c_complex_taylor)
+
+end subroutine test2_f_complex_taylor
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_complex_taylor_test_pattern (F, ix_patt)
+
+implicit none
+
+type(complex_taylor_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 1 + offset; F%ref = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[type, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%term)) deallocate (F%term)
+else
+  if (.not. associated(F%term)) allocate (F%term(-1:1))
+  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
+    call set_complex_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+
+end subroutine set_complex_taylor_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_normal_form (ok)
 
 implicit none
@@ -5617,193 +5804,6 @@ else
 endif
 
 end subroutine set_normal_form_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_complex_taylor (ok)
-
-implicit none
-
-type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_complex_taylor (c_complex_taylor, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_complex_taylor
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_complex_taylor_test_pattern (f2_complex_taylor, 1)
-
-call test_c_complex_taylor(c_loc(f2_complex_taylor), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_complex_taylor_test_pattern (f_complex_taylor, 4)
-if (f_complex_taylor == f2_complex_taylor) then
-  print *, 'complex_taylor: C side convert C->F: Good'
-else
-  print *, 'complex_taylor: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_complex_taylor
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_complex_taylor (c_complex_taylor, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_complex_taylor
-type(complex_taylor_struct), target :: f_complex_taylor, f2_complex_taylor
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call complex_taylor_to_f (c_complex_taylor, c_loc(f_complex_taylor))
-
-call set_complex_taylor_test_pattern (f2_complex_taylor, 2)
-if (f_complex_taylor == f2_complex_taylor) then
-  print *, 'complex_taylor: F side convert C->F: Good'
-else
-  print *, 'complex_taylor: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_complex_taylor_test_pattern (f2_complex_taylor, 3)
-call complex_taylor_to_c (c_loc(f2_complex_taylor), c_complex_taylor)
-
-end subroutine test2_f_complex_taylor
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_complex_taylor_test_pattern (F, ix_patt)
-
-implicit none
-
-type(complex_taylor_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 1 + offset; F%ref = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[type, 1, PTR]
-
-if (ix_patt < 3) then
-  if (associated(F%term)) deallocate (F%term)
-else
-  if (.not. associated(F%term)) allocate (F%term(-1:1))
-  do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_complex_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
-  enddo
-endif
-
-end subroutine set_complex_taylor_test_pattern
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test1_f_complex_taylor_term (ok)
-
-implicit none
-
-type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
-logical(c_bool) c_ok
-logical ok
-
-interface
-  subroutine test_c_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
-    import c_ptr, c_bool
-    type(c_ptr), value :: c_complex_taylor_term
-    logical(c_bool) c_ok
-  end subroutine
-end interface
-
-!
-
-ok = .true.
-call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 1)
-
-call test_c_complex_taylor_term(c_loc(f2_complex_taylor_term), c_ok)
-if (.not. f_logic(c_ok)) ok = .false.
-
-call set_complex_taylor_term_test_pattern (f_complex_taylor_term, 4)
-if (f_complex_taylor_term == f2_complex_taylor_term) then
-  print *, 'complex_taylor_term: C side convert C->F: Good'
-else
-  print *, 'complex_taylor_term: C SIDE CONVERT C->F: FAILED!'
-  ok = .false.
-endif
-
-end subroutine test1_f_complex_taylor_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine test2_f_complex_taylor_term (c_complex_taylor_term, c_ok) bind(c)
-
-implicit  none
-
-type(c_ptr), value ::  c_complex_taylor_term
-type(complex_taylor_term_struct), target :: f_complex_taylor_term, f2_complex_taylor_term
-logical(c_bool) c_ok
-
-!
-
-c_ok = c_logic(.true.)
-call complex_taylor_term_to_f (c_complex_taylor_term, c_loc(f_complex_taylor_term))
-
-call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 2)
-if (f_complex_taylor_term == f2_complex_taylor_term) then
-  print *, 'complex_taylor_term: F side convert C->F: Good'
-else
-  print *, 'complex_taylor_term: F SIDE CONVERT C->F: FAILED!'
-  c_ok = c_logic(.false.)
-endif
-
-call set_complex_taylor_term_test_pattern (f2_complex_taylor_term, 3)
-call complex_taylor_term_to_c (c_loc(f2_complex_taylor_term), c_complex_taylor_term)
-
-end subroutine test2_f_complex_taylor_term
-
-!---------------------------------------------------------------------------------
-!---------------------------------------------------------------------------------
-
-subroutine set_complex_taylor_term_test_pattern (F, ix_patt)
-
-implicit none
-
-type(complex_taylor_term_struct) F
-integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
-
-!
-
-offset = 100 * ix_patt
-
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 1 + offset; F%coef = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[integer, 1, NOT]
-do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
-  rhs = 100 + jd1 + 2 + offset
-  F%expn(jd1+lb1) = rhs
-enddo
-
-end subroutine set_complex_taylor_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

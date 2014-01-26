@@ -2612,6 +2612,71 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_complex_taylor_term
+
+extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
+
+// c_side.to_f2_arg
+extern "C" void complex_taylor_term_to_f2 (Bmad_complex_taylor_term_class*, c_Complex&,
+    c_IntArr);
+
+extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term& C, Bmad_complex_taylor_term_class* F) {
+
+  // c_side.to_f2_call
+  complex_taylor_term_to_f2 (F, C.coef, &C.expn[0]);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void complex_taylor_term_to_c2 (CPP_complex_taylor_term& C, c_Complex& z_coef,
+    c_IntArr z_expn) {
+
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.coef = z_coef;
+  // c_side.to_c2_set[integer, 1, NOT]
+  C.expn << z_expn;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
+// CPP_complex_taylor
+
+extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
+
+// c_side.to_f2_arg
+extern "C" void complex_taylor_to_f2 (Bmad_complex_taylor_class*, c_Complex&, const
+    CPP_complex_taylor_term**, Int);
+
+extern "C" void complex_taylor_to_f (const CPP_complex_taylor& C, Bmad_complex_taylor_class* F) {
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_term = C.term.size();
+  const CPP_complex_taylor_term** z_term = NULL;
+  if (n1_term != 0) {
+    z_term = new const CPP_complex_taylor_term*[n1_term];
+    for (int i = 0; i < n1_term; i++) z_term[i] = &C.term[i];
+  }
+
+  // c_side.to_f2_call
+  complex_taylor_to_f2 (F, C.ref, z_term, n1_term);
+
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_term;
+}
+
+// c_side.to_c2_arg
+extern "C" void complex_taylor_to_c2 (CPP_complex_taylor& C, c_Complex& z_ref,
+    Bmad_complex_taylor_term_class** z_term, Int n1_term) {
+
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.ref = z_ref;
+  // c_side.to_c2_set[type, 1, PTR]
+  C.term.resize(n1_term);
+  for (int i = 0; i < n1_term; i++) complex_taylor_term_to_c(z_term[i], C.term[i]);
+
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_normal_form
 
 extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form&);
@@ -2674,71 +2739,6 @@ extern "C" void normal_form_to_c2 (CPP_normal_form& C, const Bmad_taylor_class**
     ele_to_c(z_ele_origin, *C.ele_origin);
   }
 
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_complex_taylor
-
-extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
-
-// c_side.to_f2_arg
-extern "C" void complex_taylor_to_f2 (Bmad_complex_taylor_class*, c_Complex&, const
-    CPP_complex_taylor_term**, Int);
-
-extern "C" void complex_taylor_to_f (const CPP_complex_taylor& C, Bmad_complex_taylor_class* F) {
-  // c_side.to_f_setup[type, 1, PTR]
-  int n1_term = C.term.size();
-  const CPP_complex_taylor_term** z_term = NULL;
-  if (n1_term != 0) {
-    z_term = new const CPP_complex_taylor_term*[n1_term];
-    for (int i = 0; i < n1_term; i++) z_term[i] = &C.term[i];
-  }
-
-  // c_side.to_f2_call
-  complex_taylor_to_f2 (F, C.ref, z_term, n1_term);
-
-  // c_side.to_f_cleanup[type, 1, PTR]
- delete[] z_term;
-}
-
-// c_side.to_c2_arg
-extern "C" void complex_taylor_to_c2 (CPP_complex_taylor& C, c_Complex& z_ref,
-    Bmad_complex_taylor_term_class** z_term, Int n1_term) {
-
-  // c_side.to_c2_set[complex, 0, NOT]
-  C.ref = z_ref;
-  // c_side.to_c2_set[type, 1, PTR]
-  C.term.resize(n1_term);
-  for (int i = 0; i < n1_term; i++) complex_taylor_term_to_c(z_term[i], C.term[i]);
-
-}
-
-//--------------------------------------------------------------------
-//--------------------------------------------------------------------
-// CPP_complex_taylor_term
-
-extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
-
-// c_side.to_f2_arg
-extern "C" void complex_taylor_term_to_f2 (Bmad_complex_taylor_term_class*, c_Complex&,
-    c_IntArr);
-
-extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term& C, Bmad_complex_taylor_term_class* F) {
-
-  // c_side.to_f2_call
-  complex_taylor_term_to_f2 (F, C.coef, &C.expn[0]);
-
-}
-
-// c_side.to_c2_arg
-extern "C" void complex_taylor_term_to_c2 (CPP_complex_taylor_term& C, c_Complex& z_coef,
-    c_IntArr z_expn) {
-
-  // c_side.to_c2_set[complex, 0, NOT]
-  C.coef = z_coef;
-  // c_side.to_c2_set[integer, 1, NOT]
-  C.expn << z_expn;
 }
 
 //--------------------------------------------------------------------

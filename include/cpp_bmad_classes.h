@@ -307,20 +307,20 @@ typedef valarray<CPP_ele>          CPP_ele_ARRAY;
 typedef valarray<CPP_ele_ARRAY>    CPP_ele_MATRIX;
 typedef valarray<CPP_ele_MATRIX>   CPP_ele_TENSOR;
 
-class CPP_normal_form;
-typedef valarray<CPP_normal_form>          CPP_normal_form_ARRAY;
-typedef valarray<CPP_normal_form_ARRAY>    CPP_normal_form_MATRIX;
-typedef valarray<CPP_normal_form_MATRIX>   CPP_normal_form_TENSOR;
+class CPP_complex_taylor_term;
+typedef valarray<CPP_complex_taylor_term>          CPP_complex_taylor_term_ARRAY;
+typedef valarray<CPP_complex_taylor_term_ARRAY>    CPP_complex_taylor_term_MATRIX;
+typedef valarray<CPP_complex_taylor_term_MATRIX>   CPP_complex_taylor_term_TENSOR;
 
 class CPP_complex_taylor;
 typedef valarray<CPP_complex_taylor>          CPP_complex_taylor_ARRAY;
 typedef valarray<CPP_complex_taylor_ARRAY>    CPP_complex_taylor_MATRIX;
 typedef valarray<CPP_complex_taylor_MATRIX>   CPP_complex_taylor_TENSOR;
 
-class CPP_complex_taylor_term;
-typedef valarray<CPP_complex_taylor_term>          CPP_complex_taylor_term_ARRAY;
-typedef valarray<CPP_complex_taylor_term_ARRAY>    CPP_complex_taylor_term_MATRIX;
-typedef valarray<CPP_complex_taylor_term_MATRIX>   CPP_complex_taylor_term_TENSOR;
+class CPP_normal_form;
+typedef valarray<CPP_normal_form>          CPP_normal_form_ARRAY;
+typedef valarray<CPP_normal_form_ARRAY>    CPP_normal_form_MATRIX;
+typedef valarray<CPP_normal_form_MATRIX>   CPP_normal_form_TENSOR;
 
 class CPP_branch;
 typedef valarray<CPP_branch>          CPP_branch_ARRAY;
@@ -2227,7 +2227,7 @@ public:
     }
 
     if (key == Bmad::RBEND || key == Bmad::SBEND) {
-      value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+      value[Bmad::FRINGE_AT] = Bmad::BOTH_ENDS;
       value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
       value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
     }
@@ -2333,6 +2333,58 @@ bool operator== (const CPP_ele&, const CPP_ele&);
 
 
 //--------------------------------------------------------------------
+// CPP_complex_taylor_term
+
+class Bmad_complex_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_complex_taylor_term {
+public:
+  Complex coef;
+  Int_ARRAY expn;
+
+  CPP_complex_taylor_term() :
+    coef(0.0),
+    expn(0, 6)
+    {}
+
+  ~CPP_complex_taylor_term() {
+  }
+
+};   // End Class
+
+extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
+extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term&, Bmad_complex_taylor_term_class*);
+
+bool operator== (const CPP_complex_taylor_term&, const CPP_complex_taylor_term&);
+
+
+//--------------------------------------------------------------------
+// CPP_complex_taylor
+
+class Bmad_complex_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_complex_taylor {
+public:
+  Complex ref;
+  CPP_complex_taylor_term_ARRAY term;
+
+  CPP_complex_taylor() :
+    ref(0.0),
+    term(CPP_complex_taylor_term_ARRAY(CPP_complex_taylor_term(), 0))
+    {}
+
+  ~CPP_complex_taylor() {
+  }
+
+};   // End Class
+
+extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
+extern "C" void complex_taylor_to_f (const CPP_complex_taylor&, Bmad_complex_taylor_class*);
+
+bool operator== (const CPP_complex_taylor&, const CPP_complex_taylor&);
+
+
+//--------------------------------------------------------------------
 // CPP_normal_form
 
 class Bmad_normal_form_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -2367,58 +2419,6 @@ extern "C" void normal_form_to_c (const Bmad_normal_form_class*, CPP_normal_form
 extern "C" void normal_form_to_f (const CPP_normal_form&, Bmad_normal_form_class*);
 
 bool operator== (const CPP_normal_form&, const CPP_normal_form&);
-
-
-//--------------------------------------------------------------------
-// CPP_complex_taylor
-
-class Bmad_complex_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_complex_taylor {
-public:
-  Complex ref;
-  CPP_complex_taylor_term_ARRAY term;
-
-  CPP_complex_taylor() :
-    ref(0.0),
-    term(CPP_complex_taylor_term_ARRAY(CPP_complex_taylor_term(), 0))
-    {}
-
-  ~CPP_complex_taylor() {
-  }
-
-};   // End Class
-
-extern "C" void complex_taylor_to_c (const Bmad_complex_taylor_class*, CPP_complex_taylor&);
-extern "C" void complex_taylor_to_f (const CPP_complex_taylor&, Bmad_complex_taylor_class*);
-
-bool operator== (const CPP_complex_taylor&, const CPP_complex_taylor&);
-
-
-//--------------------------------------------------------------------
-// CPP_complex_taylor_term
-
-class Bmad_complex_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
-
-class CPP_complex_taylor_term {
-public:
-  Complex coef;
-  Int_ARRAY expn;
-
-  CPP_complex_taylor_term() :
-    coef(0.0),
-    expn(0, 6)
-    {}
-
-  ~CPP_complex_taylor_term() {
-  }
-
-};   // End Class
-
-extern "C" void complex_taylor_term_to_c (const Bmad_complex_taylor_term_class*, CPP_complex_taylor_term&);
-extern "C" void complex_taylor_term_to_f (const CPP_complex_taylor_term&, Bmad_complex_taylor_term_class*);
-
-bool operator== (const CPP_complex_taylor_term&, const CPP_complex_taylor_term&);
 
 
 //--------------------------------------------------------------------

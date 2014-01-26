@@ -69,9 +69,9 @@ struct_list = [
     'rad_int1_struct',
     'rad_int_all_ele_struct',
     'ele_struct',
-    'normal_form_struct',
-    'complex_taylor_struct',
     'complex_taylor_term_struct',
+    'complex_taylor_struct',
+    'normal_form_struct',
     'branch_struct',
     'lat_struct',
     'bunch_struct',
@@ -180,7 +180,7 @@ def customize(struct_definitions):
     }
 
     if (key == Bmad::RBEND || key == Bmad::SBEND) {
-      value[Bmad::KILL_FRINGE] = Bmad::NO_END;
+      value[Bmad::FRINGE_AT] = Bmad::BOTH_ENDS;
       value[Bmad::FRINGE_TYPE] = Bmad::BASIC_BEND;
       value[Bmad::PTC_FIELD_GEOMETRY] = Bmad::SECTOR;
     }

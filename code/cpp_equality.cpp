@@ -1015,6 +1015,30 @@ template bool is_all_equal (const CPP_ele_MATRIX&, const CPP_ele_MATRIX&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_complex_taylor_term& x, const CPP_complex_taylor_term& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && is_all_equal(x.expn, y.expn);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_complex_taylor_term_ARRAY&, const CPP_complex_taylor_term_ARRAY&);
+template bool is_all_equal (const CPP_complex_taylor_term_MATRIX&, const CPP_complex_taylor_term_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_complex_taylor& x, const CPP_complex_taylor& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ref == y.ref);
+  is_eq = is_eq && is_all_equal(x.term, y.term);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_complex_taylor_ARRAY&, const CPP_complex_taylor_ARRAY&);
+template bool is_all_equal (const CPP_complex_taylor_MATRIX&, const CPP_complex_taylor_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_normal_form& x, const CPP_normal_form& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.m, y.m);
@@ -1031,30 +1055,6 @@ bool operator== (const CPP_normal_form& x, const CPP_normal_form& y) {
 
 template bool is_all_equal (const CPP_normal_form_ARRAY&, const CPP_normal_form_ARRAY&);
 template bool is_all_equal (const CPP_normal_form_MATRIX&, const CPP_normal_form_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_complex_taylor& x, const CPP_complex_taylor& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.ref == y.ref);
-  is_eq = is_eq && is_all_equal(x.term, y.term);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_complex_taylor_ARRAY&, const CPP_complex_taylor_ARRAY&);
-template bool is_all_equal (const CPP_complex_taylor_MATRIX&, const CPP_complex_taylor_MATRIX&);
-
-//--------------------------------------------------------------
-
-bool operator== (const CPP_complex_taylor_term& x, const CPP_complex_taylor_term& y) {
-  bool is_eq = true;
-  is_eq = is_eq && (x.coef == y.coef);
-  is_eq = is_eq && is_all_equal(x.expn, y.expn);
-  return is_eq;
-};
-
-template bool is_all_equal (const CPP_complex_taylor_term_ARRAY&, const CPP_complex_taylor_term_ARRAY&);
-template bool is_all_equal (const CPP_complex_taylor_term_MATRIX&, const CPP_complex_taylor_term_MATRIX&);
 
 //--------------------------------------------------------------
 
