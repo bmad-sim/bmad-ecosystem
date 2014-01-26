@@ -1052,10 +1052,10 @@ case (sbend$)
     call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
   endif
 
-  if (attribute_index(ele, 'KILL_FRINGE') > 0) then  ! If kill_fringe is a valid attribute
-    ix = nint(val(kill_fringe$))
-    call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == upstream_end$ .or. ix == both_ends$))
-    call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == downstream_end$ .or. ix == both_ends$))
+  if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
+    ix = nint(val(fringe_at$))
+    call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
+    call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
   endif
 
 end select

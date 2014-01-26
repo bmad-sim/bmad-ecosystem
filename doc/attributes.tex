@@ -2003,22 +2003,22 @@ Example:
 \label{s:fringe}
 \index{fringe fields}
 
-\index{fringe_type}\index{kill_fringe}
+\index{fringe_type}\index{fringe_at}
 The tracking through the fringe fields of such elements as bends,
 quadrupoles, etc is determined by the following element attributes
 \begin{example}
   fringe_type    !  
-  kill_fringe
+  fringe_at
 \end{example}
 
-The \vn{kill_fringe} may be set to one of
+The \vn{fringe_at} may be set to one of
 \begin{example}
-  no_end               ! Default
-  both_ends
+  no_end         
+  both_ends             ! Default
   entrance_end
   exit_end
 \end{example}
-The \vn{kill_fringe} switch is used for vetoing fringe effects at
+The \vn{fringe_at} switch is used for vetoing fringe effects at
 either of the faces of the element. This is useful in vetoing the
 fringe effect in the interior of split elements.
 

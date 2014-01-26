@@ -2797,15 +2797,77 @@ General \vn{sample} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
-  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Length                     & \ref{s:l}       \HH
+  Aperture Limits            & \ref{s:limit}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \HH 
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \HH
+  Integration settings       & \ref{s:integ}     &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
 
 This element is in development.
+
+\index{angle}\index{bs_field}\index{e1}\index{e2}\index{eps_step_scale}
+\index{f1}\index{f2}\index{g}\index{rf_frequency}\index{harmon}
+\index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_sol}
+\index{y_offset_sol}\index{x_pitch_sol}\index{y_pitch_sol}
+\index{fringe_kind}\index{kill_fringe}
+Attributes specific to an \vn{sextupole} element are:
+\begin{example}
+  angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
+  bs_field        = <Real>    ! Solenoid field. See SAD bz attribute.
+  e1, e2          = <Real>    ! Bend face angles.
+  eps_step_scale  = <Real>    ! Used to scale step size. See SAD eps attribute.
+  f1              = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
+  f2              = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
+  g               = <Real>    ! Bend strength 1/rho
+  rf_frequency    = <Real>    ! Rf frequency (Hz). See SAD volt attribute.
+  harmon          = <Real>    ! Harmonic number. See SAD harm attribute.
+  ks              = <Real>    ! Solenoid strength. 
+  phi0            = <Real>    ! Cavity phase. See SAD phi attribute.
+  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
+  voltage         = <Real>    ! Cavity voltage. See SAD volt attribute.
+  x_offset_sol    = <Real>    ! Solenoid offset. See SAD dx attribute.
+  y_offset_sol    = <Real>    ! Solenoid offset. See SAD dy attribute.
+  x_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpx or chi1 attribute.
+  y_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpy or chi2 attribute.
+  fringe_kind     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
+  kill_fringe     = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
+\end{example}
+
+One difference between SAD and \bmad is that SAD defines the solenoid
+field by what are essentially a set of marker elements so that the
+solenoid field at a SAD \vn{mult} element is not explicitly declaired
+in the \vn{mult} element definition. \bmad, on the other hand,
+requires a \vn{sad_mult} element to explicitly declare the solinoid
+parameters.
+
+The \vn{kill_fringe} switch can be set to one of the following:
+\begin{example}
+  no_end       
+  entrance_end 
+  exit_end
+  both_ends       ! Default
+\end{example}
+The \vn{fringe_kind} switch can be set to one of the following:
+\begin{example}
+  none
+  linear
+  nonlin_only     ! Default
+  full
+\end{example}
+The translation between these two switches and the \vn{fringe} and
+\vn{disfrin} switches of SAD is:
+\begin{center}
+\tt
+\begin{tabular}{ll|llll} 
+              &              & \multicolumn{4}{c}{fringe_at} \\
+              &              & no_end     & entrance_end & exit_end   & both_ends \HH
+\multirow{4}{*}{fringe_kind} 
+              & none         & 0, $\ne 0$ & 0, $\ne 0$   & 0, $\ne 0$ & 0, $\ne 0$ \\
+\end{tabular}
+\end{center}
 
 
 %-----------------------------------------------------------------

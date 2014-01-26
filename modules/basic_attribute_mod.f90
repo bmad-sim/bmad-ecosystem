@@ -456,7 +456,7 @@ do i = 1, n_key$
 
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
   call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
-  call init_attribute_name1 (i, kill_fringe$,        'KILL_FRINGE')
+  call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
   call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
 
   if (i == hkicker$)      cycle
@@ -718,7 +718,7 @@ call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTE
 call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
-call init_attribute_name1 (drift$, kill_fringe$,                    'kill_fringe', private$)
+call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 
 call init_attribute_name1 (monitor$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (monitor$, E_tot_start$,                  'E_tot_start', private$)
@@ -977,7 +977,7 @@ call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY')  
 call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')
 call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
 call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
-call init_attribute_name1 (sad_mult$, kill_fringe$,            'KILL_FRINGE')  ! SAD: fringe
+call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')  ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
 call init_attribute_name1 (sad_mult$, f1$,                     'F1')
 call init_attribute_name1 (sad_mult$, f2$,                     'F2')
@@ -1270,7 +1270,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
-      'FRINGE_TYPE', 'FRINGE_KIND', 'GEOMETRY', 'KILL_FRINGE', 'MAT6_CALC_METHOD', &
+      'FRINGE_TYPE', 'FRINGE_KIND', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
       'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', 'SPIN_TRACKING_METHOD', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
@@ -1500,7 +1500,7 @@ case ('MODE')
     endif
   endif
 
-case ('KILL_FRINGE')
+case ('FRINGE_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
     is_default = (ix_attrib == no_end$)

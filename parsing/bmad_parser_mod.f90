@@ -1218,9 +1218,9 @@ case ('FRINGE_TYPE')
   call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
   ele%value(fringe_type$) = ix
 
-case ('KILL_FRINGE')
+case ('FRINGE_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
-  ele%value(kill_fringe$) = ix
+  ele%value(fringe_at$) = ix
 
 case ('ORIGIN_ELE_REF_PT')
   call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag)

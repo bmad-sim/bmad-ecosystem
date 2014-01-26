@@ -859,7 +859,7 @@ case (quadrupole$)
   call quadrupole_edge_kick (hard_ele, particle_at, orb)
 
 case (sbend$)
-  if (at_this_ele_end (physical_end, nint(hard_ele%value(kill_fringe$)))) return
+  if (.not. at_this_ele_end (physical_end, nint(hard_ele%value(fringe_at$)))) return
   ix_fringe = nint(hard_ele%value(fringe_type$))
   if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
     call exact_bend_edge_kick (orb, hard_ele, param, particle_at, .false.)
@@ -1009,7 +1009,7 @@ logical in_to_out
 !
 
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
-if (at_this_ele_end (physical_end, nint(ele%value(kill_fringe$)))) then
+if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) then
   if (present(mat6)) call mat_make_unit(mat6)
   return
 endif
