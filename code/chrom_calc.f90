@@ -91,8 +91,8 @@ endif
 call twiss_at_start (lat2, stat, ix_br)
 if (stat /= ok$) return
 call twiss_propagate_all (lat2, ix_br)
-low_tune_x = lat2%ele(nt)%a%phi / twopi
-low_tune_y = lat2%ele(nt)%b%phi / twopi
+low_tune_x = branch2%ele(nt)%a%phi / twopi
+low_tune_y = branch2%ele(nt)%b%phi / twopi
 
 ! higher energy tune
 
