@@ -11,7 +11,7 @@ set (LINK_LIBS
   recipes_f-90_LEPP
   bmadz
   forest
-  fgsl_ifort
+  fgsl
   gsl
   gslcblas
   util
