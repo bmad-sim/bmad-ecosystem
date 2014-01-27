@@ -21,7 +21,7 @@ type (real_8) y8(6)
 type (branch_struct), pointer :: branch, branch2
 
 real(rp) diff_mat(6,6), diff_vec(6)
-real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0 
+real(rp) vec_bmad(6), vec_ptc(6), vec_bmad2(6), beta0, beta1 
 real(rp) m6_to_ptc(6,6), m6_to_bmad(6,6), m6(6,6)
 real(rp) a_pole, b_pole, a_pole2, b_pole2
 
@@ -31,6 +31,8 @@ character(80) str
 namelist / params / start_orb
 
 !
+
+bmad_com%use_hard_edge_drifts = .false.
 
 call bmad_parser ('ptc_test.bmad', lat)
 open (1, file = 'output.now')
@@ -174,7 +176,8 @@ write (1, '(a, es10.2)')  '"TAYLOR2:dorb%t" ABS  1E-22', &
 
 vec_bmad = [0.01, 0.02, 0.03, 0.04, 1.0, 2.0]
 beta0 = 0.6
- 
+beta1 = 0.7
+
 call vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, m6_to_ptc)
 call vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad2, m6_to_bmad)
 
@@ -187,8 +190,8 @@ write (1, '(a, es10.2)')  '"mat_convert" ABS 1E-15', maxval(abs(m6))
 
 ! Map translation
 
-call taylor_to_real_8 (lat3%ele(1)%taylor, beta0, y8)
-call real_8_to_taylor (y8, beta0, bmad_taylor)
+call taylor_to_real_8 (lat3%ele(1)%taylor, beta0, beta1, y8)
+call real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
 bmad_taylor = bmad_taylor - lat3%ele(1)%taylor
 
 do i = 1, 6
@@ -207,7 +210,13 @@ real(rp) val, val2
 integer ix_attrib
 character(*) str
 
-!
+! drift like elements in ptc only use one integration step independent
+! of Bmad so ignore any of these differences.
+
+select case (ele%key)
+case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
+  if (ix_attrib == ds_step$ .or. ix_attrib == num_steps$) return
+end select
 
 if (val == 0 .and. val2 == 0) return
 
@@ -217,7 +226,7 @@ else
   if (abs(val-val2) / abs(val+val2) < 1e-10) return
 endif
 
-write (str, '(i0, 2a, 2es20.10)') ix_attrib, ':', trim(attribute_name(ele, ix_attrib)), val, val2
+write (str, '(a, 2es20.10)') trim(attribute_name(ele, ix_attrib)), val, val2
 
 end subroutine
 
