@@ -68,27 +68,6 @@ TYPE(coord_struct), TARGET, ALLOCATABLE :: orb(:)
 
 TYPE(lat_struct), ALLOCATABLE :: omp_lat(:)
 
-!-Set bogus values for namelist parameters, so we can check that they were
-!-set by the .in file.
-lat_file      = ''
-b_emit        = -99.0
-a_emit        = -99.0
-energy_spread = -99.0
-mA_per_bunch  = -99.0
-ibs_formula   = ''
-ratio         = -99.0
-delta_mA      = -99.0
-stop_mA       = -99.0
-x_view        = 0
-y_view        = 0
-granularity   = -1.0
-inductance    = -99.0
-resistance    = -99.0
-clog_to_use   = -99
-eqb_method    = ''
-set_dispersion = .false.
-do_pwd = .true.
-
 NAMELIST /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       b_emit, &          ! Zero current vertical emittance.  Set to -1 for rad int calc.
                       a_emit, &          ! Zero current horizontal emittance.  Set to -1 for rad int calc.
@@ -109,6 +88,28 @@ NAMELIST /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       eta_set, &         ! Used only if ibs_formula set to 'kubo'.  Applies x-pz coupling to each element of lattice when calculating IBS rates.
                       etap_set, &        ! Used only if ibs_formula set to 'kubo'.  Applies px-pz coupling to each element of lattice when calculating IBS rates.
                       set_dispersion     ! If true, then apply eta_set and etap_set.  If false, then do not.
+
+
+!-Set bogus values for namelist parameters, so we can check that they were
+!-set by the .in file.
+lat_file      = ''
+b_emit        = -99.0
+a_emit        = -99.0
+energy_spread = -99.0
+mA_per_bunch  = -99.0
+ibs_formula   = ''
+ratio         = -99.0
+delta_mA      = -99.0
+stop_mA       = -99.0
+x_view        = 0
+y_view        = 0
+granularity   = -1.0
+inductance    = -99.0
+resistance    = -99.0
+clog_to_use   = -99
+eqb_method    = ''
+set_dispersion = .false.
+do_pwd = .true.
 
 dotinlun = LUNGET()
 CALL getarg(1,in_file)
@@ -296,15 +297,15 @@ DO j=1, lat%n_ele_track
     lat%ele(j)%z%emit = mode%sig_z * mode%sigE_E
 
     CALL ibs1(lat,ibs_sim_params,rates,j)
-    WRITE(rateslun,'(I,F11.3,3ES14.4)') j, lat%ele(j)%s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
+    WRITE(rateslun,'(I0,F11.3,3ES14.4)') j, lat%ele(j)%s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
   ENDIF
 ENDDO
 CLOSE(rateslun)
 
 emitlun = LUNGET()
 OPEN(emitlun, FILE='emittance.dat',STATUS='REPLACE')
-WRITE(emitlun,'(A,I,"   ",A)') "# sigma_x calculated at ", x_view, lat%ele(x_view)%name
-WRITE(emitlun,'(A,I,"   ",A)') "# sigma_y calculated at ", y_view, lat%ele(y_view)%name
+WRITE(emitlun,'(A,I0,"   ",A)') "# sigma_x calculated at ", x_view, lat%ele(x_view)%name
+WRITE(emitlun,'(A,I0,"   ",A)') "# sigma_y calculated at ", y_view, lat%ele(y_view)%name
 WRITE(emitlun,'(A14,6A18)') "# current", "emit_a", "emit_b", "sigE/E", "sigma_x", "sigma_y", "sigmz_z"
 DO i=1,n_steps
   WRITE(emitlun,"(ES18.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8)") ibs_data(i)
