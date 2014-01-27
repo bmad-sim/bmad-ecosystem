@@ -862,7 +862,7 @@ subroutine tao_setup_default_plotting()
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
-          tao_ele_shape_struct('BRANCH::*',            'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
           tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.), &
@@ -876,7 +876,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
           tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
           tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
-          tao_ele_shape_struct('PHOTON_BRANCH::*',     'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
+          tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.), &
           tao_ele_shape_struct('RCOLLIMATOR',          'XBOX',   'BLUE',    0.20_rp, 'name', .false.), &
           tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.), &
