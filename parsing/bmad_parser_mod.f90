@@ -4856,7 +4856,7 @@ select case (ele%key)
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.
 
-case (sbend$, rbend$) 
+case (sbend$, rbend$, sad_mult$) 
 
   ele%sub_key = ele%key  ! save input format.
   angle = ele%value(angle$) 

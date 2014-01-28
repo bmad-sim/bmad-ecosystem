@@ -126,6 +126,11 @@ case (rfcavity$)
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = 0
 
+case (sad_mult$)
+  ele%value(fringe_at$) = both_ends$
+  ele%value(fringe_kind$) = nonlin_only$
+  ele%value(eps_step_scale$) = 1
+
 case (sample$)
   ele%aperture_at = surface$
   if (.not. associated(ele%photon)) allocate(ele%photon)

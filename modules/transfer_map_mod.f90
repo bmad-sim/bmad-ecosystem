@@ -169,7 +169,7 @@ real(rp) s_1, s_2, s_now, s_end, ds
 
 integer i, ix_ele
 
-logical create_it, track_entrance, track_exit, track_entire_ele
+logical create_it, track_upstream_end, track_downstream_end, track_entire_ele
 logical runt_points_to_new, integrate_this, error_flag
 logical, save :: old_track_end = .false.
 
@@ -186,9 +186,9 @@ do
   ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_entrance   = (s_now == branch%ele(ix_ele-1)%s) 
-  track_exit       = (s_end == ele%s)
-  track_entire_ele = (track_entrance .and. track_exit)
+  track_upstream_end   = (s_now == branch%ele(ix_ele-1)%s) 
+  track_downstream_end       = (s_end == ele%s)
+  track_entire_ele = (track_upstream_end .and. track_downstream_end)
 
   ds = s_end - s_now
 
@@ -219,14 +219,14 @@ do
     if (global_com%be_thread_safe .or. ds /= runt%value(l$) .or. runt_points_to_new) then
       create_it = .true.
     elseif (ele%key == sbend$) then
-      if (track_entrance .or. track_exit .or. old_track_end) create_it = .true.
+      if (track_upstream_end .or. track_downstream_end .or. old_track_end) create_it = .true.
     elseif (.not. ele_has_constant_ds_dt_ref(ele)) then
       create_it = .true.
     endif
 
     if (create_it) then
       call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
-                                     branch%param, track_entrance, track_exit, error_flag)
+                                     branch%param, track_upstream_end, track_downstream_end, error_flag)
       if (error_flag) exit
     endif
 
@@ -246,7 +246,7 @@ do
   ! Save the present integration step parameters so that if this routine
   ! is called in the future we can tell if the saved taylor map is still valid.
 
-  old_track_end = track_entrance .or. track_exit
+  old_track_end = track_upstream_end .or. track_downstream_end
 
   ! Are we done?
 
@@ -423,7 +423,7 @@ real(rp) s_1, s_2, s_end, s_now, ds
 
 integer ix_ele
 
-logical track_entrance, track_exit, track_entire_ele
+logical track_upstream_end, track_downstream_end, track_entire_ele
 logical use_saved, error_flag
 
 ! Init
@@ -439,9 +439,9 @@ do
   ele => branch%ele(ix_ele)
   s_end = min(s_2, ele%s)
 
-  track_entrance   = (s_now == branch%ele(ix_ele-1)%s) 
-  track_exit       = (s_end == ele%s)
-  track_entire_ele = (track_entrance .and. track_exit)
+  track_upstream_end   = (s_now == branch%ele(ix_ele-1)%s) 
+  track_downstream_end       = (s_end == ele%s)
+  track_entire_ele = (track_upstream_end .and. track_downstream_end)
 
   ds = s_end - s_now
 
@@ -462,7 +462,7 @@ do
     runt => ele_save
     call transfer_ele (ele, runt, .true.)
     call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
-                           branch%param, track_entrance, track_exit, error_flag, runt)
+                           branch%param, track_upstream_end, track_downstream_end, error_flag, runt)
     if (error_flag) exit
     call make_mat6 (runt, branch%param, orbit, orbit)
 
@@ -470,7 +470,7 @@ do
     runt => runt_nosave
     call transfer_ele (ele, runt, .true.)
     call create_element_slice (runt, ele, ds, s_now-branch%ele(ix_ele-1)%s, &
-                                      branch%param, track_entrance, track_exit, error_flag)
+                                      branch%param, track_upstream_end, track_downstream_end, error_flag)
     if (error_flag) exit
     call make_mat6 (runt, branch%param, orbit, orbit)
 

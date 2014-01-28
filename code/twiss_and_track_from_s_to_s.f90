@@ -56,7 +56,7 @@ integer ix_start, ix_end
 integer ix_ele
 
 logical, optional :: err
-logical track_entrance, track_exit, err_flag
+logical track_upstream_end, track_downstream_end, err_flag
 
 character(40), parameter :: r_name = 'twiss_and_track_from_s_to_s'
 
@@ -91,14 +91,14 @@ if (err_flag) return
 ele0 => branch%ele(ix_start)
 s0 = branch%ele(ix_start-1)%s
 
-track_entrance = (orbit%location == upstream_end$)
-track_exit = .true.
+track_upstream_end = (orbit%location == upstream_end$)
+track_downstream_end = .true.
 
 ! Track within a single element case
 
 if (s_end > s_start .and. ix_start == ix_end) then
   call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, s_end-s0, &
-                      track_entrance, track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+                      track_upstream_end, track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err)
   return
 endif
 
@@ -107,7 +107,7 @@ endif
 ! First track to end of current element
 
 call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), &
-                      track_entrance, .true., orbit_start, orbit_end, ele_start, ele_end, err_flag)
+                      track_upstream_end, .true., orbit_start, orbit_end, ele_start, ele_end, err_flag)
 if (present(err)) err = err_flag
 if (err_flag) return
 if (.not. particle_is_moving_forward(orbit_end)) return
@@ -152,7 +152,7 @@ if (present(ele_end)) then
 endif
 
 call twiss_and_track_intra_ele (branch%ele(ix_end), branch%param, &
-          0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., track_exit, orbit_end, orbit_end, &
+          0.0_rp, s_end-branch%ele(ix_end-1)%s, .true., track_downstream_end, orbit_end, orbit_end, &
           ele_end, ele_end)
 
 if (present(ele_end)) then

@@ -658,7 +658,7 @@ call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start
 call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
 
 call init_attribute_name1 (girder$, l$,                             'L')
-call init_attribute_name1 (girder$, ds_path_length$,                'DS_PATH_LENGTH')
+call init_attribute_name1 (girder$, ds_path_length$,                'DS_PATH_LENGTH', dependent$)
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
 call init_attribute_name1 (girder$, y_offset$,                      'Y_OFFSET')
 call init_attribute_name1 (girder$, z_offset$,                      'Z_OFFSET')
@@ -990,6 +990,7 @@ call init_attribute_name1 (sad_mult$, y_pitch_sol$,            'Y_PITCH_SOL')
 call init_attribute_name1 (sad_mult$, rho$,                    'RHO')   
 call init_attribute_name1 (sad_mult$, g$,                      'G')
 call init_attribute_name1 (sad_mult$, ks$,                     'KS')
+call init_attribute_name1 (sad_mult$, b_field$,                'B_FIELD')
 
 call init_attribute_name1 (custom$, val1$,                          'VAL1')
 call init_attribute_name1 (custom$, val2$,                          'VAL2')
@@ -1470,7 +1471,7 @@ case ('FIELD_CALC')
 case ('FRINGE_KIND')
   call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_kind_name, lbound(fringe_kind_name, 1))
   if (present(is_default)) then
-    is_default = none$
+    is_default = (ix_attrib == nonlin_only$)
   endif
 
 case ('FRINGE_TYPE')
@@ -1503,7 +1504,7 @@ case ('MODE')
 case ('FRINGE_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == no_end$)
+    is_default = (ix_attrib == both_ends$)
   endif
 
 case ('MAT6_CALC_METHOD')
