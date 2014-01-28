@@ -10,10 +10,13 @@ end type
 integer, parameter :: ok$              = 1
 integer, parameter :: in_stop_band$    = 2
 integer, parameter :: non_symplectic$  = 3
-integer, parameter :: unstable$        = 4
+integer, parameter :: unstable_ab$     = 4
+integer, parameter :: unstable_a$      = 5
+integer, parameter :: unstable_b$      = 6
 
-character(16) :: status_name(5) = [    'OK            ', &
-    'IN_STOP_BAND  ', 'NON_SYMPLECTIC', 'UNSTABLE      ', '              ' ]
+character(20) :: matrix_status_name(6) = ['OK                 ', 'IN_STOP_BAND       ', &
+                   'NON_SYMPLECTIC     ', 'UNSTABLE BOTH MODES', 'UNSTABLE A-MODE    ', &
+                   'UNSTABLE B-MODE    ']
 
 contains
 
@@ -139,7 +142,13 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
 ! check that the eigen modes are stable
 
   if (abs(U(1,1) + U(2,2)) > 2 .or. abs(U(3,3) + U(4,4)) > 2) then
-    stat = unstable$
+    if (abs(U(1,1) + U(2,2)) > 2 .and. abs(U(3,3) + U(4,4)) > 2) then
+      stat = unstable_ab$
+    elseif (abs(U(1,1) + U(2,2)) > 2) then
+      stat = unstable_a$
+    else
+      stat = unstable_b$
+    endif
     return
   endif
 
@@ -147,12 +156,14 @@ subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2
 
   call twiss_from_mat2 (U(1:2,1:2), det, twiss1, stat, tol, .false.)
   if (stat /= ok$) then
+    stat = unstable_a$
     if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "A" mode TWISS')
     return
   endif
 
   call twiss_from_mat2 (U(3:4,3:4), det, twiss2, stat, tol, .false.)
   if (stat /= ok$) then
+    stat = unstable_b$
     if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "B" mode TWISS')
     return
   endif
@@ -246,7 +257,7 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
 
   if (abs(t_cos) >= 1.0) then
     if (type_out) call out_io (s_warn$, r_name, 'UNSTABLE MATRIX')
-    stat = unstable$
+    stat = unstable_ab$
     return
   endif
 

@@ -354,6 +354,7 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
   n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  l           = <Real>     ! ``Length'' of bend. See below.
   l_arc       = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
   ptc_field_geometry 
@@ -395,8 +396,9 @@ length and not the arc length as it is for an \vn{sbend}.  However,
 after reading in a lattice, \bmad will internally convert all
 \vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute
 will be set to the input \vn{l}, and \vn{l} will be set to the true
-path length (see above). Alternatively, instead of setting \vn{l}, the
-\vn{l_arc} attribute can be set to the true arc length.
+path length (see above). Alternatively for an \vn{rbend}, instead of
+setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc
+length.
   \index{h1}\index{h2}
   \item[h1, h2] \Newline
 The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
@@ -1468,7 +1470,7 @@ Attributes specific to a \vn{floor_shift} elements are:
   dtheta_origin     = <Real>     ! orientation angle offset.
   dphi_origin       = <Real>     ! orientation angle offset.
   dpsi_origin       = <Real>     ! orientation angle offset.
-  ds_girder         = <Real>     ! ``Path length'' of girder. Dependent attrib (\sref{s:depend}).
+  ds_path_length                 ! ``Path length'' of girder. Dependent attrib (\sref{s:depend}).
 \end{example}
 
 A simple example of a girder is shown in \fig{f:girder}. Here a girder
@@ -2818,7 +2820,7 @@ Attributes specific to an \vn{sextupole} element are:
   angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
   bs_field        = <Real>    ! Solenoid field. See SAD bz attribute.
   e1, e2          = <Real>    ! Bend face angles.
-  eps_step_scale  = <Real>    ! Used to scale step size. See SAD eps attribute.
+  eps_step_scale  = <Real>    ! Step size scale. Default = 1. See SAD eps attribute.
   f1              = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
   f2              = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
   g               = <Real>    ! Bend strength 1/rho
@@ -2833,7 +2835,7 @@ Attributes specific to an \vn{sextupole} element are:
   x_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpx or chi1 attribute.
   y_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpy or chi2 attribute.
   fringe_kind     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
-  kill_fringe     = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
+  fringe_at       = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
 \end{example}
 
 One difference between SAD and \bmad is that SAD defines the solenoid
@@ -2843,32 +2845,31 @@ in the \vn{mult} element definition. \bmad, on the other hand,
 requires a \vn{sad_mult} element to explicitly declare the solinoid
 parameters.
 
-The \vn{kill_fringe} switch can be set to one of the following:
-\begin{example}
-  no_end       
-  entrance_end 
-  exit_end
-  both_ends       ! Default
-\end{example}
-The \vn{fringe_kind} switch can be set to one of the following:
-\begin{example}
-  none
-  linear
-  nonlin_only     ! Default
-  full
-\end{example}
-The translation between these two switches and the \vn{fringe} and
-\vn{disfrin} switches of SAD is:
+Another difference between SAD and \bmad is that, within a solenoid,
+the reference trajectory is aligned with the solenoid axis (and not
+aligned with the axis of any elements within the solenoid region).
+
+The \vn{fringe_kind} and \vn{fringe_at} switches are discussed in
+Sec.~\sref{s:fringe} The translation between these two switches and
+the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{center}
 \tt
 \begin{tabular}{ll|llll} 
-              &              & \multicolumn{4}{c}{fringe_at} \\
+              &              & \multicolumn{4}{c}{fringe_at:} \\
               &              & no_end     & entrance_end & exit_end   & both_ends \HH
-\multirow{4}{*}{fringe_kind} 
-              & none         & 0, $\ne 0$ & 0, $\ne 0$   & 0, $\ne 0$ & 0, $\ne 0$ \\
+\multirow{4}{*}{fringe_kind:} 
+              & none         & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
+              & linear       & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
+              & nonlin_only  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
+              & full         & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\
+    
 \end{tabular}
 \end{center}
+Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. 
+The ``-'' indicates that there is no equivalent setting in SAD.
 
+The \vn{eps_step_scale} is equivalent to the SAD \vn{eps} attribute. The default
+\vn{eps_step_scale} value is 1 which is the same default as SAD.
 
 %-----------------------------------------------------------------
 \section{Sample}

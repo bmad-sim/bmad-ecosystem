@@ -345,6 +345,8 @@ end subroutine track_a_drift_photon
 ! Subroutine track_a_bend_photon (orb, ele, length)
 !
 ! Routine to track a photon through a dipole bend.
+! The photon is traveling in a straight line but the reference frame
+! is curved in a circular shape.
 !
 ! Input:
 !   orb        -- Coord_struct: Starting position.

@@ -69,7 +69,7 @@ if (i_dim == 2) then
 
   call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%a, stat, 1e-4_rp, .false.)
 
-  if (stat == unstable$) then
+  if (stat /= ok$) then
     stable = .false.
     growth_rate = sqrt(abs(ele%mat6(1,1) + ele%mat6(2,2)) - 2)
   else

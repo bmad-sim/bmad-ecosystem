@@ -53,13 +53,12 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_o
 
   !
 
-  call mat_symp_decouple (mat4, tol, status, u, v, ubar, &
-                                             vbar, g, ele%a, ele%b, ele%gamma_c, .false.)
+  call mat_symp_decouple (mat4, tol, status, u, v, ubar, vbar, g, ele%a, ele%b, ele%gamma_c, .false.)
 
   if (status /= ok$) then
     if (type_out) then
        call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: ' // &
-                        status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
+                        matrix_status_name(status), 'TWISS PARAMETERS NOT COMPUTED')
     endif
     if (status == non_symplectic$) then
       rate1 = 10.0

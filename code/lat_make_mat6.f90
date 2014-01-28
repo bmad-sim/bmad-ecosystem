@@ -20,6 +20,7 @@
 !                   around which the matrix is calculated. If not present 
 !                   then the referemce is taken to be the origin.
 !   ix_branch   -- Integer, optional: Branch index. Default is 0 (main lattice).
+!                   -1 => All branches/all elements (ref_orb & ix_ele will be ignored).
 !
 ! Output:
 !   lat        -- lat_struct:
@@ -51,12 +52,23 @@ logical transferred, zero_orbit, err
 
 character(16), parameter :: r_name = 'lat_make_mat6'
 
-! Error check
+!
 
 if (present(err_flag)) err_flag = .true.
 
 i_ele = integer_option (-1, ix_ele)
 i_branch = integer_option (0, ix_branch)
+
+if (i_branch == -1) then
+  do i = 0, ubound(lat%branch, 1)
+    call lat_make_mat6 (lat, ix_branch = i, err_flag = err)
+    if (err) return
+  enddo
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
+
+! Error check
 
 branch => lat%branch(i_branch)
 

@@ -22,6 +22,7 @@
 
 subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 
+use sad_mod, dummy1 => track1_bmad
 use track1_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
 use lat_geometry_mod, dummy4 => track1_bmad
@@ -582,6 +583,13 @@ case (rfcavity$)
   call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
   call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
+
+!-----------------------------------------------
+! sad_multipole
+
+case (sad_mult$)
+
+call track_a_sad_mult (end_orb, ele, param)
 
 !-----------------------------------------------
 ! sbend

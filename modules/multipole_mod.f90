@@ -317,6 +317,15 @@ if (ele%key == multipole$) then
   return
 endif
 
+! sad_mult case
+
+if (ele%key == sad_mult$) then
+  a = ele%a_pole * (ele%orientation * param%rel_tracking_charge)
+  b = ele%b_pole * (ele%orientation * param%rel_tracking_charge)
+  return
+endif
+  
+
 ! All other cases
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 

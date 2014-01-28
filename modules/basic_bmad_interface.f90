@@ -783,8 +783,8 @@ interface
     logical, optional :: err
   end subroutine
 
-  subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, &
-                              track_exit, orbit_start, orbit_end, ele_start, ele_end, err)
+  subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
+                         track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err)
     import
     implicit none
     type (coord_struct), optional :: orbit_start, orbit_end
@@ -792,7 +792,7 @@ interface
     type (ele_struct) ele
     type (lat_param_struct) param
     real(rp) l_start, l_end
-    logical track_entrance, track_exit
+    logical track_upstream_end, track_downstream_end
     logical, optional :: err
   end subroutine
 

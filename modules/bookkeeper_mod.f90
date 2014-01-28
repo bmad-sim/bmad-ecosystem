@@ -1665,13 +1665,16 @@ if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_pole$) = l
 !     2) zero the face angles next to the split
 
 if (slave%key == sbend$) then
-  if (.not. at_upstream_end) then 
+  if ((slave%orientation == 1 .and. .not. at_upstream_end) .or. &
+      (slave%orientation == -1 .and. .not. at_downstream_end)) then 
     slave%value(e1$)    = 0
     slave%value(h1$)    = 0
     slave%value(fint$)  = 0
     slave%value(hgap$)  = 0
   endif
-  if (.not. at_downstream_end) then   ! first slave bend
+
+  if ((slave%orientation == 1 .and. .not. at_downstream_end) .or. &
+      (slave%orientation == -1 .and. .not. at_upstream_end)) then
     slave%value(e2$)    = 0
     slave%value(h2$)    = 0
     slave%value(fintx$) = 0
@@ -2162,6 +2165,8 @@ if (ele%field_master) then
     val(k3$) = factor * val(B3_gradient$)
   case (solenoid$)
     val(ks$) = factor * val(Bs_field$)
+  case (sad_mult$)
+    val(ks$) = factor * val(Bs_field$)
   case (sol_quad$)
     val(ks$) = factor * val(Bs_field$)
     val(k1$) = factor * val(B1_gradient$)
@@ -2197,6 +2202,8 @@ else
   case (octupole$)
     val(B3_gradient$) = factor * val(k3$)
   case (solenoid$)
+    val(Bs_field$)    = factor * val(ks$)
+  case (sad_mult$)
     val(Bs_field$)    = factor * val(ks$)
   case (sol_quad$)
     val(Bs_field$)    = factor * val(ks$)

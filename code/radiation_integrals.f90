@@ -239,7 +239,7 @@ if (init_cache) then
     if (key == undulator$) key = wiggler$
     if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
         (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
-        key == sbend$ .or. key == wiggler$ .or. ele%value(hkick$) /= 0 .or. &
+        key == sbend$ .or. key == wiggler$ .or. key == sad_mult$ .or. ele%value(hkick$) /= 0 .or. &
         ele%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
       j = j + 1
       cache%ix_c_ele(i) = j  ! mark element for caching
