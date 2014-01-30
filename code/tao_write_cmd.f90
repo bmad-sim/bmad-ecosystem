@@ -37,12 +37,13 @@ character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(20) = [ &
+character(20) :: names(21) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
-      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ']
+      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ', &
+      'gif-l            ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word
@@ -563,7 +564,11 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
     endif
   endif
 
-  call qp_open_page (action, plot_file = file_name, scale = scale)
+  if (action(1:3) == 'gif') then
+    call qp_open_page (action, plot_file = file_name, x_len = s%plotting%size(1), y_len = s%plotting%size(2), scale = scale)
+  else
+    call qp_open_page (action, plot_file = file_name, scale = scale)
+  endif
   call tao_draw_plots (.false.)   ! GIF plot
   call qp_close_page
 

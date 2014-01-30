@@ -27,6 +27,8 @@ use tao_show_mod
 use tao_wave_mod
 use tao_x_scale_mod
 
+!MPI use tao_mpi_mod
+
 implicit none
 
 integer i, j, iu, ios, n_word, n_eq
@@ -249,6 +251,8 @@ case ('exit', 'quit')
 
   if (s%global%plot_on) call tao_destroy_plot_window
   call out_io (s_dinfo$, r_name, "Stopping.")
+  !MPI !Finalize MPI if it is on
+  !MPI if (s%mpi%on) call tao_mpi_finalize()
   stop
  
 !--------------------------------

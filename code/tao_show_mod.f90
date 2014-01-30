@@ -453,11 +453,11 @@ case ('beam')
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
                       sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
     if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
-      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta'
-      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta
-      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta
-      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta
-      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta
+      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta             alpha'
+      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta, bunch_p%a%alpha
+      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta, bunch_p%b%alpha
+      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta, bunch_p%x%alpha
+      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta, bunch_p%y%alpha
       nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
     endif
 

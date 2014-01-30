@@ -27,8 +27,10 @@ interface
     character(*), optional :: cmd_arg(:)
   end subroutine
  
-  subroutine tao_top_level ()
+  subroutine tao_top_level (command, errcode)
     implicit none
+    character(*), optional :: command
+    integer, optional :: errcode
   end subroutine
  
   subroutine tao_clip_cmd (gang, where, value1, value2)

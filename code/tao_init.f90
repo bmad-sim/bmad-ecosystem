@@ -87,7 +87,7 @@ if (tao_com%init_tao_file /= '') then
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
     if (tao_com%lat_file == '' .or. tao_com%init_tao_file_arg_set) then
-      call output_direct (0, .true.)
+      call output_direct (0, do_print=tao_com%print_to_terminal)
       call out_io (s_blank$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
               '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
@@ -214,7 +214,7 @@ call tao_init_plotting (plot_file)
 ! Need to do this before calling tao_lattice_calc since we don't want to supress these messages.
 
 if (iu_log /= 0) close (iu_log)
-call output_direct (0, .true.)
+call output_direct (0, do_print=tao_com%print_to_terminal)
 
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.

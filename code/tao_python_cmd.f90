@@ -2,6 +2,7 @@
 ! Subroutine tao_python_cmd (input_str)
 !
 ! Print information in a form easily parsed by a scripting program like python.
+! All lines are saved in linex
 !
 ! Note: The syntax for "serial output form" is:
 !   <component_name>;<type>;<variable>;<component_value>;
@@ -18,6 +19,7 @@
 !   input_str  -- Character(*): What to show.
 !-
 
+
 subroutine tao_python_cmd (input_str)
 
 use tao_mod
@@ -25,7 +27,7 @@ use location_encode_mod
 
 implicit none
 
-character(n_char_show), allocatable, save :: lines(:)
+character(n_char_show), pointer :: lines(:)
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
@@ -76,14 +78,17 @@ character(20) :: cmd_names(32)= &
            'lat_global     ', '               ', '               ', '               ', &
            '               ', '               ', '               ', '               ' ]
 
-real(rp) target_value
+real(rp) target_value, angle
 
-integer i, j, ie, iu, ix, md, nl, ct
-integer ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
-
-logical err, print_flag
+integer :: i, j, ie, iu, ix, md, nl, ct
+integer :: ix_ele, ix_ele1, ix_ele2, ix_branch, ix_universe
+integer :: ios
+logical :: err, print_flag
 
 !
+
+
+
 
 call string_trim(input_str, line, ix)
 cmd = line(1:ix)
@@ -106,7 +111,8 @@ rmt = '(a,es15.8,a)'
 lmt = '(a,l1,a)'
 
 nl = 0
-if (.not. allocated(lines)) allocate (lines(200))
+if (.not. allocated(scratch%lines)) allocate (scratch%lines(200))
+lines => scratch%lines
 
 select case (command)
 
@@ -136,7 +142,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       max_loc = branch%ele(ie)%name
     endif
 
-    if (nl == size(lines)) call re_allocate(lines, 2*nl)
+    if (nl == size(lines)) call re_allocate(scratch%lines, 2*nl)
     nl=nl+1; write (lines(nl), '(10a, 3(es12.4, a), 2a)') &
         trim(tao_datum_name(d_ptr)), ';', trim(tao_constraint_type_name(d_ptr)), ';', &
         trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', trim(d_ptr%ele_name), ';', &
@@ -178,7 +184,7 @@ do i = 1, s%n_var_used
     endif
   endif
 
-  if (nl == size(lines)) call re_allocate(lines, 2*nl)
+  if (nl == size(lines)) call re_allocate (scratch%lines, 2*nl)
   nl=nl+1; write (lines(nl), '(6a, 3(es12.4, a))') &
         trim(tao_var1_name(v_ptr)), ';', trim(tao_var_attrib_name(v_ptr)), ';', &
         trim(loc_ele), ';', target_value, ';', v_ptr%model_value, ';', v_ptr%merit, ';'
@@ -241,7 +247,7 @@ case ('curve_line')
     nl=nl+1; lines(nl) = 'INVALID;;;'
   else
     c1 => curve(1)%c
-    call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
+    call re_allocate (scratch%lines, nl+size(c1%x_line)+100, .false.)
     do i = 1, size(c1%x_line)
       nl=nl+1; write (lines(nl), '(i0, a, 2(es15.8, a))') i, ';', c1%x_line(i), ';', c1%y_line(i), ';'
     enddo
@@ -262,7 +268,7 @@ case ('curve_sym')
     nl=nl+1; lines(nl) = 'INVALID;;;'
   else
     c1 => curve(1)%c
-    call re_allocate (lines, nl+size(c1%x_symb)+100, .false.)
+    call re_allocate (scratch%lines, nl+size(c1%x_symb)+100, .false.)
     do i = 1, size(c1%x_symb)
       nl=nl+1; write (lines(nl), '(2(i0, a), 2(es15.8, a))') i, ';', c1%ix_symb(i), ';', c1%x_symb(i), ';', c1%y_symb(i)
     enddo
@@ -286,7 +292,7 @@ case ('data_d1')
     do i = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
       d_ptr => d1_ptr%d(i)
       if (.not. d_ptr%exists) cycle
-      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
+      if (nl == size(lines)) call re_allocate (scratch%lines, nl+200, .false.)
 !      nl=nl+1; write(lines(nl), '(i0, 11a, 3(es15.8, a), 3(l1, a))') &
 !                       d_ptr%ix_d1, ';', trim(d_ptr%data_type), ';', trim(d_ptr%merit_type), ';', &
 !                       trim(d_ptr%ele_ref_name), ';', trim(d_ptr%ele_start_name), ';', &
@@ -406,6 +412,31 @@ case ('data1')
 !   ele1_all <ix_ele> <ix_branch> <ix_universe>
 
 case ('ele1_all')
+  read (line, *,  iostat = ios) ix_ele, ix_branch, ix_universe
+  
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, "Correct input: ele1_all <ix_ele> <ix_branch> <ix_universe>")
+    return
+  endif
+  
+  ele => s%u(ix_universe)%model%lat%branch(ix_branch)%ele(ix_ele)
+  
+  if (ele%key == sbend$ .or. ele%key == rbend$) then
+    angle = ele%value(angle$)
+  else 
+    angle = 0.0_rp
+  endif
+  
+  if (nl == size(lines)) call re_allocate (scratch%lines, nl+200, .false.)
+  nl=nl+1; write(lines(nl), '(i0, 4a, 2(a, es15.8))') &
+    ele%ix_ele, ';', trim(ele%name), ';', trim(key_name(ele%key)),  ';', ele%value(L$), ';', angle
+  nl=nl+1; write(lines(nl), '( 5(es15.8,a), es15.8)') &
+    ele%floor%r(1), ';', &
+    ele%floor%r(2), ';', &
+    ele%floor%r(3), ';', &
+    ele%floor%theta, ';', &
+    ele%floor%phi, ';', &
+    ele%floor%psi
 
 
 !----------------------------------------------------------------------
@@ -501,6 +532,25 @@ case ('lat_ele_list')
 !   lat_global <ix_universe>
 
 case ('lat_global')
+  read (line, *,  iostat = ios)  ix_universe
+  
+  if (ios /= 0) then
+    call out_io (s_error$, r_name, "Correct input: lat_global <ix_universe>")
+    return
+  endif
+  
+  lat => s%u(ix_universe)%model%lat
+
+  if (nl == size(lines)) call re_allocate (scratch%lines, nl+200, .false.)
+  nl=nl+1; write(lines(nl), '(5a)') &
+    trim(lat%use_name), ';', trim(lat%lattice), ';', trim(lat%input_file_name) 
+  nl=nl+1; write(lines(nl), '(i0, a, i0)') &
+    lat%n_ele_track, ';', lat%n_ele_max
+  nl=nl+1; write(lines(nl), '(3a)') &
+    trim(particle_name(lat%param%particle)), ';', trim(geometry_name(lat%param%geometry))
+
+
+
 
 !----------------------------------------------------------------------
 ! Info on a given plot.
@@ -580,11 +630,11 @@ case ('var_all')
   do i = 1, s%n_v1_var_used
     v1_ptr => s%v1_var(i)
     if (v1_ptr%name == '') cycle
-    if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
+    if (nl == size(lines)) call re_allocate (scratch%lines, nl+200, .false.)
     call location_encode (line, v1_ptr%v%useit_opt, v1_ptr%v%exists, lbound(v1_ptr%v, 1))
-    nl=nl+1; write(lines(nl), '(2a, 2(i0, a), 2a)') &
+    nl=nl+1; write(lines(nl), '(2a, 2(i0, a),  a)') &
                     trim(v1_ptr%name), ';', lbound(v1_ptr%v, 1), ';', &
-                    ubound(v1_ptr%v, 1), ';', trim(line), ';'
+                    ubound(v1_ptr%v, 1), ';', trim(line)
     
   enddo
   
@@ -600,17 +650,21 @@ case ('var_v1')
   call tao_find_var (err, line, v1_array = v1_array)
 
   if (.not. allocated(v1_array) .or. size(v1_array) /= 1) then
-    nl=nl+1; lines(nl) = '0;INVALID;;0;0;0;F;F;'
+    nl=nl+1; lines(nl) = '0;INVALID;;0;0;0;F;F'
   else
     v1_ptr => v1_array(1)%v1
     do i = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
       v_ptr => v1_ptr%v(i)
       if (.not. v_ptr%exists) cycle
-      if (nl == size(lines)) call re_allocate (lines, nl+200, .false.)
-      nl=nl+1; write(lines(nl), '(i0, 5a, 3(es15.8, a), 2(l1, a))') &
+      if (nl == size(lines)) call re_allocate (scratch%lines, nl+200, .false.)
+!      nl=nl+1; write(lines(nl), '(i0, 5a, 3(es15.8, a), 2(l1, a))') &
+!                       v_ptr%ix_v1, ';', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
+!                       v_ptr%meas_value, ';', v_ptr%model_value, ';', &
+!                       v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt, ';'
+      nl=nl+1; write(lines(nl), '(i0, 5a, 3(es15.8, a), 4a)') &
                        v_ptr%ix_v1, ';', trim(v_ptr%ele_name), ';', trim(v_ptr%attrib_name), ';', &
                        v_ptr%meas_value, ';', v_ptr%model_value, ';', &
-                       v_ptr%design_value, ';', v_ptr%good_user, ';', v_ptr%useit_opt, ';'
+                       v_ptr%design_value, ';', py_bool(v_ptr%good_user), ';', py_bool(v_ptr%useit_opt)
     enddo
   endif
 
@@ -662,7 +716,9 @@ case default
 
 end select
 
-call out_io (s_blank$, r_name, lines(1:nl))
+! return through scratch
+scratch%n_lines = nl
+!call out_io (s_blank$, r_name, lines(1:nl))
 
 contains
 
@@ -683,5 +739,8 @@ character(len_trim(chars)+2) :: pystring
 pystring="'"//trim(chars)//"'"
 end function
 
-
 end subroutine
+
+
+
+

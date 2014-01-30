@@ -187,7 +187,7 @@ if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
       return 
     endif
   endif
-  call output_direct (do_print = .true.)
+  call output_direct (do_print = tao_com%print_to_terminal)
 endif
 
 ! Here if no command file is being used.
