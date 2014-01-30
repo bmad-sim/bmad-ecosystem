@@ -26,8 +26,8 @@ import build_config
 
 # Get kerberos key for remote execution
 hostname = socket.gethostname()
-p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
-#p = sub.Popen('kinit -k -t /home/amd275/etc/amd275-keytab amd275',
+#p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
+p = sub.Popen('kinit -k -t /home/$USER/etc/$USER-keytab $USER',
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
@@ -58,13 +58,6 @@ loghandler.setLevel(output_verbosity)
 formatter = logging.Formatter('%(name)s - %(message)s')
 # Logger add formatter to handler
 logger.addHandler( loghandler )
-
-
-
-# Defaults from config file.
-util_dir_default = build_config.util_dir
-makefile_dir_default = build_config.makefile_dir
-
 
 
 # Collect all supported platform names
@@ -131,6 +124,14 @@ ACC_SET_F_COMPILER = 'ifort'
 build_request = 'release_intel'
 
 
+# Defaults from config file.
+makefile_dir_default = build_config.makefile_dir
+if build_online_release:
+    util_dir_default = build_config.online_util_dir
+else:
+    util_dir_default = build_config.offline_util_dir
+
+
 if compiler_intel:
     ACC_FC = 'intel'
     ACC_SET_F_COMPILER = 'ifort'
@@ -144,6 +145,7 @@ if compiler_intel:
 
     #if build_dist:
         #build_request = 'dist_intel'
+
 
 if compiler_gfortran:
     ACC_FC = 'gfortran'

@@ -54,7 +54,18 @@ build_requests['dist_gfortran'] = gfortran_dist_build_request
 
 #-----------------------------------------------------
 #-----------------------------------------------------
-util_dir = '/nfs/acc/libs/util'
+offline_base_dir = '/nfs/acc/libs'
+offline_util_dir = offline_base_dir + '/util'
+offline_host = 'acc101.lns.cornell.edu'
+
+online_base_dir = '/gfs/cesr/online/lib'
+online_util_dir = online_base_dir + '/util'
+online_host = 'cesr109.lns.cornell.edu'
+
+local_base_dir = '/mnt/acc/libs'
+local_util_dir = local_base_dir + '/util'
+local_host = 'lnx7179.lns.cornell.edu'
+
 makefile_dir = '/home/cesrulib/bin/Gmake'
 
 
@@ -73,10 +84,10 @@ build_specs = {
     'Linux_x86_64_intel-offline' : {
         'type'         : 'release',
         'platform'     : 'Linux_x86_64_intel',
-        'basedir'      : '/nfs/acc/libs',
-        'util_dir'     : '/nfs/acc/libs/util',
+        'basedir'      : offline_base_dir,
+        'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
-        'host'         : 'acc101.lns.cornell.edu',
+        'host'         : offline_host,
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -147,10 +158,10 @@ build_specs = {
     'Linux_x86_64_gfortran-offline' : {
         'type'         : 'release',
         'platform'     : 'Linux_x86_64_gfortran',
-        'basedir'      : '/nfs/acc/libs',
-        'util_dir'     : '/nfs/acc/libs/util',
+        'basedir'      : offline_base_dir,
+        'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
-        'host'         : 'acc101.lns.cornell.edu',
+        'host'         : offline_host,
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -221,10 +232,10 @@ build_specs = {
     'Linux_x86_64_intel-online' : {
         'type'         : 'release',
         'platform'     : 'Linux_x86_64_intel',
-        'basedir'      : '/gfs/cesr/online/lib',
-        'util_dir'     : '/gfs/cesr/online/lib/util',
+        'basedir'      : online_base_dir,
+        'util_dir'     : online_util_dir,
         'domain'       : 'ONLINE',
-        'host'         : 'cesr109.lns.cornell.edu',
+        'host'         : online_host,
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -295,10 +306,10 @@ build_specs = {
     'Linux_x86_64_gfortran-online' : {
         'type'         : 'release',
         'platform'     : 'Linux_x86_64_gfortran',
-        'basedir'      : '/gfs/cesr/online/lib',
-        'util_dir'     : '/gfs/cesr/online/lib/util',
+        'basedir'      : online_base_dir,
+        'util_dir'     : online_util_dir,
         'domain'       : 'ONLINE',
-        'host'         : 'cesr109.lns.cornell.edu',
+        'host'         : online_host,
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/util',
@@ -369,10 +380,10 @@ build_specs = {
     'packages_intel'   : {
         'type'         : 'packages',
         'platform'     : 'Linux_x86_64_intel',
-        'basedir'      : '/nfs/acc/libs',
-        'util_dir'     : '/nfs/acc/libs/util',
+        'basedir'      : offline_base_dir,
+        'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
-        'host'         : 'acc101.lns.cornell.edu',
+        'host'         : offline_host,
         'repositories' : {
             'ACC-LEPP' : [
                 '/trunk/packages/activemq-cpp-3.7.0',
@@ -393,10 +404,10 @@ build_specs = {
     'packages_gfortran' : {
         'type'          : 'packages',
         'platform'      : 'Linux_x86_64_gfortran',
-        'basedir'       : '/nfs/acc/libs',
-        'util_dir'      : '/nfs/acc/libs/util',
+        'basedir'       : offline_base_dir,
+        'util_dir'      : offline_util_dir,
         'domain'        : 'OFFLINE',
-        'host'          : 'acc101.lns.cornell.edu',
+        'host'          : offline_host,
         'repositories'  : {
             'ACC-LEPP'  : [
                 '/trunk/packages/activemq-cpp-3.7.0',

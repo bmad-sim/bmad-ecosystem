@@ -64,7 +64,7 @@ fi
 #--------------------------------------------------------------
 
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
-ONLINE_RELEASE_MGMT_DIR='/nfs/cesr/online/lib/util'
+ONLINE_RELEASE_MGMT_DIR=${ONLINE_ARCHIVE_BASE_DIR}'/util'
 
 ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013_sp1.1.106/bin'
 ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
@@ -75,7 +75,7 @@ ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 #--------------------------------------------------------------
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
-OFFLINE_RELEASE_MGMT_DIR='/nfs/acc/libs/util'
+OFFLINE_RELEASE_MGMT_DIR=${OFFLINE_ARCHIVE_BASE_DIR}'/util'
 
 OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013_sp1.1.106/bin'
 OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')

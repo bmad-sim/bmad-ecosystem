@@ -50,8 +50,8 @@ sys.stdout = file
 
 
 hostname = socket.gethostname()
-p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
-#p = sub.Popen('kinit -k -t /home/amd275/etc/amd275-keytab amd275',
+#p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
+p = sub.Popen('kinit -k -t /home/$USER/etc/$USER-keytab $USER',
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
@@ -203,8 +203,8 @@ for buildpass, target in enumerate(targets):
     else:
         print target + ' : ERROR'
         error_log_message_cmd = 'grep -C 10 Error ' + logfile
-        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
-#        mail_command = error_log_message_cmd + ' | /bin/mail -s "Test Build System: Nightly build error" defalco@cornell.edu' 
+#        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
+        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" $USER@cornell.edu'
         p = sub.call(mail_command,
                       bufsize=1,
                       shell=True)
