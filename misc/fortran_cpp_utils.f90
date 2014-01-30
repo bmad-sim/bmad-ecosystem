@@ -489,7 +489,7 @@ integer ix
 
 str_out = ''
 do ix = 1, 32000
-  if (str_in(ix) == char(0)) return
+  if (str_in(ix) == c_null_char) return
   str_out(ix:ix) = str_in(ix)
 enddo
 
@@ -523,7 +523,7 @@ integer ix
 
 !
 
-ix = index(str_in, char(0))
+ix = index(str_in, c_null_char)
 if (ix == 0) then
   str_out = str_in
 else
@@ -551,12 +551,12 @@ end subroutine remove_null_in_string_char
 !                    non-blank character.
 !-
 
-subroutine to_c_str (f_string, c_string)
+pure subroutine to_c_str (f_string, c_string)
 
 implicit none
 
-character(*) f_string
-character(kind=c_char) c_string(*)
+character(*), intent(in) :: f_string
+character(kind=c_char), intent(out) ::  c_string(*)
 integer i
 
 !
@@ -565,9 +565,32 @@ do i = 1, len_trim(f_string)
   c_string(i) = f_string(i:i)
 enddo
 
-c_string(i) = char(0)
+c_string(i) = c_null_char
 
 end subroutine to_c_str
+
+!-----------------------------------------------------------------------------
+!+
+! function c_string(f_string) 
+!
+! Functional form of subroutine to_c_str (f_string, c_string)
+!
+! Modules needed:
+!  use fortran_cpp_utils
+!
+! Input:
+!   f_string   -- Character(*): Input character string
+!
+! Output:
+!   c_string(*) -- Character(kind=c_char): String with a null put just after the last
+!                    non-blank character.
+!-
+pure function c_string(f_string) 
+implicit none
+character(len=*), intent(in) :: f_string
+character(len=1,kind=c_char), dimension(len_trim(f_string)+1) :: c_string
+call to_c_str (f_string, c_string)
+end function c_string
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -598,7 +621,7 @@ integer i
 !
 
 do i = 1, len(f_string)
-  if (c_string(i) == char(0)) then
+  if (c_string(i) == c_null_char) then
     f_string(i:) = ''
     return
   endif
@@ -606,6 +629,7 @@ do i = 1, len(f_string)
 enddo
 
 end subroutine to_f_str
+
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
