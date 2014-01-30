@@ -9,6 +9,7 @@
 
 module tao_struct
 
+use iso_c_binding, only: c_char
 use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, normal_modes_struct, &
                        rad_int_all_ele_struct
 use equal_mod
@@ -525,6 +526,7 @@ type tao_global_struct
   character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
+  logical :: initialized = .false.                ! Does tao_init() need to be called?
   logical :: var_limits_on = .true.               ! Respect the variable limits?
   logical :: opt_with_ref = .false.               ! use reference data in optimization?
   logical :: opt_with_base = .false.              ! use base data in optimization?
@@ -645,6 +647,9 @@ type tao_scratch_space_struct
   real(rp), allocatable :: axis1(:), axis2(:)
   real(rp), allocatable :: x(:), y(:)
   real(rp), allocatable :: y_value(:)
+  character(n_char_show), allocatable :: lines(:) !For returning data to python through strings
+  character(c_char) :: c_line(n_char_show+1)      !For access from c
+  integer :: n_lines
 end type
 
 type (tao_scratch_space_struct), save, target :: scratch
@@ -740,10 +745,10 @@ end type
 !-----------------------------------------------------------------------
 ! MPI information structure
 type tao_mpi_struct
-  logical :: on = .false.        ! Is MPI on?
-  logical :: master = .true.     ! Is this the master task? If yes, rank == 0
-  integer :: rank = 0            ! Rank of task (rank is 0, 1, 2, ... n_tasks-1 ) 
-  integer :: max_rank = 0        ! Maximum rank, should be n_tasks-1
+  logical :: on = .false.           ! Is MPI on?
+  logical :: master = .true.        ! Is this the master task? If yes, rank == 0
+  integer :: rank = 0               ! Rank of task (rank is 0, 1, 2, ... n_tasks-1 ) 
+  integer :: max_rank = 0           ! Maximum rank, should be n_tasks-1
   character(160) :: host_name  =''  ! Name of the host machine
 end type
 

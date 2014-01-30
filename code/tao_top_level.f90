@@ -1,15 +1,23 @@
 !+
-! Subroutine tao_top_level ()
+! Subroutine tao_top_level (command, errcode)
 !
 ! Top level tao routine.
 !
 ! Modules needed:
 !   use tao_mod
+!
+! Input:
+!   command    -- character(*), optional: Tao command string. 
+!                                         If present, getting user input from the terminal is bypassed. 
+!                                          
+! Output:
+!   errcode    -- integer, optional: Return error code
 !-
 
-subroutine tao_top_level ()
+subroutine tao_top_level (command, errcode)
 
 use tao_command_mod, dummy => tao_top_level
+!use tao_mpi_mod
 
 implicit none
 
@@ -17,36 +25,76 @@ type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
 type (tao_common_struct), pointer :: t_ptr          ! For debug purposes
 type (tao_universe_struct), pointer :: u
 
-character(200) cmd_line
+integer, optional :: errcode
+
+character(*), optional :: command
+character(1000) :: cmd_line
 character(16) :: r_name = 'tao_top_level'
 
-logical found, err
+logical found, err, will_need_cmd_line_input, interactive
 
 ! init
 
 s_ptr => s       ! Used for debugging
 t_ptr => tao_com ! Used for debugging
 
+! Set interactive flags
+if (present(command)) then
+  cmd_line = command
+  interactive = .false. 
+  tao_com%shell_interactive = .false.
+else
+  interactive = .true. 
+  tao_com%shell_interactive = .true.
+endif
+will_need_cmd_line_input = .false.
+
+
 ! Read command line arguments.
 
-call tao_parse_command_args (err)
-if (err) stop
+if (interactive) then
+  call tao_parse_command_args (err)
+  if (err) stop
+endif
+
+! Turn off plotting for slaves
+!if (.not. s%mpi%master)  s%global%plot_on = .false.
 
 ! And init everything.
 
-call tao_init (err)
-if (err) then
-  call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
-  stop
+if (.not. s%global%initialized) then
+  call tao_init (err)
+  if (err) then
+    call out_io (s_fatal$, r_name, 'TAO INIT FILE NOT FOUND. STOPPING.')
+    stop
+  endif
+  s%global%initialized = .true. 
 endif
 
 u => s%u(1)  ! Used for debugging
 
-! Command loop
+! MPI slave settings
+!if (.not. s%mpi%master) then 
+!  !Turn off screen output
+!  tao_com%print_to_terminal = .false.
+!  call output_direct( do_print = .false.)
+!endif
 
+! Command loop
 do
   err = .false.
-  call tao_get_user_input (cmd_line)
+  
+  if (interactive) then
+    call tao_get_user_input (cmd_line)
+  else
+    call tao_get_user_input (cmd_line, will_need_cmd_line_input = will_need_cmd_line_input)
+  endif
+  
+ ! if (s%mpi%master) call tao_get_user_input (cmd_line)
+  
+  ! Broadcast command to slaves
+  !if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_line)
+  
   if (tao_com%single_mode) then
     ! single mode
     call tao_single_mode (cmd_line(1:1))
@@ -58,6 +106,18 @@ do
     if (.not. found) call tao_command (cmd_line, err)
   endif
   if (.not. err) call tao_cmd_history_record (cmd_line)
+
+  ! Non-interactive will exit
+  if (will_need_cmd_line_input) exit
 enddo
 
+if (present(errcode) )then
+  if (err) then
+    errcode = 1
+  else
+    errcode = 0
+  endif
+endif
+
 end subroutine
+

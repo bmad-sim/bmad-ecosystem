@@ -16,7 +16,8 @@ subroutine tao_de_optimizer (abort)
 
 use tao_mod, dummy => tao_de_optimizer
 use tao_top10_mod, only: tao_var_write
-use opti_de_mod, only: opti_de
+!use opti_de_mod, only: opti_de
+use opti_de_mod, only: opti_de !MPI , opti_de_mpi
 use tao_var_mod, only: tao_get_opt_vars, tao_set_opt_vars
 
 implicit none
@@ -53,12 +54,24 @@ call tao_get_opt_vars (var_vec, var_step = var_step)
 var_step = var_step * s%global%de_lm_step_ratio
 n_var = size(var_vec)
 
-population = max(5*n_var, 20)
+population=s%global%de_var_to_population_factor*n_var
+population = max(population, 20)
 merit_start = tao_merit ()
 
 ! run the optimizer
 
-merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
+call out_io (s_blank$, r_name, line)
+
+!MPI if (s%mpi%on) then
+!MPI  ! Turn off printing to screen for slaves
+!MPI  !if ( s%mpi%rank /= 0 ) call output_direct( do_print = .false.)
+!MPI  merit = opti_de_mpi(var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!MPI else
+  merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!MPI endif
+
+print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
 
 ! cleanup after the optimizer
 
@@ -70,7 +83,7 @@ call out_io (s_blank$, r_name, line)
 write (line, '(a, es14.6)') 'Merit end:  ', merit_end
 call out_io (s_blank$, r_name, line)
 
-call tao_var_write (s%global%var_out_file)
+!MPI if (s%mpi%master) call tao_var_write (s%global%var_out_file)
 if (status /= 0) abort = .true.
 
 end subroutine
@@ -108,7 +121,7 @@ real(rp) var_vec(:)
 real(rp) this_merit, merit
 real(rp), save :: merit_min, merit_min_out, merit_min_type
 
-integer i, status
+integer i, status, rank
 integer iter_count
 integer, save :: t0(8), t1(8), t_del(8), t_delta
 
@@ -147,8 +160,9 @@ if (iter_count == 1000) then
                   60*(t_del(5) + 24*(t_del(3) + 30*t_del(2)))) 
 endif
 
+
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
-  write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
+  write (line, '(a, es14.6, i)') ' So far the minimum is ', merit_min, s%mpi%rank
   if (calc_ok) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else

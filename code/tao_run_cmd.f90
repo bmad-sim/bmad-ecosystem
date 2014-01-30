@@ -23,6 +23,7 @@ use tao_lm_optimizer_mod, only: tao_lm_optimizer
 use tao_svd_optimizer_mod, only: tao_svd_optimizer
 use tao_var_mod, only: tao_get_opt_vars
 use tao_geodesic_lm_optimizer_mod, only: tao_geodesic_lm_optimizer
+!MPI use tao_mpi_mod
 
 implicit none
 

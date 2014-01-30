@@ -20,6 +20,9 @@ contains
 
 subroutine tao_svd_optimizer (abort)
 
+use LA_PRECISION, ONLY: WP => DP
+use f95_lapack
+
 use nr
 
 implicit none
@@ -94,7 +97,6 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
     weight(k) = u%data(i)%weight
   enddo
 enddo
-
 !--------------------------
 ! SVD 
 
@@ -110,9 +112,18 @@ enddo
 
 if (any(dy_da /= dy_da_old)) then
   dy_da_old = dy_da
-  call svdcmp(dy_da, w, v)
+  !call svdcmp(dy_da, w, v)
+  !dy_da_out = dy_da
+
+  !Lapack95 routine. Note that this returns V^Transpose, not V, so we need an extra step
+  print *, 'call DGESDD_F95'
+  call DGESDD_F95( dy_da, w(1:min(n_data,n_var)), VT=v, JOB = 'U') 
+  v = transpose(v)
   dy_da_out = dy_da
 endif
+
+! Set any extra components of singluar value list w to zero
+if (min(n_data,n_var) < n_var) w(min(n_data,n_var)+1:) = 0
 
 where (w < s%global%svd_cutoff * maxval(w)) w = 0
 b = y_fit * sqrt(weight)
