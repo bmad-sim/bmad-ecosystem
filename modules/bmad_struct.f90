@@ -166,7 +166,7 @@ type coord_struct                 ! Particle coordinates at a single point
   integer :: ix_ele = -1          ! Index of element particle was tracked through.
                                   !   May be -1 if element is not associated with a lattice.
   integer :: state = not_set$     ! alive$, lost$, lost_neg_x_aperture$, etc.
-  integer :: direction = 1        ! Longitudinal direction of motion
+  integer :: direction = 1        ! Longitudinal direction of motion. Sign of ds/dt.
   integer :: species = not_set$   ! positron$, proton$, etc.  
   integer :: location = upstream_end$  ! upstream_end$, inside$, or downstream_end$
 end type

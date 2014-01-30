@@ -2422,7 +2422,7 @@ end function element_has_fringe_fields
 !                     If there are no more hard edges then s_pos will be set to ele%value(l$).
 !   hard_ele     -- ele_struct, pointer: Points to element with the hard edge.
 !                     Will be nullified if there is no hard edge.
-!                     This will be track_ele unless track_ele is a super_slave.
+!                     This will be track_ele (if it has a hard edge) unless track_ele is a super_slave.
 !   s_edge_hard  -- Real(rp): S-position of next hard egde in hard_ele frame.
 !   hard_end     -- Integer: Describes hard edge. Set to first_track_edge$ or second_track_edge$
 !-
@@ -2455,7 +2455,7 @@ if (.not. associated(hard_ele)) then
   endif
 endif
 
-! Find next hard edge
+! Find next hard edge. 
 
 s_edge_track = track_ele%value(l$)
 nullify (hard_ele)

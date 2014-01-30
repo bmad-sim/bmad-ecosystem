@@ -2838,7 +2838,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, integ_order, steps, for_layout)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -3208,7 +3208,7 @@ real(dp) mis_rot(6), beta_start, beta_end
 real(dp) omega(3), basis(3,3), angle(3)
 real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
-logical use_offsets
+logical use_offsets, good_patch
 
 character(*), parameter :: r_name = 'misalign_ele_to_fibre'
 
@@ -3253,7 +3253,11 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
   ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
 
   call survey (dummy_fibre, exi, dr)
-  call find_patch (ptc_fibre, dummy_fibre, next = .false.)
+  call find_patch (ptc_fibre, dummy_fibre, next = .false., patching=good_patch)
+  if (.not. good_patch) then
+    call out_io (s_fatal$, r_name, 'CANNOT COMPUTE PTC PATCH FOR: ' // ele%name)
+    return
+  endif
 
   call super_zero_fibre(dummy_fibre, -1)
 
