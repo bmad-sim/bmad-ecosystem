@@ -1751,12 +1751,24 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
+type (ele_struct), pointer :: ele2
 
 real(rp), pointer :: v(:)
 real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds0
 real(rp), optional :: s_ent, ds_ref, w_inv(3,3)
 
+integer rel_dir1
+
 logical, optional :: drift_to_exit
+
+!
+
+ele2 => pointer_to_next_ele(ele, -1)  ! Previous element
+if (.not. associated(ele2)) then
+  rel_dir1 = 1
+else
+  rel_dir1 = ele2%orientation
+endif
 
 ! Transform to exit face coords.
 
@@ -1765,6 +1777,7 @@ r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)
 
 rel_pc = 1 + orbit%vec(6)
 p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
+if (rel_dir1 == -1) p_vec(3) = - p_vec(3)
 
 if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
   call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = winv)

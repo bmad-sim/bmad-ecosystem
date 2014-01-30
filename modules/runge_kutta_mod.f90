@@ -14,6 +14,8 @@ end type
 
 type (runge_kutta_common_struct), save :: runge_kutta_com
 
+private :: rk_adaptive_step, rk_step1
+
 contains
 
 !-----------------------------------------------------------
@@ -116,9 +118,11 @@ call reference_energy_correction (ele, orb_end)
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
+! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
 nullify (hard_ele)
 call calc_next_fringe_edge (ele, direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
 
@@ -266,15 +270,17 @@ function wall_intersection_func (ds) result (d_radius)
 
 real(rp), intent(in) :: ds
 real(rp) d_radius
-real(rp) t_new, r_err(7), dr_ds(7)
+real(rp) t_new, r_err(7)
 
 !
 
 call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
-position = [orb_end%vec(1:4), s, 1.0_rp]
-d_radius = wall3d_d_radius (position, ele)
 
 s = s_save + ds
+position = [orb_end%vec(1:4), s, 1.0_rp]
+
+d_radius = wall3d_d_radius (position, ele)
+
 orb_end%s = s
 orb_end%t = orb_save%t + (t - t_save)
 
@@ -284,6 +290,18 @@ end subroutine odeint_bmad
 
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
+!+
+! Subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
+!                                       r_scal, ds_did, ds_next, local_ref_frame, err_flag)
+!
+! Private routine used by odeint_bmad.
+! Not meant for general use
+!
+! Input:
+!   dr_ds(7) -- Derivative at beginning of step. 
+!
+! Output:
+!-
 
 subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
                                        r_scal, ds_did, ds_next, local_ref_frame, err_flag)
