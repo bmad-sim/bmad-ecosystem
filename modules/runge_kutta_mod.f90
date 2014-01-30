@@ -272,7 +272,7 @@ real(rp) t_new, r_err(7), dr_ds(7)
 
 call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
 position = [orb_end%vec(1:4), s, 1.0_rp]
-wall_d_radius = wall3d_d_radius (position, ele)
+d_radius = wall3d_d_radius (position, ele)
 
 s = s_save + ds
 orb_end%s = s
