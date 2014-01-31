@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (LIBNAME tao)
 
-set (CREATE_SHARED true)
+## set (CREATE_SHARED true)
 
 set(INC_DIRS 
 )

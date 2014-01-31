@@ -189,21 +189,22 @@ end type
 type (show_lat_column_struct) column(50)
 
 real(rp) f_phi, s_pos, l_lat, gam, s_ele, s1, s2, gamma2, val, z, angle, r
+real(rp) mat6(6,6), vec0(6), vec_in(6)
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
-character(24) :: var_name, blank_str = ''
-character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
-character(80) :: word1, fmt, fmt2, fmt3
+character(3) undef_str
 character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name, what_to_print
-character(200), allocatable :: alloc_lines(:)
+character(24) :: var_name, blank_str = ''
+character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
+character(40) ele_name, sub_name, ele1, ele2, switch
+character(40) replacement_for_blank
+character(60) nam
+character(80) :: word1, fmt, fmt2, fmt3
 character(100) file_name, name, why_invalid
 character(120) header, str
-character(40) ele_name, sub_name, ele1, ele2, switch
-character(60) nam
-character(3) undef_str
-character(40) replacement_for_blank
+character(200), allocatable :: alloc_lines(:)
 
 character(16) :: show_what, show_names(28) = [ &
    'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
@@ -229,7 +230,7 @@ logical bmad_format, good_opt_only, show_lords, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
-logical print_global, print_optimization, print_bmad_com, print_csr_param
+logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
 logical valid_value, print_floor, show_section
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
@@ -525,14 +526,14 @@ case ('branch')
     endif
 
     nl=nl+1; lines(nl) =                   '%name                      = ' // trim(branch%name)
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_branch                 =', branch%ix_branch 
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from_branch            =', branch%ix_from_branch 
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%ix_from ele               =', branch%ix_from_ele
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_track               =', branch%n_ele_track
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write (lines(nl), '(a, i3)')  '%param%particle            = ' // trim(species_name(branch%param%particle))
+    nl=nl+1; write (lines(nl), imt)  '%ix_branch                 =', branch%ix_branch 
+    nl=nl+1; write (lines(nl), imt)  '%ix_from_branch            =', branch%ix_from_branch 
+    nl=nl+1; write (lines(nl), imt)  '%ix_from ele               =', branch%ix_from_ele
+    nl=nl+1; write (lines(nl), imt)  '%n_ele_track               =', branch%n_ele_track
+    nl=nl+1; write (lines(nl), imt)  '%n_ele_max                 =', branch%n_ele_max
+    nl=nl+1; write (lines(nl), imt)  '%param%particle            = ' // trim(species_name(branch%param%particle))
     nl=nl+1; write (lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
-    nl=nl+1; write (lines(nl), '(a, a)')   '%param%geometry            = ', geometry_name(branch%param%geometry)
+    nl=nl+1; write (lines(nl), amt)  '%param%geometry            = ', geometry_name(branch%param%geometry)
 
   else
     nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele  Ix_From  From                Ix_From  From '
@@ -998,12 +999,14 @@ case ('element')
   xfer_mat_print = 0
   print_slaves = .true.
   lat_type = model$
+  print_ptc = .false.
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
                 '-all_attributes', '-data          ', '-design        ', &
                 '-no_slaves     ', '-wall          ', '-base          ', &
-                '-field         ', '-floor_coords  ', '-xfer_mat      '], switch, err, ix)
+                '-field         ', '-floor_coords  ', '-xfer_mat      ', &
+                '-ptc           '], switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                exit
@@ -1018,6 +1021,7 @@ case ('element')
     case ('-data');           print_data = .true.
     case ('-no_slaves');      print_slaves = .false.
     case ('-wall');           print_wall = .true.
+    case ('-ptc');            print_ptc = .true.
     case default
       call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND: ' // switch)
       return
@@ -1090,6 +1094,19 @@ case ('element')
   if (print_data) then
     call show_ele_data (u, ele, lines, nl)
     result_id = 'element:data'
+    return
+  endif
+
+  if (print_ptc) then
+    if (.not. associated (ele%ptc_fibre)) then
+      nl=nl+1; lines(nl) = 'Creating associated Fibre...'
+      call ele_to_fibre (ele, ele%ptc_fibre, ele%branch%param, .true.)
+    endif
+    call type_ptc_fibre (ele%ptc_fibre, .true., alloc_lines, n)
+    if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
+    lines(nl+1:nl+n) = alloc_lines(1:n)
+    nl = nl + n
+    result_id = 'element:ptc'
     return
   endif
 
@@ -2209,10 +2226,10 @@ case ('taylor_map')
         return
       endif
       call string_trim (stuff2(ix+1:), stuff2, ix)
-      if (n_order > bmad_com%taylor_order) then
+      if (n_order > ptc_com%taylor_order_ptc) then
         nl=1; write (lines(nl), '(a, i0)') &
-                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS', &
-                  bmad_com%taylor_order
+                  'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS \i0\ ', &
+                  ptc_com%taylor_order_ptc
         return
       endif        
     end select
@@ -2293,8 +2310,27 @@ case ('taylor_map')
 
   ! Print results
 
-  if (n_order > -1) call truncate_taylor_to_order (taylor, n_order, taylor)
-  call type2_taylors (taylor, lines, nl)
+  if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
+
+  if (n_order < 2) then
+    vec_in = 0
+    call taylor_to_mat6 (taylor, vec_in, vec0, mat6)
+    if (n_order == 0) then 
+      nl = nl+1; write (lines(nl), '(6f11.6)') vec0
+    else
+      if (any(abs(mat6(1:n,1:n)) >= 1000)) then
+        fmt = '(6es11.3, a, es11.3)'
+      else
+        fmt = '(6f10.5, a, es11.3)'
+      endif
+
+      do i = 1, 6
+        nl=nl+1; write (lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
+      enddo
+    endif
+  else
+    call type2_taylors (taylor, lines, nl)
+  endif
 
   result_id = show_what
 

@@ -17,7 +17,7 @@ type(c_ptr) :: c_string_ptr
 integer(c_int), value :: n
 integer :: i
 i = n
-scratch%c_line = c_string(scratch%lines(i)) 
+!!!! scratch%c_line = c_string(scratch%lines(i)) 
 c_string_ptr = c_loc(scratch%c_line(1)) ! must point to (1) to avoid gfortran compiler error
 
 end function

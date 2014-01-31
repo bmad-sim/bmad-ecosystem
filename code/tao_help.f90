@@ -1,30 +1,36 @@
 !+
-! Subroutine tao_help (what1, what2)
+! Subroutine tao_help (what1, what2, lines, n_lines)
 !
 ! Online help for TAO commmands. 
 ! Interfaces with the documentation.
 !
 ! Input:
-!   what1   -- Character(*): command to query
+!   what1   -- Character(*): command to query. EG: "show".
+!   what1   -- Character(*): subcommand to query. EG: "element".
 !
 ! Output:
-!   none
-!
+!   lines(:) -- character(200), optional, allocatable: If present 
+!                 then the output will be put in this string 
+!                 array instead of printing to the terminal.
+!   n_lines  -- integer, optional: Must be present if lines is present.
+!                 Number of lines used in the lines(:) array.
 !-
 
-subroutine tao_help (what1, what2)
+subroutine tao_help (what1, what2, lines, n_lines)
 
 use tao_struct
 use tao_interface, dummy => tao_help
 
 implicit none
 
-integer i, nl, iu, ios, n, ix, ix2
+integer, optional :: n_lines
+integer i, iu, ios, n, ix, ix2, nl
 
 character(*) :: what1, what2
 character(16) :: r_name = "TAO_HELP"
 character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
+character(200), optional, allocatable :: lines(:)
 
 logical blank_line_before, in_example
 
@@ -39,7 +45,7 @@ endif
 
 call fullfilename (file_name, full_file_name)
 
-if (what1 == '') then
+if (what1 == '' .or. what1 == 'help-list') then
   start_tag = '%% command_table'
 else
   start_tag = '%% ' // what1
@@ -91,6 +97,7 @@ blank_line_before = .true.
 left_over_eliminate = ''  ! To handle multiline constructs
 left_over_sub = ''        ! To handle multiline constructs
 in_example = .false.
+nl = 0
 
 do
   read (iu, '(a)', iostat = ios) line
@@ -159,11 +166,19 @@ do
     blank_line_before = .false.
   endif
 
-  call out_io (s_blank$, r_name, line)
+  if (present(lines)) then
+    if (.not. allocated(lines)) allocate(lines(100))
+    if (nl >= size(lines)) call re_allocate (lines, nl+100)
+    nl = nl+1; lines(nl) = line
+  else
+    call out_io (s_blank$, r_name, line)
+  endif
 
 enddo
 
 close (iu)
+
+if (present(n_lines)) n_lines = nl
 
 !-----------------------------------------------------------------------------
 contains

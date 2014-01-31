@@ -294,7 +294,7 @@ if (u%calc%mat6) then
   enddo
 
   if (branch%param%geometry == closed$) then
-    call twiss_at_start (lat, status = status)
+    call twiss_at_start (lat, status, branch%ix_branch)
     if (status /= ok$) then
       calc_ok = .false.
       return

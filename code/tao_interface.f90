@@ -64,9 +64,11 @@ interface
   subroutine tao_has_been_created ()
   end subroutine
  
-  subroutine tao_help (what1, what2)
+  subroutine tao_help (what1, what2, lines, n_lines)
     implicit none
     character(*) what1, what2
+    character(*), optional, allocatable :: lines(:)
+    integer, optional :: n_lines
   end subroutine
 
   subroutine tao_hook_branch_calc (u, tao_lat, branch)

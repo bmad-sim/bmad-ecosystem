@@ -71,7 +71,7 @@ character(20) :: r_name = 'tao_python_cmd'
 character(20) :: cmd_names(32)= &
           ['plot_visible   ', 'plot_template  ', 'graph          ', 'curve          ', &
            'plot1          ', 'var_all        ', 'var_v1         ', 'var1           ', &
-           '--------       ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
+           'help           ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
            '--------       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
            'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
            'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ', &
@@ -115,6 +115,14 @@ if (.not. allocated(scratch%lines)) allocate (scratch%lines(200))
 lines => scratch%lines
 
 select case (command)
+
+!----------------------------------------------------------------------
+! help
+! returns list of "help xxx" possibilities
+
+case ('help')
+
+call tao_help ('help-list', '', scratch%lines, nl)
 
 !----------------------------------------------------------------------
 ! data used in optimizations (with datum%useit_opt = T). 
