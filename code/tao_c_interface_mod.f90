@@ -19,7 +19,7 @@ contains
 ! Output:
 !   n_lines -- integer(c_int): C access to scratch%n_lines
 !
-function tao_c_scratch_n_lines() bind(c) result(n)
+function tao_c_scratch_n_lines() bind(c) result(n_lines)
 integer(c_int) ::  n_lines
 n_lines = scratch%n_lines
 end function
