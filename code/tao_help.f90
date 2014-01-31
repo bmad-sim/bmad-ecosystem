@@ -30,7 +30,7 @@ character(*) :: what1, what2
 character(16) :: r_name = "TAO_HELP"
 character(40) start_tag, left_over_eliminate, left_over_sub
 character(200) line, file_name, full_file_name
-character(200), optional, allocatable :: lines(:)
+character(*), optional, allocatable :: lines(:)
 
 logical blank_line_before, in_example
 
