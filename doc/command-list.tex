@@ -795,6 +795,7 @@ Example:
 For \vn{set curve}, the \vn{<component>}s that can be set are:
 \begin{example}
   ele_ref_name      = <string>  ! Name of reference element
+  ix_branch         = <number>  ! Branch index.
   ix_ele_ref        = <number>  ! Index of reference element
   ix_universe       = <number>  ! Universe index.
   symbol_every      = <number>  ! Symbol skip number.
@@ -1186,7 +1187,7 @@ Format:
   data \{<data_name>\} 
   derivative <data_name(s)> <var_name(s)>
   element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
-        \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
+        \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   graph <graph_name>
   hom
@@ -1371,7 +1372,7 @@ Example:
 
 \item[\protect\parbox{6in}{
   show element \{-all\_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} \\
-  \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
+  \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
 
 \vskip -0.1in
 
@@ -1382,6 +1383,13 @@ elements that match the name are shown. If no wild--card or class name
 is present then information about the element whose name matches
 \vn{<ele_name>} is shown. If \vn{<ele_name>} is a number $n$, then the $n$\Th
 element in the lattice list will be shown.
+
+If the \vn{-ptc} switch is used, then the associated PTC fibre
+information will be displayed. If there is not associated PTC fibre
+(which will be true if PTC has not been used for tracking with this
+element), an associated PTC fibre will be created. In this case, only
+the PTC information will be displayed and the other switches will be
+ignored.
 
 If the \vn{-all_attributes} switch is present, then all of the element attributes
 will be displayed. The default is is to display only those attributes
