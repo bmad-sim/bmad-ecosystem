@@ -1715,7 +1715,7 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv, p_s)
 ! 
 ! Routine to track through a patch element.
 ! The steps for tracking are:
@@ -1743,32 +1743,23 @@ end subroutine rf_coupler_kick
 !   ds_ref     -- real(rp), optional: Distance the reference particle travels from the entrance
 !                   to the exit face.
 !   w_inv(3,3) -- real(rp), optional: Rotation matrix used in tracking.
+!   p_s        -- real(rp), optional: Longitudinal momentum.
 !-
 
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv, p_s)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (ele_struct), pointer :: ele2
 
 real(rp), pointer :: v(:)
 real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds0
-real(rp), optional :: s_ent, ds_ref, w_inv(3,3)
+real(rp), optional :: s_ent, ds_ref, w_inv(3,3), p_s
 
 integer rel_dir1
 
 logical, optional :: drift_to_exit
-
-!
-
-ele2 => pointer_to_next_ele(ele, -1)  ! Previous element
-if (.not. associated(ele2)) then
-  rel_dir1 = 1
-else
-  rel_dir1 = ele2%orientation
-endif
 
 ! Transform to exit face coords.
 
@@ -1777,7 +1768,7 @@ r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)
 
 rel_pc = 1 + orbit%vec(6)
 p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-if (rel_dir1 == -1) p_vec(3) = - p_vec(3)
+p_vec(3) = p_vec(3) * patch_relative_orientation(ele, upstream_end$)
 
 if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
   call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = winv)
@@ -1796,9 +1787,10 @@ orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 ds0 = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)) / winv(3,3)
 
-if (present(s_ent)) s_ent = r_vec(3)
+if (present(s_ent))  s_ent = r_vec(3)
 if (present(ds_ref)) ds_ref = ds0
-if (present(w_inv)) w_inv = winv
+if (present(w_inv))  w_inv = winv
+if (present(p_s))    p_s = p_vec(3)
 
 ! Drift to exit face.
 ! Notice that the drift distance is -r_vec(3). 
@@ -1844,7 +1836,7 @@ implicit none
 type (ele_struct) :: ele
 type (coord_struct) :: orbit
 
-real(rp) p0, p1, e_start
+real(rp) p0, p1, e_start, p_rel
 character(*), parameter :: r_name = 'reference_energy_correction'
 
 !
@@ -1852,16 +1844,16 @@ character(*), parameter :: r_name = 'reference_energy_correction'
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
 if (orbit%direction == 1) then
-  orbit%vec(2) = orbit%vec(2) * ele%value(p0c_start$) / ele%value(p0c$)
-  orbit%vec(4) = orbit%vec(4) * ele%value(p0c_start$) / ele%value(p0c$)
-  orbit%vec(6) = ((1 + orbit%vec(6)) * ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$) 
+  p_rel = ele%value(p0c_start$) / ele%value(p0c$)
   orbit%p0c = ele%value(p0c$)
 else
-  orbit%vec(2) = orbit%vec(2) * ele%value(p0c$) / ele%value(p0c_start$)
-  orbit%vec(4) = orbit%vec(4) * ele%value(p0c$) / ele%value(p0c_start$)
-  orbit%vec(6) = ((1 + orbit%vec(6)) * ele%value(p0c$) - ele%value(p0c_start$)) / ele%value(p0c_start$) 
+  p_rel = ele%value(p0c$) / ele%value(p0c_start$)
   orbit%p0c = ele%value(p0c_start$)
 endif
+
+  orbit%vec(2) = orbit%vec(2) * p_rel
+  orbit%vec(4) = orbit%vec(4) * p_rel
+  orbit%vec(6) = (1 + orbit%vec(6)) * p_rel - 1
 
 end subroutine reference_energy_correction
 
