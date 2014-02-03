@@ -1,3 +1,12 @@
+!+
+! Module xraylib
+!
+! Dummy module for the xraylib interface.
+!
+! This can be used when the real xraylib is not easily available and X-rays are not being tracked.
+!-
+
+
 module xraylib
 
 use iso_c_binding
@@ -73,5 +82,9 @@ real spacing
 spacing = 0
 end function
 
+subroutine FreeCompoundDataNIST(compound)
+type (compoundDataNIST), pointer :: compound
+nullify (compound)
+end subroutine
 
 end module
