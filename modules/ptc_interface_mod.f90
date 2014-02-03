@@ -3198,7 +3198,6 @@ use madx_ptc_module
 implicit none
 
 type (ele_struct) ele
-type (ele_struct), pointer :: ele2
 type (floor_position_struct) :: floor0, floor1
 type (fibre), pointer :: ptc_fibre
 type (fibre) dummy_fibre
@@ -3232,23 +3231,10 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
   call set_madx_(.true., .false.)
   dummy_fibre = marker('dummy')
   nullify(dummy_fibre%loc)
-  !!ptc_el_list = marker('dummy')
-  !!call el_q_for_madx (dummy_fibre, ptc_el_list)
   call set_madx_(.false., .false.)
 
-  ele2 => pointer_to_next_ele (ele)
-  if (.not. associated(ele2)) then
-    dummy_fibre%dir = 1
-  else 
-    dummy_fibre%dir = ele2%orientation
-  endif
-
-  ele2 => pointer_to_next_ele(ele, -1)  ! Previous element
-  if (.not. associated(ele2)) then
-    ptc_fibre%dir = 1
-  else
-    ptc_fibre%dir = ele2%orientation
-  endif
+  ptc_fibre%dir = patch_relative_orientation(ele, upstream_end$)
+  dummy_fibre%dir = patch_relative_orientation(ele, downstream_end$)
 
   ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
 
