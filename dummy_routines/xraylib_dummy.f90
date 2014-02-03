@@ -7,8 +7,8 @@ type crystal_struct
 end type
 
 type compounddatanist
-  integer nElements
-  real massFractions(1), elements(1), density
+  integer nElements, elements(1)
+  real massFractions(1), density
 end type
 
 real, parameter :: r_e = 0
