@@ -8,8 +8,9 @@ use wall3d_mod
 integer, parameter :: outside_wall$ = 1, wall_transition$ = 2
 
 type runge_kutta_common_struct
-  logical :: check_wall_aperture = .false.
-  integer :: hit_when = outside_wall$   ! or wall_transition$
+  logical :: check_limits = .false.         ! Check x/y limits?
+  logical :: check_wall_aperture = .false.  ! Check wall3d aperture?
+  integer :: hit_when = outside_wall$       ! or wall_transition$
 end type
 
 type (runge_kutta_common_struct), save :: runge_kutta_com
@@ -185,6 +186,13 @@ do n_step = 1, max_step
   call rk_adaptive_step (ele, param, orb_end, dr_ds, s, t, ds, &
                       rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
   if (err) return
+
+  ! Check x/y limit apertures
+
+  if (runge_kutta_com%check_limits) then
+    call check_aperture_limit (orb_end, ele, in_between$, param)
+    if (orb_end%state /= alive$) return
+  endif
 
   ! Check if hit wall.
   ! If so, interpolate position particle at the hit point

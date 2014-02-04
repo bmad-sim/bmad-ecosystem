@@ -143,9 +143,9 @@ end function lord_edge_aligned
 ! Routine to determine if an aperture or fringe field is present.
 !
 ! Input:
-!   now_at      -- Integer: Which end is under consideration: entrance_end$, exit_end$, or surface$.
-!   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$
-!                     exit_end$, continuous$, both_ends$, no_aperture$, surface$.
+!   now_at      -- Integer: Which end is under consideration: entrance_end$, exit_end$, surface$, or in_between$.
+!   where_at    -- Integer: Which ends have the aperture or fringe field: entrance_end$, exit_end$, 
+!                     continuous$, both_ends$, no_aperture$, surface$.
 !
 ! Output:
 !   is_at_this_end   -- Logical: True if at this end. False otherwise.
@@ -170,19 +170,24 @@ if (now_at == surface$ .or. where_at == surface$) then
   return
 endif
 
+if (where_at == continuous$) then
+  is_at_this_end = .true.
+  return
+endif
+
 !
 
 select case (now_at)
 case (entrance_end$)
   select case (where_at)
-  case (entrance_end$, both_ends$, continuous$); is_at_this_end = .true.
-  case default;                                  is_at_this_end = .false.
+  case (entrance_end$, both_ends$); is_at_this_end = .true.
+  case default;                     is_at_this_end = .false.
   end select
 
 case (exit_end$)
   select case (where_at)
-  case (exit_end$, both_ends$, continuous$); is_at_this_end = .true.
-  case default;                              is_at_this_end = .false.
+  case (exit_end$, both_ends$); is_at_this_end = .true.
+  case default;                 is_at_this_end = .false.
   end select
 end select
 
@@ -198,12 +203,12 @@ end function at_this_ele_end
 ! the position in terms of upstream/downstream and the element's orientation
 !
 ! Input:
-!   track_end        -- Integer: first_track_edge$, second_track_edge$, or surface$
+!   track_end        -- Integer: first_track_edge$, second_track_edge$, surface$, or in_between$
 !   track_direction  -- Integer: +1 or -1
 !   ele_orientation  -- Integer: Either 1 = Normal or -1 = element reversed.
 !
 ! Output:
-!   physical_end     -- Integer: entrance_end$, exit_end$, or surface$
+!   physical_end     -- Integer: entrance_end$, exit_end$, surface$, or in_between$
 !-
 
 function physical_ele_end (track_end, track_direction, ele_orientation) result (physical_end)
@@ -215,8 +220,8 @@ character(*), parameter :: r_name  = 'physical_ele_end'
 
 !
 
-if (track_end == surface$) then
-  physical_end = surface$
+if (track_end == surface$ .or. track_end == in_between$) then
+  physical_end = track_end
   return
 endif
 

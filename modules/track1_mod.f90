@@ -32,7 +32,7 @@ contains
 ! Input:
 !   orb            -- Coord_struct: coordinates of a particle.
 !   ele            -- Ele_struct: Element holding the aperture
-!   particle_at    -- Integer: first_track_edge$, second_track_edge$, or surface$
+!   particle_at    -- Integer: first_track_edge$, second_track_edge$, surface$, in_between$
 !   param          -- lat_param_struct: Parameter structure
 !     %aperture_limit_on -- The aperture limit is only checked if this is true.
 !               The exception is when the orbit is larger than 
@@ -135,7 +135,7 @@ case (crystal$, mirror$, multilayer_mirror$)
   y_particle = orb%vec(3)
 
 case default
-  if (ele%offset_moves_aperture .and. (physical_end == entrance_end$ .or. physical_end == exit_end$)) then
+  if (ele%offset_moves_aperture .and. physical_end /= surface$) then
     do_tilt = .false.
     if (ele%key == ecollimator$ .or. ele%key == rcollimator$) do_tilt = .true.
     orb2 = orb
@@ -143,9 +143,8 @@ case default
     if (orb2%species == photon$) then
       call offset_photon (ele, orb2, set$)
     else
-      call offset_particle (ele, orb2, param, set$, set_canonical = .false., &
-                 set_tilt = do_tilt, set_multipoles = .false., set_hvkicks = .false., &
-                 ds_pos = s_here)
+      call offset_particle (ele, orb2, param, set$, set_canonical = .false., set_tilt = do_tilt, &
+                 set_multipoles = .false., set_hvkicks = .false., ds_pos = s_here)
     endif
     x_particle = orb2%vec(1)
     y_particle = orb2%vec(3)
