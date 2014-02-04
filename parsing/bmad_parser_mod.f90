@@ -4858,7 +4858,7 @@ select case (ele%key)
 
 case (sbend$, rbend$, sad_mult$) 
 
-  ele%sub_key = ele%key  ! save input format.
+  if (ele%key /= sad_mult$) ele%sub_key = ele%key  ! Save sbend/rbend input type.
   angle = ele%value(angle$) 
 
   ! Only one of b_field, g, or rho may be set.

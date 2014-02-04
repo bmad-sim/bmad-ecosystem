@@ -28,6 +28,9 @@ interface assignment (=)
   module procedure complex_taylors_equal_complex_taylors
 end interface
 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
 !+
 ! Function complex_taylor_coef (bmad_complex_taylor, exp)
 ! Function complex_taylor_coef (bmad_complex_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)

@@ -23,8 +23,8 @@
 
 subroutine make_mat6_bmad (ele, param, c0, c1, end_in, err)
 
-use track1_mod, dummy => make_mat6_bmad
-use mad_mod, dummy1  => make_mat6_bmad
+use sad_mod, dummy => make_mat6_bmad
+use mad_mod, dummy1 => make_mat6_bmad
 
 implicit none
 
@@ -40,7 +40,8 @@ real(rp), pointer :: mat6(:,:), v(:)
 real(rp) mat6_pre(6,6), mat6_post(6,6), mat6_i(6,6)
 real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
-real(rp) k2l, k3l, c2, s2, cs, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
+real(rp) k2l, k3l, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
+real(rp) t5_22, t5_33, t5_34, t5_44
 real(rp) factor, kmat6(6,6), drift(6,6), w_inv(3,3)
 real(rp) s_pos, s_pos_old, z_slice(100), dr(3), axis(3), w_mat(3,3)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
@@ -48,10 +49,7 @@ real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
 real(rp) arg, rel_p, rel_p2, dp_dg, dp_dg_dz1, dp_dg_dpz1
 real(rp) cy, sy, k2, s_off, x_pitch, y_pitch, y_ave, k_z
 real(rp) dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), xp_start, yp_start
-real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
-real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
-real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
-real(rp) lcs, lc2s2, k, L, m55, m65, m66, new_pc, new_beta
+real(rp) k, L, m55, m65, m66, new_pc, new_beta
 real(rp) cos_phi, sin_phi, cos_term, dcos_phi, gradient_net, e_start, e_end, e_ratio, pc, p0c
 real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, p_s, Dxy, Dy, px_t
@@ -669,22 +667,6 @@ case (patch$)
 
   mat6 = matmul (mat6_post, mat6)
 
-  ! reference energy correction
-
-  if (ele%value(p0c$) /= ele%value(p0c_start$)) then
-    if (c00%direction == 1) then
-      p_rel = ele%value(p0c_start$) / ele%value(p0c$)
-    else
-      p_rel = ele%value(p0c$) / ele%value(p0c_start$)
-    endif
-
-    mat6(2,:) = mat6(2,:) * p_rel
-    mat6(4,:) = mat6(4,:) * p_rel
-    mat6(6,:) = mat6(6,:) * p_rel
-  endif
-
-  !
-
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
@@ -835,6 +817,8 @@ case (rfcavity$)
 ! sad_mult
 
 case (sad_mult$)
+
+  call make_mat6_sad_mult (ele, param, c0, c1)
 
 !--------------------------------------------------------
 ! sbend
@@ -1177,83 +1161,7 @@ case (solenoid$)
 
   call offset_particle (ele, c00, param, set$)
 
-  ks = param%rel_tracking_charge * v(ks$) / rel_p
-
-  call solenoid_mat_calc (ks, length, mat6(1:4,1:4))
-
-  mat6(1,2) = mat6(1,2) / rel_p
-  mat6(1,4) = mat6(1,4) / rel_p
-
-  mat6(2,1) = mat6(2,1) * rel_p
-  mat6(2,3) = mat6(2,3) * rel_p
-
-  mat6(3,2) = mat6(3,2) / rel_p
-  mat6(3,4) = mat6(3,4) / rel_p
-
-  mat6(4,1) = mat6(4,1) * rel_p
-  mat6(4,3) = mat6(4,3) * rel_p
-
-
-  c2 = mat6(1,1)
-  s2 = mat6(1,4) * ks / 2
-  cs = mat6(1,3)
-
-  lcs = length * cs
-  lc2s2 = length * (c2 - s2) / 2
-
-  t1_16 =  lcs * ks
-  t1_26 = -lc2s2 * 2
-  t1_36 = -lc2s2 * ks
-  t1_46 = -lcs * 2
-
-  t2_16 =  lc2s2 * ks**2 / 2
-  t2_26 =  lcs * ks
-  t2_36 =  lcs * ks**2 / 2
-  t2_46 = -lc2s2 * ks
-
-  t3_16 =  lc2s2 * ks
-  t3_26 =  lcs * 2
-  t3_36 =  lcs * ks
-  t3_46 = -lc2s2 * 2
-
-  t4_16 = -lcs * ks**2 / 2
-  t4_26 =  lc2s2 * ks
-  t4_36 =  t2_16
-  t4_46 =  lcs * ks
-
-  arg = length / 2
-  t5_11 = -arg * (ks/2)**2
-  t5_14 =  arg * ks
-  t5_22 = -arg
-  t5_23 = -arg * ks
-  t5_33 = -arg * (ks/2)**2
-  t5_44 = -arg
-
-  ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
-
-  mat6(5,1) =  2 * c00%vec(1) * t5_11 + c00%vec(4) * t5_14
-  mat6(5,2) = (2 * c00%vec(2) * t5_22 + c00%vec(3) * t5_23) / rel_p
-  mat6(5,3) =  2 * c00%vec(3) * t5_33 + c00%vec(2) * t5_23
-  mat6(5,4) = (2 * c00%vec(4) * t5_44 + c00%vec(1) * t5_14) / rel_p
-
-  mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
-                  mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
-  mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
-                  mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
-  mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
-                  mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
-  mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
-                  mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
-
-  ! mat6(5,6) 
-
-  xp_start = c00%vec(2) + ks * c00%vec(3) / 2
-  yp_start = c00%vec(4) - ks * c00%vec(1) / 2
-  mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p
-
-  if (v(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, v(tilt_tot$))
-  endif
+  call solenoid_mat6_calc (param%rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
 
   call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()

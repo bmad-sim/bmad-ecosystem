@@ -633,7 +633,7 @@ case (solenoid$)
   yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
   end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / 2
 
-  call solenoid_mat_calc (ks, length, mat4)
+  call solenoid_mat4_calc (ks, length, mat4)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
   call offset_particle (ele, end_orb, param, unset$)

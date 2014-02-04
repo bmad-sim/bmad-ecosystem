@@ -1802,6 +1802,7 @@ if (logic_option(.true., drift_to_exit)) then
   orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
   orbit%vec(5) = orbit%vec(5) + r_vec(3) * rel_pc / p_vec(3) + ds0 * orbit%beta / beta0
   orbit%t = orbit%t - r_vec(3) * rel_pc / (p_vec(3) * orbit%beta * c_light)
+  orbit%s = orbit%s - r_vec(3)
 endif
 
 end subroutine track_a_patch

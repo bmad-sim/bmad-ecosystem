@@ -1436,7 +1436,86 @@ end subroutine real_8_to_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)
+! Subroutine taylor_bmad_to_ptc (taylor_bmad, beta0, taylor_ptc, mat6)
+!
+! Routine to convert a Bmad taylor map to PTC taylor.
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   taylor_bmad(6) -- type(taylor_struct): Bmad Taylor.
+!   beta0          -- real(rp): Reference particle velocity
+!
+! Output:
+!   taylor_ptc(6)  -- type(real_8): PTC coordinates.
+!-
+
+subroutine taylor_bmad_to_ptc (taylor_bmad, beta0, taylor_ptc)
+
+use s_fibre_bundle
+
+implicit none
+
+type (taylor_struct) taylor_bmad(:)
+type (real_8) taylor_ptc(:), t_ptc(6)
+
+real(rp) beta0
+
+! taylor_ptc(5) = (E - E0) / P0c
+! taylor_ptc(6) = c (t - t0)
+! 1/beta0 + taylor_ptc(5) == E / P0c
+
+t_ptc = taylor_bmad
+taylor_ptc = t_ptc
+taylor_ptc(5) = (t_ptc(6)**2 + 2*t_ptc(6)) / (1/beta0 + sqrt(1/beta0**2+t_ptc(6)**2+2*t_ptc(6)))
+taylor_ptc(6) = -t_ptc(5) * (1/beta0 + taylor_ptc(5)) / (1 + t_ptc(6))
+
+end subroutine taylor_bmad_to_ptc 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine taylor_ptc_to_bmad (taylor_ptc, beta0, taylor_bmad)
+!
+! Routine to convert a PTC real_8 taylor to a Bmad Taylor.
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   taylor_ptc(6)  -- real_8: PTC taylor.
+!   beta0          -- real(rp): Reference particle velocity
+!
+! Output:
+!   taylor_bmad(6) -- taylor_struct: Bmad Taylor.
+!-
+
+subroutine taylor_ptc_to_bmad (taylor_ptc, beta0, taylor_bmad)
+
+use s_fibre_bundle
+
+implicit none
+
+type (taylor_struct) taylor_bmad(:)
+type (real_8) taylor_ptc(:), t_ptc(6)
+real(rp) beta0
+
+!
+
+t_ptc(6) = (2*taylor_ptc(5)/beta0+taylor_ptc(5)**2)/(sqrt(1+2*taylor_ptc(5)/beta0+taylor_ptc(5)**2)+1)
+t_ptc(5) = -taylor_ptc(6) * (1 + t_ptc(6)) / (1/beta0 + taylor_ptc(5))
+
+taylor_bmad = t_ptc
+
+end subroutine taylor_ptc_to_bmad 
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)
 !
 ! Routine to convert a Bmad vector map to PTC vector,
 !
@@ -1448,17 +1527,17 @@ end subroutine real_8_to_taylor
 !   beta0       -- real(rp): Reference particle velocity
 !
 ! Output:
-!   vec_ptc(6)  -- real(rp): PTC coordinates.
-!   mat6        -- Real(rp), optional: Jacobian matrix of Bmad -> PTC conversion map.
+!   vec_ptc(6)     -- real(rp): PTC coordinates.
+!   conversion_mat -- real(rp), optional: Jacobian matrix of Bmad -> PTC conversion map.
 !-
 
-subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)
+subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)
 
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
-real(rp), optional :: mat6(6,6)
+real(rp), optional :: conversion_mat(6,6)
 real(rp) factor1, factor2
 
 ! vec_ptc(5) = (E - E0) / P0c
@@ -1469,14 +1548,14 @@ vec_ptc = vec_bmad
 vec_ptc(5) = (vec_bmad(6)**2 + 2*vec_bmad(6)) / (1/beta0 + sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6)) )
 vec_ptc(6) = -vec_bmad(5) * (1/beta0 + vec_ptc(5)) / (1 + vec_bmad(6))
 
-if (present(mat6)) then
-  call mat_make_unit(mat6)
+if (present(conversion_mat)) then
+  call mat_make_unit(conversion_mat)
   factor1 = sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6))
   factor2 = 1+beta0**2*vec_bmad(6)*(2+vec_bmad(6))
-  mat6(5,5) = 0
-  mat6(5,6) = beta0**2*(1+vec_bmad(6))*factor1/factor2
-  mat6(6,5) = -(1/beta0+beta0*vec_bmad(6)*(2+vec_bmad(6))/(1+beta0*factor1))/(1+vec_bmad(6))
-  mat6(6,6) = -((beta0**2-1)*vec_bmad(5)*factor1)/((1+vec_bmad(6))**2*factor2)
+  conversion_mat(5,5) = 0
+  conversion_mat(5,6) = beta0**2*(1+vec_bmad(6))*factor1/factor2
+  conversion_mat(6,5) = -(1/beta0+beta0*vec_bmad(6)*(2+vec_bmad(6))/(1+beta0*factor1))/(1+vec_bmad(6))
+  conversion_mat(6,6) = -((beta0**2-1)*vec_bmad(5)*factor1)/((1+vec_bmad(6))**2*factor2)
 end if
 
 end subroutine vec_bmad_to_ptc 
@@ -1485,10 +1564,9 @@ end subroutine vec_bmad_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)
+! Subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)
 !
-! Routine to convert a PTC real_8 orbit vector to a Bmad Taylor orbit vector.
-! The conversion includes the conversion between Bmad and PTC time coordinate systems.
+! Routine to convert a PTC orbit vector to a Bmad orbit vector.
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -1498,17 +1576,17 @@ end subroutine vec_bmad_to_ptc
 !   beta0       -- real(rp): Reference particle velocity
 !
 ! Output:
-!   vec_bmad(6) -- real(rp): Bmad coordinates.
-!   mat6        -- Real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
+!   vec_bmad(6)    -- real(rp): Bmad coordinates.
+!   conversion_mat -- Real(rp), optional: Jacobian matrix of PTC -> Bmad conversion map.
 !-
 
-subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)
+subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)
 
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
 real(rp) beta0
-real(rp), optional :: mat6(6,6)
+real(rp), optional :: conversion_mat(6,6)
 real(rp) factor1, factor2
 
 !
@@ -1517,14 +1595,14 @@ vec_bmad = vec_ptc
 vec_bmad(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
 vec_bmad(5) = -vec_ptc(6) * (1 + vec_bmad(6)) / (1/beta0 + vec_ptc(5))
 
-if (present(mat6)) then
-  call mat_make_unit(mat6)
+if (present(conversion_mat)) then
+  call mat_make_unit(conversion_mat)
   factor1 = sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)
   factor2 = beta0+2*vec_ptc(5)+beta0*vec_ptc(5)**2 
-  mat6(5,5) = beta0*(beta0**2-1)*factor1*vec_ptc(6)/((1+beta0*vec_ptc(5))**2*factor2)
-  mat6(5,6) = -(1+vec_ptc(5)*(2+beta0*vec_ptc(5))/(beta0*(1+factor1)))/(1/beta0+vec_ptc(5))
-  mat6(6,5) = (1+beta0*vec_ptc(5))*factor1/factor2
-  mat6(6,6) = 0
+  conversion_mat(5,5) = beta0*(beta0**2-1)*factor1*vec_ptc(6)/((1+beta0*vec_ptc(5))**2*factor2)
+  conversion_mat(5,6) = -(1+vec_ptc(5)*(2+beta0*vec_ptc(5))/(beta0*(1+factor1)))/(1/beta0+vec_ptc(5))
+  conversion_mat(6,5) = (1+beta0*vec_ptc(5))*factor1/factor2
+  conversion_mat(6,6) = 0
 end if
 
 end subroutine vec_ptc_to_bmad 
