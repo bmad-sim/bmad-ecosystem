@@ -1001,13 +1001,131 @@ end subroutine tilt_mat6
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine solenoid_mat_calc (ks, length, mat4)
+! Subroutine solenoid_mat6_calc (ks0, length, tilt_tot, orb0, mat6)
+!
+! Routine to calculate the 6x6 transfer matrix through a solenoid.
+! This routine is not the complete calculation and is not meant for general use.
+!
+! Input:
+!   ks0       -- real(rp): Solenoid strength for on-energy particle.
+!   length    -- real(rp): Length of solenoid.
+!   tilt_tot  -- real(rp): Solenoid tilt.
+!   orb0      -- coord_struct: Orbit at start of solenoid.
+!
+! Output:
+!   mat6(6,6) -- real(rp): Transfer matrix.
+!-
+
+subroutine solenoid_mat6_calc (ks0, length, tilt_tot, orb0, mat6)
+
+implicit none
+
+type (coord_struct) orb0
+
+real(rp) ks0, length, tilt_tot, mat6(6,6)
+real(rp) rel_p, ks, c2, s2, cs, lcs, lc2s2, arg
+real(rp) t5_11, t5_14, t5_22, t5_23, t5_33, t5_34, t5_44
+real(rp) t1_16, t1_26, t1_36, t1_46, t2_16, t2_26, t2_36, t2_46
+real(rp) t3_16, t3_26, t3_36, t3_46, t4_16, t4_26, t4_36, t4_46
+real(rp) xp_start, yp_start
+
+!
+
+rel_p = 1 + orb0%vec(6)
+ks = ks0 / rel_p
+
+mat6 = 0
+call solenoid_mat4_calc (ks, length, mat6(1:4,1:4))
+
+mat6(1,2) = mat6(1,2) / rel_p
+mat6(1,4) = mat6(1,4) / rel_p
+
+mat6(2,1) = mat6(2,1) * rel_p
+mat6(2,3) = mat6(2,3) * rel_p
+
+mat6(3,2) = mat6(3,2) / rel_p
+mat6(3,4) = mat6(3,4) / rel_p
+
+mat6(4,1) = mat6(4,1) * rel_p
+mat6(4,3) = mat6(4,3) * rel_p
+
+
+c2 = mat6(1,1)
+s2 = mat6(1,4) * ks / 2
+cs = mat6(1,3)
+
+lcs = length * cs
+lc2s2 = length * (c2 - s2) / 2
+
+t1_16 =  lcs * ks
+t1_26 = -lc2s2 * 2
+t1_36 = -lc2s2 * ks
+t1_46 = -lcs * 2
+
+t2_16 =  lc2s2 * ks**2 / 2
+t2_26 =  lcs * ks
+t2_36 =  lcs * ks**2 / 2
+t2_46 = -lc2s2 * ks
+
+t3_16 =  lc2s2 * ks
+t3_26 =  lcs * 2
+t3_36 =  lcs * ks
+t3_46 = -lc2s2 * 2
+
+t4_16 = -lcs * ks**2 / 2
+t4_26 =  lc2s2 * ks
+t4_36 =  t2_16
+t4_46 =  lcs * ks
+
+arg = length / 2
+t5_11 = -arg * (ks/2)**2
+t5_14 =  arg * ks
+t5_22 = -arg
+t5_23 = -arg * ks
+t5_33 = -arg * (ks/2)**2
+t5_44 = -arg
+
+! the mat6(i,6) terms are constructed so that mat6 is sympelctic
+
+mat6(5,1) =  2 * orb0%vec(1) * t5_11 + orb0%vec(4) * t5_14
+mat6(5,2) = (2 * orb0%vec(2) * t5_22 + orb0%vec(3) * t5_23) / rel_p
+mat6(5,3) =  2 * orb0%vec(3) * t5_33 + orb0%vec(2) * t5_23
+mat6(5,4) = (2 * orb0%vec(4) * t5_44 + orb0%vec(1) * t5_14) / rel_p
+mat6(5,5) = 1
+
+mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
+                mat6(5,4) * mat6(1,3) - mat6(5,3) * mat6(1,4)
+mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2) + &
+                mat6(5,4) * mat6(2,3) - mat6(5,3) * mat6(2,4)
+mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4) + &
+                mat6(5,2) * mat6(3,1) - mat6(5,1) * mat6(3,2)
+mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4) + &
+                mat6(5,2) * mat6(4,1) - mat6(5,1) * mat6(4,2)
+mat6(6,6) = 1
+
+! mat6(5,6) 
+
+xp_start = orb0%vec(2) + ks * orb0%vec(3) / 2
+yp_start = orb0%vec(4) - ks * orb0%vec(1) / 2
+mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p
+
+if (tilt_tot /= 0) then
+  call tilt_mat6 (mat6, tilt_tot)
+endif
+
+end subroutine solenoid_mat6_calc
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine solenoid_mat4_calc (ks, length, mat4)
 !
 ! Subroutine to calculate the 4x4 transverse transfer matrix for a solenoid.
 ! This routine is not meant for general use.
 !-
 
-subroutine solenoid_mat_calc (ks, length, mat4)
+subroutine solenoid_mat4_calc (ks, length, mat4)
 
 implicit none
 
@@ -1052,7 +1170,7 @@ mat4(4,2) = -cs
 mat4(4,3) = -kss * cs
 mat4(4,4) = c2
 
-end subroutine solenoid_mat_calc
+end subroutine solenoid_mat4_calc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

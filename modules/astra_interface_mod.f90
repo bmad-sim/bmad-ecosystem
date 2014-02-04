@@ -11,12 +11,11 @@ contains
 !+ 
 ! Subroutine write_astra_lattice_file (astra_file_unit, lat, err)
 !
-! Subroutine to write an Astra lattice file using the information in
-! a lat_struct.
+! Subroutine to write an Astra lattice file using the information in a lat_struct.
 !
 ! Input:
 !   astra_file_unit -- Integer: unit number to write to
-!   lat            -- lat_struct: Holds the lattice information.
+!   lat             -- lat_struct: Holds the lattice information.
 !
 ! Output:
 !   err    -- Logical, optional: Set True if, say a file could not be opened.
@@ -135,7 +134,6 @@ endif
 end function
 
 end subroutine write_astra_lattice_file
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -360,7 +358,6 @@ rvec(ix2) =  sa*vec(ix1) + ca*vec(ix2)
 
 end function
 
-
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -384,7 +381,6 @@ end function
 !   field_scale      -- Real(rp): the scaling of the field grid
 !
 !-
-
 
 subroutine get_astra_fieldgrid_name_and_scaling(&
              ele, name_indexx, output_name, field_scale, dimensions)
@@ -463,9 +459,7 @@ endif
 
 end subroutine
 
-
 end subroutine get_astra_fieldgrid_name_and_scaling
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -704,8 +698,6 @@ end subroutine write_astra_field_grid_file
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-
-
 subroutine write_astra_field_grid_file_3D (base_filename, ele, maxfield, dz, err)
 
 implicit none
@@ -866,9 +858,6 @@ deallocate(pt)
 
 contains
 
-
-
-
 !--- write to file: <base_filename>.ex, .ey, .ez, .bx, .by, .bz according to component
 subroutine write_pt(component)
 implicit none
@@ -953,7 +942,6 @@ close(iu)
 end subroutine
 
 end subroutine
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
