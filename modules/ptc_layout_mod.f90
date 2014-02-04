@@ -89,7 +89,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele0
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (fibre), pointer :: save_fib
 type (layout), pointer :: lay
@@ -137,6 +137,17 @@ do i = 0, ubound(lat%branch, 1)
 
     if (tracking_uses_end_drifts(ele)) then
       call append_this_fibre(save_fib)
+    endif
+
+    ! Must add an energy patch if the reference energy shifts.
+
+    if (j > 0) then
+      ele0 => branch%ele(j-1)
+      if (ele0%value(p0c$) /= ele%value(p0c_start$)) then
+        save_fib => ele%ptc_fibre
+        if (tracking_uses_end_drifts(ele))  save_fib => ele%ptc_fibre%previous
+        save_fib%patch%energy = 1
+      endif
     endif
 
   enddo
