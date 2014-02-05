@@ -1,5 +1,6 @@
-# sigma_x calculated at          479   VBSM_POSITRONS                          
-# sigma_y calculated at          939   DLINE                                   
+# sigma_x calculated at 479   VBSM_POSITRONS                          
+# sigma_y calculated at 939   DLINE                                   
+# sigma_z calculated at 479   DLINE                                   
      # current            emit_a            emit_b            sigE/E           sigma_x           sigma_y           sigmz_z
     8.00000000E-03    1.02134584E-08    1.99289186E-11    8.62316983E-04    3.39668179E-04    2.90709832E-05    1.18889541E-02
     7.57947368E-03    9.98995634E-09    1.98628818E-11    8.60767215E-04    3.36530651E-04    2.90227782E-05    1.18276032E-02

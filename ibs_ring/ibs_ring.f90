@@ -28,8 +28,7 @@ REAL(rp) :: b_emit = -1.0
 REAL(rp) :: a_emit = -1.0
 REAL(rp) :: energy_spread = -1.0
 REAL(rp) ratio
-REAL(rp) xview_sigma_x, xview_sigma_y, xview_sigma_z
-REAL(rp) yview_sigma_x, yview_sigma_y, yview_sigma_z
+REAL(rp) view_sigma_x, view_sigma_y, view_sigma_z
 REAL(rp) dnpart, delta_mA, stop_mA
 REAL(rp) granularity
 REAL(rp) npart0
@@ -50,7 +49,7 @@ CHARACTER(4) ibs_formula
 CHARACTER(3) eqb_method
 CHARACTER(130) lat_file
 
-INTEGER x_view, y_view
+INTEGER x_view, y_view, z_view
 INTEGER omp_i, omp_n
 INTEGER i, j, n_steps
 INTEGER radcache
@@ -77,8 +76,9 @@ NAMELIST /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       stop_mA, &         ! Smallest current per bunch in mA.
                       ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', 'kubo'
                       ratio, &           ! "Coupling parameter r" hack for including coupling.
-                      x_view, &          ! index of element where projection is taken for horizontal and longitudinal beam size calculation.
-                      y_view, &          ! index of element where projection is taken for horizontal and longitudinal beam size calculation.
+                      x_view, &          ! index of element where projection is taken for horizontal beam size calculation.
+                      y_view, &          ! index of element where projection is taken for vertical beam size calculation.
+                      z_view, &          ! index of element where projection is taken for longitudinal beam size calculation.
                       do_pwd, &          ! .true. or .false., whether to do PWD calculation.
                       granularity, &     ! Step size along lattice in meters.  Set to -1 for element-by-element.
                       resistance, &      ! Resistive inductance for PWD calc.  Currently not used. 
@@ -103,6 +103,7 @@ delta_mA      = -99.0
 stop_mA       = -99.0
 x_view        = 0
 y_view        = 0
+z_view        = 0
 granularity   = -1.0
 inductance    = -99.0
 resistance    = -99.0
@@ -129,6 +130,7 @@ IF( delta_mA .lt. -90 ) CALL param_bomb('delta_mA')
 IF( stop_mA .lt. -90 ) CALL param_bomb('stop_mA')
 IF( x_view .lt. -90 ) CALL param_bomb('x_view')
 IF( y_view .lt. -90 ) CALL param_bomb('y_view')
+IF( z_view .lt. -90 ) CALL param_bomb('z_view')
 IF( granularity .lt. -90 ) CALL param_bomb('granularity')
 IF( inductance .lt. -90 ) CALL param_bomb('inductance')
 IF( resistance .lt. -90 ) CALL param_bomb('resistance')
@@ -242,10 +244,9 @@ ENDDO
 !$OMP SHARED(omp_lat,ibs_data), &    !these are indexed such that multiple threads will never write to same memory location at same time
 !$OMP SHARED(n_steps,npart0,dnpart,mode0,ratio,granularity,eqb_method), &             !these are read only, so it is ok to share
 !$OMP SHARED(ibs_sim_params), & !read only
-!$OMP SHARED(x_view, y_view), &
+!$OMP SHARED(x_view, y_view, z_view), &
 !$OMP PRIVATE(current,mode), &
-!$OMP PRIVATE(xview_sigma_x,xview_sigma_y,xview_sigma_z), &  !these are working space for each thread
-!$OMP PRIVATE(yview_sigma_x,yview_sigma_y,yview_sigma_z), &  !these are working space for each thread
+!$OMP PRIVATE(view_sigma_x,view_sigma_y,view_sigma_z), &  !these are working space for each thread
 !$OMP PRIVATE(t6,Vpwd,Mpwd,sigma_mat, error)     !these are working space for each thread
 DO i=1,n_steps
   omp_i = 1   !used when omp not enabled
@@ -266,18 +267,22 @@ DO i=1,n_steps
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=x_view, one_turn=.TRUE.)
   CALL pwd_mat(omp_lat(omp_i), t6, t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
-  xview_sigma_x = SQRT(sigma_mat(1,1))
-  xview_sigma_z = SQRT(sigma_mat(5,5))
+  view_sigma_x = SQRT(sigma_mat(1,1))
 
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=y_view, one_turn=.TRUE.)
   CALL pwd_mat(omp_lat(omp_i), t6, t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
-  yview_sigma_y = SQRT(sigma_mat(3,3))
+  view_sigma_y = SQRT(sigma_mat(3,3))
 
-!  CALL project_emit_to_xyz(omp_lat(omp_i), x_view, mode, xview_sigma_x, xview_sigma_y, xview_sigma_z)
-!  CALL project_emit_to_xyz(omp_lat(omp_i), y_view, mode, yview_sigma_x, yview_sigma_y, yview_sigma_z)
+  CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=z_view, one_turn=.TRUE.)
+  CALL pwd_mat(omp_lat(omp_i), t6, t6, ibs_sim_params%inductance, mode%sig_z)
+  CALL make_smat_from_abc(t6, mode, sigma_mat, error)
+  view_sigma_z = SQRT(sigma_mat(5,5))
 
-  ibs_data(i) = ibs_data_struct(current,mode%a%emittance,mode%b%emittance,mode%sigE_E, xview_sigma_x, yview_sigma_y, xview_sigma_z)
+!  CALL project_emit_to_xyz(omp_lat(omp_i), x_view, mode, view_sigma_x, xview_sigma_y, view_sigma_z)
+!  CALL project_emit_to_xyz(omp_lat(omp_i), y_view, mode, yview_sigma_x, view_sigma_y, yview_sigma_z)
+
+  ibs_data(i) = ibs_data_struct(current,mode%a%emittance,mode%b%emittance,mode%sigE_E, view_sigma_x, view_sigma_y, view_sigma_z)
 
   WRITE(*,'(A,I10,A,I10,A)') "Step ", i, " of ", n_steps, " complete!"
 ENDDO
@@ -306,6 +311,7 @@ emitlun = LUNGET()
 OPEN(emitlun, FILE='emittance.dat',STATUS='REPLACE')
 WRITE(emitlun,'(A,I0,"   ",A)') "# sigma_x calculated at ", x_view, lat%ele(x_view)%name
 WRITE(emitlun,'(A,I0,"   ",A)') "# sigma_y calculated at ", y_view, lat%ele(y_view)%name
+WRITE(emitlun,'(A,I0,"   ",A)') "# sigma_z calculated at ", z_view, lat%ele(y_view)%name
 WRITE(emitlun,'(A14,6A18)') "# current", "emit_a", "emit_b", "sigE/E", "sigma_x", "sigma_y", "sigmz_z"
 DO i=1,n_steps
   WRITE(emitlun,"(ES18.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8,'   ',ES15.8)") ibs_data(i)
