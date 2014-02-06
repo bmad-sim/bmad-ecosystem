@@ -2353,6 +2353,7 @@ if (.not. bmad_com%use_hard_edge_drifts) return
 select case (ele%key)
 case (lcavity$, rfcavity$, solenoid$)
     if (ele%field_calc == bmad_standard$) has_drifts = .true.
+    if (ele%value(l_hard_edge$) == ele%value(l$)) has_drifts = .false.
 end select
 
 end function tracking_uses_end_drifts

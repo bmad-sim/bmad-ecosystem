@@ -130,6 +130,7 @@ case (sad_mult$)
   ele%value(fringe_at$) = both_ends$
   ele%value(fringe_kind$) = nonlin_only$
   ele%value(eps_step_scale$) = 1
+  call multipole_init (ele, .true.)
 
 case (sample$)
   ele%aperture_at = surface$

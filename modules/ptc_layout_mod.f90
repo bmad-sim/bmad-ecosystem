@@ -143,7 +143,7 @@ do i = 0, ubound(lat%branch, 1)
 
     if (j > 0) then
       ele0 => branch%ele(j-1)
-      if (ele0%value(p0c$) /= ele%value(p0c_start$)) then
+      if (ele0%ptc_fibre%mag%p%p0c /= ele%ptc_fibre%mag%p%p0c) then
         save_fib => ele%ptc_fibre
         if (tracking_uses_end_drifts(ele))  save_fib => ele%ptc_fibre%previous
         save_fib%patch%energy = 1
