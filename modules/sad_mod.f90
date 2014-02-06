@@ -30,7 +30,7 @@ subroutine track_a_sad_mult (orbit, ele, param)
 implicit none
 
 type (coord_struct) :: orbit, start_orb
-type (ele_struct)  :: ele
+type (ele_struct)  :: ele, ele2
 type (lat_param_struct) :: param
 
 real(rp) rel_pc, vec0(6), dz4_coef(4,4), mat6(6,6)
@@ -56,8 +56,11 @@ call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
 k1 = charge_dir * knl(1) / rel_pc / length
 
-ele%value(tilt_tot$) = tilt(1)
-call offset_particle (ele, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+call transfer_ele(ele, ele2)
+ele2%value(tilt_tot$) = tilt(1)
+ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
+
+call offset_particle (ele2, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
 
 if (k1 == 0) then
   xp_start = orbit%vec(2) + ks * orbit%vec(3) / 2
@@ -73,10 +76,9 @@ else
   orbit%vec(1:4) = matmul (mat6(1:4,1:4), orbit%vec(1:4))
 endif
 
-call offset_particle (ele, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
-ele%value(tilt_tot$) = 0
+call offset_particle (ele2, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
 
-call track1_low_energy_z_correction (orbit, ele, param)
+call track1_low_energy_z_correction (orbit, ele2, param)
 
 orbit%t = start_orb%t + (ele%value(l$) + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 orbit%s = ele%s
@@ -87,7 +89,7 @@ end subroutine track_a_sad_mult
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine make_mat6_sad_mult (ele, param, c0)
+! Subroutine make_mat6_sad_mult (ele, param, c0, c1)
 !
 ! Routine to make the transfer matrix through a sad_mult element.
 !
@@ -97,7 +99,8 @@ end subroutine track_a_sad_mult
 ! Input:
 !   ele           -- ele_struct: sad_mult element.
 !   param         -- lat_param_struct: Lattice parameters.
-!   c0            -- coord_struct: Input coordinates.
+!   c0            -- coord_struct: Coordinates at beginning of element.
+!   c1            -- coord_struct: Coordinates at end of element.
 !
 ! Output:
 !   ele           -- ele_struct: sad_mult element.
@@ -131,19 +134,24 @@ mat6 => ele%mat6
 
 call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
-ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
-k1 = charge_dir * knl(1) / rel_pc / length
+ks = param%rel_tracking_charge * ele%value(ks$)
+k1 = charge_dir * knl(1) / length
 
 ele%value(tilt_tot$) = tilt(1)
+c00 = c0
 call offset_particle (ele, c00, param, set$, set_multipoles = .false., set_hvkicks = .false.)
 
+if (k1 == 0) then
+  call solenoid_mat6_calc (ks, length, ele%value(tilt_tot$), c00, mat6)
+else
   call sol_quad_mat6_calc (ks, k1, length, mat6, c00%vec)
+endif
 
-  if (ele%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele%value(tilt_tot$))
-  endif
+if (ele%value(tilt_tot$) /= 0) then
+  call tilt_mat6 (mat6, ele%value(tilt_tot$))
+endif
 
-  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
+call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
 
 ! 1/gamma^2 m56 correction
 
@@ -151,7 +159,8 @@ mass = mass_of(param%particle)
 e_tot = ele%value(p0c$) * (1 + c0%vec(6)) / c0%beta
 mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
 
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+ele%value(tilt_tot$) = 0
 
 end subroutine make_mat6_sad_mult
 

@@ -322,6 +322,7 @@ endif
 if (ele%key == sad_mult$) then
   a = ele%a_pole * (ele%orientation * param%rel_tracking_charge)
   b = ele%b_pole * (ele%orientation * param%rel_tracking_charge)
+  has_nonzero_pole = (any(a /= 0) .or. any(b /= 0))
   return
 endif
   

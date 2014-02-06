@@ -81,6 +81,7 @@ integer nl, nt, n_term, n_att, attrib_type, n_char, iy
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp), pointer :: r_ptr
 
 character(*), allocatable :: lines(:)
@@ -242,6 +243,7 @@ else
     else
       call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, a,  b)
       call multipole_ele_to_ab (ele, param, .true.,  has_nonzero_pole, a2, b2)
+      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, knl, tn)
     endif
 
     if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
@@ -250,23 +252,21 @@ else
 
     do i = 0, n_pole_maxx
       if (a2(i) == 0 .and. b2(i) == 0) cycle
-      write (str_i, '(i2)') i
-      call string_trim (str_i, str_i, ix)
       if (ele%key == ab_multipole$) then
-        write (li(nl+1), '(5x, 2a, 2(a, es11.3))') &
-               'A', str_i, ' =', ele%a_pole(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 2(a, es11.3))') &
-               'B', str_i, ' =', ele%b_pole(i), '   W/Tilt:', b2(i)
+        write (li(nl+1), '(5x, 2(a, i0, a, es11.3))') &
+               'A', i, ' =', ele%a_pole(i), '   A', i, '(w/Tilt):', a2(i)
+        write (li(nl+2), '(5x, 2(a, i0, a, es11.3))') &
+               'B', i, ' =', ele%b_pole(i), '   B', i, '(w/Tilt):', b2(i)
       elseif (ele%key == multipole$) then
-        write (li(nl+1), '(5x, 2a, 2(a, es11.3))') &
-               'K', trim(str_i), 'L =', ele%a_pole(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 2(a, es11.3))') &
-               'T', trim(str_i), '  =', ele%b_pole(i), '   W/Tilt:', b2(i)
+        write (li(nl+1), '(5x, 2(a, i0, a, es11.3))') &
+               'K', i, 'L =', ele%a_pole(i), '   K', i, 'L(w/Tilt):', a2(i)
+        write (li(nl+2), '(5x, 2(a, i0, a, es11.3))') &
+               'T', i, '  =', ele%b_pole(i), '   T', i, '(w/Tilt): ', b2(i)
       else
-        write (li(nl+1), '(5x, 2a, 3(a, es11.3))') 'A', str_i, ' =', &
-               ele%a_pole(i), '   Scaled:', a(i), '   W/Tilt:', a2(i)
-        write (li(nl+2), '(5x, 2a, 3(a, es11.3))') 'B', str_i, ' =', &
-               ele%b_pole(i), '   Scaled:', b(i), '   W/Tilt:', b2(i)
+        write (li(nl+1), '(5x, a, i0, 3(a, es11.3), a, i0, a, es11.3)') 'A', i, ' =', ele%a_pole(i), &
+               '   Scaled:', a(i), '   w/Tilt:', a2(i), '   K', i, 'L(equiv) =', knl(i)
+        write (li(nl+2), '(5x, a, i0, 3(a, es11.3), a, i0, a, f10.6)') 'B', i, ' =', ele%b_pole(i), &
+               '   Scaled:', b(i), '   w/Tilt:', b2(i), '   T', i, '(equiv)  =', tn(i)
       endif
 
       nl = nl + 2
