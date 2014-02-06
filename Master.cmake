@@ -193,6 +193,9 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort"
   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
 ENDIF ()
 
+IF ($ENV{ACC_ENABLE_FPIC})
+   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
+ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
