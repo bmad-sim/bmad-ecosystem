@@ -1360,7 +1360,8 @@ type (ele_struct) :: ele2
 type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
-real(rp) l_slice, offset, e_len, ref_time_start, p0c_start, e_tot_start, r
+real(rp) l_slice, offset, in_len, ref_time_start, p0c_start, e_tot_start, r
+real(rp) w_inv(3,3), dl
 
 logical at_upstream_end, at_downstream_end, err_flag, err2_flag
 
@@ -1369,7 +1370,23 @@ character(24) :: r_name = 'create_element_slice'
 ! Init
 
 err_flag = .true.
+in_len = ele_in%value(l$)
+
+sliced_ele%slave_status = slice_slave$
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
+sliced_ele%value(l$) = l_slice
+sliced_ele%s = ele_in%s - in_len + offset + sliced_ele%value(l$)
+
+! The sliced element is treated as a super_slave to the original element except
+! if that element is a super_slave in which case the sliced element has the same lords
+! as the original element.
+
+if (ele_in%slave_status /= super_slave$) then
+  sliced_ele%n_lord = 1
+  sliced_ele%lord => ele_in
+else
+  nullify(sliced_ele%lord)
+endif
 
 ! Patch
 ! The rotation part of the patch is applied at the entrance end of the patch.
@@ -1377,28 +1394,42 @@ sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 
 if (ele_in%key == patch$) then
   if (at_upstream_end .and. ele_in%orientation == 1 .or. at_downstream_end .and. ele_in%orientation == -1) then
-    if (ele_in%value(l$) /= 0) then
-      r = l_slice / ele_in%value(l$)
-      sliced_ele%value(x_offset$) = ele_in%value(x_offset$) * r
-      sliced_ele%value(y_offset$) = ele_in%value(y_offset$) * r
-      sliced_ele%value(z_offset$) = ele_in%value(z_offset$) * r
+    call floor_angles_to_w_mat (ele_in%value(x_pitch$), ele_in%value(y_pitch$), ele_in%value(tilt$), w_mat_inv = w_inv)
+    sliced_ele%key = patch$
+    dl = ele_in%value(l$) - l_slice
+    sliced_ele%value(x_offset$)     = ele_in%value(x_offset$) - dl * w_inv(3,1)
+    sliced_ele%value(y_offset$)     = ele_in%value(y_offset$) - dl * w_inv(3,2)
+    sliced_ele%value(z_offset$)     = ele_in%value(z_offset$) - dl * w_inv(3,3)
+    sliced_ele%value(t_offset$)     = ele_in%value(t_offset$)
+    sliced_ele%value(e_tot_offset$) = ele_in%value(e_tot_offset$)
+    if (sliced_ele%value(e_tot_offset$) /= 0) then
+      call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot_start$), &
+                                  ele_in%value(p0c_start$), ele_in%value(ref_time_start$), err2_flag)
     endif
   else
     sliced_ele%key = drift$
-    sliced_ele%value(l$) = l_slice
+    sliced_ele%value(x_offset$)     = 0
+    sliced_ele%value(y_offset$)     = 0
+    sliced_ele%value(z_offset$)     = 0
+    sliced_ele%value(t_offset$)     = 0
+    sliced_ele%value(e_tot_offset$) = 0
+    if (sliced_ele%value(e_tot_offset$) /= 0) then
+      call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot$), &
+                                   ele_in%value(p0c$), ele_in%value(ref_time_start$), err2_flag)
+    endif
   endif
 
+  err_flag = .false.
   return
 
 endif
 
 ! Err check. Remember: the element length may be negative
 
-e_len = ele_in%value(l$)
-if (l_slice*e_len < 0 .or. abs(l_slice) > abs(e_len) + bmad_com%significant_length) then
+if (l_slice*in_len < 0 .or. abs(l_slice) > abs(in_len) + bmad_com%significant_length) then
   call out_io (s_fatal$, r_name, &
         'SLICE LENGTH IS OUT OF RANGE FOR ELEMENT: ' // ele_in%name, &
-        'LENGTH: \2es12.3\ ', r_array = [l_slice, e_len])
+        'LENGTH: \2es12.3\ ', r_array = [l_slice, in_len])
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -1413,7 +1444,7 @@ endif
 
 ! Simple case where ele length is zero
 
-if (e_len == 0) then
+if (in_len == 0) then
   sliced_ele = ele_in
   err_flag = .false.
   return
@@ -1428,24 +1459,10 @@ if (present(old_slice)) then
   time_ref_orb_out = old_slice%time_ref_orb_out
 endif
 
-! The sliced element is treated as a super_slave to the original element except
-! if that element is a super_slave in which case the sliced element has the same lords
-! as the original element.
-
-sliced_ele%value(l$) = l_slice
-sliced_ele%slave_status = slice_slave$
-
-if (ele_in%slave_status /= super_slave$) then
-  sliced_ele%n_lord = 1
-  sliced_ele%lord => ele_in
-else
-  nullify(sliced_ele%lord)
-endif
+!
 
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_upstream_end, at_downstream_end, err2_flag)
 if (err2_flag) return
-
-sliced_ele%s = ele_in%s - e_len + offset + sliced_ele%value(l$)
 
 ! Use a speedier tracking method.
 
@@ -2056,7 +2073,7 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: lord, ele0
 type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
@@ -2340,10 +2357,9 @@ case (lcavity$)
 
 case (patch$) 
   call floor_angles_to_w_mat (val(x_pitch$), val(y_pitch$), val(tilt$), w_mat_inv = w_inv)
-  val(l$) = (w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$)) / w_inv(3,3)
+  val(l$) = w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$)
   val(ds_step$) = val(l$)
   val(num_steps$) = 1
-
 
 ! Quadrupole
 

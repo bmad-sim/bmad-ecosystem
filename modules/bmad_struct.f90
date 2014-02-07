@@ -801,8 +801,8 @@ integer, parameter :: dphi0$=16, n_sample$=16, f0_re2$=16, origin_ele_ref_pt$=16
 integer, parameter :: dphi0_ref$ = 17, f0_im2$=17, x_half_length$=17, dx_origin$= 17
 integer, parameter :: lattice_type$ = 17, x_quad$=17
 integer, parameter :: dphi0_max$=18, ref_polarization$=18, y_half_length$=18, dy_origin$ = 18, y_quad$=18
-integer, parameter :: fringe_type$ = 19, floor_set$ = 19, ptc_dir$ = 19, dz_origin$ = 19, fringe_kind$ = 19
-integer, parameter :: fringe_at$ = 20, dtheta_origin$ = 20, b_param$ = 20
+integer, parameter :: fringe_type$ = 19, floor_set$ = 19, upstream_ele_dir$ = 19, dz_origin$ = 19, fringe_kind$ = 19
+integer, parameter :: fringe_at$ = 20, dtheta_origin$ = 20, b_param$ = 20, downstream_ele_dir$ = 20
 integer, parameter :: l_hard_edge$ = 21, dphi_origin$ = 21, ref_cap_gamma$ = 21
 integer, parameter :: field_scale$ = 22, dpsi_origin$ = 22, darwin_width_sigma$ = 22
 integer, parameter :: angle$ = 23, n_cell$ = 23, x_ray_line_len$ = 23, darwin_width_pi$ = 23

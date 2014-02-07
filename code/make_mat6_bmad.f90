@@ -635,7 +635,7 @@ case (patch$)
   call reference_energy_correction (ele, c00)
 
   dp_ratio = v(p0c_start$) / v(p0c$)
-  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * patch_relative_orientation(ele, upstream_end$)
+  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * ele%value(upstream_ele_dir$)
   beta_ref = v(p0c$) / v(e_tot$)
   mat6(1,:) = [w_inv(1,1), 0.0_rp, w_inv(1,2), 0.0_rp, 0.0_rp, 0.0_rp]
   mat6(3,:) = [w_inv(2,1), 0.0_rp, w_inv(2,2), 0.0_rp, 0.0_rp, 0.0_rp]

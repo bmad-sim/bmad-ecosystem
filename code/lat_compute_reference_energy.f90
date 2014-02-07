@@ -28,7 +28,7 @@ use rf_mod, dummy2 => lat_compute_ref_energy_and_time
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, ele_init
+type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, ele_init, ele2
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
@@ -177,6 +177,16 @@ do ib = 0, ubound(lat%branch, 1)
     if (.not. stale .and. ele%bookkeeping_state%ref_energy /= stale$) cycle
 
     stale = .true.
+
+    !
+
+    if (ele%key == patch$ .or. ele%key == floor_shift$) then
+      ele%value(upstream_ele_dir$) = ele0%orientation
+      ele2 => pointer_to_next_ele(ele)
+      ele%value(downstream_ele_dir$) = ele2%orientation
+    endif
+
+    !
 
     if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ibb = nint(ele%value(ix_to_branch$))

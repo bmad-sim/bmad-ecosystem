@@ -1773,18 +1773,18 @@ There is a similar equation for $\Delta p_y(i)$. $\WtS$ is the
 transverse short--range wake function. 
 
 The wake field functions $\WlS$ and $\WlS$ can be specified in a \bmad
-lattice file using a table of wake vs $z$ or by using ``pseudo'' modes
-where
+lattice file using ``pseudo'' modes where
 \Begineq
   W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \Endeq
 The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit
-the calculated wake potential. The advantage of the mode approach is
-that the calculation time scales as the number of particles $N$ while
-the calculation based upon a table of wake vs $z$ would scale as
-$N^2$. [The disadvantage is that initially the user must proform a fit
-to the wake potential to generate the mode parameter values.]
+the calculated wake potential. The reason why the mode approach is
+used in \bmad is due to the fact that, with modes, the calculation
+time scales as the number of particles $N$ while a calculation based
+upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
+that initially the user must proform a fit to the wake potential to
+generate the mode parameter values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}

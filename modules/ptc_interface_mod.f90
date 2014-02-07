@@ -1292,7 +1292,7 @@ end subroutine real_8_equal_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8)
+! Subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)
 !
 ! Routine to convert a Bmad Taylor map to PTC real_8 map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1309,7 +1309,7 @@ end subroutine real_8_equal_taylor
 !   y8(6) -- real_8: PTC Taylor map.
 !-
 
-subroutine taylor_to_real_8 (bmad_taylor, beta0, beta1, y8)
+subroutine taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)
 
 use s_fibre_bundle
 
@@ -1320,7 +1320,7 @@ type (real_8) y8(:)
 type (damap) bm, id, s, si
 type (taylor) bet
 
-real(dp) beta0, beta1, fix0(6), fix1(6)
+real(dp) beta0, beta1, fix0(6), fix1(6), v0(6)
 
 !
 
@@ -1364,7 +1364,7 @@ end subroutine taylor_to_real_8
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
+! Subroutine real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)
 !
 ! Routine to convert a PTC real_8 map to a Bmad Taylor map.
 ! The conversion includes the conversion between Bmad and PTC time coordinate systems.
@@ -1381,7 +1381,7 @@ end subroutine taylor_to_real_8
 !   bmad_taylor(6) -- Taylor_struct: Bmad Taylor map.
 !-
 
-subroutine real_8_to_taylor (y8, beta0, beta1, bmad_taylor)
+subroutine real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)
 
 use s_fibre_bundle
 
@@ -1392,7 +1392,7 @@ type (real_8) y8(:)
 type (damap) bm, id, s, si
 type (taylor) bet
 
-real(rp) beta0, beta1, fix0(6), fix1(6)
+real(rp) beta0, beta1, fix0(6), fix1(6), v0(6)
 
 !
 
@@ -2520,7 +2520,7 @@ endif
 call dtiltd (1, tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
-call taylor_to_real_8 (ele%taylor, beta0, beta1, x_body)
+call taylor_to_real_8 (ele%taylor, ele%taylor%ref, beta0, beta1, x_body)
 
 call concat_real_8 (x_ele, x_body, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
@@ -2528,12 +2528,12 @@ call dtiltd (1, tilt, 2, x_ele)
 
 ! Concat with taylor1
 
-call taylor_to_real_8 (taylor1, beta0, beta0, x1)
+call taylor_to_real_8 (taylor1, taylor1%ref, beta0, beta0, x1)
 call concat_real_8 (x1, x_ele, x3)
 
 ! convert x3 to final result taylor3
 
-call real_8_to_taylor(x3, beta0, beta1, taylor3)
+call real_8_to_taylor(x3, taylor1%ref, beta0, beta1, taylor3)
 taylor3(:)%ref = taylor1(:)%ref
 
 ! Cleanup
@@ -2594,7 +2594,7 @@ beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
 call real_8_init (ptc_tlr)
-call taylor_to_real_8 (bmad_taylor, beta0, beta0, ptc_tlr)
+call taylor_to_real_8 (bmad_taylor, bmad_taylor%ref, beta0, beta0, ptc_tlr)
 
 ! Track entrance drift if PTC is using a hard edge model
 
@@ -2619,7 +2619,7 @@ endif
 
 ! transfer ptc map back to bmad map
 
-call real_8_to_taylor(ptc_tlr, beta0, beta1, bmad_taylor)
+call real_8_to_taylor(ptc_tlr, bmad_taylor%ref, beta0, beta1, bmad_taylor)
 
 ! cleanup
 
@@ -2644,8 +2644,7 @@ end subroutine taylor_propagate1
 !     %value(integrator_order$)  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)          -- Integrater step size.
 !     %map_with_offsets         -- Make Taylor map with element offsets, pitches, and tilt?
-!   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map 
-!              is evaluated.
+!   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
 !   param -- lat_param_struct: 
 !     %e_tot -- Needed for wigglers.
 !   map_with_offsets -- Logical, optional: If present then overrides 
@@ -2755,7 +2754,7 @@ endif
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 beta1 = ele%value(p0c$) / ele%value(e_tot$)
 
-call real_8_to_taylor (y, beta0, beta1, ele%taylor)
+call real_8_to_taylor (y, ele%taylor%ref, beta0, beta1, ele%taylor)
 
 call kill(y)
 
@@ -3311,10 +3310,8 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
   nullify(dummy_fibre%loc)
   call set_madx_(.false., .false.)
 
-  ptc_fibre%dir = patch_relative_orientation(ele, upstream_end$)
-  dummy_fibre%dir = patch_relative_orientation(ele, downstream_end$)
-
-  ele%value(ptc_dir$) = ptc_fibre%dir  ! Save for later
+  ptc_fibre%dir = nint(ele%value(upstream_ele_dir$))
+  dummy_fibre%dir = nint(ele%value(downstream_ele_dir$))
 
   call survey (dummy_fibre, exi, dr)
   call find_patch (ptc_fibre, dummy_fibre, next = .false., patching=good_patch)

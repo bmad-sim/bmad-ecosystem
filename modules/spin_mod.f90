@@ -609,8 +609,8 @@ type (lat_param_struct) :: param
 type (spin_map_struct), pointer :: map
 
 real(rp) a(4) ! quaternion four-vector
-real(rp) omega1, omega_el, xi, gamma0, gammaf, v, x, u
-real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end, k_el, k_el_tilde
+real(rp) omega1, xi, gamma0, gammaf, v, x, u
+real(rp) alpha, phase, cos_phi, gradient, pc_start, pc_end
 real(rp) e_start, e_end, g_ratio, edge_length, beta_start, beta_end
 real(rp) anomalous_moment, m_particle, sign_k, abs_a
 
@@ -833,8 +833,8 @@ if(isTreatedHere) then
 
       map%gamma1%coef = 0
       map%gamma2%coef = 0
-      call lcav_edge_track (pc_start,  gradient, gamma0, map)
-      call lcav_edge_track (pc_end,   -gradient, gammaf, map)
+      call lcav_edge_track (pc_start,  gradient, gamma0, anomalous_moment, edge_length, map)
+      call lcav_edge_track (pc_end,   -gradient, gammaf, anomalous_moment, edge_length, map)
 
     endif
 
@@ -873,45 +873,6 @@ end_orb%spin = temp_end%spin
 
 !-------------------------------------------------------------------------
 contains
-
-subroutine lcav_edge_track (pc, grad, gam, map)
-
-real(rp) pc, grad, gam
-type (spin_map_struct) map
-
-! Is this correct? e_mass is in GeV and not eV!
-
-k_el = abs(grad / (2 * pc))
-omega_el = sqrt(k_el)
-k_el_tilde = (e_charge * k_el * (1 + anomalous_moment + (anomalous_moment*gam))) / &
-                (omega_el * e_mass * c_light**2 * (1 + gam))
-
-! Focusing kick
-
-if (grad > 0) then
-
-  map%gamma1(1)%coef = map%gamma1(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-  map%gamma1(2)%coef = map%gamma1(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
-
-  map%gamma2(1)%coef = map%gamma2(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
-  map%gamma2(2)%coef = map%gamma2(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
-
-! Defocus kick
-
-else
-
-  map%gamma1(1)%coef = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-  map%gamma1(2)%coef = map%gamma1(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
-
-  map%gamma2(1)%coef = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
-  map%gamma2(2)%coef = map%gamma2(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
-
-endif
-
-end subroutine lcav_edge_track
-
-!-------------------------------------------------------------------------
-! contains
 
 subroutine allocate_map (map, n_gamma1, n_gamma2, n_gamma3, n_kappa)
 
@@ -997,6 +958,48 @@ enddo
 end subroutine compute_quaternion
 
 end subroutine track1_spin_bmad
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+
+subroutine lcav_edge_track (pc, grad, gam, anomalous_moment, edge_length, map)
+
+implicit none
+
+real(rp) pc, grad, gam, anomalous_moment, edge_length, k_el, k_el_tilde, omega_el
+type (spin_map_struct) map
+
+! Is this correct? e_mass is in GeV and not eV!
+
+k_el = abs(grad / (2 * pc))
+omega_el = sqrt(k_el)
+k_el_tilde = (e_charge * k_el * (1 + anomalous_moment + (anomalous_moment*gam))) / &
+                (omega_el * e_mass * c_light**2 * (1 + gam))
+
+! Focusing kick
+
+if (grad > 0) then
+
+  map%gamma1(1)%coef = map%gamma1(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+  map%gamma1(2)%coef = map%gamma1(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+
+  map%gamma2(1)%coef = map%gamma2(1)%coef - (k_el_tilde/2.0) * sin (omega_el * edge_length)
+  map%gamma2(2)%coef = map%gamma2(2)%coef - (k_el_tilde/omega_el) * (sin (omega_el * edge_length / 2.0))**2
+
+! Defocus kick
+
+else
+
+  map%gamma1(1)%coef = map%gamma1(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+  map%gamma1(2)%coef = map%gamma1(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+
+  map%gamma2(1)%coef = map%gamma2(1)%coef + (k_el_tilde/2.0) * sinh (omega_el * edge_length)
+  map%gamma2(2)%coef = map%gamma2(2)%coef + (k_el_tilde/omega_el) * (sinh (omega_el * edge_length / 2.0))**2
+
+endif
+
+end subroutine lcav_edge_track
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
