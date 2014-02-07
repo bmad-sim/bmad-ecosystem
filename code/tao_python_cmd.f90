@@ -71,7 +71,7 @@ character(20) :: cmd_names(32)= &
           ['plot_visible   ', 'plot_template  ', 'graph          ', 'curve          ', &
            'plot1          ', 'var_all        ', 'var_v1         ', 'var1           ', &
            'help           ', 'curve1         ', 'curve_sym      ', 'curve_line     ', &
-           '--------       ', 'data_d2        ', 'data_d1        ', 'data1          ', &
+           'print          ', 'data_d2        ', 'data_d1        ', 'data1          ', &
            'ele_all        ', 'ele1_all       ', 'beam_all       ', 'ele1_attrib    ', &
            'constraint_data', 'constraint_vars', 'global         ', 'lat_ele_list   ', &
            'lat_global     ', '               ', '               ', '               ', &
@@ -115,6 +115,18 @@ if (.not. allocated(scratch%lines)) allocate (scratch%lines(200))
 
 select case (command)
 
+!----------------------------------------------------------------------
+! print
+! Prints to the screen the contents of scratch%lines. Used for debugging.
+
+case ('print')
+  nl = ss%n_lines
+  if (nl > 0 ) then 
+    call out_io (s_blank$, r_name, ss%lines(1:nl))  
+  else
+    call out_io (s_blank$, r_name, 'scratch%lines is empty')
+  endif
+  
 !----------------------------------------------------------------------
 ! help
 ! returns list of "help xxx" topics
