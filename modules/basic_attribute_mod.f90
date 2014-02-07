@@ -802,20 +802,23 @@ call init_attribute_name1 (patch$, e_tot_start$,                    'E_TOT_START
 call init_attribute_name1 (patch$, e_tot_offset$,                   'E_TOT_OFFSET')
 call init_attribute_name1 (patch$, flexible$,                       'FLEXIBLE')
 call init_attribute_name1 (patch$, field_calc$,                     'FIELD_CALC')
-call init_attribute_name1 (patch$, ptc_dir$,                        'ptc_dir', private$)
+call init_attribute_name1 (patch$, upstream_ele_dir$,               'UPSTREAM_ELE_DIR', dependent$)
+call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
 !call init_attribute_name1 (patch$, next_ele_defines_position$,      'NEXT_ELE_DEFINES_POSITION')
 
-call init_attribute_name1 (floor_shift$, l$,                       'L')
-call init_attribute_name1 (floor_shift$, tilt$,                    'TILT', dependent$)
-call init_attribute_name1 (floor_shift$, x_offset$,                'X_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, y_offset$,                'Y_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, z_offset$,                'Z_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, x_pitch$,                 'X_PITCH', dependent$)
-call init_attribute_name1 (floor_shift$, y_pitch$,                 'Y_PITCH', dependent$)
-call init_attribute_name1 (floor_shift$, origin_ele$,              'ORIGIN_ELE')
-call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,       'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (floor_shift$, l$,                        'L')
+call init_attribute_name1 (floor_shift$, tilt$,                     'TILT', dependent$)
+call init_attribute_name1 (floor_shift$, x_offset$,                 'X_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, y_offset$,                 'Y_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, z_offset$,                 'Z_OFFSET', dependent$)
+call init_attribute_name1 (floor_shift$, x_pitch$,                  'X_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, y_pitch$,                  'Y_PITCH', dependent$)
+call init_attribute_name1 (floor_shift$, origin_ele$,               'ORIGIN_ELE')
+call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,        'ORIGIN_ELE_REF_PT')
+call init_attribute_name1 (floor_shift$, upstream_ele_dir$,         'UPSTREAM_ELE_DIR', dependent$)
+call init_attribute_name1 (floor_shift$, downstream_ele_dir$,       'DOWNSTREAM_ELE_DIR', dependent$)
 
 call init_attribute_name1 (fiducial$, l$,                          'l', private$)
 call init_attribute_name1 (fiducial$, origin_ele$,                 'ORIGIN_ELE')
@@ -1267,7 +1270,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_LAYERS', &
-      'PTC_MAX_FRINGE_ORDER')
+      'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR')
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &

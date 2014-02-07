@@ -180,7 +180,7 @@ call append_point(lay, ele_fib)
 this_fib => lay%end
 
 if (ele%key == patch$ .or. ele%key == floor_shift$) then
-  this_fib%dir = ele%value(ptc_dir$)
+  this_fib%dir = ele%value(upstream_ele_dir$)
 else
   this_fib%dir = ele%orientation
 endif
@@ -697,6 +697,7 @@ type (damap) da_map
 type (real_8) ray(6)
 
 real(rp), optional :: pz
+real(rp) x_bmad(6)
 real(dp) x(6)
 
 integer :: map_order
@@ -731,7 +732,8 @@ da_map = 1   ! Identity
 ray = da_map + x
 call track_probe_x (ray, ptc_state, fibre1 = fib)
 
-call real_8_to_taylor(ray, fib%beta0, fib%beta0, map)
+call vec_ptc_to_bmad (x, fib%beta0, x_bmad)
+call real_8_to_taylor(ray, x_bmad, fib%beta0, fib%beta0, map)
 
 call kill(ray)
 call kill(da_map)

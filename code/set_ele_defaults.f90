@@ -77,6 +77,8 @@ case (fiducial$)
 
 case (floor_shift$)
   ele%value(origin_ele_ref_pt$) = exit_end$
+  ele%value(upstream_ele_dir$) = 1
+  ele%value(downstream_ele_dir$) = 1
 
 case (girder$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -109,6 +111,8 @@ case (patch$)
   ele%value(flexible$) = 0 ! False
   ele%value(new_branch$) = 1    ! True
   ele%value(ref_coordinates$)= exit_end$
+  ele%value(upstream_ele_dir$) = 1
+  ele%value(downstream_ele_dir$) = 1
 
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$

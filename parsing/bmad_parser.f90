@@ -1079,8 +1079,6 @@ call remove_eles_from_lat (lat, .false.)
 ! lat_make_mat6 since if there is a match element, there is an error raised 
 ! here since the Twiss parameters have not been set. But this is expected. 
 
-!! call reuse_taylor_elements (old_lat, lat) ! no longer bother trying to do this
-
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
 
 call create_concatenated_wall3d (lat, err)

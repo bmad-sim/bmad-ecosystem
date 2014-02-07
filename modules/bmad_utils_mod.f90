@@ -2794,46 +2794,4 @@ enddo
 
 end function rf_is_on
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function patch_relative_orientation (ele, edge_end) result (dir)
-!
-! Routine to return the relative orientation for elements before
-! or after a patch.
-!
-! Input:
-!   ele      -- ele_struct: Patch element.
-!   edge_end -- integer: upstream_end$ or downstream_end$
-!
-! Output:
-!   dir  -- integer: +/- 1.
-!-
-
-function patch_relative_orientation (ele, edge_end) result (dir)
-
-type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele2
-
-integer edge_end, dir
-
-!
-
-select case (edge_end)
-case (upstream_end$);   ele2 => pointer_to_next_ele(ele, -1)  ! Previous element
-case (downstream_end$); ele2 => pointer_to_next_ele(ele, 1)   ! next element
-case default;           call err_exit
-end select
-
-if (.not. associated(ele2)) then
-  dir = 1
-else
-  dir = ele2%orientation
-endif
-
-
-
-end function patch_relative_orientation
-
 end module

@@ -1767,7 +1767,7 @@ r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)
 
 rel_pc = 1 + orbit%vec(6)
 p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-p_vec(3) = p_vec(3) * patch_relative_orientation(ele, upstream_end$)
+p_vec(3) = p_vec(3) * ele%value(upstream_ele_dir$)
 
 if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
   call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = winv)
@@ -1784,7 +1784,7 @@ orbit%vec(1) = r_vec(1)
 orbit%vec(3) = r_vec(2)
 orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
-ds0 = (winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)) / winv(3,3)
+ds0 = winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)
 
 if (present(s_ent))  s_ent = r_vec(3)
 if (present(ds_ref)) ds_ref = ds0
