@@ -16,6 +16,7 @@ TYPE ibs_sim_param_struct
   REAL(rp) inductance      ! Inductive part of impedance for pwd calc.  
   REAL(rp) resistance      ! Resistive part of impedance for pwd calc.
   CHARACTER(4) formula     ! Which IBS formulation to use.  See subroutine ibs1 for a list.
+  LOGICAL use_t6_cache     ! use ele%r(:,:,1) for one turn mat, rather than calculating fresh every turn.  Relevant only for kubo. 
 END TYPE
 
 TYPE ibs_struct  !these are betatron growth rates.  To get emittance growth rate use:
@@ -76,8 +77,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   TYPE(ibs_sim_param_struct) ibs_sim_params
   TYPE(normal_modes_struct) :: inmode
   TYPE(normal_modes_struct) :: ibsmode
-  REAL(rp) :: granularity
-  CHARACTER*4 :: formula
+  REAL(rp), INTENT(IN) :: granularity
   REAL(rp) :: ratio
   REAL(rp) :: initial_blow_up
   TYPE(ibs_struct) rates
@@ -95,7 +95,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   REAL(rp) emit_a0, emit_b0
   REAL(rp) advance, threshold
   REAL(rp) sigE_E, sigE_E0, sigma_z0, L_ratio
-  REAL(rp) running_emit_x(1:10), running_emit_y(1:10), running_sigE_E(1:10)
+  REAL(rp) running_emit_x(1:40), running_emit_y(1:40), running_sigE_E(1:40)
   INTEGER half
   REAL(rp) runavg_emit_x_A, runavg_emit_y_A, runavg_sigE_E_A
   REAL(rp) runavg_emit_x_B, runavg_emit_y_B, runavg_sigE_E_B
@@ -108,7 +108,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   REAL(rp) rf_freq, rf_omega
   REAL(rp) sig_z
 
-  CHARACTER(20) :: r_name = 'ibsequilibrium2'
+  CHARACTER(20) :: r_name = 'ibs_equib_rlx'
 
   ! Used to plug in vertical beam size data
   !cur = lat%param%n_part*e_charge/(2.56E-6) * 1.0E3
@@ -156,10 +156,10 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   !Advance is what percent of the way from the current emittance 
   !towards the equilibrium emittance the beam should be advanced on
   !each iteration.
-  advance = .05
+  advance = .02
   !Changes in emittance between iterations less than threshold
   !indicate convergence.
-  threshold = advance * .001
+  threshold = advance * 0.001
 
   DO i=1, SIZE(running_emit_x)
     running_emit_x(i) = 0.0
@@ -193,38 +193,41 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
     !at some point in the iterative process, in which case the case
     !structure below will terminate the program.  If this happens, try
     !using different values for initial_blow_up.
-    IF( rates%inv_Ta .gt. 0.0 ) THEN
-      Ta = 1.0/rates%inv_Ta
-      afactor = 1.0/(1.0-(tau_a/Ta))
-    ELSEIF( rates%inv_Ta .eq. 0.0 ) THEN
+    IF( rates%inv_Ta .eq. 0.0 ) THEN
       afactor = 1.0
     ELSE
-      CALL out_io(s_abort$, r_name, &
-         'FATAL ERROR: Negative emittance encountered: ', &
-         'Try adjusting initial_blow_up or switch to derivatives method "der".')
-      STOP
+      Ta = 1.0/rates%inv_Ta
+      afactor = 1.0/(1.0-(tau_a/Ta))
+      IF( afactor .lt. 0.0 ) THEN
+        CALL out_io(s_abort$, r_name, &
+             'FATAL ERROR: Negative emittance encountered: ', &
+             'Try adjusting initial_blow_up or switch to derivatives method "der".')
+        STOP
+      ENDIF
     ENDIF
-    IF( rates%inv_Tb .gt. 0.0 ) THEN
-      Tb = 1.0/rates%inv_Tb
-      bfactor = 1.0/(1.0-(tau_b/Tb))
-    ELSEIF( rates%inv_Tb .eq. 0.0 ) THEN
+    IF( rates%inv_Tb .eq. 0.0 ) THEN
       bfactor = 1.0
     ELSE
-      CALL out_io(s_abort$, r_name, &
-         'FATAL ERROR: Negative emittance encountered: ', &
-         'Try adjusting initial_blow_up.')
-      STOP
+      Tb = 1.0/rates%inv_Tb
+      bfactor = 1.0/(1.0-(tau_b/Tb))
+      IF( bfactor .lt. 0.0 ) THEN
+        CALL out_io(s_abort$, r_name, &
+             'FATAL ERROR: Negative emittance encountered: ', &
+             'Try adjusting initial_blow_up or switch to derivatives method "der".')
+        STOP
+      ENDIF
     ENDIF
-    IF( rates%inv_Tz .gt. 0.0 ) THEN
-      Tz = 1.0/rates%inv_Tz
-      zfactor = 1/(1-(tau_z/Tz))
-    ELSEIF( rates%inv_Tz .eq. 0.0 ) THEN
+    IF( rates%inv_Tz .eq. 0.0 ) THEN
       zfactor = 1.0
     ELSE
-      CALL out_io(s_abort$, r_name, &
-         'FATAL ERROR: Negative emittance encountered: ', &
-         'Try adjusting initial_blow_up.')
-      STOP
+      Tz = 1.0/rates%inv_Tz
+      zfactor = 1.0/(1.0-(tau_z/Tz))
+      IF( zfactor .lt. 0.0 ) THEN
+        CALL out_io(s_abort$, r_name, &
+             'FATAL ERROR: Negative emittance encountered: ', &
+             'Try adjusting initial_blow_up or switch to derivatives method "der".')
+        STOP
+      ENDIF
     ENDIF
 
     emit_a = ibsmode%a%emittance + advance*( afactor*emit_a0 - ibsmode%a%emittance ) 
@@ -261,9 +264,7 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
       ibsmode%sigE_E = sigE_E 
       ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
     ENDIF
-
   ENDDO
-
 END SUBROUTINE ibs_equib_rlx
 
 !+
@@ -507,36 +508,6 @@ endif
 
 
 END SUBROUTINE ibs_delta_calc
-
-! !+
-! !  Subroutine ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
-! !
-! !  Calculates IBS risetimes for given element and mode.
-! !  This is basically a front-end for the various formulas 
-! !  available in this module of calculating IBS rates.
-! !
-! !  Input:
-! !    lat             -- lat_struct: lattice for tracking
-! !      %param%n_part  -- Real: number of particles in bunch
-! !    ibs_sim_params   -- type(ibs_sim_param_struct): additional parameters for IBS calculation
-! !    mode             -- normal_modes_struct: beam parameters 
-! !    ix               -- integer: element at which to calculate IBS rate
-! !
-! !  Output:
-! !    rates1ele        -- ibs_struct: ibs rates in x,y,z 
-! !-
-! SUBROUTINE ibs_rates1ele(lat, ibs_sim_params, rates1ele, ix)
-!   !FOO delete this routine
-!   IMPLICIT NONE
-! 
-!   TYPE(lat_struct) :: lat
-!   TYPE(ibs_sim_param_struct) :: ibs_sim_params
-!   TYPE(ibs_struct) :: rates1ele
-!   INTEGER ix
-! 
-!   CALL ibs1(lat, ibs_sim_params, rates1ele, i=ix)
-! 
-! END SUBROUTINE ibs_rates1ele
 
 !+
 !  Subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
@@ -975,7 +946,16 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   CALL convert_total_energy_to(energy, -1, gamma, KE, rbeta)
 
   ! make sigma matrix in x,px,y,py,z,pz form
-  CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
+  IF( ibs_sim_params%use_t6_cache ) THEN
+    IF( ASSOCIATED(lat%ele(ix)%r) ) THEN
+      t6 = lat%ele(ix)%r(:,:,1)
+    ELSE
+      WRITE(*,'(A)') "use_t6_cache is true, but lat%ele(ix)%r not allocated.  Defaulting to transfer_matrix_calc."
+      CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
+    ENDIF
+  ELSE
+    CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
+  ENDIF
   CALL pwd_mat(lat, t6, t6, ibs_sim_params%inductance, lat%ele(ix)%z%sigma)
   ! CALL transfer_matrix_calc_special(lat, .true., t6, ix1=ix, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix)%z%sigma)
   IF( ibs_sim_params%set_dispersion ) THEN
