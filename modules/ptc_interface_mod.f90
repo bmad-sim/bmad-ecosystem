@@ -1302,8 +1302,9 @@ end subroutine real_8_equal_taylor
 !
 ! Input:
 !   bmad_taylor(6) -- Taylor_struct: Input taylor map.
-!   beta0 -- real(rp): Reference particle velocity at beginning of map
-!   beta1 -- real(rp): Reference particle velocity at end of map
+!   v0(6)    -- real(rp): Initial vector (in Bmad coords) around which bmad_taylor was made.
+!   beta0    -- real(rp): Reference particle velocity at beginning of map
+!   beta1    -- real(rp): Reference particle velocity at end of map
 !
 ! Output:
 !   y8(6) -- real_8: PTC Taylor map.
@@ -1316,47 +1317,45 @@ use s_fibre_bundle
 implicit none
 
 type (taylor_struct) :: bmad_taylor(:)
-type (real_8) y8(:)
-type (damap) bm, id, s, si
-type (taylor) bet
+type (real_8) y8(:), rr(6), bet
+type (damap) bm, id, si
 
-real(dp) beta0, beta1, fix0(6), fix1(6), v0(6)
+real(dp) beta0, beta1, fix0(6), v0(:), v_ptc(6)
 
 !
 
-call alloc(bm, id, s, si)
-call alloc(bet)
+call alloc(bm, id, si)
+call alloc(rr)
+call alloc (bet)
 
-call real_8_equal_taylor (y8, bmad_taylor)
+y8 = bmad_taylor
 bm = y8
 
-fix1 = bm     ! Save zeroth order terms
-fix0 = 0.0d0  
-bm = fix0     ! Set zeroth order terms to zero
-
+fix0 = bm     ! Save zeroth order terms
 id = 1        ! Identity map
-s = 1         ! PTC to Bmad map
-si = 1        ! Bmad to PTC map
 
-s%v(6) = (2.d0*id%v(5)/beta0+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta0+id%v(5)**2)+1.d0)
-bet = (1.d0+s%v(6))/(1.d0/beta0+id%v(5))
-s%v(5) = -bet*id%v(6)
+call vec_bmad_to_ptc (v0, beta0, v_ptc)
+rr = id + v_ptc
 
-si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+id%v(6)**2+2.d0*id%v(6)) )
-bet = (1.d0+id%v(6))/(1.d0/beta1+si%v(5))
-si%v(6) = -id%v(5)/bet
+y8 = rr
+y8(6) = (2.d0*rr(5)/beta0+rr(5)**2)/(sqrt(1.d0+2.d0*rr(5)/beta0+rr(5)**2)+1.d0)
+bet = (1.d0+y8(6))/(1.d0/beta0+rr(5))
+y8(5) = -bet*rr(6)
 
-bm = si*bm*s   ! Convert bm map from Bmad units to PTC units
+si = y8        ! ptc to bmad map
 
-fix0 = fix1    ! Convert fixed point from Bmad units to PTC units.
-fix0(5) = (fix1(6)**2+2.d0*fix1(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+fix1(6)**2+2.d0*fix1(6)) )
-fix0(6) = -fix1(5)/((1.d0+fix1(6))/(1.d0/beta1+fix0(5)))
+bm = bm*si
+bm = fix0
 
-bm = fix0      ! Add the fixed point back in.
-y8 = bm
+rr = bm
+y8 = rr
+y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta1+sqrt( 1.d0/beta1**2+rr(6)**2+2.d0*rr(6)) )
+bet = (1.d0+rr(6))/(1.d0/beta1+y8(5))
+y8(6) = -rr(5)/bet
 
-call kill(bm, id, s, si)
+call kill(bm, id, si)
 call kill(bet)
+call kill(rr)
 
 end subroutine taylor_to_real_8
 
@@ -1373,7 +1372,8 @@ end subroutine taylor_to_real_8
 !   use ptc_interface_mod
 !
 ! Input:
-!   y8(6) -- real_8: PTC Taylor map.
+!   y8(6) -- real_8: PTC Taylor map. NOTE: y8 is used as scratch space and therefore trashed.
+!   v0(6) -- real(rp): Initial vector (in Bmad coords) around which y8 was made.
 !   beta0 -- real(rp): Reference particle velocity at beginning of map
 !   beta1 -- real(rp): Reference particle velocity at end of map
 !
@@ -1388,47 +1388,45 @@ use s_fibre_bundle
 implicit none
 
 type (taylor_struct) :: bmad_taylor(:)
-type (real_8) y8(:)
-type (damap) bm, id, s, si
-type (taylor) bet
+type (real_8) y8(:), rr(6), bet
+type (damap) bm, id, si
 
-real(rp) beta0, beta1, fix0(6), fix1(6), v0(6)
+real(rp) beta0, beta1, fix0(6), v0(:)
 
 !
 
-call alloc(bm, id, s, si)
-call alloc(bet)
+call alloc (bm, id, si)
+call alloc (rr)
+call alloc (bet)
 
 bm = y8
-fix1 = bm         ! Save the fixed point
 
-fix0 = 0.0d0
+fix0 = bm
+id = 1
+
+rr = id+v0
+
+y8 = rr 
+y8(5) = (rr(6)**2+2.d0*rr(6))/(1.d0/beta0 + sqrt(1.d0/beta0**2+rr(6)**2+2.d0*rr(6)))
+bet = (1.d0+rr(6))/(1.d0/beta0+y8(5))
+y8(6) = -rr(5)/bet
+
+si=y8  ! bmad to ptc map
+
+bm = bm*si
 bm = fix0
 
-id = 1            ! Unit map
-s = 1             ! PTC to Bmad map
-si = 1            ! Bmad to PTC map
+rr = bm
+y8 = rr
+y8(6) = (2.d0*rr(5)/beta1+rr(5)**2)/(sqrt(1.d0+2.d0*rr(5)/beta1+rr(5)**2)+1.d0)
+bet = (1.d0+y8(6))/(1.d0/beta1+rr(5))
+y8(5) = -bet*rr(6)
 
-s%v(6) = (2.d0*id%v(5)/beta1+id%v(5)**2)/(sqrt(1.d0+2.d0*id%v(5)/beta1+id%v(5)**2)+1.d0)
-bet = (1.d0+s%v(6))/(1.d0/beta1+id%v(5))
-s%v(5) = -bet*id%v(6)
+bmad_taylor = y8
 
-si%v(5) = (id%v(6)**2+2.d0*id%v(6))/(1.d0/beta0+sqrt( 1.d0/beta0**2+id%v(6)**2+2.d0*id%v(6)) )
-bet = (1.d0+id%v(6))/(1.d0/beta0+si%v(5))
-si%v(6) = -id%v(5)/bet
-
-bm = s*bm*si      ! Convert bm map from PTC units to Bmad units
-
-fix0 = fix1       ! Convert fixed point from PTC units to Bmad units
-fix0(6) = (2.d0*fix1(5)/beta1+fix1(5)**2)/(sqrt(1.d0+2.d0*fix1(5)/beta1+fix1(5)**2)+1.d0)
-fix0(5) = -fix1(6)*((1.d0+fix0(6))/(1.d0/beta1+fix1(5)))
-
-bm = fix0         ! Add the fixed point back in.
-y8 = bm
-call taylor_equal_real_8 (bmad_taylor, y8)
-
-call kill(bm, id, s, si)
-call kill(bet)
+call kill (rr)
+call kill (bet)
+call kill (bm, id, si)
 
 end subroutine real_8_to_taylor
 
@@ -2668,9 +2666,11 @@ type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) start0, end0, c0
 
 type (fibre), pointer :: ptc_fibre
-type (real_8) y(6), y2(6)
+type (real_8) y0(6), y2(6), y8(6), bet
 
-real(dp) x(6), beta0, beta1
+type (damap) da, id
+
+real(dp) x(6), beta
 real(rp) z_patch
 
 integer i, ix
@@ -2684,6 +2684,8 @@ character(16) :: r_name = 'ele_to_taylor'
 ! Init
 
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
+
+call alloc (y8)
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -2704,59 +2706,74 @@ if (ele%key == match$) then
   return
 endif
 
-! Track with offset
+! Initial map
 
 use_offsets = logic_option(ele%map_with_offsets, map_with_offsets)
  
+
 if (present(orb0)) then
   ele%taylor(:)%ref = orb0%vec
-  call vec_bmad_to_ptc (orb0%vec, ele%value(p0c_start$)/ele%value(e_tot_start$), x)
+  x = orb0%vec  ! y = IdentityMap + const
 else
   ele%taylor(:)%ref = 0
   x = 0
 endif
 
-call real_8_init(y)
-y = x   ! y = IdentityMap + x
+call real_8_init(y0)
+y0 = x ! y = IdentityMap + const
+
+! Convert to PTC
+
+beta = ele%value(p0c_start$) / ele%value(e_tot_start$)
+y8 = y0
+y8(5) = (y0(6)**2+2.d0*y0(6))/(1.d0/beta+sqrt( 1.d0/beta**2+y0(6)**2+2.d0*y0(6)) )
+bet = (1.d0+y0(6))/(1.d0/beta+y8(5))
+y8(6) = -y0(5)/bet
 
 ! Track entrance drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, upstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, y, default) ! "track" in PTC
+  call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
 endif
 
 ! Track element
 
 call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
-call ptc_track (ptc_fibre, y, default) ! "track" in PTC
+call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
 
 if (tracking_uses_end_drifts(ele)) then
   call create_hard_edge_drift (ele, downstream_end$, drift_ele)
   call ele_to_fibre (drift_ele, ptc_fibre, param, .true.)
-  call ptc_track (ptc_fibre, y, default) ! "track" in PTC
+  call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
 endif
+
+! PTC to Bmad
+
+beta = ele%value(p0c$) / ele%value(e_tot$)
+y0 = y8
+y0(6) = (2.d0*y8(5)/beta+y8(5)**2)/(sqrt(1.d0+2.d0*y8(5)/beta+y8(5)**2)+1.d0)
+bet = (1.d0+y0(6))/(1.d0/beta+y8(5))
+y0(5) = -bet*y8(6)
 
 ! take out the offset
 
 if (any(x /= 0)) then
   call real_8_init(y2)
   y2 = -x  ! y2 = IdentityMap - x
-  call concat_real_8 (y2, y, y)
+  call concat_real_8 (y2, y0, y0)
   call kill(y2)
 endif
 
 ! convert to bmad_taylor  
 
-beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-beta1 = ele%value(p0c$) / ele%value(e_tot$)
+ele%taylor = y0
 
-call real_8_to_taylor (y, ele%taylor%ref, beta0, beta1, ele%taylor)
-
-call kill(y)
+call kill(y0)
+call kill(y8)
 
 if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 

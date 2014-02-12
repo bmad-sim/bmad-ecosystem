@@ -317,16 +317,6 @@ if (ele%key == multipole$) then
   return
 endif
 
-! sad_mult case
-
-if (ele%key == sad_mult$) then
-  a = ele%a_pole * (ele%orientation * param%rel_tracking_charge)
-  b = ele%b_pole * (ele%orientation * param%rel_tracking_charge)
-  has_nonzero_pole = (any(a /= 0) .or. any(b /= 0))
-  return
-endif
-  
-
 ! All other cases
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
@@ -385,8 +375,6 @@ if (all(this_a == 0) .and. all(this_b == 0)) return
 
 has_nonzero_pole = .true.
 
-if (.not. this_ele%scale_multipoles) return
-
 ! use tilt?
 
 if (use_ele_tilt .and. this_ele%value(tilt_tot$) /= 0) then
@@ -402,6 +390,8 @@ if (use_ele_tilt .and. this_ele%value(tilt_tot$) /= 0) then
 endif
 
 ! radius = 0 defaults to radius = 1
+
+if (.not. this_ele%scale_multipoles) return
 
 radius = this_ele%value(radius$)
 if (radius == 0) radius = 1
@@ -445,7 +435,7 @@ case (octupole$)
   const = this_ele%value(k3$) * this_ele%value(l$)
   ref_exp = 3
   
-case (ab_multipole$, multipole$) ! multipoles do not scale
+case (ab_multipole$, sad_mult$) ! multipoles do not scale
   return
 
 case default

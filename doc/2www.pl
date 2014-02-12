@@ -23,7 +23,7 @@ if (! $found) {die ("Revision line not found in: cover_page.tex\n");}
 
 open (F_IN, "manual_template.html") || die ("Cannot open File: manual_template.html\n");
 
-open (F_OUT, ">manual.html") || die ("Cannot open manual.html file\n");
+open (F_OUT, ">basic_manual.html") || die ("Cannot open basic_manual.html file\n");
 
 while (<F_IN>) {
   s/RRR/$rev/g;
@@ -34,7 +34,7 @@ while (<F_IN>) {
 close (F_IN);
 close (F_OUT);
 
-`cp manual.html  ~/public_html/bmad/manual.html`;
+`mv basic_manual.html  ~/public_html/bmad/basic_manual.html`;
 
 `cp bmad.pdf ~/public_html/bmad/bmad-manual-$rev.pdf`;
 `chmod g+w  ~/public_html/bmad/bmad-manual-$rev.pdf`;

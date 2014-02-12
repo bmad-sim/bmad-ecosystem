@@ -63,8 +63,9 @@ real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz, dp_ratio
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
 real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_ent, ds_ref
+real(rp) dps_dpx, dps_dpy, dps_dpz
 
-integer i, n_slice, key, ix_fringe
+integer i, n_slice, key, ix_fringe, dir
 
 real(rp) charge_dir, hkick, vkick, kick
 
@@ -632,40 +633,56 @@ case (patch$)
   mc2 = mass_of(param%particle)
   c00%vec(5) = 0
   call track_a_patch (ele, c00, .false., s_ent, ds_ref, w_inv, p_s)
-  call reference_energy_correction (ele, c00)
 
-  dp_ratio = v(p0c_start$) / v(p0c$)
-  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * ele%value(upstream_ele_dir$)
+  ! Coordinate transform before drift
+
+  dir = ele%value(upstream_ele_dir$) * c0%direction
+  rel_p = 1 + c0%vec(6)
+  pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * dir
   beta_ref = v(p0c$) / v(e_tot$)
-  mat6(1,:) = [w_inv(1,1), 0.0_rp, w_inv(1,2), 0.0_rp, 0.0_rp, 0.0_rp]
-  mat6(3,:) = [w_inv(2,1), 0.0_rp, w_inv(2,2), 0.0_rp, 0.0_rp, 0.0_rp]
 
-  mat6(2,:) = [0.0_rp, dp_ratio * (w_inv(1,1) - w_inv(1,3) * c0%vec(2) / pz), &
-               0.0_rp, dp_ratio * (w_inv(1,2) - w_inv(1,3) * c0%vec(4) / pz), 0.0_rp, w_inv(1,3) * rel_p * dp_ratio / pz]
-  mat6(4,:) = [0.0_rp, dp_ratio * (w_inv(2,1) - w_inv(2,3) * c0%vec(2) / pz), &
-               0.0_rp, dp_ratio * (w_inv(2,2) - w_inv(2,3) * c0%vec(4) / pz), 0.0_rp, w_inv(2,3) * rel_p * dp_ratio / pz]
+  dps_dpx = w_inv(3,1) - w_inv(3,3) * dir**2 * c0%vec(2) / pz
+  dps_dpy = w_inv(3,2) - w_inv(3,3) * dir**2 * c0%vec(4) / pz
+  dps_dpz = w_inv(3,3) * dir**2 * rel_p / pz
 
-  mat6(5,:) = [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, &
-                                      v(t_offset$) * c_light * mc2**2 * c0%beta**3 / (v(p0c_start$)**2 * rel_p**3)]
-  mat6(6,:) = [0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, v(p0c_start$) / v(p0c$)]
+  mat6(1,1) = w_inv(1,1) - w_inv(3,1) * c00%vec(2) / p_s
+  mat6(1,2) = -s_ent * ((w_inv(1,1) - w_inv(1,3) * dir**2 * c0%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
+  mat6(1,3) = w_inv(1,2) - w_inv(3,2) * c00%vec(2) / p_s
+  mat6(1,4) = -s_ent * ((w_inv(1,2) - w_inv(1,3) * dir**2 * c0%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
+  mat6(1,6) = -s_ent * (w_inv(1,3) * dir**2 * rel_p / (p_s * pz) - c00%vec(2) * dps_dpz / p_s**2)
 
-  rel_p = 1 + c00%vec(6)
-  call drift_mat6_calc (mat6_post, -s_ent*sign(1.0_rp, p_s), ele, param, c00)
+  mat6(2,2) = w_inv(1,1) - w_inv(1,3) * dir**2 * c0%vec(2) / pz
+  mat6(2,4) = w_inv(1,2) - w_inv(1,3) * dir**2 * c0%vec(4) / pz
+  mat6(2,6) = w_inv(1,3) * dir**2 * rel_p / pz
 
-  mat6_post(5,6) =  -s_ent * (c00%vec(2)**2 + c00%vec(4)**2) / p_s**3 + &
-                            ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c$)**2 * beta_ref)
+  mat6(3,1) = w_inv(2,1) - w_inv(3,1) * c00%vec(4) / p_s
+  mat6(3,2) = -s_ent * ((w_inv(2,1) - w_inv(2,3) * dir**2 * c0%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
+  mat6(3,3) = w_inv(2,2) - w_inv(3,2) * c00%vec(4) / p_s
+  mat6(3,4) = -s_ent * ((w_inv(2,2) - w_inv(2,3) * dir**2 * c0%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
+  mat6(3,6) = -s_ent * (w_inv(2,3) * dir**2 * rel_p / (p_s * pz) - c00%vec(4) * dps_dpz / p_s**2)
 
-  ! These matrix terms are due to the variation of s_ent drift length
-  mat6_post(1,1) = mat6_post(1,1) + (w_inv(1,3) / w_inv(3,3)) * c00%vec(2) / p_s
-  mat6_post(1,3) = mat6_post(1,3) + (w_inv(2,3) / w_inv(3,3)) * c00%vec(2) / p_s
+  mat6(4,2) = w_inv(2,1) - w_inv(2,3) * dir**2 * c0%vec(2) / pz
+  mat6(4,4) = w_inv(2,2) - w_inv(2,3) * dir**2 * c0%vec(4) / pz
+  mat6(4,6) = w_inv(2,3) * dir**2 * rel_p / pz
 
-  mat6_post(3,1) = mat6_post(3,1) + (w_inv(1,3) / w_inv(3,3)) * c00%vec(4) / p_s
-  mat6_post(3,3) = mat6_post(3,3) + (w_inv(2,3) / w_inv(3,3)) * c00%vec(4) / p_s
+  mat6(5,1) = w_inv(3,1) * rel_p / p_s
+  mat6(5,2) = -s_ent * rel_p * dps_dpx / p_s**2
+  mat6(5,3) = w_inv(3,2) * rel_p / p_s
+  mat6(5,4) = -s_ent * rel_p * dps_dpy / p_s**2
+  mat6(5,6) = v(t_offset$) * c_light * mc2**2 * c0%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
+              s_ent / p_s - s_ent * rel_p * dps_dpz / p_s**2 + &
+              ds_ref * mc2**2 * c00%beta**3 / (rel_p**3 * v(p0c_start$)**2 * beta_ref)
 
-  mat6_post(5,1) = mat6_post(5,1) - (w_inv(1,3) / w_inv(3,3)) * rel_p / p_s
-  mat6_post(5,3) = mat6_post(5,3) - (w_inv(2,3) / w_inv(3,3)) * rel_p / p_s
+  ! Energy offset
 
-  mat6 = matmul (mat6_post, mat6)
+  if (v(p0c_start$) /= v(p0c$)) then
+    dp_ratio = v(p0c_start$) / v(p0c$)
+    mat6(2,:) = mat6(2,:) * dp_ratio
+    mat6(4,:) = mat6(4,:) * dp_ratio
+    mat6(6,:) = mat6(6,:) * dp_ratio
+  endif
+
+  ! vec0 calc
 
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
