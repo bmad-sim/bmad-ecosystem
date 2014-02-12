@@ -2871,6 +2871,16 @@ The ``-'' indicates that there is no equivalent setting in SAD.
 The \vn{eps_step_scale} is equivalent to the SAD \vn{eps} attribute. The default
 \vn{eps_step_scale} value is 1 which is the same default as SAD.
 
+
+Sad conventions:
+\begin{itemize}
+\item
+A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}
+\item
+SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end
+of the element as opposed to \bmad's convention of referenceing to the element center.
+\end{itemize}
+
 %-----------------------------------------------------------------
 \section{Sample}
 \label{s:sample}
