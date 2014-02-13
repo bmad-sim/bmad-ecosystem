@@ -15,6 +15,8 @@ interface assignment (=)
   module procedure real_8_equal_taylor
   module procedure taylor_equal_real_8
   module procedure universal_equal_universal
+  module procedure bmad_taylor_equal_ptc_taylor
+  module procedure bmad_taylors_equal_ptc_taylors
   module procedure complex_taylor_equal_c_taylor
   module procedure complex_taylors_equal_c_taylors
 end interface
@@ -1872,6 +1874,71 @@ do i = 1, size(ptc_c_taylors)
 enddo
 
 end subroutine complex_taylors_equal_c_taylors
+
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine bmad_taylor_equal_ptc_taylor (bmad_taylor, ptc_taylor)
+!
+! Subroutine to convert a PTC taylor to a bmad_taylor
+!
+! Subroutine overloads "=" in expressions
+!       bmad_taylor = ptc_taylor
+!
+! Modules needed:
+!   use ptc_interface_mod
+!
+! Input:
+!   ptc_taylor -- taylor: PTC complex Taylor series
+!
+! Output:
+!   bmad_taylor -- taylor_struct: Bmad Taylor series
+!-
+
+subroutine bmad_taylor_equal_ptc_taylor (bmad_taylor, ptc_taylor)
+
+use polymorphic_taylor, only: assignment (=), universal_taylor,  taylor
+
+implicit none
+
+type (taylor), intent(in) :: ptc_taylor
+type (taylor_struct), intent(inout) :: bmad_taylor
+type (universal_taylor) :: utaylor
+
+! Convert to universal_taylor, then to bmad_taylor
+utaylor = 0
+utaylor = ptc_taylor
+call universal_to_bmad_taylor (utaylor, bmad_taylor)
+! Cleanup
+utaylor = -1
+
+end subroutine bmad_taylor_equal_ptc_taylor
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+!  Subroutine complex_taylors_equal_c_taylors (bmad_complex_taylors(:), ptc_c_taylors(:))
+!  Vector version of bmad_taylor_equal_ptc_taylor
+!
+!  Subroutine overloads '=' for bmad_taylor(:) = ptc_taylor(:)
+!
+!-
+subroutine bmad_taylors_equal_ptc_taylors (bmad_taylors, ptc_taylors)
+use polymorphic_taylor, only: taylor
+implicit none
+type (taylor), intent(in) :: ptc_taylors(:)
+type (taylor_struct), intent(inout) :: bmad_taylors(:)
+integer :: i
+!
+do i = 1, size(ptc_taylors)
+  bmad_taylors(i) = ptc_taylors(i)
+enddo
+
+end subroutine bmad_taylors_equal_ptc_taylors
 
 
 !------------------------------------------------------------------------
