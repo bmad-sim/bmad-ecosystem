@@ -189,6 +189,9 @@ case (exit_end$)
   case (exit_end$, both_ends$); is_at_this_end = .true.
   case default;                 is_at_this_end = .false.
   end select
+
+case (in_between$)
+  is_at_this_end = .false. ! where_at will not be continuous$
 end select
 
 end function at_this_ele_end
