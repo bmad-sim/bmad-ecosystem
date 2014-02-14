@@ -914,7 +914,7 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   LOGICAL lerror
 
   TYPE(normal_modes_struct) mode
-  TYPE(ele_struct) :: ele
+  TYPE(ele_struct), POINTER :: ele
   REAL(rp) energy, gamma, KE, rbeta
 
   LOGICAL lerr, ok
@@ -931,12 +931,12 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ENDIF
 
   IF(PRESENT(ix) .and. .not.PRESENT(s)) THEN
-    ele = lat%ele(ix)
+    ele => lat%ele(ix)
   ELSEIF(PRESENT(s) .and. .not.PRESENT(ix)) THEN
     WRITE(*,*) "FAIL: Calculation at location s not currently supported by kubo1"
     STOP
     !CALL twiss_and_track_at_s(lat,s,stubele)
-    !ele = stubele
+    !ele => stubele
   ELSE
     WRITE(*,*) "FATAL ERROR IN ibs_mod: Either ix or s (and not both) must be specified"
     STOP
@@ -965,6 +965,7 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   mode%b%emittance = ele%b%emit
   mode%z%emittance = ele%z%emit
   CALL make_smat_from_abc(t6, mode, sigma_mat, lerr)
+
   IF( lerr ) THEN
     WRITE(*,'(A)') "BAD: make_smat_from_abc failed"
     rates%inv_Ta = 0.0d0
@@ -981,6 +982,8 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   rates%inv_Ta = ((normal(1) - ele%a%emit) / dt)/ele%a%emit/2.0d0
   rates%inv_Tb = ((normal(2) - ele%b%emit) / dt)/ele%b%emit/2.0d0
   rates%inv_Tz = ((normal(3) - ele%z%emit) / dt)/ele%z%emit/2.0d0
+
+  !CALL deallocate_ele_pointers(ele)
 END SUBROUTINE kubo1_twiss_wrapper
 
 !+
@@ -989,7 +992,9 @@ END SUBROUTINE kubo1_twiss_wrapper
 SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, energy, n_part)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
-  USE eigen_mod
+  !USE eigen_mod
+  USE LA_PRECISION, ONLY: WP => DP
+  USE f95_lapack
 
   IMPLICIT NONE
 
@@ -1037,6 +1042,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
 
   REAL(rp), PARAMETER :: pi_2 = pi/2.0d0
 
+  !GSL for integrator
   TYPE(fgsl_integration_workspace) :: integ_wk
   TYPE(c_ptr) :: ptr
   TYPE(fgsl_function) :: integrand_ready
@@ -1075,7 +1081,9 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   sig_xx = ar_sigma_mat(1:3,1:3)
   sig_xp = ar_sigma_mat(1:3,4:6)
   sig_pp = ar_sigma_mat(4:6,4:6)
-  CALL eigensys(sig_xx, u, R, etypes, 3, error)
+  !CALL eigensys(sig_xx, u, R, etypes, 3, error)
+  R=sig_xx
+  CALL LA_SYEV(R,u,JOBZ='V')
   vol1 = SQRT(u(1)*u(2)*u(3))
   vol = SQRT(4.0d0*pi)**3 * vol1
   bm = SQRT(MIN( u(1), u(2), u(3) ))  !minimum beam dimension
@@ -1090,7 +1098,9 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   sig_pl = sig_pp - MATMUL(TRANSPOSE(sig_xp),MATMUL(sig_xx_inv,sig_xp))
 
   !Get eigen vectors of local momentum matrix
-  CALL eigensys(sig_pl, u, R, etypes, 3, error)
+  !CALL eigensys(sig_pl, u, R, etypes, 3, error)
+  R=sig_pl
+  CALL LA_SYEV(R,u,JOBZ='V')
   IF( error .ne. 0 ) THEN
     WRITE(*,'(A,I6," ",A)') "BAD: Eigenvectors of local momentum matrix not found."
     sigma_mat_updated = sigma_mat
