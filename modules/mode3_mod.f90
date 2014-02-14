@@ -59,7 +59,13 @@ SUBROUTINE normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
 
   LOGICAL error
 
+  INTEGER i
+
   CALL make_N(mat, N, error, tune, synchrotron_motion)
+  IF( error ) THEN
+    WRITE(*,'(A,I6,A)') "BAD: Eigenvectors of transfer matrix not found for element."
+    RETURN
+  ENDIF
   !CALL make_HVBP (N, dagger6(B), V, H)
   CALL make_HVBP (N, B, V, H)
   HV = MATMUL(H,V)
@@ -264,7 +270,6 @@ END SUBROUTINE xyz_to_action
 !-
 SUBROUTINE action_to_xyz(ring,ix,J,X,error)
   USE bmad
-  USE eigen_mod
 
   IMPLICIT none
 
@@ -291,6 +296,74 @@ SUBROUTINE action_to_xyz(ring,ix,J,X,error)
 END SUBROUTINE action_to_xyz
 
 !+
+! Subroutine eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
+!
+! Compute eigenvalues and eigenvectors of a real 6x6 matrix.  The evals
+! and evecs are in general complex.
+!
+! Input:
+!   mat(6,6)     - real(rp):  6x6 real matrix.  Usually a transfer matrix or sigma matrix.
+! Output:
+!   eval_r(6)    - real(rp):  real part of eigenvalues.
+!   eval_i(6)    - real(rp):  complex part of eigenvalues.
+!   evec_r(6)    - real(rp):  real part of eigenvectors arranged down columns.
+!   evec_i(6)    - real(rp):  complex part of eigenvectors arranged down columns.
+!-
+SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
+
+  USE bmad
+  !USE eigen_mod
+  USE LA_PRECISION, ONLY: WP => DP
+  USE f95_lapack
+  
+  REAL(rp) mat(6,6)
+  REAL(rp) A(6,6)
+  REAL(rp) VR(6,6)
+  REAL(rp) eval_r(6), eval_i(6)
+  REAL(rp) evec_r(6,6), evec_i(6,6)
+  
+  INTEGER i_error
+  INTEGER pair1(1), pair2(1), pair3(1), pairIndexes(6)
+  LOGICAL error
+
+  !CALL mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error)
+  !evec_r = TRANSPOSE(evec_r)
+  !evec_i = TRANSPOSE(evec_i)
+
+  A = mat  !LA_GEEV destroys the contents of its first argument.
+  CALL LA_GEEV(A, eval_r, eval_i, VR=VR, INFO=i_error)
+  IF( i_error .EQ. 0 ) THEN
+    error = .false.
+  ELSE
+    WRITE(*,*) "LA_GEEV failed."
+    error = .true.
+  ENDIF
+  evec_r(:,1) = VR(:,1)
+  evec_r(:,2) = VR(:,1)
+  evec_r(:,3) = VR(:,3)
+  evec_r(:,4) = VR(:,3)
+  evec_r(:,5) = VR(:,5)
+  evec_r(:,6) = VR(:,5)
+  evec_i(:,1) = VR(:,2)
+  evec_i(:,2) = -VR(:,2)
+  evec_i(:,3) = VR(:,4)
+  evec_i(:,4) = -VR(:,4)
+  evec_i(:,5) = VR(:,6)
+  evec_i(:,6) = -VR(:,6)
+
+  !Order eigenvector pairs
+  pair1 = MAXLOC( [ ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5)) ] )
+  pair2 = MAXLOC( [ ABS(evec_r(3,1)), ABS(evec_r(3,3)), ABS(evec_r(3,5)) ] )
+  pair3 = MAXLOC( [ ABS(evec_r(5,1)), ABS(evec_r(5,3)), ABS(evec_r(5,5)) ] )
+  pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
+  evec_r = evec_r(:,pairIndexes)
+  evec_i = evec_i(:,pairIndexes)
+  eval_r = eval_r(pairIndexes)
+  eval_i = eval_i(pairIndexes)
+
+END SUBROUTINE eigen_decomp_6mat
+
+!+
 ! Subroutine make_N(t6,N,error,tunes,synchrotron_motion)
 !
 ! Given a 1-turn transfer matrix, this returns N and its inverse Ninv.
@@ -315,7 +388,6 @@ END SUBROUTINE action_to_xyz
 !-
 SUBROUTINE make_N(t6,N,error,tunes,synchrotron_motion)
   USE bmad
-  USE eigen_mod
 
   IMPLICIT NONE
 
@@ -327,14 +399,15 @@ SUBROUTINE make_N(t6,N,error,tunes,synchrotron_motion)
   REAL(rp), OPTIONAL :: tunes(3)
   LOGICAL, OPTIONAL :: synchrotron_motion
 
+  REAL(rp) A(6,6)
+  REAL(rp) VR(6,6)
+
   LOGICAL error
+  INTEGER i_error
 
   INTEGER i
 
-  CALL mat_eigen (t6, eval_r, eval_i, evec_r, evec_i, error)
-  evec_r = TRANSPOSE(evec_r)
-  evec_i = TRANSPOSE(evec_i)
-
+  CALL eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, error)
   IF( error ) THEN
     RETURN
   ENDIF
@@ -401,9 +474,15 @@ SUBROUTINE normal_sigma_mat(sigma_mat,normal)
 
   LOGICAL error
 
+  INTEGER i
+
   sigmaS = MATMUL(sigma_mat,S)
 
-  CALL mat_eigen(sigmaS,eval_r,eval_i,evec_r,evec_i,error)
+  CALL eigen_decomp_6mat(sigmaS, eval_r, eval_i, evec_r, evec_i, error)
+  IF( error ) THEN
+    WRITE(*,'(A,I6,A)') "BAD: Eigenvalues of sigma matrix not found."
+    RETURN
+  ENDIF
 
   normal(1) = ABS(eval_i(1))
   normal(2) = ABS(eval_i(3))
@@ -432,7 +511,6 @@ END SUBROUTINE normal_sigma_mat
 SUBROUTINE get_abc_from_updated_smat(ring, ix, sigma_mat, normal, error)
 
   USE bmad
-  USE eigen_mod
 
   TYPE(lat_struct) ring
   INTEGER ix
@@ -461,14 +539,12 @@ SUBROUTINE get_abc_from_updated_smat(ring, ix, sigma_mat, normal, error)
 
   CALL transfer_matrix_calc (ring, .true., t6, ix1=ix, one_turn=.true.)
 
-  CALL mat_eigen (t6, eval_r, eval_i, evec_r, evec_i, error)
+  CALL eigen_decomp_6mat(t6, eval_r, eval_i, evec_r, evec_i, error)
   IF( error ) THEN
     WRITE(*,'(A,I6,A)') "BAD: Eigenvectors of transfer matrix not found for element ", ix, ring%ele(ix)%name
     RETURN
   ENDIF
 
-  evec_r = TRANSPOSE(evec_r)
-  evec_i = TRANSPOSE(evec_i)
   CALL real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
   CALL cplx_symp_conj(evec_r, evec_i, evec_inv_r, evec_inv_i)
 
@@ -547,7 +623,6 @@ END SUBROUTINE beam_tilts
 SUBROUTINE make_smat_from_abc(t6, mode, sigma_mat, error)
 
   USE bmad
-  USE eigen_mod
 
   REAL(rp) t6(6,6)
   TYPE(normal_modes_struct) mode
@@ -577,6 +652,7 @@ SUBROUTINE make_smat_from_abc(t6, mode, sigma_mat, error)
   D(6,5) = -mode%z%emittance
 
   sigma_mat = MATMUL( MATMUL( MATMUL(N,D),dagger6(N) ),dagger6(S) )
+
 END SUBROUTINE make_smat_from_abc
 
 !+
@@ -744,6 +820,11 @@ SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
   Lambda(6,6) =  eval_r(5)
   Lambda(5,6) = -eval_i(5)
   Lambda(6,5) =  eval_i(5)
+
+  IF( (ABS(eval_i(1)) .LT. 1.0E-7) .OR. (ABS(eval_i(3)) .LT. 1.0E-7) .OR. (ABS(eval_i(5)) .LT. 1.0E-7) ) THEN
+    WRITE(*,*) "Unstable transfer matrix detected.  Maybe check pwd settings."
+    STOP
+  ENDIF
 
   !Normalize to make symplectic
   DO i=1,5,2
