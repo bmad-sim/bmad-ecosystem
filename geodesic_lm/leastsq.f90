@@ -292,6 +292,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
      WRITE(print_unit, *) "  mode:            ", mode
      WRITE(print_unit, *) "  Bold method:     ", ibold
      WRITE(print_unit, *) "  Broyden updates: ", ibroyden
+     WRITE(print_unit, *) "  maxiter          ", maxiter
   ENDIF
 
 
