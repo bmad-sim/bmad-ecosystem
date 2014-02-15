@@ -65,10 +65,10 @@ ele_param_translate = {
     'volt': 'voltage',
     'bound': 'bound',
     'geo': 'geo',
-    'rotate': 'tilt', 
+    'rotate': ['tilt', ' * -1'], 
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
-    'chi3': 'tilt',
+    'chi3': ['tilt', ' * -1'],
     'k0': 'b0', 'k1': 'b1', 'k2': 'b2', 'k3': 'b3', 'k4': 'b4', 'k5': 'b5', 'k6': 'b6', 'k7': 'b7', 
     'k8': 'b8', 'k9': 'b9', 'k10': 'b10', 'k11': 'b11', 'k12': 'b12', 'k13': 'b13', 'k14': 'b14', 
     'k15': 'b15', 'k16': 'b16', 'k17': 'b17', 'k18': 'b18', 'k19': 'b19', 'k20': 'b20', 'k21'
@@ -77,7 +77,8 @@ ele_param_translate = {
     'sk15': 'a15', 'sk16': 'a16', 'sk17': 'a17', 'sk18': 'a18', 'sk19': 'a19', 'sk20': 'a20', 'sk21': 'a21 ',
 }
 
-ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay']
+ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
+                  'sol:f1']
 
 # ------------------------------------------------------------------
 
@@ -95,24 +96,34 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
-  for sad_name in sad_ele.param:
-    if sad_name in ignore_sad_param: continue
-    if sad_name not in ele_param_translate:
-      print ('SAD PARAMETER NOT RECOGNIZED: ' + sad_name + '\n' + '    DEFINED IN ELEMENT: ' + sad_ele.name)
+  for sad_param_name in sad_ele.param:
+
+    if sad_param_name in ignore_sad_param: continue
+    full_name = sad_ele.type + ':' + sad_param_name 
+    if full_name in ignore_sad_param: continue
+    if sad_param_name not in ele_param_translate:
+      print ('SAD PARAMETER NOT RECOGNIZED: ' + sad_param_name + '\n' + '    DEFINED IN ELEMENT: ' + sad_ele.name)
       continue
 
-    bmad_name = ele_param_translate[sad_name]
-    if sad_ele.type == 'bend' and sad_name == 'rotate': bmad_name = 'ref_tilt'
-    if bmad_ele.type != 'sad_mult' and sad_name == 'k1': bmad_name = 'k1'
-    if bmad_ele.type != 'sad_mult' and sad_name == 'k2': bmad_name = 'k2'
+    result = ele_param_translate[sad_param_name]
+    if type(result) is list:
+      bmad_name = result
+      value_suffix = ''
+    else:
+      bmad_name = result[0]
+      value_suffix = result[1]
 
-    value = sad_ele.param[sad_name]
+    if sad_ele.type == 'bend' and sad_param_name == 'rotate': bmad_name = 'ref_tilt'
+    if bmad_ele.type != 'sad_mult' and sad_param_name == 'k1': bmad_name = 'k1'
+    if bmad_ele.type != 'sad_mult' and sad_param_name == 'k2': bmad_name = 'k2'
+
+    value = sad_ele.param[sad_param_name]
     if 'deg' in value: value.replace('deg', '* degrees')
     if 'kev' in value: value.replace('kev', '* 1e3')
     if 'mev' in value: value.replace('mev', '* 1e6')
     if 'gev' in value: value.replace('gev', '* 1e9')
 
-    bmad_ele.param[bmad_name] = value
+    bmad_ele.param[bmad_name] = value + value_suffix
 
 
   fringe = '0'   # default 
@@ -162,7 +173,9 @@ def parse_ele (head, definitions, sad_ele_list):
     params = name_and_params.group(2).strip()
 
     for param_and_val in re.finditer(regexParam, params):
-      ele.param[param_and_val.group(1).strip()] = param_and_val.group(2).strip()
+      value = param_and_val.group(2).strip()
+      if value[-1] == ',': value = value[:-1]
+      ele.param[param_and_val.group(1).strip()] = value
 
     sad_ele_list[ele.name] = ele
 
@@ -189,7 +202,7 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
   elif head == 'line':
     parse_line(definitions, lat_line_list)
 
-  elif head in sad_names:
+  elif head in sad_ele_type_names:
     parse_ele(head, definitions, sad_ele_list)
 
 # ------------------------------------------------------------------
@@ -227,13 +240,13 @@ elif inputfile.find('SAD') != -1:
 else:
   outputfile = inputfile + '.bmad'
 
-print ('Input file is ', inputfile)
-print ('Output file is ', outputfile)
+print ('Input file is:  ' + inputfile)
+print ('Output file is: ' + outputfile)
 
 f_in = open(inputfile, 'r')
 f_out = open(outputfile, 'w')
 
-sad_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
+sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
 
 
 # ------------------------------------------------------------------
