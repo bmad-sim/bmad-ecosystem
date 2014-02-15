@@ -568,7 +568,6 @@ if (i_br_from > -1) then
   call transfer_twiss (from_ele, branch%ele(0))
   orb0 => model%lat_branch(ix_branch)%orbit(0)
   orb0 = model%lat_branch(i_br_from)%orbit(i_ele_from)
-  call track_a_patch (from_ele, orb0)
   return
 endif
 
