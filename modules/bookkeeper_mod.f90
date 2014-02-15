@@ -2970,10 +2970,6 @@ case (beginning_ele$)
   endif
 
 case (fork$, photon_fork$)
-  if (associated(a_ptr, ele%value(direction$)) .and. associated(branch)) then
-    branch%param%bookkeeping_state%floor_position = stale$
-    branch%ele(0)%bookkeeping_state%floor_position = stale$
-  endif
 
 case (lcavity$, e_gun$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &

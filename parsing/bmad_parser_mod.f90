@@ -5046,7 +5046,7 @@ end subroutine form_digested_bmad_file_name
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
+! Subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
 !                                                        seq_name, seq_indexx, in_lat, plat)
 !
 ! Subroutine to do line expansion.
@@ -5055,20 +5055,20 @@ end subroutine form_digested_bmad_file_name
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine parser_add_branch (branch_ele, lat, sequence, in_name, in_indexx, &
+recursive subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
                                                    seq_name, seq_indexx, in_lat, plat, created_new_branch)
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat
 type (parser_lat_struct) plat
-type (ele_struct) branch_ele
-type (ele_struct), pointer :: b_ele, ele2
+type (ele_struct) fork_ele
+type (ele_struct), pointer :: target_ele
 type (seq_struct), target :: sequence(:)
 type (branch_struct), pointer :: branch
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer i, j, nb, n_ele_use, n, ix
+integer i, j, nb, n_ele_use, n, ix, key
 
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(40) name
@@ -5079,41 +5079,59 @@ logical created_new_branch
 
 created_new_branch = .true.
 
-if (branch_ele%value(new_branch$) == 0) then ! Branch back if
-  do i = 0, ubound(lat%branch, 1)-1
+if (fork_ele%value(new_branch$) == 0) then ! Branch back if
+  do i = 0, ubound(lat%branch, 1) - 1
     branch => lat%branch(i)
-    if (branch%name /= branch_ele%component_name) cycle
-    branch_ele%value(ix_to_branch$) = i
+    if (branch%name /= fork_ele%component_name) cycle
+    fork_ele%value(ix_to_branch$) = i
     created_new_branch = .false.
   enddo
 endif
 
 if (created_new_branch) then
-  call parser_expand_line (lat, branch_ele%component_name, sequence, in_name, &
+  call parser_expand_line (lat, fork_ele%component_name, sequence, in_name, &
                                 in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
 
   nb = ubound(lat%branch, 1)
-  branch_ele%value(ix_to_branch$) = nb
+  fork_ele%value(ix_to_branch$) = nb
   branch => lat%branch(nb)
 
-  branch%ix_from_branch     = branch_ele%ix_branch
-  branch%ix_from_ele        = branch_ele%ix_ele
+  branch%ix_from_branch     = fork_ele%ix_branch
+  branch%ix_from_ele        = fork_ele%ix_ele
 endif
 
-name = plat%ele(branch_ele%ixx)%ele_name
+name = plat%ele(fork_ele%ixx)%ele_name
+nullify(target_ele)
+
 if (name == '') then
-  branch_ele%value(ix_to_element$) = 0
+  if (nint(fork_ele%value(direction$)) == 1) then
+    target_ele => branch%ele(0)
+  else
+    target_ele => branch%ele(branch%n_ele_track)
+  endif
 else
-  branch_ele%value(ix_to_element$) = -1
   do j = 0, branch%n_ele_max
-    if (branch%ele(j)%name == name) then
-      if (branch_ele%value(ix_to_element$) /= -1) then
-        call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR BRANCH ELEMENT: ' // branch_ele%name)
-        exit
-      endif
-      branch_ele%value(ix_to_element$) = j
+    if (branch%ele(j)%name /= name) cycle
+    if (associated(target_ele)) then
+      call parser_error('DUPLICATE TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+      exit
     endif
+    target_ele => branch%ele(j)
   enddo
+endif
+
+if (.not. associated(target_ele)) then
+  call parser_error('TO_ELEMENT NOT FOUND: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name)
+  return
+endif
+
+fork_ele%value(ix_to_element$) = target_ele%ix_ele
+
+key = target_ele%key
+if (key /= marker$ .and. key /= fork$ .and. key /= photon_fork$ .and. &
+    key /= fiducial$ .and. key /= beginning_ele$) then
+  call parser_error('TO_ELEMENT: ' // name, 'FOR FORK ELEMENT: ' // fork_ele%name, &
+                    'IS NOT A ZERO-LENGTH MARKER-LIKE ELEMENT')
 endif
 
 end subroutine parser_add_branch

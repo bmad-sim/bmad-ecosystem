@@ -1,4 +1,4 @@
-\chapter{Charged Particle Tracking}
+\chapter{Tracking of Charged Particles}
 \label{c:charged.track}
 
 \bmad can track both charged particles and X-rays. This chapter deals
@@ -26,7 +26,7 @@ coordinates). Without any offsets, pitches or tilt (\sref{s:offset}), henceforth
 called ``misalignments'', the \vn{element} coordinates are the same
 as the \vn{laboratory reference} coordinates (or simply \vn{laboratory}
 coordinates) (\sref{s:ref}). The \vn{element} coordinates stay fixed
-relative to the element. Therefore, if the element is misaliged, the
+relative to the element. Therefore, if the element is misaligned, the
 \vn{element coordinates} will follow as the element shifts in the
 laboratory frame as shown in \fig{f:ele.coord}.
 
@@ -54,15 +54,15 @@ terms can be ignored.
   \includegraphics[width=5in]{coord-offset.pdf}
   \caption[Element Coordinate System.]
   {
-\vn{Element} coordinates are coordinates attached to the pysical
-element (solid green outline).  The \vn{laboratory} coordinates are
+\vn{Element} coordinates are coordinates attached to the physical
+element (solid green outline). The \vn{laboratory} coordinates are
 fixed at the nominal position of the element (red dashed outline).
   }
   \label{f:ele.coord}.
 \end{figure}
 
 %-------------------------------------------------------------------------
-\subsection{Transform from Laboratory Entrace to Element Coordinates for Straight Elements}
+\subsection{Transform from Laboratory Entrance to Element Coordinates for Straight Elements}
 
 The transformation from the laboratory coordinates to element
 coordinates for an element that has a straight reference trajectory
@@ -99,7 +99,7 @@ Apply the tilt $\theta_t$ (\vn{tilt_tot})
 \end{enumerate}
 
 %-------------------------------------------------------------------------
-\subsection{Transform from Laboratory Entrace to Element Coordinates for Bend Elements}
+\subsection{Transform from Laboratory Entrance to Element Coordinates for Bend Elements}
 
 Let $\bfr_c$ be the displacement of the bend at the bend center (where
 offsets are specified (\sref{s:offset}).
@@ -236,6 +236,13 @@ potentials:
   \wt m = \frac{m \, c^2}{c \, P_0} \qquad
   \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
   \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c}
+  \label{mmccp}
+\Endeq
+In terms of the normalized velocities $\beta_x$, $beta_y$, the canonical momentum are
+\Begineq
+  p_x = \frac{m \, c^2}{P_0 \, c} \, \beta_x + a_x, \qquad 
+  p_y = \frac{m \, c^2}{P_0 \, c} \, \beta_y + a_y
+  \label{pmc2pc}
 \Endeq
 
 The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
@@ -267,7 +274,7 @@ of motion are
 \end{equation}
 
 For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
-a different part of the squareroot branch. the Hamiltonian $H_{-s}$ is then
+a different part of the square root branch. the Hamiltonian $H_{-s}$ is then
 \Begineq
   H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s - 
   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
@@ -385,7 +392,7 @@ For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed fr
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{BeamBeam Element Tracking}
+\section{BeamBeam Tracking}
 \label{s:beambeam.std}
 \index{beambeam}
 
@@ -494,7 +501,7 @@ and
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Drift Element Tracking}
+\section{Drift Tracking}
 \label{s:drift.std}
 \index{drift} 
 
@@ -515,7 +522,89 @@ This gives the map
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Kicker, Hkicker, Vkicker, and Elseparator Element Tracking}
+\section{ElSeparator Tracking}
+\label{s:elsep.std}
+\index{elseparator}
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{elseparator.pdf}
+  \caption[ElSeparator electric field.]
+  {
+Elseparator Electric field. The fringe field lines break the
+translational invariance in $x$.
+  }
+  \label{f:elsep}.
+\end{figure}
+
+[Thanks to Etienne Forest for the derivation of the elseparator equation of motion.]
+
+The Hamiltonian for an electric separator is 
+\Begineq
+  H = -p_s 
+  = - \left\{ \left( \frac{1}{\beta_0} + \delta + k_E \, x \right)^2 - 
+  \wt m^2 - p_x^2 - p_y^2 \right\}^{1/2}
+  \label{hp1b}
+\Endeq
+Here the canconical coordinates $(-c \, t, \delta$ are being used,
+$\wt m$ is defined in \Eq{mmccp}, and $p_s = -H$ is just the
+longitudinal momentum.  In the above equation, $k_E$ is the normalized
+field
+\Begineq
+  k_E = \frac{q \, E}{P_0 \, c}
+\Endeq
+The field is taken to be pointing along the $x$-axis with positive
+$k_E$ accelerating a particle in the positive $x$ direction. To solve
+the equations of motion, a ``hard edge'' model is used where $k_E$ is
+constant inside the separator and the field ends abrouptly at the
+separator edges.
+
+\index{solenoid}
+Since, as shown in \fig{f:elsep}, the fringe fields break the
+translational invariance in $x$, it is important here that the $x = 0$
+plane be centered within the separator plates. With this, the
+canonical momentum $\delta$ just outside the separator assumes its
+free space form of $\delta = (E - E_0) / E_0)$. This is analogous to
+the case of a \vn{solenoid} where, to ensure that the canonical
+transverse momenta assume their free space form just outside the
+solenoid, the $\Bf z$-axis must be along the centerline of the
+solenoid.
+
+The solution of the equations of motion is:
+\begin{align}
+  x   &= (x_0 - x_c) \, \cosh \left( \frac{k_E \, L}{p_s} \right) + 
+         \frac{p_{x0}}{k_E} \, \sinh \left( \frac{k_E \, L}{p_s} \right) + x_c \CRNO
+  p_x &= k_E \, (x_0 - x_c) \, \sinh \left( \frac{k_E \, L}{p_s} \right) + 
+         {p_{x0}} \, \cosh \left( \frac{k_E \, L}{p_s} \right) \CRNO
+  y   &= y_0 + L \, \frac{p_{y0}}{p_s} \label{xxlp} \\
+  p_y &= p_{y0} \CRNO
+  c \, \delta t &=  \int_0^L -\frac{\partial H}{\partial \delta}
+      = (x_0 - x_c) \, \sinh \left( \frac{k_E \, L}{p_s} \right) +
+        \frac{p_{x0}}{k_E} \, \left[ \cosh \left( \frac{k_E \, L}{p_s} \right) - 1 \right]
+        \nonumber
+\end{align}
+where the critical position $x_c$ is
+\Begineq 
+  x_c = -\frac{\wt E}{k_E}
+\Endeq
+and 
+\Begineq
+  \wt E \equiv \frac{1}{\beta_0} + \delta = \frac{E}{P_0 \, c}
+\Endeq
+ 
+\Eqs{xxlp} predict that for $x < x_c$ and $p_{x0} = 0$ a particle
+will, unphysically, accelerate in the negative $x$ direction. In
+actuality, a particle in this instance will be reflected backwards by
+the longitudinal component of the edge field. Specifically, the
+argument of the square root in \Eq{hp1b} must be non-negative and
+a particle will only make it through the speparator if
+\Begineq
+  x_0 > \frac{1}{k_E} \, \left( \sqrt{\wt m^2 + p_{x0}^2 + p_{y0}^2} - \wt E \right)
+\Endeq
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
+\section{Kicker, Hkicker, and Vkicker, Tracking}
 \label{s:kicker.std}
 \index{kicker}
 \index{hkicker}
@@ -540,7 +629,7 @@ The generalization when the kick is not in the horizontal plane is easily derive
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Lcavity Element Tracking}
+\section{Lcavity Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
 
@@ -614,13 +703,13 @@ True.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Mirror Element Tracking}
+\section{Mirror Tracking}
 \label{s:mirror.std}
 \index{mirror}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Octupole Element Tracking}
+\section{Octupole Tracking}
 \label{s:octupole.std}
 \index{octupole}
 
@@ -633,7 +722,7 @@ An octupole is modeled using a kick-drift-kick model.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Patch Element Tracking}
+\section{Patch Tracking}
 \label{s:patch.std}
 \index{patch}
 
@@ -711,7 +800,7 @@ $L_0$ is the drift length of the reference particle
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Quadrupole Element Tracking}
+\section{Quadrupole Tracking}
 \label{s:quadrupole.std}
 \index{quadrupole}
 
@@ -759,7 +848,7 @@ with this
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{RFcavity Element Tracking}
+\section{RFcavity Tracking}
 \label{s:rfcavity.std}
 \index{rfcavity}
 
@@ -775,7 +864,7 @@ should be used in place of \vn{rfcavity} elements when this is not so.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Sextupole Element Tracking}
+\section{Sextupole Tracking}
 \label{s:sextupole.std}
 \index{sextupole}
 
@@ -788,7 +877,7 @@ Tracking through a sextupole uses a kick-drift-kick model.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Sol\_Quad Element Tracking}
+\section{Sol\_Quad Tracking}
 \label{s:sol.quad.std}
 \index{sol_quad}
 
@@ -875,17 +964,35 @@ explicit equations for $m_{5jk}$ are quite long and in the interests of
 brevity are not reproduced here.
 
 %---------------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{solenoid.pdf}
+  \caption[Solenoid with a hard edge.]
+  {
+Solenoid with a hard edge. The field is assumed to end abruptly at the
+edges of the solenoid. Here, for purposes of illustration, the field lines at
+the ends are displaced from one another.
+  }
+  \label{f:solenoid}.
+\end{figure}
+
 %---------------------------------------------------------------------------------
-\section{Solenoid Element Tracking}
+%---------------------------------------------------------------------------------
+\section{Solenoid Tracking}
 \label{s:solenoid.std}
 \index{solenoid}
 
-The Hamiltonian is
+The Hamiltonian for a solenoid is
 \Begineq
   H = \frac{ \left( p_x + \frac{k_s}{2} \, y \right)^2}{2 \, (1 + p_z)} + 
   \frac{ \left( p_y - \frac{k_s}{2} \, x \right)^2}{2 \, (1 + p_z)} 
 \Endeq
-The solution is
+where the normalized field $k_s$ is
+\Begineq
+  k_s = \frac{B}{P_0}
+\Endeq
+The solution to the equations of motion for a constant $k_s$ are
 \begin{align}
   x_2    &= \frac{1 + c}{2} \, x_1 + \frac{s}{k_s} \, p_{x1} +
            \frac{s}{2} \, y_1 + \frac{1 - c}{k_s} \, p_{y1} \CRNO
@@ -906,4 +1013,13 @@ where
   s &= \sin \left( \frac{k_s}{2} \, L \right)
 \end{align}
 
-Effectively, with this formulation, the fringe fields form
+To be useful, the canonical momenta $p_x$ and $p_y$ in the above
+equations must be connected to the cononical momenta used for other
+elements (drifts, quadrupoles, etc.) that may be placed to either side
+of the solenoid. These side elements use zero $a_x$ and $a_y$
+(cf. \Eq{pmc2pc}). The vector potential used in the solenoid canonical
+momenta may be made zero at the edges of the solenoid if the solenoid
+fringe field is assumed to end abruptly at the edges of the solenoid
+(as shown in \fig{f:solenoid}), and the reference axis $\Bf z$-axis (at
+$x$ = $y$ = 0) is placed along the centerline of the solenoid so that
+there is cylendrical symmetry around the $\Bf z$-axis.
