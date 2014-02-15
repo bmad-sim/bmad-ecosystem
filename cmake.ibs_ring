@@ -17,4 +17,7 @@ set (LINK_LIBS
   util
   xrlf03
   xrl
+	lapack95
+  lapack
+  blas
 )
