@@ -63,7 +63,8 @@ real(rp) Dy_dpy, Dy_dpz, dpx_t_dx, dpx_t_dpx, dpx_t_dpy, dpx_t_dpz, dp_ratio
 real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
 real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_ent, ds_ref
-real(rp) dps_dpx, dps_dpy, dps_dpz
+real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
+real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k
 
 integer i, n_slice, key, ix_fringe, dir
 
@@ -202,7 +203,89 @@ case (custom$)
 
 case (elseparator$)
    
-   call make_mat6_mad (ele, param, c00, c11)
+  call offset_particle (ele, c00, param, set$, .false., set_hvkicks = .false.)
+
+  ! Compute kick
+
+  hk = ele%value(hkick$) * param%rel_tracking_charge
+  vk = ele%value(vkick$) * param%rel_tracking_charge
+  if (param%particle < 0) then
+    hk = -hk
+    vk = -vk
+  endif
+
+  if (length == 0) length = 1d-50  ! To avoid divide by zero
+  k_E = sqrt(hk**2 + vk**2) / length
+
+  ! Rotate (x, y) so that kick is in +x direction.
+
+  angle = atan2(vk, hk)
+  call tilt_coords (angle, c00%vec)
+
+  !
+
+  E_tot = ele%value(p0c$) * (1 + c00%vec(6)) / c00%beta 
+  E_rel = E_tot / ele%value(p0c$)
+  mc2 = mass_of(param%particle)
+
+  x = c00%vec(1)
+  px = c00%vec(2)
+  p_factor = (mc2 / ele%value(p0c$))**2 + c00%vec(2)**2 + c00%vec(4)**2
+
+  ps = sqrt((E_rel + k_E * x)**2 - p_factor)
+  alpha = length / ps
+  coef = k_E * length / ps
+
+  dE_rel_dpz = c00%beta
+  dps_dx  = k_E * (E_rel + k_E * x) / ps
+  dps_dpx = -c00%vec(2) / ps
+  dps_dpy = -c00%vec(4) / ps
+  dps_dpz = dE_rel_dpz * (E_rel + k_E * x) / ps
+
+  sinh_c = sinh(coef)
+  cosh_c = cosh(coef)
+
+  if (abs(coef) < 1e-3) then
+    sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
+    cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
+  else
+    sinh_k = sinh_c / k_E
+    cosh1_k = (cosh_c - 1) / k_E
+  endif
+
+  ff = -x * coef * sinh_c / ps - E_rel * length * sinh_c / ps**2 - px * length * cosh_c / ps**2
+  mat6(1,1) = ff * dps_dx + cosh_c
+  mat6(1,2) = ff * dps_dpx + sinh_k
+  mat6(1,4) = ff * dps_dpy
+  mat6(1,6) = ff * dps_dpz + dE_rel_dpz * cosh1_k
+
+  ff = -(k_E * x + E_rel) * coef * cosh_c / ps - px * coef * sinh_c / ps
+  mat6(2,1) = ff * dps_dx + k_E * sinh_c
+  mat6(2,2) = ff * dps_dpx + cosh_c
+  mat6(2,4) = ff * dps_dpy
+  mat6(2,6) = ff * dps_dpz + dE_rel_dpz * sinh_c
+
+  ff = -length * c00%vec(4) / ps**2
+  mat6(3,1) = ff * dps_dx
+  mat6(3,2) = ff * dps_dpx
+  mat6(3,4) = ff * dps_dpy + length / ps
+  mat6(3,6) = ff * dps_dpz
+
+  ff = -x * coef * cosh_c / ps - E_rel * length * cosh_c / ps**2 - px * length * sinh_c / ps**2
+  dbeta_dpz = mc2**2 * ele%value(p0c$) / E_tot**3
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+  mat6(5,1) = -c00%beta * (ff * dps_dx + sinh_c)
+  mat6(5,2) = -c00%beta * (ff * dps_dpx + cosh1_k)
+  mat6(5,4) = -c00%beta * (ff * dps_dpy)
+  mat6(5,6) = dbeta_dpz * (length / beta_ref - (x * sinh_c + E_rel * sinh_k + px * cosh1_k)) - &
+              c00%beta * (ff * dps_dpz + dE_rel_dpz * sinh_k)
+
+  if (v(tilt_tot$) + angle /= 0) then
+    call tilt_mat6 (mat6, v(tilt_tot$) + angle)
+  endif
+
+  call add_multipoles_and_z_offset (.true.)
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
 
 !--------------------------------------------------------
 ! Kicker, etc.

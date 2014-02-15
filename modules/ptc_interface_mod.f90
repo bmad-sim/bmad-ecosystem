@@ -2647,7 +2647,7 @@ type (ele_struct) ele, drift_ele
 type (lat_param_struct) param
 type (fibre), pointer :: ptc_fibre
 
-real(rp) beta0, beta1, m2_rel, z_patch
+real(rp) beta0, beta1, m2_rel
 
 ! set the taylor order in PTC if not already done so
 
@@ -2730,17 +2730,12 @@ implicit none
 type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
-type (coord_struct) start0, end0, c0
+type (coord_struct) c0
 
 type (fibre), pointer :: ptc_fibre
 type (real_8) y0(6), y2(6), y8(6), bet
 
-type (damap) da, id
-
 real(dp) x(6), beta
-real(rp) z_patch
-
-integer i, ix
 
 logical, optional :: map_with_offsets
 logical :: warning_given = .false.

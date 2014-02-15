@@ -1070,10 +1070,11 @@ Attributes specific to an \vn{elseparator} element are:
 
 \index{hkick}
 \index{vkick}
-For an \vn{elseparator}, the kick is determined by \vn{hkick} and
-\vn{vkick}. The \vn{gap} for an \vn{Elseparator} is used to compute
-the electric field for a given kick. The voltage is a dependent
-attribute determined by:
+For an \vn{elseparator}, the kick for a positively charged particle is
+determined by \vn{hkick} and \vn{vkick}. The kick for a negatively
+charged particle is opposite this. The \vn{gap} for an
+\vn{Elseparator} is used to compute the electric field for a given
+kick. The voltage is a dependent attribute determined by:
 \begin{example}
   e_field (V/m) = sqrt(hkick^2 + vkick^2) * E_TOT / L
   voltage (V) = e_field * gap  
@@ -1327,12 +1328,12 @@ Collectively \vn{fork} and \vn{photon_fork} elements are called
 forking elements. An example geometry is shown in \fig{f:x.fork}.  The
 \vn{branch} containing a forking element is called the ``\vn{base}
 \vn{branch}''. The \vn{branch} that the forking element points to is
-called the ``\vn{forked} \vn{branch}''. 
+called the ``\vn{target} \vn{branch}''. 
 
 The only difference between \vn{fork} and \vn{photon_fork} is that the
-default particle type for the forked branch forked from a \vn{fork}
+default particle type for the target branch forked from a \vn{fork}
 element is the same particle type as the base branch. The default
-particle type for the forked branch from a \vn{photon_fork} element is
+particle type for the target branch from a \vn{photon_fork} element is
 a photon. The actual particle associated with a branch can be set by
 setting the \vn{particle} attribute of the forking element.
 
@@ -1351,46 +1352,87 @@ General \vn{fork} and \vn{photon_fork} attributes are:
 
 Attributes specific to \vn{fork} and \vn{photon_fork} elements are:
 \begin{example}
-  direction    = <+/- 1>      ! Direction of branch being forked to.
+  direction    = <+/- 1>      ! Fork for forward or backwards propagating particles?
   to_line      = <LineName>   ! What line to fork to.
   to_element   = <ElementID>  ! What element to attach to in the line being forked to.
   new_branch   = <T/F>        ! Make a new branch from the to_line? Default = True.
 \end{example}
 
+\index{patch}
 Branch lines can themselves have forking elements. A branch line
-always starts out tangential to the line it is branching from. The
-\vn{direction} attribute of the \vn{fork} element indicates whether the
-branch line is outgoing in the forward direction (\vn{direction} = +1)
-or incoming (\vn{direction} = -1). A \vn{patch} element
-(\sref{s:patch}) can be used at the beginning of a branch line to
-reorient the reference orbit as needed.
-
-The offset, pitch, and tilt attributes of a forking element can be
-used to offset the reference orbit of the element being branched
-to. This is analogous to using a rigid \vn{patch} element
-(\sref{s:patch}) to modify the reference orbit within a branch. See
-Section~\sref{s:patch} for more details.  Example:
+always starts out tangential to the line it is branching from.  A
+\vn{patch} element (\sref{s:patch}) can be used to reorient the
+reference orbit as needed. Example:
 \begin{example}
   from_line: line = (... A, PB, B, ...)  ! Defines base branch
-  pb: photon_fork, x_offset = 0.01, to_line = x_line
-  x_line: line = (X1, X2, ...)           ! Defines forked branch
+  pb: photon_fork, to_line = x_line
+  x_line: line = (X_PATCH, X1, X2, ...)           ! Defines target branch
+  x_patch: patch, x_offset = 0.01
   use, from_line
 \end{example}
 In this example, a photon generated at the fork element \vn{PB} with
 $x = 0$ with respect to the \vn{from_line} reference orbit through
-\vn{PB} will, when transferred to the \vn{x_line}, have an initial
-value for $x$ of $-0.01$ due to the setting of the \vn{x_offset} 
-parameter of \vn{PB}.
+\vn{PB} will, when transferred to the \vn{x_line}, and propagated
+through \vn{X_PATCH}, have an initial value for $x$ of $-0.01$.
 
-Forking elements have zero length and within a lattice branch, a
-forking element acts like a \vn{marker}. Using the above example, a
-particle that is being tracked down the \vn{from_line} will have the
-same phase space coordinates at the end of element \vn{PB} as it had
-at the end of element \vn{A}. That is, the offset, pitches, and tilt
-attributes of a forking element only affect particles that are
-transferred to the \vn{to_line} when arriving at the forking element.
-particles that remain on the original lattice branch will be
-unaffected by any offset, pitches or tilt settings. 
+\index{x_offset}\index{y_offset}
+\index{tilt}\index{is_on}
+Forking elements have zero length and, like \vn{marker} elements, the
+position of a particle tracked through a forking element is constant.
+Additionally, like \vn{marker} elements, The \vn{x_offset},
+\vn{y_offset} and \vn{tilt} attributes are not used by any \bmad
+routines. The \vn{is_on} attribute is also not used by \bmad proper.
+
+If the reference orbit needs to be shifted when forking from one ring
+to another ring, a patch can be placed in a separate ``transfer'' line
+to isolate it from the branches defining the rings. Example:
+\begin{example}
+  ring1: line = (... A, F1, B, ...)     ! First ring
+  x_line: line = (X_F1, X_PATCH, X_F2)  ! ``Transfer'' line
+  ring2: line = (... C, F2, D, ...)     ! Second ring
+  use, ring1
+
+  f1: fork, to_line = x_line
+  f2: fork, to_line = x_line, direction = -1
+  x_patch: patch, x_offset = ...
+  x_f1: fork, to_line = ring1, to_element = f1, direction = -1
+  x_f2: fork, to_line = ring2, to_element = f2
+\end{example}
+Here the \vn{fork} \vn{F1} in \vn{ring1} forks to \vn{x_line} which
+in turn forks to \vn{ring2}.
+
+The above example also illustrates how to connect machines for
+particles going in the reverse direction. In this case, \vn{ring2} has
+a \vn{fork} element \vn{f2} back through \vn{x_line} and then to
+\vn{ring1} via the \vn{x_f1} fork. Notice that both \vn{f2} and
+\vn{x_f2} have their \vn{direction} attribute set to -1 to indicate
+that the fork is appropriate for particles propagating in the -$s$
+direction.  Additionally, since \vn{f2} has \vn{direction} set to -1,
+it will connect to the downstream end of the \vn{x_line}. The default
+setting of \vn{direction} is 1.
+
+\index{beginning_ele}\index{fiducial}\index{fork}\index{photon_fork}
+\index{marker}\index{to_element}
+The \vn{to_element} attribute for a forking element is used to
+designate the element of the target branch that the forking element
+connects to. To keep things conceptually simple, the \vn{to_element}
+must be a ``marker-like'' element which has zero length and unit
+transfer matrix. Possible \vn{to_element} types are:
+\begin{example}
+  beginning_ele
+  fiducial
+  fork and photon_fork
+  marker
+\end{example}
+When the \vn{to_element} is not specified, the default is to connect
+to the beginning of the target branch if \vn{direction} is 1 and to
+connect to the end of the target branch if \vn{direction} is -1. In
+this case, there is never a problem connecting to the beginning of the
+target branch since all branches have a \vn{beginning_ele} element at
+the beginning. When connecting to the end of the target branch (with
+\vn{direction} set to -1), the last element in the target branch must
+be a marker-like element. Note that, by default, a marker element is
+placed at the end of all branches (\sref{s:branch.construct})
 
 If the branch line is to transport particles different from the
 originating line the particle type and the beginning reference energy

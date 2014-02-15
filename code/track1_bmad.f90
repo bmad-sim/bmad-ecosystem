@@ -52,16 +52,13 @@ real(rp) dcos_phi, dgradient, dpz, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
-
+real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
-real(rp) cos_g, sin_g, cos_tc, sin_tc
-real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc
+real(rp) cos_g, sin_g, cos_tc, sin_tc, angle
+real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc, ps
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
-
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
 real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3), charge_dir
-
-complex(rp) f0, fh, f0_g, eta, eta1, f_cmp, xi_0k, xi_hk, e_rel, e_rel2
 
 integer i, n, n_slice, key, ix_fringe, orientation
 
@@ -176,26 +173,71 @@ case (drift$)
 ! elseparator
 
 case (elseparator$)
-   
-  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
-  call transfer_ele(ele, temp_ele, .true.)
-  call zero_ele_offsets(temp_ele)
-  temp_ele%value(hkick$) = temp_ele%value(hkick$) / (1. + end_orb%vec(6))
-  temp_ele%value(vkick$) = temp_ele%value(vkick$) / (1. + end_orb%vec(6))
 
-  call make_mad_map (temp_ele, param, energy, map)
-  end_orb%vec(6) = 0
-  end_orb%vec(2) = end_orb%vec(2) / (1 + start2_orb%vec(6))
-  end_orb%vec(4) = end_orb%vec(4) / (1 + start2_orb%vec(6))
-  call mad_track1 (end_orb, map, end_orb)
-  end_orb%vec(2) = end_orb%vec(2) * (1 + start2_orb%vec(6))
-  end_orb%vec(4) = end_orb%vec(4) * (1 + start2_orb%vec(6))
-   
-  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.)
-  call end_z_calc
-  end_orb%vec(6) = start2_orb%vec(6)
-  call track1_low_energy_z_correction (end_orb, ele, param)
-  call time_and_s_calc ()
+  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
+
+  ! Compute kick
+
+  hk = ele%value(hkick$) * param%rel_tracking_charge
+  vk = ele%value(vkick$) * param%rel_tracking_charge
+  if (param%particle < 0) then
+    hk = -hk
+    vk = -vk
+  endif
+
+  ! Rotate (x, y) so that kick is in +x direction.
+
+  angle = atan2(vk, hk)
+  call tilt_coords (angle, end_orb%vec)
+
+  ! Check if particle can make it though the separator.
+
+  pc = ele%value(p0c$) * (1 + end_orb%vec(6))
+  call convert_pc_to (pc, end_orb%species, E_tot = E_tot)
+  E_rel = E_tot / ele%value(p0c$)
+  mc2 = mass_of(param%particle)
+
+  x = end_orb%vec(1)
+  px = end_orb%vec(2)
+  p_factor = (mc2 / ele%value(p0c$))**2 + end_orb%vec(2)**2 + end_orb%vec(4)**2
+  if (length == 0) length = 1d-50  ! To avoid divide by zero
+  k_E = sqrt(hk**2 + vk**2) / length
+
+  if (x * k_E < sqrt(p_factor) - E_rel) then
+    end_orb = start_orb
+    end_orb%state = lost_z_aperture$
+    return
+  endif
+
+  ! Track
+
+  ps = sqrt((E_rel + k_E * x)**2 - p_factor)
+  alpha = length / ps
+  coef = k_E * length / ps
+
+  if (abs(coef) < 1e-3) then
+    sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
+    cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
+  else
+    sinh_k = sinh(coef) / k_E
+    cosh1_k = (cosh(coef) - 1) / k_E
+  endif
+
+  end_orb%vec(1) = x * cosh(coef) + E_rel * cosh1_k + px * sinh_k
+  end_orb%vec(2) = (k_E * x  + E_rel) * sinh(coef) + px * cosh(coef)
+  end_orb%vec(3) = end_orb%vec(3) + length * end_orb%vec(4) / ps
+
+  dt = (x * sinh(coef) + E_rel * sinh_k + px * cosh1_k) / c_light
+  end_orb%t = end_orb%t + dt
+  beta_ref = ele%value(p0c$) / ele%value(e_tot$)
+  end_orb%vec(5) = end_orb%vec(5) + end_orb%beta * (length / beta_ref - c_light * dt)
+
+  ! Rotate back to lab coords
+  
+  call tilt_coords (-angle, end_orb%vec)
+
+  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.) 
+  end_orb%s = ele%s
 
 !-----------------------------------------------
 ! kicker

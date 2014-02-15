@@ -94,9 +94,11 @@ matrix was generated this may or may not be symplectic.
 \index{MAD!tracking_method}
 \item[\vn{MAD}]
 This uses the MAD 2nd order transfer map. This method is not able to
-handle element misalignments or kicks and is generally only used for
-testing purposes. Note: Thanks to CERN and Frank Schmidt for
-permission to use the MAD tracking code within \bmad.
+handle element misalignments or kicks, and becomes inacurate as the
+particle energy deviates from the reference energy. MAD tracking is
+generally only used for testing purposes. Note: Thanks to CERN and
+Frank Schmidt for permission to use the MAD tracking code within
+\bmad.
 
 \index{runge_kutta!tracking_method}
 \item[\vn{runge_kutta}]
@@ -289,7 +291,10 @@ See \vn{s:custom.ele} for more details.
 
 \index{MAD!mat6_calc_method}
 \item[\vn{MAD}]
-This uses the MAD 2nd transfer map. Thanks must be given
+This uses the MAD 2nd transfer map. This method is not able to
+handle element misalignments or kicks, and becomes inacurate as the
+particle energy deviates from the reference energy. MAD tracking is
+generally only used for testing purposes. Thanks must be given
 to CERN and Frank Schmidt for permission to use the MAD tracking code
 within \bmad.
 

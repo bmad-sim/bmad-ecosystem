@@ -138,10 +138,13 @@ do n = 0, ubound(lat%branch, 1)
 
     call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
 
+    ! target branch only needs to be recomputed if target branch index is greater than present branch.
+
     if (ele%key == fork$ .or. ele%key == photon_fork$) then
       ib = nint(ele%value(ix_to_branch$))
-      lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
+      if (ib > n) lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
     endif
+
     if (ele%n_lord > 0) then
       call set_lords_status_stale (ele, floor_position_group$)
       stale_lord = .true.
