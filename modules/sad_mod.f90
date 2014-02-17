@@ -9,7 +9,7 @@ contains
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_sad_mult (orbit, ele, param)
+! Subroutine sad_mult_track_and_mat (ele, param, start_orb, end_orb, end_in, make_matrix)
 !
 ! Routine to track a particle through a sad_mult element.
 !
@@ -17,151 +17,197 @@ contains
 !   use sad_mod
 !
 ! Input:
-!   orbit      -- Coord_struct: Starting position.
-!   ele        -- Ele_struct: Sad_mult element.
-!   param      -- lat_param_struct: Lattice parameters.
+!   ele          -- Ele_struct: Sad_mult element.
+!   param        -- lat_param_struct: Lattice parameters.
+!   start_orb    -- Coord_struct: Starting position.
+!   end_in       -- Logical: If True then end_orb will be taken as input. Not output as normal.
+!   make_matrix  -- Logical: If True then make the transfer matrix.
 !
 ! Output:
-!   orbit      -- Coord_struct: End position.
+!   ele          -- Ele_struct: Sad_mult element.
+!     %mat6(6,6)   -- Transfer matrix. 
+!   end_orb      -- Coord_struct: End position.
 !-
 
-subroutine track_a_sad_mult (orbit, ele, param)
+subroutine sad_mult_track_and_mat (ele, param, start_orb, end_orb, end_in, make_matrix)
 
 implicit none
 
-type (coord_struct) :: orbit, start_orb
-type (ele_struct)  :: ele, ele2
+type (coord_struct) :: orbit, start_orb, end_orb
+type (ele_struct), target :: ele, ele2
 type (lat_param_struct) :: param
 
-real(rp) rel_pc, vec0(6), dz4_coef(4,4), mat6(6,6)
+real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
 real(rp) ks, k1, length, z_start, charge_dir
-real(rp) xp_start, yp_start, mat4(4,4)
+real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp), pointer :: mat6(:,:)
+real(rp), parameter :: vec0(6) = 0
 
-integer orientation
+integer n, nd, orientation, n_div, np_max, physical_end, fringe_at
 
-logical has_nonzero
+logical make_matrix, end_in, has_nonzero
 
 !
 
-start_orb = orbit
+if (ele%value(rf_frequency$) /= 0) then
 
-length = ele%value(l$)
-rel_pc = 1 + orbit%vec(6)
-orientation = ele%orientation * start_orb%direction
-charge_dir = param%rel_tracking_charge * orientation
 
-call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
-
-ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
-k1 = charge_dir * knl(1) / rel_pc / length
-
-call transfer_ele(ele, ele2)
-ele2%value(tilt_tot$) = tilt(1)
-ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
-
-call offset_particle (ele2, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
-
-if (k1 == 0) then
-  xp_start = orbit%vec(2) + ks * orbit%vec(3) / 2
-  yp_start = orbit%vec(4) - ks * orbit%vec(1) / 2
-  orbit%vec(5) = orbit%vec(5) - length * (xp_start**2 + yp_start**2 ) / 2
-
-  call solenoid_mat4_calc (ks, length, mat4)
-  orbit%vec(1:4) = matmul (mat4, orbit%vec(1:4))
-else
-  vec0 = 0
-  call sol_quad_mat6_calc (ks, k1, length, mat6, vec0, dz4_coef)
-  orbit%vec(5) = orbit%vec(5) + sum(orbit%vec(1:4) * matmul(dz4_coef, orbit%vec(1:4)))   
-  orbit%vec(1:4) = matmul (mat6(1:4,1:4), orbit%vec(1:4))
 endif
 
-call offset_particle (ele2, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
-
-call track1_low_energy_z_correction (orbit, ele2, param)
-
-orbit%t = start_orb%t + (ele%value(l$) + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
-orbit%s = ele%s
-
-end subroutine track_a_sad_mult
-
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!+
-! Subroutine make_mat6_sad_mult (ele, param, c0, c1)
-!
-! Routine to make the transfer matrix through a sad_mult element.
-!
-! Module needed:
-!   use sad_mod
-!
-! Input:
-!   ele           -- ele_struct: sad_mult element.
-!   param         -- lat_param_struct: Lattice parameters.
-!   c0            -- coord_struct: Coordinates at beginning of element.
-!   c1            -- coord_struct: Coordinates at end of element.
-!
-! Output:
-!   ele           -- ele_struct: sad_mult element.
-!     %mat6(6,6)
-!     %vec0(6)
-!-
-
-subroutine make_mat6_sad_mult (ele, param, c0, c1)
-
-implicit none
-
-type (ele_struct), target :: ele
-type (lat_param_struct) param
-type (coord_struct) :: c0, c1, c00
-
-real(rp) length, rel_pc, charge_dir, ks, k1, e_tot, mass
-real(rp), pointer :: mat6(:,:)
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-
-integer orientation
-
-logical has_nonzero
-
 !
 
+orbit = start_orb 
 length = ele%value(l$)
-rel_pc = 1 + c0%vec(6)
-orientation = ele%orientation * c0%direction
+rel_pc = 1 + orbit%vec(6)
+n_div = nint(ele%value(num_steps$))
+
+rel_pc = 1 + orbit%vec(6)
+orientation = ele%orientation * orbit%direction
 charge_dir = param%rel_tracking_charge * orientation
-mat6 => ele%mat6
+
+if (make_matrix) then
+  mat6 => ele%mat6
+  call mat_make_unit(mat6)
+endif
 
 call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
-ele%value(tilt_tot$) = tilt(1)
-c00 = c0
-call offset_particle (ele, c00, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) * knl(1) / (24 * rel_pc)
+f2 =  k1 * ele%value(f2$) / rel_pc
 
-if (k1 == 0) then
-  call solenoid_mat6_calc (ks, length, ele%value(tilt_tot$), c00, mat6)
-else
-  call sol_quad_mat6_calc (ks, k1, length, mat6, c00%vec)
+call transfer_ele(ele, ele2)
+ele2%value(tilt_tot$) = tilt(1)
+ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
+
+tilt = tilt - tilt(1)
+knl(1) = 0
+knl = knl / n_div
+
+call offset_particle (ele2, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+
+fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
+if (at_this_ele_end(physical_end, fringe_at)) then
+  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == linear$) then
+    call linear_fringe_kick (f1, f2)
+  endif
+  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == nonlin_only$) then
+    call nonlinear_fringe_kick ()
+  endif
 endif
 
-if (ele%value(tilt_tot$) /= 0) then
-  call tilt_mat6 (mat6, ele%value(tilt_tot$))
+! Body
+
+do nd = 0, n_div
+
+  ll = length / n_div
+  if (nd == 0 .or. nd == n_div) ll = ll / 2
+
+  if (make_matrix) then
+    if (k1 == 0) then
+      call solenoid_mat6_calc (ks, ll, 0.0_rp, orbit, mat1)
+    else
+      call sol_quad_mat6_calc (ks, k1, ll, mat1, orbit%vec)
+    endif
+    mat6 = matmul(mat1, mat6)
+  endif
+
+
+  if (k1 == 0) then
+    xp_start = orbit%vec(2) + ks * orbit%vec(3) / (2 * rel_pc)
+    yp_start = orbit%vec(4) - ks * orbit%vec(1) / (2 * rel_pc)
+    call solenoid_mat4_calc (ks/rel_pc, ll, mat4)
+    orbit%vec(5) = orbit%vec(5) - ll * (xp_start**2 + yp_start**2 ) / 2
+    orbit%vec(1:4) = matmul (mat4, orbit%vec(1:4))
+  else
+    call sol_quad_mat6_calc (ks/rel_pc, k1/rel_pc, ll, mat1, vec0, dz4_coef)
+    orbit%vec(5) = orbit%vec(5) + sum(orbit%vec(1:4) * matmul(dz4_coef, orbit%vec(1:4))) 
+    orbit%vec(1:4) = matmul (mat1(1:4,1:4), orbit%vec(1:4))
+  endif
+
+  if (nd == n_div) exit
+
+  call multipole_kicks (knl, tilt, orbit)
+
+  if (make_matrix) then
+    call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat1)
+    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat1(2,1) + mat6(:,4) * mat1(4,1)
+    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat1(2,3) + mat6(:,4) * mat1(4,3)
+  endif
+
+enddo
+
+! End stuff
+
+physical_end = physical_ele_end (second_track_edge$, orbit%direction, ele%orientation)
+if (at_this_ele_end(physical_end, fringe_at)) then
+  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == linear$) then
+    call linear_fringe_kick (-f1, f2)
+  endif
+  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == nonlin_only$) then
+    call nonlinear_fringe_kick ()
+  endif
 endif
 
-call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
+call offset_particle (ele2, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
 
-! 1/gamma^2 m56 correction
+if (make_matrix) then
+  if (ele2%value(tilt_tot$) /= 0) then
+    call tilt_mat6 (mat6, ele2%value(tilt_tot$))
+  endif
 
-mass = mass_of(param%particle)
-e_tot = ele%value(p0c$) * (1 + c0%vec(6)) / c0%beta
-mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
+  call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
 
-ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-ele%value(tilt_tot$) = 0
+  ! 1/gamma^2 m56 correction
 
-end subroutine make_mat6_sad_mult
+  mass = mass_of(param%particle)
+  e_tot = ele%value(p0c$) * (1 + orbit%vec(6)) / orbit%beta
+  mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
+
+  ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
+endif
+
+!
+
+call track1_low_energy_z_correction (orbit, ele2, param)
+
+orbit%t = start_orb%t + (length + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
+orbit%s = ele%s
+
+if (.not. end_in) end_orb = orbit
+
+!----------------------------------------------------------------------------------------------
+contains
+
+subroutine linear_fringe_kick (f1, f2)
+
+real(rp) f1, f2, ef1
+
+!
+
+if (f1 == 0 .and. f2 == 0) return
+
+ef1 = exp(f1)
+
+orbit%vec(5) = orbit%vec(5) - (f1 + f2 * (1 + f1/2) * orbit%vec(2) / ef1) * orbit%vec(2) + &
+                              (f1 + f2 * (1 - f1/2) * orbit%vec(4) * ef1) * orbit%vec(4)
+
+orbit%vec(1:2) = [orbit%vec(1) * ef1 + orbit%vec(2) * f2, orbit%vec(2) / ef1]
+orbit%vec(3:4) = [orbit%vec(3) / ef1 - orbit%vec(4) * f2, orbit%vec(4) * ef1]
+
+end subroutine linear_fringe_kick
+
+!----------------------------------------------------------------------------------------------
+! contains
+
+subroutine nonlinear_fringe_kick ()
+
+end subroutine nonlinear_fringe_kick
+
+end subroutine sad_mult_track_and_mat 
 
 end module

@@ -93,7 +93,9 @@ charge_dir = param%rel_tracking_charge * ele%orientation
 c00 = c0
 c00%direction = +1
 
-if (.not. logic_option (.false., end_in)) then
+! sad_mult will handle the calc of c1 if needed.
+
+if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, c1)
@@ -918,7 +920,7 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call make_mat6_sad_mult (ele, param, c0, c1)
+  call sad_mult_track_and_mat (ele, param, c0, c1, logic_option (.false., end_in), .true.)
 
 !--------------------------------------------------------
 ! sbend
