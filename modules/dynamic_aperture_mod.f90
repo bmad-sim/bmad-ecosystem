@@ -23,7 +23,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)
+! Subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
 !
 ! Subroutine to determine the dynamic aperture of a lattice by tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -43,7 +43,6 @@ contains
 !     %x_init     -- Initial x coordinate to start with for theta_xy = 0.
 !     %y_init     -- Initial y coordinate to start with for theta_xy = pi/2.
 !     %accuracy   -- Accuracy needed of aperture results.
-!   e_init      -- Real(rp): Additional energy offset. Added 6/25/07 as optional argument
 !
 ! Output:
 !     aperture  -- Aperture_struct:
@@ -58,14 +57,13 @@ contains
 !       normalized by %X_INIT and %Y_INIT
 !-
 
-subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)
+subroutine dynamic_aperture (lat, orb0, theta_xy, track_input, aperture)
 
 implicit none
 
 type (lat_struct)  lat
 type (lat_param_struct)  param_save
 type (coord_struct)  orb0
-real(rp), optional ::  e_init
 type (coord_struct), allocatable :: orbit(:)
 type (aperture_struct)  aperture
 type (track_input_struct)  track_input
@@ -109,18 +107,6 @@ test_loop: do
 
   ! Make sure eta values have been calculated. 
   call twiss_at_start(lat)
-
-  ! Corrected dispersion correction to use the additional energy offset, omitting the
-  ! intrinsic energy offset of the closed orbit.
-  ! Also included the contribution of the energy offset to the initial x,y angles.
-  ! 21 June 2007 JAC
-
-  if ( present (e_init) ) then
-    orbit(0)%vec(1) = orbit(0)%vec(1) + e_init*lat%ele(0)%a%eta
-    orbit(0)%vec(3) = orbit(0)%vec(3) + e_init*lat%ele(0)%b%eta
-    orbit(0)%vec(2) = orbit(0)%vec(2) + e_init*lat%ele(0)%a%etap
-    orbit(0)%vec(4) = orbit(0)%vec(4) + e_init*lat%ele(0)%b%etap
-  endif
 
   ! track n_turns
 
@@ -186,7 +172,7 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture_parallel (lat, orb0, theta_xy_list, track_input, aperture_list, e_init)
+! Subroutine dynamic_aperture_parallel (lat, orb0, theta_xy_list, track_input, aperture_list)
 !
 ! Parallel version of subroutine dynamic_aperture using OpenMP  
 ! to process a list of angles theta_xy_list(:) 
@@ -198,7 +184,7 @@ end subroutine
 !----------------------------------------------------------------------
 
 
-subroutine dynamic_aperture_parallel(lat, orb0, angle_list, track_input, aperture_list, e_init)
+subroutine dynamic_aperture_parallel(lat, orb0, angle_list, track_input, aperture_list)
 
 !$ use omp_lib
 
@@ -212,7 +198,7 @@ type (aperture_struct) :: aperture
 type (aperture_struct) :: aperture_list(:)
 type (aperture_struct), allocatable :: omp_aperture(:)
 
-real(rp) :: angle_list(:), e_init
+real(rp) :: angle_list(:)
 
 integer :: i
 integer :: omp_n, omp_i
@@ -230,12 +216,12 @@ end do
 
 !$OMP parallel &
 !$OMP default(private), &
-!$OMP shared(omp_lat, orb0, omp_aperture, angle_list, aperture_list, track_input, e_init)
+!$OMP shared(omp_lat, orb0, omp_aperture, angle_list, aperture_list, track_input)
 !$OMP do schedule(dynamic)
 do i=lbound(angle_list, 1), ubound(angle_list, 1)
   omp_i = 1
   !$ omp_i = omp_get_thread_num()+1
-  call dynamic_aperture (omp_lat(omp_i), orb0, angle_list(i), track_input, omp_aperture(omp_i), e_init)
+  call dynamic_aperture (omp_lat(omp_i), orb0, angle_list(i), track_input, omp_aperture(omp_i))
   aperture_list(i) = omp_aperture(omp_i)
 end do  
 !$OMP end do
