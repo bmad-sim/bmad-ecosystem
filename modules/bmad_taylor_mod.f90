@@ -213,6 +213,29 @@ end subroutine
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
+! Function taylor_monomial(monomial) result(expn)
+!
+! Converts a monomial string 'abcdef' to integers [a, b, c, d, e, f] for use in taylor_coef
+!
+!-
+function taylor_monomial(monomial) result(expn)
+implicit none
+character(6) :: monomial
+integer :: i, expn(6)
+! Read monomial 
+do i=1, 6
+  if (monomial(i:i) == ' ') then
+    expn(i:6) = 0
+    exit
+  endif
+  expn(i) = index('0123456789', monomial(i:i)) - 1
+enddo
+end function
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
 ! Function taylor_coef1 (bmad_taylor, exp)
 !
 ! Function to return the coefficient for a particular taylor term
