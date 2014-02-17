@@ -177,6 +177,7 @@ type (wall3d_struct), pointer :: wall
 type (wall3d_section_struct), pointer :: wall_sec
 type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
+type (normal_form_struct), pointer :: normal_form
 
 type show_lat_column_struct
   character(80) name
@@ -206,13 +207,13 @@ character(100) file_name, name, why_invalid
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(28) = [ &
+character(16) :: show_what, show_names(29) = [ &
    'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
    'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
    'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
    'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
    'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
-   'twiss_and_orbit', 'building_wall  ', 'wall           ']
+   'twiss_and_orbit', 'building_wall  ', 'wall           ', 'normal_form    ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -231,7 +232,7 @@ logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limi
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
-logical valid_value, print_floor, show_section
+logical valid_value, print_floor, show_section, is_complex
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -1880,6 +1881,58 @@ case ('lattice')
   result_id = show_what
 
 !----------------------------------------------------------------------
+! normal_form
+
+case ('normal_form')
+  
+  if (s%global%rf_on) then
+    normal_form => branch%normal_form_with_rf
+  else
+    normal_form => branch%normal_form_no_rf
+  endif
+  
+  if (.not. associated(normal_form%ele_origin) ) then
+    nl=nl+1; lines(nl) ='One-turn-map has not been computed'
+    return
+  endif
+
+  call tao_next_switch (stuff2, ['-order'], switch, err, ix)
+  if (err) return
+  
+  n_order = bmad_com%taylor_order
+  select case (switch)
+    case ('-order')
+      read (stuff2(:ix), *, iostat = ios) n_order
+      if (ios /= 0) then
+        nl=1; lines(1) = 'CANNOT READ ORDER NUMBER!'
+        return
+      endif
+    call string_trim (stuff2(ix+1:), stuff2, ix)
+  end select
+  
+  nl=nl+1; lines(nl) = 'normal_form: '//stuff2(1:5)
+  
+  select case(stuff2(1:5))
+    case ('dhdj ')
+      call type2_taylors (normal_form%dhdj, lines, nl, max_order = n_order)
+    case ('A    ')
+      call type2_taylors (normal_form%A, lines, nl, max_order = n_order)
+    case ('A_inv')
+      call type2_taylors (normal_form%A_inv, lines, nl, max_order = n_order)
+    case ('M    ')
+      call type2_taylors (normal_form%M, lines, nl, max_order = n_order)
+    case ('F  ')
+      call type2_complex_taylors (normal_form%F, lines, nl, max_order = n_order)
+    case ('L  ')
+      call type2_complex_taylors (normal_form%L, lines, nl, max_order = n_order)      
+    case default 
+      nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(stuff2)
+      nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
+  end select
+
+  result_id = show_what
+
+!----------------------------------------------------------------------
 ! optimizer
 
 case ('optimizer')
@@ -2475,6 +2528,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
   nl=nl+1; write (lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
+  nl=nl+1; write (lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
   nl=nl+1; write (lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
   nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)

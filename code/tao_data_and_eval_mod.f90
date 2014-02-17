@@ -453,6 +453,9 @@ type (coord_struct), pointer :: orbit(:), orb
 type (branch_struct), pointer :: branch
 type (bunch_params_struct), pointer :: bunch_params(:)
 type (tao_element_struct), pointer :: uni_ele(:)
+type (normal_form_struct), pointer :: normal_form
+type (taylor_struct), pointer :: taylor_ptr
+type (complex_taylor_struct), pointer :: complex_taylor_ptr
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
@@ -472,10 +475,10 @@ integer n_size, ix0, which, expnt(6), n_track, n_max
 character(*), optional :: why_invalid
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(40) head_data_type, data_source, name, dflt_dat_index
+character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(80) index_str
 
-logical found, valid_value, err
+logical found, valid_value, err, taylor_is_complex, use_real_part
 logical, allocatable, save :: good_exp(:), good(:)
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
@@ -536,7 +539,8 @@ ix = index(head_data_type, '.')
 if (head_data_type(1:11) == 'expression:') then
   head_data_type = 'expression:'
 elseif (ix /= 0) then
-  head_data_type = head_data_type(1:ix)
+  sub_data_type  = head_data_type(ix+1:)
+  head_data_type = head_data_type(1:ix) 
 endif
 
 if (head_data_type  == 'rad_int.' .or. head_data_type == 'rad_int1.') then
@@ -1440,6 +1444,93 @@ case ('k.')
     return
 
   end select
+
+
+
+
+!-----------
+
+case ('normal.')
+
+  ! Fetches normal_form components.
+  if (datum%ix_branch /= 0) then
+    call out_io (s_fatal$, r_name, 'TRANSFER MAP CALC NOT YET MODIFIED FOR BRANCHES.')
+    return
+  endif
+
+  if (data_source == 'beam') return
+
+  if (s%global%rf_on) then
+    normal_form => branch%normal_form_with_rf
+  else
+    normal_form => branch%normal_form_no_rf
+  endif
+  
+  ! Do nothing it the map wasn't made
+  if (.not. associated(normal_form%ele_origin) ) return
+
+
+
+  ! Expect: taylor.#.######
+  ! Example: normal.dhdj.2.000001 is the b-mode chromaticity
+  !          head   sub
+  ! Get position of first number. 
+  iz = index(sub_data_type, '.') + 1
+  
+  ! Component i
+  i = tao_read_this_index (sub_data_type, iz)
+
+  ! Point to taylor
+  taylor_is_complex = .false.
+  if (sub_data_type(1:5) == 'dhdj.') then
+    taylor_ptr => normal_form%dhdj(i)
+  else if (sub_data_type(1:2) == 'A.') then
+    taylor_ptr => normal_form%A(i)
+  else if (sub_data_type(1:2) == 'A_inv.') then
+    taylor_ptr => normal_form%A_inv(i)
+  else if (sub_data_type(1:2) == 'M.') then
+    taylor_ptr => normal_form%M(i)
+  else if (sub_data_type(1:4) == 'ReF.') then
+    taylor_is_complex = .true.
+    use_real_part = .true.
+    complex_taylor_ptr => normal_form%f(i)   
+  else if (sub_data_type(1:4) == 'ImF.') then
+    taylor_is_complex = .true.
+    use_real_part = .false.
+    complex_taylor_ptr => normal_form%F(i)      
+  else if (sub_data_type(1:4) == 'ReL.') then
+    taylor_is_complex = .true.
+    use_real_part = .true.
+    complex_taylor_ptr => normal_form%L(i)   
+  else if (sub_data_type(1:4) == 'ImL.') then
+    taylor_is_complex = .true.
+    use_real_part = .false.
+    complex_taylor_ptr => normal_form%L(i)       
+    
+  endif
+ 
+  ! Check for second dot
+  if (sub_data_type(iz+1:iz+1) /= '.') then
+   if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+   call out_io (s_error$, r_name, 'datum%data_type: '//trim(datum%data_type) )
+   call out_io (s_error$, r_name, 'expect dot: ', sub_data_type(1:iz)//'.######' )
+  endif
+ 
+  ! Get exponent
+  expnt = taylor_monomial(sub_data_type(iz+2:))
+  
+  ! Coefficient
+  if (taylor_is_complex) then
+    if (use_real_part) then
+      datum_value = real(complex_taylor_coef(complex_taylor_ptr, expnt))
+    else
+      datum_value = aimag(complex_taylor_coef(complex_taylor_ptr, expnt))
+    endif
+  else
+    datum_value = taylor_coef(taylor_ptr, expnt)
+  endif
+  valid_value = .true.  
+
 
 !-----------
 
