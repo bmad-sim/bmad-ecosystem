@@ -2907,11 +2907,21 @@ the \vn{fringe} and \vn{disfrin} switches of SAD is:
     
 \end{tabular}
 \end{center}
-Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}]. 
-The ``-'' indicates that there is no equivalent setting in SAD.
+Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}].
+The ``-'' indicates that there is no equivalent setting in SAD.  The
+\vn{linear} fringe kick is a kick that is linear in the transverse
+$(x, p_x, y, p_y)$ coordinates and comes from the finite width of the
+quadrupolar fringe field. The width of the quadrupolar fringe field is
+characterized by the \vn{f1} and \vn{f2} attributes. The
+\vn{nonlinear} fringe kick comes from the nonlinear part of the
+quadrupolar field plus the fringes of the other multipoles.
 
-The \vn{eps_step_scale} is equivalent to the SAD \vn{eps} attribute. The default
-\vn{eps_step_scale} value is 1 which is the same default as SAD.
+The \vn{eps_step_scale} is equivalent to the SAD \vn{eps}
+attribute. The default \vn{eps_step_scale} value is 1 which is
+essentially the same default as SAD.  From \vn{eps_step_scale}, the
+values of \vn{num_steps} and \vn{ds_step} (\sref{s:integ}) are
+computed. Thus, for a \vn{sad_mult} element, \vn{num_steps} and
+\vn{ds_step} are \vn{dependent} attributes (\sref{s:depend}).
 
 
 Sad conventions:

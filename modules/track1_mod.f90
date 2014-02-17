@@ -922,6 +922,7 @@ end subroutine apply_hard_edge_kick
 !
 ! Routine to add the 3rd order quadrupolar edge kick.
 ! Routine works whether orbit uses angular or canonical coordinates.
+! This routine assumes that the particle orbit has been rotated to the element reference frame.
 !
 ! Moudle needed:
 !   use track1_mod

@@ -13,6 +13,14 @@ integer, parameter :: save_state$ = 3, restore_state$ = 4
 private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
 
+type sad_param_struct
+  real(rp) :: eps_scale = 5.0d-3
+  real(rp) :: amp_max = 5.0d-2
+  integer :: n_div_max = 1000
+end type
+
+type (sad_param_struct), save :: sad_param
+
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -2082,13 +2090,14 @@ type (branch_struct), pointer :: branch
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3)
 real(rp), pointer :: val(:), tt
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 
-integer i, n
+integer i, n, n_div
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical, optional :: force_bookkeeping
-logical err_flag
+logical err_flag, has_nonzero
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 
@@ -2393,6 +2402,22 @@ case (rfcavity$)
   else
     val(gradient$) = val(voltage$) / val(l$)
   endif
+
+! sad_mult
+
+case (sad_mult$)
+
+  call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
+
+  eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
+  n_div = 1
+  do n = 2, n_pole_maxx
+    if (knl(n) == 0) cycle  
+    n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * sad_param%amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
+  enddo
+
+  ele%value(num_steps$) = min(n_div, sad_param%n_div_max)
+  ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
 
 ! Sbend
 
