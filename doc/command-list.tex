@@ -719,6 +719,7 @@ variables, etc. Format:
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
+  set universe <what_universe> one_turn_map_calc <on/off>
   set universe <what_universe> track_recalc <on/off>
   set var <var_name>|<component> = <value>
   set wave <component> = <value>
@@ -1081,7 +1082,8 @@ Sets the state of the random number generator to a specific state. Use
         set universe <what\_universe> <on/off> \\ 
         set universe <what\_universe> recalculate \\
         set universe <what\_universe> mat6\_recalc <on/off> \\
-        set universe <what\_universe> mat6\_recalc <on/off>}] \Newline
+        set universe <what\_universe> one\_turn\_map\_calc <on/off> \\
+        set universe <what\_universe> track\_recalc <on/off>}] \Newline
 
 \vskip -0.1in
 
@@ -1101,6 +1103,10 @@ still vary in the turned off universe.
 
 The \vn{set universe <what_universe> recalculate} command will recalculate the
 lattice parameters for that universe.
+
+The \vn{set universe <what_universe> one_turn_map_calc} command will enable
+a one-turn-map calculation for a ring using PTC, and populate the normal form taylor maps. See Eq.~\ref{normalform1}
+ and Eq.~\ref{normalform2} in the \vn{normal.} data type.
 
 The \vn{set universe <what_universe> mat6_recalc} and \vn{set universe
 <what_universe> mat6_recalc} commands will set whether the 6x6
@@ -1196,6 +1202,7 @@ Format:
         \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} 
         \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+  normal_form \{-order <n_order>\} <type>
   optimizer \{-geodesic_lm\}
   particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
         \{-element <element_name_or_index>\} \{-lost\} \{-all\}
@@ -1651,6 +1658,17 @@ Example:
 \begin{example}
   show lattice 50:100         ! Show lattice elements with index 50 through 100
 \end{example}
+
+%% show normal_form --------------------------------------------------------------
+
+\item[show normal_form \{-order <n_order>\} <type>] \Newline
+
+\vskip -0.2in
+
+Shows normal form taylor maps (optionally truncated to <n\_order>) from Eq.~\ref{normalform1}
+ and Eq.~\ref{normalform2}. <type> can be: \vn{M}, \vn{A}, \vn{A_inv}, \vn{dhdj}, \vn{F}, \vn{L}. 
+
+
 
 %% show optimizer --------------------------------------------------------------
 
