@@ -1458,8 +1458,8 @@ end subroutine tao_set_data_cmd
 !
 ! Input:
 !   uni     -- Character(*): which universe; 0 => current viewed universe
-!   who     -- Character(*): "on", "off", "recalculate", or "mat6_recalc"
-!   what    -- Character(*): "on" or "off" for who = "mat6_recalc".
+!   who     -- Character(*): "on", "off", "recalculate", "one_turn_map_calc", or "mat6_recalc"
+!   what    -- Character(*): "on" or "off" for who = "one_turn_map_calc" or "mat6_recalc".
 !-
 
 subroutine tao_set_universe_cmd (uni, who, what)
@@ -1525,6 +1525,25 @@ if (index('track_recalc', trim(who)) == 1) then
   endif
   return
 endif
+  
+if (index('one_turn_map_calc', trim(who)) == 1) then
+  if (what == 'on') then
+    is_on = .true.
+  elseif (what == 'off') then
+    is_on = .false.
+  else
+    call out_io (s_error$, r_name, 'Syntax is: "set universe <uni_num> one_turn_map_calc on/off"')
+    return
+  endif
+  if (uni == '*') then
+    s%u(:)%calc%one_turn_map = is_on
+    if (is_on) s%u(:)%calc%lattice = .true.
+  else
+    s%u(n_uni)%calc%one_turn_map = is_on
+    if (is_on) s%u(n_uni)%calc%lattice = .true.
+  endif
+  return
+endif  
   
 !
 

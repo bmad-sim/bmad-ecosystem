@@ -34,6 +34,8 @@ contains
 
 subroutine tao_lattice_calc (calc_ok)
 
+use ptc_layout_mod
+
 implicit none
 
 type (tao_universe_struct), pointer :: u
@@ -42,6 +44,7 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
+type (normal_form_struct), pointer :: normal_form
 
 integer iuni, j, ib, ix, n_max, iu, it, id, ie
 
@@ -177,6 +180,31 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
           orb(0) = orb(tao_lat%lat%n_ele_track)
         enddo
       endif
+    endif
+
+    ! PTC one-turn-map and normal form calc. Only for rings. 
+    if (u%calc%one_turn_map .and. branch%param%geometry == closed$) then
+      call set_ptc_verbose(.false.)
+      
+      if (s%global%rf_on) then
+        normal_form => branch%normal_form_with_rf
+      else
+        normal_form => branch%normal_form_no_rf
+      endif
+      
+      if (.not. associated (normal_form%ele_origin)) normal_form%ele_origin => branch%ele(0)
+      if (.not. allocated(branch%ptc%layout)) call lat_to_ptc_layout (tao_lat%lat)
+      
+      ! Get one-turn-map
+      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, s%global%rf_on, pz = 0.0_rp, order = bmad_com%taylor_order )
+
+      ! Get A, A_inv, dhdj
+      call normal_form_taylors(normal_form%m, s%global%rf_on, &
+                               dhdj = normal_form%dhdj, &
+                               A = normal_form%A, &
+                               A_inverse = normal_form%A_inv)
+      ! Get complex L and F
+      call normal_form_complex_taylors(normal_form%m, s%global%rf_on, F = normal_form%F, L = normal_form%L)
     endif
 
     call tao_hook_branch_calc (u, tao_lat, branch)
