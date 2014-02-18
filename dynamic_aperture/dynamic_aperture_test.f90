@@ -56,7 +56,7 @@ interface
   use dynamic_aperture_mod                                      
   implicit none
   type (lat_struct)  ring
-  type (track_input_struct)  track_input
+  type (aperture_param_struct)  track_input
 
   integer n_xy_pts, point_range(2), n_energy_pts
   integer particle
@@ -80,7 +80,7 @@ end interface
 
   type (lat_struct) ring
   type (lat_struct), save :: ring_in, ring_out
-  type (track_input_struct) track_input
+  type (aperture_param_struct) aperture_param
   type (ele_struct) ele
   type (coord_struct), allocatable, save :: co(:)
 
@@ -167,10 +167,10 @@ end interface
 
   bmad_com%auto_bookkeeper = auto_bookkeeper
 
-  track_input%n_turn = n_turn
-  track_input%x_init = x_init
-  track_input%y_init = y_init
-  track_input%accuracy = accuracy
+  aperture_param%n_turn = n_turn
+  aperture_param%x_init = x_init
+  aperture_param%y_init = y_init
+  aperture_param%accuracy = accuracy
   ap_mult = aperture_multiplier
 
   close (unit = 1)
@@ -272,7 +272,7 @@ end interface
 
 ! track                                                
 
-  call da_driver (ring, track_input,n_xy_pts, &
+  call da_driver (ring, aperture_param,n_xy_pts, &
                         point_range, energy, n_energy_pts, in_file,Qx,Qy,Qz,particle, Qp_x, Qp_y, &
                         delta_fRF, fRF, qp_tune1, qp_tune2, qtune_match)
 
