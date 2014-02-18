@@ -49,8 +49,8 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
   type (lat_param_struct)  ring_param_state
   type (coord_struct) orb0
   type (coord_struct), allocatable, save :: co(:)
-  type (aperture_struct)  aperture
-  type (track_input_struct)  track_input
+  type (aperture_data_struct)  aperture
+  type (aperture_param_struct)  track_input
 
   integer i_e, i_xy, it, i, turn_lost, ixr, i_e_max, ix
   integer n_xy_pts, point_range(2), n_energy_pts
@@ -224,7 +224,7 @@ subroutine da_driver (ring, track_input, n_xy_pts, point_range, &
 
 !     orb0%vec(6) = e_init+ co(0)%vec(6)
 
-     aperture%closed_orbit = co(0)
+    ! aperture%closed_orbit = co(0)
 
      call closed_orbit_calc (ring, co, 4)  !add 4/18/08 to get reasonable start when there is finite dispersion
 
