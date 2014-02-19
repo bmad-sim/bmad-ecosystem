@@ -44,12 +44,14 @@ character(40) name, universe
 
 character(100) line
 
-logical err
+logical err, xxx
 logical, save :: init_needed = .true.
 
 namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
+namelist / tao_dynamic_aperture / xxx
+
 !-----------------------------------------------------------------------
 ! First time through capture the default global (could have been set via command line arg.)
 
@@ -65,43 +67,57 @@ call tao_hook_init_global (init_file, global)
 ! read global structure from tao_params namelist
 ! init_file == '' means there is no lattice file so just use the defaults.
 
-if (init_file /= '') then
-  call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
-  call tao_open_file (init_file, iu, file_name, s_blank$)
-  if (iu == 0) then
-    call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
-  else
-    call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
-    bmad_com%rel_tol_tracking = 1e-8   ! Need tighter tol for calculating derivatives
-    bmad_com%abs_tol_tracking = 1e-11  ! Need tighter tol for calculating derivatives
-    read (iu, nml = tao_params, iostat = ios)
-    if (ios > 0) then
-      call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
-      rewind (iu)
-      read (iu, nml = tao_params)  ! To give error message
-    endif
-    if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
-    close (iu)
-  endif
+if (init_file == '') then
+  call end_bookkeeping()
+  return
 endif
+
+call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
+call tao_open_file (init_file, iu, file_name, s_blank$)
+if (iu == 0) then
+  call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
+  call end_bookkeeping()
+  return
+endif
+
+! Read tao_params
+
+call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
+bmad_com%rel_tol_tracking = 1e-8   ! Need tighter tol for calculating derivatives
+bmad_com%abs_tol_tracking = 1e-11  ! Need tighter tol for calculating derivatives
+read (iu, nml = tao_params, iostat = ios)
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
+  rewind (iu)
+  read (iu, nml = tao_params)  ! To give error message
+endif
+if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
+
+s%global = global
+
+! Read tao_dynamic_aperture
+
+rewind(iu)
+call out_io (s_blank$, r_name, 'Init: Reading tao_dynamic_aperture namelist')
+read (iu, nml = tao_dynamic_aperture, iostat = ios)
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.')
+  rewind (iu)
+  read (iu, nml = tao_dynamic_aperture)  ! To give error message
+endif
+if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
 
 ! transfer global to s%global
 
-s%global = global
-if (tao_com%noplot_arg_set) s%global%plot_on = .false.
+close (iu)
 
-! This for backwards compatibility.
-
-if (global%n_curve_pts > 0) s%plotting%n_curve_pts = global%n_curve_pts  
-
-if (s%global%track_type == "macro") then
-  call out_io (s_error$, r_name, &
-             'MACROPARTICLE TRACKING IS NOT ACTIVELY SUPPORTED!', &
-             'PLEASE USE "beam" TRACKING INSTEAD.', &
-             'IF YOU NEED MACROPARTICLE TRACKING PLEASE SEE DAVID SAGAN.')
-endif
+call end_bookkeeping()
 
 !-----------------------------------------------------------------------
+contains
+
+subroutine end_bookkeeping ()
+
 ! Tao does its own bookkeeping
 
 bmad_com%auto_bookkeeper = .false.
@@ -112,6 +128,10 @@ tao_com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  
 call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
+
+if (tao_com%noplot_arg_set) s%global%plot_on = .false.
+
+end subroutine end_bookkeeping
 
 end subroutine tao_init_global
 

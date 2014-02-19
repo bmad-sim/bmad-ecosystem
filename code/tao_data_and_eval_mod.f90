@@ -13,7 +13,7 @@ integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
 integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23
+integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22, atan2$ = 23, factorial$ = 24
 integer, parameter :: numeric$ = 100, var_num$ = 101, lat_num$ = 102, data_num$ = 103
 integer, parameter :: ele_num$ = 104
 
@@ -3170,6 +3170,8 @@ parsing_loop: do
         call pushit (op, i_op, log$)
       case ('exp') 
         call pushit (op, i_op, exp$)
+      case ('factorial') 
+        call pushit (op, i_op, factorial$)
       case ('ran') 
         call pushit (op, i_op, ran$)
         ran_function_pending = .true.
@@ -3763,6 +3765,11 @@ do i = 1, size(stack)
 
   case (acos$) 
     stk2(i2)%value = acos(stk2(i2)%value)
+
+  case (factorial$) 
+    do n = 1, size(stk2(i2)%value)
+      stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
+    enddo
 
   case (atan$) 
     stk2(i2)%value = atan(stk2(i2)%value)
