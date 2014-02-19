@@ -12,7 +12,8 @@
 ! Input:
 !   ele               -- Ele_struct: Element
 !   type_zero_attrib  -- Logical, optional: If False then surpress printing of
-!                           attributes whose value is 0. Default is False.
+!                           real attributes whose value is 0 or switch attributes that have
+!                           their default value. Default is False.
 !   type_mat6         -- Integer, optional:
 !                            = 0   => Do not type ele%mat6
 !                            = 4   => Type 4X4 xy submatrix
@@ -159,7 +160,7 @@ nl=nl+1; li(nl) = ''
 if (type_zero) then
   nl=nl+1; write (li(nl), *) 'Attribute values:'
 else
-  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero values shown]:'
+  nl=nl+1; write (li(nl), *) 'Attribute values [Only non-zero/non-default values shown]:'
 endif
 
 n_att = n_attrib_string_max_len() + 2
@@ -662,10 +663,10 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
                   mat_symp_error(ele%mat6), ']'
   endif
 
-  if (any(abs(ele%mat6(1:n,1:n)) >= 1000)) then
-    write (fmt, '(a, i0, a)') '(', n, 'es11.3, a, es11.3)'
+  if (any(abs(ele%mat6(1:n,1:n)) >= 1d3)) then
+    write (fmt, '(a, i0, a)') '(', n, 'es13.5, a, es13.5)'
   else
-    write (fmt, '(a, i0, a)') '(', n, 'f10.5, a, es11.3)'
+    write (fmt, '(a, i0, a)') '(', n, 'f12.7, a, es13.5)'
   endif
 
   do i = 1, n

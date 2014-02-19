@@ -76,7 +76,7 @@ call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
-f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) * knl(1) / (24 * rel_pc)
+f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) / (24 * rel_pc)
 f2 =  k1 * ele%value(f2$) / rel_pc
 
 call transfer_ele(ele, ele2)
@@ -107,6 +107,8 @@ do nd = 0, n_div
   ll = length / n_div
   if (nd == 0 .or. nd == n_div) ll = ll / 2
 
+  ! Matrix step
+
   if (make_matrix) then
     if (k1 == 0) then
       call solenoid_mat6_calc (ks, ll, 0.0_rp, orbit, mat1)
@@ -116,6 +118,7 @@ do nd = 0, n_div
     mat6 = matmul(mat1, mat6)
   endif
 
+  ! track step
 
   if (k1 == 0) then
     xp_start = orbit%vec(2) + ks * orbit%vec(3) / (2 * rel_pc)
@@ -129,14 +132,16 @@ do nd = 0, n_div
     orbit%vec(1:4) = matmul (mat1(1:4,1:4), orbit%vec(1:4))
   endif
 
+  ! multipole kicks
+
   if (nd == n_div) exit
 
-  call multipole_kicks (knl, tilt, orbit)
+  call multipole_kicks (knl/rel_pc, tilt, orbit)
 
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat1)
-    mat6(:,1) = mat6(:,1) + mat6(:,2) * mat1(2,1) + mat6(:,4) * mat1(4,1)
-    mat6(:,3) = mat6(:,3) + mat6(:,2) * mat1(2,3) + mat6(:,4) * mat1(4,3)
+    mat6(2,:) = mat6(2,:) + mat1(2,1) * mat6(1,:) + mat1(2,3) * mat6(3,:)
+    mat6(4,:) = mat6(4,:) + mat1(4,1) * mat6(1,:) + mat1(4,3) * mat6(3,:)
   endif
 
 enddo
@@ -185,19 +190,52 @@ contains
 
 subroutine linear_fringe_kick (f1, f2)
 
-real(rp) f1, f2, ef1
+real(rp) f1, f2, ef1, mat1(6,6), vec(4)
 
-!
+! Notice that orbit%vec(:) is in (x', y') units.
 
 if (f1 == 0 .and. f2 == 0) return
 
 ef1 = exp(f1)
+vec = orbit%vec(1:4)
 
-orbit%vec(5) = orbit%vec(5) - (f1 + f2 * (1 + f1/2) * orbit%vec(2) / ef1) * orbit%vec(2) + &
-                              (f1 + f2 * (1 - f1/2) * orbit%vec(4) * ef1) * orbit%vec(4)
 
-orbit%vec(1:2) = [orbit%vec(1) * ef1 + orbit%vec(2) * f2, orbit%vec(2) / ef1]
-orbit%vec(3:4) = [orbit%vec(3) / ef1 - orbit%vec(4) * f2, orbit%vec(4) * ef1]
+orbit%vec(5) = orbit%vec(5) - (f1 * vec(1) + f2 * (1 + f1/2) * vec(2) / ef1) * vec(2) + &
+                              (f1 * vec(3) + f2 * (1 - f1/2) * vec(4) * ef1) * vec(4)
+
+orbit%vec(1:2) = [vec(1) * ef1 + vec(2) * f2, vec(2) / ef1]
+orbit%vec(3:4) = [vec(3) / ef1 - vec(4) * f2, vec(4) * ef1]
+
+!
+
+if (make_matrix) then
+  mat1 = 0
+  mat1(1,1) = ef1
+  mat1(1,2) = f2 / rel_pc 
+  mat1(1,6) = -vec(1) * f1 * ef1 / rel_pc - 2 * vec(2) * f2 / rel_pc
+  mat1(2,2) = 1 / ef1
+  mat1(2,6) = vec(2) * f1 / ef1 
+  mat1(3,3) = 1 / ef1
+  mat1(3,4) = -f2 / rel_pc
+  mat1(3,6) =  vec(3) * f1 / ef1 / rel_pc + 2 * vec(4) * f2 / rel_pc
+  mat1(4,4) = ef1
+  mat1(4,6) = -vec(4) * f1 * ef1
+  mat1(5,1) = -f1 * vec(2)
+  mat1(5,2) = -(f1 * vec(1) + f2 * (2 + f1) * vec(2) / ef1) / rel_pc
+  mat1(5,3) =  f1 * vec(4)
+  mat1(5,4) =  (f1 * vec(3) + f2 * (2 - f1) * vec(4) * ef1) / rel_pc
+  mat1(5,5) = 1
+  mat1(5,6) = 2 * f1 * vec(1) * vec(2) / rel_pc + &
+              f2 * (1 + f1/2) * vec(2)**2 * (3 - f1) / (ef1 * rel_pc) + & 
+              f2 * f1 * vec(2)**2 / (2 * ef1 * rel_pc) - &
+              2 * f1 * vec(3) * vec(4) / rel_pc - &
+              f2 * (1 - f1/2) * vec(4)**2 * ef1 * (3 + f1) / rel_pc + & 
+              f2 * f1 * vec(4)**2 * ef1 / (2 * rel_pc)
+
+  mat1(6,6) = 1
+
+  mat6 = matmul(mat1, mat6)
+endif
 
 end subroutine linear_fringe_kick
 

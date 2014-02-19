@@ -162,7 +162,8 @@ end select
 
 ! Fringe set for non bend elements
 
-if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_AT') /= 0) THEN
+if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. ele%key /= sad_mult$ .and. &
+                                        attribute_index(ele, 'FRINGE_AT') /= 0) then
   ele%value(fringe_at$) = both_ends$
   ele%value(fringe_type$) = none$
 endif

@@ -93,10 +93,10 @@ integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: atan2$ = 23, numeric$ = 100
+integer, parameter, private :: atan2$ = 23, factorial$ = 24, numeric$ = 100
 
-integer, parameter, private :: eval_level(23) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter, private :: eval_level(24) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 type eval_stack_struct
   integer type
@@ -2423,6 +2423,8 @@ parsing_loop: do
         call pushit (op, i_op, log$)
       case ('EXP') 
         call pushit (op, i_op, exp$)
+      case ('FACTORIAL') 
+        call pushit (op, i_op, factorial$)
       case ('RAN') 
         call pushit (op, i_op, ran$)
         ran_function_pending = .true.
@@ -2608,6 +2610,8 @@ do i = 1, i_lev
     stk(i2)%value = asin(stk(i2)%value)
   elseif (stk(i)%type == acos$) then
     stk(i2)%value = acos(stk(i2)%value)
+  elseif (stk(i)%type == factorial$) then
+    stk(i2)%value = factorial(nint(stk(i2)%value))
   elseif (stk(i)%type == atan$) then
     stk(i2)%value = atan(stk(i2)%value)
   elseif (stk(i)%type == atan2$) then
