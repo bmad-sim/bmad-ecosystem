@@ -79,7 +79,6 @@ $B_1$ are always associated with horizontally focusing quadrupoles for
 positrons as well as electrons. The only element where the sign of the
 particle's charge matters is an \vn{elseparator} element (\sref{s:elsep}).
 
-
 The kicks $\Delta p_x$ and $\Delta p_y$ that a
 particle experiences going through a multipole field is
 \begin{alignat}{5}
@@ -120,6 +119,14 @@ as
   \label{bib1nb}
 \Endeq
 where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
+
+Instead of using magnitude $K_n$ and rotation angle $\theta_n$,
+Another representation is using normal $\wt K_n$ and skew $\wt
+KS_n$. The conversion between the two are
+\begin{align}
+  \wt K_n  &= K_n \, \cos((n + 1) \theta_n) \CRNO
+  \wt KS_n &= K_n \, \sin((n + 1) \theta_n) 
+\end{align}
 
 \index{multipole!an, bn|hyperbf}
 Another representation of the magnetic field used by \bmad divides

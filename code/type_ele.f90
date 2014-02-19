@@ -11,8 +11,9 @@
 !
 ! Input:
 !   ele                -- Ele_struct: Element
-!   type_zero_attrib   -- Logical, optional: If False then surpress printing of
-!                            attributes whose value is 0. Default is False.
+!   type_zero_attrib  -- Logical, optional: If False then surpress printing of
+!                           real attributes whose value is 0 or switch attributes that have
+!                           their default value. Default is False.
 !   type_mat6          -- Integer, optional:
 !                             = 0   => Do not type ele%mat6
 !                             = 4   => Type 4X4 xy submatrix
