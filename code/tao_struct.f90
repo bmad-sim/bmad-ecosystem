@@ -516,7 +516,6 @@ type tao_global_struct
   integer :: n_opti_loops = 1            ! number of optimization loops
   integer :: phase_units = radians$      ! Phase units on output.
   integer :: bunch_to_plot = 1           ! Which bunch to plot
-  integer :: n_curve_pts = -1            ! For backward compatability
   integer :: random_seed = 0             ! Use system clock by default
   integer :: n_top10 = 10                ! Number of top constraints to print.
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
