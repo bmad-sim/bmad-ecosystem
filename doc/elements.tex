@@ -2856,7 +2856,7 @@ This element is in development.
 \index{f1}\index{f2}\index{g}\index{rf_frequency}\index{harmon}
 \index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_sol}
 \index{y_offset_sol}\index{x_pitch_sol}\index{y_pitch_sol}
-\index{fringe_kind}\index{kill_fringe}
+\index{fringe_type}\index{kill_fringe}
 Attributes specific to an \vn{sextupole} element are:
 \begin{example}
   angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
@@ -2876,7 +2876,7 @@ Attributes specific to an \vn{sextupole} element are:
   y_offset_sol    = <Real>    ! Solenoid offset. See SAD dy attribute.
   x_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpx or chi1 attribute.
   y_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpy or chi2 attribute.
-  fringe_kind     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
+  fringe_type     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
   fringe_at       = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
 \end{example}
 
@@ -2897,30 +2897,30 @@ multipole components. The \bmad \vn{sad_mult} element used normal
 equations in \sref{s:fields}, there is a factor of $n!$ between the
 two representations.
 
-The \vn{fringe_kind} and \vn{fringe_at} switches are discussed in
+The \vn{fringe_type} and \vn{fringe_at} switches are discussed in
 Sec.~\sref{s:fringe} The translation between these two switches and
 the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{center}
 \tt
 \begin{tabular}{ll|llll} 
-              &                  & \multicolumn{4}{c}{fringe_at:} \\
-              &                  & no_end     & entrance_end & exit_end   & both_ends$^*$ \HH
+              &                      & \multicolumn{4}{c}{fringe_at:} \\
+              &                      & no_end     & entrance_end & exit_end   & both_ends$^*$ \HH
 \multirow{4}{*}{fringe_kind:} 
-              & none             & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
-              & linear           & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
-              & nonlin_only$^*$  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
-              & full             & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\
+              & none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
+              & linear_sad           & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
+              & nonlin_only_sad$^*$  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
+              & full_sad             & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\
 \multicolumn{12}{l}{Default value.} \\
 \end{tabular}
 \end{center}
 Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}].
 The ``-'' indicates that there is no equivalent setting in SAD.  The
-\vn{linear} fringe kick is a kick that is linear in the transverse
+\vn{linear_sad} fringe kick is a kick that is linear in the transverse
 $(x, p_x, y, p_y)$ coordinates and comes from the finite width of the
 quadrupolar fringe field. The width of the quadrupolar fringe field is
 characterized by the \vn{f1} and \vn{f2} attributes. The
-\vn{nonlinear} fringe kick comes from the nonlinear part of the
-quadrupolar field plus the fringes of the other multipoles.
+\vn{nonlinear_only_sad} fringe kick comes from the nonlinear part of
+the quadrupolar field plus the fringes of the other multipoles.
 
 The \vn{eps_step_scale} is equivalent to the SAD \vn{eps}
 attribute. The default \vn{eps_step_scale} value is 1 which is

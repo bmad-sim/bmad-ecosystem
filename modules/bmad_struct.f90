@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 135
+integer, parameter :: bmad_inc_version$ = 136
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -28,7 +28,7 @@ integer, parameter :: bmad_inc_version$ = 135
 
 ! num_ele_attrib$ is size of ele%value(:) array.
 
-integer, parameter :: num_ele_attrib$ = 70
+integer, parameter :: num_ele_attrib$ = 80
 
 ! Misc
 
@@ -767,156 +767,158 @@ integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
 
-integer, parameter :: fint$=13, fintx$=14, hgap$=15, hgapx$=16, h1$=17, h2$=18
+integer, parameter :: fint$ = 23, fintx$ = 24, hgap$ = 25, hgapx$ = 26, h1$ = 27, h2$ = 28
 
-integer, parameter :: l$=1                          ! Assumed unique. Do not assign 1 to another attribute.
-integer, parameter :: tilt$=2, command$=2, roll$=2  ! Important: tilt$ = roll$
-integer, parameter :: ref_tilt$=3, rf_frequency$=3, direction$=3
-integer, parameter :: old_command$=3, kick$=3, x_gain_err$=3
-integer, parameter :: rf_frequency_err$=4, k1$=4, sig_x$=4, harmon$=4, h_displace$=4, y_gain_err$=4
+integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
+integer, parameter :: tilt$ = 2, command$ = 2, roll$ = 2  ! Important: tilt$ = roll$
+integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
+integer, parameter :: old_command$ = 3, kick$ = 3, x_gain_err$ = 3
+integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, sig_x$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
-integer, parameter :: lr_freq_spread$=5, graze_angle$=5, k2$=5, sig_y$=5, b_max$=5, v_displace$=5
-integer, parameter :: flexible$ = 5, crunch$=5, ref_orbit_follows$=5
-integer, parameter :: gradient$=6, k3$=6, sig_z$=6, noise$=6, new_branch$ = 6
-integer, parameter :: g$=6, bragg_angle_in$ = 6, symmetry$ = 6
-integer, parameter :: g_err$=7, n_pole$=7, bbi_const$=7, osc_amplitude$=7
-integer, parameter :: gradient_err$=7, critical_angle$ = 7
-integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$=7
-integer, parameter :: rho$=8, delta_e$ = 8
-integer, parameter :: charge$=8, x_gain_calib$=8, ix_to_element$=8
-integer, parameter :: voltage$=9
-integer, parameter :: d1_thickness$ = 10, voltage_err$=10, rel_tracking_charge$ = 10
-integer, parameter :: l_chord$=10, ks$=10, n_slice$=10, y_gain_calib$=10, bragg_angle$=10
-integer, parameter :: polarity$=11, crunch_calib$=11, alpha_angle$=11, d2_thickness$ = 11
-integer, parameter :: e1$=11, e_loss$=11, dks_ds$=11, gap$=11
-integer, parameter :: ds_path_length$=12
-integer, parameter :: e2$=12, x_offset_calib$=12, v1_unitcell$=12, psi_angle$=12
-integer, parameter :: y_offset_calib$=13, v_unitcell$=13, v2_unitcell$=13
-integer, parameter :: traveling_wave$ = 13
-integer, parameter :: phi0$=14, tilt_calib$=14, f0_re$=14, f0_re1$=14
-integer, parameter :: phi0_err$=15, coef$=15, current$=15, l_pole$=15, particle$ = 15
-integer, parameter :: quad_tilt$=15, de_eta_meas$=15, f0_im$=15, f0_im1$ = 15, f1$ = 15
-integer, parameter :: geometry$ = 16, bend_tilt$=16, mode$=16
-integer, parameter :: dphi0$=16, n_sample$=16, f0_re2$=16, origin_ele_ref_pt$=16, f2$ = 16
-integer, parameter :: dphi0_ref$ = 17, f0_im2$=17, x_half_length$=17, dx_origin$= 17
-integer, parameter :: lattice_type$ = 17, x_quad$=17
-integer, parameter :: dphi0_max$=18, ref_polarization$=18, y_half_length$=18, dy_origin$ = 18, y_quad$=18
-integer, parameter :: fringe_type$ = 19, floor_set$ = 19, upstream_ele_dir$ = 19, dz_origin$ = 19, fringe_kind$ = 19
-integer, parameter :: fringe_at$ = 20, dtheta_origin$ = 20, b_param$ = 20, downstream_ele_dir$ = 20
-integer, parameter :: l_hard_edge$ = 21, dphi_origin$ = 21, ref_cap_gamma$ = 21
-integer, parameter :: field_scale$ = 22, dpsi_origin$ = 22, darwin_width_sigma$ = 22
-integer, parameter :: angle$ = 23, n_cell$ = 23, x_ray_line_len$ = 23, darwin_width_pi$ = 23
-integer, parameter :: x_pitch$ = 24
-integer, parameter :: y_pitch$ = 25  
-integer, parameter :: x_offset$ = 26
-integer, parameter :: y_offset$ = 27 
-integer, parameter :: z_offset$ = 28 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 29, d_spacing$ = 29, t_offset$ = 29, x_offset_sol$ = 29
-integer, parameter :: vkick$ = 30, l_x$ = 30, y_offset_sol$ = 30
-integer, parameter :: BL_hkick$ = 31, x_pitch_sol$ = 31, l_y$ = 31        ! l_y$ = l_x$ + 1
-integer, parameter :: BL_vkick$ = 32, y_pitch_sol$ = 32, l_z$ = 32        ! l_z$ = l_x$ + 2
-integer, parameter :: BL_kick$ = 33, coupler_at$ = 33, eps_step_scale$ = 33
-integer, parameter :: B_field$ = 34, E_field$ = 34, coupler_phase$ = 34
-integer, parameter :: coupler_angle$ = 35, B_field_err$ = 35
-integer, parameter :: B1_gradient$ = 36, E1_gradient$ = 36, coupler_strength$ = 36
-integer, parameter :: B2_gradient$ = 37, E2_gradient$ = 37, h_x_norm$ = 37
-integer, parameter :: B3_gradient$ = 38, E3_gradient$ = 38, h_y_norm$ = 38
-integer, parameter :: Bs_field$ = 39, e_tot_offset$ = 39, h_z_norm$ = 39, ptc_field_geometry$ = 39
-integer, parameter :: delta_ref_time$ = 40 ! Assumed unique Do not overload.
-integer, parameter :: p0c_start$ = 41
-integer, parameter :: e_tot_start$ = 42   
-integer, parameter :: p0c$ = 43         ! Assumed unique. Do not overload.
-integer, parameter :: e_tot$ = 44       ! Assumed unique. Do not overload.
-integer, parameter :: x_pitch_tot$ = 45, no_end_marker$ = 45
-integer, parameter :: y_pitch_tot$ = 46
-integer, parameter :: x_offset_tot$ = 47
-integer, parameter :: y_offset_tot$ = 48
-integer, parameter :: z_offset_tot$ = 49
-integer, parameter :: tilt_tot$ = 50, roll_tot$ = 50  ! Important: tilt_tot$ = roll_tot$
-integer, parameter :: pole_radius$ = 51, ref_tilt_tot$ = 51
-integer, parameter :: n_ref_pass$ = 52
-integer, parameter :: radius$ = 53
-integer, parameter :: ref_time_start$ = 54
-integer, parameter :: thickness$ = 55, integrator_order$ = 55   ! For Etiennes' PTC: 2, 4, or 6.
-integer, parameter :: num_steps$ = 56
-integer, parameter :: ds_step$ = 57
-integer, parameter :: lord_pad1$ = 58
-integer, parameter :: lord_pad2$ = 59, ref_wavelength$ = 59
-integer, parameter :: scratch$ = 60
-integer, parameter :: custom_attribute1$ = 61   ! For general use
-integer, parameter :: custom_attribute2$ = 62   ! For general use
-integer, parameter :: custom_attribute3$ = 63   ! For general use
-integer, parameter :: custom_attribute4$ = 64   ! For general use
-integer, parameter :: custom_attribute5$ = 65, custom_attribute_max$ = 65   ! For general use
-integer, parameter :: x1_limit$ = 66   ! Assumed unique. Do not overload.
-integer, parameter :: x2_limit$ = 67   ! Assumed unique. Do not overload.
-integer, parameter :: y1_limit$ = 68   ! Assumed unique. Do not overload.
-integer, parameter :: y2_limit$ = 69   ! Assumed unique. Do not overload.
-integer, parameter :: check_sum$ = 70  ! Assumed unique. Do not overload.
+integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5, b_max$ = 5, v_displace$ = 5
+integer, parameter :: flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
+integer, parameter :: gradient$ = 6, k3$ = 6, sig_z$ = 6, noise$ = 6, new_branch$ = 6
+integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6
+integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
+integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
+integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
+integer, parameter :: rho$ = 8, delta_e$ = 8
+integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
+integer, parameter :: voltage$ = 9
+integer, parameter :: f1$ = 14
+integer, parameter :: f2$ = 15
+integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, rel_tracking_charge$ = 20
+integer, parameter :: l_chord$ = 20, ks$ = 20, n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
+integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
+integer, parameter :: e1$ = 21, e_loss$ = 21, dks_ds$ = 21, gap$ = 21
+integer, parameter :: ds_path_length$ = 22
+integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
+integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
+integer, parameter :: traveling_wave$ = 23
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, f0_re$ = 24, f0_re1$ = 24
+integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, f0_im$ = 25, f0_im1$ = 25
+integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
+integer, parameter :: dphi0$ = 26, n_sample$ = 26, f0_re2$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: dphi0_ref$ = 27, f0_im2$ = 27, x_half_length$ = 27, dx_origin$ =  17
+integer, parameter :: lattice_type$ = 27, x_quad$ = 27
+integer, parameter :: dphi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
+integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
+integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30
+integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
+integer, parameter :: field_scale$ = 32, dpsi_origin$ = 32, darwin_width_sigma$ = 32
+integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, darwin_width_pi$ = 33
+integer, parameter :: x_pitch$ = 34
+integer, parameter :: y_pitch$ = 35  
+integer, parameter :: x_offset$ = 36
+integer, parameter :: y_offset$ = 37 
+integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
+integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_sol$ = 39
+integer, parameter :: vkick$ = 40, l_x$ = 40, y_offset_sol$ = 40
+integer, parameter :: BL_hkick$ = 41, x_pitch_sol$ = 41, l_y$ = 41        ! l_y$ = l_x$ + 1
+integer, parameter :: BL_vkick$ = 42, y_pitch_sol$ = 42, l_z$ = 42        ! l_z$ = l_x$ + 2
+integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43
+integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44
+integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45
+integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46
+integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, h_x_norm$ = 47
+integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, h_y_norm$ = 48
+integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, h_z_norm$ = 49, ptc_field_geometry$ = 49
+integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
+integer, parameter :: p0c_start$ = 51
+integer, parameter :: e_tot_start$ = 52   
+integer, parameter :: p0c$ = 53         ! Assumed unique. Do not overload.
+integer, parameter :: e_tot$ = 54       ! Assumed unique. Do not overload.
+integer, parameter :: x_pitch_tot$ = 55, no_end_marker$ = 55
+integer, parameter :: y_pitch_tot$ = 56
+integer, parameter :: x_offset_tot$ = 57
+integer, parameter :: y_offset_tot$ = 58
+integer, parameter :: z_offset_tot$ = 59
+integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
+integer, parameter :: pole_radius$ = 61, ref_tilt_tot$ = 61
+integer, parameter :: n_ref_pass$ = 62
+integer, parameter :: radius$ = 63
+integer, parameter :: ref_time_start$ = 64
+integer, parameter :: thickness$ = 65, integrator_order$ = 65   ! For Etiennes' PTC: 2, 4, or 6.
+integer, parameter :: num_steps$ = 66
+integer, parameter :: ds_step$ = 67
+integer, parameter :: lord_pad1$ = 68
+integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
+integer, parameter :: scratch$ = 70
+integer, parameter :: custom_attribute1$ = 71   ! For general use
+integer, parameter :: custom_attribute2$ = 72   ! For general use
+integer, parameter :: custom_attribute3$ = 73   ! For general use
+integer, parameter :: custom_attribute4$ = 74   ! For general use
+integer, parameter :: custom_attribute5$ = 75, custom_attribute_max$ = 75   ! For general use
+integer, parameter :: x1_limit$ = 76   ! Assumed unique. Do not overload.
+integer, parameter :: x2_limit$ = 77   ! Assumed unique. Do not overload.
+integer, parameter :: y1_limit$ = 78   ! Assumed unique. Do not overload.
+integer, parameter :: y2_limit$ = 79   ! Assumed unique. Do not overload.
+integer, parameter :: check_sum$ = 80  ! Assumed unique. Do not overload.
 
 !! 71 = 1 + num_ele_attrib$
 
-integer, parameter :: lr_wake_file$ = 71, alpha_b$ = 71, use_hard_edge_drifts$ = 71
-integer, parameter :: alias$ =72, eta_x$ = 72, ptc_max_fringe_order$ = 72
-integer, parameter :: start_edge$ =73, eta_y$ = 73
-integer, parameter :: end_edge$ =74, etap_x$ = 74
-integer, parameter :: accordion_edge$ =75, etap_y$ = 75
-integer, parameter :: lattice$ = 76, phi_a$ = 76, diffraction_type$ = 76
-integer, parameter :: aperture_type$ = 77, eta_z$ = 77
-integer, parameter :: map_with_offsets$ = 78, cmat_11$ = 78, surface_attrib$ = 78
-integer, parameter :: csr_calc_on$ = 79, cmat_12$ = 79
-integer, parameter :: s_position$ = 80, cmat_21$ = 80
-integer, parameter :: mat6_calc_method$ = 81, cmat_22$ = 81
-integer, parameter :: tracking_method$  = 82, s_long$ = 82
-integer, parameter :: ref_time$ = 83, ptc_integration_type$ = 83
-integer, parameter :: spin_tracking_method$ = 84, eta_a$ = 84
-integer, parameter :: aperture$ = 85, rf_auto_scale_amp$ = 85, etap_a$ = 85
-integer, parameter :: x_limit$ = 86, absolute_time_tracking$ = 86, eta_b$ = 86
-integer, parameter :: y_limit$ = 87, rf_auto_scale_phase$ = 87, etap_b$ = 87
-integer, parameter :: offset_moves_aperture$ = 88
-integer, parameter :: aperture_limit_on$ = 89
+integer, parameter :: lr_wake_file$ = 81, alpha_b$ = 81, use_hard_edge_drifts$ = 81
+integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
+integer, parameter :: start_edge$  = 83, eta_y$ = 83
+integer, parameter :: end_edge$  = 84, etap_x$ = 84
+integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
+integer, parameter :: lattice$ = 86, phi_a$ = 86, diffraction_type$ = 86
+integer, parameter :: aperture_type$ = 87, eta_z$ = 87
+integer, parameter :: map_with_offsets$ = 88, cmat_11$ = 88, surface_attrib$ = 88
+integer, parameter :: csr_calc_on$ = 89, cmat_12$ = 89
+integer, parameter :: s_position$ = 90, cmat_21$ = 90
+integer, parameter :: mat6_calc_method$ = 91, cmat_22$ = 91
+integer, parameter :: tracking_method$  = 92, s_long$ = 92
+integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
+integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94
+integer, parameter :: aperture$ = 95, rf_auto_scale_amp$ = 95, etap_a$ = 95
+integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
+integer, parameter :: y_limit$ = 97, rf_auto_scale_phase$ = 97, etap_b$ = 97
+integer, parameter :: offset_moves_aperture$ = 98
+integer, parameter :: aperture_limit_on$ = 99
 
-integer, parameter :: ptc_exact_misalign$ = 90
-integer, parameter :: sr_wake_file$ = 90, alpha_a$ = 90
-integer, parameter :: term$ = 91, use_ptc_layout$ = 91
-integer, parameter :: x_position$ = 92, s_spline$ = 92, ptc_exact_model$ = 92
-integer, parameter :: symplectify$ = 93, y_position$ = 93, n_slice_spline$ = 93
-integer, parameter :: z_position$ = 94
-integer, parameter :: is_on$ = 95, theta_position$ = 95
-integer, parameter :: field_calc$ = 96, phi_position$ = 96
-integer, parameter :: psi_position$ = 97
-integer, parameter :: aperture_at$ = 98, beta_a$ = 98
-integer, parameter :: ran_seed$ = 99, beta_b$ = 99, origin_ele$ = 99
+integer, parameter :: ptc_exact_misalign$ = 100
+integer, parameter :: sr_wake_file$ = 100, alpha_a$ = 100
+integer, parameter :: term$ = 101, use_ptc_layout$ = 101
+integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102
+integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
+integer, parameter :: z_position$ = 104
+integer, parameter :: is_on$ = 105, theta_position$ = 105
+integer, parameter :: field_calc$ = 106, phi_position$ = 106
+integer, parameter :: psi_position$ = 107
+integer, parameter :: aperture_at$ = 108, beta_a$ = 108
+integer, parameter :: ran_seed$ = 109, beta_b$ = 109, origin_ele$ = 109
 
-integer, parameter :: to_line$ = 100
-integer, parameter :: field_master$ = 101, harmon_master$ = 101, to_element$ = 101
-integer, parameter :: descrip$ = 102
-integer, parameter :: scale_multipoles$ = 103
-integer, parameter :: wall_attribute$ = 104  ! Do not confuse this with wall3d$
-integer, parameter :: field$ = 105
-integer, parameter :: phi_b$ = 106, crystal_type$ = 106, material_type$ = 106
-integer, parameter :: type$ = 107
-integer, parameter :: ref_origin$ = 108
-integer, parameter :: ele_origin$ = 109
+integer, parameter :: to_line$ = 110
+integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111
+integer, parameter :: descrip$ = 112
+integer, parameter :: scale_multipoles$ = 113
+integer, parameter :: wall_attribute$ = 114  ! Do not confuse this with wall3d$
+integer, parameter :: field$ = 115
+integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
+integer, parameter :: type$ = 117
+integer, parameter :: ref_origin$ = 118
+integer, parameter :: ele_origin$ = 119
 
 ! superimpose$ through create_jumbo_slave$ assumed unique (or need to modify bmad_parser_mod.f90).
 
-integer, parameter :: superimpose$    = 110   
-integer, parameter :: offset$         = 111
-integer, parameter :: reference$      = 112
-integer, parameter :: ele_beginning$  = 113
-integer, parameter :: ele_center$     = 114
-integer, parameter :: ele_end$        = 115
-integer, parameter :: ref_beginning$  = 116
-integer, parameter :: ref_center$     = 117
-integer, parameter :: ref_end$        = 118
-integer, parameter :: create_jumbo_slave$ = 119
+integer, parameter :: superimpose$    = 120   
+integer, parameter :: offset$         = 121
+integer, parameter :: reference$      = 122
+integer, parameter :: ele_beginning$  = 123
+integer, parameter :: ele_center$     = 124
+integer, parameter :: ele_end$        = 125
+integer, parameter :: ref_beginning$  = 126
+integer, parameter :: ref_center$     = 127
+integer, parameter :: ref_end$        = 128
+integer, parameter :: create_jumbo_slave$ = 129
 
-integer, parameter :: a0$  = 120, k0l$  = 120
-integer, parameter :: a21$ = 141, k21l$ = 141
+integer, parameter :: a0$  = 130, k0l$  = 130
+integer, parameter :: a21$ = 151, k21l$ = 151
 
-integer, parameter :: b0$  = 150, t0$  = 150
-integer, parameter :: b21$ = 171, t21$ = 171
+integer, parameter :: b0$  = 160, t0$  = 160
+integer, parameter :: b21$ = 181, t21$ = 181
 
 integer, parameter :: num_ele_attrib_extended$ = t21$
 
@@ -1113,15 +1115,14 @@ character(16), parameter :: aperture_type_name(0:7) = &
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
 character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
 
-! fringe_type and fringe_kind (used by sad_mult)
+! fringe_type
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
-character(16), parameter :: fringe_type_name(0:4) = ['Garbage!      ', &
-                'Full_Straight ', 'Full_Bend     ',  'None          ', 'Basic_Bend    ']
+integer, parameter :: linear_sad$ = 5, nonlin_only_sad$ = 6, full_sad$ = 7
+character(16), parameter :: fringe_type_name(0:7) = ['Garbage!      ', &
+                'Full_Straight  ', 'Full_Bend      ', 'None           ', 'Basic_Bend     ', &
+                'Linear_SAD     ', 'Nonlin_Only_SAD', 'Full_SAD       ']
 
-integer, parameter :: full$ = 1, nonlin_only$ = 2
-character(16), parameter :: fringe_kind_name(0:4) = ['Garbage!   ', 'Full       ', &
-                                  'Nonlin_Only', 'None       ', 'Linear     ']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:
@@ -1170,7 +1171,7 @@ type bmad_common_struct
                                                    !   0 -> default = ptc%taylor_order_saved
                                                    !   ptc_com%taylor_order_ptc gives actual order in use. 
   integer :: default_integ_order = 2               ! PTC integration order. 
-  integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2 => Quadrupole !). 
+  integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2  = > Quadrupole !). 
                                                    !   Must call set_ptc after changing.
   logical :: use_hard_edge_drifts = .true.         ! Insert drifts when tracking through cavity?
   logical :: sr_wakes_on = .true.                  ! Short range wakefields?
@@ -1193,7 +1194,7 @@ end type
 type (bmad_common_struct), save, target :: bmad_com
 
 ! ptc_com common block.
-! %taylor_order_saved is what is used if bmad_com%taylor_order is not set (= 0).
+! %taylor_order_saved is what is used if bmad_com%taylor_order is not set ( =  0).
 ! %taylor_order_saved is initially 3.
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 

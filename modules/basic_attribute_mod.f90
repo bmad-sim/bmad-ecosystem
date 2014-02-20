@@ -775,6 +775,7 @@ call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTE
 call init_attribute_name1 (sbend$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (sbend$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
+call init_attribute_name1 (sbend$, f1$,                             'F1')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -839,6 +840,8 @@ call init_attribute_name1 (quadrupole$, pole_radius$,               'POLE_RADIUS
 call init_attribute_name1 (quadrupole$, field$,                     'FIELD')
 call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start', private$)
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
+call init_attribute_name1 (quadrupole$, f1$,                        'F1')
+call init_attribute_name1 (quadrupole$, f2$,                        'F2')
 
 call init_attribute_name1 (sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
@@ -981,7 +984,7 @@ call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')
 call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
 call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')  ! SAD: fringe
-call init_attribute_name1 (sad_mult$, fringe_kind$,            'FRINGE_KIND')  ! SAD: disfrin
+call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
 call init_attribute_name1 (sad_mult$, f1$,                     'F1')
 call init_attribute_name1 (sad_mult$, f2$,                     'F2')
 call init_attribute_name1 (sad_mult$, bs_field$,               'BS_FIELD')
@@ -1274,7 +1277,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
-      'FRINGE_TYPE', 'FRINGE_KIND', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
+      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
       'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', 'SPIN_TRACKING_METHOD', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
@@ -1471,20 +1474,17 @@ case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib == bmad_standard$)
 
-case ('FRINGE_KIND')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_kind_name, lbound(fringe_kind_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib == nonlin_only$)
-  endif
-
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
   if (present(is_default)) then
-    if (ele%key == sbend$ .or. ele%key == rbend$) then
+    select case (ele%key)
+    case (sbend$, rbend$)
       is_default = (ix_attrib == basic_bend$)
-    else
+    case (sad_mult$)
+      is_default = (ix_attrib == nonlin_only_sad$)      
+    case default
       is_default = (ix_attrib == none$)
-    endif
+    end select
   endif
 
 case ('GEOMETRY')

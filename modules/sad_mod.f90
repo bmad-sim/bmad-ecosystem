@@ -92,10 +92,10 @@ call offset_particle (ele2, orbit, param, set$, set_multipoles = .false., set_hv
 fringe_at = nint(ele%value(fringe_at$))
 physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
 if (at_this_ele_end(physical_end, fringe_at)) then
-  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == linear$) then
+  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == linear_sad$) then
     call linear_fringe_kick (f1, f2)
   endif
-  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == nonlin_only$) then
+  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == nonlin_only_sad$) then
     call nonlinear_fringe_kick ()
   endif
 endif
@@ -150,10 +150,10 @@ enddo
 
 physical_end = physical_ele_end (second_track_edge$, orbit%direction, ele%orientation)
 if (at_this_ele_end(physical_end, fringe_at)) then
-  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == linear$) then
+  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == linear_sad$) then
     call linear_fringe_kick (-f1, f2)
   endif
-  if (ele%value(fringe_kind$) == full$ .or. ele%value(fringe_kind$) == nonlin_only$) then
+  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == nonlin_only_sad$) then
     call nonlinear_fringe_kick ()
   endif
 endif

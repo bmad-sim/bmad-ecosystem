@@ -2011,8 +2011,7 @@ Example:
 The tracking through the fringe fields of such elements as bends,
 quadrupoles, etc is determined by the following element attributes
 \begin{example}
-  fringe_type    ! Used for everything with fringes but sad_mult elements
-  fringe_kind    ! Used for sad_mult elements only  
+  fringe_type    ! Used for everything with fringes
   fringe_at      ! Used for all elements with fringes.
 \end{example}
 
@@ -2035,6 +2034,9 @@ element, may be set to one of the following:
   basic_bend        ! Default for sbend and rbend elements
   full_bend
   full_straight
+  linear_sad
+  nonlin_only_sad   ! Default for sad_mult elements
+  full_sad
 \end{example}
 The \vn{none} setting ignores any fringe fields and is the default for
 \vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic bend} setting,
@@ -2055,6 +2057,12 @@ Example:
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full_bend
 \end{example}
 
+\index{sad}
+For SAD type fringes, the \vn{linear_sad} setting only uses the linear
+part of the fringe, \vn{nonlin_only_sad} ignores the linear part of
+the fringe, and \vn{full_sad} uses the full fringe.
+
+
 \index{ptc_max_fringe_order}
 When using PTC tracking (\sref{s:ptc.intro}), the
 \vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the maximum
@@ -2073,18 +2081,6 @@ on the PTC side is:
   full_straight   & True             & False            \\    
 \end{tabular}
 \end{center}
-
-The \vn{fringe_kind} switch is used for \vn{sad_mult} elements and may be set to 
-one of the following:
-\begin{example}
-  none
-  linear
-  nonlin_only     ! Default
-  full
-\end{example}
-\vn{none} means no fringe, the \vn{linear} setting only uses the
-linear part of the fringe, \vn{nonlin_only} ignores the linear part of
-the fringe, and \vn{full} uses the full fringe.
 
 %-----------------------------------------------------------------
 \section{Instrumental Measurement Attributes}
