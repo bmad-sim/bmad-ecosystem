@@ -116,9 +116,9 @@ you that it cannot find this or that library.
 
 If you are using sh / ksh / bash: Put in your ~/.bashrc file (or ~/.bash or ~/.profile file 
 whatever one is appropriate):
-        ulimit -c 0
-        ulimit -s unlimited  # Remove this line when using a Mac
-        ulimit -d unlimited
+        ulimit -S -c 0
+        ulimit -S -s 102400  # Remove this line when using a Mac
+        ulimit -S -d 25165824
 
 The first line prevents core dump files from being generated (takes up
 space and no one ever looks at them anyway). The next two lines helps
