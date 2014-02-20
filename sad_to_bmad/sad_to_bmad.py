@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import sys, getopt, re, textwrap
+import sys, getopt, re
+from collections import *
 
 class ele_struct:
   def __init__(self):
@@ -17,19 +18,21 @@ class lat_line_struct:
 # ------------------------------------------------------------------
 
 def WrapWrite(line):
-  MAXLINELENGTH = 120
-  lines = textwrap.wrap(line,MAXLINELENGTH)
-  tab = False
-  for line in lines[:-1]:
-    if tab:
-      f_out.write('         '+line+' &\n')
-    else:
-      f_out.write(line+' &\n')
-      tab = True
-  if tab:
-    f_out.write('         '+lines[-1]+'\n')
-  else:
-    f_out.write(lines[-1]+'\n')
+  MAXLEN = 120
+  tab = ''
+
+  while True:
+    if len(line) <= MAXLEN:
+      f_out.write(tab + line + '\n')
+      return
+
+    ix = line[:MAXLEN].rfind(',')
+    if ix == -1: ix = line[:MAXLEN].rfind(' ')
+
+    f_out.write(tab + line[:ix+1] + ' &\n')
+
+    tab = '         '
+    line = line[ix+1:]
 
 # ------------------------------------------------------------------
 
@@ -40,9 +43,9 @@ ele_type_to_bmad = {
   'sext': 'sextupole',
   'oct': 'octupole',
   'mult': 'sad_mult',
-  'sol': 'solenoid',
+  'sol': 'patch',
   'cavi': 'rfcavity',
-  'moni': 'marker',
+  'moni': 'monitor',
   'mark': 'marker',
   'beambeam': 'marker',
   'apert': 'marker',
@@ -69,16 +72,26 @@ ele_param_translate = {
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
     'chi3': ['tilt', ' * -1'],
-    'k0': 'b0', 'k1': 'b1', 'k2': 'b2', 'k3': 'b3', 'k4': 'b4', 'k5': 'b5', 'k6': 'b6', 'k7': 'b7', 
-    'k8': 'b8', 'k9': 'b9', 'k10': 'b10', 'k11': 'b11', 'k12': 'b12', 'k13': 'b13', 'k14': 'b14', 
-    'k15': 'b15', 'k16': 'b16', 'k17': 'b17', 'k18': 'b18', 'k19': 'b19', 'k20': 'b20', 'k21'
-    'sk0': 'a0', 'sk1': 'a1', 'sk2': 'a2', 'sk3': 'a3', 'sk4': 'a4', 'sk5': 'a5', 'sk6': 'a6', 'sk7': 'a7', 
-    'sk8': 'a8', 'sk9': 'a9', 'sk10': 'a10', 'sk11': 'a11', 'sk12': 'a12', 'sk13': 'a13', 'sk14': 'a14', 
-    'sk15': 'a15', 'sk16': 'a16', 'sk17': 'a17', 'sk18': 'a18', 'sk19': 'a19', 'sk20': 'a20', 'sk21': 'a21 ',
+    'k0': 'b0', 'k1': 'b1', 'k2': ['b2', ' / factorial(2)'], 'k3': ['b3', ' / factorial(3)'], 
+    'k4': ['b4', ' / factorial(4)'], 'k5': ['b5', ' / factorial(5)'], 'k6': ['b6', ' / factorial(6)'], 
+    'k7': ['b7', ' / factorial(7)'], 'k8': ['b8', ' / factorial(8)'], 'k9': ['b9', ' / factorial(9)'], 
+    'k10': ['b10', ' / factorial(10)'], 'k11': ['b11', ' / factorial(11)'], 'k12': ['b12', ' / factorial(12)'], 
+    'k13': ['b13', ' / factorial(13)'], 'k14': ['b14', ' / factorial(14)'], 'k15': ['b15', ' / factorial(15)'], 
+    'k16': ['b16', ' / factorial(16)'], 'k17': ['b17', ' / factorial(17)'], 'k18': ['b18', ' / factorial(18)'], 
+    'k19': ['b19', ' / factorial(19)'], 'k20': ['b20', ' / factorial(20)'], 'k21': ['b21', ' / factorial(21)'],
+    'sk0': 'a0', 'sk1': 'a1', 'sk2': ['a2', ' / factorial(2)'], 'sk3': ['a3', ' / factorial(3)'], 
+    'sk4': ['a4', ' / factorial(4)'], 'sk5': ['a5', ' / factorial(5)'], 'sk6': ['a6', ' / factorial(6)'], 
+    'sk7': ['a7', ' / factorial(7)'], 'sk8': ['a8', ' / factorial(8)'], 'sk9': ['a9', ' / factorial(9)'], 
+    'sk10': ['a10', ' / factorial(10)'], 'sk11': ['a11', ' / factorial(11)'], 'sk12': ['a12', ' / factorial(12)'], 
+    'sk13': ['a13', ' / factorial(13)'], 'sk14': ['a14', ' / factorial(14)'], 'sk15': ['a15', ' / factorial(15)'], 
+    'sk16': ['a16', ' / factorial(16)'], 'sk17': ['a17', ' / factorial(17)'], 'sk18': ['a18', ' / factorial(18)'], 
+    'sk19': ['a19', ' / factorial(19)'], 'sk20': ['a20', ' / factorial(20)'], 'sk21': ['a21 ', ' / factorial(21)'],
 }
 
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
-                  'sol:f1']
+                  'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
+                  'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
+                  'sigx', 'sigy', 'sigz', 'offset', 'slice', 'sturn', 'xangle', 'np']
 
 # ------------------------------------------------------------------
 
@@ -92,12 +105,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
   bmad_ele.type = ele_type_to_bmad[sad_ele.type]
 
-  if inside_sol: 
+  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor': 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
   for sad_param_name in sad_ele.param:
-
     if sad_param_name in ignore_sad_param: continue
     full_name = sad_ele.type + ':' + sad_param_name 
     if full_name in ignore_sad_param: continue
@@ -107,21 +119,21 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
     result = ele_param_translate[sad_param_name]
     if type(result) is list:
-      bmad_name = result
-      value_suffix = ''
-    else:
       bmad_name = result[0]
       value_suffix = result[1]
+    else:
+      bmad_name = result
+      value_suffix = ''
 
     if sad_ele.type == 'bend' and sad_param_name == 'rotate': bmad_name = 'ref_tilt'
     if bmad_ele.type != 'sad_mult' and sad_param_name == 'k1': bmad_name = 'k1'
     if bmad_ele.type != 'sad_mult' and sad_param_name == 'k2': bmad_name = 'k2'
 
     value = sad_ele.param[sad_param_name]
-    if 'deg' in value: value.replace('deg', '* degrees')
-    if 'kev' in value: value.replace('kev', '* 1e3')
-    if 'mev' in value: value.replace('mev', '* 1e6')
-    if 'gev' in value: value.replace('gev', '* 1e9')
+    if 'deg' in value: value = value.replace('deg', '* degrees')
+    if 'kev' in value: value = value.replace('kev', '* 1e3')
+    if 'mev' in value: value = value.replace('mev', '* 1e6')
+    if 'gev' in value: value = value.replace('gev', '* 1e9')
 
     bmad_ele.param[bmad_name] = value + value_suffix
 
@@ -139,34 +151,34 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
   if bmad_ele.type == 'sad_mult':
     if fringe == '0':
-      if disfrin != '0': bmad_ele.param['fringe_kind'] = 'none'
+      if disfrin != '0': bmad_ele.param['fringe_type'] = 'none'
     elif disfrin == '0': 
-      bmad_ele.param['fringe_kind'] = 'full'
+      bmad_ele.param['fringe_type'] = 'full_sad'
     else:
-      bmad_ele.param['fringe_kind'] = 'linear'
+      bmad_ele.param['fringe_type'] = 'linear_sad'
 
 # ------------------------------------------------------------------
 
-def parse_line(definitions, lat_line_list):
-  this_line = lat_line_struct()
-  line_name, e_sign, line_list = definitions.partition("=")
+def parse_line(rest_of_line, lat_line_list):
+  sad_line = lat_line_struct()
+  line_name, e_sign, line_list = rest_of_line.partition("=")
   line_name = line_name.strip()
   line_list = line_list.strip()
-  line_list = line_list[1:-1]    # Remove parenteses from "(...)"
+  line_list = line_list[1:-1].strip()    # Remove parenteses from "(...)"
   
-  this_line.name = line_name
+  sad_line.name = line_name
   for elename in re.split('\W+', line_list):
-    this_line.element.append(elename)
+    sad_line.element.append(elename)
 
-  lat_line_list[line_name] = this_line
+  lat_line_list[line_name] = sad_line
 
 # ------------------------------------------------------------------
 
 regexDef = r"(\S*?)\s*=\s*\((.*?)\)"
 regexParam = r"(\S*)\s*=\s*(\S*\s*(deg)?)"
 
-def parse_ele (head, definitions, sad_ele_list):
-  for name_and_params in re.finditer(regexDef, definitions):
+def parse_ele (head, rest_of_line, sad_ele_list):
+  for name_and_params in re.finditer(regexDef, rest_of_line):
     ele = ele_struct()
     ele.name = name_and_params.group(1).strip()
     ele.type = head
@@ -181,29 +193,49 @@ def parse_ele (head, definitions, sad_ele_list):
 
 # ------------------------------------------------------------------
 
-def parse_param (head, definitions, sad_param_list):
-  definitions = definitions.strip()
-  if definitions[0] == '=': definitions = definitions[1:].strip()  # Strip off '='
-  sad_param_list[head] = definitions
+def parse_param (head, rest_of_line, sad_param_list):
+  rest_of_line = rest_of_line.strip()
+  if len(rest_of_line) > 0 and rest_of_line[0] == '=': rest_of_line = rest_of_line[1:].strip()  # Strip off '='
+  sad_param_list[head] = rest_of_line
 
 # ------------------------------------------------------------------
+# Rule: After a "calc" command, the only thing left to parse is a possible "initialorbit" setting.
 
-sad_param_names = ['momentum', 'use', 'betax', 'betay']
+sad_param_names = ['momentum', 'use', 'betax', 'betay', 'nocod']
 
 def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
 
+  global calc_command_found
+
   directive = directive.strip()  # Remove leading and trailing blanks.
-  head, blank, definitions = directive.partition(" ")
-  if head == 'ffs': head, blank, definitions = definitions.partition(" ") # Strip off FFS if present
+  head, blank, rest_of_line = directive.partition(" ")
+  if head == 'ffs': head, blank, rest_of_line = rest_of_line.partition(" ") # Strip off FFS if present
 
   if head in sad_param_names:
-    parse_param (head, definitions, sad_param_list)
+    if calc_command_found: return
+    parse_param (head, rest_of_line, sad_param_list)
 
   elif head == 'line':
-    parse_line(definitions, lat_line_list)
+    if calc_command_found: return
+    parse_line(rest_of_line, lat_line_list)
 
   elif head in sad_ele_type_names:
-    parse_ele(head, definitions, sad_ele_list)
+    if calc_command_found: return
+    parse_ele(head, rest_of_line, sad_ele_list)
+
+  elif head == 'calc':
+    calc_command_found = True
+
+  elif 'initialorbit' in rest_of_line:
+    line = rest_of_line.partition('initialorbit')[2]
+    line = line.partition('{')[2].partition('}')[0]
+    orbit = line.replace(',', ' ').split()
+    sad_param_list['x_orb']  = orbit[0]
+    sad_param_list['px_orb'] = orbit[1]
+    sad_param_list['y_orb']  = orbit[2]
+    sad_param_list['py_orb'] = orbit[3]
+    sad_param_list['z_orb']  = orbit[4]
+    sad_param_list['pz_orb'] = orbit[5]
 
 # ------------------------------------------------------------------
 
@@ -217,6 +249,7 @@ def print_help():
 
 mark_open = False
 mark_closed = False
+inputfile = None
 
 i = 1
 while i < len(sys.argv):
@@ -230,6 +263,11 @@ while i < len(sys.argv):
     inputfile = sys.argv[i]
 
   i += 1
+
+#
+
+if inputfile == None:
+  print_help()
 
 if inputfile.find('sad') != -1:
   outputfile = inputfile.replace('sad', 'bmad')
@@ -253,9 +291,10 @@ sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "ca
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
 # Call parse_directive whenever an entire directive has been obtained.
 
-sad_ele_list = {}
-sad_param_list = {}
-lat_line_list = {}
+sad_ele_list = OrderedDict()
+sad_param_list = OrderedDict()
+lat_line_list = OrderedDict()
+calc_command_found = False
 
 directive = ''
 in_comment = False
@@ -298,11 +337,11 @@ if line0_name not in lat_line_list:
   print ('USED LINE NOT FOUND. STOPPING HERE.')
   sys.exit()
 
-this_line = lat_line_list[line0_name]
+sad_line = lat_line_list[line0_name]
 
 # For betax and betay translations
 
-ele0_name = this_line.element[0]
+ele0_name = sad_line.element[0]
 if ele0_name in sad_ele_list:
   ele0 = sad_ele_list[ele0_name]
   for key in ele0.param:
@@ -315,7 +354,14 @@ if ele0_name in sad_ele_list:
 global_param_translate = {
   'momentum': 'beginning[p0c]',
   'betax':    'beginning[beta_a]',
-  'betay':    'beginning[beta_b]'
+  'betay':    'beginning[beta_b]',
+  'nocod':    'parameter[geometry] = open',
+  'x_orb':    'beam_start[x]',
+  'px_orb':   'beam_start[px]',
+  'y_orb':    'beam_start[y]',
+  'py_orb':   'beam_start[py]',
+  'z_orb':    'beam_start[z]',
+  'pz_orb':   'beam_start[pz]',
 }
 
 if mark_open: f_out.write ('parameter[geometry] = open\n')
@@ -323,17 +369,21 @@ if mark_closed: f_out.write ('parameter[geometry] = closed\n')
 
 for name in sad_param_list:
   if name not in global_param_translate: continue
-  f_out.write(global_param_translate[name] + ' = ' + sad_param_list[name] + '\n')
+  if sad_param_list[name] == '':
+    f_out.write(global_param_translate[name] + '\n')
+  else:
+    f_out.write(global_param_translate[name] + ' = ' + sad_param_list[name] + '\n')
 
 # ------------------------------------------------------------------
 # Translate and write element defs
 
 inside_sol = False
 bz = '0'
+bmad_line = []
 
 f_out.write ('\n')
 
-for ele_name in this_line.element:
+for ele_name in sad_line.element:
 
   if not ele_name in sad_ele_list:
     print ('No definition found for element name: ' + ele_name)
@@ -341,10 +391,25 @@ for ele_name in this_line.element:
 
   s_ele = sad_ele_list[ele_name]
 
+  # sol element
+
   if s_ele.type == 'sol':
     bz = s_ele.param.get('bz')  
     if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
-    continue
+
+    # misalignment with geo = 1 or patch to orbit if not.
+
+    if 'dx' in s_ele.param or 'dy' in s_ele.param or 'dz' in s_ele.param or 'chi1' in s_ele.param or \
+                                'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
+      if s_ele.param.get('geo') == '1': 
+        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+    
+    else:
+      continue
+
+  #
+
+  bmad_line.append(s_ele.name)
 
   if s_ele.printed == True: continue
 
@@ -356,24 +421,21 @@ for ele_name in this_line.element:
     bmadline += ', ' + param + ' = ' + b_ele.param[param]
 
   WrapWrite(bmadline)
-  b_ele.printed = True
+  s_ele.printed = True
 
 # ------------------------------------------------------------------
 # Write lat_line_list line
 
 f_out.write ('\n')
 
-lat_ele = this_line.element
-bmadline = this_line.name + ': line = ('
+bmad_line_str = sad_line.name + ': line = ('
 
-for name in lat_ele: 
-  if not ele_name in sad_ele_list: continue  # Already have printed error message
-  if sad_ele_list[name].type == 'sol': continue
-  bmadline += name + ', '
+for name in bmad_line: 
+  bmad_line_str += name + ', '
 
 
-bmadline = bmadline[:-2] + ')'
-WrapWrite(bmadline)
+bmad_line_str = bmad_line_str[:-2] + ')'
+WrapWrite(bmad_line_str)
 
 
 f_out.write ('\n')

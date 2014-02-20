@@ -1,4 +1,4 @@
- 2014-02-07 13:40:09 
+ 2014-02-17 09:54:36 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -1223,6 +1223,8 @@
          1  L                                       
          2  TILT                                    
         16  ORIGIN_ELE_REF_PT                       
+        19  UPSTREAM_ELE_DIR                        
+        20  DOWNSTREAM_ELE_DIR                      
         24  X_PITCH                                 
         25  Y_PITCH                                 
         26  X_OFFSET                                
@@ -2395,7 +2397,8 @@
          2  TILT                                    
          4  REF_COORDINATES                         
          5  FLEXIBLE                                
-        19  ptc_dir                                   [private]
+        19  UPSTREAM_ELE_DIR                        
+        20  DOWNSTREAM_ELE_DIR                      
         24  X_PITCH                                 
         25  Y_PITCH                                 
         26  X_OFFSET                                
@@ -3940,8 +3943,8 @@
     16    21
     17    18
     18    15
-    19    32
-    20    30
+    19    33
+    20    32
     21    28
     22    29
     23    12
@@ -4586,6 +4589,7 @@ Index: 19
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
+    FLOOR_SHIFT                             
     FIDUCIAL                                
     UNDULATOR                               
     SAD_MULT                                
