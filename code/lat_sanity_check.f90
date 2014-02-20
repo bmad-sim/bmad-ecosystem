@@ -118,6 +118,18 @@ do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = ele_loc_to_string(ele)
 
+    if (ele%key == sad_mult$) then
+      select case (nint(ele%value(fringe_type$)))
+      case (none$, linear_sad$, nonlin_only_sad$, full_sad$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'WHICH IS A SAD_MULT.', &
+                      'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
+      end select
+    endif
+
+
     ! diffraction_plate must have an associated wall3d and all sections must be clear or mask.
     ! Additionally the first section must be clear
 

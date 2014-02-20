@@ -2152,7 +2152,10 @@ end function pointer_to_field_ele
 ! If the element is a super_lord element, the appropriate element in the tracking 
 ! part of the lattice is returned.
 !
-! Notice that the first eleemnt in a lattice is the beginning element.
+! This routine will always wrap around between branch end and branch beginning
+! independent of the branch geometry.
+!
+! Notice that the first element in a lattice is the beginning element with index 0.
 !
 ! Input:
 !   this_ele       -- ele_struct: Starting element.
