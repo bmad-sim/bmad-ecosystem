@@ -73,6 +73,20 @@ endif
 
 call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
+! If element has zero length then the SAD ignores f1 and f2.
+
+if (length == 0) then
+  call offset_particle (ele, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+  call multipole_kicks (knl/rel_pc, tilt, orbit)
+  call offset_particle (ele, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
+  if (make_matrix) then
+    call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
+  endif
+  return
+endif
+
+!
+
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
