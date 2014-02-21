@@ -135,7 +135,7 @@ if (ele%tracking_method == bmad_standard$) then
     ele%value(e_tot$) = e_tot
   endif 
   
-  if (absolute_time_tracking(ele) ) then
+  if (absolute_time_tracking(ele)) then
     ele%value(dphi0_ref$) = -ele%value(rf_frequency$) * ele%value(ref_time_start$)
   else
     ele%value(dphi0_ref$) = 0
@@ -250,7 +250,7 @@ if (.not. is_lost) then
   if (do_scale_phase) then
     pz_plus  = pz_calc(phi_max + 2 * phi_tol, err_flag); if (err_flag) return
     pz_minus = pz_calc(phi_max - 2 * phi_tol, err_flag); if (err_flag) return
-    phase_scale_good = (pz_max >= pz_plus .and. pz_max >= pz_minus )
+    phase_scale_good = (pz_max >= pz_plus .and. pz_max >= pz_minus)
   endif
 
   if (do_scale_amp) then
