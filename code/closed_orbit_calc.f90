@@ -17,6 +17,12 @@
 ! determining the affect of kicks on the beam energy (this can, of course,
 ! also be done with i_dim = 6).
 !
+! i_dim = 6 finds the closed orbit with energy variation. The RF needs to be
+! turned on in this case. Additionally, to simulate cases where the RF frequency
+! is not a multiple of the revolution harmonic (EG in a dispersion measurement), 
+! lat%absolute_time_tracking needs to be set to True and the phi0_ref attributes 
+! of the RF cavities should be adjusted using rf_auto_scale_phase_and_amp.
+!
 ! Note: This routine uses the 1-turn matrix lat%param%t1_no_RF or 
 ! lat%param%t1_with_RF in the computations. If you have changed conditions 
 ! significantly enough you might want to force a remake of the 1-turn matrices
@@ -250,7 +256,7 @@ do i = 1, i_max
 
   del_orb%vec = end%vec - start%vec
 
-  if (i_dim ==6 .and. branch%lat%absolute_time_tracking) then
+  if (i_dim == 6 .and. branch%lat%absolute_time_tracking) then
     dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
     del_orb%vec(5) = -end%beta * c_light * dt
   endif
