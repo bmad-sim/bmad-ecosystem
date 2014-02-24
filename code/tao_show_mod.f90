@@ -178,6 +178,7 @@ type (wall3d_section_struct), pointer :: wall_sec
 type (wall3d_vertex_struct), pointer :: v
 type (random_state_struct) ran_state
 type (normal_form_struct), pointer :: normal_form
+type (aperture_scan_struct), pointer :: aperture_scan
 
 type show_lat_column_struct
   character(80) name
@@ -207,13 +208,13 @@ character(100) file_name, name, why_invalid
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(29) = [ &
-   'data           ', 'variable       ', 'global         ', 'alias          ', 'top10          ', &
-   'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot           ', &
-   'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle       ', &
-   'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative     ', &
-   'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave           ', &
-   'twiss_and_orbit', 'building_wall  ', 'wall           ', 'normal_form    ']
+character(16) :: show_what, show_names(30) = [ &
+   'data           ', 'variable       ', 'global         ', 'alias          ', 'top10            ', &
+   'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot             ', &
+   'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle         ', &
+   'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative       ', &
+   'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave             ', &
+   'twiss_and_orbit', 'building_wall  ', 'wall           ', 'normal_form    ', 'dynamic_aperture ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -984,6 +985,39 @@ case ('derivative')
     nl=nl+1; write (lines(nl), '(a)') 'No Derivatives'
   endif
   
+  result_id = show_what
+
+!----------------------------------------------------------------------
+! dynamic_aperture
+
+case ('dynamic_aperture')
+  if (.not. allocated(u%dynamic_aperture%scan) ) then
+    nl=nl+1; lines(nl) ='No dynamic aperture specified for this universe'
+    return
+  endif
+
+  !call tao_next_switch (stuff2, ['-order'], switch, err, ix)
+  !if (err) return
+  do i = 1, size(u%dynamic_aperture%scan)
+    aperture_scan => u%dynamic_aperture%scan(i) 
+    nl=nl+1; write (lines(nl), '(a12, es15.7)')  'pz        : ', u%dynamic_aperture%pz(i)
+    nl=nl+1; write (lines(nl), '(a12, i10)')     'n_angle   : ', aperture_scan%n_angle
+    nl=nl+1; write (lines(nl), '(a12, f10.6)')   'min_angle : ', aperture_scan%min_angle
+    nl=nl+1; write (lines(nl), '(a12, f10.6)')   'max_angle : ', aperture_scan%max_angle
+    nl=nl+1; write (lines(nl), '(a20, i10)')      '%praram%n_turn :  ', aperture_scan%param%n_turn
+    nl=nl+1; write (lines(nl), '(a20, f10.6)')   '%param%accuracy : ', aperture_scan%param%accuracy
+    if (.not. allocated(aperture_scan%aperture)) then
+      nl=nl+1; write (lines(nl), '(a20)') 'aperture not calculated for this universe'
+    else
+      nl=nl+1; write (lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
+      do j = 1, size(aperture_scan%aperture)
+        nl=nl+1; write (lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
+      enddo
+    endif
+  enddo
+
+
+
   result_id = show_what
 
 !----------------------------------------------------------------------

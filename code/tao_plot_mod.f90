@@ -114,7 +114,7 @@ do i = 1, size(s%plotting%region)
     if (found) cycle
 
     select case (graph%type)
-    case ('data', 'phase_space')
+    case ('data', 'phase_space', 'dynamic_aperture')
       call tao_plot_data (plot, graph)
     case ('wave.0', 'wave.a', 'wave.b')
       call tao_plot_wave (plot, graph)

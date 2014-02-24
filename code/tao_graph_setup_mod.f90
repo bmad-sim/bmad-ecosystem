@@ -61,6 +61,9 @@ case ('data', 'lat_layout')
 case ('histogram')
   call tao_graph_histogram_setup (plot, graph)
 
+case ('dynamic_aperture')
+  call tao_graph_dynamic_aperture_setup (plot, graph)
+
 case ('wave.0')  ! Everything done with 'wave.0' graph. 'wave.a' and 'wave.b' are ignored .
   call tao_wave_analysis(plot)
 
@@ -460,6 +463,94 @@ enddo
 graph%valid = .true.
 
 end subroutine tao_graph_phase_space_setup
+
+
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+
+subroutine tao_graph_dynamic_aperture_setup (plot, graph)
+
+implicit none
+
+type (tao_plot_struct) plot
+type (tao_graph_struct), target :: graph
+type (tao_curve_struct), pointer :: curve
+type (tao_curve_struct), allocatable :: temp_curve(:)
+type (tao_universe_struct), pointer :: u
+type (tao_dynamic_aperture_struct), pointer :: da
+
+integer :: i, k, n_curve, n, nc
+
+logical err
+
+character(40) name
+character(40) :: r_name = 'tao_graph_dynamic_aperture_setup'
+
+! Valid?
+
+graph%valid = .false.
+
+! Only the graph's universe for now
+u => tao_pointer_to_universe (graph%ix_universe)
+
+da => u%dynamic_aperture
+
+n_curve = size(da%scan)
+if (n_curve == 0) then
+  write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES DEFINED FOR UNIVERSE ', u%ix_uni
+  return
+endif
+
+if (.not. allocated(da%scan(1)%aperture)) then
+  write (graph%why_invalid, '(a, i0)') 'DYNAMIC APERTURE NOT CALCULATED FOR UNIVERSE ', u%ix_uni
+  return
+endif
+
+! Automatically create curves based on defined curves,
+!  looping over defined styles
+nc = size(graph%curve)
+if ( nc < n_curve) then
+  allocate(temp_curve(nc))
+  call move_alloc(graph%curve, temp_curve)
+  allocate(graph%curve(n_curve))
+  graph%curve(1:nc) = temp_curve(1:nc)
+  i = 0
+  do k=nc+1, n_curve
+    i = i + 1
+    if(i>nc) i = 1
+    graph%curve(k) = graph%curve(i)
+    ! Increment name
+    write (graph%curve(k)%name, '(a, i0)') 'c', k
+  enddo
+endif
+
+! loop over all curves
+
+do k = 1, n_curve 
+  
+  curve => graph%curve(k)
+  n = size(da%scan(k)%aperture)
+
+  call re_allocate (curve%x_line, n)
+  call re_allocate (curve%y_line, n)
+  call re_allocate (curve%x_symb, n)
+  call re_allocate (curve%y_symb, n)
+
+  write(curve%legend_text, '(a, f5.2, a)') '\gd:', 100*da%pz(k), ' %'
+
+  curve%x_line(:) = da%scan(k)%aperture(:)%x
+  curve%y_line(:) = da%scan(k)%aperture(:)%y
+  curve%x_symb = curve%x_line
+  curve%y_symb = curve%y_line
+enddo
+
+graph%valid = .true.
+
+end subroutine tao_graph_dynamic_aperture_setup
+
+
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

@@ -44,7 +44,9 @@ type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
+type (tao_lattice_branch_struct), pointer :: lat_branch
 type (normal_form_struct), pointer :: normal_form
+type (aperture_scan_struct), pointer :: scan
 
 integer iuni, j, ib, ix, n_max, iu, it, id, ie
 
@@ -88,6 +90,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   branch_loop: do ib = 0, ubound(tao_lat%lat%branch, 1)
  
     branch => tao_lat%lat%branch(ib)
+    lat_branch => tao_lat%lat_branch(ib)
+    
     u%info%lat_len_tot = u%info%lat_len_tot + branch%param%total_length
 
     call tao_data_coupling_init(branch)
@@ -182,6 +186,29 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       endif
     endif
 
+    ! Dynamic aperture calc. Only for rings
+    ! u%calc%dynamic_aperture 
+    if (u%calc%dynamic_aperture .and. branch%param%geometry == closed$ .and. allocated(u%dynamic_aperture%pz)) then
+      if (.not. s%global%rf_on) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
+      do j=1, size(u%dynamic_aperture%pz)
+        scan => u%dynamic_aperture%scan(j)
+        scan%param%closed_orbit = lat_branch%orb0
+       
+       ! If the RF is off, new fixed points will be calculated for various pz
+        if (.not. s%global%rf_on) then
+          call  closed_orbit_calc (tao_lat%lat, orb, 4)
+          scan%param%closed_orbit = orb(0)
+        endif
+        
+        scan%param%closed_orbit%vec(6) = scan%param%closed_orbit%vec(6) + u%dynamic_aperture%pz(j)
+        
+        call out_io (s_info$, r_name, 'dynamic aperture scan for pz: ', u%dynamic_aperture%pz(j))
+        call dynamic_aperture_scan(tao_lat%lat, scan, parallel = .true. )
+      enddo
+    endif
+    
+    
+    
     ! PTC one-turn-map and normal form calc. Only for rings. 
     if (u%calc%one_turn_map .and. branch%param%geometry == closed$) then
       call set_ptc_verbose(.false.)
