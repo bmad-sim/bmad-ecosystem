@@ -115,7 +115,7 @@ if (calculate_mat6) then
   call drift_mat6_calc (mat6, ele%value(z_offset_tot$), ele, param, end_orb)
 endif
 
-if (do_offset) call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, param, set$, end_orb)
 
 ! init
 
@@ -360,7 +360,7 @@ if (calculate_mat6) then
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, mat6)
 endif
 
-if (do_offset) call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
+if (do_offset) call offset_particle (ele, param, unset$, end_orb)
 
 ! Correct z-position for wigglers, etc. 
 
@@ -429,7 +429,7 @@ integer ix
 !
 
 track%orb(ix) = end_orb
-call offset_particle (ele, track%orb(ix), param, unset$, set_canonical = .false.)
+call offset_particle (ele, param, unset$, track%orb(ix))
   
 if (calculate_mat6) track%map(ix)%mat6 = mat6
 

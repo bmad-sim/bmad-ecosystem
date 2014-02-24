@@ -55,8 +55,7 @@ if (ele%key == patch$) then
   s1 = 0
   start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
 else
-  call offset_particle (ele, start2_orb, param, set$, set_canonical = .false., &
-                                             set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, set$, start2_orb, set_hvkicks = .false., set_multipoles = .false.)
   s0 = 0; s1 = ele%value(l$)
 endif
 
@@ -71,8 +70,7 @@ end_orb%p0c = ele%value(p0c$)
 ! convert to lab coords.
 
 if (ele%key /= patch$) then
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
-                                                            set_hvkicks = .false., set_multipoles = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
 endif
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 

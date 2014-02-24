@@ -76,9 +76,9 @@ call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
   call multipole_kicks (knl/rel_pc, tilt, orbit)
-  call offset_particle (ele, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
   endif
@@ -101,7 +101,7 @@ tilt = tilt - tilt(1)
 knl(1) = 0
 knl = knl / n_div
 
-call offset_particle (ele2, orbit, param, set$, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
 fringe_at = nint(ele%value(fringe_at$))
 physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
@@ -137,7 +137,7 @@ do nd = 0, n_div
   if (k1 == 0) then
     xp_start = orbit%vec(2) + ks * orbit%vec(3) / (2 * rel_pc)
     yp_start = orbit%vec(4) - ks * orbit%vec(1) / (2 * rel_pc)
-    call solenoid_mat4_calc (ks/rel_pc, ll, mat4)
+    call solenoid_mat4_calc (ks, ll, rel_pc, mat4)
     orbit%vec(5) = orbit%vec(5) - ll * (xp_start**2 + yp_start**2 ) / 2
     orbit%vec(1:4) = matmul (mat4, orbit%vec(1:4))
   else
@@ -172,7 +172,7 @@ if (at_this_ele_end(physical_end, fringe_at)) then
   endif
 endif
 
-call offset_particle (ele2, orbit, param, unset$, set_multipoles = .false., set_hvkicks = .false.)
+call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
 if (make_matrix) then
   if (ele2%value(tilt_tot$) /= 0) then

@@ -279,8 +279,7 @@ if (use_cache .or. init_cache) then
 
     call zero_ele_offsets (ele2)
     orb_start = orbit(i-1)
-    call offset_particle (branch%ele(i), orb_start, branch%param, set$, &
-                          set_canonical = .false., set_multipoles = .false., set_hvkicks = .false.)
+    call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_multipoles = .false., set_hvkicks = .false.)
 
     if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
       n_step = nint(10 * ele2%value(l$) / ele2%value(l_pole$))

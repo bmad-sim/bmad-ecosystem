@@ -1035,20 +1035,7 @@ rel_p = 1 + orb0%vec(6)
 ks = ks0 / rel_p
 
 mat6 = 0
-call solenoid_mat4_calc (ks, length, mat6(1:4,1:4))
-
-mat6(1,2) = mat6(1,2) / rel_p
-mat6(1,4) = mat6(1,4) / rel_p
-
-mat6(2,1) = mat6(2,1) * rel_p
-mat6(2,3) = mat6(2,3) * rel_p
-
-mat6(3,2) = mat6(3,2) / rel_p
-mat6(3,4) = mat6(3,4) / rel_p
-
-mat6(4,1) = mat6(4,1) * rel_p
-mat6(4,3) = mat6(4,3) * rel_p
-
+call solenoid_mat4_calc (ks0, length, rel_p, mat6(1:4,1:4))
 
 c2 = mat6(1,1)
 s2 = mat6(1,4) * ks / 2
@@ -1119,21 +1106,30 @@ end subroutine solenoid_mat6_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine solenoid_mat4_calc (ks, length, mat4)
+! Subroutine solenoid_mat4_calc (ks0, length, rel_p, mat4)
 !
 ! Subroutine to calculate the 4x4 transverse transfer matrix for a solenoid.
 ! This routine is not meant for general use.
+!
+! Input:
+!   ks0     -- real(rp): Solenoid strength at reference energy
+!   length  -- real(rp): Length of solenoid
+!   rel_p   -- real(rp): Relative momentum 1 + pz at which mat4 is evaluated.
+!
+! Output:
+!   mat4(4,4) -- real(rp): Transverse transfer matrix.
 !-
 
-subroutine solenoid_mat4_calc (ks, length, mat4)
+subroutine solenoid_mat4_calc (ks0, length, rel_p, mat4)
 
 implicit none
 
-real(rp) ks, length, kss, c, s, c2, s2, cs, ll, kl, kl2
+real(rp) ks0, ks, rel_p, length, kss, c, s, c2, s2, cs, ll, kl, kl2
 real(rp) mat4(4,4)
 
 !
 
+ks = ks0 / rel_p
 kss = ks / 2
 
 if (abs(length * kss) < 1e-10) then
@@ -1144,31 +1140,45 @@ if (abs(length * kss) < 1e-10) then
   mat4(2,:) = [-kl*kss,   1.0_rp, -kl2*kss, kl       ]
   mat4(3,:) = [-kl,      -kl*ll,   1.0_rp,  ll       ]
   mat4(4,:) = [ kl2*kss, -kl,     -kl*kss,  1.0_rp ]
-  return
+
+else
+  c = cos(kss*length)
+  s = sin(kss*length)
+  c2 = c*c
+  s2 = s*s
+  cs = c*s
+
+  mat4(1,1) = c2
+  mat4(1,2) = cs / kss
+  mat4(1,3) = cs
+  mat4(1,4) = s2 / kss
+  mat4(2,1) = -kss * cs
+  mat4(2,2) = c2
+  mat4(2,3) = -kss * s2 
+  mat4(2,4) = cs
+  mat4(3,1) = -cs
+  mat4(3,2) = -s2 / kss
+  mat4(3,3) = c2
+  mat4(3,4) = cs / kss
+  mat4(4,1) = kss * s2
+  mat4(4,2) = -cs
+  mat4(4,3) = -kss * cs
+  mat4(4,4) = c2
 endif
 
-c = cos(kss*length)
-s = sin(kss*length)
-c2 = c*c
-s2 = s*s
-cs = c*s
+! energy correction.
 
-mat4(1,1) = c2
-mat4(1,2) = cs / kss
-mat4(1,3) = cs
-mat4(1,4) = s2 / kss
-mat4(2,1) = -kss * cs
-mat4(2,2) = c2
-mat4(2,3) = -kss * s2 
-mat4(2,4) = cs
-mat4(3,1) = -cs
-mat4(3,2) = -s2 / kss
-mat4(3,3) = c2
-mat4(3,4) = cs / kss
-mat4(4,1) = kss * s2
-mat4(4,2) = -cs
-mat4(4,3) = -kss * cs
-mat4(4,4) = c2
+mat4(1,2) = mat4(1,2) / rel_p
+mat4(1,4) = mat4(1,4) / rel_p
+
+mat4(2,1) = mat4(2,1) * rel_p
+mat4(2,3) = mat4(2,3) * rel_p
+
+mat4(3,2) = mat4(3,2) / rel_p
+mat4(3,4) = mat4(3,4) / rel_p
+
+mat4(4,1) = mat4(4,1) * rel_p
+mat4(4,3) = mat4(4,3) * rel_p
 
 end subroutine solenoid_mat4_calc
 

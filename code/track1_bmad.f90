@@ -106,7 +106,8 @@ case (beambeam$)
   sig_y0 = ele%value(sig_y$)
   if (sig_x0 == 0 .or. sig_y0 == 0) return
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, param, set$, end_orb)
+  call canonical_to_angle_coords (end_orb)
 
   n_slice = max(1, nint(ele%value(n_slice$)))
   call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
@@ -126,10 +127,9 @@ case (beambeam$)
       sig_y = sig_y0 * sqrt(beta / ele%b%beta)
     endif
 
-    call bbi_kick (end_orb%vec(1)/sig_x, end_orb%vec(3)/sig_y, sig_y/sig_x,  &
-                                                                kx, ky)
+    call bbi_kick (end_orb%vec(1)/sig_x, end_orb%vec(3)/sig_y, sig_y/sig_x,  kx, ky)
     bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
-                    (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
+                                          (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
     coef = ele%value(bbi_const$) / (n_slice * rel_pc)
     end_orb%vec(2) = end_orb%vec(2) + kx * coef
     end_orb%vec(4) = end_orb%vec(4) + ky * coef
@@ -137,14 +137,15 @@ case (beambeam$)
   end_orb%vec(1) = end_orb%vec(1) - end_orb%vec(2) * s_pos
   end_orb%vec(3) = end_orb%vec(3) - end_orb%vec(4) * s_pos
 
-  call offset_particle (ele, end_orb, param, unset$)  
+  call angle_to_canonical_coords (end_orb)
+  call offset_particle (ele, param, unset$, end_orb)  
 
 !-----------------------------------------------
 ! collimator
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
-  call offset_particle (ele, end_orb, param, set$, .false., set_tilt = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_tilt = .false., set_hvkicks = .false.)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
   end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
@@ -158,23 +159,23 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
       end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir / n_slice
     end if
   end do
-  call offset_particle (ele, end_orb, param, unset$, .false., set_tilt = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_tilt = .false., set_hvkicks = .false.)
 
 !-----------------------------------------------
 ! drift
  
 case (drift$) 
 
-  call offset_particle (ele, end_orb, param, set$, .false.)
+  call offset_particle (ele, param, set$, end_orb)
   call track_a_drift (end_orb, ele, length)
-  call offset_particle (ele, end_orb, param, unset$, .false.)
+  call offset_particle (ele, param, unset$, end_orb)
 
 !-----------------------------------------------
 ! elseparator
 
 case (elseparator$)
 
-  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.) 
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.) 
 
   ! Compute kick
 
@@ -236,7 +237,7 @@ case (elseparator$)
   
   call tilt_coords (-angle, end_orb%vec)
 
-  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.) 
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.) 
   end_orb%s = ele%s
 
 !-----------------------------------------------
@@ -248,7 +249,7 @@ case (kicker$, hkicker$, vkicker$)
   vkick = charge_dir * ele%value(vkick$) 
   kick  = charge_dir * ele%value(kick$) 
 
-  call offset_particle (ele, end_orb, param, set$, .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   if (ele%key == hkicker$) then
      end_orb%vec(2) = end_orb%vec(2) + kick / (2 * n_slice)
@@ -280,7 +281,7 @@ case (kicker$, hkicker$, vkicker$)
         endif
      endif
   end do
-  call offset_particle (ele, end_orb, param, unset$, .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 
   if (ele%key == kicker$) then
     end_orb%vec(1) = end_orb%vec(1) + ele%value(h_displace$)
@@ -305,7 +306,7 @@ case (lcavity$)
     return
   endif
 
-  call offset_particle (ele, end_orb, param, set$, .false.)
+  call offset_particle (ele, param, set$, end_orb)
 
   E_start_ref  = ele%value(E_tot_start$)
   E_end_ref    = ele%value(E_tot$)
@@ -428,7 +429,7 @@ case (lcavity$)
 
   call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
-  call offset_particle (ele, end_orb, param, unset$, .false.)
+  call offset_particle (ele, param, unset$, end_orb)
 
   ! Time & s calc
 
@@ -485,14 +486,12 @@ case (match$)
 
 case (multipole$, ab_multipole$) 
 
-  call offset_particle (ele, end_orb, param, set$, set_canonical = .false., &
-                                                   set_multipoles = .false., set_tilt = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
   call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
   call multipole_kicks (knl, tilt, end_orb, .true.)
 
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
-                                                     set_multipoles = .false., set_tilt = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
 !-----------------------------------------------
 ! octupole
@@ -504,7 +503,7 @@ case (octupole$)
 
   k3l = charge_dir * ele%value(k3$) * length / n_slice
 
-  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
+  call offset_particle (ele, param, set$, end_orb)
 
   end_orb%vec(2) = end_orb%vec(2) + k3l *  (3*end_orb%vec(1)*end_orb%vec(3)**2 - end_orb%vec(1)**3) / 12
   end_orb%vec(4) = end_orb%vec(4) + k3l *  (3*end_orb%vec(3)*end_orb%vec(1)**2 - end_orb%vec(3)**3) / 12
@@ -523,7 +522,7 @@ case (octupole$)
 
   enddo
 
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
+  call offset_particle (ele, param, unset$, end_orb)
 
 !-----------------------------------------------
 ! patch
@@ -537,7 +536,8 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, param, set$, end_orb)
+  call canonical_to_angle_coords (end_orb)
 
   k1 = charge_dir * ele%value(k1$) / rel_pc
 
@@ -565,7 +565,8 @@ case (quadrupole$)
 
   call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
 
-  call offset_particle (ele, end_orb, param, unset$)  
+  call angle_to_canonical_coords (end_orb)
+  call offset_particle (ele, param, unset$, end_orb)  
 
   call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
@@ -579,7 +580,7 @@ case (rfcavity$)
   n_slice = max(1, nint(length / ele%value(ds_step$))) 
   dt_ref = length / (c_light * beta_ref)
 
-  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
+  call offset_particle (ele, param, set$, end_orb)
 
   voltage = e_accel_field(ele, voltage$)
 
@@ -624,7 +625,7 @@ case (rfcavity$)
 
   call rf_coupler_kick (ele, param, second_track_edge$, phase, end_orb)
 
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
+  call offset_particle (ele, param, unset$, end_orb)
 
 !-----------------------------------------------
 ! sad_multipole
@@ -649,7 +650,7 @@ case (sextupole$)
 
   n_slice = max(1, nint(length / ele%value(ds_step$)))
 
-  call offset_particle (ele, end_orb, param, set$, set_canonical = .false.)
+  call offset_particle (ele, param, set$, end_orb)
 
   do i = 0, n_slice
     k2l = charge_dir * ele%value(k2$) * length / n_slice
@@ -659,7 +660,7 @@ case (sextupole$)
     if (i /= n_slice) call track_a_drift (end_orb, ele, length/n_slice)
   enddo
 
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false.)
+  call offset_particle (ele, param, unset$, end_orb)
 
 !-----------------------------------------------
 ! solenoid
@@ -667,18 +668,18 @@ case (sextupole$)
 
 case (solenoid$)
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, param, set$, end_orb)
 
-  ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
+  ks = param%rel_tracking_charge * ele%value(ks$)
 
   xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
   yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
-  end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / 2
+  end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / (2 * rel_pc**2)
 
-  call solenoid_mat4_calc (ks, length, mat4)
+  call solenoid_mat4_calc (ks, length, rel_pc, mat4)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
-  call offset_particle (ele, end_orb, param, unset$)
+  call offset_particle (ele, param, unset$, end_orb)
   call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
@@ -687,7 +688,8 @@ case (solenoid$)
 
 case (sol_quad$)
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, param, set$, end_orb)
+  call canonical_to_angle_coords (end_orb)
 
   ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
   k1 = charge_dir * ele%value(k1$) / rel_pc
@@ -696,7 +698,9 @@ case (sol_quad$)
   end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
-  call offset_particle (ele, end_orb, param, unset$)
+  call angle_to_canonical_coords (end_orb)
+  call offset_particle (ele, param, unset$, end_orb)
+
   call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
@@ -740,7 +744,8 @@ case (wiggler$, undulator$)
     return
   endif
 
-  call offset_particle (ele, end_orb, param, set$)
+  call offset_particle (ele, param, set$, end_orb)
+  call canonical_to_angle_coords (end_orb)
 
   if (ele%value(l_pole$) == 0) then
     k_z = 1d100    ! Something large
@@ -781,7 +786,8 @@ case (wiggler$, undulator$)
   end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
                    - 1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
   
-  call offset_particle (ele, end_orb, param, unset$)
+  call angle_to_canonical_coords (end_orb)
+  call offset_particle (ele, param, unset$, end_orb)
    
   call track1_low_energy_z_correction (end_orb, ele, param)
 

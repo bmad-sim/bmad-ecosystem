@@ -2780,6 +2780,8 @@ end function rf_ref_time_offset
 
 function rf_is_on (branch) result (is_on)
 
+implicit none
+
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
 
@@ -2799,5 +2801,63 @@ do i = 1, branch%n_ele_track
 enddo
 
 end function rf_is_on
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine canonical_to_angle_coords (orbit)
+!
+! Routine to convert from canonical (x, px, y, py, z, pz) coordinates to
+! angle (x, x', y, y', z, z') coordinates.
+!
+! Input:
+!   orbit -- coord_struct: Orbit in canonical coordinates.
+!
+! Output:
+!   orbit -- coord_struct: Orbit in angular coordinates.
+!-
+
+subroutine canonical_to_angle_coords (orbit)
+
+implicit none
+
+type (coord_struct) orbit
+
+!
+
+orbit%vec(2) = orbit%vec(2) / (1 + orbit%vec(6))
+orbit%vec(4) = orbit%vec(4) / (1 + orbit%vec(6))
+
+end subroutine canonical_to_angle_coords
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine angle_to_canonical_coords (orbit)
+!
+! Routine to convert from angle (x, x', y, y', z, z') coordinates to
+! canonical (x, px, y, py, z, pz) coordinates.
+!
+! Input:
+!   orbit -- coord_struct: Orbit in angular coordinates.
+!
+! Output:
+!   orbit -- coord_struct: Orbit in canonical coordinates.
+!-
+
+subroutine angle_to_canonical_coords (orbit)
+
+implicit none
+
+type (coord_struct) orbit
+
+!
+
+orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))
+orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))
+
+end subroutine angle_to_canonical_coords
 
 end module

@@ -52,11 +52,9 @@ if (ele%map_with_offsets) then  ! simple case
   call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
 
 else
-  call offset_particle (ele, end_orb, param, set$, set_canonical = .false., &
-                              set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
   call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
-  call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., &
-                              set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
 endif
 
 end_orb%s = ele%s
@@ -68,8 +66,7 @@ dtime_ref = ele%value(delta_ref_time$)
 if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) then
-  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / &
-                                                                                 (end_orb%beta * c_light)
+  end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 else
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
   end_orb%t = start2_orb%t + dtime_ref + &

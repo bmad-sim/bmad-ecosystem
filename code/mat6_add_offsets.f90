@@ -41,22 +41,20 @@ type (lat_param_struct) param
 ! the new vec0 is obtained by just tracking through the element
 
 orb%vec = 0
-call offset_particle (ele, orb, param, set$, set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, set$, orb, set_hvkicks = .false.)
 orb%vec = ele%vec0 + matmul (ele%mat6, orb%vec)
-call offset_particle (ele, orb, param, unset$, set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, orb, set_hvkicks = .false.)
 ele%vec0 = orb%vec
 
 ! transform the ref_orb
 
 map_orb = ele%map_ref_orb_in
-call offset_particle (ele, map_orb, param, unset$, &
-                              set_canonical = .false., set_hvkicks = .false., ds_pos = 0.0_rp)
+call offset_particle (ele, param, unset$, map_orb, set_hvkicks = .false., ds_pos = 0.0_rp)
 ele%map_ref_orb_in = map_orb
 
 
 map_orb = ele%map_ref_orb_out
-call offset_particle (ele, map_orb, param, unset$, &
-                              set_canonical = .false., set_hvkicks = .false.)
+call offset_particle (ele, param, unset$, map_orb, set_hvkicks = .false.)
 ele%map_ref_orb_out = map_orb
 
 ! calculate the new Jacobian.
