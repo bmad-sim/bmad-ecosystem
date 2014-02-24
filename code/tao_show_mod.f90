@@ -209,12 +209,12 @@ character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
 character(16) :: show_what, show_names(30) = [ &
-   'data           ', 'variable       ', 'global         ', 'alias          ', 'top10            ', &
-   'optimizer      ', 'element        ', 'lattice        ', 'constraints    ', 'plot             ', &
-   'beam           ', 'tune           ', 'graph          ', 'curve          ', 'particle         ', &
-   'hom            ', 'key_bindings   ', 'universe       ', 'orbit          ', 'derivative       ', &
-   'branch         ', 'use            ', 'taylor_map     ', 'value          ', 'wave             ', &
-   'twiss_and_orbit', 'building_wall  ', 'wall           ', 'normal_form    ', 'dynamic_aperture ']
+   'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
+   'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
+   'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
+   'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
+   'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
+   'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
