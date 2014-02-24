@@ -1367,6 +1367,44 @@ starting point and starting orientation can be adjusted using
 \vn{beginning[...]} statements as explained in the \bmad manual.
 
 %-----------------------------------------------------------------
+\section{Initializing Dynamic Aperture}
+\index{dynamic aperture}
+\label{s:dynamicaperture}
+
+For rings, the dynamic aperture can be calculated if \vn{tao_dynamic_aperture} is defined:
+
+\begin{example}
+&tao_dynamic_aperture
+ da_init(ix_uni)%pz = 0, 0.01, ...
+ da_init(ix_uni)%n_angle = 64 
+ da_init(ix_uni)%min_angle = 0
+ da_init(ix_uni)%max_angle = 3.14159
+ da_init(ix_uni)%param = <aperture_param_struct>
+/
+
+\end{example}
+
+where \vn{ix_uni} indicates the universe number. Here \vn{pz} is a list of relative momenta
+to calculate the aperture for. If the RF is off, then a new closed orbit will be calculated 
+for each of these momenta. 
+
+Optionally parameters \vn{n_angle}, \vn{min_angle}, and \vn{max_angle} can be set to indicate
+the angle in the $x-y$ plane to scan about the closed orbit. The number of turns \vn{n_turn}, etc., can be
+set with \vn{%param}
+See Bmad's \vn{aperture_param_struct}. 
+
+Be default, the dynamic aperture calculation is off for all universes. To turn it on,
+use the \vn{set} command (\sref{s:set}):
+\begin{example}
+  set universe 1 dynamic_aperture_calc on
+\end{example}
+
+If Tao is compiled with the appropriate OpenMP flags, then this calculation will be done in parallel. 
+
+The results can be plotted. See \sref{s:dynamicapertureplot}. 
+
+\clearpage
+%-----------------------------------------------------------------
 \section{Initializing Plotting}\index{plotting initializing}
 \label{s:init.plot} 
 
@@ -2325,6 +2363,60 @@ Note: There is an old, deprecated syntax where both the lattice layout
 and floor plan drawings are specified via one \vn{element_shapes}
 namelist.
 
+
+
+
+
+%-----------------------------------------------------------------
+\clearpage
+\subsection{Drawing a Dynamic Aperture}
+\index{dynamic aperture drawing}
+\label{s:dynamicapertureplot}
+
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{dynamic-aperture.pdf}
+  \caption{Example dynamic aperture plot.}
+  \label{f:dynamic-aperture}
+\end{figure}
+
+
+A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture calculation. For example, the template
+
+\begin{example}
+&tao_template_plot
+  plot%name = 'da'
+  plot%x%min = -20
+  plot%x%max =  20
+  plot%x%major_div_nominal = 10
+  plot%x%label = 'x (mm)'
+  plot%x_axis_type = 'phase_space'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'g1'
+  graph%type = 'dynamic_aperture'
+  graph_index = 1
+  graph%title = 'dynamic aperture'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000
+  graph%y%label = 'y (mm)'
+  graph%y%label_offset = .2
+  graph%y%max =  20
+  graph%y%min = 0
+  graph%y%major_div = 4
+  graph%n_curve = 2
+  curve(1)%y_axis_scale_factor = 1000
+  curve(2)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols = F
+  curve(2)%draw_symbols = F
+ /
+\end{example}
+
+produces the plot on Fig.~\ref{f:dynamic-aperture}. Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}. If there are more momenta than curves, additional curves will automatically be created.
+
 %-----------------------------------------------------------------
 \subsection{Drawing a Histogram}
 \index{histogram drawing}
@@ -2370,7 +2462,6 @@ histogram template:
   curve1%data_source = 'beam_tracking'
   curve1%ele_ref_name = "BEGINNING"
   curve1%symbol%type = 1
-/
 /
 \end{example}
 

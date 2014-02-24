@@ -719,7 +719,6 @@ variables, etc. Format:
   set universe <what_universe> <on/off>
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
-  set universe <what_universe> one_turn_map_calc <on/off>
   set universe <what_universe> track_recalc <on/off>
   set var <var_name>|<component> = <value>
   set wave <component> = <value>
@@ -1082,6 +1081,7 @@ Sets the state of the random number generator to a specific state. Use
         set universe <what\_universe> <on/off> \\ 
         set universe <what\_universe> recalculate \\
         set universe <what\_universe> mat6\_recalc <on/off> \\
+        set universe <what_universe> dynamic\_aperture\_calc <on/off> \\
         set universe <what\_universe> one\_turn\_map\_calc <on/off> \\
         set universe <what\_universe> track\_recalc <on/off>}] \Newline
 
@@ -1103,6 +1103,9 @@ still vary in the turned off universe.
 
 The \vn{set universe <what_universe> recalculate} command will recalculate the
 lattice parameters for that universe.
+
+The \vn{set universe <what_universe> dynamic_aperture_calc} command will enable
+the dynamic aperture calculation for a ring. See \sref{s:dynamicaperture}.
 
 The \vn{set universe <what_universe> one_turn_map_calc} command will enable
 a one-turn-map calculation for a ring using PTC, and populate the normal form taylor maps. See Eq.~\ref{normalform1}
@@ -1192,6 +1195,7 @@ Format:
   curve \{-symbol\} \{-line\} <curve_name> 
   data \{<data_name>\} 
   derivative <data_name(s)> <var_name(s)>
+  dynamic_aperture
   element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
@@ -1374,6 +1378,15 @@ Example:
   show deriv * *                ! Show all derivatives. Warning! The output 
                                 ! may be large.
 \end{example}
+
+%% show dynamic_aperture --------------------------------------------------------------
+
+\item[show dynamic_aperture] \Newline
+
+\vskip -0.2in
+
+\index{dynamic_aperture}
+Shows parameters and results of the dynamic aperture calculation.
 
 %% show element --------------------------------------------------------------
 
