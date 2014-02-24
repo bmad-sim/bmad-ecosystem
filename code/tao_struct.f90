@@ -14,6 +14,7 @@ use bmad_struct, only: rp, lat_struct, coord_struct, radians$, ele_struct, norma
                        rad_int_all_ele_struct
 use equal_mod
 use quick_plot_struct
+use dynamic_aperture_mod
 use beam_def_struct, only: beam_init_struct, beam_struct, bunch_params_struct
 use tao_parameters
 
@@ -165,7 +166,7 @@ end type
 
 type tao_graph_struct
   character(40) :: name = ''          ! Name identifying the graph
-  character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram'
+  character(40) :: type = ''          ! 'data', 'lat_layout', 'phase_space', 'histogram', 'dynamic_aperture'
   character(100) :: title = ''
   character(100) :: title_suffix = ''
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
@@ -731,14 +732,15 @@ end type
 ! Logicals that determine what calculations need to be done
 
 type tao_universe_calc_struct
-  logical rad_int_for_data        ! Do the radiation integrals need to be computed for
-  logical rad_int_for_plotting    !   data or plotting?
-  logical chrom_for_data          ! Does the chromaticity need to be computed for
-  logical chrom_for_plotting      !   data or plotting? 
-  logical one_turn_map            ! Compute the one turn map?
-  logical lattice                 ! Used to indicate which lattices need tracking done.
-  logical :: mat6 = .true.        ! calc linear transfer matri?
-  logical :: track = .true.       ! tracking needs to be done?
+  logical rad_int_for_data               ! Do the radiation integrals need to be computed for
+  logical rad_int_for_plotting           !   data or plotting?
+  logical chrom_for_data                 ! Does the chromaticity need to be computed for
+  logical chrom_for_plotting             !   data or plotting? 
+  logical :: dynamic_aperture = .false.  ! Do the dynamic_aperture calc?
+  logical :: one_turn_map = .false.      ! Compute the one turn map?
+  logical lattice                        ! Used to indicate which lattices need tracking done.
+  logical :: mat6 = .true.               ! calc linear transfer matri?
+  logical :: track = .true.              ! tracking needs to be done?
 end type
 
 !-----------------------------------------------------------------------
@@ -751,6 +753,22 @@ type tao_mpi_struct
   character(160) :: host_name  =''  ! Name of the host machine
 end type
 
+!-----------------------------------------------------------------------
+! tao_dynamic_aperture_struct
+
+type tao_dynamic_aperture_init_struct
+  type(aperture_param_struct) :: param
+  real(rp)           :: min_angle = 0
+  real(rp)           :: max_angle = pi
+  integer            :: n_angle   = 9
+  real(rp) :: pz(100) = real_garbage$  
+end type
+
+type tao_dynamic_aperture_struct
+  type(aperture_scan_struct), allocatable :: scan(:)
+  real(rp), allocatable :: pz(:)
+end type
+
 
 !-----------------------------------------------------------------------
 ! A universe is a snapshot of a machine
@@ -760,6 +778,7 @@ type tao_universe_struct
   type (tao_lattice_struct), pointer :: model, design, base
   type (tao_universe_info_struct) info
   type (tao_beam_struct) beam
+  type (tao_dynamic_aperture_struct) :: dynamic_aperture
   type (tao_universe_branch_struct), pointer :: uni_branch(:) ! Per element information
   type (tao_d2_data_struct), allocatable :: d2_data(:)   ! The data types 
   type (tao_data_struct), allocatable :: data(:)         ! Array of all data.

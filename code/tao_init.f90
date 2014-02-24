@@ -151,6 +151,7 @@ global_com%exit_on_error = .false.
 
 call tao_init_global(init_tao_file)
 call tao_init_lattice (init_tao_file)
+call tao_init_dynamic_aperture (init_tao_file)
 call tao_init_beams (beam_file)
 call tao_init_variables (var_file)
 call tao_init_data (data_file)

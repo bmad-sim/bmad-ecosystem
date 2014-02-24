@@ -915,12 +915,12 @@ endif
 if (allocated(s%plotting%template)) then
   n = size(s%plotting%template)
   call move_alloc(s%plotting%template, temp_template)
-  allocate (s%plotting%template(n + 20))
+  allocate (s%plotting%template(n + 21))
   s%plotting%template(1:n) = temp_template
   deallocate (temp_template)
   np = n + 1
 else
-  allocate (s%plotting%template(20)) 
+  allocate (s%plotting%template(21)) 
   np = 0
 endif
 
@@ -1242,6 +1242,45 @@ crv%g => grph
 crv%data_type    = 'chrom.dphi.b'
 crv%legend_text  = 'b'
 crv%smooth_line_calc = .false.
+ 
+!---------------
+! dynamic_aperture plot
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c2
+plt%name                 = 'dynamic_aperture'
+plt%description          = 'Dynamic aperture using universe calc'
+plt%x%label = 'x (mm)'
+plt%x_axis_type = 'phase_space'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title               = 'dynamic aperture'
+grph%type                = 'dynamic_aperture'
+grph%y%label             = 'y (mm)'
+grph%x_axis_scale_factor = 1000
+grph%y%label_offset= .15
+
+crv => grph%curve(1)
+crv%name         = 'c1'
+crv%g => grph
+!crv%legend_text  = 'a'  ! Legend text is automatically generated
+crv%smooth_line_calc = .false.
+crv%y_axis_scale_factor = 1000
+
+crv => grph%curve(2)
+crv%name         = 'c2'
+crv%g => grph
+crv%smooth_line_calc = .false.
+crv%y_axis_scale_factor = 1000
+
 
 !---------------
 ! emittance growth

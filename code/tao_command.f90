@@ -306,7 +306,7 @@ case ('pause')
 
 case ('place')
 
-  if (.not. s%global%plot_on) then
+  if (.not. s%global%plot_on .and. tao_com%shell_interactive) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
     return
   endif

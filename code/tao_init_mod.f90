@@ -1,6 +1,8 @@
 module tao_init_mod
 
 use tao_mod
+ 
+implicit none
 
 contains
 
@@ -50,8 +52,6 @@ logical, save :: init_needed = .true.
 namelist / tao_params / global, bmad_com, csr_param, opti_de_param, &
           n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
   
-namelist / tao_dynamic_aperture / xxx
-
 !-----------------------------------------------------------------------
 ! First time through capture the default global (could have been set via command line arg.)
 
@@ -72,8 +72,8 @@ if (init_file == '') then
   return
 endif
 
-call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
 call tao_open_file (init_file, iu, file_name, s_blank$)
+call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
 if (iu == 0) then
   call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_params namelist read")
   call end_bookkeeping()
@@ -93,21 +93,8 @@ if (ios > 0) then
 endif
 if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 
-s%global = global
-
-! Read tao_dynamic_aperture
-
-rewind(iu)
-call out_io (s_blank$, r_name, 'Init: Reading tao_dynamic_aperture namelist')
-read (iu, nml = tao_dynamic_aperture, iostat = ios)
-if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.')
-  rewind (iu)
-  read (iu, nml = tao_dynamic_aperture)  ! To give error message
-endif
-if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
-
 ! transfer global to s%global
+s%global = global
 
 close (iu)
 
@@ -401,5 +388,74 @@ if (allocated(eles)) deallocate (eles)
 end subroutine init_beam
 
 end subroutine tao_init_beams
+
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_init_dynamic_aperture (init_file)
+!
+!-
+subroutine tao_init_dynamic_aperture(init_file)
+implicit none
+type (tao_dynamic_aperture_init_struct)  :: da_init(200)
+type (tao_universe_struct), pointer :: u
+
+integer :: ios, iu, i, j, n_pz
+
+character(*) init_file
+character(200) file_name
+character(40) :: r_name = 'tao_init_dynamic_aperture'
+
+namelist / tao_dynamic_aperture / da_init
+
+!
+
+if (init_file == '') return
+
+!call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
+call tao_open_file (init_file, iu, file_name, s_blank$)
+if (iu == 0) then
+  call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_dynamic_aperture namelist read")
+  return
+endif
+
+! Read tao_dynamic_aperture
+call out_io (s_blank$, r_name, 'Init: Reading tao_dynamic_aperture namelist')
+read (iu, nml = tao_dynamic_aperture, iostat = ios)
+if (ios > 0) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.')
+  rewind (iu)
+  read (iu, nml = tao_dynamic_aperture)  ! To give error message
+endif
+if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
+
+close(iu)
+
+do i = lbound(s%u, 1), ubound(s%u, 1)
+ ! Count the list of pz
+  do n_pz=1, 200
+    if (da_init(i)%pz(n_pz) == real_garbage$) exit
+  enddo
+  n_pz = n_pz - 1
+  if (n_pz == 0 ) cycle
+  
+  ! Set 
+  u => s%u(i)
+  allocate(u%dynamic_aperture%scan(n_pz))
+  allocate(u%dynamic_aperture%pz(n_pz))
+  call out_io (s_blank$, r_name, 'Found n_pz: ', n_pz)
+  u%dynamic_aperture%scan(:)%param = da_init(i)%param
+  u%dynamic_aperture%scan(:)%min_angle = da_init(i)%min_angle
+  u%dynamic_aperture%scan(:)%max_angle = da_init(i)%max_angle
+  u%dynamic_aperture%scan(:)%n_angle = da_init(i)%n_angle
+  u%dynamic_aperture%pz(1:n_pz) = da_init(i)%pz(1:n_pz)
+  
+enddo
+
+
+end subroutine tao_init_dynamic_aperture
+
 
 end module
