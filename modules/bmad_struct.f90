@@ -1119,9 +1119,9 @@ character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polariza
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
 integer, parameter :: linear_sad$ = 5, nonlin_only_sad$ = 6, full_sad$ = 7
-character(16), parameter :: fringe_type_name(0:7) = ['Garbage!      ', &
-                'Full_Straight  ', 'Full_Bend      ', 'None           ', 'Basic_Bend     ', &
-                'Linear_SAD     ', 'Nonlin_Only_SAD', 'Full_SAD       ']
+character(16), parameter :: fringe_type_name(0:7) = ['Garbage!        ', &
+                'Full_Straight   ', 'Full_Bend       ', 'None            ', 'Basic_Bend      ', &
+                'Linear_SAD      ', 'Nonlin_Only_SAD ', 'Full_SAD        ']
 
 
 ! extra_parsing_info_struct is used by parsing routines.
