@@ -143,8 +143,8 @@ case default
     if (orb2%species == photon$) then
       call offset_photon (ele, orb2, set$)
     else
-      call offset_particle (ele, orb2, param, set$, set_canonical = .false., set_tilt = do_tilt, &
-                 set_multipoles = .false., set_hvkicks = .false., ds_pos = s_here)
+      call offset_particle (ele, param, set$, orb2, set_tilt = do_tilt, &
+                                 set_multipoles = .false., set_hvkicks = .false., ds_pos = s_here)
     endif
     x_particle = orb2%vec(1)
     y_particle = orb2%vec(3)
@@ -460,7 +460,7 @@ logical has_nonzero_pole
 !-----------------------------------------------------------------------
 
 end_orb = start_orb
-call offset_particle (ele, end_orb, param, set$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
 
 ! Entrance edge kick
 
@@ -617,7 +617,7 @@ enddo
 
 call bend_edge_kick (end_orb, ele, param, second_track_edge$, .false.)
 
-call offset_particle (ele, end_orb, param, unset$, set_canonical = .false., set_multipoles = .false.)
+call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false.)
 
 call track1_low_energy_z_correction (end_orb, ele, param)
 

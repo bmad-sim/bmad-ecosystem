@@ -122,7 +122,7 @@ c11 = c1
 if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$
 
 if (any (key == [drift$, capillary$])) then
-  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+  call offset_particle (ele, param, set$, c00, set_tilt = .false.)
   call drift_mat6_calc (mat6, length, ele, param, c00)
   call add_multipoles_and_z_offset (.true.)
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -141,8 +141,11 @@ select case (key)
 
 case (beambeam$)
 
- call offset_particle (ele, c00, param, set$)
- call offset_particle (ele, c11, param, set$, ds_pos = length)
+  call offset_particle (ele, param, set$, c00)
+  call canonical_to_angle_coords (c00)
+
+  call offset_particle (ele, param, set$, c11, ds_pos = length)
+  call canonical_to_angle_coords (c11)
 
   n_slice = nint(v(n_slice$))
   if (n_slice < 1) then
@@ -204,8 +207,8 @@ case (custom$)
 ! elseparator
 
 case (elseparator$)
-   
-  call offset_particle (ele, c00, param, set$, .false., set_hvkicks = .false.)
+
+  call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
 
   ! Compute kick
 
@@ -295,7 +298,7 @@ case (elseparator$)
 case (kicker$, hkicker$, vkicker$, rcollimator$, &
         ecollimator$, monitor$, instrument$, pipe$)
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
 
   charge_dir = param%rel_tracking_charge * ele%orientation
 
@@ -362,7 +365,7 @@ case (lcavity$)
 
   !
 
-  call offset_particle (ele, c00, param, set$, .false.)
+  call offset_particle (ele, param, set$, c00)
 
   phase = twopi * (v(phi0$) + v(dphi0$) + &
                    v(dphi0_ref$) +  v(phi0_err$) + &
@@ -655,7 +658,7 @@ case (multipole$, ab_multipole$)
 
   if (.not. ele%multipoles_on) return
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+  call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
   call multipole_kick_mat (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
@@ -678,8 +681,7 @@ case (multipole$, ab_multipole$)
 
 case (octupole$)
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
-
+  call offset_particle (ele, param, set$, c00) 
   n_slice = max(1, nint(length / v(ds_step$)))
 
   do i = 0, n_slice
@@ -776,8 +778,11 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, c00, param, set$)
-  call offset_particle (ele, c11, param, set$, ds_pos = length)
+  call offset_particle (ele, param, set$, c00)
+  call canonical_to_angle_coords (c00)
+
+  call offset_particle (ele, param, set$, c11, ds_pos = length)
+  call canonical_to_angle_coords (c11)
   
   ix_fringe = nint(v(fringe_type$))
   k1 = v(k1$) * charge_dir / rel_p
@@ -849,7 +854,7 @@ case (rfcavity$)
   n_slice = max(1, nint(length / v(ds_step$))) 
   dt_ref = length / (c_light * beta_ref)
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false., set_tilt = .false.)
+  call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
   voltage = param%rel_tracking_charge * e_accel_field (ele, voltage$)
 
@@ -906,7 +911,7 @@ case (rfcavity$)
 
   if (v(coupler_strength$) /= 0) call mat6_coupler_kick(ele, param, second_track_edge$, phase, c00, mat6)
 
-  call offset_particle (ele, c00, param, unset$, set_canonical = .false., set_tilt = .false.)
+  call offset_particle (ele, param, unset$, c00, set_tilt = .false.)
 
   !
 
@@ -946,14 +951,14 @@ case (sbend$)
 
   ! Entrance edge kick
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
+  call offset_particle (ele, param, set$, c00)
   c0_off = c00
 
   call bend_edge_kick (c00, ele, param, first_track_edge$, .false., mat6_pre)
 
   ! Exit edge kick
-  
-  call offset_particle (ele, c11, param, set$, set_canonical = .false., ds_pos = length)
+
+  call offset_particle (ele, param, set$, c11, ds_pos = length)
   c1_off = c11 
 
   call bend_edge_kick (c11, ele, param, second_track_edge$, .false., mat6_post)
@@ -1231,7 +1236,7 @@ case (sbend$)
 
 case (sextupole$)
 
-  call offset_particle (ele, c00, param, set$, set_canonical = .false.)
+  call offset_particle (ele, param, set$, c00)
 
   n_slice = max(1, nint(length / v(ds_step$)))
   
@@ -1261,7 +1266,8 @@ case (sextupole$)
 
 case (solenoid$)
 
-  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, param, set$, c00)
+  call canonical_to_angle_coords (c00)
 
   call solenoid_mat6_calc (param%rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
 
@@ -1274,7 +1280,8 @@ case (solenoid$)
 
 case (sol_quad$)
 
-  call offset_particle (ele, c00, param, set$)
+  call offset_particle (ele, param, set$, c00)
+  call canonical_to_angle_coords (c00)
 
   call sol_quad_mat6_calc (v(ks$) * param%rel_tracking_charge, v(k1$) * charge_dir, length, mat6, c00%vec)
 
@@ -1298,8 +1305,11 @@ case (taylor$)
 
 case (wiggler$, undulator$)
 
-  call offset_particle (ele, c00, param, set$)
-  call offset_particle (ele, c11, param, set$, ds_pos = length)
+  call offset_particle (ele, param, set$, c00)
+  call canonical_to_angle_coords (c00)
+
+  call offset_particle (ele, param, set$, c11, ds_pos = length)
+  call canonical_to_angle_coords (c11)
 
   call mat_make_unit (mat6)     ! make a unit matrix
 

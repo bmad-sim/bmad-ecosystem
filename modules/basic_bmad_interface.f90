@@ -388,8 +388,8 @@ interface
     integer ix_ele
   end subroutine
 
-  subroutine offset_particle (ele, coord, param, set, &
-           set_canonical, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
+  subroutine offset_particle (ele, param, set, coord, &
+           set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
     import
     implicit none
     type (ele_struct) :: ele
@@ -397,8 +397,7 @@ interface
     type (coord_struct), intent(inout) :: coord
     integer particle
     logical, intent(in) :: set
-    logical, optional, intent(in) :: set_canonical, set_multipoles
-    logical, optional, intent(in) :: set_tilt, set_hvkicks, set_z_offset
+    logical, optional, intent(in) :: set_multipoles, set_tilt, set_hvkicks, set_z_offset
     real(rp), optional, intent(in) :: ds_pos
   end subroutine
 

@@ -1,13 +1,11 @@
 !+
-! Subroutine offset_particle (ele, coord, param, set, set_canonical, 
+! Subroutine offset_particle (ele, param, set, coord, 
 !                               set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
 ! at the entrance or exit ends of the element. Additionally, this routine will:
 !   a) Apply the half kicks due to multipole and kick attributes.
 !   b) Add drift transform to the coordinates due to nonzero %value(z_offset_tot$).
-!   c) Transform from canonical (p_x, p_y) to angle (x', y') coordinates at the entrance end
-!      and transform back at the exit end.
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
@@ -25,11 +23,6 @@
 !   Using the element tilt in the offset.
 !   Using the HV kicks.
 !   Using the multipoles.
-!   Conversion between canonical momenta: 
-!       (p_x, p_y) = (P_x/P0, P_y/P0)
-!   And "angle" coords:
-!       (P_x/P, P_y/P) = (x', y') * (1 + g*x) 
-!   where g = 1/R is the inverse bending radius of the reference orbit.
 !
 ! Modules Needed:
 !   use bmad
@@ -39,7 +32,6 @@
 !     %value(x_offset$) -- Horizontal offset of element.
 !     %value(x_pitch$)  -- Horizontal pitch of element.
 !     %value(tilt$)     -- tilt of element.
-!   coord          -- Coord_struct: Coordinates of the particle.
 !   param          -- lat_param_strcut: 
 !     %particle             -- Reference particle
 !     %rel_track_ing_charge -- Charge tracked particle / referece charge
@@ -47,9 +39,7 @@
 !                    T (= set$)   -> Translate from lab coords to the local 
 !                                      element coords.
 !                    F (= unset$) -> Translate back from element to lab coords.
-!   set_canonical  -- Logical, optional: Default is True.
-!                    T -> Convert between (p_x, p_y) and angle coords also.
-!                    F -> No conversion between (p_x, p_y) and angle coords.
+!   coord          -- Coord_struct: Coordinates of the particle.
 !   set_tilt       -- Logical, optional: Default is True.
 !                    T -> Rotate using ele%value(tilt$) and 
 !                             ele%value(roll$) for sbends.
@@ -70,7 +60,7 @@
 !     coord -- Coord_struct: Coordinates of particle.
 !-
 
-subroutine offset_particle (ele, coord, param, set, set_canonical, &
+subroutine offset_particle (ele, param, set, coord, &
                               set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
 
 use bmad_interface, except_dummy => offset_particle
@@ -94,24 +84,14 @@ integer particle, sign_z_vel
 integer n
 
 logical, intent(in) :: set
-logical, optional, intent(in) :: set_canonical, set_tilt, set_multipoles
+logical, optional, intent(in) :: set_tilt, set_multipoles
 logical, optional, intent(in) :: set_hvkicks, set_z_offset
-logical set_canon, set_multi, set_hv, set_t, set_hv1, set_hv2, set_s
+logical set_multi, set_hv, set_t, set_hv1, set_hv2, set_s
 logical has_nonzero_pole
 
 !---------------------------------------------------------------         
-! E_rel               
 
 E_rel = (1 + coord%vec(6))
-
-! Bmad routines assume input canonical coords. 
-! The output of this routine must be what the calling subroutine thinks it
-!  is setting at.
-! Therefore: If bmad_com%canonical_coords = F, so that the input coords
-!   are not canonical, the sense of set_canon must be inverted to get 
-!   the right output
-
-set_canon = logic_option(.true., set_canonical)
 
 set_multi = logic_option (.true., set_multipoles)
 set_hv    = logic_option (.true., set_hvkicks) .and. ele%is_on .and. &
@@ -309,24 +289,10 @@ if (set) then
     endif
   endif
 
-  ! Set: Canonical to angle coords (p_x, p_y) = (P_x/P_0, P_y/P_0) -> (P_x/P, P_y/P)  
-
-  if (set_canon .and. coord%vec(6) /= 0) then
-    coord%vec(2) = coord%vec(2) / E_rel
-    coord%vec(4) = coord%vec(4) / E_rel
-  endif
-
 !----------------------------------------------------------------
 ! Unset... 
 
 else
-
-  ! Unset: Angle to canonical coords (P_x/P, P_y/P) -> (p_x, p_y) = (P_x/P_0, P_y/P_0) 
-
-  if (set_canon .and. coord%vec(6) /= 0) then
-    coord%vec(2) = coord%vec(2) * E_rel
-    coord%vec(4) = coord%vec(4) * E_rel
-  endif
 
   ! Unset: HV kicks for kickers and separators only.
 

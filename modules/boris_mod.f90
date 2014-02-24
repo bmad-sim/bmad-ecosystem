@@ -112,8 +112,7 @@ endif
 
 call reference_energy_correction (ele, orb_end)
 
-call offset_particle (ele, orb_end, param, set$, set_canonical = .false., &
-                                             set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
 
 t = particle_time(orb_end, ele)
 
@@ -151,8 +150,7 @@ enddo
 
 ! back to lab coords
 
-call offset_particle (ele, orb_end, param, unset$, set_canonical = .false., &
-                                                            set_hvkicks = .false., set_multipoles = .false.)
+call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.

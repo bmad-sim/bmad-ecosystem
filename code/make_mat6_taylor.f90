@@ -38,11 +38,9 @@ if (ele%map_with_offsets) then
 
 else
   orb0 = orb_in
-  call offset_particle (ele, orb0, param, set$, set_canonical = .false., &
-                                  set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, orb0, set_multipoles = .false., set_hvkicks = .false.)
   call taylor_to_mat6 (ele%taylor, orb0%vec, ele%vec0, ele%mat6, orb_out%vec)
-  call offset_particle (ele, orb_out, param, unset$, set_canonical = .false., &
-                                  set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, unset$, orb_out, set_multipoles = .false., set_hvkicks = .false.)
 
   if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (ele%mat6, ele%value(tilt_tot$))
 
