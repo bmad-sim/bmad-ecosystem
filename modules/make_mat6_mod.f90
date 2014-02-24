@@ -1074,10 +1074,10 @@ t5_44 = -arg
 
 ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
 
-mat6(5,1) =  2 * orb0%vec(1) * t5_11 + orb0%vec(4) * t5_14
-mat6(5,2) = (2 * orb0%vec(2) * t5_22 + orb0%vec(3) * t5_23) / rel_p
-mat6(5,3) =  2 * orb0%vec(3) * t5_33 + orb0%vec(2) * t5_23
-mat6(5,4) = (2 * orb0%vec(4) * t5_44 + orb0%vec(1) * t5_14) / rel_p
+mat6(5,1) =  2 * orb0%vec(1) * t5_11 + orb0%vec(4) * t5_14 / rel_p
+mat6(5,2) = (2 * orb0%vec(2) * t5_22 / rel_p + orb0%vec(3) * t5_23) / rel_p
+mat6(5,3) =  2 * orb0%vec(3) * t5_33 + orb0%vec(2) * t5_23 / rel_p
+mat6(5,4) = (2 * orb0%vec(4) * t5_44 / rel_p + orb0%vec(1) * t5_14) / rel_p
 mat6(5,5) = 1
 
 mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2) + &
@@ -1092,8 +1092,8 @@ mat6(6,6) = 1
 
 ! mat6(5,6) 
 
-xp_start = orb0%vec(2) + ks * orb0%vec(3) / 2
-yp_start = orb0%vec(4) - ks * orb0%vec(1) / 2
+xp_start = orb0%vec(2) / rel_p + ks * orb0%vec(3) / 2
+yp_start = orb0%vec(4) / rel_p - ks * orb0%vec(1) / 2
 mat6(5,6) = length * (xp_start**2 + yp_start**2 ) / rel_p
 
 if (tilt_tot /= 0) then

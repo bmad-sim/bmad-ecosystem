@@ -1267,7 +1267,6 @@ case (sextupole$)
 case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
-  call canonical_to_angle_coords (c00)
 
   call solenoid_mat6_calc (param%rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
 
