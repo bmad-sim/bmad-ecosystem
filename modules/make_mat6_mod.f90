@@ -63,39 +63,36 @@ end subroutine mat6_add_pitch
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine quad_mat2_calc (k1, length, mat2, z_coef, pz, dz_dpz_coef)
+! Subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
 !
-! Subroutine to calculate the 2x2 transfer matrix for a quad for one plane in 
-! (x, x', y, y') space. 
-! Note: mat2 does not include any energy corrections for an off-energy particle.
+! Subroutine to calculate the 2x2 transfer matrix for a quad for one plane. 
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   k1     -- Real(rp): Quad strength: k1 > 0 ==> defocus.
-!   length -- Real(rp): Quad length
+!   k1       -- Real(rp): Quad strength: k1 > 0 ==> defocus.
+!   length   -- Real(rp): Quad length
+!   rel_p    -- Real(rp), Relative momentum P/P0.      
 !
 ! Output:
 !   mat2(2,2)      -- Real(rp): Transfer matrix.
 !   z_coef(3)      -- Real(rp), optional: Coefficients for calculating the
 !                       the change in z position:
-!                          z = Integral [-x'^2/2 ds]
-!                            = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
-!   pz             -- Real(rp), optional: momentum deviation. Needed for dz_dpz_coef calc.
-!                       pz must be present if dz_dpz_coef is.
+!                          z = Integral [-(px/(1+pz))^2/2 ds]
+!                            = c(1) * x_0^2 + c(2) * x_0 * px_0 + c(3) * px_0^2 
 !   dz_dpz_coef(3) -- Real(rp), optional: Coefficients for calculating the
 !                       the mat6(5,6) Jacobian matrix element:
-!                         dz_dpz = c(1) * x_0^2 + c(2) * x_0 * x'_0 + c(3) * x'_0^2 
+!                         dz_dpz = c(1) * x_0^2 + c(2) * x_0 * px_0 + c(3) * px_0^2 
 !-
 
-subroutine quad_mat2_calc (k1, length, mat2, z_coef, pz, dz_dpz_coef)
+subroutine quad_mat2_calc (k1, length, rel_p, mat2, z_coef, dz_dpz_coef)
 
 implicit none
 
 real(rp) length, mat2(:,:), cx, sx
 real(rp) k1, sqrt_k, sk_l, k_l2, zc(3), dsx, dcx, rel_p
-real(rp), optional :: pz, z_coef(3), dz_dpz_coef(3)
+real(rp), optional :: z_coef(3), dz_dpz_coef(3)
 
 !
 
@@ -115,36 +112,34 @@ else                       ! defocus
 endif
 
 mat2(1,1) = cx
-mat2(1,2) = sx
-mat2(2,1) = k1 * sx
+mat2(1,2) = sx / rel_p
+mat2(2,1) = k1 * sx * rel_p
 mat2(2,2) = cx
 
 !
 
 if (present(z_coef) .or. present(dz_dpz_coef)) then
   zc(1) = k1 * (-cx * sx + length) / 4
-  zc(2) = -k1 * sx**2 / 2
-  zc(3) = -(cx * sx + length) / 4
+  zc(2) = -k1 * sx**2 / (2 * rel_p)
+  zc(3) = -(cx * sx + length) / (4 * rel_p**2)
   if (present(z_coef)) z_coef = zc
 endif
 
-! dz_dpz_coef uses (x, px, y, py) space with px and py constant.
-! Not x', y' constant.
+! dz_dpz_coef
 
 if (present(dz_dpz_coef)) then
 
   if (abs(sk_l) < 1e-10) then
-    dcx = -k_l2 / 2
-    dsx = -k_l2 * length / 6
+    dcx = -k_l2 / (2 * rel_p)
+    dsx = -k_l2 * length / (6 * rel_p)
   else
-    dcx = -k1 * sx * length / 2
-    dsx = (sx - length * cx) / 2
+    dcx = -k1 * sx * length / (2 * rel_p)
+    dsx = (sx - length * cx) / (2 * rel_p)
   endif
 
-  rel_p = 1 + pz
-  dz_dpz_coef(1) = -zc(1)/rel_p - k1 * (cx * dsx + dcx * sx) / (4 * rel_p)
+  dz_dpz_coef(1) =   -zc(1)/rel_p - k1 * (cx * dsx + dcx * sx) / 4
   dz_dpz_coef(2) = -2*zc(2)/rel_p - k1 * sx * dsx/rel_p
-  dz_dpz_coef(3) = -2*zc(3)/rel_p - (cx * dsx + dcx * sx) / (4 * rel_p)
+  dz_dpz_coef(3) = -2*zc(3)/rel_p - (cx * dsx + dcx * sx) / (4 * rel_p**2)
 
 endif
 
@@ -154,7 +149,7 @@ end subroutine quad_mat2_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine quad_mat6_edge_effect (ele, k1, start, end, mat6)
+! Subroutine quad_mat6_edge_effect (ele, k1, start_orb, end_orb, mat6)
 !
 ! Subroutine to add quadrupole edge effects to the transfer matrix. 
 !
@@ -164,80 +159,108 @@ end subroutine quad_mat2_calc
 ! Input:
 !   ele        -- Ele_struct
 !   k1         -- Real(rp): Quadrupole strength.
-!   start      -- coord_struct: Orbit at beginning of the bend.
-!   end        -- coord_struct: Orbit at beginning of the bend.
+!   start_orb  -- coord_struct: Orbit at beginning of the bend.
+!   end_orb    -- coord_struct: Orbit at beginning of the bend.
 !   mat6(6,6)  -- Real(rp): Transfer matrix without edge effect.
 !
 ! Output:
 !   mat6(6,6)  -- Real(rp): Transfer matrix with edge effect.
 !-
 
-subroutine quad_mat6_edge_effect (ele, k1, start, end, mat6)
+subroutine quad_mat6_edge_effect (ele, k1, start_orb, end_orb, mat6)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: start, end
-real(rp) k1, mat6(6,6), mat6_m(6,6)
-integer ix_fringe
+type (coord_struct) :: start_orb, end_orb
+real(rp) k1, mat6(6,6), me6(6,6)
 real(rp) x, px, y, py, rel_p
+
+integer ix_fringe, fringe_at, physical_end
+
+!
 
 ix_fringe = nint(ele%value(fringe_type$))
 if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
 
-mat6_m = 0
-rel_p = 1 + start%vec(6)
+me6 = 0
+rel_p = 1 + start_orb%vec(6)
 
-x = start%vec(1); px = start%vec(2) * rel_p; y = start%vec(3); py = start%vec(4) * rel_p
+fringe_at = nint(ele%value(fringe_at$))
 
-mat6_m(1,1) = 1 + k1 * (x**2 + y**2) / 4
-mat6_m(1,3) =     k1 * x*y/2
-mat6_m(2,1) =     k1 * (y*py - x*px) / 2
-mat6_m(2,2) = 1 - k1 * (x**2 + y**2) / 4
-mat6_m(2,3) =     k1 * (x*py - y*px) / 2
-mat6_m(2,4) =     k1 * x*y/2
+! Entrance edge kick
 
-mat6_m(3,3) = 1 - k1 * (y**2 + x**2) / 4
-mat6_m(3,1) =   - k1 * y*x/2
-mat6_m(4,3) =   - k1 * (x*px - y*py) / 2
-mat6_m(4,4) = 1 + k1 * (y**2 + x**2) / 4
-mat6_m(4,1) =   - k1 * (y*px - x*py) / 2
-mat6_m(4,2) =   - k1 * y*x/2
+physical_end = physical_ele_end (first_track_edge$, start_orb%direction, ele%orientation)
+if (at_this_ele_end(physical_end, fringe_at)) then
 
-mat6_m(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
-mat6_m(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
-mat6_m(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
-mat6_m(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+  x = start_orb%vec(1); px = start_orb%vec(2); y = start_orb%vec(3); py = start_orb%vec(4)
 
-mat6_m(5,5) = 1
-mat6_m(6,6) = 1
+  me6(1,1) = 1 + k1 * (x**2 + y**2) / 4
+  me6(1,3) =     k1 * x*y/2
+  me6(2,1) =     k1 * (y*py - x*px) / 2
+  me6(2,2) = 1 - k1 * (x**2 + y**2) / 4
+  me6(2,3) =     k1 * (x*py - y*px) / 2
+  me6(2,4) =     k1 * x*y/2
 
-mat6 = matmul(mat6, mat6_m)
+  me6(3,3) = 1 - k1 * (y**2 + x**2) / 4
+  me6(3,1) =   - k1 * y*x/2
+  me6(4,3) =   - k1 * (x*px - y*py) / 2
+  me6(4,4) = 1 + k1 * (y**2 + x**2) / 4
+  me6(4,1) =   - k1 * (y*px - x*py) / 2
+  me6(4,2) =   - k1 * y*x/2
 
-! Exit edge effect
+  me6(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
+  me6(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+  me6(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
+  me6(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
 
-x = end%vec(1); px = end%vec(2) * rel_p; y = end%vec(3); py = end%vec(4) * rel_p
+  me6(5,1) = -me6(2,6)*me6(1,1) + me6(1,6)*me6(2,1) - me6(4,6)*me6(3,1) + me6(3,6)*me6(4,1)
+  me6(5,2) = -me6(2,6)*me6(1,2) + me6(1,6)*me6(2,2) - me6(4,6)*me6(3,2) + me6(3,6)*me6(4,2)
+  me6(5,3) = -me6(2,6)*me6(1,3) + me6(1,6)*me6(2,3) - me6(4,6)*me6(3,3) + me6(3,6)*me6(4,3)
+  me6(5,4) = -me6(2,6)*me6(1,4) + me6(1,6)*me6(2,4) - me6(4,6)*me6(3,4) + me6(3,6)*me6(4,4)
 
-mat6_m(1,1) = 1 - k1 * (x**2 + y**2) / 4
-mat6_m(1,3) =   - k1 * x*y/2
-mat6_m(2,1) =   - k1 * (y*py - x*px) / 2
-mat6_m(2,2) = 1 + k1 * (x**2 + y**2) / 4
-mat6_m(2,3) =   - k1 * (x*py - y*px) / 2
-mat6_m(2,4) =   - k1 * x*y/2
+  me6(5,5) = 1
+  me6(6,6) = 1
 
-mat6_m(3,3) = 1 + k1 * (y**2 + x**2) / 4
-mat6_m(3,1) =     k1 * y*x/2
-mat6_m(4,3) =     k1 * (x*px - y*py) / 2
-mat6_m(4,4) = 1 - k1 * (y**2 + x**2) / 4
-mat6_m(4,1) =     k1 * (y*px - x*py) / 2
-mat6_m(4,2) =     k1 * y*x/2
+  mat6 = matmul(mat6, me6)
 
-mat6_m(1,6) =  k1 * (x**3/12 + x*y**2/4) / rel_p
-mat6_m(2,6) =  k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
-mat6_m(3,6) = -k1 * (y**3/12 + y*x**2/4) / rel_p
-mat6_m(4,6) = -k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+endif
 
-mat6 = matmul(mat6_m, mat6)
+! Exit edge kick
+
+physical_end = physical_ele_end (second_track_edge$, end_orb%direction, ele%orientation)
+if (at_this_ele_end(physical_end, fringe_at)) then
+  x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
+
+  me6(1,1) = 1 - k1 * (x**2 + y**2) / 4
+  me6(1,3) =   - k1 * x*y/2
+  me6(2,1) =   - k1 * (y*py - x*px) / 2
+  me6(2,2) = 1 + k1 * (x**2 + y**2) / 4
+  me6(2,3) =   - k1 * (x*py - y*px) / 2
+  me6(2,4) =   - k1 * x*y/2
+
+  me6(3,3) = 1 + k1 * (y**2 + x**2) / 4
+  me6(3,1) =     k1 * y*x/2
+  me6(4,3) =     k1 * (x*px - y*py) / 2
+  me6(4,4) = 1 - k1 * (y**2 + x**2) / 4
+  me6(4,1) =     k1 * (y*px - x*py) / 2
+  me6(4,2) =     k1 * y*x/2
+
+  me6(1,6) =  k1 * (x**3/12 + x*y**2/4) / rel_p
+  me6(2,6) =  k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+  me6(3,6) = -k1 * (y**3/12 + y*x**2/4) / rel_p
+  me6(4,6) = -k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+
+  me6(5,1) = -me6(2,6)*me6(1,1) + me6(1,6)*me6(2,1) - me6(4,6)*me6(3,1) + me6(3,6)*me6(4,1)
+  me6(5,2) = -me6(2,6)*me6(1,2) + me6(1,6)*me6(2,2) - me6(4,6)*me6(3,2) + me6(3,6)*me6(4,2)
+  me6(5,3) = -me6(2,6)*me6(1,3) + me6(1,6)*me6(2,3) - me6(4,6)*me6(3,3) + me6(3,6)*me6(4,3)
+  me6(5,4) = -me6(2,6)*me6(1,4) + me6(1,6)*me6(2,4) - me6(4,6)*me6(3,4) + me6(3,6)*me6(4,4)
+
+  me6(5,5) = 1
+  me6(6,6) = 1
+
+  mat6 = matmul(me6, mat6)
+endif
 
 end subroutine quad_mat6_edge_effect
 
@@ -245,14 +268,10 @@ end subroutine quad_mat6_edge_effect
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine sol_quad_mat6_calc (ks, k1, length, mat6, orb, dz_coef)
+! Subroutine sol_quad_mat6_calc (ks, k1, length, orb, mat6, dz_coef)
 !
 ! Subroutine to calculate the transfer matrix for a combination 
 ! solenoid/quadrupole element (without a tilt).
-!
-! Note: This routine is not meant to be for general use.
-! Input coords are in (x, x', y, y') space since the problem is linear
-! in this space.
 !
 ! Modules Needed:
 !   use bmad
@@ -261,15 +280,15 @@ end subroutine quad_mat6_edge_effect
 !   ks      -- Real(rp): Solenoid strength.
 !   k1      -- Real(rp): Quadrupole strength.
 !   length  -- Real(rp): Sol_quad length.
-!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad in (x, x', y, y', z, pz) space.
+!   orb(6)  -- Real(rp): Orbit at beginning of the sol_quad.
 !
 ! Output:
-!   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad in normal (x, px, y, py) space.
+!   mat6(6,6)    -- Real(rp): Transfer matrix across the sol_quad.
 !   dz_coef(4,4) -- Real(rp), optional: coefs for dz calc
 !                     dz = sum_ij dz_coef(i,j) * orb(i) * orb(j)
 !-
 
-subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)
+subroutine sol_quad_mat6_calc (ks_in, k1_in, s_len, orb, m, dz_coef)
 
 implicit none
 
@@ -282,7 +301,7 @@ real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in
 real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
 real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
 real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
-real(rp) ks3, fp, fm, dfm, dfp, df_f, ug
+real(rp) ks3, fp, fm, dfm, dfp, df_f, ug, orbit(6)
 real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
 real(rp) coef1, coef2, dcoef1, dcoef2, ks4
 real(rp) t4(4,4), ts(4,4), m0(6,6), xp_start, xp_end, yp_start, yp_end
@@ -296,6 +315,11 @@ real(rp) d2_alpha, d2_beta, d2_arg, d2_arg1, d2_S, d2_Snh, d2_f_f
 ! to (x, p_x, y, p_y) coordinates.
 
 rel_p = 1 + orb(6)
+
+orbit = orb
+orbit(2) = orb(2) / rel_p
+orbit(4) = orb(4) / rel_p
+
 k1 = k1_in / rel_p
 ks = ks_in / rel_p
 
@@ -418,7 +442,7 @@ t4(4,3) = m0(4,3)*(df_f + 2) + &
              (ug/(2*k1))*(-dcoef2*S1 - coef2*dS1 + dcoef1*Snh1 + coef1*dSnh1)
 t4(4,4) = t4(3,3)
 
-m0(1:4,6) = matmul(t4(1:4,1:4), orb(1:4))
+m0(1:4,6) = matmul(t4(1:4,1:4), orbit(1:4))
 
 ! m(5,6) calc
 
@@ -516,18 +540,22 @@ dtsd(1:4,2) = (dts(1:4,2) - ts(1:4,2)) / rel_p**2
 dtsd(1:4,3) = dts(1:4,3) / rel_p
 dtsd(1:4,4) = (dts(1:4,4) - ts(1:4,4)) / rel_p**2
 
-r_orb = [orb(1), orb(2)*rel_p, orb(3), orb(4)*rel_p]
-d_orb = [0.0_rp, -orb(2)/rel_p, 0.0_rp, -orb(4)/rel_p]
+r_orb = [orbit(1), orbit(2)*rel_p, orbit(3), orbit(4)*rel_p]
+d_orb = [0.0_rp, -orbit(2)/rel_p, 0.0_rp, -orbit(4)/rel_p]
 
 ! dz = Sum_ij dz_coef(i,j) * orb(i) * orb(j)
 
 if (present(dz_coef)) then
   dz_coef = matmul (ts, m0(1:4,1:4)) / 2
+  dz_coef(:,2) = dz_coef(:,2) / rel_p 
+  dz_coef(:,4) = dz_coef(:,4) / rel_p 
+  dz_coef(2,:) = dz_coef(2,:) / rel_p 
+  dz_coef(4,:) = dz_coef(4,:) / rel_p 
 endif
 
 ! energy corrections
 
-if (all(orb == 0) .and. .not. present(dz_coef)) then
+if (all(orbit == 0) .and. .not. present(dz_coef)) then
   m = m0
   return
 endif
@@ -562,8 +590,8 @@ dm(3,2) = t4(3,2) / rel_p**2
 dm(3,4) = t4(3,4) / rel_p**2
 
 m(5,6) = (dot_product(matmul(matmul(d_orb, tsd), m(1:4,1:4)), r_orb) + &
-          dot_product(matmul(matmul(orb(1:4), dtsd), m(1:4,1:4)), r_orb) + &
-          dot_product(matmul(matmul(orb(1:4), tsd), dm(1:4,1:4)), r_orb)) / 2
+          dot_product(matmul(matmul(orbit(1:4), dtsd), m(1:4,1:4)), r_orb) + &
+          dot_product(matmul(matmul(orbit(1:4), tsd), dm(1:4,1:4)), r_orb)) / 2
 
 ! The m(5,x) terms follow from the symplectic condition.
 
