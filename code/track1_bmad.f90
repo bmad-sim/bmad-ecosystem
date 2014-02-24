@@ -537,7 +537,6 @@ case (patch$)
 case (quadrupole$)
 
   call offset_particle (ele, param, set$, end_orb)
-  call canonical_to_angle_coords (end_orb)
 
   k1 = charge_dir * ele%value(k1$) / rel_pc
 
@@ -547,17 +546,15 @@ case (quadrupole$)
 
   ! Body
 
-  call quad_mat2_calc (-k1, length, mat2, dz_coef)
+  call quad_mat2_calc (-k1, length, rel_pc, mat2, dz_coef)
   end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(1)**2 + &
-                            dz_coef(2) * end_orb%vec(1) * end_orb%vec(2) + &
-                            dz_coef(3) * end_orb%vec(2)**2 
+                      dz_coef(2) * end_orb%vec(1) * end_orb%vec(2) + dz_coef(3) * end_orb%vec(2)**2 
 
   end_orb%vec(1:2) = matmul(mat2, end_orb%vec(1:2))
 
-  call quad_mat2_calc (k1, length, mat2, dz_coef)
+  call quad_mat2_calc (k1, length, rel_pc, mat2, dz_coef)
   end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(3)**2 + &
-                            dz_coef(2) * end_orb%vec(3) * end_orb%vec(4) + &
-                            dz_coef(3) * end_orb%vec(4)**2 
+                      dz_coef(2) * end_orb%vec(3) * end_orb%vec(4) + dz_coef(3) * end_orb%vec(4)**2 
 
   end_orb%vec(3:4) = matmul(mat2, end_orb%vec(3:4))
 
@@ -565,7 +562,6 @@ case (quadrupole$)
 
   call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
 
-  call angle_to_canonical_coords (end_orb)
   call offset_particle (ele, param, unset$, end_orb)  
 
   call track1_low_energy_z_correction (end_orb, ele, param)
@@ -689,16 +685,15 @@ case (solenoid$)
 case (sol_quad$)
 
   call offset_particle (ele, param, set$, end_orb)
-  call canonical_to_angle_coords (end_orb)
 
-  ks = param%rel_tracking_charge * ele%value(ks$) / rel_pc
-  k1 = charge_dir * ele%value(k1$) / rel_pc
+  ks = param%rel_tracking_charge * ele%value(ks$)
+  k1 = charge_dir * ele%value(k1$)
   vec0 = 0
-  call sol_quad_mat6_calc (ks, k1, length, mat6, vec0, dz4_coef)
+  vec0(6) = end_orb%vec(6)
+  call sol_quad_mat6_calc (ks, k1, length, vec0, mat6, dz4_coef)
   end_orb%vec(5) = end_orb%vec(5) + sum(end_orb%vec(1:4) * matmul(dz4_coef, end_orb%vec(1:4)))   
   end_orb%vec(1:4) = matmul (mat6(1:4,1:4), end_orb%vec(1:4))
 
-  call angle_to_canonical_coords (end_orb)
   call offset_particle (ele, param, unset$, end_orb)
 
   call track1_low_energy_z_correction (end_orb, ele, param)
@@ -745,7 +740,6 @@ case (wiggler$, undulator$)
   endif
 
   call offset_particle (ele, param, set$, end_orb)
-  call canonical_to_angle_coords (end_orb)
 
   if (ele%value(l_pole$) == 0) then
     k_z = 1d100    ! Something large
@@ -754,7 +748,7 @@ case (wiggler$, undulator$)
   endif
   k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
 
-  p_factor = 1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2
+  p_factor = 1 - (end_orb%vec(2) / rel_pc**2)**2 - (end_orb%vec(4) / rel_pc**2)**2
   if (p_factor < 0) then
     end_orb%state = lost_z_aperture$
     return
@@ -765,19 +759,19 @@ case (wiggler$, undulator$)
 
   ! 1/2 of the octupole octupole kick at the entrance face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_pc * k_z**2 * end_orb%vec(3)**3 / 3
 
   ! Quadrupole body
 
-  call quad_mat2_calc (k1, length, mat2)
-  end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2)
+  call quad_mat2_calc (k1, length, rel_pc, mat2)
+  end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2) / rel_pc
   end_orb%vec(3:4) = matmul (mat2, end_orb%vec(3:4))
 
   ! 1/2 of the octupole octupole kick at the exit face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_pc * k_z**2 * end_orb%vec(3)**3 / 3
   
-  p_factor = 1 - (end_orb%vec(2) / rel_pc)**2 - (end_orb%vec(4) / rel_pc)**2
+  p_factor = 1 - (end_orb%vec(2) / rel_pc**2)**2 - (end_orb%vec(4) / rel_pc**2)**2
   if (p_factor < 0) then
     end_orb%state = lost_z_aperture$
     return
@@ -786,7 +780,6 @@ case (wiggler$, undulator$)
   end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
                    - 1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
   
-  call angle_to_canonical_coords (end_orb)
   call offset_particle (ele, param, unset$, end_orb)
    
   call track1_low_energy_z_correction (end_orb, ele, param)

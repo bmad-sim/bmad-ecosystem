@@ -55,7 +55,7 @@ real(rp) alpha, sin_a, cos_a, f, phase0, phase, t0, dt_ref, E, pxy2, dE
 real(rp) g_tot, rho, ct, st, x, px, y, py, z, pz, p_s, Dxy, Dy, px_t
 real(rp) Dxy_t, dpx_t, df_dpy, df_dp, kx_1, ky_1, kx_2, ky_2
 real(rp) mc2, pc_start, pc_end, pc_start_ref, pc_end_ref, gradient_max, voltage_max
-real(rp) beta_start, beta_end, p_rel, beta_rel
+real(rp) beta_start, beta_end, p_rel, beta_rel, xp, yp
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
 real(rp) drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0, xp1, xp2, yp1, yp2
 real(rp) dp_long_dpx, dp_long_dpy, dp_long_dpz, dalpha_dpx, dalpha_dpy, dalpha_dpz
@@ -779,22 +779,13 @@ case (patch$)
 case (quadrupole$)
 
   call offset_particle (ele, param, set$, c00)
-  call canonical_to_angle_coords (c00)
-
   call offset_particle (ele, param, set$, c11, ds_pos = length)
-  call canonical_to_angle_coords (c11)
   
   ix_fringe = nint(v(fringe_type$))
   k1 = v(k1$) * charge_dir / rel_p
 
-  call quad_mat2_calc (-k1, length, mat6(1:2,1:2), dz_x, c0%vec(6), ddz_x)
-  call quad_mat2_calc ( k1, length, mat6(3:4,3:4), dz_y, c0%vec(6), ddz_y)
-
-  mat6(1,2) = mat6(1,2) / rel_p
-  mat6(2,1) = mat6(2,1) * rel_p
-
-  mat6(3,4) = mat6(3,4) / rel_p
-  mat6(4,3) = mat6(4,3) * rel_p
+  call quad_mat2_calc (-k1, length, rel_p, mat6(1:2,1:2), dz_x, ddz_x)
+  call quad_mat2_calc ( k1, length, rel_p, mat6(3:4,3:4), dz_y, ddz_y)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
@@ -806,10 +797,10 @@ case (quadrupole$)
 
   if (any(c00%vec(1:4) /= 0)) then
     mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
-    mat6(5,2) =    (c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)) / rel_p
+    mat6(5,2) =     c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)
     mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
-    mat6(5,4) =    (c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)) / rel_p
-    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3)  + &
+    mat6(5,4) =     c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)
+    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3) + &
                 c00%vec(3)**2 * ddz_y(1) + c00%vec(3)*c00%vec(4) * ddz_y(2) + c00%vec(4)**2 * ddz_y(3)  
   endif
 
@@ -1280,9 +1271,8 @@ case (solenoid$)
 case (sol_quad$)
 
   call offset_particle (ele, param, set$, c00)
-  call canonical_to_angle_coords (c00)
 
-  call sol_quad_mat6_calc (v(ks$) * param%rel_tracking_charge, v(k1$) * charge_dir, length, mat6, c00%vec)
+  call sol_quad_mat6_calc (v(ks$) * param%rel_tracking_charge, v(k1$) * charge_dir, length, c00%vec, mat6)
 
   if (v(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, v(tilt_tot$))
@@ -1305,10 +1295,7 @@ case (taylor$)
 case (wiggler$, undulator$)
 
   call offset_particle (ele, param, set$, c00)
-  call canonical_to_angle_coords (c00)
-
   call offset_particle (ele, param, set$, c11, ds_pos = length)
-  call canonical_to_angle_coords (c11)
 
   call mat_make_unit (mat6)     ! make a unit matrix
 
@@ -1333,11 +1320,11 @@ case (wiggler$, undulator$)
   !
 
   mat6(1, 1) = 1
-  mat6(1, 2) = length
+  mat6(1, 2) = length / rel_p
   mat6(2, 1) = 0
   mat6(2, 2) = 1
 
-  call quad_mat2_calc (k1, length, mat6(3:4,3:4))
+  call quad_mat2_calc (k1, length, rel_p, mat6(3:4,3:4))
 
   cy = mat6(3, 3)
   sy = mat6(3, 4)
@@ -1349,9 +1336,9 @@ case (wiggler$, undulator$)
 
   ! the mat6(i,6) terms are constructed so that mat6 is sympelctic
 
-  mat6(5,2) = 2 * c00%vec(2) * t5_22
-  mat6(5,3) = 2 * c00%vec(3) * t5_33 +     c00%vec(4) * t5_34
-  mat6(5,4) =     c00%vec(3) * t5_34 + 2 * c00%vec(4) * t5_44
+  mat6(5,2) = 2 * c00%vec(2) * t5_22 / rel_p
+  mat6(5,3) = 2 * c00%vec(3) * t5_33 +     c00%vec(4) * t5_34 / rel_p
+  mat6(5,4) =     c00%vec(3) * t5_34 + 2 * c00%vec(4) * t5_44 / rel_p
 
   mat6(1,6) = mat6(5,2) * mat6(1,1)
   mat6(2,6) = mat6(5,2) * mat6(2,1)

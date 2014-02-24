@@ -921,7 +921,6 @@ end subroutine apply_hard_edge_kick
 ! Subroutine quadrupole_edge_kick (ele, particle_at, orbit)
 !
 ! Routine to add the 3rd order quadrupolar edge kick.
-! Routine works whether orbit uses angular or canonical coordinates.
 ! This routine assumes that the particle orbit has been rotated to the element reference frame.
 !
 ! Moudle needed:
@@ -946,18 +945,21 @@ type (coord_struct) orbit
 real(rp) k1, x, y, px, py, charge_dir
 
 integer particle_at
-integer ix_fringe
+integer ix_fringe, fringe_at, physical_end
 
 !
 
 ix_fringe = nint(ele%value(fringe_type$))
 if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
 
+fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+if (.not. at_this_ele_end(physical_end, fringe_at)) return
+
 charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
 
 k1 = charge_dir * ele%value(k1$) / (1 + orbit%vec(6))
-
 if (particle_at == second_track_edge$) k1 = -k1
 
 x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
@@ -965,6 +967,7 @@ orbit%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
 orbit%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
 orbit%vec(3) = y  - k1 * (y**3/12 + y*x**2/4)
 orbit%vec(4) = py - k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
+orbit%vec(5) = orbit%vec(5) + k1 * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
 
 end subroutine quadrupole_edge_kick
 

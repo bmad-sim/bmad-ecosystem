@@ -42,17 +42,20 @@ real(rp) ks, k1, length, z_start, charge_dir
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), pointer :: mat6(:,:)
-real(rp), parameter :: vec0(6) = 0
+real(rp) :: vec0(6)
 
 integer n, nd, orientation, n_div, np_max, physical_end, fringe_at
 
 logical make_matrix, end_in, has_nonzero
 
+character(*), parameter :: r_name = 'sad_mult_track_and_mat'
+
 !
 
 if (ele%value(rf_frequency$) /= 0) then
-
-
+  call out_io (s_fatal$, r_name, 'RF CAVITY NOT YET IMPLEMENTED FOR SAD_MULT ELEMENTS!')
+  if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 !
@@ -77,7 +80,7 @@ call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
 if (length == 0) then
   call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
-  call multipole_kicks (knl/rel_pc, tilt, orbit)
+  call multipole_kicks (knl, tilt, orbit)
   call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
@@ -127,7 +130,7 @@ do nd = 0, n_div
     if (k1 == 0) then
       call solenoid_mat6_calc (ks, ll, 0.0_rp, orbit, mat1)
     else
-      call sol_quad_mat6_calc (ks, k1, ll, mat1, orbit%vec)
+      call sol_quad_mat6_calc (ks, k1, ll, orbit%vec, mat1)
     endif
     mat6 = matmul(mat1, mat6)
   endif
@@ -141,7 +144,9 @@ do nd = 0, n_div
     orbit%vec(5) = orbit%vec(5) - ll * (xp_start**2 + yp_start**2 ) / 2
     orbit%vec(1:4) = matmul (mat4, orbit%vec(1:4))
   else
-    call sol_quad_mat6_calc (ks/rel_pc, k1/rel_pc, ll, mat1, vec0, dz4_coef)
+    vec0 = 0
+    vec0(6) = orbit%vec(6)
+    call sol_quad_mat6_calc (ks, k1, ll, vec0, mat1, dz4_coef)
     orbit%vec(5) = orbit%vec(5) + sum(orbit%vec(1:4) * matmul(dz4_coef, orbit%vec(1:4))) 
     orbit%vec(1:4) = matmul (mat1(1:4,1:4), orbit%vec(1:4))
   endif
