@@ -193,6 +193,9 @@ IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort"
   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -mcmodel=medium")
 ENDIF ()
 
+IF ($ENV{ACC_ENABLE_FPIC})
+   SET (BASE_Fortran_FLAGS "${BASE_Fortran_FLAGS} -fPIC")
+ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
@@ -310,11 +313,12 @@ IF (${DISTRIBUTION_BUILD})
 ELSE()
   SET (MASTER_INC_DIRS
     ${MASTER_INC_DIRS}
-    ${PACKAGES_DIR}/include
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
     ${PACKAGES_DIR}/forest/include
     ${PACKAGES_DIR}/recipes_c-ansi/include
     ${PACKAGES_DIR}/cfortran/include
-    ${PACKAGES_DIR}/root/include
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/root
+    ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
     ${PACKAGES_OUTPUT_BASEDIR}/modules
   )
 ENDIF()

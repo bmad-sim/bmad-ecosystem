@@ -229,6 +229,17 @@ ELSE ()
 ENDIF ()
 
 
+#------------------------------------------
+# Honor requests for test executable 
+# building made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_BUILD_TEST_EXES})
+  SET(BUILD_TEST_EXES 1)
+ELSE ()
+  SET(BUILD_TEST_EXES 0)
+ENDIF ()
+
+
 #-----------------------------------------
 # Print some friendly build information
 # and according to the build type, set
@@ -471,6 +482,15 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
   TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS})
 ENDIF ()
 
+
+
+#---------------------------------------------------------------
+# Add each TEST EXE build description file mentioned in the
+# project's CMakeLists.txt file, as requested.
+#---------------------------------------------------------------
+IF (BUILD_TEST_EXES)
+  SET (EXE_SPECS ${TEST_EXE_SPECS} ${EXE_SPECS})
+ENDIF ()
 
 
 #---------------------------------------------------------------
