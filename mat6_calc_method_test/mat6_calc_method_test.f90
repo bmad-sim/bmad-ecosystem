@@ -12,6 +12,8 @@ type (ele_struct), pointer :: ele, ele2
 type (lat_param_struct) param
 type (branch_struct), pointer :: branch
 
+real(rp) err_mat(6,6)
+
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
 character(*), PARAMETER  :: fmt1 = '(a,a,6es22.13)'
@@ -72,7 +74,7 @@ do ib = 0, ubound(lat%branch, 1)
           write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
         else if (k == 8) then
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
-          write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$))
+          write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
         end if
 
       END DO

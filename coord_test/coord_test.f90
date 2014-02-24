@@ -24,8 +24,8 @@ open (1, file = 'output.now')
 orb0%vec = [0.1_rp, 0.02_rp, 0.2_rp, 0.03_rp, 0.4_rp, 2.0_rp]
 ele => lat%ele(1)
 call init_coord (orbit, orb0%vec, ele, .false.)
-call offset_particle (ele, orbit, lat%param, set$)
-call offset_particle (ele, orbit, lat%param, unset$)
+call offset_particle (ele, lat%param, set$, orbit)
+call offset_particle (ele, lat%param, unset$, orbit)
 
 write (1, '(a, 6es20.12)') '"orbit1-electron"  ABS 1E-15', orbit%vec
 write (1, '(a, 6es20.12)') '"length1-electron" ABS 1E-15', orbit%s, c_light * orbit%t, orbit%path_len

@@ -5,7 +5,7 @@
 #-
 
 now_file = open('output.now', 'r')  
-temp_file = open('output.temp', 'w')
+temp_file = open('output.correct', 'w')
 
 for now_line in now_file:
   if not now_line.strip():     # blank line
@@ -35,5 +35,4 @@ for now_line in now_file:
 
 #
 
-print('Created file: output.temp')
-print('Merge or mv output.temp output.correct')
+print('Created file: output.correct')
