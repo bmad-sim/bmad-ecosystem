@@ -14,7 +14,6 @@ set(SRC_DIRS
   math 
   matrix 
   misc 
-  old_utils 
   plot 
   string
   geodesic_lm
