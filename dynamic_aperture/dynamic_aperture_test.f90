@@ -1,37 +1,3 @@
-!........................................................................
-!+
-! program    :  dynamic_aperture_test
-!
-! Description:  test of dynamic aperture subroutine
-!
-! Arguments  :
-!
-! Mod/Commons:
-!
-! Calls      :
-!
-! Author     :  
-!
-! Modified   :
-!-
-!........................................................................
-!
-! $Id$
-!
-! $Log$
-! Revision 1.2  2007/01/30 16:14:31  dcs
-! merged with branch_bmad_1.
-!
-! Revision 1.1.1.1.2.1  2006/12/22 20:30:43  dcs
-! conversion compiles.
-!
-! Revision 1.1.1.1  2005/06/14 14:59:02  cesrulib
-! Beam Simulation Code
-!
-!
-!........................................................................
-!
-
 program dynamic_aperture_test
 
   use dynamic_aperture_mod                                      
