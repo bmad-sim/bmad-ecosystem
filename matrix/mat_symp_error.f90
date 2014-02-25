@@ -1,9 +1,11 @@
 !+
-! Function mat_symp_error (mat, p0_ratio) result (error)
+! Function mat_symp_error (mat, p0_ratio, err_mat) result (error)
 !
 ! Routine to check the symplecticity of a square matrix. The error is
 ! defined to via:
-!     error = maxval (abs (Mat_transpose * S * Mat - S))
+!     error = maxval (abs (err_mat))
+! where
+!     err_mat = Mat_transpose * S * Mat - S
 !
 ! When using coordinates like (x, Px/P0, y, Py/P0, z, dP/P0), where P0 is
 ! the reference momentum, then:
@@ -16,18 +18,20 @@
 !   use sim_utils_interface
 !
 ! Input:
-!   mat(:,:)    -- Real(rp): Matrix to check
-!   p0_ratio    -- Real(rp): optional: Ratio of p0_exit / p0_entrance. Default is 1.
-!                            If present, the size of mat_in must be 6.
+!   mat(:,:)      -- Real(rp): Matrix to check
+!   p0_ratio      -- Real(rp), optional: Ratio of p0_exit / p0_entrance. Default is 1.
+!                              If present, the size of mat_in must be 6.
 !
 ! Output:
-!   error -- Real(rp): difference from symplecticity:
-!             = 0    --> perfect.
-!             = 1e-4 --> Fair, but I wouldn't use for long term tracking.
-!             = 1    --> Terrible.
+!   error         -- Real(rp): difference from symplecticity:
+!                     = 0    --> perfect.
+!                     = 1e-4 --> Fair, but I wouldn't use mat for long term tracking.
+!                     = 1    --> Terrible.
+!   err_mat(:,:)  -- Real(rp), optional: Error matrix. Examination of this matrix can give clues 
+!                     as to what part of phase space is contributing most to non-symplectivity.
 !-
 
-function mat_symp_error (mat, p0_ratio) result (error)
+function mat_symp_error (mat, p0_ratio, err_mat) result (error)
 
 use output_mod, except => mat_symp_error
 
@@ -36,7 +40,7 @@ implicit none
 integer i, j, n
 
 real(rp), intent(in) :: mat(:,:)
-real(rp), optional :: p0_ratio
+real(rp), optional :: p0_ratio, err_mat(:,:)
 real(rp) :: m1(size(mat, 1), size(mat, 1)), m2(size(mat, 1), size(mat, 1))
 real(rp) error
 
@@ -68,6 +72,8 @@ do j = 2, n, 2
 enddo
 
 error = maxval(abs(m2))
+
+if (present(err_mat)) err_mat = m2
 
 if (debug) then
   print *, 'MAT_SYMP_ERROR:', error

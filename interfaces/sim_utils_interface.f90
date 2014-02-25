@@ -318,10 +318,11 @@ interface
     real(rp) mat2(:,:)
   end subroutine
 
-  function mat_symp_error (mat, p0_ratio) result (error)
+  function mat_symp_error (mat, p0_ratio, err_mat) result (error)
     import
     real(rp), intent(in) :: mat(:,:)
     real(rp), optional :: p0_ratio
+    real(rp), optional :: err_mat(:,:)
     real(rp) error
   end function
 
