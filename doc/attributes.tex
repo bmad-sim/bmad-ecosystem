@@ -2035,9 +2035,9 @@ element, may be set to one of the following:
   basic_bend        ! Default for sbend and rbend elements
   full_bend
   full_straight
-  linear_sad
-  nonlin_only_sad   ! Default for sad_mult elements
-  full_sad
+  sad_linear
+  sad_nonlin_only   ! Default for sad_mult elements
+  sad_full
 \end{example}
 The \vn{none} setting ignores any fringe fields and is the default for
 \vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic bend} setting,
@@ -2059,9 +2059,9 @@ Example:
 \end{example}
 
 \index{sad}
-For SAD type fringes, the \vn{linear_sad} setting only uses the linear
-part of the fringe, \vn{nonlin_only_sad} ignores the linear part of
-the fringe, and \vn{full_sad} uses the full fringe.
+For SAD type fringes, the \vn{sad_linear} setting only uses the linear
+part of the fringe, \vn{sad_nonlin_only} ignores the linear part of
+the fringe, and \vn{sad_full} uses the full fringe.
 
 
 \index{ptc_max_fringe_order}

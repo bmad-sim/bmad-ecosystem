@@ -120,7 +120,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     if (ele%key == sad_mult$) then
       select case (nint(ele%value(fringe_type$)))
-      case (none$, linear_sad$, nonlin_only_sad$, full_sad$)
+      case (none$, sad_linear$, sad_nonlin_only$, sad_full$)
       case default
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &

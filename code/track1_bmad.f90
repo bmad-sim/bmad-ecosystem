@@ -60,7 +60,7 @@ real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
 real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3), charge_dir
 
-integer i, n, n_slice, key, ix_fringe, orientation
+integer i, n, n_slice, key, orientation
 
 logical, optional :: err_flag
 logical err, has_nonzero_pole
@@ -536,9 +536,9 @@ case (patch$)
 
 case (quadrupole$)
 
-  call offset_particle (ele, param, set$, end_orb)
-
   k1 = charge_dir * ele%value(k1$) / rel_pc
+
+  call offset_particle (ele, param, set$, end_orb)
 
   ! Entrance edge
 

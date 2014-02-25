@@ -66,12 +66,12 @@ real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_
 real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
 real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k
 
-integer i, n_slice, key, ix_fringe, dir
+integer i, n_slice, key, dir
 
 real(rp) charge_dir, hkick, vkick, kick
 
 logical, optional :: end_in, err
-logical err_flag, has_nonzero_pole
+logical err_flag, has_nonzero_pole, fringe_here
 character(16), parameter :: r_name = 'make_mat6_bmad'
 
 !--------------------------------------------------------
@@ -776,24 +776,22 @@ case (patch$)
 !--------------------------------------------------------
 ! quadrupole
 
+!!  call quad_mat6_edge_effect (ele, k1, c_int, c11, mat6)
+
 case (quadrupole$)
 
-  call offset_particle (ele, param, set$, c00)
-  call offset_particle (ele, param, set$, c11, ds_pos = length)
-  
-  ix_fringe = nint(v(fringe_type$))
   k1 = v(k1$) * charge_dir / rel_p
 
-  call quad_mat2_calc (-k1, length, rel_p, mat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, length, rel_p, mat6(3:4,3:4), dz_y, ddz_y)
+  ! Starting edge
+
+  call offset_particle (ele, param, set$, c00)
+  call quadrupole_edge_mat6 (ele, first_track_edge$, c00, kmat6, fringe_here)
+  call quadrupole_edge_kick (ele, first_track_edge$, c00)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
-  if (ix_fringe == full_straight$ .or. ix_fringe == full_bend$) then
-    c_int = c00
-    call quadrupole_edge_kick (ele, first_track_edge$, c00)
-    call quadrupole_edge_kick (ele, first_track_edge$, c11) ! Yes first edge since we are propagating backwards.
-  endif
+  call quad_mat2_calc (-k1, length, rel_p, mat6(1:2,1:2), dz_x, ddz_x)
+  call quad_mat2_calc ( k1, length, rel_p, mat6(3:4,3:4), dz_y, ddz_y)
 
   if (any(c00%vec(1:4) /= 0)) then
     mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
@@ -808,10 +806,19 @@ case (quadrupole$)
     mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2)
     mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2)
     mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
+
     mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
   endif
 
-  call quad_mat6_edge_effect (ele, k1, c_int, c11, mat6)
+  c00%vec(1:2) = matmul(mat6(1:2,1:2), c00%vec(1:2))
+  c00%vec(3:4) = matmul(mat6(3:4,3:4), c00%vec(3:4))
+
+  if (fringe_here) mat6 = matmul(mat6, kmat6)
+
+  ! Ending edge
+
+  call quadrupole_edge_mat6 (ele, second_track_edge$, c00, kmat6, fringe_here)
+  if (fringe_here) mat6 = matmul(kmat6, mat6)
 
   ! tilt and multipoles
 

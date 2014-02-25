@@ -42,11 +42,11 @@ real(rp) ks, k1, length, z_start, charge_dir
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), pointer :: mat6(:,:)
-real(rp) :: vec0(6)
+real(rp) :: vec0(6), kmat(6,6)
 
 integer n, nd, orientation, n_div, np_max, physical_end, fringe_at
 
-logical make_matrix, end_in, has_nonzero
+logical make_matrix, end_in, has_nonzero, fringe_here
 
 character(*), parameter :: r_name = 'sad_mult_track_and_mat'
 
@@ -93,9 +93,6 @@ endif
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
-f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) / (24 * rel_pc)
-f2 =  k1 * ele%value(f2$) / rel_pc
-
 call transfer_ele(ele, ele2)
 ele2%value(tilt_tot$) = tilt(1)
 ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
@@ -106,16 +103,11 @@ knl = knl / n_div
 
 call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
-if (at_this_ele_end(physical_end, fringe_at)) then
-  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == linear_sad$) then
-    call linear_fringe_kick (f1, f2)
-  endif
-  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == nonlin_only_sad$) then
-    call nonlinear_fringe_kick ()
-  endif
+if (make_matrix) then
+  call quadrupole_edge_mat6 (ele, first_track_edge$, orbit, kmat, fringe_here)
+  if (fringe_here) mat6 = kmat
 endif
+call quadrupole_edge_kick (ele, first_track_edge$, orbit)
 
 ! Body
 
@@ -167,15 +159,11 @@ enddo
 
 ! End stuff
 
-physical_end = physical_ele_end (second_track_edge$, orbit%direction, ele%orientation)
-if (at_this_ele_end(physical_end, fringe_at)) then
-  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == linear_sad$) then
-    call linear_fringe_kick (-f1, f2)
-  endif
-  if (ele%value(fringe_type$) == full_sad$ .or. ele%value(fringe_type$) == nonlin_only_sad$) then
-    call nonlinear_fringe_kick ()
-  endif
+if (make_matrix) then
+  call quadrupole_edge_mat6 (ele, second_track_edge$, orbit, kmat, fringe_here)
+  if (fringe_here) mat6 = matmul(kmat, mat6)
 endif
+call quadrupole_edge_kick (ele, second_track_edge$, orbit)
 
 call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
@@ -203,67 +191,6 @@ orbit%t = start_orb%t + (length + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta
 orbit%s = ele%s
 
 if (.not. end_in) end_orb = orbit
-
-!----------------------------------------------------------------------------------------------
-contains
-
-subroutine linear_fringe_kick (f1, f2)
-
-real(rp) f1, f2, ef1, mat1(6,6), vec(4)
-
-! Notice that orbit%vec(:) is in (x', y') units.
-
-if (f1 == 0 .and. f2 == 0) return
-
-ef1 = exp(f1)
-vec = orbit%vec(1:4)
-
-
-orbit%vec(5) = orbit%vec(5) - (f1 * vec(1) + f2 * (1 + f1/2) * vec(2) / ef1) * vec(2) + &
-                              (f1 * vec(3) + f2 * (1 - f1/2) * vec(4) * ef1) * vec(4)
-
-orbit%vec(1:2) = [vec(1) * ef1 + vec(2) * f2, vec(2) / ef1]
-orbit%vec(3:4) = [vec(3) / ef1 - vec(4) * f2, vec(4) * ef1]
-
-!
-
-if (make_matrix) then
-  mat1 = 0
-  mat1(1,1) = ef1
-  mat1(1,2) = f2 / rel_pc 
-  mat1(1,6) = -vec(1) * f1 * ef1 / rel_pc - 2 * vec(2) * f2 / rel_pc
-  mat1(2,2) = 1 / ef1
-  mat1(2,6) = vec(2) * f1 / ef1 
-  mat1(3,3) = 1 / ef1
-  mat1(3,4) = -f2 / rel_pc
-  mat1(3,6) =  vec(3) * f1 / ef1 / rel_pc + 2 * vec(4) * f2 / rel_pc
-  mat1(4,4) = ef1
-  mat1(4,6) = -vec(4) * f1 * ef1
-  mat1(5,1) = -f1 * vec(2)
-  mat1(5,2) = -(f1 * vec(1) + f2 * (2 + f1) * vec(2) / ef1) / rel_pc
-  mat1(5,3) =  f1 * vec(4)
-  mat1(5,4) =  (f1 * vec(3) + f2 * (2 - f1) * vec(4) * ef1) / rel_pc
-  mat1(5,5) = 1
-  mat1(5,6) = 2 * f1 * vec(1) * vec(2) / rel_pc + &
-              f2 * (1 + f1/2) * vec(2)**2 * (3 - f1) / (ef1 * rel_pc) + & 
-              f2 * f1 * vec(2)**2 / (2 * ef1 * rel_pc) - &
-              2 * f1 * vec(3) * vec(4) / rel_pc - &
-              f2 * (1 - f1/2) * vec(4)**2 * ef1 * (3 + f1) / rel_pc + & 
-              f2 * f1 * vec(4)**2 * ef1 / (2 * rel_pc)
-
-  mat1(6,6) = 1
-
-  mat6 = matmul(mat1, mat6)
-endif
-
-end subroutine linear_fringe_kick
-
-!----------------------------------------------------------------------------------------------
-! contains
-
-subroutine nonlinear_fringe_kick ()
-
-end subroutine nonlinear_fringe_kick
 
 end subroutine sad_mult_track_and_mat 
 

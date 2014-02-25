@@ -149,120 +149,139 @@ end subroutine quad_mat2_calc
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine quad_mat6_edge_effect (ele, k1, start_orb, end_orb, mat6)
+! Subroutine quadrupole_edge_mat6 (ele, particle_at, orbit, mat6)
 !
-! Subroutine to add quadrupole edge effects to the transfer matrix. 
+! Subroutine to construct the transfer matrix for quadrupole edge effects.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ele        -- Ele_struct
-!   k1         -- Real(rp): Quadrupole strength.
-!   start_orb  -- coord_struct: Orbit at beginning of the bend.
-!   end_orb    -- coord_struct: Orbit at beginning of the bend.
-!   mat6(6,6)  -- Real(rp): Transfer matrix without edge effect.
+!   ele          -- Ele_struct: Element with an edge.
+!   particle_at  -- Integer: first_track_edge$, or second_track_edge$.
+!   orbit        -- coord_struct: Orbit just before the edge.
 !
 ! Output:
-!   mat6(6,6)  -- Real(rp): Transfer matrix with edge effect.
+!   mat6(6,6)    -- Real(rp): Edge transfer matrix. 
+!   fringe_here  -- logical: Set true if mat6 is not the unit matrix.
 !-
 
-subroutine quad_mat6_edge_effect (ele, k1, start_orb, end_orb, mat6)
+subroutine quadrupole_edge_mat6 (ele, particle_at, orbit, mat6, fringe_here)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: start_orb, end_orb
-real(rp) k1, mat6(6,6), me6(6,6)
-real(rp) x, px, y, py, rel_p
+type (coord_struct) :: orbit
+real(rp) k1, mat6(6,6)
+real(rp) x, px, y, py, rel_p, f1, f2, ef1, vec(4)
 
-integer ix_fringe, fringe_at, physical_end
+integer fringe_type, fringe_at, physical_end, particle_at, charge_dir
+
+logical fringe_here
 
 !
 
-ix_fringe = nint(ele%value(fringe_type$))
-if (ix_fringe /= full_straight$ .and. ix_fringe /= full_bend$) return
+fringe_here = .false.
 
-me6 = 0
-rel_p = 1 + start_orb%vec(6)
+fringe_type = nint(ele%value(fringe_type$))
+if (fringe_type == none$) return
 
 fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
+if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
-! Entrance edge kick
+charge_dir = ele%orientation * orbit%direction
+if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
 
-physical_end = physical_ele_end (first_track_edge$, start_orb%direction, ele%orientation)
-if (at_this_ele_end(physical_end, fringe_at)) then
+rel_p = 1 + orbit%vec(6)
 
-  x = start_orb%vec(1); px = start_orb%vec(2); y = start_orb%vec(3); py = start_orb%vec(4)
+select case (ele%key)
+case (quadrupole$)
+  k1 = charge_dir * ele%value(k1$) / rel_p
+case (sad_mult$)
+  k1 = charge_dir * sqrt(ele%a_pole(1)**2 + ele%b_pole(1)**2)  / ele%value(l$) / rel_p
+end select
 
-  me6(1,1) = 1 + k1 * (x**2 + y**2) / 4
-  me6(1,3) =     k1 * x*y/2
-  me6(2,1) =     k1 * (y*py - x*px) / 2
-  me6(2,2) = 1 - k1 * (x**2 + y**2) / 4
-  me6(2,3) =     k1 * (x*py - y*px) / 2
-  me6(2,4) =     k1 * x*y/2
+! 
 
-  me6(3,3) = 1 - k1 * (y**2 + x**2) / 4
-  me6(3,1) =   - k1 * y*x/2
-  me6(4,3) =   - k1 * (x*px - y*py) / 2
-  me6(4,4) = 1 + k1 * (y**2 + x**2) / 4
-  me6(4,1) =   - k1 * (y*px - x*py) / 2
-  me6(4,2) =   - k1 * y*x/2
+mat6 = 0
+x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
 
-  me6(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
-  me6(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
-  me6(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
-  me6(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+select case (fringe_type)
+case (full_straight$, full_bend$)
 
-  me6(5,1) = -me6(2,6)*me6(1,1) + me6(1,6)*me6(2,1) - me6(4,6)*me6(3,1) + me6(3,6)*me6(4,1)
-  me6(5,2) = -me6(2,6)*me6(1,2) + me6(1,6)*me6(2,2) - me6(4,6)*me6(3,2) + me6(3,6)*me6(4,2)
-  me6(5,3) = -me6(2,6)*me6(1,3) + me6(1,6)*me6(2,3) - me6(4,6)*me6(3,3) + me6(3,6)*me6(4,3)
-  me6(5,4) = -me6(2,6)*me6(1,4) + me6(1,6)*me6(2,4) - me6(4,6)*me6(3,4) + me6(3,6)*me6(4,4)
+  if (particle_at == second_track_edge$) k1 = -k1
 
-  me6(5,5) = 1
-  me6(6,6) = 1
+  mat6(1,1) = 1 + k1 * (x**2 + y**2) / 4
+  mat6(1,3) =     k1 * x*y/2
+  mat6(2,1) =     k1 * (y*py - x*px) / 2
+  mat6(2,2) = 1 - k1 * (x**2 + y**2) / 4
+  mat6(2,3) =     k1 * (x*py - y*px) / 2
+  mat6(2,4) =     k1 * x*y/2
 
-  mat6 = matmul(mat6, me6)
+  mat6(3,3) = 1 - k1 * (y**2 + x**2) / 4
+  mat6(3,1) =   - k1 * y*x/2
+  mat6(4,3) =   - k1 * (x*px - y*py) / 2
+  mat6(4,4) = 1 + k1 * (y**2 + x**2) / 4
+  mat6(4,1) =   - k1 * (y*px - x*py) / 2
+  mat6(4,2) =   - k1 * y*x/2
 
-endif
+  mat6(1,6) = -k1 * (x**3/12 + x*y**2/4) / rel_p
+  mat6(2,6) = -k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
+  mat6(3,6) =  k1 * (y**3/12 + y*x**2/4) / rel_p
+  mat6(4,6) =  k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
 
-! Exit edge kick
+  mat6(5,1) = -mat6(2,6)*mat6(1,1) + mat6(1,6)*mat6(2,1) - mat6(4,6)*mat6(3,1) + mat6(3,6)*mat6(4,1)
+  mat6(5,2) = -mat6(2,6)*mat6(1,2) + mat6(1,6)*mat6(2,2) - mat6(4,6)*mat6(3,2) + mat6(3,6)*mat6(4,2)
+  mat6(5,3) = -mat6(2,6)*mat6(1,3) + mat6(1,6)*mat6(2,3) - mat6(4,6)*mat6(3,3) + mat6(3,6)*mat6(4,3)
+  mat6(5,4) = -mat6(2,6)*mat6(1,4) + mat6(1,6)*mat6(2,4) - mat6(4,6)*mat6(3,4) + mat6(3,6)*mat6(4,4)
 
-physical_end = physical_ele_end (second_track_edge$, end_orb%direction, ele%orientation)
-if (at_this_ele_end(physical_end, fringe_at)) then
-  x = end_orb%vec(1); px = end_orb%vec(2); y = end_orb%vec(3); py = end_orb%vec(4)
+  mat6(5,5) = 1
+  mat6(6,6) = 1
 
-  me6(1,1) = 1 - k1 * (x**2 + y**2) / 4
-  me6(1,3) =   - k1 * x*y/2
-  me6(2,1) =   - k1 * (y*py - x*px) / 2
-  me6(2,2) = 1 + k1 * (x**2 + y**2) / 4
-  me6(2,3) =   - k1 * (x*py - y*px) / 2
-  me6(2,4) =   - k1 * x*y/2
+case (sad_linear$, sad_full$)
+  f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) / 24
+  f2 =  k1 * ele%value(f2$)
+  if (f1 /= 0 .or. f2 /= 0) then
+    if (particle_at == second_track_edge$) f1 = -f1
 
-  me6(3,3) = 1 + k1 * (y**2 + x**2) / 4
-  me6(3,1) =     k1 * y*x/2
-  me6(4,3) =     k1 * (x*px - y*py) / 2
-  me6(4,4) = 1 - k1 * (y**2 + x**2) / 4
-  me6(4,1) =     k1 * (y*px - x*py) / 2
-  me6(4,2) =     k1 * y*x/2
+    ef1 = exp(f1)
 
-  me6(1,6) =  k1 * (x**3/12 + x*y**2/4) / rel_p
-  me6(2,6) =  k1 * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
-  me6(3,6) = -k1 * (y**3/12 + y*x**2/4) / rel_p
-  me6(4,6) = -k1 * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
+    vec = orbit%vec(1:4)
+    vec(2) = vec(2) / rel_p
+    vec(4) = vec(4) / rel_p
 
-  me6(5,1) = -me6(2,6)*me6(1,1) + me6(1,6)*me6(2,1) - me6(4,6)*me6(3,1) + me6(3,6)*me6(4,1)
-  me6(5,2) = -me6(2,6)*me6(1,2) + me6(1,6)*me6(2,2) - me6(4,6)*me6(3,2) + me6(3,6)*me6(4,2)
-  me6(5,3) = -me6(2,6)*me6(1,3) + me6(1,6)*me6(2,3) - me6(4,6)*me6(3,3) + me6(3,6)*me6(4,3)
-  me6(5,4) = -me6(2,6)*me6(1,4) + me6(1,6)*me6(2,4) - me6(4,6)*me6(3,4) + me6(3,6)*me6(4,4)
+    mat6(1,1) = ef1
+    mat6(1,2) = f2 / rel_p 
+    mat6(1,6) = -vec(1) * f1 * ef1 / rel_p - 2 * vec(2) * f2 / rel_p
+    mat6(2,2) = 1 / ef1
+    mat6(2,6) = vec(2) * f1 / ef1 
+    mat6(3,3) = 1 / ef1
+    mat6(3,4) = -f2 / rel_p
+    mat6(3,6) =  vec(3) * f1 / ef1 / rel_p + 2 * vec(4) * f2 / rel_p
+    mat6(4,4) = ef1
+    mat6(4,6) = -vec(4) * f1 * ef1
+    mat6(5,1) = -f1 * vec(2)
+    mat6(5,2) = -(f1 * vec(1) + f2 * (2 + f1) * vec(2) / ef1) / rel_p
+    mat6(5,3) =  f1 * vec(4)
+    mat6(5,4) =  (f1 * vec(3) + f2 * (2 - f1) * vec(4) * ef1) / rel_p
+    mat6(5,5) = 1
+    mat6(5,6) = 2 * f1 * vec(1) * vec(2) / rel_p + &
+                f2 * (1 + f1/2) * vec(2)**2 * (3 - f1) / (ef1 * rel_p) + & 
+                f2 * f1 * vec(2)**2 / (2 * ef1 * rel_p) - &
+                2 * f1 * vec(3) * vec(4) / rel_p - &
+                f2 * (1 - f1/2) * vec(4)**2 * ef1 * (3 + f1) / rel_p + & 
+                f2 * f1 * vec(4)**2 * ef1 / (2 * rel_p)
 
-  me6(5,5) = 1
-  me6(6,6) = 1
+    mat6(6,6) = 1
+  endif
 
-  mat6 = matmul(me6, mat6)
-endif
+end select
 
-end subroutine quad_mat6_edge_effect
+
+if (mat6(6,6) /= 0) fringe_here = .true.
+
+end subroutine quadrupole_edge_mat6
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
