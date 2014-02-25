@@ -1201,7 +1201,7 @@ type (bmad_common_struct), save, target :: bmad_com
 type ptc_common_struct
   integer :: real_8_map_init                  ! See PTC doc.
   integer :: taylor_order_ptc = 0             ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3         ! Default to use.
+  integer :: taylor_order_saved = 3           ! Default to use.
 end type
 
 type (ptc_common_struct), save :: ptc_com

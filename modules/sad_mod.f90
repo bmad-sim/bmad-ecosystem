@@ -167,6 +167,8 @@ call quadrupole_edge_kick (ele, second_track_edge$, orbit)
 
 call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
+call track1_low_energy_z_correction (orbit, ele2, param)
+
 if (make_matrix) then
   if (ele2%value(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, ele2%value(tilt_tot$))
@@ -184,8 +186,6 @@ if (make_matrix) then
 endif
 
 !
-
-call track1_low_energy_z_correction (orbit, ele2, param)
 
 orbit%t = start_orb%t + (length + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 orbit%s = ele%s

@@ -937,8 +937,8 @@ implicit none
 type (ele_struct) ele
 type (coord_struct) orbit
 
-real(rp) k1, x, y, px, py, charge_dir
-real(rp) f1, f2, ef1, vec(4), rel_pc
+real(rp) k1_rel, x, y, px, py, charge_dir
+real(rp) f1, f2, ef1, vec(4), rel_pc, vx, vy
 
 integer particle_at
 integer fringe_at, physical_end, fringe_type
@@ -959,41 +959,40 @@ rel_pc = 1 + orbit%vec(6)
 
 select case (ele%key)
 case (quadrupole$)
-  k1 = charge_dir * ele%value(k1$) / rel_pc
+  k1_rel = charge_dir * ele%value(k1$) / rel_pc
 case (sad_mult$)
-  k1 = charge_dir * sqrt(ele%a_pole(1)**2 + ele%b_pole(1)**2)  / ele%value(l$) / rel_pc
+  k1_rel = charge_dir * sqrt(ele%a_pole(1)**2 + ele%b_pole(1)**2)  / ele%value(l$) / rel_pc
 end select
 
 ! Everything but SAD nonlinear
 
 select case (fringe_type)
 case (full_straight$, full_bend$)
-  if (particle_at == second_track_edge$) k1 = -k1
+  if (particle_at == second_track_edge$) k1_rel = -k1_rel
 
   x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
-  orbit%vec(1) = x  + k1 * (x**3/12 + x*y**2/4)
-  orbit%vec(2) = px + k1 * (x*y*py/2 - px*(x**2 + y**2)/4)
-  orbit%vec(3) = y  - k1 * (y**3/12 + y*x**2/4)
-  orbit%vec(4) = py - k1 * (y*x*px/2 - py*(y**2 + x**2)/4)
-  orbit%vec(5) = orbit%vec(5) + k1 * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
+  orbit%vec(1) = x  + k1_rel * (x**3/12 + x*y**2/4)
+  orbit%vec(2) = px + k1_rel * (x*y*py/2 - px*(x**2 + y**2)/4)
+  orbit%vec(3) = y  - k1_rel * (y**3/12 + y*x**2/4)
+  orbit%vec(4) = py - k1_rel * (y*x*px/2 - py*(y**2 + x**2)/4)
+  orbit%vec(5) = orbit%vec(5) + k1_rel * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
 
 case (sad_linear$, sad_full$)
-  f1 = -k1 * ele%value(f1$) * abs(ele%value(f1$)) / 24
-  f2 =  k1 * ele%value(f2$)
+  f1 = -k1_rel * ele%value(f1$) * abs(ele%value(f1$)) / 24
+  f2 =  k1_rel * ele%value(f2$)
   if (f1 /= 0 .or. f2 /= 0) then
     if (particle_at == second_track_edge$) f1 = -f1
 
     ef1 = exp(f1)
 
     vec = orbit%vec(1:4)
-    vec(2) = vec(2) / rel_pc
-    vec(4) = vec(4) / rel_pc
+    vx = vec(2) / rel_pc;  vy = vec(4) / rel_pc
 
-    orbit%vec(5) = orbit%vec(5) - (f1 * vec(1) + f2 * (1 + f1/2) * vec(2) / ef1) * vec(2) + &
-                                  (f1 * vec(3) + f2 * (1 - f1/2) * vec(4) * ef1) * vec(4)
+    orbit%vec(5) = orbit%vec(5) - (f1 * vec(1) + f2 * (1 + f1/2) * vx / ef1) * vx + &
+                                  (f1 * vec(3) + f2 * (1 - f1/2) * vy * ef1) * vy
 
-    orbit%vec(1:2) = [vec(1) * ef1 + vec(2) * f2, vec(2) / ef1]
-    orbit%vec(3:4) = [vec(3) / ef1 - vec(4) * f2, vec(4) * ef1]
+    orbit%vec(1:2) = [vec(1) * ef1 + vx * f2,  vec(2) / ef1]
+    orbit%vec(3:4) = [vec(3) / ef1 - vy * f2,  vec(4) * ef1]
   endif
 end select
 

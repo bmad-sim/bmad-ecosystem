@@ -187,7 +187,7 @@ fringe_type = nint(ele%value(fringe_type$))
 if (fringe_type == none$) return
 
 fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (first_track_edge$, orbit%direction, ele%orientation)
+physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 charge_dir = ele%orientation * orbit%direction
