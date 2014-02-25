@@ -67,7 +67,7 @@ implicit none
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: field_ele
 type (ele_pointer_struct), allocatable :: field_eles(:)
-type (coord_struct) :: start_orb, end_orb, start2_orb, c_int
+type (coord_struct) :: start_orb, end_orb, start2_orb
 type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (wig_term_struct), pointer :: wig_term(:)
@@ -75,7 +75,7 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (wiggler_computations_struct), allocatable :: tm(:)
 type (wig_term_struct), pointer :: wt
 
-real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6)
+real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6)
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
@@ -88,7 +88,7 @@ integer i, n_step, n_field
 
 integer num_wig_terms  ! number of wiggler terms
 
-logical calc_mat6, calculate_mat6, err, do_offset
+logical calc_mat6, calculate_mat6, err, do_offset, fringe_here
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -305,7 +305,10 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$)
   end select
 
-  c_int = end_orb
+  if (calculate_mat6) then
+    call quadrupole_edge_mat6 (ele, first_track_edge$, end_orb, kmat6, fringe_here)
+    if (fringe_here) mat6 = kmat6
+  end if
 
   if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, first_track_edge$, end_orb)
 
@@ -330,9 +333,9 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   enddo
 
-  if(calculate_mat6) then
-     k1 = ele%value(k1$) * param%rel_tracking_charge * ele%orientation / (1 + start2_orb%vec(6))
-     call quad_mat6_edge_effect (ele, k1, c_int, end_orb, mat6)
+  if (calculate_mat6) then
+    call quadrupole_edge_mat6 (ele, second_track_edge$, end_orb, kmat6, fringe_here)
+    if (fringe_here) mat6 = matmul(kmat6, mat6)
   end if
 
   if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
