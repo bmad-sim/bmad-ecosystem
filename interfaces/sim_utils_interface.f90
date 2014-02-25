@@ -160,15 +160,6 @@ interface
     complex(rp) i_bes
   end function
 
-  subroutine if_error (idelim, icmd, error_string, line_number, end_check)
-    implicit none
-    integer idelim
-    integer line_number
-    integer end_check
-    integer icmd
-    character(*) error_string
-  end subroutine
-
   subroutine increment_file_number (file_name, digits, number, cnumber)
     implicit none
     character(*) file_name
@@ -182,12 +173,6 @@ interface
     integer indx
     character(*) string1
     character(*) string2
-  end function
-
-  function integer_read(error_message) result (int_read)
-    implicit none
-    integer int_read
-    character(*) error_message
   end function
 
   function inverse (funct, y, x1, x2, tol) result (x)
@@ -378,13 +363,6 @@ interface
     integer ios
     logical upcase
   end subroutine
-
-  function real_read(error_message)
-    import
-    implicit none
-    real(rp) real_read
-    character(*) error_message
-  end function
 
   subroutine run_timer(command, time)
     import
