@@ -43,7 +43,7 @@ ele_type_to_bmad = {
   'sext': 'sextupole',
   'oct': 'octupole',
   'mult': 'sad_mult',
-  'sol': 'patch',
+  'sol': 'marker',
   'cavi': 'rfcavity',
   'moni': 'monitor',
   'mark': 'marker',
@@ -51,15 +51,26 @@ ele_type_to_bmad = {
   'apert': 'marker',
 }
 
+# Translation rule: Specific translations (of the form 'element:parameter') take
+# precedence over generaic translations (of the form 'parameter').
+
 ele_param_translate = {
+    'bend:k0': ['k0', ' / @l@'],
+    'bend:k1': ['k1', ' / @l@'],
+    'quad:k1': ['k1', ' / @l@'],
+    'sext:k2': ['k2', ' / @l@'],
+    'bend:rotate': ['ref_tilt', ' * -1'],
+    'bend:k0': ['g_err', ' / @l@'],
     'l': 'l',
     'dx': 'x_offset',
     'dy': 'y_offset',
     'dz': 'z_offset',
     'radius': 'aperture',
     'angle': 'angle',
-    'e1': 'e1',
-    'e2': 'e2',
+    'ae1': 'ae1',
+    'ae2': 'ae2',
+    'e1': ['e1', ' * @angle@'],
+    'e2': ['e2', ' * @angle@'],
     'bz': 'bs_field',
     'f1': 'f1',
     'f2': 'f2',
@@ -72,6 +83,8 @@ ele_param_translate = {
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
     'chi3': ['tilt', ' * -1'],
+    'sol:chi1': ['x_pitch', ' * -1'],
+    'sol:chi2': ['y_pitch', ' * -1'],
     'k0': 'b0', 'k1': 'b1', 'k2': ['b2', ' / factorial(2)'], 'k3': ['b3', ' / factorial(3)'], 
     'k4': ['b4', ' / factorial(4)'], 'k5': ['b5', ' / factorial(5)'], 'k6': ['b6', ' / factorial(6)'], 
     'k7': ['b7', ' / factorial(7)'], 'k8': ['b8', ' / factorial(8)'], 'k9': ['b9', ' / factorial(9)'], 
@@ -105,29 +118,48 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
   bmad_ele.type = ele_type_to_bmad[sad_ele.type]
 
-  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor': 
+  # SAD sol with misalignments becomes a Bmad patch
+
+  if sad_ele.type == 'sol':
+    if 'dx' in sad_ele.param or 'dy' in sad_ele.param or 'dz' in sad_ele.param or 'chi1' in sad_ele.param or \
+                                'chi2' in sad_ele.param or 'chi3' in sad_ele.param or 'rotate' in sad_ele.param:
+      bmad_ele.type = 'patch'
+
+  # Handle case when inside solenoid
+
+  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and bmad_ele.type != 'patch': 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
   for sad_param_name in sad_ele.param:
+    full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
-    full_name = sad_ele.type + ':' + sad_param_name 
-    if full_name in ignore_sad_param: continue
-    if sad_param_name not in ele_param_translate:
+    if full_param_name in ignore_sad_param: continue
+
+    # Use more specific translation first
+
+    if full_param_name in ele_param_translate:
+      result = ele_param_translate[full_param_name]
+    elif sad_param_name in ele_param_translate:
+      result = ele_param_translate[sad_param_name]
+    else:
       print ('SAD PARAMETER NOT RECOGNIZED: ' + sad_param_name + '\n' + '    DEFINED IN ELEMENT: ' + sad_ele.name)
       continue
 
-    result = ele_param_translate[sad_param_name]
     if type(result) is list:
       bmad_name = result[0]
       value_suffix = result[1]
+      if '@' in value_suffix:
+        val_parts = value_suffix.split('@')
+        if val_parts[1] in sad_ele.param:
+          value_suffix = val_parts[0] + sad_ele.param[val_parts[1]] + val_parts[2]
+        else:
+          print ('SAD ELEMENT: ' + sad_ele.name + '\n' + 
+                 '  DOES NOT HAVE A ' + val_parts[1] + ' NEEDED FOR CONVERSION: ' + sad_param_name)
+          value_suffix = val_parts[0] + '???' + val_parts[2]
     else:
       bmad_name = result
       value_suffix = ''
-
-    if sad_ele.type == 'bend' and sad_param_name == 'rotate': bmad_name = 'ref_tilt'
-    if bmad_ele.type != 'sad_mult' and sad_param_name == 'k1': bmad_name = 'k1'
-    if bmad_ele.type != 'sad_mult' and sad_param_name == 'k2': bmad_name = 'k2'
 
     value = sad_ele.param[sad_param_name]
     if 'deg' in value: value = value.replace('deg', '* degrees')
@@ -137,25 +169,78 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
     bmad_ele.param[bmad_name] = value + value_suffix
 
+  # Fringe 
 
   fringe = '0'   # default 
   if 'fringe' in sad_ele.param: fringe = sad_ele.param['fringe']
 
-  if fringe == '1':
-    bmad_ele.param['fringe_at'] = 'entrance_end'
-  elif fringe == '2':
-    bmad_ele.param['fringe_at'] = 'exit_end'
-
-  disfrin = '0'
+  disfrin = '0'    # default
   if 'disfrin' in sad_ele.param: disfrin = sad_ele.param['disfrin']
 
-  if bmad_ele.type == 'sad_mult':
-    if fringe == '0':
-      if disfrin != '0': bmad_ele.param['fringe_type'] = 'none'
-    elif disfrin == '0': 
-      bmad_ele.param['fringe_type'] = 'full_sad'
-    else:
-      bmad_ele.param['fringe_type'] = 'linear_sad'
+  # Mult and quad fringe
+
+  if sad_ele.type == 'mult' or sad_ele.type == 'quad':
+    if fringe == '1':
+      bmad_ele.param['fringe_at'] = 'entrance_end'
+    elif fringe == '2':
+      bmad_ele.param['fringe_at'] = 'exit_end'
+
+    if disfrin == '0':
+      if fringe == '0':
+        bmad_ele.param['fringe_type'] = 'sad_nonlin_only'
+      else:
+        bmad_ele.param['fringe_type'] = 'sad_full'
+
+    else:   # disfrin != '0' 
+      # fringe == '0' --> Default: bmad_ele.param['fringe_type'] = 'none'
+      if fringe != '0':
+        bmad_ele.param['fringe_type'] = 'sad_linear'
+
+  # Bend fringe
+
+  elif sad_ele.type == 'bend':
+    # fringe == '0' & disfrin != '0' ==> fringe_type = none which is default
+    if fringe == '0' and disfrin == '0':
+      bmad_ele.param['fringe_type'] = 'sad_nonlin_only'
+    elif fringe != '0' and disfrin == '0':
+      bmad_ele.param['fringe_type'] = 'sad_full'
+    elif fringe != '0' and disfrin != '0':
+      bmad_ele.param['fringe_type'] = 'sad_linear'
+
+  # Cavi fringe
+
+  elif sad_ele.type == 'cavi':
+    if fringe == '1':
+      bmad_ele.param['fringe_at'] = 'entrance_end'
+    elif fringe == '2':
+      bmad_ele.param['fringe_at'] = 'exit_end'
+
+    if disfrin == '0':
+      bmad_ele.param['fringe_type'] = 'sad_full'
+
+  # All other fringes  
+
+  elif sad_ele.type == 'deca' or sad_ele.type == 'dodeca' or \
+       sad_ele.type == 'oct' or sad_ele.type == 'sext':
+    if disfrin == '0':
+      bmad_ele.param['fringe_type'] = 'sad_full'
+
+  # bend edge
+
+  if bmad_ele.type == 'sbend':
+    if 'ae1' in bmad_ele.param:
+      if 'e1' in bmad_ele.param:
+        bmad_ele.param['e1'] = bmad_ele.param['e1'] + ' + ' + bmad_ele.param['ae1']
+      else:
+        bmad_ele.param['e1'] = bmad_ele.param['ae1']
+      bmad_ele.remove('ae1')
+
+    if 'ae2' in bmad_ele.param:
+      if 'e2' in bmad_ele.param:
+        bmad_ele.param['e2'] = bmad_ele.param['e2'] + ' + ' + bmad_ele.param['ae2']
+      else:
+        bmad_ele.param['e2'] = bmad_ele.param['ae2']
+      bmad_ele.remove('ae2')
 
 # ------------------------------------------------------------------
 
@@ -240,16 +325,18 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
 # ------------------------------------------------------------------
 
 def print_help():
-  print ('Syntax: sad_to_bmad.py {-open} {-closed} <input-sad-file>')
+  print ('Syntax: sad_to_bmad.py {-open} {-closed} {-include <bmad_header_file>} <input-sad-file>')
   sys.exit()
 
 # ------------------------------------------------------------------
 # ------------------------------------------------------------------
 # ------------------------------------------------------------------
 
+header_file = ''
 mark_open = False
 mark_closed = False
 inputfile = None
+sad_sol_to_marker = True  # False -> No element in bmad lattice.
 
 i = 1
 while i < len(sys.argv):
@@ -257,6 +344,9 @@ while i < len(sys.argv):
     mark_open = True
   elif sys.argv[i] == '-closed': 
     mark_closed = True
+  elif sys.argv[i] == '-include':
+    i += 1
+    header_file = sys.argv[i]
   elif sys.argv[i][0] == '-':
     print_help()
   else:
@@ -349,6 +439,14 @@ if ele0_name in sad_ele_list:
       sad_param_list[key] = ele0.param[key]
 
 # ------------------------------------------------------------------
+# Header
+
+if header_file != '':
+  h_file = open(header_file, 'r')
+  for line in h_file:
+    f_out.write (line)
+
+# ------------------------------------------------------------------
 # Translate and write parameters
 
 global_param_translate = {
@@ -405,7 +503,7 @@ for ele_name in sad_line.element:
         print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
     
     else:
-      continue
+      if not sad_sol_to_marker: continue
 
   #
 
