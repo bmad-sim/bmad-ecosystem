@@ -1933,7 +1933,7 @@ case ('normal_form')
   call tao_next_switch (stuff2, ['-order'], switch, err, ix)
   if (err) return
   
-  n_order = bmad_com%taylor_order
+  n_order = ptc_com%taylor_order_ptc
   select case (switch)
     case ('-order')
       read (stuff2(:ix), *, iostat = ios) n_order
