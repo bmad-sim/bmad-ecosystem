@@ -142,43 +142,43 @@ DO i = 1, lat%n_ele_max - 1
   length = len(trim(ele_f%name))
 
   if (i > 1) write (1, *)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(1)"', tolerance(trim(ele_f%name),'dorb(1)'), dorb%vec(1)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(2)"', tolerance(trim(ele_f%name),'dorb(2)'), dorb%vec(2)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(3)"', tolerance(trim(ele_f%name),'dorb(3)'), dorb%vec(3)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(4)"', tolerance(trim(ele_f%name),'dorb(4)'), dorb%vec(4)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(5)"', tolerance(trim(ele_f%name),'dorb(5)'), dorb%vec(5)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'dorb(6)"', tolerance(trim(ele_f%name),'dorb(6)'), dorb%vec(6)
-  write (1, '(a, a, a, es11.3)') str(1:length+2), 'c*dt"   ', tolerance(trim(ele_f%name),'c*dt'), dorb%t
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(1)"', tolerance(trim(ele_f%name),'dorb(1)'), dorb%vec(1)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(2)"', tolerance(trim(ele_f%name),'dorb(2)'), dorb%vec(2)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(3)"', tolerance(trim(ele_f%name),'dorb(3)'), dorb%vec(3)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(4)"', tolerance(trim(ele_f%name),'dorb(4)'), dorb%vec(4)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(5)"', tolerance(trim(ele_f%name),'dorb(5)'), dorb%vec(5)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(6)"', tolerance(trim(ele_f%name),'dorb(6)'), dorb%vec(6)
+  write (1, '(a, a, a, es16.8)') str(1:length+2), 'c*dt"   ', tolerance(trim(ele_f%name),'c*dt'), dorb%t
 
   if (verbosity) then
      write (1, *)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(3,:)" ABS 1e-14 ', ele_f%mat6(3,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(4,:)" ABS 1e-14 ', ele_f%mat6(4,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(5,:)" ABS 1e-14 ', ele_f%mat6(5,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_f(6,:)" ABS 1e-14 ', ele_f%mat6(6,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(3,:)" ABS 1e-14 ', ele_f%mat6(3,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(4,:)" ABS 1e-14 ', ele_f%mat6(4,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(5,:)" ABS 1e-14 ', ele_f%mat6(5,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(6,:)" ABS 1e-14 ', ele_f%mat6(6,:)
 
      write (1, *)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(1,:)" ABS 1e-14 ', ele_r%mat6(1,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(2,:)" ABS 1e-14 ', ele_r%mat6(2,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(3,:)" ABS 1e-14 ', ele_r%mat6(3,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(4,:)" ABS 1e-14 ', ele_r%mat6(4,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(5,:)" ABS 1e-14 ', ele_r%mat6(5,:)
-     write (1, '(a, a, 6es11.3)') str(1:length+2), 'mat_r(6,:)" ABS 1e-14 ', ele_r%mat6(6,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(1,:)" ABS 1e-14 ', ele_r%mat6(1,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(2,:)" ABS 1e-14 ', ele_r%mat6(2,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(3,:)" ABS 1e-14 ', ele_r%mat6(3,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(4,:)" ABS 1e-14 ', ele_r%mat6(4,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(5,:)" ABS 1e-14 ', ele_r%mat6(5,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(6,:)" ABS 1e-14 ', ele_r%mat6(6,:)
   end if
 
   write (1, *)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(1,:)"', tolerance(trim(ele_f%name),'dmat(1,:)'), ele_r%mat6(1,:) - mat_f(1,:)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(2,:)"', tolerance(trim(ele_f%name),'dmat(2,:)'), ele_r%mat6(2,:) - mat_f(2,:)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(3,:)"', tolerance(trim(ele_f%name),'dmat(3,:)'), ele_r%mat6(3,:) - mat_f(3,:)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(4,:)"', tolerance(trim(ele_f%name),'dmat(4,:)'), ele_r%mat6(4,:) - mat_f(4,:)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(5,:)"', tolerance(trim(ele_f%name),'dmat(5,:)'), ele_r%mat6(5,:) - mat_f(5,:)
-  write (1, '(a, a, a, 6es11.3)') str(1:length+2), 'dmat(6,:)"', tolerance(trim(ele_f%name),'dmat(6,:)'), ele_r%mat6(6,:) - mat_f(6,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(1,:)"', tolerance(trim(ele_f%name),'dmat(1,:)'), ele_r%mat6(1,:) - mat_f(1,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(2,:)"', tolerance(trim(ele_f%name),'dmat(2,:)'), ele_r%mat6(2,:) - mat_f(2,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(3,:)"', tolerance(trim(ele_f%name),'dmat(3,:)'), ele_r%mat6(3,:) - mat_f(3,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(4,:)"', tolerance(trim(ele_f%name),'dmat(4,:)'), ele_r%mat6(4,:) - mat_f(4,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(5,:)"', tolerance(trim(ele_f%name),'dmat(5,:)'), ele_r%mat6(5,:) - mat_f(5,:)
+  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(6,:)"', tolerance(trim(ele_f%name),'dmat(6,:)'), ele_r%mat6(6,:) - mat_f(6,:)
 
   if (verbosity) then
      write (1, *)
-     write (1, '(a, a,  3es11.3)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([dorb%vec, dorb%t])), &
+     write (1, '(a, a,  3es16.8)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([dorb%vec, dorb%t])), &
            maxval(abs(ele_r%mat6 - mat_f))
   end if
 
