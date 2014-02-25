@@ -223,7 +223,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. allocated(branch%ptc%layout)) call lat_to_ptc_layout (tao_lat%lat)
       
       ! Get one-turn-map
-      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, s%global%rf_on, pz = 0.0_rp, order = bmad_com%taylor_order )
+      call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, s%global%rf_on, pz = 0.0_rp )
 
       ! Get A, A_inv, dhdj
       call normal_form_taylors(normal_form%m, s%global%rf_on, &
