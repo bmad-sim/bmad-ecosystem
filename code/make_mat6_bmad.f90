@@ -923,7 +923,8 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call sad_mult_track_and_mat (ele, param, c0, c1, logic_option (.false., end_in), .true.)
+  call sad_mult_track_and_mat (ele, param, c00, c11, logic_option (.false., end_in), .true.)
+  if (.not. logic_option (.false., end_in)) c1 = c11
 
 !--------------------------------------------------------
 ! sbend

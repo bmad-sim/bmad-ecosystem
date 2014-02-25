@@ -131,8 +131,6 @@ case (rfcavity$)
   ele%value(traveling_wave$) = 0
 
 case (sad_mult$)
-  ele%value(fringe_at$) = both_ends$
-  ele%value(fringe_type$) = sad_nonlin_only$
   ele%value(eps_step_scale$) = 1
   call multipole_init (ele, .true.)
 
