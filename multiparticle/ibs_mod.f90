@@ -1,7 +1,6 @@
 MODULE ibs_mod
 
 USE bmad
-USE nr
 USE fgsl
 USE, INTRINSIC :: iso_c_binding
 
@@ -1082,8 +1081,8 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   sig_xp = ar_sigma_mat(1:3,4:6)
   sig_pp = ar_sigma_mat(4:6,4:6)
   !CALL eigensys(sig_xx, u, R, etypes, 3, error)
-  R=sig_xx
-  CALL LA_SYEV(R,u,JOBZ='V')
+  R=sig_xx  ! LA_SYEV destroys the contents of R
+  CALL LA_SYEV(R,u,JOBZ='V')  !evals and evecs of symmetric real matrix
   vol1 = SQRT(u(1)*u(2)*u(3))
   vol = SQRT(4.0d0*pi)**3 * vol1
   bm = SQRT(MIN( u(1), u(2), u(3) ))  !minimum beam dimension
@@ -1100,7 +1099,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   !Get eigen vectors of local momentum matrix
   !CALL eigensys(sig_pl, u, R, etypes, 3, error)
   R=sig_pl
-  CALL LA_SYEV(R,u,JOBZ='V')
+  CALL LA_SYEV(R,u,JOBZ='V',INFO=error)  !evals and evecs of symmetric real matrix
   IF( error .ne. 0 ) THEN
     WRITE(*,'(A,I6," ",A)') "BAD: Eigenvectors of local momentum matrix not found."
     sigma_mat_updated = sigma_mat
@@ -1781,6 +1780,12 @@ FUNCTION g(u)
 END FUNCTION g
 
 !+
+! Subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
+!
+! ibs_sim_params%clog_to_use == 1   Classic coulomb log (pi/2 max scattering angle)
+! ibs_sim_params%clog_to_use == 2   Integral based tail-cut prescribed by Raubenheimer.
+! ibs_sim_params%clog_to_use == 3   Kubo and Oide tail cut. 1 event/part/damping period.  Used by CesrTA publications.
+! ibs_sim_params%clog_to_use == 4   Kubo and Oide tail cut, rederived to include vertical motion.
 !-
 SUBROUTINE multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
   TYPE(ibs_sim_param_struct) :: ibs_sim_params
