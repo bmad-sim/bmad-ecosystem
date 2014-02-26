@@ -2562,6 +2562,7 @@ case ('universe')
   nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
   nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
   nl=nl+1; write (lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
+  nl=nl+1; write (lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
   nl=nl+1; write (lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
   nl=nl+1; write (lines(nl), lmt) '%calc%track            = ', u%calc%track
   nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
