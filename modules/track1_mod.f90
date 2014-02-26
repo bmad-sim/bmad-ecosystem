@@ -448,14 +448,14 @@ type (ele_struct),   intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 
 real(rp) angle, ct, st, x, px, y, py, z, pz, dpx_t, p_long
-real(rp) rel_p, rel_p2, Dy, px_t, factor, rho, g, g_err, c_dir
-real(rp) length, g_tot, del_p, eps, pxy2, f, k_2, alpha, beta
+real(rp) rel_p, rel_p2, Dy, px_t, factor, g, g_err, c_dir, stg
+real(rp) length, g_tot, eps, pxy2, ff, fg, k_2, alpha, beta, one_ctg
 real(rp) k_1, k_x, x_c, om_x, om_y, tau_x, tau_y, arg, s_x, c_x, z_2, s_y, c_y, r(6)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 
 integer n, n_step
 
-logical has_nonzero_pole
+logical has_nonzero_pole, drifting
 
 !-----------------------------------------------------------------------
 
@@ -471,7 +471,7 @@ call bend_edge_kick (end_orb, ele, param, first_track_edge$, .false.)
 
 n_step = 1
 
-call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
+call multipole_ele_to_kt(ele, param, .false., has_nonzero_pole, knl, tilt)
 if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
 knl = knl / n_step
 
@@ -482,12 +482,12 @@ g = ele%value(g$)
 g_tot = (g + ele%value(g_err$)) * c_dir
 g_err = g_tot - g
 angle = g * length
-rho = 1 / g
-del_p = start_orb%vec(6)
-rel_p  = 1 + del_p
+pz = start_orb%vec(6)
+rel_p  = 1 + pz
 rel_p2 = rel_p**2
 k_1 = ele%value(k1$) * c_dir
 k_2 = ele%value(k2$) * c_dir
+drifting = .false.
 
 if (.not. ele%is_on) then
   g_err = -g
@@ -510,9 +510,13 @@ do n = 1, n_step
 
   ! with k1 /= 0 use small angle approximation
 
-  if (g == 0 .or. k_1 /= 0) then
+  if (k_1 /= 0) then
 
     call sbend_body_with_k1_map (ele, param, n_step, end_orb, end_orb = end_orb)
+
+  elseif (g == 0 .and. g_err == 0) then
+    call track_a_drift (end_orb, ele, length)
+    drifting = .true.
 
   !-----------------------------------------------------------------------
   ! Track through main body...
@@ -522,6 +526,13 @@ do n = 1, n_step
 
     ct = cos(angle)
     st = sin(angle)
+    if (angle < 1d-7) then
+      stg = length * (1 - angle**2 / 6)
+      one_ctg = g_tot * length * angle / 2
+    else
+      stg = sin(angle) / g
+      one_ctg = g_tot * (1 - ct) / g
+    endif
 
     x  = end_orb%vec(1)
     px = end_orb%vec(2)
@@ -543,22 +554,22 @@ do n = 1, n_step
     ! *exactly* on-axis.
 
     if (pxy2 < 1e-5) then  
-      f = pxy2 / (2 * rel_p)
-      f = del_p - f - f*f/2 - g_err*rho - g_tot*x
+      ff = pxy2 / (2 * rel_p)
+      fg = g * (pz - ff - ff*ff/2 - g_tot*x) - g_err
     else
-      f = p_long - g_tot * (1 + x * g) / g
+      fg = g * p_long - g_tot * (1 + x * g)
     endif
 
     Dy  = sqrt(rel_p2 - py**2)
-    px_t = px*ct + f*st
-    dpx_t = -px*st*g + f*ct*g
+    px_t = px*ct + fg*stg
+    dpx_t = -px*st*g + fg*ct
 
     if (abs(px) > Dy .or. abs(px_t) > Dy) then
       if (max(px, px_t) > 0) then; end_orb%state = lost_pos_x_aperture$
       else;                        end_orb%state = lost_neg_x_aperture$
       endif
       return
-    endif    
+    endif
 
     if (abs(angle) < 1e-5 .and. abs(g_tot * length) < 1e-5) then
       end_orb%vec(1) = end_orb%vec(1) + length * px / p_long - &
@@ -571,11 +582,11 @@ do n = 1, n_step
                    g_tot**2 * Dy**2 * ((1 + g * x) * st)**3 * (px * ct + p_long * st) / (2 * alpha**5 * g**3)
     else
       eps = px_t**2 + py**2
-      if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
+      if (eps < 1e-5 * rel_p2) then  ! use small angle approximation
         eps = eps / (2 * rel_p)
-        end_orb%vec(1) = (del_p - g_err / g - rho*dpx_t + eps * (eps / (2 * rel_p) - 1)) / g_tot
+        end_orb%vec(1) = (pz - g_err / g - dpx_t/g + eps * (eps / (2 * rel_p) - 1)) / g_tot
       else
-        end_orb%vec(1) = (sqrt(rel_p2 - eps) - rho*dpx_t - rho*g_tot) / g_tot
+        end_orb%vec(1) = (sqrt(rel_p2 - eps) + px*st + g_tot*x*ct - p_long*ct - one_ctg) / g_tot
       endif
     endif
 
@@ -590,7 +601,7 @@ do n = 1, n_step
     else
       factor = (asin(px/Dy) - asin(px_t/Dy)) / g_tot
       end_orb%vec(3) = y + py * (angle/g_tot + factor)
-      end_orb%vec(5) = z + length * (g_err - g*del_p) / g_tot - rel_p * factor
+      end_orb%vec(5) = z + length * (g_err - g*pz) / g_tot - rel_p * factor
     endif
 
   endif
@@ -614,12 +625,13 @@ do n = 1, n_step
 enddo
 
 ! Track through the exit face. Treat as thin lens.
+! Need low energy z correction except when using track_a_drift.
 
 call bend_edge_kick (end_orb, ele, param, second_track_edge$, .false.)
 
 call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false.)
 
-call track1_low_energy_z_correction (end_orb, ele, param)
+if (.not. drifting) call track1_low_energy_z_correction (end_orb, ele, param)
 
 end subroutine track_a_bend
 

@@ -674,22 +674,6 @@ g_tot = (g + ele%value(g_err$)) * charge_dir
 g_err = g_tot - g
 length = ele%value(l$) / n_step
 
-if (k_1 == 0 .and. g == 0 .and. g_err == 0) then
-  if (present(mat6)) call drift_mat6_calc (mat6, length, ele, param, start_orb)
-  if (present(end_orb)) then
-    rel_pc = 1 + start_orb%vec(6)
-    px = start_orb%vec(2) / rel_pc
-    py = start_orb%vec(4) / rel_pc
-    pxy2 = px**2 + py**2
-    pz = sqrt(1 - pxy2)
-    end_orb%vec = start_orb%vec
-    end_orb%vec(1) = start_orb%vec(1) + length * px / pz
-    end_orb%vec(3) = start_orb%vec(3) + length * py / pz
-    end_orb%vec(5) = start_orb%vec(5) + length * (1 - 1/pz)
-  endif
-  return
-endif
-
 !
 
 g_tot = g + g_err
