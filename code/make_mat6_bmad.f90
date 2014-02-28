@@ -952,14 +952,14 @@ case (sbend$)
   call offset_particle (ele, param, set$, c00, set_multipoles = .false.)
   c0_off = c00
 
-  call bend_edge_kick (c00, ele, param, first_track_edge$, .false., mat6_pre)
+  call bend_edge_kick (c00, ele, param, first_track_edge$, mat6_pre)
 
   ! Exit edge kick
 
   call offset_particle (ele, param, set$, c11, ds_pos = length)
   c1_off = c11 
 
-  call bend_edge_kick (c11, ele, param, second_track_edge$, .false., mat6_post)
+  call bend_edge_kick (c11, ele, param, second_track_edge$, mat6_post)
 
   ! If we have a sextupole component then step through in steps of length ds_step
 

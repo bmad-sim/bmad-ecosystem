@@ -465,7 +465,7 @@ call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
 ! Entrance edge kick
 
 c_dir = ele%orientation * end_orb%direction * param%rel_tracking_charge
-call bend_edge_kick (end_orb, ele, param, first_track_edge$, .false.)
+call bend_edge_kick (end_orb, ele, param, first_track_edge$)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -627,7 +627,7 @@ enddo
 ! Track through the exit face. Treat as thin lens.
 ! Need low energy z correction except when using track_a_drift.
 
-call bend_edge_kick (end_orb, ele, param, second_track_edge$, .false.)
+call bend_edge_kick (end_orb, ele, param, second_track_edge$)
 
 call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false.)
 
@@ -639,11 +639,9 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine approx_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+! Subroutine approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
-! In_to_out tracking starts with the particle just outside the bend and
-! returns the orbit that the particle had just inside the bend.
 !
 ! Module needed:
 !   use track1_mod
@@ -653,17 +651,13 @@ end subroutine track_a_bend
 !   ele         -- ele_struct: SBend element.
 !   param       -- lat_param_struct: Rel charge.
 !   particle_at -- Integer: first_track_edge$, or second_track_edge$, 
-!   in_to_out   -- Logical: If True then make the inverse transformation.
-!                    That is, for the entrance end take the input orb as the coordinates
-!                    just inside the entrance end of the bend and return the coordinates 
-!                    just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine approx_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+subroutine approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
 
 implicit none
 
@@ -675,7 +669,6 @@ real(rp), optional :: mat6(6,6)
 real(rp) e, g_tot, fint, hgap, ht_x, ht_y, cos_e, sin_e, tan_e, sec_e, v0(6), k1_eff
 real(rp) ht2, hs2, c_dir, k1
 integer particle_at, element_end
-logical in_to_out
 
 character(24), parameter :: r_name = 'approx_bend_edge_kick'
 
@@ -715,99 +708,50 @@ v0 = orb%vec
 
 if (present(mat6)) call mat_make_unit(mat6)
 
-if (in_to_out) then
-  if (particle_at == first_track_edge$) then
-    orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) - ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) - &
-                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-                         ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
-    orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-    orb%vec(4) = v0(4) - ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) - &
-                         (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1) * v0(3)
-    if (present(mat6)) then
-      mat6(1,1) = 1 + ht2 * v0(1)
-      mat6(1,3) = - hs2 * v0(3)
-      mat6(2,1) = - ht_x - ht2 * v0(2) - 2 * k1_eff * tan_e * v0(1) + ht_x * ht2 * v0(1)
-      mat6(2,2) = 1 - ht2 * v0(1)
-      mat6(2,3) = ht2 * v0(4) + 2 * k1_eff * tan_e * v0(3) + ht_x * ht2 * v0(3)
-      mat6(2,4) = ht2 * v0(3)
-      mat6(3,1) = - ht2 * v0(3)
-      mat6(3,3) = 1 -  ht2 * v0(1)
-      mat6(4,1) = ht2 * v0(4) - (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(3)
-      mat6(4,2) = hs2 * v0(3)
-      mat6(4,3) = - ht_y + hs2 * v0(2) - (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1)
-      mat6(4,4) = 1 + ht2 * v0(1)
-    end if
-  else
-    orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) - ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) - &
-                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-                         ht_x * (ht2 + hs2) * v0(3)**2 / 2
-    orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
-    orb%vec(4) = v0(4) - ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) + &
-                         2 * k1_eff * tan_e * v0(1) * v0(3)
-    if (present(mat6)) then
-      mat6(1,1) = 1 - ht2 * v0(1)
-      mat6(1,3) = hs2 * v0(3)
-      mat6(2,1) = - ht_x + ht2 * v0(2) - 2 * k1_eff * tan_e * v0(1)
-      mat6(2,2) = 1 + ht2 * v0(1)
-      mat6(2,3) = - ht2 * v0(4) + 2 * k1_eff * tan_e * v0(3) - ht_x * (ht2 + hs2) * v0(3)
-      mat6(2,4) = - ht2 * v0(3)
-      mat6(3,1) = ht2 * v0(3)
-      mat6(3,3) = 1 +  ht2 * v0(1)
-      mat6(4,1) = - ht2 * v0(4) + 2 * tan_e * k1_eff * v0(3)
-      mat6(4,2) = - hs2 * v0(3)
-      mat6(4,3) = - ht_y - hs2 * v0(2) + 2 * tan_e * k1_eff * v0(1)
-      mat6(4,4) = 1 - ht2 * v0(1)
-    end if
-  endif
-
+if (particle_at == first_track_edge$) then
+  orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
+  orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
+                       k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
+                       ht_x * (ht2 + hs2) * v0(3)**2 / 2
+  orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
+  orb%vec(4) = v0(4) + ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
+                       2 * k1_eff * tan_e * v0(1) * v0(3)
+  if (present(mat6)) then
+    mat6(1,1) = 1 - ht2 * v0(1)
+    mat6(1,3) = hs2 * v0(3)
+    mat6(2,1) = ht_x + ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1)
+    mat6(2,2) = 1 + ht2 * v0(1)
+    mat6(2,3) = - ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) + ht_x * (ht2 + hs2) * v0(3)
+    mat6(2,4) = - ht2 * v0(3)
+    mat6(3,1) = ht2 * v0(3)
+    mat6(3,3) = 1 +  ht2 * v0(1)
+    mat6(4,1) = - ht2 * v0(4) - 2 * tan_e * k1_eff * v0(3)
+    mat6(4,2) = - hs2 * v0(3)
+    mat6(4,3) = ht_y - hs2 * v0(2) - 2 * tan_e * k1_eff * v0(1)
+    mat6(4,4) = 1 - ht2 * v0(1)
+  end if
 else
-  if (particle_at == first_track_edge$) then
-    orb%vec(1) = v0(1) - ht2 * v0(1)**2 / 2 + hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(1) * v0(2) - v0(3) * v0(4)) + &
-                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) + &
-                         ht_x * (ht2 + hs2) * v0(3)**2 / 2
-    orb%vec(3) = v0(3) + ht2 * v0(1) * v0(3) 
-    orb%vec(4) = v0(4) + ht_y * v0(3) - ht2 * v0(1) * v0(4) - hs2 * v0(2) * v0(3) - &
-                         2 * k1_eff * tan_e * v0(1) * v0(3)
-    if (present(mat6)) then
-      mat6(1,1) = 1 - ht2 * v0(1)
-      mat6(1,3) = hs2 * v0(3)
-      mat6(2,1) = ht_x + ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1)
-      mat6(2,2) = 1 + ht2 * v0(1)
-      mat6(2,3) = - ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) + ht_x * (ht2 + hs2) * v0(3)
-      mat6(2,4) = - ht2 * v0(3)
-      mat6(3,1) = ht2 * v0(3)
-      mat6(3,3) = 1 +  ht2 * v0(1)
-      mat6(4,1) = - ht2 * v0(4) - 2 * tan_e * k1_eff * v0(3)
-      mat6(4,2) = - hs2 * v0(3)
-      mat6(4,3) = ht_y - hs2 * v0(2) - 2 * tan_e * k1_eff * v0(1)
-      mat6(4,4) = 1 - ht2 * v0(1)
-    end if
-  else
-    orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
-    orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
-                         k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
-                         ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
-    orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
-    orb%vec(4) = v0(4) + ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
-                         (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1) * v0(3)
-    if (present(mat6)) then
-      mat6(1,1) = 1 + ht2 * v0(1)
-      mat6(1,3) = - hs2 * v0(3)
-      mat6(2,1) = ht_x - ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1) - ht_x * ht2 * v0(1)
-      mat6(2,2) = 1 - ht2 * v0(1)
-      mat6(2,3) = ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) - ht_x * ht2 * v0(3)
-      mat6(2,4) = ht2 * v0(3)
-      mat6(3,1) = - ht2 * v0(3)
-      mat6(3,3) = 1 -  ht2 * v0(1)
-      mat6(4,1) = ht2 * v0(4) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(3)
-      mat6(4,2) = hs2 * v0(3)
-      mat6(4,3) = ht_y + hs2 * v0(2) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1)
-      mat6(4,4) = 1 + ht2 * v0(1)
-    end if
-  endif
+  orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
+  orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
+                       k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
+                       ht_x * ht2 * (v0(1)**2 + v0(3)**2) / 2
+  orb%vec(3) = v0(3) - ht2 * v0(1) * v0(3)
+  orb%vec(4) = v0(4) + ht_y * v0(3) + ht2 * v0(1) * v0(4) + hs2 * v0(2) * v0(3) + &
+                       (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1) * v0(3)
+  if (present(mat6)) then
+    mat6(1,1) = 1 + ht2 * v0(1)
+    mat6(1,3) = - hs2 * v0(3)
+    mat6(2,1) = ht_x - ht2 * v0(2) + 2 * k1_eff * tan_e * v0(1) - ht_x * ht2 * v0(1)
+    mat6(2,2) = 1 - ht2 * v0(1)
+    mat6(2,3) = ht2 * v0(4) - 2 * k1_eff * tan_e * v0(3) - ht_x * ht2 * v0(3)
+    mat6(2,4) = ht2 * v0(3)
+    mat6(3,1) = - ht2 * v0(3)
+    mat6(3,3) = 1 -  ht2 * v0(1)
+    mat6(4,1) = ht2 * v0(4) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(3)
+    mat6(4,2) = hs2 * v0(3)
+    mat6(4,3) = ht_y + hs2 * v0(2) + (ht_x * hs2 - 2 * tan_e * k1_eff) * v0(1)
+    mat6(4,4) = 1 + ht2 * v0(1)
+  end if
 endif
 
 end subroutine approx_bend_edge_kick
@@ -873,7 +817,7 @@ case (quadrupole$, sad_mult$)
   call quadrupole_edge_kick (hard_ele, particle_at, orb)
 
 case (sbend$)
-  call bend_edge_kick (orb, hard_ele, param, particle_at, .false.)
+  call bend_edge_kick (orb, hard_ele, param, particle_at)
 
 ! Note: Cannot trust hard_ele%value(ks$) here since element may be superimposed with an lcavity.
 ! So use hard_ele%value(bs_field$).
@@ -1021,11 +965,9 @@ end subroutine quadrupole_edge_kick
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+! Subroutine bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
-! In_to_out tracking starts with the particle just outside the bend and
-! returns the orbit that the particle had just inside the bend.
 !
 ! Module needed:
 !   use track1_mod
@@ -1035,17 +977,13 @@ end subroutine quadrupole_edge_kick
 !   ele         -- ele_struct: SBend element.
 !   param       -- lat_param_struct: Rel charge.
 !   particle_at -- Integer: first_track_edge$, or second_track_edge$.
-!   in_to_out   -- Logical: If True then make the inverse transformation.
-!                    That is, for the entrance end take the input orb as the coordinates
-!                    just inside the entrance end of the bend and return the coordinates 
-!                    just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+subroutine bend_edge_kick (orb, ele, param, particle_at, mat6)
 
 implicit none
 
@@ -1055,7 +993,6 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 integer particle_at, fringe_type, physical_end
-logical in_to_out
 
 !
 
@@ -1065,23 +1002,107 @@ if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) then
   return
 endif
 
+! Fringe due to finite e1 or e2
+
 fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
 case (full_straight$, full_bend$)
-  call exact_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
-case (basic_bend$)
-  call approx_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
-case (sad_full$, sad_linear$)
+  call exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
+case (basic_bend$, sad_full$, sad_linear$, sad_nonlin_only$)
+  call approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
+case (none$)
+  if (present(mat6)) call mat_make_unit (mat6)
+end select
+
+! Sad linear fringe
+
+select case (fringe_type)
+case (sad_full$, sad_linear$)   ! Sad Linear
+  call add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
 end select
 
 ! Sad nonlinear fringe
 
 select case (fringe_type)
 case (sad_nonlin_only$, sad_full$)
-
 end select
 
 end subroutine bend_edge_kick
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
+!
+! Subroutine to track through the edge field of an sbend.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: SBend element.
+!   param       -- lat_param_struct: 
+!   particle_at -- Integer: first_track_edge$, or second_track_edge$.
+!   mat6        -- real(rp), optional: Starting matrix 
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!   mat6       -- Real(rp), optional: Transfer matrix after fringe field
+!-
+
+subroutine add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
+
+use ptc_interface_mod
+
+implicit none
+
+type(coord_struct) :: orb
+type(ele_struct) :: ele
+type (lat_param_struct) param
+
+real(rp), optional :: mat6(6,6)
+real(rp) :: sad_mat(6,6)
+real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p
+
+integer :: particle_at
+
+character(*), parameter :: r_name = 'add_sad_linear_bend_edge_kick'
+
+!
+
+f1 = ele%value(f1$)
+g = ele%value(g$)
+if (particle_at == second_track_edge$) g = -g
+
+px = orb%vec(2)
+y  = orb%vec(3)
+rel_p = 1 + orb%vec(6)
+
+c1 = f1**2 * g / (24 * rel_p)  ! * px
+c2 = f1 * g**2 / (12 * rel_p)  ! * y^2
+c3 = g**2 / (6 * f1 * rel_p)   ! * y^4
+
+if (present(mat6)) then
+  call mat_make_unit (sad_mat)
+  sad_mat(1,6) =  c1 / rel_p
+  sad_mat(4,3) =  2 * c2 - 12 * c3 * y**2
+  sad_mat(4,6) = (-2 * c2 * y + 4 * c3 * y**3) / rel_p
+  sad_mat(5,2) = c1 / rel_p
+  sad_mat(5,3) = (2 * c2 * y - 4 * c3 * y**3) / rel_p
+  sad_mat(5,6) = -2 * (c1 * px + c2 * y**2 - c3 * y**4) / rel_p**2
+
+  mat6(1,:) = mat6(1,:) + sad_mat(1,6) * mat6(6,:)
+  mat6(4,:) = mat6(4,:) + sad_mat(4,3) * mat6(3,:) + sad_mat(4,6) * mat6(6,:)
+  mat6(5,:) = mat6(5,:) + sad_mat(5,2) * mat6(2,:) + sad_mat(5,3) * mat6(3,:) + sad_mat(5,6) * mat6(6,:)
+endif
+
+orb%vec(1) = orb%vec(1) - c1
+orb%vec(4) = orb%vec(4) + 2 * c2 * y - 4 * c3 * y**3
+orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2 - c3 * y**4) / rel_p
+
+end subroutine add_sad_linear_bend_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -1503,12 +1524,9 @@ end subroutine ptc_rot_xz
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine exact_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+! Subroutine exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
-! In_to_out tracking starts with the particle just outside the bend and
-! returns the orbit that the particle had just inside the bend.
-!
 ! Uses routines adapted from PTC
 !
 ! Module needed:
@@ -1519,17 +1537,13 @@ end subroutine ptc_rot_xz
 !   ele         -- ele_struct: SBend element.
 !   param       -- lat_param_struct: 
 !   particle_at -- Integer: first_track_edge$, or second_track_edge$.
-!   in_to_out   -- Logical: If True then make the inverse transformation.
-!                     That is, for the entrance end take the input orb as the coordinates
-!                     just inside the entrance end of the bend and return the coordinates 
-!                     just oustide the entrance end.
 !
 ! Output:
 !   orb        -- Coord_struct: Coords after tracking.
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine exact_bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)
+subroutine exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
 
 use ptc_interface_mod
 
@@ -1543,17 +1557,10 @@ real(rp) :: mat6_int(6,6)
 real(rp) :: X(6), ct
 real(rp) :: beta0, g_tot, edge_angle, hgap, fint
 integer :: particle_at
-logical :: in_to_out
 
 character(20) :: r_name = 'exact_bend_edge_kick'
 
-!
-if (in_to_out) then
-  call out_io (s_fatal$, r_name, 'IN_TO_OUT NOT IMPLEMENTED')
-  call err_exit
-endif
-
-!Get reference beta0
+! Get reference beta0
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 if (ele%is_on) then

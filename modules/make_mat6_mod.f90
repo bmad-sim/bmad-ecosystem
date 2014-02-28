@@ -1270,6 +1270,7 @@ else
   px = ave(2) / rel_pc
   py = ave(4) / rel_pc
   pxy2 = px**2 + py**2
+  if (pxy2 > 1) return  ! prevent bomb
   pz = sqrt(1 - pxy2)
   e_tot = ele%value(p0c$) * (1 + ave(6)) / start%beta
 endif
