@@ -26,4 +26,4 @@
   mA_per_bunch = 8.0   !highest current
   stop_mA = 0.01  !lowest current
   delta_mA = 0.40  !step size
-&end
+/
