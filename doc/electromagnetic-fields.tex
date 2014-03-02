@@ -1,0 +1,527 @@
+\chapter{Electromagnetic Fields}
+
+%-----------------------------------------------------------------
+\section{Magnetic Fields}
+\label{s:fields}
+\index{magnetic fields|hyperbf}
+
+\index{MAD}
+Start with the assumption that the local magnetic field has no
+longitudinal component (obviously this assumption does not work with,
+say, a solenoid).  Following \mad, the vertical magnetic field along
+the $y = 0$ axis is expanded in a Taylor series
+\Begineq
+  B_y(x, 0) = \sum_n B_n \, \frac{x^n}{n!}
+  \label{byx0b}
+\Endeq
+This is not the most
+general form for the magnetic field. Essentially all of the skew
+components have been ignored here. Assuming that the
+reference orbit is locally straight (there are correction terms if the
+Reference Orbit is locally curved), the field up to $3^{rd}$ order is
+\begin{alignat}{5}
+  B_x &=           &&B_1 y \plus         &&B_2 \, xy       
+                   && \plus && \frac{1}{6} B_3 (3x^2 y - y^3) \plus \ldots \\
+  B_y &= B_0 \plus &&B_1 x + \frac{1}{2} &&B_2 (x^2 - y^2) 
+                   && \plus && \frac{1}{6} B_3 (x^3 - 3x y^2) \plus \ldots
+\end{alignat}
+The normalized integrated multipole $K_nL$ is used when specifying magnetic
+multipole components
+\index{multipole!KnL, Tn|hyperbf}
+\Begineq
+  K_nL \equiv \frac{q \, L \, B_n}{P_0}
+\Endeq
+$L \, B_n$ is the integrated multipole component over a length $L$,
+and $P_0$ is the reference momentum. Note that $P_0/q$ is sometimes
+written as $B\rho$. This is just an old notation where $\rho$ is the
+bending radius of a particle with the reference energy in a field of
+strength $B$. [Note: If $q$ is in Coulombs, $P_0$ is in
+kg*m/sec. If $q$ is in units of the elementary charge, $P_0$ is in
+eV/c_light.]
+
+Conventionally, \bmad always takes the sign of the charge $q$ to be
+positive. This means that, for example, positive $K_1$ and positive
+$B_1$ are always associated with horizontally focusing quadrupoles for
+positrons as well as electrons. The only element where the sign of the
+particle's charge matters is an \vn{elseparator} element (\sref{s:elsep}).
+
+The kicks $\Delta p_x$ and $\Delta p_y$ that a
+particle experiences going through a multipole field is
+\begin{alignat}{5}
+  \Delta p_x & = \frac{-q \, L \, B_y}{P_0} \label{pqlbp1} \\
+             & = -K_0 L \;-\; 
+             && K_1 L \, x \plus 
+             \frac{1}{2} && K_2 L (y^2 - x^2) && \plus 
+             && \frac{1}{6} K_3 L (3x y^2 - x^3) \plus \ldots 
+             \nonumber \\
+  \Delta p_y & = \frac{q \, L \, B_x}{P_0} \label{pqlbp2} \\
+             & =     
+             && K_1 L \, y \plus 
+             && K_2 L \, xy && \plus 
+             && \frac{1}{6} K_3L (3x^2 y - y^3) \plus \ldots \nonumber 
+\end{alignat}
+A positive $K_1L$ quadrupole component gives
+horizontal focusing and vertical defocussing. The general form is
+\begin{align}
+  \Delta p_x &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{\lfloor \frac{n}{2} \rfloor}
+             \begin{pmatrix} n \cr 2m \end{pmatrix} \,
+             (-1)^{m+1} \, x^{n-2m} \, y^{2m} \\
+  \Delta p_y &= \sum_{n = 0}^{\infty} \frac{K_n L}{n!} 
+             \sum_{m = 0}^{\lfloor \frac{n-1}{2} \rfloor}
+             \begin{pmatrix} n \cr 2m+1 \end{pmatrix} \,
+             (-1)^{m} \, x^{n-2m-1} \, y^{2m+1}
+\end{align}
+
+\index{multipole!KnL, Tn|hyperbf}
+So far only the normal components of the field have been
+considered. If the fields associated with a particular $B_n$ multipole
+component are rotated in the $(x, y)$ plane by an angle $\theta_n$, the
+magnetic field at a point $(x,y)$ can be expressed in complex notation
+as
+\Begineq
+  B_y(x,y) + i B_x(x,y) = 
+    \frac{1}{n!} B_n e^{-i(n+1)\theta_n} \, e^{i n \theta} \, r^n 
+  \label{bib1nb}
+\Endeq
+where $(r, \theta)$ are the polar coordinates of the point $(x, y)$.
+
+Instead of using magnitude $K_n$ and rotation angle $\theta_n$,
+Another representation is using normal $\wt K_n$ and skew $\wt
+KS_n$. The conversion between the two are
+\begin{align}
+  \wt K_n  &= K_n \, \cos((n + 1) \theta_n) \CRNO
+  \wt KS_n &= K_n \, \sin((n + 1) \theta_n) 
+\end{align}
+
+\index{multipole!an, bn|hyperbf}
+Another representation of the magnetic field used by \bmad divides
+the fields into normal $b_n$ and skew $a_n$ components. In terms of
+these components the magnetic field for the $n$\Th\ order multipole is
+\Begineq
+  \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
+\Endeq
+The conversion between $(a_n, b_n)$ and $(K_nL, \theta_n)$ is
+\Begineq
+  b_n + i a_n = \frac{1}{n!} \, K_nL \, e^{-i(n+1)\theta_n}
+\Endeq
+or
+\begin{align}
+  K_n L &= n! \, \sqrt{a_n^2 + b_n^2} \\
+  \tan[(n+1) \theta_n] &= \frac{-a_n}{b_n}
+\end{align}
+To convert a normal magnet (a magnet with no skew component) into a skew
+magnet (a magnet with no normal component) the magnet should be rotated
+about its longitudinal axis with a rotation angle of
+\Begineq
+  (n+1) \theta_n = \frac{\pi}{2}
+\Endeq
+For example, a normal quadrupole rotated by $45^\circ$ becomes a
+skew quadrupole.
+
+\index{ab_multipole}
+\index{radius}
+The $a_n$, $b_n$ representation of multipole fields is in
+\vn{AB_Multipole} elements (\sref{s:ab.m}) as well as in other types
+of elements such as quadrupoles, sextupoles, etc. This allows error
+fields to be represented.  When $a_n$ and $b_n$ multipole values are
+associated with an element that is not an \vn{AB_Multipole} element,
+and if the \vn{scale_multipoles} attribute (\sref{s:multip}) is not
+set to \vn{False}, a measurement radius $r_0$ and a scale factor $F$
+are used to scale the effect of the $a_n$ and $b_n$ so that the
+multipole strength scales as the element strength. The scaling formula
+is
+\Begineq
+  \bigl[ a_n (\text{actual}), b_n (\text{actual}) \bigr] =
+  \bigl[ a_n (\text{input}), b_n (\text{input}) \bigr] 
+  \cdot F \cdot \frac{r_0^{n_\text{ref}}}{r_0^n} 
+  \label{ababf}
+\Endeq
+$a_n(\text{input})$ and $b_n(\text{input})$ are the multipole values as given in the
+lattice file. $a_n(\text{actual})$ and $b_n(\text{actual})$ are the multipole values
+that are used in any simulation calculations. $r_0$ is set by the
+\vn{radius} attribute of an element. $F$ and $n_\text{ref}$ are set
+automatically depending upon the type of element as shown in
+Table~\ref{t:ab}.
+
+\index{ab_multipole}
+\index{multipole}
+Note that the $n = 0$ component of an \vn{AB_Multipole} or \vn{Multipole}
+element rotates the reference orbit essentially acting as a zero length bend.
+This is not true for multipoles that are associated with 
+non-multipole elements.
+
+\index{kicker}
+\index{hkicker}
+\index{vkicker}
+\index{rbend}
+\index{sbend}
+\index{elseparator}
+\index{quadrupole}
+\index{solenoid}
+\index{sol_quad}
+\index{sextupole}
+\index{octupole}
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|l|l|} \hline
+\tt
+  {\em Element} & $F$                              & $n_\text{ref}$ \\ \hline
+  \vn{Elseparator} & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Hkicker}     & Kick                                   & 0 \\
+  \vn{Kicker}      & $\sqrt{{\tt Hkick}^2 + {\tt Vkick}^2}$ & 0 \\
+  \vn{Rbend}       & G * L                                  & 0 \\
+  \vn{Sbend}       & G * L                                  & 0 \\
+  \vn{Vkicker}     & Kick                                   & 0 \\
+  \vn{Wiggler}     & $\dsfrac{2 \, c \, {\tt L\_pole} \, B_{max}}{\pi \, {\tt p0c}}$ 
+                                                            & 0 \\
+  \vn{Quadrupole}  & K1 * L                                 & 1 \\
+  \vn{Sol_Quad}    & K1 * L                                 & 1 \\
+  \vn{Solenoid}    & KS * L                                 & 1 \\
+  \vn{Sextupole}   & K2 * L                                 & 2 \\
+  \vn{Octupole}    & K3 * L                                 & 3 \\ \hline
+\end{tabular}
+\caption{$F$ and $n_\text{ref}$ for various elements.}
+\label{t:ab}
+\end{table}
+
+%-----------------------------------------------------------------
+\section{RF fields}
+\label{s:rf.fields.phys}
+\index{rf fields|hyperbf}
+
+The RF fields in an RF cavity can be parameterized as the sum over a
+number of modes. This parameterization used by \bmad essentially
+follows Abell\cite{b:rf.abell}. The electric field is written in the
+form
+\Begineq
+  \bfE(\bfr) = \sum_{j=1}^M \, \bfE_j(\bfr) \, e^{-i \, (\omega_j \, t + \theta_{0j})}
+  \label{eseei}
+\Endeq
+where $M$ is the number of modes. Each mode satisfies the vector Helmholtz
+equation
+\Begineq
+  \nabla^2 \bfE_j + k_{tj}^2 \, \bfE_j = 0
+  \label{bke}
+\Endeq
+where $k_{tj} = \omega_j/c$ with $\omega_j$ being the mode frequency.
+
+For a given mode, the electric field can be characterized by the values on 
+a cylindrical surface of some radius $R$. The field will be of the form
+\begin{align}
+  E_\rho(R, \phi, z) &= E_{\rho c}(R, z) \, \cos(m \, \phi - \phi_0) \CRNO
+  E_\phi(R, \phi, z) &= E_{\phi s}(R, z) \, \sin(m \, \phi - \phi_0) \\
+  \label{erpze}
+  E_z(R, \phi, z)    &= E_{z c}(R, z)    \, \cos(m \, \phi - \phi_0) \nonumber
+\end{align}
+where in this, and subsequent equations, the mode index $j$ has been
+dropped.
+
+The azimuthal mode number $m_j$ is a non-negative integer. If $m_j
+= 0$, there are two different modes, one with $\phi_{0j} = 0$ and
+the other with $\phi_{0j} = -\pi/2$. The $\phi_{0j} = 0$ mode is an
+accelerating mode with the electric field is in the form
+\begin{align}
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2} -e^{i \, k_{zn} \, z} \, 
+    i \, k_{zn} \, e_0(n) \, \wt I_1(\kappa_n, \rho) \CRNO
+  E_\phi(\bfr) &= 0 \\
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
+    e_0(n) \, \wt I_0(\kappa_n, \rho) \nonumber
+\end{align}
+where $\wt I_m$ is
+\Begineq
+  \wt I_m (\kappa_n, \rho) \equiv \frac{I_m(\kappa_n \, \rho)}{\kappa_n^m}
+\Endeq
+with $I_m$ being a modified Bessel function and $\kappa_n$ is given by
+\Begineq
+  \kappa_n = \sqrt{k_{zn}^2 - k_t^2} = 
+  \begin{cases}
+    \sqrt{k_{zn}^2 - k_t^2} & |k_{zn}| > k_t \\
+    -i \, \sqrt{k_t^2 - k_{zn}^2} & k_t > |k_{zn}|
+  \end{cases}
+\Endeq
+with
+\Begineq
+  k_{zn} = \frac{2 \pi \, n}{N \, dz}
+\Endeq
+$N$ is the number of points where $E_{zc}$ is evaluated, and $dz$ is
+the distance between points. When $\kappa_n$ is imaginary, $I_m(\kappa_n \, \rho)$
+can be evaluated through the relation
+\Begineq
+  I_m(-i \, x) = i^{-m} \, J_m(x)
+\Endeq
+where $J_m$ is a Bessel function of the first kind.
+The $e_0$ coefficients are obtained from the equation
+\begin{align}
+  e_0(n) &= \frac{1}{\wt I_0(\kappa_n, R)} \, \frac{1}{N} \, \sum_{p=0}^{N-1}
+    e^{-2 \, \pi \, i \, n \, p / N} \, E_{zc}(R, p \, dz) \CRNO
+  &\equiv \frac{\wt E_{zc}(R, n)}{\wt I_0(\kappa_n, R)} 
+\end{align}
+
+The non-accelerating $m = 0$ mode with $\phi_0 = -\pi/2$ has an
+electric field in the form
+\begin{align}
+  E_\rho(\bfr) &= E_z(\bfr) = 0 \CRNO
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
+    b_0(n) \, \wt I_1(\kappa_n, \rho)
+\end{align}
+where
+\Begineq
+  b_0(n) = \frac{\wt E_{\phi s}(R, n)}{\wt I_1(\kappa_n, R)} 
+\Endeq
+
+For positive $m$, the electric field is in the form
+\begin{align}
+  E_\rho(\bfr) &= \sum_{n=-N/2+1}^{N/2}
+    -i \, e^{i \, k_{zn} \, z} \, 
+    \left[ 
+    k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) +
+    b_m(n) \, \frac{\wt I_m(\kappa_n, \rho)}{\rho}
+    \right]
+    \cos(m \, \phi - \phi_0) \CRNO
+  E_\phi(\bfr) &= \sum_{n=-N/2+1}^{N/2} 
+    -i \, e^{i \, k_{zn} \, z} \, 
+    \left[
+    k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, \rho) \, + \right. \\
+  & \left. \qquad \qquad \qquad \qquad \qquad \qquad
+    b_m(n) \, \left( \frac{\wt I_m(\kappa_n, \rho)}{\rho} - 
+    \frac{1}{m} \, \wt I_{m-1}(\kappa_n, \rho) \right)
+    \right] 
+    \sin(m \, \phi - \phi_0) \CRNO
+  E_z(\bfr) &= \sum_{n=-N/2+1}^{N/2}e^{i \, k_{zn} \, z} \, 
+    e_m(n) \, \wt I_m(\kappa_n, \rho) \cos(m \, \phi - \phi_0) \nonumber
+\end{align}
+with
+\begin{align}
+  e_m(n) &= \frac{\wt E_{zc}(R, n)}{\wt I_m(\kappa_n, R)} \CRNO
+  b_m(n) &= \frac{R}{\wt I_m(\kappa_n, R)} \left[
+    i \, \wt E_{\rho c} - k_{zn} \, e_m(n) \, \wt I_{m+1}(\kappa_n, R)
+    \right]
+\end{align}
+
+The above mode decomposition was done in the gauge where the scalar
+potential $\psi$ is zero. The electric and magnetic fields are thus
+related to the vector potential $\bfA$ via
+\Begineq
+  \bfE = -\partial_t \, \bfA, \qquad \bfB = \nabla \times \bfA
+\Endeq
+Using \Eq{eseei}, the vector potential can be obtained from the
+electric field via
+\Begineq
+  \bfA_j = \frac{-i \, \bfE_j}{\omega_j}
+  \label{aiew}
+\Endeq
+ 
+Symplectic tracking through the RF field is discussed in
+Section~\sref{s:symp.track}.  For the fundamental accelerating mode,
+The vector potential can be analytically integrated using the identity
+\Begineq
+  \int dx \,\frac{x \, I_1 (a \, \sqrt{x^2+y^2})}{\sqrt{x^2+y^2}}  = 
+  \frac{1}{a} \, I_0 (a \, \sqrt{x^2+y^2})
+\Endeq
+
+%-----------------------------------------------------------------
+\section{Wake fields}
+\label{s:wake.fields}
+\index{wake fields|hyperbf}
+
+%-----------------------------
+\subsection{Short--Range Wakes}
+\index{wake fields!short-range}
+
+Wake field effects are divided into short--range (within a bunch) and
+long--range (between bunches).
+
+Only the transverse dipole and longitudinal monopole components of the
+short--range wake field are modeled. The longitudinal monopole energy
+kick $dE$ for the $i$\Th macroparticle is computed from the equation
+\Begineq
+  \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
+        \frac{1}{2}\WlS(0) \,  |q_i| +
+        \sum_{j \ne i} \WlS(dz_{ij}) \, |q_j| \right)
+  \label{delvp}
+\Endeq
+where $v$ is the particle velocity, $e$ is the charge on an electron,
+$q$ is the macroparticle charge, $L$ is the cavity length, $dz_{ij}$
+is the longitudinal distance between the $i$\Th and $j$\Th
+macroparticles, $\WlS$ is the short--range longitudinal wake field
+function.
+
+The transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
+dipole short--range transverse wake field is modeled with the equation
+\Begineq
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
+                 {v \, P_0}
+  \label{pelqxw}
+\Endeq
+There is a similar equation for $\Delta p_y(i)$. $\WtS$ is the
+transverse short--range wake function. 
+
+The wake field functions $\WlS$ and $\WlS$ can be specified in a \bmad
+lattice file using ``pseudo'' modes where
+\Begineq
+  W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
+  \label{wadzk}
+\Endeq
+The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit
+the calculated wake potential. The reason why the mode approach is
+used in \bmad is due to the fact that, with modes, the calculation
+time scales as the number of particles $N$ while a calculation based
+upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
+that initially the user must proform a fit to the wake potential to
+generate the mode parameter values.]
+
+%-----------------------------
+\subsection{Long--Range Wakes}
+\index{wake fields!long-range}
+
+Following Chao\cite{b:chao} Eq.~2.88, the long--range wake fields are
+characterized by a set of cavity modes. The wake function $W_m$ for a
+mode of order $m$ is given by
+\Begineq
+  W_m(t) = -c \, \left( \frac{R}{Q} \right)_m \,\,
+  e^{-\omega \, t/ 2 Q} \, \sin (\omega \, t)
+  \label{wcrq}
+\Endeq
+The mode strength $(R/Q)_m$ has units of Volts/meter$^{2m}$.
+
+Assuming that the macroparticle generating the wake is offset a
+distance $r_w$ along the $x$--axis, a trailing macroparticle will see a kick
+\begin{align}
+  \Delta {\Bf p}_\perp &= 
+    -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
+    \bfhat r \cos m\theta - {\bf\hat\theta} \sin m\theta \right) \\
+  &= -C \, I_m \, W_m(t) \, m \, r^{m-1} \, \left( 
+    \bfhat x \cos [(m-1) \theta] - 
+    \bfhat y \sin [(m-1)\theta] \right) \CRNO
+  \Delta p_z &= -C \, I_m \, W'_m(t) \, r^m \, \cos m\theta
+\end{align}
+where $m$ is the order of the mode, $C$ is given by
+\Begineq
+  C = \frac{e}{c \, P_0}
+\Endeq
+ and
+\Begineq
+  I_m = q_w \, r_w^m
+\Endeq
+with $q_w$ being the magnitude of the charge on the particle. 
+Generalizing the above, a macroparticle at $(r_w, \theta_w)$ will generate a wake
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, I_m \, W_m(t) \, 
+    m \, r^{m-1} \, e^{-i m \theta_w} \, e^{i (m-1) \theta} 
+    \label{ppcimr} \\
+  \Delta p_z &= C \, I_m \, W'_m(t) \, r^m \, \cos [m(\theta - \theta_w)]
+    \label{pciwr}
+\end{align}
+Comparing \Eq{ppcimr} to \eq{bib1nb}, and using the relationship between
+kick and field as given by \eq{pqlbp1} and \eq{pqlbp2}, shows that
+the form of the wake field transverse kick is the same as for a
+multipole of order $n = m - 1$. 
+
+The wake field felt by a particle is due to the wake fields generated by
+all the particles ahead of it. If the wake field kicks are computed by
+summing over all particle pairs, the
+computation will scale as $N^2$ where $N$ is the number of
+particles. This quickly becomes computationally exorbitant. A better
+solution is to keep track of the wakes in a cavity. When a particle
+comes through, the wake it generates is simply added to the existing
+wake. This computation scales as $N$ and makes simulations with large
+number of particles practical. 
+
+To add wakes together, a wake must be decomposed into its
+components.  Spatially, there are normal and skew components and
+temporally there are sin and cosine components. This gives 4
+components which will be labeled $a_{\cos}$, $a_{\sin}$, $b_{\cos}$,
+and $b_{\sin}$. For a mode of order $m$, a particle passing through at
+a time $t_w$ with respect to the reference particle will produce
+wake components
+\begin{alignat}{2}
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
+    \CRNO
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \sin(m \theta_w) 
+    \label{ac2rq} 
+    \\
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
+    \CRNO
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \cos(m \theta_w) 
+    \nonumber
+\end{alignat}
+These are added to the existing wake components. The total is
+\Begineq
+  a_{\sin, m} = \sum_{\text{particles}} \delta a_{\sin, m}
+\Endeq
+with similar equations for $a_{\cos, m}$ etc. Here the sum is over all particles
+that cross the cavity before the kicked particle. To calculate the kick
+due to wake, the normal and skew components are added together
+\begin{align}
+  a_m &= e^{-\omega \, t/ 2 Q} \, \left( 
+    a_{\cos, m} \, \cos (\omega \, t) - a_{\sin, m} \, \sin (\omega \, t) \right) 
+    \label{akz2q} \\
+  b_m &= e^{-\omega \, t/ 2 Q} \, \left(
+    b_{\cos, m} \, \cos (\omega \, t) - b_{\sin, m} \, \sin (\omega \, t) \right) \nonumber 
+\end{align}
+Here $t$ is the passage time of the particle with respect to the
+reference particle. In analogy to \Eq{ppcimr} and \eq{pciwr}, the kick
+is
+\begin{align}
+  -\Delta p_x + i\Delta p_y &= C \, 
+    m \, (b_m + i a_m) \, r^{m-1} \, e^{i (m-1) \theta} 
+    \label{ppcmbar} \\
+  \Delta p_z &= -C \, r^m \, \left( 
+    (b_m' + i a_m') e^{i m\theta} + (b_m' - i a_m') e^{-i m\theta} \right)
+\end{align}
+where $a' \equiv da/dt$ and $b' \equiv db/dt$.
+
+When simulating trains of bunches, the exponential factor $\omega \, t_w / 2
+Q$ in \Eq{ac2rq} can become very large. To prevent numerical overflow,
+\bmad uses a reference time $z_{\text{ref}}$ so that all times
+$t$ in the above equations are replaced by
+\Begineq
+  t \longrightarrow t - t_{\text{ref}}
+\Endeq
+
+The above equations were developed assuming cylindrical symmetry. With
+cylindrical symmetry, the cavity modes are actually a pair of
+degenerate modes. When the symmetry is broken, the modes no longer have the
+same frequency. In this case, one has to consider a mode's polarization
+angle $\phi$. Equations \eq{akz2q} and \eq{ppcmbar} are unchanged. 
+In place of \Eq{ac2rq}, the contribution of a particle to a mode is
+\begin{alignat}{2}
+  \delta a_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \left[
+    \sin(m \theta_w) \, \sin^2(m \phi) + 
+    \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \CRNO
+  \delta a_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \left[ 
+    \sin(m \theta_w) \, \sin^2(m \phi) + 
+    \cos(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \\
+  \delta b_{\sin, m} &=  &c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \cos (\omega \, t_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \phi) + 
+    \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \CRNO
+  \delta b_{\cos, m} &= -&c \, \left( \frac{R}{Q} \right)_m \,
+    e^{\omega \, t_w/ 2 Q} \, \sin (\omega \, t_w) \, I_m \, \left[
+    \cos(m \theta_w) \, \cos^2(m \phi) + 
+    \sin(m \theta_w) \, \sin(m \phi) \, \cos(m\phi) \right]
+    \nonumber
+\end{alignat}
+
+Each mode is characterized by an $R/Q$, $Q$, $\omega$, and $m$. Notice
+that $R/Q$ is defined so that it includes the cavity length. Thus the
+long--range wake equations, as opposed to the short--range ones, do
+not have any explicit dependence on $L$. 
+
+To make life more interesting, different people define $R/Q$
+differently. A common practice is to define an $R/Q$ ``at the beam
+pipe radius''. In this case the above equations must be modified to
+include factors of the beam pipe radius. Another convention uses a
+``linac definition'' which makes $R/Q$ twice as large and adds a
+factor of 2 in \Eq{wcrq} to compensate.
+
