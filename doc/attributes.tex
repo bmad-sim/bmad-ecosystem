@@ -470,7 +470,7 @@ entrance edge:
 \end{example}
 Here "exit" edge for \vn{fork} and \vn{photon_fork} elements is defined
 to be the start of the line being branched to. [Within the line containing
-the fork, the \vn{fork} elementis considered to have zero length so the exit face
+the fork, the \vn{fork} element is considered to have zero length so the exit face
 in the line containing the fork is coincident with the entrance face.]
 The placement of the exit edge for these elements defines the reference orbit.
 Thus, unlike the corresponding attributes for other elements, 
@@ -1714,13 +1714,35 @@ is not given, is 1.0.  This behavior may be turned off by setting the
 \section{Specifying Electromagnetic Fields Via Tables or Maps}
 \label{s:em.fields}
 
+\index{field_calc}
+Three dimensional electromagnetic fields can be specified in a number
+of ways.  Setting a lattice element's \vn{field_calc} switch to
+\vn{custom} (\sref{s:integ}) alows for a custom calculation. The
+drawback here is that the appropriate custom code must be linked into
+any program that needs to do tracking (\sref{s:custom.ele}).
+
+The other two possibilities are setting \vn{field_calc} to either
+\vn{grid} or \vn{map}. \vn{grid} defines the field using a three
+dimensional grid of points with interpolation used to evaluate the
+field between points. \vn{map} defines the field using a number of
+normal modes. As dissused below, both \vn{grid} and \vn{map} use the 
+\vn{field} attribute of an element to specify the needed parameters.
+Example:
+\begin{example}
+  q: quadrupole, field_type = grid, field = \{grid = \{...\}\}, ...
+  r: rfcavity, field_type = map, field = \{map = \{...\}\}, ...
+\end{example}
 \index{lcavity}\index{rfcavity}\index{em_field}\index{field}
-3D Electromagnetic fields can be specified using the \vn{field}
-attribute. Fields so specified can be used with, for example,
-\vn{runge_kutta} tracking (\sref{s:tkm}), etc. The \vn{field}
-attribute can be used with both RF and DC fields however RF fields can
-only be associated with \vn{lcavity}, \vn{rfcavity}, and \vn{em_field}
-elements.
+Fields so specified can be used with, for example, \vn{runge_kutta}
+tracking (\sref{s:tkm}). Both RF and DC fields can be specified.
+However RF fields can only be associated with \vn{lcavity},
+\vn{rfcavity}, and \vn{em_field} elements.
+
+Currently there is the restriction that RF fields must use \vn{map}
+and DC fields must use \vn{grid}.
+
+%-----------------------------------------------------------------
+\subsection{Map}
 
 The syntax for specifying the electromagnetic fields is
 \index{m}\index{field}\index{mode}\index{freq}\index{dphi0_ref}
@@ -1801,31 +1823,6 @@ element. If there is a difference, the field is assumed to be centered
 on the element and drifts will be used at the entrance and exit ends
 of the element to make up the difference.
 
-Alternatively, a grid of field points may be specified. The general format is:
-\begin{example}
-  grid = \{ 
-    type = <String>,
-    r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
-    dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
-    ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
-    pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  ! Grid field points
-    \ldots \}
-\end{example}
-Currently the only available value for the grid \vn{type} is 
-\begin{example} 
-  rotationally_symmetric_rz
-\end{example} 
-The format for this type of grid is 
-\begin{example}
-  grid = \{ 
-    type = rotationally_symmetric_rz,
-    r0   = (<r(0,0)>,  <z(0,0)>),     ! Grid origin 
-    dr   = (<delta_r>, <delta_z>),    ! Grid spacing
-    pt(i_r, i_z) = ((<Re(E_r)>, <Im(E_r)), (<Re(E_phi)>, <Im(E_phi)>), 
-                                             (<Re(E_z)>, <Im(E_z)>))
-    \ldots \}
-\end{example}
-
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq
   e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
@@ -1859,6 +1856,35 @@ for a \vn{lcavity} and on the zero-crossing for an
 adjusted by an overall factor so that for an \vn{lcavity} the maximal
 acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
 the maximal acceleration is equal to \vn{e * voltage}.
+
+%-----------------------------------------------------------------
+\subsection {Grid}
+
+A grid of field points can be specified using the general format:
+\begin{example}
+  field = \{
+    grid = \{ 
+      type = <String>,
+      r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
+      dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
+      ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
+      pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  ! Grid field points
+      \ldots \} \}
+\end{example}
+Currently the only available value for the grid \vn{type} is 
+\begin{example} 
+  rotationally_symmetric_rz
+\end{example} 
+The format for this type of grid is 
+\begin{example}
+  field = \{grid = \{ 
+    type = rotationally_symmetric_rz,
+    r0   = (<r(0,0)>,  <z(0,0)>),     ! Grid origin 
+    dr   = (<delta_r>, <delta_z>),    ! Grid spacing
+    pt(i_r, i_z) = ((<Re(E_r)>, <Im(E_r)), (<Re(E_phi)>, <Im(E_phi)>), 
+                                             (<Re(E_z)>, <Im(E_z)>))
+    \ldots \} \{ 
+\end{example}
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
@@ -1954,14 +1980,14 @@ should be less than the magnitude of \vn{z_max}.
 \subsection{Long-Range Wakes}
 
 The input file name for the long--range wake fields is specified using
-the \vn{lr_wake_file} attribute. The file gives the
-wake modes by specifying the frequency (in Hz), R/Q (in
-$\Omega$/meter$^{2m}$), Q, and m (order number), and optionally the
-polarization angle (in radians/2pi) for each cavity mode. The input
-uses Fortran90 namelist syntax: The data begins with the string
-\vn{\&long_range_modes} and ends with a \vn{/}. Everything outside is
-ignored. Each mode is labeled \vn{lr(i)} where \vn{i} is the mode
-index. An example input file is:
+the \vn{lr_wake_file} attribute. The file gives the wake modes by
+specifying the frequency (in Hz), R/Q (in $\Omega$/meter$^{2m}$), Q,
+and m (order number), and optionally the polarization angle (in
+radians/2pi) for each cavity mode. The input uses Fortran90 namelist
+syntax: The data begins with the string \vn{\&long_range_modes} and
+ends with a slash \vn{/}. Everything outside this is ignored. Each
+mode is labeled \vn{lr(i)} where \vn{i} is the mode index. An example
+input file is:
 \begin{example}
               Freq      R/Q      Q    m   Polar   b_sin  b_cos a_sin  a_cos  t_ref 
                       [Ohm/               Angle 
@@ -2047,22 +2073,32 @@ there is a finite \vn{e1} or \vn{e2} face angle. With
 \vn{bmad_standard} tracking, \vn{basic_bend} also includes second
 order terms.  In some cases, for instance in a chicane,
 \vn{basic_bend} is not good enough. With \vn{full_bend} or
-\vn{full_straight}, higher order effects are taken into account.  The
-difference between \vn{full_bend} and \vn{full_straight} is that with
-\vn{full_bend} the fringe field is calculated assuming that there is
-translational invariance along the horizontal $x$ axis (as one would have 
-in a bend) and for \vn{full_straight} the fringe_field is ...
+\vn{full_straight}, higher order effects are taken into account.  
+
+The difference between \vn{full_bend} and \vn{full_straight} is that
+with \vn{full_straight} the fringe field is assumed to have the
+perfect symmetry of the multipole. At the bend edge, Maxwell's
+equations leads to next order terms with the same symmetry of the
+multipole. With \vn{full_bend}, the fringe field is calculated
+assuming that there is translational invariance along the horizontal
+$x$ axis. This differes from \vn{full_straight} by adding an infinite
+number of multipoles consistent with the dipole symmetry. See Etienne
+Forest's book\cite{b:forest} for more details.
 
 Example:
 \begin{example}
   b1: rbend, angle = pi/4, g = 0.3, fringe_type = full_bend
 \end{example}
 
-\index{sad}
-For SAD type fringes, the \vn{sad_linear} setting only uses the linear
+\index{sad}\index{sbend}\index{rbend}
+The \vn{sad_linear}, \vn{sad_nonlin_only} and \vn{sad_full} settings
+of \vn{fringe_type} emulate the fringe field tracking used in the SAD
+program\cite{b:sad}.  The \vn{sad_linear} setting only uses the linear
 part of the fringe, \vn{sad_nonlin_only} ignores the linear part of
-the fringe, and \vn{sad_full} uses the full fringe.
-
+the fringe, and \vn{sad_full} uses the full fringe.  For an \vn{sbend}
+or \vn{rbend} element, these SAD fringe fields are in addition to the
+fringe fields that occurs with a finite \vn{e1} or \vn{e2} face
+angle. 
 
 \index{ptc_max_fringe_order}
 When using PTC tracking (\sref{s:ptc.intro}), the
