@@ -38,7 +38,7 @@ def WrapWrite(line):
 
 ele_type_to_bmad = {
   'drift': 'drift',
-  'bend': 'rbend',
+  'bend': 'sbend',
   'quad': 'quadrupole',
   'sext': 'sextupole',
   'oct': 'octupole',
@@ -79,12 +79,12 @@ ele_param_translate = {
     'volt': 'voltage',
     'bound': 'bound',
     'geo': 'geo',
-    'rotate': ['tilt', ' * -1'], 
+    'sol:chi1': ['x_pitch', ' * -1'],
+    'sol:chi2': ['y_pitch', ' * -1'],
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
     'chi3': ['tilt', ' * -1'],
-    'sol:chi1': ['x_pitch', ' * -1'],
-    'sol:chi2': ['y_pitch', ' * -1'],
+    'rotate': ['tilt', ' * -1'], 
     'k0': 'b0', 'k1': 'b1', 'k2': ['b2', ' / factorial(2)'], 'k3': ['b3', ' / factorial(3)'], 
     'k4': ['b4', ' / factorial(4)'], 'k5': ['b5', ' / factorial(5)'], 'k6': ['b6', ' / factorial(6)'], 
     'k7': ['b7', ' / factorial(7)'], 'k8': ['b8', ' / factorial(8)'], 'k9': ['b9', ' / factorial(9)'], 
@@ -169,6 +169,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
     bmad_ele.param[bmad_name] = value + value_suffix
 
+  # If entering solenoid (inside_sol = True) then must reverse x_offset and y_offset for a patch element
+
+  if bmad_ele.type == 'patch' and inside_sol:
+    if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = bmad_ele.param['x_offset'] + ' * -1'
+    if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = bmad_ele.param['y_offset'] + ' * -1'
+
   # Fringe 
 
   fringe = '0'   # default 
@@ -199,7 +205,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
   # Bend fringe
 
   elif sad_ele.type == 'bend':
-    # fringe == '0' & disfrin != '0' ==> fringe_type = none which is default
+    # fringe == '0' & disfrin != '0' ==> default fringe_type = basic_bend
     if fringe == '0' and disfrin == '0':
       bmad_ele.param['fringe_type'] = 'sad_nonlin_only'
     elif fringe != '0' and disfrin == '0':
