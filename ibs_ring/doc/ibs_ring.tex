@@ -84,9 +84,130 @@
 \section{Introduction} 
 \label{s:intro}
 
-\vn{ibs_ring} is a program for simulating intra-beam scattering (IBS).
+\vn{ibs_ring} is a program for simulating intra-beam scattering (IBS) in a storage ring.
 The source code for this program lives in the \vn{bsim} directory in
 the standard Bmad\cite{b:bmad} distribution.
+
+Many formulas for calculating IBS rates are implemented.  They are:
+\begin{enumerate}
+\item Modified Piwinski with Zotter's integral.
+\item Modified Piwinski with constant Coulomb Log.
+\item Completely Integrated Modified Piwinski (CIMP).
+\item Bjorken \& Mtingwa's formula.
+\item Bane's approximation of Bjorken \& Mtigwa's formula.
+\item Kubo \& Oide's generalization of Bjorken \& Mtingwa's formula.
+\end{enumerate}
+These formula's are described in the following section.
+
+\section{Methods for calculating IBS growth rates}
+
+\subsection{Modified Piwinski with Zotter's integral}
+This formula is selected by setting {\tt ibs_formula=`mpzt'}.
+
+Piwinski's original formula for calculating IBS rates is Ref.~\cite{b:pw}.  The
+original formula contained a numerically difficult triple integral.  In
+Ref.~\cite{b:zotter}, the triple integral is reduced to a single integral that is 
+much easier to evaluate.  No 
+approximations are applied to obtain the single integral, it is exact.
+
+The original formula included Twiss $\beta$ and dispersion $\eta$, but neglicted
+the derivatives of the lattice functions Twiss $\alpha$ and $\eta'$.
+In Ref.~\cite{b:martini}, the derivatives of the lattice functions are included.
+This form of Piwinski's original formula with derivatives of the lattice
+functions is usually called ``Modified Piwinski''.
+
+\subsection{Modified Piwinski wiht constant Coulomb Log}
+This formula is selected by setting {\tt ibs_formula=`mpxx'}.
+
+Piwinski's origional IBS formula typically gives a considerablly different growth rate than
+Bjorken \& Mtingwa's, Kubo \& Oide's, and approximations of Piwinski.  This is because
+Piwinski's formula is unique in how it treats the Coulomb Logarithm.
+
+In the {\tt `mpxx'} IBS formula, Piwinski's formula has been rederived and the
+log term pulled out of the integral.  This allows the Coulomb Logarithm to be treated the
+same as it is in other IBS formulas.  This derivation is available in Ref.~\cite{b:ehr-thesis}.
+
+\subsection{Completely Integrated Modified Piwinski (CIMP)}
+This formula is selected by setting {\tt ibs_formula=`cimp'}.
+
+In Ref.~\cite{b:wolski}, a high energy approximation of the Modified Piwinski formula is 
+obtained.  This formula contains one integral which can be easily easily and quickly tabulated.
+This formula is very fast and, for ILC and CesrTA, returns growth rates similar to those obtained
+from the more general IBS formulas.
+
+\subsection{Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`cimp'}.
+
+In Ref.~\cite{b:bjmt}, the authors take a distinct approach to calculating IBS growth rates.
+In Ref.~\cite{b:bane-comp}, Bjorken \& Mtingwa's formula is compared to
+the Modified Piwinski formula.  It is found that, for high energy beams, after some
+modifications to Piwinski's formula, the two formulas are algebraically similar
+and give similar results.
+
+\subsection{Bane's approximation of Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`bane'}.
+
+In Ref.~\cite{b:bane-approx}, a high energy approximation of Bjorken \& Mtingwa's formula
+is obtained.  The formula is simpler and numerically easier to evaluate, but does
+not give sensible results when vertical dispersion is zero.
+
+\subsection{Kubo \& Oide's generalization of Bjorken \& Mtingwa's formula}
+This formula is selected by setting {\tt ibs_formula=`kubo'}.
+
+In Ref.~\cite{b:kubo}, a generalization of Bjorken \& Mtingwa's formula
+is derived.  This formula is unique in that it is based on the $6\times6$
+matrix of the second order moments of the beam distribution (the beam sigma matrix),
+rather than on Twiss parameters.
+
+This formula should be able to handle arbitrary coupling conditions, though
+that has not been tested in experiment.
+
+\section{Methods for determining equilibrium emittances}
+
+\subsection{Derivatives method}
+This method is selected by setting {\tt eqb_method=`der'}.
+
+This method finds the equilibrium beam size using differential equations to 
+evolve the emittance through time.  The time step is hard coded to $\frac{\tau}{10}$,
+where $\tau$ is the horizontal damping time.
+
+The differential equations are,
+\begin{align}
+\frac{d\epsilon_a}{dt}&= -\left(\epsilon_a-\epsilon_{a0}\right)\frac{2}{\tau_a}+\epsilon_a\frac{2}{T_a}\label{e:da}\\
+\frac{d\epsilon_b}{dt}&= -\left(\epsilon_b-\epsilon_{b0}\right)\frac{2}{\tau_b}+\epsilon_b\frac{2}{T_b}\label{e:db}\\
+\frac{d \sigma_p}{dt}&= -\left(\sigma_p-\sigma_{p0}\right)\frac{1}{\tau_z}+\sigma_p\frac{1}{T_z}\label{e:dp},
+\end{align}
+where $\epsilon_{a0}$, $\epsilon_{b0}$, and $\sigma_{p0}$ are the zero-current emittances and energy spread,
+$\tau_a$, $\tau_b$, and $\tau_z$ are the damping times, and $T_a$, $T_b$, and $T_z$ are the IBS
+growth rates given the IBS formulas.  The factors of $2$ come about because $\tau_a$, $\tau_b$,
+$T_a$, and $T_b$ are betatron growth rates.  i.e.  they are the rates of change the beam sizes,
+rather than the emittances.
+
+\subsection{Relaxation of equilibrium equations}
+This method is selected by setting {\tt eqb_method=`rlx'}.
+
+The solutions to differential equations (\ref{e:da}), (\ref{e:db}), and (\ref{e:dp}) are,
+\begin{align}
+\epsilon_a&=\frac{1}{1-\frac{\tau_a}{T_a}}\epsilon_{a0}\label{e:eea}\\
+\epsilon_b&=\frac{1}{1-\frac{\tau_b}{T_b}}\epsilon_{b0}\label{e:eeb}\\
+\sigma_p&=\frac{1}{1-\frac{\tau_z}{T_z}}\sigma_{p0}\label{e:eep}.
+\end{align}
+Note that $T_a$, $T_b$, and $T_z$ are functions of $\epsilon_a$, $\epsilon_b$, and $\sigma_p$.
+
+In Ref.~\cite{b:wolski}, a method for approximating the effect of coupling replaces Eqn.~\ref{e:eeb}
+with,
+\begin{equation}
+\epsilon_b=\left(\left(1-r_\epsilon\right)\frac{1}{1-\frac{\tau_b}{T_b}}+
+r_\epsilon\frac{1}{1-\frac{\tau_a}{T_a}}\right)\epsilon_{b0},
+\end{equation}
+where $r_\epsilon$ describes the amount of vertical emittance that is due to transverse mode coupling.
+$0<r_\epsilon<1$.
+$r_\epsilon=0$ describes a situation where there is no mode coupling and $\epsilon_{b0}$ is
+determined entirely by physics in the vertical plane.  $r_\epsilon=1$ describes a situation
+where $\epsilon_{b0}$ is determined entirely by coupling from the horizontal plane.
+
+In the {\tt ibs\_ring} simulation $r_\epsilon$ is set by {\tt ratio}.
+
 
 %------------------------------------------------------------------
 \section{Running ibs_ring} 
@@ -261,6 +382,42 @@ Nuc.\ Instrum.\ \& Methods Phys.\ Res.\ A, {\bf 558}, pp 356-59 (2006).
 The Bmad web site:
 \hfill\break
 \hspace*{0.3in} \url{http://www.lepp.cornell.edu/~dcs/bmad}
+
+\bibitem{b:pw}
+Piwinski, A., ``Intra-Beam Scattering''.
+Proceedings of the 9th International Conference on High Energy Accelerators,
+Stanford, CA, 1974. p. 405.
+
+\bibitem{b:martini}
+Martini, M., CERN PS/84-9 (AA) (1984).
+
+\bibitem{b:zotter}
+Evans, L. and Zotter, B., ``Intrabeam Scattering in the SPS''.
+CERN-SPS-80-15, CERN, 1980.
+
+\bibitem{b:wolski}
+Kubo, K., Mtingwa, S. K. and Wolski, A., ``Intrabeam Scattering Formulas for 
+High Energy Beams,'' Phys. Rev. ST Accel. Beams, 8, 2005.
+
+\bibitem{b:ehr-thesis}
+Ehrlichman, M., ``Thesis: Normal Mode Analysis of Single Bunch, Charge Density
+Dependent Behavior in Electron/Positron Beams''.  Cornell University (2013).
+
+\bibitem{b:bjmt}
+Bjorken, J., Mtingwa, S., ``Intrabeam Scattering'', Particle Accelerators. 13. 
+pp. 115-143. (1983).
+
+\bibitem{b:bane-comp}
+Bane, K., ``An Accurate, Simplified Model of Intrabeam Scattering'', SLAC-AP-141,
+arXiv:physics/0205058. (2002).
+
+\bibitem{b:bane-approx}
+Bane, K. in {\it Proceedings of the 8th European Particle Accelerator Conference, Paris,
+France, 2002}, p. 1443, (2002).
+
+\bibitem{b:kubo}
+Kubo, K., Katsunobu, O., ``Intrabeam Scattering in Electron Storage Rings'',
+Phys. Rev. ST Accel. Beams 4, 124401 (2001).
 
 \end{thebibliography}
 \end{document}  
