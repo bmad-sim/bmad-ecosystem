@@ -1,4 +1,5 @@
 set (EXENAME coord_test)
+
 set (SRC_FILES
   coord_test/coord_test.f90
 )
