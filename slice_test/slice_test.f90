@@ -2,17 +2,19 @@ program slice_test
 
 use bmad
 use transfer_map_mod
+use em_field_mod
 
 implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele0
+type (ele_struct), pointer :: ele0, ele
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
 type (coord_struct) start_orb, end_orb, end_orb2, orbit
-type (ele_struct) ele1, ele2a, ele2b, ele, end_ele
+type (ele_struct) ele1, ele2a, ele2b, end_ele
 type (taylor_struct) t_map(6)
+type (em_field_struct) field
 
 real(rp) s1, s2, s_end
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6)
@@ -55,7 +57,7 @@ write (1, '(a, es18.9)')  '"bend:dt" ABS 1e-14  ', end_orb2%t - end_orb%t
 
 ! track slice
 
-ele = branch%ele(0)
+ele => branch%ele(0)
 call init_coord (start_orb, start_orb, branch%ele(5), .true.)
 start_orb%s = branch%ele(4)%s + 0.1
 start_orb%location = inside$
@@ -183,9 +185,9 @@ call init_coord (start_orb, lat%beam_start, branch%ele(0), .true.)
 
 s_end = branch%ele(1)%s
 orbit = start_orb
-ele = branch%ele(0)
+ele1 = branch%ele(0)
 do i = 1, 100
-  call twiss_and_track_from_s_to_s (branch, orbit, i * s_end / 100, orbit, ele, ele)
+  call twiss_and_track_from_s_to_s (branch, orbit, i * s_end / 100, orbit, ele1, ele1)
 enddo
 
 call reallocate_coord (ref_orb, lat, branch%ix_branch)
@@ -206,14 +208,32 @@ write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  1e-14', end_orb%vec(6), end_orb%vec
 write (1, '(a, 2es22.12)') '"B2:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
 
 write (1, *)
-write (1, '(a, 2f22.14)') '"B2:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele%a%beta
-write (1, '(a, 2f22.14)') '"B2:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele%b%beta
-write (1, '(a, 2f22.14)') '"B2:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele%a%alpha
-write (1, '(a, 2f22.14)') '"B2:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele%b%alpha
-write (1, '(a, 2f22.14)') '"B2:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele%a%eta
-write (1, '(a, 2f22.14)') '"B2:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele%b%eta
+write (1, '(a, 2f22.14)') '"B2:D:a%beta"  ABS  1e-12', end_ele%a%beta,  end_ele%a%beta  - ele1%a%beta
+write (1, '(a, 2f22.14)') '"B2:D:b%beta"  ABS  1e-12', end_ele%b%beta,  end_ele%b%beta  - ele1%b%beta
+write (1, '(a, 2f22.14)') '"B2:D:a%alpha" ABS  1e-12', end_ele%a%alpha, end_ele%a%alpha - ele1%a%alpha
+write (1, '(a, 2f22.14)') '"B2:D:b%alpha" ABS  1e-12', end_ele%b%alpha, end_ele%b%alpha - ele1%b%alpha
+write (1, '(a, 2f22.14)') '"B2:D:a%eta"   ABS  1e-12', end_ele%a%eta,   end_ele%a%eta   - ele1%a%eta
+write (1, '(a, 2f22.14)') '"B2:D:b%eta"   ABS  1e-12', end_ele%b%eta,   end_ele%b%eta   - ele1%b%eta
 
-!
+!------------------------------------------------
+! Test slice_test2.bmad
+
+call bmad_parser ('slice_test2.bmad', lat, .false.)
+branch => lat%branch(0)
+ele => branch%ele(3)
+
+orb1%vec(1) = 0.8
+orb1%vec(2) = 0.2
+orb1%vec(3) = -0.2
+call em_field_calc (ele, branch%param, 0.1_rp, 0.0_rp, orb1, .true., field)
+
+write (1, *)
+write (1, '(a, 3f14.8)') '"Field%E"  ABS  1e-12', field%e
+write (1, '(a, 3f14.8)') '"Field%B"  ABS  1e-12', field%b
+
+
+
+!------------------------------------------------
 
 close (1)
 

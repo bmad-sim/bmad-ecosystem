@@ -7,18 +7,27 @@
 program parse_test
 
 use bmad
+use bmad_parser_mod
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
+real(rp) value
+character(1) delim
+logical err, delim_found
+
 ! 
+
+open (1, file = 'output.now')
 
 call bmad_parser ('parse_test.bmad', lat)
 
-
-open (1, file = 'output.now')
+bp_com%input_from_file = .false.
+bp_com%parse_line = '-2*7)'
+call evaluate_value ('ERR', value, lat, delim, delim_found, err, ',)')
+write (1, '(a, f10.4)') '"EVAL 1"  ABS 0', value
 
 write (1, '(a, f10.4)') '"1 REL"  ABS 0', lat%ele(1)%value(k1$)
 write (1, '(a, f10.4)') '"2 REL"  ABS 0', lat%ele(2)%value(k1$)
