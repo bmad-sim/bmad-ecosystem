@@ -1065,9 +1065,9 @@ end type
 
 
 ! Grid of em_grid information
-integer, parameter :: rotationally_symmetric_rz$ = 1
-character(30), parameter :: em_grid_type_name(1) = [ 'rotationally_symmetric_rz     ' ]
-integer, parameter :: em_grid_dimension(1) = [ 2 ] 
+integer, parameter :: rotationally_symmetric_rz$ = 1, xyz$ = 2
+character(30), parameter :: em_grid_type_name(2) = ['rotationally_symmetric_rz', 'xyz                      ']
+integer, parameter :: em_grid_dimension(2) = [2, 3] 
 
 
 ! Structures for saving the track through an element.

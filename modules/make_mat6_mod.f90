@@ -327,8 +327,8 @@ real(rp) t4(4,4), ts(4,4), m0(6,6), xp_start, xp_end, yp_start, yp_end
 real(rp) dt4(4,4), dts(4,4), dz_co(4,4), d_dz_co(4,4), dm(4,4)
 real(rp) r_orb(4), d_orb(4), tsd(4,4), dtsd(4,4)
 real(rp) d2_f, dug, d2_ug, d2_C, d2_fp, d2_fm, d2_Csh, d2_q, d2_s1, d2_s2 
-real(rp) d2_r, d2_snh1, d2_snh2, d2_a, d2_b, d2_coef1, d2_coef2, factor
-real(rp) d2_alpha, d2_beta, d2_arg, d2_arg1, d2_S, d2_Snh, d2_f_f
+real(rp) d2_r, d2_snh1, d2_snh2, d2_a, d2_b, d2_coef1, d2_coef2
+real(rp) d2_alpha, d2_beta, d2_arg, d2_arg1, d2_S, d2_Snh, d2_f_f, rk
 
 ! Calculation is done in (x, x', y, y') coordinates and then converted
 ! to (x, p_x, y, p_y) coordinates.
@@ -348,15 +348,23 @@ ks4 = ks2*ks2
 f = sqrt(ks4 + 4*k1**2)
 ug = 1 / (4*f)
 alpha2 = (f + ks2) / 2; alpha = sqrt(alpha2)
-beta2  = (f - ks2) / 2; beta  = sqrt(beta2)
+
+if (abs(k1) < 1e-2 * f) then
+  rk = (k1 / ks2)**2
+  beta2 = ks2 * (rk - rk**2 + 2 * rk**3) 
+else
+  beta2  = (f - ks2) / 2
+endif
+beta  = sqrt(beta2)
+
 S = sin(alpha*s_len)                              
 C = cos(alpha*s_len)
 Snh = sinh(beta*s_len)
 Csh = cosh(beta*s_len)
-q = f + 2*k1 - ks2
-r = f - 2*k1 + ks2
-a = f + 2*k1 + ks2
-b = f - 2*k1 - ks2
+q = 2 * beta2  + 2*k1
+r = 2 * alpha2 - 2*k1
+a = 2 * alpha2 + 2*k1
+b = 2 * beta2  - 2*k1 
 fp = f + 2*k1
 fm = f - 2*k1
 

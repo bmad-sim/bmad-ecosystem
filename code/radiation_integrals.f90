@@ -235,15 +235,18 @@ if (init_cache) then
 
     if (ele%value(l$) == 0) cycle
 
-    key = ele%key
-    if (key == undulator$) key = wiggler$
-    if ((key == wiggler$ .and. ele%sub_key == map_type$) .or. &
-        (.not. cache_only_wig .and. (key == quadrupole$ .or. key == sol_quad$ .or. &
-        key == sbend$ .or. key == wiggler$ .or. key == sad_mult$ .or. ele%value(hkick$) /= 0 .or. &
-        ele%value(vkick$) /= 0 .or. key == hkicker$ .or. key == vkicker$))) then
-      j = j + 1
-      cache%ix_c_ele(i) = j  ! mark element for caching
-    endif
+    select case (ele%key)
+    case (wiggler$, undulator$)
+    case (quadrupole$, sol_quad$, sbend$, em_field$, sad_mult$, hkicker$, vkicker$)
+      if (cache_only_wig) cycle
+    case default
+      if (cache_only_wig) cycle
+      if (attribute_index(ele, 'HKICK') == 0) cycle   ! Has no kick attributes.
+      if (ele%value(hkick$) == 0 .or. ele%value(vkick$) == 0) cycle
+    end select
+
+    j = j + 1
+    cache%ix_c_ele(i) = j  ! mark element for caching
   enddo
 
   if (allocated(cache%c_ele)) then
@@ -383,7 +386,8 @@ endif ! (init_cache)
 
 !---------------------------------------------------------------------
 ! Loop over all elements
-! We do the non-wiggler elements first since we can do this quickly.
+! We do the elements that can be integrated quickly to establish a baseline for setting 
+! the error tolerance for the elements that take more time to integrate through.
 
 do ir = 1, branch%n_ele_track
 
@@ -423,11 +427,11 @@ do ir = 1, branch%n_ele_track
     cycle
   endif
 
-  ! new style wigglers get handled later.
+  ! map type wigglers get handled later.
 
   if (key == wiggler$ .and. ele%sub_key == map_type$) cycle
 
-  ! for an old style wiggler we make the approximation that the variation of G is
+  ! for an periodic type wiggler we make the approximation that the variation of G is
   ! fast compaired to the variation in eta.
 
   if (key == wiggler$ .and. ele%sub_key == periodic_type$) then
@@ -441,7 +445,6 @@ do ir = 1, branch%n_ele_track
 
     call qromb_rad_int (branch%param, [F, F, F, T, T, T, T, F, T], pt, ri_info, int_tot, rad_int1)
     cycle
-
   endif
 
   ! Only possibilities left are quad, sol_quad and sbend elements, or there
@@ -484,15 +487,21 @@ do ir = 1, branch%n_ele_track
 enddo
 
 !----------------------------------------------------------
-! For map type wigglers
+! For elements that take more time to integrate through.
 
 do ir = 1, branch%n_ele_track
 
   ele => branch%ele(ir)
 
-  if (ele%key /= wiggler$ .and. ele%key /= undulator$) cycle
-  if (ele%sub_key /= map_type$) cycle
   if (.not. ele%is_on) cycle
+
+  select case (ele%key)
+  case (wiggler$, undulator$) 
+    if (ele%sub_key /= map_type$) cycle
+  case (sad_mult$, em_field$)
+  case default
+    cycle
+  end select
 
   ri_info%ele => ele
   rad_int1 => rad_int_all%ele(ir)
