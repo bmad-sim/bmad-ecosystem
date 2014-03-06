@@ -117,7 +117,6 @@ case (patch$)
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$
-  ele%value(fringe_at$) = both_ends$
   ele%value(fringe_type$) = basic_bend$
   ele%value(ptc_field_geometry$) = sector$
 
@@ -160,9 +159,12 @@ end select
 
 ! Fringe set for non bend elements
 
-if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. ele%key /= sad_mult$ .and. &
-                                        attribute_index(ele, 'FRINGE_AT') /= 0) then
+if (attribute_index(ele, 'FRINGE_AT') /= 0) then
   ele%value(fringe_at$) = both_ends$
+endif
+
+if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. &
+                                        attribute_index(ele, 'FRINGE_TYPE') /= 0) then
   ele%value(fringe_type$) = none$
 endif
 

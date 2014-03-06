@@ -356,8 +356,11 @@ if (target%enabled) then
 
   if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
-    orbit%field = orbit%field * orbit%path_len
-    orbit%path_len = 0
+    ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
+    if (orbit%path_len /= 0) then
+      orbit%field = orbit%field * orbit%path_len
+      orbit%path_len = 0
+    endif
   else
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / solid_angle)
   endif
@@ -370,8 +373,11 @@ else
   ! Without targeting photons are emitted into twopi solid angle.
   if (param%tracking_mode == coherent$) then
     orbit%field = orbit%field * twopi / solid_angle
-    orbit%field = orbit%field * orbit%path_len
-    orbit%path_len = 0
+    ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
+    if (orbit%path_len /= 0) then
+      orbit%field = orbit%field * orbit%path_len
+      orbit%path_len = 0
+    endif
   else
     orbit%field = orbit%field * sqrt(twopi / solid_angle)
   endif

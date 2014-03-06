@@ -806,7 +806,11 @@ if (attrib_word == 'FIELD') then
     ! Expect "MODE = {"
 
     call get_next_word (word2, ix_word, '{}=,()', delim, delim_found)
-    if (word2 /= 'MODE' .or. .not. expect_this ('={', .true., .true., 'AFTER "MODE"')) return
+    if (word2 /= 'MODE') then
+      call parser_error ('EXPECTED "MODE" IN FIELD DEFINITION BUT FOUND: ' // word2, 'FOR ELEMENT: ' // ele%name)
+      return
+    endif 
+    if (.not. expect_this ('={', .true., .true., 'AFTER "MODE"')) return
 
     ! Read in mode...
 
@@ -2473,7 +2477,10 @@ parsing_loop: do
       enddo
 
       if (i == 0) then
-        if (index(end_delims, ')') /= 0) exit   ! End of expression
+        if (index(end_delims, ')') /= 0) then
+          i_op = 0
+          exit   ! End of expression
+        endif
         call parser_error ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
         return
       endif
@@ -5827,7 +5834,7 @@ end subroutine parse_rf_map
 subroutine parse_rf_grid(grid, ele, lat, delim, delim_found, err_flag)
 
 type grid_pt_struct
-  integer :: ix(3)
+  integer :: ix(3) = [1, 1, 1]
   complex(rp) :: field(6) = 0
 end type
 
@@ -5843,7 +5850,7 @@ character(1) delim, delim2
 character(40) :: word, word2, name
 
 integer ix_word, ix_word2
-integer pt_counter, n, i, ib, ie, im, ix1, ix2, ix3, max_ix1, max_ix2, max_ix3
+integer pt_counter, n, i, ib, ie, im, ix0, ix1, iy0, iy1, iz0, iz1
 integer grid_dim,  num_dr, num_r0
 
 logical delim_found, delim_found2, err_flag, err_flag2
@@ -5934,9 +5941,9 @@ do
     end if
 
   case ('PT')
-    !Increment 
+    ! Increment 
     pt_counter = pt_counter + 1
-      !Reallocate temporary structure if needed
+    ! Reallocate temporary structure if needed
     n = size(array)
     if (pt_counter > n) then
       call move_alloc(array, array2)
@@ -5951,8 +5958,7 @@ do
       
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
-    if ((word /= '') .or. (word2 /= '') &
-         .or. (delim /= '=') .or. (delim2 /= '(')) then
+    if ((word /= '') .or. (word2 /= '') .or. (delim /= '=') .or. (delim2 /= '(')) then
       call parser_error ('BAD GRID PT CONSTRUCT, NO  = "(" ', &
                  'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
       return
@@ -6004,35 +6010,29 @@ if (allocated(grid%pt)) deallocate(grid%pt)
 ! Allocate grid for different dimensions
 
 grid_dim = em_grid_dimension(grid%type)
-select case(grid_dim)
-  case (1)
-    max_ix1 = maxval(array(1:pt_counter)%ix(1))
-    ix2 = 1
-    ix3 = 1
-    allocate(grid%pt(0:max_ix1, 1:1, 1:1))
-  case (2)
-    max_ix1 = maxval(array(1:pt_counter)%ix(1))
-    max_ix2 = maxval(array(1:pt_counter)%ix(2))
-    ix3 = 1
-    allocate(grid%pt(0:max_ix1, 0:max_ix2, 1:1))
-  case (3)
-    max_ix1 = maxval(array(1:pt_counter)%ix(1))
-    max_ix2 = maxval(array(1:pt_counter)%ix(2))
-    max_ix3 = maxval(array(1:pt_counter)%ix(3))
-    allocate(grid%pt(0:max_ix1, 0:max_ix2, 0:max_ix3))
-  case default
-    call parser_error ('BAD GRID DIMENSION', &
-               'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
-    return
-end select
+
+if (grid_dim < 1 .or. grid_dim > 3) then
+  call parser_error ('BAD GRID DIMENSION', &
+             'FOUND IN MODE GRID DEFINITION FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+ix0 = minval(array%ix(1))
+ix1 = maxval(array%ix(1))
+iy0 = minval(array%ix(2))
+iy1 = maxval(array%ix(2))
+iz0 = minval(array%ix(3))
+iz1 = maxval(array%ix(3))
+
+allocate(grid%pt(ix0:ix1, iy0:iy1, iz0:iz1))
 
 ! Assign grid values
 do i = 1, pt_counter
   ix1 = array(i)%ix(1)
-  if (grid_dim >1)   ix2 = array(i)%ix(2)
-  if (grid_dim == 3) ix3 = array(i)%ix(3)
-  grid%pt(ix1, ix2, ix3)%E(1:3) = array(i)%field(1:3)
-  grid%pt(ix1, ix2, ix3)%B(1:3) = array(i)%field(4:6)
+  iy1 = array(i)%ix(2)
+  iz1 = array(i)%ix(3)
+  grid%pt(ix1, iy1, iz1)%E(1:3) = array(i)%field(1:3)
+  grid%pt(ix1, iy1, iz1)%B(1:3) = array(i)%field(4:6)
 end do
 
 ! Clear temporary array

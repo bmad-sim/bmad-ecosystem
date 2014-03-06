@@ -572,7 +572,7 @@ select case (ele%field_calc)
 
   case default
     call out_io (s_fatal$, r_name, 'EM FIELD NOT YET CODED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
-                                   'FOR ELEMENT: ' // ele%name)
+                                   'FOR ELEMENT: ' // ele%name, 'PERHAPS "FIELD_CALC" NEEDS TO BE SET FOR THIS ELEMENT?')
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
     return
@@ -825,8 +825,14 @@ case(grid$)
     end select
 
     ! DC modes should have mode%harmonic = 0
-    freq = ele%value(rf_frequency$) * mode%harmonic
-    expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
+
+    if (mode%harmonic == 0) then
+      expt = 1
+    else
+      freq = ele%value(rf_frequency$) * mode%harmonic
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
+    endif
+
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
 
     ! Check for grid
@@ -839,7 +845,20 @@ case(grid$)
 
     ! calculate field based on grid type
     select case(mode%grid%type)
+
+    case (xyz$)
     
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, s_rel-s0)
+      if (err) then
+        if (global_com%exit_on_error) call err_exit
+        if (present(err_flag)) err_flag = .true.
+        return
+      endif
+
+      field%e = field%e + real(expt * local_field%e)
+      field%b = field%b + real(expt * local_field%B)
+
+
     case(rotationally_symmetric_rz$)
       
       ! Format should be: pt (ir, iz) = ( Er, 0, Ez, 0, Bphi, 0 ) 

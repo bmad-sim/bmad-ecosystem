@@ -1711,7 +1711,7 @@ is not given, is 1.0.  This behavior may be turned off by setting the
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Specifying Electromagnetic Fields Via Tables or Maps}
+\section{EM Fields -- Tables and Maps}
 \label{s:em.fields}
 
 \index{field_calc}
@@ -1868,23 +1868,70 @@ A grid of field points can be specified using the general format:
       r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
       dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
       ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
-      pt(<Integer>, <Integer>, <Integer>) = ( (<Real>, <Real>), \ldots ),  ! Grid field points
+      pt(<Integer>, <Integer>, <Integer>) = ( \ldots ),  ! Grid field points
       \ldots \} \}
 \end{example}
-Currently the only available value for the grid \vn{type} is 
+The \vn{type} switch sets the type of the grid and must come before
+all the other components. The possible settings of \vn{type} are:
 \begin{example} 
   rotationally_symmetric_rz
-\end{example} 
-The format for this type of grid is 
+  xyz
+\end{example}
+
+The \vn{rotationally_symmetric_rz} setting for \vn{type} is for fields
+that are rotationally symmetric around the $z$ axis. The format for
+this type of grid is
 \begin{example}
   field = \{grid = \{ 
     type = rotationally_symmetric_rz,
-    r0   = (<r(0,0)>,  <z(0,0)>),     ! Grid origin 
-    dr   = (<delta_r>, <delta_z>),    ! Grid spacing
-    pt(i_r, i_z) = ((<Re(E_r)>, <Im(E_r)), (<Re(E_phi)>, <Im(E_phi)>), 
-                                             (<Re(E_z)>, <Im(E_z)>))
-    \ldots \} \{ 
+    r0   = (<r0>, <z0>),        ! Grid origin 
+    dr   = (<dr>, <dz>),        ! Grid spacing
+    pt(ir, iz) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
+    \ldots \} \}
 \end{example}
+
+The \vn{xyz} setting for \vn{type} can be used for all fields. The
+format for this type of grid is
+\begin{example}
+  field = \{grid = \{ 
+    type = xyz,
+    r0   = (<x0>,  <y0>, <z0>),   ! Grid origin 
+    dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
+    pt(ix, iy, iz) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>)
+    \ldots \} \}
+\end{example}
+
+field components like \vn{<E_z>} can be complex for RF
+fields or simply a real number for DC fields. When a field component
+is complex, the syntax for specifying it uses the form:
+\begin{example}
+  (Re, Im)
+\end{example}
+where \vn{Re} and \vn{Im} are the real and imaginary parts of the
+component. Example:
+\begin{example}
+  pt(0, 0, 7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
+  pt(0, 0, 7) = (0.12, -0.33, ...)                 ! Real field
+\end{example}
+
+[For clarity sake, the following discusses the \vn{xyz}
+case. Extension to other cases is straight forward.]  There is no
+restriction on the bounds of the indexes \vn{(ix, iy, iz)} of the
+\vn{pt(ix, iy, iz)} array. Treating \vn{r0} and \vn{dr} as vectors, a
+point $(ix, iy, iz)$ corresponds in space to the point
+\begin{example}
+  (x, y, z) = r0 + dr * (ix, iy, iz) + r_anchor
+\end{example}
+where \vn{z} is measured from the beginning of the element and
+\vn{r_anchor} is determined by the setting of \vn{ele_anchor_pt}:
+\begin{example}
+  ele_anchor_pt       r_anchor
+  -------------       ---------
+  beginning           (0, 0, 0)      ! Default
+  center              (0, 0, L/2)
+  end                 (0, 0, L)
+\end{example}
+with \vn{L} being the length of the element.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
