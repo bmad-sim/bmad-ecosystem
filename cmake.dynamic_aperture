@@ -1,10 +1,10 @@
 set (EXENAME dynamic_aperture)
+
 set (SRC_FILES
   dynamic_aperture/dynamic_aperture_test.f90
 )
 
 set (INC_DIRS
-  include
 )
 
 set (LINK_LIBS

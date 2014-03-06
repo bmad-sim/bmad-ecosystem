@@ -10,7 +10,6 @@ set (SRC_FILES
 )
 
 set (INC_DIRS
-  include
 )
 
 # set (FFLAGS "-pg")     # For profiling
