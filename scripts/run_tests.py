@@ -157,6 +157,7 @@ for test_dir in test_dir_list:
       break
 
     if len(now_line) == 0 or len(correct_line) == 0: 
+      print_all ('')
       if len(now_line) != 0:
         print_all ('     Confusion! End of "output.correct" reached before End of "output.now"', True, True)
       if len(correct_line) != 0:
@@ -205,6 +206,7 @@ for test_dir in test_dir_list:
 
       for ix, (now1, correct1) in enumerate(list(zip(now2_split, correct2_split))):
         if now1 != correct1:
+          print_all ('')
           if len(now2_split) == 2:     # Will always have blank item in list.
             print_all ('     Regression test failed:', color = True)
           else:
@@ -250,6 +252,7 @@ for test_dir in test_dir_list:
           bad_abs_val = abs_val
 
       if bad_at > -1:
+        print_all ('')
         if now_end[0] == 'STR':
           print_all ('     Regression test failed for: "' + now_split[1] + '"', color = True)
         else:

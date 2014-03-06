@@ -152,20 +152,20 @@ DO i = 1, lat%n_ele_max - 1
 
   if (verbosity) then
      write (1, *)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(1,:)" ABS 1e-14 ', ele_f%mat6(1,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(2,:)" ABS 1e-14 ', ele_f%mat6(2,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(3,:)" ABS 1e-14 ', ele_f%mat6(3,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(4,:)" ABS 1e-14 ', ele_f%mat6(4,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(5,:)" ABS 1e-14 ', ele_f%mat6(5,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(6,:)" ABS 1e-14 ', ele_f%mat6(6,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(1,:)" ABS 2e-14 ', ele_f%mat6(1,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(2,:)" ABS 2e-14 ', ele_f%mat6(2,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(3,:)" ABS 2e-14 ', ele_f%mat6(3,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(4,:)" ABS 2e-14 ', ele_f%mat6(4,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(5,:)" ABS 2e-14 ', ele_f%mat6(5,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(6,:)" ABS 2e-14 ', ele_f%mat6(6,:)
 
      write (1, *)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(1,:)" ABS 1e-14 ', ele_r%mat6(1,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(2,:)" ABS 1e-14 ', ele_r%mat6(2,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(3,:)" ABS 1e-14 ', ele_r%mat6(3,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(4,:)" ABS 1e-14 ', ele_r%mat6(4,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(5,:)" ABS 1e-14 ', ele_r%mat6(5,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(6,:)" ABS 1e-14 ', ele_r%mat6(6,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(1,:)" ABS 2e-14 ', ele_r%mat6(1,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(2,:)" ABS 2e-14 ', ele_r%mat6(2,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(3,:)" ABS 2e-14 ', ele_r%mat6(3,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(4,:)" ABS 2e-14 ', ele_r%mat6(4,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(5,:)" ABS 2e-14 ', ele_r%mat6(5,:)
+     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(6,:)" ABS 2e-14 ', ele_r%mat6(6,:)
   end if
 
   write (1, *)
@@ -195,7 +195,7 @@ character(11) function tolerance(instr1,instr2)
 character(*) :: instr1
 character(*) :: instr2
 
-tolerance = ' ABS 1e-14 '
+tolerance = ' ABS 2e-14 '
 
 select case (instr1)
   case('SOL_QUAD2')
