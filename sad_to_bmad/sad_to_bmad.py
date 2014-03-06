@@ -81,6 +81,7 @@ ele_param_translate = {
     'geo': 'geo',
     'sol:chi1': ['x_pitch', ' * -1'],
     'sol:chi2': ['y_pitch', ' * -1'],
+    'sol:dz': ['t_offset', ' / -c_light'],
     'chi1': 'x_pitch',
     'chi2': 'y_pitch',
     'chi3': ['tilt', ' * -1'],
