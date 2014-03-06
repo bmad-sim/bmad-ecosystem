@@ -728,6 +728,12 @@ foreach(exespec ${EXE_SPECS})
       set(SHARED_FLAG "-Wl,-Bdynamic")
     ENDIF ()
   ENDIF ()
+
+  IF (ENABLE_SHARED AND CREATE_SHARED)
+  ELSE()
+    set (SHARED_LINK_LIBS "")
+  ENDIF ()
+
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
           ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
           ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
