@@ -37,7 +37,10 @@ character(200) :: start_orb_desc, x_axis_desc, y_axis_desc
 character(1) ans
 type (qp_line_struct), dimension(:), allocatable :: lines
 character(4) :: short_method_name(16)
-character(10), parameter :: y_axis_label(6) = [ "\gDx", "\gDp\dx\u", "\gDy", "\gDp\dy\u", "\gDz", "\gDp\dz\u" ]
+character(10), parameter :: y_axis_label(6) = [ "\gDx      ", "\gDp\dx\u ", "\gDy      ", &
+                                                "\gDp\dy\u ", "\gDz      ", "\gDp\dz\u " ]
+
+namelist / scan_params / output_file, base_method, veto_methods, element_to_vary, attrib_to_vary, scan_start, scan_end, nsteps
 
 !
 
@@ -55,8 +58,6 @@ short_method_name(time_runge_kutta$)  = 'TRK'
 if (cesr_iargc() == 1) call cesr_getarg (1, input_file)
 
 veto_methods = ''
-
-namelist / scan_params / output_file, base_method, veto_methods, element_to_vary, attrib_to_vary, scan_start, scan_end, nsteps
 
 call bmad_parser (input_file, lat)
 ele => lat%ele(1)
@@ -196,7 +197,7 @@ call qp_close_page
 call qp_open_page ("X", id, 1000.0_rp, 770.0_rp, "POINTS")
 call create_plot
 write (*, "(a)", advance = "NO") " Hit any class to end program: "
-accept "(a)", ans
+read (*, "(a)") ans
 
 deallocate (scan_var, method, dmethod)
 
@@ -267,7 +268,7 @@ subroutine create_plot
 
   ! Draw legend
   if (nmethods > 6) then
-     if (mod(nmethods+1,2)) then
+     if (mod(nmethods+1,2) == 1) then
         call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name, draw_symbol = .false.)
         call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name, draw_symbol = .false.)
      else

@@ -121,7 +121,7 @@ if (f_type == f90$) then
       if (ix == 0) exit
       line1 = line1(:ix-1) // '  ' // line1(ix+1:)
     enddo
-    call write_line (line1, f_type)
+    call write_line (line1, f_type, .false.)
   enddo
 endif
 
@@ -803,10 +803,12 @@ subroutine write_flx (line, i_stk)
 implicit none
 
 character*(*) line
+character(10) fmt
 integer i_stk, n
 
 n = 2*i_stk + 2
-write (2, '(<n>x, a)') trim(line)
+write (fmt, '(a, i0, a)') '(', n, 'x a)'
+write (2, fmt) trim(line)
 
 end subroutine
 

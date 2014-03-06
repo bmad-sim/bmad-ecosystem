@@ -1,25 +1,13 @@
-program bmad2autocad
+module bmad2ac_mod
 
 use bmad
-implicit none
 
-type(lat_struct), save :: erl
-
-!
-
-call bmad_parser('lat.bmad', erl)
-
-call bmad2ac('lat.bmad', erl, 'IP_L3',&
-             0.8915840379E+06*12/39.3700787D+0,0.8496528770E+06*12/39.3700787D+0,&
-             0.2281071935E+02*atan(1.D+0)/45.D+0)
-
-end program
+contains
 
 !--------------------------------------------------------------------------
 
 subroutine bmad2ac(file_name, erl, ele_name,xmap,zmap,tmap)
 
-use bmad
 implicit none
 
 type(lat_struct), target :: erl
@@ -114,3 +102,24 @@ close (1)
 
 end subroutine bmad2ac
 
+end module
+
+!------------------------------------------------------------------------------------------
+
+program bmad2autocad
+
+use bmad2ac_mod
+
+implicit none
+
+type(lat_struct) :: erl
+
+!
+
+call bmad_parser('lat.bmad', erl)
+
+call bmad2ac('lat.bmad', erl, 'IP_L3',&
+             0.8915840379E+06*12/39.3700787D+0,0.8496528770E+06*12/39.3700787D+0,&
+             0.2281071935E+02*atan(1.D+0)/45.D+0)
+
+end program
