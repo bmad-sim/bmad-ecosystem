@@ -22,7 +22,7 @@ set (LINK_LIBS
 	blas
 )
 
-set (SHARED_LINK_LIBS
+set (EXTRA_SHARED_LINK_LIBS
   readline
   curses
   termcap
