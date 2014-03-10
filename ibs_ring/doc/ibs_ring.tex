@@ -99,8 +99,10 @@ Many formulas for calculating IBS rates are implemented.  They are:
 \end{enumerate}
 These formula's are described in the following section.
 
+%---------------------------------------------------------------------------------
 \section{Methods for calculating IBS growth rates}
 
+%---------------------------------------------------------------------------------
 \subsection{Modified Piwinski with Zotter's integral}
 This formula is selected by setting {\tt ibs_formula=`mpzt'}.
 
@@ -116,7 +118,8 @@ In Ref.~\cite{b:martini}, the derivatives of the lattice functions are included.
 This form of Piwinski's original formula with derivatives of the lattice
 functions is usually called ``Modified Piwinski''.
 
-\subsection{Modified Piwinski wiht constant Coulomb Log}
+%---------------------------------------------------------------------------------
+\subsection{Modified Piwinski with constant Coulomb Log}
 This formula is selected by setting {\tt ibs_formula=`mpxx'}.
 
 Piwinski's origional IBS formula typically gives a considerablly different growth rate than
@@ -127,14 +130,16 @@ In the {\tt `mpxx'} IBS formula, Piwinski's formula has been rederived and the
 log term pulled out of the integral.  This allows the Coulomb Logarithm to be treated the
 same as it is in other IBS formulas.  This derivation is available in Ref.~\cite{b:ehr-thesis}.
 
+%---------------------------------------------------------------------------------
 \subsection{Completely Integrated Modified Piwinski (CIMP)}
 This formula is selected by setting {\tt ibs_formula=`cimp'}.
 
 In Ref.~\cite{b:wolski}, a high energy approximation of the Modified Piwinski formula is 
-obtained.  This formula contains one integral which can be easily easily and quickly tabulated.
+obtained.  This formula contains one integral which can be easily and quickly tabulated.
 This formula is very fast and, for ILC and CesrTA, returns growth rates similar to those obtained
 from the more general IBS formulas.
 
+%---------------------------------------------------------------------------------
 \subsection{Bjorken \& Mtingwa's formula}
 This formula is selected by setting {\tt ibs_formula=`cimp'}.
 
@@ -144,6 +149,7 @@ the Modified Piwinski formula.  It is found that, for high energy beams, after s
 modifications to Piwinski's formula, the two formulas are algebraically similar
 and give similar results.
 
+%---------------------------------------------------------------------------------
 \subsection{Bane's approximation of Bjorken \& Mtingwa's formula}
 This formula is selected by setting {\tt ibs_formula=`bane'}.
 
@@ -151,6 +157,7 @@ In Ref.~\cite{b:bane-approx}, a high energy approximation of Bjorken \& Mtingwa'
 is obtained.  The formula is simpler and numerically easier to evaluate, but does
 not give sensible results when vertical dispersion is zero.
 
+%---------------------------------------------------------------------------------
 \subsection{Kubo \& Oide's generalization of Bjorken \& Mtingwa's formula}
 This formula is selected by setting {\tt ibs_formula=`kubo'}.
 
@@ -162,8 +169,10 @@ rather than on Twiss parameters.
 This formula should be able to handle arbitrary coupling conditions, though
 that has not been tested in experiment.
 
+%---------------------------------------------------------------------------------
 \section{Methods for determining equilibrium emittances}
 
+%---------------------------------------------------------------------------------
 \subsection{Derivatives method}
 This method is selected by setting {\tt eqb_method=`der'}.
 
@@ -183,7 +192,10 @@ growth rates given the IBS formulas.  The factors of $2$ come about because $\ta
 $T_a$, and $T_b$ are betatron growth rates.  i.e.  they are the rates of change the beam sizes,
 rather than the emittances.
 
+%---------------------------------------------------------------------------------
 \subsection{Relaxation of equilibrium equations}
+\label{ss:rlx}
+
 This method is selected by setting {\tt eqb_method=`rlx'}.
 
 The solutions to differential equations (\ref{e:da}), (\ref{e:db}), and (\ref{e:dp}) are,
@@ -320,27 +332,27 @@ each element of lattice when calculating IBS rates.
 
   %------------------------------
   \item[\vn{a_emit}] \Newline
-Zero current horizontal emittance.
-Set to -1 for rad int calc.
+Zero current horizontal emittance. If set to -1 then value is
+obtained from an evaluation of the radiation integrals.
 
   %------------------------------
   \item[\vn{b_emit}] \Newline
-Zero current vertical emittance.
-Set to -1 for rad int calc.
+Zero current vertical emittance. If set to -1 then value is obtained
+from an evaluation of the radiation integrals.
 
   %------------------------------
   \item[\vn{energy_spread}] \Newline
-Zero current energy spread.
-Set to -1 for rad int calc.
+Zero current energy spread. If set to -1 then value is obtained from
+an evaluation of the radiation integrals.
 
   %------------------------------
   \item[\vn{ratio}] \Newline
-"Coupling parameter r" hack for including coupling.
+"Coupling parameter r" hack (\sref{ss:rlx}) for including coupling.
 
   %------------------------------
   \item[\vn{granularity}] \Newline
-Step size along lattice in meters.
-Set to -1 for element-by-element.
+Step size along lattice in meters to evaluate the various integrals.
+Set to -1 for one step per element.
 
   %------------------------------
   \item[\vn{x_view}] \Newline
