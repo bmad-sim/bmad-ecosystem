@@ -588,15 +588,21 @@ END SUBROUTINE ibs_rates1turn
 !+
 !  Subroutine ibs_blowup1turn(lat, ibs_sim_params)
 !
+!  Updates beam emittances with effect of IBS for
+!  one turn on the lattice.
+!
 !  Input:
-!    lat              -- lat_struct: lattice for tracking
-!    ibs_sim_params   -- ibs_sim_param_struct: Parameters for calculation of IBS rates
+!    lat                  -- lat_struct: lattice
+!       %ele(:)%a%emit    -- real(rp): initial a-mode emittance
+!       %ele(:)%b%emit    -- real(rp): initial b-mode emittance
+!       %ele(:)%z%sigma_p -- real(rp): initial energy spread
+!    ibs_sim_params       -- ibs_sim_param_struct: Parameters for calculation of IBS rates
 !
 !  Output:
-!    Emittances after 1-turn:
-!                lat%ele(:)%a%emit
-!                lat%ele(:)%b%emit 
-!                lat%ele(:)%z%sigma_p
+!    lat                  -- lat_struct: lattice
+!       %ele(:)%a%emit    -- real(rp): a-mode emittance after 1 turn
+!       %ele(:)%b%emit    -- real(rp): b-mode emittance after 1 turn
+!       %ele(:)%z%sigma_p -- real(rp): energy spread after 1 turn
 !-
 SUBROUTINE ibs_blowup1turn(lat, ibs_sim_params)
   IMPLICIT NONE
@@ -620,9 +626,9 @@ SUBROUTINE ibs_blowup1turn(lat, ibs_sim_params)
       CALL convert_total_energy_to(lat%ele(i+1)%value(E_TOT$), -1, gamma2)
       gg = gamma1/gamma2
       pp = lat%ele(i)%value(p0c$)/lat%ele(i+1)%value(p0c$)
-      lat%ele(i+1)%a%emit = lat%ele(i)%a%emit * (1 + delta_t*rates1ele%inv_Ta) * gg
-      lat%ele(i+1)%b%emit = lat%ele(i)%b%emit * (1 + delta_t*rates1ele%inv_Tb) * gg
-      lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tz*2.0) * pp
+      lat%ele(i+1)%a%emit = lat%ele(i)%a%emit * (1 + 2.0*delta_t*rates1ele%inv_Ta) * gg
+      lat%ele(i+1)%b%emit = lat%ele(i)%b%emit * (1 + 2.0*delta_t*rates1ele%inv_Tb) * gg
+      lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tz) * pp
     ELSE
       lat%ele(i+1)%a%emit = lat%ele(i)%a%emit 
       lat%ele(i+1)%b%emit = lat%ele(i)%b%emit 
@@ -634,7 +640,14 @@ END SUBROUTINE ibs_blowup1turn
 !+
 ! subroutine ibs1(lat, ibs_sim_params, rates, i, s)
 !
-!  Available IBS formulas:
+! Calculates IBS growth rates at some location in a lattice.
+! The IBS rates are betatron growth rates.  That is, they are the rate of
+! change in sigma_x, sigma_y, and sigma_p.  The emittance growth
+! rate is twice the betatron growth rate.
+! 1/T_emit = 2/T_betatron.
+! eg  emit(t) = emit_0 * exp(-2*t/T_betatron) because emit = sigma^2/beta
+!
+!  Available IBS formulas (ibs_sim_params%formula):
 !    cimp - Completely Integrated Modified Piwinski
 !    bjmt - Bjorken-Mtingwa formulation general to bunched beams (time consuming)
 !    bane - Bane approximation of Bjorken-Mtingwa formulation
@@ -642,6 +655,20 @@ END SUBROUTINE ibs_blowup1turn
 !    mpxx - Modified Piwinski with a constant Coulomb log.
 !    kubo - Kubo and Oide's sigma matrix-based
 !
+! Either i or s, but not both, must be specified.
+!
+! Input:
+!   lat                       - lat_struct
+!      %ele(i)%a%emit         - each must be populated with a-mode emittance.
+!      %ele(i)%b%emit         - each must be populated with a-mode emittance.
+!      %ele(i)%z%sigma_p      - each must be populated with a-mode emittance.
+!   ibs_sim_params            - ibs_sim_param_struct: parameters for IBS calculation
+!   i                         - integer: element index of location to calculate IBS rates.
+!   s                         - real(rp): location in meters to calculate IBS rates.
+! Output:
+!   rates$inv_Ta              - real(rp): 1/Ta, where Ta is rise time of a betatron mode
+!   rates$inv_Tb              - real(rp): 1/Ta, where Ta is rise time of b betatron mode
+!   rates$inv_Tz              - real(rp): 1/Ta, where Ta is rise time of energy spread
 !-
 SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
 
@@ -684,6 +711,11 @@ SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
       STOP
     ENDIF
 
+    IF( ibs_sim_params%set_dispersion ) THEN
+      ele%b%eta = ibs_sim_params%eta_set
+      ele%b%etap = ibs_sim_params%etap_set
+    ENDIF
+
     IF(ibs_sim_params%formula == 'cimp') THEN
       CALL cimp1(ele, ibs_sim_params, rates, n_part)
     ELSEIF(ibs_sim_params%formula == 'bjmt') THEN
@@ -710,9 +742,20 @@ END SUBROUTINE ibs1
 !  It is the most general form (for bunched beams) of the 
 !  Bjorken-Mtingwa IBS formulation.
 !
-!  This formulation takes a very long time to evaluate.
+!  This formulation is one of the slowest methods for calculating IBS rates.
 !
 !  rates returns betatron growth rates.  Multiply by two to get transverse emittance growth rates.
+!
+!  Input:
+!    ele               - ele_struct: contains Twiss parameters used in IBS formula
+!    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
+!    n_part            - real(rp): number of particles in the bunch.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
+!    
 !-
 SUBROUTINE bjmt1(ele, ibs_sim_params, rates, n_part)
 
@@ -878,7 +921,29 @@ END FUNCTION bjmt_integrand
 
 
 !+
-! This is a sigma matrix based IBS calculation.  It returns the growth rates of the normal mode emittances.
+! Subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
+!
+! This is a wrapper for the sigma-matrix based kubo1 IBS subroutine.
+! This subrouine generates a sigma-matrix from the one-turn transfer matrix
+! using the normal mode emittances in lat%ele(ix).  It then calls
+! kubo1, which updates the sigma-matrix with the effect of IBS over the 
+! length of the element, and computes a time rate of change of the emittances.
+!
+! Input:
+!   lat                   - lat_struct
+!      %ele(ix)           - ele_struct: element at which calculation is performed
+!      %ele(ix)%r(6,6,1)  - real(rp) (optional): if associated, then assumed to contain one-turn
+!                                                transfer matrix.  Faster than recomputing one-turn
+!                                                map on every turn.
+!   ibs_sim_params        - ibs_sim_params_struct: Parameters for IBS calculation
+!   ix                    - integer: element index at which to perform calculation
+!   s                     - real(rp): location in meters where to perform calculation. NOT CURRENTLY SUPPORTED.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
+!    
 !-
 SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
@@ -986,7 +1051,17 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
 END SUBROUTINE kubo1_twiss_wrapper
 
 !+
-! This is a sigma matrix based IBS calculation.  It returns the growth rates of the normal mode emittances.
+! This is a sigma matrix based IBS calculation.
+! It takes the beam sigma matrix and updates it for IBS effects applied over the length element_length. 
+!
+! Input:
+!   sigma_mat(6,6)         - real(rp): beam sigma_matrix
+!   ibs_sim_params         - ibs_sim_params_struct: parameters for IBS calculation
+!   element_length         - real(rp): length of element
+!   energy                 - real(rp): beam energy in eV
+!   n_part                 - real(rp): number of particles in the bunch
+! Output:
+!   sigma_mat_updated(6,6) - real(rp): sigma matrix updated with effect of IBS
 !-
 SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, energy, n_part)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
@@ -1200,13 +1275,20 @@ END FUNCTION kubo_integrand
 !+
 !  subroutine bane1(ele, ibs_sim_params, rates, n_part)
 !
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
-!
 !  This is an implementation of equations 10-15 from "Intrabeam
 !  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
 !  It is a high energy approximation of the Bjorken-Mtingwa IBS
 !  formulation.
+!
+!  Input:
+!    ele               - ele_struct: contains Twiss parameters used in IBS formula
+!    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
+!    n_part            - real(rp): number of particles in the bunch.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
 !-
 SUBROUTINE bane1(ele, ibs_sim_params, rates, n_part)
 
@@ -1301,11 +1383,19 @@ END FUNCTION integrand
 !+
 !  SUBROUTINE mpxx1(ele, ibs_sim_params, rates, n_part)
 !
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
+!  Modified Piwinski, further modified to treat Coulomb Log
+!  in the same manner as Bjorken-Mtingwa, CIMP, Bane, Kubo & Oide, etc.
+!  This formula is derived in Section 2.8.4 of Michael Ehrlichman's Graduate Thesis.
 !
-!
-!  rates returns betatron growth rates.  Multiply by two to get transverse emittance growth rates.
+!  Input:
+!    ele               - ele_struct: contains Twiss parameters used in IBS formula
+!    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
+!    n_part            - real(rp): number of particles in the bunch.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
 !-
 SUBROUTINE mpxx1(ele, ibs_sim_params, rates, n_part)
 
@@ -1423,10 +1513,22 @@ END FUNCTION mpxx_integrand
 !+
 !  SUBROUTINE mpzt1(ele, ibs_sim_params, rates, n_part)
 !
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
+!  Modified Piwinski with Zotter's integral.  This is Piwinski's original derivation,
+!  generalized to take the derivatives of the optics functions.  Also, Piwinski's
+!  original cumbersome triple integral is reaplaced by Zotter's single integral.  Zotter's
+!  integral is exact, and not an approximation.
 !
 !  rates returns betatron growth rates.  Multiply by two to get transverse emittance growth rates.
+!
+!  Input:
+!    ele               - ele_struct: contains Twiss parameters used in IBS formula
+!    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
+!    n_part            - real(rp): number of particles in the bunch.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
 !-
 SUBROUTINE mpzt1(ele, ibs_sim_params, rates, n_part)
 
@@ -1557,9 +1659,6 @@ END FUNCTION zot_integrand
 !+
 !  SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
 !
-!  This is a private subroutine. To access this subroutine, call
-!  ibs_rates.
-!
 !  This is an implementation of equations 34,38-40 from "Intrabeam
 !  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
 !  It is a modified version of the Piwinski IBS formulation.
@@ -1570,6 +1669,16 @@ END FUNCTION zot_integrand
 !  This is the quickest of the three IBS formuations in this module. 
 !
 !  rates returns betatron growth rates.  Multiply by two to get transverse emittance growth rates.
+!
+!  Input:
+!    ele               - ele_struct: contains Twiss parameters used in IBS formula
+!    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
+!    n_part            - real(rp): number of particles in the bunch.
+!  Output:
+!    rates             - ibs_struct
+!         %inv_Ta      - real(rp): a-mode betatron growth rate.
+!         %inv_Tb      - real(rp): b-mode betatron growth rate.
+!         %inv_Tz      - real(rp): energy spread growth rate.
 !-
 SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
 
@@ -1614,7 +1723,7 @@ SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
   beta_b = ele%b%beta
   sigma_x_beta = SQRT(beta_a * emit_a)
   sigma_y_beta = SQRT(beta_b * emit_b)
-  Dx =ele%a%eta
+  Dx = ele%a%eta
   Dy = ele%b%eta
   Dxp = ele%a%etap
   Dyp = ele%b%etap
@@ -1782,10 +1891,19 @@ END FUNCTION g
 !+
 ! Subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
 !
+! Calculates the value of the Coulomb log using various methods.
+!
 ! ibs_sim_params%clog_to_use == 1   Classic coulomb log (pi/2 max scattering angle)
 ! ibs_sim_params%clog_to_use == 2   Integral based tail-cut prescribed by Raubenheimer.
-! ibs_sim_params%clog_to_use == 3   Kubo and Oide tail cut. 1 event/part/damping period.  Used by CesrTA publications.
-! ibs_sim_params%clog_to_use == 4   Kubo and Oide tail cut, rederived to include vertical motion.
+! ibs_sim_params%clog_to_use == 3   Bane tail cut. 1 event/part/damping period.  
+! ibs_sim_params%clog_to_use == 4   Kubo and Oide tail cut. Used by CesrTA publications.
+!
+! Input:
+!   ibs_sim_params        - ibs_sim_params_struct: parameters for IBS calculation
+!   ele                   - ele_struct: populated with Twiss parameters
+!   n_part                - real(rp): number of particles in the bunch
+! Output:
+!   coulomb_log           - real(rp): Value of the Coulomb Logarithm
 !-
 SUBROUTINE multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
   TYPE(ibs_sim_param_struct) :: ibs_sim_params
@@ -1878,7 +1996,7 @@ SUBROUTINE multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
     bmax = MIN(MIN(sigma_a,sigma_b),debye)
     coulomb_log = LOG(bmax/bminstar)
   ELSEIF( ibs_sim_params%clog_to_use == 4) THEN
-    !Tail cut Bane, but using relative velocity in all 3 dims, rather than just horizontal
+    !Tail cut Kubo, but using relative velocity in all 3 dims, rather than just horizontal
     vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*sigma_z*gamma
     Bbar = SQRT( gamma_a*emit_a + gamma_b*emit_b + sigma_p*sigma_p/gamma/gamma)  !beta in the rest frame
     bminstar = SQRT(vol/n_part/pi/(ibs_sim_params%tau_a/gamma)) / SQRT(c_light*gamma*Bbar)
@@ -1971,8 +2089,17 @@ SUBROUTINE bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sig
 END SUBROUTINE bl_via_vlassov
 
 !+
-! Subroutine bl_via_mat(lat, ix, ibs_sim_params, mode, sig_z)
+! Subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 !
+! Calculates bunch length along taking PWD effects into account.  PWD
+! is approximated as a defocusing rf voltage.
+!
+! Input:
+!   lat             - lat_struct
+!   ibs_sim_params  - ibs_sim_params_struct: parameters for IBS calculation
+!   mode            - normal_modes_modes_struct: energy spread, bunch length, and z emittance.
+! Output:
+!   sig_z           - real(rp): bunch length after taking PWD into account.
 !-
 SUBROUTINE bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 
