@@ -2091,8 +2091,10 @@ END SUBROUTINE bl_via_vlassov
 !+
 ! Subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 !
-! Calculates bunch length along taking PWD effects into account.  PWD
+! Calculates bunch length while taking PWD effects into account.  PWD
 ! is approximated as a defocusing rf voltage.
+!
+! See pwd_mat in multiparticle/longitudinal_profile_mod.f90 for details.
 !
 ! Input:
 !   lat             - lat_struct
