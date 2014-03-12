@@ -1,12 +1,11 @@
 BMAD DISTRIBUTION INSTALLATION INSTRUCTIONS
 
-
 *****************************************************************************
 INTRODUCTION
 -------------
 
-This file describes what needs to be done to build a "BMAD code distribution",
-otherwise simply known as "a distribution", on machines that are not part of
+This file describes what needs to be done to build a "Bmad code distribution",
+otherwise simply known as a "distribution", on machines that are not part of
 the Laboratory for Elementary Particle Physics (LEPP) network. A
 distribution contains:
   1) The source code to build a collection of libraries and executables.
@@ -33,7 +32,7 @@ Currently, the people sharing library responsibility are:
   David Sagan <dcs16@cornell.edu>
   Mike Forster <mjf7@cornell.edu>
 
-For questions on the BMAD code contact:
+For questions on the Bmad code contact:
   David Sagan <dcs16@cornell.edu>
 
 
@@ -41,7 +40,7 @@ For questions on the BMAD code contact:
 COMPILER AND MISCELLANEOUS SUPPORT PACKAGE ISSUES
 -------------------------------------------------
 
-At present, the BMAD distribution, which includes Fortran90, C, and C++ sources,
+At present, the Bmad distribution, which includes Fortran90, C, and C++ sources,
 is known to build with the following compiler combinations:
 
 LINUX or Mac OSX/Darwin (Intel processor)
@@ -66,10 +65,6 @@ distribution:
   cmake       - Build system generator - V2.8+  Download at http://www.cmake.org
   gmake       - GNU make               - Popular software building tool 
 
-If you have GNU make installed as 'make', you will 
-need to create a soft link gmake->make to insure that things build.
-
-
 
 *****************************************************************************
 LICENSING ISSUES
@@ -77,7 +72,7 @@ LICENSING ISSUES
 
 This distribution includes a modified version of the Numerical Recipes code.
 It is the responsibility of the end user to ensure that they have a valid
-Numerical Recipes license for any computer on which they build the BMAD 
+Numerical Recipes license for any computer on which they build the Bmad 
 distribution.  Numerical Recipes licensing information (for individual
 computers or sites) can be obtained at www.nr.com.
 
@@ -221,27 +216,35 @@ The root directory of a distribution will be called "BMAD_DIST" (see
 the next section). The BMAD_DIST directory should contain the following
 subdirectories:
 
- bmad                  -  The BMAD source code
- bmadz                 -  Cesr storage ring design program.
- bsim                  -  Beam simulation programs. 
- cesr_utils            -  A utility library needed by BMAD
- examples              -  Simple programs demonstrating library usage
- forest                -  The Polymorphic Tracking Code package from 
-                          Etienne Forest.  Needed by BMAD
- include               -  A master include file area containing include 
-                          files needed by multiple libraries
- INSTALL               -  These instructions.
- lattice               -  Machine lattice definition files
- PGPLOT                -  The PGPLOT library from Tim Pearson at Cal Tech
-                          See http://astro.caltech.edu/~tjp/pgplot/ for 
-                          details.
- recipes_f-90_LEPP     -  The LEPP version of the Numerical Recipes 
-                          libraries.  See the licensing issues above.
- sim_utils             -  Utilities necessary for simulation code
- tao                   -  Tool for Accelerator Optics program
- util                  -  Contains various utility scripts needed to build 
-                          CESR libraries
- xsif                  -  XSIF lattice parser.
+ bmad                  - The Bmad source code
+ bmadz                 - Cesr storage ring design program.
+                           Not generally interesting to outside people.
+ bsim                  - Some beam simulation programs. 
+ build_system          - Contains Cmake master script.
+ cesr_utils            - A utility library needed by Bmadz.
+ cpp_bmad_interface    - Interface between Bmad and C++
+ examples              - Simple programs demonstrating Bmad usage.
+ fgsl                  - Fortran wrapper for gsl
+ forest                - The Polymorphic Tracking Code package from 
+                           Etienne Forest.  Needed by Bmad
+ gsl                   - GNU Scientific library. See <http://www.gnu.org/software/gsl>.
+ include               - A master include file area containing include 
+                           files needed by multiple libraries
+ lapack                - Linear algebra package. See <http://www.netlib.org/lapack>.
+ INSTALL               - These instructions.
+ lattice               - Lattice files used at Cornell.
+ PGPLOT                - The PGPLOT library from Tim Pearson at Cal Tech
+                           See <http://astro.caltech.edu/~tjp/pgplot>.
+ recipes_f-90_LEPP     - The LEPP version of the Numerical Recipes 
+                           libraries.  See the licensing issues above.
+ regression_tests      - A suite of regression tests for Bmad.
+ sim_utils             - Utilities used by Bmad.
+ tao                   - Tool for Accelerator Optics program. 
+ util                  - Contains various utility scripts needed to build 
+                           CESR libraries
+ util_programs         - A collection of utility programs.
+ xraylib               - Library for X-ray related constants.
+ xsif                  - XSIF lattice parser.
 
 There are two types of code libraries and executables created when the 
 distribution is installed. These two types are called "production" and "debug".
@@ -324,11 +327,9 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
 
 
 4) Next, a set of environment variables needs to be incorporated into the user's
-   command shell environment to allow proper functioning of the build system.  In 
-   order to perform this setup, simply navigate to the top level directory of the
-   distribution tree, in this case BMAD_DIST, and run the following command:
+   command shell environment to allow proper functioning of the build system:
 
-      source util/dist_source_me
+      source BMAD_DIST/util/dist_source_me
 
    This environment setup step has been verified to work with Bourne-compatible
    shells sh / bash / ash, and also the C-style shells csh / tcsh.
@@ -337,6 +338,10 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
    LD_LIBRARY_PATH variable or equivalent to reflect the location of the
    necessary .so library files.
 
+   IMPORTANT NOTE: The file dist_source_me must be sourced in any window where 
+   compiling and linking are done. The source command may be put in the appropriate
+   login script file. See the instructions for setting up a "generic user account"
+   below.
 
 5) The final step is to start building the source.  This can be done from within
    the top-level directory BMAD_DIST, by running:
@@ -353,7 +358,8 @@ CMAKE BUILDS
 ------------
 
 CMake is an open-source build system used to create libraries and executables.
-Documentation can be found on the web. Here some brief documentation is given.
+Documentation can be found on the web. Here some brief documentation is given
+for people who want to create their own Bmad based programs.
 
 A "source tree" is a hierarchical collection of files and directories
 that holds the source code for building into a library and/or a number of
