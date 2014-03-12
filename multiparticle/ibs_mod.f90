@@ -1020,7 +1020,7 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ELSE
     CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
   ENDIF
-  CALL pwd_mat(lat, t6, t6, ibs_sim_params%inductance, lat%ele(ix)%z%sigma)
+  t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, lat%ele(ix)%z%sigma)
   ! CALL transfer_matrix_calc_special(lat, .true., t6, ix1=ix, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix)%z%sigma)
   IF( ibs_sim_params%set_dispersion ) THEN
     t6 = MATMUL(t6,W) 
@@ -2094,8 +2094,6 @@ END SUBROUTINE bl_via_vlassov
 ! Calculates bunch length while taking PWD effects into account.  PWD
 ! is approximated as a defocusing rf voltage.
 !
-! See pwd_mat in multiparticle/longitudinal_profile_mod.f90 for details.
-!
 ! Input:
 !   lat             - lat_struct
 !   ibs_sim_params  - ibs_sim_params_struct: parameters for IBS calculation
@@ -2135,7 +2133,7 @@ SUBROUTINE bl_via_mat(lat, ibs_sim_params, mode, sig_z)
       mode%z%emittance = zz * mode%sigE_E
 
       CALL transfer_matrix_calc (lat, .true., t6, ix1=0, one_turn=.TRUE.)
-      CALL pwd_mat(lat, t6, t6, ibs_sim_params%inductance, zz)
+      t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, zz)
       ! CALL transfer_matrix_calc_special (lat, .true., t6, ix1=0, one_turn=.true., inductance=ibs_sim_params%inductance, sig_z=zz)
       CALL make_smat_from_abc(t6, mode, sigma_mat, error)
 

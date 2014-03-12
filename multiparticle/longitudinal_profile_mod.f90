@@ -522,7 +522,7 @@ SUBROUTINE get_bl_from_fwhm(bound,args,sigma)
 END SUBROUTINE get_bl_from_fwhm
 
 !+
-! Subroutine pwd_mat(t6, t6_pwd, inductance, sig_z)
+! Function pwd_mat(t6, inductance, sig_z) result (t6_pwd)
 !
 ! Calculates potential well distortion as RF defocusing.  Calculates t6_pwd=t6.Mpwd,
 ! where Mpwd is identity with 65 element proportional to the inductance.
@@ -537,10 +537,12 @@ END SUBROUTINE get_bl_from_fwhm
 !   t6(6,6)                  -- real(rp): 1-turn transfer matrix
 !   inductance               -- real(rp): Longitudinal inductance in Henrys.  Something on the order of nH.
 !   sig_z                    -- real(rp): Bunch length.
+!
 ! Output:
 !   t6_pwd(6,6)              -- real(rp): 1-turn transfer matrix with PWD defocusing applied
 !-
-SUBROUTINE pwd_mat(lat, t6, t6_pwd, inductance, sig_z)
+
+FUNCTION pwd_mat(lat, t6, inductance, sig_z) result (t6_pwd)
   TYPE(lat_struct) lat
   REAL(rp) t6(6,6)
   REAL(rp) t6_pwd(6,6)
@@ -560,7 +562,7 @@ SUBROUTINE pwd_mat(lat, t6, t6_pwd, inductance, sig_z)
   Mpwd(6,5) = -inductance * lat%param%n_part * e_charge * c_light**2 / SQRT(twopi) / sig_z**3 / lat%ele(0)%value(E_TOT$)
 
   t6_pwd = MATMUL(Mpwd,t6)
-END SUBROUTINE pwd_mat
+END FUNCTION pwd_mat
 
 END MODULE longitudinal_profile_mod
 
