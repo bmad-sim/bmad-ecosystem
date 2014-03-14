@@ -90,43 +90,6 @@ From the PGPLOT web page:
 
 
 *****************************************************************************
-ENVIRONMENTAL SETUP
--------------------
-
-0. The following system libraries are needed:
-    readline
-    termcap
-    curses
-    pthread
-    stdc++
-    X11
-Generally these will be already installed. If not, you will see linker errors telling
-you that it cannot find this or that library.
-
-
-1. If you are using csh / tcsh: The following stuff should be put in your ~/.cshrc file:
-        limit core 0
-        limit stack unlimited  # Remove this line when using a Mac
-        limit datasize unlimited
-
-If you are using sh / ksh / bash: Put in your ~/.bashrc file (or ~/.bash or ~/.profile file 
-whatever one is appropriate):
-        ulimit -S -c 0
-        ulimit -S -s 102400  # Remove this line when using a Mac
-        ulimit -S -d 25165824
-
-The first line prevents core dump files from being generated (takes up
-space and no one ever looks at them anyway). The next two lines helps
-prevent programs from bombing due to software limits on internal stack
-and heap sizes.
-
-
-2. Run your initialization file (or simply logout and log back in):
-      source <init_script>
-Where <init_script> is ~/.cshrc or ~/.bashrc .
-
-
-*****************************************************************************
 PLOTTING ISSUES
 ---------------
 
@@ -200,9 +163,9 @@ With tcsh:
 
 5) Use CMake to create the build scripts:
   cmake -DENABLE_wxwidgets=OFF -DENABLE_python=OFF -DENABLE_java=OFF ../plplot-5.9.9 
-Optional: Afterwards you can use "ccmake" to view/modifiy the build settings.
+Optional: Afterwards you can use "ccmake" to view/modify the build settings.
 
-6) Complile the code with:
+6) Compile the code with:
   make
 
 7) Install the code in /usr/local
@@ -283,7 +246,22 @@ are used by the cmake build system when recompiles are needed.
 INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
 -----------------------------------------------------------------------
 
-0) Install PLPLOT if needed. See the PLOTTING ISSUES sections for more details.
+*****************************************************************************
+ENVIRONMENTAL SETUP
+-------------------
+
+0) The following system libraries are needed:
+      readline
+      termcap
+      curses
+      pthread
+      stdc++
+      X11
+  Generally these will be already installed. If not, you will see linker errors telling
+  you that it cannot find this or that library.
+
+  Additionally PLPLOT, if needed, has to be installed. 
+  See the PLOTTING ISSUES section for more details.
 
 1) Unzip and extract the tar archive into a working directory of your choice
    with the command:
@@ -306,27 +284,26 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
    the need arise, for instance, when setting up other user's login scripts to
    reference a pre-built release location upon session startup.
 
+3) Set the environmental variable DIST_BASE_DIR:
 
-3) A file named "BMAD_DIST/util/dist_prefs" is provided that holds supported 
+   For csh / tcsh users:
+       setenv DIST_BASE_DIR "PATH-to-DISTRIBUTION"
+   For sh / ksh / bash users:
+       export DIST_BASE_DIR="PATH-to-DISTRIBUTION"
+
+   Where PATH-to-DISTRIBUTION is the full path to the distribution directory
+   (aka BMAD_DIST).
+
+4) A file named "BMAD_DIST/util/dist_prefs" is provided that holds supported 
    preferences that you may adjust to alter the behavior of the build. 
    In particular, the compiler and plotting library are set in this file.
 
-   The contents are documented within and explain
-   the options so that you may customize the build simply by editing and saving
-   the "dist_prefs" file.  If you choose not to edit the file, the build process
-   will attempt to honor the defaults specified here:
+   The contents are documented within and explain the options so that you 
+   may customize the build simply by editing and saving the "dist_prefs" file.
+   If you choose not to edit the file, the build process will attempt to 
+   honor the defaults specified in the file.
 
-     A) Expect that the "PLPLOT" library will be used for the build, and that 
-        is installed in /opt/local/lib
-     B) Attempt to create application executables along with libraries in all
-        libraries that ship with second-tier makefiles set up for that purpose.
-     C) Neither OpenMP or Open MPI will be enabled during the build.
-     D) Your default gfortran optimization level will be used.
-
-   Enabling both PLPLOT and PGPLOT is allowed. 
-
-
-4) Next, a set of environment variables needs to be incorporated into the user's
+5) Next, a set of environment variables needs to be incorporated into the user's
    command shell environment to allow proper functioning of the build system:
 
       source BMAD_DIST/util/dist_source_me
@@ -338,24 +315,94 @@ INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE DISTRIBUTION
    LD_LIBRARY_PATH variable or equivalent to reflect the location of the
    necessary .so library files.
 
-   IMPORTANT NOTE: The file dist_source_me must be sourced in any window where 
-   compiling and linking are done. The source command may be put in the appropriate
-   login script file. See the instructions for setting up a "generic user account"
-   below.
-
-5) The final step is to start building the source.  This can be done from within
+6) The final step is to start building the source.  This can be done from within
    the top-level directory BMAD_DIST, by running:
      util/dist_build_production    # builds the production libraries and executables.
      util/dist_build_debug         # builds the debug libraries and executables.
 
-6) If you need at some point to just recompile a subset of the entire distribution, 
-go to the source root directories where you need to rebuild and use the command:
-     mk              # for producing production libraries and executables.
-     mkd             # for producing debug libraries and executables.
+7) If you need at some point to just recompile a subset of the entire distribution, 
+	 go to the source root directories where you need to rebuild and use the command:
+       mk              # for producing production libraries and executables.
+       mkd             # for producing debug libraries and executables.
+
+
+IMPORTANT NOTE: Steps (3) and (4) must be done in any window where
+compiling and linking are done. The appropriate commands may be put in
+the appropriate login script file. See the instructions for setting up
+a "generic user account" below.
+
+
+*****************************************************************************
+INSTRUCTIONS FOR SETTING UP A GENERIC USER ACCOUNT TO USE THE DISTRIBUTION
+---------------------------------------------------------------------------
+
+Here "user" is anyone who runs Bmad based programs.
+
+0) Once the distribution has been installed, if a user wants to 
+   create new programs, then the user should setup a
+   directory tree that is separate from the BMAD_DIST tree.
+
+1) Users should add one of the following to their local account 
+   login or profile files:
+
+   The default behavior is for the setup process to print out informational
+   messages.  To suppress this output, you may define the environment
+   variable DIST_SETUP_QUIET to have the value "Y".  This is shown as the
+   first line in the login script examples below, but it is entirely
+   optional.
+
+   Add the following text found between the lines to your login script. 
+	 Replace PATH-to-DISTRIBUTION with the full path to the directory where 
+   the distribution archive was unpacked.
+
+   For csh / tcsh users: The following stuff should be put in your ~/.cshrc file:
+      ______________________________________________
+       setenv DIST_SETUP_QUIET Y
+       setenv DIST_BASE_DIR "PATH-to-DISTRIBUTION"
+       source ${DIST_BASE_DIR}/util/dist_source_me
+       limit core 0
+       limit stack unlimited  # Remove this line when using a Mac
+       limit datasize unlimited
+      ______________________________________________
+
+
+   For sh / ksh / bash users: The following stuff should be put in your 
+   ~/.bashrc file (or ~/.bash or ~/.profile file whatever one is appropriate):
+      ______________________________________________
+       export DIST_SETUP_QUIET=Y
+       export DIST_BASE_DIR="PATH-to-DISTRIBUTION"
+       source ${DIST_BASE_DIR}/util/dist_source_me
+       ulimit -S -c 0
+       ulimit -S -s 102400  # Remove this line when using a Mac
+       ulimit -S -d 25165824
+      ______________________________________________
+
+
+The first ulimit prevents core dump files from being generated (takes up
+space and no one ever looks at them anyway). The next two ulimit lines helps
+prevent programs from bombing due to software limits on internal stack
+and heap sizes.
+
+2. Run your initialization file (or simply logout and log back in):
+      source <init_script>
+Where <init_script> is ~/.cshrc or ~/.bashrc .
+
+
+*****************************************************************************
+BASIC CODE BUILDS
+------------------
+
+1) The user needs to make sure that environment setup has been performed
+   (See "INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE 
+   DISTRIBUTION", above) and that the command 'gmake' exists.
+
+2) In the local working directory, simply type 'mk or mkd'.  These scripts
+   will invoke CMake and libraries and executables will be put in
+   the ../production (for "mk") and ../debug (for "mkd"). 
 
 *****************************************************************************
 CMAKE BUILDS
-------------
+-----------------------------------------------------------------------------
 
 CMake is an open-source build system used to create libraries and executables.
 Documentation can be found on the web. Here some brief documentation is given
@@ -458,55 +505,3 @@ set (LINK_LIBS
   pgplot
   forest
 )
-
-*****************************************************************************
-INSTRUCTIONS FOR SETTING UP A GENERIC USER ACCOUNT TO USE THE DISTRIBUTION
----------------------------------------------------------------------------
-
-0) Once the distribution has been installed, if a "user" wants to 
-   create new programs, then the user should setup a
-   directory tree that is separate from the BMAD_DIST tree.
-
-1) Users should add one of the following to their local account 
-   login or profile files:
-
-   The default behavior is for the setup process to print out informational
-   messages.  To suppress this output, you may define the environment
-   variable DIST_SETUP_QUIET to have the value "Y".  This is shown as the
-   first line in the login script examples below, but it is entirely
-   optional.
-
-   Add the following text found between the lines, replacing
-   BMAD_DIST_PATH for the full path to the directory where the distribution 
-   archive was unpacked.
-
-   For csh / tcsh users:
-      ______________________________________________
-       setenv DIST_SETUP_QUIET Y
-       setenv DIST_BASE_DIR "BMAD_DIST_PATH"
-       source ${DIST_BASE_DIR}/util/dist_source_me
-      ______________________________________________
-
-
-   For sh / ksh / bash users:
-      ______________________________________________
-       export DIST_SETUP_QUIET=Y
-       export DIST_BASE_DIR="BMAD_DIST_PATH"
-       source ${DIST_BASE_DIR}/util/dist_source_me
-      ______________________________________________
-
-   The default behavior is for the setup process to print out informational
-   messages.  To suppress this output, you may define the environment
-   variable
-
-*****************************************************************************
-BASIC CODE BUILDS
-------------------
-
-1) The user needs to make sure that environment setup has been performed
-   (See "INSTRUCTIONS FOR INSTALLING, SETTING UP, AND BUILDING THE 
-   DISTRIBUTION", above) and that the command 'gmake' exists.
-
-2) In the local working directory, simply type 'mk or mkd'.  These scripts
-   will invoke CMake and libraries and executables will be put in
-   the ../production (for "mk") and ../debug (for "mkd"). 
