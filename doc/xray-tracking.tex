@@ -286,7 +286,7 @@ photons between sets being treated as incoherent.
 
 %-------------------------------------------------------------------------
 \subsection{Incoherent Photons}
-\index{ss:incoher}
+\label{ss:incoher}
 
 In a simulation with incoherent photons, some number of photons,
 $N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
@@ -344,7 +344,7 @@ $r_i^2(j)$ for all photons $j$ channeled into channel $i$.
 
 As long as \Eqs{rpss1} and \eq{p1} are satisfied, the choice of the
 $P_i$, and $r_i$ are arbitrary. That is, \Eq{panda1} will not depend
-upon the particular choice of $P_i$ and $r_i$ as long as \Eqs{rpss}
+upon the particular choice of $P_i$ and $r_i$ as long as \Eqs{rpss1}
 and \eq{p1} are satisfied. This freedom allows simulation to be
 optimized for efficiency. For example, In an actual experiment much of
 the light can be lost never to reach a detector and be counted. For
@@ -450,7 +450,7 @@ must be tracked for a given resolution. Thus, from a practical standpoint
 the ballistic alternative should always be used.
 
 As explaned in \sref{ss:incoher}, at some places the light may be split
-into various ``channels''. With coherent photons, the analog to \Eq{rpss} is
+into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
 \Begineq
   P_i \, r_i = \frac{E_i}{E_0}
   \label{rpss2}

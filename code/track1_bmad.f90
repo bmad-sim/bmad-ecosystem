@@ -41,9 +41,9 @@ real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
 real(rp) e2, sig_x, sig_y, kx, ky, coef, bbi_const, voltage
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
-real(rp) ks, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
+real(rp) ks, kss, ksr, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
-real(rp) rel_pc, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
+real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
 real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
 real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2
@@ -81,7 +81,7 @@ if (param%particle /= photon$) then
   end_orb%p0c = ele%value(p0c$)
 endif
 length = ele%value(l$)
-rel_pc = 1 + start_orb%vec(6)
+rel_p = 1 + start_orb%vec(6)
 orientation = ele%orientation * start_orb%direction
 charge_dir = param%rel_tracking_charge * orientation
 
@@ -130,7 +130,7 @@ case (beambeam$)
     call bbi_kick (end_orb%vec(1)/sig_x, end_orb%vec(3)/sig_y, sig_y/sig_x,  kx, ky)
     bbi_const = -param%n_part * ele%value(charge$) * classical_radius_factor /  &
                                           (2 * pi * ele%value(p0c$) * (sig_x + sig_y))
-    coef = ele%value(bbi_const$) / (n_slice * rel_pc)
+    coef = ele%value(bbi_const$) / (n_slice * rel_p)
     end_orb%vec(2) = end_orb%vec(2) + kx * coef
     end_orb%vec(4) = end_orb%vec(4) + ky * coef
   enddo
@@ -316,7 +316,7 @@ case (lcavity$)
   beta_start_ref = pc_start_ref / E_start_ref
   beta_end_ref   = pc_end_ref / E_end_ref
 
-  pc_start = pc_start_ref * rel_pc
+  pc_start = pc_start_ref * rel_p
   call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
 
   ! The RF phase is defined with respect to the time at the beginning of the element.
@@ -363,8 +363,8 @@ case (lcavity$)
   ! Body tracking transverse. Kick is only with standing wave cavities.
 
   if (is_true(ele%value(traveling_wave$))) then
-    end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
-    end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
+    end_orb%vec(2) = end_orb%vec(2) / rel_p    ! Convert to x'
+    end_orb%vec(4) = end_orb%vec(4) / rel_p    ! Convert to y'
 
     end_orb%vec(1) = end_orb%vec(1) + end_orb%vec(2) * length
     end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * length
@@ -396,8 +396,8 @@ case (lcavity$)
     r_mat(2,1) = -sin_a * gradient_max / (sqrt_8 * pc_end)
     r_mat(2,2) =  cos_a * pc_start / pc_end
 
-    end_orb%vec(2) = end_orb%vec(2) / rel_pc    ! Convert to x'
-    end_orb%vec(4) = end_orb%vec(4) / rel_pc    ! Convert to y'
+    end_orb%vec(2) = end_orb%vec(2) / rel_p    ! Convert to x'
+    end_orb%vec(4) = end_orb%vec(4) / rel_p    ! Convert to y'
 
     k1 = -gradient_net / (2 * E_start)
     end_orb%vec(2) = end_orb%vec(2) + k1 * end_orb%vec(1)    ! Entrance kick
@@ -536,7 +536,7 @@ case (patch$)
 
 case (quadrupole$)
 
-  k1 = charge_dir * ele%value(k1$) / rel_pc
+  k1 = charge_dir * ele%value(k1$) / rel_p
 
   call offset_particle (ele, param, set$, end_orb)
 
@@ -546,13 +546,13 @@ case (quadrupole$)
 
   ! Body
 
-  call quad_mat2_calc (-k1, length, rel_pc, mat2, dz_coef)
+  call quad_mat2_calc (-k1, length, rel_p, mat2, dz_coef)
   end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(1)**2 + &
                       dz_coef(2) * end_orb%vec(1) * end_orb%vec(2) + dz_coef(3) * end_orb%vec(2)**2 
 
   end_orb%vec(1:2) = matmul(mat2, end_orb%vec(1:2))
 
-  call quad_mat2_calc (k1, length, rel_pc, mat2, dz_coef)
+  call quad_mat2_calc (k1, length, rel_p, mat2, dz_coef)
   end_orb%vec(5) = end_orb%vec(5) + dz_coef(1) * end_orb%vec(3)**2 + &
                       dz_coef(2) * end_orb%vec(3) * end_orb%vec(4) + dz_coef(3) * end_orb%vec(4)**2 
 
@@ -664,18 +664,36 @@ case (sextupole$)
 
 case (solenoid$)
 
-  call offset_particle (ele, param, set$, end_orb)
+  call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
 
   ks = param%rel_tracking_charge * ele%value(ks$)
 
   xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
   yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
-  end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / (2 * rel_pc**2)
+  end_orb%vec(5) = end_orb%vec(5) - length * (xp_start**2 + yp_start**2 ) / (2 * rel_p**2)
 
-  call solenoid_mat4_calc (ks, length, rel_pc, mat4)
+  call solenoid_mat4_calc (ks, length, rel_p, mat4)
   end_orb%vec(1:4) = matmul (mat4, end_orb%vec(1:4))
 
-  call offset_particle (ele, param, unset$, end_orb)
+  call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
+
+  if (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0) then
+    ksr = ks / rel_p
+    kss = ksr * length
+    if (abs(kss) < 1d-2) then
+      cos_a = length * (1 - kss**2 / 12 + kss**4 / 360) / 2
+      sin_a = (1 - kss**2 / 12 + kss**4 / 240)
+      f = length * kss * (1 - kss**2 / 20 + kss**4 / 840) / 6
+    else
+      cos_a = (1 - cos(kss)) / (kss * ksr)
+      sin_a = (kss + sin(kss)) / (2 * kss)
+      f = (kss - sin(kss)) / (kss * ksr)
+    endif
+
+    end_orb%vec(1:4) = end_orb%vec(1:4) + ele%value(hkick$) * [cos_a, sin_a, -f, -cos_a * ksr / 2] + &
+                                          ele%value(vkick$) * [f, cos_a * ksr / 2, cos_a, sin_a]
+  endif
+
   call track1_low_energy_z_correction (end_orb, ele, param)
   call time_and_s_calc ()
 
@@ -746,45 +764,45 @@ case (wiggler$, undulator$)
   else
     k_z = pi / ele%value(l_pole$)
   endif
-  k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_pc))**2
+  k1 = -charge_dir * 0.5 * (c_light * ele%value(b_max$) / (ele%value(p0c$) * rel_p))**2
 
-  p_factor = 1 - (end_orb%vec(2) / rel_pc**2)**2 - (end_orb%vec(4) / rel_pc**2)**2
+  p_factor = 1 - (end_orb%vec(2) / rel_p**2)**2 - (end_orb%vec(4) / rel_p**2)**2
   if (p_factor < 0) then
     end_orb%state = lost_z_aperture$
     return
   endif
 
   end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - & 
-                   1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
+                   1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2))
 
   ! 1/2 of the octupole octupole kick at the entrance face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_pc * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
 
   ! Quadrupole body
 
-  call quad_mat2_calc (k1, length, rel_pc, mat2)
-  end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2) / rel_pc
+  call quad_mat2_calc (k1, length, rel_p, mat2)
+  end_orb%vec(1) = end_orb%vec(1) + length * end_orb%vec(2) / rel_p
   end_orb%vec(3:4) = matmul (mat2, end_orb%vec(3:4))
 
   ! 1/2 of the octupole octupole kick at the exit face.
 
-  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_pc * k_z**2 * end_orb%vec(3)**3 / 3
+  end_orb%vec(4) = end_orb%vec(4) + k1 * length * rel_p * k_z**2 * end_orb%vec(3)**3 / 3
   
-  p_factor = 1 - (end_orb%vec(2) / rel_pc**2)**2 - (end_orb%vec(4) / rel_pc**2)**2
+  p_factor = 1 - (end_orb%vec(2) / rel_p**2)**2 - (end_orb%vec(4) / rel_p**2)**2
   if (p_factor < 0) then
     end_orb%state = lost_z_aperture$
     return
   endif
 
   end_orb%vec(5) = end_orb%vec(5) + 0.5 * (length * (end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) & 
-                   - 1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_pc**2))
+                   - 1/sqrt(p_factor)) - 0.5*k1*length / k_z**2 * (1 - rel_p**2))
   
   call offset_particle (ele, param, unset$, end_orb)
    
   call track1_low_energy_z_correction (end_orb, ele, param)
 
-  end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_pc**2) / (end_orb%beta * c_light)
+  end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_p**2) / (end_orb%beta * c_light)
   end_orb%s = ele%s
 
 !-----------------------------------------------
@@ -824,7 +842,7 @@ subroutine end_z_calc ()
 
 implicit none
 
-end_orb%vec(5) = start2_orb%vec(5) - (length / rel_pc**2) * &
+end_orb%vec(5) = start2_orb%vec(5) - (length / rel_p**2) * &
       (start2_orb%vec(2)**2 + end_orb%vec(2)**2 + start2_orb%vec(2) * end_orb%vec(2) + &
        start2_orb%vec(4)**2 + end_orb%vec(4)**2 + start2_orb%vec(4) * end_orb%vec(4)) / 6
 
