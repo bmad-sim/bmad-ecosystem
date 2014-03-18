@@ -58,11 +58,18 @@ character(16) :: r_name = 'super_zbrent'
 !
 
 err_flag = .true.
+
 a=x1
 b=x2
+
 fa=func(a)
 fb=func(b)
-if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+
+if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
+  call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+  return
+endif
+
 c=b
 fc=fb
 
