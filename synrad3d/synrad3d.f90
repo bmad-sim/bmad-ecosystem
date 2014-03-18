@@ -43,7 +43,7 @@ integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
 character(200) lattice_file, wall_hit_file, reflect_file, lat_ele_file
 character(200) photon_start_input_file, photon_start_output_file, surface_reflection_file
 
-character(100) dat_file, dat2_file, wall_file, param_file, arg
+character(100) dat_file, dat2_file, wall_file, param_file, arg, line
 character(40) plotting, test, who
 character(16) :: r_name = 'synrad3d'
 
@@ -288,7 +288,7 @@ if (sig_e < 0) then
   print *, 'Using sig_e =', sig_e
 endif
 
-! Open files
+! Open data files.
 
 if (wall_hit_file /= '') then
   iu_hit_file = lunget()
@@ -306,6 +306,22 @@ if (lat_ele_file /= '') then
     write (iu_lat_file, *) &
         'Index  Name                Type                  S       L          I0    N_phot  ds_step'
 endif
+
+open (1, file = dat_file)
+
+open (3, file = trim(dat_file) // '_table', recl = 240)
+print *, 'Data file is: ', trim(dat_file)
+print *, 'Data file in table format is: ', trim(dat_file) // '_table'
+
+if (sr3d_params%stop_if_hit_antechamber) then
+  dat2_file = trim(dat_file) // '.antechamber'
+  open (2, file = dat2_file)
+  print *, 'Data file for photons hitting the antechamber: ', trim(dat2_file)
+endif
+
+! Write header info
+
+call write_this_header (1)
 
 ! Track through the elements and generate photons.
 
@@ -376,8 +392,13 @@ if (photon_start_input_file /= '') then
       n_photon_array = n_photon_array - 1  ! Delete photon from the array.
       cycle
     endif
+
     call check_filter_restrictions(ok, .false.)
-    if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
+    if (.not. ok) cycle
+
+    call print_hit_points (iu_hit_file, photon, wall_hit)
+    call write_photon_data (n_photon_array, photon)
+
   enddo photon_loop
 
   close (1)
@@ -510,7 +531,10 @@ else
         endif
 
         call check_filter_restrictions (ok, .false.)
-        if (ok) call print_hit_points (iu_hit_file, photon, wall_hit)
+        if (.not. ok) cycle
+
+        call print_hit_points (iu_hit_file, photon, wall_hit)
+        call write_photon_data (n_photon_array, photon)
 
       enddo
 
@@ -523,51 +547,52 @@ else
 
 endif
 
-! photon_number_factor -- (Num actual photons emitted per beam particle) / (Num macro photons generated in simulation)
+! Write photon_number_factor = (Num actual photons emitted per beam particle) / (Num macro photons generated in simulation)
+! Using direct access to be able to modify the first line in the file without touching the rest of the file.
 
+close (1)
+
+open (1, file = dat_file, access = 'direct', recl = 36, form = 'formatted')
 photon_number_factor = 5 * sqrt(3.0) * classical_radius_factor * i0_tot / &
                                              (6 * h_bar_planck * c_light * n_photon_generated)
 
-! Write results
-
-open (1, file = dat_file)
-open (3, file = trim(dat_file) // '_table', recl = 240)
-print *, 'Data file is: ', trim(dat_file)
-print *, 'Data file in table format is: ', trim(dat_file) // '_table'
-call write_this_header (1)
-
-if (sr3d_params%stop_if_hit_antechamber) then
-  dat2_file = trim(dat_file) // '.antechamber'
-  open (2, file = dat2_file)
-  print *, 'Data file for photons hitting the antechamber: ', trim(dat2_file)
-endif
-
-do i = 1, n_photon_array   
-  photon => photons(i)
-  iu = 1
-  if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
-  write (iu, '(2i8, f12.4, es11.3, 2x, a)') i, photon%n_wall_hit, photon%start%energy, photon_number_factor, &
-                                             '! index, n_wall_hit, eV, photon_number_factor'
-  write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
-  write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
-  write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
-  dtrack = photon%now%track_len - photon_direction * &
-      modulo2((photon%now%vec(5) - photon%start%vec(5)), lat%param%total_length/2)
-  write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
-  j = photon%now%ix_ele
-  write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
-
-  if (iu == 1) write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
-        i, photon%n_wall_hit, photon%start%energy, photon%start%vec, photon%now%vec, &
-        photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
-enddo
+write (line, '(a, es11.3)') 'photon_number_factor    =', photon_number_factor
+write (1, '(a36)', rec = 1) line
 
 close (1)
+
 if (sr3d_params%stop_if_hit_antechamber) close (2)
 
 !--------------------------------------------------------------------------------------------
 contains
 
+subroutine write_photon_data (n_photon, photon)
+
+type (sr3d_photon_track_struct) :: photon
+integer n_photon
+
+!
+
+iu = 1
+if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
+write (iu, '(2i8, f12.4, 2x, a)') n_photon, photon%n_wall_hit, photon%start%energy, '! index, n_wall_hit, eV'
+write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
+write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
+write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
+dtrack = photon%now%track_len - photon_direction * &
+    modulo2((photon%now%vec(5) - photon%start%vec(5)), lat%param%total_length/2)
+write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
+j = photon%now%ix_ele
+write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
+
+if (iu == 1) write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
+        n_photon, photon%n_wall_hit, photon%start%energy, photon%start%vec, photon%now%vec, &
+        photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
+
+end subroutine write_photon_data
+
+!------------------------------------------------------------------------------------------
+! contains
 !+
 ! Subroutine check_filter_restrictions (ok, init_filter)
 !
@@ -673,35 +698,36 @@ subroutine write_this_header (iu)
 
 integer iu
 
-write (iu, *) 'ix_ele_track_start      =', ix_ele_track_start
-write (iu, *) 'ix_ele_track_end        =', ix_ele_track_end
-write (iu, *) 'photon_direction        =', photon_direction
-write (iu, *) 'num_photons             =', num_photons
-write (iu, *) 'num_photons_per_pass    =', num_photons_per_pass
-write (iu, *) 'lattice_file            = ', trim(lattice_file)
-write (iu, *) 'ds_step_min             =', ds_step_min
-write (iu, *) 'emit_a                  =', emit_a
-write (iu, *) 'emit_b                  =', emit_b
-write (iu, *) 'sig_e                   =', sig_e
-write (iu, *) 'photon_start_input_file = ', trim(photon_start_input_file)
-write (iu, *) 'wall_file               = ', trim(wall_file)
-write (iu, *) 'dat_file                = ', trim(dat_file)
-write (iu, *) 'random_seed             =', random_seed
-write (iu, *) 'e_init_filter_min       =', e_init_filter_min
-write (iu, *) 'e_init_filter_max       =', e_init_filter_max
-write (iu, *) 'e_filter_min            =', e_filter_min
-write (iu, *) 'e_filter_max            =', e_filter_max
-write (iu, *) 's_filter_min            =', s_filter_min
-write (iu, *) 's_filter_max            =', s_filter_max
-write (iu, *) 'sr3d_params%allow_reflections         =', sr3d_params%allow_reflections
-write (iu, *) 'sr3d_params%ds_track_step_max         =', sr3d_params%ds_track_step_max
-write (iu, *) 'sr3d_params%dr_track_step_max         =', sr3d_params%dr_track_step_max
-write (iu, *) 'sr3d_params%specular_reflection_only  =', sr3d_params%specular_reflection_only
-write (iu, *) 'sr3d_params%stop_if_hit_antechamber   =', sr3d_params%stop_if_hit_antechamber
-write (iu, *) 'surface_roughness_rms (input)         =', surface_roughness_rms
-write (iu, *) 'surface_roughness_rms (set value)     =', wall%surface(1)%info%surface_roughness_rms
-write (iu, *) 'roughness_correlation_len (input)     =', roughness_correlation_len
-write (iu, *) 'roughness_correlation_len (set value) =', wall%surface(1)%info%roughness_correlation_len
+write (iu, '(a36)') 'photon_number_factor    = 0.000E+00  '
+write (iu, '(a, i0)') 'ix_ele_track_start      = ', ix_ele_track_start
+write (iu, '(a, i0)') 'ix_ele_track_end        = ', ix_ele_track_end
+write (iu, '(a, i0)') 'photon_direction        = ', photon_direction
+write (iu, '(a, i0)') 'num_photons             = ', num_photons
+write (iu, '(a, i0)') 'num_photons_per_pass    = ', num_photons_per_pass
+write (iu, '(a, i0)') 'random_seed             = ', random_seed
+write (iu, '(a, a)') 'lattice_file            = ', trim(lattice_file)
+write (iu, '(a, a)') 'photon_start_input_file = ', trim(photon_start_input_file)
+write (iu, '(a, a)') 'wall_file               = ', trim(wall_file)
+write (iu, '(a, a)') 'dat_file                = ', trim(dat_file)
+write (iu, '(a, es10.3)') 'ds_step_min             = ', ds_step_min
+write (iu, '(a, es10.3)') 'emit_a                  = ', emit_a
+write (iu, '(a, es10.3)') 'emit_b                  = ', emit_b
+write (iu, '(a, es10.3)') 'sig_e                   = ', sig_e
+write (iu, '(a, es10.3)') 'e_init_filter_min       = ', e_init_filter_min
+write (iu, '(a, es10.3)') 'e_init_filter_max       = ', e_init_filter_max
+write (iu, '(a, es10.3)') 'e_filter_min            = ', e_filter_min
+write (iu, '(a, es10.3)') 'e_filter_max            = ', e_filter_max
+write (iu, '(a, es10.3)') 's_filter_min            = ', s_filter_min
+write (iu, '(a, es10.3)') 's_filter_max            = ', s_filter_max
+write (iu, '(a, es10.3)') 'sr3d_params%ds_track_step_max         = ', sr3d_params%ds_track_step_max
+write (iu, '(a, es10.3)') 'sr3d_params%dr_track_step_max         = ', sr3d_params%dr_track_step_max
+write (iu, '(a, es10.3)') 'surface_roughness_rms (input)         = ', surface_roughness_rms
+write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', wall%surface(1)%info%surface_roughness_rms
+write (iu, '(a, es10.3)') 'roughness_correlation_len (input)     = ', roughness_correlation_len
+write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', wall%surface(1)%info%roughness_correlation_len
+write (iu, '(a, l1)') 'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
+write (iu, '(a, l1)') 'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
+write (iu, '(a, l1)') 'sr3d_params%stop_if_hit_antechamber   = ', sr3d_params%stop_if_hit_antechamber
 write (iu, *)
 
 end subroutine
