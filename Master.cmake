@@ -5,7 +5,7 @@
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 # found in CMakeLists.txt files in project directories.
 #-----------------------------------------------------------
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
