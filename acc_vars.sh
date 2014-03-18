@@ -298,7 +298,7 @@ export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
 
 export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
-export ACC_CMAKE_VERSION=2.8
+export ACC_CMAKE_VERSION=2.8.5
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 
 
