@@ -546,7 +546,7 @@ case ('graph')
       nl=nl+1; write (ss%lines(nl), lmt) 'draw_axes;LOGICAL;F;',                 g%draw_axes, ';'
       nl=nl+1; write (ss%lines(nl), lmt) 'correct_xy_distortion;LOGICAL;F;',     g%correct_xy_distortion, ';'
       do i = 1, size(g%curve)
-        nl=nl+1; write (ss%lines(nl), amt) 'curve;STRING;F;',   trim(g%curve(i)%name), ';'
+        nl=nl+1; write (ss%lines(nl), '(a, i0, 3a)') 'curve(', i, ');STRING;F;',   trim(g%curve(i)%name), ';'
       enddo
     endif
 
