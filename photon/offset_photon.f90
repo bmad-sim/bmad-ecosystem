@@ -163,6 +163,8 @@ else
 
   if (is_reflective_element) then
 
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) - ele%photon%material%l_ref
+
     select case (ele%key)
     case (crystal$)
       rot_angle = p(bragg_angle_out$)

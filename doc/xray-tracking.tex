@@ -6,6 +6,218 @@ with X-rays. Charged particles are handled in chapter~\sref{c:charged.track}.
 
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
+\section{Coherent and Incoherent Photon Simulations}
+\label{s:coher.incoher}
+
+\index{coherent tracking}\index{incoherent tracking}
+\bmad can track photons either \vn{coherenly} or \vn{incoherently}.
+In both cases, the photon has a transverse electric field 
+\Begineq
+  (E_x, E_y)
+\Endeq
+$E_x$ and $E_y$ are complex and therefore have both amplitude and phase
+information. When photons are tracked incoherently, the phase
+information is not used for calculating X-ray intensities.
+
+In addition to coherent and incoherent tracking, partially coherent
+simulations can be done by using sets of photons with the photons in
+any one set treated as coherent and the photons between sets being
+treated as incoherent.
+
+%-------------------------------------------------------------------------
+\subsection{Incoherent Photon Tracking}
+\label{ss:incoher}
+
+In a simulation with incoherent photons, some number of photons,
+$N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
+will have a initial ``electric field'' components $E_{x0}(i),
+E_{y0}(i)$ assigned to it. The field amplitude $E_0$ will be
+$\sqrt{E_{x0}^2 + E_{y0}^2}$.
+
+At some an observation point, the power $S$ per unit area falling on
+some small area $dA$ due to either $x$ or $y$ component of the
+electric field is
+\Begineq
+  S_{x,y} = \frac{\alpha_p}{N_0 \, dA} \, \sum_{j \in \text{hits}} E_{x,y}^2(j)
+  \label{panda1}
+\Endeq
+where $\alpha_p$ is a constant that can be chosen to fit the
+simulation against experimental results, and the sum is over photons
+who intersect the area. The factors of $N_0$ and $dA$ in the above
+equation make, within statistical flucuations, $S$ independent of
+$N_0$ and, for $dA$ small enough, $S$ will be independent of $dA$ as
+it should be. The total power is just $S_x + S_y$.
+
+When traveling through vacuum, the electric field of a photon is a
+constant.  As an example, consider a point source raidiating uniformly
+in $4\pi$ solid angle with each photon having the same initial field
+$E_0$. An observation area $dA$ situated a distance $R$ from the
+source will intercept $N_0 \, dA / 4 \, \pi \, R^2$ photons which
+gives a power of
+\Begineq
+  S_w = \frac{\alpha_p \, E_0^2}{4 \, \pi \, R^2}
+\Endeq
+which falls off as $1/R^2$ as expected.
+
+At some places the light may be split into various ``channels''. An
+example is Laue diffraction where X-rays can excite the $\alpha$ and
+$\beta$ branches of the dispersion surface. Or a partially silvered
+mirror where some of the light is reflected and some is transmitted.
+In such a case, the probability $P_i$ of a photon traveling down the
+$i$\Th channel is
+\Begineq
+  P_i \, \what E_i^2 = \frac{S_i}{S_0}
+  \label{rpss1}
+\Endeq
+where $S_i$ is the power flowing into channel $i$, $S_0$ is the power
+flowing into the junction, and $\what E_i = E_i / E_0$ is the ratio of
+the electric field amplitudes of any photon just before and just after being
+shunted into the $i$\Th channel. The probabilities must be properly
+normalized
+\Begineq
+  \sum P_i = 1
+  \label{p1}
+\Endeq
+
+If the ratio of the electric field of any photon just before and just
+after being shunted into the $i$\Th channel is not a constant, than
+$\what E_i$ must be adjusted so that $\what E_i^2$ is equal to the average of
+$\what E_i^2(j)$ for all photons $j$ channeled into channel $i$.
+
+As long as \Eqs{rpss1} and \eq{p1} are satisfied, the choice of the
+$P_i$, and $\what E_i$ are arbitrary. This freedom allows simulation to be
+optimized for efficiency. For example, In an actual experiment much of
+the light can be lost never to reach a detector and be counted. To
+decrease the simulation time, simulated photons may be limited to be
+generated with a direction to be within some solid angle $\Omega_1$ if
+photons with a direction outside this solid angle will not contribute
+to the simulation results. In this case, there are two channels.
+Channel 1 consists of all photons whose direction is withing
+$\Omega_1$ and channel 2 is all the other photons. To limit the
+photons to channel 1, $P_1$ is taken to be 1 and $P_2$ is taken to be
+0. Additionaly, if the light, say, is being generated isotropically
+from a surface into a $\Omega_0 = 2 \, \pi$ solid angle then
+\Begineq
+  \what E_1 = \sqrt{\frac{\Omega_1}{\Omega_0}}
+  \label{roo}
+\Endeq
+$\what E_2$ is infinite here but since no photons are generated in channel 2
+this is not a problem.
+
+%-------------------------------------------------------------------------
+\subsection{Coherent Photon Tracking}
+\index{ss:coher}
+
+In a simulation with coherent photons, some number of photons,
+$N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
+will have an initial electric field $E_{x0}(i), E_{y0}(i)$ assigned to
+it. These quantities will be complex.
+
+At some an observation point, the field $E$ at
+some small area $dA$ due to either $x$ or $y$ component of the
+electric field is
+\Begineq
+  E = \frac{\alpha_p}{N_0 \, dA} \, \sum_{j \in \text{hits}} E(j)
+  \label{panda2}
+\Endeq
+where $\alpha_p$ is a constant that can be chosen to fit the
+simulation against experimental results, and the sum is over photons
+who intersect the area. In the above equation $E(j)$ is either the $x$
+or $y$ component of the electric field as is appropriate. The factors
+of $N_0$ and $dA$ in the above equation make, within statistical
+flucuations, $E$ independent of $N_0$ and, for $dA$ small enough, $E$
+will be independent of $dA$ as it should be.
+
+When traveling through a a vacuum, the photons travel ballistically in
+straight lines. This is justified by using the stationary phase
+approximation with Kirchhoff's integral. the electric field of a
+photon varies with the propagation length. There is nothing physical
+in this and is just a way to make the bookkeeping come out
+correctly. As an example, consider a point source raidiating uniformly
+in $4\pi$ solid angle with each photon having the same initial field
+component (either $x$ or $y$) $E_1$.  An observation area $dA$
+situated a distance $R$ from the source will intercept $N_0 \, dA / 4
+\, \pi \, R^2$ photons and each photon will have a field of $E_1 \, R
+\, \exp(i \, k \, R)$ where $k$ is the photon wave number (all photons
+must have the same $k$ to be coherent). This gives an electric field
+at the observation point of
+\Begineq
+  E = \frac{\alpha_p \, E_1 \, \exp(i \, k \, R)}{4 \, \pi \, R}
+\Endeq
+which falls off as $1/R$ as expected.
+
+At an aperture where diffraction effects are to be simulated, the
+following procedure is used:
+  \begin{enumerate}
+  \item
+The electric field components are multiplied by the propagation length $L$:
+\Begineq
+  E \rightarrow E \, L
+\Endeq
+The propagation length is reset to zero so that the at the next point
+where the propagation length is factored into the electric field the
+propagation length will be the length starting at the aperture.
+  \item
+The photon is given a random direction over the $2 \, \pi$ solid angle
+of the opening.
+  \item
+The electric field components are scaled by
+\Begineq
+  E \rightarrow E \, \frac{k}{4 \, \pi \, i} \, (\cos\theta_1 + \cos\theta_2)
+\Endeq
+where $\theta_1$ and $\theta_2$ are the dirction cosines of the
+incoming and outgoing directions of the photon with respect to the
+longitudinal reference axis.
+  \end{enumerate}
+This algorithm is designed so that the resulting fields at points
+downstream from the aperture as computed from a simulation will, to
+within statistical errors, be the same as one would get using
+Kirchoff's integral. That is, the simulation is constructed to be a
+Monte Carlo integration of Kirchhoff's integral.
+
+What is, and what is not considered a place where there are
+diffraction effects is dependent upon the problem. For example, there
+are diffraction effects associated with light reflecting from a mirror
+(or any other object) of finite size. If these effects are important
+to the experiment, then a procedure similar to the one above must be
+followed. 
+
+At places where there are no diffraction effects a simulation can
+treat the photons ballistically or can use the aperture procedure
+outlined above. While in theory it is possible to choose what to do, in
+practice the aperture procedure increases the number of photons that
+must be tracked for a given resolution. Thus, from a practical standpoint
+the ballistic alternative should always be used.
+
+As explaned in \sref{ss:incoher}, at some places the light may be split
+into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
+\Begineq
+  P_i \, \what E_i = \frac{E_i}{E_0}
+  \label{rpss2}
+\Endeq
+where here $\what E_i$ can be complex to take into account phase shifts.
+The same considerations about choosing the $P_i$ and $\what E_i$ apply to
+coherent photons as incoherent photons. In particular, $\what E_1$ for the
+case of isotropic emission from a surface as in the equample in
+\sref{ss:incoher} (cf. \Eq{roo}) is
+\Begineq
+  \what E_1 = \frac{\Omega_1}{\Omega_0}
+\Endeq
+
+%-------------------------------------------------------------------------
+\subsection{Parially Coherent Photon Simulations}
+
+When there is partial coherence the photons must be divided into
+sets. All of the photons of a given set are considered coherent while
+the photons of different sets are treated incoherently.
+
+The procedure is to track all the photons of one set coherently and
+calculate the field using equation \Eq{panda2}. The fields of
+different sets are then combined to calculate a power using
+\Eq{panda1}.
+
+%-------------------------------------------------------------------------
+%-------------------------------------------------------------------------
 \section{Element Coordinate System}
 \label{s:photon.ele.coords}
 
@@ -267,216 +479,6 @@ $-\bfhat z$ direction
 \end{figure}
 
 %-------------------------------------------------------------------------
-\section{Coherent and Incoherent Photons}
-\label{s:coher.incoher}
-
-\index{coherent tracking}\index{incoherent tracking}
-\bmad can track photons either \vn{coherenly} or \vn{incoherently}.
-In both cases, the photon has a transverse electric field 
-\Begineq
-  (E_x, E_y)
-\Endeq
-With incoherent photons, $E$ is a scaler. That is, it is the field amplitude.
-On the other hand, with coherent photons, $E$ is complex and therefore has 
-both amplitude and phase.
-
-Additionally, partially coherent simulations can be done by using sets
-of photons with the photons in any one set treated as coherent and the
-photons between sets being treated as incoherent.
-
-%-------------------------------------------------------------------------
-\subsection{Incoherent Photons}
-\label{ss:incoher}
-
-In a simulation with incoherent photons, some number of photons,
-$N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
-will have an initial ``electric field'' $E_{x0}(i), E_{y0}(i)$ assigned to
-it. The total field $E_0$ will be $\sqrt{E_{x0}^2 + E_{y0}^2}$.
-
-At some an observation point, the power $S$ per unit area falling on
-some small area $dA$ due to either $x$ or $y$ component of the
-electric field is
-\Begineq
-  S_{x,y} = \frac{\alpha_p}{N_0 \, dA} \, \sum_{j \in \text{hits}} E_{x,y}^2(j)
-  \label{panda1}
-\Endeq
-where $\alpha_p$ is a constant that can be chosen to fit the
-simulation against experimental results, and the sum is over photons
-who intersect the area. The factors of $N_0$ and $dA$ in the above
-equation make, within statistical flucuations, $S$ independent of
-$N_0$ and, for $dA$ small enough, $S$ will be independent of $dA$ as
-it should be. The total power is just $S_x + S_y$.
-
-When traveling through vacuum, the electric field of a photon is a
-constant.  As an example, consider a point source raidiating uniformly
-in $4\pi$ solid angle with each photon having the same initial field
-$E_0$. An observation area $dA$ situated a distance $R$ from the
-source will intercept $N_0 \, dA / 4 \, \pi \, R^2$ photons which
-gives a power of
-\Begineq
-  S_w = \frac{\alpha_p \, E_0^2}{4 \, \pi \, R^2}
-\Endeq
-which falls off as $1/R^2$ as expected.
-
-At some places the light may be split into various ``channels''. An
-example is Laue diffraction where X-rays can excite the $\alpha$ and
-$\beta$ branches of the dispersion surface. Or a partially silvered
-mirror where some of the light is reflected and some is transmitted.
-In such a case, the probability $P_i$ of a photon traveling down the
-$i$\Th channel is
-\Begineq
-  P_i \, r_i^2 = \frac{S_i}{S_0}
-  \label{rpss1}
-\Endeq
-where $S_i$ is the power flowing into channel $i$, $S_0$ is the power
-flowing into the junction, and $r_i$ is the ratio of the electric
-field of any photon just before and just after being shunted into the
-$i$\Th channel. The probabilities must be properly normalized
-\Begineq
-  \sum P_i = 1
-  \label{p1}
-\Endeq
-
-If the ratio of the electric field of any photon just before and just
-after being shunted into the $i$\Th channel is not a constant, than
-$r_i$ must be adjusted so that $r_i^2$ is equal to the average of
-$r_i^2(j)$ for all photons $j$ channeled into channel $i$.
-
-As long as \Eqs{rpss1} and \eq{p1} are satisfied, the choice of the
-$P_i$, and $r_i$ are arbitrary. That is, \Eq{panda1} will not depend
-upon the particular choice of $P_i$ and $r_i$ as long as \Eqs{rpss1}
-and \eq{p1} are satisfied. This freedom allows simulation to be
-optimized for efficiency. For example, In an actual experiment much of
-the light can be lost never to reach a detector and be counted. For
-efficiency reasons, therefore, simulation photons may be limited to be
-generated with a direction to be within some solid angle $\Omega_1$ if
-photons with a direction outside this solid angle will not contribute
-to the simulation results. In this case, there are two channels.
-Channel 1 consists of all photons whose direction is withing
-$\Omega_1$ and channel 2 is all the other photons. To limit the
-photons to channel 1, $P_1$ is taken to be 1 and $P_2$ is taken to be
-0. Additionaly, if the light, say, is being generated isotropically
-from a surface into a $\Omega_0 = 2 \, \pi$ solid angle then
-\Begineq
-  r_1 = \sqrt{\frac{Omega_1}{\Omega_0}}
-  \label{roo}
-\Endeq
-$r_2$ is infinite here but since no photons are generated in channel 2
-this is not a problem.
-
-%-------------------------------------------------------------------------
-\subsection{Coherent Photons}
-\index{ss:coher}
-
-In a simulation with coherent photons, some number of photons,
-$N_0$, will be generated and the i\Th photon ($i = 1, \ldots, N_0)$
-will have an initial electric field $E_{x0}(i), E_{y0}(i)$ assigned to
-it. These quantities will be complex.
-
-At some an observation point, the field $E$ at
-some small area $dA$ due to either $x$ or $y$ component of the
-electric field is
-\Begineq
-  E = \frac{\alpha_p}{N_0 \, dA} \, \sum_{j \in \text{hits}} E(j)
-  \label{panda2}
-\Endeq
-where $\alpha_p$ is a constant that can be chosen to fit the
-simulation against experimental results, and the sum is over photons
-who intersect the area. In the above equation $E(j)$ is either the $x$
-or $y$ component of the electric field as is appropriate. The factors
-of $N_0$ and $dA$ in the above equation make, within statistical
-flucuations, $E$ independent of $N_0$ and, for $dA$ small enough, $E$
-will be independent of $dA$ as it should be.
-
-When traveling through a a vacuum, the photons travel balisticly in
-straight lines This is justified by using the stationary phase
-approximation with Kirchhoff's integral. the electric field of a
-photon varies with the propagation length. There is nothing physical
-in this and is just a way to make the bookkeeping come out
-correctly. As an example, consider a point source raidiating uniformly
-in $4\pi$ solid angle with each photon having the same initial field
-component (either $x$ or $y$) $E_1$.  An observation area $dA$
-situated a distance $R$ from the source will intercept $N_0 \, dA / 4
-\, \pi \, R^2$ photons and each photon will have a field of $E_1 \, R
-\, \exp(i \, k \, R)$ where $k$ is the photon wave number (all photons
-must have the same $k$ to be coherent). This gives an electric field
-at the observation point of
-\Begineq
-  E = \frac{\alpha_p \, E_1 \, \exp(i \, k \, R)}{4 \, \pi \, R}
-\Endeq
-which falls off as $1/R$ as expected.
-
-At an aperture where diffraction effects are to be simulated, the
-following procedure is used:
-  \begin{enumerate}
-  \item
-The electric field components are multiplied by the propagation length $L$:
-\Begineq
-  E \rightarrow E \, L
-\Endeq
-The propagation length is reset to zero so that the at the next point
-where the propagation length is factored into the electric field the
-propagation length will be the length starting at the aperture.
-  \item
-The photon is given a random direction over the $2 \, \pi$ solid angle
-of the opening.
-  \item
-The electric field components are scaled by
-\Begineq
-  E \rightarrow E \, \frac{k}{4 \, \pi \, i} \, (\cos\theta_1 + \cos\theta_2)
-\Endeq
-where $\theta_1$ and $\theta_2$ are the dirction cosines of the
-incoming and outgoing directions of the photon with respect to the
-longitudinal reference axis.
-  \end{enumerate}
-This algorithm is designed so that the resulting fields at points
-downstream from the aperture as computed from a simulation will, to
-within statistical errors, be the same as one would get using
-Kirchoff's integral. That is, the simulation is constructed to be a
-Monte Carlo integration of Kirchhoff's integral.
-
-What is, and what is not considered a place where there are
-diffraction effects is dependent upon the problem. For example, there
-are diffraction effects associated with light reflecting from a mirror
-(or any other object) of finite size. If these effects are important
-to the experiment, then a procedure similar to the one above must be
-followed. 
-
-At places where there are no diffraction effects a simulation can
-treat the photons ballistically or can use the aperture procedure
-outlined above. While in theory it is possible to choose what to do, in
-practice the aperture procedure increases the number of photons that
-must be tracked for a given resolution. Thus, from a practical standpoint
-the ballistic alternative should always be used.
-
-As explaned in \sref{ss:incoher}, at some places the light may be split
-into various ``channels''. With coherent photons, the analog to \Eq{rpss1} is
-\Begineq
-  P_i \, r_i = \frac{E_i}{E_0}
-  \label{rpss2}
-\Endeq
-where here $r_i$ can be complex to take into account phase shifts.
-The same considerations about choosing the $P_i$ and $r_i$ apply to
-coherent photons as incoherent photons. In particular, $r_1$ for the
-case of isotropic emission from a surface as in the equample in
-\sref{ss:incoher} (cf. \Eq{roo}) is
-\Begineq
-  r_1 = \frac{Omega_1}{\Omega_0}
-\Endeq
-
-%-------------------------------------------------------------------------
-\subsection{Parially Coherent Photons}
-
-When there is partial coherence the photons must be divided into
-sets. All of the photons of a given set are considered coherent while
-the photons of different sets are treated incoherently.
-
-The procedure is to track all the photons of one set coherently and
-calculate the field using equation \Eq{panda2}. The fields of
-different sets are then combined to calculate a power using
-\Eq{panda1}.
-
-%-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 \section{Crystal Element Tracking}
 \label{s:crystal.tracking}
@@ -620,7 +622,7 @@ The outgoing reference wave vector $k_H$ is computed using the equation
 \Endeq
 Using this with \Eqs{h1daa} and \eq{kkh} gives
 \begin{align}
-  \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + \kbar_{0,x} \\
+  \kbar_{H,x} &= \Kbar_{H,z} = \frac{1}{d} \, \what{H}_x + \kbar_{0,x} \CRNO
   \kbar_{H,y} &= \Kbar_{H,y} = \frac{1}{d} \, \what{H}_y 
   \label{k1dapl} \\
   \kbar_{H,z} &= \sqrt{\frac{1}{\lambda^2} - \kbar_{H,x}^2 - \kbar_{H,y}^2} \nonumber
@@ -629,7 +631,7 @@ Using this with \Eqs{h1daa} and \eq{kkh} gives
 The total bending angle of the reference trajectory is then
 \Begineq
   \theta_{bend} = \tan^{-1} 
-  \left( \frac{ | \bfkbar_0 \times \bfkbar_H | }{\bfkbar_0 \cdot \bfkbar_H} \right)
+  \left( \frac{ | \bfkbar_0 \cross \bfkbar_H | }{\bfkbar_0 \dotproduct \bfkbar_H} \right) 
 \Endeq
 The outgoing Bragg angle $\theta_{B,out}$ is then {\em defined} to be
 the difference between the total bend angle and the entrance Bragg angle.
@@ -743,7 +745,7 @@ coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
 components of $\bfk_H$ are given by \Eq{k1dapl}. To
 satisfy \Eq{lrca1}, this vector must have zero $y$ component
 \Begineq
-  \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \cdot
+  \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \dotproduct
   \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}
   = 0
 \Endeq
@@ -795,7 +797,7 @@ just the extension of the reference orbit at the entrance
 surface. Since the reference orbit's direction is $\bfkbar_0$.  the
 reference orbit displacement vector $\bfL$ (cf.~\Eq{vwlv}) is given by
 \Begineq
-  \bfL = \frac{|d\bfkbar_0|^2}{d\bfkbar_0 \cdot \Bf t} \, d\bfkbar_0
+  \bfL = \frac{|d\bfkbar_0|^2}{d\bfkbar_0 \dotproduct \Bf t} \, d\bfkbar_0
   \qquad \text{[undiffracted]}
 \Endeq
 where
@@ -816,18 +818,21 @@ in \fig{f:crystal.energy}. This energy flow is perpendicular to $\bfH$
 and is in the direction of $d\bfKbar$ defined by
 \Begineq
   d\bfKbar \equiv \bfKbar_H + \bfKbar_0
-  \qquad \text{[forward or Bragg diffracted]}
+  \qquad \text{[forward_diffracted or bragg_diffracted]}
 \Endeq
 $\bfL$ is thus
 \Begineq
-  \bfL = \frac{|d\bfKbar|^2}{d\bfKbar \cdot \Bf t} \, d\bfKbar
+  \bfL = \frac{t^2}{d\bfKbar \dotproduct \Bf t} \, d\bfKbar
 \Endeq
-At the exit surface, if the reference orbit is following the
-\vn{forward diffracted} beam, the orientation of the \vn{element exit}
-coordinates will be the same as the orientation of the \vn{element
-entrance} coordinates. That is, $\bfS$ (\Eq{wws}) is the unit matrix.
-If the reference orbit is following the \vn{Bragg diffracted} beam,
-$\bfS$ is the same as for Bragg diffraction
+where $\Bf t$ is a vector whose length is the thickness of the crystal
+oriented perpendicular to the crystal surfaces (that is, in the $z$
+direction of the local coordinate system). At the exit surface, if the
+reference orbit is following the \vn{forward diffracted} beam, the
+orientation of the \vn{element exit} coordinates will be the same as
+the orientation of the \vn{element entrance} coordinates. That is,
+$\bfS$ (\Eq{wws}) is the unit matrix.  If the reference orbit is
+following the \vn{Bragg diffracted} beam, $\bfS$ is the same as for
+Bragg diffraction
 \Begineq
   \bfS = 
   \begin{pmatrix}
@@ -886,7 +891,9 @@ The solution to \Eq{xx14} is (\cite{b:batterman} Eq.~(31))
   \xi_H &= \frac{1}{2} \, k \, |P| \, \Gamma \, [F_H \, F_{\bar H}]^{1/2} \, 
     \frac{1}{|b|^{1/2} \, [\eta \pm (\eta^2 + \sign(b))^{1/2}]}
 \end{align}
-where $\sign$ is the sign function
+where the $+$ part of $\pm$ is for the $\alpha$ branch and the $-$
+part of $\pm$ is for the $\beta$ branch and $\sign$ is the sign
+function
 \Begineq
   \sign(b) \equiv \begin{cases} 1 & b > 0 \\ -1 & b < 0 \end{cases}
 \Endeq
@@ -897,16 +904,16 @@ and $\eta$ is given by \cite{b:blasdell} Eq.~(5)
 with the asymmetry factor $b$ for the photon being tracked being given
 by \cite{b:blasdell} Eq.~(3)
 \Begineq
-  b \equiv \frac{\bfhat n \cdot \bfhat k_0}{\bfhat n \cdot \widehat{{\bfk_0 + \bfH}}}
+  b \equiv \frac{\bfhat n \dotproduct \bfhat k_0}{\bfhat n \dotproduct \widehat{{\bfk_0 + \bfH}}}
 \Endeq
 and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
 \Begineq
-  a \equiv \frac{H^2 + 2 \, \bfk_0 \cdot \bfH}{k_0^2}
+  a \equiv \frac{H^2 + 2 \, \bfk_0 \dotproduct \bfH}{k_0^2}
 \Endeq
 Once $\xi_0$ and $\xi_H$ are determined, the ratio of the incoming and outgoing fields
 for the $\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
 \Begineq
-  r \equiv \frac{E_H}{E_0} 
+  r_E \equiv \frac{\bfE_H}{\bfE_0} 
   = \frac{- \, 2 \, \xi_0}{k \, P \, \Gamma \, F_{\bar H}} \,
   = \, \frac{- \, k \, P \, \Gamma \, F_H}{2 \, \xi_H} 
 \Endeq
@@ -919,65 +926,100 @@ the boundary conditions
 \Endeq
 Using the above two equations gives
 \begin{align}
-  \bfE_{0\alpha} &= \bfE_0 \, \frac{r_\beta}{r_\beta - r_\alpha} \qquad\qquad
-  \bfE_{H\alpha}  = \bfE_0 \, \frac{r_\alpha \, r_\beta}{r_\beta - r_\alpha} \CRNO
-  \bfE_{0\beta} &= -\bfE_0 \, \frac{r_\alpha}{r_\beta - r_\alpha} \qquad\qquad
-  \bfE_{H\beta}  = -\bfE_0 \, \frac{r_\alpha \, r_\beta}{r_\beta - r_\alpha} 
+  \bfE_{0\alpha} &= \bfE_0 \, \frac{r_{E\beta}}{r_{E\beta} - r_{E\alpha}} \qquad\qquad
+  \bfE_{H\alpha}  = \bfE_0 \, \frac{r_{E\alpha} \, r_{E\beta}}{r_{E\beta} - r_{E\alpha}} \CRNO
+  \bfE_{0\beta} &= -\bfE_0 \, \frac{r_{E\alpha}}{r_{E\beta} - r_{E\alpha}} \qquad\qquad
+  \bfE_{H\beta}  = -\bfE_0 \, \frac{r_{E\alpha} \, r_{E\beta}}{r_{E\beta} - r_{E\alpha}} 
 \end{align}
+
+As can be seen from Battermann and Cole Figs.~(8) and (29), the
+$\alpha$ tie point is excited and the $\beta$ tie point is not if
+$\xi_{0\alpha} < \xi_{0\beta}$ and vice versa. Since only one tie
+point is excited, The external field ratio is equal to
+the internal field ratio 
+\Begineq
+  \frac{E_H^e}{E_0^i} = \frac{E_{Hj}}{E_{0j}}
+\Endeq
+where $j$ is $\alpha$ or $\beta$ as appropriate.
 
 %-------------------------------------------------------------------------
 \subsection{Laue Crystal Tracking}
 \label{ss:laue.track}
 
-For Laue diffraction the photon has to be tracked from the entrance
-surface to the exit surface. For incoherent tracking it is assumed
-that the two interior wave fields do not overlap at the exit surface
+Laue diffraction has two interior wave fields, labeled $\alpha$ and
+$\beta$, corresponding to the two tie points that are excited on the
+two dispersion surfaces.  For incoherent tracking it is assumed that
+these wave fields do not overlap at the exit surface
 (\cite{b:batterman} $\S$2.11A-B). The interior wave fields can then be
-considered separately. For coherent tracking, any interference between
-the wave fields is automatically taken into account and so no
-assumption has to be made. In both cases, in order not to have to have
-the extra bookkeeping overhead of having to divide photons, a random
-number generator is used to select which branch, $\alpha$ or $\beta$,
-within the crystal an individual photon is channed to. At the exit
-face of the crystal, if using the \vn{forward_diffracted} or
-\vn{undiffracted} reference orbit, the photon is channeled into the
-forward going diffraction direction. Otherwiase, for the
-\vn{bragg_diffracted} reference orbit, the photon is channeled into
-the normal diffraction direction.
+considered separately.  For coherent tracking, any interference
+between the wave fields is automatically taken into account and so no
+assumption has to be made.
 
-At the entrance surface, the probability of choosing between the
-$\alpha$ and $\beta$ branch is related to the relative energy flow
-through each branch (\Eqs{rpss1} and \eq{rpss2}). For incoherent
-photons, \bmad sets $P_\alpha$ and $P_\beta$ to be proportional to the
-power in their respective branches just inside the exit face. from
-Batterman and Cole\cite{b:batterman} Eqs~(47), and (48) this is
+With both coherent and incoherent tracking, in order not to have to
+have the extra bookkeeping overhead of having to divide photons, a
+random number generator is used to select which branch, $\alpha$ or
+$\beta$, within the crystal an individual photon is channed to. 
+
+The electric field ratios $\what E_\alpha$ and $\what E_\beta$ are
+taken to be equal to each other. With this choice, the probabilities
+$P_\alpha$ and $P_\beta$ for being channeled to the $\alpha$ or
+$\beta$ branches are such that a branch with a greater intensity will
+have a greater number of photons chanelled down it.
+
+When a crystal's \vn{ref_orbit_follows} parameter is set to
+\vn{bragg_diffracted}, The coherent branching probabilities are
+\Begineq
+  P_\alpha = \frac{|E_{H\alpha}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
+  P_\beta = \frac{|E_{H\beta}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
+  \what E_{H\alpha} = \what E_{H\beta}  = \frac{|E_{H\alpha}| + |E_{H\beta}|}{|E_0^i|}
+\Endeq
+where (see Batermann and Cole\cite{b:batterman} Eqs~(42)), 
 \begin{align}
-  P_\alpha &= \frac{|\bfS_\alpha|}{|\bfS_\alpha| + |\bfS_\beta|} \CRNO
-  P_\beta &= \frac{|\bfS_\beta|}{|\bfS_\alpha| + |\bfS_\beta|} 
+  E_{H\alpha} &= -E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
+    \frac{|P|}{P} \, 
+    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{H\alpha} \dotproduct \bfr_\alpha}) \,
+    \exp({-2 \, \pi \, \bfK''_{H\alpha} \dotproduct \bfr_\alpha}) \CRNO
+  E_{H\beta} &= E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
+    \frac{|P|}{P} \, 
+    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{H\beta} \dotproduct \bfr_\beta}) \,
+    \exp({-2 \, \pi \, \bfK''_{H\beta} \dotproduct \bfr_\beta})
 \end{align}
+where $\bfr_\alpha$ and $\bfr_\beta$ are the vectors from the
+entrance surface to the exit surface for the $\alpha$ and $\beta$ wave
+fields
+\Begineq
+  \bfr_\alpha = \frac{t^2}{\bfS_\alpha \dotproduct \Bf t} \, \bfS_\alpha , \qquad
+  \bfr_\beta = \frac{t^2}{\bfS_\beta \dotproduct \Bf t} \, \bfS_\beta
+\Endeq
 with
 \begin{align}
-  \bfS_\alpha = |\bfE_{0\alpha}|^2 \, \Bf s_0 + |\bfE_{H\alpha}| \, \Bf s_H \CRNO
-  \bfS_\beta = |\bfE_{0\beta}|^2 \, \Bf s_0 + |\bfE_{H\beta}| \, \Bf s_H 
+  \bfS_\alpha &= e^{-2 \, v} \, \Bf s_0 + \left| b \, \frac{F_H \, F_\Hbar}{F_H^2} \right| \, \Bf s_H \CRNO
+  \bfS_\beta &= e^{2 \, v} \, \Bf s_0 + \left| b \, \frac{F_H \, F_\Hbar}{F_H^2} \right| \, \Bf s_H 
 \end{align}
-where $\bfE_{0\alpha}$ and $\bfE_{0\alpha}$ are obtained from
-Batterman and Cole Eq~(42). With this choise of $P$, The field ratios
-$r_\alpha$ and $r_\beta$ are then
+The phase shift of the electric field is obtained from the phase of
+$E_{H\alpha}$ if the photon is channeled into the $\alpha$ branch and
+$E_{H\beta}$ if the photon is channeled into the $\beta$ branch.
+
+When a crystal's \vn{ref_orbit_follows} parameter is set to
+\vn{bragg_diffracted}, The incoherent branching probabilities are
 \Begineq
-  r_\alpha = r_\beta = \left[ \frac{|\bfS_\alpha| + |\bfS_\beta|}{\bfS_0} \right]^{1/2}
-  \label{rrsss}
-\Endeq
-where
-\Begineq
-  \bfS_0 = \frac{1}{2} \, \sqrt{\frac{\mu_0}{\epsilon_0}} \, |\bfE_0^i|^2 
+  P_\alpha = \frac{|E_{H\alpha}|^2}{|E_{H\alpha}|^2 + |E_{H\beta}|^2} , \qquad
+  P_\beta = \frac{|E_{H\beta}|^2}{|E_{H\alpha}|^2 + |E_{H\beta}|^2}  , \qquad
+  \what E_{H\alpha}^2 = \what E_{H\beta}^2  = \frac{|E_{H\alpha}|^2 + |E_{H\beta}|^2}{|E_0^i|^2}
 \Endeq
 
-For coherent photons the channel probabilities are taken to be proportional to the
-field in their respective branches
+When a crystal's \vn{ref_orbit_follows} parameter is set to
+\vn{forward_diffracted} or \vn{undefracted}, the algorithm is similar
+to the \vn{bragg_diffracted} case except $E_{0\alpha}$ and
+$E_{0\beta}$ are used in place of $E_{H\alpha}$ and
+$E_{H\beta}$ with
 \begin{align}
-  P_\alpha &= \left[ \frac{|\bfS_\alpha|}{|\bfS_\alpha| + |\bfS_\beta|} \right]^{1/2} \CRNO
-  P_\beta &= \left[ \frac{|\bfS_\beta|}{|\bfS_\alpha| + |\bfS_\beta|} \right]^{1/2}
+  E_{0\alpha} &= E_0^i \, \dsfrac{e^{-v}}{2 \, \cosh v} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{0\alpha} \dotproduct \bfr_\alpha}) \,
+    \exp({-2 \, \pi \, \bfK''_{0\alpha} \dotproduct \bfr_\alpha}) \CRNO
+  E_{0\beta} &= E_0^i \, \dsfrac{e^{-v}}{2 \, \cosh v} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{0\beta} \dotproduct \bfr_\alpha}) \,
+    \exp({-2 \, \pi \, \bfK''_{0\beta} \dotproduct \bfr_\beta})
 \end{align}
-and the field ratios $r_\alpha$ and $r_\beta$ are the same as in the
-incoherent case (\Eq{rrsss}).
-

@@ -451,9 +451,13 @@ type photon_target_struct
 end type
 
 type photon_material_struct
+  complex(rp) :: f0_m1 = 0, f0_m2 = 0 ! For multilayer_mirror only.
+  complex(rp) :: f_0 = 0
   complex(rp) :: f_h = 0     ! Structure factor for H direction.
   complex(rp) :: f_hbar = 0  ! Structure factor for -H direction.
   complex(rp) :: f_hkl = 0   ! = sqrt(f_h * f_hbar)
+  real(rp) :: h_norm(3) = 0  ! Normalized H vector for crystals.
+  real(rp) :: l_ref(3) = 0   ! Crystal reference orbit displacement vector in element coords.
 end type
 
 ! Photon container structure
@@ -795,12 +799,12 @@ integer, parameter :: ds_path_length$ = 22
 integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
 integer, parameter :: traveling_wave$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, f0_re$ = 24, f0_re1$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
-integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, f0_im$ = 25, f0_im1$ = 25
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
-integer, parameter :: dphi0$ = 26, n_sample$ = 26, f0_re2$ = 26, origin_ele_ref_pt$ = 26
-integer, parameter :: dphi0_ref$ = 27, f0_im2$ = 27, x_half_length$ = 27, dx_origin$ =  17
+integer, parameter :: dphi0$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: dphi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
 integer, parameter :: dphi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
@@ -814,16 +818,16 @@ integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
 integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
 integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_sol$ = 39
-integer, parameter :: vkick$ = 40, l_x$ = 40, y_offset_sol$ = 40
-integer, parameter :: BL_hkick$ = 41, x_pitch_sol$ = 41, l_y$ = 41        ! l_y$ = l_x$ + 1
-integer, parameter :: BL_vkick$ = 42, y_pitch_sol$ = 42, l_z$ = 42        ! l_z$ = l_x$ + 2
+integer, parameter :: vkick$ = 40, y_offset_sol$ = 40
+integer, parameter :: BL_hkick$ = 41, x_pitch_sol$ = 41
+integer, parameter :: BL_vkick$ = 42, y_pitch_sol$ = 42
 integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43
 integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45
 integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46
-integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, h_x_norm$ = 47
-integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, h_y_norm$ = 48
-integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, h_z_norm$ = 49, ptc_field_geometry$ = 49
+integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47
+integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48
+integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 51
 integer, parameter :: e_tot_start$ = 52   

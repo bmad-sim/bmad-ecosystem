@@ -408,9 +408,9 @@ endif
 ! General case where layout is not in the horizontal plane
 ! Note: 
 
-if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
+if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
          ele%value(ref_tilt$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
-         (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
+         key == crystal$ .or. (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
   call floor_angles_to_w_mat (theta, phi, psi, w_mat)
 
@@ -450,14 +450,21 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
 
     call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)
 
-  ! mirror
+  ! mirror, multilayer_mirror, crystal
 
   case (mirror$, multilayer_mirror$, crystal$)
     
     if (ele%key == crystal$) then
-      angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+      select case (nint(ele%value(ref_orbit_follows$)))
+      case (bragg_diffracted$)
+        angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+      case (forward_diffracted$, undiffracted$)
+        angle = 0
+      end select
+      r_vec = ele%photon%material%l_ref
     else
       angle = 2 * ele%value(graze_angle$)
+      r_vec = 0
     endif
 
     angle = len_factor * angle
@@ -467,21 +474,16 @@ if (((key == mirror$  .or. key == crystal$ .or. key == sbend$ .or. key == multil
     tlt = ele%value(ref_tilt_tot$)
     if (tlt /= 0) then
       call w_mat_for_tilt(t_mat, tlt)
+      if (ele%key == crystal$) r_vec = matmul(t_mat, r_vec)
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
       s_mat = matmul (s_mat, t_mat)
     endif
 
+    if (ele%key == crystal$) floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
     call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)
-
-    ! Offset with Laue diffraction and finite crystal thickness.
-
-    if (ele%key == crystal$ .and. any(ele%value(l_x$:l_z$) /= 0)) then
-      print *, 'Laue offset not yet implemented!'
-      call err_exit
-    endif
 
   ! patch
 
@@ -515,15 +517,12 @@ else
   select case (key)
   case (sbend$)
     angle = leng * ele%value(g$)
-    chord_len = 2 * leng * sin(angle/2) / angle
+    chord_len = ele%value(l_chord$)
   case (multipole$)
     angle = knl(0)
     chord_len = 0
   case (mirror$, multilayer_mirror$)
     angle = 2 * ele%value(graze_angle$) * len_factor
-    chord_len = 0
-  case (crystal$)
-    angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$)) * len_factor
     chord_len = 0
   case default
     angle = 0

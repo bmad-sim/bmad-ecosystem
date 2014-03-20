@@ -139,10 +139,8 @@ end subroutine photon_absorption_and_phase_shift
 ! Output:
 !   ele      -- ele_struct: Multilayer element.
 !     %value(v_unitcell$)
-!     %value(f0_re1$)
-!     %value(f0_im1$)
-!     %value(f0_re2$)
-!     %value(f0_im2$)
+!     %photon%material%f0_m1
+!     %photon%material%f0_m2
 !   err_flag -- Logical: Set True if multilayer type is unrecognized. False otherwise.
 !-
 
@@ -157,7 +155,7 @@ type (ele_struct), target :: ele
 real(rp) D, sin_theta0, del
 real(rp), pointer :: v(:)
 
-complex(rp) xi1, xi2
+complex(rp) xi1, xi2, f0
 
 integer ix
 
@@ -174,10 +172,10 @@ ix = index(ele%component_name, ':')
 if (ix == 0) return
 v => ele%value
 
-call load_layer_params (ele%component_name(1:ix-1), v(f0_re1$), v(f0_im1$), v(v1_unitcell$))
+call load_layer_params (ele%component_name(1:ix-1), ele%photon%material%f0_m1, v(v1_unitcell$))
 if (err_flag) return
 
-call load_layer_params (ele%component_name(ix+1:),  v(f0_re2$), v(f0_im2$), v(v2_unitcell$))
+call load_layer_params (ele%component_name(ix+1:), ele%photon%material%f0_m2, v(v2_unitcell$))
 if (err_flag) return
 
 ! Calc graze angle. See Kohn Eq 36.
@@ -189,8 +187,8 @@ if (D == 0) then
   return
 endif
 
-xi1 = cmplx(-v(f0_re1$), v(f0_im1$)) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v1_unitcell$))
-xi2 = cmplx(-v(f0_re2$), v(f0_im2$)) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v2_unitcell$)) 
+xi1 = -conjg(ele%photon%material%f0_m1) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v1_unitcell$))
+xi2 = -conjg(ele%photon%material%f0_m2) * v(ref_wavelength$)**2 * r_e / (pi * ele%value(v2_unitcell$)) 
 
 sin_theta0 = v(ref_wavelength$) / (2 * D)
 del = (v(d1_thickness$) * real(sqrt(cmplx(sin_theta0**2 + xi1)) - sin_theta0) + &
@@ -200,16 +198,16 @@ v(graze_angle$) = asin(sin_theta0 - del)
 !-----------------------------------------------------------------------------------------
 contains
 
-subroutine load_layer_params (material_name, f0_re, f0_im, v_unitcell)
+subroutine load_layer_params (material_name, f0, v_unitcell)
 
 type (crystal_struct), pointer :: cryst
 type (compoundDataNIST), pointer :: compound
 
-real(rp) f0_re, f0_im, v_unitcell
+real(rp) v_unitcell
 real(rp)  density, number_fraction_min, number_fraction
-real(c_float) energy, debye_temp_factor, f0, fp, fpp, rel_angle, q
+real(c_float) energy, debye_temp_factor, f0_atom, fp, fpp, rel_angle, q
 
-complex(rp) f0_tot
+complex(rp) f0
 
 
 integer n, n_atom
@@ -226,8 +224,7 @@ q = 0
 
 cryst => Crystal_GetCrystal (material_name)
 if (associated(cryst)) then
-  f0_tot = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel_angle)
-  f0_re = real(f0_tot); f0_im = aimag(f0_tot)
+  f0 = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel_angle)
   v_unitcell = 1d-30 * cryst%volume
   return
 endif
@@ -237,8 +234,8 @@ endif
 do n = 1, xraylib_z_max$
   if (material_name /= AtomicNumberToSymbol(n)) cycle
   v_unitcell = 1d-6 * AtomicWeight(n) / (N_avogadro * ElementDensity(n))
-  call Atomic_Factors (n, energy, q, debye_temp_factor, f0, fp, fpp)
-  f0_re = f0 + fp; f0_im = fpp
+  call Atomic_Factors (n, energy, q, debye_temp_factor, f0_atom, fp, fpp)
+  f0 = cmplx(f0_atom + fp, fpp)
   return
 enddo
 
@@ -251,16 +248,16 @@ ix = xraylib_nist_compound(material_name)
 if (ix > -1) then
   compound => GetCompoundDataNISTByIndex(ix)
 
-  f0_tot = 0
+  f0 = 0
   number_fraction_min = 1e10  ! something larget
 
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
-    call Atomic_Factors (compound%elements(n), energy, q, debye_temp_factor, f0, fp, fpp)
-    f0_tot = f0_tot + cmplx(f0 + fp, fpp) * number_fraction
+    call Atomic_Factors (compound%elements(n), energy, q, debye_temp_factor, f0_atom, fp, fpp)
+    f0 = f0 + cmplx(f0_atom + fp, fpp) * number_fraction
     number_fraction_min = min(number_fraction_min, number_fraction)
   enddo
-  f0_re = real(f0_tot) / number_fraction_min; f0_im = aimag(f0_tot)  / number_fraction_min
+  f0 = f0 / number_fraction_min
   v_unitcell = 1d-6 / (N_avogadro * compound%density)  / number_fraction_min
   call FreeCompoundDataNIST(compound)
   return
@@ -368,10 +365,7 @@ cryst => Crystal_GetCrystal (cyrstal_type)
 ele%value(v_unitcell$) = 1d-30 * cryst%volume
 ele%value(d_spacing$) = 1d-10 * Crystal_dSpacing(cryst, hkl(1), hkl(2), hkl(3))
 
-f0 = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel_angle)
-ele%value(f0_re$) = real(f0)
-ele%value(f0_im$) = aimag(f0)
-
+ele%photon%material%f_0    = Crystal_F_H_StructureFactor (cryst, energy, 0, 0, 0, debye_temp_factor, rel_angle)
 ele%photon%material%f_h    = Crystal_F_H_StructureFactor (cryst, energy, hkl(1), hkl(2), hkl(3), debye_temp_factor, rel_angle)
 ele%photon%material%f_hbar = Crystal_F_H_StructureFactor (cryst, energy, -hkl(1), -hkl(2), -hkl(3), debye_temp_factor, rel_angle)
 ele%photon%material%f_hkl = sqrt(ele%photon%material%f_h * ele%photon%material%f_hbar)

@@ -694,17 +694,14 @@ Attributes specific to a \vn{crystal} element are:
 \end{example}
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
-\index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{f0_re}
-\index{f0_im}\index{fh_re}\index{fh_im}\index{ref_wave_length}
+\index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{l}
+index{ref_wave_length}
 Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
+  l                  ! Length of reference orbit.
   alpha_angle        ! Angle of H-vector with respect to the surface normal.
   bragg_angle        ! Nominal Bragg angle at the reference wave length. 
   d_spacing          ! Lattice plane spacing. 
-  f0_re              ! Real part of f0
-  f0_im              ! Imaginary part of f0
-  fh_re              ! Real part of fh
-  fh_im              ! Imaginary part of fh
   bragg_angle_in     ! Angle between incoming beam and mirror surface.
   bragg_angle_out    ! Angle between outgoing beam and mirror surface.
   ref_wavelength     ! Reference wavelength
@@ -726,11 +723,8 @@ The atomic formula is case sensitive so, for example, \vn{"SI(111)"}
 is not acceptable.  Given the \vn{crystal_type}, the spacing between
 lattice planes (\vn{d_spacing}), the unit cell volume
 (\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
-\vn{f0_re}, and \vn{f0_im}, can be computed. And once the reference
-photon energy (\sref{s:energy}), is established, the structure factors
-\vn{fh_re}, \vn{fh_im} can be evaluated. The list of known crystals
-is given in \sref{s:cryst.list}.
-
+can be computed. The list of known crystals is given in
+\sref{s:cryst.list}.
 
 The \vn{b_param} is the standard asymmetry factor
 \Begineq
@@ -767,6 +761,10 @@ condition (that is, far from the referennce energy) will follow. The
 diffracted photons whose energy is the reference energy and whose
 incoming orbit is on the incoming reference trajectory. Finally, the
 \vn{bragg_diffracted} reference orbit is the backward diffracted orbit.
+
+The value of the element reference orbit length \vn{l} will be zero
+for Bragg diffraction. For Laue diffraction, \vn{l} will depend upon
+the crystal \vn{thickness} and the setting of \vn{ref_orbit_follows}.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
@@ -2337,16 +2335,10 @@ The attributes specific to a \vn{multilayer_mirror} are
 \end{example}
 
 \index{graze_angle}
-\index{f0_re1}\index{f0_im1}
-\index{f0_re2}\index{f0_im2}
 \index{v1_unitcell}\index{v2_unitcell}
 Dependent attributes (\sref{s:depend}) are
 \begin{example}
   graze_angle      ! Angle between incoming beam and mirror surface.
-  f0_re1           ! Real part of f0 for layer 1
-  f0_im1           ! Imaginary part of f0 for layer 1
-  f0_re2           ! Real part of f0 for layer 2
-  f0_im2           ! Imaginary part of f0 for layer 2
   v1_unitcell      ! Unit cell volume for layer 1
   v2_unitcell      ! Unit cell volume for layer 2 
 \end{example}
