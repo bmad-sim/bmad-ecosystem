@@ -1616,11 +1616,11 @@ converts all \vn{rbend}s to \vn{sbend}s and stores the chord length
 under the \vn{l_chord} attribute.
 Example:
 \begin{example}
-  q: quadrupole, l = 0.6, k1 = 0.3425
+  b: rbend, l = 0.6   ! For rbends, l will be converted to l_chord
 \end{example}
 
 \index{wiggler}
-Note that for \vn{wiggler}s, the length \vn{l} is not the same as the
+For \vn{wiggler}s, the length \vn{l} is not the same as the
 path length for a particle with the reference energy starting on the
 reference orbit. See~\sref{s:ref}.
 
@@ -1633,6 +1633,11 @@ attribute and will be automatically set to \vn{z_offset} by \bmad.
 The length of a \vn{capillary} element is a dependent variable and is
 given by the value of \vn{s} of the last wall cross-section
 (\sref{s:wall.capillary}).
+
+\index{crystal}
+The length of a crystal is zero for Bragg diffraction and is a
+dependent attribute dependent upon the crystal thickness for Laue
+diffraction. See \sref{s:crystal} for more details.
 
 %-----------------------------------------------------------------
 \section{Is_on Attribute}

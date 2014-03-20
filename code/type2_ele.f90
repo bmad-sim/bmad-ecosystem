@@ -515,6 +515,12 @@ if (associated(p)) then
   endif
 
   if (p%material%f_h /= 0) then
+    if (ele%key == multilayer_mirror$) then
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 1):', real(p%material%f0_m1), ' + I ', aimag(p%material%f0_m1)
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0 (Material 2):', real(p%material%f0_m2), ' + I ', aimag(p%material%f0_m2)
+    else
+      nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_0:             ', real(p%material%f_0), ' + I ', aimag(p%material%f_0)
+    endif
     nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_H:             ', real(p%material%f_h), ' + I ', aimag(p%material%f_h)
     nl = nl+1; write (li(nl), '(2(a,f10.3))') 'F_Hbar:          ', real(p%material%f_hbar), ' + I ', aimag(p%material%f_hbar)
     nl = nl+1; write (li(nl), '(2(a,f10.3))') 'Sqrt(F_H*F_Hbar):', real(p%material%f_hkl), ' + I ', aimag(p%material%f_hkl)

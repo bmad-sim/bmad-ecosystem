@@ -41,7 +41,7 @@ if (ele%value(bragg_angle$) == 0) return
 
 lambda = ele%value(ref_wavelength$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
-delta1 = 1 / sqrt(1 - gamma * ele%value(f0_re$))
+delta1 = 1 / sqrt(1 - gamma * real(ele%photon%material%f_0))
 lambda_in = lambda * delta1
 d = ele%value(d_spacing$)
 
@@ -52,9 +52,7 @@ h_x_norm = -sin(alpha) * cos(psi)
 h_y_norm =  sin(alpha) * sin(psi) 
 h_z_norm = -cos(alpha) 
 
-ele%value(h_x_norm$) = h_x_norm
-ele%value(h_y_norm$) = h_y_norm
-ele%value(h_z_norm$) = h_z_norm
+ele%photon%material%h_norm = [h_x_norm, h_y_norm, h_z_norm]
 
 ! Compute bragg_angle_in
 
@@ -83,7 +81,7 @@ kh_y_norm = lambda * h_y_norm/d
 kh_z_norm = sqrt(1 - kh_x_norm**2 - kh_y_norm**2)
 if (ele%value(b_param$) < 0) kh_z_norm = -kh_z_norm   ! Bragg
 
-! ent_kh_norm is kh_norm in entrance coordinates (with respect
+! ent_kh_norm is kh_norm in entrance coordinates 
 
 ent_kh_x_norm = kh_z_norm * k0_x_norm - kh_x_norm * k0_z_norm
 ent_kh_y_norm = kh_y_norm
@@ -91,22 +89,32 @@ ent_kh_z_norm = kh_z_norm * k0_z_norm + kh_x_norm * k0_x_norm
 
 ! There is no tilt correction if we are following the non-diffracted beam.
 
-if (nint(ele%value(ref_orbit_follows$)) == undiffracted$) then
-  ele%value(tilt_corr$) = 0
-  ele%value(bragg_angle_out$) = -bragg_angle_in
-else
+if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
   ele%value(tilt_corr$) = atan2(ent_kh_y_norm, ent_kh_x_norm)
-  ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
-  ele%value(bragg_angle_out$) = ang_tot - bragg_angle_in
+else
+  ele%value(tilt_corr$) = 0
 endif
 
-! displacement L due to finite crystal thickness for Laue diffraction.
+ang_tot = atan2(sqrt(ent_kh_x_norm**2 + ent_kh_y_norm**2), ent_kh_z_norm)
+ele%value(bragg_angle_out$) = ang_tot - bragg_angle_in
+
+! Displacement due to finite crystal thickness for Laue diffraction.
 
 if (ele%value(b_param$) > 0) then
-  ! Energy flow direction is K_0 + K_H = 2*K_0 + H
-  s_vec = 2 * [sin(theta0), 0.0_rp, cos(theta0)] / (delta1 * lambda) + [h_x_norm, h_y_norm, h_z_norm] / d 
-  ele%value(l_x$:l_z$) = dot_product(s_vec, [0.0_rp, 0.0_rp, ele%value(thickness$)]) * s_vec / dot_product(s_vec, s_vec)
+  select case (nint(ele%value(ref_orbit_follows$)))
+  case (forward_diffracted$, undiffracted$)
+    ! reference orbit direction is same as k_0 (outside)
+    ele%photon%material%l_ref = [tan(bragg_angle_in), 0.0_rp, 1.0_rp] * ele%value(thickness$) 
+  case (bragg_diffracted$)
+    ! Energy flow direction is K_0 + K_H = 2*K_0 + H
+    s_vec = 2 * [sin(theta0), 0.0_rp, cos(theta0)] / (delta1 * lambda) + [h_x_norm, h_y_norm, h_z_norm] / d 
+    ele%photon%material%l_ref = s_vec * ele%value(thickness$) / s_vec(3) 
+  end select
+else
+  ele%photon%material%l_ref = 0
 endif
+
+ele%value(l$) = norm2(ele%photon%material%l_ref)
 
 !
 

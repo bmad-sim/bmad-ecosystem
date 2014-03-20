@@ -8,8 +8,8 @@ use xraylib_interface
 ! This is for passing info into the field_calc_routine
 
 type, private :: crystal_param_struct
-  real(rp) cap_gamma, dtheta_sin_2theta, b_eff
-  complex(rp) f0, f_hkl
+  real(rp) cap_gamma, dtheta_sin_2theta, b_eff, wavelength
+  real(rp) old_vvec(3), new_vvec(3)
 end type
 
 private e_field_calc
@@ -493,8 +493,8 @@ endif
 ! Note: Koln z-axis = Bmad x-axis.
 ! Note: f0_re and f0_im are both positive.
 
-xi_1 = cmplx(-val(f0_re1$), val(f0_im1$)) * r_e * wavelength**2 / (pi * val(v1_unitcell$)) 
-xi_2 = cmplx(-val(f0_re2$), val(f0_im2$)) * r_e * wavelength**2 / (pi * val(v2_unitcell$)) 
+xi_1 = -conjg(ele%photon%material%f0_m1) * r_e * wavelength**2 / (pi * val(v1_unitcell$)) 
+xi_2 = -conjg(ele%photon%material%f0_m2) * r_e * wavelength**2 / (pi * val(v2_unitcell$)) 
 
 kz1 = twopi * sqrt(orbit%vec(6)**2 + xi_1) / wavelength
 kz2 = twopi * sqrt(orbit%vec(6)**2 + xi_2) / wavelength
@@ -614,10 +614,10 @@ implicit none
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
-type (crystal_param_struct) c_param
+type (crystal_param_struct) cp
 
-real(rp) h_bar(3), e_tot, pc, p_factor, wavelength
-real(rp) gamma_0, gamma_h, old_vec(6)
+real(rp) h_bar(3), e_tot, pc, p_factor
+real(rp) gamma_0, gamma_h
 
 character(*), parameter :: r_name = 'track1_cyrstal'
 
@@ -633,7 +633,8 @@ endif
 
 !
 
-wavelength = c_light * h_planck / orbit%p0c
+cp%wavelength = c_light * h_planck / orbit%p0c
+cp%cap_gamma = r_e * cp%wavelength**2 / (pi * ele%value(v_unitcell$)) 
 
 ! (px, py, pz) coords are with respect to laboratory reference trajectory.
 ! Convert this vector to k0_outside_norm which are coords with respect to crystal surface.
@@ -642,7 +643,7 @@ wavelength = c_light * h_planck / orbit%p0c
 call track_to_surface (ele, orbit)
 if (orbit%state /= alive$) return
 
-old_vec = orbit%vec
+cp%old_vvec = orbit%vec(2:6:2)
 
 ! Check aperture
 
@@ -653,39 +654,43 @@ endif
 
 ! Construct h_bar = H * wavelength.
 
-
-h_bar = [ele%value(h_x_norm$), ele%value(h_y_norm$), ele%value(h_z_norm$)] 
+h_bar = ele%photon%material%h_norm
 if (ele%photon%surface%grid%type == h_misalign$) call crystal_h_misalign (ele, orbit, h_bar) 
-h_bar = h_bar * wavelength / ele%value(d_spacing$)
+h_bar = h_bar * cp%wavelength / ele%value(d_spacing$)
 
-! kh_outside_norm is the normalized outgoing wavevector outside the crystal
+! cp%new_vvec is the normalized outgoing wavevector outside the crystal
 
-c_param%cap_gamma = r_e * wavelength**2 / (pi * ele%value(v_unitcell$)) 
-
-orbit%vec(2:6:2) = orbit%vec(2:6:2) + h_bar
+cp%new_vvec = orbit%vec(2:6:2) + h_bar
 
 if (ele%value(b_param$) < 0) then ! Bragg
-  orbit%vec(6) = -sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+  cp%new_vvec(3) = -sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
 else
-  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+  cp%new_vvec(3) = sqrt(1 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)
 endif
 
-gamma_0 = old_vec(6)
-gamma_h = orbit%vec(6)
+! Calculate some parameters
 
-!-------------------------------------
-! Calculate phase and intensity
+gamma_0 = cp%old_vvec(3)
+gamma_h = cp%new_vvec(3)
 
-c_param%b_eff             = gamma_0 / gamma_h
-c_param%dtheta_sin_2theta = -dot_product(h_bar + 2 * old_vec(2:6:2), h_bar) / 2
-c_param%f0                = cmplx(ele%value(f0_re$), ele%value(f0_im$)) 
-c_param%f_hkl             = ele%photon%material%f_hkl
+cp%b_eff = gamma_0 / gamma_h
+cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
+
+! E field calc
+! Also shifts the position for Laue diffraction.
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call e_field_calc (c_param, ele, p_factor, orbit%field(1), orbit%phase(1))
-call e_field_calc (c_param, ele, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
+call e_field_calc (cp, orbit, ele, param, p_factor, orbit%field(1), orbit%phase(1))
+call e_field_calc (cp, orbit, ele, param, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
 
 ! Rotate back from curved body coords to element coords
+
+if (ele%value(b_param$) < 0) then ! Bragg
+  orbit%vec(2:6:2) = cp%new_vvec
+else
+  ! forward_diffracted and undiffracted beams do not have an orientation change.
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) orbit%vec(2:6:2) = cp%new_vvec
+endif
 
 if (ele%photon%surface%has_curvature) then
   call rotate_for_curved_surface (ele, orbit, unset$)
@@ -697,52 +702,67 @@ end subroutine track1_crystal
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine e_field_calc (cp, ele, p_factor, e_field, e_phase)
+! Subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase)
 !
 ! Routine to compute position where crystal reflects in crystal coordinates.
 !
 ! Input:
 !   cp       -- crystal_param_struct: Crystal parameters.
+!   orbit    -- coord_struct: Initial orbit.
 !   ele      -- ele_struct: Crystal element.
+!   param    -- lat_param_struct: 
 !   p_factor -- Real(rp)
 !
 ! Output:
-!   e_field -- Real(rp)
-!   e_phase -- Real(rp)
+!   orbit    -- coord_struct: Position is shifted for Laue diffraction.
+!   e_field  -- Real(rp)
+!   e_phase  -- Real(rp)
 !-
 
-subroutine e_field_calc (cp, ele, p_factor, e_field, e_phase)
+subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase)
 
 type (crystal_param_struct) cp
-type (ele_struct) ele
+type (coord_struct) orbit
+type (ele_struct), target :: ele
+type (lat_param_struct) param
+type (photon_material_struct), pointer :: pms
 
-real(rp) p_factor, e_field, e_phase, sqrt_b
+real(rp) p_factor, e_field, e_phase, sqrt_b, delta1
+real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3)
+real(rp) kr, k0_im, r_ran, k_mag, denom
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
+complex(rp) E_hat_alpha, E_hat_beta
+
+logical to_alpha_branch
 
 ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
 
+pms => ele%photon%material
 sqrt_b = sqrt(abs(cp%b_eff))
 
-eta = (cp%b_eff * cp%dtheta_sin_2theta + cp%f0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
-                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * cp%f_hkl) 
+eta = (cp%b_eff * cp%dtheta_sin_2theta + pms%f_0 * cp%cap_gamma * (1.0_rp - cp%b_eff)/2) / &
+                                              (cp%cap_gamma * abs(p_factor) * sqrt_b * pms%f_hkl) 
 eta1 = sqrt(eta**2 + sign(1.0_rp, cp%b_eff))
-f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * cp%f_hkl / 2
+f_cmp = abs(p_factor) * sqrt_b * cp%cap_gamma * pms%f_hkl / 2
 
-xi_0k_b = f_cmp * (eta - eta1)
+xi_0k_b = f_cmp * (eta - eta1)                         ! beta branch xi
 xi_hk_b = f_cmp / (abs(cp%b_eff) * (eta - eta1))
 
-xi_0k_a = f_cmp * (eta + eta1)
+xi_0k_a = f_cmp * (eta + eta1)                         ! alpha branch xi
 xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
 
+!---------------
 ! Bragg
 
 if (ele%value(b_param$) < 0) then 
-  if (abs(eta+eta1) > abs(eta-eta1)) then
-    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%f_hkl)
-  else
-    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%f_hkl)
+  if (abs(eta+eta1) > abs(eta-eta1)) then  ! beta branch excited
+    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hkl)
+  else                                     ! alpha branch excited
+    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hkl)
   endif
+
+  print *, 'Remember: f_hkl -> f_hbar!'
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
 
@@ -754,8 +774,70 @@ if (ele%value(b_param$) < 0) then
 
 else 
 
-  e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * cp%f_hkl)
-  e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * cp%f_hkl)
+  e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
+  e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
+
+  delta1 = 1 + cp%cap_gamma * real(pms%f_0) / 2
+  k_mag = 1 / (delta1 * cp%wavelength)
+
+  k_0 = cp%old_vvec
+  k_0(3) = sqrt(1/delta1**2 - k_0(1)**2 - k_0(2)**2) / cp%wavelength
+
+  k_H = cp%new_vvec
+  k_H(3) = sqrt(1/delta1**2 - k_H(1)**2 - k_H(2)**2) / cp%wavelength
+
+  s_alpha = k_0 + e_rel_a**2 * k_H
+  dr_alpha = ele%value(thickness$) * s_alpha / s_alpha(3)
+
+  s_beta = k_0 + e_rel_b**2 * k_H
+  dr_beta = ele%value(thickness$) * s_beta / s_beta(3)
+
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    kr = -twopi * dot_product(k_h, dr_alpha)
+    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0(3)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+
+    kr = -twopi * dot_product(k_h, dr_beta)
+    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * E_hat_alpha
+
+  else
+    kr = -twopi * dot_product(k_0, dr_alpha)
+    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0(3)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_b / (e_rel_b - e_rel_a)
+
+    kr = -twopi * dot_product(k_0, dr_beta)
+    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
+    E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_a / (e_rel_b - e_rel_a)
+  endif
+
+  call ran_uniform(r_ran)
+
+  if (param%tracking_mode == coherent$) then
+    denom = abs(E_hat_beta) + abs(E_hat_alpha)
+    e_field = e_field * denom
+    if (r_ran < abs(E_hat_alpha) / denom) then ! alpha branch
+      to_alpha_branch = .true.
+    else
+      to_alpha_branch = .false.
+    endif
+  else
+    denom = abs(E_hat_beta)**2 + abs(E_hat_alpha)**2
+    e_field = e_field * sqrt(denom)
+    if (r_ran < abs(E_hat_alpha)**2 / denom) then ! alpha branch
+      to_alpha_branch = .true.
+    else
+      to_alpha_branch = .false.
+    endif
+  endif
+
+  if (to_alpha_branch) then
+    e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_alpha
+  else
+    e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
+    orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_beta
+  endif
 
 endif
 
