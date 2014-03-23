@@ -517,7 +517,7 @@ have magnitude
 \end{align}
 where $\lambda$ is the wavelength, and $\delta$ is
 \Begineq
-  \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, |F_0|
+  \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, |F_0| = \frac{\Gamma}{2} \, |F_0|
 \Endeq
 with $r_e$ being the classical electron radius, $V$ the unit cell
 volume, and $F_0$ the $F_{(0,0,0)}$ structure factor. 
@@ -570,7 +570,7 @@ in the form
 Where, as shown in \fig{f:crystal.diffraction}, $\theta_{B,in}$, and
 $\theta_0$ are the angles of $\bfkbar_0$ and $\bfKbar_0$ with respect
 to the $x$-axis for Bragg reflections and with respect to the $z$-axis
-for Laue reflection.
+for Laue reflection. 
 
 $\alpha_H$ (\vn{alpha_angle}) is the angle that $\bfH$ makes with
 respect to the $-\bfhat z$ axis and $\psi_H$ (\vn{psi_angle}) is the
@@ -586,7 +586,8 @@ rotation of $\bfH$ around the $-\bfhat z$ axis such that for $\psi_H =
     \end{pmatrix}
   \label{h1daa}
 \Endeq
-where $\bfhat{H}$ is $\bfH$ normalized to 1.
+where $\bfhat{H}$ is $\bfH$ normalized to 1. $\alpha_H$ is determined
+via the setting of \vn{b_param} and via \Eq{batat}.
 
 The vectors $\bfK_0$ and $\bfH$ must add up to the reciprocal lattice vector $\bfK_H$
 \Begineq
@@ -837,7 +838,7 @@ Bragg diffraction
   \bfS = 
   \begin{pmatrix}
     \cos\theta_{bend} & 0 & -\sin\theta_{bend} \\
-    0          & 1 & 0           \\
+    0                 & 1 & 0           \\
     \sin\theta_{bend} & 0 & \cos\theta_{bend}
   \end{pmatrix}
 \Endeq
@@ -904,11 +905,12 @@ and $\eta$ is given by \cite{b:blasdell} Eq.~(5)
 with the asymmetry factor $b$ for the photon being tracked being given
 by \cite{b:blasdell} Eq.~(3)
 \Begineq
-  b \equiv \frac{\bfhat n \dotproduct \bfhat k_0}{\bfhat n \dotproduct \widehat{{\bfk_0 + \bfH}}}
+  b \equiv \frac{\bfhat n \dotproduct \bfhat k_0}{\bfhat n \dotproduct (\widehat{{\bfk_0 + \bfH}})}
 \Endeq
 and the angular deviation variable $a$ is given by \cite{b:blasdell} Eq.~(4)
 \Begineq
-  a \equiv \frac{H^2 + 2 \, \bfk_0 \dotproduct \bfH}{k_0^2}
+  a \equiv \frac{H^2 + 2 \, \bfk_0 \dotproduct \bfH}{k_0^2} 
+  = -2 \, \Delta \theta \, \sin(2\theta_B)
 \Endeq
 Once $\xi_0$ and $\xi_H$ are determined, the ratio of the incoming and outgoing fields
 for the $\alpha$ or $\beta$ branches can be computed via (\cite{b:batterman} Eq.~(24))
@@ -1023,3 +1025,8 @@ $E_{H\beta}$ with
     \exp({-2 \, \pi \, i \, \bfK'_{0\beta} \dotproduct \bfr_\alpha}) \,
     \exp({-2 \, \pi \, \bfK''_{0\beta} \dotproduct \bfr_\beta})
 \end{align}
+
+Since a simulation photon has two polarization components, the above
+equations are used for one polarization component and for the second
+polarization component the same branch is used as for the first with
+an appropriately scaled $\what E$.

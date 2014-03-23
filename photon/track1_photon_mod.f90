@@ -680,8 +680,8 @@ cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
 ! Also shifts the position for Laue diffraction.
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call e_field_calc (cp, orbit, ele, param, p_factor, orbit%field(1), orbit%phase(1))
-call e_field_calc (cp, orbit, ele, param, 1.0_rp,   orbit%field(2), orbit%phase(2))   ! Sigma polarization
+call e_field_calc (cp, orbit, ele, param, p_factor, orbit%field(1), orbit%phase(1), .true.)
+call e_field_calc (cp, orbit, ele, param, 1.0_rp,   orbit%field(2), orbit%phase(2), .false.)   ! Sigma polarization
 
 ! Rotate back from curved body coords to element coords
 
@@ -702,7 +702,7 @@ end subroutine track1_crystal
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase)
+! Subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase, do_branch_calc)
 !
 ! Routine to compute position where crystal reflects in crystal coordinates.
 !
@@ -719,7 +719,7 @@ end subroutine track1_crystal
 !   e_phase  -- Real(rp)
 !-
 
-subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase)
+subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase, do_branch_calc)
 
 type (crystal_param_struct) cp
 type (coord_struct) orbit
@@ -729,12 +729,14 @@ type (photon_material_struct), pointer :: pms
 
 real(rp) p_factor, e_field, e_phase, sqrt_b, delta1
 real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3)
-real(rp) kr, k0_im, r_ran, k_mag, denom
+real(rp) kr, k0_im, k_mag, denom, thickness
+real(rp), save :: r_ran
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
 complex(rp) E_hat_alpha, E_hat_beta
+complex(rp), save :: E_hat_alpha_saved, E_hat_beta_saved
 
-logical to_alpha_branch
+logical to_alpha_branch, do_branch_calc
 
 ! Construct xi_0k = xi_0 / k and xi_hk = xi_h / k
 
@@ -774,6 +776,7 @@ if (ele%value(b_param$) < 0) then
 
 else 
 
+  thickness = ele%value(thickness$)
   e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
   e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
 
@@ -787,56 +790,78 @@ else
   k_H(3) = sqrt(1/delta1**2 - k_H(1)**2 - k_H(2)**2) / cp%wavelength
 
   s_alpha = k_0 + e_rel_a**2 * k_H
-  dr_alpha = ele%value(thickness$) * s_alpha / s_alpha(3)
+  dr_alpha = thickness * s_alpha / s_alpha(3)
 
   s_beta = k_0 + e_rel_b**2 * k_H
-  dr_beta = ele%value(thickness$) * s_beta / s_beta(3)
+  dr_beta = thickness * s_beta / s_beta(3)
+
+  ! Calc fields
 
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
     kr = -twopi * dot_product(k_h, dr_alpha)
     k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
 
     kr = -twopi * dot_product(k_h, dr_beta)
     k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * E_hat_alpha
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * E_hat_alpha
 
   else
     kr = -twopi * dot_product(k_0, dr_alpha)
     k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_b / (e_rel_b - e_rel_a)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
 
     kr = -twopi * dot_product(k_0, dr_beta)
     k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-2 * pi * k0_im) * e_rel_a / (e_rel_b - e_rel_a)
+    E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
   endif
 
-  call ran_uniform(r_ran)
+  ! Calculate branching numbers?
+
+  if (do_branch_calc) then
+    call ran_uniform(r_ran)
+    E_hat_alpha_saved = E_hat_alpha
+    E_hat_beta_saved = E_hat_beta
+  endif
+
+  ! If crystal is too thick then mark particle as lost
+
+  if (E_hat_alpha_saved == 0 .and. E_hat_beta_saved == 0) then
+    orbit%state = lost$
+    e_field = 0
+    return
+  endif
+
+  ! Calculate branch and field
 
   if (param%tracking_mode == coherent$) then
-    denom = abs(E_hat_beta) + abs(E_hat_alpha)
-    e_field = e_field * denom
-    if (r_ran < abs(E_hat_alpha) / denom) then ! alpha branch
+    denom = abs(E_hat_beta_saved) + abs(E_hat_alpha_saved)
+    if (r_ran < abs(E_hat_alpha_saved) / denom) then ! alpha branch
       to_alpha_branch = .true.
+      e_field = e_field * denom * abs(E_hat_alpha) / abs(E_hat_alpha_saved)
     else
       to_alpha_branch = .false.
+      e_field = e_field * denom * abs(E_hat_beta) / abs(E_hat_beta_saved)
     endif
   else
-    denom = abs(E_hat_beta)**2 + abs(E_hat_alpha)**2
-    e_field = e_field * sqrt(denom)
-    if (r_ran < abs(E_hat_alpha)**2 / denom) then ! alpha branch
+    denom = abs(E_hat_beta)**2 + abs(E_hat_alpha_saved)**2
+    if (r_ran < abs(E_hat_alpha_saved)**2 / denom) then ! alpha branch
       to_alpha_branch = .true.
+      e_field = e_field * sqrt(denom * abs(E_hat_alpha)**2 / abs(E_hat_alpha_saved)**2)
     else
       to_alpha_branch = .false.
+      e_field = e_field * sqrt(denom * abs(E_hat_beta)**2 / abs(E_hat_beta_saved)**2)
     endif
   endif
+
+  ! Calculate phase and orbit change. Orbit change only is done once.
 
   if (to_alpha_branch) then
     e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
-    orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_alpha
+      if (do_branch_calc) orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_alpha
   else
     e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
-    orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_beta
+    if (do_branch_calc) orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_beta
   endif
 
 endif

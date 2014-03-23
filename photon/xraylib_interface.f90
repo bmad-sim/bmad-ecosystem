@@ -377,7 +377,12 @@ r = ele%value(ref_wavelength$) / (2 * ele%value(d_spacing$))
 if (r < 1) then
   ele%value(bragg_angle$) = asin(r)
   bp = ele%value(b_param$)
-  ele%value(alpha_angle$) = atan2(-sin(ele%value(bragg_angle$)) * (1 + bp), cos(ele%value(bragg_angle$)) * (1 - bp))
+  ! These two formulas for alpha_angle are the same except where the branch cut is.
+  if (bp < 0) then  ! Bragg
+    ele%value(alpha_angle$) = atan2(-sin(ele%value(bragg_angle$)) * (1 + bp), cos(ele%value(bragg_angle$)) * (1 - bp))
+  else
+    ele%value(alpha_angle$) = pi/2 + atan2(cos(ele%value(bragg_angle$)) * (1 - bp), sin(ele%value(bragg_angle$)) * (1 + bp))
+  endif
 else
   ele%value(bragg_angle$) = 0
   ele%value(alpha_angle$) = 0
