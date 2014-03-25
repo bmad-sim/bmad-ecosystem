@@ -62,9 +62,7 @@ installed before attempting to build the code found within the
 distribution:
  
   sh/bash/ash - A Bourne-compatible    - shell
-  cmake       - Build system generator - V2.8+  Download at http://www.cmake.org
-  gmake       - GNU make               - Popular software building tool 
-
+  cmake       - Build system generator - V2.8.5+  Download at http://www.cmake.org
 
 *****************************************************************************
 LICENSING ISSUES
@@ -426,7 +424,7 @@ with some added annotation is:
   # This sets the name of the library
   set(LIBNAME sim_utils)
 
-  # This checks that the CMake version is OK (V2.8+)
+  # This checks that the CMake version is OK (V2.8.5+)
   cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
   # Define any include directories
@@ -460,7 +458,7 @@ typically the name of the executable.
 To use BMAD_DIST/examples as an example, the CMakeLists.txt file,
 with some added annotation is:
 
-  # This checks that the CMake version is OK (V2.8+)
+  # This checks that the CMake version is OK (V2.8.5+)
   cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
   # Define any include directories

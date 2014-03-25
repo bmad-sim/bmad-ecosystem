@@ -5,16 +5,16 @@
 # Set CLASSE distribution build system environment variables.
 #--------------------------------------------------------------
 
-
 #--------------------------------------------------------------
 # Distribution control and setup variables
 #--------------------------------------------------------------
 export DIST_BUILD="TRUE"
 
-
 export ACC_BUILD_SYSTEM=$DIST_BASE_DIR/build_system
 export ACC_BUILD_EXES=Y
-export ACC_CMAKE_VERSION=2.8
+export ACC_CMAKE_VERSION=2.8.5
+export ACC_EXE=$DIST_BASE_DIR/production/bin
+
 #--------------------------------------------------------------
 # Distribution directory tree assignments
 #--------------------------------------------------------------
@@ -25,23 +25,17 @@ export DIST_MOD=$DIST_BASE_DIR/modules
 export DIST_UTIL=$DIST_BASE_DIR/util
 export DIST_INC=$DIST_BASE_DIR/include
 
-
-
 #--------------------------------------------------------------
 # PGPLOT server/font directory specification
 #--------------------------------------------------------------
 export PGPLOT_DIR=$DIST_BASE_DIR/PGPLOT
 export PGPLOT_FONTS=$DIST_BASE_DIR/PGPLOT
 
-
-
 #--------------------------------------------------------------
 # BMAD configuration files
 #--------------------------------------------------------------
 export BMAD_LAT=$DIST_CONFIG/bmad/lat
 export BMAD_LAYOUT=$DIST_CONFIG/bmad/layout
-
-
 
 #--------------------------------------------------------------
 # TAO help file search path
