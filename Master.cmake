@@ -1,11 +1,10 @@
 #-----------------------------------------------------------
-# Master cmake lists file
-# Implements the ACC build system.  Called by boilerplate
-# text:
+# Master CMake file.
+# Implements the ACC build system.
+# How to include:
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-# found in CMakeLists.txt files in project directories.
-#-----------------------------------------------------------
-cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
+# Found in CMakeLists.txt files in project directories.
+
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
