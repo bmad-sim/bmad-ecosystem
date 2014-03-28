@@ -2729,8 +2729,6 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_surface_grid_test_pattern (F%grid, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -2738,11 +2736,11 @@ call set_segmented_surface_test_pattern (F%segment, ix_patt)
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%curvature_xy,1); lb1 = lbound(F%curvature_xy,1) - 1
 do jd2 = 1, size(F%curvature_xy,2); lb2 = lbound(F%curvature_xy,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 4 + offset
+  rhs = 100 + jd1 + 10*jd2 + 3 + offset
   F%curvature_xy(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 5 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
+rhs = 4 + offset; F%has_curvature = (modulo(rhs, 2) == 0)
 
 end subroutine set_photon_surface_test_pattern
 
@@ -2923,11 +2921,27 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[complex, 0, NOT]
-rhs = 1 + offset; F%f_h = cmplx(rhs, 100+rhs)
+rhs = 1 + offset; F%f0_m1 = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[complex, 0, NOT]
-rhs = 2 + offset; F%f_hbar = cmplx(rhs, 100+rhs)
+rhs = 2 + offset; F%f0_m2 = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[complex, 0, NOT]
-rhs = 3 + offset; F%f_hkl = cmplx(rhs, 100+rhs)
+rhs = 3 + offset; F%f_0 = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 4 + offset; F%f_h = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 5 + offset; F%f_hbar = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 6 + offset; F%f_hkl = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%h_norm,1); lb1 = lbound(F%h_norm,1) - 1
+  rhs = 100 + jd1 + 7 + offset
+  F%h_norm(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%l_ref,1); lb1 = lbound(F%l_ref,1) - 1
+  rhs = 100 + jd1 + 8 + offset
+  F%l_ref(jd1+lb1) = rhs
+enddo
 
 end subroutine set_photon_material_test_pattern
 

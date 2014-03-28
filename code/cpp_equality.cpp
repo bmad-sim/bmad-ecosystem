@@ -494,7 +494,6 @@ template bool is_all_equal (const CPP_target_point_MATRIX&, const CPP_target_poi
 
 bool operator== (const CPP_photon_surface& x, const CPP_photon_surface& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.grid == y.grid);
   is_eq = is_eq && (x.segment == y.segment);
   is_eq = is_eq && is_all_equal(x.curvature_xy, y.curvature_xy);
@@ -523,9 +522,14 @@ template bool is_all_equal (const CPP_photon_target_MATRIX&, const CPP_photon_ta
 
 bool operator== (const CPP_photon_material& x, const CPP_photon_material& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.f0_m1 == y.f0_m1);
+  is_eq = is_eq && (x.f0_m2 == y.f0_m2);
+  is_eq = is_eq && (x.f_0 == y.f_0);
   is_eq = is_eq && (x.f_h == y.f_h);
   is_eq = is_eq && (x.f_hbar == y.f_hbar);
   is_eq = is_eq && (x.f_hkl == y.f_hkl);
+  is_eq = is_eq && is_all_equal(x.h_norm, y.h_norm);
+  is_eq = is_eq && is_all_equal(x.l_ref, y.l_ref);
   return is_eq;
 };
 

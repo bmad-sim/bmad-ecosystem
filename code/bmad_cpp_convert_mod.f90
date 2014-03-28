@@ -3235,15 +3235,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_surface_to_c2 (C, z_type, z_grid, z_segment, z_curvature_xy, &
-      z_has_curvature) bind(c)
+  subroutine photon_surface_to_c2 (C, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_has_curvature
     type(c_ptr), value :: z_grid, z_segment
     real(c_double) :: z_curvature_xy(*)
-    integer(c_int) :: z_type
   end subroutine
 end interface
 
@@ -3259,8 +3258,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_surface_to_c2 (C, F%type, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, &
-    7*7), c_logic(F%has_curvature))
+call photon_surface_to_c2 (C, c_loc(F%grid), c_loc(F%segment), mat2vec(F%curvature_xy, 7*7), &
+    c_logic(F%has_curvature))
 
 end subroutine photon_surface_to_c
 
@@ -3280,8 +3279,8 @@ end subroutine photon_surface_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_surface_to_f2 (Fp, z_type, z_grid, z_segment, z_curvature_xy, &
-    z_has_curvature) bind(c)
+subroutine photon_surface_to_f2 (Fp, z_grid, z_segment, z_curvature_xy, z_has_curvature) &
+    bind(c)
 
 
 implicit none
@@ -3293,12 +3292,9 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 logical(c_bool) :: z_has_curvature
 type(c_ptr), value :: z_grid, z_segment
 real(c_double) :: z_curvature_xy(*)
-integer(c_int) :: z_type
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
 !! f_side.to_f2_trans[type, 0, NOT]
 call surface_grid_to_f(z_grid, c_loc(F%grid))
 !! f_side.to_f2_trans[type, 0, NOT]
@@ -3429,11 +3425,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_material_to_c2 (C, z_f_h, z_f_hbar, z_f_hkl) bind(c)
+  subroutine photon_material_to_c2 (C, z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl, &
+      z_h_norm, z_l_ref) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    complex(c_double_complex) :: z_f_h, z_f_hbar, z_f_hkl
+    complex(c_double_complex) :: z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl
+    real(c_double) :: z_h_norm(*), z_l_ref(*)
   end subroutine
 end interface
 
@@ -3449,7 +3447,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call photon_material_to_c2 (C, F%f_h, F%f_hbar, F%f_hkl)
+call photon_material_to_c2 (C, F%f0_m1, F%f0_m2, F%f_0, F%f_h, F%f_hbar, F%f_hkl, &
+    fvec2vec(F%h_norm, 3), fvec2vec(F%l_ref, 3))
 
 end subroutine photon_material_to_c
 
@@ -3469,7 +3468,8 @@ end subroutine photon_material_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_material_to_f2 (Fp, z_f_h, z_f_hbar, z_f_hkl) bind(c)
+subroutine photon_material_to_f2 (Fp, z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl, &
+    z_h_norm, z_l_ref) bind(c)
 
 
 implicit none
@@ -3478,16 +3478,27 @@ type(c_ptr), value :: Fp
 type(photon_material_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-complex(c_double_complex) :: z_f_h, z_f_hbar, z_f_hkl
+complex(c_double_complex) :: z_f0_m1, z_f0_m2, z_f_0, z_f_h, z_f_hbar, z_f_hkl
+real(c_double) :: z_h_norm(*), z_l_ref(*)
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%f0_m1 = z_f0_m1
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%f0_m2 = z_f0_m2
+!! f_side.to_f2_trans[complex, 0, NOT]
+F%f_0 = z_f_0
 !! f_side.to_f2_trans[complex, 0, NOT]
 F%f_h = z_f_h
 !! f_side.to_f2_trans[complex, 0, NOT]
 F%f_hbar = z_f_hbar
 !! f_side.to_f2_trans[complex, 0, NOT]
 F%f_hkl = z_f_hkl
+!! f_side.to_f2_trans[real, 1, NOT]
+F%h_norm = z_h_norm(1:3)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%l_ref = z_l_ref(1:3)
 
 end subroutine photon_material_to_f2
 

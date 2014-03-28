@@ -1219,25 +1219,23 @@ extern "C" void target_point_to_c2 (CPP_target_point& C, c_RealArr z_r) {
 extern "C" void photon_surface_to_c (const Bmad_photon_surface_class*, CPP_photon_surface&);
 
 // c_side.to_f2_arg
-extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, c_Int&, const
-    CPP_surface_grid&, const CPP_segmented_surface&, c_RealArr, c_Bool&);
+extern "C" void photon_surface_to_f2 (Bmad_photon_surface_class*, const CPP_surface_grid&,
+    const CPP_segmented_surface&, c_RealArr, c_Bool&);
 
 extern "C" void photon_surface_to_f (const CPP_photon_surface& C, Bmad_photon_surface_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
   Real z_curvature_xy[7*7]; matrix_to_vec(C.curvature_xy, z_curvature_xy);
 
   // c_side.to_f2_call
-  photon_surface_to_f2 (F, C.type, C.grid, C.segment, z_curvature_xy, C.has_curvature);
+  photon_surface_to_f2 (F, C.grid, C.segment, z_curvature_xy, C.has_curvature);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, c_Int& z_type, const
-    Bmad_surface_grid_class* z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr
-    z_curvature_xy, c_Bool& z_has_curvature) {
+extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Bmad_surface_grid_class*
+    z_grid, const Bmad_segmented_surface_class* z_segment, c_RealArr z_curvature_xy, c_Bool&
+    z_has_curvature) {
 
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.type = z_type;
   // c_side.to_c2_set[type, 0, NOT]
   surface_grid_to_c(z_grid, C.grid);
   // c_side.to_c2_set[type, 0, NOT]
@@ -1291,25 +1289,37 @@ extern "C" void photon_material_to_c (const Bmad_photon_material_class*, CPP_pho
 
 // c_side.to_f2_arg
 extern "C" void photon_material_to_f2 (Bmad_photon_material_class*, c_Complex&, c_Complex&,
-    c_Complex&);
+    c_Complex&, c_Complex&, c_Complex&, c_Complex&, c_RealArr, c_RealArr);
 
 extern "C" void photon_material_to_f (const CPP_photon_material& C, Bmad_photon_material_class* F) {
 
   // c_side.to_f2_call
-  photon_material_to_f2 (F, C.f_h, C.f_hbar, C.f_hkl);
+  photon_material_to_f2 (F, C.f0_m1, C.f0_m2, C.f_0, C.f_h, C.f_hbar, C.f_hkl, &C.h_norm[0],
+      &C.l_ref[0]);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_material_to_c2 (CPP_photon_material& C, c_Complex& z_f_h, c_Complex&
-    z_f_hbar, c_Complex& z_f_hkl) {
+extern "C" void photon_material_to_c2 (CPP_photon_material& C, c_Complex& z_f0_m1, c_Complex&
+    z_f0_m2, c_Complex& z_f_0, c_Complex& z_f_h, c_Complex& z_f_hbar, c_Complex& z_f_hkl,
+    c_RealArr z_h_norm, c_RealArr z_l_ref) {
 
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f0_m1 = z_f0_m1;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f0_m2 = z_f0_m2;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.f_0 = z_f_0;
   // c_side.to_c2_set[complex, 0, NOT]
   C.f_h = z_f_h;
   // c_side.to_c2_set[complex, 0, NOT]
   C.f_hbar = z_f_hbar;
   // c_side.to_c2_set[complex, 0, NOT]
   C.f_hkl = z_f_hkl;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.h_norm << z_h_norm;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.l_ref << z_l_ref;
 }
 
 //--------------------------------------------------------------------

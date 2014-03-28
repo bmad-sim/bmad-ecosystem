@@ -1806,9 +1806,6 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_surface_grid_test_pattern(C.grid, ix_patt);
 
@@ -1817,9 +1814,9 @@ void set_CPP_photon_surface_test_pattern (CPP_photon_surface& C, int ix_patt) {
 
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.curvature_xy.size(); i++)  for (unsigned int j = 0; j < C.curvature_xy[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 4 + offset; C.curvature_xy[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 3 + offset; C.curvature_xy[i][j] = rhs;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.has_curvature = (rhs % 2 == 0);
+  rhs = 4 + offset; C.has_curvature = (rhs % 2 == 0);
 
 
 }
@@ -1930,14 +1927,29 @@ void set_CPP_photon_material_test_pattern (CPP_photon_material& C, int ix_patt) 
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[complex, 0, NOT]
-  rhs = 1 + offset; C.f_h = Complex(rhs, 100+rhs);
+  rhs = 1 + offset; C.f0_m1 = Complex(rhs, 100+rhs);
 
   // c_side.test_pat[complex, 0, NOT]
-  rhs = 2 + offset; C.f_hbar = Complex(rhs, 100+rhs);
+  rhs = 2 + offset; C.f0_m2 = Complex(rhs, 100+rhs);
 
   // c_side.test_pat[complex, 0, NOT]
-  rhs = 3 + offset; C.f_hkl = Complex(rhs, 100+rhs);
+  rhs = 3 + offset; C.f_0 = Complex(rhs, 100+rhs);
 
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 4 + offset; C.f_h = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 5 + offset; C.f_hbar = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 6 + offset; C.f_hkl = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.h_norm.size(); i++)
+    {int rhs = 101 + i + 7 + offset; C.h_norm[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.l_ref.size(); i++)
+    {int rhs = 101 + i + 8 + offset; C.l_ref[i] = rhs;}
 
 }
 

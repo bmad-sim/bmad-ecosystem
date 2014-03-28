@@ -1245,14 +1245,12 @@ class Bmad_photon_surface_class {};  // Opaque class for pointers to correspondi
 
 class CPP_photon_surface {
 public:
-  Int type;
   CPP_surface_grid grid;
   CPP_segmented_surface segment;
   Real_MATRIX curvature_xy;
   Bool has_curvature;
 
   CPP_photon_surface() :
-    type(Bmad::NOT_SET),
     grid(),
     segment(),
     curvature_xy(Real_ARRAY(0.0, 7), 7),
@@ -1307,14 +1305,24 @@ class Bmad_photon_material_class {};  // Opaque class for pointers to correspond
 
 class CPP_photon_material {
 public:
+  Complex f0_m1;
+  Complex f0_m2;
+  Complex f_0;
   Complex f_h;
   Complex f_hbar;
   Complex f_hkl;
+  Real_ARRAY h_norm;
+  Real_ARRAY l_ref;
 
   CPP_photon_material() :
+    f0_m1(0.0),
+    f0_m2(0.0),
+    f_0(0.0),
     f_h(0.0),
     f_hbar(0.0),
-    f_hkl(0.0)
+    f_hkl(0.0),
+    h_norm(0.0, 3),
+    l_ref(0.0, 3)
     {}
 
   ~CPP_photon_material() {
