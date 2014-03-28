@@ -758,10 +758,6 @@ if (attrib_word == 'SURFACE') then
 
       enddo
 
-    case ('TYPE')
-      call get_switch ('SURFACE TYPE', surface_type_name(1:), surf%type, err_flag2)
-      if (err_flag2) return
-
     case default
       call parser_error ('UNKNOWN SURFACE COMPONENT: ' // word2, 'FOR: ' // ele%name)
       return

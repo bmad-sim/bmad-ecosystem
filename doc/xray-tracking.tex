@@ -512,12 +512,13 @@ have magnitude
 \begin{align}
   |\bf k_0| &= |\bf k_H| = \frac{1}{\lambda} 
   \label{kk1l1} \\
-  |\bfKbar_0| &= |\bfKbar_H| = \frac{1}{\lambda \, (1 + \delta)}
+  |\bfKbar_0| &= |\bfKbar_H| = \frac{1 - \delta}{\lambda}
   \label{kk1l2}
 \end{align}
 where $\lambda$ is the wavelength, and $\delta$ is
 \Begineq
   \delta = \frac{\lambda^2 r_e}{2 \, \pi \, V} \, |F_0| = \frac{\Gamma}{2} \, |F_0|
+  = \frac{1}{2} \, \Gamma \, |F_0|
 \Endeq
 with $r_e$ being the classical electron radius, $V$ the unit cell
 volume, and $F_0$ the $F_{(0,0,0)}$ structure factor. 
@@ -544,7 +545,7 @@ in the form
     \sin\theta_{B,in}
     \end{pmatrix}
   \; , & \qquad
-  \bfKbar_0 &= \frac{1}{\lambda \, (1 + \delta)} \, 
+  \bfKbar_0 &= \frac{1 - \delta}{\lambda} \, 
     \begin{pmatrix}
     -\cos\theta_0 \\
     0 \\
@@ -558,7 +559,7 @@ in the form
     \cos\theta_{B,in}
     \end{pmatrix}
   \; , & \qquad
-  \bfKbar_0 &= \frac{1}{\lambda \, (1 + \delta)} \, 
+  \bfKbar_0 &= \frac{1 - \delta}{\lambda} \, 
     \begin{pmatrix}
     \sin\theta_0 \\
     0 \\
@@ -608,12 +609,12 @@ $\theta_0$
 \Endeq
 where
 \Begineq
-  \beta \equiv \frac{\lambda \, (1 + \delta)}{2 \, d}
+  \beta \equiv \frac{\lambda}{2 \, d \, (1 - \delta)}
 \Endeq
 Once $\theta_0$ has been calculated, $\theta_{B,in}$ can be calculated from \Eq{kkqn1}
 \begin{align}
-  \cos\theta_{B,in} &= \frac{\cos\theta_0}{1 + \delta} \quad [\text{Bragg}] \\
-  \sin\theta_{B,in} &= \frac{\sin\theta_0}{1 + \delta} \quad [\text{Laue}] 
+  \cos\theta_{B,in} &= (1 - \delta) \, \cos\theta_0 \quad [\text{Bragg}] \\
+  \sin\theta_{B,in} &= (1 - \delta) \, \sin\theta_0 \quad [\text{Laue}] 
 \end{align}
 
 The outgoing reference wave vector $k_H$ is computed using the equation
@@ -664,7 +665,7 @@ The transformation $\Bf\Sigma_1$ is given in
 given in \sref{ss:crystal.trans.el}. In general, the transformation
 $\Bf\Sigma_1$ needs a ``tilt correction'' (\Eq{tttt}), as explained
 below, when $\psi_H$ is nonzero.  [The exception is when the
-\vn{undiffracted} or \vn{forward diffracted} beam is tracked with Laue
+\vn{undiffracted} or \vn{forward_diffracted} beam is tracked with Laue
 geometry. In these cases, no tilt correction is needed.] Since this
 tilt correction is independent of any misalignments, the tilt
 correction calculation proceeds assuming here that there are no
@@ -781,9 +782,8 @@ inverse of $\Bf\Sigma_2$.
 \begin{figure}
 \centering
 \includegraphics[width=4in]{crystal-energy.pdf}
-  \caption[Energy flow for Laue diffraction]{
-Energy flow for Laue diffraction for a given tie point is
-perpendicular to the dispersion surface (red arrows).
+  \caption[Reference energy flow for Laue diffraction]{
+Energy flow used to determine the reference orbit for Laue diffraction.
   }
 \label{f:crystal.energy}
 \end{figure}
@@ -812,23 +812,28 @@ the crystal as illustrated in \fig{f:crystal.energy}. The $\bfS$
 roatation matrix (\Eq{wws}) for the undiffracted beam referece will be
 the unit matrix.
 
-With the reference orbit following the \vn{forward} diffracted or
-\vn{Bragg} diffracted beam, the displacement vector $\bfL$ follows the
-energy flow associated with the waist tie points labeled $A$ and $B$
-in \fig{f:crystal.energy}. This energy flow is perpendicular to $\bfH$
-and is in the direction of $d\bfKbar$ defined by
+With the reference orbit following the \vn{forward_diffracted} or
+\vn{Bragg_diffracted} beam, the displacement vector $\bfL$ follows the
+energy flow associated with the tie points labeled $A$ or $B$ in
+\fig{f:crystal.energy}. These tie points are defined by the
+intersection of the dispersion surfaces and the vector $\Bf n$
+originating from the point $T$ as shown in the figure.  The energy
+flow is perpendicular to the dispersion surface and it can be shown
+that since, by construction, $\Bf n$ goes through the $Q$ point and
+since the dispersion surfaces are hyperbolies, the energy flow from
+$A$ and $B$ tie points are colinear. The direction of the energy flow
+is given by:
 \Begineq
-  d\bfKbar \equiv \bfKbar_H + \bfKbar_0
-  \qquad \text{[forward_diffracted or bragg_diffracted]}
+  \bfKbar_f = \xi_H \, \bfKbar_H + \xi_0 \, \bfKbar_0
 \Endeq
 $\bfL$ is thus
 \Begineq
-  \bfL = \frac{t^2}{d\bfKbar \dotproduct \Bf t} \, d\bfKbar
+  \bfL = \frac{t^2}{\bfKbar_f \dotproduct \Bf t} \, \bfKbar_f
 \Endeq
 where $\Bf t$ is a vector whose length is the thickness of the crystal
 oriented perpendicular to the crystal surfaces (that is, in the $z$
 direction of the local coordinate system). At the exit surface, if the
-reference orbit is following the \vn{forward diffracted} beam, the
+reference orbit is following the \vn{forward_diffracted} beam, the
 orientation of the \vn{element exit} coordinates will be the same as
 the orientation of the \vn{element entrance} coordinates. That is,
 $\bfS$ (\Eq{wws}) is the unit matrix.  If the reference orbit is
