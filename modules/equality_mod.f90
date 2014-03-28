@@ -809,8 +809,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%grid == f2%grid)
 !! f_side.equality_test[type, 0, NOT]
@@ -860,11 +858,21 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f0_m1 == f2%f0_m1)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f0_m2 == f2%f0_m2)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%f_0 == f2%f_0)
+!! f_side.equality_test[complex, 0, NOT]
 is_eq = is_eq .and. (f1%f_h == f2%f_h)
 !! f_side.equality_test[complex, 0, NOT]
 is_eq = is_eq .and. (f1%f_hbar == f2%f_hbar)
 !! f_side.equality_test[complex, 0, NOT]
 is_eq = is_eq .and. (f1%f_hkl == f2%f_hkl)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%h_norm == f2%h_norm)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%l_ref == f2%l_ref)
 
 end function eq_photon_material
 

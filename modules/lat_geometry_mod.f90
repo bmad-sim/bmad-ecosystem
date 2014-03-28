@@ -231,7 +231,7 @@ end subroutine lat_geometry
 !   ele             -- Ele_struct: Element to propagate the geometry through.
 !   len_scale       -- Real(rp), optional: factor to scale the length of the element.
 !                         1.0_rp => Output is geometry at end of element (default).
-!                         0.5_rp => Output is geometry at center of element.
+!                         0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
 !                        -1.0_rp => Used to propagate geometry in reverse.
 !   treat_as_patch  -- Logical, option: If present and True then treat the element
 !                        like a patch element. This is used by branch and photon_branch
@@ -258,7 +258,7 @@ type (lat_param_struct) param
 real(rp), optional :: len_scale
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3), rot_angle
-real(rp) chord_len, angle, leng, rho, len_factor
+real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp) :: s_ang, c_ang, w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
@@ -426,7 +426,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       tlt = ele%value(ref_tilt_tot$)
       rho = 1.0_dp / ele%value(g$)
       s_ang = sin(angle); c_ang = cos(angle)
-      r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang ]
+      r_vec = [rho * (c_ang - 1), 0.0_dp, rho * s_ang]
     else
       angle = knl(0) * len_factor
       tlt = tilt(0)
@@ -454,33 +454,45 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
   case (mirror$, multilayer_mirror$, crystal$)
     
-    if (ele%key == crystal$) then
+    if (ele%key == crystal$) then   ! Laue
       select case (nint(ele%value(ref_orbit_follows$)))
       case (bragg_diffracted$)
-        angle = (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
+        angle = len_factor * (ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
       case (forward_diffracted$, undiffracted$)
         angle = 0
       end select
-      r_vec = ele%photon%material%l_ref
-    else
-      angle = 2 * ele%value(graze_angle$)
+      if (ele%value(b_param$) > 0) then
+        ! %l_ref is with respect to the body coords
+        r_vec = len_factor * ele%photon%material%l_ref
+        if (len_factor > 0) then  ! Forward propagation -> Express r_vec in entrance coords.
+          ang = len_factor * ele%value(bragg_angle_in$)
+          r_vec = [cos(ang) * r_vec(1) - sin(ang) * r_vec(3), r_vec(2), sin(ang) * r_vec(1) + cos(ang) * r_vec(3)]
+        else                      ! Express r_vec in exit coords
+          ang = angle - len_factor * ele%value(bragg_angle_in$)
+          r_vec = [cos(ang) * r_vec(1) - sin(ang) * r_vec(3), r_vec(2), sin(ang) * r_vec(1) + cos(ang) * r_vec(3)]
+        endif
+      else  ! Bragg
+        r_vec = 0
+      endif
+
+    else   ! Non-crystal
+      angle = 2 * len_factor * ele%value(graze_angle$)
       r_vec = 0
     endif
 
-    angle = len_factor * angle
     ! By definition, positive angle is equivalent to negative x_pitch
     call w_mat_for_x_pitch (s_mat, -angle)
 
     tlt = ele%value(ref_tilt_tot$)
     if (tlt /= 0) then
       call w_mat_for_tilt(t_mat, tlt)
-      if (ele%key == crystal$) r_vec = matmul(t_mat, r_vec)
+      r_vec = matmul(t_mat, r_vec)
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
       s_mat = matmul (s_mat, t_mat)
     endif
 
-    if (ele%key == crystal$) floor%r = floor%r + matmul(w_mat, r_vec)
+    floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
     call floor_w_mat_to_angles (w_mat, 0.0_rp, theta, phi, psi, floor0)

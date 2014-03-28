@@ -430,7 +430,6 @@ end type
 ! Surface container structure
 
 type photon_surface_struct
-  integer :: type = not_set$
   type (surface_grid_struct) :: grid = surface_grid_struct('', off$, 0, 0, null())
   type (segmented_surface_struct) :: segment = segmented_surface_struct()
   real(rp) :: curvature_xy(0:6,0:6) = 0
@@ -467,10 +466,6 @@ type photon_element_struct
   type (photon_target_struct) :: target !! = photon_target_struct() IFORT bug prevents set!
   type (photon_material_struct) :: material = photon_material_struct()
 end type
-
-! Surface types
-
-character(20), parameter :: surface_type_name(0:1) = ['Not_Set.', 'Garbage!']
 
 ! Ele_struct:
 ! Remember: If this struct is changed you have to:

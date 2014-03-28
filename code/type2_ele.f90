@@ -488,7 +488,7 @@ p => ele%photon
 if (associated(p)) then
   s => ele%photon%surface
   nl=nl+1; write (li(nl), *)
-  nl=nl+1; write (li(nl), *) 'Surface Curvature:'
+  nl=nl+1; write (li(nl), *) 'Surface:'
  
   if (s%has_curvature) then
     do ix = 0, ubound(s%curvature_xy, 1)
@@ -500,7 +500,6 @@ if (associated(p)) then
   else
     nl=nl+1; li(nl) = '    No Curvature'
   endif
-  nl=nl+1; write (li(nl), '(4x, 2a)') 'Surface type: ', surface_type_name(s%grid%type)
   nl=nl+1; write (li(nl), '(4x, 2a)') 'Grid type:    ', surface_grid_type_name(s%grid%type)
   if (s%grid%type /= off$) then
     nl=nl+1; write (li(nl), '(4x, a, 2f10.6)')   'Grid dr:     ', s%grid%dr

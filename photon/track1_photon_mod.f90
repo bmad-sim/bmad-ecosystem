@@ -617,7 +617,7 @@ type (lat_param_struct) :: param
 type (crystal_param_struct) cp
 
 real(rp) h_bar(3), e_tot, pc, p_factor
-real(rp) gamma_0, gamma_h
+real(rp) gamma_0, gamma_h, dr1(3), dr2(3)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
 
@@ -677,11 +677,16 @@ cp%b_eff = gamma_0 / gamma_h
 cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
 
 ! E field calc
-! Also shifts the position for Laue diffraction.
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call e_field_calc (cp, orbit, ele, param, p_factor, orbit%field(1), orbit%phase(1), .true.)
-call e_field_calc (cp, orbit, ele, param, 1.0_rp,   orbit%field(2), orbit%phase(2), .false.)   ! Sigma polarization
+call e_field_calc (cp, orbit, ele, param, p_factor, .true.,  orbit%field(1), orbit%phase(1), dr1)
+call e_field_calc (cp, orbit, ele, param, 1.0_rp,   .false., orbit%field(2), orbit%phase(2), dr2)   ! Sigma pol
+
+! Average trajectories for the two polarizations weighted by the fields.
+! This approximation is valid as long as the two trajectories are "close" enough.
+
+orbit%vec(1:5:2) = orbit%vec(1:5:2) + &
+                      (dr1 * orbit%field(1) + dr2 * orbit%field(2)) / (orbit%field(1) + orbit%field(2))
 
 ! Rotate back from curved body coords to element coords
 
@@ -702,24 +707,28 @@ end subroutine track1_crystal
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase, do_branch_calc)
+! Subroutine e_field_calc (cp, orbit, ele, param, p_factor, do_branch_calc, e_field, e_phase, dr)
 !
 ! Routine to compute position where crystal reflects in crystal coordinates.
 !
 ! Input:
-!   cp       -- crystal_param_struct: Crystal parameters.
-!   orbit    -- coord_struct: Initial orbit.
-!   ele      -- ele_struct: Crystal element.
-!   param    -- lat_param_struct: 
-!   p_factor -- Real(rp)
+!   cp             -- crystal_param_struct: Crystal parameters.
+!   orbit          -- coord_struct: Initial orbit.
+!   ele            -- ele_struct: Crystal element.
+!   param          -- lat_param_struct: 
+!   p_factor       -- Real(rp): Polarization factor.
+!   do_branch_calc -- Logical: Calculate probability of branching to alpha or beta branches?
+!   e_field        -- Real(rp): Input field amplitude.
+!   e_phase        -- Real(rp): Input field phase.
 !
 ! Output:
-!   orbit    -- coord_struct: Position is shifted for Laue diffraction.
-!   e_field  -- Real(rp)
-!   e_phase  -- Real(rp)
+!   orbit          -- coord_struct: Position is shifted for Laue diffraction.
+!   e_field        -- Real(rp): Output field amplitude.
+!   e_phase        -- Real(rp): Output field phase.
+!   dr(3)          -- Real(rp): (x,y,z) orbit change.
 !-
 
-subroutine e_field_calc (cp, orbit, ele, param, p_factor, e_field, e_phase, do_branch_calc)
+subroutine e_field_calc (cp, orbit, ele, param, p_factor, do_branch_calc, e_field, e_phase, dr)
 
 type (crystal_param_struct) cp
 type (coord_struct) orbit
@@ -728,7 +737,7 @@ type (lat_param_struct) param
 type (photon_material_struct), pointer :: pms
 
 real(rp) p_factor, e_field, e_phase, sqrt_b, delta1
-real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3)
+real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3), dr(3)
 real(rp) kr, k0_im, k_mag, denom, thickness
 real(rp), save :: r_ran
 
@@ -759,12 +768,10 @@ xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
 
 if (ele%value(b_param$) < 0) then 
   if (abs(eta+eta1) > abs(eta-eta1)) then  ! beta branch excited
-    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hkl)
+    e_rel = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
   else                                     ! alpha branch excited
-    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hkl)
+    e_rel = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
   endif
-
-  print *, 'Remember: f_hkl -> f_hbar!'
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
 
@@ -780,19 +787,16 @@ else
   e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
   e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
 
-  delta1 = 1 + cp%cap_gamma * real(pms%f_0) / 2
-  k_mag = 1 / (delta1 * cp%wavelength)
+  delta1 = 1 - cp%cap_gamma * real(pms%f_0) / 2
+  k_mag = delta1 / cp%wavelength
 
-  k_0 = cp%old_vvec
-  k_0(3) = sqrt(1/delta1**2 - k_0(1)**2 - k_0(2)**2) / cp%wavelength
+  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
 
-  k_H = cp%new_vvec
-  k_H(3) = sqrt(1/delta1**2 - k_H(1)**2 - k_H(2)**2) / cp%wavelength
-
-  s_alpha = k_0 + e_rel_a**2 * k_H
+  s_alpha = k_0 + abs(e_rel_a)**2 * k_H
   dr_alpha = thickness * s_alpha / s_alpha(3)
 
-  s_beta = k_0 + e_rel_b**2 * k_H
+  s_beta = k_0 + abs(e_rel_b)**2 * k_H
   dr_beta = thickness * s_beta / s_beta(3)
 
   ! Calc fields
@@ -858,10 +862,10 @@ else
 
   if (to_alpha_branch) then
     e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
-      if (do_branch_calc) orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_alpha
+    dr = dr_alpha
   else
     e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
-    if (do_branch_calc) orbit%vec(1:5:2) = orbit%vec(1:5:2) + dr_beta
+    dr = dr_beta
   endif
 
 endif
