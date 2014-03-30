@@ -2703,6 +2703,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_attribute_struct) attrib_info
 
 integer i, ix1, ix2, ix_word, ios, ix, n_loc, ix_attrib
+integer ivar, ixm, ixm2
 real(rp) value
 real(rp), pointer :: v(:)
 character(*) word
@@ -2730,6 +2731,16 @@ if (ix1 == 0) then
   if (i == 0) then
     call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
     value = 0
+    ! To prevent multiple error messages define this variable.
+    bp_com%ivar_tot = bp_com%ivar_tot + 1
+    if (bp_com%ivar_tot > size(bp_com%var%name)) call reallocate_bp_com_var()
+    ivar = bp_com%ivar_tot
+    bp_com%var(ivar)%name = word
+    bp_com%var(ivar)%value = 0
+    call find_indexx (word, bp_com%var%name, bp_com%var%indexx, ivar-1, ixm, ixm2)
+    bp_com%var(ixm2+1:ivar)%indexx = bp_com%var(ixm2:ivar-1)%indexx
+    bp_com%var(ixm2)%indexx = ivar
+
   else
     value = bp_com%var(i)%value
   endif
