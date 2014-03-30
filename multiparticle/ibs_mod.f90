@@ -43,12 +43,17 @@ INTEGER(fgsl_size_t), PARAMETER :: limit = 1000_fgsl_size_t
 
 CONTAINS
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
 !  Iterates to equilibrium beam conditions using relaxation method
 !
 !  This method requires that the initial beam size be larger than the equilibrium beam size.
 !  An initial_blow_up of 3 to 5 is a good place to start.
+!
+!  See ibs_rates subroutine for available IBS rate formulas.
 !
 !  Modules needed:
 !    use ibs_mod
@@ -61,13 +66,11 @@ CONTAINS
 !    ratio            -- Real: Ratio of vert_emit_coupling / vert_emit_total
 !    initial_blow_up  -- Real: Factor multiplied to all thre bunch dimensions prior to starting iteration.
 !    granularity      -- Real: Step size for slicing lattice.  i.e. set to 1 to calculate IBS rates every 1 meter.
-!                              Set to -1 to calculate element-by-element.
 !
 !  Output:
 !    ibsmode          -- normal_modes_struct: beam parameters after IBS effects
-!
-!  See ibs_rates subroutine for available IBS rate formulas.
 !-
+
 SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up,granularity)
 
   IMPLICIT NONE
@@ -266,6 +269,9 @@ SUBROUTINE ibs_equib_rlx(lat,ibs_sim_params,inmode,ibsmode,ratio,initial_blow_up
   ENDDO
 END SUBROUTINE ibs_equib_rlx
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
 !
@@ -285,8 +291,8 @@ END SUBROUTINE ibs_equib_rlx
 !
 !  Output:
 !    ibsmode          -- normal_modes_struct: beam parameters after IBS effects
-!
 !-
+
 SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
   ! Iterates to equilibrium beam conditions using derivatives
 
@@ -406,6 +412,9 @@ SUBROUTINE ibs_equib_der(lat,ibs_sim_params,inmode,ibsmode,granularity)
   ENDDO
 END SUBROUTINE ibs_equib_der
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)
 !
@@ -424,9 +433,11 @@ END SUBROUTINE ibs_equib_der
 !                                      acceptable beamsize is 10% larger than the beamsize
 !                                      before IBS effects.
 !    granularity                    -- Step size when slicing lattice.  -1 for element-by-element.
+!
 !  Output:
 !    lifetime(ibs_lifetime_struct) --structure returning IBS lifetimes
 !-
+
 SUBROUTINE ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)
   IMPLICIT NONE
 
@@ -451,6 +462,9 @@ SUBROUTINE ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)
   lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tz
 END SUBROUTINE ibs_lifetime
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
 ! 
@@ -468,6 +482,7 @@ END SUBROUTINE ibs_lifetime
 !    delta_emit_a       -- real(rp), optional: change in a-mode emittance (geometric)
 !    delta_emit_b       -- real(rp), optional: change in b-mode emittance (geometric)
 !-
+
 subroutine ibs_delta_calc (lat, ix, ibs_sim_params, sigma_mat, delta_sigma_energy, delta_emit_a, delta_emit_b)
 use mode3_mod, only: normal_sigma_mat
 
@@ -504,10 +519,11 @@ else
   if (present(delta_emit_b))       delta_emit_b     = 2*ele%value(l$)/c_light*rates1ele%inv_Tb*ele%b%emit
 endif
 
-
-
 END SUBROUTINE ibs_delta_calc
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
 !
@@ -524,6 +540,7 @@ END SUBROUTINE ibs_delta_calc
 !  Output:
 !    rates1turn       -- ibs_struct: ibs rates for onr turn on the lattice.
 !-
+
 SUBROUTINE ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
   IMPLICIT NONE
 
@@ -585,6 +602,9 @@ SUBROUTINE ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
   rates1turn%inv_Tb = sum_inv_Tb / lat%param%total_length
 END SUBROUTINE ibs_rates1turn
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  Subroutine ibs_blowup1turn(lat, ibs_sim_params)
 !
@@ -604,6 +624,7 @@ END SUBROUTINE ibs_rates1turn
 !       %ele(:)%b%emit    -- real(rp): b-mode emittance after 1 turn
 !       %ele(:)%z%sigma_p -- real(rp): energy spread after 1 turn
 !-
+
 SUBROUTINE ibs_blowup1turn(lat, ibs_sim_params)
   IMPLICIT NONE
 
@@ -637,6 +658,9 @@ SUBROUTINE ibs_blowup1turn(lat, ibs_sim_params)
   ENDDO
 END SUBROUTINE ibs_blowup1turn
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! subroutine ibs1(lat, ibs_sim_params, rates, i, s)
 !
@@ -665,11 +689,13 @@ END SUBROUTINE ibs_blowup1turn
 !   ibs_sim_params            - ibs_sim_param_struct: parameters for IBS calculation
 !   i                         - integer: element index of location to calculate IBS rates.
 !   s                         - real(rp): location in meters to calculate IBS rates.
+!
 ! Output:
 !   rates$inv_Ta              - real(rp): 1/Ta, where Ta is rise time of a betatron mode
 !   rates$inv_Tb              - real(rp): 1/Ta, where Ta is rise time of b betatron mode
 !   rates$inv_Tz              - real(rp): 1/Ta, where Ta is rise time of energy spread
 !-
+
 SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
 
   IMPLICIT NONE
@@ -734,6 +760,9 @@ SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
 
 END SUBROUTINE ibs1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  subroutine bjmt1(ele, ibs_sim_params, rates, n_part)
 !
@@ -755,8 +784,8 @@ END SUBROUTINE ibs1
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
-!    
 !-
+
 SUBROUTINE bjmt1(ele, ibs_sim_params, rates, n_part)
 
   IMPLICIT NONE
@@ -918,8 +947,9 @@ FUNCTION bjmt_integrand(xx,params) BIND(c)
   bjmt_integrand = bjmt_integrand * x  !COV
 END FUNCTION bjmt_integrand
 
-
-
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
 !
@@ -943,8 +973,8 @@ END FUNCTION bjmt_integrand
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
-!    
 !-
+
 SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
@@ -1050,6 +1080,9 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   !CALL deallocate_ele_pointers(ele)
 END SUBROUTINE kubo1_twiss_wrapper
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! This is a sigma matrix based IBS calculation.
 ! It takes the beam sigma matrix and updates it for IBS effects applied over the length element_length. 
@@ -1060,9 +1093,11 @@ END SUBROUTINE kubo1_twiss_wrapper
 !   element_length         - real(rp): length of element
 !   energy                 - real(rp): beam energy in eV
 !   n_part                 - real(rp): number of particles in the bunch
+!
 ! Output:
 !   sigma_mat_updated(6,6) - real(rp): sigma matrix updated with effect of IBS
 !-
+
 SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, energy, n_part)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
@@ -1255,6 +1290,10 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
 
 END SUBROUTINE kubo1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+
 FUNCTION kubo_integrand(s, params) BIND(c)
     REAL(c_double), VALUE :: s
     TYPE(c_ptr), VALUE :: params
@@ -1272,6 +1311,9 @@ FUNCTION kubo_integrand(s, params) BIND(c)
                      SQRT((SIN(s)**2 + u1/u2*COS(s)**2)*(SIN(s)**2+u1/u3*COS(s)**2))
 END FUNCTION kubo_integrand
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  subroutine bane1(ele, ibs_sim_params, rates, n_part)
 !
@@ -1290,6 +1332,7 @@ END FUNCTION kubo_integrand
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
 !-
+
 SUBROUTINE bane1(ele, ibs_sim_params, rates, n_part)
 
   IMPLICIT NONE
@@ -1369,6 +1412,10 @@ SUBROUTINE bane1(ele, ibs_sim_params, rates, n_part)
 
 END SUBROUTINE bane1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+
 FUNCTION integrand(x, params) BIND(c)
     REAL(c_double), VALUE :: x
     TYPE(c_ptr), VALUE :: params
@@ -1380,6 +1427,9 @@ FUNCTION integrand(x, params) BIND(c)
     integrand = 1.0_c_double / ( SQRT(1+x*x)*SQRT(alpha*alpha+x*x) )
 END FUNCTION integrand
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  SUBROUTINE mpxx1(ele, ibs_sim_params, rates, n_part)
 !
@@ -1391,12 +1441,14 @@ END FUNCTION integrand
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
 !    n_part            - real(rp): number of particles in the bunch.
+!
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
 !-
+
 SUBROUTINE mpxx1(ele, ibs_sim_params, rates, n_part)
 
   IMPLICIT NONE
@@ -1490,6 +1542,10 @@ SUBROUTINE mpxx1(ele, ibs_sim_params, rates, n_part)
   rates%inv_Tb = inv_Tb
 END SUBROUTINE mpxx1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+
 FUNCTION mpxx_integrand(x, params) BIND(c)
     REAL(c_double), VALUE :: x
     TYPE(c_ptr), VALUE :: params
@@ -1510,6 +1566,9 @@ FUNCTION mpxx_integrand(x, params) BIND(c)
 
 END FUNCTION mpxx_integrand
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  SUBROUTINE mpzt1(ele, ibs_sim_params, rates, n_part)
 !
@@ -1524,12 +1583,14 @@ END FUNCTION mpxx_integrand
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
 !    n_part            - real(rp): number of particles in the bunch.
+!
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
 !-
+
 SUBROUTINE mpzt1(ele, ibs_sim_params, rates, n_part)
 
   IMPLICIT NONE
@@ -1623,6 +1684,10 @@ SUBROUTINE mpzt1(ele, ibs_sim_params, rates, n_part)
   rates%inv_Tb = inv_Tb
 END SUBROUTINE mpzt1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+
 FUNCTION zot_integrand(x, params) BIND(c)
     REAL(c_double), VALUE :: x
     TYPE(c_ptr), VALUE :: params
@@ -1656,6 +1721,9 @@ FUNCTION zot_integrand(x, params) BIND(c)
 
 END FUNCTION zot_integrand
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
 !
@@ -1674,12 +1742,14 @@ END FUNCTION zot_integrand
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    ibs_sim_params    - ibs_sim_params_struct: parameters for IBS calculation
 !    n_part            - real(rp): number of particles in the bunch.
+!
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
 !         %inv_Tz      - real(rp): energy spread growth rate.
 !-
+
 SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
 
   IMPLICIT NONE
@@ -1772,6 +1842,9 @@ SUBROUTINE cimp1(ele, ibs_sim_params, rates, n_part)
 
 END SUBROUTINE cimp1
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 !  function g(u)
 !
@@ -1783,6 +1856,7 @@ END SUBROUTINE cimp1
 !  .0001 to 3000, and it prints an error message when that range
 !  is exceeded.
 !-
+
 FUNCTION g(u)
                                                                                    
   REAL(rp), INTENT(IN) :: u
@@ -1888,6 +1962,9 @@ FUNCTION g(u)
   ENDIF
 END FUNCTION g
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
 !
@@ -1905,6 +1982,7 @@ END FUNCTION g
 ! Output:
 !   coulomb_log           - real(rp): Value of the Coulomb Logarithm
 !-
+
 SUBROUTINE multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
   TYPE(ibs_sim_param_struct) :: ibs_sim_params
   REAL(rp) coulomb_log
@@ -2007,6 +2085,10 @@ SUBROUTINE multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
 
 END SUBROUTINE multi_coulomb_log
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+
 FUNCTION rclog_integrand(x, params) BIND(c)
     REAL(c_double), VALUE :: x
     TYPE(c_ptr), VALUE :: params
@@ -2023,6 +2105,9 @@ FUNCTION rclog_integrand(x, params) BIND(c)
     rclog_integrand = 2.0_rp/SQRT(EXP(6.0_rp*x) + u*EXP(4.0_rp*x) + v*EXP(2.0_rp*x) + w)*EXP(x)
 END FUNCTION rclog_integrand
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sigma_z)
 !
@@ -2088,19 +2173,24 @@ SUBROUTINE bl_via_vlassov(current,alpha,Energy,sigma_p,Vrf,omega,U0,circ,R,L,sig
   CALL get_bl_from_fwhm(bound,args,sigma_z)
 END SUBROUTINE bl_via_vlassov
 
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
 !+
 ! Subroutine bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 !
-! Calculates bunch length while taking PWD effects into account.  PWD
-! is approximated as a defocusing rf voltage.
+! Calculates bunch length while taking PWD effects into account.  
+! PWD is approximated as a defocusing rf voltage.
 !
 ! Input:
 !   lat             - lat_struct
 !   ibs_sim_params  - ibs_sim_params_struct: parameters for IBS calculation
 !   mode            - normal_modes_modes_struct: energy spread, bunch length, and z emittance.
+!
 ! Output:
 !   sig_z           - real(rp): bunch length after taking PWD into account.
 !-
+
 SUBROUTINE bl_via_mat(lat, ibs_sim_params, mode, sig_z)
 
   USE nr

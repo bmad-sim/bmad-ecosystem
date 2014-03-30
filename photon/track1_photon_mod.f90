@@ -682,11 +682,13 @@ p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
 call e_field_calc (cp, orbit, ele, param, p_factor, .true.,  orbit%field(1), orbit%phase(1), dr1)
 call e_field_calc (cp, orbit, ele, param, 1.0_rp,   .false., orbit%field(2), orbit%phase(2), dr2)   ! Sigma pol
 
-! Average trajectories for the two polarizations weighted by the fields.
+! For Laue: Average trajectories for the two polarizations weighted by the fields.
 ! This approximation is valid as long as the two trajectories are "close" enough.
 
-orbit%vec(1:5:2) = orbit%vec(1:5:2) + &
+if (ele%value(b_param$) > 0) then ! Laue
+  orbit%vec(1:5:2) = orbit%vec(1:5:2) + &
                       (dr1 * orbit%field(1) + dr2 * orbit%field(2)) / (orbit%field(1) + orbit%field(2))
+endif
 
 ! Rotate back from curved body coords to element coords
 
