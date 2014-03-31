@@ -1545,7 +1545,7 @@ if (index('dynamic_aperture_calc', trim(who)) == 1) then
   return
 endif  
   
-if (index('one_turn_map_calc', trim(who)) == 1) then
+if ('one_turn_map_calc' == trim(who)) then
   if (what == 'on') then
     is_on = .true.
   elseif (what == 'off') then
