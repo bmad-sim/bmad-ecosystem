@@ -26,8 +26,11 @@ contains
 ! Note: A particle will also be considered to have hit an aperture
 ! if |p_x| or |p_y| > 1 
 !
+! Also see:
+!   orbit_too_large
+!
 ! Modules needed:
-!   use bmad
+!   use track1_mod
 !
 ! Input:
 !   orb            -- Coord_struct: coordinates of a particle.
@@ -219,6 +222,75 @@ case default
 end select
 
 end subroutine check_aperture_limit
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function orbit_too_large (orbit) result (is_too_large)
+!
+! Routine to check if an orbit is too large.
+! This routine is used to prevent floating point overflow.
+! Too large is defined by:
+!   |x|, |y| or |z| > bmad_com%max_aperture_limit
+!   |px| or |py| > 1 (photons) or 1 + pz (non-photons)
+!
+! Also see:
+!   check_aperture_limit
+!
+! Input:
+!   orbit         -- coord_struct: Particle orbit.
+!
+! Output:
+!   orbit         -- coord_struct: Particle orbit.
+!     %state          -- Particle status.
+!   is_too_large  -- logical: True if orbit is too large. False otherwise.
+!-
+
+function orbit_too_large (orbit) result (is_too_large)
+
+implicit none
+
+type (coord_struct) orbit
+logical is_too_large
+real(rp) rel_p
+
+!
+
+if (orbit%species == photon$) then
+  rel_p = 1
+  if (abs(orbit%vec(6)) > 1) then
+    orbit%state = lost_z_aperture$
+    is_too_large = .true.
+    return
+  endif
+else
+  rel_p = 1 + orbit%vec(6)
+endif
+
+if (abs(orbit%vec(1)) > bmad_com%max_aperture_limit .or. abs(orbit%vec(2)) > rel_p) then
+  if (orbit%vec(1) > bmad_com%max_aperture_limit .or. orbit%vec(2) > rel_p) then
+    orbit%state = lost_pos_x_aperture$
+  else
+    orbit%state = lost_neg_x_aperture$
+  endif
+  is_too_large = .true.
+  return
+endif
+
+if (abs(orbit%vec(3)) > bmad_com%max_aperture_limit .or. abs(orbit%vec(4)) > rel_p) then
+  if (orbit%vec(3) > bmad_com%max_aperture_limit .or. orbit%vec(4) > rel_p) then
+    orbit%state = lost_pos_y_aperture$
+  else
+    orbit%state = lost_neg_y_aperture$
+  endif
+  is_too_large = .true.
+  return
+endif
+
+is_too_large = .false.
+
+end function orbit_too_large
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

@@ -155,6 +155,10 @@ do nd = 0, n_div
     mat6(4,:) = mat6(4,:) + mat1(4,1) * mat6(1,:) + mat1(4,3) * mat6(3,:)
   endif
 
+  ! Check for orbit too large to prevent infinities.
+
+  if (orbit_too_large (orbit)) return
+
 enddo
 
 ! End stuff
