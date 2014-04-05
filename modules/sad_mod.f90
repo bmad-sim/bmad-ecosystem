@@ -79,12 +79,21 @@ call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
+  call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
   call multipole_kicks (knl, tilt, orbit)
-  call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
   endif
+  call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
+
+  if (make_matrix) then
+    call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
+    ele%vec0 = orbit%vec - matmul(mat6, start_orb%vec)
+  endif
+
+  orbit%s = ele%s
+  if (.not. end_in) end_orb = orbit
+
   return
 endif
 
@@ -94,10 +103,12 @@ ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
 call transfer_ele(ele, ele2)
-ele2%value(tilt_tot$) = tilt(1)
+
+ele2%value(tilt_tot$) = tilt(1) 
+tilt = tilt - tilt(1)
+
 ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
 
-tilt = tilt - tilt(1)
 knl(1) = 0
 knl = knl / n_div
 
@@ -119,7 +130,7 @@ do nd = 0, n_div
   ! Matrix step
 
   if (make_matrix) then
-    if (k1 == 0) then
+    if (abs(k1) < 1d-40) then
       call solenoid_mat6_calc (ks, ll, 0.0_rp, orbit, mat1)
     else
       call sol_quad_mat6_calc (ks, k1, ll, orbit%vec, mat1)
@@ -129,7 +140,7 @@ do nd = 0, n_div
 
   ! track step
 
-  if (k1 == 0) then
+  if (abs(k1) < 1d-40) then
     xp_start = orbit%vec(2) + ks * orbit%vec(3) / (2 * rel_pc)
     yp_start = orbit%vec(4) - ks * orbit%vec(1) / (2 * rel_pc)
     call solenoid_mat4_calc (ks, ll, rel_pc, mat4)
@@ -147,7 +158,7 @@ do nd = 0, n_div
 
   if (nd == n_div) exit
 
-  call multipole_kicks (knl/rel_pc, tilt, orbit)
+  call multipole_kicks (knl, tilt, orbit)
 
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat1)
@@ -157,7 +168,10 @@ do nd = 0, n_div
 
   ! Check for orbit too large to prevent infinities.
 
-  if (orbit_too_large (orbit)) return
+  if (orbit_too_large (orbit)) then
+    if (.not. end_in) end_orb = orbit
+    return
+  endif
 
 enddo
 
@@ -174,9 +188,7 @@ call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_
 call track1_low_energy_z_correction (orbit, ele2, param)
 
 if (make_matrix) then
-  if (ele2%value(tilt_tot$) /= 0) then
-    call tilt_mat6 (mat6, ele2%value(tilt_tot$))
-  endif
+  if (ele2%value(tilt_tot$) /= 0) call tilt_mat6 (mat6, ele2%value(tilt_tot$))
 
   call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
 

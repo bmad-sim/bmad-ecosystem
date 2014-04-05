@@ -171,7 +171,9 @@ subroutine quadrupole_edge_mat6 (ele, particle_at, orbit, mat6, fringe_here)
 implicit none
 
 type (ele_struct), target :: ele
+type (ele_struct), pointer :: m_ele
 type (coord_struct) :: orbit
+
 real(rp) k1, mat6(6,6)
 real(rp) x, px, y, py, rel_p, f1, f2, ef1, vec(4)
 
@@ -199,7 +201,13 @@ select case (ele%key)
 case (quadrupole$)
   k1 = charge_dir * ele%value(k1$) / rel_p
 case (sad_mult$)
-  k1 = charge_dir * sqrt(ele%a_pole(1)**2 + ele%b_pole(1)**2)  / ele%value(l$) / rel_p
+  ! Slice slaves and super slaves have their associated multipoles stored in the lord
+  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+    m_ele => pointer_to_lord(ele, 1)
+  else
+    m_ele => ele
+  endif
+  k1 = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_p
 end select
 
 ! 
@@ -319,7 +327,7 @@ real(rp), optional :: dz_coef(4,4)
 real(rp) ks2, s, c, snh, csh, rel_p, ks_in, k1_in
 real(rp) darg1, alpha, alpha2, beta, beta2, f, q, r, a, b
 real(rp) df, dalpha2, dalpha, dbeta2, dbeta, darg
-real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db
+real(rp) dC, dCsh, dS, dSnh, dq, dr, da, db, k1_2
 real(rp) ks3, fp, fm, dfm, dfp, df_f, ug, orbit(6)
 real(rp) s1, s2, snh1, snh2, dsnh1, dsnh2, ds1, ds2
 real(rp) coef1, coef2, dcoef1, dcoef2, ks4
@@ -342,10 +350,11 @@ orbit(4) = orb(4) / rel_p
 k1 = k1_in / rel_p
 ks = ks_in / rel_p
 
+k1_2 = k1**2
 ks2 = ks**2
 ks3 = ks2 * ks 
 ks4 = ks2*ks2
-f = sqrt(ks4 + 4*k1**2)
+f = sqrt(ks4 + 4*k1_2)
 ug = 1 / (4*f)
 alpha2 = (f + ks2) / 2; alpha = sqrt(alpha2)
 
@@ -408,25 +417,25 @@ m0(4,4) = m0(3,3)
 
 !
 
-df      = -2 * (ks4 + 2*k1**2) / f
+df      = -2 * (ks4 + 2*k1_2) / f
 dalpha2 = df/2 - ks2
 dalpha  = (df/2 - ks2)/(2*alpha)
-dbeta2  = ks2 + df/2
-if (beta < 1e-4) then
-  dbeta   = -abs(k1**3/(ks3*ks2))
+if (k1_2 < 1e-5 * ks4) then
+  dbeta   = abs(k1**3/(ks3*ks2)) * (-1 + 3.5 * k1_2/ks4)
 else
   dbeta   = (ks2 + df/2)/(2*beta)
 endif
+dbeta2  = 2 * beta * dbeta
 darg    = s_len*dalpha
 darg1   = s_len*dbeta         
 dC      = -darg*S
 dCsh    = darg1*Snh
 dS      = darg*C
 dSnh    = darg1*Csh
-dq      = -2*k1 + 2*ks2 + df
-dr      =  2*k1 - 2*ks2 + df
-da      = -2*k1 - 2*ks2 + df
-db      =  2*k1 + 2*ks2 + df
+dq      = -2*k1 + 2*dbeta2
+dr      =  2*k1 + 2*dalpha2
+da      = -2*k1 + 2*dalpha2
+db      =  2*k1 + 2*dbeta2
 dfp = df - 2*k1
 dfm = df + 2*k1
 df_f =  -df/f
@@ -436,8 +445,8 @@ dS2 = dS / alpha - S * dalpha / alpha2
 
 dSnh1 = dSnh * beta + Snh * dbeta
 
-if (beta < 1e-4) then
-  dSnh2 = -k1**4 * s_len**3 / (3 * ks3**2)
+if (k1_2 < 1e-5 * ks4) then
+  dSnh2 = k1**4 * s_len**3 * (-1/3.0d0 + (40 - ks2 * s_len**2) * k1_2 / (30 * ks4)) / ks3**2
 else
   dSnh2 = dSnh / beta - Snh * dbeta / beta2
 endif
@@ -473,13 +482,13 @@ m0(1:4,6) = matmul(t4(1:4,1:4), orbit(1:4))
 
 ! m(5,6) calc
 
-d2_f  = 2*(ks4+2*k1**2)*df/f**2 + 8*(ks4+k1**2)/f
+d2_f  = 2*(ks4+2*k1_2)*df/f**2 + 8*(ks4+k1_2)/f
 dug  = -df/(4*f**2)
 d2_ug = -d2_f/(4*f**2) + df**2/(2*f**3)
 d2_f_f = (df/f)**2 - d2_f / f
 
 d2_alpha  = -dalpha**2/alpha + (d2_f/2+2*ks2)/(2*alpha)
-if (beta < 1e-4) then
+if (k1_2 < 1e-5 * ks4) then
   d2_beta = -abs(-3*k1**3/ks**5+5*k1**3/ks**5)
 else
   d2_beta = -dbeta**2/beta + (d2_f/2-2*ks2)/(2*beta)
@@ -502,7 +511,7 @@ d2_S2 = -dS*dalpha/alpha2+dalpha*S*dalpha2/alpha2**2-S*d2_alpha/alpha2+d2_S/alph
 
 d2_Snh1 = Snh*d2_beta+beta*d2_Snh+2*dSnh*dbeta
 
-if (beta < 1e-4) then
+if (k1_2 < 1e-5 * ks4) then
   d2_Snh2 = 4*k1**4*s_len**3/(3*ks**6)-2*k1**4*s_len**3/ks**6
 else
   d2_Snh2 = -dSnh*dbeta/beta2+dbeta*Snh*dbeta2/beta2**2-Snh*d2_beta/beta2+d2_Snh/beta-dbeta*dSnh/beta2
