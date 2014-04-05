@@ -168,13 +168,22 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
     if 'mev' in value: value = value.replace('mev', '* 1e6')
     if 'gev' in value: value = value.replace('gev', '* 1e9')
 
+    if sad_param_name == 'radius':   
+      if value[0] == '-': value = value[1:]   # Remove negative sign from radius
+
     bmad_ele.param[bmad_name] = value + value_suffix
 
-  # If entering solenoid (inside_sol = True) then must reverse x_offset and y_offset for a patch element
+  # Correct patch signs
 
-  if bmad_ele.type == 'patch' and inside_sol:
-    if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = bmad_ele.param['x_offset'] + ' * -1'
-    if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = bmad_ele.param['y_offset'] + ' * -1'
+  if bmad_ele.type == 'patch':
+    # If entering solenoid 
+    if inside_sol:
+      if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = bmad_ele.param['x_offset'] + ' * -1'
+      if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = bmad_ele.param['y_offset'] + ' * -1'
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = bmad_ele.param['z_offset'] + ' * -1'
+    # If exiting solenoid 
+    else:
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = bmad_ele.param['z_offset'] + ' * -1'
 
   # Fringe 
 
@@ -328,6 +337,17 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
     sad_param_list['py_orb'] = orbit[3]
     sad_param_list['z_orb']  = orbit[4]
     sad_param_list['pz_orb'] = orbit[5]
+
+  elif '=' in directive:
+    head, blank, rest_of_line = directive.partition('=')
+    head = head.strip()
+    if head == 'dxi':  sad_param_list['x_orb']  = rest_of_line
+    if head == 'dpxi': sad_param_list['px_orb'] = rest_of_line
+    if head == 'dyi':  sad_param_list['y_orb']  = rest_of_line
+    if head == 'dpyi': sad_param_list['py_orb'] = rest_of_line
+    if head == 'dzi':  sad_param_list['z_orb']  = rest_of_line
+    if head == 'ddpi': sad_param_list['pz_orb'] = rest_of_line
+
 
 # ------------------------------------------------------------------
 
