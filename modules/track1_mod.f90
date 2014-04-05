@@ -963,7 +963,8 @@ subroutine quadrupole_edge_kick (ele, particle_at, orbit)
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: m_ele
 type (coord_struct) orbit
 
 real(rp) k1_rel, x, y, px, py, charge_dir
@@ -990,7 +991,13 @@ select case (ele%key)
 case (quadrupole$)
   k1_rel = charge_dir * ele%value(k1$) / rel_pc
 case (sad_mult$)
-  k1_rel = charge_dir * sqrt(ele%a_pole(1)**2 + ele%b_pole(1)**2)  / ele%value(l$) / rel_pc
+  ! Slice slaves and super slaves have their associated multipoles stored in the lord
+  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
+    m_ele => pointer_to_lord(ele, 1)
+  else
+    m_ele => ele
+  endif
+  k1_rel = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_pc
 end select
 
 ! Everything but SAD nonlinear
