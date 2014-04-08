@@ -329,6 +329,9 @@ compiling and linking are done. The appropriate commands may be put in
 the appropriate login script file. See the instructions for setting up
 a "generic user account" below.
 
+Note: To remove compiled files and restart from scratch run:
+			util/dist_clean
+
 
 *****************************************************************************
 INSTRUCTIONS FOR SETTING UP A GENERIC USER ACCOUNT TO USE THE DISTRIBUTION
