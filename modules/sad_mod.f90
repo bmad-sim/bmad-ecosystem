@@ -38,7 +38,7 @@ type (ele_struct), target :: ele, ele2
 type (lat_param_struct) :: param
 
 real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
-real(rp) ks, k1, length, z_start, charge_dir
+real(rp) ks, k1, length, z_start, charge_dir, kx, ky
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp), pointer :: mat6(:,:)
@@ -97,22 +97,36 @@ if (length == 0) then
   return
 endif
 
-!
+! Go to frame of reference of the multipole
+
+call transfer_ele(ele, ele2)
 
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
+knl(1) = 0
 
-call transfer_ele(ele, ele2)
+if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
+  ele2%value(x_pitch_tot$) = ele%value(x_pitch_tot$) + ele%value(x_pitch_mult$)
+  ele2%value(y_pitch_tot$) = ele%value(y_pitch_tot$) + ele%value(y_pitch_mult$)
+  kx = knl(0) * cos(tilt(0)) - ks * ele%value(x_pitch_mult$)
+  ky = knl(0) * sin(tilt(0)) + ks * ele%value(y_pitch_mult$)
+  knl(0) = norm2([kx, ky])
+  tilt(0) = atan2(ky, kx)
+endif
+
+if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
+  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
+  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
+  orbit%vec(2) = orbit%vec(2) + ele%value(y_offset_mult$) * ks / 2
+  orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
+endif
 
 ele2%value(tilt_tot$) = tilt(1) 
 tilt = tilt - tilt(1)
 
-ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) - ele%value(x_offset_sol$)
-
-knl(1) = 0
-knl = knl / n_div
-
 call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
+
+! Edge kick
 
 if (make_matrix) then
   call quadrupole_edge_mat6 (ele, first_track_edge$, orbit, kmat, fringe_here)
@@ -121,6 +135,8 @@ endif
 call quadrupole_edge_kick (ele, first_track_edge$, orbit)
 
 ! Body
+
+knl = knl / n_div
 
 do nd = 0, n_div
 
@@ -176,6 +192,13 @@ do nd = 0, n_div
 enddo
 
 ! End stuff
+
+if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
+  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
+  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
+  orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
+  orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
+endif
 
 if (make_matrix) then
   call quadrupole_edge_mat6 (ele, second_track_edge$, orbit, kmat, fringe_here)

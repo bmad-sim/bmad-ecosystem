@@ -97,7 +97,6 @@ $pl_hash{"make_legal_comment"} =      "make_legal_comment.f90";
 $pl_hash{"ran_gauss_vector"} = "random_mod.f90";
 $pl_hash{"norm66"} = "eigen_mod.f90";
 $pl_hash{"probability_funct"} = "probability_funct.f90";
-$pl_hash{"integer_read"} = "integer_read.f90";
 $pl_hash{"re_associate_real"} = "reallocate_mod.f90";
 $pl_hash{"run_timer"} = "run_timer.f90";
 $pl_hash{"str_upcase"} = "str_upcase.f90";
@@ -128,7 +127,6 @@ $pl_hash{"exp_bessi0"} = "touschek_mod.f90";
 $pl_hash{"re_associate_logical"} = "reallocate_mod.f90";
 $pl_hash{"eval_logical"} = "utilities_mod.f90";
 $pl_hash{"file_get"} = "file_get.f90";
-$pl_hash{"real_read"} = "real_read.f90";
 $pl_hash{"lmdif"} = "lmdif_mod.f90";
 $pl_hash{"csr_bell"} = "csr_bell.f90";
 $pl_hash{"word_len"} = "word_len.f90";
@@ -143,7 +141,6 @@ $pl_hash{"mat6_add_offsets"} = "mat6_add_offsets.f90";
 $pl_hash{"find_file"} = "find_file.f90";
 $pl_hash{"assignment"} = "bmad_taylor_mod.f90";
 $pl_hash{"re_associate_integer"} = "reallocate_mod.f90";
-$pl_hash{"solenoid_mat_calc"} = "make_mat6_mod.f90";
 $pl_hash{"read_parameter"} = "aml_parser.f90";
 
 #---------------------------------------------------------

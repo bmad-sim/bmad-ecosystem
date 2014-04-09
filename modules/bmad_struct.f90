@@ -812,10 +812,10 @@ integer, parameter :: y_pitch$ = 35
 integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
 integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_sol$ = 39
-integer, parameter :: vkick$ = 40, y_offset_sol$ = 40
-integer, parameter :: BL_hkick$ = 41, x_pitch_sol$ = 41
-integer, parameter :: BL_vkick$ = 42, y_pitch_sol$ = 42
+integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39
+integer, parameter :: vkick$ = 40, y_offset_mult$ = 40
+integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41
+integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42
 integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43
 integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45
