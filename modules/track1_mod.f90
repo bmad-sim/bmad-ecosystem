@@ -1156,7 +1156,7 @@ character(*), parameter :: r_name = 'add_sad_linear_bend_edge_kick'
 f1 = ele%value(f1$)
 if (f1 == 0) return
 
-g = ele%value(g$)
+g = ele%value(g$) + ele%value(g_err$)
 if (particle_at == second_track_edge$) g = -g
 
 px = orb%vec(2)

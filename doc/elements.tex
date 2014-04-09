@@ -2844,8 +2844,8 @@ This element is in development.
 
 \index{angle}\index{bs_field}\index{e1}\index{e2}\index{eps_step_scale}
 \index{f1}\index{f2}\index{g}\index{rf_frequency}\index{harmon}
-\index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_sol}
-\index{y_offset_sol}\index{x_pitch_sol}\index{y_pitch_sol}
+\index{ks}\index{phi0}\index{rho}\index{voltage}\index{x_offset_mult}
+\index{y_offset_mult}\index{x_pitch_mult}\index{y_pitch_mult}
 \index{fringe_type}\index{kill_fringe}
 Attributes specific to an \vn{sextupole} element are:
 \begin{example}
@@ -2862,10 +2862,10 @@ Attributes specific to an \vn{sextupole} element are:
   phi0            = <Real>    ! Cavity phase. See SAD phi attribute.
   rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
   voltage         = <Real>    ! Cavity voltage. See SAD volt attribute.
-  x_offset_sol    = <Real>    ! Solenoid offset. See SAD dx attribute.
-  y_offset_sol    = <Real>    ! Solenoid offset. See SAD dy attribute.
-  x_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpx or chi1 attribute.
-  y_pitch_sol     = <Real>    ! Solenoid pitch. See SAD dpy or chi2 attribute.
+  x_offset_mult   = <Real>    ! Mult component offset. See SAD dx attribute.
+  y_offset_mult   = <Real>    ! Mult component offset. See SAD dy attribute.
+  x_pitch_mult    = <Real>    ! Mult component pitch. See SAD dpx or chi1 attribute.
+  y_pitch_mult    = <Real>    ! Mult component pitch. See SAD dpy or chi2 attribute.
   fringe_type     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
   fringe_at       = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
 \end{example}

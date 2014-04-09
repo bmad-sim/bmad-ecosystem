@@ -13,37 +13,32 @@ ring.
 \section{Bmad Lattice File Format}
 \label{s:lattice.file.formats}
 
-\index{MAD!lattice format}
 The syntax that a \bmad standard lattice file must conform to is
 modeled after the lattice input format of the \mad program.
 Essentially, a \bmad lattice file is similar to a \mad lattice file
 except that a \bmad file has no ``action'' commands (action commands
 tell the program to calculate the Twiss parameters, do tracking,
-etc.).  Since \bmad is a software library, interacting with the user to 
-determine what actions a program
-should take is left to the program and is not part of \bmad (although
-the \bmad library provides the routines to perform many of the standard
-calculations). A program is not required to use the \bmad parser
-routines but, if it does, the following chapters describe how to
-construct a valid lattice file.
+etc.).  Since \bmad is a software library, interacting with the user
+to determine what actions a program should take is left to the program
+and is not part of \bmad (although the \bmad library provides the
+routines to perform many of the standard calculations). A program is
+not required to use the \bmad parser routines but, if it does, the
+following chapters describe how to construct a valid lattice file.
 
 %---------------------------------------------------------------------------
-\section{MAD and XSIF Lattice Files}
+\section{MAD, SAD, and XSIF Lattice Files}
 \label{s:mad.xsif}
-\index{MAD lattice files}
-\index{XSIF lattice files}
+\index{MAD} 
+\index{XSIF}
 
-The \bmad software library comes with routines to parse \bmad lattice
-files. Additionally, \bmad has software to parse XSIF\cite{b:xsif}
-lattice files. XSIF, developed at SLAC, has its own documentation and
-will not be discussed in detail here except for a few brief notes in
-Section~(\sref{s:xsif}).  Throughout this manual, unless explicitly
-stated otherwise, the lattice format under discussion will always
-pertain to the \bmad standard format.
+Besides being able to parse \bmad lattice files, \bmad has software to
+parse XSIF\cite{b:xsif} lattice files. See \sref{s:xsif.convert} for
+more details.
 
-While \bmad cannot directly read in \mad\cite{b:maduser} files, 
-translation between \mad and \bmad lattice files is possible using
-the \vn{Universal Accelerator Parser} as discussed in Section~\sref{s:aml}.
+While \bmad cannot directly read in \mad\cite{b:maduser} or
+\vn{SAD}\cite{b:sad} files, translation between \mad and \bmad lattice
+files is possible using the \vn{Universal Accelerator Parser} as
+discussed in Chapter~\sref{c:lat.convert}.
 
 %-----------------------------------------------------------------
 \section{Units and Constants}
@@ -552,6 +547,7 @@ The name ``switch'' can refer to the variable (for example,
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 \index{arithmetic expressions} 
+\label{arithmetic}
 
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined: \hfil\break
@@ -752,13 +748,13 @@ Thus, in the above example, the first call will search for:
 \end{example}
 
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
-from within an \bmad lattice file by prepending \vn{"xsif::"} to the
+from within a \bmad lattice file by prepending \vn{"xsif::"} to the
 file name. Example:
 \begin{example}
   call, filename = "xsif::my_lattice.xsif"
 \end{example}
 This statement must be the first statement in the \bmad lattice file
-except for any comments or debugging statements (\sref{s:debug}. 
+except for any comments or debugging statements (\sref{s:debug}). 
 The XSIF lattice file must define a
 complete lattice and cannot contain any \bmad specific statements. The
 call to the XSIF file automatically expands the lattice
@@ -916,54 +912,3 @@ the lattice.  Example
   parser_debug var lat ele 34 78
 \end{example}
 
-%---------------------------------------------------------------------------
-\section{XSIF Lattice File Format}
-\label{s:xsif}
-\index{XSIF|hyperbf}
-\index{parameter statement!geometry}
-
-XSIF, developed at SLAC, stands for 
-``Extended Standard Input Format.''
-XSIF is essentially a subset of the \mad\cite{b:maduser} input format. 
-XSIF has its own documentation which can be found at:
-\begin{example}
-  http://www-project.slac.stanford.edu/
-              lc/ilc/TechNotes/LCCNotes/PDF/LCC-0060%20rev.1.pdf
-\end{example}
-The major reason for using XSIF in \bmad is when portability is needed
-with a non-\bmad program.
-
-An XSIF lattice file may be called from within a \bmad lattice
-file. See Section~\sref{s:call} for details.
-
-Since XSIF does not have a \vn{parameter[geometry]} statement
-(\sref{s:param}), the type of the lattice (whether circular or linear)
-is determined by the presence or absence of any \vn{lcavity} elements
-in the XSIF file. This is independent of whether \vn{lcavity} elements
-are actually used in the lattice.
-
-Note: One point that is not covered in the XSIF
-documentation is that for a \vn{MATRIX} element, unlike \mad, the
-\vn{R$ii$} terms (the diagonal terms of the linear matrix) are not
-unity by default. Thus
-\index{MAD}
-\begin{example}
-  m: matrix
-\end{example}
-in an XSIF file will give a matrix with all elements being zero.
-
-%----------------------------------------------------------------------------
-\section{Translation between MAD, Bmad, and XSIF Using the Accelerator Markup Language}
-\label{s:aml}
-\index{Accelerator Markup Language (AML)}
-\index{Universal Accelerator Parser (UAP)}
-
-\index{MAD}
-The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal
-Accelerator Parser} (\vn{UAP}) project\cite{b:aml} is a collaboratory
-effort with the aim of 1) creating a lattice format (the \vn{AML} part)
-that can be used to fully describe accelerators and storage rings, and
-2) producing software (the \vn{UAP} part) that can parse \vn{AML}
-lattice files. A side benefit of this project is that the \vn{UAP} code
-has been extended to be able to translate between \vn{AML}, \bmad, \mad-8,
-\mad-X, and \vn{XSIF}. See the AML/UAP project home web page for more details.

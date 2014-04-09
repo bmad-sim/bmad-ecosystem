@@ -67,7 +67,7 @@ The following helper routines are generally not useful for general use.
 
 \index[routine]{bend_edge_kick}
 \label{r:bend.edge.kick}
-\item[bend_edge_kick (orb, ele, param, particle_at, in_to_out, mat6)] \Newline 
+\item[bend_edge_kick (orb, ele, param, particle_at, mat6)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -509,7 +509,7 @@ Routine to form a symplectic matrix that is approximately equal to the input mat
 
 \index[routine]{mat_symp_error}
 \label{r:mat.symp.error}
-\item[mat_symp_error (mat, p0_ratio) result (error)] \Newline
+\item[mat_symp_error (mat, p0_ratio, err_mat) result (error)] \Newline
 Routine to check the symplecticity of a square matrix 
 
 \index[routine]{mat_symp_conj}
@@ -698,7 +698,7 @@ Routine to convert a string to uppercase:
 
 \index[routine]{ibs_lifetime}
 \label{r:ibs.lifetime}
-\item[ibs_lifetime(lat,tau_a,maxratio,lifetime,formula,granularity,clog_to_use)] \Newline 
+\item[ibs_lifetime(lat,ibs_sim_params,maxratio,lifetime,granularity)] \Newline 
  This module computes the beam lifetime due to
  the diffusion process according to equation 12
 
@@ -1489,7 +1489,7 @@ Routine to calculate a drift transfer matrix with a possible kick.
 
 \index[routine]{sol_quad_mat6_calc}
 \label{r:sol.quad.mat6.calc}
-\item[sol_quad_mat6_calc (ks_in, k1_in, s_len, m, orb, dz_coef)] \Newline
+\item[sol_quad_mat6_calc (ks_in, k1_in, s_len, orb, m, dz_coef)] \Newline
 Routine to calculate the transfer matrix for a combination solenoid/quadrupole element. 
 
 \index[routine]{tilt_mat6}
@@ -1818,7 +1818,7 @@ Routine to overload "=" in expressions real_8 = bmad_taylor
 
 \index[routine]{real_8_to_taylor}
 \label{r:real.8.to.taylor}
-\item[real_8_to_taylor (y8, beta0, bmad_taylor)] \Newline
+\item[real_8_to_taylor (y8, v0, beta0, beta1, bmad_taylor)] \Newline
 Routine to convert from a real_8 taylor map in Etienne's PTC to a taylor map in Bmad. 
 
 \index[routine]{real_8_init}
@@ -1859,7 +1859,7 @@ Routine to overload "=" in expressions bmad_taylor = y8
 
 \index[routine]{taylor_to_real_8}
 \label{r:taylor.to.real.8}
-\item[taylor_to_real_8 (bmad_taylor, beta0, y8)] \Newline
+\item[taylor_to_real_8 (bmad_taylor, v0, beta0, beta1, y8)] \Newline
 Routine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 
 \index[routine]{type_ptc_layout}
@@ -1899,12 +1899,12 @@ Routine to convert from a universal_taylor map in Etienne's PTC to a taylor map 
 
 \index[routine]{vec_bmad_to_ptc}
 \label{r:vec.bmad.to.ptc}
-\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, mat6)] \Newline
+\item[vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)] \Newline
 Routine to convert from Bmad to PTC coordinates. 
 
 \index[routine]{vec_ptc_to_bmad}
 \label{r:vec.ptc.to.bmad}
-\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, mat6)] \Newline
+\item[vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)] \Newline
 Routine to convert from PTC to Bmad coordinates. 
 
 \end{description}
@@ -2827,7 +2827,7 @@ integer number of steps spans the length.
 
 \index[routine]{dynamic_aperture}
 \label{r:dynamic.aperture}
-\item[dynamic_aperture (lat, orb0, theta_xy, track_input, aperture, e_init)] \Newline
+\item[dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture)] \Newline
 Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
@@ -2848,8 +2848,7 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, coord, param, set, set_canonical, set_tilt, \\
-    \hspace*{1in} set_multipoles, set_hvkicks, set_z_offset, ds_pos)}] \Newline
+    offset_particle (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)}] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -2939,8 +2938,8 @@ Routine to calculate the Twiss parameters and orbit at a particular longitudinal
 \index[routine]{twiss_and_track_intra_ele}
 \label{r:twiss.and.track.intra.ele}
 \item[\protect\parbox{6in}{
-  twiss_and_track_intra_ele (ele, param, l_start, l_end, track_entrance, \\
-  \hspace*{1in} track_exit, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
+  twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, \\
+  \hspace*{1in} track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
 Routine to track a particle within an element.
 
 \index[routine]{twiss_from_tracking}
@@ -3151,7 +3150,7 @@ Dummy routine for custom tracking.
 
 \index[routine]{track1_custom2}
 \label{r:track1.custom2}
-\item[track1_custom2 (start, ele, param, end, track, err_flag)] \Newline
+\item[track1_custom2 (start_orb, ele, param, end_orb, track, err_flag)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}
@@ -3202,7 +3201,7 @@ Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix.
 
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
-\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, low_E_lat, high_E_lat, low_E_orb, high_E_orb)] \Newline
+\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)] \Newline
 Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 
@@ -3245,7 +3244,7 @@ Routine to set the longitudinal tune by setting the RF voltages in the RF caviti
 
 \index[routine]{transfer_map_calc}
 \label{r:transfer.map.calc}
-\item[transfer_map_calc (lat, t_map, ix1, ix2, integrate, one_turn, unit_start) ] \Newline 
+\item[transfer_map_calc (lat, t_map, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
 Routine to calculate the transfer map between two elements.
 
 \index[routine]{transfer_map_from_s_to_s}

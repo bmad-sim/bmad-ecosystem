@@ -89,8 +89,8 @@ end subroutine
 !
 ! This routine uses the mrqmin nonlinear optimizer to vary the parameters in the wiggler 
 ! model to match:
-!   Integral g^2
-!   Integral g^3
+!   Integral g^2 (I_2 radiation integral)
+!   Integral g^3 (I_3 radiation integral)
 !   Transfer matrix.
 ! Also the endding horizontal transverse offset of the reference orbit (floor%r(1)) is
 ! matched to zero.
