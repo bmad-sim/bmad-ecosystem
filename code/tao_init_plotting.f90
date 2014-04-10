@@ -852,15 +852,17 @@ do n = 1, size(ele_shape)
   if (s%ele_name /= '') n_shape = n
 enddo
 
-end subroutine
+end subroutine tao_uppercase_shapes
 
 !----------------------------------------------------------------------------------------
 ! contains
 
 subroutine tao_setup_default_plotting()
 
+type (branch_struct), pointer :: branch
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
 type (tao_plot_struct), allocatable :: temp_template(:)
+
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
           tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
@@ -888,7 +890,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
           tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.), &
           tao_ele_shape_struct('X_RAY_INIT::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.) ]
 
-real(rp) y_layout
+real(rp) y_layout, dx, dy, dz
 integer np, n
 
 !
@@ -1704,12 +1706,32 @@ if (.not. allocated(s%plotting%region)) then
 endif
 
 if (all (place(:)%region == '')) then
-  call tao_place_cmd ('layout', 'lat_layout')
-  call tao_place_cmd ('r13', 'beta')
-  call tao_place_cmd ('r23', 'eta')
-  call tao_place_cmd ('r33', 'orbit')
+  branch => s%u(1)%model%lat%branch(0)
+  if (branch%param%particle == photon$) then
+    call tao_place_cmd ('r13', 'floor_plan')
+    call tao_place_cmd ('r23', 'photon_intensity')
+    call tao_place_cmd ('r33', 'orbit')
+    call tao_place_cmd ('layout', 'lat_layout')
+    n = branch%n_ele_track
+    dx = maxval(branch%ele(1:n)%floor%r(1)) - minval(branch%ele(1:n)%floor%r(1))
+    dy = maxval(branch%ele(1:n)%floor%r(2)) - minval(branch%ele(1:n)%floor%r(2))
+    dz = maxval(branch%ele(1:n)%floor%r(3)) - minval(branch%ele(1:n)%floor%r(3))
+    if (dx < min(dy, dz)) then
+      s%plotting%floor_plan_view = 'yz'
+    elseif (dy < min(dx, dz)) then
+      s%plotting%floor_plan_view = 'xz'
+    else
+      s%plotting%floor_plan_view = 'xy'
+    endif
+
+  else  ! Charged particle
+    call tao_place_cmd ('r13', 'beta')
+    call tao_place_cmd ('r23', 'eta')
+    call tao_place_cmd ('r33', 'orbit')
+    call tao_place_cmd ('layout', 'lat_layout')
+  endif
 endif
 
-end subroutine
+end subroutine tao_setup_default_plotting
 
 end subroutine tao_init_plotting

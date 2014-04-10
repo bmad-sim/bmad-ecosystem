@@ -1206,6 +1206,7 @@ Format:
         \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} 
         \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+  matrix \{-s\} \{loc1 \{loc2\}\}
   normal_form \{-order <n_order>\} <type>
   optimizer \{-geodesic_lm\}
   particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
@@ -1444,7 +1445,7 @@ an associated Taylor map if tracking or transfer matrix calculations
 for the element call for one. For example, if an elements
 \vn{tracking_method} is set to \vn{Taylor}, it will have an associated
 Taylor map. To see the Taylor map for an element that does not have an
-associated map, use the \vn{show taylor} command.
+associated map, use the \vn{show taylor_map} command.
 
 If the \vn{-field} switch is present, any associated 
 Electro-magnetic field maps or grid data is printed. For example, 
@@ -1672,6 +1673,17 @@ Example:
   show lattice 50:100         ! Show lattice elements with index 50 through 100
 \end{example}
 
+%% show matrix --------------------------------------------------------------
+
+\item[show matrix \{-s\} \{loc1 \{loc2\}\}] \Newline
+
+\vskip -0.2in
+
+Shows the transfer matrix for the \vn{model} lattice of the currently
+\vn{view}ed universe. This command is equivalent to \vn{show
+taylor_map -order 1}. See \vn{show taylor_map} for documentation 
+on the \vn{show matrix} arguments.
+
 %% show normal_form --------------------------------------------------------------
 
 \item[show normal_form \{-order <n_order>\} <type>] \Newline
@@ -1776,7 +1788,7 @@ be shown.
 \vskip -0.2in
 
 Shows the Taylor transfer map for the \vn{model} lattice of the
-currently \vn{view}ed universe.
+currently \vn{view}ed universe. See also \vn{show matrix}.
 
 If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is
 computed for the entire lattice.
@@ -1792,7 +1804,7 @@ not present, the map will be the 1-turn map if the lattice is circular
 and the map from the beginning to \vn{loc1} if the map is not.
 
 If the \vn{-s} switch is not present, \vn{loc1} and \vn{loc2} will be
-interpreted as element names or indexes. Here the map will be from the
+interpreted as element names or indexes. The map will be from the
 exit end of the \vn{loc1} element to the exit end of the \vn{loc2}
 element. In this case, if \vn{loc2} is not present, the map will be
 the for the element given by \vn{loc1}
