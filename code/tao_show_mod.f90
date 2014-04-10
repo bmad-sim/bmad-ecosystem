@@ -208,13 +208,14 @@ character(100) file_name, name, why_invalid
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(30) = [ &
+character(16) :: show_what, show_names(31) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
    'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
-   'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture']
+   'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
+   'matrix          ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -1704,7 +1705,7 @@ case ('lattice')
     enddo
 
   elseif (.not. show_lords) then
-    if (count(picked_ele) > 200) then
+    if (count(picked_ele) > 300) then
       picked_ele(201:) = .false.
       limited = .true.
     endif
@@ -2294,10 +2295,14 @@ case ('plot')
 !----------------------------------------------------------------------
 ! taylor_map
 
-case ('taylor_map')
+case ('taylor_map', 'matrix')
 
   by_s = .false.
-  n_order = -1
+  if (show_what == 'matrix') then
+    n_order = 1
+  else
+    n_order = -1
+  endif
 
   do
     call tao_next_switch (stuff2, ['-order', '-s    '], switch, err, ix)
@@ -2355,7 +2360,12 @@ case ('taylor_map')
       endif
     endif
 
-    call transfer_map_from_s_to_s (lat, taylor, s1, s2, one_turn = .true.)
+    if (n_order > 1) then
+      call transfer_map_from_s_to_s (lat, taylor, s1, s2, ix_branch, one_turn = .true.)
+    else
+      call twiss_and_track_at_s (lat, s1, ele, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
+      call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
+    endif
 
   ! By element
 
@@ -2391,7 +2401,11 @@ case ('taylor_map')
       ix2 = eles(1)%ele%ix_ele
     endif
 
-    call transfer_map_calc (lat, taylor, ix1, ix2, one_turn = .true.)
+    if (n_order > 1) then
+      call transfer_map_calc (lat, taylor, ix1, ix2, one_turn = .true.)
+    else
+      call transfer_matrix_calc (lat, .true., mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
+    endif
 
   endif
 
@@ -2399,24 +2413,23 @@ case ('taylor_map')
 
   if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
-  if (n_order < 2) then
+  if (n_order > 1) then
+    call type2_taylors (taylor, lines, nl)
+  else
     vec_in = 0
-    call taylor_to_mat6 (taylor, vec_in, vec0, mat6)
     if (n_order == 0) then 
       nl = nl+1; write (lines(nl), '(6f11.6)') vec0
     else
-      if (any(abs(mat6(1:n,1:n)) >= 1000)) then
-        fmt = '(6es11.3, a, es11.3)'
+      if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
+        fmt = '(6es12.4, a, es12.4)'
       else
-        fmt = '(6f10.5, a, es11.3)'
+        fmt = '(6f12.5, a, es12.4)'
       endif
 
       do i = 1, 6
         nl=nl+1; write (lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
       enddo
     endif
-  else
-    call type2_taylors (taylor, lines, nl)
   endif
 
   result_id = show_what
