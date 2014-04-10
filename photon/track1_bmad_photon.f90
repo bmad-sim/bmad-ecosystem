@@ -104,6 +104,8 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   call track_a_drift_photon (end_orb, length, .true.); if (end_orb%state /= alive$) return
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
+  end_orb%s = ele%s
+
 !-----------------------------------------------
 ! Marker, etc.
 

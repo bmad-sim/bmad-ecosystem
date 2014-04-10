@@ -51,6 +51,16 @@ character(20), parameter :: r_name = 'twiss_propagate1'
 if (present(err_flag)) err_flag = .true.
 
 if (ele1%a%beta == 0 .or. ele1%b%beta == 0) then
+
+  ! For x-ray lines assume that since beta = 0 there is no interest in calculating the Twiss parameters.
+  ! So this is not treated as an error.
+  if (associated(ele1%branch)) then
+    if (ele1%branch%param%particle == photon$) then
+      if (present(err_flag)) err_flag = .false.
+      return
+    endif
+  endif
+
   call out_io (s_fatal$, r_name, 'ZERO BETA DETECTED AT: ' // trim(ele1%name), &
                                  'ELEMENT # \i0\ ',  i_array = [ele1%ix_ele])
   if (global_com%exit_on_error) call err_exit

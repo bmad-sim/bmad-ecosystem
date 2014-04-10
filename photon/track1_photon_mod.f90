@@ -616,7 +616,7 @@ type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
 type (crystal_param_struct) cp
 
-real(rp) h_bar(3), e_tot, pc, p_factor
+real(rp) h_bar(3), e_tot, pc, p_factor, field1, field2
 real(rp) gamma_0, gamma_h, dr1(3), dr2(3)
 
 character(*), parameter :: r_name = 'track1_cyrstal'
@@ -679,15 +679,17 @@ cp%dtheta_sin_2theta = -dot_product(h_bar + 2 * cp%old_vvec, h_bar) / 2
 ! E field calc
 
 p_factor = cos(ele%value(bragg_angle_in$) + ele%value(bragg_angle_out$))
-call e_field_calc (cp, orbit, ele, param, p_factor, .true.,  orbit%field(1), orbit%phase(1), dr1)
-call e_field_calc (cp, orbit, ele, param, 1.0_rp,   .false., orbit%field(2), orbit%phase(2), dr2)   ! Sigma pol
+call e_field_calc (cp, orbit, ele, param, p_factor, .true.,  field1, orbit%phase(1), dr1)
+call e_field_calc (cp, orbit, ele, param, 1.0_rp,   .false., field2, orbit%phase(2), dr2)   ! Sigma pol
+
+orbit%field(1) = orbit%field(1) * field1
+orbit%field(2) = orbit%field(2) * field2
 
 ! For Laue: Average trajectories for the two polarizations weighted by the fields.
 ! This approximation is valid as long as the two trajectories are "close" enough.
 
-if (ele%value(b_param$) > 0) then ! Laue
-  orbit%vec(1:5:2) = orbit%vec(1:5:2) + &
-                      (dr1 * orbit%field(1) + dr2 * orbit%field(2)) / (orbit%field(1) + orbit%field(2))
+if (ele%value(b_param$) > 0 .and. (field1 /= 0 .or. field2 /= 0)) then ! Laue
+  orbit%vec(1:5:2) = orbit%vec(1:5:2) + (dr1 * field1 + dr2 * field2) / (field1 + field2)
 endif
 
 ! Rotate back from curved body coords to element coords
@@ -720,12 +722,11 @@ end subroutine track1_crystal
 !   param          -- lat_param_struct: 
 !   p_factor       -- Real(rp): Polarization factor.
 !   do_branch_calc -- Logical: Calculate probability of branching to alpha or beta branches?
-!   e_field        -- Real(rp): Input field amplitude.
 !   e_phase        -- Real(rp): Input field phase.
 !
 ! Output:
 !   orbit          -- coord_struct: Position is shifted for Laue diffraction.
-!   e_field        -- Real(rp): Output field amplitude.
+!   e_field        -- Real(rp): Output field amplitude assuming initial field is 1.
 !   e_phase        -- Real(rp): Output field phase.
 !   dr(3)          -- Real(rp): (x,y,z) orbit change.
 !-
@@ -777,7 +778,7 @@ if (ele%value(b_param$) < 0) then
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
 
-  e_field = e_field * abs(e_rel) / sqrt_b
+  e_field = abs(e_rel) / sqrt_b
   e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
 
 !---------------
@@ -844,19 +845,19 @@ else
     denom = abs(E_hat_beta_saved) + abs(E_hat_alpha_saved)
     if (r_ran < abs(E_hat_alpha_saved) / denom) then ! alpha branch
       to_alpha_branch = .true.
-      e_field = e_field * denom * abs(E_hat_alpha) / abs(E_hat_alpha_saved)
+      e_field = denom * abs(E_hat_alpha) / abs(E_hat_alpha_saved)
     else
       to_alpha_branch = .false.
-      e_field = e_field * denom * abs(E_hat_beta) / abs(E_hat_beta_saved)
+      e_field = denom * abs(E_hat_beta) / abs(E_hat_beta_saved)
     endif
   else
     denom = abs(E_hat_beta)**2 + abs(E_hat_alpha_saved)**2
     if (r_ran < abs(E_hat_alpha_saved)**2 / denom) then ! alpha branch
       to_alpha_branch = .true.
-      e_field = e_field * sqrt(denom * abs(E_hat_alpha)**2 / abs(E_hat_alpha_saved)**2)
+      e_field = sqrt(denom * abs(E_hat_alpha)**2 / abs(E_hat_alpha_saved)**2)
     else
       to_alpha_branch = .false.
-      e_field = e_field * sqrt(denom * abs(E_hat_beta)**2 / abs(E_hat_beta_saved)**2)
+      e_field = sqrt(denom * abs(E_hat_beta)**2 / abs(E_hat_beta_saved)**2)
     endif
   endif
 
