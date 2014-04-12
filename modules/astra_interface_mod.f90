@@ -3,13 +3,19 @@ module astra_interface_mod
 use bmad_struct
 use em_field_mod
 
+implicit none
+
+type astra_lattice_param_struct
+  integer :: field_map_dimension = 1    ! Dimensions for field map. 1 or 3
+end type
+
 contains
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_astra_lattice_file (astra_file_unit, lat, err)
+! Subroutine write_astra_lattice_file (astra_file_unit, lat, astra_lattice_param, err)
 !
 ! Subroutine to write an Astra lattice file using the information in a lat_struct.
 !
@@ -21,13 +27,14 @@ contains
 !   err    -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_astra_lattice_file (astra_file_unit, lat, err)
+subroutine write_astra_lattice_file (astra_file_unit, lat, astra_lattice_param,  err)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (char_indexx_struct) :: fieldgrid_names
+type (astra_lattice_param_struct) :: astra_lattice_param
 
 integer :: n, ie, ix_start, ix_end, iu, id
 integer :: astra_file_unit
@@ -94,7 +101,7 @@ do ie = ix_start, ix_end
   if (ele%lord_status == multipass_lord$) ele => pointer_to_slave (ele, 1)
   if (ele%key == solenoid$)  then
     if (id == 0) write(astra_file_unit, '(a)') '  LBfield = T'
-    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = 1)
+    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%field_map_dimension)
   endif
 enddo
 write(astra_file_unit, '(a)') '/'
@@ -110,7 +117,7 @@ do ie = ix_start, ix_end
   if (ele%lord_status == multipass_lord$) ele => pointer_to_slave (ele, 1)
   if (ele%key == lcavity$ .or. ele%key == rfcavity$ .or. ele%key == e_gun$)  then
     if (id == 0) write(astra_file_unit, '(a)') '  LEfield = T'
-    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = 3)
+    call write_astra_ele(astra_file_unit, ele, id, fieldgrid_names, dimensions = astra_lattice_param%field_map_dimension)
   endif
 enddo
 write(astra_file_unit, '(a)') '/'
@@ -181,9 +188,10 @@ case (lcavity$, rfcavity$, e_gun$)
   !  File_Efield(1)='/fieldmaps/dcgun_GHV.dat'
   !	 MaxE(1)=-8.10316500000000062
   !	 Nue(1)=0 ! Frequency in Hz
-  !	 Phi(1)=0.00000000000000000
+  !	 Phi(1)=0.00000000000000000   ! degrees
   !	 C_smooth(1)=10
   !	 C_higher_order(1)=.TRUE.
+  !  Com_grid(1) = 'all'     ! For 3D fields, if the grid is aligned
   id = id + 1
 
   
@@ -215,9 +223,13 @@ case (lcavity$, rfcavity$, e_gun$)
   if (abs(theta_center) > 1e-15_rp) write (iu, '(a, i0, a, '//rfmt//')') '  C_xrot(', id, ') = ', theta_center
   write (iu, '(a, i0, a, '//rfmt//', a)') '  maxE(', id, ') = ', 1e-6_rp*absmax_Ez, ' ! MV/m' ! the absolute maximum, on-axis, longitudinal electric (TM mode) in MV/m
   write (iu, '(a, i0, a, '//rfmt//', a)') '  nue(', id, ') = ', 1e-9_rp*freq, ' ! GHz'! frequency of the RF field in GHz
-  write (iu, '(a, i0, a, '//rfmt//', a)') '  phi(', id, ') = ', phase_lag, ' ! rad' 
-  write (iu, '(a, i0, a)') '  C_smooth(', id, ') = T'
-  write (iu, '(a, i0, a)') '  C_higher_order(', id, ') = 10'
+  write (iu, '(a, i0, a, '//rfmt//', a)') '  phi(', id, ') = ', phase_lag*180/pi, ' ! rad' 
+  if (i_dim == 1) then 
+    write (iu, '(a, i0, a)') '  C_smooth(', id, ') = T'
+    write (iu, '(a, i0, a)') '  C_higher_order(', id, ') = 10'
+  else
+    write (iu, '(a, i0, a)') "  Com_grid(", id, ") = 'all'"
+  endif
 
 
 case (quadrupole$)
@@ -929,9 +941,9 @@ else
   do iz=1, nz
   do iy=1, ny
     do ix=1, nx-1
-      write(iu, '('//rfmt//')',  advance = 'NO')  real ( pt(ix, iy, iz)%B(component-3) * phasor_rotation)
+      write(iu, '('//rfmt//')',  advance = 'NO')  real ( pt(ix, iy, iz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp) ) ! further rotate by i
     enddo
-    write(iu, '('//rfmt//')',    advance = 'YES') real ( pt(ix, iy, nz)%B(component-3) * phasor_rotation)
+    write(iu, '('//rfmt//')',    advance = 'YES') real ( pt(ix, iy, nz)%B(component-3) * phasor_rotation * cmplx(0.0_rp, 1.0_rp) )
   enddo
   enddo
   
