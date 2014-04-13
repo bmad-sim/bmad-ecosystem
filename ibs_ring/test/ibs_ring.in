@@ -1,7 +1,6 @@
 &parameters
   !See ibs_ring.f90 for documentation
-  !lat_file = 'lat/cta_2085_xr40m_cd_20111210.lat'
-  lat_file = 'lat/ideal_and_tunes.lat'
+  lat_file = 'lat/cta_2085_xr40m_cd_20111210.lat'
   ibs_formula = 'kubo'
   use_t6_cache = .true.
   eqb_method = 'der'
