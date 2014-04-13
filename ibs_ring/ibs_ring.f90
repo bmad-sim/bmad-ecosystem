@@ -40,9 +40,11 @@ REAL(rp) t6(6,6)
 REAL(rp) Mpwd(6,6)
 REAL(rp) Vpwd
 REAL(rp) sigma_mat(6,6)
+REAL(rp) mat1turn(6,6)
 
 LOGICAL error, ok, do_pwd, insane
 LOGICAL set_dispersion
+LOGICAL use_t6_cache
 
 CHARACTER(50) in_file
 CHARACTER(4) ibs_formula
@@ -75,6 +77,7 @@ NAMELIST /parameters/ lat_file, &        ! Lattice file in BMAD format.
                       delta_mA, &        ! mA step size.
                       stop_mA, &         ! Smallest current per bunch in mA.
                       ibs_formula, &     ! 'cimp', 'bjmt', 'bane', 'mpzt', 'mpxx', 'kubo'
+                      use_t6_cache, &    ! Precompute 1-turn mats.  Relevant only for kubo method.  Speeds up kubo method.
                       ratio, &           ! "Coupling parameter r" hack for including coupling.
                       x_view, &          ! index of element where projection is taken for horizontal beam size calculation.
                       y_view, &          ! index of element where projection is taken for vertical beam size calculation.
@@ -110,6 +113,7 @@ resistance    = -99.0
 clog_to_use   = -99
 eqb_method    = ''
 set_dispersion = .false.
+use_t6_cache = .false.
 do_pwd = .true.
 
 dotinlun = LUNGET()
@@ -138,7 +142,7 @@ IF( clog_to_use .lt. -90 ) CALL param_bomb('clog_to_use')
 IF( eqb_method == '' ) CALL param_bomb('eqb_method')
 
 stdoutlun = LUNGET()
-OPEN(stdoutlun,FILE='std.out.snip')
+OPEN(stdoutlun,FILE='rad_int.out')
 
 WRITE(*,*) "Preparing lattice..."
 
@@ -152,6 +156,15 @@ CALL twiss_propagate_all(lat)
 radcache = 0
 CALL radiation_integrals(lat, orb, mode, radcache)
 CALL calc_z_tune(lat)
+
+IF( use_t6_cache .AND. (ibs_formula .EQ. 'kubo') ) THEN
+  WRITE(*,*) "Making 1-turn mats and caching in ele%r."
+  DO i=1, lat%n_ele_track
+    CALL transfer_matrix_calc(lat, .true., mat1turn, ix1=i, one_turn=.TRUE.)
+    ALLOCATE(lat%ele(i)%r(6,6,1))
+    lat%ele(i)%r(:,:,1) = mat1turn
+  ENDDO
+ENDIF
 
 WRITE(*,*) "Lattice preparation complete..."
 
@@ -186,13 +199,14 @@ ibs_sim_params%inductance = inductance
 ibs_sim_params%resistance = resistance
 ibs_sim_params%do_pwd = do_pwd
 ibs_sim_params%formula = ibs_formula
+ibs_sim_params%use_t6_cache = use_t6_cache
 
 mode0=mode
 npart0 = mA_per_bunch*0.001_rp*(lat%param%total_length/c_light)/e_charge
 lat%param%n_part = npart0
 
 IF(eqb_method == 'rlx') THEN
-  CALL ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,8.0_rp,granularity)  !relaxation method
+  CALL ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,8.0d0,granularity)  !relaxation method
 ELSEIF(eqb_method == 'der') THEN
   CALL ibs_equib_der(lat,ibs_sim_params,mode0,mode,granularity)  !derivatives method
 ELSE
@@ -255,7 +269,7 @@ DO i=1,n_steps
   current = omp_lat(omp_i)%param%n_part*e_charge/(omp_lat(omp_i)%param%total_length/c_light)
 
   if(eqb_method == 'rlx') THEN
-    CALL ibs_equib_rlx(omp_lat(omp_i),ibs_sim_params,mode0,mode,ratio,8.0_rp,granularity)  !relaxation method
+    CALL ibs_equib_rlx(omp_lat(omp_i),ibs_sim_params,mode0,mode,ratio,8.0d0,granularity)  !relaxation method
   ELSEIF(eqb_method == 'der') THEN
     CALL ibs_equib_der(omp_lat(omp_i),ibs_sim_params,mode0,mode,granularity)  !derivatives method
   ELSE
@@ -265,17 +279,17 @@ DO i=1,n_steps
   ENDIF
 
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=x_view, one_turn=.TRUE.)
-  t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
+  IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_x = SQRT(sigma_mat(1,1))
 
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=y_view, one_turn=.TRUE.)
-  t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
+  IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_y = SQRT(sigma_mat(3,3))
 
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=z_view, one_turn=.TRUE.)
-  t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
+  IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
   view_sigma_z = SQRT(sigma_mat(5,5))
 
