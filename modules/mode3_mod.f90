@@ -462,7 +462,6 @@ END SUBROUTINE make_N
 !-
 SUBROUTINE normal_sigma_mat(sigma_mat,normal)
   USE bmad
-  USE eigen_mod
 
   IMPLICIT none
 
@@ -561,7 +560,7 @@ SUBROUTINE get_abc_from_updated_smat(ring, ix, sigma_mat, normal, error)
 END SUBROUTINE get_abc_from_updated_smat
 
 !+
-! Subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz)
+! Subroutine beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
 !
 ! Given a 6x6 matrix of second-order moments, this routine returns
 ! the beam tilts.
@@ -582,9 +581,11 @@ END SUBROUTINE get_abc_from_updated_smat
 ! Input:
 !   S(6,6)              -- real(rp): matrix of second order moments of beam envelope
 ! Output:
-!   angle_xy(3,3)       -- real(rp): transverse tilt of beam envelope
-!   angle_xz(3,3)       -- real(rp): horizontal crabbing of beam envelope
-!   angle_yz(3,3)       -- real(rp): vertical crabbing of beam envelope
+!   angle_xy            -- real(rp): transverse tilt of beam envelope
+!   angle_xz            -- real(rp): horizontal crabbing of beam envelope
+!   angle_yz            -- real(rp): vertical crabbing of beam envelope
+!   angle_xpz           -- real(rp): x-pz coupling
+!   angle_ypz           -- real(rp): y-pz coupling
 !
 !-
 SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
@@ -594,10 +595,9 @@ SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
   REAL(rp) angle_xy, angle_xz, angle_yz
   REAL(rp) angle_xpz, angle_ypz
 
-  angle_xy = 0.5_rp * ATAN2( 2.0d0*S(1,3), S(1,1)-S(3,3) )
-  angle_xz = 0.5_rp * ATAN2( 2.0d0*S(1,5), S(5,5)-S(1,1) )
-  angle_yz = 0.5_rp * ATAN2( 2.0d0*S(3,5), S(5,5)-S(3,3) )
-
+  angle_xy  = 0.5_rp * ATAN2( 2.0d0*S(1,3), S(1,1)-S(3,3) )
+  angle_xz  = 0.5_rp * ATAN2( 2.0d0*S(1,5), S(5,5)-S(1,1) )
+  angle_yz  = 0.5_rp * ATAN2( 2.0d0*S(3,5), S(5,5)-S(3,3) )
   angle_xpz = 0.5_rp * ATAN2( 2.0d0*S(1,6), S(6,6)-S(1,1) )
   angle_ypz = 0.5_rp * ATAN2( 2.0d0*S(3,6), S(6,6)-S(3,3) )
 END SUBROUTINE beam_tilts
