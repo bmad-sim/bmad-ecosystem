@@ -1,0 +1,15 @@
+call, file=wig1_14w_19kg.bmad
+wig_01w : wig1_14w
+wig1_02w : wig1_14w
+wig2_02w : wig1_14w
+wig1_18w : wig1_14w
+wig2_18w : wig1_14w
+wig3_18w : wig1_14w
+
+wig1_02e : wig1_14w
+wig2_02e : wig1_14w
+wig_01e : wig1_14w
+wig_15e : wig1_14w
+wig1_18e : wig1_14w
+wig2_18e : wig1_14w
+wig3_18e : wig1_14w
