@@ -111,7 +111,7 @@ endif
 do_scale_phase = logic_option(do_scale_phase, scale_phase)
 do_scale_amp   = logic_option(do_scale_amp,   scale_amp)
 
-if (ele%key == e_gun$) then
+if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   do_scale_phase = .false.
 endif
 
@@ -203,7 +203,7 @@ phi_tol = 1d-5
 !------------------------------------------------------
 ! zero frequency e_gun
 
-if (ele%key == e_gun$) then
+if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   tracking_method_saved = ele%tracking_method
   if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
 
@@ -596,7 +596,8 @@ case (bmad_standard$)
 
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
-    if (ele%key == e_gun$ .or. (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
+    if ((ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) .or. &
+                (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
       field_scale => ele%em_field%mode(i)%field_scale
       dphi0_ref => ele%em_field%mode(i)%dphi0_ref
       exit
