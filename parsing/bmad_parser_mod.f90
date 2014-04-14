@@ -4857,7 +4857,7 @@ endif
 
 ! Aperture init
 
-if (ele%aperture_type == surface_aperture$ .or. ele%aperture_type == wall_aperture$) then
+if (ele%aperture_type == auto_aperture$) then
   call aperture_bookkeeper (ele)
 endif
 

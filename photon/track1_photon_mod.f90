@@ -281,6 +281,7 @@ end subroutine track1_sample
 !   ele                -- ele_struct: Emitting element.
 !   param              -- lat_param_struct: lattice parameters.
 !   orbit              -- Coord_struct: phase-space coords of photon.
+!                      --   Will be in curved surface coords if there is a curved surface.
 !   direction          -- Integer: +1 -> Emit in forward +z direction, -1 -> emit backwards.
 !   solid_angle        -- real(rp): Solid angle photons may be emitted over.
 !   w_to_surface(3,3)  -- real(rp), optional: Rotation matrix for curved surface.
@@ -301,7 +302,7 @@ type (target_point_struct) corner(8)
 
 real(rp), optional :: w_to_surface(3,3)
 real(rp) ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
-real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), solid_angle
+real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), solid_angle, cos2_dphi
 
 integer direction
 integer n, i, ix
@@ -326,8 +327,8 @@ if (target%enabled) then
     else
       call err_exit
     endif
-    r = matmul(w_to_target, r)
     if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+    r = matmul(w_to_target, r)
     corner(i)%r = r / norm2(r)
   enddo
 
@@ -347,6 +348,15 @@ if (target%enabled) then
     orbit%state = lost$
     return
   endif
+
+  ! Correction for bulge in line projected onto (y, phi) sphere.
+
+  cos2_dphi = cos(phi_max - phi_min) / 2)**2
+
+  if (y_max > 0) y_max = y_max / sqrt((1 - y_max**2) * cos2_dphi + y_max**2)
+  if (y_min < 0) y_min = y_min / sqrt((1 - y_min**2) * cos2_dphi + y_min**2)
+
+  !
 
   y = y_min + (y_max-y_min) * ran(1)
   phi = phi_min + (phi_max-phi_min) * ran(2)
@@ -1143,7 +1153,7 @@ end subroutine crystal_h_misalign
 !   r_center(3)   -- real(rp): In lab coords: Center of target relative to phton emission point.
 !
 ! Output:
-!   w_to_target(3,3) -- real(rp): Rotation matrix from lab to target coords.
+!   w_to_target(3,3) -- real(rp): Rotation matrix from ele to target coords.
 !   w_to_ele(3,3)    -- real(rp): Rotation matrix from target to ele coords.
 !-
 
@@ -1171,7 +1181,7 @@ w_to_ele(1,:) = [ cos_theta, -sin_theta * sin_phi, sin_theta * cos_phi]
 w_to_ele(2,:) = [ 0.0_rp,     cos_phi,             sin_phi]
 w_to_ele(3,:) = [-sin_theta, -cos_theta * sin_phi, cos_theta * cos_phi]
 
-w_to_target(1,:) = [ cos_theta,       0.0_rp,      -sin_theta]
+w_to_target(1,:) = [ cos_theta,           0.0_rp,  -sin_theta]
 w_to_target(2,:) = [-sin_theta * sin_phi, cos_phi, -cos_theta * sin_phi]
 w_to_target(3,:) = [ sin_theta * cos_phi, sin_phi,  cos_theta * cos_phi]
 

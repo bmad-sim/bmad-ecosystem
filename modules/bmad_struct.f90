@@ -536,7 +536,7 @@ type ele_struct
   integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
   integer field_calc             ! bmad_standard$, grid$, refer_to_lords$, or custom$
   integer aperture_at            ! Aperture location: entrance_end$, ...
-  integer aperture_type          ! rectangular$, elliptical$, wall_aperture$, ...
+  integer aperture_type          ! rectangular$, elliptical$, auto_aperture$, ...
   integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
   logical mode_flip              ! Have the normal modes traded places?
@@ -1105,10 +1105,9 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$
 
 !
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2, wall_aperture$ = 3, surface_aperture$ = 4
-integer, parameter :: custom_aperture$ = 7
+integer, parameter :: rectangular$ = 1, elliptical$ = 2, auto_aperture$ = 3, custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Wall       ', &
+                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Auto       ', &
                                      'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2

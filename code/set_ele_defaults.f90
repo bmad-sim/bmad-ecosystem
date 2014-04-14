@@ -58,6 +58,7 @@ case (detector$)
 
 case (diffraction_plate$)
   ele%aperture_at = surface$
+  ele%aperture_type = auto_aperture$
   ele%value(geometry$) = transmission$
   if (.not. associated(ele%photon)) allocate(ele%photon)
 !!! Due to ifort bug:  ele%photon = photon_element_struct()

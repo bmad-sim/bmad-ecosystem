@@ -201,7 +201,7 @@ case (elliptical$)
     param%unstable_factor = sqrt(r) - 1
   endif
 
-case (rectangular$, wall_aperture$, Surface_aperture$)
+case (rectangular$, auto_aperture$)
 
   if (abs(x_particle) > x_lim .or. abs(y_particle) > y_lim) then
     if (abs(x_particle)/x_lim > abs(y_particle)/y_lim) then

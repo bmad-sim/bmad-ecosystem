@@ -31,7 +31,7 @@ type (photon_target_struct), pointer :: target
 
 real(rp), pointer :: val(:)
 real(rp) z
-logical :: good
+logical :: is_bending_element
 character(*), parameter :: r_name = 'photon_target_setup '
 
 ! Find next element with an aperture
@@ -39,20 +39,18 @@ character(*), parameter :: r_name = 'photon_target_setup '
 branch => ele%branch
 
 ap_ele => pointer_to_next_ele (ele)
-good = .true.
+is_bending_element = .false.
 
 do 
   if (ap_ele%value(x1_limit$) /= 0) exit
 
   select case (ap_ele%key)
   case (diffraction_plate$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$)
-    good = .false.
+    is_bending_element = .true.
   end select
 
-  if (ap_ele%ix_ele == branch%n_ele_track) good = .false.
-
-  if (.not. good) then
-    call out_io (s_fatal$, r_name, 'NO APERTURE ELEMENT FOUND DOWNSTREAM FROM: ' // ele%name)
+  if (is_bending_element .or. ap_ele%ix_ele == branch%n_ele_track) then
+    call out_io (s_fatal$, r_name, 'NO ELEMENT WITH APERTURE FOUND DOWNSTREAM FROM: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
@@ -67,12 +65,16 @@ if (.not. associated(ele%photon)) allocate(ele%photon)
 target => ele%photon%target
 val => ap_ele%value
 
-call photon_target_corner_calc (ap_ele,  0.0_rp,          0.0_rp,         0.0_rp, ele, target%center)
 
-call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), 0.0_rp, ele, target%corner(1))
-call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), 0.0_rp, ele, target%corner(2))
-call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), 0.0_rp, ele, target%corner(3))
-call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), 0.0_rp, ele, target%corner(4))
+z = 0
+if (stream_ele_end (ap_ele%aperture_at, ap_ele%orientation) == upstream_end$) z = -ap_ele%value(l$)
+
+call photon_target_corner_calc (ap_ele,  0.0_rp,          0.0_rp,         z, ele, target%center)
+
+call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(1))
+call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(2))
+call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(3))
+call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(4))
 target%n_corner = 4
 
 ! If there is surface curvature then the aperture rectangle becomes a 3D aperture box.
@@ -102,7 +104,7 @@ end subroutine photon_target_setup
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_target_corner_calc (aperture_ele, x_lim, y_lim, source_ele, corner)
+! Subroutine photon_target_corner_calc (aperture_ele, x_lim, y_lim, z_lim, source_ele, corner)
 !
 ! Routine to calculate the corner coords in the source_ele ref frame.
 !
@@ -115,7 +117,7 @@ end subroutine photon_target_setup
 !   corner        -- target_point_struct: Corner coords in source_ele ref frame.
 !-
 
-subroutine photon_target_corner_calc (aperture_ele, x_lim, y_lim, z, source_ele, corner)
+subroutine photon_target_corner_calc (aperture_ele, x_lim, y_lim, z_lim, source_ele, corner)
 
 implicit none
 
@@ -125,17 +127,14 @@ type (target_point_struct) corner
 type (floor_position_struct) floor
 type (coord_struct) orb
 
-real(rp) x_lim, y_lim, z
+real(rp) x_lim, y_lim, z_lim
 
 ! Corner in aperture_ele coords
 
-corner%r = [x_lim, y_lim, z]
+corner%r = [x_lim, y_lim, z_lim]
 
 select case (stream_ele_end (aperture_ele%aperture_at, aperture_ele%orientation))
-case (upstream_end$)
-  corner%r(3) = -aperture_ele%value(l$)
-
-case (downstream_end$)
+case (upstream_end$, downstream_end$)
 
 case (surface$) 
   orb%vec = 0
