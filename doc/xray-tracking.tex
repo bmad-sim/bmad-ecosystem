@@ -1035,3 +1035,125 @@ Since a simulation photon has two polarization components, the above
 equations are used for one polarization component and for the second
 polarization component the same branch is used as for the first with
 an appropriately scaled $\what E$.
+
+%-------------------------------------------------------------------------
+\section{X-ray Targeting}
+\label{s:targeting}
+
+X-rays can have a wide spread of trajectories resulting in many
+``doomed'' photons that hit apertures or miss the detector with only a
+small fraction of ``successful'' photons actually contributing to the
+simulation results. The tracking of doomed photons can therefore
+result in an appreciable lengthening of the simulation time. To get
+around this, \bmad can be setup to use what is called ``targeting'' to
+greatly reduce the number of doomed photons generated.
+
+Photons can be generated either at a source like a \vn{wiggler}
+element or at a place where diffraction is simulated like at a
+\vn{diffraction_plate} element. To be able to do targeting, an element
+with apertures defined must be present downstream from the generating
+element. The idea is to only generate photons that are going in the
+general direction of the ``target'' which is the space within the
+aperture.
+
+A necessary restriction for
+targeting to work is that the photon must travel in a straight line
+through all elements between the generating element and the element
+with the apertures. So, for example, a \vn{crystal} element would not
+be allowed between the two two elements. A \vn{crystal} element could
+be the aperture element as long as the aperture was defined before
+photons were diffracted. That is, if the aperture was at the upstream
+end of the crystal or was defined with respect to the \vn{crystal}
+surface.
+
+The target is defined by the four corners of the aperture. In \vn{element}
+coordinates, the $(x, y, z)$ values of the corners are:
+\begin{example}
+  (-x1_limit, -y1_limit, z_lim)
+  (-x1_limit,  y2_limit, z_lim)
+  ( x2_limit, -y1_limit, z_lim)
+  ( x2_limit,  y2_limit, z_lim)
+\end{example}
+where \vn{x1_limit}, etc. are the the aperture limits (\sref{s:limit})
+and \vn{z_lim} will be zero except if the element's \vn{aperture_at}
+parameter is set to \vn{entrance_end} in which case \vn{z_lim} will be set
+to \vn{-L} where \vn{L} is the length of the element. 
+
+If the aperture is associated with a curved surface (for example with
+a \vn{crystal} element), four extra corner points are also used to
+take into account that the aperture is not planer. These extra points
+have $(x, y, z)$ values in \vn{element} coordinates of
+\begin{example}
+  (-x1_limit, -y1_limit, z_surface(-x1_limit, -y1_limit))
+  (-x1_limit,  y2_limit, z_surface(-x1_limit,  y2_limit))
+  ( x2_limit, -y1_limit, z_surface( x2_limit, -y1_limit))
+  ( x2_limit,  y2_limit, z_surface( x2_limit,  y2_limit))
+\end{example}
+where \vn{z_surface(x,y)} is the $z$ value of the surface at the
+particular $(x, y)$ point being used. Notice that in this case
+\vn{z_lim} is zero.
+
+The coordinates of the four or eight corner points are converted from
+\vn{element} coordinates of the aperture element to \vn{element}
+coordinates of the photon generating element. Additionally,
+the approximate center of the aperture, which in \vn{element}
+coordinates of the aperture element is $(0, 0, z_lim)$, is converted
+to \vn{element} coordinates of the photon generating element.
+
+The above calculation only has to be done once at the beginning of a
+simulation.
+
+When a photon is to be emitted from a given point $(x_{emit},
+y_{emit}, z_{emit})$, the problem is how to restrict the velocity
+vector $(\beta_x, \beta_y, \beta_z)$ (which is normalized to 1) to
+minimize the number of doomed photons generated. The problem is solved
+by constructing a vector $\Bf r$ for each corner point:
+\Begineq
+  \Bf r = (x_{lim}, y_{lim}, z_{lim}) - (x_{emit}, y_{emit}, z_{emit})
+\Endeq 
+The direction of each $\Bf r$ is characterized in polar coordinates
+(\phi, y) defined by
+\begin{align}
+  y &= \frac{r_y}{|r|} \CRNO
+  \tan\phi &= \frac{r_x}{r_z} 
+\end{align}
+For now make the assumption that $r_z$ is positive and larger than
+$r_x$ and $r_y$ for all $\Bf r$.  Let $\phi_{max}$ and $\phi_{min}$ be
+the maximum and minimum $\phi$ values over all the $\Bf r$. Similarly,
+let $y_{min}$ and $y_{max}$ be the minimum and maximum $y$ values over
+all the $\Bf r$. The rectangle in $(\phi, y)$ space defined by these
+four min and max values almost covers the projection of the aperture
+onto the unit sphere. There is a correction that must be made due to
+the fact that a straight line of constant $y$ in $(x, y, z)$ space
+projects to a curved line when projected onto $(\phi, y)$
+space. Therefore a correction must be made to $y_{min}$ when $y_{min}
+< 0$:
+\Begineq
+  y_{min} \rightarrow 
+  \frac{y_min}{\sqrt{(1 - y_{min}^2) \, \cos^2 (phi_{max} - \phi_{min})/2 + y_{min}^2}}
+\Endeq
+with a similar correction for $y_{max}$ that must be made when $y_{max} > 0$.
+
+
+The above prescription works as long as the projection of the aperture
+onto $(\phi, y)$ space does not touch the branch cut at $\phi = \pi$
+or cover the singular points $y = \pm 1$. Generally these restrictions
+are fullfilled since $\Bf z$ is the direction of the reference
+orbit. If this is not the case, a transformation can be made where
+rotation matrices are constructed to transform between the
+\vn{element} coordinates of the emitting element and what are called
+\vn{target} coordinates defined so that $\Bf r$ for the \vn{center} point
+has the form $(0, 0, |r|)$. The procedure for calculating the photon
+velocity vector is now
+  \begin{enumeration}
+  \item
+Rotate all the corner $\Bf r$ from \vn{element} to \vn{target} coordinates.
+  \item
+Calculate min and max values for $\phi$ and $y$.
+  \item
+Calculate the velocity vector such that the $(\phi, y)$ of this vector
+falls within the min and max values in the last step.
+  \item
+Rotate the velocity vector back to \vn{element} coordinates.
+  \end{enumeration}
+

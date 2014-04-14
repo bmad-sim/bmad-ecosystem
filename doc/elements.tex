@@ -953,9 +953,14 @@ transversely to the beam. Like all other elements, the
 \vn{diffraction_plate} can be reoriented using the element's offsets,
 pitches and tilt attributes (\sref{s:offset}).
 
+The \vn{aperture_type} (\sref{s:limit}) parameter of a
+\vn{diffraction_plate} will default to \vn{auto} which will set the
+aperture limits to define a rectangular aperture that just cover the
+clear area of the plate.
+
 Example:
 \begin{example}
-  fresnel: diffraction_plate, wall = {...}, x_limit = 0.1, y_limit = 0.08
+  fresnel: diffraction_plate, wall = \{...\}
 \end{example}
 
 %-----------------------------------------------------------------

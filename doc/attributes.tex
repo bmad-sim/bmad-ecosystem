@@ -618,25 +618,26 @@ figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
 \vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the
 appropriate plane.
 
-By default, apertures are assumed to be
-rectangular except that an \vn{ecollimator} has a elliptical aperture.
-This can be changed by setting the \vn{aperture_type} attribute. The possible 
-values of this attribute are:
+By default, apertures are assumed to be rectangular except that an
+\vn{ecollimator} has a elliptical aperture. This can be changed by
+setting the \vn{aperture_type} attribute. The possible values of this
+attribute are:
 \begin{example}
+  auto         ! Default for diffraction_plate elements
   custom
-  elliptical
-  rectangular
-  surface
-  wall
+  elliptical   ! Default for \vn{ecollimator} elements
+  rectangular  ! Default for most elements.
 \end{example}
 The \vn{custom} setting is used in the case where programs have been
 compiled with custom, non-Bmad, code to handle the aperture
-calculation.  The \vn{surface} and \vn{wall} settings are used to
-define a rectangular aperture. The \vn{surface} setting causes \bmad
-to set the four limits (\vn{x1_limit}, etc.) to just cover the surface
-grid (\sref{s:surf.grid}) associated with the element. The \vn{wall}
-setting causes \bmad to set the four limits to just cover the clear
-area of a \vn{diffraction_plate} (\sref{s:wall.diff.plate}).
+calculation.  The \vn{auto} setting is used for automatic calculation
+of a rectangular aperture. For a \vn{diffraction_plate} element, the
+\vn{auto} setting causes the four aperture limits to be set to just
+cover the clear area of a \vn{diffraction_plate}
+(\sref{s:wall.diff.plate}). For all other elements, the \vn{auto}
+setting is only to be used when there is an associated surface grid
+(\sref{s:surf.grid}) for the element and, in this case, \bmad to set
+the four limits to just cover the surface grid
 
 To avoid numerical overflow and other errors in tracking, a particle
 will be considered to have hit an aperture in an element, even if

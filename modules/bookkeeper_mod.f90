@@ -2601,8 +2601,7 @@ end subroutine attribute_bookkeeper
 !+
 ! Subroutine aperture_bookkeeper (ele)
 !
-! Routine to calculate aperture limits when ele%attribute_type is set to wall_aperture$ or
-! wall_aperture$ or surface_aperture$
+! Routine to calculate aperture limits when ele%attribute_type is set to auto_aperture$
 !
 ! Input:
 !   ele   -- ele_struct: Element with aperture.
@@ -2627,13 +2626,8 @@ character(*), parameter :: r_name = 'aperture_bookkeeper'
 
 !
 
-select case (ele%aperture_type)
-case (wall_aperture$)   ! For diffraction plate
-  if (.not. associated(ele%wall3d)) then
-    call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "WALL" BUT', &
-                                   'THERE IS NOT A WALL ASSOCIATED WITH ELEMENT: ' // ele%name)
-    return
-  endif
+select case (ele%key)
+case (diffraction_plate$) 
 
   ele%value(x1_limit$) = -100
   ele%value(y1_limit$) = -100
@@ -2655,7 +2649,10 @@ case (wall_aperture$)   ! For diffraction plate
     enddo
   enddo
 
-case (surface_aperture$)
+
+! Non diffraction_plate element
+
+case default
   if (.not. associated (ele%photon)) then
     call out_io (s_error$, r_name, 'ELEMENT APERTURE TYPE SET TO "SURFACE" BUT', &
                                    'THERE IS NOT A SURFACE ASSOCIATED WITH ELEMENT: ' // ele%name)
