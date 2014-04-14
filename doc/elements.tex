@@ -999,7 +999,8 @@ upon. (\sref{s:super})].
 \label{s:e.gun}
 \index{e_gun|hyperbf}
 
-An \vn{e_gun} element is an electron gun.
+An \vn{e_gun} element represents an electron gun and encompeses a
+region starting from the cathode were the electrons are generated.
 General \vn{e_gun} attributes are:
 \begin{center}
 \tt
@@ -1021,6 +1022,7 @@ The attributes specific to an \vn{e_gun} are
 \begin{example}
   gradient     = <Real>    ! Gradient.
   gradient_err = <Real>    ! Gradient error.
+  rf_frequency = <Real>    ! Frequency of the RF field.
   voltage      = <Real>    ! Voltage. Dependent attribute (\sref{s:depend}). 
   voltage_err  = <Real>    ! Voltage error. Dependent attribute (\sref{s:depend}). 
 \end{example}
@@ -1031,16 +1033,17 @@ The \vn{voltage} is simply related to the \vn{gradient} via the element length \
 If the \vn{voltage} is set to a non-zero value, the length \vn{l} must
 also be non-zero to keep the gradient finite.
 
+An \vn{e_gun} may either be DC if the \vn{rf_frequency} component is
+zero of AC if not.
+
 \index{marker}\index{null_ele}
-The \vn{e_gun} element is meant to solve the problem of simulating
-electrons as they are generated from a cathode. The fact that these
-electrons can have zero initial momentum presents a special problem
-(\sref{s:energy}). As a result, the use of \vn{e_gun} elements are
-restricted and they can only be used in a ``linear''
-(non-recirculating) lattice branch. Only one \vn{e_gun} can be present
-in a lattice branch and, if it is present, it must be, except for
-possibly \vn{marker} or \vn{null_ele} elements, the first element in
-any branch.
+Electrons generated at the cathode can have zero initial momentum and
+this presents a special problem (\sref{s:energy}). As a result, the
+use of \vn{e_gun} elements are restricted and they can only be used in
+a ``linear'' (non-recirculating) lattice branch. Only one \vn{e_gun}
+can be present in a lattice branch and, if it is present, it must be,
+except for possibly \vn{marker} or \vn{null_ele} elements, the first
+element in any branch.
  
 Note: In order to be able to avoid problems with a zero reference
 momentum at the beginning of the \vn{e_gun}, the reference momentum

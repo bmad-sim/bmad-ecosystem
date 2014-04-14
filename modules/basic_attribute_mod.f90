@@ -602,6 +602,7 @@ call init_attribute_name1 (e_gun$, gradient$,                       'GRADIENT')
 call init_attribute_name1 (e_gun$, gradient_err$,                   'GRADIENT_ERR')
 call init_attribute_name1 (e_gun$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (e_gun$, field$,                          'FIELD')
+call init_attribute_name1 (e_gun$, rf_frequency$,                   'RF_FREQUENCY')
 
 call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', dependent$)
 call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', dependent$)
