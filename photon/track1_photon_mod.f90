@@ -351,7 +351,7 @@ if (target%enabled) then
 
   ! Correction for bulge in line projected onto (y, phi) sphere.
 
-  cos2_dphi = cos(phi_max - phi_min) / 2)**2
+  cos2_dphi = cos((phi_max - phi_min)/2)**2
 
   if (y_max > 0) y_max = y_max / sqrt((1 - y_max**2) * cos2_dphi + y_max**2)
   if (y_min < 0) y_min = y_min / sqrt((1 - y_min**2) * cos2_dphi + y_min**2)
