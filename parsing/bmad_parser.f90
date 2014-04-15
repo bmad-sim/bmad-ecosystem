@@ -88,7 +88,8 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .true.  
 
 if (present(err_flag)) err_flag = .true.
-bp_com%error_flag = .false.              ! set to true on an error
+bp_com%error_flag = .false.              ! Set to true on an error
+bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 bp_com%write_digested = .true.
 bp_com%do_superimpose = .true.
@@ -355,6 +356,7 @@ parsing_loop: do
         exit
       endif
       call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err)
+      if (bp_com%fatal_error_flag) exit parsing_loop
     enddo
     cycle parsing_loop
   endif
@@ -425,6 +427,7 @@ parsing_loop: do
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
         call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx))
+        if (bp_com%fatal_error_flag) exit parsing_loop
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
       endif
       bp_com%parse_line = ''  ! Might be needed in case of error.
@@ -480,6 +483,7 @@ parsing_loop: do
       ele_found = .true.
       wild_and_key0 = (key == 0 .and. wild_here)
       call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
+      if (bp_com%fatal_error_flag) exit parsing_loop
       if (err .or. delim_found) then
         if (.not. err .and. delim_found) call parser_error ('BAD DELIMITER: ' // delim)
         bp_com%parse_line = '' 
@@ -676,10 +680,16 @@ parsing_loop: do
       exit
     endif
     call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, err, plat%ele(n_max))
+    if (bp_com%fatal_error_flag) exit parsing_loop
     if (err) cycle parsing_loop
   enddo
 
 enddo parsing_loop       ! main parsing loop
+
+if (bp_com%fatal_error_flag) then
+  call parser_end_stuff
+  return
+endif
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
