@@ -157,7 +157,8 @@ type bp_common_struct
   character(40) parser_name
   character(200) :: dirs(2) 
   logical :: bmad_parser_calling = .false.              ! used for expand_lattice
-  logical error_flag     
+  logical error_flag                           ! Set True on error
+  logical fatal_error_flag                     ! Set True on fatal (must abort now) error 
   logical input_line_meaningful
   logical do_superimpose
   logical write_digested      ! For bmad_parser
@@ -1796,7 +1797,7 @@ if (logic_option(.false., call_check)) then
     bp_com%parse_line = bp_com%parse_line(7:)
     call word_read (bp_com%parse_line, ',} ',  line, ix_word, delim, delim_found, bp_com%parse_line)
     bp_com%parse_line = delim // bp_com%parse_line  ! put delim back on parse line.
-    call parser_file_stack ('push_inline', line)
+    call parser_file_stack ('push_inline', line); if (bp_com%fatal_error_flag) return
   endif
 endif
 
@@ -3513,7 +3514,10 @@ endif
 
 if (.not. logic_option(.false., warn_only)) then
   bp_com%error_flag = .true.
-  if (logic_option(.false., stop_here) .and. global_com%exit_on_error) stop
+  if (logic_option(.false., stop_here)) then
+    if (global_com%exit_on_error) stop
+    bp_com%fatal_error_flag = .true.
+  endif
 endif
 
 end subroutine parser_error

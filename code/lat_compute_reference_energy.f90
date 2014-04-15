@@ -136,6 +136,7 @@ do ib = 0, ubound(lat%branch, 1)
       gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
       call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
       start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
+      call rf_auto_scale_phase_and_amp (gun_ele, branch%param, err); if (err) return
       call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
       if (.not. particle_is_moving_forward(end_orb)) then
         call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &

@@ -73,6 +73,7 @@ if (present(err_flag)) err_flag = .true.
 bp_com%write_digested2 = .false.
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
+bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
 ! bmad_parser (after an expand_lattice command). 
