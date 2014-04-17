@@ -21,7 +21,7 @@ contains
 ! Routine to set the phase offset and amplitude scale of the accelerating field if
 ! this field is defined. This routine works on lcavity, rfcavity and e_gun elements.
 !
-! For e_gun elements there is no phase to calculate and just the field amplitude scalled is cacluated.
+! For e_gun elements there is no phase to calculate if the rf_frequency is zero.
 !
 ! The "phase offset" is an addititive constant added to the RF phase so that ele%value(phi0$)
 ! is truely relative to the max accelerating phase for lcavities and relative to the accelerating
