@@ -594,6 +594,8 @@ call init_attribute_name1 (def_beam_start$, phase_y$,               'PHASE_Y')
 call init_attribute_name1 (def_beam_start$, t$,                     'T')
 call init_attribute_name1 (def_beam_start$, e_photon$,              'E_PHOTON')
 
+call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
+call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)
 call init_attribute_name1 (e_gun$, e_tot_start$,                    'e_tot_start', private$)
 call init_attribute_name1 (e_gun$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (e_gun$, voltage$,                        'VOLTAGE')

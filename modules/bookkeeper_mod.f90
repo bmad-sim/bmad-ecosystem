@@ -1328,7 +1328,7 @@ end subroutine makeup_super_slave
 !--------------------------------------------------------------------------
 !+
 ! Subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset,
-!                                    param, at_upstream_end, at_downstream_end, err_flag, old_slice)
+!                          param, include_upstream_end, include_downstream_end, err_flag, old_slice)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
 ! Note: This routine assumes that the following call has been made before hand:
@@ -1343,14 +1343,14 @@ end subroutine makeup_super_slave
 !   use bmad
 !
 ! Input:
-!   ele_in          -- Ele_struct: Original element to slice
-!   l_slice         -- Real(rp): Length of the slice
-!   offset          -- Real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
-!   param           -- Lat_param_struct: lattice paramters.
-!   at_upstream_end -- Logical: Sliced_ele contains the ele's entrance end?
-!   at_downstream_end     -- Logical: Sliced_ele contains the ele's exit end?
-!   old_slice       -- Logical, optional: Previous slice. If present this saves computation
-!                        time of the refernece energy and time at the start of the present slice.
+!   ele_in            -- Ele_struct: Original element to slice
+!   l_slice           -- Real(rp): Length of the slice
+!   offset            -- Real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
+!   param             -- Lat_param_struct: lattice paramters.
+!   include_upstream_end   -- Logical: Sliced_ele contains the ele's entrance end?
+!   include_downstream_end -- Logical: Sliced_ele contains the ele's exit end?
+!   old_slice         -- Logical, optional: Previous slice. If present this saves computation
+!                          time of the refernece energy and time at the start of the present slice.
 !
 ! Output:
 !   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
@@ -1358,7 +1358,7 @@ end subroutine makeup_super_slave
 !-
 
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
-                                       param, at_upstream_end, at_downstream_end, err_flag, old_slice)
+                             param, include_upstream_end, include_downstream_end, err_flag, old_slice)
 
 implicit none
 
@@ -1371,7 +1371,7 @@ type (coord_struct) time_ref_orb_out
 real(rp) l_slice, offset, in_len, ref_time_start, p0c_start, e_tot_start, r
 real(rp) w_inv(3,3), dl
 
-logical at_upstream_end, at_downstream_end, err_flag, err2_flag
+logical include_upstream_end, include_downstream_end, err_flag, err2_flag
 
 character(24) :: r_name = 'create_element_slice'
 
@@ -1401,7 +1401,7 @@ endif
 ! Excluding the rotation, a patch is just a drift.
 
 if (ele_in%key == patch$) then
-  if (at_upstream_end .and. ele_in%orientation == 1 .or. at_downstream_end .and. ele_in%orientation == -1) then
+  if (include_upstream_end .and. ele_in%orientation == 1 .or. include_downstream_end .and. ele_in%orientation == -1) then
     call floor_angles_to_w_mat (ele_in%value(x_pitch$), ele_in%value(y_pitch$), ele_in%value(tilt$), w_mat_inv = w_inv)
     sliced_ele%key = patch$
     dl = ele_in%value(l$) - l_slice
@@ -1469,7 +1469,7 @@ endif
 
 !
 
-call makeup_super_slave1 (sliced_ele, ele_in, offset, param, at_upstream_end, at_downstream_end, err2_flag)
+call makeup_super_slave1 (sliced_ele, ele_in, offset, param, include_upstream_end, include_downstream_end, err2_flag)
 if (err2_flag) return
 
 ! Use a speedier tracking method.
@@ -1527,7 +1527,7 @@ end subroutine create_element_slice
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine makeup_super_slave1 (slave, lord, offset, param, at_upstream_end, at_downstream_end)
+! Subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end)
 !
 ! Routine to construct a super_slave from a super_lord when the slave has only one lord.
 ! Note: Reference energy and times are not computed in this routine.
@@ -1540,15 +1540,15 @@ end subroutine create_element_slice
 !   lord   -- Ele_struct: Lord element.
 !   offset -- Real(rp): offset of entrance end of slave from entrance end of the lord.
 !   param  -- Lat_param_struct: lattice paramters.
-!   at_upstream_end -- Logical: Slave contains the lord's entrance end?
-!   at_downstream_end     -- Logical: Slave contains the lord's exit end?
+!   include_upstream_end -- Logical: Slave contains the lord's entrance end?
+!   include_downstream_end     -- Logical: Slave contains the lord's exit end?
 !
 ! Output:
 !   slave    -- Ele_struct: Slave element with appropriate values set.
 !   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine makeup_super_slave1 (slave, lord, offset, param, at_upstream_end, at_downstream_end, err_flag)
+subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end, err_flag)
 
 implicit none
 
@@ -1561,7 +1561,7 @@ real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
 real(rp) xp, yp, roll, r_roll, tilt, dx, dy
 
 integer i
-logical at_upstream_end, at_downstream_end, err_flag
+logical include_upstream_end, include_downstream_end, err_flag
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1578,6 +1578,7 @@ endif
 ! Reference energy and time computed in ele_compute_ref_energy_and_time.
 
 value = lord%value
+
 value(l$)              = slave%value(l$)                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(ref_time_start$) = slave%value(ref_time_start$)
@@ -1586,6 +1587,13 @@ value(p0c_start$)      = slave%value(p0c_start$)
 value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(num_steps$)      = slave%value(num_steps$)
+
+! Ref energy shift for e_gun only happens at start of element.
+
+if (lord%key == e_gun$ .and. .not. include_upstream_end) then
+  value(e_tot_ref_init$) = lord%value(e_tot_start$)
+  value(p0c_ref_init$)   = lord%value(p0c_start$)
+endif
 
 !
 
@@ -1690,16 +1698,16 @@ if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_pole$) = l
 !     2) zero the face angles next to the split
 
 if (slave%key == sbend$) then
-  if ((slave%orientation == 1 .and. .not. at_upstream_end) .or. &
-      (slave%orientation == -1 .and. .not. at_downstream_end)) then 
+  if ((slave%orientation == 1 .and. .not. include_upstream_end) .or. &
+      (slave%orientation == -1 .and. .not. include_downstream_end)) then 
     slave%value(e1$)    = 0
     slave%value(h1$)    = 0
     slave%value(fint$)  = 0
     slave%value(hgap$)  = 0
   endif
 
-  if ((slave%orientation == 1 .and. .not. at_downstream_end) .or. &
-      (slave%orientation == -1 .and. .not. at_upstream_end)) then
+  if ((slave%orientation == 1 .and. .not. include_downstream_end) .or. &
+      (slave%orientation == -1 .and. .not. include_upstream_end)) then
     slave%value(e2$)    = 0
     slave%value(h2$)    = 0
     slave%value(fintx$) = 0

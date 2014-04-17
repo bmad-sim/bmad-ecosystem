@@ -26,8 +26,7 @@ use basic_bmad_interface
 !   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !
-! Exception: If ele is an init_ele (branch%ele(0)), orb%p0c is shifted to ele%value(p0c$).
-! Additionally, if ele is an init_ele, and vec is zero or not present, orb%vec(6) is shifted
+! Note: Unless shift_vec6 is set to False, if ele is an init_ele or e_gun, orb%vec(6) is shifted
 ! so that the particle's energy is maintained at ele%value(p0c_start$).
 !
 ! Note: For a photon, orb%vec(5) is set depending upon where the photon is relative to the element.
@@ -1041,9 +1040,13 @@ if (present(ele)) then
 
     orb2%p0c = p0c
 
-    ! Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
-    if (ele%key == beginning_ele$ .and. logic_option(.true., shift_vec6)) then
-      orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+    ! E_gun shift. Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
+    if (logic_option(.true., shift_vec6)) then
+      if (ele%key == beginning_ele$) then
+        orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+      elseif (ele%key == e_gun$) then
+        orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_ref_init$) - ele%value(p0c$)) / ele%value(p0c$)
+      endif
     endif
 
     if (orb2%vec(6) == 0) then
