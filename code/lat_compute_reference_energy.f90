@@ -387,6 +387,11 @@ case (e_gun$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
+  if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
+    call rf_auto_scale_phase_and_amp (ele, param, err)
+    if (err) return
+  endif
+
   call track_this_ele (.true.)
   call calc_time_ref_orb_out
 
