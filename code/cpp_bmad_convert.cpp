@@ -720,14 +720,14 @@ extern "C" void em_field_mode_to_f (const CPP_em_field_mode& C, Bmad_em_field_mo
   unsigned int n_grid = 0; if (C.grid != NULL) n_grid = 1;
 
   // c_side.to_f2_call
-  em_field_mode_to_f2 (F, C.m, C.harmonic, C.f_damp, C.dphi0_ref, C.stored_energy,
+  em_field_mode_to_f2 (F, C.m, C.harmonic, C.f_damp, C.phi0_ref, C.stored_energy,
       C.phi0_azimuth, C.field_scale, C.master_scale, *C.map, n_map, *C.grid, n_grid);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void em_field_mode_to_c2 (CPP_em_field_mode& C, c_Int& z_m, c_Int& z_harmonic,
-    c_Real& z_f_damp, c_Real& z_dphi0_ref, c_Real& z_stored_energy, c_Real& z_phi0_azimuth,
+    c_Real& z_f_damp, c_Real& z_phi0_ref, c_Real& z_stored_energy, c_Real& z_phi0_azimuth,
     c_Real& z_field_scale, c_Int& z_master_scale, Bmad_em_field_map_class* z_map, Int n_map,
     Bmad_em_field_grid_class* z_grid, Int n_grid) {
 
@@ -738,7 +738,7 @@ extern "C" void em_field_mode_to_c2 (CPP_em_field_mode& C, c_Int& z_m, c_Int& z_
   // c_side.to_c2_set[real, 0, NOT]
   C.f_damp = z_f_damp;
   // c_side.to_c2_set[real, 0, NOT]
-  C.dphi0_ref = z_dphi0_ref;
+  C.phi0_ref = z_phi0_ref;
   // c_side.to_c2_set[real, 0, NOT]
   C.stored_energy = z_stored_energy;
   // c_side.to_c2_set[real, 0, NOT]

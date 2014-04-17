@@ -285,7 +285,7 @@ bool operator== (const CPP_em_field_mode& x, const CPP_em_field_mode& y) {
   is_eq = is_eq && (x.m == y.m);
   is_eq = is_eq && (x.harmonic == y.harmonic);
   is_eq = is_eq && (x.f_damp == y.f_damp);
-  is_eq = is_eq && (x.dphi0_ref == y.dphi0_ref);
+  is_eq = is_eq && (x.phi0_ref == y.phi0_ref);
   is_eq = is_eq && (x.stored_energy == y.stored_energy);
   is_eq = is_eq && (x.phi0_azimuth == y.phi0_azimuth);
   is_eq = is_eq && (x.field_scale == y.field_scale);

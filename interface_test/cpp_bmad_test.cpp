@@ -931,7 +931,7 @@ void set_CPP_em_field_mode_test_pattern (CPP_em_field_mode& C, int ix_patt) {
   rhs = 3 + offset; C.f_damp = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.dphi0_ref = rhs;
+  rhs = 4 + offset; C.phi0_ref = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 5 + offset; C.stored_energy = rhs;

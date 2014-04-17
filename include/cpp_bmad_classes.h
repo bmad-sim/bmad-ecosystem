@@ -804,7 +804,7 @@ public:
   Int m;
   Int harmonic;
   Real f_damp;
-  Real dphi0_ref;
+  Real phi0_ref;
   Real stored_energy;
   Real phi0_azimuth;
   Real field_scale;
@@ -816,7 +816,7 @@ public:
     m(0),
     harmonic(0),
     f_damp(0.0),
-    dphi0_ref(0.0),
+    phi0_ref(0.0),
     stored_energy(0.0),
     phi0_azimuth(0.0),
     field_scale(1),

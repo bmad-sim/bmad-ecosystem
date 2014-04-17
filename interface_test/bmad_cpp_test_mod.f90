@@ -1425,7 +1425,7 @@ rhs = 2 + offset; F%harmonic = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%f_damp = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%dphi0_ref = rhs
+rhs = 4 + offset; F%phi0_ref = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 5 + offset; F%stored_energy = rhs
 !! f_side.test_pat[real, 0, NOT]

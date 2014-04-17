@@ -1950,13 +1950,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_field_mode_to_c2 (C, z_m, z_harmonic, z_f_damp, z_dphi0_ref, z_stored_energy, &
+  subroutine em_field_mode_to_c2 (C, z_m, z_harmonic, z_f_damp, z_phi0_ref, z_stored_energy, &
       z_phi0_azimuth, z_field_scale, z_master_scale, z_map, n_map, z_grid, n_grid) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     type(c_ptr), value :: z_map, z_grid
-    real(c_double) :: z_f_damp, z_dphi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
+    real(c_double) :: z_f_damp, z_phi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
     integer(c_int), value :: n_map, n_grid
     integer(c_int) :: z_m, z_harmonic, z_master_scale
   end subroutine
@@ -1982,7 +1982,7 @@ n_grid = 0
 if (associated(F%grid)) n_grid = 1
 
 !! f_side.to_c2_call
-call em_field_mode_to_c2 (C, F%m, F%harmonic, F%f_damp, F%dphi0_ref, F%stored_energy, &
+call em_field_mode_to_c2 (C, F%m, F%harmonic, F%f_damp, F%phi0_ref, F%stored_energy, &
     F%phi0_azimuth, F%field_scale, F%master_scale, c_loc(F%map), n_map, c_loc(F%grid), n_grid)
 
 end subroutine em_field_mode_to_c
@@ -2003,7 +2003,7 @@ end subroutine em_field_mode_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_field_mode_to_f2 (Fp, z_m, z_harmonic, z_f_damp, z_dphi0_ref, z_stored_energy, &
+subroutine em_field_mode_to_f2 (Fp, z_m, z_harmonic, z_f_damp, z_phi0_ref, z_stored_energy, &
     z_phi0_azimuth, z_field_scale, z_master_scale, z_map, n_map, z_grid, n_grid) bind(c)
 
 
@@ -2017,7 +2017,7 @@ integer(c_int) :: z_m, z_harmonic, z_master_scale
 type(em_field_map_struct), pointer :: f_map
 integer(c_int), value :: n_map, n_grid
 type(em_field_grid_struct), pointer :: f_grid
-real(c_double) :: z_f_damp, z_dphi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
+real(c_double) :: z_f_damp, z_phi0_ref, z_stored_energy, z_phi0_azimuth, z_field_scale
 type(c_ptr), value :: z_map, z_grid
 
 call c_f_pointer (Fp, F)
@@ -2029,7 +2029,7 @@ F%harmonic = z_harmonic
 !! f_side.to_f2_trans[real, 0, NOT]
 F%f_damp = z_f_damp
 !! f_side.to_f2_trans[real, 0, NOT]
-F%dphi0_ref = z_dphi0_ref
+F%phi0_ref = z_phi0_ref
 !! f_side.to_f2_trans[real, 0, NOT]
 F%stored_energy = z_stored_energy
 !! f_side.to_f2_trans[real, 0, NOT]
