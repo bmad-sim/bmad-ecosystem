@@ -435,7 +435,7 @@ call init_em_field (ele%em_field, n_em_field_mode)
 if (n_em_field_mode > 0) then
   do i = 1, n_em_field_mode
     mode => ele%em_field%mode(i)
-    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%dphi0_ref, &
+    read (d_unit, err = 9140) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%phi0_ref, &
                          mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
     if (ix_ele /= 0) then

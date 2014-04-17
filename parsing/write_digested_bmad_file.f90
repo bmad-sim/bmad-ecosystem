@@ -353,7 +353,7 @@ if (n_em_field_mode > 0) then
     ng = 0
     if (associated(mode%grid)) ng = size(mode%grid%pt)
 
-    write (d_unit) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%dphi0_ref, &
+    write (d_unit) nf, ng, ix_ele, ix_branch, mode%harmonic, mode%f_damp, mode%phi0_ref, &
                    mode%stored_energy, mode%m, mode%phi0_azimuth, mode%field_scale, mode%master_scale
 
     if (ix_ele == 0 .and. nf > 0) then

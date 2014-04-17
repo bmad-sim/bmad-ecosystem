@@ -3,7 +3,7 @@ module rf_mod
 use runge_kutta_mod
 use bookkeeper_mod
 
-real(rp), pointer, private :: field_scale, dphi0_ref
+real(rp), pointer, private :: field_scale, phi0_ref
 type (lat_param_struct), pointer, private :: param_com
 type (ele_struct), pointer, private :: ele_com
 
@@ -85,7 +85,7 @@ integer, parameter :: n_sample = 16
 
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, E_tol
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
-real(rp) value_saved(num_ele_attrib$), dphi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
+real(rp) value_saved(num_ele_attrib$), phi0_ref_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
 real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
@@ -118,11 +118,11 @@ endif
 if (.not. do_scale_phase .and. .not. do_scale_amp) return
 
 ! Init.
-! Note: dphi0_ref is set in neg_pz_calc
+! Note: phi0_ref is set in neg_pz_calc
 
 if (ele%tracking_method == mad$) return
 
-! bmad_standard just needs to set e_tot$, p0c$, and dphi0_ref$
+! bmad_standard just needs to set e_tot$, p0c$, and phi0_ref$
 
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
@@ -136,16 +136,16 @@ if (ele%tracking_method == bmad_standard$) then
   endif 
   
   if (absolute_time_tracking(ele)) then
-    ele%value(dphi0_ref$) = -ele%value(rf_frequency$) * ele%value(ref_time_start$)
+    ele%value(phi0_ref$) = -ele%value(rf_frequency$) * ele%value(ref_time_start$)
   else
-    ele%value(dphi0_ref$) = 0
+    ele%value(phi0_ref$) = 0
   endif
   return
 endif
 
 
-call pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
-dphi0_ref_original = dphi0_ref
+call pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
+phi0_ref_original = phi0_ref
 
 if (.not. associated(field_scale)) then
   call out_io (s_fatal$, r_name, 'CANNOT DETERMINE WHAT TO SCALE. NO FIELD MODE WITH HARMONIC = 1, M = 0', &
@@ -163,9 +163,12 @@ select case (ele%key)
 case (rfcavity$)
   dE_peak_wanted = ele%value(voltage$)
   e_tot_start = ele%value(e_tot$)
-case (lcavity$, e_gun$)
+case (lcavity$)
   dE_peak_wanted = ele%value(gradient$) * ele%value(l$)
   e_tot_start = ele%value(e_tot_start$)
+case (e_gun$)
+  dE_peak_wanted = ele%value(gradient$) * ele%value(l$)
+  e_tot_start = ele%value(e_tot_ref_init$)
 case default
   call out_io (s_fatal$, r_name, 'CONFUSED ELEMENT TYPE!')
   if (global_com%exit_on_error) call err_exit ! exit on error.
@@ -203,20 +206,35 @@ phi_tol = 1d-5
 !------------------------------------------------------
 ! zero frequency e_gun
 
-if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
+if (ele%key == e_gun$ .and. .not. do_scale_phase) then
   tracking_method_saved = ele%tracking_method
-  if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
+  value_saved = ele%value
 
-  do
+  if (ele%tracking_method == bmad_standard$) ele%tracking_method = time_runge_kutta$
+  ele%value(gradient_err$) = 0
+
+  pz_max = pz_calc(phi_max, err_flag)
+  if (err_flag) return
+  if (is_lost) field_scale = -field_scale ! Maby field in wrong direction?
+
+  do i = 1, 100
     pz_max = pz_calc(phi_max, err_flag)
     if (err_flag) return
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
-    if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
+    if (abs(scale_correct) > 1000) scale_correct = scale_correct / 10
+    if (abs(scale_correct) > 1000) scale_correct = sign(1000.0_rp, scale_correct)
     field_scale = field_scale * scale_correct
     if (abs(scale_correct - 1) < scale_tol) exit
   enddo
 
+  if (i == 101) then
+    call out_io (s_fatal$, r_name, 'CANNOT FIND CORRECT AMPLITUDE SCALE FOR: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit ! exit on error.
+  endif
+
   ele%tracking_method = tracking_method_saved
+  ele%value = value_saved
+
   return
 endif
 
@@ -227,17 +245,23 @@ value_saved = ele%value
 ele%value(phi0$) = 0
 ele%value(dphi0$) = 0
 ele%value(phi0_err$) = 0
-if (ele%key == lcavity$) ele%value(gradient_err$) = 0
+if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0
 
 tracking_method_saved = ele%tracking_method
-if (ele%tracking_method == bmad_standard$) ele%tracking_method = runge_kutta$
+if (ele%tracking_method == bmad_standard$) then
+  if (ele%key == e_gun$) then
+    ele%tracking_method = time_runge_kutta$
+  else
+    ele%tracking_method = runge_kutta$
+  endif
+endif
 
-phi_max = dphi0_ref   ! Init guess
+phi_max = phi0_ref   ! Init guess
 if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
 
 phi_max_old = 100 ! Number far from unity
 
-! See if %dphi0_ref and %field_scale are already set correctly.
+! See if %phi0_ref and %field_scale are already set correctly.
 ! If so we can quit.
 
 phase_scale_good = .true.
@@ -260,7 +284,7 @@ if (.not. is_lost) then
 
   if (phase_scale_good .and. amp_scale_good) then
     call cleanup_this()
-    dphi0_ref = dphi0_ref_original
+    phi0_ref = phi0_ref_original
     return
   endif
 endif
@@ -278,9 +302,9 @@ if (do_scale_amp) then
     do i = 1, n_pts
       s = ele%value(l$) * (2*i - 1.0) / (2*n_pts)
       ! Sample field at two phases and take the max. This is crude but effective.
-      dphi0_ref = 0
+      phi0_ref = 0
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field1)
-      dphi0_ref = pi/2
+      phi0_ref = pi/2
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field2)
       integral = integral + max(abs(field1%e(3)), abs(field2%e(3))) * ele%value(l$) / n_pts
     enddo
@@ -306,7 +330,7 @@ if (do_scale_amp) then
   enddo
 endif
 
-! OK so the input %dphi0_ref or %field_scale are not set correctly...
+! OK so the input %phi0_ref or %field_scale are not set correctly...
 ! First choose a starting phi_max by finding an approximate phase for max acceleration.
 ! We start by testing n_sample phases.
 ! pz_max1 gives the maximal acceleration. pz_max2 gives the second largest.
@@ -455,7 +479,7 @@ enddo main_loop
 ! about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
-  value_saved(dphi0_max$) = dphi0_ref  ! Save for use with OPAL
+  value_saved(dphi0_max$) = phi0_ref  ! Save for use with OPAL
   if (do_scale_phase) then
     dphi = 0.1
     phi_max = phi_max - dphi
@@ -465,7 +489,7 @@ if (ele%key == rfcavity$) then
       if (pz < 0) exit
       phi_max = phi
     enddo
-    dphi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp)
+    phi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp)
   endif
 endif
 
@@ -475,7 +499,7 @@ call cleanup_this()
 
 if (associated (ele%branch)) then
   if (do_scale_amp)   call set_flags_for_changed_attribute (ele, field_scale)
-  if (do_scale_phase) call set_flags_for_changed_attribute (ele, dphi0_ref)
+  if (do_scale_phase) call set_flags_for_changed_attribute (ele, phi0_ref)
 endif
 
 !------------------------------------
@@ -487,12 +511,12 @@ select case (ele%field_calc)
 case (bmad_standard$) 
   if (associated(field_scale, ele%value(field_scale$))) then
     value_saved(field_scale$) = field_scale 
-    value_saved(dphi0_ref$) = dphi0_ref
+    value_saved(phi0_ref$) = phi0_ref
   endif
 end select
 
 ele%value = value_saved
-if (.not. do_scale_phase) dphi0_ref = dphi0_ref_original
+if (.not. do_scale_phase) phi0_ref = phi0_ref_original
 
 ele%tracking_method = tracking_method_saved
 
@@ -546,7 +570,7 @@ logical err_flag
 
 ! 
 
-dphi0_ref = phi
+phi0_ref = phi
 call init_coord (start_orb, ele = ele_com, at_downstream_end = .false., particle = param_com%particle)
 call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 
@@ -562,7 +586,7 @@ end function pz_calc
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
+! Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
 !
 ! Routine to set pointers to the variables within an element used for auto scaling.
 !
@@ -572,34 +596,34 @@ end function pz_calc
 ! Output:
 !   field_scale -- Real(rp), pointer: Pointer to the amplitude var.
 !                     Points to null if does not exist.
-!   dphi0_ref   -- Real(rp), pointer: Pointer to the phase var. 
+!   phi0_ref   -- Real(rp), pointer: Pointer to the phase var. 
 !-
 
 
-Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, dphi0_ref)
+Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
 
 implicit none
 
 type (ele_struct), target :: ele
-real(rp), pointer :: field_scale, dphi0_ref
+real(rp), pointer :: field_scale, phi0_ref
 integer i
 
 !
 
 nullify(field_scale)
-nullify(dphi0_ref)
+nullify(phi0_ref)
 
 select case (ele%field_calc)
 case (bmad_standard$) 
   field_scale => ele%value(field_scale$)
-  dphi0_ref => ele%value(dphi0_ref$)
+  phi0_ref => ele%value(phi0_ref$)
 
 case (grid$, map$, custom$)
   do i = 1, size(ele%em_field%mode)
     if ((ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) .or. &
                 (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
       field_scale => ele%em_field%mode(i)%field_scale
-      dphi0_ref => ele%em_field%mode(i)%dphi0_ref
+      phi0_ref => ele%em_field%mode(i)%phi0_ref
       exit
     endif
   enddo

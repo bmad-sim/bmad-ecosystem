@@ -438,7 +438,7 @@ is_eq = is_eq .and. (f1%harmonic == f2%harmonic)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%f_damp == f2%f_damp)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%dphi0_ref == f2%dphi0_ref)
+is_eq = is_eq .and. (f1%phi0_ref == f2%phi0_ref)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%stored_energy == f2%stored_energy)
 !! f_side.equality_test[real, 0, NOT]

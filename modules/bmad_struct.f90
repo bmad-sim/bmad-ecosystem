@@ -302,7 +302,7 @@ type em_field_mode_struct
   integer m                     ! Mode varies as cos(m*phi - phi0_azimuth)
   integer :: harmonic = 0       ! Harmonic of fundamental
   real(rp) :: f_damp = 0        ! 1/Q damping factor 
-  real(rp) :: dphi0_ref = 0     ! Mode oscillates as: twopi * (f * t + dphi0_ref)
+  real(rp) :: phi0_ref = 0     ! Mode oscillates as: twopi * (f * t + phi0_ref)
   real(rp) :: stored_energy = 0 ! epsilon_0/2 * \int_vol |E|^2 [Joules]
   real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
   real(rp) :: field_scale = 1   ! Factor to scale the fields by
@@ -799,7 +799,7 @@ integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, p
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
 integer, parameter :: dphi0$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
-integer, parameter :: dphi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
+integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
 integer, parameter :: dphi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29

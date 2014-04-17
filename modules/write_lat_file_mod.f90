@@ -446,7 +446,7 @@ do ib = 0, ubound(lat%branch, 1)
           write (iu2, '(4x, a, i0, a)') 'm             = ', mode%m, ','
           write (iu2, '(4x, a, i0, a)') 'harmonic      = ', mode%harmonic, ','
           write (iu2, '(4x, 3a)')       'f_damp        = ', trim(str(mode%f_damp)), ','
-          write (iu2, '(4x, 3a)')       'dphi0_ref     = ', trim(str(mode%dphi0_ref)), ','
+          write (iu2, '(4x, 3a)')       'phi0_ref     = ', trim(str(mode%phi0_ref)), ','
           write (iu2, '(4x, 3a)')       'phi0_azimuth  = ', trim(str(mode%phi0_azimuth)), ','
           if (mode%master_scale > 0) write (iu2, '(3a)') &
                                         'master_scale  = ', trim(attribute_name(ele, mode%master_scale)), ','

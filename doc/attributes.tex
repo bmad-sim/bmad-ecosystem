@@ -1751,7 +1751,7 @@ and DC fields must use \vn{grid}.
 \subsection{Map}
 
 The syntax for specifying the electromagnetic fields is
-\index{m}\index{field}\index{mode}\index{freq}\index{dphi0_ref}
+\index{m}\index{field}\index{mode}\index{freq}\index{phi0_ref}
 \index{f_damp}\index{field_scale}\index{master_scale}\index{phi0_azimuth}
 \index{map}\index{grid}
 \begin{example}
@@ -1759,7 +1759,7 @@ The syntax for specifying the electromagnetic fields is
     mode = \{
       m             = <Integer>, ! Mode number
       harmonic      = <Integer>, ! Harmonic number 
-      dphi0_ref     = <Real>,    ! Phase of oscillations.
+      phi0_ref     = <Real>,    ! Phase of oscillations.
       f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
       field_scale   = <Real>,    ! Scale factor for the E & B fields.
       master_scale  = <Name>,    ! Master scaling parameter for E & B fields.
@@ -1834,7 +1834,7 @@ The field of a given mode oscillates as given by Eq.~\ref{eseei}
   e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
 \Endeq
 The phase of the oscillation, $\theta_0$ comes from two
-sources: the phase \vn{dphi0_ref} set for the mode and an overall phase
+sources: the phase \vn{phi0_ref} set for the mode and an overall phase
 \vn{phi_ref} given by
 \begin{example}
  phi_ref = phi0 + dphi0
@@ -1847,15 +1847,15 @@ $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
-    \text{dphi0_ref} + \dsfrac{f}{f_0} \, (\text{phi_ref} + \text{phi0_err}) & 
+    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phi_ref} + \text{phi0_err}) & 
     \text{lcavity element} \\
-    \text{dphi0_ref} - \dsfrac{f}{f_0} \, \text{phi_ref} & 
+    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phi_ref} & 
     \text{rfcavity element}
   \end{cases}
 \Endeq
 where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
 
-The phase \vn{dphi0_ref} of the fundamental mode is auto-scaled by Bmad
+The phase \vn{phi0_ref} of the fundamental mode is auto-scaled by Bmad
 so that a particle with $z = 0$ will go through the cavity on crest
 for a \vn{lcavity} and on the zero-crossing for an
 \vn{rfcavity}. Additionally, the field of the fundamental mode is
