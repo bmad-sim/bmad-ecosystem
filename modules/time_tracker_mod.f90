@@ -5,6 +5,7 @@ use beam_def_struct
 use em_field_mod
 use wall3d_mod
 use lat_geometry_mod
+use runge_kutta_mod ! for common struct only
 
 contains
 
@@ -69,13 +70,14 @@ type (track_struct), optional :: track
 real(rp), intent(in) :: s1, s2, dt1
 real(rp), target :: t_rel, t_old, dt_tol
 real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save
-real(rp), target  :: dvec_dt(6), vec_err(6), s_target
+real(rp), target  :: dvec_dt(6), vec_err(6), s_target 
+real(rp) :: wall_d_radius, old_wall_d_radius = 0
 
 integer, parameter :: max_step = 100000
 integer :: n_step, n_pt
 
 logical, target :: local_ref_frame
-logical :: exit_flag, err_flag, err, zbrent_needed, add_ds_safe
+logical :: exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
@@ -98,6 +100,7 @@ endif
 
 exit_flag = .false.
 err_flag = .true.
+has_hit = .false. 
 
 do n_step = 1, max_step
 
@@ -143,7 +146,39 @@ do n_step = 1, max_step
   endif
 
   ! Check wall or aperture at every intermediate step and flag for exit if wall is hit
-  call  particle_hit_wall_check_time(orb_old, orb, param, ele)
+  ! Old wall check: call  particle_hit_wall_check_time(orb_old, orb, param, ele)
+  ! Replaced by new wall check:
+  ! Adapted from runge_kutta_mod's odeint_bmad:
+  ! Check if hit wall.
+  ! If so, interpolate position particle at the hit point
+
+  if (runge_kutta_com%check_wall_aperture) then
+    wall_d_radius = wall3d_d_radius (orb%vec, ele)
+    select case (runge_kutta_com%hit_when)
+    case (outside_wall$)
+      has_hit = (wall_d_radius > 0)
+    case (wall_transition$)
+      has_hit = (wall_d_radius * old_wall_d_radius < 0 .and. n_step > 1)
+      old_wall_d_radius = wall_d_radius
+    case default
+      call out_io (s_fatal$, r_name, 'BAD RUNGE_KUTTA_COM%HIT_WHEN SWITCH SETTING!')
+      if (global_com%exit_on_error) call err_exit
+    end select
+
+    ! Cannot do anything if already hit
+    if (has_hit .and. n_step == 1) then
+      orb%state = lost$
+    endif
+
+    if (has_hit) then
+      dt_tol = ds_safe / (orb%beta * c_light) !??? okay?
+      dt = zbrent (wall_intersection_func, 0.0_rp, dt, dt_tol)
+      orb%state = lost$
+      !TODO: change to s-coordinates and: call wall_hit_handler_custom (orb_end, ele, s, t)
+    endif
+  endif
+
+ 
   if (orb%state /= alive$) exit_flag = .true.
   
   
@@ -203,6 +238,19 @@ contains
   t_rel = t_old + this_dt
 	
   end function delta_s_target
+
+  !------------------------------------------------------------------------------------------------
+  function wall_intersection_func (this_dt) result (d_radius)
+
+  real(rp), intent(in) :: this_dt
+  real(rp) d_radius
+  logical err_flag
+  !
+  call rk_time_step1 (ele, param, orb_old, t_old, this_dt, &
+	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
+  d_radius = wall3d_d_radius (orb%vec, ele)
+  t_rel = t_old + this_dt
+  end function wall_intersection_func
 
 end subroutine odeint_bmad_time
 
@@ -484,159 +532,6 @@ endif
 end subroutine em_field_kick_vector_time
   
   
-  
-
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine particle_hit_wall_check_time
-!
-! Subroutine to check whether particle has collided with element walls,
-! and to calculate location of impact if it has
-!
-! Modules needed:
-!   use bmad
-!   use capillary_mod
-!
-! Input
-!   orb     -- coord_struct: Previous particle coordinates  [t-based]
-!   orb_new -- coord_struct: Current particle coordinates [t-based]
-!   param   -- lat_param_struct: Lattice parameters
-!    %particle -- integer: Type of particle
-!   ele     -- ele_struct: Lattice element
-!
-! Output
-!   orb_new -- coord_struct: Location of hit
-!    %phase(2) -- real(rp): Used to store hit angle
-!-
-
-subroutine  particle_hit_wall_check_time(orb, orb_new, param, ele)
- 
-use capillary_mod
-
-implicit none
-
-type (coord_struct) :: orb, orb_new
-type (coord_struct), pointer :: old_orb, now_orb
-type (lat_param_struct) :: param
-type (ele_struct) :: ele
-type (wall3d_struct), pointer :: wall3d
-type (photon_track_struct), target :: particle
-integer :: section_ix
-real(rp) :: d_radius, norm, perp(3), dummy_real, p_tot
-real(rp) :: edge_tol = 1e-8
-logical :: err
-
-character(30), parameter :: r_name = 'particle_hit_wall_check_time'
-
-!-----------------------------------------------
-!Do nothing if there is no wall
-
-! Check that wall3d exists, otherwise just return
-wall3d => pointer_to_wall3d(ele, dummy_real)
-if (.not. associated(wall3d)) return
-
-old_orb => particle%old%orb
-now_orb => particle%now%orb
-
-! Prepare coordinate structures for wall3d_d_radius
-old_orb = orb
-now_orb = orb_new
-
-! Do nothing if orb_new is inside the wall
-if ( wall3d_d_radius(now_orb%vec, ele) < 0) return
-
-! Check that old_orb was inside the wall. An edge kick can make this happen. 
-d_radius = wall3d_d_radius(old_orb%vec, ele)
-if (d_radius > 0) then 
-  call out_io (s_warn$, r_name, 'OLD ORB ALSO OUTSIDE WALL IN WALL3D: ' // &
-     trim(ele%name) // ', D_RADIUS =  \f12.6\ ', d_radius )
-  orb_new%state = lost$
-  return
-  !if (global_com%exit_on_error) call err_exit
-endif
-
-!Change from particle coordinates to photon coordinates
-! (coord_struct to photon_coord_struct)
-
-!Get e_tot from momentum, calculate beta_i = c*p_i / p_tot, pretending that these are traveling at v=c
-
-p_tot = sqrt(orb_new%vec(2)**2 + orb_new%vec(4)**2 + orb_new%vec(6)**2 )
-now_orb%vec(2) = orb_new%vec(2) / p_tot
-now_orb%vec(4) = orb_new%vec(4) / p_tot
-now_orb%vec(6) = orb_new%vec(6) / p_tot
-
-p_tot = sqrt(orb%vec(2)**2 + orb%vec(4)**2 + orb%vec(6)**2)
-if (p_tot > 0) then
-  old_orb%vec(2) = orb%vec(2) / p_tot
-  old_orb%vec(4) = orb%vec(4) / p_tot
-  old_orb%vec(6) = orb%vec(6) / p_tot
-else
-  !old_orb is at rest, just give it the velocity of now_orb
-  old_orb%vec(2) = now_orb%vec(2)
-  old_orb%vec(4) = now_orb%vec(4)
-  old_orb%vec(6) = now_orb%vec(6)
-endif
-
-!More coordinate changes
-!Equations taken from track_a_capillary in capillary_mod
-!particle%old%energy = ele%value(e_tot$) * (1 + orb%vec(6))
-
-!particle%old%ix_section = 1
-
-!particle%now%energy = ele%value(e_tot$) * (1 + orb_new%vec(6))
-
-!Pretend that now_orb and old_orb are photons to calculate the wall intersection
-particle%old%track_len = 0
-particle%now%track_len = sqrt( &
-     (now_orb%vec(1) - old_orb%vec(1))**2 + &
-     (now_orb%vec(3) - old_orb%vec(3))**2 + &
-     (now_orb%vec(5) - old_orb%vec(5))**2)
-
-old_orb%vec(2) = (now_orb%vec(1) - old_orb%vec(1)) /particle%now%track_len
-old_orb%vec(4) = (now_orb%vec(3) - old_orb%vec(3)) /particle%now%track_len
-old_orb%vec(6) = (now_orb%vec(5) - old_orb%vec(5)) /particle%now%track_len
-now_orb%vec(2) = old_orb%vec(2) 
-now_orb%vec(4) = old_orb%vec(4) 
-now_orb%vec(6) = old_orb%vec(6) 
-
-!If particle hit wall, find out where
-!if (wall3d_d_radius(particle%now%orb%vec, ele) > 0) then
-
-   call capillary_photon_hit_spot_calc (particle, ele)
-
-   orb_new = now_orb
-
-   !Calculate perpendicular to get angle of impact
-   d_radius = wall3d_d_radius(particle%now%orb%vec, ele, perp)
-
-   !Calculate angle of impact; cos(hit_angle) = norm_photon_vec \dot perp
-   !****
-   !Notice we store this in orb_new%phase(2); this is so that we don't have
-   !to add another argument- yeah, it's a hack.
-   !****
-   orb_new%phase(2) = acos( &
-        ((now_orb%vec(1) - old_orb%vec(1)) * perp(1) + &
-        (now_orb%vec(3) - old_orb%vec(3)) * perp(2) + &
-        (now_orb%vec(5) - old_orb%vec(5)) * perp(3)) / particle%now%track_len)
-
-   !Restore momenta from original orb 
-   orb_new%vec(2) = orb%vec(2) 
-   orb_new%vec(4) = orb%vec(4) 
-   orb_new%vec(6) = orb%vec(6) 
-
-   !Set orb%s
-   orb_new%s = orb_new%vec(5) + ele%s - ele%value(l$)
-
-   !Note that the time is not set!
-
-   orb_new%state = lost$
-!endif
-
-end subroutine  particle_hit_wall_check_time
-
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
