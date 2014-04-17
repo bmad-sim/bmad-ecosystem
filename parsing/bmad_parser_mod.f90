@@ -828,7 +828,7 @@ if (attrib_word == 'FIELD') then
       select case (word2)
 
       case ('F_DAMP');         r_ptr => em_mode%f_damp
-      case ('DPHI0_REF');      r_ptr => em_mode%dphi0_ref
+      case ('PHI0_REF');      r_ptr => em_mode%phi0_ref
       case ('STORED_ENERGY');  r_ptr => em_mode%stored_energy
       case ('PHI0_AZIMUTH');   r_ptr => em_mode%phi0_azimuth
       case ('FIELD_SCALE');    r_ptr => em_mode%field_scale

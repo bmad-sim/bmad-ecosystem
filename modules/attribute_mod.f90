@@ -166,9 +166,9 @@ case (drift$)
   end select
 
 case (e_gun$)
-  if (present(num_valid)) num_valid = 4
+  if (present(num_valid)) num_valid = 2
   select case (tracking_method)
-  case (runge_kutta$, boris$, time_runge_kutta$, custom$)
+  case (time_runge_kutta$, custom$)
     is_valid = .true.
   end select
 
@@ -1247,7 +1247,7 @@ select case (a_name)
 case ('NUM_STEPS')
   return
 
-case ('FIELD_SCALE', 'DPHI0_REF')
+case ('FIELD_SCALE', 'PHI0_REF')
   free = .true.   ! This may not be true with autoscaling
   return
 

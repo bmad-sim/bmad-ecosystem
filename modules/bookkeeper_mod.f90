@@ -3011,10 +3011,10 @@ case (lcavity$, e_gun$)
     found = .false.
     do i = 1, size(ele%em_field%mode)
       mode => ele%em_field%mode(i)
-      if (associated(a_ptr, mode%dphi0_ref)) found = .true.
+      if (associated(a_ptr, mode%phi0_ref)) found = .true.
       if (associated(a_ptr, mode%field_scale)) found = .true.
       if (mode%master_scale > 0) found = found .or. (associated(a_ptr, ele%value(mode%master_scale)))
-      if (associated(a_ptr, mode%dphi0_ref)) found = .true.
+      if (associated(a_ptr, mode%phi0_ref)) found = .true.
     enddo
     if (found) call set_ele_status_stale (ele, ref_energy_group$)
   endif

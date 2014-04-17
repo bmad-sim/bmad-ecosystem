@@ -1971,7 +1971,7 @@ The attributes specific to an \vn{lcavity} are
                              !   respect to the RF. phi0 = 0 is on crest.
   dphi0          = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
-  dphi0_ref      = <Real>    ! Phase offset used to deal with absolute time tracking
+  phi0_ref       = <Real>    ! Phase offset used to deal with absolute time tracking
                              !  and other issues (see below).
   e_loss         = <Real>    ! Loss parameter for short range wake fields (V/Coul).
   rf_frequency   = <Real>    ! Rf frequency (Hz).
@@ -1996,7 +1996,7 @@ where the total gradient is
 \end{example}
 the phase \vn{phi_ref} is
 \begin{example}
-  phi_ref = phi0 + dphi0 + phi0_err + dphi0_ref
+  phi_ref = phi0 + dphi0 + phi0_err + phi0_ref
 \end{example}
 and \vn{phi_particle} is
 \begin{example}
@@ -2016,7 +2016,7 @@ tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 \vn{dphi0} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
 
-\vn{dphi0_ref} is a phase calculated by \bmad's RF auto-phase module
+\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
 (\sref{s:em.fields}).
 
 The energy change of the reference particle is just the energy change for a 
@@ -2773,7 +2773,7 @@ The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \index{multipass}
 where
 \begin{example}
-  phi_ref = phi0 + dphi0 + dphi0_ref
+  phi_ref = phi0 + dphi0 + phi0_ref
 \end{example}
 and
 and \vn{phi_particle} is
@@ -2796,7 +2796,7 @@ tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 charge on an electron (Table~\ref{t:constants}). Notice that the
 energy kick is independent of the sign of the charge of the particle
 
-\vn{dphi0_ref} is a phase calculated by \bmad's RF auto-phase module
+\vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
 (\sref{s:em.fields}).
 
 If \vn{harmon} is non--zero the \vn{rf_frequency} is calculated by

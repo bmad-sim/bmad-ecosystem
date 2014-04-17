@@ -371,7 +371,7 @@ select case (ele%field_calc)
 
     if (ele%value(rf_frequency$) == 0) return
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(dphi0_ref$))
+    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
     orbit%phase(1) = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
 
@@ -658,7 +658,7 @@ case(map$)
     radius = sqrt(x**2 + y**2)
     phi = atan2(y, x)
 
-    ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
+    ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
 
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
     if (freq == 0) then
@@ -745,7 +745,7 @@ case(map$)
       ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
 
       freq = ele%value(rf_frequency$) * mode%harmonic
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
       E_rho = E_rho + Er * expt
       E_phi = E_phi + Ep * expt
@@ -791,7 +791,7 @@ case(grid$)
   ! reference time for oscillating elements
   select case (ele%key)
   case(rfcavity$, lcavity$) 
-    ! Notice that it is mode%dphi0_ref that is used below. Not ele%value(dphi0_ref$).
+    ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
     if (freq == 0) then
       call out_io (s_fatal$, r_name, 'Frequency is zero for grid in cavity: ' // ele%name)
@@ -830,7 +830,7 @@ case(grid$)
       expt = 1
     else
       freq = ele%value(rf_frequency$) * mode%harmonic
-      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%dphi0_ref))
+      expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
     endif
 
     if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)

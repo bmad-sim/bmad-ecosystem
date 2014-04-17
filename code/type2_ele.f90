@@ -294,7 +294,7 @@ if (associated(ele%em_field)) then
       nl=nl+1; write (li(nl), '(a, i0)')        '    harmonic:      ', rfm%harmonic
       nl=nl+1; write (li(nl), '(2a)')           '    master_scale:  ', trim(name)
       nl=nl+1; write (li(nl), '(a, es16.8)')    '    f_damp:        ', rfm%f_damp
-      nl=nl+1; write (li(nl), '(a, es16.8)')    '    dphi0_ref:     ', rfm%dphi0_ref
+      nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_ref:     ', rfm%phi0_ref
       nl=nl+1; write (li(nl), '(a, es16.8)')    '    phi0_azimuth:  ', rfm%phi0_azimuth
       nl=nl+1; write (li(nl), '(a, es16.8)')    '    field_scale:   ', rfm%field_scale
 

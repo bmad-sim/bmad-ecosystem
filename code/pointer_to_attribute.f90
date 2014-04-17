@@ -116,7 +116,7 @@ if (a_name(1:11) == 'FIELD.MODE(') then
 
   select case (a_name)
   case ('F_DAMP');        ptr_attrib => mode%f_damp
-  case ('DPHI0_REF');     ptr_attrib => mode%dphi0_ref
+  case ('PHI0_REF');     ptr_attrib => mode%phi0_ref
   case ('STORED_ENERGY'); ptr_attrib => mode%stored_energy
   case ('PHI0_AZIMUTH');  ptr_attrib => mode%phi0_azimuth
   case ('FIELD_SCALE');   ptr_attrib => mode%field_scale
