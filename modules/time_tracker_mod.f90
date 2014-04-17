@@ -84,7 +84,7 @@ ds_safe = bmad_com%significant_length / 10
 dt_next = dt1
 
 ! local s coordinates for vec(5)
-orb%vec(5) = orb%s - (ele%s - ele%value(l$))
+orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
 ! Allocate track arrays
 
@@ -798,7 +798,7 @@ end function particle_in_global_frame
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, mc2, tref)
+! Subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -807,24 +807,22 @@ end function particle_in_global_frame
 !
 ! Input:
 !   particle   -- coord_struct: input particle coordinates
-!                    %vec(:)
-!                    %t 
-!                    %p0c
-!   mc2        -- real: particle rest mass in eV
+!   ele        -- ele_struct: Element particle is in.
 !   tref       -- real: reference time for z coordinate
+!
 ! Output:
-!    particle   -- coord_struct: output particle 
+!   particle   -- coord_struct: output particle 
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, mc2, tref)
+subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
 
 !use bmad_struct
 
 implicit none
 
 type (coord_struct), intent(inout), target ::particle
+type (ele_struct) ele
 real(rp) :: p0c
-real(rp), intent(in) :: mc2
 real(rp), intent(in) :: tref
 
 real(rp) :: pctot
@@ -839,8 +837,9 @@ pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
 vec(2) = vec(2)/p0c
 ! vec(3) = vec(3)   !this is unchanged
 vec(4) = vec(4)/p0c
-! z \equiv -c \beta(s)  (t(s) - t_0(s)) 
-vec(5) = -c_light * (pctot/sqrt(pctot**2 +mc2**2)) *  (particle%t - tref) 
+! z \equiv -c \beta(s)  (t(s) - t_0(s))
+particle%s = vec(5) + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
+vec(5) = -c_light * (pctot/sqrt(pctot**2 + mass_of(particle%species)**2)) *  (particle%t - tref) 
 vec(6) = pctot/p0c - 1.0_rp
 
 end subroutine convert_particle_coordinates_t_to_s

@@ -124,30 +124,11 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   if (ix_e_gun /= 0) then ! Have found an e_gun...
+    gun_ele%value(e_tot_ref_init$) = ele_init%value(e_tot_start$)
+    gun_ele%value(p0c_ref_init$) = ele_init%value(p0c_start$)
 
-    if (lat%rf_auto_scale_amp) then
-      ele_init%value(e_tot$) = ele_init%value(e_tot_start$) + gun_ele%value(voltage$)
-      call convert_total_energy_to (ele_init%value(e_tot$), branch%param%particle, pc = ele_init%value(p0c$))
- 
-    else
-      gun_ele%value(e_tot$) = 2 * mass_of(branch%param%particle)   ! Dummy numbers so can do tracking
-      call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
-      gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
-      gun_ele%value(p0c_start$) = gun_ele%value(p0c$)
-      call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
-      start_orb%vec(6) = (ele_init%value(p0c_start$) - gun_ele%value(p0c_start$)) / gun_ele%value(p0c_start$)
-      call rf_auto_scale_phase_and_amp (gun_ele, branch%param, err); if (err) return
-      call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-      if (.not. particle_is_moving_forward(end_orb)) then
-        call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
-                                       'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-        if (global_com%exit_on_error) call err_exit
-        return
-      endif
-      ele_init%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
-      call convert_pc_to (ele_init%value(p0c$), branch%param%particle, e_tot = ele_init%value(e_tot$))
-    endif
-
+    ele_init%value(e_tot$) = ele_init%value(e_tot_start$) + gun_ele%value(voltage$)
+    call convert_total_energy_to (ele_init%value(e_tot$), branch%param%particle, pc = ele_init%value(p0c$))
   endif
 
   ! Since Bmad is S-based it cannot handle zero reference energy. 
@@ -200,11 +181,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! wigglers would result in z-position shifts when tracking particles.
 
     if (ix_super_end < ie) then       ! If not in super_lord region...
-      call init_coord (ele%time_ref_orb_in, zero6, ele0, .true.) ! Want zero orbit except if this is an e_gun then must set pz.
-      if (ie == ix_e_gun) then
-        ele%time_ref_orb_in%vec(6) = (ele_init%value(p0c_start$) - ele_init%value(p0c$)) / ele_init%value(p0c$)
-      endif 
-
+      call init_coord (ele%time_ref_orb_in, zero6, ele0, .true.) 
     else                              ! In super_lord region
       ele%time_ref_orb_in = ele0%time_ref_orb_out
     endif
@@ -488,7 +465,7 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .false.
 
 call zero_errors_in_ele (ele, changed)
-call init_coord (orb_start, ele%time_ref_orb_in, ele, .false., param%particle)
+call init_coord (orb_start, ele%time_ref_orb_in, ele, .false., param%particle, shift_vec6 = .false.)
 if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end)) then
