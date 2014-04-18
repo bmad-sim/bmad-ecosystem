@@ -682,7 +682,7 @@ end subroutine write_astra_field_grid_file
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
-! Subroutine write_astra_field_grid_file_3D (base_filename, ele, maxfield, err)
+! Subroutine write_astra_field_grid_file_3D (base_filename, ele, maxfield, dz, err)
 !
 !   Writes 3-D field map files for Astra. The format is:
 !   Nx x[1] x[2] ....... x[Nx-1] x[Nx] 
@@ -770,12 +770,12 @@ z_max = ele%value(L$)
 
 
 x_max =  .02_rp
-x_step = 0.005
+x_step = z_step  ! Same as z TODO: generalize
 x_min = -x_max
 ix_center = nint(x_max/x_step) + 1
  
 y_max =  .02_rp
-y_step = 0.005
+y_step = z_step  ! Same as z 
 y_min = -x_max
 iy_center = nint(y_max/y_step) + 1
  
@@ -854,6 +854,12 @@ if (write_file) then
     do ifield = 1, 3
       call write_pt(ifield)
     enddo
+    ! further write B-fields for nonzero frequency (RF gun)
+    if (freq /= 0) then
+      do ifield = 4, 6
+        call write_pt(ifield)
+      enddo
+    endif
   case(lcavity$, rfcavity$)
     do ifield = 1, 6
       call write_pt(ifield)
