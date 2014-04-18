@@ -1835,21 +1835,21 @@ The field of a given mode oscillates as given by Eq.~\ref{eseei}
 \Endeq
 The phase of the oscillation, $\theta_0$ comes from two
 sources: the phase \vn{phi0_ref} set for the mode and an overall phase
-\vn{phi_ref} given by
+\vn{phase_ref} given by
 \begin{example}
- phi_ref = phi0 + dphi0
+ phase_ref = phi0 + phi0_multipass
 \end{example}
 \index{lcavity!reference phase}\index{rfcavity!reference phase}
 Unfortunately, to be consistent with \mad, the definition of
-\vn{phi_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
+\vn{phase_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
 that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
 $\theta_0$ is
 \Begineq
   \theta_0 = 
   \begin{cases}
-    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phi_ref} + \text{phi0_err}) & 
+    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phase_ref} + \text{phi0_err}) & 
     \text{lcavity element} \\
-    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phi_ref} & 
+    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phase_ref} & 
     \text{rfcavity element}
   \end{cases}
 \Endeq
@@ -1969,8 +1969,8 @@ The kick due to the coupler is
 where \vn{dP_x} and \vn{dP_y} are the transverse momentum kicks, \vn{dE} is an energy kick, and
 \begin{example}
   amp   = gradient * coupler_strength 
-  phase = twopi * (phi_particle + phi_ref + coupler_phase)         ! For lcavity \sref{s:lcav}
-        = pi/2 + twopi * (phi_particle - phi_ref + coupler_phase)  ! For rfcavity \sref{s:lcav}
+  phase = twopi * (phase_particle + phase_ref + coupler_phase)         ! For lcavity \sref{s:lcav}
+        = pi/2 + twopi * (phase_particle - phase_ref + coupler_phase)  ! For rfcavity \sref{s:lcav}
   angle = twopi * coupler_angle
 \end{example}
 The energy kick is needed to keep things symplectic. 

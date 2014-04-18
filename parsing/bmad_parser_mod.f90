@@ -491,6 +491,13 @@ if (word == 'TILT' .and. (ele%key == sbend$ .or. ele%key == rbend$)) then
   call parser_error ('BENDS HAVE A "REF_TILT" ATTRIBUTE BUT NOT A "TILT" ATTRIBUTE.')
 endif
 
+if (word == 'DPHI0') then
+  call parser_error ('THE ATTRIBUTE NAME "DPHI0" HAS BEEN CHANGED TO "PHI0_MULTIPASS"', &
+                     'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
+                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
+  word = 'PHI0_MULTIPASS'
+endif
+
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
@@ -800,17 +807,26 @@ if (attrib_word == 'FIELD') then
     em_mode => ele%em_field%mode(i_mode)
     if (ele%key == lcavity$ .or. ele%key == rfcavity$) em_mode%harmonic = 1 ! Default
 
-    ! Expect "MODE = {"
+    ! Expect "MODE = {" or "MODE_TO_AUTOSCALE ="
 
     call get_next_word (word2, ix_word, '{}=,()', delim, delim_found)
-    if (word2 /= 'MODE') then
-      call parser_error ('EXPECTED "MODE" IN FIELD DEFINITION BUT FOUND: ' // word2, 'FOR ELEMENT: ' // ele%name)
+    if (word2 /= 'MODE' .and. word2 /= 'MODE_TO_AUTOSCALE') then
+      call parser_error ('EXPECTED "MODE" OR , "MODE_TO_AUTOSCALE" IN FIELD DEFINITION BUT FOUND: ' // word2, &
+                         'FOR ELEMENT: ' // ele%name)
       return
     endif 
+
+    ! MODE_TO_AUTOSCALE 
+
+    if (word2 == 'MODE_TO_AUTOSCALE') then
+      if (.not. expect_this ('=', .true., .true., 'AFTER "MODE_TO_AUTOSCALE"')) return
+      call get_integer (ele%em_field%mode_to_autoscale, .false., err_flag, 'BAD MODE_TO_AUTOSCALE VALUE')
+      if (err_flag) return
+    endif
+
+    ! MODE = { 
+
     if (.not. expect_this ('={', .true., .true., 'AFTER "MODE"')) return
-
-    ! Read in mode...
-
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 
     do
@@ -828,10 +844,15 @@ if (attrib_word == 'FIELD') then
       select case (word2)
 
       case ('F_DAMP');         r_ptr => em_mode%f_damp
-      case ('PHI0_REF');      r_ptr => em_mode%phi0_ref
+      case ('PHI0_REF');       r_ptr => em_mode%phi0_ref
       case ('STORED_ENERGY');  r_ptr => em_mode%stored_energy
       case ('PHI0_AZIMUTH');   r_ptr => em_mode%phi0_azimuth
       case ('FIELD_SCALE');    r_ptr => em_mode%field_scale
+      case ('DPHI0_REF')
+        r_ptr => em_mode%phi0_ref  ! For backwards compatibility
+        call parser_error ('THE ATTRIBUTE NAME "DPHI0_REF" HAS BEEN CHANGED TO "PHI0_REF"', &
+                           'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
+                           '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
 
       case ('GRID') 
         call parse_rf_grid(em_mode%grid, ele, lat, delim, delim_found, err_flag)
@@ -844,17 +865,15 @@ if (attrib_word == 'FIELD') then
         do_evaluate = .false.
 
       case ('M', 'HARMONIC')
-        call get_next_word (word, ix_word, ',}', delim, delim_found)
-        if (.not. is_integer(word) .or. (delim /= ',' .and. delim /= '}')) then
-          call parser_error ('BAD "M = <INTEGER>" CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-          return
-        endif
 
-        if (word2 == 'M') then;  read (word, *) em_mode%m
-        else;                    read (word, *) em_mode%harmonic
-        endif
+        select case (word2)
+        case ('M');        call get_integer (em_mode%m, .false., err_flag, &
+                                      'BAD "FIELD MODE M = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+        case ('HARMONIC'); call get_integer (em_mode%harmonic, .false., err_flag, &
+                                      'BAD "FIELD MODE HARMONIC = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+        end select
 
+        if (err_flag) return
         do_evaluate = .false.
 
       case ('MASTER_SCALE')
@@ -934,7 +953,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     return
   endif
 
-  call get_integer (ix, err_flag); if (err_flag) return
+  call get_integer (ix, .false., err_flag, 'BAD WIGGLER "TERM(IX)" CONSTRUCT'); if (err_flag) return
 
   if (delim /= ')') then
     call parser_error ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
@@ -1119,12 +1138,12 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('PTC_MAX_FRINGE_ORDER')
-  call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
+  call get_integer (bmad_com%ptc_max_fringe_order, .false., err_flag)
   bp_com%extra%ptc_max_fringe_order_set = .true.
   bp_com%extra%ptc_max_fringe_order = bmad_com%ptc_max_fringe_order
 
 case ('TAYLOR_ORDER')
-  call get_integer (ix, err_flag)
+  call get_integer (ix, .false., err_flag)
   if (ix <= 0) then
     call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
     return
@@ -1530,17 +1549,29 @@ end subroutine get_logical
 !--------------------------------------------------------
 ! contains
 
-subroutine get_integer (i, err)
+subroutine get_integer (i, look_for_equal_sign, err, str1, str2)
 
 integer i
-logical err
+logical look_for_equal_sign, err
+character(*), optional :: str1, str2
+
+!
+
+if (look_for_equal_sign) then
+
+endif
 
 !
 
 call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
 if (.not. is_integer(word) ) then
-   call parser_error ('INTEGER EXPECTED, I DO NOT UNDERSTAND: ' // word)
-   err = .true.
+  if (present(str1)) then
+    call parser_error (str1, str2)
+  else
+    call parser_error ('INTEGER EXPECTED, I DO NOT UNDERSTAND: ' // word)
+  endif
+  err = .true.
+
 else
   read (word, *) i 
   err = .false.

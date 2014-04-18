@@ -323,7 +323,7 @@ case (lcavity$)
   ! So if dealing with a slave element and absolute time tracking then need to correct.
 
   phase = twopi * (ele%value(phi0_err$) + ele%value(phi0_ref$) + &
-             ele%value(phi0$) + ele%value(dphi0$) + &
+             ele%value(phi0$) + ele%value(phi0_multipass$) + &
              (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
 
   gradient_max = e_accel_field(ele, gradient$)
@@ -585,7 +585,7 @@ case (rfcavity$)
   ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
   ! wave is different from the phase of the forward wave by a constant dt_ref * freq
 
-  phase0 = twopi * (ele%value(phi0$) + ele%value(dphi0$) - ele%value(phi0_ref$) - &
+  phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - ele%value(phi0_ref$) - &
           (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
   if (orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0

@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 136
+integer, parameter :: bmad_inc_version$ = 137
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -299,14 +299,14 @@ end type
 ! Rule: If %grid is associated then %grid%pt(:,:,:) will be allocated.
 
 type em_field_mode_struct
-  integer m                     ! Mode varies as cos(m*phi - phi0_azimuth)
-  integer :: harmonic = 0       ! Harmonic of fundamental
-  real(rp) :: f_damp = 0        ! 1/Q damping factor 
-  real(rp) :: phi0_ref = 0     ! Mode oscillates as: twopi * (f * t + phi0_ref)
-  real(rp) :: stored_energy = 0 ! epsilon_0/2 * \int_vol |E|^2 [Joules]
-  real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
-  real(rp) :: field_scale = 1   ! Factor to scale the fields by
-  integer :: master_scale = 0   ! Master scaling parameter in ele%value(:) array.
+  integer m                        ! Mode varies as cos(m*phi - phi0_azimuth)
+  integer :: harmonic = 0          ! Harmonic of fundamental
+  real(rp) :: f_damp = 0           ! 1/Q damping factor 
+  real(rp) :: phi0_ref = 0         ! Mode oscillates as: twopi * (f * t + phi0_ref)
+  real(rp) :: stored_energy = 0    ! epsilon_0/2 * \int_vol |E|^2 [Joules]
+  real(rp) :: phi0_azimuth = 0     ! Azimuthal orientation of mode.
+  real(rp) :: field_scale = 1      ! Factor to scale the fields by
+  integer :: master_scale = 0      ! Master scaling parameter in ele%value(:) array.
   type (em_field_map_struct), pointer :: map => null()
   type (em_field_grid_struct), pointer :: grid => null()
 end type
@@ -315,6 +315,7 @@ end type
 
 type em_fields_struct
   type (em_field_mode_struct), allocatable :: mode(:)
+  integer :: mode_to_autoscale = 1          ! Index of mode for autoscaling.
 end type
 
 ! Local reference frame position with respect to the global (floor) coordinates
@@ -798,14 +799,14 @@ integer, parameter :: phi0$ = 24, tilt_calib$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
-integer, parameter :: dphi0$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
 integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
-integer, parameter :: dphi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
+integer, parameter :: phi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
-integer, parameter :: field_scale$ = 32, dpsi_origin$ = 32, darwin_width_sigma$ = 32
+integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32, darwin_width_sigma$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, darwin_width_pi$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  

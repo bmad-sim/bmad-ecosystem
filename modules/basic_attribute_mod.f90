@@ -450,7 +450,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, ds_step$,            'DS_STEP')
   call init_attribute_name1 (i, csr_calc_on$,        'CSR_CALC_ON')
   call init_attribute_name1 (i, n_ref_pass$,         'N_REF_PASS')
-  call init_attribute_name1 (i, field_scale$,        'FIELD_SCALE', quasi_free$)
+  call init_attribute_name1 (i, field_factor$,       'FIELD_FACTOR', quasi_free$)
 
   if (i == drift$)        cycle
 
@@ -607,7 +607,8 @@ call init_attribute_name1 (e_gun$, field$,                          'FIELD')
 call init_attribute_name1 (e_gun$, rf_frequency$,                   'RF_FREQUENCY')
 call init_attribute_name1 (e_gun$, phi0$,                           'PHI0')
 call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
-call init_attribute_name1 (e_gun$, dphi0$,                          'dphi0', private$)
+! e_gun attribute phi0_multipass should always be 0 and is used to make lcavity and e_gun equations similar
+call init_attribute_name1 (e_gun$, phi0_multipass$,                 'phi0_multipass', private$) 
 call init_attribute_name1 (e_gun$, phi0_ref$,                       'PHI0_REF')
 
 call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START', dependent$)
@@ -692,7 +693,7 @@ call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN
 call init_attribute_name1 (lcavity$, traveling_wave$,               'TRAVELING_WAVE')
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
-call init_attribute_name1 (lcavity$, dphi0$,                        'DPHI0')
+call init_attribute_name1 (lcavity$, phi0_multipass$,               'PHI0_MULTIPASS')
 call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
 call init_attribute_name1 (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
@@ -883,7 +884,7 @@ call init_attribute_name1 (solenoid$, p0c_start$,                   'p0c_start',
 call init_attribute_name1 (rfcavity$, traveling_wave$,              'TRAVELING_WAVE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
-call init_attribute_name1 (rfcavity$, dphi0$,                       'DPHI0')
+call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
 call init_attribute_name1 (rfcavity$, field_calc$,                  'FIELD_CALC')
@@ -895,9 +896,9 @@ call init_attribute_name1 (rfcavity$, coupler_angle$,               'COUPLER_ANG
 call init_attribute_name1 (rfcavity$, coupler_phase$,               'COUPLER_PHASE')
 call init_attribute_name1 (rfcavity$, coupler_at$,                  'COUPLER_AT')
 call init_attribute_name1 (rfcavity$, field$,                       'FIELD')
-call init_attribute_name1 (rfcavity$, phi0_ref$,                   'PHI0_REF')
+call init_attribute_name1 (rfcavity$, phi0_ref$,                    'PHI0_REF')
 call init_attribute_name1 (rfcavity$, n_cell$,                      'N_CELL')
-call init_attribute_name1 (rfcavity$, dphi0_max$,                   'dphi0_max', private$)
+call init_attribute_name1 (rfcavity$, phi0_max$,                    'phi0_max', private$)
 call init_attribute_name1 (rfcavity$, E_tot_start$,                 'E_tot_start', private$)
 call init_attribute_name1 (rfcavity$, p0c_start$,                   'p0c_start', private$)
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)

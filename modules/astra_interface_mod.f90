@@ -210,7 +210,7 @@ case (lcavity$, rfcavity$, e_gun$)
   ! Phase (????)
   phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
   ! ??? adjust the lag for 'zero-crossing' 
-  if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(dphi0_max$) - ele%em_field%mode(1)%phi0_ref )
+  if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(phi0_max$) - ele%em_field%mode(1)%phi0_ref )
   if (ele%key == e_gun$) then
     phase_lag = 0 
     absmax_Ez = q_sign*absmax_Ez

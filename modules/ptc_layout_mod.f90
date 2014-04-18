@@ -1073,7 +1073,7 @@ case (bend_sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
 case (rfcavity$, lcavity$)
-  phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
   if (ele%key == lcavity$) then
     mag%lag = pi / 2 - twopi * phi_tot
     call set_real (mag%phas, magp%phas, -mag%lag)

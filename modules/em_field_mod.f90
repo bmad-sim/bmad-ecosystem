@@ -371,7 +371,7 @@ select case (ele%field_calc)
 
     if (ele%value(rf_frequency$) == 0) return
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
+    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
     orbit%phase(1) = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
 
@@ -668,7 +668,7 @@ case(map$)
       if (present(err_flag)) err_flag = .true.
       return  
     endif
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
+    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 
     do i = 1, size(ele%em_field%mode)
@@ -742,7 +742,7 @@ case(map$)
         
       enddo
 
-      ! Notice that phi0, dphi0, and phi0_err are folded into t_ref above.
+      ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
 
       freq = ele%value(rf_frequency$) * mode%harmonic
       expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
@@ -801,7 +801,7 @@ case(grid$)
       if (present(err_flag)) err_flag = .true.
       return  
     endif
-    t_ref = (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$)) / freq
+    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
 
   case default
@@ -1271,25 +1271,25 @@ select case (ele%key)
 case (lcavity$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$) * ele%value(l$)
+    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_factor$) * ele%value(l$)
   case (gradient$)
-    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_scale$)
+    field = (ele%value(gradient$) + ele%value(gradient_err$)) * ele%value(field_factor$)
   end select
 
 case (rfcavity$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = ele%value(voltage$) * ele%value(field_scale$)
+    field = ele%value(voltage$) * ele%value(field_factor$)
   case (gradient$)
-    field = ele%value(voltage$) * ele%value(field_scale$) / ele%value(l$)
+    field = ele%value(voltage$) * ele%value(field_factor$) / ele%value(l$)
   end select
 
 case (e_gun$)
   select case (voltage_or_gradient)
   case (voltage$)
-    field = ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$)
+    field = ele%value(gradient$) * ele%value(field_factor$) * ele%value(l$)
   case (gradient$)
-    field = ele%value(gradient$) * ele%value(field_scale$) 
+    field = ele%value(gradient$) * ele%value(field_factor$) 
   end select
 
 end select

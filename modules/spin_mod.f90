@@ -800,7 +800,7 @@ if(isTreatedHere) then
       if (global_com%exit_on_error) call err_exit
     endif
 
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) - &
                         temp_end%vec(5) * ele%value(rf_frequency$) / c_light)
     cos_phi = cos(phase)
     gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi
@@ -1046,7 +1046,7 @@ call initialize_pauli_vector
 ! FIX_ME!!!
 ! get e_particle and pc at position in element
 if (ele%key == lcavity$) then
-  phase = twopi * (ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) - &
+  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) - &
                       coord%vec(5) * ele%value(rf_frequency$) / c_light)
   cos_phi = cos(phase)
   gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi
