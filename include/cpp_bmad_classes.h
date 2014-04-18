@@ -846,9 +846,11 @@ class Bmad_em_fields_class {};  // Opaque class for pointers to corresponding fo
 class CPP_em_fields {
 public:
   CPP_em_field_mode_ARRAY mode;
+  Int mode_to_autoscale;
 
   CPP_em_fields() :
-    mode(CPP_em_field_mode_ARRAY(CPP_em_field_mode(), 0))
+    mode(CPP_em_field_mode_ARRAY(CPP_em_field_mode(), 0)),
+    mode_to_autoscale(1)
     {}
 
   ~CPP_em_fields() {

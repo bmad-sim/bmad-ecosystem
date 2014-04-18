@@ -772,7 +772,8 @@ extern "C" void em_field_mode_to_c2 (CPP_em_field_mode& C, c_Int& z_m, c_Int& z_
 extern "C" void em_fields_to_c (const Bmad_em_fields_class*, CPP_em_fields&);
 
 // c_side.to_f2_arg
-extern "C" void em_fields_to_f2 (Bmad_em_fields_class*, const CPP_em_field_mode**, Int);
+extern "C" void em_fields_to_f2 (Bmad_em_fields_class*, const CPP_em_field_mode**, Int,
+    c_Int&);
 
 extern "C" void em_fields_to_f (const CPP_em_fields& C, Bmad_em_fields_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -784,7 +785,7 @@ extern "C" void em_fields_to_f (const CPP_em_fields& C, Bmad_em_fields_class* F)
   }
 
   // c_side.to_f2_call
-  em_fields_to_f2 (F, z_mode, n1_mode);
+  em_fields_to_f2 (F, z_mode, n1_mode, C.mode_to_autoscale);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_mode;
@@ -792,12 +793,14 @@ extern "C" void em_fields_to_f (const CPP_em_fields& C, Bmad_em_fields_class* F)
 
 // c_side.to_c2_arg
 extern "C" void em_fields_to_c2 (CPP_em_fields& C, Bmad_em_field_mode_class** z_mode, Int
-    n1_mode) {
+    n1_mode, c_Int& z_mode_to_autoscale) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
   C.mode.resize(n1_mode);
   for (int i = 0; i < n1_mode; i++) em_field_mode_to_c(z_mode[i], C.mode[i]);
 
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.mode_to_autoscale = z_mode_to_autoscale;
 }
 
 //--------------------------------------------------------------------

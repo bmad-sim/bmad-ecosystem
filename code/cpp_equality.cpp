@@ -307,6 +307,7 @@ template bool is_all_equal (const CPP_em_field_mode_MATRIX&, const CPP_em_field_
 bool operator== (const CPP_em_fields& x, const CPP_em_fields& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.mode, y.mode);
+  is_eq = is_eq && (x.mode_to_autoscale == y.mode_to_autoscale);
   return is_eq;
 };
 

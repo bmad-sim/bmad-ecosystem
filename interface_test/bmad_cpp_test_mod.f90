@@ -1544,6 +1544,8 @@ else
     call set_em_field_mode_test_pattern (F%mode(jd1+lb1), ix_patt+jd1)
   enddo
 endif
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%mode_to_autoscale = rhs
 
 end subroutine set_em_fields_test_pattern
 

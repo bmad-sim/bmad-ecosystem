@@ -1017,6 +1017,9 @@ void set_CPP_em_fields_test_pattern (CPP_em_fields& C, int ix_patt) {
     for (unsigned int i = 0; i < C.mode.size(); i++)  {set_CPP_em_field_mode_test_pattern(C.mode[i], ix_patt+i+1);}
   }
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.mode_to_autoscale = rhs;
+
 
 }
 
