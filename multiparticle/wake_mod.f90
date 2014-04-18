@@ -175,7 +175,7 @@ do i = 1, size(ele%wake%lr)
   endif
 
   dt = -orbit%vec(5) * ele%value(p0c$) / (c_light * ele%value(e_tot$))
-  if (lr%freq == 0) dt = dt + ele%value(dphi0$) / omega
+  if (lr%freq == 0) dt = dt + ele%value(phi0_multipass$) / omega
 
   ff = abs(orbit%charge) * lr%r_over_q * c_light * exp(dt * f_exp) 
 
@@ -251,7 +251,7 @@ do i = 1, size(ele%wake%lr)
   f_exp = omega / (2 * lr%Q)
   ff = exp(-dt * f_exp) / ele%value(p0c$) 
 
-  if (lr%freq == 0) dt = dt_part + ele%value(dphi0$) / omega
+  if (lr%freq == 0) dt = dt_part + ele%value(phi0_multipass$) / omega
 
   c = cos (-dt * omega)
   s = sin (-dt * omega)

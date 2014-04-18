@@ -1297,13 +1297,13 @@ if (ele%slave_status == super_slave$ .and. a_name /= 'L') then
 endif
 
 ! Check for a multipass_slave.
-! Exception: dphi0 can be varied for lcavity and rfcavity slaves, etc.
+! Exception: phi0_multipass can be varied for lcavity and rfcavity slaves, etc.
 
 if (ele%slave_status == multipass_slave$) then
   free = .true.
   select case (ele%key)
   case (lcavity$, rfcavity$) 
-    if (ix_attrib == dphi0$) return
+    if (ix_attrib == phi0_multipass$) return
   case (patch$)
     lord => pointer_to_lord(ele, 1)
   end select

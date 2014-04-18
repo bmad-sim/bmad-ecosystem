@@ -367,7 +367,7 @@ case (lcavity$)
 
   call offset_particle (ele, param, set$, c00)
 
-  phase = twopi * (v(phi0$) + v(dphi0$) + &
+  phase = twopi * (v(phi0$) + v(phi0_multipass$) + &
                    v(phi0_ref$) +  v(phi0_err$) + &
                    (particle_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
 
@@ -861,7 +861,7 @@ case (rfcavity$)
   ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
   ! wave is different from the phase of the forward wave by a constant dt_ref * freq
 
-  phase0 = twopi * (v(phi0$) + v(dphi0$) - v(phi0_ref$) - &
+  phase0 = twopi * (v(phi0$) + v(phi0_multipass$) - v(phi0_ref$) - &
                   (particle_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * v(rf_frequency$) * dt_ref
   phase = phase0

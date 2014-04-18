@@ -1962,14 +1962,14 @@ General \vn{lcavity} attributes are:
 
 The attributes specific to an \vn{lcavity} are 
 \index{gradient}\index{phi0}\index{n_cell}
-\index{dphi0}\index{e_loss}
+\index{phi0_multipass}\index{e_loss}
 \index{rf_frequency}\index{voltage}
 \begin{example}
   gradient       = <Real>    ! Accelerating gradient (V/m).
   gradient_err   = <Real>    ! Accelerating gradient error (V/m).
   phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                              !   respect to the RF. phi0 = 0 is on crest.
-  dphi0          = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
+  phi0_multipass = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
   phi0_err       = <Real>    ! Phase error (rad/2\(\pi\))
   phi0_ref       = <Real>    ! Phase offset used to deal with absolute time tracking
                              !  and other issues (see below).
@@ -1987,33 +1987,33 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * (phi_particle + phi_ref))
+  dE = gradient_tot * L * cos(twopi * (phase_particle + phase_ref))
 \end{example}
 \index{multipass}
 where the total gradient is
 \begin{example}
   gradient_tot = gradient + gradient_err
 \end{example}
-the phase \vn{phi_ref} is
+the phase \vn{phase_ref} is
 \begin{example}
-  phi_ref = phi0 + dphi0 + phi0_err + phi0_ref
+  phase_ref = phi0 + phi0_multipass + phi0_err + phi0_ref
 \end{example}
-and \vn{phi_particle} is
+and \vn{phase_particle} is
 \begin{example}
-  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
-               =  t_particle * rf_frequency    ! With absolute time tracking
+  phase_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
+                 =  t_particle * rf_frequency    ! With absolute time tracking
 \end{example}
-With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
+With \vn{relative time tracking}, the phase, \vn{phase_particle}, of the
 particle with respect to the cavity's internal clock is proportional
 to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
-\vn{phi_particle} is proportional to the absolute time the particle
+\vn{phase_particle} is proportional to the absolute time the particle
 reaches the cavity. See section~\sref{s:rf.time} for a discussion on
 relative verses absolute time tracking. The switch to set the type of
 tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 (\sref{s:param}).
 
-\vn{dphi0} is only to be used to shift the phase with respect to a
+\vn{phi0_multipass} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
 
 \vn{phi0_ref} is a phase calculated by \bmad's RF auto-phase module
@@ -2022,14 +2022,14 @@ tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(twopi * phi_ref)
+  dE(reference) = gradient * L * cos(twopi * phase_ref)
 \end{example}
 
 The energy kick for a \bmad \vn{lcavity} is consistent with MAD. 
 Note: The MAD8 documentation for an \vn{lcavity} has a wrong
 sign. Essentially the MAD8 documentation gives
 \begin{example}
-  dE = gradient * L * cos(twopi * (phi_ref - phi(z))) ! WRONG
+  dE = gradient * L * cos(twopi * (phase_ref - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
 
@@ -2754,44 +2754,44 @@ General \vn{rfcavity} attributes are:
 \end{center}
 \toffset
 
-\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{dphi0}\index{harmon_master}
+\index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{phi0_multipass}\index{harmon_master}
 Attributes specific to an \vn{rfcavity} are:
 \begin{example}
-  rf_frequency  = <Real>    ! Frequency
-  harmon        = <Real>    ! Harmonic number
-  voltage       = <Real>    ! Cavity voltage
-  phi0          = <Real>    ! Cavity phase
-  dphi0         = <Real>    ! Phase variation with multipass
-  gradient      = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
+  rf_frequency   = <Real>    ! Frequency
+  harmon         = <Real>    ! Harmonic number
+  voltage        = <Real>    ! Cavity voltage
+  phi0           = <Real>    ! Cavity phase
+  phi0_multipass = <Real>    ! Phase variation with multipass
+  gradient       = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = -e_charge * voltage * sin(twopi * (phi_particle - phi_ref))
+  dE = -e_charge * voltage * sin(twopi * (phase_particle - phase_ref))
 \end{example}
 \index{multipass}
 where
 \begin{example}
-  phi_ref = phi0 + dphi0 + phi0_ref
+  phase_ref = phi0 + phi0_multipass + phi0_ref
 \end{example}
 and
-and \vn{phi_particle} is
+and \vn{phase_particle} is
 \begin{example}
-  phi_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
-               =  t_particle * rf_frequency    ! With absolute time tracking
+  phase_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
+                 =  t_particle * rf_frequency    ! With absolute time tracking
 \end{example}
-With \vn{relative time tracking}, the phase, \vn{phi_particle}, of the
+With \vn{relative time tracking}, the phase, \vn{phase_particle}, of the
 particle with respect to the cavity's internal clock is proportional
 to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
-\vn{phi_particle} is proportional to the absolute time the particle
+\vn{phase_particle} is proportional to the absolute time the particle
 reaches the cavity. See section~\sref{s:rf.time} for a discussion on
 relative verses absolute time tracking. The switch to set the type of
 tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 (\sref{s:param}).
 
-\vn{dphi0} is only to be used to shift the phase with respect to a
+\vn{phi0_multipass} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
 charge on an electron (Table~\ref{t:constants}). Notice that the
 energy kick is independent of the sign of the charge of the particle

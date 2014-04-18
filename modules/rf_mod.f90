@@ -127,9 +127,9 @@ if (ele%tracking_method == mad$) return
 if (ele%tracking_method == bmad_standard$) then
   if (ele%key == lcavity$) then 
     !Set e_tot$ and p0c$ 
-    phi = twopi * (ele%value(phi0$) + ele%value(dphi0$)) 
+    phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
     e_tot = ele%value(e_tot_start$) + &
-            ele%value(gradient$) * ele%value(field_scale$) * ele%value(l$) * cos(phi)
+            ele%value(gradient$) * ele%value(field_factor$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag)
     if (err_flag) return
     ele%value(e_tot$) = e_tot
@@ -191,7 +191,7 @@ if (field_scale == 0) then
     if (global_com%exit_on_error) call err_exit ! exit on error.
     return 
   endif
-  field_scale = 1  ! Initial guess.
+  call set_field_scale(1.0_rp)  ! Initial guess.
 endif
 
 ! scale_correct is the correction factor applied to field_scale on each iteration:
@@ -215,7 +215,7 @@ if (ele%key == e_gun$ .and. .not. do_scale_phase) then
 
   pz_max = pz_calc(phi_max, err_flag)
   if (err_flag) return
-  if (is_lost) field_scale = -field_scale ! Maby field in wrong direction?
+  if (is_lost) call set_field_scale(-field_scale) ! Maybe field in wrong direction?
 
   do i = 1, 100
     pz_max = pz_calc(phi_max, err_flag)
@@ -223,7 +223,7 @@ if (ele%key == e_gun$ .and. .not. do_scale_phase) then
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (abs(scale_correct) > 1000) scale_correct = scale_correct / 10
     if (abs(scale_correct) > 1000) scale_correct = sign(1000.0_rp, scale_correct)
-    field_scale = field_scale * scale_correct
+    call set_field_scale (field_scale * scale_correct)
     if (abs(scale_correct - 1) < scale_tol) exit
   enddo
 
@@ -243,7 +243,7 @@ endif
 
 value_saved = ele%value
 ele%value(phi0$) = 0
-ele%value(dphi0$) = 0
+ele%value(phi0_multipass$) = 0
 ele%value(phi0_err$) = 0
 if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0
 
@@ -257,7 +257,7 @@ if (ele%tracking_method == bmad_standard$) then
 endif
 
 phi_max = phi0_ref   ! Init guess
-if (ele%key == rfcavity$) phi_max = ele%value(dphi0_max$)
+if (ele%key == rfcavity$) phi_max = ele%value(phi0_max$)
 
 phi_max_old = 100 ! Number far from unity
 
@@ -320,7 +320,7 @@ if (do_scale_amp) then
       endif
 
       if (abs(int_tot - int_old) <= 0.2 * (int_tot + int_old)) then
-        field_scale = field_scale * dE_peak_wanted / integral
+        call set_field_scale (field_scale * dE_peak_wanted / integral)
         exit
       endif
     endif
@@ -452,7 +452,7 @@ main_loop: do n_loop = 1, n_loop_max
   if (do_scale_amp) then
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (scale_correct > 1000) scale_correct = max(1000.0_rp, scale_correct / 10)
-    field_scale = field_scale * scale_correct
+    call set_field_scale (field_scale * scale_correct)
   else
     scale_correct = 1
   endif
@@ -479,7 +479,7 @@ enddo main_loop
 ! about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
-  value_saved(dphi0_max$) = phi0_ref  ! Save for use with OPAL
+  value_saved(phi0_max$) = phi0_ref  ! Save for use with OPAL
   if (do_scale_phase) then
     dphi = 0.1
     phi_max = phi_max - dphi
@@ -509,8 +509,8 @@ subroutine cleanup_this ()
 
 select case (ele%field_calc)
 case (bmad_standard$) 
-  if (associated(field_scale, ele%value(field_scale$))) then
-    value_saved(field_scale$) = field_scale 
+  if (associated(field_scale, ele%value(field_factor$))) then
+    value_saved(field_factor$) = field_scale 
     value_saved(phi0_ref$) = phi0_ref
   endif
 end select
@@ -534,6 +534,34 @@ call convert_pc_to ((1 + pz) * ele%value(p0c$), param%particle, e_tot = e_tot)
 de = e_tot - e_tot_start
 
 end function dE_particle
+
+!------------------------------------
+! contains
+
+subroutine set_field_scale (f_scale)
+
+real(rp) f_scale, f_scale_old
+integer i, ix
+
+!
+
+select case (ele%field_calc)
+case (bmad_standard$) 
+  field_scale = f_scale
+
+case (grid$, map$, custom$)
+  ix = ele%em_field%mode_to_autoscale
+  f_scale_old = field_scale
+  field_scale = f_scale
+  do i = 1, size(ele%em_field%mode)
+    if (i == ix) cycle
+    if (ele%em_field%mode(i)%master_scale /= ele%em_field%mode(ix)%master_scale) cycle
+    ele%em_field%mode(i)%field_scale = ele%em_field%mode(i)%field_scale * f_scale / f_scale_old
+  enddo
+
+end select
+
+end subroutine set_field_scale
 
 end subroutine rf_auto_scale_phase_and_amp
 
@@ -615,18 +643,13 @@ nullify(phi0_ref)
 
 select case (ele%field_calc)
 case (bmad_standard$) 
-  field_scale => ele%value(field_scale$)
+  field_scale => ele%value(field_factor$)
   phi0_ref => ele%value(phi0_ref$)
 
 case (grid$, map$, custom$)
-  do i = 1, size(ele%em_field%mode)
-    if ((ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) .or. &
-                (ele%em_field%mode(i)%harmonic == 1 .and. ele%em_field%mode(i)%m == 0)) then
-      field_scale => ele%em_field%mode(i)%field_scale
-      phi0_ref => ele%em_field%mode(i)%phi0_ref
-      exit
-    endif
-  enddo
+  i = ele%em_field%mode_to_autoscale
+  field_scale => ele%em_field%mode(i)%field_scale
+  phi0_ref => ele%em_field%mode(i)%phi0_ref
 end select
 
 end subroutine pointers_to_rf_auto_scale_vars

@@ -28,7 +28,7 @@ use rf_mod, dummy2 => lat_compute_ref_energy_and_time
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, ele_init, ele2
+type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, init_elem, ele2
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
@@ -50,13 +50,13 @@ err_flag = .true.
 do ib = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(ib)
-  ele_init => branch%ele(0)
+  init_elem => branch%ele(0)
 
   if (bmad_com%auto_bookkeeper) then
     stale = .true.
   else
     if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
-    stale = (ele_init%bookkeeping_state%ref_energy == stale$)
+    stale = (init_elem%bookkeeping_state%ref_energy == stale$)
   endif
 
   branch%param%bookkeeping_state%ref_energy = ok$
@@ -69,36 +69,36 @@ do ib = 0, ubound(lat%branch, 1)
       fork_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
 
       if (fork_ele%branch%param%particle == branch%param%particle) then
-        ele_init%value(E_tot$) = fork_ele%value(E_tot$)
-        ele_init%value(p0c$) = fork_ele%value(p0c$)
+        init_elem%value(E_tot$) = fork_ele%value(E_tot$)
+        init_elem%value(p0c$) = fork_ele%value(p0c$)
       endif
 
-      ele_init%value(delta_ref_time$) = 0
-      ele_init%value(ref_time_start$) = ele_init%ref_time
+      init_elem%value(delta_ref_time$) = 0
+      init_elem%value(ref_time_start$) = init_elem%ref_time
 
     endif
   endif
 
-  if (ele_init%value(E_tot$) == 0) then
-    ele_init%value(E_tot$) = ele_init%value(E_tot_start$)
-    ele_init%value(p0c$) = ele_init%value(p0c_start$)
-  elseif (ele_init%value(E_tot_start$) == 0) then
-    ele_init%value(E_tot_start$) = ele_init%value(E_tot$)
-    ele_init%value(p0c_start$) = ele_init%value(p0c$)
+  if (init_elem%value(E_tot$) == 0) then
+    init_elem%value(E_tot$) = init_elem%value(E_tot_start$)
+    init_elem%value(p0c$) = init_elem%value(p0c_start$)
+  elseif (init_elem%value(E_tot_start$) == 0) then
+    init_elem%value(E_tot_start$) = init_elem%value(E_tot$)
+    init_elem%value(p0c_start$) = init_elem%value(p0c$)
   endif
 
   if (stale) then
     if (branch%ix_from_branch >= 0) then
-      call init_coord (ele_init%time_ref_orb_in, zero6, ele_init, .false.)
-      call init_coord (ele_init%time_ref_orb_out, zero6, ele_init, .true.)
+      call init_coord (init_elem%time_ref_orb_in, zero6, init_elem, .false.)
+      call init_coord (init_elem%time_ref_orb_out, zero6, init_elem, .true.)
       stale = .true.
-      ele_init%bookkeeping_state%ref_energy = ok$
+      init_elem%bookkeeping_state%ref_energy = ok$
     endif
   endif
 
-  if (ele_init%bookkeeping_state%ref_energy == stale$) ele_init%bookkeeping_state%ref_energy = ok$
+  if (init_elem%bookkeeping_state%ref_energy == stale$) init_elem%bookkeeping_state%ref_energy = ok$
 
-  ! Look for an e_gun and if found then the starting energy must be computed accordingly.
+  ! Look for an e_gun.
   ! Remember that there may be markers or null_eles before an e_gun in the lattice but nothing else.
 
   ix_e_gun = 0
@@ -123,18 +123,55 @@ do ib = 0, ubound(lat%branch, 1)
     exit
   enddo
 
-  if (ix_e_gun /= 0) then ! Have found an e_gun...
-    gun_ele%value(e_tot_ref_init$) = ele_init%value(e_tot_start$)
-    gun_ele%value(p0c_ref_init$) = ele_init%value(p0c_start$)
+  ! If there is an e_gun then compute the energy at the exit. 
+  ! This must be done by tracking since with autoscale off or if the field is not DC, the 
+  ! voltage is not a reliable number.
 
-    ele_init%value(e_tot$) = ele_init%value(e_tot_start$) + gun_ele%value(voltage$)
-    call convert_total_energy_to (ele_init%value(e_tot$), branch%param%particle, pc = ele_init%value(p0c$))
+  if (ix_e_gun /= 0) then ! Have found an e_gun...
+    gun_ele%value(e_tot_ref_init$) = init_elem%value(e_tot_start$)
+    gun_ele%value(p0c_ref_init$) = init_elem%value(p0c_start$)
+    ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
+    ! Since p0c_ref_init the voltage may both be zero, just use a dummy number in this case.
+    if (gun_ele%value(p0c_start$) == 0 .and. gun_ele%value(voltage$) == 0) then
+      gun_ele%value(e_tot$) = gun_ele%value(e_tot_ref_init$) + 1d5
+    else
+      gun_ele%value(e_tot$) = gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$)
+    endif
+    call convert_total_energy_to (gun_ele%value(e_tot$), branch%param%particle, pc = gun_ele%value(p0c$))
+    gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
+    gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
+
+    call rf_auto_scale_phase_and_amp (gun_ele, branch%param, err); if (err) return
+
+    call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
+    call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
+    if (.not. particle_is_moving_forward(end_orb)) then
+      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
+                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+
+    ! e_gun exit energy gets put into init_elem exit energy
+    init_elem%value(p0c$) = (1 + end_orb%vec(6)) * gun_ele%value(p0c$)
+    call convert_pc_to (init_elem%value(p0c$), branch%param%particle, e_tot = init_elem%value(e_tot$))
+
+    ! Now propagate this energy to the e_gun, and any markers in between.
+
+    do ie = 1, ix_e_gun
+      ele => branch%ele(ie)
+      ele%value(p0c_start$)   = init_elem%value(p0c$)
+      ele%value(e_tot_start$) = init_elem%value(e_tot_start$)
+      ele%value(p0c$)         = init_elem%value(p0c$)
+      ele%value(e_tot$)       = init_elem%value(e_tot$)
+    enddo
+
   endif
 
   ! Since Bmad is S-based it cannot handle zero reference energy. 
   ! To avoid roundoff problems set a lower limit of 1e-6 eV.
 
-  if (ele_init%value(p0c$) < 1e-6) then
+  if (init_elem%value(p0c$) < 1e-6) then
     if (ix_e_gun == 0) then
       call out_io (s_fatal$, r_name, 'INITIAL REFERENCE MOMENTUM LESS THAN 1E-6 eV WHICH IS TOO LOW.')
     else
@@ -384,13 +421,10 @@ case (custom$, hybrid$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
 
 case (e_gun$)
+  ! Note: Due to the coupling between an e_gun and the init_ele, autoscaling is
+  ! done in lat_compute_ref_energy_and_time.
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
-
-  if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call rf_auto_scale_phase_and_amp (ele, param, err)
-    if (err) return
-  endif
 
   call track_this_ele (.true.)
   call calc_time_ref_orb_out

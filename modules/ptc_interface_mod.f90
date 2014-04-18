@@ -3177,7 +3177,7 @@ case (rfcavity$, lcavity$)
   endif
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
-  phi_tot = ele%value(phi0$) + ele%value(dphi0$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
+  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
   if (tracking_uses_end_drifts(ele)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then

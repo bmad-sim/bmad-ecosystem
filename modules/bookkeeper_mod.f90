@@ -685,7 +685,7 @@ slave_val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
-  slave%value(dphi0$)        = slave_val(dphi0$)
+  slave%value(phi0_multipass$)        = slave_val(phi0_multipass$)
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
@@ -2356,7 +2356,7 @@ case (elseparator$)
 
 case (lcavity$)
   if (ele%lord_status /= multipass_lord$) then
-    if (val(phi0$) /= ele%old_value(phi0$) .or. val(dphi0$) /= ele%old_value(dphi0$) .or. &
+    if (val(phi0$) /= ele%old_value(phi0$) .or. val(phi0_multipass$) /= ele%old_value(phi0_multipass$) .or. &
         val(gradient$) /= ele%old_value(gradient$) .or. val(e_loss$) /= ele%old_value(e_loss$) .or. &
         val(l$) /= ele%old_value(l$)) then
       call set_ele_status_stale (ele, ref_energy_group$)
@@ -3003,7 +3003,7 @@ case (fork$, photon_fork$)
 
 case (lcavity$, e_gun$)
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(dphi0$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+      associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 

@@ -991,9 +991,9 @@ do ie = 1, lat%n_ele_max
   if (ele%slave_status == super_slave$) cycle
 
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
-    if (ele%value(dphi0$) == 0) cycle
+    if (ele%value(phi0_multipass$) == 0) cycle
     if (.not. expand_lat_out) call write_expand_lat_header
-    write (iu, '(3a)') trim(ele%name), '[dphi0] = ', trim(str(ele%value(dphi0$)))
+    write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', trim(str(ele%value(phi0_multipass$)))
   endif
 
 enddo
@@ -1912,7 +1912,7 @@ do ix_ele = ie1, ie2
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': rfcavity, l =', val(l$)
     call value_to_line (line_out, val(voltage$)/1E6, 'volt', 'es13.5', 'R')
-    call value_to_line (line_out, val(phi0$)+val(dphi0$)+0.5, 'lag', 'es13.5', 'R')
+    call value_to_line (line_out, val(phi0$)+val(phi0_multipass$)+0.5, 'lag', 'es13.5', 'R')
     call value_to_line (line_out, val(harmon$), 'harmon', 'i8', 'I')
 
   ! lcavity
@@ -1922,7 +1922,7 @@ do ix_ele = ie1, ie2
     write (line_out, '(a, es13.5)') trim(ele%name) // ': lcavity, l =', val(l$)
     call value_to_line (line_out, val(gradient$)*val(l$)/1e6, 'deltae', 'f11.4', 'R')
     call value_to_line (line_out, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
-    call value_to_line (line_out, val(phi0$)+val(dphi0$), 'phi0', 'es13.5', 'R')
+    call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'es13.5', 'R')
 
   ! solenoid
 

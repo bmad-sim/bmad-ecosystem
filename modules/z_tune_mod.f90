@@ -111,7 +111,7 @@ do i = 1, lat%n_ele_max
 
     n_rf = n_rf + 1
     ix_rf(n_rf) = i
-    phase = twopi * (ele%value(phi0$) + ele%value(dphi0$))
+    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
     coef_tot = coef_tot + twopi * cos(phase) * ele%value(rf_frequency$) / (c_light * E0)
     ix_attrib(n_rf) = voltage$
 
@@ -137,7 +137,7 @@ do i = 1, lat%n_ele_max
 
       if (.not. found_control) n_rf = n_rf + 1
       found_control = .true.
-      phase = twopi * (ele2%value(phi0$) + ele2%value(dphi0$))
+      phase = twopi * (ele2%value(phi0$) + ele2%value(phi0_multipass$))
       coef_tot = coef_tot + lat%control(j)%coef * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
       ix_attrib(n_rf) = ele%ix_value

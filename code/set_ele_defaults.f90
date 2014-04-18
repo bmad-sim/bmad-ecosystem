@@ -67,7 +67,7 @@ case (diffraction_plate$)
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
-  ele%value(field_scale$) = 1
+  ele%value(field_factor$) = 1
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
@@ -86,7 +86,7 @@ case (girder$)
 
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
-  ele%value(field_scale$) = 1
+  ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = 0
 
@@ -126,7 +126,7 @@ case (rcollimator$)
 
 case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
-  ele%value(field_scale$) = 1
+  ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = 0
 
