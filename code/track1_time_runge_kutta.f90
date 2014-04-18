@@ -220,7 +220,7 @@ else
           ref_time = edge(i)%hard_ele%ref_time
         end if
         !Convert to s-coordinates for hard edge kick, kick, and convert back
-        call convert_particle_coordinates_t_to_s(end_orb, ele, ref_time) 
+        call convert_particle_coordinates_t_to_s(end_orb, ref_time) 
         call apply_hard_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
         call convert_particle_coordinates_s_to_t(end_orb)
         end_orb%vec(5) = edge(i)%s
@@ -259,7 +259,7 @@ if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
   ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
   ! call apply_hard_edge_kick (end_orb, ele, param, upstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
@@ -277,7 +277,7 @@ elseif (end_orb%state /= alive$) then
 
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
                           ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
@@ -288,7 +288,7 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   end_orb%direction = 1
   ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ele, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
   !call apply_hard_edge_kick (end_orb, ele, param, downstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)

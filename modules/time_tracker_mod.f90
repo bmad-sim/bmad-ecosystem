@@ -112,7 +112,8 @@ do n_step = 1, max_step
   call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
 
   ! Check entrance and exit faces
-  if (orb%vec(5) > s2 - ds_safe .or. orb%vec(5) < s1 + ds_safe) then
+  if ((orb%vec(5) < s1 + ds_safe .and. orb%vec(6) < 0)  &
+       .or. (orb%vec(5) > s2 - ds_safe .and. orb%vec(6) > 0)) then
     zbrent_needed = .true.
     add_ds_safe = .true.
 
@@ -135,7 +136,7 @@ do n_step = 1, max_step
     if (zbrent_needed) then
       ! Save old_orb, and reinstate after zbrent so that the wall check can still work. 
       orb_save = orb_old
-      dt = zbrent (delta_s_target, 0.0_rp, dt, dt_tol)
+      dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
       orb_old = orb_save
     endif
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
@@ -145,9 +146,7 @@ do n_step = 1, max_step
     orb%s = orb%vec(5) + ele%s - ele%value(l$)
   endif
 
-  ! Check wall or aperture at every intermediate step and flag for exit if wall is hit
-  ! Old wall check: call  particle_hit_wall_check_time(orb_old, orb, param, ele)
-  ! Replaced by new wall check:
+  ! Wall check
   ! Adapted from runge_kutta_mod's odeint_bmad:
   ! Check if hit wall.
   ! If so, interpolate position particle at the hit point
@@ -171,10 +170,15 @@ do n_step = 1, max_step
     endif
 
     if (has_hit) then
-      dt_tol = ds_safe / (orb%beta * c_light) !??? okay?
-      dt = zbrent (wall_intersection_func, 0.0_rp, dt, dt_tol)
+      dt_tol = ds_safe / (orb%beta * c_light) 
+      if (.not. exit_flag) dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
       orb%state = lost$
-      !TODO: change to s-coordinates and: call wall_hit_handler_custom (orb_end, ele, s, t)
+      ! Convert for wall handler
+      call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
+      call wall_hit_handler_custom (orb, ele, orb%s, orb%t)
+      call convert_particle_coordinates_s_to_t(orb)
+      ! Restore vec(5) to relative s 
+      orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
     endif
   endif
 
@@ -247,7 +251,8 @@ contains
   logical err_flag
   !
   call rk_time_step1 (ele, param, orb_old, t_old, this_dt, &
-	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
+  	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
+	 				  	 				  
   d_radius = wall3d_d_radius (orb%vec, ele)
   t_rel = t_old + this_dt
   end function wall_intersection_func
@@ -693,7 +698,7 @@ end function particle_in_global_frame
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
+! Subroutine convert_particle_coordinates_t_to_s (particle, tref)
 !
 ! Subroutine to convert particle coordinates from t-based to s-based system. 
 !
@@ -702,21 +707,19 @@ end function particle_in_global_frame
 !
 ! Input:
 !   particle   -- coord_struct: input particle coordinates
-!   ele        -- ele_struct: Element particle is in.
 !   tref       -- real: reference time for z coordinate
 !
 ! Output:
 !   particle   -- coord_struct: output particle 
 !-
 
-subroutine convert_particle_coordinates_t_to_s (particle, ele, tref)
+subroutine convert_particle_coordinates_t_to_s (particle, tref)
 
 !use bmad_struct
 
 implicit none
 
 type (coord_struct), intent(inout), target ::particle
-type (ele_struct) ele
 real(rp) :: p0c
 real(rp), intent(in) :: tref
 
@@ -733,7 +736,6 @@ vec(2) = vec(2)/p0c
 ! vec(3) = vec(3)   !this is unchanged
 vec(4) = vec(4)/p0c
 ! z \equiv -c \beta(s)  (t(s) - t_0(s))
-particle%s = vec(5) + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 vec(5) = -c_light * (pctot/sqrt(pctot**2 + mass_of(particle%species)**2)) *  (particle%t - tref) 
 vec(6) = pctot/p0c - 1.0_rp
 
