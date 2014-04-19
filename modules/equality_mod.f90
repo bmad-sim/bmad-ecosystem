@@ -479,6 +479,8 @@ if (.not. is_eq) return
 if (allocated(f1%mode)) is_eq = all(shape(f1%mode) == shape(f2%mode))
 if (.not. is_eq) return
 if (allocated(f1%mode)) is_eq = all(f1%mode == f2%mode)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%mode_to_autoscale == f2%mode_to_autoscale)
 
 end function eq_em_fields
 
