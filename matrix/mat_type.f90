@@ -13,8 +13,9 @@
 !                    = 0 output to terminal only (default)
 !                    < 0 output to terminal and file with unit = abs(nunit).
 !   header   -- Character(*), optional: Title to print above matrix.
-!   num_form -- Character(*), optional: Format for the numbers. Default
-!                    is "es13.5" if any |term| > 100 and "f11.6" otherwise.
+!   num_form -- Character(*), optional: Format for the numbers. 
+!                    Default is "(3x, NNNf11.6)" where NNN is the matrix row size. 
+!                    if any |term| > 100 then "(3x, NNNes14.5)" will be the default.
 !-
 
 subroutine mat_type (mat, nunit, header, num_form)
@@ -42,7 +43,7 @@ size2 = size(mat, 2)
 if (present(num_form)) then
   format1 = num_form
 elseif (any(abs(mat) > 100)) then
-  write (format1, '(a, i2.2, a)') '(3x, 1p, ', size2, 'es13.5)'
+  write (format1, '(a, i2.2, a)') '(3x, 1p, ', size2, 'es15.5)'
 else
   write (format1, '(a, i2.2, a)') '(3x, ', size2, 'f11.6)'
 endif

@@ -57,6 +57,10 @@ real(rp), parameter :: real_garbage$ = -987654.3
 
 character(1), parameter :: lf$ = achar(10)
 
+! True and false
+
+integer, parameter :: true$ = 1, false$ = 0
+
 ! This is to suppress the ranlib "has no symbols" message
 
 integer, private :: private_dummy
