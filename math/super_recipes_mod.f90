@@ -67,6 +67,7 @@ fb=func(b)
 
 if ((fa > 0.0 .and. fb > 0.0) .or. (fa < 0.0 .and. fb < 0.0)) then
   call out_io (s_fatal$, r_name, 'ROOT NOT BRACKETED!')
+  x_min = 1d100
   return
 endif
 

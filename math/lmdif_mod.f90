@@ -107,12 +107,14 @@ end subroutine initial_lmdif
 ! It suggests values for your input variables based on
 ! the previous value of your merit function.
 !
+! Use initial_lmdif to initialize internal variables
+!
 ! Modules needed: 
 !   use lmdif_mod
 !
 ! Input:
 !   xv(:)      -- real(dp): Array of variables
-!   fv(:)      -- real(dp): Array of function value/s that should be optimized to zerro
+!   fv(:)      -- real(dp): Array of function value/s that should be optimized to zero
 !   eps        -- real(dp): Desired accuracy with which the optimum should be found.
 !   itermx     -- integer: Max number of iterations
 !   reset_flag -- logical: Optional. Used by initial_lmdif to clear 
