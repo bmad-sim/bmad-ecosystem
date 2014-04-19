@@ -1600,7 +1600,7 @@ endif
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then
   value(kick$)    = lord%value(kick$) * coef
   value(bl_kick$) = lord%value(bl_kick$) * coef
-else
+elseif (has_hkick_attributes(lord%key)) then
   value(hkick$)    = lord%value(hkick$) * coef
   value(vkick$)    = lord%value(vkick$) * coef
   value(bl_hkick$) = lord%value(bl_hkick$) * coef
