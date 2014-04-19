@@ -13,7 +13,6 @@
 !   c0     -- Coord_struct: Coordinates at the beginning of element. 
 !   bmad_com
 !     %d_orb(6) -- Real(rp): Vector of offsets to use. 
-!                  Default if d_orb = 0 is to set the offset to 1e-5
 !     %mat6_track_symmetric 
 !               -- Logical: If True then track with +/- d_orb offsets so
 !                  the tracking routine is called 12 times. 
@@ -34,7 +33,7 @@ use bmad_interface, except_dummy => make_mat6_tracking
 implicit none
 
 type (ele_struct), target :: ele
-type (coord_struct) :: c0, c1, start, end1, end2
+type (coord_struct) :: c0, c00, c1, start, end1, end2
 type (lat_param_struct)  param
 
 real(rp) del_orb(6), dorb6, abs_p
@@ -53,23 +52,24 @@ endif
 
 dorb6 = max(0.0_rp, abs_p - (1 + c0%vec(6)))   ! Shift in start%vec(6) to apply.
 
-call init_coord(c0, c0%vec, ele, .false.)
-call track1 (c0, ele, param, c1)
+c00 = c0
+call init_coord(c00, c00%vec, ele, .false., shift_vec6 = .false.)
+call track1 (c00, ele, param, c1)
 
 ! Symmetric tracking uses more tracks but is more accurate
 
 if (bmad_com%mat6_track_symmetric) then
   do i = 1, 6
-    start = c0
+    start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start%vec, ele, .false.)
+    call init_coord(start, start%vec, ele, .false., shift_vec6 = .false.)
     call track1 (start, ele, param, end2)
 
-    start = c0
+    start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) - del_orb(i)
-    call init_coord(start, start%vec, ele, .false.)
+    call init_coord(start, start%vec, ele, .false., shift_vec6 = .false.)
     call track1 (start, ele, param, end1)
 
     ele%mat6(1:6, i) = (end2%vec - end1%vec) / (2 * del_orb(i))
@@ -80,10 +80,10 @@ if (bmad_com%mat6_track_symmetric) then
 else  
 
   do i = 1, 6
-    start = c0
+    start = c00
     start%vec(6) = start%vec(6) + dorb6
     start%vec(i) = start%vec(i) + del_orb(i)
-    call init_coord(start, start%vec, ele, .false.)
+    call init_coord(start, start%vec, ele, .false., shift_vec6 = .false.)
     call track1 (start, ele, param, end1)
     ele%mat6(1:6, i) = (end1%vec - c1%vec) / del_orb(i)
   enddo

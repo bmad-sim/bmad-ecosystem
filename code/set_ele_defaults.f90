@@ -68,6 +68,8 @@ case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
   ele%value(field_factor$) = 1
+  ele%value(has_entrance_fringe_field$) = false$
+  ele%value(has_exit_fringe_field$) = true$
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
@@ -88,7 +90,9 @@ case (lcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
-  ele%value(traveling_wave$) = 0
+  ele%value(traveling_wave$) = false$
+  ele%value(has_entrance_fringe_field$) = true$
+  ele%value(has_exit_fringe_field$) = true$
 
 case (mirror$)
   ele%aperture_at = surface$
@@ -128,7 +132,9 @@ case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
-  ele%value(traveling_wave$) = 0
+  ele%value(traveling_wave$) = false$
+  ele%value(has_entrance_fringe_field$) = true$
+  ele%value(has_exit_fringe_field$) = true$
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
