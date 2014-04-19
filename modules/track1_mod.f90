@@ -79,10 +79,6 @@ if (ele%slave_status == super_slave$) then
   return
 endif
 
-! Check if there is an aperture here. If not, simply return.
-
-if (.not. at_this_ele_end (physical_end, ele%aperture_at)) return
-
 ! Custom
 
 if (ele%aperture_type == custom_aperture$) then
@@ -117,6 +113,10 @@ if (logic_option(.true., check_momentum)) then
     return
   endif
 endif
+
+! Check if there is an aperture here. If not, simply return.
+
+if (.not. at_this_ele_end (physical_end, ele%aperture_at)) return
 
 ! A photon at the surface will have the appropriate coords already so do not need to offset.
 
@@ -913,8 +913,7 @@ case (lcavity$, rfcavity$, e_gun$)
   s = s_edge
 
   if (particle_at == first_track_edge$) then
-
-    if (hard_ele%key == e_gun$) return  ! E_gun does not have an entrance kick
+    if (.not. is_true(track_ele%value(has_entrance_fringe_field$))) return  ! E_gun does not have an entrance kick
     s = s + bmad_com%significant_length / 10 ! Make sure inside field region
     call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 
@@ -922,6 +921,7 @@ case (lcavity$, rfcavity$, e_gun$)
     orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
   else
+    if (.not. is_true(track_ele%value(has_exit_fringe_field$))) return  ! E_gun does not have an entrance kick
     s = s - bmad_com%significant_length / 10 ! Make sure inside field region
     call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 

@@ -1595,6 +1595,14 @@ if (lord%key == e_gun$ .and. .not. include_upstream_end) then
   value(p0c_ref_init$)   = lord%value(p0c_start$)
 endif
 
+! fringe fields 
+
+select case (lord%key)
+case (rfcavity$, lcavity$, e_gun$, em_field$)
+  if (.not. include_upstream_end) value(has_entrance_fringe_field$) = false$
+  if (.not. include_downstream_end) value(has_exit_fringe_field$) = false$
+end select
+
 !
 
 if (lord%key == hkicker$ .or. lord%key == vkicker$) then

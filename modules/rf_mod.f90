@@ -206,19 +206,19 @@ phi_tol = 1d-5
 !------------------------------------------------------
 ! zero frequency e_gun
 
-if (ele%key == e_gun$ .and. .not. do_scale_phase) then
+if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   tracking_method_saved = ele%tracking_method
   value_saved = ele%value
 
   if (ele%tracking_method == bmad_standard$) ele%tracking_method = time_runge_kutta$
   ele%value(gradient_err$) = 0
 
-  pz_max = pz_calc(phi_max, err_flag)
+  pz_max = pz_calc(0.0_rp, err_flag)
   if (err_flag) return
   if (is_lost) call set_field_scale(-field_scale) ! Maybe field in wrong direction?
 
   do i = 1, 100
-    pz_max = pz_calc(phi_max, err_flag)
+    pz_max = pz_calc(0.0_rp, err_flag)
     if (err_flag) return
     scale_correct = dE_peak_wanted / dE_particle(pz_max)
     if (abs(scale_correct) > 1000) scale_correct = scale_correct / 10
