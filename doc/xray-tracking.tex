@@ -1112,7 +1112,7 @@ by constructing a vector $\Bf r$ for each corner point:
   \Bf r = (x_{lim}, y_{lim}, z_{lim}) - (x_{emit}, y_{emit}, z_{emit})
 \Endeq 
 The direction of each $\Bf r$ is characterized in polar coordinates
-(\phi, y) defined by
+$(\phi, y)$ defined by
 \begin{align}
   y &= \frac{r_y}{|r|} \CRNO
   \tan\phi &= \frac{r_x}{r_z} 
@@ -1145,7 +1145,7 @@ rotation matrices are constructed to transform between the
 \vn{target} coordinates defined so that $\Bf r$ for the \vn{center} point
 has the form $(0, 0, |r|)$. The procedure for calculating the photon
 velocity vector is now
-  \begin{enumeration}
+  \begin{enumerate}
   \item
 Rotate all the corner $\Bf r$ from \vn{element} to \vn{target} coordinates.
   \item
@@ -1155,5 +1155,5 @@ Calculate the velocity vector such that the $(\phi, y)$ of this vector
 falls within the min and max values in the last step.
   \item
 Rotate the velocity vector back to \vn{element} coordinates.
-  \end{enumeration}
+  \end{enumerate}
 

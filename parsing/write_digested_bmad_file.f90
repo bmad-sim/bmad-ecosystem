@@ -314,6 +314,8 @@ write (d_unit) ix_value(1:k), value(1:k)
 
 if (n_em_field_mode > 0) then
 
+  write (d_unit) ele%em_field%mode_to_autoscale
+
   ix_ele = 0
   ix_branch = 0
 
