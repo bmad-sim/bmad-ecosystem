@@ -172,8 +172,8 @@ read (d_unit, err = 9030)  &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_state, &
         lat%n_control_max, lat%n_ic_max, lat%input_taylor_order, &
-        lat%absolute_time_tracking, lat%rf_auto_scale_phase, &
-        lat%rf_auto_scale_amp, lat%use_ptc_layout, lat%pre_tracker
+        lat%absolute_time_tracking, lat%auto_scale_field_phase, &
+        lat%auto_scale_field_amp, lat%use_ptc_layout, lat%pre_tracker
 read (d_unit, err = 9070) n_branch
 
 ! custom attribute names

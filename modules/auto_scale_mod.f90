@@ -1,4 +1,4 @@
-module rf_mod
+module auto_scale_mod
 
 use runge_kutta_mod
 use bookkeeper_mod
@@ -16,7 +16,7 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine rf_auto_scale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase)
+! Subroutine auto_scale_field_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase)
 !
 ! Routine to set the phase offset and amplitude scale of the accelerating field if
 ! this field is defined. This routine works on lcavity, rfcavity and e_gun elements.
@@ -32,8 +32,8 @@ contains
 !
 ! The amplitude scaling is done based upon the setting of:
 !   Use the scale_amp arg if present.
-!   If scale_amp arg is not present: Use ele%branch%lat%rf_auto_scale_amp if associated(ele%branch).
-!   If none of the above: Use bmad_com%rf_auto_scale_amp_default.
+!   If scale_amp arg is not present: Use ele%branch%lat%auto_scale_field_amp if associated(ele%branch).
+!   If none of the above: Use bmad_com%auto_scale_field_amp_default.
 !
 ! A similar procedure is used for phase scaling.
 !
@@ -53,14 +53,14 @@ contains
 ! Note: If |dE| is too small, this routine cannot scale and will do nothing.
 !
 ! Modules needed
-!   use rf_mod
+!   use auto_scale_mod
 !
 ! Input:
 !   ele        -- ele_struct: RF element. Either lcavity or rfcavity.
 !     %value(gradient$) -- Accelerating gradient to match to if an lcavity.
 !     %value(voltage$)  -- Accelerating voltage to match to if an rfcavity.
-!     %lat%rf_auto_scale_phase ! Scale phase? Default if scale_amp is not present. See above.
-!     %lat%rf_auto_scale_amp   ! Scale amp?   Default is acale_phase is not present. See above.
+!     %lat%auto_scale_field_phase ! Scale phase? Default if scale_amp is not present. See above.
+!     %lat%auto_scale_field_amp   ! Scale amp?   Default is acale_phase is not present. See above.
 !   param      -- lat_param_struct: lattice parameters
 !  scale_amp   -- Logical, optional: Scale the amplitude? See above.
 !  scale_phase -- Logical, optional: Scale the phase? See above.
@@ -70,7 +70,7 @@ contains
 !   err_flag -- Logical, Set true if there is an error. False otherwise.
 !-
 
-subroutine rf_auto_scale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp)
+subroutine auto_scale_field_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp)
 
 use super_recipes_mod
 use nr, only: zbrent
@@ -95,18 +95,18 @@ logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, 
 logical, optional :: scale_phase, scale_amp
 logical :: debug = .false.
 
-character(*), parameter :: r_name = 'rf_auto_scale_phase_and_amp'
+character(*), parameter :: r_name = 'auto_scale_field_phase_and_amp'
 
 ! Check if auto scale is needed.
 
 err_flag = .false.
 if (.not. ele%is_on) return
 
-do_scale_phase = bmad_com%rf_auto_scale_phase_default
-do_scale_amp   = bmad_com%rf_auto_scale_amp_default
+do_scale_phase = bmad_com%auto_scale_field_phase_default
+do_scale_amp   = bmad_com%auto_scale_field_amp_default
 if (associated (ele%branch)) then
-  do_scale_phase = ele%branch%lat%rf_auto_scale_phase
-  do_scale_amp   = ele%branch%lat%rf_auto_scale_amp
+  do_scale_phase = ele%branch%lat%auto_scale_field_phase
+  do_scale_amp   = ele%branch%lat%auto_scale_field_amp
 endif
 do_scale_phase = logic_option(do_scale_phase, scale_phase)
 do_scale_amp   = logic_option(do_scale_amp,   scale_amp)
@@ -144,7 +144,7 @@ if (ele%tracking_method == bmad_standard$) then
 endif
 
 
-call pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
+call pointers_to_auto_scale_vars (ele, field_scale, phi0_ref)
 phi0_ref_original = phi0_ref
 
 if (.not. associated(field_scale)) then
@@ -563,7 +563,7 @@ end select
 
 end subroutine set_field_scale
 
-end subroutine rf_auto_scale_phase_and_amp
+end subroutine auto_scale_field_phase_and_amp
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -614,7 +614,7 @@ end function pz_calc
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
+! Subroutine pointers_to_auto_scale_vars (ele, field_scale, phi0_ref)
 !
 ! Routine to set pointers to the variables within an element used for auto scaling.
 !
@@ -628,7 +628,7 @@ end function pz_calc
 !-
 
 
-Subroutine pointers_to_rf_auto_scale_vars (ele, field_scale, phi0_ref)
+Subroutine pointers_to_auto_scale_vars (ele, field_scale, phi0_ref)
 
 implicit none
 
@@ -652,6 +652,6 @@ case (grid$, map$, custom$)
   phi0_ref => ele%em_field%mode(i)%phi0_ref
 end select
 
-end subroutine pointers_to_rf_auto_scale_vars
+end subroutine pointers_to_auto_scale_vars
 
 end module

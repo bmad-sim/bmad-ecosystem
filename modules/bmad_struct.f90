@@ -679,8 +679,8 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
-  logical rf_auto_scale_phase             ! See rf_auto_scale_phase_and_amp routine.
-  logical rf_auto_scale_amp               ! See rf_auto_scale_phase_and_amp routine.
+  logical auto_scale_field_phase             ! See auto_scale_field_phase_and_amp routine.
+  logical auto_scale_field_amp               ! See auto_scale_field_phase_and_amp routine.
   logical use_ptc_layout                  ! Use ptc layout for lattice
 end type
 
@@ -872,9 +872,9 @@ integer, parameter :: mat6_calc_method$ = 91, cmat_22$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
 integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94
-integer, parameter :: aperture$ = 95, rf_auto_scale_amp$ = 95, etap_a$ = 95
+integer, parameter :: aperture$ = 95, auto_scale_field_amp$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
-integer, parameter :: y_limit$ = 97, rf_auto_scale_phase$ = 97, etap_b$ = 97
+integer, parameter :: y_limit$ = 97, auto_scale_field_phase$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: aperture_limit_on$ = 99
 
@@ -1184,8 +1184,8 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%map_with_offsets = F?
   logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
-  logical :: rf_auto_scale_phase_default = .true.       ! Default for lat%rf_auto_scale_phase
-  logical :: rf_auto_scale_amp_default = .true.         ! Default for lat%rf_auto_scale_amp
+  logical :: auto_scale_field_phase_default = .true.       ! Default for lat%auto_scale_field_phase
+  logical :: auto_scale_field_amp_default = .true.         ! Default for lat%auto_scale_field_amp
   logical :: use_ptc_layout_default = .false.           ! Default for lat%use_ptc_layout
   logical :: debug = .false.                            ! Used for code debugging.
 end type
