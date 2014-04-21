@@ -3344,10 +3344,10 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 26 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 27 + offset; C.rf_auto_scale_phase_default = (rhs % 2 == 0);
+  rhs = 27 + offset; C.auto_scale_field_phase_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.rf_auto_scale_amp_default = (rhs % 2 == 0);
+  rhs = 28 + offset; C.auto_scale_field_amp_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 29 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
@@ -4326,10 +4326,10 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   rhs = 29 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.rf_auto_scale_phase = (rhs % 2 == 0);
+  rhs = 30 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.rf_auto_scale_amp = (rhs % 2 == 0);
+  rhs = 31 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 32 + offset; C.use_ptc_layout = (rhs % 2 == 0);

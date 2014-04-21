@@ -2011,8 +2011,8 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
-  Bool rf_auto_scale_phase_default;
-  Bool rf_auto_scale_amp_default;
+  Bool auto_scale_field_phase_default;
+  Bool auto_scale_field_amp_default;
   Bool use_ptc_layout_default;
   Bool debug;
 
@@ -2043,8 +2043,8 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
-    rf_auto_scale_phase_default(true),
-    rf_auto_scale_amp_default(true),
+    auto_scale_field_phase_default(true),
+    auto_scale_field_amp_default(true),
     use_ptc_layout_default(false),
     debug(false)
     {}
@@ -2519,8 +2519,8 @@ public:
   Int input_taylor_order;
   Int_ARRAY ic;
   Bool absolute_time_tracking;
-  Bool rf_auto_scale_phase;
-  Bool rf_auto_scale_amp;
+  Bool auto_scale_field_phase;
+  Bool auto_scale_field_amp;
   Bool use_ptc_layout;
 
   CPP_lat() :
@@ -2548,8 +2548,8 @@ public:
     input_taylor_order(0),
     ic(0, 0),
     absolute_time_tracking(false),
-    rf_auto_scale_phase(false),
-    rf_auto_scale_amp(false),
+    auto_scale_field_phase(false),
+    auto_scale_field_amp(false),
     use_ptc_layout(false)
     {}
 

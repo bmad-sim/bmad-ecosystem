@@ -869,8 +869,8 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
-  is_eq = is_eq && (x.rf_auto_scale_phase_default == y.rf_auto_scale_phase_default);
-  is_eq = is_eq && (x.rf_auto_scale_amp_default == y.rf_auto_scale_amp_default);
+  is_eq = is_eq && (x.auto_scale_field_phase_default == y.auto_scale_field_phase_default);
+  is_eq = is_eq && (x.auto_scale_field_amp_default == y.auto_scale_field_amp_default);
   is_eq = is_eq && (x.use_ptc_layout_default == y.use_ptc_layout_default);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
@@ -1127,8 +1127,8 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.input_taylor_order == y.input_taylor_order);
   is_eq = is_eq && is_all_equal(x.ic, y.ic);
   is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
-  is_eq = is_eq && (x.rf_auto_scale_phase == y.rf_auto_scale_phase);
-  is_eq = is_eq && (x.rf_auto_scale_amp == y.rf_auto_scale_amp);
+  is_eq = is_eq && (x.auto_scale_field_phase == y.auto_scale_field_phase);
+  is_eq = is_eq && (x.auto_scale_field_amp == y.auto_scale_field_amp);
   is_eq = is_eq && (x.use_ptc_layout == y.use_ptc_layout);
   return is_eq;
 };

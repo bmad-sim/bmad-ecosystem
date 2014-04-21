@@ -4946,9 +4946,9 @@ rhs = 25 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 26 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%rf_auto_scale_phase_default = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%auto_scale_field_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%rf_auto_scale_amp_default = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%auto_scale_field_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 29 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -6164,9 +6164,9 @@ endif
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 29 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%rf_auto_scale_phase = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%rf_auto_scale_amp = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 32 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
 
