@@ -23,7 +23,7 @@ subroutine lat_compute_ref_energy_and_time (lat, err_flag)
 
 
 use multipass_mod, dummy => lat_compute_ref_energy_and_time
-use rf_mod, dummy2 => lat_compute_ref_energy_and_time
+use auto_scale_mod, dummy2 => lat_compute_ref_energy_and_time
 
 implicit none
 
@@ -141,7 +141,7 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
     gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
-    call rf_auto_scale_phase_and_amp (gun_ele, branch%param, err); if (err) return
+    call auto_scale_field_phase_and_amp (gun_ele, branch%param, err); if (err) return
 
     call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
     call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
@@ -356,7 +356,7 @@ end subroutine lat_compute_ref_energy_and_time
 
 subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
 
-use rf_mod, dummy => ele_compute_ref_energy_and_time
+use auto_scale_mod, dummy => ele_compute_ref_energy_and_time
 
 implicit none
 
@@ -399,7 +399,7 @@ case (lcavity$)
   endif
 
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call rf_auto_scale_phase_and_amp (ele, param, err)
+    call auto_scale_field_phase_and_amp (ele, param, err)
     if (err) return
   endif
 
@@ -455,7 +455,7 @@ case default
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call rf_auto_scale_phase_and_amp (ele, param, err)
+    call auto_scale_field_phase_and_amp (ele, param, err)
     if (err) return
   endif
 

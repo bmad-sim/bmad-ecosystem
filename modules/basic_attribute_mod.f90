@@ -569,8 +569,8 @@ call init_attribute_name1 (def_parameter$, aperture_limit_on$,      'APERTURE_LI
 call init_attribute_name1 (def_parameter$, no_end_marker$,          'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$, 'ABSOLUTE_TIME_TRACKING')
 call init_attribute_name1 (def_parameter$, use_ptc_layout$,         'USE_PTC_LAYOUT')
-call init_attribute_name1 (def_parameter$, rf_auto_scale_phase$,    'RF_AUTO_SCALE_PHASE')
-call init_attribute_name1 (def_parameter$, rf_auto_scale_amp$,      'RF_AUTO_SCALE_AMP')
+call init_attribute_name1 (def_parameter$, auto_scale_field_phase$,    'AUTO_SCALE_FIELD_PHASE')
+call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,      'AUTO_SCALE_FIELD_AMP')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,        'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,   'USE_HARD_EDGE_DRIFTS')
@@ -1269,8 +1269,8 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
-      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'RF_AUTO_SCALE_PHASE', &
-      'RF_AUTO_SCALE_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'AUTO_SCALE_FIELD_PHASE', &
+      'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER')
   attrib_type = is_logical$

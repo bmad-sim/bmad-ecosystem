@@ -1500,9 +1500,9 @@ is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%rf_auto_scale_phase_default .eqv. f2%rf_auto_scale_phase_default)
+is_eq = is_eq .and. (f1%auto_scale_field_phase_default .eqv. f2%auto_scale_field_phase_default)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%rf_auto_scale_amp_default .eqv. f2%rf_auto_scale_amp_default)
+is_eq = is_eq .and. (f1%auto_scale_field_amp_default .eqv. f2%auto_scale_field_amp_default)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_ptc_layout_default .eqv. f2%use_ptc_layout_default)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2011,9 +2011,9 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%rf_auto_scale_phase .eqv. f2%rf_auto_scale_phase)
+is_eq = is_eq .and. (f1%auto_scale_field_phase .eqv. f2%auto_scale_field_phase)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%rf_auto_scale_amp .eqv. f2%rf_auto_scale_amp)
+is_eq = is_eq .and. (f1%auto_scale_field_amp .eqv. f2%auto_scale_field_amp)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%use_ptc_layout .eqv. f2%use_ptc_layout)
 

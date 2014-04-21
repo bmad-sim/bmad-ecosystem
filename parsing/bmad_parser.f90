@@ -788,8 +788,8 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%b          = in_lat%b
     lat%z          = in_lat%z
     lat%absolute_time_tracking      = in_lat%absolute_time_tracking
-    lat%rf_auto_scale_phase         = in_lat%rf_auto_scale_phase
-    lat%rf_auto_scale_amp           = in_lat%rf_auto_scale_amp
+    lat%auto_scale_field_phase         = in_lat%auto_scale_field_phase
+    lat%auto_scale_field_amp           = in_lat%auto_scale_field_amp
     lat%use_ptc_layout              = in_lat%use_ptc_layout
     if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
     call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
