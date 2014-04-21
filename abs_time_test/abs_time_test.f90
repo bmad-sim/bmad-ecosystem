@@ -1,7 +1,7 @@
 program abs_time_test
 
 use bmad
-use rf_mod
+use auto_scale_mod
 
 implicit none
 
@@ -19,7 +19,7 @@ orb1(0) = lat%beam_start
 call track_all (lat, orb1)
 
 lat%absolute_time_tracking = .true.
-call rf_auto_scale_phase_and_amp (lat%ele(2), lat%param, err_flag)
+call auto_scale_field_phase_and_amp (lat%ele(2), lat%param, err_flag)
 
 call reallocate_coord (orb2, lat%n_ele_max)
 orb2(0) = lat%beam_start
