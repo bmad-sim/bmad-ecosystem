@@ -1730,10 +1730,10 @@ any program that needs to do tracking (\sref{s:custom.ele}).
 The other two possibilities are setting \vn{field_calc} to either
 \vn{grid} or \vn{map}. \vn{grid} defines the field using a three
 dimensional grid of points with interpolation used to evaluate the
-field between points. \vn{map} defines the field using a number of
-normal modes. As dissused below, both \vn{grid} and \vn{map} use the 
+field between points. \vn{map} defines the field as a sum of a number of
+modes (functions). As dissused below, both \vn{grid} and \vn{map} use the 
 \vn{field} attribute of an element to specify the needed parameters.
-Example:
+Examples:
 \begin{example}
   q: quadrupole, field_type = grid, field = \{grid = \{...\}\}, ...
   r: rfcavity, field_type = map, field = \{map = \{...\}\}, ...
@@ -1741,14 +1741,14 @@ Example:
 \index{lcavity}\index{rfcavity}\index{em_field}\index{field}
 Fields so specified can be used with, for example, \vn{runge_kutta}
 tracking (\sref{s:tkm}). Both RF and DC fields can be specified.
-However RF fields can only be associated with \vn{lcavity},
-\vn{rfcavity}, and \vn{em_field} elements.
-
-Currently there is the restriction that RF fields must use \vn{map}
-and DC fields must use \vn{grid}.
-
-%-----------------------------------------------------------------
-\subsection{Map}
+However RF fields can only be associated with the following elements:
+\begin{example}
+  e_gun
+  em_field
+  lcavity
+  rfcavity
+\end{example}
+Currently there is the restriction that DC fields must use \vn{grid}.
 
 The syntax for specifying the electromagnetic fields is
 \index{m}\index{field}\index{mode}\index{freq}\index{phi0_ref}
@@ -1756,16 +1756,17 @@ The syntax for specifying the electromagnetic fields is
 \index{map}\index{grid}
 \begin{example}
   field = \{
+    mode_to_autoscale = <Integer>, ! Default = 1.
     mode = \{
-      m             = <Integer>, ! Mode number
-      harmonic      = <Integer>, ! Harmonic number 
-      phi0_ref     = <Real>,    ! Phase of oscillations.
-      f_damp        = <Real>,    ! Oscillation damping factor. Default = 0.
-      field_scale   = <Real>,    ! Scale factor for the E & B fields.
-      master_scale  = <Name>,    ! Master scaling parameter for E & B fields.
-      phi0_azimuth  = <Real>,    ! Azimuthal orientation.
-      map           = <EM_field_map>,        ! EM field map data
-      grid          = \{<EM_field_grid>\} \},    ! EM field grid data
+      m             = <Integer>,   ! Mode number
+      harmonic      = <Integer>,   ! Harmonic number 
+      phi0_ref      = <Real>,      ! Phase of oscillations.
+      f_damp        = <Real>,      ! Oscillation damping factor. Default = 0.
+      field_scale   = <Real>,      ! Scale factor for the E & B fields.
+      master_scale  = <Name>,      ! Master scaling parameter for E & B fields.
+      phi0_azimuth  = <Real>,      ! Azimuthal orientation.
+      map           = \{<EM_field_map>\},     ! EM field map data
+      grid          = \{<EM_field_grid>\} \}, ! EM field grid data
     mode = \{...\}\}
 \end{example}
 The electromagnetic field is specified as a series of \vn{modes}. Each
@@ -1773,6 +1774,7 @@ The electromagnetic field is specified as a series of \vn{modes}. Each
 as an RF field. The field associated with a mode can be specified
 using a \vn{grid} of data points or by a \vn{map} which specify the
 coefficients of an analytical form for the field.
+The \vn{mode_to_autoscale} parameter is explained in Chapter~\sref{c:autoscale}
 
 The field is scaled by two values specified by \vn{field_scale} and
 \vn{master_scale}. That is
@@ -1789,6 +1791,27 @@ fields are scaled by the quadrupole strength parameter. The purpose of
 this \vn{master_scale} is to provide a way to scale the 3D fields with
 the element strength parameter (K1 for a quadrupole) and also provide
 a way to scale separate \vn{mode}s jointly.
+Example:
+\begin{example}
+  apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
+    field = \{ mode = \{
+      m = 0, harmonic = 1,
+      master_scale = voltage,
+      grid = call::apex_gun_grid.bmad \}\}
+\end{example}
+with the file \vn{apex_gun_grid.bmad} being:
+\begin{example}
+  \{
+    type = rotationally_symmetric_rz,
+    r0 = (0, 0),
+    dr = (0.001, 0.001),
+    pt(0,0) = ( (0, 0), (0, 0), (1, 0),  (0, 0), (0, 0), (0, 0)),
+    pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
+    ... \}
+\end{example}
+
+%-----------------------------------------------------------------
+\subsection{Map}
 
 The \vn{map} specification has the form
 \begin{example}
@@ -1819,7 +1842,7 @@ running from 0 to $N-1$, is associated with a wavelength $k_n$
 This convention follows the convention used by Numerical
 Recipes\cite{b:nr}.  
 
-The longitudinal length
+ The longitudinal length
 of the field is
 \begin{equation}
   L_{\text{field}} = \frac{N - 1}{dz}
@@ -1865,6 +1888,7 @@ the maximal acceleration is equal to \vn{e * voltage}.
 
 %-----------------------------------------------------------------
 \subsection {Grid}
+\label{ss:grid}
 
 A grid of field points can be specified using the general format:
 \begin{example}

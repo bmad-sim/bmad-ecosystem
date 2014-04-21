@@ -32,8 +32,8 @@ set by \vn{parameter} are
   parameter[p0c]           = <Real>          ! Reference momentum.
   parameter[particle]      = <particle_type> ! Reference species: positron, proton, etc.
   parameter[ran_seed]      = <Integer>       ! Random number generator init.
-  parameter[rf_auto_scale_phase]    = <Logical>  ! RF automatic phase scaling.
-  parameter[rf_auto_scale_amp]      = <Logical>  ! RF automatic amplitude scaling.
+  parameter[rf_auto_scale_phase]    = <Logical>  ! Automatic phase scaling.
+  parameter[rf_auto_scale_amp]      = <Logical>  ! Automatic amplitude scaling.
   parameter[taylor_order]           = <Integer>  ! Default: 3
   parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
@@ -147,7 +147,7 @@ This syntax is obsolete since a typographical error is not easily caught.
 \index{rfcavity}\index{lcavity}\index{em_field}
 The \vn{rf_auto_scale_phase} and \vn{rf_auto_scale_amp} switches
 toggle the automatic scaling of the RF phase and/or amplitude for
-\vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements (\sref{s:rf.auto}).
+\vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements (\sref{s:autoscale}).
 
 \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
 The \vn{absolute_time_tracking} switch sets whether the clock for the

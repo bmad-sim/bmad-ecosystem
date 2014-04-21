@@ -1,0 +1,54 @@
+\chapter{Automatic Scaling of Accelerating Fields}
+\label{c:autoscale}
+\index{automatic field scaling|hyperbf}
+
+\index{e_gun}\index{em_field}\index{lcavity}\index{rfcavity}
+The elements that can have accelerating fields are:
+\begin{example}
+  e_gun       ! \sref{s:e.gun}
+  em_field    ! \sref{s:em.field}
+  lcavity     ! \sref{s:lcavity}
+  rfcavity    ! \sref{s:rfcavity}
+\end{example}
+
+The problem that arises with accelerating fields is how to set the
+overall amplitude (and phase if the fields are oscillating) of the
+field so that the reference particle has the desired acceleration. The
+problem becomes even more complicated at non-ultra relativistic
+energies where the velocity is not a constant. In this case, the
+proper amplitude and/or phase settings will depend upon what the
+incoming energy of the reference particle is.
+
+The scaling problem is not present when \vn{bmad_standard} tracking
+(\sref{s:tkm}) is used since \vn{bmad_standard} tracking uses an
+integrated formua that is designed to give the proper acceleration.
+
+To help with the scaling problem, \bmad has the capability to automatically
+scale an accelerating field's amplitude and/or phase. The two
+parameters that turn on/off autoscaling are (\sref{s:param}):
+\begin{example}
+  parameter[rf_auto_scale_phase]    = <Logical>  ! Automatic phase scaling.
+  parameter[rf_auto_scale_amp]      = <Logical>  ! Automatic amplitude scaling.
+\end{example}
+The default value is True for both parameters. 
+
+Scaling takes place during program execution when a lattice is
+initially created (that is, when the lattice file is parsed) and when
+parameters in the lattice that would change the scaling are varied.
+
+The parameters that are varied when the field is auto scalled depend
+upon how the field is calculated. When the fields are specified using
+maps or tables (\sref{s:em.fields}), the 
+
+
+
+
+For RF fields, if both amplitude and phase are to be scaled, the 
+
+
+
+
+
+
+
+
