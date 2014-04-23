@@ -348,31 +348,32 @@ General \vn{rbend} and \vn{sbend} attributes are:
 
 \index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
-\index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
+\index{e1}\index{e2}\index{f1}\index{fint}\index{fintx}\index{l_arc}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
-  g           = <Real>     ! Design bend strength (= 1/rho).
-  g_err       = <Real>     ! Bend strength error (\sref{s:depend}).
+  angle       = <Real>     ! Design bend angle. A settable dependent variable (\sref{s:depend}).
   b_field     = <Real>     ! Design field strength (= P_0 g / q) (\sref{s:depend}).
   b_field_err = <Real>     ! Field strength error (\sref{s:depend}).
-  angle       = <Real>     ! Design bend angle. A settable dependent variable (\sref{s:depend}).
-  rho         = <Real>     ! Design bend radius. A settable dependent variable (\sref{s:depend}).
-  e1, e2      = <Real>     ! Face angles.
-  fint, fintx = <Real>     ! Face field integrals.
-  hgap, hgapx = <Real>     ! Pole half gap.
-  h1, h2      = <Real>     ! Face curvature.
-  roll        = <Real>     ! See \ref{s:offset}.
-  k1          = <Real>     ! Quadrupole strength.
-  k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
   b1_gradient = <Real>     ! Quadrupole field strength (\sref{s:depend}).
   b2_gradient = <Real>     ! Sextupole field strength (\sref{s:depend}).
-  n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
+  e1, e2      = <Real>     ! Face angles.
+  f1          = <Real>     ! SAD ``linear'' fringe field.
+  fint, fintx = <Real>     ! Face field integrals.
+  g           = <Real>     ! Design bend strength (= 1/rho).
+  g_err       = <Real>     ! Bend strength error (\sref{s:depend}).
+  h1, h2      = <Real>     ! Face curvature.
+  hgap, hgapx = <Real>     ! Pole half gap.
+  k1          = <Real>     ! Quadrupole strength.
+  k2          = <Real>     ! Sextupole strength (\sref{s:depend}).
   l           = <Real>     ! ``Length'' of bend. See below.
   l_arc       = <Real>     ! Arc length. For \vn{rbend}s only. 
   l_chord                  ! Chord length. Dependent attribute. See \sref{s:l}.
+  n_ref_pass  = <Int>      ! Multipass reference turn (\sref{s:multipass}).
   ptc_field_geometry 
-              = <Switch>   ! 
+              = <Switch>   ! See below.
+  rho         = <Real>     ! Design bend radius. A settable dependent variable (\sref{s:depend}).
+  roll        = <Real>     ! See \ref{s:offset}.
 \end{example}
 
 \index{l}
@@ -403,21 +404,10 @@ For the bends drawn as viewed from ``above'' (viewed from positive $y$),
 \end{figure}
 
   \begin{description}
-  \index{l}\index{l_chord}\index{l_arc}
-  \item[l, l_chord]  \Newline
-For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord
-length and not the arc length as it is for an \vn{sbend}.  However,
-after reading in a lattice, \bmad will internally convert all
-\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute
-will be set to the input \vn{l}, and \vn{l} will be set to the true
-path length (see above). Alternatively for an \vn{rbend}, instead of
-setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc
-length.
-  \index{h1}\index{h2}
-  \item[h1, h2] \Newline
-The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
-and exit pole faces. They are present for compatibility with MAD but
-are not yet implemented in terms of tracking and other calculations.
+  \index{angle}
+  \item[angle] \Newline
+The total design bend angle. A positive \vn{angle} represents a
+bend towards negative $x$ values (see \fig{f:local.coords}).
   \index{e1}\index{e2}
   \item[e1, e2] \Newline
 The rotation angle of the entrance pole face is \vn{e1} and at the
@@ -427,24 +417,10 @@ for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
-  \index{angle}
-  \item[angle] \Newline
-The total design bend angle. A positive \vn{angle} represents a
-bend towards negative $x$ values (see \fig{f:local.coords}).
-  \index{k1}\index{b1_gradient}
-  \item[k1, b1_gradient] \Newline
-The normalized and unnormalized quadrupole strength.
-  \index{k2}\index{b2_gradient}
-  \item[k2, b2_gradient] \Newline
-The normalized and unnormalized sextupole strength. 
-  \index{g}\index{rho}\index{g_err}
-  \item[g, g_err, rho] \Newline
-The design bending radius which determines the reference coordinate
-system is \vn{rho} (see \sref{s:ref}). \vn{g} = 1/\vn{rho} is
-the curvature function and is proportional to the design dipole
-magnetic field. The true field strength is given by
-\vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
-unchanged but varies a particle's orbit.
+  \index{f1}
+  \item[f1] \Newline
+\vn{f1} is the strength of the SAD ``linear'' fringe field. This
+fringe is applied at both the entrance and exit faces.
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
@@ -480,6 +456,35 @@ are zero except for $C_0$ and $C_1$ then
 \Begineq
   C_1 = \frac{1}{2 \,H_{gap} \, F_{int}}
 \Endeq
+  \index{g}\index{rho}\index{g_err}
+  \item[g, g_err, rho] \Newline
+The design bending radius which determines the reference coordinate
+system is \vn{rho} (see \sref{s:ref}). \vn{g} = 1/\vn{rho} is
+the curvature function and is proportional to the design dipole
+magnetic field. The true field strength is given by
+\vn{g}~+~\vn{g_err} so changing \vn{g_err} leaves the design orbit
+unchanged but varies a particle's orbit.
+  \index{h1}\index{h2}
+  \item[h1, h2] \Newline
+The attributes \vn{h1} and \vn{h2} are the curvature of the entrance
+and exit pole faces. They are present for compatibility with MAD but
+are not yet implemented in terms of tracking and other calculations.
+  \index{k1}\index{b1_gradient}
+  \item[k1, b1_gradient] \Newline
+The normalized and unnormalized quadrupole strength.
+  \index{k2}\index{b2_gradient}
+  \item[k2, b2_gradient] \Newline
+The normalized and unnormalized sextupole strength. 
+  \index{l}\index{l_chord}\index{l_arc}
+  \item[l, l_chord]  \Newline
+For compatibility with MAD, for an \vn{rbend}, \vn{l} is the chord
+length and not the arc length as it is for an \vn{sbend}.  However,
+after reading in a lattice, \bmad will internally convert all
+\vn{rbend}s into \vn{sbend}s, additionally, the \vn{l_chord} attribute
+will be set to the input \vn{l}, and \vn{l} will be set to the true
+path length (see above). Alternatively for an \vn{rbend}, instead of
+setting \vn{l}, the \vn{l_arc} attribute can be set to the true arc
+length.
   \index{ref_tilt}
   \item[ref_tilt] \Newline
 The \vn{ref_tilt} attribute rotates a bend about the longitudinal axis
@@ -2730,12 +2735,14 @@ General \vn{quadrupole} attributes are:
 \end{center}
 \toffset
 
-\index{k1}
-\index{b1_gradient}
+\index{f1}\index{f2}
+\index{k1}\index{b1_gradient}
 Attributes specific to a \vn{quadrupole} element are:
 \begin{example}
-  k1             = <Real>    ! Quadrupole strength.
   b1_gradient    = <Real>    ! Field strength. (\sref{s:depend}).
+  k1             = <Real>    ! Quadrupole strength.
+  f1             = <Real>    ! SAD ``linear'' fringe at entrance end.
+  f2             = <Real>    ! SAD ``linear'' fringe at exit end.
  \end{example}
 
 \index{tilt}
@@ -2930,12 +2937,12 @@ the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{tabular}{ll|llll} 
               &                      & \multicolumn{4}{c}{fringe_at:} \\
               &                      & no_end     & entrance_end & exit_end   & both_ends$^*$ \HH
-\multirow{4}{*}{fringe_kind:} 
+\multirow{4}{*}{fringe_type:} 
               & none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
               & sad_linear           & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
               & sad_nonlin_only$^*$  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
-              & sad_full             & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\
-\multicolumn{6}{l}{Default value.} \\
+              & sad_full             & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\ \bottomrule
+\multicolumn{6}{l}{$^*$Default value.} \\
 \end{tabular}
 \end{center}
 Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}].

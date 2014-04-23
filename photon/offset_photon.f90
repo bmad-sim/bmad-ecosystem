@@ -24,7 +24,7 @@
 
 subroutine offset_photon (ele, orbit, set, offset_position_only, rot_mat)
 
-use track1_mod, dummy => offset_photon
+use track1_photon_mod, dummy => offset_photon
 
 implicit none
 

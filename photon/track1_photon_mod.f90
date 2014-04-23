@@ -1247,4 +1247,141 @@ endif
 
 end subroutine target_min_max_calc
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
+!
+! Subroutine to track a particle as through a drift.
+!
+! Modules needed:
+!   use track1_mod
+!
+! Input:
+!   orb      -- coord_struct: Orbit at start of the drift.
+!   length   -- real(rp): Longitudinal length to drift through.
+!   phase_relative_to_ref
+!            -- logical: If true then E field phase shift is relative to ref particle.
+!
+! Output:
+!   orb      -- coord_struct: Orbit at end of the drift
+!-
+
+subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
+
+implicit none
+
+type (coord_struct) orb
+real(rp) length, path_len, l, v2, dp
+logical phase_relative_to_ref
+
+! Check for lost
+
+if (orb%vec(6) == 0) then
+  orb%state = lost$
+  return
+endif
+
+! Photon tracking uses a different coordinate system. 
+! Notice that if orb%vec(6) is negative then the photon will be going back in time.
+
+l = length  ! In case actual length argument is a component of orb.
+path_len = l / orb%vec(6)
+orb%vec(1) = orb%vec(1) + path_len * orb%vec(2)
+orb%vec(3) = orb%vec(3) + path_len * orb%vec(4)
+orb%vec(5) = orb%vec(5) + l
+orb%s      = orb%s      + l
+orb%t = orb%t + path_len / c_light
+orb%path_len = orb%path_len + path_len
+
+if (phase_relative_to_ref) then
+  v2 = orb%vec(2)**2 + orb%vec(4)**2
+  if (v2 < 1d-4) then
+    dp = abs(l) * v2 * (0.5_rp + 3 * v2 / 8 + 5 * v2**2 / 16)
+  else
+    dp = abs(path_len) - abs(l)
+  endif
+  orb%phase = orb%phase + sign(dp, path_len) * orb%p0c / (c_light * h_bar_planck)
+else
+  orb%phase = orb%phase + path_len * orb%p0c / (c_light * h_bar_planck)
+endif
+end subroutine track_a_drift_photon
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine track_a_bend_photon (orb, ele, length)
+!
+! Routine to track a photon through a dipole bend.
+! The photon is traveling in a straight line but the reference frame
+! is curved in a circular shape.
+!
+! Input:
+!   orb        -- Coord_struct: Starting position.
+!   ele        -- Ele_struct: Bend element.
+!   length     -- real(rp): length to track.
+!
+! Output:
+!   orb         -- Coord_struct: End position.
+!-
+
+subroutine track_a_bend_photon (orb, ele, length)
+
+implicit none
+
+type (coord_struct) orb
+type (ele_struct) ele
+
+real(rp) length
+real(rp) g, radius, theta, tan_t, dl, st, ct, denom, sin_t, cos_t
+real(rp) v_x, v_s
+
+!
+
+g = ele%value(g$)
+
+! g = 0 case
+
+if (g == 0) then
+  call track_a_drift_photon (orb, length, .true.)
+  return
+endif
+
+! Normal case
+
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(ele%value(ref_tilt_tot$), orb%vec)
+
+radius = 1 / g
+theta = length * g
+tan_t = tan(theta)
+dl = tan_t * (radius + orb%vec(1)) / (orb%vec(6) - tan_t * orb%vec(2))
+
+! Move to the stop point. 
+! Need to remember that radius can be negative.
+
+st = dl * orb%vec(6)
+ct = radius + orb%vec(1) + dl * orb%vec(2)
+if (abs(st) < 1e-3 * ct) then
+  denom = sign (ct * (1 + (st/ct)**2/2 + (st/ct)**4/8), radius)
+else
+  denom = sign (sqrt((radius + orb%vec(1) + dl * orb%vec(2))**2 + (dl * orb%vec(6))**2), radius)
+endif
+sin_t = st / denom
+cos_t = ct / denom
+v_x = orb%vec(2); v_s = orb%vec(6)
+
+orb%vec(1) = denom - radius
+orb%vec(2) = v_s * sin_t + v_x * cos_t
+orb%vec(3) = orb%vec(3) + dl * orb%vec(4)
+orb%vec(5) = orb%vec(5) + length
+orb%vec(6) = v_s * cos_t - v_x * sin_t
+orb%s      = orb%s + length
+orb%t      = orb%t + length * orb%vec(6) / c_light
+
+if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), orb%vec)
+
+end subroutine track_a_bend_photon
+
 end module
