@@ -1776,21 +1776,6 @@ using a \vn{grid} of data points or by a \vn{map} which specify the
 coefficients of an analytical form for the field.
 The \vn{mode_to_autoscale} parameter is explained in Chapter~\sref{c:autoscale}
 
-The field is scaled by two values specified by \vn{field_scale} and
-\vn{master_scale}. That is
-\begin{equation}
-  [E, B] (actual) = [E, B] \mbox{(from map or grid)} * 
-  \mbox{field_scale} * \mbox{master_scale_value}
-\end{equation}
-That is, the actual field is the value as determined from the \vn{map}
-or \vn{grid} data (see below) scaled by the value of \vn{field_scale}
-times the ``master_scale_value''. This master_scale_value is the value
-of the element parameter given by \vn{master_scale}. For example, for
-a quadrupole element, if \vn{master_scale} is set to "K1" then the
-fields are scaled by the quadrupole strength parameter. The purpose of
-this \vn{master_scale} is to provide a way to scale the 3D fields with
-the element strength parameter (K1 for a quadrupole) and also provide
-a way to scale separate \vn{mode}s jointly.
 Example:
 \begin{example}
   apex: e_gun, l = 0.23, field_calc = grid, rf_frequency = 187e6, 
@@ -1809,6 +1794,55 @@ with the file \vn{apex_gun_grid.bmad} being:
     pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
     ... \}
 \end{example}
+
+The field is scaled by two values specified by \vn{field_scale} and
+\vn{master_scale}. That is
+\begin{equation}
+  [E, B] (actual) = [E, B] \mbox{(from map or grid)} * 
+  \mbox{field_scale} * \mbox{master_scale_value}
+\end{equation}
+That is, the actual field is the value as determined from the \vn{map}
+or \vn{grid} data (see below) scaled by the value of \vn{field_scale}
+times the ``master_scale_value''. This master_scale_value is the value
+of the element parameter given by \vn{master_scale}. For example, for
+a quadrupole element, if \vn{master_scale} is set to "K1" then the
+fields are scaled by the quadrupole strength parameter. The purpose of
+this \vn{master_scale} is to provide a way to scale the 3D fields with
+the element strength parameter (K1 for a quadrupole) which is separate
+from auto scaling. The \vn{master_scale} also provides a way to scale
+separate \vn{mode}s jointly.
+
+The field of a given mode oscillates as given by Eq.~\ref{eseei}  
+\Begineq
+  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
+\Endeq
+The phase of the oscillation, $\theta_0$ comes from two
+sources: the phase \vn{phi0_ref} set for the mode and an overall phase
+\vn{phase_ref} given by
+\begin{example}
+ phase_ref = phi0 + phi0_multipass
+\end{example}
+\index{lcavity!reference phase}\index{rfcavity!reference phase}
+Unfortunately, to be consistent with \mad, the definition of
+\vn{phase_ref} for an \vn{lcavity} (\sref{s:lcav}) and \vn{e_gun} differ in sign to
+that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
+$\theta_0$ is
+\Begineq
+  \theta_0 = 
+  \begin{cases}
+    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phase_ref} + \text{phi0_err}) & 
+    \text{lcavity \& e_gun element} \\
+    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phase_ref} & 
+    \text{rfcavity element}
+  \end{cases}
+\Endeq
+where $f$ is the mode frequency and $f_0$ is the frequency of the
+fundamental.
+
+The phase \vn{phi0_ref} of the fundamental mode can be auto-scaled by
+Bmad (\sref{c:autoscale}) so that a particle with $z = 0$ will go
+through the cavity on crest for an \vn{e_gun} or  \vn{lcavity} and on the
+zero-crossing for an \vn{rfcavity}. 
 
 %-----------------------------------------------------------------
 \subsection{Map}
@@ -1851,40 +1885,6 @@ this may be different from the length \vn{l} specified for the
 element. If there is a difference, the field is assumed to be centered
 on the element and drifts will be used at the entrance and exit ends
 of the element to make up the difference.
-
-The field of a given mode oscillates as given by Eq.~\ref{eseei}  
-\Begineq
-  e^{-i \, 2 \, \pi ( f \, t + \theta_0)}
-\Endeq
-The phase of the oscillation, $\theta_0$ comes from two
-sources: the phase \vn{phi0_ref} set for the mode and an overall phase
-\vn{phase_ref} given by
-\begin{example}
- phase_ref = phi0 + phi0_multipass
-\end{example}
-\index{lcavity!reference phase}\index{rfcavity!reference phase}
-Unfortunately, to be consistent with \mad, the definition of
-\vn{phase_ref} for an \vn{lcavity} (\sref{s:lcav}) differs in sign to
-that for an \vn{rfcavity} (\sref{s:rfcav}). This being the case,
-$\theta_0$ is
-\Begineq
-  \theta_0 = 
-  \begin{cases}
-    \text{phi0_ref} + \dsfrac{f}{f_0} \, (\text{phase_ref} + \text{phi0_err}) & 
-    \text{lcavity element} \\
-    \text{phi0_ref} - \dsfrac{f}{f_0} \, \text{phase_ref} & 
-    \text{rfcavity element}
-  \end{cases}
-\Endeq
-where $f$ is the mode frequency and $f_0$ is the frequency of the fundamental.
-
-The phase \vn{phi0_ref} of the fundamental mode is auto-scaled by Bmad
-so that a particle with $z = 0$ will go through the cavity on crest
-for a \vn{lcavity} and on the zero-crossing for an
-\vn{rfcavity}. Additionally, the field of the fundamental mode is
-adjusted by an overall factor so that for an \vn{lcavity} the maximal
-acceleration is equal to \vn{gradient * L} and for an \vn{rfcavity}
-the maximal acceleration is equal to \vn{e * voltage}.
 
 %-----------------------------------------------------------------
 \subsection {Grid}
