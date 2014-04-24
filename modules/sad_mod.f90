@@ -76,15 +76,23 @@ endif
 
 call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
+! Setup ele2 which is used in offset_particle
+
+call transfer_ele(ele, ele2)
+ele2%value(x_pitch_tot$) = ele%value(x_pitch_tot$) + ele%value(x_pitch_mult$)
+ele2%value(y_pitch_tot$) = ele%value(y_pitch_tot$) + ele%value(y_pitch_mult$)
+ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
+ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
+
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
+  call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
   call multipole_kicks (knl, tilt, orbit)
   if (make_matrix) then
     call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
   endif
-  call offset_particle (ele, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
+  call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
 
   if (make_matrix) then
     call mat6_add_pitch (ele2%value(x_pitch_tot$), ele2%value(y_pitch_tot$), ele2%orientation, mat6)
@@ -99,15 +107,11 @@ endif
 
 ! Go to frame of reference of the multipole
 
-call transfer_ele(ele, ele2)
-
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 knl(1) = 0
 
 if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
-  ele2%value(x_pitch_tot$) = ele%value(x_pitch_tot$) + ele%value(x_pitch_mult$)
-  ele2%value(y_pitch_tot$) = ele%value(y_pitch_tot$) + ele%value(y_pitch_mult$)
   kx = knl(0) * cos(tilt(0)) - ks * ele%value(x_pitch_mult$)
   ky = knl(0) * sin(tilt(0)) + ks * ele%value(y_pitch_mult$)
   knl(0) = norm2([kx, ky])
@@ -115,8 +119,6 @@ if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
 endif
 
 if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
-  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
-  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
   orbit%vec(2) = orbit%vec(2) + ele%value(y_offset_mult$) * ks / 2
   orbit%vec(4) = orbit%vec(4) - ele%value(x_offset_mult$) * ks / 2
 endif
@@ -198,13 +200,6 @@ enddo
 
 ! End stuff
 
-if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
-  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
-  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
-  orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
-  orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
-endif
-
 ! Dipole edge kick
 
 call sad_linear_dipole_edge (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
@@ -220,6 +215,13 @@ call quadrupole_edge_kick (ele, second_track_edge$, orbit)
 !
 
 call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
+
+if (ele%value(x_offset_mult$) /= 0 .or. ele%value(y_offset_mult$) /= 0) then
+  ele2%value(x_offset_tot$) = ele%value(x_offset_tot$) + ele%value(x_offset_mult$)
+  ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
+  orbit%vec(2) = orbit%vec(2) - ele%value(y_offset_mult$) * ks / 2
+  orbit%vec(4) = orbit%vec(4) + ele%value(x_offset_mult$) * ks / 2
+endif
 
 call track1_low_energy_z_correction (orbit, ele2, param)
 
