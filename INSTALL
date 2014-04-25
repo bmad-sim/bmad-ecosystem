@@ -80,6 +80,7 @@ Etienne Forest there are no licensing issues with this software.
 This distribution includes the PGPLOT (pretty good plotting) package from Tim Pearson. 
 The web page for this package is:
   http://www.astro.caltech.edu/~tjp/pgplot/
+
 From the PGPLOT web page:
   PGPLOT is not public-domain software. However, it is freely available for non-commercial use. 
   The source code and documentation are copyrighted by California Institute of Technology, 
@@ -402,12 +403,16 @@ BASIC CODE BUILDS
    the ../production (for "mk") and ../debug (for "mkd"). 
 
 *****************************************************************************
-CMAKE BUILDS
+CMake Information
 -----------------------------------------------------------------------------
 
+
 CMake is an open-source build system used to create libraries and executables.
-Documentation can be found on the web. Here some brief documentation is given
-for people who want to create their own Bmad based programs.
+CMake is involked by the "mk" and "mkd" commands discussed above.
+CMake Documentation can be found on the web. 
+
+Here some brief documentation is given for people who want to create their own 
+Bmad based programs.
 
 A "source tree" is a hierarchical collection of files and directories
 that holds the source code for building into a library and/or a number of
