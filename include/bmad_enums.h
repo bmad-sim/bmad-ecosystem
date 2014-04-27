@@ -98,6 +98,8 @@ namespace Bmad {
   const int VOLTAGE = 9;
   const int F1 = 14;
   const int F2 = 15;
+  const int FB1 = 16;
+  const int FB2 = 17;
   const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, REL_TRACKING_CHARGE = 20;
   const int L_CHORD = 20, KS = 20, N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;

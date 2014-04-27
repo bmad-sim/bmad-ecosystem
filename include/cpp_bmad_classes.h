@@ -2226,13 +2226,13 @@ public:
 
     if (key == Bmad::LCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::FIELD_FACTOR] = 1;
       value[Bmad::N_CELL] = 1;
     }
 
     if (key == Bmad::RFCAVITY) {
       value[Bmad::COUPLER_AT] = Bmad::DOWNSTREAM_END;
-      value[Bmad::FIELD_SCALE] = 1;
+      value[Bmad::FIELD_FACTOR] = 1;
       value[Bmad::N_CELL] = 1;
     }
 
