@@ -797,7 +797,7 @@ integer, parameter :: ds_path_length$ = 22
 integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
 integer, parameter :: traveling_wave$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, branches_are_coherent$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26

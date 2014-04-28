@@ -968,7 +968,7 @@ allocate (expn(0:e_max, i_max))
 ! Fill in cache matrix
 
 expn(0,:) = 1.0d0  !for when ie=0
-expn(1,:) = start_orb(:)
+if (e_max > 0) expn(1,:) = start_orb(:)
 do j = 2, e_max
   expn(j,:) = expn(j-1,:) * start_orb(:)
 enddo
