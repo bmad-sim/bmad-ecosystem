@@ -40,6 +40,7 @@ case (fork$, photon_fork$)
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%value(ref_polarization$) = sigma_polarization$ 
+  ele%value(branches_are_coherent$) = true$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -113,8 +114,8 @@ case (multipole$, ab_multipole$)
   call multipole_init (ele, .true.)
 
 case (patch$)
-  ele%value(flexible$) = 0 ! False
-  ele%value(new_branch$) = 1    ! True
+  ele%value(flexible$) = false$ 
+  ele%value(new_branch$) = true$
   ele%value(ref_coordinates$)= exit_end$
   ele%value(upstream_ele_dir$) = 1
   ele%value(downstream_ele_dir$) = 1

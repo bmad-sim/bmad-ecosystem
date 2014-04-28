@@ -1084,6 +1084,7 @@ call init_attribute_name1 (crystal$, p0c_start$,                    'p0c_start',
 call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA', dependent$)
 call init_attribute_name1 (crystal$, darwin_width_sigma$,           'DARWIN_WIDTH_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDTH_PI', dependent$)
+call init_attribute_name1 (crystal$, branches_are_coherent$,        'BRANCHES_ARE_COHERENT')
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
@@ -1272,7 +1273,8 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'AUTO_SCALE_FIELD_PHASE', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER')
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
+      'BRANCHES_ARE_COHERENT')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &

@@ -3385,6 +3385,10 @@ if (ele%key == patch$ .or. ele%key == floor_shift$) then
   call bmad_patch_parameters_to_ptc (ang, exi)
 
   call set_madx_(.true., .false.)
+  nullify(dummy_fibre%pos) ! To get around PTC initialization bug
+  nullify(dummy_fibre%t1) ! To get around PTC initialization bug
+  nullify(dummy_fibre%t2) ! To get around PTC initialization bug
+  nullify(dummy_fibre%tm) ! To get around PTC initialization bug
   dummy_fibre = marker('dummy')
   nullify(dummy_fibre%loc)
   call set_madx_(.false., .false.)

@@ -749,13 +749,13 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (photon_material_struct), pointer :: pms
 
-real(rp) p_factor, e_field, e_phase, sqrt_b, delta1
+real(rp) p_factor, e_field, e_phase, sqrt_b, delta1_0, delta1_H
 real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3), dr(3)
 real(rp) kr, k0_im, k_mag, denom, thickness
 real(rp), save :: r_ran
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
-complex(rp) E_hat_alpha, E_hat_beta
+complex(rp) E_hat_alpha, E_hat_beta, E_hat
 complex(rp), save :: E_hat_alpha_saved, E_hat_beta_saved
 
 logical to_alpha_branch, do_branch_calc
@@ -777,7 +777,7 @@ xi_0k_a = f_cmp * (eta + eta1)                         ! alpha branch xi
 xi_hk_a = f_cmp / (abs(cp%b_eff) * (eta + eta1))
 
 !---------------
-! Bragg
+! Bragg calc
 
 if (ele%value(b_param$) < 0) then 
   if (abs(eta+eta1) > abs(eta-eta1)) then  ! beta branch excited
@@ -800,85 +800,88 @@ else
   e_rel_a = -2.0_rp * xi_0k_a / (p_factor * cp%cap_gamma * pms%f_hbar)
   e_rel_b = -2.0_rp * xi_0k_b / (p_factor * cp%cap_gamma * pms%f_hbar)
 
-  delta1 = 1 - cp%cap_gamma * real(pms%f_0) / 2
-  k_mag = delta1 / cp%wavelength
+  ! Alpha branch
 
-  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
-  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+  delta1_0 = real(xi_0k_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+
+  delta1_H = real(xi_hk_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
 
   s_alpha = k_0 + abs(e_rel_a)**2 * k_H
   dr_alpha = thickness * s_alpha / s_alpha(3)
 
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    kr = -twopi * dot_product(k_h, dr_alpha)
+    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0(3)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+  else
+    kr = -twopi * dot_product(k_0, dr_alpha)
+    k0_im = (delta1_0 / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0(3)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
+  endif
+
+  ! Beta branch
+
+  delta1_0 = real(xi_0k_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+
+  delta1_H = real(xi_hk_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+
   s_beta = k_0 + abs(e_rel_b)**2 * k_H
   dr_beta = thickness * s_beta / s_beta(3)
 
-  ! Calc fields
-
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
-    kr = -twopi * dot_product(k_h, dr_alpha)
-    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
-
     kr = -twopi * dot_product(k_h, dr_beta)
-    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * E_hat_alpha
-
+    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
   else
-    kr = -twopi * dot_product(k_0, dr_alpha)
-    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
-
     kr = -twopi * dot_product(k_0, dr_beta)
-    k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
-  endif
-
-  ! Calculate branching numbers?
-
-  if (do_branch_calc) then
-    call ran_uniform(r_ran)
-    E_hat_alpha_saved = E_hat_alpha
-    E_hat_beta_saved = E_hat_beta
+    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
   endif
 
   ! If crystal is too thick then mark particle as lost
 
-  if (E_hat_alpha_saved == 0 .and. E_hat_beta_saved == 0) then
+  if (E_hat_alpha == 0 .and. E_hat_beta == 0) then
     orbit%state = lost$
     e_field = 0
     return
   endif
 
-  ! Calculate branch and field
+  !--------------------------
+  ! Calculate phase and field
 
   if (param%tracking_mode == coherent$) then
+    ! Calculate branching numbers (first pass only)
+
+    if (do_branch_calc) then
+      call ran_uniform(r_ran)
+      E_hat_alpha_saved = E_hat_alpha
+      E_hat_beta_saved = E_hat_beta
+    endif
+
+    ! And branch
+
     denom = abs(E_hat_beta_saved) + abs(E_hat_alpha_saved)
     if (r_ran < abs(E_hat_alpha_saved) / denom) then ! alpha branch
-      to_alpha_branch = .true.
       e_field = denom * abs(E_hat_alpha) / abs(E_hat_alpha_saved)
+      e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
+      dr = dr_alpha
     else
-      to_alpha_branch = .false.
       e_field = denom * abs(E_hat_beta) / abs(E_hat_beta_saved)
+      e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
+      dr = dr_beta
     endif
-  else
-    denom = abs(E_hat_beta)**2 + abs(E_hat_alpha_saved)**2
-    if (r_ran < abs(E_hat_alpha_saved)**2 / denom) then ! alpha branch
-      to_alpha_branch = .true.
-      e_field = sqrt(denom * abs(E_hat_alpha)**2 / abs(E_hat_alpha_saved)**2)
-    else
-      to_alpha_branch = .false.
-      e_field = sqrt(denom * abs(E_hat_beta)**2 / abs(E_hat_beta_saved)**2)
-    endif
-  endif
 
-  ! Calculate phase and orbit change. Orbit change only is done once.
+  ! Not coherent
 
-  if (to_alpha_branch) then
-    e_phase = e_phase + atan2(aimag(E_hat_alpha), real(E_hat_alpha))
-    dr = dr_alpha
   else
-    e_phase = e_phase + atan2(aimag(E_hat_beta), real(E_hat_beta))
-    dr = dr_beta
+    E_hat = E_hat_alpha + E_hat_beta
+    e_field = abs(E_hat)
+    e_phase = e_phase + atan2(aimag(E_hat), real(E_hat))
+    dr = (dr_alpha * abs(E_hat_alpha) + dr_beta * abs(E_hat_beta)) / (abs(E_hat_alpha) + abs(E_hat_beta))
   endif
 
 endif
