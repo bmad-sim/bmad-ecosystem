@@ -130,17 +130,24 @@ def build_directory( dir, statlist, target ):
         ACC_SET_F_COMPILER = 'gfortran'
     else:
         ACC_SET_F_COMPILER = 'ifort'
+ 
+    ACC_SET_GMAKE_JOBS = '2'
+
+    ACC_ENABLE_FPIC = 'N'
 
     make_command = 'mk'
     if target == 'debug':
         make_command = 'mkd'
-    build_command = 'ACCLIB='+ invars.build_name + \
-                    '; export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
-                    '; UTIL_DIR_REQUEST='+ invars.util_dir + \
-                    '; source ' + invars.util_dir + '/acc_vars.sh;' + \
-                    ' export ACC_BUILD_EXES=Y; export ACC_ENABLE_SHARED=Y; ' + make_command
+    build_command = 'export ACCLIB='+ invars.build_name + \
+                    ' ; export ACC_SET_GMAKE_JOBS=' + ACC_SET_GMAKE_JOBS + \
+                    ' ; export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
+                    ' ; export ACC_ENABLE_FPIC=' + ACC_ENABLE_FPIC + \
+                    ' ; export UTIL_DIR_REQUEST='+ invars.util_dir + \
+                    ' ; source ' + invars.util_dir + '/acc_vars.sh' \
+                    ' ; export PATH=/usr/local/bin:$PATH' \
+                    ' ; export ACC_BUILD_EXES=Y ; export ACC_ENABLE_SHARED=Y ; env | grep ACC ; ' + make_command
+    print '-------- Using Build Command: ' + build_command
 
-    
     p = sub.Popen(build_command,
                   bufsize=1,
                   shell=True,
@@ -229,6 +236,6 @@ if invars.nightly:
             print 'Nightly link exists.'
             os.remove(invars.libs_basedir+'/'+invars.platform+'/nightly')
         os.symlink( invars.build_name, invars.libs_basedir+'/'+invars.platform+'/nightly' )
-        print 'Creating searcf_namelist index files.'
+        print 'Creating searchf_namelist index files.'
         sub.call(["/nfs/acc/libs/util/create_searchf_namelist", "-r", invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name ])
 

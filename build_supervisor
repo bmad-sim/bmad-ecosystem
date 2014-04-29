@@ -1,6 +1,6 @@
-#!/home/cesrulib/usr/bin/python
+#!/opt/rh/python27/root/usr/bin/python
 #-*-python-*-
-# 2.7.2
+# 2.7.5
 #
 # The default packages build to use when constructing a new
 # release build is determined by a symlink in the archive
@@ -31,12 +31,6 @@ p = sub.Popen('kinit -k -t /home/$USER/etc/$USER-keytab $USER',
               bufsize=1,
               shell=True,
               stdout=sub.PIPE )
-while True:
-    nextline = p.stdout.readline()
-    if nextline == '' and p.poll() != None:
-        break
-    sys.stdout.write(nextline)
-    sys.stdout.flush()
 
 # Print status of the script files with respect to the svn repository.
 utildir = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -46,6 +40,12 @@ os.system('svn st -u ' + utildir)
 print '\nSVN Status for build_system directory:'
 os.system('svn st -u ' + utildir + '/../build_system')
     
+while True:
+    nextline = p.stdout.readline()
+    if nextline == '' and p.poll() != None:
+        break
+    sys.stdout.write(nextline)
+    sys.stdout.flush()
 
 # Logger
 output_verbosity = logging.WARNING
@@ -92,23 +92,30 @@ argparser.add_argument('--online',
                        action='store_true',
                        dest='build_online_release',
                        help='Build the collection of libraries and programs for CESR online use.')
+argparser.add_argument('--local',
+                       action='store_true',
+                       dest='local',
+                       help='Build using local paths and resources.')
 argparser.add_argument('--packages',
                        action='store_true',
                        dest='packages',
                        help='Build the collection of external Packages used for CESR online.')
-argparser.add_argument('--intel',
+muxgroup = argparser.add_mutually_exclusive_group()
+muxgroup.add_argument('--intel',
                        action='store_true',
                        dest='intel',
                        help='Build using the Intel ifort compiler.')
-argparser.add_argument('--gfortran',
+muxgroup.add_argument('--gfortran',
                        action='store_true',
                        dest='gfortran',
-                       help='Build using the GCC gfotran compiler.')
+                       help='Build using the GCC gfortran compiler.')
 
 
 argresults = argparser.parse_args()
 
 build_online_release = argresults.build_online_release
+
+local = argresults.local
 
 build_packages = argresults.packages
 
@@ -116,6 +123,9 @@ compiler_intel = argresults.intel
 
 compiler_gfortran = argresults.gfortran
 
+ACC_SET_GMAKE_JOBS = '2'
+
+ACC_ENABLE_FPIC = 'N'
 
 ACC_FC = 'intel'
 
@@ -128,6 +138,8 @@ build_request = 'release_intel'
 makefile_dir_default = build_config.makefile_dir
 if build_online_release:
     util_dir_default = build_config.online_util_dir
+elif local:
+    util_dir_default = build_config.local_util_dir
 else:
     util_dir_default = build_config.offline_util_dir
 
@@ -143,6 +155,12 @@ if compiler_intel:
     if build_packages:
         build_request = 'packages_intel'
 
+    if local:
+        build_request = 'local-release_intel'
+
+    if local and build_packages:
+        build_request = 'local-packages_intel'
+
     #if build_dist:
         #build_request = 'dist_intel'
 
@@ -157,6 +175,12 @@ if compiler_gfortran:
 
     if build_packages:
         build_request = 'packages_gfortran'
+
+    if local:
+        build_request = 'local-release_gfortran'
+
+    if local and build_packages:
+        build_request = 'local-packages_gfortran'
 
     #if build_dist:
         #build_request = 'dist_gfortran'
@@ -177,8 +201,13 @@ class BuildController(threading.Thread):
     util_dir = util_dir_default
     makefile_dir = makefile_dir_default
 
+    if local:
+        release_prefix = 'cesr-local'
+    else:
+        release_prefix = 'cesr'
+
     prefixes = {
-        'release'  : 'cesr',
+        'release'  : release_prefix,
         'packages' : 'packages',
         'dist'     : 'CLASSE_accel_dist'
         }
@@ -196,6 +225,7 @@ class BuildController(threading.Thread):
         self.basedir = build_config.build_specs[spec]['basedir']
         self.util_dir = build_config.build_specs[spec]['util_dir']
         self.nightly = argresults.nightly
+        self.local = argresults.local
         self.intel = argresults.intel
         self.gfortran = argresults.gfortran
         
@@ -309,6 +339,7 @@ class BuildController(threading.Thread):
         self.log.write('full_release_dir  ' + self.full_release_dir +'\n')
         self.log.write('packages_name     ' + self.packages_name +'\n')
         self.log.write('nightly           ' + str(self.nightly) +'\n')
+        self.log.write('local             ' + str(self.local) +'\n')
         self.log.write('intel             ' + str(self.intel) +'\n')
         self.log.write('gfortran          ' + str(self.gfortran) +'\n')
         self.write_checkout_manifest()
@@ -366,9 +397,12 @@ class BuildController(threading.Thread):
         """Execute the build process."""
         self.write_log_stub()
         self.checkout_files()
-        build_command = 'rsh -x ' + self.hostname + \
-                        ' export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
-                        ' ; ~/usr/bin/python ' + self.util_dir + '/builder ' + self.full_logname
+        build_command = ("ssh " + self.hostname + \
+                        " 'export ACC_SET_GMAKE_JOBS=" + ACC_SET_GMAKE_JOBS + \
+                        " ; export ACC_SET_F_COMPILER=" + ACC_SET_F_COMPILER + \
+                        " ; export ACC_ENABLE_FPIC=" + ACC_ENABLE_FPIC + \
+                        " ; . /opt/rh/python27/enable" \
+                        " ; /opt/rh/python27/root/usr/bin/python " + self.util_dir + "/builder " + self.full_logname + "'")
         print build_command
         p = sub.Popen(build_command, bufsize=-1, shell=True)
         p_out = p.communicate()[0]
