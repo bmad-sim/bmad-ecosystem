@@ -2748,6 +2748,7 @@ character(16) :: r_name = 'ele_to_taylor'
 if (ptc_com%taylor_order_ptc == 0) call set_ptc (taylor_order = bmad_com%taylor_order)
 
 call alloc (y8)
+call alloc (bet)
 
 call attribute_bookkeeper (ele, param, .true.)
 
@@ -2836,6 +2837,7 @@ ele%taylor = y0
 
 call kill(y0)
 call kill(y8)
+call kill(bet)
 
 if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
 

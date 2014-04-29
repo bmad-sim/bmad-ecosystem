@@ -749,13 +749,13 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (photon_material_struct), pointer :: pms
 
-real(rp) p_factor, e_field, e_phase, sqrt_b, delta1_0, delta1_H
-real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0(3), k_h(3), dr(3)
+real(rp) p_factor, e_field, e_phase, sqrt_b, delta1_0_a, delta1_H_a, delta1_0_b, delta1_H_b
+real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0_a(3), k_h_a(3), k_0_b(3), k_h_b(3), dr(3)
 real(rp) kr, k0_im, k_mag, denom, thickness
 real(rp), save :: r_ran
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
-complex(rp) E_hat_alpha, E_hat_beta, E_hat
+complex(rp) E_hat_alpha, E_hat_beta, E_hat, exp_factor_a, exp_factor_b
 complex(rp), save :: E_hat_alpha_saved, E_hat_beta_saved
 
 logical to_alpha_branch, do_branch_calc
@@ -802,52 +802,72 @@ else
 
   ! Alpha branch
 
-  delta1_0 = real(xi_0k_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
-  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+  delta1_0_a = real(xi_0k_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0_a = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0_a**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
 
-  delta1_H = real(xi_hk_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
-  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+  delta1_H_a = real(xi_hk_a) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H_a = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H_a**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
 
-  s_alpha = k_0 + abs(e_rel_a)**2 * k_H
+  s_alpha = k_0_a + abs(e_rel_a)**2 * k_H_a
   dr_alpha = thickness * s_alpha / s_alpha(3)
 
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
-    kr = -twopi * dot_product(k_h, dr_alpha)
-    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+    k0_im = (delta1_H_a / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0_a(3)
+    exp_factor_a = exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
   else
-    kr = -twopi * dot_product(k_0, dr_alpha)
-    k0_im = (delta1_0 / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0(3)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
+    k0_im = (delta1_0_a / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0_a(3)
+    exp_factor_a = exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
   endif
 
   ! Beta branch
 
-  delta1_0 = real(xi_0k_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
-  k_0 = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
+  delta1_0_b = real(xi_0k_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_0_b = [cp%old_vvec(1), cp%old_vvec(2), sqrt(delta1_0_b**2 - cp%old_vvec(1)**2 - cp%old_vvec(2)**2)] / cp%wavelength
 
-  delta1_H = real(xi_hk_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
-  k_H = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
+  delta1_H_b = real(xi_hk_b) + (1 - cp%cap_gamma * real(pms%f_0) / 2)
+  k_H_b = [cp%new_vvec(1), cp%new_vvec(2), sqrt(delta1_H_b**2 - cp%new_vvec(1)**2 - cp%new_vvec(2)**2)] / cp%wavelength
 
-  s_beta = k_0 + abs(e_rel_b)**2 * k_H
+  s_beta = k_0_b + abs(e_rel_b)**2 * k_H_b
   dr_beta = thickness * s_beta / s_beta(3)
 
   if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
-    kr = -twopi * dot_product(k_h, dr_beta)
-    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+    k0_im = (delta1_H_b / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+    exp_factor_b = exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
   else
-    kr = -twopi * dot_product(k_0, dr_beta)
-    k0_im = (delta1_H / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0(3)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
+    k0_im = (delta1_H_b / cp%wavelength)**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+    exp_factor_b = exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
   endif
 
   ! If crystal is too thick then mark particle as lost
 
-  if (E_hat_alpha == 0 .and. E_hat_beta == 0) then
+  if (exp_factor_a == 0 .and. exp_factor_b == 0) then
     orbit%state = lost$
     e_field = 0
     return
+  endif
+
+  ! Take dr as average
+
+  dr = (dr_alpha * abs(exp_factor_a) + dr_beta * abs(exp_factor_b)) / (abs(exp_factor_a) + abs(exp_factor_b))
+
+  ! Alpha branch 
+
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    kr = -twopi * dot_product(k_h_a, dr)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+  else
+    kr = -twopi * dot_product(k_0_a, dr)
+    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+  endif
+
+  ! Beta branch
+
+  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+    kr = -twopi * dot_product(k_h_B, dr)
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
+  else
+    kr = -twopi * dot_product(k_0_b, dr)
+    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
   endif
 
   !--------------------------
