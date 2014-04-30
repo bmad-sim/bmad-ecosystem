@@ -1,5 +1,5 @@
 parameter[geometry] = Open            
-
+ 
 parameter[p0c]                    =9.9999986944E8
 parameter[particle]               = POSITRON        
 parameter[auto_scale_field_phase]    = T
@@ -8,30 +8,30 @@ parameter[absolute_time_tracking] = F
 
 beginning[beta_a]   = 10
 beginning[beta_b]   = 10
-
+ 
 !-------------------------------------------------------
-
+ 
 slave_drift_001: drift, l = 0.5
 PFORK: PHOTON_FORK, to_line = L2
 slave_drift_002: drift, l = 0.5
 M: MARKER
-
+ 
 !-------------------------------------------------------
 ! Overlays, groups, etc.
-
+ 
 x__D1: null_ele
 D1: PIPE, superimpose, ele_beginning, ref = x__D1, L = 1
 D2: PIPE, L = 1
 FORK2: FORK, to_line = L1, to_element = M
-
+ 
 L1: line = ( x__D1, slave_drift_001, PFORK, slave_drift_002, M)
-
+ 
  use, L1
-
+ 
 !-------------------------------------------------------
-
+ 
 L2: line = ( D2, FORK2)
-
+ 
 L2[geometry]            = Open            
 L2[rel_tracking_charge] = 1                       
 L2[particle] = PHOTON          
