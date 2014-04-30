@@ -176,10 +176,10 @@ end interface
 
   if ((x_limit .ne. 0.) .or. (y_limit .ne. 0.)) then
      do ix = 1, ring%n_ele_track
-        ring%ele(ix)%value(x1_limit$) = x_limit
-        ring%ele(ix)%value(x2_limit$) = x_limit
-        ring%ele(ix)%value(y1_limit$) = y_limit
-        ring%ele(ix)%value(y2_limit$) = y_limit
+        if (ring%ele(ix)%value(x1_limit$) .eq. 0) ring%ele(ix)%value(x1_limit$) = x_limit
+        if (ring%ele(ix)%value(x2_limit$) .eq. 0) ring%ele(ix)%value(x2_limit$) = x_limit
+        if (ring%ele(ix)%value(y1_limit$) .eq. 0) ring%ele(ix)%value(y1_limit$) = y_limit
+        if (ring%ele(ix)%value(y2_limit$) .eq. 0) ring%ele(ix)%value(y2_limit$) = y_limit
      enddo
   endif
 
