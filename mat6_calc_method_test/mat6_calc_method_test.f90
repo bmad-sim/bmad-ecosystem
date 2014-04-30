@@ -6,7 +6,7 @@ use mad_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), target, allocatable :: temp_ele(:)
+type (ele_struct), target, allocatable :: eles(:)
 type (coord_struct) start_orb, end_orb
 type (ele_struct), pointer :: ele, ele2
 type (lat_param_struct) param
@@ -41,7 +41,7 @@ call lattice_bookkeeper (lat)
 
 open (1, file = 'output.now', recl = 200)
 
-allocate (temp_ele(n_methods$)) 
+allocate (eles(n_methods$)) 
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -54,7 +54,7 @@ do ib = 0, ubound(lat%branch, 1)
       ele%mat6_calc_method = j
       call init_coord (start_orb, lat%beam_start, ele, .false., branch%param%particle)
       call make_mat6 (ele, branch%param, start_orb, end_orb)
-      call transfer_ele(ele, temp_ele(j), .true.)
+      call transfer_ele(ele, eles(j), .true.)
       if (print_extra .and. ele%mat6_calc_method == bmad_standard$) then
         write (1, '(a, 6es22.13)'), 'Start track:', start_orb%vec
         write (1, '(a, 6es22.13)'), 'End track:  ', end_orb%vec 
@@ -65,7 +65,7 @@ do ib = 0, ubound(lat%branch, 1)
     DO k = 1, 8
       DO j = 1, n_methods$
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
-        ele2 => temp_ele(j)
+        ele2 => eles(j)
         if (k < 7) then
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
           write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
@@ -76,14 +76,15 @@ do ib = 0, ubound(lat%branch, 1)
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
           write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
         end if
-
       END DO
+      if (print_extra .and. k == 8) then
+        err_mat = abs(eles(bmad_standard$)%mat6 - eles(tracking$)%mat6)
+        write (1, '(a, 2i4, es12.2)'),   'Max diff |BS - track|:   ', maxloc(err_mat), maxval(err_mat)
+      endif
       write (1,*)
     END DO
   END DO
 enddo
-
-deallocate (temp_ele)
 
 close(1)
 
