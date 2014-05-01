@@ -808,8 +808,8 @@ integer, parameter :: phi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 2
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
-integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32, darwin_width_sigma$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, darwin_width_pi$ = 33
+integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32
+integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
@@ -818,10 +818,10 @@ integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
 integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40
 integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41
-integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42
-integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43
-integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44
-integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45
+integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
+integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
+integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
+integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
 integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46
 integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, has_entrance_fringe_field$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, has_exit_fringe_field$ = 48

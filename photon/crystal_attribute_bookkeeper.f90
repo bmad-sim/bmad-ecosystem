@@ -107,15 +107,27 @@ ele%value(bragg_angle_out$) = ang_tot - bragg_angle_in
 ! Displacement due to finite crystal thickness for Laue diffraction.
 
 if (ele%value(b_param$) > 0) then
+  k0_norm = [sin(bragg_angle_in), 0.0_rp, cos(bragg_angle_in)]
+  h_vec = lambda * pms%h_norm / d
+  dtheta_sin_2theta = -dot_product(h_vec + 2 * k0_norm, h_vec) / 2
+
+  p_factor = 1
+  eta = (b_param * dtheta_sin_2theta + pms%f_0 * gamma * (1.0_rp - b_param)/2) / (gamma * abs(p_factor) * sqrt(b_param) * pms%f_hkl) 
+  eta1 = sqrt(eta**2 + 1)
+  f_cmp = abs(p_factor) * sqrt(b_param) * gamma * pms%f_hkl / 2
+  ele%value(pendellosung_period_sigma$) = cos(bragg_angle_in) * lambda_in / (2 * real(f_cmp * eta1)) 
+
+  p_factor = cos(ang_tot)
+  eta = (b_param * dtheta_sin_2theta + pms%f_0 * gamma * (1.0_rp - b_param)/2) / (gamma * abs(p_factor) * sqrt(b_param) * pms%f_hkl) 
+  eta1 = sqrt(eta**2 + 1)
+  f_cmp = abs(p_factor) * sqrt(b_param) * gamma * pms%f_hkl / 2
+  ele%value(pendellosung_period_pi$) = cos(bragg_angle_in) * lambda_in / (2 * real(f_cmp * eta1)) 
+
   select case (nint(ele%value(ref_orbit_follows$)))
   case (undiffracted$)
     ! reference orbit direction is same as k_0 (outside)
     pms%l_ref = [tan(bragg_angle_in), 0.0_rp, 1.0_rp] * ele%value(thickness$) 
-
   case (forward_diffracted$, bragg_diffracted$)
-    k0_norm = [sin(bragg_angle_in), 0.0_rp, cos(bragg_angle_in)]
-    h_vec = lambda * pms%h_norm / d
-    dtheta_sin_2theta = -dot_product(h_vec + 2 * k0_norm, h_vec) / 2
     p_factor = (1 + cos(ang_tot)) / 2   ! Average of sigma and pi polarization factors
 
     eta = (b_param * dtheta_sin_2theta + pms%f_0 * gamma * (1.0_rp - b_param)/2) / &
@@ -132,6 +144,8 @@ if (ele%value(b_param$) > 0) then
 
 else              ! Bragg
   pms%l_ref = 0
+  ele%value(pendellosung_period_sigma$) = 0
+  ele%value(pendellosung_period_pi$) = 0
 endif
 
 ele%value(l$) = norm2(pms%l_ref)
@@ -141,5 +155,9 @@ ele%value(l$) = norm2(pms%l_ref)
 ele%value(ref_cap_gamma$) = gamma
 ele%value(darwin_width_sigma$) = 2 * gamma * real(pms%f_hkl) / (abs(sin(ang_tot)) * sqrt(abs(ele%value(b_param$))))
 ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(ang_tot))
+
+if (ele%value(b_param$) > 0) then  ! Laue
+else                               ! Bragg
+endif
 
 end subroutine

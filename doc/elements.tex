@@ -768,9 +768,14 @@ diffracted photons whose energy is the reference energy and whose
 incoming orbit is on the incoming reference trajectory. Finally, the
 \vn{bragg_diffracted} reference orbit is the backward diffracted orbit.
 
-The value of the element reference orbit length \vn{l} will be zero
-for Bragg diffraction. For Laue diffraction, \vn{l} will depend upon
-the crystal \vn{thickness} and the setting of \vn{ref_orbit_follows}.
+Note: Changing the setting of \vn{ref_orbit_follows} will change the
+reference orbit downstream of the crystal which, in turn, will change
+the placement all downstream elements.
+
+The value of the element reference orbit length \vn{l} is calculated
+by \bmad. \vn{L} will be zero for Bragg diffraction. For Laue
+diffraction, \vn{l} will depend upon the crystal \vn{thickness} and
+the setting of \vn{ref_orbit_follows}.
 
 If \vn{psi_angle} is zero, the incoming reference orbit, the outgoing
 reference orbit, $\bfhat n$ and $\bfH$ are all coplanar. A non-zero
