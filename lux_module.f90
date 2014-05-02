@@ -27,40 +27,35 @@ type lux_source_struct
   real(rp) E_min, E_max                                      ! Photon energy range 
 end type
 
+type lux_photon_beam_def_struct
+  character(12) :: tracking_mode = 'INCOHERENT'        ! 'COHERENT'
+  character(16) :: source_type = 'X_RAY_INIT'          ! 'BEND', or 'ROCKING_CURVE'
+  character(16) :: energy_distribution = 'GAUSSIAN'    ! 'UNIFORM' or 'GAUSSIAN'
+  character(16) :: spatial_distribution = 'GAUSSIAN'   ! 'UNIFORM' or 'GAUSSIAN'
+  character(16) :: velocity_distribution = 'GAUSSIAN'  ! 'SPHERICAL', 'UNIFORM' or 'GAUSSIAN'
+  real(rp) :: sig_x = 0, sig_y = 0, sig_z = 0
+  real(rp) :: sig_vx = 0, sig_vy = 0
+  real(rp) :: sig_E = 0, dE_center = 0
+  real(rp) :: emit_x = 0, emit_y = 0, frac_sig_E = 0   ! Charged particle beam emittances.
+  real(rp) :: e_field_x = 0, e_field_y = 0
+  logical :: dE_relative_to_ref = .true.
+  logical :: normalize_field = .true.
+end type
+
 type lux_params_struct
-  real(rp) sig_E, dE_center
-  real(rp) :: y_max = 0.5, phi_max = 0.7
   real(rp) :: Intensity_min_det_pixel_cutoff = 1e-6
   real(rp) :: Intensity_min_photon1_cutoff = 1e-6
-  real(rp) :: stop_total_intensity = 10
-  real(rp) :: emit_x, emit_y, frac_sig_E          ! Charged particle beam emittances.
+  real(rp) :: stop_total_intensity = 10           ! stop intensity per energy
   integer :: n_energy_pts = 1
-  integer :: stop_num_photons = 0
-  real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp
-  real(rp) :: e_field_x, e_field_y
-  character(16) :: source_type = 'SPHERICAL'  ! or 'PLANAR' or 'BEND'
-  character(16) energy_spectrum               ! 'UNIFORM' or 'GAUSSIAN'
-  character(16) transverse_distribution       ! 'UNIFORM' or 'GAUSSIAN'
-  logical :: use_tile = .false.
-  logical :: dE_relative_to_ref = .true.
-  integer :: ix_tracking_mode
+  integer :: stop_num_photons = 0                  ! stop number per energy
+  real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp  ! For plotting
   logical :: debug = .false.     ! For debugging
 end type
 
 type lux_photon_struct
+  integer n_photon_generated
   type (coord_struct), allocatable :: orb(:)
 end type
-
-!type lux_detector_pixel_struct
-!  integer :: n_photon = 0
-!  real(rp) :: intensity = 0
-!  real(rp) :: E_sum = 0, E2_sum = 0  ! Scratch space
-!  real(rp) :: E_ave = 0, E_rms = 0   ! Average and rms photon energy
-!end type
-!
-!type lux_detector_struct
-!  type (lux_detector_pixel_struct), allocatable :: pixel(:,:)
-!end type
 
 contains
 
@@ -68,12 +63,13 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine generate_photon (photon, lat, ix_energy, lux_param, source)
+! Subroutine generate_photon (photon, lat, photon_def, ix_energy, lux_param, source)
 !
 ! Routine to generate the starting photon coordinates
 !
 ! Input:
 !   lat           -- lat_struct: Lattice.
+!   photon_def    -- lux_photon_beam_def_struct: 
 !   ix_energy     -- Integer: Energy slice index.
 !   source        -- lux_source_struct: Source parameters
 !
@@ -81,7 +77,7 @@ contains
 !   photon     -- lux_photon_struct: Initialized starting coords.
 !-
 
-subroutine generate_photon (photon, lat, ix_energy, lux_param, source)
+subroutine generate_photon (photon, lat, photon_def, ix_energy, lux_param, source)
 
 use nr
 
@@ -89,6 +85,7 @@ implicit none
 
 type (lat_struct) lat
 type (lux_photon_struct), target :: photon
+type (lux_photon_beam_def_struct) photon_def
 type (coord_struct) charged_orb
 type (coord_struct), pointer :: orb
 type (lux_params_struct) lux_param
@@ -98,7 +95,7 @@ type (ele_struct) ele
 type (ele_struct), pointer :: source_ele
 
 real(rp) x, y, phi, r(3), dir(2), ds, rr, r_emit(5), prob, f
-real(rp) v_mat(4,4), v_inv_mat(4,4), vec(4), dE, e(3), b(3)
+real(rp) v_mat(4,4), v_inv_mat(4,4), vec(4), dE, e(3), b(3), sig_vec(6)
 real(rp) g_bend(3), gamma_electron
 
 integer ix, n_slice, ix_energy
@@ -110,20 +107,25 @@ source_ele => source%source_ele
 
 ! Field
 
-x = lux_param%e_field_x; y = lux_param%e_field_y
+x = photon_def%e_field_x; y = photon_def%e_field_y
 if (x == 0 .and. y == 0) then
   call ran_uniform(rr)
   orb%field(1) = cos(twopi * rr)
   orb%field(2) = sin(twopi * rr)
 else
- orb%field(1) = x / sqrt(x**2 + y**2)
- orb%field(2) = y / sqrt(x**2 + y**2)
+  if (photon_def%normalize_field) then
+    orb%field(1) = x / sqrt(x**2 + y**2)
+    orb%field(2) = y / sqrt(x**2 + y**2)
+  else
+    orb%field(1) = x
+    orb%field(2) = y
+  endif
 endif
 
 !-----------------------------------------------------
-! Bend
+! source_type = "BEND"
 
-select case (lux_param%source_type)
+select case (photon_def%source_type)
 case ('BEND')
   sl => source%bend_slice
   n_slice = ubound(sl, 1)
@@ -150,18 +152,18 @@ case ('BEND')
   ! To do this must transform to the normal mode coords
 
   call ran_gauss(r_emit)  ! electron momentum offset.
-  dE = r_emit(5) * lux_param%frac_sig_E
+  dE = r_emit(5) * photon_def%sig_E / ele%value(p0c$)
   charged_orb%vec(6) = charged_orb%vec(6) + dE
 
   vec = matmul (v_inv_mat, charged_orb%vec(1:4))
   vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele%a%eta, ele%a%etap] * dE
   vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele%b%eta, ele%b%etap] * dE
 
-  vec(1) = vec(1) + sqrt(lux_param%emit_x * ele%a%beta) * r_emit(1)
-  vec(2) = vec(2) + sqrt(lux_param%emit_x / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
+  vec(1) = vec(1) + sqrt(photon_def%emit_x * ele%a%beta) * r_emit(1)
+  vec(2) = vec(2) + sqrt(photon_def%emit_x / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
 
-  vec(3) = vec(3) + sqrt(lux_param%emit_y * ele%b%beta) * r_emit(3)
-  vec(4) = vec(4) + sqrt(lux_param%emit_y / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
+  vec(3) = vec(3) + sqrt(photon_def%emit_y * ele%b%beta) * r_emit(3)
+  vec(4) = vec(4) + sqrt(photon_def%emit_y / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
 
   charged_orb%vec(1:4) = matmul(v_mat, vec)
 
@@ -175,13 +177,14 @@ case ('BEND')
 
   gamma_electron = source_ele%value(p0c$) * &
                       (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-  if (lux_param%ix_tracking_mode == coherent$ .and. ix_energy > 0) then
+  if (photon_def%tracking_mode == 'COHERENT' .and. ix_energy > 0) then
     rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
-    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, source%E_min, source%E_max, rr)
+    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, E_integ_prob = rr)
   else
-    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, source%E_min, source%E_max, -1.0_rp)
+    call photon_init (g_bend(1), g_bend(2), gamma_electron, orb, source%E_min, source%E_max)
   endif
   call absolute_photon_position (charged_orb, orb)
+
   orb%s = source_ele%s - (1 - rr) * source_ele%value(l$) 
 
   ! Track to branch element.
@@ -196,93 +199,132 @@ case ('BEND')
 
   return
 
-end select
-
 !-----------------------------------------------------
-! Spherical & Planar
+! source_type = "PHOTON_DISTRIBUTION"
 
-! Set position
+case ('PHOTON_DISTRIBUTION')
 
-if (lux_param%transverse_distribution == 'UNIFORM') then
-  call ran_uniform(r)
-  rr = (2 * rr - 1) / 2.0
-elseif (lux_param%transverse_distribution == 'GAUSSIAN') then
-  call ran_gauss(r)
-else
-  print *, 'BAD LUX_PARAM%TRANSVERSE_DISTRIBUTION: ', lux_param%transverse_distribution
-  call err_exit
-endif
+  ! Set position
 
-orb%vec(1) = source%source_ele%value(x_half_length$) * r(1)
-orb%vec(3) = source%source_ele%value(y_half_length$) * r(2)
-orb%vec(5) = source%source_ele%value(l$) * (r(3) + 0.5)
+  if (photon_def%spatial_distribution == 'UNIFORM') then
+    call ran_uniform(r)
+    r = (2 * r - 1) / 2.0
+  elseif (photon_def%spatial_distribution == 'GAUSSIAN') then
+    call ran_gauss(r)
+  else
+    print *, 'BAD PHOTON_DEF%SPATIAL_DISTRIBUTION: ', photon_def%spatial_distribution
+    call err_exit
+  endif
 
-select case (lux_param%source_type)
-case ('SPHERICAL')
+  orb%vec(1) = photon_def%sig_x * r(1)
+  orb%vec(3) = photon_def%sig_y * r(2)
+  orb%vec(5) = photon_def%sig_z * r(3)
 
-  ! Set direction
+  select case (photon_def%velocity_distribution)
+  case ('SPHERICAL')
 
-  if (lux_param%use_tile) then
-    dir = 2*dir - 1    ! Renormalize to be in range [-1, 1]
+    ! Set direction
 
-    y   = dir(1) * lux_param%y_max
-    phi = dir(2) * lux_param%phi_max
+    if (source_ele%key == x_ray_init$) then
+      call isotropic_photon_emission (source_ele, lat%param, orb, +1, twopi)
 
-    orb%vec(2) = sqrt(1 - y**2) * sin(phi)
-    orb%vec(4) = y
+    else
+      print *, 'NOT YET IMPLEMENTED...'
+      stop
+    endif
 
+  case ('UNIFORM')
+    call ran_uniform(dir)
+    dir = (2 * dir - 1) / 2.0
+
+    orb%vec(2:4:2) = lat%beam_start%vec(2:4:2) + dir * [photon_def%sig_vx, photon_def%sig_vy]
     orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
-  elseif (source_ele%key == x_ray_init$) then
-    call isotropic_photon_emission (source_ele, lat%param, orb, +1, twopi)
+  case ('GAUSSIAN')
+    call ran_gauss(r)
+
+  end select
+
+  ! Set energy
+
+  if (photon_def%tracking_mode == 'COHERENT' .and. ix_energy > 0) then
+    if (photon_def%energy_distribution == 'UNIFORM') then
+      rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
+    else if (photon_def%energy_distribution == 'GAUSSIAN') then
+      rr = sqrt_2 * erfc((ix_energy - 0.5_rp) / lux_param%n_energy_pts) 
+    else
+      print *, 'BAD PHOTON_DEF%ENERGY_DISTRIBUTION SETTING: ', photon_def%energy_distribution 
+    endif
 
   else
-    print *, 'NOT YET IMPLEMENTED...'
-    stop
+    if (photon_def%energy_distribution == 'UNIFORM') then
+      call ran_uniform(rr)
+      rr = (2 * rr - 1) / 2.0
+    else if (photon_def%energy_distribution == 'GAUSSIAN') then
+      call ran_gauss(rr)
+    else
+      print *, 'BAD PHOTON_DEF%ENERGY_DISTRIBUTION SETTING: ', photon_def%energy_distribution 
+    endif
+
   endif
 
-case ('PLANAR')
-  orb%vec(2:4:2) = lat%beam_start%vec(2:4:2)
-  orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
+  orb%p0c = photon_def%sig_E * rr + photon_def%dE_center
+  if (photon_def%dE_relative_to_ref) orb%p0c = orb%p0c + source%source_ele%value(p0c$) 
+
+  call init_coord (orb, orb%vec, source%source_ele, .false., photon$, 1, orb%p0c) 
+  orb%s = orb%vec(5) + orb%s + source%source_ele%value(z_offset_tot$)
+  orb%t = 0
+
+  ! Translate from element to lab coordinates
+  ! and track to entrance end of source%source_ele
+
+  call offset_photon (source%source_ele, orb, unset$)
+
+  call track_a_drift_photon (orb, -orb%s, .true.)
+
+  return
+
+!-----------------------------------------------------
+! source_type = "ROCKING_CURVE"
+
+case ('ROCKING_CURVE')
+
+  sig_vec = [photon_def%sig_x, photon_def%sig_vx, photon_def%sig_y, &
+             photon_def%sig_vy, photon_def%sig_z, photon_def%sig_E]
+  if (count(sig_vec /= 0) /= 1) then
+    print *, 'ONE AND ONLY ONE PHOTON_DEF%SIG_xxx MUST BE NON-ZERO.'
+    call err_exit
+  endif
+
+  orb%vec = [0, 0, 0, 0, 0, 1]
+  orb%p0c = 0
+
+  rr = 2 * (photon%n_photon_generated - 1.0) / (lux_param%stop_num_photons - 1.0) - 1
+
+  if (photon_def%sig_x /= 0) then
+    orb%vec(1) = photon_def%sig_x * rr
+  elseif (photon_def%sig_y /= 0) then
+    orb%vec(3) = photon_def%sig_y * rr
+  elseif (photon_def%sig_z /= 0) then
+    orb%vec(5) = photon_def%sig_z * rr
+  elseif (photon_def%sig_vx /= 0) then
+    orb%vec(2) = photon_def%sig_vx * rr
+    orb%vec(6) = sqrt(1 - orb%vec(2)**2)
+  elseif (photon_def%sig_vy /= 0) then
+    orb%vec(4) = photon_def%sig_vy * rr
+    orb%vec(6) = sqrt(1 - orb%vec(4)**2)
+  elseif (photon_def%sig_E /= 0) then
+    orb%p0c = photon_def%sig_E * rr
+  endif
+
+  orb%p0c = orb%p0c + photon_def%dE_center
+  if (photon_def%dE_relative_to_ref) orb%p0c = orb%p0c + source%source_ele%value(p0c$) 
+
+  call init_coord (orb, orb%vec, source%source_ele, .false., photon$, 1, orb%p0c) 
+  orb%s = orb%vec(5) + orb%s + source%source_ele%value(z_offset_tot$)
+  orb%t = 0
 
 end select
-
-! Set energy
-
-if (lux_param%ix_tracking_mode == coherent$ .and. ix_energy > 0) then
-  if (lux_param%energy_spectrum == 'UNIFORM') then
-    rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
-  else if (lux_param%energy_spectrum == 'GAUSSIAN') then
-    rr = sqrt_2 * erfc((ix_energy - 0.5_rp) / lux_param%n_energy_pts) 
-  else
-    print *, 'BAD LUX_PARAM%ENERGY_SPECTRUM SETTING: ', lux_param%energy_spectrum 
-  endif
-
-else
-  if (lux_param%energy_spectrum == 'UNIFORM') then
-    call ran_uniform(rr)
-    rr = (2 * rr - 1) / 2.0
-  else if (lux_param%energy_spectrum == 'GAUSSIAN') then
-    call ran_gauss(rr)
-  else
-    print *, 'BAD LUX_PARAM%ENERGY_SPECTRUM SETTING: ', lux_param%energy_spectrum 
-  endif
-
-endif
-
-orb%p0c = lux_param%sig_E * rr + lux_param%dE_center
-if (lux_param%dE_relative_to_ref) orb%p0c = orb%p0c + source%source_ele%value(p0c$) 
-
-call init_coord (orb, orb%vec, source%source_ele, .false., photon$, 1, orb%p0c) 
-orb%s = orb%vec(5) + orb%s - source%source_ele%value(l$) + source%source_ele%value(z_offset_tot$)
-orb%t = 0
-
-! Translate from element to lab coordinates
-! and track to entrance end of source%source_ele
-
-call offset_photon (source%source_ele, orb, unset$)
-
-call track_a_drift_photon (orb, -orb%s, .true.)
 
 end subroutine generate_photon
 
@@ -290,25 +332,27 @@ end subroutine generate_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_setup (photon, lat, lux_param, source)
+! Subroutine lux_setup (photon, lat, photon_def, lux_param, source)
 !
 ! Routine 
 !
 ! Input:
-!   photon      -- lux_photon_struct
-!   lat         -- lat_struct
-!   lux_param   -- lux_params_struct
+!   photon        -- lux_photon_struct
+!   lat           -- lat_struct
+!   photon_def    -- lux_photon_beam_def_struct: 
+!   lux_param     -- lux_params_struct
 !
 ! Output:
 !   source      -- lux_source_struct
 !-
 
-subroutine lux_setup (photon, lat, lux_param, source)
+subroutine lux_setup (photon, lat, photon_def, lux_param, source)
 
 implicit none
 
 type (lat_struct), target :: lat
 type (lux_params_struct) lux_param
+type (lux_photon_beam_def_struct) photon_def
 type (lux_source_struct), target :: source
 type (lux_photon_struct), target :: photon
 type (ele_struct) twiss_ele
@@ -342,24 +386,24 @@ do ie = 1, branch%n_ele_track
   case (sample$, diffraction_plate$) 
     call photon_target_setup (ele)
   case (x_ray_init$)
-    if (.not. lux_param%use_tile) call photon_target_setup (ele)
+    call photon_target_setup (ele)
   end select
 enddo
 
 !-------------------------------------------------------------
 ! Sbend source
 
-if (lux_param%source_type == 'BEND') then
+if (photon_def%source_type == 'INSERTION_DEVICE') then
   n_slice = max(1, nint(source%source_ele%value(l$) / source%source_ele%value(ds_step$)))
   source%n_bend_slice = n_slice
   allocate (source%bend_slice(0:n_slice))
 
-  source%E_min = lux_param%dE_center - lux_param%sig_E
-  if (lux_param%dE_relative_to_ref) source%E_min = source%E_min + source%det_ele%value(p0c$) 
-  if (lux_param%sig_E == 0) then
+  source%E_min = photon_def%dE_center - photon_def%sig_E
+  if (photon_def%dE_relative_to_ref) source%E_min = source%E_min + source%det_ele%value(p0c$) 
+  if (photon_def%sig_E == 0) then
     source%E_max = source%E_min + 1d-10  ! Need some small offset for the calculation
   else
-    source%E_max = source%E_min + 2 * lux_param%sig_E
+    source%E_max = source%E_min + 2 * photon_def%sig_E
   endif
 
   ! Track through source ele and gather data

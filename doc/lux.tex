@@ -127,36 +127,37 @@ The master input file consists of a single \vn{namelist} called \vn{params}.
 An example is:
 \begin{example}
   &params
-  	lattice_file = 'test.bmad'                     ! Defines experimental layout.
-    det_pix_out_file = 'lux.det_pix#'
+    lattice_file = 'test.bmad'                     ! Defines experimental layout.
 
-    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
-    lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
-    ix_ele_photon1 = -1                            ! Index of element for photon1_out file.
-    reject_dead_at_det_photon1 = False             ! Reject photons dead at detector.
+    photon_def%source_type = 'ROCKING_CURVE'        ! Or 'INSERTION_DEVICE', 'X_RAY_INIT'
+    photon_def%tracking_mode = 'INCOHERENT'         ! Or 'COHERENT'
+    photon_def%energy_distribution = 'GAUSSIAN'     ! Or 'UNIFORM'. 
+    photon_def%spatial_distribution = 'GAUSSIAN'    ! Or 'UNIFORM'. 
+    photon_def%velocity_distribution = 'GAUSSIAN'   ! Or 'SHPERICAL', 'UNIFORM'. 
+    photon_def%sig_x = 0
+    photon_def%sig_y = 0
+    photon_def%sig_z = 0
+    photon_def%sig_vx = 0
+    photon_def%sig_vy = 0
+    photon_def%sig_E = 0                            ! Initial photon energy width (eV).
+    photon_def%dE_center = 0                        ! Initial photon energy shift (eV).
+    photon_def%dE_relative_to_ref = True            ! dE_center relative to reference E?
+    photon_def%emit_x = 0                          
+    photon_def%emit_Y = 0 
+    photon_def%e_field_x = 0                        ! Polarization. x & y = 0 -> random
+    photon_def%e_field_y = 0
+    photon_def%normalize_field = False
 
     random_seed = 0                                ! 0 => Use system clock
     intensity_normalization_coef = 1e6             ! photon intensities norm.
 
-    lux_param%sig_E = 0.000                        ! Init energy width (eV).
-    lux_param%dE_center = 0                        ! Init energy shift (eV).
-    lux_param%dE_relative_to_ref = True            ! dE_center is Relative or absolute?
-    lux_param%energy_spectrum = 'GAUSSIAN'         ! or 'UNIFORM'.
-    lux_param%transverse_distribution = 'GAUSSIAN' ! or 'UNIFORM'. 
-
-    lux_param%source_type = 'SPHERICAL'            ! or 'PLANAR' or 'BEND'
-    lux_param%use_tile = False
-    lux_param%y_max = 0.1                          ! total tile height.
-    lux_param%phi_max = 0.1                        ! total tile width.
-
-    lux_param%e_field_x = 0                        ! Polarization. 
-    lux_param%e_field_y = 0                        ! x & y = 0 -> random
-
     lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
     lux_param%stop_num_photons = 0                 ! Max number of photons to track.
 
-    lux_param%dx_det_pixel = 50e-6                 ! Detector pixel width
-    lux_param%dy_det_pixel = 50e-6                 ! Detector pixel height
+    det_pix_out_file = 'lux.det_pix#'
+    lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
+
+    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
     lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
   /
 \end{example}
@@ -166,59 +167,159 @@ The components of this namelist are:
   \item[\vn{lattice_file}] \Newline
 This file defines the X-ray optics setup. See
 Section~\sref{s:lat.file} and the Bmad manual for more details.
+
+  \item[\vn{photon_def\%source_type}] \Newline
+Type of source used for photon generation (\sref{s:photon.start}).
+Possible settings are:
+\begin{example}
+  INSERTION_DEVICE       ! Bend or wiggler source
+  ROCKING_CURVE         ! 
+  X_RAY_INIT            ! 
+\end{example}
+The \vn{INSERTION_DEVICE} setting indicates that the source is a
+\vn{bend} or or \vn{wiggler} element. 
+
+The \vn{X_RAY_INIT} setting indicates that the source is an
+\vn{X_RAY_INIT} element. 
+ 
+
+The \vn{ROCKING_CURVE} setting indicates that a rocking curve simulation
+will be done.
+
+
+  \item[\vn{photon_def\%tracking_mode}] \Newline
+Whether coherent or incoherent photons are tracked. 
+Possible settings are:
+\begin{example}
+  COHERENT
+  INCOHERENT
+\end{example}
+The \vn{INCOHERENT} setting should only be used when ``long-range''
+phase correlations are important such as when there is a
+\vn{diffraction_plate} element.
+
+  \item[\vn{photon_def\%energy_spectrum}] \Newline
+Sets the type of energy spectrum (\sref{s:photon.start}). 
+Used with \vn{phton_def%source_type} = 'X_RAY_INIT'.
+Possible settings are:
+\begin{example}
+  GAUSSIAN
+  UNIFORM
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+set by \vn{photon_def%sig_E}. The \vn{'UNIFORM'} setting gives a flat
+distribution in the range
+\begin{example}
+  [-photon_def%sig_E, photon_def%sig_E]
+\end{example}
+
+  \item[\vn{photon_def\%spatial_distribution}] \Newline
+Sets spacial $(x, y, z)$ spectrum (\sref{s:photon.start}).
+Used with \vn{phton_def%source_type} = 'X_RAY_INIT'.
+Possible settings are:
+\begin{example}
+  GAUSSIAN
+  UNIFORM
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+set by \vn{photon_def%sig_E}. The \vn{'UNIFORM'} setting gives a flat
+distribution in the range
+\begin{example}
+  [-photon_def%sig_E, photon_def%sig_E]
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example}
+  photon_def%sig_x     for x distribution
+  photon_def%sig_y     for y distribution
+  photon_def%sig_z     for z distribution
+\end{example}
+The \vn{'UNIFORM'} setting gives a flat
+distribution in the range $[-\sigma, \sigma]$.
+
+
+  \item[\vn{photon_def\%velocity_distribution}] \Newline
+Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum.
+Used with \vn{phton_def%source_type} = 'X_RAY_INIT'.
+The longitudinal velocity is always computed
+to make $v_x^2 + v_y^2 + v_z^2 = c^2$
+Possible settings are:
+\begin{example}
+  GAUSSIAN
+  SPHERICAL
+  UNIFORM
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example}
+  photon_def%sig_vx     for vx/c distribution
+  photon_def%sig_vy     for vy/c distribution
+\end{example}
+The \vn{'UNIFORM'} setting gives a flat distribution in the range
+$[-\sigma, \sigma]$.
+The \vn{SPHERICAL} setting gives flat distribution in all directions.
+
+  \item[\vn{photon_def\%dE_center}] \Newline
+Average initial photon energy in eV. If
+\vn{photon_def%dE_relative_to_ref} is set to True (default)
+then \vn{photon_def%dE_center} will be relative to the reference energy
+(\sref{s:photon.start}).
+
+  \item[\vn{photon_def\%sig_x, photon_def\%sig_y, photon_def\%sig_z}] \Newline
+Width in $x$, $y$ and $z$ directions. See
+\vn{photon_def%spatial_distribution} for more details.
+
+  \item[\vn{photon_def\%sig_vx, photon_def\%sig_vy}] \Newline
+Width in $v_x/c$ and $v_y/c$ directions. See
+\vn{photon_def%velocity_distribution} for more details.
+
+  \item[\vn{photon_def\%sig_E}] \Newline
+Energy width in eV. See \vn{photon_def%energy_distribution} for more
+details.
+
+  \item[\vn{photon_def\%dE_relative_to_ref}] \Newline
+Is \vn{photon_def%dE_center} with respect to the reference energy or
+an absolute value (\sref{s:photon.start})?
+
+  \item[\vn{photon_def\%emit_x, photon_def\%emit_y}] \Newline
+$x$ and $y$ emittances. 
+Used with \vn{phton_def%source_type} = 'INSERTION_DEVICE'.
+
+  \item[\vn{photon_def\%e_field_x}] \Newline
+Electric field component of initial photons in the x-plane (\sref{s:photon.start}).
+  \item[\vn{photon_def\%e_field_y}] \Newline
+Electric field component of initial photons in the y-plane (\sref{s:photon.start}).
+
+  \item[\vn{random_seed}] \Newline
+Random number seed used in by the random number generator. If set to
+0, the system clock will be used. That is, if set to 0, the output
+results will vary from run to run.
+
+  \item[\vn{intensity_normalization_coef}] \Newline
+Coefficient used to normalize the photon intensity with (\sref{s:det}).
+
   \item[\vn{photon1_out_file}] \Newline
 Name of the output data file recording the starting and ending
 positions of individual photons. See section~\sref{s:photon1.file} for
 more details. The file name may be ``numbered'' using 
 a ``\#'' character (\sref{s:number}). A blank file name will prevent a
 file being generated.
+
   \item[\vn{det_pix_out_file}] \Newline
 Name of the output data file recording the X-ray intensity on the
 detector. See section~\sref{s:det.pix.file} for more details. The file
 name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
 blank file name will prevent a file being generated.
-  \item[\vn{random_seed}] \Newline
-Random number seed used in by the random number generator. If set to
-0, the system clock will be used. That is, if set to 0, the output
-results will vary from run to run.
-  \item[\vn{intensity_normalization_coef}] \Newline
-Coefficient used to normalize the photon intensity with (\sref{s:det}).
-  \item[\vn{lux_param\%sig_E}] \Newline
-Energy width of initial photon distribution in eV (\sref{s:photon.start}).
-  \item[\vn{lux_param\%dE_center}] \Newline
-Average initial photon energy in eV. If
-\vn{lux_param%dE_relative_to_ref} is set to True (default)
-then \vn{lux_param%dE_center} will be relative to the reference energy
-(\sref{s:photon.start}).
-  \item[\vn{lux_param\%dE_relative_to_ref}] \Newline
-Is \vn{lux_param%dE_center} with respect to the reference energy or
-an absolute value (\sref{s:photon.start})?
-  \item[\vn{lux_param\%energy_spectrum}] \Newline
-Type of energy spectrum (\sref{s:photon.start}). 
-  \item[\vn{lux_param\%transverse_distribution}] \Newline
-Type of spacial spectrum (\sref{s:photon.start}).
-  \item[\vn{lux_param\%source_type}] \Newline
-Type of source used for photon generation (\sref{s:photon.start}).
-  \item[\vn{lux_param\%use_tile}] \Newline
-Use all direction tiles within the rectangle defined by \vn{lux_param%del_y}
-and \vn{lux_param%del_phi} (\sref{s:photon.start})?
-  \item[\vn{lux_param\%y_max}] \Newline
-Height extent of the direction tile (\sref{s:photon.start}).
-  \item[\vn{lux_param\%phi_max}] \Newline
-Width extent of the direction tile  (\sref{s:photon.start}).
-  \item[\vn{lux_param\%e_field_x}] \Newline
-Electric field component of initial photons in the x-plane (\sref{s:photon.start}).
-  \item[\vn{lux_param\%e_field_y}] \Newline
-Electric field component of initial photons in the y-plane (\sref{s:photon.start}).
-  \item[\vn{lux_param\%stop_total_intensity}] \Newline
+
+  \item[\vn{photon_def\%stop_total_intensity}] \Newline
 Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
-  \item[\vn{lux_param\%stop_num_photons}] \Newline
+  \item[\vn{photon_def\%stop_num_photons}] \Newline
 Maximum number of photons to track (\sref{s:det}).
-  \item[\vn{lux_param\%dx_det_pixel}] \Newline
+  \item[\vn{photon_def\%dx_det_pixel}] \Newline
 Detector pixel width (\sref{s:det}).
-  \item[\vn{lux_param\%dy_det_pixel}] \Newline
+  \item[\vn{photon_def\%dy_det_pixel}] \Newline
 Detector pixel height (\sref{s:det}).
-  \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
+  \item[\vn{photon_def\%intensity_min_photon1_cutoff}] \Newline
 Cutoff intensity below which a photon will not be included in
 the photon1_out file (\sref{s:photon1.file}).
   \item[\vn{ix_ele_photon1}] \Newline
@@ -347,7 +448,7 @@ Generally photons that make it to the detector will have $vz$ close to
 %----------------------------------------------
 
 The type of source that is used to generate photons is given by the
-parameter \vn{lux_param%source_type}. This parameter may have the following
+parameter \vn{photon_def%source_type}. This parameter may have the following
 values
 \begin{example}
   'SPHERICAL'
@@ -383,20 +484,21 @@ See the Bmad manual for more details.
 
 The emission spectrum is governed by the master input file parameters:
 \begin{example}
-  lux_param%sig_E
-  lux_param%dE_center
-  lux_param%dE_relative_to_ref
-  lux_param%energy_spectrum
-  lux_param%transverse_distribution     ! (x, y) spacial distribution
+  photon_def%sig_E
+  photon_def%dE_center
+  photon_def%dE_relative_to_ref
+  photon_def%energy_distribution
+  photon_def%spatial_distribution     ! (x, y) spacial distribution
+  photon_def%velocity_distribution     ! (x, y) spacial distribution
 \end{example}
-If \vn{lux_param%dE_relative_to_ref} is set to True, The average
+If \vn{photon_def%dE_relative_to_ref} is set to True, The average
 starting photon energy is
 \begin{example}
-  E_average = lux_param%dE_center + beginning[e_tot]
+  E_average = photon_def%dE_center + beginning[e_tot]
 \end{example}
 where the reference energy \vn{beginning[e_tot]} is set in the lattice file. 
-If \vn{lux_param%dE_relative_to_ref} is set to False, The average
-starting photon energy is simply \vn{lux_param%dE_center}.
+If \vn{photon_def%dE_relative_to_ref} is set to False, The average
+starting photon energy is simply \vn{photon_def%dE_center}.
 
 The width of the energy distribution, in eV, is set by \vn{%sig_E}.
 The \vn{%energy_spectrum} and \vn{%transverse_distribution} parameters
@@ -415,43 +517,6 @@ be ``uninteresting''. An uninteresting direction is a direction in
 which a photon has no chance of making its way to the detector. To
 reduce computation time, \lux tries to only generate photons in
 interesting directions. The prescription for doing this is as follows.
-
-A photon direction $(vx, vy, vz)$ can be represented as a point on the
-unit sphere as shown in \fig{f:sphere}. Any point on the sphere can be
-characterized by a $(\phi, y)$ where
-\begin{align}
-  y &= v_y \CRNO
-  \tan(\phi) &= \frac{v_x}{v_z}
-\end{align}
-$y$ must be in the range $(-1, 1)$ and $\phi$ must be in the range
-$(-\pi, \pi)$.  The surface of the sphere is broken up into a set of
-``tiles''. Each tile covers a rectangular area in $(\phi, y)$ space of
-\begin{example}
-  lux_param%del_y       ! Tile height
-  lux_param%del_phi     ! Tile width
-\end{example}
-When \lux starts, the program launches a number of photons in the
-direction of each tile. If the program determines that a photon headed
-in the direction of a given tile has a chance of making it to the
-detector, that tile is marked as ``alive''. Otherwise the tile is
-marked as ``dead''. When \lux now does the Monte Carlo simulation,
-photons are generated only in the direction of live tiles. This is
-done to reduce simulation time and should not affect the results.
-
-To cut down on the time it takes to determine which tiles are alive,
-only tiles within a rectangle centered about $(\phi, y) = (0, 0)$ are
-sampled. The rest are assumed dead. The half with and height of this
-rectangle is given in the master input file by
-\begin{example}
-  lux_param%y_max
-  lux_param%phi_max
-\end{example}
-
-If \vn{lux_param%use_all_tiles} is set to \vn{True} then all tiles
-within the rectangle determined by \vn{lux_param%y_max} and
-\vn{lux_param%phi_max} will be used for generating photons.
-This can be used as a check to see if the algorithm for deciding
-which tiles are alive is accurate.
 
 %------------------------------------------------------------------
 \subsection{'PLANAR' Source Type}
@@ -491,8 +556,8 @@ line.
 
 The polarization of the photons is set in the master input file by
 \begin{example}
-  lux_param%e_field_x     ! Polarization along the x-axis
-  lux_param%e_field_y     ! polarization along the y-axis
+  photon_def%e_field_x     ! Polarization along the x-axis
+  photon_def%e_field_y     ! polarization along the y-axis
 \end{example}
 \lux will scale the field of each photon to 1 at the start of
 tracking. If both field components are set to zero, random
@@ -542,14 +607,6 @@ of photons tracked, and $C_f$ is a normalization coefficient set by
 the \vn{intensity_normalization_coef} parameter in the master input
 file, $C_f$ can be used, for example, to scale the output numbers to
 correspond to actual measured values.
-
-The detector size is set by the aperture limits of the detector
-element in the lattice file. The detector is divided up into a matrix
-of pixels. The size of the pixels is given by
-\begin{example}
-  lux_param%dx_det_pixel
-  lux_param%dy_det_pixel
-\end{example}
 
 %------------------------------------------------------------------
 \section{Numbering the Output Data Files}

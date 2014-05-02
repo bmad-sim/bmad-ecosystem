@@ -6,6 +6,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: detec_ele
+type (lux_photon_beam_def_struct) photon_def
 type (lux_source_struct), target :: source
 type (lux_params_struct) lux_param
 type (lux_photon_struct), target :: photon
@@ -20,21 +21,21 @@ real(rp) cut, normalization, intensity_normalization_coef, area
 real(rp) total_dead_intens, pix_in_file_intensity, x, phase
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 
-integer i, j, n, ie, nt, n_track, n_track_tot, n_live, track_state
+integer i, j, n, ie, nt, n_track_at_energy, n_track_tot, n_live, track_state
 integer nx, ny, nx_min, nx_max, ny_min, ny_max, ie_max
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 integer random_seed, n_photon1_file, n_throw, ix_ele_photon1_file
 
 character(3) num_str
-character(16) random_engine, tracking_mode
+character(16) random_engine
 character(40) arg, plotting, number_file
 character(100) param_file, lattice_file, photon1_out_file, det_pix_out_file
 
 logical ok, is_there, reject_dead_at_det_photon1, accept
 
 namelist / params / lattice_file, random_seed, photon1_out_file, det_pix_out_file, lux_param, &
-    intensity_normalization_coef, random_engine, ix_ele_photon1_file, &
-    reject_dead_at_det_photon1, tracking_mode
+    intensity_normalization_coef, random_engine, ix_ele_photon1_file, photon_def, &
+    reject_dead_at_det_photon1
 
 ! Get inputs
 
@@ -59,7 +60,6 @@ do while (i < cesr_iargc())
   end select
 enddo
 
-tracking_mode = 'incoherent'
 photon1_out_file = ''
 ix_ele_photon1_file = -1  ! Use detector
 reject_dead_at_det_photon1 = .false.
@@ -91,16 +91,9 @@ if (random_engine == 'quasi') then
   enddo
 endif
 
-call match_word (tracking_mode, tracking_mode_name, lux_param%ix_tracking_mode)
-if (lux_param%ix_tracking_mode < 1) then
-  print *, 'Unknown tracking mode: ' // tracking_mode
-  stop
-endif
-
 ! Add number to file name
 
 if (index(photon1_out_file, '#') /= 0 .or. index(det_pix_out_file, '#') /= 0) then
-
 
   number_file = 'lux_out_file.number'
   inquire(file = number_file, exist = is_there)
@@ -120,18 +113,22 @@ endif
 
 call bmad_parser (lattice_file, lat)
 
-select case (lux_param%source_type)
-case ('SPHERICAL', 'PLANAR')
+select case (photon_def%source_type)
+case ('PHOTON_DISTRIBUTION', 'ROCKING_CURVE')
   branch => lat%branch(0)
   source%source_ele => lat%ele(1)
+  if (photon_def%e_field_x == 0 .and. photon_def%e_field_y == 0) then
+    print *, 'photon_def%e_field_x and/or photon_def%e_field_y must be non-zero for a rocking curve.'
+    stop
+  endif
 
-case ('BEND')
+case ('INSERTION_DEVICE')
   branch => lat%branch(1)
   source%source_ele => lat%ele(1)
   if (source%source_ele%slave_status == super_slave$) source%source_ele => pointer_to_lord(source%source_ele, 1)
   nullify (source%branch_ele)
   do i = 1, lat%n_ele_track
-    if (lat%ele(i)%key /= photon_branch$) cycle
+    if (lat%ele(i)%key /= photon_fork$) cycle
     source%branch_ele => lat%ele(i)
     exit
   enddo
@@ -141,7 +138,7 @@ case ('BEND')
   endif    
 
 case default
-  print *, 'UNKNOWN LUX_PARAM%SOURCE_TYPE: ' // lux_param%source_type
+  print *, 'UNKNOWN PHOTON_DEF%SOURCE_TYPE: ' // photon_def%source_type
   stop
 end select
 
@@ -156,15 +153,23 @@ if (detec_ele%value(x1_limit$) == 0 .or. detec_ele%value(x2_limit$) == 0 .or. &
   print *, 'LIMITS NOT SET AT DETECTOR!'
 endif
 
+call upcase_string(photon_def%tracking_mode)
+call match_word (photon_def%tracking_mode, tracking_mode_name, branch%param%tracking_mode)
+if (branch%param%tracking_mode < 1) then
+  print *, 'Unknown tracking mode: ' // photon_def%tracking_mode
+  stop
+endif
 
 ! Some init
 
 call run_timer('START')
 
-call lux_setup (photon, lat, lux_param, source)
+call lux_setup (photon, lat, photon_def, lux_param, source)
 
 if (photon1_out_file /= '') then
   open (1, file = photon1_out_file, recl = 240)
+  write (1, '(a)') '#      |                               Start (x 1e3)                    |                                    End (x 1e3)                     |                 End'
+  write (1, '(a)') '#   Ix |          x           vx            y           vy            z |             x           vx            y           vy            z  |     Energy     Intens_x     Intens_y'
 endif
 
 call reallocate_coord (photon%orb, lat, branch%ix_branch)
@@ -183,30 +188,32 @@ e_ave = 0; e_rms = 0
 !------------------------------------------
 
 ie_max = 1
-if (lux_param%ix_tracking_mode == coherent$) then
+if (branch%param%tracking_mode == coherent$) then
   ie_max = lux_param%n_energy_pts
-  if (lux_param%e_field_x == 0 .and. lux_param%e_field_y == 0) then
+  if (photon_def%e_field_x == 0 .and. photon_def%e_field_y == 0) then
     print *, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!'
   endif
 endif
 
-branch%param%tracking_mode = lux_param%ix_tracking_mode
 n_live = 0
 n_track_tot = 0
 intensity_tot = 0
 
 energy_loop: do ie = 1, ie_max
 
-  n_track = 0
+  n_track_at_energy = 0
   intensity_tot = 0
 
   do 
-    if (lux_param%stop_total_intensity > 0 .and. intensity_tot >= lux_param%stop_total_intensity) exit
-    if (lux_param%stop_num_photons > 0 .and. n_track >= lux_param%stop_num_photons) exit
-    n_track = n_track + 1
+    if (photon_def%source_type /= 'ROCKING_CURVE') then
+      if (lux_param%stop_total_intensity > 0 .and. intensity_tot >= lux_param%stop_total_intensity) exit
+    endif
+    if (lux_param%stop_num_photons > 0 .and. n_track_at_energy >= lux_param%stop_num_photons) exit
+    n_track_at_energy = n_track_at_energy + 1
     n_track_tot = n_track_tot + 1
+    photon%n_photon_generated = n_track_tot
 
-    call generate_photon (photon, lat, ie, lux_param, source)
+    call generate_photon (photon, lat, photon_def, ie, lux_param, source)
     if (lux_param%debug) then
       call init_coord (photon%orb(0), lat%beam_start, branch%ele(0), .true., photon$, &
                                           1, branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
@@ -232,8 +239,8 @@ energy_loop: do ie = 1, ie_max
       if (reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
       if (this_orb%state /= alive$) accept = .false.
       if (accept) then
-        write (1, '(i7, 6f13.8, 3x, 6f13.8, 3x, f11.3, es14.4)') n_track_tot, photon%orb(1)%vec, &
-                        this_orb%vec, this_orb%p0c, intensity
+        write (1, '(i6, 5f13.6, 3x, 5f13.6, 3x, f11.3, 2es13.4)') n_track_tot, 1d3*photon%orb(1)%vec(1:5), &
+                        1d3*this_orb%vec(1:5), this_orb%p0c, end_orb%field(1)**2, end_orb%field(2)**2
         n_photon1_file = n_photon1_file + 1
       endif
     endif
@@ -261,7 +268,7 @@ energy_loop: do ie = 1, ie_max
     if (nx_min <= nx .and. nx <= nx_max .and. ny_min <= ny .and. ny <= ny_max) then
       pix => detector%pt(nx,ny)
       pix%n_photon  = pix%n_photon + 1
-      if (lux_param%ix_tracking_mode == coherent$) then
+      if (branch%param%tracking_mode == coherent$) then
         phase = end_orb%phase(1) 
         pix%E_x = pix%E_x + end_orb%field(1) * [cos(phase), sin(phase)]
         phase = end_orb%phase(2) 
@@ -275,7 +282,7 @@ energy_loop: do ie = 1, ie_max
 
   enddo
 
-  if (lux_param%ix_tracking_mode == coherent$) then
+  if (branch%param%tracking_mode == coherent$) then
     do nx= nx_min, nx_max; do ny= ny_min, ny_max
       pix => detector%pt(nx,ny)
       intensity = pix%E_x(1)**2 + pix%E_x(2)**2 + pix%E_y(1)**2 + pix%E_y(2)**2
