@@ -967,7 +967,7 @@ end select
 
 select case (fringe_type)
 case (sad_nonlin_only$, sad_full$)
-  call add_sad_nonlin_bend_edge_kick (orb, ele, param, particle_at, mat6)
+  !!! call add_sad_nonlin_bend_edge_kick (orb, ele, param, particle_at, mat6)
 end select
 
 end subroutine bend_edge_kick
@@ -1007,9 +1007,9 @@ type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 real(rp) :: sad_mat(6,6)
-real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p
+real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e, e
 
-integer :: particle_at
+integer :: particle_at, c_dir, element_end
 
 character(*), parameter :: r_name = 'add_sad_linear_bend_edge_kick'
 
@@ -1018,10 +1018,23 @@ character(*), parameter :: r_name = 'add_sad_linear_bend_edge_kick'
 f1 = ele%value(f1$)
 if (f1 == 0) return
 
-g = ele%value(g$) + ele%value(g_err$)
-if (particle_at == second_track_edge$) g = -g
+c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
-px = orb%vec(2)
+if (element_end == entrance_end$) then
+  e = sin(ele%value(e1$))
+else
+  e = sin(ele%value(e2$))
+endif
+
+g = ele%value(g$) + ele%value(g_err$)
+sin_e = sin(e)
+if (particle_at == second_track_edge$) then
+  sin_e = -sin_e
+  g = -g
+endif
+
+px = orb%vec(2) + sin_e
 y  = orb%vec(3)
 rel_p = 1 + orb%vec(6)
 
