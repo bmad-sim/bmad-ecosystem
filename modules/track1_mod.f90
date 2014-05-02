@@ -895,6 +895,7 @@ case (sad_linear$, sad_full$)
 end select
 
 ! SAD nonlinear
+! Not yet implemented
 
 select case (fringe_type)
 case (sad_nonlin_only$, sad_full$)
@@ -936,6 +937,8 @@ type (lat_param_struct) param
 real(rp), optional :: mat6(6,6)
 integer particle_at, fringe_type, physical_end
 
+character(*), parameter :: r_name = 'bend_edge_kick'
+
 !
 
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
@@ -954,20 +957,16 @@ case (basic_bend$, sad_full$, sad_linear$, sad_nonlin_only$)
   call approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
 case (none$)
   if (present(mat6)) call mat_make_unit (mat6)
+case default
+  call out_io (s_fatal$, r_name, 'UNKNOWN FRINGE_TYPE: /i0/ ', i_array = [fringe_type])
+  if (global_com%exit_on_error) call err_exit
 end select
 
-! Sad linear fringe
+! Sad fringe
 
 select case (fringe_type)
-case (sad_full$, sad_linear$)   ! Sad Linear
-  call add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
-end select
-
-! Sad nonlinear fringe
-
-select case (fringe_type)
-case (sad_nonlin_only$, sad_full$)
-  !!! call add_sad_nonlin_bend_edge_kick (orb, ele, param, particle_at, mat6)
+case (sad_nonlin_only$, sad_full$, sad_linear$) 
+  call add_sad_bend_edge_kick (orb, ele, param, particle_at, mat6)
 end select
 
 end subroutine bend_edge_kick
@@ -976,7 +975,7 @@ end subroutine bend_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
+! Subroutine add_sad_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
 !
@@ -995,7 +994,7 @@ end subroutine bend_edge_kick
 !   mat6       -- Real(rp), optional: Transfer matrix after fringe field
 !-
 
-subroutine add_sad_linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
+subroutine add_sad_bend_edge_kick (orb, ele, param, particle_at, mat6)
 
 use ptc_interface_mod
 
@@ -1011,7 +1010,7 @@ real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e, e
 
 integer :: particle_at, c_dir, element_end
 
-character(*), parameter :: r_name = 'add_sad_linear_bend_edge_kick'
+character(*), parameter :: r_name = 'add_sad_bend_edge_kick'
 
 ! Finite f1 fringe
 
@@ -1042,6 +1041,14 @@ c1 = f1**2 * g / (24 * rel_p)  ! * px
 c2 = f1 * g**2 / (12 * rel_p)  ! * y^2
 c3 = g**2 / (6 * f1 * rel_p)   ! * y^4
 
+select case (nint(ele%value(fringe_type$)))
+case (sad_nonlin_only$) 
+  c1 = 0
+  c2 = 0
+case (sad_linear$) 
+  c3 = 0
+end select
+
 if (present(mat6)) then
   call mat_make_unit (sad_mat)
   sad_mat(1,6) =  c1 / rel_p
@@ -1060,13 +1067,15 @@ orb%vec(1) = orb%vec(1) + c1 * orb%vec(6)
 orb%vec(4) = orb%vec(4) + 2 * c2 * y - 4 * c3 * y**3
 orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2 - c3 * y**4) / rel_p
 
-end subroutine add_sad_linear_bend_edge_kick
+end subroutine add_sad_bend_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
+! THIS ROUTINE IS SLATED FOR REMOVAL !!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !+
-! Subroutine add_sad_nonlin_bend_edge_kick (orb, ele, param, particle_at, mat6)
+! Subroutine add_sad_bend_hard_edge_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
 !
@@ -1085,7 +1094,7 @@ end subroutine add_sad_linear_bend_edge_kick
 !   mat6       -- Real(rp), optional: Transfer matrix after fringe field
 !-
 
-subroutine add_sad_nonlin_bend_edge_kick (orb, ele, param, particle_at, mat6)
+subroutine add_sad_bend_hard_edge_edge_kick (orb, ele, param, particle_at, mat6)
 
 use ptc_interface_mod
 
@@ -1101,7 +1110,7 @@ real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, p_long, yyy
 
 integer :: particle_at
 
-character(*), parameter :: r_name = 'add_sad_nonlin_bend_edge_kick'
+character(*), parameter :: r_name = 'add_sad_bend_hard_edge_edge_kick'
 
 !
 
@@ -1142,7 +1151,7 @@ orb%vec(1) = orb%vec(1) + dx
 orb%vec(4) = orb%vec(4) + dpy
 orb%vec(5) = orb%vec(5) + dz
 
-end subroutine add_sad_nonlin_bend_edge_kick
+end subroutine add_sad_bend_hard_edge_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
