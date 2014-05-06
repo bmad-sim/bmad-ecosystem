@@ -450,6 +450,7 @@ do ir = 1, branch%n_ele_track
   ! Only possibilities left are quad, sol_quad and sbend elements, or there
   ! is a non-zero bend angle.
 
+  if (ele%key == patch$) cycle
   if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
           key /= quadrupole$ .and. key /= sol_quad$ .and. key /= sbend$ .and. &
           key /= hkicker$ .and. key /= vkicker$) cycle
