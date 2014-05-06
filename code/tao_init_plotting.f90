@@ -917,12 +917,12 @@ endif
 if (allocated(s%plotting%template)) then
   n = size(s%plotting%template)
   call move_alloc(s%plotting%template, temp_template)
-  allocate (s%plotting%template(n + 21))
+  allocate (s%plotting%template(n + 29))
   s%plotting%template(1:n) = temp_template
   deallocate (temp_template)
   np = n + 1
 else
-  allocate (s%plotting%template(21)) 
+  allocate (s%plotting%template(29))
   np = 0
 endif
 
@@ -1408,6 +1408,180 @@ grph%y%label               = 'SMART LABEL'
 grph%y%major_div_nominal   = 4
 grph%y2%major_div_nominal  = 4
 grph%y2_mirrors_y          = .true.
+
+!---------------
+! i1
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i1'
+plt%description          = 'Integrated I1 Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I1 Radiation Integral'
+grph%y%label       = 'Integrated I1'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i1'
+crv%smooth_line_calc = .false.
+
+!---------------
+! i2
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i2'
+plt%description          = 'Integrated I2 Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I2 Radiation Integral'
+grph%y%label       = 'Integrated I2'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i2'
+crv%smooth_line_calc = .false.
+
+!---------------
+! i3
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i3'
+plt%description          = 'Integrated I3 Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I3 Radiation Integral'
+grph%y%label       = 'Integrated I3'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i3'
+crv%smooth_line_calc = .false.
+
+!---------------
+! i4a
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i4a'
+plt%description          = 'Integrated I4A Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I4A Radiation Integral'
+grph%y%label       = 'Integrated I4A'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i4a'
+
+!---------------
+! i4b
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i4b'
+plt%description          = 'Integrated I4B Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I4B Radiation Integral'
+grph%y%label       = 'Integrated I4B'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i4b'
+crv%smooth_line_calc = .false.
+
+!---------------
+! i5a
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i5a'
+plt%description          = 'Integrated I5A Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I5A Radiation Integral'
+grph%y%label       = 'Integrated I5A'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i5a'
+crv%smooth_line_calc = .false.
+
+!---------------
+! i5b
+
+np = np + 1
+plt => s%plotting%template(np)
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(1))
+
+plt = default_plot_g1c1 
+plt%name                 = 'i5b'
+plt%description          = 'Integrated I5B Radiation integral'
+
+grph => plt%graph(1)
+grph%p => plt
+grph%title         = 'Integrated I5B Radiation Integral'
+grph%y%label       = 'Integrated I5B'
+
+crv => grph%curve(1)
+crv%g => grph
+crv%data_type     = 'rad_int.i5b'
+crv%smooth_line_calc = .false.
 
 !---------------
 ! Lat Layout plot
