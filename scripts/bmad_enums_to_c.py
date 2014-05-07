@@ -63,6 +63,18 @@ f_out.write('''
 
 #ifndef BMAD_ENUMS
 
+// The TRUE/FALSE stuff is to get around a problem with TRUE and FALSE being defined using #define
+
+#ifdef TRUE
+#undef TRUE
+#define TRUE_DEF
+#endif
+
+#ifdef FALSE
+#undef FALSE
+#define FALSE_DEF
+#endif
+
 namespace Bmad {
 ''')
 
@@ -73,6 +85,16 @@ searchit('../sim_utils/interfaces/physical_constants.f90')
 
 f_out.write('''
 }
+
+#ifdef TRUE_DEF
+#define TRUE    1
+#undef TRUE_DEF
+#endif
+
+#ifdef FALSE_DEF
+#define FALSE   0
+#undef FALSE_DEF
+#endif
 
 #define BMAD_ENUMS
 #endif
