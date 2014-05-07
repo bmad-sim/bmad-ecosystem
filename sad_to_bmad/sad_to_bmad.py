@@ -73,6 +73,7 @@ ele_param_translate = {
     'f2': 'f2',
     'eps': 'eps_step_scale',
     'freq': 'rf_frequency',
+    'phi': ['phi0', ' / twopi'],
     'volt': 'voltage',
     'bound': 'bound',
     'geo': 'geo',
