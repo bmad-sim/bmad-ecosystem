@@ -802,9 +802,12 @@ will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{ref_tilt}
 parameter along with the value of \vn{bragg_angle_in} +
-\vn{bragg_angle_out}. A positive \vn{bragg_angle_in} +
-\vn{bragg_angle_out} bends the reference trajectory in the same
-direction as a positive \vn{g} for a bend element. The
+\vn{bragg_angle_out}. These bragg angles take into account refraction
+so that the reference trajectory downstream of the crystal will be
+properly centered with respect to the reference photon. A positive
+\vn{bragg_angle_in} + \vn{bragg_angle_out} bends the reference
+trajectory in the same direction as a positive \vn{g} for a bend
+element. The
 
 A \vn{crystal} may be offset and pitched (\ref{s:offset}). The incoming
 local reference coordinates are used for these misalignments. 
@@ -820,10 +823,12 @@ Example:
 
 The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are
 the computed Darwin width, in radians, for sigma and pi polarized
-photons respectively. Here the Darwin width is defined as the width
-at the $\eta = \pm 1$ points (cf.~Batterman\cite{b:batterman} Eq (32))
+photons respectively. Here the Darwin width $d\theta_D$ is defined as
+the width at the $\eta = \pm 1$ points
+(cf.~Batterman\cite{b:batterman} Eq (32))
 \Begineq
-  d\theta = \frac{2 \, \Gamma \, |P| \, F_H}{|b|^{1/2} \, \sin\theta_{tot}}
+  d\theta_D = \frac{2 \, \Gamma \, |P| \, \text{Re} \! \left( [F_H \, F_{\Hbar}]^{1/2} \right)}
+                 {|b|^{1/2} \, \sin\theta_{tot}}
 \Endeq
 where
 \begin{example}
