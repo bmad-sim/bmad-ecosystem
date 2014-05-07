@@ -200,7 +200,7 @@ character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
-character(40) ele_name, sub_name, ele1, ele2, switch
+character(40) ele_name, sub_name, ele1_name, ele2_name, switch
 character(40) replacement_for_blank
 character(60) nam
 character(80) :: word1, fmt, fmt2, fmt3
@@ -2327,9 +2327,9 @@ case ('taylor_map', 'matrix')
     end select
   enddo
 
-  ele1 = stuff2(:ix)
+  ele1_name = stuff2(:ix)
   call string_trim(stuff2(ix+1:), stuff2, ix)
-  ele2 = stuff2(:ix)
+  ele2_name = stuff2(:ix)
   if (stuff2(ix+1:) /= '') then
     nl=1; lines(1) = 'EXTRA STUFF ON LINE!'
     return
@@ -2338,24 +2338,24 @@ case ('taylor_map', 'matrix')
   ! By s
 
   if (by_s) then
-    if (ele1 == '') then
+    if (ele1_name == '') then
       s2 = lat%ele(lat%n_ele_track)%s
       s1 = 0
     else
-      read (ele1, *, iostat = ios) s1
+      read (ele1_name, *, iostat = ios) s1
       if (ios /= 0) then
-        nl=1; lines(1) = 'BAD S1 VALUE:' // ele1
+        nl=1; lines(1) = 'BAD S1 VALUE:' // ele1_name
         return
       endif
     endif
 
-    if (ele2 == '') then
+    if (ele2_name == '') then
       s2 = s1
       if (lat%param%geometry == open$) s1 = 0
     else 
-      read (ele2, *, iostat = ios) s2
+      read (ele2_name, *, iostat = ios) s2
       if (ios /= 0) then
-        nl=1; lines(1) = 'BAD S2 VALUE:' // ele2
+        nl=1; lines(1) = 'BAD S2 VALUE:' // ele2_name
         return
       endif
     endif
@@ -2363,7 +2363,7 @@ case ('taylor_map', 'matrix')
     if (n_order > 1) then
       call transfer_map_from_s_to_s (lat, taylor, s1, s2, ix_branch, one_turn = .true.)
     else
-      call twiss_and_track_at_s (lat, s1, ele, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
+      call twiss_and_track_at_s (lat, s1, ele0, u%model%lat_branch(ix_branch)%orbit, orb, ix_branch)
       call mat6_from_s_to_s (lat, mat6, vec0, s1, s2, orb, ix_branch, one_turn = .true.)
     endif
 
@@ -2371,20 +2371,20 @@ case ('taylor_map', 'matrix')
 
   else
 
-    if (ele1 == '') then
+    if (ele1_name == '') then
       ix2 = lat%n_ele_track
       ix1 = 0
     else
-      call tao_locate_elements (ele1, u%ix_uni, eles, err)
+      call tao_locate_elements (ele1_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
-        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1
+        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1_name
         return
       endif
       if (err .or. size(eles) == 0) return
       ix1 = eles(1)%ele%ix_ele
     endif
 
-    if (ele2 == '') then
+    if (ele2_name == '') then
       ix2 = ix1
       if (lat%param%geometry == open$) then
         ix1 = 0
@@ -2392,9 +2392,9 @@ case ('taylor_map', 'matrix')
         ix1 = ix1 - 1
       endif
     else
-      call tao_locate_elements (ele2, u%ix_uni, eles, err)
+      call tao_locate_elements (ele2_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
-        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2
+        nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2_name
         return
       endif
       if (err .or. size(eles) == 0) return
