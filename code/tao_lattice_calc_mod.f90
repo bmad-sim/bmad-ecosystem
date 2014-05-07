@@ -604,7 +604,7 @@ type (tao_lattice_struct), target :: model
 type (ele_struct), save :: extract_ele
 type (ele_struct), pointer :: from_ele, ele0
 type (coord_struct) pos
-type (coord_struct), pointer :: orb0, orb_in
+type (coord_struct), pointer :: orb_out, orb_in
 type (spin_polar_struct) :: polar
 type (branch_struct), pointer :: branch
 
@@ -621,26 +621,22 @@ if (i_br_from > -1) then
   i_ele_from = branch%ix_from_ele
   from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
   call transfer_twiss (from_ele, branch%ele(0))
-  orb0 => model%lat_branch(ix_branch)%orbit(0)
-  orb0 = model%lat_branch(i_br_from)%orbit(i_ele_from)
+  orb_out => model%lat_branch(ix_branch)%orbit(0)
+  orb_out = model%lat_branch(i_br_from)%orbit(i_ele_from)
   return
 endif
 
-! In model%branch()%orb0 is saved the last computed orbit. 
-! This is important with common_lattice since tao_lat%lat_branch(0)%orbit(0) has been overwritten.
+! In model%lat_branch()%orb0 is saved the last computed orbit. 
+! This is important with common_lattice since tao_lat%lat_branch()%orbit(0) has been overwritten.
 
-if (model%lat%branch(ix_branch)%param%geometry == open$) then
-  orb_in => model%lat%beam_start
-else
-  orb_in => model%lat_branch(ix_branch)%orbit(0)
-endif
+orb_in => model%lat_branch(ix_branch)%orb0
+orb_out => model%lat_branch(ix_branch)%orbit(0)
 
-orb0 => model%lat_branch(ix_branch)%orbit(0)
-call init_coord (orb0, orb_in, model%lat%ele(0), .true., branch%param%particle, 1, orb_in%p0c)
+call init_coord (orb_out, orb_in, model%lat%ele(0), .true., branch%param%particle, 1, orb_in%p0c)
 
 polar%theta = u%beam%beam_init%spin%theta
 polar%phi = u%beam%beam_init%spin%phi
-call polar_to_spinor (polar, orb0)
+call polar_to_spinor (polar, orb_out)
 
 end subroutine tao_inject_particle
 
