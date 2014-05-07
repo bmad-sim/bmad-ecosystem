@@ -878,18 +878,42 @@ end subroutine write_homs
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 implicit none
-
 type (lat_struct), target :: lat
 type (bbu_beam_struct), target :: bbu_beam
+type (bunch_struct), pointer :: bunch
 type (bbu_param_struct) bbu_param
 type (bbu_stage_struct), pointer :: this_stage
+type (wake_lr_struct), pointer :: lr
 
+integer :: i, ios
 integer, save :: iu = 0
 
 !
 
-if (iu == 0) iu = lunget()
+if (iu == 0) then
+  iu = lunget()
+  open(iu, file = bbu_param%bunch_by_bunch_info_file, iostat = ios)
+endif
+
+bunch => bbu_beam%bunch(this_stage%ix_head_bunch)
+
+! All HOMs:
+do i=1, size(lat%ele(this_stage%ix_ele_lr_wake)%wake%lr(:) )
+  lr => lat%ele(this_stage%ix_ele_lr_wake)%wake%lr(i)
+  write(iu, '(4es15.7)') lr%t_ref, hom_voltage(lr), bunch%charge_live, bunch%particle(1)%vec(1)
+enddo
+!
 
 end subroutine write_bunch_by_bunch_info
+
+!---
+function hom_voltage(lr_wake) result(voltage)
+implicit none
+type(wake_lr_struct) lr_wake
+real(rp) :: voltage
+!
+voltage = max(hypot(lr_wake%a_sin,lr_wake%a_cos), hypot(lr_wake%b_sin,lr_wake%b_cos) )
+
+end function
 
 end module
