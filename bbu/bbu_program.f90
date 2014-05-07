@@ -259,6 +259,8 @@ do istep = 1, nstep
 
     beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 
+    if (bbu_param%verbose) print *, '  Bunch charge (pC): ', 1e12_rp*beam_init%bunch_charge
+
     if (bbu_param%stable_orbit_anal) then
 
       if (bbu_param%verbose) print *,' Analyzing stable orbit for repetition ', irep
