@@ -351,12 +351,24 @@ endforeach(dir)
 LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
 INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
+#--------------------------------------------
+# To avoid a Link Lib path "not found" error,
+# when a Distribution Build environment is
+# has been envoked and in a target project
+# directory not within the BMAD_DISTRIBUTION 
+# tree, create a empty lib directory.
+#--------------------------------------------
+
+IF (NOT EXISTS ${OUTPUT_BASEDIR}/lib)
+  file (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+ENDIF ()
 
 #-----------------------------------
 # Link directories - order matters
 # Lowest level to highest, i.e. in
 # order of increasing abstraction.
 #-----------------------------------
+
 SET(MASTER_LINK_DIRS
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
