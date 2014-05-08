@@ -2006,6 +2006,7 @@ The attributes specific to an \vn{lcavity} are
 \begin{example}
   gradient       = <Real>    ! Accelerating gradient (V/m).
   gradient_err   = <Real>    ! Accelerating gradient error (V/m).
+  field_factor   = <Real>    ! Used for autoscaling.
   phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                              !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
@@ -2031,7 +2032,7 @@ The energy kick felt by a particle, assuming no phase slippage, is
 \index{multipass}
 where the total gradient is
 \begin{example}
-  gradient_tot = gradient + gradient_err
+  gradient_tot = (gradient + gradient_err) * field_factor
 \end{example}
 the phase \vn{phase_ref} is
 \begin{example}

@@ -284,7 +284,7 @@ if (.not. is_lost) then
 
   if (phase_scale_good .and. amp_scale_good) then
     call cleanup_this()
-    phi0_ref = phi0_ref_original
+    call set_phi0_ref (phi0_ref_original)
     return
   endif
 endif
@@ -302,9 +302,9 @@ if (do_scale_amp) then
     do i = 1, n_pts
       s = ele%value(l$) * (2*i - 1.0) / (2*n_pts)
       ! Sample field at two phases and take the max. This is crude but effective.
-      phi0_ref = 0
+      call set_phi0_ref (0.0_rp)
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field1)
-      phi0_ref = pi/2
+      call set_phi0_ref (pi/2)
       call em_field_calc (ele, param, s, 0.0_rp, orbit0, .true., field2)
       integral = integral + max(abs(field1%e(3)), abs(field2%e(3))) * ele%value(l$) / n_pts
     enddo
@@ -489,7 +489,7 @@ if (ele%key == rfcavity$) then
       if (pz < 0) exit
       phi_max = phi
     enddo
-    phi0_ref = modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp)
+    call set_phi0_ref (modulo2 (zbrent(neg_pz_calc, phi_max-dphi, phi_max, 1d-9), 0.5_rp))
   endif
 endif
 
@@ -516,7 +516,7 @@ case (bmad_standard$)
 end select
 
 ele%value = value_saved
-if (.not. do_scale_phase) phi0_ref = phi0_ref_original
+if (.not. do_scale_phase) call set_phi0_ref (phi0_ref_original)
 
 ele%tracking_method = tracking_method_saved
 
@@ -535,35 +535,59 @@ de = e_tot - e_tot_start
 
 end function dE_particle
 
-!------------------------------------
-! contains
+end subroutine auto_scale_field_phase_and_amp
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 
 subroutine set_field_scale (f_scale)
 
-real(rp) f_scale, f_scale_old
+real(rp) f_scale, f_scale_ratio
 integer i, ix
 
 !
 
-select case (ele%field_calc)
+select case (ele_com%field_calc)
 case (bmad_standard$) 
   field_scale = f_scale
 
 case (grid$, map$, custom$)
-  ix = ele%em_field%mode_to_autoscale
-  f_scale_old = field_scale
-  field_scale = f_scale
-  do i = 1, size(ele%em_field%mode)
-    if (i == ix) cycle
-    if (ele%em_field%mode(i)%master_scale /= ele%em_field%mode(ix)%master_scale) cycle
-    ele%em_field%mode(i)%field_scale = ele%em_field%mode(i)%field_scale * f_scale / f_scale_old
+  ix = ele_com%em_field%mode_to_autoscale
+  f_scale_ratio = field_scale / ele_com%em_field%mode(ix)%field_scale 
+  do i = 1, size(ele_com%em_field%mode)
+    if (ele_com%em_field%mode(i)%master_scale /= ele_com%em_field%mode(ix)%master_scale) cycle
+    ele_com%em_field%mode(i)%field_scale = ele_com%em_field%mode(i)%field_scale * f_scale_ratio
   enddo
-
 end select
 
 end subroutine set_field_scale
 
-end subroutine auto_scale_field_phase_and_amp
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+
+subroutine set_phi0_ref (phase)
+
+real(rp) phase, dphase
+integer i, ix
+
+!
+
+select case (ele_com%field_calc)
+case (bmad_standard$) 
+  phi0_ref = phase
+
+case (grid$, map$, custom$)
+  ix = ele_com%em_field%mode_to_autoscale
+  dphase = phase - ele_com%em_field%mode(ix)%phi0_ref
+  do i = 1, size(ele_com%em_field%mode)
+    if (ele_com%em_field%mode(i)%master_scale /= ele_com%em_field%mode(ix)%master_scale) cycle
+    ele_com%em_field%mode(i)%phi0_ref = ele_com%em_field%mode(i)%phi0_ref + dphase
+  enddo
+end select
+
+end subroutine set_phi0_ref
 
 !----------------------------------------------------------------
 !----------------------------------------------------------------
@@ -598,7 +622,7 @@ logical err_flag
 
 ! 
 
-phi0_ref = phi
+call set_phi0_ref (phi)
 call init_coord (start_orb, ele = ele_com, at_downstream_end = .false., particle = param_com%particle)
 call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 
