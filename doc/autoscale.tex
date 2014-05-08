@@ -21,7 +21,7 @@ incoming energy of the reference particle is.
 
 The scaling problem is not present when \vn{bmad_standard} tracking
 (\sref{s:tkm}) is used since \vn{bmad_standard} tracking uses an
-integrated formua that is designed to give the proper acceleration.
+integrated formula that is designed to give the proper acceleration.
 
 To help with the scaling problem, \bmad has the capability to automatically
 scale an accelerating field's amplitude and/or phase. The two
@@ -39,11 +39,19 @@ parameters in the lattice that would change the scaling are varied.
 The parameters that are varied when the field is auto scalled depend
 upon how the field is calculated. When the fields are specified using
 modes (\sref{s:em.fields}), each mode has a \vn{field_scale} that
-varies the field amplitude and a phase offset \vn{phi0_ref}. The modes
-that are scalled are follow the ...
+varies the field amplitude and each mode has a phase offset
+\vn{phi0_ref}. Not all modes are involved with autoscaling. For
+example, an \vn{em_field} element may have an accelerating mode along
+with a mode for a solenoid field which is independently powered. In
+this instance, only the accelerating mode should be autoscaled. The
+``primary'' mode that is autoscaled is set by the
+\vn{mode_to_autoscale} component of the \vn{field}
+(\sref{v:field}). Additionally, any other mode (called ``seconday''
+modes) whose \vn{master_scale} is the same as the \vn{master_scale} of
+the primary autoscaled mode will be autoscaled. All modes involved in
+autoscaling have their \vn{field_scale} adjusted by the same ratio.
 
-
-For RF fields, if both amplitude and phase are to be scaled, the 
+When the fields are {\em not} specified using modes, the 
 
 
 
