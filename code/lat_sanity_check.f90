@@ -24,7 +24,7 @@ type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch
 type (photon_surface_struct), pointer :: surf
 
-real(rp) s1, s2, ds, l_lord
+real(rp) s1, s2, ds, ds_small, l_lord
 
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
@@ -654,18 +654,21 @@ do i_b = 0, ubound(lat%branch, 1)
     ! Check that super_lords have the correct length.
 
     if (l_stat == super_lord$) then
+      ds_small = 10 / 10.0_rp**precision(1.0_rp) ! Used to avoid roundoff problems
       slave => pointer_to_slave(ele, 1)
       s1 = slave%s - slave%value(l$)
       slave => pointer_to_slave(ele, ele%n_slave)
       s2 = slave%s
       if (s2 >= s1) then
         ds = s2 - s1
+        ds_small = ds_small * max(abs(s1), abs(s2)) 
       else
         ds = (branch%param%total_length - s1) + s2
+        ds_small = ds_small * max(abs(s1), abs(s2), branch%param%total_length)
       endif
       ds = ds 
       l_lord = ele%value(l$) + ele%value(lord_pad2$) + ele%value(lord_pad1$)
-      if (abs(l_lord - ds) > bmad_com%significant_length) then
+      if (abs(l_lord - ds) > bmad_com%significant_length + ds_small) then
         call out_io (s_fatal$, r_name, &
                   'SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
                   'HAS LENGTH + OFFSETS OF: \f15.10\ ', &
