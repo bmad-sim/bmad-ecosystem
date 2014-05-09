@@ -2608,19 +2608,25 @@ do i = 1, i_lev
   if (stk(i)%type == numeric$) then
     i2 = i2 + 1
     stk(i2)%value = stk(i)%value
+
   elseif (stk(i)%type == unary_minus$) then
     stk(i2)%value = -stk(i2)%value
+
   elseif (stk(i)%type == unary_plus$) then
     stk(i2)%value = stk(i2)%value
+
   elseif (stk(i)%type == plus$) then
     stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
     i2 = i2 - 1
+
   elseif (stk(i)%type == minus$) then
     stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
     i2 = i2 - 1
+
   elseif (stk(i)%type == times$) then
     stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
     i2 = i2 - 1
+
   elseif (stk(i)%type == divide$) then
     if (stk(i2)%value == 0) then
       call parser_error ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
@@ -2628,40 +2634,76 @@ do i = 1, i_lev
     endif
     stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
     i2 = i2 - 1
+
   elseif (stk(i)%type == power$) then
     stk(i2-1)%value = stk(i2-1)%value**stk(i2)%value
     i2 = i2 - 1
+
   elseif (stk(i)%type == sin$) then
     stk(i2)%value = sin(stk(i2)%value)
+
   elseif (stk(i)%type == cos$) then
     stk(i2)%value = cos(stk(i2)%value)
+
   elseif (stk(i)%type == tan$) then
     stk(i2)%value = tan(stk(i2)%value)
+
   elseif (stk(i)%type == asin$) then
+    if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
+      call parser_error ('ASIN ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
+      return
+    endif
     stk(i2)%value = asin(stk(i2)%value)
+
   elseif (stk(i)%type == acos$) then
+    if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
+      call parser_error ('ACOS ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
+      return
+    endif
     stk(i2)%value = acos(stk(i2)%value)
+
   elseif (stk(i)%type == factorial$) then
     stk(i2)%value = factorial(nint(stk(i2)%value))
+    if (stk(i2)%value < 0) then
+      call parser_error ('FACTORIAL PROBLEM FOR: ' // err_str)
+      return
+    endif
+
   elseif (stk(i)%type == atan$) then
     stk(i2)%value = atan(stk(i2)%value)
+
   elseif (stk(i)%type == atan2$) then
     stk(i2-1)%value = atan2(stk(i2-1)%value, stk(i2)%value)
     i2 = i2 - 1
+
   elseif (stk(i)%type == abs$) then
     stk(i2)%value = abs(stk(i2)%value)
+
   elseif (stk(i)%type == sqrt$) then
+    if (stk(i2)%value < 0) then
+      call parser_error ('SQRT ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
+      return
+    endif
     stk(i2)%value = sqrt(stk(i2)%value)
+
   elseif (stk(i)%type == log$) then
+    if (stk(i2)%value < 0) then
+      call parser_error ('LOG ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
+      return
+    endif
     stk(i2)%value = log(stk(i2)%value)
+
   elseif (stk(i)%type == exp$) then
     stk(i2)%value = exp(stk(i2)%value)
+
   elseif (stk(i)%type == ran$) then
     i2 = i2 + 1
     call ran_uniform(stk(i2)%value)
+
   elseif (stk(i)%type == ran_gauss$) then
     i2 = i2 + 1
     call ran_gauss(stk(i2)%value)
+
   else
     call parser_error ('INTERNAL ERROR #02: GET HELP')
     if (global_com%exit_on_error) call err_exit
