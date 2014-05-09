@@ -10,12 +10,13 @@
 !   n -- Integer: Must be non-negative
 !
 ! Output:
-!   fact -- Real(rp): n!
+!   fact -- Real(rp): n!. Will return negative number if there is an error.
 !-
 
 function factorial(n) result (fact)
 
 use physical_constants
+use output_mod
 
 implicit none
 
@@ -32,17 +33,29 @@ real(rp), parameter :: f(0:30) = [ &
 
 integer n, i
 
+character(*), parameter :: r_name = 'factorial'
+
 ! Error check
 
+
 if (n < 0) then
-  print *, 'ERROR IN FACTORIAL(N). N < 0!'
+  call out_io (s_error$, r_name, 'FACTORIAL(N) CALLED WITH N < 0!')
   if (global_com%exit_on_error) call err_exit
+  fact = -1
 endif
 
 ! Use Sterling's formula if n is very large
 
 if (n > ubound(f, 1)) then
+  if (n > 170) then
+    call out_io (s_error$, r_name, 'FACTORIAL(N) CALLED WITH N TOO LARGE (> 170)!')
+    if (global_com%exit_on_error) call err_exit
+    fact = -1
+    return
+  endif
+
   fact = exp(n * log(real(n, rp)) - n + log(twopi * n) / 2)
+
 else
   fact = f(n)
 endif
