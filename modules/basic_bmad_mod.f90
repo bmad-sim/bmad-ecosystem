@@ -14,6 +14,8 @@ integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
 integer, parameter :: not_set$ = -999
 
+integer, parameter :: pion_0$     = +5
+integer, parameter :: pion_plus$  = +4
 integer, parameter :: antimuon$   = +3
 integer, parameter :: proton$     = +2
 integer, parameter :: positron$   = +1
@@ -21,12 +23,16 @@ integer, parameter :: photon$     =  0
 integer, parameter :: electron$   = -1
 integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
+integer, parameter :: pion_minus$ = -4
 
-character(16), parameter :: particle_name(-3:3) = ['MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
-                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ']
+character(16), parameter :: particle_name(-4:5) = [&
+                                     'PION_MINUS', 'MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
+                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ', &
+                                     'PION_PLUS ', 'PION_0    ']
 
-integer, parameter :: charge_of(-3:3) = [-1, -1, -1, 0, 1, 1, 1]
-real(rp), parameter :: mass_of(-3:3) = [m_muon, m_proton, m_electron, 0.0_rp, m_electron, m_proton, m_muon]
+integer, parameter :: charge_of(-4:5) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0]
+real(rp), parameter :: mass_of(-4:5) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
+                                m_electron, m_proton, m_muon, m_pion_charged, m_pion_0]
 
 contains
 
