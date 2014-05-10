@@ -16,7 +16,7 @@
 function factorial(n) result (fact)
 
 use physical_constants
-use output_mod
+use output_mod, dummy => factorial
 
 implicit none
 
