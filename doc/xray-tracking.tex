@@ -798,7 +798,7 @@ just the extension of the reference orbit at the entrance
 surface. Since the reference orbit's direction is $\bfkbar_0$.  the
 reference orbit displacement vector $\bfL$ (cf.~\Eq{vwlv}) is given by
 \Begineq
-  \bfL = \frac{|d\bfkbar_0|^2}{d\bfkbar_0 \dotproduct \Bf t} \, d\bfkbar_0
+  \bfL = \frac{t^2}{d\bfkbar_0 \dotproduct \Bf t} \, d\bfkbar_0
   \qquad \text{[undiffracted]}
 \Endeq
 where
@@ -847,6 +847,117 @@ Bragg diffraction
     \sin\theta_{bend} & 0 & \cos\theta_{bend}
   \end{pmatrix}
 \Endeq
+
+%-------------------------------------------------------------------------
+\subsection{Crystal Surface Reflections and Refractions}
+
+\begin{figure}[tb]
+  \centering
+  %%%        \includegraphics[width=5in]{crystal-surface-reflect.pdf}
+  \caption[Reflection from a crystal surface.]
+{Reflection from a crystal surface.}
+  \label{f:crystal-reflect}
+\end{figure}
+
+
+There are corrections to the field amplitude and phase when a photon
+reflects or refracts from the surface of a crystal. The situation is
+illustrated in \fig{f:crystal-reflect}. A plane wave in incident on a
+crystal surface with
+\Begineq
+  E = \what E_0 \, \exp(i \, \bfk_0 \, \bfr)
+\Endeq
+An outgoing plane wave has a field
+\Begineq
+  E = \what E_1 \, \exp(i \, \bfk_1 \, \bfr)
+\Endeq
+A simulation of this condition will start with a number of photons
+with wave vector $\bfk_0$ and electric field . After reflecting from
+the surface, the photons will have wave vector $\bfk_1$. Now imagine a
+set of $N$ photons that flow through an area $dA_0$ before being
+reflected from the surface. 
+
+Since the electric field is $\what E_0$, for incoherent photon
+tracking
+\Begineq
+  \what E_0^2 = \frac{\alpha_p \, E_0^2 \, N}{dA_0}
+\Endeq
+where $\alpha_p$ is the simulation constant (cf.~\Eq{panda1}. 
+After the photons are reflected they will have some field $E_1$ and thus
+\Begineq
+  \what E_1^2 = \frac{\alpha_p \, E_1^2 \, N}{dA_1}
+\Endeq
+Where $dA_1$ is the area that the phtons flow through which is related
+to $dA_0$ via
+\Begineq
+  \frac{dA_1}{dA_0} = \frac{\bfk_1 \cdot \bfz}{\bfk_0 \cdot \bfz} \equiv |b|
+\Endeq
+Combining the above three equations, the change in field for a photon
+as it reflects from the surface is
+\Begineq
+  \frac{E_1}{E_0} = \frac{\what E_1}{\what E_0} \, \sqrt{|b|} 
+  \qquad \text{Incoherent}
+\Endeq
+
+For coherent photon tracking the electric field at $dA_0$ is
+\Begineq
+  \what E_0 = \frac{\alpha_p \, E_0 \, N}{dA_0}
+\Endeq
+After the photons are reflected they will have some field $E_1$ and thus
+\Begineq
+  \what E_1 = \frac{\alpha_p \, E_1 \, N}{dA_1}
+\Endeq
+Combining these equations the change in field for a photon
+as it reflects from the surface is
+\Begineq
+  \frac{E_1}{E_0} = \frac{\what E_1}{\what E_0} \, |b| 
+  \qquad \text{Coherent}
+\Endeq
+
+Additionally, for coherent tracking, all photons in a plane wave must
+have the same phase when passing through an area transverse to the
+wave. Thus the two photons labeled $a$ and $b$ in
+\fig{f:crystal-reflect} must have the same phase advance in going from
+$dA_0$ to $dA_1$. The difference in the phase advance for photon $b$
+relative to $a$ from $dA_0$ to the surface is $\bfk_0 \cdot \bfr$
+where $\bfr$ is the vector between where photon $b$ hits the surface
+relative to phton $a$. Similarly, the difference in the phase advance
+for photon $b$ relative to $a$ from the surface to $dA_0$ is $-\bfk_1
+\cdot \bfr$. Since the total phase advance for both photons is the
+same from $dA_0$ to $dA_1$ the phase shift $d\phi_b$ of photon $b$ as
+it is reflected from the surface relative to the phase shift $d\phi_a$
+is
+\Begineq
+  d\phi_b = d\phi_a - (\bfk_1 - \bfk_0) \cdot \bfr
+  \label{dpbdpa}
+\Endeq
+
+This shift in the reflection phase can be related to the lattice
+diffration planes. The wave vector difference can be writen
+\Begineq
+  \bfk_1 - \bfk_0 = \bfH + q \, \bfhat n
+  \label{k1k0}
+\Endeq
+where $\bfhat n$ is perpendicular to the surface. Combining
+\Eqs{dpbdpa} and \eq{k1k0} and since $\bfr$ is in
+the plane of the surface
+\Begineq
+  d\phi_b = d\phi_a - \bfH \cdot \bfr
+\Endeq
+This shows that the reflection shift has the same periodicity as the
+pattern of the lattice planes at the surface of the crystal. Notice
+that for a mirror, where one point on the surface is the same as any
+other, $d\phi_b$ must be equal to $d\phi_a$. Using this in \Eq{dpbdpa}
+gives 
+\Begineq
+  \bfk_1 \cdot \bfr = \bfk_0 \cdot \bfr
+\Endeq
+and since $|\bfk_1| = |\bfk_0|$ this proves that the angle of
+incidence is equal to the angle of reflection for a mirror.
+
+In practice, the registration of the surface planes with respect to
+the surface is not specified in a simulation. Thus the reflection
+phase shift can only be calculated up to a constant offset. 
 
 %-------------------------------------------------------------------------
 \subsection{Bragg Crystal Tracking}
@@ -950,31 +1061,22 @@ the internal field ratio
 where $j$ is $\alpha$ or $\beta$ as appropriate.
 
 %-------------------------------------------------------------------------
-\subsection{Laue Crystal Tracking}
-\label{ss:laue.track}
+\subsection{Coherent Laue Crystal Tracking}
+\label{ss:coherent.laue}
 
-Laue diffraction has two interior wave fields, labeled $\alpha$ and
-$\beta$, corresponding to the two tie points that are excited on the
-two dispersion surfaces.  For incoherent tracking it is assumed that
-these wave fields do not overlap at the exit surface
-(\cite{b:batterman} $\S$2.11A-B). The interior wave fields can then be
-considered separately.  For coherent tracking, any interference
-between the wave fields is automatically taken into account and so no
-assumption has to be made.
-
-With both coherent and incoherent tracking, in order not to have to
-have the extra bookkeeping overhead of having to divide photons, a
-random number generator is used to select which branch, $\alpha$ or
-$\beta$, within the crystal an individual photon is channed to. 
-
-The electric field ratios $\what E_\alpha$ and $\what E_\beta$ are
-taken to be equal to each other. With this choice, the probabilities
-$P_\alpha$ and $P_\beta$ for being channeled to the $\alpha$ or
-$\beta$ branches are such that a branch with a greater intensity will
-have a greater number of photons chanelled down it.
+Laue diffraction has two interior wave fields (branches), labeled
+$\alpha$ and $\beta$, corresponding to the two tie points that are
+excited on the two dispersion surfaces. For coherent tracking, a
+photon has some probability to be channeled to follow the $\alpha$ or
+$\beta$ branch. The electric field ratios $\what E_\alpha$ and $\what
+E_\beta$ (cf.~\Eq{rpss2}) are taken to be equal to each other. With
+this choice, the probabilities $P_\alpha$ and $P_\beta$ for being
+channeled to the $\alpha$ or $\beta$ branches are such that a branch
+with a greater intensity will have a greater number of photons
+chanelled down it.
 
 When a crystal's \vn{ref_orbit_follows} parameter is set to
-\vn{bragg_diffracted}, The coherent branching probabilities are
+\vn{bragg_diffracted}, The branching probabilities are
 \Begineq
   P_\alpha = \frac{|E_{H\alpha}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
   P_\beta = \frac{|E_{H\beta}|}{|E_{H\alpha}| + |E_{H\beta}|} , \qquad
@@ -1010,14 +1112,6 @@ $E_{H\alpha}$ if the photon is channeled into the $\alpha$ branch and
 $E_{H\beta}$ if the photon is channeled into the $\beta$ branch.
 
 When a crystal's \vn{ref_orbit_follows} parameter is set to
-\vn{bragg_diffracted}, The incoherent branching probabilities are
-\Begineq
-  P_\alpha = \frac{|E_{H\alpha}|^2}{|E_{H\alpha}|^2 + |E_{H\beta}|^2} , \qquad
-  P_\beta = \frac{|E_{H\beta}|^2}{|E_{H\alpha}|^2 + |E_{H\beta}|^2}  , \qquad
-  \what E_{H\alpha}^2 = \what E_{H\beta}^2  = \frac{|E_{H\alpha}|^2 + |E_{H\beta}|^2}{|E_0^i|^2}
-\Endeq
-
-When a crystal's \vn{ref_orbit_follows} parameter is set to
 \vn{forward_diffracted} or \vn{undefracted}, the algorithm is similar
 to the \vn{bragg_diffracted} case except $E_{0\alpha}$ and
 $E_{0\beta}$ are used in place of $E_{H\alpha}$ and
@@ -1035,6 +1129,38 @@ Since a simulation photon has two polarization components, the above
 equations are used for one polarization component and for the second
 polarization component the same branch is used as for the first with
 an appropriately scaled $\what E$.
+
+%-------------------------------------------------------------------------
+\subsection{Incoherent Laue Crystal Tracking}
+\label{ss:incoherent.laue}
+
+Laue diffraction has two interior wave fields (branches), labeled
+$\alpha$ and $\beta$, corresponding to the two tie points that are
+excited on the two dispersion surfaces. For incoherent tracking it is
+assumed that these wave fields overlap at the exit surface
+(\cite{b:batterman} Eq.~(87)) and so add coherently. This is a good
+approximation if the crystal is very thin where the wave fields do not
+travel an appreciable spatial distance and is also a good
+approximation when the crystal is thick since the $\beta$ branch will
+be heavily attenuated. At intermediate thicknesses this approximation
+is good when a photon is near the Bragg angle since, in this case, the
+fields will be traveling in similar directions.
+
+Another approximation is that the path
+
+\begin{align}
+  E_{H\alpha} &= -E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
+    \frac{|P|}{P} \, 
+    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{H\alpha} \dotproduct \bfr_\alpha}) \,
+    \exp({-2 \, \pi \, \bfK''_{H\alpha} \dotproduct \bfr_\alpha}) \CRNO
+  E_{H\beta} &= E_0^i \, \dsfrac{|b|^{1/2}}{2 \, \cosh v} \, 
+    \frac{|P|}{P} \, 
+    \frac{[F_H \, F_\Hbar]^{1/2}}{F_H} \, 
+    \exp({-2 \, \pi \, i \, \bfK'_{H\beta} \dotproduct \bfr_\beta}) \,
+    \exp({-2 \, \pi \, \bfK''_{H\beta} \dotproduct \bfr_\beta})
+\end{align}
+
 
 %-------------------------------------------------------------------------
 \section{X-ray Targeting}

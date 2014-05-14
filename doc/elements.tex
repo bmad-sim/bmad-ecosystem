@@ -2006,7 +2006,7 @@ The attributes specific to an \vn{lcavity} are
 \begin{example}
   gradient       = <Real>    ! Accelerating gradient (V/m).
   gradient_err   = <Real>    ! Accelerating gradient error (V/m).
-  field_factor   = <Real>    ! Used for autoscaling.
+  field_factor   = <Real>    ! Used for auto scaling.
   phi0           = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                              !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass = <Real>    ! Phase with respect to a multipass lord (rad/2\(\pi\)).
@@ -2072,6 +2072,9 @@ sign. Essentially the MAD8 documentation gives
   dE = gradient * L * cos(twopi * (phase_ref - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
+
+The \vn{field_factor} parameter is used with auto scaling
+(\sref{c:autoscale}). The default value for \vn{field_factor} is 1.
 
 When short-range wake fields are being simulated, with
 \vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.params}), the
@@ -2802,6 +2805,7 @@ Attributes specific to an \vn{rfcavity} are:
   rf_frequency   = <Real>    ! Frequency
   harmon         = <Real>    ! Harmonic number
   voltage        = <Real>    ! Cavity voltage
+  field_factor   = <Real>    ! Used for auto scaling.
   phi0           = <Real>    ! Cavity phase
   phi0_multipass = <Real>    ! Phase variation with multipass
   gradient       = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).

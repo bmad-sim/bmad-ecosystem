@@ -25,7 +25,7 @@ integrated formula that is designed to give the proper acceleration.
 
 To help with the scaling problem, \bmad has the capability to automatically
 scale an accelerating field's amplitude and/or phase. The two
-parameters that turn on/off autoscaling are (\sref{s:param}):
+parameters that turn on/off auto scaling are (\sref{s:param}):
 \begin{example}
   parameter[auto_scale_field_phase]    = <Logical>  ! Automatic phase scaling.
   parameter[auto_scale_field_amp]      = <Logical>  ! Automatic amplitude scaling.
@@ -36,22 +36,35 @@ Scaling takes place during program execution when a lattice is
 initially created (that is, when the lattice file is parsed) and when
 parameters in the lattice that would change the scaling are varied.
 
-The parameters that are varied when the field is auto scalled depend
+The parameters that are varied when the field is auto scaled depend
 upon how the field is calculated. When the fields are specified using
 modes (\sref{s:em.fields}), each mode has a \vn{field_scale} that
 varies the field amplitude and each mode has a phase offset
-\vn{phi0_ref}. Not all modes are involved with autoscaling. For
+\vn{phi0_ref}. Not all modes are involved with auto scaling. For
 example, an \vn{em_field} element may have an accelerating mode along
 with a mode for a solenoid field which is independently powered. In
-this instance, only the accelerating mode should be autoscaled. The
-``primary'' mode that is autoscaled is set by the
-\vn{mode_to_autoscale} component of the \vn{field}
-(\sref{v:field}). Additionally, any other mode (called ``seconday''
+this instance, only the accelerating mode should be auto scaled. The
+``primary'' mode that is auto scaled is set by the
+\vn{mode_to_auto scale} component of the \vn{field}
+(\sref{v:field}). Additionally, any other mode (called ``secondary''
 modes) whose \vn{master_scale} is the same as the \vn{master_scale} of
-the primary autoscaled mode will be autoscaled. All modes involved in
-autoscaling have their \vn{field_scale} adjusted by the same ratio.
+the primary auto scaled mode will be auto scaled. All modes involved in
+auto scaling have their \vn{field_scale} adjusted by the same ratio.
+Additionally, when the phase is auto scaled, all secondary modes will
+have their \vn{phi0_ref} phases adjusted by the same difference that
+the \vn{phi0_ref} of the primary mode is changed. Example:
+\begin{example}
+  rf2334: lcavity, field_type = grid, field = {
+    mode_to_autoscale = 1,
+    mode = {master_scale = gradient, ...},   ! Primary mode
+    mode = {master_scale = gradient, ...},   ! Secondary mode
+    mode = {master_scale = none, ...} }      ! Not involved in auto scale
+\end{example}
 
-When the fields are {\em not} specified using modes, the 
+When the fields are {\em not} specified using modes, the element's
+\vn{field_factor} parameter will be used for scaling the amplitude and
+the \vn{phi0_ref} parameter (which is distinct from the \vn{phi0_ref}
+associated with a mode) will be used for varying the phase.
 
 
 
