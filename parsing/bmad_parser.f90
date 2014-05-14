@@ -915,14 +915,14 @@ do i = 0, ubound(lat%branch, 1)
     if (global_com%type_out) then
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
         if (branch%param%particle == photon$) then
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
                                          'WILL USE 1000 eV!', i_array = [i])
         else
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (\i0\) ' // branch%name, &
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
                                          'WILL USE 1000 * MC^2!', i_array = [i])
         endif
       else
-        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (\i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
       endif
     endif
     ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)

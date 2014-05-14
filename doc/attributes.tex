@@ -258,36 +258,36 @@ the orientational attributes only affect the physical element and not
 the reference orbit. However, the orientational attributes of some
 other elements, like the \vn{fiducial} element, do affect the
 reference orbit. To sort all this out, lattice elements can be divided
-into six classes:
-  \begin{description}
-  \item[\vn{Straight line elements}] \Newline
+into seven classes:
+  \begin{enumerate}
+  \item\vn{Straight line elements} (\sref{ss:straight.orient}) \Newline
 Straight line elements are elements where the reference orbit is a
 straight line. Examples include \vn{quadrupoles}, and \vn{sextupoles}
 as well as zero length elements like \vn{markers}.
-  \item[\vn{Dipole bends}]  \Newline
+  \item\vn{Dipole bends} (\sref{ss:bend.orient}) \Newline
 Dipole bends are:
 \begin{example}
-  sbend \& rbend             ! \sref{s:bend}
+  sbend \& rbend
 \end{example}
-  \item[\vn{Photon reflecting elements}] \Newline
+  \item\vn{Photon reflecting elements} (\sref{ss:photon.orient}) \Newline
 The reflecting elements are
 \begin{example}
-  crystal                   ! \sref{s:crystal}
-  mirror                    ! \sref{s:mirror}
-  multilayer_mirror         ! \sref{s:multilayer}
+  crystal
+  mirror
+  multilayer_mirror
 \end{example}
 These elements have a kink in the reference orbit at the nominal
 element surface.
-  \item[\vn{Reference orbit manipulator elements}] \Newline
+  \item\vn{Reference orbit manipulator elements} (\sref{ss:manip.orient}) \Newline
 Elements that are used to manipulate the reference orbit are
 \begin{example}
-  fork \& photon_fork        ! \sref{s:fork}
-  floor_shift               ! \sref{s:floor.ele}
-  patch                     ! \sref{s:patch}
+  fork \& photon_fork
+  floor_shift
+  patch
 \end{example}
-  \item[\vn{Fiducial Element}] \Newline
-  \item[\vn{Girder Elements}] \Newline
-  \item[\vn{Control Elements}] \Newline
+  \item\vn{Fiducial Element} (\sref{ss:fiducial.orient}) \Newline
+  \item\vn{Girder Elements} (\sref{ss:girder.orient}) \Newline
+  \item\vn{Control Elements} \Newline
 Control elements are elements that control attributes of other
 elements. The control elements are:
 \begin{example}
@@ -295,10 +295,11 @@ elements. The control elements are:
   overlay
 \end{example}
 These elements do not have orientational attributes.
-  \end{description}
+  \end{enumerate}
 
 %-----------------------------------------------------------------
 \subsection{Straight Line Element Orientation}
+\label{ss:straight.orient}
 
 The straight line elements have the following orientational attributes:
 \begin{example}
@@ -373,6 +374,7 @@ Note that \vn{hkick} and \vn{vkick} attributes are not affected by
 
 %-----------------------------------------------------------------
 \subsection{Bend Element Orientation}
+\label{ss:bend.orient}
 
 \begin{figure}[ht]
   \centering
@@ -423,6 +425,7 @@ the same as the MAD \vn{tilt} attribute.
 
 %-----------------------------------------------------------------
 \subsection{Photon Reflecting Element Orientation}
+\label{ss:photon.orient}
 
 \begin{figure}[ht]
   \centering
@@ -456,6 +459,7 @@ axis is the sum \vn{tilt} + \vn{ref_tilt}.
 
 %-----------------------------------------------------------------
 \subsection{Reference Orbit Manipulator Element Orientation}
+\label{ss:manip.orient}
 
 The \vn{fork}, \vn{photon_fork}, \vn{floor_shift}, and \vn{patch} elements
 use the following attributes to orient their exit edge with respect to their
@@ -478,6 +482,7 @@ the orientational attributes here directly control the reference orbit.
 
 %-----------------------------------------------------------------
 \subsection{Fiducial Element Orientation}
+\label{ss:fiducial.orient}
 
 The \vn{fiducial} element (\sref{s:girder}) uses the 
 following attributes to define its position:
@@ -493,10 +498,9 @@ following attributes to define its position:
 \end{example}
 See Section~\sref{s:fiducial} for more details.
 
-
-
 %-----------------------------------------------------------------
 \subsection{Girder Orientation}
+\label{ss:girder.orient}
 
 A \vn{girder} (\sref{s:girder}) element uses the same attributes as a \vn{fiducial}
 element (\sref{s:fiducial}) to orient the reference girder position. In addition,

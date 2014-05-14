@@ -878,11 +878,15 @@ if (attrib_word == 'FIELD') then
 
       case ('MASTER_SCALE')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
-        ix = attribute_index(ele, word)
-        if (ix < 1 .or. ix > num_ele_attrib$) then
-          call parser_error ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
-                               'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
-          return
+        if (word == 'NONE') then
+          ix = 0
+        else
+          ix = attribute_index(ele, word)
+          if (ix < 1 .or. ix > num_ele_attrib$) then
+            call parser_error ('BAD NAME FOR "MASTER_SCALE = <NAME>" CONSTRUCT', &
+                                 'FOUND IN MODE DEFINITION IN FIELD STRUCTURE IN ELEMENT: ' // ele%name)
+            return
+          endif
         endif
         em_mode%master_scale = ix
         do_evaluate = .false.

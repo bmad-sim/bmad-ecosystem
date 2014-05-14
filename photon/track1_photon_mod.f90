@@ -788,8 +788,13 @@ if (ele%value(b_param$) < 0) then
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
 
-  e_field = abs(e_rel) / sqrt_b
-  e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
+  if (param%tracking_mode == coherent$) then
+    e_field = abs(e_rel) / abs(cp%b_eff)
+    e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
+  else
+    e_field = abs(e_rel) / sqrt_b
+    e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
+  endif
 
 !---------------
 ! Laue calc
@@ -846,34 +851,31 @@ else
     return
   endif
 
-  ! Take dr as average
-
-  dr = (dr_alpha * abs(exp_factor_a) + dr_beta * abs(exp_factor_b)) / (abs(exp_factor_a) + abs(exp_factor_b))
-
-  ! Alpha branch 
-
-  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
-    kr = -twopi * dot_product(k_h_a, dr)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
-  else
-    kr = -twopi * dot_product(k_0_a, dr)
-    E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
-  endif
-
-  ! Beta branch
-
-  if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
-    kr = -twopi * dot_product(k_h_B, dr)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
-  else
-    kr = -twopi * dot_product(k_0_b, dr)
-    E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
-  endif
-
   !--------------------------
   ! Calculate phase and field
 
   if (param%tracking_mode == coherent$) then
+
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_a, dr_alpha)
+      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0_a(3)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+
+      kr = -twopi * dot_product(k_h_b, dr_beta)
+      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * E_hat_alpha
+
+    else
+      kr = -twopi * dot_product(k_0_a, dr_alpha)
+      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0_a(3)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
+
+      kr = -twopi * dot_product(k_0_b, dr_beta)
+      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
+      E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
+    endif
+
     ! Calculate branching numbers (first pass only)
 
     if (do_branch_calc) then
@@ -895,9 +897,34 @@ else
       dr = dr_beta
     endif
 
-  ! Not coherent
+  ! Incoherent
 
   else
+
+    ! Take dr as average
+
+    dr = (dr_alpha * abs(exp_factor_a) + dr_beta * abs(exp_factor_b)) / (abs(exp_factor_a) + abs(exp_factor_b))
+
+    ! Alpha branch 
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_a, dr)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+    else
+      kr = -twopi * dot_product(k_0_a, dr)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
+    endif
+
+    ! Beta branch
+
+    if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
+      kr = -twopi * dot_product(k_h_B, dr)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
+    else
+      kr = -twopi * dot_product(k_0_b, dr)
+      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b 
+    endif
+
     E_hat = E_hat_alpha + E_hat_beta
     e_field = abs(E_hat)
     e_phase = e_phase + atan2(aimag(E_hat), real(E_hat))

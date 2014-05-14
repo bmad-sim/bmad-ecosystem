@@ -554,7 +554,7 @@ case (bmad_standard$)
 
 case (grid$, map$, custom$)
   ix = ele_com%em_field%mode_to_autoscale
-  f_scale_ratio = field_scale / ele_com%em_field%mode(ix)%field_scale 
+  f_scale_ratio = f_scale / ele_com%em_field%mode(ix)%field_scale 
   do i = 1, size(ele_com%em_field%mode)
     if (ele_com%em_field%mode(i)%master_scale /= ele_com%em_field%mode(ix)%master_scale) cycle
     ele_com%em_field%mode(i)%field_scale = ele_com%em_field%mode(i)%field_scale * f_scale_ratio
