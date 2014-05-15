@@ -1522,7 +1522,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
 character(40) data_type, name
 character(40) data_type_select, data_source
 character(20) :: r_name = 'calc_data_at_s'
-logical err, good(:)
+logical err, good(:), first_time
 
 ! Some init
 
@@ -1532,6 +1532,7 @@ ix_branch = curve%ix_branch
 lat => tao_lat%lat
 orb => tao_lat%lat_branch(ix_branch)%orbit
 branch => lat%branch(ix_branch)
+first_time = .true.
 
 ix_ref = curve%ix_ele_ref_track
 if (ix_ref < 0) ix_ref = 0
@@ -1580,7 +1581,13 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 do ii = 1, size(curve%x_line)
 
-  if (.not. good(ii)) cycle
+  ! Good(ii) may be false if this is not first time calc_data_at_s is called from tao_curve_data_setup.
+  ! For example, calc_data_at_s is called twice when plotting "meas - design".
+
+  if (.not. good(ii)) then
+    first_time = .true.
+    cycle
+  endif
 
   s_now = x1 + (ii-1) * (x2-x1) / (size(curve%x_line)-1)
   if (s_now > branch%ele(branch%n_ele_track)%s) s_now = branch%ele(branch%n_ele_track)%s
@@ -1592,6 +1599,7 @@ do ii = 1, size(curve%x_line)
   ix_ele = element_at_s (lat, s_now, .true., ix_branch, err)
   if (branch%ele(ix_ele)%key == hybrid$ .or. branch%ele(ix_ele)%key == taylor$ .or. err) then
     good(ii) = .false.
+    first_time = .true.
     cycle
   endif
 
@@ -1621,9 +1629,10 @@ do ii = 1, size(curve%x_line)
     orbit = bunch_params%centroid
 
   case ('lat')
-    if (ii == 1) then
+    if (first_time) then
       call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err)
       orbit_end = orbit
+      first_time = .false.
     else
       call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err)
       orbit = orbit_end
@@ -1642,8 +1651,9 @@ do ii = 1, size(curve%x_line)
     endif
 
     if (data_type == 'momentum_compaction') then
-      if (ii == 1) then
+      if (first_time) then
         call mat6_from_s_to_s (lat, mat6, vec0, ele_ref%s, s_now, orb_ref, ix_branch, err_flag = err)
+        first_time = .false.
       else
         mat6 = matmul(ele%mat6, mat6)
         vec0 = matmul(ele%mat6, vec0) + ele%vec0
