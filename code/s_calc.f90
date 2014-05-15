@@ -67,9 +67,8 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   case (girder_lord$)
     call find_element_ends (lord, slave0, slave)
     lord%s = slave%s
-    lord%value(ds_path_length$) = slave%s - slave0%s
-    if (lord%value(ds_path_length$) < 0) lord%value(ds_path_length$) = &
-                              lord%value(ds_path_length$) + slave0%branch%param%total_length
+    lord%value(l$) = slave%s - slave0%s
+    if (lord%value(l$) < 0) lord%value(l$) = lord%value(l$) + slave0%branch%param%total_length
   case default
     lord%s = 0
   end select

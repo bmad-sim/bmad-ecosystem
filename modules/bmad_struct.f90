@@ -793,7 +793,6 @@ integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, rel_tracking_charge
 integer, parameter :: l_chord$ = 20, ks$ = 20, n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e1$ = 21, e_loss$ = 21, dks_ds$ = 21, gap$ = 21
-integer, parameter :: ds_path_length$ = 22
 integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
 integer, parameter :: traveling_wave$ = 23
