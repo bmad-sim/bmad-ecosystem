@@ -1534,8 +1534,10 @@ branches off from the main line and then branches back to it.
 Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
 $\calO_A$ is the reference frame at the upstream end of element
 \vn{A}, $\calO_C$ is the reference frame at the downstream end of
-element \vn{C}, and $\calO_G$ is the default \vn{origin} reference frame of
-the girder. $r_{CA}$ is the vector from $\calO_A$ to $\calO_C$.
+element \vn{C}, and $\calO_G$ is the default \vn{origin} reference
+frame of the girder. $r_{CA}$ is the vector from $\calO_A$ to
+$\calO_C$. The length \vn{l} of the girder is the difference in $s$
+between points $\calO_C$ and $\calO_A$.
   }
   \label{f:girder}
 \end{figure}
@@ -1550,8 +1552,9 @@ General \vn{girder} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Description strings    & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH 
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
+  Description strings        & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH 
+  Length                     & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1572,7 +1575,6 @@ Attributes specific to a \vn{floor_shift} elements are:
   dtheta_origin     = <Real>     ! orientation angle offset.
   dphi_origin       = <Real>     ! orientation angle offset.
   dpsi_origin       = <Real>     ! orientation angle offset.
-  ds_path_length                 ! ``Path length'' of girder. Dependent attrib (\sref{s:depend}).
 \end{example}
 
 A simple example of a girder is shown in \fig{f:girder}. Here a girder
@@ -1660,6 +1662,10 @@ frame is given in \sref{s:patch.coords}. Example:
 This offsets girder \vn{g3}'s reference frame 3~cm horizontally from
 the default \vn{origin} frame. If no offsets are given, the
 \vn{origin} frame is the same as the girder's reference frame.
+
+The length \vn{l} of a girder, which is not used in any calculations,
+is a dependent attribute computed by \bmad and set equal to the $s$
+path length between points $\calO_C$ and $\calO_A$.
 
 \index{x_offset}\index{y_offset}\index{x_pitch}\index{y_pitch}\index{tilt}
 The physical orientation of the girder with respect to it's reference

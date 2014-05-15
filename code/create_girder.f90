@@ -42,7 +42,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), optional :: ele_init
-type (ele_struct), pointer ::  slave, girder_ele
+type (ele_struct), pointer ::  slave, slave0, girder_ele
 type (control_struct)  contrl(:)
 
 integer, intent(in) :: ix_girder
@@ -112,6 +112,8 @@ if (present(ele_init)) then
   endif
 endif
 
-girder_ele%value(l$) = 0
+call find_element_ends (girder_ele, slave0, slave)
+girder_ele%value(l$) = slave%s - slave0%s
+if (girder_ele%value(l$) < 0) girder_ele%value(l$) = girder_ele%value(l$) + slave0%branch%param%total_length
 
 end subroutine
