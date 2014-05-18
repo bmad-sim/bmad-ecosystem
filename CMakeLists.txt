@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (EXE_SPECS 
   cmake.abs_time_test
+  cmake.autoscale_test
   cmake.coord_test
   cmake.control_test
   cmake.girder_test
