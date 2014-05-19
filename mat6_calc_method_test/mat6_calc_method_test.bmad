@@ -29,9 +29,12 @@ lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e6, num_st
                             coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10
 monitor1:          monitor, l = 4.5, num_steps = 10
 multipole1:        multipole, k1l = 1, t1, k3l = 4.5, t3 = 0.31*pi, x_offset = 0.05
+
 octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset = 0.01, y_pitch = 0.001
+
 patch1:            patch, x_pitch = 0.01, t_offset = 1e-8,
                           z_offset = 1, tilt = 1, x_offset = 1.3, y_pitch = 0.01, y_offset = 0.5
+
 quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
