@@ -2856,7 +2856,7 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
       else
         value = v(x1_limit$)
       endif
-    elseif (attrib_name == 'Y1_LIMIT') then
+    elseif (attrib_name == 'Y_LIMIT') then
       if (v(y1_limit$) /= v(y2_limit$)) then
         err_flag = .true.
       else
@@ -2867,8 +2867,15 @@ case ('APERTURE', 'X_LIMIT', 'Y_LIMIT')
 
   ! If size(eles) > 1 then there must be more than one element of the same name.
 
-  if (size(eles) > 1) call parser_error (&
-            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
+  if (size(eles) > 1) then
+    do i = 2, size(eles)
+      if (eles(i)%ele%value(x1_limit$) == eles(1)%ele%value(x1_limit$) .and. &
+          eles(i)%ele%value(y1_limit$) == eles(1)%ele%value(y1_limit$)) cycle
+      call parser_error (&
+            'MULTIPLE ELEMENTS OF THE SAME NAME BUT WITH DIFFERENT ATTRIBUTE VALUES REFERENCED IN: ' // word)
+      exit
+    enddo
+  endif
 
 ! Everything else
 
@@ -2894,8 +2901,15 @@ case default
 
   ! If size(ptr) > 1 then there must be more than one element of the same name.
 
-  if (size(ptr) > 1) call parser_error (&
-            'MULTIPLE ELEMENTS OF THE SAME NAME REFERENCED IN ATTRIBUTE: ' // word, warn_only = .true.)
+  if (size(ptr) > 1) then
+    do i = 2, size(ptr)
+      if (ptr(i)%r /= ptr(1)%r) then
+        call parser_error (&
+              'MULTIPLE ELEMENTS OF THE SAME NAME BUT WITH DIFFERENT ATTRIBUTE VALUES REFERENCED IN: ' // word)
+        exit
+      endif
+    enddo
+  endif
 
 end select
 
