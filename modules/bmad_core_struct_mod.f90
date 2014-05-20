@@ -1743,7 +1743,7 @@ do i = curr_ub+1, ub
   allocate(branch%n_ele_max)
   allocate(branch%param)
   allocate(branch%a, branch%b, branch%z)
-  branch%param = lat%param
+  !!!! branch%param = lat%param
   call set_status_flags (branch%param%bookkeeping_state, stale$)
 end do
 

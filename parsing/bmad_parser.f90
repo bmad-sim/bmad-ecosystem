@@ -823,13 +823,12 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%geometry = ix
     elseif (lat%param%particle == photon$) then
       lat%param%geometry = open$
-    else              ! else use default
+    elseif (any(lat%ele(:)%key == lcavity$)) then 
+      if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
+                                                             'SETTING THE GEOMETRY TO LINEAR_LATTICE.')
+      lat%param%geometry = open$
+    else
       lat%param%geometry = closed$      ! default 
-      if (any(lat%ele(:)%key == lcavity$)) then    !   except...
-        if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
-                                      'SETTING THE GEOMETRY TO LINEAR_LATTICE.')
-        lat%param%geometry = open$
-      endif
     endif
 
   endif
@@ -847,6 +846,16 @@ branch_loop: do i_loop = 1, n_branch_max
   endif
 
   if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
+  if (branch%param%geometry == 0) then   ! Not set
+    if (branch%param%particle == photon$) then
+      branch%param%geometry = open$
+    elseif (any(branch%ele(:)%key == lcavity$)) then
+      branch%param%geometry = open$
+    else
+      branch%param%geometry = closed$
+    endif
+  endif
+
   if (ele%value(rel_tracking_charge$) /= real_garbage$) &
                                    branch%param%rel_tracking_charge = nint(ele%value(rel_tracking_charge$))
 
