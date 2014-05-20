@@ -37,6 +37,8 @@ real(rp) p_factor
 
 complex(rp) eta, eta1, f_cmp, xi_0k, xi_hk
 
+character(*), parameter :: r_name = 'crystal_attribute_bookkeeper'
+
 ! If the photon energy or the bragg angle has not been set then cannot do the calc yet.
 
 if (ele%value(e_tot$) == 0) return
@@ -44,6 +46,11 @@ if (ele%value(bragg_angle$) == 0) return
 
 pms => ele%photon%material
 b_param = ele%value(b_param$)
+
+if (b_param == 0) then
+  call out_io (s_error$, r_name, 'B_PARAM NOT SET FOR CRYSTAL ELEMENT: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+endif
 
 lambda = ele%value(ref_wavelength$)
 gamma = lambda**2 * r_e / (pi * ele%value(v_unitcell$))
