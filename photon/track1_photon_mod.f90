@@ -751,7 +751,7 @@ type (photon_material_struct), pointer :: pms
 
 real(rp) p_factor, e_field, e_phase, sqrt_b, delta1_0_a, delta1_H_a, delta1_0_b, delta1_H_b
 real(rp) s_alpha(3), s_beta(3), dr_alpha(3), dr_beta(3), k_0_a(3), k_h_a(3), k_0_b(3), k_h_b(3), dr(3)
-real(rp) kr, k0_im, k_mag, denom, thickness
+real(rp) kr, k0_im, denom, thickness
 real(rp), save :: r_ran
 
 complex(rp) e_rel, e_rel_a, e_rel_b, eta, eta1, f_cmp, xi_0k_a, xi_hk_a, xi_0k_b, xi_hk_b
@@ -859,21 +859,17 @@ else
 
     if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then
       kr = -twopi * dot_product(k_h_a, dr_alpha)
-      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - aimag(xi_0k_a)) / k_0_a(3)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a * e_rel_b / (e_rel_b - e_rel_a)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a 
 
       kr = -twopi * dot_product(k_h_b, dr_beta)
-      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
-      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * E_hat_alpha
+      E_hat_beta  = -cmplx(cos(kr), sin(kr)) * exp_factor_b
 
     else
       kr = -twopi * dot_product(k_0_a, dr_alpha)
-      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_a)) / k_0_a(3)
-      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_b / (e_rel_b - e_rel_a)
+      E_hat_alpha = cmplx(cos(kr), sin(kr)) * exp_factor_a
 
       kr = -twopi * dot_product(k_0_b, dr_beta)
-      k0_im = k_mag**2 * (cp%cap_gamma * imag(pms%f_0) / 2 - imag(xi_0k_b)) / k_0_b(3)
-      E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp(-twopi * k0_im * thickness) * e_rel_a / (e_rel_b - e_rel_a)
+      E_hat_beta  = cmplx(cos(kr), sin(kr)) * exp_factor_b
     endif
 
     ! Calculate branching numbers (first pass only)
