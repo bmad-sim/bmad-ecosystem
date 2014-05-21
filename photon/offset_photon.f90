@@ -85,6 +85,7 @@ if (set) then
 
   tilt = p(tilt_tot$)
   if (ele%key == crystal$) tilt = tilt + p(tilt_corr$)
+  if (is_reflective_element) tilt = tilt + p(ref_tilt_tot$)
   call tilt_coords (tilt, vec)
 
   ! Set: intensity and phase rotation due to the tilt
@@ -120,25 +121,15 @@ if (set) then
     sin_g = sin(rot_angle)
     cos_g = cos(rot_angle)
 
-    if (p(ref_tilt_tot$) == 0) then
-      orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
-                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
-      orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
-                         -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
-      if (present(rot_mat)) then
-        r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
-        r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
-        r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
-        rot_mat = matmul(r_mat, rot_mat)
-      endif
-    else
-      cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
-      r_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
-      r_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
-      r_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
-      orbit%vec(2:6:2) = matmul(r_mat, orbit%vec(2:6:2))
-      orbit%vec(1:5:2) = matmul(r_mat, orbit%vec(1:5:2))
-      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
+    orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                       -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
+    orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                       -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+    if (present(rot_mat)) then
+      r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
+      r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
+      r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
+      rot_mat = matmul(r_mat, rot_mat)
     endif
   endif
 
@@ -179,26 +170,16 @@ else
     ! Translate momentum to laboratory exit coords
     ! and compute position, backpropagating the ray.
 
-    if (p(ref_tilt_tot$) == 0) then
-      orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
-                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
+    orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                       -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
 
-      orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
-                         -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
-      if (present(rot_mat)) then
-        r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
-        r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
-        r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
-        rot_mat = matmul(r_mat, rot_mat)
-      endif
-    else
-      cos_t = cos(p(ref_tilt_tot$)); sin_t = sin(p(ref_tilt_tot$))
-      r_mat(1,:) = [cos_g * cos_t**2 + sin_t**2, (cos_g - 1) * cos_t * sin_t, cos_t * sin_g]
-      r_mat(2,:) = [(cos_g - 1) * cos_t * sin_t, cos_g * sin_t**2 + cos_t**2, sin_g * sin_t]
-      r_mat(3,:) = [-cos_t * sin_g, -sin_g * sin_t, cos_g]
-      orbit%vec(2:6:2) = matmul(r_mat, orbit%vec(2:6:2))
-      orbit%vec(1:5:2) = matmul(r_mat, orbit%vec(1:5:2))
-      if (present(rot_mat)) rot_mat = matmul(r_mat, rot_mat)
+    orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                       -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+    if (present(rot_mat)) then
+      r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
+      r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
+      r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
+      rot_mat = matmul(r_mat, rot_mat)
     endif
 
     if (.not. logic_option(.false., offset_position_only)) then
