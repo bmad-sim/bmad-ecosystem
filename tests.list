@@ -1,4 +1,5 @@
 abs_time_test
+autoscale_test
 bbu_test   ! Does not have corresponding cmake.* file
 control_test
 coord_test
