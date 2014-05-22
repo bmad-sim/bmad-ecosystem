@@ -622,7 +622,8 @@ if (i_br_from > -1) then
   from_ele => model%lat%branch(i_br_from)%ele(i_ele_from)
   call transfer_twiss (from_ele, branch%ele(0))
   orb_out => model%lat_branch(ix_branch)%orbit(0)
-  orb_out = model%lat_branch(i_br_from)%orbit(i_ele_from)
+  call init_coord (orb_out, model%lat_branch(i_br_from)%orbit(i_ele_from), branch%ele(0), &
+                  .true., branch%param%particle, 1, 0.0_rp)
   return
 endif
 
