@@ -14,10 +14,10 @@ contains
 ! Routine to calculate and store the parmeters needed for photon targeting.
 !
 ! Input:
-!   ele       -- ele_struct: Element to setup.
+!   ele       -- ele_struct: Source element to setup.
 !
 ! Output:
-!   ele       -- ele_struct: Element with target parameters setup.
+!   ele       -- ele_struct: Source element with target parameters setup.
 !-
 
 subroutine photon_target_setup (ele)
@@ -26,36 +26,47 @@ implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
-type (branch_struct), pointer :: branch
 type (photon_target_struct), pointer :: target
 
 real(rp), pointer :: val(:)
 real(rp) z
-logical :: is_bending_element
+logical :: is_bending_element, follow_fork
 character(*), parameter :: r_name = 'photon_target_setup '
+
+! Init
+
+if (ele%lord_status == super_lord$) then
+  ap_ele => pointer_to_slave (ele, 1)
+else
+  ap_ele => ele
+endif
+
+is_bending_element = .false.
+
+if (ap_ele%branch%param%particle == photon$) then
+  follow_fork = .false.
+else
+  follow_fork = .true.
+endif
 
 ! Find next element with an aperture
 
-branch => ele%branch
-
-ap_ele => pointer_to_next_ele (ele)
-is_bending_element = .false.
-
 do 
+
+  ap_ele => pointer_to_next_ele (ap_ele, skip_beginning = .true., follow_fork = follow_fork)
+
   if (ap_ele%value(x1_limit$) /= 0) exit
 
   select case (ap_ele%key)
-  case (diffraction_plate$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$)
+  case (diffraction_plate$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$, patch$)
     is_bending_element = .true.
   end select
 
-  if (is_bending_element .or. ap_ele%ix_ele == branch%n_ele_track) then
+  if (is_bending_element .or. ap_ele%ix_ele == ap_ele%branch%n_ele_track) then
     call out_io (s_fatal$, r_name, 'NO ELEMENT WITH APERTURE FOUND DOWNSTREAM FROM: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
     return
   endif
-
-  ap_ele => pointer_to_next_ele (ap_ele)
 
 enddo
 
