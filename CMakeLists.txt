@@ -4,7 +4,7 @@ set (EXE_SPECS
   cmake.abs_time_test
   cmake.autoscale_test
   cmake.coord_test
-  cmake.control_test
+  cmake.bookkeeper_test
   cmake.girder_test
   cmake.mat6_calc_method_test
   cmake.multipass_test
