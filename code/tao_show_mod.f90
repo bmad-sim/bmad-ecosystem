@@ -1042,7 +1042,7 @@ case ('element')
                 '-all_attributes', '-data          ', '-design        ', &
                 '-no_slaves     ', '-wall          ', '-base          ', &
                 '-field         ', '-floor_coords  ', '-xfer_mat      ', &
-                '-ptc           '], switch, err, ix)
+                '-ptc           ', '-everything    '], switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                exit
@@ -1058,6 +1058,13 @@ case ('element')
     case ('-no_slaves');      print_slaves = .false.
     case ('-wall');           print_wall = .true.
     case ('-ptc');            print_ptc = .true.
+    case ('-everything')
+      print_all = .true.
+      xfer_mat_print = 6
+      print_taylor = .true.
+      print_floor = .true.
+      print_em_field = .true.
+      print_wall = .true.
     case default
       call out_io (s_error$, r_name, 'I DO NOT UNDERSTAND: ' // switch)
       return

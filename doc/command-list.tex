@@ -1196,7 +1196,7 @@ Format:
   data \{<data_name>\} 
   derivative <data_name(s)> <var_name(s)>
   dynamic_aperture
-  element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} 
+  element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-everything\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   graph <graph_name>
@@ -1392,7 +1392,7 @@ Shows parameters and results of the dynamic aperture calculation.
 %% show element --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show element \{-all\_attributes\} \{-base\} \{-data\} \{-design\} \{-field\} \\
+  show element \{-all\_attributes\} \{-base\} \{-data\} \{-design\} \{-everything\} \{-field\} \\
   \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
 
 \vskip -0.1in
@@ -1454,6 +1454,16 @@ wiggler terms for a \vn{map_type} \vn{wiggler} element are printed.
 If the \vn{-xfer_mat} switch is present, the 6x6 transfer matrix (the
 first order part of the transfer map) along with the zeroth order part
 of the transfer map are printed.
+
+The \vn{-everything} switch is equivalent to using:
+\begin{example}
+  -all_attributes
+  -field
+  -floor_coords
+  -taylor
+  -wall
+  -xfer_mat
+\end{example}
 
 Example:
 \begin{example}
