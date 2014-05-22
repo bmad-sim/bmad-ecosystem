@@ -1,4 +1,4 @@
-program control_test
+program bookkeeper_test
 
 use bmad
 use mad_mod
@@ -8,7 +8,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 
-character(40) :: lat_file  = 'control_test.bmad'
+character(40) :: lat_file  = 'bookkeeper_test.bmad'
 
 integer :: i, j, k, nargs
 logical print_extra
