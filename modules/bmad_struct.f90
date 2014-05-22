@@ -567,7 +567,7 @@ end type
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
 
 integer, parameter :: incoherent$ = 1, coherent$ = 2
-character(16), parameter :: tracking_mode_name(1:2) = ['Incoherent', 'Coherent  ']
+character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 
 type lat_param_struct
   real(rp) :: n_part = 0                     ! Particles/bunch (for BeamBeam elements).
@@ -583,7 +583,7 @@ type lat_param_struct
   logical :: stable = .false.                ! is closed lat stable?
   logical :: aperture_limit_on = .true.      ! use apertures in tracking?
   logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
-  integer :: tracking_mode = incoherent$     ! For photons.
+  integer :: photon_type = incoherent$       ! Or coherent$. For X-ray simulations.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type

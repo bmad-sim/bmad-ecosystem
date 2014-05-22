@@ -1128,7 +1128,7 @@ is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%tracking_mode == f2%tracking_mode)
+is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 

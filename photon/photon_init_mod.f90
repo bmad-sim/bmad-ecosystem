@@ -89,7 +89,7 @@ end subroutine absolute_photon_position
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
+! Subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
 !
 ! Routine to initalize a photon for dipole bends and wigglers (but not undulators).
 ! The photon is initialized using Monte Carlo and the standard formulas for bending radiation.
@@ -127,7 +127,7 @@ end subroutine absolute_photon_position
 !   orbit             -- coord_struct: Initialized photon.
 !-
 
-subroutine photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
+subroutine bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)
 
 implicit none
 
@@ -144,25 +144,25 @@ e_factor = 3 * h_bar_planck * c_light * gamma**3 * g_bend / 2
 integ_prob = real_option(-1.0_rp, E_integ_prob)
 if (integ_prob >= 0) then
   if (E_max <= 0) then
-    call photon_energy_init (E_rel, integ_prob)
+    call bend_photon_energy_init (E_rel, integ_prob)
   else
-    r_min = photon_energy_integ_prob(E_min, g_bend, gamma)
-    r_max = photon_energy_integ_prob(E_max, g_bend, gamma)
+    r_min = bend_photon_energy_integ_prob(E_min, g_bend, gamma)
+    r_max = bend_photon_energy_integ_prob(E_max, g_bend, gamma)
     r = r_min + integ_prob * (r_max - r_min)
-    call photon_energy_init (E_rel, r)
+    call bend_photon_energy_init (E_rel, r)
   endif
   
 else
   Emin = real_option(0.0_rp, E_min)
   Emax = real_option(0.0_rp, E_max)
   if (Emax <= 0) then
-    call photon_energy_init (E_rel)
+    call bend_photon_energy_init (E_rel)
   else
-    r_min = photon_energy_integ_prob(Emin, g_bend, gamma)
-    r_max = photon_energy_integ_prob(Emax, g_bend, gamma)
+    r_min = bend_photon_energy_integ_prob(Emin, g_bend, gamma)
+    r_max = bend_photon_energy_integ_prob(Emax, g_bend, gamma)
     call ran_uniform(r)
     r = r_min + r * (r_max - r_min)
-    call photon_energy_init (E_rel, r)
+    call bend_photon_energy_init (E_rel, r)
   endif
 endif
 
@@ -170,7 +170,7 @@ E_photon = E_rel * e_factor
 
 ! Photon vertical angle
 
-call photon_vert_angle_init (E_rel, gamma_phi)
+call bend_photon_vert_angle_init (E_rel, gamma_phi)
 
 phi = modulo2(gamma_phi / gamma, pi/2)
 orbit%vec = 0
@@ -182,15 +182,15 @@ call init_coord (orbit, orbit%vec, particle = photon$, E_photon = E_photon)
 
 ! Polaraization
 
-call photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+call bend_photon_polarization_init(g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
-end subroutine photon_init
+end subroutine bend_photon_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Function photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
+! Function bend_photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
 !
 ! Routine to find the integrated probability corresponding to emitting a photon
 ! from a bend in the range [0, E_photon].
@@ -204,7 +204,7 @@ end subroutine photon_init
 !   integ_prob -- real(rp): Integrated probability. Will be in the range [0, 1].
 !-
 
-function photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
+function bend_photon_energy_integ_prob (E_photon, g_bend, gamma) result (integ_prob)
 
 use nr
 
@@ -223,13 +223,13 @@ endif
 
 E_rel_target = E_photon / (e_factor * gamma**3 * g_bend)
 
-call photon_energy_init (E1, 1.0_rp)
+call bend_photon_energy_init (E1, 1.0_rp)
 if (E_rel_target >= E1) then
   integ_prob = 1
   return
 endif
 
-! photon_energy_init calculates photon energy given the integrated probability
+! bend_photon_energy_init calculates photon energy given the integrated probability
 ! so invert using the NR routine zbrent.
 
 integ_prob = zbrent(energy_func, 0.0_rp, 1.0_rp, 1d-10)
@@ -242,18 +242,18 @@ function energy_func(integ_prob) result (dE)
 real(rp), intent(in) :: integ_prob
 real(rp) dE, E_rel
 
-call photon_energy_init(E_rel, integ_prob)
+call bend_photon_energy_init(E_rel, integ_prob)
 dE = E_rel - E_rel_target
 
 end function energy_func
 
-end function photon_energy_integ_prob
+end function bend_photon_energy_integ_prob
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+! Subroutine bend_photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 !
 ! Routine to set a photon's polarization.
 ! The photon's polarization will be either in the plane of the bend or out of the plane and
@@ -275,7 +275,7 @@ end function photon_energy_integ_prob
 !     %phase(2)     -- (x,y) phases. Will be [0, pi/2].
 !-
 
-subroutine photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
+subroutine bend_photon_polarization_init (g_bend_x, g_bend_y, E_rel, gamma_phi, orbit)
 
 implicit none
 
@@ -299,13 +299,13 @@ pol_y = k_13 * sqrt(gp2 / (1 + gp2))
 orbit%field = [pol_x, sign(pol_y, gamma_phi)] / sqrt(pol_x**2 + pol_y**2)
 orbit%phase = [0.0_rp, pi/2]
 
-end subroutine photon_polarization_init
+end subroutine bend_photon_polarization_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
+! Subroutine bend_photon_vert_angle_init (E_rel, gamma_phi, r_in)
 !
 ! Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 ! angle for a simple bend.
@@ -324,7 +324,7 @@ end subroutine photon_polarization_init
 !                  Note: gamma_phi is an increasing monotonic function of r_in.
 !-
 
-subroutine photon_vert_angle_init (E_rel, gamma_phi, r_in)
+subroutine bend_photon_vert_angle_init (E_rel, gamma_phi, r_in)
 
 implicit none
 
@@ -578,13 +578,13 @@ endif
 
 gamma_phi = gamma_phi * sig * sign_phi
 
-end subroutine photon_vert_angle_init
+end subroutine bend_photon_vert_angle_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
 !+
-! Subroutine photon_energy_init (E_rel, r_in)
+! Subroutine bend_photon_energy_init (E_rel, r_in)
 !
 ! Routine to convert a random number in the interval [0,1] to a photon energy.
 ! The photon probability spectrum is:
@@ -610,7 +610,7 @@ end subroutine photon_vert_angle_init
 !   E_rel -- Real(rp): Relative photon energy E/E_crit. 
 !-
 
-subroutine photon_energy_init (E_rel, r_in)
+subroutine bend_photon_energy_init (E_rel, r_in)
 
 implicit none
 
@@ -626,7 +626,7 @@ real(rp) rr, x, r_rel, rr0, x0, xp0, x1, xp1, v, vp
 integer i, is, n
 
 logical, save :: init_needed = .true.
-character(20) :: r_name = 'photon_energy_init'
+character(*), parameter :: r_name = 'bend_photon_energy_init'
 
 ! Check for r_in
 
@@ -732,7 +732,7 @@ do is = 1, ubound(spline, 1)
   return
 enddo
 
-end subroutine photon_energy_init
+end subroutine bend_photon_energy_init
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
