@@ -6,7 +6,7 @@ use mad_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, nele
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 
@@ -61,6 +61,21 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   endif
 
 enddo
+
+! pointer_to_next_ele test
+
+nele => pointer_to_next_ele(lat%ele(1), 7)
+write (1, '(a, i4)') '"Next-1" ABS 0', nele%ix_ele
+
+nele => pointer_to_next_ele(lat%ele(1), 7, .true.)
+write (1, '(a, i4)') '"Next-2" ABS 0', nele%ix_ele
+
+nele => pointer_to_next_ele(lat%ele(1), -7)
+write (1, '(a, i4)') '"Next-3" ABS 0', nele%ix_ele
+
+nele => pointer_to_next_ele(lat%ele(1), -7, .true.)
+write (1, '(a, i4)') '"Next-4" ABS 0', nele%ix_ele
+
 
 close(1)
 
