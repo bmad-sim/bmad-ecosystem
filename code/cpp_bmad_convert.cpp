@@ -1633,7 +1633,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
       C.rel_tracking_charge, C.particle, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
-      C.reverse_time_tracking, C.tracking_mode, C.bookkeeping_state);
+      C.reverse_time_tracking, C.photon_type, C.bookkeeping_state);
 
 }
 
@@ -1642,7 +1642,7 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
     z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, c_Int&
-    z_tracking_mode, const Bmad_bookkeeping_state_class* z_bookkeeping_state) {
+    z_photon_type, const Bmad_bookkeeping_state_class* z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -1669,7 +1669,7 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   // c_side.to_c2_set[logical, 0, NOT]
   C.reverse_time_tracking = z_reverse_time_tracking;
   // c_side.to_c2_set[integer, 0, NOT]
-  C.tracking_mode = z_tracking_mode;
+  C.photon_type = z_photon_type;
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
 }

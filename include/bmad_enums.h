@@ -116,7 +116,6 @@ namespace Bmad {
   const int L_CHORD = 20, KS = 20, N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int E1 = 21, E_LOSS = 21, DKS_DS = 21, GAP = 21;
-  const int DS_PATH_LENGTH = 22;
   const int E2 = 22, X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22;
   const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23;
   const int TRAVELING_WAVE = 23;
@@ -264,6 +263,8 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 21;
   const int NOT_SET = -999;
+  const int PION_0     = +5;
+  const int PION_PLUS  = +4;
   const int ANTIMUON   = +3;
   const int PROTON     = +2;
   const int POSITRON   = +1;
@@ -271,6 +272,7 @@ namespace Bmad {
   const int ELECTRON   = -1;
   const int ANTIPROTON = -2;
   const int MUON       = -3;
+  const int PION_MINUS = -4;
   const int S_BLANK   = -1;
   const int S_INFO    = 0;
   const int S_DINFO   = 1;
@@ -290,6 +292,8 @@ namespace Bmad {
   const double M_ELECTRON = 0.510998910E6;
   const double M_PROTON   = 0.938272046E9;
   const double M_MUON     = 105.65836668E6;
+  const double M_PION_0 = 134.9766E6;
+  const double M_PION_CHARGED = 139.57018E6;
   const double C_LIGHT = 2.99792458E8;
   const double R_E = 2.8179402894E-15;
   const double R_P = R_E * M_ELECTRON / M_PROTON;

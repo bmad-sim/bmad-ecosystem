@@ -1599,7 +1599,7 @@ public:
   Bool stable;
   Bool aperture_limit_on;
   Bool reverse_time_tracking;
-  Int tracking_mode;
+  Int photon_type;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1615,7 +1615,7 @@ public:
     stable(false),
     aperture_limit_on(true),
     reverse_time_tracking(false),
-    tracking_mode(Bmad::INCOHERENT),
+    photon_type(Bmad::INCOHERENT),
     bookkeeping_state()
     {}
 

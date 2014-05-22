@@ -2524,7 +2524,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.tracking_mode = rhs;
+  rhs = 13 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);

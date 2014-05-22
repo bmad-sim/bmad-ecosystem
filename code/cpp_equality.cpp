@@ -667,7 +667,7 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.reverse_time_tracking == y.reverse_time_tracking);
-  is_eq = is_eq && (x.tracking_mode == y.tracking_mode);
+  is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
 };
