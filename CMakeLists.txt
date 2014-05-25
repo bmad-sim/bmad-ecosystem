@@ -2,12 +2,11 @@ set (LIBNAME bsim)
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS 
-  ../include
 )
 
-#  synrad3d
 set (SRC_DIRS
   code
+  synrad_lib
   synrad3d
 )
 #set (FFLAGS "-openmp")
@@ -26,8 +25,8 @@ set (EXE_SPECS
   ##cmake.find_quads
 )
 
-set (FFLAGS "-pg")  # For profiling
-set (CFLAGS "-pg")
+#set (FFLAGS "-pg")  # For profiling
+#set (CFLAGS "-pg")
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
 #include(../Master.cmake)
