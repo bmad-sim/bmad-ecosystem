@@ -10,7 +10,6 @@ set(SRC_DIRS
   code 
   custom
   modules
-  synrad
   photon
   parsing
   multiparticle
