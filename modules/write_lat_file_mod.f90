@@ -971,6 +971,9 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
   write (iu, '(3a)') trim(branch%name), '[rel_tracking_charge] = ', str(branch%param%rel_tracking_charge)
  
+  if (branch%param%photon_type /= incoherent$) then
+    write (iu, '(3a)') trim(branch%name), '[photon_type] = ', photon_type_name(branch%param%photon_type)
+  endif
 
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
