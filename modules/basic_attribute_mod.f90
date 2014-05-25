@@ -552,10 +552,11 @@ call init_attribute_name1 (beginning_ele$, rel_tracking_charge$,         'REL_TR
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
+call init_attribute_name1 (line_ele$, photon_type$,                 'PHOTON_TYPE')
 
-call init_attribute_name1 (def_parameter$, custom_attribute1$, 'CUSTOM_ATTRIBUTE1', override = .true.)
-call init_attribute_name1 (def_parameter$, custom_attribute2$, 'CUSTOM_ATTRIBUTE2', override = .true.)
-call init_attribute_name1 (def_parameter$, custom_attribute3$, 'CUSTOM_ATTRIBUTE3', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute1$,      'CUSTOM_ATTRIBUTE1', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute2$,      'CUSTOM_ATTRIBUTE2', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute3$,      'CUSTOM_ATTRIBUTE3', override = .true.)
 call init_attribute_name1 (def_parameter$, e_tot$,                  'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                    'P0C')
 call init_attribute_name1 (def_parameter$, geometry$,               'GEOMETRY')
@@ -565,12 +566,13 @@ call init_attribute_name1 (def_parameter$, taylor_order$,           'TAYLOR_ORDE
 call init_attribute_name1 (def_parameter$, ran_seed$,               'RAN_SEED')
 call init_attribute_name1 (def_parameter$, n_part$,                 'N_PART')
 call init_attribute_name1 (def_parameter$, particle$,               'PARTICLE')
+call init_attribute_name1 (def_parameter$, photon_type$,            'PHOTON_TYPE')
 call init_attribute_name1 (def_parameter$, aperture_limit_on$,      'APERTURE_LIMIT_ON')
 call init_attribute_name1 (def_parameter$, no_end_marker$,          'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$, 'ABSOLUTE_TIME_TRACKING')
 call init_attribute_name1 (def_parameter$, use_ptc_layout$,         'USE_PTC_LAYOUT')
-call init_attribute_name1 (def_parameter$, auto_scale_field_phase$,    'AUTO_SCALE_FIELD_PHASE')
-call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,      'AUTO_SCALE_FIELD_AMP')
+call init_attribute_name1 (def_parameter$, auto_scale_field_phase$, 'AUTO_SCALE_FIELD_PHASE')
+call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,   'AUTO_SCALE_FIELD_AMP')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,        'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,   'USE_HARD_EDGE_DRIFTS')
@@ -1056,7 +1058,6 @@ call init_attribute_name1 (multilayer_mirror$, v1_unitcell$,          'V1_UNITCE
 call init_attribute_name1 (multilayer_mirror$, v2_unitcell$,          'V2_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH')
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
-call init_attribute_name1 (multilayer_mirror$, ref_polarization$,     'REF_POLARIZATION')  ! Note: Not currently used
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
 
@@ -1073,11 +1074,9 @@ call init_attribute_name1 (crystal$, v_unitcell$,                   'V_UNITCELL'
 call init_attribute_name1 (crystal$, b_param$,                      'B_PARAM')
 call init_attribute_name1 (crystal$, bragg_angle$,                  'BRAGG_ANGLE' , dependent$)
 call init_attribute_name1 (crystal$, ref_wavelength$,               'REF_WAVELENGTH', dependent$)
-call init_attribute_name1 (crystal$, diffraction_type$,             'DIFFRACTION_TYPE')  ! Note: Not currently used.
 call init_attribute_name1 (crystal$, crystal_type$,                 'CRYSTAL_TYPE')
 call init_attribute_name1 (crystal$, thickness$,                    'THICKNESS')
 call init_attribute_name1 (crystal$, ref_orbit_follows$,            'REF_ORBIT_FOLLOWS')
-call init_attribute_name1 (crystal$, ref_polarization$,             'REF_POLARIZATION')   ! Note: Not currently used
 call init_attribute_name1 (crystal$, e_tot_start$,                  'e_tot_start', private$)
 call init_attribute_name1 (crystal$, p0c_start$,                    'p0c_start', private$)
 call init_attribute_name1 (crystal$, ref_cap_gamma$,                'REF_CAP_GAMMA', dependent$)
@@ -1283,10 +1282,10 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
       'PTC_MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR')
   attrib_type = is_integer$
 
-case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'DIFFRACTION_TYPE', 'FIELD_CALC', &
+case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
-      'PTC_INTEGRATION_TYPE', 'REF_POLARAIZATION', 'SPIN_TRACKING_METHOD', &
+      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
   attrib_type = is_switch$
 
@@ -1473,9 +1472,9 @@ case ('COUPLER_AT')
     is_default = (ix_attrib == downstream_end$)
   endif
 
-case ('DIFFRACTION_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, diffraction_type_name, lbound(diffraction_type_name, 1))
-  if (present(is_default)) is_default = .true.
+case ('PHOTON_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, photon_type_name, lbound(photon_type_name, 1))
+  if (present(is_default)) is_default = incoherent$
 
 case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
@@ -1556,12 +1555,6 @@ case ('REF_ORBIT_FOLLOWS')
   call get_this_attrib_name (attrib_val_name, ix_attrib, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
   if (present(is_default)) then
     is_default = (ix_attrib == bragg_diffracted$)
-  endif
-
-case ('REF_POLARIZATION')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, polarization_name, lbound(polarization_name, 1))
-  if (present(is_default)) then
-    is_default = (ix_attrib == sigma_polarization$)
   endif
 
 case ('SPIN_TRACKING_METHOD')

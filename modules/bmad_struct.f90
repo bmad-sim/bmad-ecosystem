@@ -803,7 +803,7 @@ integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
 integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
-integer, parameter :: phi0_max$ = 28, ref_polarization$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28
+integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
@@ -864,7 +864,7 @@ integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83
 integer, parameter :: end_edge$  = 84, etap_x$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86, diffraction_type$ = 86
+integer, parameter :: lattice$ = 86, phi_a$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: map_with_offsets$ = 88, cmat_11$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12$ = 89
@@ -1111,9 +1111,6 @@ integer, parameter :: rectangular$ = 1, elliptical$ = 2, auto_aperture$ = 3, cus
 character(16), parameter :: aperture_type_name(0:7) = &
                                     ['garbage!   ', 'Rectangular', 'Elliptical ', 'Auto       ', &
                                      'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
-
-integer, parameter :: sigma_polarization$ = 1, pi_polarization$ = 2
-character(20) :: polarization_name(0:2) = ['Garbage!          ', 'Sigma_polarization', 'Pi_polarization   ']
 
 ! fringe_type
 

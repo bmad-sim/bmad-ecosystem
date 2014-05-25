@@ -28,6 +28,10 @@ select case (ele%key)
 case (beambeam$)
   ele%value(charge$) = -1
 
+case (beginning_ele$)
+  ele%value(e_tot$) = -1
+  ele%value(p0c$) = -1
+
 case (bend_sol_quad$) 
   ele%mat6_calc_method = symp_lie_bmad$
   ele%tracking_method  = symp_lie_bmad$
@@ -39,7 +43,6 @@ case (fork$, photon_fork$)
 
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
-  ele%value(ref_polarization$) = sigma_polarization$ 
   ele%value(branches_are_coherent$) = true$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
@@ -51,6 +54,13 @@ case (custom$)
   ele%mat6_calc_method = custom$
   ele%tracking_method  = custom$
   ele%field_calc       = custom$
+
+case (def_beam$)
+  ele%value(particle$) = positron$
+
+case (def_parameter$)
+  ele%value(geometry$) = -1
+  ele%value(particle$)     = positron$  
 
 case (detector$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -95,6 +105,14 @@ case (lcavity$)
   ele%value(has_entrance_fringe_field$) = true$
   ele%value(has_exit_fringe_field$) = true$
 
+case (line_ele$)
+  ele%value(particle$) = real_garbage$
+  ele%value(geometry$) = real_garbage$
+  ele%value(rel_tracking_charge$) = real_garbage$
+  ele%value(photon_type$) = -1
+  ele%value(e_tot$) = -1
+  ele%value(p0c$) = -1
+
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
@@ -103,7 +121,6 @@ case (mirror$)
   call init_photon_element_struct(ele%photon)
 
 case (multilayer_mirror$)
-  ele%value(ref_polarization$) = sigma_polarization$  
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -171,8 +188,7 @@ if (attribute_index(ele, 'FRINGE_AT') /= 0) then
   ele%value(fringe_at$) = both_ends$
 endif
 
-if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. &
-                                        attribute_index(ele, 'FRINGE_TYPE') /= 0) then
+if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_TYPE') /= 0) then
   ele%value(fringe_type$) = none$
 endif
 

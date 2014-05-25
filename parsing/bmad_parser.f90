@@ -169,21 +169,19 @@ bp_com%extra%use_hard_edge_drifts_set = .false.
 
 bp_com%input_line_meaningful = .true.
 
-in_lat%ele(0)%value(e_tot$) = -1
-in_lat%ele(0)%value(p0c$) = -1
+call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
 bp_com%beam_ele%name = 'BEAM'                 ! For mad compatibility.
 bp_com%beam_ele%key = def_beam$               ! "definition of beam"
-bp_com%beam_ele%value(particle$) = positron$  ! default
+call set_ele_defaults (bp_com%beam_ele)
 call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
 
 bp_com%param_ele => in_lat%ele(2)
 bp_com%param_ele%name = 'PARAMETER'           ! For parameters 
 bp_com%param_ele%key = def_parameter$
-bp_com%param_ele%value(geometry$) = -1
-bp_com%param_ele%value(particle$)     = positron$  ! default
+call set_ele_defaults (bp_com%param_ele)
 call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
 ! The parser actually puts beam_start parameters into in_lat%beam_start so
@@ -585,11 +583,7 @@ parsing_loop: do
       else
         sequence(iseq_tot)%type = line$
         ele%key = line_ele$
-        ele%value(particle$) = real_garbage$
-        ele%value(geometry$) = real_garbage$
-        ele%value(rel_tracking_charge$) = real_garbage$
-        ele%value(e_tot$) = -1
-        ele%value(p0c$) = -1
+        call set_ele_defaults (ele)
       endif
     else
       sequence(iseq_tot)%type = list$
@@ -831,6 +825,11 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%geometry = closed$      ! default 
     endif
 
+    ! Set photon_type
+
+    ix = nint(bp_com%param_ele%value(photon_type$))
+    if (ix > 0) lat%param%photon_type = ix   ! photon_type has been set.
+
   endif
 
   !----
@@ -855,6 +854,13 @@ branch_loop: do i_loop = 1, n_branch_max
       branch%param%geometry = closed$
     endif
   endif
+
+  ! Set photon_type
+
+  ix = nint(ele%value(photon_type$))
+  if (ix > 0) branch%param%photon_type = ix   ! photon_type has been set.
+
+  !
 
   if (ele%value(rel_tracking_charge$) /= real_garbage$) &
                                    branch%param%rel_tracking_charge = nint(ele%value(rel_tracking_charge$))

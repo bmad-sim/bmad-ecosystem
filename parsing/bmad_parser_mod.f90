@@ -1212,9 +1212,6 @@ case ('FIELD_MASTER', 'HARMON_MASTER')
 case ('SCALE_MULTIPOLES')
   call get_logical (attrib_word, ele%scale_multipoles, err_flag)
 
-case ('DIFFRACTION_TYPE')
-  call get_switch (attrib_word, diffraction_type_name(1:), ele%sub_key, err_flag)
-
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag)
 
@@ -1319,6 +1316,10 @@ case ('PTC_FIELD_GEOMETRY')
 case ('GEOMETRY')
   call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
   ele%value(geometry$) = ix
+
+case ('PHOTON_TYPE')
+  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag)
+  ele%value(photon_type$) = ix
 
 case ('LATTICE_TYPE')   ! Old style
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag)

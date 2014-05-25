@@ -10,7 +10,7 @@ the lattice as a whole and not simply associated with a single element.
 \index{parameter statement|hyperbf}
 
 
-\index{lattice}\index{geometry}
+\index{lattice}\index{geometry}\index{photon_type}
 \index{taylor_order}\index{e_tot}
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
@@ -23,27 +23,28 @@ set by \vn{parameter} are
 \begin{example}
   parameter[absolute_time_tracking] = <Logical>  ! Absolute time used for RF clock?
   parameter[aperture_limit_on]      = <Logical>  ! Use aperture limits in tracking.
-  parameter[e_tot]         = <Real>          ! Reference total Energy. 
-                                             !      Default: 1000 * rest_energy.
-  parameter[lattice]       = <String>        ! Lattice name 
-  parameter[geometry]      = <Switch>        ! Open or closed
-  parameter[n_part]        = <Real>          ! Number of particles in a bunch.
-  parameter[no_end_marker] = <Logical>       ! Default: False.
-  parameter[p0c]           = <Real>          ! Reference momentum.
-  parameter[particle]      = <particle_type> ! Reference species: positron, proton, etc.
-  parameter[ran_seed]      = <Integer>       ! Random number generator init.
-  parameter[auto_scale_field_phase]    = <Logical>  ! Automatic phase scaling.
-  parameter[auto_scale_field_amp]      = <Logical>  ! Automatic amplitude scaling.
-  parameter[taylor_order]           = <Integer>  ! Default: 3
-  parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
+  parameter[auto_scale_field_phase] = <Logical>  ! Automatic phase scaling.
+  parameter[auto_scale_field_amp]   = <Logical>  ! Automatic amplitude scaling.
+  parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
+  parameter[e_tot]                  = <Real>     ! Reference total Energy. 
+                                                 !      Default: 1000 * rest_energy.
+  parameter[geometry]               = <Switch>   ! Open or closed
+  parameter[lattice]                = <String>   ! Lattice name 
+  parameter[n_part]                 = <Real>     ! Number of particles in a bunch.
+  parameter[no_end_marker]          = <Logical>  ! Default: False.
+  parameter[particle]               = <Switch>   ! Reference species: positron, proton, etc.
+  parameter[p0c]                    = <Real>     ! Reference momentum.
+  parameter[photon_type]            = <Switch>   ! Incoherent or coherent photons?
   parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
   parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
   parameter[ptc_max_fringe_order]   = <Integer>  ! Max fringe order. 
                                                  !    Default: 2 => Quadrupole.
-  parameter[use_hard_edge_drifts]   = <Logical>
-  parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
   parameter[rel_tracking_charge]    = <Real>     ! Charge of tracked particles relative 
                                                  !   to reference charge. Default is 1.
+  parameter[ran_seed]               = <Integer>  ! Random number generator init.
+  parameter[taylor_order]           = <Integer>  ! Default: 3
+  parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
+  parameter[use_hard_edge_drifts]   = <Logical>
 \end{example}
 
 \noindent
@@ -101,15 +102,24 @@ Aperture limits may be set for elements in the lattice
 (\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
 disable all set apertures. \vn{True} is the default.
 
+\index{photon_type}
+The \vn{photon_type} switch is used to set the type of photons that
+are used in tracking. Possible settings are:
+\begin{example}
+  incoherent    ! Default
+  coherent 
+\end{example}
+The general rule is use incoherent tracking except when there is a
+\vn{diffraction_plate} element in the lattice. 
+
 \index{lattice statement}
 The \vn{lattice} name is stored by \bmad for use by a program but it does
 not otherwise effect any \bmad routines. 
 
 \noindent
-\index{closed}
-\index{open}
+\index{closed}\index{open}
 \index{lcavity!and geometry}
-Valid \vn{geometry} switches are
+Valid \vn{geometry} settings are
 \begin{example}
   closed  ! Default w/o LCavity element present.
   open    ! Default if LCavity elements present.
