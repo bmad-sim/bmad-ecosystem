@@ -537,6 +537,9 @@ case ('branch')
     nl=nl+1; write (lines(nl), imt)  '%param%particle            = ' // trim(species_name(branch%param%particle))
     nl=nl+1; write (lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
     nl=nl+1; write (lines(nl), amt)  '%param%geometry            = ', geometry_name(branch%param%geometry)
+    if (branch%param%particle == photon$) then
+      nl=nl+1; write (lines(nl), amt)  '%param%photon_type         = ', photon_type_name(branch%param%photon_type)
+    endif
 
   else
     nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele  Ix_From  From                Ix_From  From '
