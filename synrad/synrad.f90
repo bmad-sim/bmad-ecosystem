@@ -88,14 +88,19 @@ allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
 
 ! Old or new style wall file?
 
-open (1, file = wall_file, status = 'old')
-read (1, nml = wall_pt, iostat = ios)
-close (1)
+ios = 0
+if (wall_file(1:10) /= 'synrad3d::') then
+  open (1, file = wall_file, status = 'old')
+  read (1, nml = wall_pt, iostat = ios)
+  close (1)
+endif
 
 if (ios == 0) then  ! New style
   call synrad_read_vac_wall_geometry (wall_file, seg_len, lat%ele(lat%n_ele_track)%s, closed$, walls)
 else
   call old_read_wall_file ()
+  print *, 'OLD STYLE WALL FILE: ', trim(wall_file)
+  print *, 'PLEASE CONVERT TO NEW STYLE!'
 endif
 
 !

@@ -31,6 +31,10 @@
 \newcommand{\Th}{$^{th}$\xspace}
 \newcommand{\Newline}{\hfil \\}
 
+\newenvironment{example}
+  {\vspace{-3.0ex} \begin{alltt}}
+  {\end{alltt} \vspace{-2.5ex}}
+
 \newlength{\dPar}
 \newlength{\ExBeg}
 \newlength{\ExEnd}
@@ -39,10 +43,6 @@
 \addtolength{\ExBeg}{-0.5ex}
 \setlength{\ExEnd}{-\dPar}
 \addtolength{\ExEnd}{-0.0ex}
-
-\newenvironment{example}
-  {\vspace{\ExBeg} \begin{alltt}}
-  {\end{alltt} \vspace{\ExEnd}}
 
 %---------------------------------------------------------------------------------
 
@@ -60,7 +60,7 @@
 
 \title{ Synrad Information}
 \author{}
-\date{October 1, 2010}
+\date{May 26, 2014}
 
 \begin{document}
 \maketitle
@@ -206,7 +206,7 @@ segments due to the radiation section is set to zero.
 %------------------------------------------------------------------
 \section{Main Input File} 
 
-The main input file can be specified on the command line invoking Synrad3d.
+The main input file can be specified on the command line invoking Synrad3D.
 If not given, the default name for the main input file is ``\vn{synrad.init}''.
 Example main input file:
 \begin{example}
@@ -258,9 +258,17 @@ tracking to use: -1 = track backwards only (This corresponds to e$^-$
 in CESR), 1 = track forward only (e+ in CESR), and 0 = track both
 directions.
   \item[\vn{wall_file}] \Newline
-The \vn{wall_file} parameter specifies a file giving a list of
-x inside, x outside, and s vertices to define the horizontal aperture 
-of the wall. See below for more details.
+The \vn{wall_file} parameter specifies a file giving a list of x
+inside, x outside, and s vertices to define the horizontal aperture of
+the wall. See below for more details. Synrad3D wall files may also be
+used. When using a Synrad3D wall file the file name must be prefixed
+with ``synrad3d::''. Example:
+\begin{example}
+  &synrad_params
+    ...
+    wall_file = 'synrad3d::/home/critten/dc03.wall3d'
+  /
+\end{example}
   \item[\vn{forward_beam}] \Newline
 The \vn{forward_beam} parameter specifies which species moves in the
 positive s direction.  Should be "POSITRON" for CESR. This parameter
@@ -285,7 +293,7 @@ Note: The s-position of the last vertex will be automatically
 set to the $s$ value at the end of the lattice.
 
 Example:
-\begin{verbatim}
+\begin{alltt}
 ! Note: x_inside should be negative.
 ! Note: First s_position should be 0.
 !
@@ -294,19 +302,19 @@ Example:
         10      -0.025  0.025
         10.3    -0.025  0.037
         ... etc ...
-\end{verbatim}
+\end{alltt}
 
 %------------------------------------------------------------------
 \section{Output Files} 
 
 There are five output files generated:
-\begin{verbatim}
+\begin{alltt}
   element_power.dat
   synch_power_negative_x_side.dat
   synch_power_positive_x_side.dat
   synrad_negative_x_side.txt
   synrad_positive_x_side.txt
-\end{verbatim}
+\end{alltt}
 
   \begin{description}
   \item[\vn{element_power.dat}] \Newline

@@ -22,28 +22,27 @@ type surface_input
   logical is_local
 end type
 
-private sr3d_wall_section_params
-
 contains
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_init_and_check_wall (wall_file, lat, wall)
+! Subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall)
 !
 ! Routine to check the vacuum chamber wall for problematic values.
 ! Also compute some wall parameters
 !
 ! Input:
-!   wall_file -- character(*): Name of the wall file.
-!   lat       -- lat_struct: lattice
+!   wall_file   -- character(*): Name of the wall file.
+!   s_lat       -- Real(rp): Lattice length
+!   geometry    -- Integer: Type of lattice. open$ or closed$
 !
 ! Output:
 !   wall -- sr3d_wall_struct: Wall structure with computed parameters.
 !-
 
-subroutine sr3d_init_and_check_wall (wall_file, lat, wall)
+subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall)
 
 implicit none
 
@@ -61,13 +60,13 @@ type (sr3d_multi_section_struct), pointer :: m_sec
 type (surface_input) surface
 type (sr3d_surface_struct), pointer :: surface_ptr  => null()
 
-real(rp) ix_vertex_ante(2), ix_vertex_ante2(2)
+real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ix, iu, n_wall_section_max, ios, n_shape, n_surface, n_repeat
-integer m_max, n_add
+integer m_max, n_add, geometry
 
-character(28), parameter :: r_name = 'sr3d_init_and_check_wall'
+character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
 character(200) reflectivity_file
 character(*) wall_file
@@ -359,8 +358,8 @@ enddo section_loop
 
 ! 
 
-wall%section(wall%n_section_max)%s = lat%ele(lat%n_ele_track)%s
-wall%geometry = lat%param%geometry
+wall%section(wall%n_section_max)%s = s_lat
+wall%geometry = geometry
 
 do i = 0, wall%n_section_max
   sec => wall%section(i)
@@ -597,7 +596,7 @@ do i = wall%n_section_max, 0, -1
 
 enddo
 
-end subroutine sr3d_init_and_check_wall 
+end subroutine sr3d_read_wall_file 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1204,7 +1203,7 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_wall_section_params (wall_section, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber, wall)
+! Subroutine sr3d_wall_section_params (wall_section, cos_photon, sin_photon, r_wall, dr_dtheta, in_antechamber)
 !
 ! Routine to compute parameters needed by sr3d_photon_d_radius routine.
 !
@@ -1212,7 +1211,6 @@ end subroutine sr3d_get_mesh_wall_triangle_pts
 !   wall_section -- sr3d_wall_section_struct: Wall outline at a particular longitudinal location.
 !   cos_photon -- Real(rp): Cosine of the photon transverse position.
 !   sin_photon -- Real(rp): Sine of the photon transverse position.
-!   wall       -- sr3d_wall_struct: Needed to determine the basic_shape.
 !
 ! Output:
 !   r_wall         -- Real(rp): Radius of the wall

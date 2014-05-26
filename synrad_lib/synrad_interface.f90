@@ -4,8 +4,20 @@ use synrad_struct
 use bmad_interface
 
 interface
-  function theta_floor (s, lat, theta_base) result (theta_fl)
+  subroutine synrad3d_wall_to_synrad_walls (wall3d, seg_len_max, s_lat, geometry, walls)
     use synrad_struct
+    use synrad3d_struct
+    implicit none
+    type (sr3d_wall_struct) wall3d
+    type (walls_struct) walls
+    real(rp) seg_len_max, s_lat
+    integer geometry
+  end subroutine
+end interface
+
+interface
+  function theta_floor (s, lat, theta_base) result (theta_fl)
+    import
     implicit none
     type (lat_struct) lat
     real(rp) s, theta_fl
@@ -15,7 +27,7 @@ end interface
 
 interface
   subroutine break_wall_into_segments (wall, seg_len_max)
-    use synrad_struct
+    import
     implicit none
     type (wall_struct) wall
     real(rp) seg_len_max
@@ -24,7 +36,7 @@ end interface
 
 interface
   subroutine calculate_synrad_power (lat, orb, direction, power, walls, gen, ix_ele1, ix_ele2)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct) orb(0:)
@@ -39,7 +51,7 @@ end interface
 interface
   subroutine ele_synrad_power (lat, ie, orb, direction, power, &
        walls, gen)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct) orb(0:)
@@ -52,7 +64,7 @@ end interface
 
 interface
   subroutine hit_spot_calc (ray, wall, ix_wall, has_hit, lat)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct) lat
     type (ray_struct) :: ray
@@ -64,7 +76,7 @@ end interface
 
 interface
   subroutine check_end (point, ix, string_in)
-    use synrad_struct
+    import
     implicit none
     type (outline_pt_struct) point(:)
     integer ix
@@ -74,7 +86,7 @@ end interface
 
 interface
   subroutine check_wall (wall, s_lat, lat_type)
-    use synrad_struct, only: wall_struct, rp
+    import
     implicit none
     type (wall_struct) wall
     real(rp) s_lat
@@ -85,7 +97,7 @@ end interface
 interface
   subroutine track_ray_to_wall (ray, lat, walls, &
        hit_flag, track_max)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (ray_struct), target :: ray
@@ -97,7 +109,7 @@ end interface
 
 interface
   subroutine create_alley (wall)
-    use synrad_struct
+    import
     implicit none
     type (wall_struct), target :: wall
   end subroutine
@@ -105,7 +117,7 @@ end interface
 
 interface
   subroutine delete_overlapping_wall_points (wall)
-    use synrad_struct
+    import
     implicit none
     type (wall_struct), target :: wall
   end subroutine
@@ -113,7 +125,7 @@ end interface
 
 interface
   subroutine init_ray (ray, lat, ix_ele, l_offset, orb, direction)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (coord_struct) orb(0:*)
@@ -126,7 +138,7 @@ end interface
 
 interface
   subroutine outline_concat (outline1, outline2, outline3)
-    use synrad_struct
+    import
     implicit none
     type (outline_struct) outline1
     type (outline_struct) outline2
@@ -136,7 +148,7 @@ end interface
 
 interface
   subroutine outline_reverse (outline1, outline2)
-    use synrad_struct
+    import
     implicit none
     type (outline_struct) outline1
     type (outline_struct) outline2
@@ -145,7 +157,7 @@ end interface
 
 interface
   subroutine propagate_ray (ray, s_end, lat, stop_at_extremum)
-    use synrad_struct
+    import
     implicit none
     type (lat_struct), target :: lat
     type (ray_struct), target :: ray
@@ -156,7 +168,7 @@ end interface
 
 interface
   subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, s_lat, lat_type, walls)
-    use synrad_struct, only: walls_struct, rp
+    import
     implicit none
     character(*) wall_file
     type (walls_struct) walls
@@ -168,7 +180,7 @@ end interface
 
 interface
   subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, lat_type, walls)
-    use synrad_struct, only: walls_struct, rp
+    import
     implicit none
     character(*) wall_file, component_file, dflt_dir
     type (walls_struct) walls
@@ -180,7 +192,7 @@ end interface
 
 interface
   subroutine seg_power_calc (rays, i_ray, walls, wall_side, lat, gen, power)
-    use synrad_struct
+    import
     implicit none
     type (ray_struct) :: rays(:)
     type (walls_struct), target :: walls
@@ -193,7 +205,7 @@ end interface
 
 interface
   subroutine get_initial_pt (ray, wall, ix_wall, lat)
-    use synrad_struct
+    import
     implicit none
     type (ray_struct) ray
     type (wall_struct) wall
@@ -204,7 +216,7 @@ end interface
 
 interface
   subroutine init_wall (wall)
-    use synrad_struct
+    import
     implicit none
     type (wall_struct) wall
   end subroutine
@@ -212,7 +224,7 @@ end interface
 
 interface
   subroutine init_wall_ends (walls)
-    use synrad_struct
+    import
     implicit none
     type (walls_struct) walls
   end subroutine
@@ -220,7 +232,7 @@ end interface
 
 interface
   subroutine next_pt (ray, wall, ix_wall, passed_end)
-    use synrad_struct
+    import
     implicit none
     type (ray_struct) ray
     type (wall_struct) wall
