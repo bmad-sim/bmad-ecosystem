@@ -1,7 +1,6 @@
 set (EXENAME synrad)
 set (SRC_FILES
   synrad/synrad.f90
-  synrad/synrad_write_power_mod.f90
 )
 
 set (INC_DIRS

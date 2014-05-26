@@ -216,7 +216,7 @@ call ran_seed_put (random_seed)
 
 ! Wall init
 
-call sr3d_init_and_check_wall (wall_file, lat, wall)
+call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall)
 
 ! Load different surface reflection parameters if wanted
 

@@ -18,12 +18,14 @@
 subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, s_lat, geometry, walls)
 
 use synrad_mod, except => synrad_read_vac_wall_geometry
+use synrad3d_utils
 use filename_mod
 
 implicit none
 
 type (walls_struct), target :: walls
 type (wall_struct), pointer :: inside, outside
+type (sr3d_wall_struct) wall3d
 
 real(rp) s_lat, seg_len_max
 real(rp) s, x_in, x_out
@@ -46,6 +48,14 @@ inside  => walls%negative_x_wall
 
 outside%side = positive_x$
 inside%side = negative_x$
+
+! If a synrad3d file...
+
+if (wall_file(1:10) == 'synrad3d::') then
+  call sr3d_read_wall_file (wall_file(11:), s_lat, geometry, wall3d)
+  call synrad3d_wall_to_synrad_walls (wall3d, seg_len_max, s_lat, geometry, walls)
+  return
+endif
 
 ! open file
 

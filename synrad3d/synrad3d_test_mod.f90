@@ -154,7 +154,7 @@ endif
 
 ! Init wall
 
-call sr3d_init_and_check_wall (wall_file, lat, wall)
+call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall)
 
 ! Open photon start input file and count the number of photons
 

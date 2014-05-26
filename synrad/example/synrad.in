@@ -6,7 +6,7 @@
   seg_len = 0.1                    ! Segment length for calculation.
   beam_direction = 0               ! -1 = track backwards only, 
                                    !  0 = track both directions, 1 = forward.
-  wall_file = "synrad.wall"        ! "NONE" => Use a wall with a fixed offset from the beam.
+  wall_file = "synrad.wall"        ! 
   forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
   backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
   use_ele_ix = 0   ! If using only a single element, this is the element index number to use

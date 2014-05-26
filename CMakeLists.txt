@@ -6,8 +6,8 @@ set(INC_DIRS
 
 set (SRC_DIRS
   code
-  synrad_lib
   synrad3d
+  synrad_lib
 )
 #set (FFLAGS "-openmp")
 #set (LINK_FLAGS "-openmp")
