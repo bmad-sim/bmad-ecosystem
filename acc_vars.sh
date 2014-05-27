@@ -181,12 +181,16 @@ else
 
 fi 
 
-# Online computers should use the online compiler 
+# Online computers should use the online compiler and debugger
 case $(uname -n) in
     cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
-           GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND};;
+           GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
+					 LM_LICENSE_FILE="/nfs/cesr/opt/totalview/license.dat:/nfs/opt/totalview/license.dat"
+					 ;;					 
         *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
-           GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND};;
+           GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND}
+					 LM_LICENSE_FILE="/nfs/opt/totalview/license.dat:/nfs/cesr/opt/totalview/license.dat"
+					 ;;					 
 esac
 
 
