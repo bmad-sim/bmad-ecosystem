@@ -32,6 +32,10 @@ namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direc
 
 namelist / wall_pt / s, x_in, x_out, name, phantom
 
+! Init
+
+bmad_com%auto_bookkeeper = .false.
+
 ! set pointers
 pos_x_wall => walls%positive_x_wall
 neg_x_wall => walls%negative_x_wall

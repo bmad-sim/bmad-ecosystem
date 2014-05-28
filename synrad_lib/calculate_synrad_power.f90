@@ -40,6 +40,8 @@ type (wall_struct), pointer :: negative_x_wall, positive_x_wall
 type (synrad_param_struct) sr_param
 type (ele_power_struct) power(:)
 
+real(rp) time
+
 integer direction, ix_ele1, ix_ele2, ie
 
 ! set pointers
@@ -55,8 +57,17 @@ power(1:lat%n_ele_max)%radiated = 0
 ! loop over all elements
 
 do ie = ix_ele1, ix_ele2
-  if (sr_param%debug) print '(i6, 2x, a)', ie, lat%ele(ie)%name
+  if (sr_param%debug) then
+    print '(i6, 2x, a)', ie, lat%ele(ie)%name
+    call run_timer ('START')
+  endif
+
   call ele_synrad_power (lat, ie, orb, direction, power, walls, sr_param)
+
+  if (sr_param%debug) then
+    call run_timer ('READ', time)
+    print '(a, f10.2)', 'dTime: (min)', time/60
+  endif
 enddo
 
 end subroutine
