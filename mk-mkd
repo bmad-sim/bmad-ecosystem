@@ -33,6 +33,14 @@
 
 THIS_SCRIPT=`basename $0`
 
+# Determine which cmake is available 
+
+if ( [ -e /usr/bin/cmake28 ] ) then 
+		CMAKE_BINARY=/usr/bin/cmake28
+	else
+		CMAKE_BINARY=cmake
+fi
+
 # Determine if the current working directory is a buildable project
 if ( [ ! -e CMakeLists.txt ] ) then
     if ( [ ! -e acc_build ] ) then
@@ -93,7 +101,7 @@ else
 	cd ..
 	./acc_build -"${BUILD_TYPE}" || exit 1
     else
-	cmake -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
+	${CMAKE_BINARY} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
 	gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
     fi
 fi
