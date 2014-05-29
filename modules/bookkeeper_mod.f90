@@ -322,6 +322,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! Slave bookkeeping
 
   call_a_bookkeeper = .false.
+  ele%bookkeeping_state%control = ok$
 
   if (ele%slave_status == super_slave$) then
     ! Attrubute bookkeeping is done in the makeup_super_slave
@@ -352,8 +353,6 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! num_steps in the slave is different from the lord due to differences in length.
 
   if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
-
-  ele%bookkeeping_state%control = ok$
 
 endif
 
@@ -685,7 +684,7 @@ slave_val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
-  slave%value(phi0_multipass$)        = slave_val(phi0_multipass$)
+  slave%value(phi0_multipass$) = slave_val(phi0_multipass$)
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
@@ -740,10 +739,14 @@ endif
 ! Multipoles
 
 if (associated (slave%a_pole)) then
-  slave%a_pole           = lord%a_pole
-  slave%b_pole           = lord%b_pole
-  slave%multipoles_on    = lord%multipoles_on
-  slave%scale_multipoles = lord%scale_multipoles
+  if (slave%value(p0c$) == 0) then  ! Can happen if not finished parsing lattice file
+    slave%bookkeeping_state%control = stale$
+  else
+    slave%a_pole           = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
+    slave%b_pole           = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
+    slave%multipoles_on    = lord%multipoles_on
+    slave%scale_multipoles = lord%scale_multipoles
+  endif
 endif
 
 ! RF wakes
@@ -819,7 +822,6 @@ character(20) :: r_name = 'makeup_super_slave'
 branch => lat%branch(slave%ix_branch)
 ix_slave = slave%ix_ele
 
-slave%bookkeeping_state%control = ok$
 call set_ele_status_stale (slave, attribute_group$)
 
 if (slave%slave_status /= super_slave$) then
@@ -875,15 +877,6 @@ if (n_major_lords == 1) then
     slave0 => pointer_to_slave(major_lord, i)
     offset = offset + slave0%value(l$)
   enddo
-
-  ! If this is the last slave, adjust it's length to be consistant with
-  ! The major_lord length. Then do the rest of the bookkeeping
-
-!  if (is_last) then
-!    slave%value(l$) = major_lord%value(l$) + major_lord%value(lord_pad1$) + &
-!                      major_lord%value(lord_pad2$) - offset
-!    call set_flags_for_changed_attribute (slave, slave%value(l$))
-!  endif
 
   call makeup_super_slave1 (slave, major_lord, offset, branch%param, is_first, is_last, err_flag)
 
@@ -1578,6 +1571,7 @@ endif
 ! Reference energy and time computed in ele_compute_ref_energy_and_time.
 
 value = lord%value
+value(check_sum$) = 0  ! Slave does not have multipoles
 
 value(l$)              = slave%value(l$)                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)
@@ -2116,6 +2110,7 @@ logical, optional :: force_bookkeeping
 logical err_flag, has_nonzero
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
+logical :: dval_change(num_ele_attrib$)
 
 ! Some init
 
@@ -2550,6 +2545,8 @@ if (bmad_com%auto_bookkeeper) then
 endif
 
 ! Since things have changed we need to kill the Taylor Map and ptc_genfield.
+! The factor of 1d-15 is to avoid negligible changes which can be caused if the digested 
+! file was created on different machine from machine where the code is run
 
 v_mask = .true.
 v_mask([x_offset$, y_offset$, z_offset$, &
@@ -2559,15 +2556,16 @@ offset_mask = .not. v_mask
 v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
 v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 
-dval = val - ele%old_value
+dval = abs(val - ele%old_value)
 dval(scratch$) = 0
+dval_change = (dval > 1d-15 * abs(val))
 
 if (has_orientation_attributes(ele)) then
-  non_offset_changed = (any(dval /= 0 .and. v_mask))
-  offset_changed =  (any(dval /= 0 .and. offset_mask))
+  non_offset_changed = (any(dval_change .and. v_mask))
+  offset_changed =  (any(dval_change .and. offset_mask))
   offset_nonzero = (any(val /= 0 .and. offset_mask))
 else
-  non_offset_changed = (any(dval /= 0))
+  non_offset_changed = (any(dval_change))
   offset_changed = .false.
   offset_nonzero = .false.
 endif
