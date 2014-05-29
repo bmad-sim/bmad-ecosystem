@@ -444,25 +444,25 @@ case ('beam')
     endif
 
     nl=nl+1; lines(nl) = 'Cashed bunch parameters:'
-    nl=nl+1; write (lines(nl), imt)  '  Parameters for bunch:       ', n
-    nl=nl+1; write (lines(nl), imt)  '  Particles surviving:        ', n_live
-    nl=nl+1; write (lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
-    nl=nl+1; write (lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot
+    nl=nl+1; write(lines(nl), imt)  '  Parameters for bunch:       ', n
+    nl=nl+1; write(lines(nl), imt)  '  Particles surviving:        ', n_live
+    nl=nl+1; write(lines(nl), imt)  '  Particles lost:             ', n_tot - n_live
+    nl=nl+1; write(lines(nl), f3mt) '  Particles lost (%):         ', 100 * real(n_tot - n_live) / n_tot
     if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
-      nl=nl+1; write (lines(nl), rmt)  '  Intensity:                  ', &
+      nl=nl+1; write(lines(nl), rmt)  '  Intensity:                  ', &
                         bunch_p%centroid%field(1)**2 + bunch_p%centroid%field(2)**2
     endif
-    nl=nl+1; write (lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
-    nl=nl+1; write (lines(nl), rmt) '  RMS:     ', &
+    nl=nl+1; write(lines(nl), rmt) '  Centroid:', bunch_p%centroid%vec
+    nl=nl+1; write(lines(nl), rmt) '  RMS:     ', &
                       sqrt(bunch_p%sigma(1,1)), sqrt(bunch_p%sigma(2,2)), sqrt(bunch_p%sigma(3,3)), &
                       sqrt(bunch_p%sigma(4,4)), sqrt(bunch_p%sigma(5,5)), sqrt(bunch_p%sigma(6,6))
     if (u%model%lat%branch(eles(1)%ele%ix_branch)%param%particle /= photon$) then
-      nl=nl+1; write (lines(nl), rmt) '             norm_emitt           beta             alpha'
-      nl=nl+1; write (lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta, bunch_p%a%alpha
-      nl=nl+1; write (lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta, bunch_p%b%alpha
-      nl=nl+1; write (lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta, bunch_p%x%alpha
-      nl=nl+1; write (lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta, bunch_p%y%alpha
-      nl=nl+1; write (lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
+      nl=nl+1; write(lines(nl), rmt) '             norm_emitt           beta             alpha'
+      nl=nl+1; write(lines(nl), rmt) '  a:       ', bunch_p%a%norm_emit, bunch_p%a%beta, bunch_p%a%alpha
+      nl=nl+1; write(lines(nl), rmt) '  b:       ', bunch_p%b%norm_emit, bunch_p%b%beta, bunch_p%b%alpha
+      nl=nl+1; write(lines(nl), rmt) '  x:       ', bunch_p%x%norm_emit, bunch_p%x%beta, bunch_p%x%alpha
+      nl=nl+1; write(lines(nl), rmt) '  y:       ', bunch_p%y%norm_emit, bunch_p%y%beta, bunch_p%y%alpha
+      nl=nl+1; write(lines(nl), rmt) '  z:       ', bunch_p%z%norm_emit, bunch_p%z%beta
     endif
 
     beam => u%uni_branch(eles(1)%ele%ix_branch)%ele(ix_ele)%beam
@@ -524,21 +524,21 @@ case ('branch')
   if (sub_name /= '') then
     branch => pointer_to_branch(sub_name, u%model%lat)
     if (.not. associated(branch)) then
-      nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+      nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
       return
     endif
 
     nl=nl+1; lines(nl) =                   '%name                      = ' // trim(branch%name)
-    nl=nl+1; write (lines(nl), imt)  '%ix_branch                 =', branch%ix_branch 
-    nl=nl+1; write (lines(nl), imt)  '%ix_from_branch            =', branch%ix_from_branch 
-    nl=nl+1; write (lines(nl), imt)  '%ix_from ele               =', branch%ix_from_ele
-    nl=nl+1; write (lines(nl), imt)  '%n_ele_track               =', branch%n_ele_track
-    nl=nl+1; write (lines(nl), imt)  '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write (lines(nl), imt)  '%param%particle            = ' // trim(species_name(branch%param%particle))
-    nl=nl+1; write (lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
-    nl=nl+1; write (lines(nl), amt)  '%param%geometry            = ', geometry_name(branch%param%geometry)
+    nl=nl+1; write(lines(nl), imt)  '%ix_branch                 =', branch%ix_branch 
+    nl=nl+1; write(lines(nl), imt)  '%ix_from_branch            =', branch%ix_from_branch 
+    nl=nl+1; write(lines(nl), imt)  '%ix_from ele               =', branch%ix_from_ele
+    nl=nl+1; write(lines(nl), imt)  '%n_ele_track               =', branch%n_ele_track
+    nl=nl+1; write(lines(nl), imt)  '%n_ele_max                 =', branch%n_ele_max
+    nl=nl+1; write(lines(nl), imt)  '%param%particle            = ' // trim(species_name(branch%param%particle))
+    nl=nl+1; write(lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
+    nl=nl+1; write(lines(nl), amt)  '%param%geometry            = ', geometry_name(branch%param%geometry)
     if (branch%param%particle == photon$) then
-      nl=nl+1; write (lines(nl), amt)  '%param%photon_type         = ', photon_type_name(branch%param%photon_type)
+      nl=nl+1; write(lines(nl), amt)  '%param%photon_type         = ', photon_type_name(branch%param%photon_type)
     endif
 
   else
@@ -547,18 +547,18 @@ case ('branch')
 
 
     branch => lat%branch(0)
-    nl=nl+1; write (lines(nl), '(i6, 2x, a21, i6, i7)') &
+    nl=nl+1; write(lines(nl), '(i6, 2x, a21, i6, i7)') &
                   0, branch%name, branch%n_ele_track, branch%n_ele_max
 
     fmt = '(i6, 2x, a21, i6, i7, i9, 3x, a20, i6, 3x, a)'
     do i = 1, ubound(lat%branch, 1)
       branch => lat%branch(i)
       if (branch%ix_from_ele < 0) then
-        nl=nl+1; write (lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
+        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
                   branch%ix_from_branch
       else
         ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-        nl=nl+1; write (lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
+        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
                   branch%ix_from_branch, lat%branch(ele%ix_branch)%name, ele%ix_ele, ele%name
       endif
     enddo
@@ -640,41 +640,41 @@ case ('curve')
     do i = 2, size(curve)
       nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
     enddo
-    nl=nl+1; write (lines(nl), amt)  'data_source          = ', c1%data_source
-    nl=nl+1; write (lines(nl), amt)  'data_index           = ', c1%data_index
-    nl=nl+1; write (lines(nl), amt)  'data_type_x          = ', c1%data_type_x
-    nl=nl+1; write (lines(nl), amt)  'data_type            = ', c1%data_type
-    nl=nl+1; write (lines(nl), amt)  'legend_text          = ', c1%legend_text
-    nl=nl+1; write (lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
-    nl=nl+1; write (lines(nl), imt)  'ix_branch            = ', c1%ix_branch
-    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
-    nl=nl+1; write (lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
-    nl=nl+1; write (lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
-    nl=nl+1; write (lines(nl), imt)  'ix_universe          = ', c1%ix_universe
-    nl=nl+1; write (lines(nl), imt)  'symbol_every         = ', c1%symbol_every
-    nl=nl+1; write (lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
-    nl=nl+1; write (lines(nl), lmt)  'use_y2               = ', c1%use_y2
-    nl=nl+1; write (lines(nl), lmt)  'draw_line            = ', c1%draw_line
-    nl=nl+1; write (lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
-    nl=nl+1; write (lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
-    nl=nl+1; write (lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
-    nl=nl+1; write (lines(nl), iamt) 'line%width           = ', c1%line%width
-    nl=nl+1; write (lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
-    nl=nl+1; write (lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
-    nl=nl+1; write (lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
-    nl=nl+1; write (lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
-    nl=nl+1; write (lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
-    nl=nl+1; write (lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
+    nl=nl+1; write(lines(nl), amt)  'data_source          = ', c1%data_source
+    nl=nl+1; write(lines(nl), amt)  'data_index           = ', c1%data_index
+    nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', c1%data_type_x
+    nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
+    nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
+    nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
+    nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
+    nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
+    nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
+    nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
+    nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
+    nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
+    nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
+    nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
+    nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
+    nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
+    nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
+    nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
+    nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
+    nl=nl+1; write(lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
+    nl=nl+1; write(lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
+    nl=nl+1; write(lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
+    nl=nl+1; write(lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
+    nl=nl+1; write(lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
+    nl=nl+1; write(lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
     
     ! Histogram specific components
     if (c1%g%type == 'histogram') then
-      nl=nl+1; write (lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
-      nl=nl+1; write (lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
-      nl=nl+1; write (lines(nl), rmt)  'hist%minimum            = ', c1%hist%minimum
-      nl=nl+1; write (lines(nl), rmt)  'hist%maximum            = ', c1%hist%maximum
-      nl=nl+1; write (lines(nl), rmt)  'hist%width              = ', c1%hist%width
-      nl=nl+1; write (lines(nl), rmt)  'hist%center             = ', c1%hist%center
-      nl=nl+1; write (lines(nl), imt)  'hist%number             = ', c1%hist%number
+      nl=nl+1; write(lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
+      nl=nl+1; write(lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
+      nl=nl+1; write(lines(nl), rmt)  'hist%minimum            = ', c1%hist%minimum
+      nl=nl+1; write(lines(nl), rmt)  'hist%maximum            = ', c1%hist%maximum
+      nl=nl+1; write(lines(nl), rmt)  'hist%width              = ', c1%hist%width
+      nl=nl+1; write(lines(nl), rmt)  'hist%center             = ', c1%hist%center
+      nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
     endif
     
     if (show_sym) then
@@ -700,7 +700,7 @@ case ('curve')
 
       if (.not. err) then
         do i = 1, size(c1%x_symb)
-          nl=nl+1; write (lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
+          nl=nl+1; write(lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
                       c1%x_symb(i), [ (curve(j)%c%y_symb(i), j = 1, size(curve)) ]
         enddo
       endif
@@ -727,7 +727,7 @@ case ('curve')
       if (.not. err) then
         call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
         do i = 1, size(c1%x_line)
-          nl=nl+1; write (lines(nl), '(i6, 10es14.6)') i, c1%x_line(i), &
+          nl=nl+1; write(lines(nl), '(i6, 10es14.6)') i, c1%x_line(i), &
                                         [ (curve(j)%c%y_line(i), j = 1, size(curve)) ]
         enddo
       endif
@@ -929,7 +929,7 @@ case ('data')
       nl=nl+1; lines(nl) = 'Descrip:'
       do i = 1, size(d2_ptr%descrip)
         if (d2_ptr%descrip(i) /= ' ') then
-          nl=nl+1; write (lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
+          nl=nl+1; write(lines(nl), '(i4, 2a)') i, ': ', d2_ptr%descrip(i)
         endif
       enddo
     endif
@@ -978,7 +978,7 @@ case ('derivative')
       jd = d_ptr%ix_dmodel
       jv = v_ptr%ix_dvar
       if (jd /= 0 .and. jv /= 0) then
-        nl=nl+1; write (lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
+        nl=nl+1; write(lines(nl), '(2a20, es14.5, 2i5)') tao_datum_name(d_ptr), &
                                   tao_var1_name(v_ptr), u%dModel_dVar(jd, jv), jd, jv
         found = .true.
       endif
@@ -986,7 +986,7 @@ case ('derivative')
   enddo
 
   if (.not. found) then
-    nl=nl+1; write (lines(nl), '(a)') 'No Derivatives'
+    nl=nl+1; write(lines(nl), '(a)') 'No Derivatives'
   endif
   
   result_id = show_what
@@ -1004,18 +1004,18 @@ case ('dynamic_aperture')
   !if (err) return
   do i = 1, size(u%dynamic_aperture%scan)
     aperture_scan => u%dynamic_aperture%scan(i) 
-    nl=nl+1; write (lines(nl), '(a12, es15.7)')  'pz        : ', u%dynamic_aperture%pz(i)
-    nl=nl+1; write (lines(nl), '(a12, i10)')     'n_angle   : ', aperture_scan%n_angle
-    nl=nl+1; write (lines(nl), '(a12, f10.6)')   'min_angle : ', aperture_scan%min_angle
-    nl=nl+1; write (lines(nl), '(a12, f10.6)')   'max_angle : ', aperture_scan%max_angle
-    nl=nl+1; write (lines(nl), '(a20, i10)')      '%praram%n_turn :  ', aperture_scan%param%n_turn
-    nl=nl+1; write (lines(nl), '(a20, f10.6)')   '%param%accuracy : ', aperture_scan%param%accuracy
+    nl=nl+1; write(lines(nl), '(a12, es15.7)')  'pz        : ', u%dynamic_aperture%pz(i)
+    nl=nl+1; write(lines(nl), '(a12, i10)')     'n_angle   : ', aperture_scan%n_angle
+    nl=nl+1; write(lines(nl), '(a12, f10.6)')   'min_angle : ', aperture_scan%min_angle
+    nl=nl+1; write(lines(nl), '(a12, f10.6)')   'max_angle : ', aperture_scan%max_angle
+    nl=nl+1; write(lines(nl), '(a20, i10)')      '%praram%n_turn :  ', aperture_scan%param%n_turn
+    nl=nl+1; write(lines(nl), '(a20, f10.6)')   '%param%accuracy : ', aperture_scan%param%accuracy
     if (.not. allocated(aperture_scan%aperture)) then
-      nl=nl+1; write (lines(nl), '(a20)') 'aperture not calculated for this universe'
+      nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
     else
-      nl=nl+1; write (lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
+      nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
       do j = 1, size(aperture_scan%aperture)
-        nl=nl+1; write (lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
+        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
       enddo
     endif
   enddo
@@ -1105,15 +1105,15 @@ case ('element')
           str(1:10) = adjustr(str(1:10))
         endif
         if (count(picked_uni) > 1) then
-          nl=nl+1; write (lines(nl), '(a10, 2x, i0, 2a)') str, i_uni, '@', ele%name
+          nl=nl+1; write(lines(nl), '(a10, 2x, i0, 2a)') str, i_uni, '@', ele%name
         else
-          nl=nl+1; write (lines(nl), '(a10, 2x, a)') str, ele%name
+          nl=nl+1; write(lines(nl), '(a10, 2x, a)') str, ele%name
         endif
       enddo
     enddo
 
     deallocate(eles)
-    nl=nl+1; write (lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
+    nl=nl+1; write(lines(nl), '(a, i0)') 'Number of Matches: ', n_tot
 
     if (nl == 0) then
       lines(1) = '*** No Matches to Name Found ***'
@@ -1174,21 +1174,21 @@ case ('element')
   if (stat /= multipass_lord$ .and. stat /= group_lord$ .and. stat /= overlay_lord$ .and. stat /= girder_lord$) then
     orb = tao_lat%lat_branch(ele%ix_branch)%orbit(ele%ix_ele)
     nl=nl+1; lines(nl) = ' '
-    nl=nl+1; write (lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
+    nl=nl+1; write(lines(nl), '(4a)') 'Orbit:  ', trim(species_name(orb%species)), '   State: ', trim(coord_state_name(orb%state))
     if (lat%branch(ele%ix_branch)%param%particle == photon$) then
       fmt = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
       fmt2 = '(2x, a, 2f15.8, a, es16.8)'
       nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
-      nl=nl+1; write (lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
-      nl=nl+1; write (lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
-      nl=nl+1; write (lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
+      nl=nl+1; write(lines(nl), fmt)  'X:  ', orb%vec(1:2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
+      nl=nl+1; write(lines(nl), fmt)  'Y:  ', orb%vec(3:4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
+      nl=nl+1; write(lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
       fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f9.6)'
       nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                            Time'
-      nl=nl+1; write (lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
-      nl=nl+1; write (lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
-      nl=nl+1; write (lines(nl), fmt) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z, 'beta:', orb%beta
+      nl=nl+1; write(lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
+      nl=nl+1; write(lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
+      nl=nl+1; write(lines(nl), fmt) 'Z:  ', 1000*orb%vec(5:6),   '  | (Ref-Abs)*Vel [m]:', z, 'beta:', orb%beta
     endif
   endif
 
@@ -1201,10 +1201,10 @@ case ('element')
     endif
     nl=nl+1
     if (eles(i)%ele%ix_branch == 0) then
-      write (lines(nl), '(a, i0)') &
+      write(lines(nl), '(a, i0)') &
               'Note: Found another element with same name at: ', eles(i)%ele%ix_ele
     else
-      write (lines(nl), '(a, i0, a,i0)') &
+      write(lines(nl), '(a, i0, a,i0)') &
               'Note: Found another element with same name at: ', &
               eles(i)%ele%ix_branch, '.', eles(i)%ele%ix_ele
     endif
@@ -1244,57 +1244,57 @@ case ('global')
 
   if (print_global) then
     nl=nl+1; lines(nl) = 'Global parameters:'
-    nl=nl+1; write (lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
-    nl=nl+1; write (lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
-    nl=nl+1; write (lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
-    nl=nl+1; write (lines(nl), amt) '  %phase_units                   = ', &
+    nl=nl+1; write(lines(nl), imt) '  %bunch_to_plot                 = ', s%global%bunch_to_plot
+    nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
+    nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
+    nl=nl+1; write(lines(nl), amt) '  %phase_units                   = ', &
                                                     frequency_units_name(s%global%phase_units)
-    nl=nl+1; write (lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
-    nl=nl+1; write (lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
-    nl=nl+1; write (lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
-    nl=nl+1; write (lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
-    nl=nl+1; write (lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
-    nl=nl+1; write (lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
-    nl=nl+1; write (lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
-    nl=nl+1; write (lines(nl), amt) '  %print_command                 = ', s%global%print_command
-    nl=nl+1; write (lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
-    nl=nl+1; write (lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
-    nl=nl+1; write (lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
-    nl=nl+1; write (lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
-    nl=nl+1; write (lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
+    nl=nl+1; write(lines(nl), lmt) '  %plot_on                       = ', s%global%plot_on
+    nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
+    nl=nl+1; write(lines(nl), lmt) '  %command_file_print_on         = ', s%global%command_file_print_on
+    nl=nl+1; write(lines(nl), lmt) '  %beam_timer_on                 = ', s%global%beam_timer_on
+    nl=nl+1; write(lines(nl), lmt) '  %rf_on                         = ', s%global%rf_on
+    nl=nl+1; write(lines(nl), lmt) '  %wait_for_CR_in_single_mode    = ', s%global%wait_for_CR_in_single_mode
+    nl=nl+1; write(lines(nl), amt) '  %prompt_string                 = ', s%global%prompt_string
+    nl=nl+1; write(lines(nl), amt) '  %print_command                 = ', s%global%print_command
+    nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', s%global%random_engine
+    nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', s%global%random_gauss_converter
+    nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
+    nl=nl+1; write(lines(nl), rmt) '  %random_sigma_cutoff           = ', s%global%random_sigma_cutoff
+    nl=nl+1; write(lines(nl), imt) '  %random_seed                   = ', s%global%random_seed
     if (s%global%random_seed == 0) then
       call ran_seed_get(ix)
-      nl=nl+1; write (lines(nl), imt) '   random_seed (generated)      = ', ix
+      nl=nl+1; write(lines(nl), imt) '   random_seed (generated)      = ', ix
     endif
-    nl=nl+1; write (lines(nl), amt) '  %track_type                    = ', s%global%track_type
-    nl=nl+1; write (lines(nl), imt) '  %u_view                        = ', s%global%u_view
-    nl=nl+1; write (lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
-    nl=nl+1; write (lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
-    nl=nl+1; write (lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
-    nl=nl+1; write (lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
-    nl=nl+1; write (lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
+    nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
+    nl=nl+1; write(lines(nl), imt) '  %u_view                        = ', s%global%u_view
+    nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
+    nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
+    nl=nl+1; write(lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
+    nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
+    nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
-    nl=nl+1; write (lines(nl), imt) 'Universe index range:          = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write (lines(nl), lmt) 'common_lattice                 = ', tao_com%common_lattice
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_file              = ', tao_com%beam_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam_all_file          = ', tao_com%beam_all_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%beam0_file             = ', tao_com%beam0_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%data_file              = ', tao_com%data_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%lat_file               = ', tao_com%lat_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%plot_file              = ', tao_com%plot_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%var_file               = ', tao_com%var_file
-    nl=nl+1; write (lines(nl), amt) 'tao_com%startup_file           = ', tao_com%startup_file
-    nl=nl+1; write (lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
+    nl=nl+1; write(lines(nl), imt) 'Universe index range:          = ', lbound(s%u, 1), ubound(s%u, 1)
+    nl=nl+1; write(lines(nl), lmt) 'common_lattice                 = ', tao_com%common_lattice
+    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_file              = ', tao_com%beam_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_all_file          = ', tao_com%beam_all_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%beam0_file             = ', tao_com%beam0_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%data_file              = ', tao_com%data_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%lat_file               = ', tao_com%lat_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%plot_file              = ', tao_com%plot_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%var_file               = ', tao_com%var_file
+    nl=nl+1; write(lines(nl), amt) 'tao_com%startup_file           = ', tao_com%startup_file
+    nl=nl+1; write(lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
                                                 tao_com%combine_consecutive_elements_of_like_name
-    nl=nl+1; write (lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
+    nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
   endif
 
   if (print_ran_state) then
     call ran_default_state (get_state = ran_state)
-    nl=nl+1; write (lines(nl), '(a, i0, 2x, i0, l3, es26.16)') 'ran_state = ', ran_state
+    nl=nl+1; write(lines(nl), '(a, i0, 2x, i0, l3, es26.16)') 'ran_state = ', ran_state
   endif
 
   if (print_optimization) then
@@ -1304,16 +1304,16 @@ case ('global')
   if (print_bmad_com) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
-    nl=nl+1; write (lines(nl), imt) '  ptc_com%taylor_order_ptc   = ', ptc_com%taylor_order_ptc
-    nl=nl+1; write (lines(nl), imt) '  %ptc_max_fringe_order      = ', bmad_com%ptc_max_fringe_order
-    nl=nl+1; write (lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write (lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
-    nl=nl+1; write (lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-    nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write (lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
-    nl=nl+1; write (lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
-    nl=nl+1; write (lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write (lines(nl), lmt) '  %use_hard_edge_drifts      = ', bmad_com%use_hard_edge_drifts
+    nl=nl+1; write(lines(nl), imt) '  ptc_com%taylor_order_ptc   = ', ptc_com%taylor_order_ptc
+    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order      = ', bmad_com%ptc_max_fringe_order
+    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
+    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts      = ', bmad_com%use_hard_edge_drifts
   endif
 
   if (print_csr_param) then
@@ -1355,58 +1355,58 @@ case ('graph')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write (lines(nl), amt) 'type                  = ', g%type
-    nl=nl+1; write (lines(nl), amt) 'title                 = ', g%title
-    nl=nl+1; write (lines(nl), amt) 'title_suffix          = ', g%title_suffix
-    nl=nl+1; write (lines(nl), amt) 'component             = ', g%component
-    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
+    nl=nl+1; write(lines(nl), amt) 'type                  = ', g%type
+    nl=nl+1; write(lines(nl), amt) 'title                 = ', g%title
+    nl=nl+1; write(lines(nl), amt) 'title_suffix          = ', g%title_suffix
+    nl=nl+1; write(lines(nl), amt) 'component             = ', g%component
+    nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'margin                = ', g%margin
-    nl=nl+1; write (lines(nl), '(a, 4f10.2, 2x, a)') &
+    nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'scale_margin          = ', g%scale_margin
-    nl=nl+1; write (lines(nl), imt) 'box                   = ', g%box
-    nl=nl+1; write (lines(nl), imt) 'ix_universe           = ', g%ix_universe
-    nl=nl+1; write (lines(nl), lmt) 'valid                 = ', g%valid
+    nl=nl+1; write(lines(nl), imt) 'box                   = ', g%box
+    nl=nl+1; write(lines(nl), imt) 'ix_universe           = ', g%ix_universe
+    nl=nl+1; write(lines(nl), lmt) 'valid                 = ', g%valid
 
-    nl=nl+1; write (lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
-    nl=nl+1; write (lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
-    nl=nl+1; write (lines(nl), amt) 'x%label               = ', g%x%label
-    nl=nl+1; write (lines(nl), rmt) 'x%max                 = ', g%x%max
-    nl=nl+1; write (lines(nl), rmt) 'x%min                 = ', g%x%min
-    nl=nl+1; write (lines(nl), imt) 'x%major_div           = ', g%x%major_div
-    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal   = ', g%x%major_div_nominal
-    nl=nl+1; write (lines(nl), imt) 'x%places              = ', g%x%places
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_label          = ', g%x%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
+    nl=nl+1; write(lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
+    nl=nl+1; write(lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
+    nl=nl+1; write(lines(nl), amt) 'x%label               = ', g%x%label
+    nl=nl+1; write(lines(nl), rmt) 'x%max                 = ', g%x%max
+    nl=nl+1; write(lines(nl), rmt) 'x%min                 = ', g%x%min
+    nl=nl+1; write(lines(nl), imt) 'x%major_div           = ', g%x%major_div
+    nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal   = ', g%x%major_div_nominal
+    nl=nl+1; write(lines(nl), imt) 'x%places              = ', g%x%places
+    nl=nl+1; write(lines(nl), lmt) 'x%draw_label          = ', g%x%draw_label
+    nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
 
-    nl=nl+1; write (lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
-    nl=nl+1; write (lines(nl), amt) 'y%label               = ', g%y%label
-    nl=nl+1; write (lines(nl), rmt) 'y%label_offset        = ', g%y%label_offset
-    nl=nl+1; write (lines(nl), rmt) 'y%max                 = ', g%y%max
-    nl=nl+1; write (lines(nl), rmt) 'y%min                 = ', g%y%min
-    nl=nl+1; write (lines(nl), imt) 'y%major_div           = ', g%y%major_div
-    nl=nl+1; write (lines(nl), imt) 'y%major_div_nominal   = ', g%y%major_div_nominal
-    nl=nl+1; write (lines(nl), imt) 'y%places              = ', g%y%places
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
+    nl=nl+1; write(lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
+    nl=nl+1; write(lines(nl), amt) 'y%label               = ', g%y%label
+    nl=nl+1; write(lines(nl), rmt) 'y%label_offset        = ', g%y%label_offset
+    nl=nl+1; write(lines(nl), rmt) 'y%max                 = ', g%y%max
+    nl=nl+1; write(lines(nl), rmt) 'y%min                 = ', g%y%min
+    nl=nl+1; write(lines(nl), imt) 'y%major_div           = ', g%y%major_div
+    nl=nl+1; write(lines(nl), imt) 'y%major_div_nominal   = ', g%y%major_div_nominal
+    nl=nl+1; write(lines(nl), imt) 'y%places              = ', g%y%places
+    nl=nl+1; write(lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
+    nl=nl+1; write(lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
 
-    nl=nl+1; write (lines(nl), amt) 'y2%label              = ', g%y2%label
-    nl=nl+1; write (lines(nl), rmt) 'y2%label_offset       = ', g%y2%label_offset
-    nl=nl+1; write (lines(nl), rmt) 'y2%max                = ', g%y2%max
-    nl=nl+1; write (lines(nl), rmt) 'y2%min                = ', g%y2%min
-    nl=nl+1; write (lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
-    nl=nl+1; write (lines(nl), imt) 'y2%major_div_nominal  = ', g%y2%major_div_nominal
-    nl=nl+1; write (lines(nl), imt) 'y2%places             = ', g%y2%places
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'limited               = ', g%limited
-    nl=nl+1; write (lines(nl), lmt) 'clip                  = ', g%clip
-    nl=nl+1; write (lines(nl), lmt) 'draw_axes             = ', g%draw_axes
-    nl=nl+1; write (lines(nl), lmt) 'draw_grid             = ', g%draw_grid
-    nl=nl+1; write (lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
-    nl=nl+1; write (lines(nl), lmt) 'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
+    nl=nl+1; write(lines(nl), amt) 'y2%label              = ', g%y2%label
+    nl=nl+1; write(lines(nl), rmt) 'y2%label_offset       = ', g%y2%label_offset
+    nl=nl+1; write(lines(nl), rmt) 'y2%max                = ', g%y2%max
+    nl=nl+1; write(lines(nl), rmt) 'y2%min                = ', g%y2%min
+    nl=nl+1; write(lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
+    nl=nl+1; write(lines(nl), imt) 'y2%major_div_nominal  = ', g%y2%major_div_nominal
+    nl=nl+1; write(lines(nl), imt) 'y2%places             = ', g%y2%places
+    nl=nl+1; write(lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
+    nl=nl+1; write(lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
+    nl=nl+1; write(lines(nl), lmt) 'limited               = ', g%limited
+    nl=nl+1; write(lines(nl), lmt) 'clip                  = ', g%clip
+    nl=nl+1; write(lines(nl), lmt) 'draw_axes             = ', g%draw_axes
+    nl=nl+1; write(lines(nl), lmt) 'draw_grid             = ', g%draw_grid
+    nl=nl+1; write(lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
+    nl=nl+1; write(lines(nl), lmt) 'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
-      nl=nl+1; write (lines(nl), amt) '   ', g%curve(i)%name
+      nl=nl+1; write(lines(nl), amt) '   ', g%curve(i)%name
     enddo
 
   else
@@ -1427,12 +1427,12 @@ case ('hom')
     ele => lat%ele(i)
     if (ele%key /= lcavity$) cycle
     if (ele%slave_status == multipass_slave$) cycle
-    nl=nl+1; write (lines(nl), '(a, i6)') ele%name, i
+    nl=nl+1; write(lines(nl), '(a, i6)') ele%name, i
     do j = 1, size(ele%wake%lr)
       lr => ele%wake%lr(j)
       angle_str = '-'
       if (lr%polarized) write (angle_str, '(f9.4)') lr%angle
-      nl=nl+1; write (lines(nl), '(i8, 3es12.4, i4, a)') j, &
+      nl=nl+1; write(lines(nl), '(i8, 3es12.4, i4, a)') j, &
                   lr%freq, lr%R_over_Q, lr%Q, lr%m, angle_str
     enddo
     nl=nl+1; lines(nl) = ' '
@@ -1451,7 +1451,7 @@ case ('key_bindings')
 
   do i = 1, size(s%key)
     call tao_key_info_to_str (i, 1, size(s%key), str, header)
-    nl=nl+1; write (lines(nl), '(i3, 2x, a)') i, str
+    nl=nl+1; write(lines(nl), '(i3, 2x, a)') i, str
   enddo
 
   result_id = show_what
@@ -1508,7 +1508,7 @@ case ('lattice')
     case ('-branch')
       branch => pointer_to_branch(stuff2(1:ix_s2), u%model%lat)
       if (.not. associated(branch)) then
-        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
       ix_branch = branch%ix_branch
@@ -1917,7 +1917,7 @@ case ('lattice')
 
   if (limited) then
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write (lines(nl), '(a, i0)') &
+    nl=nl+1; write(lines(nl), '(a, i0)') &
           'NOTE: Since no range given, the number of elements shown is first 200 of ', branch%n_ele_track
   endif
 
@@ -1986,7 +1986,7 @@ case ('optimizer')
     u => s%u(i)
     nl=nl+1; lines(nl) = 'Data Used:'
     if (size(s%u) > 1) then
-      nl=nl+1; write (lines(nl), '(a, i4)') 'Universe: ', i
+      nl=nl+1; write(lines(nl), '(a, i4)') 'Universe: ', i
     endif
     do j = 1, u%n_d2_data_used
       if (u%d2_data(j)%name == ' ') cycle
@@ -2001,7 +2001,7 @@ case ('optimizer')
   enddo
 
   nl=nl+1; lines(nl) = ' '
-  nl=nl+1; write (lines(nl), amt) 'optimizer:        ', s%global%optimizer
+  nl=nl+1; write(lines(nl), amt) 'optimizer:        ', s%global%optimizer
   call show_opt
   call out_io (s_blank$, r_name, lines(1:nl))
   nl = 0
@@ -2016,7 +2016,7 @@ case ('orbit')
   call tao_locate_elements (word1, u%ix_uni, eles, err)
   if (err) return
   do i = 1, 6
-    nl=nl+1; write (lines(nl), rmt) '     ', &
+    nl=nl+1; write(lines(nl), rmt) '     ', &
                 u%model%lat_branch(eles(1)%ele%ix_branch)%orbit%vec(eles(1)%ele%ix_ele)
   enddo
 
@@ -2087,14 +2087,14 @@ case ('particle')
 
   if (show_lost) then
     bunch => u%uni_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
-    nl=nl+1; write (lines(nl), *) 'Bunch:', nb
+    nl=nl+1; write(lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
     nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
       if (bunch%particle(i)%state == alive$) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
       ie = bunch%particle(i)%ix_ele
-      nl=nl+1; write (lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
+      nl=nl+1; write(lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
     enddo
     result_id = 'particle:lost'
     return
@@ -2117,11 +2117,11 @@ case ('particle')
   ! show all
 
   if (show_all) then
-    nl=nl+1; write (lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
-    nl=nl+1; write (lines(nl), '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
+    nl=nl+1; write(lines(nl), *) 'Element:', ix_ele, '  ', branch%ele(ix_ele)%name
+    nl=nl+1; write(lines(nl), '(a, 6(12x, a))') '  Ix', '  x', 'px', '  y', 'py', '  z', 'pz'
     do i = 1, size(bunch%particle)
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
-      nl=nl+1; write (lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%vec(j), j = 1, 6)
+      nl=nl+1; write(lines(nl), '(i6, 6es15.7)') i, (bunch%particle(i)%vec(j), j = 1, 6)
     enddo
     result_id = 'particle:lost'
     return
@@ -2134,18 +2134,18 @@ case ('particle')
     return
   endif
 
-  nl=nl+1; write (lines(nl), imt) 'At lattice element:', ix_ele
-  nl=nl+1; write (lines(nl), imt) 'Bunch:       ', nb
-  nl=nl+1; write (lines(nl), imt) 'Particle:    ', ix_p
-  nl=nl+1; write (lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%state == alive$
+  nl=nl+1; write(lines(nl), imt) 'At lattice element:', ix_ele
+  nl=nl+1; write(lines(nl), imt) 'Bunch:       ', nb
+  nl=nl+1; write(lines(nl), imt) 'Particle:    ', ix_p
+  nl=nl+1; write(lines(nl), lmt) 'Is Alive?    ', bunch%particle(ix_p)%state == alive$
   if (u%model%lat%branch(ix_branch)%param%particle == photon$) then
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%field(1)**2
-    nl=nl+1; write (lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%field(2)**2
+    nl=nl+1; write(lines(nl), rmt) 'Intensity_x: ', bunch%particle(ix_p)%field(1)**2
+    nl=nl+1; write(lines(nl), rmt) 'Intensity_y: ', bunch%particle(ix_p)%field(2)**2
   else
-    nl=nl+1; write (lines(nl), rmt) 'Charge:      ', bunch%particle(ix_p)%charge
+    nl=nl+1; write(lines(nl), rmt) 'Charge:      ', bunch%particle(ix_p)%charge
   endif
-  nl=nl+1; write (lines(nl), lmt) 'Coords: '
-  nl=nl+1; write (lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%vec
+  nl=nl+1; write(lines(nl), lmt) 'Coords: '
+  nl=nl+1; write(lines(nl), '(a, 6es13.5)') '  ', bunch%particle(ix_p)%vec
 
   result_id = show_what
 
@@ -2170,8 +2170,8 @@ case ('plot')
   if (what == '-floor_plan') then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Plot_page parameters:'
-    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
-    nl=nl+1; write (lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
+    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
+    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
@@ -2182,7 +2182,7 @@ case ('plot')
     do i = 1, size(s%plotting%floor_plan%ele_shape)
       shape => s%plotting%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
-      nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
                 shape%size, shape%label, shape%draw
     enddo
@@ -2204,7 +2204,7 @@ case ('plot')
     do i = 1, size(s%plotting%lat_layout%ele_shape)
       shape => s%plotting%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
-      nl=nl+1; write (lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
                 shape%size, shape%label, shape%draw
     enddo
@@ -2218,17 +2218,17 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write (lines(nl), imt)  '%size                       = ', nint(s%plotting%size)
-    nl=nl+1; write (lines(nl), imt)  '%n_curve_pts                = ', s%plotting%n_curve_pts
-    nl=nl+1; write (lines(nl), f3mt) '%text_height                = ', s%plotting%text_height 
-    nl=nl+1; write (lines(nl), f3mt) '%main_title_text_scale      = ', s%plotting%main_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%key_table_text_scale       = ', s%plotting%key_table_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%legend_text_scale          = ', s%plotting%legend_text_scale 
-    nl=nl+1; write (lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
-    nl=nl+1; write (lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
+    nl=nl+1; write(lines(nl), imt)  '%size                       = ', nint(s%plotting%size)
+    nl=nl+1; write(lines(nl), imt)  '%n_curve_pts                = ', s%plotting%n_curve_pts
+    nl=nl+1; write(lines(nl), f3mt) '%text_height                = ', s%plotting%text_height 
+    nl=nl+1; write(lines(nl), f3mt) '%main_title_text_scale      = ', s%plotting%main_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%key_table_text_scale       = ', s%plotting%key_table_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%legend_text_scale          = ', s%plotting%legend_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
+    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
@@ -2240,10 +2240,10 @@ case ('plot')
       if (p%name == 'scratch') cycle
       if (allocated(p%graph)) then
           write (fmt, '(a, i0, a)') '(3x, a30, ', size(p%graph), '(2a, 2x), t57, a)'
-          nl=nl+1; write (lines(nl), fmt) p%name, &
+          nl=nl+1; write(lines(nl), fmt) p%name, &
                       ('.', trim(p%graph(j)%name), j = 1, size(p%graph)), p%description
       else
-        nl=nl+1; write (lines(nl), '(3x, a)') p%name 
+        nl=nl+1; write(lines(nl), '(3x, a)') p%name 
       endif
     enddo
 
@@ -2257,7 +2257,7 @@ case ('plot')
     do i = 1, size(s%plotting%region)
       region => s%plotting%region(i)
       if (region%name == '') cycle
-      nl=nl+1; write (lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
+      nl=nl+1; write(lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
                                     region%name, '<-->  ', region%plot%name, region%location
     enddo
 
@@ -2276,23 +2276,23 @@ case ('plot')
       nl=nl+1; lines(nl) = 'Region:  ' // trim(p%name)
     endif
     nl=nl+1; lines(nl) = 'Plot:  ' // p%name
-    nl=nl+1; write (lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
-    nl=nl+1; write (lines(nl), amt) 'x%label              = ', p%x%label
-    nl=nl+1; write (lines(nl), rmt) 'x%max                = ', p%x%max
-    nl=nl+1; write (lines(nl), rmt) 'x%min                = ', p%x%min
-    nl=nl+1; write (lines(nl), imt) 'x%major_div          = ', p%x%major_div
-    nl=nl+1; write (lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
-    nl=nl+1; write (lines(nl), imt) 'x%places             = ', p%x%places
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
-    nl=nl+1; write (lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
-    nl=nl+1; write (lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
+    nl=nl+1; write(lines(nl), amt) 'x_axis_type          = ', p%x_axis_type
+    nl=nl+1; write(lines(nl), amt) 'x%label              = ', p%x%label
+    nl=nl+1; write(lines(nl), rmt) 'x%max                = ', p%x%max
+    nl=nl+1; write(lines(nl), rmt) 'x%min                = ', p%x%min
+    nl=nl+1; write(lines(nl), imt) 'x%major_div          = ', p%x%major_div
+    nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal  = ', p%x%major_div_nominal
+    nl=nl+1; write(lines(nl), imt) 'x%places             = ', p%x%places
+    nl=nl+1; write(lines(nl), lmt) 'x%draw_label         = ', p%x%draw_label
+    nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers       = ', p%x%draw_numbers
+    nl=nl+1; write(lines(nl), lmt) 'autoscale_x          = ', p%autoscale_x
+    nl=nl+1; write(lines(nl), lmt) 'autoscale_y          = ', p%autoscale_y
+    nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_x     = ', p%autoscale_gang_x
+    nl=nl+1; write(lines(nl), lmt) 'autoscale_gang_y     = ', p%autoscale_gang_y
     
     nl=nl+1; lines(nl) = 'Graphs:'
     do i = 1, size(p%graph)
-      nl=nl+1; write (lines(nl), amt) '   ', p%graph(i)%name
+      nl=nl+1; write(lines(nl), amt) '   ', p%graph(i)%name
     enddo
 
   else
@@ -2329,7 +2329,7 @@ case ('taylor_map', 'matrix')
       endif
       call string_trim (stuff2(ix+1:), stuff2, ix)
       if (n_order > ptc_com%taylor_order_ptc) then
-        nl=1; write (lines(nl), '(a, i0)') &
+        nl=1; write(lines(nl), '(a, i0)') &
                   'TAYLOR ORDER CANNOT BE ABOVE ORDER USED IN CALCULATIONS WHICH IS \i0\ ', &
                   ptc_com%taylor_order_ptc
         return
@@ -2428,7 +2428,7 @@ case ('taylor_map', 'matrix')
   else
     vec_in = 0
     if (n_order == 0) then 
-      nl = nl+1; write (lines(nl), '(6f11.6)') vec0
+      nl = nl+1; write(lines(nl), '(6f11.6)') vec0
     else
       if (any(abs(mat6(1:n_order,1:n_order)) >= 1000)) then
         fmt = '(6es12.4, a, es12.4)'
@@ -2437,7 +2437,7 @@ case ('taylor_map', 'matrix')
       endif
 
       do i = 1, 6
-        nl=nl+1; write (lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
+        nl=nl+1; write(lines(nl), fmt) mat6(i,:), '   : ', vec0(i)
       enddo
     endif
   endif
@@ -2495,7 +2495,7 @@ case ('twiss_and_orbit')
     case ('-branch')
       branch => pointer_to_branch(stuff2(1:ix_s2), lat)
       if (.not. associated(branch)) then
-        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
       call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
@@ -2537,18 +2537,18 @@ case ('twiss_and_orbit')
   call twiss_and_track_at_s (lat, s_pos, ele0, tao_lat%lat_branch(ix_branch)%orbit, orb, ix_branch, err)
   if (err) return 
 
-  nl=nl+1; write (lines(nl), '(a, f10.5)') 'At S =', s_pos
-  nl=nl+1; write (lines(nl), '(2a)')       'In Element: ', ele0%name
+  nl=nl+1; write(lines(nl), '(a, f10.5)') 'At S =', s_pos
+  nl=nl+1; write(lines(nl), '(2a)')       'In Element: ', ele0%name
 
   call type2_twiss (ele0, lines(nl+1:), n, s%global%phase_units)
   nl = nl + n
 
   fmt = '(2x, a, 3p2f11.4)'
-  nl=nl+1; write (lines(nl), *) ' '
-  nl=nl+1; write (lines(nl), *)   'Orbit: [mm, mrad]'
-  nl=nl+1; write (lines(nl), fmt) "X  X':", orb%vec(1), orb%vec(2)
-  nl=nl+1; write (lines(nl), fmt) "Y  Y':", orb%vec(3), orb%vec(4)
-  nl=nl+1; write (lines(nl), fmt) "Z  Z':", orb%vec(5), orb%vec(6)
+  nl=nl+1; write(lines(nl), *) ' '
+  nl=nl+1; write(lines(nl), *)   'Orbit: [mm, mrad]'
+  nl=nl+1; write(lines(nl), fmt) "X  X':", orb%vec(1), orb%vec(2)
+  nl=nl+1; write(lines(nl), fmt) "Y  Y':", orb%vec(3), orb%vec(4)
+  nl=nl+1; write(lines(nl), fmt) "Z  Z':", orb%vec(5), orb%vec(6)
 
   result_id = show_what
 
@@ -2578,20 +2578,20 @@ case ('universe')
   lat_branch => u%model%lat_branch(ix_branch)
 
   nl = 0
-  nl=nl+1; write (lines(nl), imt) 'Universe: ', ix_u
-  nl=nl+1; write (lines(nl), imt) 'Branch:   ', ix_branch
-  nl=nl+1; write (lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
-  nl=nl+1; write (lines(nl), imt) '%n_data_used           = ', u%n_data_used
-  nl=nl+1; write (lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
-  nl=nl+1; write (lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
-  nl=nl+1; write (lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
-  nl=nl+1; write (lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
-  nl=nl+1; write (lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
-  nl=nl+1; write (lines(nl), lmt) '%calc%track            = ', u%calc%track
-  nl=nl+1; write (lines(nl), lmt) '%is_on                 = ', u%is_on
-  nl=nl+1; write (lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
-  nl=nl+1; write (lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
-  nl=nl+1; write (lines(nl), amt) '%beam%saved_at:        = ', trim(u%beam%saved_at)
+  nl=nl+1; write(lines(nl), imt) 'Universe: ', ix_u
+  nl=nl+1; write(lines(nl), imt) 'Branch:   ', ix_branch
+  nl=nl+1; write(lines(nl), imt) '%n_d2_data_used        = ', u%n_d2_data_used
+  nl=nl+1; write(lines(nl), imt) '%n_data_used           = ', u%n_data_used
+  nl=nl+1; write(lines(nl), lmt) '%do_rad_int_calc       = ', u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting
+  nl=nl+1; write(lines(nl), lmt) '%do_chrom_calc         = ', u%calc%chrom_for_data .or. u%calc%chrom_for_plotting
+  nl=nl+1; write(lines(nl), lmt) '%calc%mat6             = ', u%calc%mat6
+  nl=nl+1; write(lines(nl), lmt) '%calc%dynamic_aperture = ', u%calc%dynamic_aperture
+  nl=nl+1; write(lines(nl), lmt) '%calc%one_turn_map     = ', u%calc%one_turn_map
+  nl=nl+1; write(lines(nl), lmt) '%calc%track            = ', u%calc%track
+  nl=nl+1; write(lines(nl), lmt) '%is_on                 = ', u%is_on
+  nl=nl+1; write(lines(nl), amt) '%beam0_file            = ', trim(u%beam%beam0_file)
+  nl=nl+1; write(lines(nl), amt) '%beam_all_file         = ', trim(u%beam%beam_all_file)
+  nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', trim(u%beam%saved_at)
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name
@@ -2599,29 +2599,30 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) 'Auto_scale_Field_Amp:   ', lat%auto_scale_field_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
   nl=nl+1; lines(nl) =           'Geometry:               ' // geometry_name(branch%param%geometry)
-  nl=nl+1; write (lines(nl), imt) &
+  nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
+  nl=nl+1; write(lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', branch%n_ele_track
   if (branch%n_ele_max .gt. branch%n_ele_track) then
-    nl=nl+1; write (lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
+    nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
                       branch%n_ele_track+1, '  through ', branch%n_ele_max
   else
-    nl=nl+1; write (lines(nl), '(a)') 'There are NO Lord elements'
+    nl=nl+1; write(lines(nl), '(a)') 'There are NO Lord elements'
   endif
 
-  nl=nl+1; write (lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
-  nl=nl+1; write (lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
+  nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
+  nl=nl+1; write(lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
 
   if (branch%param%geometry == open$ .and. lat_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat_branch%track_state
+      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost beam at:     ', lat_branch%track_state
     else
-      nl=nl+1; write (lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat_branch%track_state
+      nl=nl+1; write(lines(nl), '(a, i0)') 'Tracking: Lost particle at: ', lat_branch%track_state
     endif
   endif
 
   if (.not. branch%param%stable) then
-    nl=nl+1; write (lines(nl), '(a, l)') 'Model lattice stability: ', branch%param%stable
-    nl=nl+1; write (lines(nl), '(a, l)') 'Design lattice stability:', u%design%lat%param%stable
+    nl=nl+1; write(lines(nl), '(a, l)') 'Model lattice stability: ', branch%param%stable
+    nl=nl+1; write(lines(nl), '(a, l)') 'Design lattice stability:', u%design%lat%param%stable
     result_id = 'universe:unstable'
     return
   endif
@@ -2634,8 +2635,8 @@ case ('universe')
   endif
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write (lines(nl), '(17x, a)') '       X          |            Y'
-  nl=nl+1; write (lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
+  nl=nl+1; write(lines(nl), '(17x, a)') '       X          |            Y'
+  nl=nl+1; write(lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
   fmt  = '(1x, a10, 2es11.3, 2x, 2es11.3, 2x, a)'
   fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
   fmt3 = '(1x, a10,        24x, 2es11.3, 2x, a)'
@@ -2644,55 +2645,55 @@ case ('universe')
   gamma2 = (lat%ele(0)%value(e_tot$) / mass_of(lat%param%particle))**2
   n = lat%n_ele_track
   if (lat%param%geometry == closed$) then
-    nl=nl+1; write (lines(nl), fmt2) 'Q', f_phi*lat%ele(n)%a%phi, &
+    nl=nl+1; write(lines(nl), fmt2) 'Q', f_phi*lat%ele(n)%a%phi, &
           f_phi*u%design%lat%ele(n)%a%phi, f_phi*lat%ele(n)%b%phi, &
           f_phi*u%design%lat%ele(n)%b%phi,  '! Tune'
-    nl=nl+1; write (lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
+    nl=nl+1; write(lines(nl), fmt2) 'Chrom', u%model%a%chrom, & 
           u%design%a%chrom, u%model%b%chrom, u%design%b%chrom, '! dQ/(dE/E)'
-    nl=nl+1; write (lines(nl), fmt2) 'J_damp', u%model%modes%a%j_damp, &
+    nl=nl+1; write(lines(nl), fmt2) 'J_damp', u%model%modes%a%j_damp, &
         u%design%modes%a%j_damp, u%model%modes%b%j_damp, &
         u%design%modes%b%j_damp, '! Damping Partition #'
-    nl=nl+1; write (lines(nl), fmt) 'Emittance', u%model%modes%a%emittance, &
+    nl=nl+1; write(lines(nl), fmt) 'Emittance', u%model%modes%a%emittance, &
         u%design%modes%a%emittance, u%model%modes%b%emittance, &
         u%design%modes%b%emittance, '! Meters'
   endif
-  nl=nl+1; write (lines(nl), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp', u%model%modes%a%alpha_damp, &
         u%design%modes%a%alpha_damp, u%model%modes%b%alpha_damp, &
         u%design%modes%b%alpha_damp, '! Damping per turn'
-  nl=nl+1; write (lines(nl), fmt) 'I4', u%model%modes%a%synch_int(4), &
+  nl=nl+1; write(lines(nl), fmt) 'I4', u%model%modes%a%synch_int(4), &
         u%design%modes%a%synch_int(4), u%model%modes%b%synch_int(4), &
         u%design%modes%b%synch_int(4), '! Radiation Integral'
-  nl=nl+1; write (lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
+  nl=nl+1; write(lines(nl), fmt) 'I5', u%model%modes%a%synch_int(5), &
         u%design%modes%a%synch_int(5), u%model%modes%b%synch_int(5), &
         u%design%modes%b%synch_int(5), '! Radiation Integral'
-  nl=nl+1; write (lines(nl), fmt3) 'I6/gamma^2', u%model%modes%b%synch_int(6) / gamma2, &
+  nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', u%model%modes%b%synch_int(6) / gamma2, &
         u%design%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write (lines(nl), '(19x, a)') 'Model     Design'
+  nl=nl+1; write(lines(nl), '(19x, a)') 'Model     Design'
   fmt = '(1x, a12, 1p2e11.3, 3x, a)'
   if (lat%param%geometry == closed$) then
     call calc_z_tune(u%model%lat)
-    nl=nl+1; write (lines(nl), '(1x, a12, 2f11.4, 3x, a)') 'Z_tune:', &
+    nl=nl+1; write(lines(nl), '(1x, a12, 2f11.4, 3x, a)') 'Z_tune:', &
          -u%model%lat%z%tune/twopi, -u%design%lat%z%tune/twopi, '! The design value is calculated with RF on'
   endif
-  nl=nl+1; write (lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
+  nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
             u%design%modes%sigE_E
-  nl=nl+1; write (lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &
+  nl=nl+1; write(lines(nl), fmt) 'Energy Loss:', u%model%modes%e_loss, &
             u%design%modes%e_loss, '! Energy_Loss (eV / Turn)'
-  nl=nl+1; write (lines(nl), fmt) 'J_damp:', u%model%modes%z%j_damp, &
+  nl=nl+1; write(lines(nl), fmt) 'J_damp:', u%model%modes%z%j_damp, &
         u%design%modes%z%j_damp, '! Longitudinal Damping Partition #'
-  nl=nl+1; write (lines(nl), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_damp:', u%model%modes%z%alpha_damp, &
         u%design%modes%z%alpha_damp, '! Longitudinal Damping per turn'
-  nl=nl+1; write (lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
+  nl=nl+1; write(lines(nl), fmt) 'Alpha_p:', u%model%modes%synch_int(1)/l_lat, &
                u%design%modes%synch_int(1)/l_lat, '! Momentum Compaction'
-  nl=nl+1; write (lines(nl), fmt) 'I0:', u%model%modes%synch_int(0), &
+  nl=nl+1; write(lines(nl), fmt) 'I0:', u%model%modes%synch_int(0), &
                u%design%modes%synch_int(0), '! Radiation Integral'
-  nl=nl+1; write (lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
+  nl=nl+1; write(lines(nl), fmt) 'I1:', u%model%modes%synch_int(1), &
                u%design%modes%synch_int(1), '! Radiation Integral'
-  nl=nl+1; write (lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &
+  nl=nl+1; write(lines(nl), fmt) 'I2:', u%model%modes%synch_int(2), &
                u%design%modes%synch_int(2), '! Radiation Integral'
-  nl=nl+1; write (lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
+  nl=nl+1; write(lines(nl), fmt) 'I3:', u%model%modes%synch_int(3), &
                u%design%modes%synch_int(3), '! Radiation Integral'
 
   result_id = show_what
@@ -2716,11 +2717,11 @@ case ('use')
           do n = lbound(d1_ptr%d, 1), ubound(d1_ptr%d, 1)
             if (.not. d1_ptr%d(n)%useit_opt) cycle
             if (nl + 100 > size(lines)) call re_allocate(lines, nl+100, .false.)
-            nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore data ', trim(tao_d2_d1_name(d1_ptr)), '[', n, ']'
+            nl=nl+1; write(lines(nl), '(3a, i0, a)') 'restore data ', trim(tao_d2_d1_name(d1_ptr)), '[', n, ']'
           enddo
         else
           if (line == '') cycle
-          nl=nl+1; write (lines(nl), '(5a)') 'use data ', trim(tao_d2_d1_name(d1_ptr)), '[', trim(line), ']'
+          nl=nl+1; write(lines(nl), '(5a)') 'use data ', trim(tao_d2_d1_name(d1_ptr)), '[', trim(line), ']'
         endif
       enddo
     enddo
@@ -2738,10 +2739,10 @@ case ('use')
       do j = lbound(v1_ptr%v, 1), ubound(v1_ptr%v, 1)
         if (.not. v1_ptr%v(j)%useit_opt) cycle
         if (nl + 100 > size(lines)) call re_allocate(lines, nl+100, .false.)
-        nl=nl+1; write (lines(nl), '(3a, i0, a)') 'restore var ', trim(v1_ptr%name), '[', j, ']'
+        nl=nl+1; write(lines(nl), '(3a, i0, a)') 'restore var ', trim(v1_ptr%name), '[', j, ']'
       enddo
     else
-      nl=nl+1; write (lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
+      nl=nl+1; write(lines(nl), '(5a)') 'use var ', trim(v1_ptr%name), '[', trim(line), ']'
     endif
   enddo
 
@@ -2756,11 +2757,11 @@ case ('value')
   if (err) return
 
   if (size(value) == 1) then
-    nl=nl+1; write (lines(nl), '(3x, es17.8)') value(1)
+    nl=nl+1; write(lines(nl), '(3x, es17.8)') value(1)
   else
     call re_allocate (lines, size(value)+100, .false.)
     do i = 1, size(value)
-      nl=nl+1; write (lines(nl), '(i4, a, es17.8)') i, ':  ', value(i)
+      nl=nl+1; write(lines(nl), '(i4, a, es17.8)') i, ':  ', value(i)
     enddo
   endif
 
@@ -2828,9 +2829,9 @@ case ('variable')
     endif
 
     if (print_header_lines) then
-      nl=nl+1; write (lines(nl), '(a, i4)') 'Variables controlling universe:', ix_u
-      nl=nl+1; write (lines(nl), '(5x, a)') '                    '
-      nl=nl+1; write (lines(nl), '(5x, a)') 'Name                '
+      nl=nl+1; write(lines(nl), '(a, i4)') 'Variables controlling universe:', ix_u
+      nl=nl+1; write(lines(nl), '(5x, a)') '                    '
+      nl=nl+1; write(lines(nl), '(5x, a)') 'Name                '
     endif
 
     do i = 1, s%n_var_used
@@ -2851,7 +2852,7 @@ case ('variable')
 
   if (word1 == ' ') then
     if (print_header_lines) then
-      nl=nl+1; write (lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
+      nl=nl+1; write(lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
     endif
     do i = 1, s%n_v1_var_used
       v1_ptr => s%v1_var(i)
@@ -3018,7 +3019,7 @@ case ('wall')
     case ('-branch')
       branch => pointer_to_branch(stuff2(1:ix_s2), u%model%lat)
       if (.not. associated(branch)) then
-        nl=1; write (lines(1), *) 'Bad branch index:', ix_branch
+        nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
         return
       endif
       ix_branch = branch%ix_branch
@@ -3050,26 +3051,26 @@ case ('wall')
 
   if (ix_sec > 0) then 
     if (ix_sec > size(wall%section)) then
-      nl=1; write (lines(nl), '(a, i0)') 'Section index larger than number of sections: ', size(wall%section)
+      nl=1; write(lines(nl), '(a, i0)') 'Section index larger than number of sections: ', size(wall%section)
       result_id = 'wall:sec:large'
       return
     endif
 
     wall_sec => wall%section(ix_sec)
     ele => pointer_to_ele(lat, wall_sec%ix_ele, wall_sec%ix_branch)
-    nl=nl+1; write (lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_to_string(ele)), ')'
-    nl=nl+1; write (lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
-    nl=nl+1; write (lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
-    nl=nl+1; write (lines(nl), '(3(a, f10.6))')  '(x0, y0):  (', wall_sec%x0, ',', wall_sec%y0, ')'
+    nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_to_string(ele)), ')'
+    nl=nl+1; write(lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
+    nl=nl+1; write(lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
+    nl=nl+1; write(lines(nl), '(3(a, f10.6))')  '(x0, y0):  (', wall_sec%x0, ',', wall_sec%y0, ')'
     if (wall_sec%dr_ds == real_garbage$) then
-      nl=nl+1; write (lines(nl), '(3(a, f10.6))')  'dr_ds:       Not-Set'
+      nl=nl+1; write(lines(nl), '(3(a, f10.6))')  'dr_ds:       Not-Set'
     else
-      nl=nl+1; write (lines(nl), '(3(a, f10.6))')  'dr_ds:      ', wall_sec%dr_ds
+      nl=nl+1; write(lines(nl), '(3(a, f10.6))')  'dr_ds:      ', wall_sec%dr_ds
     endif
 
     do j = 1, size(wall_sec%v)
       v => wall_sec%v(j)
-      nl=nl+1; write (lines(nl), '(a, i0, a, 5f11.6)') &
+      nl=nl+1; write(lines(nl), '(a, i0, a, 5f11.6)') &
                             'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
     enddo
 
@@ -3120,7 +3121,7 @@ case ('wall')
     ele => pointer_to_ele (lat, wall_sec%ix_ele, wall_sec%ix_branch)
     
     call calc_wall_radius (wall%section(i)%v, cos(angle), sin(angle), r, z)
-    nl=nl+1; write (lines(nl), '(i6, f14.6, a10, a20, a10, f14.3)') i, wall_sec%s, &
+    nl=nl+1; write(lines(nl), '(i6, f14.6, a10, a20, a10, f14.3)') i, wall_sec%s, &
                 trim(ele_loc_to_string(ele)), trim(ele%name), trim(wall3d_section_type_name(wall_sec%type)), 1000*r
   enddo
 
@@ -3150,7 +3151,7 @@ case ('wave')
     endif
     nl=nl+1; lines(nl) = 'After Dat#    Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 10)
-      nl=nl+1; write (lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, &
+      nl=nl+1; write(lines(nl), '(i9, f12.2, 1f10.3)') s%wave%kick(i)%ix_dat, &
                   1e6*s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
@@ -3166,7 +3167,7 @@ case ('wave')
     nl=nl+1; lines(nl) = '   where k = quadrupole gradient [rad/m^2].'
     nl=nl+1; lines(nl) = 'After Dat#     Norm_K       phi'
     do i = 1, min(s%wave%n_kick, 10)
-      nl=nl+1; write (lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, &
+      nl=nl+1; write(lines(nl), '(i9, f12.4, f10.3)') s%wave%kick(i)%ix_dat, &
                   s%wave%kick(i)%amp, s%wave%kick(i)%phi
     enddo
 
@@ -3186,7 +3187,7 @@ case ('wave')
 
     nl=nl+1; lines(nl) = 'After Dat#     Norm_K    phi+    phi-   phi_a   phi_b'
     do i = 1, min(s%wave%n_kick, 10)
-      nl=nl+1; write (lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') &
+      nl=nl+1; write(lines(nl), '(i11, f10.4, 4f8.3, 2f10.3)') &
             s%wave%kick(i)%ix_dat, &
             s%wave%kick(i)%amp, s%wave%kick(i)%phi_s, s%wave%kick(i)%phi_r, &
             (s%wave%kick(i)%phi_s+s%wave%kick(i)%phi_r)/2, &
@@ -3230,7 +3231,7 @@ logical found_one
 
 !
 
-nl=nl+1; write (lines(nl), '(a)') "  "
+nl=nl+1; write(lines(nl), '(a)') "  "
 write (l1, '(a, 20x, a)') "Data Name", &
           "Data Type             |  Model Value  |  Design Value |  Base Value"
 nl=nl+1; lines(nl) = l1
@@ -3240,7 +3241,7 @@ do i = 1, size(u%data)
   if (u%data(i)%ix_ele == ele%ix_ele .and. u%data(i)%ix_branch == ele%ix_branch) then
     found_one = .true.
     datum => u%data(i)
-    nl=nl+1; write (lines(nl), "(a, t30, a20, 3(1x, es15.5))") &
+    nl=nl+1; write(lines(nl), "(a, t30, a20, 3(1x, es15.5))") &
                 trim(tao_datum_name(datum)),  datum%data_type, datum%model_value, &
                 datum%design_value, datum%base_value 
   endif
@@ -3249,7 +3250,7 @@ enddo
 if (found_one) then
   nl=nl+1; lines(nl) = l1
 else
-  write (lines(nl), '(a)') "No data associated with this element."
+  write(lines(nl), '(a)') "No data associated with this element."
 endif
 
 end subroutine show_ele_data
@@ -3263,30 +3264,30 @@ subroutine show_opt ()
 implicit none
 
 nl=nl+1; lines(nl) = 'Global optimization parameters:'
-nl=nl+1; write (lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
-nl=nl+1; write (lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
-nl=nl+1; write (lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
-nl=nl+1; write (lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
-nl=nl+1; write (lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
-nl=nl+1; write (lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
-nl=nl+1; write (lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
-nl=nl+1; write (lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
-nl=nl+1; write (lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
-nl=nl+1; write (lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
-nl=nl+1; write (lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
-nl=nl+1; write (lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
-nl=nl+1; write (lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
-nl=nl+1; write (lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
-nl=nl+1; write (lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
+nl=nl+1; write(lines(nl), rmt) '  %de_lm_step_ratio              = ', s%global%de_lm_step_ratio
+nl=nl+1; write(lines(nl), rmt) '  %de_var_to_population_factor   = ', s%global%de_var_to_population_factor
+nl=nl+1; write(lines(nl), rmt) '  %lm_opt_deriv_reinit           = ', s%global%lm_opt_deriv_reinit
+nl=nl+1; write(lines(nl), rmt) '  %lmdif_eps                     = ', s%global%lmdif_eps
+nl=nl+1; write(lines(nl), rmt) '  %merit_stop_value              = ', s%global%merit_stop_value
+nl=nl+1; write(lines(nl), rmt) '  %svd_cutoff                    = ', s%global%svd_cutoff
+nl=nl+1; write(lines(nl), imt) '  %n_top10                       = ', s%global%n_top10
+nl=nl+1; write(lines(nl), imt) '  %n_opti_loops                  = ', s%global%n_opti_loops
+nl=nl+1; write(lines(nl), imt) '  %n_opti_cycles                 = ', s%global%n_opti_cycles
+nl=nl+1; write(lines(nl), lmt) '  %derivative_recalc             = ', s%global%derivative_recalc
+nl=nl+1; write(lines(nl), lmt) '  %svd_retreat_on_merit_increase = ', s%global%svd_retreat_on_merit_increase 
+nl=nl+1; write(lines(nl), lmt) '  %derivative_uses_design        = ', s%global%derivative_uses_design
+nl=nl+1; write(lines(nl), lmt) '  %opt_with_ref                  = ', s%global%opt_with_ref 
+nl=nl+1; write(lines(nl), lmt) '  %opt_with_base                 = ', s%global%opt_with_base
+nl=nl+1; write(lines(nl), amt) '  %optimizer                     = ', s%global%optimizer
 nl=nl+1; lines(nl) = ''
 nl=nl+1; lines(nl) = 'opti_de_param Parameters:'
-nl=nl+1; write (lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
-nl=nl+1; write (lines(nl), rmt) '  %F                    = ', opti_de_param%F
-nl=nl+1; write (lines(nl), rmt) '  %l_best               = ', opti_de_param%l_best
-nl=nl+1; write (lines(nl), lmt) '  %binomial_cross       = ', opti_de_param%binomial_cross
-nl=nl+1; write (lines(nl), lmt) '  %use_2nd_diff         = ', opti_de_param%use_2nd_diff
-nl=nl+1; write (lines(nl), lmt) '  %randomize_F          = ', opti_de_param%randomize_F
-nl=nl+1; write (lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%minimize_merit
+nl=nl+1; write(lines(nl), rmt) '  %CR                   = ', opti_de_param%CR
+nl=nl+1; write(lines(nl), rmt) '  %F                    = ', opti_de_param%F
+nl=nl+1; write(lines(nl), rmt) '  %l_best               = ', opti_de_param%l_best
+nl=nl+1; write(lines(nl), lmt) '  %binomial_cross       = ', opti_de_param%binomial_cross
+nl=nl+1; write(lines(nl), lmt) '  %use_2nd_diff         = ', opti_de_param%use_2nd_diff
+nl=nl+1; write(lines(nl), lmt) '  %randomize_F          = ', opti_de_param%randomize_F
+nl=nl+1; write(lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%minimize_merit
 
 end subroutine show_opt
 
