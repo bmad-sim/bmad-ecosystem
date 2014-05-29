@@ -679,8 +679,8 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
-  logical auto_scale_field_phase             ! See auto_scale_field_phase_and_amp routine.
-  logical auto_scale_field_amp               ! See auto_scale_field_phase_and_amp routine.
+  logical auto_scale_field_phase          ! See auto_scale_field_phase_and_amp routine.
+  logical auto_scale_field_amp            ! See auto_scale_field_phase_and_amp routine.
   logical use_ptc_layout                  ! Use ptc layout for lattice
 end type
 
