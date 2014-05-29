@@ -28,12 +28,12 @@ type (ele_struct), target :: ele
 type (coord_struct) :: orb0, orb_in, orb_out
 type (lat_param_struct)  param
 
-! If ele%map_with_offsets = False then the Taylor map does not have
+! If ele%taylor_map_includes_offsets = False then the Taylor map does not have
 ! any offsets in it and we must put them in explicitly using offset_particle.
 
 if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, orb_in)
 
-if (ele%map_with_offsets) then
+if (ele%taylor_map_includes_offsets) then
   call taylor_to_mat6 (ele%taylor, orb_in%vec, ele%vec0, ele%mat6)
 
 else

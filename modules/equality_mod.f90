@@ -1765,7 +1765,7 @@ is_eq = is_eq .and. (f1%multipoles_on .eqv. f2%multipoles_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%scale_multipoles .eqv. f2%scale_multipoles)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%map_with_offsets .eqv. f2%map_with_offsets)
+is_eq = is_eq .and. (f1%taylor_map_includes_offsets .eqv. f2%taylor_map_includes_offsets)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%field_master .eqv. f2%field_master)
 !! f_side.equality_test[logical, 0, NOT]

@@ -414,7 +414,7 @@ read (d_unit, err = 9100, end = 9100) &
         ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &
         ele%spin_tracking_method, ele%symplectify, ele%mode_flip, &
-        ele%multipoles_on, ele%map_with_offsets, ele%Field_master, &
+        ele%multipoles_on, ele%taylor_map_includes_offsets, ele%Field_master, &
         ele%logic, ele%old_is_on, ele%field_calc, ele%aperture_at, &
         ele%aperture_type, ele%csr_calc_on, ele%orientation, &
         ele%map_ref_orb_in, ele%map_ref_orb_out, ele%offset_moves_aperture, &

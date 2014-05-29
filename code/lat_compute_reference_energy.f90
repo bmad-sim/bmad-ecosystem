@@ -577,7 +577,7 @@ end select
 
 changed = has_changed
 if (ele%tracking_method == taylor$) then
-  if (.not. associated (ele%taylor(1)%term) .or. (changed .and. ele%map_with_offsets)) &
+  if (.not. associated (ele%taylor(1)%term) .or. (changed .and. ele%taylor_map_includes_offsets)) &
                                                        ele%tracking_method = symp_lie_bmad$
 endif
 

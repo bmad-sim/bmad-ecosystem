@@ -104,7 +104,7 @@ The complete structure is shown in this and the following figure.}
   logical mode_flip              ! Have the normal modes traded places?
   logical multipoles_on          ! For turning multipoles on/off
   logical scale_multipoles       ! multipole components scaled by the strength of element?
-  logical map_with_offsets       ! Taylor map calculated with element offsets?
+  logical taylor_map_includes_offsets       ! Taylor map calculated with element offsets?
   logical field_master           ! Calculate strength from the field value?
   logical is_on                  ! For turning element on/off.
   logical old_is_on              ! For saving the element on/off state.
@@ -746,7 +746,7 @@ map calculations.  These are:
   %taylor_order
   %symplectify
   %multipoles_on
-  %map_with_offsets
+  %taylor_map_includes_offsets
   %is_on
   %csr_calc_on
   %offset_moves_apaerture

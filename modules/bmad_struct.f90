@@ -543,8 +543,8 @@ type ele_struct
   logical mode_flip              ! Have the normal modes traded places?
   logical multipoles_on          ! For turning multipoles on/off
   logical scale_multipoles       ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                                 !   scaled by the strength of the element?
-  logical map_with_offsets       ! Taylor map calculated with element offsets?
+                                 !        scaled by the strength of the element?
+  logical taylor_map_includes_offsets ! Taylor map calculated with element misalignments?
   logical field_master           ! Calculate strength from the field value?
   logical is_on                  ! For turning element on/off.
   logical old_is_on              ! For saving the element on/off state.
@@ -866,7 +866,7 @@ integer, parameter :: end_edge$  = 84, etap_x$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
-integer, parameter :: map_with_offsets$ = 88, cmat_11$ = 88, surface_attrib$ = 88
+integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12$ = 89
 integer, parameter :: s_position$ = 90, cmat_21$ = 90
 integer, parameter :: mat6_calc_method$ = 91, cmat_22$ = 91
@@ -1180,7 +1180,7 @@ type bmad_common_struct
   logical :: spin_tracking_on = .false.            ! spin tracking?
   logical :: radiation_damping_on = .false.        ! Damping toggle.
   logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
-  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%map_with_offsets = F?
+  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
   logical :: auto_scale_field_phase_default = .true.       ! Default for lat%auto_scale_field_phase
   logical :: auto_scale_field_amp_default = .true.         ! Default for lat%auto_scale_field_amp

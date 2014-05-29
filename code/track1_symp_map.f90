@@ -35,7 +35,7 @@ real(dp) re(lnv), beta0, dtime_ref
 start2_orb = start_orb
 end_orb = start_orb
 
-if (ele%map_with_offsets) then  ! simple case
+if (ele%taylor_map_includes_offsets) then  ! simple case
   call track1_this_body
 
 else

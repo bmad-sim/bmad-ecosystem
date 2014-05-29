@@ -2547,7 +2547,7 @@ endif
 ! ele%map_with_offset = T means that misalignment effects are already included 
 ! in ele%taylor.
 
-if (ele%map_with_offsets .or. ele%key == taylor$) then
+if (ele%taylor_map_includes_offsets .or. ele%key == taylor$) then
   call concat_taylor (taylor1, ele%taylor, taylor3)
   return
 endif
@@ -2696,7 +2696,7 @@ end subroutine taylor_propagate1
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
+! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets)
 !
 ! Subroutine to make a taylor map for an element. 
 ! The order of the map is set by set_ptc
@@ -2708,19 +2708,19 @@ end subroutine taylor_propagate1
 !   ele   -- Element_struct: 
 !     %value(integrator_order$)  -- Order for the symplectic integrator: 2, 4, or 6.
 !     %value(ds_step$)          -- Integrater step size.
-!     %map_with_offsets         -- Make Taylor map with element offsets, pitches, and tilt?
+!     %taylor_map_includes_offsets         -- Make Taylor map with element offsets, pitches, and tilt?
 !   orb0  -- Coord_struct, optional: Starting coords around which the Taylor map is evaluated.
 !   param -- lat_param_struct: 
 !     %e_tot -- Needed for wigglers.
-!   map_with_offsets -- Logical, optional: If present then overrides 
-!                         ele%map_with_offsets.
+!   taylor_map_includes_offsets -- Logical, optional: If present then overrides 
+!                         ele%taylor_map_includes_offsets.
 !
 ! Output:
 !   ele -- Element_struct:
 !     %taylor(6)  -- Taylor maps.
 !-
 
-subroutine ele_to_taylor (ele, param, orb0, map_with_offsets)
+subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
@@ -2737,7 +2737,7 @@ type (real_8) y0(6), y2(6), y8(6), bet
 
 real(dp) x(6), beta
 
-logical, optional :: map_with_offsets
+logical, optional :: taylor_map_includes_offsets
 logical :: warning_given = .false.
 logical use_offsets
 
@@ -2771,7 +2771,7 @@ endif
 
 ! Initial map
 
-use_offsets = logic_option(ele%map_with_offsets, map_with_offsets)
+use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
  
 
 if (present(orb0)) then

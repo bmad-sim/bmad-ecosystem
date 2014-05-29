@@ -48,7 +48,7 @@ endif
 start2_orb = start_orb
 end_orb = start_orb
 
-if (ele%map_with_offsets) then  ! simple case
+if (ele%taylor_map_includes_offsets) then  ! simple case
   call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
 
 else

@@ -432,7 +432,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, l$,                   'L')
 
   call init_attribute_name1 (i, symplectify$,         'SYMPLECTIFY')
-  call init_attribute_name1 (i, map_with_offsets$,    'MAP_WITH_OFFSETS')
+  call init_attribute_name1 (i, taylor_map_includes_offsets$,    'TAYLOR_MAP_INCLUDES_OFFSETS')
 
   if (i == sad_mult$)      cycle
 
@@ -1272,7 +1272,7 @@ select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'AUTO_SCALE_FIELD_PHASE', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
-      'MAP_WITH_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
+      'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
       'BRANCHES_ARE_COHERENT')
   attrib_type = is_logical$
