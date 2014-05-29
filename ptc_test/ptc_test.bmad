@@ -14,7 +14,7 @@ xoff = 5e-3
 xpitch = 1e-4
 
 wig1: wig0, x_offset = xoff, x_pitch = xpitch
-wig2: wig0, map_with_offsets = T
+wig2: wig0, taylor_map_includes_offsets = T
 
 
 l: line = (wig1, wig2)

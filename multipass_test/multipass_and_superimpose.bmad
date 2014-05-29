@@ -8,7 +8,7 @@ beginning[e_tot] = 1e9
 
 dri01: pipe, l = 6
 null_d: null_ele
-pum01: instrument, l = 1, superimpose, ref = null_d, offset = -4
+q01: quadrupole, l = 1, superimpose, ref = null_d, offset = -4, a2 = 1, tracking_method = runge_kutta
 
 mline: line[multipass] = (dri01, null_d) 
 erlrecovery: line = (mline, mline)
