@@ -322,7 +322,6 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! Slave bookkeeping
 
   call_a_bookkeeper = .false.
-  ele%bookkeeping_state%control = ok$
 
   if (ele%slave_status == super_slave$) then
     ! Attrubute bookkeeping is done in the makeup_super_slave
@@ -345,7 +344,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
     call_a_bookkeeper = .true.
   endif
 
-  ! If bookkeeping has been done by a makeup_*_salve routine then
+  ! If bookkeeping has been done by a makeup_*_slave routine then
   ! attribute_bookkeeper must be called again.
   ! This is true even if the lattice is static since a slave element
   ! can have its lord's dependent attribute values.
@@ -353,6 +352,8 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! num_steps in the slave is different from the lord due to differences in length.
 
   if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+
+  ele%bookkeeping_state%control = ok$
 
 endif
 
@@ -739,9 +740,7 @@ endif
 ! Multipoles
 
 if (associated (slave%a_pole)) then
-  if (slave%value(p0c$) == 0) then  ! Can happen if not finished parsing lattice file
-    slave%bookkeeping_state%control = stale$
-  else
+  if (slave%value(p0c$) /= 0) then  ! Can happen if not finished parsing lattice file
     slave%a_pole           = lord%a_pole * lord%value(p0c$) / slave%value(p0c$)
     slave%b_pole           = lord%b_pole * lord%value(p0c$) / slave%value(p0c$)
     slave%multipoles_on    = lord%multipoles_on
@@ -770,7 +769,7 @@ endif
 
 ! methods
 
-slave%map_with_offsets = lord%map_with_offsets
+slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%is_on            = lord%is_on
 
 ! Handled by set_flags_for_changed_attribute
@@ -969,7 +968,7 @@ do j = 1, slave%n_lord
   if (n_major_lords == 0) then
     slave%mat6_calc_method = lord%mat6_calc_method
     slave%tracking_method  = lord%tracking_method
-    slave%map_with_offsets = lord%map_with_offsets
+    slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
   endif
 
   select case (lord%key)
@@ -990,9 +989,9 @@ do j = 1, slave%n_lord
              trim(lord1%name) // ': ' //  tracking_method_name(lord1%tracking_method))
         if (global_com%exit_on_error) call err_exit
       endif
-      if (slave%map_with_offsets .neqv. lord%map_with_offsets) then
+      if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
         lord1 => pointer_to_lord(slave, 1)
-        call out_io(s_abort$, r_name, 'MAP_WITH_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
+        call out_io(s_abort$, r_name, 'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
         if (global_com%exit_on_error) call err_exit
       endif
@@ -1686,7 +1685,7 @@ slave%value = value
 slave%is_on = lord%is_on
 slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
-slave%map_with_offsets = lord%map_with_offsets
+slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 
 if (slave%tracking_method == bmad_standard$ .and. slave%key == em_field$) slave%tracking_method = runge_kutta$
 if (slave%mat6_calc_method == bmad_standard$ .and. slave%key == em_field$) slave%mat6_calc_method = tracking$
@@ -2573,28 +2572,28 @@ endif
 ! If an element has just been offset and bmad_com%conserve_taylor_map = T then 
 ! conserve the taylor map.
 
-if (associated(ele%taylor(1)%term) .and. ele%map_with_offsets .and. &
+if (associated(ele%taylor(1)%term) .and. ele%taylor_map_includes_offsets .and. &
         offset_nonzero .and. offset_changed .and. .not. non_offset_changed .and. &
         bmad_com%conserve_taylor_maps .and. ele%key /= patch$) then
-  ele%map_with_offsets = .false.
+  ele%taylor_map_includes_offsets = .false.
   if (associated(ele%branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%key == overlay$ .or. lord%key == group$) cycle
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-      lord%map_with_offsets = .false.
+      lord%taylor_map_includes_offsets = .false.
     enddo
   endif
   if (any(ele%old_value /= 0 .and. offset_mask)) non_offset_changed = .true.  ! To trigger kill_taylor below
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
       'But: Element has just been offset: ' // ele%name, &
-      "To conserve the element's Taylor map, I will set ele%map_with_offsets = False.")
+      "To conserve the element's Taylor map, I will set ele%taylor_map_includes_offsets = False.")
 endif
 
 ! Kill the taylor map and ptc_genfield if necessary.
 
-if (non_offset_changed .or. (offset_changed .and. ele%map_with_offsets)) then
+if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
   if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
 endif

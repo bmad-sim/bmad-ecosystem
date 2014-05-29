@@ -1200,8 +1200,8 @@ case ('PTC_EXACT_MISALIGN')
   if (err_flag) return
   call set_ptc (exact_misalign = logic)
 
-case ('MAP_WITH_OFFSETS')
-  call get_logical (attrib_word, ele%map_with_offsets, err_flag)
+case ('TAYLOR_MAP_INCLUDES_OFFSETS')
+  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag)
 
 case ('OFFSET_MOVES_APERTURE')
   call get_logical (attrib_word, ele%offset_moves_aperture, err_flag)

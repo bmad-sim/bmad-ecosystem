@@ -141,7 +141,7 @@ that you have to worry about the accuracy if you do tracking at points
 that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion
 point. Whether the Taylor map is generated taking into account the
-offset an element has is governed by the \vn{map_with_offsets}
+offset an element has is governed by the \vn{taylor_map_includes_offsets}
 attribute (\sref{s:mapoff}). \vn{bmad_standard} and \vn{taylor}
 tracking methods are identical. Note: Taylor maps for \vn{match}, and
 \vn{patch} elements are limited to first order.
@@ -248,10 +248,10 @@ matrix for a given element is computed.  Table~\ref{t:mat6.methods}
 gives which methods are available for each type of element.
 
 \index{sympliectify}
-\index{map_with_offsets}
+\index{taylor_map_includes_offsets}
 In addition to the \vn{mat6_calc_method} switch, 
 two element attributes that can affect the way the transfer matrix is
-calculated are \vn{symplectify} and \vn{map_with_offsets}. These are
+calculated are \vn{symplectify} and \vn{taylor_map_includes_offsets}. These are
 discussed in sections \sref{s:symp} and \sref{s:mapoff} respectively.
 
 For methods that do not necessarily produce a symplectic matrix the
@@ -337,7 +337,7 @@ that you have to worry about the accuracy if you do a calculation at
 points that are far from the expansion point about which the map was
 made. This method is non-symplectic away from the expansion
 point. Whether the Taylor map is generated taking into account the
-offset an element has is governed by the \vn{map_with_offsets}
+offset an element has is governed by the \vn{taylor_map_includes_offsets}
 attribute (\sref{s:mapoff}). \vn{bmad_standard} and \vn{taylor}
 tracking methods are identical. Note: Taylor maps for \vn{match}, and
 \vn{patch} elements are limited to first order.
@@ -757,26 +757,26 @@ transforming the reference momentum to their original values.
 %-----------------------------------------------------------------
 \section{Map_with_offsets Attribute}
 \label{s:mapoff}
-\index{map_with_offsets|hyperbf}
+\index{taylor_map_includes_offsets|hyperbf}
 
-The \vn{map_with_offsets} attribute sets whether the Taylor map
+The \vn{taylor_map_includes_offsets} attribute sets whether the Taylor map
 generated for an element includes the affect due to the elements
 (mis)orientation in space. That is, the affect of any pitches, offsets
 or tilt (\sref{s:offset}). The default is \vn{True} which means that
 the Taylor map will include such effects. 
 
-How \vn{map_with_offsets} is set will not affect the results of
+How \vn{taylor_map_includes_offsets} is set will not affect the results of
 tracking or the Jacobian matrix calculation. What is affected is the
-speed of the calculations. With \vn{map_with_offsets} set to \vn{True}
+speed of the calculations. With \vn{taylor_map_includes_offsets} set to \vn{True}
 the Taylor map will have to be recalculated each time an element is
-reoriented in space. On the other hand, with \vn{map_with_offsets} set
+reoriented in space. On the other hand, with \vn{taylor_map_includes_offsets} set
 to \vn{False} each tracking and Jacobian matrix calculation will
 include the extra computation involving the effect of the
 orientation. Thus if an element's orientation is fixed it is faster to
-set \vn{map_with_offsets} to \vn{True} and if the orientation is
-varying it is faster to set \vn{map_with_offsets} to \vn{False}.
+set \vn{taylor_map_includes_offsets} to \vn{True} and if the orientation is
+varying it is faster to set \vn{taylor_map_includes_offsets} to \vn{False}.
 
-If the global parameter \vn{bmad_com%conserve_taylor_maps}
+If the global parameter \vn{bmad_com%include_offsets_in_ele_taylor_maps}
 (\sref{s:bmad.params}) is set to True (the default), then, if an
 element is offset within a program, and if \vn{map_with_offset} is set
 to True for that element, \bmad will toggle \vn{map_with_offset} to

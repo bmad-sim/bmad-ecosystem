@@ -721,8 +721,8 @@ do ib = 0, ubound(lat%branch, 1)
                                       write (line, '(2a, l1)') trim(line), ', is_on = ', ele%is_on
     if (ele_has(ele, 'SCALE_MULTIPOLES') .and. (ele%scale_multipoles .neqv. ele_dflt%scale_multipoles)) &
                                       write (line, '(2a, l1)') trim(line), ', scale_multipoles = ', ele%scale_multipoles
-    if (ele_has(ele, 'MAP_WITH_OFFSETS') .and. (ele%map_with_offsets .neqv. ele_dflt%map_with_offsets)) &
-                                      write (line, '(2a, l1)') trim(line), ', map_with_offsets = ', ele%map_with_offsets
+    if (ele_has(ele, 'TAYLOR_MAP_INCLUDES_OFFSETS') .and. (ele%taylor_map_includes_offsets .neqv. ele_dflt%taylor_map_includes_offsets)) &
+                                      write (line, '(2a, l1)') trim(line), ', taylor_map_includes_offsets = ', ele%taylor_map_includes_offsets
     if (ele_has(ele, 'CSR_CALC_ON') .and. (ele%csr_calc_on .neqv. ele_dflt%csr_calc_on)) &
                                       write (line, '(2a, l1)') trim(line), ', csr_calc_on = ', ele%csr_calc_on
     if (ele_has(ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &

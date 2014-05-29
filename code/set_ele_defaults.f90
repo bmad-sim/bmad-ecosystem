@@ -168,7 +168,7 @@ case (sample$)
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 
-  ele%map_with_offsets = .false.
+  ele%taylor_map_includes_offsets = .false.
   call taylor_make_unit (ele%taylor)
 
 case (wiggler$, undulator$) 

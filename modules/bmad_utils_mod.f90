@@ -960,7 +960,7 @@ equiv = .false.
 if (ele_taylor%key == taylor$) return  
 if (ele_taylor%key /= ele2%key) return
 if (ele_taylor%sub_key /= ele2%sub_key) return
-if (ele_taylor%map_with_offsets .neqv. ele2%map_with_offsets) return
+if (ele_taylor%taylor_map_includes_offsets .neqv. ele2%taylor_map_includes_offsets) return
 if (ele_taylor%value(integrator_order$) /= ele2%value(integrator_order$)) return
 
 vmask = .true.
@@ -969,7 +969,7 @@ vmask(ref_time_start$) = .false.
 if ((ele_taylor%key == wiggler$ .or. ele_taylor%key == undulator$) .and. ele_taylor%sub_key == map_type$) then
   vmask( [k1$, rho$, b_max$] ) = .false.  ! These are dependent attributes.
 endif
-if (.not. ele_taylor%map_with_offsets) then
+if (.not. ele_taylor%taylor_map_includes_offsets) then
   vmask( [x_offset$, y_offset$, z_offset$, tilt$, x_pitch$, &
             y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
             tilt_tot$, x_pitch_tot$, y_pitch_tot$] ) = .false.

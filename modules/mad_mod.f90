@@ -74,7 +74,7 @@ type (coord_struct) c0, c1
 if (.not. associated(ele%taylor(1)%term)) then
   call make_mad_map (ele, param, energy, map)
   call mad_map_to_taylor (map, energy, ele%taylor)
-  ele%map_with_offsets = .true.
+  ele%taylor_map_includes_offsets = .true.
 endif
 
 ! make the trasfer map.

@@ -682,7 +682,7 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
 
   if (associated(ele%taylor(1)%term)) then
     nl=nl+1; li(nl) = ' '
-    nl=nl+1; write (li(nl), '(a, l1)') 'map_with_offsets: ', ele%map_with_offsets
+    nl=nl+1; write (li(nl), '(a, l1)') 'taylor_map_includes_offsets: ', ele%taylor_map_includes_offsets
     if (logic_option(.false., type_taylor)) then
       call type2_taylors (ele%taylor, li2, nt)
       call re_associate (li, nl+nt+100, .false.)

@@ -74,8 +74,8 @@ this structure along with the default values are:
     logical spin_tracking_on = F               ! spin tracking?
     logical radiation_damping_on = F           ! Damping toggle.
     logical radiation_fluctuations_on = F      ! Fluctuations toggle.
-    logical conserve_taylor_maps = T           ! Enable bookkeeper to set
-                                               ! ele%map_with_offsets = F?
+    logical include_offsets_in_ele_taylor_maps = T           ! Enable bookkeeper to set
+                                               ! ele%taylor_map_includes_offsets = F?
     logical use_ptc_layout_default = F         ! Default for lat%use_ptc_layout
     logical absolute_time_tracking_default = F ! Default for lat%absolute_time_tracking
     logical auto_scale_field_phase_default = T    ! Default for lat%auto_scale_field_phase
@@ -181,7 +181,7 @@ Toggle to turn on or off effects due to radiation dampling in particle tracking.
 \item[\vn{\%radiation_fluctuations_on}] \Newline
 Toggle to turn on or off effects due to radiation fluctuations in particle tracking.
 
-\item[\vn{\%conserve_taylor_maps}] \Newline
+\item[\vn{\%include_offsets_in_ele_taylor_maps}] \Newline
 Toggle to determine if the Taylor map for an element include any
 element ``misalignments''.  See Section~\sref{s:mapoff} for more
 details.
