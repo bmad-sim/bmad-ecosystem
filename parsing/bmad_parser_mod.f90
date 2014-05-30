@@ -1837,7 +1837,7 @@ if (logic_option(.false., call_check)) then
   endif
 endif
 
-! check for continuation character and, if found, then load more characters
+! Check for continuation character and, if found, then load more characters
 ! into the parse line from the lattice file. 
 ! If the input is not from a file then skip this.
 
@@ -1847,7 +1847,7 @@ if (bp_com%input_from_file) then
     if (n == 0 .or. n > 60) exit
 
     select case (bp_com%parse_line(n:n))
-    case (',', '+', '-', '*', '/', '(', '{', '[', '=')
+    case (',', '(', '{', '[', '=')
       call load_parse_line('continue', n+2, end_of_file)
       if (end_of_file) exit
 
