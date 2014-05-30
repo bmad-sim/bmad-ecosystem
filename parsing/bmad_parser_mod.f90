@@ -1129,7 +1129,7 @@ select case (attrib_word)
 
 case ('REFERENCE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  call get_next_word(pele%ref_name, ix_word,  ':=,', delim, delim_found, .true.)
+  call get_next_word(pele%ref_name, ix_word,  '=,', delim, delim_found, .true.)
 
 case ('OFFSET')
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
@@ -3701,7 +3701,7 @@ else
   lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
-lord%old_is_on = .true.  ! So add_all_superimpose will not try to use as ref ele.
+lord%old_is_on = .false.  ! So add_all_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
@@ -3855,6 +3855,7 @@ implicit none
 type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
 type (ele_struct), pointer :: ref_ele, ele, slave, lord, super_ele_out
+type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct) pele
 type (multipass_all_info_struct) m_info
 type (lat_struct), optional :: in_lat
@@ -3863,13 +3864,13 @@ type (branch_struct), target :: branch
 type (lat_struct), pointer :: lat
 
 integer ix, i, j, k, it, nic, nn, i_ele, ib
-integer n_inserted, n_con, ix_branch
+integer n_con, ix_branch, n_loc
 
-character(40) matched_name(200), num, name
+character(40) name
 character(40), allocatable :: multi_name(:)
 character(80) line
 
-logical have_inserted, found, err_flag
+logical have_inserted, found, err_flag, err
 
 ! init
 
@@ -3882,10 +3883,7 @@ call init_ele(super_ele)
 
 super_ele_saved = super_ele_in      ! in case super_ele_in changes
 super_ele = super_ele_saved        ! 
-n_inserted = 0
 lat => branch%lat
-
-branch%ele(:)%old_is_on = .false.  ! Tag elements.
 
 ! If no refrence point then superposition is simple
 
@@ -3897,6 +3895,34 @@ if (pele%ref_name == blank_name$) then
   if (err_flag) bp_com%error_flag = .true.
   return
 endif
+
+! Find all matches
+
+call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
+if (err) then
+  call parser_error ('MALFORMED SUPERIMPOSE REFERENCE ELEMENT NAME: ' // pele%ref_name, &
+                     'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+  return
+endif
+
+! If no match and the reference element has been defined but not used in the lattice
+! then this is not an error
+
+if (n_loc == 0) then
+  do i = 1, in_lat%n_ele_max
+    found = match_wild(in_lat%ele(i)%name, pele%ref_name)
+    if (found) exit
+  enddo
+  if (.not. found) call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &
+                                     'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+endif
+
+! Tag reference elements using %old_is_on flag which is not 
+
+branch%ele(:)%old_is_on = .false.  
+do i = 1, n_loc
+  eles(i)%ele%old_is_on = .true. ! Tag reference element.
+enddo
 
 !
 
@@ -3910,14 +3936,9 @@ do
      
     if (ref_ele%key == group$ .or. ref_ele%slave_status == super_slave$) cycle
     if (ref_ele%key == girder$) cycle
-    if (ref_ele%old_is_on) cycle
-    if (.not. match_wild(ref_ele%name, pele%ref_name)) cycle
+    if (.not. ref_ele%old_is_on) cycle
 
-    do i = 1, n_inserted
-      if (ref_ele%name == matched_name(i)) cycle ele_loop
-    enddo
-   
-    ref_ele%old_is_on = .true.
+    ref_ele%old_is_on = .false.  ! So only use this reference once
 
     ! If superimposing on a multipass_lord then the superposition
     ! must be done at all multipass locations.
@@ -4065,8 +4086,6 @@ do
 
     call s_calc (lat)
 
-    n_inserted = n_inserted + 1
-    matched_name(n_inserted) = super_ele%name
     have_inserted = .true.   
 
   enddo ele_loop
@@ -4074,18 +4093,6 @@ do
   if (.not. have_inserted) exit
 
 enddo
-
-! Error check. If the reference element has been defined but not used in the lattice
-! then this is not an error
-
-if (n_inserted == 0) then
-  do i = 1, in_lat%n_ele_max
-    found = match_wild(in_lat%ele(i)%name, pele%ref_name)
-    if (found) exit
-  enddo
-  if (.not. found) call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  &
-          pele%ref_name, 'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
-endif
 
 end subroutine add_all_superimpose
 
