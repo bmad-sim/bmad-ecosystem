@@ -652,6 +652,7 @@ subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)
 implicit none
 
 type (floor_position_struct), optional :: floor0
+type (floor_position_struct) f0
 real(rp) theta0, theta, phi, psi, w_mat(3,3)
 real(rp) diff1(3), diff2(3)
 
@@ -659,8 +660,12 @@ real(rp) diff1(3), diff2(3)
 
 if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then 
   ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
-  theta = theta0  
-  if (present(floor0)) theta = floor0%theta
+  if (present(floor0)) then
+    theta = floor0%theta
+  else
+    theta = theta0  
+  endif
+
   if (w_mat(2,3) > 0) then
     phi = pi/2
     psi = atan2(-w_mat(3,1), w_mat(1,1)) - theta
@@ -672,17 +677,18 @@ if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then
 ! normal case
 
 else 
+  if (present(floor0)) f0 = floor0      ! In case actual theta, phi, psi args are floor%theta, etc.
   theta = atan2 (w_mat(1,3), w_mat(3,3))
   phi = atan2 (w_mat(2,3), sqrt(w_mat(1,3)**2 + w_mat(3,3)**2))
   psi = atan2 (w_mat(2,1), w_mat(2,2))
 
   if (present(floor0)) then
-    diff1 = [modulo2(theta-floor0%theta, pi), modulo2(phi-floor0%phi, pi), modulo2(psi-floor0%psi, pi)]
-    diff2 = [modulo2(pi+theta-floor0%theta, pi), modulo2(pi-phi-floor0%phi, pi), modulo2(pi+psi-floor0%psi, pi)]
+    diff1 = [modulo2(theta-f0%theta, pi), modulo2(phi-f0%phi, pi), modulo2(psi-f0%psi, pi)]
+    diff2 = [modulo2(pi+theta-f0%theta, pi), modulo2(pi-phi-f0%phi, pi), modulo2(pi+psi-f0%psi, pi)]
     if (sum(abs(diff2)) < sum(abs(diff1))) diff1 = diff2
-    theta = diff1(1) + floor0%theta
-    phi   = diff1(2) + floor0%phi
-    psi   = diff1(3) + floor0%psi
+    theta = diff1(1) + f0%theta
+    phi   = diff1(2) + f0%phi
+    psi   = diff1(3) + f0%psi
   else
     theta = theta - twopi * nint((theta - theta0) / twopi)
   endif
