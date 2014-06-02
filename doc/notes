@@ -20,3 +20,5 @@ Initial photon field (x/y) will be normalized to 1.
 photon_def%e_field_x and/or photon_def%e_field_y must be non-zero for a rocking curve.
 
 Added photon_def%normalize_field [Always normalized when using random number generator]
+
+rocking_curve: Generates photons from beginning of lattice.
