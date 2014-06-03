@@ -472,6 +472,7 @@ real(rp) dvec(6)
 
 orb_out%vec = orb_in%vec + dvec
 orb_out%p0c = orb_in%p0c 
+orb_out%species = orb_in%species
 
 if (dvec(6) == 0) then
   orb_out%beta = orb_in%beta
@@ -629,7 +630,7 @@ endif
 
 dt_ds = f_bend / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
-dbeta_ds = mass_of(param%particle)**2 * dp_ds * c_light / e_tot**3
+dbeta_ds = mass_of(orbit%species)**2 * dp_ds * c_light / e_tot**3
 pz_p0 = (1 + orbit%vec(6)) * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds

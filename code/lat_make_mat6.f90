@@ -45,7 +45,7 @@ type (branch_struct), pointer :: branch
 real(rp), pointer :: mat6(:,:), vec0(:)
 
 integer, optional :: ix_ele, ix_branch
-integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave
+integer i, j, i0, i1, ie, ild, n_taylor, i_ele, i_branch, ix_slave, species
 
 logical, optional :: err_flag
 logical transferred, zero_orbit, err
@@ -71,6 +71,11 @@ endif
 ! Error check
 
 branch => lat%branch(i_branch)
+if (present(ref_orb)) then
+  species = ref_orb(0)%species
+else
+  species = branch%param%particle
+endif
 
 if (i_ele == 0 .or. i_ele > branch%n_ele_max) then
   call out_io (s_fatal$, r_name, 'ELEMENT INDEX OUT OF BOUNDS: \i0\ ', i_ele)
@@ -145,7 +150,7 @@ if (i_ele < 0) then
           exit
         enddo
       endif
-      call init_coord (orb_start, orb_start%vec, ele, .false., branch%param%particle)
+      call init_coord (orb_start, orb_start%vec, ele, .false., species)
 
     else  ! else ref_orb must be present
       orb_start = ref_orb(i-1)

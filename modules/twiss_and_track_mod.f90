@@ -213,7 +213,7 @@ end subroutine twiss_and_track1
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)
+! Subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last, compute_floor_coords)
 ! 
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position.
@@ -230,20 +230,23 @@ end subroutine twiss_and_track1
 !   use bmad
 !
 ! Input:
-!   lat       -- lat_struct: Lattice.
-!   s         -- Real(rp): Longitudinal position. If s is negative the
-!                  the position is taken to be lat%param%total_length - s.
-!   ele_at_s  -- Ele_struct, optional: If the use_last argument is True, ele_at_s is
-!                  taken to contain valid Twiss parameters stored from a previous call
-!                  to this routine.
-!   orb(0:)   -- Coord_struct, optional: Orbit through the Lattice.
-!   orb_at_s  -- Coord_struct, optional: If the use_last argument is True, orb_at_s is
-!                  taken to contain the valid orbit stored from a previous call.
-!   ix_branch -- Integer, optional: Branch index, Default is 0 (main lattice).
-!   use_last  -- logical, optional: If present and True, and if ele_at_s%s < s,
-!                  then use ele_at_s and orb_at_s as the starting point for the present calculation.
-!                  This can speed things up when the present s-position is in the middle 
-!                  of a long complicated element and the tracking (EG: Runge-Kutta) is slow. 
+!   lat             -- lat_struct: Lattice.
+!   s               -- Real(rp): Longitudinal position. If s is negative the
+!                        the position is taken to be lat%param%total_length - s.
+!   ele_at_s        -- Ele_struct, optional: If the use_last argument is True, ele_at_s is
+!                        taken to contain valid Twiss parameters stored from a previous call
+!                        to this routine.
+!   orb(0:)         -- Coord_struct, optional: Orbit through the Lattice.
+!   orb_at_s        -- Coord_struct, optional: If the use_last argument is True, orb_at_s is
+!                        taken to contain the valid orbit stored from a previous call.
+!   ix_branch       -- Integer, optional: Branch index, Default is 0 (main lattice).
+!   use_last        -- logical, optional: If present and True, and if ele_at_s%s < s,
+!                        then use ele_at_s and orb_at_s as the starting point for the present calculation.
+!                        This can speed things up when the present s-position is in the middle 
+!                        of a long complicated element and the tracking (EG: Runge-Kutta) is slow. 
+!   compute_floor_coords
+!                   -- logical, optional: If present and True then the global "floor" coordinates will be 
+!                        calculated and put in ele_at_s%floor.
 !
 ! Output:
 !   ele_at_s  -- Ele_struct, optional: Element structure holding the Twiss parameters.
@@ -256,7 +259,7 @@ end subroutine twiss_and_track1
 !                 calculation, False otherwise.
 !-
 
-subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)
+subroutine twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last, compute_floor_coords)
 
 implicit none
 
@@ -273,7 +276,7 @@ integer ie_at_s, i_branch
 
 logical err_flag, use_l
 logical :: init_needed = .true.
-logical, optional :: err, use_last
+logical, optional :: err, use_last, compute_floor_coords
 
 character(20), parameter :: r_name = 'twiss_and_track_at_s'
 
@@ -310,15 +313,16 @@ endif
 
 if (use_l .and. s_saved < s_use .and. s_saved > s0) then
   call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, s_saved-s0, s_use-s0, &
-                              .true., .true., orb_at_s, orb_at_s, ele_at_s, ele_at_s, err)
+                              .true., .true., orb_at_s, orb_at_s, ele_at_s, ele_at_s, err, compute_floor_coords)
 
 else
   if (present(orb)) then
     call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., orb(ie_at_s-1), orb_at_s, branch%ele(ie_at_s-1), ele_at_s, err)
+            .true., .true., orb(ie_at_s-1), orb_at_s, branch%ele(ie_at_s-1), ele_at_s, err, compute_floor_coords)
   else
     call twiss_and_track_intra_ele (branch%ele(ie_at_s), branch%param, 0.0_rp, s_use-s0, &
-                              .true., .true., ele_start = branch%ele(ie_at_s-1), ele_end = ele_at_s, err = err)
+            .true., .true., ele_start = branch%ele(ie_at_s-1), ele_end = ele_at_s, err = err, &
+            compute_floor_coords = compute_floor_coords)
   endif
 endif
 

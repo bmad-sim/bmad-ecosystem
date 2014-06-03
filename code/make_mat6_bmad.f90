@@ -214,7 +214,7 @@ case (elseparator$)
 
   hk = ele%value(hkick$) * param%rel_tracking_charge
   vk = ele%value(vkick$) * param%rel_tracking_charge
-  if (param%particle < 0) then
+  if (c0%species < 0) then
     hk = -hk
     vk = -vk
   endif
@@ -231,7 +231,7 @@ case (elseparator$)
 
   E_tot = ele%value(p0c$) * (1 + c00%vec(6)) / c00%beta 
   E_rel = E_tot / ele%value(p0c$)
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(c0%species)
 
   x = c00%vec(1)
   px = c00%vec(2)
@@ -383,7 +383,7 @@ case (lcavity$)
   gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
   dE = gradient_net * length
 
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(c0%species)
   pc_start_ref = v(p0c_start$) 
   pc_start = pc_start_ref * (1 + c00%vec(6))
   beta_start = c00%beta
@@ -397,7 +397,7 @@ case (lcavity$)
   endif
 
   pc_end_ref = v(p0c$)
-  call convert_total_energy_to (E_end, param%particle, pc = pc_end, beta = beta_end)
+  call convert_total_energy_to (E_end, c0%species, pc = pc_end, beta = beta_end)
   E_end = pc_end / beta_end
   E_ratio = E_end / E_start
 
@@ -717,7 +717,7 @@ case (patch$)
     return
   endif
 
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(c0%species)
   c00%vec(5) = 0
   call track_a_patch (ele, c00, .false., s_ent, ds_ref, w_inv, p_s)
 
@@ -846,7 +846,7 @@ case (rbend$)
 
 case (rfcavity$)
 
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(c0%species)
   p0c = v(p0c$)
   beta_ref = p0c / v(e_tot$)
   n_slice = max(1, nint(length / v(ds_step$))) 
@@ -882,7 +882,7 @@ case (rfcavity$)
     dE = factor * sin(phase)
     pc = (1 + c00%vec(6)) * p0c 
     E = pc / c00%beta
-    call convert_total_energy_to (E + dE, param%particle, pc = new_pc, beta = new_beta)
+    call convert_total_energy_to (E + dE, c0%species, pc = new_pc, beta = new_beta)
     ff = twopi * factor * v(rf_frequency$) * cos(phase) / (p0c * new_beta * c_light)
 
     m2(2,1) = ff / c00%beta
@@ -1453,7 +1453,7 @@ real(rp) mass, e_tot
 
 ! 1/gamma^2 m56 correction
 
-mass = mass_of(param%particle)
+mass = mass_of(c0%species)
 e_tot = v(p0c$) * (1 + c0%vec(6)) / c0%beta
 mat6(5,6) = mat6(5,6) + length * mass**2 * v(e_tot$) / e_tot**3
 
@@ -1487,7 +1487,7 @@ ph = phase
 if (ele%key == rfcavity$) ph = pi/2 - ph
 ph = ph + twopi * ele%value(coupler_phase$)
 
-mc2 = mass_of(param%particle)
+mc2 = mass_of(orb%species)
 p0c = orb%p0c
 pc = p0c * (1 + orb%vec(6))
 E = pc / orb%beta
@@ -1559,7 +1559,7 @@ pc = (1 + orb%vec(6)) * orb%p0c
 E = pc / orb%beta
 k1 = grad_max * cos(phase)
 f = grad_max * sin(phase) * twopi * ele%value(rf_frequency$) / c_light
-mc2 = mass_of(param%particle)
+mc2 = mass_of(orb%species)
 
 mat6(2,:) = mat6(2,:) + k1 * mat6(1,:) + f * orb%vec(1) * mat6(5,:) 
 mat6(4,:) = mat6(4,:) + k1 * mat6(3,:) - f * orb%vec(3) * mat6(5,:)

@@ -54,15 +54,18 @@ contains
 !+
 ! Subroutine absolute_photon_position (e_orb, photon_orb)
 ! 
-! Routine to calculate the photon position given the photon position relative to
-! some emitting charged particle and the charged particle position itself.
+! Routine to calculate the photon phase space coordinates given:
+!   1) The phase space coords of the emitting charged particle and
+!   2) The photon phase space coords relative to the emitting particle.
+!      The photon (x, y, z) position is ignored (it is assumed the photon is emitted at
+!      the charged particle position) and only the photon's (vx, vy, vz) velocity matters.
 !
 ! Input:
 !   e_orb      -- coord_struct: charged particle position.
 !   photon_orb -- coord_struct: Photon position relative to e_orb.
 !
 ! Output:
-!   photon_orb -- coord_struct: Photon position.
+!   photon_orb -- coord_struct: Absolute photon position.
 !-
 
 subroutine absolute_photon_position (e_orb, photon_orb)

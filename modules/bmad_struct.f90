@@ -601,11 +601,11 @@ end type
 !
 
 type mode_info_struct
-  real(rp) tune      ! "fractional" tune in radians: 0 < tune < 2pi
-  real(rp) emit      ! Emittance.
-  real(rp) chrom     ! Chromaticity.
-  real(rp) sigma     ! Beam size.
-  real(rp) sigmap    ! Beam divergence.
+  real(rp) :: tune   = 0  ! "fractional" tune in radians: 0 < tune < 2pi
+  real(rp) :: emit   = 0  ! Emittance.
+  real(rp) :: chrom  = 0  ! Chromaticity.
+  real(rp) :: sigma  = 0  ! Beam size.
+  real(rp) :: sigmap = 0  ! Beam divergence.
 end type
 
 type normal_form_struct

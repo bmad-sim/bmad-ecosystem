@@ -1,4 +1,4 @@
-chapter{Bmad Library Routine List}
+\chapter{Bmad Library Routine List}
 
 Below are a list of \bmad and sim_utils routines sorted by their
 functionality.  Use the \vn{getf} and \vn{listf} (\sref{s:getf}) 
@@ -44,8 +44,9 @@ solely meant for \bmad internal use.
   Quick Plot                                  & \ref{r:qp}             \\ \hline
   Spin                                        & \ref{r:spin}           \\ \hline
   Transfer Maps: Routines Called by make_mat6 & \ref{r:mat6}           \\ \hline
+  Transfer Maps: Complex Taylor Maps          & \ref{r:ctaylor}         \\ \hline
   Transfer Maps: Taylor Maps                  & \ref{r:taylor}         \\ \hline
-  Tracking and Closed Orbit                   & \ref{r:track}          \\ \hline
+  Tracking: Tracking and Closed Orbit         & \ref{r:track}          \\ \hline
   Tracking: Low Level Routines                & \ref{r:low.track}      \\ \hline
   Tracking: Mad Routines                      & \ref{r:mad}            \\ \hline
   Tracking: Routines Called by track1         & \ref{r:track1}         \\ \hline
@@ -268,8 +269,8 @@ Routine to calculate the E and B fields for an element.
 \index[routine]{em_field_custom}
 \label{r:em.field.custom}
 \item[\protect\parbox{6in}{
-  em_field_custom(ele, param, s_rel, time, orb, local_ref_frame, field, calc_dfield, \\
-  \hspace*{1in} err_flag) }] \Newline
+  em_field_custom(ele, param, s_rel, time, orb, local_ref_frame, field, \\
+  \hspace*{1in} calc_dfield, err_flag) }] \Newline
 Custom routine for calculating fields.
 
 \end{description}
@@ -519,7 +520,9 @@ Routine to take the symplectic conjugate of a square matrix.
 
 \index[routine]{mat_symp_decouple}
 \label{r:mat.symp.decouple}
-\item[mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, gamma, type_out)] \Newline
+\item[\protect\parbox{6in}{
+    mat_symp_decouple (t0, tol, stat, u, v, \\
+    \hspace*{1in} ubar, vbar, g, twiss1, twiss2, gamma, type_out)} ] \Newline
 Routine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
 
@@ -721,7 +724,8 @@ elements can be added.
 \index[routine]{add_superimpose}
 \label{r:add.superimpose}
 \item[\protect\parbox{6in}{
-    add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, save_null_drift, create_jumbo_slave)} ] \Newline
+    add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, \\
+    \hspace*{1in} save_null_drift, create_jumbo_slave)} ] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -761,8 +765,9 @@ lat structure.
 \index[routine]{create_element_slice}
 \label{r:create.element.slice}
 \item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele_in, l_slice, offset, param, \\
-    \hspace*{1in} at_upstream_end, at_downstream_end, err_flag, old_slice)} ] \Newline 
+    create_element_slice (sliced_ele, ele_in, l_slice, \\
+    \hspace*{1in} offset, param, include_upstream_end, \\
+    \hspace*{1in} include_downstream_end, err_flag, old_slice)} ] \Newline 
 Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
 superposition lord to a slave when the slave has only one lord.
 
@@ -854,6 +859,14 @@ placement of the preceding element. This is the same as the MAD convention.
 Routine to construct the W matrix that specifies the orientation of an element
 in the global "floor" coordinates. See the Bmad manual for more details.
 
+\index[routine]{floor_to_local}
+\label{r:floor.to.local}
+\item[\protect\parbox{6in}{
+    floor_to_local (floor0, global_position, \\
+    \hspace*{1in} calculate_angles, is_delta_position) result (local_position)} ] \Newline 
+Returns local floor position relative to floor0 given a global floor position.
+This is an essentially an inverse of routine local_to_floor.
+
 \index[routine]{floor_w_mat_to_angles}
 \label{r:floor.w.mat.to.angles}
 \item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)] \Newline 
@@ -871,22 +884,54 @@ Routine to initialize a floor_position_struct to zero.
 Routine to calculate the physical placement of all the elements in a lattice. 
 That is, the physical machine layout on the floor. 
 
-\index[routine]{s_calc}
-\label{r:s.calc}
-\item[s_calc (lat)] \Newline
-Routine to calculate the longitudinal distance S for the elements in a lat. 
-
 \index[routine]{local_to_floor}
 \label{r:local.to.floor}
 \item[local_to_floor (floor0, dr, theta, phi, psi) result (floor1)] \Newline 
 Starting from a given reference frame and given a shift in position, return
 the resulting reference frame.
 
-\index[routine]{theta_floor}
-\label{r:theta.floor}
-\item[theta_floor (s, lat, theta_base) result (theta_fl)] \Newline 
-Returns the angle of the reference coordinate system in the
-global reference system.
+\index[routine]{patch_flips_propagation_direction}
+\label{r:patch.flips.propagation.direction}
+\item[patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)] \Newline 
+Routine to determine if the propagation direction is flipped in a patch.
+This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_pitch) 
+
+\index[routine]{position_in_global_frame}
+\label{r:position.in.global.frame}
+\item[position_in_global_frame (local_position, ele, w_mat) result (global_position)] \Newline 
+Given a position local to ele, return global floor coordinates
+
+\index[routine]{position_in_local_frame}
+\label{r:position.in.local.frame}
+\item[position_in_local_frame  (global_position, ele, status, w_mat) result(local_position)] \Newline 
+Given a position in global coordinates, return local curvilinear coordinates in ele
+  relative to floor0
+
+\index[routine]{s_calc}
+\label{r:s.calc}
+\item[s_calc (lat)] \Newline
+Routine to calculate the longitudinal distance S for the elements in a lat. 
+
+\index[routine]{switch_local_positions}
+\label{r:switch.local.positions}
+\item[switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)] \Newline 
+Subroutine to take a local position0 in ele0 and find a local position near ele_try.
+If this position is beyond the bounds of ele_try, neighboring elements will be 
+
+\index[routine]{w_mat_for_x_pitch}
+\label{r:w.mat.for.x.pitch}
+\item[w_mat_for_x_pitch (w_mat, x_pitch)] \Newline 
+Routine to return the transformation matrix for an x_pitch.
+
+\index[routine]{w_mat_for_y_pitch}
+\label{r:w.mat.for.y.pitch}
+\item[w_mat_for_y_pitch (w_mat, y_pitch)] \Newline 
+Routine to return the transformation matrix for an y_pitch.
+
+\index[routine]{w_mat_for_tilt}
+\label{r:w.mat.for.tilt}
+\item[w_mat_for_tilt (w_mat, tilt)] \Newline 
+Routine to return the transformation matrix for an tilt.
 
 \end{description}
 
@@ -1053,7 +1098,9 @@ Routine to return whether a given tracking method is valid for a given element.
 
 \index[routine]{valid_mat6_calc_method}
 \label{r:valid.mat6.calc.method}
-\item[valid_mat6_calc_method (ele, species, mat6_calc_method, num_valid) result (is_valid)] \Newline 
+\item[\protect\parbox{6in}{
+    valid_mat6_calc_method (ele, species, mat6_calc_method, \\
+    \hspace*{1in} num_valid) result (is_valid)} ] \Newline 
 Routine to return whether a given mat6_calc method is valid for a given element.
 
 \end{description}
@@ -1226,8 +1273,8 @@ c_multi(n, m) = +/- ("n choose m")/n!
 \index[routine]{ele_compute_ref_energy_and_time}
 \label{r:ele.compute.ref.energy.and.time}
 \item[\protect\parbox{6in}{
-    ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, \\
-    \hspace*{1in} ref_time_start, err_flag)} ] \Newline 
+    ele_compute_ref_energy_and_time (ele, param, \\
+    \hspace*{1in} e_tot_start, p0c_start, ref_time_start, err_flag)} ] \Newline 
 Routine to compute the reference energy and reference time at the end
 of an element given the reference enegy and reference time at the
 start of the element.
@@ -1640,8 +1687,8 @@ Reverse communication routine.
 
 \index[routine]{super_mrqmin}
 \label{r:super.mrqmin}
-\item[\protect\parbox{6in}{super_mrqmin (y, weight, a, covar, alpha, chisq, funcs, \\
-  \hspace*{1in} alamda, status, maska)}] \Newline 
+\item[\protect\parbox{6in}{super_mrqmin (y, weight, a, \\
+  \hspace*{1in} covar, alpha, chisq, funcs, alamda, status, maska)}] \Newline 
 Routine to do non-linear optimizations. 
 This routine is essentially mrqmin from Numerical Recipes with some added features.
 
@@ -1761,20 +1808,20 @@ Routine to type out a coordinate.
 
 \begin{description}
 
-\index[routine]{photon_init}
-\label{r:photon.init}
-\item[photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)] \Newline 
+\index[routine]{bend_photon_init}
+\label{r:bend.photon.init}
+\item[bend_photon_init (g_bend_x, g_bend_y, gamma, orbit, E_min, E_max, E_integ_prob)] \Newline 
 Routine to initialize a photon
 
-\index[routine]{photon_vert_angle_init}
-\label{r:photon.vert.angle.init}
-\item[photon_vert_angle_init (E_rel, gamma_phi, r_in)] \Newline 
+\index[routine]{bend_photon_vert_angle_init}
+\label{r:bend.photon.vert.angle.init}
+\item[bend_photon_vert_angle_init (E_rel, gamma_phi, r_in)] \Newline 
 Routine to convert a "random" number in the interval [0,1] to a photon vertical emission 
 angle for a simple bend.
 
-\index[routine]{photon_energy_init}
-\label{r:photon.energy.init}
-\item[photon_energy_init (e_rel, r_in)] \Newline 
+\index[routine]{bend_photon_energy_init}
+\label{r:bend.photon.energy.init}
+\item[bend_photon_energy_init (e_rel, r_in)] \Newline 
 Routine to convert a random number in the interval [0,1] to a photon energy.
 
 \end{description}
@@ -2170,8 +2217,8 @@ between data units and page units is the same for the x and y axes.
 \index[routine]{qp_set_axis}
 \label{r:qp.set.axis}
 \item[\protect\parbox{6in}{qp_set_axis (axis_str, a_min, a_max, div, places, label, draw_label, \\
-\hspace*{1in} draw_numbers, minor_div, minor_div_max, mirror, \\
-\hspace*{1in} number_offset, label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
+\hspace*{1in} draw_numbers, minor_div, minor_div_max, mirror, number_offset, \\
+\hspace*{1in} label_offset, major_tick_len, minor_tick_len, ax_type)}] \Newline
     Routine to set (but not plot) the min, max and divisions for the axes of the graph.
 
 \index[routine]{qp_set_box}
@@ -2647,9 +2694,103 @@ tracking 7 particle with different starting conditions.
 \end{description}
 
 %------------------------------------------------------------------------
+\section{Transfer Maps: Complex Taylor Maps}
+\label{r:ctaylor}   
+\index{complex taylor map!list of routines}
+
+\begin{description}
+
+\index[routine]{add_complex_taylor_term}
+\label{r:add.complex.taylor.term}
+\item[add_complex_taylor_term (bmad_complex_taylor, coef, exp)] \Newline 
+Subroutine add_complex_taylor_term (bmad_complex_taylor, coef, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+Routine to add a complex_taylor term to a complex_taylor series.
+
+\index[routine]{complex_taylor_coef}
+\label{r:complex.taylor.coef}
+\item[complex_taylor_coef (bmad_complex_taylor, exp)] \Newline 
+Function complex_taylor_coef (bmad_complex_taylor, i1, i2, i3, i4, i5, i6, i7, i8, i9)
+Function to return the coefficient for a particular complex_taylor term
+from a complex_taylor Series.
+
+\index[routine]{complex_taylor_equal_complex_taylor}
+\label{r:complex.taylor.equal.complex.taylor}
+\item[complex_taylor_equal_complex_taylor (complex_taylor1, complex_taylor2)] \Newline 
+Subroutine that is used to set one complex_taylor equal to another. 
+This routine takes care of the pointers in complex_taylor1. 
+
+\index[routine]{complex_taylor_make_unit}
+\label{r:complex.taylor.make.unit}
+\item[complex_taylor_make_unit (bmad_complex_taylor)] \Newline 
+Subroutine to make the unit complex_taylor map:
+      r(out) = Map * r(in) = r(in)
+
+\index[routine]{complex_taylor_exponent_index}
+\label{r:complex.taylor.exponent.index}
+\item[complex_taylor_exponent_index(expn) result(index)] \Newline 
+Function to associate a unique number with a complex_taylor exponent.
+
+\index[routine]{complex_taylor_to_mat6}
+\label{r:complex.taylor.to.mat6}
+\item[complex_taylor_to_mat6 (a_complex_taylor, r_in, vec0, mat6, r_out)] \Newline 
+Subroutine to calculate, from a complex_taylor map and about some trajectory:
+  The 1st order (Jacobian) transfer matrix.
+
+\index[routine]{complex_taylors_equal_complex_taylors}
+\label{r:complex.taylors.equal.complex.taylors}
+\item[complex_taylors_equal_complex_taylors (complex_taylor1, complex_taylor2)] \Newline 
+Subroutine to transfer the values from one complex_taylor map to another:
+    complex_taylor1 <= complex_taylor2
+
+\index[routine]{init_complex_taylor_series}
+\label{r:init.complex.taylor.series}
+\item[init_complex_taylor_series (bmad_complex_taylor, n_term, save)] \Newline 
+Subroutine to initialize a Bmad complex_taylor series (6 of these series make
+a complex_taylor map). Note: This routine does not zero the structure. The calling
+
+\index[routine]{kill_complex_taylor}
+\label{r:kill.complex.taylor}
+\item[kill_complex_taylor (bmad_complex_taylor)] \Newline 
+Subroutine to deallocate a Bmad complex_taylor map.
+
+\index[routine]{mat6_to_complex_taylor}
+\label{r:mat6.to.complex.taylor}
+\item[mat6_to_complex_taylor (vec0, mat6, bmad_complex_taylor)] \Newline 
+Subroutine to form a first order complex_taylor map from the 6x6 transfer
+matrix and the 0th order transfer vector.
+
+\index[routine]{sort_complex_taylor_terms}
+\label{r:sort.complex.taylor.terms}
+\item[sort_complex_taylor_terms (complex_taylor_in, complex_taylor_sorted)] \Newline 
+Subroutine to sort the complex_taylor terms from "lowest" to "highest" of
+a complex_taylor series.
+
+\index[routine]{track_complex_taylor}
+\label{r:track.complex.taylor}
+\item[track_complex_taylor (start_orb, bmad_complex_taylor, end_orb)] \Newline 
+Subroutine to track using a complex_taylor map.
+
+\index[routine]{truncate_complex_taylor_to_order}
+\label{r:truncate.complex.taylor.to.order}
+\item[truncate_complex_taylor_to_order (complex_taylor_in, order, complex_taylor_out)] \Newline 
+Subroutine to throw out all terms in a complex_taylor map that are above a certain order.
+
+\index[routine]{type_complex_taylors}
+\label{r:type.complex.taylors}
+\item[type_complex_taylors (bmad_complex_taylor, max_order)] \Newline 
+Subroutine to print in a nice format a Bmad complex_taylor Map at the terminal.
+
+\index[routine]{type2_complex_taylors}
+\label{r:type2.complex.taylors}
+\item[type2_complex_taylors (bmad_complex_taylor, lines, n_lines, max_order)] \Newline 
+Subroutine to write a Bmad complex_taylor map in a nice format to a character array.
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Transfer Maps: Taylor Maps}
 \label{r:taylor}   
-\index{taylor Map!list of routines}
+\index{taylor map!list of routines}
 
 \begin{description}
 
@@ -2848,7 +2989,8 @@ matrix and the closed orbit offset.
 \index[routine]{offset_particle}
 \label{r:offset.particle}
 \item[\protect\parbox{6in}{
-    offset_particle (ele, param, set, coord, set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)}] \Newline
+    offset_particle (ele, param, set, coord, set_tilt, \\
+    \hspace*{1in} set_multipoles, set_hvkicks, set_z_offset, ds_pos)} ] \Newline
 Routine to effectively offset an element by instead offsetting 
 the particle position to correspond to the local element coordinates. 
 
@@ -2932,14 +3074,16 @@ Routine to calculate the twiss parameters, transport matrices and orbit.
 
 \index[routine]{twiss_and_track_at_s}
 \label{r:twiss.and.track.at.s}
-\item[twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, use_last)] \Newline
+\item[\protect\parbox{6in}{
+    twiss_and_track_at_s (lat, s, ele_at_s, orb, orb_at_s, ix_branch, err, \\
+    \hspace*{1in} use_last, compute_floor_coords)} ] \Newline
 Routine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
 \index[routine]{twiss_and_track_intra_ele}
 \label{r:twiss.and.track.intra.ele}
 \item[\protect\parbox{6in}{
   twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, \\
-  \hspace*{1in} track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err) }] \Newline 
+  \hspace*{1in} track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords) }] \Newline 
 Routine to track a particle within an element.
 
 \index[routine]{twiss_from_tracking}
@@ -2968,7 +3112,9 @@ Routine to do Runge Kutta tracking.
 
 \index[routine]{create_uniform_element_slice}
 \label{r:create.uniform.element.slice}
-\item[create_uniform_element_slice (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)] \Newline 
+\item[\protect\parbox{6in}{
+    create_uniform_element_slice (ele, param, i_slice, \\
+    \hspace*{1in} n_slice_tot, sliced_ele, s_start, s_end)} ] \Newline 
 Routine to create an element that represents a slice of another element.
 This routine can be used for detailed tracking through an element.
 
@@ -3201,7 +3347,9 @@ Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix.
 
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
-\item[chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)] \Newline
+\item[\protect\parbox{6in}{
+    chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, \\
+    \hspace*{1in} low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)} ] \Newline
 Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 
 

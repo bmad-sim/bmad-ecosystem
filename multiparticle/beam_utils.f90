@@ -373,7 +373,7 @@ if (upcase(beam_init%distribution_type(1)) == 'FILE') then
       p%s = ele%s
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = beta_vel)
       p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-      call init_coord (p, p, ele, .true.)
+      call init_coord (p, p, ele, .true., beam_init%species)
     enddo
   enddo
   return
@@ -480,6 +480,11 @@ logical ran_gauss_here
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
+species = beam_init%species
+if (species == not_set$) species = param%particle
+
+bunch%particle%species = species
+
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
@@ -504,7 +509,7 @@ else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
 
-call calc_this_emit (beam_init, twiss_ele, param)
+call calc_this_emit (beam_init, twiss_ele, species)
 
 covar = beam_init%dPz_dz * beam_init%sig_z**2
 twiss_ele%z%emit = sqrt((beam_init%sig_z*beam_init%sig_e)**2 - covar**2)
@@ -553,7 +558,7 @@ enddo
 if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, twiss_ele, bunch)
 
 if (ran_gauss_here) then
-  call init_random_distribution (twiss_ele, param, beam_init, bunch)
+  call init_random_distribution (twiss_ele, species, beam_init, bunch)
 endif
 
 if (beam_init%full_6D_coupling_calc) then
@@ -601,9 +606,6 @@ call init_spin_distribution (beam_init, bunch)
 ! Photons:
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
 
-species = param%particle
-bunch%particle%species = species
-
 if (species == photon$) then
   n = size(bunch%particle)
   bunch%particle(1:n:2)%field(1) = 1/sqrt(2.0_rp)
@@ -647,7 +649,7 @@ else
     p%s = ele%s
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
     p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-    call init_coord (p, p, ele, .true.)
+    call init_coord (p, p, ele, .true., species)
   enddo
 endif
 
@@ -662,7 +664,7 @@ end subroutine init_bunch_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine calc_this_emit (beam_init, ele, param)
+! Subroutine calc_this_emit (beam_init, ele, species)
 !
 ! Private routine to calculate the emittances
 !
@@ -676,15 +678,15 @@ end subroutine init_bunch_distribution
 !   ele%b  -- Real(rp): b emittance
 !-
 
-subroutine calc_this_emit (beam_init, ele, param)
+subroutine calc_this_emit (beam_init, ele, species)
 
 implicit none
 
 type (beam_init_struct) beam_init
 type (ele_struct) ele
-type (lat_param_struct) param
 
 real(rp) ran_g(2)
+integer species
 
 character(16) :: r_name = 'calc_this_emit'
 
@@ -699,13 +701,13 @@ endif
 !
 
 if (beam_init%a_norm_emit /= 0) then
-  ele%a%emit = beam_init%a_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+  ele%a%emit = beam_init%a_norm_emit * mass_of(species) / ele%value(e_tot$)
 else
   ele%a%emit = beam_init%a_emit
 endif
 
 if (beam_init%b_norm_emit /= 0) then
-  ele%b%emit = beam_init%b_norm_emit * mass_of(param%particle) / ele%value(e_tot$)
+  ele%b%emit = beam_init%b_norm_emit * mass_of(species) / ele%value(e_tot$)
 else
   ele%b%emit = beam_init%b_emit 
 endif
@@ -724,7 +726,7 @@ end subroutine calc_this_emit
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_random_distribution (ele, param, beam_init, bunch)
+! Subroutine init_random_distribution (ele, species, beam_init, bunch)
 !
 ! Subroutine to initialize a random bunch of particles matched to
 ! the Twiss parameters, centroid position, and Energy - z correlation
@@ -734,14 +736,13 @@ end subroutine calc_this_emit
 ! Note: This routine is private. Use init_bunch_distribution instead.
 !-
 
-subroutine init_random_distribution (ele, param, beam_init, bunch)
+subroutine init_random_distribution (ele, species, beam_init, bunch)
  
 use random_mod
 
 implicit none
 
 type (ele_struct) ele
-type (lat_param_struct) param
 type (beam_init_struct) beam_init
 type (bunch_struct), target :: bunch
 type (coord_struct), allocatable :: p(:)
@@ -751,7 +752,7 @@ real(rp) a_emit, b_emit, y, a, b
 real(rp) ave(6), sigma(6), alpha(6), sig_mat(6,6), r(6)
 real(rp) center(6), ran_g(2), old_cutoff
 
-integer i, j, j2, n, i_bunch, n_particle
+integer i, j, j2, n, i_bunch, n_particle, species
 
 logical is_ran_plane(3)
 
@@ -847,7 +848,7 @@ endif
 
 ! Compute sigmas
 
-call calc_this_emit(beam_init, ele, param)
+call calc_this_emit(beam_init, ele, species)
 
 dpz_dz = beam_init%dpz_dz
   

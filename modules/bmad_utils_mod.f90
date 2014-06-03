@@ -862,7 +862,7 @@ end subroutine zero_ele_offsets
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine apply_energy_kick (dE, particle, orbit)
+! Subroutine apply_energy_kick (dE, orbit)
 ! 
 ! Routine to change the energy of a particle by an amount dE
 ! Appropriate changes to z and beta will be made
@@ -872,7 +872,6 @@ end subroutine zero_ele_offsets
 !
 ! Input:
 !   dE        -- real(rp): Energy change
-!   particle  -- integer: Particle type. positron$, etc.
 !   orbit     -- coord_struct: Beginning coordinates
 !
 ! Output:
@@ -880,17 +879,16 @@ end subroutine zero_ele_offsets
 !     %vec(6)   -- Set to -1 if particle energy becomes negative.
 !-
 
-subroutine apply_energy_kick (dE, particle, orbit)
+subroutine apply_energy_kick (dE, orbit)
 
 implicit none
 
 type (coord_struct) orbit
 real(rp) dE, mc2, new_pc, new_beta, p0c, new_E, pc, beta, t3
-integer particle
 
 !
 
-mc2 = mass_of(particle)
+mc2 = mass_of(orbit%species)
 p0c = orbit%p0c
 pc = (1 + orbit%vec(6)) * p0c
 beta = orbit%beta

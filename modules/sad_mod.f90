@@ -232,7 +232,7 @@ if (make_matrix) then
 
   ! 1/gamma^2 m56 correction
 
-  mass = mass_of(param%particle)
+  mass = mass_of(orbit%species)
   e_tot = ele%value(p0c$) * (1 + orbit%vec(6)) / orbit%beta
   mat6(5,6) = mat6(5,6) + length * mass**2 * ele%value(e_tot$) / e_tot**3
 
