@@ -1,6 +1,6 @@
 !+
-! Subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, 
-!                   track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err)
+! Subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, 
+!                                          orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
 !
 ! Routine to track a particle within an element.
 !
@@ -27,6 +27,8 @@
 !                            only if l_end = ele%value(l$) (within bmad_com%significant_length tol).
 !   orbit_start          -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start            -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
+!   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
+!                             will be calculated and put in ele_end%floor.
 !
 ! Output:
 !   orbit_end  -- Coord_struct, optional: End phase space coordinates. 
@@ -38,8 +40,8 @@
 !                  the particle gets lost in tracking
 !-   
 
-subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
-                          track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err)
+subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &
+                                          orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords)
 
 use bookkeeper_mod, dummy => twiss_and_track_intra_ele
 
@@ -55,7 +57,7 @@ type (ele_struct) :: runt
 real(rp) l_start, l_end, mat6(6,6), vec0(6)
 
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
-logical, optional :: err
+logical, optional :: err, compute_floor_coords
 
 ! Easy case when l_end = l_start
 
@@ -103,6 +105,7 @@ if (present(ele_end)) then
     call make_mat6 (runt, param)
   endif
   call twiss_propagate1 (ele_start, runt, err_flag)
+  if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, runt, runt%floor)
   call transfer_ele(runt, ele_end, .true.)
   if (err_flag) return
 endif

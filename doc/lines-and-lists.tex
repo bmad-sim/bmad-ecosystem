@@ -170,6 +170,22 @@ is reflected. For example:
 In this example, \vn{line2} and \vn{line3} are identical. Notice that
 the reversal of a reversed element makes the element unreversed.
 
+Reversed elements, unlike other elements, have their local $z$-axis
+pointing in the opposite direction to the local $s$-axis
+(\sref{s:ref.construct}). This means that there must be a
+\vn{reflection patch} (\sref{s:reflect.patch}) between reversed and
+unreversed elements. See \sref{s:ex.patch} for an example. Since this
+complicates matters, it is generally only useful to employ element
+reversal in cases where there are multiple intersectiong lines with
+particle beams going in opposite directions through some elements. Where
+reversed elements are not needed, it is simple to define elements that
+are effectively reversed. For example:
+\begin{example}
+  b00: bend, angle = 0.023, e1 = ...
+  b00_rev: b00, angle = -b00[angle], e1 = -b00[e2], e2 = -b00[e1]
+\end{example}
+and \vn{b00_rev} serves as a reversed version of \vn{b00}.
+
 %-----------------------------------------------------------------------------
 \section{Beam Lines with Replaceable Arguments}
 \label{s:lines.with.arg}
@@ -226,7 +242,7 @@ lattice would be:
   z1, a, z2, b, z3, c, z4, a
 \end{example}
 \index{MAD}
-Unlike \mad members of a \vn{replacement list} can only be simple elements 
+Unlike \mad, members of a \vn{replacement list} can only be simple elements 
 without reflection or repetition count and not other lines or lists. 
 For example the following is not allowed:
 \begin{example}

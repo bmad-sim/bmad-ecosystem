@@ -48,7 +48,7 @@ type (coord_struct), optional :: start_orb, end_orb
 type (lat_param_struct)  param
 type (coord_struct) a_start_orb, a_end_orb
 
-integer mat6_calc_method
+integer mat6_calc_method, species
 
 logical, optional :: end_in, err_flag
 logical end_input, rad_fluct_save, err

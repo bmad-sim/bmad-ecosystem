@@ -603,7 +603,7 @@ case (rfcavity$)
     dE = param%rel_tracking_charge * voltage * sin(phase) / n_slice
     if (i == 0 .or. i == n_slice) dE = dE / 2
 
-    call apply_energy_kick (dE, param%particle, end_orb)
+    call apply_energy_kick (dE, end_orb)
     
     if (end_orb%vec(6) == -1) then
       end_orb%state = lost_z_aperture$

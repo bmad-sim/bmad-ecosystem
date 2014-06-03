@@ -77,6 +77,7 @@ type beam_init_struct
   real(rp) :: sig_e = 0               ! e_sigma in dE/E.
   real(rp) :: bunch_charge = 1        ! charge in a bunch. Default is something non-zero.
   integer :: n_bunch = 1              ! Number of bunches.
+  integer :: species = not_set$       ! positron$, etc. not_set$ => use referece particle.
   logical :: init_spin     = .false.  ! initialize beam spinors
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.

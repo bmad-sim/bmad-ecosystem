@@ -68,7 +68,7 @@ call vec_ptc_to_bmad (re, beta0, end_orb%vec)
 ! 
 
 if (ele%value(p0c$) /= ele%value(p0c_start$) .or. start2_orb%vec(6) /= end_orb%vec(6)) then
-  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
 endif
 
 end_orb%s = ele%s

@@ -529,7 +529,7 @@ else
   select case (key)
   case (sbend$)
     angle = leng * ele%value(g$)
-    chord_len = ele%value(l_chord$)
+    chord_len = 2 * ele%value(rho$) * sin(angle/2)
   case (multipole$)
     angle = knl(0)
     chord_len = 0

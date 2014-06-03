@@ -770,7 +770,7 @@ case (solenoid$, sol_quad$, bend_sol_quad$)
 case (lcavity$, rfcavity$, e_gun$)
 
   ! Add on bmad_com%significant_length to make sure we are just inside the cavity.
-  f = charge_of(param%particle) / (2 * orb%p0c)
+  f = charge_of(orb%species) / (2 * orb%p0c)
   t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
@@ -1737,7 +1737,7 @@ real(rp) p0c, pc, beta, beta0, mass, e_tot
 
 !
 
-mass = mass_of(param%particle)
+mass = mass_of(orbit%species)
 e_tot = ele%value(e_tot$)
 p0c = ele%value(p0c$)
 
@@ -1745,7 +1745,7 @@ if (abs(orbit%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
 else
   pc = (1 + orbit%vec(6)) * ele%value(p0c$)
-  call convert_pc_to (pc, param%particle, beta = beta)
+  call convert_pc_to (pc, orbit%species, beta = beta)
   beta0 = ele%value(p0c$) / ele%value(e_tot$)
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * (beta - beta0) / beta0
 endif
@@ -1813,7 +1813,7 @@ orbit%vec(2) = orbit%vec(2) + dp_x * cos(ph) / orbit%p0c
 orbit%vec(4) = orbit%vec(4) + dp_y * cos(ph) / orbit%p0c
 
 dE = (dp_x * orbit%vec(1) + dp_y * orbit%vec(3)) * sin(ph) * twopi * ele%value(rf_frequency$) / c_light
-call apply_energy_kick (dE, param%particle, orbit)
+call apply_energy_kick (dE, orbit)
 
 end subroutine rf_coupler_kick
 

@@ -230,6 +230,7 @@ do i = 1, n_bunch
       return
     endif
     bunch%particle%species = ix + lbound(particle_name, 1) - 1
+    beam_init%species = bunch%particle(1)%species
 
     read (iu, *, iostat = ios) bunch%charge_tot
     if (ios /= 0) then

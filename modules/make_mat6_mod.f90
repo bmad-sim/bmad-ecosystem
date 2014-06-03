@@ -1303,7 +1303,7 @@ mat6(3,6) = -rel_len * py / pz**2
 mat6(5,2) = -rel_len * px / pz**2 
 mat6(5,4) = -rel_len * py / pz**2
 mat6(5,6) =  rel_len * (px**2 + py**2) / pz**2 + &
-                  length * mass_of(param%particle)**2 * ele%value(e_tot$) / e_tot**3
+                  length * mass_of(start%species)**2 * ele%value(e_tot$) / e_tot**3
 
 end subroutine drift_mat6_calc
 
