@@ -187,7 +187,6 @@ end subroutine
 !   start -- Coord_struct: Starting coordinates.
 !   ele   -- Ele_struct: Element that we are tracking through.
 !   param -- lat_param_struct: 
-!     %particle    -- Particle type [positron$, electron$, etc.]
 !     %spin_tracking_on -- If True then also track the spin
 !   s     -- Real(rp): Starting point relative to element beginning.
 !   t     -- Real(rp): Particle time
@@ -214,7 +213,7 @@ real(rp) :: p2, t, dt, beta_ref, p2_z
 !
 
 charge = param%rel_tracking_charge * charge_of(param%particle)
-mass = mass_of(param%particle) / ele%value(p0c$)
+mass = mass_of(start%species) / ele%value(p0c$)
 
 end = start
 ds2 = ele%orientation * ds / 2

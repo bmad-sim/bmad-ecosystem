@@ -56,7 +56,7 @@ if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
 if (ele%value(p0c$) == ele%value(p0c_start$)) then
   end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 else
-  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), param%particle, beta = end_orb%beta)
+  call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
   end_orb%t = start2_orb%t + dtime_ref + &
                             start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif

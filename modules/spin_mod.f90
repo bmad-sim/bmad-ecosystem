@@ -451,7 +451,6 @@ end subroutine calc_rotation_quaternion
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
-!     %particle     -- Type of particle used
 !   end_orb    -- Coord_struct: Ending coords.
 !     %vec          -- Ending particle position needed for bmad_standard spin tracking.
 !
@@ -518,7 +517,6 @@ end subroutine track1_spin
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
-!     %particle     -- Type of particle used
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
@@ -586,7 +584,6 @@ end subroutine track1_spin_symp_lie_ptc
 !   start_orb  -- Coord_struct: Starting coords.
 !   ele        -- Ele_struct: Element to track through.
 !   param      -- lat_param_struct: Beam parameters.
-!     %particle     -- Type of particle used
 !   end_orb    -- Coord_struct: Ending coords.
 !     %vec          -- Ending particle position
 !
@@ -622,8 +619,8 @@ character(16), parameter :: r_name = 'track1_spin_bmad'
 
 !
 
-m_particle = mass_of(param%particle)
-anomalous_moment = anomalous_moment_of(param%particle)
+m_particle = mass_of(start_orb%species)
+anomalous_moment = anomalous_moment_of(start_orb%species)
 
 end_orb%spin = start_orb%spin     ! transfer start to end
 
@@ -813,10 +810,10 @@ if(isTreatedHere) then
     if (gradient /= 0) then
 
       pc_start = ele%value(p0c_start$) * (1+temp_middle%vec(6))
-      call convert_pc_to (pc_start, param%particle, E_tot = e_start, beta = beta_start)
+      call convert_pc_to (pc_start, start_orb%species, E_tot = e_start, beta = beta_start)
       e_end = e_start + gradient * ele%value(l$)
       gammaf = gamma0 * (e_end / e_start)
-      call convert_total_energy_to (e_end, param%particle, pc = pc_end, beta = beta_end)
+      call convert_total_energy_to (e_end, start_orb%species, pc = pc_end, beta = beta_end)
 
       ! The edge field length of a cavity is about 1 quarter wavelength
 
@@ -1021,7 +1018,6 @@ end subroutine lcav_edge_track
 !   ele        -- ele_struct: element evauluated in
 !      %value(E_TOT$) -- reaL(rp): needed to find momentum
 !   param      -- lat_param_struct: Beam parameters.
-!     %particle     -- Type of particle used
 !   omega(3)   -- Real(rp): Omega in cartesian coordinates
 !   s          -- Real(rp): evaluate at position s in element
 !-
@@ -1053,17 +1049,17 @@ if (ele%key == lcavity$) then
   if (.not. ele%is_on) gradient = 0
   gradient = gradient + gradient_shift_sr_wake(ele, param)
   pc = ele%value(p0c_start$) * (1 + coord%vec(6))
-  call convert_pc_to (pc, param%particle, E_tot = e_particle)
+  call convert_pc_to (pc, coord%species, E_tot = e_particle)
   e_particle = e_particle + gradient*s
 else
   pc = ele%value(p0c$) * (1 + coord%vec(6))
-  call convert_pc_to (pc, param%particle, E_tot = e_particle)
+  call convert_pc_to (pc, coord%species, E_tot = e_particle)
 endif
 
 ! want everything in units of Ev
-anomalous_moment = anomalous_moment_of (param%particle)
-charge = charge_of(param%particle)
-m_particle = mass_of(param%particle)
+anomalous_moment = anomalous_moment_of (coord%species)
+charge = charge_of(coord%species)
+m_particle = mass_of(coord%species)
 gamma0 = e_particle / m_particle
 p_z = (ele%value(p0c$)/c_light)*&
                    sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
@@ -1155,7 +1151,6 @@ end function normalized_quaternion
 !   coord     -- Coord_struct: Coordinates of the particle.
 !     %spin(2)          -- Particle spin
 !   param     -- lat_param_struct:
-!     %particle   -- What kind of particle (for elseparator elements).
 !   set       -- Logical:
 !                   T (= set$)   -> Translate from lab coords to the local
 !                                     element coords.
@@ -1233,7 +1228,7 @@ if (set_t .and. ele%key == sbend$) then
   endif
 endif
 
-a_gamma_plus = anomalous_moment_of(param%particle) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(param%particle) + 1
+a_gamma_plus = anomalous_moment_of(coord%species) * ele%value(e_tot$) * (1 + coord%vec(6)) / mass_of(coord%species) + 1
 
 !----------------------------------------------------------------
 ! Set...
@@ -1271,7 +1266,7 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_spin_precession (ele, param, coord%vec, coord%spin, .true., &
+    call multipole_spin_precession (ele, param, coord, .true., &
                                .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
   endif
 
@@ -1307,7 +1302,7 @@ if (set) then
   if (set_hv2) then
     if (ele%key == elseparator$) then
 !     NOT IMPLEMENTED YET
-!       if (param%particle < 0) then
+!       if (coord%species < 0) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
@@ -1342,7 +1337,7 @@ else
   if (set_hv2) then
     if (ele%key == elseparator$) then
 !     NOT IMPLEMENTED YET
-!       if (param%particle < 0) then
+!       if (coord%species < 0) then
 !       else
 !       endif
     elseif (ele%key == hkicker$) then
@@ -1394,7 +1389,7 @@ else
 
   ! Unset: Multipoles
   if (set_multi) then
-    call multipole_spin_precession (ele, param, coord%vec, coord%spin, .true., &
+    call multipole_spin_precession (ele, param, coord, .true., &
                                .true., (ele%key==multipole$ .or. ele%key==ab_multipole$))
   endif
 
@@ -1432,7 +1427,7 @@ end subroutine offset_spin
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine multipole_spin_precession (ele, param, vec, spin, do_half_prec, &
+! Subroutine multipole_spin_precession (ele, param, orbit, do_half_prec, &
 !                                       include_sextupole_octupole, ref_orb_offset)
 !
 ! Subroutine to track the spins in a multipole field
@@ -1449,9 +1444,7 @@ end subroutine offset_spin
 !     %value(tilt$)           -- Tilt of element.
 !     %value(roll$)           -- Roll of dipole.
 !   param            -- Lat_param_struct
-!     %particle               -- Particle species.
-!   vec              -- Real(rp): Coordinates of the particle.
-!   spin(2)          -- Complex(rp): Incoming spinor
+!   orbit            -- coord_struct: Coordinates of the particle.
 !   do_half_prec     -- Logical, optional: Default is False.
 !                          Apply half multipole effect only (for kick-drift-kick model)
 !   include_sextupole_octupole  -- Logical, optional: Default is False.
@@ -1464,7 +1457,7 @@ end subroutine offset_spin
 !   spin(2)          -- Complex(rp): Resultant spinor
 !-
 
-subroutine multipole_spin_precession (ele, param, vec, spin, do_half_prec, &
+subroutine multipole_spin_precession (ele, param, orbit, do_half_prec, &
                                       include_sextupole_octupole, ref_orb_offset)
 
 use multipole_mod, only: multipole_ele_to_ab
@@ -1473,11 +1466,10 @@ implicit none
 
 type (ele_struct), intent(in) :: ele
 type (lat_param_struct) param
+type (coord_struct) orbit
 
-complex(rp), intent(inout) :: spin(2)
 complex(rp) kick, pos
 
-real(rp), intent(in) :: vec(6)
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4), a_field(4)
 
 integer n
@@ -1538,11 +1530,11 @@ if (ref_orb) then
   endif
 endif
 
-pos = vec(1)+i_imaginary*vec(3)
+pos = orbit%vec(1)+i_imaginary*orbit%vec(3)
 if (pos /= 0.) then
   kick = kick + (bn(1)+i_imaginary*an(1))*pos
   do n = 2, n_pole_maxx
-    pos = pos * (vec(1)+i_imaginary*vec(3))
+    pos = pos * (orbit%vec(1)+i_imaginary*orbit%vec(3))
     kick = kick + (bn(n)+i_imaginary*an(n))*pos
   enddo
 endif
@@ -1553,14 +1545,14 @@ if ( kick_angle /= 0. ) then
   Bx = aimag(kick)
   By = real(kick)
   ! precession_angle = kick_angle*(a*gamma+1)
-  kick_angle = kick_angle * (anomalous_moment_of(param%particle) * ele%value(e_tot$) * &
-                        (1 + vec(6)) / mass_of(param%particle) + 1)
+  kick_angle = kick_angle * (anomalous_moment_of(orbit%species) * ele%value(e_tot$) * &
+                        (1 + orbit%vec(6)) / mass_of(orbit%species) + 1)
   call calc_rotation_quaternion(Bx, By, 0._rp, kick_angle, a_field)
-  call quaternion_track (a_field, spin)
+  call quaternion_track (a_field, orbit%spin)
 endif
 
 if (ref_orb) then
-  call quaternion_track (a_coord, spin)
+  call quaternion_track (a_coord, orbit%spin)
 endif
 
 end subroutine multipole_spin_precession

@@ -583,7 +583,7 @@ do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (orbit(i), vec, ele, .true., branch%param%particle)
+  call init_coord (orbit(i), vec, ele, .true., orbit(0)%species)
 
   call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
   if (orbit(i)%state /= alive$) then

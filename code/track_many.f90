@@ -98,7 +98,7 @@ if (direction == +1) then
 elseif (direction == -1) then
 
   call convert_pc_to (branch%ele(ix_start)%value(p0c$) * (1 + orbit(ix_start)%vec(6)), &
-                                                  branch%param%particle, beta = orbit(ix_start)%beta)
+                                                  orbit(ix_start)%species, beta = orbit(ix_start)%beta)
   orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
 
   if (ix_start > ix_end) then
