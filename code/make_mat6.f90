@@ -110,7 +110,7 @@ case (taylor$)
   if (.not. end_input) call track1_taylor (a_start_orb, ele, param, a_end_orb)
 
 case (bmad_standard$)
-  if (param%particle == photon$) then
+  if (a_start_orb%species == photon$) then
     call make_mat6_bmad_photon (ele, param, a_start_orb, a_end_orb, end_in, err)
   else
     call make_mat6_bmad (ele, param, a_start_orb, a_end_orb, end_in, err)

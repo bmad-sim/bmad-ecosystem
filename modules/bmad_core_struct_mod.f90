@@ -42,6 +42,7 @@ use basic_bmad_interface
 !                     Must be present if ele argument is present.
 !                     Default is False.
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
+!                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
 !   dirction     -- Integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
 !                     Default = +1.  
 !   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
@@ -944,7 +945,6 @@ character(16), parameter :: r_name = 'init_coord1'
 orb2 = coord_struct()
 
 orb2%state = alive$
-orb2%species = positron$
 orb2%p0c = 0
 orb2%direction = integer_option(+1, direction)
 
@@ -967,7 +967,11 @@ endif
 
 if (present(particle)) then
   orb2%species = particle
-elseif (present(ele)) then
+else
+  orb2%species = not_set$
+endif
+
+if (orb2%species == not_set$ .and. present(ele)) then
   if (associated (ele%branch)) then
     if (ele%branch%param%rel_tracking_charge < 0) then
       orb2%species = -ele%branch%param%particle
@@ -975,6 +979,11 @@ elseif (present(ele)) then
       orb2%species = ele%branch%param%particle
     endif
   endif
+endif
+
+if (orb2%species == not_set$) then
+  call out_io (s_warn$, r_name, 'NO PARTICLE SPECIES GIVEN. USING POSITRONS AS DEFAULT!')
+  orb2%species = positron$
 endif
 
 ! Energy values
@@ -1093,19 +1102,23 @@ type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
 real(rp), optional :: t_ref_offset, E_photon
 integer, optional :: particle, direction
+integer species
 logical, optional :: at_downstream_end, shift_vec6
 
 !
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
+species = orb_save%species
+if (present(particle)) then
+  if (particle /= not_set$) species = particle
+endif
 
-call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, species, direction, E_photon, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%field     = orb_save%field
 orb%phase     = orb_save%phase
 orb%charge    = orb_save%charge
-if (orb_save%species /= not_set$) orb%species   = orb_save%species
 if (orb%beta == 0) orb%t = orb_save%t
 
 end subroutine init_coord2

@@ -77,7 +77,7 @@ if (present(err_flag)) err_flag = .false.
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
 end_orb = start_orb     ! transfer start to end
-if (param%particle /= photon$) then
+if (end_orb%species /= photon$) then
   end_orb%p0c = ele%value(p0c$)
 endif
 length = ele%value(l$)
@@ -181,7 +181,7 @@ case (elseparator$)
 
   hk = ele%value(hkick$) * param%rel_tracking_charge
   vk = ele%value(vkick$) * param%rel_tracking_charge
-  if (param%particle < 0) then
+  if (end_orb%species < 0) then
     hk = -hk
     vk = -vk
   endif
@@ -196,7 +196,7 @@ case (elseparator$)
   pc = ele%value(p0c$) * (1 + end_orb%vec(6))
   call convert_pc_to (pc, end_orb%species, E_tot = E_tot)
   E_rel = E_tot / ele%value(p0c$)
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(end_orb%species)
 
   x = end_orb%vec(1)
   px = end_orb%vec(2)
@@ -317,7 +317,7 @@ case (lcavity$)
   beta_end_ref   = pc_end_ref / E_end_ref
 
   pc_start = pc_start_ref * rel_p
-  call convert_pc_to (pc_start, param%particle, E_tot = E_start, beta = beta_start)
+  call convert_pc_to (pc_start, end_orb%species, E_tot = E_start, beta = beta_start)
 
   ! The RF phase is defined with respect to the time at the beginning of the element.
   ! So if dealing with a slave element and absolute time tracking then need to correct.
@@ -333,16 +333,16 @@ case (lcavity$)
 
   dE = gradient_net * length
   E_end = E_start + dE
-  if (E_end <= mass_of(param%particle)) then
+  if (E_end <= mass_of(end_orb%species)) then
     end_orb%state = lost_z_aperture$
     end_orb%vec(6) = -1.01  ! Something less than -1
     return
   endif
 
-  call convert_total_energy_to (E_end, param%particle, pc = pc_end, beta = beta_end)
+  call convert_total_energy_to (E_end, end_orb%species, pc = pc_end, beta = beta_end)
   E_ratio = E_end / E_start
   end_orb%beta = beta_end
-  mc2 = mass_of(param%particle)
+  mc2 = mass_of(end_orb%species)
 
   ! Coupler kick
 

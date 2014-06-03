@@ -209,7 +209,7 @@ if (set) then
     if (ele%key == elseparator$) then
       coord%vec(2) = coord%vec(2) + param%rel_tracking_charge * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + param%rel_tracking_charge * ele%value(vkick$) / 2
-      if (param%particle < 0) then
+      if (coord%species < 0) then
         coord%vec(2) = -coord%vec(2)
         coord%vec(4) = -coord%vec(4)
       endif

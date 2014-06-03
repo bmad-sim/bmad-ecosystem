@@ -31,8 +31,6 @@ contains
 !                           == custom$ then use em_field_custom
 !                           /= custom$ then use em_field_standard
 !   param   -- lat_param_struct: Beam parameters.
-!     %enegy       -- Energy in GeV
-!     %particle    -- Particle type [positron$, or electron$]
 !   s1      -- Real: Starting point.
 !   s2      -- Real: Ending point.
 !   t_rel   -- Real: time relative to entering reference time
@@ -395,6 +393,8 @@ else
   if (err_flag) return
 endif
 
+orb_temp%species = orb%species
+
 orb_temp%vec = orb%vec + b21*dt*dr_dt1
 call em_field_kick_vector_time(ele, param, t+a2*dt, orb_temp, local_ref_frame, dr_dt2, err_flag)
 if (err_flag) return
@@ -421,7 +421,7 @@ orb_new%vec = orb%vec +dt*(c1*dr_dt1+c3*dr_dt3+c4*dr_dt4+c6*dr_dt6)
 orb_new%t = orb%t + dt
 orb_new%s = orb%s + orb_new%vec(5) - orb%vec(5)
 pc = sqrt(orb_new%vec(2)**2 +orb_new%vec(4)**2 + orb_new%vec(6)**2)
-call convert_pc_to (pc, param%particle, beta = orb_new%beta)
+call convert_pc_to (pc, orb%species, beta = orb_new%beta)
 
 r_err = dt*(dc1*dr_dt1+dc3*dr_dt3+dc4*dr_dt4+dc5*dr_dt5+dc6*dr_dt6)
 
@@ -483,8 +483,8 @@ if (err_flag) return
 ! Get e_tot from momentum
 ! velocities v_x, v_y, v_s:  c*[c*p_x, c*p_y, c*p_s]/e_tot
 
-mc2 = mass_of(param%particle) ! Note: mc2 is in eV
-charge = charge_of(param%particle) ! Note: charge is in units of |e_charge|
+mc2 = mass_of(orbit%species) ! Note: mc2 is in eV
+charge = charge_of(orbit%species) ! Note: charge is in units of |e_charge|
 
 e_tot = sqrt( orbit%vec(2)**2 +  orbit%vec(4)**2 +  orbit%vec(6) **2 + mc2**2) 
 vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot 

@@ -133,7 +133,7 @@ if (.not. ele%is_on) tracking_method = bmad_standard$
 select case (tracking_method)
 
 case (bmad_standard$)
-  if (param%particle == photon$) then
+  if (start2_orb%species == photon$) then
     call track1_bmad_photon (start2_orb, ele, param, end_orb, err)
   else
     call track1_bmad (start2_orb, ele, param, end_orb, err)

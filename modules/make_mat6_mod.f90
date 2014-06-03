@@ -1275,7 +1275,7 @@ else
   ave = start%vec
 endif
 
-if (param%particle == photon$) then
+if (start%species == photon$) then
   rel_pc = start%p0c / ele%value(p0c$)
   px = ave(2)
   py = ave(4)

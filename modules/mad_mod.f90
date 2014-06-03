@@ -48,7 +48,6 @@ contains
 ! Input:
 !   ele    -- Ele_struct: Element with transfer matrix.
 !   param  -- lat_param_struct: Lattice parameters.
-!     %particle -- particle species.
 !   map    -- mad_map_struct: 2nd order map.
 !   c0     -- Coord_struct: Coordinates at the beginning of element.
 !

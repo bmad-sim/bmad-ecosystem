@@ -39,7 +39,7 @@ real(rp) s_start, s_end
 real(rp) s0
 
 integer, optional :: ix_branch, track_state
-integer ix_start, ix_end, particle
+integer ix_start, ix_end
 integer ix_ele
 
 logical err
@@ -49,7 +49,6 @@ character(40), parameter :: r_name = 'track_from_s_to_s'
 ! Easy case & error check
 
 branch => lat%branch(integer_option(0, ix_branch))
-particle = branch%param%particle
 if (present(track_state)) track_state = moving_forward$
 
 if (s_start == s_end .and. branch%param%geometry == open$) then

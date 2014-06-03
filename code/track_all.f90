@@ -59,8 +59,8 @@ if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 orbit(0)%ix_ele   = 0
 orbit(0)%location = downstream_end$
 
-if (branch%param%particle /= photon$) then
-  call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), branch%param%particle, beta = orbit(0)%beta)
+if (orbit(0)%species /= photon$) then
+  call convert_pc_to (branch%ele(0)%value(p0c$) * (1 + orbit(0)%vec(6)), orbit(0)%species, beta = orbit(0)%beta)
   orbit(0)%p0c = branch%ele(0)%value(p0c$)
 endif
 
