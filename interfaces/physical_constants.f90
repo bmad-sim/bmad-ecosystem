@@ -20,8 +20,8 @@ real(rp), parameter :: m_electron = 0.510998910d6        ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.938272046d9        ! Mass [eV]
 real(rp), parameter :: m_muon     = 105.65836668d6       ! Mass [eV]
 
-real(rp), parameter :: m_pion_0 = 134.9766e6             ! Mass [eV]
-real(rp), parameter :: m_pion_charged = 139.57018e6      ! Mass [eV]
+real(rp), parameter :: m_pion_0 = 134.9766d6             ! Mass [eV]
+real(rp), parameter :: m_pion_charged = 139.57018d6      ! Mass [eV]
 
 real(rp), parameter :: c_light = 2.99792458d8            ! speed of light
 real(rp), parameter :: r_e = 2.8179402894d-15            ! classical electron radius
