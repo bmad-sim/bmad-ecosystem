@@ -3220,7 +3220,7 @@ transverse(:)%phi = real_garbage$
 z_max = real_garbage$
 
 read (iu, nml = short_range_modes, iostat = ios)
-close (1)
+close (iu)
 if (ios > 0) then
   call parser_error ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
                     // full_file_name, 'FOR ELEMENT: ' // ele%name)
