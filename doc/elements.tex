@@ -759,9 +759,9 @@ The possible settings of this parameter are:
 \end{example}
 The geometry of this situation is shown in \fig{f:crystal}B. The
 reference orbit for the \vn{undiffracted} beam is just a straight line
-extension of the incoming reference tranjectory. This trajectory is
+extension of the incoming reference trajectory. This trajectory is
 that trajectory that photons whose energy is far from the Bragg
-condition (that is, far from the referennce energy) will follow. The
+condition (that is, far from the reference energy) will follow. The
 \vn{forward_diffracted} reference orbit is parallel to the
 \vn{undiffracted} trajectory and is the trajectory of the forward
 diffracted photons whose energy is the reference energy and whose
@@ -905,7 +905,7 @@ A \vn{detector} element is used to detect particles and X-rays.  A
 \vn{detector} is modeled as a plate upon which particles and x-rays
 can impinge.
 
-General \vn{diffraction_plate} element attributes are:
+General \vn{detector} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
@@ -1014,7 +1014,7 @@ upon. (\sref{s:super})].
 \label{s:e.gun}
 \index{e_gun|hyperbf}
 
-An \vn{e_gun} element represents an electron gun and encompeses a
+An \vn{e_gun} element represents an electron gun and encompasses a
 region starting from the cathode were the electrons are generated.
 General \vn{e_gun} attributes are:
 \begin{center}
@@ -2937,9 +2937,9 @@ Attributes specific to an \vn{sextupole} element are:
 
 One difference between SAD and \bmad is that SAD defines the solenoid
 field by what are essentially a set of marker elements so that the
-solenoid field at a SAD \vn{mult} element is not explicitly declaired
+solenoid field at a SAD \vn{mult} element is not explicitly declared
 in the \vn{mult} element definition. \bmad, on the other hand,
-requires a \vn{sad_mult} element to explicitly declare the solinoid
+requires a \vn{sad_mult} element to explicitly declare the solenoid
 parameters.
 
 Another difference between SAD and \bmad is that, within a solenoid,
@@ -2990,7 +2990,7 @@ Sad conventions:
 A SAD \vn{rotate} or \vn{chi3} rotation is opposite to a \bmad \vn{tilt}
 \item
 SAD element offsets (\vn{dx}, \vn{dy}, \vn{dz}) are with respect to the entrance end
-of the element as opposed to \bmad's convention of referenceing to the element center.
+of the element as opposed to \bmad's convention of referencing to the element center.
 \end{itemize}
 
 %-----------------------------------------------------------------

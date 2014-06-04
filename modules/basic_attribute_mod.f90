@@ -1474,7 +1474,7 @@ case ('COUPLER_AT')
 
 case ('PHOTON_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, photon_type_name, lbound(photon_type_name, 1))
-  if (present(is_default)) is_default = incoherent$
+  if (present(is_default)) is_default = (ix_attrib == incoherent$)
 
 case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))

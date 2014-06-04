@@ -3109,7 +3109,7 @@ lr%t_ref = 0
 
 read (iu, nml = long_range_modes, iostat = ios)
 close (iu)
-if (ios /= 0) then
+if (ios > 0 .or. lr(1)%freq == -1) then
   call parser_error ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
                 'FROM FILE: '// full_file_name)
   return
@@ -3221,7 +3221,7 @@ z_max = real_garbage$
 
 read (iu, nml = short_range_modes, iostat = ios)
 close (1)
-if (ios /= 0) then
+if (ios > 0) then
   call parser_error ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
                     // full_file_name, 'FOR ELEMENT: ' // ele%name)
   return
@@ -3231,21 +3231,21 @@ n = count(longitudinal%phi /= real_garbage$)
 allocate (ele%wake%sr_long%mode(n))
 ele%wake%sr_long%mode = longitudinal(1:n)
 if (any(longitudinal(1:n)%phi == real_garbage$)) call parser_error ( &
-    'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' &
-    // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    'JUMBLED INDEX FOR LONGITUDINAL SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
+    'FOR ELEMENT: ' // ele%name)
 
 n = count(transverse%phi /= real_garbage$)
 allocate (ele%wake%sr_trans%mode(n))
 ele%wake%sr_trans%mode = transverse(1:n)
 if (any(transverse(1:n)%phi == real_garbage$)) call parser_error ( &
-    'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' &
-    // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    'JUMBLED INDEX FOR TRANSVERSE SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
+    'FOR ELEMENT: ' // ele%name)
 
 
 ele%wake%z_sr_max = z_max
 if (z_max == real_garbage$) call parser_error ( &
-    'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' &
-    // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
+    'FOR ELEMENT: ' // ele%name)
 
 end subroutine read_sr_wake
 
