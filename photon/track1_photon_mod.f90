@@ -364,7 +364,7 @@ if (target%enabled) then
   orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
   orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
 
-  if (param%photon_type == coherent$) then
+  if (photon_type(ele) == coherent$) then
     orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
     ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
     if (orbit%path_len /= 0) then
@@ -381,7 +381,7 @@ else
   rho = sqrt(1 - y**2)
   orbit%vec(2:6:2) = [rho * sin(phi), y, direction * rho * cos(phi)]
   ! Without targeting photons are emitted into twopi solid angle.
-  if (param%photon_type == coherent$) then
+  if (photon_type(ele) == coherent$) then
     orbit%field = orbit%field * twopi / solid_angle
     ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
     if (orbit%path_len /= 0) then
@@ -788,7 +788,7 @@ if (ele%value(b_param$) < 0) then
 
   ! Factor of sqrt_b comes from geometrical change in the transverse width of the photon beam
 
-  if (param%photon_type == coherent$) then
+  if (photon_type(ele) == coherent$) then
     e_field = abs(e_rel) / abs(cp%b_eff)
     e_phase = atan2(aimag(e_rel), real(e_rel)) + e_phase
   else
@@ -854,7 +854,7 @@ else
   !--------------------------
   ! Calculate phase and field
 
-  if (param%photon_type == coherent$) then
+  if (photon_type(ele) == coherent$) then
 
 
     if (nint(ele%value(ref_orbit_follows$)) == bragg_diffracted$) then

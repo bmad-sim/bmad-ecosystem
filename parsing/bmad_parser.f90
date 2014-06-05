@@ -42,7 +42,7 @@ use random_mod
 
 implicit none
 
-type (lat_struct), target :: lat, in_lat, old_lat, lat2
+type (lat_struct), target :: lat, in_lat, lat2
 type (ele_struct) this_ele
 type (ele_struct), pointer :: ele, slave, lord, ele2, ele0
 type (ele_struct), save :: marker_ele
@@ -127,10 +127,6 @@ if (.not. err .and. .not. bp_com%always_parse) then
 endif
 
 if (present(digested_read_ok)) digested_read_ok = .false.
-
-! save lattice for possible Taylor map reuse.
-
-old_lat = lat
 
 ! here if not OK bmad_status. So we have to do everything from scratch...
 ! init variables.
@@ -828,7 +824,7 @@ branch_loop: do i_loop = 1, n_branch_max
     ! Set photon_type
 
     ix = nint(bp_com%param_ele%value(photon_type$))
-    if (ix > 0) lat%param%photon_type = ix   ! photon_type has been set.
+    if (ix > 0) lat%photon_type = ix   ! photon_type has been set.
 
   endif
 
@@ -854,11 +850,6 @@ branch_loop: do i_loop = 1, n_branch_max
       branch%param%geometry = closed$
     endif
   endif
-
-  ! Set photon_type
-
-  ix = nint(ele%value(photon_type$))
-  if (ix > 0) branch%param%photon_type = ix   ! photon_type has been set.
 
   !
 
@@ -1202,7 +1193,6 @@ do i = 1, lat%n_ele_max
   endif
 enddo
 
-call deallocate_lat_pointers(old_lat)
 call deallocate_lat_pointers(in_lat)
 call deallocate_lat_pointers(lat2)
 

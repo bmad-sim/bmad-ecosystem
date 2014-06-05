@@ -2,7 +2,36 @@ module photon_utils_mod
 
 use bmad_interface
 
+implicit none
+
 contains
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function photon_type (ele) result (e_type)
+!
+! Routine to return the type of photon to be tracked: coherent$ or incoherent$.
+!
+! Input:
+!   ele -- ele_struct: Element being tracked through.
+!
+! Output:
+!   e_type -- integer: coherent$ or incoherent$
+!-
+
+function photon_type (ele) result (e_type)
+
+type (ele_struct) ele
+integer e_type
+
+! Use
+
+e_type = incoherent$   ! Default
+if (associated(ele%branch)) e_type = ele%branch%lat%photon_type
+
+end function photon_type
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
