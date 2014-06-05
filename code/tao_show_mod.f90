@@ -528,17 +528,17 @@ case ('branch')
       return
     endif
 
-    nl=nl+1; lines(nl) =                   '%name                      = ' // trim(branch%name)
-    nl=nl+1; write(lines(nl), imt)  '%ix_branch                 =', branch%ix_branch 
-    nl=nl+1; write(lines(nl), imt)  '%ix_from_branch            =', branch%ix_from_branch 
-    nl=nl+1; write(lines(nl), imt)  '%ix_from ele               =', branch%ix_from_ele
-    nl=nl+1; write(lines(nl), imt)  '%n_ele_track               =', branch%n_ele_track
-    nl=nl+1; write(lines(nl), imt)  '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write(lines(nl), imt)  '%param%particle            = ' // trim(species_name(branch%param%particle))
+    nl=nl+1; lines(nl) =             '%name                      = ' // trim(branch%name)
+    nl=nl+1; write(lines(nl), imt)   '%ix_branch                 =', branch%ix_branch 
+    nl=nl+1; write(lines(nl), imt)   '%ix_from_branch            =', branch%ix_from_branch 
+    nl=nl+1; write(lines(nl), imt)   '%ix_from ele               =', branch%ix_from_ele
+    nl=nl+1; write(lines(nl), imt)   '%n_ele_track               =', branch%n_ele_track
+    nl=nl+1; write(lines(nl), imt)   '%n_ele_max                 =', branch%n_ele_max
+    nl=nl+1; write(lines(nl), imt)   '%param%particle            = ' // trim(species_name(branch%param%particle))
     nl=nl+1; write(lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
-    nl=nl+1; write(lines(nl), amt)  '%param%geometry            = ', geometry_name(branch%param%geometry)
+    nl=nl+1; write(lines(nl), amt)   '%param%geometry            = ', geometry_name(branch%param%geometry)
     if (branch%param%particle == photon$) then
-      nl=nl+1; write(lines(nl), amt)  '%param%photon_type         = ', photon_type_name(branch%param%photon_type)
+      nl=nl+1; write(lines(nl), amt) 'lat%photon_type            = ', photon_type_name(lat%photon_type)
     endif
 
   else
@@ -2595,6 +2595,7 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name
+  nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
   nl=nl+1; write(lines(nl), lmt) 'Auto_Scale_Field_Phase: ', lat%auto_scale_field_phase
   nl=nl+1; write(lines(nl), lmt) 'Auto_scale_Field_Amp:   ', lat%auto_scale_field_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
