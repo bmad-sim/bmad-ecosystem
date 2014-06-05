@@ -158,6 +158,12 @@ if (ele%name /= 'END' .or. ele%key /= marker$) then
   write (iu, '(a)') 'parameter[no_end_marker]          =  T'
 endif
 
+if (lat%photon_type /= incoherent$) then
+  write (iu, '(3a)') 'parameter[photon_type] = ', photon_type_name(lat%photon_type)
+endif
+
+
+
 ele => lat%ele(0) 
 
 if (ele%floor%r(1) /= 0)   write (iu, '(2a)') 'beginning[x_position]     = ', trim(str(ele%floor%r(1)))
@@ -971,10 +977,6 @@ do ib = 1, ubound(lat%branch, 1)
   write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
   write (iu, '(3a)') trim(branch%name), '[rel_tracking_charge] = ', str(branch%param%rel_tracking_charge)
  
-  if (branch%param%photon_type /= incoherent$) then
-    write (iu, '(3a)') trim(branch%name), '[photon_type] = ', photon_type_name(branch%param%photon_type)
-  endif
-
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
     if (branch2%param%particle == branch%param%particle) cycle

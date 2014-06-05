@@ -552,7 +552,6 @@ call init_attribute_name1 (beginning_ele$, rel_tracking_charge$,         'REL_TR
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')
-call init_attribute_name1 (line_ele$, photon_type$,                 'PHOTON_TYPE')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$,      'CUSTOM_ATTRIBUTE1', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute2$,      'CUSTOM_ATTRIBUTE2', override = .true.)

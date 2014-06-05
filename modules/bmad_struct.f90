@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 137
+integer, parameter :: bmad_inc_version$ = 138
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -583,7 +583,6 @@ type lat_param_struct
   logical :: stable = .false.                ! is closed lat stable?
   logical :: aperture_limit_on = .true.      ! use apertures in tracking?
   logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
-  integer :: photon_type = incoherent$       ! Or coherent$. For X-ray simulations.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                           ! Overall status for the branch.
 end type
@@ -678,6 +677,7 @@ type lat_struct
   integer n_ic_max                        ! Last index used in ic_array
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
+  integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
   logical auto_scale_field_phase          ! See auto_scale_field_phase_and_amp routine.
   logical auto_scale_field_amp            ! See auto_scale_field_phase_and_amp routine.

@@ -1127,8 +1127,6 @@ is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 
@@ -2008,6 +2006,8 @@ if (.not. is_eq) return
 if (allocated(f1%ic)) is_eq = all(shape(f1%ic) == shape(f2%ic))
 if (.not. is_eq) return
 if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
 !! f_side.equality_test[logical, 0, NOT]

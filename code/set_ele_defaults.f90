@@ -109,7 +109,6 @@ case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
   ele%value(rel_tracking_charge$) = real_garbage$
-  ele%value(photon_type$) = -1
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 
