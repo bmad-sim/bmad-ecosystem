@@ -1599,7 +1599,6 @@ public:
   Bool stable;
   Bool aperture_limit_on;
   Bool reverse_time_tracking;
-  Int photon_type;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1615,7 +1614,6 @@ public:
     stable(false),
     aperture_limit_on(true),
     reverse_time_tracking(false),
-    photon_type(Bmad::INCOHERENT),
     bookkeeping_state()
     {}
 
@@ -2212,7 +2210,7 @@ public:
   Bool mode_flip;
   Bool multipoles_on;
   Bool scale_multipoles;
-  Bool map_with_offsets;
+  Bool taylor_map_includes_offsets;
   Bool field_master;
   Bool is_on;
   Bool old_is_on;
@@ -2309,7 +2307,7 @@ public:
     mode_flip(false),
     multipoles_on(true),
     scale_multipoles(true),
-    map_with_offsets(true),
+    taylor_map_includes_offsets(false),
     field_master(false),
     is_on(true),
     old_is_on(false),
@@ -2518,6 +2516,7 @@ public:
   Int n_ic_max;
   Int input_taylor_order;
   Int_ARRAY ic;
+  Int photon_type;
   Bool absolute_time_tracking;
   Bool auto_scale_field_phase;
   Bool auto_scale_field_amp;
@@ -2547,6 +2546,7 @@ public:
     n_ic_max(0),
     input_taylor_order(0),
     ic(0, 0),
+    photon_type(Bmad::INCOHERENT),
     absolute_time_tracking(false),
     auto_scale_field_phase(false),
     auto_scale_field_amp(false),

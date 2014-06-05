@@ -667,7 +667,6 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.stable == y.stable);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.reverse_time_tracking == y.reverse_time_tracking);
-  is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
 };
@@ -1004,7 +1003,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.mode_flip == y.mode_flip);
   is_eq = is_eq && (x.multipoles_on == y.multipoles_on);
   is_eq = is_eq && (x.scale_multipoles == y.scale_multipoles);
-  is_eq = is_eq && (x.map_with_offsets == y.map_with_offsets);
+  is_eq = is_eq && (x.taylor_map_includes_offsets == y.taylor_map_includes_offsets);
   is_eq = is_eq && (x.field_master == y.field_master);
   is_eq = is_eq && (x.is_on == y.is_on);
   is_eq = is_eq && (x.old_is_on == y.old_is_on);
@@ -1126,6 +1125,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.n_ic_max == y.n_ic_max);
   is_eq = is_eq && (x.input_taylor_order == y.input_taylor_order);
   is_eq = is_eq && is_all_equal(x.ic, y.ic);
+  is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
   is_eq = is_eq && (x.auto_scale_field_phase == y.auto_scale_field_phase);
   is_eq = is_eq && (x.auto_scale_field_amp == y.auto_scale_field_amp);

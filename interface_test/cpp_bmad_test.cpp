@@ -2523,9 +2523,6 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 13 + offset; C.photon_type = rhs;
-
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
 
@@ -3831,7 +3828,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 79 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 80 + offset; C.map_with_offsets = (rhs % 2 == 0);
+  rhs = 80 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
   rhs = 81 + offset; C.field_master = (rhs % 2 == 0);
@@ -4322,17 +4319,20 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
     for (unsigned int i = 0; i < C.ic.size(); i++)
       {int rhs = 101 + i + 27 + offset; C.ic[i] = rhs;}  }
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 29 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
+  rhs = 30 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
+  rhs = 31 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.use_ptc_layout = (rhs % 2 == 0);
+  rhs = 32 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 33 + offset; C.use_ptc_layout = (rhs % 2 == 0);
 
 
 }

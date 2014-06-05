@@ -126,7 +126,7 @@ namespace Bmad {
   const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26;
   const int PHI0_REF = 27, X_HALF_LENGTH = 27, DX_ORIGIN =  17;
   const int LATTICE_TYPE = 27, X_QUAD = 27;
-  const int PHI0_MAX = 28, REF_POLARIZATION = 28, Y_HALF_LENGTH = 28, DY_ORIGIN = 28, Y_QUAD = 28;
+  const int PHI0_MAX = 28, Y_HALF_LENGTH = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
   const int FRINGE_TYPE = 29, FLOOR_SET = 29, UPSTREAM_ELE_DIR = 29, DZ_ORIGIN = 29;
   const int FRINGE_AT = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, DOWNSTREAM_ELE_DIR = 30;
   const int L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31;
@@ -184,9 +184,9 @@ namespace Bmad {
   const int START_EDGE  = 83, ETA_Y = 83;
   const int END_EDGE  = 84, ETAP_X = 84;
   const int ACCORDION_EDGE  = 85, ETAP_Y = 85;
-  const int LATTICE = 86, PHI_A = 86, DIFFRACTION_TYPE = 86;
+  const int LATTICE = 86, PHI_A = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87;
-  const int MAP_WITH_OFFSETS = 88, CMAT_11 = 88, SURFACE_ATTRIB = 88;
+  const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, CMAT_11 = 88, SURFACE_ATTRIB = 88;
   const int CSR_CALC_ON = 89, CMAT_12 = 89;
   const int S_POSITION = 90, CMAT_21 = 90;
   const int MAT6_CALC_METHOD = 91, CMAT_22 = 91;
@@ -257,7 +257,6 @@ namespace Bmad {
   const int ROTATIONALLY_SYMMETRIC_RZ = 1, XYZ = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int RECTANGULAR = 1, ELLIPTICAL = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
-  const int SIGMA_POLARIZATION = 1, PI_POLARIZATION = 2;
   const int FULL_STRAIGHT = 1, FULL_BEND = 2, NONE = 3, BASIC_BEND = 4;
   const int SAD_LINEAR = 5, SAD_NONLIN_ONLY = 6, SAD_FULL = 7;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;

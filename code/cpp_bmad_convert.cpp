@@ -1621,7 +1621,7 @@ extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Int&, const
+    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
     CPP_bookkeeping_state&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
@@ -1633,7 +1633,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
       C.rel_tracking_charge, C.particle, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
-      C.reverse_time_tracking, C.photon_type, C.bookkeeping_state);
+      C.reverse_time_tracking, C.bookkeeping_state);
 
 }
 
@@ -1641,8 +1641,8 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
     z_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
-    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, c_Int&
-    z_photon_type, const Bmad_bookkeeping_state_class* z_bookkeeping_state) {
+    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_reverse_time_tracking, const
+    Bmad_bookkeeping_state_class* z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -1668,8 +1668,6 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.aperture_limit_on = z_aperture_limit_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.reverse_time_tracking = z_reverse_time_tracking;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.photon_type = z_photon_type;
   // c_side.to_c2_set[type, 0, NOT]
   bookkeeping_state_to_c(z_bookkeeping_state, C.bookkeeping_state);
 }
@@ -2371,8 +2369,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
       C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method, C.tracking_method,
       C.spin_tracking_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
       C.aperture_type, C.orientation, C.symplectify, C.mode_flip, C.multipoles_on,
-      C.scale_multipoles, C.map_with_offsets, C.field_master, C.is_on, C.old_is_on, C.logic,
-      C.bmad_logic, C.csr_calc_on, C.offset_moves_aperture);
+      C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master, C.is_on, C.old_is_on,
+      C.logic, C.bmad_logic, C.csr_calc_on, C.offset_moves_aperture);
 
   // c_side.to_f_cleanup[real, 3, PTR]
   delete[] z_r;
@@ -2400,9 +2398,9 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     z_mat6_calc_method, c_Int& z_tracking_method, c_Int& z_spin_tracking_method, c_Int&
     z_ptc_integration_type, c_Int& z_field_calc, c_Int& z_aperture_at, c_Int& z_aperture_type,
     c_Int& z_orientation, c_Bool& z_symplectify, c_Bool& z_mode_flip, c_Bool& z_multipoles_on,
-    c_Bool& z_scale_multipoles, c_Bool& z_map_with_offsets, c_Bool& z_field_master, c_Bool&
-    z_is_on, c_Bool& z_old_is_on, c_Bool& z_logic, c_Bool& z_bmad_logic, c_Bool& z_csr_calc_on,
-    c_Bool& z_offset_moves_aperture) {
+    c_Bool& z_scale_multipoles, c_Bool& z_taylor_map_includes_offsets, c_Bool& z_field_master,
+    c_Bool& z_is_on, c_Bool& z_old_is_on, c_Bool& z_logic, c_Bool& z_bmad_logic, c_Bool&
+    z_csr_calc_on, c_Bool& z_offset_moves_aperture) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -2606,7 +2604,7 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   // c_side.to_c2_set[logical, 0, NOT]
   C.scale_multipoles = z_scale_multipoles;
   // c_side.to_c2_set[logical, 0, NOT]
-  C.map_with_offsets = z_map_with_offsets;
+  C.taylor_map_includes_offsets = z_taylor_map_includes_offsets;
   // c_side.to_c2_set[logical, 0, NOT]
   C.field_master = z_field_master;
   // c_side.to_c2_set[logical, 0, NOT]
@@ -2892,7 +2890,7 @@ extern "C" void lat_to_f2 (Bmad_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Ch
     CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const CPP_lat_param&, const
     CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int,
     const CPP_control**, Int, const CPP_coord&, const CPP_pre_tracker&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
@@ -2935,7 +2933,7 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
       C.title.c_str(), z_attribute_alias, n1_attribute_alias, C.a, C.b, C.z, C.param,
       C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control,
       C.beam_start, C.pre_tracker, C.version, C.n_ele_track, C.n_ele_max, C.n_control_max,
-      C.n_ic_max, C.input_taylor_order, z_ic, n1_ic, C.absolute_time_tracking,
+      C.n_ic_max, C.input_taylor_order, z_ic, n1_ic, C.photon_type, C.absolute_time_tracking,
       C.auto_scale_field_phase, C.auto_scale_field_amp, C.use_ptc_layout);
 
   // c_side.to_f_cleanup[character, 1, ALLOC]
@@ -2957,9 +2955,9 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     z_branch, Int n1_branch, Bmad_control_class** z_control, Int n1_control, const
     Bmad_coord_class* z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int&
     z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
-    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Bool&
-    z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool& z_auto_scale_field_amp,
-    c_Bool& z_use_ptc_layout) {
+    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
+    c_Bool& z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool&
+    z_auto_scale_field_amp, c_Bool& z_use_ptc_layout) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -3018,6 +3016,8 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.ic.resize(n1_ic);
   C.ic << z_ic;
 
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.photon_type = z_photon_type;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking = z_absolute_time_tracking;
   // c_side.to_c2_set[logical, 0, NOT]

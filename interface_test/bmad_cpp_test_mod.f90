@@ -3781,8 +3781,6 @@ rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 12 + offset; F%reverse_time_tracking = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%photon_type = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 
@@ -5494,7 +5492,7 @@ rhs = 78 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 79 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 80 + offset; F%map_with_offsets = (modulo(rhs, 2) == 0)
+rhs = 80 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 81 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
@@ -6161,14 +6159,16 @@ else
     F%ic(jd1+lb1) = rhs
   enddo
 endif
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 29 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
+rhs = 31 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 
