@@ -438,6 +438,8 @@ bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   is_eq = is_eq && (x.y_pitch_rms == y.y_pitch_rms);
   is_eq = is_eq && is_all_equal(x.e_x, y.e_x);
   is_eq = is_eq && is_all_equal(x.e_y, y.e_y);
+  is_eq = is_eq && (x.intensity_x == y.intensity_x);
+  is_eq = is_eq && (x.intensity_y == y.intensity_y);
   is_eq = is_eq && (x.intensity == y.intensity);
   is_eq = is_eq && (x.n_photon == y.n_photon);
   is_eq = is_eq && (x.energy_ave == y.energy_ave);

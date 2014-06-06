@@ -1119,6 +1119,8 @@ public:
   Real y_pitch_rms;
   Real_ARRAY e_x;
   Real_ARRAY e_y;
+  Real intensity_x;
+  Real intensity_y;
   Real intensity;
   Int n_photon;
   Real energy_ave;
@@ -1131,6 +1133,8 @@ public:
     y_pitch_rms(0.0),
     e_x(0.0, 2),
     e_y(0.0, 2),
+    intensity_x(0.0),
+    intensity_y(0.0),
     intensity(0.0),
     n_photon(0),
     energy_ave(0.0),

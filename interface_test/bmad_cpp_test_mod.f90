@@ -2341,13 +2341,17 @@ do jd1 = 1, size(F%e_y,1); lb1 = lbound(F%e_y,1) - 1
   F%e_y(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%intensity = rhs
+rhs = 7 + offset; F%intensity_x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%intensity_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%intensity = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%n_photon = rhs
+rhs = 10 + offset; F%n_photon = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%energy_ave = rhs
+rhs = 11 + offset; F%energy_ave = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%energy_rms = rhs
+rhs = 12 + offset; F%energy_rms = rhs
 
 end subroutine set_surface_grid_pt_test_pattern
 

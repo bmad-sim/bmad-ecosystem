@@ -1555,16 +1555,22 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   for (unsigned int i = 0; i < C.e_y.size(); i++)
     {int rhs = 101 + i + 6 + offset; C.e_y[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.intensity = rhs;
+  rhs = 7 + offset; C.intensity_x = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.intensity_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.intensity = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.n_photon = rhs;
+  rhs = 10 + offset; C.n_photon = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.energy_ave = rhs;
+  rhs = 11 + offset; C.energy_ave = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.energy_rms = rhs;
+  rhs = 12 + offset; C.energy_rms = rhs;
 
 
 }

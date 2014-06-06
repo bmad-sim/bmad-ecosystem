@@ -2837,12 +2837,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_grid_pt_to_c2 (C, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, &
-      z_e_x, z_e_y, z_intensity, z_n_photon, z_energy_ave, z_energy_rms) bind(c)
+      z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_n_photon, z_energy_ave, &
+      z_energy_rms) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_e_x(*), z_e_y(*), z_intensity
-    real(c_double) :: z_energy_ave, z_energy_rms
+    real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_e_x(*), z_e_y(*), z_intensity_x
+    real(c_double) :: z_intensity_y, z_intensity, z_energy_ave, z_energy_rms
     integer(c_int) :: z_n_photon
   end subroutine
 end interface
@@ -2860,8 +2861,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call surface_grid_pt_to_c2 (C, F%x_pitch, F%y_pitch, F%x_pitch_rms, F%y_pitch_rms, &
-    fvec2vec(F%e_x, 2), fvec2vec(F%e_y, 2), F%intensity, F%n_photon, F%energy_ave, &
-    F%energy_rms)
+    fvec2vec(F%e_x, 2), fvec2vec(F%e_y, 2), F%intensity_x, F%intensity_y, F%intensity, &
+    F%n_photon, F%energy_ave, F%energy_rms)
 
 end subroutine surface_grid_pt_to_c
 
@@ -2882,7 +2883,8 @@ end subroutine surface_grid_pt_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine surface_grid_pt_to_f2 (Fp, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, &
-    z_e_x, z_e_y, z_intensity, z_n_photon, z_energy_ave, z_energy_rms) bind(c)
+    z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_n_photon, z_energy_ave, &
+    z_energy_rms) bind(c)
 
 
 implicit none
@@ -2891,8 +2893,8 @@ type(c_ptr), value :: Fp
 type(surface_grid_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_e_x(*), z_e_y(*), z_intensity
-real(c_double) :: z_energy_ave, z_energy_rms
+real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_e_x(*), z_e_y(*), z_intensity_x
+real(c_double) :: z_intensity_y, z_intensity, z_energy_ave, z_energy_rms
 integer(c_int) :: z_n_photon
 
 call c_f_pointer (Fp, F)
@@ -2909,6 +2911,10 @@ F%y_pitch_rms = z_y_pitch_rms
 F%e_x = z_e_x(1:2)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%e_y = z_e_y(1:2)
+!! f_side.to_f2_trans[real, 0, NOT]
+F%intensity_x = z_intensity_x
+!! f_side.to_f2_trans[real, 0, NOT]
+F%intensity_y = z_intensity_y
 !! f_side.to_f2_trans[real, 0, NOT]
 F%intensity = z_intensity
 !! f_side.to_f2_trans[integer, 0, NOT]
