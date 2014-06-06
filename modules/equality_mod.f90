@@ -710,6 +710,10 @@ is_eq = is_eq .and. all(f1%e_x == f2%e_x)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%e_y == f2%e_y)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%intensity_y == f2%intensity_y)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%intensity == f2%intensity)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
