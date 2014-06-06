@@ -404,7 +404,7 @@ end type
 
 type surface_grid_pt_struct
   real(rp) :: x_pitch = 0, y_pitch = 0, x_pitch_rms = 0, y_pitch_rms = 0
-  real(rp) :: E_x(2)  = 0, E_y(2) = 0, intensity = 0
+  real(rp) :: E_x(2)  = 0, E_y(2) = 0, intensity_x = 0, intensity_y = 0, intensity = 0
   integer :: n_photon = 0
   real(rp) :: energy_ave = 0, energy_rms = 0
 end type
