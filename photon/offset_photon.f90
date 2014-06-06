@@ -154,7 +154,12 @@ else
 
   if (is_reflective_element) then
 
+    ! Offset for Laue diffraction
+
     orbit%vec(1:5:2) = orbit%vec(1:5:2) - ele%photon%material%l_ref
+
+    ! Translate momentum to laboratory exit coords
+    ! and compute position, backpropagating the ray.
 
     select case (ele%key)
     case (crystal$)
@@ -166,9 +171,6 @@ else
 
     sin_g = sin(rot_angle)
     cos_g = cos(rot_angle)
-
-    ! Translate momentum to laboratory exit coords
-    ! and compute position, backpropagating the ray.
 
     orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
                        -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
@@ -185,6 +187,10 @@ else
     if (.not. logic_option(.false., offset_position_only)) then
       orbit%vec(1:5:2) = orbit%vec(1:5:2) - orbit%vec(2:6:2) * (orbit%vec(5) / orbit%vec(6))
     endif
+
+    ! ref_tilt rotation
+
+    call tilt_coords (-p(ref_tilt_tot$), orbit%vec)
 
     ! Unset: tilt_tot
     ! The difference between ref_tilt_tot and tilt_tot is that ref_tilt_tot also rotates the output 
