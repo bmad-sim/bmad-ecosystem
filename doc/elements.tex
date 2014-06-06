@@ -700,21 +700,25 @@ Attributes specific to a \vn{crystal} element are:
 
 \index{bragg_angle_in}\index{bragg_angle_out}\index{alpha_angle}
 \index{tilt_corr}\index{d_spacing}\index{v_unitcell}\index{l}
-index{ref_wave_length}
+\index{ref_wave_length}\index{dbragg_angle_de}
+\index{pendellosung_period_sigma}\index{pendellosung_period_pi}
 Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
-  l                  ! Length of reference orbit.
-  alpha_angle        ! Angle of H-vector with respect to the surface normal.
-  bragg_angle        ! Nominal Bragg angle at the reference wave length. 
-  d_spacing          ! Lattice plane spacing. 
-  bragg_angle_in     ! Angle between incoming beam and mirror surface.
-  bragg_angle_out    ! Angle between outgoing beam and mirror surface.
-  ref_wavelength     ! Reference wavelength
-  ref_cap_gamma      ! \(\Gamma\) at the reference wavelength.
-  tilt_corr          ! Tilt correction due to a finite psi_angle.
-  v_unitcell         ! Unit cell volume. 
-  darwin_width_sigma ! Darwin width in radians.
-  darwin_width_pi    ! Darwin width in radians.
+  alpha_angle                ! Angle of H-vector with respect to the surface normal.
+  bragg_angle                ! Nominal Bragg angle at the reference wave length. 
+  bragg_angle_in             ! Angle between incoming beam and mirror surface.
+  bragg_angle_out            ! Angle between outgoing beam and mirror surface.
+  d_spacing                  ! Lattice plane spacing. 
+  darwin_width_pi            ! Darwin width for pi polarized light (radians).
+  darwin_width_sigma         ! Darwin width for sigma polarized light (radians).
+  dbragg_angle_de            ! Variation of the Bragg angle with energy (radians/eV).
+  l                          ! Length of reference orbit.
+  pendellosung_period_pi     ! Pendellosung period for pi polarized light.
+  pendellosung_period_sigma  ! Pendellosung period for sigma polarized light.
+  ref_wavelength             ! Reference wavelength.
+  ref_cap_gamma              ! \(\Gamma\) at the reference wavelength.
+  tilt_corr                  ! Tilt correction due to a finite psi_angle.
+  v_unitcell                 ! Unit cell volume. 
 \end{example}
 
 The \vn{crystal_type} attribute defines the crystal material and
@@ -823,7 +827,7 @@ Example:
 
 The \vn{darwin_width_sigma} and \vn{darwin_width_pi} parameters are
 the computed Darwin width, in radians, for sigma and pi polarized
-photons respectively. Here the Darwin width $d\theta_D$ is defined as
+light respectively. Here the Darwin width $d\theta_D$ is defined as
 the width at the $\eta = \pm 1$ points
 (cf.~Batterman\cite{b:batterman} Eq (32))
 \Begineq
@@ -834,6 +838,16 @@ where
 \begin{example}
   \(\theta_{tot}\) = bragg_angle_in + bragg_angle_out 
 \end{example}
+
+The \vn{pendellosung_period_sigma} and \vn{pendellosung_period_pi} are
+the pendellosung periods for Laue diffraction. If the crystal is set up for
+Bragg diffraction then the values for these parameters will be set to zero.
+
+The \vn{dbragg_angle_de} parameter is the variation in Bragg angle
+with respect to the photon energy and is given by the formula
+\Begineq
+  \frac{d\theta_B}{dE} = -\frac{\lambda}{2 \, d \, E \, \cos( \theta_B )}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{Custom}
