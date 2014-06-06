@@ -30,7 +30,6 @@ type photon_init_struct
   real(rp) :: sig_x = 0, sig_y = 0, sig_z = 0
   real(rp) :: sig_vx = 0, sig_vy = 0
   real(rp) :: sig_E = 0, dE_center = 0
-  real(rp) :: emit_x = 0, emit_y = 0, frac_sig_E = 0   ! Charged particle beam emittances.
   real(rp) :: e_field_x = 0, e_field_y = 0
   logical :: dE_relative_to_ref = .true.
   logical :: normalize_field = .true.
@@ -39,13 +38,16 @@ end type
 type lux_params_struct
   character(16) :: simulation_type = 'NORMAL'   ! Or 'ROCKING_CURVE'
   character(16) :: source_element = ''          ! element name
-  real(rp) :: Intensity_min_det_pixel_cutoff = 1e-6
-  real(rp) :: Intensity_min_photon1_cutoff = 1e-6
+  real(rp) :: intensity_min_det_pixel_cutoff = 1e-6
+  real(rp) :: intensity_min_photon1_cutoff = 1e-6
   real(rp) :: stop_total_intensity = 10           ! stop intensity per energy
   real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp  ! For plotting
+  real(rp) :: intensity_normalization_coef = 1e6
+  integer :: ix_ele_photon1 = -1
   integer :: n_energy_pts = 1
   integer :: stop_num_photons = 0                  ! stop number per energy
   logical :: debug = .false.     ! For debugging
+  logical :: reject_dead_at_det_photon1 = .false.
 end type
 
 type lux_photon_struct
@@ -54,8 +56,9 @@ type lux_photon_struct
 end type
 
 type lux_common_struct
-  type (ele_struct), pointer :: source_ele, fork_ele, det_ele
+  type (lat_struct), pointer :: lat
   type (branch_struct), pointer :: s_branch, d_branch
+  type (ele_struct), pointer :: source_ele, fork_ele, det_ele
   integer n_bend_slice                                       ! Number of slices
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   real(rp) E_min, E_max                                      ! Photon energy range 
@@ -218,7 +221,7 @@ case (x_ray_init$)
 
   ! Set energy
 
-  if (lux_com%d_branch%param%photon_type == coherent$ .and. ix_energy > 0) then
+  if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
     if (photon_init%energy_distribution == 'UNIFORM') then
       rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
     else if (photon_init%energy_distribution == 'GAUSSIAN') then
@@ -266,8 +269,9 @@ case default
 
   call ran_uniform(rr)  ! longitudinal position
   call bracket_index (sl%integrated_emit_prob, 0, n_slice, rr, ix)
+  ix = ix + 1
   if (ix == n_slice) ix = n_slice - 1
-  f = (rr - sl(ix)%integrated_emit_prob) / (sl(ix+1)%integrated_emit_prob - sl(ix)%integrated_emit_prob)
+  f = (rr - sl(ix-1)%integrated_emit_prob) / (sl(ix)%integrated_emit_prob - sl(ix-1)%integrated_emit_prob)
 
   ! Calculate electron average position
 
@@ -284,18 +288,18 @@ case default
   ! To do this must transform to the normal mode coords
 
   call ran_gauss(r_emit)  ! electron momentum offset.
-  dE = r_emit(5) * photon_init%sig_E / ele%value(p0c$)
+  dE = r_emit(5) * photon_init%sig_E / lux_com%source_ele%value(p0c$)
   charged_orb%vec(6) = charged_orb%vec(6) + dE
 
   vec = matmul (v_inv_mat, charged_orb%vec(1:4))
   vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele%a%eta, ele%a%etap] * dE
   vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele%b%eta, ele%b%etap] * dE
 
-  vec(1) = vec(1) + sqrt(photon_init%emit_x * ele%a%beta) * r_emit(1)
-  vec(2) = vec(2) + sqrt(photon_init%emit_x / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
+  vec(1) = vec(1) + sqrt(lux_com%s_branch%a%emit * ele%a%beta) * r_emit(1)
+  vec(2) = vec(2) + sqrt(lux_com%s_branch%a%emit / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
 
-  vec(3) = vec(3) + sqrt(photon_init%emit_y * ele%b%beta) * r_emit(3)
-  vec(4) = vec(4) + sqrt(photon_init%emit_y / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
+  vec(3) = vec(3) + sqrt(lux_com%s_branch%b%emit * ele%b%beta) * r_emit(3)
+  vec(4) = vec(4) + sqrt(lux_com%s_branch%b%emit / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
 
   charged_orb%vec(1:4) = matmul(v_mat, vec)
 
@@ -309,7 +313,7 @@ case default
 
   gamma_electron = source_ele%value(p0c$) * &
                       (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-  if (lux_com%d_branch%param%photon_type == coherent$ .and. ix_energy > 0) then
+  if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
     rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
     call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, E_integ_prob = rr)
   else
@@ -317,7 +321,7 @@ case default
   endif
   call absolute_photon_position (charged_orb, orb)
 
-  orb%s = source_ele%s - (1 - rr) * source_ele%value(l$) 
+  orb%s = sl(ix-1)%ele%s + f * sl(ix)%ele%value(l$)
 
   ! Track to fork element.
 
@@ -367,7 +371,6 @@ type (lux_bend_slice_struct), pointer :: sl(:)
 type (coord_struct) orb
 type (coord_struct), pointer :: orbit
 type (branch_struct), pointer :: branch
-type (em_field_struct) field
 
 type coord4_struct
   real(rp) vec(4)
@@ -376,13 +379,14 @@ type (coord4_struct) p_coord(4)
 
 real(rp) vz, rho, x
 real(rp) phi, y, ds, s_now, prob1, prob2, g_bend(3), g_abs
-real(rp) gamma, v_mat(4,4), vec(6), target_corner(3)
+real(rp) gamma, v_mat(4,4)
 
 integer i, j, k, n, n_phi, n_y, ip, iy, iz, ie, iz2
 integer track_state, iy0, iy1, ip0, ip1, iz0, iz1
 integer n_slice, n_z, ix
 
 logical err, hit_below_top, hit_above_bottom, hit_right_of_left_edge, hit_left_of_right_edge
+logical old_hit_below_top, old_hit_above_bottom, old_hit_right_of_left_edge, old_hit_left_of_right_edge
 
 
 !-------------------------------------------------------------
@@ -436,25 +440,25 @@ case default
   gamma = (orb%p0c / orb%beta) / mass_of(orb%species)
   sl => lux_com%bend_slice
 
-  call transfer_ele (twiss_ele, sl(0)%ele)
-  sl(0)%orbit   = orb
-  call em_field_calc (lux_com%source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(0)%field)
+  old_hit_below_top          = .false.
+  old_hit_above_bottom       = .false.
+  old_hit_left_of_right_edge = .false.
+  old_hit_right_of_left_edge = .false.
 
-  do i = 1, n_slice
+  do i = 0, n_slice
 
-    call twiss_and_track_intra_ele (lux_com%source_ele, lat%param, s_now, s_now+ds/2, &
-                                      .true., .true., orb, orb, twiss_ele, twiss_ele, err, .true.)
-    if (err) call err_exit
-    s_now = s_now + ds/2
+    call transfer_ele (twiss_ele, sl(i)%ele)
+    sl(i)%orbit   = orb
+    call em_field_calc (lux_com%source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(i)%field)
 
-    call em_field_calc (lux_com%source_ele, lat%param, s_now, 0.0_rp, orb, .false., field)
-    g_bend = g_bend_from_em_field (field%b, field%e, orb)
+    g_bend = g_bend_from_em_field (sl(i)%field%b, sl(i)%field%e, orb)
     g_abs = norm2(g_bend)
     prob1 = bend_photon_energy_integ_prob (lux_com%E_min, g_abs, gamma)  ! Probability per radian of bend
     prob2 = bend_photon_energy_integ_prob (lux_com%E_max, g_abs, gamma)
     sl(i)%emit_prob = g_abs * ds * (prob2 - prob1)      ! Probability per slice
 
     ! See if any photons will make it hit inside the aperture. If so, set %good_emit = True.
+    ! Orientation: +x = left, +y = up
 
     hit_below_top = .false.
     hit_above_bottom = .false.
@@ -462,41 +466,39 @@ case default
     hit_left_of_right_edge = .false.
 
     call make_v_mats (twiss_ele, v_mat)
-    p_coord(1)%vec = matmul(v_mat, [1.0_rp, -twiss_ele%a%alpha, 0.0_rp, 0.0_rp]) * sqrt(photon_init%emit_x * twiss_ele%a%beta) * photon_init%sigma_cut
-    p_coord(2)%vec = matmul(v_mat, [0.0_rp, 1.0_rp, 0.0_rp, 0.0_rp]) * sqrt(photon_init%emit_x / twiss_ele%a%beta) * photon_init%sigma_cut
-    p_coord(3)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 1.0_rp, -twiss_ele%b%alpha]) * sqrt(photon_init%emit_y * twiss_ele%b%beta) * photon_init%sigma_cut
-    p_coord(4)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp]) * sqrt(photon_init%emit_y / twiss_ele%b%beta) * photon_init%sigma_cut
+    p_coord(1)%vec = matmul(v_mat, [1.0_rp, -twiss_ele%a%alpha, 0.0_rp, 0.0_rp]) * sqrt(lux_com%s_branch%a%emit * twiss_ele%a%beta) * photon_init%sigma_cut
+    p_coord(2)%vec = matmul(v_mat, [0.0_rp, 1.0_rp, 0.0_rp, 0.0_rp]) * sqrt(lux_com%s_branch%a%emit / twiss_ele%a%beta) * photon_init%sigma_cut
+    p_coord(3)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 1.0_rp, -twiss_ele%b%alpha]) * sqrt(lux_com%s_branch%b%emit * twiss_ele%b%beta) * photon_init%sigma_cut
+    p_coord(4)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp]) * sqrt(lux_com%s_branch%b%emit / twiss_ele%b%beta) * photon_init%sigma_cut
 
     fork_ele => lux_com%fork_ele
     do k = 1, fork_ele%photon%target%n_corner
-      vec = 0
-      vec(1:5:2) = fork_ele%photon%target%corner(k)%r
-      floor = local_to_floor (fork_ele%floor, vec)
+      floor = local_to_floor (fork_ele%floor, fork_ele%photon%target%corner(k)%r)
       floor = floor_to_local (twiss_ele%floor, floor, .false.)
-      target_corner = floor%r(1:5:2)
       do j = 1, 4
-        x = p_coord(j)%vec(1) + p_coord(j)%vec(2) * floor%r(5)
-        if ( x > floor%r(1)) hit_above_bottom = .true.
-        if (-x < floor%r(1)) hit_below_top = .true.
-        y = p_coord(j)%vec(3) + p_coord(j)%vec(4) * floor%r(5)
-        if ( y > floor%r(3)) hit_right_of_left_edge = .true.
-        if (-y < floor%r(3)) hit_left_of_right_edge = .true.
+        x = p_coord(j)%vec(1) + p_coord(j)%vec(2) * floor%r(3)
+        if ( x > floor%r(1)) hit_left_of_right_edge = .true.
+        if (-x < floor%r(1)) hit_right_of_left_edge = .true.
+        y = p_coord(j)%vec(3) + p_coord(j)%vec(4) * floor%r(3)
+        if ( y > floor%r(2)) hit_above_bottom = .true.
+        if (-y < floor%r(2)) hit_below_top    = .true.
       enddo
     enddo 
 
-    sl(i)%good_emit = (hit_below_top .and. hit_above_bottom .and. &
-                       hit_left_of_right_edge .and. hit_right_of_left_edge)
+    sl(i)%good_emit = ((old_hit_below_top .or. hit_below_top) .and. (old_hit_above_bottom .or. hit_above_bottom) .and. &
+                       (old_hit_left_of_right_edge .or. hit_left_of_right_edge) .and. (old_hit_right_of_left_edge .or. hit_right_of_left_edge))
+
+    old_hit_below_top          = hit_below_top
+    old_hit_above_bottom       = hit_above_bottom
+    old_hit_left_of_right_edge = hit_left_of_right_edge
+    old_hit_right_of_left_edge = hit_right_of_left_edge
 
     !
 
-    call twiss_and_track_intra_ele (lux_com%source_ele, lat%param, s_now, s_now+ds/2, &
+    call twiss_and_track_intra_ele (lux_com%source_ele, lat%param, s_now, s_now+ds, &
                                       .true., .true., orb, orb, twiss_ele, twiss_ele, err, .true.)
     if (err) call err_exit
-    s_now = s_now + ds/2
-
-    call transfer_ele (twiss_ele, sl(i)%ele)
-    sl(i)%orbit   = orb
-    call em_field_calc (lux_com%source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(i)%field)
+    s_now = s_now + ds
 
   enddo
 
@@ -509,6 +511,8 @@ case default
     endif
   enddo
   sl%integrated_emit_prob = sl%integrated_emit_prob / sl(n_slice)%integrated_emit_prob
+
+  print '(a, i4)', 'Number of slices of source element to be used for photon generation:', count(sl%good_emit) 
 
 end select
 

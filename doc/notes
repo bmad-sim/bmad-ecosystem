@@ -22,3 +22,33 @@ photon_def%e_field_x and/or photon_def%e_field_y must be non-zero for a rocking 
 Added photon_def%normalize_field [Always normalized when using random number generator]
 
 rocking_curve: Generates photons from beginning of lattice.
+
+source element slicing: number of slices based upon ele%value(ds_step$)
+
+det element: must set surface = {grid = {...}}
+
+---------
+
+To set photon_type:
+	parameter[photon_type] = 'INCOHERENT'           ! Or 'COHERENT'
+
+  \item[\vn{photon_init\%photon_type}] \Newline
+Whether coherent or incoherent photons are tracked. 
+Possible settings are:
+\begin{example}
+  COHERENT
+  INCOHERENT
+\end{example}
+The \vn{INCOHERENT} setting should only be used when ``long-range''
+phase correlations are important such as when there is a
+\vn{diffraction_plate} element.
+
+------
+
+To set emittance:
+
+  \item[\vn{photon_init\%emit_x, photon_init\%emit_y}] \Newline
+$x$ and $y$ charged particle beam emittances. 
+Used when the photon source is a bend, wiggler, or undulator.
+
+Explain rocking_curve simulation type

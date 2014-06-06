@@ -76,7 +76,7 @@
 
 \lux is a program for Monte Carlo simulations of X-rays using either
 coherent or incoherent ray tracing. \lux works by generating
-Photons at a source element and tracking them through to the
+photons at a source element and tracking them through to a
 detector. \lux uses the Bmad subroutine library\cite{b:bmad} for
 tracking and lattice bookkeeping.
 
@@ -86,12 +86,10 @@ tracking and lattice bookkeeping.
 
 Syntax for invoking \lux:
 \begin{example}
-  lux \{options\} \{<master_input_file_name>\}
+  lux \{<master_input_file_name>\}
 \end{example}
 The \vn{<master_input_file_name>} optional argument is used to set the
 master input file name. The default is ``\vn{lux.init}''. 
-
-Currently there are no \{options\}.
 
 %------------------------------------------------------------------
 \section{Fortran Namelist}
@@ -123,13 +121,21 @@ components.
 \section{Master Input File} 
 \label{s:master.file}
 
+%------------------------------------------------------------------
+\subsection{Master Input File Example}
+\label{ss:master.example}
+
 The master input file consists of a single \vn{namelist} called \vn{params}.
 An example is:
 \begin{example}
   &params
     lattice_file = 'test.bmad'                     ! Defines experimental layout.
+    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
+    det_pix_out_file = 'lux.det_pix#'
 
-    photon_init%photon_type = 'INCOHERENT'           ! Or 'COHERENT'
+    random_seed = 0                                ! 0 => Use system clock
+    random_engine = 'pseudo'
+
     photon_init%energy_distribution = 'GAUSSIAN'     ! Or 'UNIFORM'. 
     photon_init%spatial_distribution = 'GAUSSIAN'    ! Or 'UNIFORM'. 
     photon_init%velocity_distribution = 'GAUSSIAN'   ! Or 'SHPERICAL', 'UNIFORM'. 
@@ -139,38 +145,95 @@ An example is:
     photon_init%sig_vx = 0
     photon_init%sig_vy = 0
     photon_init%sig_E = 0                            ! Initial photon energy width (eV).
+    photon_init%sigma_cut = 3                      
     photon_init%dE_center = 0                        ! Initial photon energy shift (eV).
     photon_init%dE_relative_to_ref = True            ! dE_center relative to reference E?
-    photon_init%emit_x = 0                          
-    photon_init%emit_Y = 0 
     photon_init%e_field_x = 0                        ! Polarization. x & y = 0 -> random
     photon_init%e_field_y = 0
     photon_init%normalize_field = False
 
-    random_seed = 0                                ! 0 => Use system clock
-    intensity_normalization_coef = 1e6             ! photon intensities norm.
+    lux_param%intensity_normalization_coef = 1e6   ! photon intensities norm.
 
     lux_param%simulation_type = 'ROCKING_CURVE'    ! Or 'NORMAL'
-    lux_param%source_element = ''                  ! Name of source element
+    lux_param%source_element = 'b03w'              ! Name of source element
 
     lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
     lux_param%stop_num_photons = 0                 ! Max number of photons to track.
 
-    det_pix_out_file = 'lux.det_pix#'
     lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
 
-    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
-    ix_ele_photon1_file = -1
+    lux_param%ix_ele_photon1_file = -1
     lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
-    reject_dead_at_det_photon1 = False
+    lux_param%reject_dead_at_det_photon1 = False
   /
 \end{example}
 
-The components of this namelist are:
+%------------------------------------------------------------------
+\subsection{Master Input File Parameters}
+\label{ss:master.params}
+
+The components of the params namelist are:
   \begin{description}
+  \item[\vn{det_pix_out_file}] \Newline
+Name of the output data file recording the X-ray intensity on the
+detector. See section~\sref{s:det.pix.file} for more details. The file
+name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
+blank file name will prevent a file being generated.
+
   \item[\vn{lattice_file}] \Newline
-This file defines the X-ray optics setup. See
-Section~\sref{s:lat.file} and the Bmad manual for more details.
+Name of the input file that defines the X-ray optics setup from source
+to detector. The syntax of the file conforms to the Bmad lattice
+format. The Bmad manual has a detailed description of this format.
+Examples are presented in section~\sref{s:lat.file}.
+
+  \item[\vn{photon1_out_file}] \Newline
+Name of the output data file recording the starting and ending
+positions of individual photons. See section~\sref{s:photon1.file} for
+more details. The file name may be ``numbered'' using 
+a ``\#'' character (\sref{s:number}). A blank file name will prevent a
+file being generated.
+
+  \item[\vn{random_engine}] \Newline
+Type of ``random'' number generator to use. Possibilities are:
+\begin{example}
+  quasi      
+  pseudo      ! Default
+\end{example}
+The \vn{quasi} number generator gives a more-or-less uniform
+distribution of numbers. That is, a quasi random generator is not
+actually random. The numbers generated with the quasi random generator
+are always the same from run to run.
+
+  \item[\vn{random_seed}] \Newline
+Random number seed used in by the random number generator if the
+\vn{random_engine} is set to \vn{pseudo}. If set to 0, the system
+clock will be used. That is, if set to 0, the output results will vary
+from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
+
+  \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
+Sets the threshold absorbed photon intensity such that all pixels
+who's intensity is below this will not be included in the
+\vn{det_pix_out} file (\sref{s:det.pix.file}). This intensity is
+relative to the maximum pixel intensity. 
+
+  \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
+Cutoff intensity below which a photon will not be included in
+the photon1_out file (\sref{s:photon1.file}).
+
+  \item[\vn{lux_param\%intensity_normalization_coef}] \Newline
+Coefficient used to normalize the photon intensity with (\sref{s:det}).
+
+  \item[\vn{lux_param\%ix_ele_photon1}] \Newline
+The photon position recorded in the photon1_out file will be the
+photon position at the lattice element whose lattice index is given by
+\vn{ix_ele_photon1}. If \vn{ix_ele_photon1} is less than 1 then the
+detector element used will be used (\sref{s:photon1.file}).
+
+  \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
+If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
+photon_out file any photons that do not reach the detector. This switch
+is only relavent when the lattice element at which the photon positions
+are being evaluated is not the detector (\sref{s:photon1.file}).
 
   \item[\vn{lux_param\%simulation_type}] \Newline
 Type of simulation. Possible settings are:
@@ -186,44 +249,59 @@ The \vn{NORMAL} setting indicates that the usual photon tracking is to be done.
 Used with \vn{lux_param%simulation_type} = 'NORMAL'. Name of the lattice element
 that is the source of the photons.
 
-  \item[\vn{photon_init\%photon_type}] \Newline
-Whether coherent or incoherent photons are tracked. 
-Possible settings are:
-\begin{example}
-  COHERENT
-  INCOHERENT
-\end{example}
-The \vn{INCOHERENT} setting should only be used when ``long-range''
-phase correlations are important such as when there is a
-\vn{diffraction_plate} element.
+  \item[\vn{lux_param\%stop_num_photons}] \Newline
+Maximum number of photons to track (\sref{s:det}).
 
-  \item[\vn{photon_init\%energy_spectrum}] \Newline
+  \item[\vn{lux_param\%stop_total_intensity}] \Newline
+Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
+
+
+  \item[\vn{photon_init\%dE_center}] \Newline
+Average initial photon energy in eV. If
+\vn{photon_init%dE_relative_to_ref} is set to True (default)
+then \vn{photon_init%dE_center} will be relative to the reference energy
+(\sref{s:photon.start}).
+
+  \item[\vn{photon_init\%dE_relative_to_ref}] \Newline
+Is \vn{photon_init%dE_center} with respect to the reference energy or
+an absolute value (\sref{s:photon.start})?
+
+  \item[\vn{photon_init\%e_field_x}, \vn{photon_init\%e_field_y}] \Newline
+Electric field component of initial photons in the $x$ and $y$ planes
+(\sref{s:photon.start}).  If both are set to 0 then a random field is
+chosen with unit intensity $E_x^2 + E_y^2 = 1$.
+
+  \item[\vn{photon_init\%energy_distribution}] \Newline
+Used with \vn{lux_param%simulation_type} = 'NORMAL'.  
 Sets the type of energy spectrum for emitted photons
-(\sref{s:photon.start}). \break
-Used with \vn{lux_param%simulation_type} =
-'X_RAY_INIT'.  Possible settings are:
+(\sref{s:photon.start}).
+Possible settings are:
 \begin{example}
   GAUSSIAN
   UNIFORM
 \end{example}
 The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
 set by \vn{photon_init%sig_E}. The \vn{'UNIFORM'} setting gives a flat
-distribution in the range
+distribution in the range:
 \begin{example}
   [-photon_init%sig_E, photon_init%sig_E]
 \end{example}
 
+  \item[\vn{photon_init\%normalize_field}] \Newline
+Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
+one field component is non-zero.
+
   \item[\vn{photon_init\%spatial_distribution}] \Newline
+Used with \vn{lux_param%simulation_type} = 'NORMAL'.
 Sets spacial $(x, y, z)$ spectrum of emitted photons
-(\sref{s:photon.start}).  Used with \vn{lux_param%simulation_type} =
-'X_RAY_INIT'.  Possible settings are:
+(\sref{s:photon.start}). Possible settings are:
 \begin{example}
   GAUSSIAN
   UNIFORM
 \end{example}
 The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
 set by \vn{photon_init%sig_E}. The \vn{'UNIFORM'} setting gives a flat
-distribution in the range
+distribution in the range:
 \begin{example}
   [-photon_init%sig_E, photon_init%sig_E]
 \end{example}
@@ -235,12 +313,23 @@ $\sigma$ where $sigma$ is
   photon_init%sig_z     for z distribution
 \end{example}
 The \vn{'UNIFORM'} setting gives a flat
-distribution in the range $[-\sigma, \sigma]$.
+distribution in the range: $[-\sigma, \sigma]$.
+
+  \item[\vn{photon_init\%sig_E}] \Newline
+Energy width in eV. See \vn{photon_init%energy_distribution} for more
+details.
+
+  \item[\vn{photon_init\%sig_vx, photon_init\%sig_vy}] \Newline
+Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
+\vn{photon_init%velocity_distribution} for more details.
+
+  \item[\vn{photon_init\%sig_x, photon_init\%sig_y, photon_init\%sig_z}] \Newline
+Width of emitted photons in $x$, $y$ and $z$ directions. See
+\vn{photon_init%spatial_distribution} for more details.
 
   \item[\vn{photon_init\%velocity_distribution}] \Newline
-Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
-photons. \break
-Used with \vn{lux_param%simulation_type} = 'X_RAY_INIT'. The
+Used with \vn{lux_param%simulation_type} = 'NORMAL'.  Sets the
+transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted photons. The
 longitudinal velocity is always computed to make $v_x^2 + v_y^2 +
 v_z^2 = c^2$ Possible settings are:
 \begin{example}
@@ -254,94 +343,38 @@ $\sigma$ where $sigma$ is
   photon_init%sig_vx     for vx/c distribution
   photon_init%sig_vy     for vy/c distribution
 \end{example}
-The \vn{'UNIFORM'} setting gives a flat distribution in the range
+The \vn{'UNIFORM'} setting gives a flat distribution in the range:
 $[-\sigma, \sigma]$.
 The \vn{SPHERICAL} setting gives flat distribution in all directions.
 
-  \item[\vn{photon_init\%dE_center}] \Newline
-Average initial photon energy in eV. If
-\vn{photon_init%dE_relative_to_ref} is set to True (default)
-then \vn{photon_init%dE_center} will be relative to the reference energy
-(\sref{s:photon.start}).
-
-  \item[\vn{photon_init\%sig_x, photon_init\%sig_y, photon_init\%sig_z}] \Newline
-Width of emitted photons in $x$, $y$ and $z$ directions. See
-\vn{photon_init%spatial_distribution} for more details.
-
-  \item[\vn{photon_init\%sig_vx, photon_init\%sig_vy}] \Newline
-Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
-\vn{photon_init%velocity_distribution} for more details.
-
-  \item[\vn{photon_init\%sig_E}] \Newline
-Energy width in eV. See \vn{photon_init%energy_distribution} for more
-details.
-
-  \item[\vn{photon_init\%dE_relative_to_ref}] \Newline
-Is \vn{photon_init%dE_center} with respect to the reference energy or
-an absolute value (\sref{s:photon.start})?
-
-  \item[\vn{photon_init\%emit_x, photon_init\%emit_y}] \Newline
-$x$ and $y$ charged particle beam emittances. 
-Used when the photon source is a bend, wiggler, or undulator.
-
-  \item[\vn{photon_init\%e_field_x}, \vn{photon_init\%e_field_y}] \Newline
-Electric field component of initial photons in the $x$ and $y$ planes
-(\sref{s:photon.start}).  If both are set to 0 then a random field is
-chosen with unit intensity $E_x^2 + E_y^2 = 1$.
-
-  \item[\vn{photon_init\%normalize_field}] \Newline
-Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
-one field component is non-zero.
-
-
-  \item[\vn{random_seed}] \Newline
-Random number seed used in by the random number generator. If set to
-0, the system clock will be used. That is, if set to 0, the output
-results will vary from run to run.
-
-  \item[\vn{intensity_normalization_coef}] \Newline
-Coefficient used to normalize the photon intensity with (\sref{s:det}).
-
-  \item[\vn{photon_init\%stop_total_intensity}] \Newline
-Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
-
-  \item[\vn{photon_init\%stop_num_photons}] \Newline
-Maximum number of photons to track (\sref{s:det}).
-
-  \item[\vn{det_pix_out_file}] \Newline
-Name of the output data file recording the X-ray intensity on the
-detector. See section~\sref{s:det.pix.file} for more details. The file
-name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
-blank file name will prevent a file being generated.
-
-  \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
-Minimum intensity, relative to the maximum pixel intensity, below
-which a pixel will not be included in the det_pix_out file (\sref{s:det.pix.file}).
-
-  \item[\vn{photon1_out_file}] \Newline
-Name of the output data file recording the starting and ending
-positions of individual photons. See section~\sref{s:photon1.file} for
-more details. The file name may be ``numbered'' using 
-a ``\#'' character (\sref{s:number}). A blank file name will prevent a
-file being generated.
-
-  \item[\vn{ix_ele_photon1}] \Newline
-The photon position recorded in the photon1_out file will be the
-photon position at the lattice element whose lattice index is given by
-\vn{ix_ele_photon1}. If \vn{ix_ele_photon1} is less than 1 then the
-lattice element used will be the detector element (\sref{s:photon1.file}).
-
-  \item[\vn{photon_init\%intensity_min_photon1_cutoff}] \Newline
-Cutoff intensity below which a photon will not be included in
-the photon1_out file (\sref{s:photon1.file}).
-
-  \item[\vn{reject_dead_at_det_photon1}] \Newline
-If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
-photon_out file any photons that do not reach the detector. This switch
-is only relavent when the lattice element at which the photon positions
-are being evaluated is not the detector (\sref{s:photon1.file}).
-
   \end{description}
+
+%------------------------------------------------------------------
+\section{Photon Description}
+\label{s:photon.descrip}
+
+Photons are described by:
+\begin{example}
+  (x, vx, y, vy, z, vz)   ! six dimensional phase space vector 
+  E                       ! Photon energy (eV)
+  e_field_x, e_field_y    ! Electric field magnitude vector
+  phase_x, phase_y        ! Electric field phase 
+\end{example}
+$(x, y, z)$ is the spatial position of the photon with $z$ being the
+longitudinal coordinate and $z=0$ corresponds to the beginning of the
+element the photon is passing though (Thus $z$ is generally not
+interesting). $(v_x, v_y, v_z)$ is the photon velocity normalized to 1.
+Generally photons that make it to the detector will have $v_z$ close to
+1 and $v_x$ and $v_y$ relatively ``small''.
+
+The photon phases \vn{phase_x} and \vn{phase_y} are only relavent with
+coherent tracking set by the \vn{photon_type}
+
+The unnormalized intensity of a photon is:
+\begin{example}
+  I(unnormalized) = e_field_x^2 + e_field_y^2
+\end{example}
+The normalized intensity is explained in \sref{s:det}.
 
 %------------------------------------------------------------------
 \section{Lattice Description File}
@@ -353,7 +386,7 @@ master input file (\sref{s:master.file}). Bmad standard syntax is
 used\cite{b:bmad}. 
 
 %------------------------------------------------------------------
-\subsection{Example Lattice Using an X_RAY_INIT Source}
+\subsection{Example Lattice Using an X_ray_init Source}
 \label{s:spherical.lat}
 
 An example lattice using an \vn{x_ray_init} element as the photon source is:
@@ -391,33 +424,6 @@ The definitions of the lattice elements is given in lines 11 through
 17.  The reference photon energy is specified in line 1 as 10~KeV and
 line 2 sets photons as the reference particle.
 
-%------------------------------------------------------------------
-\section{Photon Description}
-\label{s:photon.descrip}
-
-Photons are described by:
-\begin{example}
-  (x, vx, y, vy, z, vz)   ! six dimensional phase space vector 
-  E                       ! Photon energy 
-  e_field_x, e_field_y    ! Electric field vector
-  phase_x, phase_y        ! Electric field phase 
-\end{example}
-$(x, y, z)$ is the spatial position of the photon with $z$ being the
-longitudinal coordinate and $z=0$ corresponds to the beginning of the
-element the photon is passing though (Thus $z$ is generally not
-interesting). $(v_x, v_y, v_z)$ is the photon velocity normalized to 1.
-Generally photons that make it to the detector will have $v_z$ close to
-1 and $v_x$ and $v_y$ relatively ``small''.
-
-%------------------------------------------------------------------
-\subsection{'SPHERICAL' Source Type}
-
-Photons are generated from the first element of the lattice. 
-Example source definition in the lattice input file:
-\begin{example}
-  source: instrument, l = 0, x_offset = 0, y_offset = 0, z_offset = 0,
-        x_pitch = 0, y_pitch = 0, tilt = 0, x_half_length = 0, y_half_length = 0
-\end{example}
 The physical extent of the source is given by the parameters
 \begin{example}
   l              ! Longitudinal length (\(2 \sigma\))
@@ -454,7 +460,7 @@ If \vn{photon_init%dE_relative_to_ref} is set to False, The average
 starting photon energy is simply \vn{photon_init%dE_center}.
 
 The width of the energy distribution, in eV, is set by \vn{%sig_E}.
-The \vn{%energy_spectrum} and \vn{%transverse_distribution} parameters
+The \vn{%energy_distribution} and \vn{%transverse_distribution} parameters
 establish the type of energy and spatial spectrum used. Possible
 settings for these parameters are:
 \begin{example}
@@ -464,21 +470,71 @@ settings for these parameters are:
 A \vn{UNIFORM} spectrum has a constant probability of emission out to
 1~sigma and zero outside of this range.
 
-The simulation assumes that in the actual experiment that photons will
-be generated uniformly in all directions. Most of these direction will
-be ``uninteresting''. An uninteresting direction is a direction in
-which a photon has no chance of making its way to the detector. To
-reduce computation time, \lux tries to only generate photons in
-interesting directions. The prescription for doing this is as follows.
-
 %------------------------------------------------------------------
-\subsection{'INSERTION_DEVICE' Source Type}
+\subsection{Example Lattice Using an Bend Source}
 
 The \vn{'INSERTION_DEVICE'} source type simulates readiation coming from dipole
-bending magnets, wigglers, or undulators. In this case, photons are
-generated using the first element in the lattice. There must be a
-\vn{photon_branch} element in the lattice that branches to the x-ray
+bending magnets, wigglers, or undulators. There must be a
+\vn{photon_fork} element in the lattice that branches to the x-ray
 line. 
+
+\begin{listing}{1}
+beam_start[emittance_a] = 1.446E-7
+beam_start[emittance_b] = beam_start[emittance_a] / 100
+
+parameter[e_tot] = 5.289E+09
+parameter[geometry] = open
+
+beginning[beta_a]  =  2.2611   ! Twiss at "exit" end with alpha reversed.
+beginning[alpha_a] = -1.35379
+beginning[eta_x]   =  0.549325
+beginning[etap_x]  = -0.064612
+
+beginning[beta_b]  = 9.3144
+beginning[alpha_b] = 1.12414
+beginning[eta_y]   = 0
+beginning[etap_y]  = 0
+
+B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! rho =  31.65434
+B05W:  b02, ds_step = 0.1
+
+bend_line: line = (b05w)
+frk: photon_fork, to_line = c_line, superimpose, 
+        ref = b05w, ref_origin = beginning, offset =  23.6980 - 23.3814
+
+! The origin element is used to set the origin of the global coordinate system at the
+! fork element.
+
+origin: fiducial, superimpose, ref = frk   
+
+!-----------------------------
+
+drift1: drift, l = 10.25
+drift2: drift, l = 10.75 - drift1[l]
+drift3: drift
+drift4: drift
+
+white_beam_slit: rcollimator, x_limit = 0.005/2, y_limit = 0.001/2
+mono_slit: rcollimator
+
+cryst1: crystal, crystal_type = Si(531), ref_tilt = -pi/2, b_param = -1
+cryst2: crystal, crystal_type = Si(531), ref_tilt = pi/2, b_param = -1
+
+det: detector, x_limit = 1, y_limit = 1, surface = {grid = {x_bounds = (-1, 1), y_bounds = (-1, 1), dr = (1, 1)}}
+
+c_line: line = (drift1, white_beam_slit, drift2, cryst1, drift3, cryst2, drift4, mono_slit, det)
+c_line[particle] = photon
+c_line[e_tot] = 8.979e3
+
+use, bend_line
+
+expand_lattice  ! So that bragg angles are computed
+
+! drift3 length is set so that crystal2 is positioned 75 mm vertically from the beam plane
+
+drift3[l] = 0.075 / sin(cryst1[bragg_angle_in] + cryst1[bragg_angle_out])
+drift4[l] = 14.5 - (drift1[l] + drift2[l] + drift3[l])
+\end{listing}
 
 %------------------------------------------------------------------
 \subsection{Polarization Init}
@@ -488,13 +544,13 @@ The polarization of the photons is set in the master input file by
   photon_init%e_field_x     ! Polarization along the x-axis
   photon_init%e_field_y     ! polarization along the y-axis
 \end{example}
-\lux will scale the field of each photon to 1 at the start of
-tracking. If both field components are set to zero, random
-polarization will be set. The intensity of a photon is defined as the
-square of the field so the initial photon intensity is one. As photons
+If the parameter \vn{photon_init%normalize_field} is set to True, \lux
+will scale the field so that the \vn{unnormalized} intensity
+(\sref{s:photon.descrip}) of each photon is 1 at the start of
+tracking. If both field components are set to zero, the
+polarization will be random. As photons
 travel, they can loose intensity via, for example, diffraction from a
-crystal. This photon intensity is called the ``unnormalized'' photon
-intensity. [See \sref{s:det} for an explanation of ``normalized'' intensity.]
+crystal. 
 
 %------------------------------------------------------------------
 \section{Photon Detection}
