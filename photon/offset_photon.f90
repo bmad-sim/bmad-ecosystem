@@ -286,7 +286,9 @@ else
   field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1))), &
            cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)))]
 
-  tilt = tilt + rot(3)
+  if (is_reflective_element) then
+    tilt = p(ref_tilt_tot$) + cos(graze2) * tilt
+  endif
   field = [cos(tilt) * field(1) - sin(tilt)*field(2), &
            sin(tilt) * field(1) + cos(tilt)*field(2)]
 

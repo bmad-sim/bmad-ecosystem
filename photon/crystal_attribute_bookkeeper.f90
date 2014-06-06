@@ -162,9 +162,6 @@ ele%value(l$) = norm2(pms%l_ref)
 ele%value(ref_cap_gamma$) = gamma
 ele%value(darwin_width_sigma$) = 2 * gamma * real(pms%f_hkl) / (abs(sin(ang_tot)) * sqrt(abs(ele%value(b_param$))))
 ele%value(darwin_width_pi$) = ele%value(darwin_width_sigma$) * abs(cos(ang_tot))
-
-if (ele%value(b_param$) > 0) then  ! Laue
-else                               ! Bragg
-endif
+ele%value(dbragg_angle_de$) = -lambda / (2 * d * ele%value(e_tot$) * cos(abs(ang_tot)/2))
 
 end subroutine

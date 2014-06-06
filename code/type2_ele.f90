@@ -90,7 +90,7 @@ character(len(lines)), pointer :: li(:)
 character(len(lines)), allocatable :: li2(:)
 character(40) str1, str2, str3
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str, fmt
-character(12) val_str
+character(12) val_str, units
 character(8) angle, index_str
 character(2) str_i
 character(12), parameter :: r_name = 'type2_ele'
@@ -208,9 +208,11 @@ else
                         'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
 
     elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
+      units = ' deg]'
+      if (a_name == 'DBRAGG_ANGLE_DE') units = ' deg/eV]'
       if (.not. type_zero .and. ele%value(i) == 0) cycle
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 6x, a, f10.4, a)') &
-                   i, a_name(1:n_att), '=', ele%value(i), '[', ele%value(i) * 180 / pi, ' deg]'
+                   i, a_name(1:n_att), '=', ele%value(i), '[', ele%value(i) * 180 / pi, trim(units)
     else
       attrib_type = attribute_type(a_name)
       if (is_a_tot_attribute(ele, i)) cycle

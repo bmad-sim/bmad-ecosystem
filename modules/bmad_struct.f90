@@ -796,7 +796,7 @@ integer, parameter :: e1$ = 21, e_loss$ = 21, dks_ds$ = 21, gap$ = 21
 integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
 integer, parameter :: traveling_wave$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, branches_are_coherent$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
@@ -821,7 +821,7 @@ integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 
 integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
 integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
-integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46
+integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
 integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, has_entrance_fringe_field$ = 47
 integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, has_exit_fringe_field$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49

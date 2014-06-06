@@ -43,7 +43,6 @@ case (fork$, photon_fork$)
 
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
-  ele%value(branches_are_coherent$) = true$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
   if (.not. associated(ele%photon)) allocate(ele%photon)

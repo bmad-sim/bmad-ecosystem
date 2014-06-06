@@ -1083,7 +1083,7 @@ call init_attribute_name1 (crystal$, darwin_width_sigma$,           'DARWIN_WIDT
 call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDTH_PI', dependent$)
 call init_attribute_name1 (crystal$, pendellosung_period_sigma$,    'PENDELLOSUNG_PERIOD_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, pendellosung_period_pi$,       'PENDELLOSUNG_PERIOD_PI', dependent$)
-call init_attribute_name1 (crystal$, branches_are_coherent$,        'BRANCHES_ARE_COHERENT')
+call init_attribute_name1 (crystal$, dbragg_angle_de$,              'DBRAGG_ANGLE_DE', dependent$)
 
 call init_attribute_name1 (capillary$, l$,                          'L', dependent$)
 call init_attribute_name1 (capillary$, s_spline$,                   'S_SPLINE')
