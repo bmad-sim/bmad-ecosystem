@@ -120,7 +120,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     ! an e_gun must be the first element in a branch except for possibly marker elements
 
-    if (ele%key == e_gun$) then
+    if (ele%key == e_gun$ .and. i_t <= branch%n_ele_track) then
       if (branch%param%geometry /= open$) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
@@ -129,7 +129,7 @@ do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    if (ele%key == e_gun$) then
+    if (ele%key == e_gun$ .and. i_t <= branch%n_ele_track) then
       do j = 1, i_t - 1
         if (branch%ele(j)%key /= marker$ .and. branch%ele(j)%key /= null_ele$) then
           call out_io (s_fatal$, r_name, &
