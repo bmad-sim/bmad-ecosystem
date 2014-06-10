@@ -29,7 +29,7 @@ real(rp) s1, s2, ds, ds_small, l_lord
 integer i_t, j, i_t2, ix, s_stat, l_stat, t2_type, n, cc(100), i, iw, i2
 integer ix1, ix2, ii, i_b, i_b2, n_pass, k, is
 
-character(10) str_ix_slave, str_ix_lord, str_ix_ele
+character(16) str_ix_slave, str_ix_lord, str_ix_ele
 character(24) :: r_name = 'lat_sanity_check'
 
 logical, intent(out) :: err_flag
@@ -116,16 +116,41 @@ do i_b = 0, ubound(lat%branch, 1)
   do i_t = 1, branch%n_ele_max
 
     ele => branch%ele(i_t)
-    str_ix_ele = ele_loc_to_string(ele)
+    str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
+
+    ! an e_gun must be the first element in a branch except for possibly marker elements
+
+    if (ele%key == e_gun$) then
+      if (branch%param%geometry /= open$) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'WHICH IS AN E_GUN CAN ONLY EXIST IN LATTICE BRANCHES WITH AN OPEN GEOMENTRY.')
+        err_flag = .true.
+      endif
+    endif
+
+    if (ele%key == e_gun$) then
+      do j = 1, i_t - 1
+        if (branch%ele(j)%key /= marker$ .and. branch%ele(j)%key /= null_ele$) then
+          call out_io (s_fatal$, r_name, &
+                        'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                        'WHICH IS AN E_GUN CAN ONLY BE PROCEEDED IN THE LATTICE BY MARKER ELEMENTS.')
+          err_flag = .true.
+        endif
+      enddo
+    endif
+
+    ! check sad_mult fringe type
 
     if (ele%key == sad_mult$) then
       select case (nint(ele%value(fringe_type$)))
       case (none$, sad_linear$, sad_nonlin_only$, sad_full$)
       case default
         call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A SAD_MULT.', &
                       'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
+        err_flag = .true.
       end select
     endif
 
@@ -136,7 +161,7 @@ do i_b = 0, ubound(lat%branch, 1)
     if (ele%key == diffraction_plate$) then
       if (.not. associated (ele%wall3d)) then
         call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A DIFFRACTION_PLATE.', &
                       'DOES NOT HAVE AN ASSOCIATED WALL')
         err_flag = .true.
@@ -144,7 +169,7 @@ do i_b = 0, ubound(lat%branch, 1)
       else
         if (ele%wall3d%section(1)%type /= clear$) then
           call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A DIFFRACTION_PLATE.', &
                       'MUST HAVE ITS FIRST SECTION BE OF TYPE CLEAR')
           err_flag = .true.
@@ -154,7 +179,7 @@ do i_b = 0, ubound(lat%branch, 1)
           ii = ele%wall3d%section(j)%type
           if (ii == mask$ .or. ii == clear$) cycle
           call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A DIFFRACTION_PLATE.', &
                       'HAS A SECTION WITH TYPE NOT CLEAR OR OPAQUE.')
           err_flag = .true.
@@ -169,7 +194,7 @@ do i_b = 0, ubound(lat%branch, 1)
       if (ele%value(beta_a0$) <= 0 .or. ele%value(beta_a1$) <= 0 .or. &
           ele%value(beta_b0$) <= 0 .or. ele%value(beta_b1$) <= 0) then
         call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A0/B0/A1/B1 THAT IS NOT POSITIVE.')
         err_flag = .true.
       endif
@@ -180,7 +205,7 @@ do i_b = 0, ubound(lat%branch, 1)
     if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
       if (abs(ele%value(e1$) + ele%value(e2$) - ele%value(angle$)) > 1e-12) then
         call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS AN RBEND WITH PTC_FIELD_GEOMETRY = TRUE_RBEND', &
                       'DOES NOT HAVE EDGE ANGLES E1 + E2 = 0')
         err_flag = .true.
@@ -194,7 +219,7 @@ do i_b = 0, ubound(lat%branch, 1)
         do iw = 1, size(ele%wake%lr)
           if (ele%wake%lr(iw)%Q < 0) then
             call out_io (s_fatal$, r_name, &
-                      'ELEMENT: ' // trim(ele%name) // '  (', trim(str_ix_ele), ')', &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'HAS LR wake (#\i0\) with negative Q!  \es10.1\ ', &
                       i_array = [iw], r_array = [ele%wake%lr(iw)%Q])
             err_flag = .true.

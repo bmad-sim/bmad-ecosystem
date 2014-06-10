@@ -1053,7 +1053,7 @@ if (present(ele)) then
     if (logic_option(.true., shift_vec6)) then
       if (ele%key == beginning_ele$) then
         orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
-      elseif (ele%key == e_gun$) then
+      elseif (ele%key == e_gun$ .or. (ele%key == marker$ .and. ele%value(e_tot_ref_init$) /= 0)) then
         orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_ref_init$) - ele%value(p0c$)) / ele%value(p0c$)
       endif
     endif

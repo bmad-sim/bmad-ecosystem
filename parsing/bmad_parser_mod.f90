@@ -233,7 +233,7 @@ real(rp), pointer :: r_ptr
 
 integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
-integer x_bounds(2), y_bounds(2), i_vec(2)
+integer ix_bounds(2), iy_bounds(2), i_vec(2)
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
@@ -703,7 +703,7 @@ if (attrib_word == 'SURFACE') then
     case ('GRID')
 
       if (.not. expect_this ('={', .true., .true., 'AFTER "GRID"')) return
-      x_bounds = int_garbage$; y_bounds = int_garbage$
+      ix_bounds = int_garbage$; iy_bounds = int_garbage$
 
       do
         call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
@@ -718,19 +718,19 @@ if (attrib_word == 'SURFACE') then
         case ('R0')
           if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
 
-        case ('X_BOUNDS', 'Y_BOUNDS')
+        case ('IX_BOUNDS', 'IY_BOUNDS')
           if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), i_vec, .true.)) return
-          if (word == 'X_BOUNDS') x_bounds = i_vec
-          if (word == 'Y_BOUNDS') y_bounds = i_vec
+          if (word == 'IX_BOUNDS') ix_bounds = i_vec
+          if (word == 'IY_BOUNDS') iy_bounds = i_vec
 
-          if (any(x_bounds /= int_garbage$) .and. any(y_bounds /= int_garbage$)) then
-            if (any(x_bounds == int_garbage$) .or. any(y_bounds == int_garbage$) .or. &
-                x_bounds(1) > x_bounds(2) .or. y_bounds(1) > y_bounds(2)) then
-              call parser_error ('SURFACE GRID X/Y_BOUNDS NOT PROPERLY SET', trim(ele%name))
+          if (any(ix_bounds /= int_garbage$) .and. any(iy_bounds /= int_garbage$)) then
+            if (any(ix_bounds == int_garbage$) .or. any(iy_bounds == int_garbage$) .or. &
+                ix_bounds(1) > ix_bounds(2) .or. iy_bounds(1) > iy_bounds(2)) then
+              call parser_error ('SURFACE GRID X/IY_BOUNDS NOT PROPERLY SET', trim(ele%name))
               return
             endif
             if (allocated (surf%grid%pt)) deallocate (surf%grid%pt)
-            allocate (surf%grid%pt(x_bounds(1):x_bounds(2), y_bounds(1):y_bounds(2)))
+            allocate (surf%grid%pt(ix_bounds(1):ix_bounds(2), iy_bounds(1):iy_bounds(2)))
           endif
 
         case ('PT')
@@ -6347,7 +6347,7 @@ num_found = 0
 do 
   call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
   if (.not. is_integer(word) ) then 
-    call parser_error ('BAD REAL NUMBER IN: ' // err_str)
+    call parser_error ('BAD INTEGER NUMBER IN: ' // err_str)
     return
    end if    
   ! integer is found
