@@ -153,12 +153,8 @@ General \vn{beambeam} attributes are:
 \end{center}
 \toffset
 
-\index{sig_x}
-\index{sig_y}
-\index{sig_z}
-\index{n_slice}
-\index{charge}
-\index{bbi_constant}
+\index{sig_x}\index{sig_y}\index{sig_z}
+\index{n_slice}\index{charge}\index{bbi_constant}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
   sig_x   = <Real>     ! Horizontal strong beam sigma   
@@ -3447,7 +3443,7 @@ computations.
 \label{s:x.init}
 \index{x_ray_init|hyperbf}
 
-A \vn{x_ray_init} element is used to simulate an x-ray x_ray_init.
+A \vn{x_ray_init} element is used to simulate a general purpose x-ray source.
 
 General \vn{x_ray_init} attributes are:
 \begin{center}
@@ -3462,4 +3458,10 @@ General \vn{x_ray_init} attributes are:
 \end{center}
 \toffset
 
-This element is in development.
+\index{x_half_length}\index{y_half_length}
+Attributes specific to an \vn{x_ray_init} element are:
+\begin{example}
+  x_half_length = <Real>     ! Horizontal strong beam sigma   
+  x_half_length = <Real>     ! Horizontal strong beam sigma   
+\end{example}
+

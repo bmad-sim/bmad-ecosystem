@@ -1020,11 +1020,11 @@ elements. The general syntax is:
 \begin{example}
   surface = \{
     grid = \{                
-      type = <type_name>,               ! Crystals: Off, Segmented, or H_Misalign
-      x_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
-      y_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
-      r0 = (<x0>, <y0>),                ! (x,y) coordinates at grid origin
-      dr = (<dx>, <dy>),                ! width and height of pixels.
+      type = <type_name>,                ! Crystals: Off, Segmented, or H_Misalign
+      ix_bounds = (<ix_min>, <ix_max>),  ! Min/max index bounds in x-direction
+      iy_bounds = (<iy_min>, <iy_max>),  ! Min/max index bounds in y-direction
+      r0 = (<x0>, <y0>),                 ! (x,y) coordinates at grid origin
+      dr = (<dx>, <dy>),                 ! width and height of pixels.
       pt(<i>,<j>) = (<x_pitch>, <y_pitch>, <x_pitch_rms>, <x_pitch_rms>),
           \} \}
 \end{example}
@@ -1034,14 +1034,14 @@ Example:
           grid = \{
             type = h_misalign,
             r0 = (0.0, 0.01), dr = (0.005, 0.005),
-            x_bounds = (1, 57), y_bounds = (-30, 10),
+            ix_bounds = (1, 57), iy_bounds = (-30, 10),
             pt(1,-30) = (0.001, -0.002, 0, 0), 
             pt(1,-29) = ..., 
           \} \}
 \end{example}
 
-The grid is a two dimensional with bounds given by the \vn{x_bounds}
-and \vn{y_bounds} components. These two components must be present. In
+The grid is a two dimensional with bounds given by the \vn{ix_bounds}
+and \vn{iy_bounds} components. These two components must be present. In
 the above example the grid is 57 pixels in $x$ and 41 pixels in $y$.
 
 The physical placement of the grid on the element is determined by the
@@ -1057,7 +1057,7 @@ The \vn{type} component of the grid is used for
 \vn{crystal} elements only. Possible \vn{type} values are:
 \begin{example}
   H_Misalign         ! Misalignment of crystal H vector
-  Off               ⁄! Ignore grid
+  Off                ! Ignore grid
   Segmented          ! Surface is a matrix of flat rectangles
 \end{example}
 \vn{H_Misalign} misaligns the $H$ vector which is the normal to the
