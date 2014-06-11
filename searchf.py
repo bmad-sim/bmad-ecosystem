@@ -403,9 +403,9 @@ def search_c (file_name, search_com):
         n_curly += 1
         if n_curly == 1:
           if search_com.case_sensitive:
-            is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line)
+            is_match = re.search(' ' + search_com.match_str + '_?\s*(\(.*\))\s*{', function_line)
           else:
-            is_match = re.search(search_com.match_str + '\s*(\(.*\))\s*{', function_line, re.I)
+            is_match = re.search(' ' + search_com.match_str + '_?\s*(\(.*\))\s*{', function_line, re.I)
           if is_match and 'routine'.startswith(search_com.search_only_for):
             search_com.found_one = True
             if search_com.doc == 'LIST':
