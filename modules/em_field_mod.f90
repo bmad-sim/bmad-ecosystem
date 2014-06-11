@@ -803,7 +803,14 @@ case(grid$)
     endif
     t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
-
+  case(e_gun$) 
+    ! Same as above, but no error checking for zero frequency
+    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    if (freq == 0) then
+      t_ref = 0
+    else
+      t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
+    endif
   case default
     t_ref = 0
   end select
