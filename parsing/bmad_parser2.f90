@@ -39,7 +39,7 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), save :: lat2
 type (ele_struct), pointer :: ele
-type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele
+type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele, bmad_com_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -105,17 +105,21 @@ call init_ele (param_ele)
 param_ele%name = 'PARAMETER'
 param_ele%key = def_parameter$
 param_ele%value(geometry$) = lat%param%geometry
-param_ele%value(n_part$)       = lat%param%n_part
-param_ele%value(particle$)     = lat%param%particle
+param_ele%value(n_part$)   = lat%param%n_part
+param_ele%value(particle$) = lat%param%particle
 param_ele%ixx = 2                    ! Pointer to plat%ele() array
 
-bp_com%beam_start_ele => beam_start_ele
 call init_ele (beam_start_ele)
 beam_start_ele%name = 'BEAM_START'
-beam_start_ele%key = def_beam_start$
-beam_start_ele%ixx = 3                    ! Pointer to plat%ele() array
+beam_start_ele%key  = def_beam_start$
+beam_start_ele%ixx  = 3                    ! Pointer to plat%ele() array
 
-n_plat_ele = 3
+call init_ele (bmad_com_ele)
+bmad_com_ele%name = 'BMAD_COM'
+bmad_com_ele%key  = def_bmad_com$
+bmad_com_ele%ixx  = 4                    ! Pointer to plat%ele() array
+
+n_plat_ele = 4
 
 !-----------------------------------------------------------
 ! main parsing loop

@@ -707,12 +707,12 @@ integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56
+integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, def_bmad_com$ = 57
 !!! rel_controller$ = , abs_controller$ = 
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 56
+integer, parameter :: n_key$ = 57
 character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
@@ -727,7 +727,8 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
+    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
+    'DEF_BMAD_COM     ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -857,7 +858,19 @@ integer, parameter :: y1_limit$ = 78   ! Assumed unique. Do not overload.
 integer, parameter :: y2_limit$ = 79   ! Assumed unique. Do not overload.
 integer, parameter :: check_sum$ = 80  ! Assumed unique. Do not overload.
 
-!! 71 = 1 + num_ele_attrib$
+!! 81 = 1 + num_ele_attrib$
+
+integer, parameter :: max_aperture_limit$ = 81     ! bmad_com parameters
+integer, parameter :: default_ds_step$ = 82
+integer, parameter :: significant_length$ = 83
+integer, parameter :: rel_tol_tracking$ = 84
+integer, parameter :: abs_tol_tracking$ = 85
+integer, parameter :: rel_tol_adaptive_tracking$ = 86
+integer, parameter :: abs_tol_adaptive_tracking$ = 87
+integer, parameter :: init_ds_adaptive_tracking$ = 88
+integer, parameter :: min_ds_adaptive_tracking$ = 89
+integer, parameter :: fatal_ds_adaptive_tracking$ = 90
+
 
 integer, parameter :: lr_wake_file$ = 81, alpha_b$ = 81, use_hard_edge_drifts$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82

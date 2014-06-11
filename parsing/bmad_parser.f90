@@ -181,15 +181,21 @@ call set_ele_defaults (bp_com%param_ele)
 call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 
 ! The parser actually puts beam_start parameters into in_lat%beam_start so
-! the beam_start_ele is actually only needed to act as a place holder.
+! the beam_start element is actually only needed to act as a place holder.
 
-bp_com%beam_start_ele => in_lat%ele(3)
-bp_com%beam_start_ele%name = 'BEAM_START'           ! For beam starting parameters 
-bp_com%beam_start_ele%key = def_beam_start$
-call find_indexx2 (in_lat%ele(3)%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
+ele => in_lat%ele(3)
+ele%name = 'BEAM_START'           ! For beam starting parameters 
+ele%key = def_beam_start$
+call find_indexx2 (ele%name, in_name, in_indexx, 0, 2, ix, add_to_list = .true.)
+
+ele => in_lat%ele(4)
+ele%name = 'BMAD_COM'           ! Global bmad parameters
+ele%key = def_bmad_com$
+call find_indexx2 (ele%name, in_name, in_indexx, 0, 3, ix, add_to_list = .true.)
+
 
 n_max => in_lat%n_ele_max
-n_max = 3                              ! Number of elements encountered
+n_max = 4                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -1223,7 +1229,6 @@ if (n_max > ubound(in_lat%ele, 1)) then
   call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
   bp_com%beam_ele => in_lat%ele(1)
   bp_com%param_ele => in_lat%ele(2)
-  bp_com%beam_start_ele => in_lat%ele(3)
   call allocate_plat (plat, ubound(in_lat%ele, 1))
 endif
 

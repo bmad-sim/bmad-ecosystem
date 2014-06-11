@@ -292,6 +292,7 @@ if (.not. attribute_array_init_needed) return
 do i = 1, n_key$
 
   if (i == key_dummy$) cycle
+  if (i == def_bmad_com$) cycle
 
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
@@ -596,6 +597,35 @@ call init_attribute_name1 (crystal$, pendellosung_period_sigma$,    'PENDELLOSUN
 call init_attribute_name1 (crystal$, pendellosung_period_pi$,       'PENDELLOSUNG_PERIOD_PI', dependent$)
 call init_attribute_name1 (crystal$, dbragg_angle_de$,              'DBRAGG_ANGLE_DE', dependent$)
 
+call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,         'MAX_APERTURE_LIMIT')
+call init_attribute_name1 (def_bmad_com$, default_ds_step$,            'DEFAULT_DS_STEP')
+call init_attribute_name1 (def_bmad_com$, significant_length$,         'SIGNIFICANT_LENGTH')
+call init_attribute_name1 (def_bmad_com$, rel_tol_tracking$,           'REL_TOL_TRACKING')
+call init_attribute_name1 (def_bmad_com$, abs_tol_tracking$,           'ABS_TOL_TRACKING')
+call init_attribute_name1 (def_bmad_com$, rel_tol_adaptive_tracking$,  'REL_TOL_ADAPTIVE_TRACKING')
+call init_attribute_name1 (def_bmad_com$, abs_tol_adaptive_tracking$,  'ABS_TOL_ADAPTIVE_TRACKING')
+call init_attribute_name1 (def_bmad_com$, init_ds_adaptive_tracking$,  'INIT_DS_ADAPTIVE_TRACKING')
+call init_attribute_name1 (def_bmad_com$, min_ds_adaptive_tracking$,   'MIN_DS_ADAPTIVE_TRACKING')
+call init_attribute_name1 (def_bmad_com$, fatal_ds_adaptive_tracking$, 'FATAL_DS_ADAPTIVE_TRACKING')
+
+call init_attribute_name1 (def_beam$, particle$,                    'PARTICLE')
+call init_attribute_name1 (def_beam$, e_tot$,                       'ENERGY')
+call init_attribute_name1 (def_beam$, p0c$,                         'PC')
+call init_attribute_name1 (def_beam$, n_part$,                      'N_PART')
+
+call init_attribute_name1 (def_beam_start$, x$,                     'X')
+call init_attribute_name1 (def_beam_start$, px$,                    'PX')
+call init_attribute_name1 (def_beam_start$, y$,                     'Y')
+call init_attribute_name1 (def_beam_start$, py$,                    'PY')
+call init_attribute_name1 (def_beam_start$, z$,                     'Z')
+call init_attribute_name1 (def_beam_start$, pz$,                    'PZ')
+call init_attribute_name1 (def_beam_start$, field_x$,               'FIELD_X')
+call init_attribute_name1 (def_beam_start$, field_y$,               'FIELD_Y')
+call init_attribute_name1 (def_beam_start$, phase_x$,               'PHASE_X')
+call init_attribute_name1 (def_beam_start$, phase_y$,               'PHASE_Y')
+call init_attribute_name1 (def_beam_start$, t$,                     'T')
+call init_attribute_name1 (def_beam_start$, e_photon$,              'E_PHOTON')
+
 call init_attribute_name1 (def_parameter$, custom_attribute1$,      'CUSTOM_ATTRIBUTE1', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute2$,      'CUSTOM_ATTRIBUTE2', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute3$,      'CUSTOM_ATTRIBUTE3', override = .true.)
@@ -619,24 +649,6 @@ call init_attribute_name1 (def_parameter$, ptc_exact_model$,        'PTC_EXACT_M
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,   'USE_HARD_EDGE_DRIFTS')
 call init_attribute_name1 (def_parameter$, ptc_max_fringe_order$,   'PTC_MAX_FRINGE_ORDER')
-
-call init_attribute_name1 (def_beam$, particle$,                    'PARTICLE')
-call init_attribute_name1 (def_beam$, e_tot$,                       'ENERGY')
-call init_attribute_name1 (def_beam$, p0c$,                         'PC')
-call init_attribute_name1 (def_beam$, n_part$,                      'N_PART')
-
-call init_attribute_name1 (def_beam_start$, x$,                     'X')
-call init_attribute_name1 (def_beam_start$, px$,                    'PX')
-call init_attribute_name1 (def_beam_start$, y$,                     'Y')
-call init_attribute_name1 (def_beam_start$, py$,                    'PY')
-call init_attribute_name1 (def_beam_start$, z$,                     'Z')
-call init_attribute_name1 (def_beam_start$, pz$,                    'PZ')
-call init_attribute_name1 (def_beam_start$, field_x$,               'FIELD_X')
-call init_attribute_name1 (def_beam_start$, field_y$,               'FIELD_Y')
-call init_attribute_name1 (def_beam_start$, phase_x$,               'PHASE_X')
-call init_attribute_name1 (def_beam_start$, phase_y$,               'PHASE_Y')
-call init_attribute_name1 (def_beam_start$, t$,                     'T')
-call init_attribute_name1 (def_beam_start$, e_photon$,              'E_PHOTON')
 
 call init_attribute_name1 (detector$, l$,                             'l', private$)
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
