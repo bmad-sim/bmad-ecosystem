@@ -10,8 +10,8 @@ c: diffraction_plate, mode = reflection,
         dr = (1, 2),
         r0 = (3,4), 
         type = segmented, 
-        x_bounds = (10, 11),
-        y_bounds = (0, 0),
+        ix_bounds = (10, 11),
+        iy_bounds = (0, 0),
         pt(10,0) = (0, 1, 2, 3),
         pt(11,0) = (1, 2, 3, 4) &
       } }
