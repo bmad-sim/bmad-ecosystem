@@ -2142,19 +2142,28 @@ The \vn{fringe_at} switch is used for vetoing fringe effects at
 either of the faces of the element. This is useful in vetoing the
 fringe effect in the interior of split elements.
 
-The \vn{fringe_type}, which is used for everything but \vn{sad_mult}
-element, may be set to one of the following:
+The \vn{fringe_type} switch is used to select how a fringe field is simulated.
+For \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be set to one of the following:
 \begin{example}
-  none              ! Default for non-bend elements.
-  basic_bend        ! Default for sbend and rbend elements
+  none              
+  basic_bend        ! Default 
   full_bend
   full_straight
   sad_linear
   sad_nonlin_only
   sad_full
 \end{example}
+For non-bend elements, \vn{fringe_type} may be set to one of:
+\begin{example}
+  none              ! Default 
+  full_straight
+  sad_linear
+  sad_nonlin_only
+  sad_full
+\end{example}
+
 The \vn{none} setting ignores any fringe fields and is the default for
-\vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic bend} setting,
+\vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic_bend} setting,
 which is the default for \vn{rbend} and \vn{sbend} elements, is
 essentially the basic vertical focusing effect that is present when
 there is a finite \vn{e1} or \vn{e2} face angle. With

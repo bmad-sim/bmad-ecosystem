@@ -1590,11 +1590,15 @@ endif
 
 ! fringe fields 
 
-select case (lord%key)
-case (rfcavity$, lcavity$, e_gun$, em_field$)
-  if (.not. include_upstream_end) value(has_entrance_fringe_field$) = false$
-  if (.not. include_downstream_end) value(has_exit_fringe_field$) = false$
-end select
+if (include_upstream_end .and. include_downstream_end) then
+  value(fringe_at$) = both_ends$
+elseif (include_upstream_end) then
+  value(fringe_at$) = entrance_end$
+elseif (include_downstream_end) then
+  value(fringe_at$) = exit_end$
+else
+  value(fringe_at$) = no_end$
+endif
 
 !
 

@@ -21,6 +21,11 @@ implicit none
 
 type (ele_struct) ele
 
+! Default fringe set for non bend elements
+
+if (attribute_index(ele, 'FRINGE_AT') /= 0)   ele%value(fringe_at$) = both_ends$
+if (attribute_index(ele, 'FRINGE_TYPE') /= 0) ele%value(fringe_type$) = none$
+
 ! %value() inits
 
 select case (ele%key)
@@ -78,12 +83,15 @@ case (e_gun$)
   ele%tracking_method = time_runge_kutta$
   ele%mat6_calc_method = tracking$
   ele%value(field_factor$) = 1
-  ele%value(has_entrance_fringe_field$) = false$
-  ele%value(has_exit_fringe_field$) = true$
+  ele%value(fringe_at$) = exit_end$
+  ele%value(fringe_type$) = full_straight$
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
   ele%offset_moves_aperture = .true.
+
+case (em_field$)
+  ele%value(fringe_type$) = full_straight$
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -101,8 +109,7 @@ case (lcavity$)
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
-  ele%value(has_entrance_fringe_field$) = true$
-  ele%value(has_exit_fringe_field$) = true$
+  ele%value(fringe_type$) = full_straight$
 
 case (line_ele$)
   ele%value(particle$) = real_garbage$
@@ -149,8 +156,7 @@ case (rfcavity$)
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
-  ele%value(has_entrance_fringe_field$) = true$
-  ele%value(has_exit_fringe_field$) = true$
+  ele%value(fringe_type$) = full_straight$
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
@@ -179,16 +185,6 @@ case (x_ray_init$)
   call init_photon_element_struct(ele%photon)
 
 end select
-
-! Fringe set for non bend elements
-
-if (attribute_index(ele, 'FRINGE_AT') /= 0) then
-  ele%value(fringe_at$) = both_ends$
-endif
-
-if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_TYPE') /= 0) then
-  ele%value(fringe_type$) = none$
-endif
 
 ! %bookkeeping_state inits
 ! Note: Groups, for example, do not have a reference energy, etc. so set the bookkeeping
