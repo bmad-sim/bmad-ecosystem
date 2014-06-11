@@ -205,14 +205,12 @@ case (lcavity$, rfcavity$, e_gun$)
     ! No grid present
     freq = ele%value(rf_frequency$) 
   endif
-  if (ele%key == e_gun$) freq = 0
   
-  ! Phase (????)
+  ! Phase 
   phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
-  ! ??? adjust the lag for 'zero-crossing' 
-  if (ele%key == rfcavity$) phase_lag = phase_lag - twopi*( ele%value(phi0_max$) - ele%em_field%mode(1)%phi0_ref )
-  if (ele%key == e_gun$) then
-    phase_lag = 0 
+  ! adjust the lag for 'zero-crossing' 
+  if (ele%key == rfcavity$) phase_lag = twopi*( ele%em_field%mode(1)%phi0_ref - ele%value(phi0_max$) ) - phase_lag
+  if (ele%key == e_gun$) then 
     absmax_Ez = q_sign*absmax_Ez
   endif
 
@@ -223,7 +221,7 @@ case (lcavity$, rfcavity$, e_gun$)
   if (abs(theta_center) > 1e-15_rp) write (iu, '(a, i0, a, '//rfmt//')') '  C_xrot(', id, ') = ', theta_center
   write (iu, '(a, i0, a, '//rfmt//', a)') '  maxE(', id, ') = ', 1e-6_rp*absmax_Ez, ' ! MV/m' ! the absolute maximum, on-axis, longitudinal electric (TM mode) in MV/m
   write (iu, '(a, i0, a, '//rfmt//', a)') '  nue(', id, ') = ', 1e-9_rp*freq, ' ! GHz'! frequency of the RF field in GHz
-  write (iu, '(a, i0, a, '//rfmt//', a)') '  phi(', id, ') = ', phase_lag*180/pi, ' ! rad' 
+  write (iu, '(a, i0, a, '//rfmt//', a)') '  phi(', id, ') = ', phase_lag*180/pi, ' ! deg' 
   if (i_dim == 1) then 
     write (iu, '(a, i0, a)') '  C_smooth(', id, ') = T'
     write (iu, '(a, i0, a)') '  C_higher_order(', id, ') = 10'
@@ -316,7 +314,9 @@ case (solenoid$)
   id = id + 1
   if (.not. present(fieldgrid_names)) call out_io (s_error$, r_name, 'fieldgrid_names required')
   
-  call get_astra_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, absmax_bz, dimensions = i_dim)
+  ! TODO: Solenoids are 1D only. 3D maps need to use 'cavity' 
+  
+  call get_astra_fieldgrid_name_and_scaling( ele, fieldgrid_names, fieldgrid_output_name, absmax_bz, dimensions = 1)
   write (iu, '(a, i0, 2a)') '  file_Bfield(', id, ') = ', "'"//trim(fieldgrid_output_name)//"'"
   write (iu, '(a, i0, a, '//rfmt//')') '  S_pos(', id, ') = ', z_center
   if (abs(x_center) > 1e-15_rp) write (iu, '(a, i0, a, '//rfmt//')') '  S_xoff(', id, ') = ', x_center
