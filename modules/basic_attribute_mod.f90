@@ -679,8 +679,6 @@ call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
 ! e_gun attribute phi0_multipass should always be 0 and is used to make lcavity and e_gun equations similar
 call init_attribute_name1 (e_gun$, phi0_multipass$,                 'phi0_multipass', private$) 
 call init_attribute_name1 (e_gun$, phi0_ref$,                       'PHI0_REF')
-call init_attribute_name1 (e_gun$, has_entrance_fringe_field$,      'has_entrance_fringe_field', private$)
-call init_attribute_name1 (e_gun$, has_exit_fringe_field$,          'has_exit_fringe_field', private$)
 
 call init_attribute_name1 (elseparator$, gap$,                      'GAP')
 call init_attribute_name1 (elseparator$, e_field$,                  'E_FIELD', quasi_free$)
@@ -696,8 +694,6 @@ call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START
 call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', dependent$)
 call init_attribute_name1 (em_field$, field$,                       'FIELD')
 call init_attribute_name1 (em_field$, field_calc$,                  'FIELD_CALC')
-call init_attribute_name1 (em_field$, has_entrance_fringe_field$,   'has_entrance_fringe_field', private$)
-call init_attribute_name1 (em_field$, has_exit_fringe_field$,       'has_exit_fringe_field', private$)
 
 call init_attribute_name1 (girder$, l$,                             'L', dependent$)
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')
@@ -753,8 +749,6 @@ call init_attribute_name1 (lcavity$, phi0_err$,                     'PHI0_ERR')
 call init_attribute_name1 (lcavity$, field$,                        'FIELD')
 call init_attribute_name1 (lcavity$, phi0_ref$,                     'PHI0_REF', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
-call init_attribute_name1 (lcavity$, has_entrance_fringe_field$,    'has_entrance_fringe_field', private$)
-call init_attribute_name1 (lcavity$, has_exit_fringe_field$,        'has_exit_fringe_field', private$)
 
 call init_attribute_name1 (marker$, l$,                             'l', private$)
 call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
@@ -949,8 +943,6 @@ call init_attribute_name1 (rfcavity$, p0c_start$,                   'p0c_start',
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
-call init_attribute_name1 (rfcavity$, has_entrance_fringe_field$,   'has_entrance_fringe_field', private$)
-call init_attribute_name1 (rfcavity$, has_exit_fringe_field$,       'has_exit_fringe_field', private$)
 
 call init_attribute_name1 (sbend$, angle$,                          'ANGLE', quasi_free$)
 call init_attribute_name1 (sbend$, ref_tilt$,                       'REF_TILT')

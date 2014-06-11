@@ -774,27 +774,29 @@ case (lcavity$, rfcavity$, e_gun$)
   t = t_rel + track_ele%value(ref_time_start$) - hard_ele%value(ref_time_start$) 
   s = s_edge
 
-  if (particle_at == first_track_edge$) then
-    if (.not. is_true(track_ele%value(has_entrance_fringe_field$))) return  ! E_gun does not have an entrance kick
-    s = s + bmad_com%significant_length / 10 ! Make sure inside field region
-    call em_field_calc (hard_ele, param, s, t, orb, .true., field)
+  if (at_this_ele_end(physical_end, nint(track_ele%value(fringe_at$)))) then
 
-    orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
-    orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
+    if (particle_at == first_track_edge$) then
+      ! E_gun does not have an entrance kick
+      s = s + bmad_com%significant_length / 10 ! Make sure inside field region
+      call em_field_calc (hard_ele, param, s, t, orb, .true., field)
 
-  else
-    if (.not. is_true(track_ele%value(has_exit_fringe_field$))) return  ! E_gun does not have an entrance kick
-    s = s - bmad_com%significant_length / 10 ! Make sure inside field region
-    call em_field_calc (hard_ele, param, s, t, orb, .true., field)
+      orb%vec(2) = orb%vec(2) - field%e(3) * orb%vec(1) * f + c_light * field%b(3) * orb%vec(3) * f
+      orb%vec(4) = orb%vec(4) - field%e(3) * orb%vec(3) * f - c_light * field%b(3) * orb%vec(1) * f
 
-    orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
-    orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f
+    else
+      s = s - bmad_com%significant_length / 10 ! Make sure inside field region
+      call em_field_calc (hard_ele, param, s, t, orb, .true., field)
+
+      orb%vec(2) = orb%vec(2) + field%e(3) * orb%vec(1) * f - c_light * field%b(3) * orb%vec(3) * f
+      orb%vec(4) = orb%vec(4) + field%e(3) * orb%vec(3) * f + c_light * field%b(3) * orb%vec(1) * f
+    endif
+
+    ! orb%phase(1) is set by em_field_calc.
+
+    call rf_coupler_kick (hard_ele, param, particle_at, orb%phase(1), orb)
 
   endif
-
-  ! orb%phase(1) is set by em_field_calc.
-
-  call rf_coupler_kick (hard_ele, param, particle_at, orb%phase(1), orb)
 
 end select
 

@@ -823,8 +823,8 @@ integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43, pen
 integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
 integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
-integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47, has_entrance_fringe_field$ = 47
-integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, has_exit_fringe_field$ = 48
+integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47
+integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 51
