@@ -218,9 +218,14 @@ end subroutine twiss_and_track1
 ! Subroutine to return the twiss parameters and particle orbit at a 
 ! given longitudinal position.
 !
-! Note: When calculating the Twiss parameters, this routine assumes 
+! When calculating the Twiss parameters, this routine assumes 
 ! that the lattice elements already contain the Twiss parameters calculated
 ! for the ends of the elements. 
+!
+! Additionally, the orbit at the ends of the elements (contained in orb(:)) must be 
+! precomputed when orb_at_s is present.
+!
+! Precomputation of Twiss and orbit at the element ends may be done with the twiss_and_track routine.
 !
 ! See also:
 !   twiss_and_track_from_s_to_s

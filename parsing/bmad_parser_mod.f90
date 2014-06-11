@@ -142,7 +142,7 @@ type bp_var_struct
 end type
 
 type bp_common_struct
-  type (ele_struct), pointer :: param_ele, beam_ele, beam_start_ele, root_branch_ele
+  type (ele_struct), pointer :: param_ele, beam_ele
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
@@ -380,10 +380,10 @@ if (ele%key == group$) then
 
 endif
 
-! beam_start element can have attributes that are not part of the element so
+! beam_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (ele%key == def_beam_start$) then
+if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$) then
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
   if (err_flag) return
   call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)

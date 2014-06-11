@@ -21,7 +21,7 @@ implicit none
      
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
-type (branch_struct), pointer :: branch, slave_branch
+type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
 
 real(rp) s1, s2, ds, ds_small, l_lord
@@ -118,26 +118,30 @@ do i_b = 0, ubound(lat%branch, 1)
     ele => branch%ele(i_t)
     str_ix_ele = '(' // trim(ele_loc_to_string(ele)) // ')'
 
-    ! an e_gun must be the first element in a branch except for possibly marker elements
+    ! An e_gun must be the first element in a branch except for possibly marker elements
+    ! Remember that an e_gun may be overlayed by a solenoid.
 
-    if (ele%key == e_gun$ .and. i_t <= branch%n_ele_track) then
-      if (branch%param%geometry /= open$) then
+    if (ele%key == e_gun$ .and. ele%slave_status /= super_slave$) then
+      ele2 => ele
+      if (ele2%lord_status == super_lord$) ele2 => pointer_to_slave(ele2, 1)
+      branch2 => ele2%branch
+
+      if (branch2%param%geometry /= open$) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS AN E_GUN CAN ONLY EXIST IN LATTICE BRANCHES WITH AN OPEN GEOMENTRY.')
         err_flag = .true.
       endif
-    endif
 
-    if (ele%key == e_gun$ .and. i_t <= branch%n_ele_track) then
-      do j = 1, i_t - 1
-        if (branch%ele(j)%key /= marker$ .and. branch%ele(j)%key /= null_ele$) then
+      do j = 1, ele2%ix_ele - 1
+        if (branch2%ele(j)%key /= marker$ .and. branch2%ele(j)%key /= null_ele$) then
           call out_io (s_fatal$, r_name, &
                         'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                         'WHICH IS AN E_GUN CAN ONLY BE PROCEEDED IN THE LATTICE BY MARKER ELEMENTS.')
           err_flag = .true.
         endif
       enddo
+
     endif
 
     ! check sad_mult fringe type

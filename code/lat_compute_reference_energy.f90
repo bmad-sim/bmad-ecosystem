@@ -128,10 +128,13 @@ do ib = 0, ubound(lat%branch, 1)
   ! voltage is not a reliable number.
 
   if (ix_e_gun /= 0) then ! Have found an e_gun...
-    do j = 1, ix_e_gun   ! Also mark marker elements
+    do j = 1, ix_e_gun  ! Also mark marker elements before gun
       branch%ele(j)%value(e_tot_ref_init$) = init_elem%value(e_tot_start$)
       branch%ele(j)%value(p0c_ref_init$) = init_elem%value(p0c_start$)
     enddo
+    gun_ele%value(e_tot_ref_init$) = init_elem%value(e_tot_start$) ! In case gun is a super_lord.
+    gun_ele%value(p0c_ref_init$) = init_elem%value(p0c_start$)
+
     ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
     ! Since p0c_ref_init the voltage may both be zero, just use a dummy number in this case.
     if (gun_ele%value(p0c_start$) == 0 .and. gun_ele%value(voltage$) == 0) then

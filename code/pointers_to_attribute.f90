@@ -67,9 +67,40 @@ logical, optional :: err_print_flag
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
 
-! Special elements like beam_start
-
 select case (ele_name)
+
+! Selected parameters in bmad_com
+
+case ('BMAD_COM')
+
+  if (present(eles)) then
+    call re_allocate_eles (eles, 0)
+  endif
+
+  call re_allocate (ptr_array, 1)
+
+  select case(attrib_name)
+  case ('MAX_APERTURE_LIMIT');          ptr_array(1)%r => bmad_com%max_aperture_limit
+  case ('DEFAULT_DS_STEP');             ptr_array(1)%r => bmad_com%default_ds_step
+  case ('SIGNIFICANT_LENGTH');          ptr_array(1)%r => bmad_com%significant_length
+  case ('REL_TOL_TRACKING');            ptr_array(1)%r => bmad_com%rel_tol_tracking
+  case ('ABS_TOL_TRACKING');            ptr_array(1)%r => bmad_com%abs_tol_tracking
+  case ('REL_TOL_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%rel_tol_adaptive_tracking
+  case ('ABS_TOL_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%abs_tol_adaptive_tracking
+  case ('INIT_DS_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%init_ds_adaptive_tracking
+  case ('MIN_DS_ADAPTIVE_TRACKING');    ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
+  case ('FATAL_DS_ADAPTIVE_TRACKING');  ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
+  case default
+    if (do_print) call out_io (s_error$, r_name, &
+             'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+    deallocate (ptr_array)
+    err_flag = .true.
+  end select
+
+  return
+
+! like beam_start
+
 case ('BEAM_START')
 
   if (present(eles)) then
