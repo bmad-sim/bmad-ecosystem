@@ -178,6 +178,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   export DIST_ARCH="`uname -m`"
   export DIST_OS_ARCH="${DIST_OS}_${DIST_ARCH}"
   export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
+  export DIST_PLATFORM_VERSION=$(uname -r | cut -d. -f1)
 
 
 
@@ -195,6 +196,15 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   #--------------------------------------------------------------
   export DIST_F90=${DIST_F90_REQUEST}
   export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
+
+
+
+  #--------------------------------------------------------------
+  # For Mac OS X "Darwin", force MacPorts gcc/g++ as compiler
+  #--------------------------------------------------------------
+  [ -e /opt/local/bin/gcc ] && [ -z "$(system_profiler SPInstallHistoryDataType | grep MacPorts)" ] && [ "${DIST_PLATFORM_VERSION}" -gt 12 ]
+  export CC=gcc
+  export CXX=g++
 
 
 
@@ -222,7 +232,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   # If the appropriate header exists, enable build system MPI
   # support
   #--------------------------------------------------------------
-  [ -e /usr/include/lam/mpif.h ] || [ -e /usr/include/mpif.h ]
+  [ -e /usr/include/openmpi-x86_64/mpif.h ] || [ -e /usr/include/mpif.h ]
 
   if ( [ $? = 0 ] ) then
     MPI="TRUE"
