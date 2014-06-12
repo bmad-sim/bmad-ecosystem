@@ -17,9 +17,9 @@ type (taylor_struct) t_map(6)
 type (em_field_struct) field
 
 real(rp) s1, s2, s_end
-real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6)
+real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6), xmat(6,6)
 
-integer i, idum, nargs
+integer i, j, idum, nargs
 logical print_extra
 character(100) lat_file
 
@@ -45,15 +45,18 @@ open (1, file = 'output.now')
 
 branch => lat%branch(0)
 call init_coord (start_orb, ele = branch%ele(1), at_downstream_end = .false.)
-! Track through split bend
+! Track through split rfcav
 call track1 (start_orb, branch%ele(1), branch%param, end_orb)
 call track1 (end_orb, branch%ele(3), branch%param, end_orb)
 
-! Track through unsplit bend
+! Track through unsplit rfcav
 call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
 
-write (1, '(a, 6es18.9)') '"bend:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
-write (1, '(a, es18.9)')  '"bend:dt" ABS 1e-14  ', end_orb2%t - end_orb%t
+xmat = matmul(branch%ele(3)%mat6, branch%ele(1)%mat6)
+
+write (1, '(a, 6es18.9)') '"rfcav:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
+write (1, '(a, es18.9)')  '"rfcav:dt"   ABS 1e-8 ', c_light * (end_orb2%t - end_orb%t)
+write (1, '(a, 6es18.9)') '"rfcav:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
 
 ! track slice
 
@@ -62,8 +65,31 @@ call init_coord (start_orb, start_orb, branch%ele(5), .true.)
 start_orb%s = branch%ele(4)%s + 0.1
 start_orb%location = inside$
 call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
-write (1, '(a, 2es18.9)') '"slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
-write (1, '(a, 2es18.9)') '"slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+write (1, '(a, 2es18.9)') '"rfcav-slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
+write (1, '(a, 2es18.9)') '"rfcav-slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+
+!--
+
+do i = 1, branch%n_ele_max
+  if (branch%ele(i)%key /= rfcavity$) cycle
+  branch%ele(i)%tracking_method = runge_kutta$
+  branch%ele(i)%mat6_calc_method = tracking$
+enddo
+
+! Track through split rfcav
+call track1 (start_orb, branch%ele(1), branch%param, end_orb)
+call track1 (end_orb, branch%ele(3), branch%param, end_orb)
+
+! Track through unsplit rfcav
+call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
+
+call lat_make_mat6 (lat, ix_branch = branch%ix_branch)
+xmat = matmul(branch%ele(3)%mat6, branch%ele(1)%mat6)
+
+write (1, '(a, 6es18.9)') '"rfcav-rk:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
+write (1, '(a, es18.9)')  '"rfcav-rk:dt"   ABS 1e-8 ', c_light * (end_orb2%t - end_orb%t)
+write (1, '(a, 6es18.9)') '"rfcav-rk:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
+
 
 if (print_extra) stop
 
@@ -71,6 +97,36 @@ if (print_extra) stop
 ! Test branch 1
 
 branch => lat%branch(1)
+call init_coord (start_orb, ele = branch%ele(1), at_downstream_end = .false.)
+
+! Track through split bend
+call track1 (start_orb, branch%ele(1), branch%param, end_orb)
+call track1 (end_orb, branch%ele(3), branch%param, end_orb)
+
+! Track through unsplit bend
+call track1 (start_orb, branch%ele(4), branch%param, end_orb2)
+
+xmat = matmul(branch%ele(3)%mat6, branch%ele(1)%mat6)
+
+write (1, *)
+write (1, '(a, 6es18.9)') '"bend:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
+write (1, '(a, es18.9)')  '"bend:dt"   ABS 1e-8 ', c_light * (end_orb2%t - end_orb%t)
+write (1, '(a, 6es18.9)') '"bend:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
+
+! track slice
+
+ele => branch%ele(0)
+call init_coord (start_orb, start_orb, branch%ele(5), .true.)
+start_orb%s = branch%ele(4)%s + 0.1
+start_orb%location = inside$
+call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
+write (1, '(a, 2es18.9)') '"bend-slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
+write (1, '(a, 2es18.9)') '"bend-slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+
+!------------------------------------------------
+! Test branch 2
+
+branch => lat%branch(2)
 call reallocate_coord (ref_orb, lat, branch%ix_branch)
 ref_orb = lat%beam_start
 
@@ -178,9 +234,9 @@ write (1, '(a, 6f17.12)') '"Dd:xmat_c(6,:)" ABS  1e-10', xmat_c(6,:) - xmat_d(6,
 write (1, '(a, 6f17.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
 
 !------------------------------------------------
-! Test branch 2
+! Test branch 3
 
-branch => lat%branch(2)
+branch => lat%branch(3)
 call init_coord (start_orb, lat%beam_start, branch%ele(0), .true.)
 
 s_end = branch%ele(1)%s
