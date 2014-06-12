@@ -2210,29 +2210,41 @@ Attributes specific to a \vn{match} element are:
   match_end_orbit = <Logic>                ! See below. Default is False.
 \end{example}
 
+The transfer map for a \vn{match} element is a linear transformation 
+with a ``kick'':
+\Begineq
+  r_1 = \Bf M \, r_0 + \Bf V 
+\Endeq
+where $r_1$ is the output coordinates, and $r_0$ are the input
+coordinates. The matrix $\Bf M$ is the linear part of the map and the
+vector $\Bf V$ is the zeroth order part of the map.
+
 \index{beta_a0}\index{beta_b0}
 \index{beta_a1}\index{beta_b1}
 \index{eta_x0}\index{etap_x0}
 \index{eta_y0}\index{etap_y0}
 \index{dphi_a}\index{dphi_b}
-The transfer map for a \vn{match} element, which is just a
-linear matrix, is calculated such that if the Twiss parameters at the
-exit end of the element preceding the \vn{match} element are given by
-\vn{beta_a0}, \vn{beta_b0}, etc., then the computed Twiss parameters
-at the exit end of the \vn{match} element will be \vn{beta_a1},
-\vn{beta_b1}, etc., and the phase advances (in radians) will be \vn{dphi_a} and \vn{dphi_b}.
+Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the
+\vn{match} element are called the ``entrance Twiss parameters''. The
+parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of the \vn{match} element
+are called the ``exit Twiss parameters''.
+
+The matrix $\Bf M$ is calculated such that if the actual (computed)
+Twiss parameters at the exit end of the element preceding the
+\vn{match} element are equal to the entrance Twiss parameters of the
+\vn{match} element}, then the computed Twiss parameters at the exit
+end of the \vn{match} element will be the exit Twiss parameters of the
+\vn{match} element and the phase advances (in radians) will be
+\vn{dphi_a} and \vn{dphi_b}. Notice that there is no guarantee that
+the actual Twiss parameters after a \vn{match} element be equal to 
+the exit Twiss parameters of the \vn{match} element.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
-The coordinate parameters (\vn{x0}, \vn{x1}, etc.) add a constant term
-(a ``kick'') to the transfer map through a \vn{match} element:
-\Begineq
-  r_1 = \Bf M \, r_0 + \Bf V 
-\Endeq
-where $r_1$ is the output coordinates, $r_0$ are the input
-coordinates, $\Bf M$ is the transfer matrix determined by the settings
-of the beginning and ending twiss and dispersion attributes, and the
-kick term, $\Bf V$ is given by
+The kick term $\Bf V$ is constructed so that if a particle has
+coordinates \vn{(x0, px0, y0, py0, z0, pz0)} before the \vn{match}
+element, the coordinates just after the element will be \vn{(x1, px1,
+y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
 \Begineq
   \Bf V = 
     \begin{pmatrix} 
@@ -2242,6 +2254,7 @@ kick term, $\Bf V$ is given by
     \text{x0} \\ \text{px0} \\ \text{y0} \\ \text{py0} \\ \text{z0} \\ \text{pz0} 
     \end{pmatrix}
 \Endeq
+
 
 \index{l}
 The attribute \vn{l} is not used in the transfer matrix
@@ -2258,23 +2271,22 @@ Example:
   \index{open}
   \index{match_end}
   \item[Match_end] \Newline
-The \vn{match_end} attribute is used for setting the beginning Twiss
-attributes (\vn{beta_a0}, \vn{alpha_a0}, etc.) from within a
-program. If the \vn{match_end} attribute is set to True, the beginning
-Twiss attributes are set to be equal to the Twiss parameters from the
-exit end of the previous element. That is, when the Twiss parameters
-are calculated, the calculated Twiss parameters at the exit end of the
-match element will be the exit Twiss attributes (\vn{beta_a1},
-\vn{alpha_a1}, etc.) as set in the \vn{match} element. The
-\vn{match_end} attribute may only be used with \vn{open}
-lattices (\sref{s:param}) since, for a \vn{closed} lattice, it is
-not possible to calculate the Twiss parameters at the previous element
-independently of the exit Twiss attributes at the \vn{match} element.
+The \vn{match_end} attribute is used for appropriately setting the
+entranch Twiss parameters of the \vn{match} element from within a
+program. If the \vn{match_end} attribute is set to True, the entrance
+Twiss parameters are set to be equal to the Twiss parameters from the
+exit end of the previous element. That is, the actual Twiss parameters
+at the exit end of the match element will be the exit Twiss parameters
+of the \vn{match} element. The \vn{match_end} attribute may only be
+used with \vn{open} lattices (\sref{s:param}) since, for a \vn{closed}
+lattice, it is not possible to calculate the Twiss parameters at the
+previous element independently of the exit Twiss parameters at the
+\vn{match} element.
 
 When running a program, if a \vn{match} element initially has it's
 \vn{match_end} attribute is set to True, the \bmad bookkeeping
 routines will ensure that the \vn{match} element's beginning Twiss
-attributes are appropriately set as explained above. If \vn{match_end}
+parameters are appropriately set as explained above. If \vn{match_end}
 is now toggled to False by the program, the beginning Twiss attribute
 values, and hence the transfer matrix for the \vn{match} element, will
 be frozen. Variation now of any parameter in the lattice that affects
@@ -2286,12 +2298,12 @@ not affect the \vn{match} element's transfer matrix.
 The \vn{match_end_orbit} attribute is similar to the \vn{match_end}
 attribute.  When running a program, if \vn{match_end_orbit} is set to
 True, when any particle is tracked through the \vn{match} element, the
-\vn{match} element's starting coordinate attributes, \vn{(x0, px0, y0,
+\vn{match} element's starting coordinate parameters, \vn{(x0, px0, y0,
 py0, z0, pz0)}, will be set to the particle's coordinates at the exit
 end of the previous element. That is, the particle will always have
 coordinates equal to \vn{(x1, px1, y1, py1, z1, pz1)} at the end of
 the \vn{match} element.  If \vn{match_end_orbit} is now toggled to
-False by the program, the ending coordinate attributes, and hence the
+False by the program, the ending coordinate parameters, and hence the
 $\Bf V$ vector, will become fixed. As with the \vn{match_end}
 attribute, the \vn{match_end_orbit} attribute may only be used with
 \vn{open} lattices (\sref{s:param}).

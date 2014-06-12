@@ -819,12 +819,6 @@ branch_loop: do i_loop = 1, n_branch_max
       lat%param%geometry = ix
     elseif (lat%param%particle == photon$) then
       lat%param%geometry = open$
-    elseif (any(lat%ele(:)%key == lcavity$)) then 
-      if (global_com%type_out) call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS A LCAVITY.', &
-                                                             'SETTING THE GEOMETRY TO LINEAR_LATTICE.')
-      lat%param%geometry = open$
-    else
-      lat%param%geometry = closed$      ! default 
     endif
 
     ! Set photon_type
@@ -851,6 +845,14 @@ branch_loop: do i_loop = 1, n_branch_max
     if (branch%param%particle == photon$) then
       branch%param%geometry = open$
     elseif (any(branch%ele(:)%key == lcavity$)) then
+      if (global_com%type_out) then
+        if (n_branch == 0) then
+          call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
+        else
+          call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', &
+                                        'SETTING THE GEOMETRY TO OPEN.')
+        endif
+      endif
       branch%param%geometry = open$
     else
       branch%param%geometry = closed$
