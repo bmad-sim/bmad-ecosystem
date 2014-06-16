@@ -83,7 +83,7 @@ call ri_out('rad_int_no_wig_cache.dat', rad_int2)
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
 call ri_out('rad_int_no_wig_no_cache.dat', rad_int)
 
-call ri_diff
+call ri_diff('no_wig')
 
 !
 
@@ -177,7 +177,7 @@ call ri_out('rad_int_wig_cache.dat', rad_int2)
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
 call ri_out('rad_int_wig_no_cache.dat', rad_int)
 
-call ri_diff
+call ri_diff('wig')
 
 call chrom_calc (lat, delta_e, chrom_x, chrom_y)
 
@@ -268,17 +268,17 @@ end subroutine
 !--------------------------------------------------------------------
 ! contains
 
-subroutine ri_diff
+subroutine ri_diff(str)
 
-return
-print *, 'Max radiation integral diffs between caching and no caching:'
-call ri_diff1('I1 ', rad_int%ele%i1,  rad_int2%ele%i1)
-call ri_diff1('I2 ', rad_int%ele%i2,  rad_int2%ele%i2)
-call ri_diff1('I3 ', rad_int%ele%i3,  rad_int2%ele%i3)
-call ri_diff1('I4a', rad_int%ele%i4a, rad_int2%ele%i4a)
-call ri_diff1('I4b', rad_int%ele%i4b, rad_int2%ele%i4b)
-call ri_diff1('I5a', rad_int%ele%i5a, rad_int2%ele%i5a)
-call ri_diff1('I5b', rad_int%ele%i5b, rad_int2%ele%i5b)
+character(*) str
+
+call ri_diff1('I1-' // str, rad_int%ele%i1,  rad_int2%ele%i1)
+call ri_diff1('I2-' // str, rad_int%ele%i2,  rad_int2%ele%i2)
+call ri_diff1('I3-' // str, rad_int%ele%i3,  rad_int2%ele%i3)
+call ri_diff1('I4a-' // str, rad_int%ele%i4a, rad_int2%ele%i4a)
+call ri_diff1('I4b-' // str, rad_int%ele%i4b, rad_int2%ele%i4b)
+call ri_diff1('I5a-' // str, rad_int%ele%i5a, rad_int2%ele%i5a)
+call ri_diff1('I5b-' // str, rad_int%ele%i5b, rad_int2%ele%i5b)
 
 end subroutine
 
@@ -295,18 +295,19 @@ integer i, im, imr
 !
 
 vmax = maxval(abs(vec1))
-mdiff = 0
-mrdiff = 0
+mdiff = -1
+mrdiff = -1
 
 do i = 0, ubound(vec1, 1)
-  if (vec1(i) == 0 .and. vec2(i) == 0) cycle
-  if (abs(vec1(i)) < 1e-10*vmax .and. abs(vec2(i)) < 1e-10*vmax) cycle
 
   dvec = abs(vec1(i) - vec2(i))
   if (dvec > mdiff) then
     mdiff = dvec
     im = i
   endif
+
+  if (vec1(i) == 0 .and. vec2(i) == 0) cycle
+  if (abs(vec1(i)) < 1e-10 * vmax .and. abs(vec1(i)) < 1e-10 * vmax) cycle
 
   dvec = 2 * dvec / (abs(vec1(i)) + abs(vec2(i)))
   if (dvec > mrdiff) then
@@ -315,7 +316,8 @@ do i = 0, ubound(vec1, 1)
   endif
 enddo
 
-print '(a, i6, es12.3, i6, f8.4)', str, im, mdiff/vmax, imr, mrdiff
+write (2, '(3a, t30, a, i6, es20.9)') '"', str, '"', 'ABS   1e-10', im, mdiff/vmax
+!!! write (2, '(3a, t30, a, i6, es20.9)') '"', str, '-rel"', 'ABS   1e-10', imr, mrdiff
 
 end subroutine
 
