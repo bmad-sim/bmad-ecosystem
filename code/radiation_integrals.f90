@@ -7,10 +7,9 @@
 ! Note: A negative emittance is possible and just means that the beam is
 ! unstable. That is, you have a negative damping partition number.
 !
-! The calculation can spend a significant amount of time calculating the
-! integrals through any wigglers. To speed up this calculation the ix_cache
-! argument can be used to stash values for the bending radius, etc. through wigglers, 
-! bends, etc. so that repeated calls to radiation_integrals consumes less time. 
+! The calculation can spend a significant amount of time calculating the integrals.
+! To speed up this calculation the ix_cache argument can be used to stash values for the bending 
+! radius, etc. so that repeated calls to radiation_integrals consumes less time.
 ! To use caching: 
 !   1) First call radiation_integrals with ix_cache set to 0. 
 !      radiation_integrals will cache values needed to compute the integrals 
@@ -23,9 +22,11 @@
 ! are multiple lattices. To release the memory
 ! associated with a cache call release_rad_int_cache(ix_cache).
 !
-! Note: The validity of the cache is dependent upon the orbit and parameters like the
+! NOTE: The validity of the cache is dependent upon the orbit and parameters like the
 ! quadrupole strengths not varying too much but is independent of variations in
-! the Twiss parameters.
+! the Twiss parameters. 
+!
+! RECOMMENDATION: Do not use caching unless you need it.
 !
 ! Note: Caching allows interpolation which improves the computation time through
 ! a wiggler even if radiation_integrals is only called once. To take advantage
@@ -639,8 +640,8 @@ mode%z%alpha_damp = energy_loss * mode%z%j_damp / (2 * energy)
 
 mode%e_loss = energy_loss
 
-if (abs(m65) > 0 .and. i1 >= 0) then
-  mode%sig_z = sqrt(i1/abs(m65)) * mode%sigE_E
+if (m65*i1 > 0) then
+  mode%sig_z = sqrt(i1/m65) * mode%sigE_E
 else   ! Unstable
   mode%sig_z = 1e30  ! Something large
 endif
