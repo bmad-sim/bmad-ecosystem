@@ -288,10 +288,10 @@ message("${FORTRAN_COMPILER} Linker Flags   : ${ACC_LINK_FLAGS} ${OPENMP_LINK_LI
 #-----------------------------------
 # Output path definitions
 #-----------------------------------
-set (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
-set (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
-set (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
-set (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
+SET (LIBRARY_OUTPUT_PATH ${OUTPUT_BASEDIR}/lib)
+SET (EXECUTABLE_OUTPUT_PATH ${OUTPUT_BASEDIR}/bin)
+SET (CMAKE_Fortran_MODULE_DIRECTORY ${OUTPUT_BASEDIR}/modules)
+SET (INCLUDE_OUTPUT_PATH ${OUTPUT_BASEDIR}/include)
 
 #-------------------------
 #   Include directories
@@ -320,7 +320,7 @@ SET (MASTER_INC_DIRS
 # of the distribution.
 
 IF (${DISTRIBUTION_BUILD})
-ELSE()
+ELSE ()
   SET (MASTER_INC_DIRS
     ${MASTER_INC_DIRS}
     ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include
@@ -331,25 +331,25 @@ ELSE()
     ${PACKAGES_DIR}/${CMAKE_BUILD_TYPE}/include/activemq-cpp-3.7.0
     ${PACKAGES_OUTPUT_BASEDIR}/modules
   )
-ENDIF()
+ENDIF ()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
-foreach(dir ${INC_DIRS})
-  STRING(FIND ${dir} "../" relative)
-  STRING(REPLACE "../" "" dirnew ${dir})
+foreach (dir ${INC_DIRS})
+  STRING (FIND ${dir} "../" relative)
+  STRING (REPLACE "../" "" dirnew ${dir})
   IF (${relative} EQUAL 0)
-    LIST(APPEND MASTER_INC_DIRS ${dir})
-    LIST(APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
+    LIST (APPEND MASTER_INC_DIRS ${dir})
+    LIST (APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
   ELSE ()
     LIST(APPEND MASTER_INC_DIRS ${dir})
   ENDIF ()
 endforeach(dir)
 
 
-LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
-INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
+LIST (REMOVE_DUPLICATES MASTER_INC_DIRS)
+INCLUDE_DIRECTORIES (${MASTER_INC_DIRS})
 
 #--------------------------------------------
 # To avoid a Link Lib path "not found" error,
@@ -360,7 +360,19 @@ INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 #--------------------------------------------
 
 IF (NOT EXISTS ${OUTPUT_BASEDIR}/lib)
-  file (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+  FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+ENDIF ()
+
+#--------------------------------------------
+# To avoid an include path "not found" error,
+# when a Distribution Build environment is
+# has been envoked and in a target project
+# directory not within the BMAD_DISTRIBUTION 
+# tree, create a empty include directory.
+#--------------------------------------------
+
+IF (NOT EXISTS ${OUTPUT_BASEDIR}/include)
+  FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/include)
 ENDIF ()
 
 #-----------------------------------
@@ -369,7 +381,7 @@ ENDIF ()
 # order of increasing abstraction.
 #-----------------------------------
 
-SET(MASTER_LINK_DIRS
+SET (MASTER_LINK_DIRS
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
   ${PACKAGES_OUTPUT_BASEDIR}/lib
@@ -379,15 +391,15 @@ SET(MASTER_LINK_DIRS
 
 IF (DEBUG)
   IF (IS_DIRECTORY "${PACKAGES_DIR}/debug/lib/root")
-    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
-  ENDIF()
+    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/debug/lib/root")
+  ENDIF ()
 ELSE ()
   IF (IS_DIRECTORY "${PACKAGES_DIR}/production/lib/root")
-    LIST(APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
-  ENDIF()
+    LIST (APPEND MASTER_LINK_DIRS "${PACKAGES_DIR}/production/lib/root")
+  ENDIF ()
 ENDIF ()
 
-LINK_DIRECTORIES(${MASTER_LINK_DIRS})
+LINK_DIRECTORIES (${MASTER_LINK_DIRS})
 
 
 #-------------------------------------------
@@ -620,7 +632,7 @@ foreach(exespec ${EXE_SPECS})
       # all C source files.
       #-----------------------------------
       foreach (file ${cpp_sources})
-				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_CPP_FLAGS} ${CPPFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${cpp_sources})
 
@@ -639,7 +651,7 @@ foreach(exespec ${EXE_SPECS})
       # all Fortran source files.
       #-----------------------------------
       foreach (file ${f_sources})
-				set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
+	set_source_files_properties(${file} PROPERTIES COMPILE_FLAGS "${BASE_Fortran_FLAGS} ${FFLAGS}")
       endforeach()
       LIST(APPEND SRC_FILES ${f_sources})
 
@@ -714,7 +726,7 @@ foreach(exespec ${EXE_SPECS})
 
   if (DEFINED LINKER_LANGUAGE_PROP)
     SET_TARGET_PROPERTIES (${EXENAME}-exe PROPERTIES LINKER_LANGUAGE ${LINKER_LANGUAGE_PROP})
-		unset (LINKER_LANGUAGE_PROP)
+    unset (LINKER_LANGUAGE_PROP)
   endif ()
 
   # Create map file output directory if it doesn't yet exist.
@@ -756,12 +768,6 @@ foreach(exespec ${EXE_SPECS})
   SET(FFLAGS)
   SET(COMPILER_FLAGS)
   SET(LINK_FLAGS)
-
-  # Create include file output directory if it doesn't yet exist.
-  IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/include)
-  ELSE ()
-    FILE (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/include)
-  ENDIF ()
 
   # Copy all header files from the project's specified include directory into the output include directory.
   SET (INCLUDE_INSTALL_DIR ${INCLUDE_OUTPUT_PATH})

@@ -1,11 +1,10 @@
 #-----------------------------------------------------------
-# Master cmake lists file
-# Implements the ACC build system.  Called by boilerplate
-# text:
+# Master CMake file.
+# Implements the ACC build system.
+# How to include:
 #      include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-# found in CMakeLists.txt files in project directories.
-#-----------------------------------------------------------
-cmake_minimum_required(VERSION 2.8)
+# Found in CMakeLists.txt files in project directories.
+
 #-----------------------------------------------------------
 # Set link_directories relative path composition to use new
 # behvaior that appends relative path information to the
@@ -229,6 +228,17 @@ ELSE ()
 ENDIF ()
 
 
+#------------------------------------------
+# Honor requests for test executable 
+# building made via environment variable.
+#------------------------------------------
+IF ($ENV{ACC_BUILD_TEST_EXES})
+  SET(BUILD_TEST_EXES 1)
+ELSE ()
+  SET(BUILD_TEST_EXES 0)
+ENDIF ()
+
+
 #-----------------------------------------
 # Print some friendly build information
 # and according to the build type, set
@@ -341,12 +351,24 @@ endforeach(dir)
 LIST(REMOVE_DUPLICATES MASTER_INC_DIRS)
 INCLUDE_DIRECTORIES(${MASTER_INC_DIRS})
 
+#--------------------------------------------
+# To avoid a Link Lib path "not found" error,
+# when a Distribution Build environment is
+# has been envoked and in a target project
+# directory not within the BMAD_DISTRIBUTION 
+# tree, create a empty lib directory.
+#--------------------------------------------
+
+IF (NOT EXISTS ${OUTPUT_BASEDIR}/lib)
+  file (MAKE_DIRECTORY ${OUTPUT_BASEDIR}/lib)
+ENDIF ()
 
 #-----------------------------------
 # Link directories - order matters
 # Lowest level to highest, i.e. in
 # order of increasing abstraction.
 #-----------------------------------
+
 SET(MASTER_LINK_DIRS
   /usr/lib64
   ${OUTPUT_BASEDIR}/lib
@@ -471,6 +493,15 @@ IF (ENABLE_SHARED AND CREATE_SHARED)
   TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS})
 ENDIF ()
 
+
+
+#---------------------------------------------------------------
+# Add each TEST EXE build description file mentioned in the
+# project's CMakeLists.txt file, as requested.
+#---------------------------------------------------------------
+IF (BUILD_TEST_EXES)
+  SET (EXE_SPECS ${TEST_EXE_SPECS} ${EXE_SPECS})
+ENDIF ()
 
 
 #---------------------------------------------------------------
@@ -708,8 +739,15 @@ foreach(exespec ${EXE_SPECS})
       set(SHARED_FLAG "-Wl,-Bdynamic")
     ENDIF ()
   ENDIF ()
+
+  IF (ENABLE_SHARED AND CREATE_SHARED)
+  ELSE()
+    set (EXTRA_SHARED_LINK_LIBS "")
+  ENDIF ()
+
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
-          ${STATIC_FLAG} ${LINK_LIBS} ${SHARED_FLAG} ${SHARED_LINK_LIBS}
+          ${STATIC_FLAG} ${LINK_LIBS} 
+          ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
           ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
           ${LINK_FLAGS} ${MAPLINE}
   )
