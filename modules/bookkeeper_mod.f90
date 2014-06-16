@@ -3100,6 +3100,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 type (coord_struct), optional :: orb(0:)
 
 integer i, ib, key
@@ -3123,32 +3124,38 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_max
 
-    if (branch%ele(i)%key /= key) cycle
+    ele => branch%ele(i)
+    if (ele%key /= key) cycle
 
-    old_state = branch%ele(i)%is_on
+    old_state = ele%is_on
 
     select case (switch)
     case (on$)
-      branch%ele(i)%is_on = .true.
+      ele%is_on = .true.
     case (off$)
-      branch%ele(i)%is_on = .false.
+      ele%is_on = .false.
     case (save_state$)
-      branch%ele(i)%old_is_on = branch%ele(i)%is_on
+      ele%old_is_on = ele%is_on
       cycle
     case (restore_state$)
-      branch%ele(i)%is_on = branch%ele(i)%old_is_on
+      ele%is_on = ele%old_is_on
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
       if (global_com%exit_on_error) call err_exit
     end select
 
-    if (old_state .neqv. branch%ele(i)%is_on) then
-      if (logic_option (.false., use_ref_orb)) then
-        call make_mat6(branch%ele(i), branch%param, branch%ele(i)%map_ref_orb_in)
-      else
-        call set_ele_status_stale (branch%ele(i), mat6_group$)
-        call lat_make_mat6(lat, i, orb, ib)
-      endif
+    if (old_state .eqv. ele%is_on) cycle
+
+    if (logic_option (.false., use_ref_orb)) then
+      call make_mat6(ele, branch%param, ele%map_ref_orb_in)
+    else
+      call set_ele_status_stale (ele, mat6_group$)
+      call lat_make_mat6(lat, i, orb, ib)
+    endif
+
+    if (key == rfcavity$) then   ! Reset 1-turn maps
+      branch%param%t1_with_rf = 0  
+      branch%param%t1_no_rf = 0    
     endif
 
   enddo
