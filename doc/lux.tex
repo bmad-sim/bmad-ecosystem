@@ -91,12 +91,29 @@ Syntax for invoking \lux:
 The \vn{<master_input_file_name>} optional argument is used to set the
 master input file name. The default is ``\vn{lux.init}''. 
 
+Example input files are in the \vn{lux/examples} subdirectory.
+
+%------------------------------------------------------------------
+\section{Data Visualization}
+\label{s:vis}
+
+There is a python script for making an intensity plot of the
+\vn{det_pix_out_file} (\sref{s:det.pix.file}) in:
+\begin{example}
+  lux/plot/det_pix_plot.py
+\end{example}
+For help run the script
+\begin{example}
+  <path_to_script>/det_pix_plot.py -help
+\end{example}
+
 %------------------------------------------------------------------
 \section{Fortran Namelist}
 \label{s:namelist}
 
-Fortran namelist syntax is used for \lux. The general form
-of a namelist is
+Fortran namelist syntax is used for setting parameters in \lux's
+master input file (\sref{s:master.file}). The general form of a
+namelist is
 \begin{example}
   &<namelist_name>
     <var1> = ...
@@ -107,15 +124,15 @@ of a namelist is
 The tag \vn{"\&<namelist_name>"} starts the namelist where
 \vn{<namelist_name>} is the name of the namelist. The namelist ends
 with the slash \vn{"/"} tag. Anything outside of this is
-ignored. Within the namelist, anything after an exclamation mark
-\vn{"!"} is ignored including the exclamation mark. \vn{<var1>},
-\vn{<var2>}, etc. are variable names. Example:
+ignored. Within the namelist, an exclamation mark \vn{"!"} and
+everything after it on a line is ignored. \vn{<var1>}, \vn{<var2>},
+etc. are variable names. Example:
 \begin{example}
   &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
 \end{example}
 here \vn{section_def} is the namelist name and \vn{section} is a variable
 name.  Notice that here \vn{section} is a ``structure'' which has five
-components.
+components (0.0, ``arc_str'', etc.).
 
 %------------------------------------------------------------------
 \section{Master Input File} 
@@ -132,6 +149,10 @@ An example is:
     lattice_file = 'test.bmad'                     ! Defines experimental layout.
     photon1_out_file = 'lux.photon1'               ! Individual photon positions.
     det_pix_out_file = 'lux.det_pix#'
+
+    lux_param%source_element = 'b03w'              ! Name of source element
+    lux_param%detector_element = 'det'
+    lux_param%photon1_element = ''
 
     random_seed = 0                                ! 0 => Use system clock
     random_engine = 'pseudo'
@@ -150,21 +171,18 @@ An example is:
     photon_init%dE_relative_to_ref = True            ! dE_center relative to reference E?
     photon_init%e_field_x = 0                        ! Polarization. x & y = 0 -> random
     photon_init%e_field_y = 0
-    photon_init%normalize_field = False
+    photon_init%scale_initial_field_to_1 = False
 
     lux_param%intensity_normalization_coef = 1e6   ! photon intensities norm.
-
-    lux_param%simulation_type = 'ROCKING_CURVE'    ! Or 'NORMAL'
-    lux_param%source_element = 'b03w'              ! Name of source element
 
     lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
     lux_param%stop_num_photons = 0                 ! Max number of photons to track.
 
     lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
 
-    lux_param%ix_ele_photon1_file = -1
     lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
     lux_param%reject_dead_at_det_photon1 = False
+    lux_param%n_energy_bin_pts = 40                ! Number of energy bins
   /
 \end{example}
 
@@ -210,6 +228,9 @@ Random number seed used in by the random number generator if the
 clock will be used. That is, if set to 0, the output results will vary
 from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
 
+  \item[\vn{lux_param\%detector_element}] \Newline
+Name of the lattice detector element where the photon are absorbed.
+
   \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
 Sets the threshold absorbed photon intensity such that all pixels
 who's intensity is below this will not be included in the
@@ -223,11 +244,16 @@ the photon1_out file (\sref{s:photon1.file}).
   \item[\vn{lux_param\%intensity_normalization_coef}] \Newline
 Coefficient used to normalize the photon intensity with (\sref{s:det}).
 
-  \item[\vn{lux_param\%ix_ele_photon1}] \Newline
+  \item[\vn{lux_param\%photon1_element}] \Newline
 The photon position recorded in the photon1_out file will be the
-photon position at the lattice element whose lattice index is given by
-\vn{ix_ele_photon1}. If \vn{ix_ele_photon1} is less than 1 then the
+photon position at the lattice element named by \vn{lux_param%photon1_element}. 
+If \vn{photon1_element} is blank (default), the
 detector element used will be used (\sref{s:photon1.file}).
+
+  \item[\vn{lux_param\%n_energy_bin_pts}] \Newline
+Number of energy bins used for the table of intensity of photons
+hitting the detector as a function of photon energy
+(\sref{s:det.pix.file}).
 
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
 If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
@@ -235,19 +261,8 @@ photon_out file any photons that do not reach the detector. This switch
 is only relavent when the lattice element at which the photon positions
 are being evaluated is not the detector (\sref{s:photon1.file}).
 
-  \item[\vn{lux_param\%simulation_type}] \Newline
-Type of simulation. Possible settings are:
-\begin{example}
-  NORMAL
-  ROCKING_CURVE      
-\end{example}
-The \vn{ROCKING_CURVE} setting indicates that a rocking curve simulation
-will be done.
-The \vn{NORMAL} setting indicates that the usual photon tracking is to be done.
-
   \item[\vn{lux_param\%source_element}] \Newline
-Used with \vn{lux_param%simulation_type} = 'NORMAL'. Name of the lattice element
-that is the source of the photons.
+Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
 
   \item[\vn{lux_param\%stop_num_photons}] \Newline
 Maximum number of photons to track (\sref{s:det}).
@@ -260,21 +275,20 @@ Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
 Average initial photon energy in eV. If
 \vn{photon_init%dE_relative_to_ref} is set to True (default)
 then \vn{photon_init%dE_center} will be relative to the reference energy
-(\sref{s:photon.start}).
+(\sref{ss:x.ray.init}).
 
   \item[\vn{photon_init\%dE_relative_to_ref}] \Newline
 Is \vn{photon_init%dE_center} with respect to the reference energy or
-an absolute value (\sref{s:photon.start})?
+an absolute value (\sref{ss:x.ray.init})?
 
   \item[\vn{photon_init\%e_field_x}, \vn{photon_init\%e_field_y}] \Newline
 Electric field component of initial photons in the $x$ and $y$ planes
-(\sref{s:photon.start}).  If both are set to 0 then a random field is
+(\sref{s:photon.descrip}).  If both are set to 0 then a random field is
 chosen with unit intensity $E_x^2 + E_y^2 = 1$.
 
   \item[\vn{photon_init\%energy_distribution}] \Newline
-Used with \vn{lux_param%simulation_type} = 'NORMAL'.  
 Sets the type of energy spectrum for emitted photons
-(\sref{s:photon.start}).
+(\sref{ss:x.ray.init}).
 Possible settings are:
 \begin{example}
   GAUSSIAN
@@ -287,14 +301,13 @@ distribution in the range:
   [-photon_init%sig_E, photon_init%sig_E]
 \end{example}
 
-  \item[\vn{photon_init\%normalize_field}] \Newline
+  \item[\vn{photon_init\%scale_initial_field_to_1}] \Newline
 Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
 one field component is non-zero.
 
   \item[\vn{photon_init\%spatial_distribution}] \Newline
-Used with \vn{lux_param%simulation_type} = 'NORMAL'.
 Sets spacial $(x, y, z)$ spectrum of emitted photons
-(\sref{s:photon.start}). Possible settings are:
+(\sref{s:photon.descrip}). Possible settings are:
 \begin{example}
   GAUSSIAN
   UNIFORM
@@ -328,10 +341,9 @@ Width of emitted photons in $x$, $y$ and $z$ directions. See
 \vn{photon_init%spatial_distribution} for more details.
 
   \item[\vn{photon_init\%velocity_distribution}] \Newline
-Used with \vn{lux_param%simulation_type} = 'NORMAL'.  Sets the
-transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted photons. The
-longitudinal velocity is always computed to make $v_x^2 + v_y^2 +
-v_z^2 = c^2$ Possible settings are:
+Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
+photons. The longitudinal velocity is always computed to make $v_x^2 +
+v_y^2 + v_z^2 = c^2$ Possible settings are:
 \begin{example}
   GAUSSIAN
   SPHERICAL
@@ -355,7 +367,7 @@ The \vn{SPHERICAL} setting gives flat distribution in all directions.
 
 Photons are described by:
 \begin{example}
-  (x, vx, y, vy, z, vz)   ! six dimensional phase space vector 
+  (x, vx/c, y, vy/c, z, vz/c)   ! six dimensional phase space vector 
   E                       ! Photon energy (eV)
   e_field_x, e_field_y    ! Electric field magnitude vector
   phase_x, phase_y        ! Electric field phase 
@@ -363,178 +375,33 @@ Photons are described by:
 $(x, y, z)$ is the spatial position of the photon with $z$ being the
 longitudinal coordinate and $z=0$ corresponds to the beginning of the
 element the photon is passing though (Thus $z$ is generally not
-interesting). $(v_x, v_y, v_z)$ is the photon velocity normalized to 1.
-Generally photons that make it to the detector will have $v_z$ close to
-1 and $v_x$ and $v_y$ relatively ``small''.
+interesting). $(v_x/c, v_y/c, v_z)/c$ is the photon velocity normalized to 1.
+Generally photons that make it to the detector will have $v_z/c$ close to
+1 and $v_x/c$ and $v_y/c$ small.
 
 The photon phases \vn{phase_x} and \vn{phase_y} are only relavent with
-coherent tracking set by the \vn{photon_type}
+coherent tracking set in the lattice by the
+\vn{parameter[photon_type]}. See the Bmad manual for more details.
 
 The unnormalized intensity of a photon is:
 \begin{example}
   I(unnormalized) = e_field_x^2 + e_field_y^2
 \end{example}
-The normalized intensity is explained in \sref{s:det}.
 
-%------------------------------------------------------------------
-\section{Lattice Description File}
-\label{s:lat.file}
-
-The name of the lattice description file which defines the
-experimental setup is given by the \vn{lattice_file} variable in the
-master input file (\sref{s:master.file}). Bmad standard syntax is
-used\cite{b:bmad}. 
-
-%------------------------------------------------------------------
-\subsection{Example Lattice Using an X_ray_init Source}
-\label{s:spherical.lat}
-
-An example lattice using an \vn{x_ray_init} element as the photon source is:
-\begin{listing}{1}
-beginning[e_tot] = 1e4
-parameter[particle] = photon
-parameter[no_end_marker] = T
-
-c_rad = 75e-3  ! Crystal transverse radius 
-r0 = 0.2
-angle  = 80 * pi / 180
-qq = r0 * tan(pi/2-graze_angle)
-dft_len = sqrt(qq^2 + r0^2)
-
-source: x_ray_init, l = 0, x_offset = 0, y_offset = 0, z_offset = 0, tilt = 0,
-        x_pitch = 0, y_pitch = 0
-drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
-cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
-        a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
-drift2: drift, l = dft_len
-det: marker, x_limit = 0.01, y_limit = 0.01
-
-lux_line: line = (source, drift1, cryst, drift2, det)
-use, lux_line
-\end{listing}
-
-The list of lattice elements is given in line 20.  This lattice
-constructs of five elements: The source, a crystal, and a detector
-with two drift spaces in between. The source element must be the first
-element of the lattice. The detector element must be the last
-line. Line 3 prevents a final end marker element from being inserted
-into the lattice and being mistaken for the detector element.
-
-The definitions of the lattice elements is given in lines 11 through
-17.  The reference photon energy is specified in line 1 as 10~KeV and
-line 2 sets photons as the reference particle.
-
-The physical extent of the source is given by the parameters
-\begin{example}
-  l              ! Longitudinal length (\(2 \sigma\))
-  x_half_length  ! Half length in x-direction (\(1 \sigma\))
-  y_half_length  ! Half length in the y-direction (\(1 \sigma\)).
-\end{example}
-With Gaussian spatial distributions, \vn{l} is the $2\sigma$
-longitudinal length of the source and \vn{x_half_length} and
-\vn{y_half_length} are the $1\sigma$ transverse extents.
-
-The source can be moved spatially by setting the parameters
-\begin{example}
-  x_offset, y_offset, z_offset
-  x_pitch, y_pitch, tilt
-\end{example}
-See the Bmad manual for more details.
-
-The emission spectrum is governed by the master input file parameters:
-\begin{example}
-  photon_init%sig_E
-  photon_init%dE_center
-  photon_init%dE_relative_to_ref
-  photon_init%energy_distribution
-  photon_init%spatial_distribution     ! (x, y) spacial distribution
-  photon_init%velocity_distribution     ! (x, y) spacial distribution
-\end{example}
-If \vn{photon_init%dE_relative_to_ref} is set to True, The average
-starting photon energy is
-\begin{example}
-  E_average = photon_init%dE_center + beginning[e_tot]
-\end{example}
-where the reference energy \vn{beginning[e_tot]} is set in the lattice file. 
-If \vn{photon_init%dE_relative_to_ref} is set to False, The average
-starting photon energy is simply \vn{photon_init%dE_center}.
-
-The width of the energy distribution, in eV, is set by \vn{%sig_E}.
-The \vn{%energy_distribution} and \vn{%transverse_distribution} parameters
-establish the type of energy and spatial spectrum used. Possible
-settings for these parameters are:
-\begin{example}
-  "UNIFORM"
-  "GAUSSIAN"
-\end{example}
-A \vn{UNIFORM} spectrum has a constant probability of emission out to
-1~sigma and zero outside of this range.
-
-%------------------------------------------------------------------
-\subsection{Example Lattice Using an Bend Source}
-
-The \vn{'INSERTION_DEVICE'} source type simulates readiation coming from dipole
-bending magnets, wigglers, or undulators. There must be a
-\vn{photon_fork} element in the lattice that branches to the x-ray
-line. 
-
-\begin{listing}{1}
-beam_start[emittance_a] = 1.446E-7
-beam_start[emittance_b] = beam_start[emittance_a] / 100
-
-parameter[e_tot] = 5.289E+09
-parameter[geometry] = open
-
-beginning[beta_a]  =  2.2611   ! Twiss at "exit" end with alpha reversed.
-beginning[alpha_a] = -1.35379
-beginning[eta_x]   =  0.549325
-beginning[etap_x]  = -0.064612
-
-beginning[beta_b]  = 9.3144
-beginning[alpha_b] = 1.12414
-beginning[eta_y]   = 0
-beginning[etap_y]  = 0
-
-B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! rho =  31.65434
-B05W:  b02, ds_step = 0.1
-
-bend_line: line = (b05w)
-frk: photon_fork, to_line = c_line, superimpose, 
-        ref = b05w, ref_origin = beginning, offset =  23.6980 - 23.3814
-
-! The origin element is used to set the origin of the global coordinate system at the
-! fork element.
-
-origin: fiducial, superimpose, ref = frk   
-
-!-----------------------------
-
-drift1: drift, l = 10.25
-drift2: drift, l = 10.75 - drift1[l]
-drift3: drift
-drift4: drift
-
-white_beam_slit: rcollimator, x_limit = 0.005/2, y_limit = 0.001/2
-mono_slit: rcollimator
-
-cryst1: crystal, crystal_type = Si(531), ref_tilt = -pi/2, b_param = -1
-cryst2: crystal, crystal_type = Si(531), ref_tilt = pi/2, b_param = -1
-
-det: detector, x_limit = 1, y_limit = 1, surface = {grid = {x_bounds = (-1, 1), y_bounds = (-1, 1), dr = (1, 1)}}
-
-c_line: line = (drift1, white_beam_slit, drift2, cryst1, drift3, cryst2, drift4, mono_slit, det)
-c_line[particle] = photon
-c_line[e_tot] = 8.979e3
-
-use, bend_line
-
-expand_lattice  ! So that bragg angles are computed
-
-! drift3 length is set so that crystal2 is positioned 75 mm vertically from the beam plane
-
-drift3[l] = 0.075 / sin(cryst1[bragg_angle_in] + cryst1[bragg_angle_out])
-drift4[l] = 14.5 - (drift1[l] + drift2[l] + drift3[l])
-\end{listing}
+To properly normalize the intensity at the detector in the output
+files, a normalization factor $f_n$ is applied.
+\Begineq
+  I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
+\Endeq
+$f_n$ is constructed so that the normalized intensity will be
+independent of the number of simulation photons. Explicitly:
+\Begineq
+  f_n = \frac{C_f}{N_p}
+\Endeq
+where $N_p$ is the number of photons tracked, and $C_f$ is a
+normalization coefficient set by the \vn{intensity_normalization_coef}
+parameter in the master input file, $C_f$ can be used, for example, to
+scale the output numbers to correspond to actual measured values.
 
 %------------------------------------------------------------------
 \subsection{Polarization Init}
@@ -544,13 +411,12 @@ The polarization of the photons is set in the master input file by
   photon_init%e_field_x     ! Polarization along the x-axis
   photon_init%e_field_y     ! polarization along the y-axis
 \end{example}
-If the parameter \vn{photon_init%normalize_field} is set to True, \lux
-will scale the field so that the \vn{unnormalized} intensity
-(\sref{s:photon.descrip}) of each photon is 1 at the start of
-tracking. If both field components are set to zero, the
-polarization will be random. As photons
-travel, they can loose intensity via, for example, diffraction from a
-crystal. 
+If the parameter \vn{photon_init%scale_initial_field_to_1} is set to
+True, \lux will scale the field so that the \vn{unnormalized}
+intensity (\sref{s:photon.descrip}) of each photon is 1 at the start
+of tracking. If both field components are set to zero, the
+polarization will be random. As photons travel, they can loose
+intensity via, for example, diffraction from a crystal.
 
 %------------------------------------------------------------------
 \section{Photon Detection}
@@ -576,22 +442,194 @@ stopped when the number of photons generated passes this threshold. If
 both stop parameters are positive, the simulation is stopped when either
 the intensity or the number of photons passes the set threshold.
 
-To properly normalize the intensity at the detector in the output
-files, a normalization factor $f_n$ is applied.
-\Begineq
-  I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
-\Endeq
-$f_n$ is constructed so that the normalized intensity will be
-independent of the number of simulation photons and independent of the
-tiling parameters. Explicitly:
-\Begineq
-  f_n = \frac{C_f \, A_t}{4 \, \pi \, N_p}
-\Endeq
-where $A_t$ is the total area of the live tiles, $N_p$ is the number
-of photons tracked, and $C_f$ is a normalization coefficient set by
-the \vn{intensity_normalization_coef} parameter in the master input
-file, $C_f$ can be used, for example, to scale the output numbers to
-correspond to actual measured values.
+%------------------------------------------------------------------
+\section{Lattice Description File}
+\label{s:lat.file}
+
+The name of the lattice description file which defines the
+experimental setup is given by the \vn{lattice_file} parameter in the
+master input file (\sref{s:master.file}). Bmad standard syntax is
+used\cite{b:bmad}. 
+
+The source element, specified by the \vn{lux_param%source_element}
+parameter must be of type:
+\begin{example}
+  sbend or rbend    ! Example in \sref{ss:bend}
+  undulator
+  wiggler
+  x_ray_init        ! Example in \sref{ss:x.ray.init}
+\end{example}
+
+The detector element, specified by the \vn{lux_param%detector_element}
+parameter must be of type:
+\begin{example}
+  detector
+\end{example}
+The detector element must define a grid of pixels. Example:
+\begin{example}
+  det: detector, surface = {grid = {ix_bounds = (-100, 100), 
+                            iy_bounds = (-200, 200), dr = (0.001, 0.001)}}
+\end{example}
+See the Bmad manual for details of the detector syntax.
+
+%------------------------------------------------------------------
+\subsection{Example: Lattice Using an X_ray_init Source}
+\label{ss:x.ray.init}
+
+An example lattice using an \vn{x_ray_init} element as the photon source is:
+\begin{listing}{1}
+beginning[e_tot] = 1e4
+parameter[particle] = photon
+parameter[no_end_marker] = T
+
+c_rad = 75e-3  ! Crystal transverse radius 
+r0 = 0.2
+angle  = 80 * pi / 180
+qq = r0 * tan(pi/2-graze_angle)
+dft_len = sqrt(qq^2 + r0^2)
+
+src: x_ray_init, l = 0, x_offset = 0, y_offset = 0, z_offset = 0, 
+        tilt = 0, x_pitch = 0, y_pitch = 0
+drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
+cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
+        a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
+drift2: drift, l = dft_len
+det: marker, x_limit = 0.01, y_limit = 0.01
+
+lux_line: line = (src, drift1, cryst, drift2, det)
+use, lux_line
+\end{listing}
+
+The list of lattice elements is given in line 19.  This lattice
+constructs of five elements: The source, a crystal, and a detector
+with two drift spaces in between. 
+
+The definitions of the lattice elements is given in lines 11 through
+17.  The reference photon energy is specified in line 1 as 10~KeV and
+line 2 sets photons as the reference particle.
+
+In this example the source element, called \vn{src}, is specified on
+lines 11 and 12.  The physical extent of the source is given by the
+parameters
+\begin{example}
+  l              ! Longitudinal length (\(2 \sigma\))
+  x_half_length  ! Half length in x-direction (\(1 \sigma\))
+  y_half_length  ! Half length in the y-direction (\(1 \sigma\)).
+\end{example}
+With Gaussian spatial distributions, \vn{l} is the $2\sigma$
+longitudinal length of the source and \vn{x_half_length} and
+\vn{y_half_length} are the $1\sigma$ transverse extents.
+
+The source can be moved spatially by setting the parameters
+\begin{example}
+  x_offset, y_offset, z_offset
+  x_pitch, y_pitch, tilt
+\end{example}
+See the Bmad manual for more details.
+
+The emission spectrum is governed by the master input file parameters:
+\begin{example}
+  photon_init%sig_E
+  photon_init%dE_center
+  photon_init%dE_relative_to_ref
+  photon_init%energy_distribution
+  photon_init%spatial_distribution     ! (x, y) spacial distribution
+  photon_init%velocity_distribution    ! (vx, vy) spacial distribution
+\end{example}
+If \vn{photon_init%dE_relative_to_ref} is set to True, The average
+starting photon energy is
+\begin{example}
+  E_average = photon_init%dE_center + beginning[e_tot]
+\end{example}
+where the reference energy \vn{beginning[e_tot]} is set in the lattice file. 
+If \vn{photon_init%dE_relative_to_ref} is set to False, The average
+starting photon energy is simply \vn{photon_init%dE_center}.
+
+The width of the energy distribution, in eV, is set by \vn{%sig_E}.
+The \vn{%energy_distribution} and \vn{%transverse_distribution} parameters
+establish the type of energy and spatial spectrum used. Possible
+settings for these parameters are:
+\begin{example}
+  "UNIFORM"
+  "GAUSSIAN"
+\end{example}
+A \vn{UNIFORM} spectrum has a constant probability of emission out to
+1~sigma and zero outside of this range.
+
+%------------------------------------------------------------------
+\subsection{Example: Lattice Using an Bend Source}
+\label{ss:bend}
+
+When photons are generated via charged particles in an insertion
+device or a bend, the lattice must have (at least) two \vn{branch}
+lines: One branch containing the insertion device or bend and the
+other branch is the X-ray branch containing the detector. Connecting the
+charged particle branch to the X-ray branch There must be a
+\vn{photon_fork} element.  Example Bmad lattice file:
+
+\begin{listing}{1}
+beam_start[emittance_a] = 1.446E-7
+beam_start[emittance_b] = beam_start[emittance_a] / 100
+
+parameter[e_tot] = 5.289E+09
+parameter[geometry] = open
+
+beginning[beta_a]  =  2.2611   
+beginning[alpha_a] = -1.35379
+beginning[eta_x]   =  0.549325
+beginning[etap_x]  = -0.064612
+
+beginning[beta_b]  = 9.3144
+beginning[alpha_b] = 1.12414
+beginning[eta_y]   = 0
+beginning[etap_y]  = 0
+
+B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! rho =  31.65434
+B05W:  b02, ds_step = 0.1
+
+bend_line: line = (b05w)
+c_fork: photon_fork, to_line = c_line, superimpose, 
+        ref = b05w, ref_origin = beginning, offset =  23.6980 - 23.3814
+
+!-----------------------------
+
+drift1: drift, l = 10.25
+drift2: drift, l = 10.75 - drift1[l]
+drift3: drift
+drift4: drift
+
+white_beam_slit: rcollimator, x_limit = 0.005/2, y_limit = 0.001/2
+mono_slit: rcollimator
+
+cryst1: crystal, crystal_type = Si(531), ref_tilt = -pi/2, b_param = -1
+cryst2: crystal, crystal_type = Si(531), ref_tilt = pi/2, b_param = -1
+
+det: detector, x_limit = 1, y_limit = 1, 
+     surface = {grid = {ix_bounds = (-1, 1), iy_bounds = (-1, 1), dr = (1, 1)}}
+
+c_line: line = (drift1, white_beam_slit, drift2, cryst1, drift3, 
+                cryst2, drift4, mono_slit, det)
+c_line[particle] = photon
+c_line[e_tot] = 8.979e3
+
+use, bend_line
+
+expand_lattice  ! So that bragg angles are computed
+
+! drift3 length is set so that crystal2 is positioned 75 mm 
+! vertically from the beam plane
+
+drift3[l] = 0.075 / sin(cryst1[bragg_angle_in] + cryst1[bragg_angle_out])
+drift4[l] = 14.5 - (drift1[l] + drift2[l] + drift3[l])
+\end{listing}
+
+Lines 1 through 22 define the charged particle branch which is
+simply a bend called \vn{b05w} with a \vn{photon_fork} element, called
+\vn{c_fork}, superimposed on top of it.
+
+The \vn{c_fork} element branches to a branch called \vn{c_line}. The
+elements of \vn{c_line} are given in lines 40 and 41: Two slits, two
+crystals, and a detector with drifts in between. 
 
 %------------------------------------------------------------------
 \section{Numbering the Output Data Files}
@@ -632,15 +670,13 @@ the name of an output data file containing beginning and ``end''
 coordinates of a set of photons.
 
 The location where the ``end'' coordinates are evaluated is set by the
-\vn{ix_ele_photon} parameter from the master input file. If
-\vn{ix_ele_photon} is less than 1 then the end coordinates are
-evalueated at the detector element. If \vn{ix_ele_photon} is 1 or more
-then the end coordinates are evaluated at the exit end of the lattice
-element with index \vn{ix_ele_photon}. 
+\vn{photon1_element} parameter from the master input file. If
+\vn{photon1_element} is blank, the end coordinates are
+evalueated at the detector element.  
 
 If \vn{reject_dead_at_det_photon1} is set to True, photons that do not
 make it to the detector will not be included in the photon1_out
-file. In any case, a photon that does not reach the \vn{ix_ele_photon}
+file. In any case, a photon that does not reach the \vn{photon1_element}
 element will not be included. Thus, if the lattice element where the
 photon position is being evaluated at is the detector, it will always
 be the case that photons that do not make it to the detector will not
@@ -689,7 +725,9 @@ file are:
   iy_pix            ! $y$-axis index
   x_pix             ! $x$ coordinate of pixel center
   y_pix             ! $y$ coordinate of pixel center
-  intensity         ! Normalized pixel intensity
+  intensity_x       ! Normalized pixel intensity of x-polarized light.
+  intensity_y       ! Normalized pixel intensity of y_polarized light
+  intensity         ! Normalized pixel intensity = intensity_x + intensity_y
   n_photon          ! Number of photons hitting pixel
   E_ave             ! Average energy deviation from reference (eV)
   E_rms             ! RMS about the average energy (eV)
@@ -698,16 +736,18 @@ file are:
 from the reference energy at a pixel. \vn{E_rms} is the RMS variation
 of the photon energy with respect to \vn{E_ave}.
 
-In addition to the pixel-by-pixel data file, two additional files will
-be generated containing data projected on the $x$ and $y$ detector
-alux. The name of these files will be the same as
+In addition to the pixel-by-pixel data file, three additional files
+will be generated. Two of these files contain data projected on the
+$x$ and $y$ detector axes. The name of these two files will be the same as
 \vn{det_pix_out_file} with ``.x'' and ``.y'' suffilux indicating
-projected data on the $x$ and $y$ alux respectively. The columns for
-the $x$-axis projected data is
+projected data on the $x$ and $y$ axes respectively. The columns for
+the $x$-axis projected data is:
 \begin{example}
   ix_pix            ! x-axis index
   x_pix             ! x coordinate of pixel center
-  intensity         ! Normalized pixel intensity sum
+  intensity_x       ! Normalized x-polarized light pixel intensity sum
+  intensity_y       ! Normalized y-polarized light pixel intensity sum
+  intensity         ! Normalized pixel intensity sum = intensity_x + intensity_y
   n_photon          ! Number of photons hitting pixels
   E_ave             ! Average energy deviation from reference (eV)
   E_rms             ! RMS about the average energy (eV)
@@ -720,19 +760,168 @@ recorded in the pixel-by-pixel file (due to a non-zero
 like the total number of photon need not match between the
 pixel-by-pixel file and the projected files.
 
-%------------------------------------------------------------------
-\section{Data Visualization}
-\label{s:vis}
+The third of the three additional files generated will have the same name as 
+\vn{det_pix_out_file} with a ``.energy'' suffix. This file contains 
+This file will contain a table with columns:
+\begin{example}
+  Energy            ! Center photon energy of bin (eV).
+  intensity_x       ! Normalized x-polarized intensity of photons in bin
+  intensity_y       ! Normalized y-polarized intensity of photons in bin
+  intensity         ! Normalized intensity = intensity_x + intensity_y
+  n_photon          ! Number of photons in bin.
+\end{example}
+Photons that fall on the detector are binned acording to the photon's
+energy.  Each row in the file represents one bin. \vn{n_photon} is the
+number of photon in a bin and the intensity columns are the
+intensities of these photons. 
 
-There is a python script for making an intensity plot of the
-\vn{det_pix_out_file} in:
+The number of energy bins is determined by the setting of
+\vn{lux_param%n_energy_bin_pts}. The center energy bin is set by
+\vn{photon_init%dE_center}.  The span of the energy bins is determined
+by \vn{photon_init%sig_E}. If the \vn{photon_init%energy_distribution}
+is set to 'UNIFORM', the span of the energy bins is set to
+2*\vn{photon_init%sig_E}. If \vn{photon_init%energy_distribution} is
+set to 'GAUSSIAN', the span of the energy bins is set to
+6*\vn{photon_init%sig_E}. In this latter case, if photons have an
+energy that falls outside the energy range of bins, these photons are
+counted in the edge bin with the nearest energy.
+
+%------------------------------------------------------------------
+\section{Python Scripting}
+\label{s:python}
+
+In some cases it is desired to study some output parameter while
+varying some input parameter. For example, it may be desired to look
+at a ``rocking curve'' where the initial angle of the photons are
+varied and the output intensity is monitored.  Such studies can be
+easily achieved using a scripting language like \vn{python}.
+
+Example:
+\begin{listing}{1}
+#!/usr/bin/env python
+
+import subprocess
+
+# Read in template lattice file
+
+t_file = open ('template.bmad', 'r')
+template = t_file.readlines()
+t_file.close()
+
+# open output file
+
+out_file = open('output.dat', 'w')
+out_file.write('#       Var         I_x/I         I_y/I   (I_x-I_y)/I           I_x           I_y             I\n')
+
+# Loop over all runs
+
+n_max = 10
+dvar = 0.00001
+for ix in range(-n_max, n_max+1):
+
+  # Create file with var_to_change set to correct value
+
+  var = ix * dvar
+  print ('Run with var_to_change set to: ' + str(var))
+
+  b_file = open ('lat.bmad', 'w')
+
+  for line in template:
+    if (line[:8] == 'var_to_change'): line = 'var_to_change = ' + str(var) + '\n'
+    b_file.write(line)
+
+  b_file.close()
+
+  # Run lux
+  # Remove any Bmad "digested" files to make sure Bmad rereads the lattice file.
+
+  subprocess.call('rm *digested*', shell=True)
+  subprocess.call('/home/dcs16/linux_lib/production/bin/lux', shell=True)
+
+  # Get output
+
+  with open('det.pix', 'r') as d_file:
+    for line in d_file:
+      if 'intensity_x_norm' in line: exec(line)
+      if 'intensity_y_norm' in line: exec(line)
+      if 'intensity_norm' in line: exec(line)
+
+  # write results
+
+  ii = intensity_norm
+  ix = intensity_x_norm
+  iy = intensity_y_norm
+
+  if ii == 0:
+    out_file.write('{:12.2e}'.format(var) + '{:14.4e}'.format(0) + 
+                   '{:14.4e}'.format(0) + '{:14.4e}'.format(0))
+  else:
+    out_file.write('{:12.2e}'.format(var) + '{:14.4e}'.format(ix/ii) + 
+                   '{:14.4e}'.format(iy/ii) + '{:14.4e}'.format((ix-iy)/ii))
+
+  out_file.write('{:14.4e}'.format(ix) + '{:14.4e}'.format(iy) + 
+                 '{:14.4e}'.format(ii) + '\n')
+
+out_file.close()
+\end{listing}
+
+The heart of the script is the loop that begins on line 20 and ends on
+line 63. Each iteration of this loop changes one variable in the
+lattice file (lines 27 to 33), runs \lux (line 39), and then extracts
+the pertanent data (lines 43 to 47). Finally at the end of the loop
+the data is appended to the output file in lines 51 through 63.
+
+
+The lattice file that \lux uses is called \vn{lat.bmad} (this is set
+by the \vn{lattice_file} parameter in the \vn{lux.init} file which is
+not shown). The python script constructs this \vn{lat.bmad} file by
+first readinging in a lattice file called \vn{template.bmad} (lines (7
+to 9). In lines 29 to 31 the script transfers, line-by-line, the lines
+from \vn{template.bmad} to \vn{lat.bmad}. It has been arranged that
+the \vn{template.bmad} file contains the following:
 \begin{example}
-  lux/plot/det_pix_plot.py
+  var_to_change = 0
+  cryst1: crystal, ..., x_pitch = var_to_change
 \end{example}
-For help run the script
+The \vn{var_to_change} variable sets the \vn{x_pitch} attribute of the
+crystal named \vn{cryst1}. The Python script will take the line
 \begin{example}
-  <path_to_script>/det_pix_plot.py -help
+  var_to_change = 0
+\end{example} 
+and modify this (in line 30) to read:
+\begin{example}
+  var_to_change = <var>
 \end{example}
+where \vn{<var>} is the value of the \vn{var} variable in the
+script. The value of \vn{var} is set in line 24 and ranges from
+\vn{-n_max * dvar} to \vn{n_max * dvar} which in this case is from
+-10e-5 to 10e-5.
+
+To get the data after \lux is run, the script opens up a file
+\vn{det.pix}. This name has been set in the \vn{lux.init} file as the
+name of the \vn{det_pix_out_file} parameter:
+\begin{example}
+   det_pix_out_file = 'det.pix'
+\end{example}
+The \vn{det_pix_out_file} has a number of initial rows that give
+overall parameters. Example:
+\begin{example}
+  master_input_file   = "lux.init"
+  lattice_file        = "lat.bmad"
+  normalization       =  1.000000E+02
+  intensity_x_unnorm  =     9.41577E+01
+  intensity_x_norm    =     9.41577E+03
+  intensity_y_unnorm  =     4.64621E-02
+  intensity_y_norm    =     4.64621E+00
+  intensity_unnorm    =     9.42042E+01
+  intensity_norm      =     9.42042E+03
+\end{example}
+When the script (see line 45) finds a line in \vn{det.pix} that has
+the string \vn{intensity_x_norm}, the script ``executes'' this
+line. The result is that the script set a variable named
+\vn{intensity_x_norm} to the value given in the \vn{det.pix}
+file. Similarly, the script extracts the values of
+\vn{intensity_y_norm} and \vn{intensity_norm} in lines 46 and 47.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

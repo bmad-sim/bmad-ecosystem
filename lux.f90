@@ -21,8 +21,8 @@ real(rp) cut, normalization, area, intens_tot_x, intens_tot_y
 real(rp) total_dead_intens, pix_in_file_intens, x, phase
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 
-integer i, j, n, ie, nt, n_track_at_energy, n_track_tot, n_live, track_state
-integer nx, ny, nx_min, nx_max, ny_min, ny_max, ie_max, n_loc
+integer i, j, n, ix, ie, nt, n_track_at_energy, n_track_tot, n_live, track_state
+integer nx, ny, nx_min, nx_max, ny_min, ny_max, n_loc
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 integer random_seed, n_photon1_file, n_throw
 
@@ -111,57 +111,69 @@ endif
 call bmad_parser (lattice_file, lat)
 lux_com%lat => lat
 
-select case (lux_param%simulation_type)
-case ('ROCKING_CURVE')
-  s_branch => lat%branch(0)  ! Source branch
-  d_branch => s_branch       ! detector branch
-  lux_com%source_ele => lat%ele(1)
-  if (photon_init%e_field_x == 0 .and. photon_init%e_field_y == 0) then
-    print *, 'photon_init%e_field_x and/or photon_init%e_field_y must be non-zero for a rocking curve.'
-    stop
-  endif
+! locate source element
 
-case ('NORMAL')
-  call lat_ele_locator (lux_param%source_element, lat, eles, n_loc, err)
+call lat_ele_locator (lux_param%source_element, lat, eles, n_loc, err)
+if (n_loc == 0) then
+  print *, 'NO SOURCE ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  stop
+elseif (n_loc > 1) then
+  print *, 'MULTIPLE SOURCE ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  stop
+endif
+
+lux_com%source_ele => eles(1)%ele
+s_branch => lux_com%source_ele%branch
+
+! Locate detector element
+
+call lat_ele_locator (lux_param%detector_element, lat, eles, n_loc, err)
+if (n_loc == 0) then
+  print *, 'NO DETECTOR ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  stop
+elseif (n_loc > 1) then
+  print *, 'MULTIPLE DETECTOR ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  stop
+endif
+
+lux_com%det_ele => eles(1)%ele
+d_branch => lux_com%det_ele%branch
+
+! Locate photon1 element
+
+if (lux_param%photon1_element == '') then
+  lux_com%photon1_ele => lux_com%det_ele
+else
+  call lat_ele_locator (lux_param%photon1_element, lat, eles, n_loc, err)
   if (n_loc == 0) then
-    print *, 'NO SOURCE ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+    print *, 'NO PHOTON1 ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
     stop
   elseif (n_loc > 1) then
-    print *, 'MULTIPLE SOURCE ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+    print *, 'MULTIPLE PHOTON1 ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+    stop
+  endif
+  lux_com%photon1_ele => eles(1)%ele 
+endif
+
+!
+
+select case (lux_com%source_ele%key)
+case (x_ray_init$)
+
+case (sbend$, wiggler$, undulator$)
+  nullify (lux_com%fork_ele)
+  do i = 1, s_branch%n_ele_track
+    if (s_branch%ele(i)%key /= photon_fork$) cycle
+    lux_com%fork_ele => s_branch%ele(i)
+    exit
+  enddo
+  if (.not. associated(lux_com%fork_ele)) then
+    print *, 'NO APPROPRIATE FORK/PHOTON_FORK ELEMENT FOUND IN LATTICE!'
     stop
   endif
 
-  lux_com%source_ele => eles(1)%ele
-  s_branch => lux_com%source_ele%branch
-
-  select case (lux_com%source_ele%key)
-  case (x_ray_init$)
-    d_branch => s_branch       ! detector branch
-    if (photon_init%e_field_x == 0 .and. photon_init%e_field_y == 0) then
-      print *, 'photon_init%e_field_x and/or photon_init%e_field_y must be non-zero for a rocking curve.'
-      stop
-    endif
-
-  case (sbend$, wiggler$, undulator$)
-    nullify (lux_com%fork_ele)
-    do i = 1, s_branch%n_ele_track
-      if (s_branch%ele(i)%key /= photon_fork$) cycle
-      lux_com%fork_ele => s_branch%ele(i)
-      exit
-    enddo
-    if (.not. associated(lux_com%fork_ele)) then
-      print *, 'NO APPROPRIATE FORK/PHOTON_FORK ELEMENT FOUND IN LATTICE!'
-      stop
-    endif
-    d_branch => lat%branch(nint(lux_com%fork_ele%value(ix_to_branch$)))       ! detector branch
-
-  case default
-    print *, 'CANNOT SIMULATE PHOTONS GENERATED IN ELEMENT OF TYPE: ', trim(key_name(lux_com%source_ele%key))
-    stop
-  end select
-
 case default
-  print *, 'UNKNOWN LUX_PARAM%SIMULATION_TYPE: ' // lux_param%simulation_type
+  print *, 'CANNOT SIMULATE PHOTONS GENERATED IN ELEMENT OF TYPE: ', trim(key_name(lux_com%source_ele%key))
   stop
 end select
 
@@ -180,7 +192,8 @@ endif
 lux_com%det_ele => detec_ele
 
 if (.not. associated(detec_ele%photon)) then
-  print *, 'BAD DETECTOR ELEMENT: ', trim(detec_ele%name)
+  print *, 'DETECTOR ELEMENT: ', trim(detec_ele%name)
+  print *, 'OF WRONG TYPE:    ', key_name(detec_ele%key)
   stop
 endif
 detector => detec_ele%photon%surface%grid
@@ -217,9 +230,7 @@ e_ave = 0; e_rms = 0
 
 !------------------------------------------
 
-ie_max = 1
 if (lat%photon_type == coherent$) then
-  ie_max = lux_param%n_energy_pts
   if (photon_init%e_field_x == 0 .and. photon_init%e_field_y == 0) then
     print *, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!'
   endif
@@ -228,7 +239,7 @@ endif
 n_live = 0
 n_track_tot = 0
 
-energy_loop: do ie = 1, ie_max
+energy_loop: do ie = 1, 1
 
   n_track_at_energy = 0
   intens_tot = 0
@@ -236,9 +247,6 @@ energy_loop: do ie = 1, ie_max
   intens_tot_y = 0
 
   do 
-    if (lux_param%simulation_type /= 'ROCKING_CURVE') then
-      if (lux_param%stop_total_intensity > 0 .and. intens_tot >= lux_param%stop_total_intensity) exit
-    endif
     if (lux_param%stop_num_photons > 0 .and. n_track_at_energy >= lux_param%stop_num_photons) exit
     n_track_at_energy = n_track_at_energy + 1
     n_track_tot = n_track_tot + 1
@@ -262,12 +270,7 @@ energy_loop: do ie = 1, ie_max
     ! Write results
 
     if (photon1_out_file /= '' .and. intens >= lux_param%intensity_min_photon1_cutoff) then
-      if (lux_param%ix_ele_photon1 < 1) then
-        this_orb => end_orb
-      else
-        this_orb => photon%orb(lux_param%ix_ele_photon1)
-      endif
-
+      this_orb => photon%orb(lux_com%photon1_ele%ix_ele)
       accept = .true.
       if (lux_param%reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
       if (this_orb%state /= alive$) accept = .false.
@@ -311,10 +314,23 @@ energy_loop: do ie = 1, ie_max
       else
         pix%intensity_x = pix%intensity_x + intens_x
         pix%intensity_y = pix%intensity_y + intens_y
-        pix%intensity   = pix%intensity + intens
-        pix%energy_ave  = pix%energy_ave + intens * (end_orb%p0c - e_ref)
-        pix%energy_rms  = pix%energy_rms + intens * (end_orb%p0c - e_ref)**2
+        pix%intensity   = pix%intensity   + intens
+        pix%energy_ave  = pix%energy_ave  + intens * (end_orb%p0c - e_ref)
+        pix%energy_rms  = pix%energy_rms  + intens * (end_orb%p0c - e_ref)**2
       endif
+
+      if (photon_init%dE_relative_to_ref) then
+        ix = nint((end_orb%p0c - lux_com%det_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
+      else
+        ix = nint((end_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
+      endif
+      if (ix < 1) ix = 1
+      if (ix > ubound(lux_com%energy_bin, 1)) ix = ubound(lux_com%energy_bin, 1)
+      lux_com%energy_bin(ix)%intensity   = intens
+      lux_com%energy_bin(ix)%intensity_x = intens_x
+      lux_com%energy_bin(ix)%intensity_y = intens_y
+      lux_com%energy_bin(ix)%n_photon    = lux_com%energy_bin(ix)%n_photon + 1
+
     endif
 
   enddo
@@ -397,6 +413,8 @@ if (det_pix_out_file /= '') then
   enddo
   close(3)
 
+  ! det_pix_out_file.x
+
   open (3, file = trim(det_pix_out_file) // '.x')
   write (3, '(a)')        '#-----------------------------------------------------'
   write (3, '(a)')        '#     ix        x_pix        Intensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
@@ -415,6 +433,8 @@ if (det_pix_out_file /= '') then
   enddo
   close(3)
 
+  ! det_pix_out_file.y
+
   open (3, file = trim(det_pix_out_file) // '.y')
   write (3, '(a)')        '#-----------------------------------------------------'
   write (3, '(a)')        '#     iy        y_pix      Intensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
@@ -430,6 +450,18 @@ if (det_pix_out_file /= '') then
     write (3, '(i8, f13.8, 3es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
+  enddo
+  close(3)
+
+  ! det_pix_out_file.energy
+
+  open (3, file = trim(det_pix_out_file) // '.energy')
+  write (3, '(a)')        '#-----------------------------------------------------'
+  write (3, '(a)')        '#      Energy     Intensity_x     Intensity_y       Intensity  N_photn'
+  do j = 1, ubound(lux_com%energy_bin, 1)
+    pix => lux_com%energy_bin(j)
+    write (3, '(f13.5, 3es16.5, i9)') pix%energy_ave, pix%intensity_x * normalization, &
+                       pix%intensity_y * normalization, pix%intensity * normalization, pix%n_photon
   enddo
   close(3)
 

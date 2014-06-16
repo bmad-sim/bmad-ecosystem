@@ -4,6 +4,7 @@
 #   execfile('this_file_name')
 
 import sys
+import re
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
@@ -11,11 +12,17 @@ import matplotlib.ticker as ticker
 # Help
 
 def print_help():
-  print ('Usage:')
-  print ('  det_pix_plot.py {-scale <scale>} {<data_file_name>}')
-  print ('Defaults:')
-  print ('  <scale>          = 1e3')
-  print ('  <data_file_name> = lux.det_pix')
+  print ('''
+Usage:
+    det_pix_plot.py {-scale <scale>} {-plot <who_to_plot>} {<data_file_name>}
+  <who_to_plot> = x         # Intensity of x-polarized photons
+                = y         # Intensity of y-polarized photons
+                = i         # Total intensity (sum of x & y polarizations)
+  Defaults:
+    <scale>          = 1e3
+    <data_file_name> = lux.det_pix
+    <who_to_plot>    = i
+'''  
   exit() 
 
 # Defaults
@@ -26,13 +33,22 @@ scale = 1e3
 
 x_margin = 10
 y_margin = 10
+who_to_plot = 'i'
 
 # Command line arguments
 
 i = 1
 while i < len(sys.argv):
-  if sys.argv[i] == '-scale':
+  n = len(sys.argv[i])
+  if sys.argv[i] == '-':
+    print_help()
+    
+  if sys.argv[i] == '-scale'[:n]:
     scale = sys.argv[i+1]
+    i += 1
+
+  elif sys.argv[i] == '-plot'[:n]:
+    who_to_plot = sys.argv[i+1]
     i += 1
 
   elif sys.argv[i][0] == '-':
@@ -42,6 +58,17 @@ while i < len(sys.argv):
     dat_file_name = sys.argv[i]
 
   i += 1
+
+# Select appropriate column in file to use
+
+if who_to_plot == 'x':
+  p_col = 4
+elif who_to_plot == 'y':
+  p_col = 5
+elif who_to_plot == 'i':
+  p_col = 6
+else:
+  print_help()
 
 # Read data file parameters in header lines and data file data
 
@@ -54,7 +81,7 @@ for n_header in range(1, 1000):
 
 dat_file.close()
 
-pix_dat = np.loadtxt(dat_file_name, usecols=(0,1,4), skiprows = n_header)
+pix_dat = np.loadtxt(dat_file_name, usecols=(0,1,p_col), skiprows = n_header)
 
 # Create density matrix
 

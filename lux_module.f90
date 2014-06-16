@@ -32,19 +32,19 @@ type photon_init_struct
   real(rp) :: sig_E = 0, dE_center = 0
   real(rp) :: e_field_x = 0, e_field_y = 0
   logical :: dE_relative_to_ref = .true.
-  logical :: normalize_field = .true.
+  logical :: scale_initial_field_to_1 = .true.
 end type
 
 type lux_params_struct
-  character(16) :: simulation_type = 'NORMAL'   ! Or 'ROCKING_CURVE'
-  character(16) :: source_element = ''          ! element name
+  character(40) :: source_element = ''            ! element name
+  character(40) :: detector_element = ''          ! element name
+  character(40) :: photon1_element = ''           ! element name
   real(rp) :: intensity_min_det_pixel_cutoff = 1e-6
   real(rp) :: intensity_min_photon1_cutoff = 1e-6
   real(rp) :: stop_total_intensity = 10           ! stop intensity per energy
   real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp  ! For plotting
   real(rp) :: intensity_normalization_coef = 1e6
-  integer :: ix_ele_photon1 = -1
-  integer :: n_energy_pts = 1
+  integer :: n_energy_bin_pts = 40
   integer :: stop_num_photons = 0                  ! stop number per energy
   logical :: debug = .false.     ! For debugging
   logical :: reject_dead_at_det_photon1 = .false.
@@ -58,9 +58,11 @@ end type
 type lux_common_struct
   type (lat_struct), pointer :: lat
   type (branch_struct), pointer :: s_branch, d_branch
-  type (ele_struct), pointer :: source_ele, fork_ele, det_ele
+  type (ele_struct), pointer :: source_ele, fork_ele, det_ele, photon1_ele
   integer n_bend_slice                                       ! Number of slices
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
+  type (surface_grid_pt_struct), allocatable :: energy_bin(:)
+  real(rp) dE_bin
   real(rp) E_min, E_max                                      ! Photon energy range 
 end type
 
@@ -120,7 +122,7 @@ if (x == 0 .and. y == 0) then
   orb%field(1) = cos(twopi * rr)
   orb%field(2) = sin(twopi * rr)
 else
-  if (photon_init%normalize_field) then
+  if (photon_init%scale_initial_field_to_1) then
     orb%field(1) = x / sqrt(x**2 + y**2)
     orb%field(2) = y / sqrt(x**2 + y**2)
   else
@@ -128,49 +130,6 @@ else
     orb%field(2) = y
   endif
 endif
-
-!-----------------------------------------------------
-! simulation_type = "ROCKING_CURVE"
-
-select case (lux_param%simulation_type)
-case ('ROCKING_CURVE')
-
-  sig_vec = [photon_init%sig_x, photon_init%sig_vx, photon_init%sig_y, &
-             photon_init%sig_vy, photon_init%sig_z, photon_init%sig_E]
-  if (count(sig_vec /= 0) /= 1) then
-    print *, 'ONE AND ONLY ONE PHOTON_INIT%SIG_xxx MUST BE NON-ZERO.'
-    call err_exit
-  endif
-
-  orb%vec = [0, 0, 0, 0, 0, 1]
-  orb%p0c = 0
-
-  rr = 2 * (photon%n_photon_generated - 1.0) / (lux_param%stop_num_photons - 1.0) - 1
-
-  if (photon_init%sig_x /= 0) then
-    orb%vec(1) = photon_init%sig_x * rr
-  elseif (photon_init%sig_y /= 0) then
-    orb%vec(3) = photon_init%sig_y * rr
-  elseif (photon_init%sig_z /= 0) then
-    orb%vec(5) = photon_init%sig_z * rr
-  elseif (photon_init%sig_vx /= 0) then
-    orb%vec(2) = photon_init%sig_vx * rr
-    orb%vec(6) = sqrt(1 - orb%vec(2)**2)
-  elseif (photon_init%sig_vy /= 0) then
-    orb%vec(4) = photon_init%sig_vy * rr
-    orb%vec(6) = sqrt(1 - orb%vec(4)**2)
-  elseif (photon_init%sig_E /= 0) then
-    orb%p0c = photon_init%sig_E * rr
-  endif
-
-  orb%p0c = orb%p0c + photon_init%dE_center
-  if (photon_init%dE_relative_to_ref) orb%p0c = orb%p0c + lux_com%source_ele%value(p0c$) 
-
-  call init_coord (orb, orb%vec, lux_com%source_ele, .false., photon$, 1, orb%p0c) 
-  orb%s = orb%vec(5) + orb%s + lux_com%source_ele%value(z_offset_tot$)
-  orb%t = 0
-  return
-end select
 
 !-----------------------------------------------------
 ! x_ray_init source
@@ -223,9 +182,9 @@ case (x_ray_init$)
 
   if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
     if (photon_init%energy_distribution == 'UNIFORM') then
-      rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
+      !!! rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
     else if (photon_init%energy_distribution == 'GAUSSIAN') then
-      rr = sqrt_2 * erfc((ix_energy - 0.5_rp) / lux_param%n_energy_pts) 
+      !! rr = sqrt_2 * erfc((ix_energy - 0.5_rp) / lux_param%n_energy_pts) 
     else
       print *, 'BAD PHOTON_INIT%ENERGY_DISTRIBUTION SETTING: ', photon_init%energy_distribution 
     endif
@@ -311,10 +270,9 @@ case default
   
   ! Init photon
 
-  gamma_electron = source_ele%value(p0c$) * &
-                      (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
+  gamma_electron = source_ele%value(p0c$) * (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
   if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
-    rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
+    !!! rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
     call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, E_integ_prob = rr)
   else
     call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max)
@@ -377,7 +335,7 @@ type coord4_struct
 end type
 type (coord4_struct) p_coord(4)
 
-real(rp) vz, rho, x
+real(rp) vz, rho, x, f
 real(rp) phi, y, ds, s_now, prob1, prob2, g_bend(3), g_abs
 real(rp) gamma, v_mat(4,4)
 
@@ -388,16 +346,8 @@ integer n_slice, n_z, ix
 logical err, hit_below_top, hit_above_bottom, hit_right_of_left_edge, hit_left_of_right_edge
 logical old_hit_below_top, old_hit_above_bottom, old_hit_right_of_left_edge, old_hit_left_of_right_edge
 
-
-!-------------------------------------------------------------
-! Init
-
-if (lux_param%simulation_type == 'ROCKING_CURVE') return ! Nothing to do
-
 !-------------------------------------------------------------
 ! Lattice has sample element.
-
-
 
 branch => lux_com%d_branch
 
@@ -410,11 +360,26 @@ do ie = 1, branch%n_ele_track
 enddo
 
 !-------------------------------------------------------------
-! Sbend or wiggler source
+! x_ray_init source
 
 select case (lux_com%source_ele%key)
 case (x_ray_init$)
   call photon_target_setup (lux_com%source_ele)
+
+  if (photon_init%energy_distribution == 'UNIFORM') then
+    f = 1
+  else
+    f = 3
+  endif
+  lux_com%E_min = photon_init%dE_center - f * photon_init%sig_E
+  lux_com%E_max = photon_init%dE_center + f * photon_init%sig_E
+  if (.not. photon_init%dE_relative_to_ref) then
+    lux_com%E_min = lux_com%E_min - lux_com%source_ele%value(p0c$) 
+    lux_com%E_max = lux_com%E_max - lux_com%source_ele%value(p0c$) 
+  endif
+
+!-------------------------------------------------------------
+! Sbend or wiggler source
 
 case default
   call photon_target_setup (lux_com%fork_ele)
@@ -515,6 +480,16 @@ case default
   print '(a, i4)', 'Number of slices of source element to be used for photon generation:', count(sl%good_emit) 
 
 end select
+
+! Setup energy binning
+
+if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
+allocate (lux_com%energy_bin(lux_param%n_energy_bin_pts))
+lux_com%dE_bin = (lux_com%E_max - lux_com%E_min) / lux_param%n_energy_bin_pts
+do i = 1, lux_param%n_energy_bin_pts
+  lux_com%energy_bin(i)%energy_ave = lux_com%E_min + lux_com%dE_bin * (i - 0.5)
+enddo
+if (photon_init%dE_relative_to_ref) lux_com%energy_bin%energy_ave = lux_com%energy_bin%energy_ave - lux_com%det_ele%value(p0c$) 
 
 end subroutine lux_setup 
 
