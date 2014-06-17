@@ -22,7 +22,7 @@ contains
 !   silent   -- Logical: If True then do not print any info.
 !
 ! Output:
-!    %u(s%global%u_view)%model -- model lattice where the variable lives.
+!    %u(s%com%default_universe)%model -- model lattice where the variable lives.
 !-
 
 subroutine tao_change_var (name, num_str, silent)
@@ -163,7 +163,7 @@ end subroutine
 !                                A 'd' signifies a set relative design.        
 !
 ! Output:
-!    %u(s%global%u_view)%model -- model lattice where the variable lives.
+!    %u(s%com%default_universe)%model -- model lattice where the variable lives.
 !-
 
 subroutine tao_change_ele (ele_name, attrib_name, num_str)
@@ -194,7 +194,7 @@ logical, allocatable :: this_u(:), free(:)
 
 !-------------------------------------------------
 
-if (tao_com%common_lattice) then
+if (s%com%common_lattice) then
   call re_allocate2 (this_u, lbound(s%u, 1), ubound(s%u, 1))
   this_u = .false.
   this_u(ix_common_uni$) = .true.

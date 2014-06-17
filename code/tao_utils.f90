@@ -152,7 +152,7 @@ end subroutine tao_data_check
 !   "*@..."           -- Choose all universes.
 !   "3@..."           -- Choose universe 3. 
 !   "[1:30,34]@..."   -- Choose universes 1 through 30 and 34
-!   No "@" in name    -- Choose universe s%global%u_view.
+!   No "@" in name    -- Choose universe s%com%default_universe.
 !
 ! Also see:
 !   tao_pointer_to_universe
@@ -193,14 +193,14 @@ picked = .false.
 p = .false.
 if (present(ix_uni)) ix_uni = -1
 
-! No "@" then simply choose s%global%u_view.
+! No "@" then simply choose s%com%default_universe.
 
 ix = index (name_in, '@')
 ic = index (name_in, '::')
 if (ix == 0 .or. (ic /= 0 .and. ix > ic)) then
-  picked (s%global%u_view) = .true.
+  picked (s%com%default_universe) = .true.
   name_out = name_in
-  if (present(ix_uni)) ix_uni = s%global%u_view
+  if (present(ix_uni)) ix_uni = s%com%default_universe
   return
 endif
 
@@ -339,7 +339,7 @@ end subroutine tao_locate_all_elements
 !
 ! Input:
 !   ele_list     -- Character(*): String with element names using element list format.
-!   ix_universe  -- Integer: Universe to search. 0 => search s%global%u_view.
+!   ix_universe  -- Integer: Universe to search. 0 => search s%com%default_universe.
 !   lat_type     -- Integer, optional: model$ (default), design$, or base$.
 !   ignore_blank -- Logical, optional: If present and true then do nothing if
 !     ele_list is blank. otherwise treated as an error.
@@ -2103,7 +2103,7 @@ do i = 1, size(var%this)
   t%model_value = value
   ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
   call set_flags_for_changed_attribute (ele, t%model_value)
-  if (tao_com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
+  if (s%com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
     s%u(:)%calc%lattice = .true.
   else
     s%u(t%ix_uni)%calc%lattice = .true.
@@ -2504,7 +2504,7 @@ end function
 !
 ! Fnction to return the universe number.
 ! i_this_uni = i_uni except when i_uni is -1. 
-! In this case i_this_uni = s%global%u_view.
+! In this case i_this_uni = s%com%default_universe.
 !
 ! Input:
 !   i_uni -- Integer: Nominal universe number.
@@ -2520,7 +2520,7 @@ implicit none
 integer i_uni, i_this_uni
 
 i_this_uni = i_uni
-if (i_uni == -1) i_this_uni = s%global%u_view
+if (i_uni == -1) i_this_uni = s%com%default_universe
 
 end function tao_universe_number
 
@@ -2555,7 +2555,7 @@ logical error
 error = .false.
 
 call tao_hook_parse_command_args()
-if (.not. tao_com%parse_cmd_args) return
+if (.not. s%com%parse_cmd_args) return
 
 if (present(cmd_words)) then
   n_arg = size(cmd_words)
@@ -2584,62 +2584,62 @@ do
   select case (switch)
 
   case ('-init')
-    call get_next_arg (tao_com%init_tao_file)
-    tao_com%init_tao_file_arg_set = .true.
-    if (tao_com%init_tao_file == '') then
+    call get_next_arg (s%com%init_tao_file)
+    s%com%init_tao_file_arg_set = .true.
+    if (s%com%init_tao_file == '') then
       call out_io (s_fatal$, r_name, 'NO TAO INIT FILE NAME ON COMMAND LINE.')
       call err_exit
     endif
-    ix = SplitFileName(tao_com%init_tao_file, tao_com%init_tao_file_path, base)
+    ix = SplitFileName(s%com%init_tao_file, s%com%init_tao_file_path, base)
 
   case ('-beam')
-    call get_next_arg (tao_com%beam_file)
+    call get_next_arg (s%com%beam_file)
 
   case ('-beam_all')
-    call get_next_arg (tao_com%beam_all_file)
+    call get_next_arg (s%com%beam_all_file)
 
   case ('-beam0')
-    call get_next_arg (tao_com%beam0_file)
+    call get_next_arg (s%com%beam0_file)
 
   case ('-building_wall')
-    call get_next_arg (tao_com%building_wall_file)
+    call get_next_arg (s%com%building_wall_file)
 
   case ('-data')
-    call get_next_arg (tao_com%data_file)
+    call get_next_arg (s%com%data_file)
 
   case ('-debug')
     s%global%debug_on = .true.
 
   case ('-geometry')
-    call get_next_arg (tao_com%plot_geometry)
+    call get_next_arg (s%com%plot_geometry)
 
   case ('help', '-help', '?', '-?')
     call tao_print_command_line_info
     stop
 
   case ('-lat')
-    call get_next_arg (tao_com%lat_file)
+    call get_next_arg (s%com%lat_file)
 
   case ('-log_startup')
-    tao_com%log_startup = .true.
+    s%com%log_startup = .true.
 
   case ('-noinit')
-    tao_com%init_tao_file = ''
+    s%com%init_tao_file = ''
 
   case ('-noplot')
-    tao_com%noplot_arg_set = .true.
+    s%com%noplot_arg_set = .true.
 
   case ('-rf_on')
     s%global%rf_on = .true.
 
   case ('-plot')
-    call get_next_arg (tao_com%plot_file)
+    call get_next_arg (s%com%plot_file)
 
   case ('-startup')
-    call get_next_arg (tao_com%startup_file)
+    call get_next_arg (s%com%startup_file)
 
   case ('-var')
-    call get_next_arg (tao_com%var_file)
+    call get_next_arg (s%com%var_file)
 
   case default
     call out_io (s_error$, r_name, 'BAD COMMAND LINE ARGUMENT: ' // arg0)
@@ -2725,7 +2725,7 @@ end subroutine tao_print_command_line_info
 ! Function tao_pointer_to_universe (ix_uni) result (u)
 !
 ! Routine to set a pointer to a universe.
-! If ix_uni is -1 then u(s%global%u_view) will be used.
+! If ix_uni is -1 then u(s%com%default_universe) will be used.
 !
 ! Also see:
 !   tao_pick_universe

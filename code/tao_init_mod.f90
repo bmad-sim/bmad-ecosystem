@@ -108,7 +108,7 @@ subroutine end_bookkeeping ()
 ! Tao does its own bookkeeping
 
 bmad_com%auto_bookkeeper = .false.
-tao_com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
+s%com%valid_plot_who(1:5) = (/ 'model ', 'base  ', 'ref   ', 'design', 'meas  ' /)
 
 ! Seed random number generator
 
@@ -116,7 +116,7 @@ call ran_seed_put (s%global%random_seed)
 call ran_engine (s%global%random_engine)
 call ran_gauss_converter (s%global%random_gauss_converter, s%global%random_sigma_cutoff)
 
-if (tao_com%noplot_arg_set) s%global%plot_on = .false.
+if (s%com%noplot_arg_set) s%global%plot_on = .false.
 
 end subroutine end_bookkeeping
 
@@ -172,7 +172,7 @@ namelist / tao_beam_init / ix_universe, beam0_file, &
 
 call tao_hook_init_beam ()
 
-if (.not. tao_com%init_beam .or. init_file == '') return
+if (.not. s%com%init_beam .or. init_file == '') return
 
 !
 
@@ -184,8 +184,8 @@ if (iu == 0) then
 endif
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
-  s%u(i)%beam%beam0_file = tao_com%beam0_file
-  s%u(i)%beam%beam_all_file = tao_com%beam_all_file
+  s%u(i)%beam%beam0_file = s%com%beam0_file
+  s%u(i)%beam%beam_all_file = s%com%beam_all_file
   do ib = 0, ubound(s%u(i)%uni_branch, 1)
     s%u(i)%uni_branch(ib)%track_start    = ''
     s%u(i)%uni_branch(ib)%track_end      = ''
@@ -213,8 +213,8 @@ do
   beam_init%renorm_sigma  = .true.
   beam_init%n_bunch       = 1
   beam_init%n_particle    = -1
-  beam0_file = tao_com%beam0_file        ! From the command line
-  beam_all_file = tao_com%beam_all_file  ! From the command line
+  beam0_file = s%com%beam0_file        ! From the command line
+  beam_all_file = s%com%beam_all_file  ! From the command line
   beam_saved_at = ''
   save_beam_at  = ''
   track_start = ''
@@ -368,7 +368,7 @@ u%beam%saved_at = beam_saved_at
 ! If beam_all_file is set, read in the beam distributions.
 
 if (u%beam%beam_all_file /= '') then
-  tao_com%use_saved_beam_in_tracking = .true.
+  s%com%use_saved_beam_in_tracking = .true.
   call tao_open_beam_file (beam_all_file, err)
   if (err) call err_exit
   call tao_read_beam_file_header (j, u%beam%beam_init%n_bunch, &

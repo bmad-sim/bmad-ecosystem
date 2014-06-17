@@ -916,7 +916,6 @@ logical straight_line_between_syms, valid, in_graph
 
 character(200) data_type, name
 character(16) data_source
-character(12) :: u_view_char
 character(20), parameter :: r_name = 'tao_curve_data_setup'
 
 !
@@ -930,7 +929,7 @@ if (.not. associated(u)) then
   return
 endif
 
-if (tao_com%common_lattice) then
+if (s%com%common_lattice) then
   u%calc%lattice = .true.
   call tao_lattice_calc (ok)
 endif
@@ -1182,7 +1181,7 @@ case ('var')
     v_ptr => v1_ptr%v(iv)
     if (.not. v_ptr%exists) cycle
     do jj = 1, size(v_ptr%this)
-      if (v_ptr%this(jj)%ix_uni .eq. s%global%u_view) then
+      if (v_ptr%this(jj)%ix_uni .eq. s%com%default_universe) then
         ix_this = jj
         exit v_loop
       endif

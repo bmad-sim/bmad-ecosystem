@@ -12,7 +12,7 @@
 subroutine tao_single_mode (char)
 
 use input_mod
-use tao_mod, dummy => tao_single_mode
+use tao_set_mod, dummy => tao_single_mode
 use tao_top10_mod, only:  tao_show_constraints, tao_var_write
 use tao_x_scale_mod, only:  tao_x_scale_cmd, tao_x_scale_plot, tao_x_scale_graph
 use tao_scale_mod, only:  tao_scale_cmd, tao_scale_graph
@@ -49,7 +49,7 @@ do i = 1, 4
   if (index(set_char(i), char) /= 0) then
     ix_key = index(set_char(i), char)
     this_factor = delta_factor(i)
-    ix = ix_key + 10*tao_com%ix_key_bank
+    ix = ix_key + 10*s%com%ix_key_bank
     if (ix > size(s%key)) then
       call out_io (s_error$, r_name, 'KEY NOT BOUND TO VARIABLE.')
       return
@@ -106,7 +106,7 @@ case ('V')
 ! 'Z' Quit single character input mode.
 
 case ('Z')
-  tao_com%single_mode = .false.
+  s%com%single_mode = .false.
   call out_io (s_blank$, r_name, ' ', 'Entering line mode...')
 
 ! 'CR' Do nothing
@@ -127,17 +127,17 @@ case ('>')
 ! "'" Accept command
 
 case ("'")
-  tao_com%single_mode = .false.
+  s%com%single_mode = .false.
   do
     call tao_get_user_input (line)
     call tao_hook_command (line, found)
     if (.not. found) call tao_command (line, err)
-    if (tao_com%multi_commands_here) cycle ! Use up all commands on line
+    if (s%com%multi_commands_here) cycle ! Use up all commands on line
     ! Keep on going if a command file is open
-    ix = tao_com%cmd_file_level
-    if (ix == 0 .and. .not. tao_com%cmd_file(ix)%paused) exit  
+    ix = s%com%cmd_file_level
+    if (ix == 0 .and. .not. s%com%cmd_file(ix)%paused) exit  
   enddo
-  tao_com%single_mode = .true.
+  s%com%single_mode = .true.
 
 ! '<CR>' Just replot.
                                
@@ -147,7 +147,7 @@ case(achar(13))  ! Ignore a <CR>
 
 case default
   write (*, *) 'What is this you are typing?', iachar(char)
-  tao_com%single_mode_buffer = ''
+  s%com%single_mode_buffer = ''
 
 !--------------------------------------------------------
 ! 'Escape' -> Must be an arrow key. Look for the rest of the sequence:
@@ -162,12 +162,12 @@ case (achar(27))
   ! '<left_arrow>' Shift key bank down by 10
 
   case ('[D')
-    tao_com%ix_key_bank = max(tao_com%ix_key_bank-1, 0)
+    s%com%ix_key_bank = max(s%com%ix_key_bank-1, 0)
 
   ! '<right_arrow>': Shift key bank up by 10
 
   case ('[C')
-    tao_com%ix_key_bank = min(tao_com%ix_key_bank+1, size(s%key-1)/10)
+    s%com%ix_key_bank = min(s%com%ix_key_bank+1, size(s%key-1)/10)
 
   ! '<up_arrow>': Increase deltas by factor of 10.
 
@@ -183,7 +183,7 @@ case (achar(27))
 
   case default
     write (*, *) 'What is this you are typing?', char2
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -209,7 +209,7 @@ case ('-')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -236,7 +236,7 @@ case ('=')
       return
     endif
     if (ix == 0) ix = 10
-    ix2 = ix + 10*tao_com%ix_key_bank
+    ix2 = ix + 10*s%com%ix_key_bank
     if (ix < 0 .or. ix > 10 .or. ix2 > size(s%key)) then
       call out_io (s_error$, r_name, 'KEY NUMBER OUT OF RANGE (0 - 9).')
       return
@@ -273,13 +273,13 @@ case ('=')
 
     case default
       write (*, *) 'What is this you are typing?', char2
-      tao_com%single_mode_buffer = ''
+      s%com%single_mode_buffer = ''
 
     end select
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -326,7 +326,7 @@ case ('a')
 
     case default
       write (*, *) 'What is this you are typing?', char2
-      tao_com%single_mode_buffer = ''
+      s%com%single_mode_buffer = ''
 
     end select
 
@@ -334,7 +334,7 @@ case ('a')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -381,7 +381,7 @@ case ('s')
 
     case default
       write (*, *) 'What is this you are typing?', char2
-      tao_com%single_mode_buffer = ''
+      s%com%single_mode_buffer = ''
 
     end select
 
@@ -389,7 +389,7 @@ case ('s')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -437,7 +437,7 @@ case ('z')
 
     case default
       write (*, *) 'What is this you are typing?', char2
-      tao_com%single_mode_buffer = ''
+      s%com%single_mode_buffer = ''
 
     end select
 
@@ -445,7 +445,7 @@ case ('z')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 
@@ -490,6 +490,14 @@ case ('/')
       enddo
     enddo
 
+  ! '/b' Switch default branch
+
+  case ('b')
+
+    call read_this_input (' Default Lattice Branch: ')
+    call string_trim (line, line, ix)
+    call tao_set_default_cmd ('branch', line)
+
   ! '/p' Just create a postscript file.
 
   case ('p')
@@ -500,22 +508,13 @@ case ('/')
   case ('P')
     call tao_write_cmd ('hard')
 
-  ! '/u' View universe 
+  ! '/u' Default universe 
 
   case ('u')
 
-    call read_this_input (' Universe number to view: ')
+    call read_this_input (' Default Universe: ')
     call string_trim (line, line, ix)
-    if (ix == 0) then
-      write (*, *) 'ERROR: NO UNIVERSE NUMBER.'
-    else
-      read (line, *, iostat = ios) i
-      if (ios /= 0 .or. i < 0 .or. i > ubound(s%u, 1)) then
-        write (*, *) 'ERROR: BAD UNIVERSE NUMBER.'
-        return
-      endif
-      s%global%u_view = i
-    endif
+    call tao_set_default_cmd ('universe', line)
 
   ! '/v' Output to default file.
 
@@ -559,7 +558,7 @@ case ('/')
 
   case default
     write (*, *) 'What is this you are typing?', iachar(char)
-    tao_com%single_mode_buffer = ''
+    s%com%single_mode_buffer = ''
 
   end select
 

@@ -1452,6 +1452,57 @@ end subroutine tao_set_data_cmd
 !-----------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
+! Subroutine tao_set_default_cmd (who_str, value_str)
+!
+! Routine to set default values.
+!
+! Input:
+!   who_str   -- Character(*): Which default component(s) to set.
+!   value_str -- Character(*): What value to set it to.
+!
+!  Output:
+!-
+
+subroutine tao_set_default_cmd (who_str, value_str)
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+integer ix, iu
+logical err
+
+character(*) who_str, value_str
+character(16) switch
+character(*), parameter :: r_name = 'tao_set_default_cmd'
+!
+
+call match_word (who_str, ['universe', 'branch  '], ix, matched_name=switch)
+if (ix < 1) then
+  call out_io (s_error$, r_name, 'BAD DEFAULT NAME: ' // who_str)
+  return
+endif
+
+select case (switch)
+case ('universe')
+  call tao_integer_set_value (s%com%default_universe, 'UNIVERSE', value_str, &
+                                                                     err, lbound(s%u, 1), ubound(s%u, 1))
+  if (err) return
+  call tao_turn_on_chrom_or_rad_int_calcs_if_needed_for_plotting()
+
+case ('branch')
+  u => tao_pointer_to_universe(-1)
+  call tao_integer_set_value (s%com%default_branch, 'BRANCH', value_str, err, 0, ubound(u%model%lat%branch, 1))
+  if (err) return
+
+end select
+
+
+end subroutine tao_set_default_cmd
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
 ! Subroutine tao_set_universe_cmd (uni, who, what)
 !
 ! Sets a universe on or off, or sets the recalculate or mat6_recalc logicals, etc.

@@ -49,16 +49,16 @@ namelist / tao_start / startup_file, building_wall_file, &
 
 ! global inits
 
-tao_com%n_alias = 0
-tao_com%ix_key_bank = 0             ! For single mode.
-tao_com%use_saved_beam_in_tracking = .false.
-if (.not. allocated(tao_com%cmd_file)) allocate (tao_com%cmd_file(0:0))
+s%com%n_alias = 0
+s%com%ix_key_bank = 0             ! For single mode.
+s%com%use_saved_beam_in_tracking = .false.
+if (.not. allocated(s%com%cmd_file)) allocate (s%com%cmd_file(0:0))
 
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
 
 iu_log = 0
-if (tao_com%log_startup) then
+if (s%com%log_startup) then
   iu_log = lunget()
   open (iu_log, file = 'tao_init.log', action = 'write', iostat = ios)
   if (ios == 0) then
@@ -82,12 +82,12 @@ endif
 err_flag = .true.
 
 iu = 0
-if (tao_com%init_tao_file /= '') then
-  call tao_open_file (tao_com%init_tao_file, iu, file_name, s_blank$)
+if (s%com%init_tao_file /= '') then
+  call tao_open_file (s%com%init_tao_file, iu, file_name, s_blank$)
   if (iu == 0) then ! If open failure
     call out_io (s_info$, r_name, 'Tao initialization file not found.')
-    if (tao_com%lat_file == '' .or. tao_com%init_tao_file_arg_set) then
-      call output_direct (0, do_print=tao_com%print_to_terminal)
+    if (s%com%lat_file == '' .or. s%com%init_tao_file_arg_set) then
+      call output_direct (0, do_print=s%com%print_to_terminal)
       call out_io (s_blank$, r_name, &
               'Note: To run Tao, you either need a Tao initialization file or', &
               '  use a lattice file using the syntax "tao -lat <lat_file_name>".', &
@@ -95,14 +95,14 @@ if (tao_com%init_tao_file /= '') then
       call tao_print_command_line_info
       stop
     endif
-    tao_com%init_tao_file = ''
+    s%com%init_tao_file = ''
   endif
 endif
 
 ! Set defaults.
 ! n_universes is present to accomodate files with the old syntax.
 
-init_tao_file = tao_com%init_tao_file
+init_tao_file = s%com%init_tao_file
 
 plot_file          = 'NOT SET!'         ! set default
 data_file          = 'NOT SET!'         ! set default
@@ -129,18 +129,18 @@ if (iu /= 0) then
   endif
 
   close (iu)
-  tao_com%init_name = init_name
-  tao_com%n_universes = n_universes
+  s%com%init_name = init_name
+  s%com%n_universes = n_universes
 endif
 
 ! Set
 
-call set_this_file_name (plot_file, init_tao_file, tao_com%plot_file)
-call set_this_file_name (data_file, init_tao_file, tao_com%data_file)
-call set_this_file_name (var_file,  init_tao_file, tao_com%var_file)
-call set_this_file_name (beam_file, init_tao_file, tao_com%beam_file)
-call set_this_file_name (building_wall_file, '',   tao_com%building_wall_file)
-call set_this_file_name (startup_file, 'tao.startup', tao_com%startup_file)
+call set_this_file_name (plot_file, init_tao_file, s%com%plot_file)
+call set_this_file_name (data_file, init_tao_file, s%com%data_file)
+call set_this_file_name (var_file,  init_tao_file, s%com%var_file)
+call set_this_file_name (beam_file, init_tao_file, s%com%beam_file)
+call set_this_file_name (building_wall_file, '',   s%com%building_wall_file)
+call set_this_file_name (startup_file, 'tao.startup', s%com%startup_file)
 
 ! Tao inits.
 ! Data can have variable info so init vars first.
@@ -190,7 +190,7 @@ do i = 1, s%n_var_used
       if (.not. allocated(s%var(i2)%this)) cycle
       do j2 = 1, size(s%var(i2)%this)
         if (i == i2 .and. j == j2) cycle
-        if (tao_com%common_lattice .and. &
+        if (s%com%common_lattice .and. &
                           s%var(i)%this(j)%ix_uni /= s%var(i2)%this(j2)%ix_uni) cycle
         if (associated (s%var(i)%this(j)%model_value, &
                           s%var(i2)%this(j2)%model_value)) then
@@ -215,7 +215,7 @@ call tao_init_plotting (plot_file)
 ! Need to do this before calling tao_lattice_calc since we don't want to supress these messages.
 
 if (iu_log /= 0) close (iu_log)
-call output_direct (0, do_print=tao_com%print_to_terminal)
+call output_direct (0, do_print=s%com%print_to_terminal)
 
 ! Set up model and base lattices.
 ! Must first transfer to model lattice for tao_lattice_calc to run.
@@ -269,7 +269,7 @@ if (startup_file /= '') then
   if (iu /= 0) then
     close (iu)
     call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
-    tao_com%cmd_from_cmd_file = .false.
+    s%com%cmd_from_cmd_file = .false.
     call tao_cmd_history_record ('call ' // startup_file)
     call tao_call_cmd (file_name)
   else if (startup_file /= 'tao.startup') then  ! If not default
@@ -333,7 +333,7 @@ deallocate (s%plotting%template)
 
 if (allocated(s%plotting%lat_layout%ele_shape)) deallocate (s%plotting%lat_layout%ele_shape)
 if (allocated(s%plotting%floor_plan%ele_shape)) deallocate (s%plotting%floor_plan%ele_shape)
-if (allocated(tao_com%covar))                deallocate (tao_com%covar, tao_com%alpha)
+if (allocated(s%com%covar))                deallocate (s%com%covar, s%com%alpha)
 
 ! Universes 
 
@@ -358,7 +358,7 @@ if (allocated (s%u)) then
     
     ! Beams: All s%u(i)%ele point to the same place with common_lattice.
 
-    if (i == 0 .or. .not. tao_com%common_lattice) then
+    if (i == 0 .or. .not. s%com%common_lattice) then
       do ib = 0, ubound(u%uni_branch, 1)
         call reallocate_beam(u%uni_branch(ib)%ele(0)%beam, 0, 0)
         deallocate (u%uni_branch(ib)%ele)
@@ -398,7 +398,7 @@ if (tao_com_name /= '') then
 elseif (file_name == 'NOT SET!') then
   file_name = init_name
 elseif (file_name_is_relative(file_name)) then
-  file_name = trim(tao_com%init_tao_file_path) // trim(file_name)
+  file_name = trim(s%com%init_tao_file_path) // trim(file_name)
 endif
 
 end subroutine set_this_file_name

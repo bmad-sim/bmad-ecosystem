@@ -26,28 +26,28 @@ integer i
 ! print aliases?
 
 if (alias == ' ') then
-  do i = 1, tao_com%n_alias
-    call out_io (s_blank$, r_name, tao_com%alias(i)%name // tao_com%alias(i)%string)
+  do i = 1, s%com%n_alias
+    call out_io (s_blank$, r_name, s%com%alias(i)%name // s%com%alias(i)%string)
   enddo
   return
 endif
 
 ! Check to see if alias already defined. If so just overwrite it.
 
-do i = 1, tao_com%n_alias
-  if (tao_com%alias(i)%name == alias) then
-    tao_com%alias(i)%string = string
+do i = 1, s%com%n_alias
+  if (s%com%alias(i)%name == alias) then
+    s%com%alias(i)%string = string
     return
   endif
 enddo
 
-if (tao_com%n_alias >= size(tao_com%alias)) then
+if (s%com%n_alias >= size(s%com%alias)) then
   call out_io (s_error$, r_name, 'NUMBER OF ALIASES TOO LARGE!')
   return
 endif
 
-tao_com%n_alias = tao_com%n_alias + 1
-tao_com%alias(tao_com%n_alias)%name = alias
-tao_com%alias(tao_com%n_alias)%string = string
+s%com%n_alias = s%com%n_alias + 1
+s%com%alias(s%com%n_alias)%name = alias
+s%com%alias(s%com%n_alias)%string = string
 
 end subroutine 

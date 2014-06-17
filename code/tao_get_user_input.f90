@@ -7,12 +7,12 @@
 !   prompt_str -- Character(*), optional: Primpt string to print at terminal. If not
 !                   present then s%global%prompt_string will be used.
 !   wait_flag  -- logical, optional: Used for single mode: Wait state for get_a_char call.
-!   cmd_line   -- Character(*): Command from something like Python if tao_com%shell_interactive = F.
+!   cmd_line   -- Character(*): Command from something like Python if s%com%shell_interactive = F.
 !
 ! Output:
 !   cmd_line -- Character(*): Command line from the user.
 !   will_need_cmd_line_input
-!              -- logical, optional :: If tao_com%shell_interactive = F, This argument is set to True
+!              -- logical, optional :: If s%com%shell_interactive = F, This argument is set to True
 !                   when more input is needed from the calling program.
 !-
 
@@ -64,32 +64,32 @@ endif
 
 ! If single character input wanted then...
 
-if (tao_com%single_mode) then
+if (s%com%single_mode) then
   if (s%global%wait_for_CR_in_single_mode) then
-    if (tao_com%single_mode_buffer == '') then
+    if (s%com%single_mode_buffer == '') then
       do
-        read '(a)', tao_com%single_mode_buffer
-        if (tao_com%single_mode_buffer /= '') exit
+        read '(a)', s%com%single_mode_buffer
+        if (s%com%single_mode_buffer /= '') exit
       enddo
     endif
-    cmd_line(1:1) = tao_com%single_mode_buffer(1:1)
-    tao_com%single_mode_buffer = tao_com%single_mode_buffer(2:)
+    cmd_line(1:1) = s%com%single_mode_buffer(1:1)
+    s%com%single_mode_buffer = s%com%single_mode_buffer(2:)
   else
     wait = logic_option(.true., wait_flag)
     call get_a_char (cmd_line(1:1), wait, [' '])  ! ignore blanks
-    tao_com%cmd_from_cmd_file = .false.
+    s%com%cmd_from_cmd_file = .false.
   endif
   return
 endif
 
-tao_com%single_mode_buffer = '' ! Reset buffer when not in single mode
+s%com%single_mode_buffer = '' ! Reset buffer when not in single mode
 
 ! check if we still have something from a line with multiple commands
 
-if (tao_com%multi_commands_here) then
+if (s%com%multi_commands_here) then
   call string_trim (saved_line, saved_line, ix)
   if (ix == 0) then
-    tao_com%multi_commands_here = .false.
+    s%com%multi_commands_here = .false.
   else
     cmd_line = saved_line
   endif
@@ -97,25 +97,25 @@ endif
 
 ! If recalling a command from the cmd history stack...
 
-if (tao_com%use_cmd_here) then
-  cmd_line = tao_com%cmd
+if (s%com%use_cmd_here) then
+  cmd_line = s%com%cmd
   call alias_translate (cmd_line, err)
-  tao_com%use_cmd_here = .false.
+  s%com%use_cmd_here = .false.
   return
 endif
 
 ! If a command file is open then read a line from the file.
 
-n_level = tao_com%cmd_file_level
-if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
+n_level = s%com%cmd_file_level
+if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
   call output_direct (do_print = s%global%command_file_print_on)
 
-  if (.not. tao_com%multi_commands_here) then
+  if (.not. s%com%multi_commands_here) then
     do
-      read (tao_com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
-      tao_com%cmd_file(n_level)%n_line = tao_com%cmd_file(n_level)%n_line + 1
-      tao_com%cmd_from_cmd_file = .true.
+      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
+      s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
+      s%com%cmd_from_cmd_file = .true.
       call string_trim (cmd_line, cmd_line, ix)
       if (ix /= 0) exit
     enddo
@@ -132,7 +132,7 @@ if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
     do i = 1, 9
       ix = index (cmd_line, sub_str(i))
       if (ix /= 0) cmd_line = cmd_line(1:ix-1) // &
-                          trim(tao_com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
+                          trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
     enddo
 
     loop1: do
@@ -174,36 +174,36 @@ if (n_level /= 0 .and. .not. tao_com%cmd_file(n_level)%paused) then
   return
 
   8000 continue
-  close (tao_com%cmd_file(n_level)%ix_unit)
-  tao_com%cmd_file(n_level)%ix_unit = 0 
-  tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
+  close (s%com%cmd_file(n_level)%ix_unit)
+  s%com%cmd_file(n_level)%ix_unit = 0 
+  s%com%cmd_file_level = n_level - 1 ! signal that the file has been closed
   cmd_line = ''
   ! If still lower nested command file to complete then return
-  if (tao_com%cmd_file_level /= 0) then
-    if (tao_com%cmd_file(n_level-1)%paused) then
+  if (s%com%cmd_file_level /= 0) then
+    if (s%com%cmd_file(n_level-1)%paused) then
       call out_io (s_info$, r_name, &
                       'To continue the paused command file type "continue".')
     else
       return 
     endif
   endif
-  call output_direct (do_print = tao_com%print_to_terminal)
+  call output_direct (do_print = s%com%print_to_terminal)
 endif
 
 ! Here if no command file is being used.
 
-if (tao_com%shell_interactive) then
-  if (.not. tao_com%multi_commands_here) then
+if (s%com%shell_interactive) then
+  if (.not. s%com%multi_commands_here) then
     cmd_line = ' '
     tag = trim(prompt_string) // '> '
-    tao_com%cmd_from_cmd_file = .false.
+    s%com%cmd_from_cmd_file = .false.
     call read_a_line (tag, cmd_line)
   endif
 endif
 
 if (present (will_need_cmd_line_input)) then
   will_need_cmd_line_input = .false.
-  if (.not. tao_com%multi_commands_here .and. (tao_com%cmd_file_level == 0 .or. tao_com%cmd_file(n_level)%paused)) then
+  if (.not. s%com%multi_commands_here .and. (s%com%cmd_file_level == 0 .or. s%com%cmd_file(n_level)%paused)) then
      will_need_cmd_line_input = .true.
   endif
 endif
@@ -251,15 +251,15 @@ logical err, translated
 
 call string_trim (cmd_line, cmd_line, ic)
 
-do i = 1, tao_com%n_alias
+do i = 1, s%com%n_alias
 
-  if (cmd_line(1:ic) /= tao_com%alias(i)%name) cycle
+  if (cmd_line(1:ic) /= s%com%alias(i)%name) cycle
 
   ! We have a match...
   ! Now get the actual arguments and replace dummy args with actual args.
 
   string = cmd_line
-  cmd_line = tao_com%alias(i)%string
+  cmd_line = s%com%alias(i)%string
 
   do j = 1, 9
     ix = index (cmd_line, sub_str(j))
@@ -296,7 +296,7 @@ subroutine check_for_multi_commands
 
   ix = index (cmd_line, ';')
   if (ix /= 0) then
-    tao_com%multi_commands_here = .true.
+    s%com%multi_commands_here = .true.
     saved_line = cmd_line(ix+1:)
     cmd_line = cmd_line(:ix-1)
   else
@@ -348,7 +348,7 @@ if (cmd_word(1) == 'do') then
   loop(in_loop)%step = 1
   if (cmd_word(7) /= '') read (cmd_word(8), *) loop(in_loop)%step
 
-  loop(in_loop)%n_line_start = tao_com%cmd_file(n_level)%n_line
+  loop(in_loop)%n_line_start = s%com%cmd_file(n_level)%n_line
   loop(in_loop)%value = loop(in_loop)%start
   call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(in_loop)%name) // ' = \i0\ ', &
                                                   i_array = (/ loop(in_loop)%value /) )
@@ -368,9 +368,9 @@ elseif (cmd_word(1) == 'enddo') then
   if ((loop(in_loop)%value <= loop(in_loop)%end .and. loop(in_loop)%step > 0) .or. &
       (loop(in_loop)%value >= loop(in_loop)%end .and. loop(in_loop)%step < 0)) then
     ! rewind
-    do i = tao_com%cmd_file(n_level)%n_line, loop(in_loop)%n_line_start+1, -1
-      backspace (tao_com%cmd_file(tao_com%cmd_file_level)%ix_unit)
-      tao_com%cmd_file(n_level)%n_line = tao_com%cmd_file(n_level)%n_line - 1
+    do i = s%com%cmd_file(n_level)%n_line, loop(in_loop)%n_line_start+1, -1
+      backspace (s%com%cmd_file(s%com%cmd_file_level)%ix_unit)
+      s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line - 1
     enddo
     call out_io (s_blank$, r_name, 'Loop: ' // trim(loop(in_loop)%name) // ' = \i0\ ', &
                                                   i_array = (/ loop(in_loop)%value /) )

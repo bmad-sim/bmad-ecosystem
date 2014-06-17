@@ -88,7 +88,7 @@ case ('3d_floor_plot')
   ix = max(1, len_trim(file_name) - 3)
   if (file_name(ix:ix+3) /= '.jou') file_name(ix+3:) = '.jou'
 
-  call tao_write_3d_floor_plan(file_name, s%u(s%global%u_view)%model%lat)
+  call tao_write_3d_floor_plan(file_name, s%u(s%com%default_universe)%model%lat)
 
 !---------------------------------------------------
 ! beam
@@ -113,7 +113,7 @@ case ('beam')
     case ('-ascii'); ascii = .true.
     case ('-at')
       ix_word = ix_word + 1
-      call tao_locate_elements (word(ix_word), s%global%u_view, eles, err)
+      call tao_locate_elements (word(ix_word), s%com%default_universe, eles, err)
       if (err .or. size(eles) == 0) return
       at_switch = .true.
     end select
@@ -224,7 +224,7 @@ case ('bmad_lattice')
 !---------------------------------------------------
 case ('covariance_matrix')
 
-  if (.not. allocated (tao_com%covar)) then
+  if (.not. allocated (s%com%covar)) then
     call out_io (s_error$, r_name, 'COVARIANCE MATRIX NOT YET CALCULATED!')
     return
   endif
@@ -255,9 +255,9 @@ case ('covariance_matrix')
   write (iu, *)
   write (iu, *) '!   i     j    Covar_Mat    Alpha_Mat'
 
-  do i = 1, ubound(tao_com%covar, 1)
-    do j = 1, ubound(tao_com%covar, 2)
-      write (iu, '(2i6, 2es13.4)') i, j, tao_com%covar(i,j), tao_com%alpha(i,j)
+  do i = 1, ubound(s%com%covar, 1)
+    do j = 1, ubound(s%com%covar, 2)
+      write (iu, '(2i6, 2es13.4)') i, j, s%com%covar(i,j), s%com%alpha(i,j)
     enddo
   enddo
 
@@ -289,7 +289,7 @@ case ('curve')
 
   if (c%g%type == "phase_space") then
     i_uni = c%ix_universe
-    if (i_uni == 0) i_uni = s%global%u_view
+    if (i_uni == 0) i_uni = s%com%default_universe
     beam => s%u(i_uni)%uni_branch(c%ix_branch)%ele(c%ix_ele_ref_track)%beam
     call file_suffixer (file_name, file_name, 'particle_dat', .true.)
     open (iu, file = file_name)

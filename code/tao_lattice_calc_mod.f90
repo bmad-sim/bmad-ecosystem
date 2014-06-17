@@ -63,7 +63,7 @@ calc_ok = .true.
 
 if (.not. s%global%lattice_calc_on) return
 
-tao_com%ix_ref_taylor = -999   ! Reset taylor map
+s%com%ix_ref_taylor = -999   ! Reset taylor map
 call tao_hook_lattice_calc (calc_ok)
     
 ! To save time, s%u(:)%calc%lattice are used to determine what gets calculated. 
@@ -242,7 +242,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If calc is on common model then transfer data to base of all other universes
 
-  if (tao_com%common_lattice .and. iuni == ix_common_uni$) then
+  if (s%com%common_lattice .and. iuni == ix_common_uni$) then
     do j = lbound(s%u, 1), ubound(s%u, 1)
       if (j == ix_common_uni$) cycle
       s%u(j)%data(:)%base_value = u%data(:)%model_value
@@ -472,7 +472,7 @@ do j = ie1, ie2
 
   ! track to the element and save for phase space plot
 
-  if (tao_com%use_saved_beam_in_tracking) then
+  if (s%com%use_saved_beam_in_tracking) then
     beam = uni_ele(j)%beam
 
   else
@@ -674,7 +674,7 @@ logical err, init_ok
 
 init_ok = .true.
 
-if (tao_com%use_saved_beam_in_tracking) return
+if (s%com%use_saved_beam_in_tracking) return
 
 ! if injecting into a branch then use the branch point as the starting distribution.
 

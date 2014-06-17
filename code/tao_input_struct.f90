@@ -229,8 +229,8 @@ plotting%border                    = plot_page%border
 
 ! Plot window geometry specified on cmd line?
 
-if (use_cmd_line_geom .and. tao_com%plot_geometry /= '') then
-   str = tao_com%plot_geometry
+if (use_cmd_line_geom .and. s%com%plot_geometry /= '') then
+   str = s%com%plot_geometry
    ix = index(str, 'x')
    if (ix == 0) then
      call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)

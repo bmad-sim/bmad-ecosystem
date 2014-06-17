@@ -73,7 +73,7 @@ s%n_var_used = 0
 ! Call the hook routine and then return if the standard init is not wanted.
 
 call tao_hook_init_var() 
-if (.not. tao_com%init_var .or. var_file == '') then
+if (.not. s%com%init_var .or. var_file == '') then
   call tao_init_var_end_stuff ()
   return
 endif
@@ -193,7 +193,7 @@ do
 
   if (default_universe == '*' .or. default_universe == '') then
     dflt_good_unis = .true.
-    if (tao_com%common_lattice .and. gang) then
+    if (s%com%common_lattice .and. gang) then
       dflt_good_unis = .false.
       dflt_good_unis(ix_common_uni$) = .true.
     endif
@@ -716,7 +716,7 @@ character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
 err = .true.
 
 u => s%u(ix_uni)
-if (tao_com%common_lattice) u => tao_com%u_working
+if (s%com%common_lattice) u => s%com%u_working
 
 ! allocate space for var%this.
 
@@ -768,7 +768,7 @@ endif
 ! instead of pointing to var%this(1). 
 ! Exception: If variable controls a common parameter
 
-if (tao_com%common_lattice) then
+if (s%com%common_lattice) then
   if (this%ix_uni == ix_common_uni$) then
     var%model_value => var%common%model_value
     var%base_value => var%common%base_value
@@ -844,8 +844,8 @@ do i = n0+1, size(s%var)
   s%var(i)%exists    = .false.
   s%var(i)%good_var  = .true.
   s%var(i)%good_user = .true.
-  s%var(i)%model_value => tao_com%dummy_target  ! Just to point to somewhere
-  s%var(i)%base_value  => tao_com%dummy_target  ! Just to point to somewhere
+  s%var(i)%model_value => s%com%dummy_target  ! Just to point to somewhere
+  s%var(i)%base_value  => s%com%dummy_target  ! Just to point to somewhere
   s%var(i)%low_lim = -1e30
   s%var(i)%high_lim = 1e30
   allocate(s%var(i)%this(0))

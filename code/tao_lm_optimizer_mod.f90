@@ -72,9 +72,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 if (allocated(y)) deallocate(y, weight, a, y_fit, dy_da)
-if (allocated(tao_com%covar)) deallocate (tao_com%covar, tao_com%alpha)
+if (allocated(s%com%covar)) deallocate (s%com%covar, s%com%alpha)
 allocate (y(n_data), weight(n_data), y_fit(n_data))
-allocate (a(n_var), tao_com%covar(n_var,n_var), tao_com%alpha(n_var,n_var))
+allocate (a(n_var), s%com%covar(n_var,n_var), s%com%alpha(n_var,n_var))
 allocate (dy_da(n_data, n_var))
 
 ! init a and y arrays
@@ -113,7 +113,7 @@ do i = 1, s%global%n_opti_cycles+1
     call tao_var_write (s%global%var_out_file)
   endif
 
-  call super_mrqmin (y, weight, a, tao_com%covar, tao_com%alpha, chi_sq, &
+  call super_mrqmin (y, weight, a, s%com%covar, s%com%alpha, chi_sq, &
                                                        tao_mrq_func, a_lambda, status) 
   call tao_mrq_func (a, y_fit, dy_da, status2)  ! put a -> model
   write (line, '(i5, es14.4, es10.2)') i, tao_merit(), a_lambda
@@ -123,7 +123,7 @@ do i = 1, s%global%n_opti_cycles+1
 
   if (status == -1 .or. status == -2) then  ! gaussj singular error
     do k = 1, n_var
-      if (all (tao_com%covar(k,:) == 0) .or. all(tao_com%covar(:,k) == 0)) then
+      if (all (s%com%covar(k,:) == 0) .or. all(s%com%covar(:,k) == 0)) then
         call out_io (s_error$, r_name, 'Problem variable: ' // tao_var1_name(s%var(var_ix(k))))
       endif
     enddo

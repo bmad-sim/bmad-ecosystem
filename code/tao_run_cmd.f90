@@ -112,7 +112,7 @@ endif
 
 ! Optimize...
 
-tao_com%optimizer_running = .true.
+s%com%optimizer_running = .true.
 
 do i = 1, s%global%n_opti_loops
 
@@ -149,7 +149,7 @@ enddo
 ! We need a lattice recalc one last time since data not used in the 
 ! optimization has not been updated.
 
-tao_com%optimizer_running = .false.
+s%com%optimizer_running = .false.
 
 s%u(:)%calc%rad_int_for_data = do_rad_int_data
 s%u(:)%calc%chrom_for_data = do_chrom_data

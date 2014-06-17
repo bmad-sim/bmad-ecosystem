@@ -37,7 +37,7 @@ logical blank_line_before, in_example
 ! Help depends upon if we are in single mode or not.
 ! Determine what file to open and starting tag.
 
-if (tao_com%single_mode) then
+if (s%com%single_mode) then
   file_name = 'TAO_DIR:doc/single-mode.tex'
 else
   file_name = 'TAO_DIR:doc/command-list.tex'

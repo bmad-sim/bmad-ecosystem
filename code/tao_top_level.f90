@@ -22,7 +22,6 @@ use tao_command_mod, dummy => tao_top_level
 implicit none
 
 type (tao_super_universe_struct), pointer :: s_ptr  ! For debug purposes
-type (tao_common_struct), pointer :: t_ptr          ! For debug purposes
 type (tao_universe_struct), pointer :: u
 
 integer, optional :: errcode
@@ -36,16 +35,15 @@ logical found, err, will_need_cmd_line_input, interactive
 ! init
 
 s_ptr => s       ! Used for debugging
-t_ptr => tao_com ! Used for debugging
 
 ! Set interactive flags
 if (present(command)) then
   cmd_line = command
   interactive = .false. 
-  tao_com%shell_interactive = .false.
+  s%com%shell_interactive = .false.
 else
   interactive = .true. 
-  tao_com%shell_interactive = .true.
+  s%com%shell_interactive = .true.
 endif
 will_need_cmd_line_input = .false.
 
@@ -76,7 +74,7 @@ u => s%u(1)  ! Used for debugging
 ! MPI slave settings
 !if (.not. s%mpi%master) then 
 !  !Turn off screen output
-!  tao_com%print_to_terminal = .false.
+!  s%com%print_to_terminal = .false.
 !  call output_direct( do_print = .false.)
 !endif
 
@@ -95,7 +93,7 @@ do
   ! Broadcast command to slaves
   !if (s%mpi%on) call tao_broadcast_chars_mpi(cmd_line)
   
-  if (tao_com%single_mode) then
+  if (s%com%single_mode) then
     ! single mode
     call tao_single_mode (cmd_line(1:1))
     ! Do the standard calculations and plotting after command execution.

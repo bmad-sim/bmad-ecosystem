@@ -138,7 +138,12 @@ specify, when issuing commands to tao and when constructing \tao
 initialization files, what universe is being referred to when
 referencing parameters such as data, lattice elements or other stuff
 that is universe specific. [Note: \tao variables are {\em not}
-universe specific.]
+universe specific.] If no universe is specified with a command, the
+\vn{default} universe will be used. This default universe is set set
+by the \vn{set default universe} command (\sref{s:set}). When \tao
+starts up, the default universe is initially set to universe 1. Use
+the \vn{show global} (\sref{s:show}) command to see the current
+default universe.
 
 the syntax used to specify a particular universe or range of universes
 is attach a prefix of the form:
@@ -149,8 +154,8 @@ Commas and colons can be used in the syntax for \vn{<universe_range>},
 similar to the \vn{element list} format used to specify lattice
 elements (\sref{s:ele.list.format}).  When there is only a single
 Universe specified, the brackets \vn{[...]} are optional. When the
-universe prefix is not present, the current ``viewed'' (default)
-universe (\sref{s:view}) is assumed. The current \vn{viewed} universe
+universe prefix is not present, the current default
+universe is used. The current default universe
 can also be specified using the number \vn{-1}. Additionally, a
 ``\vn{*}'' can be used as a wild card to denote all of the
 universes. Examples:
@@ -158,7 +163,7 @@ universes. Examples:
   [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
   [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
   2@orbit.x       ! Same as "2@orbit.x".
-  orbit.x         ! The \vn{orbit.x} data in the current viewed universe.
+  orbit.x         ! The \vn{orbit.x} data in the current default universe.
   -1@orbit.x      ! Same as "orbit.x".
   *@orbit.x       ! orbit.x data in all the universes.
   *@*             ! All the data in all the universes. 
@@ -199,6 +204,17 @@ This reference lattice is called the \vn{base} lattice. The \vn{set}
 command (\sref{s:set}) is used to transfer information from the
 \vn{design} or \vn{model} lattices to the base lattice.
   \end{description}
+
+Lattices can have multiple \vn{branches}. For example, two
+intersecting rings can be represented as a lattice with two branches,
+one for each ring. See the \bmad manual for more details. Many \tao
+commands operate on a particular lattice branch. For example, the
+\vn{show lat} command prints the lattice elements of a particular
+branch. If no branch is specified with a command, the default branch
+is used. The default branch is set with the \vn{set default branch}
+command (\sref{s:set}). Initially, when \tao is started, the default
+branch is set to branch 0. Use the \vn{show global} (\sref{s:show})
+command to see the current default branch.
 
 %------------------------------------------------------------------------
 \section{Variables}
@@ -301,7 +317,7 @@ component. The list of components that can be set or refereed to are:
 
 \end{example}
 
-Use the \vn{show var} (\sref{s:show}) command to view variable information
+Use the \vn{show var} (\sref{s:show}) command to see variable information
 
 When using optimization for lattice correction or lattice design
 (\sref{c:opti}), Individual datums can be excluded from the process
@@ -476,7 +492,7 @@ Examples:
   3@lat::quad::q*[k1]            k1 of all quads in the model lattice of universe 3 
                                    with names beginning with "q".
   lat::3[l]|design               Length of the design lattice element #3 
-                                   in the viewed universe.
+                                   in the default universe.
   dat::orbit.x[2:7,8]|model
 \end{example}
 

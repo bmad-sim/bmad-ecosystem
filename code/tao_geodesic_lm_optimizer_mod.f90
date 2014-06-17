@@ -65,9 +65,9 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 enddo
 
 if (allocated(y)) deallocate(y, a, y_fit, dy_da)
-if (allocated(tao_com%covar)) deallocate (tao_com%covar, tao_com%alpha)
+if (allocated(s%com%covar)) deallocate (s%com%covar, s%com%alpha)
 allocate (y(n_data), y_fit(n_data))
-allocate (a(n_var), tao_com%covar(n_var,n_var), tao_com%alpha(n_var,n_var))
+allocate (a(n_var), s%com%covar(n_var,n_var), s%com%alpha(n_var,n_var))
 allocate (dy_da(n_data, n_var))
 
 allocate (fjac(n_data, n_var), dtd(n_var, n_var))

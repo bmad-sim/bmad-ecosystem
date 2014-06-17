@@ -483,7 +483,7 @@ logical, allocatable, save :: good_exp(:), good(:)
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
 
-if (tao_com%optimizer_running .and. .not. datum%useit_opt) then
+if (s%com%optimizer_running .and. .not. datum%useit_opt) then
   datum_value = 0
   valid_value = .false.
   return
@@ -2224,14 +2224,14 @@ case ('t.', 'tt.')
   ! Computation if there is no range
 
   if (ix_start == ix_ele) then
-    if (tao_com%ix_ref_taylor /= ix_ref .or. tao_com%ix_ele_taylor /= ix_ele) then
-      if (tao_com%ix_ref_taylor == ix_ref .and. ix_ele > tao_com%ix_ele_taylor) then
-        call transfer_map_calc (lat, taylor_save, tao_com%ix_ele_taylor, ix_ele, unit_start = .false.)
+    if (s%com%ix_ref_taylor /= ix_ref .or. s%com%ix_ele_taylor /= ix_ele) then
+      if (s%com%ix_ref_taylor == ix_ref .and. ix_ele > s%com%ix_ele_taylor) then
+        call transfer_map_calc (lat, taylor_save, s%com%ix_ele_taylor, ix_ele, unit_start = .false.)
       else
         call transfer_map_calc (lat, taylor_save, ix_ref, ix_ele)
       endif
-      tao_com%ix_ref_taylor = ix_ref
-      tao_com%ix_ele_taylor = ix_ele
+      s%com%ix_ref_taylor = ix_ref
+      s%com%ix_ele_taylor = ix_ele
     endif
     datum_value = taylor_coef (taylor_save(i), expnt)
     valid_value = .true.
