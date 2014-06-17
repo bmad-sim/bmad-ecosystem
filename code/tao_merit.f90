@@ -66,7 +66,7 @@ do j = 1, s%n_var_used
   select case (var%merit_type)
   case ('target', 'match')
     if (opt_with_ref .and. opt_with_base) then
-      if (tao_com%common_lattice) then
+      if (s%com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - &
                                                 (var%meas_value - var%ref_value)
       else
@@ -77,7 +77,7 @@ do j = 1, s%n_var_used
       var%delta_merit = (var%model_value - var%design_value) - &
                                                 (var%meas_value - var%ref_value)
     elseif (opt_with_base) then
-      if (tao_com%common_lattice) then
+      if (s%com%common_lattice) then
         var%delta_merit = (var%model_value - var%common%model_value) - var%meas_value
       else
         var%delta_merit = (var%model_value - var%base_value) - var%meas_value
@@ -103,7 +103,7 @@ enddo
 !----------------------------------------
 ! Merit contribution from the data:
 
-if (tao_com%common_lattice) iu0 = ix_common_uni$
+if (s%com%common_lattice) iu0 = ix_common_uni$
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 

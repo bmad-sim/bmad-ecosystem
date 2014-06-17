@@ -67,7 +67,7 @@ enddo
 ! Draw view universe
 
 if (size(s%u) > 1) then
-  write (view_str, '(i3)') s%global%u_view
+  write (view_str, '(i3)') s%com%default_universe
   call qp_draw_text ('View Universe:' // view_str, -2.0_rp, -2.0_rp, 'POINTS/PAGE/RT', 'RT')
 endif
 
@@ -262,7 +262,7 @@ y_here = y2  ! start from the top of the graph
 height = s%plotting%text_height * s%plotting%key_table_text_scale
 
 
-i_off = tao_com%ix_key_bank
+i_off = s%com%ix_key_bank
 call tao_key_info_to_str (1, i_off+1, i_off+10, str, header)
 call qp_draw_text ('   Ix  ' // header, 0.0_rp, y_here, 'POINTS/GRAPH', &
                              height = height, uniform_spacing = .true.)
@@ -276,7 +276,7 @@ do i = 1, 10
   prefix = ''
   j = mod(i, 10)
   if (i == 1) then
-    write (prefix, '(i2, a, i2)') tao_com%ix_key_bank, ':', j
+    write (prefix, '(i2, a, i2)') s%com%ix_key_bank, ':', j
   else
     write (prefix(4:), '(i2)') j
   endif
@@ -1113,7 +1113,7 @@ key_number_height = 10
 
 if (s%global%label_keys) then
   do kk = 1, 10
-    k = kk + 10*tao_com%ix_key_bank
+    k = kk + 10*s%com%ix_key_bank
     if (k > ubound(s%key, 1)) cycle
     ix_var = s%key(k)
     if (ix_var < 1) cycle

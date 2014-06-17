@@ -21,7 +21,7 @@ An exclamation mark ``\vn{!}'' denotes the beginning of
 a comment and the exclamation mark and everything after it to the end
 of the line is ignored.  Example:
 \begin{example}
-  view 2; show global  ! Two commands and a comment
+  set default uni = 2; show global  ! Two commands and a comment
 \end{example}
 
 %% command_table -----------------------------------------------------
@@ -30,25 +30,24 @@ of the line is ignored.  Example:
 \centering {\tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \hline
-  alias         & \sref{s:alias}    & restore       & \sref{s:restore}  \\ \hline 
-  call          & \sref{s:call}     & reinitialize  & \sref{s:reinit}   \\ \hline 
-  change        & \sref{s:change}   & run_optimizer & \sref{s:run}      \\ \hline 
-  clip          & \sref{s:clip}     & scale         & \sref{s:scale}    \\ \hline 
-  continue      & \sref{s:continue} & set           & \sref{s:set}      \\ \hline  
-  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ \hline 
-  end_file      & \sref{s:end.file} & single_mode   & \sref{s:sing}     \\ \hline 
-  exit          & \sref{s:exit}     & spawn         & \sref{s:spawn}    \\ \hline 
-  flatten       & \sref{s:flatten}  & timer         & \sref{s:timer}    \\ \hline
-  help          & \sref{s:help}     & use           & \sref{s:use}      \\ \hline 
-  history       & \sref{s:history}  & veto          & \sref{s:veto}     \\ \hline 
-  misalign      & \sref{s:misalign} & value         & \sref{s:value}    \\ \hline
-  pause         & \sref{s:pause}    & view          & \sref{s:view}     \\ \hline 
+  alias         & \sref{s:alias}    & read          & \sref{s:read}     \\ \hline
+  call          & \sref{s:call}     & restore       & \sref{s:restore}  \\ \hline 
+  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ \hline 
+  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ \hline 
+  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ \hline 
+  derivative    & \sref{s:deriv}    & set           & \sref{s:set}      \\ \hline  
+  end_file      & \sref{s:end.file} & show          & \sref{s:show}     \\ \hline 
+  exit          & \sref{s:exit}     & single_mode   & \sref{s:sing}     \\ \hline 
+  flatten       & \sref{s:flatten}  & spawn         & \sref{s:spawn}    \\ \hline 
+  help          & \sref{s:help}     & timer         & \sref{s:timer}    \\ \hline
+  history       & \sref{s:history}  & use           & \sref{s:use}      \\ \hline 
+  misalign      & \sref{s:misalign} & veto          & \sref{s:veto}     \\ \hline 
+  pause         & \sref{s:pause}    & value         & \sref{s:value}    \\ \hline
   place         & \sref{s:place}    & wave          & \sref{s:wave}     \\ \hline
   plot          & \sref{s:plot}     & write         & \sref{s:write}    \\ \hline 
   ptc           & \sref{s:ptc}      & x_axis        & \sref{s:x.axis}   \\ \hline 
   python        & \sref{s:python}   & x_scale       & \sref{s:x.scale}  \\ \hline 
   quit          & \sref{s:quit}     & xy_scale      & \sref{s:xy.scale} \\ \hline
-  read          & \sref{s:read}     &               &                   \\ \hline
 \end{tabular}}
 \caption{Table of \tao commands.}
 \label{t:commands}
@@ -363,7 +362,7 @@ The \vn{misalign} command misaligns a set of lattice elements. Format:
 elements of type \vn{<ele_type>} will be misaligned within the range.
 If \vn{<ele_type>} begins with "*@" then choose all universes. If
 \vn{<ele_type>} begin with "n@" then choose universe n. Otherwise the
-viewed universe is used.
+default universe (\sref{s:universe})) is used.
 
 A lattice element will only be misaligned if its lattice index falls within
 a range given by \vn{<range>}. \vn{<range>} is of the form
@@ -391,7 +390,7 @@ The possible values of \vn{<wrt>} are:
 
 Examples
 \begin{example}
-   ! The following will misalign all quadrupole vertical positions in the viewed
+   ! The following will misalign all quadrupole vertical positions in the default
    ! universe within the lattice element range 100:250 with respect to the zero 
    ! value by 300 microns
   misalign wrt_survey quadrupole 100:250 y_offset 300e-6
@@ -536,8 +535,9 @@ Format:
 \section{read}\index{commands!read}
 \label{s:read}
 
-The \vn{read} command is used to modify the currently viewed
-\vn{model} lattice using a ``secondary'' lattice file. Format:
+The \vn{read} command is used to modify the \vn{model} lattice
+contained in the default universe (\sref{s:universe}) using a ``secondary''
+lattice file. Format:
 \begin{example}
   read lattice <file_name>
 \end{example}
@@ -705,6 +705,7 @@ variables, etc. Format:
   set csr_param <component> = <value>
   set curve <curve> <component> = <value>
   set data <data_name>|<component> = <value>
+  set default <parameter> = <value>
   set element <element_list> <attribute> = <value>
   set floor_plan <component> = <value>
   set geodesic_lm <component> = <value>
@@ -748,9 +749,9 @@ in place of \vn{<data_name>} or \vn{var_name}.
 For \vn{set beam_init}, the \vn{<component>}s that can be set can be
 found in section~\sref{s:beam.init}. The optional \vn{n@} allows the
 specification of the universe or universes the set is applied to. The
-default is to set the viewed universe. Use the \vn{show beam} command
-(\sref{s:show}) to see the current values of the \vn{beam_init}
-structure.
+current default universe (\sref{s:universe}) will be used if no
+universe is given. Use the \vn{show beam} command (\sref{s:show}) to
+see the current values of the \vn{beam_init} structure.
 
 Examples:
 \begin{example}
@@ -804,7 +805,7 @@ For \vn{set curve}, the \vn{<component>}s that can be set are:
   draw_symbol_index = <logical> 
 \end{example}
 See Section~\sref{s:template} for a description of these components.
-Use the \vn{show curve} (\sref{s:show}) to view the settings of the
+Use the \vn{show curve} (\sref{s:show}) to see the settings of the
 components.
 
 Examples:
@@ -843,6 +844,26 @@ Examples:
   set data *|ref = *|meas       ! Set ref data = measured in current universe.
   set data 2@orbit.x|base = 2@orbit.x|model 
                                 ! Set the base orbit.x in universe 2 to model
+\end{example}
+
+%% set default --------------------------------------------------------------
+
+\item[set default <parameter> = <value>] \Newline
+
+\vskip -0.2in
+
+The parameters that can be set are:
+\begin{example}
+  branch            ! See: \sref{s:lattice}
+  universe          ! See: \sref{s:universe}
+\end{example}
+
+Use the \vn{show global} (\sref{s:show}) command to see the current
+default values.
+
+Example:
+\begin{example}
+  set default universe = 3
 \end{example}
 
 %% set element --------------------------------------------------------------
@@ -1010,7 +1031,7 @@ Example:
   set lattice *@model = design  ! Set the model lattice to the design in 
                                 !   all universes.
   set lattice base = model      ! Set the base lattice to the model lattice in 
-                                !   the currently viewed universe.
+                                !   the default universe.
 \end{example}
 
 %% set opti_de_param --------------------------------------------------------------
@@ -1093,8 +1114,8 @@ speed up lattice calculations when this universe is not being
 used. Or, if many changes are to be performed to a universe and there
 is no need to do any lattice calculations between commands then
 turning off all universes will speed things up. To specify the
-currently viewed universe, you can use \vn{-1} as an index.  To
-specify all universes, use \vn{*}.
+currently default universe (\sref{s:universe}), you can use \vn{-1} as
+an index. To specify all universes, use \vn{*}.
 
 If optimizing while one or more universes are turned off, the
 variables associated with that universe will still be included in the
@@ -1123,7 +1144,7 @@ see the state of these switches are.
 Example:
 \begin{example}
   set universe 1 off
-  set universe -1 on    ! Set on currently viewed universe.
+  set universe -1 on    ! Set on currently default universe.
   set universe * recalc ! Recalculate in all universes.
 \end{example}
 
@@ -1282,7 +1303,7 @@ of the \vn{beam_init} structure.
 \vskip -0.2in
 
 Lists the lattice branches of the lattice associated with the given universe.
-If no universe is given, the currently viewed universe is used by default.
+If no universe is given, the current default universe (\sref{s:universe}) is used.
 
 If \vn{-branch <branch>} is present, more detailed info on the given branch
 will be given. Here \vn{<branch>} can be either the branch name or index.
@@ -1290,7 +1311,7 @@ will be given. Here \vn{<branch>} can be either the branch name or index.
 Example:
 \begin{example}
   show branch -u 2     ! Show info on lattice branches associated with universe 2
-  show branch xray1    ! Show info on branch xray1 of viewed universe.
+  show branch xray1    ! Show info on branch xray1 of the default universe.
 \end{example}
 
 %% show building_wall --------------------------------------------------------------
@@ -1352,7 +1373,7 @@ present then a list of all \vn{d2_data} names is printed.
 
 Examples:
 \begin{example}
-  show data                   ! Lists d2_data for the currently viewed universe.
+  show data                   ! Lists d2_data for the currently default universe.
   show data -1@               ! Same as "show data"
   show data *@                ! Shows all d2_data in all universes.
   show data orbit             ! Show orbit data.
@@ -1842,7 +1863,7 @@ Examples:
 
 Show Twiss and orbit information at a given longitudinal position \vn{<s_position>}. 
 
-The default universe to use is the current viewed universe. This can
+The default universe to use is the current default universe. This can
 be changed using the \vn{-universe} switch.
 
 The default is to show the \vn{model} Twiss and orbit parameters. The
@@ -1865,7 +1886,7 @@ Examples:
 
 \vskip -0.1in Shows various parameters associated with a given
 
-universe. If no universe is specified, the current viewed universe is
+universe. If no universe is specified, the current default universe is
 used. Parameters displayed include tune, chromaticity, radiation
 integrals, etc.
 
@@ -2047,11 +2068,11 @@ See also the \vn{restore} and \vn{veto} commands.
 
 Examples:
 \begin{example}
-  use data orbit.x             ! use orbit.x data in the viewed universe.
+  use data orbit.x             ! use orbit.x data in the default universe.
   use data *@orbit[34]         ! use element 34 orbit data in all universes.
   use var quad_k1[67]          ! use variable.
   use var quad_k1[30:60:10]    ! use variables 30, 40, 50 and 60.
-  use data *                   ! use all data in the viewed universe.
+  use data *                   ! use all data in the default universe.
   use data *@*                 ! use all data in all universes.
 \end{example}
 
@@ -2205,9 +2226,9 @@ scale for the PostScript file. The default is 0 which autoscales to fit an
 
 The \vn{write 3d_floor_plan} creates a script which can then be run
 read in by the \vn{cubit} program\cite{b:cubit}. This script will
-create a 3D display of the currently viewed (\sref{s:view})
-lattice. The suffix '.jou' will be appended if the given file name
-does not have it. To read in the script to \vn{cubit}:
+create a 3D display of the lattice in the current default universe
+(\sref{s:universe}). The suffix '.jou' will be appended if the given
+file name does not have it. To read in the script to \vn{cubit}:
 \begin{example}
   0) Run cubit
   1) Click on the ``Play Journal File'' button (near the upper right hand corner).

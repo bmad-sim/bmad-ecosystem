@@ -376,7 +376,7 @@ Example:
 \end{example}
 
 The \vn{tao_global_struct} structure contains \tao global parameters.
-\index{y_axis_plot_dmin}\index{u_view}\index{n_opti_cycles}\index{ix_key_bank}
+\index{y_axis_plot_dmin}\index{n_opti_cycles}\index{ix_key_bank}
 \index{n_lat_layout_label_rows}\index{phase_units}
 \index{bunch_to_plot}\index{random_seed}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
@@ -397,7 +397,6 @@ type tao_global_struct
   real(rp) svd_cutoff = 1e-5          ! SVD singular value cutoff limit.
   real(rp) random_sigma_cutoff = -1   ! Cut-off in sigmas.
   real(rp) merit_stop_value = -1      ! Value below which an optimizer will stop.
-  integer u_view = 1                  ! Which universe we are viewing.
   integer n_opti_cycles = 20          ! number of optimization cycles
   integer n_opti_cycles = 1           ! number of optimization loops
   integer n_lat_layout_label_rows = 1 ! How many rows with a lat_layout
@@ -1721,7 +1720,7 @@ namelists should be placed directly after their respective
     curve(i)%draw_line           = <logical>  ! Connect data with lines?
     curve(i)%draw_symbols        = <logical>  ! Draw data symbols?
     curve(i)%draw_symbol_index   = <logical>  ! Print index number next to the data symbol?
-    curve(i)%ix_universe         = <number>   ! Default = -1 => Use viewed universe
+    curve(i)%ix_universe         = <number>   ! Default = -1 => Use default universe
     curve(i)%ix_branch           = <number>   ! Default = 0  => Use main lattice.  
     curve(i)%ix_bunch            = <integer>  ! Bunch index. Default = 0 (all bunches).
     curve(i)%line        = <qp_line_struct>   ! Line spec (color, width, etc.)
@@ -2109,7 +2108,7 @@ The \vn{tao_template_plot} needed to define a lattice layout looks like:
     graph%type        = "lat_layout"
     graph%title       = "Layout Title"
     plot%box          = <ix>, <iy>, <ix_tot>, <iy_tot>
-    graph%ix_universe = <integer> ! -1 => use currently viewed universe
+    graph%ix_universe = <integer> ! -1 => use current default universe
     graph%ix_branch   = <integer> !  0 => use main lattice.
     graph%margin      = <ix1>, <ix2>, <iy1>, <iy2>, "<Units>"
     graph%y%min       = <real>    ! Default: -100

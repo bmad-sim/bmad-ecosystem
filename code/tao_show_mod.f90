@@ -54,7 +54,7 @@ logical opened, err, doprint
 what2 = what
 stuff2 = stuff
 opened = .false.
-doprint = tao_com%print_to_terminal
+doprint = s%com%print_to_terminal
 
 ! See if the results need to be written to a file.
 
@@ -114,7 +114,7 @@ endif
 
 ! Finish
 
-call output_direct (0, do_print=tao_com%print_to_terminal)  ! reset to not write to a file
+call output_direct (0, do_print=s%com%print_to_terminal)  ! reset to not write to a file
 
 if (opened) then
   close (iu)
@@ -262,7 +262,7 @@ ramt = '(a, f0.3, 2x, 9a)'
 
 u => tao_pointer_to_universe(-1)
 lat => u%model%lat
-branch => lat%branch(0)
+branch => lat%branch(s%com%default_branch)
 
 if (s%global%phase_units == radians$) f_phi = 1
 if (s%global%phase_units == degrees$) f_phi = 180 / pi
@@ -298,12 +298,12 @@ select case (show_what)
 
 case ('alias')
 
-  call re_allocate (lines, tao_com%n_alias+10, .false.)
+  call re_allocate (lines, s%com%n_alias+10, .false.)
   lines(1) = 'Aliases:'
   nl = 1
-  do i = 1, tao_com%n_alias
-    nl=nl+1; lines(nl) = trim(tao_com%alias(i)%name) // ' = "' // &
-                                    trim(tao_com%alias(i)%string) // '"'
+  do i = 1, s%com%n_alias
+    nl=nl+1; lines(nl) = trim(s%com%alias(i)%name) // ' = "' // &
+                                    trim(s%com%alias(i)%string) // '"'
   enddo
   
   result_id = show_what
@@ -317,12 +317,12 @@ case ('beam')
 
   if (word1 == '') then
 
-    ix_branch = 0
+    ix_branch = s%com%default_branch
     uni_branch => u%uni_branch(ix_branch)
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Universe: ', u%ix_uni, '  of: ', ubound(s%u, 1)
     nl=nl+1; write(lines(nl), '(a, i3)') 'Branch:   ', ix_branch
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_file           = ', tao_com%beam_file
+    nl=nl+1; write(lines(nl), amt) 's%com%beam_file           = ', s%com%beam_file
     nl=nl+1; write(lines(nl), amt) 'beam0_file                  = ', u%beam%beam0_file
     nl=nl+1; write(lines(nl), amt) 'beam_all_file               = ', u%beam%beam_all_file
     beam => uni_branch%ele(0)%beam
@@ -1156,7 +1156,7 @@ case ('element')
     return
   endif
 
-  if (tao_com%common_lattice) then
+  if (s%com%common_lattice) then
     u%calc%lattice = .true.
     call tao_lattice_calc (ok)
   endif
@@ -1267,7 +1267,6 @@ case ('global')
       nl=nl+1; write(lines(nl), imt) '   random_seed (generated)      = ', ix
     endif
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
-    nl=nl+1; write(lines(nl), imt) '  %u_view                        = ', s%global%u_view
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
     nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
     nl=nl+1; write(lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
@@ -1276,20 +1275,22 @@ case ('global')
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'
-    nl=nl+1; write(lines(nl), imt) 'Universe index range:          = ', lbound(s%u, 1), ubound(s%u, 1)
-    nl=nl+1; write(lines(nl), lmt) 'common_lattice                 = ', tao_com%common_lattice
-    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_file              = ', tao_com%beam_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%beam_all_file          = ', tao_com%beam_all_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%beam0_file             = ', tao_com%beam0_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%data_file              = ', tao_com%data_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%init_tao_file          = ', tao_com%init_tao_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%lat_file               = ', tao_com%lat_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%plot_file              = ', tao_com%plot_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%var_file               = ', tao_com%var_file
-    nl=nl+1; write(lines(nl), amt) 'tao_com%startup_file           = ', tao_com%startup_file
-    nl=nl+1; write(lines(nl), lmt) 'tao_com%combine_consecutive_elements_of_like_name = ', &
-                                                tao_com%combine_consecutive_elements_of_like_name
-    nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(tao_com%cmd_file%paused)
+    nl=nl+1; write(lines(nl), imt) 'Universe index range:        = ', lbound(s%u, 1), ubound(s%u, 1)
+    nl=nl+1; write(lines(nl), imt) 'default_universe:            = ', s%com%default_universe
+    nl=nl+1; write(lines(nl), imt) 'default_branch:              = ', s%com%default_branch
+    nl=nl+1; write(lines(nl), lmt) 'common_lattice               = ', s%com%common_lattice
+    nl=nl+1; write(lines(nl), amt) 's%com%beam_file              = ', s%com%beam_file
+    nl=nl+1; write(lines(nl), amt) 's%com%beam_all_file          = ', s%com%beam_all_file
+    nl=nl+1; write(lines(nl), amt) 's%com%beam0_file             = ', s%com%beam0_file
+    nl=nl+1; write(lines(nl), amt) 's%com%data_file              = ', s%com%data_file
+    nl=nl+1; write(lines(nl), amt) 's%com%init_tao_file          = ', s%com%init_tao_file
+    nl=nl+1; write(lines(nl), amt) 's%com%lat_file               = ', s%com%lat_file
+    nl=nl+1; write(lines(nl), amt) 's%com%plot_file              = ', s%com%plot_file
+    nl=nl+1; write(lines(nl), amt) 's%com%var_file               = ', s%com%var_file
+    nl=nl+1; write(lines(nl), amt) 's%com%startup_file           = ', s%com%startup_file
+    nl=nl+1; write(lines(nl), lmt) 's%com%combine_consecutive_elements_of_like_name = ', &
+                                                s%com%combine_consecutive_elements_of_like_name
+    nl=nl+1; write(lines(nl), imt) 'Number paused command files    = ', count(s%com%cmd_file%paused)
   endif
 
   if (print_ran_state) then
@@ -1468,7 +1469,7 @@ case ('lattice')
   print_header_lines = .true.
   print_tail_lines = .true.
   replacement_for_blank = ''
-  ix_branch = 0
+  ix_branch = s%com%default_branch
   undef_str = '---'
   show_lords = .false.
   what_to_print = 'standard'
@@ -1661,9 +1662,10 @@ case ('lattice')
 
   do i = 1, size(column)
     if (index(column(i)%name, 'rad_int') /= 0) then
-      call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache, 0, u%model%rad_int)
-      call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache, 0, u%design%rad_int)
-      call radiation_integrals (u%base%lat, u%base%lat_branch(0)%orbit, u%base%modes, u%base%ix_rad_int_cache, 0, u%base%rad_int)
+      ix = s%com%default_branch
+      call radiation_integrals (u%model%lat, u%model%lat_branch(ix)%orbit, u%model%modes, u%model%ix_rad_int_cache, 0, u%model%rad_int)
+      call radiation_integrals (u%design%lat, u%design%lat_branch(ix)%orbit, u%design%modes, u%design%ix_rad_int_cache, 0, u%design%rad_int)
+      call radiation_integrals (u%base%lat, u%base%lat_branch(ix)%orbit, u%base%modes, u%base%ix_rad_int_cache, 0, u%base%rad_int)
       exit
     endif
   enddo
@@ -2028,7 +2030,7 @@ case ('orbit')
 case ('particle')
 
   nb = s%global%bunch_to_plot
-  ix_branch = 0
+  ix_branch = s%com%default_branch
   show_all = .false.
   show_lost = .false.
   ele_name = ''
@@ -2477,7 +2479,7 @@ case ('tune')
 case ('twiss_and_orbit')
 
   tao_lat => u%model
-  branch => tao_lat%lat%branch(0)
+  branch => tao_lat%lat%branch(s%com%default_branch)
   lat_type = model$
 
   do 
@@ -2558,7 +2560,7 @@ case ('twiss_and_orbit')
 case ('universe')
 
   if (word1 == ' ') then
-    ix_u = s%global%u_view
+    ix_u = s%com%default_universe
   else
     read (word1, *, iostat = ios) ix_u
     if (ios /= 0) then
@@ -2572,7 +2574,7 @@ case ('universe')
   endif
 
   u => s%u(ix_u)
-  ix_branch = 0
+  ix_branch = s%com%default_branch
   uni_branch => u%uni_branch(ix_branch)
   branch => lat%branch(ix_branch)
   lat_branch => u%model%lat_branch(ix_branch)
@@ -2628,8 +2630,8 @@ case ('universe')
     return
   endif
  
-  call radiation_integrals (u%model%lat, u%model%lat_branch(0)%orbit, u%model%modes, u%model%ix_rad_int_cache)
-  call radiation_integrals (u%design%lat, u%design%lat_branch(0)%orbit, u%design%modes, u%design%ix_rad_int_cache)
+  call radiation_integrals (u%model%lat, u%model%lat_branch(ix_branch)%orbit, u%model%modes, u%model%ix_rad_int_cache)
+  call radiation_integrals (u%design%lat, u%design%lat_branch(ix_branch)%orbit, u%design%modes, u%design%ix_rad_int_cache)
   if (lat%param%geometry == closed$) then
     call chrom_calc (lat, s%global%delta_e_chrom, u%model%a%chrom, u%model%b%chrom)
     call chrom_calc (u%design%lat, s%global%delta_e_chrom, u%design%a%chrom, u%design%b%chrom)
@@ -2815,14 +2817,14 @@ case ('variable')
   ix = index(word1, '@')
   if (ix /= 0) then
     if (ix == 1) then
-      ix_u = s%global%u_view
+      ix_u = s%com%default_universe
     else
       read (word1(:ix-1), *, iostat = ios) ix_u
       if (ios /= 0) then
         nl=1; lines(1) = 'BAD UNIVERSE NUMBER'
         return
       endif
-      if (ix_u == 0) ix_u = s%global%u_view
+      if (ix_u == 0) ix_u = s%com%default_universe
       if (ix_u < 1 .or. ix_u > ubound(s%u, 1)) then
         nl=1; lines(1) = 'UNIVERSE NUMBER OUT OF RANGE'
         return

@@ -523,7 +523,7 @@ ix_hash = index (out_file, '#')
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
-  if (.not. tao_com%common_lattice .and. .not. s%u(i)%is_on) cycle
+  if (.not. s%com%common_lattice .and. .not. s%u(i)%is_on) cycle
 
   file_name = out_file
   if (ix_hash /= 0) write (file_name, '(a, i0, a)') &
@@ -543,7 +543,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   close (iu)
   call out_io (s_blank$, r_name, 'Written: ' // file_name)
 
-  if (tao_com%common_lattice) exit
+  if (s%com%common_lattice) exit
 
 enddo
 
@@ -560,7 +560,7 @@ endif
 
 ! For unified lattices write a file for those variables affecting a specific universe.
 
-if (tao_com%common_lattice) then
+if (s%com%common_lattice) then
 
   file_name = 'lat_specific_vars.list'
   open (iu, file = file_name, recl = 300, iostat = ios)

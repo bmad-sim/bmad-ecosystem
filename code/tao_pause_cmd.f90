@@ -35,12 +35,12 @@ endif
 
 ! 
 
-n_level = tao_com%cmd_file_level
+n_level = s%com%cmd_file_level
 if (n_level == 0) then
   call out_io (s_error$, r_name, 'THERE IS NO COMMAND FILE OPEN TO PAUSE')
   return
 endif
-tao_com%cmd_file(n_level)%paused = .true.
+s%com%cmd_file(n_level)%paused = .true.
 call out_io (s_info$, r_name, 'Suspending command file reading...', &
                               'Type "continue" to continue the command file.')
 

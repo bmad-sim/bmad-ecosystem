@@ -3,7 +3,7 @@
 !
 ! Hook routine to read the command arguments.
 !
-! Note: use the logical tao_com%parse_cmd_args to control 
+! Note: use the logical s%com%parse_cmd_args to control 
 ! the standard parsing of the command line arguments.
 !
 !-

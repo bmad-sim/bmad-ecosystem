@@ -3,7 +3,7 @@
 !
 ! Hook routine to initialize the beam for beam tracking
 !
-! Note: use the logical tao_com%init_beam to control the standard beam initialization.
+! Note: use the logical s%com%init_beam to control the standard beam initialization.
 !-
 
 subroutine tao_hook_init_beam ()

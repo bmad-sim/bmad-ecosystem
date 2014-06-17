@@ -89,7 +89,7 @@ Examples:
   [2:4,7]@orbit.x ! The \vn{orbit.x} data in universes 2, 3, 4 and 7.
   [2]@orbit.x     ! The \vn{orbit.x} data in universe 2. 
   2@orbit.x       ! Same as "2@orbit.x".
-  orbit.x         ! The \vn{orbit.x} data in the current viewed universe.
+  orbit.x         ! The \vn{orbit.x} data in the current default universe.
   -1@orbit.x      ! Same as "orbit.x".
 \end{example}
 
@@ -107,7 +107,7 @@ In referring to datums, a ``\vn{*}'' can be used as a wild card to
 denote ``all''. Thus:
 \begin{example}
   *@orbit.x       ! The \vn{orbit.x} data in all universes.
-  *               ! All the data in the currently viewed universe.
+  *               ! All the data in the current default universe.
   *.*             ! Same as "*"
   *@*             ! All the data in all the universes. 
   *@*.*           ! Same as "*@*"

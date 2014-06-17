@@ -44,25 +44,25 @@ character(200) :: cmd_word(12)
 character(40) gang_str, switch, word
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(37) = [ &
+character(16) :: cmd_names(36) = [ &
     'quit         ', 'exit         ', 'show         ', 'plot         ', 'place        ', &
     'clip         ', 'scale        ', 'veto         ', 'use          ', 'restore      ', &
     'run_optimizer', 'flatten      ', 'change       ', 'set          ', 'cut_ring     ', &
-    'call         ', 'view         ', 'alias        ', 'help         ', 'history      ', &
+    'call         ', 'ptc          ', 'alias        ', 'help         ', 'history      ', &
     'single_mode  ', 'reinitialize ', 'x_scale      ', 'x_axis       ', 'derivative   ', &
     'spawn        ', 'xy_scale     ', 'read         ', 'misalign     ', 'end_file     ', &
     'pause        ', 'continue     ', 'wave         ', 'timer        ', 'write        ', &
-    'python       ', 'ptc          ']
+    'python       ']
 
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-character(16) :: set_names(19) = [&
+character(16) :: set_names(20) = [&
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
     'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
-    'csr_param    ', 'floor_plan   ', 'lat_layout   ', 'geodesic_lm  ']
+    'csr_param    ', 'floor_plan   ', 'lat_layout   ', 'geodesic_lm  ', 'default      ']
 
 logical quit_tao, err, silent, gang, abort
 
@@ -189,9 +189,9 @@ case ('clip')
 
 case ('continue')
 
-  n_level = tao_com%cmd_file_level
-  if (tao_com%cmd_file(n_level)%paused) then
-    tao_com%cmd_file(n_level)%paused = .false.
+  n_level = s%com%cmd_file_level
+  if (s%com%cmd_file(n_level)%paused) then
+    s%com%cmd_file(n_level)%paused = .false.
   else
     call out_io (s_error$, r_name, 'NO PAUSED COMMAND FILE HERE.')
   endif
@@ -221,17 +221,17 @@ case ('derivative')
 
 case ('end_file')
 
-  n_level = tao_com%cmd_file_level
+  n_level = s%com%cmd_file_level
   if (n_level == 0) then
     call out_io (s_error$, r_name, 'END_FILE COMMAND ONLY ALLOWED IN A COMMAND FILE!')
     return
   endif
 
-  close (tao_com%cmd_file(n_level)%ix_unit)
-  tao_com%cmd_file(n_level)%ix_unit = 0 
-  tao_com%cmd_file_level = n_level - 1 ! signal that the file has been closed
+  close (s%com%cmd_file(n_level)%ix_unit)
+  s%com%cmd_file(n_level)%ix_unit = 0 
+  s%com%cmd_file_level = n_level - 1 ! signal that the file has been closed
 
-  if (tao_com%cmd_file(n_level-1)%paused) then
+  if (s%com%cmd_file(n_level-1)%paused) then
     call out_io (s_info$, r_name, 'To continue the paused command file type "continue".')
   endif
 
@@ -306,7 +306,7 @@ case ('pause')
 
 case ('place')
 
-  if (.not. s%global%plot_on .and. tao_com%shell_interactive) then
+  if (.not. s%global%plot_on .and. s%com%shell_interactive) then
     call out_io (s_error$, r_name, "PLOTTING TURNED OFF!")
     return
   endif
@@ -414,7 +414,7 @@ case ('reinitialize')
     call tao_destroy_plot_window
     s%global%init_plot_needed = .true.
     
-    if (tao_com%init_tao_file /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // tao_com%init_tao_file)
+    if (s%com%init_tao_file /= '') call out_io (s_info$, r_name, 'Reinitializing with: ' // s%com%init_tao_file)
     call tao_init (err)
     return
 
@@ -494,7 +494,7 @@ case ('set')
   cmd_line = cmd_word(2)
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
-  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', &
+  case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
         'opti_de_param', 'var', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
@@ -519,6 +519,8 @@ case ('set')
     call tao_set_curve_cmd (cmd_word(1), cmd_word(2), cmd_word(4)) 
   case ('data')
     call tao_set_data_cmd (cmd_word(1), cmd_word(3))
+  case ('default')
+    call tao_set_default_cmd (cmd_word(1), cmd_word(3))
   case ('element')
     call tao_set_elements_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
   case ('geodesic_lm')
@@ -579,7 +581,7 @@ case ('show')
 
 case ('single_mode')
 
-  tao_com%single_mode = .true.
+  s%com%single_mode = .true.
   call out_io (s_blank$, r_name, 'Entering Single Mode...')
   return
 
@@ -598,15 +600,6 @@ case ('timer')
 
   call tao_timer (cmd_line)
   return
-
-!--------------------------------
-! VIEW
-
-case ('view')
-
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err); if (err) return
-  call tao_to_int (cmd_word(1), int1, err); if (err) return
-  call tao_view_cmd (int1)
 
 !--------------------------------
 ! WAVE

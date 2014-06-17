@@ -185,8 +185,8 @@ forall (i = 1:size(s%plotting%title), (s%plotting%title(i)%string .ne. ' ')) &
 
 ! Plot window geometry specified on cmd line?
 
-if (tao_com%plot_geometry /= '') then
-   str = tao_com%plot_geometry
+if (s%com%plot_geometry /= '') then
+   str = s%com%plot_geometry
    ix = index(str, 'x')
    if (ix == 0) then
      call out_io (s_error$, r_name, 'Malformed -geometry argument. No "x" present: ' // str)
@@ -567,7 +567,7 @@ do  ! Loop over plot files
 
       call qp_calc_axis_places (grph%y)
 
-      if (.not. tao_com%common_lattice .and. grph%ix_universe == 0) then
+      if (.not. s%com%common_lattice .and. grph%ix_universe == 0) then
         call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &
@@ -709,7 +709,7 @@ do  ! Loop over plot files
 
         ! Enable the radiation integrals calculation if needed.
 
-        if (.not. tao_com%common_lattice .and. crv%ix_universe == 0) then
+        if (.not. s%com%common_lattice .and. crv%ix_universe == 0) then
           call out_io (s_error$, r_name, [&
             '**********************************************************', &
             '**********************************************************', &

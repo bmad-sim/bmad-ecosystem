@@ -51,7 +51,7 @@ design_lat = design_lattice(0)
 
 call tao_hook_init_read_lattice_info (input_file_name)
 
-if (tao_com%init_read_lat_info) then
+if (s%com%init_read_lat_info) then
 
   ! input_file_name == '' means there is no lattice file so just use the defaults.
 
@@ -67,7 +67,7 @@ if (tao_com%init_read_lat_info) then
   ! Defaults
 
   common_lattice = .false.
-  n_universes = tao_com%n_universes
+  n_universes = s%com%n_universes
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
   aperture_limit_on = ''
@@ -84,18 +84,18 @@ if (tao_com%init_read_lat_info) then
     close (iu)
   endif
 
-  tao_com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
-  tao_com%common_lattice = common_lattice
-  tao_com%n_universes = n_universes
-  tao_com%aperture_limit_on = aperture_limit_on
-  tao_com%unique_name_suffix = unique_name_suffix
+  s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
+  s%com%common_lattice = common_lattice
+  s%com%n_universes = n_universes
+  s%com%aperture_limit_on = aperture_limit_on
+  s%com%unique_name_suffix = unique_name_suffix
 endif
 
 !
 
-if (tao_com%common_lattice) then
-  allocate (s%u(0:tao_com%n_universes))
-  allocate (tao_com%u_working)
+if (s%com%common_lattice) then
+  allocate (s%u(0:s%com%n_universes))
+  allocate (s%com%u_working)
 
   if (any(design_lattice(2:)%file /= '')) then
     call out_io (s_fatal$, r_name, 'ONLY ONE LATTICE MAY BE SPECIFIED WHEN USING COMMON_LATTICE')
@@ -103,13 +103,13 @@ if (tao_com%common_lattice) then
   endif
 
 else
-  allocate (s%u(tao_com%n_universes))
-  nullify (tao_com%u_working)
+  allocate (s%u(s%com%n_universes))
+  nullify (s%com%u_working)
 endif
 
 ! Read in the lattices
 
-init_lat_file = tao_com%lat_file
+init_lat_file = s%com%lat_file
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
 
@@ -124,7 +124,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! If unified then only read in a lattice for the common universe.
 
-  if (tao_com%common_lattice .and. i /= ix_common_uni$) cycle
+  if (s%com%common_lattice .and. i /= ix_common_uni$) cycle
 
   ! Get the name of the lattice file
 
@@ -145,7 +145,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Can happen when design_lattice(1) is set and not design_lattice(0)
 
-  if (tao_com%common_lattice .and. design_lat%file == '') then
+  if (s%com%common_lattice .and. design_lat%file == '') then
     design_lat = design_lattice(i+1)
   endif
 
@@ -170,8 +170,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! If the lattice file was obtained from the tao init file and if the lattice name 
   ! is relative, then it is relative to the directory where the tao init file is.
 
-  if (tao_com%lat_file == '' .and. file_name_is_relative(design_lat%file)) &
-                design_lat%file = trim(tao_com%init_tao_file_path) // design_lat%file 
+  if (s%com%lat_file == '' .and. file_name_is_relative(design_lat%file)) &
+                design_lat%file = trim(s%com%init_tao_file_path) // design_lat%file 
 
   ! Read in the design lattice. 
   ! A blank means use the lattice form universe 1.
@@ -208,11 +208,11 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%design%modes%a%emittance = u%design%lat%a%emit
   u%design%modes%b%emittance = u%design%lat%b%emit
 
-  if (tao_com%combine_consecutive_elements_of_like_name) &
+  if (s%com%combine_consecutive_elements_of_like_name) &
                               call combine_consecutive_elements(u%design%lat)
 
-  if (tao_com%unique_name_suffix /= '') then
-    call tao_string_to_element_id (tao_com%unique_name_suffix, key, suffix, err, .true.)
+  if (s%com%unique_name_suffix /= '') then
+    call tao_string_to_element_id (s%com%unique_name_suffix, key, suffix, err, .true.)
     if (err) call err_exit
     call create_unique_ele_names (u%design%lat, key, suffix)
   endif
@@ -225,8 +225,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Aperture limit
 
-  if (tao_com%aperture_limit_on /= '') then
-    read (tao_com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
+  if (s%com%aperture_limit_on /= '') then
+    read (s%com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
     do j = 1, ubound(u%design%lat%branch, 1)
       u%design%lat%branch(j)%param%aperture_limit_on = u%design%lat%param%aperture_limit_on
     enddo
@@ -273,9 +273,9 @@ enddo
 
 ! Working lattice setup
 
-if (tao_com%common_lattice) then
+if (s%com%common_lattice) then
 
-  u_work => tao_com%u_working
+  u_work => s%com%u_working
   u_work%common     => s%u(ix_common_uni$)
   allocate (u_work%design, u_work%base, u_work%model)
   u_work%design%lat = u_work%common%design%lat
@@ -305,7 +305,7 @@ if (tao_com%common_lattice) then
     u%uni_branch => s%u(ix_common_uni$)%uni_branch
     u%design => s%u(ix_common_uni$)%design
     u%base   => s%u(ix_common_uni$)%model  ! Base is identical to common model
-    u%model  => tao_com%u_working%model
+    u%model  => s%com%u_working%model
   enddo
 
 endif

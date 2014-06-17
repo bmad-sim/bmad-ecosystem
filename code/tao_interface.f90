@@ -318,11 +318,6 @@ interface
     integer, optional :: nl
   end subroutine
 
-  subroutine tao_view_cmd (i_universe)
-    implicit none
-    integer i_universe
-  end subroutine
- 
   subroutine tao_x_axis_cmd (where, what)
     implicit none
     character(*) where

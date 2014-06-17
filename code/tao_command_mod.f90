@@ -36,7 +36,7 @@ ix_history = ix_history + 1
 if (ix_history > size(history)) ix_history = 1
 n_history = n_history + 1
 history(ix_history)%ix = n_history
-if (tao_com%cmd_from_cmd_file) then
+if (s%com%cmd_from_cmd_file) then
   history(ix_history)%cmd = '  ! ' // trim(cmd)
 else
   history(ix_history)%cmd = trim(cmd)
@@ -161,8 +161,8 @@ endif
 
 ! put the command in the common area so it can be used next.
 
-tao_com%cmd = history(ix)%cmd
-tao_com%use_cmd_here = .true.
+s%com%cmd = history(ix)%cmd
+s%com%use_cmd_here = .true.
 
 err = .false.
 

@@ -146,7 +146,7 @@ type tao_curve_struct
   real(rp) :: s = 0                      ! longitudinal position
   type (qp_line_struct) line             ! Line attributes
   type (qp_symbol_struct) symbol         ! Symbol attributes
-  integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%u_view
+  integer :: ix_universe = -1            ! Universe where data is. -1 => use s%com%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = 0
   integer :: index = 1
@@ -512,7 +512,6 @@ type tao_global_struct
   real(rp) :: merit_stop_value = -1      ! Merit value below which an optimizer will stop.
   real(rp) :: random_sigma_cutoff = -1   ! cut-off in sigmas.
   real(rp) :: delta_e_chrom = 0          ! delta E used from chrom calc.
-  integer :: u_view = 1                  ! Which universe we are viewing.
   integer :: n_opti_cycles = 20          ! number of optimization cycles
   integer :: n_opti_loops = 1            ! number of optimization loops
   integer :: phase_units = radians$      ! Phase units on output.
@@ -573,11 +572,13 @@ type tao_common_struct
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
-  integer ix_ref_taylor, ix_ele_taylor         ! Taylor map end points
+  integer ix_ref_taylor, ix_ele_taylor   ! Taylor map end points
   integer :: n_alias = 0
   integer :: cmd_file_level = 0          ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0             ! For single mode.
   integer :: n_universes = 1   
+  integer :: default_universe = 1        ! Default universe to work with.
+  integer :: default_branch = 0          ! Default lattice branch to work with.
   logical :: cmd_file_paused
   logical :: use_cmd_here  = .false.                   ! Used for the cmd history stack
   logical :: multi_commands_here = .false.
@@ -793,11 +794,13 @@ type tao_universe_struct
   logical picked2_uni                    ! Scratch logical.
 end type
 
+!-----------------------------------------------------------------------
 ! The super_universe is the structure that holds an array of universes.
-! Essentially this and tao_com hold all the information known to the program.
+! Essentially this holds all the information known to the program.
 
 type tao_super_universe_struct
-  type (tao_global_struct) global                          ! global variables.
+  type (tao_global_struct) global                          ! User accessible global variables.
+  type (tao_common_struct) :: com
   type (tao_plotting_struct) :: plotting                   ! Defines the plot window.
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
@@ -810,11 +813,7 @@ type tao_super_universe_struct
   integer n_v1_var_used
 end type
 
-!-----------------------------------------------------------------------
-! The grand global scheme
-
 type (tao_super_universe_struct), save, target :: s
-type (tao_common_struct), save, target :: tao_com
 
 !-----------------------------------------------------------------------
 contains
