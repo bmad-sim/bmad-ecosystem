@@ -93,6 +93,8 @@ enddo
 
 ! Fill in super_lord info.
 
+if (ix_br /= 0) return   ! Bug: Cannot fill in lord info if branch /= 0 !!
+
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n) 
   if (lord%lord_status /= super_lord$) cycle

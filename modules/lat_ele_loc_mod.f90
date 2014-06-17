@@ -10,7 +10,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)
+! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 !
@@ -56,6 +56,11 @@ contains
 !            -- Logical, optional: If the upper bound "e2" on an "e1:e2" range construct 
 !                 is above the maximum element index then treat this as an error? 
 !                 Default is True. If False then set e2 to the maximum element index. 
+!   ix_dflt_branch
+!            -- Integer, optional: If present and positive then use this as the branch index 
+!                 for elements specified using an integer index (EG: "43").
+!                 If not present or -1 the default branch is branch 0.
+!
 ! Output:
 !   eles(:) -- Ele_pointer_struct, allocatable: Array of matching elements.
 !              Note: This routine does not try to deallocate eles.
@@ -66,7 +71,7 @@ contains
 !                Note: not finding any element is not an error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch)
 
 implicit none
 
@@ -81,6 +86,7 @@ character(60) name, name2
 character(1) delim
 character(20) :: r_name = 'lat_ele_locator'
 
+integer, optional :: ix_dflt_branch
 integer i, j, ib, ios, ix, n_loc, n_loc2
 integer in_range, step, ix_word, key
 
@@ -137,7 +143,7 @@ do
     in_range = in_range + 1
   else
     above_ub_is_err = (logic_option(.true., above_ubound_is_err) .or. in_range /= 1)
-    call lat_ele1_locator (name, lat, eles2, n_loc2, err2, above_ub_is_err)
+    call lat_ele1_locator (name, lat, eles2, n_loc2, err2, above_ub_is_err, ix_dflt_branch)
     if (err2) return
   endif
 
@@ -223,13 +229,13 @@ end subroutine lat_ele_locator
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err)
+! Subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str. 
 ! Note: This routine is private and meant to be used only by lat_ele_locator
 !-
 
-subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err)
+subroutine lat_ele1_locator (name, lat, eles, n_loc, err, above_ub_is_err, ix_dflt_branch)
 
 implicit none
 
@@ -240,6 +246,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 character(*) name
 character(20) :: r_name = 'lat_ele1_locator'
 
+integer, optional :: ix_dflt_branch
 integer i, k, ix, ix_branch, ixp, ios, ix_ele, n_loc
 integer key, ix_dup, n_dup
 
@@ -278,7 +285,11 @@ endif
 
 ! Read branch name or index which is everything before an '>>'.
 
-ix_branch = -1
+ix_branch = integer_option (-1, ix_dflt_branch)
+if (ix_branch < -1 .or. ix_branch > ubound(lat%branch, 1)) then
+  call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: \i0\ ', i_array = [ix_branch])
+  return
+endif
 
 ixp = index(name, '>>')
 if (ixp > 0) then
