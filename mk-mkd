@@ -1,4 +1,5 @@
 #!/bin/bash
+#
 # NOTE: This script is dual-purpose and it's behvaior is determined by the
 #       name of the symlink used to invoke it!
 #
@@ -50,57 +51,54 @@ if ( [ ! -e CMakeLists.txt ] ) then
 fi
 
 # Assign build type based on invoked name of script.
-if [[ ${THIS_SCRIPT} == "mk" ]]
+if [ ${THIS_SCRIPT} == "mk" ] 
 then
   BUILD_TYPE="production"
 fi
 
-if [[ ${THIS_SCRIPT} == "mkd" ]]
+if [ ${THIS_SCRIPT} == "mkd" ]
 then
   BUILD_TYPE="debug"
-fi
-
-
-# If the local out-of-source build directory does not yet exist, create it.
-if ( [ ! -d ${BUILD_TYPE} ] ) then
-  mkdir ${BUILD_TYPE}
 fi
 
 # Just incase the gmake -j level is not set, we'll set it here, to "2".
 if [ -z ${ACC_SET_GMAKE_JOBS} ] || [ "${ACC_SET_GMAKE_JOBS}" == "0" ] ; then export ACC_SET_GMAKE_JOBS=2 ; fi
 
-cd ${BUILD_TYPE}
 # Only invoke cmake if the user has not requested a 'clean'.
 if [[ ${1} == "clean" ]]
 then
-  gmake clean
+    if [ -d ${BUILD_TYPE} ]
+    then
+	cd ${BUILD_TYPE}
+	gmake clean
+    fi
 elif [[ ${1} == "cleaner" ]]
 then
-  gmake clean
-  cd ..
-  rm -rf `pwd`/${BUILD_TYPE}
-  DIR=`pwd`
-  rm -rf "../config/$(basename $DIR)"
-  if [ -e acc_build ] ; then ./acc_build -"${BUILD_TYPE}" -cleaner ; fi
-  echo -e "\nRemoved cached files.  This will force a reconfiguration upon the next build request.\n"
+    rm -rf `pwd`/${BUILD_TYPE}
+    DIR=`pwd`
+    rm -rf "../config/$(basename $DIR)"
+    if [ -e acc_build ] ; then ./acc_build -"${BUILD_TYPE}" -cleaner ; fi
+    echo -e "\nRemoved cached files.  This will force a reconfiguration upon the next build request.\n"
 elif [[ ${1} == "obliterate" ]]
 then
-  gmake clean
-  cd ..
-  rm -rf `pwd`/${BUILD_TYPE}
-  DIR=`pwd`
-  rm -rf "../config/$(basename $DIR)"
-  cd ..
-  rm -rf ${BUILD_TYPE}
-  rm -rf `pwd`/*/${BUILD_TYPE}
-  echo -e "\nRemoved "`echo ${BUILD_TYPE}`" directories in all build project directories within the current tree:\n" 
-  echo -e "   "`pwd`"\n"
+    rm -rf `pwd`/${BUILD_TYPE}
+    DIR=`pwd`
+    rm -rf "../config/$(basename $DIR)"
+    cd ..
+    rm -rf ${BUILD_TYPE}
+    rm -rf `pwd`/*/${BUILD_TYPE}
+    echo -e "\nRemoved "`echo ${BUILD_TYPE}`" directories in all build project directories within the current tree:\n" 
+    echo -e "   "`pwd`"\n"
 else
-    if [ -e ../acc_build ]
+    if [ -e acc_build ]
     then
-	cd ..
 	./acc_build -"${BUILD_TYPE}" || exit 1
     else
+        # If the local out-of-source build directory does not yet exist, create it.
+	if ( [ ! -d ${BUILD_TYPE} ] ) then
+	    mkdir ${BUILD_TYPE}
+	fi
+	cd ${BUILD_TYPE}
 	${CMAKE_BINARY} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
 	gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
     fi
