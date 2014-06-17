@@ -771,14 +771,16 @@ interface
     type (track_struct), optional :: track
   end subroutine
 
-  subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, ele_start, ele_end, err)
+  subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
+                                                                 ele_start, ele_end, err, compute_floor_coords)
     import
     implicit none
     type (coord_struct) :: orbit_start, orbit_end
     type (ele_struct), optional :: ele_start, ele_end
     type (branch_struct) branch
     real(rp) s_end
-    logical, optional :: err
+    logical, optional, intent(inout) :: err
+    logical, optional :: compute_floor_coords
   end subroutine
 
   subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &

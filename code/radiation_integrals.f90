@@ -26,11 +26,7 @@
 ! quadrupole strengths not varying too much but is independent of variations in
 ! the Twiss parameters. 
 !
-! RECOMMENDATION: Do not use caching unless you need it.
-!
-! Note: Caching allows interpolation which improves the computation time through
-! a wiggler even if radiation_integrals is only called once. To take advantage
-! of this, a temporary cache is used for a wiggler if ix_cache is not present.
+! RECOMMENDATION: Do not use caching of non-wiggler elements unless you need it.
 !
 ! Modules needed:
 !   use bmad
