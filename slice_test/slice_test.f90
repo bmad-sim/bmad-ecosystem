@@ -9,10 +9,10 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele0, ele
+type (ele_struct) ele1, ele2a, ele2b, end_ele
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
 type (coord_struct) start_orb, end_orb, end_orb2, orbit
-type (ele_struct) ele1, ele2a, ele2b, end_ele
 type (taylor_struct) t_map(6)
 type (em_field_struct) field
 
@@ -20,7 +20,7 @@ real(rp) s1, s2, s_end
 real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6), xmat(6,6)
 
 integer i, j, idum, nargs
-logical print_extra
+logical print_extra, err
 character(100) lat_file
 
 !
@@ -88,7 +88,7 @@ xmat = matmul(branch%ele(3)%mat6, branch%ele(1)%mat6)
 
 write (1, '(a, 6es18.9)') '"rfcav-rk:dvec" ABS 1e-14', end_orb2%vec - end_orb%vec
 write (1, '(a, es18.9)')  '"rfcav-rk:dt"   ABS 1e-8 ', c_light * (end_orb2%t - end_orb%t)
-write (1, '(a, 6es18.9)') '"rfcav-rk:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
+write (1, '(a, 6es18.9)') '"rfcav-rk:dmat" ABS 1e-10', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
 
 
 if (print_extra) stop
@@ -115,13 +115,21 @@ write (1, '(a, 6es18.9)') '"bend:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch%
 
 ! track slice
 
-ele => branch%ele(0)
-call init_coord (start_orb, start_orb, branch%ele(5), .true.)
-start_orb%s = branch%ele(4)%s + 0.1
-start_orb%location = inside$
-call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
-write (1, '(a, 2es18.9)') '"bend-slice:beta" ABS 1e-8', ele%a%beta, ele%b%beta
-write (1, '(a, 2es18.9)') '"bend-slice:eta"  ABS 1e-8', ele%a%eta, ele%b%eta
+call reallocate_coord (ref_orb, lat, branch%ix_branch)
+call twiss_and_track (lat, ref_orb, ix_branch = branch%ix_branch)
+
+end_ele = branch%ele(1)
+call init_coord (start_orb, start_orb, branch%ele(1), .true.)
+s1 = branch%ele(6)%s-0.1
+call twiss_and_track_from_s_to_s (branch, start_orb, s1, end_orb, end_ele, end_ele, err, .true.)
+write (1, '(a, 2es18.9)') '"bend-slice:beta"       ABS 1e-8', end_ele%a%beta, end_ele%b%beta
+write (1, '(a, 2es18.9)') '"bend-slice:eta"        ABS 1e-8', end_ele%a%eta, end_ele%b%eta
+write (1, '(a, 3es18.9)') '"bend-slice:floor"      ABS 1e-10', end_ele%floor%r
+write (1, '(a, 3es18.9)') '"bend-slice:floor-ang"  ABS 1e-10', end_ele%floor%theta, end_ele%floor%phi, end_ele%floor%psi
+
+call twiss_and_track_at_s (lat, s1, end_ele, ref_orb, end_orb, branch%ix_branch, err, .false., .true.)
+write (1, '(a, 3es18.9)') '"bend-slice:floor2"     ABS 1e-10', end_ele%floor%r
+write (1, '(a, 3es18.9)') '"bend-slice:floor-ang2" ABS 1e-10', end_ele%floor%theta, end_ele%floor%phi, end_ele%floor%psi
 
 !------------------------------------------------
 ! Test branch 2
