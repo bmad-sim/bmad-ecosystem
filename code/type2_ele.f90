@@ -784,7 +784,7 @@ if (logic_option(.false., type_floor_coords)) then
   nl=nl+1; li(nl) = ''
   nl=nl+1; li(nl) = 'Global Floor Coords:'
   nl=nl+1; write (li(nl), '(a)')         '                   X           Y           Z       Theta         Phi         Psi'
-  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Reference', ele%floor%r, floor%theta, ele%floor%phi, ele%floor%psi   
+  nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Reference', ele%floor%r, ele%floor%theta, ele%floor%phi, ele%floor%psi   
   nl=nl+1; write (li(nl), '(a, 6f12.5)') 'Actual   ', floor%r, floor%theta, floor%phi, floor%psi   
 endif
 
