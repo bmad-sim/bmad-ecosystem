@@ -27,7 +27,7 @@
 !     %ix_ele          -- Starting element. 
 !     %location        -- Location relative element.
 !   s_end          -- real(rp): Ending position.
-!   ele_start      -- Ele_struct, optional: Holds the starting Twiss parameters at s_start.
+!   ele_start      -- Ele_struct, optional: Holds the starting parameters at s_start.
 !   compute_floor_coords
 !                  -- logical, optional: If present and True then the global "floor" coordinates will be 
 !                       calculated and put in ele_end%floor.
@@ -141,7 +141,7 @@ do
     ele_end%map_ref_orb_in  = ele_track%map_ref_orb_in   ! Needed for dispersion calc.
     ele_end%map_ref_orb_out = ele_track%map_ref_orb_out  ! Needed for dispersion calc.
     call twiss_propagate1 (ele_here, ele_end, err_flag)
-    if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_here%floor, ele_track, ele_end%floor)
+    if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_end%floor, ele_track, ele_end%floor)
     if (present(err)) err = err_flag
     if (err_flag) return
     ele_end%vec0 = matmul(ele_end%mat6, ele_here%vec0) + ele_track%vec0

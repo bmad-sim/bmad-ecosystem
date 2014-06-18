@@ -13,7 +13,7 @@ use lat_geometry_mod
 ! Routine to calculate the twiss parameters, transport matrices and orbit.
 !
 ! This routine is an overloaded name for:
-!   twiss_and_track_main (lat, orb, ok)
+!   twiss_and_track_main (lat, orb, ok, ix_branch)
 !   twiss_and_track_all (lat, orb_array, ok)
 !
 ! The essential difference between these two procedures is that
@@ -41,6 +41,7 @@ use lat_geometry_mod
 !                             is computed.
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orb(0) -- Used as the starting point for a linear lattice.
+!   ix_branch           -- Integer, optional: Branch to track.
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
@@ -63,7 +64,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_main (lat, orb, ok)
+! Subroutine twiss_and_track_main (lat, orb, ok, ix_branch)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -71,20 +72,21 @@ contains
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_main (lat, orb, ok)
+subroutine twiss_and_track_main (lat, orb, ok, ix_branch)
 
 implicit none
 
 type (lat_struct) lat
 type (coord_struct), allocatable :: orb(:)
 
+integer, optional :: ix_branch
 logical, optional :: ok
 logical err_flag
 
 !
 
 call reallocate_coord (orb, lat%n_ele_max)
-call twiss_and_track1 (lat, orb, 0, err_flag)
+call twiss_and_track1 (lat, orb, integer_option(0, ix_branch), err_flag)
 if (present(ok)) ok = .not. err_flag
 
 end subroutine twiss_and_track_main
@@ -330,8 +332,6 @@ else
             compute_floor_coords = compute_floor_coords)
   endif
 endif
-
-call ele_geometry (branch%ele(ie_at_s-1)%floor, ele_at_s, ele_at_s%floor)
 
 end subroutine twiss_and_track_at_s
 
