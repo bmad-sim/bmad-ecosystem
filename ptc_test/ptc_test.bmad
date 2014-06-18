@@ -77,11 +77,13 @@ b1: line = (ab_multipole1, drift1, ecollimator1, elseparator1, hkicker1, instrum
             monitor1, multipole1, octupole1, patch1, quadrupole1, rcollimator1, rfcavity1, sbend1, sextupole1, solenoid1, 
             sol_quad1, vkicker1, wiggler_map1, wiggler_periodic1)
 b1[e_tot] = 1e12
+b1[geometry] = open
 
 b2: line = (ab_multipole2, drift2, ecollimator2, elseparator2, hkicker2, instrument2, kicker2, lcavity2, 
             monitor2, multipole2, octupole2, patch2, quadrupole2, rcollimator2, rfcavity2, sbend2, sextupole2, solenoid2, 
             sol_quad2, vkicker2, wiggler_map2, wiggler_periodic2)
 b2[e_tot] = b1[e_tot]
+b2[geometry] = open
 
 use, l, b1, b2
 
