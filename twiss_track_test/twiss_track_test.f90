@@ -66,7 +66,7 @@ open (1, file = 'twiss.out')
 do n = 1, lat%n_ele_track
   write (1, *) '!------------------------------------'
   write (1, *) 'Index:', n
-  call type2_ele (lat%ele(n), lines, n_lines, .false., 0, .false., 0, .false.)  
+  call type_ele (lat%ele(n), .false., 0, .false., 0, .false., lines = lines, n_lines = n_lines)
   do i = 1, n_lines
     write (1, '(a)') lines(i)
   enddo
