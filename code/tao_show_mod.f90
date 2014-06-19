@@ -1164,8 +1164,8 @@ case ('element')
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
-  call type2_ele (ele, alloc_lines, n, print_all, xfer_mat_print, print_taylor, &
-            twiss_out, .true., .true., print_floor, print_em_field, print_wall)
+  call type_ele (ele, print_all, xfer_mat_print, print_taylor, &
+            twiss_out, .true., .true., print_floor, print_em_field, print_wall, lines = alloc_lines, n_lines = n)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
   lines(nl+1:nl+n) = alloc_lines(1:n)
@@ -1963,17 +1963,17 @@ case ('normal_form')
   
   select case(stuff2(1:5))
     case ('dhdj ')
-      call type2_taylors (normal_form%dhdj, lines, nl, max_order = n_order)
+      call type_taylors (normal_form%dhdj, max_order = n_order, lines = lines, n_lines = nl)
     case ('A    ')
-      call type2_taylors (normal_form%A, lines, nl, max_order = n_order)
+      call type_taylors (normal_form%A, max_order = n_order, lines = lines, n_lines = nl)
     case ('A_inv')
-      call type2_taylors (normal_form%A_inv, lines, nl, max_order = n_order)
+      call type_taylors (normal_form%A_inv, max_order = n_order, lines = lines, n_lines = nl)
     case ('M    ')
-      call type2_taylors (normal_form%M, lines, nl, max_order = n_order)
+      call type_taylors (normal_form%M, max_order = n_order, lines = lines, n_lines = nl)
     case ('F  ')
-      call type2_complex_taylors (normal_form%F, lines, nl, max_order = n_order)
+      call type_complex_taylors (normal_form%F, max_order = n_order, lines = lines, n_lines = nl)
     case ('L  ')
-      call type2_complex_taylors (normal_form%L, lines, nl, max_order = n_order)      
+      call type_complex_taylors (normal_form%L, max_order = n_order, lines = lines, n_lines = nl)      
     case default 
       nl=nl+1; lines(nl) = 'bad normal_form map: '//trim(stuff2)
       nl=nl+1; lines(nl) = 'Must be one of: M A A_inv dhdj F L'
@@ -2428,7 +2428,7 @@ case ('taylor_map', 'matrix')
   if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
 
   if (n_order > 1) then
-    call type2_taylors (taylor, lines, nl)
+    call type_taylors (taylor, lines = lines, n_lines = nl)
   else
     vec_in = 0
     if (n_order == 0) then 
@@ -2544,7 +2544,7 @@ case ('twiss_and_orbit')
   nl=nl+1; write(lines(nl), '(a, f10.5)') 'At S =', s_pos
   nl=nl+1; write(lines(nl), '(2a)')       'In Element: ', ele0%name
 
-  call type2_twiss (ele0, lines(nl+1:), n, s%global%phase_units)
+  call type_twiss (ele0, s%global%phase_units, lines = lines(nl+1:), n_lines = n)
   nl = nl + n
 
   fmt = '(2x, a, 3p2f11.4)'
