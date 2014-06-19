@@ -874,49 +874,27 @@ interface
     type (coord_struct) coord
   end subroutine
 
-  subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, &
-        twiss_out, type_control, type_wake, type_floor_coords, &
-        type_field, type_wall, nunit)
-    import
-    implicit none
-    type (ele_struct) ele
-    integer, optional :: type_mat6
-    integer, optional :: twiss_out
-    logical, optional :: type_zero_attrib, type_floor_coords
-    logical, optional :: type_control, type_taylor, type_wake
-    logical, optional :: type_field, type_wall
-    integer, optional :: nunit
-  end subroutine
-
-  subroutine type_twiss (ele, frequency_units)
-    import
-    implicit none
-    type (ele_struct) ele
-    integer, optional :: frequency_units
-  end subroutine
-
-  subroutine type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, &
-        type_taylor, twiss_out, type_control, type_wake, &
-        type_floor_coords, type_field, type_wall)
+  subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
+        type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
     import
     implicit none
     type (ele_struct), target :: ele
     integer, optional, intent(in) :: type_mat6
-    integer, intent(out) :: n_lines
+    integer, optional, intent(out) :: n_lines
     integer, optional, intent(in) :: twiss_out
     logical, optional, intent(in) :: type_control, type_taylor, type_floor_coords
     logical, optional, intent(in) :: type_zero_attrib, type_wake
     logical, optional :: type_field, type_wall
-    character(*), allocatable :: lines(:)
+    character(*), optional, allocatable :: lines(:)
   end subroutine
 
-  subroutine type2_twiss (ele, lines, n_lines, frequency_units, compact_format)
+  subroutine type_twiss (ele, frequency_units, compact_format, lines, n_lines)
     import
     implicit none
     type (ele_struct) ele
     integer, optional :: frequency_units
-    integer n_lines
-    character(*) lines(:)
+    integer, optional :: n_lines
+    character(*), optional :: lines(:)
     logical, optional :: compact_format
   end subroutine
 

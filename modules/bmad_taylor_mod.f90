@@ -207,7 +207,7 @@ do i = 1, size(taylor1)
   taylor1(i) = taylor2(i)
 enddo
 
-end subroutine
+end subroutine taylors_equal_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -218,7 +218,7 @@ end subroutine
 ! Converts a monomial string 'abcdef' to integers [a, b, c, d, e, f] for use in taylor_coef
 !
 !-
-function taylor_monomial(monomial) result(expn)
+function taylor_monomial (monomial) result(expn)
 implicit none
 character(6) :: monomial
 integer :: i, expn(6)
@@ -230,7 +230,7 @@ do i=1, 6
   endif
   expn(i) = index('0123456789', monomial(i:i)) - 1
 enddo
-end function
+end function taylor_monomial
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -265,7 +265,7 @@ do i = 1, size(bmad_taylor%term)
   endif
 enddo
 
-end function
+end function taylor_coef1
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -312,52 +312,16 @@ do i = 1, size(bmad_taylor%term)
   endif
 enddo
 
-end function
+end function taylor_coef2
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_taylors (bmad_taylor, max_order)
+! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines)
 !
-! Subroutine to print in a nice format a Bmad Taylor Map at the terminal.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   bmad_taylor(6) -- Taylor_struct: 6 taylor series: (x, P_x, y, P_y, z, P_z) 
-!   max_order      -- Integer, optional: Maximum order to print.
-!-
-
-subroutine type_taylors (bmad_taylor, max_order)
-
-implicit none
-
-type (taylor_struct), target :: bmad_taylor(:)
-integer i, n_lines
-integer, optional :: max_order
-character(100), allocatable :: lines(:)
-
-!
-
-call type2_taylors (bmad_taylor, lines, n_lines, max_order)
-
-do i = 1, n_lines
-  print *, trim(lines(i))
-enddo
-
-deallocate(lines)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine type2_taylors (bmad_taylor, lines, n_lines, max_order)
-!
-! Subroutine to write a Bmad taylor map in a nice format to a character array.
+! Subroutine to print or put in a string array a Bmad taylor map.
+! If the lines(:) argument is not present, the element information is printed to the terminal.
 !
 ! Moudles needed:
 !   use bmad
@@ -367,13 +331,13 @@ end subroutine
 !   max_order      -- Integer, optional: Maximum order to print.
 !
 ! Output:
-!   lines(:)     -- Character(*), allocatable: Character array to hold the 
-!                     output. The array size of lines(:) will be set by
-!                     this subroutine.
-!   n_lines      -- Number of lines in lines(:).
+!   lines(:)     -- Character(100), allocatable, optional :: Character array to hold the output. 
+!                     If not present, the information is printed to the terminal.
+!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type2_taylors (bmad_taylor, lines, n_lines, max_order)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines)
 
 use re_allocate_mod
 
@@ -383,75 +347,84 @@ type (taylor_struct), intent(in), target :: bmad_taylor(6)
 type (taylor_term_struct), pointer :: tt
 type (taylor_struct) tlr
 
-integer, intent(out) :: n_lines
+integer, optional, intent(out) :: n_lines
 integer, optional :: max_order
 integer i, j, k, nl, ix
 
-character(*), allocatable :: lines(:)
+character(*), optional, allocatable :: lines(:)
+character(100), allocatable :: li(:)
 character(40) fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
 
 if (.not. associated(bmad_taylor(1)%term)) then
-  n_lines = 2
-  allocate (lines(n_lines))
-  lines(1) = '---------------------------------------------------'
-  lines(2) = 'A Taylor Map Does Not Exist.' 
-  return
-endif
+  nl = 2
+  allocate (li(nl))
+  li(1) = '---------------------------------------------------'
+  li(2) = 'A Taylor Map Does Not Exist.' 
 
 ! Normal case
 
-deallocate (lines, stat = ix)
-n_lines = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, 6) ])
-allocate(lines(n_lines))
+else
+  nl = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, 6) ])
+  allocate(li(nl))
 
-write (lines(1), *) 'Taylor Terms:'
-write (lines(2), *) &
-      'Out     Coef              Exponents           Order        Reference'
-nl = 2
+  write (li(1), *) 'Taylor Terms:'
+  write (li(2), *) &
+        'Out     Coef              Exponents           Order        Reference'
+  nl = 2
 
 
-fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
-fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
+  fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
+  fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
 
-do i = 1, 6
-  nl=nl+1; lines(nl) = ' ---------------------------------------------------'
+  do i = 1, 6
+    nl=nl+1; li(nl) = ' ---------------------------------------------------'
 
-  nullify (tlr%term)
-  call sort_taylor_terms (bmad_taylor(i), tlr)
+    nullify (tlr%term)
+    call sort_taylor_terms (bmad_taylor(i), tlr)
 
-  do j = 1, size(bmad_taylor(i)%term)
+    do j = 1, size(bmad_taylor(i)%term)
 
-    tt => tlr%term(j)
+      tt => tlr%term(j)
 
-    if (present(max_order)) then
-      if (sum(tt%expn) > max_order) cycle
-    endif
+      if (present(max_order)) then
+        if (sum(tt%expn) > max_order) cycle
+      endif
 
-    if (abs(tt%coef) < 1e5) then
-      fmt = fmt1
-    else
-      fmt = fmt2
-    endif
+      if (abs(tt%coef) < 1e5) then
+        fmt = fmt1
+      else
+        fmt = fmt2
+      endif
 
-    if (j == 1) then
-      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
-    else
-      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%expn(k), k = 1, 6), sum(tt%expn)
-    endif
+      if (j == 1) then
+        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
+                    (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_taylor(i)%ref
+      else
+        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
+                    (tt%expn(k), k = 1, 6), sum(tt%expn)
+      endif
+    enddo
+
+    deallocate (tlr%term)
+
   enddo
+endif
 
-  deallocate (tlr%term)
+! Finish
 
-enddo
+if (present(lines)) then
+  call re_allocate(lines, nl, .false.)
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
+else
+  do i = 1, nl
+    print '(1x, a)', trim(li(i))
+  enddo
+endif
 
-call re_allocate (lines, nl)
-n_lines = nl
-
-end subroutine
+end subroutine type_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -484,7 +457,7 @@ do i = 1, size(bmad_taylor)
   bmad_taylor(i)%ref = 0
 enddo
 
-end subroutine
+end subroutine taylor_make_unit
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -534,7 +507,7 @@ call init_taylor_series (bmad_taylor, n+1, .true.)
 bmad_taylor%term(n+1)%coef = coef
 bmad_taylor%term(n+1)%expn = expn
 
-end subroutine
+end subroutine add_taylor_term1
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -578,7 +551,7 @@ if (present (i9)) expn(i9) = expn(i9) + 1
 
 call add_taylor_term1 (bmad_taylor, coef, expn, replace)
 
-end subroutine
+end subroutine add_taylor_term2
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -644,7 +617,7 @@ else
   allocate (bmad_taylor%term(n_term))
 endif
 
-end subroutine
+end subroutine init_taylor_series
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -744,13 +717,13 @@ enddo
 
 deallocate(ord, ix, tt)
 
-end subroutine
+end subroutine sort_taylor_terms
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function taylor_exponent_index(expn) result(index)
+! Function taylor_exponent_index (expn) result(index)
 !
 ! Function to associate a unique number with a taylor exponent.
 !
@@ -764,14 +737,18 @@ end subroutine
 ! Output:
 !   index    -- integer: Sorted taylor series.
 !-
-function taylor_exponent_index(expn) result(index)
+
+function taylor_exponent_index (expn) result(index)
+
 implicit none
+
 integer :: expn(6), index
+
 !
 index = sum(expn)*10**6 + expn(6)*10**5 + expn(5)*10**4 + &
               expn(4)*10**3 + expn(3)*10**2 + expn(2)*10**1 + expn(1)
-end function
 
+end function taylor_exponent_index
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -858,7 +835,7 @@ enddo
 
 if (present(r_out)) r_out = out
 
-end subroutine
+end subroutine taylor_to_mat6
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -918,7 +895,7 @@ do i = 1, 6
 
 enddo
 
-end subroutine
+end subroutine mat6_to_taylor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -990,7 +967,7 @@ do i = 1, i_max
   enddo
 enddo
 
-end subroutine
+end subroutine track_taylor
 
 
 !----------------------------------------------------------------------------

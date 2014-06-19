@@ -3,7 +3,7 @@ module bmad_complex_taylor_mod
 ! Note: This module is an exact copy of bmad_taylor_mod, with:
 !   taylor -> complex_taylor
 !   real -> complex
-!   format modifications to: type2_complex_taylors 
+!   format modifications to: type_complex_taylors 
 
 use sim_utils
 
@@ -298,46 +298,10 @@ end function
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine type_complex_taylors (bmad_complex_taylor, max_order)
+! Subroutine type_complex_taylors (bmad_complex_taylor, max_order, lines, n_lines)
 !
-! Subroutine to print in a nice format a Bmad complex_taylor Map at the terminal.
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   bmad_complex_taylor(6) -- complex_taylor_struct: 6 complex_taylor series: (x, P_x, y, P_y, z, P_z) 
-!   max_order      -- Integer, optional: Maximum order to print.
-!-
-
-subroutine type_complex_taylors (bmad_complex_taylor, max_order)
-
-implicit none
-
-type (complex_taylor_struct), target :: bmad_complex_taylor(:)
-integer i, n_lines
-integer, optional :: max_order
-character(100), allocatable :: lines(:)
-
-!
-
-call type2_complex_taylors (bmad_complex_taylor, lines, n_lines, max_order)
-
-do i = 1, n_lines
-  print *, trim(lines(i))
-enddo
-
-deallocate(lines)
-
-end subroutine
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine type2_complex_taylors (bmad_complex_taylor, lines, n_lines, max_order)
-!
-! Subroutine to write a Bmad complex_taylor map in a nice format to a character array.
+! Subroutine to print or put in a string array a Bmad complex taylor map.
+! If the lines(:) argument is not present, the element information is printed to the terminal.
 !
 ! Moudles needed:
 !   use bmad
@@ -347,13 +311,13 @@ end subroutine
 !   max_order      -- Integer, optional: Maximum order to print.
 !
 ! Output:
-!   lines(:)     -- Character(*), allocatable: Character array to hold the 
-!                     output. The array size of lines(:) will be set by
-!                     this subroutine.
-!   n_lines      -- Number of lines in lines(:).
+!   lines(:)     -- Character(100), allocatable, optional :: Character array to hold the output. 
+!                     If not present, the information is printed to the terminal.
+!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!                     n_lines must be present if lines(:) is. 
 !-
 
-subroutine type2_complex_taylors (bmad_complex_taylor, lines, n_lines, max_order)
+subroutine type_complex_taylors (bmad_complex_taylor, max_order, lines, n_lines)
 
 use re_allocate_mod
 
@@ -363,77 +327,86 @@ type (complex_taylor_struct), intent(in), target :: bmad_complex_taylor(6)
 type (complex_taylor_term_struct), pointer :: tt
 type (complex_taylor_struct) tlr
 
-integer, intent(out) :: n_lines
+integer, optional, intent(out) :: n_lines
 integer, optional :: max_order
 integer i, j, k, nl, ix
 
-character(*), allocatable :: lines(:)
+character(*), optional, allocatable :: lines(:)
+character(100), allocatable :: li(:)
 character(100) fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
 
 if (.not. associated(bmad_complex_taylor(1)%term)) then
-  n_lines = 2
-  allocate (lines(n_lines))
-  lines(1) = '---------------------------------------------------'
-  lines(2) = 'A complex_taylor Map Does Not Exist.' 
-  return
-endif
+  nl = 2
+  allocate (li(nl))
+  li(1) = '---------------------------------------------------'
+  li(2) = 'A complex_taylor Map Does Not Exist.' 
 
 ! Normal case
 
-deallocate (lines, stat = ix)
-n_lines = 14 + sum( [(size(bmad_complex_taylor(i)%term), i = 1, 6) ])
-allocate(lines(n_lines))
+else
+  nl = 14 + sum( [(size(bmad_complex_taylor(i)%term), i = 1, 6) ])
+  allocate(li(nl))
 
-write (lines(1), *) 'complex_taylor Terms:'
-write (lines(2), *) &
-       'Out       Re(coef)            Im(coef)        Exponents           Order        Reference'
-nl = 2
+  write (li(1), *) 'complex_taylor Terms:'
+  write (li(2), *) &
+         'Out       Re(coef)            Im(coef)        Exponents           Order        Reference'
+  nl = 2
 
 
-fmt1 = '(i4, a, 2f20.12, 6i3, i9)'
-fmt2 = '(i4, a, 1p, 2e20.11, 0p, 6i3, i9)'
+  fmt1 = '(i4, a, 2f20.12, 6i3, i9)'
+  fmt2 = '(i4, a, 1p, 2e20.11, 0p, 6i3, i9)'
 
-do i = 1, 6
-  nl=nl+1; lines(nl) = ' -----------------------------------------------------------------------'
+  do i = 1, 6
+    nl=nl+1; li(nl) = ' -----------------------------------------------------------------------'
 
-  nullify (tlr%term)
-  call sort_complex_taylor_terms (bmad_complex_taylor(i), tlr)
+    nullify (tlr%term)
+    call sort_complex_taylor_terms (bmad_complex_taylor(i), tlr)
 
-  do j = 1, size(bmad_complex_taylor(i)%term)
+    do j = 1, size(bmad_complex_taylor(i)%term)
 
-    tt => tlr%term(j)
+      tt => tlr%term(j)
 
-    if (present(max_order)) then
-      if (sum(tt%expn) > max_order) cycle
-    endif
+      if (present(max_order)) then
+        if (sum(tt%expn) > max_order) cycle
+      endif
 
-    if (abs(tt%coef) < 1e5) then
-      fmt = fmt1
-    else
-      fmt = fmt2
-    endif
+      if (abs(tt%coef) < 1e5) then
+        fmt = fmt1
+      else
+        fmt = fmt2
+      endif
 
-    !if (j == 1) then
-    !  nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-    !              (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_complex_taylor(i)%ref
-    !else
-    if (j==1) then
-      nl=nl+1
-      write(lines(nl), '(a, 2f18.9)') '   Reference: ', bmad_complex_taylor(i)%ref
-    endif
-      nl=nl+1; write (lines(nl), fmt) i, ':', tt%coef, &
-                  (tt%expn(k), k = 1, 6), sum(tt%expn)
-    !endif
+      !if (j == 1) then
+      !  nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
+      !              (tt%expn(k), k = 1, 6), sum(tt%expn), bmad_complex_taylor(i)%ref
+      !else
+      if (j==1) then
+        nl=nl+1
+        write(li(nl), '(a, 2f18.9)') '   Reference: ', bmad_complex_taylor(i)%ref
+      endif
+        nl=nl+1; write (li(nl), fmt) i, ':', tt%coef, &
+                    (tt%expn(k), k = 1, 6), sum(tt%expn)
+      !endif
+    enddo
+
+    deallocate (tlr%term)
+
   enddo
+endif
 
-  deallocate (tlr%term)
+! Finish
 
-enddo
-
-call re_allocate (lines, nl)
-n_lines = nl
+if (present(lines)) then
+  call re_allocate(lines, nl, .false.)
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
+else
+  do i = 1, nl
+    print '(1x, a)', trim(li(i))
+  enddo
+endif
 
 end subroutine
 
