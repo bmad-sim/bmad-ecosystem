@@ -80,7 +80,7 @@ do n = 1, branch%n_ele_track
   t0_4 = matmul (ele%mat6(1:4,1:4), t0_4)
   if (debug) then
     write (iu, *) '!------------------------------------', n
-    call type2_ele (ele, lines, n_lines, .false., 0, .false., 0)
+    call type_ele (ele, .false., 0, .false., 0, lines = lines, n_lines = n_lines)
     do i = 1, n_lines
       write (iu, '(a)') trim(lines(i))
     enddo

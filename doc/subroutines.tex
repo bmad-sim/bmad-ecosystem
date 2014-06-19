@@ -1069,27 +1069,15 @@ Function to point to a slave of a lord.
 
 \index[routine]{type_ele}
 \label{r:type.ele}
-\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, \\ 
-\hspace*{1in} type_control, type_wake, type_floor_coords, \\
-\hspace*{1in} type_field, type_wall, nunit)}] \Newline
-Routine to print the contents of an element at the terminal. 
-
-\index[routine]{type2_ele}
-\label{r:type2.ele}
-\item[\protect\parbox{6in}{type2_ele (ele, lines, n_lines, type_zero_attrib, type_mat6, \\
-\hspace*{1in} type_taylor, twiss_out, type_control, type_wake, \\
-\hspace*{1in} type_floor_coords, type_field, type_wall)}] \Newline
+\item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, \\
+\hspace*{1in} twiss_out, type_control, type_wake, type_floor_coords, \\
+\hspace*{1in} type_field, type_wall, lines, n_lines)}] \Newline
 Like \vn{type_ele} but the output is stored in a string array. 
 
 \index[routine]{type_twiss}
 \label{r:type.twiss}
-\item[type_twiss (ele, frequency_units)] \Newline
-Routine to type out the Twiss parameters from an element. 
-
-\index[routine]{type2_twiss}
-\label{r:type2.twiss}
-\item[type2_twiss (ele, lines, n_lines, frequency_units, compact_format)] \Newline
-Like \vn{type_twiss} but the output is stored in a string array. 
+\item[type_twiss (ele, frequency_units, compact_format, lines, n_lines)] \Newline
+Subroutine to print or put in a string array Twiss information from an element.
 
 \index[routine]{valid_tracking_method}
 \label{r:valid.tracking.method}
@@ -2777,13 +2765,8 @@ Subroutine to throw out all terms in a complex_taylor map that are above a certa
 
 \index[routine]{type_complex_taylors}
 \label{r:type.complex.taylors}
-\item[type_complex_taylors (bmad_complex_taylor, max_order)] \Newline 
-Subroutine to print in a nice format a Bmad complex_taylor Map at the terminal.
-
-\index[routine]{type2_complex_taylors}
-\label{r:type2.complex.taylors}
-\item[type2_complex_taylors (bmad_complex_taylor, lines, n_lines, max_order)] \Newline 
-Subroutine to write a Bmad complex_taylor map in a nice format to a character array.
+\item[type_complex_taylors (bmad_complex_taylor, max_order, lines, n_lines)] \Newline 
+Subroutine to output a Bmad complex_taylor map.
 
 \end{description}
 
@@ -2918,13 +2901,8 @@ Routine to throw out all terms in a taylor map that are above a certain order.
 
 \index[routine]{type_taylors}
 \label{r:type.taylors}
-\item[type_taylors (bmad_taylor, max_order)] \Newline
-Routine to print in a nice format a Bmad taylor map at the terminal. 
-
-\index[routine]{type2_taylors}
-\label{r:type2.taylors}
-\item[type2_taylors (bmad_taylor, lines, n_lines, max_order)] \Newline
-Routine to write a Bmad taylor map in a nice format to a character array. 
+\item[type_taylors (bmad_taylor, max_order, lines, n_lines)] \Newline
+Routine to output a Bmad taylor map.
 
 \end{description}
 
