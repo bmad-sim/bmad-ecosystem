@@ -21,7 +21,6 @@ type rad_int_track_point_struct
   real(rp) g_x0, g_y0     ! Additional g factors for bends.
   real(rp) dgx_dx, dgx_dy   ! bending strength gradiant
   real(rp) dgy_dx, dgy_dy   ! bending strength gradiant
-  real(rp) l_pole              
 end type
 
 type rad_int_cache1_struct
