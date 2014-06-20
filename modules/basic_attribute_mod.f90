@@ -2,12 +2,13 @@ module basic_attribute_mod
 
 use equal_mod
 
-! The type of an attribute may be one of:
+! attrib_array(key, ix_param)%type gives the type of the attribute.
+! This may be one of:
 !   does_not_exist$ -- Does not exist.
 !   is_free$        -- Free to vary as long as attribute has not controlled by, eg, overlay.
 !   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
-!   dependent$      -- Cannot be varied as an independent parameter..
-!   private$        -- Internal, parameter used in calculations. Is dependent by definition.
+!   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
+!   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
 
 integer, parameter :: does_not_exist$ = -1, is_free$ = 1, quasi_free$ = 2, dependent$ = 3, private$ = 4
 
