@@ -497,7 +497,7 @@ enddo
 
 !
 
-call init_attribute_name1 (photon_fork$, l$,                       'l', private$)
+call init_attribute_name1 (photon_fork$, l$,                       'L', dependent$)
 call init_attribute_name1 (photon_fork$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
 call init_attribute_name1 (photon_fork$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
 call init_attribute_name1 (photon_fork$, direction$,               'DIRECTION')
@@ -507,7 +507,7 @@ call init_attribute_name1 (photon_fork$, new_branch$,              'NEW_BRANCH')
 
 attrib_array(fork$, :) = attrib_array(photon_fork$, :)
 
-call init_attribute_name1 (beambeam$, l$,                           'l', private$)
+call init_attribute_name1 (beambeam$, l$,                           'L', dependent$)
 call init_attribute_name1 (beambeam$, sig_x$,                       'SIG_X')
 call init_attribute_name1 (beambeam$, sig_y$,                       'SIG_Y')
 call init_attribute_name1 (beambeam$, sig_z$,                       'SIG_Z')
@@ -650,7 +650,7 @@ call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,     'PTC_EXACT_M
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,   'USE_HARD_EDGE_DRIFTS')
 call init_attribute_name1 (def_parameter$, ptc_max_fringe_order$,   'PTC_MAX_FRINGE_ORDER')
 
-call init_attribute_name1 (detector$, l$,                             'l', private$)
+call init_attribute_name1 (detector$, l$,                             'L', dependent$)
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
@@ -750,7 +750,7 @@ call init_attribute_name1 (lcavity$, field$,                        'FIELD')
 call init_attribute_name1 (lcavity$, phi0_ref$,                     'PHI0_REF', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
 
-call init_attribute_name1 (marker$, l$,                             'l', private$)
+call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (marker$, p0c_start$,                     'p0c_start', private$)
 call init_attribute_name1 (marker$, x_ray_line_len$,                'X_RAY_LINE_LEN')
@@ -867,7 +867,7 @@ call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,        'ORIGIN_ELE_
 call init_attribute_name1 (floor_shift$, upstream_ele_dir$,         'UPSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (floor_shift$, downstream_ele_dir$,       'DOWNSTREAM_ELE_DIR', dependent$)
 
-call init_attribute_name1 (fiducial$, l$,                          'l', private$)
+call init_attribute_name1 (fiducial$, l$,                          'L', dependent$)
 call init_attribute_name1 (fiducial$, origin_ele$,                 'ORIGIN_ELE')
 call init_attribute_name1 (fiducial$, origin_ele_ref_pt$,          'ORIGIN_ELE_REF_PT')
 call init_attribute_name1 (fiducial$, dx_origin$,                  'DX_ORIGIN')
@@ -1057,14 +1057,14 @@ call init_attribute_name1 (hybrid$, ref_time_start$,                'ref_time_st
 call init_attribute_name1 (hybrid$, e_tot_start$,                   'E_TOT_START', dependent$)
 call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START', dependent$)
 
-call init_attribute_name1 (mirror$, l$,                             'l', private$)
+call init_attribute_name1 (mirror$, l$,                             'L', dependent$)
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')
 call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_ANGLE')
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
 
-call init_attribute_name1 (multilayer_mirror$, l$,                    'l', private$)
+call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
 call init_attribute_name1 (multilayer_mirror$, ref_tilt$,             'REF_TILT')
 call init_attribute_name1 (multilayer_mirror$, ref_tilt_tot$,         'REF_TILT_TOT', dependent$)
@@ -1203,6 +1203,38 @@ attrib_array(ix_key, ix_attrib)%type = integer_option(is_free$, attrib_state)
 if (.not. attribute_array_init_needed) call init_short_attrib_array(ix_key)
 
 end subroutine init_attribute_name1 
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function is_zero_length_element_type (ele_key) result (is_zero)
+!
+! Routine to return a logical indicating if elements of type ele_key always 
+! have zero length.
+!
+! Input:
+!   ele_key -- Integer: Element key. EG: quadrupole$
+!
+! Output:
+!   is_zero -- Logical: True if this type of element always has zero length.
+!-
+
+function is_zero_length_element_type (ele_key) result (is_zero)
+
+integer ele_key
+logical is_zero
+
+!
+
+select case (ele_key)
+case (photon_fork$, fork$, beambeam$, detector$, marker$, fiducial$, mirror$, multilayer_mirror$)
+  is_zero = .true.
+case default
+  is_zero = .false.
+end select
+
+end function is_zero_length_element_type
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
