@@ -155,7 +155,7 @@ endif
 ! Note: Important to set super_saved%lord_status before calling insert_element since
 ! this affects the status flag setting.
 
-if (attribute_name (super_saved, l$) /= 'L') then
+if (is_zero_length_element_type(super_saved%key)) then
   super_saved%lord_status  = not_a_lord$ 
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)
@@ -417,7 +417,7 @@ do
   slave => branch%ele(ix_slave)
   call transfer_ele(slave, slave_saved)
 
-  if (attribute_name (slave_saved, l$) /= 'L') cycle
+  if (is_zero_length_element_type(slave_saved%key)) cycle
   select case (slave_saved%key)
   case (multipole$, ab_multipole$)
    if (slave_saved%value(l$) == 0) cycle
