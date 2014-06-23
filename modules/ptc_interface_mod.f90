@@ -1969,7 +1969,6 @@ type (taylor_struct) :: re_taylor, im_taylor
 type (taylor_struct) :: taylor1, taylor2
 real(rp) :: re, im
 integer :: n, n1, n2, n_tot, t1, t2, ix1, ix2, expn(6)
-logical :: exit_flag
 !
 
 n1 = size(re_taylor%term)
@@ -2039,7 +2038,6 @@ call init_complex_taylor_series(complex_taylor, n_tot)
 complex_taylor%ref = cmplx(taylor1%ref, taylor2%ref)
 
 ! Second pass to assign values
-exit_flag = .false.
 n = 1
 t1 = 1
 t2 = 1
@@ -2072,8 +2070,7 @@ do
   ! Assign complex coef
   complex_taylor%term(n)%coef = cmplx(re, im)
   complex_taylor%term(n)%expn = expn
-  if (exit_flag) exit
-  if (t1 == n1 .and. t2 == n2) exit_flag = .true.  ! We have stepped to the last points. Exit next time. 
+  if (n == n_tot) exit
   n = n + 1
 end do
 
