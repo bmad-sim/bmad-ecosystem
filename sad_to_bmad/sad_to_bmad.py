@@ -11,10 +11,16 @@ class ele_struct:
     self.printed = False
     self.instances = 0
 
+
+class line_item_struct:
+  def __init__(self, name = '', reversed = False):
+    self.name = name
+    self.reversed = reversed
+
 class lat_line_struct:
   def __init__(self):
     self.name = ''
-    self.element = []
+    self.list = []
 
 # ------------------------------------------------------------------
 
@@ -155,7 +161,10 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
   if sad_ele.type == 'sol':
     if 'dx' in sad_ele.param or 'dy' in sad_ele.param or 'dz' in sad_ele.param or 'chi1' in sad_ele.param or \
                                 'chi2' in sad_ele.param or 'chi3' in sad_ele.param or 'rotate' in sad_ele.param:
-      bmad_ele.type = 'patch'
+      if sad_ele.param.get('geo') == '1':
+        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+      else:
+        bmad_ele.type = 'patch'
 
   # Handle case when inside solenoid
 
@@ -300,7 +309,11 @@ def parse_line(rest_of_line, lat_line_list):
   
   sad_line.name = line_name
   for elename in re.split('\s+', line_list):
-    sad_line.element.append(elename)
+    if elename[0] == '-':
+      line_item = line_item_struct(elename[1:], True)
+    else:
+      line_item = line_item_struct(elename)
+    sad_line.list.append(line_item)
 
   lat_line_list[line_name] = sad_line
 
@@ -492,7 +505,7 @@ sad_line = lat_line_list[line0_name]
 
 # For betax and betay translations
 
-ele0_name = sad_line.element[0]
+ele0_name = sad_line.list[0].name
 if ele0_name in sad_ele_list:
   ele0 = sad_ele_list[ele0_name]
   for key in ele0.param:
@@ -542,7 +555,9 @@ bmad_line = []
 
 f_out.write ('\n')
 
-for ix_s_ele, ele_name in enumerate(sad_line.element):
+for ix_s_ele, sad_line_list in enumerate(sad_line.list):
+
+  ele_name = sad_line_list.name
 
   if not ele_name in sad_ele_list:
     print ('No definition found for element name: ' + ele_name)
@@ -562,6 +577,7 @@ for ix_s_ele, ele_name in enumerate(sad_line.element):
                                 'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
       if s_ele.param.get('geo') == '1': 
         print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+        if not sad_sol_to_marker: continue
     
     else:
       if not sad_sol_to_marker: continue
@@ -582,9 +598,9 @@ for ix_s_ele, ele_name in enumerate(sad_line.element):
     direc = 1
     if int_off < 0: direc = -1
     for ix in range(0, int_off, direc):
-      ss_ele = sad_ele_list[sad_line.element[ix_s_ele+ix]]
+      ss_ele = sad_ele_list[sad_line.list[ix_s_ele+ix].name]
       if 'l' in ss_ele.param: offset += direc * float(ss_ele.param['l'])
-    ss_ele = sad_ele_list[sad_line.element[ix_s_ele+int_off]]
+    ss_ele = sad_ele_list[sad_line.list[ix_s_ele+int_off].name]
     if 'l' in ss_ele.param: offset += frac_off * float(ss_ele.param['l'])
 
     if s_ele.instances == 0:

@@ -1,4 +1,4 @@
- 2014-04-19 02:00:02 
+ 2014-06-05 14:55:39 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -293,7 +293,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -403,17 +403,19 @@
         21  ALPHA_ANGLE                             
         22  PSI_ANGLE                               
         23  V_UNITCELL                              
-        28  REF_POLARIZATION                        
+        24  BRANCHES_ARE_COHERENT                   
         30  B_PARAM                                 
         31  REF_CAP_GAMMA                           
-        32  DARWIN_WIDTH_SIGMA                      
-        33  DARWIN_WIDTH_PI                         
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         39  D_SPACING                               
+        42  DARWIN_WIDTH_SIGMA                      
+        43  PENDELLOSUNG_PERIOD_SIGMA               
+        44  DARWIN_WIDTH_PI                         
+        45  PENDELLOSUNG_PERIOD_PI                  
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -441,7 +443,6 @@
         79  Y2_LIMIT                                
         80  check_sum                                 [private]
         82  ALIAS                                   
-        86  DIFFRACTION_TYPE                        
         87  APERTURE_TYPE                           
         88  SURFACE                                 
         91  MAT6_CALC_METHOD                        
@@ -530,7 +531,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -605,6 +606,7 @@
         25  PARTICLE                                
         26  GEOMETRY                                
         27  LATTICE_TYPE                            
+        28  PHOTON_TYPE                             
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
@@ -618,9 +620,9 @@
         81  USE_HARD_EDGE_DRIFTS                    
         82  PTC_MAX_FRINGE_ORDER                    
         86  LATTICE                                 
-        95  RF_AUTO_SCALE_AMP                       
+        95  AUTO_SCALE_FIELD_AMP                    
         96  ABSOLUTE_TIME_TRACKING                  
-        97  RF_AUTO_SCALE_PHASE                     
+        97  AUTO_SCALE_FIELD_PHASE                  
         99  APERTURE_LIMIT_ON                       
        100  PTC_EXACT_MISALIGN                      
        101  USE_PTC_LAYOUT                          
@@ -809,7 +811,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -887,7 +889,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -972,7 +974,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1020,6 +1022,8 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
+        47  has_entrance_fringe_field                 [private]
+        48  has_exit_fringe_field                     [private]
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1054,7 +1058,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1108,9 +1112,10 @@
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
-        39  includes_cathode                          [private]
         40  p0c_ref_init                              [private]
         41  e_tot_ref_init                            [private]
+        47  has_entrance_fringe_field                 [private]
+        48  has_exit_fringe_field                     [private]
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -1145,7 +1150,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1342,7 +1347,6 @@
          2  TILT                                    
          3  REF_TILT                                
         17  DX_ORIGIN                               
-        22  DS_PATH_LENGTH                          
         26  ORIGIN_ELE_REF_PT                       
         28  DY_ORIGIN                               
         29  DZ_ORIGIN                               
@@ -1443,7 +1447,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1559,7 +1563,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1645,7 +1649,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -1712,6 +1716,8 @@
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
+        47  has_entrance_fringe_field                 [private]
+        48  has_exit_fringe_field                     [private]
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1747,7 +1753,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2116,7 +2122,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2157,7 +2163,6 @@
         21  D2_THICKNESS                            
         22  V1_UNITCELL                             
         23  V2_UNITCELL                             
-        28  REF_POLARIZATION                        
         33  N_CELL                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -2352,7 +2357,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2576,7 +2581,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2664,7 +2669,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2774,7 +2779,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2857,7 +2862,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -2921,6 +2926,8 @@
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
+        47  has_entrance_fringe_field                 [private]
+        48  has_exit_fringe_field                     [private]
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  E_tot_start                               [private]
@@ -2956,7 +2963,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3044,7 +3051,7 @@
         80  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3208,7 +3215,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3297,7 +3304,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3387,7 +3394,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3478,7 +3485,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3549,7 +3556,7 @@
         80  check_sum                                 [private]
         82  ALIAS                                   
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -3636,7 +3643,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3722,7 +3729,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3815,7 +3822,7 @@
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
         87  APERTURE_TYPE                           
-        88  MAP_WITH_OFFSETS                        
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
@@ -3946,33 +3953,33 @@
     19     1
     20    19
     21    17
-    22    13
+    22    12
     23    13
-    24    13
+    24    14
     25    19
     26    20
     27    16
-    28    15
+    28    14
     29    33
     30    32
     31    28
-    32    29
-    33    12
+    32    28
+    33    11
     34    42
     35    42
     36    44
     37    44
     38    44
-    39    23
+    39    22
     40    21
     41    21
-    42    20
-    43     5
-    44     6
-    45     4
+    42    21
+    43     6
+    44     7
+    45     5
     46     6
-    47     3
-    48     1
+    47     7
+    48     5
     49     6
     50    48
     51    35
@@ -4010,7 +4017,7 @@
     83    28
     84    28
     85    28
-    86     4
+    86     3
     87    46
     88    35
     89    27
@@ -4470,7 +4477,6 @@ Index: 22
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
-    GIRDER                                  
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
@@ -4504,6 +4510,7 @@ Index: 24
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
     X_RAY_INIT                              
@@ -4580,14 +4587,13 @@ Index: 28
     RFCAVITY                                
     MARKER                                  
     RBEND                                   
+    DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
     GIRDER                                  
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     PIPE                                    
-    MULTILAYER_MIRROR                       
     FIDUCIAL                                
     X_RAY_INIT                              
     DETECTOR                                
@@ -4719,7 +4725,6 @@ Index: 32
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
@@ -4736,7 +4741,6 @@ Index: 33
     LCAVITY                                 
     MATCH                                   
     BEND_SOL_QUAD                           
-    CRYSTAL                                 
     MULTILAYER_MIRROR                       
     UNDULATOR                               
     SAD_MULT                                
@@ -4994,7 +4998,6 @@ Index: 39
     BEND_SOL_QUAD                           
     CRYSTAL                                 
     PIPE                                    
-    E_GUN                                   
     UNDULATOR                               
     SAD_MULT                                
  
@@ -5065,6 +5068,7 @@ Index: 42
     RCOLLIMATOR                             
     ECOLLIMATOR                             
     BEND_SOL_QUAD                           
+    CRYSTAL                                 
     PIPE                                    
     UNDULATOR                               
     SAD_MULT                                
@@ -5075,6 +5079,7 @@ Index: 43
     LCAVITY                                 
     HKICKER                                 
     VKICKER                                 
+    CRYSTAL                                 
     SAD_MULT                                
  
  !---------------------------------
@@ -5084,6 +5089,7 @@ Index: 44
     ELSEPARATOR                             
     RBEND                                   
     LCAVITY                                 
+    CRYSTAL                                 
     SAD_MULT                                
  
  !---------------------------------
@@ -5092,6 +5098,7 @@ Index: 45
     RFCAVITY                                
     RBEND                                   
     LCAVITY                                 
+    CRYSTAL                                 
  
  !---------------------------------
 Index: 46
@@ -5106,11 +5113,19 @@ Index: 46
 Index: 47
     SBEND                                   
     SEXTUPOLE                               
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 48
+    RFCAVITY                                
     OCTUPOLE                                
+    LCAVITY                                 
+    E_GUN                                   
+    EM_FIELD                                
  
  !---------------------------------
 Index: 49
@@ -6624,7 +6639,6 @@ Index: 86
     DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
-    CRYSTAL                                 
  
  !---------------------------------
 Index: 87
