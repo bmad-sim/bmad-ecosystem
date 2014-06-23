@@ -362,6 +362,9 @@ else
     nl=nl+1; li(nl) = ' -----------------------------------------------------------------------'
 
     nullify (tlr%term)
+    
+    if (.not. associated(bmad_complex_taylor(i)%term) ) cycle
+    
     call sort_complex_taylor_terms (bmad_complex_taylor(i), tlr)
 
     do j = 1, size(bmad_complex_taylor(i)%term)
