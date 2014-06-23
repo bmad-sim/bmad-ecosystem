@@ -615,7 +615,7 @@ type normal_form_struct
   type (complex_taylor_struct) :: F(6)     ! Vector field factorization in phasor basis:
   type (complex_taylor_struct) :: L(6)     ! M = A1 o c_inv o L exp(F.grad)Identity o c o A1_inv
                                            ! A1 and L are linear, and c maps to the phasor basis: h+ = x + i p, h- = x - i p
-  type (ele_struct), pointer :: ele_origin ! Element at which the on-turn map was created.
+  type (ele_struct), pointer :: ele_origin => null()  ! Element at which the on-turn map was created.
                                            ! See subroutines: normal_form_taylors and normal_form_complex_taylors
 end type
 

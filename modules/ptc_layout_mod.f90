@@ -902,7 +902,7 @@ if (present(F) .or. present(L)) then
   ! Move to the phasor basis
   cda=from_phasor(-1)*cda*from_phasor(1)
 
-  ! Factor N = L exp(F.grad), where L is the linear (rotation) map. 
+  !   N = L exp(F.grad), where L is the linear (rotation) map. 
   call c_factor_map(cda, cdaLinear, fvecfield, 1) ! 1 => Dragt-Finn direction
 
   ! Zero out small coefficients 
