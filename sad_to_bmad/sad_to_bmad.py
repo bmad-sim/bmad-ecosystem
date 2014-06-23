@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import sys, getopt, re
+import sys, getopt, re, math
 from collections import *
 
 class ele_struct:
@@ -9,11 +9,36 @@ class ele_struct:
     self.type = ''
     self.param = dict()
     self.printed = False
+    self.instances = 0
 
 class lat_line_struct:
   def __init__(self):
     self.name = ''
     self.element = []
+
+# ------------------------------------------------------------------
+
+def print_help():
+  print (''' \
+Syntax: 
+  sad_to_bmad.py {-open} {-closed} {-ignore_marker_offsets} {-include <bmad_header_file>} <input-sad-file>
+
+Options:
+  -open                   # Put "parameter[geometry] = open" line in the bmad lattice file
+  -closed                 # Put "parameter[geometry] = closed" line in the bmad lattice file
+  -ignore_marker_offsets  # SAD mark elements which have an offset are translated to a marker element that 
+                          #   is superimposed on the lattice. The -ignore_marker_offsets switch means 
+                          #   that the offset is ignored and no superposition is done. 
+  -include <bmad_header_file>  # Include lines from this file in the Bmad lattice file.
+
+Output:
+  If the input SAD file has "sad" in the name, the output bmad lattice file name will substitute "bmad".
+  If "sad" is not in the input file name, the output file name will be the input file name with ".bmad" appended.
+
+Please see the NOTES file for known limitations of this translation script.
+''')
+
+  sys.exit()
 
 # ------------------------------------------------------------------
 
@@ -63,6 +88,7 @@ ele_param_translate = {
     'bend:k0': ['g_err', ' / @l@'],
     'l': 'l',
     'radius': 'aperture',
+    'offset': 'offset',
     'angle': 'angle',
     'ae1': 'ae1',
     'ae2': 'ae2',
@@ -110,7 +136,7 @@ ele_param_translate = {
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
                   'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
-                  'sigx', 'sigy', 'sigz', 'offset', 'slice', 'sturn', 'xangle', 'np']
+                  'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np']
 
 # ------------------------------------------------------------------
 
@@ -254,14 +280,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
         bmad_ele.param['e1'] = bmad_ele.param['e1'] + ' + ' + bmad_ele.param['ae1']
       else:
         bmad_ele.param['e1'] = bmad_ele.param['ae1']
-      bmad_ele.remove('ae1')
+      del bmad_ele.param['ae1']
 
     if 'ae2' in bmad_ele.param:
       if 'e2' in bmad_ele.param:
         bmad_ele.param['e2'] = bmad_ele.param['e2'] + ' + ' + bmad_ele.param['ae2']
       else:
         bmad_ele.param['e2'] = bmad_ele.param['ae2']
-      bmad_ele.remove('ae2')
+      del bmad_ele.param['ae2']
 
 # ------------------------------------------------------------------
 
@@ -273,7 +299,7 @@ def parse_line(rest_of_line, lat_line_list):
   line_list = line_list[1:-1].strip()    # Remove parenteses from "(...)"
   
   sad_line.name = line_name
-  for elename in re.split('\W+', line_list):
+  for elename in re.split('\s+', line_list):
     sad_line.element.append(elename)
 
   lat_line_list[line_name] = sad_line
@@ -295,7 +321,12 @@ def parse_ele (head, rest_of_line, sad_ele_list):
       if value[-1] == ',': value = value[:-1]
       ele.param[param_and_val.group(1).strip()] = value
 
+    # Ignore MARK element offsets?
+
+    if ignore_marker_offsets and ele.type == 'mark' and 'offset' in ele.param: del ele.param['offset']
+
     sad_ele_list[ele.name] = ele
+
 
 # ------------------------------------------------------------------
 
@@ -355,12 +386,6 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
 
 
 # ------------------------------------------------------------------
-
-def print_help():
-  print ('Syntax: sad_to_bmad.py {-open} {-closed} {-include <bmad_header_file>} <input-sad-file>')
-  sys.exit()
-
-# ------------------------------------------------------------------
 # ------------------------------------------------------------------
 # ------------------------------------------------------------------
 
@@ -368,14 +393,18 @@ header_file = ''
 mark_open = False
 mark_closed = False
 inputfile = None
-sad_sol_to_marker = True  # False -> No element in bmad lattice.
+sad_sol_to_marker = True           # False -> No element in bmad lattice.
+ignore_marker_offsets = False
 
 i = 1
 while i < len(sys.argv):
+  n = len(sys.argv[i])
   if sys.argv[i] == '-open': 
     mark_open = True
   elif sys.argv[i] == '-closed': 
     mark_closed = True
+  elif n > 1 and '-ignore_marker_offsets'[:n] == sys.argv[i]:
+    ignore_marker_offsets = True
   elif sys.argv[i] == '-include':
     i += 1
     header_file = sys.argv[i]
@@ -513,7 +542,7 @@ bmad_line = []
 
 f_out.write ('\n')
 
-for ele_name in sad_line.element:
+for ix_s_ele, ele_name in enumerate(sad_line.element):
 
   if not ele_name in sad_ele_list:
     print ('No definition found for element name: ' + ele_name)
@@ -537,7 +566,38 @@ for ele_name in sad_line.element:
     else:
       if not sad_sol_to_marker: continue
 
-  #
+  # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
+
+  if s_ele.type == 'mark' and 'offset' in s_ele.param:
+    null_ele_name = 'null_' + s_ele.name + '#' + str(ix_s_ele)  # Guaranteed unique
+    bmad_line.append (null_ele_name)                            # Put null_ele in the line
+    WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
+
+    # Now define the marker element
+    sad_offset = float(s_ele.param['offset'])
+    int_off = int(math.floor(sad_offset))
+    frac_off = sad_offset - int_off
+
+    offset = 0
+    direc = 1
+    if int_off < 0: direc = -1
+    for ix in range(0, int_off, direc):
+      ss_ele = sad_ele_list[sad_line.element[ix_s_ele+ix]]
+      if 'l' in ss_ele.param: offset += direc * float(ss_ele.param['l'])
+    ss_ele = sad_ele_list[sad_line.element[ix_s_ele+int_off]]
+    if 'l' in ss_ele.param: offset += frac_off * float(ss_ele.param['l'])
+
+    if s_ele.instances == 0:
+      suffix = ''
+    else:
+      suffix = '.' + str(s_ele.instances)
+    bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
+    WrapWrite(bmad_ele_def)
+    s_ele.printed = True
+    s_ele.instances += 1
+    continue
+
+  # Regular element not getting superimposed
 
   bmad_line.append(s_ele.name)
 
@@ -546,11 +606,11 @@ for ele_name in sad_line.element:
   b_ele = ele_struct()
   sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz)
 
-  bmadline = b_ele.name + ': ' + b_ele.type
+  bmad_ele_def = b_ele.name + ': ' + b_ele.type
   for param in iter(b_ele.param):
-    bmadline += ', ' + param + ' = ' + b_ele.param[param]
+    bmad_ele_def += ', ' + param + ' = ' + b_ele.param[param]
 
-  WrapWrite(bmadline)
+  WrapWrite(bmad_ele_def)
   s_ele.printed = True
 
 # ------------------------------------------------------------------

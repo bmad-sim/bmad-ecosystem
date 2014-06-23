@@ -1,0 +1,14 @@
+Known Translation Limitations:
+
+CAVI: 
+  Translated to rfcavity. Therefore does not handle accelerating cavities.
+  Not translated: V1, V20, V11, V02
+  Not translated: DISFRIN, FRINGE
+  Not translated: DPHI
+
+Misalignments in SOL element with GEO = 1 not yet implemented.
+
+Conversion cannot handle lines that contain sub-lines.
+
+A given MARK element with a non-zero offset cannot appear multiple times in a lattice.
+This is due to the fact that the corresponding Bmad element uses superposition.
