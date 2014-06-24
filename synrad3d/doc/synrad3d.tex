@@ -440,8 +440,8 @@ have been computed from Eq.~\ref{Eq.diffuse.power}.
 \subsection{Fortran Namelist}
 \label{s:namelist}
 
-Fortran namelist syntax is used for \srthree. The general form
-of a namelist is
+Fortran namelist syntax is used for parameter input by \srthree. The
+general form of a namelist is
 \begin{example}
   &<namelist_name>
     <var1> = ...
@@ -468,7 +468,8 @@ components.
 
 The master input file can be specified on the command line invoking synrad3d.
 If not given, the default name for the master input file is ``\vn{synrad3d.init}''.
-Example master input file:
+
+Fortran namelist sytax is used (\sref{s:namelist}). Example master input file:
 \begin{example}
   &synrad3d_parameters
     ix_ele_track_start   = 1      ! Radiation region start lattice element.

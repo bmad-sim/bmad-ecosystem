@@ -811,14 +811,14 @@ select case (ele%key)
 case (sbend$)  
 
   ! sbends are easy
-  gx = 1 / ele%value(rho$)
+  gx = ele%value(g$) + ele%value(g_err$)
   gy = 0
   if (ele%value(roll$) /= 0) then
     gy = gx * sin(ele%value(roll$))
     gx = gx * cos(ele%value(roll$))
   endif
 
-case (quadrupole$, sol_quad$, elseparator$)
+case (quadrupole$, sol_quad$, elseparator$, sad_mult$)
 
   ! for quads or sol_quads, get the bending radius
   ! from the change in x' and y' over a small 

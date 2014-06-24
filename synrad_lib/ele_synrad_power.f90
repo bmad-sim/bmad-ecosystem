@@ -51,9 +51,11 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
   ! power calculation is only for bends, quads and wigglers.
 
   ele => lat%ele(ie)
-
-  if (ele%key /= sbend$ .and. ele%key /= quadrupole$ .and. &
-                     ele%key /= wiggler$ .and. ele%key /= undulator$ .and. ele%key /= sol_quad$) return
+  select case (ele%key)
+  case (elseparator$, sbend$, quadrupole$, sad_mult$, wiggler$, undulator$, sol_quad$)
+  case default
+    return
+  end select
 
   ! check if ele is on
   if (.not. ele%is_on) return
