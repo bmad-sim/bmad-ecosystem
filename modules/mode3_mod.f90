@@ -1001,9 +1001,9 @@ ele2%mode3%y%eta = ele2%mode3%v(3,6)
 ele2%mode3%x%etap = ele2%mode3%v(1,5)
 ele2%mode3%y%etap = ele2%mode3%v(3,5)
 
-call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%value(l$), ele2%mode3%a, err)
-call twiss1_propagate (ele1%mode3%b, w(2)%m,  ele2%value(l$), ele2%mode3%b, err)
-call twiss1_propagate (ele1%mode3%c, w(3)%m,  0.0_rp,         ele2%mode3%c, err)
+call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%key, ele2%value(l$), ele2%mode3%a, err)
+call twiss1_propagate (ele1%mode3%b, w(2)%m,  ele2%key, ele2%value(l$), ele2%mode3%b, err)
+call twiss1_propagate (ele1%mode3%c, w(3)%m,  ele2%key, 0.0_rp,         ele2%mode3%c, err)
 
 END SUBROUTINE
 

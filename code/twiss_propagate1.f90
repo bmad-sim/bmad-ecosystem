@@ -172,9 +172,9 @@ endif
 !---------------------------------------------------------------------
 ! Propagate twiss.
 
-call twiss1_propagate (ele1%a, mat2_a, ele2%value(l$), ele2%a, error)
+call twiss1_propagate (ele1%a, mat2_a, ele2%key, ele2%value(l$), ele2%a, error)
 if (error) return
-call twiss1_propagate (ele1%b, mat2_b, ele2%value(l$), ele2%b, error)
+call twiss1_propagate (ele1%b, mat2_b, ele2%key, ele2%value(l$), ele2%b, error)
 if (error) return
 
 if (ele2%mode_flip .neqv. ele1%mode_flip) then
@@ -256,15 +256,17 @@ end subroutine
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
+! Subroutine twiss1_propagate (twiss1, mat2, ele_key, length, twiss2, err)
 !
 ! Subroutine to propagate the twiss parameters of a single mode.
 !
 ! The betatron phase phi is only determined up to a factor of 2pi. 
-! The length argument is used to determine what phi should be:
-!   length > 0:       0 <= phi <  twopi
-!   length = 0:     -pi <  phi <= pi
-!   length < 0:  -twopi <  phi <= 0
+! The length and ele_key argument is used to determine what phi should be:
+!   length > 0:                           0 <= phi <  twopi
+!   length = 0 or ele_key = patch$:     -pi <  phi <= pi
+!   length < 0:                      -twopi <  phi <= 0
+! The patch element is exceptional in that its length is defined in a somewhat 
+! arbitrary manner and thus is not a good reference as to what the phase advance should be.
 !
 ! Modules needed:
 !   use bmad
@@ -272,6 +274,7 @@ end subroutine
 ! Input:
 !   twiss1    -- Twiss_struct: Input Twiss parameters.
 !   mat2(2,2) -- Real(rp): The transfer matrix.
+!   ele_key   -- Integer: quadrupole$, etc.
 !   length    -- Real(rp): Determines whether the phase is 
 !                            increasing or decreasing.
 !
@@ -280,7 +283,7 @@ end subroutine
 !   err       -- Logical: Set True if there is an error, false otherwise.
 !-
 
-subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
+subroutine twiss1_propagate (twiss1, mat2, ele_key, length, twiss2, err)
 
 use bmad_interface, except_dummy => twiss1_propagate
 
@@ -290,7 +293,7 @@ type (twiss_struct)  twiss1, twiss2, temp
 
 real(rp) m11, m12, m21, m22, del_phi, length
 real(rp) a1, b1, g1, a2, b2, g2, mat2(2,2), det
-
+integer ele_key
 logical err
 
 !----------------------------------------------------
@@ -317,8 +320,11 @@ a2 = a1 + (-m21*m11 * b1 + 2*m12*m21 * a1 - m12*m22 * g1) / det
 g2 =  (1 + a2**2) /b2
 
 del_phi = atan2(m12, m11*b1 - m12*a1)
-if (del_phi < 0 .and. length > 0) del_phi = del_phi + twopi
-if (del_phi > 0 .and. length < 0) del_phi = del_phi - twopi
+
+if (ele_key /= patch$) then
+  if (del_phi < 0 .and. length > 0) del_phi = del_phi + twopi
+  if (del_phi > 0 .and. length < 0) del_phi = del_phi - twopi
+endif
 
 twiss2%beta = b2
 twiss2%alpha = a2
