@@ -144,9 +144,18 @@ ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np']
 
+sad_reversed_params = {
+      'ae1': 'ae2',
+      'ae2': 'ae1',
+      'e1': 'e2',
+      'e2': 'e1',
+      'fb1': 'fb2',
+      'fb2': 'fb1'
+}
+  
 # ------------------------------------------------------------------
 
-def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
+def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   bmad_ele.name = sad_ele.name
 
@@ -162,7 +171,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
     if 'dx' in sad_ele.param or 'dy' in sad_ele.param or 'dz' in sad_ele.param or 'chi1' in sad_ele.param or \
                                 'chi2' in sad_ele.param or 'chi3' in sad_ele.param or 'rotate' in sad_ele.param:
       if sad_ele.param.get('geo') == '1':
-        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
+        print ('  IF MISALIGNMENTS ARE SMALL THEN THIS IS NOT A PROBLEM:')
+        for param in sad_ele.param:
+          if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
+            print ('  ' + param + ' = ' + sad_ele.param[param])
       else:
         bmad_ele.type = 'patch'
 
@@ -173,9 +186,18 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
     bmad_ele.param['bs_field'] = bz
 
   for sad_param_name in sad_ele.param:
+
     full_param_name = sad_ele.type + ':' + sad_param_name 
     if sad_param_name in ignore_sad_param: continue
     if full_param_name in ignore_sad_param: continue
+
+    value = sad_ele.param[sad_param_name]
+
+    # For reversed elements, ae1 -> ae2, etc.
+
+    if reversed and sad_param_name in sad_reversed_params: 
+      sad_param_name = sad_reversed_params[sad_param_name]
+      full_param_name = sad_ele.type + ':' + sad_param_name 
 
     # Use more specific translation first
 
@@ -202,11 +224,18 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
       bmad_name = result
       value_suffix = ''
 
-    value = sad_ele.param[sad_param_name]
     if 'deg' in value: value = value.replace('deg', '* degrees')
     if 'kev' in value: value = value.replace('kev', '* 1e3')
     if 'mev' in value: value = value.replace('mev', '* 1e6')
     if 'gev' in value: value = value.replace('gev', '* 1e9')
+
+    if reversed:
+      if sad_param_name == 'offset': value = '1 - ' + value
+      if sad_param_name in ['chi1', 'chi2', 'dz']: 
+        if value[0] == '-': 
+          value = value[1:]
+        else:
+          value = '-' + value 
 
     if sad_param_name == 'radius':   
       if value[0] == '-': value = value[1:]   # Remove negative sign from radius
@@ -229,6 +258,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz):
 
   fringe = '0'   # default 
   if 'fringe' in sad_ele.param: fringe = sad_ele.param['fringe']
+
+  if reversed:
+    if fringe == 1:
+      fringe = 2
+    elif fringe == 2:
+      fringe = 1
 
   disfrin = '0'    # default
   if 'disfrin' in sad_ele.param: disfrin = sad_ele.param['disfrin']
@@ -361,6 +396,14 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
   head, blank, rest_of_line = directive.partition(" ")
   if head == 'ffs': head, blank, rest_of_line = rest_of_line.partition(" ") # Strip off FFS if present
 
+  if ',' in head or '=' in head:
+    if ',' in head: 
+      p1, blank, p2 = head.partition(',')
+    else:
+      p1, blank, p2 = head.partition('=')
+    head = p1
+    if p2 != '': rest_of_line = p2 + ' ' + rest_of_line 
+
   if head in sad_param_names:
     if calc_command_found: return
     parse_param (head, rest_of_line, sad_param_list)
@@ -373,7 +416,7 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
     if calc_command_found: return
     parse_ele(head, rest_of_line, sad_ele_list)
 
-  elif head == 'calc':
+  elif head == 'calc' or head == 'cal':
     calc_command_found = True
 
   elif 'initialorbit' in rest_of_line:
@@ -494,6 +537,10 @@ for line in f_in:
 # ------------------------------------------------------------------
 # Get root lattice line
 
+if 'use' not in sad_param_list:
+  print ('NO USE STATEMENT FOUND!')
+  sys.exit()
+
 line0_name = sad_param_list['use']
 print ('Using line: ' + line0_name)
 
@@ -576,7 +623,7 @@ for ix_s_ele, sad_line_list in enumerate(sad_line.list):
     if 'dx' in s_ele.param or 'dy' in s_ele.param or 'dz' in s_ele.param or 'chi1' in s_ele.param or \
                                 'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
       if s_ele.param.get('geo') == '1': 
-        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+        ## print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
         if not sad_sol_to_marker: continue
     
     else:
@@ -620,7 +667,7 @@ for ix_s_ele, sad_line_list in enumerate(sad_line.list):
   if s_ele.printed == True: continue
 
   b_ele = ele_struct()
-  sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz)
+  sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz, sad_line_list.reversed)
 
   bmad_ele_def = b_ele.name + ': ' + b_ele.type
   for param in iter(b_ele.param):
