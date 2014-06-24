@@ -1,5 +1,5 @@
 !+                       
-! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
+! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
 !
 ! Subroutine to track through the lat.
 !
@@ -12,16 +12,19 @@
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
 !   orbit(0)    -- Coord_struct: Coordinates at beginning of lat.
-!   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main lattice).
+!   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main branch).
 !
 ! Output:
-!   orbit(0:*)   -- Coord_struct: Orbit array.
+!   orbit(0:)    -- Coord_struct: Orbit array.
 !   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
 !                     Otherwise: set to index of element where particle was lost.
 !   err_flag     -- Logical, optional: Set true if particle lost or error. False otherwise
+!   orbit0(0:)   -- Coord_struct, optional: Orbit array for branch 0. Used to fill in the
+!                     orbit at lord elemenets. 
+!                     Only needed when orbit(:) is not the orbit for branch 0.
 !-
 
-subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
+subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
 
 use bmad_interface, except_dummy => track_all
 use bookkeeper_mod, only: control_bookkeeper
@@ -29,7 +32,9 @@ use bookkeeper_mod, only: control_bookkeeper
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct), allocatable :: orbit(:)
+type (coord_struct), allocatable, target :: orbit(:)
+type (coord_struct), optional, allocatable, target :: orbit0(:)
+type (coord_struct), pointer :: orb(:)
 type (ele_struct), pointer :: lord, slave
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
@@ -91,16 +96,22 @@ do n = 1, branch%n_ele_track
 
 enddo
 
-! Fill in super_lord info.
+! Fill in orbits for lord elements.
 
-if (ix_br /= 0) return   ! Bug: Cannot fill in lord info if branch /= 0 !!
+if (ix_br == 0) then
+  orb => orbit
+elseif (present(orbit0)) then
+  orb => orbit0
+else
+  return   ! Nothing can be done
+endif
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n) 
   if (lord%lord_status /= super_lord$) cycle
   slave => pointer_to_slave(lord, lord%n_slave)
   if (slave%ix_branch /= ix_br) cycle
-  orbit(lord%ix_ele) = orbit(slave%ix_ele)
+  orb(lord%ix_ele) = orbit(slave%ix_ele)
 enddo
 
 end subroutine
