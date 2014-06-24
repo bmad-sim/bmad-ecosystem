@@ -318,7 +318,8 @@ if (u%calc%track) then
     lat_branch%orb0 = orbit(0)   ! Save beginning orbit
 
   else
-    call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state)
+    call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state, &
+                                                            orbit0 = tao_lat%lat_branch(0)%orbit)
     if (lat_branch%track_state /= moving_forward$) then
       calc_ok = .false.
       ix_lost = lat_branch%track_state
