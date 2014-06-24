@@ -534,7 +534,7 @@ case ('branch')
     nl=nl+1; write(lines(nl), imt)   '%ix_from ele               =', branch%ix_from_ele
     nl=nl+1; write(lines(nl), imt)   '%n_ele_track               =', branch%n_ele_track
     nl=nl+1; write(lines(nl), imt)   '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write(lines(nl), imt)   '%param%particle            = ' // trim(species_name(branch%param%particle))
+    nl=nl+1; write(lines(nl), amt)   '%param%particle            = ', trim(species_name(branch%param%particle))
     nl=nl+1; write(lines(nl), '(a, f6.1)')  '%param%rel_tracking_charge =', branch%param%rel_tracking_charge
     nl=nl+1; write(lines(nl), amt)   '%param%geometry            = ', geometry_name(branch%param%geometry)
     if (branch%param%particle == photon$) then
@@ -2599,11 +2599,16 @@ case ('universe')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
   nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name
-  nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
+  nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)
+  if (branch%param%particle == photon$) then
+    nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
+  endif
+  nl=nl+1; write(lines(nl), rmt) 'Reference energy:       ', branch%ele(0)%value(e_tot$)
+  nl=nl+1; write(lines(nl), rmt) 'Reference momentum:     ', branch%ele(0)%value(p0c$)
   nl=nl+1; write(lines(nl), lmt) 'Auto_Scale_Field_Phase: ', lat%auto_scale_field_phase
   nl=nl+1; write(lines(nl), lmt) 'Auto_scale_Field_Amp:   ', lat%auto_scale_field_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
-  nl=nl+1; lines(nl) =           'Geometry:               ' // geometry_name(branch%param%geometry)
+  nl=nl+1; write(lines(nl), amt) 'Geometry:               ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
   nl=nl+1; write(lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', branch%n_ele_track
