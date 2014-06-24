@@ -138,13 +138,15 @@ call create_alley (outside)
 ! check that endpoints are correct
 
 if (abs(outside%pt(outside%n_pt_tot)%s - s_lat) > 0.01) then
-  print *, 'WARNING: OUTSIDE WALL ENDS AT:', outside%pt(outside%n_pt_tot)%s
-  print *, '         AND NOT AT LATTICE END OF:', s_lat
+  print *, 'Note: Outside wall ends at:', outside%pt(outside%n_pt_tot)%s
+  print *, '      And not at lattice end of:', s_lat
+  print *, '      [But last point is always adjusted to have s = s_lat]'
 endif
 
 if (abs(inside%pt(inside%n_pt_tot)%s - s_lat) > 0.01) then
-  print *, 'WARNING: INSIDE WALL ENDS AT:', inside%pt(inside%n_pt_tot)%s
-  print *, '         AND NOT AT LATTICE END OF:', s_lat
+  print *, 'Note: Inside wall ends at:', inside%pt(inside%n_pt_tot)%s
+  print *, '      And not at lattice end of:', s_lat
+  print *, '      [But last point is always adjusted to have s = s_lat]'
 endif
 
 outside%pt(outside%n_pt_tot)%s = s_lat

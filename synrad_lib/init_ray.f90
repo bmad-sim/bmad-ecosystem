@@ -60,19 +60,22 @@ select case (ele%key)
 case (sbend$)
 
   ! sbends are easy
-  ray%g_bend = abs(1 / ele%value(rho$))
+  ray%g_bend = abs(ele%value(g$) + ele%value(g_err$))
 
-case (quadrupole$, sol_quad$)
+! for quads or sol_quads, get the bending radius
+! from the change in x' and y' over a small 
+! distance in the element
 
-  ! for quads or sol_quads, get the bending radius
-  ! from the change in x' and y' over a small 
-  ! distance in the element
+case (quadrupole$, sol_quad$, sad_mult$, elseparator$)
+
   l_small = 1e-2      ! something small
   runt_ele%value(l$) = l_small
   call make_mat6 (runt_ele, lat%param, orb0, orb0)
   call track1 (orb0, runt_ele, lat%param, orb1)
   orb1%vec = orb1%vec - orb0%vec
   ray%g_bend = sqrt(orb1%vec(2)**2 + orb1%vec(4)**2) / l_small
+
+! wiggler, undulator
 
 case (wiggler$, undulator$)
 
