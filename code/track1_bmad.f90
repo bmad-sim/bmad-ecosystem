@@ -35,7 +35,7 @@ type (coord_struct) :: end_orb, temp_orb
 type (ele_struct) :: ele, temp_ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
-type (taylor_struct) taylor(6), taylor2(6)
+type (taylor_struct) taylor1(6), taylor2(6)
 
 real(rp) k1, k2, k2l, k3l, length, phase0, phase, beta_start, beta_ref
 real(rp) beta_end, beta_start_ref, beta_end_ref, hkick, vkick, kick
@@ -726,12 +726,12 @@ case (taylor$)
     call track1_taylor (start_orb, ele, param, end_orb)
 
   else
-    call taylor_inverse (ele%taylor, taylor)
+    call taylor_inverse (ele%taylor, taylor1)
     taylor2 = ele%taylor
-    ele%taylor = taylor
+    ele%taylor = taylor1
     call track1_taylor (start_orb, ele, param, end_orb)
     ele%taylor = taylor2
-    call kill_taylor(taylor)
+    call kill_taylor(taylor1)
   endif
 
   call time_and_s_calc ()
