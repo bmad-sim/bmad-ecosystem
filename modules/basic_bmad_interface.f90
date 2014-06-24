@@ -631,11 +631,12 @@ interface
     real(rp) coord(:)
   end subroutine
 
-  subroutine track_all (lat, orbit, ix_branch, track_state, err_flag)
+  subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
     import
     implicit none
     type (lat_struct) lat
-    type (coord_struct), allocatable :: orbit(:)
+    type (coord_struct), allocatable, target :: orbit(:)
+    type (coord_struct), optional, allocatable, target :: orbit0(:)
     integer, optional :: ix_branch, track_state
     logical, optional :: err_flag
   end subroutine
