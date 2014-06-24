@@ -51,9 +51,9 @@ cg_mat = ele%c_mat / gamma_flip
 call mat_symp_conj (cg_mat, cg_conj)
 
 a = ele%a
-call twiss1_propagate (ele%b, cg_mat, 0.0_rp, ele%a, err)
+call twiss1_propagate (ele%b, cg_mat, drift$, 0.0_rp, ele%a, err)
 if (err) return
-call twiss1_propagate (a, -cg_conj, 0.0_rp, ele%b, err)
+call twiss1_propagate (a, -cg_conj, drift$, 0.0_rp, ele%b, err)
 if (err) return
 
 ele%mode_flip = .not. ele%mode_flip

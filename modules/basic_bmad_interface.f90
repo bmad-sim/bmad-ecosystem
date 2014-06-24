@@ -815,10 +815,11 @@ interface
     integer, optional, intent(out) :: status
   end subroutine
 
-  subroutine twiss1_propagate (twiss1, mat2, length, twiss2, err)
+  subroutine twiss1_propagate (twiss1, mat2, ele_type, length, twiss2, err)
     import
     implicit none
     type (twiss_struct) twiss1, twiss2
+    integer ele_type
     real(rp) mat2(2,2), length
     logical err
   end subroutine
