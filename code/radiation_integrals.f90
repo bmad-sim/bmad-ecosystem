@@ -8,8 +8,8 @@
 ! unstable. That is, you have a negative damping partition number.
 !
 ! The calculation can spend a significant amount of time calculating the integrals.
-! To speed up this calculation the ix_cache argument can be used to stash values for the bending 
-! radius, etc. so that repeated calls to radiation_integrals consumes less time.
+! To speed up this calculation the ix_cache argument can be used to stash values for 
+! the bending radius, etc. so that repeated calls to radiation_integrals consumes less time.
 ! To use caching: 
 !   1) First call radiation_integrals with ix_cache set to 0. 
 !      radiation_integrals will cache values needed to compute the integrals 
@@ -220,16 +220,26 @@ endif
 
 if (init_cache) then
 
-  ! Count number of elements to cache & allocate memory.
+  if (allocated(cache%c_ele)) then
+    if (size(cache%c_ele) < branch%n_ele_max) deallocate (cache%c_ele)
+  endif
+  if (.not. allocated(cache%c_ele)) allocate (cache%c_ele(branch%n_ele_max))  ! allocate cache memory
 
-  call re_allocate (cache%ix_c_ele, branch%n_ele_max, .false.)
-  cache%ix_c_ele = -1 ! do not cache this element
+  cache%c_ele%cache_type = no_cache$
 
-  j = 0  ! number of elements to cache
+  branch%ele%bookkeeping_state%rad_int = stale$
+
+endif
+
+! Now cache the information.
+! The cache ri_info is computed with all offsets off.
+! Only need to update the cache if ele%bookkeeping_state%rad_int has been altered.
+
+if (use_cache .or. init_cache) then
+
   do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    ele%bookkeeping_state%rad_int = stale$
 
+    ele => branch%ele(i)
     if (ele%value(l$) == 0) cycle
 
     select case (ele%key)
@@ -242,30 +252,8 @@ if (init_cache) then
       if (ele%value(hkick$) == 0 .or. ele%value(vkick$) == 0) cycle
     end select
 
-    j = j + 1
-    cache%ix_c_ele(i) = j  ! mark element for caching
-  enddo
-
-  if (allocated(cache%c_ele)) then
-    if (size(cache%c_ele) < j) deallocate (cache%c_ele)
-  endif
-  if (.not. allocated(cache%c_ele)) allocate (cache%c_ele(j))  ! allocate cache memory
-
-endif
-
-! Now cache the information.
-! The cache ri_info is computed with all offsets off.
-! Only need to update the cache if ele%bookkeeping_state%rad_int has been altered.
-
-if (use_cache .or. init_cache) then
-
-  j = 0 
-  do i = 1, branch%n_ele_track
-
-    if (cache%ix_c_ele(i) == -1) cycle
-
-    j = j + 1
-    cache_ele => cache%c_ele(j)
+    cache_ele => cache%c_ele(i)
+    cache_ele%cache_type = cache_no_misalign$
 
     if (branch%ele(i)%bookkeeping_state%rad_int /= stale$) cycle
     branch%ele(i)%bookkeeping_state%rad_int = ok$
@@ -396,7 +384,7 @@ do ir = 1, branch%n_ele_track
 
   nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_c_ele(ir) > 0) ri_info%cache_ele => cache%c_ele(cache%ix_c_ele(ir))
+    if (cache%c_ele(ir)%cache_type /= no_cache$) ri_info%cache_ele => cache%c_ele(ir)
   endif
 
   pt%g_x0 = 0
@@ -506,7 +494,7 @@ do ir = 1, branch%n_ele_track
 
   nullify (ri_info%cache_ele)
   if (use_cache) then
-    if (cache%ix_c_ele(ir) > 0) ri_info%cache_ele => cache%c_ele(cache%ix_c_ele(ir))
+    if (cache%c_ele(ir)%cache_type /= no_cache$) ri_info%cache_ele => cache%c_ele(ir)
   endif
 
   ll = ele%value(l$)

@@ -13,6 +13,8 @@ use em_field_mod
 ! The "cache" is for saving values for g, etc through an element to speed
 ! up the calculation.
 
+integer, parameter :: no_cache$ = 0, cache_with_misalign$ = 1, cache_no_misalign$ = 2
+
 type rad_int_track_point_struct
   real(rp) mat6(6,6)
   real(rp) vec0(6)
@@ -25,13 +27,13 @@ end type
 
 type rad_int_cache1_struct
   type (rad_int_track_point_struct), allocatable :: pt(:)
-  type (ele_struct), pointer :: ele
+  !! type (ele_struct), pointer :: ele
   real(rp) del_z
+  integer :: cache_type = no_cache$
 end type
 
 type rad_int_cache_struct
   type (rad_int_cache1_struct), allocatable :: c_ele(:)
-  integer, allocatable :: ix_c_ele(:)
   logical set
 end type
 
