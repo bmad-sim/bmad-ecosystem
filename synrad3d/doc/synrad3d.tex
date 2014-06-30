@@ -92,7 +92,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{April 30, 2013}
+\date{June 30, 2014}
 
 %---------------------------------------------------------------------------------
 
@@ -923,6 +923,12 @@ vertex before it is the arc of a circle with the given radius. If, in
 addition, \vn{<radius_y>} is given, the arc will be a section of an
 ellipse.  If, in addition to \vn{<radius_x>} and \vn{<radius_y>},
 \vn{<tilt>} is given, then the ellipse will be tilted.
+
+If \vn{<radius_x>} is positive, the arc of the wall is convex with
+respect to the origin $(x, y) = (0, 0)$. If it is negative, the arc is
+concave. Note that when the wall cross-section is concave, there can
+be problems with the photon tracking. See \sref{s:track} for more
+details.
 
 In the example above, the cross-section at $s = 65.7$~meters is a
 \vn{gen_shape} whose definition is given by the \vn{gen_shape_def}
