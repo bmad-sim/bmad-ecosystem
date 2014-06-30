@@ -740,7 +740,7 @@ type tao_universe_calc_struct
   logical :: dynamic_aperture = .false.  ! Do the dynamic_aperture calc?
   logical :: one_turn_map = .false.      ! Compute the one turn map?
   logical lattice                        ! Used to indicate which lattices need tracking done.
-  logical :: mat6 = .true.               ! calc linear transfer matri?
+  logical :: mat6 = .true.               ! calc linear transfer matrix?
   logical :: track = .true.              ! tracking needs to be done?
 end type
 

@@ -44,6 +44,7 @@ design_lattice%file   = ''
 design_lattice%file2  = ''
 design_lattice%language = ''
 design_lattice%use_line = ''
+design_lattice%one_turn_map_calc = .false.
 
 design_lat = design_lattice(0)
 
@@ -120,7 +121,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%calc%rad_int_for_plotting = .false.
   u%calc%chrom_for_data       = .false.
   u%calc%chrom_for_plotting   = .false.
-  u%calc%one_turn_map         = .false.
 
   ! If unified then only read in a lattice for the common universe.
 
@@ -185,8 +185,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   case ('aml')
     call aml_parser (design_lat%file, u%design%lat, err_flag = err)
   case ('digested')
-    call out_io (s_blank$, r_name, &
-                "Reading digested BMAD file " // trim(design_lat%file))
+    call out_io (s_blank$, r_name, "Reading digested BMAD file " // trim(design_lat%file))
     call read_digested_bmad_file (design_lat%file, u%design%lat, version)
     err = (bmad_inc_version$ /= version)
   case default
@@ -200,8 +199,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   if (design_lat%language /= 'digested' .and. err .and. .not. s%global%debug_on) then
     call out_io (s_fatal$, r_name, &
             'PARSER ERROR DETECTED FOR UNIVERSE: \i0\ ', &
-            'EXITING...', & 
-            i_array = (/ i /))
+            'EXITING...', i_array = (/ i /))
     stop
   endif
 
@@ -238,6 +236,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call calc_z_tune(u%design%lat)
     call set_on_off (rfcavity$, u%design%lat, off$)
   endif
+
+  !
+
+  u%calc%one_turn_map = design_lat%one_turn_map_calc
 
   ! Custom stuff
 
