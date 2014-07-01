@@ -144,31 +144,31 @@ subroutine qp_set_symbol_size_basic (height, symbol_type, uniform_size)
   if (uniform_size) then
 
     select case (symbol_type)
-    case (1)            ! dot$
+    case (dot_sym$)
       h = h * 2.0       ! I like bigger dots
-    case (16)           ! square_filled$
+    case (square_filled_sym$)
       h = h * 1.56
-    case (17)           ! circle_filled$
+    case (circle_filled_sym$)
       h = h * 1.60
-    case (18)           ! star5_filled$
+    case (star5_filled_sym$)
       h = h * 1.30
-    case (10)           ! square_concave$
+    case (square_concave_sym$)
       h = h * 0.73
     end select
 
     if (pl_com%page_type == 'X' .or. pl_com%page_type == 'TK') then
       select case (symbol_type)
-      case (8)           ! circle_plus$
+      case (circle_plus_sym$)
         h = h * 0.55
-      case (9)           ! circle_dot$
+      case (circle_dot_sym$)
         h = h * 0.59
-      case (4)           ! circle$
+      case (circle_sym$)
         h = h * 0.89
-      case (13)          ! triangle_filled$
+      case (triangle_filled_sym$)
         h = h * 1.22
       end select
     else
-      if (symbol_type == 13) h = h * 1.03   ! triangle_filled$
+      if (symbol_type == triangle_filled_sym$) h = h * 1.03
     endif
 
   endif
