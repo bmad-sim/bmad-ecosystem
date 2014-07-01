@@ -23,7 +23,7 @@ character(100) this_lat, line, temp
 character(100) lat_file, in_file, wall_file
 character(16) forward_beam, backward_beam
 
-real(rp) end_s, wall_offset, s, x_in, x_out, seg_len
+real(rp) wall_offset, s, x_in, x_out, seg_len
 
 logical err_flag, phantom
 
@@ -215,10 +215,13 @@ end subroutine synch_calc
 
 subroutine old_read_wall_file ()
 
+real(rp) s_lat
+
 ! create a wall outline and break into segments
 
-end_s = lat%ele(lat%n_ele_track)%s
-n = 2 * end_s / seg_len + 2
+s_lat = lat%ele(lat%n_ele_track)%s
+
+n = 2 * s_lat / seg_len + 2
 allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
 
 neg_x_wall%side = negative_x$
@@ -281,8 +284,14 @@ call delete_overlapping_wall_points(neg_x_wall)
 
 ! Must do this set after deleting overlapping wall points
 
-neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
-pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = lat%ele(lat%n_ele_track)%s
+if (abs(pos_x_wall%pt(pos_x_wall%n_pt_tot)%s - s_lat) > 0.01) then
+  print *, 'Note: Wall ends at:', pos_x_wall%pt(pos_x_wall%n_pt_tot)%s
+  print *, '      And not at lattice end of:', s_lat
+  print *, '      [But last point is always adjusted to have s = s_lat]'
+endif
+
+neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = s_lat
+pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = s_lat
  
 !
 
