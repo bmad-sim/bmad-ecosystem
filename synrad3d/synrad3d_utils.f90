@@ -356,10 +356,20 @@ section_loop: do i = 0, wall%n_section_max
 
 enddo section_loop
 
-! 
+! Last section has s adjusted to match the lattice length.
+
+if (abs(wall%section(wall%n_section_max)%s - s_lat) > 0.01) then
+  call out_io (s_info$, r_name, &
+        'Wall ends at: \f12.4\ ', &
+        'And not at lattice end of: \f12.4\ ', &
+        '[But last point is always adjusted to have s = s_lat]', &
+        r_array = [wall%section(wall%n_section_max)%s, s_lat])
+endif
 
 wall%section(wall%n_section_max)%s = s_lat
 wall%geometry = geometry
+
+! Checks
 
 do i = 0, wall%n_section_max
   sec => wall%section(i)
