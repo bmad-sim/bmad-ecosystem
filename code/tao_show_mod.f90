@@ -1146,8 +1146,8 @@ case ('element')
 
   if (print_ptc) then
     if (.not. associated (ele%ptc_fibre)) then
-      nl=nl+1; lines(nl) = 'Creating associated Fibre...'
-      call ele_to_fibre (ele, ele%ptc_fibre, ele%branch%param, .true.)
+      nl=nl+1; lines(nl) = 'No Fibre associated  with element.'
+      return
     endif
     call type_ptc_fibre (ele%ptc_fibre, .true., alloc_lines, n)
     if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
