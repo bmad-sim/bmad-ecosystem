@@ -404,7 +404,7 @@ character(160) str
 character(16), parameter :: r_name = 'type_ptc_fibre'
 
 logical, optional :: print_coords
-logical printit
+logical printit, all_zero
 
 !
 
@@ -515,13 +515,22 @@ if (associated(mag)) then
   call write_real ('%h1               ',  mag%h1,      'es13.5')
   call write_real ('%h2               ',  mag%h2,      'es13.5')
   call write_real ('%b_sol            ',  mag%b_sol,   'es13.5')
+
   if (associated(mag%an)) then
+    all_zero = .true.
     do i = lbound(mag%an, 1), ubound(mag%an, 1)
       if (mag%an(i) == 0 .and. mag%bn(i) == 0) cycle
       nl=nl+1; write (li(nl), '(2x, 2(a, i0), a, t38, 2es13.5)') &
                           '%an(', i, '), %bn(', i, '):           ', mag%an(i), mag%bn(i)
+      all_zero = .false.
     enddo
+    if (all_zero) then
+      nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%an(:), %bn(:):', 'All Zero'
+    endif
+  else
+    nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%an(:), %bn(:):', 'Not Associated'
   endif
+
   nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%thin:        ', logical_of(mag%thin)
 
   p =>  ptc_fibre%mag%p

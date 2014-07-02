@@ -187,10 +187,11 @@ n = 0
 do i = 1, n_loc
   call pointer_to_attribute (eles2(i)%ele, &
           attrib_name, do_allocation, ptrs(n+1)%r, err_flag, .false., ix_a)
-  if (.not. err_flag) then
-    n = n + 1
-    if (present(ix_attrib)) ix_attrib = ix_a
-  endif
+  if (err_flag) cycle
+
+  n = n + 1
+  eles2(n)%ele => eles2(i)%ele
+  if (present(ix_attrib)) ix_attrib = ix_a
 enddo
 
 if (n == 0) then

@@ -520,6 +520,8 @@ if (.not. particle_is_moving_forward(orb_end)) then
 endif
 call restore_errors_in_ele (ele)
 
+! 
+
 ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
@@ -625,8 +627,9 @@ subroutine calc_time_ref_orb_out ()
 ele%time_ref_orb_out = orb_end
 ele%time_ref_orb_out%vec(2) = ele%time_ref_orb_out%vec(2) / (1 + orb_end%vec(6))
 ele%time_ref_orb_out%vec(4) = ele%time_ref_orb_out%vec(4) / (1 + orb_end%vec(6))
-ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
-            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
+ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
+!ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
+!            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
 
 

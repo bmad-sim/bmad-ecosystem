@@ -715,28 +715,25 @@ end function particle_in_global_frame
 
 subroutine convert_particle_coordinates_t_to_s (particle, tref)
 
-!use bmad_struct
-
 implicit none
 
 type (coord_struct), intent(inout), target ::particle
 real(rp) :: p0c
 real(rp), intent(in) :: tref
-
 real(rp) :: pctot
-
 real(rp), pointer :: vec(:)
+
+!
+
 vec => particle%vec
 p0c = particle%p0c
-
-! Convert t to s
 pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
-! vec(1) = vec(1)   !this is unchanged
+
+! Convert t to s. vec(1) and vec(3) are unchanged.
+
 vec(2) = vec(2)/p0c
-! vec(3) = vec(3)   !this is unchanged
 vec(4) = vec(4)/p0c
-! z \equiv -c \beta(s)  (t(s) - t_0(s))
-vec(5) = -c_light * (pctot/sqrt(pctot**2 + mass_of(particle%species)**2)) *  (particle%t - tref) 
+vec(5) = -c_light * particle%beta *  (particle%t - tref) 
 vec(6) = pctot/p0c - 1.0_rp
 
 end subroutine convert_particle_coordinates_t_to_s

@@ -442,7 +442,10 @@ end subroutine calc_rotation_quaternion
 !+
 ! subroutine track1_spin (start_orb, ele, param, end_orb)
 !
-! Particle spin tracking through a single element using one of the tracking methods.
+! Particle spin tracking through a single element.
+!
+! Typically this routine should not be directly called. 
+! Instead, use track1 which calls this routine.
 !
 ! Modules needed:
 !   use spin_mod
