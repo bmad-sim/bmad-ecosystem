@@ -1097,9 +1097,9 @@ type track_struct
   type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:) 
   type (track_map_struct), allocatable :: map(:)  ! An array of maps: %map(0:)
   real(rp) :: ds_save = 1e-3                      ! Min distance between points.
-  integer :: n_pt                                 ! Actual track upper bound for %orb(0:) and  %map(0:)
-  integer :: n_bad                                ! Number of bad steps when adaptive tracking is done.
-  integer :: n_ok                                 ! Number of good steps when adaptive tracking is done.
+  integer :: n_pt = -1                            ! Actual track upper bound for %orb(0:) and  %map(0:)
+  integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
+  integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
 end type
 
 !------------------------------------------------------------------------------

@@ -135,14 +135,14 @@ logical local_ref_frame
 !
 
 track%n_pt = track%n_pt + 1
-n_pt = track%n_pt 
+n_pt = track%n_pt
+n_old = ubound(track%orb, 1)
 
-if (n_pt > ubound(track%orb, 1)) then
+if (n_pt > n_old) then
   n = 1.5 * n_pt
-  n_old = ubound(track%orb, 1)
-  allocate(track2%orb(0:n_old), track2%field(0:n_old), track2%map(0:n_old))
-  track2 = track
-  deallocate(track%orb, track%field, track%map)
+  call move_alloc (track%orb, track2%orb)
+  call move_alloc (track%field, track2%field)
+  call move_alloc (track%map, track2%map)
   allocate(track%orb(0:n), track%field(0:n), track%map(0:n))
   track%orb(:n_old) = track2%orb; track%field(:n_old) = track2%field; track%map(:n_old) = track2%map
   deallocate(track2%orb, track2%field, track2%map)

@@ -79,11 +79,6 @@ if (ele%value(l$) .eq. 0) then
     call convert_particle_coordinates_s_to_t(end_orb)
     !Tracks use vec(5) = s_rel
     end_orb%vec(5) = 0.0_rp
-    !convert to element coordinates for track_struct
-  !  call init_saved_orbit (track, 0)
-  !  track%n_pt = 0
-  !  track%orb(0) = end_orb
-  !  track%orb(0)%ix_ele = ele%ix_ele
   if (.not. allocated(track%orb) ) call init_saved_orbit (track, 0)
   call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
   !Query the local field to save
@@ -174,25 +169,16 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
 endif
 
 if ( present(track) ) then
-  if (.not. allocated(track%orb)) call init_saved_orbit (track, 10000)   !TODO: pass this from elsewhere
-  !track%n_pt = 0
-  !track%orb(0) = end_orb
-  !track%orb(0)%ix_ele = ele%ix_ele
-
-  !track%field(0) = saved_field
-      
+  if (.not. allocated(track%orb)) call init_saved_orbit (track, 1000)   !TODO: pass this from elsewhere
   call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
   !Query the local field to save
   call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false., err_flag)
   !call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
   if (err_flag) return
-  track%field(track%n_pt) = saved_field    
-      
-      
+  track%field(track%n_pt) = saved_field     
 endif
 
-
-!Track through element
+! Track through element
 
 if (n_edge == 0) then
   ! Track whole element with no hard edges
