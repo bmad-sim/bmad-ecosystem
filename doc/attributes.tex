@@ -2146,6 +2146,7 @@ The \vn{fringe_type} switch is used to select how a fringe field is simulated.
 For \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be set to one of the following:
 \begin{example}
   none              
+  edge_focus_only
   basic_bend        ! Default 
   full_bend
   full_straight
@@ -2163,12 +2164,15 @@ For non-bend elements, \vn{fringe_type} may be set to one of:
 \end{example}
 
 The \vn{none} setting ignores any fringe fields and is the default for
-\vn{quadrupoles}, \vn{sextupoles}, etc. The \vn{basic_bend} setting,
+\vn{quadrupoles}, \vn{sextupoles}, etc. 
+The \vn{basic_bend} setting,
 which is the default for \vn{rbend} and \vn{sbend} elements, is
 essentially the basic vertical focusing effect that is present when
 there is a finite \vn{e1} or \vn{e2} face angle. With
 \vn{bmad_standard} tracking, \vn{basic_bend} also includes second
-order terms.  In some cases, for instance in a chicane,
+order terms.  
+The \vn{edge_focus_only} setting ignores these second order terms.
+In some cases, for instance in a chicane,
 \vn{basic_bend} is not good enough. With \vn{full_bend} or
 \vn{full_straight}, higher order effects are taken into account.  
 
