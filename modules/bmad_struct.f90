@@ -1128,11 +1128,10 @@ character(16), parameter :: aperture_type_name(0:7) = &
 ! fringe_type
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
-integer, parameter :: sad_linear$ = 5, sad_nonlin_only$ = 6, sad_full$ = 7
-character(16), parameter :: fringe_type_name(0:7) = ['Garbage!       ', &
+integer, parameter :: sad_linear$ = 5, sad_nonlin_only$ = 6, sad_full$ = 7, edge_focus_only$ = 8
+character(16), parameter :: fringe_type_name(0:8) = ['Garbage!       ', &
                'Full_Straight  ', 'Full_Bend      ', 'None           ', 'Basic_Bend     ', &
-               'SAD_Linear     ', 'SAD_Nonlin_Only', 'SAD_Full       ']
-
+               'SAD_Linear     ', 'SAD_Nonlin_Only', 'SAD_Full       ', 'Edge_Focus_Only']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:

@@ -574,6 +574,114 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Subroutine edge_focus_only (orb, ele, param, particle_at, mat6)
+!
+! Subroutine to track through the edge field of an sbend.
+! Apply only the first order kick, which is edge focusing.
+! This routine is the same as approx_bend_edge_kick, except that only
+! first order terms are applied.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   orb         -- Coord_struct: Starting coords.
+!   ele         -- ele_struct: SBend element.
+!   param       -- lat_param_struct: Rel charge.
+!   particle_at -- Integer: first_track_edge$, or second_track_edge$, 
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!   mat6       -- Real(rp), optional: Transfer matrix.
+!-
+
+subroutine edge_focus_only (orb, ele, param, particle_at, mat6)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orb
+type (lat_param_struct) param
+
+real(rp), optional :: mat6(6,6)
+real(rp) e, g_tot, fint, hgap, ht_x, ht_y, cos_e, sin_e, tan_e, v0(6)
+real(rp) c_dir
+real(rp) ht2, hs2, sec_e, k1_eff, k1
+integer particle_at, element_end
+
+character(24), parameter :: r_name = 'edge_focus_only'
+
+! Track through the entrence face. 
+! See MAD physics guide for writeup. Note that MAD does not have a g_err.
+! Apply only the first order kick.  i.e. only edge focusing.
+
+c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+
+if (ele%is_on) then
+  g_tot = (ele%value(g$) + ele%value(g_err$)) * c_dir
+  k1 = ele%value(k1$)
+else
+  g_tot = 0
+  k1 = 0
+endif
+
+if (element_end == entrance_end$) then
+  e = ele%value(e1$); fint = ele%value(fint$); hgap = ele%value(hgap$)
+else
+  e = ele%value(e2$); fint = ele%value(fintx$); hgap = ele%value(hgapx$)
+endif
+
+cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
+ht_x = g_tot * tan_e
+ht2 = g_tot * tan_e**2
+hs2 = g_tot * sec_e**2
+k1_eff = k1 * c_dir
+
+if (fint == 0) then
+  ht_y = -ht_x
+else
+  ht_y = -g_tot * tan(e - 2 * fint * g_tot * hgap * (1 + sin_e**2) / cos_e)
+endif
+
+v0 = orb%vec
+
+if (present(mat6)) call mat_make_unit(mat6)
+
+if (particle_at == first_track_edge$) then
+  orb%vec(1) = v0(1)
+  orb%vec(2) = v0(2) + ht_x * v0(1)
+  orb%vec(3) = v0(3)
+  orb%vec(4) = v0(4) + ht_y * v0(3)
+  if (present(mat6)) then
+    mat6(1,1) = 1
+    mat6(2,1) = ht_x
+    mat6(2,2) = 1
+    mat6(3,3) = 1
+    mat6(4,3) = ht_y
+    mat6(4,4) = 1
+  end if
+else
+  orb%vec(1) = v0(1)
+  orb%vec(2) = v0(2) + ht_x * v0(1)
+  orb%vec(3) = v0(3)
+  orb%vec(4) = v0(4) + ht_y * v0(3)
+  if (present(mat6)) then
+    mat6(1,1) = 1
+    mat6(2,1) = ht_x
+    mat6(2,2) = 1
+    mat6(3,3) = 1
+    mat6(4,3) = ht_y
+    mat6(4,4) = 1
+  end if
+endif
+
+end subroutine edge_focus_only
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
@@ -666,6 +774,10 @@ if (particle_at == first_track_edge$) then
     mat6(4,4) = 1 - ht2 * v0(1)
   end if
 else
+  orb%vec(1) = v0(1)
+  orb%vec(2) = v0(2) + ht_x * v0(1)
+  orb%vec(3) = v0(3)
+  orb%vec(4) = v0(4) + ht_y * v0(3)
   orb%vec(1) = v0(1) + ht2 * v0(1)**2 / 2 - hs2 * v0(3)**2 / 2
   orb%vec(2) = v0(2) + ht_x * v0(1) + ht2 * (v0(3) * v0(4) - v0(1) * v0(2)) + &
                        k1_eff * tan_e * (v0(1)**2 - v0(3)**2) - &
@@ -957,6 +1069,8 @@ case (full_straight$, full_bend$)
   call exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
 case (basic_bend$, sad_full$, sad_linear$, sad_nonlin_only$)
   call approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
+case (edge_focus_only$)
+  call edge_focus_only (orb, ele, param, particle_at, mat6)
 case (none$)
   if (present(mat6)) call mat_make_unit (mat6)
 case default
