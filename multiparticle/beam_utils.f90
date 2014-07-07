@@ -48,7 +48,7 @@ type (ele_struct) ele, half_ele
 type (lat_param_struct) param
 
 real(rp) charge
-integer i, j, n
+integer i, j, n, jj
 logical err_flag
 
 character(20) :: r_name = 'track1_bunch_hom'
@@ -63,8 +63,11 @@ bunch_end = bunch_start
 if (.not. associated (ele%wake) .or. &
             (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
+  call order_particles_in_z (bunch_end)  
+
   do j = 1, size(bunch_start%particle)
-    call track1 (bunch_start%particle(j), ele, param, bunch_end%particle(j))
+    jj = bunch_end%ix_z(j)
+    call track1 (bunch_start%particle(jj), ele, param, bunch_end%particle(jj))
   enddo
 
   bunch_end%charge_live = sum (bunch_end%particle(:)%charge, &
