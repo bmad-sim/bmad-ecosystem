@@ -470,13 +470,10 @@ real(rp) dvec(6)
 
 !
 
+orb_out = orb_in
 orb_out%vec = orb_in%vec + dvec
-orb_out%p0c = orb_in%p0c 
-orb_out%species = orb_in%species
 
-if (dvec(6) == 0) then
-  orb_out%beta = orb_in%beta
-else
+if (dvec(6) /= 0) then
   call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
 
