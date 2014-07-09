@@ -420,33 +420,27 @@ logical local_ref_frame, err
 
 !
 
-call transfer_this_orbit (orb, b21*ds*dr_ds(1:6), orb_temp(1))
-t_temp(1) = t + b21*ds*dr_ds(7)
+call transfer_this_orbit (orb, b21*ds*dr_ds, orb_temp(1), t_temp(1))
 call kick_vector_calc(ele, param, s + a2*ds, t_temp(1), orb_temp(1), local_ref_frame, ak2, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b31*dr_ds(1:6) + b32*ak2(1:6)), orb_temp(2))
-t_temp(2) = t + ds*(b31*dr_ds(7) + b32*ak2(7))
+call transfer_this_orbit (orb, ds*(b31*dr_ds + b32*ak2), orb_temp(2), t_temp(2))
 call kick_vector_calc(ele, param, s + a3*ds, t_temp(2), orb_temp(2), local_ref_frame, ak3, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b41*dr_ds(1:6) + b42*ak2(1:6) + b43*ak3(1:6)), orb_temp(3))
-t_temp(3) = t + ds*(b41*dr_ds(7) + b42*ak2(7) + b43*ak3(7))
+call transfer_this_orbit (orb, ds*(b41*dr_ds + b42*ak2 + b43*ak3), orb_temp(3), t_temp(3))
 call kick_vector_calc(ele, param, s + a4*ds, t_temp(3), orb_temp(3), local_ref_frame, ak4, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b51*dr_ds(1:6) + b52*ak2(1:6) + b53*ak3(1:6) + b54*ak4(1:6)), orb_temp(4))
-t_temp(4) = t + ds*(b51*dr_ds(7) + b52*ak2(7) + b53*ak3(7) + b54*ak4(7))
+call transfer_this_orbit (orb, ds*(b51*dr_ds + b52*ak2 + b53*ak3 + b54*ak4), orb_temp(4), t_temp(4))
 call kick_vector_calc(ele, param, s + a5*ds, t_temp(4), orb_temp(4), local_ref_frame, ak5, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(b61*dr_ds(1:6) + b62*ak2(1:6) + b63*ak3(1:6) + b64*ak4(1:6) + b65*ak5(1:6)), orb_temp(5))
-t_temp(5) = t + ds*(b61*dr_ds(7) + b62*ak2(7) + b63*ak3(7) + b64*ak4(7) + b65*ak5(7))
+call transfer_this_orbit (orb, ds*(b61*dr_ds + b62*ak2 + b63*ak3 + b64*ak4 + b65*ak5), orb_temp(5), t_temp(5))
 call kick_vector_calc(ele, param, s + a6*ds, t_temp(5), orb_temp(5), local_ref_frame, ak6, err)
 if (err) return
 
-call transfer_this_orbit (orb, ds*(c1*dr_ds(1:6) + c3*ak3(1:6) + c4*ak4(1:6) + c6*ak6(1:6)), orb_new)
-t_new = t + ds*(c1*dr_ds(7) + c3*ak3(7) + c4*ak4(7) + c6*ak6(7))
+call transfer_this_orbit (orb, ds*(c1*dr_ds + c3*ak3 + c4*ak4 + c6*ak6), orb_new, t_new)
 r_err=ds*(dc1*dr_ds + dc3*ak3 + dc4*ak4 + dc5*ak5 + dc6*ak6)
 
 ! Spin
@@ -463,19 +457,22 @@ endif
 !----------------------------------------------------------
 contains
 
-subroutine transfer_this_orbit (orb_in, dvec, orb_out)
+subroutine transfer_this_orbit (orb_in, dvec, orb_out, t_temp)
 
 type (coord_struct) orb_in, orb_out
-real(rp) dvec(6)
+real(rp) dvec(7), t_temp
 
 !
 
 orb_out = orb_in
-orb_out%vec = orb_in%vec + dvec
+orb_out%vec = orb_in%vec + dvec(1:6)
+orb_out%t = orb_in%t + dvec(7)
 
 if (dvec(6) /= 0) then
   call convert_pc_to (orb_out%p0c * (1 + orb_out%vec(6)), param%particle, beta = orb_out%beta)
 endif
+
+t_temp = t + dvec(7)
 
 end subroutine
 

@@ -39,10 +39,6 @@ type (spin_map_struct), save, target :: maps(n_key$)
 
 private initialize_pauli_vector
 
-real(rp), parameter :: anomalous_moment_of(-2:2) = [ &
-                        anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
-                        anomalous_mag_moment_electron, anomalous_mag_moment_proton]
-
 contains
 
 !--------------------------------------------------------------------------

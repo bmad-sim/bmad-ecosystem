@@ -34,6 +34,11 @@ integer, parameter :: charge_of(-4:5) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0]
 real(rp), parameter :: mass_of(-4:5) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
                                 m_electron, m_proton, m_muon, m_pion_charged, m_pion_0]
 
+real(rp), parameter :: anomalous_moment_of(-4:5) = [0.0_rp, anomalous_mag_moment_muon, &
+                        anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
+                        anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
+                        anomalous_mag_moment_muon, 0.0_rp, 0.0_rp]
+
 contains
 
 !------------------------------------------------------------------------
