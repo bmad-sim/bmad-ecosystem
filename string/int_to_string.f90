@@ -7,7 +7,7 @@
 !
         integer*4::  buffer(*)
         integer*4::  jnum
-        character::  setup_data*1024(*)
+        character(1024)::  setup_data(*)
         integer*4,save:: j, k, count
 	j=1
 	k=1
