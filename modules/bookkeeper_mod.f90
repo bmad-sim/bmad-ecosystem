@@ -3,7 +3,7 @@ module bookkeeper_mod
 use wall3d_mod
 use bmad_utils_mod
 use multipole_mod
-use lat_geometry_mod
+use geometry_mod
 use equality_mod
 use em_field_mod
 use xraylib_interface

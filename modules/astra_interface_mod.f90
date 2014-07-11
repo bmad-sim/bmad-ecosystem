@@ -147,7 +147,7 @@ end subroutine write_astra_lattice_file
 !------------------------------------------------------------------------
 !+ 
 subroutine write_astra_ele(iu, ele, id, fieldgrid_names, dimensions)
-use lat_geometry_mod
+use geometry_mod
 implicit none
 type (ele_struct) :: ele
 type (floor_position_struct) :: floor1, floor2

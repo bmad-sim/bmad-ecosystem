@@ -2,7 +2,7 @@ module wall3d_mod
 
 use bmad_struct
 use bmad_interface
-use lat_geometry_mod
+use geometry_mod
 use rotation_3d_mod
 
 !

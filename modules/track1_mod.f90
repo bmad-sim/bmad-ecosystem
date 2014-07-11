@@ -9,7 +9,7 @@ module track1_mod
 use bmad_interface
 use make_mat6_mod
 use em_field_mod
-use lat_geometry_mod
+use geometry_mod
 
 ! Private routines for exact_bend_edge_kick
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
@@ -1943,9 +1943,6 @@ end subroutine rf_coupler_kick
 ! The steps for tracking are:
 !   1) Transform from entrance to exit coordinates.
 !   2) Drift particle from the entrance to the exit coordinants.
-!
-! This routine can also be used with fork or photon_fork elements to transform a particle's 
-! phase space coordinates from the "from" lattice branch to the "to" lattice branch.
 !
 ! Moudle needed:
 !   use track1_mod
