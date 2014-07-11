@@ -152,8 +152,13 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   ! Split off language name and/or use_line if needed
 
   ix = index(design_lat%file(1:10), '::')
+
   if (ix == 0) then
-    design_lat%language = 'bmad'
+    if (index(design_lat%file, '.xsif ') /= 0) then
+      design_lat%language = 'xsif'
+    else
+      design_lat%language = 'bmad'
+    endif
   else
     design_lat%language = design_lat%file(1:ix-1)
     design_lat%file = design_lat%file(ix+2:)
