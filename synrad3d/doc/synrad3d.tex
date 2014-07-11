@@ -1268,16 +1268,16 @@ is to reduce the track step length limits:
     sr3d_params%dr_track_step_max
 \end{example}
 This will reduce the possibility of mis-tracking at the cost of
-increased computing time.  If the results do not change significantly
-when the track limits are reduced. This is good evidence that the 
+increased computation time.  If the results do not change significantly
+when the track limits are reduced, this is good evidence that the 
 results are valid.
 
 When the chamber is locally specified using a triangular mesh. Each
 triangle is checked to see whether the trajectory of a step intersects
 it. If so, the photon has hit the chamber wall. This method avoids the
 convex assumption so has the advantage of being able to work with
-complicated geometries. However, the speed of execution will be dependent
-upon the number of triangles.
+complicated geometries. However, the speed of execution will be
+dependent upon the number of triangles.
 
 %------------------------------------------------------------------
 \subsection{photon\_start\_input\_file}

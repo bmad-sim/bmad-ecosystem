@@ -356,7 +356,7 @@ do
     s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
 
     photon%now%vec    = 0
-    photon%now%vec(5) = s(i)
+    photon%now%s = s(i)
 
     photon_xy = -r_max
     call sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall)
@@ -496,7 +496,7 @@ do
   ! This is an approximation to the true shape but it is good enough for plotting and serves as
   ! an independent check on the routines used to detect intersections of the photon with the wall.
 
-  photon%now%vec(5) = s_pos
+  photon%now%s = s_pos
 
   do i = 1, size(x)
 
@@ -687,7 +687,7 @@ logical is_through
 call sr3d_get_wall_index (photon%now, wall, ixp)
 
 photon%old%vec = 0
-photon%old%vec(5) = photon%now%vec(5)
+photon%old%s = photon%now%s
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
 photon%now%track_len = photon%old%track_len + r_old
 

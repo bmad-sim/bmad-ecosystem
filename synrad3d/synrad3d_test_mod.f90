@@ -185,7 +185,7 @@ do
   p%vec(2:6:2) = p%vec(2:6:2) / vel
 
   p%energy = 1000             ! Arbitrary
-  p%ix_ele = element_at_s(lat, p%vec(5), .true.)
+  p%ix_ele = element_at_s(lat, p%s, .true.)
   photon%start = p
   photon%n_wall_hit = 0
 

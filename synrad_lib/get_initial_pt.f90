@@ -36,17 +36,17 @@ subroutine get_initial_pt (ray, wall, ix_wall, lat)
   endif
 
 
-! point ix_wall is at or just downstream of ray%now%vec(5).
+! point ix_wall is at or just downstream of ray%now%s.
 
 ! edge cases
 
-  if (ray%now%vec(5) == lat%param%total_length) then
+  if (ray%now%s == lat%param%total_length) then
     ix_wall = wall%n_pt_tot
     wall%ix_pt = wall%n_pt_tot
     return
   endif
 
-  if (ray%now%vec(5) == 0) then
+  if (ray%now%s == 0) then
     ix_wall = 0
     wall%ix_pt = 0
     return
@@ -60,11 +60,11 @@ subroutine get_initial_pt (ray, wall, ix_wall, lat)
   do
     ix1 = (ix2 + ix0) / 2
     ix = wall%pt(ix1)%ix_pt
-    if (wall%pt(ix)%s < ray%now%vec(5)) then
+    if (wall%pt(ix)%s < ray%now%s) then
       ix0 = ix1
-    elseif (wall%pt(ix)%s > ray%now%vec(5)) then
+    elseif (wall%pt(ix)%s > ray%now%s) then
       ix2 = ix1
-    elseif (ray%direction == 1) then   ! here wall%pt(ix)%s == ray%now%vec(5)
+    elseif (ray%direction == 1) then   ! here wall%pt(ix)%s == ray%now%s
       ix2 = ix1
     else
       ix0 = ix1

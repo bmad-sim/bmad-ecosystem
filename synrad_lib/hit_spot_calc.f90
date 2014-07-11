@@ -38,11 +38,11 @@ if (sign(1.0_rp, ray%now%vec(1)) /= sign(1.0_rp, pt0%x)) return
 if (pt0%type == no_alley$) then
   ray%alley_status = no_local_alley$
   ix1 = ix_wall - ray%direction
-  if (ray%now%vec(5) == pt0%s) then
+  if (ray%now%s == pt0%s) then
     x = pt0%x
   else
     x = pt0%x + (pt(ix1)%x - pt0%x) * &       ! interpolate to get x
-                  (ray%now%vec(5) - pt0%s) / (pt(ix1)%s - pt0%s)
+                  (ray%now%s - pt0%s) / (pt(ix1)%s - pt0%s)
   endif
   if (abs(ray%now%vec(1)) < abs(x)) return  ! return if no hit.
 
@@ -51,7 +51,7 @@ if (pt0%type == no_alley$) then
 ! very complicated so we will just wait until the ray is propagated so that
 ! s_ray = s_wall_pt.
 
-elseif (ray%now%vec(5) /= pt0%s) then
+elseif (ray%now%s /= pt0%s) then
   return
 
 ! else in alley with s_ray = s_wall_pt...
@@ -132,13 +132,13 @@ ray%ix_wall_pt = ix2
 ! ray%r_wall = 1.0 => the hit is at pt(ix2)
 ! we need to iterate in a bend since the wall is actually curved.
 
-ray0 = ray  ! %now%vec(5) is region lower bound
+ray0 = ray  ! %now%s is region lower bound
 ray1 = ray  ! Ray to next interpolation point
-ray2 = ray  ! %now%vec(5) is region upper bound
+ray2 = ray  ! %now%s is region upper bound
 
-if (ray%now%vec(5) < ray%old%vec(5)) then
+if (ray%now%s < ray%old%s) then
   ray2%now = ray%old
-elseif (ray%now%vec(5) > ray%old%vec(5)) then
+elseif (ray%now%s > ray%old%s) then
   ray0%now = ray%old
 endif
 
@@ -146,9 +146,9 @@ dx_wall = pt(ix2)%x - pt(ix0)%x
 ds_wall = pt(ix2)%s - pt(ix0)%s
 denom = sqrt (dx_wall**2 + ds_wall**2)
 
-del0 = (dx_wall*(ray0%now%vec(5) - pt(ix0)%s) - &
+del0 = (dx_wall*(ray0%now%s - pt(ix0)%s) - &
      ds_wall*(ray0%now%vec(1) - pt(ix0)%x)) / denom**2
-del2 = (dx_wall*(ray2%now%vec(5) - pt(ix0)%s) - &
+del2 = (dx_wall*(ray2%now%s - pt(ix0)%s) - &
      ds_wall*(ray2%now%vec(1) - pt(ix0)%x)) / denom**2
 
 ! Linear interpolation can be very slow to converge in a small radius bend
@@ -171,7 +171,7 @@ do i = 1, 20
 
   ! Linear interpolation step
 
-  s1 = (del2 * ray0%now%vec(5) - del0 * ray2%now%vec(5)) / (del2 - del0)
+  s1 = (del2 * ray0%now%s - del0 * ray2%now%s) / (del2 - del0)
   if (s1 < min(pt(ix0)%s, pt(ix2)%s) .or. s1 > max(pt(ix0)%s, pt(ix2)%s)) then
     print *, 'ERROR IN HIT_SPOT_CALC: INTERPOLATION ERROR'
     if (global_com%exit_on_error) call err_exit
@@ -181,7 +181,7 @@ do i = 1, 20
 
   ! Bisection step
 
-  s1 = (ray0%now%vec(5) + ray2%now%vec(5)) / 2
+  s1 = (ray0%now%s + ray2%now%s) / 2
 
   call propagate_this ()
 
@@ -190,7 +190,7 @@ enddo
 ! cleanup
 
 r_wall = (dx_wall*(ray1%now%vec(1) - pt(ix0)%x) + &
-              ds_wall*(ray1%now%vec(5) - pt(ix0)%s)) / denom**2
+              ds_wall*(ray1%now%s - pt(ix0)%s)) / denom**2
 if (r_wall > 1 .and. r_wall <  1.0001) r_wall = 1
 if (r_wall < 0 .and. r_wall > -0.0001) r_wall = 0
 
@@ -204,7 +204,7 @@ ray%r_wall = r_wall
 
 !
 
-del_s = ray%now%vec(5) - ray%start%vec(5)
+del_s = ray%now%s - ray%start%s
 if (del_s*ray%direction < 0) then
   ray%track_len = lat%param%total_length - abs(del_s)
   ray%crossed_end = .true.
@@ -221,20 +221,20 @@ contains
 
 subroutine propagate_this ()
 
-if (s1 < ray1%now%vec(5)) then
+if (s1 < ray1%now%s) then
   ray1%direction = -1
 else
   ray1%direction = +1
 endif
 call propagate_ray (ray1, s1, lat, .false.)
 
-del1 = (dx_wall*(ray1%now%vec(5) - pt(ix0)%s) - &
+del1 = (dx_wall*(ray1%now%s - pt(ix0)%s) - &
                     ds_wall*(ray1%now%vec(1) - pt(ix0)%x)) / denom**2
 
-if (s1 < ray0%now%vec(5)) then
+if (s1 < ray0%now%s) then
   ray2 = ray0; del2 = del0
   ray0 = ray1; del0 = del1
-elseif (s1 > ray2%now%vec(5)) then
+elseif (s1 > ray2%now%s) then
   ray0 = ray2; del0 = del2
   ray2 = ray1; del2 = del1
 elseif (sign(1.0_rp, del0) == sign(1.0_rp, del1)) then

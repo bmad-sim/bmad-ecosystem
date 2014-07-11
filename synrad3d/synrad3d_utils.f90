@@ -927,6 +927,7 @@ call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%part
 call bend_photon_init (gx, gy, gamma, orb_init)
 p_orb%energy = orb_init%p0c
 p_orb%vec = orb_init%vec
+p_orb%s   = orb_init%s
 
 ! Offset due to finite beam size
 
@@ -950,7 +951,7 @@ p_orb%vec(1:4) = p_orb%vec(1:4) + orb_here%vec(1:4)
 
 ! Longitudinal position
 
-p_orb%vec(5) = ele_here%s
+p_orb%s = ele_here%s
 
 ! Above equations are valid in the small angle limit.
 ! Sometimes a large-angle photon is generated so make sure
@@ -1051,7 +1052,7 @@ else
     sin_ang = p_orb%vec(3) / r_photon
   endif
 
-  f = (p_orb%vec(5) - wall%section(ix)%s) / (wall%section(ix+1)%s - wall%section(ix)%s)
+  f = (p_orb%s - wall%section(ix)%s) / (wall%section(ix+1)%s - wall%section(ix)%s)
 
   ! If f is close to 0 or 1 and dw_perp is not to be calculated then can simplify calc and save time.
 
@@ -1094,7 +1095,7 @@ endif
 ! Also dw_perp needs to be normalized to 1.
 
 if (present(dw_perp)) then
-  ix_ele = element_at_s (lat, p_orb%vec(5), .true.)
+  ix_ele = element_at_s (lat, p_orb%s, .true.)
   ele => lat%ele(ix_ele)
   if (ele%key == sbend$) then
     if (ele%value(ref_tilt_tot$) == 0) then
@@ -1118,12 +1119,12 @@ end subroutine sr3d_photon_d_radius
 !
 ! Routine to get the wall index such that 
 ! For p_orb%vec(6) > 0 (forward motion):
-!   wall%section(ix_wall)%s < p_orb%vec(5) <= wall%section(ix_wall+1)%s
+!   wall%section(ix_wall)%s < p_orb%s <= wall%section(ix_wall+1)%s
 ! For p_orb%vec(6) < 0 (backward motion):
-!   wall%section(ix_wall)%s <= p_orb%vec(5) < wall%section(ix_wall+1)%s
+!   wall%section(ix_wall)%s <= p_orb%s < wall%section(ix_wall+1)%s
 ! Exceptions:
-!   If p_orb%vec(5) == wall%section(0)%s (= 0)       -> ix_wall = 0
-!   If p_orb%vec(5) == wall%section(wall%n_section_max)%s -> ix_wall = wall%n_section_max - 1
+!   If p_orb%s == wall%section(0)%s (= 0)       -> ix_wall = 0
+!   If p_orb%s == wall%section(wall%n_section_max)%s -> ix_wall = wall%n_section_max - 1
 !
 ! Input:
 !   p_orb  -- sr3d_photon_coord_struct: Photon position.
@@ -1145,16 +1146,16 @@ integer ix_wall
 ! 
 
 ix_wall = p_orb%ix_wall
-if (p_orb%vec(5) < wall%section(ix_wall)%s .or. p_orb%vec(5) > wall%section(ix_wall+1)%s) then
-  call bracket_index2 (wall%section%s, 0, wall%n_section_max, p_orb%vec(5), p_orb%ix_wall, ix_wall)
+if (p_orb%s < wall%section(ix_wall)%s .or. p_orb%s > wall%section(ix_wall+1)%s) then
+  call bracket_index2 (wall%section%s, 0, wall%n_section_max, p_orb%s, p_orb%ix_wall, ix_wall)
   p_orb%ix_wall = ix_wall
   if (ix_wall == wall%n_section_max) ix_wall = wall%n_section_max - 1
 endif
 
 ! vec(5) at boundary cases
 
-if (p_orb%vec(5) == wall%section(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
-if (p_orb%vec(5) == wall%section(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_section_max-1) ix_wall = ix_wall + 1
+if (p_orb%s == wall%section(ix_wall)%s   .and. p_orb%vec(6) > 0 .and. ix_wall /= 0)               ix_wall = ix_wall - 1
+if (p_orb%s == wall%section(ix_wall+1)%s .and. p_orb%vec(6) < 0 .and. ix_wall /= wall%n_section_max-1) ix_wall = ix_wall + 1
 
 end subroutine sr3d_get_wall_index
 

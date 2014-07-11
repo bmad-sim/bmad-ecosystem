@@ -232,8 +232,8 @@ endif
 ! Is through if at ends of a linear lattice
 
 if (wall%geometry == open$) then
-  if (photon%now%vec(5) == 0 .and. photon%now%vec(6) < 0) photon%status = at_lat_end$
-  if (photon%now%vec(5) == wall%section(wall%n_section_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
+  if (photon%now%s == 0 .and. photon%now%vec(6) < 0) photon%status = at_lat_end$
+  if (photon%now%s == wall%section(wall%n_section_max)%s .and. photon%now%vec(6) > 0) photon%status = at_lat_end$
 endif
 
 end subroutine sr3d_photon_status_calc
@@ -377,7 +377,7 @@ propagation_loop: do
 
   check_section_here = .false.
   if (stop_at_check_pt) then
-    call bracket_index2 (wall%section%s, 0, wall%n_section_max, now%vec(5), now%ix_wall, ixw)
+    call bracket_index2 (wall%section%s, 0, wall%n_section_max, now%s, now%ix_wall, ixw)
     now%ix_wall = ixw
   endif
 
@@ -385,16 +385,16 @@ propagation_loop: do
 
   if (now%vec(6) > 0) then
     do
-      if (now%vec(5) >= lat%ele(now%ix_ele)%s) then
+      if (now%s >= lat%ele(now%ix_ele)%s) then
         if (now%ix_ele == lat%n_ele_track) then
           if (lat%param%geometry == open$) return
-          now%vec(5) = now%vec(5) - lat%param%total_length
+          now%s = now%s - lat%param%total_length
           now%ix_ele = 1
           photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
         now%ix_ele = now%ix_ele + 1
-      elseif (now%vec(5) < lat%ele(now%ix_ele-1)%s) then
+      elseif (now%s < lat%ele(now%ix_ele-1)%s) then
         now%ix_ele = now%ix_ele - 1
         if (now%ix_ele == 0) then
           print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL +ERROR'
@@ -416,16 +416,16 @@ propagation_loop: do
 
   else   ! direction = -1
     do
-      if (now%vec(5) <= lat%ele(now%ix_ele-1)%s) then
+      if (now%s <= lat%ele(now%ix_ele-1)%s) then
         if (now%ix_ele <= 1) then
           if (lat%param%geometry == open$) return
-          now%vec(5) = now%vec(5) + lat%param%total_length
+          now%s = now%s + lat%param%total_length
           now%ix_ele = lat%n_ele_track
           photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
         now%ix_ele = now%ix_ele - 1
-      elseif (now%vec(5) > lat%ele(now%ix_ele)%s) then
+      elseif (now%s > lat%ele(now%ix_ele)%s) then
         now%ix_ele = now%ix_ele + 1
         if (now%ix_ele == lat%n_ele_track+1) then
           print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL -ERROR'
@@ -439,7 +439,7 @@ propagation_loop: do
     s_stop = lat%ele(now%ix_ele-1)%s
 
     if (stop_at_check_pt .and. ixw > 0) then
-      if (wall%section(ixw)%s == now%vec(5)) ixw = ixw - 1
+      if (wall%section(ixw)%s == now%s) ixw = ixw - 1
       if (wall%section(ixw)%s > s_stop) then
         s_stop = wall%section(ixw)%s
         check_section_here = .true.
@@ -464,7 +464,7 @@ propagation_loop: do
 
     g = ele%value(g$)
     radius = 1 / g
-    theta = (s_stop - now%vec(5)) * g
+    theta = (s_stop - now%s) * g
     tan_t = tan(theta)
 
     if (abs(tan_t * (radius + now%vec(1))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
@@ -472,7 +472,7 @@ propagation_loop: do
       tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
       theta = atan(tan_t)
       check_section_here = .false.
-      s_stop = now%vec(5) + radius * theta
+      s_stop = now%s + radius * theta
     else
       dl = tan_t * (radius + now%vec(1)) / (now%vec(6) - tan_t * now%vec(2))
     endif
@@ -485,7 +485,7 @@ propagation_loop: do
         dl = dl2 * (1 + sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
-        s_stop = now%vec(5) + radius * theta
+        s_stop = now%s + radius * theta
         check_section_here = .true.
       endif
     endif
@@ -507,7 +507,7 @@ propagation_loop: do
     now%vec(1) = denom - radius
     now%vec(2) = v_s * sin_t + v_x * cos_t
     now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%vec(5) = s_stop
+    now%s = s_stop
     now%vec(6) = v_s * cos_t - v_x * sin_t
 
     if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now%vec)
@@ -518,19 +518,19 @@ propagation_loop: do
 
     ! Next position
 
-    if (abs(now%vec(6)) * dl_left > abs(s_stop - now%vec(5))) then
-      dl = (s_stop - now%vec(5)) / now%vec(6)
+    if (abs(now%vec(6)) * dl_left > abs(s_stop - now%s)) then
+      dl = (s_stop - now%s) / now%vec(6)
     else
       dl = dl_left
       check_section_here = .false.
-      s_stop = now%vec(5) + dl * now%vec(6)
+      s_stop = now%s + dl * now%vec(6)
     endif
 
     ! And move to the next position
 
     now%vec(1) = now%vec(1) + dl * now%vec(2)
     now%vec(3) = now%vec(3) + dl * now%vec(4)
-    now%vec(5) = s_stop
+    now%s = s_stop
   endif
 
   !

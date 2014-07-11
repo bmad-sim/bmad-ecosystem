@@ -132,7 +132,7 @@ subroutine ele_synrad_power (lat, ie, orb, direction, power, walls, gen)
         ! calc the first wall's power then reset the ray array 
         ! for the second wall
         if ((l1 - l0) .le. 5e-4) then
-          if (abs(fan(i_ray)%start%vec(5) - fan(i_ray-1)%start%vec(5)) < 5e-4) i_ray = i_ray - 1
+          if (abs(fan(i_ray)%start%s - fan(i_ray-1)%start%s) < 5e-4) i_ray = i_ray - 1
           call seg_power_calc (fan, i_ray, walls, old_wall_side, lat, gen, power(ie))
           fan(1) = ray_temp  ! Reset fan. First ray in fan is the transition ray.
           i_ray = 1
