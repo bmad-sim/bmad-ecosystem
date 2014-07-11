@@ -4,7 +4,7 @@ use tao_mod
 use spin_mod
 use utilities_mod
 use measurement_mod
-use lat_geometry_mod
+use geometry_mod
 
 ! Used for parsing expressions
 
