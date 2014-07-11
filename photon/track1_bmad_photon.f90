@@ -25,7 +25,7 @@ subroutine track1_bmad_photon (start_orb, ele, param, end_orb, err_flag)
 
 use capillary_mod, dummy => track1_bmad_photon
 use track1_photon_mod, dummy2 => track1_bmad_photon
-use lat_geometry_mod, dummy4 => track1_bmad_photon
+use geometry_mod, dummy4 => track1_bmad_photon
 
 implicit none
 
@@ -35,7 +35,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
-real(rp) length, w_mat_inv(3,3), vec0(6), mat6(6,6)
+real(rp) length, w(3,3), vec0(6), mat6(6,6)
 real(rp) vel_vec(3), hit_point(3), cos_g, sin_g
 
 integer i, n, n_slice, key
@@ -168,18 +168,37 @@ case (multilayer_mirror$)
 
 case (patch$)
 
-  end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
-  end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-  end_orb%vec(5) = -ele%value(z_offset$)   ! Assume particle satrts at upstream face with z = 0.
-  
-  if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-    end_orb%vec(2:6:2) = matmul(w_mat_inv, end_orb%vec(2:6:2))
-    end_orb%vec(1:5:2) = matmul(w_mat_inv, end_orb%vec(1:5:2))
-  endif
+  if (end_orb%direction == 1) then
+    ! Translate (x, y, z) to coordinate system with respect to downstream origin.
+    end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
+    end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
+    end_orb%vec(5) = -ele%value(z_offset$)   
+    
+    if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w)
+      end_orb%vec(2:6:2) = matmul(w, end_orb%vec(2:6:2))
+      end_orb%vec(1:5:2) = matmul(w, end_orb%vec(1:5:2))
+    endif
 
-  call track_a_drift_photon (end_orb, -end_orb%vec(5), .false.)
-  end_orb%s = ele%s
+    call track_a_drift_photon (end_orb, -end_orb%vec(5), .false.)
+    end_orb%s = ele%s
+
+  else
+    end_orb%s = ele%s - ele%value(l$)
+    end_orb%vec(5) = 0   ! Assume particle starts at downstream face
+
+    if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = w)
+      end_orb%vec(2:6:2) = matmul(w, end_orb%vec(2:6:2))
+      end_orb%vec(1:5:2) = matmul(w, end_orb%vec(1:5:2))
+    endif
+
+    end_orb%vec(1) = end_orb%vec(1) + ele%value(x_offset$)
+    end_orb%vec(3) = end_orb%vec(3) + ele%value(y_offset$)
+
+    call track_a_drift_photon (end_orb, ele%value(z_offset$), .false.)
+
+  endif
 
 !-----------------------------------------------
 ! Sample

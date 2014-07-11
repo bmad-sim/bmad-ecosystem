@@ -1,4 +1,4 @@
-module lat_geometry_mod
+module geometry_mod
 
 use bmad_struct
 use bmad_interface
@@ -566,7 +566,7 @@ end subroutine ele_geometry
 ! in the global "floor" coordinates. See the Bmad manual for more details.
 !
 ! Modules needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   theta -- Real(rp): Azimuth angle.
@@ -628,7 +628,7 @@ end subroutine floor_angles_to_w_mat
 ! in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
 !
 ! Modules needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   w_mat(3,3) -- Real(rp): Orientation matrix.
@@ -708,7 +708,7 @@ end subroutine floor_w_mat_to_angles
 ! is negative.
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   x_pitch   -- Real(rp): Rotaion around y-axis
@@ -745,7 +745,7 @@ end function patch_flips_propagation_direction
 ! Also see: floor_to_local
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   floor0   -- floor_position_struct: Initial reference frame.
@@ -850,7 +850,7 @@ end function floor_to_local
 !   relative to floor0
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   global_position -- floor_position_struct: [X, Y, Z] position in global coordinates
@@ -1040,7 +1040,8 @@ end function position_in_global_frame
 !+
 ! Subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
 ! 
-! Subroutine to take a local position0 in ele0 and find a local position near ele_try.
+! Subroutine to take a local position0 in ele0 and find a local position near 
+! ele_try in the same lattice branch.
 ! If this position is beyond the bounds of ele_try, neighboring elements will be 
 ! stepped to until a containing element is found.
 ! Optionally returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
@@ -1121,7 +1122,7 @@ end subroutine switch_local_positions
 ! Routine to return the transformation matrix for an x_pitch.
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   x_pitch     -- real(rp): pitch angle
@@ -1155,7 +1156,7 @@ end subroutine w_mat_for_x_pitch
 ! Routine to return the transformation matrix for an y_pitch.
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   y_pitch     -- real(rp): pitch angle
@@ -1189,7 +1190,7 @@ end subroutine w_mat_for_y_pitch
 ! Routine to return the transformation matrix for an tilt.
 !
 ! Module needed:
-!   use lat_geometry_mod
+!   use geometry_mod
 !
 ! Input:
 !   tilt     -- real(rp): pitch angle

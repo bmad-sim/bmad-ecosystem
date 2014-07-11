@@ -25,7 +25,7 @@ subroutine track1_bmad (start_orb, ele, param, end_orb, err_flag)
 use sad_mod, dummy1 => track1_bmad
 use track1_mod, dummy2 => track1_bmad
 use mad_mod, dummy3 => track1_bmad
-use lat_geometry_mod, dummy4 => track1_bmad
+use geometry_mod, dummy4 => track1_bmad
 use ptc_interface_mod, dummy5 => track1_bmad
 
 implicit none

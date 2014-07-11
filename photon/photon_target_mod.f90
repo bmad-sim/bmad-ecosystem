@@ -1,6 +1,6 @@
 module photon_target_mod
 
-use lat_geometry_mod
+use geometry_mod
 use photon_utils_mod
 
 contains

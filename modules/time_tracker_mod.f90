@@ -4,7 +4,7 @@ use bmad_struct
 use beam_def_struct
 use em_field_mod
 use wall3d_mod
-use lat_geometry_mod
+use geometry_mod
 use runge_kutta_mod ! for common struct only
 
 contains
@@ -633,7 +633,7 @@ end function particle_in_new_frame_time
 !   
 !
 ! Module needed:
-!   lat_geometry_mod
+!   geometry_mod
 !
 ! Input:
 !   orb                 -- Coord_struct: particle in s-coordinates
