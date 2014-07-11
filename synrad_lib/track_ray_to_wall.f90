@@ -68,13 +68,13 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
   do
 
     if (ray%direction == 1) then
-      s_next = min(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) + 1.0)
+      s_next = min(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%s + 1.0)
       if (present(track_max)) s_next = &
-                min(s_next, ray%now%vec(5) + (1.0001 * track_max - ray%track_len))
+                min(s_next, ray%now%s + (1.0001 * track_max - ray%track_len))
     else
-      s_next = max(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%vec(5) - 1.0)
+      s_next = max(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%s - 1.0)
       if (present(track_max)) s_next = &
-                max(s_next, ray%now%vec(5) - (1.0001 * track_max - ray%track_len))
+                max(s_next, ray%now%s - (1.0001 * track_max - ray%track_len))
     endif
 
     call propagate_ray (ray, s_next, lat, .true.)
@@ -82,8 +82,8 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
     ! See if we have hit the end of the machine
 
     if (lat%param%geometry == open$) then
-      if ((ray%direction ==  1 .and. ray%now%vec(5) == lat%ele(lat%n_ele_track)%s) .or. &
-          (ray%direction == -1 .and. ray%now%vec(5) == lat%ele(0)%s)) then
+      if ((ray%direction ==  1 .and. ray%now%s == lat%ele(lat%n_ele_track)%s) .or. &
+          (ray%direction == -1 .and. ray%now%s == lat%ele(0)%s)) then
         if (ray%direction == 1) then
           ray%wall_side = exit_side$   ! End "wall" at end of lattice
         else
@@ -110,11 +110,11 @@ subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
       endif
     endif
 
-    if (ray%now%vec(5) == negative_x_wall%pt(ix_neg)%s) then
+    if (ray%now%s == negative_x_wall%pt(ix_neg)%s) then
       call next_pt (ray, negative_x_wall, ix_neg, passed_end)
     endif
 
-    if (ray%now%vec(5) == positive_x_wall%pt(ix_pos)%s) then
+    if (ray%now%s == positive_x_wall%pt(ix_pos)%s) then
       call next_pt (ray, positive_x_wall, ix_pos, passed_end)
     endif
 

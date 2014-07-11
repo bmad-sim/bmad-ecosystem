@@ -363,7 +363,7 @@ if (photon_start_input_file /= '') then
       if (is_inside) exit
     enddo
 
-    p%ix_ele = element_at_s(lat, p%vec(5), .true.)
+    p%ix_ele = element_at_s(lat, p%s, .true.)
 
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
@@ -580,7 +580,7 @@ write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
 write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
 write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
 dtrack = photon%now%track_len - photon_direction * &
-    modulo2((photon%now%vec(5) - photon%start%vec(5)), lat%param%total_length/2)
+    modulo2((photon%now%s - photon%start%s), lat%param%total_length/2)
 write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
 j = photon%now%ix_ele
 write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
@@ -623,10 +623,10 @@ if (filter_on) then
     if (e_filter_min > 0 .and. photon%now%energy < e_filter_min) filter_this = .true.
     if (e_filter_max > 0 .and. photon%now%energy > e_filter_max) filter_this = .true.
     if (s_wrap_on) then
-      if (photon%now%vec(5) > s_filter_max .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
+      if (photon%now%s > s_filter_max .and. photon%now%s < s_filter_min) filter_this = .true.
     else
-      if (s_filter_min > 0 .and. photon%now%vec(5) < s_filter_min) filter_this = .true.
-      if (s_filter_max > 0 .and. photon%now%vec(5) > s_filter_max) filter_this = .true.
+      if (s_filter_min > 0 .and. photon%now%s < s_filter_min) filter_this = .true.
+      if (s_filter_max > 0 .and. photon%now%s > s_filter_max) filter_this = .true.
     endif
   endif
 

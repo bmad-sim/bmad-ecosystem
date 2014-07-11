@@ -69,7 +69,7 @@ do i = 2, i_ray
   ! * the current to get the power
 
   power%radiated = power%radiated + power_factor * &
-         (ray2%start%vec(5) - ray1%start%vec(5)) * (ray2%g_bend**2 + ray1%g_bend**2) / 2
+         (ray2%start%s - ray1%start%s) * (ray2%g_bend**2 + ray1%g_bend**2) / 2
 enddo
  
 ! Ignore element if the radiated power is 0
@@ -159,9 +159,9 @@ do i = 2, i_ray
 
   ! theta_floor1 and theta_floor2 are the ray angles in the floor coordinate system.
 
-  theta_base = theta_floor(ray1%now%vec(5), lat) 
+  theta_base = theta_floor(ray1%now%s, lat) 
   theta_floor1 = atan2(ray1%now%vec(2), ray1%now%vec(6)) + theta_base
-  theta_floor2 = atan2(ray2%now%vec(2), ray2%now%vec(6)) + theta_floor(ray2%now%vec(5), lat, theta_base)
+  theta_floor2 = atan2(ray2%now%vec(2), ray2%now%vec(6)) + theta_floor(ray2%now%s, lat, theta_base)
 
   ! Loop over all segments that have light hitting it.
 
@@ -247,7 +247,7 @@ do i = 2, i_ray
 
     ray%direction = -ray2%direction  ! track backwards
     ray%start%vec(1) = seg%x_mid
-    ray%start%vec(5) = seg%s_mid
+    ray%start%s = seg%s_mid
     ray%start%s      = seg%s_mid
     ray%start%vec(2) = sin(theta)
     ray%start%vec(6) = cos(theta)
@@ -255,14 +255,14 @@ do i = 2, i_ray
     ray%ix_source = ray2%ix_ele
     ray%now = ray%start
     ray%now%vec(1) = ray%start%vec(1) + 1.0e-7 * ray%direction * tan(theta)
-    ray%now%vec(5) = modulo (ray%start%vec(5) + 1.0e-7 * ray%direction, lat%param%total_length)
-    ray%now%s = ray%now%vec(5)
+    ray%now%s = modulo (ray%start%s + 1.0e-7 * ray%direction, lat%param%total_length)
+    ray%now%s = ray%now%s
     ray%track_len = 0
     ray%crossed_end = ray2%crossed_end
-    track_len = abs((1 - rr)*ray1%start%vec(5) + &
-                           rr*ray2%start%vec(5) - seg%s_mid)
+    track_len = abs((1 - rr)*ray1%start%s + &
+                           rr*ray2%start%s - seg%s_mid)
     ! Correct for segment being on the opposite side of the ip.
-    if ((seg%s_mid - ray2%start%vec(5)) * ray2%direction < 0) &
+    if ((seg%s_mid - ray2%start%s) * ray2%direction < 0) &
                                       track_len = lat%param%total_length - track_len 
 
     call track_ray_to_wall (ray, lat, walls, hit_flag, track_len)
@@ -388,7 +388,7 @@ ep%power_tot = ep%power_tot + power_per_len * seg%len
 
 if (power_per_len > ep%main_source%power_per_len) then
   ep%main_source%power_per_len = power_per_len
-  ep%main_source%s             = ray1%start%vec(5) * (1 - rr) + ray2%start%vec(5) * rr
+  ep%main_source%s             = ray1%start%s * (1 - rr) + ray2%start%s * rr
   ep%main_source%ix_ele        = ray2%ix_source
 endif
 

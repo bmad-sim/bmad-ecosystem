@@ -87,11 +87,9 @@ case (wiggler$, undulator$)
     ! Note: assumes particles are relativistic!!
     k_wig = twopi * ele%value(n_pole$) / (2 * ele%value(l$))
 
-    ! changed to use the E_TOT at the ele 2006.11.24 mjf
-    g_max = c_light * ele%value(b_max$) / (ele%value(E_TOT$))
+    g_max = c_light * ele%value(b_max$) / (ele%value(p0c$))
     ray%g_bend = abs(g_max * cos (k_wig * l_offset))
     orb0%vec(2) = orb0%vec(2) + (g_max / k_wig) * sin (k_wig * l_offset)
-    orb0%vec(6) = sqrt(1 - orb0%vec(2)**2)
 
   else  ! map type
 
@@ -100,8 +98,7 @@ case (wiggler$, undulator$)
     ! Note: assumes particles are relativistic!!
     call em_field_calc (runt_ele, lat%param, l_offset, 0.0_rp, orb0, .false., field)
 
-    ! changed to use the E_TOT at the ele 2006.11.24 mjf
-    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(E_TOT$)
+    ray%g_bend = sqrt(sum(field%b(1:2)**2)) * c_light / ele%value(p0c$)
 
   endif
 
@@ -116,9 +113,9 @@ ray%start%vec(1) = orb0%vec(1)
 ray%start%vec(2) = atan(orb0%vec(2))
 ray%start%vec(3) = orb0%vec(3)
 ray%start%vec(4) = atan(orb0%vec(4))
-ray%start%vec(5) = ele0%s + l_offset                    ! s position
-ray%start%s      = ray%start%vec(5)
+ray%start%vec(5) = l_offset
 ray%start%vec(6) = sqrt (1 - orb0%vec(2)**2 - orb0%vec(4)**2)
+ray%start%s = ele0%s + l_offset                    ! s position
 ray%now = ray%start
 ray%ix_ele = ix_ele
 ray%crossed_end = .false.

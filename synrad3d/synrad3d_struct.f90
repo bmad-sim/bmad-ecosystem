@@ -13,9 +13,10 @@ use photon_reflection_mod
 
 
 type sr3d_photon_coord_struct
-  real(rp) vec(6)             ! Photon position: (x, vx/c, y, vy/c, s, vz/c)
+  real(rp) vec(6)             ! Photon position: (x, vx/c, y, vy/c, z, vz/c)
   real(rp) energy             ! In eV
   real(rp) track_len          ! length of the track from the start
+  real(rp) s                  ! S position
   integer ix_ele              ! index of lattice element we are in.
   integer :: ix_wall = 0      ! Index to wall cross-section array
   integer ix_triangle         ! Index to wall triangle if using triangular 
