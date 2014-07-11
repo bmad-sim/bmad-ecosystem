@@ -91,13 +91,15 @@ if (present(err_flag)) err_flag = .true.
 bp_com%error_flag = .false.              ! Set to true on an error
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
-bp_com%write_digested = .true.
+bp_com%write_digested = (.not. bp_com%always_parse)
 bp_com%do_superimpose = .true.
 bp_com%input_from_file = .true.
 debug_line = ''
 
-call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
-call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
+if (.not. bp_com%always_parse) then
+  call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
+  call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
+endif
 
 ! Must make sure that if use_line is present the digested file has used the 
 ! correct line

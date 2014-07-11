@@ -70,7 +70,7 @@ logical check, err_if_not_found
 ! Init...
 
 if (present(err_flag)) err_flag = .true.
-bp_com%write_digested2 = .false.
+bp_com%write_digested2 = (.not. bp_com%always_parse)
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 

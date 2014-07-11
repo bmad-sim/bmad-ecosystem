@@ -163,9 +163,9 @@ type bp_common_struct
   logical do_superimpose
   logical write_digested      ! For bmad_parser
   logical write_digested2     ! For bmad_parser2
+  logical :: always_parse = .false. ! For debugging to force parsing
   logical input_from_file     ! Input is from a lattice file?
   logical inline_call_active
-  logical :: always_parse = .false. ! For debugging to force parsing
   logical :: print_err = .true.  ! Print error messages?
 end type
 

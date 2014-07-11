@@ -21,6 +21,8 @@
 !
 ! Output:
 !   lat         -- lat_struct: Structure holding the lattice information.
+!   digested_read_ok -- Logical, optional: Set True if the digested file was
+!                        successfully read. False otherwise.
 !   err_flag    -- Logical, optional: Set True if there is an error. False otherwise
 !-
 
@@ -38,7 +40,7 @@ character(*), optional :: use_line
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 
-integer ix
+integer ix, ix2
 
 ! look for 'xsif::' prefix. Allow lat_file to have leading blanks.
 
@@ -47,12 +49,14 @@ if (ix /= 0) then
   if (lat_file(1:ix-1) /= '') ix = 0
 endif
 
-if (index(lat_file, '.xsif') /= 0) then
-  call xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-elseif (ix == 0) then
-  call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
-else
+ix2 = index(lat_file, '.xsif')
+
+if (ix /= 0) then
   call xsif_parser (lat_file(ix+6:), lat, make_mats6, digested_read_ok, use_line, err_flag)
+elseif (ix2 /= 0 .and. len_trim(lat_file) == ix2+4) then
+  call xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
+else 
+  call bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
 endif
 
 end subroutine

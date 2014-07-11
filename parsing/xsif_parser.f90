@@ -23,6 +23,8 @@
 !
 ! Output:
 !   lat         -- lat_struct: Structure holding the lattice information.
+!   digested_read_ok -- Logical, optional: Set True if the digested file was
+!                        successfully read. False otherwise.
 !   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
@@ -84,7 +86,7 @@ if (.not. err) then
 endif
 
 if (present(digested_read_ok)) digested_read_ok = .false.
-bp_com%write_digested = .true.
+bp_com%write_digested = (.not. bp_com%always_parse)
 
 ! Init the xsif routines.
 ! If XSIF_IO_SETUP returns bad status it means that one of the file-open 
@@ -590,6 +592,11 @@ do i = 1, lat%n_ele_max
     if (ele%value(e_tot$) == 0) cycle
     ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / ele%value(e_tot$)
   endif
+
+  if (attribute_index(ele, 'FRINGE_AT') /= 0)   ele%value(fringe_at$) = both_ends$
+  if (attribute_index(ele, 'FRINGE_TYPE') /= 0) ele%value(fringe_type$) = none$
+
+  call set_status_flags (ele%bookkeeping_state, stale$)
 enddo
 
 ! last

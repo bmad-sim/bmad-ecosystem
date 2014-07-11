@@ -1074,7 +1074,7 @@ case (edge_focus_only$)
 case (none$)
   if (present(mat6)) call mat_make_unit (mat6)
 case default
-  call out_io (s_fatal$, r_name, 'UNKNOWN FRINGE_TYPE: /i0/ ', i_array = [fringe_type])
+  call out_io (s_fatal$, r_name, 'UNKNOWN FRINGE_TYPE: \i0\ ', i_array = [fringe_type])
   if (global_com%exit_on_error) call err_exit
 end select
 
