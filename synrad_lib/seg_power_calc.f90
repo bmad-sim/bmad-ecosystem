@@ -247,20 +247,17 @@ do i = 2, i_ray
 
     ray%direction = -ray2%direction  ! track backwards
     ray%start%vec(1) = seg%x_mid
-    ray%start%s = seg%s_mid
-    ray%start%s      = seg%s_mid
     ray%start%vec(2) = sin(theta)
     ray%start%vec(6) = cos(theta)
+    ray%start%s      = seg%s_mid
     ray%ix_ele = ray2%ix_ele
     ray%ix_source = ray2%ix_ele
     ray%now = ray%start
     ray%now%vec(1) = ray%start%vec(1) + 1.0e-7 * ray%direction * tan(theta)
     ray%now%s = modulo (ray%start%s + 1.0e-7 * ray%direction, lat%param%total_length)
-    ray%now%s = ray%now%s
     ray%track_len = 0
     ray%crossed_end = ray2%crossed_end
-    track_len = abs((1 - rr)*ray1%start%s + &
-                           rr*ray2%start%s - seg%s_mid)
+    track_len = abs((1 - rr)*ray1%start%s + rr*ray2%start%s - seg%s_mid)
     ! Correct for segment being on the opposite side of the ip.
     if ((seg%s_mid - ray2%start%s) * ray2%direction < 0) &
                                       track_len = lat%param%total_length - track_len 
@@ -349,15 +346,15 @@ function ray_to_seg_distance (ray, seg) result (dist)
 
 type (ray_struct) ray
 type (wall_seg_struct) seg
-real(rp) dist, now(6)
+real(rp) dist, s
 
 !
 
-now = ray%now%vec
-if (ray%crossed_end) now(5) = now(5) + lat%param%total_length * ray%direction
-dx = seg%x_mid - now(1)
-ds = seg%s_mid - now(5)
-dist = dx * cos(now(2)) - ds * sin(now(2))
+s = ray%now%s
+if (ray%crossed_end) s = s + lat%param%total_length * ray%direction
+dx = seg%x_mid - ray%now%vec(1)
+ds = seg%s_mid - s
+dist = dx * cos(ray%now%vec(2)) - ds * sin(ray%now%vec(2))
 
 end function ray_to_seg_distance
 
