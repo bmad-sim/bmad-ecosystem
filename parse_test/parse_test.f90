@@ -13,7 +13,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-
+type (coord_struct), allocatable :: orbit(:)
 real(rp) value
 integer i
 character(1) delim
@@ -41,6 +41,23 @@ write (1, '(4a)')       '"Custom"  STR ', '"', trim(attribute_name(lat%ele(1), c
 do i = lbound(particle_name, 1), ubound(particle_name, 1)
   write (1, '(3a, es20.12, i6)')         '"', trim(particle_name(i)), '"  REL 1e-12', mass_of(i), charge_of(i)
 enddo
+
+!
+
+bp_com%always_parse = .true.
+call bmad_and_xsif_parser ('DCO4.xsif', lat)
+lat%ele(156)%value(hkick$) = 0.00001
+lat%ele(156)%value(vkick$) = 0.00002
+
+call twiss_at_start (lat)
+call twiss_propagate_all (lat)
+call reallocate_coord (orbit, lat)
+call closed_orbit_calc (lat, orbit, 4)
+
+write (1, '(a, 2f12.8)')  '"XSIF:Twiss"  REL 1e-8', lat%ele(0)%a%beta, lat%ele(0)%b%beta
+write (1, '(a, 2es15.8)') '"XSIF:Orbit"  REL 1e-8', orbit(0)%vec(1), orbit(0)%vec(3)
+
+!
 
 close(1)
 

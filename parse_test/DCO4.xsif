@@ -1,0 +1,938 @@
+! ILCDR FODO LATTICE "DCO4" 
+! Maxim Korostelev, Andy Wolski, (Cockcroft), Aug 2009
+
+  my_beam: beam, energy = 5  ! GeV
+
+  E0      := 5.0           ! nominal beam energy (GeV)
+
+  BLENGTH := 2.00          ! length of standard bending magnet
+  QLENGTH := 0.30          ! length of standard quadrupole
+  SLENGTH := 0.25          ! length of standard sextupole
+
+  ANGARCB := TWOPI/200     ! angle of arc bending magnet (200 arc-fodo cells)
+
+  scl := 1.2643 ! scale coefficient to squeeze length of the drifts in the MDW
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! Instrumentation and correction components
+!------------------------------------------------------------------------------
+! For matching iterations only LDBPM:=0, LDCOR:= 0, LCOR:= 0
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drift from quadrupole to beam position monitor
+
+  LDBPM := 0.0
+  DBPM:    DRIFT, L=LDBPM
+
+! Beam position monitor
+
+  BPMRNG:  MONITOR
+
+! Drift from orbit corrector to quadrupole
+
+  LDCOR := 0.0
+  DCOR:    DRIFT, L=LDCOR
+
+! Orbit corrector
+
+  LCOR  := 0.0
+  CORRNG:  KICKER, L=LCOR, HKICK=0, VKICK=0
+
+! Skew quadrupole (coupling corrector)
+
+  SKQRNG: QUADRUPOLE, L=0.2, K1=0.0, TILT
+
+! Corrector, quad and BPM
+
+  CQB(Q1): LINE=(CORRNG,DCOR,Q1,DBPM,BPMRNG)
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! ARC (arc cell)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+ DZZZ := 3.6775  
+ ZZZ:    DRIFT, L=DZZZ -LDBPM-LCOR-LDCOR
+ DARC11:   DRIFT, L=6.40  -DZZZ -LDBPM
+
+  DARCB:   DRIFT, L=BLENGTH
+  DARCS:   DRIFT, L=0.20
+  DARC1:   DRIFT, L=6.40  -LDBPM
+  DARC2:   DRIFT, L=1.90  -LDBPM
+  DARC5:   DRIFT, L=0.15   ! Drift from orbit corrector to quadrupole
+  DARC6:   DRIFT, L=5.45      -LCOR
+  DARC7:   DRIFT, L=0.95      -LCOR
+
+
+
+! Bends
+
+  BARC:    SBEND, L=BLENGTH, ANGLE=ANGARCB, E1=ANGARCB/2, E2=ANGARCB/2
+
+
+! Quadrupoles
+
+  QARCF:   QUADRUPOLE, L=QLENGTH, K1=K1.QARCF
+  QARCD:   QUADRUPOLE, L=QLENGTH, K1=K1.QARCD
+
+
+! Sextupoles
+
+  SXT_ON := 1
+  SARC1:   SEXTUPOLE,  L=SLENGTH, K2=K2.SARC1*SXT_ON
+  SARC2:   SEXTUPOLE,  L=SLENGTH, K2=K2.SARC2*SXT_ON
+  SARC3:   SEXTUPOLE,  L=SLENGTH, K2=K2.SARC3*SXT_ON
+  SARC4:   SEXTUPOLE,  L=SLENGTH, K2=K2.SARC4*SXT_ON
+
+
+! Beam line
+
+      ARCT(S1,S2):     LINE=( QARCD,  DBPM,  &
+                       BPMRNG, DARC2, &
+                       BARC,   DARC6, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       S1,     DARCS, &
+                       QARCF,  DBPM,  &
+                       BPMRNG, DARC1, &
+                       DARCB,  DARC7, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       S2,     DARCS )
+
+ 
+       ARC1:    LINE=(         DBPM,  &
+                       BPMRNG, DARC2, &
+                       BARC,   DARC6, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC3,  DARCS, &
+                       QARCF,  DBPM,  &
+                       BPMRNG, DARC1, &
+                       DARCB,  DARC7, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC4,  DARCS, QARCD )
+
+
+       ARCM:     LINE=(         DBPM,  &
+                       BPMRNG, DARC2, &
+                       BARC,   DARC6, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC3,  DARCS, &
+                       QARCF,  DBPM,  &
+                       BPMRNG, DARC1, &
+                       DARCB,  DARC7, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC4,  DARCS )
+
+  ARC:          LINE=( ARCT(SARC1,SARC2) )
+  
+  ARC0:         LINE=( ARCT(SARC3,SARC4) )
+
+  ARC5:         LINE=( ARCT(SARC1,SARC4), &
+                       ARCT(SARC3,SARC4), &
+                       ARCT(SARC1,SARC2), &
+                       ARCT(SARC3,SARC4), &
+                       ARCT(SARC3,SARC2) )
+
+
+      ARCD(S1,S2):     LINE=(  DARC11, &
+                       DARCB,  DARC7, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       S2,     DARCS ,&
+                       QARCD,  DBPM,  &
+                       BPMRNG, DARC2, &
+                       BARC,   DARC6, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       S1,     DARCS, &
+                       QARCF,  DBPM, BPMRNG, ZZZ )
+
+
+      ARC2:          LINE=( ARCD(SARC1,SARC2) )
+
+
+      ARCR:           LINE=( DBPM, BPMRNG, DARC11, &
+                       DARCB,  DARC7, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC4,     DARCS )
+
+
+      ARCL:     LINE=( QARCD,  DBPM,  &
+                       BPMRNG, DARC2, &
+                       BARC,   DARC6, &
+                       CORRNG, DARC5, &
+                       SKQRNG, DARC5, &
+                       SARC3,     DARCS, &
+                       QARCF,  DBPM, BPMRNG, ZZZ )
+
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! DSP (dispersion suppressor)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DDSP1:   DRIFT, L=1.50-LDBPM
+  DDSP2:   DRIFT, L=3.10      -LCOR-LDCOR
+  DDSP3:   DRIFT, L=3.10-LDBPM-LCOR-LDCOR
+  DDSP4:   DRIFT, L=2.35-LDBPM-LCOR-LDCOR
+  DDSP5:   DRIFT, L=4.10-LDBPM
+  DDSP6:   DRIFT, L=1.80      -LCOR-LDCOR
+  DDSP7:   DRIFT, L=3.70-LDBPM-LCOR-LDCOR
+  DDSP8:   DRIFT, L=4.70-LDBPM-LCOR-LDCOR
+  DDSP9:   DRIFT, L=7.25-LDBPM-LCOR-LDCOR
+  DDSPA:   DRIFT, L=9.20-LDBPM-LCOR-LDCOR 
+
+! Bends
+
+  ANGDSP1:= ANGARCB*0.35 
+  ANGDSP2:= ANGARCB*0.65 
+
+  BDSP1:   SBEND, L=BLENGTH, ANGLE=ANGDSP1, E1=ANGDSP1/2, E2=ANGDSP1/2
+  BDSP2:   SBEND, L=BLENGTH, ANGLE=ANGDSP2, E1=ANGDSP2/2, E2=ANGDSP2/2
+
+
+! Quadrupoles
+
+  QDSP0:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP0
+  QDSP1:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP1
+  QDSP2:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP2
+  QDSP3:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP3
+  QDSP4:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP4
+  QDSP5:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP5
+  QDSP6:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP6
+  QDSP7:   QUADRUPOLE, L=QLENGTH, K1=K1.QDSP7
+
+
+! Beam lines
+
+  DSP:     LINE=( CQB(QDSP0), DDSP1, &
+                  BDSP1,      DDSP2, &
+                  CQB(QDSP1), DDSP3, &
+                  CQB(QDSP2), DDSP4, &
+                  CQB(QDSP3), DDSP5, &
+                  BDSP2,      DDSP6, &
+                  CQB(QDSP4), DDSP7, &
+                  CQB(QDSP5), DDSP8, &
+                  CQB(QDSP6), DDSP9, &
+                  CQB(QDSP7), DDSPA )
+    
+
+  ARCDSP:  LINE=( ARC, DSP )
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! PHT (phase trombone)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DPHT1:   DRIFT, L=10.9322+0.153925-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QPHT1:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT1
+  QPHT2:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT2
+  QPHT3:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT3
+  QPHT4:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT4
+  QPHT5:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT5
+  QPHT6:   QUADRUPOLE, L=QLENGTH, K1=K1.QPHT6
+
+
+! Beam lines
+
+  PHT:     LINE=( CQB(QPHT1), DPHT1, &
+                  CQB(QPHT2), DPHT1, &
+                  CQB(QPHT3), DPHT1, &
+                  CQB(QPHT4), DPHT1, &
+                  CQB(QPHT5), DPHT1, &
+                  CQB(QPHT6), DPHT1 )
+
+
+  PHTM:     LINE=( QPHTM1, DPHT1, &
+                   QPHTM2, DPHT1, &
+                   QPHTM3, DPHT1, &
+                   QPHTM4, DPHT1, &
+                   QPHTM5, DPHT1, &
+                   QPHTM6, DPHT1 )
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MRC (matching from RF into circumference correction chicane)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMRC1:   DRIFT, L=5.30-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QMRC1:   QUADRUPOLE, L=QLENGTH, K1=K1.QMRC1
+  QMRC2:   QUADRUPOLE, L=QLENGTH, K1=K1.QMRC2
+  QMRC3:   QUADRUPOLE, L=QLENGTH, K1=K1.QMRC3
+  QMRC4:   QUADRUPOLE, L=QLENGTH, K1=K1.QMRC4
+
+
+! Beam lines
+
+  MRC:     LINE=( CQB(QMRC1),  DMRC1, &
+                  CQB(QMRC2),  DMRC1, &
+                  CQB(QMRC3),  DMRC1, &
+                  CQB(QMRC4) )
+
+  
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MFC (matching from IFD {within inj} into circumference correction chicane)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMFC1:   DRIFT, L=5.30-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QMFC1:   QUADRUPOLE, L=QLENGTH, K1=K1.QMFC1
+  QMFC2:   QUADRUPOLE, L=QLENGTH, K1=K1.QMFC2
+  QMFC3:   QUADRUPOLE, L=QLENGTH, K1=K1.QMFC3
+  QMFC4:   QUADRUPOLE, L=QLENGTH, K1=K1.QMFC4
+
+
+! Beam lines
+
+  MFC:     LINE=( CQB(QMFC1),  DMFC1, &
+                  CQB(QMFC2),  DMFC1, &
+                  CQB(QMFC3),  DMFC1, &
+                  CQB(QMFC4) )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! CCH (circumference correction chicane)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DCCH0:   DRIFT, L= 4.00      -LCOR-LDCOR
+  DCCH1:   DRIFT, L= 4.00-LDBPM-LCOR-LDCOR
+  DCCH2:   DRIFT, L= 3.60-LDBPM-LCOR-LDCOR
+  DCCH3:   DRIFT, L= 0.50-LDBPM
+  DCCH4:   DRIFT, L= 1.00
+  DCCH5:   DRIFT, L= 0.50
+  DCCH6:   DRIFT, L= 3.00
+  DCCH7:   DRIFT, L= 0.50      -LCOR-LDCOR
+  DCCH8:   DRIFT, L= 4.00-LDBPM
+
+
+! Bends
+
+  ANGCCH1:= ANGARCB/2
+  ANGCCH2:= -ANGARCB/2
+
+  BCCH1:   SBEND, L=BLENGTH/2, ANGLE=ANGCCH1, E1=ANGCCH1/2, E2=ANGCCH1/2
+  BCCH2:   SBEND, L=BLENGTH/2, ANGLE=ANGCCH2, E1=ANGCCH2/2, E2=ANGCCH2/2
+
+
+! Quadrupoles
+
+  QCCH1:   QUADRUPOLE, L=QLENGTH, K1=K1.QCCH1
+  QCCH2:   QUADRUPOLE, L=QLENGTH, K1=K1.QCCH2
+
+
+! Beam lines
+
+  CCH1:    LINE=(             DCCH1, &
+                  CQB(QCCH1), DCCH2, &
+                  CQB(QCCH2), DCCH3, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH5, &
+                  BCCH2,      DCCH6, &
+                  BCCH1,      DCCH5, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH7, &
+                  CQB(QCCH2), DCCH2, &
+                  CQB(QCCH1), DCCH8 )
+
+  CCH0:    LINE=(             DCCH0, &
+                  CQB(QCCH1), DCCH2, &
+                  CQB(QCCH2), DCCH3, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH5, &
+                  BCCH2,      DCCH6, &
+                  BCCH1,      DCCH5, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH7, &
+                  CQB(QCCH2), DCCH2, &
+                  CQB(QCCH1), DCCH8 )
+
+  CCH2:    LINE=(             DCCH0, &
+                  CQB(QCCH1), DCCH2, &
+                  CQB(QCCH2), DCCH3, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH5, &
+                  BCCH2,      DCCH6, &
+                  BCCH1,      DCCH5, &
+                  BCCH1,      DCCH4, &
+                  BCCH2,      DCCH7, &
+                  CQB(QCCH2), DCCH2, &
+                  CQB(QCCH1), DCCH1 )
+
+
+  CCH:     LINE=( CCH1, 2*CCH0, CCH2 )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! IFD (fodo structure)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+ DIFD:   DRIFT, L=9.64801859-LDBPM-LCOR-LDCOR
+
+! Quadrupoles
+
+  QIFD1:   QUADRUPOLE, L=QLENGTH, K1=K1.QIFD1
+  QIFD2:   QUADRUPOLE, L=QLENGTH, K1=K1.QIFD2
+
+
+  RF_ON  := 1
+
+! Beam lines
+
+  IFD:     LINE=( CQB(QIFD1),  DIFD, &
+                  CQB(QIFD2),  DIFD  )
+
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! RFC (rf)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DRFC1:   DRIFT, L= 3.06277573      -LCOR-LDCOR
+  DRFC2:   DRIFT, L= 3.11322937
+  DRFC3:   DRIFT, L= 3.06277573-LDBPM
+
+! Quadrupoles
+
+  QRFC1:   QUADRUPOLE, L=QLENGTH, K1=K1.QRFC1
+  QRFC2:   QUADRUPOLE, L=QLENGTH, K1=K1.QRFC2
+
+
+! RF cavities
+
+!  RF_ON  := 1
+
+  VRFC1:   RFCAVITY, L=0.2306096, VOLT=RFVOLT, LAG=RFPHSE, HARMON=14042
+
+
+! Beam lines
+
+  RFC:     LINE=( CQB(QRFC1), DRFC3, &
+                  VRFC1,      DRFC2, &
+                  VRFC1,      DRFC1, &
+                  CQB(QRFC2), DRFC3, &
+                  VRFC1,      DRFC2, &
+                  VRFC1,      DRFC1 )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MPR (matching PHT to RF)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMPR1:   DRIFT, L=5.26674-LDBPM-LCOR-LDCOR
+  DMPR2:   DRIFT, L=5.492732-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QMPR1:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPR1
+  QMPR2:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPR2
+  QMPR3:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPR3
+  QMPR4:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPR4
+
+
+! Beam lines
+
+  MPR:     LINE=( CQB(QMPR1),  DMPR1, &
+                  CQB(QMPR3),  DMPR1, &
+                  CQB(QMPR2),  DMPR2, &
+                  CQB(QMPR4),  DMPR2  )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! WIG (wiggler magnet)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DWIG2:  DRIFT, L=0.1
+  DWIG3:  DRIFT, L=0.025
+
+
+! Bends
+
+  WIGBMAX := 1.6  ! Peak wiggler field (T)
+  WIGPERD := 0.4  ! Wiggler period (m)
+  WANGLE  := WIGBMAX*(WIGPERD/4)*CLIGHT/E0/1e9  ! Bending angle in one pole
+
+  BWIGP:  SBEND, L=WIGPERD/4, ANGLE=+WANGLE,   E1=+WANGLE/2, E2=+WANGLE/2
+  BWIGM:  SBEND, L=WIGPERD/4, ANGLE=-WANGLE,   E1=-WANGLE/2, E2=-WANGLE/2
+  BWIGPH: SBEND, L=WIGPERD/8, ANGLE=+WANGLE/2, E1=+WANGLE/4, E2=+WANGLE/4
+  BWIGMH: SBEND, L=WIGPERD/8, ANGLE=-WANGLE/2, E1=-WANGLE/4, E2=-WANGLE/4
+
+
+! Beamlines
+
+  WIGPRD: LINE=(BWIGM,DWIG2,BWIGP,DWIG2)
+
+  WIG:    LINE=(BWIGPH,DWIG3,5*WIGPRD,BWIGM,DWIG2,BWIGP,DWIG3,BWIGMH)
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! WGC (wiggler cell)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DWGC2:  DRIFT, L=0.75-LCOR-LDCOR
+  DWGC1:  DRIFT, L=0.75-LDBPM
+
+! Quadrupoles
+
+  QWGC1:  QUADRUPOLE, L=QLENGTH, K1=K1.QWGC1
+  QWGC2:  QUADRUPOLE, L=QLENGTH, K1=K1.QWGC2
+
+
+! Beamline
+
+  WGC:    LINE=( CQB(QWGC1), DWGC1, &
+                 WIG,        DWGC2, &
+                 CQB(QWGC2), DWGC1, &
+                -WIG,        DWGC2 )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MDW (matching from CCH into wiggler cell {RF-WIG str} or PSD {INJ str})
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMDW1:  DRIFT, L=6.0*scl-LDBPM-LCOR-LDCOR-0.075
+  DMDW2:  DRIFT, L=6.0*scl-LDBPM-LCOR-LDCOR-0.075
+  DMDW3:  DRIFT, L=5.0*scl-LDBPM-LCOR-LDCOR-0.075
+  DMDW4:  DRIFT, L=4.0*scl-LDBPM-LCOR-LDCOR-0.075
+
+! Quadrupoles
+
+  QMDW1:  QUADRUPOLE, L=QLENGTH, K1=K1.QMDW1
+  QMDW2:  QUADRUPOLE, L=QLENGTH, K1=K1.QMDW2
+  QMDW3:  QUADRUPOLE, L=QLENGTH, K1=K1.QMDW3
+  QMDW4:  QUADRUPOLE, L=QLENGTH, K1=K1.QMDW4
+
+
+! Beamline
+
+  MDW:    LINE=( CQB(QMDW1), DMDW1, &
+                 CQB(QMDW2), DMDW2, &
+                 CQB(QMDW3), DMDW3, &
+                 CQB(QMDW4), DMDW4 )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! PSD (reversed dispersion suppressor)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DPSD1:   DRIFT, L= 1.50      -LCOR-LDCOR
+  DPSD2:   DRIFT, L= 1.30-LDBPM
+  DPSD3:   DRIFT, L= 4.00-LDBPM-LCOR-LDCOR
+  DPSD4:   DRIFT, L= 1.70-LDBPM-LCOR-LDCOR
+  DPSD5:   DRIFT, L= 5.65      -LCOR-LDCOR
+
+  DPSD6:   DRIFT, L= 2.50-LDBPM
+  DPSD7:   DRIFT, L= 2.80-LDBPM-LCOR-LDCOR
+  DPSD8:   DRIFT, L= 5.80-LDBPM-LCOR-LDCOR
+  DPSD9:   DRIFT, L=10.40-LDBPM-LCOR-LDCOR 
+  DPSDA:   DRIFT, L= 2.60
+
+
+! Bends
+
+  ANGPSD1:= ANGARCB*0.25
+  ANGPSD2:= ANGARCB*0.75
+
+  BPSD1:   SBEND, L=BLENGTH, ANGLE=ANGPSD1, E1=ANGPSD1/2, E2=ANGPSD1/2
+  BPSD2:   SBEND, L=BLENGTH, ANGLE=ANGPSD2, E1=ANGPSD2/2, E2=ANGPSD2/2
+
+
+! Quadrupoles
+
+  QPSD0:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD0
+  QPSD1:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD1
+  QPSD2:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD2
+  QPSD3:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD3
+
+  QPSD4:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD4
+  QPSD5:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD5
+  QPSD6:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD6
+  QPSD7:   QUADRUPOLE, L=QLENGTH, K1=K1.QPSD7
+
+
+! Beam lines
+
+  PSD:     LINE=(             DPSDA, &
+                  CQB(QPSD7), DPSD9, &
+                  CQB(QPSD6), DPSD8, &
+                  CQB(QPSD5), DPSD7, &
+                  CQB(QPSD4), DPSD6, &
+                  BPSD2,      DPSD5, &
+                  CQB(QPSD3), DPSD4, &
+                  CQB(QPSD2), DPSD3, &
+                  CQB(QPSD1), DPSD2, &
+                  BPSD1,      DPSD1, & 
+                  CORRNG,     DCOR,  &
+                      QPSD0 )
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! INJ (injection) and EXT (extraction)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DINJ0:   DRIFT, L=10.00
+  DINJ1:   DRIFT, L=10.00-LDBPM-LCOR-LDCOR
+  DINJ2:   DRIFT, L= 6.70-LDBPM-LCOR-LDCOR
+  DINJ3:   DRIFT, L=17.00-LDBPM-LCOR-LDCOR
+  DINJ4:   DRIFT, L= 0.25-LDBPM
+  DINJ5:   DRIFT, L= 0.25      -LCOR-LDCOR
+  DINJ6:   DRIFT, L= 7.25-LDBPM
+  DINJ7:   DRIFT, L= 0.50
+  DINJ8:   DRIFT, L= 7.25      -LCOR-LDCOR
+  DINJK:   DRIFT, L= 0.20
+
+
+! Kickers
+
+  KINJ1:   HKICKER, L=0.3, KICK=0.0
+
+  KEXT1:   HKICKER, L=0.3, KICK=0.0
+
+! Septa
+
+  PINJ1:   HKICKER, L=1.0, KICK=0.0
+  PINJ2:   HKICKER, L=1.0, KICK=0.0
+
+  PEXT1:   HKICKER, L=1.0, KICK=0.0
+  PEXT2:   HKICKER, L=1.0, KICK=0.0
+
+
+! Quadrupoles
+
+  QINJ1:   QUADRUPOLE, L=QLENGTH, K1=K1.QINJ1
+  QINJ2:   QUADRUPOLE, L=QLENGTH, K1=K1.QINJ2
+
+
+! Beam lines
+
+  IJ0:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ3, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ0 )
+
+  IJP:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ6, &
+                  PINJ1,      DINJ7, &
+                  PINJ2,      DINJ8, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ0 )
+
+  KCKMD:   LINE=( DINJK, KINJ1 )
+  KCKMDE:   LINE=( DINJK, KEXT1 )
+
+  IJK:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ4, &
+               33*KCKMD,      DINJ5, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ0 )
+
+
+  EXK:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ4, &
+               33*KCKMDE,     DINJ5, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ0 )
+
+
+  EXP:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ6, &
+                  PEXT2,      DINJ7, &
+                  PEXT1,      DINJ8, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ0 )
+
+
+  EX0:     LINE=(             DINJ1, &
+                  CQB(QINJ1), DINJ2, &
+                  CQB(QINJ2), DINJ3, &
+                  CQB(QINJ2), DINJ2, &
+                  CQB(QINJ1), DINJ1 )
+
+
+  INJ:     LINE=( IJP, IJK)
+  EXT:     LINE=( EXK, EXP, IJ0, EX0)
+
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MPI  (matching from phase trombone to injection)
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMPI2:   DRIFT, L=5.335069E+00-LDBPM-LCOR-LDCOR
+  DMPI3:   DRIFT, L=9.111615E+00-LDBPM-LCOR-LDCOR
+  DMPI4:   DRIFT, L=4.00-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QMPI1:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPI1
+  QMPI2:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPI2
+  QMPI3:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPI3
+  QMPI4:   QUADRUPOLE, L=QLENGTH, K1=K1.QMPI4
+
+
+! Beam lines
+
+  MPI:     LINE=(  & 
+                  CQB(QMPI1), DMPI2, &
+                  CQB(QMPI2), DMPI3, &
+                  CQB(QMPI3), DMPI4, &
+                  CQB(QMPI4) )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! MIF  (matching from injection to IFD {FODO section within inj straight})
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+! Drifts
+
+  DMIF1:   DRIFT, L=5.00-LDBPM-LCOR-LDCOR
+  DMIF2:   DRIFT, L=12.00-LDBPM-LCOR-LDCOR
+  DMIF3:   DRIFT, L=5.00-LDBPM-LCOR-LDCOR
+  DMIF4:   DRIFT, L=5.00-LDBPM-LCOR-LDCOR
+
+
+! Quadrupoles
+
+  QMIF1:   QUADRUPOLE, L=QLENGTH, K1=K1.QMIF1
+  QMIF2:   QUADRUPOLE, L=QLENGTH, K1=K1.QMIF2
+  QMIF3:   QUADRUPOLE, L=QLENGTH, K1=K1.QMIF3
+  QMIF4:   QUADRUPOLE, L=QLENGTH, K1=K1.QMIF4
+
+
+! Beam lines
+
+  MIF:     LINE=( CQB(QMIF1), DMIF1, &
+                  CQB(QMIF2), DMIF2, &
+                  CQB(QMIF3), DMIF3, &
+                  CQB(QMIF4), DMIF4 )
+
+
+!--------1---------2---------3---------4---------5---------6---------7---------8
+! RING
+!--------1---------2---------3---------4---------5---------6---------7---------8
+
+  MRK1:   MARKER
+  MRK2:   MARKER
+  MRK3:   MARKER
+  MRK4:   MARKER
+  MRK5:   MARKER
+  MRK6:   MARKER
+  MRK7:   MARKER
+
+  IMRK1:   MARKER
+  IMRK2:   MARKER
+  IMRK3:   MARKER
+  IMRK4:   MARKER
+  IMRK5:   MARKER
+  IMRK6:   MARKER
+  IMRK7:   MARKER
+
+
+  STRS1:   MARKER
+  STRS2:   MARKER
+  STRS3:   MARKER
+
+
+  HRINGR:  LINE=(    MRK1, DSP,         &
+                    6*PHT,              &
+                     MPR,               &
+                   5*RFC,               &
+                     MRC, CCH,          &
+                     MDW,               &
+                  44*WGC,  PSD, MRK4,   &
+                    ARCR, ARC0, 19*ARC5, ARC0, ARCL )
+
+
+  HRINGI:  LINE=(    IMRK1, DSP,          &
+                     6*PHT,  MPI,         &
+             IMRK2, INJ,EXT,  IMRK3, MIF, &
+                    7*IFD, MFC, CCH, MDW, &
+                      PSD, IMRK4,         &
+                     ARCR, ARC0, 19*ARC5, ARC0, ARCL )
+
+
+  RNGI:  LINE=(     EXT, MIF, 7*IFD,  MFC,     &
+                    CCH, MDW,   PSD,           &
+                    ARCR, ARC0, 19*ARC5, ARC0, ARCL,     &
+                    DSP,   6*PHT, MPR,  5*RFC, &
+                    MRC,   CCH, MDW, 44*WGC,   &
+                    PSD,                       &
+                    ARCR, ARC0, 19*ARC5, ARC0, ARCL,     & 
+                    DSP,   6*PHT, MPI, INJ )
+
+
+!  RING:   LINE=( HRINGR, HRINGI )
+
+   RING:   LINE=( HRINGI, HRINGR )
+
+  STRSECR:  LINE=(   MRK1, ARCL,DSP,               &
+                    6*PHT, MPR,               &
+                   4*RFC, STRS3, 1*RFC, MRK3, &
+                     MRC, CCH,                &
+                     MDW,                     &
+                  44*WGC,  PSD, MRK4,         &
+                    ARCR, MRK5  )
+
+
+  STRSECI:  LINE=(     IMRK1, ARCL, DSP,         &
+                       6*PHT,  MPI,         &
+               IMRK2, INJ,EXT, IMRK3, MIF,  &
+               7*IFD,   MFC, CCH, MDW,      &
+                        PSD, IMRK4,         &
+                       ARCR, IMRK5  )
+
+
+
+  A0LD:  LINE=(ARC0, ARCL, DSP )    
+
+  PRA0:  LINE=(PSD,ARCR, ARC0  )       
+
+
+ARCMUX :=(71.12-13.0-9.0)/(98*2) 
+ARCMUY :=(71.41-12.0-10.0)/(98*2) 
+
+! Specify the variation in phase advance across (one sixth of) the phase trombone
+
+PHTDMX    :=   0.01571325
+PHTDMY    :=  -0.01278583
+
+! Specify the RF voltage per cavity, for 20 cavities
+
+
+RFVOLT := RF_ON*20.4/20
+RFPHSE := 0.5
+
+
+! Specify the quadrupole and sextupole strengths
+
+ K1.QARCD  :=  -4.505126E-01
+ K1.QARCF  :=   4.499652E-01
+
+ K2.SARC1  :=   5.575215E+00
+ K2.SARC2  :=  -1.239889E+01
+ K2.SARC3  :=  0.0
+ K2.SARC4  :=  0.0
+
+ K1.QDSP3  := -2.797420E-01
+ K1.QDSP2  :=  6.998073E-01
+ K1.QDSP1  := -5.898348E-01
+ K1.QDSP0  :=  7.726590E-02
+ K1.QDSP7  := -2.791493E-01
+ K1.QDSP6  :=  3.426707E-01
+ K1.QDSP5  := -4.997585E-01
+ K1.QDSP4  :=  4.583217E-01
+
+ K1.QPHT6  :=   -3.385170E-01
+ K1.QPHT5  :=    3.022143E-01
+ K1.QPHT4  :=   -3.481095E-01
+ K1.QPHT3  :=    3.070624E-01
+ K1.QPHT2  :=   -3.467639E-01
+ K1.QPHT1  :=    3.017618E-01
+
+ K1.QMRC4  :=   2.165692E-01    
+ K1.QMRC3  :=  -3.870180E-01   
+ K1.QMRC2  :=   3.427740E-02   
+ K1.QMRC1  :=   2.922891E-01   
+
+ K1.QMFC4  :=   2.005410E-01
+ K1.QMFC3  :=  -3.623537E-01
+ K1.QMFC2  :=  -1.247332E-02
+ K1.QMFC1  :=   2.852246E-01
+
+ K1.QCCH2  :=  -3.131644E-01
+ K1.QCCH1  :=   3.789861E-01
+
+ K1.QMPI4  :=  -2.513349E-01
+ K1.QMPI3  :=   2.243704E-01
+ K1.QMPI2  :=  -3.680612E-02
+ K1.QMPI1  :=   2.153186E-01
+
+ K1.QINJ2  :=   2.079652E-01   
+ K1.QINJ1  :=  -2.513852E-01   
+
+ K1.QMIF4  :=   2.203742E-01
+ K1.QMIF3  :=  -3.610822E-01
+ K1.QMIF2  :=   4.737367E-01
+ K1.QMIF1  :=  -2.501352E-01
+
+ K1.QRFC2  :=  -3.958379E-01   
+ K1.QRFC1  :=   3.958379E-01   
+
+ K1.QIFD2  :=  -3.969730E-01
+ K1.QIFD1  :=   3.268602E-01
+
+ K1.QMPR4  :=   4.009476E-03
+ K1.QMPR3  :=  -1.405898E-02
+ K1.QMPR2  :=  -3.546570E-01
+ K1.QMPR1  :=   3.678275E-01
+
+ K1.QMDW4  :=  -4.414591E-01
+ K1.QMDW3  :=   4.365918E-01
+ K1.QMDW2  :=  -3.897631E-01
+ K1.QMDW1  :=   2.183317E-01
+
+ K1.QWGC1  :=  0.5834252
+ K1.QWGC2  := -0.5201176
+
+ K1.QPSD7  :=   5.333992E-01
+ K1.QPSD6  :=  -5.258831E-01
+ K1.QPSD5  :=   6.259932E-01
+ K1.QPSD4  :=  -4.183369E-03
+ K1.QPSD3  :=  -5.803414E-01
+ K1.QPSD2  :=   2.396552E-01
+ K1.QPSD1  :=   4.462035E-01
+ K1.QPSD0  :=   9.634543E-02
+
+ USE, RING
+
