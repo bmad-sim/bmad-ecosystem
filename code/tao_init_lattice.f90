@@ -271,6 +271,10 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model = u%design
   u%base  = u%design
 
+  u%model%lat_branch(0)%orb0  = u%model%lat%beam_start
+  u%design%lat_branch(0)%orb0 = u%design%lat%beam_start
+  u%base%lat_branch(0)%orb0   = u%base%lat%beam_start
+
 enddo
 
 ! Working lattice setup
