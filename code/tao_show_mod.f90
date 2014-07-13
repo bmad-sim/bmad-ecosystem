@@ -427,7 +427,7 @@ case ('beam')
     call tao_pick_universe (word1, word1, picked_uni, err, ix_u)
     if (err) return
     u => s%u(ix_u)
-    call tao_locate_elements (word1, ix_u, eles, err, ix_dflt_branch = s%com%default_branch)
+    call tao_locate_elements (word1, ix_u, eles, err)
     if (err .or. size(eles) == 0) return
     ix_ele = eles(1)%ele%ix_ele
     ix_branch = eles(1)%ele%ix_branch
@@ -1088,8 +1088,7 @@ case ('element')
     n_tot = 0
     do i_uni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. picked_uni(i_uni)) cycle
-      call tao_locate_elements (ele_name, i_uni, eles, err, &
-                                      ignore_blank = .true., ix_dflt_branch = s%com%default_branch)
+      call tao_locate_elements (ele_name, i_uni, eles, err, ignore_blank = .true.)
       if (err) return
       lat => s%u(i_uni)%model%lat
       do i = 1, size(eles)
@@ -1129,7 +1128,7 @@ case ('element')
   ! No wildcard case...
   ! Normal: Show the element info
 
-  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type, ix_dflt_branch = s%com%default_branch)
+  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
   if (err) return
   ele => eles(1)%ele
 
@@ -1711,7 +1710,7 @@ case ('lattice')
 
   elseif (ix_s2 /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, &
-                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = s%com%default_branch)
+                  ignore_blank = .true., above_ubound_is_err = .false.)
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
@@ -2017,7 +2016,7 @@ case ('optimizer')
 
 case ('orbit')
 
-  call tao_locate_elements (word1, u%ix_uni, eles, err, ix_dflt_branch = s%com%default_branch)
+  call tao_locate_elements (word1, u%ix_uni, eles, err)
   if (err) return
   do i = 1, 6
     nl=nl+1; write(lines(nl), rmt) '     ', &
@@ -2059,7 +2058,7 @@ case ('particle')
 
       call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
       if (err) return
-      call tao_locate_elements (ele_name, ix_u, eles, err, ix_dflt_branch = s%com%default_branch)
+      call tao_locate_elements (ele_name, ix_u, eles, err)
       if (err) return
       ix_ele = eles(1)%ele%ix_ele
       ix_branch = eles(1)%ele%ix_branch
@@ -2389,7 +2388,7 @@ case ('taylor_map', 'matrix')
       ix2 = lat%n_ele_track
       ix1 = 0
     else
-      call tao_locate_elements (ele1_name, u%ix_uni, eles, err, ix_dflt_branch = s%com%default_branch)
+      call tao_locate_elements (ele1_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
         nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele1_name
         return
@@ -2406,7 +2405,7 @@ case ('taylor_map', 'matrix')
         ix1 = ix1 - 1
       endif
     else
-      call tao_locate_elements (ele2_name, u%ix_uni, eles, err, ix_dflt_branch = s%com%default_branch)
+      call tao_locate_elements (ele2_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
         nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2_name
         return
