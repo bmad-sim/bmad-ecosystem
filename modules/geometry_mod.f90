@@ -13,7 +13,7 @@ contains
 !+
 ! Subroutine lat_geometry (lat)
 !
-! Subroutine to calculate the physical placement of all the elements in a lattice.
+! Routine to calculate the physical placement of all the elements in a lattice.
 ! That is, the layout on the floor. This is the same as the MAD convention.
 !
 ! Note: This routine does NOT update %ele(i)%s. To do this call s_calc.
@@ -214,7 +214,7 @@ end subroutine lat_geometry
 !+
 ! Subroutine ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)
 !
-! Subroutine to calculate the global (floor) coordinates of an element given the
+! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
 !
 ! floor0 will correspond to the coordinates at the upstream end of the element
@@ -864,7 +864,6 @@ end function floor_to_local
 !   w_mat(3,3)      -- real(rp) (optional): W matrix at s, to transform vectors. 
 !                                  v_global = w_mat.v_local
 !                                  v_local = transpose(w_mat).v_global
-!       
 !-  
 
 function position_in_local_frame (global_position, ele, status, w_mat) result(local_position)
@@ -964,7 +963,7 @@ end function position_in_local_frame
 !+
 ! Function position_in_global_frame (local_position, ele, w_mat) result (global_position)
 !
-! Given a position local to ele, return global floor coordinates
+! Given a position local to ele, return global floor coordinates.
 !
 ! Input:
 !   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates.
@@ -976,7 +975,6 @@ end function position_in_local_frame
 !   w_mat(3,3)      -- real(rp), optional: W matrix at s, to transform vectors. 
 !                                  v_global = w_mat . v_local
 !                                  v_local = transpose(w_mat) . v_global
-!       
 !-  
 
 function position_in_global_frame (local_position, ele, w_mat) result (global_position)
@@ -993,7 +991,7 @@ real(rp), optional :: w_mat(3,3)
 
 dr = local_position%r
  
-if (ele%key == sbend$ .or. ele%key == rbend$) then
+if (ele%key == sbend$) then
   ! Element has a curved geometry. Shorten ele
   L_save = ele%value(L$)
   ele%value(L$) = local_position%r(3)
@@ -1038,13 +1036,58 @@ end function position_in_global_frame
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function xys_to_global (xys, branch, err_flag) result (global)
+!
+! Routine to find the global position of a local (x, y, s) position.
+!
+! Input:
+!   xys(3)      -- real(rp): (x, y, s) position vector.
+!   branch      -- branch_struct: Lattice branch that defines the local reference coordinates.
+!
+! Output:
+!   global      -- floor_position_struct: Global floor position corresponding to (x, y, s)
+!   err_flag    -- logical: Set True if global floor position cannot be computed.
+!-
+
+function xys_to_global (xys, branch, err_flag) result (global)
+
+implicit none
+
+type (branch_struct), target :: branch
+type (ele_struct), pointer :: ele
+type (floor_position_struct) global, local
+
+real(rp) xys(3)
+integer ix_ele
+logical err_flag
+
+!
+
+ix_ele = element_at_s (branch%lat, xys(3), .true., branch%ix_branch, err_flag)
+if (err_flag) return
+ele => branch%ele(ix_ele)
+
+local%r = [xys(1), xys(2), xys(3) - (ele%s - ele%value(l$))]
+global = position_in_global_frame (local, ele)
+
+end function xys_to_global
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Subroutine switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)
 ! 
-! Subroutine to take a local position0 in ele0 and find a local position near 
-! ele_try in the same lattice branch.
-! If this position is beyond the bounds of ele_try, neighboring elements will be 
-! stepped to until a containing element is found.
-! Optionally returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
+! Routine to find the element ele1 such that the longitudinal position of position0 
+! is within the longitudinal extent of ele1.
+!
+! position0 is relative to ele0's position and, on output, position 1 with be the
+! same position but relative to ele1's position.
+!
+! Since there can be multiple valid ele1 elements, this routine will find the ele1 element
+! that is close to ele_try in the same lattice branch.
+!
+! Optionally this routine returns the ww_mat = W1^T.W0 matrix needed to rotate vectors:  
 !      W0.v0 = W1.v1 => W1^T.W0.v0 = v1
 !
 ! Input:
@@ -1054,7 +1097,7 @@ end function position_in_global_frame
 !
 ! Output: 
 !   position1   -- floor_position_struct: local position in ele1
-!   ele1        --  ele_struct, pointer :: element that contains position1
+!   ele1        -- ele_struct, pointer :: element that contains position1
 !   ww_mat(3,3) -- real(rp), optional: W1^T.W0 matrix
 !
 !-
@@ -1075,7 +1118,7 @@ character(30), parameter :: r_name = 'switch_local_positions'
 !
 
 ! Make sure ele_try has a branch
-if (.not. associated (ele_try%branch) ) then
+if (.not. associated (ele_try%branch)) then
       call out_io (s_fatal$, r_name, 'ELE_TRY HAS NO ASSOCIATED BRANCH')
       if (global_com%exit_on_error) call err_exit
 endif

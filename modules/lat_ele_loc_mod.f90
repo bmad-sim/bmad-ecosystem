@@ -57,9 +57,9 @@ contains
 !                 is above the maximum element index then treat this as an error? 
 !                 Default is True. If False then set e2 to the maximum element index. 
 !   ix_dflt_branch
-!            -- Integer, optional: If present and positive then use this as the branch index 
-!                 for elements specified using an integer index (EG: "43").
-!                 If not present or -1 the default branch is branch 0.
+!            -- Integer, optional: If present and not -1 then restrict search to specified branch.
+!                 If not present or -1: Search all branches. Exception: For elements specified using 
+!                 an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
 !
 ! Output:
 !   eles(:) -- Ele_pointer_struct, allocatable: Array of matching elements.
