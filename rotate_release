@@ -9,7 +9,9 @@ import os
 import subprocess as sub
 import build_mgmt
 
-mailing_list_address = 'acc-code-lepp@lnx122.lns.cornell.edu'
+#mailing_list_address = 'acc-code-lepp@lnx122.lns.cornell.edu'
+mailing_list_address = 'classe-acc-comp-l@list.cornell.edu'
+from_address = 'classe-acc-comp-l@list.cornell.edu'
 
 # Make unique tempfile name to hold e-mail body
 mail_tempfile = '/tmp/relrot-'+str(time.time())
@@ -106,7 +108,7 @@ def send_notification_email(old_relname):
         time_of_day = 'afternoon'
 
     f = open(mail_tempfile, 'w')
-    f.write('Good '+time_of_day+' everyone,\n\n')
+    f.write('Good '+ time_of_day +' everyone,\n\n')
     f.write('The accelerator physics libraries have been rotated as follows:\n\n')
     f.write(release_type.upper() + ' release rotation for:\n')
     for platform in platforms:
@@ -121,7 +123,7 @@ def send_notification_email(old_relname):
     f.write('Librarian Email    : cesrulib@cornell.edu\n')
     f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
 
-    mail_command = '/bin/mail -s "Accelerator Libraries Rotation" '+mailing_list_address+' < '+mail_tempfile
+    mail_command = '/bin/mailx -s "Accelerator Libraries Rotation" '+ mailing_list_address +' -r '+ from_address +' < '+ mail_tempfile
     print 'Sending e-mail notification of this rotation to mailing list...'
     f.close()
     p = sub.call(mail_command,
@@ -178,14 +180,14 @@ for platform in platforms:
       print 'Making directory ' + online_basedir + buildname
       step1.communicate()
 
-      print online_cmd_remote_tar
+      #print online_cmd_remote_tar
       print ''
-      #step2 = sub.Popen(online_cmd_remote_tar,
-      #                  bufsize=1,
-      #                  shell=True,
-      #                  stderr=sub.STDOUT )
-      #print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
-      #step2.communicate()
+      step2 = sub.Popen(online_cmd_remote_tar,
+                        bufsize=1,
+                        shell=True,
+                        stderr=sub.STDOUT )
+      print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
+      step2.communicate()
 
     #print online_cmd_rm_link
     print ''
