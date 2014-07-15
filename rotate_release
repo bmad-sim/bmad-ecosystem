@@ -123,7 +123,7 @@ def send_notification_email(old_relname):
     f.write('Librarian Email    : cesrulib@cornell.edu\n')
     f.write('Repository Viewing : http://accserv.lepp.cornell.edu/cgi-bin/view.cgi/\n')
 
-    mail_command = '/bin/mailx -s "Accelerator Libraries Rotation" '+ mailing_list_address +' -r '+ from_address +' < '+ mail_tempfile
+    mail_command = '/bin/mailx -s "Accelerator Libraries Rotation" -r ' + from_address + ' ' + mailing_list_address + ' < ' + mail_tempfile
     print 'Sending e-mail notification of this rotation to mailing list...'
     f.close()
     p = sub.call(mail_command,
