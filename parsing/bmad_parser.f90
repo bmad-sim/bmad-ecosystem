@@ -112,19 +112,23 @@ if (present(use_line)) then
 endif
 
 if (.not. err .and. .not. bp_com%always_parse) then
-  if (bmad_com%taylor_order == 0 .or. lat%input_taylor_order == bmad_com%taylor_order) then
-    call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
-    if (present(digested_read_ok)) digested_read_ok = .true.
-    call parser_end_stuff (.false.)
-    return
-  else
+  if (ptc_com%taylor_order_ptc /= 0 .and. lat%input_taylor_order /= 0 .and. &
+                                             lat%input_taylor_order /= ptc_com%taylor_order_ptc) then
     if (global_com%type_out) then
        call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
-           i_array = [lat%input_taylor_order, bmad_com%taylor_order ])
+           'Will now set to the new Taylor order...', &
+           i_array = [lat%input_taylor_order, ptc_com%taylor_order_ptc])
     endif
-    if (lat%input_taylor_order > bmad_com%taylor_order) bp_com%write_digested = .false.
+    if (lat%input_taylor_order > ptc_com%taylor_order_ptc) bp_com%write_digested = .false.
+
+  else
+    if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
+    call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
+    if (present(digested_read_ok)) digested_read_ok = .true.
+    call parser_end_stuff (.false.)
+    return
   endif
 endif
 
@@ -777,18 +781,19 @@ branch_loop: do i_loop = 1, n_branch_max
   ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
 
   if (n_branch == 0) then
-    lat%ele(0)     = in_lat%ele(0)    ! Beginning element
-    lat%version = bmad_inc_version$
+    lat%ele(0)                  = in_lat%ele(0)    ! Beginning element
+    lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
+    lat%beam_start              = in_lat%beam_start
+    lat%a                       = in_lat%a
+    lat%b                       = in_lat%b
+    lat%z                       = in_lat%z
+    lat%absolute_time_tracking  = in_lat%absolute_time_tracking
+    lat%auto_scale_field_phase  = in_lat%auto_scale_field_phase
+    lat%auto_scale_field_amp    = in_lat%auto_scale_field_amp
+    lat%use_ptc_layout          = in_lat%use_ptc_layout
+    lat%input_taylor_order      = in_lat%input_taylor_order
 
-    lat%beam_start = in_lat%beam_start
-    lat%a          = in_lat%a
-    lat%b          = in_lat%b
-    lat%z          = in_lat%z
-    lat%absolute_time_tracking      = in_lat%absolute_time_tracking
-    lat%auto_scale_field_phase         = in_lat%auto_scale_field_phase
-    lat%auto_scale_field_amp           = in_lat%auto_scale_field_amp
-    lat%use_ptc_layout              = in_lat%use_ptc_layout
     if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
     call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
 
@@ -1016,7 +1021,6 @@ enddo
 
 if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
 call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
-lat%input_taylor_order = ptc_com%taylor_order_ptc
 
 ! Error check that if a superposition attribute was set that "superposition" was set.
 
@@ -1066,8 +1070,6 @@ if (logic_option (.true., make_mats6)) then
     return
   endif
 endif
-
-lat%input_taylor_order = bmad_com%taylor_order
 
 ! Do we need to expand the lattice and call bmad_parser2?
 

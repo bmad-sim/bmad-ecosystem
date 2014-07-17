@@ -1153,6 +1153,7 @@ case ('TAYLOR_ORDER')
     return
   endif
   ptc_com%taylor_order_saved = ix
+  lat%input_taylor_order = ix
 
 case ('SYMPLECTIFY') 
   if (how == def$ .and. (delim == ',' .or. .not. delim_found)) then
