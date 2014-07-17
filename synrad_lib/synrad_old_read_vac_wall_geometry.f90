@@ -1,5 +1,5 @@
 !+
-! Subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, geometry, walls)
+! Subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, branch, walls)
 !
 ! Note: This routine is deprecated.
 ! Use synrad_read_vac_wall_geometry instead.
@@ -12,14 +12,13 @@
 !   wall_file      -- Character(*): Name of the file specifying where the components are.
 !   component_file -- Character(*): Name of the file specifying the component geometry.
 !   dflt_dir       -- Character(*): Default directory to use if not found in the current directory.
-!   s_lat          -- Real(rp): Lattice length
-!   geometry       -- Integer: Type of lattice. open$ or closed$
+!   branch         -- branch_struct: lattice branch to use
 !
 ! Output:
 !   walls -- Walls_struct: wall structure.
 !-
 
-subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, s_lat, geometry, walls)
+subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, branch, walls)
 
 use synrad_mod, except => synrad_old_read_vac_wall_geometry
 use filename_mod
@@ -27,18 +26,18 @@ use filename_mod
 implicit none
 
 type (walls_struct), target :: walls
+type (branch_struct) branch
 type (wall_struct), pointer :: inside, outside
 
 type (outline_struct) outline_(100), outline, outline_in, z
 type (wall_list_struct) vac_ele(2000)
 type (concat_struct) concat
 
-integer geometry
 integer n, i, j, n1, n2, ixx
 integer n_vac_parts, n_outline, ix_in, ix_out, n_concat_parts
 integer lun, ix, ios
 
-real(rp) s_lat, s_ave, f, del_s, factor, s_overlay, s_fudge, seg_len_max
+real(rp) s_ave, f, del_s, factor, s_overlay, s_fudge, seg_len_max
 real(rp), parameter :: fake$ = -9.999e-31
 
 character(*) wall_file, component_file, dflt_dir
@@ -66,9 +65,6 @@ type_warning = .true.
 
 outside => walls%positive_x_wall
 inside  => walls%negative_x_wall
-
-outside%side = positive_x$
-inside%side = negative_x$
 
 ! read in list of elements
 
@@ -470,11 +466,6 @@ do j = 1, n_vac_parts
     outside%pt(ix_out)%name    = outline%out(n)%name
     outside%pt(ix_out)%phantom = outline%out(n)%phantom
     if (n == 1) outside%pt(ix_out)%name = 'ARC'
-    if (outline%has_alley) then
-      outside%pt(ix_out)%type = possible_alley$
-    else
-      outside%pt(ix_out)%type = no_alley$
-    endif
   end do
 
   in_overlay = outline%overlay
@@ -488,43 +479,16 @@ do j = 1, n_vac_parts
     inside%pt(ix_in)%name    = outline%in(n)%name
     inside%pt(ix_in)%phantom = outline%in(n)%phantom
     if (n == 1) inside%pt(ix_in)%name = 'ARC'
-    if (outline%has_alley) then
-      inside%pt(ix_in)%type = possible_alley$
-    else
-      inside%pt(ix_in)%type = no_alley$
-    endif
   end do
 
 end do
 
 ! cleanup
 
-outside%n_pt_tot = ix_out
-inside%n_pt_tot = ix_in
+outside%n_pt_max = ix_out
+inside%n_pt_max = ix_in
 
-call delete_overlapping_wall_points (outside)
-call delete_overlapping_wall_points (inside)
-
-forall (i = 0:ix_out) outside%pt(i)%ix_pt = i
-forall (i = 0:ix_in)  inside%pt(i)%ix_pt = i
-
-call create_alley (inside)
-call create_alley (outside)
-
-! check that endpoints are correct
-
-if (abs(outside%pt(outside%n_pt_tot)%s - s_lat) > 0.01) then
-  print *, 'WARNING: OUTSIDE WALL ENDS AT:', outside%pt(outside%n_pt_tot)%s
-  print *, '         AND NOT AT LATTICE END OF:', s_lat
-endif
-
-if (abs(inside%pt(inside%n_pt_tot)%s - s_lat) > 0.01) then
-  print *, 'WARNING: INSIDE WALL ENDS AT:', inside%pt(inside%n_pt_tot)%s
-  print *, '         AND NOT AT LATTICE END OF:', s_lat
-endif
-
-outside%pt(outside%n_pt_tot)%s = s_lat
-inside%pt(inside%n_pt_tot)%s = s_lat
+call synrad_setup_walls(walls, branch, seg_len_max)
 
 ! write to file
 
@@ -532,7 +496,7 @@ f = 1/0.0254
 open (unit = lun, file = 'outside_wall.dat')
 write (lun, *) &
  '   Ix        S(m)       X(m)    Name                   S(in)       X(in) '
-do n=0,outside%n_pt_tot
+do n=0,outside%n_pt_max
   pt_name = outside%pt(n)%name
   call str_substitute (pt_name, ' ', '_', .true.)
   write(lun, '(1x, i4, f12.3, f12.5, 3x, a16, 2f12.3)') n, &
@@ -546,7 +510,7 @@ close (unit = lun)
 open (unit = lun, file = 'inside_wall.dat')
 write (lun, *) &
  '   Ix        S(m)       X(m)    Name                   S(in)       X(in) '
-do n=0,inside%n_pt_tot
+do n=0,inside%n_pt_max
   pt_name = outside%pt(n)%name
   call str_substitute (pt_name, ' ', '_', .true.)
   write(lun, '(1x, i4, f12.3, f12.5, 3x, a16, 2f12.3)') n, &
@@ -554,15 +518,5 @@ do n=0,inside%n_pt_tot
           f*inside%pt(n)%s, f*inside%pt(n)%x
 end do
 close (lun)
-
-! do some checking
-
-call check_wall (inside, s_lat, geometry)
-call check_wall (outside, s_lat, geometry)
-
-! segment wall
-
-call break_wall_into_segments (inside, seg_len_max)
-call break_wall_into_segments (outside, seg_len_max)
 
 end subroutine

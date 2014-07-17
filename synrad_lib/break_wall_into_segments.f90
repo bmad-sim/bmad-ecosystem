@@ -1,15 +1,52 @@
-subroutine break_wall_into_segments (wall, seg_len_max)
+!-
+! Subroutine break_wall_into_segments (wall, seg_len_max, branch)
+!
+! Routine to break a wall into segments and do other bookkeeping.
+!
+! Input:
+!   wall        -- wall_struct: Wall to break.
+!   seg_len_max -- real(rp): Maximum segment length.
+!   branch      -- branch_struct: lattice branch
+!
+! Output:
+!   wall        -- wall_struct: Broken wall.
+!-
+
+subroutine break_wall_into_segments (wall, seg_len_max, branch)
 
 use synrad_struct
 use synrad_interface, except => break_wall_into_segments
+use geometry_mod
 
 implicit none
 
-type (wall_struct) wall
+type (wall_struct), target :: wall
+type (branch_struct) branch
+type (floor_position_struct) floor
+type (wall_seg_struct), pointer :: seg, seg0
+type (wall_pt_struct), pointer :: pt0, pt1, pt
 
-integer i_seg, ip, n_seg, i, n
+integer i_seg, ip, n_seg, ix, n, isg
+real(rp) seg_len_max, wall_len, rr, s_max, s_min, dr(3), r1(3), r0(3)
+real(rp) theta0, theta1, dx, dz, alpha, beta, dlen
+logical err_flag, next_to_alley
+character(*), parameter :: r_name = 'break_wall_into_segments'
 
-real(rp) seg_len_max, wall_len, rr
+! If a closed geometry: Move last point transverse global position to match first point.
+
+do ip = 0, wall%n_pt_max
+  floor = xys_to_global ([wall%pt(ip)%x, 0.0_rp, wall%pt(ip)%s], branch, err_flag)
+  wall%pt(ip)%r_floor = floor%r
+enddo
+
+if (branch%param%geometry == closed$) then
+  dr = wall%pt(0)%r_floor - wall%pt(wall%n_pt_max)%r_floor
+  if (abs(dr(1)) > 1e-6 .or. abs(dr(3)) > 1e-6) then
+    call out_io (s_warn$, r_name, 'Machine not exactly closed in Global coordinate system.', &
+                      'Adjusting position of last wall point on: ' // wall_name(wall%side), &
+                      'Wall point is adjusted by dx, ds = \2f11.6\ ', r_array = [dr(1), dr(3)])
+  endif
+endif
 
 ! If the distance between two wall points is too large then break the interval
 ! into more than 1 segment.
@@ -18,43 +55,151 @@ real(rp) seg_len_max, wall_len, rr
 ! First count the number of segments needed and allocate
 
 n = 0
-do ip = 1, wall%n_pt_tot
-  wall_len = sqrt((wall%pt(ip)%x - wall%pt(ip-1)%x)**2 + &
-                             (wall%pt(ip)%s - wall%pt(ip-1)%s)**2)
+do ip = 1, wall%n_pt_max
+  wall_len = sqrt((wall%pt(ip)%x - wall%pt(ip-1)%x)**2 + (wall%pt(ip)%s - wall%pt(ip-1)%s)**2)
   n_seg = 1 + wall_len / seg_len_max
   n = n + n_seg
 enddo
 
 if (allocated(wall%seg)) deallocate(wall%seg)
-allocate (wall%seg(n))
+allocate (wall%seg(0:n))
+
+wall%seg(0)%len         = 0   ! Dummy segment to hold position info
+wall%seg(0)%x           = wall%pt(0)%x
+wall%seg(0)%s           = wall%pt(0)%s
+wall%seg(0)%x_mid       = wall%pt(0)%x
+wall%seg(0)%s_mid       = wall%pt(0)%s
+wall%seg(0)%r_floor     = wall%pt(0)%r_floor
+wall%seg(0)%r_floor_mid = wall%pt(0)%r_floor
+wall%seg(0)%ix_seg      = 0 
 
 ! Now fill in the information.
 
+wall%pt(0)%ix_pt = 0
 i_seg = 0
-do ip = 1, wall%n_pt_tot
-  wall_len = sqrt((wall%pt(ip)%x - wall%pt(ip-1)%x)**2 + &
-                             (wall%pt(ip)%s - wall%pt(ip-1)%s)**2)
+
+do ip = 1, wall%n_pt_max
+  pt => wall%pt(ip)
+  pt0 => wall%pt(ip-1)
+  
+  pt%ix_pt = ip
+  wall_len = sqrt((pt%x - pt0%x)**2 + (pt%s - pt0%s)**2)
   n_seg = 1 + wall_len / seg_len_max
-  wall%pt(ip)%n_seg = n_seg
-  wall%pt(ip)%ix_seg = i_seg
-  do i = i_seg+1, i_seg+n_seg
-    wall%seg(i)%ix_pt = ip
-    rr = (i - i_seg - 0.5) / n_seg
-    wall%seg(i)%x_mid = wall%pt(ip-1)%x * (1 - rr) + wall%pt(ip)%x * rr
-    wall%seg(i)%s_mid = wall%pt(ip-1)%s * (1 - rr) + wall%pt(ip)%s * rr
-    rr = float(i - i_seg) / n_seg
-    wall%seg(i)%x = wall%pt(ip-1)%x * (1 - rr) + wall%pt(ip)%x * rr
-    wall%seg(i)%s = wall%pt(ip-1)%s * (1 - rr) + wall%pt(ip)%s * rr
-    if (i == 1) then
-      wall%seg(i)%len = sqrt(wall%seg(i)%s**2 + (wall%seg(i)%x - wall%pt(ip-1)%x)**2)
-    else
-      wall%seg(i)%len = sqrt((wall%seg(i)%s - wall%seg(i-1)%s)**2 + &
-                                    (wall%seg(i)%x - wall%seg(i-1)%x)**2)
+  pt%n_seg = n_seg
+  pt%ix_seg = i_seg
+
+  do ix = 1, n_seg
+    isg = ix + i_seg
+    seg => wall%seg(isg)
+    seg0 => wall%seg(isg-1)
+
+    seg%ix_pt = ip
+    seg%ix_seg = isg
+
+    rr = (ix - 0.5_rp) / n_seg
+    seg%x_mid = pt0%x * (1 - rr) + pt%x * rr   ! Off by siggita
+    seg%s_mid = pt0%s * (1 - rr) + pt%s * rr
+    rr = float(ix) / n_seg
+    seg%x = pt0%x * (1 - rr) + pt%x * rr
+    seg%s = pt0%s * (1 - rr) + pt%s * rr
+
+    floor = xys_to_global ([seg%x, 0.0_rp, seg%s], branch, err_flag)
+    seg%r_floor = floor%r
+
+    if (ip == wall%n_pt_max .and. branch%param%geometry == closed$) then
+      seg%r_floor = seg%r_floor + dr * real(ix, rp) / n_seg
     endif
+
+    seg%len = sqrt((seg%r_floor(1) - seg0%r_floor(1))**2 + (seg%r_floor(3) - seg0%r_floor(3))**2)
+    seg%r_floor_mid = (seg%r_floor + seg0%r_floor) / 2
+
+    seg%theta = atan2(seg%r_floor(1) - seg0%r_floor(1), seg%r_floor(3) - seg0%r_floor(3))
+
   end do
+
   i_seg = i_seg + n_seg
 enddo
 
-wall%n_seg_tot = i_seg
+wall%n_seg_max = i_seg
+
+! Mark points that are near alleys
+
+wall%pt%next_to_alley = .false.
+
+s_max = 0
+do ip = 1, wall%n_pt_max
+  s_max = max(s_max, wall%pt(ip)%s)
+  if (wall%pt(ip)%s < s_max) then
+    wall%pt(ip)%next_to_alley = .true.
+    wall%pt(ip-1)%next_to_alley = .true.
+    wall%pt(ip+1)%next_to_alley = .true.
+  endif
+enddo
+
+s_min = wall%pt(wall%n_pt_max)%s
+do ip = wall%n_pt_max-1, 0, -1
+  s_min = min(s_min, wall%pt(ip)%s)
+  if (wall%pt(ip)%s > s_min) then
+    wall%pt(ip)%next_to_alley = .true.
+    wall%pt(ip-1)%next_to_alley = .true.
+    wall%pt(ip+1)%next_to_alley = .true.
+  endif
+enddo
+
+! Calculate the triangle point
+
+do ip = 1, wall%n_pt_max
+  pt0  => wall%pt(ip-1)
+  pt1  => wall%pt(ip) 
+  theta0 = wall%seg(pt1%ix_seg+1)%theta
+  theta1 = wall%seg(pt1%ix_seg+pt1%n_seg)%theta
+
+  !
+
+  dx = pt1%r_floor(1) - pt0%r_floor(1)
+  dz = pt1%r_floor(3) - pt0%r_floor(3)
+
+  dlen = sqrt(dx**2 + dz**2)
+
+  if (dlen * abs(theta0 - theta1) < synrad_significant_length) then  ! Colinear
+    pt1%linear_wall = .true.   ! So don't need the triangle point
+    cycle
+  endif
+
+  pt1%linear_wall = .false. 
+
+  ! Round off error can be huge when theta1 and theta0 are approx equal.
+  ! In this case increase the difference to a safe level.
+
+  if (abs(theta1 - theta0) < 1d-3) then
+    theta0 = theta0 - sign(0.5d-3, theta1 - theta0)
+    theta1 = theta1 + sign(0.5d-3, theta1 - theta0)
+  endif
+
+  ! alpha is distance ("forward" is +) from pt0 to the triangle point. Must be positive.
+  ! beta is  distance ("forward" is +) from pt1 to the triangle point. Must be negative.
+
+  alpha =  (dz * sin(theta1) - dx * cos(theta1)) / sin(theta1 - theta0)
+  beta  = -(dz * sin(theta0) - dx * cos(theta0)) / sin(theta0 - theta1)
+
+  if (alpha < 0 .or. beta > 0) then
+    call out_io (s_fatal$, r_name, 'Problem with triangle point calc!')
+    call err_exit
+  endif
+
+  r0 = [pt0%r_floor(1) + alpha * sin(theta0), 0.0_rp, pt0%r_floor(3) + alpha * cos(theta0)]
+  r1 = [pt1%r_floor(1) + beta * sin(theta1),  0.0_rp, pt1%r_floor(3) + beta * cos(theta1)]
+  dr = r1 - r0
+
+  if (abs(dr(1)) > synrad_significant_length .or. abs(dr(3)) > synrad_significant_length) then
+    call out_io (s_fatal$, r_name, 'Confused triangle point calc!')
+    call err_exit
+  endif
+
+  pt1%r_floor_tri = (r0 + r1) / 2
+
+enddo
+
+! Mark point and seg
 
 end subroutine

@@ -37,7 +37,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
+subroutine write_power_results (wall, branch, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
   implicit none
 
@@ -46,7 +46,7 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
   type (seg_power_struct), pointer :: ep
   type (synrad_param_struct) gen_params
   type (synrad_mode_struct) :: synrad_mode
-  type (lat_struct) lat
+  type (branch_struct) branch
 
   real(rp) value
 
@@ -60,7 +60,7 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
 
 !
 
-  call set_wall_eles (wall, lat)
+  call set_wall_eles (wall, branch)
 
   file1 = 'synch_power_' // trim(wall_name(wall%side))
   if (ix_ele1 == ix_ele2) then
@@ -72,34 +72,34 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
   call write_power_header (1, file1, gen_params, synrad_mode)
 
 
-  do i = 1, wall%n_seg_tot
+  do i = 1, wall%n_seg_max
     seg => wall%seg(i)
-    key = lat%ele(seg%ix_ele)%key
+    key = branch%ele(seg%ix_ele)%key
     attrib = ' '
     value = 0
 
     if (key == quadrupole$) then
       attrib = 'k1 = '
-      value = lat%ele(seg%ix_ele)%value(k1$)
+      value = branch%ele(seg%ix_ele)%value(k1$)
     elseif (key == sol_quad$) then
       attrib = 'k1 = '
-      value = lat%ele(seg%ix_ele)%value(k1$)
+      value = branch%ele(seg%ix_ele)%value(k1$)
     elseif (key == solenoid$) then
       attrib = 'ks = '
-      value = lat%ele(seg%ix_ele)%value(ks$)
+      value = branch%ele(seg%ix_ele)%value(ks$)
     elseif (key == sbend$) then
       attrib = 'G = '
-      value = lat%ele(seg%ix_ele)%value(g$)
+      value = branch%ele(seg%ix_ele)%value(g$)
     elseif (key == rbend$) then
       attrib = 'G = '
-      value = lat%ele(seg%ix_ele)%value(g$)
+      value = branch%ele(seg%ix_ele)%value(g$)
     elseif (key == sextupole$) then
       attrib = 'k2 = '
-      value = lat%ele(seg%ix_ele)%value(k2$)
+      value = branch%ele(seg%ix_ele)%value(k2$)
     elseif (key == wiggler$) then
       attrib = 'B_max = '
-      value = lat%ele(seg%ix_ele)%value(b_max$)
-!      call type_ele(lat%ele(seg%ix_ele))
+      value = branch%ele(seg%ix_ele)%value(b_max$)
+!      call type_ele(branch%ele(seg%ix_ele))
     end if
 
     ep => seg%power
@@ -108,7 +108,7 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
       ep_source_name = '--------'
       ep_name = '--'
     else
-      ep_source_name = lat%ele(ep%main_source%ix_ele)%name
+      ep_source_name = branch%ele(ep%main_source%ix_ele)%name
     endif
 
     seg_name = wall%pt(seg%ix_pt)%name
@@ -121,7 +121,7 @@ subroutine write_power_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_
               1.e-6 * (ep%power_per_area), &
               ep%power_tot, ep%photons_per_sec, &
               seg%a%beta, seg%b%beta,seg%a%eta, key_name(key), &
-              attrib, value, trim(lat%ele(seg%ix_ele)%name)
+              attrib, value, trim(branch%ele(seg%ix_ele)%name)
 
 !    fmt = '(f10.4, 3es11.3)'
 !    write (1, fmt) &
@@ -180,7 +180,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
+subroutine write_results (wall, branch, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
   implicit none
 
@@ -189,7 +189,7 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
   type (seg_power_struct), pointer :: ep
   type (synrad_param_struct) gen_params
   type (synrad_mode_struct) :: synrad_mode
-  type (lat_struct) lat
+  type (branch_struct) branch
 
   integer ix_ele1, ix_ele2, i
   character*16 seg_name, ep_source_name, ep_source_key_name
@@ -201,7 +201,7 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
 
 !
 
-  call set_wall_eles (wall, lat)
+  call set_wall_eles (wall, branch)
 
   file1 = 'synrad_' // trim(wall_name(wall%side))
   if (ix_ele1 == ix_ele2) then
@@ -213,34 +213,34 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
   call write_header (1, file1, gen_params, synrad_mode)
 
 
-  do i = 1, wall%n_seg_tot
+  do i = 1, wall%n_seg_max
     seg => wall%seg(i)
-    key = lat%ele(seg%ix_ele)%key
+    key = branch%ele(seg%ix_ele)%key
     attrib = ' '
     value = 0
 
     if (key == quadrupole$) then
       attrib = 'k1 = '
-      value = lat%ele(seg%ix_ele)%value(k1$)
+      value = branch%ele(seg%ix_ele)%value(k1$)
     elseif (key == sol_quad$) then
       attrib = 'k1 = '
-      value = lat%ele(seg%ix_ele)%value(k1$)
+      value = branch%ele(seg%ix_ele)%value(k1$)
     elseif (key == solenoid$) then
       attrib = 'ks = '
-      value = lat%ele(seg%ix_ele)%value(ks$)
+      value = branch%ele(seg%ix_ele)%value(ks$)
     elseif (key == sbend$) then
       attrib = 'G = '
-      value = lat%ele(seg%ix_ele)%value(g$)
+      value = branch%ele(seg%ix_ele)%value(g$)
     elseif (key == rbend$) then
       attrib = 'G = '
-      value = lat%ele(seg%ix_ele)%value(g$)
+      value = branch%ele(seg%ix_ele)%value(g$)
     elseif (key == sextupole$) then
       attrib = 'k2 = '
-      value = lat%ele(seg%ix_ele)%value(k2$)
+      value = branch%ele(seg%ix_ele)%value(k2$)
     elseif (key == wiggler$) then
       attrib = 'B_max = '
-      value = lat%ele(seg%ix_ele)%value(b_max$)
-!      call type_ele(lat%ele(seg%ix_ele))
+      value = branch%ele(seg%ix_ele)%value(b_max$)
+!      call type_ele(branch%ele(seg%ix_ele))
     end if
 
     ep => seg%power
@@ -251,8 +251,8 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
       ep_source_key = 0
       ep_source_key_name = '----------'
     else
-      ep_source_name = lat%ele(ep%main_source%ix_ele)%name
-      ep_source_key = lat%ele(ep%main_source%ix_ele)%key
+      ep_source_name = branch%ele(ep%main_source%ix_ele)%name
+      ep_source_key = branch%ele(ep%main_source%ix_ele)%key
       ep_source_key_name = key_name(ep_source_key)
     endif
 
@@ -266,7 +266,7 @@ subroutine write_results (wall, lat, gen_params, ix_ele1, ix_ele2, synrad_mode)
               1.e-6 * (ep%power_per_area), &
               ep%power_tot, ep%photons_per_sec, &
               seg%a%beta, seg%b%beta,seg%a%eta, key_name(key), &
-              value, trim(lat%ele(seg%ix_ele)%name), &
+              value, trim(branch%ele(seg%ix_ele)%name), &
               ep_source_key_name, trim(ep_source_name), ep%main_source%s, ep%n_source
 
   enddo

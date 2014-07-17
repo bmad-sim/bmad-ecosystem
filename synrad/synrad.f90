@@ -2,11 +2,13 @@ program synrad
 
 use bmad
 use synrad_mod
+use synrad_plot_mod
 use synrad_write_power_mod
 
 implicit none
 
-type (lat_struct) :: lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
 type (coord_struct), allocatable :: orb(:)
 type (walls_struct), target :: walls
 type (wall_struct),pointer :: neg_x_wall, pos_x_wall
@@ -21,11 +23,11 @@ integer use_ele_ix, use_ele_ix2
 character(40) name
 character(100) this_lat, line, temp
 character(100) lat_file, in_file, wall_file
-character(16) forward_beam, backward_beam
+character(16) forward_beam, backward_beam, plotting
 
 real(rp) wall_offset, s, x_in, x_out, seg_len
 
-logical err_flag, phantom
+logical err_flag, phantom, ok
 
 namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
                            forward_beam, backward_beam, use_ele_ix, use_ele_ix2
@@ -40,17 +42,35 @@ bmad_com%auto_bookkeeper = .false.
 pos_x_wall => walls%positive_x_wall
 neg_x_wall => walls%negative_x_wall
 
-! get parameters
+! Get parameters
 
-n_arg = cesr_iargc()
-if (n_arg > 1) then
-  print *, 'Usage: synrad <input_file>'
-  print *, 'Default: <input_file> = synrad.in'
+plotting = ''
+in_file = 'synrad.in'
+ok = .true.
+
+i = 0
+do while (i < cesr_iargc())
+  i = i + 1
+  call cesr_getarg(i, arg)
+  select case (arg)
+  case ('-plot')
+    plotting = 'true'
+  case default
+    if (arg(1:1) == '-') then
+      print *, 'I DO NOT UNDERSTAND: ', trim(arg)
+      ok = .false.
+    endif
+    in_file = arg
+  end select
+enddo
+
+if (.not. ok) then
+  print *, 'Usage: '
+  print *, '  synrad {-plot} {<input_file>}'
+  print *, 'Default:'
+  print *, '  <input_file> = synrad.in'
   stop
 endif
-
-in_file = 'synrad.in'
-if (n_arg == 1) call cesr_getarg(1, in_file)
 
 ! Defaults
 
@@ -76,19 +96,20 @@ close (1)
 ! Read lattice
 
 call bmad_and_xsif_parser (sr_param%lat_file, lat)
+branch => lat%branch(0)
 
 if (use_ele_ix > 0) then
   if (use_ele_ix2 == 0) use_ele_ix2 = use_ele_ix
-  if (use_ele_ix2 < 0)  use_ele_ix2 = lat%n_ele_track
+  if (use_ele_ix2 < 0)  use_ele_ix2 = branch%n_ele_track
   print *, 'Only calculating power from element #', use_ele_ix
   print *, '                         to element #', use_ele_ix2
 else
   use_ele_ix = 1
-  use_ele_ix2 = lat%n_ele_track
+  use_ele_ix2 = branch%n_ele_track
 endif
 
-call reallocate_coord (orb, lat%n_ele_max)
-allocate(back_power(lat%n_ele_max), fwd_power(lat%n_ele_max))
+call reallocate_coord (orb, branch%n_ele_max)
+allocate(back_power(branch%n_ele_max), fwd_power(branch%n_ele_max))
 
 ! Old or new style wall file?
 
@@ -100,14 +121,18 @@ if (wall_file(1:10) /= 'synrad3d::') then
 endif
 
 if (ios == 0) then  ! New style
-  call synrad_read_vac_wall_geometry (wall_file, seg_len, lat%ele(lat%n_ele_track)%s, closed$, walls)
+  call synrad_read_vac_wall_geometry (wall_file, seg_len, branch, walls)
 else
   call old_read_wall_file ()
   print *, 'OLD STYLE WALL FILE: ', trim(wall_file)
   print *, 'PLEASE CONVERT TO NEW STYLE!'
 endif
 
-!
+! Plotting
+
+if (plotting /= '') then
+  call synrad_plot (walls)
+endif
 
 ! Synch calculation
 
@@ -127,21 +152,21 @@ endif
 ! write out results
 ! set lat elements and twiss at wall segments
 
-call write_power_results(pos_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
-call write_power_results(neg_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_power_results(pos_x_wall, branch, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_power_results(neg_x_wall, branch, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
 
-call write_results(pos_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
-call write_results(neg_x_wall, lat, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_results(pos_x_wall, branch, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
+call write_results(neg_x_wall, branch, sr_param, use_ele_ix, use_ele_ix2, synrad_mode)
 
 open (unit = 1, file = 'element_power.dat')
 
 if (beam_direction == 0) then
   write (1, *) '  Ix  Name               |    S Position     |   Fwd_Power (W)    |   Back_Power (W)   |'
   write (1, *) '                         |   Start      End  | Radiated  Hit_Wall | Radiated  Hit_Wall |'
-  do i = 1, lat%n_ele_max
+  do i = 1, branch%n_ele_max
     if (fwd_power(i)%radiated > 1 .or. back_power(i)%radiated > 1) then
-      write (1, '(i4, 2x, a20, 2f10.3, 4f10.0)') i, lat%ele(i)%name, &
-              lat%ele(i-1)%s, lat%ele(i)%s, &
+      write (1, '(i4, 2x, a20, 2f10.3, 4f10.0)') i, branch%ele(i)%name, &
+              branch%ele(i-1)%s, branch%ele(i)%s, &
               fwd_power(i)%radiated, fwd_power(i)%at_wall, &
               back_power(i)%radiated, back_power(i)%at_wall
     endif
@@ -150,10 +175,10 @@ if (beam_direction == 0) then
 elseif (beam_direction == -1) then
   write (1, *) '  Ix  Name               |    S Position     |   Back_Power (W)   |'
   write (1, *) '                         |   Start      End  | Radiated  Hit_Wall |'
-  do i = 1, lat%n_ele_max
+  do i = 1, branch%n_ele_max
     if (back_power(i)%radiated > 1) then
-      write (1, '(i4, 2x, a20, 2f10.3, 2f10.0)') i, lat%ele(i)%name, &
-              lat%ele(i-1)%s, lat%ele(i)%s, &
+      write (1, '(i4, 2x, a20, 2f10.3, 2f10.0)') i, branch%ele(i)%name, &
+              branch%ele(i-1)%s, branch%ele(i)%s, &
               back_power(i)%radiated, back_power(i)%at_wall
     endif
   enddo
@@ -161,10 +186,10 @@ elseif (beam_direction == -1) then
 elseif (beam_direction == 1) then
   write (1, *) '  Ix  Name               |    S Position     |    Fwd_Power (W)   |'
   write (1, *) '                         |   Start      End  | Radiated  Hit_Wall |'
-  do i = 1, lat%n_ele_max
+  do i = 1, branch%n_ele_max
     if (fwd_power(i)%radiated > 1) then
-      write (1, '(i4, 2x, a20, 2f10.3, 2f10.0)') i, lat%ele(i)%name, &
-              lat%ele(i-1)%s, lat%ele(i)%s, &
+      write (1, '(i4, 2x, a20, 2f10.3, 2f10.0)') i, branch%ele(i)%name, &
+              branch%ele(i-1)%s, branch%ele(i)%s, &
               fwd_power(i)%radiated, fwd_power(i)%at_wall
     endif
   enddo
@@ -190,13 +215,13 @@ character(*) beam_type
 !
 
 if (beam_type == 'ELECTRON') then
-  lat%param%particle = electron$
+  branch%param%particle = electron$
 else if (beam_type == 'POSITRON') then
-  lat%param%particle = positron$
+  branch%param%particle = positron$
 endif
 
-call twiss_and_track (lat, orb)
-call calculate_synrad_power(lat, orb, direction, power, walls, sr_param, use_ele_ix, use_ele_ix2)
+call twiss_and_track (lat, orb, ix_branch = 0)
+call calculate_synrad_power(branch, orb, direction, power, walls, sr_param, use_ele_ix, use_ele_ix2)
 
 call radiation_integrals (lat, orb, mode)
 
@@ -219,7 +244,7 @@ real(rp) s_lat
 
 ! create a wall outline and break into segments
 
-s_lat = lat%ele(lat%n_ele_track)%s
+s_lat = branch%ele(branch%n_ele_track)%s
 
 n = 2 * s_lat / seg_len + 2
 allocate (pos_x_wall%seg(n), neg_x_wall%seg(n))
@@ -263,51 +288,21 @@ do
   pos_x_wall%pt(i)%s = s
   pos_x_wall%pt(i)%x = x_out
   pos_x_wall%pt(i)%name = 'POS_X_WALL'
-  pos_x_wall%pt(i)%type = no_alley$
   pos_x_wall%pt(i)%phantom = .false.
-  pos_x_wall%pt(i)%ix_pt = i
 
   neg_x_wall%pt(i)%s = s
   neg_x_wall%pt(i)%x = x_in
   neg_x_wall%pt(i)%name = 'NEG_X_WALL'
-  neg_x_wall%pt(i)%type = no_alley$
   neg_x_wall%pt(i)%phantom = .false.
-  neg_x_wall%pt(i)%ix_pt = i
 enddo
 close (1)
 
-pos_x_wall%n_pt_tot = i
-neg_x_wall%n_pt_tot = i
+pos_x_wall%n_pt_max = i
+neg_x_wall%n_pt_max = i
 
-call delete_overlapping_wall_points(pos_x_wall)
-call delete_overlapping_wall_points(neg_x_wall)
-
-! Must do this set after deleting overlapping wall points
-
-if (abs(pos_x_wall%pt(pos_x_wall%n_pt_tot)%s - s_lat) > 0.01) then
-  print *, 'Note: Wall ends at:', pos_x_wall%pt(pos_x_wall%n_pt_tot)%s
-  print *, '      And not at lattice end of:', s_lat
-  print *, '      [But last point is always adjusted to have s = s_lat]'
-endif
-
-neg_x_wall%pt(neg_x_wall%n_pt_tot)%s = s_lat
-pos_x_wall%pt(pos_x_wall%n_pt_tot)%s = s_lat
- 
 !
 
-call break_wall_into_segments(neg_x_wall, seg_len)
-call break_wall_into_segments(pos_x_wall, seg_len)
-
-! calculate power densities
-
-call init_wall(pos_x_wall)
-call init_wall(neg_x_wall)
-
-call init_wall_ends(walls)
-
-n = lat%n_ele_track
-call check_wall (pos_x_wall, lat%ele(n)%s, lat%param%geometry)
-call check_wall (neg_x_wall, lat%ele(n)%s, lat%param%geometry)
+call synrad_setup_walls (walls, branch, seg_len)
 
 end subroutine old_read_wall_file
 

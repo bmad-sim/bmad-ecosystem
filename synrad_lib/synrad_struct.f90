@@ -8,15 +8,21 @@ use bmad_utils_mod
 ! in the wall (eg the openings for the chess beam lines) then that face is
 ! call a phantom.
 
-type wall_pt_struct   ! struct for input points
-  character(40) name  ! name of element (sliding_joint, etc.)
-  real(rp) x, s       ! position of wall point
-  integer n_seg       ! how many segments it will be broken up into
-  integer ix_seg      ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
-  integer type        ! possible_alley$, no_alley$, outer_wall$, etc.
-  integer ix_pt       ! ordered (in s) index to pt() array
-  integer closed_end_direct  ! For alleys: direction of the closed end
-  logical phantom     ! is the face an opening?
+! The "triangle" point is constructed so that the (possibly curved) wall 
+! associated with a wall point wall%pt(i) is containd within the triangle 
+! wall%pt(i)%r_floor, wall%pt(i)%r_floor_tri and wall%pt(i-1)%r_floor.
+
+type wall_pt_struct           ! struct for input points
+  character(40) name          ! name of element (sliding_joint, etc.)
+  real(rp) x, s               ! position of wall point
+  real(rp) r_floor(3)         ! Floor position.
+  real(rp) r_floor_tri(3)     ! Triangle point.
+  integer ix_pt               ! Self index int wall%pt array
+  integer n_seg               ! how many segments it will be broken up into
+  integer ix_seg              ! index to seg(:) array. From ix_seg+1 to ix_seg+n_seg
+  logical phantom             ! is the face an opening?
+  logical next_to_alley       ! point is near an alley way? 
+  logical linear_wall         ! Is associated wall section a linear line segment?
 end type wall_pt_struct
 
 ! For the synch light power computation each face is broken up into segments.
@@ -24,48 +30,45 @@ end type wall_pt_struct
 ! throughout the segment
 
 type source_struct
-  integer ix_ele           ! element index at source
-  real(rp) power_per_len   ! Power from this source
-  real(rp) s               ! Longitudinal s position.
+  integer :: ix_ele = 0           ! element index at source
+  real(rp) :: power_per_len = 0   ! Power from this source
+  real(rp) :: s = 0               ! Longitudinal s position.
 end type source_struct
 
 ! substruct for a segment 
 
 type seg_power_struct           
-  real(rp) power_tot                ! total power on segment (Watts)
-  real(rp) power_per_len            ! power density (Watts / m)
-  real(rp) power_per_area           ! power density (Watts / m^2)
-  real(rp) photons_per_sec          ! flux hitting segment in photons per sec
-  integer n_source                  ! number of source points
+  real(rp) :: power_tot = 0            ! total power on segment (Watts)
+  real(rp) :: power_per_len = 0        ! power density (Watts / m)
+  real(rp) :: power_per_area = 0       ! power density (Watts / m^2)
+  real(rp) :: photons_per_sec = 0      ! flux hitting segment in photons per sec
+  integer :: n_source = 0              ! number of source points
   type (source_struct) main_source  ! main source info for rays hitting this seg
 end type seg_power_struct
 
-type wall_seg_struct       ! segment struct
-  integer ix_pt            ! index to which point owns this segment
-  real(rp) s, x            ! s, x position of the segment at the endpoint
-  real(rp) s_mid, x_mid    ! s, x position of the segment at the midpoint
-  real(rp) len             ! length of segment
+type wall_seg_struct         ! segment struct
+  integer ix_seg             ! Self index in wall%seg array.
+  integer ix_pt              ! index to which point owns this segment
+  real(rp) s, x              ! s, x position of the segment at the endpoint
+  real(rp) s_mid, x_mid      ! s, x position of the segment at the midpoint
+  real(rp) r_floor(3)        ! Floor position at end.
+  real(rp) r_floor_mid(3)    ! Floor position at midpoint.
+  real(rp) theta             ! Angle of segment orientation in global coords
+  real(rp) len               ! length of segment
   type (seg_power_struct) power
-  integer ix_ele           ! lattice ele at s_mid
+  integer ix_ele             ! lattice ele at s_mid
   type (twiss_struct) :: a,b ! twiss info at s_mid
 end type wall_seg_struct
 
-type alley_struct
-  integer ix1, ix2, ix3    ! indexs of the three points
-  logical where            ! closed_end$, open_end$, inbetween$
-end type alley_struct
-
-! a wall is just a collection of points and segments
+! A wall is just a collection of points and segments
+! %seg(0) is a dummy segment meant to hold position information.
 
 type wall_struct           ! either positive_x or negative_x side wall
   integer side             ! positive_x$ or negative_x$ 
-  type (wall_pt_struct), allocatable :: pt(:)  ! Indexed from 0.
-  type (wall_seg_struct), allocatable :: seg(:)
-  type (alley_struct) :: alley(100)
-  integer n_pt_tot
-  integer n_seg_tot
-  integer n_alley_tot
-  integer ix_pt            ! last ix_pt
+  type (wall_pt_struct), allocatable :: pt(:)    ! Indexed from 0.
+  type (wall_seg_struct), allocatable :: seg(:)  ! Indexed from 0.
+  integer n_pt_max
+  integer n_seg_max
   real(rp) seg_len_max
 end type wall_struct
 
@@ -74,23 +77,22 @@ end type wall_struct
 type walls_struct
   type (wall_struct) :: positive_x_wall, negative_x_wall
   type (wall_seg_struct) :: start_end, exit_end
+  integer lat_geometry     ! open$ or closed$
+  real(rp) s_max
 end type walls_struct
 
 ! The computation tracks a set of synchrotron light rays from their source to the wall.
-! Note: (Vx, Vy, Vz) vector of ray will always have Vz > 0 irregardless of direction.
 
 type ray_struct       ! struct for a light ray
   integer direction       ! direction of travel, +1 = forward direction
-  integer ix_ele          ! index of element we are now tracking through
-  integer alley_status
   real(rp) track_len      ! length of the track from the start
-  type (coord_struct) start, old, now  ! coords. Will always have %vec(6) > 0
-  logical crossed_end     ! ray crossed the lat end?
-  integer ix_source       ! element index at source of ray
+  type (coord_struct) start, now  ! coords. %vec(6) willl be negative if direction = -1
+  type (floor_position_struct) start_floor, now_floor
   integer ix_wall_pt      ! index of wall point where hit
+  integer ix_seg_pt
   real(rp) p1_factor      ! factor for computing the power/length
   real(rp) p2_factor      ! factor for computing the power/area
-  real(rp) r_wall         !
+  real(rp) r_seg          !
   real(rp) g_bend         ! g = |1/rho|  bending radius inverse at source point
   type (twiss_struct) x_twiss, y_twiss    ! twiss at source point
   integer wall_side       ! Which wall is hit: positive_x_side$, negative_x_side$, 
@@ -157,12 +159,7 @@ character(20) :: wall_name(-2:2) = ['start_side     ', 'negative_x_side', '?????
                                       'positive_x_side', 'exit_side      ' ]
 integer :: negative_x$ = -1, positive_x$ = 1, start_side$ = -2, exit_side$ = 2
 
-integer :: possible_alley$ = -1
-integer :: no_alley$ = 0, inner_wall$ = 1, open_end$ = 2 
-integer :: middle_wall$ = 3, closed_end$ = 4, outer_wall$ = 5 
-
-integer ::no_local_alley$ = 0, out_of_alley$ = 1, in_alley$ = 2
-
+real(rp), parameter :: synrad_significant_length = 1d-8
 !--------------
 
 integer, parameter :: forward$ = 1
