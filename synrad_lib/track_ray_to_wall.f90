@@ -1,5 +1,5 @@
 !+
-! subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
+! subroutine track_ray_to_wall (ray, walls)
 !
 ! subroutine to propagate a synch radiation ray until it hits
 !    a wall
@@ -8,116 +8,209 @@
 !   use synrad_mod
 !
 ! Input:
-!   ray    -- ray_struct: synch radiation ray with starting
-!                         parameters set
-!   lat   -- lat_struct: with twiss propagated and mat6s made
-!   walls -- walls_struct: both walls and ends
-!   track_max -- real(rp), optional: Maximum length in m to track
-!                                    the ray
+!   ray     -- ray_struct: synch radiation ray with starting parameters set
+!   walls   -- walls_struct: both walls and ends
 !
 ! Output:
-!   ray    -- ray_struct: synch radiation ray propagated to wall
-!   hit_flag -- logical, optional: true if wall was hit,
-!                                  false if track_max was reached first
+!   ray       -- ray_struct: synch radiation ray propagated to wall
 !-
 
-subroutine track_ray_to_wall (ray, lat, walls, hit_flag, track_max)
+subroutine track_ray_to_wall (ray, walls)
 
-  use synrad_struct
-  use synrad_interface, except => track_ray_to_wall
+use synrad_struct
+use synrad_interface, except => track_ray_to_wall
 
-  implicit none
+implicit none
 
-  type (lat_struct), target :: lat
-  type (ray_struct), target :: ray
-  type (walls_struct), target :: walls
-  type (wall_struct), pointer :: negative_x_wall, positive_x_wall
+type (ray_struct), target :: ray
+type (walls_struct), target :: walls
+type (wall_struct), pointer :: neg_x_wall, pos_x_wall
 
-  logical, optional :: hit_flag
-  real(rp), optional :: track_max
+integer ix_neg, ix_pos, ix_min_seg_pos, ix_min_seg_neg, ix_pt, dir, itry
 
-  integer ix_neg, ix_pos
+real(rp) len_min_pos, len_min_neg, r_neg, r_pos, r
+real(rp) theta, s_last_pos, s_last_neg
 
-  real(rp) s_next
+logical pos_go, neg_go, next_to_alley_pos, next_to_alley_neg
 
-  logical is_hit, passed_end
+! set pointers
 
-  ! set pointers
-  positive_x_wall => walls%positive_x_wall
-  negative_x_wall => walls%negative_x_wall
+pos_x_wall => walls%positive_x_wall
+neg_x_wall => walls%negative_x_wall
+dir = ray%direction
 
-  ! init
+! ix_neg and ix_pos are the neg_x_wall and pos_x_wall side points that
+! are at or just "upstream" (ray%direction points downstream) of the ray.
 
-  if (present(hit_flag)) hit_flag = .true.  ! assume that we will hit
-  passed_end = .false.
+call get_initial_wall_pt (ray, neg_x_wall, ix_neg)
+call get_initial_wall_pt (ray, pos_x_wall, ix_pos)
 
-  ! ix_neg and ix_pos are the next negative_x_wall and 
-  ! positive_x_wall side points that
-  ! are at or just "downstream" of the ray.
+! 
 
-  call get_initial_pt (ray, negative_x_wall, ix_neg, lat)
-  call get_initial_pt (ray, positive_x_wall, ix_pos, lat)
+ix_min_seg_pos = -1; len_min_pos = 1e10
+ix_min_seg_neg = -1; len_min_neg = 1e10
 
-  ! propagation loop:
-  ! Propagate the ray. Figure out how far to advance in s.
-  ! Do not advance past the next wall point 
-  ! (either negative_x_wall or positive_x_wall).
-  ! Also since the next wall point may be a very long ways off, 
-  !    do not propagate more than 1 meter.
+pos_go = .true.; neg_go = .true.
 
-  do
+s_last_pos = -1e10 * dir
+s_last_neg = -1e10 * dir
 
-    if (ray%direction == 1) then
-      s_next = min(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%s + 1.0)
-      if (present(track_max)) s_next = &
-                min(s_next, ray%now%s + (1.0001 * track_max - ray%track_len))
+next_to_alley_pos = .false.
+next_to_alley_neg = .false.
+
+do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
+
+  ! See if we have hit the end of the machine
+
+  if (dir == 1) then
+    if (ix_pos == pos_x_wall%n_pt_max + 1 .and. ix_neg == neg_x_wall%n_pt_max + 1) then
+      if (walls%lat_geometry == open$) then
+        ray%wall_side = exit_side$   ! End "wall" at end of lattice
+        return
+      endif
+      ix_pos = 1; s_last_pos = 0
+      ix_neg = 1; s_last_neg = 0
+    endif
+
+  else ! direction = -1
+    if (ix_pos == 0 .and. ix_neg == 0) then
+      if (walls%lat_geometry == open$) then
+        ray%wall_side = start_side$  ! End "wall" at beginning of lattice
+        return
+      endif
+      ix_pos = pos_x_wall%n_pt_max; s_last_pos = walls%s_max
+      ix_neg = neg_x_wall%n_pt_max; s_last_neg = walls%s_max
+    endif
+  endif
+
+  ! Check next pos_x wall ptment
+
+  if (pos_go .and. (.not. neg_go .or. dir * (s_last_pos - s_last_neg) <=  0)) then
+    call check_pt (ray, ix_pos, pos_x_wall, dir, len_min_pos, ix_min_seg_pos, r_pos)
+    s_last_pos = pos_x_wall%pt(ix_pos)%s
+    if (ix_min_seg_pos /= -1 .and. .not. pos_x_wall%pt(ix_pos)%next_to_alley) pos_go = .false.
+    ix_pos = ix_pos + dir
+
+  else
+    call check_pt (ray, ix_neg, neg_x_wall, dir, len_min_neg, ix_min_seg_neg, r_neg)
+    s_last_neg = neg_x_wall%pt(ix_neg)%s
+    if (ix_min_seg_neg /= -1 .and. .not. neg_x_wall%pt(ix_neg)%next_to_alley) neg_go = .false.
+    ix_neg = ix_neg + dir
+  endif
+
+  ! End if there has been a hit and we are clear of any alleys.
+
+  if (.not. next_to_alley_pos .and. .not. next_to_alley_neg .and. &
+                            (ix_min_seg_pos /= -1 .or. ix_min_seg_neg /= -1)) then
+    if (len_min_pos < len_min_neg) then
+      ray%wall_side  = positive_x$
+      ray%track_len  = len_min_pos
+      ray%r_seg      = r_pos
+      ray%ix_seg_pt  = ix_min_seg_pos
+      ray%ix_wall_pt = pos_x_wall%seg(ix_min_seg_pos)%ix_pt
     else
-      s_next = max(negative_x_wall%pt(ix_neg)%s, positive_x_wall%pt(ix_pos)%s, ray%now%s - 1.0)
-      if (present(track_max)) s_next = &
-                max(s_next, ray%now%s - (1.0001 * track_max - ray%track_len))
+      ray%wall_side  = negative_x$
+      ray%track_len  = len_min_neg
+      ray%r_seg      = r_neg
+      ray%ix_seg_pt  = ix_min_seg_neg
+      ray%ix_wall_pt = neg_x_wall%seg(ix_min_seg_neg)%ix_pt
     endif
 
-    call propagate_ray (ray, s_next, lat, .true.)
+    theta = ray%start_floor%theta
+    ray%now_floor%r = ray%start_floor%r + ray%track_len * [sin(theta), 0.0_rp, cos(theta)]
 
-    ! See if we have hit the end of the machine
+    return
+  endif
 
-    if (lat%param%geometry == open$) then
-      if ((ray%direction ==  1 .and. ray%now%s == lat%ele(lat%n_ele_track)%s) .or. &
-          (ray%direction == -1 .and. ray%now%s == lat%ele(0)%s)) then
-        if (ray%direction == 1) then
-          ray%wall_side = exit_side$   ! End "wall" at end of lattice
-        else
-          ray%wall_side = start_side$  ! End "wall" at beginning of lattice
-        endif
-        return
-      endif
-    endif
+enddo
 
-    ! See if we have hit the wall.
+print *, 'ERROR: CANNOT FIND WALL INTERSECTION!'
+call err_exit
 
-    call hit_spot_calc (ray, negative_x_wall, ix_neg, is_hit, lat)
-    if (is_hit) return
 
-    call hit_spot_calc (ray, positive_x_wall, ix_pos, is_hit, lat)
-    if (is_hit) return
+!----------------------------------------------------------------------------------------
+contains
 
-    ! See if we have tracked as far as needed.
+subroutine check_pt (ray, ix_pt, wall, dir, len_min, ix_seg_min, r_seg)
 
-    if (present(track_max)) then
-      if (ray%track_len .ge. track_max) then
-        hit_flag = .false.
-        return
-      endif
-    endif
+type (ray_struct) ray
+type (wall_struct), target :: wall
+type (wall_pt_struct), pointer :: pt, pt0
 
-    if (ray%now%s == negative_x_wall%pt(ix_neg)%s) then
-      call next_pt (ray, negative_x_wall, ix_neg, passed_end)
-    endif
+real(rp) len_min, r_seg, len_this, r_seg_this, dum1, dum2
+integer ix_pt, dir, ix_seg_min, is
 
-    if (ray%now%s == positive_x_wall%pt(ix_pos)%s) then
-      call next_pt (ray, positive_x_wall, ix_pos, passed_end)
-    endif
+! Check if there is an intersection
 
-  enddo
+pt0 => wall%pt(ix_pt-1)
+pt => wall%pt(ix_pt)
+
+if (pt%linear_wall) then
+  if (.not. line_hit(ray, pt0%r_floor, pt%r_floor, dum1, dum2)) return   ! No hit
+else
+  if (.not. line_hit(ray, pt0%r_floor, pt%r_floor, dum1, dum2) .and. &
+      .not. line_hit(ray, pt0%r_floor, pt%r_floor_tri, dum1, dum2) .and. &
+      .not. line_hit(ray, pt%r_floor, pt%r_floor_tri, dum1, dum2)) return
+endif
+
+! Possible that ray is hitting wall so test all the segments.
+
+do is = pt%ix_seg+1, pt%ix_seg+pt%n_seg
+  if (.not. line_hit (ray, wall%seg(is-1)%r_floor, wall%seg(is)%r_floor, len_this, r_seg_this)) cycle
+
+  if (len_this < len_min) then
+    ix_seg_min = is
+    len_min    = len_this
+    r_seg      = r_seg_this
+  endif
+enddo
+
+end subroutine
+
+!----------------------------------------------------------------------------------------
+! contains
+
+function line_hit (ray, floor0, floor1, track_len, r_seg) result (hitting)
+
+type (wall_struct) wall
+type (ray_struct) ray
+
+real(rp) floor0(3), floor1(3), track_len, r_seg
+real(rp) r_x, r_z, dr_x, dr_z, denom
+real(rp), save :: old_theta = 0, cos_t = 1, sin_t = 0
+integer ix_seg
+logical hitting
+
+!
+
+r_x = floor0(1) - ray%start_floor%r(1)
+r_z = floor0(3) - ray%start_floor%r(3)
+
+dr_x = floor1(1) - floor0(1)
+dr_z = floor1(3) - floor0(3)
+
+if (ray%start_floor%theta /= old_theta) then
+  cos_t = cos(ray%start_floor%theta)
+  sin_t = sin(ray%start_floor%theta)
+  old_theta = ray%start_floor%theta
+endif
+
+denom = sin_t * dr_z - cos_t * dr_x
+
+hitting = .false.
+if (abs(denom) < 1e-10) return
+
+r_seg = (cos_t * r_x - sin_t * r_z) / denom
+if (r_seg < 0  .or. r_seg > 1) return
+
+! If the ray is starting from the wall then can get 
+! very small track_len values. Don't count these.
+
+track_len = cos_t * (r_z + r_seg * dr_z) + sin_t * (r_x + r_seg * dr_x)
+if (track_len < synrad_significant_length) return
+
+hitting = .true.
+
+end function
 
 end subroutine

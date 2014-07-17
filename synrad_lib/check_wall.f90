@@ -14,41 +14,25 @@ real(rp) s_lat
 integer lat_type, np, n, n0, n1
 
 character(16) :: r_name = 'check_wall'
-character(60) line1, line2
+character(100) line1, line2
 
 !
 
 pt => wall%pt
-np = wall%n_pt_tot
+np = wall%n_pt_max
 
 do n = 1, np
 
-  if (pt(n-1)%s > pt(n)%s .and. pt(n)%type == no_alley$) then
+  if (pt(n)%s < pt(n-1)%s - 1) then
     write (line1, '(6x, i4, f11.5, 2x, a)') n-1, pt(n-1)%s, pt(n-1)%name
-    write (line2, '(6x, i4, f11.5, 2x, a)') n, pt(n)%s, pt(n)%name
-    call out_io (s_fatal$, r_name, wall_name(wall%side), &
-                    ' WALL POINTS NOT ORDERED IN ASSENDING LONGITUDINAL POSITION', line1, line2)
-  endif
-
-  n0 = pt(n-1)%ix_pt
-  n1 = pt(n)%ix_pt
-  if (pt(n0)%s > pt(n1)%s) then
-    write (line1, '(6x, 2i6, f11.5, 2x, a)') n-1, n0, pt(n0)%s, pt(n0)%name
-    write (line2, '(6x, 2i6, f11.5, 2x, a)') n,   n1, pt(n1)%s, pt(n1)%name
-    call out_io (s_fatal$, r_name, &
-                    trim(wall_name(wall%side)) // ' WALL IX_PT ARRAY NOT ORDERED', &
-                    '           N Ix_pt          S    Name', line1, line2)
-    if (global_com%exit_on_error) call err_exit
-  endif
-
-  if (n0 == n1) then
-    call out_io (s_fatal$, r_name, &
-                    wall_name(wall%side) // ' WALL IX_PT DEGENERACY: \i0\  \i0\ ', &
-                    'BOTH POINT TO: \i0\  \i0\ ', i_array = [n-1, n, n0, n1])
-    if (global_com%exit_on_error) call err_exit
+    write (line2, '(6x, i4, f11.5, 2x, a)') n,   pt(n)%s,   pt(n)%name
+    call out_io (s_warn$, r_name, wall_name(wall%side), &
+                    ' LONGITUDINAL STEP BACK OF WALL POINT IS OVER 1 METER:', line1, line2)
   endif
 
 enddo
+
+!
 
 if (pt(0)%s /= 0) then
   call out_io (s_fatal$, r_name, wall_name(wall%side) // ' WALL DOES NOT START AT S = 0')

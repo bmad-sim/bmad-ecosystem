@@ -70,18 +70,24 @@
 
 Synrad is a program for calculating the synchrotron radiation power
 deposition on the beam chamber walls in a storage ring or
-accelerator. Synrad works by tracking photons from creation at the
+accelerator. Synrad works by tracking X-rays from creation at the
 beam to absorption at the chamber wall. The tracking is confined to
-the horizontal plane.  Reflections from the wall are not considered.
+the horizontal plane. Reflections from the wall are not considered.
 The vertical extent of the radiation stripe at the wall, important for
 calculating the power deposition per unit area, is calculated using
 the vertical emittance.
 
 The chamber wall is specified in the horizontal plane by a set of
 vertex points with a straight line between points. Exit and entrance
-lines like x-ray beam lines or dumps can be modeled in
-Synrad. Shadowing of parts of the wall by other parts is taken into
-account in the calculation.
+lines like x-ray beam lines or dumps can be modeled in Synrad.
+Shadowing of parts of the wall by other parts is taken into account in
+the calculation.
+
+Even though Synrad only tracks photons in the horizontal plane, Synrad
+is able to handle lattices with non-horizontal bends. Radiation from
+non-horizontal bends is included in the calculation. Obviously, if
+this radiation is actually stricking the top or bottom walls, Synrad
+will not give accurate results.
 
 Synrad output includes power deposition per longitudinal length, per
 unit area on the beam center line, and photon flux. The beam orbit is
