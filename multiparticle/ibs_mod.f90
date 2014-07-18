@@ -715,9 +715,8 @@ SUBROUTINE ibs1(lat, ibs_sim_params, rates, i, s)
   IF(ibs_sim_params%formula == 'kubo') THEN
     IF( PRESENT(i) ) THEN
       CALL kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix=i)
-    ELSE
-      WRITE(*,*) "If formula='kubo', then element index i must be specified ... terminating"
-      STOP
+    ELSEIF( PRESENT(s) ) THEN
+      CALL kubo1_twiss_wrapper(lat, ibs_sim_params, rates, s=s)
     ENDIF
   ELSE
     IF(PRESENT(i) .and. .not.PRESENT(s)) THEN
@@ -996,11 +995,14 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   REAL(rp), OPTIONAL :: s
   REAL(rp) dt
 
+  TYPE(ele_struct), TARGET :: stubele
+  INTEGER ix_use
   REAL(rp) sigma_mat(6,6)
   REAL(rp) sigma_mat_updated(6,6)
   REAL(rp) t6(6,6)
   REAL(rp) W(6,6)
   REAL(rp) normal(3)
+  REAL(rp) err_rp
 
   INTEGER i
 
@@ -1025,33 +1027,39 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ENDIF
 
   IF(PRESENT(ix) .and. .not.PRESENT(s)) THEN
-    ele => lat%ele(ix)
+    ix_use = ix
+    ele => lat%ele(ix_use)
   ELSEIF(PRESENT(s) .and. .not.PRESENT(ix)) THEN
-    WRITE(*,*) "FAIL: Calculation at location s not currently supported by kubo1"
-    STOP
-    !CALL twiss_and_track_at_s(lat,s,stubele)
-    !ele => stubele
+    ix_use = element_at_s(lat,s,.false.)
+    CALL twiss_and_track_at_s(lat,s,stubele)
+    ele => stubele
   ELSE
     WRITE(*,*) "FATAL ERROR IN ibs_mod: Either ix or s (and not both) must be specified"
     STOP
   ENDIF
 
+  ! make sigma matrix in x,px,y,py,z,pz form
+  IF( ibs_sim_params%use_t6_cache ) THEN
+    IF( ASSOCIATED(lat%ele(ix_use)%r) ) THEN
+      t6 = lat%ele(ix_use)%r(:,:,1)
+    ELSE
+      WRITE(*,'(A)') "use_t6_cache is true, but lat%ele(ix_use)%r not allocated.  Defaulting to transfer_matrix_calc."
+      CALL transfer_matrix_calc (lat, .true., t6, ix1=ix_use, one_turn=.TRUE.)
+    ENDIF
+  ELSE
+    CALL transfer_matrix_calc (lat, .true., t6, ix1=ix_use, one_turn=.TRUE.)
+  ENDIF
+
+  IF( PRESENT(s) ) THEN
+    t6 = MATMUL(ele%mat6,  MATMUL(dagger6(lat%ele(ix_use)%mat6), MATMUL(t6, MATMUL(lat%ele(ix_use)%mat6, dagger6(ele%mat6)))))
+  ENDIF
+
   energy = ele%value(E_TOT$)
   CALL convert_total_energy_to(energy, -1, gamma, KE, rbeta)
 
-  ! make sigma matrix in x,px,y,py,z,pz form
-  IF( ibs_sim_params%use_t6_cache ) THEN
-    IF( ASSOCIATED(lat%ele(ix)%r) ) THEN
-      t6 = lat%ele(ix)%r(:,:,1)
-    ELSE
-      WRITE(*,'(A)') "use_t6_cache is true, but lat%ele(ix)%r not allocated.  Defaulting to transfer_matrix_calc."
-      CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
-    ENDIF
-  ELSE
-    CALL transfer_matrix_calc (lat, .true., t6, ix1=ix, one_turn=.TRUE.)
-  ENDIF
-  t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, lat%ele(ix)%z%sigma)
-  ! CALL transfer_matrix_calc_special(lat, .true., t6, ix1=ix, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix)%z%sigma)
+  ! t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, ele%z%sigma)
+  ! CALL transfer_matrix_calc_special(lat, .true., t6, ix1=ix_use, one_turn=.TRUE., inductance=ibs_sim_params%inductance, sig_z=lat%ele(ix_use)%z%sigma)
+
   IF( ibs_sim_params%set_dispersion ) THEN
     t6 = MATMUL(t6,W) 
   ENDIF
@@ -1068,14 +1076,20 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
     RETURN
   ENDIF
 
-  CALL kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, ele%value(l$), energy, lat%param%n_part)
+  !CALL kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, ele%value(l$), energy, lat%param%n_part)
+  CALL kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, 0.1_rp, energy, lat%param%n_part)
 
   CALL normal_sigma_mat(sigma_mat_updated,normal)
+
   
-  dt = ele%value(l$) / c_light
+  !dt = ele%value(l$) / c_light
+  dt = 0.1 / c_light
   rates%inv_Ta = ((normal(1) - ele%a%emit) / dt)/ele%a%emit/2.0d0
   rates%inv_Tb = ((normal(2) - ele%b%emit) / dt)/ele%b%emit/2.0d0
   rates%inv_Tz = ((normal(3) - ele%z%emit) / dt)/ele%z%emit/2.0d0
+
+!  WRITE(45,*) "FOO: ", ele%a%emit, ele%b%emit, ele%z%emit
+!  WRITE(46,*) "FOO: ", rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
 
   !CALL deallocate_ele_pointers(ele)
 END SUBROUTINE kubo1_twiss_wrapper
@@ -1227,6 +1241,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   args = (/u(1),u(2),u(3)/)
   fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, pi_2, eps7, eps7, &
                                      limit, 3, integ_wk, integration_result, abserr)
+
   g1 = integration_result
 
   args = (/u(2),u(1),u(3)/)
