@@ -1,7 +1,6 @@
 set (EXENAME synrad)
-set (SRC_FILES
-  synrad/synrad.f90
-)
+
+FILE (GLOB SRC_FILES synrad/*.f90) 
 
 set (INC_DIRS
 )
