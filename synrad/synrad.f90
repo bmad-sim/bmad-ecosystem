@@ -21,7 +21,7 @@ integer i, n, ix, n_arg, n_wall, ios, beam_direction
 integer use_ele_ix, use_ele_ix2
 
 character(40) name
-character(100) this_lat, line, temp
+character(100) this_lat, line, temp, arg
 character(100) lat_file, in_file, wall_file
 character(16) forward_beam, backward_beam, plotting
 
@@ -131,7 +131,7 @@ endif
 ! Plotting
 
 if (plotting /= '') then
-  call synrad_plot (walls)
+  call synrad_plot_sx (walls)
 endif
 
 ! Synch calculation

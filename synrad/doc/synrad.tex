@@ -105,6 +105,21 @@ charged-particle simulations\cite{b:bmad} for some of the
 calculations. 
 
 %------------------------------------------------------------------
+\section{Running Synrad}
+\label{s:run}
+
+Syntax for invoking Synrad:
+\begin{example}
+  <path-to-synrad-exe>/synrad \{-plot\} \{<master-input-file-name>\}
+\end{example}
+The \vn{<master-input-file-name>} optional argument is used to set the
+master input file name. The default is ``\vn{lux.init}''.
+
+The optional \vn{-plot} option causes Synrad to plot the vacuum
+chamber walls. In this case, no synchrotron radiation calculations are
+done.
+
+%------------------------------------------------------------------
 
   \begin{figure}[tb]
   \begin{center}
