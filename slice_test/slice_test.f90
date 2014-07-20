@@ -268,7 +268,7 @@ write (1, '(a, 2es22.12)') '"B2:vec(2)" ABS  1e-14', end_orb%vec(2), end_orb%vec
 write (1, '(a, 2es22.12)') '"B2:vec(3)" ABS  1e-14', end_orb%vec(3), end_orb%vec(3) - orbit%vec(3)
 write (1, '(a, 2es22.12)') '"B2:vec(4)" ABS  1e-14', end_orb%vec(4), end_orb%vec(4) - orbit%vec(4)
 write (1, '(a, 2es22.12)') '"B2:vec(5)" ABS  1e-14', end_orb%vec(5), end_orb%vec(5) - orbit%vec(5)
-write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  1e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
+write (1, '(a, 2es22.12)') '"B2:vec(6)" ABS  2e-14', end_orb%vec(6), end_orb%vec(6) - orbit%vec(6)
 write (1, '(a, 2es22.12)') '"B2:c*t"    ABS  1e-14', c_light * end_orb%t, c_light * (end_orb%t - orbit%t)
 
 write (1, *)
