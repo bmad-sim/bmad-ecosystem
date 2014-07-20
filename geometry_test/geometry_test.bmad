@@ -1,0 +1,13 @@
+no_digested
+parameter[e_tot] = 1e6
+parameter[lattice_type] = linear_lattice
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+d: drift, l = 1
+p1: patch, z_offset = 1, x_pitch = pi/4
+
+
+p_line: line = (p1, d, p1)
+
+use, p_line
