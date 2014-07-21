@@ -24,7 +24,7 @@ type (wall_struct), target :: wall
 type (branch_struct) branch
 type (floor_position_struct) floor, local
 type (wall_seg_struct), pointer :: seg, seg0
-type (wall_pt_struct), pointer :: pt0, pt1, pt
+type (wall_pt_struct), pointer :: pt0, pt1
 type (ele_struct), pointer :: ele1
 
 integer i_seg, ip, n_seg, ix, n, isg, ix0, ix1, status
@@ -80,14 +80,14 @@ wall%pt(0)%ix_pt = 0
 i_seg = 0
 
 do ip = 1, wall%n_pt_max
-  pt => wall%pt(ip)
+  pt1 => wall%pt(ip)
   pt0 => wall%pt(ip-1)
   
-  pt%ix_pt = ip
-  wall_len = sqrt((pt%x - pt0%x)**2 + (pt%s - pt0%s)**2)
+  pt1%ix_pt = ip
+  wall_len = sqrt((pt1%x - pt0%x)**2 + (pt1%s - pt0%s)**2)
   n_seg = 1 + wall_len / seg_len_max
-  pt%n_seg = n_seg
-  pt%ix_seg = i_seg
+  pt1%n_seg = n_seg
+  pt1%ix_seg = i_seg
 
   ! Is there a patch element in this wall section
 
@@ -108,7 +108,7 @@ do ip = 1, wall%n_pt_max
 
     if (has_patch) then
       rr = float(ix) / n_seg
-      seg%r_floor = pt0%r_floor * (1 - rr) + pt%r_floor * rr 
+      seg%r_floor = pt0%r_floor * (1 - rr) + pt1%r_floor * rr 
 
       floor%r = seg%r_floor
       local = coords_floor_to_curvilinear (floor, branch%ele((ix0+ix1)/2), ele1, status)
@@ -117,11 +117,11 @@ do ip = 1, wall%n_pt_max
 
     else
       rr = (ix - 0.5_rp) / n_seg
-      seg%x_mid = pt0%x * (1 - rr) + pt%x * rr   ! Off by siggita
-      seg%s_mid = pt0%s * (1 - rr) + pt%s * rr
+      seg%x_mid = pt0%x * (1 - rr) + pt1%x * rr   ! Off by siggita
+      seg%s_mid = pt0%s * (1 - rr) + pt1%s * rr
       rr = float(ix) / n_seg
-      seg%x = pt0%x * (1 - rr) + pt%x * rr
-      seg%s = pt0%s * (1 - rr) + pt%s * rr
+      seg%x = pt0%x * (1 - rr) + pt1%x * rr
+      seg%s = pt0%s * (1 - rr) + pt1%s * rr
 
       floor = coords_curvilinear_to_floor ([seg%x, 0.0_rp, seg%s], branch, err_flag)
       seg%r_floor = floor%r

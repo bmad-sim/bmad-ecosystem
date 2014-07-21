@@ -41,8 +41,11 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
   type (ele_power_struct) power(:)
 
   integer direction, ie, i_ray, n_slice, ns, old_wall_side
+  integer, save :: n_warn = 0
 
   real(rp) l_off, del_l, l0, l1, l_try
+
+  character(*), parameter :: r_name = 'ele_synrad_power'
 
   ! set pointers
   positive_x_wall => walls%positive_x_wall
@@ -59,6 +62,20 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
 
   ! check if ele is on
   if (.not. ele%is_on) return
+
+  ! Zero length elements cannot be handled
+
+  if (ele%value(l$) == 0) then
+    n_warn = n_warn + 1
+    if (n_warn <= 5) then
+      call out_io (s_warn$, r_name, 'Element has zero length: ' // ele%name, &
+                                    'No radiation will be generated from this element.')
+    endif
+    if (n_warn == 5) then
+      call out_io (s_info$, r_name, '[Enough! Zero length warnings will now be suppressed...')
+    endif
+    return
+  endif
 
   ! Partition the quad/bend/wiggler into slices and track the synch
   ! radiation comming from each slice to see where it hits the wall.
@@ -78,8 +95,8 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
     if (ele%sub_key == periodic_type$) then
       if (ele%value(b_max$) == 0) return
       if (ele%value(n_pole$) == 0) then
-        print *, 'WARNING IN ELE_SYNRAD_POWER: "N_POLE" FOR WIGGLER = 0.'
-        print *, '      CALCULATED RADIATION FROM THIS WIGGLER WILL BE 0!'
+        call out_io (s_warn$, r_name, '"N_Pole" for Wiggler = 0.', &
+                                      'Calculated radiation from this wiggler will be 0!')
       endif
       n_slice = max(1, nint(n_slice * ele%value(n_pole$)))
     else
