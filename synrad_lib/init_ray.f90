@@ -136,7 +136,7 @@ ray%now = ray%start
 ray%direction = direction
 ray%track_len = 0
 
-ray%start_floor = xys_to_global ([ray%start%vec(1), 0.0_rp, ray%start%s], ele%branch, err_flag)
+ray%start_floor = coords_curvilinear_to_floor ([ray%start%vec(1), 0.0_rp, ray%start%s], ele%branch, err_flag)
 ray%start_floor%theta = runt_ele%floor%theta + atan2(ray%start%vec(2), ray%start%vec(6))
 ray%start_floor%theta = modulo2(ray%start_floor%theta, pi)
 
