@@ -250,7 +250,7 @@ SUBROUTINE solve_psi_fixed_steps(t0,t1,p0,args,t,p)
   p(1) = p0
 
   DO i=2,n
-    status = fgsl_odeiv2_driver_apply_fixed_step(ode_drv, tcur, step_size, 1_8, y)
+    status = fgsl_odeiv2_driver_apply_fixed_step(ode_drv, tcur, step_size, 1_fgsl_long, y)
 
     IF(status .ne. fgsl_success) THEN
       WRITE(*,'(A)') "ERROR: fgsl_odeiv2_driver_apply_fixed_step failed during bunch length calculation."
