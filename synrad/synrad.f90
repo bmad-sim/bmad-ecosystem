@@ -25,14 +25,14 @@ character(100) this_lat, line, temp, arg
 character(100) lat_file, in_file, wall_file
 character(16) forward_beam, backward_beam, plotting
 
-real(rp) wall_offset, s, x_in, x_out, seg_len
+real(rp) wall_offset, s, x_in, x_out, x_plus, x_minus, seg_len
 
 logical err_flag, phantom, ok
 
 namelist / synrad_params / sr_param, seg_len, wall_file, wall_offset, beam_direction, &
                            forward_beam, backward_beam, use_ele_ix, use_ele_ix2
 
-namelist / wall_pt / s, x_in, x_out, name, phantom
+namelist / wall_pt / s, x_in, x_out, x_plus, x_minus, name, phantom
 
 ! Init
 
@@ -284,14 +284,14 @@ do
   if (ios < 0) exit
   if (line == '') cycle
   i = i + 1
-  read (line, *) s, x_in, x_out
+  read (line, *) s, x_minus, x_plus
   pos_x_wall%pt(i)%s = s
-  pos_x_wall%pt(i)%x = x_out
+  pos_x_wall%pt(i)%x = x_plus
   pos_x_wall%pt(i)%name = 'POS_X_WALL'
   pos_x_wall%pt(i)%phantom = .false.
 
   neg_x_wall%pt(i)%s = s
-  neg_x_wall%pt(i)%x = x_in
+  neg_x_wall%pt(i)%x = x_minus
   neg_x_wall%pt(i)%name = 'NEG_X_WALL'
   neg_x_wall%pt(i)%phantom = .false.
 enddo

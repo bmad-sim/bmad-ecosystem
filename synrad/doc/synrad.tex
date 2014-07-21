@@ -60,7 +60,7 @@
 
 \title{ Synrad Information}
 \author{}
-\date{May 26, 2014}
+\date{July 21, 2014}
 
 \begin{document}
 \maketitle
@@ -125,12 +125,13 @@ done.
   \begin{center}
   \includegraphics[width=5in]{wall.pdf}
   \caption{
-Photon tracking is in the horizontal $x$-$s$ plane. The wall has a
-$-x$ side and a $+x$ side. The wall is defined by a number of vertex
-points (shown as circles) with straight lines between vertices. For
-the calculation, the straight lines are divided into a number of
-roughly equal length short segments as shown for a portion of the
-$-x$ side.
+The vacuum chamber wall has a $-x$ side and a $+x$ side. The wall is
+defined by a number of vertex points (shown as circles) with straight
+lines in $(x, s)$ between vertices. For the calculation, the straight
+lines are divided into a number of roughly equal length short segments
+as shown for a portion of the $-x$ side. Sections between vertex points
+can also be declared as ``\vn{phantom}'' indicating that radiation 
+striking such a section is not to be counted.
   }
   \label{f:wall}
   \end{center}
@@ -139,12 +140,12 @@ $-x$ side.
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall}
 
-The curvilinear coordinate system used by Synrad corresponds to the
-Bmad standard (see the Coordinates chapter in the Bmad
-manual\cite{b:bmad}). If there are no vertical bends, the $s$-axis is
-the longitudinal axis along the direction of the beam, the $y$-axis is
-in the vertical direction, and the $x$-axis is in the horizontal
-plane.
+Synrad uses the Bmad local reference coordinates for specifying the
+vacuum chamber wall (see the \vn{Coordinates} chapter in the Bmad
+manual\cite{b:bmad}). The $s$-axis in this curvilinear coordinate
+system is the longitudinal axis along the direction of the beam. If
+there are no vertical bends, the $y$-axis is in the vertical
+direction, and the $x$-axis is in the horizontal plane.
 
 Since Synrad is only tracking in the horizontal plane, the vacuum
 chamber wall is divided into a ``positive $x$'' (``$+x$'') side and a
@@ -152,18 +153,68 @@ chamber wall is divided into a ``positive $x$'' (``$+x$'') side and a
 ``$+x$'' section is defined as the wall on the positive $x$ side of
 the centerline and vice versa. 
 
-The $-x$ and outside walls are specified by a number of vertex
-points with straight lines between vertex points. Since the coordinate
-system is curvilinear, sections of the wall can be curved. For
-example, if two vertex points are within a bend, and both vertex
-points have the same $x$ value, the ``line'' between them, which has
-constant $x$, is actually the arc of a circle. 
+The $-x$ and $+x$ sides are specified by a number of vertex
+points. Between vertex points, a straight line interpolation in $(x,
+s)$ space is used to construct the wall. Since the coordinate system
+is curvilinear, the actual shape of the wall in the global coordinate
+system can be curved. For example, within a bend, a line of constant
+$x$ in $(x, s)$ space will be mapped to the arc of a circle in the
+$(X, Z)$ global coordinate system.
+
+Sections between vertex points can also be declared as
+``\vn{phantom}'' indicating that radiation striking such a section is
+not to be counted. This is useful for simulating X-ray beam lines
+where the X-rays traveling down the beam line does not contribute to
+the power dissipated on the walls.
 
 For the calculation, the lines between vertex points are broken up
-into roughly equal length segments. Note that while Synrad
-tries to make segments of equal size, since the distance between
-vertex points may not be commensurate with the desired segment length,
-the actual segment length can vary from segment to segment.
+into roughly equal length segments. While Synrad tries to make
+segments of equal size, since the distance between vertex points may
+not be commensurate with the desired segment length, the actual
+segment length can vary. For calculational purposes, segments are
+treated as straight line segments in the global coordinate
+system. That is, within a bend, only the ends of the segments will
+truly lie on the straight line, in $(x, s)$ space, drawn between
+vertices. Since the maximum segment length should be set to be much
+smaller than any bend radius, the deviation caused in taking the
+segments as straight in the global coordinate system should be
+negligible.
+
+Interpolation of the vacuum chamber wall between vertex points that
+span a \vn{patch} element is problematical in that, in general, an
+unbroken line in the $(x, s)$ coordinates will be discontinuous in the
+global coordinates. This comes about since \vn{patch} elements can
+introduce a discontinuity in the local reference coordinates. Since
+this is not physical, Synrad uses a different rule for interpolating
+between vertex points that span a \vn{patch}. In such a case, linear
+interpolation in the global coordinate system is used as shown in
+Fig.~\ref{f:patch}. That the wall may be discontinuous in $(x, s)$
+space is not a problem.
+
+%------------------------------------------------------------------
+
+  \begin{figure}[tb]
+  \begin{center}
+  \includegraphics[width=5in]{patch.pdf}
+  \caption{
+The section of the vacuum chamber wall between two
+vertices that span a patch element is constructed using
+a straight line in the global coordinate system.
+  }
+  \label{f:patch}
+  \end{center}
+  \end{figure}
+
+%------------------------------------------------------------------
+
+For calculational purposes, in constructing the vacuum chamber wall,
+Synrad will add vertex points at the boundaries of bend magnets. This
+is generally transparent to the user except it may result in segment
+lengths shifting slightly. The only time it can affect results is when
+there is a \vn{patch} element and the section of the wall between
+vertex points that spans a \vn{patch} also overlaps a bend. The
+solution is to specify the wall vertex points to make sure that this
+situation does not arise.
 
 %------------------------------------------------------------------
 \section{Simulation Technique} 
@@ -278,8 +329,7 @@ input file:
     wall_file = "wall.dat"           ! Name of file specifying the wall.
     forward_beam  = "POSITRON"       ! "POSITRON" or "ELECTRON"
     backward_beam = "ELECTRON"       !  This is important if there are elsep elements.
-    use_ele_ix = 0   ! If using only a single element, this is the element index number to use
-          ! Otherwise, use 0 for power from all elements
+    use_ele_ix = 0           ! If non-zero only emit photons from one element.
   /
 \end{example}
   \begin{description}
@@ -346,23 +396,30 @@ Fortran namelist syntax is used (\sref{s:namelist}).  A single namelist
 is used to define the wall at a particular s-position. The general
 form is
 \begin{example}
-  &wall_pt  s = <val> \{x_in = <val>\} \{x_out = <val>} \{phantom = <T/F>\} \{name = <string>\} /
+  &wall_pt  s = <val> \{x_minus = <val>\} \{x_plus = <val>\} 
+                                    \{phantom = <T/F>\} \{name = <string>\} /
 \end{example}
-\vn{x_in} defines the $x$ value for the $-x$ wall and \vn{x_out} defines the value for the $+x$ wall.
+\vn{x_minus} defines the $x$ value for the $-x$ wall and \vn{x_plus} defines the value for the $+x$ wall.
 Example:
 \begin{example}
-  &wall_pt  s =    0.0000  x_in =  -0.0450  x_out =   0.0450  name = BEAMPIPE_Q00:3  /
-  &wall_pt  s =    0.8581  x_in =  -0.0490  x_out =   0.0490  name = WIGGLER_TA:2  /
-  &wall_pt  s =    0.8581                   x_out =   0.1223  name = WIGGLER_TA:2 phantom = T /
+  &wall_pt  s =    0.0000  x_minus =  -0.0450  x_plus =   0.0450  name = BP1 /
+  &wall_pt  s =    0.8581  x_minus =  -0.0490  x_plus =   0.0490  name = WIG1 /
+  &wall_pt  s =    0.8581                      x_plus =   0.1223  phantom = T /
   ...
 \end{example}
+Note: An old notation uses \vn{x_in} for \vn{x_minus} and \vn{x_out} for \vn{x_plus}. 
 
-Either \vn{x_in}, or \vn{x_out}, or both must be present in each
-\vn[wall_pt} namelist. The \vn{name} parameter is used for identifying
-individual vertex points.
+Either \vn{x_minus}, or \vn{x_plus}, or both must be present in each
+\vn{wall_pt} namelist. If both are present, two vertex points are
+being defined at once.
 
+The \vn{name} parameter is used for identifying individual vertex
+points.
 
-The wall is constructred by connecting each vertex point to the previous point.
+The wall is constructed by connecting each vertex point to the
+previous point. Phantom wall sections can be specified setting
+\vn{phatom} to \vn{T} for a vertex. In this case the wall section
+between the vertex and the previous vertex will be marked a phantom.
 
 %------------------------------------------------------------------
 \section{Output Files} 
@@ -386,7 +443,6 @@ per second impinging, etc.
   \item[\vn{synrad_negative_x_side.txt}, \vn{synrad_positive_x_side.txt}] \Newline
 Similar to the \vn{synch_power*.dat} files.
   \end{description}
-
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

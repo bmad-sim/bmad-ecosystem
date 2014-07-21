@@ -72,7 +72,7 @@ subroutine ele_synrad_power (branch, ie, orb, direction, power, walls, gen)
                                     'No radiation will be generated from this element.')
     endif
     if (n_warn == 5) then
-      call out_io (s_info$, r_name, '[Enough! Zero length warnings will now be suppressed...')
+      call out_io (s_info$, r_name, 'Enough! Zero length warnings will now be suppressed...')
     endif
     return
   endif
