@@ -86,7 +86,7 @@ the calculation.
 Even though Synrad only tracks photons in the horizontal plane, Synrad
 is able to handle lattices with non-horizontal bends. Radiation from
 non-horizontal bends is included in the calculation. Obviously, if
-this radiation is actually stricking the top or bottom walls, Synrad
+this radiation is actually striking the top or bottom walls, Synrad
 will not give accurate results.
 
 Synrad output includes power deposition per longitudinal length, per
@@ -113,7 +113,7 @@ Syntax for invoking Synrad:
   <path-to-synrad-exe>/synrad \{-plot\} \{<master-input-file-name>\}
 \end{example}
 The \vn{<master-input-file-name>} optional argument is used to set the
-master input file name. The default is ``\vn{lux.init}''.
+master input file name. The default is ``\vn{synrad.in}''.
 
 The optional \vn{-plot} option causes Synrad to plot the vacuum
 chamber walls. In this case, no synchrotron radiation calculations are
@@ -125,24 +125,55 @@ done.
   \begin{center}
   \includegraphics[width=5in]{wall.pdf}
   \caption{
-Photon tracking is in the horizontal $x$-$s$ plane. The wall is
-divided into an inside part and an outside part. The wall is defined
-by a number of vertex points (shown as circles) with straight lines
-between vertices. For the calculation, the straight lines are divided
-into a number of roughly equal length short segments as shown for
-a portion of the inside wall.
+Photon tracking is in the horizontal $x$-$s$ plane. The wall has a
+$-x$ side and a $+x$ side. The wall is defined by a number of vertex
+points (shown as circles) with straight lines between vertices. For
+the calculation, the straight lines are divided into a number of
+roughly equal length short segments as shown for a portion of the
+$-x$ side.
   }
   \label{f:wall}
   \end{center}
   \end{figure}
 
 %------------------------------------------------------------------
+\section{Vacuum Chamber Wall}
+
+The curvilinear coordinate system used by Synrad corresponds to the
+Bmad standard (see the Coordinates chapter in the Bmad
+manual\cite{b:bmad}). If there are no vertical bends, the $s$-axis is
+the longitudinal axis along the direction of the beam, the $y$-axis is
+in the vertical direction, and the $x$-axis is in the horizontal
+plane.
+
+Since Synrad is only tracking in the horizontal plane, the vacuum
+chamber wall is divided into a ``positive $x$'' (``$+x$'') side and a
+``negative $x$'' (``$-x$'') side as shown in Fig.~\ref{f:wall}. The
+``$+x$'' section is defined as the wall on the positive $x$ side of
+the centerline and vice versa. 
+
+The $-x$ and outside walls are specified by a number of vertex
+points with straight lines between vertex points. Since the coordinate
+system is curvilinear, sections of the wall can be curved. For
+example, if two vertex points are within a bend, and both vertex
+points have the same $x$ value, the ``line'' between them, which has
+constant $x$, is actually the arc of a circle. 
+
+For the calculation, the lines between vertex points are broken up
+into roughly equal length segments. Note that while Synrad
+tries to make segments of equal size, since the distance between
+vertex points may not be commensurate with the desired segment length,
+the actual segment length can vary from segment to segment.
+
+%------------------------------------------------------------------
 \section{Simulation Technique} 
 
 Photon generation is based on the standard synchrotron radiation
 formulas, applicable for dipoles quadrupoles, and wigglers. The
-radiation is assumed to be incoherent, so Synrad cannot treat
-undulator radiation. 
+radiation is assumed to be incoherent, so Synrad cannot treat FEL
+radiation. Since Synrad only deals with the total emitted power (as
+opposed to power emitted in a given energy bandwidth), Synrad can
+handle undulators.
 
 Photons are generated roughly uniformly along the length of any
 element where photons are produced. The generated photons are tracked
@@ -180,29 +211,6 @@ lattice will be tracked through from the other end. That is, such
 photons will be handled correctly. If the lattice is not circular,
 photons reaching the ends of the lattice will be absorbed by the wall
 there.
-
-Since Synrad is only tracking in the horizontal plane, the vacuum
-chamber wall is divided into an ``inside'' section and an ``outside''
-section as shown in Fig.~\ref{f:wall}. The ``outside'' section is
-defined as the wall on the positive $x$ side of the centerline. The
-curvilinear coordinate system used by Synrad corresponds to the Bmad
-standard (see the Coordinates chapter in the Bmad
-manual\cite{b:bmad}). If there are no vertical bends, the $y$-axis is
-in the vertical direction, the $s$-axis is along the direction of the
-beam and the $x$-axis is in the horizontal plane.
-
-The inside and outside walls are specified by a number of vertex
-points with straight lines between vertex points. Since the coordinate
-system is curvilinear, sections of the wall can be curved. For
-example, if two vertex points are within a bend, and both vertex
-points have the same $x$ value, the ``line'' between them, which has
-constant $x$, is actually the arc of a circle. 
-
-For the calculation, the lines between vertex points are broken up
-into roughly equal length segments. Note that while Synrad
-tries to make segments of equal size, since the distance between
-vertex points may not be commensurate with the desired segment length,
-the actual segment length can vary from segment to segment.
 
 For a given element where radiation is produced, a set of $N$ photons
 are generated and tracked. For wiggler radiation, the number of
@@ -256,7 +264,7 @@ components.
 The main input file can be specified on the command line invoking Synrad3D.
 If not given, the default name for the main input file is ``\vn{synrad.init}''.
 
-Fortran namelist sytax is used (\sref{s:namelist}). Example main
+Fortran namelist syntax is used (\sref{s:namelist}). Example main
 input file:
 \begin{example}
   &synrad_params
@@ -301,8 +309,8 @@ tracking to use: -1 = track backwards only (This corresponds to e$^-$
 in CESR), 1 = track forward only (e+ in CESR), and 0 = track both
 directions.
   \item[\vn{wall_file}] \Newline
-The \vn{wall_file} parameter specifies a file giving a list of x
-inside, x outside, and s vertices to define the horizontal aperture of
+The \vn{wall_file} parameter specifies a file giving a list of 
+vertices for the $-x$ and $+x$ sides to define the horizontal aperture of
 the wall. See below for more details. Synrad3D wall files may also be
 used. When using a Synrad3D wall file the file name must be prefixed
 with ``synrad3d::''. Example:
@@ -329,25 +337,32 @@ generate power from all bends, quads and wigglers.
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall Definition} 
 
-Wall files define a series of wall vertices.  The definition 
-includes the s-position (meters), and the corresponding 
-inside and outside wall offsets at that location (meters).
-Note: The s-position of the last vertex will be automatically
-set to the $s$ value at the end of the lattice.
+Wall files define a series of wall vertices.  The definition includes
+the s-position (meters), and the corresponding $x$ values for the $-x$
+and $+x$ wall sides Note: The s-position of the last vertex will be
+automatically set to the $s$ value at the end of the lattice.
 
-Fortran namelist sytax is used (\sref{s:namelist}).  A single namelist
+Fortran namelist syntax is used (\sref{s:namelist}).  A single namelist
 is used to define the wall at a particular s-position. The general
 form is
 \begin{example}
-  &wall_pt  s = <val>, x_in = <val>, x_out = <val>, phatom = <T/F>, name = <string> /
+  &wall_pt  s = <val> \{x_in = <val>\} \{x_out = <val>} \{phantom = <T/F>\} \{name = <string>\} /
 \end{example}
+\vn{x_in} defines the $x$ value for the $-x$ wall and \vn{x_out} defines the value for the $+x$ wall.
 Example:
 \begin{example}
   &wall_pt  s =    0.0000  x_in =  -0.0450  x_out =   0.0450  name = BEAMPIPE_Q00:3  /
   &wall_pt  s =    0.8581  x_in =  -0.0490  x_out =   0.0490  name = WIGGLER_TA:2  /
+  &wall_pt  s =    0.8581                   x_out =   0.1223  name = WIGGLER_TA:2 phantom = T /
   ...
 \end{example}
 
+Either \vn{x_in}, or \vn{x_out}, or both must be present in each
+\vn[wall_pt} namelist. The \vn{name} parameter is used for identifying
+individual vertex points.
+
+
+The wall is constructred by connecting each vertex point to the previous point.
 
 %------------------------------------------------------------------
 \section{Output Files} 

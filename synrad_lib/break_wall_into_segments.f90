@@ -22,20 +22,21 @@ implicit none
 
 type (wall_struct), target :: wall
 type (branch_struct) branch
-type (floor_position_struct) floor
+type (floor_position_struct) floor, local
 type (wall_seg_struct), pointer :: seg, seg0
 type (wall_pt_struct), pointer :: pt0, pt1, pt
+type (ele_struct), pointer :: ele1
 
-integer i_seg, ip, n_seg, ix, n, isg
+integer i_seg, ip, n_seg, ix, n, isg, ix0, ix1, status
 real(rp) seg_len_max, wall_len, rr, s_max, s_min, dr(3), r1(3), r0(3)
 real(rp) theta0, theta1, dx, dz, alpha, beta, dlen
-logical err_flag, next_to_alley
+logical err_flag, next_to_alley, has_patch
 character(*), parameter :: r_name = 'break_wall_into_segments'
 
 ! If a closed geometry: Move last point transverse global position to match first point.
 
 do ip = 0, wall%n_pt_max
-  floor = xys_to_global ([wall%pt(ip)%x, 0.0_rp, wall%pt(ip)%s], branch, err_flag)
+  floor = coords_curvilinear_to_floor ([wall%pt(ip)%x, 0.0_rp, wall%pt(ip)%s], branch, err_flag)
   wall%pt(ip)%r_floor = floor%r
 enddo
 
@@ -88,6 +89,15 @@ do ip = 1, wall%n_pt_max
   pt%n_seg = n_seg
   pt%ix_seg = i_seg
 
+  ! Is there a patch element in this wall section
+
+  ix0 = element_at_s (branch%lat, pt0%s, .false., branch%ix_branch)
+  ix1 = element_at_s (branch%lat, pt1%s, .true., branch%ix_branch)
+
+  has_patch = any(branch%ele(ix0:ix1)%key == patch$)
+
+  ! Loop over all segments
+
   do ix = 1, n_seg
     isg = ix + i_seg
     seg => wall%seg(isg)
@@ -96,25 +106,35 @@ do ip = 1, wall%n_pt_max
     seg%ix_pt = ip
     seg%ix_seg = isg
 
-    rr = (ix - 0.5_rp) / n_seg
-    seg%x_mid = pt0%x * (1 - rr) + pt%x * rr   ! Off by siggita
-    seg%s_mid = pt0%s * (1 - rr) + pt%s * rr
-    rr = float(ix) / n_seg
-    seg%x = pt0%x * (1 - rr) + pt%x * rr
-    seg%s = pt0%s * (1 - rr) + pt%s * rr
+    if (has_patch) then
+      rr = float(ix) / n_seg
+      seg%r_floor = pt0%r_floor * (1 - rr) + pt%r_floor * rr 
 
-    floor = xys_to_global ([seg%x, 0.0_rp, seg%s], branch, err_flag)
-    seg%r_floor = floor%r
+      floor%r = seg%r_floor
+      local = coords_floor_to_curvilinear (floor, branch%ele((ix0+ix1)/2), ele1, status)
+      seg%x = local%r(1)
+      seg%s = local%r(3)
 
-    if (ip == wall%n_pt_max .and. branch%param%geometry == closed$) then
-      seg%r_floor = seg%r_floor + dr * real(ix, rp) / n_seg
+    else
+      rr = (ix - 0.5_rp) / n_seg
+      seg%x_mid = pt0%x * (1 - rr) + pt%x * rr   ! Off by siggita
+      seg%s_mid = pt0%s * (1 - rr) + pt%s * rr
+      rr = float(ix) / n_seg
+      seg%x = pt0%x * (1 - rr) + pt%x * rr
+      seg%s = pt0%s * (1 - rr) + pt%s * rr
+
+      floor = coords_curvilinear_to_floor ([seg%x, 0.0_rp, seg%s], branch, err_flag)
+      seg%r_floor = floor%r
+
+      if (ip == wall%n_pt_max .and. branch%param%geometry == closed$) then
+        seg%r_floor = seg%r_floor + dr * real(ix, rp) / n_seg
+      endif
     endif
 
     seg%len = sqrt((seg%r_floor(1) - seg0%r_floor(1))**2 + (seg%r_floor(3) - seg0%r_floor(3))**2)
     seg%r_floor_mid = (seg%r_floor + seg0%r_floor) / 2
 
     seg%theta = atan2(seg%r_floor(1) - seg0%r_floor(1), seg%r_floor(3) - seg0%r_floor(3))
-
   end do
 
   i_seg = i_seg + n_seg
