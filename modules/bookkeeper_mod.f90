@@ -1445,7 +1445,6 @@ endif
 ! Simple case where ele length is zero
 
 if (in_len == 0) then
-  sliced_ele = ele_in
   err_flag = .false.
   return
 endif
