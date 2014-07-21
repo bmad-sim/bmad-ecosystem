@@ -33,10 +33,10 @@ subroutine synrad_plot_sx (walls)
 use input_mod
 
 type (walls_struct), target :: walls
-type (wall_struct), pointer :: inside, outside
+type (wall_struct), pointer :: minus_side, plus_side
 
 real(rp) s_min, s_max, x_min, x_max
-real(rp), allocatable :: s_in(:), x_in(:), s_out(:), x_out(:)
+real(rp), allocatable :: s_minus(:), x_minus(:), s_plus(:), x_plus(:)
 integer ix, ios, i_chan
 logical s_user_good, x_user_good
 
@@ -51,8 +51,8 @@ s_user_good = .false.
 x_user_good = .false.
 x_max = 100
 
-outside => walls%positive_x_wall
-inside  => walls%negative_x_wall
+plus_side => walls%positive_x_wall
+minus_side  => walls%negative_x_wall
 
 
 ! Loop
@@ -62,7 +62,7 @@ do
   ! Determine s min/max
 
   if (.not. s_user_good) then
-    s_min = outside%pt(0)%s
+    s_min = plus_side%pt(0)%s
     s_max = walls%s_max
   endif
 
@@ -70,21 +70,21 @@ do
 
   ! Get data points
 
-  call get_data_points (inside, s_in, x_in)
-  call get_data_points (outside, s_out, x_out)
+  call get_data_points (minus_side, s_minus, x_minus)
+  call get_data_points (plus_side, s_plus, x_plus)
 
   ! Now plot
 
   call qp_clear_page
   if (.not. x_user_good) then
-    x_min = 0.99 * min(minval(x_in), minval(x_out))
-    x_max = 1.01 * max(maxval(x_in), maxval(x_out))
+    x_min = 0.99 * min(minval(x_minus), minval(x_plus))
+    x_max = 1.01 * max(maxval(x_minus), maxval(x_plus))
   endif
 
   call qp_calc_and_set_axis ('Y', x_min, x_max, 6, 10, 'GENERAL')
   call qp_set_margin (0.07_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
-  call qp_draw_graph (s_in, x_in, 'S (m)', 'X (mm)', '', .true., 0)
-  call qp_draw_polyline (s_out, x_out)
+  call qp_draw_graph (s_minus, x_minus, 'S (m)', 'X (mm)', '', .true., 0)
+  call qp_draw_polyline (s_plus, x_plus)
 
   ! Query
 

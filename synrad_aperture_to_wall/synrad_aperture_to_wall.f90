@@ -46,12 +46,12 @@ fmt  = '(3es18.10)'
 !Header notes
    write (1, '(a)') '! Wall file for use with Synrad'
    write (1, '(a)') '!' 
-   write (1, '(a)') '! Note: x_inside should be negative.'
+   write (1, '(a)') '! Note: x_minus should be negative.'
    write (1, '(a)') '! Note: First s_position should be 0.' 
    write (1, '(a)') '! Note: Last s_position will be changed to the length of the ring' 
    write (1, '(a)') '!       so its value is ignored.' 
    write (1, '(a)') '!'
-   write (1, '(a)') '! s_position(m)     x_inside(m)       x_outside(m) ' 
+   write (1, '(a)') '! s_position(m)      x_minus(m)          x_plus(m) ' 
 
 !---Go through lattice: only use branch 0
 
