@@ -159,9 +159,9 @@ end select
 
 ! Convert to floor coords and then to source_ele coords
 
-floor = local_to_floor (aperture_ele%floor, corner%r)
+floor = coords_relative_to_floor (aperture_ele%floor, corner%r)
 ele0 => pointer_to_next_ele (source_ele, -1)
-floor = floor_to_local (ele0%floor, floor, .false.)
+floor = coords_floor_to_relative (ele0%floor, floor, .false.)
 
 orb%vec = 0
 orb%vec(1:5:2) = floor%r

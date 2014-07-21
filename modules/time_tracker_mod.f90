@@ -536,93 +536,6 @@ endif
 
 end subroutine em_field_kick_vector_time
   
-  
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function particle_in_new_frame_time(orb, ele) 
-!  result (orb_in_ele)
-! 
-! Takes a particle in time coordinates, and returns a particle in the local frame of ele.
-!   If the particle's s position is not within the bounds of ele, the function will 
-!   step to adjacent elements until a containing element is found. 
-!   Note that this function requires that there is an associated(ele%branch)
-!
-! Modules needed:
-!   use bmad
-!   use capillary_mod
-!
-! Input
-!   orb        -- coord_struct: Particle in [t-based] coordinates relative to
-!                               orb%ix_ele
-!   ele        -- ele_struct: Element to 
-!
-! Output
-!   orb_in_ele -- coord_struct: Particle in [t-based] coordinates, relative to 
-!                               orb_in_ele%ix_ele
-!           
-!
-!-
-  
-function particle_in_new_frame_time(orb, ele) result (orb_in_ele)
-
-implicit none
-
-type (coord_struct) :: orb, orb_in_ele
-type (floor_position_struct) :: position0, position1
-type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele1
-type (branch_struct), pointer :: branch
-real(rp) :: ww_mat(3,3)
-
-integer :: ix_ele, status
-logical :: err
-
-character(30), parameter :: r_name = 'particle_in_new_frame_time'
-
-!
-
-! Check that ele is in fact a different ele than orb%ix_ele
-if (orb%ix_ele == ele%ix_ele) then
-  orb_in_ele = orb
-  return
-endif
-
-!Multipass elements need to choose the correct wall
-
-! Make sure ele has a branch
-if (.not. associated (ele%branch) ) then
-      call out_io (s_fatal$, r_name, 'ELE HAS NO ASSOCIATED BRANCH')
-      if (global_com%exit_on_error) call err_exit
-endif
-
-
-branch => ele%branch
-
-!set [x, y, z]_0
-position0%r = orb%vec(1:5:2)
-position0%theta = 0.0_rp
-position0%phi = 0.0_rp
-position0%psi = 0.0_rp
-
-! Find [x, y, s]_1
-call switch_local_positions (position0, branch%ele(orb%ix_ele), ele, position1, ele1, ww_mat)
-
-! Assign [x, y, s]
-orb_in_ele%vec(1:5:2) = position1%r
-
-! Use ww_mat to rotate momenta
-orb_in_ele%vec(2:6:2) =  matmul(ww_mat, orb%vec(2:6:2) )
-
-! Set other things
-orb_in_ele%location = inside$
-orb_in_ele%ix_ele = ele1%ix_ele
-orb_in_ele%s = orb_in_ele%vec(5) + ele1%s - ele1%value(L$)
-
-end function particle_in_new_frame_time
-
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -676,13 +589,13 @@ if (.not. in_t_coord) then
   particle%vec(5) =  particle%vec(5) - (ele%s - ele%value(L$))
 endif
 
-!Set for position_in_global_frame
+!Set for coords_local_curvilinear_to_floor
 floor_at_particle%r = particle%vec(1:5:2)
 floor_at_particle%theta = 0.0_rp
 floor_at_particle%phi = 0.0_rp
 floor_at_particle%psi = 0.0_rp
 ! Get [X,Y,Z] and w_mat for momenta rotation below
-global_position = position_in_global_frame (floor_at_particle, ele, w_mat)
+global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, w_mat)
 
 !Set x, y, z
 particle%vec(1:5:2) = global_position%r

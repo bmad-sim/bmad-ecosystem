@@ -755,7 +755,7 @@ and downstream, then performing symplectification, and finally back
 transforming the reference momentum to their original values.
 
 %-----------------------------------------------------------------
-\section{Map_with_offsets Attribute}
+\section{taylor_map_include_offsets Attribute}
 \label{s:mapoff}
 \index{taylor_map_includes_offsets|hyperbf}
 
@@ -778,6 +778,6 @@ varying it is faster to set \vn{taylor_map_includes_offsets} to \vn{False}.
 
 If the global parameter \vn{bmad_com%conserve_taylor_maps}
 (\sref{s:bmad.params}) is set to True (the default), then, if an
-element is offset within a program, and if \vn{map_with_offset} is set
-to True for that element, \bmad will toggle \vn{map_with_offset} to
+element is offset within a program, and if \vn{taylor_map_include_offsets} is set
+to True for that element, \bmad will toggle \vn{taylor_map_include_offsets} to
 False to conserve the map.

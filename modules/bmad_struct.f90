@@ -1118,6 +1118,10 @@ type (synch_rad_common_struct), save :: synch_rad_com
 
 integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
 
+! For coords_floor_to_curvilinear status argument
+
+integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
+
 !
 
 integer, parameter :: rectangular$ = 1, elliptical$ = 2, auto_aperture$ = 3, custom_aperture$ = 7
