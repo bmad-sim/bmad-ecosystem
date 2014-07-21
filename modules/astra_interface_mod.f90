@@ -169,7 +169,7 @@ q_sign = sign(1,  charge_of(ele%branch%param%particle) )
 
 ! Get global position and rotation of the center of the element
 floor1%r = [0.0_rp, 0.0_rp, ele%value(L$)/2]
-floor2 = position_in_global_frame (floor1, ele)
+floor2 = coords_local_curvilinear_to_floor (floor1, ele)
 x_center = floor2%r(1)
 y_center = floor2%r(2)
 z_center = floor2%r(3)
@@ -261,10 +261,10 @@ case (sbend$)
     ! D1, D2
     s = i_slice*ds_slice
     floor1%r = [0.0_rp, 0.0_rp, s]
-    floor2 = position_in_global_frame (floor1, ele)
+    floor2 = coords_local_curvilinear_to_floor (floor1, ele)
     x = floor2%r ! Center
     floor1%r = [w1, 0.0_rp, s] ! Offset
-    floor2 = position_in_global_frame (floor1, ele)
+    floor2 = coords_local_curvilinear_to_floor (floor1, ele)
     dx = floor2%r - x
     if (i_slice == 0) dx = rotate3(dx, -ele%value(e1$)) 
     D = x + dx; d1(1) = D(1); d1(2) = D(3);
@@ -272,10 +272,10 @@ case (sbend$)
     ! D3, D4
     s = s + ds_slice
     floor1%r = [0.0_rp, 0.0_rp, s]
-    floor2 = position_in_global_frame (floor1, ele)
+    floor2 = coords_local_curvilinear_to_floor (floor1, ele)
     x = floor2%r ! Center
     floor1%r = [w1, 0.0_rp, s] ! Offset
-    floor2 = position_in_global_frame (floor1, ele)
+    floor2 = coords_local_curvilinear_to_floor (floor1, ele)
     dx = floor2%r - x
     if (i_slice == n_slice) dx = rotate3(dx, ele%value(e2$)) 
     D = x + dx; d3(1) = D(1); d3(2) = D(3);

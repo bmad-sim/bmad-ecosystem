@@ -859,13 +859,13 @@ placement of the preceding element. This is the same as the MAD convention.
 Routine to construct the W matrix that specifies the orientation of an element
 in the global "floor" coordinates. See the Bmad manual for more details.
 
-\index[routine]{floor_to_local}
+\index[routine]{coords_floor_to_relative}
 \label{r:floor.to.local}
 \item[\protect\parbox{6in}{
-    floor_to_local (floor0, global_position, \\
+    coords_floor_to_relative (floor0, global_position, \\
     \hspace*{1in} calculate_angles, is_delta_position) result (local_position)} ] \Newline 
 Returns local floor position relative to floor0 given a global floor position.
-This is an essentially an inverse of routine local_to_floor.
+This is an essentially an inverse of routine coords_relative_to_floor.
 
 \index[routine]{floor_w_mat_to_angles}
 \label{r:floor.w.mat.to.angles}
@@ -884,9 +884,9 @@ Routine to initialize a floor_position_struct to zero.
 Routine to calculate the physical placement of all the elements in a lattice. 
 That is, the physical machine layout on the floor. 
 
-\index[routine]{local_to_floor}
+\index[routine]{coords_relative_to_floor}
 \label{r:local.to.floor}
-\item[local_to_floor (floor0, dr, theta, phi, psi) result (floor1)] \Newline 
+\item[coords_relative_to_floor (floor0, dr, theta, phi, psi) result (floor1)] \Newline 
 Starting from a given reference frame and given a shift in position, return
 the resulting reference frame.
 
@@ -896,14 +896,14 @@ the resulting reference frame.
 Routine to determine if the propagation direction is flipped in a patch.
 This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_pitch) 
 
-\index[routine]{position_in_global_frame}
+\index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
-\item[position_in_global_frame (local_position, ele, w_mat) result (global_position)] \Newline 
+\item[coords_local_curvilinear_to_floor (local_position, ele, w_mat) result (global_position)] \Newline 
 Given a position local to ele, return global floor coordinates
 
-\index[routine]{position_in_local_frame}
+\index[routine]{coords_floor_to_local_curvilinear}
 \label{r:position.in.local.frame}
-\item[position_in_local_frame  (global_position, ele, status, w_mat) result(local_position)] \Newline 
+\item[coords_floor_to_local_curvilinear  (global_position, ele, status, w_mat) result(local_position)] \Newline 
 Given a position in global coordinates, return local curvilinear coordinates in ele
   relative to floor0
 

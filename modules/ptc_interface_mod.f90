@@ -2513,8 +2513,8 @@ end subroutine concat_taylor
 !
 ! Routine to concatinate two taylor maps:
 !   taylor3[x] = ele_taylor(taylor1[x])
-! If ele%map_with_offset = True:  ele_taylor == ele%taylor 
-! If ele%map_with_offset = False: ele_taylor == ele%taylor + offset corrections. 
+! If ele%taylor_map_includes_offsets = True:  ele_taylor == ele%taylor 
+! If ele%taylor_map_includes_offsets = False: ele_taylor == ele%taylor + offset corrections. 
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -2550,7 +2550,7 @@ if (ele%key == match$) then
   return
 endif
 
-! ele%map_with_offset = T means that misalignment effects are already included 
+! ele%taylor_map_includes_offsets = T means that misalignment effects are already included 
 ! in ele%taylor.
 
 if (ele%taylor_map_includes_offsets .or. ele%key == taylor$) then

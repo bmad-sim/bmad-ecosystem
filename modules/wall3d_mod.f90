@@ -768,16 +768,16 @@ if (ele%key == patch$) then
   ! floor_particle is coordinates of particle in global reference frame
   ! floor1_0 is sec1 origin in global ref frame
   ! floor2_0 is sec2 origin in global ref frame
-  floor_particle = local_to_floor (ele%floor, [position(1), position(3), position(5) - ele%value(l$)])
-  floor1_0 = local_to_floor (ele1%floor, [sec1%x0, sec1%y0, sec1%s - ele1%s])
-  floor2_0 = local_to_floor (ele2%floor, [sec2%x0, sec2%y0, sec2%s - ele2%s])
+  floor_particle = coords_relative_to_floor (ele%floor, [position(1), position(3), position(5) - ele%value(l$)])
+  floor1_0 = coords_relative_to_floor (ele1%floor, [sec1%x0, sec1%y0, sec1%s - ele1%s])
+  floor2_0 = coords_relative_to_floor (ele2%floor, [sec2%x0, sec2%y0, sec2%s - ele2%s])
 
   ! loc_p  is coordinates of particle in ele1 ref frame
   ! loc_1_0 is coordinates of sec1 origin in ele1 ref frame
   ! loc_2_0 is coordinates of sec2 origin in ele1 ref frame
-  loc_p = floor_to_local (ele1%floor, floor_particle, .false.)
+  loc_p = coords_floor_to_relative (ele1%floor, floor_particle, .false.)
   loc_1_0%r = [sec1%x0, sec1%y0, sec1%s - ele1%s]
-  loc_2_0 = floor_to_local (ele1%floor, floor2_0, .false.)
+  loc_2_0 = coords_floor_to_relative (ele1%floor, floor2_0, .false.)
 
   ! Find wall radius for sec1.
   dr0 = loc_2_0%r - loc_1_0%r
@@ -797,10 +797,10 @@ if (ele%key == patch$) then
 
   alpha = drp(3) / dr0(3)
   floor1_p%r = loc_p%r - alpha * dr0 
-  floor1_p = local_to_floor (ele1%floor, floor1_p%r)
+  floor1_p = coords_relative_to_floor (ele1%floor, floor1_p%r)
 
   r = loc_1_0%r + r1_wall * [cos_theta, sin_theta, 0.0_rp]
-  floor1_w = local_to_floor (ele1%floor, r)
+  floor1_w = coords_relative_to_floor (ele1%floor, r)
 
   ! floor1_dw is sec1 wall pt derivative with respect to theta in global reference frame. 
   ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
@@ -809,15 +809,15 @@ if (ele%key == patch$) then
     beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
     r = dtheta_dphi * (dr1_dtheta * [cos_theta, sin_theta, 0.0_rp] + r1_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor1_dw = local_to_floor (ele1%floor, r)
+    floor1_dw = coords_relative_to_floor (ele1%floor, r)
     floor1_dw%r = floor1_dw%r - ele1%floor%r
   endif
 
   ! loc_p  is coordinates of particle in ele2 ref frame
   ! loc_1_0 is coordinates of sec1 origin in ele2 ref frame
   ! loc_2_0 is coordinates of sec2 origin in ele2 ref frame
-  loc_p = floor_to_local (ele2%floor, floor_particle, .false.)
-  loc_1_0 = floor_to_local (ele2%floor, floor1_0, .false.)
+  loc_p = coords_floor_to_relative (ele2%floor, floor_particle, .false.)
+  loc_1_0 = coords_floor_to_relative (ele2%floor, floor1_0, .false.)
   loc_2_0%r = [sec2%x0, sec2%y0, sec2%s - ele2%s]
 
   ! Find wall radius for sec2.
@@ -838,10 +838,10 @@ if (ele%key == patch$) then
 
   alpha = drp(3) / dr0(3)
   floor2_p%r = loc_p%r - alpha * dr0 
-  floor2_p = local_to_floor (ele2%floor, floor2_p%r)
+  floor2_p = coords_relative_to_floor (ele2%floor, floor2_p%r)
 
   r = loc_2_0%r + r2_wall * [cos_theta, sin_theta, 0.0_rp]
-  floor2_w = local_to_floor (ele2%floor, r)
+  floor2_w = coords_relative_to_floor (ele2%floor, r)
 
   ! floor2_dw is sec2 wall pt derivative with respect to theta in global reference frame
   ! dtheta_dphi is change in local sec1 angle (theta) with respect to global angle (phi).
@@ -850,7 +850,7 @@ if (ele%key == patch$) then
     beta = sqrt( (dr0(2)**2 + dr0(3)**2) / (dr0(1)**2 + dr0(3)**2) )
     dtheta_dphi = (beta**2 * sin_theta**2 + cos_theta**2) / beta
     r = dtheta_dphi * (dr2_dtheta * [cos_theta, sin_theta, 0.0_rp] + r2_wall * [-sin_theta, cos_theta, 0.0_rp])
-    floor2_dw = local_to_floor (ele2%floor, r)
+    floor2_dw = coords_relative_to_floor (ele2%floor, r)
     floor2_dw%r = floor2_dw%r - ele2%floor%r
   endif
   
@@ -878,7 +878,7 @@ if (ele%key == patch$) then
 
   if (present(origin)) then
     floor%r = r0
-    floor = floor_to_local (ele%floor, floor, .false.) 
+    floor = coords_floor_to_relative (ele%floor, floor, .false.) 
     origin = floor%r
     origin(3) = origin(3) + ele%value(l$)
   endif
@@ -890,7 +890,7 @@ if (ele%key == patch$) then
     p2 = norm2(rw - floor1_w%r)
     drw = p1 * floor1_dw%r + p2 * floor2_dw%r
     floor%r = cross_product(drw, floor2_w%r - floor1_w%r)
-    floor = floor_to_local (ele%floor, floor, .false., .true.)  ! To patch coords
+    floor = coords_floor_to_relative (ele%floor, floor, .false., .true.)  ! To patch coords
     perp = floor%r / norm2(floor%r)  ! Normalize vector length to 1.
     
   endif

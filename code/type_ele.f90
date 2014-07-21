@@ -51,7 +51,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
              type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
 
 use multipole_mod, except_dummy => type_ele
-use geometry_mod, only: pointer_to_indexed_attribute, local_to_floor, ele_geometry
+use geometry_mod, only: pointer_to_indexed_attribute, coords_relative_to_floor, ele_geometry
 
 implicit none
 
@@ -767,15 +767,15 @@ if (logic_option(.false., type_floor_coords)) then
     floor = ele%floor
   case (crystal$, mirror$, multilayer_mirror$)
     call ele_geometry (ele%floor, ele, floor, -1.0_rp)
-    floor = local_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+    floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor)
   case (girder$)
-    floor = local_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+    floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
   case default
     call ele_geometry (ele%floor, ele, floor, -0.5_rp)
-    floor = local_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
+    floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
                                         ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor, 0.5_rp)
   end select
