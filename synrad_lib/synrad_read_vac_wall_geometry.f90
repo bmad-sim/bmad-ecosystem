@@ -98,10 +98,14 @@ rewind (lun)
 n_minus = -1; n_plus = -1
 
 do 
+  x_in = real_garbage$; x_out = real_garbage$
   x_minus = real_garbage$; x_plus = real_garbage$
   phantom = .false.
   read (lun, nml = wall_pt, iostat = ios)
   if (ios < 0) exit
+
+  if (x_in /= real_garbage$) x_minus = x_in
+  if (x_out /= real_garbage$) x_plus = x_out
 
   if (x_minus /= real_garbage$) then
     n_minus = n_minus + 1
