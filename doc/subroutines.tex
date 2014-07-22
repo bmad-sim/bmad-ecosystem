@@ -912,12 +912,6 @@ Given a position in global coordinates, return local curvilinear coordinates in 
 \item[s_calc (lat)] \Newline
 Routine to calculate the longitudinal distance S for the elements in a lat. 
 
-\index[routine]{switch_local_positions}
-\label{r:switch.local.positions}
-\item[switch_local_positions (position0, ele0, ele_try, position1, ele1, ww_mat)] \Newline 
-Subroutine to take a local position0 in ele0 and find a local position near ele_try.
-If this position is beyond the bounds of ele_try, neighboring elements will be 
-
 \index[routine]{w_mat_for_x_pitch}
 \label{r:w.mat.for.x.pitch}
 \item[w_mat_for_x_pitch (w_mat, x_pitch)] \Newline 
@@ -1029,7 +1023,8 @@ Function to convert a character string  (eg: "drift") to an index (eg: drift\$).
 
 \index[routine]{lat_ele_locator}
 \label{r:lat.ele.locator}
-\item[lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err)] \Newline 
+\item[lat_ele_locator (loc_str, lat, eles, n_loc, err, 
+            above_ubound_is_err, ix_dflt_branch)] \Newline 
 Routine to locate all the elements in a lattice that corresponds to loc_str. 
 
 \index[routine]{n_attrib_string_max_len}
@@ -1122,7 +1117,7 @@ Routine to allocate an array of ele_pointer_structs.
 
 \index[routine]{twiss1_propagate}
 \label{r:twiss1.propagate}
-\item[twiss1_propagate (twiss1, mat2, length, twiss2, err)] \Newline 
+\item[twiss1_propagate (twiss1, mat2, ele_key, length, twiss2, err)] \Newline 
 Routine to propagate the twiss parameters of a single mode.
 
 \end{description}
@@ -1877,10 +1872,6 @@ Routine to create a PTC layout from a Bmad lat.
     set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, \\
     \hspace*{1in} exact_modeling, exact_misalign) }] \Newline
 Routine to initialize PTC. 
-
-\index[routine]{set_taylor_order}
-\item[set_taylor_order (order, override_flag)] \Newline
-Routine to set the taylor order. 
 
 \index[routine]{sort_universal_terms}
 \label{r:sort.universal.terms}
@@ -3027,7 +3018,7 @@ This routine needs to be replaced for a custom calculation.
 
 \index[routine]{track_all}
 \label{r:track.all}
-\item[track_all (lat, orbit, ix_branch, track_state, err_flag)] \Newline
+\item[track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)] \Newline
 Routine to track through the lat. 
 
 \index[routine]{track_from_s_to_s}
