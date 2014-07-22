@@ -86,10 +86,14 @@ tracking and lattice bookkeeping.
 
 Syntax for invoking \lux:
 \begin{example}
-  lux \{<master_input_file_name>\}
+ <path-to-lux-exe>/lux \{-silent\} \{<master-input-file-name>\}
 \end{example}
-The \vn{<master_input_file_name>} optional argument is used to set the
+The \vn{<master-input-file-name>} optional argument is used to set the
 master input file name. The default is ``\vn{lux.init}''. 
+
+The \vn{-silent} optional argument supresses the terminal output that
+\lux generates at the end of a run. This is useful to avoid long
+output when \lux is run repeatedly via a script.
 
 Example input files are in the \vn{lux/examples} subdirectory.
 
@@ -172,6 +176,7 @@ An example is:
     photon_init%e_field_x = 0                        ! Polarization. x & y = 0 -> random
     photon_init%e_field_y = 0
     photon_init%scale_initial_field_to_1 = False
+    photon_init%ds_slice
 
     lux_param%intensity_normalization_coef = 1e6   ! photon intensities norm.
 
@@ -270,7 +275,6 @@ Maximum number of photons to track (\sref{s:det}).
   \item[\vn{lux_param\%stop_total_intensity}] \Newline
 Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
 
-
   \item[\vn{photon_init\%dE_center}] \Newline
 Average initial photon energy in eV. If
 \vn{photon_init%dE_relative_to_ref} is set to True (default)
@@ -280,6 +284,15 @@ then \vn{photon_init%dE_center} will be relative to the reference energy
   \item[\vn{photon_init\%dE_relative_to_ref}] \Newline
 Is \vn{photon_init%dE_center} with respect to the reference energy or
 an absolute value (\sref{ss:x.ray.init})?
+
+  \item[\vn{photon_init\%ds_slice}] \Newline
+Used when the source element is an insertion device or a bend: The
+source element is sliced into pieces of thickness \vn{%ds_slice} and
+each slice is tested to see if photons from the slice can possibly
+pass through the first aperture. When photons are generated, photons
+will only be generated from slices where they have a hope of passing
+through the first aperture. This makes the simulation more efficient.
+The default value of \vn{%ds_slice} is 0.01 meter.
 
   \item[\vn{photon_init\%e_field_x}, \vn{photon_init\%e_field_y}] \Newline
 Electric field component of initial photons in the $x$ and $y$ planes
@@ -584,8 +597,7 @@ beginning[alpha_b] = 1.12414
 beginning[eta_y]   = 0
 beginning[etap_y]  = 0
 
-B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! rho =  31.65434
-B05W:  b02, ds_step = 0.1
+b05w: sbend, l = 3.237903, angle = 0.102289270 ! rho =  31.65434
 
 bend_line: line = (b05w)
 c_fork: photon_fork, to_line = c_line, superimpose, 
@@ -623,12 +635,12 @@ drift3[l] = 0.075 / sin(cryst1[bragg_angle_in] + cryst1[bragg_angle_out])
 drift4[l] = 14.5 - (drift1[l] + drift2[l] + drift3[l])
 \end{listing}
 
-Lines 1 through 22 define the charged particle branch which is
+Lines 1 through 21 define the charged particle branch which is
 simply a bend called \vn{b05w} with a \vn{photon_fork} element, called
 \vn{c_fork}, superimposed on top of it.
 
 The \vn{c_fork} element branches to a branch called \vn{c_line}. The
-elements of \vn{c_line} are given in lines 40 and 41: Two slits, two
+elements of \vn{c_line} are given in lines 39 and 40: Two slits, two
 crystals, and a detector with drifts in between. 
 
 %------------------------------------------------------------------
@@ -801,6 +813,7 @@ Example:
 #!/usr/bin/env python
 
 import subprocess
+import glob
 
 # Read in template lattice file
 
@@ -835,8 +848,8 @@ for ix in range(-n_max, n_max+1):
   # Run lux
   # Remove any Bmad "digested" files to make sure Bmad rereads the lattice file.
 
-  subprocess.call('rm *digested*', shell=True)
-  subprocess.call('/home/dcs16/linux_lib/production/bin/lux', shell=True)
+  if len(glob.glob('*digested*')) > 0: subprocess.call('rm *digested*', shell=True)
+  subprocess.call('/home/dcs16/linux_lib/production/bin/lux -silent', shell=True)
 
   # Get output
 
@@ -865,18 +878,18 @@ for ix in range(-n_max, n_max+1):
 out_file.close()
 \end{listing}
 
-The heart of the script is the loop that begins on line 20 and ends on
-line 63. Each iteration of this loop changes one variable in the
-lattice file (lines 27 to 33), runs \lux (line 39), and then extracts
-the pertanent data (lines 43 to 47). Finally at the end of the loop
-the data is appended to the output file in lines 51 through 63.
+The heart of the script is the loop that begins on line 21 and ends on
+line 64. Each iteration of this loop changes one variable in the
+lattice file (lines 28 to 34), runs \lux (line 39), and then extracts
+the pertanent data (lines 44 to 48). Finally at the end of the loop
+the data is appended to the output file in lines 52 through 64.
 
 
 The lattice file that \lux uses is called \vn{lat.bmad} (this is set
 by the \vn{lattice_file} parameter in the \vn{lux.init} file which is
 not shown). The python script constructs this \vn{lat.bmad} file by
-first readinging in a lattice file called \vn{template.bmad} (lines (7
-to 9). In lines 29 to 31 the script transfers, line-by-line, the lines
+first readinging in a lattice file called \vn{template.bmad} (lines (8
+to 10). In lines 30 to 32 the script transfers, line-by-line, the lines
 from \vn{template.bmad} to \vn{lat.bmad}. It has been arranged that
 the \vn{template.bmad} file contains the following:
 \begin{example}
@@ -888,12 +901,12 @@ crystal named \vn{cryst1}. The Python script will take the line
 \begin{example}
   var_to_change = 0
 \end{example} 
-and modify this (in line 30) to read:
+and modify this (in line 31) to read:
 \begin{example}
   var_to_change = <var>
 \end{example}
 where \vn{<var>} is the value of the \vn{var} variable in the
-script. The value of \vn{var} is set in line 24 and ranges from
+script. The value of \vn{var} is set in line 25 and ranges from
 \vn{-n_max * dvar} to \vn{n_max * dvar} which in this case is from
 -10e-5 to 10e-5.
 
@@ -916,12 +929,12 @@ overall parameters. Example:
   intensity_unnorm    =     9.42042E+01
   intensity_norm      =     9.42042E+03
 \end{example}
-When the script (see line 45) finds a line in \vn{det.pix} that has
+When the script (see line 46) finds a line in \vn{det.pix} that has
 the string \vn{intensity_x_norm}, the script ``executes'' this
 line. The result is that the script set a variable named
 \vn{intensity_x_norm} to the value given in the \vn{det.pix}
 file. Similarly, the script extracts the values of
-\vn{intensity_y_norm} and \vn{intensity_norm} in lines 46 and 47.
+\vn{intensity_y_norm} and \vn{intensity_norm} in lines 47 and 48.
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}

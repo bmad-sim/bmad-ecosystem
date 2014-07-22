@@ -40,12 +40,15 @@ namelist / params / lattice_file, random_seed, photon1_out_file, det_pix_out_fil
 
 param_file = 'lux.init'
 plotting = ''
+lux_com%verbose = .true.
 
 i = 0
 do while (i < cesr_iargc())
   i = i + 1
   call cesr_getarg(i, arg)
   select case (arg)
+  case ('-silent')
+    lux_com%verbose = .false.
   case ('-plot')
     i = i + 1
     call cesr_getarg (i, plotting)
@@ -72,6 +75,8 @@ close (1)
 if (lux_param%debug) then
   print *, 'Note: lux_param%debug = True'
 endif
+
+if (.not. lux_com%verbose) call output_direct (0, .false., max_level = s_success$) ! Suppress bmad_parser info output.
 
 call ran_seed_put (random_seed)
 
@@ -423,8 +428,8 @@ if (det_pix_out_file /= '') then
     pixel%intensity_x = sum(detector%pt(i,:)%intensity_x)
     pixel%intensity_y = sum(detector%pt(i,:)%intensity_y)
     pixel%intensity   = sum(detector%pt(i,:)%intensity)
-    pixel%n_photon  = sum(detector%pt(i,:)%n_photon)
-    if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
+    pixel%n_photon    = sum(detector%pt(i,:)%n_photon)
+    !! if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
     pixel%energy_ave = sum(detector%pt(i,:)%energy_ave) / pixel%intensity
     pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
     write (3, '(i8, f13.8, 3es16.5, i9, 2f10.3)') i, i*detector%dr(1)+detector%r0(1), &
@@ -443,8 +448,8 @@ if (det_pix_out_file /= '') then
     pixel%intensity_x = sum(detector%pt(:,j)%intensity_x)
     pixel%intensity_y = sum(detector%pt(:,j)%intensity_y)
     pixel%intensity   = sum(detector%pt(:,j)%intensity)
-    pixel%n_photon  = sum(detector%pt(:,j)%n_photon)
-    if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
+    pixel%n_photon    = sum(detector%pt(:,j)%n_photon)
+    !! if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
     pixel%energy_ave = sum(detector%pt(:,j)%energy_ave) / pixel%intensity
     pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
     write (3, '(i8, f13.8, 3es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
@@ -471,29 +476,31 @@ endif
 
 call run_timer ('READ', dtime)
 
-print *, 'Photons Tracked:                       ', n_track_tot
-print *, 'Photons at detector:                   ', n_live
-print *, 'Normalization factor:                  ', normalization
-print *, 'Total intensity (unnormalized):        ', intens_tot
-print *, 'Total intensity (normalized):          ', intens_tot * normalization
-print *
-print *, 'Photons at detector making photon1 cut:', n_photon1_file
-if (intens_tot /= 0) then
-  x_ave = x_sum / intens_tot; y_ave = y_sum / intens_tot
-  e_ave = e_ave / intens_tot
-  print '(a, f10.3)', &
-          ' %Intensity at pixels not in det_pix file:', 100 * (intens_tot - pix_in_file_intens) / intens_tot
-  print '(a, 2f12.5)', 'Average position at det (x, y) (mm):     ', 1000 * x_ave, 1000 * y_ave
-  print '(a, 2f12.5)', 'RMS at det (x, y) (mm):                  ', 1000 * sqrt(x2_sum / intens_tot - x_ave**2), &
-                                                                    1000 * sqrt(y2_sum / intens_tot - y_ave**2)
-  print '(a, 2f12.5)', 'Average energy deviation at det (eV):    ', e_ave
-  print '(a, 2f12.5)', 'RMS energy at det (eV):                  ', sqrt(max(0.0_rp, e_rms / intens_tot - e_ave**2))
+if (lux_com%verbose) then
+  print *, 'Photons Tracked:                       ', n_track_tot
+  print *, 'Photons at detector:                   ', n_live
+  print *, 'Normalization factor:                  ', normalization
+  print *, 'Total intensity (unnormalized):        ', intens_tot
+  print *, 'Total intensity (normalized):          ', intens_tot * normalization
+  print *
+  print *, 'Photons at detector making photon1 cut:', n_photon1_file
+  if (intens_tot /= 0) then
+    x_ave = x_sum / intens_tot; y_ave = y_sum / intens_tot
+    e_ave = e_ave / intens_tot
+    print '(a, f10.3)', &
+            ' %Intensity at pixels not in det_pix file:', 100 * (intens_tot - pix_in_file_intens) / intens_tot
+    print '(a, 2f12.5)', 'Average position at det (x, y) (mm):     ', 1000 * x_ave, 1000 * y_ave
+    print '(a, 2f12.5)', 'RMS at det (x, y) (mm):                  ', 1000 * sqrt(x2_sum / intens_tot - x_ave**2), &
+                                                                      1000 * sqrt(y2_sum / intens_tot - y_ave**2)
+    print '(a, 2f12.5)', 'Average energy deviation at det (eV):    ', e_ave
+    print '(a, 2f12.5)', 'RMS energy at det (eV):                  ', sqrt(max(0.0_rp, e_rms / intens_tot - e_ave**2))
+  endif
+  print '(a, f10.2)', &
+          ' Simulation time (min):               ', dtime/60
+  print *
+  print *, 'Photon1 data file:        ', trim(photon1_out_file)
+  print *, 'Detector pixel data file: ', trim(det_pix_out_file)
 endif
-print '(a, f10.2)', &
-        ' Simulation time (min):               ', dtime/60
-print *
-print *, 'Photon1 data file:        ', trim(photon1_out_file)
-print *, 'Detector pixel data file: ', trim(det_pix_out_file)
 
 ! End plotting
 

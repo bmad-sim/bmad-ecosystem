@@ -31,6 +31,7 @@ type photon_init_struct
   real(rp) :: sig_vx = 0, sig_vy = 0
   real(rp) :: sig_E = 0, dE_center = 0
   real(rp) :: e_field_x = 0, e_field_y = 0
+  real(rp) :: ds_slice = 0.01                    ! Slice width for instertion devices.
   logical :: dE_relative_to_ref = .true.
   logical :: scale_initial_field_to_1 = .true.
 end type
@@ -64,6 +65,7 @@ type lux_common_struct
   type (surface_grid_pt_struct), allocatable :: energy_bin(:)
   real(rp) dE_bin
   real(rp) E_min, E_max                                      ! Photon energy range 
+  logical verbose
 end type
 
 type (lux_common_struct), save, target :: lux_com
@@ -149,32 +151,26 @@ case (x_ray_init$)
     call err_exit
   endif
 
-  orb%vec(1) = photon_init%sig_x * r(1)
-  orb%vec(3) = photon_init%sig_y * r(2)
-  orb%vec(5) = photon_init%sig_z * r(3)
+  orb%vec(1:5:2) = lat%beam_start%vec(1:5:2) + &
+                    [photon_init%sig_x * r(1), photon_init%sig_y * r(2), photon_init%sig_z * r(3)]
+
+
+  ! Set direction
 
   select case (photon_init%velocity_distribution)
   case ('SPHERICAL')
-
-    ! Set direction
-
-    if (source_ele%key == x_ray_init$) then
-      call isotropic_photon_emission (source_ele, lat%param, orb, +1, twopi)
-
-    else
-      print *, 'NOT YET IMPLEMENTED...'
-      stop
-    endif
+    call isotropic_photon_emission (source_ele, lat%param, orb, +1, twopi)
 
   case ('UNIFORM')
     call ran_uniform(dir)
-    dir = (2 * dir - 1) / 2.0
-
+    dir = 2 * dir - 1
     orb%vec(2:4:2) = lat%beam_start%vec(2:4:2) + dir * [photon_init%sig_vx, photon_init%sig_vy]
     orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
   case ('GAUSSIAN')
-    call ran_gauss(r)
+    call ran_gauss(dir)
+    orb%vec(2:4:2) = lat%beam_start%vec(2:4:2) + dir * [photon_init%sig_vx, photon_init%sig_vy]
+    orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
   end select
 
@@ -384,7 +380,7 @@ case (x_ray_init$)
 case default
   call photon_target_setup (lux_com%fork_ele)
   
-  n_slice = max(1, nint(lux_com%source_ele%value(l$) / lux_com%source_ele%value(ds_step$)))
+  n_slice = max(1, nint(lux_com%source_ele%value(l$) / photon_init%ds_slice))
   lux_com%n_bend_slice = n_slice
   allocate (lux_com%bend_slice(0:n_slice))
 
@@ -438,8 +434,8 @@ case default
 
     fork_ele => lux_com%fork_ele
     do k = 1, fork_ele%photon%target%n_corner
-      floor = local_to_floor (fork_ele%floor, fork_ele%photon%target%corner(k)%r)
-      floor = floor_to_local (twiss_ele%floor, floor, .false.)
+      floor = coords_relative_to_floor (fork_ele%floor, fork_ele%photon%target%corner(k)%r)
+      floor = coords_floor_to_relative (twiss_ele%floor, floor, .false.)
       do j = 1, 4
         x = p_coord(j)%vec(1) + p_coord(j)%vec(2) * floor%r(3)
         if ( x > floor%r(1)) hit_left_of_right_edge = .true.
@@ -477,15 +473,19 @@ case default
   enddo
   sl%integrated_emit_prob = sl%integrated_emit_prob / sl(n_slice)%integrated_emit_prob
 
-  print '(a, i4)', 'Number of slices of source element to be used for photon generation:', count(sl%good_emit) 
+  if (lux_com%verbose) print '(a, i4)', &
+            'Number of slices of source element to be used for photon generation:', count(sl%good_emit) 
 
 end select
 
 ! Setup energy binning
 
-if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
+if (lux_param%n_energy_bin_pts == 0) lux_param%n_energy_bin_pts = 1
 allocate (lux_com%energy_bin(lux_param%n_energy_bin_pts))
+
 lux_com%dE_bin = (lux_com%E_max - lux_com%E_min) / lux_param%n_energy_bin_pts
+if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
+
 do i = 1, lux_param%n_energy_bin_pts
   lux_com%energy_bin(i)%energy_ave = lux_com%E_min + lux_com%dE_bin * (i - 0.5)
 enddo

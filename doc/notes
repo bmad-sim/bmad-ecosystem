@@ -2,18 +2,15 @@ New stuff:
 
 reject_dead_at_det_photon1: Default False
 
-photon_def%source_type = 'ROCKING_CURVE':
-	lux_param%stop_num_photons determines number of photons.
-	lux_param%stop_total_intensity is ignored.
-
 lux_param%n_energy_pts:
 	Defines the number of coherent sets
 	Only used with coherent photons
 
+explain energy binning (see lux_com%energy_bin(:))
 
 coherent photons
-	Set: photon_def%tracking_mode = 'COHERENT'
-	stop valUes are per energy point
+	Set: lattice parameter[photon_type] = COHERENT
+	stop values are per energy point
 
 Initial photon field (x/y) will be normalized to 1.
 
@@ -23,32 +20,14 @@ Added photon_def%normalize_field [Always normalized when using random number gen
 
 rocking_curve: Generates photons from beginning of lattice.
 
-source element slicing: number of slices based upon ele%value(ds_step$)
+source element slicing: number of slices based upon photon_init%ds_slice
 
 det element: must set surface = {grid = {...}}
 
 ---------
-
-To set photon_type:
-	parameter[photon_type] = 'INCOHERENT'           ! Or 'COHERENT'
-
-  \item[\vn{photon_init\%photon_type}] \Newline
-Whether coherent or incoherent photons are tracked. 
-Possible settings are:
-\begin{example}
-  COHERENT
-  INCOHERENT
-\end{example}
-The \vn{INCOHERENT} setting should only be used when ``long-range''
-phase correlations are important such as when there is a
-\vn{diffraction_plate} element.
-
-------
 
 To set emittance:
 
   \item[\vn{photon_init\%emit_x, photon_init\%emit_y}] \Newline
 $x$ and $y$ charged particle beam emittances. 
 Used when the photon source is a bend, wiggler, or undulator.
-
-Explain rocking_curve simulation type
