@@ -195,11 +195,16 @@ do i_b = 0, ubound(lat%branch, 1)
     ! Check that a match element has betas that are positive
 
     if (ele%key == match$) then
-      if (ele%value(beta_a0$) <= 0 .or. ele%value(beta_a1$) <= 0 .or. &
-          ele%value(beta_b0$) <= 0 .or. ele%value(beta_b1$) <= 0) then
+      if (ele%value(beta_a1$) <= 0 .or. ele%value(beta_b1$) <= 0) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS A MATCH ELEMENT HAS A BETA_A0/B0/A1/B1 THAT IS NOT POSITIVE.')
+                      'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
+        err_flag = .true.
+      endif
+      if (ele%value(match_end$) == 0 .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
         err_flag = .true.
       endif
     endif
