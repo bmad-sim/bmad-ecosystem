@@ -46,12 +46,13 @@ interface
 end interface
 
 interface
-  subroutine break_wall_into_segments (wall, seg_len_max, branch)
+  subroutine break_wall_into_segments (wall, seg_len_max, branch, seg_len_phantom_max)
     import
     implicit none
     type (wall_struct) wall
     type (branch_struct) branch
     real(rp) seg_len_max
+    real(rp), optional :: seg_len_phantom_max
   end subroutine
 end interface
 
@@ -153,25 +154,15 @@ interface
 end interface
 
 interface
-  subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls)
+  subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls, err_flag, seg_len_phantom_max)
     import
     implicit none
     character(*) wall_file
     type (branch_struct) branch
     type (walls_struct) walls
     real(rp) seg_len_max
-    logical type_warning
-  end subroutine
-end interface
-
-interface
-  subroutine synrad_old_read_vac_wall_geometry (wall_file, component_file, dflt_dir, branch, walls)
-    import
-    implicit none
-    character(*) wall_file, component_file, dflt_dir
-    type (branch_struct) branch
-    type (walls_struct) walls
-    logical type_warning
+    real(rp), optional :: seg_len_phantom_max
+    logical, optional :: err_flag
   end subroutine
 end interface
 
@@ -189,11 +180,23 @@ interface
 end interface
 
 interface
-  subroutine synrad_setup_walls (walls, branch, seg_len_max)
+  subroutine synrad_custom_seg_calc (wall, ray, seg, frac_illum)
+    import
+    implicit none
+    type (wall_struct) wall
+    type (ray_struct) ray
+    type (wall_seg_struct) seg
+    real(rp) frac_illum
+  end subroutine
+end interface
+
+interface
+  subroutine synrad_setup_walls (walls, branch, seg_len_max, seg_len_phantom_max)
     import
     implicit none
     type (walls_struct) walls
     type (branch_struct) branch
+    real(rp), optional :: seg_len_phantom_max
     real(rp) seg_len_max
   end subroutine
 end interface

@@ -28,7 +28,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall)
+! Subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, err_flag)
 !
 ! Routine to check the vacuum chamber wall for problematic values.
 ! Also compute some wall parameters
@@ -39,10 +39,11 @@ contains
 !   geometry    -- Integer: Type of lattice. open$ or closed$
 !
 ! Output:
-!   wall -- sr3d_wall_struct: Wall structure with computed parameters.
+!   wall      -- sr3d_wall_struct: Wall structure with computed parameters.
+!   err_flag  -- logical, optional: Set true if there is a problem
 !-
 
-subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall)
+subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, err_flag)
 
 implicit none
 
@@ -68,9 +69,10 @@ integer m_max, n_add, geometry
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
-character(200) reflectivity_file
+character(200) reflectivity_file, file
 character(*) wall_file
 
+logical, optional :: err_flag
 logical err, multi_local, in_ante
 logical, allocatable ::  is_local(:) 
 
@@ -84,7 +86,8 @@ namelist / surface_def / name, reflectivity_file
 wall%has_triangular_sections = .false.
 
 iu = lunget()
-open (iu, file = wall_file, status = 'old')
+call fullfilename (wall_file, file)
+open (iu, file = file, status = 'old')
 
 ! Read in the surface info
 

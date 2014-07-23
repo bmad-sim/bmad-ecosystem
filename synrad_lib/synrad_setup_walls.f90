@@ -1,17 +1,19 @@
 !+
-! Subroutine synrad_setup_walls (walls, branch, seg_len_max)
+! Subroutine synrad_setup_walls (walls, branch, seg_len_max, seg_len_phantom_max)
 !
 ! Routine initialize the vacuum chamber walls structure after the wall points have been setup.
 !
 ! Input:
-!   walls   -- Walls_struct: wall structure with wall points already setup.
-!   branch  -- branch_struct: lattice branch to use
+!   walls               -- Walls_struct: wall structure with wall points already setup.
+!   branch              -- branch_struct: lattice branch to use
+!   seg_len_phantom_max -- real(rp), optional: If present then use this number for phantom segments
+!                             instead of seg_len_max.
 !
 ! Output:
 !   walls   -- Walls_struct: wall structure.
 !-
 
-subroutine synrad_setup_walls (walls, branch, seg_len_max)
+subroutine synrad_setup_walls (walls, branch, seg_len_max, seg_len_phantom_max)
 
 use synrad_mod, except => synrad_setup_walls
 
@@ -22,6 +24,7 @@ type (branch_struct) branch
 type (wall_struct), pointer :: plus_side, minus_side
 
 real(rp) end_n_x, end_p_x, seg_len_max
+real(rp), optional :: seg_len_phantom_max
 
 !
 
@@ -59,8 +62,8 @@ call synrad_adjust_wall_points (minus_side, branch)
 
 ! segment wall
 
-call break_wall_into_segments (minus_side, seg_len_max, branch)
-call break_wall_into_segments (plus_side, seg_len_max, branch)
+call break_wall_into_segments (minus_side, seg_len_max, branch, seg_len_phantom_max)
+call break_wall_into_segments (plus_side, seg_len_max, branch, seg_len_phantom_max)
 
 ! Wall ends
 
