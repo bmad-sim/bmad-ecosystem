@@ -1,20 +1,23 @@
 !+
-! Subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls)
+! Subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls, err_flag, seg_len_phantom_max)
 !
 ! Routine to read the vacuum wall geometry from two files: A file specifying the outline
 ! of the components used in constructing the machine and a file specifying where the components
 ! are located in the machine.
 !
 ! Input:
-!   wall_file      -- Character(*): Name of the wall file.
-!   seg_len_max    -- Real(rp): Maximum length of wall segments.
-!   branch         -- branch_struct: lattice branch to use
+!   wall_file           -- character(*): Name of the wall file.
+!   seg_len_max         -- real(rp): Maximum length of wall segments.
+!   branch              -- branch_struct: lattice branch to use
+!   seg_len_phantom_max -- real(rp), optional: If present then use this number for phantom segments
+!                             instead of seg_len_max.
 !
 ! Output:
-!   walls -- Walls_struct: wall structure.
+!   walls     -- walls_struct: wall structure.
+!   err_flag  -- logical, optional: Set true if there is a problem
 !-
 
-subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls)
+subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls, err_flag, seg_len_phantom_max)
 
 use synrad_mod, except => synrad_read_vac_wall_geometry
 use synrad3d_utils
@@ -27,6 +30,7 @@ type (branch_struct) branch
 type (wall_struct), pointer :: minus_side, plus_side
 type (sr3d_wall_struct) wall3d
 
+real(rp), optional :: seg_len_phantom_max
 real(rp) seg_len_max
 real(rp) s, x_in, x_out, x_plus, x_minus
 
@@ -37,15 +41,22 @@ character(40) name
 character(200) file
 character(*), parameter :: r_name = 'synrad_read_vac_wall_geometry'
 
-logical phantom
+logical, optional :: err_flag
+logical phantom, err
 
 namelist / wall_pt / s, x_in, x_out, x_plus, x_minus, name, phantom
  
+!
+
+if (present(err_flag)) err_flag = .true.
+
 ! If a synrad3d file...
 
 if (wall_file(1:10) == 'synrad3d::') then
-  call sr3d_read_wall_file (wall_file(11:), branch%param%total_length, branch%param%geometry, wall3d)
+  call sr3d_read_wall_file (wall_file(11:), branch%param%total_length, branch%param%geometry, wall3d, err)
+  if (err) return
   call synrad3d_wall_to_synrad_walls (wall3d, seg_len_max, branch, walls)
+  if (present(err_flag)) err_flag = .false.
   return
 endif
 
@@ -126,6 +137,8 @@ enddo
 
 !
 
-call synrad_setup_walls (walls, branch, seg_len_max)
+call synrad_setup_walls (walls, branch, seg_len_max, seg_len_phantom_max)
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine

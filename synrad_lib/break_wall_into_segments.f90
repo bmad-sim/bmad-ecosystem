@@ -1,18 +1,20 @@
 !-
-! Subroutine break_wall_into_segments (wall, seg_len_max, branch)
+! Subroutine break_wall_into_segments (wall, seg_len_max, branch, seg_len_phantom_max)
 !
 ! Routine to break a wall into segments and do other bookkeeping.
 !
 ! Input:
-!   wall        -- wall_struct: Wall to break.
-!   seg_len_max -- real(rp): Maximum segment length.
-!   branch      -- branch_struct: lattice branch
+!   wall                -- wall_struct: Wall to break.
+!   seg_len_max         -- real(rp): Maximum segment length.
+!   branch              -- branch_struct: lattice branch
+!   seg_len_phantom_max -- real(rp), optional: If present then use this number for phantom segments
+!                             instead of seg_len_max.
 !
 ! Output:
 !   wall        -- wall_struct: Broken wall.
 !-
 
-subroutine break_wall_into_segments (wall, seg_len_max, branch)
+subroutine break_wall_into_segments (wall, seg_len_max, branch, seg_len_phantom_max)
 
 use synrad_struct
 use synrad_interface, except => break_wall_into_segments
@@ -28,6 +30,7 @@ type (wall_pt_struct), pointer :: pt0, pt1
 type (ele_struct), pointer :: ele1
 
 integer i_seg, ip, n_seg, ix, n, isg, ix0, ix1, status
+real(rp), optional :: seg_len_phantom_max
 real(rp) seg_len_max, wall_len, rr, s_max, s_min, dr(3), r1(3), r0(3)
 real(rp) theta0, theta1, dx, dz, alpha, beta, dlen
 logical err_flag, next_to_alley, has_patch
@@ -58,7 +61,11 @@ endif
 n = 0
 do ip = 1, wall%n_pt_max
   wall_len = sqrt((wall%pt(ip)%x - wall%pt(ip-1)%x)**2 + (wall%pt(ip)%s - wall%pt(ip-1)%s)**2)
-  n_seg = 1 + wall_len / seg_len_max
+  if (present(seg_len_phantom_max) .and. wall%pt(ip)%phantom) then
+    n_seg = 1 + wall_len / seg_len_phantom_max
+  else
+    n_seg = 1 + wall_len / seg_len_max
+  endif
   n = n + n_seg
 enddo
 
@@ -85,7 +92,11 @@ do ip = 1, wall%n_pt_max
   
   pt1%ix_pt = ip
   wall_len = sqrt((pt1%x - pt0%x)**2 + (pt1%s - pt0%s)**2)
-  n_seg = 1 + wall_len / seg_len_max
+  if (present(seg_len_phantom_max) .and. wall%pt(ip)%phantom) then
+    n_seg = 1 + wall_len / seg_len_phantom_max
+  else
+    n_seg = 1 + wall_len / seg_len_max
+  endif
   pt1%n_seg = n_seg
   pt1%ix_seg = i_seg
 

@@ -1,5 +1,5 @@
 !+
-! subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, power)
+! subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, ele_power)
 !
 ! Subroutine to calculate the synch radiation power hitting a wall.
 ! It is assumed that the radiation is hitting only one wall.
@@ -20,7 +20,7 @@
 !   walls   -- wall_struct: both walls and ends with power information
 !-
 
-subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, power)
+subroutine seg_power_calc (fan, i_ray, walls, wall_side, branch, gen, ele_power)
 
 use synrad_struct
 use synrad_interface, except => seg_power_calc
@@ -35,7 +35,7 @@ type (ray_struct) :: ray
 type (ray_struct), pointer :: ray1, ray2
 type (synrad_param_struct) gen
 type (branch_struct) branch
-type (ele_power_struct) power
+type (ele_power_struct) ele_power
 
 real(rp) energy, dx_seg, x1, x2
 real(rp) sig_y, sig_yp, sig_y_eff, dx, ds, theta_rel
@@ -66,12 +66,12 @@ do i = 2, i_ray
   ! which is an integrated segment of Sands eq. 4.5
   ! * the current to get the power
 
-  power%radiated = power%radiated + power_factor * &
+  ele_power%radiated = ele_power%radiated + power_factor * &
          (ray2%start%s - ray1%start%s) * (ray2%g_bend**2 + ray1%g_bend**2) / 2
 enddo
  
 ! Ignore element if the radiated power is 0
-if (power%radiated == 0) return
+if (ele_power%radiated == 0) return
 
 
 ! wall is the side that is being hit by the radiation.
@@ -252,9 +252,29 @@ do i = 2, i_ray
       endif
     endif
 
-    ! calculate the power absorbed by the segment
+    ! Calculate the power absorbed by the segment
 
-    call this_seg_power_calc (seg)
+    call this_seg_power_calc (seg, ele_power)
+
+    ! For custom calculations.
+
+    ray%start     = ray1%start
+    ray%start%s   = (1 - rr) * ray1%start%s + rr * ray2%start%s
+    ray%start%vec = (1 - rr) * ray1%start%vec + rr * ray2%start%vec
+
+    ray%now     = ray1%now
+    ray%now%s   = (1 - rr) * ray1%now%s + rr * ray2%now%s
+    ray%now%vec = (1 - rr) * ray1%now%vec + rr * ray2%now%vec
+
+    ray%direction = ray1%direction
+    ray%track_len = track_len
+
+    ray%x_twiss = average_twiss(1-rr, ray1%x_twiss, ray2%x_twiss)
+    ray%y_twiss = average_twiss(1-rr, ray1%y_twiss, ray2%y_twiss)
+
+    ray%g_bend = (1 - rr) * ray1%g_bend + rr * ray2%g_bend
+
+    call synrad_custom_seg_calc (wall, ray, seg, frac_illum)
 
   enddo  ! iss
 
@@ -331,10 +351,12 @@ end function ray_to_seg_perp_distance
 !-----------------------------------------------------------------------------
 ! contains
 
-subroutine this_seg_power_calc (seg)
+subroutine this_seg_power_calc (seg, ele_power)
 
 type (wall_seg_struct), target :: seg
 type (seg_power_struct), pointer :: ep
+type (ele_power_struct) ele_power
+
 
 real(rp) illum_factor, power_per_len
 
@@ -343,7 +365,7 @@ real(rp) illum_factor, power_per_len
 
 illum_factor = abs(sin(theta_rel)) * frac_illum / track_len
 power_per_len = ((1 - rr)*ray1%p1_factor + rr*ray2%p1_factor) * illum_factor
-power%at_wall = power%at_wall + power_per_len * seg%len
+ele_power%at_wall = ele_power%at_wall + power_per_len * seg%len
 
 ep => seg%power
 ep%n_source = ep%n_source + 1

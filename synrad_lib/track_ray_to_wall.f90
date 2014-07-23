@@ -118,6 +118,7 @@ do itry = 1, pos_x_wall%n_pt_max + neg_x_wall%n_pt_max
 
     theta = ray%start_floor%theta
     ray%now_floor%r = ray%start_floor%r + ray%track_len * [sin(theta), 0.0_rp, cos(theta)]
+    ray%now%vec(3) = ray%start%vec(3) + ray%track_len * ray%start%vec(4)
 
     return
   endif

@@ -160,34 +160,5 @@ character(20) :: wall_name(-2:2) = ['start_side     ', 'negative_x_side', '?????
 integer :: negative_x$ = -1, positive_x$ = 1, start_side$ = -2, exit_side$ = 2
 
 real(rp), parameter :: synrad_significant_length = 1d-8
-!--------------
-
-integer, parameter :: forward$ = 1
-integer, parameter :: reverse$ = -1
-integer, parameter :: w_east$ = -1
-integer, parameter :: w_west$ = 1
-
-type ray_hit_struct
-  type (ray_struct) ray
-  type (coord_struct) hit_coord, target_coord
-  real(rp) sig_y, sig_yp     ! Source point
-  real(rp) sig_y_eff         ! Effective sigma at the target distance.
-  real(rp) window_sig_y      ! Effective sigma at the crotch window.
-  real(rp) dist              ! Projection distance past window
-end type
-
-type crotch_window_struct   ! struct for input points
-  character*16 name         ! name of element (sliding_joint, etc.)
-  integer ix_pt             ! index to wall pt() array
-  integer n_ray_hit         ! Number of rays hitting this window
-  real(rp) length           ! Length of window horizontally 
-  integer side              ! East or West side of cesr
-  integer layout            ! The crotch is forward or reverse in
-                            ! terms of s (positron) direction
-  real(rp) angle            ! Angle of window found by: 
-                            !    atan(ds_window/dx_window)
-  type (ray_hit_struct), allocatable :: ray_hits(:)
-                            ! Array of rays hitting the window
-end type
 
 end module
