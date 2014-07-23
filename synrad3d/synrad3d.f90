@@ -504,8 +504,9 @@ else
         if (photon_start_output_file /= '') then
           call ran_default_state (get_state = ran_state)
           write (iu_start, '(a)')           '&start'
-          write (iu_start, '(a, 6es20.12)') '  p%vec = ', photon%start%vec
-          write (iu_start, '(a, es20.12)')  '  p%energy =', photon%start%energy
+          write (iu_start, '(a, 6es20.12)') '  p%vec     = ', photon%start%vec
+          write (iu_start, '(a, es20.12)')  '  p%s       =', photon%start%s
+          write (iu_start, '(a, es20.12)')  '  p%energy  =', photon%start%energy
           write (iu_start, *)               '  ran_state = ', ran_state
           write (iu_start, '(a)')           '/'
         endif
@@ -569,15 +570,19 @@ contains
 subroutine write_photon_data (n_photon, photon)
 
 type (sr3d_photon_track_struct) :: photon
+real(rp) start_vec(6), now_vec(6)
 integer n_photon
 
 !
 
+start_vec = [photon%start%vec(1:4), photon%start%s, photon%start%vec(6)]
+now_vec = [photon%now%vec(1:4), photon%now%s, photon%now%vec(6)]
+
 iu = 1
 if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
 write (iu, '(2i8, f12.4, 2x, a)') n_photon, photon%n_wall_hit, photon%start%energy, '! index, n_wall_hit, eV'
-write (iu, '(4f12.6, f12.3, f12.6, a)') photon%start%vec, '  ! Start position'
-write (iu, '(4f12.6, f12.3, f12.6, a)') photon%now%vec,   '  ! End position'
+write (iu, '(4f12.6, f12.3, f12.6, a)') start_vec, '  ! Start position'
+write (iu, '(4f12.6, f12.3, f12.6, a)') now_vec,   '  ! End position'
 write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
 dtrack = photon%now%track_len - photon_direction * &
     modulo2((photon%now%s - photon%start%s), lat%param%total_length/2)
@@ -587,9 +592,7 @@ write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and c
 
 if (iu == 1) then
   write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
-        n_photon, photon%n_wall_hit, photon%start%energy, &
-        photon%start%vec(1:4), photon%start%s, photon%start%vec(6), &
-        photon%now%vec(1:4), photon%now%s, photon%now%vec(6), &
+        n_photon, photon%n_wall_hit, photon%start%energy, start_vec, now_vec, &
         photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
 endif
 
