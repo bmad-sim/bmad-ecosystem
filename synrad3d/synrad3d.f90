@@ -585,9 +585,13 @@ write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
 j = photon%now%ix_ele
 write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
 
-if (iu == 1) write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
-        n_photon, photon%n_wall_hit, photon%start%energy, photon%start%vec, photon%now%vec, &
+if (iu == 1) then
+  write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
+        n_photon, photon%n_wall_hit, photon%start%energy, &
+        photon%start%vec(1:4), photon%start%s, photon%start%vec(6), &
+        photon%now%vec(1:4), photon%now%s, photon%now%vec(6), &
         photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
+endif
 
 end subroutine write_photon_data
 
