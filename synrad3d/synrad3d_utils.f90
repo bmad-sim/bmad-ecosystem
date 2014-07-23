@@ -59,7 +59,7 @@ type (wall3d_vertex_struct) v(100)
 type (wall3d_section_struct), pointer :: wall3d_section
 type (sr3d_multi_section_struct), pointer :: m_sec
 type (surface_input) surface
-type (sr3d_surface_struct), pointer :: surface_ptr  => null()
+type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
@@ -109,15 +109,15 @@ enddo
 if (allocated(wall%surface)) deallocate(wall%surface)
 allocate (wall%surface(n_surface+1))
 wall%surface(1)%reflectivity_file = ''
-wall%surface(1)%name = 'default'
-call photon_reflection_std_surface_init(wall%surface(1)%info)
+wall%surface(1)%descrip = 'default'
+call photon_reflection_std_surface_init(wall%surface(1))
 
 rewind(iu)
 do i = 2, n_surface+1
   read (iu, nml = surface_def, iostat = ios)
-  wall%surface(i)%name = name
+  call read_surface_reflection_file (reflectivity_file, wall%surface(i))
+  wall%surface(i)%descrip = name
   wall%surface(i)%reflectivity_file = reflectivity_file
-  call read_surface_reflection_file (reflectivity_file, wall%surface(i)%info)
 enddo
 
 ! Read multi_section
@@ -621,18 +621,18 @@ end subroutine sr3d_read_wall_file
 !
 ! Input:
 !   surface_name  -- Character(*): Name of surface.
-!   surfaces(:)   -- sr3d_surface_struct: Array of surfaces.
+!   surfaces(:)   -- photon_reflect_surface_struct: Array of surfaces.
 !
 ! Output:
-!   surface_ptr   -- sr3d_surface_struct, pointer: pointer to a surface.
+!   surface_ptr   -- photon_reflect_surface_struct, pointer: pointer to a surface.
 !-
 
 subroutine sr3d_associate_surface (surface_ptr, surface_name, surfaces)
 
 implicit none
 
-type (sr3d_surface_struct), pointer :: surface_ptr
-type (sr3d_surface_struct), target :: surfaces(:)
+type (photon_reflect_surface_struct), pointer :: surface_ptr
+type (photon_reflect_surface_struct), target :: surfaces(:)
 
 character(*) surface_name
 
@@ -644,7 +644,7 @@ nullify(surface_ptr)
 if (surface_name == '') return
 
 do i = 1, size(surfaces)
-  if (surfaces(i)%name == surface_name) then
+  if (surfaces(i)%descrip == surface_name) then
     surface_ptr => surfaces(i)
     return
   endif
