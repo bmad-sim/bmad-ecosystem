@@ -881,7 +881,7 @@ cos_perp = dot_product (photon%now%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
-surface => wall%section(photon%now%ix_wall+1)%surface%info
+surface => wall%section(photon%now%ix_wall+1)%surface
 
 call photon_reflectivity (graze_angle, photon%now%energy, surface, reflectivity, rel_reflect_specular)
 wall_hit(n_wall_hit)%reflectivity = reflectivity

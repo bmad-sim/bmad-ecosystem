@@ -61,12 +61,6 @@ end type
 ! If there is an antechamber: width2_plus and width2_minus are the antechamber horizontal extent.
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
-type sr3d_surface_struct
-  character(40) :: name = ''
-  character(200) :: reflectivity_file = ''
-  type (photon_reflect_surface_struct) :: info
-end type
-
 type sr3d_gen_shape_struct
   character(40) name
   type (wall3d_section_struct) :: wall3d_section
@@ -92,7 +86,7 @@ type sr3d_wall_section_struct
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
   real(rp) x_safe, y_safe         ! If photon is in the "safe" box then not near the wall.
   type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
-  type (sr3d_surface_struct), pointer :: surface  => null()
+  type (photon_reflect_surface_struct), pointer :: surface  => null()
 end type
 
 ! multi_section structure
@@ -108,7 +102,7 @@ type sr3d_wall_struct
   type (sr3d_wall_section_struct), allocatable :: section(:)  ! lbound index = 0
   type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   type (sr3d_multi_section_struct), allocatable :: multi_section(:)
-  type (sr3d_surface_struct), allocatable :: surface(:)
+  type (photon_reflect_surface_struct), allocatable :: surface(:)
   integer n_section_max
   integer geometry      ! closed$ or open$
   logical has_triangular_sections

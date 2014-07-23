@@ -59,7 +59,7 @@ y_lab = 'Reflectivity'
 reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
-surface => wall%surface(1)%info
+surface => wall%surface(1)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -144,7 +144,7 @@ do
   print *
   print '(a)', 'Surfaces Defined:'
   do i = 1, size (wall%surface)
-    print '(3x, i3, 2x, a)', i, trim(wall%surface(i)%name)
+    print '(3x, i3, 2x, a)', i, trim(wall%surface(i)%descrip)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -210,7 +210,7 @@ do
       cycle
     endif
 
-    surface => wall%surface(ix)%info
+    surface => wall%surface(ix)
 
   case ('type')
 
@@ -530,10 +530,10 @@ do
       write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
                                 '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
     endif
-    label2 = 'Surface: ' // wall%section(ix_section)%surface%name
+    label2 = 'Surface: ' // wall%section(ix_section)%surface%descrip
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
-    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%surface%name
+    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%surface%descrip
   endif
 
   call qp_clear_page
