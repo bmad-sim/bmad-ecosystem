@@ -4818,6 +4818,13 @@ real(dp) log_del
 integer div_max, divisions, idel
 integer id5, id10
 
+! Sinple case
+
+if (delta == 0) then
+  divisions = 1
+  return
+endif
+
 ! scale delta so it is in the range of [10, 100)
 
 log_del = log10 (abs(delta) * 1.000000001_dp)
