@@ -215,7 +215,7 @@ rewind(iu)
 do i = 1, n_shape
   ix_vertex_ante = 0
   ix_vertex_ante2 = 0
-  v = wall3d_vertex_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp)
+  v = wall3d_vertex_struct()
   name = ''
   read (iu, nml = gen_shape_def, iostat = ios)
 
