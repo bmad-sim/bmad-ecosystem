@@ -18,6 +18,9 @@ use_statements = ['use beam_def_struct']
 # then A must be before B in the list.
 
 struct_list = [
+    'interval1_coef_struct',
+    'photon_reflect_table_struct',
+    'photon_reflect_surface_struct',
     'coord_struct',
     'coord_array_struct',
     'bpm_phase_coupling_struct',

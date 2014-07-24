@@ -8,6 +8,9 @@ logical ok, all_ok
 !
 
 all_ok = .true.
+call test1_f_interval1_coef(ok); if (.not. ok) all_ok = .false.
+call test1_f_photon_reflect_table(ok); if (.not. ok) all_ok = .false.
+call test1_f_photon_reflect_surface(ok); if (.not. ok) all_ok = .false.
 call test1_f_coord(ok); if (.not. ok) all_ok = .false.
 call test1_f_coord_array(ok); if (.not. ok) all_ok = .false.
 call test1_f_bpm_phase_coupling(ok); if (.not. ok) all_ok = .false.

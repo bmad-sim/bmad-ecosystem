@@ -17,6 +17,232 @@ using namespace std;
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_interval1_coef (CPP_interval1_coef&, bool&);
+
+void set_CPP_interval1_coef_test_pattern (CPP_interval1_coef& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.c0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.c1 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.n_exp = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_interval1_coef (Bmad_interval1_coef_class* F, bool& c_ok) {
+
+  CPP_interval1_coef C, C2;
+
+  c_ok = true;
+
+  interval1_coef_to_c (F, C);
+  set_CPP_interval1_coef_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " interval1_coef: C side convert F->C: Good" << endl;
+  } else {
+    cout << " interval1_coef: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_interval1_coef_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_interval1_coef (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_interval1_coef_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " interval1_coef: F side convert F->C: Good" << endl;
+  } else {
+    cout << " interval1_coef: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_interval1_coef_test_pattern (C2, 4);
+  interval1_coef_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_photon_reflect_table (CPP_photon_reflect_table&, bool&);
+
+void set_CPP_photon_reflect_table_test_pattern (CPP_photon_reflect_table& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.angle.resize(0);
+  else {
+    C.angle.resize(3);
+    for (unsigned int i = 0; i < C.angle.size(); i++)
+      {int rhs = 101 + i + 1 + offset; C.angle[i] = rhs;}  }
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.energy.resize(0);
+  else {
+    C.energy.resize(3);
+    for (unsigned int i = 0; i < C.energy.size(); i++)
+      {int rhs = 101 + i + 3 + offset; C.energy[i] = rhs;}  }
+
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.int1.resize(0);
+  else {
+    C.int1.resize(3);
+    for (unsigned int i = 0; i < C.int1.size(); i++)  {set_CPP_interval1_coef_test_pattern(C.int1[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[real, 2, ALLOC]
+  if (ix_patt < 3) 
+    C.p_reflect.resize(0);
+  else {
+    C.p_reflect.resize(3);
+    for (unsigned int i = 0; i < C.p_reflect.size(); i++)
+      C.p_reflect[i].resize(2);
+    for (unsigned int i = 0; i < C.p_reflect.size(); i++)  for (unsigned int j = 0; j < C.p_reflect[0].size(); j++) 
+      {int rhs = 101 + i + 10*(j+1) + 7 + offset; C.p_reflect[i][j] = rhs;}  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.max_energy = rhs;
+
+  // c_side.test_pat[real, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.p_reflect_scratch.resize(0);
+  else {
+    C.p_reflect_scratch.resize(3);
+    for (unsigned int i = 0; i < C.p_reflect_scratch.size(); i++)
+      {int rhs = 101 + i + 11 + offset; C.p_reflect_scratch[i] = rhs;}  }
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_photon_reflect_table (Bmad_photon_reflect_table_class* F, bool& c_ok) {
+
+  CPP_photon_reflect_table C, C2;
+
+  c_ok = true;
+
+  photon_reflect_table_to_c (F, C);
+  set_CPP_photon_reflect_table_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " photon_reflect_table: C side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_reflect_table: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_reflect_table_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_photon_reflect_table (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_photon_reflect_table_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " photon_reflect_table: F side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_reflect_table: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_reflect_table_test_pattern (C2, 4);
+  photon_reflect_table_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_photon_reflect_surface (CPP_photon_reflect_surface&, bool&);
+
+void set_CPP_photon_reflect_surface_test_pattern (CPP_photon_reflect_surface& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.descrip.resize(40);
+  for (unsigned int i = 0; i < C.descrip.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.descrip[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[character, 0, NOT]
+  C.reflectivity_file.resize(200);
+  for (unsigned int i = 0; i < C.reflectivity_file.size(); i++)
+    {int rhs = 101 + i + 2 + offset; C.reflectivity_file[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.table.resize(0);
+  else {
+    C.table.resize(3);
+    for (unsigned int i = 0; i < C.table.size(); i++)  {set_CPP_photon_reflect_table_test_pattern(C.table[i], ix_patt+i+1);}
+  }
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.surface_roughness_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.roughness_correlation_len = rhs;
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 7 + offset; C.initialized = (rhs % 2 == 0);
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.ix_surface = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_photon_reflect_surface (Bmad_photon_reflect_surface_class* F, bool& c_ok) {
+
+  CPP_photon_reflect_surface C, C2;
+
+  c_ok = true;
+
+  photon_reflect_surface_to_c (F, C);
+  set_CPP_photon_reflect_surface_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " photon_reflect_surface: C side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_reflect_surface: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_reflect_surface_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_photon_reflect_surface (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_photon_reflect_surface_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " photon_reflect_surface: F side convert F->C: Good" << endl;
+  } else {
+    cout << " photon_reflect_surface: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_photon_reflect_surface_test_pattern (C2, 4);
+  photon_reflect_surface_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_coord (CPP_coord&, bool&);
 
 void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
@@ -2064,29 +2290,32 @@ void set_CPP_wall3d_vertex_test_pattern (CPP_wall3d_vertex& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.x = rhs;
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.type = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.y = rhs;
+  rhs = 2 + offset; C.x = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.radius_x = rhs;
+  rhs = 3 + offset; C.y = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.radius_y = rhs;
+  rhs = 4 + offset; C.radius_x = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.tilt = rhs;
+  rhs = 5 + offset; C.radius_y = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.angle = rhs;
+  rhs = 6 + offset; C.tilt = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.x0 = rhs;
+  rhs = 7 + offset; C.angle = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.y0 = rhs;
+  rhs = 8 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.y0 = rhs;
 
 
 }
@@ -2136,28 +2365,14 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
-
+  // c_side.test_pat[character, 0, NOT]
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.material.resize(20);
   for (unsigned int i = 0; i < C.material.size(); i++)
     {int rhs = 101 + i + 2 + offset; C.material[i] = 'a' + rhs % 26;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.thickness = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.s = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.n_vertex_input = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.ix_ele = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.ix_branch = rhs;
-
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
     C.v.resize(0);
@@ -2166,33 +2381,65 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
     for (unsigned int i = 0; i < C.v.size(); i++)  {set_CPP_wall3d_vertex_test_pattern(C.v[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.x0 = rhs;
+  // c_side.test_pat[type, 0, PTR]
+  if (ix_patt < 3) 
+    C.surface = NULL;
+  else {
+    C.surface = new CPP_photon_reflect_surface;
+    set_CPP_photon_reflect_surface_test_pattern((*C.surface), ix_patt);
+  }
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 7 + offset; C.type = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 8 + offset; C.n_vertex_input = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 10 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.y0 = rhs;
+  rhs = 11 + offset; C.thickness = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.dx0_ds = rhs;
+  rhs = 12 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.dy0_ds = rhs;
+  rhs = 13 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 14 + offset; C.y0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 15 + offset; C.x_safe = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 16 + offset; C.y_safe = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 17 + offset; C.dx0_ds = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 18 + offset; C.dy0_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.x0_coef.size(); i++)
-    {int rhs = 101 + i + 14 + offset; C.x0_coef[i] = rhs;}
+    {int rhs = 101 + i + 19 + offset; C.x0_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.y0_coef.size(); i++)
-    {int rhs = 101 + i + 15 + offset; C.y0_coef[i] = rhs;}
+    {int rhs = 101 + i + 20 + offset; C.y0_coef[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 16 + offset; C.dr_ds = rhs;
+  rhs = 21 + offset; C.dr_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p1_coef.size(); i++)
-    {int rhs = 101 + i + 17 + offset; C.p1_coef[i] = rhs;}
+    {int rhs = 101 + i + 22 + offset; C.p1_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p2_coef.size(); i++)
-    {int rhs = 101 + i + 18 + offset; C.p2_coef[i] = rhs;}
+    {int rhs = 101 + i + 23 + offset; C.p2_coef[i] = rhs;}
 
 }
 

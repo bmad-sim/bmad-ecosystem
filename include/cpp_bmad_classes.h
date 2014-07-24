@@ -52,6 +52,21 @@ typedef valarray<Real_MATRIX>      Real_TENSOR;
 typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 
+class CPP_interval1_coef;
+typedef valarray<CPP_interval1_coef>          CPP_interval1_coef_ARRAY;
+typedef valarray<CPP_interval1_coef_ARRAY>    CPP_interval1_coef_MATRIX;
+typedef valarray<CPP_interval1_coef_MATRIX>   CPP_interval1_coef_TENSOR;
+
+class CPP_photon_reflect_table;
+typedef valarray<CPP_photon_reflect_table>          CPP_photon_reflect_table_ARRAY;
+typedef valarray<CPP_photon_reflect_table_ARRAY>    CPP_photon_reflect_table_MATRIX;
+typedef valarray<CPP_photon_reflect_table_MATRIX>   CPP_photon_reflect_table_TENSOR;
+
+class CPP_photon_reflect_surface;
+typedef valarray<CPP_photon_reflect_surface>          CPP_photon_reflect_surface_ARRAY;
+typedef valarray<CPP_photon_reflect_surface_ARRAY>    CPP_photon_reflect_surface_MATRIX;
+typedef valarray<CPP_photon_reflect_surface_MATRIX>   CPP_photon_reflect_surface_TENSOR;
+
 class CPP_coord;
 typedef valarray<CPP_coord>          CPP_coord_ARRAY;
 typedef valarray<CPP_coord_ARRAY>    CPP_coord_MATRIX;
@@ -351,6 +366,104 @@ class CPP_beam;
 typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
+
+//--------------------------------------------------------------------
+// CPP_interval1_coef
+
+class Bmad_interval1_coef_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_interval1_coef {
+public:
+  Real c0;
+  Real c1;
+  Real n_exp;
+
+  CPP_interval1_coef() :
+    c0(0.0),
+    c1(0.0),
+    n_exp(0.0)
+    {}
+
+  ~CPP_interval1_coef() {
+  }
+
+};   // End Class
+
+extern "C" void interval1_coef_to_c (const Bmad_interval1_coef_class*, CPP_interval1_coef&);
+extern "C" void interval1_coef_to_f (const CPP_interval1_coef&, Bmad_interval1_coef_class*);
+
+bool operator== (const CPP_interval1_coef&, const CPP_interval1_coef&);
+
+
+//--------------------------------------------------------------------
+// CPP_photon_reflect_table
+
+class Bmad_photon_reflect_table_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_reflect_table {
+public:
+  Real_ARRAY angle;
+  Real_ARRAY energy;
+  CPP_interval1_coef_ARRAY int1;
+  Real_MATRIX p_reflect;
+  Real max_energy;
+  Real_ARRAY p_reflect_scratch;
+
+  CPP_photon_reflect_table() :
+    angle(0.0, 0),
+    energy(0.0, 0),
+    int1(CPP_interval1_coef_ARRAY(CPP_interval1_coef(), 0)),
+    p_reflect(Real_ARRAY(0.0, 0), 0),
+    max_energy(0.0),
+    p_reflect_scratch(0.0, 0)
+    {}
+
+  ~CPP_photon_reflect_table() {
+  }
+
+};   // End Class
+
+extern "C" void photon_reflect_table_to_c (const Bmad_photon_reflect_table_class*, CPP_photon_reflect_table&);
+extern "C" void photon_reflect_table_to_f (const CPP_photon_reflect_table&, Bmad_photon_reflect_table_class*);
+
+bool operator== (const CPP_photon_reflect_table&, const CPP_photon_reflect_table&);
+
+
+//--------------------------------------------------------------------
+// CPP_photon_reflect_surface
+
+class Bmad_photon_reflect_surface_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_photon_reflect_surface {
+public:
+  string descrip;
+  string reflectivity_file;
+  CPP_photon_reflect_table_ARRAY table;
+  Real surface_roughness_rms;
+  Real roughness_correlation_len;
+  Bool initialized;
+  Int ix_surface;
+
+  CPP_photon_reflect_surface() :
+    descrip(),
+    reflectivity_file(),
+    table(CPP_photon_reflect_table_ARRAY(CPP_photon_reflect_table(), 0)),
+    surface_roughness_rms(0.0),
+    roughness_correlation_len(0.0),
+    initialized(false),
+    ix_surface(0)
+    {}
+
+  ~CPP_photon_reflect_surface() {
+  }
+
+};   // End Class
+
+extern "C" void photon_reflect_surface_to_c (const Bmad_photon_reflect_surface_class*, CPP_photon_reflect_surface&);
+extern "C" void photon_reflect_surface_to_f (const CPP_photon_reflect_surface&, Bmad_photon_reflect_surface_class*);
+
+bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_surface&);
+
 
 //--------------------------------------------------------------------
 // CPP_coord
@@ -1377,6 +1490,7 @@ class Bmad_wall3d_vertex_class {};  // Opaque class for pointers to correspondin
 
 class CPP_wall3d_vertex {
 public:
+  Int type;
   Real x;
   Real y;
   Real radius_x;
@@ -1387,6 +1501,7 @@ public:
   Real y0;
 
   CPP_wall3d_vertex() :
+    type(Bmad::NORMAL),
     x(0.0),
     y(0.0),
     radius_x(0.0),
@@ -1415,16 +1530,20 @@ class Bmad_wall3d_section_class {};  // Opaque class for pointers to correspondi
 
 class CPP_wall3d_section {
 public:
-  Int type;
+  string name;
   string material;
-  Real thickness;
-  Real s;
+  CPP_wall3d_vertex_ARRAY v;
+  CPP_photon_reflect_surface* surface;
+  Int type;
   Int n_vertex_input;
   Int ix_ele;
   Int ix_branch;
-  CPP_wall3d_vertex_ARRAY v;
+  Real thickness;
+  Real s;
   Real x0;
   Real y0;
+  Real x_safe;
+  Real y_safe;
   Real dx0_ds;
   Real dy0_ds;
   Real_ARRAY x0_coef;
@@ -1434,16 +1553,20 @@ public:
   Real_ARRAY p2_coef;
 
   CPP_wall3d_section() :
-    type(Bmad::NORMAL),
+    name(),
     material(),
-    thickness(-1),
-    s(0.0),
+    v(CPP_wall3d_vertex_ARRAY(CPP_wall3d_vertex(), 0)),
+    surface(NULL),
+    type(Bmad::NORMAL),
     n_vertex_input(0),
     ix_ele(0),
     ix_branch(0),
-    v(CPP_wall3d_vertex_ARRAY(CPP_wall3d_vertex(), 0)),
+    thickness(-1),
+    s(0.0),
     x0(0.0),
     y0(0.0),
+    x_safe(0.0),
+    y_safe(0.0),
     dx0_ds(0.0),
     dy0_ds(0.0),
     x0_coef(0.0, 4),
@@ -1454,6 +1577,7 @@ public:
     {}
 
   ~CPP_wall3d_section() {
+    delete surface;
   }
 
 };   // End Class
@@ -1882,7 +2006,7 @@ public:
     field(CPP_em_field_ARRAY(CPP_em_field(), 0)),
     map(CPP_track_map_ARRAY(CPP_track_map(), 0)),
     ds_save(1e-3),
-    n_pt(0),
+    n_pt(-1),
     n_bad(0),
     n_ok(0)
     {}

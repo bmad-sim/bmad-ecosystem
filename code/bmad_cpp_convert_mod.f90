@@ -17,6 +17,33 @@ use, intrinsic :: iso_c_binding
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine interval1_coef_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine photon_reflect_table_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
+  subroutine photon_reflect_surface_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine coord_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -555,6 +582,414 @@ interface
 end interface
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine interval1_coef_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad interval1_coef_struct to a C++ CPP_interval1_coef structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad interval1_coef_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_interval1_coef struct.
+!-
+
+subroutine interval1_coef_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine interval1_coef_to_c2 (C, z_c0, z_c1, z_n_exp) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_c0, z_c1, z_n_exp
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(interval1_coef_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call interval1_coef_to_c2 (C, F%c0, F%c1, F%n_exp)
+
+end subroutine interval1_coef_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine interval1_coef_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_interval1_coef structure to a Bmad interval1_coef_struct structure.
+! This routine is called by interval1_coef_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the interval1_coef_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad interval1_coef_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine interval1_coef_to_f2 (Fp, z_c0, z_c1, z_n_exp) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(interval1_coef_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_c0, z_c1, z_n_exp
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%c0 = z_c0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%c1 = z_c1
+!! f_side.to_f2_trans[real, 0, NOT]
+F%n_exp = z_n_exp
+
+end subroutine interval1_coef_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_reflect_table_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad photon_reflect_table_struct to a C++ CPP_photon_reflect_table structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad photon_reflect_table_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_photon_reflect_table struct.
+!-
+
+subroutine photon_reflect_table_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine photon_reflect_table_to_c2 (C, z_angle, n1_angle, z_energy, n1_energy, z_int1, &
+      n1_int1, z_p_reflect, n1_p_reflect, n2_p_reflect, z_max_energy, z_p_reflect_scratch, &
+      n1_p_reflect_scratch) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch
+    real(c_double) :: z_angle(*), z_energy(*), z_p_reflect(*), z_max_energy, z_p_reflect_scratch(*)
+    type(c_ptr) :: z_int1(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(photon_reflect_table_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+integer(c_int) :: n1_angle
+integer(c_int) :: n1_energy
+type(c_ptr), allocatable :: z_int1(:)
+integer(c_int) :: n1_int1
+integer(c_int) :: n1_p_reflect
+integer(c_int) :: n2_p_reflect
+integer(c_int) :: n1_p_reflect_scratch
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_angle = 0
+if (allocated(F%angle)) then
+  n1_angle = size(F%angle, 1)
+endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_energy = 0
+if (allocated(F%energy)) then
+  n1_energy = size(F%energy, 1)
+endif
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_int1 = 0
+if (allocated(F%int1)) then
+  n1_int1 = size(F%int1); lb1 = lbound(F%int1, 1) - 1
+  allocate (z_int1(n1_int1))
+  do jd1 = 1, n1_int1
+    z_int1(jd1) = c_loc(F%int1(jd1+lb1))
+  enddo
+endif
+!! f_side.to_c_trans[real, 2, ALLOC]
+if (allocated(F%p_reflect)) then
+  n1_p_reflect = size(F%p_reflect, 1)
+  n2_p_reflect = size(F%p_reflect, 2)
+else
+  n1_p_reflect = 0; n2_p_reflect = 0
+endif
+!! f_side.to_c_trans[real, 1, ALLOC]
+n1_p_reflect_scratch = 0
+if (allocated(F%p_reflect_scratch)) then
+  n1_p_reflect_scratch = size(F%p_reflect_scratch, 1)
+endif
+
+!! f_side.to_c2_call
+call photon_reflect_table_to_c2 (C, fvec2vec(F%angle, n1_angle), n1_angle, fvec2vec(F%energy, &
+    n1_energy), n1_energy, z_int1, n1_int1, mat2vec(F%p_reflect, n1_p_reflect*n2_p_reflect), &
+    n1_p_reflect, n2_p_reflect, F%max_energy, fvec2vec(F%p_reflect_scratch, &
+    n1_p_reflect_scratch), n1_p_reflect_scratch)
+
+end subroutine photon_reflect_table_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_reflect_table_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_photon_reflect_table structure to a Bmad photon_reflect_table_struct structure.
+! This routine is called by photon_reflect_table_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the photon_reflect_table_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad photon_reflect_table_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine photon_reflect_table_to_f2 (Fp, z_angle, n1_angle, z_energy, n1_energy, z_int1, &
+    n1_int1, z_p_reflect, n1_p_reflect, n2_p_reflect, z_max_energy, z_p_reflect_scratch, &
+    n1_p_reflect_scratch) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(photon_reflect_table_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+type(c_ptr) :: z_int1(*)
+type(c_ptr), value :: z_angle, z_energy, z_p_reflect, z_p_reflect_scratch
+real(c_double) :: z_max_energy
+integer(c_int), value :: n1_angle, n1_energy, n1_int1, n1_p_reflect, n2_p_reflect, n1_p_reflect_scratch
+real(c_double), pointer :: f_angle(:), f_energy(:), f_p_reflect(:), f_p_reflect_scratch(:)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%angle)) then
+  if (n1_angle == 0 .or. any(shape(F%angle) /= [n1_angle])) deallocate(F%angle)
+  if (any(lbound(F%angle) /= 1)) deallocate(F%angle)
+endif
+if (n1_angle /= 0) then
+  call c_f_pointer (z_angle, f_angle, [n1_angle])
+  if (.not. allocated(F%angle)) allocate(F%angle(n1_angle))
+  F%angle = f_angle(1:n1_angle)
+else
+  if (allocated(F%angle)) deallocate(F%angle)
+endif
+
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%energy)) then
+  if (n1_energy == 0 .or. any(shape(F%energy) /= [n1_energy])) deallocate(F%energy)
+  if (any(lbound(F%energy) /= 1)) deallocate(F%energy)
+endif
+if (n1_energy /= 0) then
+  call c_f_pointer (z_energy, f_energy, [n1_energy])
+  if (.not. allocated(F%energy)) allocate(F%energy(n1_energy))
+  F%energy = f_energy(1:n1_energy)
+else
+  if (allocated(F%energy)) deallocate(F%energy)
+endif
+
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_int1 == 0) then
+  if (allocated(F%int1)) deallocate(F%int1)
+else
+  if (allocated(F%int1)) then
+    if (n1_int1 == 0 .or. any(shape(F%int1) /= [n1_int1])) deallocate(F%int1)
+    if (any(lbound(F%int1) /= 1)) deallocate(F%int1)
+  endif
+  if (.not. allocated(F%int1)) allocate(F%int1(1:n1_int1+1-1))
+  do jd1 = 1, n1_int1
+    call interval1_coef_to_f (z_int1(jd1), c_loc(F%int1(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[real, 2, ALLOC]
+if (allocated(F%p_reflect)) then
+  if (n1_p_reflect == 0 .or. any(shape(F%p_reflect) /= [n1_p_reflect, n2_p_reflect])) deallocate(F%p_reflect)
+  if (any(lbound(F%p_reflect) /= 1)) deallocate(F%p_reflect)
+endif
+if (n1_p_reflect /= 0) then
+  call c_f_pointer (z_p_reflect, f_p_reflect, [n1_p_reflect*n2_p_reflect])
+  if (.not. allocated(F%p_reflect)) allocate(F%p_reflect(n1_p_reflect, n2_p_reflect))
+  call vec2mat(f_p_reflect, F%p_reflect)
+else
+  if (allocated(F%p_reflect)) deallocate(F%p_reflect)
+endif
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%max_energy = z_max_energy
+!! f_side.to_f2_trans[real, 1, ALLOC]
+if (allocated(F%p_reflect_scratch)) then
+  if (n1_p_reflect_scratch == 0 .or. any(shape(F%p_reflect_scratch) /= [n1_p_reflect_scratch])) deallocate(F%p_reflect_scratch)
+  if (any(lbound(F%p_reflect_scratch) /= 1)) deallocate(F%p_reflect_scratch)
+endif
+if (n1_p_reflect_scratch /= 0) then
+  call c_f_pointer (z_p_reflect_scratch, f_p_reflect_scratch, [n1_p_reflect_scratch])
+  if (.not. allocated(F%p_reflect_scratch)) allocate(F%p_reflect_scratch(n1_p_reflect_scratch))
+  F%p_reflect_scratch = f_p_reflect_scratch(1:n1_p_reflect_scratch)
+else
+  if (allocated(F%p_reflect_scratch)) deallocate(F%p_reflect_scratch)
+endif
+
+
+end subroutine photon_reflect_table_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_reflect_surface_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad photon_reflect_surface_struct to a C++ CPP_photon_reflect_surface structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad photon_reflect_surface_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_photon_reflect_surface struct.
+!-
+
+subroutine photon_reflect_surface_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine photon_reflect_surface_to_c2 (C, z_descrip, z_reflectivity_file, z_table, &
+      n1_table, z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, &
+      z_ix_surface) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_ix_surface
+    integer(c_int), value :: n1_table
+    logical(c_bool) :: z_initialized
+    character(c_char) :: z_descrip(*), z_reflectivity_file(*)
+    real(c_double) :: z_surface_roughness_rms, z_roughness_correlation_len
+    type(c_ptr) :: z_table(*)
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(photon_reflect_surface_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+type(c_ptr), allocatable :: z_table(:)
+integer(c_int) :: n1_table
+
+!
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_c_trans[type, 1, ALLOC]
+ n1_table = 0
+if (allocated(F%table)) then
+  n1_table = size(F%table); lb1 = lbound(F%table, 1) - 1
+  allocate (z_table(n1_table))
+  do jd1 = 1, n1_table
+    z_table(jd1) = c_loc(F%table(jd1+lb1))
+  enddo
+endif
+
+!! f_side.to_c2_call
+call photon_reflect_surface_to_c2 (C, trim(F%descrip) // c_null_char, trim(F%reflectivity_file) &
+    // c_null_char, z_table, n1_table, F%surface_roughness_rms, F%roughness_correlation_len, &
+    c_logic(F%initialized), F%ix_surface)
+
+end subroutine photon_reflect_surface_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine photon_reflect_surface_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_photon_reflect_surface structure to a Bmad photon_reflect_surface_struct structure.
+! This routine is called by photon_reflect_surface_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the photon_reflect_surface_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad photon_reflect_surface_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine photon_reflect_surface_to_f2 (Fp, z_descrip, z_reflectivity_file, z_table, n1_table, &
+    z_surface_roughness_rms, z_roughness_correlation_len, z_initialized, z_ix_surface) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(photon_reflect_surface_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_ix_surface
+integer(c_int), value :: n1_table
+logical(c_bool) :: z_initialized
+character(c_char) :: z_descrip(*), z_reflectivity_file(*)
+real(c_double) :: z_surface_roughness_rms, z_roughness_correlation_len
+type(c_ptr) :: z_table(*)
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_descrip, F%descrip)
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_reflectivity_file, F%reflectivity_file)
+!! f_side.to_f2_trans[type, 1, ALLOC]
+if (n1_table == 0) then
+  if (allocated(F%table)) deallocate(F%table)
+else
+  if (allocated(F%table)) then
+    if (n1_table == 0 .or. any(shape(F%table) /= [n1_table])) deallocate(F%table)
+    if (any(lbound(F%table) /= 1)) deallocate(F%table)
+  endif
+  if (.not. allocated(F%table)) allocate(F%table(1:n1_table+1-1))
+  do jd1 = 1, n1_table
+    call photon_reflect_table_to_f (z_table(jd1), c_loc(F%table(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%surface_roughness_rms = z_surface_roughness_rms
+!! f_side.to_f2_trans[real, 0, NOT]
+F%roughness_correlation_len = z_roughness_correlation_len
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%initialized = f_logic(z_initialized)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_surface = z_ix_surface
+
+end subroutine photon_reflect_surface_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -3616,13 +4051,14 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_vertex_to_c2 (C, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0, &
-      z_y0) bind(c)
+  subroutine wall3d_vertex_to_c2 (C, z_type, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, &
+      z_x0, z_y0) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0
     real(c_double) :: z_y0
+    integer(c_int) :: z_type
   end subroutine
 end interface
 
@@ -3638,7 +4074,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call wall3d_vertex_to_c2 (C, F%x, F%y, F%radius_x, F%radius_y, F%tilt, F%angle, F%x0, F%y0)
+call wall3d_vertex_to_c2 (C, F%type, F%x, F%y, F%radius_x, F%radius_y, F%tilt, F%angle, F%x0, &
+    F%y0)
 
 end subroutine wall3d_vertex_to_c
 
@@ -3658,8 +4095,8 @@ end subroutine wall3d_vertex_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_vertex_to_f2 (Fp, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0, &
-    z_y0) bind(c)
+subroutine wall3d_vertex_to_f2 (Fp, z_type, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, &
+    z_x0, z_y0) bind(c)
 
 
 implicit none
@@ -3670,9 +4107,12 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0
 real(c_double) :: z_y0
+integer(c_int) :: z_type
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
 !! f_side.to_f2_trans[real, 0, NOT]
 F%x = z_x
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -3713,18 +4153,20 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_section_to_c2 (C, z_type, z_material, z_thickness, z_s, z_n_vertex_input, &
-      z_ix_ele, z_ix_branch, z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, &
-      z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+  subroutine wall3d_section_to_c2 (C, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
+      z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_thickness, z_s, z_x0, z_y0, z_x_safe, &
+      z_y_safe, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int), value :: n1_v
-    real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*)
-    real(c_double) :: z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
-    type(c_ptr) :: z_v(*)
     integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
-    character(c_char) :: z_material(*)
+    integer(c_int), value :: n1_v, n_surface
+    character(c_char) :: z_name(*), z_material(*)
+    real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
+    real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+    type(c_ptr), value :: z_surface
+    type(c_ptr) :: z_v(*)
   end subroutine
 end interface
 
@@ -3735,6 +4177,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_v(:)
 integer(c_int) :: n1_v
+integer(c_int) :: n_surface
 
 !
 
@@ -3749,12 +4192,15 @@ if (allocated(F%v)) then
     z_v(jd1) = c_loc(F%v(jd1+lb1))
   enddo
 endif
+!! f_side.to_c_trans[type, 0, PTR]
+n_surface = 0
+if (associated(F%surface)) n_surface = 1
 
 !! f_side.to_c2_call
-call wall3d_section_to_c2 (C, F%type, trim(F%material) // c_null_char, F%thickness, F%s, &
-    F%n_vertex_input, F%ix_ele, F%ix_branch, z_v, n1_v, F%x0, F%y0, F%dx0_ds, F%dy0_ds, &
-    fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
-    fvec2vec(F%p2_coef, 3))
+call wall3d_section_to_c2 (C, trim(F%name) // c_null_char, trim(F%material) // c_null_char, &
+    z_v, n1_v, c_loc(F%surface), n_surface, F%type, F%n_vertex_input, F%ix_ele, F%ix_branch, &
+    F%thickness, F%s, F%x0, F%y0, F%x_safe, F%y_safe, F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, &
+    4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -3774,9 +4220,9 @@ end subroutine wall3d_section_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_section_to_f2 (Fp, z_type, z_material, z_thickness, z_s, z_n_vertex_input, &
-    z_ix_ele, z_ix_branch, z_v, n1_v, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, &
-    z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+subroutine wall3d_section_to_f2 (Fp, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
+    z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_thickness, z_s, z_x0, z_y0, z_x_safe, &
+    z_y_safe, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
 
 
 implicit none
@@ -3785,29 +4231,21 @@ type(c_ptr), value :: Fp
 type(wall3d_section_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int), value :: n1_v
-real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_dx0_ds, z_dy0_ds, z_x0_coef(*)
-real(c_double) :: z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
-type(c_ptr) :: z_v(*)
+type(photon_reflect_surface_struct), pointer :: f_surface
 integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
-character(c_char) :: z_material(*)
+integer(c_int), value :: n1_v, n_surface
+character(c_char) :: z_name(*), z_material(*)
+real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
+real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+type(c_ptr), value :: z_surface
+type(c_ptr) :: z_v(*)
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_name, F%name)
 !! f_side.to_f2_trans[character, 0, NOT]
 call to_f_str(z_material, F%material)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%thickness = z_thickness
-!! f_side.to_f2_trans[real, 0, NOT]
-F%s = z_s
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_vertex_input = z_n_vertex_input
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_ele = z_ix_ele
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_branch = z_ix_branch
 !! f_side.to_f2_trans[type, 1, ALLOC]
 if (n1_v == 0) then
   if (allocated(F%v)) deallocate(F%v)
@@ -3822,10 +4260,34 @@ else
   enddo
 endif
 
+!! f_side.to_f2_trans[type, 0, PTR]
+if (n_surface == 0) then
+  if (associated(F%surface)) deallocate(F%surface)
+else
+  if (.not. associated(F%surface)) allocate(F%surface)
+  call photon_reflect_surface_to_f (z_surface, c_loc(F%surface))
+endif
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_vertex_input = z_n_vertex_input
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_branch = z_ix_branch
+!! f_side.to_f2_trans[real, 0, NOT]
+F%thickness = z_thickness
+!! f_side.to_f2_trans[real, 0, NOT]
+F%s = z_s
 !! f_side.to_f2_trans[real, 0, NOT]
 F%x0 = z_x0
 !! f_side.to_f2_trans[real, 0, NOT]
 F%y0 = z_y0
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_safe = z_x_safe
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_safe = z_y_safe
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dx0_ds = z_dx0_ds
 !! f_side.to_f2_trans[real, 0, NOT]

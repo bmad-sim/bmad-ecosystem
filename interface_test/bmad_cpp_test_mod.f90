@@ -10,6 +10,347 @@ contains
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_interval1_coef (ok)
+
+implicit none
+
+type(interval1_coef_struct), target :: f_interval1_coef, f2_interval1_coef
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_interval1_coef (c_interval1_coef, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_interval1_coef
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_interval1_coef_test_pattern (f2_interval1_coef, 1)
+
+call test_c_interval1_coef(c_loc(f2_interval1_coef), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_interval1_coef_test_pattern (f_interval1_coef, 4)
+if (f_interval1_coef == f2_interval1_coef) then
+  print *, 'interval1_coef: C side convert C->F: Good'
+else
+  print *, 'interval1_coef: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_interval1_coef
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_interval1_coef (c_interval1_coef, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_interval1_coef
+type(interval1_coef_struct), target :: f_interval1_coef, f2_interval1_coef
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call interval1_coef_to_f (c_interval1_coef, c_loc(f_interval1_coef))
+
+call set_interval1_coef_test_pattern (f2_interval1_coef, 2)
+if (f_interval1_coef == f2_interval1_coef) then
+  print *, 'interval1_coef: F side convert C->F: Good'
+else
+  print *, 'interval1_coef: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_interval1_coef_test_pattern (f2_interval1_coef, 3)
+call interval1_coef_to_c (c_loc(f2_interval1_coef), c_interval1_coef)
+
+end subroutine test2_f_interval1_coef
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_interval1_coef_test_pattern (F, ix_patt)
+
+implicit none
+
+type(interval1_coef_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%c0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%c1 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%n_exp = rhs
+
+end subroutine set_interval1_coef_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_photon_reflect_table (ok)
+
+implicit none
+
+type(photon_reflect_table_struct), target :: f_photon_reflect_table, f2_photon_reflect_table
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_photon_reflect_table (c_photon_reflect_table, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_photon_reflect_table
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_photon_reflect_table_test_pattern (f2_photon_reflect_table, 1)
+
+call test_c_photon_reflect_table(c_loc(f2_photon_reflect_table), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_photon_reflect_table_test_pattern (f_photon_reflect_table, 4)
+if (f_photon_reflect_table == f2_photon_reflect_table) then
+  print *, 'photon_reflect_table: C side convert C->F: Good'
+else
+  print *, 'photon_reflect_table: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_photon_reflect_table
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_photon_reflect_table (c_photon_reflect_table, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_photon_reflect_table
+type(photon_reflect_table_struct), target :: f_photon_reflect_table, f2_photon_reflect_table
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call photon_reflect_table_to_f (c_photon_reflect_table, c_loc(f_photon_reflect_table))
+
+call set_photon_reflect_table_test_pattern (f2_photon_reflect_table, 2)
+if (f_photon_reflect_table == f2_photon_reflect_table) then
+  print *, 'photon_reflect_table: F side convert C->F: Good'
+else
+  print *, 'photon_reflect_table: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_photon_reflect_table_test_pattern (f2_photon_reflect_table, 3)
+call photon_reflect_table_to_c (c_loc(f2_photon_reflect_table), c_photon_reflect_table)
+
+end subroutine test2_f_photon_reflect_table
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_photon_reflect_table_test_pattern (F, ix_patt)
+
+implicit none
+
+type(photon_reflect_table_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%angle)) deallocate (F%angle)
+else
+  if (.not. allocated(F%angle)) allocate (F%angle(-1:1))
+  do jd1 = 1, size(F%angle,1); lb1 = lbound(F%angle,1) - 1
+    rhs = 100 + jd1 + 1 + offset
+    F%angle(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%energy)) deallocate (F%energy)
+else
+  if (.not. allocated(F%energy)) allocate (F%energy(-1:1))
+  do jd1 = 1, size(F%energy,1); lb1 = lbound(F%energy,1) - 1
+    rhs = 100 + jd1 + 3 + offset
+    F%energy(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%int1)) deallocate (F%int1)
+else
+  if (.not. allocated(F%int1)) allocate (F%int1(-1:1))
+  do jd1 = 1, size(F%int1,1); lb1 = lbound(F%int1,1) - 1
+    call set_interval1_coef_test_pattern (F%int1(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 2, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%p_reflect)) deallocate (F%p_reflect)
+else
+  if (.not. allocated(F%p_reflect)) allocate (F%p_reflect(-1:1, 2))
+  do jd1 = 1, size(F%p_reflect,1); lb1 = lbound(F%p_reflect,1) - 1
+  do jd2 = 1, size(F%p_reflect,2); lb2 = lbound(F%p_reflect,2) - 1
+    rhs = 100 + jd1 + 10*jd2 + 7 + offset
+    F%p_reflect(jd1+lb1,jd2+lb2) = rhs
+  enddo; enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%max_energy = rhs
+!! f_side.test_pat[real, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%p_reflect_scratch)) deallocate (F%p_reflect_scratch)
+else
+  if (.not. allocated(F%p_reflect_scratch)) allocate (F%p_reflect_scratch(-1:1))
+  do jd1 = 1, size(F%p_reflect_scratch,1); lb1 = lbound(F%p_reflect_scratch,1) - 1
+    rhs = 100 + jd1 + 11 + offset
+    F%p_reflect_scratch(jd1+lb1) = rhs
+  enddo
+endif
+
+end subroutine set_photon_reflect_table_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test1_f_photon_reflect_surface (ok)
+
+implicit none
+
+type(photon_reflect_surface_struct), target :: f_photon_reflect_surface, f2_photon_reflect_surface
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_photon_reflect_surface (c_photon_reflect_surface, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_photon_reflect_surface
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_photon_reflect_surface_test_pattern (f2_photon_reflect_surface, 1)
+
+call test_c_photon_reflect_surface(c_loc(f2_photon_reflect_surface), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_photon_reflect_surface_test_pattern (f_photon_reflect_surface, 4)
+if (f_photon_reflect_surface == f2_photon_reflect_surface) then
+  print *, 'photon_reflect_surface: C side convert C->F: Good'
+else
+  print *, 'photon_reflect_surface: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_photon_reflect_surface
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_photon_reflect_surface (c_photon_reflect_surface, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_photon_reflect_surface
+type(photon_reflect_surface_struct), target :: f_photon_reflect_surface, f2_photon_reflect_surface
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call photon_reflect_surface_to_f (c_photon_reflect_surface, c_loc(f_photon_reflect_surface))
+
+call set_photon_reflect_surface_test_pattern (f2_photon_reflect_surface, 2)
+if (f_photon_reflect_surface == f2_photon_reflect_surface) then
+  print *, 'photon_reflect_surface: F side convert C->F: Good'
+else
+  print *, 'photon_reflect_surface: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_photon_reflect_surface_test_pattern (f2_photon_reflect_surface, 3)
+call photon_reflect_surface_to_c (c_loc(f2_photon_reflect_surface), c_photon_reflect_surface)
+
+end subroutine test2_f_photon_reflect_surface
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_photon_reflect_surface_test_pattern (F, ix_patt)
+
+implicit none
+
+type(photon_reflect_surface_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%descrip)
+  F%descrip(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%reflectivity_file)
+  F%reflectivity_file(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
+enddo
+!! f_side.test_pat[type, 1, ALLOC]
+
+if (ix_patt < 3) then
+  if (allocated(F%table)) deallocate (F%table)
+else
+  if (.not. allocated(F%table)) allocate (F%table(-1:1))
+  do jd1 = 1, size(F%table,1); lb1 = lbound(F%table,1) - 1
+    call set_photon_reflect_table_test_pattern (F%table(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%surface_roughness_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%roughness_correlation_len = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 7 + offset; F%initialized = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%ix_surface = rhs
+
+end subroutine set_photon_reflect_surface_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_coord (ok)
 
 implicit none
@@ -3122,22 +3463,24 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%x = rhs
+rhs = 2 + offset; F%x = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%y = rhs
+rhs = 3 + offset; F%y = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%radius_x = rhs
+rhs = 4 + offset; F%radius_x = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%radius_y = rhs
+rhs = 5 + offset; F%radius_y = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%tilt = rhs
+rhs = 6 + offset; F%tilt = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%angle = rhs
+rhs = 7 + offset; F%angle = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%x0 = rhs
+rhs = 8 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%y0 = rhs
+rhs = 9 + offset; F%y0 = rhs
 
 end subroutine set_wall3d_vertex_test_pattern
 
@@ -3222,22 +3565,14 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%name)
+  F%name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%material)
   F%material(jd1:jd1) = char(ichar("a") + modulo(100+2+offset+jd1, 26))
 enddo
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%thickness = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%s = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%n_vertex_input = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%ix_ele = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%ix_branch = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -3248,34 +3583,58 @@ else
     call set_wall3d_vertex_test_pattern (F%v(jd1+lb1), ix_patt+jd1)
   enddo
 endif
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%surface)) deallocate (F%surface)
+else
+  if (.not. associated(F%surface)) allocate (F%surface)
+  rhs = 5 + offset
+  call set_photon_reflect_surface_test_pattern (F%surface, ix_patt)
+endif
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 7 + offset; F%type = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%n_vertex_input = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 9 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 10 + offset; F%ix_branch = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%x0 = rhs
+rhs = 11 + offset; F%thickness = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%y0 = rhs
+rhs = 12 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%dx0_ds = rhs
+rhs = 13 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%dy0_ds = rhs
+rhs = 14 + offset; F%y0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%x_safe = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 16 + offset; F%y_safe = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 17 + offset; F%dx0_ds = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 18 + offset; F%dy0_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%x0_coef,1); lb1 = lbound(F%x0_coef,1) - 1
-  rhs = 100 + jd1 + 14 + offset
+  rhs = 100 + jd1 + 19 + offset
   F%x0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%y0_coef,1); lb1 = lbound(F%y0_coef,1) - 1
-  rhs = 100 + jd1 + 15 + offset
+  rhs = 100 + jd1 + 20 + offset
   F%y0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 16 + offset; F%dr_ds = rhs
+rhs = 21 + offset; F%dr_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p1_coef,1); lb1 = lbound(F%p1_coef,1) - 1
-  rhs = 100 + jd1 + 17 + offset
+  rhs = 100 + jd1 + 22 + offset
   F%p1_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p2_coef,1); lb1 = lbound(F%p2_coef,1) - 1
-  rhs = 100 + jd1 + 18 + offset
+  rhs = 100 + jd1 + 23 + offset
   F%p2_coef(jd1+lb1) = rhs
 enddo
 

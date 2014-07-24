@@ -72,6 +72,52 @@ template bool is_all_equal (const Int_TENSOR&,      const Int_TENSOR&);
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_interval1_coef& x, const CPP_interval1_coef& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.c0 == y.c0);
+  is_eq = is_eq && (x.c1 == y.c1);
+  is_eq = is_eq && (x.n_exp == y.n_exp);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_interval1_coef_ARRAY&, const CPP_interval1_coef_ARRAY&);
+template bool is_all_equal (const CPP_interval1_coef_MATRIX&, const CPP_interval1_coef_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_photon_reflect_table& x, const CPP_photon_reflect_table& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.angle, y.angle);
+  is_eq = is_eq && is_all_equal(x.energy, y.energy);
+  is_eq = is_eq && is_all_equal(x.int1, y.int1);
+  is_eq = is_eq && is_all_equal(x.p_reflect, y.p_reflect);
+  is_eq = is_eq && (x.max_energy == y.max_energy);
+  is_eq = is_eq && is_all_equal(x.p_reflect_scratch, y.p_reflect_scratch);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_reflect_table_ARRAY&, const CPP_photon_reflect_table_ARRAY&);
+template bool is_all_equal (const CPP_photon_reflect_table_MATRIX&, const CPP_photon_reflect_table_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_photon_reflect_surface& x, const CPP_photon_reflect_surface& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.descrip == y.descrip);
+  is_eq = is_eq && (x.reflectivity_file == y.reflectivity_file);
+  is_eq = is_eq && is_all_equal(x.table, y.table);
+  is_eq = is_eq && (x.surface_roughness_rms == y.surface_roughness_rms);
+  is_eq = is_eq && (x.roughness_correlation_len == y.roughness_correlation_len);
+  is_eq = is_eq && (x.initialized == y.initialized);
+  is_eq = is_eq && (x.ix_surface == y.ix_surface);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_photon_reflect_surface_ARRAY&, const CPP_photon_reflect_surface_ARRAY&);
+template bool is_all_equal (const CPP_photon_reflect_surface_MATRIX&, const CPP_photon_reflect_surface_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_coord& x, const CPP_coord& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.vec, y.vec);
@@ -556,6 +602,7 @@ template bool is_all_equal (const CPP_photon_element_MATRIX&, const CPP_photon_e
 
 bool operator== (const CPP_wall3d_vertex& x, const CPP_wall3d_vertex& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
   is_eq = is_eq && (x.radius_x == y.radius_x);
@@ -574,16 +621,22 @@ template bool is_all_equal (const CPP_wall3d_vertex_MATRIX&, const CPP_wall3d_ve
 
 bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.material == y.material);
-  is_eq = is_eq && (x.thickness == y.thickness);
-  is_eq = is_eq && (x.s == y.s);
+  is_eq = is_eq && is_all_equal(x.v, y.v);
+  is_eq = is_eq && ((x.surface == NULL) == (y.surface == NULL));
+  if (!is_eq) return false;
+  if (x.surface != NULL) is_eq = (*x.surface == *y.surface);
+  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.n_vertex_input == y.n_vertex_input);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
-  is_eq = is_eq && is_all_equal(x.v, y.v);
+  is_eq = is_eq && (x.thickness == y.thickness);
+  is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.x0 == y.x0);
   is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.x_safe == y.x_safe);
+  is_eq = is_eq && (x.y_safe == y.y_safe);
   is_eq = is_eq && (x.dx0_ds == y.dx0_ds);
   is_eq = is_eq && (x.dy0_ds == y.dy0_ds);
   is_eq = is_eq && is_all_equal(x.x0_coef, y.x0_coef);
