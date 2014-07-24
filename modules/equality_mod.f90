@@ -14,21 +14,126 @@ module equality_mod
 use beam_def_struct
 
 interface operator (==)
-  module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_wig_term, eq_wig
-  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_wake, eq_em_field_map_term
-  module procedure eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode, eq_em_fields
-  module procedure eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss, eq_mode3
-  module procedure eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface
-  module procedure eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material, eq_photon_element
-  module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term, eq_taylor
-  module procedure eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker, eq_anormal_mode
-  module procedure eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map, eq_track
-  module procedure eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele
-  module procedure eq_ele, eq_complex_taylor_term, eq_complex_taylor, eq_normal_form, eq_branch
-  module procedure eq_lat, eq_bunch, eq_beam_spin, eq_bunch_params, eq_beam
+  module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord, eq_coord_array
+  module procedure eq_bpm_phase_coupling, eq_wig_term, eq_wig, eq_wake_sr_mode, eq_wake_sr
+  module procedure eq_wake_lr, eq_wake, eq_em_field_map_term, eq_em_field_map, eq_em_field_grid_pt
+  module procedure eq_em_field_grid, eq_em_field_mode, eq_em_fields, eq_floor_position, eq_space_charge
+  module procedure eq_xy_disp, eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache
+  module procedure eq_surface_grid_pt, eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface
+  module procedure eq_photon_target, eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section
+  module procedure eq_wall3d, eq_taylor_term, eq_taylor, eq_control, eq_lat_param
+  module procedure eq_mode_info, eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes
+  module procedure eq_em_field, eq_track_map, eq_track, eq_synch_rad_common, eq_csr_parameter
+  module procedure eq_bmad_common, eq_rad_int1, eq_rad_int_all_ele, eq_ele, eq_complex_taylor_term
+  module procedure eq_complex_taylor, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam_spin, eq_bunch_params, eq_beam
 end interface
 
 contains
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_interval1_coef (f1, f2) result (is_eq)
+
+implicit none
+
+type(interval1_coef_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%c0 == f2%c0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%c1 == f2%c1)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%n_exp == f2%n_exp)
+
+end function eq_interval1_coef
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_photon_reflect_table (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_reflect_table_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%angle) .eqv. allocated(f2%angle))
+if (.not. is_eq) return
+if (allocated(f1%angle)) is_eq = all(shape(f1%angle) == shape(f2%angle))
+if (.not. is_eq) return
+if (allocated(f1%angle)) is_eq = all(f1%angle == f2%angle)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%energy) .eqv. allocated(f2%energy))
+if (.not. is_eq) return
+if (allocated(f1%energy)) is_eq = all(shape(f1%energy) == shape(f2%energy))
+if (.not. is_eq) return
+if (allocated(f1%energy)) is_eq = all(f1%energy == f2%energy)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%int1) .eqv. allocated(f2%int1))
+if (.not. is_eq) return
+if (allocated(f1%int1)) is_eq = all(shape(f1%int1) == shape(f2%int1))
+if (.not. is_eq) return
+if (allocated(f1%int1)) is_eq = all(f1%int1 == f2%int1)
+!! f_side.equality_test[real, 2, ALLOC]
+is_eq = is_eq .and. (allocated(f1%p_reflect) .eqv. allocated(f2%p_reflect))
+if (.not. is_eq) return
+if (allocated(f1%p_reflect)) is_eq = all(shape(f1%p_reflect) == shape(f2%p_reflect))
+if (.not. is_eq) return
+if (allocated(f1%p_reflect)) is_eq = all(f1%p_reflect == f2%p_reflect)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%max_energy == f2%max_energy)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%p_reflect_scratch) .eqv. allocated(f2%p_reflect_scratch))
+if (.not. is_eq) return
+if (allocated(f1%p_reflect_scratch)) is_eq = all(shape(f1%p_reflect_scratch) == shape(f2%p_reflect_scratch))
+if (.not. is_eq) return
+if (allocated(f1%p_reflect_scratch)) is_eq = all(f1%p_reflect_scratch == f2%p_reflect_scratch)
+
+end function eq_photon_reflect_table
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_photon_reflect_surface (f1, f2) result (is_eq)
+
+implicit none
+
+type(photon_reflect_surface_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%descrip == f2%descrip)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%reflectivity_file == f2%reflectivity_file)
+!! f_side.equality_test[type, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%table) .eqv. allocated(f2%table))
+if (.not. is_eq) return
+if (allocated(f1%table)) is_eq = all(shape(f1%table) == shape(f2%table))
+if (.not. is_eq) return
+if (allocated(f1%table)) is_eq = all(f1%table == f2%table)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%surface_roughness_rms == f2%surface_roughness_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%roughness_correlation_len == f2%roughness_correlation_len)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%initialized .eqv. f2%initialized)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_surface == f2%ix_surface)
+
+end function eq_photon_reflect_surface
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -917,6 +1022,8 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%x == f2%x)
 !! f_side.equality_test[real, 0, NOT]
@@ -949,30 +1056,41 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%name == f2%name)
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%material == f2%material)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%thickness == f2%thickness)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%s == f2%s)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[type, 1, ALLOC]
 is_eq = is_eq .and. (allocated(f1%v) .eqv. allocated(f2%v))
 if (.not. is_eq) return
 if (allocated(f1%v)) is_eq = all(shape(f1%v) == shape(f2%v))
 if (.not. is_eq) return
 if (allocated(f1%v)) is_eq = all(f1%v == f2%v)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%surface) .eqv. associated(f2%surface))
+if (.not. is_eq) return
+if (associated(f1%surface)) is_eq = (f1%surface == f2%surface)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%thickness == f2%thickness)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%x0 == f2%x0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_safe == f2%x_safe)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_safe == f2%y_safe)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dx0_ds == f2%dx0_ds)
 !! f_side.equality_test[real, 0, NOT]
