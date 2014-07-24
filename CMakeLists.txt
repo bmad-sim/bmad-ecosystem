@@ -13,6 +13,7 @@ set (SRC_DIRS
 #set (LINK_FLAGS "-openmp")
 
 set (EXE_SPECS
+  cmake.s3drefl
   cmake.analyzer
   cmake.bbu
   cmake.dynamic_aperture
