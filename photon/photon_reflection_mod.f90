@@ -2,40 +2,10 @@ module photon_reflection_mod
 
 use bmad_utils_mod
 
-! Structure for holding the reflection probability tables.
 ! For a custom reflection calc: 
 !   See the photon_reflection_init routine for an example of how to set up the reflection tables.
 ! Note: It is assumed that for each table that the energy(:) values are equally spaced.
 !       Also must have angle(1) = 0 and the last angle(n) = 90.
-
-type interval1_coef_struct
-  real(rp) c0, c1, n_exp
-end type
-
-type photon_reflect_table_struct
-  real(rp), allocatable :: angle(:)              ! Vector of angle values for %p_reflect
-  real(rp), allocatable :: energy(:)             ! Vector of energy values for %p_reflect
-  type (interval1_coef_struct), allocatable :: int1(:)
-  real(rp), allocatable :: p_reflect(:,:) ! (angle, ev) Logarithm of smooth surface reflection probability
-  real(rp) max_energy                            ! maximum energy for this table
-  real(rp), allocatable :: p_reflect_scratch(:)       ! Scratch space
-end type
-
-! Each photon_reflect_reflect_table_array(:) represents a different surface type.
-! photon_reflect_reflect_table_array(1) is initialized by the photon_reflection_init routine
-! All others can be set by an outside programmer. 
-
-type photon_reflect_surface_struct
-  character(40) descrip                       ! Descriptive name
-  character(200) :: reflectivity_file = ''
-  type (photon_reflect_table_struct), allocatable :: table(:)
-  real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
-  real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
-  logical :: initialized = .false.
-  integer :: ix_surface
-end type
-
-!
 
 integer, parameter, private :: n_cheb_term$ = 30
 

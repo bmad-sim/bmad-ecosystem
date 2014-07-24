@@ -24,6 +24,35 @@ integer, parameter :: bmad_inc_version$ = 138
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+! Structure for holding the photon reflection probability tables.
+
+type interval1_coef_struct
+  real(rp) c0, c1, n_exp
+end type
+
+type photon_reflect_table_struct
+  real(rp), allocatable :: angle(:)              ! Vector of angle values for %p_reflect
+  real(rp), allocatable :: energy(:)             ! Vector of energy values for %p_reflect
+  type (interval1_coef_struct), allocatable :: int1(:)
+  real(rp), allocatable :: p_reflect(:,:) ! (angle, ev) Logarithm of smooth surface reflection probability
+  real(rp) max_energy                            ! maximum energy for this table
+  real(rp), allocatable :: p_reflect_scratch(:)       ! Scratch space
+end type
+
+! Each photon_reflect_reflect_table_array(:) represents a different surface type.
+! photon_reflect_reflect_table_array(1) is initialized by the photon_reflection_init routine
+! All others can be set by an outside programmer. 
+
+type photon_reflect_surface_struct
+  character(40) descrip                       ! Descriptive name
+  character(200) :: reflectivity_file = ''
+  type (photon_reflect_table_struct), allocatable :: table(:)
+  real(rp) :: surface_roughness_rms = 0       ! sigma in Dugan's notation
+  real(rp) :: roughness_correlation_len = 0   ! T in Dugan's notation
+  logical :: initialized = .false.
+  integer :: ix_surface
+end type
+
 !-------------------------------------------------------------------------
 
 ! num_ele_attrib$ is size of ele%value(:) array.
@@ -83,34 +112,47 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
-integer, parameter :: normal$ = 1, clear$ = 2, mask$ = 3, trunk$ = 4, trunk1$ = 5
-integer, parameter :: trunk2$ = 6, leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10
-character(16), parameter :: wall3d_section_type_name(10) = [ &
-                     'Normal    ', 'Clear     ', 'Mask      ', 'Trunk     ', &
-                     'Trunk1    ', 'Trunk2    ', 'Leg1      ', 'Leg2      ', &
-                     'Wall_Start', 'Wall_End  ']
+integer, parameter :: normal$ = 1, clear$ = 2, mask$ = 3, trunk$ = 4, trunk1$ = 5, trunk2$ = 6
+integer, parameter :: leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10, triangular$ = 11
+character(16), parameter :: wall3d_section_type_name(11) = [ &
+                     'Normal     ', 'Clear      ', 'Mask       ', 'Trunk      ', &
+                     'Trunk1     ', 'Trunk2     ', 'Leg1       ', 'Leg2       ', &
+                     'Wall_Start ', 'Wall_End   ', 'Triangular ']
+
+integer, parameter :: antechamber$ = 2
+character(16), parameter :: wall3d_vertex_type_name(2) = ['Normal     ', 'Antechamber']
+
+! Note: Component order in wall3d_vertex_struct is important since sr3d_read_wall_file uses
+! a namelist read to input vertex points
+
 type wall3d_vertex_struct
-  real(rp) x, y             ! Coordinates of the vertex.
-  real(rp) :: radius_x = 0  ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
-  real(rp) :: radius_y = 0  ! Ellipse y-axis half height. 
-  real(rp) :: tilt = 0      ! Tilt of ellipse
-  real(rp) angle            ! Angle of (x, y) point.
-  real(rp) x0, y0           ! Center of ellipse
+  real(rp) :: x = 0, y = 0      ! Coordinates of the vertex.
+  real(rp) :: radius_x = 0      ! Radius of arc or ellipse x-axis half width. 0 => Straight line.
+  real(rp) :: radius_y = 0      ! Ellipse y-axis half height. 
+  real(rp) :: tilt = 0          ! Tilt of ellipse
+  real(rp) :: angle = 0         ! Angle of (x, y) point.
+  real(rp) :: x0 = 0, y0 = 0    ! Center of ellipse
+  integer :: type = normal$     ! or antechamber$
 end type
 
-! A beam pipe or capillary cross section is a collection of vertexes.
+! A beam pipe or capillary cross-section is a collection of vertexes.
 ! Vertices are always ordered in increasing angle.
+! Note: %surface is not saved in digested files.
 
 type wall3d_section_struct
-  integer :: type = normal$                 ! normal$, clear$, opaque$, crotch$, crotch1$, leg2$, ...
+  character(40) :: name = ''                ! Identifying name
   character(20) :: material = ''            ! Material.
-  real(rp) :: thickness = -1                ! Material thickness.
-  real(rp) :: s = 0                         ! Longitudinal position
+  type (wall3d_vertex_struct), allocatable :: v(:)  ! Array of vertices
+  type (photon_reflect_surface_struct), pointer :: surface => null()
+                                            ! Surface reflectivity tables.
+  integer :: type = normal$                 ! normal$, clear$, opaque$, crotch$, crotch1$, leg2$, ...
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
   integer :: ix_branch = 0                  ! Index of branch lattice element is in.
-  type (wall3d_vertex_struct), allocatable :: v(:)     ! Array of vertices
+  real(rp) :: thickness = -1                ! Material thickness.
+  real(rp) :: s = 0                         ! Longitudinal position
   real(rp) :: x0 = 0, y0 = 0                ! Center of section
+  real(rp) :: x_safe = 0, y_safe = 0        ! Defines safe region for faster evaluations.
   ! Section-to-section spline interpolation of the center of the section
   real(rp) :: dx0_ds = 0                    ! Center of wall derivative
   real(rp) :: dy0_ds = 0                    ! Center of wall derivative
