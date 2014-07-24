@@ -1,0 +1,22 @@
+set (EXENAME s3drefl)
+set (SRC_FILES
+  s3drefl/s3drefl.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmadz
+  cesr_utils
+  bmad
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  ${PLOT_LINK_LIBS}
+  xsif
+)
