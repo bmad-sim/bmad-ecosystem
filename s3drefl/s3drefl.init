@@ -1,0 +1,20 @@
+&s3drefl_parameters
+ surface_reflection_file = '' ! For custom reflection parameters.
+ roughness_rms_min = 0        ! Specular only
+ roughness_rms_max = 0
+ roughness_rms_min = 100e-9        
+ roughness_rms_max = 200e-9
+ roughness_rms_nsteps = 2     ! Ignored if min>max
+ correlation_len_min = 0      ! Specular only
+ correlation_len_max = 0
+ correlation_len_min = 5000e-9
+ correlation_len_max = 6000e-9
+ correlation_len_nsteps = 2   ! Ignored if min>max
+ angle_in_min = 0             ! Min incident angle (degrees)
+ angle_in_max = 90.           ! Max incident angle (degrees)
+ angle_in_nsteps = 100        ! Ignored if min>max
+ energy_min = 100.
+ energy_max = 9000.
+ energy_nsteps = 89           ! Ignored if min>max
+ output_file = 's3drefl.out'
+/
