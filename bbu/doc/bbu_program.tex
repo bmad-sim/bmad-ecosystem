@@ -145,6 +145,14 @@ the main input file will look like:
   bbu_param%nrep = 10                       ! Threshold or stable orbit calculation reps.
   bbu_param%ran_seed = 0                    ! Set specific seedd (0 uses system clock).
   bbu_param%ran_gauss_sigma_cut = 3         ! Limit ran_gauss values to within N sigma.
+  bbu_param%stable_orbit_anal = F           ! Write out cavity orbit data 
+                                            ! for SIMULATION_TURNS_MAX turns
+                                            ! No thresholds are calculated
+                                            ! Repeated NREP times with HOM 
+                                            ! frequencies re-randomized
+                                            ! DRSCAN disabled
+  bbu_param%ele_track_end = 'NA_MAR_END'    ! Specify element at which to stop tracking 
+                                            ! for stable orbit analysis
   bbu_param%hom_order_cutoff = 0            ! If positive -> ignore HOM's of hither order.
   bbu_param%stable_orbit_anal = F           ! Write out cavity orbit data.
 /
@@ -212,7 +220,9 @@ are limited to a maximum deviation of \vn{ran_gauss_sigma_cut} rms deviations.
   \item[\vn{stable_orbit_anal}] \Newline
 If this parameter is set true, then the output files \tt{stable_orbit.out} and \tt{hom_voltage.out}
 are written for each bunch train passage and each repetition, allowing the orbit deviations
-and HOM loading to be analyzed as the equilibrium level is reached.
+and HOM loading to be analyzed as the equilibrium loading level is reached.
+  \item[\vn{ele_track_end}] \Newline
+This character string defines an element at which to end the tracking. It allows the stable orbit analysis to be performed on multi-pass lattices.
   \item[\vn{hom_order_cutoff}] \Newline
 If this parameter is set to some positive number, any HOM modes that have an order that
 is higher than \vn{hom_order_cutoff} will be ignored in tracking.
