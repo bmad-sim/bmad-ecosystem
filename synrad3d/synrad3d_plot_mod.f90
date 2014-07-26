@@ -18,7 +18,7 @@ contains
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !-
 
-subroutine sr3d_plot_reflection_probability (plot_param, wall)
+subroutine sr3d_plot_reflection_probability (plot_param, wall, sr3d_com)
 
 implicit none
 
@@ -34,6 +34,7 @@ type (sr3d_plot_param_struct) plot_param
 type (sr3d_wall_struct), target :: wall
 type (yplot), allocatable :: ny(:)
 type (photon_reflect_surface_struct), pointer :: surface
+type (sr3d_common_struct), target :: sr3d_com
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
 real(rp) value, value1, value2, y_min, y_max
@@ -59,7 +60,7 @@ y_lab = 'Reflectivity'
 reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
-surface => wall%surface(1)
+surface => sr3d_com%surface(1)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -143,8 +144,8 @@ do
 
   print *
   print '(a)', 'Surfaces Defined:'
-  do i = 1, size (wall%surface)
-    print '(3x, i3, 2x, a)', i, trim(wall%surface(i)%descrip)
+  do i = 1, size (sr3d_com%surface)
+    print '(3x, i3, 2x, a)', i, trim(sr3d_com%surface(i)%descrip)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -205,12 +206,12 @@ do
       cycle
     endif
 
-    if (ix < 1 .or. ix > size(wall%surface)) then
+    if (ix < 1 .or. ix > size(sr3d_com%surface)) then
       print *, 'SURFACE INDEX OUT OF RANGE.'
       cycle
     endif
 
-    surface => wall%surface(ix)
+    surface => sr3d_com%surface(ix)
 
   case ('type')
 

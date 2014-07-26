@@ -28,7 +28,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, err_flag)
+! Subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, sr3d_com, err_flag)
 !
 ! Routine to check the vacuum chamber wall for problematic values.
 ! Also compute some wall parameters
@@ -43,7 +43,7 @@ contains
 !   err_flag  -- logical, optional: Set true if there is a problem
 !-
 
-subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, err_flag)
+subroutine sr3d_read_wall_file (wall_file, s_lat, geometry, wall, sr3d_com, err_flag)
 
 implicit none
 
@@ -51,6 +51,7 @@ implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (lat_struct) lat
+type (sr3d_common_struct), target :: sr3d_com
 type (sr3d_wall_section_struct), pointer :: sec, sec0, sec2
 type (sr3d_wall_section_struct), allocatable :: temp_section(:)
 type (sr3d_wall_section_struct) ref_section
@@ -60,11 +61,12 @@ type (wall3d_section_struct), pointer :: wall3d_section
 type (sr3d_multi_section_struct), pointer :: m_sec
 type (surface_input) surface
 type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
+type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
-integer i, j, k, im, n, ix, iu, n_wall_section_max, ios, n_shape, n_surface, n_repeat
+integer i, j, k, im, n, ig, ix, iu, iv, n_wall_section_max, ios, n_shape, n_surface, n_repeat
 integer m_max, n_add, geometry
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
@@ -75,7 +77,6 @@ character(*) wall_file
 logical, optional :: err_flag
 logical err, multi_local, in_ante
 logical, allocatable ::  is_local(:) 
-
 
 namelist / section_def / section, surface
 namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2
@@ -106,18 +107,18 @@ do
   n_surface = n_surface + 1
 enddo
 
-if (allocated(wall%surface)) deallocate(wall%surface)
-allocate (wall%surface(n_surface+1))
-wall%surface(1)%reflectivity_file = ''
-wall%surface(1)%descrip = 'default'
-call photon_reflection_std_surface_init(wall%surface(1))
+if (allocated(sr3d_com%surface)) deallocate(sr3d_com%surface)
+allocate (sr3d_com%surface(n_surface+1))
+sr3d_com%surface(1)%reflectivity_file = ''
+sr3d_com%surface(1)%descrip = 'default'
+call photon_reflection_std_surface_init(sr3d_com%surface(1))
 
 rewind(iu)
 do i = 2, n_surface+1
   read (iu, nml = surface_def, iostat = ios)
-  call read_surface_reflection_file (reflectivity_file, wall%surface(i))
-  wall%surface(i)%descrip = name
-  wall%surface(i)%reflectivity_file = reflectivity_file
+  call read_surface_reflection_file (reflectivity_file, sr3d_com%surface(i))
+  sr3d_com%surface(i)%descrip = name
+  sr3d_com%surface(i)%reflectivity_file = reflectivity_file
 enddo
 
 ! Read multi_section
@@ -186,7 +187,7 @@ do i = 0, n_wall_section_max
     sec%shape_name  = section%basic_shape(ix+1:)
   endif
 
-  call sr3d_associate_surface (sec%surface, surface%name, wall%surface)
+  call sr3d_associate_surface (sec%surface, surface%name, sr3d_com%surface)
   is_local(i) = surface%is_local
 
 enddo
@@ -596,7 +597,7 @@ enddo
 
 ! Surface info
 
-surface_ptr => wall%surface(1)  ! Default surface
+surface_ptr => sr3d_com%surface(1)  ! Default surface
 
 do i = wall%n_section_max, 0, -1
   sec => wall%section(i)
@@ -606,6 +607,93 @@ do i = wall%n_section_max, 0, -1
   else
     sec%surface => surface_ptr
   endif
+
+enddo
+
+! Create a gen_shape for each section that does not have one
+
+n = 0
+do i = 0, wall%n_section_max
+  if (.not. associated (wall%section(i)%gen_shape)) n = n + 1
+enddo
+
+ig = size(wall%gen_shape)
+call move_alloc(wall%gen_shape, gen_shape)
+allocate (wall%gen_shape(n + ig))
+wall%gen_shape(1:ig) = gen_shape
+
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
+  if (associated(sec%gen_shape)) cycle
+  ig = ig + 1
+  sec%gen_shape => wall%gen_shape(ig)
+  wall3d_section => sec%gen_shape%wall3d_section
+
+  ! Simple rectangle or ellipse
+
+  if (sec%width2_plus <= 0 .and. sec%width2_minus <= 0) then
+    allocate (wall3d_section%v(1))
+    wall3d_section%n_vertex_input = 1
+    if (sec%basic_shape == 'elliptical') then
+      wall3d_section%v(1)%radius_x = sec%width2
+      wall3d_section%v(1)%radius_y = sec%height2
+    else
+      wall3d_section%v(1)%x = sec%width2
+      wall3d_section%v(1)%y = sec%height2
+    endif  
+
+  ! Has antichamber(s) or beam stop(s)
+
+  else
+    do n = 1, 10
+      v(n) = wall3d_vertex_struct()
+    enddo
+
+    if (sec%width2_plus <= 0) then   ! No antechamber or beam stop
+      iv = 1
+      v(1)%x = sec%width2
+      if (sec%basic_shape == 'rectangular') v(1)%y = sec%height2
+    elseif (sec%width2_plus < sec%width2) then  ! Beam stop
+      iv = 1
+      v(1)%x = sec%width2_plus
+      v(1)%y = sec%y0_plus
+    else                                        ! Antechamber
+      iv = 2
+      v(1)%x = sec%width2_plus
+      v(1)%y = sec%ante_height2_plus
+      v(2)%x = sec%ante_x0_plus
+      v(2)%y = sec%ante_height2_plus
+    endif
+
+    if (sec%basic_shape == 'elliptical') then
+      v(iv+1)%radius_x = sec%width2
+      v(iv+1)%radius_y = sec%height2
+    endif
+
+    if (sec%width2_minus <= 0) then   ! No antechamber or beam stop
+      iv = iv + 1
+      v(iv)%x = -sec%width2
+      if (sec%basic_shape == 'rectangular') v(iv)%y =  sec%height2
+    elseif (sec%width2_minus < sec%width2) then  ! Beam stop
+      iv = iv + 1
+      v(iv)%x = -sec%width2_minus
+      v(iv)%y =  sec%y0_minus
+    else                                        ! Antechamber
+      iv = iv + 2
+      v(iv-1)%x = -sec%ante_x0_minus
+      v(iv-1)%y =  sec%ante_height2_minus
+      v(iv)%x = -sec%width2_minus
+      v(iv)%y =  sec%ante_height2_minus
+    endif
+
+    allocate (wall3d_section%v(iv))
+    wall3d_section%v = v(1:iv)
+    wall3d_section%n_vertex_input = iv
+
+  endif
+
+  call wall3d_section_initializer (wall3d_section, err)
+  if (err) call err_exit
 
 enddo
 
@@ -1149,6 +1237,8 @@ integer ix_wall
 ! 
 
 ix_wall = p_orb%ix_wall
+if (ix_wall == wall%n_section_max) ix_wall = wall%n_section_max - 1
+
 if (p_orb%s < wall%section(ix_wall)%s .or. p_orb%s > wall%section(ix_wall+1)%s) then
   call bracket_index2 (wall%section%s, 0, wall%n_section_max, p_orb%s, p_orb%ix_wall, ix_wall)
   p_orb%ix_wall = ix_wall

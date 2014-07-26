@@ -115,6 +115,7 @@ type (sr3d_photon_track_struct) :: photon
 type (sr3d_photon_coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (random_state_struct) ran_state
+type (sr3d_common_struct), target :: sr3d_com
 
 real(rp) vel
 integer i, ios, num_ignored, random_seed, n_photon
@@ -154,7 +155,7 @@ endif
 
 ! Init wall
 
-call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall)
+call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
 
 ! Open photon start input file and count the number of photons
 

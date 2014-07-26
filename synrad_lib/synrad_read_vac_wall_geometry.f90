@@ -29,6 +29,7 @@ type (walls_struct), target :: walls
 type (branch_struct) branch
 type (wall_struct), pointer :: minus_side, plus_side
 type (sr3d_wall_struct) wall3d
+type (sr3d_common_struct), target :: sr3d_com
 
 real(rp), optional :: seg_len_phantom_max
 real(rp) seg_len_max
@@ -53,7 +54,7 @@ if (present(err_flag)) err_flag = .true.
 ! If a synrad3d file...
 
 if (wall_file(1:10) == 'synrad3d::') then
-  call sr3d_read_wall_file (wall_file(11:), branch%param%total_length, branch%param%geometry, wall3d, err)
+  call sr3d_read_wall_file (wall_file(11:), branch%param%total_length, branch%param%geometry, wall3d, sr3d_com, err)
   if (err) return
   call synrad3d_wall_to_synrad_walls (wall3d, seg_len_max, branch, walls)
   if (present(err_flag)) err_flag = .false.

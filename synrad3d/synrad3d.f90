@@ -20,6 +20,8 @@ type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here
 type (rad_int_all_ele_struct) rad_int_ele
 type (normal_modes_struct) modes
+type (wall3d_struct) wall3d
+type (sr3d_common_struct) sr3d_com
 type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_wall_struct), target :: wall
@@ -172,6 +174,8 @@ close (1)
 
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
 
+call ran_seed_put (random_seed)
+
 ! When a filter parameter is set, only photons that satisfy the filter criteria are kept
 
 filter_on = (e_init_filter_min > 0) .or. (e_init_filter_max > 0) .or. &
@@ -185,6 +189,36 @@ if (lattice_file(1:6) == 'xsif::') then
 else
   call bmad_parser (lattice_file, lat)
 endif
+
+if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
+
+! Wall init
+
+call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
+
+! Load different surface reflection parameters if wanted
+
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, sr3d_com%surface(1))
+if (surface_roughness_rms > 0) sr3d_com%surface(1)%surface_roughness_rms = surface_roughness_rms
+if (roughness_correlation_len > 0) sr3d_com%surface(1)%roughness_correlation_len = roughness_correlation_len
+
+! Plot wall cross-sections or reflections. 
+! The plotting routines never return back to the main program.
+
+if (plotting /= '') then
+  if (plotting == 'xy') then
+    call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+  elseif (plotting == 'xs' .or. plotting == 'ys') then
+    call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
+  elseif (index('reflect', trim(plotting)) == 1) then
+    call sr3d_plot_reflection_probability(plot_param, wall, sr3d_com)
+  else
+    call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
+    call err_exit
+  endif
+endif
+
+! Lattice setup
 
 if (turn_off_kickers_in_lattice) then
   do i = 1, lat%n_ele_max
@@ -210,36 +244,6 @@ endif
 call twiss_and_track (lat, orb, ok)
 if (.not. ok) stop
   
-if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
-
-call ran_seed_put (random_seed)
-
-! Wall init
-
-call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall)
-
-! Load different surface reflection parameters if wanted
-
-if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, wall%surface(1))
-if (surface_roughness_rms > 0) wall%surface(1)%surface_roughness_rms = surface_roughness_rms
-if (roughness_correlation_len > 0) wall%surface(1)%roughness_correlation_len = roughness_correlation_len
-
-! Plot wall cross-sections or reflections. 
-! The plotting routines never return back to the main program.
-
-if (plotting /= '') then
-  if (plotting == 'xy') then
-    call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
-  elseif (plotting == 'xs' .or. plotting == 'ys') then
-    call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
-  elseif (index('reflect', trim(plotting)) == 1) then
-    call sr3d_plot_reflection_probability(plot_param, wall)
-  else
-    call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
-    call err_exit
-  endif
-endif
-
 ! Find out much radiation is produced
 
 call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
@@ -729,9 +733,9 @@ write (iu, '(a,  f11.4)') 's_filter_max            = ', s_filter_max
 write (iu, '(a, es10.3)') 'sr3d_params%ds_track_step_max         = ', sr3d_params%ds_track_step_max
 write (iu, '(a, es10.3)') 'sr3d_params%dr_track_step_max         = ', sr3d_params%dr_track_step_max
 write (iu, '(a, es10.3)') 'surface_roughness_rms (input)         = ', surface_roughness_rms
-write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', wall%surface(1)%surface_roughness_rms
+write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', sr3d_com%surface(1)%surface_roughness_rms
 write (iu, '(a, es10.3)') 'roughness_correlation_len (input)     = ', roughness_correlation_len
-write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', wall%surface(1)%roughness_correlation_len
+write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', sr3d_com%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)') 'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)') 'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
 write (iu, '(a, l1)') 'sr3d_params%stop_if_hit_antechamber   = ', sr3d_params%stop_if_hit_antechamber
