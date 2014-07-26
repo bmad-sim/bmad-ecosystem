@@ -455,12 +455,13 @@ real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp), allocatable :: x1_norm(:), y1_norm(:), x2_norm(:), y2_norm(:)
 real(rp) minn, maxx
 
-integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max
+integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max, ix0
 
 character(100) :: ans, label, label2
 character(8) v_str
 
 logical at_section, draw_norm, reverse_x_axis
+logical, allocatable :: in_ante(:)
 
 ! Open plotting window
 
@@ -472,7 +473,7 @@ reverse_x_axis = .false.
 x_max_user = -1
 r_max = 100
 n = plot_param%n_pt
-allocate (x(n), y(n))
+allocate (x(n), y(n), in_ante(n))
 allocate (x1_norm(n), y1_norm(n), x2_norm(n), y2_norm(n))
 
 ! Print wall info
@@ -510,10 +511,10 @@ do
 
     if (draw_norm .and. modulo(i, 4) == 0) then
       j = (i / 4)
-      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j))
+      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j), in_ante = in_ante(i))
       n_norm_max = j
     else
-      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i))
+      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), in_ante = in_ante(i))
     endif
 
   enddo
@@ -555,7 +556,22 @@ do
     call qp_set_axis ('X', maxx, minn) 
   endif
 
-  call qp_draw_graph (x, y, 'X (cm)', 'Y (cm)', label, .true., 0)
+  call qp_draw_graph (x, y, 'X (cm)', 'Y (cm)', label, .false., 0)
+
+  ix0 = 1
+  do ix = 2, size(x)
+    if (ix /= size(x)) then
+      if (in_ante(ix+1) == in_ante(ix0)) cycle
+    endif
+
+    if (in_ante(ix0)) then
+      call qp_draw_polyline (x(ix0:ix), y(ix0:ix), color = red$)
+    else
+      call qp_draw_polyline (x(ix0:ix), y(ix0:ix))
+    endif
+    ix0 = ix+1
+  enddo
+
   call qp_draw_text (label2, 0.5_rp, 0.98_rp, '%/GRAPH/LB', 'CT')
 
   if (draw_norm) then
@@ -665,7 +681,7 @@ end subroutine sr3d_plot_wall_cross_sections
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm)
+subroutine sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm, in_ante)
 
 implicit none
 
@@ -681,6 +697,7 @@ real(rp) dtrack, d_radius, r_old, dw_perp(3)
 
 integer j, ixp
 
+logical, optional :: in_ante
 logical is_through
 
 !
@@ -709,7 +726,7 @@ if (wall%section(ixp+1)%basic_shape == 'triangular') then
   endif
 
 else
-  call sr3d_photon_d_radius (photon%now, wall, d_radius)
+  call sr3d_photon_d_radius (photon%now, wall, d_radius, in_antechamber = in_ante)
   if (d_radius < 0) then
     print *, 'INTERNAL COMPUTATION ERROR!'
     call err_exit
@@ -722,7 +739,7 @@ endif
 
 if (present(x1_norm)) then
   photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
-  call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp)
+  call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp, in_ante)
   x1_norm = x_wall;                  y1_norm = y_wall
   x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
 endif
