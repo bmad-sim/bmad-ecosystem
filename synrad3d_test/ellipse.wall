@@ -1,0 +1,11 @@
+&section_def section =  0,   "rect1", "elliptical", 0.05, 0.03,  0.07, 0.01,  0.02 /        ! A-B
+&section_def section = 10.0, "rect2", "elliptical", 0.05, 0.03,  0.02, 0.00,  0.07, 0.01 /  ! B-A
+&section_def section = 20.0, "rect3", "elliptical", 0.05, 0.03,  0.08, 0.01,  0.07, 0.02 /  ! A-A
+&section_def section = 30.0, "rect4", "elliptical", 0.05, 0.03 /					                   ! R-R
+&section_def section = 40.0, "rect5", "elliptical", 0.05, 0.03,  0.04, 0.00,  0.03, 0.00 /  ! B-B
+&section_def section = 50.0, "rect6", "elliptical", 0.05, 0.03, -1.00, 0.00,  0.07, 0.02 /  ! R-A
+&section_def section = 60.0, "rect7", "elliptical", 0.05, 0.03, -1.00, 0.00,  0.03, 0.00 /  ! R-B
+&section_def section = 70.0, "rect8", "elliptical", 0.05, 0.03,  0.08, 0.01, -1.00, 0.00 /  ! A-R
+&section_def section = 80.0, "rect9", "elliptical", 0.05, 0.03,  0.04, 0.00, -1.00, 0.00 /  ! B-R
+
+ 

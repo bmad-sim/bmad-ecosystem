@@ -10,6 +10,7 @@ type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) :: photon
 type (sr3d_photon_coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (sr3d_common_struct), target :: sr3d_com
 
 real(rp) vel
 integer ios, num_ignored, n_photon
@@ -48,7 +49,7 @@ do
   if (wall_file /= old_wall_file) then
     if (allocated(wall%section)) deallocate (wall%section)
     if (allocated(wall%gen_shape)) deallocate (wall%gen_shape)
-    call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall)
+    call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
     old_wall_file = wall_file
     cycle
   endif

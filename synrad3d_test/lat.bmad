@@ -1,5 +1,6 @@
-parameter[lattice_type] = linear_lattice
-beginning[e_tot] = 1e9
-d: drift, l = 10
-l: line = (d)
-use, l
+parameter[geometry] = open
+parameter[e_tot] = 1e9
+dd: drift, l = 100
+ll: line = (dd)
+use, ll
+
