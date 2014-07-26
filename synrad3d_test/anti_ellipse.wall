@@ -1,4 +1,0 @@
-&section_def section =  0, "BEAMPIPE_Q00: 1", "elliptical", 0.05, 0.03, .08, .01, 0.04, -0.02  /
-&section_def section = 10, "BEAMPIPE_Q00: 2", "elliptical", 0.04, 0.03, .08, .01, 0.04, -0.02  /
-
- 
