@@ -67,7 +67,7 @@ real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ig, ix, iu, iv, n_wall_section_max, ios, n_shape, n_surface, n_repeat
-integer m_max, n_add, geometry
+integer m_max, n_add, geometry, ix1, ix2
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
@@ -610,7 +610,8 @@ do i = wall%n_section_max, 0, -1
 
 enddo
 
-! Create a gen_shape for each section that does not have one
+! Create a gen_shape for each section that does not have one.
+! Also set antechamber segments.
 
 n = 0
 do i = 0, wall%n_section_max
@@ -624,7 +625,45 @@ wall%gen_shape(1:ig) = gen_shape
 
 do i = 0, wall%n_section_max
   sec => wall%section(i)
-  if (associated(sec%gen_shape)) cycle
+
+  ! 
+
+  if (associated(sec%gen_shape)) then
+    wall3d_section => sec%gen_shape%wall3d_section
+
+    ix1 = sec%gen_shape%ix_vertex_ante(1)
+    ix2 = sec%gen_shape%ix_vertex_ante(2)
+    if (ix2 > ix1) then
+      do iv = ix1+1, ix2
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+    elseif (ix2 < ix1) then
+      do iv = ix1+1, size(wall3d_section%v)
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+      do iv = 1, ix2
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+    endif
+
+    ix1 = sec%gen_shape%ix_vertex_ante2(1)
+    ix2 = sec%gen_shape%ix_vertex_ante2(2)
+    if (ix2 > ix1) then
+      do iv = ix1+1, ix2
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+    elseif (ix2 < ix1) then
+      do iv = ix1+1, size(wall3d_section%v)
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+      do iv = 1, ix2
+        wall3d_section%v(iv)%type = antechamber$
+      enddo
+    endif
+
+    return
+  endif
+
   ig = ig + 1
   sec%gen_shape => wall%gen_shape(ig)
   wall3d_section => sec%gen_shape%wall3d_section
@@ -659,10 +698,12 @@ do i = 0, wall%n_section_max
       v(1)%y = sec%y0_plus
     else                                        ! Antechamber
       iv = 2
-      v(1)%x = sec%width2_plus
-      v(1)%y = sec%ante_height2_plus
-      v(2)%x = sec%ante_x0_plus
-      v(2)%y = sec%ante_height2_plus
+      v(1)%x    = sec%width2_plus
+      v(1)%y    = sec%ante_height2_plus
+      v(1)%type = antechamber$
+      v(2)%x    = sec%ante_x0_plus
+      v(2)%y    = sec%ante_height2_plus
+      v(2)%type = antechamber$
     endif
 
     if (sec%basic_shape == 'elliptical') then
@@ -679,16 +720,23 @@ do i = 0, wall%n_section_max
       v(iv)%x = -sec%width2_minus
       v(iv)%y =  sec%y0_minus
     else                                        ! Antechamber
-      iv = iv + 2
-      v(iv-1)%x = -sec%ante_x0_minus
-      v(iv-1)%y =  sec%ante_height2_minus
-      v(iv)%x = -sec%width2_minus
-      v(iv)%y =  sec%ante_height2_minus
+      iv = iv + 3
+      v(iv-2)%x    = -sec%ante_x0_minus
+      v(iv-2)%y    =  sec%ante_height2_minus
+      v(iv-1)%x    = -sec%width2_minus
+      v(iv-1)%y    =  sec%ante_height2_minus
+      v(iv-1)%type = antechamber$
+      v(iv)%x      = -sec%width2_minus
+      v(iv)%y      =  0
+      v(iv)%type   = antechamber$
     endif
 
     allocate (wall3d_section%v(iv))
     wall3d_section%v = v(1:iv)
     wall3d_section%n_vertex_input = iv
+
+    if (sec%width2_plus > sec%width2) sec%gen_shape%ix_vertex_ante = [size(wall3d_section%v)-1, 2]
+    if (sec%width2_minus > sec%width2) sec%gen_shape%ix_vertex_ante2 = [iv-2, iv+2]
 
   endif
 
@@ -1414,7 +1462,7 @@ elseif (cos_photon < 0) then
       section%basic_shape = 'rectangular'
       section%width2 = section%width2_minus
       section%height2 = section%ante_height2_minus
-      if (cos_photon >= section%ante_x0_minus) in_antechamber = .true.
+      if (abs(cos_photon) >= section%ante_x0_minus) in_antechamber = .true.
     endif
 
   ! If there is a beam stop...
