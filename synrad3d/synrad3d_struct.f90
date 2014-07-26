@@ -102,10 +102,14 @@ type sr3d_wall_struct
   type (sr3d_wall_section_struct), allocatable :: section(:)  ! lbound index = 0
   type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   type (sr3d_multi_section_struct), allocatable :: multi_section(:)
-  type (photon_reflect_surface_struct), allocatable :: surface(:)
   integer n_section_max
   integer geometry      ! closed$ or open$
   logical has_triangular_sections
+end type
+
+type sr3d_common_struct
+  type (photon_reflect_surface_struct), allocatable :: surface(:)
+  integer geometry      ! closed$ or open$
 end type
 
 !------------------------------------------------------------------------
