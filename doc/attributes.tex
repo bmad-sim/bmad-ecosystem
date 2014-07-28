@@ -612,9 +612,9 @@ The aperture attributes are:
   x_limit       = <Real>      ! Alternative to specifying x1_limit and x2_limit
   y_limit       = <Real>      ! Alternative to specifying y1_limit and y2_limit
   aperture      = <Real>      ! Alternative to specifying x_limit and y_limit
-  aperture_at   = <Switch>    ! What end aperture is at.
-  aperture_type = <Switch>    ! What type of aperture it is.
-  offset_moves_aperture = <Logical> ! Element offsets affect aperture position
+  aperture_at   = <Switch>    ! What end aperture is at. (\sref{ss:ap.place})
+  aperture_type = <Switch>    ! What type of aperture it is
+  offset_moves_aperture = <Logical> ! Element offsets affect aperture position (\sref{ss:offset.ap})
 \end{example}
 \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}, and \vn{y2_limit} specify
 the half--width of the aperture of an element as shown in
@@ -673,6 +673,7 @@ Examples:
 
 %-----------------------------------------------------------------
 \subsection{Apertures and Element Offsets}
+\label{ss:offset.ap}
 
 \index{tilt}
 \index{x_offset}
@@ -707,13 +708,14 @@ element will tilt the aperture. Additionally, when the aperture is at
 the \vn{surface} (see below), any \vn{tilt} will be used in the
 calculation.
 
-Examples:
+Example:
 \begin{example}
   q1: quad, l = 0.6, x1_limit = 0.045, offset_moves_aperture = T
 \end{example}
 
 %-----------------------------------------------------------------
 \subsection{Aperture Placement}
+\label{ss:ap.place}
 
 \index{both_ends|hyperbf}\index{continuous|hyperbf}
 \index{entrance_end|hyperbf}\index{exit_end|hyperbf}
