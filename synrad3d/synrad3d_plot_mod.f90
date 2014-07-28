@@ -532,10 +532,10 @@ do
       write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
                                 '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
     endif
-    label2 = 'Surface: ' // wall%section(ix_section)%surface%descrip
+    label2 = 'Surface: ' // wall%section(ix_section)%gen_shape%wall3d_section%surface%descrip
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
-    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%surface%descrip
+    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%gen_shape%wall3d_section%surface%descrip
   endif
 
   call qp_clear_page

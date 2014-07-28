@@ -67,7 +67,7 @@ real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ig, ix, iu, iv, n_wall_section_max, ios, n_shape, n_surface, n_repeat
-integer m_max, n_add, geometry, ix1, ix2
+integer m_max, n_add, geometry, ix1, ix2, n_old_style
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
@@ -76,7 +76,6 @@ character(*) wall_file
 
 logical, optional :: err_flag
 logical err, multi_local, in_ante
-logical, allocatable ::  is_local(:) 
 
 namelist / section_def / section, surface
 namelist / gen_shape_def / name, v, ix_vertex_ante, ix_vertex_ante2
@@ -149,7 +148,7 @@ if (n_wall_section_max < 1) then
 endif
 
 if (allocated(wall%section)) deallocate(wall%section)
-allocate (wall%section(0:n_wall_section_max), is_local(0:n_wall_section_max))
+allocate (wall%section(0:n_wall_section_max))
 wall%n_section_max = n_wall_section_max
 
 ! Now transfer info from the file to the wall%section array
@@ -176,10 +175,10 @@ do i = 0, n_wall_section_max
   endif
 
   sec = sr3d_wall_section_struct(section%name, &
-          section%basic_shape, '', section%s, section%width2, section%height2, &
+          section%basic_shape, '', '', section%s, section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., null(), null())
 
   ix = index(section%basic_shape, ':')
   if (ix /= 0) then
@@ -187,8 +186,8 @@ do i = 0, n_wall_section_max
     sec%shape_name  = section%basic_shape(ix+1:)
   endif
 
-  call sr3d_associate_surface (sec%surface, surface%name, sr3d_com%surface)
-  is_local(i) = surface%is_local
+  sec%surface_name = surface%name
+  sec%is_local = surface%is_local
 
 enddo
 
@@ -209,8 +208,14 @@ do
   n_shape = n_shape + 1
 enddo
 
+n_old_style = count(wall%section%basic_shape == 'rectangular') + count(wall%section%basic_shape == 'elliptical')
+do i = 1, size(wall%multi_section)
+  n_old_style = n_old_style + count(wall%multi_section(i)%section%basic_shape == 'rectangular') + &
+                              count(wall%multi_section(i)%section%basic_shape == 'elliptical')
+enddo
+
 if (allocated(wall%gen_shape)) deallocate(wall%gen_shape)
-allocate (wall%gen_shape(n_shape))
+allocate (wall%gen_shape(n_shape+n_old_style))
 
 rewind(iu)
 do i = 1, n_shape
@@ -317,22 +322,20 @@ outer: do
     deallocate (temp_section)
     wall%n_section_max = n + n_add - 1
 
-    call re_allocate2 (is_local, 0, n+n_add-1)
-    is_local(i+n_add:n+n_add-1) = is_local(i+1:n)
-    is_local(i:i+n_add-1) = is_local(i)
-
     do k = 1, n_repeat
       do im = 0, m_max - 1
         sec2 => wall%section(i+(k-1)*m_max+im)
         sec2 = m_sec%section(im)
         sec2%s = ref_section%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
+        sec2%m_sec => m_sec%section(im)
       enddo
     enddo
     if (m_sec%section(m_max)%name == 'closed') then
       sec2 => wall%section(i+n_repeat*m_max)
       sec2 = m_sec%section(1)
       sec2%s = ref_section%s + n_repeat * m_sec%section(m_max)%s
-    endif      
+      sec2%m_sec => m_sec%section(1)
+    endif
 
     cycle outer
 
@@ -551,82 +554,15 @@ do i = 0, wall%n_section_max
 
 enddo
 
-! Calculate largest "safe" box for each section.
-! For triangular mesh, this is a complicated calc so, for now, the safe box calc is not 
-! implemented in this instance. 
-
-wall%gen_shape(:)%x_safe = 0
-wall%gen_shape(:)%y_safe = 0
-
-do i = 0, wall%n_section_max
-  sec => wall%section(i)
-
-  if (sec%basic_shape == 'triangular') cycle
-
-  if (associated(sec%gen_shape)) then
-    if (sec%gen_shape%x_safe > 0) then
-      sec%x_safe = sec%gen_shape%x_safe
-      sec%y_safe = sec%gen_shape%y_safe
-      cycle
-    endif
-  endif
-
-  max_area = 0
-  do j = 1, 39
-    angle = j * pi / 39
-    cos_a = cos(angle); sin_a = sin(angle)
-    call sr3d_wall_section_params (sec,  cos_a,  sin_a, radius(1), dr_dtheta, in_ante)
-    call sr3d_wall_section_params (sec,  cos_a, -sin_a, radius(2), dr_dtheta, in_ante)
-    call sr3d_wall_section_params (sec, -cos_a,  sin_a, radius(3), dr_dtheta, in_ante)
-    call sr3d_wall_section_params (sec, -cos_a, -sin_a, radius(4), dr_dtheta, in_ante)
-    rad = minval(radius)
-    area = rad**2 * cos_a * sin_a
-    if (area > max_area) then
-      sec%x_safe = 0.999 * rad * cos_a
-      sec%y_safe = 0.999 * rad * sin_a
-      max_area = area
-    endif
-  enddo
-
-  if (associated(sec%gen_shape)) then
-    sec%gen_shape%x_safe = sec%x_safe
-    sec%gen_shape%y_safe = sec%y_safe
-  endif
-
-enddo
-
-! Surface info
-
-surface_ptr => sr3d_com%surface(1)  ! Default surface
-
-do i = wall%n_section_max, 0, -1
-  sec => wall%section(i)
-
-  if (associated(sec%surface)) then
-    if (.not. is_local(i)) surface_ptr => sec%surface
-  else
-    sec%surface => surface_ptr
-  endif
-
-enddo
-
 ! Create a gen_shape for each section that does not have one.
 ! Also set antechamber segments.
 
-n = 0
-do i = 0, wall%n_section_max
-  if (.not. associated (wall%section(i)%gen_shape)) n = n + 1
-enddo
-
-ig = size(wall%gen_shape)
-call move_alloc(wall%gen_shape, gen_shape)
-allocate (wall%gen_shape(n + ig))
-wall%gen_shape(1:ig) = gen_shape
+ig = n_shape
 
 do i = 0, wall%n_section_max
   sec => wall%section(i)
 
-  ! 
+  ! If there is an associated shape then mark where antichamber is.
 
   if (associated(sec%gen_shape)) then
     wall3d_section => sec%gen_shape%wall3d_section
@@ -661,11 +597,26 @@ do i = 0, wall%n_section_max
       enddo
     endif
 
-    return
+    cycle
   endif
 
-  ig = ig + 1
-  sec%gen_shape => wall%gen_shape(ig)
+  ! Here if there is no associated gen_shape
+  ! All equivalent multi-section sections point to the same gen_shape.
+
+  if (associated(sec%m_sec)) then  
+    if (associated(sec%m_sec%gen_shape)) then
+      sec%gen_shape => sec%m_sec%gen_shape
+      cycle
+    else
+      ig = ig + 1
+      sec%gen_shape => wall%gen_shape(ig)
+      sec%m_sec%gen_shape => wall%gen_shape(ig)
+    endif
+  else
+    ig = ig + 1
+    sec%gen_shape => wall%gen_shape(ig)
+  endif
+
   wall3d_section => sec%gen_shape%wall3d_section
 
   ! Simple rectangle or ellipse
@@ -744,6 +695,60 @@ do i = 0, wall%n_section_max
   if (err) call err_exit
 
 enddo
+
+! Calculate largest "safe" box for each section.
+! For triangular mesh, this is a complicated calc so, for now, the safe box calc is not 
+! implemented in this instance. 
+
+wall%gen_shape(:)%wall3d_section%x_safe = 0
+wall%gen_shape(:)%wall3d_section%y_safe = 0
+
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
+
+  if (sec%basic_shape == 'triangular') cycle
+
+  if (sec%gen_shape%wall3d_section%x_safe > 0) cycle   ! Already computed
+
+  max_area = 0
+  do j = 1, 39
+    angle = j * pi / 39
+    cos_a = cos(angle); sin_a = sin(angle)
+    call sr3d_wall_section_params (sec,  cos_a,  sin_a, radius(1), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec,  cos_a, -sin_a, radius(2), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec, -cos_a,  sin_a, radius(3), dr_dtheta, in_ante)
+    call sr3d_wall_section_params (sec, -cos_a, -sin_a, radius(4), dr_dtheta, in_ante)
+    rad = minval(radius)
+    area = rad**2 * cos_a * sin_a
+    if (area > max_area) then
+      sec%gen_shape%wall3d_section%x_safe = 0.999 * rad * cos_a
+      sec%gen_shape%wall3d_section%y_safe = 0.999 * rad * sin_a
+      max_area = area
+    endif
+  enddo
+
+enddo
+
+! Associate surface
+
+do i = 0, wall%n_section_max
+  sec => wall%section(i)
+  call sr3d_associate_surface (sec%gen_shape%wall3d_section%surface, sec%surface_name, sr3d_com%surface)
+enddo
+
+surface_ptr => sr3d_com%surface(1)  ! Default surface
+
+do i = wall%n_section_max, 0, -1
+  sec => wall%section(i)
+
+  if (associated(sec%gen_shape%wall3d_section%surface)) then
+    if (.not. sec%is_local) surface_ptr => sec%gen_shape%wall3d_section%surface
+  else
+    sec%gen_shape%wall3d_section%surface => surface_ptr
+  endif
+
+enddo
+
 
 end subroutine sr3d_read_wall_file 
 
@@ -874,10 +879,10 @@ do i = 1, n_multi
     ix = index(section(j)%basic_shape, ':')
     if (ix == 0) ix = len_trim(section(j)%basic_shape) + 1
     wall%multi_section(i)%section(j) = sr3d_wall_section_struct(section(j)%name, &
-          section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), &
+          section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), '', &
           section(j)%s, section(j)%width2, section(j)%height2, section(j)%width2_plus, &
           section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, null(), null())
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., null(), null())
   enddo
 enddo
 
@@ -1158,8 +1163,8 @@ logical in_ante0, in_ante1
 call sr3d_get_wall_index (p_orb, wall, ix)
 
 if (logic_option(.false., check_safe)) then
-  if (abs(p_orb%vec(1)) < min(wall%section(ix)%x_safe, wall%section(ix+1)%x_safe) .and. &
-      abs(p_orb%vec(3)) < min(wall%section(ix)%y_safe, wall%section(ix+1)%y_safe)) then
+  if (abs(p_orb%vec(1)) < min(wall%section(ix)%gen_shape%wall3d_section%x_safe, wall%section(ix+1)%gen_shape%wall3d_section%x_safe) .and. &
+      abs(p_orb%vec(3)) < min(wall%section(ix)%gen_shape%wall3d_section%y_safe, wall%section(ix+1)%gen_shape%wall3d_section%y_safe)) then
     d_radius = -1
     return
   endif
@@ -1384,113 +1389,18 @@ integer ix, ix_vertex, ixv(2)
 
 logical in_antechamber
 
-! Init
-
-in_antechamber = .false.
-
 ! general shape
 
-if (wall_section%basic_shape == 'gen_shape') then
+if (associated(wall_section%gen_shape)) then
   call calc_wall_radius (wall_section%gen_shape%wall3d_section%v, cos_photon, sin_photon, r_wall, dr_dtheta, ix_vertex)
-
-  ixv = wall_section%gen_shape%ix_vertex_ante
-  if (ixv(1) > 0) then
-    if (ixv(2) > ixv(1)) then
-      if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
-    else
-      if (ix_vertex >= ixv(1) .or. ix_vertex < ixv(2)) in_antechamber = .true.
-    endif
-  endif
-
-  ixv = wall_section%gen_shape%ix_vertex_ante2
-  if (ixv(1) > 0) then
-    if (ixv(2) > ixv(1)) then
-      if (ix_vertex >= ixv(1) .and. ix_vertex < ixv(2)) in_antechamber = .true.
-    else
-      if (ix_vertex >= ixv(1) .or. ix_vertex < ixv(2)) in_antechamber = .true.
-    endif
-  endif
-
+  in_antechamber  = (wall_section%gen_shape%wall3d_section%v(ix_vertex)%type == antechamber$)
   return
 endif
 
 
-! general shape: Should not be here
+! Should not be here
 
-if (wall_section%basic_shape == 'triangular') then
-  call err_exit
-endif
-
-! Check for antechamber or beam stop...
-! If the line extending from the origin through the photon intersects the
-! antechamber or beam stop then pretend the chamber is rectangular with the 
-! antechamber or beam stop dimensions.
-
-! Positive x side check.
-
-section = wall_section
-
-if (cos_photon > 0) then
-
-  ! If there is an antechamber...
-  if (section%ante_height2_plus > 0) then
-
-    if (abs(sin_photon/cos_photon) < section%ante_height2_plus/section%ante_x0_plus) then  
-      section%basic_shape = 'rectangular'
-      section%width2 = section%width2_plus
-      section%height2 = section%ante_height2_plus
-      if (cos_photon >= section%ante_x0_plus) in_antechamber = .true.
-    endif
-
-  ! If there is a beam stop...
-  elseif (section%width2_plus > 0) then
-    if (abs(sin_photon/cos_photon) < section%y0_plus/section%width2_plus) then 
-      section%basic_shape = 'rectangular'
-      section%width2 = section%width2_plus
-    endif
-
-  endif
-
-! Negative x side check
-
-elseif (cos_photon < 0) then
-
-  ! If there is an antechamber...
-  if (section%ante_height2_minus > 0) then
-
-    if (abs(sin_photon/cos_photon) < section%ante_height2_minus/section%ante_x0_minus) then  
-      section%basic_shape = 'rectangular'
-      section%width2 = section%width2_minus
-      section%height2 = section%ante_height2_minus
-      if (abs(cos_photon) >= section%ante_x0_minus) in_antechamber = .true.
-    endif
-
-  ! If there is a beam stop...
-  elseif (section%width2_minus > 0) then
-    if (abs(sin_photon / cos_photon) < section%y0_minus/section%width2_minus) then 
-      section%basic_shape = 'rectangular'
-      section%width2 = section%width2_minus
-    endif
-
-  endif
-
-endif
-
-! Compute parameters
-
-if (section%basic_shape == 'rectangular') then
-  if (abs(cos_photon/section%width2) > abs(sin_photon/section%height2)) then
-    r_wall = section%width2 / abs(cos_photon)
-    dr_dtheta = r_wall * sin_photon / cos_photon
-  else
-    r_wall = section%height2 / abs(sin_photon)
-    dr_dtheta = -r_wall * cos_photon / sin_photon
-  endif
-
-elseif (section%basic_shape == 'elliptical') then
-  r_wall = 1 / sqrt((cos_photon/section%width2)**2 + (sin_photon/section%height2)**2)
-  dr_dtheta = r_wall**3 * cos_photon * sin_photon * (1/section%width2**2 - 1/section%height2**2)
-endif
+call err_exit
 
 end subroutine sr3d_wall_section_params
 

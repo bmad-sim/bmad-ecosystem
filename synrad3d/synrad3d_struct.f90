@@ -66,13 +66,13 @@ type sr3d_gen_shape_struct
   type (wall3d_section_struct) :: wall3d_section
   integer ix_vertex_ante(2)
   integer ix_vertex_ante2(2)
-  real(rp) :: x_safe = 0, y_safe = 0  ! If photon is in the "safe" box then not near the wall.
 end type
 
 type sr3d_wall_section_struct
   character(40) name              ! Name of this section
-  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", or "triangular"
+  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", "triangular", or "multi_section"
   character(40) shape_name
+  character(40) surface_name 
   real(rp) s                      ! Longitudinal position.
   real(rp) width2                 ! Half width ignoring antechamber.
   real(rp) height2                ! Half height ignoring antechamber.
@@ -84,9 +84,9 @@ type sr3d_wall_section_struct
   real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  real(rp) x_safe, y_safe         ! If photon is in the "safe" box then not near the wall.
+  logical is_local
   type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
-  type (photon_reflect_surface_struct), pointer :: surface  => null()
+  type (sr3d_wall_section_struct), pointer :: m_sec   ! Multi-section pointer
 end type
 
 ! multi_section structure
