@@ -298,13 +298,14 @@ if (all(v(1:n)%x >= 0) .and. all(v(1:n)%y >= 0)) then
     nn = 2*n
     call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n:1:-1)
-    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
+    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0; v(n+1)%type = normal$
   endif
   v(n+1:nn)%x           = -v(n+1:nn)%x
   v(n+1:nn)%angle       = pi - v(n+1:nn)%angle
-  v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
-  v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
+  v(nn-n+2:nn)%radius_x =  v(n:2:-1)%radius_x
+  v(nn-n+2:nn)%radius_y =  v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
+  v(nn-n+2:nn)%type     =  v(n:2:-1)%type
 
   n = nn
 
@@ -322,14 +323,15 @@ if (all(v(1:n)%y >= 0)) then
     nn = 2*n ! Total number of vetices
     call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n:1:-1)
-    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
+    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0; v(n+1)%type = normal$
   endif
 
   v(n+1:nn)%y           = -v(n+1:nn)%y
   v(n+1:nn)%angle       = twopi - v(n+1:nn)%angle
-  v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
-  v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
+  v(nn-n+2:nn)%radius_x =  v(n:2:-1)%radius_x
+  v(nn-n+2:nn)%radius_y =  v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
+  v(nn-n+2:nn)%type     =  v(n:2:-1)%type
 
   if (v(1)%y == 0) then ! Do not duplicate v(1) vertex
     v(nn)%angle = v(1)%angle
@@ -352,14 +354,15 @@ elseif (all(v(1:n)%x >= 0)) then
     nn = 2*n ! Total number of vetices
     call re_allocate(section%v, nn, .false.); v => section%v
     v(n+1:nn) = v(n:1:-1)
-    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0
+    v(n+1)%radius_x = 0; v(n+1)%radius_y = 0; v(n+1)%tilt = 0; v(n+1)%type = normal$
   endif
 
   v(n+1:nn)%x           = -v(n+1:nn)%x
   v(n+1:nn)%angle       = pi - v(n+1:nn)%angle
-  v(nn-n+2:nn)%radius_x = v(n:2:-1)%radius_x
-  v(nn-n+2:nn)%radius_y = v(n:2:-1)%radius_y
+  v(nn-n+2:nn)%radius_x =  v(n:2:-1)%radius_x
+  v(nn-n+2:nn)%radius_y =  v(n:2:-1)%radius_y
   v(nn-n+2:nn)%tilt     = -v(n:2:-1)%tilt
+  v(nn-n+2:nn)%type     =  v(n:2:-1)%type
 
   if (v(1)%x == 0) then ! Do not duplicate v(1) vertex
     v(nn)%angle = v(1)%angle
@@ -476,8 +479,9 @@ end subroutine wall3d_section_initializer
 ! Output:
 !   r_wall      -- Real(rp): Wall radius at given angle.
 !   dr_dtheta   -- Real(rp): derivative of r_wall.
-!   ix_vertex   -- Integer, optional: Wall at given angle is between v(ix_vertex) and
-!                    either v(ix_vertex+1) or v(1) if ix_vertex = size(v).
+!   ix_vertex   -- Integer, optional: Wall at given angle is between v(ix_vertex-1) and
+!                    v(ix_vertex). If ix_vertex = 1 then Wall at given angle is between
+!                    v(N) and v(1) where N = size(v).
 !-
 
 subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta, ix_vertex)
@@ -493,7 +497,7 @@ real(rp) cos_ang, sin_ang, radx, cos_a, sin_a, det
 real(rp) r_x, r_y, dr_x, dr_y, cos_phi, sin_phi
 
 integer, optional :: ix_vertex
-integer ix
+integer ix, ix2
 
 ! Bracket index if there is more than one vertex
 ! If there is only one vertex then must be an ellipse or circle
@@ -508,13 +512,14 @@ else
   call bracket_index (v%angle, 1, size(v), angle, ix)
 
   v1 => v(ix)
-  if (present(ix_vertex)) ix_vertex = ix
 
   if (ix == size(v)) then
-    v2 => v(1)
+    ix2 = 1
   else
-    v2 => v(ix+1)
+    ix2 = ix+1
   endif
+  v2 => v(ix2)
+  if (present(ix_vertex)) ix_vertex = ix2
 endif
 
 ! Straight line case
