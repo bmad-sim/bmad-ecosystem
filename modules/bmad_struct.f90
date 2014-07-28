@@ -167,7 +167,7 @@ end type
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
 type wall3d_struct
-  integer :: n_link = 1                           ! For memory management of %section
+  integer :: n_link = 1                           ! For memory management of ele%wall3d
   real(rp) :: thickness = -1                      ! For diffraction_plate elements
   character(20) :: clear_material = ''            !
   character(20) :: opaque_material = ''           !
