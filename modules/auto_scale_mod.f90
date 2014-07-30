@@ -623,7 +623,7 @@ logical err_flag
 ! 
 
 call set_phi0_ref (phi)
-call init_coord (start_orb, ele = ele_com, at_downstream_end = .false., particle = param_com%particle)
+call init_coord (start_orb, ele = ele_com, element_end = upstream_end$, particle = param_com%particle)
 call track1 (start_orb, ele_com, param_com, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 
 pz = end_orb%vec(6)

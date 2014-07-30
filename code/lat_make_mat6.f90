@@ -150,7 +150,7 @@ if (i_ele < 0) then
           exit
         enddo
       endif
-      call init_coord (orb_start, orb_start%vec, ele, .false., species)
+      call init_coord (orb_start, orb_start%vec, ele, upstream_end$, species)
 
     else  ! else ref_orb must be present
       orb_start = ref_orb(i-1)

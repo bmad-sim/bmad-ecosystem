@@ -68,7 +68,7 @@ track_end_state = moving_forward$
 n_ele_track = branch%n_ele_track
 
 if (orbit(ix_start)%state == not_set$) call init_coord(orbit(ix_start), orbit(ix_start)%vec, &
-                                                       branch%ele(ix_start), .true., orbit(ix_start)%species)
+                                  branch%ele(ix_start), downstream_end$, orbit(ix_start)%species)
 
 ! Track backwards
 

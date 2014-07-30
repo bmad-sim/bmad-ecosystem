@@ -278,7 +278,7 @@ do i = 1, i_max
 
   if (amp_del < amp_del_old) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
-    call init_coord (start, start, ele_start, .false.)
+    call init_coord (start, start, ele_start, upstream_end$)
     amp_del_old = amp_del
   else  ! not converging so remake mat2 matrix
     call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
