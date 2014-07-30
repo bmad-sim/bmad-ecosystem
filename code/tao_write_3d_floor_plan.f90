@@ -120,7 +120,7 @@ call draw_box (r0, r1, ele_shape%color, cubit_name)
 
 if (ele%aperture_at == surface$) then
   orbit%vec = 0
-  call init_coord (orbit, orbit%vec, ele, .false., photon$)
+  call init_coord (orbit, orbit%vec, ele, upstream_end$, photon$)
   call offset_photon (ele, orbit, unset$, rot_mat = w_mat)
   call w_mat_to_axis_angle (w_mat, axis, angle)
   if (angle /= 0) then
