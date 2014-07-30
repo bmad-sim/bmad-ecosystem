@@ -23,8 +23,8 @@ use basic_bmad_interface
 ! Routine to initialize a coord_struct. 
 !
 ! This routine is an overloaded name for:
-!   Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
-!   Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 !
 ! Note: Unless shift_vec6 is set to False, if ele is an init_ele or e_gun, orb%vec(6) is shifted
 ! so that the particle's energy is maintained at ele%value(p0c_start$).
@@ -38,9 +38,9 @@ use basic_bmad_interface
 !   orb_in       -- Coord_struct: Input orbit.
 !   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
 !   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
-!   at_downstream_end  -- Logical, optional: Particle is at entrance or exit end of the element?
+!   element_end  -- integer, optional: upstream_end$, downstream_end$, or inside$.
 !                     Must be present if ele argument is present.
-!                     Default is False.
+!                     Default is upstream_end$.
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
 !                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
 !   dirction     -- Integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
@@ -918,13 +918,13 @@ end subroutine deallocate_wall3d_pointer
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord1 (orb, vec, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
@@ -934,8 +934,8 @@ type (ele_struct), optional, target :: ele
 real(rp), optional :: vec(:), E_photon, t_ref_offset
 real(rp) p0c, e_tot, ref_time
 
-integer, optional :: particle, direction
-logical, optional :: at_downstream_end, shift_vec6
+integer, optional :: element_end, particle, direction
+logical, optional :: shift_vec6
 
 character(16), parameter :: r_name = 'init_coord1'
 
@@ -956,20 +956,10 @@ else
   orb2%vec = 0
 endif
 
-! Set %location
+! Set location and species
 
-orb2%location = upstream_end$
-if (present(at_downstream_end)) then
-  if (at_downstream_end) orb2%location = downstream_end$
-endif
-
-! set species
-
-if (present(particle)) then
-  orb2%species = particle
-else
-  orb2%species = not_set$
-endif
+orb2%location = integer_option(upstream_end$, element_end)
+orb2%species  = integer_option(not_set$, particle)
 
 if (orb2%species == not_set$ .and. present(ele)) then
   if (associated (ele%branch)) then
@@ -989,11 +979,11 @@ endif
 ! Energy values
 
 if (present(ele)) then
-  if (.not. present(at_downstream_end)) then
-    call out_io (s_fatal$, r_name, 'Rule: "at_downstream_end" argument must be present if "ele" argument is.')
+  if (.not. present(element_end)) then
+    call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
     call err_exit
   endif
-  if (at_downstream_end .or. ele%key == beginning_ele$) then
+  if (element_end /= upstream_end$ .or. ele%key == beginning_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
@@ -1023,7 +1013,7 @@ if (orb2%species == photon$) then
   if (orb2%vec(6) >= 0) orb2%vec(6) = sqrt(1 - orb2%vec(2)**2 - orb2%vec(4)**2)
   orb2%beta = 1
 
-  if (logic_option(.false., at_downstream_end)) then
+  if (orb2%location == downstream_end$) then
     orb2%vec(5) = ele%value(l$)
   else
     orb2%vec(5) = 0
@@ -1088,22 +1078,22 @@ end subroutine init_coord1
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+! Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 ! 
 ! Subroutine to initialize a coord_struct. 
 ! This subroutine is overloaded by init_coord. See init_coord for more details.
 !-
 
-subroutine init_coord2 (orb, orb_in, ele, at_downstream_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
+subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
 type (ele_struct), optional :: ele
 real(rp), optional :: t_ref_offset, E_photon
-integer, optional :: particle, direction
+integer, optional :: element_end, particle, direction
 integer species
-logical, optional :: at_downstream_end, shift_vec6
+logical, optional :: shift_vec6
 
 !
 
@@ -1113,7 +1103,7 @@ if (present(particle)) then
   if (particle /= not_set$) species = particle
 endif
 
-call init_coord1 (orb, orb_in%vec, ele, at_downstream_end, species, direction, E_photon, t_ref_offset, shift_vec6)
+call init_coord1 (orb, orb_in%vec, ele, element_end, species, direction, E_photon, t_ref_offset, shift_vec6)
 
 orb%spin      = orb_save%spin
 orb%field     = orb_save%field
@@ -1841,7 +1831,7 @@ if (allocated(coord)) then
   call reallocate_coord_n (coord, branch%n_ele_max)
 else
   allocate (coord(0:branch%n_ele_max))
-  call init_coord (coord(0), ele = branch%ele(0), at_downstream_end = .true.)
+  call init_coord (coord(0), ele = branch%ele(0), element_end = downstream_end$)
 endif
 
 end subroutine reallocate_coord_lat

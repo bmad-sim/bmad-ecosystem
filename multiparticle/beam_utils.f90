@@ -376,7 +376,7 @@ if (upcase(beam_init%distribution_type(1)) == 'FILE') then
       p%s = ele%s
       call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), p%species, beta = beta_vel)
       p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-      call init_coord (p, p, ele, .true., beam_init%species)
+      call init_coord (p, p, ele, downstream_end$, beam_init%species)
     enddo
   enddo
   return
@@ -652,7 +652,7 @@ else
     p%s = ele%s
     call convert_pc_to (ele%value(p0c$) * (1 + p%vec(6)), species, beta = beta_vel)
     p%t = ele%ref_time - p%vec(5) / (beta_vel * c_light)
-    call init_coord (p, p, ele, .true., species)
+    call init_coord (p, p, ele, downstream_end$, species)
   enddo
 endif
 

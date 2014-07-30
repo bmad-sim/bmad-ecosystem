@@ -89,8 +89,8 @@ do ib = 0, ubound(lat%branch, 1)
 
   if (stale) then
     if (branch%ix_from_branch >= 0) then
-      call init_coord (init_elem%time_ref_orb_in, zero6, init_elem, .false.)
-      call init_coord (init_elem%time_ref_orb_out, zero6, init_elem, .true.)
+      call init_coord (init_elem%time_ref_orb_in, zero6, init_elem, upstream_end$)
+      call init_coord (init_elem%time_ref_orb_out, zero6, init_elem, downstream_end$)
       stale = .true.
       init_elem%bookkeeping_state%ref_energy = ok$
     endif
@@ -148,7 +148,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     call auto_scale_field_phase_and_amp (gun_ele, branch%param, err); if (err) return
 
-    call init_coord (start_orb, zero6, gun_ele, .false., branch%param%particle)
+    call init_coord (start_orb, zero6, gun_ele, upstream_end$, branch%param%particle)
     call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
     if (.not. particle_is_moving_forward(end_orb)) then
       call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
@@ -223,7 +223,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! wigglers would result in z-position shifts when tracking particles.
 
     if (ix_super_end < ie) then       ! If not in super_lord region...
-      call init_coord (ele%time_ref_orb_in, zero6, ele0, .true.) 
+      call init_coord (ele%time_ref_orb_in, zero6, ele0, downstream_end$) 
     else                              ! In super_lord region
       ele%time_ref_orb_in = ele0%time_ref_orb_out
     endif
@@ -509,7 +509,7 @@ auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .false.
 
 call zero_errors_in_ele (ele, changed)
-call init_coord (orb_start, ele%time_ref_orb_in, ele, .false., param%particle, shift_vec6 = .false.)
+call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, param%particle, shift_vec6 = .false.)
 if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end)) then

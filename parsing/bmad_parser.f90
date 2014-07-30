@@ -1117,7 +1117,7 @@ endif
 
 ! Correct beam_start info
 
-call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), .true., lat%param%particle, &
+call init_coord (lat%beam_start, lat%beam_start, lat%ele(0), downstream_end$, lat%param%particle, &
                                             E_photon = lat%beam_start%p0c, shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------

@@ -58,7 +58,7 @@ if (present(track_state)) track_state = moving_forward$
 if (.not. allocated(orbit)) call reallocate_coord (orbit, branch%n_ele_max)
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
-if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), .true., branch%param%particle) 
+if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), downstream_end$, branch%param%particle) 
 if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 orbit(0)%ix_ele   = 0
