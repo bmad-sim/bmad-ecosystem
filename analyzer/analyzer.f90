@@ -1584,7 +1584,7 @@ program anaylzer
 
   ring%param%aperture_limit_on = .true.
 
-  call init_coord(orbit(ix_start), traj%vec, ring%ele(ix_start), .true.)
+  call init_coord(orbit(ix_start), traj%vec, ring%ele(ix_start), downstream_end$)
   open(unit = 51, file = 'phase_space_cesr_bpm.dat')
   open(unit = 52, file = 'phase_space_start.dat')
    write(51,'(a6,a12,6a12)')' turn ','  Element   ','     x      ','     xp     ','     y      ','    yp      ', &
