@@ -624,7 +624,7 @@ if (i_br_from > -1) then
   call transfer_twiss (from_ele, branch%ele(0))
   orb_out => model%lat_branch(ix_branch)%orbit(0)
   call init_coord (orb_out, model%lat_branch(i_br_from)%orbit(i_ele_from), branch%ele(0), &
-                  .true., branch%param%particle, 1, 0.0_rp)
+                  downstream_end$, branch%param%particle, 1, 0.0_rp)
   return
 endif
 
@@ -634,7 +634,7 @@ endif
 orb_in => model%lat_branch(ix_branch)%orb0
 orb_out => model%lat_branch(ix_branch)%orbit(0)
 
-call init_coord (orb_out, orb_in, model%lat%ele(0), .true., branch%param%particle, 1, orb_in%p0c)
+call init_coord (orb_out, orb_in, model%lat%ele(0), downstream_end$, branch%param%particle, 1, orb_in%p0c)
 
 polar%theta = u%beam%beam_init%spin%theta
 polar%phi = u%beam%beam_init%spin%phi
@@ -719,7 +719,7 @@ if (u%beam%beam0_file /= "") then
         orbit => beam%bunch(i)%particle(j)
         orbit%vec = orbit%vec + model%lat%beam_start%vec
         if (orbit%state /= alive$) cycle  ! Don't want init_coord to raise the dead.
-        call init_coord (orbit, orbit, branch%ele(0), .true., branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
+        call init_coord (orbit, orbit, branch%ele(0), downstream_end$, branch%param%particle, +1, orbit%p0c, beam%bunch(i)%t_center)
       enddo
     enddo
     call out_io (s_info$, r_name, &
