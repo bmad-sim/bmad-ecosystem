@@ -44,7 +44,7 @@ open (1, file = 'output.now')
 ! Test branch 0
 
 branch => lat%branch(0)
-call init_coord (start_orb, ele = branch%ele(1), at_downstream_end = .false.)
+call init_coord (start_orb, ele = branch%ele(1), element_end = upstream_end$)
 ! Track through split rfcav
 call track1 (start_orb, branch%ele(1), branch%param, end_orb)
 call track1 (end_orb, branch%ele(3), branch%param, end_orb)
@@ -61,7 +61,7 @@ write (1, '(a, 6es18.9)') '"rfcav:dmat" ABS 1e-14', (maxval(abs(xmat(j,:)-branch
 ! track slice
 
 ele => branch%ele(0)
-call init_coord (start_orb, start_orb, branch%ele(5), .true.)
+call init_coord (start_orb, start_orb, branch%ele(5), downstream_end$)
 start_orb%s = branch%ele(4)%s + 0.1
 start_orb%location = inside$
 call twiss_and_track_from_s_to_s (branch, start_orb, branch%ele(6)%s-0.1, end_orb, ele, ele)
@@ -97,7 +97,7 @@ if (print_extra) stop
 ! Test branch 1
 
 branch => lat%branch(1)
-call init_coord (start_orb, ele = branch%ele(1), at_downstream_end = .false.)
+call init_coord (start_orb, ele = branch%ele(1), element_end = upstream_end$)
 
 ! Track through split bend
 call track1 (start_orb, branch%ele(1), branch%param, end_orb)
@@ -119,7 +119,7 @@ call reallocate_coord (ref_orb, lat, branch%ix_branch)
 call twiss_and_track (lat, ref_orb, ix_branch = branch%ix_branch)
 
 end_ele = branch%ele(1)
-call init_coord (start_orb, start_orb, branch%ele(1), .true.)
+call init_coord (start_orb, start_orb, branch%ele(1), downstream_end$)
 s1 = branch%ele(6)%s-0.1
 call twiss_and_track_from_s_to_s (branch, start_orb, s1, end_orb, end_ele, end_ele, err, .true.)
 write (1, '(a, 2es18.9)') '"bend-slice:beta"       ABS 1e-8', end_ele%a%beta, end_ele%b%beta
@@ -245,7 +245,7 @@ write (1, '(a, 6f17.12)') '"Dd:vec0_c(:)"   ABS  1e-10', vec0_c - vec0_d
 ! Test branch 3
 
 branch => lat%branch(3)
-call init_coord (start_orb, lat%beam_start, branch%ele(0), .true.)
+call init_coord (start_orb, lat%beam_start, branch%ele(0), downstream_end$)
 
 s_end = branch%ele(1)%s
 orbit = start_orb

@@ -25,7 +25,7 @@ open (1, file = 'lat.bmad')
 read (1, nml = params)
 
 ele => lat%ele(1)
-call init_coord (start_orb, start_orb%vec, ele, .false., lat%param%particle)
+call init_coord (start_orb, start_orb%vec, ele, upstream_end$, lat%param%particle)
 
 ele%tracking_method = time_runge_kutta$
 call track1 (start_orb, ele, lat%param, end_orb1)
