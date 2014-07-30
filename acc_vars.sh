@@ -294,6 +294,7 @@ fi
 export ACC_UTIL=${SETUP_SCRIPTS_DIR}
 export ACC_BIN=${ACC_RELEASE_DIR}/production/bin
 export ACC_EXE=${ACC_BIN} # For backwards compatibility
+export ACC_DEBUG=${ACC_RELEASE_DIR}/debug/bin
 export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
