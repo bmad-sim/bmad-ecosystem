@@ -34,7 +34,7 @@ DO i = 1, lat%n_ele_max - 1
         call set_flags_for_changed_attribute(lat%ele(i),lat%ele(i)%tracking_method)
         call lattice_bookkeeper(lat)
       endif
-      call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(i), at_downstream_end = .false.)
+      call init_coord (lat%beam_start, lat%beam_start, ele = lat%ele(i), element_end = upstream_end$)
       call track1 (lat%beam_start, lat%ele(i), lat%param, end_orb)
       final_str = '"' // trim(lat%ele(i)%name) // ':' // trim(tracking_method_name(j)) // '"' 
       write (1,'(a,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15,es24.15)',advance='no') final_str, end_orb%vec(1), end_orb%vec(2), end_orb%vec(3), end_orb%vec(4), end_orb%vec(5), end_orb%vec(6), end_orb%t
