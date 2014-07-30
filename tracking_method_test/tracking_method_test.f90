@@ -55,7 +55,7 @@ do ib = 0, ubound(lat%branch, 1)
           ele%tracking_method = j
         endif
         start_orb = lat%beam_start
-        call init_coord (start_orb, start_orb, ele, .false., branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
+        call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
         start_orb%field = [1, 2]
         call track1 (start_orb, ele, branch%param, end_orb)
         final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 

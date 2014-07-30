@@ -64,7 +64,7 @@ DO i = 1, lat%n_ele_max - 1
 
   orb_0f = lat%beam_start
   ele_f => lat%branch(0)%ele(i)
-  call init_coord (orb_0f, orb_0f%vec, ele_f, .false.)
+  call init_coord (orb_0f, orb_0f%vec, ele_f, upstream_end$)
 
   call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
   call make_mat6 (ele_f, ele_f%branch%param, orb_0f)

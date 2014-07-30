@@ -46,8 +46,8 @@ p1%vec(1) = 1e-3
 p1%vec(3) = -2e-3
 p1%vec(5) = z0
 
-call init_coord (p1, p1%vec, lat%ele(0), at_downstream_end = .false.)
-call init_coord (p2, p1%vec, lat%ele(0), at_downstream_end = .false.)
+call init_coord (p1, p1%vec, lat%ele(0), element_end = upstream_end$)
+call init_coord (p2, p1%vec, lat%ele(0), element_end = upstream_end$)
 
 p1%charge = 1
 p2%charge = 0
