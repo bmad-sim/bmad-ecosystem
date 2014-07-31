@@ -158,14 +158,22 @@ For \vn{change beam_start}, The optional \vn{n@}
 universe specification (\sref{s:universe}) may be used to specify the
 universe or universes to apply the change command to.
 
-For linear lattices, \vn{change beam_start <coordinate> <number>} 
+For lattices with an open geometry, \vn{change beam_start <coordinate> <number>} 
 can be used to vary the starting coordinates for single particle tracking or the
 centroid coordinates for beam tracking. Here \vn{<coordinate>} is one of: 
 \begin{example}
-  (x, px, y, py, z, pz)
+  x, px, y, py, z, pz, t
 \end{example}
-For circular lattices only the \vn{pz} component is applicable. 
-Also for linear lattices, \vn{change element beginning <twiss>} can be used to
+For photons, \vn{<coordinate>} may also be:
+\begin{example}
+  field_x, field_y, phase_x, phase_y
+\end{example}
+For closed lattices only the \vn{pz} component is applicable. For
+lattices that have an \vn{e_gun} (which necesarily implies that the
+lattice has an open geometry), the time \vn{t} coordinate must be
+varied instead of \vn{pz}.
+
+For open lattices, \vn{change element beginning <twiss>} can be used to
 vary the starting Twiss parameters where \vn{<twiss>} is one of:  
 \begin{example}
   beta_a, beta_b, alpha_a, alpha_b 

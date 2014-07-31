@@ -294,6 +294,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       u%beam%beam_init%center            = u%model%lat%beam_start%vec
       u%model%lat_branch(0)%orbit(0)%vec = u%model%lat%beam_start%vec
       u%model%lat_branch(0)%orb0%vec     = u%model%lat%beam_start%vec
+      !!beam%beam_init%t                 = u%model%lat%beam_start%t
+      u%model%lat_branch(0)%orbit(0)%t   = u%model%lat%beam_start%t
+      u%model%lat_branch(0)%orb0%t       = u%model%lat%beam_start%t
       u%beam%init_beam0 = .true.
     endif
 

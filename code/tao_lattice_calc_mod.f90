@@ -481,8 +481,7 @@ do j = ie1, ie2
       call track_beam (lat, beam, branch%ele(j-1), ele, too_many_lost)
     endif
 
-    if (uni_ele(j)%save_beam .or. ele%key == fork$ .or. &
-                                  ele%key == photon_fork$) uni_ele(j)%beam = beam
+    if (uni_ele(j)%save_beam .or. ele%key == fork$ .or. ele%key == photon_fork$) uni_ele(j)%beam = beam
   endif
  
   ! Lost particles
