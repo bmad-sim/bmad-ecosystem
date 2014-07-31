@@ -180,14 +180,14 @@ for platform in platforms:
       print 'Making directory ' + online_basedir + buildname
       step1.communicate()
 
-      #print online_cmd_remote_tar
+      print online_cmd_remote_tar
       print ''
-      step2 = sub.Popen(online_cmd_remote_tar,
-                        bufsize=1,
-                        shell=True,
-                        stderr=sub.STDOUT )
-      print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
-      step2.communicate()
+      #step2 = sub.Popen(online_cmd_remote_tar,
+      #                  bufsize=1,
+      #                  shell=True,
+      #                  stderr=sub.STDOUT )
+      #print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
+      #step2.communicate()
 
     #print online_cmd_rm_link
     print ''
