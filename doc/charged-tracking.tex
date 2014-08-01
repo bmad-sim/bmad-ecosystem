@@ -14,6 +14,72 @@ symplectic integration.
 
 Generally, it will be assumed that tracking is in the forward direction.
 
+%-----------------------------------------------------------------
+\section{Relative Verses Absolute Time Tracking}
+\label{s:rf.time}
+
+\index{relative time tracking}\index{absolute time tracking}
+\index{lcavity}\index{rfcavity}\index{em_field}
+Unlike other elements, the kick given a particle going through an
+\vn{lcavity}, \vn{rfcavity}, or possibly an \vn{em_field} element
+depends upon the time that the particle enters the element relative to
+some ``RF clock''. \bmad has two modes for calculating this time
+called ``\vn{relative time tracking}'' and ``\vn{absolute time
+tracking}''.
+
+With \vn{relative time tracking}, which \bmad uses by default, the RF
+clock is determined by the reference particle. That is, the RF phase,
+\vn{phi_RF}, seen by a particle is directly related to the particles's
+$z$ phase space coordinate (\sref{s:phase.space})
+\begin{example}
+  phi_RF = phi_particle + phi_ref
+  phi_particle = -z * rf_frequency / particle_velocity
+\end{example}
+where \vn{phi_ref} is a fixed phase offset (generally set in the
+lattice file) and independent of the particle coordinates. With
+\vn{absolute time tracking}, the RF phase is simply determined by the
+absolute time the particle enters the element
+\begin{example}
+  phi_particle = t_particle * rf_frequency
+\end{example}
+The switch to set the type of tracking for a lattice is
+\vn{parameter[absolute_time_tracking]} (\sref{s:param}).
+
+There are advantages and disadvantages to using either relative or
+absolute time tracking. Absolute time tracking is more correct since
+RF cavities are in reality synched to some clock. The problem with
+absolute time tracking is that the transfer map through the cavity is
+now a function of time and cannot be written as a function of $z$
+unless the total lattice length is a multiple of the RF wavelength.
+This complicates lattice analysis.
+
+With relative time tracking the transfer map problem is swept under
+the rug. The penelty for using relative time tracking is that results
+can be unphysical. For example, the closed orbit is essentially
+independent of the RF frequency. From a different angle this can be
+viewed as a good feature since if one is only interested in, say,
+calculating the Twiss parameters, it can be an annoyance to have to
+worry that the ring one has constructed have the spacing between RF
+cavities be multiples of the RF wavelength and it is potentially
+confusing to see non-zero closed orbits when one is not expecting it.
+
+The above discussion is limited to the cavity fundamental mode.
+Long-range wake fields, on the other hand, cannot be synchronized to
+the $z$ coordinate since, in general, their frequencies are not
+commensurate with the fundamental mode frequency. For simulating the
+long-range wakes, the kick is thus, by necessity, tied to the absolute
+time. The exception is that a wake associated with the fundamental
+mode (that is, has the same frequency as the fundamental mode) will
+always use relative time if the fundamental is using relative time and
+vice versa.
+
+Do not confuse absolute time tracking with the \vn{time_runge_kutta}
+tracking method (\sref{s:tkm}). The \vn{time_runge_kutta} method uses
+time as the independent variable instead of $z$. Absolute time
+tracking just means that the RF phase is dependent upon the time
+instead of $z$. It is perfectly possible to use absolute time
+tracking with code that uses $z$ as the independent variable.
+
 %-------------------------------------------------------------------------
 %-------------------------------------------------------------------------
 \section{Element Coordinate System}
