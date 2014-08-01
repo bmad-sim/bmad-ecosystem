@@ -11,31 +11,6 @@ developed by Martin Berz\cite{b:berz}.  For more information see the
 FPP/PTC manual\cite{b:ptc}. 
 
 %--------------------------------------------------------------------------
-
-\begin{figure}[tb]
-  \centering
-  \includegraphics{ptc-structures.pdf}
-  \caption[PTC structure relationships] { 
-Simplified diagram showing the organization of the major PTC
-structures involved in defining a lattice contrasted with \bmad. With
-PTC, The top level structure is an array of \vn{layout_array}
-structures. Each \vn{layout_array} holds a \vn{layout} structure. A
-\vn{layout} structure has pointers to the previous and next
-\vn{layout}s making a linked list of \vn{layout}s indicated by the
-horizontal arrows. Each layout has pointers to a linked list of
-\vn{fibre} structures. The \vn{fibre} structures represent the
-reference trajectory through an element. Each \vn{fibre} structure has
-a pointer to a \vn{element} and an \vn{elementp} structures which
-represent the physical element. With \bmad, the \vn{lat_struct}
-roughly corresponds to the PTC \vn{layout_array(:)}, the
-\vn{branch_struct} roughly corresponds to the PTC \vn{layout} and the
-\vn{element_struct} roughly corresponds to the PTC \vn{fibre},
-\vn{element} and \vn{elementp} structures.
-  }
-\label{f:ptc-struct}
-\end{figure}
-
-%--------------------------------------------------------------------------
 \section{Accessing PTC}
 \label{s:ptc.structures}
 
@@ -84,6 +59,31 @@ the PTC global variable \vn{DEFAULT}, which is of type
 that translate between the two. Actually there are a number of
 conversion routines that translate between \bmad and PTC
 structures. See \sref{r:ptc} for more details.
+
+%--------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics{ptc-structures.pdf}
+  \caption[PTC structure relationships] { 
+Simplified diagram showing the organization of the major PTC
+structures involved in defining a lattice contrasted with \bmad. With
+PTC, The top level structure is an array of \vn{layout_array}
+structures. Each \vn{layout_array} holds a \vn{layout} structure. A
+\vn{layout} structure has pointers to the previous and next
+\vn{layout}s making a linked list of \vn{layout}s indicated by the
+horizontal arrows. Each layout has pointers to a linked list of
+\vn{fibre} structures. The \vn{fibre} structures represent the
+reference trajectory through an element. Each \vn{fibre} structure has
+a pointer to a \vn{element} and an \vn{elementp} structures which
+represent the physical element. With \bmad, the \vn{lat_struct}
+roughly corresponds to the PTC \vn{layout_array(:)}, the
+\vn{branch_struct} roughly corresponds to the PTC \vn{layout} and the
+\vn{element_struct} roughly corresponds to the PTC \vn{fibre},
+\vn{element} and \vn{elementp} structures.
+  }
+\label{f:ptc-struct}
+\end{figure}
 
 %--------------------------------------------------------------------------
 \section{Initialization}
