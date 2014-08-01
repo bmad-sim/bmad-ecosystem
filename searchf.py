@@ -536,6 +536,9 @@ def search_all (doc_type):
     if i >= len(sys.argv): break
     arg = sys.argv[i]
 
+    if i == 1 and len(arg) == 0:
+      print_help_message ()
+
     if arg[0] != '-': break
 
     if arg == '-a':
