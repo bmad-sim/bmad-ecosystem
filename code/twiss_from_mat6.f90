@@ -38,7 +38,7 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_o
   real(rp) mat4(4,4), eta_vec(4), vec(4), orb(4)
   real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
   real(rp) rate1, rate2
-  real(rp) :: tol = 1.0e-3
+  real(rp) :: tol = 1.0d-4  ! Was 1.0d-3
 
   integer :: status
   integer i

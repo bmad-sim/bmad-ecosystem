@@ -227,7 +227,7 @@ end subroutine mat_symp_decouple
 !   mat(:, :)   -- Real(rp): Input matrix
 !   type_out    -- Logical: If .true. then an error message is typed out
 !                            for a non ok$ STAT
-!   tol         -- Real(rp): tollerence for nonsymplectiy
+!   tol         -- Real(rp): tollerence for nonsymplectiy.
 !
 ! Output:
 !   stat -- Integer: status of results:
@@ -270,21 +270,15 @@ subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
   twiss%phi = atan2(t_sin, t_cos)
   if (twiss%phi < 0) twiss%phi = twiss%phi + twopi
 
-  if (abs(t_sin) < 1.0e-7) then
-    twiss%alpha = 0.0
-    twiss%beta = 1.0
-    twiss%gamma = 1.0
-  else
-    twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
-    radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
-    if (radical <= 0) then
-      if (type_out) call out_io (s_warn$, r_name, 'NON-SYMPLECTIC MATRIX')
-      stat = non_symplectic$
-      return
-    endif
-    twiss%beta = sqrt(radical)
-    twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
+  twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
+  radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
+  if (radical <= 0) then
+    if (type_out) call out_io (s_warn$, r_name, 'NON-SYMPLECTIC MATRIX')
+    stat = non_symplectic$
+    return
   endif
+  twiss%beta = sqrt(radical)
+  twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
 
 end subroutine twiss_from_mat2
 
