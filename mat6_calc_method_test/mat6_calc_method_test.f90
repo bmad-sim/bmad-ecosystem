@@ -78,8 +78,18 @@ do ib = 0, ubound(lat%branch, 1)
         end if
       END DO
       if (print_extra .and. k == 8) then
-        err_mat = abs(eles(bmad_standard$)%mat6 - eles(tracking$)%mat6)
-        write (1, '(a, 2i4, es12.2)'),   'Max diff |BS - track|:   ', maxloc(err_mat), maxval(err_mat)
+        if (valid_mat6_calc_method(ele, branch%param%particle, bmad_standard$) .and. &
+            valid_mat6_calc_method(ele, branch%param%particle, tracking$)) then
+          err_mat = abs(eles(bmad_standard$)%mat6 - eles(tracking$)%mat6)
+          write (1, '(a, 2i4, es12.2)'),   'Max diff |BS - track|:   ', maxloc(err_mat), maxval(err_mat)
+        endif
+
+        if (valid_mat6_calc_method(ele, branch%param%particle, bmad_standard$) .and. &
+            valid_mat6_calc_method(ele, branch%param%particle, symp_lie_ptc$)) then
+          err_mat = abs(eles(bmad_standard$)%mat6 - eles(symp_lie_ptc$)%mat6)
+          write (1, '(a, 2i4, es12.2)'),   'Max diff |BS - PTC|:     ', maxloc(err_mat), maxval(err_mat)
+        endif
+
       endif
       write (1,*)
     END DO
