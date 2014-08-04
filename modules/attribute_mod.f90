@@ -292,9 +292,9 @@ case (rfcavity$)
   end select
 
 case (sad_mult$)
-  if (present(num_valid)) num_valid = 2
+  if (present(num_valid)) num_valid = 6
   select case (tracking_method)
-  case (bmad_standard$, custom$)
+  case (bmad_standard$, custom$, symp_lie_ptc$, linear$, symp_map$, taylor$)
     is_valid = .true.
   end select
 
@@ -605,9 +605,9 @@ case (rcollimator$)
   end select
 
 case (sad_mult$)
-  if (present(num_valid)) num_valid = 4
+  if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
+  case (bmad_standard$, static$, tracking$, custom$, symp_lie_ptc$, taylor$)
     is_valid = .true.
   end select
 

@@ -1026,8 +1026,8 @@ call init_attribute_name1 (ab_multipole$, y_pitch$,       null_name$, does_not_e
 call init_attribute_name1 (ab_multipole$, x_pitch_tot$,   null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (ab_multipole$, y_pitch_tot$,   null_name$, does_not_exist$, .true.)
 
-call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', dependent$)
-call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', dependent$)
+call init_attribute_name1 (sad_mult$, num_steps$,              'NUM_STEPS', quasi_free$)
+call init_attribute_name1 (sad_mult$, ds_step$,                'DS_STEP', quasi_free$)
 call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
 call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')

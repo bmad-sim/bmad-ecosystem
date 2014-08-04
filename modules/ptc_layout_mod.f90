@@ -1082,20 +1082,56 @@ case (rfcavity$, lcavity$)
   endif
   call set_real (mag%volt, magp%volt, 2e-6 * e_accel_field(ele, voltage$))
 
+case (sad_mult$)
+
+  if (ele%value(l$) /= 0) then
+    call set_real (mag%b_sol, magp%b_sol, val(ks$))
+    call set_real (mag%va, magp%va, ele%value(f1$))
+    call set_real (mag%vs, magp%vs, ele%value(f2$))
+  endif
+
+  call set_real (mag%b_sol, magp%b_sol, val(ks$))
+  select case (nint(val(fringe_type$)))
+  case (none$)
+    call set_integer (p%permfringe, pp%permfringe, 0)
+  case (sad_linear$)
+    call set_integer (p%permfringe, pp%permfringe, 2)
+  case (sad_nonlin_only$)
+    call set_integer (p%permfringe, pp%permfringe, 1)
+  case (sad_full$)
+    call set_integer (p%permfringe, pp%permfringe, 3)
+  end select
+
+
 case (sbend$)
+  call set_real (mag%hgap, magp%hgap, val(hgap$))
+  call set_real (mag%fint, magp%fint, val(fint$))
+  call set_real_all (mag%p%edge(1), magp%p%edge(1), val(e1$))
+  call set_real_all (mag%p%edge(2), magp%p%edge(2), val(e2$))
+
+case default
+  call out_io (s_error$, r_name, 'Update for element of type: ' // key_name(ele%key), &
+                                 'Not yet implemented. Please contact David Sagan.')
+
+end select
+
+! Fringe
+
+if (ele%key /= sad_mult$) then
+
   if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
     ix = nint(val(fringe_type$)) 
-    call set_logic (p%permfringe, pp%permfringe, (ix == full_straight$ .or. ix == full_bend$))
+    call set_integer_from_logic (p%permfringe, pp%permfringe, (ix == full_straight$ .or. ix == full_bend$))
     call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
   endif
 
-  if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
-    ix = nint(val(fringe_at$))
-    call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
-    call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
-  endif
+endif
 
-end select
+if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
+  ix = nint(val(fringe_at$))
+  call set_logic (p%kill_ent_fringe, pp%kill_ent_fringe, (ix == downstream_end$ .or. ix == no_end$))
+  call set_logic (p%kill_exi_fringe, pp%kill_exi_fringe, (ix == upstream_end$ .or. ix == no_end$))
+endif
 
 ! misalign
 
@@ -1118,11 +1154,55 @@ end subroutine set_real
 !-------------------------------------------------------------------------
 ! contains
 
-subroutine set_logic (to1, to2, value)
-logical value, to1, to2
+subroutine set_real_all (to1, to2, value)
+real(rp) value, to1, to2
 
 to1 = value
 to2 = value
+
+end subroutine set_real_all
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine set_integer (to1, to2, value)
+integer to1, to2, value
+
+to1 = value
+to2 = value
+
+end subroutine set_integer
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine set_integer_from_logic (to1, to2, value)
+integer to1, to2
+logical value
+
+if (value) then
+  to1 = 1    ! True
+  to2 = 1
+else
+  to1 = 0    ! False
+  to2 = 0
+endif
+
+end subroutine set_integer_from_logic
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine set_logic (to1, to2, value)
+logical to1, to2, value
+
+if (value) then
+  to1 = 1    ! True
+  to2 = 1
+else
+  to1 = 0    ! False
+  to2 = 0
+endif
 
 end subroutine set_logic
 

@@ -515,6 +515,8 @@ if (associated(mag)) then
   call write_real ('%h1               ',  mag%h1,      'es13.5')
   call write_real ('%h2               ',  mag%h2,      'es13.5')
   call write_real ('%b_sol            ',  mag%b_sol,   'es13.5')
+  call write_real ('%va [sad f1]      ',  mag%va,      'es13.5')
+  call write_real ('%vs [sad f2]      ',  mag%va,      'es13.5')
 
   if (associated(mag%an)) then
     all_zero = .true.
@@ -3044,7 +3046,7 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, permfringe
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3116,6 +3118,10 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
 
+case (sad_mult$)
+  ptc_key%magnet = 'solenoid'
+  if (ele%value(l$) /= 0) ptc_key%list%bsol = val(ks$)
+
 case (sbend$) 
   ptc_key%magnet = 'sbend'
   ptc_key%list%b0   = ele%value(g$) * leng ! Yep this is correct. 
@@ -3126,12 +3132,14 @@ case (sbend$)
 
   if (ele%value(fintx$) /= ele%value(fint$)) then
     call out_io (s_error$, r_name, &
-        'FINT AND FINTX ARE NOT THE SAVE FOR BEND: ' // ele%name)
+        'FINT AND FINTX ARE NOT THE SAME FOR BEND: ' // ele%name, &
+        'PTC CANNOT HANDLE THIS!')
   endif
 
   if (ele%value(hgapx$) /= ele%value(hgap$)) then
     call out_io (s_error$, r_name, &
-        'HGAP AND HGAPX ARE NOT THE SAVE FOR BEND: ' // ele%name)
+        'HGAP AND HGAPX ARE NOT THE SAME FOR BEND: ' // ele%name, &
+        'PTC CANNOT HANDLE THIS!')
   endif
 
   ix = nint(ele%value(ptc_field_geometry$))
@@ -3232,7 +3240,7 @@ end select
 
 ! Fringe
 
-if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+if (ele%key /= sad_mult$ .and. attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
   ix = nint(ele%value(fringe_type$)) 
   ptc_key%list%permfringe = (ix == full_straight$ .or. ix == full_bend$)
   ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
@@ -3275,6 +3283,33 @@ endif
 ptc_fibre%dir = ele%orientation
 
 lielib_print(12) = n
+
+! sad_mult
+
+if (ele%key == sad_mult$) then
+  if (ele%value(l$) /= 0) then
+    ptc_fibre%mag%va  = ele%value(f1$)
+    ptc_fibre%magp%va = ele%value(f1$)
+
+    ptc_fibre%mag%vs  = ele%value(f2$)
+    ptc_fibre%magp%vs = ele%value(f2$)
+  endif
+
+  select case (nint(ele%value(fringe_type$)))
+  case (none$)
+    permfringe = 0
+  case (sad_linear$)
+    permfringe = 2
+  case (sad_nonlin_only$)
+    permfringe = 1
+  case (sad_full$)
+    permfringe = 3
+  end select
+
+  ptc_fibre%mag%p%permfringe = permfringe
+  ptc_fibre%magp%p%permfringe = permfringe
+
+endif
 
 ! Set reference energy to the exit reference energy.
 
@@ -3579,9 +3614,15 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity
       ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
   ! Nothing to be done
 
+case (octupole$)
+  k(4) = val(k3$) / 6
+  n_relavent = 4
+
 case (quadrupole$) 
   k(2) = val(k1$)
   n_relavent = 2
+
+case (sad_mult$)
 
 case (sbend$)
   if (ele%is_on) then
@@ -3602,10 +3643,6 @@ case (sbend$)
 case (sextupole$)
   k(3) = val(k2$) / 2
   n_relavent = 3
-
-case (octupole$)
-  k(4) = val(k3$) / 6
-  n_relavent = 4
 
 case (solenoid$)
 

@@ -2922,11 +2922,11 @@ General \vn{sample} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Length                     & \ref{s:l}       \HH
-  Aperture Limits            & \ref{s:limit}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \HH 
-  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \HH
-  Integration settings       & \ref{s:integ}     &                            &                 \HH
+  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Fringe Fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -3003,12 +3003,17 @@ characterized by the \vn{f1} and \vn{f2} attributes. The
 \vn{sad_nonlinear_only} fringe kick comes from the nonlinear part of
 the quadrupolar field plus the fringes of the other multipoles.
 
-The \vn{eps_step_scale} is equivalent to the SAD \vn{eps}
-attribute. The default \vn{eps_step_scale} value is 1 which is
-essentially the same default as SAD.  From \vn{eps_step_scale}, the
-values of \vn{num_steps} and \vn{ds_step} (\sref{s:integ}) are
-computed. Thus, for a \vn{sad_mult} element, \vn{num_steps} and
-\vn{ds_step} are \vn{dependent} attributes (\sref{s:depend}).
+If \vn{eps_step_scale} is positive, the \vn{eps_step_scale} is
+equivalent to the SAD \vn{eps} attribute. The default
+\vn{eps_step_scale} value is 1 which is essentially the same default
+as SAD. From \vn{eps_step_scale}, the values of \vn{num_steps} and
+\vn{ds_step} (\sref{s:integ}) are computed. Thus, for a \vn{sad_mult}
+element, \vn{num_steps} and \vn{ds_step} are \vn{dependent} attributes
+(\sref{s:depend}).
+
+If \vn{eps_step_scale} is not positive, the SAD calculation for
+setting the step size is not used and \vn{num_steps} and \vn{ds_step}
+are treated as they are with every other element.
 
 Sad conventions:
 \begin{itemize}
