@@ -10,7 +10,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_reflection_probability (plot_param)
+! Subroutine sr3d_plot_reflection_probability (plot_param, branch)
 !
 ! Routine to plot reflection probability curves
 !
@@ -18,7 +18,7 @@ contains
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
 !-
 
-subroutine sr3d_plot_reflection_probability (plot_param, wall, sr3d_com)
+subroutine sr3d_plot_reflection_probability (plot_param, branch)
 
 implicit none
 
@@ -30,11 +30,11 @@ type yplot
   type (qp_line_struct) line
 end type
 
+type (branch_struct), target :: branch
 type (sr3d_plot_param_struct) plot_param
-type (sr3d_wall_struct), target :: wall
+type (wall3d_struct), pointer :: wall3d
 type (yplot), allocatable :: ny(:)
 type (photon_reflect_surface_struct), pointer :: surface
-type (sr3d_common_struct), target :: sr3d_com
 
 real(rp), target :: angle_min, angle_max, ev_min, ev_max, angle, ev
 real(rp) value, value1, value2, y_min, y_max
@@ -49,6 +49,8 @@ character(16) x_lab, y_lab, param, reflection_type
 
 ! init
 
+wall3d => branch%wall3d
+
 angle_min = 0
 angle_max = 40
 
@@ -60,7 +62,7 @@ y_lab = 'Reflectivity'
 reflection_type = 'total'
 head_lab = 'Reflectivity (Total)'
 
-surface => sr3d_com%surface(1)
+surface => branch%lat%surface(1)
 
 n_lines = 3
 allocate (ny(n_lines))
@@ -144,8 +146,8 @@ do
 
   print *
   print '(a)', 'Surfaces Defined:'
-  do i = 1, size (sr3d_com%surface)
-    print '(3x, i3, 2x, a)', i, trim(sr3d_com%surface(i)%descrip)
+  do i = 1, size (branch%lat%surface)
+    print '(3x, i3, 2x, a)', i, trim(branch%lat%surface(i)%descrip)
   enddo
   print *
   print '(a)', 'Commands:'
@@ -206,12 +208,12 @@ do
       cycle
     endif
 
-    if (ix < 1 .or. ix > size(sr3d_com%surface)) then
+    if (ix < 1 .or. ix > size(branch%lat%surface)) then
       print *, 'SURFACE INDEX OUT OF RANGE.'
       cycle
     endif
 
-    surface => sr3d_com%surface(ix)
+    surface => branch%lat%surface(ix)
 
   case ('type')
 
@@ -276,32 +278,32 @@ end subroutine sr3d_plot_reflection_probability
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine sr3d_plot_wall_vs_s (plot_param, wall, lat, plane)
+! subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
 !
 ! Routine to interactively plot (x, s) .or. (y, s) section of the wall.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
 !   plot_param -- sr3d_plot_param_struct: Plot parameters.
-!   wall       -- sr3d_wall_struct: Wall structure.
-!   lat        -- Lat_struct: lattice
+!   branch     -- branch_struct: Lattice branch with wall.
 !   plane      -- Character(*): section. 'xs' or. 'ys'
 !-
 
-subroutine sr3d_plot_wall_vs_s (plot_param, wall, lat, plane)
+subroutine sr3d_plot_wall_vs_s (plot_param, branch, plane)
 
 implicit none
 
 type (sr3d_plot_param_struct) plot_param
-type (sr3d_wall_struct), target :: wall
+type (wall3d_struct), pointer :: wall
 type (sr3d_photon_track_struct), target :: photon
-type (lat_struct) lat
+type (branch_struct), target :: branch
+type (wall3d_struct), pointer :: wall3d
 
 real(rp), target :: xy_min, xy_max, s_min, s_max, r_max, x_wall, y_wall
 real(rp), allocatable :: s(:), xy_in(:), xy_out(:)
 real(rp), pointer :: photon_xy, wall_xy
 
-integer i, ix, i_chan, ios
+integer i, ix, i_chan, ios, n_sec_max
 
 character(*) plane
 character(16) plane_str
@@ -333,8 +335,11 @@ endif
 
 ! Print wall info
 
-do i = 0, wall%n_section_max
-  print '(i4, 2x, a, f12.2)', i, wall%section(i)%basic_shape(1:16), wall%section(i)%s
+wall3d => branch%wall3d
+n_sec_max = ubound(wall3d%section, 1)
+
+do i = 1, n_sec_max
+  print '(i4, 2x, a, f12.2)', i, wall3d%section(i)%name(1:30), wall3d%section(i)%s
 enddo
 
 ! Loop
@@ -344,8 +349,8 @@ do
   ! Determine s min/max
 
   if (.not. s_user_good) then
-    s_min = wall%section(0)%s
-    s_max = wall%section(wall%n_section_max)%s
+    s_min = wall3d%section(1)%s
+    s_max = wall3d%section(n_sec_max)%s
   endif
 
   call qp_calc_and_set_axis ('X', s_min, s_max, 10, 16, 'GENERAL')
@@ -356,15 +361,15 @@ do
 
     s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
 
-    photon%now%vec    = 0
+    photon%now%vec = 0
     photon%now%s = s(i)
 
     photon_xy = -r_max
-    call sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall)
+    call sr3d_find_wall_point (photon, branch, x_wall, y_wall)
     xy_in(i) = wall_xy
 
     photon_xy = r_max
-    call sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall)
+    call sr3d_find_wall_point (photon, branch, x_wall, y_wall)
     xy_out(i) = wall_xy
 
   enddo
@@ -429,25 +434,25 @@ end subroutine sr3d_plot_wall_vs_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+! Subroutine sr3d_plot_wall_cross_sections (plot_param, branch)
 !
 ! Routine to interactively plot wall (x,y) cross-sections at constant s.
 ! Note: This routine never returns to the main program.
 !
 ! Input:
-!   wall    -- sr3d_wall_struct: Wall structure.
-!   lat     -- Lat_struct: lattice
+!   plot_param  -- sr3d_plot_param_struct: Plotting parameters.
+!   branch      -- Branch_struct: lattice
 !-
 
-subroutine sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+subroutine sr3d_plot_wall_cross_sections (plot_param, branch)
 
 implicit none
 
 type (sr3d_plot_param_struct) plot_param
-type (sr3d_wall_struct), target :: wall
-type (sr3d_wall_section_struct), pointer :: section
+type (wall3d_section_struct), pointer :: section
 type (sr3d_photon_track_struct) photon
-type (lat_struct) lat
+type (branch_struct), target :: branch
+type (wall3d_struct), pointer :: wall3d
 type (wall3d_vertex_struct), pointer :: v(:)
 
 real(rp), allocatable :: x(:), y(:)
@@ -455,7 +460,7 @@ real(rp) s_pos, x_max, y_max, theta, r, x_max_user, r_max, s_pos_old
 real(rp), allocatable :: x1_norm(:), y1_norm(:), x2_norm(:), y2_norm(:)
 real(rp) minn, maxx
 
-integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max, ix0
+integer i, j, ix, ix_section, i_in, ios, i_chan, n, iu, n_norm_max, ix0, n_sec_max
 
 character(100) :: ans, label, label2
 character(8) v_str
@@ -464,6 +469,9 @@ logical at_section, draw_norm, reverse_x_axis
 logical, allocatable :: in_ante(:)
 
 ! Open plotting window
+
+wall3d => branch%wall3d
+n_sec_max = ubound(wall3d%section, 1)
 
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
 call qp_set_page_border (0.05_rp, 0.05_rp, 0.05_rp, 0.05_rp, '%PAGE')
@@ -478,13 +486,13 @@ allocate (x1_norm(n), y1_norm(n), x2_norm(n), y2_norm(n))
 
 ! Print wall info
 
-do i = 0, min(1000, wall%n_section_max)
-  section => wall%section(i)
-  print '(i8, 2x, a, f14.6, 2x, a)', i, section%basic_shape(1:12), section%s, section%name
+do i = 1, min(1000, ubound(wall3d%section, 1))
+  section => wall3d%section(i)
+  print '(i8, f14.6, 2x, a)', i, section%s, section%name
 enddo
 
 ix_section = 0
-s_pos = wall%section(ix_section)%s
+s_pos = wall3d%section(ix_section)%s
 s_pos_old = s_pos
 at_section = .true.
 
@@ -511,10 +519,10 @@ do
 
     if (draw_norm .and. modulo(i, 4) == 0) then
       j = (i / 4)
-      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j), in_ante = in_ante(i))
+      call sr3d_find_wall_point (photon, branch, x(i), y(i), x1_norm(j), x2_norm(j), y1_norm(j), y2_norm(j), in_ante = in_ante(i))
       n_norm_max = j
     else
-      call sr3d_find_wall_point (wall, lat, photon, x(i), y(i), in_ante = in_ante(i))
+      call sr3d_find_wall_point (photon, branch, x(i), y(i), in_ante = in_ante(i))
     endif
 
   enddo
@@ -525,17 +533,17 @@ do
 
   if (at_section) then
     if (s_pos_old == s_pos) then
-      write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
+      write (label, '(a, f0.3, a, i0, 2a)') 'S: ', s_pos, '   Section #: ', ix_section, '  Name: ', wall3d%section(ix_section)%name
     else
       print '(2(a, f0.3), a, i0, 2a)', 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
-                                '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
+                                '   Section #: ', ix_section, '  Name: ', wall3d%section(ix_section)%name
       write (label, '(2(a, f0.3), a, i0, 2a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, &
-                                '   Section #: ', ix_section, '  Name: ', wall%section(ix_section)%name
+                                '   Section #: ', ix_section, '  Name: ', wall3d%section(ix_section)%name
     endif
-    label2 = 'Surface: ' // wall%section(ix_section)%gen_shape%wall3d_section%surface%descrip
+    label2 = 'Surface: ' // wall3d%section(ix_section)%surface%descrip
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
-    label2 = 'Surface: ' // wall%section(photon%now%ix_wall+1)%gen_shape%wall3d_section%surface%descrip
+    label2 = 'Surface: ' // wall3d%section(photon%now%ix_section+1)%surface%descrip
   endif
 
   call qp_clear_page
@@ -561,7 +569,7 @@ do
   ix0 = 1
   do ix = 2, size(x)
     if (ix /= size(x)) then
-      if (in_ante(ix+1) == in_ante(ix0)) cycle
+      if (in_ante(ix+1) .eqv. in_ante(ix0)) cycle
     endif
 
     if (in_ante(ix0)) then
@@ -580,8 +588,8 @@ do
     enddo
   endif
 
-  if (at_section .and. wall%section(ix_section)%basic_shape == "gen_shape") then
-    v => wall%section(ix_section)%gen_shape%wall3d_section%v
+  if (at_section) then
+    v => wall3d%section(ix_section)%v
     do i = 1, size(v)
       call qp_draw_symbol (100 * v(i)%x, 100 * v(i)%y)
       write (v_str, '(a, i0, a)') 'v(', i, ')'
@@ -608,7 +616,7 @@ do
 
   if (ans(1:1) == 's') then
     read (ans(2:), *, iostat = ios) s_pos
-    if (ios /= 0 .or. s_pos < wall%section(0)%s .or. s_pos > wall%section(wall%n_section_max)%s) then
+    if (ios /= 0 .or. s_pos < wall3d%section(1)%s .or. s_pos > wall3d%section(n_sec_max)%s) then
       print *, 'Cannot read s-position or s-position out of range.'
       cycle
     endif
@@ -628,9 +636,9 @@ do
     endif
 
   elseif (ans == '') then
-    ix_section = modulo(ix_section + 1, wall%n_section_max + 1)
+    ix_section = modulo(ix_section + 1, n_sec_max + 1)
     s_pos_old = s_pos
-    s_pos = wall%section(ix_section)%s
+    s_pos = wall3d%section(ix_section)%s
     at_section = .true.
 
   elseif (index('normal', ans(1:ix)) == 1) then
@@ -651,9 +659,9 @@ do
     print *, 'Writen: cross_section.dat'
 
   elseif (ans == 'b') then
-    ix_section = modulo(ix_section - 1, wall%n_section_max + 1)
+    ix_section = modulo(ix_section - 1, n_sec_max + 1)
     s_pos_old = s_pos
-    s_pos = wall%section(ix_section)%s
+    s_pos = wall3d%section(ix_section)%s
     at_section = .true.
 
   else
@@ -662,13 +670,13 @@ do
       print *, 'Cannot read section index number'
       cycle
     endif
-    if (i_in < 0 .or. i_in > wall%n_section_max) then
+    if (i_in < 0 .or. i_in > n_sec_max) then
       print *, 'Number is out of range!'
       cycle
     endif
     ix_section = i_in
     s_pos_old = s_pos
-    s_pos = wall%section(ix_section)%s
+    s_pos = wall3d%section(ix_section)%s
     at_section = .true.
 
   endif
@@ -681,13 +689,13 @@ end subroutine sr3d_plot_wall_cross_sections
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine sr3d_find_wall_point (wall, lat, photon, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm, in_ante)
+subroutine sr3d_find_wall_point (photon, branch, x_wall, y_wall, x1_norm, x2_norm, y1_norm, y2_norm, in_ante)
 
 implicit none
 
 type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) photon
-type (lat_struct) lat
+type (branch_struct) branch
 
 real(rp) x_wall, y_wall
 real(rp), optional :: x1_norm, x2_norm, y1_norm, y2_norm
@@ -702,44 +710,26 @@ logical is_through
 
 !
 
-call sr3d_get_wall_index (photon%now, wall, ixp)
+call sr3d_get_section_index (photon%now, branch, ixp)
 
 photon%old%vec = 0
 photon%old%s = photon%now%s
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
 photon%now%track_len = photon%old%track_len + r_old
 
-if (wall%section(ixp+1)%basic_shape == 'triangular') then
-  do j = 1, 2*size(wall%section(ixp)%gen_shape%wall3d_section%v)
-    call sr3d_get_mesh_wall_triangle_pts (wall%section(ixp), wall%section(ixp+1), j, tri_vert0, tri_vert1, tri_vert2)
-    call sr3d_mesh_triangle_intersect (photon, tri_vert0, tri_vert1, tri_vert2, is_through, dtrack)
-    if (is_through) then
-      x_wall = dtrack * photon%now%vec(1) / r_old
-      y_wall = dtrack * photon%now%vec(3) / r_old
-      photon%now%ix_triangle = j
-      exit
-    endif
-  enddo
-  if (.not. is_through) then  ! did not find intersection with meshes
-    print *, 'INTERNAL COMPUTATION ERROR!'
-    call err_exit
-  endif
-
-else
-  call sr3d_photon_d_radius (photon%now, wall, d_radius, in_antechamber = in_ante)
-  if (d_radius < 0) then
-    print *, 'INTERNAL COMPUTATION ERROR!'
-    call err_exit
-  endif
-  x_wall = (r_old - d_radius) * photon%now%vec(1) / r_old
-  y_wall = (r_old - d_radius) * photon%now%vec(3) / r_old
+call sr3d_photon_d_radius (photon%now, branch, d_radius, in_antechamber = in_ante)
+if (d_radius < 0) then
+  print *, 'INTERNAL COMPUTATION ERROR!'
+  call err_exit
 endif
+x_wall = (r_old - d_radius) * photon%now%vec(1) / r_old
+y_wall = (r_old - d_radius) * photon%now%vec(3) / r_old
 
 ! The length of the normal vector is 1 cm.
 
 if (present(x1_norm)) then
   photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
-  call sr3d_photon_d_radius (photon%now, wall, d_radius, lat, dw_perp, in_ante)
+  call sr3d_photon_d_radius (photon%now, branch, d_radius, dw_perp, in_ante)
   x1_norm = x_wall;                  y1_norm = y_wall
   x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
 endif

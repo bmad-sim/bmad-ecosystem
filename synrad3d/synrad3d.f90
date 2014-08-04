@@ -20,11 +20,10 @@ type (coord_struct), allocatable :: orb(:)
 type (coord_struct) orbit_here
 type (rad_int_all_ele_struct) rad_int_ele
 type (normal_modes_struct) modes
-type (wall3d_struct) wall3d
-type (sr3d_common_struct) sr3d_com
+type (branch_struct), pointer :: branch
+type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
-type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_coord_struct) p
 type (sr3d_plot_param_struct) plot_param
 type (random_state_struct) ran_state
@@ -190,28 +189,30 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
-if (ix_ele_track_end < 0) ix_ele_track_end = lat%n_ele_track
+branch => lat%branch(0)
+
+if (ix_ele_track_end < 0) ix_ele_track_end = branch%n_ele_track
 
 ! Wall init
 
-call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
+call sr3d_read_wall_file (wall_file, branch)
 
 ! Load different surface reflection parameters if wanted
 
-if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, sr3d_com%surface(1))
-if (surface_roughness_rms > 0) sr3d_com%surface(1)%surface_roughness_rms = surface_roughness_rms
-if (roughness_correlation_len > 0) sr3d_com%surface(1)%roughness_correlation_len = roughness_correlation_len
+if (surface_reflection_file /= '') call read_surface_reflection_file (surface_reflection_file, lat%surface(1))
+if (surface_roughness_rms > 0) lat%surface(1)%surface_roughness_rms = surface_roughness_rms
+if (roughness_correlation_len > 0) lat%surface(1)%roughness_correlation_len = roughness_correlation_len
 
 ! Plot wall cross-sections or reflections. 
 ! The plotting routines never return back to the main program.
 
 if (plotting /= '') then
   if (plotting == 'xy') then
-    call sr3d_plot_wall_cross_sections (plot_param, wall, lat)
+    call sr3d_plot_wall_cross_sections (plot_param, branch)
   elseif (plotting == 'xs' .or. plotting == 'ys') then
-    call sr3d_plot_wall_vs_s (plot_param, wall, lat, plotting)
+    call sr3d_plot_wall_vs_s (plot_param, branch, plotting)
   elseif (index('reflect', trim(plotting)) == 1) then
-    call sr3d_plot_reflection_probability(plot_param, wall, sr3d_com)
+    call sr3d_plot_reflection_probability(plot_param, branch)
   else
     call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND WHAT TO PLOT: ' // plotting)
     call err_exit
@@ -221,8 +222,8 @@ endif
 ! Lattice setup
 
 if (turn_off_kickers_in_lattice) then
-  do i = 1, lat%n_ele_max
-    ele => lat%ele(i)
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
     if (attribute_index(ele, 'HKICK') > 0) then
       ele%value(hkick$) = 0
       ele%value(vkick$) = 0
@@ -241,17 +242,17 @@ if (turn_off_kickers_in_lattice) then
   call lattice_bookkeeper (lat)
 endif
 
-call twiss_and_track (lat, orb, ok)
+call twiss_and_track (lat, orb, ok, branch%ix_branch)
 if (.not. ok) stop
   
 ! Find out much radiation is produced
 
-call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele)
+call radiation_integrals (lat, orb, modes, rad_int_by_ele = rad_int_ele, ix_branch = branch%ix_branch)
 
 if (ix_ele_track_end > ix_ele_track_start) then
   i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:ix_ele_track_end)%i0)
 else
-  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:lat%n_ele_track)%i0) + &
+  i0_tot = sum(rad_int_ele%ele(ix_ele_track_start+1:branch%n_ele_track)%i0) + &
            sum(rad_int_ele%ele(1:ix_ele_track_end)%i0)
 endif
 
@@ -363,11 +364,11 @@ if (photon_start_input_file /= '') then
         print *, 'Error reading photon starting position at photon index:', n_photon_generated
         call err_exit
       endif
-      call sr3d_check_if_photon_init_coords_outside_wall (p, wall, is_inside, num_ignore_generated_outside_wall)
+      call sr3d_check_if_photon_init_coords_outside_wall (p, branch, is_inside, num_ignore_generated_outside_wall)
       if (is_inside) exit
     enddo
 
-    p%ix_ele = element_at_s(lat, p%s, .true.)
+    p%ix_ele = element_at_s(lat, p%s, .true., branch%ix_branch)
 
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
@@ -380,7 +381,7 @@ if (photon_start_input_file /= '') then
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
-    call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+    call sr3d_track_photon (photon, branch, wall_hit, err)
 
     ! ix_photon_out is used for generating a file of the photon starting position.
     ! This is used for diagnostic purposes.
@@ -447,9 +448,9 @@ else
     endif
 
     ix_ele = ix_ele + 1
-    if (ix_ele == lat%n_ele_track+1) ix_ele = 0
+    if (ix_ele == branch%n_ele_track+1) ix_ele = 0
 
-    ele => lat%ele(ix_ele)
+    ele => branch%ele(ix_ele)
 
     n_phot = nint(rad_int_ele%ele(ix_ele)%i0 / d_i0)
     if (n_phot == 0) cycle
@@ -474,9 +475,9 @@ else
     n_photon_ele = 0   
 
     do
-      call sr3d_get_emission_pt_params (lat, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
+      call sr3d_get_emission_pt_params (branch, orb, ix_ele, s_offset, ele_here, orbit_here, gx, gy)
       g = sqrt(gx**2 + gy**2) 
-      call convert_total_energy_to (ele%value(e_tot$),  lat%param%particle, gamma)
+      call convert_total_energy_to (ele%value(e_tot$),  branch%param%particle, gamma)
       ! Generate photons, track to the wall 
 
       n_photon_here = nint(g * gamma * ds / d_i0)
@@ -501,7 +502,7 @@ else
         do
           call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
                                emit_a, emit_b, sig_e, photon_direction, photon%start)
-          call sr3d_check_if_photon_init_coords_outside_wall (photon%start, wall, is_inside, num_ignore_generated_outside_wall)
+          call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
 
@@ -518,7 +519,7 @@ else
         call check_filter_restrictions(ok, .true.)
         if (.not. ok) cycle
 
-        call sr3d_track_photon (photon, lat, wall, wall_hit, err)
+        call sr3d_track_photon (photon, branch, wall_hit, err)
 
         ! ix_photon_out is used for generating a file of the photon starting position.
         ! This is used for diagnostic purposes.
@@ -589,15 +590,15 @@ write (iu, '(4f12.6, f12.3, f12.6, a)') start_vec, '  ! Start position'
 write (iu, '(4f12.6, f12.3, f12.6, a)') now_vec,   '  ! End position'
 write (iu, '(f12.6, a)') photon%now%track_len, '  ! photon_track_len' 
 dtrack = photon%now%track_len - photon_direction * &
-    modulo2((photon%now%s - photon%start%s), lat%param%total_length/2)
+    modulo2((photon%now%s - photon%start%s), branch%param%total_length/2)
 write (iu, '(f12.6, a)') dtrack, '  ! photon_track_len - ds_beam'
 j = photon%now%ix_ele
-write (iu, '(i8, 3x, 2a)') j, key_name(lat%ele(j)%key), '  ! Lat ele index and class'
+write (iu, '(i8, 3x, 2a)') j, key_name(branch%ele(j)%key), '  ! Lat ele index and class'
 
 if (iu == 1) then
   write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
         n_photon, photon%n_wall_hit, photon%start%energy, start_vec, now_vec, &
-        photon%now%track_len, dtrack, j, trim(key_name(lat%ele(j)%key)) 
+        photon%now%track_len, dtrack, j, trim(key_name(branch%ele(j)%key)) 
 endif
 
 end subroutine write_photon_data
@@ -733,9 +734,9 @@ write (iu, '(a,  f11.4)') 's_filter_max            = ', s_filter_max
 write (iu, '(a, es10.3)') 'sr3d_params%ds_track_step_max         = ', sr3d_params%ds_track_step_max
 write (iu, '(a, es10.3)') 'sr3d_params%dr_track_step_max         = ', sr3d_params%dr_track_step_max
 write (iu, '(a, es10.3)') 'surface_roughness_rms (input)         = ', surface_roughness_rms
-write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', sr3d_com%surface(1)%surface_roughness_rms
+write (iu, '(a, es10.3)') 'surface_roughness_rms (set value)     = ', lat%surface(1)%surface_roughness_rms
 write (iu, '(a, es10.3)') 'roughness_correlation_len (input)     = ', roughness_correlation_len
-write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', sr3d_com%surface(1)%roughness_correlation_len
+write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)') 'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)') 'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
 write (iu, '(a, l1)') 'sr3d_params%stop_if_hit_antechamber   = ', sr3d_params%stop_if_hit_antechamber

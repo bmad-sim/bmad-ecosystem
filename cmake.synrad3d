@@ -1,13 +1,6 @@
 set (EXENAME synrad3d)
-set (SRC_FILES
-  synrad3d/synrad3d.f90
-  synrad3d/synrad3d_output_mod.f90
-  synrad3d/synrad3d_plot_mod.f90
-  synrad3d/synrad3d_struct.f90
-  synrad3d/synrad3d_test_mod.f90
-  synrad3d/synrad3d_track_mod.f90
-  synrad3d/synrad3d_utils.f90
-)
+
+FILE (GLOB SRC_FILES synrad3d/*.f90) 
 
 set (INC_DIRS
 )
