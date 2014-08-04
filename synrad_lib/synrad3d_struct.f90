@@ -18,8 +18,8 @@ type sr3d_photon_coord_struct
   real(rp) track_len          ! length of the track from the start
   real(rp) s                  ! S position
   integer ix_ele              ! index of lattice element we are in.
-  integer :: ix_wall = 0      ! Index to wall cross-section array
-  integer ix_triangle         ! Index to wall triangle if using triangular 
+  integer :: location = not_set$  ! upstream_end$, downstream_end$, or inside$
+  integer :: ix_section = 1   ! Index to wall cross-section array
 end type
 
 type sr3d_photon_wall_hit_struct
@@ -70,7 +70,7 @@ end type
 
 type sr3d_wall_section_struct
   character(40) name              ! Name of this section
-  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", "triangular", or "multi_section"
+  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", or "multi_section"
   character(40) shape_name
   character(40) surface_name 
   real(rp) s                      ! Longitudinal position.
@@ -99,17 +99,10 @@ end type
 ! Root wall description structure.
 
 type sr3d_wall_struct
-  type (sr3d_wall_section_struct), allocatable :: section(:)  ! lbound index = 0
+  type (sr3d_wall_section_struct), allocatable :: section(:)  ! indexed from 1
   type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   type (sr3d_multi_section_struct), allocatable :: multi_section(:)
   integer n_section_max
-  integer geometry      ! closed$ or open$
-  logical has_triangular_sections
-end type
-
-type sr3d_common_struct
-  type (photon_reflect_surface_struct), allocatable :: surface(:)
-  integer geometry      ! closed$ or open$
 end type
 
 !------------------------------------------------------------------------

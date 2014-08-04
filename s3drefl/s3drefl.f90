@@ -6,8 +6,7 @@
 
 program s3drefl
 
-use synrad3d_plot_mod
-use synrad3d_output_mod
+use synrad3d_utils
 use bookkeeper_mod
 use photon_reflection_mod
 

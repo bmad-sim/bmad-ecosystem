@@ -115,7 +115,7 @@ type (sr3d_photon_track_struct) :: photon
 type (sr3d_photon_coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (random_state_struct) ran_state
-type (sr3d_common_struct), target :: sr3d_com
+type (branch_struct), pointer :: branch
 
 real(rp) vel
 integer i, ios, num_ignored, random_seed, n_photon
@@ -153,9 +153,11 @@ else
   call bmad_parser (lattice_file, lat)
 endif
 
+branch => lat%branch(0)
+
 ! Init wall
 
-call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
+call sr3d_read_wall_file (wall_file, branch)
 
 ! Open photon start input file and count the number of photons
 
@@ -190,13 +192,13 @@ do
   photon%start = p
   photon%n_wall_hit = 0
 
-  call sr3d_check_if_photon_init_coords_outside_wall (p, wall, is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (p, branch, is_inside, num_ignored)
 
   n_photon = n_photon + 1
   photon%ix_photon_generated = n_photon
   photon%ix_photon = n_photon
 
-  call sr3d_track_photon (photon, lat, wall, wall_hit, err, .true.)
+  call sr3d_track_photon (photon, branch, wall_hit, err, .true.)
   call print_hit_points (2, photon, wall_hit)  
 
 enddo

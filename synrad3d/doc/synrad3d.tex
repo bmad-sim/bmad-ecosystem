@@ -466,7 +466,7 @@ components.
 \subsection{Master Input File} 
 \label{s:master.file}
 
-The master input file can be specified on the command line invoking synrad3d.
+The master input file can be specified on the command line invoking \srthree.
 If not given, the default name for the master input file is ``\vn{synrad3d.init}''.
 
 Fortran namelist sytax is used (\sref{s:namelist}). Example master input file:
@@ -751,17 +751,14 @@ The \vn{<section_id>} can have one of five values:
   elliptical                    ! \sref{sss:el.rec}
   rectangular                   ! \sref{sss:el.rec}
   gen_shape:<shape_name>        ! \sref{sss:gen}
-  triangular:<shape_name>       ! \sref{sss:gen}
   multi_section:<shape_name>    ! \sref{sss:multi.sec}
 \end{example}
 Historically, the \vn{elliptical} and \vn{rectangular} shapes where
 developed first. The \vn{gen_shape} was developed later and is a
-generalization of the original two shapes. The \vn{triangular} shape
-was developed last and was developed in an effort to avoid problems
-when the chamber shape was concave. The \vn{elliptical} and
+generalization of the original two shapes. The \vn{elliptical} and
 \vn{rectangular} cross-sections are explained in the next
-section. \vn{gen_shape} and \vn{triangular} types are explained in the
-section after. And \vn{multi_section} is explained in the section
+section. \vn{Gen_shape} is explained in the
+section after and \vn{multi_section} is explained in the section
 after that.
 
 %------------------------------------------------------------------
@@ -843,10 +840,10 @@ Example:
 \end{example}
 
 %------------------------------------------------------------------
-\subsubsection{Gen_Shape and Triangular Wall Cross-Sections}
+\subsubsection{Gen_Shape Wall Cross-Sections}
 \label{sss:gen}
 
-The format for a \vn{gen_shape} or \vn{triangular} cross-section is
+The format for a \vn{gen_shape} a cross-section is
 \begin{example}
   &section_def section = <s>, <section_name>, <section_id> /
 \end{example}
@@ -854,7 +851,6 @@ The \vn{<s>} and \vn{<section_name>} parameters are explained in
 \sref{ss:wall.def}. The \vn{<section_id>} is one of:
 \begin{example}
   gen_shape:<shape_name>
-  triangular:<shape_name>
 \end{example}
 where \vn{<shape_name>} is the \vn{name} of a \vn{gen_shape_def}
 namelist which defines the cross-section. The \vn{gen_shape_def}
@@ -966,13 +962,6 @@ the photon is considered to have hit the antechamber if points
 $r_{w1}$ and $r_{w2}$ (See Eq.~\ref{rssss}) both correspond to points
 within the antechamber.
 
-The \vn{triangular} shape syntax is exactly the same as the
-\vn{gen_shape} syntax except that \vn{<section_id>} is set to
-"\vn{triangular:<shape_name>}". For a \vn{triangular} shape, there is also the added
-restriction that the wall between vertices must be straight lines. The
-real difference is in the way that the chamber wall is constructed for
-\vn{triangular} cross-sections as detailed in \sref{s:wall}.
-
 %------------------------------------------------------------------
 \subsubsection{Multi_Section Cross-Section}
 \label{sss:multi.sec}
@@ -991,8 +980,8 @@ the form
   /
 \end{example}
 The syntax for any of the \vn{section(n)} sections is the same as
-described above for \vn{rectangular}, \vn{elliptical}, \vn{gen_shape},
-and \vn{triangular} shapes. The first section, \vn{section(0)}, must
+described above for \vn{rectangular}, \vn{elliptical}, and \vn{gen_shape}.
+shapes. The first section, \vn{section(0)}, must
 have \vn{<s0>} set to 0 and the \vn{<s>} of the other cross-sections
 represent an offset from this 0\Th section. The last
 \vn{section(N)} section must have \vn{<sectionN_name>} set to one of
@@ -1064,6 +1053,17 @@ cross-sections. If the \vn{end_marker} section is ``closed'', an extra
 ending cross-section the same as the beginning cross-section. In this
 case, if the \vn{end_marker} section is set to ``closed'', a
 \vn{in_zig} cross-section would be added at $s = 13.000$~meters.
+
+%------------------------------------------------------------------
+\subsubsection{Chamber Wall and Patch Elements}
+\label{sss:patch}
+
+A \vn{patch} element, which shifts the reference coordinate system
+(see the Bmad manual for more details), complicates the calculation of
+where a photon hits the wall. To simplify matters, \srthree does not
+allow wall cross-sections to be defined whose longitudinal position
+overlaps any \vn{patch} element.
+
 
 %------------------------------------------------------------------
 \subsection{Chamber Surface Reflectivity}
@@ -1153,47 +1153,13 @@ the materials associated with different regions of the chamber are:
 
 Once a set of chamber cross-sections have been defined, the
 cross-section of the chamber at a given longitudinal position is
-computed using either a triangular mesh or linear interpolation. The
-reason for using two schemes is that originally \srthree only
-implemented linear interpolation.  Conceptually, as detailed in in
-\sref{s:track}, there are problems with using linear interpolation
-with certain chamber geometries. In particular when there is an
-antechamber. To get around this, the mesh approach was implemented.
-The mesh approach has it's own problems: Potentially it can be slow
-and using flat planer surfaces will not model a chamber as well as
-linear interpolation which can use curved surfaces. Currently there
-is not enough experience running \srthree so it is not clear whether
-the conceptual problem with linear interpolation is, on a practical
-level, significant. Time will tell but in the meantime both approaches
-are available for use. Note that a chamber can uses the mesh approach
-in some places and linear interpolation in others.
-
-The triangular mesh approach is associated with \vn{triangular}
-cross-sections. In particular, if a given cross-section has been
-declared \vn{triangular}, the section of the chamber from the
-preceding cross-section (called $C_1$) to the \vn{triangular}
-cross-section (called $C_2$) will be constructed using a mesh. In this
-case, the preceding cross-section must be of type \vn{gen_shape} or
-\vn{triangular} and must use only straight lines between
-vertices. Additionally, both cross-sections must have the same number
-of vertices.The mesh is then constructed as follows: Let $v_1(i)$ be
-the vertices in $C_1$ and let $v_2(i)$ be the vertices in $C_2$ with
-$i$ ranging from 1 to $N$. Construct two sets of triangles. The first
-set consists of all triangles with vertices in the form $v_1(i),
-v_1(i+1), v_2(i)$ for $i$ in the range 1 to $N$. [Modulo arithmetic is
-being used here so vertex $v(N+1)$ is equivalent to vertex $v(1)$.]
-The second set of triangles consists of all triangles of the form
-$v_1(i+1), v_2(i), v_2(i+1)$. These $2 \cdot N$ triangles define the
-chamber wall.
-
-The linear interpolation approach is used where ever the mesh approach
-is not.  With linear interpolation, the cross-section at some point
-$s_1$ where the chamber cross-section has been defined is expressed in
-cylindrical coordinates.  Thus let $r_{w1}(\theta)$ be the radius of
-the wall as a function of $\theta$ at $s_1$.  Let $r_{w2}(\theta)$ be
-the radius of the wall at the next defined cross-section at $s_2$. The
-radius of the wall cross-section, $r_w(\theta, s)$ at some position
-$s$ with $s_1 \le s \le s_2$ is
+computed using linear interpolation. With linear interpolation, the
+cross-section at some point $s_1$ where the chamber cross-section has
+been defined is expressed in cylindrical coordinates.  Thus let
+$r_{w1}(\theta)$ be the radius of the wall as a function of $\theta$
+at $s_1$.  Let $r_{w2}(\theta)$ be the radius of the wall at the next
+defined cross-section at $s_2$. The radius of the wall cross-section,
+$r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
 \Begineq
   r_w(\theta, s) = 
   \frac{s_2 - s}{s_2 - s_1} \, r_{w1}(\theta) + 
@@ -1271,13 +1237,6 @@ This will reduce the possibility of mis-tracking at the cost of
 increased computation time.  If the results do not change significantly
 when the track limits are reduced, this is good evidence that the 
 results are valid.
-
-When the chamber is locally specified using a triangular mesh. Each
-triangle is checked to see whether the trajectory of a step intersects
-it. If so, the photon has hit the chamber wall. This method avoids the
-convex assumption so has the advantage of being able to work with
-complicated geometries. However, the speed of execution will be
-dependent upon the number of triangles.
 
 %------------------------------------------------------------------
 \subsection{photon\_start\_input\_file}
@@ -1696,7 +1655,7 @@ autocorrelation function. (Beckmann does not consider the exponential
 function).
 
 Finally, the scattered power expressions are used to derive cumulative
-distribution functions. These functions are used in Synrad3D to choose
+distribution functions. These functions are used in \srthree to choose
 outgoing scattering angles from a rough vacuum chamber surface
 
 %------------------------------------------------------------------
