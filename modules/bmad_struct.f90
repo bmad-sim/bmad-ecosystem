@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 138
+integer, parameter :: bmad_inc_version$ = 139
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -173,7 +173,7 @@ type wall3d_struct
   character(20) :: opaque_material = ''           !
   logical :: superimpose = .false.                ! Can overlap another wall
   integer :: ele_anchor_pt = anchor_beginning$    ! anchor_beginning$, anchor_center$, or anchor_end$
-  type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 0:
+  type (wall3d_section_struct), allocatable :: section(:) ! Indexed from 1.
 end type  
 
 ! plane list, etc
@@ -696,6 +696,7 @@ end type
 !     write_digested_bmad_file
 !     transfer_lat_parameters
 !     lat_equal_lat
+! Rule: When lat2 = lat2, lat2%surface and lat1%surface will point to the same location.
 
 type lat_struct
   character(40) use_name                      ! Name of lat given by USE statement
@@ -710,6 +711,7 @@ type lat_struct
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
+  type (photon_reflect_surface_struct), pointer :: surface(:) => null()
   type (coord_struct) beam_start          ! Starting coords
   type (pre_tracker_struct) pre_tracker   ! For OPAL/IMPACT-T
   integer version                         ! Version number
@@ -1202,7 +1204,7 @@ end type
 
 integer, parameter :: sector$ = 1, straight$ = 2, true_rbend$ = 3
 character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
-                              'Garbage!  ', 'Sector    ', 'straight  ', 'true_rbend']
+                              'Garbage!  ', 'Sector    ', 'Straight  ', 'True_Rbend']
 
 !------------------------------------------------------------------------------
 ! common stuff
@@ -1211,39 +1213,39 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 !   lat%param%aperture_limit_on = False.
 
 type bmad_common_struct
-  real(rp) :: max_aperture_limit = 1e3       ! Max Aperture.
-  real(rp) :: d_orb(6)           = 1e-5      ! Orbit deltas for the mat6 via tracking calc.
-  real(rp) :: default_ds_step    = 0.2_rp    ! Integration step size.  
-  real(rp) :: significant_length = 1e-10     ! meter 
+  real(rp) :: max_aperture_limit = 1e3            ! Max Aperture.
+  real(rp) :: d_orb(6)           = 1e-5           ! Orbit deltas for the mat6 via tracking calc.
+  real(rp) :: default_ds_step    = 0.2_rp         ! Integration step size.  
+  real(rp) :: significant_length = 1e-10          ! meter 
   real(rp) :: rel_tol_tracking = 1e-8
   real(rp) :: abs_tol_tracking = 1e-10
-  real(rp) :: rel_tol_adaptive_tracking = 1e-8     ! Adaptive tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-10    ! Adaptive tracking absolute tolerance.
-  real(rp) :: init_ds_adaptive_tracking = 1e-3     ! Initial step size
-  real(rp) :: min_ds_adaptive_tracking = 0         ! Min step size to take.
-  real(rp) :: fatal_ds_adaptive_tracking = 1e-8    ! If actual step size is below this particle is lost.
-  integer :: taylor_order = 0                      ! Input Taylor order for maps. 
-                                                   !   0 -> default = ptc%taylor_order_saved
-                                                   !   ptc_com%taylor_order_ptc gives actual order in use. 
-  integer :: default_integ_order = 2               ! PTC integration order. 
-  integer :: ptc_max_fringe_order = 2              ! PTC max fringe order (2  = > Quadrupole !). 
-                                                   !   Must call set_ptc after changing.
-  logical :: use_hard_edge_drifts = .true.         ! Insert drifts when tracking through cavity?
-  logical :: sr_wakes_on = .true.                  ! Short range wakefields?
-  logical :: lr_wakes_on = .true.                  ! Long range wakefields
-  logical :: mat6_track_symmetric = .true.         ! symmetric offsets
-  logical :: auto_bookkeeper = .true.              ! Automatic bookkeeping?
-  logical :: space_charge_on = .false.             ! Space charge switch
-  logical :: coherent_synch_rad_on = .false.       ! csr 
-  logical :: spin_tracking_on = .false.            ! spin tracking?
-  logical :: radiation_damping_on = .false.        ! Damping toggle.
-  logical :: radiation_fluctuations_on = .false.   ! Fluctuations toggle.
-  logical :: conserve_taylor_maps = .true.         ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
-  logical :: absolute_time_tracking_default = .false.   ! Default for lat%absolute_time_tracking
-  logical :: auto_scale_field_phase_default = .true.       ! Default for lat%auto_scale_field_phase
-  logical :: auto_scale_field_amp_default = .true.         ! Default for lat%auto_scale_field_amp
-  logical :: use_ptc_layout_default = .false.           ! Default for lat%use_ptc_layout
-  logical :: debug = .false.                            ! Used for code debugging.
+  real(rp) :: rel_tol_adaptive_tracking = 1e-8        ! Adaptive tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-10       ! Adaptive tracking absolute tolerance.
+  real(rp) :: init_ds_adaptive_tracking = 1e-3        ! Initial step size
+  real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
+  real(rp) :: fatal_ds_adaptive_tracking = 1e-8       ! If actual step size is below this particle is lost.
+  integer :: taylor_order = 0                         ! Input Taylor order for maps. 
+                                                      !   0 -> default = ptc%taylor_order_saved
+                                                      !   ptc_com%taylor_order_ptc gives actual order in use. 
+  integer :: default_integ_order = 2                  ! PTC integration order. 
+  integer :: ptc_max_fringe_order = 2                 ! PTC max fringe order (2  = > Quadrupole !). 
+                                                      !   Must call set_ptc after changing.
+  logical :: use_hard_edge_drifts = .true.            ! Insert drifts when tracking through cavity?
+  logical :: sr_wakes_on = .true.                     ! Short range wakefields?
+  logical :: lr_wakes_on = .true.                     ! Long range wakefields
+  logical :: mat6_track_symmetric = .true.            ! symmetric offsets
+  logical :: auto_bookkeeper = .true.                 ! Automatic bookkeeping?
+  logical :: space_charge_on = .false.                ! Space charge switch
+  logical :: coherent_synch_rad_on = .false.          ! csr 
+  logical :: spin_tracking_on = .false.               ! spin tracking?
+  logical :: radiation_damping_on = .false.           ! Damping toggle.
+  logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
+  logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
+  logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
+  logical :: auto_scale_field_phase_default = .true.  ! Default for lat%auto_scale_field_phase
+  logical :: auto_scale_field_amp_default = .true.    ! Default for lat%auto_scale_field_amp
+  logical :: use_ptc_layout_default = .false.         ! Default for lat%use_ptc_layout
+  logical :: debug = .false.                          ! Used for code debugging.
 end type
   
 type (bmad_common_struct), save, target :: bmad_com

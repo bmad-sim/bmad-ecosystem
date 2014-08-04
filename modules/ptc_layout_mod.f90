@@ -56,9 +56,9 @@ end subroutine type_ptc_layout
 ! Subroutine lat_to_ptc_layout (lat)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch.
-! Note: If ptc_layout has been already used then you should first do a 
-!           call kill(ptc_layout)
-! This deallocates the pointers in the layout
+! Note: If lat_to_ptc_layout has already been setup, you should first do a 
+!           call kill_ptc_layouts(lat)
+! This deallocates the pointers in PTC
 !
 ! Note: If not already done, before you call this routine you need to first call:
 !    call set_ptc (...)
@@ -199,10 +199,10 @@ end subroutine lat_to_ptc_layout
 !+
 ! Subroutine branch_to_ptc_layout (branch)
 !
-! Subroutine to create a PTC layout from a Bmad lattice branch..
-! Note: If ptc_layout has been already used then you should first do a 
-!           call kill(ptc_layout)
-! This deallocates the pointers in the layout
+! Subroutine to create a PTC layout from a Bmad lattice branch.
+! Note: If lat_to_ptc_layout has already been setup, you should first do a 
+!           call kill_ptc_layouts(lat)
+! This deallocates the pointers in PTC
 !
 ! Note: If not already done, before you call this routine you need to first call:
 !    call set_ptc (...)

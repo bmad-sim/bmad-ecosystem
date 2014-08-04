@@ -183,6 +183,71 @@ If there are \vn{fiducial} elements, the local reference frame is
 constructed beginning at these elements.
 
 %-----------------------------------------------------------------------------
+
+\begin{figure}[tb]
+  \centering
+  \includegraphics[width=5in]{patch-problem.pdf}
+  \caption[The local reference coordinates in a \vn{patch} element.]
+{The local reference coordinates in a \vn{patch} element. The
+\vn{patch} element, shown schematically as an ellipse, is sandwiched
+between elements \vn{ele_a} and \vn{ele_b}. \vn{L} is the length of
+the \vn{patch}. In this example, the \vn{patch} has a finite
+\vn{x_pitch}.}
+  \label{f:patch.prob}
+\end{figure}
+
+%-----------------------------------------------------------------------------
+%-----------------------------------------------------------------------------
+\subsection{Patch Element Local Coordinates}
+\label{s:patch.prob}
+\index{patch}
+
+Generally, if a particle is reasonably near the reference orbit, there
+is a one-to-one mapping between the particle's position and $(x, y,
+s)$ coordinates. A \vn{patch} (\sref{s:patch}) elements with non-zero
+pitch breaks the one-to-one mapping. This is illustrated in
+\fig{f:patch.prob}.  The \vn{patch} element, shown schematically as an
+ellipse, is sandwiched between elements \vn{ele_a} and \vn{ele_b}. The
+local coordinate system with origin at $\alpha$ are the coordinates at
+the end of \vn{ele_a}. The coordinates at the end of the \vn{patch}
+has its origin labeled $\gamma$. By convention, the length of the
+patch \vn{L} is taken to be the longitudinal distance from $\alpha$ to
+$\gamma$ with the \vn{patch}'s exit coordinates defining the
+longitudinal direction. The ``beginning'' point of the \vn{patch} on the
+reference orbit a distance \vn{L} from point $\gamma$ is labeled
+$\beta$ in the figure.
+
+In the local $(x, y, s)$ coordinate system a particle at $alpha$ will
+have some value $s = s_0$. A particle at point $\beta$ will have the
+same value $s = s_0$ and a particle at $\gamma$ will have $s = s_1 =
+s_0 + L$. A particle at point $r_a$ in \fig{f:patch.prob} illustrates
+the problem of assigning $(x, y, s)$ coordinates to a given
+position. If the particle is considered to be within the region of
+\vn{ele_a}, the particle's $s$ position will be $s_{a2}$ which is
+greater than the value $s_0$ at the exit end of the element. This
+contradicts the expectation that particles within \vn{ele_a} will have
+$s \le s_0$.  If, on the other hand, the particle is considered to be
+within the \vn{patch} region, the particle's $s$ position will be
+$s_{a1}$ which is less than the value $s_0$ at the entrance to the
+patch. This contradicts the expectation that a particles within the
+\vn{patch} will have $s \ge s_0$.
+
+To resolve this problem, \bmad considers a particle at position $r_a$
+to be within the \vn{patch} region. This means that there is, in
+theory, no lower limit to the $s$-position that a particle in the
+\vn{patch} region can have. This also implies that there is a
+discontinuity in the $s$-position of a particle crossing the exit face
+of \vn{ele1}. Typically, when particles are translated from the exit
+face of one element to the exit face of the next, this \vn{patch}
+problem does not appear. It only appears when the track between faces
+is considered.
+
+Notice that a particle at position $r_b$ in \fig{f:patch.prob} can
+simultaneously be considered to be in either \vn{ele_a} or the
+\vn{patch}. While this creates an ambiguity it does not complicate
+tracking.
+
+%-----------------------------------------------------------------------------
 \section{Global Coordinates}
 \label{s:global}
 \index{global coordinates|hyperbf}
@@ -435,7 +500,7 @@ $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
 \end{align}
 
 Notice that since $\bfS$ (and $\bfW$) is the product of orthogonal
-rotation matricies, $\bfS$ is itself orthogonal and its inverse is
+rotation matrices, $\bfS$ is itself orthogonal and its inverse is
 just the transpose
 \Begineq
   \bfS^{-1} = \bfS^T

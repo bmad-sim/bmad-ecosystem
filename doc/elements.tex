@@ -2658,15 +2658,16 @@ A straight line element like a \vn{drift} or a \vn{quadrupole} has the
 the exit face parallel to the entrance face. With a \vn{patch}
 element, the entrance and exit faces can be arbitrarily oriented with
 respect to one another as shown in \fig{f:patch}A. The length \vn{l}
-of a \vn{patch} a dependent (\sref{s:depend}) parameter and is the
+of a \vn{patch} is a dependent (\sref{s:depend}) parameter and is the
 longitudinal ($z$ component) distance from the entrance origin to the
 exit origin using the exit end reference coordinates as shown in
-\fig{f:patch}B.
+\fig{f:patch}B. See \sref{s:patch.prob} for a further discussion on
+the coordinate system of a \vn{patch}.
 
 \index{rigid patch}\index{infleible patch}
 \index{flexible patch}
 There are two different ways the orientation of the exit face is
-determined. Which way is determined by the setting of the
+determined. Which way is used is determined by the setting of the
 \vn{flexible} attribute.  With the \vn{flexible} attribute set to
 \vn{False}, the default, The exit face of the \vn{patch} will be
 determined from the offset, tilt and pitch attributes as described in

@@ -223,9 +223,11 @@ do ib = 0, ubound(lat%branch, 1)
     ! wigglers would result in z-position shifts when tracking particles.
 
     if (ix_super_end < ie) then       ! If not in super_lord region...
-      call init_coord (ele%time_ref_orb_in, zero6, ele0, downstream_end$) 
+      call init_coord (ele%time_ref_orb_in, zero6, ele0, downstream_end$) ! Note: wrt ele0.
+      ele%time_ref_orb_in%location = upstream_end$
     else                              ! In super_lord region
       ele%time_ref_orb_in = ele0%time_ref_orb_out
+      ele%time_ref_orb_in%location = upstream_end$
     endif
 
     ! Find where the current super lord region ends.
@@ -387,6 +389,7 @@ ele%value(p0c_start$)      = p0c_start
 ele%value(ref_time_start$) = ref_time_start
 
 ele%time_ref_orb_out = ele%time_ref_orb_in  ! This should be true when we don't have to track.
+ele%time_ref_orb_out%location = downstream_end$
 
 key = ele%key
 if (key == em_field$ .and. ele%sub_key == nonconst_ref_energy$) key = lcavity$
@@ -631,7 +634,7 @@ ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t
 !ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
 !            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
-
+ele%time_ref_orb_out%location = downstream_end$
 
 end subroutine
 

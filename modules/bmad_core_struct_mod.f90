@@ -186,6 +186,7 @@ lat_out%absolute_time_tracking    = lat_in%absolute_time_tracking
 lat_out%auto_scale_field_phase    = lat_in%auto_scale_field_phase
 lat_out%auto_scale_field_amp      = lat_in%auto_scale_field_amp
 lat_out%use_ptc_layout            = lat_in%use_ptc_layout
+lat_out%surface                   => lat_in%surface  
 
 end subroutine transfer_lat_parameters
 

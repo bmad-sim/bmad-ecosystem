@@ -1378,8 +1378,8 @@ sliced_ele%value(l$) = l_slice
 sliced_ele%s = ele_in%s - in_len + offset + sliced_ele%value(l$)
 
 ! The sliced element is treated as a super_slave to the original element except
-! if that element is a super_slave in which case the sliced element has the same lords
-! as the original element.
+! if the original element is itself a super_slave in which case the sliced element 
+! has the same lords as the original element.
 
 if (ele_in%slave_status /= super_slave$) then
   sliced_ele%n_lord = 1
@@ -1509,6 +1509,9 @@ endif
 
 call ele_compute_ref_energy_and_time (sliced_ele, param, e_tot_start, p0c_start, ref_time_start, err2_flag)
 if (err2_flag) return
+
+if (.not. include_upstream_end) sliced_ele%time_ref_orb_in%location = inside$
+if (.not. include_downstream_end) sliced_ele%time_ref_orb_out%location = inside$
 
 err_flag = .false.
 
