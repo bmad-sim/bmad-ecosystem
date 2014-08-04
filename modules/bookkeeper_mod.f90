@@ -2423,17 +2423,20 @@ case (rfcavity$)
 
 case (sad_mult$)
 
-  call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
+  if (ele%value(eps_step_scale$) > 0) then
+    call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
 
-  eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
-  n_div = 1
-  do n = 2, n_pole_maxx
-    if (knl(n) == 0) cycle  
-    n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * sad_param%amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
-  enddo
+    eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
+    n_div = 1
+    do n = 2, n_pole_maxx
+      if (knl(n) == 0) cycle  
+      n_div = max(n_div, int(sqrt(abs(knl(n)) * ele%value(l$) * sad_param%amp_max**(n-1) / (eps6 * factorial(n-1)))) + 1)
+    enddo
 
-  ele%value(num_steps$) = min(n_div, sad_param%n_div_max)
-  ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
+    ele%value(num_steps$) = min(n_div, sad_param%n_div_max)
+    ele%value(ds_step$) = ele%value(l$) / ele%value(num_steps$)
+  endif
+
 
 ! Sbend
 
