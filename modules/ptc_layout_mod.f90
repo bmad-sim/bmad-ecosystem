@@ -1126,6 +1126,8 @@ if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid a
   case (sad_full$)
     call set_integer (p%permfringe, pp%permfringe, 3)
   end select
+
+  if (ele%key == sad_mult$ .and. ele%value(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
 endif
 
 if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
