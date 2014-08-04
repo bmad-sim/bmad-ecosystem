@@ -1091,17 +1091,6 @@ case (sad_mult$)
   endif
 
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
-  select case (nint(val(fringe_type$)))
-  case (none$)
-    call set_integer (p%permfringe, pp%permfringe, 0)
-  case (sad_linear$)
-    call set_integer (p%permfringe, pp%permfringe, 2)
-  case (sad_nonlin_only$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
-  case (sad_full$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
-  end select
-
 
 case (sbend$)
   call set_real (mag%hgap, magp%hgap, val(hgap$))
@@ -1120,8 +1109,23 @@ end select
 if (ele%key /= sad_mult$) then
 
   if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-    ix = nint(val(fringe_type$)) 
-    call set_integer_from_logic (p%permfringe, pp%permfringe, (ix == full_straight$ .or. ix == full_bend$))
+    select case (nint(val(fringe_type$)))
+    case (none$)
+      call set_integer (p%permfringe, pp%permfringe, 0)
+    case (basic_bend$)
+      call set_integer (p%permfringe, pp%permfringe, 0)
+    case (full_straight$)
+      call set_integer (p%permfringe, pp%permfringe, 1)
+    case (full_bend$)
+      call set_integer (p%permfringe, pp%permfringe, 1)
+    case (sad_nonlin_only$)
+      call set_integer (p%permfringe, pp%permfringe, 1)
+    case (sad_linear$)
+      call set_integer (p%permfringe, pp%permfringe, 2)
+    case (sad_full$)
+      call set_integer (p%permfringe, pp%permfringe, 3)
+    end select
+
     call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
   endif
 
@@ -1172,23 +1176,6 @@ to1 = value
 to2 = value
 
 end subroutine set_integer
-
-!-------------------------------------------------------------------------
-! contains
-
-subroutine set_integer_from_logic (to1, to2, value)
-integer to1, to2
-logical value
-
-if (value) then
-  to1 = 1    ! True
-  to2 = 1
-else
-  to1 = 0    ! False
-  to2 = 0
-endif
-
-end subroutine set_integer_from_logic
 
 !-------------------------------------------------------------------------
 ! contains

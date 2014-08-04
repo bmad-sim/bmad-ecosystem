@@ -3046,7 +3046,7 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, permfringe
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3119,8 +3119,12 @@ case (quadrupole$)
   ptc_key%magnet = 'quadrupole'
 
 case (sad_mult$)
-  ptc_key%magnet = 'solenoid'
-  if (ele%value(l$) /= 0) ptc_key%list%bsol = val(ks$)
+  if (ele%value(l$) == 0) then
+    ptc_key%magnet = 'multipole'  ! No Bz field
+  else
+    ptc_key%magnet = 'solenoid'
+    ptc_key%list%bsol = val(ks$)
+  endif
 
 case (sbend$) 
   ptc_key%magnet = 'sbend'
@@ -3240,9 +3244,24 @@ end select
 
 ! Fringe
 
-if (ele%key /= sad_mult$ .and. attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  ix = nint(ele%value(fringe_type$)) 
-  ptc_key%list%permfringe = (ix == full_straight$ .or. ix == full_bend$)
+if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+  select case (nint(ele%value(fringe_type$)))
+  case (none$)
+    ptc_key%list%permfringe = 0
+  case (basic_bend$)
+    ptc_key%list%permfringe = 0
+  case (full_straight$)
+    ptc_key%list%permfringe = 1
+  case (full_bend$)
+    ptc_key%list%permfringe = 1
+  case (sad_nonlin_only$)
+    ptc_key%list%permfringe = 1
+  case (sad_linear$)
+    ptc_key%list%permfringe = 2
+  case (sad_full$)
+    ptc_key%list%permfringe = 3
+  end select
+
   ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
 endif
 
@@ -3294,20 +3313,6 @@ if (ele%key == sad_mult$) then
     ptc_fibre%mag%vs  = ele%value(f2$)
     ptc_fibre%magp%vs = ele%value(f2$)
   endif
-
-  select case (nint(ele%value(fringe_type$)))
-  case (none$)
-    permfringe = 0
-  case (sad_linear$)
-    permfringe = 2
-  case (sad_nonlin_only$)
-    permfringe = 1
-  case (sad_full$)
-    permfringe = 3
-  end select
-
-  ptc_fibre%mag%p%permfringe = permfringe
-  ptc_fibre%magp%p%permfringe = permfringe
 
 endif
 
