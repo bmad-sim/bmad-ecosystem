@@ -1022,8 +1022,6 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%x == f2%x)
 !! f_side.equality_test[real, 0, NOT]
@@ -1040,6 +1038,8 @@ is_eq = is_eq .and. (f1%angle == f2%angle)
 is_eq = is_eq .and. (f1%x0 == f2%x0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
 
 end function eq_wall3d_vertex
 
@@ -2106,6 +2106,12 @@ if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(shape(f1%control) == shape(f2%control))
 if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(f1%control == f2%control)
+!! f_side.equality_test[type, 1, PTR]
+is_eq = is_eq .and. (associated(f1%surface) .eqv. associated(f2%surface))
+if (.not. is_eq) return
+if (associated(f1%surface)) is_eq = all(shape(f1%surface) == shape(f2%surface))
+if (.not. is_eq) return
+if (associated(f1%surface)) is_eq = all(f1%surface == f2%surface)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%beam_start == f2%beam_start)
 !! f_side.equality_test[type, 0, NOT]

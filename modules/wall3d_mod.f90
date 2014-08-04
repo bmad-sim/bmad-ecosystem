@@ -9,9 +9,6 @@ use rotation_3d_mod
 
 interface re_allocate
   module procedure re_allocate_wall3d_section_array
-end interface
-
-interface re_allocate
   module procedure re_allocate_wall3d_vertex_array
 end interface
 
@@ -609,7 +606,7 @@ end subroutine calc_wall_radius
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function wall3d_d_radius (position, ele, perp, ix_section, origin, err_flag) result (d_radius)
+! Function wall3d_d_radius (position, ele, perp, ix_section, in_antechamber, origin, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = particle_radius - wall_radius.
 ! The radius is measured from the line connecting the section centers and not 
@@ -629,16 +626,19 @@ end subroutine calc_wall_radius
 !   ele          -- ele_struct: Element with wall
 !
 ! Output:
-!   d_radius   -- real(rp), Normalized radius: r_particle - r_wall
-!   perp(3)    -- real(rp), optional: Perpendicular normal to the wall.
-!   ix_section -- integer, optional: Set to wall slice section particle is in. 
-!                  That is between ix_section and ix_section+1.
-!   origin(3)  -- real(rp), optional: (x, y, s) origin with respect to the radius is measured.
-!                   Uses the same coords as position.
-!   err_flag   -- Logical, optional: Set True if error (for example no wall), false otherwise.
+!   d_radius       -- real(rp), Normalized radius: r_particle - r_wall
+!   perp(3)        -- real(rp), optional: Perpendicular normal to the wall.
+!   ix_section     -- integer, optional: Set to wall slice section particle is in. 
+!                      That is between ix_section and ix_section+1.
+!   in_antechamber -- integer, optional: True if hit an antechamber wall segment. False otherwise.
+!                       In between sections a particle is considered to be in an antechamber if the
+!                       particle is in the antechamber at both upstream and dowstream sections.
+!   origin(3)      -- real(rp), optional: (x, y, s) origin with respect to the radius is measured.
+!                       Uses the same coords as position.
+!   err_flag       -- Logical, optional: Set True if error (for example no wall), false otherwise.
 !-
 
-function wall3d_d_radius (position, ele, perp, ix_section, origin, err_flag) result (d_radius)
+function wall3d_d_radius (position, ele, perp, ix_section, in_antechamber, origin, err_flag) result (d_radius)
 
 implicit none
 
@@ -656,16 +656,16 @@ real(rp), optional :: perp(3), origin(3)
 
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
-real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds
+real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp
 real(rp) p1, p2, dp1, dp2, s_particle, dz_offset, x, y, x0, y0, f
 real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
 
-integer i, ix_w, n_slice, n_sec
+integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2
 integer, optional :: ix_section
 
-logical, optional :: err_flag
+logical, optional :: err_flag, in_antechamber
 logical err, is_branch_wall, wrapped
 
 character(32), parameter :: r_name = 'wall3d_d_radius' 
@@ -795,7 +795,7 @@ if (ele%key == patch$) then
     cos_theta = dr(1) / r_norm
     sin_theta = dr(2) / r_norm
   endif
-  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ix_vertex1)
 
   ! floor1_p is the particle coords projected onto the sec1 plane in global ref frame
   ! floor1_w  is sec1 wall pt in global reference frame
@@ -836,7 +836,7 @@ if (ele%key == patch$) then
     cos_theta = dr(1) / r_norm
     sin_theta = dr(2) / r_norm
   endif
-  call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
+  call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta, ix_vertex2)
 
   ! floor2_p is the particle coords projected onto the sec2 plane in global ref frame
   ! floor2_w  is sec2 wall pt in global reference frame
@@ -900,6 +900,12 @@ if (ele%key == patch$) then
     
   endif
 
+  ! Calculate antechamber status
+
+  if (present(in_antechamber)) then
+    in_antechamber = (sec1%v(ix_vertex1)%type == antechamber$ .and. sec2%v(ix_vertex2)%type == antechamber$)
+  endif
+
 !----------------------------
 ! non-patch element
 
@@ -927,8 +933,12 @@ else
     sin_theta = y / r_particle
   endif
 
-  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
-  call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta)
+  call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ix_vertex1)
+  call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta, ix_vertex2)
+
+  if (present(in_antechamber)) then
+    in_antechamber = (sec1%v(ix_vertex1)%type == antechamber$ .and. sec2%v(ix_vertex2)%type == antechamber$)
+  endif
 
   ! Interpolate to get d_radius
 
@@ -947,7 +957,20 @@ else
     dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
     dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
     perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
-    perp = perp / norm2(perp)  ! Normalize vector length to 1.
+
+    ! In a bend dw_perp must be corrected since the true longitudinal "length" at the particle
+    ! is, for a horizontal bend, ds * (1 + x/rho) where ds is the length along the reference 
+    ! trajectory, x is the transverse displacement, and rho is the bend radius.
+    if (ele%key == sbend$) then
+      if (ele%value(ref_tilt_tot$) == 0) then
+        disp = position(1) 
+      else
+        disp = position(1) * cos(ele%value(ref_tilt_tot$)) + position(3) * sin(ele%value(ref_tilt_tot$))
+      endif
+      perp(3) = perp(3) / (1 + disp * ele%value(g$))
+    endif
+    ! Normalize vector length to 1.
+    perp = perp / norm2(perp)  
     ! If section origin line is not aligned with the z-axis then the wall has a "shear"
     ! and the perpendicular vector must be corrected.
     dx = sec2%x0 - sec1%x0
@@ -969,6 +992,8 @@ subroutine d_radius_at_section (this_sec)
 
 type (wall3d_section_struct) this_sec
 
+integer ixv
+
 !
 
 x = position(1) - this_sec%x0; y = position(3) - this_sec%y0
@@ -981,10 +1006,11 @@ else
   sin_theta = y / r_particle
 endif
 
-call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta)
+call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ixv)
 d_radius = r_particle - r1_wall
 if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
                           [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
+if (present(in_antechamber)) in_antechamber = (this_sec%v(ixv)%type == antechamber$)
 if (present(origin)) origin = [this_sec%x0, this_sec%y0, position(5)]
 if (present(err_flag)) err_flag = .false.
 
@@ -1103,7 +1129,7 @@ type (wall3d_section_struct), pointer :: ws
 
 real(rp) s_min, s_max, s_temp
 
-integer i, j, k, n, n_wall
+integer i, j, k, n, n_sec
 logical err
 
 character(*), parameter :: r_name = 'create_concatenated_wall3d'
@@ -1118,17 +1144,17 @@ do i = 0, ubound(lat%branch, 1)
   s_min = branch%ele(0)%s
   s_max = branch%ele(branch%n_ele_track)%s
 
-  n_wall = 0
+  n_sec = 0
   do j = 0, branch%n_ele_max
     ele => branch%ele(j)
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
     if (ele%lord_status == multipass_lord$) cycle  ! wall info also in slaves
-    n_wall = n_wall + size(ele%wall3d%section)
+    n_sec = n_sec + size(ele%wall3d%section)
   enddo
 
-  if (n_wall == 0) then
+  if (n_sec == 0) then
     if (associated (branch%wall3d)) deallocate (branch%wall3d)
     cycle
   endif
@@ -1137,9 +1163,9 @@ do i = 0, ubound(lat%branch, 1)
   ! First work on non-superimpose element
 
   if (allocated(sp)) deallocate (sp)
-  allocate (sp(n_wall))
+  allocate (sp(n_sec))
 
-  n_wall = 0
+  n_sec = 0
   do j = 0, branch%n_ele_max
     ele => branch%ele(j)
     if (.not. associated(ele%wall3d)) cycle
@@ -1165,7 +1191,7 @@ do i = 0, ubound(lat%branch, 1)
   ! Check for consistancy
   ! If there is an overlap but within significant_length then switch s-positions
 
-  do j = 1, n_wall-1
+  do j = 1, n_sec-1
     if (sp(j)%s > sp(j+1)%s) then
       if (sp(j)%s < sp(j+1)%s + bmad_com%significant_length) then
         s_temp = sp(j)%s
@@ -1186,9 +1212,9 @@ do i = 0, ubound(lat%branch, 1)
   ! branch%wall3d is never mutiply linked.
 
   if (.not. associated(branch%wall3d)) allocate (branch%wall3d)
-  call re_allocate(branch%wall3d%section, n_wall)
+  call re_allocate(branch%wall3d%section, n_sec)
 
-  do j = 1, n_wall
+  do j = 1, n_sec
     ws => branch%wall3d%section(j)
     call re_allocate(ws%v, size(sp(j)%sec%v))
     ws = sp(j)%sec
@@ -1225,9 +1251,9 @@ end select
 
 s = wall%section(1)%s + s_ref
 if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_wall, s, ixw)
+call bracket_index (sp%s, 1, n_sec, s, ixw)
 
-if (ixw > 1 .and. ixw < n_wall) then
+if (ixw > 1 .and. ixw < n_sec) then
   if (sp(ixw-1)%ele%ix_ele == sp(ixw+1)%ele%ix_ele) then
     call print_overlap_error (section_ptr_struct(wall%section(1), ele, s), sp(ixw+1))
     return
@@ -1236,8 +1262,8 @@ endif
 
 ! Move existing sections if needed to make room for the sections of wall_ele.
 
-if (ixw < n_wall) then
-  sp(ixw+1+nw:n_wall+nw) = sp(ixw+1:n_wall)
+if (ixw < n_sec) then
+  sp(ixw+1+nw:n_sec+nw) = sp(ixw+1:n_sec)
 endif
 
 ix_wrap1 = 0; ix_wrap2 = 0
@@ -1251,13 +1277,13 @@ do ii = 1, nw
   if (sp(k)%s > s_max .and. ix_wrap2 == 0) ix_wrap2 = k
 enddo
 
-n_wall = n_wall + nw
+n_sec = n_sec + nw
 
 n = nw+ixw
 
 ! If there is an overlap but within significant_length then switch s-positions.
 
-if (n < n_wall) then
+if (n < n_sec) then
   if (sp(n)%s > sp(n+1)%s) then
     if (sp(n)%s < sp(n+1)%s + bmad_com%significant_length) then
       s = sp(n)%s
@@ -1274,12 +1300,12 @@ endif
 
 if (ix_wrap1 /= 0 .and. branch%param%geometry == closed$) then
   sp(1:ix_wrap1)%s = sp(1:ix_wrap1)%s + (s_max - s_min)
-  sp(1:n_wall) = [sp(ix_wrap1+1:n_wall), sp(1:ix_wrap1)]
+  sp(1:n_sec) = [sp(ix_wrap1+1:n_sec), sp(1:ix_wrap1)]
 endif
 
 if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
-  sp(ix_wrap2:n_wall)%s = sp(ix_wrap2:n_wall)%s - (s_max - s_min)
-  sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
+  sp(ix_wrap2:n_sec)%s = sp(ix_wrap2:n_sec)%s - (s_max - s_min)
+  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2)]
 endif
 
 end subroutine add_in_ele_wall_sections
@@ -1327,18 +1353,18 @@ end select
 
 s = wall%section(1)%s + s_ref
 if (size(wall%section) /= 1) s = s + bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_wall, s, ixw1)
+call bracket_index (sp%s, 1, n_sec, s, ixw1)
 
 s = wall%section(nw)%s + s_ref
 if (size(wall%section) /= 1) s = s - bmad_com%significant_length/10
-call bracket_index (sp%s, 1, n_wall, s, ixw2)
+call bracket_index (sp%s, 1, n_sec, s, ixw2)
 
 !
 
 n_del = nw - (ixw2 - ixw1)  ! net number of sections added.
 
-if (ixw2 < n_wall) then
-  sp(ixw2+1+n_del:n_wall+n_del) = sp(ixw2+1:n_wall)
+if (ixw2 < n_sec) then
+  sp(ixw2+1+n_del:n_sec+n_del) = sp(ixw2+1:n_sec)
 endif
 
 ix_wrap1 = 0; ix_wrap2 = 0
@@ -1353,31 +1379,31 @@ do ii = 1, nw
   if (sp(k)%s > s_max .and. ix_wrap2 == 0) ix_wrap2 = k
 enddo
 
-n_wall = n_wall + n_del
+n_sec = n_sec + n_del
 
 ! Wrap sections if needed.
 ! Remember to discard any sections in the overlap region.
 
 if (ix_wrap1 /= 0 .and. branch%param%geometry == closed$) then
   sp(1:ix_wrap1)%s = sp(1:ix_wrap1)%s + (s_max - s_min)
-  do ii = ix_wrap1+1, n_wall
+  do ii = ix_wrap1+1, n_sec
     if (sp(ii)%s <= sp(1)%s) cycle
-    n_wall = ii - 1
+    n_sec = ii - 1
     exit
   enddo    
-  sp(1:n_wall) = [sp(ix_wrap1+1:n_wall), sp(1:ix_wrap1)]
+  sp(1:n_sec) = [sp(ix_wrap1+1:n_sec), sp(1:ix_wrap1)]
 endif
 
 if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
-  sp(ix_wrap2:n_wall)%s = sp(ix_wrap2:n_wall)%s - (s_max - s_min)
+  sp(ix_wrap2:n_sec)%s = sp(ix_wrap2:n_sec)%s - (s_max - s_min)
   do ii = ix_wrap2-1, 1, -1
-    if (sp(ii)%s >= sp(n_wall)%s) cycle
-    sp(1:n_wall-ii) = sp(ii+1:n_wall)
-    n_wall = n_wall - ii
+    if (sp(ii)%s >= sp(n_sec)%s) cycle
+    sp(1:n_sec-ii) = sp(ii+1:n_sec)
+    n_sec = n_sec - ii
     ix_wrap2 = ix_wrap2 - ii
     exit
   enddo    
-  sp(1:n_wall) = [sp(ix_wrap2:n_wall), sp(1:ix_wrap2)]
+  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2)]
 endif
 
 end subroutine superimpose_this_wall 
