@@ -6,11 +6,9 @@ use photon_reflection_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) :: photon
 type (sr3d_photon_coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (sr3d_common_struct), target :: sr3d_com
 
 real(rp) vel
 integer ios, num_ignored, n_photon
@@ -47,9 +45,7 @@ do
   endif
 
   if (wall_file /= old_wall_file) then
-    if (allocated(wall%section)) deallocate (wall%section)
-    if (allocated(wall%gen_shape)) deallocate (wall%gen_shape)
-    call sr3d_read_wall_file (wall_file, lat%ele(lat%n_ele_track)%s, lat%param%geometry, wall, sr3d_com)
+    call sr3d_read_wall_file (wall_file, lat%branch(0))
     old_wall_file = wall_file
     cycle
   endif
@@ -70,9 +66,9 @@ do
   photon%ix_photon = n_photon
   photon%ix_photon_generated = n_photon
 
-  call sr3d_check_if_photon_init_coords_outside_wall (p, wall, is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (p, lat%branch(0), is_inside, num_ignored)
 
-  call sr3d_track_photon (photon, lat, wall, wall_hit, err, .true.)
+  call sr3d_track_photon (photon, lat%branch(0), wall_hit, err, .true.)
   write (1, '(a, i0, a, 3f20.16)') '"Photon:',  n_photon, '"    ABS   1.0E-14', &
                                                             wall_hit(1)%after_reflect%vec(2:6:2)
 enddo
