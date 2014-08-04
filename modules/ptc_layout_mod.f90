@@ -1106,29 +1106,26 @@ end select
 
 ! Fringe
 
-if (ele%key /= sad_mult$) then
+if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+  ix = nint(val(fringe_type$))
+  call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
 
-  if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-    select case (nint(val(fringe_type$)))
-    case (none$)
-      call set_integer (p%permfringe, pp%permfringe, 0)
-    case (basic_bend$)
-      call set_integer (p%permfringe, pp%permfringe, 0)
-    case (full_straight$)
-      call set_integer (p%permfringe, pp%permfringe, 1)
-    case (full_bend$)
-      call set_integer (p%permfringe, pp%permfringe, 1)
-    case (sad_nonlin_only$)
-      call set_integer (p%permfringe, pp%permfringe, 1)
-    case (sad_linear$)
-      call set_integer (p%permfringe, pp%permfringe, 2)
-    case (sad_full$)
-      call set_integer (p%permfringe, pp%permfringe, 3)
-    end select
-
-    call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
-  endif
-
+  select case (ix)
+  case (none$)
+    call set_integer (p%permfringe, pp%permfringe, 0)
+  case (basic_bend$)
+    call set_integer (p%permfringe, pp%permfringe, 0)
+  case (full_straight$)
+    call set_integer (p%permfringe, pp%permfringe, 1)
+  case (full_bend$)
+    call set_integer (p%permfringe, pp%permfringe, 1)
+  case (sad_nonlin_only$)
+    call set_integer (p%permfringe, pp%permfringe, 1)
+  case (sad_linear$)
+    call set_integer (p%permfringe, pp%permfringe, 2)
+  case (sad_full$)
+    call set_integer (p%permfringe, pp%permfringe, 3)
+  end select
 endif
 
 if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute

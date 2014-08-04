@@ -3245,7 +3245,10 @@ end select
 ! Fringe
 
 if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  select case (nint(ele%value(fringe_type$)))
+  ix = nint(ele%value(fringe_type$))
+  ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
+
+  select case (ix)
   case (none$)
     ptc_key%list%permfringe = 0
   case (basic_bend$)
@@ -3261,8 +3264,6 @@ if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid a
   case (sad_full$)
     ptc_key%list%permfringe = 3
   end select
-
-  ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
 endif
 
 if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attribute
