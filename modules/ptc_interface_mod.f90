@@ -3136,7 +3136,7 @@ case (sbend$)
 
   if (ele%value(f1$) /= 0) then
     ptc_key%list%fint = ele%value(f1$) / 6
-    ptc_key%list%hgap = 1
+    ptc_key%list%hgap = 0.5
   endif
 
   if (ele%value(fintx$) /= ele%value(fint$)) then

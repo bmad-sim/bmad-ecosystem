@@ -1081,7 +1081,7 @@ end select
 ! Sad fringe
 
 select case (fringe_type)
-case (sad_nonlin_only$, sad_full$, sad_linear$) 
+case (sad_full$, sad_linear$) 
   call add_sad_bend_edge_kick (orb, ele, param, particle_at, mat6)
 end select
 
@@ -1156,14 +1156,6 @@ rel_p = 1 + orb%vec(6)
 c1 = f1**2 * g / (24 * rel_p)  ! * px
 c2 = f1 * g**2 / (12 * rel_p)  ! * y^2
 c3 = g**2 / (6 * f1 * rel_p)   ! * y^4
-
-select case (nint(ele%value(fringe_type$)))
-case (sad_nonlin_only$) 
-  c1 = 0
-  c2 = 0
-case (sad_linear$) 
-  c3 = 0
-end select
 
 if (present(mat6)) then
   call mat_make_unit (sad_mat)
