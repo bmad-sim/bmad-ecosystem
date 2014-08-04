@@ -12,7 +12,7 @@
 
 subroutine synrad_custom_seg_calc (wall, ray, seg, frac_illum)
 
-use synrad_interface
+use synrad_interface, dummy => synrad_custom_seg_calc
 
 implicit none
 
