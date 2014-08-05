@@ -3120,10 +3120,15 @@ case (quadrupole$)
 
 case (sad_mult$)
   if (ele%value(l$) == 0) then
-    ptc_key%magnet = 'multipole'  ! No Bz field
+    ptc_key%magnet = 'multipole'  ! No Bz field if zero length.
   else
     ptc_key%magnet = 'solenoid'
     ptc_key%list%bsol = val(ks$)
+  endif
+
+  if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
+    call out_io (s_error$, r_name, &
+          'NON-ZERO X OR Y_PITCH_MULT NOT IMPLEMENTED IN PTC FOR SAD_MULT ELEMENT: ' // ele%name)
   endif
 
 case (sbend$) 
@@ -3311,7 +3316,7 @@ ptc_fibre%dir = ele%orientation
 
 lielib_print(12) = n
 
-! sad_mult
+! sad_mult & quadrupole
 
 if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
   if (ele%value(l$) /= 0) then
@@ -3321,7 +3326,14 @@ if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
     ptc_fibre%mag%vs  = ele%value(f2$)
     ptc_fibre%magp%vs = ele%value(f2$)
   endif
+endif
 
+if (ele%key == sad_mult$) then
+    ptc_fibre%mag%s5%dx  = ele%value(x_offset_mult$)
+    ptc_fibre%mag%s5%dy  = ele%value(y_offset_mult$)
+
+    ptc_fibre%magp%s5%dx  = ele%value(x_offset_mult$)
+    ptc_fibre%magp%s5%dy  = ele%value(y_offset_mult$)
 endif
 
 ! Set reference energy to the exit reference energy.
