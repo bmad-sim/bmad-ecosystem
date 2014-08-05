@@ -185,11 +185,11 @@ fi
 case $(uname -n) in
     cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
            GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
-					 LM_LICENSE_FILE="/nfs/cesr/opt/totalview/license.dat:/nfs/opt/totalview/license.dat"
+					 export LM_LICENSE_FILE="/nfs/cesr/opt/totalview/license.dat:/nfs/opt/totalview/license.dat:/nfs/cesr/opt/MathWorks/Matlab_r2013a/licenses/network.lic:/nfs/opt/MathWorks/Matlab_r2013a/licenses/network.lic"
 					 ;;					 
         *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
            GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND}
-					 LM_LICENSE_FILE="/nfs/opt/totalview/license.dat:/nfs/cesr/opt/totalview/license.dat"
+					 export LM_LICENSE_FILE="/nfs/opt/totalview/license.dat:/nfs/cesr/opt/totalview/license.dat:/nfs/opt/MathWorks/Matlab_r2013a/licenses/network.lic:/nfs/cesr/opt/MathWorks/Matlab_r2013a/licenses/network.lic"
 					 ;;					 
 esac
 
