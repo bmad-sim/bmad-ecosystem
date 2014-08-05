@@ -3313,7 +3313,7 @@ lielib_print(12) = n
 
 ! sad_mult
 
-if (ele%key == sad_mult$) then
+if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
   if (ele%value(l$) /= 0) then
     ptc_fibre%mag%va  = ele%value(f1$)
     ptc_fibre%magp%va = ele%value(f1$)
