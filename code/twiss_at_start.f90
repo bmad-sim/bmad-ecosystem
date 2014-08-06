@@ -38,7 +38,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4)
+real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4), m56
 
 integer, optional, intent(in) :: ix_branch
 integer, optional, intent(out) ::status
@@ -54,6 +54,7 @@ character(200), allocatable :: lines(:)
 call mat_make_unit (t0_4)       ! form unit matrix
 eta_vec = 0
 map0 = 0
+m56 = 0
 
 branch => lat%branch(integer_option(0, ix_branch))
 
@@ -74,8 +75,8 @@ call set_on_off (rfcavity$, lat, off$, use_ref_orb = .true., ix_branch = branch%
 
 do n = 1, branch%n_ele_track
   ele => branch%ele(n)
-  eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec)
-  eta_vec = eta_vec + ele%mat6(1:4,6)
+  m56 = m56 + ele%mat6(5,6) + dot_product(ele%mat6(5,1:4), eta_vec)
+  eta_vec = matmul (ele%mat6(1:4,1:4), eta_vec) + ele%mat6(1:4,6)
   map0 = matmul (ele%mat6(1:4,1:4), map0) + ele%vec0(1:4)
   t0_4 = matmul (ele%mat6(1:4,1:4), t0_4)
   if (debug) then
@@ -106,6 +107,7 @@ call mat_make_unit (mat6)
 mat6(1:4,1:4) = t0_4
 
 call mat6_dispersion (eta_vec, mat6) ! dispersion to %mat6
+mat6(5,6) = m56
 branch%param%t1_no_RF = mat6
 
 ! Compute twiss parameters
