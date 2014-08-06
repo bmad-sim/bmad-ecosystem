@@ -1461,7 +1461,7 @@ case ('key_bindings')
 ! lattice
 
 case ('lattice')
-  
+
   limited = .false.
   all_lat = .false.
   at_ends = .true.
@@ -1487,7 +1487,7 @@ case ('lattice')
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base               ', '-design             ', '-floor_coords       '], &
+        '-base               ', '-design             ', '-floor_coords       ', '-orbit              '], &
               switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
@@ -1553,6 +1553,9 @@ case ('lattice')
     case ('-no_tail_lines')
       print_tail_lines = .false.
 
+    case ('-orbit')
+      what_to_print = 'orbit'
+
     case ('-radiation_integrals')
       what_to_print = 'rad_int'
 
@@ -1591,6 +1594,19 @@ case ('lattice')
     column( 9)  = show_lat_column_struct('ele::#[theta_position]', 'f12.5',    12, 'Theta', .false.)
     column(10)  = show_lat_column_struct('ele::#[phi_position]',   'f12.5',    12, 'Phi',   .false.)
     column(11)  = show_lat_column_struct('ele::#[psi_position]',   'f12.5',    12, 'Psi',   .false.)
+
+  case ('orbit')
+    column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
+    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
+    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
+    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
+    column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false.)
+    column( 7)  = show_lat_column_struct('ele::#[orbit_px]',       'es14.6',   14, '', .false.)
+    column( 8)  = show_lat_column_struct('ele::#[orbit_y]',        'es14.6',   14, '', .false.)
+    column( 9)  = show_lat_column_struct('ele::#[orbit_py]',       'es14.6',   14, '', .false.)
+    column(10)  = show_lat_column_struct('ele::#[orbit_z]',        'es14.6',   14, '', .false.)
+    column(11)  = show_lat_column_struct('ele::#[orbit_pz]',       'es14.6',   14, '', .false.)
 
   case ('rad_int')
     column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false.)

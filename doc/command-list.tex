@@ -1234,7 +1234,7 @@ Format:
   key_bindings
   lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
         \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} 
-        \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-radiation_integrals\}
+        \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} \{-radiation_integrals\}
         \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
   matrix \{-s\} \{loc1 \{loc2\}\}
   normal_form \{-order <n_order>\} <type>
@@ -1563,8 +1563,8 @@ Shows all key bindings.
 
 \item[\protect\parbox{6in}{
   show lattice \{-0undef\} \{-all\_tracking\} \{-base\} \{-blank_replacement <string>\}  \\
-  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-lords\} \{-floor_coords\} \\
-  \hspace*{0.35in} \{-middle\}  \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-radiation_integrals\} \\
+  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \\
+  \hspace*{0.35in} \{-middle\}  \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
   \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\}  }] \Newline
 
 Show a table of Twiss and orbit data, etc. at the specified
@@ -1576,6 +1576,12 @@ By default, the appropriate element(s) within the \vn{model} lattice
 (\sref{s:universe}) are used. This can be overridden by using the
 \vn{-base} or the \vn{-design} switches which switch the lattice to
 the \vn{base} or \vn{design} lattices respectively.
+
+The \vn{-orbit} switch, if presen,t will show the particle reference
+orbit which is the closed orbit if the lattice has a closed geometry
+and is the orbit beginning from the specified starting position for
+lattices with an open geometry. Use \vn{set beam_start} to vary the
+starting position in this case.
 
 The \vn{-radiation_integrals} switch, if present, will cause the
 radiation integrals for each lattice element to be displayed instead
