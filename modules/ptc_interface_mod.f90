@@ -516,7 +516,7 @@ if (associated(mag)) then
   call write_real ('%h2               ',  mag%h2,      'es13.5')
   call write_real ('%b_sol            ',  mag%b_sol,   'es13.5')
   call write_real ('%va [sad f1]      ',  mag%va,      'es13.5')
-  call write_real ('%vs [sad f2]      ',  mag%va,      'es13.5')
+  call write_real ('%vs [sad f2]      ',  mag%vs,      'es13.5')
 
   if (associated(mag%an)) then
     all_zero = .true.
@@ -3329,11 +3329,22 @@ if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
 endif
 
 if (ele%key == sad_mult$) then
+
+  if (ptc_fibre%mag%kind == kind5) then
     ptc_fibre%mag%s5%dx  = ele%value(x_offset_mult$)
     ptc_fibre%mag%s5%dy  = ele%value(y_offset_mult$)
 
     ptc_fibre%magp%s5%dx  = ele%value(x_offset_mult$)
     ptc_fibre%magp%s5%dy  = ele%value(y_offset_mult$)
+ elseif (ptc_fibre%mag%kind == kind3) then
+    ptc_fibre%mag%k3%dx  = ele%value(x_offset_mult$)
+    ptc_fibre%mag%k3%dy  = ele%value(y_offset_mult$)
+
+    ptc_fibre%magp%k3%dx  = ele%value(x_offset_mult$)
+    ptc_fibre%magp%k3%dy  = ele%value(y_offset_mult$)
+  else 
+    call out_io (s_fatal$, r_name, 'INTERNAL ERROR SETTING MULT OFFSET. PLEASE CONTACT DAVID SAGAN.')
+  endif
 endif
 
 ! Set reference energy to the exit reference energy.
