@@ -1182,13 +1182,8 @@ end subroutine set_integer
 subroutine set_logic (to1, to2, value)
 logical to1, to2, value
 
-if (value) then
-  to1 = 1    ! True
-  to2 = 1
-else
-  to1 = 0    ! False
-  to2 = 0
-endif
+to1 = value
+to2 = value
 
 end subroutine set_logic
 

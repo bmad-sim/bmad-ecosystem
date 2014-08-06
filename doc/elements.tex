@@ -1448,13 +1448,18 @@ $x = 0$ with respect to the \vn{from_line} reference orbit through
 \vn{PB} will, when transferred to the \vn{x_line}, and propagated
 through \vn{X_PATCH}, have an initial value for $x$ of $-0.01$.
 
-\index{x_offset}\index{y_offset}
-\index{tilt}\index{is_on}
 Forking elements have zero length and, like \vn{marker} elements, the
-position of a particle tracked through a forking element is constant.
-Additionally, like \vn{marker} elements, The \vn{x_offset},
-\vn{y_offset} and \vn{tilt} attributes are not used by any \bmad
-routines. The \vn{is_on} attribute is also not used by \bmad proper.
+position of a particle tracked through a forking element does not change.
+
+Forking elements do not have orientational attributes like
+\vn{x_pitch} and \vn{tilt} (\ref{s:offset}). If the orientation of the
+target branch needs to be modified, this can be accomplished using a
+\vn{patch} element at the beginning of the line.
+
+\index{is_on}
+The \vn{is_on} attribute, while provided for use by a program, is
+ignored by \bmad proper.
+
 
 If the reference orbit needs to be shifted when forking from one ring
 to another ring, a patch can be placed in a separate ``transfer'' line
@@ -1481,8 +1486,8 @@ a \vn{fork} element \vn{f2} back through \vn{x_line} and then to
 \vn{x_f2} have their \vn{direction} attribute set to -1 to indicate
 that the fork is appropriate for particles propagating in the -$s$
 direction.  Additionally, since \vn{f2} has \vn{direction} set to -1,
-it will connect to the downstream end of the \vn{x_line}. The default
-setting of \vn{direction} is 1.
+it will, by default, connect to the downstream end of the
+\vn{x_line}. The default setting of \vn{direction} is 1.
 
 \index{beginning_ele}\index{fiducial}\index{fork}\index{photon_fork}
 \index{marker}\index{to_element}
@@ -1502,10 +1507,10 @@ to the beginning of the target branch if \vn{direction} is 1 and to
 connect to the end of the target branch if \vn{direction} is -1. In
 this case, there is never a problem connecting to the beginning of the
 target branch since all branches have a \vn{beginning_ele} element at
-the beginning. When connecting to the end of the target branch (with
-\vn{direction} set to -1), the last element in the target branch must
-be a marker-like element. Note that, by default, a marker element is
-placed at the end of all branches (\sref{s:branch.construct})
+the beginning. When connecting to the end of the target branch the
+last element in the target branch must be a marker-like element. Note
+that, by default, a marker element is placed at the end of all
+branches (\sref{s:branch.construct})
 
 If the branch line is to transport particles different from the
 originating line the particle type and the beginning reference energy
