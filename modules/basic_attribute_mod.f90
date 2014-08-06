@@ -391,7 +391,6 @@ do i = 1, n_key$
 
   if (i == match$) cycle
   if (i == floor_shift$) cycle
-  if (i == patch$)        cycle
 
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
@@ -399,6 +398,10 @@ do i = 1, n_key$
   call init_attribute_name1 (i, x_pitch$,       'X_PITCH')
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
   call init_attribute_name1 (i, tilt$,          'TILT' )
+
+  if (i == patch$)        cycle
+  if (i == photon_fork$)   cycle
+  if (i == fork$)          cycle
 
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
   call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
@@ -420,8 +423,6 @@ do i = 1, n_key$
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
-  if (i == photon_fork$)   cycle
-  if (i == fork$)          cycle
   if (i == marker$)        cycle
   if (i == detector$)      cycle
   if (i == beambeam$)      cycle
@@ -504,6 +505,8 @@ call init_attribute_name1 (photon_fork$, direction$,               'DIRECTION')
 call init_attribute_name1 (photon_fork$, to_line$,                 'TO_LINE')
 call init_attribute_name1 (photon_fork$, to_element$,              'TO_ELEMENT')
 call init_attribute_name1 (photon_fork$, new_branch$,              'NEW_BRANCH')
+call init_attribute_name1 (photon_fork$, is_on$,                   'IS_ON')
+call init_attribute_name1 (photon_fork$, wall_attribute$,           'WALL')
 
 attrib_array(fork$, :) = attrib_array(photon_fork$, :)
 
