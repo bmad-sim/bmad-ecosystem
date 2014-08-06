@@ -103,7 +103,7 @@ do n = 0, ubound(lat%branch, 1)
 
   if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%bookkeeping_state%floor_position == stale$)) then
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    call ele_geometry (b_ele%floor, b_ele, branch%ele(0)%floor, treat_as_patch = .true.)
+    call ele_geometry (b_ele%floor, b_ele, branch%ele(0)%floor)
     stale = .true.
   endif
 
@@ -212,7 +212,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)
+! Subroutine ele_geometry (floor0, ele, floor, len_scale)
 !
 ! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -233,9 +233,6 @@ end subroutine lat_geometry
 !                         1.0_rp => Output is geometry at end of element (default).
 !                         0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
 !                        -1.0_rp => Used to propagate geometry in reverse.
-!   treat_as_patch  -- Logical, optional: If present and True then treat the element
-!                        like a patch element. This is used by branch and photon_branch
-!                        elements for constructing the coordinates of the "to" lattice branch.
 !
 ! Output:
 !   floor       -- floor_position_struct: Floor position at downstream end.
@@ -243,7 +240,7 @@ end subroutine lat_geometry
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-recursive subroutine ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)
+recursive subroutine ele_geometry (floor0, ele, floor, len_scale)
 
 use multipole_mod
 
@@ -265,7 +262,6 @@ real(rp) :: s_ang, c_ang, w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 integer i, key, n_loc
 
 logical has_nonzero_pole, err, calc_done
-logical, optional :: treat_as_patch
 
 character(16), parameter :: r_name = 'ele_geometry'
 
@@ -286,7 +282,6 @@ leng = ele%value(l$) * len_factor
 
 key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
-if (logic_option(.false., treat_as_patch)) key = patch$
 
 if (key == multipole$) then
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)

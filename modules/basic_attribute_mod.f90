@@ -391,6 +391,7 @@ do i = 1, n_key$
 
   if (i == match$) cycle
   if (i == floor_shift$) cycle
+  if (i == patch$)        cycle
 
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
@@ -398,8 +399,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, x_pitch$,       'X_PITCH')
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
   call init_attribute_name1 (i, tilt$,          'TILT' )
-
-  if (i == patch$)        cycle
 
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
   call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
