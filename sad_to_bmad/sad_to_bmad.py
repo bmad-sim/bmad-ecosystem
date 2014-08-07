@@ -22,6 +22,13 @@ class lat_line_struct:
     self.name = ''
     self.list = []
 
+class sad_info_struct:
+  def __init__(self):
+    self.lat_line_list = OrderedDict()
+    self.ele_list = OrderedDict()
+    self.param_list = OrderedDict()
+
+
 # ------------------------------------------------------------------
 
 def print_help():
@@ -338,7 +345,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
 # ------------------------------------------------------------------
 
-def parse_line(rest_of_line, lat_line_list):
+def parse_line(rest_of_line, sad_info):
   sad_line = lat_line_struct()
   line_name, e_sign, line_list = rest_of_line.partition("=")
   line_name = line_name.strip()
@@ -353,14 +360,14 @@ def parse_line(rest_of_line, lat_line_list):
       line_item = line_item_struct(elename)
     sad_line.list.append(line_item)
 
-  lat_line_list[line_name] = sad_line
+  sad_info.lat_line_list[line_name] = sad_line
 
 # ------------------------------------------------------------------
 
 regexDef = r"(\S*?)\s*=\s*\((.*?)\)"
 regexParam = r"(\S*)\s*=\s*(\S*\s*(deg)?)"
 
-def parse_ele (head, rest_of_line, sad_ele_list):
+def parse_ele (head, rest_of_line, sad_info):
   for name_and_params in re.finditer(regexDef, rest_of_line):
     ele = ele_struct()
     ele.name = name_and_params.group(1).strip()
@@ -376,15 +383,16 @@ def parse_ele (head, rest_of_line, sad_ele_list):
 
     if ignore_marker_offsets and ele.type == 'mark' and 'offset' in ele.param: del ele.param['offset']
 
-    sad_ele_list[ele.name] = ele
+    print ('Name: ' + ele.name)
 
+    sad_info.ele_list[ele.name] = ele
 
 # ------------------------------------------------------------------
 
-def parse_param (head, rest_of_line, sad_param_list):
+def parse_param (head, rest_of_line, sad_info):
   rest_of_line = rest_of_line.strip()
   if len(rest_of_line) > 0 and rest_of_line[0] == '=': rest_of_line = rest_of_line[1:].strip()  # Strip off '='
-  sad_param_list[head] = rest_of_line
+  sad_info.param_list[head] = rest_of_line
 
 # ------------------------------------------------------------------
 # Rule: After a "calc" command, the only thing left to parse is a possible "initialorbit" setting.
@@ -410,7 +418,7 @@ global_param_translate = {
   'ddpi':     'beam_start[pz]',
 }
 
-def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
+def parse_directive(directive, sad_info):
 
   global calc_command_found
 
@@ -428,15 +436,15 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
 
   if head in global_param_translate or head == 'use':
     if calc_command_found: return
-    parse_param (head, rest_of_line, sad_param_list)
+    parse_param (head, rest_of_line, sad_info)
 
   elif head == 'line':
     if calc_command_found: return
-    parse_line(rest_of_line, lat_line_list)
+    parse_line(rest_of_line, sad_info)
 
   elif head in sad_ele_type_names:
     if calc_command_found: return
-    parse_ele(head, rest_of_line, sad_ele_list)
+    parse_ele(head, rest_of_line, sad_info)
 
   elif head == 'calc' or head == 'cal':
     calc_command_found = True
@@ -445,12 +453,15 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
     line = rest_of_line.partition('initialorbit')[2]
     line = line.partition('{')[2].partition('}')[0]
     orbit = line.replace(',', ' ').split()
-    sad_param_list['x_orb']  = orbit[0]
-    sad_param_list['px_orb'] = orbit[1]
-    sad_param_list['y_orb']  = orbit[2]
-    sad_param_list['py_orb'] = orbit[3]
-    sad_param_list['z_orb']  = orbit[4]
-    sad_param_list['pz_orb'] = orbit[5]
+    sad_info.param_list['x_orb']  = orbit[0]
+    sad_info.param_list['px_orb'] = orbit[1]
+    sad_info.param_list['y_orb']  = orbit[2]
+    sad_info.param_list['py_orb'] = orbit[3]
+    sad_info.param_list['z_orb']  = orbit[4]
+    sad_info.param_list['pz_orb'] = orbit[5]
+
+  elif ' ' not in head and len(rest_of_line) > 1 and rest_of_line[0] == '=':  # Parameter
+    variable
 
 # ------------------------------------------------------------------
 # ------------------------------------------------------------------
@@ -509,9 +520,7 @@ sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "ca
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
 # Call parse_directive whenever an entire directive has been obtained.
 
-sad_ele_list = OrderedDict()
-sad_param_list = OrderedDict()
-lat_line_list = OrderedDict()
+sad_info = sad_info_struct()
 calc_command_found = False
 
 directive = ''
@@ -538,37 +547,37 @@ for line in f_in:
       in_comment = True
 
   directive = directive + line + " "
-  
+
   while True:
     ix = directive.find(';')
     if ix == -1: break
-    parse_directive(directive[:ix], sad_ele_list, lat_line_list, sad_param_list)
+    parse_directive(directive[:ix], sad_info)
     directive = directive[ix+1:]
 
 # ------------------------------------------------------------------
 # Get root lattice line
 
-if 'use' not in sad_param_list:
+if 'use' not in sad_info.param_list:
   print ('NO USE STATEMENT FOUND!')
   sys.exit()
 
-line0_name = sad_param_list['use']
+line0_name = sad_info.param_list['use']
 print ('Using line: ' + line0_name)
 
-if line0_name not in lat_line_list:
+if line0_name not in sad_info.lat_line_list:
   print ('USED LINE NOT FOUND. STOPPING HERE.')
   sys.exit()
 
-sad_line = lat_line_list[line0_name]
+sad_line = sad_info.lat_line_list[line0_name]
 
 # For betax and betay translations
 
 ele0_name = sad_line.list[0].name
-if ele0_name in sad_ele_list:
-  ele0 = sad_ele_list[ele0_name]
+if ele0_name in sad_info.ele_list:
+  ele0 = sad_info.ele_list[ele0_name]
   for key in ele0.param:
     if key in sad_param_names:
-      sad_param_list[key] = ele0.param[key]
+      sad_info.param_list[key] = ele0.param[key]
 
 # ------------------------------------------------------------------
 # Header
@@ -584,12 +593,12 @@ if header_file != '':
 if mark_open: f_out.write ('parameter[geometry] = open\n')
 if mark_closed: f_out.write ('parameter[geometry] = closed\n')
 
-for name in sad_param_list:
+for name in sad_info.param_list:
   if name not in global_param_translate: continue
-  if sad_param_list[name] == '':
+  if sad_info.param_list[name] == '':
     f_out.write(global_param_translate[name] + '\n')
   else:
-    f_out.write(global_param_translate[name] + ' = ' + sad_param_list[name] + '\n')
+    f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
 
 # ------------------------------------------------------------------
 # Translate and write element defs
@@ -604,11 +613,11 @@ for ix_s_ele, sad_line_list in enumerate(sad_line.list):
 
   ele_name = sad_line_list.name
 
-  if not ele_name in sad_ele_list:
+  if not ele_name in sad_info.ele_list:
     print ('No definition found for element name: ' + ele_name)
     continue
 
-  s_ele = sad_ele_list[ele_name]
+  s_ele = sad_info.ele_list[ele_name]
 
   # sol element
 
@@ -643,9 +652,9 @@ for ix_s_ele, sad_line_list in enumerate(sad_line.list):
     direc = 1
     if int_off < 0: direc = -1
     for ix in range(0, int_off, direc):
-      ss_ele = sad_ele_list[sad_line.list[ix_s_ele+ix].name]
+      ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+ix].name]
       if 'l' in ss_ele.param: offset += direc * float(ss_ele.param['l'])
-    ss_ele = sad_ele_list[sad_line.list[ix_s_ele+int_off].name]
+    ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
     if 'l' in ss_ele.param: offset += frac_off * float(ss_ele.param['l'])
 
     if s_ele.instances == 0:
@@ -675,7 +684,7 @@ for ix_s_ele, sad_line_list in enumerate(sad_line.list):
   s_ele.printed = True
 
 # ------------------------------------------------------------------
-# Write lat_line_list line
+# Write sad_info.lat_line_list line
 
 f_out.write ('\n')
 
