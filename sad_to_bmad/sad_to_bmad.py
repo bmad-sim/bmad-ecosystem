@@ -85,6 +85,9 @@ ele_type_to_bmad = {
 # Translation rule: Specific translations (of the form 'element:parameter') take
 # precedence over generaic translations (of the form 'parameter').
 
+# Something like ['k0', ' / @l@'] is translated to "<k0> / <l>" where <k0> and <l> are the values
+# of the k0 and l parameters.
+
 ele_param_translate = {
     'bend:k0': ['k0', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
@@ -388,6 +391,25 @@ def parse_param (head, rest_of_line, sad_param_list):
 
 sad_param_names = ['momentum', 'use', 'betax', 'betay', 'nocod']
 
+global_param_translate = {
+  'momentum': 'beginning[p0c]',
+  'betax':    'beginning[beta_a]',
+  'betay':    'beginning[beta_b]',
+  'nocod':    'parameter[geometry] = open',
+  'x_orb':    'beam_start[x]',
+  'px_orb':   'beam_start[px]',
+  'y_orb':    'beam_start[y]',
+  'py_orb':   'beam_start[py]',
+  'z_orb':    'beam_start[z]',
+  'pz_orb':   'beam_start[pz]',
+  'dxi':      'beam_start[x]',
+  'dpxi':     'beam_start[px]',
+  'dyi':      'beam_start[y]',
+  'dpyi':     'beam_start[py]',
+  'dzi':      'beam_start[z]',
+  'ddpi':     'beam_start[pz]',
+}
+
 def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
 
   global calc_command_found
@@ -404,7 +426,7 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
     head = p1
     if p2 != '': rest_of_line = p2 + ' ' + rest_of_line 
 
-  if head in sad_param_names:
+  if head in global_param_translate or head == 'use':
     if calc_command_found: return
     parse_param (head, rest_of_line, sad_param_list)
 
@@ -429,17 +451,6 @@ def parse_directive(directive, sad_ele_list, lat_line_list, sad_param_list):
     sad_param_list['py_orb'] = orbit[3]
     sad_param_list['z_orb']  = orbit[4]
     sad_param_list['pz_orb'] = orbit[5]
-
-  elif '=' in directive:
-    head, blank, rest_of_line = directive.partition('=')
-    head = head.strip()
-    if head == 'dxi':  sad_param_list['x_orb']  = rest_of_line
-    if head == 'dpxi': sad_param_list['px_orb'] = rest_of_line
-    if head == 'dyi':  sad_param_list['y_orb']  = rest_of_line
-    if head == 'dpyi': sad_param_list['py_orb'] = rest_of_line
-    if head == 'dzi':  sad_param_list['z_orb']  = rest_of_line
-    if head == 'ddpi': sad_param_list['pz_orb'] = rest_of_line
-
 
 # ------------------------------------------------------------------
 # ------------------------------------------------------------------
@@ -569,19 +580,6 @@ if header_file != '':
 
 # ------------------------------------------------------------------
 # Translate and write parameters
-
-global_param_translate = {
-  'momentum': 'beginning[p0c]',
-  'betax':    'beginning[beta_a]',
-  'betay':    'beginning[beta_b]',
-  'nocod':    'parameter[geometry] = open',
-  'x_orb':    'beam_start[x]',
-  'px_orb':   'beam_start[px]',
-  'y_orb':    'beam_start[y]',
-  'py_orb':   'beam_start[py]',
-  'z_orb':    'beam_start[z]',
-  'pz_orb':   'beam_start[pz]',
-}
 
 if mark_open: f_out.write ('parameter[geometry] = open\n')
 if mark_closed: f_out.write ('parameter[geometry] = closed\n')
