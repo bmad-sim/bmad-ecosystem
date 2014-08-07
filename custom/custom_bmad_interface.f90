@@ -98,6 +98,15 @@ interface
     logical err_flag
   end subroutine
 
+  subroutine track1_postprocess (start_orb, ele, param, end_orb)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+  end subroutine
+
   subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
