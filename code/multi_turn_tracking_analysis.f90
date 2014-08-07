@@ -58,8 +58,7 @@ integer stat, i
 err_flag = .true.
 
 call mat_make_unit (ele%mat6)
-call multi_turn_tracking_to_mat (track, i_dim, &
-                  ele%mat6(1:i_dim,1:i_dim), map0, track0, chi)
+call multi_turn_tracking_to_mat (track, i_dim, ele%mat6(1:i_dim,1:i_dim), map0, track0, chi)
 ele%vec0 = track0%vec
 call mat_symplectify (ele%mat6(1:i_dim,1:i_dim), ele%mat6(1:i_dim,1:i_dim))
 
@@ -82,7 +81,7 @@ if (i_dim == 2) then
 
 elseif (i_dim == 4) then
 
-  call twiss_from_mat6 (ele%mat6, map0, ele, stable, growth_rate, stat, global_com%type_out)
+  call twiss_from_mat6 (ele%mat6, track0%vec, ele, stable, growth_rate, stat, global_com%type_out)
   if (stat /= ok$) return
 
   call make_v_mats (ele, v_mat, v_inv_mat)

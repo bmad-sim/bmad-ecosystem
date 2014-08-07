@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
+! Subroutine twiss_from_mat6 (mat6, orb0, ele, stable, growth_rate, status, type_out)
 !
 ! Subroutine to calculate the Twiss parameters from a 1-turn matrix.
 ! Note: The 1-turn matrix needs to be formed with the RF turned off.
@@ -9,7 +9,7 @@
 !
 ! Input:
 !   mat6(6,6)   -- Real(rp): 6x6 matrix (linear part) of the 1-turn map.
-!   map0(6)     -- Real(rp): 0th order part of the 1-turn map.
+!   orb0(6)     -- Real(rp): Initial orbit around which the map is made.
 !   type_out    -- Logical: If True then print a message when calculation fails.
 !
 ! Output:
@@ -25,7 +25,7 @@
 !                       ok$, in_stop_band$, unstable$, or non_symplectic$
 !-
 
-subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)
+subroutine twiss_from_mat6 (mat6, orb0, ele, stable, growth_rate, status, type_out)
 
   use bmad_interface, except_dummy => twiss_from_mat6
 
@@ -33,9 +33,9 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_o
 
   type (ele_struct) :: ele
 
-  real(rp) :: mat6(:,:), map0(:)
+  real(rp) :: mat6(:,:), orb0(:)
   real(rp) :: growth_rate
-  real(rp) mat4(4,4), eta_vec(4), vec(4), orb(4)
+  real(rp) mat4(4,4), eta_vec(4), vec(4), rel_p
   real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
   real(rp) rate1, rate2
   real(rp) :: tol = 1.0d-4  ! Was 1.0d-3
@@ -89,13 +89,16 @@ subroutine twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_o
   forall (i = 1:4) mat4(i,i) = mat4(i,i) + 1
   call mat_inverse (mat4, mat4)
 
-  orb = matmul(mat4, map0(1:4))
+  rel_p = 1 + orb0(6)
 
-  vec(1) = mat6(1,6) + mat6(1,2) * orb(2) + mat6(1,4) * orb(4)
-  vec(2) = mat6(2,6) - mat6(2,1) * orb(1) - mat6(2,3) * orb(3) - map0(2)
-  vec(3) = mat6(3,6) + mat6(3,2) * orb(2) + mat6(3,4) * orb(4)
-  vec(4) = mat6(4,6) - mat6(4,1) * orb(1) - mat6(4,3) * orb(3) - map0(4)
+  vec(1) = mat6(1,6) + (mat6(1,2) * orb0(2) + mat6(1,4) * orb0(4)) / rel_p
+  vec(2) = mat6(2,6) + (mat6(2,2) * orb0(2) + mat6(2,4) * orb0(4) - orb0(2)) / rel_p
+  vec(3) = mat6(3,6) + (mat6(3,2) * orb0(2) + mat6(3,4) * orb0(4)) / rel_p
+  vec(4) = mat6(4,6) + (mat6(4,2) * orb0(2) + mat6(4,4) * orb0(4) - orb0(4)) / rel_p
   eta_vec = matmul(mat4, vec)
+
+  eta_vec(2) = eta_vec(2) / rel_p
+  eta_vec(4) = eta_vec(4) / rel_p
 
   ele%x%eta  = eta_vec(1)
   ele%x%etap = eta_vec(2)
