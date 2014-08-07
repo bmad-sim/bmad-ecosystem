@@ -276,7 +276,7 @@ do i = 1, i_max
 
   if (i > 1 .and. amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking) exit
 
-  if (amp_del < amp_del_old) then
+  if (amp_del < amp_del_old .and. modulo(i, 10) /= 0) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
     call init_coord (start, start, ele_start, upstream_end$)
     amp_del_old = amp_del
