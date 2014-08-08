@@ -363,9 +363,8 @@ logical :: err_flag
 
 character(22) :: r_name = "init_beam_distribution"
 
-!
-
 ! Special init from file
+
 if (upcase(beam_init%distribution_type(1)) == 'FILE') then
   call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_flag)
   if (err_flag) call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
@@ -381,7 +380,6 @@ if (upcase(beam_init%distribution_type(1)) == 'FILE') then
   enddo
   return
 endif
-
 
 ! Normal init
 
@@ -483,11 +481,6 @@ logical ran_gauss_here
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
 
-species = beam_init%species
-if (species == not_set$) species = param%particle
-
-bunch%particle%species = species
-
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
@@ -511,6 +504,9 @@ if (beam_init%full_6D_coupling_calc) then
 else
   call transfer_ele (ele, twiss_ele, .true.)
 endif
+
+species = beam_init%species
+if (species == not_set$) species = param%particle
 
 call calc_this_emit (beam_init, twiss_ele, species)
 
@@ -605,6 +601,8 @@ bunch%ix_bunch = 1  ! Default
 ! particle spin
 
 call init_spin_distribution (beam_init, bunch)
+
+bunch%particle%species = species
 
 ! Photons:
 ! For now just give one half e_field_x = 1 and one half e_field_y = 1
