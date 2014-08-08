@@ -2290,32 +2290,32 @@ void set_CPP_wall3d_vertex_test_pattern (CPP_wall3d_vertex& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.radius_x = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.radius_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 5 + offset; C.tilt = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.angle = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.x0 = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.y0 = rhs;
+
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.y = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.radius_x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.radius_y = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.tilt = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.angle = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.x0 = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.y0 = rhs;
+  rhs = 9 + offset; C.type = rhs;
 
 
 }
@@ -4540,6 +4540,14 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
     for (unsigned int i = 0; i < C.control.size(); i++)  {set_CPP_control_test_pattern(C.control[i], ix_patt+i+1);}
   }
 
+  // c_side.test_pat[type, 1, PTR]
+  if (ix_patt < 3) 
+    C.surface.resize(0);
+  else {
+    C.surface.resize(3);
+    for (unsigned int i = 0; i < C.surface.size(); i++)  {set_CPP_photon_reflect_surface_test_pattern(C.surface[i], ix_patt+i+1);}
+  }
+
   // c_side.test_pat[type, 0, NOT]
   set_CPP_coord_test_pattern(C.beam_start, ix_patt);
 
@@ -4547,22 +4555,22 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   set_CPP_pre_tracker_test_pattern(C.pre_tracker, ix_patt);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 21 + offset; C.version = rhs;
+  rhs = 23 + offset; C.version = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 22 + offset; C.n_ele_track = rhs;
+  rhs = 24 + offset; C.n_ele_track = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 23 + offset; C.n_ele_max = rhs;
+  rhs = 25 + offset; C.n_ele_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 24 + offset; C.n_control_max = rhs;
+  rhs = 26 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 25 + offset; C.n_ic_max = rhs;
+  rhs = 27 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 26 + offset; C.input_taylor_order = rhs;
+  rhs = 28 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -4570,22 +4578,22 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 27 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 29 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.photon_type = rhs;
+  rhs = 31 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 32 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 31 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
+  rhs = 33 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 32 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
+  rhs = 34 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.use_ptc_layout = (rhs % 2 == 0);
+  rhs = 35 + offset; C.use_ptc_layout = (rhs % 2 == 0);
 
 
 }

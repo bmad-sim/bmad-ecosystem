@@ -4051,8 +4051,8 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_vertex_to_c2 (C, z_type, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, &
-      z_x0, z_y0) bind(c)
+  subroutine wall3d_vertex_to_c2 (C, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0, &
+      z_y0, z_type) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -4074,8 +4074,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call wall3d_vertex_to_c2 (C, F%type, F%x, F%y, F%radius_x, F%radius_y, F%tilt, F%angle, F%x0, &
-    F%y0)
+call wall3d_vertex_to_c2 (C, F%x, F%y, F%radius_x, F%radius_y, F%tilt, F%angle, F%x0, F%y0, &
+    F%type)
 
 end subroutine wall3d_vertex_to_c
 
@@ -4095,8 +4095,8 @@ end subroutine wall3d_vertex_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_vertex_to_f2 (Fp, z_type, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, &
-    z_x0, z_y0) bind(c)
+subroutine wall3d_vertex_to_f2 (Fp, z_x, z_y, z_radius_x, z_radius_y, z_tilt, z_angle, z_x0, &
+    z_y0, z_type) bind(c)
 
 
 implicit none
@@ -4111,8 +4111,6 @@ integer(c_int) :: z_type
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%type = z_type
 !! f_side.to_f2_trans[real, 0, NOT]
 F%x = z_x
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -4129,6 +4127,8 @@ F%angle = z_angle
 F%x0 = z_x0
 !! f_side.to_f2_trans[real, 0, NOT]
 F%y0 = z_y0
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
 
 end subroutine wall3d_vertex_to_f2
 
@@ -7285,21 +7285,21 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_to_c2 (C, z_use_name, z_lattice, z_input_file_name, z_title, &
       z_attribute_alias, n1_attribute_alias, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, &
-      z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_beam_start, z_pre_tracker, &
-      z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, &
-      z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, z_auto_scale_field_phase, &
-      z_auto_scale_field_amp, z_use_ptc_layout) bind(c)
+      z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, &
+      z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
+      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
+      z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type
-    integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_ic
+    integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
     logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout
     character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
     type(c_ptr), value :: z_pre_tracker
-    type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*)
+    type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
   end subroutine
 end interface
 
@@ -7317,6 +7317,8 @@ type(c_ptr), allocatable :: z_branch(:)
 integer(c_int) :: n1_branch
 type(c_ptr), allocatable :: z_control(:)
 integer(c_int) :: n1_control
+type(c_ptr), allocatable :: z_surface(:)
+integer(c_int) :: n1_surface
 integer(c_int) :: n1_ic
 
 !
@@ -7361,6 +7363,15 @@ if (allocated(F%control)) then
     z_control(jd1) = c_loc(F%control(jd1+lb1))
   enddo
 endif
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_surface = 0
+if (associated(F%surface)) then
+  n1_surface = size(F%surface); lb1 = lbound(F%surface, 1) - 1
+  allocate (z_surface(n1_surface))
+  do jd1 = 1, n1_surface
+    z_surface(jd1) = c_loc(F%surface(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[integer, 1, ALLOC]
 n1_ic = 0
 if (allocated(F%ic)) then
@@ -7372,10 +7383,11 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     trim(F%input_file_name) // c_null_char, trim(F%title) // c_null_char, z_attribute_alias, &
     n1_attribute_alias, c_loc(F%a), c_loc(F%b), c_loc(F%z), c_loc(F%param), &
     c_loc(F%lord_state), c_loc(F%ele_init), z_ele, n1_ele, z_branch, n1_branch, z_control, &
-    n1_control, c_loc(F%beam_start), c_loc(F%pre_tracker), F%version, F%n_ele_track, &
-    F%n_ele_max, F%n_control_max, F%n_ic_max, F%input_taylor_order, fvec2vec(F%ic, n1_ic), &
-    n1_ic, F%photon_type, c_logic(F%absolute_time_tracking), c_logic(F%auto_scale_field_phase), &
-    c_logic(F%auto_scale_field_amp), c_logic(F%use_ptc_layout))
+    n1_control, z_surface, n1_surface, c_loc(F%beam_start), c_loc(F%pre_tracker), F%version, &
+    F%n_ele_track, F%n_ele_max, F%n_control_max, F%n_ic_max, F%input_taylor_order, &
+    fvec2vec(F%ic, n1_ic), n1_ic, F%photon_type, c_logic(F%absolute_time_tracking), &
+    c_logic(F%auto_scale_field_phase), c_logic(F%auto_scale_field_amp), &
+    c_logic(F%use_ptc_layout))
 
 end subroutine lat_to_c
 
@@ -7397,10 +7409,10 @@ end subroutine lat_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_input_file_name, z_title, z_attribute_alias, &
     n1_attribute_alias, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
-    z_branch, n1_branch, z_control, n1_control, z_beam_start, z_pre_tracker, z_version, &
-    z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, &
-    z_photon_type, z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, &
-    z_use_ptc_layout) bind(c)
+    z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, z_beam_start, &
+    z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, &
+    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
+    z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout) bind(c)
 
 
 implicit none
@@ -7410,14 +7422,14 @@ type(lat_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type
-integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_ic
+integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
 character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
 logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout
 character(c_char), pointer :: f_attribute_alias
 integer(c_int), pointer :: f_ic(:)
 type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
 type(c_ptr), value :: z_pre_tracker, z_ic
-type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*)
+type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
 
 call c_f_pointer (Fp, F)
 
@@ -7495,6 +7507,20 @@ else
   if (.not. allocated(F%control)) allocate(F%control(1:n1_control+1-1))
   do jd1 = 1, n1_control
     call control_to_f (z_control(jd1), c_loc(F%control(jd1+1-1)))
+  enddo
+endif
+
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_surface == 0) then
+  if (associated(F%surface)) deallocate(F%surface)
+else
+  if (associated(F%surface)) then
+    if (n1_surface == 0 .or. any(shape(F%surface) /= [n1_surface])) deallocate(F%surface)
+    if (any(lbound(F%surface) /= 1)) deallocate(F%surface)
+  endif
+  if (.not. associated(F%surface)) allocate(F%surface(1:n1_surface+1-1))
+  do jd1 = 1, n1_surface
+    call photon_reflect_surface_to_f (z_surface(jd1), c_loc(F%surface(jd1+1-1)))
   enddo
 endif
 

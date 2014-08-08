@@ -3463,24 +3463,24 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%radius_x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%radius_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%tilt = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%angle = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%x0 = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%y0 = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%y = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%radius_x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%radius_y = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%tilt = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%angle = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%y0 = rhs
+rhs = 9 + offset; F%type = rhs
 
 end subroutine set_wall3d_vertex_test_pattern
 
@@ -6495,22 +6495,32 @@ else
     call set_control_test_pattern (F%control(jd1+lb1), ix_patt+jd1)
   enddo
 endif
+!! f_side.test_pat[type, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%surface)) deallocate (F%surface)
+else
+  if (.not. associated(F%surface)) allocate (F%surface(-1:1))
+  do jd1 = 1, size(F%surface,1); lb1 = lbound(F%surface,1) - 1
+    call set_photon_reflect_surface_test_pattern (F%surface(jd1+lb1), ix_patt+jd1)
+  enddo
+endif
 !! f_side.test_pat[type, 0, NOT]
 call set_coord_test_pattern (F%beam_start, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
 call set_pre_tracker_test_pattern (F%pre_tracker, ix_patt)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 21 + offset; F%version = rhs
+rhs = 23 + offset; F%version = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 22 + offset; F%n_ele_track = rhs
+rhs = 24 + offset; F%n_ele_track = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 23 + offset; F%n_ele_max = rhs
+rhs = 25 + offset; F%n_ele_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 24 + offset; F%n_control_max = rhs
+rhs = 26 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 25 + offset; F%n_ic_max = rhs
+rhs = 27 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 26 + offset; F%input_taylor_order = rhs
+rhs = 28 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -6518,20 +6528,20 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 27 + offset
+    rhs = 100 + jd1 + 29 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 29 + offset; F%photon_type = rhs
+rhs = 31 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 32 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 31 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
+rhs = 33 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 32 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 33 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

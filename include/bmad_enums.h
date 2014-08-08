@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 138;
+  const int BMAD_INC_VERSION = 139;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
@@ -34,8 +34,9 @@ namespace Bmad {
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3;
-  const int NORMAL = 1, CLEAR = 2, MASK = 3, TRUNK = 4, TRUNK1 = 5;
-  const int TRUNK2 = 6, LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10;
+  const int NORMAL = 1, CLEAR = 2, MASK = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
+  const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10, TRIANGULAR = 11;
+  const int ANTECHAMBER = 2;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
   const int MOVING_FORWARD = -9;
@@ -69,8 +70,8 @@ namespace Bmad {
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
   const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, X_RAY_INIT = 53;
-  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56;
-  const int N_KEY = 56;
+  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, DEF_BMAD_COM = 57;
+  const int N_KEY = 57;
   const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=3, VAL2=4, VAL3=5, VAL4=6, VAL5=7,
             VAL6=9, VAL7=10, VAL8=11, VAL9=12, VAL10=13, VAL11=14,
@@ -145,8 +146,8 @@ namespace Bmad {
   const int B_FIELD = 44, E_FIELD = 44, COUPLER_PHASE = 44, DARWIN_WIDTH_PI = 44;
   const int COUPLER_ANGLE = 45, B_FIELD_ERR = 45, PENDELLOSUNG_PERIOD_PI = 45;
   const int B1_GRADIENT = 46, E1_GRADIENT = 46, COUPLER_STRENGTH = 46, DBRAGG_ANGLE_DE = 46;
-  const int B2_GRADIENT = 47, E2_GRADIENT = 47, HAS_ENTRANCE_FRINGE_FIELD = 47;
-  const int B3_GRADIENT = 48, E3_GRADIENT = 48, HAS_EXIT_FRINGE_FIELD = 48;
+  const int B2_GRADIENT = 47, E2_GRADIENT = 47;
+  const int B3_GRADIENT = 48, E3_GRADIENT = 48;
   const int BS_FIELD = 49, E_TOT_OFFSET = 49, PTC_FIELD_GEOMETRY = 49;
   const int DELTA_REF_TIME = 50;
   const int P0C_START = 51;
@@ -179,6 +180,16 @@ namespace Bmad {
   const int Y1_LIMIT = 78;
   const int Y2_LIMIT = 79;
   const int CHECK_SUM = 80;
+  const int MAX_APERTURE_LIMIT = 81;
+  const int DEFAULT_DS_STEP = 82;
+  const int SIGNIFICANT_LENGTH = 83;
+  const int REL_TOL_TRACKING = 84;
+  const int ABS_TOL_TRACKING = 85;
+  const int REL_TOL_ADAPTIVE_TRACKING = 86;
+  const int ABS_TOL_ADAPTIVE_TRACKING = 87;
+  const int INIT_DS_ADAPTIVE_TRACKING = 88;
+  const int MIN_DS_ADAPTIVE_TRACKING = 89;
+  const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int LR_WAKE_FILE = 81, ALPHA_B = 81, USE_HARD_EDGE_DRIFTS = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
   const int START_EDGE  = 83, ETA_Y = 83;
@@ -256,9 +267,10 @@ namespace Bmad {
   const int RADIANS = 1, DEGREES = 2, CYCLES = 3, KHZ = 4;
   const int ROTATIONALLY_SYMMETRIC_RZ = 1, XYZ = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
+  const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int RECTANGULAR = 1, ELLIPTICAL = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
   const int FULL_STRAIGHT = 1, FULL_BEND = 2, NONE = 3, BASIC_BEND = 4;
-  const int SAD_LINEAR = 5, SAD_NONLIN_ONLY = 6, SAD_FULL = 7;
+  const int SAD_LINEAR = 5, SAD_NONLIN_ONLY = 6, SAD_FULL = 7, EDGE_FOCUS_ONLY = 8;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 21;
   const int NOT_SET = -999;
@@ -303,8 +315,10 @@ namespace Bmad {
   const double EPS_0_VAC = 1 / (C_LIGHT*C_LIGHT * MU_0_VAC);
   const double CLASSICAL_RADIUS_FACTOR = 1.439964416E-9;
   const double N_AVOGADRO = 6.02214129E23;
+  const double FINE_STRUCTURE_CONSTANT =  7.29735257E-3;
   const double ANOMALOUS_MAG_MOMENT_ELECTRON = 0.001159652193;
   const double ANOMALOUS_MAG_MOMENT_PROTON   = 1.79285;
+  const double ANOMALOUS_MAG_MOMENT_MUON     = FINE_STRUCTURE_CONSTANT / TWOPI;
   const int INT_GARBAGE = -987654;
   const double REAL_GARBAGE = -987654.3;
   const int TRUE = 1, FALSE = 0;

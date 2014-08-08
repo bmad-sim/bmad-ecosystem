@@ -602,7 +602,6 @@ template bool is_all_equal (const CPP_photon_element_MATRIX&, const CPP_photon_e
 
 bool operator== (const CPP_wall3d_vertex& x, const CPP_wall3d_vertex& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
   is_eq = is_eq && (x.radius_x == y.radius_x);
@@ -611,6 +610,7 @@ bool operator== (const CPP_wall3d_vertex& x, const CPP_wall3d_vertex& y) {
   is_eq = is_eq && (x.angle == y.angle);
   is_eq = is_eq && (x.x0 == y.x0);
   is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && (x.type == y.type);
   return is_eq;
 };
 
@@ -1171,6 +1171,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.ele, y.ele);
   is_eq = is_eq && is_all_equal(x.branch, y.branch);
   is_eq = is_eq && is_all_equal(x.control, y.control);
+  is_eq = is_eq && is_all_equal(x.surface, y.surface);
   is_eq = is_eq && (x.beam_start == y.beam_start);
   is_eq = is_eq && (x.pre_tracker == y.pre_tracker);
   is_eq = is_eq && (x.version == y.version);

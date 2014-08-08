@@ -1539,24 +1539,22 @@ extern "C" void photon_element_to_c2 (CPP_photon_element& C, const Bmad_photon_s
 extern "C" void wall3d_vertex_to_c (const Bmad_wall3d_vertex_class*, CPP_wall3d_vertex&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_vertex_to_f2 (Bmad_wall3d_vertex_class*, c_Int&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+extern "C" void wall3d_vertex_to_f2 (Bmad_wall3d_vertex_class*, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&);
 
 extern "C" void wall3d_vertex_to_f (const CPP_wall3d_vertex& C, Bmad_wall3d_vertex_class* F) {
 
   // c_side.to_f2_call
-  wall3d_vertex_to_f2 (F, C.type, C.x, C.y, C.radius_x, C.radius_y, C.tilt, C.angle, C.x0,
-      C.y0);
+  wall3d_vertex_to_f2 (F, C.x, C.y, C.radius_x, C.radius_y, C.tilt, C.angle, C.x0, C.y0,
+      C.type);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void wall3d_vertex_to_c2 (CPP_wall3d_vertex& C, c_Int& z_type, c_Real& z_x, c_Real&
-    z_y, c_Real& z_radius_x, c_Real& z_radius_y, c_Real& z_tilt, c_Real& z_angle, c_Real& z_x0,
-    c_Real& z_y0) {
+extern "C" void wall3d_vertex_to_c2 (CPP_wall3d_vertex& C, c_Real& z_x, c_Real& z_y, c_Real&
+    z_radius_x, c_Real& z_radius_y, c_Real& z_tilt, c_Real& z_angle, c_Real& z_x0, c_Real&
+    z_y0, c_Int& z_type) {
 
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.type = z_type;
   // c_side.to_c2_set[real, 0, NOT]
   C.x = z_x;
   // c_side.to_c2_set[real, 0, NOT]
@@ -1573,6 +1571,8 @@ extern "C" void wall3d_vertex_to_c2 (CPP_wall3d_vertex& C, c_Int& z_type, c_Real
   C.x0 = z_x0;
   // c_side.to_c2_set[real, 0, NOT]
   C.y0 = z_y0;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
 }
 
 //--------------------------------------------------------------------
@@ -3088,8 +3088,9 @@ extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
 extern "C" void lat_to_f2 (Bmad_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char*, Int, const
     CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const CPP_lat_param&, const
     CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int,
-    const CPP_control**, Int, const CPP_coord&, const CPP_pre_tracker&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    const CPP_control**, Int, const CPP_photon_reflect_surface**, Int, const CPP_coord&, const
+    CPP_pre_tracker&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
@@ -3120,6 +3121,13 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
     z_control = new const CPP_control*[n1_control];
     for (int i = 0; i < n1_control; i++) z_control[i] = &C.control[i];
   }
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_surface = C.surface.size();
+  const CPP_photon_reflect_surface** z_surface = NULL;
+  if (n1_surface != 0) {
+    z_surface = new const CPP_photon_reflect_surface*[n1_surface];
+    for (int i = 0; i < n1_surface; i++) z_surface[i] = &C.surface[i];
+  }
   // c_side.to_f_setup[integer, 1, ALLOC]
   int n1_ic = C.ic.size();
   c_IntArr z_ic = NULL;
@@ -3131,9 +3139,10 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.input_file_name.c_str(),
       C.title.c_str(), z_attribute_alias, n1_attribute_alias, C.a, C.b, C.z, C.param,
       C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control,
-      C.beam_start, C.pre_tracker, C.version, C.n_ele_track, C.n_ele_max, C.n_control_max,
-      C.n_ic_max, C.input_taylor_order, z_ic, n1_ic, C.photon_type, C.absolute_time_tracking,
-      C.auto_scale_field_phase, C.auto_scale_field_amp, C.use_ptc_layout);
+      z_surface, n1_surface, C.beam_start, C.pre_tracker, C.version, C.n_ele_track,
+      C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic, n1_ic,
+      C.photon_type, C.absolute_time_tracking, C.auto_scale_field_phase,
+      C.auto_scale_field_amp, C.use_ptc_layout);
 
   // c_side.to_f_cleanup[character, 1, ALLOC]
  delete[] z_attribute_alias;
@@ -3143,6 +3152,8 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
  delete[] z_branch;
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_control;
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_surface;
 }
 
 // c_side.to_c2_arg
@@ -3151,12 +3162,13 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     Bmad_mode_info_class* z_a, const Bmad_mode_info_class* z_b, const Bmad_mode_info_class*
     z_z, const Bmad_lat_param_class* z_param, const Bmad_bookkeeping_state_class* z_lord_state,
     const Bmad_ele_class* z_ele_init, Bmad_ele_class** z_ele, Int n1_ele, Bmad_branch_class**
-    z_branch, Int n1_branch, Bmad_control_class** z_control, Int n1_control, const
-    Bmad_coord_class* z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int&
-    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
-    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
-    c_Bool& z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool&
-    z_auto_scale_field_amp, c_Bool& z_use_ptc_layout) {
+    z_branch, Int n1_branch, Bmad_control_class** z_control, Int n1_control,
+    Bmad_photon_reflect_surface_class** z_surface, Int n1_surface, const Bmad_coord_class*
+    z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int& z_version, c_Int&
+    z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int&
+    z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Bool&
+    z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool& z_auto_scale_field_amp,
+    c_Bool& z_use_ptc_layout) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -3193,6 +3205,10 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   // c_side.to_c2_set[type, 1, ALLOC]
   C.control.resize(n1_control);
   for (int i = 0; i < n1_control; i++) control_to_c(z_control[i], C.control[i]);
+
+  // c_side.to_c2_set[type, 1, PTR]
+  C.surface.resize(n1_surface);
+  for (int i = 0; i < n1_surface; i++) photon_reflect_surface_to_c(z_surface[i], C.surface[i]);
 
   // c_side.to_c2_set[type, 0, NOT]
   coord_to_c(z_beam_start, C.beam_start);

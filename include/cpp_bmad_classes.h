@@ -1490,7 +1490,6 @@ class Bmad_wall3d_vertex_class {};  // Opaque class for pointers to correspondin
 
 class CPP_wall3d_vertex {
 public:
-  Int type;
   Real x;
   Real y;
   Real radius_x;
@@ -1499,9 +1498,9 @@ public:
   Real angle;
   Real x0;
   Real y0;
+  Int type;
 
   CPP_wall3d_vertex() :
-    type(Bmad::NORMAL),
     x(0.0),
     y(0.0),
     radius_x(0.0),
@@ -1509,7 +1508,8 @@ public:
     tilt(0.0),
     angle(0.0),
     x0(0.0),
-    y0(0.0)
+    y0(0.0),
+    type(Bmad::NORMAL)
     {}
 
   ~CPP_wall3d_vertex() {
@@ -2635,6 +2635,7 @@ public:
   CPP_ele_ARRAY ele;
   CPP_branch_ARRAY branch;
   CPP_control_ARRAY control;
+  CPP_photon_reflect_surface_ARRAY surface;
   CPP_coord beam_start;
   CPP_pre_tracker pre_tracker;
   Int version;
@@ -2665,6 +2666,7 @@ public:
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     branch(CPP_branch_ARRAY(CPP_branch(), 0)),
     control(CPP_control_ARRAY(CPP_control(), 0)),
+    surface(CPP_photon_reflect_surface_ARRAY(CPP_photon_reflect_surface(), 0)),
     beam_start(),
     pre_tracker(),
     version(0),
