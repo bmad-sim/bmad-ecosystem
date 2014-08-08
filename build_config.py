@@ -140,6 +140,7 @@ local_build_list = [
                 '/trunk/src/tao_cesr',
                 '/trunk/src/bmadz',
                 '/trunk/src/bsim',
+                '/trunk/src/synchv',
                 '/trunk/src/cesrv',
                 '/trunk/src/regression_tests',
                 '/trunk/src/bsim_cesr',
