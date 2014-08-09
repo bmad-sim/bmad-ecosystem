@@ -2,6 +2,9 @@
 
 import sys, getopt, re, math
 from collections import *
+import time
+
+start_time = time.time()
 
 class ele_struct:
   def __init__(self):
@@ -11,15 +14,16 @@ class ele_struct:
     self.printed = False
     self.instances = 0
 
-
 class line_item_struct:
-  def __init__(self, name = '', reversed = False):
+  def __init__(self, name = '', sign = '', multiplyer = '1'):
     self.name = name
-    self.reversed = reversed
+    self.sign = ''
+    self.multiplyer = multiplyer
 
 class lat_line_struct:
   def __init__(self):
     self.name = ''
+    self.printed = False
     self.list = []
 
 class sad_info_struct:
@@ -27,9 +31,20 @@ class sad_info_struct:
     self.lat_line_list = OrderedDict()
     self.ele_list = OrderedDict()
     self.param_list = OrderedDict()
+    self.var_list = OrderedDict()
 
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
-# ------------------------------------------------------------------
+def add_units (line):
+  if 'deg' in line: line = re.sub(' deg$', ' * degrees', line)
+  if 'kev' in line: line = re.sub(' kev$', ' * 1e3', line)
+  if 'mev' in line: line = re.sub(' mev$', ' * 1e6', line)
+  if 'gev' in line: line = re.sub(' gev$', ' * 1e9', line)
+  return line
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
 def print_help():
   print (''' \
@@ -53,7 +68,8 @@ Please see the NOTES file for known limitations of this translation script.
 
   sys.exit()
 
-# ------------------------------------------------------------------
+#-------------------------------------------------------------------
+#------------------------------------------------------------------
 
 def WrapWrite(line):
   MAXLEN = 120
@@ -72,7 +88,23 @@ def WrapWrite(line):
     tab = '         '
     line = line[ix+1:]
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
+# Adds parenteses around expressions with '+' or '-' operators.
+# Otherwise just returns the expression.
+# Eg: '7+3' ->  '(7+3)'
+#     '7*3  ->  '7*3'
+
+def add_parens (str):
+  for ix in range(1, len(str)):
+    if str[ix] != '+' and str[ix] != '-': continue
+    if str[ix-1] == 'e' or str[ix-1] == 'E': continue  # '+' in '3.0e+7' is not an operator
+    return '(' + str + ')'
+
+  # No +/- op found so just return the expression.
+  return str    
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
 ele_type_to_bmad = {
   'drift': 'drift',
@@ -163,7 +195,115 @@ sad_reversed_params = {
       'fb2': 'fb1'
 }
   
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
+def output_line (sad_line, sad_info, inside_sol, bz):
+
+  f_out.write ('\n')
+
+  bmad_line = []
+  sad_line.printed = True
+
+  for ix_s_ele, sad_ele in enumerate(sad_line.list):
+
+    ele_name = sad_ele.name
+
+    if ele_name in sad_info.lat_line_list:
+      if not sad_info.lat_line_list[ele_name].printed: 
+        output_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz)
+      bmad_line.append(sad_ele)
+      continue
+
+    if not ele_name in sad_info.ele_list:
+      print ('No definition found for element name: ' + ele_name)
+      continue
+
+    s_ele = sad_info.ele_list[ele_name]
+
+    # sol element
+
+    if s_ele.type == 'sol':
+      bz = s_ele.param.get('bz')  
+      if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
+
+      # misalignment with geo = 1 or patch to orbit if not.
+
+      if 'dx' in s_ele.param or 'dy' in s_ele.param or 'dz' in s_ele.param or 'chi1' in s_ele.param or \
+                                  'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
+        if s_ele.param.get('geo') == '1': 
+          ## print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
+          if not sad_sol_to_marker: continue
+      
+      else:
+        if not sad_sol_to_marker: continue
+
+    # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
+
+    if s_ele.type == 'mark' and 'offset' in s_ele.param:
+      null_ele_name = 'null_' + s_ele.name + '#' + str(ix_s_ele)  # Guaranteed unique
+      bmad_line.append (line_item_struct(null_ele_name))                            # Put null_ele in the line
+      WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
+
+      # Now define the marker element
+      sad_offset = float(s_ele.param['offset'])
+      int_off = int(math.floor(sad_offset))
+      frac_off = sad_offset - int_off
+
+      offset = 0
+      direc = 1
+      if int_off < 0: direc = -1
+      for ix in range(0, int_off, direc):
+        ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+ix].name]
+        if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
+      ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
+      if 'l' in ss_ele.param: offset += frac_off * eval(ss_ele.param['l'])
+
+      if s_ele.instances == 0:
+        suffix = ''
+      else:
+        suffix = '.' + str(s_ele.instances)
+      bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
+      WrapWrite(bmad_ele_def)
+      s_ele.printed = True
+      s_ele.instances += 1
+      continue
+
+    # Regular element not getting superimposed
+
+    bmad_line.append(sad_ele)
+
+    if s_ele.printed == True: continue
+
+    b_ele = ele_struct()
+    sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz, sad_ele.sign == '-')
+
+    bmad_ele_def = b_ele.name + ': ' + b_ele.type
+    for param in iter(b_ele.param):
+      bmad_ele_def += ', ' + param + ' = ' + b_ele.param[param]
+
+    WrapWrite(bmad_ele_def)
+    s_ele.printed = True
+
+  #---------------------------------------------
+  # Write line
+
+  f_out.write ('\n')
+
+  bmad_line_str = sad_line.name + ': line = ('
+
+  for ele in bmad_line:
+    if ele.multiplyer == '1':
+      bmad_line_str += ele.sign + ele.name + ', '
+    else:
+      bmad_line_str += ele.sign + ele.multiplyer + '*' + ele.name + ', '
+
+  bmad_line_str = bmad_line_str[:-2] + ')'
+  WrapWrite(bmad_line_str)
+
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
 def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
@@ -222,10 +362,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     if type(result) is list:
       bmad_name = result[0]
       value_suffix = result[1]
+      value = add_parens(value)
       if '@' in value_suffix:
         val_parts = value_suffix.split('@')
         if val_parts[1] in sad_ele.param:
-          value_suffix = val_parts[0] + sad_ele.param[val_parts[1]] + val_parts[2]
+          value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]]) + val_parts[2]
         else:
           print ('SAD ELEMENT: ' + sad_ele.name + '\n' + 
                  '  DOES NOT HAVE A ' + val_parts[1] + ' NEEDED FOR CONVERSION: ' + sad_param_name)
@@ -233,11 +374,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     else:
       bmad_name = result
       value_suffix = ''
-
-    if 'deg' in value: value = value.replace('deg', '* degrees')
-    if 'kev' in value: value = value.replace('kev', '* 1e3')
-    if 'mev' in value: value = value.replace('mev', '* 1e6')
-    if 'gev' in value: value = value.replace('gev', '* 1e9')
 
     if reversed:
       if sad_param_name == 'offset': value = '1 - ' + value
@@ -257,12 +393,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
   if bmad_ele.type == 'patch':
     # If entering solenoid 
     if inside_sol:
-      if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = bmad_ele.param['x_offset'] + ' * -1'
-      if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = bmad_ele.param['y_offset'] + ' * -1'
-      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = bmad_ele.param['z_offset'] + ' * -1'
+      if 'x_offset' in bmad_ele.param: bmad_ele.param['x_offset'] = add_parens(bmad_ele.param['x_offset']) + ' * -1'
+      if 'y_offset' in bmad_ele.param: bmad_ele.param['y_offset'] = add_parens(bmad_ele.param['y_offset']) + ' * -1'
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = add_parens(bmad_ele.param['z_offset']) + ' * -1'
     # If exiting solenoid 
     else:
-      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = bmad_ele.param['z_offset'] + ' * -1'
+      if 'z_offset' in bmad_ele.param: bmad_ele.param['z_offset'] = add_parens(bmad_ele.param['z_offset']) + ' * -1'
 
   # Fringe 
 
@@ -343,58 +479,189 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
         bmad_ele.param['e2'] = bmad_ele.param['ae2']
       del bmad_ele.param['ae2']
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
 def parse_line(rest_of_line, sad_info):
-  sad_line = lat_line_struct()
-  line_name, e_sign, line_list = rest_of_line.partition("=")
-  line_name = line_name.strip()
-  line_list = line_list.strip()
-  line_list = line_list[1:-1].strip()    # Remove parenteses from "(...)"
-  
-  sad_line.name = line_name
-  for elename in re.split('\s+', line_list):
-    if elename[0] == '-':
-      line_item = line_item_struct(elename[1:], True)
+
+  parse_status = 'init'
+
+  for token in re.split('\s+|(=|\)|\(|\+|\*|-)', rest_of_line):
+    if token == '': continue
+    if token == None: continue
+
+    if parse_status == 'init':
+      if token in '+-*=()':
+        print ('ERROR PARSING LINE: ' + rest_of_line)
+        sys.exit()
+      sad_line = lat_line_struct()
+      sad_line.name = token
+      parse_status = 'got line name'
+      continue
+
+    if parse_status == 'got line name':
+      if token != '=':
+        print ('ERROR PARSING LINE: ' + rest_of_line)
+        sys.exit()
+      parse_status = 'got ='
+      continue
+
+    if parse_status == 'got =':
+      if token != '(':
+        print ('ERROR PARSING LINE: ' + rest_of_line)
+        sys.exit()
+      parse_status = 'got ('
+      sign = ''
+      multiplyer = '1'  
+      continue
+
+    #
+
+    if token == '-':
+      sign = '-'
+
+    elif token == '*':
+      continue
+
+    elif token == ')':
+      sad_info.lat_line_list[sad_line.name] = sad_line
+      sign = ''
+      multiplyer = '1'  
+      parse_status = 'init'
+
+    elif token == '(':
+      print ('ERROR PARSING LINE: ' + rest_of_line)
+      sys.exit()
+
+    elif token == '+':
+      continue
+
+    elif token.isdigit():
+      multiplyer = token
+
     else:
-      line_item = line_item_struct(elename)
-    sad_line.list.append(line_item)
+      line_item = line_item_struct(token, sign, multiplyer)
+      sad_line.list.append(line_item)
+      sign = ''
+      multiplyer = '1'
 
-  sad_info.lat_line_list[line_name] = sad_line
+  #
 
-# ------------------------------------------------------------------
+  if parse_status != 'init':
+    print ('ERROR PARSING LINE: ' + rest_of_line)
+    sys.exit()
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 
 regexDef = r"(\S*?)\s*=\s*\((.*?)\)"
 regexParam = r"(\S*)\s*=\s*(\S*\s*(deg)?)"
 
 def parse_ele (head, rest_of_line, sad_info):
-  for name_and_params in re.finditer(regexDef, rest_of_line):
-    ele = ele_struct()
-    ele.name = name_and_params.group(1).strip()
-    ele.type = head
-    params = name_and_params.group(2).strip()
 
-    for param_and_val in re.finditer(regexParam, params):
-      value = param_and_val.group(2).strip()
-      if value[-1] == ',': value = value[:-1]
-      ele.param[param_and_val.group(1).strip()] = value
+  # Since the length of rest_of_line may be huge (~ 1M characters for KEKB mult elements.), break
+  # this string into chunks to make the script *much* faster.
 
-    # Ignore MARK element offsets?
+  len_str =  9000
+  len_min =  3000
 
-    if ignore_marker_offsets and ele.type == 'mark' and 'offset' in ele.param: del ele.param['offset']
+  if len(rest_of_line) > len_str:
+    line = rest_of_line[:len_str]
+    line_saved = rest_of_line[len_str:].strip()
+  else:
+    line = rest_of_line
+    line_saved = ''
 
-    print ('Name: ' + ele.name)
 
-    sad_info.ele_list[ele.name] = ele
+  while True:
 
-# ------------------------------------------------------------------
+    if len(line) < len_min and len(line_saved) != 0:
+      if len(line_saved) > len_str:
+        line = line + line_saved[:len_str]
+        line_saved = line_saved[len_str:]
+      else:
+        line = (line + line_saved).strip()
+        line_saved = ''
 
-def parse_param (head, rest_of_line, sad_info):
-  rest_of_line = rest_of_line.strip()
-  if len(rest_of_line) > 0 and rest_of_line[0] == '=': rest_of_line = rest_of_line[1:].strip()  # Strip off '='
-  sad_info.param_list[head] = rest_of_line
+    if len(line) == 0: break
 
-# ------------------------------------------------------------------
+    for ix in range(len(line)):
+      if line[ix] == ' ': continue
+
+      if ix > len(line) - 3:
+        print ('MALFORMED ELEMENT DEFINITION: ' + rest_of_line)
+        sys.exit()
+
+      if line[ix] == '=':
+        ele = ele_struct()
+        ele.type = head
+        ele.name = line[:ix].strip()
+        line = line[ix+1:].lstrip()
+        break
+
+    if line[0] != '(':
+      print ('MALFORMED ELEMENT DEFINITION: ' + rest_of_line)
+      sys.exit()
+    line = line[1:].lstrip()
+
+    # parameter loop
+
+    while True:
+
+      # End of element def check
+
+      if line[0] == ')':
+        # Ignore MARK element offsets?
+        if ignore_marker_offsets and ele.type == 'mark' and 'offset' in ele.param: del ele.param['offset']
+        sad_info.ele_list[ele.name] = ele
+        line = line[1:].lstrip()
+        ## print ('param found: ' + param + ' = ' + ele.param[param])
+        break
+
+      # Find parameter name
+
+      for ix in range(len(line)):
+        if line[ix] in ' =': 
+          param = line[:ix].strip()
+          line = line[ix+1:].lstrip()
+          if line[0] == '=': line = line[1:].lstrip()  # Remove optional equal sign
+          break
+
+      # Find parameter value
+
+      p_count = 0
+      for ix in range(len(line)):
+        if line[ix] == ' ': 
+          if re.match('\s*(deg|kev|mev|gev)(\s|\))', line[ix:]): continue
+          if last_char in '+-/*()': continue
+          ele.param[param] = add_units(line[:ix].strip())
+          ## print (ele.name + ' : ' + param + ' = ' + ele.param[param])
+          line = line[ix:].lstrip()
+          break
+        else:
+          last_char = line[ix]
+
+        if line[ix] == '(':
+          p_count += 1
+
+        if line[ix] == ')':
+          p_count -= 1
+          if p_count == -1: 
+            ele.param[param] = add_units(line[:ix].strip())
+            ## print (ele.name + ' : ' + param + ' = ' + ele.param[param])
+            line = line[ix:]
+            break
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+
+def parse_param (head, line, sad_info):
+  line = line.strip()
+  if len(line) > 0 and line[0] == '=': line = line[1:].strip()  # Strip off '='
+  sad_info.param_list[head] = add_units(line)
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 # Rule: After a "calc" command, the only thing left to parse is a possible "initialorbit" setting.
 
 sad_param_names = ['momentum', 'use', 'betax', 'betay', 'nocod']
@@ -416,6 +683,7 @@ global_param_translate = {
   'dpyi':     'beam_start[py]',
   'dzi':      'beam_start[z]',
   'ddpi':     'beam_start[pz]',
+  'npara':    ''
 }
 
 def parse_directive(directive, sad_info):
@@ -428,11 +696,12 @@ def parse_directive(directive, sad_info):
 
   if ',' in head or '=' in head:
     if ',' in head: 
-      p1, blank, p2 = head.partition(',')
+      p1, delim, p2 = head.partition(',')
     else:
-      p1, blank, p2 = head.partition('=')
+      p1, delim, p2 = head.partition('=')
+
     head = p1
-    if p2 != '': rest_of_line = p2 + ' ' + rest_of_line 
+    rest_of_line = delim + p2 + rest_of_line 
 
   if head in global_param_translate or head == 'use':
     if calc_command_found: return
@@ -460,12 +729,16 @@ def parse_directive(directive, sad_info):
     sad_info.param_list['z_orb']  = orbit[4]
     sad_info.param_list['pz_orb'] = orbit[5]
 
-  elif ' ' not in head and len(rest_of_line) > 1 and rest_of_line[0] == '=':  # Parameter
-    variable
+  elif not calc_command_found and len(rest_of_line) > 1 and rest_of_line[0] == '=':  # Parameter
+    if head in sad_info.var_list:
+      print ('THIS TRANSLATOR CANNOT HANDLE VARIABLE REDEFINITION OF: ' + head)
+      sys.exit()
+    sad_info.var_list[head] = add_units(rest_of_line[1:])
 
-# ------------------------------------------------------------------
-# ------------------------------------------------------------------
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+# Main program.
 
 header_file = ''
 mark_open = False
@@ -516,7 +789,7 @@ f_out = open(outputfile, 'w')
 sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
 
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
 # Read in SAD file line-by-line.  Assemble lines into directives, which are delimited by a ; (colon).
 # Call parse_directive whenever an entire directive has been obtained.
 
@@ -554,7 +827,7 @@ for line in f_in:
     parse_directive(directive[:ix], sad_info)
     directive = directive[ix+1:]
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
 # Get root lattice line
 
 if 'use' not in sad_info.param_list:
@@ -562,7 +835,6 @@ if 'use' not in sad_info.param_list:
   sys.exit()
 
 line0_name = sad_info.param_list['use']
-print ('Using line: ' + line0_name)
 
 if line0_name not in sad_info.lat_line_list:
   print ('USED LINE NOT FOUND. STOPPING HERE.')
@@ -579,7 +851,7 @@ if ele0_name in sad_info.ele_list:
     if key in sad_param_names:
       sad_info.param_list[key] = ele0.param[key]
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
 # Header
 
 if header_file != '':
@@ -587,7 +859,7 @@ if header_file != '':
   for line in h_file:
     f_out.write (line)
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
 # Translate and write parameters
 
 if mark_open: f_out.write ('parameter[geometry] = open\n')
@@ -595,111 +867,31 @@ if mark_closed: f_out.write ('parameter[geometry] = closed\n')
 
 for name in sad_info.param_list:
   if name not in global_param_translate: continue
-  if sad_info.param_list[name] == '':
-    f_out.write(global_param_translate[name] + '\n')
-  else:
+  if global_param_translate[name] != '':
     f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
 
-# ------------------------------------------------------------------
+#------------------------------------------------------------------
+# Write variable definitions
+
+f_out.write ('\n')
+
+for var in sad_info.var_list:
+  f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
+
+#------------------------------------------------------------------
 # Translate and write element defs
 
 inside_sol = False
 bz = '0'
-bmad_line = []
 
-f_out.write ('\n')
+output_line (sad_line, sad_info, inside_sol, bz)
 
-for ix_s_ele, sad_line_list in enumerate(sad_line.list):
-
-  ele_name = sad_line_list.name
-
-  if not ele_name in sad_info.ele_list:
-    print ('No definition found for element name: ' + ele_name)
-    continue
-
-  s_ele = sad_info.ele_list[ele_name]
-
-  # sol element
-
-  if s_ele.type == 'sol':
-    bz = s_ele.param.get('bz')  
-    if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
-
-    # misalignment with geo = 1 or patch to orbit if not.
-
-    if 'dx' in s_ele.param or 'dy' in s_ele.param or 'dz' in s_ele.param or 'chi1' in s_ele.param or \
-                                'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
-      if s_ele.param.get('geo') == '1': 
-        ## print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
-        if not sad_sol_to_marker: continue
-    
-    else:
-      if not sad_sol_to_marker: continue
-
-  # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
-
-  if s_ele.type == 'mark' and 'offset' in s_ele.param:
-    null_ele_name = 'null_' + s_ele.name + '#' + str(ix_s_ele)  # Guaranteed unique
-    bmad_line.append (null_ele_name)                            # Put null_ele in the line
-    WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
-
-    # Now define the marker element
-    sad_offset = float(s_ele.param['offset'])
-    int_off = int(math.floor(sad_offset))
-    frac_off = sad_offset - int_off
-
-    offset = 0
-    direc = 1
-    if int_off < 0: direc = -1
-    for ix in range(0, int_off, direc):
-      ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+ix].name]
-      if 'l' in ss_ele.param: offset += direc * float(ss_ele.param['l'])
-    ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
-    if 'l' in ss_ele.param: offset += frac_off * float(ss_ele.param['l'])
-
-    if s_ele.instances == 0:
-      suffix = ''
-    else:
-      suffix = '.' + str(s_ele.instances)
-    bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
-    WrapWrite(bmad_ele_def)
-    s_ele.printed = True
-    s_ele.instances += 1
-    continue
-
-  # Regular element not getting superimposed
-
-  bmad_line.append(s_ele.name)
-
-  if s_ele.printed == True: continue
-
-  b_ele = ele_struct()
-  sad_ele_to_bmad (s_ele, b_ele, inside_sol, bz, sad_line_list.reversed)
-
-  bmad_ele_def = b_ele.name + ': ' + b_ele.type
-  for param in iter(b_ele.param):
-    bmad_ele_def += ', ' + param + ' = ' + b_ele.param[param]
-
-  WrapWrite(bmad_ele_def)
-  s_ele.printed = True
-
-# ------------------------------------------------------------------
-# Write sad_info.lat_line_list line
-
-f_out.write ('\n')
-
-bmad_line_str = sad_line.name + ': line = ('
-
-for name in bmad_line: 
-  bmad_line_str += name + ', '
-
-
-bmad_line_str = bmad_line_str[:-2] + ')'
-WrapWrite(bmad_line_str)
-
+#-------------------------------------------------------------------
 
 f_out.write ('\n')
 f_out.write ('use, ' + line0_name + '\n')
+
+print ('Execution time: ' + str(time.time() - start_time))
 
 f_in.close()
 f_out.close()
