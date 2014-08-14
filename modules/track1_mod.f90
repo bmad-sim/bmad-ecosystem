@@ -89,29 +89,7 @@ endif
 ! Check p_x and p_y
 
 if (logic_option(.true., check_momentum)) then
-  if (orb%species == photon$) then
-    rel_p = 1
-    if (abs(orb%vec(6)) > 1) then
-      orb%state = lost_z_aperture$
-      return
-    endif
-  else
-    rel_p = 1 + orb%vec(6)
-  endif
-
-  if (abs(orb%vec(2)) > rel_p .and. abs(orb%vec(2)) > abs(orb%vec(4))) then
-    if (orb%vec(2) > 0) then; orb%state = lost_pos_x_aperture$
-    else;                     orb%state = lost_neg_x_aperture$
-    endif
-    param%unstable_factor = 100 * abs(orb%vec(2)) 
-    return
-  elseif (abs(orb%vec(4)) > rel_p) then
-    if (orb%vec(4) > 0) then; orb%state = lost_pos_y_aperture$
-    else;                     orb%state = lost_neg_y_aperture$
-    endif
-    param%unstable_factor = 100 * abs(orb%vec(4)) 
-    return
-  endif
+  if (orbit_too_large (orb, param)) return
 endif
 
 ! Check if there is an aperture here. If not, simply return.
@@ -227,13 +205,14 @@ end subroutine check_aperture_limit
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function orbit_too_large (orbit) result (is_too_large)
+! Function orbit_too_large (orbit, param) result (is_too_large)
 !
 ! Routine to check if an orbit is too large.
 ! This routine is used to prevent floating point overflow.
 ! Too large is defined by:
-!   |x|, |y| or |z| > bmad_com%max_aperture_limit
-!   |px| or |py| > 1 (photons) or 1 + pz (non-photons)
+!   |x|, |y| > bmad_com%max_aperture_limit or 
+!   |pz| > 1 (photons only) or 
+!   px^2 + py^2 > 1 + pz (non-photons only)
 !
 ! Also see:
 !   check_aperture_limit
@@ -245,48 +224,84 @@ end subroutine check_aperture_limit
 !   orbit         -- coord_struct: Particle orbit.
 !     %state          -- Particle status.
 !   is_too_large  -- logical: True if orbit is too large. False otherwise.
+!   param         -- lat_param_struct, optional: 
+!     %unstable_factor  -- Set if orbit is too large. Otherwise not set
 !-
 
-function orbit_too_large (orbit) result (is_too_large)
+function orbit_too_large (orbit, param) result (is_too_large)
 
 implicit none
 
 type (coord_struct) orbit
+type (lat_param_struct), optional :: param
+
 logical is_too_large
 real(rp) rel_p
 
-!
+! Assume the worst
+
+is_too_large = .true.
+
+! Test aperture
+
+if (orbit%vec(1) > bmad_com%max_aperture_limit) then
+  orbit%state = lost_pos_x_aperture$
+  if (present(param)) param%unstable_factor = abs(orbit%vec(1)) - bmad_com%max_aperture_limit
+  return
+elseif (-orbit%vec(1) > bmad_com%max_aperture_limit) then
+  orbit%state = lost_neg_x_aperture$
+  if (present(param)) param%unstable_factor = abs(orbit%vec(1)) - bmad_com%max_aperture_limit
+  return
+endif
+
+if (orbit%vec(3) > bmad_com%max_aperture_limit) then
+  orbit%state = lost_pos_y_aperture$
+  if (present(param)) param%unstable_factor = abs(orbit%vec(3)) - bmad_com%max_aperture_limit
+  return
+elseif (-orbit%vec(3) > bmad_com%max_aperture_limit) then
+  orbit%state = lost_neg_y_aperture$
+  if (present(param)) param%unstable_factor = abs(orbit%vec(3)) - bmad_com%max_aperture_limit
+  return
+endif
+
+! Test photons
 
 if (orbit%species == photon$) then
-  rel_p = 1
   if (abs(orbit%vec(6)) > 1) then
     orbit%state = lost_z_aperture$
-    is_too_large = .true.
+    if (present(param)) param%unstable_factor = abs(orbit%vec(6)) - 1
     return
   endif
+
+! charged particle test
+
 else
   rel_p = 1 + orbit%vec(6)
+
+  if (orbit%vec(2)**2 + orbit%vec(4)**2 > rel_p**2) then
+    if (present(param)) param%unstable_factor = sqrt(orbit%vec(2)**2 + orbit%vec(4)**2 - rel_p**2)
+
+    if (abs(orbit%vec(2)) > abs(orbit%vec(4))) then
+      if (orbit%vec(2) > 0) then
+        orbit%state = lost_pos_x_aperture$
+      else
+        orbit%state = lost_neg_x_aperture$
+      endif
+
+    else
+      if (orbit%vec(4) > 0) then
+        orbit%state = lost_pos_y_aperture$
+      else
+        orbit%state = lost_neg_y_aperture$
+      endif
+    endif
+
+    return
+  endif
+
 endif
 
-if (abs(orbit%vec(1)) > bmad_com%max_aperture_limit .or. abs(orbit%vec(2)) > rel_p) then
-  if (orbit%vec(1) > bmad_com%max_aperture_limit .or. orbit%vec(2) > rel_p) then
-    orbit%state = lost_pos_x_aperture$
-  else
-    orbit%state = lost_neg_x_aperture$
-  endif
-  is_too_large = .true.
-  return
-endif
-
-if (abs(orbit%vec(3)) > bmad_com%max_aperture_limit .or. abs(orbit%vec(4)) > rel_p) then
-  if (orbit%vec(3) > bmad_com%max_aperture_limit .or. orbit%vec(4) > rel_p) then
-    orbit%state = lost_pos_y_aperture$
-  else
-    orbit%state = lost_neg_y_aperture$
-  endif
-  is_too_large = .true.
-  return
-endif
+! Passed tests.
 
 is_too_large = .false.
 
@@ -562,6 +577,7 @@ enddo
 ! Track through the exit face. Treat as thin lens.
 ! Need low energy z correction except when using track_a_drift.
 
+if (orbit_too_large(end_orb, param)) return
 call bend_edge_kick (end_orb, ele, param, second_track_edge$)
 
 call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false.)
