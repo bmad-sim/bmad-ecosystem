@@ -165,6 +165,7 @@ do n_step = 1, max_step
     ! Cannot do anything if already hit
     if (has_hit .and. n_step == 1) then
       orb%state = lost$
+      exit_flag = .true. 
     endif
 
     if (has_hit) then
