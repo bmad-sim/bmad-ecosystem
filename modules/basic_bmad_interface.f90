@@ -79,7 +79,7 @@ interface
   end subroutine
 
   subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
-                         low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
+                         pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)
     import
     implicit none
     type (lat_struct) lat
@@ -88,6 +88,7 @@ interface
     real(rp) delta_e
     real(rp) chrom_x
     real(rp) chrom_y
+    real(rp), optional :: pz
     logical, optional, intent(out) :: err_flag
     integer, optional :: ix_branch
   end subroutine
