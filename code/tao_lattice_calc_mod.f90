@@ -146,7 +146,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
       call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_lat%a%chrom, &
-                           tao_lat%b%chrom, err, tao_lat%low_E_lat, tao_lat%high_E_lat)
+                           tao_lat%b%chrom, err, low_E_lat=tao_lat%low_E_lat, high_E_lat=tao_lat%high_E_lat)
     endif
 
     ! do multi-turn tracking if needed. This is always the main lattice. 
