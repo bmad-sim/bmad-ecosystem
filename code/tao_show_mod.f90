@@ -2326,6 +2326,7 @@ case ('plot')
 
 case ('taylor_map', 'matrix')
 
+  ix_branch = s%com%default_branch
   by_s = .false.
   if (show_what == 'matrix') then
     n_order = 1
@@ -2410,24 +2411,41 @@ case ('taylor_map', 'matrix')
         return
       endif
       if (err .or. size(eles) == 0) return
-      ix1 = eles(1)%ele%ix_ele
+      ele => eles(1)%ele
+      if (ele%lord_status == super_lord$) ele => pointer_to_slave (ele, ele%n_slave)
+      ix1 = ele%ix_ele
+      ix_branch = ele%ix_branch
     endif
 
-    if (ele2_name == '') then
+    if (ele2_name == '' .and. ele1_name /= '') then
       ix2 = ix1
       if (lat%param%geometry == open$) then
         ix1 = 0
       else
-        ix1 = ix1 - 1
+        ix1 = ix2
       endif
-    else
+    elseif (ele2_name /= '') then
       call tao_locate_elements (ele2_name, u%ix_uni, eles, err)
       if (size(eles) > 1) then
         nl=1; lines(1) = 'MULTIPLE ELEMENTS BY THIS NAME: ' // ele2_name
         return
       endif
       if (err .or. size(eles) == 0) return
-      ix2 = eles(1)%ele%ix_ele
+      ele => eles(1)%ele
+      if (ele%lord_status == super_lord$) ele => pointer_to_slave (ele, ele%n_slave)
+      ix2 = ele%ix_ele
+      if (ele%ix_branch /= ix_branch) then
+        nl=1; lines(1) = 'ELEMENTS ARE IN DIFFERENT LATTICE BRANCHES'
+        return
+      endif
+
+    endif
+
+    branch => lat%branch(ix_branch)
+
+    if (ele2_name == '') then
+      nl=nl+1; lines(nl) = 'Map from: ' // trim(branch%ele(ix1)%name)
+      nl=nl+1; lines(nl) = '    to:   ' // trim(branch%ele(ix2)%name)
     endif
 
     if (n_order > 1) then
