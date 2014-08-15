@@ -84,13 +84,16 @@ if (branch%param%geometry == closed$ .and. present(ix1) .and. .not. present(ix2)
   i2 = i1
 endif
 
-! Normal case
+if (i1 == i2 .and. .not. one_turn_this) return
 
-if (i1 <= i2 .and. .not. one_turn_this) then  
+! Normal case with i1 < i2
+
+if (i1 < i2) then  
   do i = i1+1, i2
     call add_on_to_xfer_mat
   enddo
 
+! Here when i2 < i1 ...
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$ .or. one_turn_this) then
