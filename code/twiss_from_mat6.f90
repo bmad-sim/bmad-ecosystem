@@ -21,7 +21,7 @@
 !     %c_mat       -- Coupling matrix.
 !   stable      -- Logical: Set true or false.
 !   growth_rate -- Real(rp): Unstable growth rate (= 0 if stable)
-!   status      -- Integer, optional: Calculation status:
+!   status      -- Integer: Calculation status:
 !                       ok$, in_stop_band$, unstable$, or non_symplectic$
 !-
 
