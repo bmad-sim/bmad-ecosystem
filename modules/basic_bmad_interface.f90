@@ -535,11 +535,11 @@ interface
     type (ele_struct) ele2
   end function
 
-  recursive subroutine lat_make_mat6 (lat, ix_ele, coord, ix_branch, err_flag)
+  recursive subroutine lat_make_mat6 (lat, ix_ele, ref_orb, ix_branch, err_flag)
     import
     implicit none
     type (lat_struct), target :: lat
-    type (coord_struct), optional :: coord(0:)
+    type (coord_struct), optional :: ref_orb(0:)
     integer, optional :: ix_ele, ix_branch
     logical, optional :: err_flag
   end subroutine
