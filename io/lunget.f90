@@ -19,12 +19,13 @@ integer function lunget()
   implicit none
 
   logical op
-  integer lun
+  integer lun, i
   lunget=0                ! happy compiler
-  do lun=30,60
+  do i=30,60
+    lun = i
     inquire(lun,opened=op)
     if(.not.op) then
-      lunget=lun
+      lunget=i
       return
     endif
   enddo
