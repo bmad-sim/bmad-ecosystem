@@ -472,17 +472,22 @@ else
 
   do j = n1, n2
 
-    if (u%data(j)%ele_name == '') cycle
-    call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
-    call element_locator (u%data(j)%ele_name, u%design%lat, ix)
-    if (ix < 0) then
-      call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // u%data(j)%ele_name)
-      u%data(j)%exists = .false.
-      cycle
+    if (is_standard_data_type(u%data(j)%data_type)) then
+      if (u%data(j)%ele_name == '') cycle
     endif
 
-    u%data(j)%ix_ele = ix
     u%data(j)%exists = .true.
+
+    if (u%data(j)%ele_name /= '') then
+      call str_upcase (u%data(j)%ele_name, u%data(j)%ele_name)
+      call element_locator (u%data(j)%ele_name, u%design%lat, ix)
+      if (ix < 0) then
+        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // u%data(j)%ele_name)
+        u%data(j)%exists = .false.
+        cycle
+      endif
+      u%data(j)%ix_ele = ix
+    endif
 
     if (u%data(j)%ele_ref_name /= '') then
       call str_upcase (u%data(j)%ele_ref_name, u%data(j)%ele_ref_name)
