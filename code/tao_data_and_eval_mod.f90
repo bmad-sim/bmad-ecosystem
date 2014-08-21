@@ -3875,4 +3875,93 @@ endif
 
 end subroutine
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function is_standard_data_type (data_type) result (is_standard)
+!
+! Routne to determine whether a data type is defined by Tao.
+! Otherwise it must be a custom data.
+!
+! Input:
+!   data_type -- Character(*): Type of data
+!
+! Output:
+!   is_standard -- Logical: Set true if type is a standard type
+!-
+
+function is_standard_data_type (data_type) result (is_standard)
+
+implicit none
+
+character(*) data_type
+character(40) head
+
+logical is_standard
+integer ix
+
+!
+
+head = data_type
+ix = index(head, '.')
+if (ix /= 0) head = head(1:ix)
+
+is_standard = .true.
+
+select case (head)
+case ('alpha.')
+case ('apparent_emit.', 'norm_apparent_emit.')
+case ('beta.')
+case ('bpm_cbar.')
+case ('bpm_eta.')
+case ('bpm_k.')
+case ('bpm_orbit.')
+case ('bpm_phase.')
+case ('cbar.')
+case ('chrom.')
+case ('damp.')
+case ('dpx_dx') 
+case ('dpy_dy') 
+case ('dpz_dz') 
+case ('e_tot')
+case ('element_attrib.')
+case ('emit.', 'norm_emit.')
+case ('eta.')
+case ('etap.')
+case ('expression:', 'expression.')
+case ('floor.')
+case ('gamma.')
+case ('k.')
+case ('momentum')
+case ('momentum_compaction')
+case ('n_particle_loss')
+case ('normal.')
+case ('orbit.')
+case ('periodic.')
+case ('phase.', 'phase_frac.')
+case ('phase_frac_diff')
+case ('photon.')
+case ('r.')
+case ('rad_int.')
+case ('rad_int1.')
+case ('ref_time')
+case ('rel_floor.')
+case ('s_position') 
+case ('sigma.')
+case ('spin.')
+case ('t.', 'tt.')
+case ('time')
+case ('tune.')
+case ('unstable.')
+case ('wall.')
+case ('wire.')  
+case ('')
+  is_standard = .false.
+case default
+  is_standard = .false.
+end select
+
+end function is_standard_data_type
+
 end module tao_data_and_eval_mod
