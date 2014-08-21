@@ -64,7 +64,7 @@
 !   ix_branch      -- Integer, optional: Lattice branch to find the closed orbit of. 
 !                       Default is 0 (main branch).
 !
-!   bmad_status    -- Bmad_status_struct: Bmad status common block
+!   global_com    -- Global_common_struct: Bmad status common block
 !     %type_out      -- If True then the subroutine will type out
 !                         a warning message if the orbit does not converge.
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
