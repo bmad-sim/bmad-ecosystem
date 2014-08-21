@@ -270,13 +270,6 @@ case (quadrupole$)
     is_valid = .true.
   end select
 
-case (rbend$)
-  if (present(num_valid)) num_valid = 7
-  select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
-    is_valid = .true.
-  end select
-
 case (rcollimator$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
@@ -305,8 +298,8 @@ case (sample$)
     is_valid = .true.
   end select
 
-case (sbend$)
-  if (present(num_valid)) num_valid = 7
+case (sbend$, rbend$)
+  if (present(num_valid)) num_valid = 8
   select case (tracking_method)
   case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$, runge_kutta$, time_runge_kutta$)
     is_valid = .true.
@@ -590,13 +583,6 @@ case (quadrupole$)
     is_valid = .true.
   end select
 
-case (rbend$)
-  if (present(num_valid)) num_valid = 7
-  select case (mat6_calc_method)
-  case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
 case (rcollimator$)
   if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
@@ -618,7 +604,7 @@ case (sample$)
     is_valid = .true.
   end select
 
-case (sbend$, sextupole$, rfcavity$)
+case (sbend$, rbend$, sextupole$, rfcavity$)
   if (present(num_valid)) num_valid = 7
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, mad$, static$, tracking$, custom$)
