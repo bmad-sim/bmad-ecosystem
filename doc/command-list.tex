@@ -1725,8 +1725,9 @@ Example:
 
 \vskip -0.2in
 
-Shows the transfer matrix for the \vn{model} lattice of the currently
-\vn{view}ed universe. This command is equivalent to \vn{show
+Shows the transfer matrix for the \vn{model} lattice of the
+default universe (set by \vn{set default universe}).
+This command is equivalent to \vn{show
 taylor_map -order 1}. See \vn{show taylor_map} for documentation 
 on the \vn{show matrix} arguments.
 
@@ -1834,7 +1835,8 @@ be shown.
 \vskip -0.2in
 
 Shows the Taylor transfer map for the \vn{model} lattice of the
-currently \vn{view}ed universe. See also \vn{show matrix}.
+default universe (set by \vn{set default universe}).
+See also \vn{show matrix}.
 
 If neither \vn{loc1} nor \vn{loc2} are present, the transfer map is
 computed for the entire lattice.
@@ -2128,26 +2130,6 @@ within the range 10:20 \textit{using the index convention for each d1\_data
 structure separately}. This may produce curious results if the
 indexes for the d1\_data structures do not all point to the same lattice
 elements. 
-
-%% view --------------------------------------------------------------
-\section{view}\index{commands!view}
-\label{s:view}
-
-The \vn{view} command changes which universe data is taken from for
-plotting. Format:
-\begin{example}
-  view <number>
-\end{example}
-
-\vskip 0.1in 
-
-This also sets the default universe that commands are applied to in
-the absence of a universe prefix (\sref{s:universe}).
-
-Examples:
-\begin{example}
-  view 2   ! Make universe #2 the default.
-\end{example}
 
 %% wave --------------------------------------------------------------
 \section{wave}\index{commands!wave}
