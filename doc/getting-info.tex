@@ -1,0 +1,314 @@
+%----------------------------------------------------------------
+\chapter{Getting information From Tao}
+\label{c:get.info}
+
+%----------------------------------------------------------------
+\section{The Plotting Window}
+\index{plotting}
+
+When \tao first starts up, \tao will create a new window for
+displaying plots. This window will be called the \vn{plot}
+window. Commands to \tao can be typed in from the original window from
+which \tao was invoked. This will be called the \vn{command} window.
+
+As a first step, let us command \tao to display some plotting
+information using the command:
+\begin{example}
+  show plot
+\end{example}
+The information will be displayed in the command window. The first
+section of the \vn{show plot} output shows information on font sizes:
+\begin{example}
+  plot_page parameters:
+  %size                       =   4.00000000E+02  5.00000000E+02
+  %n_curve_pts                =      401
+  %text_height                = 12.000
+  %main_title_text_scale      = 1.300
+  %graph_title_text_scale     = 1.100
+  %axis_number_text_scale     = 0.900
+  %axis_label_text_scale      = 1.000
+  %key_table_text_scale       = 0.900
+  %legend_text_scale          = 0.800
+\end{example}
+See section~\sref{s:init.plot} for more details. 
+
+The second section of the \vn{show plot} output
+lists the plot \vn{templates} (\sref{c:plotting}) and
+\sref{s:template}) that \tao knows about:
+\begin{example}
+ Templates:
+   Plot                .Graph
+   ------------------  ----------
+   orbit               .x  .y
+   phase               .a  .b
+   beta                .a  .b
+   eta                 .x  .y
+   cbar                .22  .12  .11
+   quad_k1             .k1
+   floor               .this
+\end{example}
+In this case, these templates are defined in the \vn{tao_plot.init}
+file. There is an \vn{orbit} plot template which has two associated
+graphs: \vn{orbit.x} and \vn{orbit.y}, etc. To see more information on, for example,
+the \vn{phase} template plot, use the command
+\begin{example}
+  show plot phase
+\end{example}
+and to see more information on, for example, the \vn{orbit.y} graph use the command
+\begin{example}
+  show plot orbit.y
+\end{example}
+Similarly, the \vn{show plot} command can be used to display
+information about the curves within each graph.
+
+The next block of information in the \vn{show plot} command is:
+\begin{example}
+Visible  Plot Region         <-->  Template             x1    x2    y1    y2
+-------  -----------               -----------------------------------------
+   T     top                 <-->  orbit               0.00  1.00  0.48  0.95
+   T     bottom              <-->  phase               0.00  1.00  0.00  0.48
+\end{example}
+This shows that two plot regions have been defined called \vn{top} and
+\vn{bottom}. Each region contains a visible plot and the plot template
+associated with the \vn{top} region is the \vn{orbit} template, etc.
+
+Figure~\ref{f:plot.begin} shows what you will see in the plot
+window. In the top two plots you see the \vn{x} and \vn{y} model
+lattice orbit data. The horizontal axis is the \cesr BPM index. The
+horizontal pretzel and L03 vertical bump in CESR can be clearly
+seen. The slight vertical displacement due to the solenoid
+compensation can also be seen around the IP. The orbit data is for a
+closed orbit electron (this being a storage ring). The bottom two
+plots show the relative particle phase, that is, the difference
+between the model and design phases (as documented in the plot title
+as [model - design]). Two plot regions are defined in \tao
+\vn{top} and \vn{bottom}.
+
+\index{commands!plot}
+As a first step let's view the absolute model phase. Use the command:
+\begin{example}
+  plot bottom model
+\end{example}
+This will change the data plotted in the bottom two graphs to just the
+model.  The plots are now way off scale. Let \tao automatically set
+the scale by typing:
+\index{commands!scale}
+\begin{example}
+  scale bottom
+\end{example}
+As expected, the phase increases approximately linearly as the
+particle travels through the ring. Zero phase is halfway through the
+ring (at L03 in \cesr lingo).  This is always true. Absolute phase is
+arbitrary so \tao sets the average phase to zero when generating the
+data. To set this back to relative phase type:
+\begin{example}
+  plot bottom model - design
+\end{example}
+
+Let's now look at the beta function by typing
+\index{commands!place}
+\begin{example}
+  place bottom beta
+\end{example}
+Again, we need to rescale the plots by typing
+\index{commands!scale}
+\begin{example}
+  scale bottom
+\end{example}
+We see the periodic FODO beta function where large horizontal beta
+corresponds to small vertical beta and vice versa.
+
+Likewise, we can look at the dispersion in the top two graphs by
+typing
+\index{commands!scale}
+\begin{example}
+  place top eta
+  scale top
+\end{example}
+The plot window should now look like Figure~\ref{f:plot.eta.beta}.
+
+Now let's look at the coupling (C-matrix) by typing
+\begin{example}
+  place bottom cbar
+  scale bottom
+\end{example}
+We see that there is strong coupling within the CLEO solenoid and
+virtually no coupling anywhere else. To zoom in the scale so that we
+can see the residual coupling outside the interaction region type
+\begin{example}
+  scale bottom -0.01 0.01
+\end{example}
+The \vn{**Limited**} displayed in red on the bottom plots tells us
+that there are data points outside the plotted region.  We now see
+that there is a small amount of coupling at the L03 region (BPM
+indexes 45-55) and a few other places along the ring. Your plot window
+should now look like Figure~\ref{f:plot.coupling.no.IR}.
+
+The x-axis is currently the BPM index number. It is sometimes
+convenient to plot the data versus longitudinal position. This is done
+by typing
+\index{commands!x-axis}
+\begin{example}
+  x-axis * s
+\end{example}
+
+The \cmd{all} will apply the change to all plot areas (both top and
+bottom). In any of the above commands \cmd{top} or \cmd{bottom} could
+have been replaced with \cmd{all}.
+
+Variables can also be plotted provided the proper plot template has
+been set up in the plot initialization file (See
+Section~\sref{s:init.plot} for details on initializing plotting). Type
+the following to view the quadrupole k1 values:
+\begin{example}
+  place bottom quad_k1
+\end{example}
+\index{commands!plot}
+\index{commands!place}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot-page1.pdf}
+  \caption{The plot window at startup}
+  \label{f:plot.begin}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot-eta-beta.pdf}
+  \caption{Plotting dispersion and beta function}
+  \label{f:plot.eta.beta}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=5in]{plot-coupling-no-IR.pdf}
+  \caption{Zooming in on the residual coupling outside the IR.}
+  \label{f:plot.coupling.no.IR}
+\end{figure}
+
+%----------------------------------------------------------------
+\section{The Show Command}
+
+Anything in the super-universe can be displayed using the \cmd{show}
+command (\sref{s:show}). To get a list of the data elements currently
+defined in \tao type
+\index{commands!show}
+\begin{example}
+  show data
+\end{example}
+the output should look like:
+\begin{example}
+  Name                                   Using for Optimization
+
+  orbit.x[0:99]
+  orbit.y[0:99]
+
+  phase.a[0:99]
+  phase.b[0:99]
+
+  eta.x[0:99]
+  eta.y[0:99]
+
+  beta.a[0:99]
+  beta.b[0:99]
+
+  cbar.11[0:99]
+  cbar.12[0:99]
+  cbar.21[0:99]
+  cbar.22[0:99]
+
+  k.11b[0:99]
+  k.12a[0:99]
+  k.12b[0:99]
+  k.22a[0:99]
+\end{example}
+There are six \vn{d2} data types (\sref{s:data.org}) defined in the
+initialization file: \vn{orbit}, \vn{phase}, etc.  The \vn{beta} data is further
+subdivided into two \vn{d1} data arrays labeled \vn{beta.a} and \vn{beta.b}.
+Each of these arrays has 100 data points indexed from 0 to 99.
+
+The \vn{``Using for Optimization''} column is blank indicating that no data
+would be used in an optimization (\sref{c:opti}).
+
+To see the data values for the horizontal beta function for \cesr BPMs
+1 through 50 type
+\begin{example}
+  show data beta.a[1:50]
+\end{example}
+Since we haven't changed any elements in the lattice yet the model
+values equal the design values. Also note that \vn{beta.a} is actually
+the a-mode betatron function. In regions with little or no coupling,
+the a-mode is almost completely in the horizontal plane.
+
+A significant point: The convention in \bmad is to label the twiss
+parameters as \vn{x} and \vn{y} but they are actually the \vn{a} and
+\vn{b} normal modes. So in regions of strong coupling \vn{beta.a} does
+not correspond to \vn{orbit.x} which is always in the true horizontal
+lab frame.  However, if you wish, you can re-label your twiss data
+planes as \vn{a} and \vn{b}.  Section~\ref{c:init} shows you how to do
+this. Keep in mind that lattice twiss parameters are defined
+\textit{only for uncoupled betatron motion} so this is all that is
+provided as data types for single particle tracking.  However, true
+lab-frame \vn{x} and \vn{y} twiss parameters can be defined for a
+distribution of particles so for beam
+tracking true lab-frame \vn{x} and \vn{y} twiss parameters can be
+calculated and are provided as data types for those tracking
+types. See the \bmad manual for how to convert from normal mode
+coordinates to lab-frame coordinates.
+
+This tutorial uses single particle tracking and the twiss parameters
+are found about the orbit of the tracked particle. There is another
+tracking type called particle beam tracking. This
+tracking type will not be explored in this tutorial.
+
+You can also view variables by typing
+\begin{example}
+  show var
+\end{example}
+To view the quadrupole k1 values for \cesr quadrupoles 5 and 20
+through 30 type
+\begin{example}
+  sho var quad\_k1[5,20:30]
+\end{example}
+Again, since we haven't changed any quadrupoles the model values are
+all at their design values.
+
+You can also see the details of a particular lattice element. To view
+the details for quadrupole Q05W type
+\begin{example}
+  sho ele Q05W
+\end{example}
+
+\vn{show var} and \vn{show ele} show two completely different types of
+structures in \tao. Elements are the actual lattice elements as known
+to \bmad.  Variables are native \tao structures that act kind of like
+\bmad \textit{overlays} and only indirectly control the lattice
+elements.
+
+A list of lattice elements between two elements can be shown by typing 
+\begin{example}
+  sho lattice 0:20
+\end{example}
+This will show a list of all the lattice elements between and
+including elements 0 and 20. Twiss parameters and orbit information, at
+the exit end of each element, is also shown.
+
+Anything printed to the display using the \vn{show} command can also
+be printed to a file by typing
+\begin{example}
+  show -write <file_name> <what_to_show>
+\end{example}
+\index{commands!show}
+
+A list of all intrinsic \vn{tao} commands can be found by typing
+\index{commands!help}
+\begin{example}
+  help
+\end{example}
+This will not list any custom commands. Detailed help on any
+individual command can be found with
+\begin{example}
+  help <command\_name>
+\end{example}
+where \vn{<command_name>} is the command you want help with.

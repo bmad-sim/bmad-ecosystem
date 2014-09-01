@@ -1,0 +1,134 @@
+\chapter{Running Tao}
+\label{c:running}
+\index{running tao}
+
+%-----------------------------------------------------------------
+\section{Initialization from the Command Line}
+\index{command line}
+\label{s:command.line} 
+
+The syntax of the command line is:
+\begin{example}
+  EXE-DIRECTORY/tao \{OPTIONS\}
+\end{example}
+where \vn{EXE-DIRECTORY} is the directory where the tao executable lives.
+The optional arguments are:
+  \begin{description}
+  \item[\vn{-beam <beam_file>}] \Newline
+Overrides the \vn{beam_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-beam_all <all_beam_file>}] \Newline
+Overrides the \vn{beam_all_file} (\sref{s:beam.init}) specified in the
+\vn{tao_beam_init} namelist.
+  \item[\vn{-beam0 <beam0_file>}] \Newline
+Overrides the \vn{beam0_file} (\sref{s:beam.init}) specified in the
+\vn{tao_beam_init} namelist.
+  \item[\vn{-building_wall <wall_file>}] \Newline
+Overrides the \vn{building_wall_file} (\sref{s:init.global}) 
+specified in the \tao initialization file.
+  \item[\vn{-data <data_file>}] \Newline
+Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-geometry <width>x<height>}] \Newline
+Overrides the plot window geometry. \vn{<width>} and \vn{<height>}
+are in Points. This is equivalent to setting \vn{plot_page%size}
+in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
+  \item[\vn{-init <tao_init_file>}] \Newline
+replaces the default \tao initialization file name
+(\vn{tao.init}). Note: A \tao initialization file is actually not
+needed. If no \tao initialization file is used, the use of the
+\vn{-lat} switch is mandatory and \tao will use a set of default plot
+templates for plotting.
+  \item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
+Overrides the \vn{design_lattice}
+lattice file specified in the \tao initialization file
+(\sref{s:init.lat}). Example:
+\begin{example}
+  \$ACC_EXE/tao -init my.init -lat slac.xsif
+\end{example}
+If there is more than one universe and the universes have different
+lattices, separate the different lattice names using a "|" character.
+Do not put any spaces in between. Example:
+\begin{example}
+  \$ACC_EXE/tao -lat xsif::slac.lat|cesr.bmad
+\end{example}
+  \item[\vn{-log_startup}]
+If there is a problem with \tao is started, \vn{-log_startup} can be used
+to create a log file of the initialization process.
+  \item[\vn{-noinit}] \Newline
+Suppresses use of a \tao initialization file. In this case the use of
+the \vn{-lat} switch is mandatory and \tao will use a set of default
+plot templates for plotting.
+  \item[\vn{-noplot}] \Newline
+Suppresses the opening of the plot window.
+  \item[\vn{-plot <plot_file>}] \Newline
+Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-rf_on}]
+Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements
+since Twiss and dispersion calculations do not make sense with them on.
+  \item[\vn{-startup <startup_command_file>}]
+Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+  \item[\vn{-var <var_file>}] \Newline
+Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
+\tao initialization file.
+
+\end{description}
+
+%-----------------------------------------------------------------
+\section{Aliases}
+\index{aliases}
+\label{s:aliasing} 
+
+Typing repetitive commands can become tedious. \tao has two constructs
+to mitigate this: Aliases and Command Files. Aliases are just like
+aliases in Unix. See Section~\sref{s:alias} for more details.
+
+%-----------------------------------------------------------------
+\section{Command Files}
+\index{command files}
+\label{s:command.files} 
+
+Command files are like Unix shell scripts. A series of commands are
+put in a file and then that file can be called using the \vn{call}
+command (\sref{s:call}).
+
+Do loops are allowed with the following syntax:
+\begin{example}
+  do <var> = <begin>, <end> \{, <step>\} 
+    ...
+    tao command [[<var>]]
+    ...
+  enddo
+\end{example}
+The \vn{<var>} can be used as a variable in the loop body but must be
+bracketed ``[[<var>]]''.  The step size can be any integer positive or
+negative but not zero.  Nested loops are allowed and command files can
+be called within do loops.
+
+\begin{example}
+  do i = 1, 100
+    call set_quad_misalignment [[i]] ! command file to misalign quadrupoles
+    zero_quad 1e-5*2^([[i]]-1) ! Some user supplied command to zero quad number [[i]]
+  enddo
+\end{example}
+
+To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
+and \vn{global%plot_on} can be toggled from within the command file. Example
+\begin{example}
+  set global lattice_calc_on = F  ! Turn off lattice calculations
+  set global plot_on = F          ! Turn off plot calculations
+  ... do some stuff ...
+  set global plot_on = T          ! Turn back on 
+  set global lattice_calc_on = T  ! Turn back on
+\end{example}
+Additionally, the \vn{global%command_file_print_on} switch controls
+whether printing is suppressed when a command file is called.
+
+A \vn{end_file} command (\sref{s:end.file}) can be used to signal the
+end of the command file.
+
+The \vn{pause} command (\sref{s:pause}) can be used to temporarily
+pause the command file.
+

@@ -1,0 +1,94 @@
+\chapter{Starting Tao}
+\label{c:starting.tao}
+
+%----------------------------------------------------------------
+\section{Obtaining Tao}
+\label{s:obtaining}
+
+Instructions for setting up the appropriate environmental variables
+and for obtaining the source files can be found at:
+\begin{example}
+  http://www.lepp.cornell.edu/~dcs/bmad/
+\end{example}
+
+Briefly, you should be able to run \tao using the command
+\begin{example}
+  \$ACC_EXE/tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
+           \{-beam0 <beam_file>\} \{-lat <lattice_file>\}
+\end{example}
+\vn{\$ACC_EXE} is an environmental variable pointing to the directory
+the \tao executable is in.  The root initialization file
+\vn{<tao_input_file>} is the file that \tao reads to start \tao's
+initialization process. If not present, \vn{<tao_input_file>} defaults
+to \vn{tao.init}. The \vn{-beam_all} switch is for reading in data
+generated from beam tracking (\sref{s:beam.init}). The \vn{-beam0}
+switch is for specifying the initial beam distribution.  The
+\vn{-lat} switch is used to override the lattice file specified in
+the root initialization file. See section~\sref{s:command.line} for
+more details. Example:
+\begin{example}
+  \$ACC_EXE/tao -init my.init -lat slac.xsif
+\end{example}
+An initialization file is actually not needed. In this case, a
+\vn{-lat} switch is manditory and \tao will use a set of default plot
+templates for plotting.
+
+This tutorial uses the example set of input files that comes with the \tao library.
+These files can be viewd and/or downloaded at:
+\begin{example}
+  https://accserv.lepp.cornell.edu/svn/trunk/src/tao/example
+\end{example}
+this will create a sub-directory \vn{example} in your current directory with 
+the appropriate files.
+
+%----------------------------------------------------------------
+\section{Initializing Tao}
+\index{initializing!files}
+\label{s:initializing}
+
+Initialization occurs when \tao is started. The initialization
+information can reside in one file or it can be split into a number of
+files as discussed in Section~\sref{s:init.global}.
+
+Using the example files provided with \tao (\sref{s:obtaining}), \tao
+is started with the command:
+\begin{example}
+  \$ACC_EXE/tao
+\end{example}
+Since no initialization file is specified on the command line, the
+default file \vn{tao.init} is used. In the example \vn{tao.init} there
+is the following:
+\begin{example}
+  &tao_start
+    plot_file = 'tao_plot.init'
+  /
+\end{example}
+The plotting information will
+come from the file \vn{tao_plot.init}. Since no other initialization
+files are specified (\sref{s:init.global}), \tao will look for the
+non-plotting information (except for the lattice file) in \vn{tao.init}.
+
+The lattice file is specified in the \vn{tao_design_lattice} namelist
+in \vn{tao.init}:
+\begin{example}
+  &tao_design_lattice
+    n_universes = 1
+    design_lattice(1) = "bmad_L9A18A000-_MOVEREC.lat"
+  /
+\end{example}
+\tao will setup a single universe since \vn{n_universes = 1}.
+By default, \tao assumes that this lattice uses the \bmad lattice
+format.  With the above information, \tao has the information on what
+files it needs to read to initialize itself.
+
+%----------------------------------------------------------------
+\section{Single Mode}\index{single Mode}
+\label{s:single.mode}
+
+\tao has a \vn{single mode} in which single keystrokes are interpreted
+as commands. \tao can be set up so that in \vn{single mode} the
+pressing of certain keys increase or decrease variables. While the
+same effect can be achieved in the standard \vn{line mode}, \vn{single
+mode} allows for quick adjustments of variables. See
+Chapter~\sref{c:single} for more details.
+

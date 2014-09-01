@@ -1,0 +1,66 @@
+\chapter{Modifying a Lattice}
+\label{c:lattice.mod}
+
+%----------------------------------------------------------------
+\section{Changing a Variable}
+\label{s:change.variable}
+
+Let's change a variable and see what happens to the lattice. We are going to
+change a quadrupole strength so we should plot the change in beta and phase.
+Type the following (everything after the `!' are just comments and can be
+omitted):
+\begin{example}
+  x-axis * index        ! let the data index be the x-axis
+  place top beta          ! plot Beta data on top plot
+  place bottom phase      ! plot phase data on bottom plot
+  plot * model - design ! plot the difference between model and design data
+  scale                   ! scale all plots
+\end{example}
+
+The k1 value can be increased by 0.01 units for quadrupole Q05W by typing
+\index{commands!change}
+\begin{example}
+  change var quad\_k1[5] 0.01
+  scale
+\end{example}
+Note the information returned on the command line after the command
+and the relative changes in beta and phase in the plot window. This is
+a vertically focusing quadrupole so the vertical beta and phase are
+affected more than the horizontal. The \cmd{0.01} at the end of the
+command tells \tao to change this variable by 0.01 units. If you want
+to set a variable to a particular value then use a ``@'' before the
+value. So, to change this quadrupole k1 to -0.348 type
+\begin{example}
+  change var quad\_k1[5] @-0.348
+\end{example}
+
+%----------------------------------------------------------------
+\section{Putting things back where you found them}
+\label{s:put_it_back}
+
+Let's put this quadrupole back where we found it. We can also modify
+the quadrupole by modifying the lattice element directly by typing
+\begin{example}
+  change ele Q05W k1 d0.0
+\end{example}
+By modifying the element directly with the \cmd{change ele} command
+you can modify almost any attribute of the element listed in the
+output of \cmd{show ele Q05W}.  The ``d'' before the value is used to
+set the variable relative to the design value.
+\index{commands!change}
+
+If you've changed the lattice around a lot using variables, a great
+way to set all variables back to their design values is to type
+\index{commands!set}
+\begin{example}
+  set var *|model = *|design
+\end{example}
+This only works if you just changed variables. If you changed any
+elements directly with the \cmd{change ele} command then this will not
+work. To set every attribute of every element back to the design type
+\begin{example}
+  set lattice model = design
+\end{example}
+Note that this will also recalculate the data and variable values
+associated with the the model lattice to reflect the change so all the
+bookkeeping is done for you.
