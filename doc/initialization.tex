@@ -84,79 +84,6 @@ in place of logical variables when \tao needs to know if the variable
 has been explicitly set.
 
 %-----------------------------------------------------------------
-\section{Initialization from the Command Line}
-\index{command line}
-\label{s:command.line} 
-
-The syntax of the command line is:
-\begin{example}
-  tao \{OPTIONS\}
-\end{example}
-The optional arguments are:
-  \begin{description}
-  \item[\vn{-beam <beam_file>}] \Newline
-Overrides the \vn{beam_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
-  \item[\vn{-beam_all <all_beam_file>}] \Newline
-Overrides the \vn{beam_all_file} (\sref{s:beam.init}) specified in the
-\vn{tao_beam_init} namelist.
-  \item[\vn{-beam0 <beam0_file>}] \Newline
-Overrides the \vn{beam0_file} (\sref{s:beam.init}) specified in the
-\vn{tao_beam_init} namelist.
-  \item[\vn{-building_wall <wall_file>}] \Newline
-Overrides the \vn{building_wall_file} (\sref{s:init.global}) 
-specified in the \tao initialization file.
-  \item[\vn{-data <data_file>}] \Newline
-Overrides the \vn{data_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
-  \item[\vn{-geometry <width>x<height>}] \Newline
-Overrides the plot window geometry. \vn{<width>} and \vn{<height>}
-are in Points. This is equivalent to setting \vn{plot_page%size}
-in the \vn{tao_plot_page} namelist \sref{s:init.plot}.
-  \item[\vn{-init <tao_init_file>}] \Newline
-replaces the default \tao initialization file name
-(\vn{tao.init}). Note: A \tao initialization file is actually not
-needed. If no \tao initialization file is used, the use of the
-\vn{-lat} switch is mandatory and \tao will use a set of default plot
-templates for plotting.
-  \item[\vn{-lat <bmad_or_xsif_lattice_file>}] \Newline
-Overrides the \vn{design_lattice}
-lattice file specified in the \tao initialization file
-(\sref{s:init.lat}). Example:
-\begin{example}
-  \$ACC_EXE/tao -init my.init -lat slac.xsif
-\end{example}
-If there is more than one universe and the universes have different
-lattices, separate the different lattice names using a "|" character.
-Do not put any spaces in between. Example:
-\begin{example}
-  \$ACC_EXE/tao -lat xsif::slac.lat|cesr.bmad
-\end{example}
-  \item[\vn{-log_startup}]
-If there is a problem with \tao is started, \vn{-log_startup} can be used
-to create a log file of the initialization process.
-  \item[\vn{-noinit}] \Newline
-Suppresses use of a \tao initialization file. In this case the use of
-the \vn{-lat} switch is mandatory and \tao will use a set of default
-plot templates for plotting.
-  \item[\vn{-noplot}] \Newline
-Suppresses the opening of the plot window.
-  \item[\vn{-plot <plot_file>}] \Newline
-Overrides the \vn{plot_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
-  \item[\vn{-rf_on}]
-Leaves \vn{rfcavity} elements on. Normally \tao turns off these elements
-since Twiss and dispersion calculations do not make sense with them on.
-  \item[\vn{-startup <startup_command_file>}]
-Overrides the \vn{startup_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
-  \item[\vn{-var <var_file>}] \Newline
-Overrides the \vn{var_file} (\sref{s:init.global}) specified in the
-\tao initialization file.
-
-\end{description}
-
-%-----------------------------------------------------------------
 \section{Beginning Initialization}
 \index{Initialization!beginning}
 \label{s:init.global} 
@@ -924,7 +851,7 @@ particular variable then the default \vn{default_step} is
 used. 
 
 \vn{var(i)%good_user} is a logical that the user can toggle when
-running \tao (\sref{s:var}). The initial default value of
+running \tao (\sref{c:var}). The initial default value of
 \vn{%good_user} is True.
 
 \vn{var(i)%universe} gives the universe that the lattice element lives
@@ -1220,7 +1147,7 @@ types are recognized by \tao. These are given by
 Table~\ref{t:con.type}. Custom data types not specified in this table
 must have a corresponding definition in
 \vn{tao_hook_load_data_array.f90}. See
-Chapter~\ref{c:prog.customizing} for details.
+Chapter~\ref{c:custom.tao} for details.
 
 \index{data%weight}
 \vn{datum(:)%weight} gives the weight coefficient for a datum in the
@@ -2473,7 +2400,7 @@ histogram template:
 
 \begin{figure}
   \centering
-  \includegraphics[width=5in]{histogram.png}
+  \includegraphics[width=5in]{histogram.pdf}
   \caption{Example histogram plot.}
   \label{f:histogram}
 \end{figure}

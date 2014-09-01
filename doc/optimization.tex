@@ -11,7 +11,7 @@ quadrupoles to correct the measured betatron phase. \vn{Lattice
 design} involves creating a lattice that conforms to a set of
 desirable properties. For example, requiring that the beta function
 in a certain region never exceeds a given value.
-Section~\sref{s:optimizer} gives a tutorial on how to setup the merit
+Section~\sref{c:optimizer} gives a tutorial on how to setup the merit
 function and run the \vn{optimizer} in \tao.  In this chapter,
 Section~\sref{s:lattice.correction} presents the merit function in the
 context of lattice corrections while Section~\sref{s:lattice.design}
@@ -35,7 +35,7 @@ corrections to the steering elements are calculated and finally the
 corrections are applied to the machine. Since these are necessarily
 machine specific, \tao has no specific routines to measure orbits or
 to load steering corrections but they could be implemented as
-discussed in Chapter~\sref{c:prog.customizing}. \tao does, however,
+discussed in Chapter~\sref{c:custom.tao}. \tao does, however,
 implement a generalized algorithm procedure for minimizing a
 \vn{merit function} which can be used to calculate the corrections.
 The idea is to vary a set of variables (steerings in the case of an

@@ -1,0 +1,111 @@
+\chapter{Variables}
+\label{c:var}
+\index{variables}
+
+\index{change command}
+\index{optimizer!variables}
+For the \vn{model} lattice (or lattices if there are multiple
+\vn{universes}) the \vn{change} command (\sref{s:change}) can be used
+to vary lattice parameters such as element strengths, the initial
+Twiss parameters, etc.  Additionally, \vn{variables} can be defined
+in the \tao initialization files (\sref{s:init.var})
+that can also be used to vary these \vn{model} lattice parameters.  
+A given \tao variable may control a single attribute of one element 
+in one or more universes.  
+There are a few reasons why one would want to setup such variables.
+For example, the optimizer (\sref{c:optimizer}) will only work with
+\tao variables and blocks of these variables can be plotted for visual
+inspection.
+
+\index{variables!v1_var}
+Blocks of variables are associated with what is called a \vn{v1_var}
+structure and each of these structures has a \vn{name} with which to
+refer to them in \tao commands. For example, if \vn{quad_k1} is the
+name of a \vn{v1_var}, then \vn{quad_k1[5]} referees to the variable 
+with index 5 in the block. 
+
+A set of variables within a \vn{v1_var} block
+can be referred to by using using a comma \vn{,} to
+separate their indexes. Additionally, a Colon \vn{:} can be use to
+specify a range of variables. For example
+\begin{example}
+  quad_k1[3:6,23]
+\end{example}
+refers to variables 3, 4, 5, 6, and 23. Instead of a number, the
+associated lattice element name can be used so if, in the above
+example, the lattice element named \vn{q01} is associated with
+\vn{quad_k1[1]}, etc., then the following is equivalent:
+\begin{example}
+  quad_k1[q03:q06,q23]
+\end{example}
+Using lattice names instead of numbers is not valid if the same
+lattice element is associated with more than one variable in a
+\vn{v1_var} array. This can happen, for example, if one variable controls
+an element's \vn{x_offset} and another variable controls the same element's
+\vn{y_offset}. 
+
+In referring to variables, a ``\vn{*}'' can be used as a wild card to 
+denote ``all''. Thus:
+\begin{example}
+  *                ! All the variables
+  quad_k1[*]|model ! All model values of quad_k1.
+  quad_k1[]|model  ! No values. That is, the empty set.
+  quad_k1|model    ! Same as quad_k1[*]|model
+\end{example}
+
+A given variable may control a single attribute of one element in a
+\vn{model} lattice of a single universe or it can be configured to
+simultaneously control an element attribute across multiple
+universes. Any one variable cannot control more than one attribute of
+one element. However, a variable may control an overlay or group
+element which, in turn, can control numerous elements.
+
+Each individual variable has a number of values associated with it:
+  \vspace*{-3ex}
+  \index{variable!measured}\index{variable!reference}
+  \index{variable!model}\index{variable!design}\index{variable!base}
+  \begin{description}
+  \item[Measured Value] \Newline
+The Value as obtained at the time of the \vn{data} measurement.
+  \item[Reference Value] \Newline
+The Value as obtained at the time of the \vn{reference} data  measurement.
+  \item[Model Value] \Newline
+The value as given in the \vn{model} lattice.
+  \item[Design Value] \Newline
+The value as given in the \vn{design} lattice.
+  \item[Base Value] \Newline
+The value as given in the \vn{base} lattice.
+  \end{description}
+These components and others can be refereed to using the notation
+\vn{|name} where \vn{name} is the appropriate name for the
+component. The list of components that can be set or refereed to are:
+\begin{example}
+  quad_k1[1]|meas       ! Value at time of data measurement
+  quad_k1[1]|ref        ! Value at time of the reference data measurement
+  quad_k1[1]|model      ! Value in the model lattice
+  quad_k1[1]|base       ! Value in the base lattice
+  quad_k1[1]|design     ! Value in  the design lattice
+  quad_k1[1]|weight     ! Weight used in the merit function.
+  quad_k1[1]|old        ! Scratch value.
+  quad_k1[1]|step       ! For fitting/optimization: What is considered a small change.
+  quad_k1[1]|exists     ! Logical
+  quad_k1[1]|good_var   ! Logical
+  quad_k1[1]|good_user  ! Logical
+  quad_k1[1]|good_opt   ! Logical
+  quad_k1[1]|good_plot  ! Logical
+  quad_k1[1]|useit_opt  ! Logical
+  quad_k1[1]|useit_plot ! Logical
+
+\end{example}
+
+Use the \vn{show var} (\sref{s:show}) command to see variable information
+
+When using optimization for lattice correction or lattice design
+(\sref{c:opti}), Individual datums can be excluded from the process
+using the \vn{veto} (\sref{s:veto}), \vn{restore} (\sref{s:restore}),
+and \vn{use} (\sref{s:use}) commands. These set the \vn{good_user}
+component of a datum. This, combined with the setting \vn{exists},
+\vn{good_var}, and \vn{good_opt} determine the setting of
+\vn{useit_opt} which is the component that determines if the datum is
+used in the computation of the merit function. The settings of
+everything but \vn{good_user} is determined by \tao
