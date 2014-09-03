@@ -131,6 +131,14 @@ do n = 0, ubound(lat%branch, 1)
       ele%value(x_offset$) = r_vec(1)
       ele%value(y_offset$) = r_vec(2)
       ele%value(z_offset$) = r_vec(3)
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+      ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
+                      w_mat_inv(3,3) * ele%value(z_offset$)
+      if (ele%value(l$) /= ele%old_value(l$)) then
+        ele%bookkeeping_state%s_position = stale$
+        branch%param%bookkeeping_state%s_position = stale$
+        ele%old_value(l$) = ele%value(l$)
+      endif
       stale = .false.
     else
       stale = .true.

@@ -111,24 +111,18 @@ logical found, err
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
-! Control_bookkeeper is called twice to make sure, for example, that multipass bends
-! are correctly computed.
+! Control_bookkeeper is called twice to make sure
+! that Girders are correctly adjusted.
 
 if (present(err_flag)) err_flag = .true.
 
 call control_bookkeeper (lat)
+call lat_geometry (lat)
+call s_calc (lat)
+
 call lat_compute_ref_energy_and_time (lat, err)
 if (err) return
 call control_bookkeeper (lat, mark_eles_as_stale = .false.)
-
-! Global geometry...
-! Girders, for example, will be affected by changes in the geometry.
-
-call s_calc (lat)
-call lat_geometry (lat)
-call control_bookkeeper (lat, mark_eles_as_stale = .false.)
-
-! PTC bookkeeping
 
 call ptc_bookkeeper (lat)
 
@@ -148,23 +142,25 @@ if (.not. bmad_com%auto_bookkeeper) then
 
   do i = 0, ubound(lat%branch, 1)
 
-    branch => lat%branch(0)
+    branch => lat%branch(i)
     stat => branch%param%bookkeeping_state
     if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
         stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-      call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\.', &
+      call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at branch: \i0\.', &
                                     'Please contact DCS!', 'Status: \5i6\ ', &
               i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
     endif
     call reset_status_flags_to_ok(stat)
 
     do j = 0, branch%n_ele_max
-      if (branch%ele(j)%key == null_ele$) cycle 
-      stat => branch%ele(j)%bookkeeping_state
+      ele => branch%ele(j)
+      if (ele%key == null_ele$) cycle 
+      stat => ele%bookkeeping_state
       if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
           stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-        call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at: \i0\, \i0\.', &
-                                      'Please contact DCS!', 'Status: \5i6\ ', &
+        call out_io (s_info$, r_name, &
+              'Stale bookkeeping status flags detected at element: ' // trim(ele%name) // ' (\i0\>>\i0\).', &
+              'Please contact DCS!', 'Status: \5i6\ ', &
               i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
       endif
       call reset_status_flags_to_ok(stat)
