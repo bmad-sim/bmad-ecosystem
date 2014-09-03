@@ -734,6 +734,11 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele_has(ele, 'OFFSET_MOVES_APERTURE') .and. (ele%offset_moves_aperture .neqv. ele_dflt%offset_moves_aperture)) &
                                       write (line, '(2a, l1)') trim(line), ', offset_moves_aperture = ', ele%offset_moves_aperture
 
+    if (ele_has(ele, 'ORIGIN_ELE') .and. ele%component_name /= '') line = trim(line) // ', origin_ele = ' // ele%component_name 
+    if (ele_has(ele, 'CRYSTAL_TYPE') .and. ele%component_name /= '') line = trim(line) // ', crystal_type = ' // ele%component_name 
+    if (ele_has(ele, 'MATERIAL_TYPE') .and. ele%component_name /= '') line = trim(line) // ', material_type = ' // ele%component_name 
+
+
     call write_lat_line (line, iu, .false.)  
 
     ! Encode taylor

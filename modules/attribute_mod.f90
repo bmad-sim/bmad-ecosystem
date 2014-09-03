@@ -193,6 +193,13 @@ case (em_field$)
     is_valid = .true.
   end select
 
+case (floor_shift$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
+    is_valid = .true.
+  end select
+
 case (hkicker$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
@@ -363,7 +370,7 @@ case (x_ray_init$)
   end select
 
 case default
-  call err_exit
+  call err_exit   ! Should not be here
 
 end select
 
@@ -505,6 +512,14 @@ case (em_field$)
   case (static$, tracking$, custom$)
     is_valid = .true.
   end select
+
+case (floor_shift$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
 
 case (hkicker$)
   if (present(num_valid)) num_valid = 6
