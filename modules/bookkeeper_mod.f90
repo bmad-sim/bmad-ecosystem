@@ -1398,23 +1398,25 @@ if (ele_in%key == patch$) then
     sliced_ele%value(z_offset$)     = ele_in%value(z_offset$) - dl * w_inv(3,3)
     sliced_ele%value(t_offset$)     = ele_in%value(t_offset$)
     sliced_ele%value(e_tot_offset$) = ele_in%value(e_tot_offset$)
-    if (sliced_ele%value(e_tot_offset$) /= 0) then
-      call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot_start$), &
-                                  ele_in%value(p0c_start$), ele_in%value(ref_time_start$), err2_flag)
-    endif
   else
     sliced_ele%key = drift$
-    sliced_ele%value(x_offset$)     = 0
-    sliced_ele%value(y_offset$)     = 0
-    sliced_ele%value(z_offset$)     = 0
-    sliced_ele%value(t_offset$)     = 0
+    sliced_ele%value(x_pitch$)     = 0
+    sliced_ele%value(y_pitch$)     = 0
+    sliced_ele%value(x_offset$)    = 0
+    sliced_ele%value(y_offset$)    = 0
+    sliced_ele%value(z_offset$)    = 0
+    sliced_ele%value(t_offset$)    = 0
     sliced_ele%value(e_tot_offset$) = 0
-    if (sliced_ele%value(e_tot_offset$) /= 0) then
-      call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot$), &
-                                   ele_in%value(p0c$), ele_in%value(ref_time_start$), err2_flag)
-    endif
   endif
 
+  sliced_ele%value(x_pitch_tot$)     = sliced_ele%value(x_pitch$)
+  sliced_ele%value(y_pitch_tot$)     = sliced_ele%value(y_pitch$)
+  sliced_ele%value(x_offset_tot$)    = sliced_ele%value(x_offset$)
+  sliced_ele%value(y_offset_tot$)    = sliced_ele%value(y_offset$)
+  sliced_ele%value(z_offset_tot$)    = sliced_ele%value(z_offset$)
+
+  call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot$), &
+                                   ele_in%value(p0c$), ele_in%value(ref_time_start$), err2_flag)
   err_flag = .false.
   return
 
