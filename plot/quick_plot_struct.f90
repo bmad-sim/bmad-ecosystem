@@ -86,17 +86,17 @@ type qp_plot_struct
 end type          
 
 type qp_point_struct     ! A point on the page.
-  real(rp) x, y
+  real(rp) :: x = 0, y = 0
   character(16) :: units = ' '
 end type
 
 type qp_rect_struct     ! Rectangular: A structure with 4 numbers
-  real(rp) x1, x2, y1, y2   
+  real(rp) :: x1 = 0, x2 = 0, y1 = 0, y2 = 0
   character(16) :: units = ' '
 end type
 
 type qp_text_struct
-  real(rp) height   ! in points
+  real(rp) :: height = 12   ! in points
   integer :: color = black$
   logical :: uniform_spacing = .false.
 end type
