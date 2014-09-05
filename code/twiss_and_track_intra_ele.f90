@@ -90,17 +90,14 @@ if (err_flag) return
 ! Now track. 
 ! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.
 
-if (present(orbit_start)) then
-  call track1 (orbit_start, runt, param, orb_at_end)
-  if (.not. particle_is_moving_forward(orb_at_end)) then
-    if (present(orbit_end)) orbit_end = orb_at_end
-    return
-  endif
-endif
-
 if (present(ele_end)) then
   if (present(orbit_start)) then
-    call make_mat6 (runt, param, orbit_start, orb_at_end, .true.)
+    call make_mat6 (runt, param, orbit_start, orb_at_end)
+    if (present(orbit_end)) then
+      orbit_end = orb_at_end
+      orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
+      if (.not. do_downstream) orbit_end%location = inside$
+    endif
   else
     call make_mat6 (runt, param)
   endif
@@ -108,10 +105,9 @@ if (present(ele_end)) then
   if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, runt, runt%floor)
   call transfer_ele(runt, ele_end, .true.)
   if (err_flag) return
-endif
 
-if (present(orbit_end)) then
-  orbit_end = orb_at_end
+elseif (present(orbit_end)) then  ! and not present(ele_start)
+  call track1 (orbit_start, runt, param, orbit_end)
   orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
   if (.not. do_downstream) orbit_end%location = inside$
 endif
