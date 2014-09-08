@@ -184,7 +184,8 @@ ele_param_translate = {
 ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4', 'betax', 'betay',
                   'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
-                  'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np']
+                  'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
+                  'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng']
 
 sad_reversed_params = {
       'ae1': 'ae2',

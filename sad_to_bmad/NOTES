@@ -2,13 +2,12 @@ Known Translation Limitations:
 
 CAVI: 
   Translated to rfcavity. Therefore does not handle accelerating cavities.
-  Not translated: V1, V20, V11, V02
-  Not translated: DISFRIN, FRINGE
-  Not translated: DPHI
+  Parameters not translated: 
+		V1, V20, V11, V02
+		DISFRIN, FRINGE
+    DPHI
 
 Misalignments in SOL element with GEO = 1 not yet implemented.
-
-Conversion cannot handle lines that contain sub-lines.
 
 A given MARK element with a non-zero offset cannot appear multiple times in a lattice.
 This is due to the fact that the corresponding Bmad element uses superposition.
@@ -17,7 +16,30 @@ Conversion cannot handle the same mult element appearing two different
 places in the lattice when the solenoid field is different in these
 different places.
 
---------------------------
-Thoughts:
+MULT elements cannot have a finite bending angle nor can a MULT element have
+an RF field.
 
-Use SAD program to create lattice file.
+---------------------------
+What to do if translation fails:
+
+Multiple "use" statements may confuse the translator. Remove unused use statements in case of trouble.
+
+"Action" commands, that is, commands that modify the lattice (EG optimizing lattice parameters) cannot
+be translated. In fact, these statements may confuse the translator. Remove action commands in case 
+of trouble.
+
+If all else fails, or if you want to generate a lattice that has been modified by SAD (EG SAD has
+been used to optimize lattice parameters), you can use SAD to generate a lattice file that is
+easily converted. Add this to your SAD lattice file:
+
+fout=OpenWrite["new.sad"];
+FFS["OUTPUT "//fout//" TYPE"];
+WriteBeamLine[fout,Format->"MAIN",Name->{"XXX"}];
+Write[fout," FSHIFT = "//FSHIFT//";"];
+Write[fout," MOMENTUM = "//MOMENTUM//";"];
+Write[fout," USE XXX;"];
+Close[fout];
+
+Here "XXX" should be replaced by the name of the line to use.
+The one disadvanteage in doing this is that all parameters are evaluated 
+and so varialbes used in the original file are lost.
