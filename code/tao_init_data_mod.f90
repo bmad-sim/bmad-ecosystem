@@ -376,6 +376,10 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%weight         = datum(ix1)%weight
   u%data(n1:n2)%data_source    = datum(ix1)%data_source
   u%data(n1:n2)%meas_value     = 0  
+  ! use default_data_type if given, if not, auto-generate the data_type
+  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
+
 
 !-----------------------------------------
 ! use_same_lat_eles_as
@@ -418,6 +422,10 @@ elseif (use_same_lat_eles_as /= '') then
 
   if (default_weight /= 0)    u%data(n1:n2)%weight = default_weight
   if (datum(ix1)%weight /= 0) u%data(n1:n2)%weight = datum(ix1)%weight
+
+  ! use default_data_type if given, if not, auto-generate the data_type
+  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
 
 !-----------------------------------------
 ! Not SEARCH or SAME:
@@ -468,6 +476,10 @@ else
     u%data(n1:n2)%good_meas = .true.
   end where
 
+  ! use default_data_type if given, if not, auto-generate the data_type
+  if (default_data_type == '') default_data_type = trim(d2_data%name) // '.' // d1_data%name
+  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
+
   ! Find elements associated with the data
 
   do j = n1, n2
@@ -517,15 +529,6 @@ endif
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
-! use default_data_type if given, if not, auto-generate the data_type
-
-if (default_data_type == '') then
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = &
-                                          trim(d2_data%name) // '.' // d1_data%name
-else
-  where (u%data(n1:n2)%data_type == '') u%data(n1:n2)%data_type = default_data_type
-endif
-
 ! Point the %data back to the d1_data_struct
 
 call tao_point_d1_to_data (d1_this, u%data(n1:n2), ix_min_data)

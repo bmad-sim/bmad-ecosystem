@@ -234,7 +234,7 @@ logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limi
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
-logical valid_value, print_floor, show_section, is_complex
+logical valid_value, print_floor, show_section, is_complex, print_header
 logical, allocatable, save :: picked_uni(:)
 logical, allocatable, save :: picked_ele(:)
 logical, allocatable, save :: good(:)
@@ -614,13 +614,15 @@ case ('curve')
 
   show_sym = .false.
   show_line = .false.
+  print_header = .true.
 
   do
-    call tao_next_switch (stuff2, ['-symbol', '-line  ' ], switch, err, ix)
+    call tao_next_switch (stuff2, ['-symbol   ', '-line     ', '-no_header'], switch, err, ix)
     if (err) return
     if (switch == '') exit
-    if (switch == '-symbol') show_sym = .true.
-    if (switch == '-line')   show_line = .true.
+    if (switch == '-symbol')    show_sym = .true.
+    if (switch == '-line')      show_line = .true.
+    if (switch == '-no_header') print_header = .false.
   enddo
 
   ! Find particular plot
@@ -632,59 +634,64 @@ case ('curve')
 
   if (allocated(curve)) then
     c1 => curve(1)%c
-    nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c1, .true.))
-    do i = 2, size(curve)
-      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
-    enddo
-    nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c1))
-    do i = 2, size(curve)
-      nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
-    enddo
-    nl=nl+1; write(lines(nl), amt)  'data_source          = ', c1%data_source
-    nl=nl+1; write(lines(nl), amt)  'data_index           = ', c1%data_index
-    nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', c1%data_type_x
-    nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
-    nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
-    nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
-    nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
-    nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
-    nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
-    nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
-    nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
-    nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
-    nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
-    nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
-    nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
-    nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
-    nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
-    nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
-    nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
-    nl=nl+1; write(lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
-    nl=nl+1; write(lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
-    nl=nl+1; write(lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
-    nl=nl+1; write(lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
-    nl=nl+1; write(lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
-    nl=nl+1; write(lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
-    
-    ! Histogram specific components
-    if (c1%g%type == 'histogram') then
-      nl=nl+1; write(lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
-      nl=nl+1; write(lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
-      nl=nl+1; write(lines(nl), rmt)  'hist%minimum            = ', c1%hist%minimum
-      nl=nl+1; write(lines(nl), rmt)  'hist%maximum            = ', c1%hist%maximum
-      nl=nl+1; write(lines(nl), rmt)  'hist%width              = ', c1%hist%width
-      nl=nl+1; write(lines(nl), rmt)  'hist%center             = ', c1%hist%center
-      nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
+
+    if (print_header) then
+      nl=nl+1; lines(nl) = 'Region.Graph.Curve: ' // trim(tao_curve_name(c1, .true.))
+      do i = 2, size(curve)
+        nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c, .true.))
+      enddo
+      nl=nl+1; lines(nl) = 'Plot.Graph.Curve:   ' // trim(tao_curve_name(c1))
+      do i = 2, size(curve)
+        nl=nl+1; lines(nl) = '                    ' // trim(tao_curve_name(curve(i)%c))
+      enddo
+      nl=nl+1; write(lines(nl), amt)  'data_source          = ', c1%data_source
+      nl=nl+1; write(lines(nl), amt)  'data_index           = ', c1%data_index
+      nl=nl+1; write(lines(nl), amt)  'data_type_x          = ', c1%data_type_x
+      nl=nl+1; write(lines(nl), amt)  'data_type            = ', c1%data_type
+      nl=nl+1; write(lines(nl), amt)  'legend_text          = ', c1%legend_text
+      nl=nl+1; write(lines(nl), amt)  'ele_ref_name         = ', c1%ele_ref_name
+      nl=nl+1; write(lines(nl), imt)  'ix_branch            = ', c1%ix_branch
+      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref           = ', c1%ix_ele_ref
+      nl=nl+1; write(lines(nl), imt)  'ix_ele_ref_track     = ', c1%ix_ele_ref_track
+      nl=nl+1; write(lines(nl), imt)  'ix_bunch             = ', c1%ix_bunch
+      nl=nl+1; write(lines(nl), imt)  'ix_universe          = ', c1%ix_universe
+      nl=nl+1; write(lines(nl), imt)  'symbol_every         = ', c1%symbol_every
+      nl=nl+1; write(lines(nl), rmt)  'y_axis_scale_factor  = ', c1%y_axis_scale_factor
+      nl=nl+1; write(lines(nl), lmt)  'use_y2               = ', c1%use_y2
+      nl=nl+1; write(lines(nl), lmt)  'draw_line            = ', c1%draw_line
+      nl=nl+1; write(lines(nl), lmt)  'draw_symbols         = ', c1%draw_symbols
+      nl=nl+1; write(lines(nl), lmt)  'draw_symbol_index    = ', c1%draw_symbol_index
+      nl=nl+1; write(lines(nl), lmt)  'smooth_line_calc     = ', c1%smooth_line_calc
+      nl=nl+1; write(lines(nl), iamt) 'line%width           = ', c1%line%width
+      nl=nl+1; write(lines(nl), iamt) 'line%color           = ', c1%line%color, qp_color_name(c1%line%color)
+      nl=nl+1; write(lines(nl), iamt) 'line%pattern         = ', c1%line%pattern, qp_line_pattern_name(c1%line%pattern)
+      nl=nl+1; write(lines(nl), iamt) 'symbol%type          = ', c1%symbol%type, qp_symbol_type_name(c1%symbol%type)
+      nl=nl+1; write(lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
+      nl=nl+1; write(lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
+      nl=nl+1; write(lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
+      
+      ! Histogram specific components
+      if (c1%g%type == 'histogram') then
+        nl=nl+1; write(lines(nl), lmt)  'hist%density_normalized = ', c1%hist%density_normalized 
+        nl=nl+1; write(lines(nl), lmt)  'hist%weight_by_charge   = ', c1%hist%weight_by_charge
+        nl=nl+1; write(lines(nl), rmt)  'hist%minimum            = ', c1%hist%minimum
+        nl=nl+1; write(lines(nl), rmt)  'hist%maximum            = ', c1%hist%maximum
+        nl=nl+1; write(lines(nl), rmt)  'hist%width              = ', c1%hist%width
+        nl=nl+1; write(lines(nl), rmt)  'hist%center             = ', c1%hist%center
+        nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
+      endif
     endif
     
     if (show_sym) then
       n = nl + size(c1%x_symb) + 10
       if (n > size(lines)) call re_allocate(lines, n, .false.)
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Symbol points:'
-      err = .false.
+      if (print_header) then
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; lines(nl) = '# Symbol points:'
+        nl=nl+1; lines(nl) = '#     i  index        x-axis'
+      endif
 
-      nl=nl+1; lines(nl) = '      i  index        x-axis'
+      err = .false.
       do j = 1, size(curve)
         str = curve(j)%c%name
         lines(nl) = lines(nl)(1:28+(j-2)*14) // adjustr(str(1:14))
@@ -707,9 +714,11 @@ case ('curve')
     endif
 
     if (show_line) then
-      nl=nl+1; lines(nl) = ''
-      nl=nl+1; lines(nl) = 'Smooth line points:'
-      nl=nl+1; lines(nl) = ' Index        x-axis'
+      if (print_header) then
+        nl=nl+1; lines(nl) = ''
+        nl=nl+1; lines(nl) = '# Smooth line points:'
+        nl=nl+1; lines(nl) = '#Index        x-axis'
+      endif
 
       do j = 1, size(curve)
         str = curve(j)%c%name
