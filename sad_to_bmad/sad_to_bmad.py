@@ -228,17 +228,6 @@ def output_line (sad_line, sad_info, inside_sol, bz):
       bz = s_ele.param.get('bz')  
       if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
 
-      # misalignment with geo = 1 or patch to orbit if not.
-
-      if 'dx' in s_ele.param or 'dy' in s_ele.param or 'dz' in s_ele.param or 'chi1' in s_ele.param or \
-                                  'chi2' in s_ele.param or 'chi3' in s_ele.param or 'rotate' in s_ele.param:
-        if s_ele.param.get('geo') == '1': 
-          ## print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED!')
-          if not sad_sol_to_marker: continue
-      
-      else:
-        if not sad_sol_to_marker: continue
-
     # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
 
     if s_ele.type == 'mark' and 'offset' in s_ele.param:
@@ -332,7 +321,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   # Handle case when inside solenoid
 
-  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and bmad_ele.type != 'patch': 
+  if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
+                    bmad_ele.type != 'patch' and bz != '0': 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
@@ -368,6 +358,16 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
         val_parts = value_suffix.split('@')
         if val_parts[1] in sad_ele.param:
           value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]]) + val_parts[2]
+        elif sad_param_name == 'k1' and val_parts[1] == 'l':
+          bmad_ele.type = 'multipole'
+          bmad_name = 'k1l'
+          value_suffix = ''
+        elif sad_param_name == 'k2' and val_parts[1] == 'l':
+          bmad_ele.type = 'multipole'
+          bmad_name = 'k2l'
+          value_suffix = ''
+        elif '/' not in val_parts[0]:      # Assume zero
+          value_suffix = val_parts[0] + '0' + val_parts[2]
         else:
           print ('SAD ELEMENT: ' + sad_ele.name + '\n' + 
                  '  DOES NOT HAVE A ' + val_parts[1] + ' NEEDED FOR CONVERSION: ' + sad_param_name)
@@ -415,9 +415,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
   disfrin = '0'    # default
   if 'disfrin' in sad_ele.param: disfrin = sad_ele.param['disfrin']
 
+  # Bmad multipoles [created since sad element had zero length], do not have a fringe
+
+  if bmad_ele.type == 'multipole':
+    pass    # No fringe
+
   # Mult and quad fringe
 
-  if sad_ele.type == 'mult' or sad_ele.type == 'quad':
+  elif sad_ele.type == 'mult' or sad_ele.type == 'quad':
     if fringe == '1':
       bmad_ele.param['fringe_at'] = 'entrance_end'
     elif fringe == '2':
@@ -745,7 +750,6 @@ header_file = ''
 mark_open = False
 mark_closed = False
 inputfile = None
-sad_sol_to_marker = True           # False -> No element in bmad lattice.
 ignore_marker_offsets = False
 
 i = 1

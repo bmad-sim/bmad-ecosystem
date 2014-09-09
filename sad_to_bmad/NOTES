@@ -19,6 +19,15 @@ different places.
 MULT elements cannot have a finite bending angle nor can a MULT element have
 an RF field.
 
+Important note:
+At the exit end of a solenoid, SAD will calculate the reference orbit using particle tracking.
+If SAD then generates a lattice, the final SOL element will have the orientation offset parameters 
+for the reference orbit.
+The translation script is not able to do the reference orbit translation so it assumes that the
+shift in reference orbit is given by the orientation offset parameters in the final SOL element.
+THUS: It is important to make sure that the orientation offset parameters are in the lattice and,
+if not, run the lattice through SAD to generate a lattice with them.
+
 ---------------------------
 What to do if translation fails:
 
