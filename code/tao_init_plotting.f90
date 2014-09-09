@@ -862,7 +862,7 @@ subroutine tao_setup_default_plotting()
 type (branch_struct), pointer :: branch
 type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
 type (tao_plot_struct), allocatable :: temp_template(:)
-
+type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
           tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
           tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
@@ -891,7 +891,8 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
           tao_ele_shape_struct('X_RAY_INIT::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.) ]
 
 real(rp) y_layout, dx, dy, dz
-integer np, n
+integer np, n, nr
+character(40) name
 
 !
 
@@ -1074,778 +1075,828 @@ crv%line%width   = 2
 !---------------
 ! beta plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'beta')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'beta'
-plt%description          = 'Twiss beta function'
+  plt = default_plot_g1c2
+  plt%name                 = 'beta'
+  plt%description          = 'Twiss beta function'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'Beta Function'
-grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Beta Function'
+  grph%y%label             = '\gb\dA\u, \gb\dB\u [m]'
 
 
-crv => grph%curve(1)
-crv%name         = 'a'
-crv%g => grph
-crv%data_type    = 'beta.a'
-crv%legend_text  = '\gb\dA\u'
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'beta.a'
+  crv%legend_text  = '\gb\dA\u'
 
-crv => grph%curve(2)
-crv%name         = 'b'
-crv%g => grph
-crv%data_type    = 'beta.b'
-crv%legend_text  = '\gb\dB\u'
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'beta.b'
+  crv%legend_text  = '\gb\dB\u'
+endif
 
 !---------------
 ! dbeta (chrom.dbeta) plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'dbeta')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'dbeta'
-plt%description          = 'Chromatic normalized beta beat'
+  plt = default_plot_g1c2
+  plt%name                 = 'dbeta'
+  plt%description          = 'Chromatic normalized beta beat'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'Chromatic normalized beta beat'
-grph%y%label             = '\gb\u-1\d \(2265)\gb/\(2265)\gd (1)'
-grph%y%label_offset= .15
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Chromatic normalized beta beat'
+  grph%y%label             = '\gb\u-1\d \(2265)\gb/\(2265)\gd (1)'
+  grph%y%label_offset= .15
 
-crv => grph%curve(1)
-crv%name         = 'a'
-crv%g => grph
-crv%data_type    = 'chrom.dbeta.a'
-crv%legend_text  = 'a'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'chrom.dbeta.a'
+  crv%legend_text  = 'a'
+  crv%smooth_line_calc = .false.
 
-crv => grph%curve(2)
-crv%name         = 'b'
-crv%g => grph
-crv%data_type    = 'chrom.dbeta.b'
-crv%legend_text  = 'b'
-crv%smooth_line_calc = .false.
-
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'chrom.dbeta.b'
+  crv%legend_text  = 'b'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! deta (chrom.deta) plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'deta')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'deta'
-plt%description          = 'Second order dispersion'
+  plt = default_plot_g1c2
+  plt%name                 = 'deta'
+  plt%description          = 'Second order dispersion'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'Second order dispersion'
-grph%y%label             = '\(2265)\gy/\(2265)\gd (m)'
-grph%y%label_offset= .15
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Second order dispersion'
+  grph%y%label             = '\(2265)\gy/\(2265)\gd (m)'
+  grph%y%label_offset= .15
 
-crv => grph%curve(1)
-crv%name         = 'x'
-crv%g => grph
-crv%data_type    = 'chrom.deta.x'
-crv%legend_text  = 'x'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'chrom.deta.x'
+  crv%legend_text  = 'x'
+  crv%smooth_line_calc = .false.
 
-crv => grph%curve(2)
-crv%name         = 'y'
-crv%g => grph
-crv%data_type    = 'chrom.deta.y'
-crv%legend_text  = 'y'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type    = 'chrom.deta.y'
+  crv%legend_text  = 'y'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! detap (chrom.detap) plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'detap')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'detap'
-plt%description          = 'Second order dispersion slope'
+  plt = default_plot_g1c2
+  plt%name                 = 'detap'
+  plt%description          = 'Second order dispersion slope'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'Second order dispersion slope'
-grph%y%label             = "\(2265)\gy'/\(2265)\gd (1)"
-grph%y%label_offset= .15
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Second order dispersion slope'
+  grph%y%label             = "\(2265)\gy'/\(2265)\gd (1)"
+  grph%y%label_offset= .15
 
-crv => grph%curve(1)
-crv%name         = 'x'
-crv%g => grph
-crv%data_type    = 'chrom.detap.x'
-crv%legend_text  = 'x'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'chrom.detap.x'
+  crv%legend_text  = 'x'
+  crv%smooth_line_calc = .false.
 
-crv => grph%curve(2)
-crv%name         = 'y'
-crv%g => grph
-crv%data_type    = 'chrom.detap.y'
-crv%legend_text  = 'y'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type    = 'chrom.detap.y'
+  crv%legend_text  = 'y'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! dphi (chrom.dphi) plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'dphi')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'dphi'
-plt%description          = 'Chromatic phase deviation'
+  plt = default_plot_g1c2
+  plt%name                 = 'dphi'
+  plt%description          = 'Chromatic phase deviation'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'Chromatic phase deviation'
-grph%y%label             = '\(2265)\gf/\(2265)\gd (1)'
-grph%y%label_offset= .15
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Chromatic phase deviation'
+  grph%y%label             = '\(2265)\gf/\(2265)\gd (1)'
+  grph%y%label_offset= .15
 
-crv => grph%curve(1)
-crv%name         = 'a'
-crv%g => grph
-crv%data_type    = 'chrom.dphi.a'
-crv%legend_text  = 'a'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'chrom.dphi.a'
+  crv%legend_text  = 'a'
+  crv%smooth_line_calc = .false.
 
-crv => grph%curve(2)
-crv%name         = 'b'
-crv%g => grph
-crv%data_type    = 'chrom.dphi.b'
-crv%legend_text  = 'b'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'chrom.dphi.b'
+  crv%legend_text  = 'b'
+  crv%smooth_line_calc = .false.
+endif
  
 !---------------
 ! dynamic_aperture plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'dynamic_aperture')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c2
-plt%name                 = 'dynamic_aperture'
-plt%description          = 'Dynamic aperture using universe calc'
-plt%x%label = 'x (mm)'
-plt%x_axis_type = 'phase_space'
+  plt = default_plot_g1c2
+  plt%name                 = 'dynamic_aperture'
+  plt%description          = 'Dynamic aperture using universe calc'
+  plt%x%label = 'x (mm)'
+  plt%x_axis_type = 'phase_space'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title               = 'dynamic aperture'
-grph%type                = 'dynamic_aperture'
-grph%y%label             = 'y (mm)'
-grph%x_axis_scale_factor = 1000
-grph%y%label_offset= .15
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'dynamic aperture'
+  grph%type                = 'dynamic_aperture'
+  grph%y%label             = 'y (mm)'
+  grph%x_axis_scale_factor = 1000
+  grph%y%label_offset= .15
 
-crv => grph%curve(1)
-crv%name         = 'c1'
-crv%g => grph
-!crv%legend_text  = 'a'  ! Legend text is automatically generated
-crv%smooth_line_calc = .false.
-crv%y_axis_scale_factor = 1000
+  crv => grph%curve(1)
+  crv%name         = 'c1'
+  crv%g => grph
+  !crv%legend_text  = 'a'  ! Legend text is automatically generated
+  crv%smooth_line_calc = .false.
+  crv%y_axis_scale_factor = 1000
 
-crv => grph%curve(2)
-crv%name         = 'c2'
-crv%g => grph
-crv%smooth_line_calc = .false.
-crv%y_axis_scale_factor = 1000
-
+  crv => grph%curve(2)
+  crv%name         = 'c2'
+  crv%g => grph
+  crv%smooth_line_calc = .false.
+  crv%y_axis_scale_factor = 1000
+endif
 
 !---------------
 ! emittance growth
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'emittance')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'emittance'
-plt%description          = 'Linac emittance'
+  plt = default_plot_g1c2
+  plt%name                 = 'emittance'
+  plt%description          = 'Linac emittance'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Linac Emittance Growth [Rad_Integrals: (I5a_E6, I5b_E6) * 2 * C_q * r_e / 3]'
-grph%y%label       = 'Emit Growth [mm-mrad]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Linac Emittance Growth [Rad_Integrals: (I5a_E6, I5b_E6) * 2 * C_q * r_e / 3]'
+  grph%y%label       = 'Emit Growth [mm-mrad]'
 
-crv => grph%curve(1)
-crv%name         = 'a'
-crv%g => grph
-crv%data_type    = 'rad_int.i5a_e6'
-crv%legend_text  = 'a-mode emit'
-crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'rad_int.i5a_e6'
+  crv%legend_text  = 'a-mode emit'
+  crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
 
-crv => grph%curve(2)
-crv%name         = 'b'
-crv%g => grph
-crv%data_type    = 'rad_int.i5b_e6'
-crv%legend_text  = 'b-mode emit'
-crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'rad_int.i5b_e6'
+  crv%legend_text  = 'b-mode emit'
+  crv%y_axis_scale_factor = 7.213927194325027E-22 !for mm-mrad
+endif
 
 !---------------
 ! energy
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'energy')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'energy'
-plt%description          = 'Particle energy'
+  plt = default_plot_g1c1 
+  plt%name                 = 'energy'
+  plt%description          = 'Particle energy'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Total Energy'
-grph%y%label       = 'E\dTot\u [eV]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Total Energy'
+  grph%y%label       = 'E\dTot\u [eV]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'e_tot'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'e_tot'
+endif
 
 !---------------
 ! eta plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'eta')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name           = 'eta'
-plt%description    = 'Dispersion'
+  plt = default_plot_g1c2
+  plt%name           = 'eta'
+  plt%description    = 'Dispersion'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Dispersion'
-grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Dispersion'
+  grph%y%label       = '\gy\dX\u, \gy\dY\u [m]'
 
-crv => grph%curve(1)
-crv%name         = 'x'
-crv%g => grph
-crv%data_type    = 'eta.x'
-crv%legend_text  = '\gy\dX\u'
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'eta.x'
+  crv%legend_text  = '\gy\dX\u'
 
-crv => grph%curve(2)
-crv%name         = 'y'
-crv%g => grph
-crv%data_type = 'eta.y'
-crv%legend_text  = '\gy\dY\u'
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'eta.y'
+  crv%legend_text  = '\gy\dY\u'
+endif
 
 !---------------
 ! Floor Plan plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'floor_plan')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
 
-plt%name               = 'floor_plan'
-plt%description        = 'Floor plan drawing of lattice elements.'
-plt%x_axis_type        = 'floor'
-plt%x                  = init_axis
+  plt%name               = 'floor_plan'
+  plt%description        = 'Floor plan drawing of lattice elements.'
+  plt%x_axis_type        = 'floor'
+  plt%x                  = init_axis
 
-grph => plt%graph(1)
-grph%p => plt
-grph%name                  = 'g1'
-grph%box                   = [1, 1, 1, 1]
-grph%type                  = 'floor_plan'
-grph%margin                = qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
-grph%scale_margin          = qp_rect_struct(0.02_rp, 0.02_rp, 0.02_rp, 0.02_rp, '%GRAPH')
-grph%correct_xy_distortion = .true.
-grph%draw_only_good_user_data_or_vars = .true.
-grph%x                     = init_axis
-grph%y                     = init_axis
-grph%draw_axes             = .true.
-grph%draw_grid             = .true.
-grph%x%label               = 'SMART LABEL'
-grph%x%major_div_nominal   = 4
-grph%y%label               = 'SMART LABEL'
-grph%y%major_div_nominal   = 4
-grph%y2%major_div_nominal  = 4
-grph%y2_mirrors_y          = .true.
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%name                  = 'g1'
+  grph%box                   = [1, 1, 1, 1]
+  grph%type                  = 'floor_plan'
+  grph%margin                = qp_rect_struct(0.15, 0.06, 0.05, 0.05, '%BOX')
+  grph%scale_margin          = qp_rect_struct(0.02_rp, 0.02_rp, 0.02_rp, 0.02_rp, '%GRAPH')
+  grph%correct_xy_distortion = .true.
+  grph%draw_only_good_user_data_or_vars = .true.
+  grph%x                     = init_axis
+  grph%y                     = init_axis
+  grph%draw_axes             = .true.
+  grph%draw_grid             = .true.
+  grph%x%label               = 'SMART LABEL'
+  grph%x%major_div_nominal   = 4
+  grph%y%label               = 'SMART LABEL'
+  grph%y%major_div_nominal   = 4
+  grph%y2%major_div_nominal  = 4
+  grph%y2_mirrors_y          = .true.
+endif
 
 !---------------
 ! i1
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i1')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i1'
-plt%description          = 'Integrated I1 Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i1'
+  plt%description          = 'Integrated I1 Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I1 Radiation Integral'
-grph%y%label       = 'Integrated I1'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I1 Radiation Integral'
+  grph%y%label       = 'Integrated I1'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i1'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i1'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! i2
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i2')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i2'
-plt%description          = 'Integrated I2 Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i2'
+  plt%description          = 'Integrated I2 Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I2 Radiation Integral'
-grph%y%label       = 'Integrated I2'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I2 Radiation Integral'
+  grph%y%label       = 'Integrated I2'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i2'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i2'
+  crv%smooth_line_calc = .false.
 
-!---------------
-! i3
+  !---------------
+  ! i3
 
-np = np + 1
-plt => s%plotting%template(np)
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i3'
-plt%description          = 'Integrated I3 Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i3'
+  plt%description          = 'Integrated I3 Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I3 Radiation Integral'
-grph%y%label       = 'Integrated I3'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I3 Radiation Integral'
+  grph%y%label       = 'Integrated I3'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i3'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i3'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! i4a
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i4a')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i4a'
-plt%description          = 'Integrated I4A Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i4a'
+  plt%description          = 'Integrated I4A Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I4A Radiation Integral'
-grph%y%label       = 'Integrated I4A'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I4A Radiation Integral'
+  grph%y%label       = 'Integrated I4A'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i4a'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i4a'
+endif
 
 !---------------
 ! i4b
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i4b')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i4b'
-plt%description          = 'Integrated I4B Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i4b'
+  plt%description          = 'Integrated I4B Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I4B Radiation Integral'
-grph%y%label       = 'Integrated I4B'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I4B Radiation Integral'
+  grph%y%label       = 'Integrated I4B'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i4b'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i4b'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! i5a
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i5a')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i5a'
-plt%description          = 'Integrated I5A Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i5a'
+  plt%description          = 'Integrated I5A Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I5A Radiation Integral'
-grph%y%label       = 'Integrated I5A'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I5A Radiation Integral'
+  grph%y%label       = 'Integrated I5A'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i5a'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i5a'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! i5b
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'i5b')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'i5b'
-plt%description          = 'Integrated I5B Radiation integral'
+  plt = default_plot_g1c1 
+  plt%name                 = 'i5b'
+  plt%description          = 'Integrated I5B Radiation integral'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Integrated I5B Radiation Integral'
-grph%y%label       = 'Integrated I5B'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Integrated I5B Radiation Integral'
+  grph%y%label       = 'Integrated I5B'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i5b'
-crv%smooth_line_calc = .false.
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i5b'
+  crv%smooth_line_calc = .false.
+endif
 
 !---------------
 ! Lat Layout plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'lat_layout')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
 
-plt%name           = 'lat_layout'
-plt%description    = 'Lattice elements drawn as a function of S'
-plt%x_axis_type    = 's'
-plt%x              = init_axis
+  plt%name           = 'lat_layout'
+  plt%description    = 'Lattice elements drawn as a function of S'
+  plt%x_axis_type    = 's'
+  plt%x              = init_axis
 
-grph => plt%graph(1)
-grph%p => plt
-grph%name          = 'g1'
-grph%box           = [1, 1, 1, 1]
-grph%type          = 'lat_layout'
-grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
-grph%x             = init_axis
-grph%y%min         = -1
-grph%y%max         =  1
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%name          = 'g1'
+  grph%box           = [1, 1, 1, 1]
+  grph%type          = 'lat_layout'
+  grph%margin        =  qp_rect_struct(0.15, 0.06, 0.12, 0.03, '%BOX')
+  grph%x             = init_axis
+  grph%y%min         = -1
+  grph%y%max         =  1
+endif
 
 !---------------
 ! Orbit plot
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'orbit')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name           = 'orbit'
-plt%description    = 'x-y particle orbit'
+  plt = default_plot_g1c2
+  plt%name           = 'orbit'
+  plt%description    = 'x-y particle orbit'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Orbit'
-grph%y%label       = 'Orbit [mm]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Orbit'
+  grph%y%label       = 'Orbit [mm]'
 
-crv => grph%curve(1)
-crv%name                = 'x'
-crv%g => grph
-crv%data_type           = 'orbit.x'
-crv%legend_text         = 'X'
-crv%y_axis_scale_factor = 1000
+  crv => grph%curve(1)
+  crv%name                = 'x'
+  crv%g => grph
+  crv%data_type           = 'orbit.x'
+  crv%legend_text         = 'X'
+  crv%y_axis_scale_factor = 1000
 
-crv => grph%curve(2)
-crv%name                = 'y'
-crv%g => grph
-crv%data_type           = 'orbit.y'
-crv%legend_text         = 'Y'
-crv%y_axis_scale_factor = 1000
+  crv => grph%curve(2)
+  crv%name                = 'y'
+  crv%g => grph
+  crv%data_type           = 'orbit.y'
+  crv%legend_text         = 'Y'
+  crv%y_axis_scale_factor = 1000
+endif
 
 !---------------
 ! photon_intensity
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'photon_intensity')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'photon_intensity'
-plt%description          = 'Photon intensity'
+  plt = default_plot_g1c1 
+  plt%name                 = 'photon_intensity'
+  plt%description          = 'Photon intensity'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Photon Intensity'
-grph%y%label       = 'Intens'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Photon Intensity'
+  grph%y%label       = 'Intens'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'photon.intensity'
-crv%smooth_line_calc = .false.
-crv%y_axis_scale_factor = 1
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'photon.intensity'
+  crv%smooth_line_calc = .false.
+  crv%y_axis_scale_factor = 1
+endif
 
 !---------------
 ! Momentum
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'momentum')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1
-plt%name           = 'momentum'
-plt%description    = 'Particle momentum'
+  plt = default_plot_g1c1
+  plt%name           = 'momentum'
+  plt%description    = 'Particle momentum'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Particle Momentum'
-grph%y%label       = 'PC [eV]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle Momentum'
+  grph%y%label       = 'PC [eV]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type    = 'momentum'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type    = 'momentum'
+endif
 
 !---------------
 ! momentum_compaction
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'momentum_compaction')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'momentum_compaction'
-plt%description          = 'Momentum compaction'
+  plt = default_plot_g1c1 
+  plt%name                 = 'momentum_compaction'
+  plt%description          = 'Momentum compaction'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Momentum Compaction'
-grph%y%label       = 'Momentum Compaction [m]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Momentum Compaction'
+  grph%y%label       = 'Momentum Compaction [m]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'momentum_compaction'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'momentum_compaction'
+endif
 
 !---------------
 ! phase
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'phase')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(2))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
 
-plt = default_plot_g1c2
-plt%name                 = 'phase'
-plt%description          = 'Betatron phase'
+  plt = default_plot_g1c2
+  plt%name                 = 'phase'
+  plt%description          = 'Betatron phase'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Betatron Phase'
-grph%y%label       = '\gf\dA\u, \gf\dB\u (deg)'
-grph%component     = 'model - design'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Betatron Phase'
+  grph%y%label       = '\gf\dA\u, \gf\dB\u (deg)'
+  grph%component     = 'model - design'
 
-crv => grph%curve(1)
-crv%name         = 'a'
-crv%g => grph
-crv%data_type    = 'phase.a'
-crv%legend_text  = '\gf\dA\u'
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'phase.a'
+  crv%legend_text  = '\gf\dA\u'
 
-crv => grph%curve(2)
-crv%name         = 'b'
-crv%g => grph
-crv%data_type    = 'phase.b'
-crv%legend_text  = '\gf\dB\u'
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type    = 'phase.b'
+  crv%legend_text  = '\gf\dB\u'
+endif
 
 !---------------
 ! pz
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'pz')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'pz'
-plt%description          = 'Particle Pz momentum deviation'
+  plt = default_plot_g1c1 
+  plt%name                 = 'pz'
+  plt%description          = 'Particle Pz momentum deviation'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Particle Momentum deviation Delta_P / P0'
-grph%y%label       = 'Pz'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle Momentum deviation Delta_P / P0'
+  grph%y%label       = 'Pz'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'orbit.pz'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'orbit.pz'
+endif
 
 !---------------
 ! sr energy loss
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'sr_energy_loss')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'sr_energy_loss'
-plt%description          = 'Synch Radiation energy loss'
+  plt = default_plot_g1c1 
+  plt%name                 = 'sr_energy_loss'
+  plt%description          = 'Synch Radiation energy loss'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Synch Rad Energy Loss [Rad_Integral:I2_E4 * r_e * mc^2 * 2 / 3]'
-grph%y%label       = 'E\dLoss\u [MeV * m]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Synch Rad Energy Loss [Rad_Integral:I2_E4 * r_e * mc^2 * 2 / 3]'
+  grph%y%label       = 'E\dLoss\u [MeV * m]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'rad_int.i2_e4'
-crv%y_axis_scale_factor = 9.59976e-16 ! (2/3) * r_e *mec2 in MeV*m
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'rad_int.i2_e4'
+  crv%y_axis_scale_factor = 9.59976e-16 ! (2/3) * r_e *mec2 in MeV*m
+endif
 
 !---------------
 ! time
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'time')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'time'
-plt%description          = 'particle time'
+  plt = default_plot_g1c1 
+  plt%name                 = 'time'
+  plt%description          = 'particle time'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Particle Time (sec)'
-grph%y%label       = 'Time [sec]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle Time (sec)'
+  grph%y%label       = 'Time [sec]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'time'
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'time'
+endif
 
 !---------------
 ! z
 
-np = np + 1
-plt => s%plotting%template(np)
+if (all(s%plotting%template%name /= 'z')) then
+  np = np + 1
+  plt => s%plotting%template(np)
 
-nullify(plt%r)
-if (allocated(plt%graph)) deallocate (plt%graph)
-allocate (plt%graph(1))
-allocate (plt%graph(1)%curve(1))
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(1))
 
-plt = default_plot_g1c1 
-plt%name                 = 'z'
-plt%description          = 'Particle z position'
+  plt = default_plot_g1c1 
+  plt%name                 = 'z'
+  plt%description          = 'Particle z position'
 
-grph => plt%graph(1)
-grph%p => plt
-grph%title         = 'Particle Z-position'
-grph%y%label       = 'Z [mm]'
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Particle Z-position'
+  grph%y%label       = 'Z [mm]'
 
-crv => grph%curve(1)
-crv%g => grph
-crv%data_type     = 'orbit.z'
-crv%y_axis_scale_factor = 1000
+  crv => grph%curve(1)
+  crv%g => grph
+  crv%data_type     = 'orbit.z'
+  crv%y_axis_scale_factor = 1000
+endif
 
 !-------------------------------------------------
 ! Scratch plot
@@ -1862,22 +1913,36 @@ plt%name = 'scratch'
 
 if (.not. allocated(s%plotting%region)) then
   allocate (s%plotting%region(20))
-
-  y_layout = 0.15
-  s%plotting%region(1)%name = 'layout'
-  s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
-
-  k = 1
-  do i = 1, 4
-    do j = 1, i
-      k = k + 1
-      write (s%plotting%region(k)%name, '(a, 2i0)') 'r', j, i
-      y1 = y_layout + (1 - y_layout) * real(i-j)/ i
-      y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
-      s%plotting%region(k)%location = [0.0_rp, 1.0_rp, y1, y2]
-    enddo
-  enddo
+  nr = 0
+else
+  nr = size(s%plotting%region)
+  call move_alloc (s%plotting%region, temp_region)
+  allocate (s%plotting%region(nr + 20))
+  s%plotting%region(1:nr) = temp_region
+  deallocate(temp_region)
 endif
+
+y_layout = 0.15
+
+if (all(s%plotting%region(:)%name /= 'layout')) then
+  s%plotting%region(1)%name = 'layout'
+  nr = nr + 1
+  s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+endif
+
+do i = 1, 4
+  do j = 1, i
+    write (name, '(a, 2i0)') 'r', j, i
+    if (any(s%plotting%region(:)%name == name)) cycle
+    nr = nr + 1
+    s%plotting%region(nr)%name = name
+    y1 = y_layout + (1 - y_layout) * real(i-j)/ i
+    y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
+    s%plotting%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
+  enddo
+enddo
+
+!
 
 if (all (place(:)%region == '')) then
   branch => s%u(1)%model%lat%branch(0)

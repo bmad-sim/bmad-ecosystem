@@ -171,7 +171,7 @@ For photons, \vn{<coordinate>} may also be:
   field_x, field_y, phase_x, phase_y
 \end{example}
 For closed lattices only the \vn{pz} component is applicable. For
-lattices that have an \vn{e_gun} (which necesarily implies that the
+lattices that have an \vn{e_gun} (which necessarily implies that the
 lattice has an open geometry), the time \vn{t} coordinate must be
 varied instead of \vn{pz}.
 
@@ -1224,7 +1224,7 @@ Format:
   branch \{\{-branch\} <branch>\} \{-universe <universe>\} 
   building_wall  
   constraints
-  curve \{-symbol\} \{-line\} <curve_name> 
+  curve \{-line\} \{-no_header\} \{-symbol\} <curve_name> 
   data \{<data_name>\} 
   derivative <data_name(s)> <var_name(s)>
   dynamic_aperture
@@ -1347,7 +1347,7 @@ Lists data and variable constraints.
 
 %% show curve --------------------------------------------------------------
 
-\item[show curve \{-symbol\} \{-line\} <curve\_name>] \Newline
+\item[show curve \{-line\} \{-no_header\} \{-symbol\} <curve\_name>] \Newline
 
 \vskip -0.2in
 
@@ -1359,13 +1359,17 @@ the \vn{-line} switch will print the (x,y) points used to draw the
 ``smooth'' curve in between the symbols. The line or symbol points
 from multiple curves can be printed by specifying multiple curves. Example:
 \begin{example}
-  show curve -sym orbit.*.*
+  show curve -sym orbit
 \end{example}
 This will produce a three column table assuming that the orbit plot
 has curves \vn{orbit.x.c1} and \vn{orbit.y.c1}. When specifying
 multiple curves, each curve must have the same number of data points
 and it will be assumed that the horizontal data values are the same
 for all curves so the horizontal data values will be put in column 1.
+
+The \vn{-no_header} switch is used with \vn{-line} and \vn{-symbol} to
+suppress the printing of header lines. This is useful when the generated
+table is to be read in by another program.
 
 Example:
 \begin{example}
@@ -1579,7 +1583,7 @@ By default, the appropriate element(s) within the \vn{model} lattice
 \vn{-base} or the \vn{-design} switches which switch the lattice to
 the \vn{base} or \vn{design} lattices respectively.
 
-The \vn{-orbit} switch, if presen,t will show the particle reference
+The \vn{-orbit} switch, if present,t will show the particle reference
 orbit which is the closed orbit if the lattice has a closed geometry
 and is the orbit beginning from the specified starting position for
 lattices with an open geometry. Use \vn{set beam_start} to vary the
@@ -1754,8 +1758,8 @@ Shows parameters pertinent to optimization: Data and variables used,
 etc. 
 
 If \vn{-geodesic_lm} option is present, parameters for the
-\vn{geodesic_lm} oiptimizer will be shown. These parameters are shown in any case
-if the opeimizer has been set to use \vn{geodesic_lm}.
+\vn{geodesic_lm} optimizer will be shown. These parameters are shown in any case
+if the optimizer has been set to use \vn{geodesic_lm}.
 
 
 %% show opt_vars --------------------------------------------------------------
@@ -2020,7 +2024,7 @@ analysis (\sref{c:wave}).
 \label{s:sing}
 
 The \vn{single_mode} command puts \tao into \vn{single mode} (\sref{c:single}).
-For on-line help when running \tao goto \vn{single mode} and type ``?''.
+For on-line help when running \tao go to \vn{single mode} and type ``?''.
 
 %% spawn --------------------------------------------------------------
 \section{spawn}\index{commands!spawn}
@@ -2219,7 +2223,7 @@ The curve coordinates are the the set of points that are used to draw the
 (possibly smooth) curve through the symbols.
 
 For \vn{ps} and \vn{ps-l}, the optional \vn{-scale} switch sets the
-scale for the PostScript file. The default is 0 which autoscales to fit an
+scale for the postscript file. The default is 0 which autoscales to fit an
 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
 2.0 will double the size, etc.
 
@@ -2231,7 +2235,7 @@ file name does not have it. To read in the script to \vn{cubit}:
 \begin{example}
   0) Run cubit
   1) Click on the ``Play Journal File'' button (near the upper right hand corner).
-     And then choose the correct file from the file view popup window.
+     And then choose the correct file from the file view pop up window.
 \end{example}
 Note: To change the 3D rotation center in \vn{cubit}, use the command:
 \begin{example}
