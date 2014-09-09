@@ -225,7 +225,12 @@ def output_line (sad_line, sad_info, inside_sol, bz):
     # sol element
 
     if s_ele.type == 'sol':
-      bz = s_ele.param.get('bz')  
+      bz = s_ele.param.get('bz', '0')
+      try:
+        b_z = float(bz)
+        if b_z == 0: bz = '0'    # EG convert '0.0' to '0'
+      except ValueError:
+        pass
       if s_ele.param.get('bound') == '1': inside_sol = not inside_sol
 
     # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
@@ -308,11 +313,10 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
   # SAD sol with misalignments becomes a Bmad patch
 
   if sad_ele.type == 'sol':
-    if 'dx' in sad_ele.param or 'dy' in sad_ele.param or 'dz' in sad_ele.param or 'chi1' in sad_ele.param or \
-                                'chi2' in sad_ele.param or 'chi3' in sad_ele.param or 'rotate' in sad_ele.param:
+    if len(set(['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']).intersection(sad_ele.param)) > 0:
       if sad_ele.param.get('geo') == '1':
-        print ('MISALIGNMENTS IN SOL ELEMENT WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
-        print ('  IF MISALIGNMENTS ARE SMALL THEN THIS IS NOT A PROBLEM:')
+        print ('MISALIGNMENTS IN SOL ELEMENT '+ sad_ele.name + ' WITH GEO = 1 NOT YET IMPLEMENTED! WILL BE IGNORED!')
+        print ('  IF MISALIGNMENTS ARE SMALL, OR BZ = 0 THROUGH THE SOLENOID, THIS IS NOT A PROBLEM:')
         for param in sad_ele.param:
           if param in ['dx', 'dy', 'dz', 'chi1', 'chi2', 'chi3', 'rotate']:
             print ('  ' + param + ' = ' + sad_ele.param[param])
@@ -325,6 +329,22 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
                     bmad_ele.type != 'patch' and bz != '0': 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
+
+  # Right now Bmad cannot handle fb1 not equal to fb2
+
+  if 'fb1' in sad_ele.param:
+    if 'fb2' not in sad_ele.param or sad_ele.param['fb1'] != sad_ele.param['fb2']:
+      print ('FB1 AND FB2 NOT EQUAL IN ELEMENT: ' + sad_ele.name)
+      print ('  PLEASE CONTACT DAVID SAGAN.')
+    else:
+      if 'f1' in sad_ele.param:
+        sad_ele.param['f1'] = sad_ele.param['f1'] + ' + ' + sad_ele.param['fb1']
+      else:
+        sad_ele.param['f1'] = sad_ele.param['fb1']
+      del sad_ele.param['fb1']
+      del sad_ele.param['fb2']
+
+  # Loop over all parameters
 
   for sad_param_name in sad_ele.param:
 
@@ -388,6 +408,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       if value[0] == '-': value = value[1:]   # Remove negative sign from radius
 
     bmad_ele.param[bmad_name] = value + value_suffix
+
+  # End of parameter loop
 
   # Correct patch signs
 
