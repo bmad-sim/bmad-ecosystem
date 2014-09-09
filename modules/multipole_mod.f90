@@ -154,15 +154,24 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
+    if (.not. associated(lord%a_pole)) cycle
     call multipole_ele_to_ab (lord, param, use_ele_tilt, has_nonzero, this_a, this_b)
     if (.not. has_nonzero) cycle
     has_nonzero_pole = .true.
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
+
 else
+  if (.not. associated(ele%a_pole)) then
+    knl = 0
+    tilt = 0
+    return
+  endif
   call multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
 endif
+
+!
 
 if (has_nonzero_pole) then
   call multipole_ab_to_kt (a, b, knl, tilt)
@@ -324,11 +333,15 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
+    if (.not. associated(lord%a_pole)) cycle
+    if (.not. (lord%multipoles_on .and. lord%is_on)) cycle
     call convert_this_ab (lord, this_a, this_b)
     a = a + this_a * (ele%value(l$) / lord%value(l$))
     b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
 else
+  if (.not. associated(ele%a_pole)) return
+  if (.not. (ele%multipoles_on .and. ele%is_on)) return
   call convert_this_ab (ele, a, b)
 endif
 
@@ -358,12 +371,6 @@ logical has_nonzero
 logical a, b ! protect symbols
 
 !
-
-if (.not. (this_ele%multipoles_on .and. this_ele%is_on .and. associated(this_ele%a_pole))) then
-  this_a = 0
-  this_b = 0
-  return
-endif
 
 this_a = this_ele%a_pole
 this_b = this_ele%b_pole
