@@ -40,11 +40,11 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), save :: ele
 type (ele_struct), pointer :: ele1, ele2, slave, lord, super_lord
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, br
 
 real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old, ds_fudge
 
-integer i, j, k, ix, ix_branch
+integer i, j, k, ix, ix_branch, ib, ie
 integer ix_split, ixc, ix_attrib, ix_super_lord
 integer icon, ix2, inc, nr, n_ic2, ct
 
@@ -269,9 +269,9 @@ ele2%n_lord = 1
 lat%n_ic_max = inc
 lat%ic(inc) = ixc + 1
 
-! last details
-
 8000  continue
+
+! last details
 
 ele1%bookkeeping_state%attributes = stale$
 ele1%bookkeeping_state%floor_position = stale$

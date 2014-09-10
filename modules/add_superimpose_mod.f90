@@ -163,7 +163,7 @@ if (is_zero_length_element_type(super_saved%key)) then
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
-  call adjust_super_slave_names (lat, ix_lord_max_old+1, branch%n_ele_max)
+  call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
   call adjust_drift_names (lat, branch%ele(ix1_split))
   err_flag = .false.
   return
