@@ -21,6 +21,7 @@ implicit none
 
 type (tao_design_lat_input) design_lattice(0:200), design_lat
 type (tao_universe_struct), pointer :: u, u_work
+type (branch_struct), pointer :: branch
 
 character(*) input_file_name
 character(200) full_input_name, init_lat_file
@@ -28,7 +29,7 @@ character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
 character(16) aperture_limit_on
 
-integer i, j, k, n, iu, ios, version, ix, key, n_universes
+integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
 
 logical custom_init, combine_consecutive_elements_of_like_name
 logical common_lattice
@@ -279,6 +280,21 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%model%lat_branch(0)%orb0  = u%model%lat%beam_start
   u%design%lat_branch(0)%orb0 = u%design%lat%beam_start
   u%base%lat_branch(0)%orb0   = u%base%lat%beam_start
+
+  ! Check for match element with match_end = True
+
+  do ib = 0, ubound(u%design%lat%branch, 1)
+    branch => u%design%lat%branch(ib)
+    u%model%lat_branch(ib)%has_open_match_element = .false.
+    do ie = 1, branch%n_ele_track
+      if (branch%ele(ie)%key /= match$) cycle
+      if (.not. is_true(branch%ele(ie)%value(match_end$))) cycle
+      u%model%lat_branch(ib)%has_open_match_element = .true.
+      exit
+    enddo
+    u%design%lat_branch(ib)%has_open_match_element = u%model%lat_branch(ib)%has_open_match_element
+    u%base%lat_branch(ib)%has_open_match_element = u%model%lat_branch(ib)%has_open_match_element
+  enddo
 
 enddo
 
