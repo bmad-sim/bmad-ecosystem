@@ -455,7 +455,7 @@ case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$)
 
 case (match$)
 
-  if (ele%value(match_end_orbit$) /= 0) then
+  if (is_true(ele%value(match_end_orbit$))) then
     ele%value(x0$)  = start2_orb%vec(1)
     ele%value(px0$) = start2_orb%vec(2)
     ele%value(y0$)  = start2_orb%vec(3)
@@ -467,6 +467,10 @@ case (match$)
                 ele%value(z1$), ele%value(pz1$) ]
     return
   endif
+
+  ! Until match_end = False, use unit matrix.
+
+  !! if (is_true(ele%value(match_end$))) return
 
   call match_ele_to_mat6 (ele, vec0, mat6, err)
   if (err) then
