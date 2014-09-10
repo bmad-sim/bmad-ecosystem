@@ -593,9 +593,11 @@ def parse_ele (head, rest_of_line, sad_info):
   len_str =  9000
   len_min =  3000
 
+  rest_of_line = rest_of_line.strip()
+
   if len(rest_of_line) > len_str:
     line = rest_of_line[:len_str]
-    line_saved = rest_of_line[len_str:].strip()
+    line_saved = rest_of_line[len_str:]
   else:
     line = rest_of_line
     line_saved = ''
@@ -608,7 +610,7 @@ def parse_ele (head, rest_of_line, sad_info):
         line = line + line_saved[:len_str]
         line_saved = line_saved[len_str:]
       else:
-        line = (line + line_saved).strip()
+        line = (line + line_saved)
         line_saved = ''
 
     if len(line) == 0: break
@@ -758,6 +760,10 @@ def parse_directive(directive, sad_info):
     sad_info.param_list['pz_orb'] = orbit[5]
 
   elif not calc_command_found and len(rest_of_line) > 1 and rest_of_line[0] == '=':  # Parameter
+    # Might be a variable def (EG "xxx = 7"). 
+    # But if there are any special characters then ignore
+    for c in '"[$,@{\'>=': 
+      if c in head or c in rest_of_line[1:]: return
     if head in sad_info.var_list:
       print ('THIS TRANSLATOR CANNOT HANDLE VARIABLE REDEFINITION OF: ' + head)
       sys.exit()
