@@ -31,7 +31,7 @@ use bmad_interface, except => remove_eles_from_lat
 implicit none
                          
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord
+type (ele_struct), pointer :: ele, lord, ele2
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: ctl
 type (lat_ele_loc_struct), pointer :: loc
@@ -163,6 +163,13 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
+
+    ! Update fork element
+
+    if (ele%key == fork$ .or. ele%key == photon_fork$) then
+      ele2 => pointer_to_next_ele(ele, 1, follow_fork = .true.)
+      if (ele2%ix_ele /= 0) ele%value(ix_to_element$) = ibr(ele2%ix_branch)%new(ele2%ix_ele)%ix_ele
+    endif
 
     ! Don't do anything if nothing needs to be modified
 
