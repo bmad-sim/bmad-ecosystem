@@ -50,7 +50,6 @@ real(rp) a_vec(4), v_mat(4,4), v_inv_mat(4,4), map0(6)
 integer, intent(in) :: i_dim
 logical, intent(out) :: stable, err_flag
 
-real(rp) det
 integer stat, i
 
 ! get 1-turn matrix and symplectify
@@ -66,7 +65,7 @@ call mat_symplectify (ele%mat6(1:i_dim,1:i_dim), ele%mat6(1:i_dim,1:i_dim))
 
 if (i_dim == 2) then
 
-  call twiss_from_mat2 (ele%mat6(1:2,1:2), det, ele%a, stat, 1e-4_rp, .false.)
+  call twiss_from_mat2 (ele%mat6(1:2,1:2), ele%a, stat, .false.)
 
   if (stat /= ok$) then
     stable = .false.

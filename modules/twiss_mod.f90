@@ -24,7 +24,7 @@ contains
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine mat_symp_decouple (t0, tol, stat, u, v, ubar, vbar, g, twiss1, twiss2, gamma, type_out)
+! Subroutine mat_symp_decouple (t0, stat, u, v, ubar, vbar, g, twiss1, twiss2, gamma, type_out)
 !
 ! Subroutine to find the symplectic eigen modes of the
 ! one turn 4x4 coupled transfer matrix T0.
@@ -36,178 +36,151 @@ contains
 !   t0(4,4)  -- Real(rp): Input matrix
 !   type_out -- Logical: If .true. then an error message is typed out
 !               for a non ok$ STAT
-!   tol      -- Real(rp): tollerence for nonsymplectiy
 !
 ! Output:
-!   stat    -- Integer: status of results:
-!                       ok$, in_stop_band$, unstable$, or non_symplectic$
-!   twiss1  -- Twiss_struct: Twiss params for the "upper left" mode.
-!      %phi   -- Rotation angle in radians, 0 < %PHI < twopi
-!   twiss2  -- Twiss_struct: Twiss params for the "lower right" mode.
-!   u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4) -- Real(rp): See
-!                 MGB CBN 85-2 and PPB/DLR PAC89 papers for more info.
-!   gamma   -- Real(rp): gamma_c factor.
+!   stat      -- Integer: status of results: ok$, in_stop_band$, or unstable$
+!   twiss1    -- Twiss_struct: Twiss params for the "upper left" mode.
+!      %phi     -- Rotation angle in radians, 0 < %PHI < twopi
+!   twiss2    -- Twiss_struct: Twiss params for the "lower right" mode.
+!   u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4) 
+!             -- Real(rp): See MGB CBN 85-2 and PPB/DLR PAC89 papers for more info.
+!   gamma     -- Real(rp): gamma_c factor.
 !-
 
-subroutine mat_symp_decouple(t0, tol, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2, gamma, type_out)
+subroutine mat_symp_decouple(t0, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2, gamma, type_out)
 
-  implicit none
+implicit none
 
-  type (twiss_struct)  twiss1, twiss2
+type (twiss_struct)  twiss1, twiss2
 
-  integer i, j, stat
+integer i, j, stat
 
-  real(rp) t0(4,4), U(4,4), V(4,4), V_inv(4,4)
-  real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
-  real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
-  real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
-  real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
-  real(rp) gamma, det_H, det,  trace_t0_diff, denom
-  real(rp) scalar, tol
-  logical type_out
-  character(20), parameter :: r_name = 'mat_symp_decouple'
+real(rp) t0(4,4), U(4,4), V(4,4), V_inv(4,4)
+real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
+real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
+real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
+real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
+real(rp) gamma, det_H, det,  trace_t0_diff, denom, scalar
+logical type_out
+character(20), parameter :: r_name = 'mat_symp_decouple'
 
 ! check input matrix
 
-  if (mat_symp_error (t0) > tol) then
-    stat = non_symplectic$
-    if (type_out) then
-      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC INPUT MATRIX')
-    endif
-    return
-  endif
-
 ! load submatrices
 
-  do i = 1, 2
-    do j = 1, 2
-      t0_11(i, j) = t0(i, j)       ! = M matrix (MGB eq 6)
-      t0_12(i, j) = t0(i, j+2)     ! = m matrix
-      t0_21(i, j) = t0(i+2, j)     ! = n matrix
-      t0_22(i, j) = t0(i+2, j+2)   ! = N matrix
-    enddo
+do i = 1, 2
+  do j = 1, 2
+    t0_11(i, j) = t0(i, j)       ! = M matrix (MGB eq 6)
+    t0_12(i, j) = t0(i, j+2)     ! = m matrix
+    t0_21(i, j) = t0(i+2, j)     ! = n matrix
+    t0_22(i, j) = t0(i+2, j+2)   ! = N matrix
   enddo
+enddo
 
 ! Construct H matrix (MGB eq 12)
 
-  call mat_symp_conj (t0_21, temp2)
-  H = t0_12 + temp2
+call mat_symp_conj (t0_21, temp2)
+H = t0_12 + temp2
 
 
 ! Compute traces and
 ! compute DET_H and determine if we are in a stop band (MGB Eq. 14)
 
-  trace_t0_diff = (t0_11(1,1) + t0_11(2,2)) - (t0_22(1,1) + t0_22(2,2))
-  det_h = determinant (H)
-  denom = trace_t0_diff**2 + 4.0 * det_H
+trace_t0_diff = (t0_11(1,1) + t0_11(2,2)) - (t0_22(1,1) + t0_22(2,2))
+det_h = determinant (H)
+denom = trace_t0_diff**2 + 4.0 * det_H
 
-  if (denom <= 0) then
-    stat = in_stop_band$
-    u(1,1) = 1 - denom   ! fake so matrix looks unstable
-    u(2,2) = 1 - denom
-    return
-  endif
+if (denom <= 0) then
+  stat = in_stop_band$
+  u(1,1) = 1 - denom   ! fake so matrix looks unstable
+  u(2,2) = 1 - denom
+  return
+endif
 
 ! Compute GAMMA (MGB Eq. 14)
 
-  gamma = sqrt(0.5 + 0.5 * sqrt(trace_t0_diff**2 / denom))
+gamma = sqrt(0.5 + 0.5 * sqrt(trace_t0_diff**2 / denom))
 
 ! Construct C matrix (MGB Eq. 13 with Eq. 14) and symplectic conjugate.
 
-  scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
-  c = scalar * H
-  call mat_symp_conj (c, c_conj)
+scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
+c = scalar * H
+call mat_symp_conj (c, c_conj)
 
 ! Compute matrix V and inverse V_INV (MGB Eq. 10)
 
-  V = 0
-  forall (i = 1:4) v(i,i) = gamma 
-  V(1:2,3:4) = c
-  V(3:4,1:2) = -c_conj
+V = 0
+forall (i = 1:4) v(i,i) = gamma 
+V(1:2,3:4) = c
+V(3:4,1:2) = -c_conj
 
-  call mat_symp_conj (V, V_inv)
+call mat_symp_conj (V, V_inv)
 
 ! Compute uncoupled matrix U (MGB Eq. 10)
 
-  U = matmul (matmul (V_inv, t0), V)
-
-  if (mat_symp_error(U) > tol) then
-    stat = non_symplectic$
-    if (type_out) then
-      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC U MATRIX')
-    endif
-    return
-  endif
+U = matmul (matmul (V_inv, t0), V)
 
 ! check that the eigen modes are stable
 
-  if (abs(U(1,1) + U(2,2)) > 2 .or. abs(U(3,3) + U(4,4)) > 2) then
-    if (abs(U(1,1) + U(2,2)) > 2 .and. abs(U(3,3) + U(4,4)) > 2) then
-      stat = unstable_ab$
-    elseif (abs(U(1,1) + U(2,2)) > 2) then
-      stat = unstable_a$
-    else
-      stat = unstable_b$
-    endif
-    return
+if (abs(U(1,1) + U(2,2)) > 2 .or. abs(U(3,3) + U(4,4)) > 2) then
+  if (abs(U(1,1) + U(2,2)) > 2 .and. abs(U(3,3) + U(4,4)) > 2) then
+    stat = unstable_ab$
+  elseif (abs(U(1,1) + U(2,2)) > 2) then
+    stat = unstable_a$
+  else
+    stat = unstable_b$
   endif
+  return
+endif
 
 ! calculate twiss parameters for U sub matrices
 
-  call twiss_from_mat2 (U(1:2,1:2), det, twiss1, stat, tol, .false.)
-  if (stat /= ok$) then
-    stat = unstable_a$
-    if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "A" mode TWISS')
-    return
-  endif
+call twiss_from_mat2 (U(1:2,1:2), twiss1, stat, .false.)
+if (stat /= ok$) then
+  stat = unstable_a$
+  if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "A" mode TWISS')
+  return
+endif
 
-  call twiss_from_mat2 (U(3:4,3:4), det, twiss2, stat, tol, .false.)
-  if (stat /= ok$) then
-    stat = unstable_b$
-    if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "B" mode TWISS')
-    return
-  endif
+call twiss_from_mat2 (U(3:4,3:4), twiss2, stat, .false.)
+if (stat /= ok$) then
+  stat = unstable_b$
+  if (type_out) call out_io (s_warn$, r_name, 'UNABLE TO COMPUTE "B" mode TWISS')
+  return
+endif
 
 ! Compute normalized uncoupled matrix Ubar
 
 ! First compute G matrix and inverse G_INV (PPB/DLR. Eq. 3+)
 
-  g1(1, 1) = 1 / sqrt(twiss1%beta)
-  g1(1, 2) = 0.0
-  g1(2, 1) = twiss1%alpha / sqrt(twiss1%beta)
-  g1(2, 2) = sqrt(twiss1%beta)
+g1(1, 1) = 1 / sqrt(twiss1%beta)
+g1(1, 2) = 0.0
+g1(2, 1) = twiss1%alpha / sqrt(twiss1%beta)
+g1(2, 2) = sqrt(twiss1%beta)
 
-  g2(1, 1) = 1 / sqrt(twiss2%beta)
-  g2(1, 2) = 0.0
-  g2(2, 1) = twiss2%alpha / sqrt(twiss2%beta)
-  g2(2, 2) = sqrt(twiss2%beta)
+g2(1, 1) = 1 / sqrt(twiss2%beta)
+g2(1, 2) = 0.0
+g2(2, 1) = twiss2%alpha / sqrt(twiss2%beta)
+g2(2, 2) = sqrt(twiss2%beta)
 
-  G = 0
-  G(1:2,1:2) = g1
-  G(3:4,3:4) = g2
+G = 0
+G(1:2,1:2) = g1
+G(3:4,3:4) = g2
 
-  call mat_symp_conj (g1, g1_inv)
-  call mat_symp_conj (g2, g2_inv)
+call mat_symp_conj (g1, g1_inv)
+call mat_symp_conj (g2, g2_inv)
 
-  G_inv = 0
-  G_inv(1:2,1:2) = g1_inv
-  G_inv(3:4,3:4) = g2_inv
+G_inv = 0
+G_inv(1:2,1:2) = g1_inv
+G_inv(3:4,3:4) = g2_inv
 
 ! Compute Vbar (PPB/DLR Eq. 3++)
 
-  Vbar = matmul (matmul (G, V), G_inv)
+Vbar = matmul (matmul (G, V), G_inv)
 
 ! compute Ubar
 
-  Ubar = matmul (matmul (G, U), G_inv)
-
-  if (mat_symp_error (Ubar) > tol) then
-    stat = non_symplectic$
-    if (type_out) then
-      call out_io (s_warn$, r_name, 'NON-SYMPLECTIC UBAR MATRIX')
-    endif
-    return
-  endif
+Ubar = matmul (matmul (G, U), G_inv)
 
 end subroutine mat_symp_decouple
 
@@ -215,7 +188,7 @@ end subroutine mat_symp_decouple
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
+! Subroutine twiss_from_mat2 (mat, twiss, stat, type_out)
 !
 ! Subroutine to extract the twiss parameters from one-turn
 ! 2x2 matrices
@@ -224,61 +197,55 @@ end subroutine mat_symp_decouple
 !   use bmad
 !
 ! Input:
-!   mat(:, :)   -- Real(rp): Input matrix
+!   mat(:, :)   -- Real(rp): Input matrix.
 !   type_out    -- Logical: If .true. then an error message is typed out
 !                            for a non ok$ STAT
-!   tol         -- Real(rp): tollerence for nonsymplectiy.
 !
 ! Output:
 !   stat -- Integer: status of results:
 !                         OK$, UNSTABLE$, NON_SYMPLECTIC$
-!   det    -- Real(rp): Determinant of matrix. Should be = 1
 !   twiss  -- Twiss_struct: Twiss parameters
 !                            TWISS.PHI is in radians, 0 < TWISS.PHI < twopi
 !-
 
-subroutine twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)
+subroutine twiss_from_mat2 (mat_in, twiss, stat, type_out)
 
-  implicit none
+implicit none
 
-  type (twiss_struct)  twiss
+type (twiss_struct)  twiss
 
-  integer stat
-  real(rp) mat(:, :), t_cos, t_sin, det, tol, radical
-  logical type_out
-  character(16), parameter :: r_name = 'twiss_from_mat2'
+integer stat
+real(rp) mat_in(:, :), t_cos, t_sin, det, radical, mat(2,2)
+logical type_out
+character(16), parameter :: r_name = 'twiss_from_mat2'
 
 !
 
-  stat = ok$
+stat = ok$
 
-  t_cos = (mat(1,1) + mat(2,2)) / 2.0
-  det = mat(1,1) * mat(2,2) - mat(1,2) * mat(2,1)
+det = mat_in(1,1) * mat_in(2,2) - mat_in(1,2) * mat_in(2,1)
+mat = mat_in / det
 
-  if (abs(t_cos) >= 1.0) then
-    if (type_out) call out_io (s_warn$, r_name, 'UNSTABLE MATRIX')
-    stat = unstable_ab$
-    return
-  endif
+t_cos = (mat(1,1) + mat(2,2)) / 2.0
+if (abs(t_cos) >= 1.0) then
+  if (type_out) call out_io (s_warn$, r_name, 'UNSTABLE MATRIX')
+  stat = unstable_ab$
+  return
+endif
 
-  if (abs(det - 1) > tol) then
-    if (type_out) call out_io (s_warn$, r_name, 'MATRIX DETERMINANT >< 1: \f12.4\ ', det)
-    stat = non_symplectic$
-  endif
+t_sin = sign(1.0_rp, mat(1,2)) * sqrt(1.0 - t_cos**2)
+twiss%phi = atan2(t_sin, t_cos)
+if (twiss%phi < 0) twiss%phi = twiss%phi + twopi
 
-  t_sin = sign(1.0_rp, mat(1,2)) * sqrt(1.0 - t_cos**2)
-  twiss%phi = atan2(t_sin, t_cos)
-  if (twiss%phi < 0) twiss%phi = twiss%phi + twopi
-
-  twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
-  radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
-  if (radical <= 0) then
-    if (type_out) call out_io (s_warn$, r_name, 'NON-SYMPLECTIC MATRIX')
-    stat = non_symplectic$
-    return
-  endif
-  twiss%beta = sqrt(radical)
-  twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
+twiss%alpha = (mat(1,1) - mat(2,2)) / (2.0 * t_sin)
+radical = -(1 + twiss%alpha**2) * mat(1,2) / mat(2,1)
+if (radical <= 0) then
+  if (type_out) call out_io (s_warn$, r_name, 'NON-SYMPLECTIC MATRIX')
+  stat = non_symplectic$
+  return
+endif
+twiss%beta = sqrt(radical)
+twiss%gamma = (1 + twiss%alpha**2) / twiss%beta
 
 end subroutine twiss_from_mat2
 
@@ -305,21 +272,21 @@ end subroutine twiss_from_mat2
 
 subroutine twiss_to_1_turn_mat (twiss, phi, mat2)
 
-  implicit none
+implicit none
 
-  type (twiss_struct) twiss
+type (twiss_struct) twiss
 
-  real(rp) phi, mat2(2,2), c, s
+real(rp) phi, mat2(2,2), c, s
 
 !
 
-  c = cos(phi)
-  s = sin(phi)
+c = cos(phi)
+s = sin(phi)
 
-  mat2(1,1) =  c + s * twiss%alpha
-  mat2(1,2) =  s * twiss%beta
-  mat2(2,1) = -s * (1 + twiss%alpha**2) / twiss%beta
-  mat2(2,2) =  c - s * twiss%alpha
+mat2(1,1) =  c + s * twiss%alpha
+mat2(1,2) =  s * twiss%beta
+mat2(2,1) = -s * (1 + twiss%alpha**2) / twiss%beta
+mat2(2,2) =  c - s * twiss%alpha
 
 end subroutine twiss_to_1_turn_mat
 
@@ -345,24 +312,24 @@ end subroutine twiss_to_1_turn_mat
 
 subroutine make_g2_mats (twiss, g2_mat, g2_inv_mat)
 
-  implicit none
+implicit none
 
-  type (twiss_struct) twiss
+type (twiss_struct) twiss
 
-  real(rp) g2_mat(2,2), g2_inv_mat(2,2)
-  real(rp) sqrt_beta, alpha
+real(rp) g2_mat(2,2), g2_inv_mat(2,2)
+real(rp) sqrt_beta, alpha
 !
 
-  sqrt_beta = sqrt(twiss%beta)
-  alpha     = twiss%alpha
+sqrt_beta = sqrt(twiss%beta)
+alpha     = twiss%alpha
 
-  g2_mat(1,1) = 1 / sqrt_beta
-  g2_mat(1,2) = 0
-  g2_mat(2,1) = alpha / sqrt_beta
-  g2_mat(2,2) = sqrt_beta
+g2_mat(1,1) = 1 / sqrt_beta
+g2_mat(1,2) = 0
+g2_mat(2,1) = alpha / sqrt_beta
+g2_mat(2,2) = sqrt_beta
 
-  g2_inv_mat = g2_mat
-  g2_inv_mat(2,1) = -g2_mat(2,1)
+g2_inv_mat = g2_mat
+g2_inv_mat(2,1) = -g2_mat(2,1)
 
 end subroutine make_g2_mats
 
@@ -394,23 +361,23 @@ end subroutine make_g2_mats
 
 subroutine transfer_mat2_from_twiss (twiss1, twiss2, mat)
 
-  implicit none
+implicit none
 
-  type (twiss_struct) twiss1, twiss2
+type (twiss_struct) twiss1, twiss2
 
-  real(rp) mat(2,2), a1, a2, b1, b2, sin21, cos21
+real(rp) mat(2,2), a1, a2, b1, b2, sin21, cos21
 
 !
 
-  sin21 = sin(twiss2%phi - twiss1%phi)
-  cos21 = cos(twiss2%phi - twiss1%phi)
-  b1 = twiss1%beta;  b2 = twiss2%beta
-  a1 = twiss1%alpha; a2 = twiss2%alpha
+sin21 = sin(twiss2%phi - twiss1%phi)
+cos21 = cos(twiss2%phi - twiss1%phi)
+b1 = twiss1%beta;  b2 = twiss2%beta
+a1 = twiss1%alpha; a2 = twiss2%alpha
 
-  mat(1,1) = sqrt(b2/b1) * (cos21 + a1 * sin21)
-  mat(1,2) = sqrt(b1 * b2) * sin21
-  mat(2,1) = -((a2-a1) * cos21 + (1 + a1 * a2) * sin21) / (sqrt(b1 * b2))
-  mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
+mat(1,1) = sqrt(b2/b1) * (cos21 + a1 * sin21)
+mat(1,2) = sqrt(b1 * b2) * sin21
+mat(2,1) = -((a2-a1) * cos21 + (1 + a1 * a2) * sin21) / (sqrt(b1 * b2))
+mat(2,2) = sqrt(b1/b2) * (cos21 - a2 * sin21)
 
 end subroutine transfer_mat2_from_twiss
 
