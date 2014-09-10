@@ -59,10 +59,12 @@ real(rp) l_start, l_end, mat6(6,6), vec0(6)
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
 logical, optional :: err, compute_floor_coords
 
-! Easy case when l_end = l_start
+! Easy case when l_end = l_start and do not have to track an element edge.
 
-if (l_end == l_start .and. .not. (l_start == 0 .and. track_upstream_end)) then
-
+if (abs(l_end - l_start) < bmad_com%significant_length .and. &
+          .not. (l_start == 0 .and. track_upstream_end .and. orbit_start%location == upstream_end$) .and. &
+          .not. (abs(l_end - ele%value(l$) < bmad_com%significant_length) .and. track_downstream_end .and. &
+                 orbit_start%location == inside$)) then
   if (present(ele_end)) then
     call transfer_ele(ele_start, ele_end, .true.)
     call mat_make_unit(ele_end%mat6)
@@ -75,8 +77,9 @@ if (l_end == l_start .and. .not. (l_start == 0 .and. track_upstream_end)) then
 
   if (present(err)) err = .false.
   return
-
 endif
+
+! 
 
 ! Construct a "runt" element to track through.
 
