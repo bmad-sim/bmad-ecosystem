@@ -100,8 +100,10 @@ if (length == 0) then
   endif
 
   orbit%s = ele%s
-  if (.not. end_in) end_orb = orbit
-
+  if (.not. end_in) then
+    end_orb = orbit
+    end_orb%location = downstream_end$
+  endif
   return
 endif
 
@@ -244,7 +246,10 @@ endif
 orbit%t = start_orb%t + (length + start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 orbit%s = ele%s
 
-if (.not. end_in) end_orb = orbit
+if (.not. end_in) then
+  end_orb = orbit
+  end_orb%location = downstream_end$
+endif
 
 end subroutine sad_mult_track_and_mat 
 
