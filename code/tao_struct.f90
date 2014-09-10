@@ -671,6 +671,7 @@ type tao_lattice_branch_struct
   type (coord_struct), allocatable :: orbit(:)
   type (coord_struct) orb0                     ! For saving beginning orbit
   integer track_state
+  logical has_open_match_element
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in

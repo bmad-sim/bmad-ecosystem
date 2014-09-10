@@ -278,8 +278,9 @@ type (tao_universe_struct) u
 type (coord_struct), pointer :: orbit(:)
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
+type (ele_struct), pointer :: ele
 
-integer i, ii, ix_branch, status, ix_lost
+integer i, ii, n, nn, ix_branch, status, ix_lost
 
 character(20) :: r_name = "tao_single_track"
 
@@ -318,8 +319,25 @@ if (u%calc%track) then
     lat_branch%orb0 = orbit(0)   ! Save beginning orbit
 
   else
-    call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state, &
+    if (lat_branch%has_open_match_element) then
+      do n = 1, branch%n_ele_track
+        ele => branch%ele(n)
+        if (ele%key == match$) call twiss_propagate1(branch%ele(n-1), ele)
+        call make_mat6(ele, branch%param, orbit(n-1), orbit(n), err_flag = err)
+        if (err .or. .not. particle_is_moving_forward(orbit(n))) then
+          do nn = n+1, branch%n_ele_track
+            orbit(nn)%vec = 0
+            orbit(nn)%state = not_set$
+          enddo
+          exit
+        endif
+        call twiss_propagate1(branch%ele(n-1), ele)
+      enddo
+
+    else
+      call track_all (lat, lat_branch%orbit, ix_branch, lat_branch%track_state, &
                                                             orbit0 = tao_lat%lat_branch(0)%orbit)
+    endif
     if (lat_branch%track_state /= moving_forward$) then
       calc_ok = .false.
       ix_lost = lat_branch%track_state
