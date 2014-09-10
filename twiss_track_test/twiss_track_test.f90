@@ -272,13 +272,13 @@ subroutine ri_diff(str)
 
 character(*) str
 
-call ri_diff1('I1-' // str, rad_int%ele%i1,  rad_int2%ele%i1)
-call ri_diff1('I2-' // str, rad_int%ele%i2,  rad_int2%ele%i2)
-call ri_diff1('I3-' // str, rad_int%ele%i3,  rad_int2%ele%i3)
-call ri_diff1('I4a-' // str, rad_int%ele%i4a, rad_int2%ele%i4a)
-call ri_diff1('I4b-' // str, rad_int%ele%i4b, rad_int2%ele%i4b)
-call ri_diff1('I5a-' // str, rad_int%ele%i5a, rad_int2%ele%i5a)
-call ri_diff1('I5b-' // str, rad_int%ele%i5b, rad_int2%ele%i5b)
+call ri_diff1('Cache Diff: I1-' // str, rad_int%ele%i1,  rad_int2%ele%i1)
+call ri_diff1('Cache Diff: I2-' // str, rad_int%ele%i2,  rad_int2%ele%i2)
+call ri_diff1('Cache Diff: I3-' // str, rad_int%ele%i3,  rad_int2%ele%i3)
+call ri_diff1('Cache Diff: I4a-' // str, rad_int%ele%i4a, rad_int2%ele%i4a)
+call ri_diff1('Cache Diff: I4b-' // str, rad_int%ele%i4b, rad_int2%ele%i4b)
+call ri_diff1('Cache Diff: I5a-' // str, rad_int%ele%i5a, rad_int2%ele%i5a)
+call ri_diff1('Cache Diff: I5b-' // str, rad_int%ele%i5b, rad_int2%ele%i5b)
 
 end subroutine
 

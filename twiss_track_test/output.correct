@@ -1,12 +1,12 @@
 "First Descrip"    "First"
 "Second Descrip"    "Second"
-"I1-no_wig"   666  6.329650527E-03
-"I2-no_wig"   390  5.263131828E-03
-"I3-no_wig"   390  2.797443496E-03
-"I4a-no_wig"   818  2.559479503E-03
-"I4b-no_wig"   478  2.627007652E-03
-"I5a-no_wig"   390  1.429057446E-03
-"I5b-no_wig"   390  9.925262934E-04
+"Cache Diff: I1-no_wig"   478  2.307537362E-03
+"Cache Diff: I2-no_wig"   24  6.367958033E-04
+"Cache Diff: I3-no_wig"   24  1.971188223E-04
+"Cache Diff: I4a-no_wig"   818  2.559479503E-03
+"Cache Diff: I4b-no_wig"   478  3.327997075E-03
+"Cache Diff: I5a-no_wig"   824  9.132296824E-04
+"Cache Diff: I5b-no_wig"   54  2.441814375E-04
 "Dif:Orb(1)"   1.28330931493427E-12
 "Dif:Orb(2)"   2.64729154396404E-11
 "Dif:Orb(3)"   -1.36038520904802E-12
@@ -43,28 +43,28 @@
 "Lat1:Orb P_Z"   -7.49960098924275E-06
 "Lat1:Chrom_x"   -1.17351284561610E+00
 "Lat1:Chrom_y"   -9.41667038623956E-01
-"Lat1:Synch_int(1)"   8.83857415856155E+00
-"Lat1:Synch_int(2)"   1.04477702932306E-01
-"Lat1:Synch_int(3)"   2.30653099432296E-03
-"Lat1:Sige_e"   6.76071611960020E-04
-"Lat1:Sig_z"   1.84387575706982E-02
-"Lat1:E_loss"   1.15106139790743E+06
-"Lat1:A%Emittance"   2.02933831769163E-07
-"Lat1:B%Emittance"   1.78456258864937E-11
-"Lat1:Z%Emittance"   1.24659205533619E-05
-"Lat1:A%Synch_int(4)"   -1.18276200219410E-03
-"Lat1:A%Synch_int(5)"   5.22325519013427E-04
-"Lat1:B%Synch_int(4)"   -6.15639278915858E-04
-"Lat1:B%Synch_int(5)"   4.55972483070074E-08
-"Lat1:Z%Synch_int(4)"   -1.79840128110996E-03
+"Lat1:Synch_int(1)"   8.83857415638136E+00
+"Lat1:Synch_int(2)"   1.04477702945711E-01
+"Lat1:Synch_int(3)"   2.30653099463861E-03
+"Lat1:Sige_e"   6.76071611955521E-04
+"Lat1:Sig_z"   1.84387575683014E-02
+"Lat1:E_loss"   1.15106139805511E+06
+"Lat1:A%Emittance"   2.02933835016236E-07
+"Lat1:B%Emittance"   1.78456255745046E-11
+"Lat1:Z%Emittance"   1.24659205516586E-05
+"Lat1:A%Synch_int(4)"   -1.18276199986732E-03
+"Lat1:A%Synch_int(5)"   5.22325527425738E-04
+"Lat1:B%Synch_int(4)"   -6.15639276944813E-04
+"Lat1:B%Synch_int(5)"   4.55972475132351E-08
+"Lat1:Z%Synch_int(4)"   -1.79840127681213E-03
  
-"I1-wig"   688  8.798298487E-03
-"I2-wig"   790  2.665956115E-04
-"I3-wig"   398  2.472872508E-05
-"I4a-wig"   917  2.197920357E-03
-"I4b-wig"   924  7.307079206E-03
-"I5a-wig"   770  1.848066552E-05
-"I5b-wig"   924  8.382687933E-05
+"Cache Diff: I1-wig"   348  2.025044919E-03
+"Cache Diff: I2-wig"   28  4.967518993E-05
+"Cache Diff: I3-wig"   917  5.771970826E-06
+"Cache Diff: I4a-wig"   917  2.197920357E-03
+"Cache Diff: I4b-wig"   924  7.307079206E-03
+"Cache Diff: I5a-wig"   918  1.061042318E-05
+"Cache Diff: I5b-wig"   924  8.382687934E-05
 "Lat2:Beta_a"   1.63204051076481E+01
 "Lat2:Alpha_a"   -1.51977805892919E+00
 "Lat2:Eta_a"   2.25086494756905E+00
@@ -87,18 +87,18 @@
 "Lat2:Orb P_Z"   0.00000000000000E+00
 "Lat2:Chrom_x"   6.41677086210084E+00
 "Lat2:Chrom_y"   5.48310519890363E+00
-"Lat2:Synch_int(1)"   8.65611914390263E+00
-"Lat2:Synch_int(2)"   9.96716524034648E-01
-"Lat2:Synch_int(3)"   2.62611999766950E-01
-"Lat2:Sige_e"   8.41289689003639E-04
-"Lat2:Sig_z"   2.27370750190912E-02
-"Lat2:E_loss"   1.77173058523036E+05
-"Lat2:A%Emittance"   1.26566756155658E-07
-"Lat2:B%Emittance"   9.61570997302016E-11
-"Lat2:Z%Emittance"   1.91284667716637E-05
-"Lat2:A%Synch_int(4)"   -5.87599335237678E-02
-"Lat2:A%Synch_int(5)"   2.56192786062280E-02
-"Lat2:B%Synch_int(4)"   7.63635218818238E-05
-"Lat2:B%Synch_int(5)"   1.83111070814646E-05
-"Lat2:Z%Synch_int(4)"   -5.86835700018860E-02
+"Lat2:Synch_int(1)"   8.65611913852573E+00
+"Lat2:Synch_int(2)"   9.96716524055233E-01
+"Lat2:Synch_int(3)"   2.62611999767492E-01
+"Lat2:Sige_e"   8.41289688995786E-04
+"Lat2:Sig_z"   2.27370750118172E-02
+"Lat2:E_loss"   1.77173058526695E+05
+"Lat2:A%Emittance"   1.26566756167476E-07
+"Lat2:B%Emittance"   9.61570996166203E-11
+"Lat2:Z%Emittance"   1.91284667653656E-05
+"Lat2:A%Synch_int(4)"   -5.87599335201472E-02
+"Lat2:A%Synch_int(5)"   2.56192786090321E-02
+"Lat2:B%Synch_int(4)"   7.63635171999364E-05
+"Lat2:B%Synch_int(5)"   1.83111070602230E-05
+"Lat2:Z%Synch_int(4)"   -5.86835700029472E-02
 "Lat2:Lat"    "T"
