@@ -270,7 +270,7 @@ if (use_cache .or. init_cache) then
     call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_multipoles = .false., set_hvkicks = .false.)
 
     if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
-      n_step = nint(10 * ele2%value(l$) / ele2%value(l_pole$))
+      n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
       del_z = ele2%value(l$) / n_step
       ! bmad_standard will not properly do partial track through a periodic_type wiggler so
       ! switch to symp_lie_bmad type tracking.
