@@ -432,7 +432,7 @@ propagation_loop: do
 
   ! Patch element.
 
-  elseif (ele%key == patch$) then
+!!!!  elseif (ele%key == patch$) then
 
 
 
