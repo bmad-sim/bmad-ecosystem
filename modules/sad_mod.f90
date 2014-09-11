@@ -46,7 +46,7 @@ real(rp) :: vec0(6), kmat(6,6)
 
 integer n, nd, orientation, n_div, np_max, physical_end, fringe_at
 
-logical make_matrix, end_in, has_nonzero, fringe_here
+logical make_matrix, end_in, has_nonzero_pole, fringe_here
 
 character(*), parameter :: r_name = 'sad_mult_track_and_mat'
 
@@ -74,7 +74,8 @@ if (make_matrix) then
   call mat_make_unit(mat6)
 endif
 
-call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
+knl = 0; tilt = 0
+call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
 
 ! Setup ele2 which is used in offset_particle
 
@@ -88,10 +89,14 @@ ele2%value(y_offset_tot$) = ele%value(y_offset_tot$) + ele%value(y_offset_mult$)
 
 if (length == 0) then
   call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
-  call multipole_kicks (knl, tilt, orbit)
-  if (make_matrix) then
-    call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
+
+  if (has_nonzero_pole) then
+    call multipole_kicks (knl, tilt, orbit)
+    if (make_matrix) then
+      call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
+    endif
   endif
+
   call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false., set_tilt = .false.)
 
   if (make_matrix) then

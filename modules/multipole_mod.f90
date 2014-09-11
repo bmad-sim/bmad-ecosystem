@@ -97,7 +97,12 @@ end subroutine multipole1_ab_to_kt
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
+!
 ! Note: tilt(:) does includes ele%value(tilt_tot$).
+!
+! Note: To save time, if the element does not have ele%a/b_pole allocated, the knl array 
+!       will NOT be set to zero (has_nonzero_pole will be False). 
+!       That is, the has_nonzero_pole argument needs to be tested before any calculations!
 !
 ! Modules needed:
 !   use bmad
@@ -149,23 +154,26 @@ endif
 ! Slice slaves and super slaves have their associated multipoles stored in the lord
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-  a = 0
-  b = 0
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
     if (.not. associated(lord%a_pole)) cycle
     call multipole_ele_to_ab (lord, param, use_ele_tilt, has_nonzero, this_a, this_b)
     if (.not. has_nonzero) cycle
+    if (has_nonzero_pole) then
+      a = a + this_a * (ele%value(l$) / lord%value(l$))
+      b = b + this_b * (ele%value(l$) / lord%value(l$))
+    else
+      a = this_a * (ele%value(l$) / lord%value(l$))
+      b = this_b * (ele%value(l$) / lord%value(l$))
+    endif
     has_nonzero_pole = .true.
-    a = a + this_a * (ele%value(l$) / lord%value(l$))
-    b = b + this_b * (ele%value(l$) / lord%value(l$))
   enddo
 
 else
   if (.not. associated(ele%a_pole)) then
-    knl = 0
-    tilt = 0
+    !! knl = 0
+    !! tilt = 0
     return
   endif
   call multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
@@ -176,8 +184,8 @@ endif
 if (has_nonzero_pole) then
   call multipole_ab_to_kt (a, b, knl, tilt)
 else
-  knl = 0
-  tilt = 0
+  !! knl = 0
+  !! tilt = 0
 endif
 
 end subroutine multipole_ele_to_kt
