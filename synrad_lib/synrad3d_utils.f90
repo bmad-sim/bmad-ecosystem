@@ -458,7 +458,7 @@ enddo
 ! If circular lattice then start and end shapes must match
 
 if (branch%param%geometry == closed$) then
-  sec0 => wall%section(0)
+  sec0 => wall%section(1)
   sec  => wall%section(wall%n_section_max)
   if (sec0%basic_shape /= sec%basic_shape .or. sec0%width2 /= sec%width2 .or. sec0%height2 /= sec%height2 .or. &
         sec0%ante_height2_plus /= sec%ante_height2_plus .or. sec0%width2_plus /= sec%width2_plus .or. &
