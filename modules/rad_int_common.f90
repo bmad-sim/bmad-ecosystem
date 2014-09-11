@@ -409,8 +409,8 @@ if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == period
   ele%mat6_calc_method = symp_lie_bmad$
 endif
 
-call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z_here, .true., .true., orb_start, orb_end, ele0, ele_end)
-call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .true., .true., orb_end, orb_end1)
+call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z_here, .true., .false., orb_start, orb_end, ele0, ele_end)
+call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .false., .false., orb_end, orb_end1)
 
 info%a = ele_end%a
 info%b = ele_end%b

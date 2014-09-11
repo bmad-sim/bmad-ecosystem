@@ -1319,9 +1319,11 @@ end subroutine makeup_super_slave
 !                          param, include_upstream_end, include_downstream_end, err_flag, old_slice)
 !
 ! Routine to create an element that represents a longitudinal slice of the original element.
+!
 ! Note: This routine assumes that the following call has been made before hand:
 !    call transfer_ele (ele_in, sliced_ele, .true.)
-! This routine only has to be done once for the life of the sliced_ele variable.
+! transfer_ele only has to be done once as long as create_element_slice is repeatedly called 
+! with the same ele_in.
 !
 ! Note: To save tracking computation time, if ele_in has taylor, symp_lie_ptc, or symp_map 
 ! for tracking_method or mat6_calc_method, then this will be changed to symp_lie_bmad 
@@ -1373,6 +1375,13 @@ sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 sliced_ele%value(l$) = l_slice
 sliced_ele%s = ele_in%s - in_len + offset + sliced_ele%value(l$)
 
+! A sad_mult with zero length is treated differently (edge fields ignored and
+! multipoles are integrated multipoles instead of per unit length).
+! Therefore, make sure a sad_mult has a finite length.
+
+if (ele_in%key == sad_mult$ .and. l_slice == 0) sliced_ele%value(l$) = &
+                                                            sign(bmad_com%significant_length/100, in_len)
+
 ! The sliced element is treated as a super_slave to the original element except
 ! if the original element is itself a super_slave in which case the sliced element 
 ! has the same lords as the original element.
@@ -1389,7 +1398,8 @@ endif
 ! Excluding the rotation, a patch is just a drift.
 
 if (ele_in%key == patch$) then
-  if (include_upstream_end .and. ele_in%orientation == 1 .or. include_downstream_end .and. ele_in%orientation == -1) then
+  if ((include_upstream_end .and. ele_in%orientation == 1) .or. &
+      (include_downstream_end .and. ele_in%orientation == -1)) then
     call floor_angles_to_w_mat (ele_in%value(x_pitch$), ele_in%value(y_pitch$), ele_in%value(tilt$), w_mat_inv = w_inv)
     sliced_ele%key = patch$
     dl = ele_in%value(l$) - l_slice

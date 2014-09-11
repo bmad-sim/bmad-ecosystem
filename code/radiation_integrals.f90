@@ -321,8 +321,8 @@ if (use_cache .or. init_cache) then
 
         c_pt => cache_ele%pt(k)
 
-        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .true., orb_start, orb_end,  ele_start, ele_end)
-        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .true., orb_start, orb_end1, ele_start)
+        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z_here, .true., .false., orb_start, orb_end,  ele_start, ele_end)
+        call twiss_and_track_intra_ele (ele2, branch%param, z_start, z1,     .true., .false., orb_start, orb_end1, ele_start)
 
         z_start = z1
         orb_start = orb_end
