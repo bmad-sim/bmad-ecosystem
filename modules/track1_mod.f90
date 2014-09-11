@@ -422,7 +422,7 @@ n_step = 1
 
 call multipole_ele_to_kt(ele, param, .false., has_nonzero_pole, knl, tilt)
 if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-knl = knl / n_step
+if (has_nonzero_pole) knl = knl / n_step
 
 ! Set some parameters
 

@@ -659,16 +659,18 @@ case (multipole$, ab_multipole$)
   call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
   call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
-  call multipole_kick_mat (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
+  if (has_nonzero_pole) then
+    call multipole_kick_mat (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
 
-  ! if knl(0) is non-zero then the reference orbit itself is bent
-  ! and we need to account for this.
+    ! if knl(0) is non-zero then the reference orbit itself is bent
+    ! and we need to account for this.
 
-  if (knl(0) /= 0) then
-    ele%mat6(2,6) = knl(0) * cos(tilt(0))
-    ele%mat6(4,6) = knl(0) * sin(tilt(0))
-    ele%mat6(5,1) = -ele%mat6(2,6)
-    ele%mat6(5,3) = -ele%mat6(4,6)
+    if (knl(0) /= 0) then
+      ele%mat6(2,6) = knl(0) * cos(tilt(0))
+      ele%mat6(4,6) = knl(0) * sin(tilt(0))
+      ele%mat6(5,1) = -ele%mat6(2,6)
+      ele%mat6(5,3) = -ele%mat6(4,6)
+    endif
   endif
 
   ele%vec0 = c1%vec - matmul(mat6, c0%vec)
@@ -966,7 +968,7 @@ case (sbend$)
   n_slice = 1  
   if (k2 /= 0 .or. has_nonzero_pole) n_slice = max(nint(v(l$) / v(ds_step$)), 1)
   length = length / n_slice
-  knl = knl / n_slice
+  if (has_nonzero_pole) knl = knl / n_slice
   k2l = charge_dir * v(k2$) * length  
   
   call transfer_ele(ele, temp_ele1, .true.)

@@ -1945,6 +1945,7 @@ do ix_ele = ie1, ie2
 
   case (multipole$, ab_multipole$)
 
+    knl = 0; tilts = 0
     call multipole_ele_to_kt (ele, lat_out%param, .true., has_nonzero_pole, knl, tilts)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
 

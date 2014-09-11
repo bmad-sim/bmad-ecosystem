@@ -224,8 +224,7 @@ if (set) then
   if (set_multi) then
     call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      knl = knl / 2
-      call multipole_kicks (knl, tilt, coord)
+      call multipole_kicks (knl/2, tilt, coord)
     endif
   endif
 
@@ -356,8 +355,7 @@ else
   if (set_multi) then
     call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      knl = knl / 2
-      call multipole_kicks (knl, tilt, coord)
+      call multipole_kicks (knl/2, tilt, coord)
     endif
   endif
 
