@@ -63,7 +63,7 @@ logical, optional :: err, compute_floor_coords
 
 if (abs(l_end - l_start) < bmad_com%significant_length .and. &
           .not. (l_start == 0 .and. track_upstream_end .and. orbit_start%location == upstream_end$) .and. &
-          .not. (abs(l_end - ele%value(l$) < bmad_com%significant_length) .and. track_downstream_end .and. &
+          .not. (abs(l_end - ele%value(l$)) < bmad_com%significant_length .and. track_downstream_end .and. &
                  orbit_start%location == inside$)) then
   if (present(ele_end)) then
     call transfer_ele(ele_start, ele_end, .true.)
