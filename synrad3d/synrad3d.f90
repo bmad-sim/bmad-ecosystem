@@ -408,6 +408,7 @@ if (photon_start_input_file /= '') then
 
   close (1)
 
+!--------------------------------------------------------------------------
 ! Regular photon generation
 
 else
@@ -438,7 +439,7 @@ else
       if (iu_lat_file > 0) close (iu_lat_file)
       iu_lat_file = 0 ! To stop further output
       call run_timer ('READ', timer_time)
-      print *, 'Time from start (min):', nint(timer_time/60)
+      print '(a, f9.1)', 'Time from start (min):', timer_time/60
       print *, '    Num photons generated:          ', n_photon_generated
       print *, '    Num photons passed filter tests:', n_photon_array
       if (n_photon_generated == 0) then
