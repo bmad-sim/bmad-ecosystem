@@ -75,8 +75,6 @@ allocate (wall%seg(0:n))
 wall%seg(0)%len         = 0   ! Dummy segment to hold position info
 wall%seg(0)%x           = wall%pt(0)%x
 wall%seg(0)%s           = wall%pt(0)%s
-wall%seg(0)%x_mid       = wall%pt(0)%x
-wall%seg(0)%s_mid       = wall%pt(0)%s
 wall%seg(0)%r_floor     = wall%pt(0)%r_floor
 wall%seg(0)%r_floor_mid = wall%pt(0)%r_floor
 wall%seg(0)%ix_seg      = 0 
@@ -127,9 +125,6 @@ do ip = 1, wall%n_pt_max
       seg%s = local%r(3)
 
     else
-      rr = (ix - 0.5_rp) / n_seg
-      seg%x_mid = pt0%x * (1 - rr) + pt1%x * rr   ! Off by siggita
-      seg%s_mid = pt0%s * (1 - rr) + pt1%s * rr
       rr = float(ix) / n_seg
       seg%x = pt0%x * (1 - rr) + pt1%x * rr
       seg%s = pt0%s * (1 - rr) + pt1%s * rr

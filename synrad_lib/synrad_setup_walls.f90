@@ -69,8 +69,6 @@ call break_wall_into_segments (plus_side, seg_len_max, branch, seg_len_phantom_m
 
 walls%start_end%s = 0
 walls%start_end%x = plus_side%pt(0)%x
-walls%start_end%s_mid = 0
-walls%start_end%x_mid = minus_side%pt(0)%x + walls%start_end%len/2.
 walls%start_end%len = abs(plus_side%pt(0)%x - minus_side%pt(0)%x)
 
 end_n_x = minus_side%seg(minus_side%n_seg_max)%x
@@ -78,8 +76,6 @@ end_p_x = plus_side%seg(plus_side%n_seg_max)%x
 
 walls%exit_end%s = walls%s_max
 walls%exit_end%x = end_n_x
-walls%exit_end%s_mid = walls%s_max
-walls%exit_end%x_mid = (end_n_x + end_p_x)/2.
 walls%exit_end%len = end_p_x - end_n_x 
 
 ! do some checking
