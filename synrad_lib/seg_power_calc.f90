@@ -216,8 +216,8 @@ do i = 2, i_ray
     ! traveled forward without hitting a wall then there is no shadow.
 
     ray%direction         = -ray2%direction  ! track backwards
-    ray%start%vec(1)      = seg%x_mid
-    ray%start%s           = seg%s_mid
+    !! ray%start%vec(1)      = seg%x_mid
+    !! ray%start%s           = seg%s_mid
     ray%start_floor%r     = seg%r_floor_mid
     ray%start_floor%theta = modulo2(theta_ray + pi, pi)
     ray%now = ray%start

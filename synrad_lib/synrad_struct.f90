@@ -50,7 +50,6 @@ type wall_seg_struct         ! segment struct
   integer ix_seg             ! Self index in wall%seg array.
   integer ix_pt              ! index to which point owns this segment
   real(rp) s, x              ! s, x position of the segment at the endpoint
-  real(rp) s_mid, x_mid      ! s, x position of the segment at the midpoint
   real(rp) r_floor(3)        ! Floor position at end.
   real(rp) r_floor_mid(3)    ! Floor position at midpoint.
   real(rp) theta             ! Angle of segment orientation in global coords
