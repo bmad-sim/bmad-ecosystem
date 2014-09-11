@@ -63,7 +63,8 @@ logical, optional :: err, compute_floor_coords
 
 if (present(err)) err = .true.
 call transfer_ele(ele, runt, .true.)
-do_upstream = (track_upstream_end .and. l_start == 0 .and. orbit_start%location /= inside$)
+do_upstream = (track_upstream_end .and. l_start == 0)
+if (present(orbit_start)) do_upstream = (do_upstream .and. orbit_start%location /= inside$)
 do_downstream = (track_downstream_end .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
 if (err_flag) return

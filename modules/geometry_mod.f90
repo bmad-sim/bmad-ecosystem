@@ -46,7 +46,7 @@ type (floor_position_struct) dummy
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3)
 
-integer i, i2, n, ix2, ie, ib, ix_pass
+integer i, i2, n, ix2, ie, ib, ix_pass, ie0
 logical stale, stale_lord
 
 character(16), parameter :: r_name = 'lat_geometry'
@@ -76,7 +76,7 @@ do n = 0, ubound(lat%branch, 1)
 
     do i2 = i+1, branch%n_ele_track
       ele2 => branch%ele(i2)
-      if (ele2%key == patch$ .and. ele2%value(flexible$) /= 0) exit
+      if (ele2%key == patch$ .and. is_true(ele2%value(flexible$))) exit
       if (ele2%key == fiducial$) then
         call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
         if (global_com%exit_on_error) call err_exit
@@ -89,7 +89,7 @@ do n = 0, ubound(lat%branch, 1)
 
     do i2 = i-1, 1, -1
       ele2 => branch%ele(i2)
-      if (ele2%key == patch$ .and. ele2%value(flexible$) /= 0) exit
+      if (ele2%key == patch$ .and. is_true(ele2%value(flexible$))) exit
       if (ele2%key == fiducial$) then
         call out_io (s_fatal$, r_name, 'FIDUCIAL ELEMENTS IN A BRANCH MUST BE SEPARATED BY A FLEXIBLE PATCH')
         if (global_com%exit_on_error) call err_exit
@@ -103,60 +103,21 @@ do n = 0, ubound(lat%branch, 1)
 
   if (branch%ix_from_branch > -1 .and. (stale .or. branch%ele(0)%bookkeeping_state%floor_position == stale$)) then
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-    call ele_geometry (b_ele%floor, b_ele, branch%ele(0)%floor)
+    ie0 = nint(b_ele%value(ix_to_element$))
+    call ele_geometry (b_ele%floor, b_ele, branch%ele(ie0)%floor)
     stale = .true.
+  else
+    ie0 = 0
   endif
 
-  if (branch%ele(0)%bookkeeping_state%floor_position == stale$) branch%ele(0)%bookkeeping_state%floor_position = ok$
+  if (branch%ele(ie0)%bookkeeping_state%floor_position == stale$) branch%ele(ie0)%bookkeeping_state%floor_position = ok$
 
-  do i = 1, branch%n_ele_track
-    ele => branch%ele(i)
-    if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) cycle
+  do i = ie0+1, branch%n_ele_track
+    call propagate_geometry(i, 1)
+  enddo
 
-    if (ele%key == patch$ .and. ele%value(flexible$) /= 0) then
-      ele2 => branch%ele(i+1)
-      call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
-      if (ix_pass > 0) then
-        ele2 => chain_ele(1)%ele
-        if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
-        ele%floor = ele2%floor
-      endif
-
-      ele0 => branch%ele(i-1)
-      call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
-      call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
-      w_mat = matmul(w_mat_inv, w_mat)
-      call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
-      r_vec = matmul(w_mat_inv, ele%floor%r - ele0%floor%r)
-      ele%value(x_offset$) = r_vec(1)
-      ele%value(y_offset$) = r_vec(2)
-      ele%value(z_offset$) = r_vec(3)
-      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-      ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
-                      w_mat_inv(3,3) * ele%value(z_offset$)
-      if (ele%value(l$) /= ele%old_value(l$)) then
-        ele%bookkeeping_state%s_position = stale$
-        branch%param%bookkeeping_state%s_position = stale$
-        ele%old_value(l$) = ele%value(l$)
-      endif
-      stale = .false.
-    else
-      stale = .true.
-    endif
-
-    call ele_geometry (branch%ele(i-1)%floor, ele, ele%floor)
-
-    ! target branch only needs to be recomputed if target branch index is greater than present branch.
-
-    if (ele%key == fork$ .or. ele%key == photon_fork$) then
-      ib = nint(ele%value(ix_to_branch$))
-      if (ib > n) lat%branch(ib)%ele(0)%bookkeeping_state%floor_position = stale$
-    endif
-
-    if (ele%n_lord > 0) then
-      call set_lords_status_stale (ele, floor_position_group$)
-      stale_lord = .true.
-    endif
+  do i = ie0-1, 0, -1
+    call propagate_geometry(i, -1)
   enddo
 
 enddo
@@ -193,6 +154,72 @@ enddo
 
 !---------------------------------------------------
 contains
+
+subroutine propagate_geometry (ie, dir)
+
+integer ie, dir, ix
+
+!
+
+ele => branch%ele(ie)
+if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) return
+
+if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
+  if (dir == -1) then
+    call out_io (s_fatal$, r_name, 'CONFUSION! PLEASE CONTACT DAVID SAGAN!')
+    call err_exit
+  endif
+  ele2 => branch%ele(ie+dir)
+  call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
+  if (ix_pass > 0) then
+    ele2 => chain_ele(1)%ele
+    if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
+    ele%floor = ele2%floor
+  endif
+
+  ele0 => branch%ele(ie-dir)
+  call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
+  call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
+  w_mat = matmul(w_mat_inv, w_mat)
+  call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
+  r_vec = matmul(w_mat_inv, ele%floor%r - ele0%floor%r)
+  ele%value(x_offset$) = r_vec(1)
+  ele%value(y_offset$) = r_vec(2)
+  ele%value(z_offset$) = r_vec(3)
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+  ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
+                  w_mat_inv(3,3) * ele%value(z_offset$)
+  if (ele%value(l$) /= ele%old_value(l$)) then
+    ele%bookkeeping_state%s_position = stale$
+    branch%param%bookkeeping_state%s_position = stale$
+    ele%old_value(l$) = ele%value(l$)
+  endif
+  stale = .false.
+else
+  stale = .true.
+endif
+
+call ele_geometry (branch%ele(ie-dir)%floor, ele, ele%floor, real(dir, rp))
+
+! target branch only needs to be recomputed if target branch index is greater than present branch.
+
+if (ele%key == fork$ .or. ele%key == photon_fork$) then
+  ib = nint(ele%value(ix_to_branch$))
+  if (ib > n) then
+    ix = nint(ele%value(ix_to_element$))
+    lat%branch(ib)%ele(ix)%bookkeeping_state%floor_position = stale$
+  endif
+endif
+
+if (ele%n_lord > 0) then
+  call set_lords_status_stale (ele, floor_position_group$)
+  stale_lord = .true.
+endif
+
+end subroutine
+
+!---------------------------------------------------
+! contains
 
 ! When girders themselves have girder lords, must do computation in order: Lord before slave.
 
