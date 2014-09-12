@@ -2267,6 +2267,20 @@ quadrupole the height is proportional to the \vn{K1} focusing
 strength. Not all lattice elements can be used with a
 \vn{var_height_box}.
 
+The overall height of all the shapes can be scaled using the
+\vn{plot_page} (\sref{s:init.plot}) parameters
+\begin{exampe}
+  floor_plan_shape_scale     ! For floor_plan drawings. Default = 1
+  lat_layout_shape_scale     ! For lat_layout drawings. Default = 1
+\end{example}
+Additionally, the text size in both \vn{floor_plan} and \vn{lat_layout}
+plots can be scalled by using the \vn{plot_page} parameter
+\begin{example}
+  legend_text_scale          ! Default = 1
+\end{example}
+Use the \vn{show plot} command to view these parameters. Use the
+\vn{set plot_page} command to set these parameters.
+
 \vn{<color>} is the color of the shape. Good colors to use are:
 \index{element shape!color}
 \begin{example}
