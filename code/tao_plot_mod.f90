@@ -374,7 +374,7 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%floor_plan%ele_shape)
-    if (ele%ix_ele > lat%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
+    if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%ix_slave

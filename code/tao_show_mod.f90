@@ -1737,7 +1737,7 @@ case ('lattice')
 
   elseif (ix_s2 /= 0) then
     call tao_locate_elements (stuff2, u%ix_uni, eles, err, lat_type, &
-                  ignore_blank = .true., above_ubound_is_err = .false.)
+                  ignore_blank = .true., above_ubound_is_err = .false., ix_dflt_branch = ix_branch)
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
