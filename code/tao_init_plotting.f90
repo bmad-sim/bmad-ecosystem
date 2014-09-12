@@ -30,7 +30,7 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   integer key                ! Element key index to match to
 end type
 
-type (tao_plot_page_struct) plot_page, plot_page_default
+type (tao_plot_page_input) plot_page, plot_page_default
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
@@ -114,10 +114,7 @@ default_plot%autoscale_x = .false.
 default_plot%autoscale_y = .false.
 default_plot%n_graph = 0
 
-default_graph%title                 = ''
-default_graph%type                  = 'data'
-default_graph%text_legend_origin    = qp_point_struct(5.0_rp, 0.0_rp, 'POINTS/GRAPH/RT')
-default_graph%curve_legend_origin   = qp_point_struct(5.0_rp, -2.0_rp, 'POINTS/GRAPH/LT')
+default_graph = tao_graph_input()
 default_graph%y                     = init_axis
 default_graph%y%major_div           = -1
 default_graph%y%major_div_nominal   = -1
@@ -126,23 +123,6 @@ default_graph%y2%major_div          = -1
 default_graph%y2%major_div_nominal  = -1
 default_graph%y2%label_color        = blue$
 default_graph%y2%draw_numbers       = .false.
-default_graph%ix_branch             = 0
-default_graph%ix_universe           = -1
-default_graph%clip                  = .true.
-default_graph%draw_axes             = .true.
-default_graph%draw_grid             = .true.
-default_graph%correct_xy_distortion = .false.
-default_graph%draw_only_good_user_data_or_vars = .true.
-default_graph%draw_curve_legend     = .true.
-default_graph%component             = 'model'
-default_graph%who%name              = ''
-default_graph%who%sign              = 1
-default_graph%box                 = [1, 1, 1, 1]
-default_graph%margin              = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
-default_graph%scale_margin        = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
-default_graph%n_curve             = 0
-default_graph%x_axis_scale_factor = 1
-default_graph%symbol_size_scale   = 0
 
 ! If there is no plot file then use the built-in defaults.
 
@@ -1426,6 +1406,25 @@ if (all(s%plotting%template%name /= 'floor_plan')) then
   grph%y%major_div_nominal   = 4
   grph%y2%major_div_nominal  = 4
   grph%y2_mirrors_y          = .true.
+
+  ! X-ray lines can mainly lie in the vertical plane. 
+  ! If so choose as the default the "best" view.
+
+  branch => s%u(1)%model%lat%branch(0)
+  if (branch%param%particle == photon$) then
+    n = branch%n_ele_track
+    dx = maxval(branch%ele(1:n)%floor%r(1)) - minval(branch%ele(1:n)%floor%r(1))
+    dy = maxval(branch%ele(1:n)%floor%r(2)) - minval(branch%ele(1:n)%floor%r(2))
+    dz = maxval(branch%ele(1:n)%floor%r(3)) - minval(branch%ele(1:n)%floor%r(3))
+    if (dx < min(dy, dz)) then
+      grph%floor_plan_view = 'yz'
+    elseif (dy < min(dx, dz)) then
+      grph%floor_plan_view = 'zx'
+    else
+      grph%floor_plan_view = 'yx'
+    endif
+  endif
+
 endif
 
 !---------------
@@ -1951,18 +1950,6 @@ if (all (place(:)%region == '')) then
     call tao_place_cmd ('r23', 'photon_intensity')
     call tao_place_cmd ('r33', 'orbit')
     call tao_place_cmd ('layout', 'lat_layout')
-    n = branch%n_ele_track
-    dx = maxval(branch%ele(1:n)%floor%r(1)) - minval(branch%ele(1:n)%floor%r(1))
-    dy = maxval(branch%ele(1:n)%floor%r(2)) - minval(branch%ele(1:n)%floor%r(2))
-    dz = maxval(branch%ele(1:n)%floor%r(3)) - minval(branch%ele(1:n)%floor%r(3))
-    if (dx < min(dy, dz)) then
-      s%plotting%floor_plan_view = 'yz'
-    elseif (dy < min(dx, dz)) then
-      s%plotting%floor_plan_view = 'xz'
-    else
-      s%plotting%floor_plan_view = 'xy'
-    endif
-
   else  ! Charged particle
     call tao_place_cmd ('r13', 'beta')
     call tao_place_cmd ('r23', 'eta')

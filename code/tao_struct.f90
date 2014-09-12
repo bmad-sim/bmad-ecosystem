@@ -108,8 +108,8 @@ type tao_title_struct
 end type
 
 type tao_data_var_component_struct    ! Components to plot
-  character(16) name         ! Eg: 'meas', 'ref', 'model', etc.
-  real(rp) sign              ! +1 or -1
+  character(16) :: name = ''        ! Eg: 'meas', 'ref', 'model', etc.
+  real(rp) :: sign = 1              ! +1 or -1
 end type
 
 type tao_histogram_struct
@@ -172,6 +172,7 @@ type tao_graph_struct
   character(100) text_legend(n_legend_maxx) ! Array for holding descriptive info.
   character(60) component             ! Who to plot. Eg: 'meas - design'
   character(80) why_invalid           ! Informative string to print.
+  character(2) :: floor_plan_view = 'zx'
   type (tao_curve_struct), allocatable :: curve(:)
   type (tao_plot_struct), pointer :: p ! pointer to parent plot
   type (qp_point_struct) text_legend_origin
@@ -183,6 +184,7 @@ type tao_graph_struct
   type (qp_rect_struct) scale_margin  ! Margin for scaling
   real(rp) :: x_axis_scale_factor = 1 ! x-axis conversion from internal to plotting units.
   real(rp) symbol_size_scale          ! Symbol size scale factor for phase_space plots.
+  real(rp) :: floor_plan_rotation = 0 ! Rotation of floor plan plot: 1.0 -> 360^deg 
   integer box(4)                      ! Defines which box the plot is put in.
   integer :: ix_branch = 0            ! Branch in lattice.
   integer :: ix_universe = -1         ! Used for lat_layout plots.
@@ -229,13 +231,12 @@ type tao_plot_region_struct
   logical :: visible = .false.   ! To draw or not to draw.
 end type
 
-! The tao_plotting_struct defines the whole plotting window. 
+! The tao_plot_page_struct defines the whole plotting window. 
 ! Note that the qp_com structure of quick_plot also is used to hold 
 ! plot page info.
 
-type tao_plotting_struct
+type tao_plot_page_struct
   character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
-  character(2) :: floor_plan_view = 'xz'
   character(80) ps_scale             ! scaling when creating PS files.
   real(rp) size(2)                   ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
@@ -247,7 +248,8 @@ type tao_plotting_struct
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: curve_legend_line_len  = 50   ! Points
   real(rp) :: curve_legend_text_offset = 10 ! Points
-  real(rp) :: floor_plan_rotation = 0    ! Rotation of floor plan plot: 1.0 -> 360^deg 
+  real(rp) :: floor_plan_shape_scale = 1.0
+  real(rp) :: lat_layout_shape_scale = 1.0
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   integer id_window                      ! X window id number.
   type (tao_title_struct) title(2)       ! Titles at top of page.
@@ -802,7 +804,7 @@ end type
 type tao_super_universe_struct
   type (tao_global_struct) global                          ! User accessible global variables.
   type (tao_common_struct) :: com
-  type (tao_plotting_struct) :: plotting                   ! Defines the plot window.
+  type (tao_plot_page_struct) :: plot_page                 ! Defines the plot window.
   type (tao_v1_var_struct), allocatable :: v1_var(:)       ! The variable types
   type (tao_var_struct), allocatable :: var(:)             ! array of all variables.
   type (tao_universe_struct), allocatable :: u(:)          ! array of universes.

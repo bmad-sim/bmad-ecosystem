@@ -440,8 +440,8 @@ if (allocated(s%building_wall%section)) then
 
       do j = 2, size(pt)
         if (pt(j)%radius == 0) then   ! line
-          call floor_to_screen ([pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
-          call floor_to_screen ([pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
+          call floor_to_screen (graph, [pt(j-1)%x, 0.0_rp, pt(j-1)%z], end1%r(1), end1%r(2))
+          call floor_to_screen (graph, [pt(j)%x, 0.0_rp, pt(j)%z], end2%r(1), end2%r(2))
           call qp_draw_line(end1%r(1), end2%r(1), end1%r(2), end2%r(2), color = icol)
 
         else                    ! arc
@@ -454,7 +454,7 @@ if (allocated(s%building_wall%section)) then
             v_vec(1) = pt(j)%x_center + abs(pt(j)%radius) * sin(theta)
             v_vec(2) = 0
             v_vec(3) = pt(j)%z_center + abs(pt(j)%radius) * cos(theta)
-            call floor_to_screen (v_vec, x_bend(k), y_bend(k))
+            call floor_to_screen (graph, v_vec, x_bend(k), y_bend(k))
           enddo
           call qp_draw_polyline(x_bend(:n_bend), y_bend(:n_bend), color = icol)
         endif
@@ -482,17 +482,15 @@ type (qp_axis_struct) axis_in, axis_out
 real(rp) f
 integer irot
 character(*) which
-character(2) :: xz_label(0:4) = ['Z ', 'X ', '-Z', '-X', 'Z ']
-character(2) :: xy_label(0:4) = ['X ', 'Y ', '-X', '-Y', 'X ']
-character(2) :: yz_label(0:4) = ['Y ', 'Z ', '-Y', '-Z', 'Y ']
+character(1) x_str, y_str
+character(2) label(0:3)
 
 !
 
 axis_out = axis_in
 if (axis_out%label /= 'SMART LABEL') return
 
-
-f = modulo(4*s%plotting%floor_plan_rotation, 1.0_rp)
+f = modulo(4*graph%floor_plan_rotation, 1.0_rp)
 f = f - fraction(f)
 
 ! If rotation is not multiple of 90 degrees then must use blank label.
@@ -502,15 +500,15 @@ if (abs(f) > 0.01) then
   return
 endif
 
-irot = nint(modulo(4*s%plotting%floor_plan_rotation, 4.0_rp))
-if (irot == 4) irot = 0
-if (which == 'Y') irot = irot + 1
+! Normal case
 
-select case (s%plotting%floor_plan_view)
-case ('xz'); axis_out%label = xz_label(irot)
-case ('xy'); axis_out%label = xy_label(irot)
-case ('yz'); axis_out%label = yz_label(irot)
-end select
+x_str = upcase(graph%floor_plan_view(1:1))
+y_str = upcase(graph%floor_plan_view(2:2))
+label = [x_str // ' ', '-' // y_str, '-' // x_str, y_str // ' ']
+
+irot = modulo(nint(4*graph%floor_plan_rotation), 4)
+if (which == 'Y') irot = modulo(irot-1, 4)
+axis_out%label = label(irot)
 
 end subroutine set_this_axis
 
@@ -581,8 +579,8 @@ else
   is_bend = (ele%key == sbend$)
 endif
 
-call floor_to_screen_coords (ele1%floor, end1)
-call floor_to_screen_coords (ele2%floor, end2)
+call floor_to_screen_coords (graph, ele1%floor, end1)
+call floor_to_screen_coords (graph, ele2%floor, end2)
 
 ! Only draw those element that have at least one point in bounds.
 
@@ -625,8 +623,8 @@ if (is_bend) then
     if (cos_t < 0) dr_vec = -dr_vec
     v_vec = matmul (w_old, r_vec) + v_old
     dv_vec = matmul (w_old, dr_vec) 
-    call floor_to_screen (v_vec, x_bend(j), y_bend(j))
-    call floor_to_screen (dv_vec, dx_bend(j), dy_bend(j))
+    call floor_to_screen (graph, v_vec, x_bend(j), y_bend(j))
+    call floor_to_screen (graph, dv_vec, dx_bend(j), dy_bend(j))
 
     ! Correct for e1 and e2 face angles which are a rotation of the faces about
     ! the local y-axis.
@@ -636,7 +634,7 @@ if (is_bend) then
       if (ele%orientation == -1) e_edge = -ele%value(e2$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (dv_vec, dx1, dy1)
+      call floor_to_screen (graph, dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) - dx1
       dy_bend(j) = dy_bend(j) - dy1
       e1_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
@@ -647,7 +645,7 @@ if (is_bend) then
       if (ele%orientation == -1) e_edge = -ele%value(e1$)
       dr_vec = tan(e_edge) * [cos_t * cos_a, sin_t * cos_a, sin_a]
       dv_vec = matmul (w_old, dr_vec) 
-      call floor_to_screen (dv_vec, dx1, dy1)
+      call floor_to_screen (graph, dv_vec, dx1, dy1)
       dx_bend(j) = dx_bend(j) + dx1
       dy_bend(j) = dy_bend(j) + dy1
       e2_factor = sqrt(dx_bend(j)**2 + dy_bend(j)**2)
@@ -673,7 +671,7 @@ endif
 if (.not. ele_shape%draw) return
 call qp_translate_to_color_index (ele_shape%color, icol)
 
-off = ele_shape%size
+off = ele_shape%size * s%plotting%floor_plan_shape_scale 
 off1 = off
 off2 = off
 if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
@@ -698,7 +696,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   drift%key = drift$
   drift%value(l$) = ele%value(x_ray_line_len$)
   call ele_geometry (ele2%floor, drift, drift%floor) 
-  call floor_to_screen_coords (drift%floor, x_ray)
+  call floor_to_screen_coords (graph, drift%floor, x_ray)
   call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), 'POINTS')
 endif
 
@@ -1062,7 +1060,7 @@ do i = 1, size(s%plotting%lat_layout%ele_shape)
     x0 = datum%s 
     if (x0 > graph%x%max) cycle
     if (x0 < graph%x%min) cycle
-    y1 = ele_shape%size
+    y1 = ele_shape%size * s%plotting%lat_layout_shape_scale 
     y1 = max(graph%y%min, min(y1, graph%y%max))
     y2 = -y1
     call qp_convert_point_rel (dummy, y1, 'DATA', dummy, y, 'INCH') 
@@ -1188,7 +1186,7 @@ if (x2 < graph%x%min) return
 ! Here if element is to be drawn...
 ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-y = ele_shape%size
+y = ele_shape%size * s%plotting%lat_layout_shape_scale 
 y1 = -y
 y2 =  y
 if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
