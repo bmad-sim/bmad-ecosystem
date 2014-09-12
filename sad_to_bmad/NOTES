@@ -1,4 +1,4 @@
-Known Translation Limitations:
+Known Translation Limitations (at the present time):
 
 CAVI: 
   Translated to rfcavity. Therefore does not handle accelerating cavities.
@@ -9,10 +9,12 @@ CAVI:
 
 Misalignments in SOL element with GEO = 1 not yet implemented.
 
+FB1 and FB2 (MULT and BEND elements) must be equal.
+
 A given MARK element with a non-zero offset cannot appear multiple times in a lattice.
 This is due to the fact that the corresponding Bmad element uses superposition.
 
-Conversion cannot handle the same mult element appearing two different
+Conversion cannot handle the same MULT element appearing two different
 places in the lattice when the solenoid field is different in these
 different places.
 

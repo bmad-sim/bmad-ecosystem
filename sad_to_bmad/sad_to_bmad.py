@@ -81,9 +81,12 @@ def WrapWrite(line):
       return
 
     ix = line[:MAXLEN].rfind(',')
-    if ix == -1: ix = line[:MAXLEN].rfind(' ')
 
-    f_out.write(tab + line[:ix+1] + ' &\n')
+    if ix == -1: 
+      ix = line[:MAXLEN].rfind(' ')
+      f_out.write(tab + line[:ix+1] + ' &\n')
+    else:
+      f_out.write(tab + line[:ix+1] + '\n')  # Don't need '&' after a comma
 
     tab = '         '
     line = line[ix+1:]
