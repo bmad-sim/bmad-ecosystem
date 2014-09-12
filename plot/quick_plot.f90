@@ -3170,6 +3170,8 @@ logical, optional :: clip
 
 !
 
+if (x1 == x2 .and. y1 == y2) return
+
 call qp_save_state (.true.)
 call qp_set_line_attrib (style, width, color, line_pattern, clip)
 call qp_draw_polyline_no_set ([x1, x2 ], [y1, y2 ], units)
