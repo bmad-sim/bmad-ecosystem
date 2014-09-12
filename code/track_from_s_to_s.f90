@@ -56,7 +56,7 @@ if (s_start == s_end .and. branch%param%geometry == open$) then
   return
 endif
 
-if (s_end < s_start .and. lat%param%geometry == open$) then
+if (s_end < s_start .and. branch%param%geometry == open$) then
   call out_io (s_abort$, r_name, 'S_END < S_START WITH A LINEAR LATTICE.')
   if (global_com%exit_on_error) call err_exit
 endif
@@ -67,7 +67,7 @@ ix_start = element_at_s (lat, s_start, .true., ix_branch)
 if (branch%ele(ix_start)%s == s_start) then
   ix_start = modulo (ix_start, branch%n_ele_track) + 1
 endif
-s0 = lat%ele(ix_start-1)%s
+s0 = branch%ele(ix_start-1)%s
 
 ix_end = element_at_s (lat, s_end, .true., ix_branch)
 
