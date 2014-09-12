@@ -565,7 +565,7 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
   endif
 
   if (action(1:3) == 'gif') then
-    call qp_open_page (action, plot_file = file_name, x_len = s%plotting%size(1), y_len = s%plotting%size(2), scale = scale)
+    call qp_open_page (action, plot_file = file_name, x_len = s%plot_page%size(1), y_len = s%plot_page%size(2), scale = scale)
   else
     call qp_open_page (action, plot_file = file_name, scale = scale)
   endif

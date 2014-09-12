@@ -60,18 +60,18 @@ if (allocated(graph)) deallocate(graph)
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all' .or. where == 's') then
   n = 0
-  do j = 1, size(s%plotting%region)
-    if (.not. s%plotting%region(j)%visible) cycle
-    if (where == 's' .and. s%plotting%region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(j)%visible) cycle
+    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
   enddo
   allocate (plot(n))
   n = 0
-  do j = 1, size(s%plotting%region)
-    if (.not. s%plotting%region(j)%visible) cycle
-    if (where == 's' .and. s%plotting%region(j)%plot%x_axis_type /= 's') cycle
+  do j = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(j)%visible) cycle
+    if (where == 's' .and. s%plot_page%region(j)%plot%x_axis_type /= 's') cycle
     n = n + 1
-    plot(n)%p => s%plotting%region(j)%plot
+    plot(n)%p => s%plot_page%region(j)%plot
   enddo
 else
   call tao_find_plots (err, where, 'REGION', plot, graph)
@@ -254,8 +254,8 @@ if (graph%type == 'floor_plan') then
   enddo
 
   if (allocated(s%building_wall%section)) then
-    do i = 1, size(s%plotting%floor_plan%ele_shape)
-      shape => s%plotting%floor_plan%ele_shape(i)
+    do i = 1, size(s%plot_page%floor_plan%ele_shape)
+      shape => s%plot_page%floor_plan%ele_shape(i)
       if (shape%ele_name /= 'wall::building') cycle
       if (.not. shape%draw) cycle
       do j = 1, size(s%building_wall%section)

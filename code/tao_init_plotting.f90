@@ -156,12 +156,12 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist fou
 
 master_default_graph = default_graph
 
-call tao_set_plotting (plot_page, s%plotting, .true.)
+call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 ! title
 
-forall (i = 1:size(s%plotting%title), (s%plotting%title(i)%string .ne. ' ')) &
-            s%plotting%title(i)%draw_it = .true.
+forall (i = 1:size(s%plot_page%title), (s%plot_page%title(i)%string .ne. ' ')) &
+            s%plot_page%title(i)%draw_it = .true.
 
 ! Plot window geometry specified on cmd line?
 
@@ -180,15 +180,15 @@ if (s%com%plot_geometry /= '') then
    endif
  endif
  
-! allocate a s%plotting%plot structure for each region defined and
+! allocate a s%plot_page%plot structure for each region defined and
 ! transfer the info from the input region structure.
 
 n = count(region%name /= ' ')
-allocate (s%plotting%region(n))
+allocate (s%plot_page%region(n))
 
 do i = 1, n
-  s%plotting%region(i)%name     = region(i)%name
-  s%plotting%region(i)%location = region(i)%location
+  s%plot_page%region(i)%name     = region(i)%name
+  s%plot_page%region(i)%location = region(i)%location
 enddo
 
 !-----------------------------------------------------------------------------------
@@ -224,9 +224,9 @@ if (ios == 0) then
   enddo
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (s%plotting%floor_plan%ele_shape(n), s%plotting%lat_layout%ele_shape(n))
-  s%plotting%floor_plan%ele_shape = ele_shape(1:n)
-  s%plotting%lat_layout%ele_shape = ele_shape(1:n)
+  allocate (s%plot_page%floor_plan%ele_shape(n), s%plot_page%lat_layout%ele_shape(n))
+  s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
+  s%plot_page%lat_layout%ele_shape = ele_shape(1:n)
 endif
 
 ! Look for new style shape namelist if could not find old style
@@ -266,8 +266,8 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
-  allocate (s%plotting%floor_plan%ele_shape(n))
-  s%plotting%floor_plan%ele_shape = ele_shape(1:n)
+  allocate (s%plot_page%floor_plan%ele_shape(n))
+  s%plot_page%floor_plan%ele_shape = ele_shape(1:n)
 
   ! Read element_shapes_lat_layout namelist
 
@@ -306,16 +306,16 @@ if (ios < 0) then
   endif
 
   call tao_uppercase_shapes (ele_shape, n, 'l')
-  allocate (s%plotting%lat_layout%ele_shape(n))
-  s%plotting%lat_layout%ele_shape  = ele_shape(1:n)
+  allocate (s%plot_page%lat_layout%ele_shape(n))
+  s%plot_page%lat_layout%ele_shape  = ele_shape(1:n)
 
 endif
 
 ! Error check
 
-if (allocated(s%plotting%lat_layout%ele_shape)) then
-  do i = 1, size(s%plotting%lat_layout%ele_shape)
-    e_shape => s%plotting%lat_layout%ele_shape(i)
+if (allocated(s%plot_page%lat_layout%ele_shape)) then
+  do i = 1, size(s%plot_page%lat_layout%ele_shape)
+    e_shape => s%plot_page%lat_layout%ele_shape(i)
     if (e_shape%ele_name(1:6) == 'wall::') cycle
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
@@ -326,9 +326,9 @@ if (allocated(s%plotting%lat_layout%ele_shape)) then
   enddo
 endif
 
-if (allocated(s%plotting%floor_plan%ele_shape)) then
-  do i = 1, size(s%plotting%floor_plan%ele_shape)
-    e_shape => s%plotting%floor_plan%ele_shape(i)
+if (allocated(s%plot_page%floor_plan%ele_shape)) then
+  do i = 1, size(s%plot_page%floor_plan%ele_shape)
+    e_shape => s%plot_page%floor_plan%ele_shape(i)
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
@@ -370,9 +370,9 @@ enddo
 !---------------
 ! Allocate the template plot and define a scratch plot
 
-allocate (s%plotting%template(ip+1))
+allocate (s%plot_page%template(ip+1))
 
-plt => s%plotting%template(ip+1)
+plt => s%plot_page%template(ip+1)
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -405,7 +405,7 @@ do  ! Loop over plot files
 
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
     do i = 1, ip
-      if (plot%name == s%plotting%template(ip)%name) then
+      if (plot%name == s%plot_page%template(ip)%name) then
         call out_io (s_error$, r_name, 'DUPLICATE PLOT NAME: ' // plot%name)
         exit
       endif
@@ -413,7 +413,7 @@ do  ! Loop over plot files
 
     ip = ip + 1
 
-    plt => s%plotting%template(ip)
+    plt => s%plot_page%template(ip)
     nullify(plt%r)
     plt%name                 = plot%name
     plt%description          = plot%description
@@ -567,11 +567,11 @@ do  ! Loop over plot files
         call err_exit
       endif
 
-      if (grph%type == 'floor_plan' .and. .not. allocated (s%plotting%floor_plan%ele_shape)) &
+      if (grph%type == 'floor_plan' .and. .not. allocated (s%plot_page%floor_plan%ele_shape)) &
                 call out_io (s_error$, r_name, 'NO ELEMENT SHAPES DEFINED FOR FLOOR_PLAN PLOT.')
    
       if (grph%type == 'lat_layout') then
-        if (.not. allocated (s%plotting%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
+        if (.not. allocated (s%plot_page%lat_layout%ele_shape)) call out_io (s_error$, r_name, &
                               'NO ELEMENT SHAPES DEFINED FOR LAT_LAYOUT PLOT.')
         if (plt%x_axis_type /= 's') call out_io (s_error$, r_name, &
                               'A LAT_LAYOUT MUST HAVE X_AXIS_TYPE = "s" FOR A VISIBLE PLOT!')
@@ -763,9 +763,9 @@ close (iu)
 ! If no plots have been defined or default plots wanted then use default
 
 if (ip == 0 .or. include_default_plots) then
-  if (size(s%plotting%lat_layout%ele_shape) == 0) deallocate(s%plotting%lat_layout%ele_shape)
-  if (size(s%plotting%floor_plan%ele_shape) == 0) deallocate(s%plotting%floor_plan%ele_shape)
-  if (size(s%plotting%region) == 0) deallocate (s%plotting%region)
+  if (size(s%plot_page%lat_layout%ele_shape) == 0) deallocate(s%plot_page%lat_layout%ele_shape)
+  if (size(s%plot_page%floor_plan%ele_shape) == 0) deallocate(s%plot_page%floor_plan%ele_shape)
+  if (size(s%plot_page%region) == 0) deallocate (s%plot_page%region)
   call tao_setup_default_plotting()
 endif
 
@@ -876,34 +876,34 @@ character(40) name
 
 !
 
-call tao_set_plotting (plot_page, s%plotting, .true.)
+call tao_set_plotting (plot_page, s%plot_page, .true.)
 
 n = size(dflt_lat_layout)
 
-if (.not. allocated(s%plotting%lat_layout%ele_shape)) then
-  allocate (s%plotting%lat_layout%ele_shape(30))
-  s%plotting%lat_layout%ele_shape(:)%ele_name = ''
-  s%plotting%lat_layout%ele_shape(1:n) = dflt_lat_layout
+if (.not. allocated(s%plot_page%lat_layout%ele_shape)) then
+  allocate (s%plot_page%lat_layout%ele_shape(30))
+  s%plot_page%lat_layout%ele_shape(:)%ele_name = ''
+  s%plot_page%lat_layout%ele_shape(1:n) = dflt_lat_layout
 endif
 
-if (.not. allocated(s%plotting%floor_plan%ele_shape)) then
-  allocate (s%plotting%floor_plan%ele_shape(30))
-  s%plotting%floor_plan%ele_shape(:)%ele_name = ''
-  s%plotting%floor_plan%ele_shape(1:n) = dflt_lat_layout
-  s%plotting%floor_plan%ele_shape%size = 40 * s%plotting%floor_plan%ele_shape%size
+if (.not. allocated(s%plot_page%floor_plan%ele_shape)) then
+  allocate (s%plot_page%floor_plan%ele_shape(30))
+  s%plot_page%floor_plan%ele_shape(:)%ele_name = ''
+  s%plot_page%floor_plan%ele_shape(1:n) = dflt_lat_layout
+  s%plot_page%floor_plan%ele_shape%size = 40 * s%plot_page%floor_plan%ele_shape%size
 endif
 
 !---------------------------------
 
-if (allocated(s%plotting%template)) then
-  n = size(s%plotting%template)
-  call move_alloc(s%plotting%template, temp_template)
-  allocate (s%plotting%template(n + 29))
-  s%plotting%template(1:n) = temp_template
+if (allocated(s%plot_page%template)) then
+  n = size(s%plot_page%template)
+  call move_alloc(s%plot_page%template, temp_template)
+  allocate (s%plot_page%template(n + 29))
+  s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
   np = n + 1
 else
-  allocate (s%plotting%template(29))
+  allocate (s%plot_page%template(29))
   np = 0
 endif
 
@@ -1055,9 +1055,9 @@ crv%line%width   = 2
 !---------------
 ! beta plot
 
-if (all(s%plotting%template%name /= 'beta')) then
+if (all(s%plot_page%template%name /= 'beta')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1090,9 +1090,9 @@ endif
 !---------------
 ! dbeta (chrom.dbeta) plot
 
-if (all(s%plotting%template%name /= 'dbeta')) then
+if (all(s%plot_page%template%name /= 'dbeta')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1127,9 +1127,9 @@ endif
 !---------------
 ! deta (chrom.deta) plot
 
-if (all(s%plotting%template%name /= 'deta')) then
+if (all(s%plot_page%template%name /= 'deta')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1164,9 +1164,9 @@ endif
 !---------------
 ! detap (chrom.detap) plot
 
-if (all(s%plotting%template%name /= 'detap')) then
+if (all(s%plot_page%template%name /= 'detap')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1201,9 +1201,9 @@ endif
 !---------------
 ! dphi (chrom.dphi) plot
 
-if (all(s%plotting%template%name /= 'dphi')) then
+if (all(s%plot_page%template%name /= 'dphi')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1238,9 +1238,9 @@ endif
 !---------------
 ! dynamic_aperture plot
 
-if (all(s%plotting%template%name /= 'dynamic_aperture')) then
+if (all(s%plot_page%template%name /= 'dynamic_aperture')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1278,9 +1278,9 @@ endif
 !---------------
 ! emittance growth
 
-if (all(s%plotting%template%name /= 'emittance')) then
+if (all(s%plot_page%template%name /= 'emittance')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1314,9 +1314,9 @@ endif
 !---------------
 ! energy
 
-if (all(s%plotting%template%name /= 'energy')) then
+if (all(s%plot_page%template%name /= 'energy')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1340,9 +1340,9 @@ endif
 !---------------
 ! eta plot
 
-if (all(s%plotting%template%name /= 'eta')) then
+if (all(s%plot_page%template%name /= 'eta')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1374,9 +1374,9 @@ endif
 !---------------
 ! Floor Plan plot
 
-if (all(s%plotting%template%name /= 'floor_plan')) then
+if (all(s%plot_page%template%name /= 'floor_plan')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1430,9 +1430,9 @@ endif
 !---------------
 ! i1
 
-if (all(s%plotting%template%name /= 'i1')) then
+if (all(s%plot_page%template%name /= 'i1')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1457,9 +1457,9 @@ endif
 !---------------
 ! i2
 
-if (all(s%plotting%template%name /= 'i2')) then
+if (all(s%plot_page%template%name /= 'i2')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1484,7 +1484,7 @@ if (all(s%plotting%template%name /= 'i2')) then
   ! i3
 
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1509,9 +1509,9 @@ endif
 !---------------
 ! i4a
 
-if (all(s%plotting%template%name /= 'i4a')) then
+if (all(s%plot_page%template%name /= 'i4a')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1535,9 +1535,9 @@ endif
 !---------------
 ! i4b
 
-if (all(s%plotting%template%name /= 'i4b')) then
+if (all(s%plot_page%template%name /= 'i4b')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1562,9 +1562,9 @@ endif
 !---------------
 ! i5a
 
-if (all(s%plotting%template%name /= 'i5a')) then
+if (all(s%plot_page%template%name /= 'i5a')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1589,9 +1589,9 @@ endif
 !---------------
 ! i5b
 
-if (all(s%plotting%template%name /= 'i5b')) then
+if (all(s%plot_page%template%name /= 'i5b')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1616,9 +1616,9 @@ endif
 !---------------
 ! Lat Layout plot
 
-if (all(s%plotting%template%name /= 'lat_layout')) then
+if (all(s%plot_page%template%name /= 'lat_layout')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1643,9 +1643,9 @@ endif
 !---------------
 ! Orbit plot
 
-if (all(s%plotting%template%name /= 'orbit')) then
+if (all(s%plot_page%template%name /= 'orbit')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1679,9 +1679,9 @@ endif
 !---------------
 ! photon_intensity
 
-if (all(s%plotting%template%name /= 'photon_intensity')) then
+if (all(s%plot_page%template%name /= 'photon_intensity')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1707,9 +1707,9 @@ endif
 !---------------
 ! Momentum
 
-if (all(s%plotting%template%name /= 'momentum')) then
+if (all(s%plot_page%template%name /= 'momentum')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1733,9 +1733,9 @@ endif
 !---------------
 ! momentum_compaction
 
-if (all(s%plotting%template%name /= 'momentum_compaction')) then
+if (all(s%plot_page%template%name /= 'momentum_compaction')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1759,9 +1759,9 @@ endif
 !---------------
 ! phase
 
-if (all(s%plotting%template%name /= 'phase')) then
+if (all(s%plot_page%template%name /= 'phase')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1794,9 +1794,9 @@ endif
 !---------------
 ! pz
 
-if (all(s%plotting%template%name /= 'pz')) then
+if (all(s%plot_page%template%name /= 'pz')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1820,9 +1820,9 @@ endif
 !---------------
 ! sr energy loss
 
-if (all(s%plotting%template%name /= 'sr_energy_loss')) then
+if (all(s%plot_page%template%name /= 'sr_energy_loss')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1847,9 +1847,9 @@ endif
 !---------------
 ! time
 
-if (all(s%plotting%template%name /= 'time')) then
+if (all(s%plot_page%template%name /= 'time')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1873,9 +1873,9 @@ endif
 !---------------
 ! z
 
-if (all(s%plotting%template%name /= 'z')) then
+if (all(s%plot_page%template%name /= 'z')) then
   np = np + 1
-  plt => s%plotting%template(np)
+  plt => s%plot_page%template(np)
 
   nullify(plt%r)
   if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1900,7 +1900,7 @@ endif
 !-------------------------------------------------
 ! Scratch plot
 
-plt => s%plotting%template(size(s%plotting%template))
+plt => s%plot_page%template(size(s%plot_page%template))
 
 nullify(plt%r)
 if (allocated(plt%graph)) deallocate (plt%graph)
@@ -1910,34 +1910,34 @@ plt%name = 'scratch'
 !-------------------------------------------------
 ! Regions
 
-if (.not. allocated(s%plotting%region)) then
-  allocate (s%plotting%region(20))
+if (.not. allocated(s%plot_page%region)) then
+  allocate (s%plot_page%region(20))
   nr = 0
 else
-  nr = size(s%plotting%region)
-  call move_alloc (s%plotting%region, temp_region)
-  allocate (s%plotting%region(nr + 20))
-  s%plotting%region(1:nr) = temp_region
+  nr = size(s%plot_page%region)
+  call move_alloc (s%plot_page%region, temp_region)
+  allocate (s%plot_page%region(nr + 20))
+  s%plot_page%region(1:nr) = temp_region
   deallocate(temp_region)
 endif
 
 y_layout = 0.15
 
-if (all(s%plotting%region(:)%name /= 'layout')) then
-  s%plotting%region(1)%name = 'layout'
+if (all(s%plot_page%region(:)%name /= 'layout')) then
+  s%plot_page%region(1)%name = 'layout'
   nr = nr + 1
-  s%plotting%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+  s%plot_page%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
 endif
 
 do i = 1, 4
   do j = 1, i
     write (name, '(a, 2i0)') 'r', j, i
-    if (any(s%plotting%region(:)%name == name)) cycle
+    if (any(s%plot_page%region(:)%name == name)) cycle
     nr = nr + 1
-    s%plotting%region(nr)%name = name
+    s%plot_page%region(nr)%name = name
     y1 = y_layout + (1 - y_layout) * real(i-j)/ i
     y2 = y_layout + (1 - y_layout) * real(i-j+1) / i
-    s%plotting%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
+    s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, y1, y2]
   enddo
 enddo
 

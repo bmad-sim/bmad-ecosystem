@@ -46,22 +46,22 @@ if (.not. s%global%plot_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 if (logic_option(.true., do_clear)) call qp_clear_page
 
-h = s%plotting%text_height
+h = s%plot_page%text_height
 call qp_set_text_attrib ('TEXT', height = h)
-call qp_set_text_attrib ('MAIN_TITLE', height = h * s%plotting%main_title_text_scale)
-call qp_set_text_attrib ('GRAPH_TITLE', height = h * s%plotting%graph_title_text_scale)
-call qp_set_text_attrib ('LEGEND', height = h * s%plotting%legend_text_scale)
-call qp_set_text_attrib ('AXIS_NUMBERS', height = h * s%plotting%axis_number_text_scale)
-call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plotting%axis_label_text_scale)
+call qp_set_text_attrib ('MAIN_TITLE', height = h * s%plot_page%main_title_text_scale)
+call qp_set_text_attrib ('GRAPH_TITLE', height = h * s%plot_page%graph_title_text_scale)
+call qp_set_text_attrib ('LEGEND', height = h * s%plot_page%legend_text_scale)
+call qp_set_text_attrib ('AXIS_NUMBERS', height = h * s%plot_page%axis_number_text_scale)
+call qp_set_text_attrib ('AXIS_LABEL', height = h * s%plot_page%axis_label_text_scale)
 
 ! print the title 
 
-h = s%plotting%text_height * s%plotting%main_title_text_scale
-do i = 1, size(s%plotting%title)
-  if (s%plotting%title(i)%draw_it)                                         &
-    call qp_draw_text (s%plotting%title(i)%string, s%plotting%title(i)%x, &
-                     s%plotting%title(i)%y, s%plotting%title(i)%units,    &
-                     s%plotting%title(i)%justify, height = h)
+h = s%plot_page%text_height * s%plot_page%main_title_text_scale
+do i = 1, size(s%plot_page%title)
+  if (s%plot_page%title(i)%draw_it)                                         &
+    call qp_draw_text (s%plot_page%title(i)%string, s%plot_page%title(i)%x, &
+                     s%plot_page%title(i)%y, s%plot_page%title(i)%units,    &
+                     s%plot_page%title(i)%justify, height = h)
 enddo
 
 ! Draw view universe
@@ -73,16 +73,16 @@ endif
 
 ! loop over all plots
 
-do i = 1, size(s%plotting%region)
+do i = 1, size(s%plot_page%region)
 
-  if (.not. s%plotting%region(i)%visible) cycle
-  plot => s%plotting%region(i)%plot
+  if (.not. s%plot_page%region(i)%visible) cycle
+  plot => s%plot_page%region(i)%plot
 
   ! set the s%plot_page border for this particular region
 
-  location = s%plotting%region(i)%location
+  location = s%plot_page%region(i)%location
   border1%units = '%PAGE'
-  call qp_convert_rectangle_rel (s%plotting%border, border1)
+  call qp_convert_rectangle_rel (s%plot_page%border, border1)
   dx = 1 - (border1%x2 - border1%x1)
   dy = 1 - (border1%y2 - border1%y1)
   border2%x1 = border1%x1 + dx * location(1)
@@ -259,7 +259,7 @@ call qp_set_layout (box = graph%box, margin = graph%margin)
 
 call qp_get_layout_attrib ('GRAPH', x1, x2, y1, y2, 'POINTS/GRAPH')
 y_here = y2  ! start from the top of the graph
-height = s%plotting%text_height * s%plotting%key_table_text_scale
+height = s%plot_page%text_height * s%plot_page%key_table_text_scale
 
 
 i_off = s%com%ix_key_bank
@@ -373,7 +373,7 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%floor_plan%ele_shape)
+    ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%floor_plan%ele_shape)
     if (ele%ix_ele > lat%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
@@ -388,8 +388,8 @@ enddo
 
 ! Draw data
 
-do i = 1, size(s%plotting%floor_plan%ele_shape)
-  ele_shape => s%plotting%floor_plan%ele_shape(i)
+do i = 1, size(s%plot_page%floor_plan%ele_shape)
+  ele_shape => s%plot_page%floor_plan%ele_shape(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
   if (.not. ele_shape%draw) cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
@@ -407,8 +407,8 @@ enddo
 
 ! Draw variables
 
-do i = 1, size(s%plotting%floor_plan%ele_shape)
-  ele_shape => s%plotting%floor_plan%ele_shape(i)
+do i = 1, size(s%plot_page%floor_plan%ele_shape)
+  ele_shape => s%plot_page%floor_plan%ele_shape(i)
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   if (.not. ele_shape%draw) cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
@@ -429,8 +429,8 @@ enddo
 ! Draw the building wall
 
 if (allocated(s%building_wall%section)) then
-  do i = 1, size(s%plotting%floor_plan%ele_shape)
-    ele_shape => s%plotting%floor_plan%ele_shape(i)
+  do i = 1, size(s%plot_page%floor_plan%ele_shape)
+    ele_shape => s%plot_page%floor_plan%ele_shape(i)
     if (ele_shape%ele_name /= 'wall::building') cycle
     if (.not. ele_shape%draw) cycle
     call qp_translate_to_color_index (ele_shape%color, icol)
@@ -528,7 +528,7 @@ end subroutine tao_draw_floor_plan
 !   lat          -- lat_struct: Lattice containing the element.
 !   ele          -- ele_struct: Element to draw.
 !   name_in      -- Character(*): If not blank then name to print beside the element.
-!   ele_shape    -- tao_ele_shape_struct: Shape to draw from s%plotting%floor_plan%ele_shape(:) array.
+!   ele_shape    -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
 !                    Will be NULL if no associated shape for this element.
 !   is_data      -- Logical: Are we drawing an actual lattice elment or marking where a Tao datum is being evaluated?
 !-
@@ -671,7 +671,7 @@ endif
 if (.not. ele_shape%draw) return
 call qp_translate_to_color_index (ele_shape%color, icol)
 
-off = ele_shape%size * s%plotting%floor_plan_shape_scale 
+off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = off
 off2 = off
 if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
@@ -797,7 +797,7 @@ endif
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
   drift%key = photon_fork$
   drift%name = ele%name
-  branch_shape => tao_pointer_to_ele_shape (drift, s%plotting%floor_plan%ele_shape)
+  branch_shape => tao_pointer_to_ele_shape (drift, s%plot_page%floor_plan%ele_shape)
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
       call qp_translate_to_color_index (branch_shape%color, ic)
@@ -936,7 +936,7 @@ if (ele_shape%label /= 'none') then
   else
     justify = 'RC'
   endif
-  height = s%plotting%text_height * s%plotting%legend_text_scale
+  height = s%plot_page%text_height * s%plot_page%legend_text_scale
   call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = 'POINTS', &
                                height = height, justify = justify, ANGLE = theta)    
 endif
@@ -1044,8 +1044,8 @@ enddo
 
 ! Draw data
 
-do i = 1, size(s%plotting%lat_layout%ele_shape)
-  ele_shape => s%plotting%lat_layout%ele_shape(i)
+do i = 1, size(s%plot_page%lat_layout%ele_shape)
+  ele_shape => s%plot_page%lat_layout%ele_shape(i)
   if (ele_shape%ele_name(1:5) /= 'dat::') cycle
   if (.not. ele_shape%draw) cycle
   call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
@@ -1060,7 +1060,7 @@ do i = 1, size(s%plotting%lat_layout%ele_shape)
     x0 = datum%s 
     if (x0 > graph%x%max) cycle
     if (x0 < graph%x%min) cycle
-    y1 = ele_shape%size * s%plotting%lat_layout_shape_scale 
+    y1 = ele_shape%size * s%plot_page%lat_layout_shape_scale 
     y1 = max(graph%y%min, min(y1, graph%y%max))
     y2 = -y1
     call qp_convert_point_rel (dummy, y1, 'DATA', dummy, y, 'INCH') 
@@ -1074,8 +1074,8 @@ enddo
 
 ! Draw variables
 
-do i = 1, size(s%plotting%lat_layout%ele_shape)
-  ele_shape => s%plotting%lat_layout%ele_shape(i)
+do i = 1, size(s%plot_page%lat_layout%ele_shape)
+  ele_shape => s%plot_page%lat_layout%ele_shape(i)
   if (.not. ele_shape%draw) cycle
   if (ele_shape%ele_name(1:5) /= 'var::') cycle
   call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
@@ -1163,7 +1163,7 @@ character(*) name_in
 
 ! Draw element shape...
 
-ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%lat_layout%ele_shape)
+ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%lat_layout%ele_shape)
 if (.not. associated(ele_shape)) return
 if (.not. ele_shape%draw) return
 
@@ -1186,7 +1186,7 @@ if (x2 < graph%x%min) return
 ! Here if element is to be drawn...
 ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-y = ele_shape%size * s%plotting%lat_layout_shape_scale 
+y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
 y1 = -y
 y2 =  y
 if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
@@ -1285,7 +1285,7 @@ if (s%global%label_lattice_elements .and. ele_shape%label /= 'none') then
   endif 
 
   if (s_pos > graph%x%max .and. s_pos-lat_len > graph%x%min) s_pos = s_pos - lat_len
-  height = s%plotting%text_height * s%plotting%legend_text_scale
+  height = s%plot_page%text_height * s%plot_page%legend_text_scale
   call qp_draw_text (name, s_pos, graph%y%min-y_off, height = height, justify = 'LC', ANGLE = 90.0_rp)
 
 endif
@@ -1380,7 +1380,7 @@ if (associated(ele%wall3d)) then
   do section_id = 2, size(ele%wall3d%section)
     x2 = ele%s - ele%value(l$) + ele%wall3d%section(section_id)%s
     if (section_id /= size(ele%wall3d%section) .and. &
-            (x2 - x1) < (graph%x%max - graph%x%min) / s%plotting%n_curve_pts) cycle
+            (x2 - x1) < (graph%x%max - graph%x%min) / s%plot_page%n_curve_pts) cycle
     call calc_wall_radius (ele%wall3d%section(section_id)%v,  1.0_rp, 0.0_rp,  y2_plus, dummy)
     call calc_wall_radius (ele%wall3d%section(section_id)%v, -1.0_rp, 0.0_rp,  y2_minus, dummy)
     !scale wall
@@ -1628,8 +1628,8 @@ enddo
 
 if (graph%draw_curve_legend .and. n > 1) then
   call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
-            graph%curve_legend_origin%units, line, s%plotting%curve_legend_line_len, &
-            symbol, text, s%plotting%curve_legend_text_offset)
+            graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
+            symbol, text, s%plot_page%curve_legend_text_offset)
 endif
 
 ! Draw any curve info messages

@@ -62,9 +62,9 @@ y_max = y_max_in
 ! If the where argument is blank or '*', then scale all plots.
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
-  do j = 1, size(s%plotting%region)
-    if (.not. s%plotting%region(j)%visible) cycle
-    call tao_scale_plot (s%plotting%region(j)%plot, y_min, y_max, axis, gang)
+  do j = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(j)%visible) cycle
+    call tao_scale_plot (s%plot_page%region(j)%plot, y_min, y_max, axis, gang)
   enddo
   return
 endif
@@ -278,8 +278,8 @@ if (graph%type == 'floor_plan') then
   enddo
 
   if (allocated(s%building_wall%section)) then
-    do i = 1, size(s%plotting%floor_plan%ele_shape)
-      shape => s%plotting%floor_plan%ele_shape(i)
+    do i = 1, size(s%plot_page%floor_plan%ele_shape)
+      shape => s%plot_page%floor_plan%ele_shape(i)
       if (shape%ele_name /= 'wall::building') cycle
       if (.not. shape%draw) cycle
       do j = 1, size(s%building_wall%section)

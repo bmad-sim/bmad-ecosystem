@@ -34,10 +34,10 @@ endif
 ! If the where argument is blank then axis all graphs
 
 if (len_trim(where) == 0 .or. where == '*' .or. where == 'all') then
-  do j = 1, size(s%plotting%region)
-    if (.not. s%plotting%region(j)%visible) cycle
-    s%plotting%region(j)%plot%x_axis_type = what
-    call tao_x_scale_plot (s%plotting%region(j)%plot, 0.0_rp, 0.0_rp)
+  do j = 1, size(s%plot_page%region)
+    if (.not. s%plot_page%region(j)%visible) cycle
+    s%plot_page%region(j)%plot%x_axis_type = what
+    call tao_x_scale_plot (s%plot_page%region(j)%plot, 0.0_rp, 0.0_rp)
   enddo
   return
 endif

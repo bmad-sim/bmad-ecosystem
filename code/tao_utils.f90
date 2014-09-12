@@ -502,14 +502,14 @@ endif
 
 err = .false.
 
-call match_word (plot_name, s%plotting%region%name, ix, .true.)
+call match_word (plot_name, s%plot_page%region%name, ix, .true.)
 
 if (ix < 1) then
   if (logic_option(.true., print_flag)) call out_io (s_error$, r_name, &
                                     'PLOT LOCATION NOT FOUND: ' // plot_name)
   err = .true.
 else
-  region => s%plotting%region(ix)  
+  region => s%plot_page%region(ix)  
 endif
 
 end subroutine tao_find_plot_region
@@ -623,15 +623,15 @@ endif
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plotting%region)
-    if (index(s%plotting%region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plotting%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+  do i = 1, size(s%plot_page%region)
+    if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
-  do i = 1, size(s%plotting%template)
-    if (index(s%plotting%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
+  do i = 1, size(s%plot_page%template)
+    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') np = np + 1
   enddo
 endif
 
@@ -652,20 +652,20 @@ if (present(plot)) allocate(plot(np))
 np = 0
 
 if (where == 'REGION' .or. where == 'BOTH') then
-  do i = 1, size(s%plotting%region)
-    if (index(s%plotting%region(i)%name, trim(plot_name)) == 1 .or. &
-        index(s%plotting%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
+  do i = 1, size(s%plot_page%region)
+    if (index(s%plot_page%region(i)%name, trim(plot_name)) == 1 .or. &
+        index(s%plot_page%region(i)%plot%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%plotting%region(i)%plot
+      p(np)%p => s%plot_page%region(i)%plot
     endif
   enddo
 endif
 
 if (where == 'TEMPLATE' .or. (where == 'BOTH' .and. np == 0)) then
-  do i = 1, size(s%plotting%template)
-    if (index(s%plotting%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
+  do i = 1, size(s%plot_page%template)
+    if (index(s%plot_page%template(i)%name, trim(plot_name)) == 1 .or. plot_name == '*') then
       np = np + 1
-      p(np)%p => s%plotting%template(i)
+      p(np)%p => s%plot_page%template(i)
     endif
   enddo
 endif
@@ -3123,12 +3123,12 @@ s%u(:)%picked2_uni = s%u(:)%calc%chrom_for_plotting
 s%u(:)%calc%rad_int_for_plotting = .false.
 s%u(:)%calc%chrom_for_plotting   = .false.
 
-do i = 1, size(s%plotting%region)
-  if (.not. s%plotting%region(i)%visible) cycle
-  if (.not. allocated(s%plotting%region(i)%plot%graph)) cycle
+do i = 1, size(s%plot_page%region)
+  if (.not. s%plot_page%region(i)%visible) cycle
+  if (.not. allocated(s%plot_page%region(i)%plot%graph)) cycle
 
-  do j = 1, size(s%plotting%region(i)%plot%graph)
-    graph => s%plotting%region(i)%plot%graph(j)
+  do j = 1, size(s%plot_page%region(i)%plot%graph)
+    graph => s%plot_page%region(i)%plot%graph(j)
     if (.not. allocated(graph%curve)) cycle
 
     do k = 1, size(graph%curve)

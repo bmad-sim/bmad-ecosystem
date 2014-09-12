@@ -79,7 +79,7 @@ logical shape_drawn
 
 shape_drawn = .false.
 
-ele_shape => tao_pointer_to_ele_shape (ele, s%plotting%floor_plan%ele_shape)
+ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%floor_plan%ele_shape)
 if (.not. associated(ele_shape)) return
 if (.not. ele_shape%draw) return
 if (ele%value(x1_limit$) == 0) return

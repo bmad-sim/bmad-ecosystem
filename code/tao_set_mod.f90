@@ -731,12 +731,12 @@ namelist / params / plot_page
 select case (component)
 
 case ('title')
-  s%plotting%title(1)%string = trim(set_value)
+  s%plot_page%title(1)%string = trim(set_value)
   return
 
 case ('subtitle')
-  s%plotting%title(2)%string = trim(set_value)
-  s%plotting%title(2)%draw_it = .true.
+  s%plot_page%title(2)%string = trim(set_value)
+  s%plot_page%title(2)%draw_it = .true.
   return
 
 case ('subtitle_loc')
@@ -748,8 +748,8 @@ case ('subtitle_loc')
 
   read(set_value, '(f15.10)') x
   read(set_value2, '(f15.10)') y
-  s%plotting%title(2)%x = x
-  s%plotting%title(2)%y = y
+  s%plot_page%title(2)%x = x
+  s%plot_page%title(2)%y = y
   return
 
 end select
@@ -769,7 +769,7 @@ write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
 write (iu, *) '/'
 rewind (iu)
 
-call tao_set_plotting (plot_page, s%plotting, .false.)
+call tao_set_plotting (plot_page, s%plot_page, .false.)
 
 read (iu, nml = params, iostat = ios)
 close (iu)
@@ -779,7 +779,7 @@ if (ios /= 0) then
   return
 endif
 
-call tao_set_plotting (plot_page, s%plotting, .false.)
+call tao_set_plotting (plot_page, s%plot_page, .false.)
 
 end subroutine tao_set_plot_page_cmd
 

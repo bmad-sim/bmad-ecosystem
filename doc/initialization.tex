@@ -1638,7 +1638,7 @@ namelists should be placed directly after their respective
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
-    graph%floor_plan_rotation    = <num>      ! Rotation of floor plan plot: 1.0 -> 360^deg 
+    graph%floor_plan_rotation    = <num>      ! Rotation of floor plan plot: 1.0 -> 360 deg. 
     graph%floor_plan_view        = <string>   ! View plane for floor plan plot. default = 'zx'
     graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
                                  = <logical>  !   Default = T.
@@ -2119,7 +2119,7 @@ represents looking at the horizontal plane from above. A setting of
 
 An overall rotation of the floor plan can be controlled by setting
 \vn{graph%floor_plan_rotation}. A setting of 1.0 corresponds to
-360^deg. Positive values correspond to counter-clockwise
+360$^\circ$. Positive values correspond to counter-clockwise
 rotations. Example: (\sref{s:init.plot})
 \begin{example}
   &tao_plot_page
