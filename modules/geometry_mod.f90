@@ -199,7 +199,11 @@ else
   stale = .true.
 endif
 
-call ele_geometry (branch%ele(ie-dir)%floor, ele, ele%floor, real(dir, rp))
+if (dir == 1) then
+  call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp)
+else
+  call ele_geometry (branch%ele(ie+1)%floor, branch%ele(ie+1), ele%floor, -1.0_rp)
+endif
 
 ! target branch only needs to be recomputed if target branch index is greater than present branch.
 
