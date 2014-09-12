@@ -31,18 +31,18 @@ character(24) :: r_name = 'tao_create_plot_window'
 
   has_been_created = .true.
 
-  call qp_open_page (s%plotting%plot_display_type, s%plotting%id_window, &
-                                s%plotting%size(1), s%plotting%size(2), 'POINTS')
-  call qp_set_layout (page_border = s%plotting%border)
+  call qp_open_page (s%plot_page%plot_display_type, s%plot_page%id_window, &
+                                s%plot_page%size(1), s%plot_page%size(2), 'POINTS')
+  call qp_set_layout (page_border = s%plot_page%border)
 
   ! Set default font size
 
-  call qp_set_text_attrib ("TEXT",  height = s%plotting%text_height) 
-  call qp_set_text_attrib ("MAIN_TITLE",  height = s%plotting%text_height) 
-  call qp_set_text_attrib ("GRAPH_TITLE",  height = s%plotting%text_height) 
-  call qp_set_text_attrib ("AXIS_LABEL",  height = s%plotting%text_height) 
-  call qp_set_text_attrib ("AXIS_NUMBERS",  height = s%plotting%text_height) 
-  call qp_set_text_attrib ("LEGEND",  height = s%plotting%text_height) 
+  call qp_set_text_attrib ("TEXT",  height = s%plot_page%text_height) 
+  call qp_set_text_attrib ("MAIN_TITLE",  height = s%plot_page%text_height) 
+  call qp_set_text_attrib ("GRAPH_TITLE",  height = s%plot_page%text_height) 
+  call qp_set_text_attrib ("AXIS_LABEL",  height = s%plot_page%text_height) 
+  call qp_set_text_attrib ("AXIS_NUMBERS",  height = s%plot_page%text_height) 
+  call qp_set_text_attrib ("LEGEND",  height = s%plot_page%text_height) 
 
 end subroutine tao_create_plot_window
 

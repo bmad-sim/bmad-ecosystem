@@ -322,17 +322,17 @@ if (allocated(s%key)) deallocate(s%key, stat=istat)
 
 ! Plotting  
 
-if (allocated(s%plotting%region)) deallocate (s%plotting%region)
+if (allocated(s%plot_page%region)) deallocate (s%plot_page%region)
 
-do i = 1, size(s%plotting%template)
-  plot => s%plotting%template(i)
+do i = 1, size(s%plot_page%template)
+  plot => s%plot_page%template(i)
   if (.not. allocated (plot%graph)) cycle
   deallocate(plot%graph, stat=istat)
 enddo
-deallocate (s%plotting%template)
+deallocate (s%plot_page%template)
 
-if (allocated(s%plotting%lat_layout%ele_shape)) deallocate (s%plotting%lat_layout%ele_shape)
-if (allocated(s%plotting%floor_plan%ele_shape)) deallocate (s%plotting%floor_plan%ele_shape)
+if (allocated(s%plot_page%lat_layout%ele_shape)) deallocate (s%plot_page%lat_layout%ele_shape)
+if (allocated(s%plot_page%floor_plan%ele_shape)) deallocate (s%plot_page%floor_plan%ele_shape)
 if (allocated(s%com%covar))                deallocate (s%com%covar, s%com%alpha)
 
 ! Universes 

@@ -35,8 +35,8 @@ this_merit =  tao_merit()
 
 call tao_plot_setup()       ! transfer data to the plotting structures
 call tao_hook_plot_setup()
-do i = 1, size(s%plotting%region)
-  r => s%plotting%region(i)
+do i = 1, size(s%plot_page%region)
+  r => s%plot_page%region(i)
   if (.not. r%visible) cycle
   if (r%plot%autoscale_x)   call tao_x_scale_plot (r%plot, 0.0_rp, 0.0_rp)
   if (r%plot%autoscale_y)   call tao_scale_plot (r%plot, 0.0_rp, 0.0_rp)

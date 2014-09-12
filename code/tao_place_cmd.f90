@@ -3,16 +3,16 @@
 !
 ! Subroutine to determine the placement of a plot in the plot window.
 ! The appropriate s%tamplate_plot(i) determined by the who argument is
-! transfered to the appropriate s%plotting%plot(j) determined by the where
+! transfered to the appropriate s%plot_page%plot(j) determined by the where
 ! argument.
 !
 ! Input:
-!   s%plotting%template(i) -- template matched to who.
+!   s%plot_page%template(i) -- template matched to who.
 !   where -- Character(*): Region where the plot goes. Eg: 'top'.
 !   who   -- Character(*): Type of plot. Eg: 'orbit'.
 !
 ! Output
-!   s%plotting%plot(j) -- Plot matched to where.
+!   s%plot_page%plot(j) -- Plot matched to where.
 !-
 
 subroutine tao_place_cmd (where, who)
@@ -38,8 +38,8 @@ character(20) :: r_name = 'tao_place_cmd'
 ! The plot pointer will point to the plot associated with the region.
 
 if (where == '*' .and. who == 'none') then
-  do i = 1, size(s%plotting%region)
-    s%plotting%region(i)%visible = .false.
+  do i = 1, size(s%plot_page%region)
+    s%plot_page%region(i)%visible = .false.
   enddo
   return
 endif
@@ -91,10 +91,10 @@ enddo
 ! an existing 's' graph. First find an existing graph.
 
 nullify(ax)
-do i = 1, size(s%plotting%region)
-  if (.not. s%plotting%region(i)%visible) cycle
-  if (s%plotting%region(i)%plot%x_axis_type /= 's') cycle
-  ax => s%plotting%region(i)%plot%graph(1)%x
+do i = 1, size(s%plot_page%region)
+  if (.not. s%plot_page%region(i)%visible) cycle
+  if (s%plot_page%region(i)%plot%x_axis_type /= 's') cycle
+  ax => s%plot_page%region(i)%plot%graph(1)%x
   exit
 enddo
 

@@ -2205,8 +2205,8 @@ case ('plot')
     nl=nl+1; lines(nl) = &
           '----------  ----------------------------    --------      -----           ----  -----  ----'
 
-    do i = 1, size(s%plotting%floor_plan%ele_shape)
-      shape => s%plotting%floor_plan%ele_shape(i)
+    do i = 1, size(s%plot_page%floor_plan%ele_shape)
+      shape => s%plot_page%floor_plan%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
@@ -2227,8 +2227,8 @@ case ('plot')
     nl=nl+1; lines(nl) = &
           '----------  ----------------------------    --------      -----           ----  -----  ----'
 
-    do i = 1, size(s%plotting%lat_layout%ele_shape)
-      shape => s%plotting%lat_layout%ele_shape(i)
+    do i = 1, size(s%plot_page%lat_layout%ele_shape)
+      shape => s%plot_page%lat_layout%ele_shape(i)
       if (shape%ele_name == '') cycle
       nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
                 'shape', i, shape%ele_name(1:32), shape%shape(1:14), shape%color(1:10), &
@@ -2244,24 +2244,24 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write(lines(nl), imt)  '  %size                       = ', nint(s%plotting%size)
-    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                = ', s%plotting%n_curve_pts
-    nl=nl+1; write(lines(nl), f3mt) '  %text_height                = ', s%plotting%text_height 
-    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale      = ', s%plotting%main_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale       = ', s%plotting%key_table_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %legend_text_scale          = ', s%plotting%legend_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale     = ', s%plotting%floor_plan_shape_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale     = ', s%plotting%lat_layout_shape_scale 
+    nl=nl+1; write(lines(nl), imt)  '  %size                       = ', nint(s%plot_page%size)
+    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                = ', s%plot_page%n_curve_pts
+    nl=nl+1; write(lines(nl), f3mt) '  %text_height                = ', s%plot_page%text_height 
+    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale      = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale     = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale     = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale       = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %legend_text_scale          = ', s%plot_page%legend_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale     = ', s%plot_page%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale     = ', s%plot_page%lat_layout_shape_scale 
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
     nl=nl+1; lines(nl) = '   Plot                          .Graph                   Description        '
     nl=nl+1; lines(nl) = '   ----------------------------  -----------------------  -------------------'
-    do i = 1, size(s%plotting%template)
-      p => s%plotting%template(i)
+    do i = 1, size(s%plot_page%template)
+      p => s%plot_page%template(i)
       if (p%name == '') cycle
       if (p%name == 'scratch') cycle
       if (allocated(p%graph)) then
@@ -2280,8 +2280,8 @@ case ('plot')
                          '         <-->  Template             x1    x2    y1    y2'  
     nl=nl+1; lines(nl) = '-------  -----------' // &
                          '               -----------------------------------------'
-    do i = 1, size(s%plotting%region)
-      region => s%plotting%region(i)
+    do i = 1, size(s%plot_page%region)
+      region => s%plot_page%region(i)
       if (region%name == '') cycle
       nl=nl+1; write(lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
                                     region%name, '<-->  ', region%plot%name, region%location

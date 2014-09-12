@@ -625,8 +625,8 @@ case ('plot1')
 
 case ('plot_visible')
 
-  do i = 1, size(s%plotting%region)
-    region => s%plotting%region(i)
+  do i = 1, size(s%plot_page%region)
+    region => s%plot_page%region(i)
     if (region%name == '') cycle
     if (.not. region%visible) cycle
     nl=nl+1; write (ss%lines(nl), '(2a)') trim(region%plot%name), ';'
@@ -639,8 +639,8 @@ case ('plot_visible')
 ! Output syntax:
 
 case ('plot_template')
-  do i = 1, size(s%plotting%template)
-    p => s%plotting%template(i)
+  do i = 1, size(s%plot_page%template)
+    p => s%plot_page%template(i)
     if (p%name == '') cycle
     if (p%name == 'scratch') cycle
     if (allocated(p%graph)) then

@@ -31,9 +31,9 @@ logical err
 err = .true.
 
 if (where == '*' .or. where == 'all') then
-  do i = 1, size(s%plotting%region)
-    do j = 1, size(s%plotting%region(i)%plot%graph)
-      s%plotting%region(i)%plot%graph(j)%component = component
+  do i = 1, size(s%plot_page%region)
+    do j = 1, size(s%plot_page%region(i)%plot%graph)
+      s%plot_page%region(i)%plot%graph(j)%component = component
     enddo
   enddo
 
