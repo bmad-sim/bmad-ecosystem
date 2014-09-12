@@ -162,7 +162,7 @@ type (tao_ele_shape_struct), pointer :: shape
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele
+type (ele_struct), pointer :: ele, ele1
 type (ele_struct), target :: ele3, ele0
 type (bunch_struct), pointer :: bunch
 type (wake_lr_struct), pointer :: lr
@@ -542,24 +542,24 @@ case ('branch')
     endif
 
   else
-    nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele  Ix_From  From                Ix_From  From '
-    nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch  Branch                  Ele  Ele'
+    nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele   From                From                To'
+    nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch              Fork_Ele            Ele'
 
 
     branch => lat%branch(0)
-    nl=nl+1; write(lines(nl), '(i6, 2x, a21, i6, i7)') &
-                  0, branch%name, branch%n_ele_track, branch%n_ele_max
+    nl=nl+1; write(lines(nl), '(i6, 2x, a21, i6, i7)') 0, branch%name, branch%n_ele_track, branch%n_ele_max
 
-    fmt = '(i6, 2x, a21, i6, i7, i9, 3x, a20, i6, 3x, a)'
+    fmt = '(i6, 2x, a21, i6, i7, 3x (i0, 1x, a20), t66, (i0, 1x, a20), t86, (i0, 1x, a))'
     do i = 1, ubound(lat%branch, 1)
       branch => lat%branch(i)
       if (branch%ix_from_ele < 0) then
-        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
-                  branch%ix_from_branch
+        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, branch%ix_from_branch
       else
         ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
+        ele1 => pointer_to_next_ele (ele, 1, follow_fork = .true.)
         nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
-                  branch%ix_from_branch, lat%branch(ele%ix_branch)%name, ele%ix_ele, ele%name
+                  branch%ix_from_branch, lat%branch(ele%ix_branch)%name, &
+                  ele%ix_ele, ele%name, ele1%ix_ele, ele1%name
       endif
     enddo
   endif
@@ -1365,55 +1365,57 @@ case ('graph')
       nl=nl+1; lines(nl) = 'Region.Graph: ' // trim(g%p%name) // '.' // trim(g%name)
     endif
     nl=nl+1; lines(nl) = 'Plot.Graph:   ' // trim(g%p%name) // '.' // trim(g%name)
-    nl=nl+1; write(lines(nl), amt) 'type                  = ', g%type
-    nl=nl+1; write(lines(nl), amt) 'title                 = ', g%title
-    nl=nl+1; write(lines(nl), amt) 'title_suffix          = ', g%title_suffix
-    nl=nl+1; write(lines(nl), amt) 'component             = ', g%component
+    nl=nl+1; write(lines(nl), amt)  'type                  = ', g%type
+    nl=nl+1; write(lines(nl), amt)  'title                 = ', g%title
+    nl=nl+1; write(lines(nl), amt)  'title_suffix          = ', g%title_suffix
+    nl=nl+1; write(lines(nl), amt)  'component             = ', g%component
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'margin                = ', g%margin
     nl=nl+1; write(lines(nl), '(a, 4f10.2, 2x, a)') &
                                     'scale_margin          = ', g%scale_margin
-    nl=nl+1; write(lines(nl), imt) 'box                   = ', g%box
-    nl=nl+1; write(lines(nl), imt) 'ix_universe           = ', g%ix_universe
-    nl=nl+1; write(lines(nl), lmt) 'valid                 = ', g%valid
+    nl=nl+1; write(lines(nl), imt)  'box                   = ', g%box
+    nl=nl+1; write(lines(nl), imt)  'ix_universe           = ', g%ix_universe
+    nl=nl+1; write(lines(nl), lmt)  'valid                 = ', g%valid
 
-    nl=nl+1; write(lines(nl), rmt) 'x_axis_scale_factor   = ', g%x_axis_scale_factor
-    nl=nl+1; write(lines(nl), rmt) 'symbol_size_scale     = ', g%symbol_size_scale
-    nl=nl+1; write(lines(nl), amt) 'x%label               = ', g%x%label
-    nl=nl+1; write(lines(nl), rmt) 'x%max                 = ', g%x%max
-    nl=nl+1; write(lines(nl), rmt) 'x%min                 = ', g%x%min
-    nl=nl+1; write(lines(nl), imt) 'x%major_div           = ', g%x%major_div
-    nl=nl+1; write(lines(nl), imt) 'x%major_div_nominal   = ', g%x%major_div_nominal
-    nl=nl+1; write(lines(nl), imt) 'x%places              = ', g%x%places
-    nl=nl+1; write(lines(nl), lmt) 'x%draw_label          = ', g%x%draw_label
-    nl=nl+1; write(lines(nl), lmt) 'x%draw_numbers        = ', g%x%draw_numbers
+    nl=nl+1; write(lines(nl), rmt)  'x_axis_scale_factor   = ', g%x_axis_scale_factor
+    nl=nl+1; write(lines(nl), rmt)  'symbol_size_scale     = ', g%symbol_size_scale
+    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view      = ', g%floor_plan_view
+    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation  = ', g%floor_plan_rotation
+    nl=nl+1; write(lines(nl), amt)  'x%label               = ', g%x%label
+    nl=nl+1; write(lines(nl), rmt)  'x%max                 = ', g%x%max
+    nl=nl+1; write(lines(nl), rmt)  'x%min                 = ', g%x%min
+    nl=nl+1; write(lines(nl), imt)  'x%major_div           = ', g%x%major_div
+    nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal   = ', g%x%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'x%places              = ', g%x%places
+    nl=nl+1; write(lines(nl), lmt)  'x%draw_label          = ', g%x%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers        = ', g%x%draw_numbers
 
-    nl=nl+1; write(lines(nl), lmt) 'y2_mirrors_y          = ', g%y2_mirrors_y
-    nl=nl+1; write(lines(nl), amt) 'y%label               = ', g%y%label
-    nl=nl+1; write(lines(nl), rmt) 'y%label_offset        = ', g%y%label_offset
-    nl=nl+1; write(lines(nl), rmt) 'y%max                 = ', g%y%max
-    nl=nl+1; write(lines(nl), rmt) 'y%min                 = ', g%y%min
-    nl=nl+1; write(lines(nl), imt) 'y%major_div           = ', g%y%major_div
-    nl=nl+1; write(lines(nl), imt) 'y%major_div_nominal   = ', g%y%major_div_nominal
-    nl=nl+1; write(lines(nl), imt) 'y%places              = ', g%y%places
-    nl=nl+1; write(lines(nl), lmt) 'y%draw_label          = ', g%y%draw_label
-    nl=nl+1; write(lines(nl), lmt) 'y%draw_numbers        = ', g%y%draw_numbers
+    nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y          = ', g%y2_mirrors_y
+    nl=nl+1; write(lines(nl), amt)  'y%label               = ', g%y%label
+    nl=nl+1; write(lines(nl), rmt)  'y%label_offset        = ', g%y%label_offset
+    nl=nl+1; write(lines(nl), rmt)  'y%max                 = ', g%y%max
+    nl=nl+1; write(lines(nl), rmt)  'y%min                 = ', g%y%min
+    nl=nl+1; write(lines(nl), imt)  'y%major_div           = ', g%y%major_div
+    nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal   = ', g%y%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'y%places              = ', g%y%places
+    nl=nl+1; write(lines(nl), lmt)  'y%draw_label          = ', g%y%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers        = ', g%y%draw_numbers
 
-    nl=nl+1; write(lines(nl), amt) 'y2%label              = ', g%y2%label
-    nl=nl+1; write(lines(nl), rmt) 'y2%label_offset       = ', g%y2%label_offset
-    nl=nl+1; write(lines(nl), rmt) 'y2%max                = ', g%y2%max
-    nl=nl+1; write(lines(nl), rmt) 'y2%min                = ', g%y2%min
-    nl=nl+1; write(lines(nl), imt) 'y2%major_div          = ', g%y2%major_div
-    nl=nl+1; write(lines(nl), imt) 'y2%major_div_nominal  = ', g%y2%major_div_nominal
-    nl=nl+1; write(lines(nl), imt) 'y2%places             = ', g%y2%places
-    nl=nl+1; write(lines(nl), lmt) 'y2%draw_label         = ', g%y2%draw_label
-    nl=nl+1; write(lines(nl), lmt) 'y2%draw_numbers       = ', g%y2%draw_numbers
-    nl=nl+1; write(lines(nl), lmt) 'limited               = ', g%limited
-    nl=nl+1; write(lines(nl), lmt) 'clip                  = ', g%clip
-    nl=nl+1; write(lines(nl), lmt) 'draw_axes             = ', g%draw_axes
-    nl=nl+1; write(lines(nl), lmt) 'draw_grid             = ', g%draw_grid
-    nl=nl+1; write(lines(nl), lmt) 'correct_xy_distortion = ', g%correct_xy_distortion
-    nl=nl+1; write(lines(nl), lmt) 'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
+    nl=nl+1; write(lines(nl), amt)  'y2%label              = ', g%y2%label
+    nl=nl+1; write(lines(nl), rmt)  'y2%label_offset       = ', g%y2%label_offset
+    nl=nl+1; write(lines(nl), rmt)  'y2%max                = ', g%y2%max
+    nl=nl+1; write(lines(nl), rmt)  'y2%min                = ', g%y2%min
+    nl=nl+1; write(lines(nl), imt)  'y2%major_div          = ', g%y2%major_div
+    nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal  = ', g%y2%major_div_nominal
+    nl=nl+1; write(lines(nl), imt)  'y2%places             = ', g%y2%places
+    nl=nl+1; write(lines(nl), lmt)  'y2%draw_label         = ', g%y2%draw_label
+    nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers       = ', g%y2%draw_numbers
+    nl=nl+1; write(lines(nl), lmt)  'limited               = ', g%limited
+    nl=nl+1; write(lines(nl), lmt)  'clip                  = ', g%clip
+    nl=nl+1; write(lines(nl), lmt)  'draw_axes             = ', g%draw_axes
+    nl=nl+1; write(lines(nl), lmt)  'draw_grid             = ', g%draw_grid
+    nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion = ', g%correct_xy_distortion
+    nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
     nl=nl+1; lines(nl) = 'Curves:'
     do i = 1, size(g%curve)
       nl=nl+1; write(lines(nl), amt) '   ', g%curve(i)%name
@@ -2197,10 +2199,6 @@ case ('plot')
 
   if (what == '-floor_plan') then
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = 'Plot_page parameters:'
-    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
-    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
-    nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
           'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
@@ -2246,17 +2244,17 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write(lines(nl), imt)  '%size                       = ', nint(s%plotting%size)
-    nl=nl+1; write(lines(nl), imt)  '%n_curve_pts                = ', s%plotting%n_curve_pts
-    nl=nl+1; write(lines(nl), f3mt) '%text_height                = ', s%plotting%text_height 
-    nl=nl+1; write(lines(nl), f3mt) '%main_title_text_scale      = ', s%plotting%main_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%key_table_text_scale       = ', s%plotting%key_table_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%legend_text_scale          = ', s%plotting%legend_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '%floor_plan_rotation        = ', s%plotting%floor_plan_rotation
-    nl=nl+1; write(lines(nl), amt)  '%floor_plan_view            = ', s%plotting%floor_plan_view
+    nl=nl+1; write(lines(nl), imt)  '  %size                       = ', nint(s%plotting%size)
+    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                = ', s%plotting%n_curve_pts
+    nl=nl+1; write(lines(nl), f3mt) '  %text_height                = ', s%plotting%text_height 
+    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale      = ', s%plotting%main_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale     = ', s%plotting%graph_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale     = ', s%plotting%axis_number_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale      = ', s%plotting%axis_label_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale       = ', s%plotting%key_table_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %legend_text_scale          = ', s%plotting%legend_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale     = ', s%plotting%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale     = ', s%plotting%lat_layout_shape_scale 
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'
@@ -2654,7 +2652,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
   nl=nl+1; write(lines(nl), imt) &
                 'Elements used in tracking: From 1 through ', branch%n_ele_track
-  if (branch%n_ele_max .gt. branch%n_ele_track) then
+  if (branch%n_ele_max > branch%n_ele_track) then
     nl=nl+1; write(lines(nl), '(a, i0, a, i0)') 'Lord elements:   ', &
                       branch%n_ele_track+1, '  through ', branch%n_ele_max
   else

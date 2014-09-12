@@ -1362,8 +1362,6 @@ plots go. The syntax of this block is:
 \index{plot_page!n_curve_pts}
 \index{plot_page!size}
 \index{plot_page!border}
-\index{plot_page%floor_plan_rotation}
-\index{plot_page%floor_plan_view}
 \index{plot_page!text_height}
 \index{plot_page!title}
 \index{region!name}
@@ -1380,9 +1378,9 @@ plots go. The syntax of this block is:
     plot_page%axis_number_text_scale = <num>    ! Relative to text_height. Def = 0.9
     plot_page%axis_label_text_scale  = <num>    ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num>    ! Relative to text_height. Def = 0.8
-    plot_page%floor_plan_rotation    = <num>    ! Rotation of floor plan plot: 1.0 -> 360^deg 
-    plot_page%floor_plan_view        = <string> ! Either: 'xz' (default), 'xy', or 'yz'
     plot_page%key_table_text_scale   = <num>    ! Relative to text_height. Def = 0.9
+    plot_page%floor_plan_shape_scale = <num>    ! Floor_plan shape size scaling.
+    plot_page%lat_layout_shape_scale = <num>    ! Lat_layout shape size scaling.
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
     plot_page%n_curve_pts            = <num>    ! Num points used to construct a 
                                                 !   smooth curve. Default = 401
@@ -1613,7 +1611,9 @@ namelists should be placed directly after their respective
 \index{graph_index}\index{graph}\index{graph!name}\index{curve}
 \index{graph!type}\index{graph!box}\index{graph!title}\index{graph!margin}
 \index{graph!y2}\index{graph!n_curve}\index{graph!clip}\index{graph!component}
-\index{graph%symbol_size_scale}
+\index{graph!symbol_size_scale}
+\index{graph!floor_plan_rotation}
+\index{graph!floor_plan_view}
 \index{curve!data_type}\index{curve!data_source}
 \index{curve!x_axis_units_factor}\index{curve!y_axis_units_factor}
 \index{curve!use_y2}\index{curve!line}\index{curve!ele_ref_name}
@@ -1638,6 +1638,8 @@ namelists should be placed directly after their respective
     graph%component        = "<string>"       ! Eg: "model - design"
     graph%symbol_size_scale      = <real>     ! Phase_space plots symbol scale factor
     graph%correct_xy_distortion  = <logical>  ! For Floor Plan plots: Default = F
+    graph%floor_plan_rotation    = <num>      ! Rotation of floor plan plot: 1.0 -> 360^deg 
+    graph%floor_plan_view        = <string>   ! View plane for floor plan plot. default = 'zx'
     graph%draw_only_good_user_data_or_vars    ! Veto data or variables with good_user = F?
                                  = <logical>  !   Default = T.
     graph%x_axis_scale_factor    = <factor>   ! Scale the x-axis by this.
@@ -2091,7 +2093,7 @@ suppressed by setting
   \label{f:floor.plan}
 \end{figure}
 
-A \vn{Floor Plan} drawing gives a display of the machine projected
+A \vn{floor plan} drawing gives a display of the machine projected
 onto the horizontal plane.  An example is shown in
 Figure~\ref{f:floor.plan}. Like a \vn{Lattice Layout}
 (\sref{s:lat.layout}), Elements are represented by colored rectangles
@@ -2102,27 +2104,26 @@ The placement of an element in the drawing is determined by the
 element's coordinates in \vn{global reference system}.  See the Bmad
 manual for more information on the \vn{global reference system}.  In
 the \vn{global reference system}, the $(Z, X)$ plane is the horizontal
-plane.  The conversion between the $(Z, X)$ coordinates of the
-\vn{global reference system} and the $(x, y)$ coordinates of the floor
-plan plot are:
-\begin{example}
-Global       Plot
-  Z    <--->   x
-  X    <--->   y
-\end{example}
-Drawing a plane other than the horizontal $(Z, X)$ plane can be set using
-the \vn{plot_page%floor_plan_view} switch. Valid settings for this switch are
-\begin{example}
-  'xz'     ! Default
-  'xy'
-  'yz'
-\end{example}
+plane. 
+
+What plane a floor plan is projected onto is determined by the setting
+of the \vn{graph%floor_plan_view} switch. This switch is a two
+character string.  Each character is either 'x', 'y', or 'z' and the
+characters must not be both the same. Default is 'zx'. The first
+character determines which global coordinate are mapped to the
+horizontal axis of the graph and the second character determines which
+global coordinate is mapped to the vertical axis of the graph. There
+are six possible two character combinations. The default 'zx' setting
+represents looking at the horizontal plane from above. A setting of
+'xz' represents looking at the horizontal plane from below. Etc.
+
 An overall rotation of the floor plan can be controlled by setting
-\vn{plot_page%floor_plan_rotation} in the \vn{tao_plot_page} namelist. Example:
-(\sref{s:init.plot})
+\vn{graph%floor_plan_rotation}. A setting of 1.0 corresponds to
+360^deg. Positive values correspond to counter-clockwise
+rotations. Example: (\sref{s:init.plot})
 \begin{example}
   &tao_plot_page
-    plot_page%floor_plan_rotation = 0.5  ! Rotate 180 degress
+    graph%floor_plan_rotation = 0.5  ! Rotate 180 degress
   /
 \end{example}
 
@@ -2158,6 +2159,7 @@ Example Floor Plan template:
     graph%y%max = 2  
     graph%y%min = -1 
     graph%correct_xy_distortion = T
+    graph%floor_plan_view = 'xz'  ! Looking from beneath
   /
 \end{example}
 To prevent the drawing of the axes set \vn{graph%draw_axes} to False.

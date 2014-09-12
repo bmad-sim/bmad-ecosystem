@@ -713,7 +713,7 @@ subroutine tao_set_plot_page_cmd (component, set_value, set_value2)
 
 implicit none
 
-type (tao_plot_page_struct) plot_page
+type (tao_plot_page_input) plot_page
 
 character(*) component, set_value
 character(*), optional :: set_value2
@@ -750,18 +750,6 @@ case ('subtitle_loc')
   read(set_value2, '(f15.10)') y
   s%plotting%title(2)%x = x
   s%plotting%title(2)%y = y
-  return
-
-case ('floor_plan_view')
-
-  select case (set_value)
-  case ('xz', 'yz', 'xy')
-  case default
-    call out_io(s_info$, r_name, "Valid floor_plan_view settings are: xz, yz, xy.")
-    return
-  end select
-
-  s%plotting%floor_plan_view = trim(set_value)
   return
 
 end select
@@ -1088,45 +1076,57 @@ subroutine set_this_graph (this_graph)
 type (tao_graph_struct) this_graph
 type (tao_universe_struct), pointer :: u
 character(40) comp
+character(200) value
 integer iset, iw, ix
 logical logic, error
 
 !
 
 comp = component
+value = remove_quotes(set_value)
 
 select case (comp)
 
   case ('component')
     this_graph%component = set_value
   case ('clip')
-    call tao_logical_set_value (this_graph%clip, comp, set_value, error)
+    call tao_logical_set_value (this_graph%clip, comp, value, error)
   case ('draw_axes')
-    call tao_logical_set_value (this_graph%draw_axes, comp, set_value, error)
+    call tao_logical_set_value (this_graph%draw_axes, comp, value, error)
   case ('draw_grid')
-    call tao_logical_set_value (this_graph%draw_grid, comp, set_value, error)
+    call tao_logical_set_value (this_graph%draw_grid, comp, value, error)
   case ('draw_only_good_user_data_or_vars')
-    call tao_logical_set_value (this_graph%draw_only_good_user_data_or_vars, comp, set_value, error)
+    call tao_logical_set_value (this_graph%draw_only_good_user_data_or_vars, comp, value, error)
   case ('ix_universe')
-    call tao_integer_set_value (this_graph%ix_universe, comp, set_value, error, 1, ubound(s%u, 1))
+    call tao_integer_set_value (this_graph%ix_universe, comp, value, error, 1, ubound(s%u, 1))
   case ('margin%x1')
-    call tao_real_set_value(this_graph%margin%x1, comp, set_value, error)
+    call tao_real_set_value(this_graph%margin%x1, comp, value, error)
   case ('margin%x2')
-    call tao_real_set_value(this_graph%margin%x2, comp, set_value, error)
+    call tao_real_set_value(this_graph%margin%x2, comp, value, error)
   case ('margin%y1')
-    call tao_real_set_value(this_graph%margin%y1, comp, set_value, error)
+    call tao_real_set_value(this_graph%margin%y1, comp, value, error)
   case ('margin%y2')
-    call tao_real_set_value(this_graph%margin%y2, comp, set_value, error)
+    call tao_real_set_value(this_graph%margin%y2, comp, value, error)
+  case ('floor_plan_rotation')
+    call tao_real_set_value(this_graph%floor_plan_rotation, comp, value, error)
   case ('scale_margin%x1')
-    call tao_real_set_value(this_graph%scale_margin%x1, comp, set_value, error)
+    call tao_real_set_value(this_graph%scale_margin%x1, comp, value, error)
   case ('scale_margin%x2')
-    call tao_real_set_value(this_graph%scale_margin%x2, comp, set_value, error)
+    call tao_real_set_value(this_graph%scale_margin%x2, comp, value, error)
   case ('scale_margin%y1')
-    call tao_real_set_value(this_graph%scale_margin%y1, comp, set_value, error)
+    call tao_real_set_value(this_graph%scale_margin%y1, comp, value, error)
   case ('scale_margin%y2')
-    call tao_real_set_value(this_graph%scale_margin%y2, comp, set_value, error)
+    call tao_real_set_value(this_graph%scale_margin%y2, comp, value, error)
   case ('y2_mirrors_y')
-    call tao_logical_set_value (this_graph%y2_mirrors_y, comp, set_value, error)
+    call tao_logical_set_value (this_graph%y2_mirrors_y, comp, value, error)
+  case ('floor_plan_view')
+    select case (value)
+    case ('xy', 'xz', 'yx', 'yz', 'zx', 'zy')
+    case default
+      call out_io(s_info$, r_name, "Valid floor_plan_view settings are: 'xy', 'zx', etc.")
+      return
+    end select
+    this_graph%floor_plan_view = value
 
   case default
     call out_io (s_error$, r_name, "BAD GRAPH COMPONENT: " // component)
