@@ -2252,7 +2252,9 @@ case ('plot')
     nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale     = ', s%plot_page%axis_number_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale       = ', s%plot_page%key_table_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %legend_text_scale          = ', s%plot_page%legend_text_scale 
+    nl=nl+1; write(lines(nl), '(a, f8.3, 3x, a)') &
+                                    '  %legend_text_scale          = ', s%plot_page%legend_text_scale, &
+                                                                        '! For legends, plot_page, and lat_layout' 
     nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale     = ', s%plot_page%floor_plan_shape_scale 
     nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale     = ', s%plot_page%lat_layout_shape_scale 
 

@@ -769,7 +769,7 @@ write (iu, *) ' plot_page%' // trim(component) // ' = ' // trim(set_value)
 write (iu, *) '/'
 rewind (iu)
 
-call tao_set_plotting (plot_page, s%plot_page, .false.)
+call tao_set_plotting (plot_page, s%plot_page, .false., .true.)
 
 read (iu, nml = params, iostat = ios)
 close (iu)

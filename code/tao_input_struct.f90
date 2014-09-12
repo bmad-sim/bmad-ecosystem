@@ -198,37 +198,60 @@ contains
 
 !------------------------------------------------------------------------------
 
-subroutine tao_set_plotting (plot_page, plotting, use_cmd_line_geom)
+subroutine tao_set_plotting (plot_page, plot_input, use_cmd_line_geom, reverse)
 
 implicit none
 
 type (tao_plot_page_input) plot_page
-type (tao_plot_page_struct) plotting
+type (tao_plot_page_struct) plot_input
 
 integer ix
 logical use_cmd_line_geom
+logical, optional :: reverse
 character(40) str
 character(16), parameter :: r_name = 'tao_set_plotting'
 
-!
+! 
 
-plotting%plot_display_type         = plot_page%plot_display_type
-plotting%ps_scale                  = plot_page%ps_scale
-plotting%size                      = plot_page%size
-plotting%text_height               = plot_page%text_height
-plotting%main_title_text_scale     = plot_page%main_title_text_scale
-plotting%graph_title_text_scale    = plot_page%graph_title_text_scale
-plotting%axis_number_text_scale    = plot_page%axis_number_text_scale
-plotting%axis_label_text_scale     = plot_page%axis_label_text_scale
-plotting%floor_plan_shape_scale    = plot_page%floor_plan_shape_scale
-plotting%lat_layout_shape_scale    = plot_page%lat_layout_shape_scale
-plotting%legend_text_scale         = plot_page%legend_text_scale
-plotting%key_table_text_scale      = plot_page%key_table_text_scale
-plotting%curve_legend_line_len     = plot_page%curve_legend_line_len
-plotting%curve_legend_text_offset  = plot_page%curve_legend_text_offset
-plotting%n_curve_pts               = plot_page%n_curve_pts
-plotting%title                     = plot_page%title 
-plotting%border                    = plot_page%border
+if (logic_option(.false., reverse)) then
+  plot_page%plot_display_type         = plot_input%plot_display_type
+  plot_page%ps_scale                  = plot_input%ps_scale
+  plot_page%size                      = plot_input%size
+  plot_page%text_height               = plot_input%text_height
+  plot_page%main_title_text_scale     = plot_input%main_title_text_scale
+  plot_page%graph_title_text_scale    = plot_input%graph_title_text_scale
+  plot_page%axis_number_text_scale    = plot_input%axis_number_text_scale
+  plot_page%axis_label_text_scale     = plot_input%axis_label_text_scale
+  plot_page%floor_plan_shape_scale    = plot_input%floor_plan_shape_scale
+  plot_page%lat_layout_shape_scale    = plot_input%lat_layout_shape_scale
+  plot_page%legend_text_scale         = plot_input%legend_text_scale
+  plot_page%key_table_text_scale      = plot_input%key_table_text_scale
+  plot_page%curve_legend_line_len     = plot_input%curve_legend_line_len
+  plot_page%curve_legend_text_offset  = plot_input%curve_legend_text_offset
+  plot_page%n_curve_pts               = plot_input%n_curve_pts
+  plot_page%title                     = plot_input%title 
+  plot_page%border                    = plot_input%border
+endif
+
+! 
+
+plot_input%plot_display_type         = plot_page%plot_display_type
+plot_input%ps_scale                  = plot_page%ps_scale
+plot_input%size                      = plot_page%size
+plot_input%text_height               = plot_page%text_height
+plot_input%main_title_text_scale     = plot_page%main_title_text_scale
+plot_input%graph_title_text_scale    = plot_page%graph_title_text_scale
+plot_input%axis_number_text_scale    = plot_page%axis_number_text_scale
+plot_input%axis_label_text_scale     = plot_page%axis_label_text_scale
+plot_input%floor_plan_shape_scale    = plot_page%floor_plan_shape_scale
+plot_input%lat_layout_shape_scale    = plot_page%lat_layout_shape_scale
+plot_input%legend_text_scale         = plot_page%legend_text_scale
+plot_input%key_table_text_scale      = plot_page%key_table_text_scale
+plot_input%curve_legend_line_len     = plot_page%curve_legend_line_len
+plot_input%curve_legend_text_offset  = plot_page%curve_legend_text_offset
+plot_input%n_curve_pts               = plot_page%n_curve_pts
+plot_input%title                     = plot_page%title 
+plot_input%border                    = plot_page%border
 
 ! Plot window geometry specified on cmd line?
 
@@ -241,8 +264,8 @@ if (use_cmd_line_geom .and. s%com%plot_geometry /= '') then
      if (.not. is_integer(str(1:ix-1)) .or. .not. is_integer(str(ix+1:))) then
        call out_io (s_error$, r_name, 'Malformed -geometry argument: ' // str)
      else
-       read (str(:ix-1), *) plotting%size(1)
-       read (str(ix+1:), *) plotting%size(2)
+       read (str(:ix-1), *) plot_input%size(1)
+       read (str(ix+1:), *) plot_input%size(2)
      endif
    endif
  endif
