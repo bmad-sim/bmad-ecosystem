@@ -364,6 +364,12 @@ interface
     logical upcase
   end subroutine
 
+  function remove_quotes (str_in) result (str_out)
+    implicit none
+    character(*) str_in
+    character(len(str_in)) str_out
+  end function
+
   subroutine run_timer(command, time)
     import
     implicit none
