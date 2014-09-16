@@ -1416,10 +1416,14 @@ case ('graph')
     nl=nl+1; write(lines(nl), lmt)  'draw_grid             = ', g%draw_grid
     nl=nl+1; write(lines(nl), lmt)  'correct_xy_distortion = ', g%correct_xy_distortion
     nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
-    nl=nl+1; lines(nl) = 'Curves:'
-    do i = 1, size(g%curve)
-      nl=nl+1; write(lines(nl), amt) '   ', g%curve(i)%name
-    enddo
+    if (allocated(g%curve)) then
+      nl=nl+1; lines(nl) = 'Curves:'
+      do i = 1, size(g%curve)
+        nl=nl+1; write(lines(nl), amt) '   ', g%curve(i)%name
+      enddo
+    else
+      nl=nl+1; lines(nl) = 'Curves: None associated'
+    endif
 
   else
     nl=1; lines(1) = 'This is not a graph'
