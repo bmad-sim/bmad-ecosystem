@@ -299,7 +299,6 @@ def output_line (sad_line, sad_info, inside_sol, bz):
   bmad_line_str = bmad_line_str[:-2] + ')'
   WrapWrite(bmad_line_str)
 
-
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
@@ -517,9 +516,10 @@ def parse_line(rest_of_line, sad_info):
 
   parse_status = 'init'
 
-  for token in re.split('\s+|(=|\)|\(|\+|\*|-)', rest_of_line):
+  for token in re.split('\s+|(=|\)|\(|\+|\*|-|,)', rest_of_line):
     if token == '': continue
     if token == None: continue
+    if token == ',': continue
 
     if parse_status == 'init':
       if token in '+-*=()':
@@ -704,6 +704,7 @@ global_param_translate = {
   'betax':    'beginning[beta_a]',
   'betay':    'beginning[beta_b]',
   'nocod':    'parameter[geometry] = open',
+  'cod':      'parameter[geometry] = closed',
   'x_orb':    'beam_start[x]',
   'px_orb':   'beam_start[px]',
   'y_orb':    'beam_start[y]',
@@ -904,7 +905,10 @@ if mark_closed: f_out.write ('parameter[geometry] = closed\n')
 for name in sad_info.param_list:
   if name not in global_param_translate: continue
   if global_param_translate[name] != '':
-    f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
+    if '=' in global_param_translate[name]:   # EG: 'parameter[geometry] = open'
+      f_out.write(global_param_translate[name] + '\n')
+    else:
+      f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
 
 #------------------------------------------------------------------
 # Write variable definitions
