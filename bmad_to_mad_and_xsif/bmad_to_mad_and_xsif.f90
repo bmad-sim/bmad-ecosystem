@@ -88,13 +88,13 @@ if (nobpm) then
 endif
 
 call file_suffixer (out_name, out_name, 'xsif', .true.)
-call bmad_to_mad_or_xsif ('XSIF', out_name, lat)
+call write_lattice_in_foreign_format ('XSIF', out_name, lat)
 
 call file_suffixer (out_name, out_name, 'mad8', .true.)
-call bmad_to_mad_or_xsif ('MAD-8', out_name, lat)
+call write_lattice_in_foreign_format ('MAD-8', out_name, lat)
 
 call file_suffixer (out_name, out_name, 'madx', .true.)
-call bmad_to_mad_or_xsif ('MAD-X', out_name, lat)
+call write_lattice_in_foreign_format ('MAD-X', out_name, lat)
 
 ! Lattices without bpm markers.
 ! Also combine drifts to either side of a detector.
@@ -116,12 +116,12 @@ call remove_eles_from_lat(lat)
 out_name = file_name
 
 call file_suffixer (out_name, out_name, 'xsif', .true.)
-call bmad_to_mad_or_xsif ('XSIF', out_name, lat)
+call write_lattice_in_foreign_format ('XSIF', out_name, lat)
 
 call file_suffixer (out_name, out_name, 'mad8', .true.)
-call bmad_to_mad_or_xsif ('MAD-8', out_name, lat)
+call write_lattice_in_foreign_format ('MAD-8', out_name, lat)
 
 call file_suffixer (out_name, out_name, 'madx', .true.)
-call bmad_to_mad_or_xsif ('MAD-X', out_name, lat)
+call write_lattice_in_foreign_format ('MAD-X', out_name, lat)
 
 end program
