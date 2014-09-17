@@ -31,7 +31,7 @@ type (coord_struct), pointer :: p
 real(rp) scale
 
 character(*) what
-character(20) action, name
+character(20) action, name, lat_type
 character(40) switch
 character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
@@ -419,46 +419,23 @@ case ('hard', 'hard-l')
                                               s%global%print_command)
 
 !---------------------------------------------------
-! mad8_lattice
+! Foreign lattice format
 
-case ('mad_lattice', 'mad8_lattice')
+case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice')
 
-  file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'lat_#.mad8'
+  select case (action)
+  case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+  case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
+  case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+  case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
+  end select
 
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call bmad_to_mad_or_xsif ('MAD-8', file_name, s%u(i)%model%lat, err = err)
-    if (err) return
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
-  enddo
-
-!---------------------------------------------------
-! mad8_lattice
-
-case ('madx_lattice')
-
-  file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'lat_#.madx'
+  if (file_name0 /= '') file_name0 = word(1)
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call bmad_to_mad_or_xsif ('MAD-X', file_name, s%u(i)%model%lat, err = err)
-    if (err) return
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
-  enddo
-
-!---------------------------------------------------
-! opal_lattice
-
-case ('opal_lattice')
-
-  file_name0 = word(1)
-  if (file_name0 == ' ') file_name0 = 'lat_#.opal'
-
-  do i = lbound(s%u, 1), ubound(s%u, 1)
-    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call bmad_to_mad_or_xsif ('OPAL-T', file_name, s%u(i)%model%lat, err = err)
+    call write_lattice_in_foreign_format ('SAD', file_name, s%u(i)%model%lat, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo
