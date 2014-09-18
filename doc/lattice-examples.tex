@@ -146,15 +146,15 @@ Between normal and reversed elements there must be a reflection
   g_design = pi/12
   B: sbend, l = 2, g = g_design, g_err = -2*g_design
   P: patch, x_pitch = pi
-  fig_A: line = (D, --B)     ! Illegal. Do not use!
-  fig_B: line = (D, P, --B)  ! Correct
+  A_line: line = (D, --B)     ! Illegal. Do not use!
+  B_line: line = (D, P, --B)  ! Correct
 \end{example}
-Line \vn{fig_A} represents the situation shown in
+Line \vn{A_line} represents the situation shown in
 \fig{f:patch.between}A.  With no patch between the drift \vn{D} and
 the reversed bend \vn{B}, a particle leaving \vn{D} at \vn{D}'s
 downstream end will find itself outside of both \vn{D} and
 \vn{B}. Clearly this is an unphysical situation. Sanity is restored in
-line \vn{fig_B} shown in \fig{f:patch.between}B. In this instance, the
+line \vn{B_line} shown in \fig{f:patch.between}B. In this instance, the
 patch \vn{P} rotates the reference coordinates around the $y$-axis
 leaving the $y$-axis invariant the bend of \vn{B} is in the $x$-$z$
 plane. There are other patch parameter values that could be used to
@@ -191,32 +191,36 @@ counter rotating beams is shown in \fig{f:collide}. Rings \vn{A} and
 \begin{example}
   ir1: line[multipass] = (...)
   ir2: line[multipass] = (...)
+  pa1_in; patch, ...
+  pa1_out; patch, ...
+  pa2_in; patch, ...
+  pa2_out; patch, ...
   m: marker
   fid: fiducial, origin_ele = m
   ...
-  a: line = (arc_a1, pa1_in, ir1, m, pa1_out, arc_a2, pa2_in, ir2, pa2_out)
-  b_rev: line = (arc_b1, pb1_in, ir1, fid, pb1_out, arc_b2, pb2_in, ir2, pb2_out)
-  b: line = (--b_rev)
-  use, a, b
+  A: line = (arc_a1, pa1_in, ir1, m, pa1_out, arc_a2, pa2_in, ir2, pa2_out)
+  B_rev: line = (arc_b1, pb1_in, ir1, fid, pb1_out, arc_b2, pb2_in, ir2, pb2_out)
+  B: line = (--B_rev)
+  use, A, B
 \end{example}
 Lines \vn{ir1} and \vn{ir2} are the two interaction regions which are
 declared \vn{multipass} since they are shared by the two rings. Line
-\vn{a} represents ring \vn{A} where the beam which, by definition,
+\vn{A} represents ring \vn{A} where the beam which, by definition,
 travels in the same direction as increasing $s$, rotates clockwise.
-Line \vn{b_rev} is a ``reversed'' line of ring \vn{B} and, like
-\vn{a}, represents a beam rotating clockwise.  Line \vn{b}, which
-represents ring \vn{B}, is the reverse of \vn{b_rev} and here the beam
-rotates counterclockwise. In this construction, all elements of \vn{b}
+Line \vn{B_rev} is a ``reversed'' line of ring \vn{B} and, like
+\vn{a}, represents a beam rotating clockwise.  Line \vn{B}, which
+represents ring \vn{B}, is the reverse of \vn{B_rev} and here the beam
+rotates counterclockwise. In this construction, all elements of \vn{B}
 are reversed.  While this is not mandatory (only the interaction
-regions must be reversed in \vn{b}), having all of \vn{b} reversed
-simplifies the geometry since this means that the local coordinate
-systems of both lines \vn{a} and \vn{b} will be ``aligned'' with the
+regions must be reversed in \vn{B}), having all of \vn{B} reversed
+simplifies the geometry since this Means that the local coordinate
+systems of both lines \vn{A} and \vn{b} will be ``aligned'' with the
 $x$-axis pointing to the outside of the ring and the $y$-axis pointing
 up, out of the page. Having non-aligned coordinate systems is possible
 but potentially very confusing.
 
-The two rings are physically aligned using a marker \vn{m} in \vn{a}
-and a \vn{fiducial} element \vn{fid} in \vn{b} that aligns with
+The two rings are physically aligned using a marker \vn{m} in \vn{A}
+and a \vn{fiducial} element \vn{fid} in \vn{B} that aligns with
 \vn{m}.  Each ring has four rigid \vn{patch} elements, whose name
 begins with \vn{p}, on either side of each interaction region.
 
