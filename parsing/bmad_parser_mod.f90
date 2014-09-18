@@ -4566,42 +4566,17 @@ type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable :: cs(:)
 type (branch_struct), pointer :: branch
+type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, ic, ig, n, n2, k, k2, ix, j, ib, ie, n_list, ix2, ns, ixs, ii, ix_end
-integer n_match, n_slave, nn
+integer i, n, ic, ig, k, ix, j, ib, ie, n_list, ns, ixs, ii, ix_end, n2
+integer n_match, n_slave, nn, n_loc
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
-integer, allocatable :: r_indexx(:), ix_ele(:), ix_branch(:)
 
-character(40), allocatable :: name_list(:)
 character(40) name, input_slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat, created_girder_lord
 
-! Setup...
-! in_lat has the lords that are to be added to lat.
-! We add an extra 1000 places to the arrays to give us some overhead.
-
-n = n2 + 1000
-do i = 0, ubound(lat%branch, 1)
-  n = n + lat%branch(i)%n_ele_max
-enddo
-
-allocate (name_list(n), ix_ele(n), ix_branch(n), r_indexx(n))
-
-n_list = 0
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-  n = branch%n_ele_max
-  ix2 = n_list + n
-  name_list(n_list+1:ix2) = branch%ele(1:n)%name
-  ix_ele(n_list+1:ix2)    = branch%ele(1:n)%ix_ele
-  ix_branch(n_list+1:ix2) = branch%ele(1:n)%ix_branch
-  n_list = ix2
-enddo
-
-call indexx (name_list(1:n_list), r_indexx(1:n_list)) ! get sorted list
-
-! loop over elements
+! loop over lord elements
 
 main_loop: do n = 1, n2
 
@@ -4625,8 +4600,8 @@ main_loop: do n = 1, n2
     ! First count the number of slaves
     n_match = 0
     do i = 1, lord%n_slave
-      call find_indexx (pele%name(i), name_list, r_indexx, n_list, k, k2, n_match = nn)
-      n_match = n_match + nn
+      call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
+      n_match = n_match + n_loc
     enddo
 
     if (allocated(cs)) then
@@ -4640,37 +4615,34 @@ main_loop: do n = 1, n2
     do i = 1, lord%n_slave
 
       name = pele%name(i)
-      call find_indexx (name, name_list, r_indexx, n_list, k, k2)
+      call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
 
-      if (k == 0) then
+      if (n_loc == 0) then
         slave_not_in_lat = .true.
         missing_slave_name = name
       endif
 
-      if ((k == 0 .and. j > 0) .or. (k > 0 .and. slave_not_in_lat) .or. &
-          (k == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
+      if ((n_loc == 0 .and. j > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
+          (n_loc == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
         call parser_error ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                       'CANNOT FIND: '// missing_slave_name, pele = pele)
         lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
         cycle main_loop
       endif
 
-      if (k == 0) cycle
-
-      ! There might be more than 1 element with %name = name. 
+      ! There might be more than 1 element with same name. 
       ! Loop over all elements whose name matches name.
       ! Put the info into the cs structure.
 
-      do 
+      do k = 1, n_loc
         j = j + 1
-        k = r_indexx(k2)
         cs(j)%coef = pele%coef(i)
-        cs(j)%ix_slave = ix_ele(k)
-        cs(j)%ix_branch = ix_branch(k)
+        cs(j)%ix_slave = eles(k)%ele%ix_ele
+        cs(j)%ix_branch = eles(k)%ele%ix_branch
         cs(j)%ix_lord = -1             ! dummy value
         attrib_name = pele%attrib_name(i)
         if (attrib_name == blank_name$) attrib_name = lord%component_name
-        slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
+        slave => pointer_to_ele (lat, eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
         ix = attribute_index(slave, attrib_name)
         ! If attribute not found it may be a special attribute like accordian_edge$.
         ! A special attribute will have ix > num_ele_attrib$
@@ -4686,12 +4658,6 @@ main_loop: do n = 1, n2
                         pele = pele)
           cycle main_loop
         endif
-        k2 = k2 + 1
-        if (k2 > n_list) exit
-        k = r_indexx(k2)
-        slave => pointer_to_ele (lat, ix_ele(k), ix_branch(k))
-        ! exit loop if no more matches
-        if (slave%name /= name) exit 
       enddo
 
     enddo
@@ -4704,20 +4670,6 @@ main_loop: do n = 1, n2
       lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
       cycle main_loop
     endif
-
-    ! put the element name in the list r_indexx list
-
-    call find_indexx (lord%name, name_list, r_indexx, n_list, k, add_to_list = .true.)
-    n_list = n_list + 1
-    ix_ele(k) = ix_lord
-    ix_branch(k) = 0
-
-    do ii = 1, n_list-1
-      if (name_list(r_indexx(ii)) > name_list(r_indexx(ii+1))) then
-        call parser_error ('PARER_ADD_LORD INTERNAL ERROR!')
-        if (global_com%exit_on_error) call err_exit
-      endif
-    enddo
 
     ! create the lord
 
@@ -4832,11 +4784,6 @@ main_loop: do n = 1, n2
   end select
 
 enddo main_loop
-
-! cleanup
-
-deallocate (r_indexx)
-deallocate (name_list)
 
 !-------------------------------------------------------------------------
 contains
