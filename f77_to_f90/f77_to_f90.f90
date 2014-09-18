@@ -107,7 +107,7 @@ call file_suffixer (file_name, f90_file, '.f90', .true.)
 print *, 'Output file: ', trim(f90_file)
 
 open (unit = 1, file = file_name, status = 'old')
-open (unit = 2, file = f90_file, status = 'new')
+open (unit = 2, file = f90_file)
 
 !-------------------------------------------------------------------------
 ! f90_to_f90:
