@@ -146,16 +146,19 @@ def send_notification_email(old_relname):
 #
 archive_linkname = build_mgmt.NewLinkName(release_type)
 for platform in platforms:
+
+    # More definitions
     platform_dir = builds_basedir+'/'+platform+'/'
     active_relname = active_relnames[platform]
-    os.chdir(platform_dir)
-    os.symlink(active_relname, archive_linkname)
-    os.remove(platform_dir+'/'+release_type)
-    os.symlink(buildname, release_type)
-
-    # ssh/tar release to CESR Online
-    #
     online_basedir = '/nfs/cesr/online/lib/Linux_x86_64_intel/'
+    online_cmd_mkdir = ("ssh cesrulib@cesrshell mkdir " + online_basedir + buildname)
+    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
+    online_cmd_rm_link = ("ssh cesrulib@cesrshell rm -f " + online_basedir + release_type)
+    online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
+    online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
+
+
+    # 
     print ''
     print 'New '+ release_type +' Build name:                   ' + buildname  
     print 'New '+ release_type +' Build directory to copy:      ' + platform_dir + buildname 
@@ -164,12 +167,8 @@ for platform in platforms:
     print 'CESR Online base directory to copy to:  ' + online_basedir 
     print ''
 
-    online_cmd_mkdir = ("ssh cesrulib@cesrshell mkdir " + online_basedir + buildname)
-    online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesrshell 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
-    online_cmd_rm_link = ("ssh cesrulib@cesrshell rm -f " + online_basedir + release_type)
-    online_cmd_new_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
-    online_cmd_rotate_link = ("ssh cesrulib@cesrshell 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
 
+    # ssh/tar release to CESR Online
     if not os.path.exists(online_basedir+buildname):
       #print online_cmd_mkdir
       step1 = sub.Popen(online_cmd_mkdir,
@@ -180,15 +179,24 @@ for platform in platforms:
       print 'Making directory ' + online_basedir + buildname
       step1.communicate()
 
-      print online_cmd_remote_tar
+      #print online_cmd_remote_tar
       print ''
-      #step2 = sub.Popen(online_cmd_remote_tar,
-      #                  bufsize=1,
-      #                  shell=True,
-      #                  stderr=sub.STDOUT )
-      #print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
-      #step2.communicate()
+      step2 = sub.Popen(online_cmd_remote_tar,
+                        bufsize=1,
+                        shell=True,
+                        stderr=sub.STDOUT )
+      print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
+      step2.communicate()
 
+
+    # Now update off-line links
+    os.chdir(platform_dir)
+    os.symlink(active_relname, archive_linkname)
+    os.remove(platform_dir+'/'+release_type)
+    os.symlink(buildname, release_type)
+
+
+    # Now update on-line links
     #print online_cmd_rm_link
     print ''
     step3 = sub.Popen(online_cmd_rm_link,
