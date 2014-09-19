@@ -52,12 +52,12 @@ subroutine convert1 (file_name)
 
 implicit none
 
-integer ix, ii, ios
+integer ix, ii, ios, ix2
 
 character(*) file_name
-character*132 line1, line2, line_f90, line4
-character*100 f90_file
-character*1 tab
+character(132) line1, line2, line_f90, line4
+character(100) f90_file
+character(1) tab
 
 integer :: f_type, f77$ = 1, f90$ = 2, flx$ = 3
 integer istat, nret
@@ -168,36 +168,59 @@ do
 
   c2 = .false.
 
+  line2 = line1
+
+! ' type *' -> ' print *', etc.
+
+  ix =index(line2, ' type *')
+  if (ix > 0 .and. ix < 10) line2 = line2(1:ix) // 'print *' // line2(ix+7:)
+
+  ix = index(line2, ' type "')
+  if (ix > 0 .and. ix < 10) line2 = line2(1:ix) // 'print "' // line2(ix+7:)
+
+  ix = index(line2, " type '")
+  if (ix > 0 .and. ix < 10) line2 = line2(1:ix) // "print '" // line2(ix+7:)
+
+! ' character*nn' -> ' character(nn)'
+
+  ix = index(line2, ' character*(*)')
+  if (ix > 0 .and. ix < 10) line2 = line2(1:ix) // 'character(*)' // line2(ix+13:)
+
+  ix = index(line2, ' character*')
+  if (ix > 0 .and. ix < 10) then
+    ix2 = index(line2(ix+11:), ' ')
+    line2 = line2(1:ix) // 'character(' // line2(ix+11:ix+9+ix2) // ')' // line2(ix+10+ix2:)
+  endif
+
 ! flex #9 continuation?
 
-  if (f_type == flx$ .and. line1(1:8) == ' ' .and. &
-                                index('123456789', line1(9:9)) /= 0) then
+  if (f_type == flx$ .and. line1(1:8) == ' ' .and. index('123456789', line1(9:9)) /= 0) then
     call add_ampersand (line_f90)
-    line2 = line1(10:)        ! trim off continuation character
-    c2 = .true.
+    line2 = line2(10:)        ! trim off continuation character
+    c2 = .true.  
 
 ! if a normal line then just trim off the leading blanks
 
   elseif (line1(1:6) == '      ') then     
-    line2 = trim(line1(7:))              ! line2 = trimed input line
+    line2 = trim(line2(7:))              ! line2 = trimed input line
     
 ! if a continuation found then must add "&"
        
   elseif (line1(:5) == '     ' .and. line1(6:6) /= '!') then 
     call add_ampersand (line_f90)
-    line2 = '        ' // line1(7:)        ! trim off continuation character
+    line2 = '        ' // line2(7:)        ! trim off continuation character
     c2 = .true.
 
 ! comment lines with a "C" get changed to "!"
 
   elseif (line1(1:1) == 'c' .or. line1(1:1) == 'C') then
-    line2 = '!' // line1(2:)
+    line2 = '!' // line2(2:)
 
 ! flex "D" lines converted to "if (debug)"
 
   elseif (line1(1:1) == 'D' .and. f_type == flx$) then
-    call string_trim (line1(2:), line1, ix)
-    line2 = '  if (debug) ' // line1
+    call string_trim (line2(2:), line2, ix)
+    line2 = '  if (debug) ' // line2
     if (.not. debug_out) then
       print *, 'WARNING! THIS FILE USES THE FLEX "D ..." DEBUG FEATURE.'
       print *, '         THIS HAS BEEN CONVERTED TO "IF (DEBUG) ...".'
@@ -205,10 +228,6 @@ do
       debug_out = .true.
     endif
 
-! only possibility left is a comment or blank line
-
-  else
-    line2 = line1
   endif
 
 ! write to output
