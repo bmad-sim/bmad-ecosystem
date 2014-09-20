@@ -8,6 +8,8 @@ contains
 !+
 ! Function cesr_iargc ()
 !
+! Note: Use the Fortran intrinsic command_argument_count instead
+!
 ! Platform independent function to return the number of command
 ! line arguments. Use this with cesr_getarg.
 !
@@ -28,7 +30,7 @@ implicit none
 integer cesr_iargc
 
 integer iargc
-cesr_iargc = iargc()
+cesr_iargc = command_argument_count()
 
 end function cesr_iargc
 
@@ -41,12 +43,18 @@ end function cesr_iargc
 ! Platform independent function to return the i'th command
 ! line argument. Use this with cesr_iargc.
 !
+! Note: The difference between this routine and the Fortran instrinsic
+! get_command_argument is that for i_arg = 0, this routine regurns the 
+! command line with the name of the executable removed from the beginning
+! of the line. get_command_line, on the other hand returns the name of the
+! executable when the argument is 0.
+!
 ! Modules needed:
 !   use sim_utils
 !
 ! Input:
 !   i_arg -- Integer: Index of argument to return.
-!              i_arg = 0 => Entire line.
+!              i_arg = 0 => Entire line minus the executable string.
 !              i_arg = 1 => First argument.
 !
 ! Output:
@@ -66,13 +74,13 @@ subroutine cesr_getarg(i_arg, arg)
 !
 
 if (i_arg == 0) then
-  call getarg (1, arg)
+  call get_command_argument (1, arg)
   do i = 2, cesr_iargc()
-    call getarg (i, raw)
+    call get_command_argument (i, raw)
     arg = trim(arg) // ' ' // trim(raw)
   enddo
 else
-  call getarg(i_arg, arg)
+  call get_command_argument(i_arg, arg)
 endif
 
 end subroutine cesr_getarg
