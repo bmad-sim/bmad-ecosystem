@@ -76,7 +76,7 @@ if (s%com%init_read_lat_info) then
 
   if (input_file_name /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
-    if (ios /= 0) then
+    if (ios > 0 .or. (ios < 0 .and. s%com%lat_file == '')) then
       call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR.')
       rewind (iu)
       do
