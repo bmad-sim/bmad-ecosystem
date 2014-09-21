@@ -7,7 +7,7 @@ use multipass_mod
 use element_modeling_mod
 use lat_ele_loc_mod
 
-private str, rchomp, cmplx_str, write_line_element, array_str
+private str, rchomp, cmplx_str, write_line_element, array_str, ele_has
 
 contains
 
@@ -86,7 +86,7 @@ integer ix_top, ix_super, default_val, imax, ibr
 integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
-logical unit_found, write_term, found, in_multi_region, expand_lat_out
+logical unit_found, write_term, found, in_multi_region, expand_branch_out
 logical is_multi_sup, x_lim_good, y_lim_good, is_default, need_new_region
 
 ! Init...
@@ -996,14 +996,14 @@ enddo
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
 
-expand_lat_out = .false.
+expand_branch_out = .false.
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
   if (ele%slave_status == super_slave$) cycle
 
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
-    if (.not. expand_lat_out) call write_expand_lat_header
+    if (.not. expand_branch_out) call write_expand_lat_header
     write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', trim(str(ele%value(phi0_multipass$)))
   endif
 
@@ -1028,24 +1028,9 @@ write (iu, '(a)') '!-------------------------------------------------------'
 write (iu, *)
 write (iu, '(a)') 'expand_lattice'
 write (iu, *)
-expand_lat_out = .true.
+expand_branch_out = .true.
 
 end subroutine write_expand_lat_header
-
-!--------------------------------------------------------------------------------
-! contains
-
-function ele_has (ele, name) result (has_it)
-
-type (ele_struct) ele
-character(*) name
-logical has_it
-
-!
-
-has_it = (attribute_index(ele, name) > 0)
-
-end function
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -1339,7 +1324,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !+ 
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, &
-!                           use_matrix_model, ix_start, ix_end, converted_lat, err)
+!                           use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
 !
 ! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -1348,7 +1333,7 @@ end subroutine
 !
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
-
+!
 ! Modules needed:
 !   use write_lat_file_mod
 !
@@ -1363,35 +1348,41 @@ end subroutine
 !                       used for output.
 !   ix_end        -- Integer, optional: Ending index of lat%ele(i)
 !                       used for output.
+!   ix_branch     -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
 !   converted_lat -- Lat_struct, optional: Equivalent Bmad lattice with wiggler and 
 !                       sol_quad elements replaced by their respective models.
+!                       This is only valid for MAD-8, MAD-X, and XSIF conversions.
 !   err           -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, &
-                          use_matrix_model, ix_start, ix_end, converted_lat, err)
+                          use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
 
 implicit none
 
-type (lat_struct), target :: lat, lat_out, lat_model
-type (lat_struct), optional :: converted_lat
-type (ele_struct), pointer :: ele, ele1, ele2, lord
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele
+type (lat_struct), target :: lat, lat_model, lat_out
+type (lat_struct), optional, target :: converted_lat
+type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
 type (taylor_term_struct) :: term
+type (branch_struct), pointer :: branch, branch_out
 
-real(rp) field, hk, vk, tilt, limit(2)
+real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer, optional :: ix_start, ix_end
-integer i, j, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
-integer ie1, ie2, ios, t_count, a_count, ix_lord, ix_match, ix1, ix2, n_lord, aperture_at
+integer, optional :: ix_start, ix_end, ix_branch
+integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
+integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match
+integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo
 integer, allocatable :: n_repeat(:), an_indexx(:)
+integer, parameter :: bound$ = custom_attribute1$, geo$ = custom_attribute2$
 
 character(*) out_type, out_file_name
 character(300) line, knl_str, ksl_str
+character(40) orig_name
 character(40), allocatable :: names(:)
 character(1000) line_out
 character(8) str
@@ -1400,11 +1391,12 @@ character(2) continue_char, eol_char, comment_char
 
 logical, optional :: use_matrix_model, err
 logical init_needed, has_nonzero_pole
-logical parsing
+logical parsing, warn_printed, converted
 
 ! open file
 
 if (present(err)) err = .true.
+
 iu = lunget()
 call fullfilename (out_file_name, line)
 open (iu, file = line, iostat = ios)
@@ -1414,6 +1406,14 @@ if (ios /= 0) then
 endif
 
 ! Init
+
+ix = integer_option(0, ix_branch)
+if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
+  call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: /i0/ ', i_array = [ix])
+  return
+endif
+
+branch => lat%branch(ix)
 
 if (out_type == 'MAD-X' .or. out_type == 'OPAL-T') then
   comment_char = '//'
@@ -1438,11 +1438,12 @@ call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
 call init_ele (kicker_ele, kicker$) 
 call multipole_init (ab_ele)
+null_ele%key = null_ele$
 
 ie1 = integer_option(1, ix_start)
-ie2 = integer_option(lat%n_ele_track, ix_end)
+ie2 = integer_option(branch%n_ele_track, ix_end)
 
-allocate (names(lat%n_ele_max), an_indexx(lat%n_ele_max)) ! list of element names
+allocate (names(branch%n_ele_max), an_indexx(branch%n_ele_max)) ! list of element names
 
 call out_io (s_info$, r_name, &
       'Note: Bmad lattice elements have attributes that cannot be translated. ', &
@@ -1450,28 +1451,106 @@ call out_io (s_info$, r_name, &
       '      Please use caution when using a translated lattice.')
 
 !-----------------------------------------------------------------------------
-! Translation is a two step process. First we create a new lattice called lat_out.
-! Then the information in lat_out is used to create the lattice file.
-! Transfer info to lat_out and make substitutions for sol_quad and wiggler elements, etc.
+! Translation is a two step process. First we create a new lattice called branch_out.
+! Then the information in branch_out is used to create the lattice file.
+! Transfer info to branch_out and make substitutions for sol_quad and wiggler elements, etc.
 
 lat_out = lat
+branch_out => lat_out%branch(branch%ix_branch)
 j_count = 0    ! drift around solenoid or sol_quad index
 t_count = 0    ! taylor element count.
 a_count = 0    ! Aperture count
+s_count = 0    ! SAD solenoid count
 i_unique = 1000
 
+! Loop over all input elements
+
+branch_out%ele%value(geo$) = 0
+branch_out%ele%value(bound$) = 0
+sad_geo = 0
+old_bs_field = 0
+n_name_change_warn = 0
 ix_ele = ie1 - 1
+
 do 
 
   ix_ele = ix_ele + 1
   if (ix_ele > ie2) exit
-  ele => lat_out%ele(ix_ele)
+  ele => branch_out%ele(ix_ele)
   val => ele%value
 
-  ! If the name has more than 16 characters then replace the name by something shorter and unique.
+  ! For SAD translation: Must create sol elements as needed. 
+  ! If there is a marker or patch element that can be used, convert it.
+  ! Otherwise, insert a new element. 
+  ! null_ele is used to designate the sol element so as to not confuse things.
+  ! This works since there cannot be any null_eles in the lattice
 
-  if (len_trim(ele%name) > 16) then
-    call out_io (s_warn$, r_name, 'Shortening element name: ' // ele%name)
+
+  if (out_type == 'SAD' .and. ele%key /= marker$) then
+    bs_field = 0
+    if (ele_has (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
+    ! Need a SAD sol element if the solenoid field has changed
+    ! If the prior element is a marker, convert it. Otherwise, create a new element.
+    if (bs_field /= old_bs_field) then
+      if (ele%key == patch$ .and. bs_field == 0 .or. old_bs_field == 0) then
+        ele%key = null_ele$
+        ele%value(bs_field$) = bs_field
+        ele%value(bound$) = 1
+        ele%value(geo$) = 1
+        sad_geo = 1
+        nullify (sol_ele)
+
+      elseif (branch_out%ele(ix_ele-1)%key == marker$) then
+        sol_ele => branch_out%ele(ix_ele-1)
+        sol_ele%key = null_ele$
+        sol_ele%value(bs_field$) = bs_field
+
+      else  ! No marker
+        s_count = s_count + 1
+        write (null_ele%name, '(a, i0)') 'sol_', s_count  
+        null_ele%value(bs_field$) = bs_field
+        call insert_element (lat_out, null_ele, ix_ele, branch%ix_branch)
+        sol_ele => branch_out%ele(ix_ele)
+        if (old_bs_field == 0 .or. bs_field == 0) sol_ele%value(bound$) = 1
+        ie2 = ie2 + 1
+        ix_ele = ix_ele + 1
+        ele => branch_out%ele(ix_ele)
+        val => ele%value
+      endif
+
+      if (associated(sol_ele)) then  ! Not a converted patch
+        if (old_bs_field == 0) then    ! Entering a solenoid
+          branch_out%ele(ix_ele-1)%value(bound$) = 1
+          sad_geo = 0
+        elseif (bs_field == 0) then    ! Leaving a solenoid
+          branch_out%ele(ix_ele-1)%value(bound$) = 1
+          if (sad_geo == 0) branch_out%ele(ix_ele-1)%value(geo$) = 1
+        endif
+      endif
+
+    endif
+    old_bs_field = bs_field
+
+    ! A patch with a z_offset must be split into a drift + patch
+
+    if (ele%key == patch$ .and. val(z_offset$) /= 0) then
+      drift_ele%name = 'drift_' // ele%name
+      drift_ele%value(l$) = val(z_offset$)
+      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch)
+      ix_ele = ix_ele + 1
+      ele => branch_out%ele(ix_ele)
+      val => ele%value
+      val(z_offset$) = 0
+    endif
+
+  endif
+
+  ! If the name has more than 16 characters then replace the name by something shorter and unique.
+  ! Exception: SAD can handle longer names.
+
+  orig_name = ele%name
+
+  if (len_trim(ele%name) > 16 .and. out_type /= 'SAD') then
     i_unique = i_unique + 1
     write (ele%name, '(a, i0)') ele%name(1:11), i_unique
   endif
@@ -1484,6 +1563,13 @@ do
     if (j == 0) exit
     ele%name(j:j) = '_'
   enddo
+
+  if (ele%name /= orig_name .and. n_name_change_warn <= 40) then
+    call out_io (s_warn$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
+    if (n_name_change_warn == 40) call out_io (s_info$, r_name, &
+                           'Enough name change warnings. Will stop issuing them now.')
+    n_name_change_warn = n_name_change_warn + 1
+  endif
 
   ! If there is an aperture...
 
@@ -1518,11 +1604,11 @@ do
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
         if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele+1)
+          call insert_element (lat_out, col_ele, ix_ele+1, branch%ix_branch)
           ie2 = ie2 + 1
         endif
         if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele)
+          call insert_element (lat_out, col_ele, ix_ele, branch%ix_branch)
           ie2 = ie2 + 1
         endif
         ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
@@ -1541,8 +1627,8 @@ do
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
     kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
-    call insert_element (lat_out, kicker_ele, ix_ele)
-    call insert_element (lat_out, kicker_ele, ix_ele+2)
+    call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch)
+    call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch)
     ie2 = ie2 + 2
     cycle
   endif
@@ -1551,15 +1637,15 @@ do
   ! just before and just after the element.
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    call multipole_ele_to_ab (ele, lat%param, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
+    call multipole_ele_to_ab (ele, branch_out%param, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
     if (has_nonzero_pole) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
       deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
       write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
-      call insert_element (lat_out, ab_ele, ix_ele)
-      call insert_element (lat_out, ab_ele, ix_ele+2)
+      call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch)
+      call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch)
       ie2 = ie2 + 2
       cycle
     endif
@@ -1575,21 +1661,23 @@ do
       kicker_ele%value(hkick$) = val(hkick$) / 2
       kicker_ele%value(vkick$) = val(vkick$) / 2
       val(hkick$) = 0; val(vkick$) = 0
-      call insert_element (lat_out, kicker_ele, ix_ele)
-      call insert_element (lat_out, kicker_ele, ix_ele+2)
+      call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch)
+      call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch)
       ie2 = ie2 + 2
       cycle
     endif
   endif
 
-  ! Convert sol_quad_and wiggler elements.
-  ! NOTE: FOR NOW SOL_QUAD  USES DRIFT-MATRIX-DRIFT MODEL!
+  ! Convert sol_quad_and wiggler elements to an "equivalent" set of elements.
+  ! Exception: SAD can handle a sol_quad so no conversion needed in this case.
+  ! NOTE: FOR NOW, SOL_QUAD USES DRIFT-MATRIX-DRIFT MODEL!
 
-  if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == sol_quad$) then
+  if ((ele%key == wiggler$ .or. ele%key == undulator$  .and. out_type /= 'SAD') .or. &
+                                                               ele%key == sol_quad$) then
     if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
-
+      call out_io (s_warn$, r_name, 'Converting element to drift-matrix-drift model: ' // ele%name)
       drift_ele%value(l$) = -val(l$) / 2
-      call make_mat6 (drift_ele, lat_out%param)
+      call make_mat6 (drift_ele, branch_out%param)
       taylor_ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
       call mat6_to_taylor (taylor_ele%vec0, taylor_ele%mat6, taylor_ele%taylor)
 
@@ -1601,9 +1689,9 @@ do
       drift_ele%value(l$) = val(l$) / 2
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
-      call insert_element (lat_out, drift_ele, ix_ele)
-      call insert_element (lat_out, taylor_ele, ix_ele+1)
-      call insert_element (lat_out, drift_ele, ix_ele+2)
+      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch)
+      call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch)
+      call insert_element (lat_out, drift_ele, ix_ele+2, branch%ix_branch)
       ie2 = ie2 + 2
       cycle
 
@@ -1613,6 +1701,7 @@ do
 
     else
       if (ele%key == wiggler$ .or. ele%key == undulator$) then
+        call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
         if (ele%slave_status == super_slave$) then
           ! Create the wiggler model using the super_lord
           lord => pointer_to_lord(ele, 1)
@@ -1629,7 +1718,7 @@ do
             if (global_com%exit_on_error) call err_exit
           endif
           do i = ix1+1, ix2
-            lat_out%ele(i)%key = -1  ! mark for deletion
+            branch_out%ele(i)%key = -1  ! mark for deletion
           enddo
           ie2 = ie2 - (ix2 - ix1 - 1)
         else
@@ -1641,7 +1730,7 @@ do
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       do j = 1, lat_model%n_ele_track
-        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1)
+        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch%ix_branch)
       enddo
       ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
@@ -1650,38 +1739,65 @@ do
 
 enddo
 
+! If converting to SAD, if there is a finite bs_field then create a final null_ele element
+
+if (out_type == 'SAD' .and. bs_field /= 0) then
+  ele => branch_out%ele(ie2)
+  if (ele%key == marker$) then
+    ele%key = null_ele$
+    ele%value(bs_field$) = bs_field
+  else
+    s_count = s_count + 1
+    write (null_ele%name, '(a, i0)') 'sol_', s_count  
+    null_ele%value(bs_field$) = bs_field
+    ie2 = ie2 + 1
+    call insert_element (lat_out, null_ele, ie2, branch%ix_branch)
+    ele => branch_out%ele(ie2)
+  endif
+
+  ele%value(bound$) = 1
+  if (sad_geo == 0) ele%value(geo$) = 1
+endif
+
 !-------------------------------------------
 ! Now write info to the output file...
 ! lat lattice name
 
 write (iu, '(3a)') comment_char, ' File generated by: write_lattice_in_foreign_format', trim(eol_char)
-write (iu, '(4a)') comment_char, ' Bmad Lattice File: ', trim(lat_out%input_file_name), trim(eol_char)
-write (iu, '(4a)') comment_char, ' Bmad Lattice: ', trim(lat_out%lattice), trim(eol_char)
+write (iu, '(4a)') comment_char, ' Bmad Lattice File: ', trim(lat%input_file_name), trim(eol_char)
+write (iu, '(4a)') comment_char, ' Bmad Lattice: ', trim(lat%lattice), trim(eol_char)
 write (iu, *)
 
 ! beam definition
 
-if (out_type /= 'OPAL-T') then
-  ele => lat_out%ele(ie1-1)
+select case (out_type)
+case ('MAD-8', 'MAD-X', 'XSIF')
+  ele => branch_out%ele(ie1-1)
 
-  write (iu, '(2a, 2(a, es13.5), a)')  &
-        'beam_def: Beam, Particle = ', trim(particle_name(lat_out%param%particle)),  &
-        ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', lat_out%param%n_part, trim(eol_char)
+  write (iu, '(2a, 2(a, es14.6), a)')  &
+        'beam_def: Beam, Particle = ', trim(particle_name(branch_out%param%particle)),  &
+        ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', branch_out%param%n_part, trim(eol_char)
 
   write (iu, *)
-endif
+
+case ('SAD')
+  write (iu, '(a, es14.6)') 'momentum =',  ele%value(p0c$), trim(eol_char)
+
+end select
 
 ! write element parameters
 
 n_names = 0                          ! number of names stored in the list
+old_bs_field = 0
 
 do ix_ele = ie1, ie2
 
-  ele => lat_out%ele(ix_ele)
+  ele => branch_out%ele(ix_ele)
   val => ele%value
 
   if (out_type == 'XSIF') then
     if (ele%key == elseparator$) ele%key = drift$  ! XSIF does not have elsep elements.
+    call out_io (s_info$, r_name, 'Elseparator being converted into a drift: ' // ele%name)  
   endif
 
   ! do not make duplicate specs
@@ -1699,44 +1815,222 @@ do ix_ele = ie1, ie2
   call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
   n_names = n_names + 1
 
+  !----------
   ! OPAL case
   
   if (out_type == 'OPAL-T') then
 
-     select case (ele%key)
+    select case (ele%key)
 
-     case (marker$, detector$)
-        write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
-        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+    case (marker$, detector$)
+      write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
+      call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
-     case (drift$)
-        write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
-        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
-     case (sbend$)
-        write (line_out, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
-        call value_to_line (line_out, val(b_field$), 'k0', 'es13.5', 'R')
-        call value_to_line (line_out, val(e_tot$), 'designenergy', 'es13.5', 'R')
-        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
-     case (quadrupole$)
-        write (line_out, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
-        !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
-        call value_to_line (line_out, -1*val(b1_gradient$), 'k1', 'es13.5', 'R')
-        !elemedge The edge of the field is specifieda bsolute (floor space co-ordinates) in m.
-        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+    case (drift$, pipe$)
+      write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+      call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+    case (sbend$)
+      write (line_out, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
+      call value_to_line (line_out, val(b_field$), 'k0', 'es13.5', 'R')
+      call value_to_line (line_out, val(e_tot$), 'designenergy', 'es13.5', 'R')
+      call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+    case (quadrupole$)
+      write (line_out, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
+      !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
+      call value_to_line (line_out, -1*val(b1_gradient$), 'k1', 'es13.5', 'R')
+      !elemedge The edge of the field is specifieda bsolute (floor space co-ordinates) in m.
+      call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
-     case default
-        call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+    case default
+      call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
-        write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
-        call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+      write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
+      call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
-     end select
+    end select
 
-     call element_out(line_out)
-     cycle
+    call element_out(line_out)
+    cycle
   endif
 
-  ! For anything else but opal
+  !-------------
+  ! SAD case
+
+  if (out_type == 'SAD') then
+
+    if (.not. associated (ele%a_pole) .and. ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+      converted = .true.
+      select case (ele%key)
+
+      case (octupole$)
+        write (line_out, '(3a, es13.5)') 'oct ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(k3$)*val(l$), 'k3', 'es13.5', 'R', .true., .true.)
+
+      case (quadrupole$)
+        write (line_out, '(3a, es13.5)') 'quad ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .true.)
+
+      case (sextupole$)
+        write (line_out, '(3a, es13.5)') 'sext ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(k2$)*val(l$), 'k2', 'es13.5', 'R', .true., .true.)
+
+      case default
+        converted = .false.
+      end select
+    endif
+
+    ! If not yet converted
+
+    if (.not. converted) then
+
+      a_pole = 0; b_pole = 0
+      call multipole_ele_to_ab (ele, branch_out%param, .false., has_nonzero_pole, a_pole, b_pole)
+
+      select case (ele%key)
+
+      case (drift$, monitor$, instrument$, pipe$, ecollimator$, rcollimator$)
+        write (line_out, '(3a, es13.5)') 'drift ' // trim(ele%name) // '= (l =', val(l$)
+
+      case (ab_multipole$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= ('
+        call multipole_ele_to_ab (ele, branch%param, .false., has_nonzero_pole, a_pole, b_pole)
+
+      case (bend_sol_quad$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+        call multipole1_kt_to_ab (val(k1$)*val(l$), val(quad_tilt$), 1, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+        if (val(dks_ds$) /= 0) call out_io (s_error$, r_name, &
+                          'DKS_DS OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
+        if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
+                          'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
+
+      case (elseparator$)
+        call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+        call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (hkicker$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (vkicker$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (kicker$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+        call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (lcavity$)
+        write (line_out, '(3a, es13.5)') 'cavi ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(rf_frequency$), 'freq', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(voltage$), 'volt', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(phi0$), 'phi', 'es13.5', 'R', .true., .true.)
+
+      case (marker$)
+        write (line_out, '(3a, es13.5)') 'mark ' // trim(ele%name) // '= ('
+
+      case (multipole$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= ('
+        call multipole_ele_to_ab (ele, branch%param, .false., has_nonzero_pole, a_pole, b_pole)
+
+      case (null_ele$)
+        write (line_out, '(3a, es13.5)') 'sol ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(bs_field$), 'bz', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(geo$), 'geo', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(bound$), 'bound', 'es13.5', 'R', .true., .true.)
+
+      case (octupole$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (patch$)
+        write (line_out, '(3a, es13.5)') 'coord ' // trim(ele%name) // '= ('
+
+      case (quadrupole$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (rfcavity$)
+        write (line_out, '(3a, es13.5)') 'cavi ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(rf_frequency$), 'freq', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(voltage$), 'volt', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(phi0$), 'phi', 'es13.5', 'R', .true., .true.)
+
+      case (sad_mult$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+
+      case (sbend$)
+        write (line_out, '(3a, es13.5)') 'bend ' // trim(ele%name) // '= (l =', val(l$)
+        call value_to_line (line_out, val(angle$), 'angle', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(g_err$)*val(l$), 'k0', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .true.)
+
+      case (sextupole$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case (solenoid$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+
+      case (sol_quad$)
+        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (l =', val(l$)
+        call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
+        a_pole = a_pole + a;  b_pole = b_pole + b
+
+      case default
+        call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
+               'CONVERTING TO DRIFT')
+        write (line_out, '(3a, es13.5)') 'drift ' // trim(ele%name) // '= (l =', val(l$)
+      end select
+
+      if (line_out(1:4) == 'mult') then
+        if (ele_has (ele, 'HKICK') .and. ele%key /= kicker$) then
+          call multipole1_kt_to_ab (-val(hkick$), -val(tilt_tot$), 0, a, b)
+          a_pole = a_pole + a;  b_pole = b_pole + b
+          call multipole1_kt_to_ab (-val(vkick$), pi/2-val(tilt_tot$), 0, a, b)
+          a_pole = a_pole + a;  b_pole = b_pole + b
+        endif
+
+        do i = 0, 21
+          write (str, '(i0)') i
+          call value_to_line (line_out, b_pole(i)*factorial(i), 'k'//trim(str), 'es13.5', 'R', .true., .true.)
+          call value_to_line (line_out, a_pole(i)*factorial(i), 'ks'//trim(str), 'es13.5', 'R', .true., .true.)
+        enddo
+      endif
+    endif
+
+    ! misalignments
+
+    call value_to_line (line_out, val(x_offset$), 'dx', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, val(y_offset$), 'dy', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, val(z_offset$), 'dz', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, -val(x_pitch$), 'chi1', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, -val(y_pitch$), 'chi2', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, -val(tilt$), 'rotate', 'es13.5', 'R', .true., .true.)
+
+    !
+
+    line_out = trim(line_out) // ')'
+    call element_out(line_out)
+    cycle
+  endif
+
+  !-------------
+  ! For anything else but OPAL
 
   select case (ele%key)
 
@@ -1784,7 +2078,7 @@ do ix_ele = ie1, ie2
         write (line_out(ix:), '(a, es13.5)') ', e =', field
       endif
 
-      if (lat_out%param%particle == positron$) then
+      if (branch_out%param%particle == positron$) then
         tilt = -atan2(hk, vk) + val(tilt$)
       else
         tilt = -atan2(hk, vk) + val(tilt$) + pi
@@ -1870,7 +2164,7 @@ do ix_ele = ie1, ie2
   case (taylor$)
 
     line_out = trim(ele%name) // ': matrix'
-
+    warn_printed = .false.
     do i = 1, 6
       do k = 1, size(ele%taylor(i)%term)
         term = ele%taylor(i)%term(k)
@@ -1900,13 +2194,13 @@ do ix_ele = ie1, ie2
           endif
           call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
 
-
         case default
-          call out_io (s_error$, r_name, &
-                  'TAYLOR TERM: \es12.2\ : \6i3\ ', &
-                  'IN ELEMENT: ' // ele%name, &
-                  'CANNOT BE CONVERTED TO MAD MATRIX TERM', &
-                  r_array = [term%coef ], i_array = term%expn)
+          if (.not. warn_printed) then
+            call out_io (s_warn$, r_name, &
+                  'Higher order taylor term(s) in: ' // trim(ele%name) // &
+                  'cannot be converted to mad matrix term')
+            warn_printed = .true.
+          endif  
         end select
       enddo
 
@@ -1953,12 +2247,12 @@ do ix_ele = ie1, ie2
   case (multipole$, ab_multipole$)
 
     knl = 0; tilts = 0
-    call multipole_ele_to_kt (ele, lat_out%param, .true., has_nonzero_pole, knl, tilts)
+    call multipole_ele_to_kt (ele, branch_out%param, .true., has_nonzero_pole, knl, tilts)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
 
     if (out_type == 'MAD-X') then
       knl_str = ''; ksl_str = ''
-      call multipole_ele_to_ab (ele, lat_out%param, .true., has_nonzero_pole, a_pole, b_pole)
+      call multipole_ele_to_ab (ele, branch_out%param, .true., has_nonzero_pole, a_pole, b_pole)
       do i = 0, 9
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value
@@ -2021,7 +2315,7 @@ line = ' '
 
 do n = ie1, ie2
 
-  ele => lat_out%ele(n)
+  ele => branch_out%ele(n)
 
   if (init_needed) then
     write (iu, *)
@@ -2070,7 +2364,7 @@ if (out_type(1:3) == 'MAD') then
 
   do ix_ele = ie1, ie2
 
-    ele => lat_out%ele(ix_ele)
+    ele => branch_out%ele(ix_ele)
     val => ele%value
     
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
@@ -2099,8 +2393,8 @@ endif
 
 ! Write twiss parameters for a linear lattice.
 
-ele => lat_out%ele(ie1-1)
-if (lat_out%param%geometry /= closed$ .and. out_type /= 'OPAL-T') then
+ele => branch_out%ele(ie1-1)
+if (branch_out%param%geometry /= closed$ .and. out_type /= 'OPAL-T') then
   write (iu, *)
   write (iu, *) comment_char, '---------------------------------', trim(eol_char)
   write (iu, *)
@@ -2137,18 +2431,22 @@ deallocate (names)
 if (present(err)) err = .false.
 
 if (present(converted_lat)) then
-  converted_lat = lat_out
+  converted_lat = lat
+  converted_lat%branch(branch%ix_branch) = branch_out
   converted_lat%n_ele_max = converted_lat%n_ele_track
-  do i = 1, converted_lat%n_ele_track
-    converted_lat%ele(i)%slave_status = free$
-    converted_lat%ele(i)%n_lord = 0
-    converted_lat%ele(i)%ic2_lord = converted_lat%ele(i)%ic1_lord - 1
+  do ib = 0, ubound(converted_lat%branch, 1)
+    branch => converted_lat%branch(ib)
+    do i = 1, branch%n_ele_track
+      branch%ele(i)%slave_status = free$
+      branch%ele(i)%n_lord = 0
+      branch%ele(i)%ic2_lord = branch%ele(i)%ic1_lord - 1
+    enddo
   enddo
   converted_lat%n_control_max = 0
   converted_lat%n_ic_max = 0
 endif
 
-call deallocate_lat_pointers (lat_out)
+call deallocate_branch_pointers (branch_out)
 call deallocate_lat_pointers (lat_model)
 
 
@@ -2188,7 +2486,23 @@ end subroutine write_lattice_in_foreign_format
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine value_to_line (line, value, str, fmt, typ, ignore_if_zero)
+function ele_has (ele, name) result (has_it)
+
+type (ele_struct) ele
+character(*) name
+logical has_it
+
+!
+
+has_it = (attribute_index(ele, name) > 0)
+
+end function
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+subroutine value_to_line (line, value, str, fmt, typ, ignore_if_zero, use_comma)
 
 use precision_def
 
@@ -2202,16 +2516,22 @@ real(rp) value
 
 integer ix
 
-logical, optional :: ignore_if_zero
+logical, optional :: ignore_if_zero, use_comma
 
 !
 
 if (value == 0 .and. logic_option(.true., ignore_if_zero)) return
 
-if (str == '') then
-  line = trim(line) // ','
+if (logic_option(use_comma)) then
+  if (str == '') then
+    line = trim(line) // ','
+  else
+    line = trim(line) // ', ' // trim(str) // ' ='
+  endif
 else
-  line = trim(line) // ', ' // trim(str) // ' ='
+  if (str /= '') then
+    line = trim(line) // ' ' // trim(str) // ' ='
+  endif
 endif
 
 if (value == 0) then
