@@ -590,7 +590,7 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine edge_focus_only (orb, ele, param, particle_at, mat6)
+! Subroutine bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Apply only the first order kick, which is edge focusing.
@@ -611,7 +611,7 @@ end subroutine track_a_bend
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine edge_focus_only (orb, ele, param, particle_at, mat6)
+subroutine bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
 
 implicit none
 
@@ -625,7 +625,7 @@ real(rp) c_dir
 real(rp) ht2, hs2, sec_e, k1_eff, k1
 integer particle_at, element_end
 
-character(24), parameter :: r_name = 'edge_focus_only'
+character(*), parameter :: r_name = 'bend_edge_linear_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
@@ -692,7 +692,7 @@ else
   end if
 endif
 
-end subroutine edge_focus_only
+end subroutine bend_edge_linear_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -992,19 +992,9 @@ case (sad_mult$)
   k1_rel = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_pc
 end select
 
-! Everything but SAD nonlinear
+! SAD linear
 
 select case (fringe_type)
-case (full_straight$, full_bend$)
-  if (particle_at == second_track_edge$) k1_rel = -k1_rel
-
-  x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
-  orbit%vec(1) = x  + k1_rel * (x**3/12 + x*y**2/4)
-  orbit%vec(2) = px + k1_rel * (x*y*py/2 - px*(x**2 + y**2)/4)
-  orbit%vec(3) = y  - k1_rel * (y**3/12 + y*x**2/4)
-  orbit%vec(4) = py - k1_rel * (y*x*px/2 - py*(y**2 + x**2)/4)
-  orbit%vec(5) = orbit%vec(5) + k1_rel * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
-
 case (sad_linear$, sad_full$)
   f1 = -k1_rel * ele%value(f1$) * abs(ele%value(f1$)) / 24
   f2 =  k1_rel * ele%value(f2$)
@@ -1024,12 +1014,19 @@ case (sad_linear$, sad_full$)
   endif
 end select
 
-! SAD nonlinear
+! nonlinear
 ! Not yet implemented
 
 select case (fringe_type)
-case (sad_nonlin_only$, sad_full$)
-  
+case (sad_nonlin_only$, sad_full$, full_straight$, full_bend$)
+  if (particle_at == second_track_edge$) k1_rel = -k1_rel
+
+  x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
+  orbit%vec(1) = x  + k1_rel * (x**3/12 + x*y**2/4)
+  orbit%vec(2) = px + k1_rel * (x*y*py/2 - px*(x**2 + y**2)/4)
+  orbit%vec(3) = y  - k1_rel * (y**3/12 + y*x**2/4)
+  orbit%vec(4) = py - k1_rel * (y*x*px/2 - py*(y**2 + x**2)/4)
+  orbit%vec(5) = orbit%vec(5) + k1_rel * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
 end select
 
 end subroutine quadrupole_edge_kick
@@ -1085,8 +1082,8 @@ case (full_straight$, full_bend$)
   call exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
 case (basic_bend$, sad_full$, sad_linear$, sad_nonlin_only$)
   call approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
-case (edge_focus_only$)
-  call edge_focus_only (orb, ele, param, particle_at, mat6)
+case (bend_linear$)
+  call bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
 case (none$)
   if (present(mat6)) call mat_make_unit (mat6)
 case default
