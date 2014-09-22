@@ -2446,7 +2446,7 @@ if (present(converted_lat)) then
   converted_lat%n_ic_max = 0
 endif
 
-call deallocate_branch_pointers (branch_out)
+call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
 
 
