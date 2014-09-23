@@ -156,11 +156,11 @@ export CESR_ONLINE=${CESR_ONLINE:-/nfs/cesr/online}
 # in case of a network failure.  In that event, change the 
 # following variable to 'true' to use the online libs.
 #--------------------------------------------------------------
-USE_CESR_ONLINE_LOC='false'
-#case $(uname -n) in
-#    cesr*) USE_CESR_ONLINE_LOC='true';;
-#        *) USE_CESR_ONLINE_LOC='false';;
-#esac
+
+case $(uname -n) in
+    cesr*) USE_CESR_ONLINE_LOC='true';;
+        *) USE_CESR_ONLINE_LOC='false';;
+esac
 
 
 
