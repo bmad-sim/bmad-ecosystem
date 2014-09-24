@@ -2809,7 +2809,7 @@ ix1 = index(word, '[')
 if (ix1 == 0) then   
   call find_indexx (word, bp_com%var%name, bp_com%var%indexx, bp_com%ivar_tot, i)
   if (i == 0) then
-    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+    call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', warn_only = .true.)
     value = 0
     ! To prevent multiple error messages define this variable.
     bp_com%ivar_tot = bp_com%ivar_tot + 1

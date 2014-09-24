@@ -1106,14 +1106,14 @@ end subroutine bend_edge_kick
 !+
 ! Subroutine add_sad_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
-! Subroutine to track through the edge field of an sbend.
+! Subroutine to track through the "linear bend" edge field of an sbend or sad_mult.
 !
 ! Module needed:
 !   use track1_mod
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
-!   ele         -- ele_struct: SBend element.
+!   ele         -- ele_struct: SBend or sad_mult element.
 !   param       -- lat_param_struct: 
 !   particle_at -- Integer: first_track_edge$, or second_track_edge$.
 !   mat6        -- real(rp), optional: Starting matrix 
@@ -1136,143 +1136,102 @@ type (lat_param_struct) param
 real(rp), optional :: mat6(6,6)
 real(rp) :: sad_mat(6,6)
 real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e, e
+real(rp) k0, sk0, c1_k, c2_k, c3_k, c1_sk, c2_sk, c3_sk 
 
 integer :: particle_at, c_dir, element_end
 
 character(*), parameter :: r_name = 'add_sad_bend_edge_kick'
 
-! Finite f1 fringe
+! Sbend case
 
-f1 = ele%value(f1$)
-if (f1 == 0) return
+select case (ele%key)
+case (sbend$)
 
-c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
-element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+  f1 = ele%value(f1$)
+  if (f1 == 0) return
 
-if (element_end == entrance_end$) then
-  e = sin(ele%value(e1$))
-else
-  e = sin(ele%value(e2$))
-endif
+  c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+  element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
-g = ele%value(g$) + ele%value(g_err$)
-sin_e = sin(e)
-if (particle_at == second_track_edge$) then
-  sin_e = -sin_e
-  g = -g
-endif
+  if (element_end == entrance_end$) then
+    e = sin(ele%value(e1$))
+  else
+    e = sin(ele%value(e2$))
+  endif
 
-px = orb%vec(2) + sin_e
-y  = orb%vec(3)
-rel_p = 1 + orb%vec(6)
+  g = ele%value(g$) + ele%value(g_err$)
+  sin_e = sin(e)
+  if (particle_at == second_track_edge$) then
+    sin_e = -sin_e
+    g = -g
+  endif
+  if (g == 0) return
 
-c1 = f1**2 * g / (24 * rel_p)  ! * px
-c2 = f1 * g**2 / (12 * rel_p)  ! * y^2
-c3 = g**2 / (6 * f1 * rel_p)   ! * y^4
+  px = orb%vec(2) + sin_e
+  y  = orb%vec(3)
+  rel_p = 1 + orb%vec(6)
 
-if (present(mat6)) then
-  call mat_make_unit (sad_mat)
-  sad_mat(1,6) =  c1 / rel_p
-  sad_mat(4,3) =  2 * c2 - 12 * c3 * y**2
-  sad_mat(4,6) = (-2 * c2 * y + 4 * c3 * y**3) / rel_p
-  sad_mat(5,2) = c1 / rel_p
-  sad_mat(5,3) = (2 * c2 * y - 4 * c3 * y**3) / rel_p
-  sad_mat(5,6) = -2 * (c1 * px + c2 * y**2 - c3 * y**4) / rel_p**2 + c1
+  c1 = f1**2 * g / (24 * rel_p)  ! * px
+  c2 = f1 * g**2 / (6 * rel_p)  ! * y^2
+  c3 = 2 * g**2 / (3 * f1 * rel_p)   ! * y^4
 
-  mat6(1,:) = mat6(1,:) + sad_mat(1,6) * mat6(6,:)
-  mat6(4,:) = mat6(4,:) + sad_mat(4,3) * mat6(3,:) + sad_mat(4,6) * mat6(6,:)
-  mat6(5,:) = mat6(5,:) + sad_mat(5,2) * mat6(2,:) + sad_mat(5,3) * mat6(3,:) + sad_mat(5,6) * mat6(6,:)
-endif
+  if (present(mat6)) then
+    call mat_make_unit (sad_mat)
+    sad_mat(1,6) =  c1 / rel_p
+    sad_mat(4,3) =  c2 - 3 * c3 * y**2
+    sad_mat(4,6) = (-c2 * y + c3 * y**3) / rel_p
+    sad_mat(5,2) = c1 / rel_p
+    sad_mat(5,3) = (c2 * y - c3 * y**3) / rel_p
+    sad_mat(5,6) = (-c1 * px - 2 * c2 * y**2 + c3 * y**4/2) / rel_p**2 + c1
+  
+    mat6(1,:) = mat6(1,:) + sad_mat(1,6) * mat6(6,:)
+    mat6(4,:) = mat6(4,:) + sad_mat(4,3) * mat6(3,:) + sad_mat(4,6) * mat6(6,:)
+    mat6(5,:) = mat6(5,:) + sad_mat(5,2) * mat6(2,:) + sad_mat(5,3) * mat6(3,:) + sad_mat(5,6) * mat6(6,:)
+  endif
 
-orb%vec(1) = orb%vec(1) + c1 * orb%vec(6)
-orb%vec(4) = orb%vec(4) + 2 * c2 * y - 4 * c3 * y**3
-orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2 - c3 * y**4) / rel_p
+  orb%vec(1) = orb%vec(1) + c1 * orb%vec(6)
+  orb%vec(4) = orb%vec(4) + c2 * y - c3 * y**3
+  orb%vec(5) = orb%vec(5) + (c1 * px + c2 * y**2/2 - c3 * y**4/4) / rel_p
+
+! sad_mult
+
+case (sad_mult$)
+
+  if (element_end == entrance_end$) then
+    f1 = ele%value(fb1$)
+  else
+    f1 = ele%value(fb2$)
+  endif
+
+  if (f1 == 0) return
+
+  k0  = ele%b_pole(0) / ele%value(l$)
+  sk0 = ele%a_pole(0) / ele%value(l$)
+  if (particle_at == second_track_edge$) then
+    k0 = -k0
+    sk0 = -sk0
+  endif
+
+  if (k0 == 0 .and. sk0 == 0) return
+
+  !
+
+  c1_k = f1**2 * k0 / (24 * rel_p)  ! * px
+  c2_k = f1 * k0**2 / (6 * rel_p)  ! * y^2
+  c3_k = 2 * k0**2 / (3 * f1 * rel_p)   ! * y^4
+
+  c1_sk = f1**2 * sk0 / (24 * rel_p)  ! * px
+  c2_sk = f1 * sk0**2 / (6 * rel_p)  ! * y^2
+  c3_sk = 2 * sk0**2 / (3 * f1 * rel_p)   ! * y^4
+
+  if (present(mat6)) then
+    mat6(1,:) = mat6(1,:) + 0
+  endif
+
+
+end select
 
 end subroutine add_sad_bend_edge_kick
-
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-!-------------------------------------------------------------------------------------------
-! THIS ROUTINE IS SLATED FOR REMOVAL !!!!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!+
-! Subroutine add_sad_bend_hard_edge_edge_kick (orb, ele, param, particle_at, mat6)
-!
-! Subroutine to track through the edge field of an sbend.
-!
-! Module needed:
-!   use track1_mod
-!
-! Input:
-!   orb         -- Coord_struct: Starting coords.
-!   ele         -- ele_struct: SBend element.
-!   param       -- lat_param_struct: 
-!   particle_at -- Integer: first_track_edge$, or second_track_edge$.
-!   mat6        -- real(rp), optional: Starting matrix 
-!
-! Output:
-!   orb        -- Coord_struct: Coords after tracking.
-!   mat6       -- Real(rp), optional: Transfer matrix after fringe field
-!-
-
-subroutine add_sad_bend_hard_edge_edge_kick (orb, ele, param, particle_at, mat6)
-
-use ptc_interface_mod
-
-implicit none
-
-type(coord_struct) :: orb
-type(ele_struct) :: ele
-type (lat_param_struct) param
-
-real(rp), optional :: mat6(6,6)
-real(rp) :: sad_mat(6,6), dx, dpy, dz, sqt
-real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, p_long, yyy
-
-integer :: particle_at
-
-character(*), parameter :: r_name = 'add_sad_bend_hard_edge_edge_kick'
-
-!
-
-g = ele%value(g$)
-if (particle_at == second_track_edge$) g = -g
-
-px = orb%vec(2)
-y  = orb%vec(3)
-rel_p = 1 + orb%vec(6)
-
-c1 = g**2 / 12
-yyy = y**2 * (1 - c1 * y**2)
-
-p_long = rel_p**2 - px**2
-sqt = sqrt(p_long)
-dx = rel_p**2 * g * yyy / (2 * sqt**3)
-dpy = -px * g * y * (1 - 2 * c1 * y**2) / sqt
-dz = -rel_p * g * px * yyy / (2 * sqt**3)
-
-if (present(mat6)) then
-  call mat_make_unit (sad_mat)
-  sad_mat(1,2) = dx * 3 * px / p_long
-  sad_mat(1,3) = rel_p**2 * g * (y - 2 * c1 * y**3) / sqt**3
-  sad_mat(1,6) = -dx * (rel_p**2 + 2 * px**2) / (rel_p * p_long)
-  sad_mat(4,2) = -rel_p**2 * g * y * (1 - 2 * c1 * y**2) / sqt**3
-  sad_mat(4,3) = -px * g * (1 - 6 * c1 * y**2) / sqt
-  sad_mat(4,6) = -dpy * rel_p / p_long 
-  sad_mat(5,2) = -rel_p * g * (rel_p**2 + 2 * px**2) * yyy / (2 * sqt**5)
-  sad_mat(5,3) = -rel_p * g * px * (y - 2 * c1 * y**3) / sqt**3
-  sad_mat(5,6) = g * px * (2 * rel_p**2 + px**2) * yyy / (2 * sqt**5)
-
-  mat6(1,:) = mat6(1,:) + sad_mat(1,2) * mat6(2,:) + sad_mat(1,3) * mat6(3,:) + sad_mat(1,6) * mat6(6,:)
-  mat6(4,:) = mat6(4,:) + sad_mat(4,2) * mat6(2,:) + sad_mat(4,3) * mat6(3,:) + sad_mat(4,6) * mat6(6,:)
-  mat6(5,:) = mat6(5,:) + sad_mat(5,2) * mat6(2,:) + sad_mat(5,3) * mat6(3,:) + sad_mat(5,6) * mat6(6,:)
-endif
-
-orb%vec(1) = orb%vec(1) + dx
-orb%vec(4) = orb%vec(4) + dpy
-orb%vec(5) = orb%vec(5) + dz
-
-end subroutine add_sad_bend_hard_edge_edge_kick
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

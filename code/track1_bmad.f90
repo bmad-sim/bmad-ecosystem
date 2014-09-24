@@ -52,7 +52,7 @@ real(rp) dcos_phi, dgradient, dpz, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
-real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel
+real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel, beta_a0, beta_b0, alpha_a0, alpha_b0
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
 real(rp) cos_g, sin_g, cos_tc, sin_tc, angle
 real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc, ps
@@ -106,6 +106,22 @@ case (beambeam$)
   sig_y0 = ele%value(sig_y$)
   if (sig_x0 == 0 .or. sig_y0 == 0) return
 
+  if (ele%value(beta_a$) == 0) then
+    beta_a0 = ele%a%beta
+    alpha_a0 = ele%a%alpha
+  else
+    beta_a0 = ele%value(beta_a$)
+    alpha_a0 = ele%value(alpha_a$)
+  endif
+
+  if (ele%value(beta_b$) == 0) then
+    beta_b0 = ele%b%beta
+    alpha_b0 = ele%b%alpha
+  else
+    beta_b0 = ele%value(beta_b$)
+    alpha_b0 = ele%value(alpha_b$)
+  endif
+
   call offset_particle (ele, param, set$, end_orb)
   call canonical_to_angle_coords (end_orb)
 
@@ -117,13 +133,13 @@ case (beambeam$)
     s_pos = (end_orb%vec(5) + z_slice(i)) / 2
     end_orb%vec(1) = end_orb%vec(1) + end_orb%vec(2) * (s_pos - s_pos_old)
     end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * (s_pos - s_pos_old)
-    if (ele%a%beta == 0) then
+    if (beta_a0 == 0) then
       sig_x = sig_x0
       sig_y = sig_y0
     else
-      beta = ele%a%beta - 2 * ele%a%alpha * s_pos + ele%a%gamma * s_pos**2
+      beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
       sig_x = sig_x0 * sqrt(beta / ele%a%beta)
-      beta = ele%b%beta - 2 * ele%b%alpha * s_pos + ele%b%gamma * s_pos**2
+      beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
       sig_y = sig_y0 * sqrt(beta / ele%b%beta)
     endif
 
