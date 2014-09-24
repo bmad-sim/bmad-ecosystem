@@ -840,17 +840,17 @@ integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_
 integer, parameter :: e1$ = 21, e_loss$ = 21, dks_ds$ = 21, gap$ = 21
 integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
-integer, parameter :: traveling_wave$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24
+integer, parameter :: traveling_wave$ = 23, beta_a$ = 23
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
-integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25
-integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
-integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  17
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25
+integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, cmat_11$ = 27
+integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
-integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
-integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
-integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30
+integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28, cmat_12$ = 28
+integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29, cmat_21$ = 29
+integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30, cmat_22$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
 integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
@@ -916,17 +916,17 @@ integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 
 
-integer, parameter :: lr_wake_file$ = 81, alpha_b$ = 81, use_hard_edge_drifts$ = 81
+integer, parameter :: lr_wake_file$ = 81, alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83
 integer, parameter :: end_edge$  = 84, etap_x$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
-integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11$ = 88, surface_attrib$ = 88
-integer, parameter :: csr_calc_on$ = 89, cmat_12$ = 89
-integer, parameter :: s_position$ = 90, cmat_21$ = 90
-integer, parameter :: mat6_calc_method$ = 91, cmat_22$ = 91
+integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
+integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89
+integer, parameter :: s_position$ = 90, cmat_21_begin$ = 90
+integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
 integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94
@@ -937,7 +937,7 @@ integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: aperture_limit_on$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100
-integer, parameter :: sr_wake_file$ = 100, alpha_a$ = 100
+integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
 integer, parameter :: term$ = 101, use_ptc_layout$ = 101
 integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
@@ -945,8 +945,8 @@ integer, parameter :: z_position$ = 104
 integer, parameter :: is_on$ = 105, theta_position$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107
-integer, parameter :: aperture_at$ = 108, beta_a$ = 108
-integer, parameter :: ran_seed$ = 109, beta_b$ = 109, origin_ele$ = 109
+integer, parameter :: aperture_at$ = 108, beta_a_begin$ = 108
+integer, parameter :: ran_seed$ = 109, beta_b_begin$ = 109, origin_ele$ = 109
 
 integer, parameter :: to_line$ = 110
 integer, parameter :: field_master$ = 111, harmon_master$ = 111, to_element$ = 111

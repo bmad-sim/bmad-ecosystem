@@ -143,10 +143,12 @@ if (make_matrix) then
 endif
 call quadrupole_edge_kick (ele, first_track_edge$, orbit)
 
-! Dipole edge kick
+! Dipole and nonlin edge kicks
 
 k0 = knl(0)/length
-call sad_linear_dipole_edge (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
+call sad_linear_dipole_edge_kick (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
+
+call nonlin_multipole_edge_kick (ele, knl, tilt, first_track_edge$, orbit, mat6, make_mat6)
 
 ! Body
 
@@ -207,9 +209,11 @@ enddo
 
 ! End stuff
 
-! Dipole edge kick
+! Dipole and nonlinear edge kicks
 
-call sad_linear_dipole_edge (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
+call nonlin_multipole_edge_kick (ele, knl, tilt, second_track_edge$, orbit, mat6, make_mat6)
+
+call sad_linear_dipole_edge_kick (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
 
 ! Quadrupole edge kick
 
@@ -262,7 +266,7 @@ end subroutine sad_mult_track_and_mat
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine sad_linear_dipole_edge (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+! Subroutine sad_linear_dipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
 !
 ! Routine to track through the "linear" dipole fringe field.
 !
@@ -280,7 +284,7 @@ end subroutine sad_mult_track_and_mat
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine sad_linear_dipole_edge (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+subroutine sad_linear_dipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
@@ -342,6 +346,53 @@ endif
 
 if (tilt /= 0) call tilt_coords (-tilt, orbit%vec)
 
-end subroutine sad_linear_dipole_edge
+end subroutine sad_linear_dipole_edge_kick
+
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!+
+! Subroutine nonlin_multipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+!
+! Routine to track through the "linear" dipole fringe field.
+!
+! Input:
+!   ele         -- ele_struct: Element with fringe.
+!   g_bend      -- real(rp): Dipole bend strength.
+!   tilt        -- real(rp): field rotation.
+!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
+!   orbit       -- coord_struct: Starting coordinates.
+!   mat6(6,6)   -- real(rp): Transfer matrix up to the fringe.
+!   make_matrix -- logical: Make the transfer matrix?
+!
+! Output:
+!   orbit       -- coord_struct: Ending coordinates.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
+!-
+
+subroutine nonlin_multipole_edge_kick (ele, knl, tn, particle_at, orbit, mat6, make_matrix)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+
+real(rp) :: mat6(6,6)
+real(rp) g_bend, tilt, knl(0:), tn(0:)
+real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6)
+
+integer fringe_type, fringe_at, physical_end, particle_at
+logical make_matrix
+
+! Fringe here?
+
+fringe_type = nint(ele%value(fringe_type$))
+if (fringe_type /= sad_linear$ .and. fringe_type /= sad_full$) return
+
+fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+if (.not. at_this_ele_end(physical_end, fringe_at)) return
+
+end subroutine nonlin_multipole_edge_kick 
 
 end module
