@@ -155,39 +155,78 @@ General \vn{beambeam} attributes are:
 
 \index{sig_x}\index{sig_y}\index{sig_z}
 \index{n_slice}\index{charge}\index{bbi_constant}
+\index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
 Attributes specific to a \vn{beambeam} element are:
 \begin{example}
-  sig_x   = <Real>     ! Horizontal strong beam sigma   
-  sig_y   = <Real>     ! Vertical strong beam sigma
+  sig_x   = <Real>     ! Horizontal strong beam sigma at the center 
+  sig_y   = <Real>     ! Vertical strong beam sigma at the center
   sig_z   = <Real>     ! Strong beam length
-  charge  = <Real>     ! Strong beam charge
-  n_slice = <Integer>  ! Number of strong beam slices 
-  bbi_constant         ! Dependent attribute (\sref{s:depend}).
+  charge  = <Real>     ! Strong beam charge. Default = -1
+  n_slice = <Integer>  ! Number of strong beam slices
+  beta_a  = <Real>     ! $a$-mode beta Twiss parameter
+  alpha_a = <Real>     ! $a$-mode alpha Twiss parameter 
+  beta_b  = <Real>     ! $b$-mode beta Twiss parameter
+  alpha_b = <Real>     ! $b$-mode alpha Twiss parameter 
+  bbi_constant         ! See below. Dependent attribute (\sref{s:depend}).
 \end{example}
 
 \index{n_part!in BeamBeam element}
-\vn{n_part} is the nominal number of particles of the strong
-beam. \vn{n_part} is set using the \vn{parameter} command
-(\sref{s:param}) and is thus common to all \vn{beambeam} elements.  To
-vary the number of particles in an individual \vn{beambeam} element use the
-\vn{charge} attribute. The default is \vn{charge} = -1 which indicates
+The number of particles in the strong beam is set by
+\begin{example}
+  charge * parameter[n_part]
+\end{example}
+\vn{parameter[n_part]} is the nominal number of particles of the strong
+beam. \vn{parameter[n_part]} is a global setting (\sref{s:param}) and is 
+used for all \vn{beambeam} elements. 
+To vary the number of particles in an individual \vn{beambeam} element,
+the \vn{charge} attribute is used.
+The default is \vn{charge} = -1 which indicates
 that the strong beam has the opposite charge of the weak beam.
 
-\index{x_offset}
-\index{y_offset}
-\vn{sig_x}, \vn{sig_y}, \vn{sig_z} are the strong beam's sigmas. 
-\vn{x_offset} and \vn{y_offset} are used to offset the
-\vn{BeamBeam} element. Note that in \mad the attributes used to
-offset the strong beam are called \vn{xma} and \vn{yma}. Since the
-offsets might not be known until run time (they, of course, depend
-upon the particular orbits), often \vn{x_offset} and \vn{y_offset}
-will be set by a program rather than from the lattice file.
+\index{sig_z}\index{n_slice}
+\vn{sig_z} are the strong beam's longitudinal sigma.
+The strong beam is divided up into \vn{n_slice} equal charge (not
+equal thickness) slices. Propagation through the strong beam involves
+a kick at the charge center of each slice with drifts in between the
+kicks. The kicks are calculated using the standard Bassetti--Erskine
+complex error function formula\cite{b:talman}.  Even though the strong
+beam can have a finite \vn{sig_z}, the length of the element is always
+considered to be zero. This is achieved by adding drifts at either end
+of any tracking so that the longitudinal starting point and ending
+point are identical. The longitudinal $s$--position of the
+\vn{BeamBeam} element is at the center of the strong bunch. For
+example, with \vn{n_slice} = 2 the calculation would proceed as
+follows:
+\begin{enumerate}
+  \item  Start with the reference particle at the center of the strong bunch.
+  \item  Propagate (drift) backwards to the center of the first slice.
+  \item  Apply the beam--beam kick due to the first slice.
+  \item  Propagate (drift) forwards to the center of the second slice.
+  \item  Apply the beam--beam kick due to the second slice.
+  \item  Propagate (drift) backwards to end up with the reference particle
+     at the center of the strong bunch.
+\end{enumerate}
 
-\index{x_pitch}
-\index{y_pitch}
+\index{sig_x}\index{sig_y}
+\index{beta_a}\index{beta_b}\index{alpha_a}\index{alpha_b}
+\vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam
+at $s_0$ which is the $s$-position where the \vn{beambeam} element is located. 
+For calculating the the sigmas of any given slice, \vn{sig_x} and \vn{sig_y} 
+are extrapolated using the Twiss paramteters at $s_0$. The Twiss parameters
+at $s_0$ are set by \vn{beta_a}, \vn{beta_b}, \vn{alpha_a}, and \vn{alpha_b}.
+If \vn{beta_a} is zero (the default), the $a$-mode Twiss parameters as 
+calculated from the lattice is used. Similarly, 
+if \vn{beta_b} is zero (the default), the $b$-mode Twiss parameters as 
+calculated from the lattice is used.
+
+
+\index{x_offset}\index{y_offset}\index{z_ofset}
+\index{x_pitch}\index{y_pitch}
+\vn{x_offset}, \vn{y_offset}, and \vn{z_offset} are used to offset the
+\vn{beambeam} element. Note that in \mad the attributes used to
+offset the strong beam are called \vn{xma} and \vn{yma}.
 \vn{x_pitch} and \vn{y_pitch} gives the beam--beam interaction a
 crossing angle. This is the full crossing angle, not the half-angle.
-See~\sref{s:beambeam.std} for details on how a \vn{beambeam} element is tracked.
 
 The \vn{bbi_constant} is a measure of the beam--beam interaction
 strength.  It is a dependent variable and is calculated from the
@@ -210,6 +249,7 @@ The beam--beam tune shift is
 
 Example:
 \begin{example}
+  parameter[n_part] = 1.34e10     ! Used for all beambeam eles
   bbi: beambeam, sig_x = 3e-3, sig_y = 3e-4, x_offset = 0.05
 \end{example}
 

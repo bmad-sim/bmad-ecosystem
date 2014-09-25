@@ -966,24 +966,39 @@ end subroutine mat4_multipole
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine bbi_slice_calc (ele, n_slice, z_slice)
+!
+! Routine to compute the longitudinal positions of the slices of
+! a beambeam element.
+!
+! Input:
+!   ele        -- ele_struct: beambeam element
+!   n_slice    -- integer: Number of slices
+!
+! Output:
+!   z_slice(:) -- real(rp): Array of slice positions 
+!-
 
-subroutine bbi_slice_calc (n_slice, sig_z, z_slice)
+subroutine bbi_slice_calc (ele, n_slice, z_slice)
 
 implicit none
 
+type (ele_struct) ele
+
 integer :: i, n_slice
-real(rp) sig_z, z_slice(:), y
+real(rp) z_slice(:), y
 real(rp) :: z_norm
 
 !
 
 if (n_slice == 1) then
-  z_slice(1) = 0
+  z_slice(1) = ele%value(z_offset$)
 elseif (n_slice > 1) then
   do i = 1, n_slice
     y = (i - 0.5) / n_slice - 0.5
     z_norm = inverse(probability_funct, y, -5.0_rp, 5.0_rp, 1.0e-5_rp)
-    z_slice(i) = sig_z * z_norm
+    z_slice(i) = ele%value(sig_z$) * z_norm + ele%value(z_offset$)
   enddo
 else
   print *, 'ERROR IN BBI_SLICE_CALC: N_SLICE IS NEGATIVE:', n_slice
