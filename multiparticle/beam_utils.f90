@@ -2062,13 +2062,7 @@ if (allocated(beam1%bunch)) then
   endif
 endif
 
-if (allocate_this) then
-  allocate (beam1%bunch(n_bun))
-  do i = 1, n_bun
-    n_particle = size(beam2%bunch(i)%particle)
-    allocate (beam1%bunch(i)%particle(n_particle))
-  enddo
-endif
+if (allocate_this) allocate (beam1%bunch(n_bun))
 
 do i = 1, n_bun
   beam1%bunch(i) = beam2%bunch(i)
