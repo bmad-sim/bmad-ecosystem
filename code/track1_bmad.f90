@@ -126,7 +126,7 @@ case (beambeam$)
   call canonical_to_angle_coords (end_orb)
 
   n_slice = max(1, nint(ele%value(n_slice$)))
-  call bbi_slice_calc (n_slice, ele%value(sig_z$), z_slice)
+  call bbi_slice_calc (ele, n_slice, z_slice)
   s_pos = 0    ! end at the ip
   do i = 1, n_slice
     s_pos_old = s_pos
@@ -138,9 +138,9 @@ case (beambeam$)
       sig_y = sig_y0
     else
       beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
-      sig_x = sig_x0 * sqrt(beta / ele%a%beta)
+      sig_x = sig_x0 * sqrt(beta / beta_a0)
       beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
-      sig_y = sig_y0 * sqrt(beta / ele%b%beta)
+      sig_y = sig_y0 * sqrt(beta / beta_b0)
     endif
 
     call bbi_kick (end_orb%vec(1)/sig_x, end_orb%vec(3)/sig_y, sig_y/sig_x,  kx, ky)

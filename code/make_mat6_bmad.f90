@@ -160,7 +160,7 @@ case (beambeam$)
   if (n_slice == 1) then
     call bbi_kick_matrix (ele, param, c00, 0.0_rp, mat6)
   else
-    call bbi_slice_calc (n_slice, v(sig_z$), z_slice)
+    call bbi_slice_calc (ele, n_slice, z_slice)
 
     s_pos = 0          ! start at IP
     orb = c00
@@ -1585,6 +1585,7 @@ type (lat_param_struct) param
 
 real(rp) x_pos, y_pos, del, sig_x, sig_y, coef, garbage, s_pos
 real(rp) ratio, k0_x, k1_x, k0_y, k1_y, mat6(6,6), beta, bbi_const
+real(rp) beta_a0, alpha_a0, beta_b0, alpha_b0
 
 !
 
@@ -1595,11 +1596,27 @@ sig_y = ele%value(sig_y$)
 
 if (sig_x == 0 .or. sig_y == 0) return
 
+if (ele%value(beta_a$) == 0) then
+  beta_a0 = ele%a%beta
+  alpha_a0 = ele%a%alpha
+else
+  beta_a0 = ele%value(beta_a$)
+  alpha_a0 = ele%value(alpha_a$)
+endif
+
+if (ele%value(beta_b$) == 0) then
+  beta_b0 = ele%b%beta
+  alpha_b0 = ele%b%alpha
+else
+  beta_b0 = ele%value(beta_b$)
+  alpha_b0 = ele%value(alpha_b$)
+endif
+
 if (s_pos /= 0 .and. ele%a%beta /= 0) then
-  beta = ele%a%beta - 2 * ele%a%alpha * s_pos + ele%a%gamma * s_pos**2
-  sig_x = sig_x * sqrt(beta / ele%a%beta)
-  beta = ele%b%beta - 2 * ele%b%alpha * s_pos + ele%b%gamma * s_pos**2
-  sig_y = sig_y * sqrt(beta / ele%b%beta)
+  beta = beta_a0 - 2 * alpha_a0 * s_pos + (1 + alpha_a0**2) * s_pos**2 / beta_a0
+  sig_x = sig_x * sqrt(beta / beta_a0)
+  beta = beta_b0 - 2 * alpha_b0 * s_pos + (1 + alpha_b0**2) * s_pos**2 / beta_b0
+  sig_y = sig_y * sqrt(beta / beta_b0)
 endif
 
 x_pos = orb%vec(1) / sig_x  ! this has offset in it
