@@ -1041,6 +1041,21 @@ should be used in place of \vn{rfcavity} elements when this is not so.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
+\section{Sad\_Mult Tracking}
+\label{s:sad.mult.std}
+\index{sad_mult}
+
+The ``hard edge'' fringe field kick is taken from Forest\cite{b:forest} Eqs.~(13.29) and onward.
+In the notation of \bmad, and taking into account both normal and skew terms, Eq.~(13.29)
+is for the $m$\th order multipole (what Forest labels $n+1$)
+\Begineq
+  f_\pm = \mp \Re \frac{(b_m + i \, a_m) \, (x + i \, y)^{(m+1)}}{4 \, (m+2) \, (1 + p_z)}
+    \left[ x \, p_x + y \, p_y + i\frac{m+3}{m+1}(x \, p_y - y \, p_x) \right]
+\Endeq
+
+
+%---------------------------------------------------------------------------------
+%---------------------------------------------------------------------------------
 \section{Sextupole Tracking}
 \label{s:sextupole.std}
 \index{sextupole}
