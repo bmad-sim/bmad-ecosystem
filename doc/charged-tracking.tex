@@ -682,20 +682,22 @@ and
 \label{s:drift.std}
 \index{drift} 
 
-\Eq{h1gx1} for a drift has $\Bf a = 0$ and $g = 0$. The Hamiltonian for a
-drift is then
-\Begineq
-  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} 
-\Endeq
+\bmad uses the exact map for a drift
 This gives the map
 \begin{align}
-  x_2    &= x_1 + \frac{L \, p_{x1}}{1 + p_{z1}} \CRNO
+  x_2    &= x_1 + \frac{L \, p_{x1}}{(1 + p_{z1}) \, p_l} \CRNO
   p_{x2} &= p_{x1}  \CRNO
-  y_2    &= y_1 + \frac{L \, p_{y1}}{1 + p_{z1}} \CRNO
+  y_2    &= y_1 + \frac{L \, p_{y1}}{(1 + p_{z1}) \, p_l} \CRNO
   p_{y2} &= p_{y1}  \\
-  z_2    &= z_1 - \frac{L \, (p_{x1}^2 + p_{y1}^2)}{2 (1 + p_{z1})^2} \CRNO
+  z_2    &= z_1 + \left( \frac{\beta}{\beta_{ref}} - \frac{1}{p_l} \right) \, L \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
+where $\beta$ is the normalized particle velocity, $\beta_{ref}$ is 
+the reference particle's normalized velocity, and $p_l$ is the
+longitudinal momentum
+\Begineq
+  p_l = \sqrt{1 - \frac{p_x^2 + p_y^2}{(1 + p_z)^2}}
+\Endeq
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

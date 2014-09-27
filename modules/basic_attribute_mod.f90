@@ -1041,11 +1041,11 @@ call init_attribute_name1 (sad_mult$, eps_step_scale$,         'EPS_STEP_SCALE')
 call init_attribute_name1 (sad_mult$, angle$,                  'ANGLE')
 call init_attribute_name1 (sad_mult$, e1$,                     'E1')
 call init_attribute_name1 (sad_mult$, e2$,                     'E2')
-call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY')  ! SAD: freq
-call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')         ! SAD: phi
-call init_attribute_name1 (sad_mult$, phi0_err$,               'PHI0_ERR')     ! SAD: dphi
-call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
-call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
+!call init_attribute_name1 (sad_mult$, rf_frequency$,           'RF_FREQUENCY')  ! SAD: freq
+!call init_attribute_name1 (sad_mult$, phi0$,                   'PHI0')         ! SAD: phi
+!call init_attribute_name1 (sad_mult$, phi0_err$,               'PHI0_ERR')     ! SAD: dphi
+!call init_attribute_name1 (sad_mult$, voltage$,                'VOLTAGE')      ! SAD: volt
+!call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
 call init_attribute_name1 (sad_mult$, f1$,                     'F1')
