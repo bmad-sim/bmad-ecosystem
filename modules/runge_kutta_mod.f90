@@ -149,7 +149,7 @@ do n_step = 1, max_step
   do
     if (.not. associated(hard_ele)) exit
     if ((s-s_edge_track)*direction < -ds_tiny) exit
-    call apply_hard_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
+    call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
     call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this

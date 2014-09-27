@@ -785,40 +785,41 @@ case (quadrupole$)
   ! Starting edge
 
   call offset_particle (ele, param, set$, c00)
-  call quadrupole_edge_mat6 (ele, first_track_edge$, c00, kmat6, fringe_here)
-  call quadrupole_edge_kick (ele, first_track_edge$, c00)
+  call quadrupole_hard_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
+  call quadrupole_soft_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
-  call quad_mat2_calc (-k1, length, rel_p, mat6(1:2,1:2), dz_x, ddz_x)
-  call quad_mat2_calc ( k1, length, rel_p, mat6(3:4,3:4), dz_y, ddz_y)
+  call mat_make_unit (kmat6)
+  call quad_mat2_calc (-k1, length, rel_p, kmat6(1:2,1:2), dz_x, ddz_x)
+  call quad_mat2_calc ( k1, length, rel_p, kmat6(3:4,3:4), dz_y, ddz_y)
 
   if (any(c00%vec(1:4) /= 0)) then
-    mat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
-    mat6(5,2) =     c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)
-    mat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
-    mat6(5,4) =     c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)
-    mat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3) + &
+    kmat6(5,1) = 2 * c00%vec(1) * dz_x(1) +     c00%vec(2) * dz_x(2)
+    kmat6(5,2) =     c00%vec(1) * dz_x(2) + 2 * c00%vec(2) * dz_x(3)
+    kmat6(5,3) = 2 * c00%vec(3) * dz_y(1) +     c00%vec(4) * dz_y(2)
+    kmat6(5,4) =     c00%vec(3) * dz_y(2) + 2 * c00%vec(4) * dz_y(3)
+    kmat6(5,6) = c00%vec(1)**2 * ddz_x(1) + c00%vec(1)*c00%vec(2) * ddz_x(2) + c00%vec(2)**2 * ddz_x(3) + &
                 c00%vec(3)**2 * ddz_y(1) + c00%vec(3)*c00%vec(4) * ddz_y(2) + c00%vec(4)**2 * ddz_y(3)  
   endif
 
-  if (any(mat6(5,1:4) /= 0)) then
-    mat6(1,6) = mat6(5,2) * mat6(1,1) - mat6(5,1) * mat6(1,2)
-    mat6(2,6) = mat6(5,2) * mat6(2,1) - mat6(5,1) * mat6(2,2)
-    mat6(3,6) = mat6(5,4) * mat6(3,3) - mat6(5,3) * mat6(3,4)
+  if (any(kmat6(5,1:4) /= 0)) then
+    kmat6(1,6) = kmat6(5,2) * kmat6(1,1) - kmat6(5,1) * kmat6(1,2)
+    kmat6(2,6) = kmat6(5,2) * kmat6(2,1) - kmat6(5,1) * kmat6(2,2)
+    kmat6(3,6) = kmat6(5,4) * kmat6(3,3) - kmat6(5,3) * kmat6(3,4)
 
-    mat6(4,6) = mat6(5,4) * mat6(4,3) - mat6(5,3) * mat6(4,4)
+    kmat6(4,6) = kmat6(5,4) * kmat6(4,3) - kmat6(5,3) * kmat6(4,4)
   endif
 
-  c00%vec(1:2) = matmul(mat6(1:2,1:2), c00%vec(1:2))
-  c00%vec(3:4) = matmul(mat6(3:4,3:4), c00%vec(3:4))
+  c00%vec(1:2) = matmul(kmat6(1:2,1:2), c00%vec(1:2))
+  c00%vec(3:4) = matmul(kmat6(3:4,3:4), c00%vec(3:4))
 
-  if (fringe_here) mat6 = matmul(mat6, kmat6)
+  mat6 = matmul(kmat6, mat6)
 
   ! Ending edge
 
-  call quadrupole_edge_mat6 (ele, second_track_edge$, c00, kmat6, fringe_here)
-  if (fringe_here) mat6 = matmul(kmat6, mat6)
+  call quadrupole_soft_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
+  call quadrupole_hard_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
 
   ! tilt and multipoles
 

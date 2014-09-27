@@ -360,7 +360,7 @@ select case (ele%field_calc)
   !   omega = c * k
   ! Field extends to +/- c_light * freq / 2 from centerline of element.
   ! Note: There is a discontinuity in the field at the edge. Edge focusing due to this 
-  !  discontinuity can be handled in the apply_hard_edge_kick routine.
+  !  discontinuity can be handled in the apply_element_edge_kick routine.
   !
   ! For traveling wave cavity:
   !   E_s   =  gradient * cos(omega t + phase - k s)
@@ -373,7 +373,7 @@ select case (ele%field_calc)
 
     phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
     if (ele%key == rfcavity$) phase = pi/2 - phase
-    orbit%phase(1) = phase  ! RF phase is needed by apply_hard_edge_kick when calling rf_coupler_kick.
+    orbit%phase(1) = phase  ! RF phase is needed by apply_element_edge_kick when calling rf_coupler_kick.
 
     gradient = e_accel_field (ele, gradient$)
 

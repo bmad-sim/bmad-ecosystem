@@ -1053,6 +1053,34 @@ is for the $m$\th order multipole (what Forest labels $n+1$)
     \left[ x \, p_x + y \, p_y + i\frac{m+3}{m+1}(x \, p_y - y \, p_x) \right]
 \Endeq
 
+The ``soft edge'' dipole fringe for \vn{sad_mult} elements is a generalization of the soft edge
+dipole fringe for a SAD bend element. For the entrance kick the equations are:
+\begin{align}
+  x_2 &= x_1 + \frac{\delta_1}{1 + \delta_1} \, \Delta x_{fx}, \qquad
+  p_{x2} = p_{x1} + \frac{1}{1 + \delta_1} \, \left[ 
+    \Delta x_{fy} \, v - \Delta x_{fay} \, v^3 \right] \CRNO
+  y_2 &= y_1 - \frac{\delta_1}{1 + \delta_1} \, \Delta y_{fy}, \qquad
+  p_{y2} = p_{y1} + \frac{1}{1 + \delta_1} \, \left[ 
+    \Delta y_{fx} \, w - \Delta y_{fax} \, w^3 \right] \\
+  z_2 &= z_1 + \frac{1}{(1 + \delta_1)^2} \, \left[ \, 
+    \Delta x_{fx} \, p_{x1} - \Delta y_{fy} \, p_{y1} + 
+    \frac{1}{2} \, (\Delta y_{fx} + \Delta x_{fy}) \, w^2 -
+    \frac{1}{4} (\Delta y_{fax} + \Delta x_{fay}) \, w^4
+    \right] \nonumber
+\end{align}
+where
+\begin{alignat}{3}
+  \Delta x_{fx}  &= \frac{K_0 \, F_B^2}{24 \, L}, & \qquad 
+  \Delta y_{fx}  &= \frac{K_0^2 \, F_B}{6 \, L^2}, & \qquad 
+  \Delta y_{fax} &= \frac{2 \, K_0^2}{3 \, F_B \, L^2}, \CRNO 
+  \Delta y_{fy}  &= \frac{SK_0 \, F_B^2}{24 \, L}, & \qquad
+  \Delta x_{fy}  &= \frac{SK_0^2 \, F_B}{6 \, L^2}, & \qquad
+  \Delta x_{fay} &= \frac{2 \, SK_0^2}{3 \, F_B \, L^2}, \\
+  v &= \cos\theta \, x_1 + \sin\theta \, y_1, & \qquad
+  w &= -\sin\theta \, x_1 + \cos\theta \, y_1, & \qquad
+  \tan\theta &= \frac{-SK_0}{K_0} \nonumber
+\end{alignat}
+
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

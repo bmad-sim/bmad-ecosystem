@@ -88,7 +88,7 @@ integer i, n_step, n_field
 
 integer num_wig_terms  ! number of wiggler terms
 
-logical calc_mat6, calculate_mat6, err, do_offset, fringe_here
+logical calc_mat6, calculate_mat6, err, do_offset
 logical, optional :: offset_ele
 
 character(16) :: r_name = 'symp_lie_bmad'
@@ -105,13 +105,13 @@ rel_E3 = rel_E**3
 start2_orb = start_orb
 end_orb = start_orb
 end_orb%s = ele%s - ele%value(l$)
+mat6 => ele%mat6
 
 err = .false.
 
 ! element offset 
 
 if (calculate_mat6) then
-  mat6 => ele%mat6
   call drift_mat6_calc (mat6, ele%value(z_offset_tot$), ele, param, end_orb)
 endif
 
@@ -305,12 +305,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$)
   end select
 
-  if (calculate_mat6) then
-    call quadrupole_edge_mat6 (ele, first_track_edge$, end_orb, kmat6, fringe_here)
-    if (fringe_here) mat6 = kmat6
-  end if
-
-  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, first_track_edge$, end_orb)
+  call quadrupole_hard_edge_kick (ele, first_track_edge$, end_orb, mat6, calculate_mat6)
+  call quadrupole_soft_edge_kick (ele, first_track_edge$, end_orb, mat6, calculate_mat6)
 
   ! loop over all steps
 
@@ -333,12 +329,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   enddo
 
-  if (calculate_mat6) then
-    call quadrupole_edge_mat6 (ele, second_track_edge$, end_orb, kmat6, fringe_here)
-    if (fringe_here) mat6 = matmul(kmat6, mat6)
-  end if
-
-  if(ele%key == quadrupole$) call quadrupole_edge_kick (ele, second_track_edge$, end_orb)
+  call quadrupole_soft_edge_kick (ele, second_track_edge$, end_orb, mat6, calculate_mat6)
+  call quadrupole_hard_edge_kick (ele, second_track_edge$, end_orb, mat6, calculate_mat6)
 
 !----------------------------------------------------------------------------
 ! unknown element
