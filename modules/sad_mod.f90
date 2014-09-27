@@ -368,7 +368,7 @@ type (coord_struct) orbit
 
 real(rp), optional :: mat6(6,6)
 real(rp) a_pole(0:), b_pole(0:)
-real(rp) rel_p, cn, x, y, px, py, denom, denom_dx, denom_dy, kmat(6,6)
+real(rp) rel_p, cn, x, y, px, py, denom, ddenom_dx, ddenom_dy, ddenom_dpz, kmat(6,6)
 real(rp) fx, dfx_dx, dfx_dy, d2fx_dxx, d2fx_dxy, d2fx_dyy
 real(rp) fy, dfy_dx, dfy_dy, d2fy_dxx, d2fy_dxy, d2fy_dyy
 
@@ -391,8 +391,8 @@ if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 !
 
-do n = ubound(a_pole, 1), 0
-  if (a_pole(n) /= 0 .and. b_pole(n) /= 0) exit
+do n = ubound(a_pole, 1), 0, -1
+  if (a_pole(n) /= 0 .or. b_pole(n) /= 0) exit
 enddo
 n_max = n
 
@@ -422,6 +422,9 @@ d2fy_dxy = 0
 d2fy_dyy = 0
 
 do n = 1, n_max
+
+  if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
+
   poly_n2 = poly_n1
   poly_n1 = poly
   poly = poly * xy
@@ -460,8 +463,9 @@ enddo
 px = orbit%vec(2)
 py = orbit%vec(4)
 denom = (1 - dfx_dx) * (1 - dfy_dy) - dfx_dy * dfy_dx
-denom_dx = -(d2fx_dxx + d2fy_dxy + d2fx_dxy * dfy_dx + dfx_dy * d2fy_dxx)
-denom_dy = -(d2fx_dxy + d2fy_dyy + d2fx_dyy * dfy_dx + dfx_dy * d2fy_dxy) 
+ddenom_dx = -d2fx_dxx - d2fy_dxy + d2fx_dxx * dfy_dy + dfx_dx * d2fy_dxy - d2fx_dxy * dfy_dx - dfx_dy * d2fy_dxx 
+ddenom_dy = -d2fx_dxy - d2fy_dyy + d2fx_dxy * dfy_dy + dfx_dx * d2fy_dyy - d2fx_dyy * dfy_dx - dfx_dy * d2fy_dxy 
+ddenom_dpz = (dfx_dx + dfy_dy - 2 * dfx_dx * dfy_dy + 2 * dfx_dy * dfy_dx) / rel_p
 
 orbit%vec(1) = orbit%vec(1) - fx
 orbit%vec(2) = ((1 - dfy_dy) * px + dfy_dx * py) / denom
@@ -471,27 +475,28 @@ orbit%vec(5) = orbit%vec(5) + (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
 
 if (logic_option(.false., make_matrix)) then
   kmat = 0
-  kmat(1,1) = -dfx_dx
+  kmat(1,1) = 1 - dfx_dx
   kmat(1,3) = -dfx_dy
   kmat(1,6) = fx / rel_p
-  kmat(2,1) = (-d2fy_dxy * px + d2fy_dxx * py) / denom - orbit%vec(2) * denom_dx / denom
-  kmat(2,2) = -dfy_dy / denom
-  kmat(2,3) = (-d2fy_dyy * px + d2fy_dxy * py) / denom - orbit%vec(2) * denom_dy / denom
+  kmat(2,1) = (-d2fy_dxy * px + d2fy_dxx * py) / denom - orbit%vec(2) * ddenom_dx / denom
+  kmat(2,2) = (1 - dfy_dy) / denom
+  kmat(2,3) = (-d2fy_dyy * px + d2fy_dxy * py) / denom - orbit%vec(2) * ddenom_dy / denom
   kmat(2,4) = dfy_dx / denom
-  kmat(2,6) = -orbit%vec(2) / rel_p
+  kmat(2,6) = (-dfy_dy * px + dfy_dx * py) / (denom * rel_p) - orbit%vec(2) * ddenom_dpz / denom
   kmat(3,1) = -dfy_dx
-  kmat(3,3) = -dfy_dy
+  kmat(3,3) = 1 - dfy_dy
   kmat(3,6) = fy / rel_p
-  kmat(4,1) = (d2fx_dxy * px - d2fx_dxx * py) / denom - orbit%vec(4) * denom_dx / denom
+  kmat(4,1) = (d2fx_dxy * px - d2fx_dxx * py) / denom - orbit%vec(4) * ddenom_dx / denom
   kmat(4,2) = dfx_dy / denom
-  kmat(4,3) = (-d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * denom_dy / denom
-  kmat(4,4) = -dfx_dx / denom
-  kmat(4,6) = -orbit%vec(4) / rel_p
+  kmat(4,3) = (-d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * ddenom_dy / denom
+  kmat(4,4) = (1 - dfx_dx) / denom
+  kmat(4,6) = (dfx_dy * px - dfx_dx * py) / (denom * rel_p) - orbit%vec(4) * ddenom_dpz / denom
   kmat(5,1) = (kmat(2,1) * fx + orbit%vec(2) * dfx_dx + kmat(4,1) * fy + orbit%vec(4) *dfy_dx) / rel_p
   kmat(5,2) = (kmat(2,2) * fx + kmat(4,2) * fy) / rel_p
   kmat(5,3) = (kmat(2,3) * fx + orbit%vec(2) * dfx_dy + kmat(4,3) * fy + orbit%vec(4) *dfy_dy) / rel_p
   kmat(5,4) = (kmat(2,4) * fx + kmat(4,4) * fy) / rel_p
-  kmat(5,6) = -2 * (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p**2
+  kmat(5,5) = 1
+  kmat(5,6) = (kmat(2,6) * fx + kmat(4,6) * fy) / rel_p - (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p**2
   kmat(6,6) = 1
   mat6 = matmul (kmat, mat6)
 endif
