@@ -40,7 +40,7 @@ type (lat_param_struct) :: param
 real(rp) rel_pc, dz4_coef(4,4), mass, e_tot
 real(rp) ks, k1, length, z_start, charge_dir, kx, ky
 real(rp) xp_start, yp_start, mat4(4,4), mat1(6,6), f1, f2, ll, k0
-real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
+real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp), pointer :: mat6(:,:)
 real(rp) :: vec0(6), kmat(6,6)
 
@@ -70,9 +70,7 @@ orientation = ele%orientation * orbit%direction
 charge_dir = param%rel_tracking_charge * orientation
 mat6 => ele%mat6
 
-if (make_matrix) then
-  call mat_make_unit(mat6)
-endif
+if (make_matrix) call mat_make_unit(mat6)
 
 knl = 0; tilt = 0
 call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
@@ -112,7 +110,7 @@ if (length == 0) then
   return
 endif
 
-! Go to frame of reference of the multipole
+! Go to frame of reference of the multipole quad component
 
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
@@ -133,22 +131,19 @@ endif
 ele2%value(tilt_tot$) = tilt(1) 
 tilt = tilt - tilt(1)
 
+call multipole_kt_to_ab (knl, tilt, a_pole, b_pole)
+
 call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
-! Quadrupole edge kick
-
-if (make_matrix) then
-  call quadrupole_edge_mat6 (ele, first_track_edge$, orbit, kmat, fringe_here)
-  if (fringe_here) mat6 = kmat
-endif
-call quadrupole_edge_kick (ele, first_track_edge$, orbit)
-
-! Dipole and nonlin edge kicks
+! Entrance edge kicks
+! The multipole hard edge routine takes care of the quadrupole hard edge.
 
 k0 = knl(0)/length
-call sad_linear_dipole_edge_kick (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
 
-call nonlin_multipole_edge_kick (ele, knl, tilt, first_track_edge$, orbit, mat6, make_mat6)
+call multipole_hard_edge_kick (ele, a_pole, b_pole, first_track_edge$, orbit, mat6, make_matrix)
+call quadrupole_soft_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix)
+call sad_bend_linear_edge_kick (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
+call sad_bend_soft_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 
 ! Body
 
@@ -207,23 +202,14 @@ do nd = 0, n_div
 
 enddo
 
+! Exit edge kicks
+
+call sad_bend_soft_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call sad_bend_linear_edge_kick (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
+call quadrupole_soft_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix)
+call multipole_hard_edge_kick (ele, a_pole, b_pole, second_track_edge$, orbit, mat6, make_matrix)
+
 ! End stuff
-
-! Dipole and nonlinear edge kicks
-
-call nonlin_multipole_edge_kick (ele, knl, tilt, second_track_edge$, orbit, mat6, make_mat6)
-
-call sad_linear_dipole_edge_kick (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
-
-! Quadrupole edge kick
-
-if (make_matrix) then
-  call quadrupole_edge_mat6 (ele, second_track_edge$, orbit, kmat, fringe_here)
-  if (fringe_here) mat6 = matmul(kmat, mat6)
-endif
-call quadrupole_edge_kick (ele, second_track_edge$, orbit)
-
-!
 
 call offset_particle (ele2, param, unset$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
@@ -266,37 +252,39 @@ end subroutine sad_mult_track_and_mat
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine sad_linear_dipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+! Subroutine sad_bend_linear_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
 !
-! Routine to track through the "linear" dipole fringe field.
+! Routine to track through the "linear" bend fringe field.
 !
 ! Input:
 !   ele         -- ele_struct: Element with fringe.
-!   g_bend      -- real(rp): Dipole bend strength.
+!   g_bend      -- real(rp): Bend bend strength.
 !   tilt        -- real(rp): field rotation.
 !   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
 !   orbit       -- coord_struct: Starting coordinates.
-!   mat6(6,6)   -- real(rp): Transfer matrix up to the fringe.
-!   make_matrix -- logical: Make the transfer matrix?
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
+!   make_matrix -- real(rp), optional: Make the transfer matrix? Default is False.
 !
 ! Output:
 !   orbit       -- coord_struct: Ending coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine sad_linear_dipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+subroutine sad_bend_linear_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
 type (ele_struct) ele
 type (coord_struct) orbit
 
-real(rp) :: mat6(6,6)
+real(rp), optional :: mat6(6,6)
 real(rp) g_bend, tilt
 real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6)
 
 integer fringe_type, fringe_at, physical_end, particle_at
-logical make_matrix
+integer i, i_max
+
+logical, optional :: make_matrix
 
 ! Fringe here?
 
@@ -327,7 +315,7 @@ orbit%vec(1) = orbit%vec(1) + g * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**3)
 orbit%vec(4) = orbit%vec(4) - g * px * y * (1 - 2 * yg) / p_zy
 orbit%vec(5) = orbit%vec(5) - g * y2 * px * (1 - yg) * rel_p / (2 * p_zy**3)
 
-if (make_matrix) then
+if (logic_option(.false., make_matrix)) then
   call mat_make_unit(kmat)
   kmat(1,2) = 3 * g * px * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**5)
   kmat(1,3) =  g * (y - 2 * y * yg) * rel_p**2 / p_zy**3
@@ -346,53 +334,168 @@ endif
 
 if (tilt /= 0) call tilt_coords (-tilt, orbit%vec)
 
-end subroutine sad_linear_dipole_edge_kick
+end subroutine sad_bend_linear_edge_kick
 
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine nonlin_multipole_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
+! Subroutine multipole_hard_edge_kick (ele, a_pole, b_pole, particle_at, orbit, mat6, make_matrix)
 !
-! Routine to track through the "linear" dipole fringe field.
+! Routine to track through the hard edge field of a multipole.
+! The dipole component is ignored and only quadrupole and higher multipoles are included.
 !
 ! Input:
 !   ele         -- ele_struct: Element with fringe.
-!   g_bend      -- real(rp): Dipole bend strength.
-!   tilt        -- real(rp): field rotation.
+!   a_pole(0:)  -- real(rp): Multipole skew components.
+!   b_pole(0:)  -- real(rp): Multipole normal components.
 !   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
 !   orbit       -- coord_struct: Starting coordinates.
-!   mat6(6,6)   -- real(rp): Transfer matrix up to the fringe.
-!   make_matrix -- logical: Make the transfer matrix?
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
+!   make_matrix -- real(rp), optional: Make the transfer matrix? Default is False.
 !
 ! Output:
 !   orbit       -- coord_struct: Ending coordinates.
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine nonlin_multipole_edge_kick (ele, knl, tn, particle_at, orbit, mat6, make_matrix)
+subroutine multipole_hard_edge_kick (ele, a_pole, b_pole, particle_at, orbit, mat6, make_matrix)
 
 implicit none
 
 type (ele_struct) ele
 type (coord_struct) orbit
 
-real(rp) :: mat6(6,6)
-real(rp) g_bend, tilt, knl(0:), tn(0:)
-real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6)
+real(rp), optional :: mat6(6,6)
+real(rp) a_pole(0:), b_pole(0:)
+real(rp) rel_p, cn, x, y, px, py, denom, denom_dx, denom_dy, kmat(6,6)
+real(rp) fx, dfx_dx, dfx_dy, d2fx_dxx, d2fx_dxy, d2fx_dyy
+real(rp) fy, dfy_dx, dfy_dy, d2fy_dxx, d2fy_dxy, d2fy_dyy
+
+complex(rp) poly, poly_n1, poly_n2, dpoly_dx, dpoly_dy, d2poly_dxx, d2poly_dxy, d2poly_dyy
+complex(rp) xy, xny, dxny_dx, dxny_dy, cab
 
 integer fringe_type, fringe_at, physical_end, particle_at
-logical make_matrix
+integer n, n_max
+
+logical, optional :: make_matrix
 
 ! Fringe here?
 
 fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= sad_linear$ .and. fringe_type /= sad_full$) return
+if (fringe_type /= sad_full$ .and. fringe_type /= sad_nonlin_only$) return
 
 fringe_at = nint(ele%value(fringe_at$))
 physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
-end subroutine nonlin_multipole_edge_kick 
+!
+
+do n = ubound(a_pole, 1), 0
+  if (a_pole(n) /= 0 .and. b_pole(n) /= 0) exit
+enddo
+n_max = n
+
+!
+
+x = orbit%vec(1)
+y = orbit%vec(3)
+xy = cmplx(x, y)
+
+poly_n1 = 1
+poly = xy
+
+rel_p = 1 + orbit%vec(6)
+
+fx = 0
+dfx_dx = 0
+dfx_dy = 0
+d2fx_dxx = 0
+d2fx_dxy = 0
+d2fx_dyy = 0
+
+fy = 0
+dfy_dx = 0
+dfy_dy = 0
+d2fy_dxx = 0
+d2fy_dxy = 0
+d2fy_dyy = 0
+
+do n = 1, n_max
+  poly_n2 = poly_n1
+  poly_n1 = poly
+  poly = poly * xy
+
+  if (n <= 1) cycle
+  dpoly_dx = (n+1) * poly_n1
+  dpoly_dy = i_imaginary * poly_n1
+  d2poly_dxx = n * (n+1) * poly_n2
+  d2poly_dxy = i_imaginary * d2poly_dxx
+  d2poly_dyy = -d2poly_dxx
+
+  cab = cmplx(b_pole(n), a_pole(n)) / (4 * (n + 2) * rel_p)
+  cn = real(n+3, rp) / (n+1) 
+
+  xny = cmplx(x, -cn * y)
+  dxny_dy = cmplx(0.0_rp, -cn)
+
+  fx = fx + real(cab * poly * xny)
+  dfx_dx = dfx_dx + real(cab * (dpoly_dx * xny + poly))
+  dfx_dy = dfx_dy + real(cab * (dpoly_dy * xny + poly * dxny_dy))
+  d2fx_dxx = d2fx_dxx + real(cab * (d2poly_dxx * xny + 2 * dpoly_dx))
+  d2fx_dxy = d2fx_dxy + real(cab * (d2poly_dxy * xny + dpoly_dx * dxny_dy + dpoly_dy))
+  d2fx_dyy = d2fx_dyy + real(cab * (d2poly_dyy * xny + 2 * dpoly_dy * dxny_dy))
+
+  xny = cmplx(y, cn * x)
+  dxny_dx = cmplx(0.0_rp, cn)
+
+  fy = fy + real(cab * poly * xny)
+  dfy_dx = dfy_dx + real(cab * (dpoly_dx * xny + poly * dxny_dx))
+  dfy_dy = dfy_dy + real(cab * (dpoly_dy * xny + poly))
+  d2fy_dxx = d2fy_dxx + real(cab * (d2poly_dxx * xny + 2 * dpoly_dx * dxny_dx))
+  d2fy_dxy = d2fy_dxy + real(cab * (d2poly_dxy * xny + dpoly_dx + dpoly_dy * dxny_dx))
+  d2fy_dyy = d2fy_dyy + real(cab * (d2poly_dyy * xny + 2 * dpoly_dy))
+enddo
+
+px = orbit%vec(2)
+py = orbit%vec(4)
+denom = (1 - dfx_dx) * (1 - dfy_dy) - dfx_dy * dfy_dx
+denom_dx = -(d2fx_dxx + d2fy_dxy + d2fx_dxy * dfy_dx + dfx_dy * d2fy_dxx)
+denom_dy = -(d2fx_dxy + d2fy_dyy + d2fx_dyy * dfy_dx + dfx_dy * d2fy_dxy) 
+
+orbit%vec(1) = orbit%vec(1) - fx
+orbit%vec(2) = ((1 - dfy_dy) * px + dfy_dx * py) / denom
+orbit%vec(3) = orbit%vec(3) - fy
+orbit%vec(4) = (dfx_dy * px + (1 - dfx_dx) * py) / denom
+orbit%vec(5) = orbit%vec(5) + (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
+
+if (logic_option(.false., make_matrix)) then
+  kmat = 0
+  kmat(1,1) = -dfx_dx
+  kmat(1,3) = -dfx_dy
+  kmat(1,6) = fx / rel_p
+  kmat(2,1) = (-d2fy_dxy * px + d2fy_dxx * py) / denom - orbit%vec(2) * denom_dx / denom
+  kmat(2,2) = -dfy_dy / denom
+  kmat(2,3) = (-d2fy_dyy * px + d2fy_dxy * py) / denom - orbit%vec(2) * denom_dy / denom
+  kmat(2,4) = dfy_dx / denom
+  kmat(2,6) = -orbit%vec(2) / rel_p
+  kmat(3,1) = -dfy_dx
+  kmat(3,3) = -dfy_dy
+  kmat(3,6) = fy / rel_p
+  kmat(4,1) = (d2fx_dxy * px - d2fx_dxx * py) / denom - orbit%vec(4) * denom_dx / denom
+  kmat(4,2) = dfx_dy / denom
+  kmat(4,3) = (-d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * denom_dy / denom
+  kmat(4,4) = -dfx_dx / denom
+  kmat(4,6) = -orbit%vec(4) / rel_p
+  kmat(5,1) = (kmat(2,1) * fx + orbit%vec(2) * dfx_dx + kmat(4,1) * fy + orbit%vec(4) *dfy_dx) / rel_p
+  kmat(5,2) = (kmat(2,2) * fx + kmat(4,2) * fy) / rel_p
+  kmat(5,3) = (kmat(2,3) * fx + orbit%vec(2) * dfx_dy + kmat(4,3) * fy + orbit%vec(4) *dfy_dy) / rel_p
+  kmat(5,4) = (kmat(2,4) * fx + kmat(4,4) * fy) / rel_p
+  kmat(5,6) = -2 * (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p**2
+  kmat(6,6) = 1
+  mat6 = matmul (kmat, mat6)
+endif
+
+end subroutine multipole_hard_edge_kick 
 
 end module
