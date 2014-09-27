@@ -48,10 +48,10 @@ integer, optional :: frequency_units
 integer, optional :: n_lines
 integer i, nl
 
-real(rp) coef
+real(rp) coef, cbar(2,2)
 
 character(*), optional :: lines(:)
-character(100) li(7)
+character(200) li(7)
 character(80) fmt, str, freq_str
 
 logical, optional :: compact_format
@@ -96,11 +96,10 @@ if (logic_option (.false., compact_format)) then
   nl = 4
 
 else
-  write (li(7), '(9x, 4(19x, a))') 'X', 'Y','A','B'  
-
-  write (li(1), '(12x, 2(14x, a))') 'A', 'B'
-  write (li(2), '(2x, a12, 2a)') 'Beta (m)    ', v(ele%a%beta), v(ele%b%beta)
-  write (li(3), '(2x, a12, 2a)') 'Alpha (-)   ', v(ele%a%alpha), v(ele%b%alpha)
+  call c_to_cbar (ele, cbar)
+  write (li(1), '(12x, 2(14x, a), 12x, a, 24x, a)') 'A', 'B', 'Cbar', 'C_mat'
+  write (li(2), '(2x, a12, 2a, 2(3x, 2a))') 'Beta (m)    ', v(ele%a%beta), v(ele%b%beta), v2(cbar(1,1)), v2(cbar(1,2)), v2(ele%c_mat(1,1)), v2(ele%c_mat(1,2))
+  write (li(3), '(2x, a12, 2a, 2(3x, 2a))') 'Alpha (-)   ', v(ele%a%alpha), v(ele%b%alpha), v2(cbar(2,1)), v2(cbar(2,2)), v2(ele%c_mat(2,1)), v2(ele%c_mat(2,2))
   write (li(4), '(2x, a12, 2a)') 'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma)
   write (li(5), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
   write (li(6), '(2x, a12, 5a)') 'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
@@ -135,5 +134,22 @@ else
 endif
 
 end function v
+
+!--------------------------------------------
+!contains
+
+function v2(val) result (str)
+real(rp) val
+character(13) str
+
+!
+
+if (abs(val) < 9999) then
+  write (str, '(f13.8)') val
+else
+  write (str, '(es13.5)') val
+endif
+
+end function v2
 
 end subroutine

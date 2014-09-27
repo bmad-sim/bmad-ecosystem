@@ -4,7 +4,6 @@ use bmad_core_struct_mod
 
 interface assignment (=)
   module procedure ele_equal_ele
-  module procedure ele_vec_equal_ele_vec
   module procedure lat_equal_lat 
   module procedure lat_vec_equal_lat_vec 
   module procedure branch_equal_branch
@@ -252,49 +251,6 @@ end subroutine ele_equal_ele
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine ele_vec_equal_ele_vec (ele1, ele2)
-!
-! Subroutine that is used to set one element vector equal to another.
-! This routine takes care of the pointers in ele1.
-!
-! Note: This subroutine is called by the overloaded equal sign:
-!               ele1(:) = ele2(:)
-!
-! Input:
-!   ele2(:) -- Ele_struct: Input element vector.
-!
-! Output:
-!   ele1(:) -- Ele_struct: Output element vector.
-!-
-
-subroutine ele_vec_equal_ele_vec (ele1, ele2)
-
-implicit none
-
-type (ele_struct), intent(inout) :: ele1(:)
-type (ele_struct), intent(in) :: ele2(:)
-
-integer i
-
-! error check
-
-if (size(ele1) /= size(ele2)) then
-  print *, 'ERROR IN ELE_VEC_EQUAL_ELE_VEC: ARRAY SIZES ARE NOT THE SAME!'
-  if (global_com%exit_on_error) call err_exit
-endif
-
-! transfer
-
-do i = 1, size(ele1)
-  call ele_equal_ele (ele1(i), ele2(i))
-enddo
-
-end subroutine ele_vec_equal_ele_vec
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+
 ! Subroutine lat_equal_lat (lat_out, lat_in)
 !
 ! Subroutine that is used to set one lat equal to another. 
@@ -462,6 +418,7 @@ implicit none
 	
 type (branch_struct), intent(inout) :: branch1
 type (branch_struct), intent(in) :: branch2
+integer i
 
 !
 
@@ -471,8 +428,12 @@ branch1%ix_from_branch = branch2%ix_from_branch
 branch1%ix_from_ele    = branch2%ix_from_ele
 branch1%n_ele_track    = branch2%n_ele_track
 branch1%n_ele_max      = branch2%n_ele_max
+
 call allocate_element_array (branch1%ele, ubound(branch2%ele, 1))
-branch1%ele            = branch2%ele
+do i = 0, ubound(branch2%ele, 1)
+  branch1%ele(i)  = branch2%ele(i)
+enddo
+
 branch1%param          = branch2%param
 branch1%a              = branch2%a
 branch1%b              = branch2%b
