@@ -12,19 +12,23 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 
 character(40) :: lat_file  = 'tracking_method_test.bmad'
-character(38) :: final_str
+character(38) :: final_str, fmt
 integer :: i, j, ib, nargs
 
 logical print_extra
  
 !
 
+fmt = '(2a,7es18.10)'
+
 print_extra = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
-   call cesr_getarg(1, lat_file)
-   print *, 'Using ', trim(lat_file)
-   print_extra = .true.
+  call cesr_getarg(1, lat_file)
+  print *, 'Using ', trim(lat_file)
+  print_extra = .true.
+  fmt = '(2a,7es14.6)'
+
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
@@ -59,7 +63,7 @@ do ib = 0, ubound(lat%branch, 1)
         start_orb%field = [1, 2]
         call track1 (start_orb, ele, branch%param, end_orb)
         final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 
-        write (1,'(2a,7es18.10)') final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+        write (1,fmt) final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
         if (branch%param%particle == photon$) then
           write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 5E-08', end_orb%field
         endif
