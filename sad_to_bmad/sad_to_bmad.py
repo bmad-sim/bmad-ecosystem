@@ -131,13 +131,12 @@ ele_type_to_bmad = {
 # of the k0 and l parameters.
 
 ele_param_translate = {
-    'bend:k0': ['k0', ' / @l@'],
+    'bend:k0': ['g_err', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
     'quad:k1': ['k1', ' / @l@'],
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
     'bend:rotate': ['ref_tilt', ' * -1'],
-    'bend:k0': ['g_err', ' / @l@'],
     'l': 'l',
     'radius': 'aperture',
     'offset': 'offset',

@@ -1,4 +1,4 @@
- 2014-07-18 14:25:35 
+ 2014-09-23 04:32:13 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -123,13 +123,20 @@
          7  BBI_CONSTANT                            
          8  CHARGE                                  
         20  N_SLICE                                 
+        23  BETA_A                                  
+        24  BETA_B                                  
+        25  ALPHA_A                                 
+        26  ALPHA_B                                 
+        27  CMAT_11                                 
+        28  CMAT_12                                 
+        29  CMAT_21                                 
+        30  CMAT_22                                 
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
         37  Y_OFFSET                                
         38  Z_OFFSET                                
         50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
         52  E_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
@@ -1193,8 +1200,8 @@
  !---------------------------------
  50  FIDUCIAL                                
          1  L                                       
-        17  DX_ORIGIN                               
         26  ORIGIN_ELE_REF_PT                       
+        27  DX_ORIGIN                               
         28  DY_ORIGIN                               
         29  DZ_ORIGIN                               
         30  DTHETA_ORIGIN                           
@@ -1301,12 +1308,6 @@
         50  DELTA_REF_TIME                          
         53  P0C                                     
         54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
         64  ref_time_start                            [private]
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
@@ -1354,8 +1355,8 @@
          1  L                                       
          2  TILT                                    
          3  REF_TILT                                
-        17  DX_ORIGIN                               
         26  ORIGIN_ELE_REF_PT                       
+        27  DX_ORIGIN                               
         28  DY_ORIGIN                               
         29  DZ_ORIGIN                               
         30  DTHETA_ORIGIN                           
@@ -2469,12 +2470,6 @@
         50  DELTA_REF_TIME                          
         53  P0C                                     
         54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
         64  ref_time_start                            [private]
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
@@ -3920,20 +3915,20 @@
     14     7
     15     4
     16     1
-    17     3
+    17     1
     18     1
     19     1
     20    18
     21    15
     22    11
-    23    12
-    24    12
-    25    17
-    26    19
-    27    11
-    28     9
-    29    33
-    30    32
+    23    13
+    24    13
+    25    18
+    26    20
+    27    14
+    28    10
+    29    34
+    30    33
     31    28
     32    28
     33    10
@@ -3954,16 +3949,16 @@
     48     1
     49     6
     50    48
-    51    34
+    51    33
     52    34
     53    49
     54    49
-    55    41
-    56    40
-    57    42
-    58    42
-    59    42
-    60    42
+    55    39
+    56    38
+    57    40
+    58    40
+    59    40
+    60    40
     61    13
     62    25
     63    11
@@ -4398,8 +4393,6 @@ Index: 16
  !---------------------------------
 Index: 17
     MATCH                                   
-    GIRDER                                  
-    FIDUCIAL                                
  
  !---------------------------------
 Index: 18
@@ -4448,6 +4441,7 @@ Index: 22
 Index: 23
     SBEND                                   
     RFCAVITY                                
+    BEAMBEAM                                
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
@@ -4463,6 +4457,7 @@ Index: 23
 Index: 24
     SBEND                                   
     RFCAVITY                                
+    BEAMBEAM                                
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
@@ -4479,6 +4474,7 @@ Index: 25
     SBEND                                   
     GROUP                                   
     RFCAVITY                                
+    BEAMBEAM                                
     WIGGLER                                 
     MARKER                                  
     RBEND                                   
@@ -4498,6 +4494,7 @@ Index: 25
 Index: 26
     SBEND                                   
     RFCAVITY                                
+    BEAMBEAM                                
     MARKER                                  
     RBEND                                   
     LCAVITY                                 
@@ -4520,20 +4517,24 @@ Index: 26
 Index: 27
     SBEND                                   
     RFCAVITY                                
+    BEAMBEAM                                
     RBEND                                   
     LCAVITY                                 
     DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
     MATCH                                   
+    GIRDER                                  
     BEND_SOL_QUAD                           
     E_GUN                                   
+    FIDUCIAL                                
     X_RAY_INIT                              
  
  !---------------------------------
 Index: 28
     SBEND                                   
     RFCAVITY                                
+    BEAMBEAM                                
     RBEND                                   
     DEF_PARAMETER                           
     MATCH                                   
@@ -4551,6 +4552,7 @@ Index: 29
     CUSTOM                                  
     RFCAVITY                                
     ELSEPARATOR                             
+    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
     KICKER                                  
@@ -4587,6 +4589,7 @@ Index: 30
     CUSTOM                                  
     RFCAVITY                                
     ELSEPARATOR                             
+    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
     KICKER                                  
@@ -5135,7 +5138,6 @@ Index: 51
     TAYLOR                                  
     RFCAVITY                                
     ELSEPARATOR                             
-    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
     MARKER                                  
@@ -5331,8 +5333,6 @@ Index: 55
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -5374,8 +5374,6 @@ Index: 56
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -5419,8 +5417,6 @@ Index: 57
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -5464,8 +5460,6 @@ Index: 58
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -5509,8 +5503,6 @@ Index: 59
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
@@ -5554,8 +5546,6 @@ Index: 60
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    PHOTON_FORK                             
-    FORK                                    
     MIRROR                                  
     CRYSTAL                                 
     PIPE                                    
