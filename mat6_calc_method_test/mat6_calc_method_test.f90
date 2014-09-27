@@ -16,8 +16,8 @@ real(rp) err_mat(6,6)
 
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
 character(44) :: final_str
-character(*), PARAMETER  :: fmt1 = '(a,a,6es22.13)'
-character(*), PARAMETER  :: fmt2 = '(a,a,es22.13)'
+character(20)  :: fmt1 = '(a,a,6es22.13)'
+character(20)  :: fmt2 = '(a,a,es22.13)'
 
 integer :: i, j, k, ib, nargs
 logical print_extra
@@ -27,9 +27,11 @@ logical print_extra
 print_extra = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
-   call cesr_getarg(1, lat_file)
-   print *, 'Using ', trim(lat_file)
-   print_extra = .true.
+  call cesr_getarg(1, lat_file)
+  print *, 'Using ', trim(lat_file)
+  print_extra = .true.
+  fmt1 = '(a, a, 6es18.9)' ! Don't need as much precison for test purposes
+  fmt2 = '(a, a, es18.9)'
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
