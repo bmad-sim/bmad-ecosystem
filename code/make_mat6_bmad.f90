@@ -785,7 +785,7 @@ case (quadrupole$)
   ! Starting edge
 
   call offset_particle (ele, param, set$, c00)
-  call quadrupole_hard_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
   call quadrupole_soft_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
@@ -819,7 +819,7 @@ case (quadrupole$)
   ! Ending edge
 
   call quadrupole_soft_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
-  call quadrupole_hard_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
 
   ! tilt and multipoles
 
@@ -1249,6 +1249,7 @@ case (sbend$)
 case (sextupole$)
 
   call offset_particle (ele, param, set$, c00)
+  call hard_multipole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
 
   n_slice = max(1, nint(length / v(ds_step$)))
   
@@ -1265,6 +1266,8 @@ case (sextupole$)
       mat6 = matmul(drift,mat6)
     end if
   end do
+
+  call hard_multipole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
 
   if (v(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, v(tilt_tot$))

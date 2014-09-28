@@ -1119,11 +1119,11 @@ if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid a
     call set_integer (p%permfringe, pp%permfringe, 1)
   case (full_bend$)
     call set_integer (p%permfringe, pp%permfringe, 1)
-  case (sad_nonlin_only$)
+  case (hard_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 1)
-  case (sad_linear$)
+  case (soft_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 2)
-  case (sad_full$)
+  case (sad_bend$)
     call set_integer (p%permfringe, pp%permfringe, 3)
   end select
 
