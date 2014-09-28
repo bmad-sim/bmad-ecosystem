@@ -869,6 +869,37 @@ case ('bpm_cbar.')
   end select
 
 !-----------
+      call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
+case ('c_mat.')
+
+  select case (datum%data_type)
+
+  case ('c_mat.11')
+    if (data_source == 'beam') return
+    call tao_load_this_datum (branch%ele(:)%c_mat(1,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+
+  case ('c_mat.12')
+    if (data_source == 'beam') return
+    call tao_load_this_datum (branch%ele(:)%c_mat(1,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+
+  case ('c_mat.21')
+    if (data_source == 'beam') return
+    call tao_load_this_datum (branch%ele(:)%c_mat(2,1), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+
+  case ('c_mat.22')
+    if (data_source == 'beam') return
+    call tao_load_this_datum (branch%ele(:)%c_mat(2,2), ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, orbit)
+
+  case default
+    call out_io (s_error$, r_name, 'UNKNOWN DATUM TYPE: ' // datum%data_type)
+    if (present(why_invalid)) why_invalid = 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID'
+    return
+
+  end select
+
+!-----------
+      call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('cbar.')
 
@@ -2723,7 +2754,7 @@ end subroutine data_calc
 ! Keep in mind that the actual correlation axis is 90 degrees off of the 
 ! wire angle
 !
-! This simulates a fast wire scanner that performs the scane over only one
+! This simulates a fast wire scanner that performs the scan over only one
 ! bunch. Obviously, this isn't realistic. Any dynamic effects will not be
 ! accounted for!
 !
