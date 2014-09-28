@@ -840,7 +840,7 @@ end subroutine tao_uppercase_shapes
 subroutine tao_setup_default_plotting()
 
 type (branch_struct), pointer :: branch
-type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1
+type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_plot_g2c1, default_plot_g1_c4
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
@@ -969,6 +969,68 @@ crv%line%color   = blue$
 crv%line%width   = 2
 
 !---------------
+! This plot defines the default 1-graph, 4-curve/graph plot
+
+plt => default_plot_g1_c4
+
+nullify(plt%r)
+if (allocated(plt%graph)) deallocate (plt%graph)
+allocate (plt%graph(1))
+allocate (plt%graph(1)%curve(4))
+
+plt%x_axis_type          = 's'
+plt%x                    = init_axis
+plt%x%major_div_nominal  = 8
+plt%x%minor_div_max = 6
+
+grph => plt%graph(1)
+grph%name                 = 'g'
+grph%type                 = 'data'
+grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
+grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
+grph%box                  = [1, 1, 1, 1]
+grph%y                    = init_axis
+grph%y%label_offset       = 0.15
+grph%y%major_div_nominal  = 4
+grph%y2%major_div_nominal = 4
+grph%y2%draw_numbers      = .false.
+grph%component            = 'model'
+grph%draw_curve_legend    = .true.
+grph%draw_axes            = .true.
+grph%draw_grid            = .true.
+grph%text_legend_origin   = default_graph%text_legend_origin
+grph%curve_legend_origin  = default_graph%curve_legend_origin
+grph%x%label = 's [m]'
+
+crv => grph%curve(1)
+crv%name         = 'c1'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = blue$
+crv%line%width   = 2
+
+crv => grph%curve(2)
+crv%name         = 'c2'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = orange$
+crv%line%width   = 2
+
+crv => grph%curve(3)
+crv%name         = 'c3'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = green$
+crv%line%width   = 2
+
+crv => grph%curve(4)
+crv%name         = 'c4'
+crv%data_source  = 'lat'
+crv%draw_symbols = .false.
+crv%line%color   = magenta$
+crv%line%width   = 2
+
+!---------------
 ! This plot defines the default 1-graph, 2-curve/graph plot
 
 plt => default_plot_g1c2
@@ -1085,6 +1147,53 @@ if (all(s%plot_page%template%name /= 'beta')) then
   crv%g => grph
   crv%data_type    = 'beta.b'
   crv%legend_text  = '\gb\dB\u'
+endif
+
+!---------------
+! cbar plot
+
+if (all(s%plot_page%template%name /= 'cbar')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(4))
+
+  plt = default_plot_g1_c4
+  plt%name                 = 'cbar'
+  plt%description          = 'Cbar coupling matrix'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title               = 'Cbar coupling matrix'
+  grph%y%label             = 'Cbar'
+
+
+  crv => grph%curve(1)
+  crv%name         = '11'
+  crv%g => grph
+  crv%data_type    = 'cbar.11'
+  crv%legend_text  = 'Cbar11'
+
+  crv => grph%curve(2)
+  crv%name         = '12'
+  crv%g => grph
+  crv%data_type    = 'cbar.12'
+  crv%legend_text  = 'Cbar12'
+
+  crv => grph%curve(3)
+  crv%name         = '21'
+  crv%g => grph
+  crv%data_type    = 'cbar.21'
+  crv%legend_text  = 'Cbar21'
+
+  crv => grph%curve(4)
+  crv%name         = '22'
+  crv%g => grph
+  crv%data_type    = 'cbar.22'
+  crv%legend_text  = 'Cbar22'
 endif
 
 !---------------

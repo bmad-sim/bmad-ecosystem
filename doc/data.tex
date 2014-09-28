@@ -466,6 +466,17 @@ where the average \vn{<>} is over all the particles in the beam.
 Note: If the beta function is calculated from the beam distribution,
 the emittance must be non-zero.
 
+  \index{bpm_cbar.}
+  \item[bpm_cbar.]
+\vn{bpm_cbar.} is the measured coupling including detector misalignments, rotations, gain errors, etc.
+See the \bmad manual for more details.
+
+  \index{c_matrix.}
+  \index{cbar.}
+  \item[c_matrix., cbar.]
+The \vn{c_matrix.} and \vn{cbar.} are 2x2 matrices that describe the $x$-$y$ coupling of the beam.
+See the \bmad manual for more details.
+
   \index{chrom.}
   \item[chrom.] \Newline
 The \vn{chrom.} data type covers chromatic transfer map terms in a ring, 
@@ -849,6 +860,9 @@ squared.
     bpm\_cbar.11b, bpm\_cbar.12b
   \end{tabular}
                                       & Measured coupling                             & lat       \\ \hline
+
+  c_mat.11, c_mat.12, c_mat.21, c_mat.22
+                                      & Coupling                                      & lat       \\ \hline 
 
   cbar.11, cbar.12, cbar.21, cbar.22
                                       & Coupling                                      & lat       \\ \hline 
