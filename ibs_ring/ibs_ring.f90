@@ -3,6 +3,7 @@ PROGRAM ibs_ring
 USE bmad
 USE mode3_mod
 USE ibs_mod
+USE ptc_layout_mod
 !$ USE omp_lib  !note conditional compilation only when openmp enabled
 USE sim_utils_interface
 USE mode3_mod
@@ -22,11 +23,14 @@ END TYPE ibs_data_struct
 
 TYPE(ibs_data_struct), ALLOCATABLE :: ibs_data(:)
 
+INTEGER, PARAMETER :: N_MAX_CURRENTS = 1000
+
 REAL(rp) current
 REAL(rp) mA_per_bunch
 REAL(rp) :: b_emit = -1.0
 REAL(rp) :: a_emit = -1.0
 REAL(rp) :: energy_spread = -1.0
+REAL(rp) :: bunch_length = -1.0
 REAL(rp) ratio
 REAL(rp) view_sigma_x, view_sigma_y, view_sigma_z
 REAL(rp) dnpart, delta_mA, stop_mA
@@ -41,10 +45,15 @@ REAL(rp) Mpwd(6,6)
 REAL(rp) Vpwd
 REAL(rp) sigma_mat(6,6)
 REAL(rp) mat1turn(6,6)
+REAL(rp) L_ratio
+REAL(rp) currents(N_MAX_CURRENTS)
+REAL(rp) inv_Ta_int, inv_Tb_int, inv_Tz_int
+REAL(rp) s, delta_s
 
 LOGICAL error, ok, do_pwd, insane
 LOGICAL set_dispersion
 LOGICAL use_t6_cache
+LOGICAL ptc_calc
 
 CHARACTER(50) in_file
 CHARACTER(4) ibs_formula
@@ -58,6 +67,7 @@ INTEGER radcache
 INTEGER stdoutlun, dotinlun
 INTEGER emitlun
 INTEGER rateslun
+INTEGER int_rateslun
 INTEGER clog_to_use
 
 TYPE(ibs_struct) rates
@@ -67,12 +77,16 @@ TYPE(lat_struct) :: lat
 TYPE(ibs_sim_param_struct) ibs_sim_params
 TYPE(coord_struct), TARGET, ALLOCATABLE :: orb(:)
 
+TYPE(coord_struct) ptc_co
+
 TYPE(lat_struct), ALLOCATABLE :: omp_lat(:)
 
 NAMELIST /parameters/ lat_file, &        ! Lattice file in BMAD format.
+                      ptc_calc, &
                       b_emit, &          ! Zero current vertical emittance.  Set to -1 for rad int calc.
                       a_emit, &          ! Zero current horizontal emittance.  Set to -1 for rad int calc.
                       energy_spread, &   ! Zero current energy spread.  Set to -1 for rad int calc.
+                      bunch_length, &    ! Zero current bunch length.  Set to -1 for rad int calc.
                       mA_per_bunch, &    ! Largest current per bunch in mA.
                       delta_mA, &        ! mA step size.
                       stop_mA, &         ! Smallest current per bunch in mA.
@@ -99,6 +113,7 @@ lat_file      = ''
 b_emit        = -99.0
 a_emit        = -99.0
 energy_spread = -99.0
+bunch_length  = -99.0
 mA_per_bunch  = -99.0
 ibs_formula   = ''
 ratio         = -99.0
@@ -112,8 +127,10 @@ inductance    = -99.0
 resistance    = -99.0
 clog_to_use   = -99
 eqb_method    = ''
+
 set_dispersion = .false.
 use_t6_cache = .false.
+ptc_calc      = .false.
 do_pwd = .true.
 
 dotinlun = LUNGET()
@@ -127,6 +144,7 @@ IF( lat_file == '' ) CALL param_bomb('lat_file')
 IF( b_emit .lt. -90 ) CALL param_bomb('b_emit')
 IF( a_emit .lt. -90 ) CALL param_bomb('a_emit')
 IF( energy_spread .lt. -90 ) CALL param_bomb('energy_spread')
+IF( bunch_length .lt. -90 ) CALL param_bomb('bunch_length')
 IF( mA_per_bunch .lt. -90 ) CALL param_bomb('mA_per_bunch')
 IF( ibs_formula == '' ) CALL param_bomb('ibs_formula')
 IF( ratio .lt. -90 ) CALL param_bomb('ratio')
@@ -141,21 +159,36 @@ IF( resistance .lt. -90 ) CALL param_bomb('resistance')
 IF( clog_to_use .lt. -90 ) CALL param_bomb('clog_to_use')
 IF( eqb_method == '' ) CALL param_bomb('eqb_method')
 
-stdoutlun = LUNGET()
-OPEN(stdoutlun,FILE='rad_int.out')
-
 WRITE(*,*) "Preparing lattice..."
 
 CALL bmad_parser(lat_file, lat)
+
 CALL set_on_off(rfcavity$, lat, on$)
+bmad_com%radiation_damping_on = .true.
+
+IF( ptc_calc)  CALL lat_to_ptc_layout(lat)
 
 CALL closed_orbit_calc(lat,orb,6)
 call lat_make_mat6(lat, -1, orb)
 CALL twiss_at_start(lat)
 CALL twiss_propagate_all(lat)
-radcache = 0
-CALL radiation_integrals(lat, orb, mode, radcache)
+
+OPEN(46,FILE='co.out')
+DO i=1,lat%n_ele_track
+  WRITE(46,'(I6,F11.3,6ES14.4)') i, lat%ele(i)%s, orb(i)%vec(1:6)
+ENDDO
+CLOSE(46)
+
+! radcache = 0
+! CALL radiation_integrals(lat, orb, mode, radcache)
+CALL radiation_integrals(lat, orb, mode)
 CALL calc_z_tune(lat)
+
+IF( ptc_calc ) THEN
+  CALL ptc_emit_calc(lat%ele(0), mode, sigma_mat, ptc_co)
+  mode%sig_z = SQRT(sigma_mat(5,5))
+  mode%sigE_E = SQRT(sigma_mat(6,6))
+ENDIF
 
 IF( use_t6_cache .AND. (ibs_formula .EQ. 'kubo') ) THEN
   WRITE(*,*) "Making 1-turn mats and caching in ele%r."
@@ -168,7 +201,17 @@ ENDIF
 
 WRITE(*,*) "Lattice preparation complete..."
 
-!ibs_sim_params%co => orb
+stdoutlun = LUNGET()
+OPEN(stdoutlun,FILE='properties.out')
+
+DO i=6,stdoutlun,stdoutlun-6
+  WRITE(i,*) "Beam distribution parameters from radiation calculation:"
+  WRITE(i,*) "   emit_a      : ", mode%a%emittance
+  WRITE(i,*) "   emit_b      : ", mode%b%emittance
+  WRITE(i,*) "   sigmaE_E    : ", mode%sigE_E
+  WRITE(i,*) "   sigma_z     : ", mode%sig_z
+  WRITE(i,*)
+ENDDO
 
 IF( b_emit .gt. 0.0 ) THEN
   mode%b%emittance = b_emit
@@ -179,9 +222,16 @@ ENDIF
 IF( energy_spread .gt. 0.0 ) THEN
   mode%sigE_E = energy_spread
 ENDIF
+L_ratio = -1
+IF( bunch_length .gt. 0.0 ) THEN
+  mode%sig_z = bunch_length
+  L_ratio = mode%sig_z / mode%sigE_E
+ENDIF
+
+mode%z%emittance = mode%sigE_E * mode%sig_z
 
 DO i=6,stdoutlun,stdoutlun-6
-  WRITE(i,*) "Beam distribution parameters before IBS:"
+  WRITE(i,*) "Modified beam distribution parameters, before IBS:"
   WRITE(i,*) "   emit_a      : ", mode%a%emittance
   WRITE(i,*) "   emit_b      : ", mode%b%emittance
   WRITE(i,*) "   sigmaE_E    : ", mode%sigE_E
@@ -216,7 +266,7 @@ ELSE
 ENDIF
 
 DO i=6,stdoutlun,stdoutlun-6
-  WRITE(i,*) "Beam distribution parameters after IBS:"
+  WRITE(i,*) "Beam distribution parameters after IBS, at full current:"
   WRITE(i,*) "   emit_a      : ", mode%a%emittance
   WRITE(i,*) "   emit_b      : ", mode%b%emittance
   WRITE(i,*) "   sigmaE_E    : ", mode%sigE_E
@@ -224,19 +274,27 @@ DO i=6,stdoutlun,stdoutlun-6
   WRITE(i,*)
 ENDDO
 
+CLOSE(stdoutlun)
+
 WRITE(*,*) "Original Tunes:"
 WRITE(*,*) "   a tune: ", lat%ele(lat%n_ele_track)%a%phi/twopi
 WRITE(*,*) "   b tune: ", lat%ele(lat%n_ele_track)%b%phi/twopi
 WRITE(*,*) "   z tune: ", lat%z%tune/twopi
 
-n_steps = CEILING( (mA_per_bunch-stop_mA) / delta_mA)
-n_steps = MAX(1,n_steps)
+currents(:) = 0.0d0
+n_steps = CEILING( (mA_per_bunch-stop_mA) / delta_mA) 
+if(n_steps+1 .gt. N_MAX_CURRENTS) then
+  write(*,*) "Number of currents to calculate exceeds hard-coded limit of ", N_MAX_CURRENTS
+  stop
+endif
+do i=1,n_steps
+  currents(i) = mA_per_bunch - delta_mA*(i-1)
+enddo
+! add one more current, to ensure that current at stop_mA is calculated
+n_steps = n_steps + 1
+currents(n_steps) = stop_mA
+currents = 0.001 * currents ! mA to A
 ALLOCATE(ibs_data(1:n_steps))
-IF(n_steps .gt. 1) THEN
-  dnpart = (mA_per_bunch-stop_mA)/(n_steps-1) * 0.001_rp*(lat%param%total_length/c_light)/e_charge
-ELSE
-  dnpart = 0.0d0
-ENDIF
 
 omp_n = 1  !used when omp not enabled
 !$ omp_n = omp_get_max_threads()
@@ -257,7 +315,7 @@ ENDDO
 !$OMP DEFAULT(PRIVATE), &
 !$OMP SHARED(omp_lat,ibs_data), &    !these are indexed such that multiple threads will never write to same memory location at same time
 !$OMP SHARED(n_steps,npart0,dnpart,mode0,ratio,granularity,eqb_method), &             !these are read only, so it is ok to share
-!$OMP SHARED(ibs_sim_params), & !read only
+!$OMP SHARED(ibs_sim_params, L_ratio, currents), & !read only
 !$OMP SHARED(x_view, y_view, z_view), &
 !$OMP PRIVATE(current,mode), &
 !$OMP PRIVATE(view_sigma_x,view_sigma_y,view_sigma_z), &  !these are working space for each thread
@@ -265,8 +323,8 @@ ENDDO
 DO i=1,n_steps
   omp_i = 1   !used when omp not enabled
   !$ omp_i = omp_get_thread_num()+1
-  omp_lat(omp_i)%param%n_part = npart0 - dnpart*(i-1)
-  current = omp_lat(omp_i)%param%n_part*e_charge/(omp_lat(omp_i)%param%total_length/c_light)
+  current = currents(i)
+  omp_lat(omp_i)%param%n_part = current * omp_lat(omp_i)%param%total_length / e_charge / c_light
 
   if(eqb_method == 'rlx') THEN
     CALL ibs_equib_rlx(omp_lat(omp_i),ibs_sim_params,mode0,mode,ratio,8.0d0,granularity)  !relaxation method
@@ -291,7 +349,11 @@ DO i=1,n_steps
   CALL transfer_matrix_calc (omp_lat(omp_i), .true., t6, ix1=z_view, one_turn=.TRUE.)
   IF(ibs_sim_params%do_pwd) t6 = pwd_mat(omp_lat(omp_i), t6, ibs_sim_params%inductance, mode%sig_z)
   CALL make_smat_from_abc(t6, mode, sigma_mat, error)
-  view_sigma_z = SQRT(sigma_mat(5,5))
+  IF(L_ratio .gt. 0) THEN 
+    view_sigma_z = mode%sigE_E * L_ratio
+  ELSE
+    view_sigma_z = SQRT(sigma_mat(5,5))
+  ENDIF
 
 !  CALL project_emit_to_xyz(omp_lat(omp_i), x_view, mode, view_sigma_x, xview_sigma_y, view_sigma_z)
 !  CALL project_emit_to_xyz(omp_lat(omp_i), y_view, mode, yview_sigma_x, view_sigma_y, yview_sigma_z)
@@ -302,24 +364,41 @@ DO i=1,n_steps
 ENDDO
 !$OMP END PARALLEL DO
 
-rateslun = LUNGET()
-OPEN(rateslun,FILE='ibs_rates.out')
-WRITE(rateslun,'(A)') "# ele ix, s, inv_Ta, inv_Tb, inv_Tz"
 lat%param%n_part = npart0
 CALL ibs_equib_der(lat,ibs_sim_params,mode0,mode,-1.0_rp)
-DO j=1, lat%n_ele_track
-  IF(lat%ele(j)%value(l$) .GT. 0.0) THEN
-    lat%ele(j)%a%emit = mode%a%emittance
-    lat%ele(j)%b%emit = mode%b%emittance
-    lat%ele(j)%z%sigma = mode%sig_z
-    lat%ele(j)%z%sigma_p = mode%sigE_E
-    lat%ele(j)%z%emit = mode%sig_z * mode%sigE_E
+do j=1,lat%n_ele_track
+  lat%ele(j)%a%emit = mode%a%emittance
+  lat%ele(j)%b%emit = mode%b%emittance
+  lat%ele(j)%z%sigma = mode%sig_z
+  lat%ele(j)%z%sigma_p = mode%sigE_E
+  lat%ele(j)%z%emit = mode%sig_z * mode%sigE_E
+enddo
 
-    CALL ibs1(lat,ibs_sim_params,rates,j)
-    WRITE(rateslun,'(I0,F11.3,3ES14.4)') j, lat%ele(j)%s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
-  ENDIF
+rateslun = LUNGET()
+OPEN(rateslun,FILE='ibs_rates.out')
+
+int_rateslun = LUNGET()
+OPEN(int_rateslun,FILE='ibs_rates_integrated.out')
+
+WRITE(rateslun,'(A)') "# ele ix, s, inv_Ta, inv_Tb, inv_Tz"
+WRITE(int_rateslun,'(A)') "# ele ix, s, inv_Ta_int, inv_Tb, inv_Tz"
+inv_Ta_int = 0.0d0
+inv_Tb_int = 0.0d0
+inv_Tz_int = 0.0d0
+delta_s = 0.1
+s=delta_s
+do while(s .lt. lat%param%total_length)
+  CALL ibs1(lat,ibs_sim_params,rates,s=s)
+  WRITE(rateslun,'(I0,F11.3,F12.4,3ES14.4)') j, s, delta_s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
+
+  inv_Ta_int = inv_Ta_int + rates%inv_Ta * delta_s
+  inv_Tb_int = inv_Tb_int + rates%inv_Tb * delta_s
+  inv_Tz_int = inv_Tz_int + rates%inv_Tz * delta_s
+  WRITE(int_rateslun,'(I0,F11.3,F12.4,3ES14.4)') j, s, delta_s, inv_Ta_int, inv_Tb_int, inv_Tz_int
+  s = s + delta_s
 ENDDO
 CLOSE(rateslun)
+CLOSE(int_rateslun)
 
 emitlun = LUNGET()
 OPEN(emitlun, FILE='emittance.dat',STATUS='REPLACE')
@@ -332,7 +411,6 @@ DO i=1,n_steps
 ENDDO
 CLOSE(emitlun)
 
-CLOSE(stdoutlun)
 
 DEALLOCATE(omp_lat)
 IF( ALLOCATED(orb) ) DEALLOCATE(orb)
