@@ -3029,19 +3029,19 @@ the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{center}
 \tt
 \begin{tabular}{ll|llll} 
-              &                      & \multicolumn{4}{c}{fringe_at:} \\
+\multicolumn{2}{c|}{\multirow{2}{*}{\textbf{[fringe, disfrin]}}}  & \multicolumn{4}{c}{fringe_at:} \\
               &                      & no_end     & entrance_end & exit_end   & both_ends$^*$ \HH
 \multirow{4}{*}{fringe_type:} 
               & none                 & [0, $\ne 0$] & [0, $\ne 0$]   & [0, $\ne 0$] & [0, $\ne 0$] \\
-              & sad_linear           & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
-              & sad_nonlin_only$^*$  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
+              & soft_edge_only           & [0, $\ne 0$] & [1, $\ne 0$]   & [2, $\ne 0$] & [3, $\ne 0$] \\
+              & hard_edge_only$^*$  & [0, $\ne 0$] & -              & -            & [0, $= 0$]   \\
               & sad_full             & [0, $\ne 0$] & [1, $= 0$]     & [2, $= 0$]   & [3, $= 0$]   \\ \bottomrule
 \multicolumn{6}{l}{$^*$Default value.} \\
 \end{tabular}
 \end{center}
 Each entry is the table is of the form [\vn{fringe}, \vn{disfrin}].
 The ``-'' indicates that there is no equivalent setting in SAD.  The
-\vn{sad_linear} fringe kick is a kick that is linear in the transverse
+\vn{soft_edge_only} fringe kick is a kick that is linear in the transverse
 $(x, p_x, y, p_y)$ coordinates and comes from the finite width of the
 quadrupolar fringe field. The width of the quadrupolar fringe field is
 characterized by the \vn{f1} and \vn{f2} attributes. The

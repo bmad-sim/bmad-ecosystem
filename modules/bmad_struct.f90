@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 139
+integer, parameter :: bmad_inc_version$ = 140
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1176,10 +1176,10 @@ character(16), parameter :: aperture_type_name(0:7) = &
 ! fringe_type
 
 integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
-integer, parameter :: sad_linear$ = 5, sad_nonlin_only$ = 6, sad_full$ = 7, bend_linear$ = 8
+integer, parameter :: soft_edge_only$ = 5, hard_edge_only$ = 6, linear_bend$ = 7, sad_bend$ = 8
 character(16), parameter :: fringe_type_name(0:8) = ['Garbage!       ', &
                'Full_Straight  ', 'Full_Bend      ', 'None           ', 'Basic_Bend     ', &
-               'SAD_Linear     ', 'SAD_Nonlin_Only', 'SAD_Full       ', 'Bend_Linear    ']
+               'Soft_Edge_Only ', 'Hard_Edge_Only ', 'Linear_Bend    ', 'SAD_Bend       ']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:

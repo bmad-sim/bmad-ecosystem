@@ -2152,16 +2152,16 @@ For \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be set to one of th
   basic_bend        ! Default 
   full_bend
   full_straight
-  sad_linear
-  sad_nonlin_only
+  soft_edge_only
+  hard_edge_only
   sad_full
 \end{example}
 For non-bend elements, \vn{fringe_type} may be set to one of:
 \begin{example}
   none              ! Default 
   full_straight
-  sad_linear
-  sad_nonlin_only
+  soft_edge_only
+  hard_edge_only
   sad_full
 \end{example}
 
@@ -2194,10 +2194,10 @@ Example:
 \end{example}
 
 \index{sad}\index{sbend}\index{rbend}
-The \vn{sad_linear}, \vn{sad_nonlin_only} and \vn{sad_full} settings
+The \vn{soft_edge_only}, \vn{hard_edge_only} and \vn{sad_full} settings
 of \vn{fringe_type} emulate the fringe field tracking used in the SAD
-program\cite{b:sad}.  The \vn{sad_linear} setting only uses the linear
-part of the fringe, \vn{sad_nonlin_only} ignores the linear part of
+program\cite{b:sad}.  The \vn{soft_edge_only} setting only uses the linear
+part of the fringe, \vn{hard_edge_only} ignores the linear part of
 the fringe, and \vn{sad_full} uses the full fringe.  For an \vn{sbend}
 or \vn{rbend} element, these SAD fringe fields are in addition to the
 fringe fields that occurs with a finite \vn{e1} or \vn{e2} face

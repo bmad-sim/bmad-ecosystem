@@ -562,7 +562,7 @@ case (quadrupole$)
 
   ! Entrance edge
 
-  call quadrupole_hard_edge_kick (ele, first_track_edge$, end_orb)
+  call hard_multipole_edge_kick (ele, first_track_edge$, end_orb)
   call quadrupole_soft_edge_kick (ele, first_track_edge$, end_orb)
 
   ! Body
@@ -582,7 +582,7 @@ case (quadrupole$)
   ! Exit edge
 
   call quadrupole_soft_edge_kick (ele, second_track_edge$, end_orb)
-  call quadrupole_hard_edge_kick (ele, second_track_edge$, end_orb)
+  call hard_multipole_edge_kick (ele, second_track_edge$, end_orb)
 
   call offset_particle (ele, param, unset$, end_orb)  
 

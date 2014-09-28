@@ -3264,14 +3264,14 @@ if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid a
   case (basic_bend$)
     ptc_key%list%permfringe = 0
   case (full_straight$)
-    ptc_key%list%permfringe = 1
+    ptc_key%list%permfringe = 3
   case (full_bend$)
     ptc_key%list%permfringe = 1
-  case (sad_nonlin_only$)
+  case (hard_edge_only$)
     ptc_key%list%permfringe = 1
-  case (sad_linear$)
+  case (soft_edge_only$)
     ptc_key%list%permfringe = 2
-  case (sad_full$)
+  case (sad_bend$)
     ptc_key%list%permfringe = 3
   end select
 

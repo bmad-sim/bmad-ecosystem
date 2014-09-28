@@ -590,7 +590,7 @@ end subroutine track_a_bend
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
+! Subroutine linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Apply only the first order kick, which is edge focusing.
@@ -611,7 +611,7 @@ end subroutine track_a_bend
 !   mat6       -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
+subroutine linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
 
 implicit none
 
@@ -625,7 +625,7 @@ real(rp) c_dir
 real(rp) ht2, hs2, sec_e, k1_eff, k1
 integer particle_at, element_end
 
-character(*), parameter :: r_name = 'bend_edge_linear_kick'
+character(*), parameter :: r_name = 'linear_bend_edge_kick'
 
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
@@ -692,7 +692,7 @@ else
   end if
 endif
 
-end subroutine bend_edge_linear_kick
+end subroutine linear_bend_edge_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -876,13 +876,13 @@ if (hard_ele%field_calc /= bmad_standard$) return
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 
 select case (hard_ele%key)
-case (quadrupole$, sad_mult$)
+case (quadrupole$)
   if (particle_at == first_track_edge$) then
-    call quadrupole_hard_edge_kick (hard_ele, particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, particle_at, orb)
     call quadrupole_soft_edge_kick (hard_ele, particle_at, orb)
   else
     call quadrupole_soft_edge_kick (hard_ele, particle_at, orb)
-    call quadrupole_hard_edge_kick (hard_ele, particle_at, orb)
+    call hard_multipole_edge_kick (hard_ele, particle_at, orb)
   endif
 
 case (sbend$)
@@ -980,7 +980,7 @@ logical, optional :: make_matrix
 !
 
 fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= sad_linear$ .and. fringe_type /= sad_full$) return
+if (fringe_type /= soft_edge_only$ .and. fringe_type /= full_straight$) return
 
 
 fringe_at = nint(ele%value(fringe_at$))
@@ -1054,53 +1054,62 @@ endif
 
 end subroutine quadrupole_soft_edge_kick
 
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
 !+
-! Subroutine quadrupole_hard_edge_kick (ele, particle_at, orbit, mat6, make_matrix)
+! Subroutine hard_multipole_edge_kick (ele, particle_at, orbit, mat6, make_matrix, a_pole, b_pole)
 !
-! Routine to add the 3rd order quadrupolar hard edge kick.
-! See Forest: "Beam Dynamics, A New Attitude" Eqs (13.29) through (13.33).
-! This routine assumes that the particle orbit has been rotated to the element reference frame.
+! Routine to track through the hard edge field of a multipole.
+! The dipole component is ignored and only quadrupole and higher multipoles are included.
 !
-! Moudle needed:
-!   use track1_mod
+! This routine handles elements of type:
+!   sad_mult, quadrupole, sextupole
 !
+! For sad_mult elements, a_pole and b_pole ae used for the multipole values.
+! For the other elements, k1 or k2 is used and it is assumed that we are in the element
+! frame of reference so tilt = 0.
+! 
 ! Input:
-!   ele               -- ele_struct: Element being tracked through
-!   particle_at       -- integer: first_track_edge$, or second_track_edge$.
-!   orbit             -- coord_struct: Position before kick.
-!   mat6(6,6)         -- real(rp), optional: Transfer matrix up to the edge
-!   make_matrix       -- real(rp), optional: Make the transfer matrix? Default is False.
+!   ele         -- ele_struct: Element with fringe.
+!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
+!   orbit       -- coord_struct: Starting coordinates.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
+!   make_matrix -- real(rp), optional: Make the transfer matrix? Default is False.
+!   a_pole(0:)  -- real(rp), optional: sad_mult skew components. Must be present for sad_mult.
+!   b_pole(0:)  -- real(rp), optional: sad_mult normal components. Must be present for sad_mult.
 !
 ! Output:
-!   orbit         -- coord_struct: Position after kick.
-!   mat6(6,6)     -- real(rp), optional: Transfer matrix with edge kick added on.
+!   orbit       -- coord_struct: Ending coordinates.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine quadrupole_hard_edge_kick (ele, particle_at, orbit, mat6, make_matrix)
+subroutine hard_multipole_edge_kick (ele, particle_at, orbit, mat6, make_matrix, a_pole, b_pole)
 
 implicit none
 
-type (ele_struct), target :: ele
-type (ele_struct), pointer :: m_ele
+type (ele_struct) ele
 type (coord_struct) orbit
 
 real(rp), optional :: mat6(6,6)
-real(rp) k1_rel, x, y, px, py, charge_dir, kmat(6,6)
-real(rp) f1, f2, ef1, vec(4), rel_p, vx, vy
+real(rp), optional ::  a_pole(0:), b_pole(0:)
+real(rp) rel_p, cn, x, y, px, py, denom, ddenom_dx, ddenom_dy, ddenom_dpz, kmat(6,6), ap, bp, charge_dir
+real(rp) fx, dfx_dx, dfx_dy, d2fx_dxx, d2fx_dxy, d2fx_dyy
+real(rp) fy, dfy_dx, dfy_dy, d2fy_dxx, d2fy_dxy, d2fy_dyy
 
-integer particle_at
-integer fringe_at, physical_end, fringe_type
+complex(rp) poly, poly_n1, poly_n2, dpoly_dx, dpoly_dy, d2poly_dxx, d2poly_dxy, d2poly_dyy
+complex(rp) xy, xny, dxny_dx, dxny_dy, cab
+
+integer fringe_type, fringe_at, physical_end, particle_at
+integer n, n_max
 
 logical, optional :: make_matrix
 
-!
+! Fringe here?
 
 fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
-case (sad_nonlin_only$, sad_full$, full_straight$, full_bend$)
+case (hard_edge_only$, full_straight$, full_bend$)
 case default
   return
 end select
@@ -1112,66 +1121,141 @@ if (.not. at_this_ele_end(physical_end, fringe_at)) return
 charge_dir = ele%orientation * orbit%direction
 if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
 
-rel_p = 1 + orbit%vec(6)
+!
 
 select case (ele%key)
-case (quadrupole$)
-  k1_rel = charge_dir * ele%value(k1$) / rel_p
 case (sad_mult$)
-  ! Slice slaves and super slaves have their associated multipoles stored in the lord
-  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-    m_ele => pointer_to_lord(ele, 1)
-  else
-    m_ele => ele
-  endif
-  k1_rel = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_p
+  do n = ubound(a_pole, 1), 0, -1
+    if (a_pole(n) /= 0 .or. b_pole(n) /= 0) exit
+  enddo
+  n_max = n
+case (quadrupole$)
+  n_max = 1
+case (sextupole$)
+  n_max = 2
+case default
+  call err_exit  ! Should not be here
 end select
 
 !
 
-if (particle_at == second_track_edge$) k1_rel = -k1_rel
+x = orbit%vec(1)
+y = orbit%vec(3)
+xy = cmplx(x, y)
 
-x = orbit%vec(1); px = orbit%vec(2); y = orbit%vec(3); py = orbit%vec(4)
-orbit%vec(1) = x  + k1_rel * (x**3/12 + x*y**2/4)
-orbit%vec(2) = px + k1_rel * (x*y*py/2 - px*(x**2 + y**2)/4)
-orbit%vec(3) = y  - k1_rel * (y**3/12 + y*x**2/4)
-orbit%vec(4) = py - k1_rel * (y*x*px/2 - py*(y**2 + x**2)/4)
-orbit%vec(5) = orbit%vec(5) + k1_rel * (y**3*py/12 - x**3*px/12 + x**2*y*py/4 - x*y**2*px/4) / (1 + orbit%vec(6))
+poly_n1 = 1
+poly = xy
 
-!
+rel_p = 1 + orbit%vec(6)
+
+fx = 0
+dfx_dx = 0
+dfx_dy = 0
+d2fx_dxx = 0
+d2fx_dxy = 0
+d2fx_dyy = 0
+
+fy = 0
+dfy_dx = 0
+dfy_dy = 0
+d2fy_dxx = 0
+d2fy_dxy = 0
+d2fy_dyy = 0
+
+do n = 1, n_max
+
+  poly_n2 = poly_n1
+  poly_n1 = poly
+  poly = poly * xy
+
+  select case (ele%key)
+  case (sad_mult$)
+    if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
+    ap = a_pole(n) / ele%value(l$)
+    bp = b_pole(n) / ele%value(l$)
+  case (quadrupole$)
+    ap = 0
+    bp = ele%value(k1$)
+  case (sextupole$)
+    ap = 0
+    bp = ele%value(k2$)
+    if (n /= 2) cycle
+  end select
+
+  dpoly_dx = (n+1) * poly_n1
+  dpoly_dy = i_imaginary * dpoly_dx
+
+  d2poly_dxx = n * (n+1) * poly_n2
+  d2poly_dxy = i_imaginary * d2poly_dxx
+  d2poly_dyy = -d2poly_dxx
+
+  cab = charge_dir * cmplx(bp, ap) / (4 * (n + 2) * rel_p)
+  if (particle_at == first_track_edge$) cab = -cab
+  cn = real(n+3, rp) / (n+1) 
+
+  xny = cmplx(x, -cn * y)
+  dxny_dy = cmplx(0.0_rp, -cn)
+
+  fx = fx + real(cab * poly * xny)
+  dfx_dx = dfx_dx + real(cab * (dpoly_dx * xny + poly))
+  dfx_dy = dfx_dy + real(cab * (dpoly_dy * xny + poly * dxny_dy))
+  d2fx_dxx = d2fx_dxx + real(cab * (d2poly_dxx * xny + 2 * dpoly_dx))
+  d2fx_dxy = d2fx_dxy + real(cab * (d2poly_dxy * xny + dpoly_dx * dxny_dy + dpoly_dy))
+  d2fx_dyy = d2fx_dyy + real(cab * (d2poly_dyy * xny + 2 * dpoly_dy * dxny_dy))
+
+  xny = cmplx(y, cn * x)
+  dxny_dx = cmplx(0.0_rp, cn)
+
+  fy = fy + real(cab * poly * xny)
+  dfy_dx = dfy_dx + real(cab * (dpoly_dx * xny + poly * dxny_dx))
+  dfy_dy = dfy_dy + real(cab * (dpoly_dy * xny + poly))
+  d2fy_dxx = d2fy_dxx + real(cab * (d2poly_dxx * xny + 2 * dpoly_dx * dxny_dx))
+  d2fy_dxy = d2fy_dxy + real(cab * (d2poly_dxy * xny + dpoly_dx + dpoly_dy * dxny_dx))
+  d2fy_dyy = d2fy_dyy + real(cab * (d2poly_dyy * xny + 2 * dpoly_dy))
+enddo
+
+px = orbit%vec(2)
+py = orbit%vec(4)
+denom = (1 - dfx_dx) * (1 - dfy_dy) - dfx_dy * dfy_dx
+ddenom_dx = -d2fx_dxx - d2fy_dxy + d2fx_dxx * dfy_dy + dfx_dx * d2fy_dxy - d2fx_dxy * dfy_dx - dfx_dy * d2fy_dxx 
+ddenom_dy = -d2fx_dxy - d2fy_dyy + d2fx_dxy * dfy_dy + dfx_dx * d2fy_dyy - d2fx_dyy * dfy_dx - dfx_dy * d2fy_dxy 
+ddenom_dpz = (dfx_dx + dfy_dy - 2 * dfx_dx * dfy_dy + 2 * dfx_dy * dfy_dx) / rel_p
+
+orbit%vec(1) = orbit%vec(1) - fx
+orbit%vec(2) = ((1 - dfy_dy) * px + dfy_dx * py) / denom
+orbit%vec(3) = orbit%vec(3) - fy
+orbit%vec(4) = (dfx_dy * px + (1 - dfx_dx) * py) / denom
+orbit%vec(5) = orbit%vec(5) + (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p
 
 if (logic_option(.false., make_matrix)) then
   kmat = 0
-  kmat(1,1) = 1 + k1_rel * (x**2 + y**2) / 4
-  kmat(1,3) =     k1_rel * x*y/2
-  kmat(2,1) =     k1_rel * (y*py - x*px) / 2
-  kmat(2,2) = 1 - k1_rel * (x**2 + y**2) / 4
-  kmat(2,3) =     k1_rel * (x*py - y*px) / 2
-  kmat(2,4) =     k1_rel * x*y/2
-
-  kmat(3,3) = 1 - k1_rel * (y**2 + x**2) / 4
-  kmat(3,1) =   - k1_rel * y*x/2
-  kmat(4,3) =   - k1_rel * (x*px - y*py) / 2
-  kmat(4,4) = 1 + k1_rel * (y**2 + x**2) / 4
-  kmat(4,1) =   - k1_rel * (y*px - x*py) / 2
-  kmat(4,2) =   - k1_rel * y*x/2
-
-  kmat(1,6) = -k1_rel * (x**3/12 + x*y**2/4) / rel_p
-  kmat(2,6) = -k1_rel * (x*y*py/2 - px*(x**2 + y**2)/4) / rel_p
-  kmat(3,6) =  k1_rel * (y**3/12 + y*x**2/4) / rel_p
-  kmat(4,6) =  k1_rel * (y*x*px/2 - py*(y**2 + x**2)/4) / rel_p
-
-  kmat(5,1) = -kmat(2,6)*kmat(1,1) + kmat(1,6)*kmat(2,1) - kmat(4,6)*kmat(3,1) + kmat(3,6)*kmat(4,1)
-  kmat(5,2) = -kmat(2,6)*kmat(1,2) + kmat(1,6)*kmat(2,2) - kmat(4,6)*kmat(3,2) + kmat(3,6)*kmat(4,2)
-  kmat(5,3) = -kmat(2,6)*kmat(1,3) + kmat(1,6)*kmat(2,3) - kmat(4,6)*kmat(3,3) + kmat(3,6)*kmat(4,3)
-  kmat(5,4) = -kmat(2,6)*kmat(1,4) + kmat(1,6)*kmat(2,4) - kmat(4,6)*kmat(3,4) + kmat(3,6)*kmat(4,4)
-
+  kmat(1,1) = 1 - dfx_dx
+  kmat(1,3) = -dfx_dy
+  kmat(1,6) = fx / rel_p
+  kmat(2,1) = (-d2fy_dxy * px + d2fy_dxx * py) / denom - orbit%vec(2) * ddenom_dx / denom
+  kmat(2,2) = (1 - dfy_dy) / denom
+  kmat(2,3) = (-d2fy_dyy * px + d2fy_dxy * py) / denom - orbit%vec(2) * ddenom_dy / denom
+  kmat(2,4) = dfy_dx / denom
+  kmat(2,6) = (dfy_dy * px - dfy_dx * py) / (denom * rel_p) - orbit%vec(2) * ddenom_dpz / denom
+  kmat(3,1) = -dfy_dx
+  kmat(3,3) = 1 - dfy_dy
+  kmat(3,6) = fy / rel_p
+  kmat(4,1) = (d2fx_dxy * px - d2fx_dxx * py) / denom - orbit%vec(4) * ddenom_dx / denom
+  kmat(4,2) = dfx_dy / denom
+  kmat(4,3) = (d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * ddenom_dy / denom
+  kmat(4,4) = (1 - dfx_dx) / denom
+  kmat(4,6) = (-dfx_dy * px + dfx_dx * py) / (denom * rel_p) - orbit%vec(4) * ddenom_dpz / denom
+  kmat(5,1) = (kmat(2,1) * fx + orbit%vec(2) * dfx_dx + kmat(4,1) * fy + orbit%vec(4) *dfy_dx) / rel_p
+  kmat(5,2) = (kmat(2,2) * fx + kmat(4,2) * fy) / rel_p
+  kmat(5,3) = (kmat(2,3) * fx + orbit%vec(2) * dfx_dy + kmat(4,3) * fy + orbit%vec(4) *dfy_dy) / rel_p
+  kmat(5,4) = (kmat(2,4) * fx + kmat(4,4) * fy) / rel_p
   kmat(5,5) = 1
+  kmat(5,6) = (kmat(2,6) * fx + kmat(4,6) * fy) / rel_p - 2 * (orbit%vec(2) * fx + orbit%vec(4) * fy) / rel_p**2
   kmat(6,6) = 1
-  mat6 = matmul(kmat, mat6)
+  mat6 = matmul (kmat, mat6)
 endif
 
-end subroutine quadrupole_hard_edge_kick
+end subroutine hard_multipole_edge_kick 
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1222,10 +1306,10 @@ fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
 case (full_straight$, full_bend$)
   call exact_bend_edge_kick (orb, ele, param, particle_at, mat6)
-case (basic_bend$, sad_full$, sad_linear$, sad_nonlin_only$)
+case (basic_bend$, soft_edge_only$, hard_edge_only$)
   call approx_bend_edge_kick (orb, ele, param, particle_at, mat6)
-case (bend_linear$)
-  call bend_edge_linear_kick (orb, ele, param, particle_at, mat6)
+case (linear_bend$)
+  call linear_bend_edge_kick (orb, ele, param, particle_at, mat6)
 case (none$)
   if (present(mat6)) call mat_make_unit (mat6)
 case default
@@ -1291,7 +1375,11 @@ character(*), parameter :: r_name = 'sad_bend_soft_edge_kick'
 !
 
 fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= sad_full$ .and. fringe_type /= sad_linear$) return
+select case (fringe_type)
+case (sad_bend$, soft_edge_only$, full_straight$)
+case default
+  return
+end select
 
 c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)

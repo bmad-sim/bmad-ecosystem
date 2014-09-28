@@ -1537,7 +1537,7 @@ case ('FRINGE_TYPE')
     case (sbend$, rbend$)
       is_default = (ix_attrib == basic_bend$)
     case (sad_mult$)
-      is_default = (ix_attrib == sad_nonlin_only$)      
+      is_default = (ix_attrib == hard_edge_only$)      
     case default
       is_default = (ix_attrib == none$)
     end select
