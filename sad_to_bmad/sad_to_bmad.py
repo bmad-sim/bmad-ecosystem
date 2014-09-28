@@ -151,6 +151,7 @@ ele_param_translate = {
     'eps': 'eps_step_scale',
     'freq': 'rf_frequency',
     'phi': ['phi0', ' / twopi'],
+    'dphi': ['phi0_err', ' / twopi'],
     'volt': 'voltage',
     'bound': 'bound',
     'geo': 'geo',
@@ -413,6 +414,24 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   # End of parameter loop
 
+  # If a SAD mult element has acceleration then it become an rfcavity or lcavity.
+
+  if sad_ele.type == 'mult' and 'volt' in sad_ele.param: bmad_ele.type = 'rfcavity'
+
+  # If the SAD cavi has a nonzero phi then the reference particle's energy is changing
+  # and so the corresponding Bmad element must be an lcavity.
+  # Also remember that an lcavity has a differnt phase convention.
+
+  if bmad_ele.type == 'rfcavity':
+    if 'phi0' in bmad_ele.param: 
+      bmad_ele.type = 'lcavity'
+      bmad_ele.param['phi0'] = 'pi/2 - ' + add_parens(bmad_ele.param['phi0'])
+      bmad_ele.param['phi0_err'] = bmad_ele.param['phi0_err']
+
+    elseif 'phi0_err' in bmad_ele.param:
+      bmad_ele.param['phi0'] = bmad_ele.param[phi0_err]
+      bmad_ele.param.remove('phi0_err')
+
   # Correct patch signs
 
   if bmad_ele.type == 'patch':
@@ -454,25 +473,25 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
     if disfrin == '0':
       if fringe == '0':
-        bmad_ele.param['fringe_type'] = 'sad_nonlin_only'
+        bmad_ele.param['fringe_type'] = 'hard_edge_only'
       else:
-        bmad_ele.param['fringe_type'] = 'sad_full'
+        bmad_ele.param['fringe_type'] = 'sad_bend'
 
     else:   # disfrin != '0' 
       # fringe == '0' --> Default: bmad_ele.param['fringe_type'] = 'none'
       if fringe != '0':
-        bmad_ele.param['fringe_type'] = 'sad_linear'
+        bmad_ele.param['fringe_type'] = 'soft_edge_only'
 
   # Bend fringe
 
   elif sad_ele.type == 'bend':
     # fringe == '0' & disfrin != '0' ==> default fringe_type = basic_bend
     if fringe == '0' and disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_nonlin_only'
+      bmad_ele.param['fringe_type'] = 'hard_edge_only'
     elif fringe != '0' and disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_full'
+      bmad_ele.param['fringe_type'] = 'sad_bend'
     elif fringe != '0' and disfrin != '0':
-      bmad_ele.param['fringe_type'] = 'sad_linear'
+      bmad_ele.param['fringe_type'] = 'soft_edge_only'
 
   # Cavi fringe
 
