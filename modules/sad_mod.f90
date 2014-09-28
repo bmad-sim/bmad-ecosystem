@@ -114,7 +114,6 @@ endif
 
 ks = param%rel_tracking_charge * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
-knl(1) = 0
 
 if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
   kx = knl(0) * cos(tilt(0)) - ks * ele%value(x_pitch_mult$)
@@ -132,6 +131,7 @@ ele2%value(tilt_tot$) = tilt(1)
 tilt = tilt - tilt(1)
 
 call multipole_kt_to_ab (knl, tilt, a_pole, b_pole)
+knl(1) = 0 ! So multipole_kicks does not conflict with sol_quad calc. 
 
 call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hvkicks = .false.)
 
@@ -423,20 +423,21 @@ d2fy_dyy = 0
 
 do n = 1, n_max
 
-  if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
-
   poly_n2 = poly_n1
   poly_n1 = poly
   poly = poly * xy
 
-  if (n <= 1) cycle
+  if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
+
   dpoly_dx = (n+1) * poly_n1
-  dpoly_dy = i_imaginary * poly_n1
+  dpoly_dy = i_imaginary * dpoly_dx
+
   d2poly_dxx = n * (n+1) * poly_n2
   d2poly_dxy = i_imaginary * d2poly_dxx
   d2poly_dyy = -d2poly_dxx
 
-  cab = cmplx(b_pole(n), a_pole(n)) / (4 * (n + 2) * rel_p)
+  cab = cmplx(b_pole(n), a_pole(n)) / (4 * (n + 2) * rel_p * ele%value(l$))
+  if (particle_at == first_track_edge$) cab = -cab
   cn = real(n+3, rp) / (n+1) 
 
   xny = cmplx(x, -cn * y)
@@ -482,21 +483,21 @@ if (logic_option(.false., make_matrix)) then
   kmat(2,2) = (1 - dfy_dy) / denom
   kmat(2,3) = (-d2fy_dyy * px + d2fy_dxy * py) / denom - orbit%vec(2) * ddenom_dy / denom
   kmat(2,4) = dfy_dx / denom
-  kmat(2,6) = (-dfy_dy * px + dfy_dx * py) / (denom * rel_p) - orbit%vec(2) * ddenom_dpz / denom
+  kmat(2,6) = (dfy_dy * px - dfy_dx * py) / (denom * rel_p) - orbit%vec(2) * ddenom_dpz / denom
   kmat(3,1) = -dfy_dx
   kmat(3,3) = 1 - dfy_dy
   kmat(3,6) = fy / rel_p
   kmat(4,1) = (d2fx_dxy * px - d2fx_dxx * py) / denom - orbit%vec(4) * ddenom_dx / denom
   kmat(4,2) = dfx_dy / denom
-  kmat(4,3) = (-d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * ddenom_dy / denom
+  kmat(4,3) = (d2fx_dyy * px - d2fx_dxy * py) / denom - orbit%vec(4) * ddenom_dy / denom
   kmat(4,4) = (1 - dfx_dx) / denom
-  kmat(4,6) = (dfx_dy * px - dfx_dx * py) / (denom * rel_p) - orbit%vec(4) * ddenom_dpz / denom
+  kmat(4,6) = (-dfx_dy * px + dfx_dx * py) / (denom * rel_p) - orbit%vec(4) * ddenom_dpz / denom
   kmat(5,1) = (kmat(2,1) * fx + orbit%vec(2) * dfx_dx + kmat(4,1) * fy + orbit%vec(4) *dfy_dx) / rel_p
   kmat(5,2) = (kmat(2,2) * fx + kmat(4,2) * fy) / rel_p
   kmat(5,3) = (kmat(2,3) * fx + orbit%vec(2) * dfx_dy + kmat(4,3) * fy + orbit%vec(4) *dfy_dy) / rel_p
   kmat(5,4) = (kmat(2,4) * fx + kmat(4,4) * fy) / rel_p
   kmat(5,5) = 1
-  kmat(5,6) = (kmat(2,6) * fx + kmat(4,6) * fy) / rel_p - (orbit%vec(2) * fx + orbit%vec(4) * fy ) / rel_p**2
+  kmat(5,6) = (kmat(2,6) * fx + kmat(4,6) * fy) / rel_p - 2 * (orbit%vec(2) * fx + orbit%vec(4) * fy) / rel_p**2
   kmat(6,6) = 1
   mat6 = matmul (kmat, mat6)
 endif
