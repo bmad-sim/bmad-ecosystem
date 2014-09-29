@@ -133,6 +133,7 @@ ele_type_to_bmad = {
 ele_param_translate = {
     'bend:k0': ['g_err', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
+    'bend:f1': ['hgap', '/6, fint = 0.5'],
     'quad:k1': ['k1', ' / @l@'],
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
