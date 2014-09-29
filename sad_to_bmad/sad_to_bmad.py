@@ -428,7 +428,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       bmad_ele.param['phi0'] = 'pi/2 - ' + add_parens(bmad_ele.param['phi0'])
       bmad_ele.param['phi0_err'] = bmad_ele.param['phi0_err']
 
-    elseif 'phi0_err' in bmad_ele.param:
+    elif 'phi0_err' in bmad_ele.param:
       bmad_ele.param['phi0'] = bmad_ele.param[phi0_err]
       bmad_ele.param.remove('phi0_err')
 
@@ -502,14 +502,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       bmad_ele.param['fringe_at'] = 'exit_end'
 
     if disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_full'
+      bmad_ele.param['fringe_type'] = 'sad_bend'
 
   # All other fringes  
 
   elif sad_ele.type == 'deca' or sad_ele.type == 'dodeca' or \
        sad_ele.type == 'oct' or sad_ele.type == 'sext':
     if disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_full'
+      bmad_ele.param['fringe_type'] = 'sad_bend'
 
   # bend edge
 
