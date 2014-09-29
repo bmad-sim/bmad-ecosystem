@@ -133,7 +133,8 @@ ele_type_to_bmad = {
 ele_param_translate = {
     'bend:k0': ['g_err', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
-    'bend:f1': ['hgap', '/6, fint = 0.5'],
+    'bend:fb1': ['hgap', '/6, fint = 0.5'],
+    'bend:fb2': ['hgapx', '/6, fintx = 0.5'],
     'quad:k1': ['k1', ' / @l@'],
     'sext:k2': ['k2', ' / @l@'],
     'oct:k3': ['k3', ' / @l@'],
@@ -334,19 +335,28 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
-  # Right now Bmad cannot handle fb1 not equal to fb2
+  # For a bend, f1 mut be added to fb1 and fb2
 
-  if 'fb1' in sad_ele.param:
-    if 'fb2' not in sad_ele.param or sad_ele.param['fb1'] != sad_ele.param['fb2']:
-      print ('FB1 AND FB2 NOT EQUAL IN ELEMENT: ' + sad_ele.name)
-      print ('  PLEASE CONTACT DAVID SAGAN.')
+  if sad_ele.type == 'bend' and 'f1' in sad_ele.param:
+    if 'fb1' in sad_ele.param:
+      sad_ele.param['fb1'] = sad_ele.param['fb1'] + sad_ele.param['f1']
     else:
-      if 'f1' in sad_ele.param:
-        sad_ele.param['f1'] = sad_ele.param['f1'] + ' + ' + sad_ele.param['fb1']
+      sad_ele.param['fb1'] = sad_ele.param['f1']
+
+    if 'fb2' in sad_ele.param:
+      sad_ele.param['fb2'] = sad_ele.param['fb2'] + sad_ele.param['f1']
+    else:
+      sad_ele.param['fb2'] = sad_ele.param['f1']
+
+    sad_ele.param.remove('f1')
+
+    # If fb1 == fb2 then don't need fb2 (Bmad will take them as equal if fb2 is not present).
+
+    if 'fb1' in sad_ele.param:
+      if 'fb2' in sad_ele.param:
+        if sad_ele.param['fb1'] == sad_ele.param['fb2']: sad_ele.param.remove('fb2')
       else:
-        sad_ele.param['f1'] = sad_ele.param['fb1']
-      del sad_ele.param['fb1']
-      del sad_ele.param['fb2']
+        sad_ele.param['fb2'] = '0'
 
   # Loop over all parameters
 
