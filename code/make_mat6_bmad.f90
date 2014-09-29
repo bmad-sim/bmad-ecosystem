@@ -786,7 +786,7 @@ case (quadrupole$)
 
   call offset_particle (ele, param, set$, c00)
   call hard_multipole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
-  call quadrupole_soft_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
+  call soft_quadrupole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
@@ -818,7 +818,7 @@ case (quadrupole$)
 
   ! Ending edge
 
-  call quadrupole_soft_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
+  call soft_quadrupole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
   call hard_multipole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
 
   ! tilt and multipoles

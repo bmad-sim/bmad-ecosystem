@@ -141,9 +141,9 @@ call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hv
 k0 = knl(0)/length
 
 call hard_multipole_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
-call quadrupole_soft_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix)
+call soft_quadrupole_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix)
 call sad_linear_bend_edge_kick (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
-call sad_bend_soft_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call sad_soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 
 ! Body
 
@@ -204,9 +204,9 @@ enddo
 
 ! Exit edge kicks
 
-call sad_bend_soft_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call sad_soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 call sad_linear_bend_edge_kick (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
-call quadrupole_soft_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix)
+call soft_quadrupole_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix)
 call hard_multipole_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
 
 ! End stuff
