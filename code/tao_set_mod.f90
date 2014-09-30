@@ -929,6 +929,9 @@ case ('hist%width')
   this_curve%hist%number = 0
   call tao_real_set_value (this_curve%hist%width, component, set_value, error)  
   
+case ('y_axis_scale_factor')
+  call tao_real_set_value (this_curve%y_axis_scale_factor, component, set_value, error)
+
 case default
   call out_io (s_error$, r_name, "BAD CURVE COMPONENT")
   return
