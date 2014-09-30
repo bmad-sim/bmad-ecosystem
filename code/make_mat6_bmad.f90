@@ -785,8 +785,8 @@ case (quadrupole$)
   ! Starting edge
 
   call offset_particle (ele, param, set$, c00)
-  call hard_multipole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
-  call soft_quadrupole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, param, first_track_edge$, c00, mat6, .true.)
+  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, c00, mat6, .true.)
 
   ! The mat6(i,6) terms are constructed so that mat6 is sympelctic
 
@@ -818,8 +818,8 @@ case (quadrupole$)
 
   ! Ending edge
 
-  call soft_quadrupole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
-  call hard_multipole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
+  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, param, second_track_edge$, c00, mat6, .true.)
 
   ! tilt and multipoles
 
@@ -953,14 +953,16 @@ case (sbend$)
   call offset_particle (ele, param, set$, c00, set_multipoles = .false.)
   c0_off = c00
 
-  call bend_edge_kick (c00, ele, param, first_track_edge$, mat6_pre)
+  call mat_make_unit(mat6_pre)
+  call bend_edge_kick (ele, param, first_track_edge$, c00, mat6_pre, .true.)
 
   ! Exit edge kick
 
   call offset_particle (ele, param, set$, c11, ds_pos = length)
   c1_off = c11 
 
-  call bend_edge_kick (c11, ele, param, second_track_edge$, mat6_post)
+  call mat_make_unit (mat6_post)
+  call bend_edge_kick (ele, param, second_track_edge$, c11, mat6_post, .true.)
 
   ! If we have a sextupole component then step through in steps of length ds_step
 
@@ -1249,7 +1251,7 @@ case (sbend$)
 case (sextupole$)
 
   call offset_particle (ele, param, set$, c00)
-  call hard_multipole_edge_kick (ele, first_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, param, first_track_edge$, c00, mat6, .true.)
 
   n_slice = max(1, nint(length / v(ds_step$)))
   
@@ -1267,7 +1269,7 @@ case (sextupole$)
     end if
   end do
 
-  call hard_multipole_edge_kick (ele, second_track_edge$, c00, mat6, .true.)
+  call hard_multipole_edge_kick (ele, param, second_track_edge$, c00, mat6, .true.)
 
   if (v(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, v(tilt_tot$))
