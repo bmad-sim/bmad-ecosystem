@@ -30,7 +30,7 @@ if (nargs == 1)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt1 = '(a, a, 6es18.9)' ! Don't need as much precison for test purposes
+  fmt1 = '(a, 6es16.8)' ! Don't need as much precison for test purposes
   fmt2 = '(a, a, es18.9)'
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
@@ -69,11 +69,21 @@ do ib = 0, ubound(lat%branch, 1)
         if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
         ele2 => eles(j)
         if (k < 7) then
-          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-          write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
+          if (print_extra) then
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+            write (1, fmt1) final_str, ele2%mat6(k,:)
+          else
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
+            write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
+          endif
         else if (k == 7) then
-          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
-          write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
+          if (print_extra) then
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+            write (1, fmt1) final_str, ele2%vec0
+          else
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+            write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
+          endif
         else if (k == 8) then
           final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
           write (1, fmt2) final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
