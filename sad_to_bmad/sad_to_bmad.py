@@ -348,13 +348,13 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     else:
       sad_ele.param['fb2'] = sad_ele.param['f1']
 
-    sad_ele.param.remove('f1')
+    del sad_ele.param['f1']
 
     # If fb1 == fb2 then don't need fb2 (Bmad will take them as equal if fb2 is not present).
 
     if 'fb1' in sad_ele.param:
       if 'fb2' in sad_ele.param:
-        if sad_ele.param['fb1'] == sad_ele.param['fb2']: sad_ele.param.remove('fb2')
+        if sad_ele.param['fb1'] == sad_ele.param['fb2']: del sad_ele.param['fb2']
       else:
         sad_ele.param['fb2'] = '0'
 
@@ -441,7 +441,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
     elif 'phi0_err' in bmad_ele.param:
       bmad_ele.param['phi0'] = bmad_ele.param[phi0_err]
-      bmad_ele.param.remove('phi0_err')
+      del bmad_ele.param['phi0_err']
 
   # Correct patch signs
 
