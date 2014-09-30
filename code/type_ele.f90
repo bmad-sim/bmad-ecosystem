@@ -188,7 +188,7 @@ else
                         ix_tot, attribute_name(ele, ix_tot), '=', ele%value(ix_tot)
 
     elseif (a_name == 'P0C_START') then
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
 
@@ -196,7 +196,7 @@ else
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
 
     elseif (a_name == 'P0C') then
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f11.7)') &
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
 
