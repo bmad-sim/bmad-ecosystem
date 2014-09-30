@@ -58,8 +58,8 @@ do ib = 0, ubound(lat%branch, 1)
       call make_mat6 (ele, branch%param, start_orb, end_orb)
       call transfer_ele(ele, eles(j), .true.)
       if (print_extra .and. ele%mat6_calc_method == bmad_standard$) then
-        write (1, '(a, 6es22.13)'), 'Start track:', start_orb%vec
-        write (1, '(a, 6es22.13)'), 'End track:  ', end_orb%vec 
+        write (1, '(a, 6es16.8)'), 'Start track:', start_orb%vec
+        write (1, '(a, 6es16.8)'), 'End track:  ', end_orb%vec 
         write (1, *)
       endif
     enddo
