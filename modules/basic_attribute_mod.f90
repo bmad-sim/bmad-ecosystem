@@ -983,7 +983,6 @@ call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTE
 call init_attribute_name1 (sbend$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (sbend$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
-call init_attribute_name1 (sbend$, f1$,                             'F1')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 

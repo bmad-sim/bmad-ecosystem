@@ -140,10 +140,10 @@ call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hv
 
 k0 = knl(0)/length
 
-call hard_multipole_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
-call soft_quadrupole_edge_kick (ele, first_track_edge$, orbit, mat6, make_matrix)
-call sad_linear_bend_edge_kick (ele, k0, tilt(0), first_track_edge$, orbit, mat6, make_matrix)
-call sad_soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call hard_multipole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
+call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
+call approx_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 
 ! Body
 
@@ -204,10 +204,10 @@ enddo
 
 ! Exit edge kicks
 
-call sad_soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
-call sad_linear_bend_edge_kick (ele, k0, tilt(0), second_track_edge$, orbit, mat6, make_matrix)
-call soft_quadrupole_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix)
-call hard_multipole_edge_kick (ele, second_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
+call soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call approx_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
+call hard_multipole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
 
 ! End stuff
 
@@ -247,93 +247,5 @@ if (.not. end_in) then
 endif
 
 end subroutine sad_mult_track_and_mat 
-
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------
-!+
-! Subroutine sad_linear_bend_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
-!
-! Routine to track through the "linear" bend fringe field.
-!
-! Input:
-!   ele         -- ele_struct: Element with fringe.
-!   g_bend      -- real(rp): Bend bend strength.
-!   tilt        -- real(rp): field rotation.
-!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
-!   orbit       -- coord_struct: Starting coordinates.
-!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
-!   make_matrix -- real(rp), optional: Make the transfer matrix? Default is False.
-!
-! Output:
-!   orbit       -- coord_struct: Ending coordinates.
-!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
-!-
-
-subroutine sad_linear_bend_edge_kick (ele, g_bend, tilt, particle_at, orbit, mat6, make_matrix)
-
-implicit none
-
-type (ele_struct) ele
-type (coord_struct) orbit
-
-real(rp), optional :: mat6(6,6)
-real(rp) g_bend, tilt
-real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6)
-
-integer fringe_type, fringe_at, physical_end, particle_at
-integer i, i_max
-
-logical, optional :: make_matrix
-
-! Fringe here?
-
-fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= soft_edge_only$ .and. fringe_type /= sad_bend$) return
-
-fringe_at = nint(ele%value(fringe_at$))
-physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
-if (.not. at_this_ele_end(physical_end, fringe_at)) return
-
-! Rotate
-
-if (tilt /= 0) call tilt_coords (tilt, orbit%vec)
-
-! edge kick
-
-g = g_bend
-if (particle_at == second_track_edge$) g = -g
-
-px = orbit%vec(2)
-y = orbit%vec(3)
-y2 = y**2
-rel_p = 1 + orbit%vec(6)
-p_zy = sqrt(rel_p**2 - px**2)
-yg = y2 * g**2 / 12
-
-orbit%vec(1) = orbit%vec(1) + g * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**3)
-orbit%vec(4) = orbit%vec(4) - g * px * y * (1 - 2 * yg) / p_zy
-orbit%vec(5) = orbit%vec(5) - g * y2 * px * (1 - yg) * rel_p / (2 * p_zy**3)
-
-if (logic_option(.false., make_matrix)) then
-  call mat_make_unit(kmat)
-  kmat(1,2) = 3 * g * px * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**5)
-  kmat(1,3) =  g * (y - 2 * y * yg) * rel_p**2 / p_zy**3
-  kmat(1,6) = -g * y2 * (1 - yg) * rel_p * (rel_p**2 + 2 * px**2) / (2 * p_zy**5)
-  kmat(4,2) = -g * y * (1 - 2 * yg) * rel_p**2 / p_zy**3
-  kmat(4,3) = -g * px * (1 - 6 * yg) / p_zy
-  kmat(4,6) =  g * px * y * (1 - 2 * yg) * rel_p / p_zy**3
-  kmat(5,2) = -g * y2 * (1 - yg) * (rel_p**2 + 2 * px**2) * rel_p / (2 * p_zy**5)
-  kmat(5,3) = -g * px * (y - 2 * y * yg) * rel_p / p_zy**3
-  kmat(5,6) =  g * px * y2 * (1 - 2 * yg) * (2 * rel_p**2 + px**2) / (2 * p_zy**5)
-  call tilt_mat6(kmat, tilt)
-  mat6 = matmul(kmat, mat6)
-endif
-
-! Rotate
-
-if (tilt /= 0) call tilt_coords (-tilt, orbit%vec)
-
-end subroutine sad_linear_bend_edge_kick
 
 end module

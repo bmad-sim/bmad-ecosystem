@@ -3139,11 +3139,6 @@ case (sbend$)
   ptc_key%list%hgap = ele%value(hgap$)
   ptc_key%list%fint = ele%value(fint$)
 
-  if (ele%value(f1$) /= 0) then
-    ptc_key%list%fint = ele%value(f1$) / 6
-    ptc_key%list%hgap = 0.5
-  endif
-
   if (ele%value(fintx$) /= ele%value(fint$)) then
     call out_io (s_error$, r_name, &
         'FINT AND FINTX ARE NOT THE SAME FOR BEND: ' // ele%name, &

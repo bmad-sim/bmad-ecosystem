@@ -67,19 +67,17 @@ if (opal_file_unit == 0 ) then
   call file_suffixer (lat%input_file_name, file_name, 'opal', .true.)
   open (iu, file = file_name, iostat = ios)
   if (ios /= 0) then
-      call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(file_name))
-      return
-    endif
+    call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(file_name))
+    return
+  endif
 else
   iu = opal_file_unit
 endif
-
 
 ! OPAL formatting characters
 comment_char = '//'
 continue_char = ''
 eol_char = ';'
-
 
 ! Elements to write
 ! Loop over all track and lord elements
@@ -182,32 +180,32 @@ ele_loop: do ie = ix_start, ix_end
   ! Sbend -----------------------------------       
   !----------------------------------------------------------
   case (sbend$)
-	write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(L_CHORD$)
-	call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
+    write (line, '(a, '//rfmt//')') trim(ele%name) // ': sbend, l =', val(L_CHORD$)
+    call value_to_line (line, val(b_field$), 'k0', rfmt, 'R')
    ! OPAL's designenergy is in MeV (!!) 
-	call value_to_line (line, 1e-6_rp*val(e_tot$), 'designenergy', rfmt, 'R')
-	!Edge angles are in radians
-	call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
-	call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
+    call value_to_line (line, 1e-6_rp*val(e_tot$), 'designenergy', rfmt, 'R')
+    !Edge angles are in radians
+    call value_to_line (line, val(e1$), 'E1', rfmt, 'R')
+    call value_to_line (line, val(e2$), 'E2', rfmt, 'R')
    ! Full GAP (OPAL) =  2*H_GAP (BMAD)
    ! OPAL will the default fieldmap if the gap is zero  
     if ( val(hgap$) == 0) then
       gap = 1e-6_rp
       write (line, '(2a)') trim(line),  ', fmapfn = "1DPROFILE1-DEFAULT"' 
-	else
+    else
       gap = 2*val(hgap$)
       ! Write new fieldgrid file, based on the element's name
-	  fieldgrid_output_name = ''
-	  write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
+      fieldgrid_output_name = ''
+      write(fieldgrid_output_name, '(3a)') 'fmap_', trim(ele%name), '.t7'
       iu_fieldgrid = lunget()
       open (iu_fieldgrid, file = fieldgrid_output_name, iostat = ios)
       call write_opal_field_grid_file (iu_fieldgrid, ele, lat%param, absmax_Ez)
       close(iu_fieldgrid)
       !Add FMAPFN to line
       write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
-	endif
-	
-	call value_to_line (line, gap, 'GAP', rfmt, 'R')
+    endif
+    
+    call value_to_line (line, gap, 'GAP', rfmt, 'R')
 
    
 
@@ -231,8 +229,8 @@ ele_loop: do ie = ix_start, ix_end
     ! Get field grid name and scaling. This writes the file if needed. 
 
     call get_opal_fieldgrid_name_and_scaling(&
-	   ele, lat%param, fieldgrid_names, &
-	   fieldgrid_output_name, absmax_bz)
+       ele, lat%param, fieldgrid_names, &
+       fieldgrid_output_name, absmax_bz)
 
    ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
@@ -272,8 +270,8 @@ ele_loop: do ie = ix_start, ix_end
 
     ! Get field grid name and scaling. This writes the file if needed. 
     call get_opal_fieldgrid_name_and_scaling(&
-	   ele, lat%param, fieldgrid_names,  &
-	   fieldgrid_output_name, absmax_ez)
+       ele, lat%param, fieldgrid_names,  &
+       fieldgrid_output_name, absmax_ez)
 
    ! Add FMAPFN to line
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
@@ -418,12 +416,11 @@ else
   ! Write new fieldgrid file
   iu_fieldgrid = lunget()
   open (iu_fieldgrid, file = output_name, iostat = ios)
-	call write_opal_field_grid_file (iu_fieldgrid, ele, param, field_scale)
+    call write_opal_field_grid_file (iu_fieldgrid, ele, param, field_scale)
   close(iu_fieldgrid)
 end if
 
 end subroutine get_opal_fieldgrid_name_and_scaling
-
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -446,12 +443,9 @@ end subroutine get_opal_fieldgrid_name_and_scaling
 !   err            -- Logical, optional: Set True if, say a file could not be opened.
 !-
 
-
-
 subroutine write_opal_field_grid_file (opal_file_unit, ele, param, maxfield, err)
 
 implicit none
-
 
 integer      :: opal_file_unit
 integer         :: dimensions

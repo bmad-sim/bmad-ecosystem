@@ -305,8 +305,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     ks = ele%value(ks$)
   end select
 
-  call hard_multipole_edge_kick (ele, first_track_edge$, end_orb, mat6, calculate_mat6)
-  call soft_quadrupole_edge_kick (ele, first_track_edge$, end_orb, mat6, calculate_mat6)
+  call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
+  call soft_quadrupole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
 
   ! loop over all steps
 
@@ -329,8 +329,8 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   enddo
 
-  call soft_quadrupole_edge_kick (ele, second_track_edge$, end_orb, mat6, calculate_mat6)
-  call hard_multipole_edge_kick (ele, second_track_edge$, end_orb, mat6, calculate_mat6)
+  call soft_quadrupole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
+  call hard_multipole_edge_kick (ele, param, second_track_edge$, end_orb, mat6, calculate_mat6)
 
 !----------------------------------------------------------------------------
 ! unknown element
