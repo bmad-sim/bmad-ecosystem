@@ -896,8 +896,8 @@ call init_attribute_name1 (quadrupole$, pole_radius$,               'POLE_RADIUS
 call init_attribute_name1 (quadrupole$, field$,                     'FIELD')
 call init_attribute_name1 (quadrupole$, E_tot_start$,               'E_tot_start', private$)
 call init_attribute_name1 (quadrupole$, p0c_start$,                 'p0c_start', private$)
-call init_attribute_name1 (quadrupole$, f1$,                        'F1')
-call init_attribute_name1 (quadrupole$, f2$,                        'F2')
+call init_attribute_name1 (quadrupole$, fq1$,                       'FQ1')
+call init_attribute_name1 (quadrupole$, fb2$,                       'FQ2')
 
 call init_attribute_name1 (sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
@@ -1047,8 +1047,8 @@ call init_attribute_name1 (sad_mult$, e2$,                     'E2')
 !call init_attribute_name1 (sad_mult$, harmon$,                 'HARMON')       ! SAD: harm
 call init_attribute_name1 (sad_mult$, fringe_at$,              'FRINGE_AT')    ! SAD: fringe
 call init_attribute_name1 (sad_mult$, fringe_type$,            'FRINGE_TYPE')  ! SAD: disfrin
-call init_attribute_name1 (sad_mult$, f1$,                     'F1')
-call init_attribute_name1 (sad_mult$, f2$,                     'F2')
+call init_attribute_name1 (sad_mult$, fq1$,                    'FQ1')
+call init_attribute_name1 (sad_mult$, fq2$,                    'FQ2')
 call init_attribute_name1 (sad_mult$, fb1$,                    'FB1')
 call init_attribute_name1 (sad_mult$, fb2$,                    'FB2')
 call init_attribute_name1 (sad_mult$, bs_field$,               'BS_FIELD')

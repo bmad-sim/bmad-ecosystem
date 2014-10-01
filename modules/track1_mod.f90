@@ -1126,8 +1126,8 @@ case (sad_mult$)
   k1_rel = charge_dir * sqrt(m_ele%a_pole(1)**2 + m_ele%b_pole(1)**2)  / m_ele%value(l$) / rel_p
 end select
 
-f1 = -k1_rel * ele%value(f1$) * abs(ele%value(f1$)) / 24
-f2 =  k1_rel * ele%value(f2$)
+f1 = k1_rel * ele%value(fq1$)
+f2 = k1_rel * ele%value(fq2$)
 if (f1 == 0 .and. f2 == 0) return
 if (particle_at == second_track_edge$) f1 = -f1
 
