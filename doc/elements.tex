@@ -384,7 +384,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
 
 \index{g}\index{b_field}\index{g_err}\index{b_field_err}\index{angle}
 \index{l_chord}\index{angle}\index{h1}\index{h2}
-\index{e1}\index{e2}\index{f1}\index{fint}\index{fintx}\index{l_arc}
+\index{e1}\index{e2}\index{fint}\index{fintx}\index{l_arc}
 \index{hgap}\index{hgapx}\index{roll}\index{k1}
 Attributes specific to \vn{rbend} and \vn{sbend} elements are:
 \begin{example}
@@ -452,10 +452,6 @@ for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
-  \index{f1}
-  \item[f1] \Newline
-\vn{f1} is the strength of the SAD ``linear'' fringe field. This
-fringe is applied at both the entrance and exit faces.
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
@@ -475,6 +471,13 @@ values are the same for the entrance and exit faces. For compatibility
 with \mad, if \vn{fint} is given but \vn{fintx} is not, then
 \vn{fintx} is set equal to \vn{fint}. Similarly, \vn{hgapx} will be
 set to \vn{hgap} if \vn{hgapx} is not given.
+
+Note: The SAD program uses \vn{fb1+f1} for the entrance fringe and
+\vn{fb2+f1} for the exit fringe. The correspondence between the two is
+\begin{example}
+  fint  * hgap  = (fb1 + f1) / 12
+  fintx * hgapx = (fb2 + f1) / 12
+\end{example}
 
 \index{Enge function}
 \vn{fint} and \vn{hgap} can be related to the Enge function which is sometimes
