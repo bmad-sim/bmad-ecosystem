@@ -431,9 +431,9 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   if 'fq1' in bmad_ele.param:
     if bmad_ele.param['fq1'][0:1] == '-':
-      bmad_ele.param['fq1'] = 'sqrt(' + bmad_ele.param['fq1'][1:] + ')'
+      bmad_ele.param['fq1'] = 'sqrt(' + bmad_ele.param['fq1'][1:] + ') / 24'
     else:
-      bmad_ele.param['fq1'] = '-sqrt(' + bmad_ele.param['fq1'] + ')'
+      bmad_ele.param['fq1'] = '-sqrt(' + bmad_ele.param['fq1'] + ') / 24'
 
   # If a SAD mult element has acceleration then it become an rfcavity or lcavity.
 
