@@ -830,10 +830,10 @@ integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
 integer, parameter :: voltage$ = 9
-integer, parameter :: f1$ = 14
-integer, parameter :: f2$ = 15
-integer, parameter :: fb1$ = 16
-integer, parameter :: fb2$ = 17
+integer, parameter :: fb1$ = 14
+integer, parameter :: fb2$ = 15
+integer, parameter :: fq1$ = 16
+integer, parameter :: fq2$ = 17
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, rel_tracking_charge$ = 20
 integer, parameter :: l_chord$ = 20, ks$ = 20, n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
