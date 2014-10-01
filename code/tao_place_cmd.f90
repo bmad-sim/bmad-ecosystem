@@ -40,6 +40,7 @@ character(20) :: r_name = 'tao_place_cmd'
 if (where == '*' .and. who == 'none') then
   do i = 1, size(s%plot_page%region)
     s%plot_page%region(i)%visible = .false.
+    s%plot_page%region(i)%plot%name = ''
   enddo
   return
 endif
@@ -52,6 +53,7 @@ if (err) return
 
 if (who == 'none') then
   region%visible = .false.
+  region%plot%name = ''
   return
 endif
 

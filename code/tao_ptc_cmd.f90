@@ -38,7 +38,7 @@ case ('init')
 
 ! script
 
-case ('script')
+case ('call')
   call read_ptc_command77 (input_str)
 
 end select

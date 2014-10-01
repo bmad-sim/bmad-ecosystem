@@ -2280,24 +2280,20 @@ case ('plot')
     enddo
 
     nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = '                    ' // &
-                         '                                    Location on Page'
-    nl=nl+1; lines(nl) = 'Visible  Plot Region' // &
-                         '         <-->  Template             x1    x2    y1    y2'  
-    nl=nl+1; lines(nl) = '-------  -----------' // &
-                         '               -----------------------------------------'
+    nl=nl+1; lines(nl) = '                                               Location on Page'
+    nl=nl+1; lines(nl) = 'Plot Region         <-->  Plot                 x1    x2    y1    y2'  
+    nl=nl+1; lines(nl) = '-----------               -----------------------------------------'
     do i = 1, size(s%plot_page%region)
       region => s%plot_page%region(i)
       if (region%name == '') cycle
-      nl=nl+1; write(lines(nl), '(3x l1, 5x, a20, a, a18, 4f6.2)') region%visible, &
-                                    region%name, '<-->  ', region%plot%name, region%location
+      nl=nl+1; write(lines(nl), '(a20, a, a18, 4f6.2)') region%name, '<-->  ', region%plot%name, region%location
     enddo
 
     result_id = 'plot:'
     return
   endif
 
-! Find particular plot
+  ! Find particular plot
 
   call tao_find_plots (err, stuff2, 'BOTH', plot, print_flag = .false.)
   if (err) return
