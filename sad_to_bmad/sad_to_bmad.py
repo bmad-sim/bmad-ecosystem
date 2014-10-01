@@ -148,8 +148,9 @@ ele_param_translate = {
     'e1': ['e1', ' * @angle@'],
     'e2': ['e2', ' * @angle@'],
     'bz': 'bs_field',
-    'f1': 'f1',
-    'f2': 'f2',
+    'sol:f1': 'f1',
+    'f1': 'fq1',       # For mult and quad elements
+    'f2': 'fq2',
     'eps': 'eps_step_scale',
     'freq': 'rf_frequency',
     'phi': ['phi0', ' / twopi'],
@@ -424,6 +425,15 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     bmad_ele.param[bmad_name] = value + value_suffix
 
   # End of parameter loop
+  #-----------------------
+
+  # f1 -> fq1 translation for mult and quad elements involves some work
+
+  if 'fq1' in bmad_ele.param:
+    if bmad_ele.param['fq1'][0:1] == '-':
+      bmad_ele.param['fq1'] = 'sqrt(' + bmad_ele.param['fq1'][1:] + ')'
+    else:
+      bmad_ele.param['fq1'] = '-sqrt(' + bmad_ele.param['fq1'] + ')'
 
   # If a SAD mult element has acceleration then it become an rfcavity or lcavity.
 
