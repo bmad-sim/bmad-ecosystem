@@ -493,17 +493,19 @@ The \vn{ptc} command is used manipulating PTC layouts associated with
 Bmad lattices. Format:
 \begin{example}
   ptc init            ! Init associated PTC layout.
-  ptc script <file>   ! Run a ptc script
+  ptc call <file>   ! Run a ptc script
+  ptc write \{-old\} \{<filename>\}
+  ptc read \{-old\} <filename>
 \end{example}
 
 \vskip 0.2in 
 
-The \vn{ptc init} command must be run before running any script.
+The \vn{ptc init} command must be run before running any other \vn{ptc} command is used.
 
 Examples:
 \begin{example}
   ptc init
-  ptc script doit.ptc  ! Execute doit.ptc file.
+  ptc call doit.ptc  ! Execute doit.ptc file.
 \end{example}
 
 %% python -----------------------------------------------------------
@@ -550,6 +552,7 @@ contained in the default universe (\sref{s:universe}) using a ``secondary''
 lattice file. Format:
 \begin{example}
   read lattice <file_name>
+  read ptc \{-old\} <file_name>
 \end{example}
 
 \vskip 0.2in 
@@ -2183,6 +2186,7 @@ Format:
                                    ! Create a PS file of the plot window.
   write ps-l \{-scale <scale>\} \{<file_name>\}    
                                    ! Create a PS file with landscape orientation.
+  write ptc \{-old\} \{<file_name>\}
   write variable \{-good_var_only\} \{<file_name>\} 
                                    ! Create a Bmad file of variable values.
 \end{example}
@@ -2203,6 +2207,7 @@ If \vn{<file_name>} is not given then the defaults are:
   write mad8_lattice             lat_#.mad8
   write madx_lattice             lat_#.madx
   write ps                       tao.ps
+  write ptc                      ptc.flatfile
   write variable                 global%var_out_file
 \end{example}
 where \vn{\#} is replaced by the universe number. \vn{write
@@ -2256,7 +2261,12 @@ initialize \tao (\sref{s:command.line}). Example
   write beam -at *   ! Output beam at every element.
 \end{example}
 
-Note: PGPLOT does a poor job producing gif files so consider
+The \vn{write ptc} command writes a PTC flat file of the lattice.
+The default is to write a ``new style'' format version. The \vn{-old} switch
+will generate an ``old style'' version. This command can only be used
+after a \vn{ptc init} command has been used to setup PTC.
+
+Note: PGPLOT, if being used, does a poor job producing gif files so consider
 making a postscript file instead and using a ps to gif converter.
 
 %% x_axis --------------------------------------------------------------
