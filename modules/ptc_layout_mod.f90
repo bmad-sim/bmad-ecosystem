@@ -1086,7 +1086,7 @@ case (sad_mult$)
 
   if (ele%value(l$) /= 0) then
     call set_real (mag%b_sol, magp%b_sol, val(ks$))
-    call set_real (mag%va, magp%va, -sign(sqrt(abs(ele%value(fq1$))), ele%value(fq1$)))
+    call set_real (mag%va, magp%va, -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$)))
     call set_real (mag%vs, magp%vs, ele%value(fq2$))
   endif
 
