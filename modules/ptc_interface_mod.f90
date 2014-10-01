@@ -3315,8 +3315,8 @@ lielib_print(12) = n
 
 if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
   if (ele%value(l$) /= 0) then
-    ptc_fibre%mag%va  = -sign(sqrt(abs(ele%value(fq1$))), ele%value(fq1$))
-    ptc_fibre%magp%va = -sign(sqrt(abs(ele%value(fq1$))), ele%value(fq1$))
+    ptc_fibre%mag%va  = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
+    ptc_fibre%magp%va = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
 
     ptc_fibre%mag%vs  = ele%value(fq2$)
     ptc_fibre%magp%vs = ele%value(fq2$)
