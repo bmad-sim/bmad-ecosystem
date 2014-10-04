@@ -2104,7 +2104,7 @@ subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord, ele0
+type (ele_struct), pointer :: lord, ele0, slave, slave2
 type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
@@ -2154,14 +2154,17 @@ ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
 ele%bookkeeping_state%ptc     = stale$
 
+dval = abs(val - ele%old_value)
+
 ! For auto bookkeeping if no change then we don't need to do anything
 
 if (bmad_com%auto_bookkeeper) then
 
+
   val(check_sum$) = 0
   if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
 
-  dval = val - ele%old_value
+  dval(check_sum$) = abs(val(check_sum$) - ele%old_value(check_sum$))
   dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
   dval(custom_attribute1$:custom_attribute_max$) = 0
   dval(scratch$) = 0
@@ -2187,6 +2190,17 @@ if (.not. on_a_girder(ele) .and. has_orientation_attributes(ele)) then
   val(z_offset_tot$) = val(z_offset$)
   val(x_pitch_tot$)  = val(x_pitch$)
   val(y_pitch_tot$)  = val(y_pitch$)
+endif
+
+! Super_lord length change is put in last slave
+
+if (ele%lord_status == super_lord$ .and. dval(l$) /= 0) then
+  slave => pointer_to_slave(ele, ele%n_slave)
+  slave%value(l$) = ele%value(l$)
+  do i = 1, ele%n_slave - 1
+    slave2 => pointer_to_slave(ele, i)
+    slave%value(l$) = slave%value(l$) - slave2%value(l$)
+  enddo
 endif
 
 ! Taylor elements need no more bookkeeping
