@@ -19,7 +19,7 @@ character(44) :: final_str
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 
-integer :: i, j, k, ib, nargs
+integer :: i, j, k, ib, nargs, ns
 logical print_extra
 
 !
@@ -30,7 +30,7 @@ if (nargs == 1)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt1 = '(a, 6es16.8)' ! Don't need as much precison for test purposes
+  fmt1 = '(a, 6es15.7)' ! Don't need as much precison for test purposes
   fmt2 = '(a, a, es18.9)'
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
@@ -49,6 +49,7 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   DO i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
+    ns = len_trim(ele%name) + 28
 
     do j = 1, n_methods$
       if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == static$ .or. j == custom$) cycle
@@ -71,7 +72,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (k < 7) then
           if (print_extra) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
-            write (1, fmt1) final_str, ele2%mat6(k,:)
+            write (1, fmt1) final_str(1:ns), ele2%mat6(k,:)
           else
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // trim(convert_to_string(k)) // '"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
@@ -79,7 +80,7 @@ do ib = 0, ubound(lat%branch, 1)
         else if (k == 7) then
           if (print_extra) then
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
-            write (1, fmt1) final_str, ele2%vec0
+            write (1, fmt1) final_str(1:ns), ele2%vec0
           else
             final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
