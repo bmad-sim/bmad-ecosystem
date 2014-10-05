@@ -431,9 +431,9 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   if 'fq1' in bmad_ele.param:
     if bmad_ele.param['fq1'][0:1] == '-':
-      bmad_ele.param['fq1'] = 'sqrt(' + bmad_ele.param['fq1'][1:] + ') / 24'
+      bmad_ele.param['fq1'] = '(' + bmad_ele.param['fq1'][1:] + ')^2 / 24'
     else:
-      bmad_ele.param['fq1'] = '-sqrt(' + bmad_ele.param['fq1'] + ') / 24'
+      bmad_ele.param['fq1'] = '-(' + bmad_ele.param['fq1'] + ')^2 / 24'
 
   # If a SAD mult element has acceleration then it become an rfcavity or lcavity.
 
@@ -496,7 +496,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       if fringe == '0':
         bmad_ele.param['fringe_type'] = 'hard_edge_only'
       else:
-        bmad_ele.param['fringe_type'] = 'sad_bend'
+        bmad_ele.param['fringe_type'] = 'full'
 
     else:   # disfrin != '0' 
       # fringe == '0' --> Default: bmad_ele.param['fringe_type'] = 'none'
@@ -510,9 +510,9 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     if fringe == '0' and disfrin == '0':
       bmad_ele.param['fringe_type'] = 'hard_edge_only'
     elif fringe != '0' and disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_bend'
+      bmad_ele.param['fringe_type'] = 'sad_full'
     elif fringe != '0' and disfrin != '0':
-      bmad_ele.param['fringe_type'] = 'soft_edge_only'
+      bmad_ele.param['fringe_type'] = 'sad_soft_edge_only'
 
   # Cavi fringe
 
@@ -523,14 +523,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       bmad_ele.param['fringe_at'] = 'exit_end'
 
     if disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_bend'
+      bmad_ele.param['fringe_type'] = 'full'
 
   # All other fringes  
 
   elif sad_ele.type == 'deca' or sad_ele.type == 'dodeca' or \
        sad_ele.type == 'oct' or sad_ele.type == 'sext':
     if disfrin == '0':
-      bmad_ele.param['fringe_type'] = 'sad_bend'
+      bmad_ele.param['fringe_type'] = 'full'
 
   # bend edge
 
@@ -809,8 +809,10 @@ def parse_directive(directive, sad_info):
     for c in '"[$,@{\'>=': 
       if c in head or c in rest_of_line[1:]: return
     if head in sad_info.var_list:
-      print ('THIS TRANSLATOR CANNOT HANDLE VARIABLE REDEFINITION OF: ' + head)
-      sys.exit()
+      print ('WARNING!! TRANSLATOR CANNOT HANDLE VARIABLE REDEFINITION OF: ' + head + '\n' + 
+             '     WILL IGNORE FIRST DEFINITION!\n' +
+             '     THIS CAN CAUSE THE BMAD LATTICE TO NOT BE EQUIVALENT TO THE SAD LATTICE!!\n' + 
+             '     YOU HAVE BEEN WARNED!!')
     sad_info.var_list[head] = add_units(rest_of_line[1:])
 
 #------------------------------------------------------------------
