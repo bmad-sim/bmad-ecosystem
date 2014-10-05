@@ -8,11 +8,11 @@ This chapter discusses how this is done.
 
 %----------------------------------------------------------------
 \section{Initial Setup}
+\label{cust.init}
 
 Creating a custom version of \tao involves creating custom code that
 is put in a directory that is distinct from the \vn{tao} directory that
-contains the standard \tao code files. Ask your local Guru if you
-are not sure where this directory exists. 
+contains the standard \tao code files. 
 
 It is important to
 remember that the code in the \vn{tao} directory is not to be modified.
@@ -20,52 +20,36 @@ This ensures that, as time goes on, and as \tao is developed by the
 "taoist" developers, changes to the code in the \vn{tao} directories
 will have a minimal chance to "break" your custom code.
 
-Creating a custom version of \tao involves the following steps:
+To setup a custom \tao version do the following:
   \begin{enumerate}
   \item
-Create a "root" directory for the custom code you develop that
-will be linked with \tao. For the purposes of this discussion, 
-this directory will be called \vn{ROOT}. If you have a "local" copy of
-the \vn{tao} directory which you are linking to, the \vn{ROOT} directory
-should be in the same directory that the \vn{tao} directory is in.
-Otherwise, the \vn{ROOT} directory can be located anywhere.
+Establish a base directory in which things will be
+built. This directory can have any name.
+Here we will call this directory \vn{ROOT}.
   \item
-Put your custom code in the \vn{ROOT} directory. [Actually the
-code can be put in any subdirectory of \vn{ROOT} but, to simplify
-the discussion, it is assumed here that the code is in the
-\vn{ROOT} directory.]
+Make a subdirectory of \vn{ROOT} to put the code. 
+This directory can have any name.
+Here this directory will be called \vn{code}.
   \item
-Copy the program file \vn{tao/program/tao_program.f90} 
-to the \vn{ROOT} directory.
+Copy the files from the directory \vn{tao/customization} to
+\vn{Root/code}. The \vn{tao} directory is part of the \bmad
+package. If you do not know where to find it,
+ask your local Guru where it is. Besides a README file,
+there are two CMake script files in the \vn{customization}
+directory. The default is to make an executable called
+\vn{custom_tao} but this can be changed. 
   \item
-Copy the file \vn{tao/cmake.tao} file to the \vn{ROOT} directory.
-To avoid confusion, rename this file to \vn{cmake.XXX} where \vn{XXX}
-is any string. Edit this file and change:
-\begin{example}
-  set (EXENAME tao) 
-to
-  set (EXENAME ZZZ)
-\end{example}
-where \vn{ZZZ} is the name of the executable file to be created.
-Additionally, change
-\begin{example}
-	set (SRC_FILES program/tao_program.f90)
-to
-  FILE (GLOB SRC_FILES *.f90)
-\end{example}
+Copy the file \vn{tao/program/tao_program.f90} to \vn{ROOT/code}.
   \item
-Create a file in the \vn{ROOT} directory called \vn{CMakeLists.txt}
-which contain the following two lines:
-\begin{example}
-  cmake_minimum_required(VERSION \$ENV\{ACC_CMAKE_VERSION\})
-  set (EXE_SPECS cmake.XXX)
-\end{example}
-Here \vn{cmake.XXX} is is the name of the file copied from 
-\vn{tao/cmake.tao} above.
-  \end{enumerate}
-
-The custom version of \tao can now be compiled using 
-the \vn{mk} and \vn{mkd} commands.
+Copy and modify as needed \vn{hook} files from 
+\vn{tao/hook} to \vn{ROOT/code}. See \sref{s:cust.example} for an
+example.
+  \item
+Use the command \vn{mk} to create the executable 
+\vn{ROOT/production/bin/custom_tao}. Similarly,
+the command \vn{mkd} will create a debug executable
+\vn{ROOT/debug/bin/custom_tao}.
+	\end{enumerate}
 
 %----------------------------------------------------------------
 \section{It's All a Matter of Hooks}
@@ -281,72 +265,21 @@ final modifications to the lattice or data can be performed here.
 
 %----------------------------------------------------------------
 \section{An Example}
+\label{s:cust.example}
 \index{customizing!example}
 
-As an example let's include a new data type called
+As an example of a custimization, let's include a new data type called
 \vn{particle_emittance}. This will be the non-normalized x and y
 emittance as found from the Courant-Snyder invariant. This data type
 will behave just like any other data type (i.e.  \vn{orbit},
-\vn{phase} etc...). First, we should copy all the hook files to a
-separate directory, call it \cmd{ROOT/my_tao}. Also include the main
-program file from the \cmd{ROOT/tao/program} directory.  (replace
-\vn{ROOT} with whatever top directory you placed the \vn{tao}
-directory.)
-\begin{example}
-  mkdir ROOT/my_tao
-  cp ROOT/tao/hook/*.f90 ROOT/my_tao
-  cp ROOT/tao/program/tao_cl.f90 ROOT/my_tao/my_tao_cl.f90
-\end{example}
-Next we need a Makefile. The \cmd{ROOT/tao/M.tao} 
-Makefile is a great starting point.
-\begin{example}
-  cp ROOT/tao/M.tao ROOT/my_tao/Makefile
-\end{example}
-Now change the following lines in your Makefile
-\begin{example}
-  LIB_SRC_DIRS := ./code ./hook
-  OBJ_SRC_DIRS := ./program
-\end{example}
-to
-\begin{example}
-  LIB_SRC_DIRS :=
-  OBJ_SRC_DIRS := ./
-\end{example}
-This Makefile will tell gmake to use the tao library that has already
-been created (from \cmd{../tao/code} but the actual library is located
-at \cmd{../lib/libtao.a})
- and then to compile
-all of the hook files, including the main program file
-(\cmd{my_tao_cl.f90}) into object files (everything in \cmd{./}, the
-current directory).  Routines and declarations in object files always
-override similarly named code in the \tao libraries so this allows for
-your local hook files to override the dummy hook files in the \tao
-library. The only downside to this method is it clutters your
-\cmd{my_tao} directory with object files. You can always remove these
-object files with \cmd{gmake clean}.
-
-There are two more lines to alter. change
-\begin{example}
-  MAIN_FILE :=
-\end{example}
-to
-\begin{example}
-  MAIN_FILE := ./my_tao_cl.f90
-\end{example}
-and finally,
-\begin{example}
-  MAKEFILE := M.tao
-\end{example}
-to
-\begin{example}
-  #MAKEFILE := M.tao !using default name for Makefile
-\end{example}
-Notice that this line is just being commented out with a `\#'. You are
-now ready to make your customizations to the hook routines.
+\vn{phase} etc...). 
 
 This example will only require the modification of one file:
-\vn{tao_hook_evaluate_a_datum.f90}. The formula for single particle
-emittance is
+\vn{tao_hook_evaluate_a_datum.f90}. This file should be copied
+from the \vn{tao/hook} directory and put in your \vn{ROOT/code}
+directory (\sref{cust.init}).
+
+The formula for single particle emittance is
 \Begineq
   \epsilon = \gamma x^{2} + 2 \alpha x x' + \beta x'^{2}
   \label{e:emittance}
@@ -372,13 +305,14 @@ to be made, one for each dimension.
 
 Now you just need to declare the data types in the \cmd{tao.init} and
 \cmd{tao_plot.init} files. For the sake of this example, modify the
-initialization files used for this tutorial.
+example files found in the \vn{tao/example} directory
 \begin{example}
-  cp ROOT/tao/program/*.init ROOT/my_tao
-  cp ROOT/tao/program/*.lat ROOT/my_tao
+	mkdir ROOT/my_example
+  cp tao/example/*.init ROOT/my_example
+  cp tao/example/*.lat ROOT/my_example
 \end{example}
 
-In \cmd{ROOT/my_tao/tao.init} add the following lines to the data
+In \cmd{ROOT/my_example/tao.init} add the following lines to the data
 declarations section
 \begin{example}
   &tao_d2_data
@@ -402,7 +336,7 @@ declarations section
   /
 \end{example}
 
-In \cmd{ROOT/my_tao/tao_plot.init} add the following lines to the end
+In \cmd{ROOT/my_example/tao_plot.init} add the following lines to the end
 of the file
 \begin{example}
   &tao_template_plot
@@ -452,12 +386,11 @@ These namelists are described in detail in Chapter~\ref{c:init}.
 We are now ready to compile and then run the program. The \tao library
 should have already been created so all you need to do is
 \begin{example}
-  cd ROOT/my_tao
-  gmake
-  ../bin/my_tao
+	cd ROOT/code
+	mk
+  cd ROOT/my_example
+  ../production/bin/custom_tao
 \end{example}
-Notice that the name of the custom \tao program is \cmd{my_tao}. If you run 
-`\cmd{../bin/tao}' then you will run ``vanilla'' \tao.
 
 After your custom \tao initializes type
 \begin{example}
@@ -477,10 +410,3 @@ dispersion and coupling called \vn{orbit_amplitude_calc}.
   \caption{Custom data type: non-normalized emittance}
   \label{f:plot.emittance}
 \end{figure}
-
-\Section{Other Customizations}
-
-The above example just illustrates one of the customizations you can
-perform on \tao. The next chapter lays out all of the
-hook files and provides pointers for various customizations.
-
