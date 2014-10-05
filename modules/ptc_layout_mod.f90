@@ -1106,25 +1106,37 @@ end select
 
 ! Fringe
 
-if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  ix = nint(val(fringe_type$))
-  call set_logic (p%bend_fringe, pp%bend_fringe, (ix == full_bend$ .or. ix == basic_bend$))
+if (ele%key == sbend$) then
+  ix = nint(val(ptc_fringe_geometry$))
+  call set_logic (p%bend_fringe, pp%bend_fringe, (ix == x_invariant$))
 
+  ix = nint(val(fringe_type$))
   select case (ix)
   case (none$)
     call set_integer (p%permfringe, pp%permfringe, 0)
-  case (basic_bend$)
+  case (basic_bend$, linear_edge$)
     call set_integer (p%permfringe, pp%permfringe, 0)
-  case (full_straight$)
-    call set_integer (p%permfringe, pp%permfringe, 1)
-  case (full_bend$)
+  case (full$)
     call set_integer (p%permfringe, pp%permfringe, 1)
   case (hard_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 1)
+  case (sad_soft_edge_only$)
+    call set_integer (p%permfringe, pp%permfringe, 2)
+  case (sad_full$)
+    call set_integer (p%permfringe, pp%permfringe, 3)
+  end select
+
+elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+  call set_logic (p%bend_fringe, pp%bend_fringe, .false.)
+
+  ix = nint(val(fringe_type$))
+  select case (ix)
+  case (none$)
+    call set_integer (p%permfringe, pp%permfringe, 0)
+  case (full$, hard_edge_only$)
+    call set_integer (p%permfringe, pp%permfringe, 1)
   case (soft_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 2)
-  case (sad_bend$)
-    call set_integer (p%permfringe, pp%permfringe, 3)
   end select
 
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)
@@ -1342,6 +1354,8 @@ endif
 
 
 ! kicks
+
+! Fringes
 
 !------------------------------------------------------------------------
 contains

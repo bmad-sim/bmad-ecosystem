@@ -144,19 +144,44 @@ do i_b = 0, ubound(lat%branch, 1)
 
     endif
 
-    ! check sad_mult fringe type
+    ! check fringe type
 
-    if (ele%key == sad_mult$) then
+    if (ele%key == sbend$ .or. ele%key == rbend$) then
       select case (nint(ele%value(fringe_type$)))
-      case (none$, soft_edge_only$, hard_edge_only$, full_straight$, sad_bend$)
+      case (none$, soft_edge_only$, sad_soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$)
       case default
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS A SAD_MULT.', &
+                      'WHICH IS AN SBEND OR RBEND', &
+                      'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
+        err_flag = .true.
+      end select
+
+      select case (nint(ele%value(higher_order_fringe_type$)))
+      case (none$, soft_edge_only$, hard_edge_only$, full$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'WHICH IS AN SBEND OR RBEND', &
+                      'HAS INVALID HIGHER_ORDER_FRINGE_TYPE ATTRIBUTE: ' // &
+                          higher_order_fringe_type_name(nint(ele%value(higher_order_fringe_type$))))
+        err_flag = .true.
+      end select
+  
+    endif
+
+    if (ele%key /= sbend$ .and. ele%key /= rbend$ .and. attribute_index(ele, 'FRINGE_TYPE') > 0) then
+      select case (nint(ele%value(fringe_type$)))
+      case (none$, soft_edge_only$, hard_edge_only$, full$)
+      case default
+        call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'WHICH IS A: ' // key_name(ele%key), &
                       'HAS INVALID FRINGE_TYPE ATTRIBUTE: ' // fringe_type_name(nint(ele%value(fringe_type$))))
         err_flag = .true.
       end select
     endif
+
 
 
     ! diffraction_plate must have an associated wall3d and all sections must be clear or mask.
@@ -710,13 +735,12 @@ do i_b = 0, ubound(lat%branch, 1)
       else
         ds = (branch%param%total_length - s1) + s2
         ds_small = ds_small * max(abs(s1), abs(s2), branch%param%total_length)
-      endif
-      ds = ds 
+      endif 
       l_lord = ele%value(l$) + ele%value(lord_pad2$) + ele%value(lord_pad1$)
       if (abs(l_lord - ds) > bmad_com%significant_length + ds_small) then
         call out_io (s_fatal$, r_name, &
                   'SUPER_LORD: ' // trim(ele%name) // '  (\i0\)', &
-                  'HAS LENGTH + OFFSETS OF: \f15.10\ ', &
+                  'HAS LENGTH + PADDING OF: \f15.10\ ', &
                   'WHICH IS NOT EQUAL TO THE SUM OF THE SLAVE LENGTHS \f15.10\.', &
                    i_array = [i_t], r_array =  [l_lord, ds])
         err_flag = .true.

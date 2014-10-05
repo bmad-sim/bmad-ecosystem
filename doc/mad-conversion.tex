@@ -1,0 +1,136 @@
+\chapter{MAD/XSIF/SAD Lattice Conversion}
+\label{c:lat.convert}
+\index{conversion to other lattice formats}
+
+%-----------------------------------------------------------------------------
+\section{MAD Conversion}
+\label{s:mad.convert}
+\index{MAD!conversion}
+
+Conversion of lattice files from \mad to \bmad format can be done
+using the \vn{Universal Accelerator Parser} (\sref{s:aml}). Due to
+differences in language definitions, the conversions must be done with
+some care. The following differences should be noted:
+  \begin{itemize}
+  \item
+\bmad, unlike \mad, does not have any ``action'' commands. An action
+command is a command that makes a calculation. Examples include \mad's
+\vn{SURVEY} and \vn{TWISS} commands.
+  \item
+In \bmad all variables must be defined. In \mad undefined variables
+will default to 0.
+  \item
+In \bmad all variables must be defined before being used
+(\sref{arithmetic}) while \mad does not have this constraint.
+  \item
+\bmad, unlike \mad, does not allow variable values to be redefined.
+  \item
+Elements like a \vn{sad_mult} cannot be translated.
+  \end{itemize}
+
+\index{wiggler!conversion to MAD}
+\index{sol_quad!conversion to MAD}
+Besides using the \vn{Universal Accelerator Parser} for conversion
+from \bmad to \mad, there is a conversion routine called
+\Hyperref{r:bmad.to.mad.or.xsif}{bmad_to_mad_or_xsif}. The advantage of this routine is that
+since \mad does not have a \vn{wiggler} or a \vn{sol_quad} element,
+this conversion routine can make an ``equivalent'' substitution. For a
+\vn{sol_quad}, the equivalent substitution will be a
+drift-matrix-drift series of elements. For a \vn{wiggler}, a series of
+bend and drift elements will be used (the program can also use a
+drift-matrix-drift model here but that is not as accurate). The bends
+and drifts for the \vn{wiggler} model are constructed so that the
+global geometry of the lattice does not change. Additionally the bends
+and drifts are constructed to most nearly match the wiggler's
+\begin{example}
+  Transfer matrix
+  $I_2$ and $I_3$ synchrotron radiation integrals (\sref{s:synch.ints})
+\end{example}
+Note that the resulting model will not have the vertical cubic
+nonlinearity that the actual wiggler has.
+
+The \vn{bmad_to_mad_or_xsif} routine is embeded in the program
+\vn{util_programs/bmad_to_mad_or_xsif} which can be used for \bmad to
+\mad  or \vn{XSIF} conversions.
+
+%---------------------------------------------------------------------------
+\section{XSIF Conversion}
+\label{s:xsif.convert}
+\index{XSIF!hyperbf}
+
+XSIF\cite{b:xsif}, developed at SLAC, stands for ``Extended Standard
+Input Format.''  XSIF is essentially a subset of the
+\mad\cite{b:maduser} input format.
+
+\bmad has software to directly parse XSIF files so XSIF files may be
+used in place of \bmad lattice files.  With some restrictions, an XSIF
+lattice file may be called from within a \bmad lattice file. See
+Section~\sref{s:call} for details.
+
+\index{parameter statement!geometry}
+Since XSIF does not have a \vn{parameter[geometry]} statement
+(\sref{s:param}), the type of the lattice (whether circular or linear)
+is determined by the presence or absence of any \vn{lcavity} elements
+in the XSIF file. This is independent of whether \vn{lcavity} elements
+are actually used in the lattice.
+
+Note: One point that is not covered in the XSIF documentation is that
+for a \vn{MATRIX} element, unlike \mad, the \vn{R$ii$} terms (the
+diagonal terms of the linear matrix) are not unity by default. Thus
+\index{MAD}
+\begin{example}
+  m: matrix
+\end{example}
+in an XSIF file will give a matrix with all elements being zero.
+
+To convert between XSIF and \bmad the \vn{Universal Accelerator
+Parser} can be used (\sref{s:aml}). Additionally, the
+\vn{bmad_to_mad_or_xsif} routine in \bmad can convert from \bmad to
+XSIF (cf.~\sref{s:mad.convert}).
+
+%---------------------------------------------------------------------------
+\section{SAD Conversion}
+\label{s:sad.convert}
+\index{SAD!hyperbf}
+
+Conversion from \vn{SAD}\cite{b:sad} to \bmad is accomplished using the Python script
+\begin{example}
+  util_programs/sad_to_bmad/sad_to_bmad.py
+\end{example}
+Currently, a converter from \bmad to SAD has not been implemented.
+
+Currently, the following restrictions on SAD lattices apply:
+  \begin{itemize}
+  \item
+SAD must elements cannot have an associated RF field
+  \item
+Misalignments in a \vn{sol} element with \vn{geo} = 1 cannot be handled.
+  \end{itemize}
+
+%----------------------------------------------------------------------------
+\section{Translation Using the Universal Accelerator Parser}
+\label{s:aml}
+\index{Accelerator Markup Language (AML)}
+\index{Universal Accelerator Parser (UAP)}
+
+\index{MAD}
+The \vn{Accelerator Markup Language} (\vn{AML}) / \vn{Universal
+Accelerator Parser} (\vn{UAP}) project\cite{b:aml} is a collaborative
+effort with the aim of 1) creating a lattice format (the \vn{AML}
+part) that can be used to fully describe accelerators and storage
+rings, and 2) producing software (the \vn{UAP} part) that can parse
+\vn{AML} lattice files. A side benefit of this project is that the
+\vn{UAP} code has been extended to be able to translate between
+\vn{AML}, \bmad, \mad-8, \mad-X, and \vn{XSIF}. 
+
+The program
+\vn{translate_driver} which comes with the \vn{UAP} code can be used
+for conversions. To get help with how to run this program use the command
+\begin{example}
+  path-to-uap-dir/bin/translate_driver -help
+\end{example}
+Example:
+\begin{example}
+  path-to-uap-dir/bin/translate_driver -constants_first -bmad xxx.madx
+\end{example}
+This will convert a \mad-X file \vn{xxx.madx} to \bmad format.

@@ -3249,25 +3249,41 @@ end select
 
 ! Fringe
 
-if (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
-  ix = nint(ele%value(fringe_type$))
-  ptc_key%list%bend_fringe = (ix == full_bend$ .or. ix == basic_bend$)
+if (ele%key == sbend$) then
 
+  ix = nint(ele%value(ptc_fringe_geometry$))
+  ptc_key%list%bend_fringe = (ix == x_invariant$)
+
+  ix = nint(ele%value(fringe_type$))
   select case (ix)
   case (none$)
     ptc_key%list%permfringe = 0
-  case (basic_bend$)
+  case (basic_bend$, linear_edge$)
     ptc_key%list%permfringe = 0
-  case (full_straight$)
+  case (full$)
+    ptc_key%list%permfringe = 1
+  case (hard_edge_only$)
+    ptc_key%list%permfringe = 1
+  case (sad_soft_edge_only$)
+    ptc_key%list%permfringe = 2
+  case (sad_full$)
     ptc_key%list%permfringe = 3
-  case (full_bend$)
+  end select
+
+elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a valid attribute
+
+  ptc_key%list%bend_fringe = .false.
+
+  ix = nint(ele%value(fringe_type$))
+  select case (ix)
+  case (none$)
+    ptc_key%list%permfringe = 0
+  case (full$)
     ptc_key%list%permfringe = 1
   case (hard_edge_only$)
     ptc_key%list%permfringe = 1
   case (soft_edge_only$)
     ptc_key%list%permfringe = 2
-  case (sad_bend$)
-    ptc_key%list%permfringe = 3
   end select
 
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0

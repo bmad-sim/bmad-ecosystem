@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 140
+integer, parameter :: bmad_inc_version$ = 141
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -812,7 +812,8 @@ integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
 integer, parameter :: abs_time_start$ = 8
 
-integer, parameter :: fint$ = 23, fintx$ = 24, hgap$ = 25, hgapx$ = 26, h1$ = 27, h2$ = 28
+integer, parameter :: e1$ = 19, e2$ = 20
+integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
 integer, parameter :: tilt$ = 2, command$ = 2, roll$ = 2  ! Important: tilt$ = roll$
@@ -821,7 +822,7 @@ integer, parameter :: old_command$ = 3, kick$ = 3, x_gain_err$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, sig_x$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5, b_max$ = 5, v_displace$ = 5
-integer, parameter :: flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
+integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, sig_z$ = 6, noise$ = 6, new_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
@@ -829,16 +830,16 @@ integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
 integer, parameter :: rho$ = 8, delta_e$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: voltage$ = 9
+integer, parameter :: l_chord$ = 9, voltage$ = 9
 integer, parameter :: fb1$ = 14
 integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, rel_tracking_charge$ = 20
-integer, parameter :: l_chord$ = 20, ks$ = 20, n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e1$ = 21, e_loss$ = 21, dks_ds$ = 21, gap$ = 21
-integer, parameter :: e2$ = 22, x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
+integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21
+integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
 integer, parameter :: traveling_wave$ = 23, beta_a$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24
@@ -848,7 +849,8 @@ integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, cmat_11$ = 27
 integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
-integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28, cmat_12$ = 28
+integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
+integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29, cmat_21$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30, cmat_22$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
@@ -868,7 +870,7 @@ integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_
 integer, parameter :: coupler_angle$ = 45, B_field_err$ = 45, pendellosung_period_pi$ = 45
 integer, parameter :: B1_gradient$ = 46, E1_gradient$ = 46, coupler_strength$ = 46, dbragg_angle_de$ = 46
 integer, parameter :: B2_gradient$ = 47, E2_gradient$ = 47
-integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48
+integer, parameter :: B3_gradient$ = 48, E3_gradient$ = 48, ptc_fringe_geometry$ = 48
 integer, parameter :: Bs_field$ = 49, e_tot_offset$ = 49, ptc_field_geometry$ = 49
 integer, parameter :: delta_ref_time$ = 50 ! Assumed unique Do not overload.
 integer, parameter :: p0c_start$ = 51
@@ -1174,12 +1176,21 @@ character(16), parameter :: aperture_type_name(0:7) = &
                                      'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 ! fringe_type
+! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
 
-integer, parameter :: full_straight$ = 1, full_bend$ = 2, none$ = 3, basic_bend$ = 4
-integer, parameter :: soft_edge_only$ = 5, hard_edge_only$ = 6, linear_bend$ = 7, sad_bend$ = 8
-character(16), parameter :: fringe_type_name(0:8) = ['Garbage!       ', &
-               'Full_Straight  ', 'Full_Bend      ', 'None           ', 'Basic_Bend     ', &
-               'Soft_Edge_Only ', 'Hard_Edge_Only ', 'Linear_Bend    ', 'SAD_Bend       ']
+integer, parameter :: none$ = 1, soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
+integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
+integer, parameter :: n_non_bend_fringe_type$ = 4
+
+character(20), parameter :: fringe_type_name(0:8) = ['Garbage!             ', &
+            'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
+            'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ']
+
+character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
+
+integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
+character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
+                                   'x_invariant       ', 'multipole_symmetry']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:

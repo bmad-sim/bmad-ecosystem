@@ -84,14 +84,14 @@ case (e_gun$)
   ele%mat6_calc_method = tracking$
   ele%value(field_factor$) = 1
   ele%value(fringe_at$) = exit_end$
-  ele%value(fringe_type$) = full_straight$
+  ele%value(fringe_type$) = full$
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
   ele%offset_moves_aperture = .true.
 
 case (em_field$)
-  ele%value(fringe_type$) = full_straight$
+  ele%value(fringe_type$) = full$
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$
@@ -109,7 +109,7 @@ case (lcavity$)
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
-  ele%value(fringe_type$) = full_straight$
+  ele%value(fringe_type$) = full$
 
 case (line_ele$)
   ele%value(particle$) = real_garbage$
@@ -146,7 +146,9 @@ case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$
   ele%value(fringe_type$) = basic_bend$
+  ele%value(higher_order_fringe_type$) = none$
   ele%value(ptc_field_geometry$) = sector$
+  ele%value(ptc_fringe_geometry$) = x_invariant$
 
 case (rcollimator$)
   ele%offset_moves_aperture = .true.
@@ -156,7 +158,7 @@ case (rfcavity$)
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
-  ele%value(fringe_type$) = full_straight$
+  ele%value(fringe_type$) = full$
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1

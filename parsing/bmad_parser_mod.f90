@@ -1232,9 +1232,20 @@ case ('COUPLER_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
   ele%value(coupler_at$) = ix
 
+case ('PTC_FRINGE_GEOMETRY')
+  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag)
+
 case ('FRINGE_TYPE')
-  call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
+  if (ele%key == rbend$ .or. ele%key == sbend$) then
+    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
+  else
+    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag)
+  endif
   ele%value(fringe_type$) = ix
+
+case ('HIGHER_ORDER_FRINGE_TYPE')
+  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag)
+  ele%value(higher_order_fringe_type$) = ix
 
 case ('FRINGE_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag)

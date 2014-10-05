@@ -142,7 +142,7 @@ k0 = knl(0)/length
 
 call hard_multipole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
 call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
-call approx_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call no_edge_angle_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 call soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 
 ! Body
@@ -205,7 +205,7 @@ enddo
 ! Exit edge kicks
 
 call soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
-call approx_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+call no_edge_angle_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
 call hard_multipole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
 

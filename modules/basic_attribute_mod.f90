@@ -455,8 +455,10 @@ do i = 1, n_key$
   if (i == drift$)        cycle
 
   call init_attribute_name1 (i, l_hard_edge$,        'L_HARD_EDGE', dependent$)
-  call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
-  call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
+  if (i /= pipe$) then
+    call init_attribute_name1 (i, fringe_type$,        'FRINGE_TYPE')
+    call init_attribute_name1 (i, fringe_at$,          'FRINGE_AT')
+  endif
   call init_attribute_name1 (i, sr_wake_file$,       'SR_WAKE_FILE')
 
   if (i == hkicker$)      cycle
@@ -973,6 +975,8 @@ call init_attribute_name1 (sbend$, fint$,                           'FINT')
 call init_attribute_name1 (sbend$, fintx$,                          'FINTX')
 call init_attribute_name1 (sbend$, rho$,                            'RHO', quasi_free$)
 call init_attribute_name1 (sbend$, l_chord$,                        'L_CHORD', quasi_free$)
+call init_attribute_name1 (sbend$, ptc_fringe_geometry$,            'PTC_FRINGE_GEOMETRY')
+call init_attribute_name1 (sbend$, higher_order_fringe_type$,       'HIGHER_ORDER_FRINGE_TYPE')
 call init_attribute_name1 (sbend$, b_field$,                        'B_FIELD', quasi_free$)
 call init_attribute_name1 (sbend$, b_field_err$,                    'B_FIELD_ERR', quasi_free$)
 call init_attribute_name1 (sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
@@ -1332,9 +1336,9 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
   attrib_type = is_integer$
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
-      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', &
+      'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
-      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', &
+      'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
   attrib_type = is_switch$
 
@@ -1529,18 +1533,23 @@ case ('FIELD_CALC')
   call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
   if (present(is_default)) is_default = (ix_attrib == bmad_standard$)
 
+
 case ('FRINGE_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
   if (present(is_default)) then
     select case (ele%key)
-    case (sbend$, rbend$)
-      is_default = (ix_attrib == basic_bend$)
     case (sad_mult$)
       is_default = (ix_attrib == hard_edge_only$)      
+    case (rbend$, sbend$)
+      is_default = (ix_attrib == basic_bend$)
     case default
       is_default = (ix_attrib == none$)
     end select
   endif
+
+case ('PTC_FRINGE_GEOMETRY')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_fringe_geometry_name, lbound(ptc_fringe_geometry_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == x_invariant$)
 
 case ('GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
@@ -1563,6 +1572,12 @@ case ('FRINGE_AT')
   call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
     is_default = (ix_attrib == both_ends$)
+  endif
+
+case ('HIGHER_ORDER_FRINGE_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib == none$)
   endif
 
 case ('MAT6_CALC_METHOD')
@@ -1668,6 +1683,36 @@ integer, save :: max_length = 0
 if (attribute_array_init_needed) call init_attribute_name_array
 if (max_length == 0) max_length = maxval(len_trim(attrib_array(1:n_key$, 1:num_ele_attrib_extended$)%name))
 max_len = max_length
+
+end function
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Fuction ele_has (ele, attrib) result(has_it)
+!
+! Routine to determine if a given type of lattice element has a particular attribute.
+!
+! Input:
+!   ele     -- ele_struct: Lattice element of a certain type
+!   attrib  -- character(*): Name of the attribute. Must be upper case.
+!
+! Output:
+!   has_it  -- logical: True if element has an attribute of that name.
+!-
+
+function ele_has (ele, attrib) result (has_it)
+
+implicit none
+
+type (ele_struct) ele
+character(*) attrib
+logical has_it
+
+!
+
+has_it = (attribute_index(ele, attrib) > 0)
 
 end function
 

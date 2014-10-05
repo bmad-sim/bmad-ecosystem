@@ -641,7 +641,9 @@ if (logic_option(.false., create_jumbo_slave)) then
 endif
 
 !-------------------------------------------------------------------------
-! Adjust names
+! Bookkeeping and adjust names
+
+call control_bookkeeper(lat, lat%ele(ix_super))
 
 call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 call adjust_drift_names (lat, branch%ele(ix1_split))

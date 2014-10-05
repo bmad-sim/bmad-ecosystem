@@ -797,7 +797,7 @@ type (ele_struct), pointer :: lord, slave0, lord1, major_lord
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords
+integer i, j, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords, at
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -907,6 +907,8 @@ value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(ref_time_start$) = slave%value(ref_time_start$)
+value(fringe_at$)      = no_end$
+
 slave%value(x1_limit$:y2_limit$) = 0
 
 slave%aperture_at = no_end$
@@ -967,6 +969,25 @@ do j = 1, slave%n_lord
     slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
   endif
 
+  at = nint(value(fringe_at$))
+  if (is_first .and. ele_has(lord, 'FRINGE_TYPE') .and. (at == no_end$ .or. at == exit_end$)) then
+    if (at == no_end$) then
+      value(fringe_at$) = entrance_end$
+    else
+      value(fringe_at$) = both_ends$
+    endif
+    value(fringe_type$) = lord%value(fringe_type$)
+  endif
+
+  if (is_last .and. ele_has(lord, 'FRINGE_TYPE') .and. (at == no_end$ .or. at == entrance_end$)) then 
+    if (at == no_end$) then
+      value(fringe_at$) = exit_end$
+    else
+      value(fringe_at$) = both_ends$
+    endif
+    value(fringe_type$) = lord%value(fringe_type$)
+  endif
+
   select case (lord%key)
   case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
   case default  ! If major
@@ -991,6 +1012,14 @@ do j = 1, slave%n_lord
              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
         if (global_com%exit_on_error) call err_exit
       endif
+      if ((is_first .or. is_last) .and. ele_has(lord, 'FRINGE_TYPE')) then
+       if (value(fringe_type$) /= lord%value(fringe_type$)) then
+         lord1 => pointer_to_lord(slave, 1)
+         call out_io(s_abort$, r_name, 'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT', &
+              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+         if (global_com%exit_on_error) call err_exit
+       endif
+     endif
     endif
 
     major_lord => lord
@@ -2111,7 +2140,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
-real(rp) w_inv(3,3)
+real(rp) w_inv(3,3), len_old
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 
@@ -2196,10 +2225,17 @@ endif
 
 if (ele%lord_status == super_lord$ .and. dval(l$) /= 0) then
   slave => pointer_to_slave(ele, ele%n_slave)
-  slave%value(l$) = ele%value(l$)
+  len_old = slave%value(l$)
+  slave%value(l$) = ele%value(l$) + ele%value(lord_pad1$) + ele%value(lord_pad2$)
   do i = 1, ele%n_slave - 1
     slave2 => pointer_to_slave(ele, i)
     slave%value(l$) = slave%value(l$) - slave2%value(l$)
+  enddo
+  ! Now adjust the lengths of all of the lords of the slave whose length was changed.
+  do i = 1, slave%n_lord
+    lord => pointer_to_lord(slave, i)
+    if (lord%ix_ele == ele%ix_ele) cycle   ! Do not adjust ele length
+    lord%value(l$) = lord%value(l$) + (slave%value(l$) - len_old)
   enddo
 endif
 
