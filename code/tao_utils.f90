@@ -2710,7 +2710,7 @@ call out_io (s_blank$, r_name, [ &
         '  -geometry <width>x<height>       ', &
         '  -init <tao_init_file>            ', &
         '  -lat <bmad_lattice_file>         ', &
-        '  -lat XSIF::<xsif_lattice_file>   ', &
+        '  -lat xsif::<xsif_lattice_file>   ', &
         '  -log_startup                     ', &
         '  -noinit                          ', &
         '  -noplot                          ', &
