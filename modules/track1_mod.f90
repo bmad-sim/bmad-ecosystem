@@ -594,7 +594,7 @@ end subroutine track_a_bend
 !
 ! Subroutine to track through the edge field of an sbend.
 ! Apply only the first order kick, which is edge focusing.
-! This routine is the same as approx_hard_bend_edge_kick, except that only
+! This routine is the same as mad_hard_bend_edge_kick, except that only
 ! first order terms are applied.
 !
 ! Module needed:
@@ -828,7 +828,7 @@ end subroutine mad_bend_edge_kick
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
-! Subroutine approx_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+! Subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 !
 ! Routine to track through the "linear" bend fringe field for a bend or sad_mult element.
 ! This includes the effect of finite e1/e2 pole face rotation.
@@ -848,7 +848,7 @@ end subroutine mad_bend_edge_kick
 !   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
 !-
 
-subroutine approx_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
+subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 
 implicit none
 
@@ -864,10 +864,11 @@ integer i, i_max, element_end
 
 logical, optional :: make_matrix
 
+! Note: Curently this routine is only used with sad_mult elements
 ! Fringe here?
 
 fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= soft_edge_only$ .and. fringe_type /= sad_bend$ .and. fringe_type /= basic_bend$) return
+if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
 
 fringe_at = nint(ele%value(fringe_at$))
 physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
@@ -895,7 +896,6 @@ endif
 if (g == 0) return
 c_dir = param%rel_tracking_charge * ele%orientation * orbit%direction
 g = g * c_dir
-if (particle_at == second_track_edge$) g = -g
 
 if (particle_at == second_track_edge$) then
   sin_e = -sin_e
@@ -936,7 +936,7 @@ endif
 
 if (t0 /= 0) call tilt_coords (-t0, orbit%vec)
 
-end subroutine approx_hard_bend_edge_kick
+end subroutine no_edge_angle_hard_bend_edge_kick
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1100,8 +1100,13 @@ logical, optional :: make_matrix
 
 !
 
-fringe_type = nint(ele%value(fringe_type$))
-if (fringe_type /= soft_edge_only$ .and. fringe_type /= full_straight$) return
+if (ele%key == sbend$) then
+ fringe_type = nint(ele%value(higher_order_fringe_type$))
+else
+ fringe_type = nint(ele%value(fringe_type$))
+endif
+
+if (fringe_type /= soft_edge_only$ .and. fringe_type /= full$) return
 
 
 fringe_at = nint(ele%value(fringe_at$))
@@ -1185,7 +1190,7 @@ end subroutine soft_quadrupole_edge_kick
 ! The dipole component is ignored and only quadrupole and higher multipoles are included.
 !
 ! This routine handles elements of type:
-!   sad_mult, quadrupole, sextupole
+!   sad_mult, sbend, quadrupole, sextupole
 !
 ! For sad_mult elements, a_pole and b_pole ae used for the multipole values.
 ! For the other elements, k1 or k2 is used and it is assumed that we are in the element
@@ -1230,9 +1235,14 @@ logical, optional :: make_matrix
 
 ! Fringe here?
 
-fringe_type = nint(ele%value(fringe_type$))
+if (ele%key == sbend$) then
+  fringe_type = nint(ele%value(higher_order_fringe_type$))
+else
+  fringe_type = nint(ele%value(fringe_type$))
+endif
+
 select case (fringe_type)
-case (hard_edge_only$, full_straight$, full_bend$)
+case (hard_edge_only$, full$)
 case default
   return
 end select
@@ -1252,7 +1262,7 @@ case (sad_mult$)
     if (a_pole(n) /= 0 .or. b_pole(n) /= 0) exit
   enddo
   n_max = n
-case (quadrupole$)
+case (quadrupole$, sbend$)
   n_max = 1
 case (sextupole$)
   n_max = 2
@@ -1296,7 +1306,7 @@ do n = 1, n_max
     if (a_pole(n) == 0 .and. b_pole(n) == 0) cycle
     ap = a_pole(n) / ele%value(l$)
     bp = b_pole(n) / ele%value(l$)
-  case (quadrupole$)
+  case (quadrupole$, sbend$)
     ap = 0
     bp = ele%value(k1$)
   case (sextupole$)
@@ -1423,19 +1433,17 @@ character(*), parameter :: r_name = 'bend_edge_kick'
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
 if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) return
 
-! Fringe due to finite e1 or e2
+! Bend Fringe
 
 fringe_type = nint(ele%value(fringe_type$))
 select case (fringe_type)
-case (full_straight$, full_bend$)
+case (full$)
   call exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
-case (basic_bend$, soft_edge_only$, hard_edge_only$, sad_bend$)
-  !!!! call approx_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-  !!!! call soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+case (basic_bend$, sad_soft_edge_only$, hard_edge_only$, sad_full$)
   call mad_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
-case (linear_bend$)
+case (linear_edge$)
   call linear_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 case (none$)
@@ -1444,6 +1452,11 @@ case default
   call out_io (s_fatal$, r_name, 'UNKNOWN FRINGE_TYPE: \i0\ ', i_array = [fringe_type])
   if (global_com%exit_on_error) call err_exit
 end select
+
+! Higher order fringe
+
+call soft_quadrupole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
 end subroutine bend_edge_kick
 
@@ -1478,8 +1491,6 @@ end subroutine bend_edge_kick
 
 subroutine soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix, k0l, t0)
 
-use ptc_interface_mod
-
 implicit none
 
 type(coord_struct) :: orb
@@ -1499,16 +1510,17 @@ character(*), parameter :: r_name = 'soft_bend_edge_kick'
 
 !
 
-fringe_type = nint(ele%value(fringe_type$))
-select case (fringe_type)
-case (sad_bend$, soft_edge_only$, full_straight$, basic_bend$)
-case default
-  return
-end select
-
-element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
+if (ele%key == sbend$) then
+  fringe_type = nint(ele%value(higher_order_fringe_type$))
+  if (fringe_type /= sad_soft_edge_only$ .or. fringe_type /= sad_full$ .or. fringe_type /= full$) return
+else
+  fringe_type = nint(ele%value(fringe_type$))
+  if (fringe_type /= soft_edge_only$ .and. fringe_type /=  full$) return
+endif
 
 ! 
+
+element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 select case (ele%key)
 case (sbend$)
@@ -1565,7 +1577,8 @@ rel_p = 1 + orb%vec(6)
 
 c1 = f1**2 * g / (24 * rel_p)  ! * px
 c2 = f1 * g**2 / (6 * rel_p)  ! * y^2
-if (fringe_type == sad_bend$) then
+if (ele%key == sad_mult$ .or. (ele%key == sbend$ .and. &
+                (fringe_type == sad_soft_edge_only$ .or. fringe_type == sad_full$))) then
   c3 = 2 * g**2 / (3 * f1 * rel_p)   ! * y^4
 else
   c3 = 0

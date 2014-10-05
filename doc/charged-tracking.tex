@@ -589,7 +589,7 @@ In many cases, this is a good enough approximation.
 \subsection{Multipole Hard Edge Fringe Map}
 
 The multipole hard edge fringe field is modeled using the method shown in
-Forest\cite{b:forest}. For the $m$\th order multipole the Lee transform 
+Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
 is (Forest Eq.~(13.29):
 \begin{align}
   f_\pm &= \mp \Re \left[ \frac{(b_m + i \, a_m) \, 
@@ -619,7 +619,6 @@ With this, the implicit multipole map is (Forest Eq.~(13.31))
 
 Only the quadrupole soft edge fringe is modeled in \bmad. The model is adapted 
 from SAD\cite{b:sad}. The fringe map is:
-The transport map is
 \begin{align}
   x_2 &= x_1 \, e^{g_1} + g_2 \, p_{x1} \CRNO
   p_{x2} &= p_{x1} e^{-g_1} \CRNO
@@ -636,7 +635,7 @@ where
   g_1 &= K_1 \, \text{fq1} \CRNO
   g_2 &= K_1 \, \text{fq2}
 \end{align}
-where $K_1$ is the quadrupole strength, and \vn{fq1} and \vn{fq2} are the fringe
+$K_1$ is the quadrupole strength, and \vn{fq1} and \vn{fq2} are the fringe
 quadrupole parameters. These parameters are related to the field integral $I_n$
 via
 \begin{align}
@@ -664,6 +663,11 @@ The quadrupole parameters are related to the corresponding SAD parameters
   f1 = -sign(fq1) * sqrt(24 * |fq1|)
   f2 = fq2
 \end{example}
+
+%---------------------------------------------------------------------------------
+\subsection{Bend Fringe Map}
+
+In development...
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

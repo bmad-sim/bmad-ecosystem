@@ -2425,7 +2425,7 @@ end function tracking_uses_end_drifts
 ! Function to determine if the element has fringe fields that must be accounted
 ! for when tracking through the element. For example, a solenoid has edge fields.
 ! Note: If an element has end drifts (see tracking_uses_end_drifts function), 
-! Then the fringe_fields will not be internal to the element and not at the ends.
+! Then the fringe_fields will be internal to the element and not at the ends.
 !
 ! Module needed:
 !   use bmad
@@ -2450,12 +2450,13 @@ integer fringe_type
 has_fringe = .false.
 
 select case (ele%key)
-case (lcavity$, rfcavity$, solenoid$, sbend$, sol_quad$, bend_sol_quad$, e_gun$)
+case (lcavity$, rfcavity$, e_gun$, sextupole$, quadrupole$, octupole$)
   if (ele%field_calc == bmad_standard$) has_fringe = .true.
-case (quadrupole$)
-  fringe_type = nint(ele%value(fringe_type$))
-  if (ele%field_calc == bmad_standard$ .and. &
-     (fringe_type == full_straight$ .or. fringe_type == full_bend$)) has_fringe = .true.
+  if (nint(ele%value(fringe_type$)) == none$) has_fringe = .false.
+case (sol_quad$, bend_sol_quad$, solenoid$)
+  if (ele%field_calc == bmad_standard$) has_fringe = .true.
+case (sbend$)
+  has_fringe  = .true.
 end select
 
 end function element_has_fringe_fields

@@ -2124,59 +2124,81 @@ Example:
 \label{s:fringe}
 \index{fringe fields}
 
-\index{fringe_type}\index{fringe_at}
-The tracking through the fringe fields of such elements as bends,
-quadrupoles, etc is determined by the following element attributes
-\begin{example}
-  fringe_type    ! Used for everything with fringes
-  fringe_at      ! Used for all elements with fringes.
-\end{example}
-
-The \vn{fringe_at} may be set to one of
+\index{fringe_at}
+Lattice elements can have fringe fields at the element edges. Whether
+fringe fields are ignored or not is determined by the setting
+of the \vn{fringe_at} element parameter. The possible settings are
 \begin{example}
   no_end         
   both_ends             ! Default
   entrance_end
   exit_end
 \end{example}
-
-The \vn{fringe_at} switch is used for vetoing fringe effects at
-either of the faces of the element. This is useful in vetoing the
+This is particularly useful in vetoing the
 fringe effect in the interior of split elements.
 
-The \vn{fringe_type} switch is used to select how a fringe field is simulated.
-For \vn{rbend} and \vn{sbend} elements, \vn{fringe_type} may be set to one of the following:
-\begin{example}
-  none              
-  edge_focus_only
-  basic_bend        ! Default 
-  full_bend
-  full_straight
-  soft_edge_only
-  hard_edge_only
-  sad_full
-\end{example}
-For non-bend elements, \vn{fringe_type} may be set to one of:
+\index{fringe_type}
+For elements that have a multipole type fringe field (dipole,
+quadrupole, etc., as opposed to solenoid or RF fringes), the
+\vn{fringe_type} switch is used to select how a fringe field is
+simulated.  For everything except for \vn{rbend} and \vn{sbend}
+elements, \vn{fringe_type} may be set to one of:
 \begin{example}
   none              ! Default 
-  full_straight
   soft_edge_only
   hard_edge_only
+  full
+\end{example}
+The \vn{none} setting ignores any fringe fields.
+The fringe field kick is divided into two pieces. 
+The first piece is called the \vn{hard edge} fringe kick and is the kick in the limit
+that the longitudinal extent of the fringe is zero. The second piece is the 
+\vn{soft edge} fringe kick which is the fringe kick with the fringe having a finite
+longitudinal extent minus the hard edge fringe kick. That is
+\begin{example}
+  fringe kick = hard fringe kick + soft fringe kick
+\end{example}
+The advantage of separating the fringe kick in this way is that the hard fringe can
+be used without having to know anything about the longitudinal extent of the fringe.
+In many cases, this is a good enough approximation. Note that using the soft fringe
+without the hard fringe is not physical but can be useful in understanding how
+the soft edge component affects tracking.
+See~\sref{s:multi.fringe.std} for details.
+
+For \vn{rbend} and \vn{sbend} elements, the possible \vn{fringe_type}
+settings are:
+\begin{example}
+  none
+  soft_edge_only
+  hard_edge_only
+  full
+  linear_edge
+  basic_bend        ! Default 
+  sad_soft_edge_only
   sad_full
 \end{example}
+The \vn{basic_bend} setting, which is the default, is essentially the
+basic vertical focusing effect that is present when there is a finite
+\vn{e1} or \vn{e2} face angle. With \vn{bmad_standard} tracking,
+\vn{basic_bend} also includes second order terms.  The
+\vn{linear_bend} setting ignores these second order terms.  In some
+cases, for instance in a chicane, \vn{basic_bend} is not good
+enough. With \vn{fringe_type} set to \vn{full}, higher order effects
+are taken into account.
 
-The \vn{none} setting ignores any fringe fields and is the default for
-\vn{quadrupoles}, \vn{sextupoles}, etc. 
-The \vn{basic_bend} setting,
-which is the default for \vn{rbend} and \vn{sbend} elements, is
-essentially the basic vertical focusing effect that is present when
-there is a finite \vn{e1} or \vn{e2} face angle. With
-\vn{bmad_standard} tracking, \vn{basic_bend} also includes second
-order terms.  
-The \vn{edge_focus_only} setting ignores these second order terms.
-In some cases, for instance in a chicane,
-\vn{basic_bend} is not good enough. With \vn{full_bend} or
-\vn{full_straight}, higher order effects are taken into account.  
+PTC does not have a \vn{linear_edge} fringe model.
+With PTC tracking, \vn{basic_bend} tracking is used if \vn{linear_edge} is chosen.
+
+Additionally, for use with PTC, the \vn{ptc_fringe_geometry} switch can be used
+to define the symmetry of the fringe fields. Possible settings are:
+\begin{example}
+  x_invariant
+  multipole_symmetry
+\end{example}
+\index{ptc_max_fringe_order}
+Additionally, when using PTC tracking (\sref{s:ptc.intro}), the
+\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the maximum
+order of the calculated fringe fields.
 
 The difference between \vn{full_bend} and \vn{full_straight} is that
 with \vn{full_straight} the fringe field is assumed to have the
@@ -2190,7 +2212,18 @@ Forest's book\cite{b:forest} for more details.
 
 Example:
 \begin{example}
-  b1: rbend, angle = pi/4, g = 0.3, fringe_type = full_bend
+  b1: rbend, angle = pi/4, g = 0.3, fringe_type = full
+\end{example}
+
+In a bend element, the \vn{fringe_type} setting only pertains to the
+dipole fringe.  For higher order multipole fields in a bend, the
+\vn{higher_order_fringe_type} selects the fringe type. Possible
+settings are the same as for the non-bend \vn{fringe_type} elements
+\begin{example}
+  none              ! Default 
+  soft_edge_only
+  hard_edge_only
+  full
 \end{example}
 
 \index{sad}\index{sbend}\index{rbend}
@@ -2203,22 +2236,16 @@ or \vn{rbend} element, these SAD fringe fields are in addition to the
 fringe fields that occurs with a finite \vn{e1} or \vn{e2} face
 angle. 
 
-\index{ptc_max_fringe_order}
-When using PTC tracking (\sref{s:ptc.intro}), the
-\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the maximum
-order of the calculated fringe fields.
-
 \index{permfringe}\index{bendfringe}
 For programmers who deal with PTC directly: The translation between
-\vn{fringe_type} on the \bmad side and \vn{permfringe} and \vn{bendfringe} 
-on the PTC side is:
+\vn{ptc_fringe_geometry} on the \bmad side and \vn{bendfringe} on the
+PTC side is:
+
 \begin{center}
 \begin{tabular}{lll} \hline 
-{\em fringe_type} & {\em permfringe} & {\em bendfringe} \\ \hline
-  none            & 0                & False            \\    
-  basic_bend      & 0                & True             \\    
-  full_bend       & 1                & True             \\    
-  full_straight   & 1                & False            \\    
+{\em ptc_fringe_geometry} & {\em bendfringe} \\ \hline
+  x_invariant             & True  \\
+  multipole_symmetry      & False \\
 \end{tabular}
 \end{center}
 

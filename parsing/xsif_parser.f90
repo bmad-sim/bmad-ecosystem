@@ -397,12 +397,10 @@ do ie = npos1, npos2-1
       call add_ele (taylor$)
 
       allocate (ele%taylor(5)%term(1))
-      ele%taylor(5)%term(1) = &
-                      taylor_term_struct(1.0_rp, [0, 0, 0, 0, 1, 0 ])
+      ele%taylor(5)%term(1) = taylor_term_struct(1.0_rp, [0, 0, 0, 0, 1, 0 ])
 
       allocate (ele%taylor(6)%term(1))
-      ele%taylor(6)%term(1) = &
-                      taylor_term_struct(1.0_rp, [0, 0, 0, 0, 0, 1 ])
+      ele%taylor(6)%term(1) = taylor_term_struct(1.0_rp, [0, 0, 0, 0, 0, 1 ])
 
       call twiss_to_taylor (dat_indx+0, 0)
       call twiss_to_taylor (dat_indx+3, 2)
@@ -545,8 +543,7 @@ if (ibeam_ptr /= 0) then
   lat%a%emit = pdata(dat_indx+6)
   lat%b%emit = pdata(dat_indx+8)
 
-  if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = &
-                                                pdata(dat_indx+3) * 1e9
+  if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = pdata(dat_indx+3) * 1e9
 endif
 
 ! Global stuff
@@ -592,9 +589,6 @@ do i = 1, lat%n_ele_max
     if (ele%value(e_tot$) == 0) cycle
     ele%value(vkick$) = ele%value(e_field$) * ele%value(l$) / ele%value(e_tot$)
   endif
-
-  if (attribute_index(ele, 'FRINGE_AT') /= 0)   ele%value(fringe_at$) = both_ends$
-  if (attribute_index(ele, 'FRINGE_TYPE') /= 0) ele%value(fringe_type$) = none$
 
   call set_status_flags (ele%bookkeeping_state, stale$)
 enddo
@@ -647,6 +641,7 @@ ele%key = key
 ele%name = kelem(indx)
 ele%type = ketyp(indx)
 
+call set_ele_defaults(ele)
 ele%value(ds_step$) = bmad_com%default_ds_step
 
 end subroutine

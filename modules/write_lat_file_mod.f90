@@ -7,7 +7,7 @@ use multipass_mod
 use element_modeling_mod
 use lat_ele_loc_mod
 
-private str, rchomp, cmplx_str, write_line_element, array_str, ele_has
+private str, rchomp, cmplx_str, write_line_element, array_str
 
 contains
 
@@ -2481,22 +2481,6 @@ write (iu, '(2a)') trim(line_out), trim(eol_char)
 end subroutine element_out
 
 end subroutine write_lattice_in_foreign_format
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-
-function ele_has (ele, name) result (has_it)
-
-type (ele_struct) ele
-character(*) name
-logical has_it
-
-!
-
-has_it = (attribute_index(ele, name) > 0)
-
-end function
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
