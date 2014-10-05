@@ -38,8 +38,8 @@ patch1:            patch, x_pitch = 0.01, t_offset = 1e-8,
 quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
 quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
-quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full_bend
-quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full_bend
+quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
 rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
 rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, 
                              x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
@@ -48,9 +48,9 @@ rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 
 sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
 sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
-sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, 
+sbend4:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
-sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full_bend, 
+sbend5:            sbend, l = 0.6, g = 0.01, e1 = 0.1, e2 = 0.2, num_steps = 10, fringe_type = full, 
                           x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend6:            sbend, l = 0.6, g = 0.01, g_err = -0.009999999, e1 = 0.1, e2 = 0.2, num_steps = 10, x_offset = 0.05, 
                           y_pitch = 0.001, ref_tilt = 0.1
