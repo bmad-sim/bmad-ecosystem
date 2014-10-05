@@ -1,8 +1,6 @@
-set (EXENAME tao)
+set (EXENAME custom_tao)
 
-set (SRC_FILES
-  program/tao_program.f90
-)
+FILE (GLOB SRC_FILES "*.f90")
 
 set (LINK_LIBS
   tao 
