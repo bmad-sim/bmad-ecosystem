@@ -1237,9 +1237,9 @@ case ('PTC_FRINGE_GEOMETRY')
 
 case ('FRINGE_TYPE')
   if (ele%key == rbend$ .or. ele%key == sbend$) then
-    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag)
+    call get_switch (attrib_word, fringe_type_name(1:), ix, err_flag, ele)
   else
-    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag)
+    call get_switch (attrib_word, fringe_type_name(1:n_non_bend_fringe_type$), ix, err_flag, ele)
   endif
   ele%value(fringe_type$) = ix
 
@@ -1599,8 +1599,9 @@ end subroutine get_integer
 !--------------------------------------------------------
 ! contains
 
-subroutine get_switch (name, name_list, switch, err)
+subroutine get_switch (name, name_list, switch, err, ele)
 
+type (ele_struct), optional :: ele
 character(*) name, name_list(:)
 integer this_switch, switch
 logical err
@@ -1608,6 +1609,29 @@ logical err
 !
 
 call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+
+!
+
+if (name == 'FRINGE_TYPE') then
+  if (word == 'FULL_BEND') then
+    word = 'FULL'
+    call parser_error ('Changed syntax: "FRINGE_TYPE = FULL_BEND" needs to be changed to "FRINGE_TYPE = FULL"', &
+                       'Program will execute as normal...', warn_only = .true.)
+  endif
+
+  if (word == 'FULL_STRAIGHT') then
+    word = 'FULL'
+    call parser_error ('Changed syntax: "FRINGE_TYPE = FULL_STRAIGHT" needs to be changed to "FRINGE_TYPE = FULL"', &
+                       'Program will execute as normal...', warn_only = .true.)
+    if (ele%key == sbend$ .or. ele%key == rbend$) then
+      ele%value(ptc_fringe_geometry$) = multipole_symmetry$
+      call parser_error ('... Additionally, "PTC_FRINGE_GEOMETRY = MULTIPOLE_SYMMETRY" needs to be set for this element.', warn_only = .true.)
+    endif
+  endif
+endif
+
+!
+
 call match_word (word, name_list, this_switch, can_abbreviate = .false.)
 if (this_switch < 1) then
   call parser_error ('BAD "' // trim(name) // '" SWITCH FOR: ' // ele%name, 'I DO NOT UNDERSTAND: ' // word)
