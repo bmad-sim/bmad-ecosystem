@@ -200,7 +200,7 @@ case (x_ray_init$)
   orb%p0c = photon_init%sig_E * rr + photon_init%dE_center
   if (photon_init%dE_relative_to_ref) orb%p0c = orb%p0c + lux_com%source_ele%value(p0c$) 
 
-  call init_coord (orb, orb%vec, lux_com%source_ele, .false., photon$, 1, orb%p0c) 
+  call init_coord (orb, orb%vec, lux_com%source_ele, upstream_end$, photon$, 1, orb%p0c) 
   orb%s = orb%vec(5) + orb%s + lux_com%source_ele%value(z_offset_tot$)
   orb%t = 0
 
@@ -394,7 +394,7 @@ case default
 
   ! Track through source ele and gather data
 
-  call init_coord (orb, lat%beam_start, lux_com%source_ele, .false.)
+  call init_coord (orb, lat%beam_start, lux_com%source_ele, upstream_end$)
   twiss_ele = pointer_to_next_ele (lux_com%source_ele, -1)
   ds = lux_com%source_ele%value(l$) / n_slice
   s_now = 0

@@ -259,7 +259,7 @@ energy_loop: do ie = 1, 1
 
     call lux_generate_photon (photon, lat, photon_init, ie, lux_param)
     if (lux_param%debug) then
-      call init_coord (photon%orb(0), lat%beam_start, d_branch%ele(0), .true., photon$, &
+      call init_coord (photon%orb(0), lat%beam_start, d_branch%ele(0), downstream_end$, photon$, &
                                           1, d_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
     endif
 
