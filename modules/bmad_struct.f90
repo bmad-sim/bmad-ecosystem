@@ -1182,9 +1182,9 @@ integer, parameter :: none$ = 1, soft_edge_only$ = 2, hard_edge_only$ = 3, full$
 integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
 integer, parameter :: n_non_bend_fringe_type$ = 4
 
-character(20), parameter :: fringe_type_name(0:8) = ['Garbage!             ', &
-            'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
-            'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ']
+character(20), parameter :: fringe_type_name(0:8) = ['Garbage!          ', &
+                               'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
+                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ']
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
 
