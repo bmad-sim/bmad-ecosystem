@@ -426,7 +426,39 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       print ('SAD PARAMETER NOT RECOGNIZED: ' + sad_param_name + '\n' + '    DEFINED IN ELEMENT: ' + sad_ele.name)
       continue
 
-    if type(result) is list:
+    # 
+
+    if sad_param_name == 'k1' and sad_ele.type == 'quad' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k1l'
+      value_suffix = ''
+
+    elif sad_param_name == 'k2' and sad_ele.type == 'sext' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k2l'
+      value_suffix = ''
+
+    elif sad_param_name == 'k3' and sad_ele.type == 'oct' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 'k3l'
+      value_suffix = ''
+
+    elif sad_param_name == 'rotate' and sad_ele.type == 'quad' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 't1'
+      value_suffix = ''
+
+    elif sad_param_name == 'rotate' and sad_ele.type == 'sext' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 't2'
+      value_suffix = ''
+
+    elif sad_param_name == 'rotate' and sad_ele.type == 'oct' and 'l' not in sad_ele.param:
+      bmad_ele.type = 'multipole'
+      bmad_name = 't3'
+      value_suffix = ''
+
+    elif type(result) is list:   # EG: result = ['k1', ' / @l@']
       bmad_name = result[0]
       value_suffix = result[1]
       value = add_parens(value)
@@ -434,14 +466,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
         val_parts = value_suffix.split('@')
         if val_parts[1] in sad_ele.param:
           value_suffix = val_parts[0] + add_parens(sad_ele.param[val_parts[1]]) + val_parts[2]
-        elif sad_param_name == 'k1' and val_parts[1] == 'l':
-          bmad_ele.type = 'multipole'
-          bmad_name = 'k1l'
-          value_suffix = ''
-        elif sad_param_name == 'k2' and val_parts[1] == 'l':
-          bmad_ele.type = 'multipole'
-          bmad_name = 'k2l'
-          value_suffix = ''
         elif '/' not in val_parts[0]:      # Assume zero
           value_suffix = val_parts[0] + '0' + val_parts[2]
         else:
@@ -451,6 +475,8 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     else:
       bmad_name = result
       value_suffix = ''
+
+    #
 
     if reversed:
       if sad_param_name == 'offset': value = '1 - ' + value
