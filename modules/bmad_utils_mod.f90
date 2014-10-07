@@ -1303,11 +1303,13 @@ endif
 
 if (any(key1 == [pipe$])) then
   key3 = key2
+  ele3%sub_key = ele2%sub_key
   return
 endif
 
 if (any(key2 == [pipe$])) then
   key3 = key1
+  ele3%sub_key = ele1%sub_key
   return
 endif
 
@@ -1317,11 +1319,13 @@ if (ele1%aperture_type == elliptical$ .or. ele2%aperture_type == elliptical$ ) e
 
 if (any(key1 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
   key3 = key2
+  ele3%sub_key = ele2%sub_key
   return
 endif
 
 if (any(key2 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
   key3 = key1
+  ele3%sub_key = ele1%sub_key
   return
 endif
 
@@ -1338,6 +1342,7 @@ endif
 
 if (any(key2 == [kicker$, hkicker$, vkicker$])) then
   key3 = key1
+  ele3%sub_key = ele1%sub_key
   return
 endif
 
@@ -1960,7 +1965,7 @@ end function pointer_to_slave
 !                   Nullified if there is an error.
 !   ix_control -- Integer, optional: Index of appropriate lat%control(:) element.
 !                   Set to -1 is there is an error or the slave is a slice_slave.
-!   ix_slave   -- Integer, optional: Index of back to the slave. That is, 
+!   ix_slave   -- Integer, optional: Index back to the slave. That is, 
 !                   pointer_to_slave(lord_ptr, ix_slave) will point back to slave. 
 !                   Set to -1 is there is an error or the slave is a slice_slave.
 !-
