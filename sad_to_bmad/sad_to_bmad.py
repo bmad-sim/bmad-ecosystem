@@ -5,6 +5,7 @@ from collections import *
 import time
 
 start_time = time.time()
+ix_null = 0
 
 class ele_struct:
   def __init__(self):
@@ -121,7 +122,7 @@ ele_type_to_bmad = {
   'moni': 'monitor',
   'mark': 'marker',
   'beambeam': 'marker',
-  'apert': 'marker',
+  'apert': 'rcollimator',
 }
 
 # Translation rule: Specific translations (of the form 'element:parameter') take
@@ -131,6 +132,8 @@ ele_type_to_bmad = {
 # of the k0 and l parameters.
 
 ele_param_translate = {
+    'apert:dx': 'x_offset',
+    'apert:dy': 'y_offset',
     'bend:k0': ['g_err', ' / @l@'],
     'bend:k1': ['k1', ' / @l@'],
     'bend:fb1': ['hgap', '/6, fint = 0.5'],
@@ -157,6 +160,7 @@ ele_param_translate = {
     'dphi': ['phi0_err', ' / twopi'],
     'volt': 'voltage',
     'bound': 'bound',
+    'harm': 'harmon',
     'geo': 'geo',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
@@ -192,7 +196,7 @@ ignore_sad_param = ['ldev', 'fringe', 'disfrin', 'disrad', 'r1', 'r2', 'r3', 'r4
                   'sol:f1', 'sol:bz', 'geo', 'bound', 'index', 'ex', 'ey', 'ax', 'ay', 'bx', 'by', 
                   'epx', 'epy', 'dpx', 'dpy', 'emitx', 'emity', 'dp', 'psix', 'psiy', 'psiz',
                   'sigx', 'sigy', 'sigz', 'slice', 'sturn', 'xangle', 'np', 'ddp', 
-                  'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng']
+                  'pex', 'pepx', 'pey', 'pepy', 'trx', 'try', 'leng', 'ax', 'ay', 'dx1', 'dx2', 'dy1', 'dy2']
 
 sad_reversed_params = {
       'ae1': 'ae2',
@@ -208,6 +212,8 @@ sad_reversed_params = {
 
 def output_line (sad_line, sad_info, inside_sol, bz):
 
+  global ix_null
+
   f_out.write ('\n')
 
   bmad_line = []
@@ -216,6 +222,8 @@ def output_line (sad_line, sad_info, inside_sol, bz):
   for ix_s_ele, sad_ele in enumerate(sad_line.list):
 
     ele_name = sad_ele.name
+
+    # If the line element is itself a line then print this line info.
 
     if ele_name in sad_info.lat_line_list:
       if not sad_info.lat_line_list[ele_name].printed: 
@@ -243,33 +251,44 @@ def output_line (sad_line, sad_info, inside_sol, bz):
     # A MARK element with an offset gets translated to a marker superimpsed with respect to a null_ele
 
     if s_ele.type == 'mark' and 'offset' in s_ele.param:
-      null_ele_name = 'null_' + s_ele.name + '#' + str(ix_s_ele)  # Guaranteed unique
-      bmad_line.append (line_item_struct(null_ele_name))                            # Put null_ele in the line
-      WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
-
-      # Now define the marker element
-      sad_offset = float(s_ele.param['offset'])
-      int_off = int(math.floor(sad_offset))
-      frac_off = sad_offset - int_off
-
-      offset = 0
-      direc = 1
-      if int_off < 0: direc = -1
-      for ix in range(0, int_off, direc):
-        ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+ix].name]
-        if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
-      ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
-      if 'l' in ss_ele.param: offset += frac_off * eval(ss_ele.param['l'])
-
-      if s_ele.instances == 0:
-        suffix = ''
+      if ignore_marker_offsets:
+        del s_ele.param['offset']
       else:
-        suffix = '.' + str(s_ele.instances)
-      bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
-      WrapWrite(bmad_ele_def)
-      s_ele.printed = True
-      s_ele.instances += 1
-      continue
+        ix_null += 1
+        null_ele_name = 'null_' + s_ele.name + '#' + str(ix_null)   # Guaranteed unique
+        bmad_line.append (line_item_struct(null_ele_name))          # Put null_ele in the line
+        WrapWrite(null_ele_name + ': null_ele')                     # Define the null_ele
+  
+        # Now define the marker element
+        sad_offset = float(s_ele.param['offset'])
+        int_off = int(math.floor(sad_offset))
+        frac_off = sad_offset - int_off
+  
+        offset = 0
+        direc = 1
+        if int_off < 0: direc = -1
+        for ix in range(0, int_off, direc):
+          this_name = sad_line.list[ix_s_ele+ix].name
+          if this_name in sad_info.ele_list:
+            ss_ele = sad_info.ele_list[this_name]
+            if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
+          else:   # Must be a line
+            for sub_ele in sad_info.lat_line_list[this_name].list:
+              ss_ele = sad_info.ele_list[sub_ele.name]
+              if 'l' in ss_ele.param: offset += direc * eval(ss_ele.param['l'])
+  
+        ss_ele = sad_info.ele_list[sad_line.list[ix_s_ele+int_off].name]
+        if 'l' in ss_ele.param: offset += frac_off * eval(ss_ele.param['l'])
+  
+        if s_ele.instances == 0:
+          suffix = ''
+        else:
+          suffix = '.' + str(s_ele.instances)
+        bmad_ele_def = s_ele.name + suffix + ': marker, superimpose, ref = ' + null_ele_name + ', offset = ' + str(offset)
+        WrapWrite(bmad_ele_def)
+        s_ele.printed = True
+        s_ele.instances += 1
+        continue
 
     # Regular element not getting superimposed
 
@@ -335,6 +354,28 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
                     bmad_ele.type != 'patch' and bz != '0': 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
+
+  # convert apert
+
+  if sad_ele.type == 'apert':
+    ax = float(sad_ele.param.get('ax', '0'))
+    ay = float(sad_ele.param.get('ay', '0'))
+    dx1 = float(sad_ele.param.get('dx1', '0'))
+    dx2 = float(sad_ele.param.get('dx2', '0'))
+    dy1 = float(sad_ele.param.get('dy1', '0'))
+    dy2 = float(sad_ele.param.get('dy2', '0'))
+
+    if ax == 0 and ay == 0:
+      bmad_ele.param['x1_limit'] = str(-min(dx1, dx2))
+      bmad_ele.param['x2_limit'] = str(max(dx1, dx2))
+      bmad_ele.param['y1_limit'] = str(-min(dy1, dy2))
+      bmad_ele.param['y2_limit'] = str(max(dy1, dy2))
+    elif dx1 == dx2 and dy1 == dy2:
+      bmad_ele.type = 'ecollimator'
+      bmad_ele.param['x_limit'] = str(ax)
+      bmad_ele.param['y_limit'] = str(ay)
+    else:
+      print ('Combined collimators not yet implemented. Please contact David Sagan')
 
   # For a bend, f1 mut be added to fb1 and fb2
 
@@ -444,13 +485,16 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
   # Also remember that an lcavity has a differnt phase convention.
 
   if bmad_ele.type == 'rfcavity':
-    if 'phi0' in bmad_ele.param: 
+    if 'phi0' in bmad_ele.param and 'harmon' not in bmad_ele.param: 
       bmad_ele.type = 'lcavity'
-      bmad_ele.param['phi0'] = 'pi/2 - ' + add_parens(bmad_ele.param['phi0'])
-      bmad_ele.param['phi0_err'] = bmad_ele.param['phi0_err']
+      bmad_ele.param['phi0'] = '0.25 - ' + add_parens(bmad_ele.param['phi0'])
+      if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '-' + add_parens(bmad_ele.param['phi0_err'])
 
     elif 'phi0_err' in bmad_ele.param:
-      bmad_ele.param['phi0'] = bmad_ele.param[phi0_err]
+      if 'phi0' in bmad_ele.param:
+        bmad_ele.param['phi0'] = bmad_ele.param['phi0'] + ' + ' + bmad_ele.param['phi0_err']
+      else:
+        bmad_ele.param['phi0'] = bmad_ele.param['phi0_err']
       del bmad_ele.param['phi0_err']
 
   # Correct patch signs
@@ -612,6 +656,7 @@ def parse_line(rest_of_line, sad_info):
 
     else:
       line_item = line_item_struct(token, sign, multiplyer)
+      if line_item.name == 'end': line_item.name = 'end_ele'  # 'end' is a reserved name
       sad_line.list.append(line_item)
       sign = ''
       multiplyer = '1'
@@ -669,6 +714,7 @@ def parse_ele (head, rest_of_line, sad_info):
         ele = ele_struct()
         ele.type = head
         ele.name = line[:ix].strip()
+        ## print ('Name: "' + ele.name + '"')
         line = line[ix+1:].lstrip()
         break
 
@@ -679,51 +725,53 @@ def parse_ele (head, rest_of_line, sad_info):
 
     # parameter loop
 
-    while True:
+    # First look for first parameter name
 
-      # End of element def check
-
-      if line[0] == ')':
-        # Ignore MARK element offsets?
-        if ignore_marker_offsets and ele.type == 'mark' and 'offset' in ele.param: del ele.param['offset']
-        sad_info.ele_list[ele.name] = ele
-        line = line[1:].lstrip()
-        ## print ('param found: ' + param + ' = ' + ele.param[param])
+    for ix in range(len(line)):
+      if line[ix] == '=' or line[ix] == ')':
+        param_name = line[:ix].strip()
+        delim = line[ix]
+        line = line[ix+1:]
         break
+    
+    if delim != ')':
 
-      # Find parameter name
+      # get parameter value and name of next parameter
+      # Find next '=' or ')'
+
+      ix0 = 0
+      n_parens = 0
+      ## print ('Line: "' + line + '"')
 
       for ix in range(len(line)):
-        if line[ix] in ' =': 
-          param = line[:ix].strip()
-          line = line[ix+1:].lstrip()
-          if line[0] == '=': line = line[1:].lstrip()  # Remove optional equal sign
-          break
-
-      # Find parameter value
-
-      p_count = 0
-      for ix in range(len(line)):
-        if line[ix] == ' ': 
-          if re.match('\s*(deg|kev|mev|gev)(\s|\))', line[ix:]): continue
-          if last_char in '+-/*()': continue
-          ele.param[param] = add_units(line[:ix].strip())
-          ## print (ele.name + ' : ' + param + ' = ' + ele.param[param])
-          line = line[ix:].lstrip()
-          break
-        else:
-          last_char = line[ix]
-
         if line[ix] == '(':
-          p_count += 1
+          n_parens += 1
+          continue
 
         if line[ix] == ')':
-          p_count -= 1
-          if p_count == -1: 
-            ele.param[param] = add_units(line[:ix].strip())
-            ## print (ele.name + ' : ' + param + ' = ' + ele.param[param])
-            line = line[ix:]
+          if n_parens == 0:
+            ## print ('Found ): "' + line[ix0:ix] + '"')
+            ele.param[param_name] = add_units(line[ix0:ix].strip())
+            line = line[ix+1:]
             break
+
+          n_parens -= 1
+          continue
+
+        if line[ix] == '=':
+          ## print ('Found =: "' + line[ix0:ix] + '" + "' + line[ix:] + '"')
+          sub_str = line[ix0:ix].strip()
+          j = max(sub_str.rfind(' '), sub_str.rfind(','))
+          ## print ('sub_str: "' + sub_str + '"  ' + str(j))
+          ele.param[param_name] = add_units(sub_str[:j].strip())
+          param_name = sub_str[j+1:].strip()
+          delim = line[ix]
+          ix0 = ix + 1
+
+    # Put element in list
+
+    if ele.name == 'end': ele.name = 'end_ele'  # 'end' is a reserved name
+    sad_info.ele_list[ele.name] = ele
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------

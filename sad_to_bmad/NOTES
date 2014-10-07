@@ -30,6 +30,8 @@ shift in reference orbit is given by the orientation offset parameters in the fi
 THUS: It is important to make sure that the orientation offset parameters are in the lattice and,
 if not, run the lattice through SAD to generate a lattice with them.
 
+'end' is a reserved bmad element name. If used in the lattice file, 'end_ele' will be substituted.
+
 ---------------------------
 What to do if translation fails:
 
