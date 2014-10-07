@@ -793,11 +793,11 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord, slave0, lord1, major_lord
+type (ele_struct), pointer :: lord, slave0, lord1
 type (ele_struct) :: sol_quad
 type (branch_struct), pointer :: branch
 
-integer i, j, ix, ix_slave, ix_lord, ix_order, ix_major_order, n_major_lords, at
+integer i, j, ix, ix_lord, ix_order, ix_slave, n_major_lords, at
 
 real(rp) tilt, k_x, k_y, x_kick, y_kick, ks, k1, coef
 real(rp) x_o, y_o, x_p, y_p, s_slave, s_del, k2, k3, c, s
@@ -825,55 +825,37 @@ if (slave%slave_status /= super_slave$) then
   return
 endif
 
-! A "major" element is something other than a pipe, monitor, etc.
-! n_major_lords counts how many major lords there are.
-
-n_major_lords = 0
-
-
-do j = 1, slave%n_lord
-  lord => pointer_to_lord(slave, j, ix_slave = ix_order)
-  if (lord%lord_status /= super_lord$) cycle
-  select case (lord%key)
-  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
-  case default  ! If major
-    major_lord => lord
-    ix_major_order = ix_order
-    n_major_lords = n_major_lords + 1
-  end select
-enddo
-
-!
-
 slave%field_calc = refer_to_lords$
 
 !-----------------------------------------------------------------------
 ! 1 super_lord for this super_slave: just transfer attributes except length
 
-if (n_major_lords == 1) then
+if (slave%n_lord == 1) then
 
-  is_first = (ix_major_order == 1)
-  is_last  = (ix_major_order == major_lord%n_slave)
+  lord => pointer_to_lord (slave, 1, ix_slave = ix_order)
+
+  is_first = (ix_order == 1)
+  is_last  = (ix_order == lord%n_slave)
 
   ! If this is not the first slave: Transfer reference orbit from previous slave
 
   if (.not. is_first) then
-    if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_slave-1)%map_ref_orb_out%vec)) then
-      slave0 => pointer_to_slave(major_lord, ix_major_order-1)
+    if (.not. all(slave%map_ref_orb_in%vec == branch%ele(ix_order-1)%map_ref_orb_out%vec)) then
+      slave0 => pointer_to_slave(lord, ix_order-1)
       slave%map_ref_orb_in = slave0%map_ref_orb_out
       if (associated(slave%rad_int_cache)) slave%rad_int_cache%stale = .true. ! Forces recalc
     endif
   endif
 
-  ! Find the offset from the longitudinal start of the major_lord to the start of the slave
+  ! Find the offset from the longitudinal start of the lord to the start of the slave
 
   offset = 0 ! length of all slaves before this one
   do i = 1, ix_order-1
-    slave0 => pointer_to_slave(major_lord, i)
+    slave0 => pointer_to_slave(lord, i)
     offset = offset + slave0%value(l$)
   enddo
 
-  call makeup_super_slave1 (slave, major_lord, offset, branch%param, is_first, is_last, err_flag)
+  call makeup_super_slave1 (slave, lord, offset, branch%param, is_first, is_last, err_flag)
 
   return
 
@@ -908,12 +890,16 @@ value(p0c$)            = slave%value(p0c$)
 value(delta_ref_time$) = slave%value(delta_ref_time$)
 value(ref_time_start$) = slave%value(ref_time_start$)
 value(fringe_at$)      = no_end$
+value(fringe_type$)    = none$
 
 slave%value(x1_limit$:y2_limit$) = 0
 
 slave%aperture_at = no_end$
 slave%is_on = .false.
 s_slave = slave%s - value(l$)/2  ! center of slave
+
+! A "major" element is something other than a pipe, monitor, etc.
+! n_major_lords counts how many major lords there are.
 
 n_major_lords = 0
 
@@ -960,7 +946,7 @@ do j = 1, slave%n_lord
                                         value(ds_step$) = lord%value(ds_step$)
 
   ! Methods...
-  ! A "major" element is something other than a pipe, monitor, etc.
+  ! A "major" element is something other than a pipe.
   ! n_major_lords counts how many major lords there are.
 
   if (n_major_lords == 0) then
@@ -988,9 +974,7 @@ do j = 1, slave%n_lord
     value(fringe_type$) = lord%value(fringe_type$)
   endif
 
-  select case (lord%key)
-  case (hkicker$, vkicker$, kicker$, instrument$, monitor$, pipe$, rcollimator$, ecollimator$)
-  case default  ! If major
+  if (lord%key /= pipe$) then
     if (n_major_lords > 0) then
       if (slave%mat6_calc_method /= lord%mat6_calc_method) then
         lord1 => pointer_to_lord(slave, 1)
@@ -1022,9 +1006,8 @@ do j = 1, slave%n_lord
      endif
     endif
 
-    major_lord => lord
     n_major_lords = n_major_lords + 1
-  end select
+  endif
 
   ! descriptive strings.
 

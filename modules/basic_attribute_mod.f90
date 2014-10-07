@@ -466,6 +466,7 @@ do i = 1, n_key$
   if (i == custom$)       cycle
   if (i == e_gun$)        cycle
   if (i == em_field$)     cycle
+  if (i == pipe$)         cycle
 
   call init_attribute_name1 (i, hkick$,     'HKICK', quasi_free$)
   call init_attribute_name1 (i, vkick$,     'VKICK', quasi_free$)
