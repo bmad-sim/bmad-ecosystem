@@ -1351,8 +1351,8 @@ Example:
 \index{floor_shift|hyperbf}
 
 A \vn{floor_shift} element shifts the reference orbit in the global
-coordinate system without affecting particle tracking. That is, int
-terms of tracking a \vn{floor_shift} element is equivalent to a
+coordinate system without affecting particle tracking. That is, in
+terms of tracking, a \vn{floor_shift} element is equivalent to a
 \vn{marker} (\sref{s:mark}) element. Also see \vn{patch}
 (\sref{s:patch}) and \vn{fiducial} (\sref{s:fiducial}) elements.
 
@@ -1396,10 +1396,10 @@ The \vn{l} attribute can be used to adjust the longitudinal $s$
 position.
 
 The \vn{floor_shift} element can be used, for example, to restore the
-correct geometry when a section of the lattice is represented by, say,
+correct global geometry when a section of the lattice is represented by, say,
 a \vn{taylor} type element.
 
-If \vn{origin_ele} is not specified, previous element is used. If the
+If \vn{origin_ele} is not specified, the previous element is used. If the
 \vn{origin_ele} has a finite length, the reference point may be chosen
 using the \vn{origin_ele_ref_pt} attribute which may be set to one of
 \begin{example}
@@ -1416,7 +1416,8 @@ Example:
 \begin{example}
   floor: floor_shift, z_offset = 3.2
 \end{example}
-This is equivalent to a drift.
+This offsets the element after the \vn{floor_shift} 3.2 meters from the previous
+element.
 
 %-----------------------------------------------------------------
 \section{Fork and Photon_Fork}
