@@ -390,7 +390,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
 
   if (i == match$) cycle
-  if (i == floor_shift$) cycle
 
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
@@ -399,6 +398,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
   call init_attribute_name1 (i, tilt$,          'TILT' )
 
+  if (i == floor_shift$) cycle
   if (i == patch$)        cycle
   if (i == photon_fork$)   cycle
   if (i == fork$)          cycle
@@ -869,12 +869,6 @@ call init_attribute_name1 (custom$, e_tot_start$,                   'E_TOT_START
 call init_attribute_name1 (custom$, p0c_start$,                     'P0C_START', dependent$)
 
 call init_attribute_name1 (floor_shift$, l$,                        'L')
-call init_attribute_name1 (floor_shift$, tilt$,                     'TILT', dependent$)
-call init_attribute_name1 (floor_shift$, x_offset$,                 'X_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, y_offset$,                 'Y_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, z_offset$,                 'Z_OFFSET', dependent$)
-call init_attribute_name1 (floor_shift$, x_pitch$,                  'X_PITCH', dependent$)
-call init_attribute_name1 (floor_shift$, y_pitch$,                  'Y_PITCH', dependent$)
 call init_attribute_name1 (floor_shift$, origin_ele$,               'ORIGIN_ELE')
 call init_attribute_name1 (floor_shift$, origin_ele_ref_pt$,        'ORIGIN_ELE_REF_PT')
 call init_attribute_name1 (floor_shift$, upstream_ele_dir$,         'UPSTREAM_ELE_DIR', dependent$)
