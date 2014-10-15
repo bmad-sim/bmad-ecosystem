@@ -490,7 +490,7 @@ do n = 1, n_step
     z  = end_orb%vec(5)
    
     pxy2 = px**2 + py**2
-    if (rel_p2 - pxy2 < 0.1) then  ! somewhat arbitrary cutoff
+    if (rel_p2 - pxy2 < 0.01) then  ! somewhat arbitrary cutoff
       end_orb%state = lost$
       end_orb%vec(1) = 2 * bmad_com%max_aperture_limit
       end_orb%vec(3) = 2 * bmad_com%max_aperture_limit
