@@ -16,6 +16,7 @@ use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
 use tao_top10_mod, dummy4 => tao_write_cmd
 use tao_write_3d_mod, dummy5 => tao_write_cmd
+use madx_ptc_module, only: m_u, m_t, print_universe_pointed
 
 implicit none
 
@@ -37,13 +38,13 @@ character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(21) = [ &
+character(20) :: names(22) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
       'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ', &
-      'gif-l            ']
+      'gif-l            ', 'ptc              ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word
@@ -263,6 +264,16 @@ case ('covariance_matrix')
 
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
+
+!---------------------------------------------------
+! ptc
+
+case ('ptc')
+
+file_name = word(1)
+if (file_name == '') file_name = 'ptc.flatfile'
+
+call print_universe_pointed (M_u, M_t, file_name)
 
 !---------------------------------------------------
 ! curve

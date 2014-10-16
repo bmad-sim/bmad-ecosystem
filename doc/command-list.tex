@@ -100,16 +100,22 @@ executes the commands in it.
 Format:
 \begin{example}
   call <filename> \{<arg_list>\}  \Strut
+  call -ptc <filename>
 \end{example}
 
 \vskip 0.2in 
-\tao first looks in the current directory for the file.
-Up to 9 arguments may be passed to the command file. The i\Th argument
-is substituted in place of the string ``[[i]]'' in the file. Nesting
-of command files (command files calling other command files) is
-allowed. There is no limit to the number of nested files.
+\tao first looks in the current directory for the command file.
 
+The \vn{call} command without \vn{-ptc} is for running a set of \tao
+commands.  Up to 9 arguments may be passed to the command file. The
+i\Th argument is substituted in place of the string ``[[i]]'' in the
+file. Nesting of command files (command files calling other command
+files) is allowed. There is no limit to the number of nested files.
 See Section~\sref{s:command.files} for more details.
+
+The \vn{call -ptc} command passes the command file to PTC for
+processing. Previous to such a call, the command \vn{ptc init}
+must be issued.
 
 Examples:
 \begin{example}
@@ -493,19 +499,22 @@ The \vn{ptc} command is used manipulating PTC layouts associated with
 Bmad lattices. Format:
 \begin{example}
   ptc init            ! Init associated PTC layout.
-  ptc call <file>   ! Run a ptc script
-  ptc write \{-old\} \{<filename>\}
-  ptc read \{-old\} <filename>
 \end{example}
 
 \vskip 0.2in 
 
 The \vn{ptc init} command must be run before running any other \vn{ptc} command is used.
 
+Also see:
+\begin{example}
+  call -ptc <file>                    ! Run a PTC script
+  read ptc \{-old\} <filename>          ! Read a PTC lattice
+  write ptc \{-old\} \{<filename>\}       ! Write a PTC lattice
+\end{example}
+
 Examples:
 \begin{example}
   ptc init
-  ptc call doit.ptc  ! Execute doit.ptc file.
 \end{example}
 
 %% python -----------------------------------------------------------
@@ -547,15 +556,21 @@ Format:
 \section{read}\index{commands!read}
 \label{s:read}
 
-The \vn{read} command is used to modify the \vn{model} lattice
-contained in the default universe (\sref{s:universe}) using a ``secondary''
-lattice file. Format:
+The \vn{read} command is used to modify the (\bmad) \vn{model} lattice
+or the associated \vn{PTC} lattice.
+Format:
 \begin{example}
   read lattice <file_name>
   read ptc \{-old\} <file_name>
 \end{example}
 
 \vskip 0.2in 
+
+With the \vn{read lattice} command, the \vn{model} lattice contained
+in the default universe (\sref{s:universe}) is modified using a
+``secondary'' lattice file. 
+[See the \bmad manual for the definition of secondary.]
+
 For example, with the appropriate file, the \vn{read} command can be
 used to misalign the lattice elements. The input file must be in Bmad
 standard lattice format.
@@ -564,6 +579,9 @@ Note: Due to bookkeeping complications, the number of lattice elements
 may not be modified. If it is desired to initiate \tao using both
 ``primary'' and secondary lattice files, this can be done as
 illustrated in \sref{s:init.lat}.
+
+The \vn{read ptc} command reads in a PTC lattice. WARNING: This command
+is untested. Please contact David Sagan if you want to use it.
 
 %% restore --------------------------------------------------------------
 \section{restore}\index{commands!restore}

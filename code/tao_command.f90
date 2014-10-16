@@ -126,7 +126,16 @@ case ('alias')
 case ('call')
 
   call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
-  call tao_call_cmd (cmd_word(1), cmd_word(2:10))
+  if (index('-ptc', cmd_word(1)) ==  1 .and. len_trim(cmd_word(1)) > 1) then
+    if (cmd_word(2) == '' .or. cmd_word(3) /= '') then
+      call out_io (s_error$, r_name, 'FILENAME MISSING OR EXTRA STUFF FOUND.')
+      return
+    endif
+    call read_ptc_command77 (cmd_word(2))
+
+  else
+    call tao_call_cmd (cmd_word(1), cmd_word(2:10))
+  endif
   return
 
 !--------------------------------
@@ -153,8 +162,7 @@ case ('change')
     call tao_cmd_split (cmd_word(2), 2, cmd_word, .false., err); if (err) return
     call tao_change_ele (word, cmd_word(1), cmd_word(2))
   else
-    call out_io (s_error$, r_name, &
-             'Error: Change who? (should be: "element", "beam_start", or "variable")')
+    call out_io (s_error$, r_name, 'Change who? (should be: "element", "beam_start", or "variable")')
   endif
 
 

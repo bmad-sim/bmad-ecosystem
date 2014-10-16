@@ -945,6 +945,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 grph => plt%graph(2)
 grph%name                 = 'g2'
@@ -967,6 +968,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 !---------------
 ! This plot defines the default 1-graph, 4-curve/graph plot
@@ -1008,6 +1010,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 crv => grph%curve(2)
 crv%name         = 'c2'
@@ -1015,6 +1018,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = orange$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 crv => grph%curve(3)
 crv%name         = 'c3'
@@ -1022,6 +1026,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = green$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 crv => grph%curve(4)
 crv%name         = 'c4'
@@ -1029,6 +1034,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = magenta$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 !---------------
 ! This plot defines the default 1-graph, 2-curve/graph plot
@@ -1070,6 +1076,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 crv => grph%curve(2)
 crv%name         = 'c2'
@@ -1077,6 +1084,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = orange$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 !---------------
 ! This plot defines the default 1-graph, 1-curve/graph plot
@@ -1113,6 +1121,7 @@ crv%data_source  = 'lat'
 crv%draw_symbols = .false.
 crv%line%color   = blue$
 crv%line%width   = 2
+crv%symbol%color = crv%line%color
 
 !---------------
 ! beta plot

@@ -669,6 +669,7 @@ case ('curve')
       nl=nl+1; write(lines(nl), f3mt) 'symbol%height        = ', c1%symbol%height
       nl=nl+1; write(lines(nl), iamt) 'symbol%fill_pattern  = ', c1%symbol%fill_pattern, qp_fill_name(c1%symbol%fill_pattern)
       nl=nl+1; write(lines(nl), iamt) 'symbol%line_width    = ', c1%symbol%line_width
+      nl=nl+1; write(lines(nl), iamt) 'symbol%color         = ', c1%symbol%color, qp_color_name(c1%symbol%color)
       
       ! Histogram specific components
       if (c1%g%type == 'histogram') then
