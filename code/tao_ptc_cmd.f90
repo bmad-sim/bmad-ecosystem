@@ -17,7 +17,7 @@ implicit none
 integer ix_cmd
 
 character(*) what, input_str
-character(16) :: command(2) = ['init  ', 'script']
+character(16) :: command(1) = ['init  ']
 character(16) cmd_name
 character(*), parameter :: r_name = 'tao_ptc_cmd'
 
@@ -25,7 +25,7 @@ character(*), parameter :: r_name = 'tao_ptc_cmd'
 
 call match_word (what, command, ix_cmd, .true., matched_name = cmd_name)
 if (ix_cmd == 0) then
-  call out_io (s_error$, r_name, 'BAD COMMAND (SHOULD BE "init", or "script")')
+  call out_io (s_error$, r_name, 'BAD COMMAND (SHOULD BE "init")')
   return
 endif
 
@@ -35,11 +35,6 @@ select case (cmd_name)
 
 case ('init')
   call lat_to_ptc_layout (s%u(1)%model%lat)
-
-! script
-
-case ('call')
-  call read_ptc_command77 (input_str)
 
 end select
 

@@ -11,6 +11,7 @@
 subroutine tao_read_cmd (who, file_name)
 
 use tao_mod, dummy => tao_read_cmd
+use madx_ptc_module, only: m_u, m_t, read_universe_pointed
 
 implicit none
 
@@ -18,7 +19,7 @@ type (tao_universe_struct), pointer :: u
 
 character(*) who, file_name
 character(20) action
-character(20) :: names(1) = (/ 'lattice' /)
+character(20) :: names(2) = ['lattice', 'ptc    ']
 character(*), parameter :: r_name = 'tao_read_cmd'
 
 integer i, j, ix, iu, nd, ii
@@ -57,6 +58,9 @@ case ('lattice')
       stop
     endif
   enddo
+
+case ('ptc')
+  call read_universe_pointed (m_u, m_t, file_name)
 
 end select
 
