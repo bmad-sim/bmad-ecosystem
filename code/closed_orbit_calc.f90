@@ -81,6 +81,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+use eigen_mod
 
 implicit none
 
@@ -91,14 +92,17 @@ type (coord_struct)  del_co, del_orb
 type (coord_struct), allocatable, target ::  closed_orb(:)
 type (coord_struct), pointer :: start, end
 
-real(rp) mat2(6,6), t1(6,6)
+real(rp) t11_inv(6,6), t1(6,6)
 real(rp) :: amp_co, amp_del, amp_del_old, i1_int, rf_freq, dt
+real(rp) max_eigen, z0, dz_max, dz, z_here, this_amp, dz_norm
+
+complex(rp) eigen_val(6), eigen_vec(6,6)
 
 integer, optional :: direction, ix_branch
-integer i, n, n_ele, i_dim, i_max, dir, nc, track_state
+integer j, ie, i_loop, nt, n_ele, i_dim, i_max, dir, nc, track_state
 
 logical, optional, intent(out) :: err_flag
-logical fluct_saved, aperture_saved, damp_saved, err
+logical fluct_saved, aperture_saved, damp_saved, err, error
 
 character(20) :: r_name = 'closed_orbit_calc'
 
@@ -136,7 +140,7 @@ endif
 !----------------------------------------------------------------------
 ! Further init
 
-n = i_dim  ! dimension of transfer matrix
+nt = i_dim ! dimension of transfer matrix
 nc = i_dim ! number of dimensions to compare.
 
 select case (i_dim)
@@ -168,21 +172,20 @@ case (4, 5)
   call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
   call set_on_off (rfcavity$, lat, off$, ix_branch = branch%ix_branch)
 
-  call make_mat2 (err)
+  call make_t11_inv (err)
   if (err) then
     call end_cleanup
     return
   endif
 
   if (i_dim == 5) then  ! crude I1 integral calculation
-    n = 4   ! Still only compute the transfer matrix for the transverse
+    nt = 4  ! Still only compute the transfer matrix for the transverse
     nc = 6  ! compare all 6 coords.
     i1_int = 0
-    do i = 1, branch%n_ele_track
-      ele => branch%ele(i)
+    do ie = 1, branch%n_ele_track
+      ele => branch%ele(ie)
       if (ele%key == sbend$) then
-        i1_int = i1_int + ele%value(l$) * &
-            ele%value(g$) * (branch%ele(i-1)%x%eta + ele%x%eta) / 2
+        i1_int = i1_int + ele%value(l$) * ele%value(g$) * (branch%ele(ie-1)%x%eta + ele%x%eta) / 2
       endif
     enddo
   endif
@@ -200,7 +203,7 @@ case (6)
     return
   endif
 
-  call make_mat2 (err)
+  call make_t11_inv (err)
   if (err) then
     call end_cleanup
     return
@@ -208,14 +211,13 @@ case (6)
 
   ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
 
-  if (branch%lat%absolute_time_tracking) then
-    rf_freq = 0
-    do i = 1, branch%n_ele_track
-      if (branch%ele(i)%key /= rfcavity$) cycle
-      if (.not. branch%ele(i)%is_on) cycle
-      rf_freq = max(rf_freq, branch%ele(i)%value(rf_frequency$))
-    enddo
-  endif
+  rf_freq = 1e30
+  do ie = 1, branch%n_ele_track
+    ele => branch%ele(ie)
+    if (ele%key /= rfcavity$) cycle
+    if (.not. ele%is_on) cycle
+    rf_freq = min(rf_freq, abs(ele%value(rf_frequency$)))
+  enddo
 
 ! Error
 
@@ -225,7 +227,7 @@ case default
 end select
         
 ! Orbit correction = (T-1)^-1 * (orbit_end - orbit_start)
-!                  = mat2     * (orbit_end - orbit_start)
+!                  = t11_inv  * (orbit_end - orbit_start)
 
 
 !--------------------------------------------------------------------------
@@ -234,7 +236,7 @@ end select
 amp_del_old = 1e20  ! something large
 i_max = 100  
 
-do i = 1, i_max
+do i_loop = 1, i_max
 
   if (dir == +1) then
     call track_all (lat, closed_orb, branch%ix_branch, track_state)
@@ -242,7 +244,7 @@ do i = 1, i_max
     call track_many (lat, closed_orb, n_ele, 0, -1, branch%ix_branch, track_state)
   endif
 
-  if (i == i_max .or. track_state /= moving_forward$) then
+  if (i_loop == i_max .or. track_state /= moving_forward$) then
     if (global_com%type_out) then
       if (track_state /= moving_forward$) then
         call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
@@ -261,12 +263,24 @@ do i = 1, i_max
     del_orb%vec(5) = -end%beta * c_light * dt
   endif
 
-  del_co%vec(1:n) = matmul(mat2(1:n,1:n), del_orb%vec(1:n)) 
+  del_co%vec(1:nt) = matmul(t11_inv(1:nt,1:nt), del_orb%vec(1:nt)) 
 
   if (i_dim == 5) then
     del_co%vec(5) = 0
     del_co%vec(6) = del_orb%vec(5) / i1_int      
   endif
+
+  ! For i_dim = 6, if at peak of RF then del_co(5) may be singularly large. 
+  ! To avoid this, limit z step to be no more than lambda_rf/10
+
+  if (i_dim == 6) then
+    dz_norm = abs(del_co%vec(5)) / (start%beta * c_light / (10 * rf_freq))
+    if (dz_norm > 1) then
+      del_co%vec = del_co%vec / dz_norm
+    endif
+  endif
+
+  !
 
   amp_co = sum(abs(start%vec(1:nc)))
   amp_del = sum(abs(del_co%vec(1:nc)))
@@ -274,22 +288,47 @@ do i = 1, i_max
   ! We want to do at least one iteration to prevent problems when 
   ! only a small change is made to the machine and the closed orbit recalculated.
 
-  if (i > 1 .and. amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking) exit
+  if (i_loop > 1 .and. amp_del < amp_co * bmad_com%rel_tol_tracking + bmad_com%abs_tol_tracking) exit
 
-  if (amp_del < amp_del_old .and. modulo(i, 10) /= 0) then
+  if (amp_del < amp_del_old/2 .and. modulo(i_loop, 10) /= 0) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
     call init_coord (start, start, ele_start, upstream_end$)
     amp_del_old = amp_del
-  else  ! not converging so remake mat2 matrix
+  else  ! not converging so remake t11_inv matrix
     call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
     call transfer_matrix_calc (lat, .true., t1, ix_branch = branch%ix_branch)
-    call make_mat2 (err)
+    call make_t11_inv (err)
     if (err) then
       call end_cleanup
       return
     endif
 
     amp_del_old = 1e20  ! something large
+
+    ! For i_dim = 6, there are longitudinally unstable fixed points which we want to avoid.
+    ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
+    ! If we are near an unstable fixed point look for a better spot by shifting the particle in z in steps of pi/4.
+
+    if (i_dim == 6) then
+      call mat_eigen (t1, eigen_val, eigen_vec, error)
+      if (maxval(abs(eigen_val)) - 1 > 1d-5) then
+        amp_co = 1e10  ! Something large
+        z0 = start%vec(5)
+        dz_max = 0
+        dz = start%beta * c_light / (8 * rf_freq)
+        do j = 1, 8
+          z_here = z0 + j * dz
+          call track_this_lat(z_here, this_amp, max_eigen)
+          if (max_eigen - 1 > 1d-5) cycle
+          if (this_amp > amp_co) cycle
+          dz_max = z_here
+          amp_co = this_amp
+        enddo
+        call track_this_lat(dz_max, this_amp, max_eigen)
+        
+      endif
+    endif
+
   endif
 
 enddo
@@ -306,7 +345,7 @@ contains
 
 subroutine end_cleanup
 
-if (n == 4 .or. n == 5) then
+if (nt == 4 .or. nt == 5) then
   call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch)
   branch%ele%old_is_on = branch%ele%bmad_logic
   bmad_com%radiation_damping_on = damp_saved   ! restore state
@@ -320,7 +359,45 @@ end subroutine
 !------------------------------------------------------------------------------
 ! contains
 
-subroutine make_mat2 (err)
+subroutine track_this_lat(z_set, del, max_eigen)
+
+real(rp) z_set, del, dorb(6), max_eigen
+
+!
+
+start%vec(5) = z_set
+
+if (dir == +1) then
+  call track_all (lat, closed_orb, branch%ix_branch, track_state)
+else
+  call track_many (lat, closed_orb, n_ele, 0, -1, branch%ix_branch, track_state)
+endif
+
+if (track_state == moving_forward$) then
+  dorb = end%vec - start%vec
+  if (branch%lat%absolute_time_tracking) then
+    dt = (end%t - start%t) - nint((end%t - start%t) * rf_freq) / rf_freq
+    dorb(5) = -end%beta * c_light * dt
+  endif
+  del = maxval(abs(dorb))
+else
+  max_eigen = 10
+  return
+endif
+
+call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
+call transfer_matrix_calc (lat, .true., t1, ix_branch = branch%ix_branch)
+call make_t11_inv (err)
+
+call mat_eigen (t1, eigen_val, eigen_vec, error)
+max_eigen = maxval(abs(eigen_val))
+
+end subroutine track_this_lat
+
+!------------------------------------------------------------------------------
+! contains
+
+subroutine make_t11_inv (err)
 
 real(rp) mat(6,6)
 logical ok1, ok2, err
@@ -330,16 +407,16 @@ logical ok1, ok2, err
 err = .true.
 
 ok1 = .true.
-if (dir == -1)  call mat_inverse (t1(1:n,1:n), t1(1:n,1:n), ok1)
-call mat_make_unit (mat(1:n,1:n))
-mat(1:n,1:n) = mat(1:n,1:n) - t1(1:n,1:n)
-call mat_inverse(mat(1:n,1:n), mat2(1:n,1:n), ok2)
+if (dir == -1)  call mat_inverse (t1(1:nt,1:nt), t1(1:nt,1:nt), ok1)
+call mat_make_unit (mat(1:nt,1:nt))
+mat(1:nt,1:nt) = mat(1:nt,1:nt) - t1(1:nt,1:nt)
+call mat_inverse(mat(1:nt,1:nt), t11_inv(1:nt,1:nt), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
   if (global_com%type_out) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
   return
 endif
-  
+
 err = .false.
 
 end subroutine
