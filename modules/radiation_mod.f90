@@ -43,7 +43,7 @@ end subroutine release_rad_int_cache
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track1_radiation (start, ele, param, end, edge)
+! Subroutine track1_radiation (orb_start, ele, param, orb_end, edge)
 !
 ! Subroutine to put in radiation dampling and/or fluctuations.
 ! This routine calculates half the radiation of an element so this routine
@@ -53,26 +53,25 @@ end subroutine release_rad_int_cache
 !   use radiation_mod
 !
 ! Input:
-!   start -- Coord_struct: Particle position before radiation applied.
-!   ele   -- Ele_struct: Element that causes radiation.
-!   edge  -- Integer: Where the particle is: start_edge$ or end_edge$.
+!   orb_start -- coord_struct: Particle position before radiation applied.
+!   ele       -- ele_struct: Element that causes radiation.
+!   edge      -- integer: Where the particle is: start_edge$ or end_edge$.
 !
 ! Output:
-!   end   -- Ele_struct: Particle position after radiation has been applied.
+!   orb_end   -- coord_struct: Particle position after radiation has been applied.
 !-
 
-subroutine track1_radiation (start, ele, param, end, edge)
+subroutine track1_radiation (orb_start, ele, param, orb_end, edge)
 
 use random_mod
 
 implicit none
 
-type (coord_struct) :: start
+type (coord_struct) :: orb_start, orb_end
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
-type (coord_struct) :: end
-type (coord_struct), save :: start2
+type (coord_struct), save :: orb_start2
 
 integer :: edge
 
@@ -94,7 +93,7 @@ character(20) :: r_name = 'track1_radiation'
 
 if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
           [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$])) then
-  end = start
+  orb_end = orb_start
   return
 endif
 
@@ -108,10 +107,10 @@ if (edge == start_edge$) then
   set = set$
   s_len = ele%value(l$) / 2
   direc = +1
-  z_start = start%vec(5)
+  z_start = orb_start%vec(5)
 elseif (edge == end_edge$) then
   set = unset$
-  s_len = ele%value(l$)/2 + (start%vec(5) - z_start)
+  s_len = ele%value(l$)/2 + (orb_start%vec(5) - z_start)
   direc = -1
 else
   call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
@@ -123,9 +122,9 @@ if (s_len < 0) s_len = 0
 ! Get the coords in the frame of reference of the element
 
 if (ele%key /= wiggler$ .and. ele%key /= undulator$) then
-  start2 = start
-  call offset_particle (ele, param, set, start2)
-  call canonical_to_angle_coords (start2)
+  orb_start2 = orb_start
+  call offset_particle (ele, param, set, orb_start2)
+  call canonical_to_angle_coords (orb_start2)
 endif
 
 ! Calculate the radius of curvature for an on-energy particle
@@ -133,20 +132,20 @@ endif
 select case (ele%key)
 
 case (quadrupole$, sol_quad$)
-  x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
-  y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
+  x_ave = orb_start2%vec(1) + direc * orb_start2%vec(2) * ele%value(l$) / 4
+  y_ave = orb_start2%vec(3) + direc * orb_start2%vec(4) * ele%value(l$) / 4
   g_x =  ele%value(k1$) * x_ave
   g_y = -ele%value(k1$) * y_ave
   g2 = g_x**2 + g_y**2
   if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
 
 case (sextupole$)
-  g = ele%value(k2$) * (start2%vec(1)**2 + start2%vec(3)**2)
+  g = ele%value(k2$) * (orb_start2%vec(1)**2 + orb_start2%vec(3)**2)
   g2 = g**2
   if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
 
 case (octupole$)
-  g2 = ele%value(k3$)**2 * (start2%vec(1)**2 + start2%vec(3)**2)**3
+  g2 = ele%value(k3$)**2 * (orb_start2%vec(1)**2 + orb_start2%vec(3)**2)**3
   if (bmad_com%radiation_fluctuations_on) g3 = sqrt(g2)**3
 
 case (sbend$)
@@ -155,8 +154,8 @@ case (sbend$)
     g2 = g**2 
     if (bmad_com%radiation_fluctuations_on) g3 = g2 * abs(g)
   else
-    x_ave = start2%vec(1) + direc * start2%vec(2) * ele%value(l$) / 4
-    y_ave = start2%vec(3) + direc * start2%vec(4) * ele%value(l$) / 4
+    x_ave = orb_start2%vec(1) + direc * orb_start2%vec(2) * ele%value(l$) / 4
+    y_ave = orb_start2%vec(3) + direc * orb_start2%vec(4) * ele%value(l$) / 4
     g_x = ele%value(g$) + ele%value(g_err$) + ele%value(k1$) * x_ave
     g_y = ele%value(k1$) * y_ave
     g2 = g_x**2 + g_y**2
@@ -169,8 +168,8 @@ case (wiggler$, undulator$)
     if (edge == start_edge$) then
       if (.not. associated(ele%rad_int_cache)) call calc_radiation_tracking_consts(ele, param)
       if (ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
-      g2 = ele%rad_int_cache%g2_0 + dot_product(start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
-      g3 = ele%rad_int_cache%g3_0 + dot_product(start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
+      g2 = ele%rad_int_cache%g2_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
+      g3 = ele%rad_int_cache%g3_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
       if (g3 < 0) g3 = 0
     endif
   elseif (ele%sub_key == periodic_type$) then
@@ -197,12 +196,12 @@ if (bmad_com%radiation_fluctuations_on) then
   if (param%reverse_time_tracking) fact_f = -fact_f
 endif
 
-dE_p = (1 + start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
+dE_p = (1 + orb_start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 
 
-end = start
-end%vec(2) = end%vec(2) * (1 - dE_p)
-end%vec(4) = end%vec(4) * (1 - dE_p)
-end%vec(6) = end%vec(6)  - dE_p * (1 + end%vec(6))
+orb_end = orb_start
+orb_end%vec(2) = orb_end%vec(2) * (1 - dE_p)
+orb_end%vec(4) = orb_end%vec(4) * (1 - dE_p)
+orb_end%vec(6) = orb_end%vec(6)  - dE_p * (1 + orb_end%vec(6))
 
 if (synch_rad_com%i_calc_on) then
   synch_rad_com%i2 = synch_rad_com%i2 + g2 * s_len
