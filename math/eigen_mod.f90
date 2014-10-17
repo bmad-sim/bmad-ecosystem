@@ -9,7 +9,7 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error, print_err)
+! Subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 !
 ! Routine for determining the eigen vectors and eigen values of a matrix.
 !
@@ -22,14 +22,12 @@ contains
 !                  "no eigen-system found" messages.
 !
 ! Output:
-!   eval_r(n)   -- Real(rp): Eigenvalue real part.
-!   eval_i(n)   -- Real(rp): Eigenvalue imaginary part.
-!   evec_r(n,n) -- Real(rp): Each row evec_r(i,:) is an eigenvector real part.
-!   evec_i(n,n) -- Real(rp): Each row evec_i(i,:) is an eigenvector imaginary part.
-!   error       -- Logical: Set True on error. False otherwise.
+!   eigen_val(n)   -- Complex(rp): Eigenvalue.
+!   eigen_vec(n,n) -- Complex(rp): Eigenvector.
+!   error          -- Logical: Set True on error. False otherwise.
 !-
 
-subroutine mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error, print_err)
+subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
 
 implicit none
 
@@ -37,7 +35,7 @@ real(rp) mat(:,:)
 real(rp) :: val(size(mat, 1)), vec(size(mat, 1), size(mat, 1))
 integer :: iv(size(mat, 1))
 
-real(rp) eval_r(:), eval_i(:), evec_r(:,:), evec_i(:,:)
+complex(rp) eigen_val(:), eigen_vec(:,:)
 
 integer i, n, ier
 
@@ -61,24 +59,16 @@ call ordersys (val, vec, iv, n)
 
 do i = 2, n, 2
   if (iv(i-1) == 0) then
-    eval_r(i-1) = val(i-1)
-    eval_i(i-1) = 0
-    eval_r(i) = val(i)
-    eval_i(i) = 0
-    evec_r(i-1, :) = vec(:, i-1)
-    evec_i(i-1, :) = 0
-    evec_r(i, :) = vec(:, i)
-    evec_i(i, :) = 0
+    eigen_val(i-1) = val(i-1)
+    eigen_val(i)   = val(i)
+    eigen_vec(i-1, :) = vec(:, i-1)
+    eigen_vec(i, :)   = vec(:, i)
 
   elseif (iv(i-1) == 1) then
-    eval_r(i-1) = val(i-1)
-    eval_i(i-1) = val(i)
-    eval_r(i) = val(i-1)
-    eval_i(i) = -val(i)
-    evec_r(i-1, :) = vec(:, i-1)
-    evec_i(i-1, :) = vec(:, i)
-    evec_r(i, :) = vec(:, i-1)
-    evec_i(i, :) = -vec(:, i)
+    eigen_val(i-1) = cmplx(val(i-1), val(i))
+    eigen_val(i)   = cmplx(val(i-1), -val(i))
+    eigen_vec(i-1, :) = cmplx(vec(:, i-1), vec(:, i))
+    eigen_vec(i, :)   = cmplx(vec(:, i-1), -vec(:, i))
 
   else
     call out_io (s_fatal$, 'mat_eigen', 'BAD IV FROM EIGENSYS')
