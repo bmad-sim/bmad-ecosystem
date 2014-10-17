@@ -377,6 +377,11 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
     else:
       print ('Combined collimators not yet implemented. Please contact David Sagan')
 
+    if inside_sol:
+      if bmad_ele.type == 'ecollimator': bmad_ele.param['aperture_type'] = 'elliptical'
+      bmad_ele.type = 'solenoid'
+
+
   # For a bend, f1 mut be added to fb1 and fb2
 
   if sad_ele.type == 'bend' and 'f1' in sad_ele.param:
