@@ -2837,8 +2837,8 @@ Attributes specific to a \vn{quadrupole} element are:
 \begin{example}
   b1_gradient    = <Real>    ! Field strength. (\sref{s:depend}).
   k1             = <Real>    ! Quadrupole strength.
-  f1             = <Real>    ! SAD ``linear'' fringe at entrance end.
-  f2             = <Real>    ! SAD ``linear'' fringe at exit end.
+  fq1            = <Real>    ! Soft edge fringe parameter.
+  fq2            = <Real>    ! Soft edge fringe parameter.
  \end{example}
 
 \index{tilt}
@@ -2848,6 +2848,11 @@ is used.
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
 quadrupole is horizontally focusing and vertically defocusing
 (\sref{s:fields}).
+
+The \vn{fq1} and \vn{fq2} parameters are used to specify the
+quadrupolar ``soft'' edge fringe. See \sref{ss:q.soft} for more details.
+The \vn{fringe_at} and \vn{fringe_type} settings (\sref{s:fringe})
+determine if the fringe field is used in tracking.
 
 Example:
 \begin{example}
@@ -2992,8 +2997,8 @@ Attributes specific to an \vn{sextupole} element are:
   bs_field        = <Real>    ! Solenoid field. See SAD bz attribute.
   e1, e2          = <Real>    ! Bend face angles.
   eps_step_scale  = <Real>    ! Step size scale. Default = 1. See SAD eps attribute.
-  f1              = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
-  f2              = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
+  fq1             = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
+  fq2             = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
   g               = <Real>    ! Bend strength 1/rho
 %  rf_frequency    = <Real>    ! Rf frequency (Hz). See SAD volt attribute.
 %  harmon          = <Real>    ! Harmonic number. See SAD harm attribute.
@@ -3026,8 +3031,12 @@ multipole components. The \bmad \vn{sad_mult} element used normal
 equations in \sref{s:fields}, there is a factor of $n!$ between the
 two representations.
 
-The \vn{fringe_type} and \vn{fringe_at} switches are discussed in
-Sec.~\sref{s:fringe} The translation between these two switches and
+The \vn{fq1} and \vn{fq2} parameters are used to specify the
+quadrupolar ``soft'' edge fringe. See \sref{ss:q.soft} for more details.
+
+The \vn{fringe_at} and \vn{fringe_type} settings (\sref{s:fringe})
+determine if the fringe field is used in tracking.
+The translation between these two switches and
 the \vn{fringe} and \vn{disfrin} switches of SAD is:
 \begin{center}
 \tt
