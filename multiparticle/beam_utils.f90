@@ -1404,8 +1404,7 @@ end subroutine init_spin_distribution
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! subroutine calc_bunch_params_slice (bunch, bunch_params, 
-!                           plane, slice_center, slice_spread, err, print_err)
+! subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
 !
 ! Finds all bunch parameters for a slice through the beam distribution.
 !
@@ -1425,8 +1424,7 @@ end subroutine init_spin_distribution
 !   err    -- Logical: Set True if there is an error in mat_eigen routine.
 ! -
 
-subroutine calc_bunch_params_slice (bunch, bunch_params, &
-                          plane, slice_center, slice_spread, err, print_err)
+subroutine calc_bunch_params_slice (bunch, bunch_params, plane, slice_center, slice_spread, err, print_err)
 
 implicit none
 
@@ -1525,12 +1523,12 @@ type (bunch_params_struct) bunch_params
 real(rp) exp_x2, exp_px2, exp_x_px, exp_x_d, exp_px_d
 real(rp) avg_energy, temp6(6), eta, etap
 real(rp) :: sigma_s(6,6), s(6,6), sigma_s_save(6,6) = 0.0, sigma(6,6) = 0.0
-real(rp) :: d_r(6) = 0.0, d_i(6) = 0.0, e_r(6,6) = 0.0, e_i(6,6) = 0.0
 real(rp) :: u(6,6), n_real(6,6), beta_66_iii, charge_live
 real(rp), allocatable :: charge(:)
 
+complex(rp) :: eigen_val(6) = 0.0, eigen_vec(6,6)
 complex(rp) :: sigma_s_complex(6,6) = 0.0
-complex(rp) :: n(6,6), e(6,6), q(6,6)
+complex(rp) :: n(6,6), q(6,6)
 
 integer i, j, species
 
@@ -1618,35 +1616,27 @@ call projected_twiss_calc ('Z', bunch_params%z, bunch_params%sigma(5,5), bunch_p
 ! find eigensystem of sigma.S 
 
 sigma_s_save = sigma_s
-call mat_eigen (sigma_s, d_r, d_i, e_r, e_i, err, print_err)
+call mat_eigen (sigma_s, eigen_val, eigen_vec, err, print_err)
 if (err) return
 
 ! The eigen-values of Sigma.S are the normal-mode emittances (eq. 32)
 
-bunch_params%a%emit = d_i(1)
-bunch_params%b%emit = d_i(3)
-bunch_params%c%emit = d_i(5)
+bunch_params%a%emit = aimag(eigen_val(1))
+bunch_params%b%emit = aimag(eigen_val(3))
+bunch_params%c%emit = aimag(eigen_val(5))
 
-bunch_params%a%norm_emit = d_i(1) * (avg_energy/mass_of(species))
-bunch_params%b%norm_emit = d_i(3) * (avg_energy/mass_of(species))
-bunch_params%c%norm_emit = d_i(5) * (avg_energy/mass_of(species))
+bunch_params%a%norm_emit = bunch_params%a%emit * (avg_energy/mass_of(species))
+bunch_params%b%norm_emit = bunch_params%b%emit * (avg_energy/mass_of(species))
+bunch_params%c%norm_emit = bunch_params%c%emit * (avg_energy/mass_of(species))
 
 ! Now find normal-mode sigma matrix and twiss parameters
 ! N = E.Q from eq. 44
-
-e(1,:) = e_r(1,:) + i_imaginary * e_i(1,:)
-e(2,:) = e_r(2,:) + i_imaginary * e_i(2,:)
-e(3,:) = e_r(3,:) + i_imaginary * e_i(3,:)
-e(4,:) = e_r(4,:) + i_imaginary * e_i(4,:)
-e(5,:) = e_r(5,:) + i_imaginary * e_i(5,:)
-e(6,:) = e_r(6,:) + i_imaginary * e_i(6,:)
-
 ! Eq. 14
 ! mat_eigen finds row vectors, so switch to column vectors
 
-call normalize_e (e, err)
+call normalize_e (eigen_vec, err)
 if (err) return
-e = transpose(e)
+eigen_vec = transpose(eigen_vec)
 
 q = 0.0
 q(1,1) = 1.0/sqrt(2.0)
@@ -1663,7 +1653,7 @@ q(5,6) =  i_imaginary / sqrt(2.0)
 q(6,6) = -i_imaginary / sqrt(2.0)
 
 ! compute N in eq. 44
-n = matmul(e,q)
+n = matmul(eigen_vec, q)
 ! N is now a real matrix
 n_real = real(n)
 
