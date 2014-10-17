@@ -1133,10 +1133,12 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
   select case (ix)
   case (none$)
     call set_integer (p%permfringe, pp%permfringe, 0)
-  case (full$, hard_edge_only$)
+  case (hard_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 1)
   case (soft_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 2)
+  case (full$)
+    call set_integer (p%permfringe, pp%permfringe, 3)
   end select
 
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) call set_integer (p%permfringe, pp%permfringe, 0)

@@ -3278,12 +3278,12 @@ elseif (attribute_index(ele, 'FRINGE_TYPE') > 0) then  ! If fringe_type is a val
   select case (ix)
   case (none$)
     ptc_key%list%permfringe = 0
-  case (full$)
-    ptc_key%list%permfringe = 1
   case (hard_edge_only$)
     ptc_key%list%permfringe = 1
   case (soft_edge_only$)
     ptc_key%list%permfringe = 2
+  case (full$)
+    ptc_key%list%permfringe = 3
   end select
 
   if (ele%key == sad_mult$ .and. ele%value(l$) == 0) ptc_key%list%permfringe = 0
