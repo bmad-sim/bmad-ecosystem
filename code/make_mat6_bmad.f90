@@ -109,7 +109,8 @@ if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$) then
   if (c1%state /= alive$ .and. (ele%key /= match$ .or. v(match_end$) == 0)) then
     mat6 = 0
     if (present(err)) err = .true.
-    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // ele%name)
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // trim(ele%name) // '  (\i0\) ', &
+                 i_array = [ele%ix_ele] )
     return
   endif
 endif
@@ -1036,7 +1037,7 @@ case (sbend$)
 
       ct = cos(angle)
       st = sin(angle)
-      if (angle < 1d-7) then
+      if (abs(angle) < 1d-7) then
         stg = length * (1 - angle**2 / 6)
         one_ctg = g_tot * length * angle / 2
       else
