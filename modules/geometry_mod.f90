@@ -177,6 +177,13 @@ if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
     ele%floor = ele2%floor
   endif
 
+  if (ele2%bookkeeping_state%floor_position == stale$) then
+    call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
+                                                    '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                   'DOES NOT HAVE A WELL DEFINED POSITION')
+    if (global_com%exit_on_error) call err_exit
+  endif
+
   ele0 => branch%ele(ie-dir)
   call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
   call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)

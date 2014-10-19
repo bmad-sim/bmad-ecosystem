@@ -475,7 +475,7 @@ do n = 1, n_step
 
     ct = cos(angle)
     st = sin(angle)
-    if (angle < 1d-7) then
+    if (abs(angle) < 1d-7) then
       stg = length * (1 - angle**2 / 6)
       one_ct = length * angle / 2
     else

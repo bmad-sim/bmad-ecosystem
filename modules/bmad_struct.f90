@@ -790,9 +790,9 @@ logical has_kick_attributes(n_key$)
 
 integer, parameter :: n_part$ = 2, taylor_order$ = 3
 
-integer, parameter :: val1$=3, val2$=4, val3$=5, val4$=6, val5$=7, &
-          val6$=9, val7$=10, val8$=11, val9$=12, val10$=13, val11$=14, &
-          val12$=15
+integer, parameter :: val1$=11, val2$=12, val3$=13, val4$=14, val5$=15, &
+          val6$=16, val7$=17, val8$=18, val9$=19, val10$=20, val11$=21, &
+          val12$=22
 
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
           alpha_b0$ = 5, beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, &
