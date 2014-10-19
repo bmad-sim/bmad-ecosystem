@@ -104,7 +104,7 @@ character(20), parameter :: r_name = 'lat_to_ptc_layout'
 ! Setup m_u
 
 do i = 0, ubound(lat%branch, 1)
-  call branch_to_ptc_layout (lat%branch(i))
+  call branch_to_ptc_m_u (lat%branch(i))
 enddo
 
 ! setup m_t
@@ -116,7 +116,7 @@ do i = 0, ubound(lat%branch, 1)
   write (m_t%end%name, '(a, i4)') 'm_t Bmad branch:', i  ! For diagnostic purposes
 
   branch => lat%branch(i)
-  call add_ptc_layout_to_list(branch%ptc,  m_t%end)   ! Save layout
+  branch%ptc%m_t_layout => m_t%end   ! Save layout
 
   lay => m_t%end
 
@@ -197,7 +197,7 @@ end subroutine lat_to_ptc_layout
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine branch_to_ptc_layout (branch)
+! Subroutine branch_to_ptc_m_u (branch)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch.
 ! Note: If lat_to_ptc_layout has already been setup, you should first do a 
@@ -224,7 +224,7 @@ end subroutine lat_to_ptc_layout
 !   branch(:)%ele(:)%ptc_fibre -- Pointer to PTC fibres
 !-
 
-subroutine branch_to_ptc_layout (branch)
+subroutine branch_to_ptc_m_u (branch)
 
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
@@ -331,7 +331,7 @@ lielib_print(12) = n
 
 end subroutine layout_end_stuff
 
-end subroutine branch_to_ptc_layout
+end subroutine branch_to_ptc_m_u
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -362,17 +362,17 @@ integer n
 
 !
 
-if (allocated(branch_ptc_info%layout)) then
-  n = size(branch_ptc_info%layout)
-  call move_alloc(branch_ptc_info%layout, temp_info%layout)
-  allocate(branch_ptc_info%layout(n+1))
-  branch_ptc_info%layout(1:n) = temp_info%layout
-  branch_ptc_info%layout(n)%ptr => layout_end
-  deallocate(temp_info%layout)
+if (allocated(branch_ptc_info%m_u_layout)) then
+  n = size(branch_ptc_info%m_u_layout)
+  call move_alloc(branch_ptc_info%m_u_layout, temp_info%m_u_layout)
+  allocate(branch_ptc_info%m_u_layout(n+1))
+  branch_ptc_info%m_u_layout(1:n) = temp_info%m_u_layout
+  branch_ptc_info%m_u_layout(n+1)%ptr => layout_end
+  deallocate(temp_info%m_u_layout)
 
 else
-  allocate(branch_ptc_info%layout(1))
-  branch_ptc_info%layout(1)%ptr => layout_end  
+  allocate(branch_ptc_info%m_u_layout(1))
+  branch_ptc_info%m_u_layout(1)%ptr => layout_end  
 endif 
 
 end subroutine add_ptc_layout_to_list
@@ -982,7 +982,7 @@ character(*) file_name
 
 !
 
-call print_complex_single_structure (branch%ptc%layout(1)%ptr, file_name)
+call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
 
 end subroutine write_ptc_flat_file_lattice
 

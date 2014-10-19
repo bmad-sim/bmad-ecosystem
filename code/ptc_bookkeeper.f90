@@ -26,7 +26,7 @@ integer i, j
 
 do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (.not. allocated(branch%ptc%layout)) cycle
+  if (.not. associated(branch%ptc%m_t_layout)) cycle
   do j = 0, branch%n_ele_track
     ele => branch%ele(j)
     if (.not. associated (ele%ptc_fibre)) cycle

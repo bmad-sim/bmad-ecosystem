@@ -636,7 +636,8 @@ type ptc_layout_pointer_struct
 end type
 
 type ptc_branch1_info_struct
-  type (ptc_layout_pointer_struct), allocatable :: layout(:)
+  type (ptc_layout_pointer_struct), allocatable :: m_u_layout(:)
+  type (layout), pointer :: m_t_layout => null()
 end type
 
 !
