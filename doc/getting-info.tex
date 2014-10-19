@@ -14,14 +14,14 @@ which \tao was invoked. This will be called the \vn{command} window.
 As a first step, let us command \tao to display some plotting
 information using the command:
 \begin{example}
-  show plot
+  show plot       ! \sref{s:show}
 \end{example}
 The information will be displayed in the command window. The first
 section of the \vn{show plot} output shows information on font sizes:
 \begin{example}
   plot_page parameters:
-  %size                       =   4.00000000E+02  5.00000000E+02
-  %n_curve_pts                =      401
+  %size                       =   400  500
+  %n_curve_pts                =   401
   %text_height                = 12.000
   %main_title_text_scale      = 1.300
   %graph_title_text_scale     = 1.100
@@ -84,8 +84,36 @@ between the model and design phases (as documented in the plot title
 as [model - design]). Two plot regions are defined in \tao
 \vn{top} and \vn{bottom}.
 
+To see information on, say, the orbit plot, use the command
+\begin{example}
+  show plot orbit
+\end{example}
+This shows:
+\begin{example}
+  Region:  orbit
+  Plot:  orbit
+  x_axis_type          = index
+  x%label              =
+  x%max                =   1.00000000E+02
+  x%min                =   0.00000000E+00
+  x%major_div          =       10
+  x%major_div_nominal  =       10
+  x%places             =       -1
+  x%draw_label         = T
+  x%draw_numbers       = T
+  autoscale_x          = F
+  autoscale_y          = F
+  autoscale_gang_x     = T
+  autoscale_gang_y     = T
+  Graphs:
+     x
+     y
+\end{example}
+Also see the \vn{show graph} and \vn{show curve} commands.
+\etcetc
+
 \index{commands!plot}
-As a first step let's view the absolute model phase. Use the command:
+Let's view the absolute model phase. Use the command:
 \begin{example}
   plot bottom model
 \end{example}
