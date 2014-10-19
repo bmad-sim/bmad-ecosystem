@@ -1243,7 +1243,7 @@ Format:
 \begin{example}
   alias
   beam \{<element_name_or_index>\}
-  branch \{\{-branch\} <branch>\} \{-universe <universe>\} 
+  branch \{\{-branch\} <name_or_index>\} \{-universe <universe>\} 
   building_wall  
   constraints
   curve \{-line\} \{-no_header\} \{-symbol\} <curve_name> 
@@ -1257,25 +1257,25 @@ Format:
   hom
   key_bindings
   lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
-        \{-branch <branch>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} 
-        \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} \{-radiation_integrals\}
-        \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+        \{-branch <name_or_index>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} 
+        \{-lords\} \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} 
+        \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
   matrix \{-s\} \{loc1 \{loc2\}\}
   normal_form \{-order <n_order>\} <type>
   optimizer \{-geodesic_lm\}
-  particle \{-bunch <bunch_index>\} \{-particle <particle_index> 
+  particle \{-bunch <bunch_name_or_index>\} \{-particle <particle_index> 
         \{-element <element_name_or_index>\} \{-lost\} \{-all\}
   plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
   taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
   top10 \{-derivative\}
-  twiss_and_orbit \{-base\} \{-branch <name>\} \{-design\} \{-universe <ix_uni>\} <s_position>
+  twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} \{-universe <ix_uni>\} <s_position>
   universe \{universe_number\}
   use
   value <expression>
   variable \{-no_label_lines\} \{<var_name>\}
   variable \{-no_label_lines\} <universe_number>@
   variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
-  wall \{-branch <name>\} \{-section <index>\} \{-angle <angle>\} \{-s <s1>:<s2>\} \{<n1>:<n2>\}
+  wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} \{-s <s1>:<s2>\} \{<n1>:<n2>\}
   wave
 \end{example}
 
@@ -1331,15 +1331,15 @@ of the \vn{beam_init} structure.
 
 %% show branch --------------------------------------------------------------
 
-\item[show branch \{\{-branch\} <branch>\} \{-universe <universe>\}] \Newline
+\item[show branch \{\{-branch\} <name_or_index>\} \{-universe <universe>\}] \Newline
 
 \vskip -0.2in
 
 Lists the lattice branches of the lattice associated with the given universe.
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
-If \vn{-branch <branch>} is present, more detailed info on the given branch
-will be given. Here \vn{<branch>} can be either the branch name or index.
+If \vn{-branch <name_or_index>} is present, more detailed info on the given branch
+will be given. Here \vn{<name_or_index>} can be either the branch name or index.
 
 Example:
 \begin{example}
@@ -1392,6 +1392,8 @@ for all curves so the horizontal data values will be put in column 1.
 The \vn{-no_header} switch is used with \vn{-line} and \vn{-symbol} to
 suppress the printing of header lines. This is useful when the generated
 table is to be read in by another program.
+
+Also see: \vn{show plot} and \vn{show graph} commands.
 
 Example:
 \begin{example}
@@ -1564,9 +1566,11 @@ Show information on a particular graph of a particular plot. See
 \sref{c:plotting} for the syntax on plot, graph, and curve names.
 Use \vn{show plot} to get a list of plot names.
 
+Also see: \vn{show plot} and \vn{show curve} commands.
+
 Example:
 \begin{example}
-  show curve r2.g1         ! Show the attributes of graph "g1" which is 
+  show graph r2.g1         ! Show the attributes of graph "g1" which is 
                            !   plotted in region "r2".
 \end{example}
 
@@ -1591,7 +1595,7 @@ Shows all key bindings.
 
 \item[\protect\parbox{6in}{
   show lattice \{-0undef\} \{-all\_tracking\} \{-base\} \{-blank_replacement <string>\}  \\
-  \hspace*{0.35in} \{-branch <branch>\} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \\
+  \hspace*{0.35in} \{-branch <name_or_index>\} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \\
   \hspace*{0.35in} \{-middle\}  \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
   \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<element_list>\}  }] \Newline
 
@@ -1626,7 +1630,8 @@ If present, the \vn{-lords} switch will print a list of lord elements only.
 If present, the \vn{-floor_coords} switch will print the global floor
 (laboratory) coordinates for each element.
 
-The \vn{-branch} can be used to specify the branch of the lattice.
+The \vn{-branch <name_or_index>} option can be used to specify the branch of
+the lattice. \vn{<name_or_index>} can be the name or index of the branch.
 The default is the main branch (\# 0).
 
 The locations to show are specified either by specifying a longitudinal 
@@ -1817,9 +1822,7 @@ Examples:
 
 %% show plot --------------------------------------------------------------
 
-\item[\protect\parbox{6in}{
-  show plot \{-floor_plan\} \{-lat_layout \} \\
-  \hspace*{0.35in} \{<plot_region_name>\} \{<template_plot_name>\}}] 
+\item[show plot \{-floor_plan\} \{-lat_layout \} \{<plot_or_template_name>\}]
 \Newline
 
 \vskip -0.1in
@@ -1827,13 +1830,20 @@ Examples:
 A simple \vn{show plot} displays which templates are being plotted and
 in which regions and also all available templates. See
 \sref{c:plotting} for the syntax on plot, graph, and curve names. A
-\vn{show plot <plot_name>} will display information on a particular
+\vn{show plot <plot_or_region_name>} will display information on a particular
 plot. 
 
 The \vn{show plot -floor_plan} and \vn{show plot -lat_layout} commands
 show the parameters associated with the \vn{floor_plan} or
 \vn{lat_layout} plots (\sref{s:layout.and.floor}). Use the \vn{set
 floor_plan} or \vn{set lat_layout} commands to set these parameters.
+
+Also see \vn{show graph} and \vn{show_curve}.
+
+Examples:
+\begin{example}
+  show plot      ! General plot info
+  show plot r13
 
 %% show top10 --------------------------------------------------------------
 
@@ -1895,7 +1905,7 @@ Examples:
 \vskip 0.1 in
 
 \item[\protect\parbox{6in}{
-    show twiss\_and\_orbit \{-base\} \{-branch <name>\} \{-design\} \\
+    show twiss\_and\_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} \\
     \hspace*{0.35in} \{-universe <ix\_uni>\} <s\_position>}] \Newline
 
 \vskip -0.1in
@@ -1990,7 +2000,7 @@ Examples:
 \vskip 0.1in
 
 \item[\protect\parbox{6in}{
-    show wall \{-branch <name>\}\{-section <index>\} \{-angle <angle>} \\
+    show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>} \\
     \hspace*{0.35in} \{-s <s1>:<s2>\} \{<n1>:<n2>\}] \Newline
 
 \vskip -0.1in 
@@ -2204,7 +2214,7 @@ Format:
                                    ! Create a PS file of the plot window.
   write ps-l \{-scale <scale>\} \{<file_name>\}    
                                    ! Create a PS file with landscape orientation.
-  write ptc \{-old\} \{<file_name>\}
+  write ptc \{-all\} \{-new\} \{-branch <name_or_index\} \{<file_name>\}
   write variable \{-good_var_only\} \{<file_name>\} 
                                    ! Create a Bmad file of variable values.
 \end{example}
@@ -2279,9 +2289,20 @@ initialize \tao (\sref{s:command.line}). Example
   write beam -at *   ! Output beam at every element.
 \end{example}
 
-The \vn{write ptc} command writes a PTC flat file of the lattice.
-The default is to write a ``new style'' format version. The \vn{-old} switch
-will generate an ``old style'' version. This command can only be used
+The \vn{write ptc} command writes a PTC flat file of the associated
+PTC layout of the \bmad lattice branch given by the \vn{-branch}
+switch. The default, if \vn{-branch} is not present, is to use lattice
+branch \# 0. The \vn{-new} switch will generate an ``new style'' version.
+If \vn{-new} is not present, The default is to write an ``old style'' format
+version.
+
+If the \vn{-all} switch is present, \vn{write ptc} does something
+different.  In this case, flat files for both \vn{M_u} and \vn{M_t}
+mad_universe structures will be generated. The two files generated
+will have the suffixes \vn{.m_u} and \vn{.m_t} appended to the file
+names. In this case, the setting of \vn{-branch} is ignored.
+
+In all cases, the \vn{write ptc} command can only be used
 after a \vn{ptc init} command has been used to setup PTC.
 
 Note: PGPLOT, if being used, does a poor job producing gif files so consider

@@ -219,8 +219,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         normal_form => branch%normal_form_no_rf
       endif
       
-      if (.not. associated (normal_form%ele_origin)) normal_form%ele_origin => branch%ele(0)
-      if (.not. allocated(branch%ptc%layout)) call lat_to_ptc_layout (tao_lat%lat)
+      if (.not. associated(normal_form%ele_origin)) normal_form%ele_origin => branch%ele(0)
+      if (.not. associated(branch%ptc%m_t_layout)) call lat_to_ptc_layout (tao_lat%lat)
       
       ! Get one-turn-map
       call ptc_one_turn_map_at_ele (normal_form%ele_origin, normal_form%m, s%global%rf_on, pz = 0.0_rp )

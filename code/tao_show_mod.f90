@@ -1525,7 +1525,7 @@ case ('lattice')
     case ('-branch')
       branch => pointer_to_branch(stuff2(1:ix_s2), u%model%lat)
       if (.not. associated(branch)) then
-        nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
+        nl=1; write(lines(1), *) 'Bad branch name or index: ', stuff2(:ix_s2)  
         return
       endif
       ix_branch = branch%ix_branch

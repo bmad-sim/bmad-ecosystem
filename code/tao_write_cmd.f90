@@ -16,7 +16,7 @@ use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
 use tao_top10_mod, dummy4 => tao_write_cmd
 use tao_write_3d_mod, dummy5 => tao_write_cmd
-use madx_ptc_module, only: m_u, m_t, print_universe_pointed
+use madx_ptc_module, only: m_u, m_t, print_universe_pointed, print_complex_single_structure, print_new_flat, print_universe
 
 implicit none
 
@@ -24,6 +24,7 @@ type (tao_curve_array_struct), allocatable, save :: curve(:)
 type (tao_curve_struct), pointer :: c
 type (beam_struct), pointer :: beam
 type (bunch_struct), pointer :: bunch
+type (branch_struct), pointer :: branch
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (ele_struct), pointer :: ele
@@ -32,7 +33,7 @@ type (coord_struct), pointer :: p
 real(rp) scale
 
 character(*) what
-character(20) action, name, lat_type
+character(20) action, name, lat_type, which
 character(40) switch
 character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
@@ -47,7 +48,7 @@ character(20) :: names(22) = [ &
       'gif-l            ', 'ptc              ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
-integer i_chan, ix_beam, ix_word
+integer i_chan, ix_beam, ix_word, ix_w2
 
 logical is_open, ascii, ok, err, good_opt_only, at_switch
 
@@ -55,7 +56,7 @@ logical is_open, ascii, ok, err, good_opt_only, at_switch
 
 call string_trim (what, what2, ix)
 action = what2(1:ix)
-what2 = what2(ix+1:)
+call string_trim(what2(ix+1:), what2, ix_w2)
 
 call tao_cmd_split (what2, 10, word, .true., err)
 if (err) return
@@ -264,16 +265,6 @@ case ('covariance_matrix')
 
   call out_io (s_info$, r_name, 'Writen: ' // file_name)
   close(iu)
-
-!---------------------------------------------------
-! ptc
-
-case ('ptc')
-
-file_name = word(1)
-if (file_name == '') file_name = 'ptc.flatfile'
-
-call print_universe_pointed (M_u, M_t, file_name)
 
 !---------------------------------------------------
 ! curve
@@ -563,6 +554,58 @@ case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
   call tao_draw_plots ()   ! Update the plotting window
 
   call out_io (s_blank$, r_name, "Created " // trim(action) // " file: " // file_name)
+
+!---------------------------------------------------
+! ptc
+
+case ('ptc')
+
+which = '-old'
+u => tao_pointer_to_universe(-1)
+branch => u%model%lat%branch(0)
+
+do 
+  call tao_next_switch (what2, ['-old   ', '-new   ', '-branch', '-all   '], switch, err, ix_w2)
+  if (err) return
+  if (switch == '') exit
+
+  select case (switch)
+  case ('-old', '-new', '-all')
+    which = switch
+  case ('-branch')
+    branch => pointer_to_branch (what2(1:ix_w2), u%model%lat)
+    if (.not. associated(branch)) then
+      call out_io (s_fatal$, r_name, 'Bad branch name or index: ' // what2(:ix_w2))
+      return
+    endif
+  end select
+enddo
+
+file_name = what2(:ix_w2)
+if (file_name == '') file_name = 'ptc.flatfile'
+
+select case (which)
+case ('-old', '-new')
+  if (.not. associated(branch%ptc%m_t_layout)) then
+    call out_io (s_fatal$, r_name, 'No associated PTC layout exists.', &
+                                  'You must use the command "ptc init" before creating a flat file.')
+    return
+  endif
+
+  if (which == '-old') then
+    call print_complex_single_structure (branch%ptc%m_t_layout, file_name)
+  else
+    call print_new_flat (branch%ptc%m_t_layout, file_name)
+  endif
+
+  call out_io (s_info$, r_name, 'Writen: ' // file_name)
+
+case ('-all')
+  call print_universe (M_u, trim(file_name) // '.m_u')
+  call print_universe_pointed (M_u, M_t, trim(file_name) // '.m_t')
+  call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_u')
+  call out_io (s_info$, r_name, 'Writen: ' // trim(file_name) // '.m_t')
+end select
 
 !---------------------------------------------------
 ! variables
