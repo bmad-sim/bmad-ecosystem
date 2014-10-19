@@ -49,7 +49,7 @@ open (1, file = 'output.now')
 !   5) Check that branch%ele and branch2%ele have same attribute values.
 
 branch => lat%branch(1)
-call branch_to_ptc_layout (branch)
+call branch_to_ptc_m_u (branch)
 
 branch2 => lat%branch(2)
 
