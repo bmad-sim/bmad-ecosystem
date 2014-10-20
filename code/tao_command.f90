@@ -27,7 +27,7 @@ use tao_show_mod
 use tao_wave_mod
 use tao_x_scale_mod
 
-!MPI use tao_mpi_mod
+! MPI use tao_mpi_mod
 
 implicit none
 
@@ -126,16 +126,7 @@ case ('alias')
 case ('call')
 
   call tao_cmd_split(cmd_line, 10, cmd_word, .true., err); if (err) return
-  if (index('-ptc', cmd_word(1)) ==  1 .and. len_trim(cmd_word(1)) > 1) then
-    if (cmd_word(2) == '' .or. cmd_word(3) /= '') then
-      call out_io (s_error$, r_name, 'FILENAME MISSING OR EXTRA STUFF FOUND.')
-      return
-    endif
-    call read_ptc_command77 (cmd_word(2))
-
-  else
-    call tao_call_cmd (cmd_word(1), cmd_word(2:10))
-  endif
+  call tao_call_cmd (cmd_word(1), cmd_word(2:10))
   return
 
 !--------------------------------
