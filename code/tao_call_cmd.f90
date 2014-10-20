@@ -23,10 +23,26 @@ implicit none
 character(*) file_name
 character(*), optional :: cmd_arg(:)
 character(200) full_name
-character(16) :: r_name = 'tao_call_cmd'
+character(*), parameter :: r_name = 'tao_call_cmd'
 
 integer iu, nl
 type (tao_command_file_struct) :: cmd_file(0:s%com%cmd_file_level)
+
+! PTC call
+
+if (file_name(1:1) == '-') then
+  if (index('-ptc', trim(file_name)) ==  1 .and. len_trim(file_name) > 1) then
+    if (cmd_arg(1) == '' .or. cmd_arg(2) /= '') then
+      call out_io (s_error$, r_name, 'FILENAME MISSING OR EXTRA STUFF FOUND.')
+      return
+    endif
+    call read_ptc_command77 (cmd_arg(1))
+
+  else
+    call out_io (s_fatal$, r_name, 'BAD SWITCH: ' // file_name, 'NOTHING DONE.')
+  endif
+  return
+endif
 
 ! Open the command file and store the unit number
 
