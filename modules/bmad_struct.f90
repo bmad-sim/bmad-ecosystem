@@ -618,7 +618,7 @@ type lat_param_struct
                                              ! |orbit/limit| for open branches.
   real(rp) :: t1_with_RF(6,6) = 0            ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0              ! Full 1-turn matrix with RF off.
-  real(rp) :: rel_tracking_charge = 1        ! Charge relative to referece charge
+  real(rp) :: rel_tracking_charge = 1        ! Tracked particle charge/mass relative to reference charge.
   integer :: particle = positron$            ! Reference particle: positron$, electron$, etc.
   integer :: geometry = 0                    ! open$ or closed$
   integer :: ixx = 0                         ! Integer for general use

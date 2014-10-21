@@ -3882,7 +3882,7 @@ end subroutine reallocate_bp_com_var
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_all_superimpose (branch, super_ele_in, pele, in_lat)
+subroutine add_all_superimpose (branch, super_ele_in, pele, in_lat, plat)
 
 use multipass_mod
 
@@ -3892,7 +3892,9 @@ type (ele_struct) super_ele_in
 type (ele_struct), save :: super_ele_saved, super_ele
 type (ele_struct), pointer :: ref_ele, ele, slave, lord, super_ele_out
 type (ele_pointer_struct), allocatable :: eles(:)
-type (parser_ele_struct) pele
+type (parser_lat_struct), optional, target :: plat
+type (parser_ele_struct) :: pele
+type (parser_ele_struct), pointer :: ref_pele
 type (multipass_all_info_struct) m_info
 type (lat_struct), optional :: in_lat
 type (lat_ele_loc_struct), allocatable :: m_slaves(:)
@@ -3902,7 +3904,7 @@ type (lat_struct), pointer :: lat
 integer ix, i, j, k, it, nic, nn, i_ele, ib
 integer n_con, ix_branch, n_loc
 
-character(40) name
+character(40) name, ref_name
 character(40), allocatable :: multi_name(:)
 character(80) line
 
@@ -3942,18 +3944,46 @@ if (err) then
 endif
 
 ! If no match and the reference element has been defined but not used in the lattice
-! then this is not an error
+! then this is not an error.
 
 if (n_loc == 0) then
-  do i = 1, in_lat%n_ele_max
-    found = match_wild(in_lat%ele(i)%name, pele%ref_name)
-    if (found) exit
-  enddo
-  if (.not. found) call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &
-                                     'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+
+  found = .false.
+  if (present(in_lat)) then
+    do i = 1, in_lat%n_ele_max
+      found = match_wild(in_lat%ele(i)%name, pele%ref_name)
+      if (found) exit
+    enddo
+  endif
+
+  if (.not. found) then
+    call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &
+                       'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+    return
+  endif
+
+  ! If the reference element is a group or overlay then this is fine as long as there
+  ! if only one slave element.
+
+  ref_ele => in_lat%ele(i)
+  if (ref_ele%key /= group$ .and. ref_ele%key /= overlay$) return
+  ref_pele => plat%ele(ref_ele%ixx)
+  ref_name = ref_pele%name(1)
+  do i = 2, size(ref_pele%name)
+    if (ref_pele%name(i) /= ref_name) then
+      call parser_error ('SUPERPOSITION USING A GROUP OR OVERLAY AS A REFERENCE ELEMENT IS ONLY ALLOWED', &
+                         'WHEN THE GROUP OR OVERLAY CONTROLS A SINGLE ELEMENT.', &
+                         'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+      return
+    endif
+  enddo 
+   
+  call lat_ele_locator (ref_name, lat, eles, n_loc, err)
+  if (err .or. n_loc == 0) return
+
 endif
 
-! Tag reference elements using %old_is_on flag which is not 
+! Tag reference elements using %old_is_on flag which is not otherwise used during parsing.
 
 branch%ele(:)%old_is_on = .false.  
 do i = 1, n_loc

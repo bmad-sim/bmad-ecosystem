@@ -1590,7 +1590,7 @@ do
 
     ! create ecoll and rcoll elements.
 
-    if (ele%key /= ecollimator$ .and. ele%key /= rcollimator$) then
+    if (ele%key /= ecollimator$ .and. ele%key /= rcollimator$ .or. (out_type == 'SAD' .and. ele%value(l$) /= 0)) then
       if (out_type == 'MAD-8' .or. out_type == 'XSIF' .or. ele%key == drift$) then
         if (ele%aperture_type == rectangular$) then
           col_ele%key = rcollimator$
@@ -1672,8 +1672,7 @@ do
   ! Exception: SAD can handle a sol_quad so no conversion needed in this case.
   ! NOTE: FOR NOW, SOL_QUAD USES DRIFT-MATRIX-DRIFT MODEL!
 
-  if ((ele%key == wiggler$ .or. ele%key == undulator$  .and. out_type /= 'SAD') .or. &
-                                                               ele%key == sol_quad$) then
+  if ((ele%key == wiggler$ .or. ele%key == undulator$  .and. out_type /= 'SAD') .or. ele%key == sol_quad$) then
     if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
       call out_io (s_warn$, r_name, 'Converting element to drift-matrix-drift model: ' // ele%name)
       drift_ele%value(l$) = -val(l$) / 2
@@ -1759,7 +1758,7 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
   if (sad_geo == 0) ele%value(geo$) = 1
 endif
 
-!-------------------------------------------
+!-------------------------------------------------------------------------------------------------
 ! Now write info to the output file...
 ! lat lattice name
 
@@ -1888,7 +1887,7 @@ do ix_ele = ie1, ie2
 
       select case (ele%key)
 
-      case (drift$, monitor$, instrument$, pipe$, ecollimator$, rcollimator$)
+      case (drift$, monitor$, instrument$, pipe$)
         write (line_out, '(3a, es13.5)') 'DRIFT ' // trim(ele%name) // '= (L =', val(l$)
 
       case (ab_multipole$)
@@ -1905,6 +1904,20 @@ do ix_ele = ie1, ie2
                           'DKS_DS OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
         if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
                           'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
+
+      case (ecollimator$)
+        write (line_out, '(3a, es13.5)') 'APERT ' // trim(ele%name) // '= ('
+        call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(y_offset$), 'DY', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(x1_limit$), 'AX', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(y1_limit$), 'AY', 'es13.5', 'R', .true., .true.)
+        
+      case (rcollimator$)
+        write (line_out, '(3a, es13.5)') 'APERT ' // trim(ele%name) // '= ('
+        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'es13.5', 'R', .true., .true.)
 
       case (elseparator$)
         call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
@@ -1933,25 +1946,26 @@ do ix_ele = ie1, ie2
 
       case (lcavity$)
         write (line_out, '(3a, es13.5)') 'CAVI ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(rf_frequency$), 'freq', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(voltage$), 'volt', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(phi0$), 'phi', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'es13.5', 'R', .true., .true.)
 
       case (marker$)
-        write (line_out, '(3a, es13.5)') 'mark ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'MARK ' // trim(ele%name) // '= ('
 
       case (multipole$)
-        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= ('
         call multipole_ele_to_ab (ele, branch%param, .false., has_nonzero_pole, a_pole, b_pole)
 
       case (null_ele$)
-        write (line_out, '(3a, es13.5)') 'sol ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(bs_field$), 'bz', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(geo$), 'geo', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(bound$), 'bound', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'SOL ' // trim(ele%name) // '= (L =', val(l$)
+        call value_to_line (line_out, val(bs_field$), 'BZ', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(geo$), 'GEO', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(bound$), 'BOUND', 'es13.5', 'R', .true., .true.)
 
       case (octupole$)
-        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
@@ -1965,9 +1979,9 @@ do ix_ele = ie1, ie2
 
       case (rfcavity$)
         write (line_out, '(3a, es13.5)') 'CAVI ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(rf_frequency$), 'freq', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(voltage$), 'volt', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(phi0$), 'phi', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .true.)
+        call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'es13.5', 'R', .true., .true.)
 
       case (sad_mult$)
         write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)

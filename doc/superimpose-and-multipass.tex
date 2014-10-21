@@ -140,7 +140,7 @@ the start of the lattice is used. The location of the origin points
 are determined by the setting of \vn{ele_origin} and \vn{ref_origin}.
 The possible settings for these parameters are
 \begin{example}
-  beginning       ! Beginning (upsteam) edge of element
+  beginning       ! Beginning (upstream) edge of element
   center          ! Center of element. Default.
   end             ! End (downstream) edge of element
 \end{example}
@@ -149,7 +149,7 @@ The possible settings for these parameters are
 between the origin points. The default offset is zero.
 
 Note: There is an old syntax, deprecated but still supported for now,
-where the origin points were specified by the appearence of:
+where the origin points were specified by the appearance of:
 \begin{example}
   ele_beginning         ! Old syntax. Do not use.
   ele_center            ! Old syntax. Do not use.
@@ -160,16 +160,22 @@ where the origin points were specified by the appearence of:
 \end{example}
 For example, ``ele_origin = beginning'' in the old syntax would be ``ele_beginning''.
 
-\index{geometry}\index{open}\index{drift}
+\index{drift}
 \index{overlay}\index{group}\index{girder}
-Superposition may be done with any element except \vn{Drift},
-\vn{Group}, \vn{Overlay}, and \vn{Girder} control elements. A
-superimposed element that extends beyond either end of the lattice
+The element begin superimposed may be any type of element except
+\vn{drift}, \vn{group}, \vn{overlay}, and \vn{girder} control
+elements. The reference element used to position a superimposed element
+may be a \vn{group} or \vn{overlay} element as long as the \vn{group} or
+\vn{overlay} controls the attributes of exactly one element. In this case,
+the controlled element is used as the reference element.
+
+\index{geometry}\index{open}
+A superimposed element that extends beyond either end of the lattice
 will be wrapped around so part of the element will be at the beginning
 of the lattice and part of the element will be at the end. For
-consistency's sake, this is done even if the \vn{geometry} is set
-to \vn{open} (for example, it is sometimes convenient to
-treat a circular lattice as linear). Example:
+consistency's sake, this is done even if the \vn{geometry} is set to
+\vn{open} (for example, it is sometimes convenient to treat a circular
+lattice as linear). Example:
 \begin{example}
   d: drift, l = 10
   q: quad, l = 2, superimpose
