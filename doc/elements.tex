@@ -121,6 +121,10 @@ next element but does not affect any tracking or transfer map
 calculations.  The \vn{x_pitch} and \vn{y_pitch} attributes are not
 used in tracking.
 
+When an \vn{ab_multipole} is superimposed (\sref{s:super}) on a lattice, it is
+treated as a zero length element and in this case it is an error for the length
+of the \vn{ab_multipole} to be set to a nonzero value.
+
 Unlike a \vn{multipole}, an \vn{ab_multipole} will {\em not} affect the
 reference orbit if there is a dipole component. 
 
@@ -2426,6 +2430,10 @@ The length \vn{l} is a fictitious length that is used for synchrotron
 radiation computations and affects the longitudinal position of the
 next element but does not affect any tracking or transfer map
 calculations.
+
+When an \vn{multipole} is superimposed (\sref{s:super}) on a lattice, it is
+treated as a zero length element and in this case it is an error for the length
+of the \vn{multipole} to be set to a nonzero value.
 
 Like a \mad \vn{multipole}, a \bmad \vn{multipole} will affect the
 reference orbit if there is a dipole component. 

@@ -155,7 +155,8 @@ endif
 ! Note: Important to set super_saved%lord_status before calling insert_element since
 ! this affects the status flag setting.
 
-if (is_zero_length_element_type(super_saved%key)) then
+if (is_zero_length_element_type(super_saved%key) .or. &
+        (super_saved%value(l$) == 0 .and. (super_saved%key == multipole$ .or. super_saved%key == ab_multipole$))) then
   super_saved%lord_status  = not_a_lord$ 
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)

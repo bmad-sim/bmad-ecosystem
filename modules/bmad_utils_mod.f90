@@ -2391,6 +2391,8 @@ end function ele_has_constant_ds_dt_ref
 ! RF cavity fields with ele%field_calc = bmad_standard$ use a hard edge model where
 ! the length of the cavity is c_light / (2 * freq).
 !
+! If bmad_com%use_hard_edge_drifts is False. This function will always return False.
+!
 ! Module needed:
 !   use bmad
 !
