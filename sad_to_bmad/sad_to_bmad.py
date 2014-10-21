@@ -351,7 +351,7 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
   # Handle case when inside solenoid
 
   if inside_sol and bmad_ele.type != 'marker' and bmad_ele.type != 'monitor' and \
-                    bmad_ele.type != 'patch' and bz != '0': 
+                    bmad_ele.type != 'patch' and bz != '0' and 'l' in sad_ele.param: 
     bmad_ele.type = 'sad_mult'
     bmad_ele.param['bs_field'] = bz
 
@@ -376,11 +376,6 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
       bmad_ele.param['y_limit'] = str(ay)
     else:
       print ('Combined collimators not yet implemented. Please contact David Sagan')
-
-    if inside_sol:
-      if bmad_ele.type == 'ecollimator': bmad_ele.param['aperture_type'] = 'elliptical'
-      bmad_ele.type = 'solenoid'
-
 
   # For a bend, f1 mut be added to fb1 and fb2
 
@@ -511,12 +506,12 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, inside_sol, bz, reversed):
 
   if sad_ele.type == 'mult' and 'volt' in sad_ele.param: bmad_ele.type = 'rfcavity'
 
-  # If the SAD cavi has a nonzero phi then the reference particle's energy is changing
-  # and so the corresponding Bmad element must be an lcavity.
+  # If the SAD cavi has a nonzero phi then the reference particle's energy is changing and
+  # in this case the corresponding Bmad element must be an lcavity.
   # Also remember that an lcavity has a differnt phase convention.
 
   if bmad_ele.type == 'rfcavity':
-    if 'phi0' in bmad_ele.param and 'harmon' not in bmad_ele.param: 
+    if 'phi0' in bmad_ele.param and 'harmon' not in bmad_ele.param: # If has harmon then must be in a ring
       bmad_ele.type = 'lcavity'
       bmad_ele.param['phi0'] = '0.25 - ' + add_parens(bmad_ele.param['phi0'])
       if 'phi0_err' in bmad_ele.param: bmad_ele.param['phi0_err'] = '-' + add_parens(bmad_ele.param['phi0_err'])
