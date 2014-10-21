@@ -890,7 +890,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   do i = 1, n_max
     if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-    call add_all_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat)
+    call add_all_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat, plat)
     call s_calc (lat)  ! calc longitudinal distances of new branch elements
   enddo
 

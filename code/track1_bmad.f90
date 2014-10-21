@@ -195,9 +195,9 @@ case (elseparator$)
 
   ! Compute kick
 
-  hk = ele%value(hkick$) * param%rel_tracking_charge
-  vk = ele%value(vkick$) * param%rel_tracking_charge
-  if (end_orb%species < 0) then
+  hk = ele%value(hkick$) * abs(param%rel_tracking_charge)
+  vk = ele%value(vkick$) * abs(param%rel_tracking_charge)
+  if (charge_of(end_orb%species) < 0) then
     hk = -hk
     vk = -vk
   endif
