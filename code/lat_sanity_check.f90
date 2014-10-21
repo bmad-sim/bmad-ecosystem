@@ -422,6 +422,17 @@ do i_b = 0, ubound(lat%branch, 1)
     l_stat = ele%lord_status
     s_stat = ele%slave_status
 
+    ! multipoles and ab_multipoles are not allowed to have a finite length if they are super_lords
+
+    if (l_stat == super_lord$ .and. ele%value(l$) /= 0 .and. &
+                    (ele%key == multipole$ .or. ele%key == ab_multipole$)) then 
+      call out_io (s_fatal$, r_name, &
+                'SUPER_LORD: ' // ele%name, &
+                'IS A MULTIPOLE OR AB_MULTIPOLE AND HAS FINITE LENGTH.', &
+                'THIS IS NOT ALLOWED FOR A SUPER_LORD.')
+      err_flag = .true.
+    endif
+
     ! multipass lords/slaves must share %wall3d memory
 
     if (l_stat == multipass_lord$) then

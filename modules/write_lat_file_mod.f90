@@ -65,6 +65,8 @@ type (em_field_grid_struct), pointer :: grid
 type (em_field_map_struct), pointer :: map
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
+type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
+
 real(rp) s0, x_lim, y_lim, val
 
 character(*) bmad_file
@@ -153,7 +155,7 @@ if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_pa
 
 write (iu, '(a, l1)') 'parameter[auto_scale_field_phase]    = ', lat%auto_scale_field_phase
 write (iu, '(a, l1)') 'parameter[auto_scale_field_amp]      = ', lat%auto_scale_field_amp
-write (iu, '(a, l1)') 'parameter[absolute_time_tracking] = ', lat%absolute_time_tracking
+write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
 ele => lat%ele(lat%n_ele_track)
 if (ele%name /= 'END' .or. ele%key /= marker$) then
   write (iu, '(a)') 'parameter[no_end_marker]          =  T'
@@ -163,6 +165,8 @@ if (lat%photon_type /= incoherent$) then
   write (iu, '(3a)') 'parameter[photon_type] = ', photon_type_name(lat%photon_type)
 endif
 
+if (bmad_com%use_hard_edge_drifts /= bmad_com_default%use_hard_edge_drifts) &
+            write (iu, '(a, l1)') 'parameter[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
 
 
 ele => lat%ele(0) 

@@ -241,7 +241,7 @@ else
     a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
     if (ele%key == multipole$) then
       call multipole_ele_to_kt (ele, param, .false., has_nonzero_pole, a,  b)
-      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, a2, b2)
+      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, knl, tn)
     else
       call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, a,  b)
       call multipole_ele_to_ab (ele, param, .true.,  has_nonzero_pole, a2, b2)
@@ -253,25 +253,27 @@ else
     endif
 
     do i = 0, n_pole_maxx
-      if (a2(i) == 0 .and. b2(i) == 0) cycle
-      if (ele%key == ab_multipole$) then
-        write (li(nl+1), '(5x, 2(a, i0, a, es11.3))') &
-               'A', i, ' =', ele%a_pole(i), '   A', i, '(w/Tilt):', a2(i)
-        write (li(nl+2), '(5x, 2(a, i0, a, es11.3))') &
-               'B', i, ' =', ele%b_pole(i), '   B', i, '(w/Tilt):', b2(i)
-      elseif (ele%key == multipole$) then
-        write (li(nl+1), '(5x, 2(a, i0, a, es11.3))') &
-               'K', i, 'L =', ele%a_pole(i), '   K', i, 'L(w/Tilt):', a2(i)
-        write (li(nl+2), '(5x, 2(a, i0, a, es11.3))') &
-               'T', i, '  =', ele%b_pole(i), '   T', i, '(w/Tilt): ', b2(i)
+      if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+
+      if (ele%key == multipole$) then
+        nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
+               'K', i, 'L =', ele%a_pole(i), 'K', i, 'L(w/Tilt) =', knl(i), 'A', i, '(equiv) =', a(i)
+        nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
+               'T', i, '  =', ele%b_pole(i), 'T', i, '(w/Tilt)  =', tn(i),  'B', i, '(equiv) =', b(i)
+      elseif (ele%key == ab_multipole$) then
+        nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
+               'A', i, ' =', ele%a_pole(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
+        nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
+               'B', i, ' =', ele%b_pole(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
       else
-        write (li(nl+1), '(5x, a, i0, 3(a, es11.3), a, i0, a, es11.3)') 'A', i, ' =', ele%a_pole(i), &
-               '   Scaled:', a(i), '   w/Tilt:', a2(i), '   K', i, 'L(equiv) =', knl(i)
-        write (li(nl+2), '(5x, a, i0, 3(a, es11.3), a, i0, a, f10.6)') 'B', i, ' =', ele%b_pole(i), &
-               '   Scaled:', b(i), '   w/Tilt:', b2(i), '   T', i, '(equiv)  =', tn(i)
+        nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') &
+               'A', i, ' =', ele%a_pole(i), &
+               'A', i, '(Scaled) =', a(i), 'A', i, '(w/Tilt) =', a2(i), 'K', i, 'L(equiv) =', knl(i)
+        nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') &
+               'B', i, ' =', ele%b_pole(i), &
+               'B', i, '(Scaled) =', b(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
       endif
 
-      nl = nl + 2
     enddo
 
   endif

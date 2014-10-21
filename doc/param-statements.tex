@@ -173,6 +173,15 @@ the calculated fringe fields. The default is 2 which means that fringe
 fields due to a quadrupolar field. These fields are 3\Rd order in the
 transverse coordinates.
 
+\index{use_hard_edge_drifts}
+The \vn{use_hard_edge_drifts} switch determines if a ``hard edge''
+model of certain elements is used. For example, if \vn{runge_kutta}
+tracking is used for an \vn{rfcavity} or \vn{lcavity} using a standing
+wave model then the cavity length should be a multiple of the RF
+wavlength/2. To achieve this, during tracking, the cavity length is
+appropriately modified and drifts are inserted at either ends of the
+cavity to keep the total length constant. Default is \vn{True}.
+
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement} \label{s:beam.start}
 \index{beam_start statement|hyperbf}
