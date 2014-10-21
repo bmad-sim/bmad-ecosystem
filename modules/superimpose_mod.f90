@@ -1,4 +1,4 @@
-module add_superimpose_mod
+module superimpose_mod
 
 use bmad_struct
 use bmad_interface

@@ -12,7 +12,7 @@ use ptc_interface_mod, only: set_ptc
 use bookkeeper_mod
 use wake_mod
 use attribute_mod
-use add_superimpose_mod
+use superimpose_mod
 use track1_mod
 
 private parse_rf_grid, parse_rf_map
