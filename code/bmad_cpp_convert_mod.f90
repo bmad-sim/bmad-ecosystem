@@ -5864,14 +5864,13 @@ interface
       z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
       z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-      z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, &
-      z_use_ptc_layout_default, z_debug) bind(c)
+      z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
     logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
-    logical(c_bool) :: z_use_ptc_layout_default, z_debug
+    logical(c_bool) :: z_debug
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking
     integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -5900,7 +5899,7 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
     c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
     c_logic(F%auto_scale_field_phase_default), c_logic(F%auto_scale_field_amp_default), &
-    c_logic(F%use_ptc_layout_default), c_logic(F%debug))
+    c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -5928,7 +5927,7 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, &
     z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
     z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, &
-    z_auto_scale_field_amp_default, z_use_ptc_layout_default, z_debug) bind(c)
+    z_auto_scale_field_amp_default, z_debug) bind(c)
 
 
 implicit none
@@ -5939,7 +5938,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
 logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
-logical(c_bool) :: z_use_ptc_layout_default, z_debug
+logical(c_bool) :: z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking
 integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -6002,8 +6001,6 @@ F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
 F%auto_scale_field_phase_default = f_logic(z_auto_scale_field_phase_default)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%auto_scale_field_amp_default = f_logic(z_auto_scale_field_amp_default)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%use_ptc_layout_default = f_logic(z_use_ptc_layout_default)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%debug = f_logic(z_debug)
 
@@ -7288,14 +7285,14 @@ interface
       z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, &
       z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
       z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-      z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout) bind(c)
+      z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type
     integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
-    logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout
+    logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
     character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
     type(c_ptr), value :: z_pre_tracker
@@ -7387,7 +7384,7 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     F%n_ele_track, F%n_ele_max, F%n_control_max, F%n_ic_max, F%input_taylor_order, &
     fvec2vec(F%ic, n1_ic), n1_ic, F%photon_type, c_logic(F%absolute_time_tracking), &
     c_logic(F%auto_scale_field_phase), c_logic(F%auto_scale_field_amp), &
-    c_logic(F%use_ptc_layout))
+    c_logic(F%ptc_uses_hard_edge_drifts))
 
 end subroutine lat_to_c
 
@@ -7412,7 +7409,7 @@ subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_input_file_name, z_title, z_a
     z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, z_beam_start, &
     z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, &
     z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-    z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout) bind(c)
+    z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts) bind(c)
 
 
 implicit none
@@ -7424,7 +7421,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type
 integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
 character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
-logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_use_ptc_layout
+logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
 character(c_char), pointer :: f_attribute_alias
 integer(c_int), pointer :: f_ic(:)
 type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
@@ -7562,7 +7559,7 @@ F%auto_scale_field_phase = f_logic(z_auto_scale_field_phase)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%auto_scale_field_amp = f_logic(z_auto_scale_field_amp)
 !! f_side.to_f2_trans[logical, 0, NOT]
-F%use_ptc_layout = f_logic(z_use_ptc_layout)
+F%ptc_uses_hard_edge_drifts = f_logic(z_ptc_uses_hard_edge_drifts)
 
 end subroutine lat_to_f2
 

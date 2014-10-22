@@ -3600,10 +3600,7 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 28 + offset; C.auto_scale_field_amp_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.use_ptc_layout_default = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 29 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -4593,7 +4590,7 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   rhs = 34 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.use_ptc_layout = (rhs % 2 == 0);
+  rhs = 35 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }

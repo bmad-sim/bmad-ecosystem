@@ -2139,7 +2139,6 @@ public:
   Bool absolute_time_tracking_default;
   Bool auto_scale_field_phase_default;
   Bool auto_scale_field_amp_default;
-  Bool use_ptc_layout_default;
   Bool debug;
 
   CPP_bmad_common() :
@@ -2171,7 +2170,6 @@ public:
     absolute_time_tracking_default(false),
     auto_scale_field_phase_default(true),
     auto_scale_field_amp_default(true),
-    use_ptc_layout_default(false),
     debug(false)
     {}
 
@@ -2649,7 +2647,7 @@ public:
   Bool absolute_time_tracking;
   Bool auto_scale_field_phase;
   Bool auto_scale_field_amp;
-  Bool use_ptc_layout;
+  Bool ptc_uses_hard_edge_drifts;
 
   CPP_lat() :
     use_name(),
@@ -2680,7 +2678,7 @@ public:
     absolute_time_tracking(false),
     auto_scale_field_phase(false),
     auto_scale_field_amp(false),
-    use_ptc_layout(false)
+    ptc_uses_hard_edge_drifts(false)
     {}
 
   ~CPP_lat() {

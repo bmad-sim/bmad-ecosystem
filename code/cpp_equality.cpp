@@ -925,7 +925,6 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.auto_scale_field_phase_default == y.auto_scale_field_phase_default);
   is_eq = is_eq && (x.auto_scale_field_amp_default == y.auto_scale_field_amp_default);
-  is_eq = is_eq && (x.use_ptc_layout_default == y.use_ptc_layout_default);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };
@@ -1185,7 +1184,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
   is_eq = is_eq && (x.auto_scale_field_phase == y.auto_scale_field_phase);
   is_eq = is_eq && (x.auto_scale_field_amp == y.auto_scale_field_amp);
-  is_eq = is_eq && (x.use_ptc_layout == y.use_ptc_layout);
+  is_eq = is_eq && (x.ptc_uses_hard_edge_drifts == y.ptc_uses_hard_edge_drifts);
   return is_eq;
 };
 

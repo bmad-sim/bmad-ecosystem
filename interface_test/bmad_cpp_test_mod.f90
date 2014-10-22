@@ -5311,9 +5311,7 @@ rhs = 27 + offset; F%auto_scale_field_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 28 + offset; F%auto_scale_field_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%use_ptc_layout_default = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -6541,7 +6539,7 @@ rhs = 33 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 34 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%use_ptc_layout = (modulo(rhs, 2) == 0)
+rhs = 35 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 
