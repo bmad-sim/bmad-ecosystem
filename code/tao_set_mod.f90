@@ -900,6 +900,12 @@ case ('draw_symbols')
 case ('draw_symbol_index')
   call tao_logical_set_value (this_curve%draw_symbol_index, component, set_value, error)
 
+case ('smooth_line_calc')
+  call tao_logical_set_value (this_curve%smooth_line_calc, component, set_value, error)
+
+case ('use_y2')
+  call tao_logical_set_value (this_curve%use_y2, component, set_value, error)
+
 case ('data_source')
   this_curve%data_source = set_value
 
