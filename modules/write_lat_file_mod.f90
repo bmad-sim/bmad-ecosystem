@@ -165,7 +165,7 @@ if (lat%photon_type /= incoherent$) then
   write (iu, '(3a)') 'parameter[photon_type] = ', photon_type_name(lat%photon_type)
 endif
 
-if (bmad_com%use_hard_edge_drifts /= bmad_com_default%use_hard_edge_drifts) &
+if (bmad_com%use_hard_edge_drifts .neqv. bmad_com_default%use_hard_edge_drifts) &
             write (iu, '(a, l1)') 'parameter[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
 
 
