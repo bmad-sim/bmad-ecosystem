@@ -791,7 +791,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%auto_scale_field_phase  = in_lat%auto_scale_field_phase
     lat%auto_scale_field_amp    = in_lat%auto_scale_field_amp
-    lat%use_ptc_layout          = in_lat%use_ptc_layout
     lat%input_taylor_order      = in_lat%input_taylor_order
 
     if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)

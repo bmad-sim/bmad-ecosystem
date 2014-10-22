@@ -185,7 +185,7 @@ lat_out%input_taylor_order        = lat_in%input_taylor_order
 lat_out%absolute_time_tracking    = lat_in%absolute_time_tracking
 lat_out%auto_scale_field_phase    = lat_in%auto_scale_field_phase
 lat_out%auto_scale_field_amp      = lat_in%auto_scale_field_amp
-lat_out%use_ptc_layout            = lat_in%use_ptc_layout
+lat_out%ptc_uses_hard_edge_drifts = lat_in%ptc_uses_hard_edge_drifts
 lat_out%surface                   => lat_in%surface  
 
 end subroutine transfer_lat_parameters
@@ -1169,7 +1169,6 @@ lat%version = -1
 lat%absolute_time_tracking   = bmad_com%absolute_time_tracking_default
 lat%auto_scale_field_phase   = bmad_com%auto_scale_field_phase_default
 lat%auto_scale_field_amp     = bmad_com%auto_scale_field_amp_default
-lat%use_ptc_layout           = bmad_com%use_ptc_layout_default
 
 call allocate_branch_array (lat, 0)
 

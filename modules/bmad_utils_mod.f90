@@ -2384,36 +2384,39 @@ end function ele_has_constant_ds_dt_ref
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function tracking_uses_end_drifts (ele) result (has_drifts)
+! Function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
 !
 ! Function to determine if the tracking for an element uses a "hard edge model"
 ! where the tracking looks like (drift, model, drift). For example,
 ! RF cavity fields with ele%field_calc = bmad_standard$ use a hard edge model where
 ! the length of the cavity is c_light / (2 * freq).
 !
-! If bmad_com%use_hard_edge_drifts is False. This function will always return False.
+! If the use_hard_edge model argument is set to False, this function will always return False.
 !
 ! Module needed:
 !   use bmad
 !
 ! Input:
-!   ele    -- ele_struct: Element.
+!   ele                   -- ele_struct: Element.
+!   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?
+!                              default is set by bmad_com%use_hard_edge_drifts.
 !
 ! Output:
 !   has_drifts -- Logical: True if tracking uses end drifts.
 !-
 
-function tracking_uses_end_drifts (ele) result (has_drifts)
+function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
 
 implicit none
 
 type (ele_struct) ele
 logical has_drifts
+logical, optional :: use_hard_edge_model
 
 !
 
 has_drifts = .false.
-if (.not. bmad_com%use_hard_edge_drifts) return
+if (.not. logic_option(bmad_com%use_hard_edge_drifts, use_hard_edge_model)) return
 
 select case (ele%key)
 case (lcavity$, rfcavity$, solenoid$)

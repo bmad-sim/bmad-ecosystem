@@ -53,7 +53,7 @@ end subroutine type_ptc_layout
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine lat_to_ptc_layout (lat)
+! Subroutine lat_to_ptc_layout (lat, use_hard_edge_drifts)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch.
 ! Note: If lat_to_ptc_layout has already been setup, you should first do a 
@@ -73,14 +73,16 @@ end subroutine type_ptc_layout
 !   use ptc_layout_mod
 !
 ! Input:
-!   lat -- lat_struct: Input lattice
+!   lat                   -- lat_struct: Input lattice
+!   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?
+!                              default is set by bmad_com%use_hard_edge_drifts.
 !
 ! Output:
 !   lat%branch(:)%ptc              -- Pointers to generated layouts.
 !   lat%branch(:)%ele(:)%ptc_fibre -- Pointer to PTC fibres
 !-
 
-subroutine lat_to_ptc_layout (lat)
+subroutine lat_to_ptc_layout (lat, use_hard_edge_drifts)
 
 use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, &
                            append_point, set_up, ring_l
@@ -98,13 +100,16 @@ real(rp) ptc_orientation(3,3), ang(3)
 
 integer i, j, ix_pass, n_links
 logical logic
+logical, optional :: use_hard_edge_drifts
 
 character(20), parameter :: r_name = 'lat_to_ptc_layout'
 
 ! Setup m_u
 
+lat%ptc_uses_hard_edge_drifts = logic_option(bmad_com%use_hard_edge_drifts, use_hard_edge_drifts) 
+
 do i = 0, ubound(lat%branch, 1)
-  call branch_to_ptc_m_u (lat%branch(i))
+  call branch_to_ptc_m_u (lat%branch(i), use_hard_edge_drifts)
 enddo
 
 ! setup m_t
@@ -128,14 +133,14 @@ do i = 0, ubound(lat%branch, 1)
       if (global_com%exit_on_error) call err_exit
     endif
 
-    if (tracking_uses_end_drifts(ele)) then
+    if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
       call append_this_fibre(ele%ptc_fibre%previous)
     endif
 
     save_fib => ele%ptc_fibre%next
     call append_this_fibre(ele%ptc_fibre, .true.)
 
-    if (tracking_uses_end_drifts(ele)) then
+    if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
       call append_this_fibre(save_fib)
     endif
 
@@ -145,7 +150,7 @@ do i = 0, ubound(lat%branch, 1)
       ele0 => branch%ele(j-1)
       if (ele0%ptc_fibre%mag%p%p0c /= ele%ptc_fibre%mag%p%p0c) then
         save_fib => ele%ptc_fibre
-        if (tracking_uses_end_drifts(ele))  save_fib => ele%ptc_fibre%previous
+        if (tracking_uses_end_drifts(ele, use_hard_edge_drifts))  save_fib => ele%ptc_fibre%previous
         save_fib%patch%energy = 1
       endif
     endif
@@ -197,7 +202,7 @@ end subroutine lat_to_ptc_layout
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine branch_to_ptc_m_u (branch)
+! Subroutine branch_to_ptc_m_u (branch, use_hard_edge_drifts)
 !
 ! Subroutine to create a PTC layout from a Bmad lattice branch.
 ! Note: If lat_to_ptc_layout has already been setup, you should first do a 
@@ -217,14 +222,16 @@ end subroutine lat_to_ptc_layout
 !   use ptc_layout_mod
 !
 ! Input:
-!   branch -- branch_struct: Input branch.
+!   branch                -- branch_struct: Input branch.
+!   use_hard_edge_drifts  -- logical, optional: Use bmad hard edge model for cavities, etc?
+!                              default is set by bmad_com%use_hard_edge_drifts.
 !
 ! Output:
 !   branch(:)%ptc              -- Pointers to generated layouts.
 !   branch(:)%ele(:)%ptc_fibre -- Pointer to PTC fibres
 !-
 
-subroutine branch_to_ptc_m_u (branch)
+subroutine branch_to_ptc_m_u (branch, use_hard_edge_drifts)
 
 use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
@@ -239,6 +246,7 @@ type (ele_pointer_struct), allocatable :: chain_ele(:)
 
 integer n, ib, ie, ix_pass, ix_pass0
 logical doneit, ele_inserted_in_layout
+logical, optional :: use_hard_edge_drifts
 
 ! Transfer elements.
 
@@ -269,14 +277,14 @@ do ie = 0, branch%n_ele_track
 
   ! If there are end drifts then ele%ptc_fibre points to middle element.
 
-  if (tracking_uses_end_drifts(ele)) then
+  if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
     call create_hard_edge_drift (ele, upstream_end$, drift_ele)
     call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
   endif
 
   call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
 
-  if (tracking_uses_end_drifts(ele)) then
+  if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
     call create_hard_edge_drift (ele, downstream_end$, drift_ele)
     call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
   endif
@@ -511,7 +519,7 @@ type (fibre), pointer :: ref_fibre
 
 !
 
-if (tracking_uses_end_drifts(ele)) then
+if (tracking_uses_end_drifts(ele, ele%branch%lat%ptc_uses_hard_edge_drifts)) then
   ref_fibre => ele%ptc_fibre%next%next
 else
   ref_fibre => ele%ptc_fibre%next
