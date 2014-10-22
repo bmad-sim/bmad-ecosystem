@@ -4377,7 +4377,7 @@ integer, save :: ix_internal = 0
 
 character(40) word
 character(1) delim, c_delim
-character(40) str, name
+character(40) str
 character(n_parse_line) parse_line_saved
 
 logical delim_found, replacement_line_here, c_delim_found
@@ -4465,7 +4465,7 @@ do
   if (delim == '(') then ! subline or replacement line
 
     ! if a subline...
-    if (name == ' ') then  
+    if (this_ele%name == '') then  
       ix_internal = ix_internal + 1
       write (str, '(a, i3.3)') '#Internal', ix_internal   ! unique name 
       this_ele%name = str
@@ -4487,7 +4487,7 @@ do
     ! else this is a replacement line
     else    
       replacement_line_here = .true.
-      call get_sequence_args (name, this_ele%actual_arg, delim, err_flag)
+      call get_sequence_args (this_ele%name, this_ele%actual_arg, delim, err_flag)
       if (err_flag) return
     endif
 
