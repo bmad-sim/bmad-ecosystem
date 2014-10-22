@@ -19,7 +19,7 @@ set (EXE_SPECS
   cmake.compare_tracking_methods_text
   cmake.element_attributes
   cmake.f77_to_f90
-  cmake.lat_to_wolski_orm_format
+  cmake.lattice_cleaner
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

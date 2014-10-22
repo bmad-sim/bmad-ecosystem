@@ -1,0 +1,18 @@
+set (EXENAME lattice_cleaner)
+
+set (SRC_FILES
+  lattice_cleaner/lattice_cleaner.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+)
