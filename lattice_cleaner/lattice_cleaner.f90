@@ -1,3 +1,20 @@
+!+
+! Program lattice_cleaner
+!
+! Program to "cleanup" a lattice. That is, transform a lattice to remove
+! unwanted elements, etc. 
+!
+! Calling syntax:
+!   lattice_cleaner <input-bmad-lattice-file-name>
+!
+! This program will produce a cleaned lattice file.
+! 
+! To save development time, rather than relying on an external file to 
+! specify the lattice transformation rules, 
+! this program can be modified directly to customize the transformation.
+!- 
+
+
 program lattice_cleaner
 
 use bmad
@@ -14,19 +31,28 @@ character(200) lat_file
 
 logical err
 
-!
+! Get input lattice file name
 
-call cesr_getarg (1, lat_file)
-
+if (cesr_iargc() == 0) then
+  print *, 'Command line synrax:'
+  print *, '  lattic_cleaner <input-bmad-lattice-file-name>'
+  stop
+endif
 
 if (cesr_iargc() > 1) then
   print *, 'Too much stuff on the command line! Stopping here.'
   stop
 endif
 
+call cesr_getarg (1, lat_file)
+
+! Read in the lattice
+
 call bmad_parser (lat_file, lat)
 
-! Mark elements for deletion.
+! Transformations:
+!   1) Remove all marker elements.
+!   2) Remove all multipole elements that do not have any non-zero multipole values.
 
 do i = 1, lat%n_ele_max
   ele => lat%ele(i)
@@ -38,11 +64,9 @@ do i = 1, lat%n_ele_max
   endif
 enddo
 
-! Delete 
-
 call remove_eles_from_lat(lat, .true.)
 
-! And write
+! And write the transformed lattice file.
 
 lat_file = 'clean_' // lat_file
 call write_bmad_lattice_file (lat_file, lat)
