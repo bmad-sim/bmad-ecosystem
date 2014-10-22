@@ -1180,9 +1180,6 @@ case ('CREATE_JUMBO_SLAVE')
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
   call get_logical (attrib_word, pele%create_jumbo_slave, err_flag)
 
-case ('USE_PTC_LAYOUT')
-  call get_logical (attrib_word, lat%use_ptc_layout, err_flag)
-
 case ('AUTO_SCALE_FIELD_PHASE')
   call get_logical (attrib_word, lat%auto_scale_field_phase, err_flag)
 

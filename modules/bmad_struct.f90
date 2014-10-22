@@ -726,7 +726,7 @@ type lat_struct
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
   logical auto_scale_field_phase          ! See auto_scale_field_phase_and_amp routine.
   logical auto_scale_field_amp            ! See auto_scale_field_phase_and_amp routine.
-  logical use_ptc_layout                  ! Use ptc layout for lattice
+  logical ptc_uses_hard_edge_drifts       ! Does associated ptc layout have hard edge model drifts?
 end type
 
 character(2), parameter :: coord_name(6) = ['X ', 'Px', 'Y ', 'Py', 'Z ', 'Pz']
@@ -941,7 +941,7 @@ integer, parameter :: aperture_limit_on$ = 99
 
 integer, parameter :: ptc_exact_misalign$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
-integer, parameter :: term$ = 101, use_ptc_layout$ = 101
+integer, parameter :: term$ = 101
 integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104
@@ -1256,7 +1256,6 @@ type bmad_common_struct
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
   logical :: auto_scale_field_phase_default = .true.  ! Default for lat%auto_scale_field_phase
   logical :: auto_scale_field_amp_default = .true.    ! Default for lat%auto_scale_field_amp
-  logical :: use_ptc_layout_default = .false.         ! Default for lat%use_ptc_layout
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   

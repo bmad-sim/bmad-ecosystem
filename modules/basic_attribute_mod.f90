@@ -655,7 +655,6 @@ call init_attribute_name1 (def_parameter$, photon_type$,            'PHOTON_TYPE
 call init_attribute_name1 (def_parameter$, aperture_limit_on$,      'APERTURE_LIMIT_ON')
 call init_attribute_name1 (def_parameter$, no_end_marker$,          'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$, 'ABSOLUTE_TIME_TRACKING')
-call init_attribute_name1 (def_parameter$, use_ptc_layout$,         'USE_PTC_LAYOUT')
 call init_attribute_name1 (def_parameter$, auto_scale_field_phase$, 'AUTO_SCALE_FIELD_PHASE')
 call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,   'AUTO_SCALE_FIELD_AMP')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,        'PTC_EXACT_MODEL')
@@ -1318,7 +1317,7 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
-      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'USE_PTC_LAYOUT', 'AUTO_SCALE_FIELD_PHASE', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTO_SCALE_FIELD_PHASE', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &

@@ -1624,8 +1624,6 @@ is_eq = is_eq .and. (f1%auto_scale_field_phase_default .eqv. f2%auto_scale_field
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_scale_field_amp_default .eqv. f2%auto_scale_field_amp_default)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_ptc_layout_default .eqv. f2%use_ptc_layout_default)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 
 end function eq_bmad_common
@@ -2143,7 +2141,7 @@ is_eq = is_eq .and. (f1%auto_scale_field_phase .eqv. f2%auto_scale_field_phase)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%auto_scale_field_amp .eqv. f2%auto_scale_field_amp)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%use_ptc_layout .eqv. f2%use_ptc_layout)
+is_eq = is_eq .and. (f1%ptc_uses_hard_edge_drifts .eqv. f2%ptc_uses_hard_edge_drifts)
 
 end function eq_lat
 

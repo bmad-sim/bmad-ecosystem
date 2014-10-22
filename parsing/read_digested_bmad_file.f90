@@ -48,7 +48,7 @@ character(60) p_name
 character(25) :: r_name = 'read_digested_bmad_file'
 
 logical, optional :: err_flag
-logical is_ok
+logical is_ok, l_dummy
 logical found_it, can_read_this_old_version, mode3, error, is_match, err, err_found
 
 ! init all elements in lat
@@ -172,7 +172,7 @@ read (d_unit, err = 9030)  &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
         lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, &
         lat%n_ic_max, lat%input_taylor_order, lat%absolute_time_tracking, lat%auto_scale_field_phase, &
-        lat%auto_scale_field_amp, lat%use_ptc_layout, lat%pre_tracker, lat%photon_type
+        lat%auto_scale_field_amp, l_dummy, lat%pre_tracker, lat%photon_type
 read (d_unit, err = 9070) n_branch
 
 ! custom attribute names
