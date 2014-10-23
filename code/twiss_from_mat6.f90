@@ -50,6 +50,13 @@ character(20) :: r_name = 'twiss_from_mat6'
 
 mat4 = mat6(1:4, 1:4)
 
+if (maxval(abs(mat4)) > 1e10) then
+  call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX: UNSTABLE.', &
+                                 'TWISS PARAMETERS NOT COMPUTED')
+  status = unstable$
+  return
+endif
+
 symp_err = mat_symp_error(mat4)
 
 if (mat_symp_error(mat4) > 1) then
