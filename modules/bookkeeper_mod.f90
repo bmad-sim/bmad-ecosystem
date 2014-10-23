@@ -2268,7 +2268,7 @@ if (ele%field_master) then
     val(ks$) = factor * val(Bs_field$)
   end select
 
-  if (has_hkick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
     val(hkick$) = factor * val(BL_hkick$)
     val(vkick$) = factor * val(BL_vkick$)
   endif
@@ -2306,7 +2306,7 @@ else
     val(Bs_field$)    = factor * val(ks$)
   end select
 
-  if (has_hkick_attributes(ele%key)) then
+  if (has_hkick_attributes(ele%key) .and. ele%key /= elseparator$) then
     val(BL_hkick$) = factor * val(hkick$)
     val(BL_vkick$) = factor * val(vkick$)
   endif
@@ -2392,14 +2392,22 @@ case (e_gun$)
 
 case (elseparator$)
 
-  if (val(l$) == 0 .or. val(gap$) == 0) then
-    val(e_field$) = 0
-    val(voltage$) = 0
-  else
-    val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * val(p0c$) / val(l$)
-    val(voltage$) = val(e_field$) * val(gap$) 
-  endif
+  if (ele%field_master) then
+    if (val(p0c$) /= 0) then
+      val(hkick$) = 0
+      val(vkick$) = val(l$) * val(e_field$) / val(p0c$)
+      val(voltage$) = val(e_field$) * val(gap$)
+    endif
 
+  else
+    if (val(l$) == 0 .or. val(gap$) == 0) then
+      val(e_field$) = 0
+      val(voltage$) = 0
+    else
+      val(e_field$) = sqrt(val(hkick$)**2 + val(vkick$)**2) * val(p0c$) / val(l$)
+      val(voltage$) = val(e_field$) * val(gap$) 
+    endif
+  endif
 
 ! Lcavity
 

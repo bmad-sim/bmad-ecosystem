@@ -232,6 +232,11 @@ case (elseparator$)
   alpha = length / ps
   coef = k_E * length / ps
 
+  if (abs(coef) > 10) then ! lost
+    end_orb%state = lost$
+    return
+  endif
+
   if (abs(coef) < 1e-3) then
     sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
     cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)

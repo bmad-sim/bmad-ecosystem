@@ -86,10 +86,7 @@ do n = 1, branch%n_ele_track
       write (iu, '(a)') trim(lines(i))
     enddo
     write (iu, *) 'Symplectic Check:', mat_symp_error(t0_4)
-
-    do i = 1, 4
-      write (iu, '(4f18.13)') (t0_4(i, j), j = 1, 4)
-    enddo
+    call mat_type (t0_4, iu)
     do i = 1, 4
       write (iu, '(es20.12, 2x, es20.12)') eta_vec(i), map0(i)
     enddo

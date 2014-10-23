@@ -1386,6 +1386,8 @@ case default   ! normal attribute
       if (ix > 6 .and. index(attrib_word, '_FIELD') == ix-5) ele%field_master = .true.
       if (ix > 10 .and. index(attrib_word, '_FIELD_ERR') == ix-9) ele%field_master = .true.
       if (attrib_word(1:3) == 'BL_') ele%field_master = .true.
+      if (ele%key == elseparator$ .and. attrib_word == 'VOLTAGE') ele%field_master = .true.
+      if (ele%key == elseparator$ .and. attrib_word == 'E_FIELD') ele%field_master = .true.
 
       select case (attrib_word)
 
@@ -5081,34 +5083,53 @@ case (wiggler$, undulator$)
 
 case (solenoid$)
   if (ele%field_master .and. (ele%value(ks$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (KS, HKICK, ETC.) AND FIELD SET FOR A SOLENOID.')
 
 case (sol_quad$)
   if (ele%field_master .and. (ele%value(ks$) /= 0 .or. &
                             ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A SOL_QUAD.')
 
 case (quadrupole$)
   if (ele%field_master .and. (ele%value(k1$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K1, HKICK, ETC.) AND FIELD SET FOR A QUAD.')
 
 case (sextupole$)
   if (ele%field_master .and. (ele%value(k2$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K2, HKICK, ETC.) AND FIELD SET FOR A SEXTUPOLE.')
 
 case (octupole$)
   if (ele%field_master .and. (ele%value(k3$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH (K3, HKICK, ETC.) AND FIELD SET FOR A OCTUPOLE.')
 
 case (hkicker$, vkicker$)
   if (ele%field_master .and. (ele%value(kick$) /= 0 .or. kick_set)) call parser_error &
-      ('INDEPENDENT VARIABLE PROBLEM: ' // ele%name, &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
        'BOTH STRENGTH AND BL_KICK SET FOR A H/VKICKER.')
+
+case (elseparator$)
+  if (ele%field_master .and. kick_set) call parser_error &
+      ('INDEPENDENT VARIABLE PROBLEM FOR ELEMENT: ' // ele%name, &
+       'BOTH KICK (HKICK OR VKICK) AND E_FIELD OR VOLTAGE SET FOR A ELSEPARATOR.')
+
+  if (ele%field_master) then
+    if (ele%value(voltage$) /= 0 .and. ele%value(e_field$) /= 0) call parser_error &
+              ('INDEPENDENT VARIABLE PROBLEM FOR ELSEPARATOR: ' // ele%name, &
+               'BOTH VOLTAGE AND E_FIELD SET FOR THIS ELEMENT.')
+
+    if (ele%value(voltage$) /= 0) then
+      if (ele%value(gap$) == 0) then
+        call parser_error ('FOR ELSEPARATOR: ' // ele%name, 'VOLTAGE IS SET BUT GAP IS NOT!')
+      else
+        ele%value(e_field$) = ele%value(voltage$) / ele%value(gap$)
+      endif
+    endif
+  endif
 
 case (e_gun$)
   if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)

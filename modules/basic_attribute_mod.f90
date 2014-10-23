@@ -470,8 +470,10 @@ do i = 1, n_key$
 
   call init_attribute_name1 (i, hkick$,     'HKICK', quasi_free$)
   call init_attribute_name1 (i, vkick$,     'VKICK', quasi_free$)
-  call init_attribute_name1 (i, bl_hkick$,  'BL_HKICK', quasi_free$)
-  call init_attribute_name1 (i, bl_vkick$,  'BL_VKICK', quasi_free$)
+  if (i /= elseparator$) then
+    call init_attribute_name1 (i, bl_hkick$,  'BL_HKICK', quasi_free$)
+    call init_attribute_name1 (i, bl_vkick$,  'BL_VKICK', quasi_free$)
+  endif
 
 enddo
 
