@@ -7,16 +7,11 @@ type twiss_struct
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
 end type
 
-integer, parameter :: ok$              = 1
-integer, parameter :: in_stop_band$    = 2
-integer, parameter :: non_symplectic$  = 3
-integer, parameter :: unstable_ab$     = 4
-integer, parameter :: unstable_a$      = 5
-integer, parameter :: unstable_b$      = 6
+integer, parameter :: ok$ = 1, in_stop_band$ = 2, non_symplectic$ = 3, unstable$ = 4
+integer, parameter :: unstable_a$ = 5, unstable_b$ = 6
 
-character(20) :: matrix_status_name(6) = ['OK                 ', 'IN_STOP_BAND       ', &
-                   'NON_SYMPLECTIC     ', 'UNSTABLE BOTH MODES', 'UNSTABLE A-MODE    ', &
-                   'UNSTABLE B-MODE    ']
+character(20) :: matrix_status_name(6) = ['OK             ', 'IN_STOP_BAND   ', 'NON_SYMPLECTIC ', &
+                       'UNSTABLE       ', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE']
 
 contains
 
@@ -124,7 +119,7 @@ U = matmul (matmul (V_inv, t0), V)
 
 if (abs(U(1,1) + U(2,2)) > 2 .or. abs(U(3,3) + U(4,4)) > 2) then
   if (abs(U(1,1) + U(2,2)) > 2 .and. abs(U(3,3) + U(4,4)) > 2) then
-    stat = unstable_ab$
+    stat = unstable$
   elseif (abs(U(1,1) + U(2,2)) > 2) then
     stat = unstable_a$
   else
@@ -229,7 +224,7 @@ mat = mat_in / det
 t_cos = (mat(1,1) + mat(2,2)) / 2.0
 if (abs(t_cos) >= 1.0) then
   if (type_out) call out_io (s_warn$, r_name, 'UNSTABLE MATRIX')
-  stat = unstable_ab$
+  stat = unstable$
   return
 endif
 
