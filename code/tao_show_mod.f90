@@ -2673,11 +2673,13 @@ case ('universe')
     endif
   endif
 
-  if (.not. branch%param%stable) then
-    nl=nl+1; write(lines(nl), '(a, l)') 'Model lattice stability: ', branch%param%stable
-    nl=nl+1; write(lines(nl), '(a, l)') 'Design lattice stability:', u%design%lat%param%stable
-    result_id = 'universe:unstable'
-    return
+  if (branch%param%geometry == closed$) then
+    if (.not. branch%param%stable) then
+      nl=nl+1; write(lines(nl), '(a, l)') 'Model lattice stability: ', branch%param%stable
+      nl=nl+1; write(lines(nl), '(a, l)') 'Design lattice stability:', u%design%lat%param%stable
+      result_id = 'universe:unstable'
+      return
+    endif
   endif
  
   call radiation_integrals (u%model%lat, u%model%lat_branch(ix_branch)%orbit, u%model%modes, u%model%ix_rad_int_cache)
@@ -2688,11 +2690,11 @@ case ('universe')
   endif
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), '(17x, a)') '       X          |            Y'
-  nl=nl+1; write(lines(nl), '(17x, a)') 'Model     Design  |     Model     Design'
-  fmt  = '(1x, a10, 2es11.3, 2x, 2es11.3, 2x, a)'
-  fmt2 = '(1x, a10, 2f11.3, 2x, 2f11.3, 2x, a)'
-  fmt3 = '(1x, a10,        24x, 2es11.3, 2x, a)'
+  nl=nl+1; write(lines(nl), '(23x, a)') '       X          |            Y'
+  nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design  |     Model     Design'
+  fmt  = '(1x, a16, 2es11.3, 2x, 2es11.3, 2x, a)'
+  fmt2 = '(1x, a16, 2f11.3, 2x, 2f11.3, 2x, a)'
+  fmt3 = '(1x, a16,        24x, 2es11.3, 2x, a)'
   f_phi = 1 / twopi
   l_lat = lat%param%total_length
   gamma2 = (lat%ele(0)%value(e_tot$) / mass_of(lat%param%particle))**2
@@ -2721,14 +2723,28 @@ case ('universe')
         u%design%modes%b%synch_int(5), '! Radiation Integral'
   nl=nl+1; write(lines(nl), fmt3) 'I6/gamma^2', u%model%modes%b%synch_int(6) / gamma2, &
         u%design%modes%b%synch_int(6) / gamma2, '! Radiation Integral'
+  if (lat%param%geometry == open$) then
+    nl=nl+1; write(lines(nl), fmt) 'Final Emittance', u%model%modes%lin%a_emittance_end, &
+        u%design%modes%lin%a_emittance_end, u%model%modes%lin%b_emittance_end, &
+        u%design%modes%lin%b_emittance_end, '! Meters'
+    nl=nl+1; write(lines(nl), fmt) 'I5*gamma^6', u%model%modes%lin%i5a_e6, &
+        u%design%modes%lin%i5a_e6, u%model%modes%lin%i5b_e6, &
+        u%design%modes%lin%i5b_e6, '! Linac Radiation Integral'
+  endif
 
   nl=nl+1; lines(nl) = ''
-  nl=nl+1; write(lines(nl), '(19x, a)') 'Model     Design'
-  fmt = '(1x, a12, 1p2e11.3, 3x, a)'
+  nl=nl+1; write(lines(nl), '(23x, a)') 'Model     Design'
+  fmt  = '(1x, a16, 1p2e11.3, 3x, a)'
+  fmt2 = '(1x, a16, 2f11.4, 3x, a)'
   if (lat%param%geometry == closed$) then
     call calc_z_tune(u%model%lat)
-    nl=nl+1; write(lines(nl), '(1x, a12, 2f11.4, 3x, a)') 'Z_tune:', &
+    nl=nl+1; write(lines(nl), fmt2) 'Z_tune:', &
          -u%model%lat%z%tune/twopi, -u%design%lat%z%tune/twopi, '! The design value is calculated with RF on'
+  else
+    nl=nl+1; write (lines(nl), fmt) 'I2*gamma^4', u%model%modes%lin%i2_e4, &
+          u%design%modes%lin%i2_e4, '! Linac Radiation Integral'
+    nl=nl+1; write (lines(nl), fmt) 'I3*gamma^7', u%model%modes%lin%i3_e7, &
+          u%design%modes%lin%i3_e7, '! Linac Radiation Integral'
   endif
   nl=nl+1; write(lines(nl), fmt) 'Sig_E/E:', u%model%modes%sigE_E, &
             u%design%modes%sigE_E
