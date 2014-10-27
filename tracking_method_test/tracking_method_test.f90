@@ -86,7 +86,7 @@ character(38) :: instr
     case('"RFCAVITY2:Linear"')           ; tolerance = 'REL  1E-07'
     case('"RFCAVITY2:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
     case('"SBEND4:Symp_Lie_PTC"')        ; tolerance = 'REL  2E-05'
-    case('"SBEND4:RUNGE_Kutta"')         ; tolerance = 'REL  3E-07'
+    case('"SBEND4:Runge_Kutta"')         ; tolerance = 'REL  3E-07'
     case('"SBEND4:Linear"')              ; tolerance = 'REL  2E-05'
     case('"SBEND4:Taylor"')              ; tolerance = 'REL  2E-07'
     case('"SBEND6:Symp_Lie_PTC"')        ; tolerance = 'REL  2E-05'
