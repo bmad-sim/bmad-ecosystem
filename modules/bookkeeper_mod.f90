@@ -124,6 +124,10 @@ call lat_compute_ref_energy_and_time (lat, err)
 if (err) return
 call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 
+! Call lat_geometry again in case the energy changes and there is a bend with field_master = T
+
+call lat_geometry (lat)
+
 call ptc_bookkeeper (lat)
 
 ! See if all status flags have been properly reset.
