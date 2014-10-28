@@ -5,6 +5,7 @@ use wake_mod
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
+type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
 type (beam_init_struct) :: beam_init
@@ -36,6 +37,21 @@ endif
 call bmad_parser (lat_file, lat)
 
 open (1, file = 'output.now')
+
+!
+
+ele => lat%ele(1)
+write (1, '(a, 2i4, f10.2)') '"SR-Size" ABS 0' , &
+                size(ele%wake%sr_long%mode), size(ele%wake%sr_trans%mode), ele%wake%z_sr_max
+
+w => ele%wake%sr_trans%mode(1)
+write (1, '(a, 4f14.5, 2i4)') '"SR-T1" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
+w => ele%wake%sr_trans%mode(2)
+write (1, '(a, 4f14.5, 2i4)') '"SR-T2" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
+w => ele%wake%sr_trans%mode(3)
+write (1, '(a, 4f14.5, 2i4)') '"SR-T3" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
+w => ele%wake%sr_long%mode(3)
+write (1, '(a, 4f14.5, 2i4)') '"SR-L3" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
 
 !
 
