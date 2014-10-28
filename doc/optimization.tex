@@ -268,6 +268,33 @@ commands.  See \sref{s:datum.opt} for details on how datums are
 chosen to be included in an optimization.
 
 %------------------------------------------------------------------------
+\section{Variable Limits and Optimization}
+\label{s:limit}
+
+High (\vn{high_lim}) and low (\vn{low_lim}) limiting values can be set
+for any variable (\sref{s:init.var}). If not explicitly set,
+\vn{high_lim} defaults to $10^30$ and \vn{low_lim} defaults to
+$-10^30$. When running the optimizer, if the (model) value of a
+variable is outside of the range set by the limits, the value will be
+set to the value of the appropriate limit and the variable's
+\vn{good_user} parameter (\sref{c:var}) is set to False so that no
+further variation by the optimizer is done.
+
+If the parameter \vn{global%var_limits_on} (\sref{s:globals}) is set
+to \vn{False}, limit settings are ignored. 
+
+By default, any variable value outside of the limit range will
+reset. Even those variables that are not varied by the optimizer. If
+this behavior is not desired, the parameter
+\vn{global%var_limit_only_used} may be set to \vn{True}.  If this is
+done, only variables that the optimizer is allowed to vary are
+restricted.
+
+The \vn{global%optimizer_var_limit_warn} parameter controls
+whether a warning is printed when a variable value goes past a limit.
+The default is \vn{True}.
+
+%------------------------------------------------------------------------
 \section{Optimizers in Tao}
 \label{s:tao.opti}
 \index{optimization!optimizer}
@@ -378,7 +405,6 @@ The \vn{global%svd_cutoff} variable can be used to vary the cutoff
 that SVD uses to decide what eigenvalues are sigular. See the
 documentation for the Numerical Recipes routine \vn{svdfit} for more
 details.
-
   \end{description}
 
 %------------------------------------------------------------------------
