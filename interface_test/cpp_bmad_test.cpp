@@ -625,6 +625,12 @@ void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
   // c_side.test_pat[real, 0, NOT]
   rhs = 8 + offset; C.a_cos = rhs;
 
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 9 + offset; C.polarization = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 10 + offset; C.kick_linear_in = rhs;
+
 
 }
 

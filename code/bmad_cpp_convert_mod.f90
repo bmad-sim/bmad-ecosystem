@@ -1535,12 +1535,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wake_sr_mode_to_c2 (C, z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin, &
-      z_a_cos) bind(c)
+      z_a_cos, z_polarization, z_kick_linear_in) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     real(c_double) :: z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin
     real(c_double) :: z_a_cos
+    integer(c_int) :: z_polarization, z_kick_linear_in
   end subroutine
 end interface
 
@@ -1556,7 +1557,8 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call wake_sr_mode_to_c2 (C, F%amp, F%damp, F%k, F%phi, F%b_sin, F%b_cos, F%a_sin, F%a_cos)
+call wake_sr_mode_to_c2 (C, F%amp, F%damp, F%k, F%phi, F%b_sin, F%b_cos, F%a_sin, F%a_cos, &
+    F%polarization, F%kick_linear_in)
 
 end subroutine wake_sr_mode_to_c
 
@@ -1577,7 +1579,7 @@ end subroutine wake_sr_mode_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine wake_sr_mode_to_f2 (Fp, z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin, &
-    z_a_cos) bind(c)
+    z_a_cos, z_polarization, z_kick_linear_in) bind(c)
 
 
 implicit none
@@ -1588,6 +1590,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_amp, z_damp, z_k, z_phi, z_b_sin, z_b_cos, z_a_sin
 real(c_double) :: z_a_cos
+integer(c_int) :: z_polarization, z_kick_linear_in
 
 call c_f_pointer (Fp, F)
 
@@ -1607,6 +1610,10 @@ F%b_cos = z_b_cos
 F%a_sin = z_a_sin
 !! f_side.to_f2_trans[real, 0, NOT]
 F%a_cos = z_a_cos
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%polarization = z_polarization
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%kick_linear_in = z_kick_linear_in
 
 end subroutine wake_sr_mode_to_f2
 

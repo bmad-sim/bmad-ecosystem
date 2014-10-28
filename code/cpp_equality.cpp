@@ -212,6 +212,8 @@ bool operator== (const CPP_wake_sr_mode& x, const CPP_wake_sr_mode& y) {
   is_eq = is_eq && (x.b_cos == y.b_cos);
   is_eq = is_eq && (x.a_sin == y.a_sin);
   is_eq = is_eq && (x.a_cos == y.a_cos);
+  is_eq = is_eq && (x.polarization == y.polarization);
+  is_eq = is_eq && (x.kick_linear_in == y.kick_linear_in);
   return is_eq;
 };
 

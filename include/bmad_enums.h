@@ -26,6 +26,7 @@ namespace Bmad {
   const int BMAD_INC_VERSION = 141;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
+  const int NONE = 1;
   const int BRAGG_DIFFRACTED = 1, FORWARD_DIFFRACTED = 2, UNDIFFRACTED = 3;
   const int REFLECTION = 1, TRANSMISSION = 2;
   const int ANCHOR_BEGINNING = 1, ANCHOR_CENTER = 2, ANCHOR_END = 3;
@@ -45,6 +46,8 @@ namespace Bmad {
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_Z_APERTURE = 7;
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
+  const int X_AXIS = 2, Y_AXIS = 3;
+  const int LEADING_OFFSET = 1, TRAILING_OFFSET = 2;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
@@ -271,7 +274,7 @@ namespace Bmad {
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int RECTANGULAR = 1, ELLIPTICAL = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
-  const int NONE = 1, SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
+  const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_SOFT_EDGE_ONLY = 5, SAD_FULL = 6, LINEAR_EDGE = 7, BASIC_BEND = 8;
   const int N_NON_BEND_FRINGE_TYPE = 4;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;

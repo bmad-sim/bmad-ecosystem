@@ -546,18 +546,20 @@ extern "C" void wake_sr_mode_to_c (const Bmad_wake_sr_mode_class*, CPP_wake_sr_m
 
 // c_side.to_f2_arg
 extern "C" void wake_sr_mode_to_f2 (Bmad_wake_sr_mode_class*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&);
 
 extern "C" void wake_sr_mode_to_f (const CPP_wake_sr_mode& C, Bmad_wake_sr_mode_class* F) {
 
   // c_side.to_f2_call
-  wake_sr_mode_to_f2 (F, C.amp, C.damp, C.k, C.phi, C.b_sin, C.b_cos, C.a_sin, C.a_cos);
+  wake_sr_mode_to_f2 (F, C.amp, C.damp, C.k, C.phi, C.b_sin, C.b_cos, C.a_sin, C.a_cos,
+      C.polarization, C.kick_linear_in);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void wake_sr_mode_to_c2 (CPP_wake_sr_mode& C, c_Real& z_amp, c_Real& z_damp, c_Real&
-    z_k, c_Real& z_phi, c_Real& z_b_sin, c_Real& z_b_cos, c_Real& z_a_sin, c_Real& z_a_cos) {
+    z_k, c_Real& z_phi, c_Real& z_b_sin, c_Real& z_b_cos, c_Real& z_a_sin, c_Real& z_a_cos,
+    c_Int& z_polarization, c_Int& z_kick_linear_in) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.amp = z_amp;
@@ -575,6 +577,10 @@ extern "C" void wake_sr_mode_to_c2 (CPP_wake_sr_mode& C, c_Real& z_amp, c_Real& 
   C.a_sin = z_a_sin;
   // c_side.to_c2_set[real, 0, NOT]
   C.a_cos = z_a_cos;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.polarization = z_polarization;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.kick_linear_in = z_kick_linear_in;
 }
 
 //--------------------------------------------------------------------

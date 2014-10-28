@@ -960,6 +960,10 @@ rhs = 6 + offset; F%b_cos = rhs
 rhs = 7 + offset; F%a_sin = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 8 + offset; F%a_cos = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 9 + offset; F%polarization = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 10 + offset; F%kick_linear_in = rhs
 
 end subroutine set_wake_sr_mode_test_pattern
 
