@@ -422,8 +422,13 @@ do i = 1, size(ele%wake%sr_trans%mode)
   w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
   w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
 
-  orbit%vec(2) = orbit%vec(2) - w_norm
-  orbit%vec(4) = orbit%vec(4) - w_skew
+  if (mode%kick_linear_in == trailing_offset$) then
+    orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
+    orbit%vec(4) = orbit%vec(4) - w_skew * orbit%vec(3)
+  else
+    orbit%vec(2) = orbit%vec(2) - w_norm
+    orbit%vec(4) = orbit%vec(4) - w_skew
+  endif
 
   ! Add to wake
 
@@ -433,10 +438,25 @@ do i = 1, size(ele%wake%sr_trans%mode)
   c = cos (arg)
   s = sin (arg)
 
-  mode%b_sin = mode%b_sin * exp_factor + ff * orbit%vec(1) * c
-  mode%b_cos = mode%b_cos * exp_factor + ff * orbit%vec(1) * s
-  mode%a_sin = mode%a_sin * exp_factor + ff * orbit%vec(3) * c
-  mode%a_cos = mode%a_cos * exp_factor + ff * orbit%vec(3) * s
+  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
+    if (mode%kick_linear_in == trailing_offset$) then
+      mode%b_sin = mode%b_sin * exp_factor + ff * c
+      mode%b_cos = mode%b_cos * exp_factor + ff * s
+    else
+      mode%b_sin = mode%b_sin * exp_factor + ff * c * orbit%vec(1)
+      mode%b_cos = mode%b_cos * exp_factor + ff * s * orbit%vec(1)
+    endif
+  endif
+
+  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
+    if (mode%kick_linear_in == trailing_offset$) then
+      mode%a_sin = mode%a_sin * exp_factor + ff * c
+      mode%a_cos = mode%a_cos * exp_factor + ff * s
+    else
+      mode%a_sin = mode%a_sin * exp_factor + ff * c * orbit%vec(3)
+      mode%a_cos = mode%a_cos * exp_factor + ff * s * orbit%vec(3)
+    endif
+  endif
 
 enddo
 

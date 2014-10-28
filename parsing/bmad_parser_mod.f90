@@ -3221,18 +3221,17 @@ subroutine read_sr_wake (ele, sr_file_name)
 implicit none
 
 type (ele_struct) ele
-type (wake_sr_mode_struct) longitudinal(100), transverse(100)
+type (wake_sr_mode_struct), target :: longitudinal(100), transverse(100)
+type (wake_sr_mode_struct), pointer :: sr(:), sr1
 
 real(rp) z_max
-integer n, j, iu, ios, ix, i
+integer n, j, iu, ios, ix, i, ixx
 
 character(*) sr_file_name
-character(80) line
+character(140) line, line_in
 character(200) full_file_name
 
-logical found_it
-
-namelist / short_range_modes / z_max, longitudinal, transverse
+logical in_namelist
 
 ! init
 
@@ -3250,17 +3249,81 @@ if (iu < 0) return
 
 ! Get data
 
-longitudinal(:)%phi = real_garbage$
-transverse(:)%phi = real_garbage$
-z_max = real_garbage$
+longitudinal = wake_sr_mode_struct()
+longitudinal%phi = real_garbage$
 
-read (iu, nml = short_range_modes, iostat = ios)
-close (iu)
-if (ios > 0) then
-  call parser_error ('CANNOT READ SHORT_RANGE_MODES NAMELIST FROM FILE: ' & 
-                    // full_file_name, 'FOR ELEMENT: ' // ele%name)
-  return
-endif
+transverse = wake_sr_mode_struct()
+transverse%phi = real_garbage$
+
+z_max = real_garbage$
+in_namelist = .false.
+
+do
+  read (iu, '(a)', iostat = ios) line_in
+  if (ios /= 0) then
+    call parser_error ('END OF FILE REACHED BEFORE SHORT_RANGE_MODES NAMELIST PARSED.', &
+                       'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  line = line_in
+  ix = index(line, '!')
+  if (ix /= 0) line = line(1:ix-1)
+  call string_trim(line, line, ixx)
+  if (ixx == 0) cycle
+  call downcase_string (line) 
+
+  if (in_namelist) then
+    if (line(1:1) == '/') exit
+  else
+    if (line == '&short_range_modes') then
+      in_namelist = .true.
+      cycle
+    endif
+  endif
+
+  if (line(1:12) == 'longitudinal') then
+    call string_trim(line(13:), line, ixx)
+    sr => longitudinal
+    if (.not. get_this_sr1 (sr, sr1)) return
+    if (.not. expect_equal_sign()) return
+    if (.not. get_this_param (sr1%amp)) return
+    if (.not. get_this_param (sr1%damp)) return
+    if (.not. get_this_param (sr1%k)) return
+    if (.not. get_this_param (sr1%phi)) return
+    if (.not. expect_nothing ()) return
+
+  elseif (line(1:10) == 'transverse') then
+    call string_trim(line(11:), line, ixx)
+    sr => transverse
+    if (.not. get_this_sr1 (sr, sr1)) return
+    if (.not. expect_equal_sign()) return
+    if (.not. get_this_param (sr1%amp)) return
+    if (.not. get_this_param (sr1%damp)) return
+    if (.not. get_this_param (sr1%k)) return
+    if (.not. get_this_param (sr1%phi)) return
+    if (.not. get_this_switch (sr1%polarization, sr_polarization_name)) return
+    if (.not. get_this_switch (sr1%kick_linear_in, sr_kick_linear_in_name)) return
+    if (.not. expect_nothing ()) return
+
+  elseif (line(1:ixx) == 'z_max') then
+    call string_trim(line(ixx+1:), line, ixx)
+    if (.not. expect_equal_sign()) return
+    if (.not. get_this_param (z_max)) return
+    if (.not. expect_nothing ()) return
+
+  else
+    call parser_error ('BAD PARAMETER NAME IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                       '(MUST BE "LONGITUDINAL", "TRANSVERSE", OR "Z_MAX")', &
+                       'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+enddo
+
+
+
+! Put data in element
 
 n = count(longitudinal%phi /= real_garbage$)
 allocate (ele%wake%sr_long%mode(n))
@@ -3281,6 +3344,149 @@ ele%wake%z_sr_max = z_max
 if (z_max == real_garbage$) call parser_error ( &
     'Z_MAX NOT SET FOR SHORT_RANGE_MODES FROM FILE: ' // full_file_name, &
     'FOR ELEMENT: ' // ele%name)
+
+!-------------------------------------------------------------------------
+contains
+
+function expect_equal_sign () result (is_ok)
+
+logical is_ok
+
+is_ok = .false.
+
+if (line(1:1) /= '=') then
+  call parser_error ('MISING "=" SIGN IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+call string_trim(line(2:), line, ixx)
+is_ok = .true.
+
+end function expect_equal_sign
+
+!-------------------------------------------------------------------------
+! contains
+
+function get_this_sr1 (sr, sr1) result (is_ok)
+
+type (wake_sr_mode_struct), pointer :: sr(:), sr1
+integer ixp, ios, n
+logical is_ok
+
+
+!
+is_ok = .false.
+
+if (line(1:1) /= '(') then
+  call parser_error ('MISING "(" IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+ixp = index(line, ')') 
+if (ixp == 0) then
+  call parser_error ('MISING "(" IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+read(line(2:ixp-1), *, iostat = ios) n
+if (ios /= 0 .or. n < 1 .or. n > size(sr)) then
+  call parser_error ('BAD WAKE MODE INDEX IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+call string_trim (line(ixp+1:), line, ixx)
+sr1 => sr(n)
+
+is_ok = .true.
+
+end function get_this_sr1
+
+!-------------------------------------------------------------------------
+! contains
+
+function get_this_param (param) result (is_ok)
+
+real(rp) param
+integer ios
+logical is_ok
+
+!
+
+is_ok = .false.
+
+if (ixx == 0) then
+  call parser_error ('MISING NUMBER IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+read (line(1:ixx), *, iostat = ios) param
+
+if (ios /= 0) then
+  call parser_error ('MALFORMED NUMBER IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+call string_trim(line(ixx+1:), line, ixx)
+
+is_ok = .true.
+
+end function get_this_param
+
+!-------------------------------------------------------------------------
+! contains
+
+function get_this_switch (switch, names) result (is_ok)
+
+integer switch, ix
+character(*) :: names(:)
+logical is_ok
+
+is_ok = .false.
+
+if (ixx == 0) then
+  is_ok = .true.
+  return
+endif
+
+call match_word (line(1:ixx), names, switch)
+
+if (switch < 1) then
+  call parser_error ('BAD SWITCH NAME IN SHORT_RANGE_MODES NAMELIST: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+call string_trim(line(ixx+1:), line, ixx)
+
+is_ok = .true.
+
+end function get_this_switch
+
+!-------------------------------------------------------------------------
+! contains
+
+function expect_nothing () result (is_ok)
+
+logical is_ok
+
+is_ok = .false.
+
+if (line /= '') then    
+  call parser_error ('EXTRA STUFF ON LINE: ' // line_in, &
+                     'FROM FILE: ' // full_file_name, 'FOR ELEMENT: ' // ele%name)
+  return
+endif
+
+
+is_ok = .true.
+
+end function expect_nothing
 
 end subroutine read_sr_wake
 
@@ -3569,7 +3775,7 @@ end function verify_valid_name
 ! This subroutine is not intended for general use.
 !-
 
-subroutine parser_error (what1, what2, what3, seq, pele, stop_here, warn_only)
+subroutine parser_error (what1, what2, what3, what4, seq, pele, stop_here, warn_only)
 
 implicit none
 
@@ -3577,7 +3783,7 @@ type (seq_struct), optional :: seq
 type (parser_ele_struct), optional :: pele
 
 character(*) what1
-character(*), optional :: what2, what3
+character(*), optional :: what2, what3, what4
 character(160) lines(12)
 character(16), parameter :: r_name = 'parser_error'
 integer nl, err_level
@@ -3603,6 +3809,10 @@ if (global_com%type_out .and. bp_com%print_err) then
 
   if (present(what3)) then
     nl=nl+1; lines(nl) = '     ' // trim(what3)
+  endif
+
+  if (present(what4)) then
+    nl=nl+1; lines(nl) = '     ' // trim(what4)
   endif
 
   if (present(seq)) then
@@ -5479,7 +5689,7 @@ line_expansion: do
       if (s_ele%tag /= '') then
         call parser_error ('ELEMENTS IN A LINE OR LIST ARE NOT ALLOWED TO HAVE A TAG.', &
                       'FOUND ILLEGAL TAG FOR ELEMENT: ' // s_ele%name, &
-                      'IN THE LINE/LIST: ' // seq%name, seq)
+                      'IN THE LINE/LIST: ' // seq%name, seq = seq)
       endif
       this_seq_ele => s_ele
     endif

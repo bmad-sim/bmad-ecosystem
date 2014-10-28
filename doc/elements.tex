@@ -461,8 +461,9 @@ This formula holds for both positive and negative angles.
 The field integrals for the entrance and
 exit pole faces are give by \vn{fint} and \vn{fintx} respectively
 \Begineq
-  F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) (B_{y0} - B_y(s))}
-  {2 H_{gap} B_{y0}^2}
+  F_{int} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  {2 \, H_{gap} \, B_{y0}^2}
+  \label{fsbbb}
 \Endeq
 with a similar equation for \vn{fintx}. In the equation $B_{y0}$ is
 the field in the interior of the dipole and $H_{gap}$ is the pole half
@@ -2922,9 +2923,9 @@ and \vn{phase_particle} is
   phase_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
                  =  t_particle * rf_frequency    ! With absolute time tracking
 \end{example}
-With \vn{relative time tracking}, the phase, \vn{phase_particle}, of the
-particle with respect to the cavity's internal clock is proportional
-to \vn{z} -- the particles' phase space coordinate
+With \vn{relative time tracking}, the phase, \vn{phase_particle}, of
+the particle with respect to the cavity's internal clock is
+proportional to \vn{z} -- the particles' phase space coordinate
 (\sref{s:phase.space}). With \vn{absolute time tracking},
 \vn{phase_particle} is proportional to the absolute time the particle
 reaches the cavity. See section~\sref{s:rf.time} for a discussion on
@@ -2932,8 +2933,8 @@ relative verses absolute time tracking. The switch to set the type of
 tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 (\sref{s:param}).
 
-\vn{phi0_multipass} is only to be used to shift the phase with respect to a
-\vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
+\vn{phi0_multipass} is only to be used to shift the phase with respect
+to a \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the
 charge on an electron (Table~\ref{t:constants}). Notice that the
 energy kick is independent of the sign of the charge of the particle
 
@@ -2949,7 +2950,7 @@ velocity of the reference particle at the start of the lattice. After
 the lattice has been read in, \vn{rf_frequency} will be the
 independent variable (\sref{s:depend}).
 
-Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes} can
+Couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
 be modeled. In addition, if a field map is specified
 (\sref{s:em.fields}), tracking using an integrator is possible.
 
@@ -2958,11 +2959,11 @@ be modeled. In addition, if a field map is specified
 \index{boris!and field maps}\index{symp_lie_bmad!and field maps}
 If a field map is specified (\sref{s:em.fields}), tracking using an
 integrator is possible. A field map is only used for \vn{runge_kutta},
-\vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking (\sref{s:tkm}).
-Only the fundamental mode has an analytical formula for the symplectic
-tracking. In the future, the other modes could be used with
-\vn{symp_lie_bmad} tracking using a field expansion about the
-centerline.
+\vn{adaptive_runge_kutta}, \vn{boris} and \vn{symp_lie_bmad} tracking
+(\sref{s:tkm}).  Only the fundamental mode has an analytical formula
+for the symplectic tracking. In the future, the other modes could be
+used with \vn{symp_lie_bmad} tracking using a field expansion about
+the centerline.
 
 Example:
 \begin{example}

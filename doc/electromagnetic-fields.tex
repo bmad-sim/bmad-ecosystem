@@ -334,7 +334,8 @@ long--range (between bunches).
 
 Only the transverse dipole and longitudinal monopole components of the
 short--range wake field are modeled. The longitudinal monopole energy
-kick $dE$ for the $i$\Th macroparticle is computed from the equation
+kick $dE$ for the $i$\Th (trailing) macroparticle due to the wake from
+the $j$\Th (leading) macroparticle is computed from the equation
 \Begineq
   \Delta p_z(i) = \frac{-e \, L}{v \, P_0} \, \left(
         \frac{1}{2}\WlS(0) \,  |q_i| +
@@ -347,29 +348,45 @@ is the longitudinal distance between the $i$\Th and $j$\Th
 macroparticles, $\WlS$ is the short--range longitudinal wake field
 function.
 
-The transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
+For the transverse kick, there are two types of wakes: Those that are
+dependent upon transverse offset of the leading particle (but
+independent of the position of the trailing particle) and those that
+are dependent upon the transverse offset of the trailing particle (but
+independent of the position of the leading particle. If the beam
+chamber has azimuthal symmetry, the only wakes present are those that
+are dependent upon the offset of the leading particle. 
+
+\bmad assumes that the beam chamber wall is mirror symmetric with
+respect to both the $x$-axis and $y$-axis. In this case, a horizontal
+displacement (of either particle) results in a horizontal kick and
+similarly for vertical displacements. That is, the horizontal and
+vertical wakes are decoupled. 
+
+With the above symmetry assumpltion, 
+the transverse kick $\Delta p_x(i)$ for the $i$\Th macroparticle due to the 
 dipole short--range transverse wake field is modeled with the equation
 \Begineq
-  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x_j \, \WtS(dz_{ij})}
+  \Delta p_x(i) = \frac{-e \, L \, \sum_j |q_j| \, x \, \WtS(dz_{ij})}
                  {v \, P_0}
   \label{pelqxw}
 \Endeq
-There is a similar equation for $\Delta p_y(i)$. $\WtS$ is the
-transverse short--range wake function. 
+Where $x$ is the horizontal displacement of the leading or trailing
+particle as appropriate. There is a similar equation for $\Delta
+p_y(i)$. $\WtS$ is the transverse short--range wake function.
 
-The wake field functions $\WlS$ and $\WlS$ can be specified in a \bmad
+The wake field functions $\WlS$ and $\WtS$ can be specified in a \bmad
 lattice file using ``pseudo'' modes where
 \Begineq
   W(z) = \sum_i A_i \, e^{d_i z} \, \sin (k_i \, z + \phi_i)
   \label{wadzk}
 \Endeq
-The set of mode parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit
-the calculated wake potential. The reason why the mode approach is
-used in \bmad is due to the fact that, with modes, the calculation
-time scales as the number of particles $N$ while a calculation based
-upon a table of wake vs $z$ would scale as $N^2$. [The disadvantage is
-that initially the user must proform a fit to the wake potential to
-generate the mode parameter values.]
+The parameters $(A_i, d_i, k_i, \phi_i)$ are chosen to fit the
+calculated wake potential (\sref{ss:short.range.wakes}). The reason
+why the mode approach is used in \bmad is due to the fact that, using
+pseudo modes, the calculation time scales as the number of particles
+$N$ while a calculation based upon a table of wake vs $z$ would scale
+as $N^2$. [The disadvantage is that initially the user must proform a
+fit to the wake potential to generate the mode parameter values.]
 
 %-----------------------------
 \subsection{Long--Range Wakes}

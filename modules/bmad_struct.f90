@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 141
+integer, parameter :: bmad_inc_version$ = 142
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -62,6 +62,7 @@ integer, parameter :: num_ele_attrib$ = 80
 ! Misc
 
 integer, parameter :: off$ = 1, on$ = 2
+integer, parameter :: none$ = 1
 
 ! Diffraction
 
@@ -254,17 +255,25 @@ type wig_struct
 end type
 
 ! Wakefield structs...
-! Each sr_wake_struct represents a point on the wake vs. z curve.
+! 
 
-type wake_sr_mode_struct  ! Psudo-mode Short-range wake struct 
-  real(rp) amp        ! Amplitude
-  real(rp) damp       ! Dampling factor.
-  real(rp) k          ! k factor
-  real(rp) phi        ! Phase in radians
-  real(rp) b_sin      ! non-skew sin-like component of the wake
-  real(rp) b_cos      ! non-skew cos-like component of the wake
-  real(rp) a_sin      ! skew sin-like component of the wake
-  real(rp) a_cos      ! skew cos-like component of the wake
+integer, parameter :: x_axis$ = 2, y_axis$ = 3
+character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
+
+integer, parameter :: leading_offset$ = 1, trailing_offset$ = 2
+character(16), parameter :: sr_kick_linear_in_name(2) = ['leading_offset ', 'trailing_offset']
+
+type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
+  real(rp) :: amp = 0       ! Amplitude
+  real(rp) :: damp = 0      ! Dampling factor.
+  real(rp) :: k = 0         ! k factor
+  real(rp) :: phi = 0       ! Phase in radians
+  real(rp) :: b_sin = 0     ! non-skew (x) sin-like component of the wake
+  real(rp) :: b_cos = 0     ! non-skew (x) cos-like component of the wake
+  real(rp) :: a_sin = 0     ! skew (y) sin-like component of the wake
+  real(rp) :: a_cos = 0     ! skew (y) cos-like component of the wake
+  integer :: polarization = none$                 ! or x_axis$ or y_axis$
+  integer :: kick_linear_in = leading_offset$     ! or trailing_offset$
 end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct 
@@ -1179,7 +1188,7 @@ character(16), parameter :: aperture_type_name(0:7) = &
 ! fringe_type
 ! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
 
-integer, parameter :: none$ = 1, soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
+integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
 integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
 integer, parameter :: n_non_bend_fringe_type$ = 4
 

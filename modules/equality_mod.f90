@@ -320,6 +320,10 @@ is_eq = is_eq .and. (f1%b_cos == f2%b_cos)
 is_eq = is_eq .and. (f1%a_sin == f2%a_sin)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%a_cos == f2%a_cos)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%polarization == f2%polarization)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%kick_linear_in == f2%kick_linear_in)
 
 end function eq_wake_sr_mode
 
