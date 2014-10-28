@@ -729,10 +729,11 @@ if (associated(ele%wake)) then
       call re_associate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
       nl=nl+1; li(nl) = 'Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
-            '   #        Amp        Damp           K         Phi'
+            '   #        Amp        Damp           K         Phi   Polarization  Kick_Linear_in'
       do i = 1, size(ele%wake%sr_trans%mode)
         mode => ele%wake%sr_trans%mode(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, mode%amp, mode%damp, mode%k, mode%phi
+        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
+                  sr_polarization_name(mode%polarization), sr_kick_linear_in_name(mode%kick_linear_in)
       enddo
     else
      nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'
@@ -745,8 +746,7 @@ if (associated(ele%wake)) then
       call re_associate (li, nl+size(ele%wake%lr)+100, .false.)
       nl=nl+1; li(nl) = 'Long-range HOM modes:'
       nl=nl+1; li(nl) = &
-            '  #       Freq         R/Q           Q   m   Angle' // &
-            '    b_sin     b_cos     a_sin     a_cos     t_ref'
+            '  #       Freq         R/Q           Q   m   Angle    b_sin     b_cos     a_sin     a_cos     t_ref'
       do i = 1, size(ele%wake%lr)
         lr => ele%wake%lr(i)
         angle = ' unpolar'

@@ -58,6 +58,7 @@ type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
 type (wake_lr_struct), pointer :: lr
+type (wake_sr_mode_struct), parameter :: sr0 = wake_sr_mode_struct()
 type (wake_sr_mode_struct), pointer :: sr
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (em_field_mode_struct), pointer :: mode
@@ -74,12 +75,12 @@ character(4000) line
 character(200) wake_name, file_name, path, basename
 character(60) alias
 character(40) name, look_for, attrib_name
-character(4) end_str
-character(4) last
+character(16) polar, linear_in
+character(10) angle
+character(4) end_str, last
 character(40), allocatable :: names(:)
 character(200), allocatable :: sr_wake_name(:), lr_wake_name(:)
 character(*), parameter :: r_name = 'write_bmad_lattice_file'
-character(10) angle
 
 integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3
@@ -564,7 +565,7 @@ do ib = 0, ubound(lat%branch, 1)
             iuw = lunget()
             open (iuw, file = wake_name)
             write (iuw, *) '! Pseudo Wake modes:'
-            write (iuw, *) '!                 Amp	  damp    k   phase'
+            write (iuw, *) '!                 Amp	  Damp    K   Phase    Polarization  Kick_Linear_in'
             write (iuw, *) '! Longitudinal: [V/C/m] [1/m] [1/m] [rad]'
             write (iuw, *) '! Transverse: [V/C/m^2] [1/m] [1/m] [rad]'
             write (iuw, *) ''
@@ -576,7 +577,12 @@ do ib = 0, ubound(lat%branch, 1)
             write (iuw, *) ''
             do n = 1, size(ele%wake%sr_trans%mode)
               sr => ele%wake%sr_trans%mode(n)
-              write (iuw, '(a, i0, a, 4es15.5)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi 
+              polar = ''   ! Use for default
+              if (sr%polarization /= sr0%polarization) polar = sr_polarization_name(sr%polarization)
+              linear_in = '' ! Use for default
+              if (sr%kick_linear_in /= sr0%kick_linear_in) linear_in = sr_kick_linear_in_name(sr%kick_linear_in)
+              write (iuw, '(a, i0, a, 4es15.5)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, &
+                                                                            sr%phi, polar, linear_in
             enddo
             write (iuw, *) '/'
             close(iuw)

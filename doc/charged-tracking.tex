@@ -47,14 +47,14 @@ The switch to set the type of tracking for a lattice is
 
 There are advantages and disadvantages to using either relative or
 absolute time tracking. Absolute time tracking is more correct since
-RF cavities are in reality synched to some clock. The problem with
+RF cavities are in reality synced to some clock. The problem with
 absolute time tracking is that the transfer map through the cavity is
 now a function of time and cannot be written as a function of $z$
 unless the total lattice length is a multiple of the RF wavelength.
 This complicates lattice analysis.
 
 With relative time tracking the transfer map problem is swept under
-the rug. The penelty for using relative time tracking is that results
+the rug. The penalty for using relative time tracking is that results
 can be unphysical. For example, the closed orbit is essentially
 independent of the RF frequency. From a different angle this can be
 viewed as a good feature since if one is only interested in, say,
@@ -569,7 +569,7 @@ $\frac{2}{\hbar}$,
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
-\section{Multipole (Non-Bend) Fringe Fields}
+\section{Fringe Fields}
 \label{s:multi.fringe.std}
 \index{fringe!multipole}
 
@@ -582,37 +582,75 @@ longitudinal extent minus the hard edge fringe kick. That is
   fringe kick = hard fringe kick + soft fringe kick
 \end{example}
 The advantage of separating the fringe kick in this way is that the hard fringe can
-be used without having to know anything about the longitudinal extent of the fringe.
-In many cases, this is a good enough approximation. 
+be used without having to know anything about the longitudinal extent of the fringe
+field. In many cases, this is a good enough approximation. 
 
 %---------------------------------------------------------------------------------
-\subsection{Multipole Hard Edge Fringe Map}
+\subsection{Bend Soft Edge Fringe Map}
 
-The multipole hard edge fringe field is modeled using the method shown in
-Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
-is (Forest Eq.~(13.29):
-\begin{align}
-  f_\pm &= \mp \Re \left[ \frac{(b_m + i \, a_m) \, 
-    (x + i \, y)^{m+1}}{4 \, (m + 2) \, (1 + \delta)} \,
-    \left\{ x \, p_x + y \, p_y + i \frac{m+3}{m+1} 
-    (x \, p_x - y \, p_y) \right\} \right] \CRNO
-  &\equiv \frac{p_x \, f^x + p_y \, f^y}{1 + \delta}
-\end{align}
-The multipole strengths $a_m$ and $b_m$ are given by \eq{bib1nb}
-and the second equation defines $f^x$ and $f^y$. On the right had side of the first
-equation, the minus sign is appropriate for particles entering the magnet and the
-plus sign is for particle leaving the magnet.
-Notice that here the multipole order $m$ is equivalent to $n-1$ in Forest's notation.
 
-With this, the implicit multipole map is (Forest Eq.~(13.31))
+\bmad defines the bend soft edge map in terms of the field integral
+$F_{H1}$ for the entrance end and $F_{H2}$ for the exit end given by
+(see \Eq{fsbbb})
+\Begineq
+  F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
+  {2 \, B_{y0}^2}
+\Endeq
+With a similar equation for $F_{H2}$.
+The soft edge map is then
 \begin{align}
-  x^f &= x - \frac{f^x}{1 + \delta} \CRNO
-  p_x &= p_x^f - \frac{p_x^f \, \partial_x f^x + p_y^f \, \partial_x f^y}{1 + \delta} \CRNO
-  y^f &= y - \frac{f_y}{1 + \delta} \\
-  p_y &= p_y^f - \frac{p_x^f \, \partial_y f^x + p_y^f \, \partial_y f^y}{1 + \delta} \CRNO
-  \delta^f &= \delta \CRNO
-  z^f &=\frac{p_x^f \, f^x + p_y^f \, f^y}{(1 + \delta)^2} \nonumber
+  x_2 &=  x_1 + c_1 \, p_z \CRNO
+  p_{y2} &= p_{y1} + c_2 \, y_1 - c_3 \, y_1^3 \\
+  z_2 &= z_1 + \frac{1}{1 + p_{z1}} \, \left( 
+    c_1 \, p_{x1} + \frac{1}{2} \, c_2 \, y_1^2 -\frac{1}{4} \, c_3 \, y_1^4 \right)
+    \nonumber
 \end{align}
+For the entrance face:
+\Begineq
+  c_1 = \frac{g_{tot} \, F_{H1}^2}{2 \, (1 + p_z)}, \qquad 
+  c_2 = \frac{2 \, g_{tot}^2 \, F_{H1}}{1 + p_z}, \qquad 
+  c_3 = 0
+\Endeq
+with \vn{g_{tot}} is the total bending strength
+\Begineq
+  g_{tot} = \mbox{g} + \mbox{g_err}
+\Endeq
+\vn{g} being the reference bend strength and \vn{g_err} being
+bend the difference between the actual and reference bend strengths
+(\sref{s:bend}).
+
+For the exit face, the subsitution is made
+\begin{align}
+  F_{H1} &\rightarrow F_{H2} \CRNO
+  g_{tot} &\rightarrow -g_{tot}
+\end{align}
+
+When the SAD bend soft edge map is used (\sref{s:fringe}), the map is
+the same except that the value of $c_3$ is
+\Begineq
+  c_3 = \frac{8 \, g_{tot}^2}{F_{H1} \, (1 + p_z)}
+\Endeq
+It might seem strange that $c_3$ diverges to infinity as $F_H$ goes to
+zero since naively one would expect the soft edge kick to vanish in
+the hard edge limit where the fringe has no longitudinal
+extent. However, in the hard edge limit, the field does not obey
+Maxwell's equations. The limiting map, as $F_H$ goes to zero, has
+fields that diverge to infinity and this exaplains why the full (hard
++ soft) limiting map is not the same as the hard edge map at the limit
+of zero longitudinal extent.
+
+For a \vn{sad_mult} element, the field integrals are characterized by
+parameters \vn{fb1} (entrance end) and \vn{fb2} (exit end) which
+correspond to the SAD \vn{fb1} and \vn{fb2} parameters. These are related
+to the bend parameters by
+\Begineq
+  \mbox{fb1} = 12 \, F_{H1}, \qquad \mbox{fb2} = 12 \, F_{H2}
+\Endeq
+
+%---------------------------------------------------------------------------------
+\subsection{Bend Hard Edge Fringe Map}
+
+In development...
 
 %---------------------------------------------------------------------------------
 \subsection{Quadrupole Soft Edge Fringe Map}
@@ -667,9 +705,33 @@ The quadrupole parameters are related to the corresponding SAD parameters
 In the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 %---------------------------------------------------------------------------------
-\section{Bend Fringe Map}
+\subsection{Multipole Hard Edge Fringe Map}
 
-In development...
+The multipole hard edge fringe field is modeled using the method shown in
+Forest\cite{b:forest}. For the $m$\Th order multipole the Lee transform 
+is (Forest Eq.~(13.29):
+\begin{align}
+  f_\pm &= \mp \Re \left[ \frac{(b_m + i \, a_m) \, 
+    (x + i \, y)^{m+1}}{4 \, (m + 2) \, (1 + \delta)} \,
+    \left\{ x \, p_x + y \, p_y + i \frac{m+3}{m+1} 
+    (x \, p_x - y \, p_y) \right\} \right] \CRNO
+  &\equiv \frac{p_x \, f^x + p_y \, f^y}{1 + \delta}
+\end{align}
+The multipole strengths $a_m$ and $b_m$ are given by \eq{bib1nb}
+and the second equation defines $f^x$ and $f^y$. On the right had side of the first
+equation, the minus sign is appropriate for particles entering the magnet and the
+plus sign is for particle leaving the magnet.
+Notice that here the multipole order $m$ is equivalent to $n-1$ in Forest's notation.
+
+With this, the implicit multipole map is (Forest Eq.~(13.31))
+\begin{align}
+  x^f &= x - \frac{f^x}{1 + \delta} \CRNO
+  p_x &= p_x^f - \frac{p_x^f \, \partial_x f^x + p_y^f \, \partial_x f^y}{1 + \delta} \CRNO
+  y^f &= y - \frac{f_y}{1 + \delta} \\
+  p_y &= p_y^f - \frac{p_x^f \, \partial_y f^x + p_y^f \, \partial_y f^y}{1 + \delta} \CRNO
+  \delta^f &= \delta \CRNO
+  z^f &=\frac{p_x^f \, f^x + p_y^f \, f^y}{(1 + \delta)^2} \nonumber
+\end{align}
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
