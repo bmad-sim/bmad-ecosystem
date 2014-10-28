@@ -528,7 +528,6 @@ type tao_global_struct
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
   logical :: initialized = .false.                ! Does tao_init() need to be called?
-  logical :: var_limits_on = .true.               ! Respect the variable limits?
   logical :: opt_with_ref = .false.               ! use reference data in optimization?
   logical :: opt_with_base = .false.              ! use base data in optimization?
   logical :: label_lattice_elements = .true.      ! For lat_layout plots
@@ -543,6 +542,8 @@ type tao_global_struct
   logical :: command_file_print_on = .true.       ! print to terminal when using a cmd file?
   logical :: box_plots = .false.                  ! For debugging plot layout issues.
   logical :: beam_timer_on = .false.              ! For timing the beam tracking calculation.
+  logical :: var_limits_on = .true.               ! Respect the variable limits?
+  logical :: var_limit_only_used = .false.        ! Only apply limits to variables used in optimization.
   logical :: optimizer_var_limit_warn = .true.    ! Warn when vars reach a limit with optimization.
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
   logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
