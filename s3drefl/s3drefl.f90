@@ -13,8 +13,7 @@ use photon_reflection_mod
 implicit none
 
 type (sr3d_wall_struct), target :: wall
-type (photon_reflect_surface_struct), pointer :: surface
-type (photon_reflect_surface_struct), allocatable, target :: surfaces(:)
+type (photon_reflect_surface_struct) :: surface
 
 character(200) surface_reflection_file
 real(rp) roughness_rms_min, roughness_rms_max, &
@@ -98,11 +97,7 @@ endif
 ! Load different surface reflection parameters if wanted
 
 if (surface_reflection_file /= '') then
-  call read_surface_reflection_file (surface_reflection_file, surfaces(i))
-else
-  n_surface =1 
-  allocate (surfaces(n_surface))
-!  call photon_reflection_init()
+  call read_surface_reflection_file (surface_reflection_file, surface)
 endif
 
 ! Calculate step sizes
@@ -134,9 +129,9 @@ do i = 0, roughness_rms_nsteps
 
 !    call set_surface_roughness (roughness_rms, correlation_len, rms_set, correlation_set)
 
-    surfaces(1)%surface_roughness_rms = roughness_rms
-    surfaces(1)%roughness_correlation_len = correlation_len
-    call photon_reflection_std_surface_init (surfaces(1))
+    surface%surface_roughness_rms = roughness_rms
+    surface%roughness_correlation_len = correlation_len
+    call photon_reflection_std_surface_init (surface)
 
     write(*,'(a,e22.7,3x,e22.7)')'Roughness, correlation length:', roughness_rms, correlation_len
 
@@ -148,7 +143,6 @@ do i = 0, roughness_rms_nsteps
       do l = 0, energy_nsteps
         energy = energy_min + l * de
 
-        surface => surfaces(1)
         call photon_diffuse_scattering ( angle_in, energy, surface, theta_out, phi_out )
 
 !        write (*,'(a,f6.2,2x,e10.5,a,f6.2,2x,f6.2)') &
