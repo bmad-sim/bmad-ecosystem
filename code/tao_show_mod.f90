@@ -1278,10 +1278,11 @@ case ('global')
     endif
     nl=nl+1; write(lines(nl), amt) '  %track_type                    = ', s%global%track_type
     nl=nl+1; write(lines(nl), lmt) '  %var_limits_on                 = ', s%global%var_limits_on
+    nl=nl+1; write(lines(nl), lmt) '  %var_limit_only_used           = ', s%global%var_limit_only_used
+    nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
     nl=nl+1; write(lines(nl), amt) '  %var_out_file                  = ', s%global%var_out_file
     nl=nl+1; write(lines(nl), rmt) '  %y_axis_plot_dmin              = ', s%global%y_axis_plot_dmin
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
-    nl=nl+1; write(lines(nl), lmt) '  %optimizer_var_limit_warn      = ', s%global%optimizer_var_limit_warn
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Internal Tao Parameters:'

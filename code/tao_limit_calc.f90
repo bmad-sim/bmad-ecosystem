@@ -7,7 +7,8 @@
 ! limit. Additionally the variable's good_user attribute is set to False.
 !
 ! Input:
-!    %globalvar_limits_on -- Logical: If False then this routine does nothing.
+!   s%global%var_limits_on        -- If False then this routine does nothing.
+!   s%global%var_limit_only_used  -- Limit only variables used in optimization?
 !
 ! Output:
 !   limited -- Logical: Set True if a variable is past a limit.
@@ -41,13 +42,15 @@ do j = 1, s%n_var_used
 
   var => s%var(j)
   if (.not. var%exists) cycle
+  if (s%global%var_limit_only_used .and. .not. var%useit_opt) cycle
 
   if (var%model_value > var%high_lim) then
     write (line, '(1pe13.4)') var%high_lim
     call out_io (s_warn$, r_name, &
-      'VARIABLE: ' // tao_var1_name(var), &
+      'VARIABLE: ' // trim(tao_var1_name(var)) // '  WITH VALUE: \es10.2\ ', &
       'HAS TARGET VALUE GREATER THAN THE HIGH LIMIT OF: ' // line, &
-      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
+      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST', &
+      r_array = [var%model_value])
     value = var%high_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.
@@ -58,9 +61,10 @@ do j = 1, s%n_var_used
   if (var%model_value < var%low_lim) then
     write (line, '(1pe13.4)') var%low_lim
     call out_io (s_warn$, r_name, &
-      'VARIABLE: ' // tao_var1_name(var), &
+      'VARIABLE: ' // trim(tao_var1_name(var)) // '  WITH VALUE: \es10.2\ ', &
       'HAS TARGET VALUE LESS THAN THE LOW LIMIT OF: ' // line, &
-      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST')
+      'RESETTING VARIABLE TO BE WITHIN BOUNDS & VETOING FROM OPTIMIZER LIST', &
+      r_array = [var%model_value])
     value = var%low_lim
     call tao_set_var_model_value (var, value) 
     var%good_user = .false.

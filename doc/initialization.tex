@@ -315,7 +315,7 @@ The \vn{tao_global_struct} structure contains \tao global parameters.
 \index{bunch_to_plot}\index{random_seed}
 \index{beam_random_engine}\index{beam_random_gauss_converter}
 \index{track_type}\index{prompt_string}\index{Optimization!setting the optimizer}
-\index{write_file}\index{var_limits_on}
+\index{write_file}\index{var_limits_on}\index{var_limit_only_used
 \index{plot_on}\index{opt_with_ref}\index{opt_with_base}
 \index{single_mode}\index{init_opt_wrapper}\index{lm_opt_deriv_reinit}
 \index{label_lattice_elements}\index{label_keys}\index{derivative_recalc}
@@ -345,6 +345,7 @@ type tao_global_struct
   character(40) print_command = "lpr"
   character(80) var_out_file  = "var#.out"
   logical var_limits_on = T             ! Respect the variable limits?
+  logical var_limit_only_used = F       ! Apply limits only if variable is used in optimization?
   logical opt_with_ref = F              ! use reference data in optimization?
   logical opt_with_base = F             ! use base data in optimization?
   logical init_opt_wrapper = T
@@ -424,6 +425,18 @@ command (\sref{s:set})), then executing a set of commands, and finally
 setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of
 the calculational overhead that each command generates. Similarly,
 \vn{global%plot_on} can be toggled to save even more time.
+
+The \vn{global%var_limits_on} switch controls whether a variable's
+model value is limited by the variable's \vn{high_lim} and
+\vn{low_lim} settings (\sref{s:init.var}). This is particularly
+important during optimization. If a variable's model value moves
+outside of the limits, the value is set at the limit and the
+variable's \vn{good_user} parameter is set to \vn{False} so it will
+not be further varied in the optimization.  The
+\vn{global%var_limit_only_used} switch controls whether only the
+varialbes being optimized are limited or whether all variables are
+limited. The \vn{global%optimizer_var_limit_warn} switch controls
+whether a warning is printed when a variable value goes past a limit.
 
 The \vn{global%command_file_print_on} switch controls whether printing
 is suppressed when a command file is called.
