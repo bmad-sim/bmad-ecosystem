@@ -45,6 +45,8 @@ rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 
                              x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
                              tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.1
+sad_mult1:         sad_mult, l = 0.1, fringe_type = full, ks = 0.1, a1 = 2e-5, b2 = 4e-3
+sad_mult2:         sad_mult, fringe_type = full, a1 = 2e-5, b2 = 4e-3
 sbend1:            sbend, l = 0.6, k1 = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, b1 = 10, b3 = 100
 sbend2:            sbend, l = 0.6, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1, a1 = 10, a3 = 100
 sbend3:            sbend, l = 0.6, k1 = 0.3, k2 = 3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, ref_tilt = 0.1
@@ -68,7 +70,7 @@ wiggler_periodic1: wiggler, l = 1, b_max = 0.2, n_pole = 20, num_steps = 100, x_
 
 l1: line = (e_gun1, ab_multipole1, beambeam1, drift1, ecollimator1, elseparator1, elseparator2, hkicker1, instrument1, kicker1, 
             monitor1, multipole1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, 
-            rfcavity1, rfcavity2, sbend1, sbend2, sbend3, sbend4, sbend5, sbend6, sbend7,
+            rfcavity1, rfcavity2, sad_mult1, sad_mult2, sbend1, sbend2, sbend3, sbend4, sbend5, sbend6, sbend7,
             sextupole1, solenoid1, solenoid2, sol_quad1, sol_quad2, vkicker1, wiggler_map1, wiggler_periodic1, lcavity1, lcavity2, lcavity3)
 
 !-----------
