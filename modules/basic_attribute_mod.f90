@@ -1220,38 +1220,6 @@ end subroutine init_attribute_name1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function is_zero_length_element_type (ele_key) result (is_zero)
-!
-! Routine to return a logical indicating if elements of type ele_key always 
-! have zero length.
-!
-! Input:
-!   ele_key -- Integer: Element key. EG: quadrupole$
-!
-! Output:
-!   is_zero -- Logical: True if this type of element always has zero length.
-!-
-
-function is_zero_length_element_type (ele_key) result (is_zero)
-
-integer ele_key
-logical is_zero
-
-!
-
-select case (ele_key)
-case (photon_fork$, fork$, beambeam$, detector$, marker$, fiducial$, mirror$, multilayer_mirror$)
-  is_zero = .true.
-case default
-  is_zero = .false.
-end select
-
-end function is_zero_length_element_type
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Function has_orientation_attributes (ele) result (has_attribs)
 !
 ! Routine to determine whether an element has orientation attributes like x_offset, etc.

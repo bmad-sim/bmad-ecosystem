@@ -149,14 +149,12 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
 endif
  
 !-------------------------------------------------------------------------
-! If the type of superimposed element is such that the element will always have zero
-! length (like a marker), then just insert it in the tracking part of the lattice list.
+! If the element has zero length, just insert it in the tracking part of the lattice list.
 
 ! Note: Important to set super_saved%lord_status before calling insert_element since
 ! this affects the status flag setting.
 
-if (is_zero_length_element_type(super_saved%key) .or. &
-        (super_saved%value(l$) == 0 .and. (super_saved%key == multipole$ .or. super_saved%key == ab_multipole$))) then
+if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$ 
   call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)
@@ -404,8 +402,7 @@ endif
 
 !-------------------------------------------------------------------------
 ! Go through the list of elements being superimposed upon.
-! Elements (markers and multipoles) that have naturally zero length do not get involved here
-! unless the lord has zero length..
+! Zero length elements (markers, etc.) do not get involved here.
 
 ix_slave = ix1_split
 
@@ -417,8 +414,8 @@ do
 
   slave => branch%ele(ix_slave)
   call transfer_ele(slave, slave_saved)
+  if (slave_saved%value(l$) == 0) cycle
 
-  if (is_zero_length_element_type(slave_saved%key)) cycle
   select case (slave_saved%key)
   case (multipole$, ab_multipole$)
    if (slave_saved%value(l$) == 0) cycle
@@ -643,12 +640,13 @@ endif
 
 !-------------------------------------------------------------------------
 ! Bookkeeping and adjust names
-
-call control_bookkeeper(lat, lat%ele(ix_super))
+! Do name adjust first in case there is a bookkeeping error
 
 call adjust_super_slave_names (lat, ix_lord_max_old+1, lat%n_ele_max)
 call adjust_drift_names (lat, branch%ele(ix1_split))
 call adjust_drift_names (lat, branch%ele(ix2_split+1))
+
+call control_bookkeeper(lat, lat%ele(ix_super))
 
 err_flag = .false.
 

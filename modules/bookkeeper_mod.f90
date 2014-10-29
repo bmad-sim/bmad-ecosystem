@@ -981,30 +981,28 @@ do j = 1, slave%n_lord
   if (lord%key /= pipe$) then
     if (n_major_lords > 0) then
       if (slave%mat6_calc_method /= lord%mat6_calc_method) then
-        lord1 => pointer_to_lord(slave, 1)
-        call out_io(s_abort$, r_name, 'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS: ', &
-             trim(lord%name)  // ': ' //  mat6_calc_method_name(lord%mat6_calc_method), & 
-             trim(lord1%name) // ': ' //  mat6_calc_method_name(lord1%mat6_calc_method))
+        call out_io(s_abort$, r_name, &
+              'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
+              'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
+              mat6_calc_method_name(slave%mat6_calc_method))
         if (global_com%exit_on_error) call err_exit
       endif
       if (slave%tracking_method /= lord%tracking_method) then
-        lord1 => pointer_to_lord(slave, 1)
-        call out_io(s_abort$, r_name, ' TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS:', &
-             trim(lord%name)  // ': ' //  tracking_method_name(lord%tracking_method), & 
-             trim(lord1%name) // ': ' //  tracking_method_name(lord1%tracking_method))
+        call out_io(s_abort$, r_name, &
+             'TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
+             'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
+             tracking_method_name(slave%tracking_method))
         if (global_com%exit_on_error) call err_exit
       endif
       if (slave%taylor_map_includes_offsets .neqv. lord%taylor_map_includes_offsets) then
-        lord1 => pointer_to_lord(slave, 1)
-        call out_io(s_abort$, r_name, 'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT', &
-             'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+        call out_io(s_abort$, r_name, &
+            'TAYLOR_MAP_INCLUDES_OFFSETS DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
         if (global_com%exit_on_error) call err_exit
       endif
       if ((is_first .or. is_last) .and. ele_has(lord, 'FRINGE_TYPE')) then
        if (value(fringe_type$) /= lord%value(fringe_type$)) then
-         lord1 => pointer_to_lord(slave, 1)
-         call out_io(s_abort$, r_name, 'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT', &
-              'SUPERPOSITION LORDS: ' // trim(lord%name) // ', ' // trim(lord1%name))
+         call out_io(s_abort$, r_name, &
+            'FRINGE_TYPE DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name)
          if (global_com%exit_on_error) call err_exit
        endif
      endif
