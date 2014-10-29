@@ -1885,9 +1885,16 @@ real(rp) sigma_s(6,6), s(6,6), charge(:)
 
 integer i
 
+character(*), parameter :: r_name = 'find_bunch_sigma_matrix'
+
 !
 
 charge_live = sum(charge, mask = (particle%state == alive$))
+
+if (charge_live == 0) then
+  call out_io (s_error$, r_name, 'Charge of live particle in bunch is zero! Aborting calculation.')
+  return
+endif
 
 do i = 1, 6
   avg(i) = sum(particle(:)%vec(i) * charge, mask = (particle(:)%state == alive$)) / charge_live
