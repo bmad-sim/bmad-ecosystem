@@ -413,7 +413,7 @@ case (lcavity$)
 
   ! Track
 
-  call track_this_ele (.false.)
+  call track_this_ele (.false., err); if (err) return
 
   ele%value(p0c$) = ele%value(p0c$) * (1 + orb_end%vec(6))
   call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
@@ -434,7 +434,7 @@ case (e_gun$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 
-  call track_this_ele (.true.)
+  call track_this_ele (.true., err); if (err) return
   call calc_time_ref_orb_out
 
 case (crystal$, mirror$, multilayer_mirror$)
@@ -475,7 +475,7 @@ case default
     endif
 
   else
-    call track_this_ele (.false.)
+    call track_this_ele (.false., err); if (err) return
     call calc_time_ref_orb_out
   endif
 
@@ -501,9 +501,9 @@ err_flag = .false.
 !---------------------------------------------------------------------------------
 contains
 
-subroutine track_this_ele (is_inside)
+subroutine track_this_ele (is_inside, error)
 
-logical is_inside, auto_bookkeeper_saved
+logical error, is_inside, auto_bookkeeper_saved
 
 ! Set auto_bookkeeper to prevent track1 calling attribute_bookkeeper which will overwrite
 ! ele%old_value
@@ -519,7 +519,7 @@ if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
   if (global_com%exit_on_error) call err_exit
-  err_flag = .true.
+  error = .true.
   return
 endif
 call restore_errors_in_ele (ele)
