@@ -1,5 +1,14 @@
 #!/usr/bin/perl
 
+# Make index
+
+`pdflatex bmad`;
+`makeindex bmad`;
+`makeindex bmad.rdx -o bmad.rnd`;
+`pdflatex bmad`;
+
+# To web page
+
 $found = 0;
 open (FC, "cover-page.tex") || die ("Cannot open File: cover-page.tex\n");
 while (<FC>) {

@@ -41,8 +41,7 @@ logical err
 ! Programs should always implement "intelligent bookkeeping".
 bmad_com%auto_bookkeeper = .false.
 
-! Read in a lattice, and modify the ks solenoid strength of the 
-! element named "cleo_sol".
+! Read in a lattice, and modify the ks solenoid strength of "cleo_sol".
 
 call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
 
@@ -50,6 +49,7 @@ call lat_ele_locator ('CLEO_SOL', lat, eles, n_loc, err)  ! Find element
 cleo => eles(1)%ele                        ! Point to cleo_sol element.
 cleo%value(ks$) = cleo%value(ks$) + 0.001  ! Modify ks component.
 call set_flags_for_changed_attribute (cleo, cleo%value(ks$))
+call lattice_bookkeeper (lat)
 call lat_make_mat6 (lat, cleo%ix_ele)      ! Remake transfer matrix
 
 ! Calculate starting Twiss params if the lattice is closed, 
@@ -95,22 +95,26 @@ of elements, their attributes, etc.  The setting of
 \vn{bmad_com%auto_bookkeeper} to \vn{False} in line 12 enables the
 ``intelligent'' bookkeeping of lattice attributes as discussed in
 \sref{s:lat.bookkeeping}). The call to
-\Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice
+\Hyperref{r:bmad.parser}{bmad_parser} (line 16) causes the lattice
 file \vn{lat.bmad} to be parsed and the lattice information is stored
 the \vn{lat} variable. Note: To get a listing of the \vn{lat_struct}
 components or to find out more about \vn{bmad_parser} use the
 \vn{getf} command as discussed in \sref{s:getf}.
 
 The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator}
-(\sref{s:lat.ele.change}) is used in line 19 to find the element in
-the lattice with the name \vn{CLEO_SOL}. Line 20 defines a pointer
+(\sref{s:lat.ele.change}) is used in line 18 to find the element in
+the lattice with the name \vn{CLEO_SOL}. Line 19 defines a pointer
 variable named \vn{cleo} which is used here as shortcut notation
 rather than having to write \vn{eles(1)%ele} when refering to this
-element. Line 21 changes the \vn{ks} solenoid strength of this
+element. Line 20 changes the \vn{ks} solenoid strength of this
 element. Since an element attribute has been changed, the call to
 \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
-in line 22 is needed for \bmad to correctly do the necessary lattice
-bookkeeping (\sref{s:lat.bookkeeping}). The call to
+in line 21 is needed for \bmad to inform \bmad that this attribute has
+changed and the call to
+\Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary
+lattice bookkeeping (\sref{s:lat.bookkeeping}).
+
+The call to
 \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 23 recalculates the
 linear transfer matrix for the \vn{CLEO_SOL} element.
 

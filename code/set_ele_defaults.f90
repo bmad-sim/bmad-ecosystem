@@ -32,6 +32,7 @@ select case (ele%key)
 
 case (beambeam$)
   ele%value(charge$) = -1
+  ele%value(n_slice$) = 1
 
 case (beginning_ele$)
   ele%value(e_tot$) = -1

@@ -37,7 +37,7 @@ real(rp) :: growth_rate
 real(rp) mat4(4,4), eta_vec(4), vec(4), rel_p
 real(rp) u(4,4), v(4,4), ubar(4,4), vbar(4,4), g(4,4), v_inv(4,4)
 real(rp) rate1, rate2, symp_err
-real(rp) :: symp_tol = 1.0d-3
+real(rp) :: symp_tol = 3.0d-3
 
 integer :: status
 integer i
@@ -59,15 +59,15 @@ endif
 
 symp_err = mat_symp_error(mat4)
 
-if (mat_symp_error(mat4) > 1) then
+if (symp_error > 1) then
   call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX. NON_SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
                                  'TWISS PARAMETERS NOT COMPUTED', r_array = [symp_err])
   status = non_symplectic$
   return
 endif
 
-if (mat_symp_error(mat4) > symp_tol) then
-  call out_io (s_warn$, r_name, '1-TURN MATRIX MARGINALLY SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
+if (symp_error > symp_tol) then
+  call out_io (s_warn$, r_name, '1-TURN MATRIX MARGINALLY SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f10.4\ ', &
                                 r_array = [symp_err])
 endif
 
