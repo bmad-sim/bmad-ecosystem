@@ -59,14 +59,14 @@ endif
 
 symp_err = mat_symp_error(mat4)
 
-if (symp_error > 1) then
+if (symp_err > 1) then
   call out_io (s_error$, r_name, 'BAD 1-TURN MATRIX. NON_SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f8.1\ ', &
                                  'TWISS PARAMETERS NOT COMPUTED', r_array = [symp_err])
   status = non_symplectic$
   return
 endif
 
-if (symp_error > symp_tol) then
+if (symp_err > symp_tol) then
   call out_io (s_warn$, r_name, '1-TURN MATRIX MARGINALLY SYMPLECTIC WITH SYMPLECTIC ERROR OF: \f10.4\ ', &
                                 r_array = [symp_err])
 endif
