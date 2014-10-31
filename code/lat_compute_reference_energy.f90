@@ -519,6 +519,7 @@ if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
   if (global_com%exit_on_error) call err_exit
+  err_flag = .true.
   return
 endif
 call restore_errors_in_ele (ele)
