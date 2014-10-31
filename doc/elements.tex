@@ -3009,12 +3009,7 @@ Attributes specific to an \vn{sextupole} element are:
   fq1             = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
   fq2             = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
   g               = <Real>    ! Bend strength 1/rho
-%  rf_frequency    = <Real>    ! Rf frequency (Hz). See SAD volt attribute.
-%  harmon          = <Real>    ! Harmonic number. See SAD harm attribute.
   ks              = <Real>    ! Solenoid strength. 
-%  phi0            = <Real>    ! Cavity phase. See SAD phi attribute.
-%  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
-%  voltage         = <Real>    ! Cavity voltage. See SAD volt attribute.
   x_offset_mult   = <Real>    ! Mult component offset. See SAD dx attribute.
   y_offset_mult   = <Real>    ! Mult component offset. See SAD dy attribute.
   x_pitch_mult    = <Real>    ! Mult component pitch. See SAD dpx or chi1 attribute.
@@ -3022,6 +3017,12 @@ Attributes specific to an \vn{sextupole} element are:
   fringe_type     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
   fringe_at       = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
 \end{example}
+
+%  rf_frequency    = <Real>    ! Rf frequency (Hz). See SAD volt attribute.
+%  harmon          = <Real>    ! Harmonic number. See SAD harm attribute.
+%  phi0            = <Real>    ! Cavity phase. See SAD phi attribute.
+%  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
+%  voltage         = <Real>    ! Cavity voltage. See SAD volt attribute.
 
 One difference between SAD and \bmad is that SAD defines the solenoid
 field by what are essentially a set of marker elements so that the
