@@ -390,9 +390,9 @@ enddo
 
 do i = 1, size(s%plot_page%floor_plan%ele_shape)
   ele_shape => s%plot_page%floor_plan%ele_shape(i)
-  if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  if (ele_shape%ele_id(1:5) /= 'dat::') cycle
   if (.not. ele_shape%draw) cycle
-  call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
+  call tao_find_data (err, ele_shape%ele_id, d_array = d_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(d_array)
     datum => d_array(j)%d
@@ -409,9 +409,9 @@ enddo
 
 do i = 1, size(s%plot_page%floor_plan%ele_shape)
   ele_shape => s%plot_page%floor_plan%ele_shape(i)
-  if (ele_shape%ele_name(1:5) /= 'var::') cycle
+  if (ele_shape%ele_id(1:5) /= 'var::') cycle
   if (.not. ele_shape%draw) cycle
-  call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
+  call tao_find_var (err, ele_shape%ele_id, v_array = v_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(v_array)
     var => v_array(j)%v
@@ -431,7 +431,7 @@ enddo
 if (allocated(s%building_wall%section)) then
   do i = 1, size(s%plot_page%floor_plan%ele_shape)
     ele_shape => s%plot_page%floor_plan%ele_shape(i)
-    if (ele_shape%ele_name /= 'wall::building') cycle
+    if (ele_shape%ele_id /= 'wall::building') cycle
     if (.not. ele_shape%draw) cycle
     call qp_translate_to_color_index (ele_shape%color, icol)
 
@@ -1046,9 +1046,9 @@ enddo
 
 do i = 1, size(s%plot_page%lat_layout%ele_shape)
   ele_shape => s%plot_page%lat_layout%ele_shape(i)
-  if (ele_shape%ele_name(1:5) /= 'dat::') cycle
+  if (ele_shape%ele_id(1:5) /= 'dat::') cycle
   if (.not. ele_shape%draw) cycle
-  call tao_find_data (err, ele_shape%ele_name, d_array = d_array, log_array = logic_array)
+  call tao_find_data (err, ele_shape%ele_id, d_array = d_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(d_array)
     datum => d_array(j)%d
@@ -1077,8 +1077,8 @@ enddo
 do i = 1, size(s%plot_page%lat_layout%ele_shape)
   ele_shape => s%plot_page%lat_layout%ele_shape(i)
   if (.not. ele_shape%draw) cycle
-  if (ele_shape%ele_name(1:5) /= 'var::') cycle
-  call tao_find_var (err, ele_shape%ele_name, v_array = v_array, log_array = logic_array)
+  if (ele_shape%ele_id(1:5) /= 'var::') cycle
+  call tao_find_var (err, ele_shape%ele_id, v_array = v_array, log_array = logic_array)
   if (err) cycle
   do j = 1, size(v_array)
     var => v_array(j)%v

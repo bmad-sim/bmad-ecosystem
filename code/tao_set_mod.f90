@@ -1976,10 +1976,12 @@ endif
 ! Cleanup
 
 do i = 1, n
-  call str_upcase (shape(i)%ele_name, shape(i)%ele_name)
+  call str_upcase (shape(i)%ele_id,   shape(i)%ele_id)
   call str_upcase (shape(i)%shape,    shape(i)%shape)
   call str_upcase (shape(i)%color,    shape(i)%color)
   call downcase_string (shape(i)%label)
+  call tao_string_to_element_id (shape(i)%ele_id, shape(i)%ix_ele_key, shape(i)%name_ele, err, .true.)
+  if (err) return
 enddo
 
 n = size(drawing%ele_shape)

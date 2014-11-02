@@ -209,9 +209,8 @@ endif
 
 if (ios == 0) then
   do i = 1, size(shape)
-    ele_shape(i)%ele_name = shape(i)%ele_name
-    if (shape(i)%key_name /= '') &
-            ele_shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_name
+    ele_shape(i)%ele_id = shape(i)%ele_name
+    if (shape(i)%key_name /= '') shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_id
     ele_shape(i)%shape      = shape(i)%shape
     ele_shape(i)%color      = shape(i)%color
     ele_shape(i)%size       = shape(i)%size
@@ -221,6 +220,7 @@ if (ios == 0) then
     else
       ele_shape(i)%label = 'none'
     endif
+    call tao_string_to_element_id (ele_shape(i)%ele_id, ele_shape(i)%ix_ele_key, ele_shape(i)%name_ele, err, .true.)
   enddo
 
   call tao_uppercase_shapes (ele_shape, n, 'f')
@@ -235,7 +235,7 @@ if (ios < 0) then
 
   ! Read floor_plan_drawing namelist
 
-  ele_shape(:)%ele_name   = ''
+  ele_shape(:)%ele_id     = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
 
@@ -271,7 +271,7 @@ if (ios < 0) then
 
   ! Read element_shapes_lat_layout namelist
 
-  ele_shape(:)%ele_name   = ''
+  ele_shape(:)%ele_id     = ''
   ele_shape(:)%label      = 'name'
   ele_shape(:)%draw       = .true.
 
@@ -316,7 +316,7 @@ endif
 if (allocated(s%plot_page%lat_layout%ele_shape)) then
   do i = 1, size(s%plot_page%lat_layout%ele_shape)
     e_shape => s%plot_page%lat_layout%ele_shape(i)
-    if (e_shape%ele_name(1:6) == 'wall::') cycle
+    if (e_shape%ele_id(1:6) == 'wall::') cycle
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
     case default
@@ -816,8 +816,8 @@ n_shape = 0
 do n = 1, size(ele_shape)
   s => ele_shape(n)
   ! Bmad wants ele names upper case but Tao data is case sensitive.
-  if (s%ele_name(1:5) /= 'dat::' .and. s%ele_name(1:5) /= 'var::' .and. &
-      s%ele_name(1:5) /= 'lat::' .and. s%ele_name(1:6) /= 'wall::') call str_upcase (s%ele_name, s%ele_name)
+  if (s%ele_id(1:5) /= 'dat::' .and. s%ele_id(1:5) /= 'var::' .and. &
+      s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:6) /= 'wall::') call str_upcase (s%ele_id, s%ele_id)
   call str_upcase (s%shape,    s%shape)
   call str_upcase (s%color,    s%color)
   call downcase_string (s%label)
@@ -825,11 +825,11 @@ do n = 1, size(ele_shape)
   if (index('false', trim(s%label)) == 1) s%label = 'none'
   if (index('true', trim(s%label)) == 1) s%label = 'name'
   ! Convert old class:name format to new class::name format
-  ix = index(s%ele_name, ":")
-  if (ix /= 0 .and. s%ele_name(ix+1:ix+1) /= ':') &
-     s%ele_name = s%ele_name(1:ix) // ':' // s%ele_name(ix+1:)
-
-  if (s%ele_name /= '') n_shape = n
+  ix = index(s%ele_id, ":")
+  if (ix /= 0 .and. s%ele_id(ix+1:ix+1) /= ':') &
+     s%ele_id = s%ele_id(1:ix) // ':' // s%ele_id(ix+1:)
+  call tao_string_to_element_id (s%ele_id, s%ix_ele_key, s%name_ele, err, .true.)
+  if (s%ele_id /= '') n_shape = n
 enddo
 
 end subroutine tao_uppercase_shapes
@@ -844,31 +844,31 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
-          tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
-          tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
-          tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
-          tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.), &
-          tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.), &
-          tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.), &
-          tao_ele_shape_struct('ECOLLIMATOR',          'XBOX',   'BLUE',    0.20_rp, 'name', .false.), &
-          tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.), &
-          tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.), &
-          tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.), &
-          tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
-          tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
-          tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
-          tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.), &
-          tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.), &
-          tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.), &
-          tao_ele_shape_struct('RCOLLIMATOR',          'XBOX',   'BLUE',    0.20_rp, 'name', .false.), &
-          tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.), &
-          tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.), &
-          tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.), &
-          tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.), &
-          tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.), &
-          tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.), &
-          tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.), &
-          tao_ele_shape_struct('X_RAY_INIT::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.) ]
+      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   fork$, '*'), &
+      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   crystal$, '*'), &
+      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   detector$, '*'), &
+      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   diffraction_plate$, '*'), &
+      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   e_gun$, '*'), &
+      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   em_field$, '*'), &
+      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  ecollimator$, '*'), &
+      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  instrument$, '*'), &
+      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   lcavity$, '*'), &
+      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  marker$, '*'), &
+      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   mirror$, '*'), &
+      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  monitor$, '*'), &
+      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   multilayer_mirror$, '*'), &
+      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  octupole$, '*'), &
+      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   photon_fork$, '*'), &
+      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   quadrupole$, '*'), &
+      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  rcollimator$, '*'), &
+      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   rfcavity$, '*'), &
+      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   sample$, '*'), &
+      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   sbend$, '*'), &
+      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   sextupole$, '*'), &
+      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  sol_quad$, '*'), &
+      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   solenoid$, '*'), &
+      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   wiggler$, '*'), &
+      tao_ele_shape_struct('X_RAY_INIT::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.,   x_ray_init$, '*') ]
 
 real(rp) y_layout, dx, dy, dz
 integer np, n, nr
@@ -882,13 +882,13 @@ n = size(dflt_lat_layout)
 
 if (.not. allocated(s%plot_page%lat_layout%ele_shape)) then
   allocate (s%plot_page%lat_layout%ele_shape(30))
-  s%plot_page%lat_layout%ele_shape(:)%ele_name = ''
+  s%plot_page%lat_layout%ele_shape(:)%ele_id = ''
   s%plot_page%lat_layout%ele_shape(1:n) = dflt_lat_layout
 endif
 
 if (.not. allocated(s%plot_page%floor_plan%ele_shape)) then
   allocate (s%plot_page%floor_plan%ele_shape(30))
-  s%plot_page%floor_plan%ele_shape(:)%ele_name = ''
+  s%plot_page%floor_plan%ele_shape(:)%ele_id = ''
   s%plot_page%floor_plan%ele_shape(1:n) = dflt_lat_layout
   s%plot_page%floor_plan%ele_shape%size = 40 * s%plot_page%floor_plan%ele_shape%size
 endif

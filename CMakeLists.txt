@@ -5,7 +5,11 @@ set (LIBNAME tao)
 ## set (CREATE_SHARED true)
 ## Profiler flags
 ## set (FFLAGS  "-pg")
-## set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+
+set (FFLAGS "-pg")  # For profiling
+set (CFLAGS "-pg")
 
 set(SRC_DIRS
   code 
