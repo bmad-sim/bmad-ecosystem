@@ -2882,8 +2882,7 @@ endif
 
 ix_class = key_name_to_key_index (class, .true.)
 if (ix_class < 1) then
-  if (logic_option (.true., print_err)) &
-                        call out_io (s_error$, r_name, 'BAD CLASS NAME: ' // class)
+  if (logic_option (.true., print_err)) call out_io (s_error$, r_name, 'BAD CLASS NAME: ' // class)
   err = .true.
 endif
 
@@ -3415,10 +3414,9 @@ type (ele_struct) ele
 type (tao_ele_shape_struct), target :: ele_shapes(:)
 type (tao_ele_shape_struct), pointer :: ele_shape
 
-integer k, n_ele_track, ix_class
+integer k, n_ele_track
 
-character(28) :: r_name = 'tao_pointer_to_ele_shape'
-character(40) ele_name
+character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
 
 logical err
 
@@ -3432,20 +3430,14 @@ if (ele%slave_status == super_slave$) return
 
 do k = 1, size(ele_shapes)
 
-  if (ele_shapes(k)%ele_name == '') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'dat::') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'var::') cycle
-  if (ele_shapes(k)%ele_name(1:5) == 'lat::') cycle
-  if (ele_shapes(k)%ele_name(1:6) == 'wall::') cycle
+  if (ele_shapes(k)%ele_id == '') cycle
+  if (ele_shapes(k)%ele_id(1:5) == 'dat::') cycle
+  if (ele_shapes(k)%ele_id(1:5) == 'var::') cycle
+  if (ele_shapes(k)%ele_id(1:5) == 'lat::') cycle
+  if (ele_shapes(k)%ele_id(1:6) == 'wall::') cycle
 
-  call tao_string_to_element_id (ele_shapes(k)%ele_name, ix_class, ele_name, err, .false.)
-  if (err) then
-    call out_io (s_error$, r_name, 'BAD ELEMENT KEY IN SHAPE: ' // ele_shapes(k)%ele_name)
-    cycle
-  endif
-
-  if (ix_class /= 0 .and. ix_class /= ele%key) cycle
-  if (.not. match_wild(ele%name, ele_name)) cycle
+  if (ele_shapes(k)%ix_ele_key /= 0 .and. ele_shapes(k)%ix_ele_key /= ele%key) cycle
+  if (.not. match_wild(ele%name, ele_shapes(k)%name_ele)) cycle
 
   ele_shape => ele_shapes(k)
   return

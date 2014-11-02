@@ -256,7 +256,7 @@ if (graph%type == 'floor_plan') then
   if (allocated(s%building_wall%section)) then
     do i = 1, size(s%plot_page%floor_plan%ele_shape)
       shape => s%plot_page%floor_plan%ele_shape(i)
-      if (shape%ele_name /= 'wall::building') cycle
+      if (shape%ele_id /= 'wall::building') cycle
       if (.not. shape%draw) cycle
       do j = 1, size(s%building_wall%section)
         do k = 1, size(s%building_wall%section(j)%point)
