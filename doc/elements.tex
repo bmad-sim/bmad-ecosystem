@@ -309,17 +309,20 @@ General \vn{bend_sol_quad} attributes are:
 \index{ks}
 Attributes specific to a \vn{bend_sol_quad} element are:
 \begin{example}
-  g         = <Real>    ! Bend strength 1/rho
-  angle     = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
-  rho       = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
-  bend_tilt = <Real>    ! Bend tilt angle. See \sref{s:offset}.
-  k1        = <Real>    ! Quad strength.
-  x_quad    = <Real>    ! Quad horizontal offset.
-  y_quad    = <Real>    ! Quad vertical offset.
-  quad_tilt = <Real>    ! Quad tilt. See \sref{s:offset}.
-  ks        = <Real>    ! Solenoid strength.
-  dks_ds    = <Real>    ! Solenoid field variation.      
-  tilt      = <Real>    ! Overall tilt. See \sref{s:offset}
+  g           = <Real>    ! Bend strength 1/rho
+  b_field     = <Real>    ! Design field strength (= P_0 g / q) (\sref{s:depend}).
+  angle       = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
+  rho         = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
+  bend_tilt   = <Real>    ! Bend tilt angle. See \sref{s:offset}.
+  k1          = <Real>    ! Quad strength.
+  b1_gradient = <Real>    ! Quadrupole Field strength.
+  x_quad      = <Real>    ! Quad horizontal offset.
+  y_quad      = <Real>    ! Quad vertical offset.
+  quad_tilt   = <Real>    ! Quad tilt. See \sref{s:offset}.
+  ks          = <Real>    ! Solenoid strength.
+  bs_field    = <Real>    ! Solenoid Field strength.
+  dks_ds      = <Real>    ! Solenoid field variation.      
+  tilt        = <Real>    ! Overall tilt. See \sref{s:offset}
 \end{example}
 
 The magnetic

@@ -836,8 +836,11 @@ call init_attribute_name1 (kicker$, p0c_start$,                     'p0c_start',
 
 call init_attribute_name1 (bend_sol_quad$, angle$,                  'ANGLE')
 call init_attribute_name1 (bend_sol_quad$, k1$,                     'K1')
+call init_attribute_name1 (bend_sol_quad$, b1_gradient$,            'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (bend_sol_quad$, g$,                      'G')
+call init_attribute_name1 (bend_sol_quad$, b_field$,                'B_FIELD', quasi_free$)
 call init_attribute_name1 (bend_sol_quad$, ks$,                     'KS')
+call init_attribute_name1 (bend_sol_quad$, bs_field$,               'BS_FIELD', quasi_free$)
 call init_attribute_name1 (bend_sol_quad$, dks_ds$,                 'DKS_DS')
 call init_attribute_name1 (bend_sol_quad$, quad_tilt$,              'QUAD_TILT')
 call init_attribute_name1 (bend_sol_quad$, bend_tilt$,              'BEND_TILT')
