@@ -202,7 +202,7 @@ character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, switch
 character(40) replacement_for_blank
-character(60) nam
+character(60) nam, attrib_list(20), attrib
 character(80) :: word1, fmt, fmt2, fmt3
 character(100) file_name, name, why_invalid
 character(120) header, str
@@ -223,11 +223,11 @@ character(n_char_show) line, line1, line2, line3
 character(n_char_show) stuff2
 character(9) angle_str
 
-integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch
+integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, width
 integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
-integer xfer_mat_print, twiss_out, ix_sec
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib
 
 logical bmad_format, good_opt_only, show_lords, print_wall, show_lost
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -1492,6 +1492,7 @@ case ('lattice')
   what_to_print = 'standard'
   ix_remove = -1
   lat_type = model$
+  n_attrib = 0
 
   column(:)%name = ""
   column(:)%label = ""
@@ -1504,8 +1505,8 @@ case ('lattice')
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
         '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base               ', '-design             ', '-floor_coords       ', '-orbit              '], &
-              switch, err, ix_s2)
+        '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
+        '-attribute          '], switch, err, ix_s2)
     if (err) return
     if (switch == '') exit
     select case (switch)
@@ -1515,6 +1516,12 @@ case ('lattice')
 
     case ('-all_tracking')
       all_lat = .true. 
+
+    case ('-attribute')
+      what_to_print = 'attributes'
+      n_attrib = n_attrib + 1
+      attrib_list(n_attrib) = stuff2(1:ix_s2)
+      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-base')
       lat_type = base$
@@ -1599,6 +1606,41 @@ case ('lattice')
   ! Construct columns if needed.
 
   select case (what_to_print)
+  case ('attributes')
+    column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
+    column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
+    column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
+    column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
+    column( 6)  = show_lat_column_struct('ele::#[l]',              'f8.3',      8, '', .false.)
+    do i = 1, n_attrib
+      attrib = attrib_list(i)
+      fmt = 'es12.4'
+      width = 12
+
+      ix = index(attrib, '@')
+      if (ix /= 0) then
+        fmt = attrib(ix+1:)
+        attrib = attrib(1:ix-1)
+        nc = str_find_first_in_set(fmt, '0123456789')
+        width = 0
+
+        if (nc /= 0) then
+          word1 = fmt(nc:)
+          ix = index(word1, '.')
+          if (ix /= 0) word1 = word1(1:ix-1)
+          if (is_integer(word1)) then
+            read (word1, *) width
+          else
+            call out_io (s_error$, r_name, 'BAD FORTRAN FORMAT.')
+            return
+          endif
+        endif
+      endif
+
+      column(6+i) = show_lat_column_struct('ele::#[' // trim(attrib) // ']', fmt, width, '', .false.)
+    enddo
+
   case ('floor_coords')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
