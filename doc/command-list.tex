@@ -1116,7 +1116,7 @@ data.
 
 Example:
 \begin{example}
-  set plot title = 'XYZ'  ! Set plot page title string
+  set plot_page title = 'XYZ'  ! Set plot page title string
 \end{example}
 
 %% set ran_state --------------------------------------------------------------
@@ -1256,10 +1256,11 @@ Format:
   graph <graph_name>
   hom
   key_bindings
-  lattice \{-0undef\} \{-all_tracking\} \{-base\} \{-blank_replacement <string>\} 
-        \{-branch <name_or_index>\} \{-custom <file_name>\} \{-design\} \{-floor_coords\} 
-        \{-lords\} \{-middle\} \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} 
-        \{-radiation_integrals\} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
+  lattice \{-0undef\} \{-all_tracking\} \{-attribute <attrib>\} \{-base\} 
+        \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
+        \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
+        \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} \{-radiation_integrals\} 
+        \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<elements>\} 
   matrix \{-s\} \{loc1 \{loc2\}\}
   normal_form \{-order <n_order>\} <type>
   optimizer \{-geodesic_lm\}
@@ -1268,14 +1269,16 @@ Format:
   plot \{-floor_plan\} \{-lat_layout \} \{<plot_region_name>\} \{<template_plot_name>\} 
   taylor_map \{-order <n_order>\} \{-s\} \{loc1 \{loc2\}\}
   top10 \{-derivative\}
-  twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} \{-universe <ix_uni>\} <s_position>
+  twiss_and_orbit \{-base\} \{-branch <name_or_index>\} \{-design\} 
+        \{-universe <ix_uni>\} <s_position>
   universe \{universe_number\}
   use
   value <expression>
   variable \{-no_label_lines\} \{<var_name>\}
   variable \{-no_label_lines\} <universe_number>@
   variable \{-no_label_lines\} \{-good_opt_only\} -bmad_format
-  wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} \{-s <s1>:<s2>\} \{<n1>:<n2>\}
+  wall \{-branch <name_or_index>\} \{-section <index>\} \{-angle <angle>\} 
+        \{-s <s1>:<s2>\} \{<n1>:<n2>\}
   wave
 \end{example}
 
@@ -1594,9 +1597,10 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-all\_tracking\} \{-base\} \{-blank_replacement <string>\}  \\
-  \hspace*{0.35in} \{-branch <name_or_index>\} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \\
-  \hspace*{0.35in} \{-middle\}  \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
+  show lattice \{-0undef\} \{-all\_tracking\} \{-attribute <attrib>\} \{-base\} \\
+  \hspace*{0.35in} \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \\
+  \hspace*{0.35in} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} \\
+  \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
   \hspace*{0.35in} \{-remove_line_if_zero <column \#>\} \{-s <s1>:<s2>\} \{<element_list>\}  }] \Newline
 
 Show a table of Twiss and orbit data, etc. at the specified
@@ -1634,21 +1638,12 @@ The \vn{-branch <name_or_index>} option can be used to specify the branch of
 the lattice. \vn{<name_or_index>} can be the name or index of the branch.
 The default is the main branch (\# 0).
 
-The locations to show are specified either by specifying a longitudinal 
-position range with \vn{-s},
-or by specifying a list \vn{<element_list>} of elements.
-The syntax
-used for specifying this list is given in section~\sref{s:ele.list.format}.
-In this case there should be no blank characters in the list. 
-For example:
-\begin{example}
-  show lat 45:76, 101, 106     ! Show element #45 through #76 and 101 and 106.
-  show lat q34w:q45e           ! Show from element q34w through q45e.
-  show lat q*                  ! Show elements whose name begins with "q"
-  show lat marker:bpm*         ! Show markers whose name begins with "bpm"
-  show lat -s  23.9:55.3       ! Show elements whose position is between 
-                               !   23.9 meters and 55.3 meters.
-\end{example}
+The locations to show are specified either by specifying a
+longitudinal position range with \vn{-s}, or by specifying a list
+\vn{<element_list>} of elements.  The syntax used for specifying this
+list is given in section~\sref{s:ele.list.format}.  In this case there
+should be no blank characters in the list.
+
 The \vn{-all_tracking} switch can be used to show all the elements
 in the tracking part of the lattice. The
 \vn{<element_list>} is optional but if it is present it must be at the
@@ -1677,6 +1672,32 @@ is to be displayed in that column. Algebraic expressions are permitted
 sources is accepted but these constructs cannot be evaluated at the
 center of an element. That is the \vn{-middle} switch will have no
 effect on such constructs.
+
+Instead of defining a custom file, the \vn{-attribute <attrib>} switch
+can be used as a shortcut way for custimizing the output columns.
+When using the \vn{-attribute} switch, the first five columns are the
+the same default columns of \vn{index}, \vn{name}, \vn{element key},
+\vn{s} and \vn{length}. All additional columns are determined by the
+\vn{-attribute} switch. Multiple \vn{-attribute} switches can be
+present and the number of additional columns will be equal to the
+number of times \vn{-attribute} is used.  The \vn{<attrib>} parameter
+for each \vn{-attribute} switch specifies what attribute will be printed.
+The general form of \vn{<attrib>} is:
+\begin{example}
+  attribute-name         or
+  attribute-name#format
+\end{example}
+where \vn{attribute-name} is the name of an attribute and \vn{format} 
+specifies the format to be used. The default format is \vn{es12.4}.
+Example:
+\begin{example}
+  show lat -attrib is_on@l4 -attrib voltage rfcavity::*
+\end{example}
+In the above example, \vn{-attribute} appears twice and the total
+number of columns of output will thus be 7 (= 5 + 2). The sixth column
+will have the \vn{is_on} element attribute and will be printed using
+the \vn{l4} format (logical with a field width of 4 characters). The
+seventh column will show the voltage attribute.
 
 To encode the element index, use a \vn{\#}.
 Any element attribute is permitted ("show ele" will show element
@@ -1744,6 +1765,12 @@ zero.
 Example:
 \begin{example}
   show lattice 50:100         ! Show lattice elements with index 50 through 100
+  show lat 45:76, 101, 106     ! Show element #45 through #76 and 101 and 106.
+  show lat q34w:q45e           ! Show from element q34w through q45e.
+  show lat q*                  ! Show elements whose name begins with "q"
+  show lat marker:bpm*         ! Show markers whose name begins with "bpm"
+  show lat -s  23.9:55.3       ! Show elements whose position is between 
+                               !   23.9 meters and 55.3 meters.
 \end{example}
 
 %% show matrix --------------------------------------------------------------
@@ -1898,7 +1925,7 @@ Examples:
 \begin{example}
   show taylor -order 1 q10w q10e  ! 0th and 1st order maps from q10e to q10w
   show taylor 45                  ! Transfer map of element #45
-  show taylor -s 13.4  23.6       ! Transfer map from s = 13.4 meters to 23.6 meters. 
+  show taylor -s 13 23            ! Transfer map from s = 13 meters to 23 meters. 
 \end{example} 
 
 %% show twiss_and_orbit --------------------------------------------------------------
@@ -1925,7 +1952,7 @@ The particular branch used in the analysis can be selected by the
 
 Examples:
 \begin{example}
-  show twiss -uni 2 23.7     ! Show the parameters in universe 2 at s = 23.7 meters.
+  show twiss -uni 2 23.7     ! Show parameters in universe 2 at s = 23.7 meters.
 \end{example} 
 
 %% show universe --------------------------------------------------------------
@@ -2001,8 +2028,8 @@ Examples:
 \vskip 0.1in
 
 \item[\protect\parbox{6in}{
-    show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>} \\
-    \hspace*{0.35in} \{-s <s1>:<s2>\} \{<n1>:<n2>\}] \Newline
+    show wall \{-branch <name_or_index>\}\{-section <index>\} \{-angle <angle>\} \\
+    \hspace*{0.35in} \{-s <s1>:<s2>\} \{<n1>:<n2>\}}] \Newline
 
 \vskip -0.1in 
 
