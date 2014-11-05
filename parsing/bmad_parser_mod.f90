@@ -3321,7 +3321,7 @@ do
 
 enddo
 
-
+close (iu)
 
 ! Put data in element
 
