@@ -85,7 +85,7 @@ geolevmar_limit_flag = .false.
 
 call run_geodesic_lm (tao_geo_lm_func, jacobian, Avv, a, y_fit, fjac, callback, info, &
                       dtd,  niters, nfev, njev, naev, converged)
-call tao_geo_lm_func (n_var, n_data, a, y_fit)  ! put a -> model
+call tao_geo_lm_func (n_data, n_var, a, y_fit)  ! put a -> model
 
 ! look for keyboard input to end optimization
 
@@ -148,14 +148,11 @@ endif
 
 merit0 = tao_merit()  ! Calculate %delta_merit values
 
-dy_da = 0
 n_var = size(a)
 
 call tao_get_opt_vars (var_delta = var_delta, ignore_if_weight_is_zero = .true.)
 nd = size(var_delta)
 y_fit(1:nd) = var_delta
-
-forall (k = 1:nd) dy_da(k,k) = 1
 
 do j = lbound(s%u, 1), ubound(s%u, 1)
   u => s%u(j)
@@ -165,18 +162,10 @@ do j = lbound(s%u, 1), ubound(s%u, 1)
     if (u%data(i)%weight == 0) cycle
     nd = nd + 1
     y_fit(nd) = u%data(i)%delta_merit * sqrt(u%data(i)%weight)
-    im = u%data(i)%ix_dModel
-    nv = 0
-    do n = 1, s%n_var_used
-      if (.not. s%var(n)%useit_opt) cycle
-      nv = nv + 1
-      iv = s%var(n)%ix_dVar
-      dy_da(nd, nv) = u%dModel_dVar(im, iv) * sqrt(u%data(i)%weight)
-    enddo
   enddo
 enddo
 
-end subroutine
+end subroutine tao_geo_lm_func
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
@@ -194,22 +183,54 @@ if (geolevmar_limit_flag .and. accepted > 0) then
   write(*, *) "limit hit"
 endif
 
-end subroutine
+end subroutine callback
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
 
-subroutine jacobian(m, n, x, fjac)
+subroutine jacobian(mm, nn, x, fjac)
         
 implicit none
 
-integer :: m, n
-real(8) :: x(n), fjac(m, n)
+type (tao_universe_struct), pointer :: u
+
+integer :: mm, nn, nd, k, i, j, im, iv, nv, n
+real(8) :: x(nn), fjac(mm, nn)
+real(rp), allocatable, save :: var_delta(:)
+
+!
+
+call tao_dModel_dVar_calc (.true.)
+
+call tao_get_opt_vars (var_delta = var_delta, ignore_if_weight_is_zero = .true.)
+nd = size(var_delta)
+
+dy_da = 0
+forall (k = 1:nd) dy_da(k,k) = 1
+
+do j = lbound(s%u, 1), ubound(s%u, 1)
+  u => s%u(j)
+  if (.not. u%is_on) cycle
+  do i = 1, size(u%data)
+    if (.not. u%data(i)%useit_opt) cycle
+    if (u%data(i)%weight == 0) cycle
+    nd = nd + 1
+
+    im = u%data(i)%ix_dModel
+    nv = 0
+    do n = 1, s%n_var_used
+      if (.not. s%var(n)%useit_opt) cycle
+      nv = nv + 1
+      iv = s%var(n)%ix_dVar
+      dy_da(nd, nv) = u%dModel_dVar(im, iv) * sqrt(u%data(i)%weight)
+    enddo
+  enddo
+enddo
 
 fjac = dy_da
 
-end subroutine
+end subroutine jacobian
 
 !------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------
