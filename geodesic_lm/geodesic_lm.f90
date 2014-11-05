@@ -3,35 +3,35 @@ module geodesic_lm
 use sim_utils
 
 type geodesic_lm_param_struct
-  integer :: mode = 0           !LM damping matrix. 0->id, 1->dynamic jacob-based
-  integer :: maxiter = 0        !max # of routine iterations
-  integer :: maxfev = 0         !max # of func evals (0-> no limit)
-  integer :: maxjev = 0         !max number of jac evals (0->no limit)
-  integer :: maxaev = 0         !max number of dir second derivs (0->no limit)
-  integer :: print_level = 5    !how many details to be printed (0-5) 
-  integer :: print_unit = 10    !unit number details written to
-  integer :: imethod = 10       !method choice for updating LM parameter
+  integer :: mode = 0           ! LM damping matrix. 0->id, 1->dynamic jacob-based
+  integer :: maxiter = 500      ! max # of routine iterations
+  integer :: maxfev = 0         ! max # of func evals (0-> no limit)
+  integer :: maxjev = 0         ! max number of jac evals (0->no limit)
+  integer :: maxaev = 0         ! max number of dir second derivs (0->no limit)
+  integer :: print_level = 3    ! how many details to be printed (0-5) 
+  integer :: print_unit = 6     ! unit number details written to
+  integer :: imethod = 10       ! method choice for updating LM parameter
   integer :: iaccel = 1         ! use geodesic acceleration or not
   integer :: ibold = 0          ! 'boldness' in accepting uphill (0->downhill)
   integer :: ibroyden = 0       ! number of iterations using approximate jacobian
 
-  real(rp) :: eps = 1.5E-6      !function evaluation precision
-  real(rp) :: h1=1.D-6,h2=1.D-1 !controls step sizes for finite diff derivatives
-                                !h1 for jacobian, h2 for dir second deriv
+  real(rp) :: eps = 1.5E-6      ! function evaluation precision
+  real(rp) :: h1=1.D-6,h2=1.D-1 ! controls step sizes for finite diff derivatives
+                                ! h1 for jacobian, h2 for dir second deriv
   !! Stopping criterion
-  real(rp) :: maxlam = 1E7     !limit on damping term lambda (if <0 no limit)
-  real(rp) :: artol = 1.E-3     !cos of angle between residual and tangent plane
-  real(rp) :: Cgoal  = 1       !Cost lower limit (ends when falls below)
-  real(rp) :: gtol  = 1.5E-8    !gradient lower limit
-  real(rp) :: xtol = 1.E-10     !step size lower limit (ll)
-  real(rp) :: xrtol = 1.5E-8    !relative parameter change ll
-  real(rp) :: ftol = 1.5E-8     !consecutive cost difference ll
-  real(rp) :: frtol = 1.5E-8    !relative consecutive cost diff ll
+  real(rp) :: maxlam = 1E7      ! limit on damping term lambda (if <0 no limit)
+  real(rp) :: artol = 1.E-3     ! cos of angle between residual and tangent plane
+  real(rp) :: Cgoal  = 1        ! Cost lower limit (ends when falls below)
+  real(rp) :: gtol  = 1.5E-8    ! gradient lower limit
+  real(rp) :: xtol = 1.E-10     ! step size lower limit (ll)
+  real(rp) :: xrtol = 1.5E-8    ! relative parameter change ll
+  real(rp) :: ftol = 1.5E-8     ! consecutive cost difference ll
+  real(rp) :: frtol = 1.5E-8    ! relative consecutive cost diff ll
   !!
-  real(rp) :: initialfactor = 1. !initial LM param or step size
-  real(rp) :: factoraccept  = 5. !(if imethod=0 or 10) adjusts initialfactor
-  real(rp) :: factorreject  = 2. !adjusts initialfactor for rejected step
-  real(rp) :: avmax = 0.8         !limits geo accel w.r.t. velocity
+  real(rp) :: initialfactor = 1. ! initial LM param or step size
+  real(rp) :: factoraccept  = 5. ! (if imethod=0 or 10) adjusts initialfactor
+  real(rp) :: factorreject  = 2. ! adjusts initialfactor for rejected step
+  real(rp) :: avmax = 0.8        ! limits geo accel w.r.t. velocity
 
   logical :: analytic_jac = .true.
   logical :: analytic_avv = .false.
