@@ -281,8 +281,33 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   INTEGER LWORK !For the eigenvalue decomposition
   REAL (KIND=8) WORK(3*n-1)
   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  !  Added:
+  real(8) fvec_start(m)
+  character(16) :: converged_info(-11:7)
+
+  !
 
   LOGICAL jac_uptodate, jac_force_update, valid_result
+
+  !
+
+  converged_info = '????????'
+  converged_info(1) = 'artol reached'
+  converged_info(2) = 'Cgoal reached'
+  converged_info(3) = 'gtol reached'
+  converged_info(4) = 'xtol reached'
+  converged_info(5) = 'xrtol reached'
+  converged_info(6) = 'ftol reached'
+  converged_info(7) = 'frtol reached'
+  converged_info(-1) = 'maxiters exeeded'
+  converged_info(-2) = 'maxfev exceeded'
+  converged_info(-3) = 'maxjev exceeded'
+  converged_info(-4) = 'maxaev exceeded'
+  converged_info(-10) = 'User Termination '
+  converged_info(-11) = 'NaN Produced'
+
+
+  !
 
   IF(print_level .GE. 1) THEN
      WRITE(print_unit, *) "Optimizing with Geodesic-Levenberg-Marquardt algorithm, version 0.2 BETA"
@@ -334,6 +359,9 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   accepted = 0
   counter = 0
   CALL func(m,n,x,fvec)
+
+  fvec_start = fvec
+
   nfev = nfev + 1
   C = 0.5d+0*DOT_PRODUCT(fvec,fvec)
   IF(print_level .GE. 1) THEN
@@ -357,9 +385,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   IF(analytic_jac) THEN
      CALL jacobian(m,n,x,fjac)
      njev = njev + 1
-!C!
-     WRITE(15,*) njev, Cbest
-!C!  
   ELSE 
      CALL fdjac(m,n,x,fvec,fjac,func,h1,center_diff)
      IF (center_diff) THEN
@@ -459,9 +484,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         IF(analytic_jac) THEN
            CALL jacobian(m,n,x,fjac)
            njev = njev + 1
-!C!
-           WRITE(15,*) njev, Cbest
-!C!
         ELSE
            CALL fdjac(m,n,x,fvec,fjac,func,h1,center_diff)
            IF (center_diff) THEN
@@ -535,56 +557,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         v = -1.0d+0*MATMUL(fvec, fjac)
         CALL DPOTRS('U', n, 1, g, n, v, n, info)
 
-        !C!Solves linear equaton (LAPACK) gx=v
-        !C!Now velocity 'v' is calculated!
-!C!     !!!!!Added by Colin for debugging!!
-        !IF(istep .EQ. 1) THEN
-                !OPEN(unit = 15, file = 'debug_data', access='append')
-                !write(15, *) "#Optimizing with Geodesic LM"
-                !write(15, *) "#iaccel = ", iaccel, ", mode = ", mode
-                !write(15, *) "#x = "
-                !write(15, *)  x
-                !write(15, *) "#v = "
-                !write(15, *)  v
-                !xdb = x + v * 1.E-6 !Try step size
-                !CALL func(m,n,xdb,fvecdb)
-                !CALL jacobian(m,n,xdb,fjacdb)
-                !jtjdb = MATMUL(TRANSPOSE(fjacdb), fjacdb)
-                !gdb = jtjdb + lam*dtd
-                !CALL DPOTRF('U', n, gdb, n, info)
-                !vdb = -1.0d+0*MATMUL(fvecdb, fjacdb)
-                !CALL DPOTRS('U', n, 1, gdb, n, vdb, n, info)
-                !adb = 1.E+6 * (vdb - v)
-                !write(print_unit, *) "Debugging approximate acceleration:"
-                !write(print_unit, *) "a_debug = ", adb
-                !write(15, *) "#a_debug = "
-                !write(15, *) adb
-                !CALL func(m,n,x+v,fvecdb)
-                !CALL func(m,n,x,fvec1)
-                !fvec2 = fvecdb - fvec1
-                !write(15, *) "#r(x + v) - r(x) = "
-                !write(15, *) fvec2
-                !CALL jacobian(m,n,xdb,fjac1)
-                !fvec2 = MATMUL(fjac1,v)
-                !write(15, *) "#J.v = "
-                !write(15, *)  fvec2
-                !jtjdb = MATMUL(TRANSPOSE(fjac1),fjac1)
-                !CALL DSYEV('N', 'U', n, jtjdb, n, jtjeigs, WORK, LWORK, info)
-                !write(15, *) "#JTJ eigenvalues = "
-                !write(15, *)  jtjeigs
-                !DO i=1,20
-                !        xdb = x + (i/20.)*v
-                !        CALL func(m,n,xdb,fvecdb)
-                !        write(15, *) "#r(x + ",i/20.,"*v) = "
-                !        write(15, *)  fvecdb
-                !END DO
-                !IF (info .LT. 0 ) THEN
-                !        write(*,*) "Linear equation solve for debugging failed"
-                !END IF
-                !CLOSE(unit = 15)
-        !END IF
-!C!     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
         ! Calcualte the predicted reduction and the directional derivative -- useful for updating lam methods
         temp1 = 0.5d+0*DOT_PRODUCT(v,MATMUL(jtj, v))/C
         temp2 = 0.5d+0*lam*DOT_PRODUCT(v,MATMUL(dtd,v))/C
@@ -601,9 +573,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
               naev = naev + 1
            ELSE
               CALL FDAvv(m,n,x,v,fvec, fjac, func, acc, jac_uptodate, h2)
-!C!         
-              !write(print_unit,*) "acc = ", acc
-!C!
               IF(jac_uptodate) THEN
                  nfev = nfev + 1
               ELSE 
@@ -676,29 +645,14 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         END IF
      ENDIF
      
-        WRITE(*,*) "This try: Cost is", 2*C,"Accepted is ",accepted,"lambda = ", lam
-
      !! Print status
-     IF (print_level .EQ. 2 .AND. accepted .GT. 0) THEN
-        WRITE(print_unit, *) "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
-        WRITE(print_unit, *) "  Cost, lam, delta", C, lam, delta
-        WRITE(print_unit, *) "  av, cos alpha", av, cos_alpha
-     ELSEIF(print_level .EQ. 3) THEN
-        WRITE(print_unit, *) "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
-        WRITE(print_unit, *) "  Cost, lam, delta", C, lam, delta
-        WRITE(print_unit, *) "  av, cos alpha", av, cos_alpha
+     IF ((print_level == 2 .AND. accepted .GT. 0) .or. print_level > 2) THEN
+        WRITE(print_unit, '(a, 6i6)') "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
+        WRITE(print_unit, '(a, 3es14.6)') "  Cost, lam, delta", C, lam, delta
+        WRITE(print_unit, '(a, es14.6, f10.4)') "  av, cos alpha", av, cos_alpha
      ENDIF
-     IF (print_level .EQ. 4 .AND. accepted .GT. 0) THEN
-        WRITE(print_unit, *) "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
-        WRITE(print_unit, *) "  Cost, lam, delta", C, lam, delta
-        WRITE(print_unit, *) "  av, cos alpha", av, cos_alpha
-        WRITE(print_unit, *) "  x = ", x
-        WRITE(print_unit, *) "  v = ", v
-        WRITE(print_unit, *) "  a = ", a
-     ELSEIF (print_level .EQ. 5) THEN
-        WRITE(print_unit, *) "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
-        WRITE(print_unit, *) "  Cost, lam, delta", C, lam, delta
-        WRITE(print_unit, *) "  av, cos alpha", av, cos_alpha
+
+     IF ((print_level == 4 .AND. accepted .GT. 0) .or. print_level > 4) THEN
         WRITE(print_unit, *) "  x = ", x
         WRITE(print_unit, *) "  v = ", v
         WRITE(print_unit, *) "  a = ", a
@@ -726,18 +680,16 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   IF(print_level .GE. 1) THEN
      WRITE(print_unit,*) "Optimization finished"
      WRITE(print_unit,*) "Results:"
-     WRITE(print_unit,*) "  Converged:  ", converged
-     WRITE(print_unit,*) "  Final Cost: ", 0.5d+0*DOT_PRODUCT(fvec,fvec)
-     WRITE(print_unit,*) "  Cost/DOF: ", 0.5d+0*DOT_PRODUCT(fvec,fvec)/(m-n)
-     WRITE(print_unit,*) "  niters:     ", istep
-     WRITE(print_unit,*) "  nfev:       ", nfev
-     WRITE(print_unit,*) "  njev:       ", njev
-     WRITE(print_unit,*) "  naev:       ", naev
+     WRITE(print_unit,*) "  Converged:    ", converged_info(converged), converged
+     WRITE(print_unit,*) "  Initial Cost: ", 0.5d+0*DOT_PRODUCT(fvec_start,fvec_start)
+     WRITE(print_unit,*) "  Final Cost:   ", 0.5d+0*DOT_PRODUCT(fvec,fvec)
+     WRITE(print_unit,*) "  Cost/DOF:     ", 0.5d+0*DOT_PRODUCT(fvec,fvec)/(m-n)
+     WRITE(print_unit,*) "  niters:       ", istep
+     WRITE(print_unit,*) "  nfev:         ", nfev
+     WRITE(print_unit,*) "  njev:         ", njev
+     WRITE(print_unit,*) "  naev:         ", naev
   ENDIF
 
-!C!               
-  !CLOSE(unit = 15)
-!C!
 END SUBROUTINE geolevmar
      
 END MODULE
