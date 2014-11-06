@@ -66,7 +66,7 @@ l12: line = (--quadrupole4,--quadrupole5,--rcollimator1,--rfcavity1,--rfcavity2,
              --sbend3,--sbend4,--sbend5,--sbend6,--sbend7,--sextupole1,--solenoid1,--solenoid2,--sol_quad1,--sol_quad2,--vkicker1)
 l1: line = (l11,l12)
 
-l1[rel_tracking_charge] = -1
+l1[default_rel_tracking_charge] = -1
 l1[e_tot] = e_tot
 
 use, l0, l1
