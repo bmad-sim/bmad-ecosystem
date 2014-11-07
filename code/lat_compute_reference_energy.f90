@@ -510,6 +510,7 @@ logical error, is_inside, auto_bookkeeper_saved
 
 auto_bookkeeper_saved = bmad_com%auto_bookkeeper
 bmad_com%auto_bookkeeper = .false.
+error = .true.
 
 call zero_errors_in_ele (ele, changed)
 call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, param%particle, shift_vec6 = .false.)
@@ -519,7 +520,6 @@ if (.not. particle_is_moving_forward(orb_end)) then
   call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING: ' // ele%name, &
                                  'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
   if (global_com%exit_on_error) call err_exit
-  error = .true.
   return
 endif
 call restore_errors_in_ele (ele)
@@ -529,6 +529,7 @@ call restore_errors_in_ele (ele)
 ele%ref_time = ref_time_start + (orb_end%t - orb_start%t)
 
 bmad_com%auto_bookkeeper = auto_bookkeeper_saved
+error = .false.
 
 end subroutine track_this_ele
 
