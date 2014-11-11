@@ -59,12 +59,13 @@ contains
 ! Input:
 !   print_coords -- logical, optional: If True then print coordinate and  patch information.
 !                     Default is True.
-!
+!   prefix       -- character(*), optional: prefix for output lines.
+!                                  Default: 'geodesic_lm_param%'
 ! Output:
 !   lines(:)  -- character(120), optional, allocatable: Character array to hold the output.
 !   n_lines   -- integer, optional: Number of lines used in lines(:)
 
-subroutine type_geodesic_lm (lines, n_lines)
+subroutine type_geodesic_lm (lines, n_lines, prefix)
 
 integer, optional :: n_lines
 integer i, nl
@@ -72,45 +73,55 @@ integer i, nl
 character(*), allocatable, optional :: lines(:)
 character(160) :: li(40)
 character(20) imt, rmt, lmt
+character(*), optional :: prefix
+character(20) :: pre
+integer :: nchar
+if (present(prefix)) then
+  pre = prefix
+  nchar=len(prefix)
+else
+  pre = 'geodesic_lm_param%'
+  nchar = len(trim(pre))
+endif
 
 !
 
-rmt  = '(a, 9es16.8)'
-imt  = '(a, 9i8)'
-lmt  = '(a, 9(l3))'
+rmt  = '(2a, 9es16.8)'
+imt  = '(2a, 9i8)'
+lmt  = '(2a, 9(l3))'
 
 nl = 0
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%mode             =', geodesic_lm_param%mode
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%maxiter          =', geodesic_lm_param%maxiter
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%maxfev           =', geodesic_lm_param%maxfev
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%maxjev           =', geodesic_lm_param%maxjev
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%maxaev           =', geodesic_lm_param%maxaev
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%print_level      =', geodesic_lm_param%print_level
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%print_unit       =', geodesic_lm_param%print_unit
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%imethod          =', geodesic_lm_param%imethod
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%iaccel           =', geodesic_lm_param%iaccel
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%ibold            =', geodesic_lm_param%ibold
-nl=nl+1; write (lines(nl), imt) 'geodesic_lm_param%ibroyden         =', geodesic_lm_param%ibroyden
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'mode             =', geodesic_lm_param%mode
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'maxiter          =', geodesic_lm_param%maxiter
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'maxfev           =', geodesic_lm_param%maxfev
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'maxjev           =', geodesic_lm_param%maxjev
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'maxaev           =', geodesic_lm_param%maxaev
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'print_level      =', geodesic_lm_param%print_level
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'print_unit       =', geodesic_lm_param%print_unit
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'imethod          =', geodesic_lm_param%imethod
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'iaccel           =', geodesic_lm_param%iaccel
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'ibold            =', geodesic_lm_param%ibold
+nl=nl+1; write (li(nl), imt) pre(1:nchar), 'ibroyden         =', geodesic_lm_param%ibroyden
 
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%eps              =', geodesic_lm_param%eps
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%h1               =', geodesic_lm_param%h1
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%h2               =', geodesic_lm_param%h2
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%maxlam           =', geodesic_lm_param%maxlam
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%artol            =', geodesic_lm_param%artol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%Cgoal            =', geodesic_lm_param%Cgoal
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%gtol             =', geodesic_lm_param%gtol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%xtol             =', geodesic_lm_param%xtol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%xrtol            =', geodesic_lm_param%xrtol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%ftol             =', geodesic_lm_param%ftol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%frtol            =', geodesic_lm_param%frtol
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%initialfactor    =', geodesic_lm_param%initialfactor
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%factoraccept     =', geodesic_lm_param%factoraccept
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%factorreject     =', geodesic_lm_param%factorreject
-nl=nl+1; write (lines(nl), rmt) 'geodesic_lm_param%avmax            =', geodesic_lm_param%avmax
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'eps              =', geodesic_lm_param%eps
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'h1               =', geodesic_lm_param%h1
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'h2               =', geodesic_lm_param%h2
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'maxlam           =', geodesic_lm_param%maxlam
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'artol            =', geodesic_lm_param%artol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'Cgoal            =', geodesic_lm_param%Cgoal
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'gtol             =', geodesic_lm_param%gtol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'xtol             =', geodesic_lm_param%xtol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'xrtol            =', geodesic_lm_param%xrtol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'ftol             =', geodesic_lm_param%ftol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'frtol            =', geodesic_lm_param%frtol
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'initialfactor    =', geodesic_lm_param%initialfactor
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'factoraccept     =', geodesic_lm_param%factoraccept
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'factorreject     =', geodesic_lm_param%factorreject
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'avmax            =', geodesic_lm_param%avmax
 
-nl=nl+1; write (lines(nl), lmt) 'geodesic_lm_param%analytic_jac     =', geodesic_lm_param%analytic_jac
-nl=nl+1; write (lines(nl), lmt) 'geodesic_lm_param%analytic_avv     =', geodesic_lm_param%analytic_avv
-nl=nl+1; write (lines(nl), lmt) 'geodesic_lm_param%center_diff      =', geodesic_lm_param%center_diff
+nl=nl+1; write (li(nl), lmt) pre(1:nchar), 'analytic_jac     =', geodesic_lm_param%analytic_jac
+nl=nl+1; write (li(nl), lmt) pre(1:nchar), 'analytic_avv     =', geodesic_lm_param%analytic_avv
+nl=nl+1; write (li(nl), lmt) pre(1:nchar), 'center_diff      =', geodesic_lm_param%center_diff
 
 if (present(lines)) then
   call re_allocate(lines, nl, .false.)
