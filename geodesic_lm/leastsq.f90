@@ -3,9 +3,9 @@
 ! Main Geodesic-Bold-BroydenUpdate-Levenberg-Marquardt routine
 ! version 0.2 BETA
 
-MODULE geolevmar_module
+module geolevmar_module
 
-CONTAINS
+contains
 
 SUBROUTINE geolevmar(func, jacobian, Avv, &
      & x, fvec, fjac, n, m, &
@@ -63,12 +63,12 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    func is a user supplied subroutine which calculates the functions and
 !    should be written as follows:
 !
-!      subroutine func(m,n, x, fvec)
-!      integer m, n
-!      double precision x(:), fvec(:)
+!      subroutine func(m, n, x, fvec)
+!      integer m (number of data), n (number of parameters)
+!      double precision x(n), fvec(m) (vector of residuals)
 !      --------------------------------------------------------------------
 !      calculates the function at x and returns their values in fvec
-!      x should be left unchanged
+!      x, m, and n should be left unchanged
 !      --------------------------------------------------------------------
 !      end subroutine func
 !
@@ -76,12 +76,12 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    of the functions if analytic_jac is .TRUE.
 !    jacobian should be writen as follows     
 !
-!      subroutine jacobian(m,n,x, fjac)
+!      subroutine jacobian(m, n, x, fjac)
 !      integer m, n
-!      double precision x(:), fjac(:,:)
+!      double precision x(n), fjac(m,n)
 !      --------------------------------------------------------------------
 !      calculates the jacobian at x and returns their values in fjac
-!      x should be left unchanged
+!      x, m, and n should be left unchanged
 !      --------------------------------------------------------------------
 !      end subroutine jacobian
 !
@@ -89,8 +89,9 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    second derivative of the functions if analytic_Avv is .TRUE.
 !    Avv should be writen as follows     
 !
-!      subroutine Avv(m,n, x, v, acc)
-!      double precision x(:), v(:), acc(:)
+!      subroutine Avv(m, n, x, v, acc)
+!      integer m, n
+!      double precision x(n), v(n), acc(m)
 !      --------------------------------------------------------------------
 !      calculates the directional second derivative at x in the direction 
 !      of v and returns the values in acc
@@ -116,7 +117,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    algorithm.  
 !    callback should be written as follows
 !
-!      subroutine callback(m,n,x,fvec,fjac,accepted,info)
+!      subroutine callback(m,n,x,fvec,info)
 !      integer m, n, info
 !      double precision x(n), fvec(m), 
 !      --------------------------------------------------------------------
@@ -245,7 +246,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 
   IMPLICIT NONE
   !! Passed parameters
-  EXTERNAL  callback, func, jacobian, Avv
+  EXTERNAL func, jacobian, Avv, callback
 
   REAL (KIND=8) x(n), fvec(m), fjac(m,n)
   INTEGER n, m
@@ -268,21 +269,10 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   REAL (KIND=8) x_new(n), x_best(n)
   REAL (KIND=8) jtj(n,n), g(n,n)
   REAL (KIND=8) temp1, temp2, pred_red, dirder, actred, rho, a_param
+  real(8) fvec_start(m)
+  
   INTEGER i, j, istep, accepted, counter
 
-  !!Colin added for debugging!!
-  !REAL (KIND=8) xdb(n), fvecdb(m), adb(n), vdb(n)
-  !REAL (KIND=8) fvec1(m), fvec2(m)
-  !REAL (KIND=8) fjac1(m,n)
-  REAL (KIND=8) jtjeigs(n)
-  !REAL (KIND=8) trace
-  !REAL (KIND=8) jtjdb(n,n), fjacdb(m,n)
-  !REAL (KIND=8) gdb(n,n)
-  INTEGER LWORK !For the eigenvalue decomposition
-  REAL (KIND=8) WORK(3*n-1)
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  !  Added:
-  real(8) fvec_start(m)
   character(16) :: converged_info(-11:7)
 
   !
@@ -333,35 +323,13 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   cos_alpha = 1.0d+0
   av = 0.0d+0
   a_param = 0.5
-  delta=0.0D+0
-
-  !!!!!COLIN ADDED FOR DEBUGGING!!!!!
-  !trace = 0.0
-  !xdb(:) = 0.0d+0
-  !fvecdb(:) = 0.0d+0
-  !fvec1(:) = 0.0d+0
-  !fvec2(:) = 0.0d+0
-  !fjac1(:,:) = 0.0d+0
-  jtjeigs(:) = 0.0d+0
-  !vdb(:) = 0.0d+0
-  !adb(:) = 0.0d+0
-  !jtjdb(:,:) = 0.0d+0
-  !fjacdb(:,:) = 0.0d+0
-  !gdb(:,:) = 0.0d+0
-  LWORK = 3*n-1
-  WORK(:) = 0.0d+0
-
-  !OPEN(unit = 15, file = 'debug_data', access='append')
-  !WRITE(15,*) "No. Jac. Evals versus Cost"
-  !WRITE(*,*) "initialfactor = ", initialfactor
-  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   accepted = 0
   counter = 0
   CALL func(m,n,x,fvec)
-
+  
   fvec_start = fvec
-
+  
   nfev = nfev + 1
   C = 0.5d+0*DOT_PRODUCT(fvec,fvec)
   IF(print_level .GE. 1) THEN
@@ -429,16 +397,11 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 
   !! Initialize lambda
   IF(imethod .LT. 10) THEN
-     !lam = jtj(1,1)
-     !DO i = 2,n
-     !   lam = MAX(jtj(i,i),lam)
-     !END DO
-     !lam = lam * initialfactor
-!C!
-     CALL DSYEV('N', 'U', n, jtj, n, jtjeigs, WORK, LWORK, info)
-     write(*,*)  "Maxval(jtjeigs) = ", MAXVAL(jtjeigs)
-     lam = initialfactor * MINVAL(jtjeigs)
-!C!
+     lam = jtj(1,1)
+     DO i = 2,n
+        lam = MAX(jtj(i,i),lam)
+     END DO
+     lam = lam * initialfactor
   !! Initialize step bound if using trust region method
   ELSEIF(imethod .GE. 10) THEN
      delta = initialfactor*SQRT(DOT_PRODUCT(x,MATMUL(dtd,x)))
@@ -543,7 +506,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         !! Propose Step
         !! metric aray
         g = jtj + lam*dtd
-        !! Cholesky decomposition (LAPACK)
+        !! Cholesky decomposition
         CALL DPOTRF('U', n, g, n, info)
         !! CALL inv(n, g, info)
      ELSE !! If nans in jacobian
@@ -556,7 +519,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         !! v = -1.0d+0*MATMUL(g,MATMUL(fvec,fjac)) ! velocity
         v = -1.0d+0*MATMUL(fvec, fjac)
         CALL DPOTRS('U', n, 1, g, n, v, n, info)
-
+        
         ! Calcualte the predicted reduction and the directional derivative -- useful for updating lam methods
         temp1 = 0.5d+0*DOT_PRODUCT(v,MATMUL(jtj, v))/C
         temp2 = 0.5d+0*lam*DOT_PRODUCT(v,MATMUL(dtd,v))/C
@@ -590,7 +553,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
            IF (valid_result ) THEN
               a = -1.0d+0*MATMUL(acc, fjac)
               CALL DPOTRS('U', n, 1, g, n, a, n, info)
-              !!Solves linear equation
               !!a = -1.0d+0*MATMUL(g,MATMUL(acc,fjac))
            ELSE 
               a(:) = 0.0d+0 !! If nans in acc, we will ignore the acceleration term
@@ -645,6 +607,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         END IF
      ENDIF
      
+
      !! Print status
      IF ((print_level == 2 .AND. accepted .GT. 0) .or. print_level > 2) THEN
         WRITE(print_unit, '(a, 6i6)') "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
@@ -657,6 +620,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         WRITE(print_unit, *) "  v = ", v
         WRITE(print_unit, *) "  a = ", a
      ENDIF
+
 
      ! If converged -- return
      IF(converged .NE. 0) THEN
@@ -690,10 +654,11 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
      WRITE(print_unit,*) "  naev:         ", naev
   ENDIF
 
+
 END SUBROUTINE geolevmar
      
-END MODULE
-     
+
+end module
 
 
 
