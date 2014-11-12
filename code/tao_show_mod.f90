@@ -3373,6 +3373,8 @@ end subroutine show_ele_data
 
 subroutine show_opt ()
 
+use geodesic_lm
+
 implicit none
 
 nl=nl+1; lines(nl) = 'Global optimization parameters:'
@@ -3400,6 +3402,11 @@ nl=nl+1; write(lines(nl), lmt) '  %binomial_cross       = ', opti_de_param%binom
 nl=nl+1; write(lines(nl), lmt) '  %use_2nd_diff         = ', opti_de_param%use_2nd_diff
 nl=nl+1; write(lines(nl), lmt) '  %randomize_F          = ', opti_de_param%randomize_F
 nl=nl+1; write(lines(nl), lmt) '  %minimize_merit       = ', opti_de_param%minimize_merit
+nl=nl+1; lines(nl) = ''
+nl=nl+1; lines(nl) = 'geodesic_lm Parameters:'
+call type_geodesic_lm (lines = alloc_lines, n_lines = n, prefix = '  %')
+lines(nl+1:nl+n) = alloc_lines(1:n)
+nl = nl + n
 
 end subroutine show_opt
 
