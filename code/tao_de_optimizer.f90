@@ -162,7 +162,7 @@ endif
 
 
 if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
-  write (line, '(a, es14.6, i0)') ' So far the minimum is ', merit_min, s%mpi%rank
+  write (line, '(a, es14.6)') ' So far the minimum is ', merit_min
   if (calc_ok) then
     call out_io (s_blank$, r_name, stars, line, stars)
   else

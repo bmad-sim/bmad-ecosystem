@@ -35,7 +35,7 @@ type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
 type (tao_plot_input) plot, default_plot
-type (tao_graph_input) graph, default_graph, master_default_graph
+type (tao_graph_input) :: graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(10)

@@ -247,3 +247,30 @@ end subroutine
 
 
 end module
+
+
+
+!------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------
+!
+! Signal for early termination
+!
+subroutine user_signal(flag, is_set)
+
+use tao_var_mod
+
+implicit none
+
+integer :: flag
+logical :: is_set
+
+
+if (tao_user_is_terminating_optimization()) then
+  flag = -10
+  is_set = .true.
+else
+  is_set = .false.
+endif
+
+end subroutine
