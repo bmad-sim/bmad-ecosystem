@@ -9,6 +9,15 @@ SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fve
   REAL (KIND=8) C, Cnew, x(n), fvec(m), fjac(m,n), xnew(n), grad(n), lam, eps, rpar(m)
   REAL (KIND=8) maxlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol, cos_alpha
   INTEGER i
+  logical :: is_set
+
+
+
+
+!!!!!!!!!! CORNELL CUSTOM
+  call user_signal(converged, is_set)
+  if (is_set) return
+!!!!!!!!!! END CORNELL CUSTOM
 
 !  The first few criteria should be checked every iteration, since
 !  they depend on counts and the Jacobian but not the proposed step.
@@ -112,6 +121,9 @@ SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fve
      ENDIF
      RETURN
   ENDIF
+
+
+
 
 ! If none of the above: continue
   counter = 0
