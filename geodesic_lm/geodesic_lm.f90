@@ -12,7 +12,7 @@ type geodesic_lm_param_struct
   integer :: print_unit = 6     ! unit number details written to
   integer :: imethod = 10       ! method choice for updating LM parameter
   integer :: iaccel = 1         ! use geodesic acceleration or not
-  integer :: ibold = 0          ! 'boldness' in accepting uphill (0->downhill)
+  integer :: ibold = 0          ! 'boldness' in accepting uphill (0-4) with 0->downhill
   integer :: ibroyden = 0       ! number of iterations using approximate jacobian
 
   real(rp) :: eps = 1.5E-6      ! function evaluation precision
@@ -21,7 +21,7 @@ type geodesic_lm_param_struct
   !! Stopping criterion
   real(rp) :: maxlam = 1E7      ! limit on damping term lambda (if <0 no limit)
   real(rp) :: artol = 1.E-3     ! cos of angle between residual and tangent plane
-  real(rp) :: Cgoal  = 1        ! Cost lower limit (ends when falls below)
+  real(rp) :: Cgoal  = 1.E-23   ! Cost lower limit (ends when falls below)
   real(rp) :: gtol  = 1.5E-8    ! gradient lower limit
   real(rp) :: xtol = 1.E-10     ! step size lower limit (ll)
   real(rp) :: xrtol = 1.5E-8    ! relative parameter change ll
