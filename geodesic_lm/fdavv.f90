@@ -7,6 +7,7 @@ SUBROUTINE FDAvv(m,n,x,v,fvec,fjac, func,acc, jac_uptodate, h2)
   INTEGER m, n
   REAL (KIND=8) x(n), v(n), fvec(m), fjac(m,n), acc(m), xtmp(n), ftmp(m), h2
   LOGICAL jac_uptodate
+  EXTERNAL func
 
   IF( jac_uptodate) THEN
      xtmp = x + h2*v
