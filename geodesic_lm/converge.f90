@@ -2,17 +2,14 @@
 ! ****************************************
 ! Routine to Check for Convergence
 
-SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fvec, fjac, lam, eps, xnew, &
-     & nfev, maxfev, njev, maxjev, naev, maxaev, maxlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol,cos_alpha)
+SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fvec, fjac, lam, xnew, &
+     & nfev, maxfev, njev, maxjev, naev, maxaev, maxlam, minlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol,cos_alpha)
   IMPLICIT NONE
   INTEGER m,n, converged, accepted, counter, nfev, maxfev, njev, maxjev, naev, maxaev
-  REAL (KIND=8) C, Cnew, x(n), fvec(m), fjac(m,n), xnew(n), grad(n), lam, eps, rpar(m)
-  REAL (KIND=8) maxlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol, cos_alpha
+  REAL (KIND=8) C, Cnew, x(n), fvec(m), fjac(m,n), xnew(n), grad(n), lam, rpar(m)
+  REAL (KIND=8) maxlam, minlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol, cos_alpha
   INTEGER i
   logical :: is_set
-
-
-
 
 !!!!!!!!!! CORNELL CUSTOM
   call user_signal(converged, is_set)
@@ -52,6 +49,18 @@ SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fve
   IF(maxlam .GT. 0.0d+0) THEN
      IF(lam .GE. maxlam) THEN
         converged = -5
+        RETURN
+     END IF
+  END IF
+
+!  minlam
+  IF(minlam .GT. 0.0d+0 .AND. lam .GT. 0.0d+0) THEN
+     IF(lam .LE. minlam) THEN
+        counter = counter + 1
+        IF(counter .GE. 3) THEN
+           converged = -6
+           RETURN
+        END IF
         RETURN
      END IF
   END IF
@@ -121,9 +130,6 @@ SUBROUTINE convergence_check(m, n, converged, accepted, counter, C, Cnew, x, fve
      ENDIF
      RETURN
   ENDIF
-
-
-
 
 ! If none of the above: continue
   counter = 0

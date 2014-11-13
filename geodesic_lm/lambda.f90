@@ -11,13 +11,13 @@ SUBROUTINE TrustRegion(n,m, fvec, fjac, dtd, delta, lam)
   REAL (KIND=8) rtol, atol, f
   REAL (KIND=8) jtilde(m,n), gradCtilde(n), g(n,n)
 
-  !! Parameters fo dgqt
+  !! Parameters for dgqt
   rtol = 1.0d-03
   atol = 1.0d-03 
   itmax = 10
 
   DO i = 1,n
-     jtilde(:,i) = fjac(:,i)/SQRT(dtd(i,i))
+     jtilde(:,i) = fjac(:,i)/SQRT(dtd(i,i)) !! This assumes that dtd is diagonal...
   END DO
   gradCtilde = MATMUL(fvec, jtilde)
   g = MATMUL(TRANSPOSE(jtilde), jtilde)
