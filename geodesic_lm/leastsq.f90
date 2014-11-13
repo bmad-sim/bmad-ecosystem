@@ -1,20 +1,20 @@
-! -*- f90 -*-
-! file leastsq.f90
-! Main Geodesic-Bold-BroydenUpdate-Levenberg-Marquardt routine
-! version 0.2 BETA
-
 module geolevmar_module
 
 contains
 
-SUBROUTINE geolevmar(func, jacobian, Avv, &
+! -*- f90 -*-
+! file leastsq.f90
+! Main Geodesic-Bold-BroydenUpdate-Levenberg-Marquardt routine
+! version 1.0
+
+SUBROUTINE geodesicLM(func, jacobian, Avv, &
      & x, fvec, fjac, n, m, &
      & callback, info, &
      & analytic_jac, analytic_Avv, &
-     & center_diff, eps, h1, h2,&
-     & dtd, mode, &
+     & center_diff, h1, h2,&
+     & dtd, damp_mode, &
      & niters, nfev, njev, naev, &
-     & maxiter, maxfev, maxjev, maxaev, maxlam, &
+     & maxiter, maxfev, maxjev, maxaev, maxlam, minlam, &
      & artol, Cgoal, gtol, xtol, xrtol, ftol, frtol, &
      & converged, &
      & print_level, print_unit, &
@@ -23,7 +23,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 
 !*****************************************************************
 ! 
-!    subroutine geolevmar
+!    subroutine geodesicLM
 !    
 !    The purpose of geolevmar is to minimize the sum of the squares
 !    of m nonlinear functions of n variables by a modification of
@@ -49,14 +49,14 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !
 !    The subroutine statement is:
 !
-!    leastsq(func, jacobian, Av, x, fvec, jac, n, m, callback, info,
-!            analytic_jac, analytic_Avv, center_diff, eps, h1, h2,
-!            dtd, mode, niteres, nfev, njev, naev,
-!            maxiters, maxfev, maxjev, maxaev, maxlam
-!            artol, Cgoal, gtol, xtol, xrtol, ftol, frtol,
-!            converged, print_level, print_unit,
-!            imethod, iaccel, ibold, ibroyden,
-!            initialfactor, factoraccept, factorreject, avmax)
+!    geodesicLM(func, jacobian, Av, x, fvec, jac, n, m, callback, info,
+!              analytic_jac, analytic_Avv, center_diff, h1, h2,
+!              dtd, mode, niteres, nfev, njev, naev,
+!              maxiters, maxfev, maxjev, maxaev, maxlam, minlam,
+!              artol, Cgoal, gtol, xtol, xrtol, ftol, frtol,
+!              converged, print_level, print_unit,
+!              imethod, iaccel, ibold, ibroyden,
+!              initialfactor, factoraccept, factorreject, avmax)
 !
 !    where
 !
@@ -64,8 +64,8 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    should be written as follows:
 !
 !      subroutine func(m, n, x, fvec)
-!      integer m (number of data), n (number of parameters)
-!      double precision x(n), fvec(m) (vector of residuals)
+!      integer m, n
+!      double precision x(n), fvec(m)
 !      --------------------------------------------------------------------
 !      calculates the function at x and returns their values in fvec
 !      x, m, and n should be left unchanged
@@ -117,11 +117,11 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    algorithm.  
 !    callback should be written as follows
 !
-!      subroutine callback(m,n,x,fvec,info)
-!      integer m, n, info
-!      double precision x(n), fvec(m), 
+!      subroutine callback(m,n,x,v,a,fvec,fjac,acc,lam,dtd,fvec_new,accepted,info)
+!      integer m, n, accepted, info
+!      double precision x(n), v(n), a(n), fvec(m), fjac(m,n), acc(m), lam, dtd(n,n), fvec_new(m)
 !      --------------------------------------------------------------------
-!      x, fvec, m, and n should be left unchanged
+!      m, n, x, v, a, fvec, fjac, acc, lam, dtd, fvec_new, accepted, should be left unchanged
 !      On input, info = 0 and should be changed to a nonzero value if the user
 !      wishes to terminate calculation
 !      --------------------------------------------------------------------
@@ -142,8 +142,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    differences will be used.  Note that center differences are more accurate by require
 !    more function evaluations.
 !
-!    eps an input double precision specifying the precision to which the function is evaluated
-!
 !    h1 an input double precision specifying the step size for the finite difference estimates
 !    of the jacobian.
 !
@@ -153,9 +151,9 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    dtd a double precision array of dimension(n,n).  dtd is used as the damping matrix in the 
 !    Levenberg-Marquardt routine.  It's exact treatment is specified by the mode input.
 !
-!    mode an input integer specifying the details of the LM damping as follows:
-!      mode = 0: dtd is set to the identity.
-!      mode = 1: dtd should be a positive definite, diagonal matrix whose entries are dynamically
+!    damp_mode an input integer specifying the details of the LM damping as follows:
+!      damp_mode = 0: dtd is set to the identity.
+!      damp_mode = 1: dtd should be a positive definite, diagonal matrix whose entries are dynamically
 !                updated based on the elements of the jacobian.
 !
 !    niters an output integer specifying the number of iterations of the algorithm.
@@ -177,8 +175,12 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    maxaev an input integer specifying the maximum number of Avv calls
 !    if maxaev = 0, then there is no limit to the number of Avv calls.
 !
-!    maxlam an input double precision specifying the maximum allows value of 
+!    maxlam an input double precision specifying the maximum allowed value of 
 !    the damping term lambda. If this is negative, then there is no limit.
+!
+!    minlam an input double precision specifying the minimum allowed value of 
+!    the damping term lambda. If lambda is smaller than this value for three consecutive steps
+!    the routine terminates.  If this is negative, then there is no limit.
 !
 !    artol an input double precision.  The method will terminate when the cosine of the
 !    angle between the residual vector and the range of the jacobian is less than artol.
@@ -239,7 +241,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
 !    either the LM parameter of the step size will be adjusted after a rejected step if
 !    imethod = 0 or 10
 !
-!    avmax an input double precision specifying the maximum nor of the geodesic acceleration 
+!    avmax an input double precision specifying the maximum norm of the geodesic acceleration 
 !    relative to the velocity vector.
 !
 !*****************************************************************
@@ -251,12 +253,12 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   REAL (KIND=8) x(n), fvec(m), fjac(m,n)
   INTEGER n, m
   LOGICAL analytic_jac, analytic_Avv, center_diff
-  REAL (KIND=8) eps, h1, h2
+  REAL (KIND=8) h1, h2
   REAL (KIND=8) dtd(n,n)
-  INTEGER mode, info
+  INTEGER damp_mode, info
   INTEGER niters, nfev, njev, naev
   INTEGER maxiter, maxfev, maxaev, maxjev
-  REAL (KIND=8) maxlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol
+  REAL (KIND=8) maxlam, minlam, artol, Cgoal, gtol, xtol, xrtol, ftol, frtol
   INTEGER converged
   INTEGER print_level, print_unit
   INTEGER iaccel, ibroyden, ibold, imethod
@@ -269,18 +271,14 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   REAL (KIND=8) x_new(n), x_best(n)
   REAL (KIND=8) jtj(n,n), g(n,n)
   REAL (KIND=8) temp1, temp2, pred_red, dirder, actred, rho, a_param
-  real(8) fvec_start(m)
-  
   INTEGER i, j, istep, accepted, counter
 
+  real(8) fvec_start(m)
   character(16) :: converged_info(-11:7)
-
-  !
-
+ 
   LOGICAL jac_uptodate, jac_force_update, valid_result
-
-  !
-
+  
+  !Convergence messages 
   converged_info = '????????'
   converged_info(1) = 'artol reached'
   converged_info(2) = 'Cgoal reached'
@@ -296,20 +294,14 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   converged_info(-10) = 'User Termination '
   converged_info(-11) = 'NaN Produced'
 
-
-  !
-
   IF(print_level .GE. 1) THEN
-     WRITE(print_unit, *) "Optimizing with Geodesic-Levenberg-Marquardt algorithm, version 0.2 BETA"
+     WRITE(print_unit, *) "Optimizing with Geodesic-Levenberg-Marquardt algorithm, version 1.0"
      WRITE(print_unit, *) "Method Details:"
      WRITE(print_unit, *) "  Update method:   ", imethod
      WRITE(print_unit, *) "  acceleration:    ", iaccel
-     WRITE(print_unit, *) "  mode:            ", mode
      WRITE(print_unit, *) "  Bold method:     ", ibold
      WRITE(print_unit, *) "  Broyden updates: ", ibroyden
-     WRITE(print_unit, *) "  maxiter          ", maxiter
   ENDIF
-
 
   !! Initialize variables
   niters = 0
@@ -327,9 +319,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   accepted = 0
   counter = 0
   CALL func(m,n,x,fvec)
-  
-  fvec_start = fvec
-  
+  fvec_start = fvec !Hold on to initial fvec
   nfev = nfev + 1
   C = 0.5d+0*DOT_PRODUCT(fvec,fvec)
   IF(print_level .GE. 1) THEN
@@ -384,12 +374,12 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   a(:) = 0.0d+0
 
   !! Initialize scaling matrix
-  IF(mode.EQ.0) THEN
+  IF(damp_mode.EQ.0) THEN
      dtd(:,:) = 0.0d+0
      DO i=1,n
         dtd(i,i) = 1.0d+0
      END DO
-  ELSEIF(mode.EQ.1) THEN
+  ELSEIF(damp_mode.EQ.1) THEN
      DO i = 1,n
         dtd(i,i) = MAX(jtj(i,i),dtd(i,i))
      END DO
@@ -406,7 +396,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   ELSEIF(imethod .GE. 10) THEN
      delta = initialfactor*SQRT(DOT_PRODUCT(x,MATMUL(dtd,x)))
      lam = 1.0d+0
-     IF(delta .LT. eps) delta = 100d+0
+     IF(delta .EQ. 0.0d+0) delta = 100d+0
      IF( converged .EQ. 0) CALL TrustRegion(n,m,fvec,fjac,dtd,delta,lam) !! Do not call this if there were nans in either fvec or fjac
   ENDIF
 
@@ -414,7 +404,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   main: DO istep=1, maxiter
      
      info = 0
-     CALL callback(m,n,x,fvec,fjac,accepted,info)
+     CALL callback(m,n,x,v,a,fvec,fjac,acc,lam,dtd,fvec_new,accepted,info)
      IF( info .NE. 0) THEN
         converged = -10
         exit main
@@ -476,7 +466,7 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
      
         !! Update Scaling/lam/TrustRegion
         IF(istep .GT. 1) THEN !! Only necessary after first step
-           IF( mode .EQ. 1) THEN
+           IF( damp_mode .EQ. 1) THEN
               DO i = 1,n
                  dtd(i,i) = MAX(jtj(i,i),dtd(i,i))
               END DO
@@ -597,8 +587,8 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
      !! Check Convergence
      IF (converged .EQ. 0) THEN
         CALL convergence_check(m, n, converged, accepted, counter, &
-             & C, Cnew, x, fvec, fjac, lam, eps, x_new, &
-             & nfev, maxfev, njev, maxjev, naev, maxaev, maxlam, &
+             & C, Cnew, x, fvec, fjac, lam, x_new, &
+             & nfev, maxfev, njev, maxjev, naev, maxaev, maxlam, minlam, &
              & artol, Cgoal, gtol, xtol, xrtol, ftol, frtol,cos_alpha)
         IF (converged .EQ. 1 .AND. .NOT. jac_uptodate) THEN  
            !! If converged by artol with an out of date jacobian, update the jacoban to confirm true convergence
@@ -607,7 +597,6 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
         END IF
      ENDIF
      
-
      !! Print status
      IF ((print_level == 2 .AND. accepted .GT. 0) .or. print_level > 2) THEN
         WRITE(print_unit, '(a, 6i6)') "  istep, nfev, njev, naev, accepted", istep, nfev, njev, naev, accepted
@@ -640,25 +629,25 @@ SUBROUTINE geolevmar(func, jacobian, Avv, &
   ! If the method converged, but final x is different from x_best -- what to do?
   x = x_best
   fvec = fvec_best
-
+  
   IF(print_level .GE. 1) THEN
-     WRITE(print_unit,*) "Optimization finished"
-     WRITE(print_unit,*) "Results:"
-     WRITE(print_unit,*) "  Converged:    ", converged_info(converged), converged
-     WRITE(print_unit,*) "  Initial Cost: ", 0.5d+0*DOT_PRODUCT(fvec_start,fvec_start)
-     WRITE(print_unit,*) "  Final Cost:   ", 0.5d+0*DOT_PRODUCT(fvec,fvec)
-     WRITE(print_unit,*) "  Cost/DOF:     ", 0.5d+0*DOT_PRODUCT(fvec,fvec)/(m-n)
-     WRITE(print_unit,*) "  niters:       ", istep
-     WRITE(print_unit,*) "  nfev:         ", nfev
-     WRITE(print_unit,*) "  njev:         ", njev
-     WRITE(print_unit,*) "  naev:         ", naev
+    WRITE(print_unit,*) "Optimization finished"
+    WRITE(print_unit,*) "Results:"
+    WRITE(print_unit,*) "  Converged:    ", converged_info(converged), converged
+    WRITE(print_unit,*) "  Initial Cost: ", 0.5d+0*DOT_PRODUCT(fvec_start,fvec_start)
+    WRITE(print_unit,*) "  Final Cost:   ", 0.5d+0*DOT_PRODUCT(fvec,fvec)
+    WRITE(print_unit,*) "  Cost/DOF:     ", 0.5d+0*DOT_PRODUCT(fvec,fvec)/(m-n)
+    WRITE(print_unit,*) "  niters:       ", istep
+    WRITE(print_unit,*) "  nfev:         ", nfev
+    WRITE(print_unit,*) "  njev:         ", njev
+    WRITE(print_unit,*) "  naev:         ", naev
   ENDIF
 
-
-END SUBROUTINE geolevmar
+END SUBROUTINE geodesiclm
      
 
 end module
+
 
 
 

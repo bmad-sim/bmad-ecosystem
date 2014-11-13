@@ -15,11 +15,12 @@ type geodesic_lm_param_struct
   integer :: ibold = 0          ! 'boldness' in accepting uphill (0-4) with 0->downhill
   integer :: ibroyden = 0       ! number of iterations using approximate jacobian
 
-  real(rp) :: eps = 1.5E-6      ! function evaluation precision
+  !!!!real(rp) :: eps = 1.5E-6      ! function evaluation precision
   real(rp) :: h1=1.D-6,h2=1.D-1 ! controls step sizes for finite diff derivatives
                                 ! h1 for jacobian, h2 for dir second deriv
   !! Stopping criterion
-  real(rp) :: maxlam = 1E7      ! limit on damping term lambda (if <0 no limit)
+  real(rp) :: maxlam = 1E7      ! maximum limit on damping term lambda (if <0 no limit)
+  real(rp) :: minlam = -1.0     ! minimum limit on damping term lambda (if <0 no limit)
   real(rp) :: artol = 1.E-3     ! cos of angle between residual and tangent plane
   real(rp) :: Cgoal  = 1.E-23   ! Cost lower limit (ends when falls below)
   real(rp) :: gtol  = 1.5E-8    ! gradient lower limit
@@ -103,10 +104,11 @@ nl=nl+1; write (li(nl), imt) pre(1:nchar), 'iaccel           =', geodesic_lm_par
 nl=nl+1; write (li(nl), imt) pre(1:nchar), 'ibold            =', geodesic_lm_param%ibold
 nl=nl+1; write (li(nl), imt) pre(1:nchar), 'ibroyden         =', geodesic_lm_param%ibroyden
 
-nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'eps              =', geodesic_lm_param%eps
+!!!nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'eps              =', geodesic_lm_param%eps
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'h1               =', geodesic_lm_param%h1
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'h2               =', geodesic_lm_param%h2
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'maxlam           =', geodesic_lm_param%maxlam
+nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'minlam           =', geodesic_lm_param%minlam
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'artol            =', geodesic_lm_param%artol
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'Cgoal            =', geodesic_lm_param%Cgoal
 nl=nl+1; write (li(nl), rmt) pre(1:nchar), 'gtol             =', geodesic_lm_param%gtol
@@ -148,7 +150,7 @@ end subroutine type_geodesic_lm
 subroutine run_geodesic_lm (geo_func, jacobian, Avv, a, y_fit, fjac, callback, info, &
                              dtd,  niters, nfev, njev, naev, converged)
 
-use geolevmar_module, only: geolevmar ! contained in leastsq.f90
+use geolevmar_module, only: geodesicLM ! contained in leastsq.f90
 
 implicit none
 
@@ -206,14 +208,15 @@ g => geodesic_lm_param
 m = size(fjac, 1) !number of parameters
 n = size(fjac, 2) !number of functions
 
-call geolevmar(geo_func, jacobian, Avv, a, y_fit, fjac, n, m, callback, info, &
-            g%analytic_jac, g%analytic_Avv, g%center_diff, g%eps, g%h1, g%h2, &
+call geodesicLM(geo_func, jacobian, Avv, a, y_fit, fjac, n, m, callback, info, &
+            g%analytic_jac, g%analytic_Avv, g%center_diff, g%h1, g%h2, &
             dtd, g%mode, niters, nfev, njev, naev, &
-            g%maxiter, g%maxfev, g%maxjev, g%maxaev, g%maxlam, &
-            g%artol, g%Cgoal, g%gtol, g%xtol, g%xrtol, g%ftol, g%frtol, &
+            g%maxiter, g%maxfev, g%maxjev, g%maxaev, g%maxlam, g%minlam, &
+            g%artol, g%Cgoal, g%gtol, g%xtol, g%xrtol, g%ftol, g%frtol,  &
             converged, g%print_level, g%print_unit, &
             g%imethod, g%iaccel, g%ibold, g%ibroyden, &
             g%initialfactor, g%factoraccept, g%factorreject, g%avmax)
+
 
 end subroutine run_geodesic_lm
 
