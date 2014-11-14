@@ -448,7 +448,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
     endif
   endif
 
-  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
+  if (mode%polarization == none$ .or. mode%polarization == y_axis$) then
     if (mode%kick_linear_in == trailing_offset$) then
       mode%a_sin = mode%a_sin * exp_factor + ff * c
       mode%a_cos = mode%a_cos * exp_factor + ff * s
