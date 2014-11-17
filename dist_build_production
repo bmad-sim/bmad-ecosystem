@@ -3,6 +3,8 @@
 # Order here matters.
 DIRLIST="xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples cesr_utils bmadz bsim util_programs regression_tests"
 
+if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then DIRLIST="plplot ${DIRLIST}" ; fi 
+
 for DIR in ${DIRLIST}
 do
   cd ${DIST_BASE_DIR}/${DIR};
