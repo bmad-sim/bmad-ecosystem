@@ -1833,7 +1833,6 @@ if (allocated(coord)) then
   call reallocate_coord_n (coord, branch%n_ele_max)
 else
   allocate (coord(0:branch%n_ele_max))
-  call init_coord (coord(0), ele = branch%ele(0), element_end = downstream_end$)
 endif
 
 end subroutine reallocate_coord_lat
