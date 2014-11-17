@@ -1240,7 +1240,7 @@ is_eq = is_eq .and. all(f1%t1_with_rf == f2%t1_with_rf)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%t1_no_rf == f2%t1_no_rf)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%rel_tracking_charge == f2%rel_tracking_charge)
+is_eq = is_eq .and. (f1%default_rel_tracking_charge == f2%default_rel_tracking_charge)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%particle == f2%particle)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1252,7 +1252,7 @@ is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%reverse_time_tracking .eqv. f2%reverse_time_tracking)
+is_eq = is_eq .and. (f1%backwards_time_tracking .eqv. f2%backwards_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
 

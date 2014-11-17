@@ -39,6 +39,8 @@ real(rp), parameter :: anomalous_moment_of(-4:5) = [0.0_rp, anomalous_mag_moment
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
                         anomalous_mag_moment_muon, 0.0_rp, 0.0_rp]
 
+integer, parameter :: flip_species_charge(-4:5) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5]
+
 contains
 
 !------------------------------------------------------------------------

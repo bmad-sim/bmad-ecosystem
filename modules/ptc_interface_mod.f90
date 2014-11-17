@@ -2811,7 +2811,11 @@ endif
 
 ! Track element
 
-call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
+if (present(orb0)) then
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, rel_charge = relative_tracking_charge(orb0, ele, param))
+else
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
+endif
 call ptc_track (ptc_fibre, y8, default) ! "track" in PTC
 
 ! Track exit end drift if PTC is using a hard edge model
@@ -3004,7 +3008,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -3025,12 +3029,14 @@ end subroutine type_map
 !                    Overrides ele%value(ds_step$).
 !   for_layout  -- Logical, optional: If True then fibre will be put in the layout.
 !                    Default is False.
+!   rel_charge  -- real(rp), optional: Charge/mass ratio of particle that will be tracked relative
+!                   to the reference particle. Default is param%default_rel_tracking_charge.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)
 
 use madx_ptc_module
 
@@ -3049,6 +3055,7 @@ real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
+real(rp), optional :: rel_charge
 
 integer i, n, key, n_term, exception, n_field, ix
 integer, optional :: integ_order, steps
@@ -3414,9 +3421,7 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
-if (associated(ele%branch)) then
-  ptc_fibre%charge = ele%branch%param%rel_tracking_charge
-endif
+ptc_fibre%charge = real_option(param%default_rel_tracking_charge, rel_charge)
 
 end subroutine ele_to_fibre
 
@@ -3450,7 +3455,7 @@ type (fibre) dummy_fibre
 
 real(rp) dr(3), ang(3), exi(3,3)
 real(dp) mis_rot(6), beta_start, beta_end
-real(dp) omega(3), basis(3,3), angle(3)
+real(dp) omega(3), basis(3,3), angle(3), tiltd
 real(rp) x_off, y_off, x_pitch, y_pitch, roll
 
 logical use_offsets, good_patch
@@ -3519,7 +3524,7 @@ elseif (use_offsets) then
 
   ! Patch elements do not have misalignments
 
-  if (ele%key == patch$ .or. ele%key == fiducial$ .or. ele%key == floor_shift$) return
+  if (ele%key == fiducial$) return
   if (attribute_index(ele, 'X_OFFSET_TOT') < 1) return
 
   ! in PTC the reference point for the offsets is the beginning of the element.
@@ -3529,13 +3534,14 @@ elseif (use_offsets) then
   y_off = ele%value(y_offset_tot$)
   x_pitch = ele%value(x_pitch_tot$)
   y_pitch = ele%value(y_pitch_tot$)
+  tiltd = ptc_fibre%mag%p%tiltd
   roll = 0
   if (ele%key == sbend$) roll = ele%value(roll_tot$)
 
-  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0) then
+  if (x_off /= 0 .or. y_off /= 0 .or. x_pitch /= 0 .or. y_pitch /= 0 .or. roll /= 0 .or. tiltd /= 0) then
     mis_rot = [x_off, y_off, 0.0_rp, -y_pitch, -x_pitch, roll]
     angle = 0
-    angle(3) = -ptc_fibre%mag%p%tiltd
+    angle(3) = -tiltd
     omega = ptc_fibre%chart%f%o
     basis = ptc_fibre%chart%f%mid
     call geo_rot(basis, angle, 1, basis)                     ! PTC call
@@ -3705,10 +3711,11 @@ case (kicker$)
   add_kick = .false.
 
 case (elseparator$)
-  call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0) 
+  call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an0, bn0) 
   if (has_nonzero_pole) then
     call out_io (s_fatal$, r_name, 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.')
     if (global_com%exit_on_error) call err_exit
+    an0 = 0; bn0 = 0
   endif
   return
 
@@ -3739,7 +3746,7 @@ endif
 ! Exception is multipole element.
 
 if (associated(ele%a_pole)) then
-  call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, an0, bn0)
+  call multipole_ele_to_ab (ele, .false., has_nonzero_pole, an0, bn0)
   if (leng /= 0) then
     an0 = an0 / leng
     bn0 = bn0 / leng

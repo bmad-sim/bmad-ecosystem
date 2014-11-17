@@ -68,7 +68,7 @@ The following helper routines are generally not useful for general use.
 
 \index[routine]{bend_edge_kick}
 \label{r:bend.edge.kick}
-\item[bend_edge_kick (orb, ele, param, particle_at, mat6)] \Newline 
+\item[bend_edge_kick (orb, ele, param, particle_at, mat6, make_matrix)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -484,7 +484,7 @@ that an error flag is set instead of bombing the program when there is a problem
 
 \index[routine]{mat_eigen}
 \label{r:mat.eigen}
-\item[mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error, print_err)] \Newline 
+\item[mat_eigen (mat, eigen_val, eigen_vec, error, print_err)] \Newline 
 Routine for determining the eigen vectors and eigen values of a matrix.
 
 \index[routine]{mat_inverse}
@@ -521,7 +521,7 @@ Routine to take the symplectic conjugate of a square matrix.
 \index[routine]{mat_symp_decouple}
 \label{r:mat.symp.decouple}
 \item[\protect\parbox{6in}{
-    mat_symp_decouple (t0, tol, stat, u, v, \\
+    mat_symp_decouple (t0, stat, u, v, \\
     \hspace*{1in} ubar, vbar, g, twiss1, twiss2, gamma, type_out)} ] \Newline
 Routine to find the symplectic eigen--modes of the one turn 4x4 coupled 
 transfer matrix T0. 
@@ -849,7 +849,7 @@ hybridized by \vn{make_hybrid_lat}.
 
 \index[routine]{ele_geometry}
 \label{r:ele.geometry}
-\item[ele_geometry (floor0, ele, floor, len_scale, treat_as_patch)] \Newline 
+\item[ele_geometry (floor0, ele, floor, len_scale)] \Newline 
 Routine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
@@ -1490,12 +1490,12 @@ at the beginning and end of the element.
 
 \index[routine]{twiss_from_mat2}
 \label{r:twiss.from.mat2}
-\item[twiss_from_mat2 (mat, det, twiss, stat, tol, type_out)] \Newline
+\item[twiss_from_mat2 (mat_in, twiss, stat, type_out)] \Newline
 Routine to extract the Twiss parameters from the one-turn 2x2 matrix 
 
 \index[routine]{twiss_from_mat6}
 \label{r:twiss.from.mat6}
-\item[twiss_from_mat6 (mat6, map0, ele, stable, growth_rate, status, type_out)] \Newline
+\item[twiss_from_mat6 (mat6, orb0, ele, stable, growth_rate, status, type_out)] \Newline
 Routine to extract the Twiss parameters from the one-turn 6x6 matrix 
 
 \index[routine]{twiss_to_1_turn_mat}
@@ -1863,7 +1863,7 @@ Routine to remove the constant part of a taylor series.
 
 \index[routine]{lat_to_ptc_layout}
 \label{r:lat.to.ptc.layout}
-\item[lat_to_ptc_layout (lat)] \Newline
+\item[lat_to_ptc_layout (lat, use_hard_edge_drifts)] \Newline
 Routine to create a PTC layout from a Bmad lat. 
 
 \index[routine]{set_ptc}
@@ -3275,7 +3275,7 @@ Particle tracking through a single element using the transfer matrix..
 
 \index[routine]{track1_radiation}
 \label{r:track1.radiation}
-\item[track1_radiation (start, ele, param, end, edge)] \Newline
+\item[track1_radiation (orb_start, ele, param, orb_end, edge)] \Newline
 Routine to put in radiation damping and/or fluctuations. 
 
 \index[routine]{track1_runge_kutta}
@@ -3317,7 +3317,7 @@ Routine to calculate the synchrotron tune from the full 6X6 1 turn matrix.
 \index[routine]{chrom_calc}
 \label{r:chrom.calc}
 \item[\protect\parbox{6in}{
-    chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, \\
+    chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, pz, \\
     \hspace*{1in} low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch)} ] \Newline
 Routine to calculate the chromaticities by computing the tune 
 change when then energy is changed. 

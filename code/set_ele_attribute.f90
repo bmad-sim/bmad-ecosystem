@@ -11,6 +11,9 @@
 !   "tracking_method = taylor"
 !   "hkick = 0.01 * pi
 !
+! Note: If using intellegent bookkeeping (bmad_com%auto_bookkeeper = F), the routine
+! lattice_bookkeeper must be called after all elements sets are done.
+! 
 ! Modules needed:
 !   use bmad
 !
@@ -78,7 +81,7 @@ bp_com%print_err = logic_option(.true., err_print_flag)
 current_file%full_name = ''
 
 call parser_set_attribute (redef$, ele, lat, delim, delim_found, err_flag)
-                                                  
+
 bp_com%input_from_file = file_input_save
 bp_com%print_err       = print_save
 

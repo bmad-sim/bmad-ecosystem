@@ -991,7 +991,8 @@ do ib = 1, ubound(lat%branch, 1)
 
   write (iu, *)
   write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
-  write (iu, '(3a)') trim(branch%name), '[rel_tracking_charge] = ', str(branch%param%rel_tracking_charge)
+  if (branch%param%default_rel_tracking_charge /= 1) write (iu, '(3a)') trim(branch%name), &
+                        '[default_rel_tracking_charge] = ', str(branch%param%default_rel_tracking_charge)
  
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
@@ -1647,7 +1648,7 @@ do
   ! just before and just after the element.
 
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
-    call multipole_ele_to_ab (ele, branch_out%param, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
+    call multipole_ele_to_ab (ele, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
     if (has_nonzero_pole) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
@@ -1893,7 +1894,7 @@ do ix_ele = ie1, ie2
     if (.not. converted) then
 
       a_pole = 0; b_pole = 0
-      call multipole_ele_to_ab (ele, branch_out%param, .false., has_nonzero_pole, a_pole, b_pole)
+      call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       select case (ele%key)
 
@@ -1902,7 +1903,7 @@ do ix_ele = ie1, ie2
 
       case (ab_multipole$)
         write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= ('
-        call multipole_ele_to_ab (ele, branch%param, .false., has_nonzero_pole, a_pole, b_pole)
+        call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       case (bend_sol_quad$)
         write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
@@ -1966,7 +1967,7 @@ do ix_ele = ie1, ie2
 
       case (multipole$)
         write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= ('
-        call multipole_ele_to_ab (ele, branch%param, .false., has_nonzero_pole, a_pole, b_pole)
+        call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       case (null_ele$)
         write (line_out, '(3a, es13.5)') 'SOL ' // trim(ele%name) // '= (L =', val(l$)
@@ -2271,12 +2272,12 @@ do ix_ele = ie1, ie2
   case (multipole$, ab_multipole$)
 
     knl = 0; tilts = 0
-    call multipole_ele_to_kt (ele, branch_out%param, .true., has_nonzero_pole, knl, tilts)
+    call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilts)
     write (line_out, '(a, es13.5)') trim(ele%name) // ': multipole'  
 
     if (out_type == 'MAD-X') then
       knl_str = ''; ksl_str = ''
-      call multipole_ele_to_ab (ele, branch_out%param, .true., has_nonzero_pole, a_pole, b_pole)
+      call multipole_ele_to_ab (ele, .true., has_nonzero_pole, a_pole, b_pole)
       do i = 0, 9
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value

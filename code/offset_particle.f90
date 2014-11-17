@@ -78,7 +78,7 @@ real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
 real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
-real(rp) rot(3), dr(3)
+real(rp) rot(3), dr(3), rel_tracking_charge
 
 integer particle, sign_z_vel
 integer n
@@ -100,7 +100,8 @@ set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele
 set_s     = logic_option (.true., set_z_offset) .and. has_orientation_attributes(ele)
 sign_z_vel = ele%orientation * coord%direction
 
-charge_dir = param%rel_tracking_charge * sign_z_vel 
+rel_tracking_charge = relative_tracking_charge (coord, ele, param)
+charge_dir = rel_tracking_charge * sign_z_vel 
 
 if (set_hv) then
   select case (ele%key)
@@ -126,9 +127,9 @@ if (set) then
   if (has_orientation_attributes(ele)) then
 
     if (present(ds_pos)) then
-      z_here = ele%orientation * (ds_pos - ele%value(l$)/2)   ! position relative to center.
+      z_here = sign_z_vel * (ds_pos - ele%value(l$)/2)   ! position relative to center.
     else
-      z_here = -ele%orientation * ele%value(l$) / 2
+      z_here = -sign_z_vel * ele%value(l$) / 2
     endif
 
     x_off = ele%value(x_offset_tot$)
@@ -207,8 +208,8 @@ if (set) then
 
   if (set_hv1) then
     if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + param%rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + param%rel_tracking_charge * ele%value(vkick$) / 2
+      coord%vec(2) = coord%vec(2) + rel_tracking_charge * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + rel_tracking_charge * ele%value(vkick$) / 2
       if (coord%species < 0) then
         coord%vec(2) = -coord%vec(2)
         coord%vec(4) = -coord%vec(4)
@@ -222,9 +223,9 @@ if (set) then
   ! Set: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      call multipole_kicks (knl/2, tilt, coord)
+      call multipole_kicks (knl*charge_dir/2, tilt, coord)
     endif
   endif
 
@@ -276,8 +277,8 @@ if (set) then
 
   if (set_hv2) then
     if (ele%key == elseparator$ ) then
-      coord%vec(2) = coord%vec(2) + charge_of(param%particle) * param%rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_of(param%particle) * param%rel_tracking_charge * ele%value(vkick$) / 2
+      coord%vec(2) = coord%vec(2) + charge_of(coord%species) * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + charge_of(coord%species) * ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
     elseif (ele%key == vkicker$) then
@@ -297,8 +298,8 @@ else
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + charge_of(param%particle) * param%rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_of(param%particle) * param%rel_tracking_charge * ele%value(vkick$) / 2
+      coord%vec(2) = coord%vec(2) + charge_of(coord%species) * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + charge_of(coord%species) * ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
     elseif (ele%key == vkicker$) then
@@ -353,9 +354,9 @@ else
   ! Unset: Multipoles
 
   if (set_multi) then
-    call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
+    call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
     if (has_nonzero_pole) then
-      call multipole_kicks (knl/2, tilt, coord)
+      call multipole_kicks (knl*charge_dir/2, tilt, coord)
     endif
   endif
 
@@ -366,8 +367,8 @@ else
 
   if (set_hv1) then
     if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + param%rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + param%rel_tracking_charge * ele%value(vkick$) / 2
+      coord%vec(2) = coord%vec(2) + rel_tracking_charge * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + rel_tracking_charge * ele%value(vkick$) / 2
     else
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
       coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
@@ -383,9 +384,9 @@ else
     ! whole bend except with half the bending angle.
 
     if (present(ds_pos)) then
-      z_here = ele%orientation * (ds_pos - ele%value(l$)/2)  ! position relative to center.
+      z_here = sign_z_vel * (ds_pos - ele%value(l$)/2)  ! position relative to center.
     else
-      z_here = ele%orientation * ele%value(l$) / 2
+      z_here = sign_z_vel * ele%value(l$) / 2
     endif
 
     x_off = ele%value(x_offset_tot$)

@@ -187,13 +187,15 @@ mc2 = mass_of(param%particle)
 gamma_0 = ele%value(e_tot$) / mc2
 
 fact_d = 0
-if (bmad_com%radiation_damping_on) fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
+if (bmad_com%radiation_damping_on) then
+  fact_d = 2 * classical_radius_factor * gamma_0**3 * g2 * s_len / (3 * mc2)
+  if (param%backwards_time_tracking) fact_d = -fact_d
+endif
 
 fact_f = 0
 if (bmad_com%radiation_fluctuations_on) then
   call ran_gauss (this_ran)
   fact_f = sqrt(rad_fluct_const * s_len * gamma_0**5 * g3) * this_ran / mc2
-  if (param%reverse_time_tracking) fact_f = -fact_f
 endif
 
 dE_p = (1 + orb_start%vec(6)) * (fact_d + fact_f) * synch_rad_com%scale 

@@ -1,54 +1,60 @@
+! NOTE: THIS ROUTINE IS NOT CURRENTLY OPERATIONAL!
+!       DO NOT USE!
+!       IF YOU ARE INTERESTED IN USING THIS PLEASE CONTACT DAVID SAGAN.
 !+
-! Subroutine track1_backup (end_orb, ele, param, start_orb, err_flag)
+! Subroutine track1_backwards_time (start_orb, ele, param, end_orb, err_flag)
 !
-! "Backup" tracking through a single element. 
+! Backwards tracking in time through a single element. 
 ! That is, the particle is going backward in time from the downstream end
 ! of the element back to the upstream end. 
 !
-! This is different from tracking a particle going forward in time in the 
-! -s direction.
-! 
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   end_orb   -- Coord_struct: Position at downstream end.
+!   start_orb  -- Coord_struct: Position at downstream end.
 !   ele        -- Ele_struct: Element
 !   param      -- lat_param_struct:
 !     %particle     -- Particle type
 !
 ! Output:
-!   start_orb  -- Coord_struct: Position at upstream end.
+!   end_orb   -- Coord_struct: Position at upstream end.
 !   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 
-subroutine track1_backup (end_orb, ele, param, start_orb, err_flag)
+subroutine track1_backwards_time (start_orb, ele, param, end_orb, err_flag)
 
-use bmad, dummy => track1_backup
+use bmad, dummy => track1_backwards_time
 
 implicit none
 
 type (ele_struct) ele
-type (coord_struct) :: start_orb, end_orb, e_orb
+type (coord_struct) :: end_orb, start_orb, e_orb
 type (lat_param_struct) param
 
 real(rp) beta_ref, dt_ref, z_end, t_end
 logical, optional :: err_flag
+character(*), parameter :: r_name = 'track1_backwards_time'
 
-! initially set end_orb = start_orb
+!
+
+call out_io (s_abort$, r_name, 'ROUTINE IS NOT CURRENTLY OPERATIONAL!')
+call err_exit
+
+! initially set start_orb = end_orb
 
 if (present(err_flag)) err_flag = .false.
 
-e_orb = end_orb 
-z_end = end_orb%vec(5)
-t_end = end_orb%t
+e_orb = start_orb 
+z_end = start_orb%vec(5)
+t_end = start_orb%t
 
 ! flip to reversed coords
 
 e_orb%vec(2) = -e_orb%vec(2)
 e_orb%vec(4) = -e_orb%vec(4)
 
-! backup tracking
+! backwards_time tracking
 
 select case (ele%key)
 case (elseparator$)
@@ -65,18 +71,18 @@ case (lcavity$, rfcavity$)
   e_orb%vec(5) = e_orb%vec(5) - dt_ref * e_orb%beta
   e_orb%t = e_orb%t + dt_ref
 case default
-  param%rel_tracking_charge = -param%rel_tracking_charge
+  e_orb%species = -e_orb%species
 end select
 
 
 
 ele%orientation = -ele%orientation
-param%reverse_time_tracking = .true.
+param%backwards_time_tracking = .true.
 
-call track1 (e_orb, ele, param, start_orb, err_flag = err_flag)
+call track1 (e_orb, ele, param, end_orb, err_flag = err_flag)
 
 ele%orientation = -ele%orientation
-param%reverse_time_tracking = .false.
+param%backwards_time_tracking = .false.
 
 select case (ele%key)
 case (elseparator$)
@@ -86,15 +92,14 @@ case (lcavity$)
   ele%value(gradient_err$) = -ele%value(gradient_err$)
 case (rfcavity$)
   ele%value(voltage$) = -ele%value(voltage$)
-case default
-  param%rel_tracking_charge = -param%rel_tracking_charge
 end select
 
 ! flip back to normal coords
 
-start_orb%vec(2) = -start_orb%vec(2)
-start_orb%vec(4) = -start_orb%vec(4)
-start_orb%vec(5) = z_end - (start_orb%vec(5) - e_orb%vec(5))
-start_orb%t = t_end - (start_orb%t - e_orb%t)
+end_orb%vec(2) = -end_orb%vec(2)
+end_orb%vec(4) = -end_orb%vec(4)
+end_orb%vec(5) = z_end - (end_orb%vec(5) - e_orb%vec(5))
+end_orb%t = t_end - (end_orb%t - e_orb%t)
+end_orb%species = start_orb%species
 
-end subroutine track1_backup
+end subroutine track1_backwards_time

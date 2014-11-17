@@ -867,8 +867,8 @@ branch_loop: do i_loop = 1, n_branch_max
 
   !
 
-  if (ele%value(rel_tracking_charge$) /= real_garbage$) &
-                                   branch%param%rel_tracking_charge = nint(ele%value(rel_tracking_charge$))
+  if (ele%value(default_rel_tracking_charge$) /= real_garbage$) &
+                   branch%param%default_rel_tracking_charge = nint(ele%value(default_rel_tracking_charge$))
 
   if (ele%value(p0c$)>= 0)        ele0%value(p0c$)   = ele%value(p0c$)
   if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$) = ele%value(e_tot$)

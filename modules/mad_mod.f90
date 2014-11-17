@@ -18,7 +18,6 @@ type mad_energy_struct
   real(rp) gamma        ! relativistic factor: 1/sqrt(1-beta^2)
   real(rp) kinetic      ! kinetic energy
   real(rp) p0c          ! particle momentum
-  real(rp) rel_tracking_charge
   integer particle      ! particle species
 end type
 
@@ -120,9 +119,7 @@ character(16), parameter :: r_name = 'make_mad_map'
 
 energy%total = ele%value(E_TOT$)
 energy%particle = param%particle
-energy%rel_tracking_charge = param%rel_tracking_charge
-call convert_total_energy_to (energy%total, energy%particle, energy%gamma, &
-                                               energy%kinetic, energy%beta, energy%p0c)
+call convert_total_energy_to (energy%total, energy%particle, energy%gamma, energy%kinetic, energy%beta, energy%p0c)
 
 ! choose element key
 
@@ -445,8 +442,7 @@ te => map%t
 ! Prepare linear transformation particle energys.
 !    DY = (COSH(K*L) - 1) / K.
 
-ekick = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * &
-                     energy%rel_tracking_charge * charge_of(energy%particle) / el
+ekick = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) * charge_of(energy%particle) / el
 ekl   = ekick * el
 
 if (abs(ekl) > 1d-6) then

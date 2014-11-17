@@ -212,7 +212,7 @@ type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, s, t, xx, yy, time, s_rel, z,   f, dk(3,3), charge, f_p0c
+real(rp) :: x, y, s, t, xx, yy, time, s_rel, z,   f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
@@ -256,23 +256,24 @@ if (.not. local_ref_frame) then
 endif
 
 !----------------------------------------------------------------------------
-! super_slave, slice_slave, and  multipass_slave elements have their 
-! field info stored in the associated lord elements.
+! super_slave, and slice_slave, have their field info stored in the associated lord elements.
 ! Note: The lord of an em_field element has independent misalignments.
+! Note: multipass_slave elements do store their own field info. This should be changed.
 
 if (ele%field_calc == refer_to_lords$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
-    if (ele%slave_status /= slice_slave$ .and. lord%lord_status /= super_lord$) cycle
+    if (lord%field_calc == no_field$) cycle   ! Group, overlay and girder elements do not have fields.
 
     local_ref = .true.
     if (ele%key == em_field$) local_ref = .false.
 
     s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
-    t = time 
+    t = time
     if (.not. absolute_time_tracking(ele)) then
       t = t + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
     endif
+
     call em_field_calc (lord, param, s, t, local_orb, local_ref, field2, calc_dfield)
 
     field%E = field%E + field2%E
@@ -298,15 +299,15 @@ end if
 !----------------------------------------------------------------------------
 !Set up common variables for all (non-custom) methods
 
-charge = charge_of(param%particle)
+ref_charge = charge_of(param%particle)
 
 x = local_orb%vec(1)
 y = local_orb%vec(3)
 
-if (charge == 0) then
+if (ref_charge == 0) then
   f_p0c = 0
 else
-  f_p0c = ele%value(p0c$) / (c_light * charge)
+  f_p0c = ele%value(p0c$) / (c_light * ref_charge)
 endif
 
 !----------------------------------------------------------------------------
@@ -331,7 +332,7 @@ select case (ele%field_calc)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = e_accel_field (ele, gradient$) / charge
+    field%e(3) = e_accel_field (ele, gradient$) / ref_charge
 
   !------------------------------------------
   ! HKicker
@@ -378,7 +379,7 @@ select case (ele%field_calc)
     gradient = e_accel_field (ele, gradient$)
 
     if (.not. ele%is_on) gradient = 0
-    gradient = (gradient + gradient_shift_sr_wake(ele, param)) / charge
+    gradient = (gradient + gradient_shift_sr_wake(ele, param)) / ref_charge
     gradient = gradient * ele%value(l$) / hard_edge_model_length(ele)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
@@ -544,7 +545,7 @@ select case (ele%field_calc)
       c_z = cos (wig%kz * s_rel + wig%phi_z)
       s_z = sin (wig%kz * s_rel + wig%phi_z)
 
-      coef = wig%coef * ele%value(polarity$) / charge
+      coef = wig%coef * ele%value(polarity$) / ref_charge
 
       field%B(1) = field%B(1) - coef  * (wig%kx / wig%ky) * s_x * s_y * c_z * sgn_x
       field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
@@ -581,7 +582,7 @@ select case (ele%field_calc)
   !---------------------------------------------------------------------
   ! Add multipoles
 
-  call multipole_ele_to_ab(ele, param, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
+  call multipole_ele_to_ab(ele, .not. local_ref_frame, has_nonzero_pole, a_pole, b_pole)
   if (has_nonzero_pole) then
 
     if (ele%value(l$) == 0) then
@@ -594,9 +595,9 @@ select case (ele%field_calc)
     do i = 0, n_pole_maxx
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
       if (df_calc) then
-        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky, dkm)
+        call ab_multipole_kick(a_pole(i)/ref_charge, b_pole(i)/ref_charge, i, local_orb, kx, ky, dkm)
       else
-        call ab_multipole_kick(a_pole(i), b_pole(i), i, local_orb, kx, ky)
+        call ab_multipole_kick(a_pole(i)/ref_charge, b_pole(i)/ref_charge, i, local_orb, kx, ky)
       endif
       field%B(1) = field%B(1) +  f_p0c * ky / ele%value(l$)
       field%B(2) = field%B(2) -  f_p0c * kx / ele%value(l$)

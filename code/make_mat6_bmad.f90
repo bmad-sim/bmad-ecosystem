@@ -42,7 +42,7 @@ real(rp) mat4(4,4), m2(2,2), kmat4(4,4), om_g, om, om_g2
 real(rp) angle, k1, ks, length, e2, g, g_err, coef
 real(rp) k2l, k3l, del_l, beta_ref, c_min, c_plu, dc_min, dc_plu
 real(rp) t5_22, t5_33, t5_34, t5_44
-real(rp) factor, kmat6(6,6), drift(6,6), w_inv(3,3)
+real(rp) factor, kmat6(6,6), drift(6,6), ww(3,3)
 real(rp) s_pos, s_pos_old, z_slice(100), dr(3), axis(3), w_mat(3,3)
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx)
 real(rp) c_e, c_m, gamma_old, gamma_new, voltage, sqrt_8
@@ -64,7 +64,7 @@ real(rp) df_dx, df_dpx, df_dpz, deps_dx, deps_dpx, deps_dpy, deps_dpz
 real(rp) dbeta_dx, dbeta_dpx, dbeta_dpy, dbeta_dpz, p_long, eps, beta 
 real(rp) dfactor_dx, dfactor_dpx, dfactor_dpy, dfactor_dpz, factor1, factor2, s_ent, ds_ref
 real(rp) ps, dps_dpx, dps_dpy, dps_dpz, dE_rel_dpz, dps_dx, sinh_c, cosh_c, ff 
-real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k
+real(rp) hk, vk, k_E, E_tot, E_rel, p_factor, sinh_k, cosh1_k, rel_tracking_charge, rel_charge
 
 integer i, n_slice, key, dir
 
@@ -88,8 +88,8 @@ ele%vec0 = 0
 length = v(l$)
 rel_p = 1 + c0%vec(6) 
 key = ele%key
-
-charge_dir = param%rel_tracking_charge * ele%orientation
+rel_tracking_charge = relative_tracking_charge(c0, ele, param)
+charge_dir = rel_tracking_charge * ele%orientation
 c00 = c0
 c00%direction = +1
 
@@ -211,8 +211,8 @@ case (elseparator$)
 
   ! Compute kick
 
-  hk = ele%value(hkick$) * param%rel_tracking_charge
-  vk = ele%value(vkick$) * param%rel_tracking_charge
+  hk = ele%value(hkick$) * rel_tracking_charge
+  vk = ele%value(vkick$) * rel_tracking_charge
   if (c0%species < 0) then
     hk = -hk
     vk = -vk
@@ -299,7 +299,7 @@ case (kicker$, hkicker$, vkicker$, rcollimator$, &
 
   call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
 
-  charge_dir = param%rel_tracking_charge * ele%orientation
+  charge_dir = rel_tracking_charge * ele%orientation
 
   hkick = charge_dir * v(hkick$) 
   vkick = charge_dir * v(vkick$) 
@@ -378,7 +378,7 @@ case (lcavity$)
 
   cos_phi = cos(phase)
   sin_phi = sin(phase)
-  gradient_max = param%rel_tracking_charge * e_accel_field (ele, gradient$)
+  gradient_max = rel_tracking_charge * e_accel_field (ele, gradient$)
   gradient_net = gradient_max * cos_phi + gradient_shift_sr_wake(ele, param) 
   dE = gradient_net * length
 
@@ -659,9 +659,9 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
-  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
-    call multipole_kick_mat (knl, tilt, c00%vec, 1.0_rp, ele%mat6)
+    call multipole_kick_mat (knl*charge_dir, tilt, c00, 1.0_rp, ele%mat6)
 
     ! if knl(0) is non-zero then the reference orbit itself is bent
     ! and we need to account for this.
@@ -688,7 +688,7 @@ case (octupole$)
   do i = 0, n_slice
     k3l = charge_dir * v(k3$) * length / n_slice
     if (i == 0 .or. i == n_slice) k3l = k3l / 2
-    call mat4_multipole (k3l, 0.0_rp, 3, c00%vec, kmat4)
+    call mat4_multipole (k3l, 0.0_rp, 3, c00, kmat4)
     c00%vec(2) = c00%vec(2) + k3l * (3*c00%vec(1)*c00%vec(3)**2 - c00%vec(1)**3) / 6
     c00%vec(4) = c00%vec(4) + k3l * (3*c00%vec(3)*c00%vec(1)**2 - c00%vec(3)**3) / 6
     mat6(1:4,1:6) = matmul(kmat4, mat6(1:4,1:6))
@@ -720,42 +720,46 @@ case (patch$)
 
   mc2 = mass_of(c0%species)
   c00%vec(5) = 0
-  call track_a_patch (ele, c00, .false., s_ent, ds_ref, w_inv, p_s)
+  call track_a_patch (ele, c00, .false., s_ent, ds_ref, ww, p_s)
 
   ! Coordinate transform before drift
 
-  dir = ele%value(upstream_ele_dir$) * c0%direction
   rel_p = 1 + c0%vec(6)
+  if (ele%orientation*c0%direction == 1) then
+    dir = ele%value(upstream_ele_dir$) * c0%direction
+  else
+    dir = ele%value(downstream_ele_dir$) * c0%direction
+  endif
   pz = sqrt(rel_p**2 - c0%vec(2)**2 - c0%vec(4)**2) * dir
   beta_ref = v(p0c$) / v(e_tot$)
 
-  dps_dpx = w_inv(3,1) - w_inv(3,3) * dir**2 * c0%vec(2) / pz
-  dps_dpy = w_inv(3,2) - w_inv(3,3) * dir**2 * c0%vec(4) / pz
-  dps_dpz = w_inv(3,3) * dir**2 * rel_p / pz
+  dps_dpx = ww(3,1) - ww(3,3) * c0%vec(2) / pz
+  dps_dpy = ww(3,2) - ww(3,3) * c0%vec(4) / pz
+  dps_dpz = ww(3,3) * rel_p / pz
 
-  mat6(1,1) = w_inv(1,1) - w_inv(3,1) * c00%vec(2) / p_s
-  mat6(1,2) = -s_ent * ((w_inv(1,1) - w_inv(1,3) * dir**2 * c0%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
-  mat6(1,3) = w_inv(1,2) - w_inv(3,2) * c00%vec(2) / p_s
-  mat6(1,4) = -s_ent * ((w_inv(1,2) - w_inv(1,3) * dir**2 * c0%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
-  mat6(1,6) = -s_ent * (w_inv(1,3) * dir**2 * rel_p / (p_s * pz) - c00%vec(2) * dps_dpz / p_s**2)
+  mat6(1,1) = ww(1,1) - ww(3,1) * c00%vec(2) / p_s
+  mat6(1,2) = -s_ent * ((ww(1,1) - ww(1,3) * c0%vec(2) / pz) / p_s - c00%vec(2) * dps_dpx / p_s**2) 
+  mat6(1,3) = ww(1,2) - ww(3,2) * c00%vec(2) / p_s
+  mat6(1,4) = -s_ent * ((ww(1,2) - ww(1,3) * c0%vec(4) / pz) / p_s - c00%vec(2) * dps_dpy / p_s**2)
+  mat6(1,6) = -s_ent * (ww(1,3) * rel_p / (p_s * pz) - c00%vec(2) * dps_dpz / p_s**2)
 
-  mat6(2,2) = w_inv(1,1) - w_inv(1,3) * dir**2 * c0%vec(2) / pz
-  mat6(2,4) = w_inv(1,2) - w_inv(1,3) * dir**2 * c0%vec(4) / pz
-  mat6(2,6) = w_inv(1,3) * dir**2 * rel_p / pz
+  mat6(2,2) = ww(1,1) - ww(1,3) * c0%vec(2) / pz
+  mat6(2,4) = ww(1,2) - ww(1,3) * c0%vec(4) / pz
+  mat6(2,6) = ww(1,3) * rel_p / pz
 
-  mat6(3,1) = w_inv(2,1) - w_inv(3,1) * c00%vec(4) / p_s
-  mat6(3,2) = -s_ent * ((w_inv(2,1) - w_inv(2,3) * dir**2 * c0%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
-  mat6(3,3) = w_inv(2,2) - w_inv(3,2) * c00%vec(4) / p_s
-  mat6(3,4) = -s_ent * ((w_inv(2,2) - w_inv(2,3) * dir**2 * c0%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
-  mat6(3,6) = -s_ent * (w_inv(2,3) * dir**2 * rel_p / (p_s * pz) - c00%vec(4) * dps_dpz / p_s**2)
+  mat6(3,1) = ww(2,1) - ww(3,1) * c00%vec(4) / p_s
+  mat6(3,2) = -s_ent * ((ww(2,1) - ww(2,3) * c0%vec(2) / pz) / p_s - c00%vec(4) * dps_dpx / p_s**2)
+  mat6(3,3) = ww(2,2) - ww(3,2) * c00%vec(4) / p_s
+  mat6(3,4) = -s_ent * ((ww(2,2) - ww(2,3) * c0%vec(4) / pz) / p_s - c00%vec(4) * dps_dpy / p_s**2) 
+  mat6(3,6) = -s_ent * (ww(2,3) * rel_p / (p_s * pz) - c00%vec(4) * dps_dpz / p_s**2)
 
-  mat6(4,2) = w_inv(2,1) - w_inv(2,3) * dir**2 * c0%vec(2) / pz
-  mat6(4,4) = w_inv(2,2) - w_inv(2,3) * dir**2 * c0%vec(4) / pz
-  mat6(4,6) = w_inv(2,3) * dir**2 * rel_p / pz
+  mat6(4,2) = ww(2,1) - ww(2,3) * c0%vec(2) / pz
+  mat6(4,4) = ww(2,2) - ww(2,3) * c0%vec(4) / pz
+  mat6(4,6) = ww(2,3) * rel_p / pz
 
-  mat6(5,1) = w_inv(3,1) * rel_p / p_s
+  mat6(5,1) = ww(3,1) * rel_p / p_s
   mat6(5,2) = -s_ent * rel_p * dps_dpx / p_s**2
-  mat6(5,3) = w_inv(3,2) * rel_p / p_s
+  mat6(5,3) = ww(3,2) * rel_p / p_s
   mat6(5,4) = -s_ent * rel_p * dps_dpy / p_s**2
   mat6(5,6) = v(t_offset$) * c_light * mc2**2 * c0%beta**3 / (v(p0c_start$)**2 * rel_p**3) + &
               s_ent / p_s - s_ent * rel_p * dps_dpz / p_s**2 + &
@@ -856,12 +860,12 @@ case (rfcavity$)
 
   call offset_particle (ele, param, set$, c00, set_tilt = .false.)
 
-  voltage = param%rel_tracking_charge * e_accel_field (ele, voltage$)
-
   ! The cavity field is modeled as a standing wave symmetric wrt the center.
   ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
   ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
   ! wave is different from the phase of the forward wave by a constant dt_ref * freq
+
+  voltage = e_accel_field (ele, voltage$) * rel_tracking_charge
 
   phase0 = twopi * (v(phi0$) + v(phi0_multipass$) - v(phi0_ref$) - &
                   (particle_time (c00, ele) - rf_ref_time_offset(ele)) * v(rf_frequency$))
@@ -967,12 +971,12 @@ case (sbend$)
 
   ! If we have a sextupole component then step through in steps of length ds_step
 
-  call multipole_ele_to_kt(ele, param, .false., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
 
   n_slice = 1  
   if (k2 /= 0 .or. has_nonzero_pole) n_slice = max(nint(v(l$) / v(ds_step$)), 1)
   length = length / n_slice
-  if (has_nonzero_pole) knl = knl / n_slice
+  if (has_nonzero_pole) knl = knl * charge_dir / n_slice
   k2l = charge_dir * v(k2$) * length  
   
   call transfer_ele(ele, temp_ele1, .true.)
@@ -998,7 +1002,7 @@ case (sbend$)
   ! 1/2 sextupole kick at the beginning.
 
   if (k2l /= 0) then
-    call mat4_multipole (k2l/2, 0.0_rp, 2, c00%vec, kmat4)
+    call mat4_multipole (k2l/2, 0.0_rp, 2, c00, kmat4)
     c00%vec(2) = c00%vec(2) + k2l/2 * (c00%vec(3)**2 - c00%vec(1)**2)/2
     c00%vec(4) = c00%vec(4) + k2l/2 * c00%vec(1) * c00%vec(3)
     mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
@@ -1203,7 +1207,7 @@ case (sbend$)
     endif
 
     if (k2l /= 0) then
-      call mat4_multipole (k2l*factor, 0.0_rp, 2, c00%vec, kmat4)
+      call mat4_multipole (k2l*factor, 0.0_rp, 2, c00, kmat4)
       c00%vec(2) = c00%vec(2) + k2l * factor * (c00%vec(3)**2 - c00%vec(1)**2)/2
       c00%vec(4) = c00%vec(4) + k2l * factor * c00%vec(1) * c00%vec(3)
       mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
@@ -1259,7 +1263,7 @@ case (sextupole$)
   do i = 0, n_slice
     k2l = charge_dir * v(k2$) * length / n_slice
     if (i == 0 .or. i == n_slice) k2l = k2l / 2
-    call mat4_multipole (k2l, 0.0_rp, 2, c00%vec, kmat4)
+    call mat4_multipole (k2l, 0.0_rp, 2, c00, kmat4)
     c00%vec(2) = c00%vec(2) + k2l * (c00%vec(3)**2 - c00%vec(1)**2)/2
     c00%vec(4) = c00%vec(4) + k2l * c00%vec(1) * c00%vec(3)
     mat6(1:4,1:6) = matmul(kmat4,mat6(1:4,1:6))
@@ -1286,7 +1290,7 @@ case (solenoid$)
 
   call offset_particle (ele, param, set$, c00)
 
-  call solenoid_mat6_calc (param%rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
+  call solenoid_mat6_calc (rel_tracking_charge * v(ks$), length, v(tilt_tot$), c00, mat6)
 
   call add_multipoles_and_z_offset (.true.)
   call add_M56_low_E_correction()
@@ -1299,7 +1303,7 @@ case (sol_quad$)
 
   call offset_particle (ele, param, set$, c00)
 
-  call sol_quad_mat6_calc (v(ks$) * param%rel_tracking_charge, v(k1$) * charge_dir, length, c00%vec, mat6)
+  call sol_quad_mat6_calc (v(ks$) * rel_tracking_charge, v(k1$) * charge_dir, length, c00%vec, mat6)
 
   if (v(tilt_tot$) /= 0) then
     call tilt_mat6 (mat6, v(tilt_tot$))
@@ -1404,7 +1408,7 @@ real(rp) mat6(6,6), factor, mat6_m(6,6)
 
 !
 
-call multipole_kick_mat (knl, tilt, orb%vec, factor, mat6_m)
+call multipole_kick_mat (knl, tilt, orb, factor, mat6_m)
 
 mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
 mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
@@ -1426,12 +1430,13 @@ logical has_nonzero_pole, add_pole
 !
 
 if (add_pole) then
-  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
   if (has_nonzero_pole) then
-    call multipole_kick_mat (knl, tilt, c0%vec, 0.5_rp, mat6_m)
+    knl = knl * charge_dir
+    call multipole_kick_mat (knl, tilt, c0, 0.5_rp, mat6_m)
     mat6(:,1) = mat6(:,1) + mat6(:,2) * mat6_m(2,1) + mat6(:,4) * mat6_m(4,1)
     mat6(:,3) = mat6(:,3) + mat6(:,2) * mat6_m(2,3) + mat6(:,4) * mat6_m(4,3)
-    call multipole_kick_mat (knl, tilt, c1%vec, 0.5_rp, mat6_m)
+    call multipole_kick_mat (knl, tilt, c1, 0.5_rp, mat6_m)
     mat6(2,:) = mat6(2,:) + mat6_m(2,1) * mat6(1,:) + mat6_m(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat6_m(4,1) * mat6(1,:) + mat6_m(4,3) * mat6(3,:)
   endif

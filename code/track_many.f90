@@ -3,24 +3,39 @@
 !
 ! Subroutine to track from one point in the lat to another.
 !
-! Tracking with direction = -1 is "backup" tracking where time is going backwards.
-! For true "reverse" tracking, where the particle is traveling forward in time
-! in the -s direction, use the routine track_reverse.
+! Tracking with direction = -1 means the particle is traveling in the negative s-direction.
+! Tracking is always forward in time independent of the direction of travel.
+! 
+! Note: With reversed tracking, Taylor maps need to be inverted. This can waste time.
+!  Thus consider using lat_reverse to create a reversed lattice instead.
 !
-! Note: The coordinates for backup tracking are the same as for tracking 
-!   forward: That is, +z points in the +s direction.
+! Note: The particle coordinates are independent of the direction of travel. 
+! That is, it is always true that:
+!   vec(2) = dx/dz    ! positive dx/dz means negative dx/dt for direction = -1
+!   vec(4) = dy/dz
+!   vec(5) = z        ! +z points in the +s direction.
+! For normally oriented ((non-reversed) elements (that is, ele%orientation = 1): 
+!   +z points in +s direction
+!   sign of dz/dt = particle direction 
+! And vice versa for reversed elements.
 !
-! Note: Starting and ending points are just after the elements with index
-!   IX_START and IX_END. For example, if DIRECTION = +1 then the first element
-!   tracked through is element ix_start+1. If DIRECTION = -1 then the first
-!   element tracked through is element ix_start.
+! Note: Starting and ending points are at the downstream (+s) end of elements with index
+!   ix_start and ix_end. Thus:
+!     Direction  Starting-Orbit    First-Element-Tracked    Ending-Orbit    Last-Element-Tracked
+!       +1       orbit(ix_start)   ix_start+1               orbit(ix_end)   ix_end
+!       -1       orbit(ix_start)   ix_start                 orbit(ix_end)   ix_end+1
+! Exception: 
+!     If direction =  1 and ix_start = last-lattice-element -> First tracked = Element #1.
+!     If direction = -1 and ix_end   = last-lattice-element -> Last tracked = Element #1.
 !
 ! Note: If needed the subroutine will track through from the end of the lat
 !   to the beginning (or vice versa) to get to the end point. 
-!   Also: If IX_START = IX_END then the subroutine will track 1 full turn.
+!   Also: if ix_start = ix_end then the subroutine will track 1 full turn.
 !
-! Note: If x_limit (or y_limit) for an element is zero then track_many will
-!   take x_limit (or y_limit) as infinite (this is standard Bmad).
+! Note: When tracking with direction = -1, the charge of the particle tracked
+!   generally needs to be opposite of the charge of the reference particle.
+!   This can be done in the calling routine with:
+!       orbit(ix_start)%species = flip_species_charge(lat%branch(ix_branch)%param%particle)
 !
 ! Modules Needed:
 !   use bmad
@@ -39,8 +54,7 @@
 !   ix_branch        -- Integer, optional: Branch to track. Default is 0 (main lattice).
 !
 ! Output:
-!   orbit(0:)    -- Coord_struct: Orbit. In particular orbit(ix_end) is
-!                       the coordinates at the end of tracking. 
+!   orbit(0:)    -- Coord_struct: Orbit.
 !   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
 !                     Otherwise: set to index of element where particle was lost.
 !-
@@ -63,7 +77,7 @@ integer, optional :: ix_branch, track_state
 logical :: debug = .false.
 logical err
 
-character(16) :: r_name = 'track_many'
+character(*), parameter :: r_name = 'track_many'
 
 ! init
 
@@ -86,7 +100,7 @@ if (direction == +1) then
   else
     call track_fwd (ix_start+1, n_ele_track, track_end_state)
     if (track_end_state /= moving_forward$) then
-      call zero_this_track (0, ix_end)
+      call set_orbit_to_zero (orbit, 0, ix_end)
       return
     endif
     orbit(0) = orbit(n_ele_track) 
@@ -97,30 +111,26 @@ if (direction == +1) then
 
 elseif (direction == -1) then
 
-  call convert_pc_to (branch%ele(ix_start)%value(p0c$) * (1 + orbit(ix_start)%vec(6)), &
-                                                  orbit(ix_start)%species, beta = orbit(ix_start)%beta)
-  orbit(ix_start)%p0c = branch%ele(ix_start)%value(p0c$)
-
   if (ix_start > ix_end) then
-    call track_back (ix_start, ix_end+1, track_end_state)
+    call track_reverse_s (ix_start, ix_end+1, track_end_state)
     return
   else
-    call track_back (ix_start, 1, track_end_state)
+    call track_reverse_s (ix_start, 1, track_end_state)
     if (track_end_state /= moving_forward$) then
-      call zero_this_track (ix_end, n_ele_track)
+      call set_orbit_to_zero (orbit, ix_end, n_ele_track)
       return
     endif
     orbit(n_ele_track) = orbit(0)
-    call track_back (n_ele_track, ix_end+1, track_end_state)
+    call track_reverse_s (n_ele_track, ix_end+1, track_end_state)
   endif
 
 else
-  print *, 'ERROR IN TRACK_MANY: BAD DIRECTION:', direction
+  call out_io (s_fatal$, r_name, 'BAD DIRECTION: \i0\ ', i_array = [direction])
   if (global_com%exit_on_error) call err_exit
 endif
 
 !--------------------------------------------------------------------------
-! tracking forward is simple
+! tracking forward
 
 contains
 
@@ -141,9 +151,9 @@ do n = ix1, ix2
     if (present(track_state)) track_state = n
 
     if (orbit(n)%location == upstream_end$) then
-      call zero_this_track (n, ix2)
+      call set_orbit_to_zero (orbit, n, ix2, ix_start)
     else
-      call zero_this_track (n+1, ix2)
+      call set_orbit_to_zero (orbit, n+1, ix2, ix_start)
     endif
     return
   endif
@@ -155,19 +165,14 @@ do n = ix1, ix2
 
 enddo
 
-end subroutine
+end subroutine track_fwd
 
 !--------------------------------------------------------------------------
 ! contains
 
-! ele_reverse is used to reverse an element for tracking backwards.
-! However, a reversed element has a different coordinate system so
-! we need to transform to the flipped coordinate system, then track, then
-! flip back to the standard coord system.
+subroutine track_reverse_s (ix1, ix2, track_end_state)
 
-subroutine track_back (ix1, ix2, track_end_state)
-
-type (ele_struct) :: ele
+type (ele_struct), pointer :: ele
 
 integer i, n, ix1, ix2, ix_last, track_end_state
 
@@ -177,7 +182,9 @@ ix_last = ix2-1  ! last index we expect to track.
 
 do n = ix1, ix2, -1
 
-  call track1_backup (orbit(n), branch%ele(n), branch%param, orbit(n-1), err)
+  ele => branch%ele(n)
+  orbit(n)%direction = -1
+  call track1 (orbit(n), ele, branch%param, orbit(n-1), err_flag = err)
 
   ! check for lost particles
 
@@ -186,37 +193,20 @@ do n = ix1, ix2, -1
     if (present(track_state)) track_state = n
 
     if (orbit(n-1)%location == upstream_end$) then
-      call zero_this_track (ix2-1, n-1)
+      call set_orbit_to_zero (orbit, ix2-1, n-1, ix_start)
     else
-      call zero_this_track (ix2-1, n-2)
+      call set_orbit_to_zero (orbit, ix2-1, n-2, ix_start)
     endif
     exit
   endif
 
   if (debug) then
-    print *, branch%ele(n)%name
+    print *, ele%name
     print *, (orbit(n)%vec(i), i = 1, 6)
   endif
 
 enddo
 
-end subroutine
-
-!--------------------------------------------------------------------------
-! contains
-
-subroutine zero_this_track (n1, n2)
-
-integer n, n1, n2
-
-!
-
-do n = n1, n2
-  if (n == ix_start) cycle  ! never zero starting coords.
-  orbit(n)%vec = 0
-  orbit(n)%state = not_set$
-enddo
-
-end subroutine
+end subroutine track_reverse_s
 
 end subroutine

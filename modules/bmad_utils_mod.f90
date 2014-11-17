@@ -88,6 +88,83 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
+! Function relative_tracking_charge (orbit, ele, param) result (rel_charge)
+!
+! Routine to determine the relative charge/mass of the particle being 
+! tracked relative to the charge of the reference particle.
+!
+! Input:
+!   orbit -- coord_struct: Particle position structure.
+!   ele   -- ele_struct: If an elseparator then the sign of re_charge 
+!             is determined by the tracked charge only
+!   param -- lat_param_struct: Structure holding the reference particle id.
+!
+! Output:
+!   rel_charge -- real(rp): Relative charge/mass
+!-
+
+function relative_tracking_charge (orbit, ele, param) result (rel_charge)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) :: ele
+type (lat_param_struct) param
+real(rp) rel_charge
+
+!
+
+if (orbit%species == photon$) then
+  rel_charge = 0
+else
+  rel_charge = (charge_of(orbit%species) / mass_of(orbit%species)) / &
+                 (charge_of(param%particle) / mass_of(param%particle))
+endif
+
+if (ele%key == elseparator$) rel_charge = sign(rel_charge, 1.0_rp * charge_of(orbit%species))
+
+end function relative_tracking_charge
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
+!
+! Routine to set the orbit of a subset orbit(n1:n2) of a coord_struct array to zero.
+!
+! Input:
+!   n1        -- integer: Lower bound of orbit(:) array subset.
+!   n2        -- integer: Upper bound of orbit(:) array subset.
+!   ix_noset  -- integer, optional: If present then orbit(ix_noset) will not be zeroed.
+!
+! Output:
+!   orbit(:)  -- coord_struct: Array with particle positions in the range orbit(n1:n2)
+!                   set to zero except for orbit(ix_noset).
+!-
+
+subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
+
+implicit none
+
+type (coord_struct) orbit(:)
+integer n, n1, n2
+integer, optional :: ix_noset
+
+! Note: n will never equal -1 so the if statement does what it should do.
+
+do n = n1, n2
+  if (n == integer_option(-1, ix_noset)) cycle 
+  orbit(n)%vec = 0
+  orbit(n)%state = not_set$
+enddo
+
+end subroutine set_orbit_to_zero
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
 ! Function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
 !
 ! Routine to determine if the edge of a super_lord is aligned with a given edge 
@@ -2035,113 +2112,6 @@ if (present(ix_slave)) then
 endif
 
 end function pointer_to_lord
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function num_field_eles (ele_in) result (n_field_eles)
-!
-! Function to return the number of elements that have field information for
-! the ele_in lattice_element.
-!
-! This routine is to be used in conjunction with pointer_to_field_ele.
-!
-! Modules Needed:
-!   use bmad_utils_mod
-!
-! Input:
-!   ele_in     -- Ele_struct: Lattice element.
-!
-! Output:
-!   n_field_eles -- Integer: Number of elements that have field information.
-!-
-
-function num_field_eles (ele_in) result (n_field_eles)
-
-implicit none
-
-type (ele_struct) ele_in
-integer n_field_eles
-
-!
-
-select case (ele_in%slave_status)
-
-case (super_slave$, multipass_slave$)
-  n_field_eles = ele_in%n_lord
-
-case default
-  n_field_eles = 1
-
-end select
-
-
-end function num_field_eles
-
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!---------------------------------------------------------------------------
-!+
-! Function pointer_to_field_ele (ele_in, ix_field) result (field_ele_ptr)
-!
-! Routine to return a pointer to an element that contains field information
-! for the ele_in lattice element.
-!
-! An element, if it is a super_slave or multipass_slave, will have field information 
-! stored in the lord elements.
-! In this case, pointer_to_field_ele is identical to pointer_to_lord.
-!
-! If the element is not a super_slave or a multipass_slave, the element will 
-! itself contain the field information.
-! In this case pointer_to_field_ele (ele_in, 1) will return a pointer to itself.
-!
-! Note: Use the function num_field_eles(ele) to obtain the number of elements where
-! field information is stored.
-!
-! Also see:
-!   pointer_to_slave
-!   pointer_to_ele
-!   pointer_to_lord
-!
-! Modules Needed:
-!   use bmad_utils_mod
-!
-! Input:
-!   ele_in     -- Ele_struct: Lattice element.
-!   ix_field   -- Integer: Index to select which of the field info elements to point to.
-!                   ix_field should go from 1 to num_field_eles(ele).
-!
-! Output:
-!   field_ele_ptr -- Ele_struct, pointer: Pointer to an element containing field information.
-!                      Nullified if there is an error.
-!-
-
-function pointer_to_field_ele (ele_in, ix_field) result (field_ele_ptr)
-
-implicit none
-
-type (ele_struct), target :: ele_in
-type (ele_struct), pointer :: field_ele_ptr
-integer ix_field
-
-!
-
-select case (ele_in%slave_status)
-
-case (super_slave$, multipass_slave$)
-  field_ele_ptr => pointer_to_lord(ele_in, ix_field)
-
-case default
-  if (ix_field == 1) then
-    field_ele_ptr => ele_in
-  else
-    nullify (field_ele_ptr)
-  endif
-
-end select
-
-end function pointer_to_field_ele
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

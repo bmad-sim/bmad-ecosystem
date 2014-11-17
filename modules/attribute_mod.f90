@@ -86,7 +86,8 @@ function valid_tracking_method (ele, species, tracking_method, num_valid) result
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: lord, field_ele
 integer tracking_method, species
 integer, optional :: num_valid
 logical is_valid
@@ -179,12 +180,25 @@ case (ecollimator$)
     is_valid = .true.
   end select
 
+! There is no bmad_standard field calculation.
+
 case (elseparator$)
-  if (present(num_valid)) num_valid = 10
-  select case (tracking_method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
-    is_valid = .true.
-  end select
+  field_ele => ele
+  if (ele%field_calc == refer_to_lords$) field_ele => pointer_to_lord(ele, 1)
+  if (field_ele%field_calc == bmad_standard$) then
+    if (present(num_valid)) num_valid = 7
+    select case (tracking_method)
+    case (bmad_standard$, symp_lie_ptc$, linear$, symp_map$, taylor$, mad$, custom$)
+      is_valid = .true.
+    end select
+
+  else
+    if (present(num_valid)) num_valid = 10
+    select case (tracking_method)
+    case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, symp_map$, taylor$, boris$, mad$, time_runge_kutta$, custom$)
+      is_valid = .true.
+    end select
+  endif
 
 case (em_field$)
   if (present(num_valid)) num_valid = 4
@@ -1328,7 +1342,7 @@ case (rfcavity$)
 case (lcavity$)
   if (ix_attrib == voltage$) free = .false.
 case (elseparator$)
-  if (ix_attrib == e_field$ .or. ix_attrib == voltage$) free = .false.
+  if (ix_attrib == voltage$) free = .false.
 end select
 
 if (ele%key == sbend$ .and. ele%lord_status == multipass_lord$ .and. &
@@ -1370,6 +1384,8 @@ if (ele%field_master) then
 
 else
   select case (ele%key)
+  case (elseparator$)
+    if (ix_attrib == e_field$) free = .false.
   case (quadrupole$)
     if (ix_attrib == b1_gradient$) free = .false.
   case (sextupole$)

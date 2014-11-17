@@ -52,6 +52,7 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 
 if (ele%key == patch$) then
   call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
+  s0 = s0 * start2_orb%direction * ele%orientation
   s1 = 0
   start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
 else

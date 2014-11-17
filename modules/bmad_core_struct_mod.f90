@@ -948,6 +948,7 @@ orb2 = coord_struct()
 orb2%state = alive$
 orb2%p0c = 0
 orb2%direction = integer_option(+1, direction)
+orb2%species = orb%species
 
 ! Set %vec
 
@@ -960,12 +961,13 @@ endif
 ! Set location and species
 
 orb2%location = integer_option(upstream_end$, element_end)
-orb2%species  = integer_option(not_set$, particle)
+
+orb2%species = integer_option(not_set$, particle)
 
 if (orb2%species == not_set$ .and. present(ele)) then
   if (associated (ele%branch)) then
-    if (ele%branch%param%rel_tracking_charge < 0) then
-      orb2%species = -ele%branch%param%particle
+    if (ele%branch%param%default_rel_tracking_charge < 0) then
+      orb2%species = flip_species_charge(ele%branch%param%particle)
     else
       orb2%species = ele%branch%param%particle
     endif

@@ -80,7 +80,7 @@ real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
 real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
-real(rp) dE_p, dpx, dpy, mc2, z_offset
+real(rp) dE_p, dpx, dpy, mc2, z_offset, orientation, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp), allocatable :: dz_offset(:)
 
@@ -108,6 +108,10 @@ end_orb%s = ele%s - ele%value(l$)
 mat6 => ele%mat6
 
 err = .false.
+
+orientation = ele%orientation * start_orb%direction
+rel_tracking_charge = relative_tracking_charge(start_orb, ele, param)
+charge_dir = rel_tracking_charge * orientation
 
 ! element offset 
 
@@ -288,21 +292,21 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
 
   select case (ele%key)
   case (bend_sol_quad$)
-    g_x = ele%value(g$) * cos (ele%value(bend_tilt$))
-    g_y = ele%value(g$) * sin (ele%value(bend_tilt$))
-    k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$))
-    k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$))
+    g_x = ele%value(g$) * cos (ele%value(bend_tilt$)) * charge_dir
+    g_y = ele%value(g$) * sin (ele%value(bend_tilt$)) * charge_dir
+    k1_norm = ele%value(k1$) * cos (2 * ele%value(quad_tilt$)) * charge_dir
+    k1_skew = ele%value(k1$) * sin (2 * ele%value(quad_tilt$)) * charge_dir
     x_q = ele%value(x_quad$)
     y_q = ele%value(y_quad$)
-    ks = ele%value(ks$)
-    dks_ds = ele%value(dks_ds$)
+    ks = ele%value(ks$) * rel_tracking_charge
+    dks_ds = ele%value(dks_ds$) * charge_dir
   case (solenoid$)
-    ks = ele%value(ks$)
+    ks = ele%value(ks$) * rel_tracking_charge
   case (quadrupole$)
-    k1_norm = ele%value(k1$) 
+    k1_norm = ele%value(k1$) * charge_dir 
   case (sol_quad$)
-    k1_norm = ele%value(k1$) 
-    ks = ele%value(ks$)
+    k1_norm = ele%value(k1$) * charge_dir
+    ks = ele%value(ks$) * rel_tracking_charge
   end select
 
   call hard_multipole_edge_kick (ele, param, first_track_edge$, end_orb, mat6, calculate_mat6)
@@ -627,7 +631,7 @@ real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = c_light / ele%value(p0c$)
+factor = charge_dir * c_light / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
