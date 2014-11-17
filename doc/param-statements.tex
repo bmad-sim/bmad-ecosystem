@@ -39,8 +39,9 @@ set by \vn{parameter} are
   parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
   parameter[ptc_max_fringe_order]   = <Integer>  ! Max fringe order. 
                                                  !    Default: 2 => Quadrupole.
-  parameter[rel_tracking_charge]    = <Real>     ! Charge of tracked particles relative 
-                                                 !   to reference charge. Default is 1.
+  parameter[default_rel_tracking_charge] 
+                                    = <Real>     ! Charge/mass of default tracked particles 
+                                                 !  relative to reference charge. Default is 1.
   parameter[ran_seed]               = <Integer>  ! Random number generator init.
   parameter[taylor_order]           = <Integer>  ! Default: 3
   parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
@@ -138,10 +139,10 @@ used to be called \vn{circular_lattice} and \vn{open} used to be
 called \vn{linear_lattice}. This old syntax is still accepted in
 lattice files.
 
-\index{rel_tracking_charge}
-The \vn{rel_tracking_charge} establishes the charge of particles being
-tracked relative to the charge of the reference particle. The default
-is 1. 
+\index{default_rel_tracking_charge}
+The \vn{default_rel_tracking_charge} establishes the default
+charge-to-mass ratio of particles being tracked relative to the charge
+of the reference particle (set by \vn{parameter[particle]}). The default is 1.
 
 \index{taylor_order}
 The Taylor order (\sref{s:taylor.phys}) is set by
