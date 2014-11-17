@@ -537,7 +537,7 @@ integer n_step
 
 ! Degenerate case
 
-charge_dir = relative_tracking_charge(start_orb, ele, param) * ele%orientation * start_orb%direction
+charge_dir = relative_tracking_charge(start_orb, param) * ele%orientation * start_orb%direction
 
 k_1 = ele%value(k1$) * charge_dir
 g = ele%value(g$)

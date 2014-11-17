@@ -34,7 +34,6 @@
 !     %value(tilt$)     -- tilt of element.
 !   param          -- lat_param_strcut: 
 !     %particle             -- Reference particle
-!     %rel_track_ing_charge -- Charge tracked particle / referece charge
 !   set            -- Logical: 
 !                    T (= set$)   -> Translate from lab coords to the local 
 !                                      element coords.
@@ -78,7 +77,7 @@ real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
 real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
-real(rp) rot(3), dr(3), rel_tracking_charge
+real(rp) rot(3), dr(3), rel_tracking_charge, rtc
 
 integer particle, sign_z_vel
 integer n
@@ -100,7 +99,7 @@ set_t     = logic_option (.true., set_tilt) .and. has_orientation_attributes(ele
 set_s     = logic_option (.true., set_z_offset) .and. has_orientation_attributes(ele)
 sign_z_vel = ele%orientation * coord%direction
 
-rel_tracking_charge = relative_tracking_charge (coord, ele, param)
+rel_tracking_charge = relative_tracking_charge (coord, param)
 charge_dir = rel_tracking_charge * sign_z_vel 
 
 if (set_hv) then
@@ -207,17 +206,8 @@ if (set) then
   ! Note: Since this is applied before tilt_coords, kicks are independent of any tilt.
 
   if (set_hv1) then
-    if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + rel_tracking_charge * ele%value(vkick$) / 2
-      if (coord%species < 0) then
-        coord%vec(2) = -coord%vec(2)
-        coord%vec(4) = -coord%vec(4)
-      endif
-    else
-      coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-    endif
+    coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
+    coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
   endif
 
   ! Set: Multipoles
@@ -276,9 +266,10 @@ if (set) then
   ! Note: Since this is applied after tilt_coords, kicks are dependent on any tilt.
 
   if (set_hv2) then
-    if (ele%key == elseparator$ ) then
-      coord%vec(2) = coord%vec(2) + charge_of(coord%species) * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_of(coord%species) * ele%value(vkick$) / 2
+    if (ele%key == elseparator$) then
+      rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
+      coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
     elseif (ele%key == vkicker$) then
@@ -298,8 +289,9 @@ else
 
   if (set_hv2) then
     if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + charge_of(coord%species) * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_of(coord%species) * ele%value(vkick$) / 2
+      rtc = abs(rel_tracking_charge) * sign(1, charge_of(coord%species))
+      coord%vec(2) = coord%vec(2) + rtc * ele%value(hkick$) / 2
+      coord%vec(4) = coord%vec(4) + rtc * ele%value(vkick$) / 2
     elseif (ele%key == hkicker$) then
       coord%vec(2) = coord%vec(2) + charge_dir * ele%value(kick$) / 2
     elseif (ele%key == vkicker$) then
@@ -366,13 +358,8 @@ else
   ! canonical momentum.
 
   if (set_hv1) then
-    if (ele%key == elseparator$) then
-      coord%vec(2) = coord%vec(2) + rel_tracking_charge * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + rel_tracking_charge * ele%value(vkick$) / 2
-    else
-      coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
-      coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
-    endif
+    coord%vec(2) = coord%vec(2) + charge_dir * ele%value(hkick$) / 2
+    coord%vec(4) = coord%vec(4) + charge_dir * ele%value(vkick$) / 2
   endif
 
   ! Unset: Offset and pitch
