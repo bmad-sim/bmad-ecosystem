@@ -98,14 +98,15 @@ do ib = 0, ubound(lat_in%branch, 1)
   branch_in => lat_in%branch(ib)
 
   nr = branch%n_ele_track
-  branch%ele(1:nr) = branch_in%ele(nr:1:-1)
+  branch%ele(1:nr) = branch%ele(nr:1:-1)
 
-  if (logic_option(.true., flip_tracking_charge)) branch%param%particle = flip_species_charge(branch%param%particle)
+  if (logic_option(.true., flip_tracking_charge)) branch%param%default_rel_tracking_charge = -1
 
   ! Flip longitudinal stuff, maps
 
   do i = 0, branch%n_ele_max
     ele => branch%ele(i)
+    ele%ix_ele = i
     ele%orientation = -ele%orientation
     if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
     if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
