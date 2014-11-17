@@ -1,3 +1,5 @@
+
+
 !+
 ! Program reverse_test
 !
@@ -21,8 +23,6 @@
 !   1) Track the particle through an element, 
 !   2) Start with the same initial coords and same charge and track in reverse.
 !      Note: Must shift the time and z to be at the correct phase of the accelerating backward wave.
-! The particle's final coords tracking forward and reversed should be the same modulo
-! a constant time and z offset
 !-
 
 program reverse_test
@@ -33,16 +33,15 @@ use write_lat_file_mod
 implicit none
 
 type (lat_struct), target :: lat
-character(40) :: lat_file  = 'reverse.bmad'
-type (ele_struct), pointer :: ele_f, ele_r
-type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r, dorb
-
-real(rp) mat_f(6,6), m(6,6), vec1(6)
-real(rp) beta_ref, dt_ref
-logical :: err_flag
+type (ele_struct), pointer :: ele
+real(rp) max_diff_vec, max_diff_mat
+integer nargs, i
 logical :: verbosity = .false.
-integer nargs, i, length
-character(20) :: str
+
+character(40) :: lat_file  = 'reverse.bmad'
+character(100) :: str
+
+!
 
 nargs = cesr_iargc()
 if (nargs == 1)then
@@ -60,167 +59,188 @@ open (1, file = 'output.now')
 
 call bmad_parser (lat_file, lat)
 
-DO i = 1, lat%n_ele_max - 1
+max_diff_vec = 0
+max_diff_mat = 0
 
-  orb_0f = lat%beam_start
-  ele_f => lat%branch(0)%ele(i)
-  call init_coord (orb_0f, orb_0f%vec, ele_f, upstream_end$)
+!
 
-  call track1 (orb_0f, ele_f, ele_f%branch%param, orb_1f)
-  call make_mat6 (ele_f, ele_f%branch%param, orb_0f)
+do i = 1, lat%n_ele_max - 1
 
-  str = trim(ele_f%name)
+  ele => lat%ele(i)
+  call test_this (ele)
 
-  if (verbosity) then
-    print *, str
-    print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
-    print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
-  end if
-
-  orb_0r        = orb_1f
-  orb_0r%vec(2) = -orb_1f%vec(2)
-  orb_0r%vec(4) = -orb_1f%vec(4)
-
-  ele_r => lat%branch(1)%ele(i)
-
-  if (ele_f%key == elseparator$) then
-    ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
-  elseif (ele_f%key == rfcavity$) then
-    ele_r%branch%param%rel_tracking_charge = ele_f%branch%param%rel_tracking_charge
-    ele_r%value(x_pitch$) = -ele_f%value(x_pitch$)
-    ele_r%value(y_pitch$) = -ele_f%value(y_pitch$)
-    orb_0r = orb_0f
-    beta_ref = ele_f%value(p0c$) / ele_f%value(e_tot$)
-    dt_ref = ele_f%value(l$) / (c_light * beta_ref)
-    orb_0r%vec(5) = orb_0r%vec(5) - dt_ref * orb_0r%beta
-    orb_0r%t = orb_0r%t + dt_ref
-  else
-    ele_r%branch%param%rel_tracking_charge = -ele_f%branch%param%rel_tracking_charge
+  if (valid_tracking_method (ele, lat%param%particle, runge_kutta$)) then
+    ele%tracking_method = runge_kutta$
+    call test_this (ele)
   endif
 
-  call track1 (orb_0r, ele_r, ele_r%branch%param, orb_1r)
-  call make_mat6 (ele_r, ele_r%branch%param, orb_0r)
+!  if (valid_tracking_method (ele, lat%param%particle, symp_lie_ptc$)) then
+!    ele%tracking_method = symp_lie_ptc$
+!    call test_this (ele)
+!  endif
 
-  if (ele_f%key == rfcavity$) then
-    dorb%vec = orb_1r%vec - orb_1f%vec
-    dorb%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
-    dorb%t = c_light * ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t))
-
-  else
-    orb_1r%vec(2) = -orb_1r%vec(2)
-    orb_1r%vec(4) = -orb_1r%vec(4)
-    dorb%vec = orb_1r%vec - orb_0f%vec
-    dorb%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)) 
-    dorb%t = c_light * ((orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t))
+  if (valid_tracking_method (ele, lat%param%particle, symp_lie_bmad$)) then
+    ele%tracking_method = symp_lie_bmad$
+    call test_this (ele)
   endif
 
-  if (verbosity) then
-     print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
-     print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
-     print *
-     print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec(1:6), dorb%t
-  end if
-
-  !
-
-  if (ele_f%key == rfcavity$) then
-    mat_f = ele_f%mat6
-  else
-    m(1, 1:6) = [1,  0,  0,  0,  0,  0]
-    m(2, 1:6) = [0, -1,  0,  0,  0,  0]
-    m(3, 1:6) = [0,  0,  1,  0,  0,  0]
-    m(4, 1:6) = [0,  0,  0, -1,  0,  0]
-    m(5, 1:6) = [0,  0,  0,  0, -1,  0]
-    m(6, 1:6) = [0,  0,  0,  0,  0,  1]
-    call mat_inverse (ele_f%mat6, mat_f)
-    mat_f = matmul(matmul(m, mat_f), m)
-  endif
-
-  !
-
-  str = '"' // trim(ele_f%name) // ':'
-  length = len(trim(ele_f%name))
-
-  if (i > 1) write (1, *)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(1)"', tolerance(trim(ele_f%name),'dorb(1)'), dorb%vec(1)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(2)"', tolerance(trim(ele_f%name),'dorb(2)'), dorb%vec(2)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(3)"', tolerance(trim(ele_f%name),'dorb(3)'), dorb%vec(3)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(4)"', tolerance(trim(ele_f%name),'dorb(4)'), dorb%vec(4)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(5)"', tolerance(trim(ele_f%name),'dorb(5)'), dorb%vec(5)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'dorb(6)"', tolerance(trim(ele_f%name),'dorb(6)'), dorb%vec(6)
-  write (1, '(a, a, a, es16.8)') str(1:length+2), 'c*dt"   ', tolerance(trim(ele_f%name),'c*dt'), dorb%t
-
-  if (verbosity) then
-     write (1, *)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(1,:)" ABS 2e-14 ', ele_f%mat6(1,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(2,:)" ABS 2e-14 ', ele_f%mat6(2,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(3,:)" ABS 2e-14 ', ele_f%mat6(3,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(4,:)" ABS 2e-14 ', ele_f%mat6(4,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(5,:)" ABS 2e-14 ', ele_f%mat6(5,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_f(6,:)" ABS 2e-14 ', ele_f%mat6(6,:)
-
-     write (1, *)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(1,:)" ABS 2e-14 ', ele_r%mat6(1,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(2,:)" ABS 2e-14 ', ele_r%mat6(2,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(3,:)" ABS 2e-14 ', ele_r%mat6(3,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(4,:)" ABS 2e-14 ', ele_r%mat6(4,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(5,:)" ABS 2e-14 ', ele_r%mat6(5,:)
-     write (1, '(a, a, 6es16.8)') str(1:length+2), 'mat_r(6,:)" ABS 2e-14 ', ele_r%mat6(6,:)
-  end if
-
-  write (1, *)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(1,:)"', tolerance(trim(ele_f%name),'dmat(1,:)'), ele_r%mat6(1,:) - mat_f(1,:)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(2,:)"', tolerance(trim(ele_f%name),'dmat(2,:)'), ele_r%mat6(2,:) - mat_f(2,:)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(3,:)"', tolerance(trim(ele_f%name),'dmat(3,:)'), ele_r%mat6(3,:) - mat_f(3,:)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(4,:)"', tolerance(trim(ele_f%name),'dmat(4,:)'), ele_r%mat6(4,:) - mat_f(4,:)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(5,:)"', tolerance(trim(ele_f%name),'dmat(5,:)'), ele_r%mat6(5,:) - mat_f(5,:)
-  write (1, '(a, a, a, 6es16.8)') str(1:length+2), 'dmat(6,:)"', tolerance(trim(ele_f%name),'dmat(6,:)'), ele_r%mat6(6,:) - mat_f(6,:)
-
-  if (verbosity) then
-     write (1, *)
-     write (1, '(a, a,  3es16.8)') str(1:length+2), 'max(dvec, dmat)" ', maxval(abs([dorb%vec, dorb%t])), &
-           maxval(abs(ele_r%mat6 - mat_f))
-  end if
-
-END DO
+enddo
 
 ! And close
 
 close (1)
+print '(a, 2es12.3)', 'Largest Max Diff: ', max_diff_vec, max_diff_mat
 
-!-------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 contains
 
-character(11) function tolerance(instr1,instr2)
-character(*) :: instr1
-character(*) :: instr2
+subroutine test_this (ele)
 
-tolerance = ' ABS 2e-14 '
+type (ele_struct) ele, ele2
+type (coord_struct) orb_0f, orb_1f, orb_0r, orb_1r, dorb
 
-select case (instr1)
-  case('SOL_QUAD2')
-    select case (instr2)
-    case('dorb(1)') ;   tolerance = ' ABS 1e-13 '
-    case('dorb(4)') ;   tolerance = ' ABS 1e-13 '
-    case('dmat(1,:)') ; tolerance = ' ABS 1e-11 '
-    case('dmat(2,:)') ; tolerance = ' ABS 1e-11 '
-    case('dmat(3,:)') ; tolerance = ' ABS 1e-11 '
-    case('dmat(4,:)') ; tolerance = ' ABS 1e-11 '
-    case('dmat(5,:)') ; tolerance = ' ABS 1e-12 '
-    end select
+real(rp) dmat(6,6), m(6,6), vec1(6)
+real(rp) beta_ref, dt_ref, diff_vec, diff_mat
 
-  case('SBEND4')
-    select case (instr2)
-    case('dorb(1)') ;   tolerance = ' ABS 2e-12 '
-    case('dorb(3)') ;   tolerance = ' ABS 2e-11 '
-    case('dorb(5)') ;   tolerance = ' ABS 2e-08 '
-    case('c*dt') ;      tolerance = ' ABS 2e-08 '
-    case('dmat(1,:)') ; tolerance = ' ABS 2e-09 '
-    case('dmat(3,:)') ; tolerance = ' ABS 2e-08 '
-    case('dmat(5,:)') ; tolerance = ' ABS 2e-08 '
-    end select
+integer n
+logical :: err_flag
+
+!
+orb_0f = lat%beam_start
+call init_coord (orb_0f, orb_0f%vec, ele, upstream_end$)
+
+select case (ele%tracking_method)
+case (runge_kutta$)
+  ele%mat6_calc_method = tracking$
+case (symp_lie_ptc$, symp_lie_bmad$)
+  ele%mat6_calc_method = ele%tracking_method
 end select
 
-end function tolerance
+call track1 (orb_0f, ele, ele%branch%param, orb_1f)
+call make_mat6(ele, ele%branch%param, orb_0f, orb_1f, .true.)
+
+str = trim(ele%name) // '@' // tracking_method_name(ele%tracking_method)
+
+if (verbosity) then
+  print *, '!--------------------------------'
+  print *, str
+  print '(a, 6es12.4, 5x, es12.4)', '0: ', orb_0f%vec, orb_0f%t
+  print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_1f%vec, orb_1f%t
+end if
+
+orb_0r           = orb_1f
+orb_0r%vec(2)    = -orb_1f%vec(2)
+orb_0r%vec(4)    = -orb_1f%vec(4)  
+
+ele2 = ele
+if (ele2%key == elseparator$) then
+elseif (ele2%key == rfcavity$) then
+  beta_ref = ele2%value(p0c$) / ele2%value(e_tot$)
+  dt_ref = ele2%value(l$) / (c_light * beta_ref)
+  orb_0r%species   = flip_species_charge(orb_0r%species)
+  orb_0r%vec(5) = orb_0f%vec(5)
+  orb_0r%t      = orb_0f%t
+
+elseif (ele2%key == patch$) then
+   ele2%value(upstream_ele_dir$) = -1
+   ele2%value(downstream_ele_dir$) = -1
+else
+  orb_0r%species   = flip_species_charge(orb_0r%species)
+endif
+
+ele2%orientation = -1
+
+call track1(orb_0r, ele2, ele2%branch%param, orb_1r)
+call make_mat6(ele2, ele%branch%param, orb_0r, orb_1r, .true.)
+
+
+orb_1r%vec(2)    = -orb_1r%vec(2)
+orb_1r%vec(4)    = -orb_1r%vec(4)  
+
+dorb%vec    = orb_1r%vec - orb_0f%vec
+dorb%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
+dorb%t      = (orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)
+
+call mat_inverse(ele2%mat6, dmat)
+dmat(2,:) = -dmat(2,:)
+dmat(4,:) = -dmat(4,:)
+dmat(5,:) = -dmat(5,:)
+dmat(:,2) = -dmat(:,2)
+dmat(:,4) = -dmat(:,4)
+dmat(:,5) = -dmat(:,5)
+dmat = ele%mat6 - dmat
+
+if (verbosity) then
+  print '(a, 6es12.4, 5x, es12.4)', '1: ', orb_0r%vec, orb_0r%t
+  print '(a, 6es12.4, 5x, es12.4)', '2: ', orb_1r%vec, orb_1r%t
+  print '(a, 6es12.4, 5x, es12.4)', 'D: ', dorb%vec(1:6), dorb%t
+  print *
+  do n = 1, 6
+    print '(6f12.6)', ele%mat6(n,:)
+  enddo
+  print *
+  do n = 1, 6
+    print '(6f12.6)', ele2%mat6(n,:) 
+  enddo
+  print *
+  do n = 1, 6
+    print '(6f12.6)', dmat(n,:) 
+  enddo
+  print *
+end if
+
+!
+
+str = '"' // trim(ele%name) // '@' // trim(tracking_method_name(ele%tracking_method)) // ':'
+
+write (1, '(a)') trim(line_out(str, 'dorb"', maxval(abs(dorb%vec))))
+write (1, '(a)') trim(line_out(str, 'c*dt"', dorb%t))
+write (1, '(a)') trim(line_out(str, 'xmat"', maxval(abs(dmat))))
+
+diff_vec = maxval([dorb%vec, dorb%t])
+diff_mat = maxval(abs(dmat))
+
+max_diff_vec = max(max_diff_vec, diff_vec)
+max_diff_mat = max(max_diff_mat, diff_mat)
+
+if (verbosity) then
+  print '(2a, t50, 2es10.2)', 'Max Diff: ', trim(str), diff_vec, diff_mat
+endif
+
+end subroutine test_this
+
+!-------------------------------------------------------------------------
+! contains
+
+function line_out(str1, str2, val) result (str_out)
+
+real(rp) val
+character(*) str1, str2
+character(100) str_out
+character(16) tol
+
+!
+
+str_out = trim(str1) // str2
+
+tol = 'REL 0.1'
+if (abs(val) < 1e-14) tol = 'ABS 1e-14'
+if (index(str_out, 'Runge') /= 0) tol = 'ABS 1e-9'
+
+select case (str_out)
+case ('"QUADRUPOLE5@Bmad_Standard:dorb"');    tol = 'ABS 1e-9'
+case ('"QUADRUPOLE5@Symp_Lie_Bmad:dorb"');    tol = 'ABS 1e-9'
+case ('"RFCAVITY1@Runge_Kutta:dorb"');        tol = 'ABS 3e-9'
+case ('"RFCAVITY2@Bmad_Standard:dorb"');      tol = 'ABS 1e-6'
+case ('"SBEND4@Bmad_Standard:dorb"');         tol = 'ABS 2e-8'
+case ('"SBEND4@Runge_Kutta:dorb"');           tol = 'ABS 1e-7'
+case ('"SBEND4@Runge_Kutta:xmat"');           tol = 'ABS 1e-9'
+end select
+
+write (str_out, '(a, t35, a, t50, es12.4)') trim(str_out), tol, val
+
+end function line_out
 
 end program
+
+

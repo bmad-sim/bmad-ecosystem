@@ -49,7 +49,6 @@ do ib = 0, ubound(lat%branch, 1)
      ele => branch%ele(i)
      DO j = 1, n_methods$
         if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
-        if(ele%key == elseparator$ .and. (j == runge_kutta$ .or. j == boris$ .or. j == time_runge_kutta$)) cycle
         call kill_taylor(ele%taylor)
         ele%tracking_method = j
         if (j == linear$) then

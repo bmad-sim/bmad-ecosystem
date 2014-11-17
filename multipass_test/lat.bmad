@@ -33,6 +33,5 @@ L1: line = ( x__D1, slave_drift_001, PFORK, slave_drift_002, M)
 L2: line = ( D2, FORK2)
  
 L2[geometry]            = Open            
-L2[rel_tracking_charge] = 1                       
 L2[particle] = PHOTON          
 L2[p0c]      = 100                     
