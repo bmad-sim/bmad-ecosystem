@@ -1724,13 +1724,13 @@ public:
   Real unstable_factor;
   Real_MATRIX t1_with_rf;
   Real_MATRIX t1_no_rf;
-  Real rel_tracking_charge;
+  Real default_rel_tracking_charge;
   Int particle;
   Int geometry;
   Int ixx;
   Bool stable;
   Bool aperture_limit_on;
-  Bool reverse_time_tracking;
+  Bool backwards_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
 
   CPP_lat_param() :
@@ -1739,13 +1739,13 @@ public:
     unstable_factor(0.0),
     t1_with_rf(Real_ARRAY(0.0, 6), 6),
     t1_no_rf(Real_ARRAY(0.0, 6), 6),
-    rel_tracking_charge(1),
+    default_rel_tracking_charge(1),
     particle(Bmad::POSITRON),
     geometry(0),
     ixx(0),
     stable(false),
     aperture_limit_on(true),
-    reverse_time_tracking(false),
+    backwards_time_tracking(false),
     bookkeeping_state()
     {}
 

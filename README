@@ -40,6 +40,6 @@ There are two scipts to generate files:
 
 Testing:
 
-1) go to the bmad directory and recompile
-2) return to the cpp_bmad_interface directory and run the test program:
+1) Go to the bmad directory and recompile
+2) Return to the cpp_bmad_interface directory and run the test program:
 	../production/bin/cpp_interface_test

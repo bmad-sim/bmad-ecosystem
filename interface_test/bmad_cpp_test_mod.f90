@@ -4135,7 +4135,7 @@ do jd2 = 1, size(F%t1_no_rf,2); lb2 = lbound(F%t1_no_rf,2) - 1
   F%t1_no_rf(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%rel_tracking_charge = rhs
+rhs = 6 + offset; F%default_rel_tracking_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 7 + offset; F%particle = rhs
 !! f_side.test_pat[integer, 0, NOT]
@@ -4147,7 +4147,7 @@ rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%reverse_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 12 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 

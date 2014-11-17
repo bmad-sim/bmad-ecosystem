@@ -2762,7 +2762,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   for (unsigned int i = 0; i < C.t1_no_rf.size(); i++)  for (unsigned int j = 0; j < C.t1_no_rf[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.t1_no_rf[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.rel_tracking_charge = rhs;
+  rhs = 6 + offset; C.default_rel_tracking_charge = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 7 + offset; C.particle = rhs;
@@ -2780,7 +2780,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   rhs = 11 + offset; C.aperture_limit_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.reverse_time_tracking = (rhs % 2 == 0);
+  rhs = 12 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);

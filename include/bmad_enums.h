@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 141;
+  const int BMAD_INC_VERSION = 142;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
@@ -117,7 +117,7 @@ namespace Bmad {
   const int FB2 = 15;
   const int FQ1 = 16;
   const int FQ2 = 17;
-  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, REL_TRACKING_CHARGE = 20;
+  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_REL_TRACKING_CHARGE = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int E_LOSS = 21, DKS_DS = 21, GAP = 21;
