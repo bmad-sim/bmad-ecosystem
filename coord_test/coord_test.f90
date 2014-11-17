@@ -23,7 +23,7 @@ open (1, file = 'output.now')
 
 orb0%vec = [0.1_rp, 0.02_rp, 0.2_rp, 0.03_rp, 0.4_rp, 2.0_rp]
 ele => lat%ele(1)
-call init_coord (orbit, orb0%vec, ele, upstream_end$)
+call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
 call offset_particle (ele, lat%param, set$, orbit)
 call offset_particle (ele, lat%param, unset$, orbit)
 
@@ -36,7 +36,7 @@ orb0%vec(6) = sqrt(1 - orb0%vec(2)**2 - orb0%vec(4)**2)
 
 branch => lat%branch(1)
 ele => branch%ele(1)
-call init_coord (orbit, orb0%vec, ele, upstream_end$)
+call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
 call offset_photon (ele, orbit, set$)
 call offset_photon (ele, orbit, unset$)
 
@@ -46,7 +46,7 @@ write (1, '(a, 6es20.12)') '"length1-photon" ABS 1E-15', orbit%s, c_light * orbi
 
 ele => branch%ele(2)
 orb0%t = 0
-call init_coord (orbit, orb0%vec, ele, upstream_end$)
+call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
 call offset_photon (ele, orbit, set$)
 call offset_photon (ele, orbit, unset$)
 
@@ -55,7 +55,7 @@ write (1, '(a, 6es20.12)') '"length2-photon" ABS 1E-15', orbit%s-branch%ele(1)%s
 
 ele => branch%ele(3)
 orb0%t = 0
-call init_coord (orbit, orb0%vec, ele, upstream_end$)
+call init_coord (orbit, orb0%vec, ele, upstream_end$, ele%branch%param%particle)
 call offset_photon (ele, orbit, set$)
 call offset_photon (ele, orbit, unset$)
 
