@@ -305,7 +305,7 @@ export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=2.8.5
 export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
-
+export TAO_DIR=${ACC_RELEASE_DIR}/tao
 
 #--------------------------------------------------------------
 # Variables to support other software packages
