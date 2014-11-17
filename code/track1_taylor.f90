@@ -44,7 +44,7 @@ if (.not. associated(ele%taylor(1)%term)) then
   call ele_to_taylor(ele, param)
 endif
 
-if (abs(relative_tracking_charge(start_orb, ele, param) - param%default_rel_tracking_charge) > 1e-10) then
+if (abs(relative_tracking_charge(start_orb, param) - param%default_rel_tracking_charge) > 1e-10) then
   call out_io (s_fatal$, r_name, 'DEFAULT_REL_TRACKING_CHARGE DOES NOT AGREE WITH CHARGE OF TRACKED PARTICLE', &
                                  'FOR TRACKING OF ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit

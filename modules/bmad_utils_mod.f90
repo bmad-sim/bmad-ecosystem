@@ -88,27 +88,24 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function relative_tracking_charge (orbit, ele, param) result (rel_charge)
+! Function relative_tracking_charge (orbit, param) result (rel_charge)
 !
 ! Routine to determine the relative charge/mass of the particle being 
 ! tracked relative to the charge of the reference particle.
 !
 ! Input:
 !   orbit -- coord_struct: Particle position structure.
-!   ele   -- ele_struct: If an elseparator then the sign of re_charge 
-!             is determined by the tracked charge only
 !   param -- lat_param_struct: Structure holding the reference particle id.
 !
 ! Output:
 !   rel_charge -- real(rp): Relative charge/mass
 !-
 
-function relative_tracking_charge (orbit, ele, param) result (rel_charge)
+function relative_tracking_charge (orbit, param) result (rel_charge)
 
 implicit none
 
 type (coord_struct) orbit
-type (ele_struct) :: ele
 type (lat_param_struct) param
 real(rp) rel_charge
 
@@ -120,8 +117,6 @@ else
   rel_charge = (charge_of(orbit%species) / mass_of(orbit%species)) / &
                  (charge_of(param%particle) / mass_of(param%particle))
 endif
-
-if (ele%key == elseparator$) rel_charge = sign(rel_charge, 1.0_rp * charge_of(orbit%species))
 
 end function relative_tracking_charge
 

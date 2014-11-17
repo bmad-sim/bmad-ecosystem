@@ -110,7 +110,7 @@ mat6 => ele%mat6
 err = .false.
 
 orientation = ele%orientation * start_orb%direction
-rel_tracking_charge = relative_tracking_charge(start_orb, ele, param)
+rel_tracking_charge = relative_tracking_charge(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 
 ! element offset 

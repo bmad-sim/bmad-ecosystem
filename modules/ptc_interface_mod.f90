@@ -2812,7 +2812,7 @@ endif
 ! Track element
 
 if (present(orb0)) then
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, rel_charge = relative_tracking_charge(orb0, ele, param))
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, rel_charge = relative_tracking_charge(orb0, param))
 else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
 endif

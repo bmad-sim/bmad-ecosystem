@@ -413,7 +413,7 @@ call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
 
 ! Entrance edge kick
 
-c_dir = ele%orientation * end_orb%direction * relative_tracking_charge(start_orb, ele, param)
+c_dir = ele%orientation * end_orb%direction * relative_tracking_charge(start_orb, param)
 call bend_edge_kick (ele, param, first_track_edge$, end_orb)
 
 ! If we have a sextupole component then step through in steps of length ds_step
@@ -635,7 +635,7 @@ character(*), parameter :: r_name = 'linear_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 ! Apply only the first order kick.  i.e. only edge focusing.
 
-c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 if (ele%is_on) then
@@ -730,7 +730,7 @@ character(24), parameter :: r_name = 'mad_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
-c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 
@@ -890,7 +890,7 @@ endif
 !
 
 if (g == 0) return
-c_dir = relative_tracking_charge(orbit, ele, param) * ele%orientation * orbit%direction
+c_dir = relative_tracking_charge(orbit, param) * ele%orientation * orbit%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -1007,7 +1007,7 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = relative_tracking_charge(orb, track_ele, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
+  ks = relative_tracking_charge(orb, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
   if (particle_at == first_track_edge$) then
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
     orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
@@ -1110,7 +1110,7 @@ physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, ele, param)
+if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, param)
 
 rel_p = 1 + orbit%vec(6)
 
@@ -1248,7 +1248,7 @@ physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, ele, param)
+if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, param)
 
 !
 
@@ -1579,7 +1579,7 @@ end select
 !
 
 if (g == 0) return
-c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, param) * ele%orientation * orb%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then

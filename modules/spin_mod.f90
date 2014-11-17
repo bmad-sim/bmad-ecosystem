@@ -1484,7 +1484,7 @@ ref_orb   = logic_option (.false., ref_orb_offset)
 
 call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn)
 if (.not. has_nonzero_pole) return
-charge_dir = relative_tracking_charge(orbit, ele, param) * ele%orientation
+charge_dir = relative_tracking_charge(orbit, param) * ele%orientation
 an = an * charge_dir
 bn = bn * charge_dir
 

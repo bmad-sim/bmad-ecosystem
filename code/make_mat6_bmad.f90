@@ -88,7 +88,7 @@ ele%vec0 = 0
 length = v(l$)
 rel_p = 1 + c0%vec(6) 
 key = ele%key
-rel_tracking_charge = relative_tracking_charge(c0, ele, param)
+rel_tracking_charge = relative_tracking_charge(c0, param)
 charge_dir = rel_tracking_charge * ele%orientation
 c00 = c0
 c00%direction = +1
@@ -211,12 +211,9 @@ case (elseparator$)
 
   ! Compute kick
 
-  hk = ele%value(hkick$) * rel_tracking_charge
-  vk = ele%value(vkick$) * rel_tracking_charge
-  if (c0%species < 0) then
-    hk = -hk
-    vk = -vk
-  endif
+  rel_charge = abs(rel_tracking_charge) * sign(1, charge_of(c0%species))
+  hk = ele%value(hkick$) * rel_charge
+  vk = ele%value(vkick$) * rel_charge
 
   if (length == 0) length = 1d-50  ! To avoid divide by zero
   k_E = sqrt(hk**2 + vk**2) / length

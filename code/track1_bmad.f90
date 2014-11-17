@@ -54,7 +54,7 @@ real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
 real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel, beta_a0, beta_b0, alpha_a0, alpha_b0
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
-real(rp) cos_g, sin_g, cos_tc, sin_tc, angle, rel_tracking_charge
+real(rp) cos_g, sin_g, cos_tc, sin_tc, angle, rel_tracking_charge, rtc
 real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc, ps
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
@@ -83,7 +83,7 @@ endif
 length = ele%value(l$)
 rel_p = 1 + start_orb%vec(6)
 orientation = ele%orientation * start_orb%direction
-rel_tracking_charge = relative_tracking_charge(start_orb, ele, param)
+rel_tracking_charge = relative_tracking_charge(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 
 !-----------------------------------------------
@@ -195,13 +195,9 @@ case (elseparator$)
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.) 
 
   ! Compute kick
-
-  hk = ele%value(hkick$) * rel_tracking_charge
-  vk = ele%value(vkick$) * rel_tracking_charge
-  if (charge_of(end_orb%species) < 0) then
-    hk = -hk
-    vk = -vk
-  endif
+  rtc = abs(rel_tracking_charge) * sign(1, charge_of(end_orb%species))
+  hk = ele%value(hkick$) * rtc
+  vk = ele%value(vkick$) * rtc
 
   ! Rotate (x, y) so that kick is in +x direction.
 
