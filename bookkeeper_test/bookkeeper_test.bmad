@@ -12,7 +12,7 @@ ov1: overlay = {q1[k1]:-1, q1[tilt]:2}, hkick = 10
 ov2: overlay = {q1[k1]:3, q1[tilt], q1}, hkick = 20
 ov3: overlay = {q2}, l = 6
 
-!gr1: group = {ov1[hkick]}, k3 = 5
+gr1: group = {ov1[hkick]}, k3 = 5
 gr2: group = {q3}, end_edge
 gr3: group = {q3}, l
 
@@ -26,6 +26,6 @@ use, a_line
 
 expand_lattice
 
-!gr1[command] = 7
+gr1[command] = 7
 gr2[command] = 1
 gr3[command] = 0.2
