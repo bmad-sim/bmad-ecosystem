@@ -115,7 +115,7 @@ case (lcavity$)
 case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
-  ele%value(rel_tracking_charge$) = real_garbage$
+  ele%value(default_rel_tracking_charge$) = real_garbage$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 
@@ -205,12 +205,14 @@ case (group$)
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
+  ele%field_calc = no_field$
 
 case (overlay$)
   ele%bookkeeping_state%attributes     = ok$
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
+  ele%field_calc = no_field$
 
 case (girder$)
   ele%bookkeeping_state%attributes     = ok$
@@ -218,10 +220,12 @@ case (girder$)
   ele%bookkeeping_state%mat6           = ok$
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%ptc            = ok$
+  ele%field_calc = no_field$
 
 case (beginning_ele$)
   ele%bookkeeping_state%rad_int        = ok$
   ele%bookkeeping_state%control        = ok$
+  ele%field_calc = no_field$
 
 case default
   ele%bookkeeping_state%control        = ok$

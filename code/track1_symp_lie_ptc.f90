@@ -53,7 +53,7 @@ endif
 start2_orb = start_orb
 end_orb = start_orb
 
-call ele_to_fibre (ele, fibre_ele, param, .true.)
+call ele_to_fibre (ele, fibre_ele, param, .true., rel_charge = relative_tracking_charge(start_orb, ele, param))
 call ptc_track (fibre_ele, re, DEFAULT)  ! "track" in PTC
 
 if (tracking_uses_end_drifts(ele)) then

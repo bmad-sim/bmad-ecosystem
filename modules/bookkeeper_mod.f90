@@ -2475,7 +2475,7 @@ case (rfcavity$)
 case (sad_mult$)
 
   if (ele%value(eps_step_scale$) > 0) then
-    call multipole_ele_to_kt (ele, param, .true., has_nonzero, knl, tilt)
+    call multipole_ele_to_kt (ele, .true., has_nonzero, knl, tilt)
 
     eps6 = 6 * ele%value(eps_step_scale$) * sad_param%eps_scale
     n_div = 1

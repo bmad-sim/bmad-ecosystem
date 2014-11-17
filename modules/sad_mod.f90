@@ -67,13 +67,14 @@ n_div = nint(ele%value(num_steps$))
 
 rel_pc = 1 + orbit%vec(6)
 orientation = ele%orientation * orbit%direction
-charge_dir = param%rel_tracking_charge * orientation
+charge_dir = relative_tracking_charge(orbit, ele, param) * orientation
 mat6 => ele%mat6
 
 if (make_matrix) call mat_make_unit(mat6)
 
 knl = 0; tilt = 0
-call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
+call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
+knl = knl * charge_dir
 
 ! Setup ele2 which is used in offset_particle
 
@@ -91,7 +92,7 @@ if (length == 0) then
   if (has_nonzero_pole) then
     call multipole_kicks (knl, tilt, orbit)
     if (make_matrix) then
-      call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat6)
+      call multipole_kick_mat (knl, tilt, orbit, 1.0_rp, mat6)
     endif
   endif
 
@@ -112,7 +113,7 @@ endif
 
 ! Go to frame of reference of the multipole quad component
 
-ks = param%rel_tracking_charge * ele%value(ks$)
+ks = relative_tracking_charge(orbit, ele2, param) * ele%value(ks$)
 k1 = charge_dir * knl(1) / length
 
 if (ele%value(x_pitch_mult$) /= 0 .or. ele%value(y_pitch_mult$) /= 0) then
@@ -188,7 +189,7 @@ do nd = 0, n_div
   call multipole_kicks (knl, tilt, orbit)
 
   if (make_matrix) then
-    call multipole_kick_mat (knl, tilt, orbit%vec, 1.0_rp, mat1)
+    call multipole_kick_mat (knl, tilt, orbit, 1.0_rp, mat1)
     mat6(2,:) = mat6(2,:) + mat1(2,1) * mat6(1,:) + mat1(2,3) * mat6(3,:)
     mat6(4,:) = mat6(4,:) + mat1(4,1) * mat6(1,:) + mat1(4,3) * mat6(3,:)
   endif

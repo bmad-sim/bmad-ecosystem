@@ -1470,7 +1470,7 @@ type (coord_struct) orbit
 complex(rp) kick, pos
 
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), kick_angle, Bx, By, knl, a_coord(4), a_field(4)
-
+real(rp) charge_dir
 integer n
 
 logical, optional, intent(in) :: do_half_prec, include_sextupole_octupole, ref_orb_offset
@@ -1482,8 +1482,11 @@ half_prec = logic_option (.false., do_half_prec)
 sext_oct  = logic_option (.false., include_sextupole_octupole)
 ref_orb   = logic_option (.false., ref_orb_offset)
 
-call multipole_ele_to_ab(ele, param, .true., has_nonzero_pole, an, bn)
+call multipole_ele_to_ab(ele, .true., has_nonzero_pole, an, bn)
 if (.not. has_nonzero_pole) return
+charge_dir = relative_tracking_charge(orbit, ele, param) * ele%orientation
+an = an * charge_dir
+bn = bn * charge_dir
 
 select case (ele%key)
   case (sextupole$)

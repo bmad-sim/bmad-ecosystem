@@ -244,7 +244,7 @@ end do
 print *, 'QROMB_RAD_INT: Note: Radiation Integral is not converging', d_max
 print *, '     For element: ', ele%name
 
-end subroutine
+end subroutine qromb_rad_int
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -443,7 +443,7 @@ info%g = sqrt(info%g2)
 ! Add in multipole gradient
 
 if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_type$) then 
-  call multipole_ele_to_ab (ele, info%branch%param, .true., has_nonzero_pole, a_pole, b_pole)
+  call multipole_ele_to_ab (ele, .true., has_nonzero_pole, a_pole, b_pole)
   if (has_nonzero_pole) then
     do ip = 0, ubound(a_pole, 1)
       if (a_pole(ip) == 0 .and. b_pole(ip) == 0) cycle
@@ -454,7 +454,7 @@ if ((ele%key /= wiggler$ .and. ele%key /= undulator$) .or. ele%sub_key /= map_ty
   endif
 endif
 
-end subroutine
+end subroutine propagate_part_way
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -485,7 +485,7 @@ pt%dgy_dy = dg(2,2)
 info%g_x = g(1)
 info%g_y = g(2)
 
-end subroutine
+end subroutine calc_wiggler_g_params
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -560,7 +560,7 @@ force = (E + cross_product(vel_unit, B) * orbit%beta * c_light) * charge_of(para
 force_perp = force - vel_unit * (dot_product(force, vel_unit))
 g_bend = -force_perp * fact
 
-end function
+end function g_from_field
 
 end subroutine em_field_g_bend
 

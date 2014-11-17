@@ -190,7 +190,7 @@ else
   this_fib%dir = ele%orientation
 endif
 
-this_fib%charge = ele%branch%param%rel_tracking_charge
+this_fib%charge = ele%branch%param%default_rel_tracking_charge
 
 if (logic_option(.false., do_point)) ele%ptc_fibre => this_fib
 

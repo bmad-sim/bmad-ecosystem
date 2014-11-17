@@ -413,16 +413,16 @@ call offset_particle (ele, param, set$, end_orb, set_multipoles = .false.)
 
 ! Entrance edge kick
 
-c_dir = ele%orientation * end_orb%direction * param%rel_tracking_charge
+c_dir = ele%orientation * end_orb%direction * relative_tracking_charge(start_orb, ele, param)
 call bend_edge_kick (ele, param, first_track_edge$, end_orb)
 
 ! If we have a sextupole component then step through in steps of length ds_step
 
 n_step = 1
 
-call multipole_ele_to_kt(ele, param, .false., has_nonzero_pole, knl, tilt)
+call multipole_ele_to_kt(ele, .false., has_nonzero_pole, knl, tilt)
 if (ele%value(k2$) /= 0 .or. has_nonzero_pole) n_step = max(nint(ele%value(l$) / ele%value(ds_step$)), 1)
-if (has_nonzero_pole) knl = knl / n_step
+if (has_nonzero_pole) knl = knl * c_dir / n_step
 
 ! Set some parameters
 
@@ -635,7 +635,7 @@ character(*), parameter :: r_name = 'linear_bend_edge_kick'
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 ! Apply only the first order kick.  i.e. only edge focusing.
 
-c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 if (ele%is_on) then
@@ -730,7 +730,7 @@ character(24), parameter :: r_name = 'mad_bend_edge_kick'
 ! Track through the entrence face. 
 ! See MAD physics guide for writeup. Note that MAD does not have a g_err.
 
-c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
 
@@ -890,7 +890,7 @@ endif
 !
 
 if (g == 0) return
-c_dir = param%rel_tracking_charge * ele%orientation * orbit%direction
+c_dir = relative_tracking_charge(orbit, ele, param) * ele%orientation * orbit%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -1007,7 +1007,7 @@ case (sbend$)
 ! So use hard_ele%value(bs_field$).
 
 case (solenoid$, sol_quad$, bend_sol_quad$)
-  ks = param%rel_tracking_charge * hard_ele%value(bs_field$) * c_light / orb%p0c
+  ks = relative_tracking_charge(orb, track_ele, param) * hard_ele%value(bs_field$) * c_light / orb%p0c
   if (particle_at == first_track_edge$) then
     orb%vec(2) = orb%vec(2) + ks * orb%vec(3) / 2
     orb%vec(4) = orb%vec(4) - ks * orb%vec(1) / 2
@@ -1110,7 +1110,7 @@ physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
+if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, ele, param)
 
 rel_p = 1 + orbit%vec(6)
 
@@ -1248,7 +1248,7 @@ physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
 if (.not. at_this_ele_end(physical_end, fringe_at)) return
 
 charge_dir = ele%orientation * orbit%direction
-if (associated(ele%branch)) charge_dir = charge_dir * ele%branch%param%rel_tracking_charge
+if (associated(ele%branch)) charge_dir = charge_dir * relative_tracking_charge(orbit, ele, param)
 
 !
 
@@ -1579,7 +1579,7 @@ end select
 !
 
 if (g == 0) return
-c_dir = param%rel_tracking_charge * ele%orientation * orb%direction
+c_dir = relative_tracking_charge(orb, ele, param) * ele%orientation * orb%direction
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
@@ -2279,7 +2279,7 @@ end subroutine rf_coupler_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv, p_s)
+! Subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s)
 ! 
 ! Routine to track through a patch element.
 ! The steps for tracking are:
@@ -2303,11 +2303,11 @@ end subroutine rf_coupler_kick
 !                   For a patch with positive z_offset and all other attributes zero, s_ent = -z_offset.
 !   ds_ref     -- real(rp), optional: Distance the reference particle travels from the entrance
 !                   to the exit face.
-!   w_inv(3,3) -- real(rp), optional: Rotation matrix used in tracking.
+!   w_mat(3,3) -- real(rp), optional: Rotation matrix used in tracking.
 !   p_s        -- real(rp), optional: Longitudinal momentum.
 !-
 
-subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_inv, p_s)
+subroutine track_a_patch (ele, orbit, drift_to_exit, s_ent, ds_ref, w_mat, p_s)
 
 implicit none
 
@@ -2315,42 +2315,64 @@ type (ele_struct), target :: ele
 type (coord_struct) orbit
 
 real(rp), pointer :: v(:)
-real(rp) p_vec(3), r_vec(3), rel_pc, winv(3,3), beta0, ds0
-real(rp), optional :: s_ent, ds_ref, w_inv(3,3), p_s
-
-integer rel_dir1
+real(rp) p_vec(3), r_vec(3), rel_pc, ww(3,3), beta0, ds0
+real(rp), optional :: s_ent, ds_ref, w_mat(3,3), p_s
 
 logical, optional :: drift_to_exit
 
 ! Transform to exit face coords.
 
 v => ele%value
-r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
 
 rel_pc = 1 + orbit%vec(6)
 p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
-p_vec(3) = p_vec(3) * ele%value(upstream_ele_dir$)
 
-if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
-  call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = winv)
-  if (present(w_inv)) w_inv = winv
-  p_vec = matmul(winv, p_vec)
-  r_vec = matmul(winv, r_vec)
-  orbit%vec(2) = p_vec(1)
-  orbit%vec(4) = p_vec(2)
+! For other types of elements, the ele%orientation is the same as the upstream and downstream 
+! elements orientation. For a patch this is not necessarily true which is why a patch element
+! needs to store the upstream and downstream orientations.
+
+! orbit%direction * ele%orientation = -1 means we are going from the downstream end to the upstream end.
+! In this case, must reverse the order of application of the offsets and pitches.
+
+if (orbit%direction * ele%orientation == 1) then
+  p_vec(3) = p_vec(3) * ele%value(upstream_ele_dir$)
+  r_vec = [orbit%vec(1) - v(x_offset$), orbit%vec(3) - v(y_offset$), -v(z_offset$)]
+  if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
+    call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat_inv = ww)
+    p_vec = matmul(ww, p_vec)
+    r_vec = matmul(ww, r_vec)
+    orbit%vec(2) = p_vec(1)
+    orbit%vec(4) = p_vec(2)
+  else
+    call mat_make_unit (ww)
+  endif
+  ds0 = ww(3,1) * v(x_offset$) + ww(3,2) * v(y_offset$) + ww(3,3) * v(z_offset$)
+
 else
-  call mat_make_unit (winv)
+  p_vec(3) = p_vec(3) * ele%value(downstream_ele_dir$)
+  r_vec = [orbit%vec(1), orbit%vec(3), 0.0_rp]
+  if (v(x_pitch$) /= 0 .or. v(y_pitch$) /= 0 .or. v(tilt$) /= 0) then
+    call floor_angles_to_w_mat (v(x_pitch$), v(y_pitch$), v(tilt$), w_mat = ww)
+    p_vec = matmul(ww, p_vec)
+    r_vec = matmul(ww, r_vec)
+    orbit%vec(2) = p_vec(1)
+    orbit%vec(4) = p_vec(2)
+  else
+    call mat_make_unit (ww)
+  endif
+  r_vec = r_vec + [v(x_offset$), v(y_offset$), v(z_offset$)]
+  ds0 = ww(1,3) * v(x_offset$) + ww(2,3) * v(y_offset$) + ww(3,3) * v(z_offset$) ! = ds0 with dir*orient = 1
 endif
+
+!
 
 orbit%vec(1) = r_vec(1)
 orbit%vec(3) = r_vec(2)
 orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
-ds0 = winv(3,1) * v(x_offset$) + winv(3,2) * v(y_offset$) + winv(3,3) * v(z_offset$)
-
 if (present(s_ent))  s_ent = r_vec(3)
 if (present(ds_ref)) ds_ref = ds0
-if (present(w_inv))  w_inv = winv
+if (present(w_mat))  w_mat = ww
 if (present(p_s))    p_s = p_vec(3)
 
 ! Drift to exit face.

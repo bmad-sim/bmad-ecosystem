@@ -498,6 +498,13 @@ if (word == 'DPHI0') then
   word = 'PHI0_MULTIPASS'
 endif
 
+if (word == 'REL_TRACKING_CHARGE') then
+  call parser_error ('THE ATTRIBUTE NAME "REL_TRACKING_CHARGE" HAS BEEN CHANGED TO "DEFAULT_REL_TRACKING_CHARGE"', &
+                     'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
+                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
+  word = 'REL_TRACKING_CHARGE'
+endif
+
 word = parser_translate_attribute_name (ele%key, word)
 
 ix_attrib = attribute_index(ele, word, attrib_word)
@@ -549,7 +556,7 @@ if (attrib_word == 'WALL') then
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
-      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, err_flag2)
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, err_flag2, ele)
       if (err_flag2) return
 
     case ('SUPERIMPOSE')
@@ -583,7 +590,7 @@ if (attrib_word == 'WALL') then
         select case (word)
 
         case ('TYPE') 
-          call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2)
+          call get_switch ('WALL TYPE', wall3d_section_type_name(1:), section%type, err_flag2, ele)
           if (err_flag2) return
 
         case ('MATERIAL') 
@@ -749,7 +756,7 @@ if (attrib_word == 'SURFACE') then
           surf%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
-          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2)
+          call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele)
           if (err_flag2) return
           bp_com%parse_line = delim // bp_com%parse_line
 
@@ -1211,26 +1218,27 @@ case ('SCALE_MULTIPOLES')
   call get_logical (attrib_word, ele%scale_multipoles, err_flag)
 
 case ('FIELD_CALC')
-  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag)
+  call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele)
 
 case ('APERTURE_AT')
-  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag)
+  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
 
 case ('REF_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele)
 
 case ('ELE_ORIGIN')
-  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag)
+  call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele)
 
 case ('APERTURE_TYPE')
-  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag)
+  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele)
 
 case ('COUPLER_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
   ele%value(coupler_at$) = ix
 
 case ('PTC_FRINGE_GEOMETRY')
-  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag)
+  call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele)
+  ele%value(ptc_fringe_geometry$) = ix
 
 case ('FRINGE_TYPE')
   if (ele%key == rbend$ .or. ele%key == sbend$) then
@@ -1241,19 +1249,19 @@ case ('FRINGE_TYPE')
   ele%value(fringe_type$) = ix
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag)
+  call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele)
   ele%value(higher_order_fringe_type$) = ix
 
 case ('FRINGE_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag)
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
   ele%value(fringe_at$) = ix
 
 case ('ORIGIN_ELE_REF_PT')
-  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag)
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele)
   ele%value(origin_ele_ref_pt$) = ix
 
 case ('TRACKING_METHOD')
-  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag)
+  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele)
   if (err_flag) return
   if (.not. valid_tracking_method (ele, not_set$, switch)) then
     if (wild_key0) then
@@ -1267,7 +1275,7 @@ case ('TRACKING_METHOD')
   ele%tracking_method = switch
 
 case ('SPIN_TRACKING_METHOD')
-  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag)
+  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
   if (err_flag) return
   if (.not. valid_spin_tracking_method (ele, switch)) then
     if (wild_key0) then
@@ -1281,7 +1289,7 @@ case ('SPIN_TRACKING_METHOD')
   ele%spin_tracking_method = switch
 
 case ('MAT6_CALC_METHOD')
-  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag)
+  call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele)
   if (err_flag) return
   if (.not. valid_mat6_calc_method (ele, not_set$, switch)) then
     if (wild_key0) then
@@ -1295,26 +1303,26 @@ case ('MAT6_CALC_METHOD')
   ele%mat6_calc_method = switch
 
 case ('REF_COORDINATES')
-  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag)
+  call get_switch (attrib_word, end_at_name(1:2), ix, err_flag, ele)
   ele%value(ref_coordinates$) = ix
 
 case ('REF_ORBIT_FOLLOWS')
-  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag)
+  call get_switch (attrib_word, ref_orbit_follows_name(1:), ix, err_flag, ele)
   ele%value(ref_orbit_follows$) = ix
 
 case ('MODE')
-  call get_switch (attrib_word, mode_name(1:), ix, err_flag)
+  call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele)
   ele%value(geometry$) = ix
 
 case ('PTC_INTEGRATION_TYPE')
-  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag)
+  call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele)
 
 case ('PARTICLE')
-  call get_switch (attrib_word, particle_name(:), ix, err_flag)
+  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
   ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
 
 case ('PTC_FIELD_GEOMETRY')
-  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag)
+  call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
   ele%value(ptc_field_geometry$) = ix
 
   if (ele%key == sbend$ .and. ix == true_rbend$) then
@@ -1323,15 +1331,15 @@ case ('PTC_FIELD_GEOMETRY')
   endif
 
 case ('GEOMETRY')
-  call get_switch (attrib_word, geometry_name(1:), ix, err_flag)
+  call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele)
   ele%value(geometry$) = ix
 
 case ('PHOTON_TYPE')
-  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag)
+  call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele)
   ele%value(photon_type$) = ix
 
 case ('LATTICE_TYPE')   ! Old style
-  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag)
+  call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele)
   ele%value(geometry$) = ix
 
 case default   ! normal attribute
@@ -1600,7 +1608,7 @@ end subroutine get_integer
 
 subroutine get_switch (name, name_list, switch, err, ele)
 
-type (ele_struct), optional :: ele
+type (ele_struct) :: ele
 character(*) name, name_list(:)
 integer this_switch, switch
 logical err

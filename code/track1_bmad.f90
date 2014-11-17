@@ -54,7 +54,7 @@ real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
 real(rp) new_pc, new_beta, len_slice, k0l, k1l, t0
 real(rp) cosh1_k, sinh_k, hk, vk, dt, k_E, e_rel, beta_a0, beta_b0, alpha_a0, alpha_b0
 real(rp) p_factor, sin_alpha, cos_alpha, sin_psi, cos_psi, wavelength
-real(rp) cos_g, sin_g, cos_tc, sin_tc, angle
+real(rp) cos_g, sin_g, cos_tc, sin_tc, angle, rel_tracking_charge
 real(rp) k_in_norm(3), h_norm(3), k_out_norm(3), e_tot, pc, ps
 real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
@@ -65,7 +65,7 @@ integer i, n, n_slice, key, orientation
 logical, optional :: err_flag
 logical err, has_nonzero_pole
 
-character(16) :: r_name = 'track1_bmad'
+character(*), parameter :: r_name = 'track1_bmad'
 
 type (mad_map_struct) map
 type (mad_energy_struct) energy
@@ -83,7 +83,8 @@ endif
 length = ele%value(l$)
 rel_p = 1 + start_orb%vec(6)
 orientation = ele%orientation * start_orb%direction
-charge_dir = param%rel_tracking_charge * orientation
+rel_tracking_charge = relative_tracking_charge(start_orb, ele, param)
+charge_dir = rel_tracking_charge * orientation
 
 !-----------------------------------------------
 ! Select
@@ -195,8 +196,8 @@ case (elseparator$)
 
   ! Compute kick
 
-  hk = ele%value(hkick$) * abs(param%rel_tracking_charge)
-  vk = ele%value(vkick$) * abs(param%rel_tracking_charge)
+  hk = ele%value(hkick$) * rel_tracking_charge
+  vk = ele%value(vkick$) * rel_tracking_charge
   if (charge_of(end_orb%species) < 0) then
     hk = -hk
     vk = -vk
@@ -513,8 +514,8 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
-  call multipole_ele_to_kt(ele, param, .true., has_nonzero_pole, knl, tilt)
-  if (has_nonzero_pole) call multipole_kicks (knl, tilt, end_orb, .true.)
+  call multipole_ele_to_kt(ele, .true., has_nonzero_pole, knl, tilt)
+  if (has_nonzero_pole) call multipole_kicks (knl*charge_dir, tilt, end_orb, .true.)
 
   call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
@@ -605,16 +606,14 @@ case (rfcavity$)
 
   call offset_particle (ele, param, set$, end_orb)
 
-  voltage = e_accel_field(ele, voltage$)
-
   ! The cavity field is modeled as a standing wave symmetric wrt the center.
   ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
-  ! always the accelerating wave, is the "backward" wave. And the phase of the backward 
-  ! wave is different from the phase of the forward wave by a constant dt_ref * freq
+  ! always the accelerating wave, is the "backward" wave.
+
+  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge
 
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - ele%value(phi0_ref$) - &
           (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
-  if (orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_ref
   phase = phase0
 
   t0 = end_orb%t
@@ -627,7 +626,7 @@ case (rfcavity$)
 
   do i = 0, n_slice
 
-    dE = param%rel_tracking_charge * voltage * sin(phase) / n_slice
+    dE = voltage * sin(phase) / n_slice
     if (i == 0 .or. i == n_slice) dE = dE / 2
 
     call apply_energy_kick (dE, end_orb)
@@ -693,7 +692,7 @@ case (solenoid$)
 
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
 
-  ks = param%rel_tracking_charge * ele%value(ks$)
+  ks = rel_tracking_charge * ele%value(ks$)
 
   xp_start = end_orb%vec(2) + ks * end_orb%vec(3) / 2
   yp_start = end_orb%vec(4) - ks * end_orb%vec(1) / 2
@@ -731,7 +730,7 @@ case (sol_quad$)
 
   call offset_particle (ele, param, set$, end_orb)
 
-  ks = param%rel_tracking_charge * ele%value(ks$)
+  ks = rel_tracking_charge * ele%value(ks$)
   k1 = charge_dir * ele%value(k1$)
   vec0 = 0
   vec0(6) = end_orb%vec(6)

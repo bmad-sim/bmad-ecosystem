@@ -330,7 +330,7 @@ key = ele%key
 if (key == sbend$ .and. (leng == 0 .or. ele%value(g$) == 0)) key = drift$
 
 if (key == multipole$) then
-  call multipole_ele_to_kt (ele, param, .true., has_nonzero_pole, knl, tilt)
+  call multipole_ele_to_kt (ele, .true., has_nonzero_pole, knl, tilt)
 endif
 
 ! Fiducial, floor_shift and girder elements.

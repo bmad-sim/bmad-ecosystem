@@ -537,7 +537,7 @@ integer n_step
 
 ! Degenerate case
 
-charge_dir = param%rel_tracking_charge * ele%orientation
+charge_dir = relative_tracking_charge(start_orb, ele, param) * ele%orientation * start_orb%direction
 
 k_1 = ele%value(k1$) * charge_dir
 g = ele%value(g$)
@@ -680,7 +680,7 @@ end subroutine sbend_body_with_k1_map
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine multipole_kick_mat (knl, tilt, c00, factor, mat6)
+! Subroutine multipole_kick_mat (knl, tilt, orbit, factor, mat6)
 !
 ! Subroutine to return the multipole kick components needed to
 ! construct the transfer matrix.
@@ -689,7 +689,7 @@ end subroutine sbend_body_with_k1_map
 ! Input:
 !   knl(0:)   -- Real(rp): Strength of multipoles
 !   tilt(0:)  -- Real(rp): Tilt of multipoles
-!   c00       -- Coord_struct: coordinates of particle around which the
+!   orbit     -- Coord_struct: coordinates of particle around which the
 !                  multipole kick matrix is computed.
 !   factor    -- real(rp): Factor to scale knl by.
 !
@@ -698,11 +698,12 @@ end subroutine sbend_body_with_k1_map
 !                 The rest of the matrix is untouched.
 !-
 
-subroutine multipole_kick_mat (knl, tilt, c00, factor, mat6)
+subroutine multipole_kick_mat (knl, tilt, orbit, factor, mat6)
 
 implicit none
 
-real(rp) c00(6)
+type (coord_struct) orbit
+
 real(rp) mat6(6,6), kmat1(4,4), factor
 real(rp) knl(0:), tilt(0:)
 
@@ -711,11 +712,11 @@ integer n
 !                        
 
 mat6(2:4:2, 1:3:2) = 0
-if (c00(1) == 0 .and. c00(3) == 0 .and. knl(1) == 0) return
+if (orbit%vec(1) == 0 .and. orbit%vec(3) == 0 .and. knl(1) == 0) return
 
 do n = 1, ubound(knl, 1)
   if (knl(n) /= 0) then
-    call mat4_multipole (knl(n), tilt(n), n, c00, kmat1)
+    call mat4_multipole (knl(n), tilt(n), n, orbit, kmat1)
     mat6(2:4:2, 1:3:2) = mat6(2:4:2, 1:3:2) + factor * kmat1(2:4:2, 1:3:2)
   endif
 enddo
@@ -726,26 +727,27 @@ end subroutine multipole_kick_mat
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
+! Subroutine mat4_multipole (knl, tilt, n, orbit, kick_mat)
 !
 ! Subroutine to find the kick matrix (Jacobian) due to a multipole.
 ! This routine is not meant for general use.
 !
 ! Input:
-!   c0   -- Coord_struct: coordinates of particle
-!   knl  -- Real(rp): Strength of multipole
-!   tilt -- Real(rp): Tilt of multipole
+!   orbit   -- Coord_struct: coordinates of particle
+!   knl     -- Real(rp): Strength of multipole
+!   tilt    -- Real(rp): Tilt of multipole
 !
 ! Output:
-!   kick_mat(4,4) -- Real(rp): Kick matrix (Jacobian) at c0.
+!   kick_mat(4,4) -- Real(rp): Kick matrix (Jacobian) at orbit.
 !-
 
 
-subroutine mat4_multipole (knl, tilt, n, c0, kick_mat)
+subroutine mat4_multipole (knl, tilt, n, orbit, kick_mat)
 
 implicit none
 
-real(rp) c0(6)
+type (coord_struct) orbit
+
 real(rp) x_pos, y_pos, x, y, knl, tilt
 real(rp) sin_ang, cos_ang, mat(2,2), rot(2,2)
 real(rp) kick_mat(4,4)
@@ -757,8 +759,8 @@ integer m, n
 kick_mat = 0
 forall (m = 1:4) kick_mat(m,m) = 1
 
-x_pos = c0(1)
-y_pos = c0(3)
+x_pos = orbit%vec(1)
+y_pos = orbit%vec(3)
          
 ! simple case
 

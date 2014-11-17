@@ -240,12 +240,12 @@ else
 
     a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
     if (ele%key == multipole$) then
-      call multipole_ele_to_kt (ele, param, .false., has_nonzero_pole, a,  b)
-      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, knl, tn)
+      call multipole_ele_to_kt (ele, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
     else
-      call multipole_ele_to_ab (ele, param, .false., has_nonzero_pole, a,  b)
-      call multipole_ele_to_ab (ele, param, .true.,  has_nonzero_pole, a2, b2)
-      call multipole_ele_to_kt (ele, param, .true.,  has_nonzero_pole, knl, tn)
+      call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a,  b)
+      call multipole_ele_to_ab (ele, .true.,  has_nonzero_pole, a2, b2)
+      call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
     endif
 
     if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then

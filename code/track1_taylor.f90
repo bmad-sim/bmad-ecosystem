@@ -30,16 +30,24 @@ type (coord_struct) :: orb0
 type (lat_param_struct) :: param
 type (ele_struct) :: ele
 real(rp) dtime_ref
+character(*), parameter :: r_name = 'track1_taylor'
+
 
 !
 
 if (.not. associated(ele%taylor(1)%term)) then
   if (global_com%type_out) then
     ! 'WARNING: TAYLOR SERIES NOT PRESENT FOR: ' // ele%name
-    ! 'I WILL MAKE A TAYLOR SERIES AROUND THE GIVEN ORBIT...'
+    ! 'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...'
   endif
   orb0%vec = ele%taylor%ref
-  call ele_to_taylor(ele, param, orb0)
+  call ele_to_taylor(ele, param)
+endif
+
+if (abs(relative_tracking_charge(start_orb, ele, param) - param%default_rel_tracking_charge) > 1e-10) then
+  call out_io (s_fatal$, r_name, 'DEFAULT_REL_TRACKING_CHARGE DOES NOT AGREE WITH CHARGE OF TRACKED PARTICLE', &
+                                 'FOR TRACKING OF ELEMENT: ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
 endif
 
 ! If the Taylor map does not have the offsets included then do the appropriate

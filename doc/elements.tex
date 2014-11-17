@@ -347,9 +347,9 @@ and the dipole bend components ($g_x$, $g_y$) are given by
   g_x = g * cos (tilt + bend_tilt)
   g_y = g * sin (tilt + bend_tilt)
 \end{example}
-Dipole edge fields have not been implemented since it is not clear where
-the entrance and exit faces of the bend should be and how they are aligned
-with the solenoid.
+Dipole edge fields have not been implemented since it is not clear
+where the entrance and exit faces (\sref{s:ref.construct}) of the bend
+should be and how they are aligned with the solenoid.
 
 To simulate a real solenoid you will need at least three
 \vn{bend_sol_quad} elements: The middle element is the body of the
@@ -1601,12 +1601,12 @@ branches off from the main line and then branches back to it.
   \includegraphics{girder.pdf}
   \caption[Girder example.] {
 Girder supporting three elements labeled \vn{A}, \vn{B}, and \vn{C}.
-$\calO_A$ is the reference frame at the upstream end of element
-\vn{A}, $\calO_C$ is the reference frame at the downstream end of
-element \vn{C}, and $\calO_G$ is the default \vn{origin} reference
-frame of the girder. $r_{CA}$ is the vector from $\calO_A$ to
-$\calO_C$. The length \vn{l} of the girder is the difference in $s$
-between points $\calO_C$ and $\calO_A$.
+$\calO_A$ is the reference frame at the upstream end of element \vn{A}
+(\sref{s:ref.construct}), $\calO_C$ is the reference frame at the
+downstream end of element \vn{C}, and $\calO_G$ is the default
+\vn{origin} reference frame of the girder. $r_{CA}$ is the vector from
+$\calO_A$ to $\calO_C$. The length \vn{l} of the girder is the
+difference in $s$ between points $\calO_C$ and $\calO_A$.
   }
   \label{f:girder}
 \end{figure}

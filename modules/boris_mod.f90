@@ -212,7 +212,7 @@ real(rp) :: p2, t, dt, beta_ref, p2_z
 
 !
 
-charge = param%rel_tracking_charge * charge_of(param%particle)
+charge = charge_of(start%species)
 mass = mass_of(start%species) / ele%value(p0c$)
 
 end = start

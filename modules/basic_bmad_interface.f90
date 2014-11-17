@@ -663,7 +663,7 @@ interface
     integer, optional :: ix_branch, track_state
   end subroutine
 
-  subroutine track_reverse (lat, orbit, ix_start, ix_end, ix_branch, track_state)
+  subroutine track_backwards_time (lat, orbit, ix_start, ix_end, direction, ix_branch, track_state)
     import
     implicit none
     type (lat_struct)  lat
@@ -685,7 +685,7 @@ interface
     logical, optional :: err_flag, ignore_radiation
   end subroutine
 
-  subroutine track1_backup (end_orb, ele, param, start_orb, err_flag)
+  subroutine track1_backwards_time (end_orb, ele, param, start_orb, err_flag)
     import
     implicit none
     type (coord_struct) :: start_orb

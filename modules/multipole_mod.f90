@@ -93,7 +93,7 @@ end subroutine multipole1_ab_to_kt
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)
+! Subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)
 !
 ! Subroutine to put the multipole components (strength and tilt)
 ! into 2 vectors along with the appropriate scaling for the relative tracking charge, etc.
@@ -109,7 +109,6 @@ end subroutine multipole1_ab_to_kt
 !
 ! Input:
 !   ele          -- Ele_struct: Multipole element.
-!   param        -- lat_param_struct
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations. 
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
@@ -119,12 +118,11 @@ end subroutine multipole1_ab_to_kt
 !   tilt(0:n_pole_maxx) -- Real(rp): Vector of tilts.
 !-
 
-subroutine multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
 type (ele_struct), pointer :: lord
 
 real(rp) knl(0:), tilt(0:), a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -147,7 +145,7 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (.not. associated(lord%a_pole)) cycle
-    call multipole_ele_to_ab (lord, param, use_ele_tilt, has_nonzero, this_a, this_b)
+    call multipole_ele_to_ab (lord, use_ele_tilt, has_nonzero, this_a, this_b)
     if (.not. has_nonzero) cycle
     if (has_nonzero_pole) then
       a = a + this_a * (ele%value(l$) / lord%value(l$))
@@ -164,12 +162,12 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 else
   if (.not. associated(ele%a_pole)) return
   if (ele%key == multipole$) then
-    knl  = ele%a_pole * (ele%orientation * param%rel_tracking_charge)
+    knl  = ele%a_pole
     tilt = ele%b_pole + ele%value(tilt_tot$)
     if (any(knl /= 0)) has_nonzero_pole = .true.
     return
   else
-    call multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
+    call multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
   endif
 endif
 
@@ -272,7 +270,7 @@ end subroutine multipole1_kt_to_ab
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 ! Note: The ab values will be scalled by the strength of the element.
@@ -283,7 +281,6 @@ end subroutine multipole1_kt_to_ab
 ! Input:
 !   ele          -- Ele_struct: Element.
 !     %value()     -- ab_multipole values.
-!   param        -- Lat param_struct:
 !   use_ele_tilt -- Logical: If True then include ele%value(tilt_tot$) in calculations.
 !                     use_ele_tilt is ignored in the case of multipole$ elements.
 !
@@ -293,12 +290,11 @@ end subroutine multipole1_kt_to_ab
 !   b(0:n_pole_maxx) -- Real(rp): Array of scalled multipole values.
 !-
 
-subroutine multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)
+subroutine multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)
 
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
 type (ele_struct), pointer :: lord
 
 real(rp) const, radius, factor, a(0:), b(0:)
@@ -309,7 +305,7 @@ integer i, ref_exp, n
 
 logical use_ele_tilt, has_nonzero_pole
 
-character(24), parameter :: r_name = 'multipole_ele_to_ab'
+character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
 ! Init
 
@@ -323,8 +319,6 @@ if (ele%key == multipole$) then
   if (all(ele%a_pole == 0)) return
   has_nonzero_pole = .true.
   call multipole_kt_to_ab (ele%a_pole, ele%b_pole, a, b)
-  a = a * (ele%orientation * param%rel_tracking_charge)
-  b = b * (ele%orientation * param%rel_tracking_charge)
   return
 endif
 
@@ -347,20 +341,6 @@ else
   call convert_this_ab (ele, a, b)
 endif
 
-! flip sign for electrons or antiprotons with a separator.
-
-if (ele%key == elseparator$) then
-  if (param%particle < 0) then
-    this_a = -this_a
-    this_b = -this_b
-  endif
-  a = a * param%rel_tracking_charge
-  b = b * param%rel_tracking_charge
-
-else
-  a = a * (ele%orientation * param%rel_tracking_charge)
-  b = b * (ele%orientation * param%rel_tracking_charge)
-endif
 
 !---------------------------------------------
 contains
@@ -531,7 +511,6 @@ end subroutine multipole_kicks
 !   coord -- Coord_struct:
 !     %vec(1)     -- X position.
 !     %vec(3)     -- Y position.
-!     %direction  -- Direction of travel
 !   ref_orb_offset -- Logical, optional: If present and n = 0 then the
 !                       multipole simulates a zero length bend with bending
 !                       angle knl.
@@ -583,10 +562,9 @@ endif
 ! ref_orb_offset with n = 0 means that we are simulating a zero length dipole.
 
 if (n == 0 .and. present(ref_orb_offset)) then
-  coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6) * coord%direction
-  coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6) * coord%direction
-  coord%vec(5) = coord%vec(5) - knl * &
-                  (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
+  coord%vec(2) = coord%vec(2) + knl * cos_ang * coord%vec(6)
+  coord%vec(4) = coord%vec(4) + knl * sin_ang * coord%vec(6)
+  coord%vec(5) = coord%vec(5) - knl * (cos_ang * coord%vec(1) + sin_ang * coord%vec(3))
   return
 endif
 
@@ -608,8 +586,8 @@ ENDIF
 x_value = SUM(cc(n,0:n:2) * x_terms(0:n:2) * y_terms(0:n:2))
 y_value = SUM(cc(n,1:n:2) * x_terms(1:n:2) * y_terms(1:n:2))
 
-x_vel = knl * x_value * coord%direction
-y_vel = knl * y_value * coord%direction
+x_vel = knl * x_value
+y_vel = knl * y_value
 
 if (tilt == 0) then
   coord%vec(2) = coord%vec(2) + x_vel
@@ -628,8 +606,7 @@ end subroutine multipole_kick
 ! Subroutine ab_multipole_kick (a, b, n, coord, kx, ky, dk)
 !
 ! Subroutine to put in the kick due to an ab_multipole.
-! Note: If coord%direction == -1 then kick is reversed
-
+!
 ! Modules Needed:
 !   use bmad
 !                          
@@ -677,14 +654,14 @@ y = coord%vec(3)
 
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + b * f * coord%direction
-  ky = ky - a * f * coord%direction
+  kx = kx + b * f
+  ky = ky - a * f
 enddo
 
 do m = 1, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + a * f * coord%direction
-  ky = ky + b * f * coord%direction
+  kx = kx + a * f
+  ky = ky + b * f
 enddo
 
 ! dk calc

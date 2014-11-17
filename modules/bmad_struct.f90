@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 142
+integer, parameter :: bmad_inc_version$ = 143
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -586,7 +586,7 @@ type ele_struct
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
   integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
-  integer field_calc             ! bmad_standard$, grid$, refer_to_lords$, or custom$
+  integer field_calc             ! bmad_standard$, no_field$, map$, grid$, refer_to_lords$, or custom$
   integer aperture_at            ! Aperture location: entrance_end$, ...
   integer aperture_type          ! rectangular$, elliptical$, auto_aperture$, ...
   integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
@@ -616,26 +616,28 @@ type control_struct
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
+! Note that backwards_time_tracking is put in the lat_param_struct rather than begin a global
+! for multithreaded applications.
 
 integer, parameter :: incoherent$ = 1, coherent$ = 2
 character(16), parameter :: photon_type_name(1:2) = ['Incoherent', 'Coherent  ']
 
 type lat_param_struct
-  real(rp) :: n_part = 0                     ! Particles/bunch (for BeamBeam elements).
-  real(rp) :: total_length = 0               ! total_length of branch
-  real(rp) :: unstable_factor = 0            ! growth rate/turn for closed branches. 
-                                             ! |orbit/limit| for open branches.
-  real(rp) :: t1_with_RF(6,6) = 0            ! Full 1-turn matrix with RF on.
-  real(rp) :: t1_no_RF(6,6) = 0              ! Full 1-turn matrix with RF off.
-  real(rp) :: rel_tracking_charge = 1        ! Tracked particle charge/mass relative to reference charge.
-  integer :: particle = positron$            ! Reference particle: positron$, electron$, etc.
-  integer :: geometry = 0                    ! open$ or closed$
-  integer :: ixx = 0                         ! Integer for general use
-  logical :: stable = .false.                ! is closed lat stable?
-  logical :: aperture_limit_on = .true.      ! use apertures in tracking?
-  logical :: reverse_time_tracking = .false. ! Internal variable. Do not set.  
+  real(rp) :: n_part = 0                       ! Particles/bunch (for BeamBeam elements).
+  real(rp) :: total_length = 0                 ! total_length of branch
+  real(rp) :: unstable_factor = 0              ! growth rate/turn for closed branches. 
+                                               ! |orbit/limit| for open branches.
+  real(rp) :: t1_with_RF(6,6) = 0              ! Full 1-turn matrix with RF on.
+  real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
+  real(rp) :: default_rel_tracking_charge = 1  ! Default particle charge/mass relative to reference charge.
+  integer :: particle = positron$              ! Reference particle: positron$, electron$, etc.
+  integer :: geometry = 0                      ! open$ or closed$
+  integer :: ixx = 0                           ! Integer for general use
+  logical :: stable = .false.                  ! is closed lat stable?
+  logical :: aperture_limit_on = .true.        ! use apertures in tracking?
+  logical :: backwards_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
-                                          ! Overall status for the branch.
+                                               ! Overall status for the branch.
 end type
 
 ! Structure for linking a branch_struct with a collection of ptc layouts
@@ -845,7 +847,7 @@ integer, parameter :: fb1$ = 14
 integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
-integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, rel_tracking_charge$ = 20
+integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_rel_tracking_charge$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21
@@ -1071,10 +1073,10 @@ character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map   
 ! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
 !   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
 
-integer, parameter :: grid$ = 2, map$ = 3, Refer_to_lords$ = 4
+integer, parameter :: grid$ = 2, map$ = 3, Refer_to_lords$ = 4, no_field$ = 5
 character(16), parameter :: field_calc_name(0:7) = &
     ['GARBAGE!       ', 'Bmad_Standard  ', 'Grid           ', 'Map            ', &
-     'Refer_to_Lords.', 'GARBAGE!       ', 'GARBAGE!       ', 'Custom         ']
+     'Refer_to_Lords.', 'No_Field       ', 'GARBAGE!       ', 'Custom         ']
 
 ! Crystal sub_key values.
 

@@ -583,6 +583,7 @@ real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
 
+integer direction
 logical :: local_ref_frame, err
 
 character(24), parameter :: r_name = 'kick_vector_calc'
@@ -594,10 +595,15 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 dt_ds_ref = 1 / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
+direction = ele%orientation * orbit%direction
 
 ! calculate the field
 
-call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
+if (direction == 1) then
+  call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
+else
+  call em_field_calc (ele, param, ele%value(l$)-s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
+endif
 if (err) return
 
 ! Bend factor
@@ -605,9 +611,9 @@ if (err) return
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 v2 = vel(1)**2 + vel(2)**2
 if (v2 > 1) return
-vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * ele%orientation]
-E_force = charge_of(param%particle) * param%rel_tracking_charge * field%E
-B_force = charge_of(param%particle) * param%rel_tracking_charge * cross_product(vel, field%B)
+vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * direction]
+E_force = charge_of(orbit%species) * field%E
+B_force = charge_of(orbit%species) * cross_product(vel, field%B)
 
 f_bend = 1
 gx_bend = 0; gy_bend = 0

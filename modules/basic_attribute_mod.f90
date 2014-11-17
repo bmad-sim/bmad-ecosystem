@@ -574,7 +574,7 @@ call init_attribute_name1 (beginning_ele$, z_beam_start$,                'Z_BEAM
 call init_attribute_name1 (beginning_ele$, pz_beam_start$,               'PZ_BEAM_START')
 call init_attribute_name1 (beginning_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (beginning_ele$, lattice_type$,                'LATTICE_TYPE') ! For backwards compatibility
-call init_attribute_name1 (beginning_ele$, rel_tracking_charge$,         'REL_TRACKING_CHARGE')
+call init_attribute_name1 (beginning_ele$, default_rel_tracking_charge$, 'DEFAULT_REL_TRACKING_CHARGE')
 
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
@@ -1262,11 +1262,16 @@ end function has_orientation_attributes
 !
 ! Routine to return the type of an attribute.
 !
-! A "switch" attribute is an attribute whose integer value corresponds to some string.
+! A "switch" attribute is an attribute whose value corresponds to some string.
 ! For example, the "COUPLER_AT" attirbute with value 1 corresponds to "ENTRANCE_END", etc. 
 !
-! If this is a switch attribute, switch_attrib_value_name can be used to print the 
-! name corresponding to the attribute's value.
+! If attrib_name corresponds to a switch attribute, The routine switch_attrib_value_name can 
+! be used to print the name corresponding to the attribute's value.
+!
+! Note: The "storage type" of an attribute is different from the "logical type" returned by
+! this routine. For example, the logical type of attribute "n_slice" is integer. However, the 
+! value of "n_slice" is stored as a real number in the ele_struct [in ele%value(n_slice$)]. 
+! Use the routine attribute_storage_type to determine an attributes storage type.
 !
 ! Modules needed:
 !   use bmad
