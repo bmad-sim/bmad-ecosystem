@@ -142,7 +142,7 @@ subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
 
 implicit none
 
-type (coord_struct) orbit(:)
+type (coord_struct) orbit(0:)
 integer n, n1, n2
 integer, optional :: ix_noset
 
