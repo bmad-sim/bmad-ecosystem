@@ -292,7 +292,7 @@ character(20), parameter :: r_name = 'twiss_and_track_at_s'
 i_branch = integer_option(0, ix_branch)
 branch => lat%branch(i_branch)
 
-ie_at_s = element_at_s (lat, s, .false., ix_branch, err_flag, s_use)
+ie_at_s = element_at_s (lat, s, .false., i_branch, err_flag, s_use)
 if (err_flag) then
   call out_io (s_error$, r_name, 'Bad S-position. Cannot compute Twiss parameters.')
   if (present(err)) err = .true. 
