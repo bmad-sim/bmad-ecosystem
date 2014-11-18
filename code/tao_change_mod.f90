@@ -254,7 +254,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     endif
   else
     do i = 1, nd
-      free(i) = attribute_free (eles(i)%ele, a_name, u%model%lat, .false.)
+      free(i) = attribute_free (eles(i)%ele, a_name, .false.)
     end do
   endif
 

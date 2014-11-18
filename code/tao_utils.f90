@@ -3517,7 +3517,7 @@ do j = 1, size(eles)
                       'FOR ELEMENT: ' // ele%name)
       return
     endif
-    if (.not. attribute_free (eles(j)%ele, attribute, u%model%lat, .false.)) then
+    if (.not. attribute_free (eles(j)%ele, attribute, .false.)) then
       if (.not. warn_given) then
         call out_io (s_info$, r_name, &
                   'Non-free attribute ' // attribute, &
