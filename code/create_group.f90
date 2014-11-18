@@ -165,9 +165,9 @@ do i = 1, n_control
 
   select case (ix_attrib)
   case (start_edge$, end_edge$, accordion_edge$, s_position$)
-    free = attribute_free (slave, 'L', lat, err_print_flag)
+    free = attribute_free (slave, 'L', err_print_flag)
   case default
-    free = attribute_free (slave, attribute_name(slave, ix_attrib), lat, err_print_flag)
+    free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag)
   end select
 
   if (.not. free) then

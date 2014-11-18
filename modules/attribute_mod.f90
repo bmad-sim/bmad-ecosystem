@@ -19,7 +19,7 @@ private check_this_attribute_free, print_error
 ! Overloaded function for:
 !   Function attribute_free1 (ix_ele, attrib_name, lat,
 !                                err_print_flag, except_overlay) result (free)
-!   Function attribute_free2 (ele, attrib_name, lat, 
+!   Function attribute_free2 (ele, attrib_name, 
 !                                err_print_flag, except_overlay) result (free)
 !   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, 
 !                                err_print_flag, except_overlay) result (free)
@@ -1118,12 +1118,12 @@ end function attribute_free1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_free2 (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+! Function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay) result (free)
 !
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ele, attrib_name, lat, err_print_flag, except_overlay) result (free)
+function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay) result (free)
 
 implicit none
 
@@ -1143,7 +1143,7 @@ do_print = logic_option (.true., err_print_flag)
 do_except_overlay = logic_option(.false., except_overlay)
 free = .false.
 
-call check_this_attribute_free (ele, attrib_name, lat, do_print, do_except_overlay, free, 0)
+call check_this_attribute_free (ele, attrib_name, ele%branch%lat, do_print, do_except_overlay, free, 0)
 
 end function attribute_free2
 

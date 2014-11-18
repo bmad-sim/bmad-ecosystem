@@ -588,7 +588,7 @@ r_ptr = r_ptr + delta * coef
 call set_flags_for_changed_attribute (ele, r_ptr)
 ! super_slave length can be varied by a group so don't check this.
 if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
-  err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), lat, .true.)
+  err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
 endif
 
 ! Pad check
@@ -1948,7 +1948,7 @@ do iv = 1, size(val_slave)
   if (.not. has_been_set(iv)) cycle
 
   a_name = attribute_name(slave, iv)
-  is_free = attribute_free (slave, a_name, lat, .true., .true.)
+  is_free = attribute_free (slave, a_name, .true., .true.)
   if (.not. is_free) then
     call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
          'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
