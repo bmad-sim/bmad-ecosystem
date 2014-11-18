@@ -63,7 +63,7 @@ if (ix == 0) then
   return
 endif
 
-if (.not. attribute_free (ele, string(1:ix-1), lat, err_print_flag)) return
+if (.not. attribute_free (ele, string(1:ix-1), err_print_flag)) return
 
 ! Evaluate and set.
 ! This essentially is a wrapper for the bmad_parser routine parser_set_attribute.

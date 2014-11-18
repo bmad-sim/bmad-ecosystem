@@ -669,7 +669,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
       if (y_lim_good .and. (j == y1_limit$ .or. j == y2_limit$)) cycle
-      if (.not. attribute_free (ele, attrib%name, lat, .false., .true.)) cycle
+      if (.not. attribute_free (ele, attrib%name, .false., .true.)) cycle
       if (attrib%name == 'DS_STEP' .and. val == bmad_com%default_ds_step) cycle
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
