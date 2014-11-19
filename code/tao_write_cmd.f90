@@ -39,13 +39,13 @@ character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(22) = [ &
+character(20) :: names(23) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
       'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ', &
-      'gif-l            ', 'ptc              ']
+      'gif-l            ', 'ptc              ', 'sad_lattice      ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2
@@ -425,15 +425,17 @@ case ('hard', 'hard-l')
 
 case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice')
 
-  select case (action)
-  case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
-  case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
-  case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
-  end select
-
-  if (file_name0 /= '') file_name0 = word(1)
+  if (word(1) == '') then
+    select case (action)
+    case ('mad_lattice');   file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+    case ('mad8_lattice');  file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
+    case ('madx_lattice');  file_name0 = 'lat_#.madX'; lat_type = 'MAD-X'
+    case ('opal_latice');   file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
+    case ('sad_lattice');   file_name0 = 'lat_#.sad';  lat_type = 'SAD'
+    end select
+  else
+    file_name0 = word(1)
+  endif
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
