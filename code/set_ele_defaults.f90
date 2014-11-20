@@ -135,6 +135,7 @@ case (multilayer_mirror$)
 
 case (multipole$, ab_multipole$)
   call multipole_init (ele, .true.)
+  ele%scale_multipoles = .false.
 
 case (patch$)
   ele%value(flexible$) = false$ 
@@ -163,6 +164,7 @@ case (rfcavity$)
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
+  ele%scale_multipoles = .false.
   call multipole_init (ele, .true.)
 
 case (sample$)

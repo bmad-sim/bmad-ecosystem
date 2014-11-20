@@ -28,12 +28,14 @@ implicit none
 type (coord_struct) :: start_orb, end_orb, start2_orb
 type (coord_struct) :: orb0
 type (lat_param_struct) :: param
-type (ele_struct) :: ele
+type (ele_struct), target :: ele
+type (taylor_struct), pointer :: taylor(:)
 real(rp) dtime_ref
+integer dir
 character(*), parameter :: r_name = 'track1_taylor'
 
 
-!
+! Err checking
 
 if (.not. associated(ele%taylor(1)%term)) then
   if (global_com%type_out) then
@@ -44,10 +46,24 @@ if (.not. associated(ele%taylor(1)%term)) then
   call ele_to_taylor(ele, param)
 endif
 
-if (abs(relative_tracking_charge(start_orb, param) - param%default_rel_tracking_charge) > 1e-10) then
-  call out_io (s_fatal$, r_name, 'DEFAULT_REL_TRACKING_CHARGE DOES NOT AGREE WITH CHARGE OF TRACKED PARTICLE', &
-                                 'FOR TRACKING OF ELEMENT: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
+!if (abs(relative_tracking_charge(start_orb, param) - param%default_rel_tracking_charge) > 1e-10) then
+!  call out_io (s_fatal$, r_name, 'DEFAULT_REL_TRACKING_CHARGE DOES NOT AGREE WITH CHARGE OF TRACKED PARTICLE', &
+!                                 'FOR TRACKING OF ELEMENT: ' // ele%name)
+!  if (global_com%exit_on_error) call err_exit
+!endif
+
+! If tracking backwards then need to invert the Taylor map
+
+if (start_orb%direction == 1) then
+  taylor => ele%taylor
+else
+  if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
+    call out_io (s_fatal$, r_name, 'CANNOT BACKWARDS TRACK WITH A TAYLOR MAP ELEMENTS WITH RF FIELDS: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  allocate (taylor(6))
+  call taylor_inverse (ele%taylor, taylor)
 endif
 
 ! If the Taylor map does not have the offsets included then do the appropriate
@@ -56,12 +72,23 @@ endif
 start2_orb = start_orb
 end_orb = start_orb
 
-if (ele%taylor_map_includes_offsets) then  ! simple case
-  call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
-
-else
+if (.not. ele%taylor_map_includes_offsets) then  ! simple case
   call offset_particle (ele, param, set$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
-  call track_taylor (end_orb%vec, ele%taylor, end_orb%vec)
+endif
+
+if (start_orb%direction == 1) then
+  call track_taylor (end_orb%vec, taylor, end_orb%vec)
+else
+  end_orb%vec(2) = -end_orb%vec(2)
+  end_orb%vec(4) = -end_orb%vec(4)
+  end_orb%vec(5) = -end_orb%vec(5)
+  call track_taylor (end_orb%vec, taylor, end_orb%vec)
+  end_orb%vec(2) = -end_orb%vec(2)
+  end_orb%vec(4) = -end_orb%vec(4)
+  end_orb%vec(5) = -end_orb%vec(5)
+endif
+
+if (.not. ele%taylor_map_includes_offsets) then  ! simple case
   call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_hvkicks = .false.)
 endif
 
@@ -79,5 +106,9 @@ else
   call convert_pc_to (ele%value(p0c$) * (1 + end_orb%vec(6)), end_orb%species, beta = end_orb%beta)
   end_orb%t = start2_orb%t + dtime_ref + start2_orb%vec(5) / (start2_orb%beta * c_light) - end_orb%vec(5) / (end_orb%beta * c_light)
 endif
+
+! Cleanup
+
+if (start_orb%direction /= 1) deallocate(taylor)
 
 end subroutine

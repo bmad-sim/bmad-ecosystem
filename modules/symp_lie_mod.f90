@@ -179,7 +179,7 @@ Case (wiggler$, undulator$)
   call update_wig_y_terms (err); if (err) return
   call update_wig_x_s_terms (err); if (err) return
 
-  ! Start correction for finite vector potential
+  ! Correction for finite vector potential at the entrance end
 
   call apply_wig_exp_int_ay(1, calculate_mat6)
 
@@ -241,7 +241,7 @@ Case (wiggler$, undulator$)
 
   enddo
 
-  ! End correction for finite vector potential
+  ! Correction for finite vector potential at exit end
 
   call update_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
@@ -804,13 +804,8 @@ enddo
 exp_kxx(1:n_hypr) = EXP(hypr_kxx(1:n_hypr))
 exp_kxx_inv(1:n_hypr) = 1.0/exp_kxx(1:n_hypr)
 
-! !DIR$ vector always
-! do j=1,n_trig
-!   cos_kxx(j) = COS(trig_kxx(j))
-!   sin_kxx(j) = SIN(trig_kxx(j))
-! enddo
-sin_kxx(1:n_trig) = SIN(trig_kxx(1:n_trig))
-cos_kxx(1:n_trig) = COS(trig_kxx(1:n_trig))
+sin_kxx(1:n_trig) = sin(trig_kxx(1:n_trig))
+cos_kxx(1:n_trig) = cos(trig_kxx(1:n_trig))
 
 n_hypr = 0
 n_trig = 0
@@ -836,6 +831,7 @@ enddo
 
 ! update s-terms
 spz_offset = s + z_offset
+if (orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
 
 ! !DIR$ vector always
