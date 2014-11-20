@@ -237,7 +237,7 @@ case ('"SBEND4@Runge_Kutta:dorb"');           tol = 'ABS 1e-7'
 case ('"SBEND4@Runge_Kutta:xmat"');           tol = 'ABS 1e-9'
 end select
 
-write (str_out, '(a, t35, a, t50, es12.4)') trim(str_out), tol, val
+write (str_out, '(a, t45, a, t58, es12.4)') trim(str_out), tol, val
 
 end function line_out
 
