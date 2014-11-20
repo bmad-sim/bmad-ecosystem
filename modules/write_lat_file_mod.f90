@@ -768,10 +768,10 @@ do ib = 0, ubound(lat%branch, 1)
           else
             write_term = .true.
           endif
-          if (write_term) write (line, '(2a, i1, 3a, 6i2, a)') &
+          if (write_term) write (line, '(2a, i0, 3a, 6i2, a)') &
                 trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%expn, '}'
         enddo
-        if (.not. unit_found) write (line, '(2a, i1, a, 6i2, a)') &
+        if (.not. unit_found) write (line, '(2a, i0, a, 6i2, a)') &
                 trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
     endif
@@ -1386,7 +1386,7 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
-integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match
+integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, n_name_warn_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer, parameter :: bound$ = custom_attribute1$, geo$ = custom_attribute2$
@@ -1398,7 +1398,7 @@ character(40), allocatable :: names(:)
 character(1000) line_out
 character(8) str
 character(*), parameter :: r_name = "write_lattice_in_foreign_format"
-character(2) continue_char, eol_char, comment_char
+character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, err
 logical init_needed, has_nonzero_pole
@@ -1430,14 +1430,17 @@ if (out_type == 'MAD-X' .or. out_type == 'OPAL-T') then
   comment_char = '//'
   continue_char = ''
   eol_char = ';'
+  separator_char = ','
 elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
   comment_char = '!'
   continue_char = ' &'
   eol_char = ''
+  separator_char = ','
 elseif (out_type == 'SAD') then
   comment_char = '!'
   continue_char = ''
   eol_char = ';'
+  separator_char = ''
 else
   call out_io (s_error$, r_name, 'BAD OUT_TYPE: ' // out_type)
   return
@@ -1462,9 +1465,9 @@ call out_io (s_info$, r_name, &
       '      Please use caution when using a translated lattice.')
 
 !-----------------------------------------------------------------------------
-! Translation is a two step process. First we create a new lattice called branch_out.
-! Then the information in branch_out is used to create the lattice file.
-! Transfer info to branch_out and make substitutions for sol_quad and wiggler elements, etc.
+! Translation is a two step process:
+!   1) Create a new lattice called lat_out making substitutions for sol_quad and wiggler elements, etc..
+!   2) Use lat_out to create the lattice file.
 
 lat_out = lat
 branch_out => lat_out%branch(branch%ix_branch)
@@ -1490,14 +1493,17 @@ do
   ele => branch_out%ele(ix_ele)
   val => ele%value
 
-  ! For SAD translation: Must create sol elements as needed. 
+  ! For SAD translation: Must create SAD sol elements as needed. 
   ! If there is a marker or patch element that can be used, convert it.
   ! Otherwise, insert a new element. 
-  ! null_ele is used to designate the sol element so as to not confuse things.
-  ! This works since there cannot be any null_eles in the lattice
+  ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
+  ! This works since there cannot be any actual null_eles in the lattice.
 
+  if (out_type /= 'SAD' .and. ele%key /= sad_mult$) then
+    call out_io (s_fatal$, r_name, 'NO TRANSLATION POSSIBLE FOR SAD_MULT ELEMENT: ' // ele%name)
+  endif
 
-  if (out_type == 'SAD' .and. ele%key /= marker$) then
+  if (out_type == 'SAD' .and. ele%value(l$) /= 0) then
     bs_field = 0
     if (ele_has (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
     ! Need a SAD sol element if the solenoid field has changed
@@ -1575,9 +1581,10 @@ do
     ele%name(j:j) = '_'
   enddo
 
-  if (ele%name /= orig_name .and. n_name_change_warn <= 40) then
-    call out_io (s_warn$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
-    if (n_name_change_warn == 40) call out_io (s_info$, r_name, &
+  n_name_warn_max = 10
+  if (ele%name /= orig_name .and. n_name_change_warn <= n_name_warn_max) then
+    call out_io (s_info$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
+    if (n_name_change_warn == n_name_warn_max) call out_io (s_info$, r_name, &
                            'Enough name change warnings. Will stop issuing them now.')
     n_name_change_warn = n_name_change_warn + 1
   endif
@@ -1647,12 +1654,13 @@ do
   ! If there is a multipole component then put multipole elements at half strength 
   ! just before and just after the element.
 
-  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$) then
+  if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. &
+                                  ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
     call multipole_ele_to_ab (ele, .true., has_nonzero_pole, ab_ele%a_pole, ab_ele%b_pole)
     if (has_nonzero_pole) then
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
-      deallocate (ele%a_pole, ele%b_pole)
+      if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
       write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch)
@@ -1775,7 +1783,7 @@ endif
 
 write (iu, '(3a)') comment_char, ' File generated by: write_lattice_in_foreign_format', trim(eol_char)
 write (iu, '(4a)') comment_char, ' Bmad Lattice File: ', trim(lat%input_file_name), trim(eol_char)
-write (iu, '(4a)') comment_char, ' Bmad Lattice: ', trim(lat%lattice), trim(eol_char)
+if (lat%lattice /= '') write (iu, '(4a)') comment_char, ' Bmad Lattice: ', trim(lat%lattice), trim(eol_char)
 write (iu, *)
 
 ! beam definition
@@ -1791,7 +1799,7 @@ case ('MAD-8', 'MAD-X', 'XSIF')
   write (iu, *)
 
 case ('SAD')
-  write (iu, '(a, es14.6)') 'MOMENTUM =',  ele%value(p0c$), trim(eol_char)
+  write (iu, '(a, es14.6, a)') 'MOMENTUM =',  ele%value(p0c$), trim(eol_char)
 
 end select
 
@@ -1859,7 +1867,7 @@ do ix_ele = ie1, ie2
 
     end select
 
-    call element_out(line_out)
+    call write_line(line_out)
     cycle
   endif
 
@@ -1873,16 +1881,16 @@ do ix_ele = ie1, ie2
       select case (ele%key)
 
       case (octupole$)
-        write (line_out, '(3a, es13.5)') 'OCT ' // trim(ele%name) // '= (l =', val(l$)
-        call value_to_line (line_out, val(k3$)*val(l$), 'k3', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'OCT ', trim(ele%name), ' = (l =', val(l$)
+        call value_to_line (line_out, val(k3$)*val(l$), 'k3', 'es13.5', 'R', .true., .false.)
 
       case (quadrupole$)
-        write (line_out, '(3a, es13.5)') 'QUAD ' // trim(ele%name) // '= (l =', val(l$)
-        call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'QUAD ', trim(ele%name), ' = (l =', val(l$)
+        call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .false.)
 
       case (sextupole$)
-        write (line_out, '(3a, es13.5)') 'SEXT ' // trim(ele%name) // '= (l =', val(l$)
-        call value_to_line (line_out, val(k2$)*val(l$), 'k2', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'SEXT ', trim(ele%name), ' = (l =', val(l$)
+        call value_to_line (line_out, val(k2$)*val(l$), 'k2', 'es13.5', 'R', .true., .false.)
 
       case default
         converted = .false.
@@ -1894,19 +1902,19 @@ do ix_ele = ie1, ie2
     if (.not. converted) then
 
       a_pole = 0; b_pole = 0
-      call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
+      if (ele%key /= null_ele$) call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       select case (ele%key)
 
       case (drift$, monitor$, instrument$, pipe$)
-        write (line_out, '(3a, es13.5)') 'DRIFT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'DRIFT ', trim(ele%name), ' = (L =', val(l$)
 
       case (ab_multipole$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
         call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       case (bend_sol_quad$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
         call multipole1_kt_to_ab (val(k1$)*val(l$), val(quad_tilt$), 1, a, b)
@@ -1917,109 +1925,119 @@ do ix_ele = ie1, ie2
                           'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
 
       case (ecollimator$)
-        write (line_out, '(3a, es13.5)') 'APERT ' // trim(ele%name) // '= ('
-        call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(y_offset$), 'DY', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(x1_limit$), 'AX', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(y1_limit$), 'AY', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'APERT ', trim(ele%name), ' = ('
+        call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(y_offset$), 'DY', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(x1_limit$), 'AX', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(y1_limit$), 'AY', 'es13.5', 'R', .true., .false.)
         
       case (rcollimator$)
-        write (line_out, '(3a, es13.5)') 'APERT ' // trim(ele%name) // '= ('
-        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'APERT ', trim(ele%name), ' = ('
+        call value_to_line (line_out, -val(x1_limit$), 'DX1', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, -val(y1_limit$), 'DY1', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, -val(x2_limit$), 'DX2', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, -val(y2_limit$), 'DY2', 'es13.5', 'R', .true., .false.)
 
       case (elseparator$)
         call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
-        write (line_out, '(3a, es13.5)') 'mult ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'mult ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
         call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (hkicker$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (vkicker$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (kicker$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
         call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (lcavity$)
-        write (line_out, '(3a, es13.5)') 'CAVI ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'CAVI ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'es13.5', 'R', .true., .false.)
 
       case (marker$)
-        write (line_out, '(3a, es13.5)') 'MARK ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'MARK ', trim(ele%name), ' = ('
+        if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
+          call value_to_line (line_out, ele%a%beta, 'BX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%b%beta, 'BY', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%a%alpha, 'AX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%b%alpha, 'AY', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%x%eta, 'PEX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%y%eta, 'PEY', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%x%etap, 'PEPX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, ele%y%etap, 'PEPY', 'es13.5', 'R', .true., .false.)
+        endif
 
       case (multipole$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
         call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
       case (null_ele$)
-        write (line_out, '(3a, es13.5)') 'SOL ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(bs_field$), 'BZ', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(geo$), 'GEO', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(bound$), 'BOUND', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'SOL ', trim(ele%name), ' = ('
+        call value_to_line (line_out, val(bs_field$), 'BZ', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(geo$), 'GEO', 'i0', 'I', .true., .false.)
+        call value_to_line (line_out, val(bound$), 'BOUND', 'i0', 'I', .true., .false.)
 
       case (octupole$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (patch$)
-        write (line_out, '(3a, es13.5)') 'COORD ' // trim(ele%name) // '= ('
+        write (line_out, '(3a, es13.5)') 'COORD ', trim(ele%name), ' = ('
 
       case (quadrupole$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (rfcavity$)
-        write (line_out, '(3a, es13.5)') 'CAVI ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'CAVI ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'es13.5', 'R', .true., .false.)
 
       case (sad_mult$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
 
       case (sbend$)
-        write (line_out, '(3a, es13.5)') 'BEND ' // trim(ele%name) // '= (L =', val(l$)
-        call value_to_line (line_out, val(angle$), 'ANGLE', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'es13.5', 'R', .true., .true.)
-        call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'es13.5', 'R', .true., .true.)
+        write (line_out, '(3a, es13.5)') 'BEND ', trim(ele%name), ' = (L =', val(l$)
+        call value_to_line (line_out, val(angle$), 'ANGLE', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'es13.5', 'R', .true., .false.)
 
       case (sextupole$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case (solenoid$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
 
       case (sol_quad$)
-        write (line_out, '(3a, es13.5)') 'MULT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
       case default
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
                'CONVERTING TO DRIFT')
-        write (line_out, '(3a, es13.5)') 'DRIFT ' // trim(ele%name) // '= (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'DRIFT ', trim(ele%name), ' = (L =', val(l$)
       end select
 
       if (line_out(1:4) == 'MULT') then
@@ -2032,25 +2050,32 @@ do ix_ele = ie1, ie2
 
         do i = 0, 21
           write (str, '(i0)') i
-          call value_to_line (line_out, b_pole(i)*factorial(i), 'K'//trim(str), 'es13.5', 'R', .true., .true.)
-          call value_to_line (line_out, a_pole(i)*factorial(i), 'KS'//trim(str), 'es13.5', 'R', .true., .true.)
+          call value_to_line (line_out, b_pole(i)*factorial(i), 'K'//trim(str), 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, a_pole(i)*factorial(i), 'SK'//trim(str), 'es13.5', 'R', .true., .false.)
         enddo
       endif
     endif
 
     ! misalignments
 
-    call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .true.)
-    call value_to_line (line_out, val(y_offset$), 'DY', 'es13.5', 'R', .true., .true.)
-    call value_to_line (line_out, val(z_offset$), 'DZ', 'es13.5', 'R', .true., .true.)
-    call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'es13.5', 'R', .true., .true.)
-    call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'es13.5', 'R', .true., .true.)
-    call value_to_line (line_out, -val(tilt$),    'ROTATE', 'es13.5', 'R', .true., .true.)
+    call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .false.)
+    call value_to_line (line_out, val(y_offset$), 'DY', 'es13.5', 'R', .true., .false.)
+    call value_to_line (line_out, val(z_offset$), 'DZ', 'es13.5', 'R', .true., .false.)
+
+    if (ele%key /= marker$) then
+      call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'es13.5', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'es13.5', 'R', .true., .false.)
+      if (ele%key == patch$) then
+        call value_to_line (line_out, -val(tilt$),    'CHI3', 'es13.5', 'R', .true., .false.)
+      else
+        call value_to_line (line_out, -val(tilt$),    'ROTATE', 'es13.5', 'R', .true., .false.)
+      endif
+    endif
 
     !
 
     line_out = trim(line_out) // ')'
-    call element_out(line_out)
+    call write_line(line_out)
     cycle
   endif
 
@@ -2290,9 +2315,9 @@ do ix_ele = ie1, ie2
 
     else
       do i = 0, 9
-        write (str, '(a, i1, a)') 'K', i, 'L'
+        write (str, '(a, i0, a)') 'K', i, 'L'
         call value_to_line (line_out, knl(i), str, 'es13.5', 'R')
-        write (str, '(a, i1)') 'T', i
+        write (str, '(a, i0)') 'T', i
         call value_to_line (line_out, tilts(i), str, 'es13.5', 'R')
       enddo
     endif
@@ -2325,7 +2350,7 @@ do ix_ele = ie1, ie2
 
   ! write element spec to file
 
-  call element_out(line_out)
+  call write_line(line_out)
 
 enddo
 
@@ -2347,7 +2372,11 @@ do n = ie1, ie2
     write (iu, *) comment_char, '---------------------------------', trim(eol_char)
     write (iu, *)
     i_line = i_line + 1
-    write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
+    if (out_type == 'SAD') then
+      write (line, '(a, i0, 2a)') 'LINE line_', i_line, ' = (', ele%name
+    else
+      write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
+    endif
     iout = 0
     init_needed = .false.
 
@@ -2356,11 +2385,11 @@ do n = ie1, ie2
     ix = len_trim(line) + len_trim(ele%name)
 
     if (ix > 75) then
-      write (iu, '(3a)') trim(line), ',', trim(continue_char)
+      write (iu, '(3a)') trim(line), trim(separator_char), trim(continue_char)
       iout = iout + 1
       line = '   ' // ele%name
     else
-      line = trim(line) // ', ' // ele%name
+      line = trim(line) // trim(separator_char) // ' ' // ele%name
     endif
   endif
 
@@ -2408,7 +2437,7 @@ if (out_type(1:3) == 'MAD') then
     call value_to_line (line_out, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'es12.4', 'R')
     call value_to_line (line_out, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'es12.4', 'R')
     call value_to_line (line_out, val(z_offset$), 'ds', 'es12.4', 'R')
-    call element_out (line_out)
+    call write_line (line_out)
 
   enddo
 
@@ -2416,10 +2445,11 @@ if (out_type(1:3) == 'MAD') then
 
 endif
 
-! Write twiss parameters for a linear lattice.
+! Write twiss parameters for a non-closed lattice.
 
 ele => branch_out%ele(ie1-1)
-if (branch_out%param%geometry /= closed$ .and. out_type /= 'OPAL-T') then
+if (branch_out%param%geometry == open$ .and. &
+                  (out_type == 'MAD-8' .or. out_type == 'MAD-X' .or. out_type == 'XSIF')) then
   write (iu, *)
   write (iu, *) comment_char, '---------------------------------', trim(eol_char)
   write (iu, *)
@@ -2435,16 +2465,26 @@ endif
 write (iu, *)
 write (iu, *) comment_char, '---------------------------------', trim(eol_char)
 write (iu, *)
-line = 'lat: line = (line_1'
+
+if (out_type == 'SAD') then
+  line = 'LINE LAT = (line_1'
+else
+  line = 'lat: line = (line_1'
+endif
+
 do i = 2, i_line
-  write (line, '(2a, i0)') trim(line), ', line_', i
+  write (line, '(3a, i0)') trim(line), trim(separator_char), ' line_', i
 enddo
+
 line = trim(line) // ')'
-write (iu, *) trim(line), trim(eol_char)
+call write_line (line)
+
 if (out_type == 'MAD-X') then
-  write (iu, *) 'use, period=lat;'
+  write (iu, '(a)') 'use, period = lat;'
+elseif (out_type == 'SAD') then
+  write (iu, '(a)') 'FFS USE LAT;'
 elseif (out_type /= 'OPAL-T') then
-  write (iu, *) 'use, lat'
+  write (iu, '(a)') 'use, lat'
 endif
 
 !
@@ -2478,32 +2518,43 @@ call deallocate_lat_pointers (lat_model)
 !------------------------------------------------------------------------
 contains
 
-subroutine element_out (line_out)
+subroutine write_line (line_out)
 
 implicit none
 
 character(*) line_out
-integer ix, ix1, ix2
-integer, parameter :: ix_min = 65, ix_max = 85
+integer ix, ix1, ix2, ix3
+integer, parameter :: ix_min = 70, ix_max = 90
 
-!
+! Prefer to breakup a line after a comma
 
 do
   if (len_trim(line_out) < ix_max) exit
-  ix1 = index(line_out(ix_min+1:), ',') + ix_min
-  ix2 = index(line_out(ix_min+1:), ' ') + ix_min
-  if (ix1 < ix2 .or. ix1 < ix_max) then
-    ix = ix1
+  ix1 = index(line_out(ix_min+1:), ',')
+  ix2 = index(line_out(ix_min+1:), '=')
+  ix3 = index(line_out(ix_min+1:), ' ')
+
+  if (ix1 /= 0 .and. ix1+ix_min < ix_max) then
+    ix = ix1 + ix_min
+  elseif (ix2 /= 0 .and. ix2+ix_min < ix_max) then
+    ix = ix2 + ix_min
+  elseif (ix3 /= 0 .and. ix3+ix_min < ix_max) then
+    ix = ix3 + ix_min
+  elseif (ix1 /= 0) then
+    ix = ix1 + ix_min
+  elseif (ix2 /= 0) then
+    ix = ix2 + ix_min
   else
-    ix = ix2
+    ix = ix3 + ix_min
   endif
+
   write (iu, '(2a)') line_out(:ix), trim(continue_char)
   line_out = '    ' // line_out(ix+1:)
 enddo
 
 write (iu, '(2a)') trim(line_out), trim(eol_char)
 
-end subroutine element_out
+end subroutine write_line
 
 end subroutine write_lattice_in_foreign_format
 
@@ -2531,7 +2582,7 @@ logical, optional :: ignore_if_zero, use_comma
 
 if (value == 0 .and. logic_option(.true., ignore_if_zero)) return
 
-if (logic_option(use_comma)) then
+if (logic_option(.true., use_comma)) then
   if (str == '') then
     line = trim(line) // ','
   else

@@ -408,8 +408,7 @@ case (quadrupole$, sol_quad$)
   ref_exp = 1
 
 case (wiggler$, undulator$)
-  const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / &
-                                                    (pi * this_ele%value(p0c$))
+  const = 2 * c_light * this_ele%value(b_max$) * this_ele%value(l_pole$) / (pi * this_ele%value(p0c$))
   ref_exp = 0
 
 case (solenoid$)
@@ -428,7 +427,7 @@ case (ab_multipole$, sad_mult$) ! multipoles do not scale
   return
 
 case default
-  call out_io (s_fatal$, r_name, 'ELEMENT NOT A AB_MULTIPOLE, QUAD, ETC. ' // this_ele%name)
+  call out_io (s_fatal$, r_name, 'CONFUSION! TRYING TO SCALE NON-SCALABLE ELEMENT: ' // this_ele%name)
   if (global_com%exit_on_error) call err_exit
 
 end select
