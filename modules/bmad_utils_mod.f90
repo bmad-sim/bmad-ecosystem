@@ -8,7 +8,7 @@ module bmad_utils_mod
 
 use basic_attribute_mod
 
-private pointer_to_ele1, pointer_to_ele2
+private pointer_to_ele1, pointer_to_ele2, does_this_ele_contain_the_next_edge 
 private pointer_to_branch_given_name, pointer_to_branch_given_ele
 
 !+
@@ -2516,70 +2516,14 @@ if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_
   do i = 1, track_ele%n_lord
     lord => pointer_to_lord(track_ele, i)
     if (lord%key == overlay$ .or. lord%key == group$) cycle
-    call does_this_ele_contain_the_next_edge (lord)
+    call does_this_ele_contain_the_next_edge (lord, track_ele, hard_ele, dir, hard_end, s_edge_track, s_edge_hard)
   enddo
 else
-  call does_this_ele_contain_the_next_edge (track_ele)
+  call does_this_ele_contain_the_next_edge (track_ele, track_ele, hard_ele, dir, hard_end, s_edge_track, s_edge_hard)
 endif
 
 !-------------------------------------------------------------------------
 contains 
-
-subroutine does_this_ele_contain_the_next_edge (this_ele)
-
-type (ele_struct), target :: this_ele
-real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off
-integer this_end
-
-! Remamber: element length can be less than zero.
-
-if (.not. element_has_fringe_fields (this_ele)) return
-
-s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
-s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
-s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
-
-s_hard_upstream   = min(s1, s2)
-s_hard_downstream = max(s1, s2)
-
-if (dir == 1) then
-  select case (this_ele%ixx)
-  case (upstream_end$)
-    s_this_edge = s_hard_upstream
-    this_end = first_track_edge$
-  case (inside$)
-    s_this_edge = s_hard_downstream
-    this_end = second_track_edge$
-  case (downstream_end$)
-    return
-  end select
-  if (s_this_edge > s_edge_track .and. .not. associated(hard_ele)) return
-
-else
-  select case (this_ele%ixx)
-  case (upstream_end$)
-    return
-  case (inside$)
-    s_this_edge = s_hard_upstream
-    this_end = second_track_edge$
-  case (downstream_end$)
-    s_this_edge = s_hard_downstream
-    this_end = first_track_edge$
-  end select
-  if (s_this_edge < s_edge_track .and. .not. associated(hard_ele)) return
-endif
-
-! This looks like the next hard edge
-
-hard_ele => this_ele
-hard_end = this_end
-s_edge_track = s_this_edge
-s_edge_hard = s_edge_track - s_off
-
-end subroutine does_this_ele_contain_the_next_edge
-
-!-------------------------------------------------------------------------
-! contains 
 
 subroutine init_this_ele (this_ele)
 
@@ -2654,6 +2598,68 @@ endif
 end subroutine init_this_ele
 
 end subroutine calc_next_fringe_edge
+
+!-------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+
+subroutine does_this_ele_contain_the_next_edge (this_ele, track_ele, hard_ele, dir, hard_end, s_edge_track, s_edge_hard)
+
+type (ele_struct), target :: this_ele, track_ele
+type (ele_struct), pointer :: hard_ele
+real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_track, s_edge_hard
+integer this_end, dir, hard_end
+
+! Remamber: element length can be less than zero.
+
+if (.not. element_has_fringe_fields (this_ele)) return
+
+s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
+s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
+s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+
+s_hard_upstream   = min(s1, s2)
+s_hard_downstream = max(s1, s2)
+
+if (dir == 1) then
+  select case (this_ele%ixx)
+  case (upstream_end$)
+    s_this_edge = s_hard_upstream
+    this_end = first_track_edge$
+  case (inside$)
+    s_this_edge = s_hard_downstream
+    this_end = second_track_edge$
+  case (downstream_end$)
+    return
+  case default
+    call err_exit
+  end select
+  if (s_this_edge > s_edge_track .and. .not. associated(hard_ele)) return
+
+else
+  select case (this_ele%ixx)
+  case (upstream_end$)
+    return
+  case (inside$)
+    s_this_edge = s_hard_upstream
+    this_end = second_track_edge$
+  case (downstream_end$)
+    s_this_edge = s_hard_downstream
+    this_end = first_track_edge$
+  case default
+    call err_exit
+  end select
+  if (s_this_edge < s_edge_track .and. .not. associated(hard_ele)) return
+endif
+
+! This looks like the next hard edge
+
+hard_ele => this_ele
+hard_end = this_end
+s_edge_track = s_this_edge
+s_edge_hard = s_edge_track - s_off
+
+end subroutine does_this_ele_contain_the_next_edge
+
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
