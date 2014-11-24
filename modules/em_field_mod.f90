@@ -165,9 +165,12 @@ end subroutine save_a_step
 !-----------------------------------------------------------
 !-----------------------------------------------------------
 !+
-! Subroutine em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
+! Subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
 !
 ! Subroutine to calculate the E and B fields for an element.
+!
+! s_pos is measured from the upstream edge of the element. For elements with ele%orientation = -1, s_pos
+! is measured from the element's exit end. However, the field is always referenced to the element coordinates.
 !
 ! Note: Zero field will be returned if an element is turned off.
 !
@@ -180,7 +183,7 @@ end subroutine save_a_step
 ! Input:
 !   ele    -- Ele_struct: Element
 !   param  -- lat_param_struct: Lattice parameters.
-!   s_rel  -- Real(rp): Longitudinal position relative to the start of the element.
+!   s_pos  -- Real(rp): Longitudinal position relative to the upstream edge of the element.
 !   time   -- Real(rp): Particle time.
 !                 For absolute time tracking this is the absolute time.
 !                 For relative time tracking this is relative to the reference particle entering the element.
@@ -188,7 +191,7 @@ end subroutine save_a_step
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame 
 !          -- Logical, If True then take the input coordinates and output fields 
-!                as being with respect to the frame of referene of the element. 
+!                as being with respect to the frame of referene of the element (no misalignments). 
 !   calc_dfield     
 !          -- Logical, optional: If present and True 
 !                then calculate the field derivatives.
@@ -198,7 +201,7 @@ end subroutine save_a_step
 !   err_flag    -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-recursive subroutine em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
+recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield, err_flag)
 
 implicit none
 
@@ -212,7 +215,7 @@ type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, s, t, xx, yy, time, s_rel, z,   f, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, y, s, t, xx, yy, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
@@ -247,6 +250,12 @@ endif
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
 
+if (ele%orientation == 1) then
+  s_rel = s_pos
+else
+  s_rel = ele%value(l$) - s_pos
+endif
+
 !----------------------------------------------------------------------------
 ! convert to local coords
 
@@ -268,7 +277,7 @@ if (ele%field_calc == refer_to_lords$) then
     local_ref = .true.
     if (ele%key == em_field$) local_ref = .false.
 
-    s = s_rel + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
+    s = s_pos + (ele%s - ele%value(l$)) - (lord%s - lord%value(l$))
     t = time
     if (.not. absolute_time_tracking(ele)) then
       t = t + ele%value(ref_time_start$) - lord%value(ref_time_start$) 
@@ -292,7 +301,7 @@ endif
 ! Custom field calc 
 
 if (ele%field_calc == custom$) then 
-  call em_field_custom (ele, param, s_rel, time, orbit, local_ref_frame, field, calc_dfield)
+  call em_field_custom (ele, param, s_pos, time, orbit, local_ref_frame, field, calc_dfield)
   return
 end if
 

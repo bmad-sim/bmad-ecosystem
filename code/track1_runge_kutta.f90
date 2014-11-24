@@ -52,12 +52,22 @@ beta0 = ele%value(p0c$) / ele%value(e_tot$)
 
 if (ele%key == patch$) then
   call track_a_patch (ele, start2_orb, .false., s0, ds_ref)
-  s0 = s0 * start2_orb%direction * ele%orientation
-  s1 = 0
-  start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
+  if (start2_orb%direction == 1) then
+    s0 = s0 * start2_orb%direction * ele%orientation
+    s1 = 0
+    start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s0) * start2_orb%beta / beta0 
+  else
+    s1 = s0 * start2_orb%direction * ele%orientation
+    s0 = 0
+    start2_orb%vec(5) = start2_orb%vec(5) + (ds_ref + s1) * start2_orb%beta / beta0 
+  endif
 else
   call offset_particle (ele, param, set$, start2_orb, set_hvkicks = .false., set_multipoles = .false.)
-  s0 = 0; s1 = ele%value(l$)
+  if (start2_orb%direction == 1) then
+    s0 = 0; s1 = ele%value(l$)
+  else
+    s0 = ele%value(l$); s1 = 0
+  endif
 endif
 
 ! Track.

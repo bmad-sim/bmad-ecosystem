@@ -983,12 +983,26 @@ type (em_field_struct) field
 
 real(rp) t, f, l_drift, ks, t_rel, s_edge, s
 
-integer particle_at, physical_end
+integer particle_at, physical_end, dir
 
-! 
+! The setting of hard_ele%ixx is used by calc_next_fringe_edge to calculate the next fringe location.
+
+if (particle_at == first_track_edge$) then
+  hard_ele%ixx = inside$
+else
+  dir = orb%direction
+  if (hard_ele%value(l$) < 0) dir = -dir
+  if (dir == 1) then
+    hard_ele%ixx = downstream_end$
+  else
+    hard_ele%ixx = upstream_end$
+  endif
+endif
 
 if (hard_ele%field_calc /= bmad_standard$) return
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
+
+!
 
 select case (hard_ele%key)
 case (quadrupole$)
@@ -2361,7 +2375,7 @@ else
     call mat_make_unit (ww)
   endif
   r_vec = r_vec + [v(x_offset$), v(y_offset$), v(z_offset$)]
-  ds0 = ww(1,3) * v(x_offset$) + ww(2,3) * v(y_offset$) + ww(3,3) * v(z_offset$) ! = ds0 with dir*orient = 1
+  ds0 = ww(1,3) * v(x_offset$) + ww(2,3) * v(y_offset$) + ww(3,3) * v(z_offset$)
 endif
 
 !

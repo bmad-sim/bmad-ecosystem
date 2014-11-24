@@ -137,12 +137,12 @@ do
   endif
 
   if (vec(5) == 0) then
-    photon%now%orb%location = entrance_end$
+    photon%now%orb%location = upstream_end$
     return
   endif
 
   if (vec(5) == ele%s) then
-    photon%now%orb%location = exit_end$
+    photon%now%orb%location = downstream_end$
     return
   endif
 

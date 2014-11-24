@@ -86,13 +86,13 @@ type (lat_param_struct) param
 type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2
-real(rp), parameter :: tiny = 1.0e-30_rp, ds_tiny = 1e-12_rp
+real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
 real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, position(6)
-real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect
+real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
 integer, parameter :: max_step = 10000
-integer :: n_step, direction, hard_end
+integer :: n_step, s_dir, hard_end
 
 logical local_ref_frame, err_flag, err, at_hard_edge, has_hit
 
@@ -106,8 +106,9 @@ character(*), parameter :: r_name = 'odeint_bmad'
 
 err_flag = .true.
 s = s1
-direction = sign(1.0_rp, s2-s1)
-ds_next = bmad_com%init_ds_adaptive_tracking * direction
+s_dir = sign(1.0_rp, s2-s1)
+ds_next = bmad_com%init_ds_adaptive_tracking * s_dir
+ds_tiny  = bmad_com%significant_length/100
 
 orb_end = orb_start
 orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
@@ -121,8 +122,7 @@ call reference_energy_correction (ele, orb_end)
 ! to apply the appropriate hard edge kick.
 ! calc_next_fringe_edge assumes that s = 0 is beginning of element which is not true of a patch element.
 
-nullify (hard_ele)
-call calc_next_fringe_edge (ele, direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+call calc_next_fringe_edge (ele, s_dir, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb_end)
 if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
@@ -148,17 +148,17 @@ do n_step = 1, max_step
 
   do
     if (.not. associated(hard_ele)) exit
-    if ((s-s_edge_track)*direction < -ds_tiny) exit
+    if ((s-s_edge_track)*s_dir < -ds_tiny) exit
     call apply_element_edge_kick (orb_end, s_edge_hard, t, hard_ele, ele, param, hard_end)
-    call calc_next_fringe_edge (ele, orb_end%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    call calc_next_fringe_edge (ele, s_dir, s_edge_track, hard_ele, s_edge_hard, hard_end)
     ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
     ! So offset s a very tiny amount to avoid this
-    s = s + ds_tiny * direction
+    s = s + ds_tiny * s_dir
   enddo
 
   ! Check if we are done.
 
-  if ((s-s2)*direction > -ds_tiny) then
+  if ((s-s2)*s_dir > -ds_tiny) then
     if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
     err_flag = .false.
     return
@@ -172,10 +172,10 @@ do n_step = 1, max_step
   ds = ds_next
   at_hard_edge = .false.
 
-  if ((s+ds-s_edge_track)*direction > 0.0) then
+  if ((s+ds-s_edge_track)*s_dir > 0.0) then
     at_hard_edge = .true.
     ds_save = ds
-    ds = s_edge_track - s - ds_tiny*direction / 2
+    ds = s_edge_track - s - ds_tiny*s_dir / 2
   endif
 
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
@@ -245,15 +245,15 @@ do n_step = 1, max_step
   ! been taken if no hard edge was present.
 
   if (at_hard_edge .and. abs(ds_next) >= abs(ds)) then
-    ds_next = max(abs(ds_save), abs(ds_next)) * direction
+    ds_next = max(abs(ds_save), abs(ds_next)) * s_dir
   endif
 
-  if ((s + ds_next - s2) * direction > 0) then
+  if ((s + ds_next - s2) * s_dir > 0) then
     ds_next = s2 - s
     at_hard_edge = .true.
   endif
 
-  if (abs(ds_next) <  bmad_com%min_ds_adaptive_tracking) ds_next = direction * bmad_com%min_ds_adaptive_tracking
+  if (abs(ds_next) <  bmad_com%min_ds_adaptive_tracking) ds_next = s_dir * bmad_com%min_ds_adaptive_tracking
 
   ! Check for step size smaller than minimum. If so we consider the particle lost
  
@@ -588,22 +588,19 @@ logical :: local_ref_frame, err
 
 character(24), parameter :: r_name = 'kick_vector_calc'
 
-!
+! Init
 
 err = .true.
 beta0 = ele%value(p0c$) / ele%value(e_tot$) 
-dt_ds_ref = 1 / (beta0 * c_light)
+dt_ds_ref = orbit%direction / (beta0 * c_light)
 p0 = ele%value(p0c$) / c_light
 e_tot = orbit%p0c * (1 + orbit%vec(6)) / orbit%beta
 direction = ele%orientation * orbit%direction
 
-! calculate the field
+! Calculate the field. 
+! Important: Field is in frame of element with +z in -s direction when ele%orientation = -1
 
-if (direction == 1) then
-  call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
-else
-  call em_field_calc (ele, param, ele%value(l$)-s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
-endif
+call em_field_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, field, .false., err)
 if (err) return
 
 ! Bend factor
@@ -628,10 +625,10 @@ if (ele%key == sbend$) then
   f_bend = 1 + orbit%vec(1) * gx_bend + orbit%vec(3) * gy_bend
 endif
 
-dt_ds = f_bend / abs(vel(3))
+dt_ds = orbit%direction * f_bend / abs(vel(3))
 dp_ds = dot_product(E_force, vel) * dt_ds / (orbit%beta * c_light)
 dbeta_ds = mass_of(orbit%species)**2 * dp_ds * c_light / e_tot**3
-pz_p0 = (1 + orbit%vec(6)) * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
+pz_p0 = (1 + orbit%vec(6)) * orbit%direction * abs(vel(3)) / (orbit%beta * c_light)  ! Pz / P0
 
 dr_ds(1) = vel(1) * dt_ds
 dr_ds(2) = (E_force(1) + B_force(1)) * dt_ds / p0 + gx_bend * pz_p0

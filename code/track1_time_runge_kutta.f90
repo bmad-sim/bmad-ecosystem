@@ -37,26 +37,19 @@ use track1_mod, dummy2 => track1_time_runge_kutta
 
 implicit none
 
-type hard_edge_struct
-   real(rp) :: s                          ! S position of next hard edge in track_ele frame.
-   real(rp) :: s_hard                     ! S-position of next hard edge in hard_ele frame
-   type (ele_struct), pointer :: hard_ele ! Points to element with the hard edge.               
-   integer  :: hard_end                   ! Integer: Describes hard edge.
-end type 
-
-
 type (coord_struct) :: start_orb, end_orb
 type (coord_struct) :: ele_origin
-type (lat_param_struct), target, intent(inout) :: param
-type (ele_struct), target, intent(inout) :: ele
+type (lat_param_struct), target :: param
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
-type (hard_edge_struct), allocatable :: edge(:)
 type (em_field_struct) :: saved_field
 
-real(rp)  dt_step, ref_time, vec6
-real(rp)   s_rel, time, s1, s2, del_s, p0c_save, s_save
+real(rp) dt_step, ref_time, vec6
+real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
+real(rp) s_edge_track, s_edge_hard
 
-integer :: i, n_edge
+integer :: i, hard_end
 
 character(30), parameter :: r_name = 'track1_time_runge_kutta'
 
@@ -104,19 +97,8 @@ end if
 
 dt_step = bmad_com%init_ds_adaptive_tracking / c_light
 
-! Get edge array of hard edges
-allocate( edge ( 2*max(ele%n_lord, 1) ) )
-nullify (edge(1)%hard_ele)
-n_edge = 0
-do i = 1, size(edge)
-  if (i > 1) edge(i)%hard_ele => edge(i-1)%hard_ele
-  call calc_next_fringe_edge (ele, +1, edge(i)%s, edge(i)%hard_ele, edge(i)%s_hard, edge(i)%hard_end) 
-  if (.not.  associated(edge(i)%hard_ele)) exit
-  n_edge = n_edge + 1
-enddo 
-
 !------
-!Convert particle to element coordinates
+! Convert particle to element coordinates
 ! Kicks and multipoles should be turned off in offset_particle
 
 ! Particle is moving forward towards the entrance
@@ -136,7 +118,6 @@ elseif (end_orb%direction == -1 .and. end_orb%location /= inside$) then
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
-
 endif
 
 ! ele(s-based) -> ele(t-based)
@@ -180,59 +161,8 @@ endif
 
 ! Track through element
 
-if (n_edge == 0) then
-  ! Track whole element with no hard edges
-  call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, &
-                                                  dt_step, local_ref_frame, err, track)
-  if (err) return
-
-! There are hard edges. Track between edges until final exit
-else 
-  do    
-    ! Bracket edges and kick if at edge
-    s1 = 0.0_rp
-    s2 = ele%value(l$)
-    do i = 1, n_edge
-      del_s = end_orb%vec(5) - edge(i)%s
-
-      if (abs(del_s) < bmad_com%significant_length) then
-        ! At an edge. Kick.         
-        ! Get s and ref_time
-        if (end_orb%direction == +1) then 
-           s1 = edge(i)%s
-           ref_time = edge(i)%hard_ele%ref_time - edge(i)%hard_ele%value(delta_ref_time$)
-        else 
-          s2 = edge(i)%s
-          ref_time = edge(i)%hard_ele%ref_time
-        end if
-        !Convert to s-coordinates for hard edge kick, kick, and convert back
-        call convert_particle_coordinates_t_to_s(end_orb, ref_time) 
-        call apply_element_edge_kick (end_orb, edge(i)%s_hard, time, edge(i)%hard_ele, ele, param, edge(i)%hard_end)
-        call convert_particle_coordinates_s_to_t(end_orb)
-        end_orb%vec(5) = edge(i)%s
-
-      elseif (del_s > 0) then
-        if (del_s < end_orb%vec(5) - s1) s1 = edge(i)%s  !new nearest left edge
-
-      else  ! Must be del_s < 0
-        if (del_s > end_orb%vec(5) - s2) s2 = edge(i)%s  !new nearest right edge
-      endif
-    enddo
-
-    if (abs(end_orb%vec(5) - ele%value(L$)) < bmad_com%significant_length .and. end_orb%vec(6) > 0) exit
-    if (abs(end_orb%vec(5) - 0.0_rp)        < bmad_com%significant_length .and. end_orb%vec(6) < 0) exit
-    if (end_orb%state /= alive$) exit
-    
-    ! Track
-    call odeint_bmad_time(end_orb, ele, param, s1, s2, time, dt_step, local_ref_frame, err, track)
-    if (err) return
-  
-  enddo
-endif   
-
-
-! Cleanup  
-deallocate (edge)
+call odeint_bmad_time(end_orb, ele, param, 0.0_rp, ele%value(l$), time, dt_step, local_ref_frame, err, track)
+if (err) return
 
 !------
 !Convert back to s-based coordinates

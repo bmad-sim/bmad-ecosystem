@@ -390,6 +390,8 @@ do i = 1, n_key$
   call init_attribute_name1 (i, offset_moves_aperture$,  'OFFSET_MOVES_APERTURE')
 
   if (i == match$) cycle
+  if (i == photon_fork$)   cycle
+  if (i == fork$)          cycle
 
   call init_attribute_name1 (i, x_offset$,      'X_OFFSET')
   call init_attribute_name1 (i, y_offset$,      'Y_OFFSET')
@@ -400,8 +402,6 @@ do i = 1, n_key$
 
   if (i == floor_shift$) cycle
   if (i == patch$)        cycle
-  if (i == photon_fork$)   cycle
-  if (i == fork$)          cycle
 
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
   call init_attribute_name1 (i, x_offset_tot$,  'X_OFFSET_TOT', dependent$)
