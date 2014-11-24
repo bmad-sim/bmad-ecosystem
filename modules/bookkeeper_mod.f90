@@ -317,7 +317,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! First make sure the attribute bookkeeping for this element is correct since
   ! the makeup_*_slave routines may need it.
 
-  if (ele%key /= overlay$ .and. ele%key /= group$) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+  call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
 
   ! Slave bookkeeping
 
@@ -2143,6 +2143,13 @@ logical :: dval_change(num_ele_attrib$)
 
 val => ele%value
 
+! Overlay and group elements do not have any dependent attributes
+
+if (ele%key == overlay$ .or. ele%key == group$) then
+  ele%bookkeeping_state%attributes = ok$
+  return
+endif
+
 ! Intelligent bookkeeping
 
 if (.not. bmad_com%auto_bookkeeper) then
@@ -2157,8 +2164,7 @@ if (.not. bmad_com%auto_bookkeeper) then
     call set_ele_status_stale (ele, s_position_group$)
   endif
 
-  if (ele%key /= overlay$ .and. ele%key /= group$ .and. &
-      ele%lord_status /= multipass_lord$) then
+  if (ele%lord_status /= multipass_lord$) then
     call set_ele_status_stale (ele, mat6_group$)
   endif
 
@@ -2639,7 +2645,6 @@ if (associated(ele%taylor(1)%term) .and. ele%taylor_map_includes_offsets .and. &
   if (associated(ele%branch) .and. ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
-      if (lord%key == overlay$ .or. lord%key == group$) cycle
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       lord%taylor_map_includes_offsets = .false.
     enddo
