@@ -289,7 +289,7 @@ contains
       do i=1,N
         do j=1,N
           if(comask(i,j) == 1) then
-            coeff_term = coeff_term * -1 * basis(i,j)
+            coeff_term = -coeff_term * basis(i,j)
           endif
         enddo
       enddo
