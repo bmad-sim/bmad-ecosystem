@@ -58,6 +58,14 @@ logical err, do_extra
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
+if (ele%tracking_method /= time_runge_kutta$) then
+  if (start2_orb%direction == 1) then
+    start2_orb%location = upstream_end$
+  else
+    start2_orb%location = downstream_end$
+  endif
+endif
+
 do_extra = .not. logic_option(.false., ignore_radiation)
 
 ! For historical reasons, the calling routine may not have correctly 
@@ -75,7 +83,6 @@ endif
 ! Photons get the z-coordinate reset to zero.
 
 if (start2_orb%species == photon$ .and. start2_orb%location == downstream_end$) then
-  start2_orb%state = upstream_end$
   start2_orb%vec(5) = 0
 endif
 
@@ -194,10 +201,12 @@ else
 endif
 
 if (tracking_method /= time_runge_kutta$) then
-  if (end_orb%state == alive$) then
-    end_orb%location = downstream_end$
-  else
+  if (end_orb%state /= alive$) then
     end_orb%location = inside$
+  elseif (start2_orb%direction == 1) then
+    start2_orb%location = downstream_end$
+  else
+    start2_orb%location = upstream_end$
   endif
 endif
 

@@ -688,8 +688,8 @@ n_sec = size(wall3d%section)
 ! If the particle is at a wall section, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
-! Case where particle is outside the wall region. 
-! In this case wrap if it is a chamber wall with a branch with closed geometry.
+! Case where the particle is outside the wall region. 
+! In this case, wrap if it is a chamber wall with a branch with closed geometry.
 ! Otherwise assume a constant cross-section.
 
 if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0)) then

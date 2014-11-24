@@ -68,7 +68,7 @@ The following helper routines are generally not useful for general use.
 
 \index[routine]{bend_edge_kick}
 \label{r:bend.edge.kick}
-\item[bend_edge_kick (orb, ele, param, particle_at, mat6, make_matrix)] \Newline 
+\item[bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)] \Newline 
 Subroutine to track through the edge field of an sbend.
 Reverse tracking starts with the particle just outside the bend and
 
@@ -800,6 +800,12 @@ elements with name ele_name.
 \label{r:pointer.to.branch}
 \item[pointer_to_branch] \Newline 
 Routine to return a pointer to a lattice branch.
+
+\index[routine]{pointer_to_next_ele}
+\label{r:pointer.to.next.ele}
+\item[pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)] \Newline 
+Function to return a pointer to the N\^th element relative to this_ele
+in the array of elements in a lattice branch.
 
 \index[routine]{pointer_to_ele}
 \label{r:pointer.to.ele}
@@ -1620,12 +1626,12 @@ Routine to convert ab type multipoles to kt (MAD standard) multipoles.
 
 \index[routine]{multipole_ele_to_ab}
 \label{r:multipole.ele.to.ab}
-\item[multipole_ele_to_ab (ele, param, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
+\item[multipole_ele_to_ab (ele, use_ele_tilt, has_nonzero_pole, a, b)] \Newline
 Routine to put the scaled element multipole components (normal and skew) into 2 vectors. 
 
 \index[routine]{multipole_ele_to_kt}
 \label{r:multipole.ele.to.kt}
-\item[multipole_ele_to_kt (ele, param, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
+\item[multipole_ele_to_kt (ele, use_ele_tilt, has_nonzero_pole, knl, tilt)] \Newline
 Routine to put the scaled element multipole components (strength and tilt) 
 into 2 vectors. 
 
@@ -1823,7 +1829,7 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout)] \Newline
+\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2811,11 +2817,6 @@ Routine to deallocate a Bmad Taylor map.
 \item[mat6_to_taylor (mat6, vec0, bmad_taylor)] \Newline
 Routine to form a first order Taylor map from the 6x6 transfer matrix 
 and the 0th order transfer vector. 
-
-\index[routine]{set_taylor_order}
-\label{r:set.taylor.order}
-\item[set_taylor_order (order, override_flag)] \Newline
-Routine to set the taylor order. 
 
 \index[routine]{sort_taylor_terms}
 \label{r:sort.taylor.terms}

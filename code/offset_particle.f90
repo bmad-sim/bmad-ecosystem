@@ -3,19 +3,21 @@
 !                               set_tilt, set_multipoles, set_hvkicks, set_z_offset, ds_pos)
 !
 ! Routine to transform a particles's coordinates between laboratory and element coordinates
-! at the entrance or exit ends of the element. Additionally, this routine will:
+! at the ends of the element. Additionally, this routine will:
 !   a) Apply the half kicks due to multipole and kick attributes.
 !   b) Add drift transform to the coordinates due to nonzero %value(z_offset_tot$).
 !
 ! set = set$:
 !    Transforms from lab to element coords. 
-!    Assumes the particle is at the upstream (-S) end of the element if coord%direction = +1. 
-!    Assumes the particle is at the downstream (+S) end of the elment if coord%direction = -1.
+!    Assumes the particle is at the upstream (-S) end of the element if dir = +1. 
+!    Assumes the particle is at the downstream (+S) end of the elment if dir = -1.
+!    dir = ele%orientation * coord%direction
 !
 ! set = unset$:
 !    Transforms from element to lab coords.
-!    Assumes the particle is at the downstream (+S) end of the element if coord%direction = +1.
-!    Assumes the particle is at the upstream (-S) end of the elment if coord%direction = -1.
+!    Assumes the particle is at the downstream (+S) end of the element if dir = +1.
+!    Assumes the particle is at the upstream (-S) end of the elment if dir = -1.
+!    dir = ele%orientation * coord%direction
 !
 ! Note: the assumption of where the particle is can be overridden by using the ds_pos argument.
 !
@@ -51,7 +53,7 @@
 !                    T -> Particle will be translated by ele%value(z_offset$) to propagate between the nominal
 !                           edge of the element and the true physical edge of the element.
 !                    F -> Do no translate. Used by save_a_step routine.
-!   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to entrance end. 
+!   ds_pos         -- Real(rp), optional: Longitudinal particle position relative to upstream end.
 !                    If not present then ds_pos = 0 is assumed when set = T and 
 !                    ds_pos = ele%value(l$) when set = F.
 !                                               
@@ -75,7 +77,7 @@ type (coord_struct), intent(inout) :: coord
 
 real(rp), optional, intent(in) :: ds_pos
 real(rp) E_rel, knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dx
-real(rp) angle, z_here, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
+real(rp) angle, z_rel_center, xp, yp, x_off, y_off, z_off, off(3), m_trans(3,3)
 real(rp) cos_a, sin_a, cos_t, sin_t, beta, charge_dir, dz, pvec(3), cos_r, sin_r
 real(rp) rot(3), dr(3), rel_tracking_charge, rtc
 
@@ -125,10 +127,11 @@ if (set) then
 
   if (has_orientation_attributes(ele)) then
 
+    ! z_rel_center is position relative to center.
     if (present(ds_pos)) then
-      z_here = sign_z_vel * (ds_pos - ele%value(l$)/2)   ! position relative to center.
+      z_rel_center = sign_z_vel * (ds_pos - ele%value(l$)/2)   
     else
-      z_here = -sign_z_vel * ele%value(l$) / 2
+      z_rel_center = -sign_z_vel * ele%value(l$) / 2
     endif
 
     x_off = ele%value(x_offset_tot$)
@@ -144,7 +147,7 @@ if (set) then
       ! whole bend except with half the bending angle.
 
       if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-        angle = ele%value(g$) * z_here  ! Notice that this is generally negative
+        angle = ele%value(g$) * z_rel_center  ! Notice that this is generally negative
         cos_a = cos(angle); sin_a = sin(angle)
         dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
 
@@ -186,11 +189,11 @@ if (set) then
           coord%vec(5) = coord%vec(5) - sign_z_vel*z_off  ! Correction due to reference particle is also offset.
         endif
 
-        coord%vec(1) = coord%vec(1) - x_off - xp * z_here
+        coord%vec(1) = coord%vec(1) - x_off - xp * z_rel_center
         coord%vec(2) = coord%vec(2) - sign_z_vel * xp * E_rel
-        coord%vec(3) = coord%vec(3) - y_off - yp * z_here
+        coord%vec(3) = coord%vec(3) - y_off - yp * z_rel_center
         coord%vec(4) = coord%vec(4) - sign_z_vel * yp * E_rel
-        dz = sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
+        dz = sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_rel_center / 2)
         coord%vec(5) = coord%vec(5) + dz
         coord%t = coord%t - dz / (coord%beta * c_light) 
       endif
@@ -230,7 +233,7 @@ if (set) then
     endif
 
     if (ele%key == sbend$ .and. ele%value(roll_tot$) /= 0) then
-      angle = -ele%value(g$) * z_here
+      angle = -ele%value(g$) * z_rel_center
       off = [coord%vec(1), coord%vec(3), 0.0_rp]
 
       sin_r = sin(ele%value(roll$)); cos_r = cos(ele%value(roll$))
@@ -371,9 +374,9 @@ else
     ! whole bend except with half the bending angle.
 
     if (present(ds_pos)) then
-      z_here = sign_z_vel * (ds_pos - ele%value(l$)/2)  ! position relative to center.
+      z_rel_center = sign_z_vel * (ds_pos - ele%value(l$)/2)  ! position relative to center.
     else
-      z_here = sign_z_vel * ele%value(l$) / 2
+      z_rel_center = sign_z_vel * ele%value(l$) / 2
     endif
 
     x_off = ele%value(x_offset_tot$)
@@ -385,7 +388,7 @@ else
     if (x_off /= 0 .or. y_off /= 0 .or. z_off /= 0 .or. xp /= 0 .or. yp /= 0) then
 
       if (ele%key == sbend$ .and. ele%value(g$) /= 0) then
-        angle = ele%value(g$) * z_here 
+        angle = ele%value(g$) * z_rel_center 
         cos_a = cos(angle); sin_a = sin(angle)
         dr = [2 * sin(angle/2)**2 / ele%value(g$), 0.0_rp, sin_a / ele%value(g$)]
 
@@ -417,12 +420,12 @@ else
       ! Else not a bend
 
       else
-        dz = -sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_here / 2)
+        dz = -sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_rel_center / 2)
         coord%t = coord%t - dz / (coord%beta * c_light) 
         coord%vec(5) = coord%vec(5) + dz
-        coord%vec(1) = coord%vec(1) + x_off + xp * z_here
+        coord%vec(1) = coord%vec(1) + x_off + xp * z_rel_center
         coord%vec(2) = coord%vec(2) + sign_z_vel * xp * E_rel
-        coord%vec(3) = coord%vec(3) + y_off + yp * z_here
+        coord%vec(3) = coord%vec(3) + y_off + yp * z_rel_center
         coord%vec(4) = coord%vec(4) + sign_z_vel * yp * E_rel
       endif
 

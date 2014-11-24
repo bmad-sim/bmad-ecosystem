@@ -2440,7 +2440,7 @@ end function element_has_fringe_fields
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+! Subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end, init_needed, orbit)
 !
 ! Routine to locate the next "hard edge" in an element when a hard edge model is being used. 
 ! This routine is used by integration tracking routines like Runge-Kutta.
@@ -2455,7 +2455,8 @@ end function element_has_fringe_fields
 ! Input:
 !   track_ele       -- ele_struct: Element being tracked through.
 !   track_direction -- integer: +1 -> +s direction, -1 -> -s direction.
-!   hard_ele        -- ele_struct, pointer: Needs to be nullified at the start of tracking.
+!   init_needed     -- logical, optional: If present and True then initialize.
+!   orbit           -- coord_struct, optional: Used for initialization. Must be present if init_needed = True.
 !
 ! Output:
 !   s_edge_track -- Real(rp): S position of next hard edge in track_ele frame.
@@ -2467,37 +2468,48 @@ end function element_has_fringe_fields
 !   hard_end     -- Integer: Describes hard edge. Set to first_track_edge$ or second_track_edge$
 !-
 
-subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end, init_needed, orbit)
 
 implicit none
 
 type (ele_struct), target :: track_ele
 type (ele_struct), pointer :: hard_ele, lord
+type (coord_struct), optional :: orbit
 
 real(rp) s_edge_track, s_edge_hard
-integer hard_end, track_direction
-integer i
+integer i, hard_end, dir, track_direction
+logical, optional :: init_needed
+
+character(*), parameter :: r_name = 'calc_next_finge_edge'
 
 ! Init if needed.
-! Keep track of things by setting: 
-!   ele%ixx = 0  ! Init setting
-!   ele%ixx = 1  ! About to track through entrance hard edge
-!   ele%ixx = 2  ! About to track through exit hard edge
+! Keep track of where particle is with respect to element edge using ele%ixx = upsteam_end$, downstream_end$, inside$
+! upsteam_end$ means outside element on the upsteam side, downsteam_end$ manes outside element on the downstream side.
+! The routine apply_element_edge_kick will modify ele%ixx as appropriate when the particle is tracked through an edge.
 
-if (.not. associated(hard_ele)) then
+dir = track_direction
+if (track_ele%value(l$) < 0) dir = -dir
+
+if (logic_option(.false., init_needed)) then
+  nullify(hard_ele)
   if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
     do i = 1, track_ele%n_lord
       lord => pointer_to_lord(track_ele, i)
-      lord%ixx = 0
+      call init_this_ele (lord)
     enddo
   else
-    track_ele%ixx = 0
+    call init_this_ele (track_ele)
   endif
 endif
 
 ! Find next hard edge. 
 
-s_edge_track = track_ele%value(l$)
+if (dir == 1) then
+  s_edge_track = track_ele%value(l$)
+else
+  s_edge_track = 0
+endif
+
 nullify (hard_ele)
 
 if (track_ele%slave_status == super_slave$ .or. track_ele%slave_status == slice_slave$) then
@@ -2510,53 +2522,52 @@ else
   call does_this_ele_contain_the_next_edge (track_ele)
 endif
 
-if (associated (hard_ele)) hard_ele%ixx = hard_ele%ixx + 1
-
 !-------------------------------------------------------------------------
 contains 
 
 subroutine does_this_ele_contain_the_next_edge (this_ele)
 
 type (ele_struct), target :: this_ele
-real(rp) s_this_edge, s_hard_upstream, s_hard_downstream, s_off
-integer this_end, dir
+real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off
+integer this_end
 
-!
+! Remamber: element length can be less than zero.
 
 if (.not. element_has_fringe_fields (this_ele)) return
-if (this_ele%ixx == 2) return
-
-dir = track_direction
-if (track_ele%value(l$) < 0) dir = -dir
 
 s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
-s_hard_upstream   = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
-s_hard_downstream = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
+s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
 
-if (dir * s_hard_upstream   < -dir * bmad_com%significant_length .and. &
-    dir * s_hard_downstream < -dir * bmad_com%significant_length) return
+s_hard_upstream   = min(s1, s2)
+s_hard_downstream = max(s1, s2)
 
-if (dir * s_hard_upstream   > dir * (track_ele%value(l$) + bmad_com%significant_length) .and. &
-    dir * s_hard_downstream > dir * (track_ele%value(l$) + bmad_com%significant_length)) return
+if (dir == 1) then
+  select case (this_ele%ixx)
+  case (upstream_end$)
+    s_this_edge = s_hard_upstream
+    this_end = first_track_edge$
+  case (inside$)
+    s_this_edge = s_hard_downstream
+    this_end = second_track_edge$
+  case (downstream_end$)
+    return
+  end select
+  if (s_this_edge > s_edge_track) return
 
-if (this_ele%ixx == 0) then
-  this_end = first_track_edge$
-  if (dir == 1) then
-    s_this_edge = max(0.0_rp, s_hard_upstream)
-  else
-    s_this_edge = min(track_ele%value(l$), s_hard_downstream)
-  endif
-
-else   ! this_ele%ixx = 1
-  this_end = second_track_edge$
-  if (dir == 1) then
-    s_this_edge = min(track_ele%value(l$), s_hard_downstream)
-  else
-    s_this_edge = max(0.0_rp, s_hard_upstream)
-  endif
+else
+  select case (this_ele%ixx)
+  case (upstream_end$)
+    return
+  case (inside$)
+    s_this_edge = s_hard_upstream
+    this_end = second_track_edge$
+  case (downstream_end$)
+    s_this_edge = s_hard_downstream
+    this_end = first_track_edge$
+  end select
+  if (s_this_edge < s_edge_track) return
 endif
-
-if (dir * s_this_edge > dir * s_edge_track) return
 
 ! This looks like the next hard edge
 
@@ -2566,6 +2577,81 @@ s_edge_track = s_this_edge
 s_edge_hard = s_edge_track - s_off
 
 end subroutine does_this_ele_contain_the_next_edge
+
+!-------------------------------------------------------------------------
+! contains 
+
+subroutine init_this_ele (this_ele)
+
+type (ele_struct) this_ele
+real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, ds_small, s_orb
+
+!
+
+if (.not. element_has_fringe_fields (this_ele)) return
+
+s_off = (this_ele%s - this_ele%value(l$)) - (track_ele%s - track_ele%value(l$))
+s1 = s_off + (this_ele%value(l$) - hard_edge_model_length(this_ele)) / 2 
+s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2 
+
+s_hard_upstream   = min(s1, s2)
+s_hard_downstream = max(s1, s2)
+
+s_orb = orbit%s - (track_ele%s - track_ele%value(l$)) - track_ele%value(z_offset_tot$)
+ds_small = bmad_com%significant_length
+
+if (dir == 1) then
+  if (orbit%location == upstream_end$) then
+    if (s_hard_upstream > s_orb - ds_small) then
+      this_ele%ixx = upstream_end$
+    elseif (s_hard_downstream > s_orb) then
+      this_ele%ixx = inside$
+    else
+      this_ele%ixx = downstream_end$
+    endif
+
+  elseif (orbit%location == inside$) then
+    if (s_hard_upstream > s_orb + ds_small) then
+      this_ele%ixx = upstream_end$
+    elseif (s_hard_downstream > s_orb) then
+      this_ele%ixx = inside$
+    else
+      this_ele%ixx = downstream_end$
+    endif
+
+  else
+    call out_io (s_fatal$, r_name, 'CONFUSED FORWARD DIRECTION INITIALIZATION!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
+else  ! dir = -1
+  if (orbit%location == downstream_end$) then
+    if (s_hard_downstream < s_orb + ds_small) then
+      this_ele%ixx = downstream_end$
+    elseif (s_hard_upstream < s_orb) then
+      this_ele%ixx = inside$
+    else
+      this_ele%ixx = upstream_end$
+    endif
+
+  elseif (orbit%location == inside$) then
+    if (s_hard_downstream < s_orb - ds_small) then
+      this_ele%ixx = downstream_end$
+    elseif (s_hard_downstream < s_orb) then
+      this_ele%ixx = inside$
+    else
+      this_ele%ixx = upstream_end$
+    endif
+
+  else
+    call out_io (s_fatal$, r_name, 'CONFUSED REVERSE DIRECTION INITIALIZATION!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+endif
+
+end subroutine init_this_ele
 
 end subroutine calc_next_fringe_edge
 

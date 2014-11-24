@@ -94,8 +94,7 @@ endif
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
 
-nullify (hard_ele)
-call calc_next_fringe_edge (ele, orb_start%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+call calc_next_fringe_edge (ele, orb_start%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb_start)
 
 call compute_even_steps (ele%value(ds_step$), s2-s1, bmad_com%default_ds_step, ds, n_step)
 
