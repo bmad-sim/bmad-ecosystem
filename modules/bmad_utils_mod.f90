@@ -2553,7 +2553,7 @@ if (dir == 1) then
   case (downstream_end$)
     return
   end select
-  if (s_this_edge > s_edge_track) return
+  if (s_this_edge > s_edge_track .and. .not. associated(hard_ele)) return
 
 else
   select case (this_ele%ixx)
@@ -2566,7 +2566,7 @@ else
     s_this_edge = s_hard_downstream
     this_end = first_track_edge$
   end select
-  if (s_this_edge < s_edge_track) return
+  if (s_this_edge < s_edge_track .and. .not. associated(hard_ele)) return
 endif
 
 ! This looks like the next hard edge
