@@ -236,6 +236,7 @@ do
 
     if (orb%direction /= old_direction) then
       call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+      old_direction = orb%direction
     endif
 
   end do
