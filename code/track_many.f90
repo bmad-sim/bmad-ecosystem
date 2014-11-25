@@ -188,7 +188,7 @@ do n = ix1, ix2, -1
 
   ! check for lost particles
 
-  if (.not. particle_is_moving_forward(orbit(n-1)) .or. err) then
+  if (.not. particle_is_moving_backwards(orbit(n-1)) .or. err) then
     track_end_state = n
     if (present(track_state)) track_state = n
 
