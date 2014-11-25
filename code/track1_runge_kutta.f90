@@ -75,7 +75,6 @@ endif
 call odeint_bmad (start2_orb, ele, param, end_orb, s0, s1, .true., err_flag, track)
 if (err_flag) return
 
-end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 
 ! convert to lab coords.
