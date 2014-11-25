@@ -38,8 +38,9 @@ use basic_bmad_interface
 !   orb_in       -- Coord_struct: Input orbit.
 !   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
 !   ele          -- ele_struct, optional: Particle is initialized to start from the entrance end of ele
-!   element_end  -- integer, optional: upstream_end$, downstream_end$, or inside$.
+!   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
 !                     Must be present if ele argument is present.
+!                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.
 !                     Default is upstream_end$.
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
 !                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
@@ -961,6 +962,13 @@ endif
 ! Set location and species
 
 orb2%location = integer_option(upstream_end$, element_end)
+if (orb2%location == start_end$) then
+  if (orb2%direction == 1) then
+    orb2%location = upstream_end$
+  else
+    orb2%location = downstream_end$
+  endif
+endif
 
 orb2%species = integer_option(not_set$, particle)
 

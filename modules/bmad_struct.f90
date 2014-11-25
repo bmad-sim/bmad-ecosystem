@@ -97,7 +97,7 @@ character(16), parameter :: end_at_name(0:4) = [ &
       'No_End       ']
 
 integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
-integer, parameter :: inside$ = 3, center_pt$ = 3
+integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 character(16), parameter :: ref_pt_name(0:3) = [ &
       'GARBAGE!      ', 'Entrance_End  ', 'Exit_End      ', 'Center        ']

@@ -82,10 +82,12 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
 use eigen_mod
+use reverse_mod
 
 implicit none
 
-type (lat_struct), target ::  lat
+type (lat_struct), target ::  lat, rev_lat
+type (lat_struct), pointer :: this_lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
 type (coord_struct)  del_co, del_orb
@@ -110,8 +112,21 @@ character(20) :: r_name = 'closed_orbit_calc'
 ! init
 ! Random fluctuations must be turned off to find the closed orbit.
 
+dir = integer_option(+1, direction)
+if (dir /= 1 .and. dir /= -1) then
+  call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
+  return
+endif
+
+if (dir == 1) then
+  this_lat => lat
+else
+  call lat_reverse(lat, rev_lat)
+  this_lat => rev_lat
+endif  
+
 if (present(err_flag)) err_flag = .true.
-branch => lat%branch(integer_option(0, ix_branch))
+branch => this_lat%branch(integer_option(0, ix_branch))
 
 call reallocate_coord (closed_orb, branch%n_ele_max)  ! allocate if needed
 
@@ -121,21 +136,11 @@ bmad_com%radiation_fluctuations_on = .false.
 aperture_saved = branch%param%aperture_limit_on
 branch%param%aperture_limit_on = .false.
 
-dir = integer_option(+1, direction)
 n_ele = branch%n_ele_track
 
-if (dir == +1) then
-  start => closed_orb(0)
-  end   => closed_orb(n_ele)
-  ele_start => branch%ele(0)
-else if (dir == -1) then
-  start => closed_orb(n_ele)
-  end   => closed_orb(0)
-  ele_start => branch%ele(n_ele)
-else
-  call out_io (s_error$, r_name, 'BAD DIRECTION ARGUMENT.')
-  return
-endif
+start => closed_orb(0)
+end   => closed_orb(n_ele)
+ele_start => branch%ele(0)
 
 !----------------------------------------------------------------------
 ! Further init
@@ -162,15 +167,15 @@ case (4, 5)
   bmad_com%radiation_damping_on = .false.  ! Want constant energy
 
   if (all(branch%param%t1_no_RF == 0)) &
-              call transfer_matrix_calc (lat, .false., lat%param%t1_no_RF, ix_branch = branch%ix_branch)
+              call transfer_matrix_calc (this_lat, .false., branch%param%t1_no_RF, ix_branch = branch%ix_branch)
   t1 = branch%param%t1_no_RF
   start%vec(5) = 0
 
   ! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
 
   branch%ele%bmad_logic = branch%ele%old_is_on
-  call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
-  call set_on_off (rfcavity$, lat, off$, ix_branch = branch%ix_branch)
+  call set_on_off (rfcavity$, this_lat, save_state$, ix_branch = branch%ix_branch)
+  call set_on_off (rfcavity$, this_lat, off$, ix_branch = branch%ix_branch)
 
   call make_t11_inv (err)
   if (err) then
@@ -194,7 +199,7 @@ case (4, 5)
 
 case (6)
   if (all(branch%param%t1_with_RF == 0)) &
-              call transfer_matrix_calc (lat, .true., lat%param%t1_with_RF, ix_branch = branch%ix_branch)
+              call transfer_matrix_calc (this_lat, .true., branch%param%t1_with_RF, ix_branch = branch%ix_branch)
   t1 = branch%param%t1_with_RF
 
   if (t1(6,5) == 0) then
@@ -235,14 +240,11 @@ end select
 
 amp_del_old = 1e20  ! something large
 i_max = 100  
+call init_coord (start, start, ele_start, start_end$, start%species)
 
 do i_loop = 1, i_max
 
-  if (dir == +1) then
-    call track_all (lat, closed_orb, branch%ix_branch, track_state)
-  else
-    call track_many (lat, closed_orb, n_ele, 0, -1, branch%ix_branch, track_state)
-  endif
+  call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
 
   if (i_loop == i_max .or. track_state /= moving_forward$) then
     if (global_com%type_out) then
@@ -292,11 +294,11 @@ do i_loop = 1, i_max
 
   if (amp_del < amp_del_old/2 .and. modulo(i_loop, 10) /= 0) then
     start%vec(1:nc) = start%vec(1:nc) + del_co%vec(1:nc)
-    call init_coord (start, start, ele_start, upstream_end$)
+    call init_coord (start, start, ele_start, start_end$, start%species)
     amp_del_old = amp_del
   else  ! not converging so remake t11_inv matrix
-    call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
-    call transfer_matrix_calc (lat, .true., t1, ix_branch = branch%ix_branch)
+    call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
+    call transfer_matrix_calc (this_lat, .true., t1, ix_branch = branch%ix_branch)
     call make_t11_inv (err)
     if (err) then
       call end_cleanup
@@ -346,13 +348,17 @@ contains
 subroutine end_cleanup
 
 if (nt == 4 .or. nt == 5) then
-  call set_on_off (rfcavity$, lat, restore_state$, ix_branch = branch%ix_branch)
+  call set_on_off (rfcavity$, this_lat, restore_state$, ix_branch = branch%ix_branch)
   branch%ele%old_is_on = branch%ele%bmad_logic
   bmad_com%radiation_damping_on = damp_saved   ! restore state
 endif
 
 bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-lat%param%aperture_limit_on = aperture_saved
+branch%param%aperture_limit_on = aperture_saved
+
+if (dir == -1) then
+  closed_orb(1:nt) = closed_orb(nt:1:-1)
+endif
 
 end subroutine
 
@@ -367,11 +373,7 @@ real(rp) z_set, del, dorb(6), max_eigen
 
 start%vec(5) = z_set
 
-if (dir == +1) then
-  call track_all (lat, closed_orb, branch%ix_branch, track_state)
-else
-  call track_many (lat, closed_orb, n_ele, 0, -1, branch%ix_branch, track_state)
-endif
+call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
 
 if (track_state == moving_forward$) then
   dorb = end%vec - start%vec
@@ -385,8 +387,8 @@ else
   return
 endif
 
-call lat_make_mat6 (lat, -1, closed_orb, branch%ix_branch)
-call transfer_matrix_calc (lat, .true., t1, ix_branch = branch%ix_branch)
+call lat_make_mat6 (this_lat, -1, closed_orb, branch%ix_branch)
+call transfer_matrix_calc (this_lat, .true., t1, ix_branch = branch%ix_branch)
 call make_t11_inv (err)
 
 call mat_eigen (t1, eigen_val, eigen_vec, error)
@@ -407,7 +409,6 @@ logical ok1, ok2, err
 err = .true.
 
 ok1 = .true.
-if (dir == -1)  call mat_inverse (t1(1:nt,1:nt), t1(1:nt,1:nt), ok1)
 call mat_make_unit (mat(1:nt,1:nt))
 mat(1:nt,1:nt) = mat(1:nt,1:nt) - t1(1:nt,1:nt)
 call mat_inverse(mat(1:nt,1:nt), t11_inv(1:nt,1:nt), ok2)

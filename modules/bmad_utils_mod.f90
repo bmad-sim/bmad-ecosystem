@@ -641,7 +641,7 @@ end function particle_is_moving_forward
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_is_moving_backward (orbit) result (is_moving_backward)
+! Function particle_is_moving_backwards (orbit) result (is_moving_backwards)
 !
 ! Routine to determine if a particle is moving in the backward -s direction.
 ! If not moving backward it is dead or is moving backward.
@@ -653,21 +653,21 @@ end function particle_is_moving_forward
 !   orbit  -- coord_struct: Particle coordinates
 !
 ! Output:
-!   is_moving_backward -- Logical: True if moving backward. False otherwise.
+!   is_moving_backwards -- Logical: True if moving backward. False otherwise.
 !-
 
-function particle_is_moving_backward (orbit) result (is_moving_backward)
+function particle_is_moving_backwards (orbit) result (is_moving_backwards)
 
 implicit none
 
 type (coord_struct) orbit
-logical is_moving_backward
+logical is_moving_backwards
 
 !
 
-is_moving_backward = (orbit%state == alive$) .and. (orbit%direction == -1)
+is_moving_backwards = (orbit%state == alive$) .and. (orbit%direction == -1)
 
-end function particle_is_moving_backward
+end function particle_is_moving_backwards
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
