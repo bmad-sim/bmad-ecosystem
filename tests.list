@@ -11,7 +11,7 @@ parse_test
 patch_test
 photon_test
 ptc_test
-! reverse_test
+reverse_test
 sim_utils_test
 slice_test
 superimpose_test
