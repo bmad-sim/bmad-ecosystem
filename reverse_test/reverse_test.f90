@@ -1,5 +1,3 @@
-
-
 !+
 ! Program reverse_test
 !
@@ -224,8 +222,8 @@ write (1, '(a)') trim(line_out(str, 'dorb_b"', maxval(abs(dorb_b%vec))))
 write (1, '(a)') trim(line_out(str, 'c*dt_b"', dorb_b%t))
 write (1, '(a)') trim(line_out(str, 'xmat"', maxval(abs(dmat))))
 
-diff_vec_r = maxval([dorb_r%vec, dorb_r%t])
-diff_vec_b = maxval([dorb_b%vec, dorb_b%t])
+diff_vec_r = maxval([abs(dorb_r%vec), abs(dorb_r%t)])
+diff_vec_b = maxval([abs(dorb_b%vec), abs(dorb_b%t)])
 diff_mat = maxval(abs(dmat))
 
 max_diff_vec_r = max(max_diff_vec_r, diff_vec_r)
