@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 143
+integer, parameter :: bmad_inc_version$ = 144
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
