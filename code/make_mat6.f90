@@ -153,10 +153,10 @@ if (ele%symplectify) call mat_symplectify (ele%mat6, ele%mat6, ele%value(p0c$)/e
 ! Finish up
 
 if (any(ele%map_ref_orb_in%vec /= a_start_orb%vec)) then
-  ele%map_ref_orb_in = a_start_orb
   if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.
 endif
 
+ele%map_ref_orb_in = a_start_orb
 ele%map_ref_orb_out = a_end_orb
 if (present(end_orb) .and. .not. end_input) end_orb = a_end_orb
 
