@@ -82,7 +82,7 @@ subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_
 use bmad_interface, except_dummy => closed_orbit_calc
 use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
 use eigen_mod
-use reverse_mod
+use reverse_mod, only: lat_reverse
 
 implicit none
 
