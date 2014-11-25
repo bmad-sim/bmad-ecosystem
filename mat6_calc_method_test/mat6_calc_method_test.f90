@@ -208,9 +208,11 @@ case ('"SOL_QUAD2:Tracking:MatrixRow5"')           ; tolerance = 'ABS 5e-12'
 case ('"SOL_QUAD2:Tracking:Symp_Err"')             ; tolerance = 'ABS 2e-10'
 case ('"SOL_QUAD2:Tracking:Vector"')               ; tolerance = 'ABS 6e-12'
 
-case ('"WIGGLER_PERIODIC1:Tracking:MatrixRow4"')   ; tolerance = 'ABS 6e-12'
-case ('"WIGGLER_PERIODIC1:Tracking:Symp_Err"')     ; tolerance = 'ABS 7e-12'
-case default                                       ; tolerance = 'ABS 2E-12'
+case ('"WIGGLER_PERIODIC1:Tracking:MatrixRow4"')     ; tolerance = 'ABS 6e-12'
+case ('"WIGGLER_PERIODIC1:Taylor:MatrixRow4"')       ; tolerance = 'ABS 6e-12'
+case ('"WIGGLER_PERIODIC1:Symp_Lie_PTC:MatrixRow4"') ; tolerance = 'ABS 6e-12'
+case ('"WIGGLER_PERIODIC1:Tracking:Symp_Err"')       ; tolerance = 'ABS 7e-12'
+case default                                         ; tolerance = 'ABS 2E-12'
 end select
 
 end function tolerance
