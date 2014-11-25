@@ -58,19 +58,12 @@ logical err, do_extra
 
 if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
-if (ele%tracking_method /= time_runge_kutta$) then
-  if (start2_orb%direction == 1) then
-    start2_orb%location = upstream_end$
-  else
-    start2_orb%location = downstream_end$
-  endif
-endif
 
 do_extra = .not. logic_option(.false., ignore_radiation)
 
 ! For historical reasons, the calling routine may not have correctly 
 ! initialized the starting orbit. If so, we do an init here.
-! Time-Runge kutta is tricky so do not attempt to do a set.
+! Time Runge-Kutta is tricky so do not attempt to do a set.
 
 if (start2_orb%state == not_set$) then
   if (ele%tracking_method == time_runge_kutta$) then
@@ -78,6 +71,18 @@ if (start2_orb%state == not_set$) then
     return
   endif
   call init_coord(start2_orb, start2_orb%vec, ele, upstream_end$, param%particle) 
+endif
+
+! Set start2_orb%location appropriate for tracking through the element.
+! For time runge-kutta the particle may be starting inside the element.
+! In this case, do not set the location.
+
+if (ele%tracking_method /= time_runge_kutta$ .or. start2_orb%location /= inside$) then
+  if (start2_orb%direction == 1) then
+    start2_orb%location = upstream_end$
+  else
+    start2_orb%location = downstream_end$
+  endif
 endif
 
 ! Photons get the z-coordinate reset to zero.
@@ -204,9 +209,9 @@ if (tracking_method /= time_runge_kutta$) then
   if (end_orb%state /= alive$) then
     end_orb%location = inside$
   elseif (start2_orb%direction == 1) then
-    start2_orb%location = downstream_end$
+    end_orb%location = downstream_end$
   else
-    start2_orb%location = upstream_end$
+    end_orb%location = upstream_end$
   endif
 endif
 
