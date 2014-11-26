@@ -416,7 +416,7 @@ if (attribute_name(ele, aperture_at$) == 'APERTURE_AT' .and. ele%aperture_at /= 
   nl=nl+1; write (li(nl), fmt_l) 'OFFSET_MOVES_APERTURE', '=', ele%offset_moves_aperture
 endif
 
-if (ele%orientation /= 1) then
+if (ele%orientation /= 1 .or. type_zero) then
   nl=nl+1; write (li(nl), fmt_i) 'LONGITUDINAL ORIENTATION', '=', ele%orientation
 endif
 
