@@ -602,11 +602,11 @@ case (rfcavity$)
 
   call offset_particle (ele, param, set$, end_orb)
 
-  ! The cavity field is modeled as a standing wave symmetric wrt the center.
+  ! The cavity field is modeled as a standing wave antisymmetric wrt the center.
   ! Thus if the cavity is flipped (orientation = -1), the wave of interest, which is 
   ! always the accelerating wave, is the "backward" wave.
 
-  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge
+  voltage = e_accel_field(ele, voltage$) * charge_dir
 
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - ele%value(phi0_ref$) - &
           (particle_time (end_orb, ele) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
