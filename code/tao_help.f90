@@ -38,9 +38,9 @@ logical blank_line_before, in_example
 ! Determine what file to open and starting tag.
 
 if (s%com%single_mode) then
-  file_name = '$TAO_DIR:doc/single-mode.tex'
+  file_name = '$TAO_DIR/doc/single-mode.tex'
 else
-  file_name = '$TAO_DIR:doc/command-list.tex'
+  file_name = '$TAO_DIR/doc/command-list.tex'
 endif
 
 call fullfilename (file_name, full_file_name)
