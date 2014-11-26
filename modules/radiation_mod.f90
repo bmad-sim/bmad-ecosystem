@@ -273,7 +273,7 @@ call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
 call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
 do j = 1, 4
-  start_orb = start0_orb
+  start_orb = ele%map_ref_orb_in
   start_orb%vec(j) = start_orb%vec(j) + del_orb
   call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
   call calc_g (track, g2, g3)
