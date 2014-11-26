@@ -3207,10 +3207,11 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (old_state .eqv. ele%is_on) cycle
 
+    call set_flags_for_changed_attribute (ele, ele%is_on)
+
     if (logic_option (.false., use_ref_orb)) then
       call make_mat6(ele, branch%param, ele%map_ref_orb_in)
     else
-      call set_ele_status_stale (ele, mat6_group$)
       call lat_make_mat6(lat, i, orb, ib)
     endif
 

@@ -374,7 +374,7 @@ type (coord_struct) orb_start, orb_end
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
 real(rp) old_delta_ref_time, old_p0c, velocity
 integer key
-logical err_flag, err, changed
+logical err_flag, err, changed, saved_is_on
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -545,9 +545,10 @@ logical changed, has_changed
 
 ! For reference energy tracking need to turn off any element offsets and kicks and zero any errors.
 ! If the element is a super_slave then the errors must be zeroed in the super_lord elements also.
+! Note: Avoiding use of ele%old_is_on (use local var saved_is_on instead) in case a calling routine is using it.
 
 ele%old_value = ele%value
-ele%bmad_logic = ele%is_on
+saved_is_on = ele%is_on
 ele%is_on = .true.
 ele%ix_value = ele%tracking_method
 
@@ -607,7 +608,7 @@ integer i
 ! 
 
 ele%value = ele%old_value
-ele%is_on = ele%bmad_logic
+ele%is_on = saved_is_on
 ele%tracking_method = ele%ix_value
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then

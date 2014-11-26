@@ -36,14 +36,13 @@ contains
 !
 ! Output:
 !   lat_rev -- lat_struct: Lat with the elements in reversed order.
-!               The lat_rev actual argument may not be the same as the lat_in actual argument.
 !-
 
 subroutine lat_reverse (lat_in, lat_rev, flip_tracking_charge, make_mats6)
 
 implicit none
 
-type (lat_struct), target :: lat_in, lat_rev
+type (lat_struct), target :: lat_in, lat_rev, rlat
 type (ele_struct), pointer :: lord, ele
 type (control_struct), pointer :: con
 type (branch_struct), pointer :: branch, branch_in
@@ -56,12 +55,12 @@ logical err_flag
 
 ! Correct control information
 
-lat_rev = lat_in
+rlat = lat_in  ! Use temp lattice in case lat_in and lat_rev are the same actual argument.
 
-do i = 1, lat_rev%n_control_max
-  con => lat_rev%control(i)
-  if (con%ix_slave <= lat_rev%n_ele_track) con%ix_slave = lat_rev%n_ele_track+1-con%ix_slave
-  if (con%ix_lord <= lat_rev%n_ele_track)  con%ix_lord  = lat_rev%n_ele_track+1-con%ix_lord
+do i = 1, rlat%n_control_max
+  con => rlat%control(i)
+  if (con%ix_slave <= rlat%n_ele_track) con%ix_slave = rlat%n_ele_track+1-con%ix_slave
+  if (con%ix_lord <= rlat%n_ele_track)  con%ix_lord  = rlat%n_ele_track+1-con%ix_lord
 enddo
 
 ! Slaves of a super lord must be in assending sequence.
@@ -71,30 +70,30 @@ enddo
 n_con = size(lat_in%control)
 forall (i = 1:n_con) ix_con(i) = i 
 
-do i = lat_rev%n_ele_track+1, lat_rev%n_ele_max
-  lord => lat_rev%ele(i)
+do i = rlat%n_ele_track+1, rlat%n_ele_max
+  lord => rlat%ele(i)
   if (lord%lord_status /= super_lord$) cycle
   i1 = lord%ix1_slave
   i2 = lord%ix2_slave
-  lat_rev%control(i1:i2) = lat_rev%control(i2:i1:-1)
+  rlat%control(i1:i2) = rlat%control(i2:i1:-1)
   ix_con(i1:i2) = ix_con(i2:i1:-1)
   if (lord%s > lord%value(l$)) then
-    lord%s = lat_rev%param%total_length - (lord%s - lord%value(l$))
+    lord%s = rlat%param%total_length - (lord%s - lord%value(l$))
   else  ! Lord wraps around zero case
     lord%s = lord%value(l$) - lord%s
   endif
 enddo
 
-n = lat_rev%n_ic_max
-lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
+n = rlat%n_ic_max
+rlat%ic(1:n) = ix_con(rlat%ic(1:n))
 
-! Transfer info from lat_in to lat_rev.
-! the lat lattice is used since the actual arguments of lat_in and lat_rev
+! Transfer info from lat_in to rlat.
+! the lat lattice is used since the actual arguments of lat_in and rlat
 ! may be the same
 
 do ib = 0, ubound(lat_in%branch, 1)
 
-  branch => lat_rev%branch(ib)
+  branch => rlat%branch(ib)
   branch_in => lat_in%branch(ib)
 
   nr = branch%n_ele_track
@@ -124,6 +123,9 @@ do ib = 0, ubound(lat_in%branch, 1)
 enddo
 
 ! Finish
+
+lat_rev = rlat
+call deallocate_lat_pointers (rlat) 
 
 call lat_sanity_check (lat_rev, err_flag)
 call set_flags_for_changed_attribute(lat_rev)
