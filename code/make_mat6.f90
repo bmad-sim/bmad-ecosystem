@@ -68,7 +68,7 @@ if (present(start_orb)) then
     a_start_orb = start_orb
   endif
 else
-  call init_coord (a_start_orb, ele = ele, element_end = upstream_end$, particle = param%particle)
+  call init_coord (a_start_orb, ele = ele, element_end = upstream_end$, particle = default_tracking_species(param))
 endif
 
 end_input = (logic_option (.false., end_in) .and. present(end_orb))

@@ -148,7 +148,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     call auto_scale_field_phase_and_amp (gun_ele, branch%param, err); if (err) return
 
-    call init_coord (start_orb, zero6, gun_ele, upstream_end$, branch%param%particle)
+    call init_coord (start_orb, zero6, gun_ele, upstream_end$)
     call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
     if (.not. particle_is_moving_forward(end_orb)) then
       call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
@@ -513,7 +513,7 @@ bmad_com%auto_bookkeeper = .false.
 error = .true.
 
 call zero_errors_in_ele (ele, changed)
-call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, param%particle, shift_vec6 = .false.)
+call init_coord (orb_start, ele%time_ref_orb_in, ele, upstream_end$, shift_vec6 = .false.)
 if (is_inside) orb_start%location = inside$ !to avoid entrance kick in time tracking
 call track1 (orb_start, ele, param, orb_end, ignore_radiation = .true.)
 if (.not. particle_is_moving_forward(orb_end)) then

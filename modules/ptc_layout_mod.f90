@@ -575,7 +575,7 @@ if (present(track_state)) track_state = moving_forward$
 
 !
 
-if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), downstream_end$, branch%param%particle) 
+if (orbit(0)%state == not_set$) call init_coord(orbit(0), orbit(0)%vec, branch%ele(0), downstream_end$) 
 call vec_bmad_to_ptc (orbit(0)%vec, branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$), x)
 
 do i = 1, branch%n_ele_track
@@ -591,7 +591,7 @@ do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, DEFAULT, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (orbit(i), vec, ele, downstream_end$, orbit(0)%species)
+  call init_coord (orbit(i), vec, ele, downstream_end$)
 
   call check_aperture_limit (orbit(i), ele, second_track_edge$, branch%param)
   if (orbit(i)%state /= alive$) then
@@ -657,13 +657,13 @@ x = 0
 fib => branch%ele(0)%ptc_fibre%next
 call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
 call vec_ptc_to_bmad (x, fib%beta0, vec)
-call init_coord (closed_orbit(0), vec, branch%ele(0), downstream_end$, branch%param%particle)
+call init_coord (closed_orbit(0), vec, branch%ele(0), downstream_end$)
 
 do i = 1, branch%n_ele_track
   fib => branch%ele(i)%ptc_fibre%next
   call track_probe_x (x, ptc_state, branch%ele(i-1)%ptc_fibre%next, fib)
   call vec_ptc_to_bmad (x, fib%beta0, vec)
-  call init_coord (closed_orbit(i), vec, branch%ele(i), downstream_end$, branch%param%particle)
+  call init_coord (closed_orbit(i), vec, branch%ele(i), downstream_end$)
 enddo
 
 end subroutine ptc_closed_orbit_calc 
