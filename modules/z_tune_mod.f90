@@ -162,6 +162,12 @@ endif
 
 call calc_z_tune (lat)
 
+if (lat%z%tune == 0) then
+  call out_io (s_error$, r_name, 'CALCULATED Z TUNE IS ZERO. CANNOT SET THE TUNE.')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
 if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
   volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf

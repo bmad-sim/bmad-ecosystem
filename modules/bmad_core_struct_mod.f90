@@ -973,13 +973,7 @@ endif
 orb2%species = integer_option(not_set$, particle)
 
 if (orb2%species == not_set$ .and. present(ele)) then
-  if (associated (ele%branch)) then
-    if (ele%branch%param%default_rel_tracking_charge < 0) then
-      orb2%species = flip_species_charge(ele%branch%param%particle)
-    else
-      orb2%species = ele%branch%param%particle
-    endif
-  endif
+  if (associated (ele%branch)) orb2%species = default_tracking_species(ele%branch%param)
 endif
 
 if (orb2%species == not_set$) then
@@ -1123,6 +1117,38 @@ orb%charge    = orb_save%charge
 if (orb%beta == 0) orb%t = orb_save%t
 
 end subroutine init_coord2
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function default_tracking_species (param) result (species)
+!
+! Routine to return the default species for tracking through a lattice branch.
+!
+! Input:
+!   param  -- lat_param_struct: Parameters for a lattice branch.
+!
+! Output:
+!   species -- Integer: Default species to be used for tracking.
+!-
+
+function default_tracking_species (param) result (species)
+
+implicit none
+
+type (lat_param_struct) param
+integer species
+
+!
+
+if (param%default_rel_tracking_charge < 0) then
+  species = flip_species_charge(param%particle)
+else
+  species = param%particle
+endif
+
+end function default_tracking_species
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

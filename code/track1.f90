@@ -70,7 +70,7 @@ if (start2_orb%state == not_set$) then
     call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED!')
     return
   endif
-  call init_coord(start2_orb, start2_orb%vec, ele, upstream_end$, param%particle) 
+  call init_coord(start2_orb, start2_orb%vec, ele, upstream_end$, particle = default_tracking_species(param)) 
 endif
 
 ! Set start2_orb%location appropriate for tracking through the element.
