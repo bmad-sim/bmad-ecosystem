@@ -331,8 +331,7 @@ endif
 u%beam%beam_init = beam_init
 u%beam%beam0_file = beam0_file
 u%beam%beam_all_file = beam_all_file
-call init_coord(u%design%lat_branch(0)%orbit(0), beam_init%center, &
-                    u%design%lat%ele(0), downstream_end$, u%design%lat%param%particle)
+call init_coord(u%design%lat_branch(0)%orbit(0), beam_init%center, u%design%lat%ele(0), downstream_end$)
 
 ! No initialization for a circular lattice
 
