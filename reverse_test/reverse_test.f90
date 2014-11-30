@@ -137,7 +137,7 @@ orb_0r%vec(4)    = -orb_1f%vec(4)
 ele2 = ele
 if (ele2%key == elseparator$) then
 elseif (ele2%key == rfcavity$) then
-  orb_0r%species   = flip_species_charge(orb_0r%species)
+  orb_0r%species  = antiparticle(orb_0r%species)
   orb_0r%vec(5) = orb_0f%vec(5)
   orb_0r%t      = orb_0f%t
 
@@ -145,12 +145,14 @@ elseif (ele2%key == patch$) then
    ele2%value(upstream_ele_dir$) = -1
    ele2%value(downstream_ele_dir$) = -1
 else
-  orb_0r%species   = flip_species_charge(orb_0r%species)
+  orb_0r%species   = antiparticle(orb_0r%species)
 endif
 
 ele2%orientation = -1
 
 call track1(orb_0r, ele2, ele2%branch%param, orb_1r)
+call make_mat6(ele2, ele%branch%param, orb_0r, orb_1r, .true.)
+
 orb_1r_sav = orb_1r
 
 orb_1r%vec(2)    = -orb_1r%vec(2)
@@ -176,8 +178,6 @@ dorb_b%vec(5) = (orb_1b%vec(5) - orb_0b%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5)
 dorb_b%t      = (orb_1b%t - orb_0b%t) - (orb_1f%t - orb_0f%t)
 
 ! Matrix
-
-call make_mat6(ele2, ele%branch%param, orb_0r, orb_1r, .true.)
 
 call mat_inverse(ele2%mat6, dmat)
 dmat(2,:) = -dmat(2,:)
