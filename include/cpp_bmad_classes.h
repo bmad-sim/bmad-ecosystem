@@ -1724,8 +1724,8 @@ public:
   Real unstable_factor;
   Real_MATRIX t1_with_rf;
   Real_MATRIX t1_no_rf;
-  Real default_rel_tracking_charge;
   Int particle;
+  Int default_tracking_species;
   Int geometry;
   Int ixx;
   Bool stable;
@@ -1739,8 +1739,8 @@ public:
     unstable_factor(0.0),
     t1_with_rf(Real_ARRAY(0.0, 6), 6),
     t1_no_rf(Real_ARRAY(0.0, 6), 6),
-    default_rel_tracking_charge(1),
     particle(Bmad::POSITRON),
+    default_tracking_species(Bmad::REF_PARTICLE),
     geometry(0),
     ixx(0),
     stable(false),

@@ -2761,11 +2761,11 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.t1_no_rf.size(); i++)  for (unsigned int j = 0; j < C.t1_no_rf[0].size(); j++) 
     {int rhs = 101 + i + 10*(j+1) + 5 + offset; C.t1_no_rf[i][j] = rhs;}
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.default_rel_tracking_charge = rhs;
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 6 + offset; C.particle = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.particle = rhs;
+  rhs = 7 + offset; C.default_tracking_species = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 8 + offset; C.geometry = rhs;

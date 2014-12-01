@@ -4742,15 +4742,15 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_param_to_c2 (C, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
-      z_t1_no_rf, z_default_rel_tracking_charge, z_particle, z_geometry, z_ixx, z_stable, &
+      z_t1_no_rf, z_particle, z_default_tracking_species, z_geometry, z_ixx, z_stable, &
       z_aperture_limit_on, z_backwards_time_tracking, z_bookkeeping_state) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_stable, z_aperture_limit_on, z_backwards_time_tracking
     type(c_ptr), value :: z_bookkeeping_state
-    real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_default_rel_tracking_charge
-    integer(c_int) :: z_particle, z_geometry, z_ixx
+    real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*)
+    integer(c_int) :: z_particle, z_default_tracking_species, z_geometry, z_ixx
   end subroutine
 end interface
 
@@ -4767,8 +4767,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call lat_param_to_c2 (C, F%n_part, F%total_length, F%unstable_factor, mat2vec(F%t1_with_rf, &
-    6*6), mat2vec(F%t1_no_rf, 6*6), F%default_rel_tracking_charge, F%particle, F%geometry, &
-    F%ixx, c_logic(F%stable), c_logic(F%aperture_limit_on), c_logic(F%backwards_time_tracking), &
+    6*6), mat2vec(F%t1_no_rf, 6*6), F%particle, F%default_tracking_species, F%geometry, F%ixx, &
+    c_logic(F%stable), c_logic(F%aperture_limit_on), c_logic(F%backwards_time_tracking), &
     c_loc(F%bookkeeping_state))
 
 end subroutine lat_param_to_c
@@ -4790,7 +4790,7 @@ end subroutine lat_param_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_param_to_f2 (Fp, z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf, &
-    z_t1_no_rf, z_default_rel_tracking_charge, z_particle, z_geometry, z_ixx, z_stable, &
+    z_t1_no_rf, z_particle, z_default_tracking_species, z_geometry, z_ixx, z_stable, &
     z_aperture_limit_on, z_backwards_time_tracking, z_bookkeeping_state) bind(c)
 
 
@@ -4802,8 +4802,8 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_stable, z_aperture_limit_on, z_backwards_time_tracking
 type(c_ptr), value :: z_bookkeeping_state
-real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*), z_default_rel_tracking_charge
-integer(c_int) :: z_particle, z_geometry, z_ixx
+real(c_double) :: z_n_part, z_total_length, z_unstable_factor, z_t1_with_rf(*), z_t1_no_rf(*)
+integer(c_int) :: z_particle, z_default_tracking_species, z_geometry, z_ixx
 
 call c_f_pointer (Fp, F)
 
@@ -4817,10 +4817,10 @@ F%unstable_factor = z_unstable_factor
 call vec2mat(z_t1_with_rf, F%t1_with_rf)
 !! f_side.to_f2_trans[real, 2, NOT]
 call vec2mat(z_t1_no_rf, F%t1_no_rf)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%default_rel_tracking_charge = z_default_rel_tracking_charge
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%particle = z_particle
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%default_tracking_species = z_default_tracking_species
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%geometry = z_geometry
 !! f_side.to_f2_trans[integer, 0, NOT]

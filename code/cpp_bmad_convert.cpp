@@ -1826,7 +1826,7 @@ extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Real&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
+    c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
     CPP_bookkeeping_state&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
@@ -1837,16 +1837,16 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
-      C.default_rel_tracking_charge, C.particle, C.geometry, C.ixx, C.stable,
-      C.aperture_limit_on, C.backwards_time_tracking, C.bookkeeping_state);
+      C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
+      C.backwards_time_tracking, C.bookkeeping_state);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
-    c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Real&
-    z_default_rel_tracking_charge, c_Int& z_particle, c_Int& z_geometry, c_Int& z_ixx, c_Bool&
-    z_stable, c_Bool& z_aperture_limit_on, c_Bool& z_backwards_time_tracking, const
+    c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Int& z_particle,
+    c_Int& z_default_tracking_species, c_Int& z_geometry, c_Int& z_ixx, c_Bool& z_stable,
+    c_Bool& z_aperture_limit_on, c_Bool& z_backwards_time_tracking, const
     Bmad_bookkeeping_state_class* z_bookkeeping_state) {
 
   // c_side.to_c2_set[real, 0, NOT]
@@ -1859,10 +1859,10 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.t1_with_rf << z_t1_with_rf;
   // c_side.to_c2_set[real, 2, NOT]
   C.t1_no_rf << z_t1_no_rf;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.default_rel_tracking_charge = z_default_rel_tracking_charge;
   // c_side.to_c2_set[integer, 0, NOT]
   C.particle = z_particle;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.default_tracking_species = z_default_tracking_species;
   // c_side.to_c2_set[integer, 0, NOT]
   C.geometry = z_geometry;
   // c_side.to_c2_set[integer, 0, NOT]

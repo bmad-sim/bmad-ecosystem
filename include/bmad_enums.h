@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 142;
+  const int BMAD_INC_VERSION = 145;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
@@ -34,7 +34,7 @@ namespace Bmad {
   const int CONTINUOUS = 5, SURFACE = 6;
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
-  const int INSIDE = 3, CENTER_PT = 3;
+  const int INSIDE = 3, CENTER_PT = 3, START_END = 99;
   const int NORMAL = 1, CLEAR = 2, MASK = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
   const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10, TRIANGULAR = 11;
   const int ANTECHAMBER = 2;
@@ -117,7 +117,7 @@ namespace Bmad {
   const int FB2 = 15;
   const int FQ1 = 16;
   const int FQ2 = 17;
-  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_REL_TRACKING_CHARGE = 20;
+  const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
   const int E_LOSS = 21, DKS_DS = 21, GAP = 21;
@@ -264,7 +264,7 @@ namespace Bmad {
   const int N_METHODS = 16;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
   const int MAP_TYPE = 1, PERIODIC_TYPE = 3, CONST_REF_ENERGY = 4, NONCONST_REF_ENERGY = 5;
-  const int GRID = 2, MAP = 3, REFER_TO_LORDS = 4;
+  const int GRID = 2, MAP = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
   const int BRAGG = 1, LAUE = 2;
   const int BENDS = 201;
   const int WIGGLERS = 202;
@@ -281,6 +281,7 @@ namespace Bmad {
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 21;
   const int NOT_SET = -999;
+  const int REF_PARTICLE = 6, ANTI_REF_PARTICLE = 7;
   const int PION_0     = +5;
   const int PION_PLUS  = +4;
   const int ANTIMUON   = +3;

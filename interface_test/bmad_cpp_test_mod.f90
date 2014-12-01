@@ -4134,10 +4134,10 @@ do jd2 = 1, size(F%t1_no_rf,2); lb2 = lbound(F%t1_no_rf,2) - 1
   rhs = 100 + jd1 + 10*jd2 + 5 + offset
   F%t1_no_rf(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
-!! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%default_rel_tracking_charge = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%particle = rhs
+rhs = 6 + offset; F%particle = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 7 + offset; F%default_tracking_species = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 8 + offset; F%geometry = rhs
 !! f_side.test_pat[integer, 0, NOT]
