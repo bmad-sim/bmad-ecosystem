@@ -8,18 +8,15 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine lat_reverse (lat_in, lat_rev, flip_tracking_charge, make_mats6)
+! Subroutine lat_reverse (lat_in, lat_rev, track_antiparticle, make_mats6)
 !
-! Subroutine to construct a lat structure with the elements in reversed order.
+! Subroutine to construct a lat structure with the elements in reversed order
+! and with the elements with reversed orientaiton.
 ! This may be used for backward tracking through the lat. 
 !
 ! The correspondence between elements in the two lattices is as follows:
 !     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  For 0 < i <= lat%n_ele_track
 !     lat_rev%ele(i)                   = lat_in%ele(i)  For lat%n_ele_track < i 
-!
-! The transformation from particle coordinates
-! in one lat to the corrisponding coordinates in the other is:
-!     (x, P_x, y, P_y, z, P_z) -> (x, -P_x, y, -P_y, -z, P_z)
 !
 ! Note: The Twiss parameters will not be correct for the reversed lat.
 ! You will need to compute them.
@@ -29,16 +26,16 @@ contains
 !
 ! Input:
 !   lat_in     -- lat_struct: Input lat.
-!   flip_tracking_charge 
-!              -- logical, optional: Flip the sign of the default particle to be tracked?
-!                   Default is True.
+!   track_antiparticle 
+!              -- logical, optional: Set the default type of particle to track in lat_rev
+!                   to the antiparticle of the default in lat? Default is True.
 !   make_mats6 -- logical, optional: Make the matrices for lat_rev? Default is True.
 !
 ! Output:
 !   lat_rev -- lat_struct: Lat with the elements in reversed order.
 !-
 
-subroutine lat_reverse (lat_in, lat_rev, flip_tracking_charge, make_mats6)
+subroutine lat_reverse (lat_in, lat_rev, track_antiparticle, make_mats6)
 
 implicit none
 
@@ -50,7 +47,7 @@ type (branch_struct), pointer :: branch, branch_in
 integer i, n, i1, i2, nr, n_con, ib
 integer :: ix_con(size(lat_in%control))
 
-logical, optional :: flip_tracking_charge, make_mats6
+logical, optional :: track_antiparticle, make_mats6
 logical err_flag
 
 ! Correct control information
@@ -99,7 +96,8 @@ do ib = 0, ubound(lat_in%branch, 1)
   nr = branch%n_ele_track
   branch%ele(1:nr) = branch%ele(nr:1:-1)
 
-  if (logic_option(.true., flip_tracking_charge)) branch%param%default_rel_tracking_charge = -1
+  if (logic_option(.true., track_antiparticle)) branch%param%default_tracking_species = &
+                                              antiparticle(branch%param%default_tracking_species)
 
   ! Flip longitudinal stuff, maps
 

@@ -115,7 +115,7 @@ case (lcavity$)
 case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
-  ele%value(default_rel_tracking_charge$) = real_garbage$
+  ele%value(default_tracking_species$) = ref_particle$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 

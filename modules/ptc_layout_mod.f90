@@ -190,7 +190,7 @@ else
   this_fib%dir = ele%orientation
 endif
 
-this_fib%charge = ele%branch%param%default_rel_tracking_charge
+this_fib%charge = charge_of(default_tracking_species(ele%branch%param)) / charge_of(ele%branch%param%particle)
 
 if (logic_option(.false., do_point)) ele%ptc_fibre => this_fib
 

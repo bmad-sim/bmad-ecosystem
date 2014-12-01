@@ -1142,10 +1142,12 @@ integer species
 
 !
 
-if (param%default_rel_tracking_charge < 0) then
-  species = flip_species_charge(param%particle)
-else
+if (param%default_tracking_species == ref_particle$) then
   species = param%particle
+elseif (param%default_tracking_species == anti_ref_particle$) then
+  species = antiparticle(param%particle)
+else
+  species = param%default_tracking_species
 endif
 
 end function default_tracking_species

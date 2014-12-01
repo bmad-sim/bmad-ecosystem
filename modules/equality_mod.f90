@@ -1239,10 +1239,10 @@ is_eq = is_eq .and. (f1%unstable_factor == f2%unstable_factor)
 is_eq = is_eq .and. all(f1%t1_with_rf == f2%t1_with_rf)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%t1_no_rf == f2%t1_no_rf)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%default_rel_tracking_charge == f2%default_rel_tracking_charge)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%particle == f2%particle)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%default_tracking_species == f2%default_tracking_species)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%geometry == f2%geometry)
 !! f_side.equality_test[integer, 0, NOT]

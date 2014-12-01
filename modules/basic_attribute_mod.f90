@@ -574,7 +574,7 @@ call init_attribute_name1 (beginning_ele$, z_beam_start$,                'Z_BEAM
 call init_attribute_name1 (beginning_ele$, pz_beam_start$,               'PZ_BEAM_START')
 call init_attribute_name1 (beginning_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (beginning_ele$, lattice_type$,                'LATTICE_TYPE') ! For backwards compatibility
-call init_attribute_name1 (beginning_ele$, default_rel_tracking_charge$, 'DEFAULT_REL_TRACKING_CHARGE')
+call init_attribute_name1 (beginning_ele$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
 
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
@@ -1309,7 +1309,7 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
-      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', &
+      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
   attrib_type = is_switch$
@@ -1496,6 +1496,10 @@ case ('COUPLER_AT')
   if (present(is_default)) then
     is_default = (ix_attrib == downstream_end$)
   endif
+
+case ('DEFAULT_TRACKING_SPECIES')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == ref_particle$)
 
 case ('PHOTON_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, photon_type_name, lbound(photon_type_name, 1))

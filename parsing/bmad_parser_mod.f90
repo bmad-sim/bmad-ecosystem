@@ -499,10 +499,8 @@ if (word == 'DPHI0') then
 endif
 
 if (word == 'REL_TRACKING_CHARGE') then
-  call parser_error ('THE ATTRIBUTE NAME "REL_TRACKING_CHARGE" HAS BEEN CHANGED TO "DEFAULT_REL_TRACKING_CHARGE"', &
-                     'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.', &
-                     '[THIS IS A WARNING ONLY. THIS PROGRAM WILL RUN NORMALLY]', warn_only = .true.)
-  word = 'REL_TRACKING_CHARGE'
+  call parser_error ('THE ATTRIBUTE NAME "REL_TRACKING_CHARGE" HAS BEEN CHANGED TO "DEFAULT_TRACKING_SPECIES"', &
+                     'PLEASE MAKE THE CHANGE IN THE LATTICE FILE.')
 endif
 
 word = parser_translate_attribute_name (ele%key, word)
@@ -1320,6 +1318,10 @@ case ('PTC_INTEGRATION_TYPE')
 case ('PARTICLE')
   call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
   ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
+
+case ('DEFAULT_TRACKING_SPECIES')
+  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
+  ele%value(default_tracking_species$) = ix + lbound(particle_name, 1) - 1 
 
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
