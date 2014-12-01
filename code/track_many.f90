@@ -150,11 +150,8 @@ do n = ix1, ix2
     track_end_state = n
     if (present(track_state)) track_state = n
 
-    if (orbit(n)%location == upstream_end$) then
-      call set_orbit_to_zero (orbit, n, ix2, ix_start)
-    else
-      call set_orbit_to_zero (orbit, n+1, ix2, ix_start)
-    endif
+    call set_orbit_to_zero (orbit, n+1, ix2, ix_start)
+    if (orbit(n)%location == upstream_end$) orbit(n)%vec = 0 ! But do not reset orbit(n)%state
     return
   endif
 
@@ -192,12 +189,9 @@ do n = ix1, ix2, -1
     track_end_state = n
     if (present(track_state)) track_state = n
 
-    if (orbit(n-1)%location == upstream_end$) then
-      call set_orbit_to_zero (orbit, ix2-1, n-1, ix_start)
-    else
-      call set_orbit_to_zero (orbit, ix2-1, n-2, ix_start)
-    endif
-    exit
+    call set_orbit_to_zero (orbit, ix2-1, n-2, ix_start)
+    if (orbit(n-1)%location == upstream_end$) orbit(n-1)%vec = 0 ! But do not reset orbit(n)%state
+    return
   endif
 
   if (debug) then

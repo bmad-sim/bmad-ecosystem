@@ -82,10 +82,8 @@ do n = 1, branch%n_ele_track
 
   if (err .or. .not. particle_is_moving_forward(orbit(n))) then
     if (present(track_state)) track_state = n
-    do nn = n+1, branch%n_ele_track
-      orbit(nn)%vec = 0
-      orbit(nn)%state = not_set$
-    enddo
+    call set_orbit_to_zero (orbit, n+1, branch%n_ele_track)
+    if (orbit(n)%location == upstream_end$) orbit(n)%vec = 0 ! But do not reset orbit(n)%state
     if (present(err_flag)) err_flag = .true.
     exit
   endif
