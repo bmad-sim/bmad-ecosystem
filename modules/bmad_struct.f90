@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 144
+integer, parameter :: bmad_inc_version$ = 145
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -629,8 +629,8 @@ type lat_param_struct
                                                ! |orbit/limit| for open branches.
   real(rp) :: t1_with_RF(6,6) = 0              ! Full 1-turn matrix with RF on.
   real(rp) :: t1_no_RF(6,6) = 0                ! Full 1-turn matrix with RF off.
-  real(rp) :: default_rel_tracking_charge = 1  ! Default particle charge/mass relative to reference charge.
   integer :: particle = positron$              ! Reference particle: positron$, electron$, etc.
+  integer :: default_tracking_species = ref_particle$  ! Default particle type to use in tracking.
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
@@ -847,7 +847,7 @@ integer, parameter :: fb1$ = 14
 integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
-integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_rel_tracking_charge$ = 20
+integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
 integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21

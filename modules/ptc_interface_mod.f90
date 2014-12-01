@@ -422,12 +422,12 @@ endif
 ! Fibre
 
 nl=nl+1; li(nl) = 'Fibre:'
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:   ', int_of(ptc_fibre%pos, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]: ', int_of(ptc_fibre%loc, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:         ', int_of(ptc_fibre%dir, 'i0')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:     ', real_of(ptc_fibre%beta0, 'es13.5')
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:              ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
-nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge]:            ', real_of(ptc_fibre%charge, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%pos    [Index in layout]:        ', int_of(ptc_fibre%pos, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%loc    [Index in universe]:      ', int_of(ptc_fibre%loc, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t40, a)') '%dir    [Direction]:              ', int_of(ptc_fibre%dir, 'i0')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%beta0  [Beta velocity]:          ', real_of(ptc_fibre%beta0, 'es13.5')
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%mass   [Mass]:                   ', real_of(ptc_fibre%mass, 'es13.5', 1e9_rp)
+nl=nl+1; write (li(nl), '(2x, a, t39, a)') '%charge [Charge relative to ref]: ', real_of(ptc_fibre%charge, 'es13.5')
 
 !
 
@@ -2812,7 +2812,7 @@ endif
 ! Track element
 
 if (present(orb0)) then
-  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, rel_charge = relative_tracking_charge(orb0, param))
+  call ele_to_fibre (ele, ptc_fibre, param, use_offsets, tracking_species = default_tracking_species(param))
 else
   call ele_to_fibre (ele, ptc_fibre, param, use_offsets)
 endif
@@ -3008,7 +3008,7 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -3029,14 +3029,14 @@ end subroutine type_map
 !                    Overrides ele%value(ds_step$).
 !   for_layout  -- Logical, optional: If True then fibre will be put in the layout.
 !                    Default is False.
-!   rel_charge  -- real(rp), optional: Charge/mass ratio of particle that will be tracked relative
-!                   to the reference particle. Default is param%default_rel_tracking_charge.
+!   tracking_species -- Integer, optional: Particle type to be tracked. ref_particle$, electron$, etc.
+!                         Default is determined by param%default_tracking_species.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)
 
 use madx_ptc_module
 
@@ -3055,10 +3055,10 @@ real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
-real(rp), optional :: rel_charge
 
-integer i, n, key, n_term, exception, n_field, ix
+integer, optional :: tracking_species
 integer, optional :: integ_order, steps
+integer i, n, key, n_term, exception, n_field, ix
 
 logical use_offsets
 logical, optional :: for_layout
@@ -3421,7 +3421,11 @@ call misalign_ele_to_fibre (ele, use_offsets, ptc_fibre)
 
 ! Set charge
 
-ptc_fibre%charge = real_option(param%default_rel_tracking_charge, rel_charge)
+if (present(tracking_species)) then
+  ptc_fibre%charge = charge_of(tracking_species) / charge_of(param%particle)
+else
+  ptc_fibre%charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
+endif
 
 end subroutine ele_to_fibre
 

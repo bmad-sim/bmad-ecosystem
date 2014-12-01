@@ -35,7 +35,7 @@
 ! Note: When tracking with direction = -1, the charge of the particle tracked
 !   generally needs to be opposite of the charge of the reference particle.
 !   This can be done in the calling routine with:
-!       orbit(ix_start)%species = flip_species_charge(lat%branch(ix_branch)%param%particle)
+!       orbit(ix_start)%species = antiparticle(lat%branch(ix_branch)%param%particle)
 !
 ! Modules Needed:
 !   use bmad

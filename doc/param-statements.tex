@@ -21,31 +21,30 @@ other variables. If multiple branches are present (\sref{s:branch.def}), these
 variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
-  parameter[absolute_time_tracking] = <Logical>  ! Absolute time used for RF clock?
-  parameter[aperture_limit_on]      = <Logical>  ! Use aperture limits in tracking.
-  parameter[auto_scale_field_phase] = <Logical>  ! Automatic phase scaling.
-  parameter[auto_scale_field_amp]   = <Logical>  ! Automatic amplitude scaling.
-  parameter[custom_attributeN]      = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
-  parameter[e_tot]                  = <Real>     ! Reference total Energy. 
-                                                 !      Default: 1000 * rest_energy.
-  parameter[geometry]               = <Switch>   ! Open or closed
-  parameter[lattice]                = <String>   ! Lattice name 
-  parameter[n_part]                 = <Real>     ! Number of particles in a bunch.
-  parameter[no_end_marker]          = <Logical>  ! Default: False.
-  parameter[particle]               = <Switch>   ! Reference species: positron, proton, etc.
-  parameter[p0c]                    = <Real>     ! Reference momentum.
-  parameter[photon_type]            = <Switch>   ! Incoherent or coherent photons?
-  parameter[ptc_exact_model]        = <Logical>  ! PTC to do "exact" tracking?
-  parameter[ptc_exact_misalignment] = <Logical>  ! PTC to "exactly" misalign elements?
-  parameter[ptc_max_fringe_order]   = <Integer>  ! Max fringe order. 
-                                                 !    Default: 2 => Quadrupole.
-  parameter[default_rel_tracking_charge] 
-                                    = <Real>     ! Charge/mass of default tracked particles 
-                                                 !  relative to reference charge. Default is 1.
-  parameter[ran_seed]               = <Integer>  ! Random number generator init.
-  parameter[taylor_order]           = <Integer>  ! Default: 3
-  parameter[use_ptc_layout]         = <Logical>  ! Construct layout for calculations?
-  parameter[use_hard_edge_drifts]   = <Logical>
+  parameter[absolute_time_tracking]   = <Logical>  ! Absolute time used for RF clock?
+  parameter[aperture_limit_on]        = <Logical>  ! Use aperture limits in tracking.
+  parameter[auto_scale_field_phase]   = <Logical>  ! Automatic phase scaling.
+  parameter[auto_scale_field_amp]     = <Logical>  ! Automatic amplitude scaling.
+  parameter[custom_attributeN]        = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
+  parameter[e_tot]                    = <Real>     ! Reference total Energy. 
+                                                   !      Default: 1000 * rest_energy.
+  parameter[geometry]                 = <Switch>   ! Open or closed
+  parameter[lattice]                  = <String>   ! Lattice name 
+  parameter[n_part]                   = <Real>     ! Number of particles in a bunch.
+  parameter[no_end_marker]            = <Logical>  ! Default: False.
+  parameter[particle]                 = <Switch>   ! Reference species: positron, proton, etc.
+  parameter[p0c]                      = <Real>     ! Reference momentum.
+  parameter[photon_type]              = <Switch>   ! Incoherent or coherent photons?
+  parameter[ptc_exact_model]          = <Logical>  ! PTC to do "exact" tracking?
+  parameter[ptc_exact_misalignment]   = <Logical>  ! PTC to "exactly" misalign elements?
+  parameter[ptc_max_fringe_order]     = <Integer>  ! Max fringe order. 
+                                                   !    Default: 2 => Quadrupole.
+  parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
+                                                   !    Default is ref_particle.
+  parameter[ran_seed]                 = <Integer>  ! Random number generator init.
+  parameter[taylor_order]             = <Integer>  ! Default: 3
+  parameter[use_ptc_layout]           = <Logical>  ! Construct layout for calculations?
+  parameter[use_hard_edge_drifts]     = <Logical>
 \end{example}
 
 \noindent
@@ -65,9 +64,10 @@ For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
 
 For more information on defining custom attributes, see \sref{s:custom.attrib}.
 
-Valid \vn{parameter[particle]} switches are:
+\index{particle}
 \index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
 \index{muon}\index{antimuon}\index{pion_0}\index{pion_minus}\index{pion_plus}
+The \vn{parameter[particle]} switch sets the reference particle. Valid settings are:
 \begin{example}
   electron,     positron,   
   muon,         antimuon,
@@ -75,6 +75,12 @@ Valid \vn{parameter[particle]} switches are:
   photon,       pion_0,
   pion_minus,   pion_plus
 \end{example}
+The setting of the reference particle is used, for example, to
+determine the direction of the field in a magnet and given the
+normalized field strength (EG: \vn{k1} for a quadrupole).  Generally,
+the particles that by default are tracked through a lattice are the
+same as the reference particle. This default behavior can be altered
+by setting \vn{parameter[default_tracking_species]}.
 
 \index{e_tot}
 \index{e_tot}
@@ -139,10 +145,22 @@ used to be called \vn{circular_lattice} and \vn{open} used to be
 called \vn{linear_lattice}. This old syntax is still accepted in
 lattice files.
 
-\index{default_rel_tracking_charge}
-The \vn{default_rel_tracking_charge} establishes the default
-charge-to-mass ratio of particles being tracked relative to the charge
-of the reference particle (set by \vn{parameter[particle]}). The default is 1.
+\index{default_tracking_species}
+The \vn{parameter[default_tracking_species]} switch establishes the
+default type of particles to be tracked. Possible setting include
+all the settings of \vn{parameter[particle]}. In addition, 
+this switch can be set to:
+\begin{example}
+  ref_particle     ! default
+  anti_ref_particle
+\end{example}
+By default, \vn{default_tracking_species} is set to \vn{ref_particle}
+so that the particle being tracked is the same as the reference
+particle set by \vn{param[particle]}. In the case, for example,
+where there are particles going one way and antiparticles going another,
+\vn{default_tracking_species} can be used to switch between
+tracking the particles or antiparticles.
+
 
 \index{taylor_order}
 The Taylor order (\sref{s:taylor.phys}) is set by

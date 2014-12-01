@@ -14,6 +14,7 @@ integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
 integer, parameter :: not_set$ = -999
 
+integer, parameter :: ref_particle$ = 6, anti_ref_particle$ = 7
 integer, parameter :: pion_0$     = +5
 integer, parameter :: pion_plus$  = +4
 integer, parameter :: antimuon$   = +3
@@ -25,10 +26,10 @@ integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
 
-character(16), parameter :: particle_name(-4:5) = [&
-                                     'PION_MINUS', 'MUON      ', 'ANTIPROTON', 'ELECTRON  ', &
-                                     'PHOTON    ', 'POSITRON  ', 'PROTON    ', 'ANTIMUON  ', &
-                                     'PION_PLUS ', 'PION_0    ']
+character(20), parameter :: particle_name(-4:7) = [&
+                'PION_MINUS       ', 'MUON             ', 'ANTIPROTON       ', 'ELECTRON         ', &
+                'PHOTON           ', 'POSITRON         ', 'PROTON           ', 'ANTIMUON         ', &
+                'PION_PLUS        ', 'PION_0           ', 'REF_PARTICLE     ', 'ANTI_REF_PARTICLE']
 
 integer, parameter :: charge_of(-4:5) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0]
 real(rp), parameter :: mass_of(-4:5) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
@@ -39,7 +40,7 @@ real(rp), parameter :: anomalous_moment_of(-4:5) = [0.0_rp, anomalous_mag_moment
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
                         anomalous_mag_moment_muon, 0.0_rp, 0.0_rp]
 
-integer, parameter :: flip_species_charge(-4:5) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5]
+integer, parameter :: antiparticle(-4:7) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6]
 
 contains
 

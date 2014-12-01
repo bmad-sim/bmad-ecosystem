@@ -648,12 +648,11 @@ Reverse tracking in when a particle goes in the direction of
 decreasing \vn{s}. The \Hyperref{r:track.many}{track_many} routine can
 be used for this. See the \vn{track_many} routine for more details.
 
-For static fields tracking backwards is simply the reverse of tracking
-forwards (time reversal symmetry). That is, if you start at some
-place, track forward for some distance and then track back to the
-starting place the ending orbit will be equal to the starting
-orbit. However, it should always be kept in mind that radiation
-damping or excitation or RF cavities break this symmetry.
+Another way to track in the reverse direction is to create a
+``reversed'' lattice with the elements in reverse order and with
+each lattice element's orientaiton reversed. The routine for this
+is \zzz{lat_reverse}.
+
 
 %----------------------------------------------------------------
 \section{Beam (Particle Distribution) Tracking}

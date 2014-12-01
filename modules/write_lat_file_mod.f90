@@ -991,8 +991,8 @@ do ib = 1, ubound(lat%branch, 1)
 
   write (iu, *)
   write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
-  if (branch%param%default_rel_tracking_charge /= 1) write (iu, '(3a)') trim(branch%name), &
-                        '[default_rel_tracking_charge] = ', str(branch%param%default_rel_tracking_charge)
+  if (branch%param%default_tracking_species /= ref_particle$) write (iu, '(3a)') trim(branch%name), &
+                        '[default_tracking_species] = ', particle_name(branch%param%default_tracking_species)
  
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
