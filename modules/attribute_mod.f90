@@ -808,9 +808,9 @@ subroutine ele_attribute_value (ele, attrib_name, do_allocation, &
 
 
 type (ele_struct), target :: ele
+type (all_pointer_struct) :: ptr_attrib
 
 real(rp) attrib_value
-real(rp), pointer :: ptr_attrib
 
 integer, optional :: ix_attrib
 
@@ -841,7 +841,7 @@ end select
 
 call pointer_to_attribute (ele, attrib_name, do_allocation, &
                   ptr_attrib, err_flag, err_print_flag, ix_attrib)
-if (associated(ptr_attrib)) attrib_value = ptr_attrib
+if (associated(ptr_attrib%r)) attrib_value = ptr_attrib%r
 
 !---------------------------------------------
 contains

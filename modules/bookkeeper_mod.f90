@@ -36,6 +36,7 @@ type (sad_param_struct), save :: sad_param
 !   set_flages_for_changed_real_attribute (ele, real_attrib)
 !   set_flages_for_changed_inteter_attribute (ele, int_attrib)
 !   set_flages_for_changed_logical_attribute (ele, logic_attrib)
+!   set_flages_for_changed_all_attribute (ele, all_attrib)
 !
 ! The set_flages_for_changed_lat_attribute (lat) routine is used when one
 ! does not know what has changed and wants a complete bookkeeping done.
@@ -53,6 +54,7 @@ type (sad_param_struct), save :: sad_param
 !                     For example: ele%mat6_calc_method.
 !   logic_attrib -- logical; Attribute that has been changed.
 !                     For example: ele%is_on.
+!   all_attrib   -- all_pointer_struct: Pointer to attribute.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
@@ -62,6 +64,7 @@ interface set_flags_for_changed_attribute
   module procedure set_flags_for_changed_real_attribute 
   module procedure set_flags_for_changed_integer_attribute 
   module procedure set_flags_for_changed_logical_attribute 
+  module procedure set_flags_for_changed_all_attribute 
   module procedure set_flags_for_changed_lat_attribute 
 end interface
 
@@ -2750,6 +2753,33 @@ case default
 end select
 
 end subroutine aperture_bookkeeper
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_all_attribute (ele, all_attrib)
+!
+! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+!
+! This routine is overloaded by set_flags_for_changed_attribute. 
+! See set_flags_for_changed_attribute for more details.
+!-
+
+subroutine set_flags_for_changed_all_attribute (ele, all_attrib)
+
+implicit none
+
+type (ele_struct), target :: ele
+type (all_pointer_struct) all_attrib
+
+!
+
+if (associated(all_attrib%r)) call set_flags_for_changed_real_attribute(ele, all_attrib%r)
+if (associated(all_attrib%i)) call set_flags_for_changed_integer_attribute(ele, all_attrib%i)
+if (associated(all_attrib%l)) call set_flags_for_changed_logical_attribute(ele, all_attrib%l)
+
+end subroutine set_flags_for_changed_all_attribute
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

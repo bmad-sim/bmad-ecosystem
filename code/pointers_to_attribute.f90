@@ -50,6 +50,7 @@ type (real_pointer_struct), allocatable :: ptr_array(:)
 type (real_pointer_struct), allocatable :: ptrs(:)
 type (ele_pointer_struct), optional, allocatable :: eles(:)
 type (ele_pointer_struct), allocatable :: eles2(:)
+type (all_pointer_struct) a_ptr
 
 integer, optional :: ix_attrib
 integer n, i, ix, key, ix_a, n_loc
@@ -186,10 +187,10 @@ call re_allocate (ptrs, n_loc)
 n = 0
 do i = 1, n_loc
   call pointer_to_attribute (eles2(i)%ele, &
-          attrib_name, do_allocation, ptrs(n+1)%r, err_flag, .false., ix_a)
-  if (err_flag) cycle
-
+          attrib_name, do_allocation, a_ptr, err_flag, .false., ix_a)
+  if (err_flag .or. .not. associated(a_ptr%r)) cycle
   n = n + 1
+  ptrs(n)%r => a_ptr%r
   eles2(n)%ele => eles2(i)%ele
   if (present(ix_attrib)) ix_attrib = ix_a
 enddo

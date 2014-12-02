@@ -227,6 +227,7 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
 type (em_field_mode_struct), pointer :: em_mode
 type (photon_surface_struct), pointer :: surf
+type (all_pointer_struct) a_ptr
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
 real(rp), pointer :: r_ptr
@@ -406,13 +407,13 @@ if (word == 'LR' .and. delim == '(') then
     call parser_error ('NO "=" SIGN FOUND', 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  call pointer_to_attribute (ele, 'LR(' // word, .false., r_ptr, err_flag, .false.)
-  if (err_flag) then
+  call pointer_to_attribute (ele, 'LR(' // word, .false., a_ptr, err_flag, .false.)
+  if (err_flag .or. .not. associated(a_ptr%r)) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-  r_ptr = value
+  a_ptr%r = value
   return
 endif
 
@@ -1380,12 +1381,12 @@ case default   ! normal attribute
       ele%value(y1_limit$) = value
       ele%value(y2_limit$) = value
     elseif (ix_attrib > num_ele_attrib$) then
-      call pointer_to_attribute (ele, attrib_word, .false., r_ptr, err_flag, .false.)
-      if (err_flag) then
+      call pointer_to_attribute (ele, attrib_word, .false., a_ptr, err_flag, .false.)
+      if (err_flag .or. .not. associated(a_ptr%r)) then
         call parser_error ('BAD ATTRIBUTE: ' // attrib_word, 'FOR ELEMENT: ' // ele%name)
         return
       endif
-      r_ptr = value
+      a_ptr%r = value
       if (attrib_word == 'X_POSITION' .or. attrib_word == 'X_POSITION' .or. &
           attrib_word == 'X_POSITION' .or. attrib_word == 'THETA_POSITION' .or. &
           attrib_word == 'PHI_POSITION' .or. attrib_word == 'PSI_POSITION') ele%value(floor_set$) = 1

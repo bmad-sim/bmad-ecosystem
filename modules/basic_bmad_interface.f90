@@ -466,11 +466,11 @@ interface
   end subroutine
 
   subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                    ptr_attrib, err_flag, err_print_flag, ix_attrib)
+                                        a_ptr, err_flag, err_print_flag, ix_attrib)
     import
     implicit none
     type (ele_struct), target :: ele
-    real(rp), pointer :: ptr_attrib
+    type (all_pointer_struct) a_ptr
     character(*) attrib_name
     logical err_flag
     logical do_allocation

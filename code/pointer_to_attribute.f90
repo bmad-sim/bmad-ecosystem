@@ -1,6 +1,6 @@
 !+
 ! Subroutine pointer_to_attribute (ele, attrib_name, do_allocation,
-!                            ptr_attrib, err_flag, err_print_flag, ix_attrib)
+!                                                 a_ptr, err_flag, err_print_flag, ix_attrib)
 !
 ! Returns a pointer to an attribute of an element ele with attribute name attrib_name.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
@@ -23,15 +23,17 @@
 !                       printing of an error message on error.
 !
 ! Output:
-!   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
-!                     Pointer will be deassociated if there is a problem.
+!   a_ptr      -- all_pointer_struct: Pointer to the attribute. 
+!     %r           -- pointer to real attribute. Nullified if error or attribute is not real.               
+!     %i           -- pointer to integer attribute. Nullified if error or attribute is not integer.
+!     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
-!   ix_attrib  -- Integer, optional: If applicable then this is the index to the 
-!                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole arrays.
+!   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
+!                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole(:) arrays.
 !-
 
 subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
-                  ptr_attrib, err_flag, err_print_flag, ix_attrib)
+                                    a_ptr, err_flag, err_print_flag, ix_attrib)
 
 use bmad_interface, except_dummy => pointer_to_attribute
 
@@ -40,6 +42,7 @@ implicit none
 type (ele_struct), target :: ele
 type (wake_lr_struct), allocatable :: lr(:)
 type (em_field_mode_struct), pointer :: mode
+type (all_pointer_struct) a_ptr
 
 real(rp), pointer :: ptr_attrib
 
@@ -58,7 +61,7 @@ logical, optional :: err_print_flag
 err_flag = .true.
 out_of_bounds = .false.
 
-nullify (ptr_attrib)
+nullify (a_ptr%r, a_ptr%i, a_ptr%l)
 
 do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
@@ -93,10 +96,10 @@ if (a_name(1:3) == 'LR(') then
   endif
 
   select case (a_name(ix_d+2:))
-  case ('FREQ');      ptr_attrib => ele%wake%lr(n)%freq
-  case ('R_OVER_Q');  ptr_attrib => ele%wake%lr(n)%r_over_q
-  case ('Q');         ptr_attrib => ele%wake%lr(n)%q
-  case ('ANGLE');     ptr_attrib => ele%wake%lr(n)%angle
+  case ('FREQ');      a_ptr%r => ele%wake%lr(n)%freq
+  case ('R_OVER_Q');  a_ptr%r => ele%wake%lr(n)%r_over_q
+  case ('Q');         a_ptr%r => ele%wake%lr(n)%q
+  case ('ANGLE');     a_ptr%r => ele%wake%lr(n)%angle
   case default;       goto 9000
   end select    
 
@@ -115,11 +118,11 @@ if (a_name(1:11) == 'FIELD.MODE(') then
   mode => ele%em_field%mode(n_cc)
 
   select case (a_name)
-  case ('F_DAMP');        ptr_attrib => mode%f_damp
-  case ('PHI0_REF');     ptr_attrib => mode%phi0_ref
-  case ('STORED_ENERGY'); ptr_attrib => mode%stored_energy
-  case ('PHI0_AZIMUTH');  ptr_attrib => mode%phi0_azimuth
-  case ('FIELD_SCALE');   ptr_attrib => mode%field_scale
+  case ('F_DAMP');        a_ptr%r => mode%f_damp
+  case ('PHI0_REF');     a_ptr%r => mode%phi0_ref
+  case ('STORED_ENERGY'); a_ptr%r => mode%stored_energy
+  case ('PHI0_AZIMUTH');  a_ptr%r => mode%phi0_azimuth
+  case ('FIELD_SCALE');   a_ptr%r => mode%field_scale
   case default;           goto 9000
   end select
 
@@ -138,13 +141,13 @@ if (a_name(1:10) == 'WALL.SECTION') then
 
   if (a_name == 'S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
-    ptr_attrib => ele%wall3d%section(n_cc)%s
+    a_ptr%r => ele%wall3d%section(n_cc)%s
     err_flag = .false.
     return
   endif
 
   if (a_name(1:11) == 'WALL.DR_DS') then
-    ptr_attrib => ele%wall3d%section(n_cc)%dr_ds
+    a_ptr%r => ele%wall3d%section(n_cc)%dr_ds
     err_flag = .false.
     return
   endif
@@ -153,11 +156,11 @@ if (a_name(1:10) == 'WALL.SECTION') then
     n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d%section(n_cc)%v))
     if (err) goto 9200
     select case (a_name)
-    case ('.X');        ptr_attrib => ele%wall3d%section(n_cc)%v(n_v)%x
-    case ('.Y');        ptr_attrib => ele%wall3d%section(n_cc)%v(n_v)%y
-    case ('.RADIUS_X'); ptr_attrib => ele%wall3d%section(n_cc)%v(n_v)%radius_x
-    case ('.RADIUS_Y'); ptr_attrib => ele%wall3d%section(n_cc)%v(n_v)%radius_y
-    case ('.TILT');     ptr_attrib => ele%wall3d%section(n_cc)%v(n_v)%tilt
+    case ('.X');        a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%x
+    case ('.Y');        a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%y
+    case ('.RADIUS_X'); a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%radius_x
+    case ('.RADIUS_Y'); a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%radius_y
+    case ('.TILT');     a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%tilt
     case default;       goto 9200
     err_flag = .false.
     end select
@@ -171,57 +174,57 @@ endif
 
 select case (a_name)
 case ('X_POSITION')
-  ptr_attrib => ele%floor%r(1)
+  a_ptr%r => ele%floor%r(1)
 case ('Y_POSITION')
-  ptr_attrib => ele%floor%r(2)
+  a_ptr%r => ele%floor%r(2)
 case ('Z_POSITION')
-  ptr_attrib => ele%floor%r(3)
+  a_ptr%r => ele%floor%r(3)
 case ('THETA_POSITION')
-  ptr_attrib => ele%floor%theta
+  a_ptr%r => ele%floor%theta
 case ('PHI_POSITION')
-  ptr_attrib => ele%floor%phi
+  a_ptr%r => ele%floor%phi
 case ('PSI_POSITION')
-  ptr_attrib => ele%floor%psi
+  a_ptr%r => ele%floor%psi
 case ('BETA_A')
-  ptr_attrib => ele%a%beta
+  a_ptr%r => ele%a%beta
 case ('ALPHA_A')
-  ptr_attrib => ele%a%alpha
+  a_ptr%r => ele%a%alpha
 case ('PHI_A')
-  ptr_attrib => ele%a%phi
+  a_ptr%r => ele%a%phi
 case ('ETA_A')
-  ptr_attrib => ele%a%eta
+  a_ptr%r => ele%a%eta
 case ('ETAP_A')
-  ptr_attrib => ele%a%etap
+  a_ptr%r => ele%a%etap
 case ('ETA_X')
-  ptr_attrib => ele%x%eta
+  a_ptr%r => ele%x%eta
 case ('ETAP_X')
-  ptr_attrib => ele%x%etap
+  a_ptr%r => ele%x%etap
 case ('BETA_B')
-  ptr_attrib => ele%b%beta
+  a_ptr%r => ele%b%beta
 case ('ALPHA_B')
-  ptr_attrib => ele%b%alpha
+  a_ptr%r => ele%b%alpha
 case ('PHI_B')
-  ptr_attrib => ele%b%phi
+  a_ptr%r => ele%b%phi
 case ('ETA_B')
-  ptr_attrib => ele%b%eta
+  a_ptr%r => ele%b%eta
 case ('ETAP_B')
-  ptr_attrib => ele%b%etap
+  a_ptr%r => ele%b%etap
 case ('ETA_Y')
-  ptr_attrib => ele%y%eta
+  a_ptr%r => ele%y%eta
 case ('ETAP_Y')
-  ptr_attrib => ele%y%etap
+  a_ptr%r => ele%y%etap
 case ('CMAT_11')
-  ptr_attrib => ele%c_mat(1,1)
+  a_ptr%r => ele%c_mat(1,1)
 case ('CMAT_12')
-  ptr_attrib => ele%c_mat(1,2)
+  a_ptr%r => ele%c_mat(1,2)
 case ('CMAT_21')
-  ptr_attrib => ele%c_mat(2,1)
+  a_ptr%r => ele%c_mat(2,1)
 case ('CMAT_22')
-  ptr_attrib => ele%c_mat(2,2)
+  a_ptr%r => ele%c_mat(2,2)
 case ('S')
-  ptr_attrib => ele%s
+  a_ptr%r => ele%s
 case ('REF_TIME')
-  ptr_attrib => ele%ref_time
+  a_ptr%r => ele%ref_time
 end select
 
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
@@ -230,18 +233,18 @@ if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) 
   if (ix == -1 .or. iy == -1) return
   if (ix > ubound(ele%photon%surface%curvature_xy, 1)) return
   if (iy > ubound(ele%photon%surface%curvature_xy, 2)) return
-  ptr_attrib => ele%photon%surface%curvature_xy(ix,iy)
+  a_ptr%r => ele%photon%surface%curvature_xy(ix,iy)
 endif
 
 if (a_name(1:5) == "XMAT_") then
   if (len(a_name) >= 7) then
     ix1 = index('123456', a_name(6:6))
     ix2 = index('123456', a_name(7:7))
-    if (ix1 > 0 .and. ix2 > 0) ptr_attrib => ele%mat6(ix1,ix2)
+    if (ix1 > 0 .and. ix2 > 0) a_ptr%r => ele%mat6(ix1,ix2)
   endif
 endif
 
-if (associated(ptr_attrib)) then
+if (associated(a_ptr%r)) then
   err_flag = .false.
   return
 endif
@@ -250,8 +253,69 @@ endif
 
 ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
-call pointer_to_indexed_attribute (ele, ix_a, do_allocation, &
-                                      ptr_attrib, err_flag, err_print_flag)
+if (ix_a < 1) return
+
+select case (attrib_name)
+!  attrib_type = is_logical$
+case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
+case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
+case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
+case ('IS_ON');                          a_ptr%l => ele%is_on
+case ('APERTURE_LIMIT_ON');              a_ptr%l => ele%branch%param%aperture_limit_on
+case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => ele%branch%lat%absolute_time_tracking
+case ('AUTO_SCALE_FIELD_PHASE');         a_ptr%l => ele%branch%lat%auto_scale_field_phase
+case ('AUTO_SCALE_FIELD_AMP');           a_ptr%l => ele%branch%lat%auto_scale_field_amp
+case ('CSR_CALC_ON');                    a_ptr%l => ele%csr_calc_on
+case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offsets
+case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
+case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
+case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
+case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
+case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
+case ('TRAVELING_WAVE');                 a_ptr%r => ele%value(traveling_wave$)
+!  attrib_type = is_integer$
+case ('N_SLICE');                        a_ptr%r => ele%value(n_slice$)
+case ('N_REF_PASS');                     a_ptr%r => ele%value(n_ref_pass$)
+case ('DIRECTION');                      a_ptr%r => ele%value(direction$)
+case ('N_CELL');                         a_ptr%r => ele%value(n_cell$)
+case ('IX_TO_BRANCH');                   a_ptr%r => ele%value(ix_to_branch$)
+case ('IX_TO_ELEMENT');                  a_ptr%r => ele%value(ix_to_element$)
+case ('NUM_STEPS');                      a_ptr%r => ele%value(num_steps$)
+case ('INTEGRATOR_ORDER');               a_ptr%r => ele%value(integrator_order$)
+!  attrib_type = is_switch$
+case ('APERTURE_AT');                    a_ptr%i => ele%aperture_at
+case ('APERTURE_TYPE');                  a_ptr%i => ele%aperture_type
+case ('COUPLER_AT');                     a_ptr%r => ele%value(coupler_at$)
+case ('FIELD_CALC');                     a_ptr%i => ele%field_calc
+case ('FRINGE_TYPE');                    a_ptr%r => ele%value(fringe_type$)
+case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
+case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
+case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
+case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fringe_type$)
+case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
+case ('PARTICLE');                       a_ptr%i => ele%branch%param%particle
+case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
+case ('DEFAULT_TRACKING_SPECIES');       a_ptr%i => ele%branch%param%default_tracking_species
+case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
+case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
+case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
+case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
+case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
+case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
+case ('MODE');                           a_ptr%r => ele%value(mode$)
+! No corresponding attribute
+case ('TAYLOR_ORDER')
+case ('PTC_EXACT_MODEL')
+case ('PTC_EXACT_MISALIGN')
+case ('HARMON_MASTER')
+case ('PTC_MAX_FRINGE_ORDER')
+case ('UPSTREAM_ELE_DIR')
+case ('DOWNSTREAM_ELE_DIR')
+! Real attribute
+case default
+  call pointer_to_indexed_attribute (ele, ix_a, do_allocation, a_ptr%r, err_flag, err_print_flag)
+end select
+
 return
 
 !----------------------------------------
