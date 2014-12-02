@@ -61,13 +61,13 @@ type (ele_struct), pointer :: ele2 => null()
 type (ele_struct), pointer :: ref_ele => null()
 type (coord_struct), allocatable, save :: orb(:)
 type (lat_struct), pointer :: lat
+type (all_pointer_struct) a_ptr
 
 character(*) :: ele_type, ele_attrib, misalign_value, where, wrt
 character(20) :: r_name = 'tao_misalign'
 
 real(rp) misalign_value_num, gauss_err, pitch_offset, ref_value
 real(rp) theta, length, Ecav, E0
-real(rp), pointer :: attrib_ptr
 real(rp), pointer :: value
 
 integer i, j, k, ix_attrib, universe, ix_current, wrt_what
@@ -118,9 +118,8 @@ logical, allocatable, save :: action_logic(:)
   endif
   
   call upcase_string(ele_attrib)
-  call pointer_to_attribute (ele, ele_attrib, .false., attrib_ptr, &
-                             err, .true., ix_attrib)
-  if (err) then
+  call pointer_to_attribute (ele, ele_attrib, .false., a_ptr, err, .true., ix_attrib)
+  if (err .or. .not. associated(a_ptr%r)) then
     call out_io (s_error$, r_name, "Error matching attribute name")
     return
   endif

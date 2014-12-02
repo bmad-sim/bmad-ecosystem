@@ -1510,11 +1510,11 @@ type (ele_struct), pointer :: ele_ref
 type (coord_struct) orbit, orbit_last
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
+type (all_pointer_struct) a_ptr
 
 real(rp) x1, x2, cbar(2,2), s_last, s_now, value, mat6(6,6), vec0(6)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), one_pz, gamma, len_tot
 real(rp) comp_sign
-real(rp), pointer :: r_ptr
 
 integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
 
@@ -1722,8 +1722,8 @@ do ii = 1, size(curve%x_line)
       good = .false.
       return  ! Bad attribute name
     endif
-    call pointer_to_attribute (ele_ref, name, .false., r_ptr, err, .false.)
-    if (associated (r_ptr)) value = r_ptr
+    call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
+    if (associated (a_ptr%r)) value = a_ptr%r
   case ('emit.a')
     value = bunch_params%a%emit
   case ('emit.b')

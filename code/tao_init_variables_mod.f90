@@ -706,6 +706,7 @@ type (ele_struct), pointer :: ele2
 type (tao_universe_struct), pointer :: u
 type (tao_this_var_struct), pointer :: this
 type (tao_this_var_struct) :: this_saved(size(var%this))
+type (all_pointer_struct) a_ptr
 
 integer ix, ix_uni, ix_this
 logical :: err
@@ -731,8 +732,8 @@ this => var%this(ix_this)
 
 ele2 => pointer_to_ele (u%model%lat, ele%ix_ele, ele%ix_branch)
 call pointer_to_attribute (ele2, var%attrib_name, .true., &
-                          this%model_value, err, .false., ix_attrib = var%ix_attrib)
-if (err) then
+                          a_ptr, err, .false., ix_attrib = var%ix_attrib)
+if (err .or. .not. associated(a_ptr%r)) then
   call out_io (s_error$, r_name, &
             'IN VARIBALE: ' // tao_var1_name(var), &
             '  INVALID ATTRIBUTE: ' // var%attrib_name, &
@@ -744,24 +745,29 @@ if (err) then
   return
 endif
 
+this%model_value => a_ptr%r
 ele2 => pointer_to_ele (u%base%lat, ele%ix_ele, ele%ix_branch)
-call pointer_to_attribute (ele2,  var%attrib_name, .true., this%base_value,  err)
+
+call pointer_to_attribute (ele2,  var%attrib_name, .true., a_ptr,  err)
+
+this%base_value => a_ptr%r
+this%ix_ele    = ele%ix_ele
+this%ix_branch = ele%ix_branch
+this%ix_uni    = ix_uni
 
 var%model_value => var%this(1)%model_value
 var%base_value  => var%this(1)%base_value
 var%design_value = var%this(1)%model_value
 
-this%ix_ele    = ele%ix_ele
-this%ix_branch = ele%ix_branch
-this%ix_uni    = ix_uni
-
 ! Common pointer
 
 if (associated(u%common)) then
   ele2 => pointer_to_ele (u%common%model%lat, ele%ix_ele, ele%ix_branch)
-  call pointer_to_attribute (ele,  var%attrib_name, .true., var%common%model_value,  err)
+  call pointer_to_attribute (ele,  var%attrib_name, .true., a_ptr,  err)
+  var%common%model_value => a_ptr%r
   ele2 => pointer_to_ele (u%common%base%lat, ele%ix_ele, ele%ix_branch)
-  call pointer_to_attribute (ele, var%attrib_name, .true., var%common%base_value,  err)
+  call pointer_to_attribute (ele, var%attrib_name, .true., a_ptr, err)
+  var%common%base_value => a_ptr%r
 endif
 
 ! With unified lattices: model_value and base_value get their own storage
