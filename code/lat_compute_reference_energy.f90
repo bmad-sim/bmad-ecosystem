@@ -446,7 +446,11 @@ case (crystal$, mirror$, multilayer_mirror$)
 
 case (patch$) 
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
-    ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
+    if (ele%orientation == 1) then
+      ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
+    else
+      ele%value(E_tot$) = e_tot_start - ele%value(e_tot_offset$)
+    endif
     call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
     if (err) return
   else

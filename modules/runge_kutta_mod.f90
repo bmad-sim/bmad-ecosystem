@@ -116,7 +116,7 @@ orb_end%s = s1 + ele%s + ele%value(z_offset_tot$) - ele%value(l$)
 ! For elements where the reference energy is changing the reference energy in the body is 
 ! taken, by convention, to be the reference energy at the exit end.
 
-call reference_energy_correction (ele, orb_end)
+call reference_energy_correction (ele, orb_end, first_track_edge$)
 
 ! If the element is using a hard edge model then need to stop at the hard edges
 ! to apply the appropriate hard edge kick.
@@ -134,7 +134,7 @@ t = particle_time(orb_end, ele)
 if (present(track)) then
   s_sav = s - 2.0_rp * track%ds_save
   call init_saved_orbit (track, 1000)
-  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
+  if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
 endif
 
 ! now track
@@ -159,7 +159,8 @@ do n_step = 1, max_step
   ! Check if we are done.
 
   if ((s-s2)*s_dir > -ds_tiny) then
-    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
+    if (present(track)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
+    call reference_energy_correction (ele, orb_end, second_track_edge$)
     err_flag = .false.
     return
   end if
@@ -233,7 +234,7 @@ do n_step = 1, max_step
   ! Save track
 
   if (present(track)) then
-    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav)
+    if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
     if (ds_did == ds) then
       track%n_ok = track%n_ok + 1
     else

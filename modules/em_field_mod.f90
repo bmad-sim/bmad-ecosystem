@@ -94,13 +94,13 @@ track%n_ok = 0
 track%n_bad = 0
 track%n_pt = -1
 
-end subroutine
+end subroutine init_saved_orbit
 
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
-! +
-! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav)
+!+
+! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav, t_ref)
 !
 ! Routine used by Runge-Kutta and Boris tracking routines to save
 ! the trajectory through an element.
@@ -114,13 +114,14 @@ end subroutine
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
 !   s        -- Real(rp): S-position with respect to start of element
 !   orb      -- Coord_struct: trajectory at s with respect to element coordinates.
+!   t_ref    -- real(rp), optional: Reference time. If present then track%field call be evaluated.
 !
 ! Ouput:
 !   track    -- track_struct: Trajectory structure to save to.
 !   s_sav    -- Real(rp): Set equal to s.
+!-
 
-
-subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav)
+subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, t_ref)
 
 implicit none
 
@@ -130,6 +131,7 @@ type (lat_param_struct), intent(in) :: param
 type (coord_struct) orb, orb2
 integer n_pt, n, n_old
 real(rp) s, s_sav
+real(rp), optional :: t_ref
 logical local_ref_frame
 
 !
@@ -158,6 +160,10 @@ track%orb(n_pt)%ix_ele = ele%ix_ele
 track%map(n_pt)%mat6 = 0
 
 s_sav = s
+
+if (present(t_ref)) then
+  call em_field_calc (ele, param, s, t_ref, orb, local_ref_frame, track%field(n_pt), .false.)
+endif
 
 end subroutine save_a_step
 
@@ -341,7 +347,7 @@ select case (ele%field_calc)
   ! E_Gun
 
   case (e_gun$)
-    field%e(3) = e_accel_field (ele, gradient$) / ref_charge
+    field%e(3) = e_accel_field (ele, gradient$)
 
   !------------------------------------------
   ! HKicker

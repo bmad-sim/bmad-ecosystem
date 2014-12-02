@@ -205,19 +205,14 @@ do
     if ( present(track) ) then
       !Check if we are past a save time, or if exited
       if (t_rel >= t_save .or. exit_flag) then
-        !TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
+        ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
         call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
-      
-        !track%n_pt = track%n_pt + 1
-        !n_pt = track%n_pt
-        !track%orb(n_pt) = orb
-        !track%orb(n_pt)%ix_ele => ele%ix_ele
-        !Query the local field to save
+        ! Query the local field to save
         call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
         if (err_flag) return
         track%field(track%n_pt) = saved_field
-         !Set next save time 
-         t_save = t_rel + dt_save
+        ! Set next save time 
+        t_save = t_rel + dt_save
       end if
     endif
 

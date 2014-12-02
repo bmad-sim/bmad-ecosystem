@@ -2361,6 +2361,7 @@ if (orbit%direction * ele%orientation == 1) then
     call mat_make_unit (ww)
   endif
   ds0 = ww(3,1) * v(x_offset$) + ww(3,2) * v(y_offset$) + ww(3,3) * v(z_offset$)
+  orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 else
   p_vec(3) = p_vec(3) * ele%value(downstream_ele_dir$)
@@ -2376,13 +2377,13 @@ else
   endif
   r_vec = r_vec + [v(x_offset$), v(y_offset$), v(z_offset$)]
   ds0 = ww(1,3) * v(x_offset$) + ww(2,3) * v(y_offset$) + ww(3,3) * v(z_offset$)
+  orbit%vec(5) = orbit%vec(5) - orbit%beta * c_light * v(t_offset$)
 endif
 
 !
 
 orbit%vec(1) = r_vec(1)
 orbit%vec(3) = r_vec(2)
-orbit%vec(5) = orbit%vec(5) + orbit%beta * c_light * v(t_offset$)
 
 if (present(s_ent))  s_ent = r_vec(3)
 if (present(ds_ref)) ds_ref = ds0
@@ -2393,7 +2394,12 @@ if (present(p_s))    p_s = p_vec(3)
 ! Notice that the drift distance is -r_vec(3). 
 
 if (logic_option(.true., drift_to_exit)) then
-  call reference_energy_correction (ele, orbit)
+  ! Set track edge so that energy correction does not ignore an energy shift.
+  if (orbit%direction == 1) then
+    call reference_energy_correction (ele, orbit, first_track_edge$)
+  else
+    call reference_energy_correction (ele, orbit, second_track_edge$)
+  endif
   beta0 = v(p0c$) / v(e_tot$)
   orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)
   orbit%vec(3) = orbit%vec(3) - r_vec(3) * p_vec(2) / p_vec(3)
@@ -2408,10 +2414,10 @@ end subroutine track_a_patch
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine reference_energy_correction (ele, orbit)
+! Subroutine reference_energy_correction (ele, orbit, particle_at)
 !
-! For elements where the reference energy is changing the reference energy in the body is 
-! taken by convention to be the reference energy at the exit end.
+! For elements where the reference energy is changing the reference energy in the 
+! body is taken by convention to be the reference energy at the exit end.
 ! Elements where the reference energy can change:
 !   lcavity
 !   patch
@@ -2420,14 +2426,16 @@ end subroutine track_a_patch
 ! This routine should be called at the start of any tracking integration.
 !
 ! Input:
-!   ele       -- Ele_struct: Element being tracked through.
-!   orbit     -- Coord_struct: Coordinates to correct.
+!   ele         -- Ele_struct: Element being tracked through.
+!   orbit       -- Coord_struct: Coordinates to correct.
+!   particle_at -- integer: first_track_edge$ (that is, entering the element), or 
+!                           second_track_edge$ (that is, leaving the element).
 !
 ! Output:
 !   orbit     -- Coord_struct: Coordinates to correct.
 !-
 
-subroutine reference_energy_correction (ele, orbit)
+subroutine reference_energy_correction (ele, orbit, particle_at)
 
 implicit none
 
@@ -2435,23 +2443,26 @@ type (ele_struct) :: ele
 type (coord_struct) :: orbit
 
 real(rp) p0, p1, e_start, p_rel
+integer particle_at
 character(*), parameter :: r_name = 'reference_energy_correction'
 
 !
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
-if (orbit%direction == 1) then
+if (orbit%direction == 1 .and. particle_at == first_track_edge$) then
   p_rel = ele%value(p0c_start$) / ele%value(p0c$)
   orbit%p0c = ele%value(p0c$)
-else
+elseif (orbit%direction == -1 .and. particle_at == second_track_edge$) then
   p_rel = ele%value(p0c$) / ele%value(p0c_start$)
   orbit%p0c = ele%value(p0c_start$)
+else
+  return
 endif
 
-  orbit%vec(2) = orbit%vec(2) * p_rel
-  orbit%vec(4) = orbit%vec(4) * p_rel
-  orbit%vec(6) = (1 + orbit%vec(6)) * p_rel - 1
+orbit%vec(2) = orbit%vec(2) * p_rel
+orbit%vec(4) = orbit%vec(4) * p_rel
+orbit%vec(6) = (1 + orbit%vec(6)) * p_rel - 1
 
 end subroutine reference_energy_correction
 
