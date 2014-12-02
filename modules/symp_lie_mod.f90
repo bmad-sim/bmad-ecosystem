@@ -130,8 +130,7 @@ s = 0   ! longitudianl position
 
 if (present(track)) then
   call init_saved_orbit (track, n_step)
-  track%n_pt = n_step
-  call save_this_track_pt (0, 0.0_rp)
+  call save_this_track_pt (0.0_rp)
 endif
 
 ! radiation damping and fluctuations...
@@ -237,7 +236,7 @@ Case (wiggler$, undulator$)
 
     s = s + ds2
 
-    if (present(track)) call save_this_track_pt (i, s)
+    if (present(track)) call save_this_track_pt (s)
 
   enddo
 
@@ -270,7 +269,7 @@ case (lcavity$, rfcavity$)
 
     s = s + ds2
 
-    if (present(track)) call save_this_track_pt (i, s)
+    if (present(track)) call save_this_track_pt (s)
 
   enddo
 
@@ -329,7 +328,7 @@ case (bend_sol_quad$, solenoid$, quadrupole$, sol_quad$)
     s = s + ds2
     ks_tot_2 = (ks + dks_ds * s) / 2
 
-    if (present(track)) call save_this_track_pt (i, s)
+    if (present(track)) call save_this_track_pt (s)
 
   enddo
 
@@ -420,24 +419,21 @@ end subroutine err_set
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine save_this_track_pt (ix, s)
+subroutine save_this_track_pt (s)
 
-real(rp) s
+real(rp) s, s_sav
 integer ix
 
 !
 
-track%orb(ix) = end_orb
-call offset_particle (ele, param, unset$, track%orb(ix))
+call save_a_step (track, ele, param, .true., s, end_orb, s_sav)
   
-if (calculate_mat6) track%map(ix)%mat6 = mat6
-
-if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
-call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
-
 if (calculate_mat6) then
-  track%map(ix)%vec0(1:5) = track%orb(ix)%vec(1:5) - matmul (mat6(1:5,1:6), start_orb%vec)
-  track%map(ix)%vec0(6) = 0
+  ix = track%n_pt
+  track%map(ix)%mat6 = mat6
+  if (ele%value(tilt_tot$) /= 0) call tilt_mat6 (track%map(ix)%mat6, ele%value(tilt_tot$))
+  call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
+  track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb%vec)
 endif
  
 end subroutine save_this_track_pt

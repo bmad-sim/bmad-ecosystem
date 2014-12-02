@@ -109,7 +109,7 @@ if (ele%key == patch$) then
   orb_end%vec(5) = orb_end%vec(5) + ds_ref * orb_end%beta / beta0 + s0
 endif
 
-call reference_energy_correction (ele, orb_end)
+call reference_energy_correction (ele, orb_end, first_track_edge$)
 
 call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
 
@@ -120,7 +120,7 @@ t = particle_time(orb_end, ele)
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
   call init_saved_orbit (track, n_step+10)
-  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav)
+  call save_a_step (track, ele, param, .true., s1, orb_end, s_sav, t)
 endif
 
 ! track through the body
@@ -143,13 +143,15 @@ do
   call track1_boris_partial (orb_end, ele, param, s, t, ds, orb_end)
   s = s + ds
 
-  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav)
+  if (present(track)) call save_a_step (track, ele, param, .true., s, orb_end, s_sav, t)
   
 enddo
 
 ! back to lab coords
 
 call offset_particle (ele, param, unset$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
+
+call reference_energy_correction (ele, orb_end, second_track_edge$)
 
 ! The z value computed in odeint_bmad is off for elements where the particle changes energy is not 
 ! constant (see odeint_bmad for more details). In this case make the needed correction.

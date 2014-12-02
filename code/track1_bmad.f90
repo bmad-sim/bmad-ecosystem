@@ -681,7 +681,7 @@ case (sextupole$)
   call offset_particle (ele, param, unset$, end_orb)
 
 !-----------------------------------------------
-! solenoid
+! Solenoid
 ! Notice that ks is independent of the ele orientation
 
 case (solenoid$)

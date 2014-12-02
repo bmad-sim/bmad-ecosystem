@@ -43,7 +43,6 @@ type (lat_param_struct), target :: param
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
-type (em_field_struct) :: saved_field
 
 real(rp) dt_step, ref_time, vec6
 real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
@@ -57,31 +56,26 @@ logical :: local_ref_frame = .true.
 logical :: abs_time, err_flag, err
 
 !---------------------------------
-! Reset particle lost status
 
 err_flag = .true.
 
 end_orb = start_orb
+time = particle_time(start_orb, ele)
 
-!If element has zero length, skip tracking
+! If element has zero length, skip tracking
+
 if (ele%value(l$) .eq. 0) then
   
   !If saving tracks, allocate track array and save one point
   if ( present(track) ) then
-   !Convert to global-s to local-t coordinates
+    !Convert to global-s to local-t coordinates
     call convert_particle_coordinates_s_to_t(end_orb)
     !Tracks use vec(5) = s_rel
     end_orb%vec(5) = 0.0_rp
-  if (.not. allocated(track%orb) ) call init_saved_orbit (track, 0)
-  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
-  !Query the local field to save
-  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false., err_flag)
-  if (err_flag) return
-  track%field(track%n_pt) = saved_field    
-    
-    
-    
+    call init_saved_orbit (track, 0)
+    call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
   endif
+
   ! Reset particle to s-coordinates
   end_orb = start_orb
   if (end_orb%direction == +1) then
@@ -93,11 +87,11 @@ if (ele%value(l$) .eq. 0) then
   return
 end if
 
+!------
 ! Specify initial time step.
 
 dt_step = bmad_com%init_ds_adaptive_tracking / c_light
 
-!------
 ! Convert particle to element coordinates
 ! Kicks and multipoles should be turned off in offset_particle
 
@@ -132,10 +126,6 @@ endif
 
 end_orb%vec(5) = s_rel
 
-! Particle time 
-
-time = particle_time(start_orb, ele)
-
 !------
 !Check wall
 
@@ -150,13 +140,8 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
 endif
 
 if ( present(track) ) then
-  if (.not. allocated(track%orb)) call init_saved_orbit (track, 1000)   !TODO: pass this from elsewhere
-  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
-  !Query the local field to save
-  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, local_ref_frame, saved_field, .false., err_flag)
-  !call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
-  if (err_flag) return
-  track%field(track%n_pt) = saved_field     
+  call init_saved_orbit (track, 1000)
+  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
 endif
 
 ! Track through element

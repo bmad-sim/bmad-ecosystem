@@ -12,21 +12,22 @@ particle's spin.  A macroparticle is like a particle with the
 addition of a $6\times 6$ ``sigma'' matrix characterizing the size of
 the macroparticle.
 
-Macroparticle tracking was implemented in \bmad in order to simulate particle bunches.
-The idea was that far fewer macroparticles than particles would 
-be needed to characterize a bunch. In practice, it was found that the complexity 
-of handling the macroparticle sigma matrix more than offset the reduction in the
-number of particles needed. Hence, while the basic macroparticle tracking 
-routines still exist, macroparticle tracking is not currently maintained
-and the use of this code is discouraged. However macroparticle tracking could be revived
-in the future if there is a demonstrated need for it.
+Macroparticle tracking was implemented in \bmad in order to simulate
+particle bunches.  The idea was that far fewer macroparticles than
+particles would be needed to characterize a bunch. In practice, it was
+found that the complexity of handling the macroparticle sigma matrix
+more than offset the reduction in the number of particles
+needed. Hence, while the basic macroparticle tracking routines still
+exist, macroparticle tracking is not currently maintained and the use
+of this code is discouraged. However macroparticle tracking could be
+revived in the future if there is a demonstrated need for it.
 
 \index{beam}\index{bunch}
-Particle tracking can be divided into ``single particle'' tracking and ``beam''
-tracking. Single particle tracking is simply tracking a single particle.
-Beam tracking is tracking an ensemble of particles divided up into a number of bunches
-that make up a ``beam''. Both types particle tracking are covered in this
-chapter.
+Particle tracking can be divided into ``single particle'' tracking and
+``beam'' tracking. Single particle tracking is simply tracking a
+single particle. Beam tracking is tracking an ensemble of particles
+divided up into a number of bunches that make up a ``beam''. Both
+types particle tracking are covered in this chapter.
 
 %----------------------------------------------------------------
 \section{The coord_struct}
@@ -94,6 +95,7 @@ is set to -1. When initializing a \vn{coord_struct} (see below),
 
 The \vn{%state} component will be one of:
 \begin{example}
+  not_set\$
   alive\$
   lost\$
   lost_neg_x_aperture\$
@@ -102,18 +104,27 @@ The \vn{%state} component will be one of:
   lost_pos_y_aperture\$
   lost_z_aperture\$
 \end{example}
-The \vn{alive\$} setting indicates that the particle is alive. If a
-particle is ``dead'', \vn{%state} component will be set to on of the
-other settings. The \vn{lost_neg_x_aperture\$} setting indicates that
-the particle was lost at an aperture on the $-x$ side of the element.
-The \vn{lost_z_aperture\$} setting is used to indicate an energy
-aperture where a particle has been decelerated to the point where it
-is turning around. The \vn{lost\$} setting is used when neither of the
+The \vn{not_set\$} setting indicates that the \vn{coord_struct} has
+not yet been used in tracking. The \vn{alive\$} setting indicates that
+the particle is alive. If a particle is ``dead'', \vn{%state}
+component will be set to on of the other settings. The
+\vn{lost_neg_x_aperture\$} setting indicates that the particle was
+lost at an aperture on the $-x$ side of the element.  The
+\vn{lost_z_aperture\$} setting is used to indicate an energy aperture
+where a particle has been decelerated to the point where it is turning
+around. The \vn{lost\$} setting is used when neither of the
 \vn{lost_*_aperture\$} settings are not appropriate. For example,
 \vn{lost\$} is used in Runge-Kutta tracking when the adaptive step
 size becomes too small.
 
-Finally the \vn{%location} component Indicates where a particle is
+To convert the integer value of \vn{%state} to a string that can be 
+printed, use the function \Hyperref{r:coord.state.name}{coord_state_name}
+\begin{example}
+  type (coord_struct) orbit
+  print *, 'State of the orbit: ', coord_state_name(orbit%state)
+\end{example}
+
+The \vn{%location} component indicates where a particle is
 longitudinally with respect to the element being
 tracked. \vn{%location} will be on of:
 \begin{example}
@@ -248,7 +259,9 @@ routine can be used to track through a given lattice branch
   ib = 1                      ! Branch to track through
   call init_coord(orbit(0), init_phase_space, lat%branch(ib)%ele(0), proton$) 
   call track_all (lat, orbit, ib, track_state, err_flag)
-  if (track_state /= moving_forward\$) print *, 'Particle lost at element:', track_state
+  if (track_state /= moving_forward\$) then
+    print *, 'Particle lost at element:', track_state
+    print *, 'Aperture lost at: ', coord_state_name(orbit(track_state)%state) 
 \end{example}
 After tracking, \vn{orbit(i)} will correspond to the particles orbit
 at the end of \vn{lat%branch(ib)%ele(i)}.  
@@ -651,7 +664,7 @@ be used for this. See the \vn{track_many} routine for more details.
 Another way to track in the reverse direction is to create a
 ``reversed'' lattice with the elements in reverse order and with
 each lattice element's orientaiton reversed. The routine for this
-is \zzz{lat_reverse}.
+is \Hyperref{r:lat.reverse}{lat_reverse}.
 
 
 %----------------------------------------------------------------
