@@ -456,6 +456,7 @@ type (tao_element_struct), pointer :: uni_ele(:)
 type (normal_form_struct), pointer :: normal_form
 type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
+type (all_pointer_struct) a_ptr
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
@@ -465,7 +466,7 @@ real(rp) z_center, x_center, x_wall
 real(rp), allocatable, save :: value_vec(:)
 real(rp), allocatable, save :: expression_value_vec(:)
 real(rp) theta, phi, psi
-real(rp), pointer :: r_ptr
+
 ! Cf: Sands Eq 5.46 pg 124.
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) 
 
@@ -1111,14 +1112,14 @@ case ('element_attrib.')
 
   value_vec = 0
   do i = ix_start, ix_ele
-    call pointer_to_attribute (branch%ele(i), name, .false., r_ptr, err, .false.)
-    if (.not. associated (r_ptr)) cycle
-    value_vec(i) = r_ptr
+    call pointer_to_attribute (branch%ele(i), name, .false., a_ptr, err, .false.)
+    if (.not. associated (a_ptr%r)) cycle
+    value_vec(i) = a_ptr%r
   enddo
 
   if (ix_ref > -1) then
-    call pointer_to_attribute (ele_ref, name, .false., r_ptr, err, .false.)
-    if (associated (r_ptr)) value_vec(ix_ref) = r_ptr
+    call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
+    if (associated (a_ptr%r)) value_vec(ix_ref) = a_ptr%r
   endif
 
   call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
