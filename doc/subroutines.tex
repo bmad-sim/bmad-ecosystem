@@ -23,6 +23,7 @@ solely meant for \bmad internal use.
   Helper Routines: Matrix                     & \ref{r:helper.matrix}  \\ \hline
   Helper Routines: Miscellaneous              & \ref{r:helper.misc}    \\ \hline
   Helper Routines: String Manipulation        & \ref{r:helper.string}  \\ \hline
+  Helper Routines: Switch to Name             & \ref{r:switch}         \\ \hline
   Inter-Beam Scattering (IBS)                 & \ref{r:ibs}            \\ \hline
   Lattice: Informational                      & \ref{r:info}           \\ \hline
   Lattice: Element Manipulation               & \ref{r:elem}           \\ \hline
@@ -694,6 +695,19 @@ Routine to convert a string to uppercase:
 \end{description}
 
 %------------------------------------------------------------------------
+\section{Helper Routines: Switch to Name}
+\label{r:switch}
+
+\begin{description}
+
+\index[routine]{coord_state_name}
+\label{r:coord.state.name}
+\item[coord_state_name (coord_state) result (state_str)] \Newline 
+Routine to return the string representation of a coord\%state state.
+
+\end{description}
+
+%------------------------------------------------------------------------
 \section{Inter-Beam Scattering (IBS)}
 \label{r:ibs}
 
@@ -733,6 +747,15 @@ Routine to make a superimposed element.
 \item[attribute_bookkeeper (ele, param, force_bookkeeping)] \Newline
 Routine to make sure the attributes of an element are self-consistent. 
 
+\index[routine]{create_element_slice}
+\label{r:create.element.slice}
+\item[\protect\parbox{6in}{
+    create_element_slice (sliced_ele, ele_in, l_slice, \\
+    \hspace*{1in} offset, param, include_upstream_end, \\
+    \hspace*{1in} include_downstream_end, err_flag, old_slice)} ] \Newline 
+Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
+superposition lord to a slave when the slave has only one lord.
+
 \index[routine]{create_group}
 \label{r:create.group}
 \item[create_group (lat, ix_lord, contrl, err, err_print_flag)] \Newline
@@ -762,14 +785,11 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 Routine to Insert a new element into the tracking part of the 
 lat structure. 
 
-\index[routine]{create_element_slice}
-\label{r:create.element.slice}
-\item[\protect\parbox{6in}{
-    create_element_slice (sliced_ele, ele_in, l_slice, \\
-    \hspace*{1in} offset, param, include_upstream_end, \\
-    \hspace*{1in} include_downstream_end, err_flag, old_slice)} ] \Newline 
-Routine to transfer the \%value, \%wig_term, and \%wake\%lr information from a 
-superposition lord to a slave when the slave has only one lord.
+\index[routine]{lat_reverse}
+\label{r:lat.reverse}
+\item[lat_reverse (lat_in, lat_rev, track_antiparticle, make_mats6)] \Newline 
+Subroutine to construct a lat structure with the elements in reversed order
+and with the elements with reversed orientaiton.
 
 \index[routine]{make_hybrid_lat}
 \label{r:make.hybrid.lat}
