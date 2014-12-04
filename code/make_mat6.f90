@@ -48,6 +48,7 @@ type (coord_struct), optional :: start_orb, end_orb
 type (lat_param_struct)  param
 type (coord_struct) a_start_orb, a_end_orb
 
+real(rp), parameter :: zero_vec(6) = 0
 integer mat6_calc_method, species
 
 logical, optional :: end_in, err_flag
@@ -56,14 +57,16 @@ logical end_input, rad_fluct_save, err
 character(16), parameter :: r_name = 'make_mat6'
 
 !--------------------------------------------------------
-! Some Init
+! Some init.
+! If start_orb is in its not_set state (can happen if a particle is lost in 
+! tracking and ele is downstream from the loss point), init the orbit to zero.
 
 if (present(err_flag)) err_flag = .true.
 if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 
 if (present(start_orb)) then
   if (start_orb%state == not_set$) then
-    call init_coord(a_start_orb, start_orb%vec, ele, upstream_end$, param%particle)
+    call init_coord(a_start_orb, zero_vec, ele, upstream_end$, param%particle)
   else
     a_start_orb = start_orb
   endif
@@ -72,7 +75,13 @@ else
 endif
 
 end_input = (logic_option (.false., end_in) .and. present(end_orb))
-if (end_input) a_end_orb = end_orb
+if (end_input) then
+  if (end_orb%state == not_set$) then
+    end_input = .false.
+  else
+    a_end_orb = end_orb
+  endif
+endif
 
 ! custom calc
 
@@ -111,9 +120,9 @@ case (taylor$)
 
 case (bmad_standard$)
   if (a_start_orb%species == photon$) then
-    call make_mat6_bmad_photon (ele, param, a_start_orb, a_end_orb, end_in, err)
+    call make_mat6_bmad_photon (ele, param, a_start_orb, a_end_orb, end_input, err)
   else
-    call make_mat6_bmad (ele, param, a_start_orb, a_end_orb, end_in, err)
+    call make_mat6_bmad (ele, param, a_start_orb, a_end_orb, end_input, err)
   endif
   if (err) return
 
