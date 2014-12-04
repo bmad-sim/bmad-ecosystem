@@ -150,8 +150,7 @@ integer, optional :: ix_noset
 
 do n = n1, n2
   if (n == integer_option(-1, ix_noset)) cycle 
-  orbit(n)%vec = 0
-  orbit(n)%state = not_set$
+  orbit(n) = coord_struct()
 enddo
 
 end subroutine set_orbit_to_zero
