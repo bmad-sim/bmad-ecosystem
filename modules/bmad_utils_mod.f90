@@ -1277,48 +1277,46 @@ end subroutine match_ele_to_mat6
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine calc_superimpose_key (ele1, ele2, ele3, create_jumbo_slave)
+! Subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
 !
-! Function to decide what ele3%key and ele3%sub_key should be
-! when two elements, ele1, and ele2, are superimposed.
+! Function to decide what the type of element a super_slave should be based
+! upon the types of its lords.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   ele1     -- Ele_struct:
+!   lord1     -- Ele_struct: First slave.
 !     %key
 !     %sub_key
-!   ele2     -- Ele_struct:
+!   lord2     -- Ele_struct: Second slave.
 !     %key
 !     %sub_key
 !   create_jumbo_slave
-!            -- Logical, optional: Default is False. If True then ele3%key
-!                     will be set to em_field.
+!              -- Logical, optional: If True then slave%key will be set to em_field.
+!                   Default is False. 
 !
 ! Output:
-!   ele3 -- Ele_struct:
-!     %key        -- Set to -1 if there is an error
+!   slave -- Ele_struct: Super_slave element.
+!     %key        -- Set to -1 if there is an error.
 !     %sub_key
 !-
 
-subroutine calc_superimpose_key (ele1, ele2, ele3, create_jumbo_slave)
+subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
 
 implicit none
 
-type (ele_struct), target :: ele1, ele2, ele3
+type (ele_struct), target :: lord1, lord2, slave
 integer key1, key2
-integer, pointer :: key3
 logical, optional :: create_jumbo_slave
 
 !
 
-key1 = ele1%key
-key2 = ele2%key
-key3 => ele3%key
+key1 = lord1%key
+key2 = lord2%key
 
-key3 = -1  ! Default if no superimpse possible
-ele3%sub_key = 0
+slave%key = -1  ! Default if no superimpose possible
+slave%sub_key = 0
 
 ! control elements, etc. cannot be superimposed.
 
@@ -1339,103 +1337,103 @@ if (key1 == key2) then
   case (sbend$)
     ! Bad
   case (wiggler$, undulator$, rfcavity$)
-    key3 = em_field$
-    ele3%sub_key = const_ref_energy$
+    slave%key = em_field$
+    slave%sub_key = const_ref_energy$
   case (lcavity$)
-    key3 = em_field$
-    ele3%sub_key = nonconst_ref_energy$
+    slave%key = em_field$
+    slave%sub_key = nonconst_ref_energy$
   case (em_field$)
-    key3 = em_field$
-    if (ele1%sub_key == nonconst_ref_energy$ .or. ele2%sub_key == nonconst_ref_energy$) then
-      ele3%sub_key = nonconst_ref_energy$
+    slave%key = em_field$
+    if (lord1%sub_key == nonconst_ref_energy$ .or. lord2%sub_key == nonconst_ref_energy$) then
+      slave%sub_key = nonconst_ref_energy$
     else
-      ele3%sub_key = const_ref_energy$
+      slave%sub_key = const_ref_energy$
     endif
   case default
-    key3 = key1
+    slave%key = key1
   end select
   return
 endif
 
-! If one element is a drift then key3 = key of other element.
+! If one element is a drift then slave%key = key of other element.
 
 if (key1 == drift$) then
-  key3 = key2
-  ele3%sub_key = ele2%sub_key
+  slave%key = key2
+  slave%sub_key = lord2%sub_key
   return
 endif
 
 if (key2 == drift$) then
-  key3 = key1
-  ele3%sub_key = ele1%sub_key
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
   return
 endif
-
-! If one element is a pipe then key3 = key of other element.
-
-if (any(key1 == [pipe$])) then
-  key3 = key2
-  ele3%sub_key = ele2%sub_key
-  return
-endif
-
-if (any(key2 == [pipe$])) then
-  key3 = key1
-  ele3%sub_key = ele1%sub_key
-  return
-endif
-
-! If one element is a rcollimator, monitor, or instrument then key3 = key of other element.
-
-if (ele1%aperture_type == elliptical$ .or. ele2%aperture_type == elliptical$ ) ele3%aperture_type = elliptical$
-
-if (any(key1 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
-  key3 = key2
-  ele3%sub_key = ele2%sub_key
-  return
-endif
-
-if (any(key2 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
-  key3 = key1
-  ele3%sub_key = ele1%sub_key
-  return
-endif
-
-! If one element is a kicker then key3 = key of other element.
-
-if (any(key1 == [kicker$, hkicker$, vkicker$])) then
-  if (any(key2 == [kicker$, hkicker$, vkicker$])) then
-    key3 = kicker$
-  else
-    key3 = key2
-  endif
-  return
-endif
-
-if (any(key2 == [kicker$, hkicker$, vkicker$])) then
-  key3 = key1
-  ele3%sub_key = ele1%sub_key
-  return
-endif
-
-! General case...
 
 ! sbend elements are problematical due to the different reference orbit so cannot superimpose them.
 
 if (key1 == sbend$ .or. key2 == sbend$) return
 
+! If one element is a pipe then slave%key = key of other element.
+
+if (any(key1 == [pipe$])) then
+  slave%key = key2
+  slave%sub_key = lord2%sub_key
+  return
+endif
+
+if (any(key2 == [pipe$])) then
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
+  return
+endif
+
+! If one element is a rcollimator, monitor, or instrument then slave%key = key of other element.
+
+if (lord1%aperture_type == elliptical$ .or. lord2%aperture_type == elliptical$ ) slave%aperture_type = elliptical$
+
+if (any(key1 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
+  slave%key = key2
+  slave%sub_key = lord2%sub_key
+  return
+endif
+
+if (any(key2 == [ecollimator$, rcollimator$, monitor$, instrument$])) then
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
+  return
+endif
+
+! If one element is a kicker then slave%key = key of other element.
+
+if (any(key1 == [kicker$, hkicker$, vkicker$])) then
+  if (any(key2 == [kicker$, hkicker$, vkicker$])) then
+    slave%key = kicker$
+  else
+    slave%key = key2
+  endif
+  return
+endif
+
+if (any(key2 == [kicker$, hkicker$, vkicker$])) then
+  slave%key = key1
+  slave%sub_key = lord1%sub_key
+  return
+endif
+
+! General case...
+
 ! em_field wanted
 
 if (logic_option(.false., create_jumbo_slave)) then
-  key3 = em_field$
+  slave%key = em_field$
   if (key1 == lcavity$ .or. key2 == lcavity$) then
-    ele3%sub_key = nonconst_ref_energy$
+    slave%sub_key = nonconst_ref_energy$
   elseif (key1 == em_field$) then
-    ele3%sub_key = ele1%sub_key
+    slave%sub_key = lord1%sub_key
   elseif (key2 == em_field$) then
-    ele3%sub_key = ele2%sub_key
+    slave%sub_key = lord2%sub_key
   else
-    ele3%sub_key = const_ref_energy$
+    slave%sub_key = const_ref_energy$
   endif
   return
 endif
@@ -1446,38 +1444,38 @@ select case (key1)
 
 case (quadrupole$,  solenoid$, sol_quad$) 
   select case (key2)
-  case (quadrupole$);    key3 = sol_quad$
-  case (solenoid$);      key3 = sol_quad$
-  case (sol_quad$);      key3 = sol_quad$
-  case (bend_sol_quad$); key3 = bend_sol_quad$
-  case (sbend$);         key3 = bend_sol_quad$
+  case (quadrupole$);    slave%key = sol_quad$
+  case (solenoid$);      slave%key = sol_quad$
+  case (sol_quad$);      slave%key = sol_quad$
+  case (bend_sol_quad$); slave%key = bend_sol_quad$
+  case (sbend$);         slave%key = bend_sol_quad$
   end select
 
 case (bend_sol_quad$)
   select case (key2)
-  case (quadrupole$);    key3 = bend_sol_quad$
-  case (solenoid$);      key3 = bend_sol_quad$
-  case (sol_quad$);      key3 = bend_sol_quad$
-  case (sbend$);         key3 = bend_sol_quad$
+  case (quadrupole$);    slave%key = bend_sol_quad$
+  case (solenoid$);      slave%key = bend_sol_quad$
+  case (sol_quad$);      slave%key = bend_sol_quad$
+  case (sbend$);         slave%key = bend_sol_quad$
   end select
 end select
 
-if (key3 /= -1) return  ! Have found something
+if (slave%key /= -1) return  ! Have found something
 
 ! Only thing left is to use em_field type element.
 
-key3 = em_field$
+slave%key = em_field$
 if (key1 == lcavity$ .or. key2 == lcavity$) then
-  ele3%sub_key = nonconst_ref_energy$
+  slave%sub_key = nonconst_ref_energy$
 elseif (key1 == em_field$) then
-  ele3%sub_key = ele1%sub_key
+  slave%sub_key = lord1%sub_key
 elseif (key2 == em_field$) then
-  ele3%sub_key = ele2%sub_key
+  slave%sub_key = lord2%sub_key
 else
-  ele3%sub_key = const_ref_energy$
+  slave%sub_key = const_ref_energy$
 endif
 
-end subroutine calc_superimpose_key
+end subroutine calc_super_slave_key
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

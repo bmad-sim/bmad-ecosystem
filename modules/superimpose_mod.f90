@@ -496,7 +496,7 @@ do
   if (logic_option(.false., create_jumbo_slave)) then
     slave%key = em_field$
   else
-    call calc_superimpose_key(slave_saved, super_saved, slave)
+    call calc_super_slave_key(slave_saved, super_saved, slave)
     if (slave%key <= 0) then
       call out_io (s_abort$, r_name, &
               'I DO NOT KNOW HOW TO SUPERIMPOSE ELEMENT: "' // trim(super_saved%name) // &

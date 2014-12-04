@@ -583,9 +583,16 @@ See the \vn{dark_current_tracker} program as an example.
 A list of routines for manipulating Taylor maps is given
 in~\sref{r:taylor}. The order of the Taylor maps is set in the lattice
 file using the \vn{parameter} statement (\sref{s:param}). In a program
-this can be overridden using the routine \Hyperref{r:set.taylor.order}{set_taylor_order}. The
-routine \Hyperref{r:taylor.coef}{taylor_coef} can be used to get the coefficient of any
-given term.
+this can be overridden using the routine
+\Hyperref{r:set.ptc}{set_ptc}. The routine
+\Hyperref{r:taylor.coef}{taylor_coef} can be used to get the
+coefficient of any given term in a Taylor map.
+\begin{example}
+  type (taylor_struct) t_map(6)
+  ...
+  print *, 'out(4)=coef * in(1)^2:', taylor_coef(t_map(4), 1, 1)
+  print *, 'out(4)=coef * in(1)^2:', taylor_coef(t_map(4), [2,0,0,0,0,0])
+\end{example}
 
 \index{symp_lie_Bmad}
 \index{symp_lie_PTC}

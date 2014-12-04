@@ -957,7 +957,7 @@ defined by the entrance and exit reference orbit. In this coordinate system,
 the surface curvature is parameterized by
 a fourth order polynomial in $z$ and $y$
 \Begineq
-  {-z} = \sum_{2 \le i+j \le 4} c_{ij} \, x^i \, y^j
+  {-z} = \sum_{2 \le i+j \le 6} c_{ij} \, x^i \, y^j
   \label{xs2ij4}
 \Endeq
 The coefficients are set in the lattice file by setting the following
@@ -966,9 +966,9 @@ element attributes
 \begin{example}
   curvature_xM_yN      = <Real>   
 \end{example}
-where \vn{M} and \vn{N} are integers in the range 0 through 4 with the restriction
+where \vn{M} and \vn{N} are integers in the range 0 through 6 with the restriction
 \begin{example}
-  2 \(\le\) M + N \(\le\) 4
+  2 \(\le\) M + N \(\le\) 6
 \end{example}
 Example:
 \begin{example}
