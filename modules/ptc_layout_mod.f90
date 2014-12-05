@@ -1045,7 +1045,8 @@ do i = ptc_key%list%nmul, 1, -1
   call add (ele%ptc_fibre, -i, 0, ptc_key%list%ks(i))
 enddo
 
-!
+! Note: ele_to_an_bn takes care of such stuff as sextupole strength conversion so
+! only have to worry about non-multipole components here.
 
 val => ele%value
 
@@ -1105,10 +1106,6 @@ case (sbend$)
   call set_real (mag%fint, magp%fint, val(fint$))
   call set_real_all (mag%p%edge(1), magp%p%edge(1), val(e1$))
   call set_real_all (mag%p%edge(2), magp%p%edge(2), val(e2$))
-
-case default
-  call out_io (s_error$, r_name, 'Update for element of type: ' // key_name(ele%key), &
-                                 'Not yet implemented. Please contact David Sagan.')
 
 end select
 
