@@ -15,7 +15,7 @@ contains
 ! This may be used for backward tracking through the lat. 
 !
 ! The correspondence between elements in the two lattices is as follows:
-!     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  For 0 < i <= lat%n_ele_track
+!     lat_rev%ele(lat%n_ele_track+1-i) = lat_in%ele(i)  For 1 <= i <= lat%n_ele_track
 !     lat_rev%ele(i)                   = lat_in%ele(i)  For lat%n_ele_track < i 
 !
 ! Note: The Twiss parameters will not be correct for the reversed lat.
