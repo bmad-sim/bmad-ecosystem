@@ -2590,14 +2590,17 @@ else
   tilt = ele%value(tilt_tot$)
 endif
 
-call dtiltd (1, tilt, 1, x_ele)
+print *, 'CONCAT_ELE_TAYLOR DISABLED UNTIL REPAIR IS DONE! PLEASE CONTACT DAVID SAGAN!'
+call err_exit
+
+call dtiltd (tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
 call taylor_to_real_8 (ele%taylor, ele%taylor%ref, beta0, beta1, x_body)
 
 call concat_real_8 (x_ele, x_body, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .false.)
-call dtiltd (1, tilt, 2, x_ele)
+call dtiltd (tilt, 2, x_ele)
 
 ! Concat with taylor1
 
