@@ -325,10 +325,7 @@ if (u%calc%track) then
         if (ele%key == match$) call twiss_propagate1(branch%ele(n-1), ele)
         call make_mat6(ele, branch%param, orbit(n-1), orbit(n), err_flag = err)
         if (err .or. .not. particle_is_moving_forward(orbit(n))) then
-          do nn = n+1, branch%n_ele_track
-            orbit(nn)%vec = 0
-            orbit(nn)%state = not_set$
-          enddo
+          orbit(n+1:branch%n_ele_track) = coord_struct()  ! Init
           exit
         endif
         call twiss_propagate1(branch%ele(n-1), ele)
@@ -341,9 +338,7 @@ if (u%calc%track) then
     if (lat_branch%track_state /= moving_forward$) then
       calc_ok = .false.
       ix_lost = lat_branch%track_state
-      do ii = ix_lost+1, branch%n_ele_track
-        orbit(ii)%vec = 0
-      enddo
+      orbit(ix_lost+1:branch%n_ele_track) = coord_struct()
       call out_io (s_blank$, r_name, &
               "particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
               trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
