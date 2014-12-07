@@ -92,7 +92,11 @@ contains
 
     amp_threshold = (size_data-10)**0.5
     f_threshold = 2.0d0/(size_data-1)
-    
+
+    !subtract centroid
+    data1(:) = data1(:) - sum(data1(:))/size(data1(:))
+    data2(:) = data2(:) - sum(data2(:))/size(data2(:))
+
     n_freqs = 0
     do while( n_freqs .lt. max_freqs )
       freq = interpolated_fft(data1(:), data2(:), opt_dump_spectrum=opt_dump_spectra, opt_dump_index=0)
