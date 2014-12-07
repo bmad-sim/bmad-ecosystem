@@ -142,8 +142,10 @@ call offset_particle (ele2, param, set$, orbit, set_multipoles = .false., set_hv
 k0 = knl(0)/length
 
 call hard_multipole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
+if (orbit_too_large (orbit, param)) return
 call soft_quadrupole_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix)
 call no_edge_angle_hard_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+if (orbit%state /= alive$) return
 call soft_bend_edge_kick (ele, param, first_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 
 ! Body
@@ -207,8 +209,10 @@ enddo
 
 call soft_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
 call no_edge_angle_hard_bend_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, k0, tilt(0))
+if (orbit%state /= alive$) return
 call soft_quadrupole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix)
 call hard_multipole_edge_kick (ele, param, second_track_edge$, orbit, mat6, make_matrix, a_pole, b_pole)
+if (orbit_too_large (orbit, param)) return
 
 ! End stuff
 

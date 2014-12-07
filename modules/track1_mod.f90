@@ -212,7 +212,7 @@ end subroutine check_aperture_limit
 ! Too large is defined by:
 !   |x|, |y| > bmad_com%max_aperture_limit or 
 !   |pz| > 1 (photons only) or 
-!   px^2 + py^2 > 1 + pz (non-photons only)
+!   px^2 + py^2 > (1 + pz)^2 (non-photons only)
 !
 ! Also see:
 !   check_aperture_limit
@@ -853,7 +853,7 @@ type (coord_struct) orbit
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6), g_bend, tilt
-real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, sin_e
+real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, sin_e, ppx2
 
 integer fringe_type, fringe_at, physical_end, particle_at
 integer i, i_max, element_end
@@ -906,7 +906,12 @@ px = orbit%vec(2) + sin_e
 y = orbit%vec(3)
 y2 = y**2
 rel_p = 1 + orbit%vec(6)
-p_zy = sqrt(rel_p**2 - px**2)
+ppx2 = rel_p**2 - px**2
+if (ppx2 < 0) then
+  orbit%state = lost$
+  return
+endif
+p_zy = sqrt(ppx2)
 yg = y2 * g**2 / 12
 
 orbit%vec(1) = orbit%vec(1) + g * y2 * (1 - yg) * rel_p**2 / (2 * p_zy**3)
