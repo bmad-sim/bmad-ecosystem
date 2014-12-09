@@ -3005,6 +3005,7 @@ if (associated(a_ptr, ele%value(l$))) then
   if (ele%key /= overlay$ .and. ele%key /= group$) then
     call set_ele_status_stale (ele, s_position_group$)
     call set_ele_status_stale (ele, floor_position_group$)
+    call set_ele_status_stale (ele, ref_energy_group$)
   endif
   if (ele%value(p0c$) /= ele%value(p0c_start$)) call set_ele_status_stale (ele, ref_energy_group$)
 endif
