@@ -7,7 +7,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (sr3d_photon_track_struct) :: photon
-type (sr3d_photon_coord_struct) p
+type (coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
 real(rp) vel
@@ -57,7 +57,7 @@ do
   endif
   p%vec(2:6:2) = p%vec(2:6:2) / vel
 
-  p%energy = 1000             ! Arbitrary
+  p%p0c = 1000             ! Arbitrary
   p%ix_ele = element_at_s(lat, p%s, .true.)
   photon%start = p
   photon%n_wall_hit = 0
