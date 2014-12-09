@@ -543,7 +543,8 @@ do
     label2 = 'Surface: ' // wall3d%section(ix_section)%surface%descrip
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
-    label2 = 'Surface: ' // wall3d%section(photon%now%ix_section+1)%surface%descrip
+    ! %species used for section index.
+    label2 = 'Surface: ' // wall3d%section(photon%now%species+1)%surface%descrip
   endif
 
   call qp_clear_page
@@ -715,7 +716,7 @@ call sr3d_get_section_index (photon%now, branch, ixp)
 photon%old%vec = 0
 photon%old%s = photon%now%s
 r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
-photon%now%track_len = photon%old%track_len + r_old
+photon%now%path_len = photon%old%path_len + r_old
 
 call sr3d_photon_d_radius (photon%now, branch, d_radius, in_antechamber = in_ante)
 if (d_radius < 0) then
