@@ -73,10 +73,10 @@ do i = 1, lat%n_ele_max - 1
     call test_this (ele)
   endif
 
-!  if (valid_tracking_method (ele, lat%param%particle, symp_lie_ptc$)) then
-!    ele%tracking_method = symp_lie_ptc$
-!    call test_this (ele)
-!  endif
+  if (valid_tracking_method (ele, lat%param%particle, symp_lie_ptc$)) then
+    ele%tracking_method = symp_lie_ptc$
+    call test_this (ele)
+  endif
 
   if (valid_tracking_method (ele, lat%param%particle, symp_lie_bmad$)) then
     ele%tracking_method = symp_lie_bmad$
@@ -139,6 +139,7 @@ if (ele2%key == elseparator$) then
 elseif (ele2%key == rfcavity$) then
   orb_0r%species  = antiparticle(orb_0r%species)
   orb_0r%vec(5) = orb_0f%vec(5)
+  orb_0r%vec(6) = orb_0f%vec(6)
   orb_0r%t      = orb_0f%t
 
 elseif (ele2%key == patch$) then
@@ -149,6 +150,7 @@ else
 endif
 
 ele2%orientation = -1
+ele2%branch%param%default_tracking_species = anti_ref_particle$
 
 call track1(orb_0r, ele2, ele2%branch%param, orb_1r)
 call make_mat6(ele2, ele%branch%param, orb_0r, orb_1r, .true.)
@@ -160,12 +162,15 @@ orb_1r%vec(4)    = -orb_1r%vec(4)
 
 dorb_r%vec    = orb_1r%vec - orb_0f%vec
 dorb_r%vec(5) = (orb_1r%vec(5) - orb_0r%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
+dorb_r%vec(6) = (orb_1r%vec(6) - orb_0r%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
 dorb_r%t      = (orb_1r%t - orb_0r%t) - (orb_1f%t - orb_0f%t)
 
 ! Backwards tracking
 
 orb_0b = orb_0r
 orb_0b%direction = -1
+
+ele%branch%param%default_tracking_species = ref_particle$
 
 call track1(orb_0b, ele, ele%branch%param, orb_1b)
 orb_1b_sav = orb_1b
@@ -175,6 +180,7 @@ orb_1b%vec(4)    = -orb_1b%vec(4)
 
 dorb_b%vec    = orb_1b%vec - orb_0f%vec
 dorb_b%vec(5) = (orb_1b%vec(5) - orb_0b%vec(5)) - (orb_1f%vec(5) - orb_0f%vec(5))
+dorb_b%vec(6) = (orb_1b%vec(6) - orb_0b%vec(6)) - (orb_1f%vec(6) - orb_0f%vec(6))
 dorb_b%t      = (orb_1b%t - orb_0b%t) - (orb_1f%t - orb_0f%t)
 
 ! Matrix
