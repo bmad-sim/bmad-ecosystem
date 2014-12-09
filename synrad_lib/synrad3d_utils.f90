@@ -920,7 +920,7 @@ type (branch_struct), target :: branch
 type (coord_struct) :: orb(0:), orb_here, orb1
 type (ele_struct), pointer :: ele
 type (ele_struct) ele_here
-type (sr3d_photon_coord_struct) :: photon
+type (coord_struct) :: photon
 type (em_field_struct) :: field
 
 real(rp) s_offset, k_wig, g_max, l_small, gx, gy
@@ -953,7 +953,7 @@ if (ele_here%ix_ele /= ele%ix_ele .or. ele_here%ix_branch /= ele%ix_branch .or. 
 endif
 
 call twiss_and_track_intra_ele (ele, branch%param, s_old_offset, s_offset, .true., .true., &
-                                            orb_here, orb_here, ele_here, ele_here, err)
+                                                         orb_here, orb_here, ele_here, ele_here, err)
 if (err) call err_exit
 s_old_offset = s_offset
 
@@ -1046,7 +1046,7 @@ end subroutine sr3d_get_emission_pt_params
 !                         -1 In the direction of decreasing s.
 !
 ! Output:
-!   photon    -- photon_coord_struct: Generated photon.
+!   photon    -- coord_struct: Generated photon.
 !-
 
 subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, p_orb)
@@ -1054,8 +1054,8 @@ subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, 
 implicit none
 
 type (ele_struct), target :: ele_here
-type (coord_struct) :: orb_here, orb_init
-type (sr3d_photon_coord_struct) :: p_orb
+type (coord_struct) :: orb_here
+type (coord_struct) :: p_orb
 type (twiss_struct), pointer :: t
 
 real(rp) emit_a, emit_b, sig_e, gx, gy, g_tot, gamma, v2
@@ -1066,10 +1066,7 @@ integer photon_direction
 ! Get photon energy and "vertical angle".
 
 call convert_total_energy_to (ele_here%value(E_tot$), ele_here%branch%param%particle, gamma) 
-call bend_photon_init (gx, gy, gamma, orb_init)
-p_orb%energy = orb_init%p0c
-p_orb%vec = orb_init%vec
-p_orb%s   = orb_init%s
+call bend_photon_init (gx, gy, gamma, p_orb)
 
 ! Offset due to finite beam size
 
@@ -1094,6 +1091,7 @@ p_orb%vec(1:4) = p_orb%vec(1:4) + orb_here%vec(1:4)
 ! Longitudinal position
 
 p_orb%s = ele_here%s
+p_orb%ix_ele = ele_here%ix_ele
 
 ! Above equations are valid in the small angle limit.
 ! Sometimes a large-angle photon is generated so make sure
@@ -1107,6 +1105,7 @@ if (v2 >= 0.99) then
 endif
 
 p_orb%vec(6) = photon_direction * sqrt(1 - v2)
+p_orb%direction = photon_direction
 
 end subroutine sr3d_emit_photon
 
@@ -1123,7 +1122,7 @@ end subroutine sr3d_emit_photon
 !   use photon_utils
 !
 ! Input:
-!   p_orb          -- sr3d_photon_coord_struct): Position.
+!   p_orb          -- coord_struct): Position.
 !   branch         -- branch_struct: Lattice branch containing the wall.
 !   check_safe     -- logical, optional: If True, check if photon is safely in the "safe" box far from
 !                       the wall. This is used to speed up computations when d_radius value is not needed.
@@ -1139,7 +1138,7 @@ subroutine sr3d_photon_d_radius (p_orb, branch, d_radius, dw_perp, in_antechambe
 
 implicit none
 
-type (sr3d_photon_coord_struct), target :: p_orb
+type (coord_struct), target :: p_orb
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
@@ -1190,7 +1189,7 @@ end subroutine sr3d_photon_d_radius
 !   If p_orb%s == wall%section(wall%n_section_max)%s -> ix_section = wall%n_section_max - 1
 !
 ! Input:
-!   p_orb  -- sr3d_photon_coord_struct: Photon position.
+!   p_orb  -- coord_struct: Photon position.
 !   branch -- branch_struct: Lattice branch containing the wall.
 !
 ! Output:
@@ -1201,7 +1200,7 @@ subroutine sr3d_get_section_index (p_orb, branch, ix_section)
 
 implicit none
 
-type (sr3d_photon_coord_struct) :: p_orb
+type (coord_struct) :: p_orb
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
@@ -1211,13 +1210,13 @@ integer ix_section, n_max
 
 wall3d => branch%wall3d
 n_max = ubound(wall3d%section, 1)
-ix_section = p_orb%ix_section
+ix_section = p_orb%species      ! %species used for section index.
 
 if (ix_section == n_max) ix_section = n_max - 1
 
 if (p_orb%s < wall3d%section(ix_section)%s .or. p_orb%s > wall3d%section(ix_section+1)%s) then
-  call bracket_index2 (wall3d%section%s, 1, n_max, p_orb%s, p_orb%ix_section, ix_section)
-  p_orb%ix_section = ix_section
+  call bracket_index2 (wall3d%section%s, 1, n_max, p_orb%s, p_orb%species, ix_section)
+  p_orb%species = ix_section
   if (ix_section == n_max) ix_section = n_max - 1
 endif
 

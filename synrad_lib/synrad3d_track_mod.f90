@@ -17,14 +17,14 @@ contains
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon      -- sr3d_photon_coord_struct: photon with starting parameters set.
+!   photon      -- sr3d_photon_track_struct: photon with starting parameters set.
 !     %start       -- Starting coords.
 !   branch      -- branch_struct: Lattice branch with twiss propagated and mat6s made
 !   one_reflection_only
 !               -- Logical, optional: If present and True then only one reflection is allowed
 !
 ! Output:
-!   photon      -- sr3d_photon_coord_struct: synch radiation photon propagated until absorption.
+!   photon      -- sr3d_photon_track_struct: synch radiation photon propagated until absorption.
 !   wall_hit(:) -- sr3d_photon_wall_hit_struct: Array of wall hit data.
 !   err         -- Tracking calculation failed.
 !-
@@ -42,7 +42,7 @@ logical, optional :: one_reflection_only
 
 !
 
-photon%start%track_len = 0
+photon%start%path_len = 0
 photon%now = photon%start
 wall_hit(0)%after_reflect = photon%start
 
@@ -73,11 +73,11 @@ end subroutine sr3d_track_photon
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon    -- sr3d_photon_coord_struct: photon with starting parameters set
+!   photon    -- sr3d_photon_track_struct: photon with starting parameters set
 !   branch      -- branch_struct: Lattice branch with twiss propagated and mat6s made
 !
 ! Output:
-!   photon    -- sr3d_photon_coord_struct: synch radiation photon propagated to wall
+!   photon    -- sr3d_photon_track_struct: synch radiation photon propagated to wall
 !   err       -- Tracking calculation failed.
 !-
 
@@ -133,7 +133,7 @@ end subroutine sr3d_track_photon_to_wall
 
 subroutine sr3d_check_if_photon_init_coords_outside_wall (photon_start, branch, is_inside, num_ignore_generated_outside_wall)
 
-type (sr3d_photon_coord_struct) photon_start
+type (coord_struct) photon_start
 type (sr3d_photon_track_struct) photon
 type (branch_struct), target :: branch
 
@@ -231,7 +231,7 @@ end subroutine sr3d_photon_status_calc
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon  -- sr3d_photon_coord_struct: Photon to track.
+!   photon  -- sr3d_photon_track_struct: Photon to track.
 !   branch  -- branch_struct: Lattice branch with associated wall.
 !   dl_step -- Real(rp): Distance to track. Note: the propagation distance may not be exact
 !               when going long distances.
@@ -243,7 +243,7 @@ end subroutine sr3d_photon_status_calc
 !              Note: (b) guarantees that there will be check points at the ends of the lattice.
 !
 ! Output:
-!   photon  -- sr3d_photon_coord_struct: 
+!   photon  -- sr3d_photon_track_struct: 
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !-
 
@@ -254,7 +254,7 @@ implicit none
 type (branch_struct), target :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (wall3d_struct), pointer :: wall3d
-type (sr3d_photon_coord_struct), pointer :: now
+type (coord_struct), pointer :: now
 type (ele_struct), pointer :: ele
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t
@@ -281,8 +281,9 @@ propagation_loop: do
 
   check_section_here = .false.
   if (stop_at_check_pt) then
-    call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, now%ix_section, ixw)
-    now%ix_section = ixw
+    ! %species used for section index.
+    call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, now%species, ixw)
+    now%species = ixw
   endif
 
   ! If we are crossing over to a new element then update now%ix_ele.
@@ -298,8 +299,16 @@ propagation_loop: do
             photon%crossed_lat_end = .not. photon%crossed_lat_end
             exit
           endif
+
+          ! Entering a patch: Needs coordinate transformation.
+
+          if (branch%ele(now%ix_ele+1)%key == patch$) then
+            
+          endif
+
           now%ix_ele = now%ix_ele + 1
           now%location = upstream_end$
+
         elseif (now%s < branch%ele(now%ix_ele-1)%s) then
           now%ix_ele = now%ix_ele - 1
           now%location = downstream_end$
@@ -432,7 +441,8 @@ propagation_loop: do
 
   ! Patch element.
 
-!!!!  elseif (ele%key == patch$) then
+  elseif (ele%key == patch$) then
+
 
 
 
@@ -459,7 +469,7 @@ propagation_loop: do
 
   !
 
-  photon%now%track_len = photon%now%track_len + dl
+  photon%now%path_len = photon%now%path_len + dl
   dl_left = dl_left - dl
   now%location = stop_location
 
@@ -482,11 +492,11 @@ end subroutine sr3d_propagate_photon_a_step
 !   use synrad3d_track_mod
 !
 ! Input:
-!   photon    -- sr3d_photon_coord_struct:
+!   photon    -- sr3d_photon_track_struct:
 !   branch  -- branch_struct: Lattice branch with associated wall.
 !
 ! Output:
-!   photon    -- sr3d_photon_coord_struct: 
+!   photon    -- sr3d_photon_track_struct: 
 !			%now       -- If the photon has hit, the photon position is adjusted accordingly.
 !   err       -- Tracking calculation failed.
 !-
@@ -503,8 +513,8 @@ type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (sr3d_photon_track_struct) :: photon1
 
-real(rp) r0, r1, track_len
-real(rp) track_len0, track_len1, d_rad0, d_rad1
+real(rp) r0, r1, path_len
+real(rp) path_len0, path_len1, d_rad0, d_rad1
 
 integer i
 
@@ -519,8 +529,8 @@ if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
   print *, 'Hit:', photon%n_wall_hit
   call sr3d_photon_d_radius (photon%old, branch, r0)
   call sr3d_photon_d_radius (photon%now, branch, r1)
-  print *, 'photon%old:', photon%old%vec, photon%old%track_len, r0
-  print *, 'photon%now:', photon%now%vec, photon%now%track_len, r1
+  print *, 'photon%old:', photon%old%vec, photon%old%path_len, r0
+  print *, 'photon%now:', photon%now%vec, photon%now%path_len, r1
 endif
 
 ! Bracket the hit point. 
@@ -529,27 +539,27 @@ endif
 
 wall3d => branch%wall3d
 photon1 = photon
-track_len1 = photon%now%track_len
+path_len1 = photon%now%path_len
 d_rad0 = real_garbage$
 d_rad1 = real_garbage$
 in_zbrent = .false.
 
-if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len) then
+if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%path_len) then
 
-  track_len0 = (photon%now%track_len + 3*photon%old%track_len) / 4
+  path_len0 = (photon%now%path_len + 3*photon%old%path_len) / 4
   do i = 1, 30
-    d_rad0 = sr3d_photon_hit_func(track_len0)
+    d_rad0 = sr3d_photon_hit_func(path_len0)
     if (photon%ix_photon_generated == sr3d_params%ix_generated_warn) then
       print *
-      print *, 'track_len, d_rad0:', track_len0, d_rad0
-      print *, 'photon1%now:', i, photon1%now%vec, photon1%now%track_len
+      print *, 'path_len, d_rad0:', path_len0, d_rad0
+      print *, 'photon1%now:', i, photon1%now%vec, photon1%now%path_len
     endif
     if (d_rad0 < 0) exit
-    track_len1 = track_len0; d_rad1 = d_rad0
-    track_len0 = (track_len0 + 3*photon%old%track_len) / 4
+    path_len1 = path_len0; d_rad1 = d_rad0
+    path_len0 = (path_len0 + 3*photon%old%path_len) / 4
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
-      print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+      print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%p0c
       print *, '       Start: ', photon%start%vec
       print *, '       Now:   ', photon%now%vec
       print *, '       WILL IGNORE THIS PHOTON.'
@@ -560,17 +570,17 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%track_len == photon%old%track_len)
   enddo
 
 else
-  track_len0 = photon%old%track_len
+  path_len0 = photon%old%path_len
 endif
 
 ! Find where the photon hits.
 
 in_zbrent = .true.
-track_len = super_zbrent (sr3d_photon_hit_func, track_len0, track_len1, sr3d_params%significant_length, err)
+path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, sr3d_params%significant_length, err)
 if (err) then
   call print_hit_points (-1, photon, wall_hit, .true.)
   print *, 'WILL IGNORE THIS PHOTON.'
-  print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+  print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%p0c
   print *, '       Start: ', photon%start%vec
   print *, '       Now:   ', photon%now%vec
   return
@@ -579,29 +589,29 @@ endif
 ! Cleanup
 
 photon%now = photon%old
-call sr3d_propagate_photon_a_step (photon, branch, track_len-photon%now%track_len, .false.)
+call sr3d_propagate_photon_a_step (photon, branch, path_len-photon%now%path_len, .false.)
 call sr3d_photon_d_radius (photon%now, branch, d_rad0, in_antechamber = photon%hit_antechamber)
 
 !---------------------------------------------------------------------------
 contains
 
 !+
-! Function sr3d_photon_hit_func (track_len) result (d_radius)
+! Function sr3d_photon_hit_func (path_len) result (d_radius)
 ! 
 ! Routine to be used as an argument in zbrent in the sr3d_photon_hit_spot_calc.
 !
 ! Input:
-!   track_len -- Real(rp): Place to position the photon.
+!   path_len -- Real(rp): Place to position the photon.
 !
 ! Output:
 !   d_radius -- Real(rp): 
 !-
 
-function sr3d_photon_hit_func (track_len) result (d_radius)
+function sr3d_photon_hit_func (path_len) result (d_radius)
 
 implicit none
 
-real(rp), intent(in) :: track_len
+real(rp), intent(in) :: path_len
 real(rp) d_radius, radius, d_track
 
 ! Easy case at the ends of the track.
@@ -610,29 +620,29 @@ real(rp) d_radius, radius, d_track
 ! to negative which will case zbrent to crash.
 
 if (in_zbrent) then
-  if (track_len == track_len0 .and. d_rad0 /= real_garbage$) then
+  if (path_len == path_len0 .and. d_rad0 /= real_garbage$) then
     d_radius = d_rad0
     return
-  elseif (track_len == track_len1 .and. d_rad1 /= real_garbage$) then
+  elseif (path_len == path_len1 .and. d_rad1 /= real_garbage$) then
     d_radius = d_rad1
     return
   endif
 endif
 
 ! Determine start of tracking.
-! If track_length > photon1%now%track_len: 
+! If path_length > photon1%now%path_len: 
 !   Track starting from the present position (photon1%now).
 ! Otherwise:
 !   Track starting from the beginning of the region (photon%old).
 
-if (track_len < photon1%now%track_len) then
+if (path_len < photon1%now%path_len) then
   photon1 = photon
   photon1%now = photon%old
 endif
 
-! And track to track_len position.
+! And track to path_len position.
 
-d_track = track_len - photon1%now%track_len
+d_track = path_len - photon1%now%path_len
 call sr3d_propagate_photon_a_step (photon1, branch, d_track, .false.)
 
 call sr3d_photon_d_radius (photon1%now, branch, d_radius)
@@ -725,15 +735,16 @@ cos_perp = dot_product (photon%now%vec(2:6:2), dw_perp)
 graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
-surface => branch%wall3d%section(photon%now%ix_section+1)%surface
+! %species used for section index.
+surface => branch%wall3d%section(photon%now%species+1)%surface
 
-call photon_reflectivity (graze_angle, photon%now%energy, surface, reflectivity, rel_reflect_specular)
+call photon_reflectivity (graze_angle, photon%now%p0c, surface, reflectivity, rel_reflect_specular)
 wall_hit(n_wall_hit)%reflectivity = reflectivity
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
   print *, '       dw_perp:', dw_perp
-  print *, '       Photon: ', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%energy
+  print *, '       Photon: ', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%p0c
   print *, '       Start:  ', photon%start%vec
   print *, '       Now:    ', photon%now%vec
   print *, '       WILL IGNORE THIS PHOTON...'
@@ -755,7 +766,7 @@ if (r <= reflectivity) then
     photon%now%vec(2:6:2) = photon%now%vec(2:6:2) + dvec
 
   else
-    call photon_diffuse_scattering (graze_angle, photon%now%energy, surface, theta_diffuse, phi_diffuse)
+    call photon_diffuse_scattering (graze_angle, photon%now%p0c, surface, theta_diffuse, phi_diffuse)
     ! vec_in_plane is normalized vector perpendicular to dw_perp and in plane of photon & dw_perp.
     vec_in_plane = photon%now%vec(2:6:2) - dw_perp * cos_perp  
     vec_in_plane = vec_in_plane / sqrt(dot_product(vec_in_plane, vec_in_plane))  ! Normalize to 1.

@@ -5,26 +5,9 @@ use bmad_interface
 use twiss_and_track_mod
 use photon_reflection_mod
 
-! This structure defines a photon at a particular point.
-! for vec(6): (x, y, s) is the local coordinate system with
-!  s being the longitudinal position (s = 0 is the start of the lattice), 
-!  and  x, y are the local transverse coords. See the Bmad manual for more details.
-! Notice that vec(1)^2 + vec(3)^2 + vec(5)^2 = 1
-
-
-type sr3d_photon_coord_struct
-  real(rp) vec(6)             ! Photon position: (x, vx/c, y, vy/c, z, vz/c)
-  real(rp) energy             ! In eV
-  real(rp) track_len          ! length of the track from the start
-  real(rp) s                  ! S position
-  integer ix_ele              ! index of lattice element we are in.
-  integer :: location = not_set$  ! upstream_end$, downstream_end$, or inside$
-  integer :: ix_section = 1   ! Index to wall cross-section array
-end type
-
 type sr3d_photon_wall_hit_struct
-  type (sr3d_photon_coord_struct) before_reflect   ! Coords before reflection.
-  type (sr3d_photon_coord_struct) after_reflect    ! Coords after reflection.
+  type (coord_struct) before_reflect   ! Coords before reflection.
+  type (coord_struct) after_reflect    ! Coords after reflection.
   real(rp) dw_perp(3)                   ! Wall perpendicular vector
   real(rp) cos_perp_in                  ! Cosine of incoming ray and hit angle
   real(rp) cos_perp_out                 ! Cosine of hit angle
@@ -45,7 +28,7 @@ end type
 ! %n_wall_hit      -- Number of wall hits.
 
 type sr3d_photon_track_struct
-  type (sr3d_photon_coord_struct) start, old, now  ! coords:
+  type (coord_struct) start, old, now  ! coords:
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
   integer ix_photon                        ! Photon index.
@@ -57,7 +40,6 @@ end type
 !--------------
 ! The wall is specified by an array of cross-sections at given s locations.
 ! The wall between section i-1 and i is associated with wall%section(i) 
-! (see the sr3d_photon_coord_struct).
 ! If there is an antechamber: width2_plus and width2_minus are the antechamber horizontal extent.
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
