@@ -846,7 +846,7 @@ contains
 
 subroutine time_and_s_calc ()
 
-end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
+end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
 end_orb%s = ele%s
 
 end subroutine time_and_s_calc
