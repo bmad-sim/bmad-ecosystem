@@ -3102,9 +3102,17 @@ case (beginning_ele$)
 case (fork$, photon_fork$)
 
 case (lcavity$, e_gun$)
+
   if (associated(a_ptr, ele%value(gradient$)) .or. associated(a_ptr, ele%value(phi0$)) .or. &
-      associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+      associated(a_ptr, ele%value(voltage$)) .or. associated(a_ptr, ele%value(rf_frequency$)) .or. &
+      associated(a_ptr, ele%value(phi0_ref$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
+  endif
+
+  if (ele%key == lcavity$) then 
+    if (associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then
+       call set_ele_status_stale (ele, ref_energy_group$)
+    endif
   endif
 
   if (associated(ele%em_field)) then
@@ -3120,7 +3128,7 @@ case (lcavity$, e_gun$)
   endif
 
 case (patch$)
-  if (associated(a_ptr, ele%value(e_tot_offset$))) then
+  if (associated(a_ptr, ele%value(e_tot_offset$)) .or. associated(a_ptr, ele%value(t_offset$))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
 
