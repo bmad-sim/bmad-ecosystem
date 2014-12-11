@@ -419,15 +419,22 @@ do i = 1, size(ele%wake%sr_trans%mode)
   c = cos (arg)
   s = sin (arg)
 
-  w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
-  w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
+  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
+    w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
+    if (mode%kick_linear_in == trailing_offset$) then
+      orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
+    else
+      orbit%vec(2) = orbit%vec(2) - w_norm
+    endif
+  endif
 
-  if (mode%kick_linear_in == trailing_offset$) then
-    orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
-    orbit%vec(4) = orbit%vec(4) - w_skew * orbit%vec(3)
-  else
-    orbit%vec(2) = orbit%vec(2) - w_norm
-    orbit%vec(4) = orbit%vec(4) - w_skew
+  if (mode%polarization == none$ .or. mode%polarization == y_axis$) then
+    w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
+    if (mode%kick_linear_in == trailing_offset$) then
+      orbit%vec(4) = orbit%vec(4) - w_skew * orbit%vec(3)
+    else
+      orbit%vec(4) = orbit%vec(4) - w_skew
+    endif
   endif
 
   ! Add to wake
@@ -439,22 +446,22 @@ do i = 1, size(ele%wake%sr_trans%mode)
   s = sin (arg)
 
   if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
-    if (mode%kick_linear_in == trailing_offset$) then
-      mode%b_sin = mode%b_sin * exp_factor + ff * c
-      mode%b_cos = mode%b_cos * exp_factor + ff * s
-    else
+    if (mode%kick_linear_in == leading_offset$) then
       mode%b_sin = mode%b_sin * exp_factor + ff * c * orbit%vec(1)
       mode%b_cos = mode%b_cos * exp_factor + ff * s * orbit%vec(1)
+    else
+      mode%b_sin = mode%b_sin * exp_factor + ff * c
+      mode%b_cos = mode%b_cos * exp_factor + ff * s
     endif
   endif
 
   if (mode%polarization == none$ .or. mode%polarization == y_axis$) then
-    if (mode%kick_linear_in == trailing_offset$) then
-      mode%a_sin = mode%a_sin * exp_factor + ff * c
-      mode%a_cos = mode%a_cos * exp_factor + ff * s
-    else
+    if (mode%kick_linear_in == leading_offset$) then
       mode%a_sin = mode%a_sin * exp_factor + ff * c * orbit%vec(3)
       mode%a_cos = mode%a_cos * exp_factor + ff * s * orbit%vec(3)
+    else
+      mode%a_sin = mode%a_sin * exp_factor + ff * c
+      mode%a_cos = mode%a_cos * exp_factor + ff * s
     endif
   endif
 
