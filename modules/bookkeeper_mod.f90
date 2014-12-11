@@ -3129,9 +3129,8 @@ case (lcavity$, e_gun$)
   endif
 
 case (patch$)
-  if (associated(a_ptr, ele%value(e_tot_offset$)) .or. associated(a_ptr, ele%value(t_offset$))) then
-    call set_ele_status_stale (ele, ref_energy_group$)
-  endif
+  ! Any attribute change will shift the reference time.
+  call set_ele_status_stale (ele, ref_energy_group$)
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
