@@ -10,8 +10,6 @@ set (INC_DIRS
 
 set (LINK_LIBS
   bsim
-  bmadz
-  cesr_utils
   bmad
   xsif
   xrlf03

@@ -8,9 +8,7 @@ set (LINK_LIBS
   bsim
   bmad
   sim_utils
-  cesr_utils
   recipes_f-90_LEPP
-  bmadz
   forest
   fgsl
   gsl
