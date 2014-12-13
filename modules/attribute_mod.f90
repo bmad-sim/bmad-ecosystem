@@ -797,14 +797,15 @@ end function valid_spin_tracking_method
 !                       printing of an error message on error.
 !
 ! Output:
-!   attrib_value -- Real(rp): Value of the attribute.
+!   attrib_value -- Real(rp): Value of the attribute. If the attribute is a logical, the
+!                    value returned is either 0 (False) or 1 (True).
 !   err_flag     -- Logical: Set True if attribtute not found. False otherwise.
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole arrays.
 !-
 
 subroutine ele_attribute_value (ele, attrib_name, do_allocation, &
-                  attrib_value, err_flag, err_print_flag, ix_attrib)
+                                                    attrib_value, err_flag, err_print_flag, ix_attrib)
 
 
 type (ele_struct), target :: ele
@@ -816,50 +817,30 @@ integer, optional :: ix_attrib
 
 character(*) attrib_name
 character(24) :: r_name = 'ele_attribute_value'
-character(40) a_name
 
 logical err_flag, do_allocation
 logical, optional :: err_print_flag
 
-! Init
+!
 
-attrib_value = 0
 err_flag = .false.
-call str_upcase (a_name, attrib_name)
 
-! Special cases
+call pointer_to_attribute (ele, attrib_name, do_allocation, ptr_attrib, err_flag, err_print_flag, ix_attrib)
 
-
-select case (a_name)
-case ('IS_ON')
-  attrib_value = logic_val(ele%is_on)
-  if (present(ix_attrib)) ix_attrib = is_on$
-  return
-end select
-
-!
-
-call pointer_to_attribute (ele, attrib_name, do_allocation, &
-                  ptr_attrib, err_flag, err_print_flag, ix_attrib)
-if (associated(ptr_attrib%r)) attrib_value = ptr_attrib%r
-
-!---------------------------------------------
-contains
-
-function logic_val (l_val) result (real_val)
-
-logical l_val
-real(rp) real_val
-
-!
-
-if (l_val) then
-  real_val = 1
+if (associated(ptr_attrib%r)) then
+  attrib_value = ptr_attrib%r
+elseif (associated(ptr_attrib%i)) then
+  attrib_value = ptr_attrib%i
+elseif (associated(ptr_attrib%l)) then
+  if (ptr_attrib%l) then
+    attrib_value = 1
+  else
+    attrib_value = 0
+  endif
 else
-  real_val = 0
+  attrib_value = 0
+  err_flag = .true.
 endif
-
-end function logic_val
 
 end subroutine ele_attribute_value
 
@@ -1041,6 +1022,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
   if (a_name(1:4) == 'CURV') then
     read (a_name(12:12), *) ix
     read (a_name(15:15), *) iy
+    if (ix > ubound(ele%photon%surface%curvature_xy, 1) .or. iy > ubound(ele%photon%surface%curvature_xy, 2)) return
     ptr_attrib => ele%photon%surface%curvature_xy(ix,iy)
 
   ! Multipole
@@ -1064,8 +1046,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
 ! Out of bounds
 
 elseif (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
-  if (do_print) call out_io (s_error$, r_name, &
-          'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
+  if (do_print) call out_io (s_error$, r_name, 'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
           i_array = [ix_attrib])
   return
 
@@ -1075,9 +1056,7 @@ else
   ptr_attrib => ele%value(ix_attrib)
 endif
 
-
 err_flag = .false.
-return
 
 end subroutine pointer_to_indexed_attribute 
 

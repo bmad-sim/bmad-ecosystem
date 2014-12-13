@@ -25,18 +25,18 @@ type (sad_param_struct), save :: sad_param
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_attribute (ele, attrib)
+! Subroutine set_flags_for_changed_attribute (ele, attrib, set_dependent)
 !
 ! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
 ! Also will do some dependent variable bookkeeping when a particular attribute has 
 ! been altered. Look at this routine's code for more details.
 !
 ! set_flages_for_changed_attribute is an overloaded name for:
-!   set_flages_for_changed_lat_attribute (lat)
-!   set_flages_for_changed_real_attribute (ele, real_attrib)
-!   set_flages_for_changed_inteter_attribute (ele, int_attrib)
-!   set_flages_for_changed_logical_attribute (ele, logic_attrib)
-!   set_flages_for_changed_all_attribute (ele, all_attrib)
+!   set_flages_for_changed_lat_attribute (lat, set_dependent)
+!   set_flages_for_changed_real_attribute (ele, real_attrib, set_dependent)
+!   set_flages_for_changed_inteter_attribute (ele, int_attrib, set_dependent)
+!   set_flages_for_changed_logical_attribute (ele, logic_attrib, set_dependent)
+!   set_flages_for_changed_all_attribute (ele, all_attrib, set_dependent)
 !
 ! The set_flages_for_changed_lat_attribute (lat) routine is used when one
 ! does not know what has changed and wants a complete bookkeeping done.
@@ -45,16 +45,18 @@ type (sad_param_struct), save :: sad_param
 !   use bmad
 !
 ! Input:
-!   lat          -- lat_struct: Lattice being modified.
-!   ele          -- ele_struct, Element being modified.
-!   real_attrib  -- real(rp), optional: Attribute that has been changed.
-!                     For example: ele%value(hkick$).
-!                     If not present then assume everything has potentially changed.
-!   int_attrib   -- integer: Attribute that has been changed.
-!                     For example: ele%mat6_calc_method.
-!   logic_attrib -- logical; Attribute that has been changed.
-!                     For example: ele%is_on.
-!   all_attrib   -- all_pointer_struct: Pointer to attribute.
+!   lat           -- lat_struct: Lattice being modified.
+!   ele           -- ele_struct, Element being modified.
+!   real_attrib   -- real(rp), optional: Attribute that has been changed.
+!                      For example: ele%value(hkick$).
+!                      If not present then assume everything has potentially changed.
+!   int_attrib    -- integer: Attribute that has been changed.
+!                      For example: ele%mat6_calc_method.
+!   logic_attrib  -- logical; Attribute that has been changed.
+!                      For example: ele%is_on.
+!   all_attrib    -- all_pointer_struct: Pointer to attribute.
+!   set_dependent -- logical, optional: If False then dependent variable bookkeeping will not be done.
+!                     Default is True.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
@@ -120,6 +122,7 @@ character(20), parameter :: r_name = 'lattice_bookkeeper'
 if (present(err_flag)) err_flag = .true.
 
 call control_bookkeeper (lat)
+
 call lat_geometry (lat)
 call s_calc (lat)
 
@@ -130,6 +133,7 @@ call control_bookkeeper (lat, mark_eles_as_stale = .false.)
 ! Call lat_geometry again in case the energy changes and there is a bend with field_master = T
 
 call lat_geometry (lat)
+call s_calc (lat)
 
 call ptc_bookkeeper (lat)
 
@@ -1369,13 +1373,13 @@ recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, 
 
 implicit none
 
-type (ele_struct), target :: sliced_ele, ele_in
+type (ele_struct), target :: sliced_ele, ele_in, ele0
 type (ele_struct), optional :: old_slice
 type (ele_struct) :: ele2
 type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
-real(rp) l_slice, offset, in_len, ref_time_start, p0c_start, e_tot_start, r
+real(rp) l_slice, offset, in_len, r
 real(rp) w_inv(3,3), dl
 
 logical include_upstream_end, include_downstream_end, err_flag, err2_flag
@@ -1442,8 +1446,7 @@ if (ele_in%key == patch$) then
   sliced_ele%value(y_offset_tot$)    = sliced_ele%value(y_offset$)
   sliced_ele%value(z_offset_tot$)    = sliced_ele%value(z_offset$)
 
-  call ele_compute_ref_energy_and_time (sliced_ele, param, ele_in%value(e_tot$), &
-                                   ele_in%value(p0c$), ele_in%value(ref_time_start$), err2_flag)
+  call ele_compute_ref_energy_and_time (ele_in, sliced_ele, param, err2_flag)
   err_flag = .false.
   return
 
@@ -1477,9 +1480,9 @@ endif
 ! Save values from old_slice if present
 
 if (present(old_slice)) then
-  p0c_start       = old_slice%value(p0c$)
-  e_tot_start     = old_slice%value(e_tot$)
-  ref_time_start  = old_slice%ref_time
+  ele0%value(p0c$)       = old_slice%value(p0c$)
+  ele0%value(e_tot$)     = old_slice%value(e_tot$)
+  ele0%ref_time  = old_slice%ref_time
   time_ref_orb_out = old_slice%time_ref_orb_out
 endif
 
@@ -1511,28 +1514,28 @@ sliced_ele%field_calc = refer_to_lords$
 ! Makeup_super_slave1 does not compute reference energy or time so need to do it here.
 
 if (offset == 0) then
-  p0c_start      = ele_in%value(p0c_start$)
-  e_tot_start    = ele_in%value(e_tot_start$)
-  ref_time_start = ele_in%value(ref_time_start$)
+  ele0%value(p0c$)      = ele_in%value(p0c_start$)
+  ele0%value(e_tot$)    = ele_in%value(e_tot_start$)
+  ele0%ref_time        = ele_in%value(ref_time_start$)
   sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
 elseif (present(old_slice)) then
   sliced_ele%time_ref_orb_in = time_ref_orb_out
 elseif (ele_has_constant_ds_dt_ref(ele_in)) then
-  p0c_start      = ele_in%value(p0c$)
-  e_tot_start    = ele_in%value(e_tot$)
-  ref_time_start = ele_in%ref_time - ele_in%value(delta_ref_time$) * (ele_in%value(l$) - offset) / ele_in%value(l$)
+  ele0%value(p0c$)      = ele_in%value(p0c$)
+  ele0%value(e_tot$)    = ele_in%value(e_tot$)
+  ele0%ref_time = ele_in%ref_time - ele_in%value(delta_ref_time$) * (ele_in%value(l$) - offset) / ele_in%value(l$)
   sliced_ele%time_ref_orb_in%vec = 0
 else
   call transfer_ele (sliced_ele, ele2)
   call create_element_slice (ele2, ele_in, offset, 0.0_rp, param, .true., .false., err2_flag)
   if (err2_flag) return
-  p0c_start      = ele2%value(p0c$)
-  e_tot_start    = ele2%value(e_tot$)
-  ref_time_start = ele2%ref_time
+  ele0%value(p0c$)      = ele2%value(p0c$)
+  ele0%value(e_tot$)    = ele2%value(e_tot$)
+  ele0%ref_time        = ele2%ref_time
   sliced_ele%time_ref_orb_in = ele2%time_ref_orb_out
 endif
 
-call ele_compute_ref_energy_and_time (sliced_ele, param, e_tot_start, p0c_start, ref_time_start, err2_flag)
+call ele_compute_ref_energy_and_time (ele0, sliced_ele, param, err2_flag)
 if (err2_flag) return
 
 if (.not. include_upstream_end) sliced_ele%time_ref_orb_in%location = inside$
@@ -2128,7 +2131,7 @@ type (em_field_struct) field
 type (branch_struct), pointer :: branch
 
 real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
-real(rp) w_inv(3,3), len_old
+real(rp) w_inv(3,3), len_old, f
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 
@@ -2177,21 +2180,29 @@ ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
 ele%bookkeeping_state%ptc     = stale$
 
-dval = abs(val - ele%old_value)
-
 ! For auto bookkeeping if no change then we don't need to do anything
 
 if (bmad_com%auto_bookkeeper) then
+  ! f is used to scale things so that the multipole values are all in the same ballpark.
+  if (ele%key == sad_mult$) then
+    f = 1
+    val(check_sum$) = 0
+    do i = 0, ubound(ele%a_pole, 1)
+      val(check_sum$) = val(check_sum$) + (sum(ele%a_pole) + sum(ele%b_pole)) * f
+      f = f / 10
+    enddo
+  else
+    val(check_sum$) = ele%tracking_method
+    if (ele%is_on) val(check_sum$) = val(check_sum$) + 100
+  endif
 
-
-  val(check_sum$) = 0
-  if (associated(ele%a_pole)) val(check_sum$) = sum(ele%a_pole) + sum(ele%b_pole)
-
-  dval(check_sum$) = abs(val(check_sum$) - ele%old_value(check_sum$))
+  dval = abs(val - ele%old_value)
   dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
   dval(custom_attribute1$:custom_attribute_max$) = 0
   dval(scratch$) = 0
   if (all(dval == 0) .and. ele%key /= capillary$) return
+else
+  dval = abs(val - ele%old_value)
 endif
 
 ! Transfer tilt to tilt_tot, etc.
@@ -2672,6 +2683,16 @@ if (associated(ele%rad_int_cache)) ele%rad_int_cache%stale = .true.  ! Forces re
 
 ! Set old_value = value
 
+do i = 1, num_ele_attrib$
+  if (.not. dval_change(i) .or. .not. v_mask(i)) cycle
+  if (i == check_sum$) then
+    if (ele%key /= sad_mult$)   call set_flags_for_changed_attribute (ele, ele%tracking_method, .false.)
+  else
+    call set_flags_for_changed_attribute (ele, ele%value(i), .false.)
+  endif
+enddo
+ 
+ele%bookkeeping_state%attributes = ok$
 ele%old_value = val
 
 end subroutine attribute_bookkeeper
@@ -2758,7 +2779,7 @@ end subroutine aperture_bookkeeper
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_all_attribute (ele, all_attrib)
+! Subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2766,18 +2787,19 @@ end subroutine aperture_bookkeeper
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_all_attribute (ele, all_attrib)
+subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
 
 implicit none
 
 type (ele_struct), target :: ele
 type (all_pointer_struct) all_attrib
+logical, optional :: set_dependent
 
 !
 
-if (associated(all_attrib%r)) call set_flags_for_changed_real_attribute(ele, all_attrib%r)
-if (associated(all_attrib%i)) call set_flags_for_changed_integer_attribute(ele, all_attrib%i)
-if (associated(all_attrib%l)) call set_flags_for_changed_logical_attribute(ele, all_attrib%l)
+if (associated(all_attrib%r)) call set_flags_for_changed_real_attribute(ele, all_attrib%r, set_dependent)
+if (associated(all_attrib%i)) call set_flags_for_changed_integer_attribute(ele, all_attrib%i, set_dependent)
+if (associated(all_attrib%l)) call set_flags_for_changed_logical_attribute(ele, all_attrib%l, set_dependent)
 
 end subroutine set_flags_for_changed_all_attribute
 
@@ -2785,7 +2807,7 @@ end subroutine set_flags_for_changed_all_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_integer_attribute (ele, attrib)
+! Subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2793,7 +2815,7 @@ end subroutine set_flags_for_changed_all_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_integer_attribute (ele, attrib)
+subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
 
 implicit none
 
@@ -2806,19 +2828,22 @@ integer i
 
 real(rp) dummy
 
+logical, optional :: set_dependent
+
 ! This will set some generic flags
 
-call set_flags_for_changed_real_attribute (ele, dummy)
+call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
 
 !
 
 a_ptr => attrib
 
-if (ele%value(p0c$) /= ele%value(p0c_start$)) then
+select case (ele%key)
+case (rfcavity$, lcavity$, e_gun$)
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
-endif
+end select
 
 ! Set independent stuff in multipass lord
 
@@ -2852,7 +2877,7 @@ end subroutine set_flags_for_changed_integer_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_logical_attribute (ele, attrib)
+! Subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2860,7 +2885,7 @@ end subroutine set_flags_for_changed_integer_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_logical_attribute (ele, attrib)
+subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 
 implicit none
 
@@ -2873,10 +2898,11 @@ real(rp) dummy
 
 logical, target :: attrib
 logical, pointer :: a_ptr
+logical, optional :: set_dependent
 
 ! Call to set_flags_for_changed_real_attribute will set some generic flags
 
-call set_flags_for_changed_real_attribute (ele, dummy)
+call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
 
 a_ptr => attrib
 
@@ -2902,7 +2928,7 @@ end subroutine set_flags_for_changed_logical_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_lat_attribute (lat)
+! Subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
 !
 ! Routine to mark a lattice as modified for use with "intelligent" bookkeeping.
 !
@@ -2910,7 +2936,7 @@ end subroutine set_flags_for_changed_logical_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_lat_attribute (lat)
+subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
 
 implicit none
 
@@ -2918,6 +2944,7 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
 integer i, j
+logical, optional :: set_dependent
 
 !
 
@@ -2935,7 +2962,7 @@ end subroutine set_flags_for_changed_lat_attribute
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine set_flags_for_changed_real_attribute (ele, attrib)
+! Subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
 !
 ! Routine to mark an element as modified for use with "intelligent" bookkeeping.
 !
@@ -2943,7 +2970,7 @@ end subroutine set_flags_for_changed_lat_attribute
 ! See set_flags_for_changed_attribute for more details.
 !-
 
-subroutine set_flags_for_changed_real_attribute (ele, attrib)
+subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
 
 implicit none
 
@@ -2958,12 +2985,14 @@ real(rp), target :: unknown_attrib
 
 integer i
 
-logical coupling_change, found
+logical coupling_change, found, dep_set
+logical, optional :: set_dependent
 
 !-------------------
 ! For a particular elemement...
 
 branch => ele%branch
+dep_set = logic_option(.true., set_dependent)
 
 ! If a lord then set the control flag stale
 
@@ -3015,21 +3044,25 @@ endif
 ! for lattices with an e_gun element
 
 if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
-  call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
   call set_ele_status_stale (ele, ref_energy_group$)
-  if (ele%key == beginning_ele$) then
-    ele%value(e_tot_start$) = ele%value(e_tot$)
-    ele%value(p0c_start$) = ele%value(p0c$)
+  if (dep_set) then
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+    if (ele%key == beginning_ele$) then
+      ele%value(e_tot_start$) = ele%value(e_tot$)
+      ele%value(p0c_start$) = ele%value(p0c$)
+    endif
   endif
   return
 endif
 
 if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
-  call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
   call set_ele_status_stale (ele, ref_energy_group$)
-  if (ele%key == beginning_ele$) then
-    ele%value(e_tot_start$) = ele%value(e_tot$)
-    ele%value(p0c_start$) = ele%value(p0c$)
+  if (dep_set) then
+    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+    if (ele%key == beginning_ele$) then
+      ele%value(e_tot_start$) = ele%value(e_tot$)
+      ele%value(p0c_start$) = ele%value(p0c$)
+    endif
   endif
   return
 endif
@@ -3053,44 +3086,54 @@ case (beginning_ele$)
   coupling_change = .false.
 
   if (associated(a_ptr, ele%a%beta) .or. associated(a_ptr, ele%a%alpha)) then
-    if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+    if (dep_set) then
+      if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+    endif
     return
   endif
 
-  if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
-    if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+  if (dep_set) then
+    if (associated(a_ptr, ele%b%beta) .or. associated(a_ptr, ele%b%alpha)) then
+      if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+    endif
     return
   endif
 
-  if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
-          associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
-    ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
-    coupling_change = .true.
+  if (dep_set) then
+    if (associated(a_ptr, ele%c_mat(1,1)) .or. associated(a_ptr, ele%c_mat(1,2)) .or. & 
+            associated(a_ptr, ele%c_mat(2,1)) .or. associated(a_ptr, ele%c_mat(2,2))) then
+      ele%gamma_c = sqrt(1 - ele%c_mat(1,1)*ele%c_mat(2,2) + ele%c_mat(1,2)*ele%c_mat(2,1))
+      coupling_change = .true.
+    endif
   endif
 
-  if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
-      associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
-      coupling_change) then 
-    call make_v_mats (ele, v_mat, v_inv_mat)
-    eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
-    eta_vec = matmul (v_inv_mat, eta_xy_vec)
-    ele%a%eta  = eta_vec(1)
-    ele%a%etap = eta_vec(2)
-    ele%b%eta  = eta_vec(3)
-    ele%b%etap = eta_vec(4)
-    return
+  if (dep_set) then
+    if (associated(a_ptr, ele%x%eta) .or. associated(a_ptr, ele%x%etap) .or. &
+        associated(a_ptr, ele%y%eta) .or. associated(a_ptr, ele%y%etap) .or. &
+        coupling_change) then 
+      call make_v_mats (ele, v_mat, v_inv_mat)
+      eta_xy_vec = [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap]
+      eta_vec = matmul (v_inv_mat, eta_xy_vec)
+      ele%a%eta  = eta_vec(1)
+      ele%a%etap = eta_vec(2)
+      ele%b%eta  = eta_vec(3)
+      ele%b%etap = eta_vec(4)
+      return
+    endif
   endif
 
-  if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
-      associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
-    call make_v_mats (ele, v_mat, v_inv_mat)
-    eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
-    eta_xy_vec = matmul (v_mat, eta_vec)
-    ele%x%eta  = eta_xy_vec(1)
-    ele%x%etap = eta_xy_vec(2)
-    ele%y%eta  = eta_xy_vec(3)
-    ele%y%etap = eta_xy_vec(4)
-    return
+  if (dep_set) then
+    if (associated(a_ptr, ele%a%eta) .or. associated(a_ptr, ele%a%etap) .or. &
+        associated(a_ptr, ele%b%eta) .or. associated(a_ptr, ele%b%etap)) then 
+      call make_v_mats (ele, v_mat, v_inv_mat)
+      eta_vec = [ele%a%eta, ele%a%etap, ele%b%eta, ele%b%etap]
+      eta_xy_vec = matmul (v_mat, eta_vec)
+      ele%x%eta  = eta_xy_vec(1)
+      ele%x%etap = eta_xy_vec(2)
+      ele%y%eta  = eta_xy_vec(3)
+      ele%y%etap = eta_xy_vec(4)
+      return
+    endif
   endif
 
   if (associated(a_ptr, ele%floor%r(1)) .or. associated(a_ptr, ele%floor%r(2)) .or. &

@@ -595,11 +595,10 @@ enddo
 
 ! last
 
-call s_calc (lat)
-call lat_geometry (lat)
+call set_flags_for_changed_attribute(lat)
+call lattice_bookkeeper (lat)
 
 if (logic_option (.true., make_mats6)) then
-  call lattice_bookkeeper (lat)
   call lat_make_mat6 (lat, -1)
 endif
 
