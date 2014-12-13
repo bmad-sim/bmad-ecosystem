@@ -139,9 +139,9 @@ interface
     real(rp), optional :: s_start, s_end
   end subroutine
 
-  subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
+  subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
     import
-    type (ele_struct) ele
+    type (ele_struct) ele0, ele
     type (lat_param_struct) param
     real(rp) e_tot_start, p0c_start, ref_time_start
     logical err_flag

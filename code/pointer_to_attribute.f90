@@ -255,7 +255,7 @@ ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
 if (ix_a < 1) return
 
-select case (attrib_name)
+select case (a_name)
 !  attrib_type = is_logical$
 case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
 case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
@@ -314,7 +314,14 @@ case ('DOWNSTREAM_ELE_DIR')
 ! Real attribute
 case default
   call pointer_to_indexed_attribute (ele, ix_a, do_allocation, a_ptr%r, err_flag, err_print_flag)
+  return
 end select
+
+if (associated(a_ptr%r) .or. associated(a_ptr%i) .or. associated(a_ptr%l)) then
+  err_flag = .false.
+else
+  goto 9000
+endif
 
 return
 

@@ -52,12 +52,8 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   init_elem => branch%ele(0)
 
-  if (bmad_com%auto_bookkeeper) then
-    stale = .true.
-  else
-    if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
-    stale = (init_elem%bookkeeping_state%ref_energy == stale$)
-  endif
+  if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
+  stale = (init_elem%bookkeeping_state%ref_energy == stale$)
 
   branch%param%bookkeeping_state%ref_energy = ok$
 
@@ -265,11 +261,10 @@ do ib = 0, ubound(lat%branch, 1)
             ! Marker element, for example, may not set either p0c or e_tot.
             cycle
           endif
-          call ele_compute_ref_energy_and_time (lord, branch%param, &
-                                              lord%value(e_tot$), lord%value(p0c$), 0.0_rp, err)
+          lord%ref_time = 0
+          call ele_compute_ref_energy_and_time (lord, lord, branch%param, err)
         else
-          call ele_compute_ref_energy_and_time (lord, branch%param, &
-                                              ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+          call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
         endif
         if (err) return
         call control_bookkeeper (lat, lord)
@@ -278,7 +273,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Calculate the energy and reference time at the end of the present element.
 
-    call ele_compute_ref_energy_and_time (ele, branch%param, ele0%value(e_tot$), ele0%value(p0c$), ele0%ref_time, err)
+    call ele_compute_ref_energy_and_time (ele0, ele, branch%param, err)
     if (err) return
 
     ele%bookkeeping_state%ref_energy = ok$
@@ -297,7 +292,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   lord => lat%ele(ie)
 
-  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%ref_energy /= stale$) cycle
+  if (lord%bookkeeping_state%ref_energy /= stale$) cycle
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
   call set_ele_status_stale (lord, attribute_group$)
@@ -342,18 +337,16 @@ end subroutine lat_compute_ref_energy_and_time
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
+! Subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 !
 ! Routine to compute the reference energy and reference time at the end of an element 
 ! given the reference enegy and reference time at the start of the element.
 !
 ! Input:
+!   ele0           -- ele_struct: Previous element in lattice with starting energy and time values.
 !   ele            -- Ele_struct: Lattice element
 !     %time_ref_orb_in  -- Starting orbit for ref time calc.
 !   param          -- lat_Param_struct: Lattice parameters.
-!   e_tot_start    -- Real(rp): Entrance end energy.
-!   p0c_start      -- Real(rp): Entrance end momentum
-!   ref_time_start -- Real(rp): Entrance end reference time
 !   err_flag       -- Logical: Set true if there is an error. False otherwise.
 !
 ! Output:
@@ -361,13 +354,13 @@ end subroutine lat_compute_ref_energy_and_time
 !     %time_ref_orb_out  -- Ending orbit for ref time calc.
 !-
 
-subroutine ele_compute_ref_energy_and_time (ele, param, e_tot_start, p0c_start, ref_time_start, err_flag)
+subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 
 use auto_scale_mod, dummy => ele_compute_ref_energy_and_time
 
 implicit none
 
-type (ele_struct) ele
+type (ele_struct) ele, ele0
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
@@ -383,6 +376,10 @@ character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 err_flag = .true.
 old_delta_ref_time = ele%value(delta_ref_time$)
 old_p0c = ele%value(p0c$)
+
+E_tot_start    = ele0%value(E_tot$)
+p0c_start      = ele0%value(p0c$)
+ref_time_start = ele0%ref_time
 
 ele%value(E_tot_start$)    = E_tot_start
 ele%value(p0c_start$)      = p0c_start
@@ -445,6 +442,7 @@ case (crystal$, mirror$, multilayer_mirror$)
   ele%ref_time = ref_time_start
 
 case (patch$) 
+  if (is_true(ele%value(flexible$))) call ele_geometry(ele0%floor, ele, ele%floor)
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
     if (ele%orientation == 1) then
       ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
@@ -495,10 +493,16 @@ if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_
 endif
 
 ! %old_value(delta_ref_time$) is changed in tandem so changes in delta_ref_time do not trigger unnecessary bookkeeping.
-! However changes in the reference energy should trigger bookkeeping
+! However changes in the reference energy should trigger bookkeeping. 
+! Example: A lattice with bends with field_master = True, flexible patch, and absolute time tracking has
+! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
 
-ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
-ele%old_value(p0c$) = old_p0c
+if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /= ele%value(delta_ref_time$)) then
+  call control_bookkeeper (ele%branch%lat, ele)
+  call ele_geometry (ele0%floor, ele, ele%floor)
+  ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
+  ele%old_value(p0c$) = old_p0c
+endif
 
 err_flag = .false.
 

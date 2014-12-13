@@ -1061,6 +1061,7 @@ endif
 ! Bookkeeping
 
 if (logic_option (.true., make_mats6)) then
+  call set_flags_for_changed_attribute(lat)
   call lattice_bookkeeper (lat, err)
   if (err) then
     bp_com%error_flag = .true.

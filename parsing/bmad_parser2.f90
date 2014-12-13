@@ -573,6 +573,7 @@ call parser_add_lord (lat2, ele_num, plat, lat)
 
 ! make matrices for entire lat
 
+call set_flags_for_changed_attribute(lat)
 call lattice_bookkeeper (lat)
 
 do i = 1, lat%n_ele_max
