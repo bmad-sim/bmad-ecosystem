@@ -8,11 +8,8 @@ set (INC_DIRS
 # set (FFLAGS "-pg")     # For profiling
 # set (LINK_FLAGS "-pg")
 
-
 set (LINK_LIBS
   bsim
-  bmadz
-  cesr_utils
   bmad
   xsif
   xrlf03
