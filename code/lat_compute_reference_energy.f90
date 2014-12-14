@@ -267,7 +267,6 @@ do ib = 0, ubound(lat%branch, 1)
           call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
         endif
         if (err) return
-        call control_bookkeeper (lat, lord)
       enddo
     endif
 
@@ -360,13 +359,14 @@ use auto_scale_mod, dummy => ele_compute_ref_energy_and_time
 
 implicit none
 
-type (ele_struct) ele, ele0
+type (ele_struct), target :: ele, ele0
+type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
-real(rp) old_delta_ref_time, old_p0c, velocity
-integer key
+real(rp) old_delta_ref_time, old_p0c, old_e_tot, velocity
+integer i, key
 logical err_flag, err, changed, saved_is_on
 
 character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
@@ -376,6 +376,7 @@ character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 err_flag = .true.
 old_delta_ref_time = ele%value(delta_ref_time$)
 old_p0c = ele%value(p0c$)
+old_e_tot = ele%value(e_tot$)
 
 E_tot_start    = ele0%value(E_tot$)
 p0c_start      = ele0%value(p0c$)
@@ -498,10 +499,20 @@ endif
 ! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
 
 if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /= ele%value(delta_ref_time$)) then
+  ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
+  if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
+    do i = 1, ele%n_lord
+      lord => pointer_to_lord(ele, i)
+      lord%value(e_tot$) = ele%value(e_tot$); lord%value(e_tot_start$) = ele%value(e_tot_start$)
+      lord%value(p0c$) = ele%value(p0c$); lord%value(p0c_start$) = ele%value(p0c_start$)
+      call control_bookkeeper (ele%branch%lat, lord)
+    enddo
+  endif
   call control_bookkeeper (ele%branch%lat, ele)
   call ele_geometry (ele0%floor, ele, ele%floor)
   ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
   ele%old_value(p0c$) = old_p0c
+  ele%old_value(e_tot$) = old_e_tot
 endif
 
 err_flag = .false.

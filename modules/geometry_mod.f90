@@ -34,19 +34,14 @@ contains
 
 subroutine lat_geometry (lat)
 
-use multipass_mod
-
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, slave, b_ele, ele2, ele0
+type (ele_struct), pointer :: ele, lord, slave, b_ele, ele0, ele2
 type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (floor_position_struct) dummy
 
-real(rp) w_mat(3,3), w_mat_inv(3,3), r_vec(3)
-
-integer i, i2, n, ix2, ie, ib, ix_pass, ie0
+integer i, i2, n, ix2, ie, ib, ie0
 logical stale, stale_lord
 
 character(16), parameter :: r_name = 'lat_geometry'
@@ -169,38 +164,6 @@ if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
     call out_io (s_fatal$, r_name, 'CONFUSION! PLEASE CONTACT DAVID SAGAN!')
     call err_exit
   endif
-  ele2 => branch%ele(ie+dir)
-  call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
-  if (ix_pass > 0) then
-    ele2 => chain_ele(1)%ele
-    if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
-    ele%floor = ele2%floor
-  endif
-
-  if (ele2%bookkeeping_state%floor_position == stale$) then
-    call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
-                                                    '  (' // trim(ele_loc_to_string(ele)) // ')', &
-                                   'DOES NOT HAVE A WELL DEFINED POSITION')
-    if (global_com%exit_on_error) call err_exit
-  endif
-
-  ele0 => branch%ele(ie-dir)
-  call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
-  call floor_angles_to_w_mat (ele%floor%theta, ele%floor%phi, ele%floor%psi, w_mat)
-  w_mat = matmul(w_mat_inv, w_mat)
-  call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
-  r_vec = matmul(w_mat_inv, ele%floor%r - ele0%floor%r)
-  ele%value(x_offset$) = r_vec(1)
-  ele%value(y_offset$) = r_vec(2)
-  ele%value(z_offset$) = r_vec(3)
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-  ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
-                  w_mat_inv(3,3) * ele%value(z_offset$)
-  if (ele%value(l$) /= ele%old_value(l$)) then
-    ele%bookkeeping_state%s_position = stale$
-    branch%param%bookkeeping_state%s_position = stale$
-    ele%old_value(l$) = ele%value(l$)
-  endif
   stale = .false.
 else
   stale = .true.
@@ -289,13 +252,15 @@ end subroutine lat_geometry
 recursive subroutine ele_geometry (floor0, ele, floor, len_scale)
 
 use multipole_mod
+use multipass_mod
 
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0, ele00, slave0, slave1
+type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2
 type (floor_position_struct) floor0, floor, floor_ref
 type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (lat_param_struct) param
 
 real(rp), optional :: len_scale
@@ -303,9 +268,9 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), dtheta
 real(rp) r0(3), w0_mat(3,3), rot_angle
 real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
-real(rp) :: s_ang, c_ang, w_mat(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
+real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, key, n_loc
+integer i, key, n_loc, ix_pass
 
 logical has_nonzero_pole, err, calc_done
 
@@ -453,8 +418,6 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
          ele%value(ref_tilt$) /= 0) .or. phi /= 0 .or. psi /= 0 .or. key == patch$ .or. &
          key == crystal$ .or. (key == multipole$ .and. knl(0) /= 0 .and. tilt(0) /= 0)) then
 
-  call floor_angles_to_w_mat (theta, phi, psi, w_mat)
-
   !
 
   select case (key)
@@ -486,6 +449,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       s_mat = matmul (s_mat, t_mat)
     endif
 
+    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
@@ -533,6 +497,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       s_mat = matmul (s_mat, t_mat)
     endif
 
+    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + matmul(w_mat, r_vec)
     w_mat = matmul (w_mat, s_mat)
 
@@ -542,8 +507,46 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
   case (patch$)
 
+    ! Flexible bookkeeping
+
+    if (is_true(ele%value(flexible$))) then
+      ele2 => pointer_to_next_ele(ele, 1)
+      call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
+      if (ix_pass > 0) then
+        ele2 => chain_ele(1)%ele
+        if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
+      endif
+
+      if (ele2%bookkeeping_state%floor_position == stale$) then
+        call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
+                                                        '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                       'DOES NOT HAVE A WELL DEFINED POSITION')
+        if (global_com%exit_on_error) call err_exit
+      endif
+
+      ele0 => pointer_to_next_ele(ele, -1)
+      call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
+      call floor_angles_to_w_mat (ele2%floor%theta, ele2%floor%phi, ele2%floor%psi, w_mat)
+      w_mat = matmul(w_mat_inv, w_mat)
+      call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
+      r_vec = matmul(w_mat_inv, ele2%floor%r - ele0%floor%r)
+      ele%value(x_offset$) = r_vec(1)
+      ele%value(y_offset$) = r_vec(2)
+      ele%value(z_offset$) = r_vec(3)
+      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+      ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
+                      w_mat_inv(3,3) * ele%value(z_offset$)
+      if (ele%value(l$) /= ele%old_value(l$)) then
+        call set_ele_status_stale (ele, s_position_group$)
+        ele%old_value(l$) = ele%value(l$)
+      endif
+    endif
+
+    ! 
+
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 
+    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     if (len_factor < 0) then
       call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = s_mat)
       w_mat = matmul(w_mat, s_mat)
@@ -559,6 +562,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
   ! everything else. Just a translation
 
   case default
+    call floor_angles_to_w_mat (theta, phi, psi, w_mat)
     floor%r = floor%r + w_mat(:,3) * leng
 
   end select

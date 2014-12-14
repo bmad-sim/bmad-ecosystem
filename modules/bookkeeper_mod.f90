@@ -191,7 +191,7 @@ subroutine reset_status_flags_to_ok (stat)
   if (stat%control /= ok$        .and. stat%control /= super_ok$)        stat%control = ok$
   if (stat%attributes /= ok$     .and. stat%attributes /= super_ok$)     stat%attributes = ok$
   if (stat%floor_position /= ok$ .and. stat%floor_position /= super_ok$) stat%floor_position = ok$
-  if (stat%s_position /= ok$         .and. stat%s_position /= super_ok$)         stat%s_position = ok$
+  if (stat%s_position /= ok$     .and. stat%s_position /= super_ok$)     stat%s_position = ok$
   if (stat%ref_energy /= ok$     .and. stat%ref_energy /= super_ok$)     stat%ref_energy = ok$
 
 end subroutine reset_status_flags_to_ok

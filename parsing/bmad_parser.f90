@@ -340,9 +340,10 @@ parsing_loop: do
     endif
 
     if (xsif_called) then
+      ! To reinstate: Add xsif lib to CMake lib link list
       call parser_error ('XSIF_PARSER TEMPORARILY DISABLED. PLEASE SEE DCS.')
       if (global_com%exit_on_error) call err_exit
-      ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line) 
+      ! call xsif_parser (call_file, lat, make_mats6, digested_read_ok, use_line)
       detected_expand_lattice_cmd = .true.
       goto 8000  ! Skip the lattice expansion since xsif_parser does this
     endif
@@ -1049,6 +1050,17 @@ do i = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
+! Remove all null_ele elements
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
+  enddo
+enddo
+call remove_eles_from_lat (lat, .false.)  
+
 ! Consistancy check
 
 call lat_sanity_check (lat, err)
@@ -1056,18 +1068,6 @@ if (err) then
   bp_com%error_flag = .true.
   call parser_end_stuff
   return
-endif
-
-! Bookkeeping
-
-if (logic_option (.true., make_mats6)) then
-  call set_flags_for_changed_attribute(lat)
-  call lattice_bookkeeper (lat, err)
-  if (err) then
-    bp_com%error_flag = .true.
-    call parser_end_stuff
-    return
-  endif
 endif
 
 ! Do we need to expand the lattice and call bmad_parser2?
@@ -1084,13 +1084,24 @@ if (detected_expand_lattice_cmd) then
   global_com%exit_on_error = exit_on_error
 endif
 
-! Remove all null_ele elements and init custom stuff.
+! Bookkeeping
+
+if (logic_option (.true., make_mats6)) then
+  call set_flags_for_changed_attribute(lat)
+  call lattice_bookkeeper (lat, err)
+  if (err) then
+    bp_com%error_flag = .true.
+    call parser_end_stuff
+    return
+  endif
+endif
+
+! Init custom stuff.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    if (ele%key == null_ele$) ele%key = -1 ! mark for deletion
     if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
         ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
         ele%aperture_type == custom_aperture$) then
@@ -1099,7 +1110,6 @@ do n = 0, ubound(lat%branch, 1)
     endif
   enddo
 enddo
-call remove_eles_from_lat (lat, .false.)  
 
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
