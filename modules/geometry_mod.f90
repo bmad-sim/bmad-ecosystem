@@ -507,9 +507,10 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
   case (patch$)
 
-    ! Flexible bookkeeping
+    ! Flexible bookkeeping to compute offsets and pitches. 
+    ! Only needs to be done if element is part of a lattice (as opposed to, for example, a slice_slave)
 
-    if (is_true(ele%value(flexible$))) then
+    if (is_true(ele%value(flexible$)) .and. ele%ix_ele > 0) then
       ele2 => pointer_to_next_ele(ele, 1)
       call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
       if (ix_pass > 0) then
@@ -542,7 +543,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       endif
     endif
 
-    ! 
+    ! Now find
 
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 
