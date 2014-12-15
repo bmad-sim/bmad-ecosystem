@@ -52,6 +52,8 @@ contains
 !   end        -- Coord_struct: Ending coords.
 !   err_flag   -- Logical: Set True if there is an error. False otherwise.
 !   track      -- Track_struct, optional: Structure holding the track information.
+!                  When tracking through multiple elements, the trajectory in an element
+!                  is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !-
 
 subroutine track1_boris (orb_start, ele, param, orb_end, err_flag, track, s_start, s_end)
@@ -119,7 +121,6 @@ t = particle_time(orb_end, ele)
 
 if (present(track)) then
   s_sav = s1 - 2.0_rp * track%ds_save
-  call init_saved_orbit (track, n_step+10)
   call save_a_step (track, ele, param, .true., s1, orb_end, s_sav, t)
 endif
 

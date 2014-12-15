@@ -26,7 +26,10 @@
 ! Output:
 !   end_orb     -- coord_struct: end position, t-based global
 !   err_flag    -- Logical: Set True if there is an error. False otherwise
-!   track       -- track_struct (optional): particle path
+!   track       -- track_struct (optional): Contains array of the step-by-step particle
+!                    trajectory along with the field at these positions.
+!                    When tracking through multiple elements, the trajectory in an element
+!                    is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !-
 
 
@@ -72,7 +75,6 @@ if (ele%value(l$) .eq. 0) then
     call convert_particle_coordinates_s_to_t(end_orb)
     !Tracks use vec(5) = s_rel
     end_orb%vec(5) = 0.0_rp
-    call init_saved_orbit (track, 0)
     call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
   endif
 
@@ -140,7 +142,6 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
 endif
 
 if ( present(track) ) then
-  call init_saved_orbit (track, 1000)
   call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
 endif
 

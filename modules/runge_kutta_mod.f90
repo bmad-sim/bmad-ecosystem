@@ -133,7 +133,6 @@ t = particle_time(orb_end, ele)
 
 if (present(track)) then
   s_sav = s - 2.0_rp * track%ds_save
-  call init_saved_orbit (track, 1000)
   if ((abs(s-s_sav) > track%ds_save)) call save_a_step (track, ele, param, local_ref_frame, s, orb_end, s_sav, t)
 endif
 
