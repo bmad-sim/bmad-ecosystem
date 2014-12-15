@@ -52,54 +52,6 @@ end function g_bend_from_em_field
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine init_saved_orbit (track, n_pt)
-!
-! Subroutine to initialize the track structure.
-!
-! Input:
-!   track -- Track_struct: Structure to initialize.
-!   n_pt  -- Integer: Upper bound of track%orb(0:n) and track%map(0:n).
-!
-! Output:
-!   track -- Track_struct: structure for holding the track
-!     %orb(1:n) -- Coord_struct: n will be at least n_pt
-!     %field(1:n) -- em_field_stuct: n will be at least n_pt
-!     %map(1:n) -- Track_map_struct: n will be at least n_pt
-!     %n_bad    -- Reset to 0
-!     %n_ok     -- Reset to 0
-!     %n_pt     -- Reset to -1
-!-
-
-subroutine init_saved_orbit (track, n_pt)
-
-implicit none
-
-type (track_struct) track
-integer n_pt
-
-!
-
-if (.not. allocated (track%orb)) then
-  allocate(track%orb(0:n_pt))
-  allocate(track%field(0:n_pt))
-  allocate(track%map(0:n_pt))
-endif
-
-if (ubound(track%orb, 1) < n_pt) then
-  deallocate(track%orb, track%field, track%map)
-  allocate(track%orb(0:n_pt),  track%field(0:n_pt), track%map(0:n_pt))
-endif
-
-track%n_ok = 0
-track%n_bad = 0
-track%n_pt = -1
-
-end subroutine init_saved_orbit
-
-!-----------------------------------------------------------------
-!-----------------------------------------------------------------
-!-----------------------------------------------------------------
-!+
 ! Subroutine save_a_step (track, ele, param, local_ref_frame, s, here, s_sav, t_ref)
 !
 ! Routine used by Runge-Kutta and Boris tracking routines to save
@@ -133,6 +85,17 @@ integer n_pt, n, n_old
 real(rp) s, s_sav
 real(rp), optional :: t_ref
 logical local_ref_frame
+
+! Not allocated
+
+if (.not. allocated (track%orb)) then
+  allocate(track%orb(0:100))
+  allocate(track%field(0:100))
+  allocate(track%map(0:100))
+  track%n_ok = 0
+  track%n_bad = 0
+  track%n_pt = -1
+endif
 
 !
 

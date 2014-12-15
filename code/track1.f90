@@ -18,6 +18,7 @@
 !   param     -- lat_param_struct:
 !     %aperture_limit_on -- If True check if particle is lost by going outside
 !                of the element aperture. 
+!   track     -- track_struct, optional: Structure holding existing track.
 !   ignore_radiation
 !             -- Logical, optional: If present and True then do not include radiation
 !                  effects along with space charge effects. 
@@ -26,6 +27,8 @@
 !   end_orb   -- Coord_struct: End position.
 !   track     -- track_struct, optional: Structure holding the track information if the 
 !                  tracking method does tracking step-by-step.
+!                  When tracking through multiple elements, the trajectory in an element
+!                  is appended to the existing trajectory. To reset: Set track%n_pt = -1.
 !   err_flag  -- Logical, optional: Set true if there is an error. False otherwise.
 !-
 

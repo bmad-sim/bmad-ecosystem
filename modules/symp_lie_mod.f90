@@ -58,7 +58,9 @@ contains
 !     %vec0(6)    -- 0th order part of the transfer matrix.
 !   end_orb    -- Coord_struct: Coordinates at the end of element.
 !   track      -- Track_struct, optional: Structure holding the track information.
-!-
+!                   When tracking through multiple elements, the trajectory in an element
+!                   is appended to the existing trajectory. To reset: Set track%n_pt = -1.
+!!-
 
 subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
 
@@ -129,7 +131,6 @@ ds2 = ds / 2
 s = 0   ! longitudianl position
 
 if (present(track)) then
-  call init_saved_orbit (track, n_step)
   call save_this_track_pt (0.0_rp)
 endif
 
