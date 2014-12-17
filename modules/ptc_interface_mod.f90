@@ -2750,7 +2750,7 @@ real(dp) x(6), beta
 
 logical, optional :: taylor_map_includes_offsets
 logical :: warning_given = .false.
-logical use_offsets
+logical use_offsets, err_flag
 
 character(16) :: r_name = 'ele_to_taylor'
 
@@ -2770,7 +2770,7 @@ if (ele%key == taylor$) return
 
 if (ele%key == match$) then
   c0%vec = 0
-  call make_mat6_bmad (ele, param, c0, c0, .true.)
+  call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   if (.not. warning_given) then
     call out_io (s_warn$, r_name, &
