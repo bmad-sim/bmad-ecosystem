@@ -142,7 +142,7 @@ if (integrate_this .and. k /= lcavity$ .and. k /= match$ .and. k /= taylor$) the
   call taylor_propagate1 (map, ele, branch%param)
 else
   if (.not. associated(ele%taylor(1)%term)) then
-    call ele_to_taylor (ele, branch%param)
+    call ele_to_taylor (ele, branch%param, ele%taylor)
   endif
 
   call concat_ele_taylor (map, ele, map)

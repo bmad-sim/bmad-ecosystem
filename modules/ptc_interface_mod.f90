@@ -2707,7 +2707,7 @@ end subroutine taylor_propagate1
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets)
+! Subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
 !
 ! Subroutine to make a taylor map for an element. 
 ! The order of the map is set by set_ptc
@@ -2727,11 +2727,10 @@ end subroutine taylor_propagate1
 !                         ele%taylor_map_includes_offsets.
 !
 ! Output:
-!   ele -- Element_struct:
-!     %taylor(6)  -- Taylor maps.
+!   taylor(6)  -- taylor_struct: Taylor map.
 !-
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets)
+subroutine ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)
 
 use s_tracking
 use mad_like, only: real_8, fibre, ptc_track => track
@@ -2742,6 +2741,7 @@ type (ele_struct) :: ele, drift_ele
 type (lat_param_struct) :: param
 type (coord_struct), optional, intent(in) :: orb0
 type (coord_struct) c0
+type (taylor_struct) bmad_taylor(6)
 
 type (fibre), pointer :: ptc_fibre
 type (real_8) y0(6), y2(6), y8(6), bet
@@ -2770,7 +2770,7 @@ if (ele%key == taylor$) return
 
 if (ele%key == match$) then
   call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
-  call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
+  call mat6_to_taylor (ele%vec0, ele%mat6, bmad_taylor)
   if (.not. warning_given) then
     call out_io (s_warn$, r_name, &
       'Note: Taylor maps for Match elements are always 1st order!')
@@ -2782,13 +2782,12 @@ endif
 ! Initial map
 
 use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_offsets)
- 
 
 if (present(orb0)) then
-  ele%taylor(:)%ref = orb0%vec
+  bmad_taylor(:)%ref = orb0%vec
   x = orb0%vec  ! y = IdentityMap + const
 else
-  ele%taylor(:)%ref = 0
+  bmad_taylor(:)%ref = 0
   x = 0
 endif
 
@@ -2845,9 +2844,9 @@ if (any(x /= 0)) then
   call kill(y2)
 endif
 
-! convert to bmad_taylor  
+! convert to bmad_taylor_struct
 
-ele%taylor = y0
+bmad_taylor = y0
 
 call kill(y0)
 call kill(y8)

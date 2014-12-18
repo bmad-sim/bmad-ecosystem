@@ -238,7 +238,7 @@ do
     call taylor_propagate1 (map, runt, branch%param)
   else
     if (.not. associated(runt%taylor(1)%term)) then
-      call ele_to_taylor (runt, branch%param)
+      call ele_to_taylor (runt, branch%param, runt%taylor)
     endif
     call concat_taylor (map, runt%taylor, map)
   endif
