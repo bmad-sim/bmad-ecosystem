@@ -162,7 +162,7 @@ do j_in = 1, r_in%n_ele_track
         ele_out%tracking_method = taylor$
         ele_out%mat6_calc_method = taylor$
         if (.not. associated(ele_out%taylor(1)%term)) then ! construct taylor
-          call ele_to_taylor (ele_out, r_in%param, c0)
+          call ele_to_taylor (ele_out, r_in%param, ele_out%taylor, c0)
         endif
       endif
 

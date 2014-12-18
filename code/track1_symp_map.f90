@@ -69,7 +69,7 @@ subroutine track1_this_body
 ! Make the genfield map if needed.
 
 if (.not. (associated(ele%ptc_genfield) .and. associated(ele%taylor(1)%term))) then
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, end_orb)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, ele%taylor, end_orb)
   call kill_ptc_genfield (ele%ptc_genfield)  ! clean up if necessary
   allocate (ele%ptc_genfield)
   call taylor_to_genfield (ele%taylor, ele%ptc_genfield, ele%gen0)

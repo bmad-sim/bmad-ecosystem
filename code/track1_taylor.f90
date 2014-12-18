@@ -43,7 +43,7 @@ if (.not. associated(ele%taylor(1)%term)) then
     ! 'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...'
   endif
   orb0%vec = ele%taylor%ref
-  call ele_to_taylor(ele, param)
+  call ele_to_taylor(ele, param, ele%taylor)
 endif
 
 !if (abs(relative_tracking_charge(start_orb, param) - param%default_rel_tracking_charge) > 1e-10) then

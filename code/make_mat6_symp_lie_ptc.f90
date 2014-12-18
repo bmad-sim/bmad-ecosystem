@@ -19,19 +19,20 @@
 
 subroutine make_mat6_symp_lie_ptc (ele, param, c0)
 
-  use ptc_interface_mod, except_dummy => make_mat6_symp_lie_ptc
+use ptc_interface_mod, except_dummy => make_mat6_symp_lie_ptc
 
-  implicit none
+implicit none
 
-  type (ele_struct), target :: ele
-  type (coord_struct) :: c0
-  type (lat_param_struct)  param
+type (ele_struct), target :: ele
+type (coord_struct) :: c0
+type (lat_param_struct)  param
+type (taylor_struct) bmad_taylor(6)
 
 !
 
-  call ele_to_taylor(ele, param, c0, .true.)
-  call taylor_to_mat6 (ele%taylor, c0%vec, ele%vec0, ele%mat6)
-  call kill_taylor (ele%taylor)
+call ele_to_taylor(ele, param, bmad_taylor, c0, .true.)
+call taylor_to_mat6 (bmad_taylor, c0%vec, ele%vec0, ele%mat6)
+call kill_taylor (bmad_taylor)
 
 end subroutine
 
