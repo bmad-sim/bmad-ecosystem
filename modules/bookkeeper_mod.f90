@@ -2638,6 +2638,9 @@ v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 dval = abs(val - ele%old_value)
 dval(scratch$) = 0
 dval_change = (dval > 1d-15 * abs(val))
+! delta_ref_time can have relatively large changes since this is computed 
+! as an absolute time difference. Also it is a dependent attribute.
+dval_change(delta_ref_time$) = .false.  
 
 if (has_orientation_attributes(ele)) then
   non_offset_changed = (any(dval_change .and. v_mask))
