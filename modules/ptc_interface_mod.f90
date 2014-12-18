@@ -2769,7 +2769,6 @@ call attribute_bookkeeper (ele, param, .true.)
 if (ele%key == taylor$) return
 
 if (ele%key == match$) then
-  c0%vec = 0
   call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
   call mat6_to_taylor (ele%vec0, ele%mat6, ele%taylor)
   if (.not. warning_given) then
