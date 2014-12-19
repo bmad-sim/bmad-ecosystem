@@ -344,11 +344,11 @@ interface
     type (lat_param_struct) param
   end subroutine
 
-  subroutine make_mat6_symp_lie_ptc (ele, param, start_orb)
+  subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
     import
     implicit none
     type (ele_struct), target :: ele
-    type (coord_struct) :: start_orb
+    type (coord_struct) :: start_orb, end_orb
     type (lat_param_struct) param
   end subroutine
 
@@ -753,13 +753,14 @@ interface
     type (lat_param_struct) :: param
   end subroutine
 
-  subroutine track1_taylor (start_orb, ele, param, end_orb)
+  subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
     import
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
+    type (taylor_struct), optional, target :: taylor_in(6)
   end subroutine
 
   subroutine track1_time_runge_kutta (start_orb, ele, param, end_orb, err_flag, track)

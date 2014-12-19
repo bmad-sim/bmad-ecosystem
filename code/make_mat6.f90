@@ -116,8 +116,7 @@ case (bmad_standard$)
   if (err) return
 
 case (symp_lie_ptc$)
-  call make_mat6_symp_lie_ptc (ele, param, a_start_orb)
-  if (.not. end_input) call track1_taylor (a_start_orb, ele, param, a_end_orb)
+  call make_mat6_symp_lie_ptc (ele, param, a_start_orb, a_end_orb)
 
 case (symp_lie_bmad$)
   call symp_lie_bmad (ele, param, a_start_orb, a_end_orb, .true.)
