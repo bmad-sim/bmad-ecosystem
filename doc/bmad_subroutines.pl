@@ -119,7 +119,6 @@ $pl_hash{"query_string"} = "query_string.f90";
 $pl_hash{"add_this_taylor_term"} = "bmad_parser_mod.f90";
 $pl_hash{"r_size"} = "bmad_and_cpp.f90";
 $pl_hash{"operator"} = "equality_mod.f90";
-$pl_hash{"calc_superimpose_key"} = "add_superimpose.f90";
 $pl_hash{"integrand"} = "ibs_mod.f90";
 $pl_hash{"exp_bessi0"} = "touschek_mod.f90";
 $pl_hash{"re_associate_logical"} = "reallocate_mod.f90";

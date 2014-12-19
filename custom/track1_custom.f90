@@ -1,32 +1,35 @@
 !+
-! Subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
+! Subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
 !
 ! Dummy routine for custom tracking. 
-! If called, this routine will generate an error message and quit.
 ! This routine needs to be replaced for a custom calculation.
+! If not replaced and this routine is called, this routine will generate an error message.
 !
-! Note: This routine is not to be confused with track1_custom2.
-! See the Bmad manual for more details.
-!
+! This routine is potentially called twice by track1. 
+! The entry_pt argument indicates from which point in track1 this routine is being called.
+! 
 ! General rule: Your code may NOT modify any argument that is not listed as
-! an output agument below."
+! an output agument below.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting position.
-!   ele    -- Ele_struct: Element.
-!   param  -- lat_param_struct: Lattice parameters.
+!   start_orb  -- coord_struct: Starting position.
+!   ele        -- ele_struct: Element.
+!   param      -- lat_param_struct: Lattice parameters.
+!   entry_pt   -- integer: Flag indicating from which point in track1 this routine is called.
+!                   Possibilities are: entry_pt1$, entry_pt2$.
 !
 ! Output:
-!   end_orb   -- Coord_struct: End position.
-!   track     -- track_struct, optional: Structure holding the track information if the 
-!                 tracking method does tracking step-by-step.
-!   err_flag  -- Logical: Set true if there is an error. False otherwise.
+!   end_orb     -- coord_struct: End position.
+!   track       -- track_struct, optional: Structure holding the track information if the 
+!                    tracking method does tracking step-by-step.
+!   err_flag    -- logical: Set true if there is an error. False otherwise.
+!   finished    -- logical: When set True, track1 will halt processing and return to its calling routine.
 !-
 
-subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
+subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
 
 use bmad_interface, except_dummy => track1_custom
 
@@ -37,11 +40,15 @@ type (coord_struct) :: end_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
-logical err_flag
+
+integer entry_pt
+logical err_flag, finished
 
 character(32) :: r_name = 'track1_custom'
 
 !
+
+finished = .false.
 
 call out_io (s_fatal$, r_name, 'THIS DUMMY ROUTINE SHOULD NOT HAVE BEEN CALLED IN THE FIRST PLACE.')
 err_flag = .true.

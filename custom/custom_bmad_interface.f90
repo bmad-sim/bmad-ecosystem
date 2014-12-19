@@ -54,38 +54,20 @@ interface
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
     type (lat_param_struct) param
-    logical err_flag
+    integer entry_pt
+    logical err_flag, finished
   end subroutine
 
-  subroutine make_mat6_custom2 (ele, param, start_orb, end_orb, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct
-    implicit none
-    type (ele_struct), target :: ele
-    type (coord_struct) :: start_orb, end_orb
-    type (lat_param_struct) param
-    logical err_flag
-  end subroutine
-
-  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag)
+  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
     type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
-    logical err_flag
     type (track_struct), optional :: track
-  end subroutine
-
-  subroutine track1_custom2 (start_orb, ele, param, end_orb, track, err_flag)
-    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
-    implicit none
-    type (coord_struct) :: start_orb
-    type (coord_struct) :: end_orb
-    type (ele_struct) :: ele
-    type (lat_param_struct) :: param
-    logical err_flag
-    type (track_struct), optional :: track
+    integer entry_pt
+    logical err_flag, finished
   end subroutine
 
   subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)

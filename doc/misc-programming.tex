@@ -20,16 +20,14 @@ to \vn{custom}. An appropriate component is one of
   aperture_type         \sref{s:limit}
 \end{example}
 
-There are seven routines that implement custom calculations:
+There are nine routines that implement custom calculations:
 \begin{example}
    \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
    \Hyperref{r:em.field.custom}{em_field_custom}
    \Hyperref{r:init.custom}{init_custom}
    \Hyperref{r:make.mat6.custom}{make_mat6_custom}
-   \Hyperref{r:make.mat6.custom2}{make_mat6_custom2}
    \Hyperref{r:radiation.integrals.custom}{radiation_integrals_custom}
    \Hyperref{r:track1.custom}{track1_custom}
-   \Hyperref{r:track1.custom2}{track1_custom2}
    \Hyperref{r:track1.bunch.custom}{track1_bunch_custom}
    \Hyperref{r:track1.spin.custom}{track1_spin_custom}
    \Hyperref{r:wall.hit.handler.custom}{wall_hit_handler_custom}
@@ -69,63 +67,54 @@ the file can be read and the parameters stored in the element
 structure. Besides the \vn{ele%value} array, parameters may be stored
 in the general use components given in \sref{s:ele.gen}.
 
-The \Hyperref{r:make.mat6.custom}{make_mat6_custom} and
-\Hyperref{r:make.mat6.custom2}{make_mat6_custom2} routines are called
-by the \Hyperref{r:make.mat6}{make_mat6} routine when calculating the
-6x6 transfer matrix (Jacobian) through an element. Two routines are
-needed here due to the specifics of the coding for the \vn{make_mat6}
-routine. \vn{make_mat6} is divided into three sections: The code in the
-first section is at the start of \vn{make_mat6} and looks like:
+The \Hyperref{r:make.mat6.custom}{make_mat6_custom} routine is called by the
+\Hyperref{r:track1}{track1} routine when calculating the transfer
+matrix through an element. 
+
+The \Hyperref{r:track1.custom}{track1_custom} routine is called by the
+\Hyperref{r:track1}{track1} routine when the \vn{tracking_method} for
+the element is set to \vn{custom}.  \vn{track1_custom} is actually
+called twice by \vn{track1}. The reason for this is as follows:
+The code of \vn{track1} can be divided into three sections. The middle
+section uses the value of \vn{ele%tracking_method} to call the appropriate routine for the
+indicated calculational method. This section looks like:
 \begin{example}
-  if (ele%mat6_calc_method == custom$) then
-    call make_mat6_custom (ele, param, a_start_orb, a_end_orb)
-    return
-  endif
-\end{example}
-Call this the ``custom'' section. The next section in \vn{make_mat6}
-uses \vn{ele%mat6_calc_method} to call the appropriate routine for the
-indicated calculational method.  This section looks like:
-\begin{example}
-  select case (ele%mat6_calc_method)
-  case (custom2\$)
-    call make_mat6_custom2 (ele, param, a_start_orb, a_end_orb)
-  case (taylor\$)
-    call make_mat6_taylor (ele, param, a_start_orb)
-    if (.not. end_input) call track1_taylor (a_start_orb, ele, param, a_end_orb)
-  case (bmad_standard\$)
-    call make_mat6_bmad (ele, param, a_start_orb, a_end_orb, end_in, err)
+  select case (tracking_method)
+  case (runge_kutta\$) 
+    call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
+    if (err) return
+  case (custom\$) 
+    call track1_custom (start2_orb, ele, param, end_orb, track, entry_pt2\$, finished)
   ... etc ...
   end select
 \end{example} 
-Let us call this the ``method specific'' section. Notice that when
-\vn{ele%mat6_calc_method} is set to \vn{custom2\$} -- not \vn{custom\$} -- then
-\vn{make_mat6_custom2} is called. The last section, call it the
-``common'' section, is everything else. The common section involves
-modifying the transfer matrix to include the effect of space charge,
-symplectifying the matrix, etc.
-
-The two custom routines are meant to handle two different cases:
-\vn{make_mat6_custom} is used when the entire matrix calculation needs
-to be customized. \vn{make_mat6_custom2} is used it is desired to not
-to ``reinvent the wheel'' and to have \vn{make_mat6} handle the
-``common'' calculation in the common section. Notice that in the
-lattice file, there is no \vn{custom2} setting for the
-\vn{mat6_calc_method} element parameter. This is done to hide
-implementation details from the user. Thus, to use 
-\vn{make_mat6_custom2}, \vn{make_mat6_custom} must look like:
+The first and last sections that are before and after the middle
+section do a number of things that are common to all tracking
+methods. For example, checking apertures, adding in radiation damping
+and excitation kicks, etc. In some cases with custom tracking, the
+code in the first and last sections needs to be skipped. In order to
+do this, \vn{track1_custom} is called at the start of \vn{track1}:
 \begin{example}
-  ele%mat6_calc_method = custom2\$  ! Was, of course, custom\$
-  call make_mat6 (ele, param, start_orb, end_orb) ! Recursive call back to make_mat6
-  ele%mat6_calc_method = custom\$   ! Restore
+  if (ele%tracking_method == custom\$) then
+    call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1\$, finished)
+    if (err) return
+    if (finished) then
+      if (present(err_flag)) err_flag = err
+      return
+    endif
+  endif
 \end{example}
-
-The \Hyperref{r:track1.custom}{track1_custom} and
-\Hyperref{r:track1.custom2}{track1_custom2} routines are called by the
-\Hyperref{r:track1}{track1} routine when calculating the transfer
-matrix through an element. Two routines are needed here due to the
-specifics of the coding for the \vn{track1} routine. See the
-discussion on the \vn{make_mat6_custom} and \vn{make_mat6_custom2}
-routines above.
+The definition of \vn{track1_custom} is:
+\begin{example}
+  track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
+\end{example}
+The idea is that to skip the first and last sections,
+\vn{track1_custom} simply sets the \vn{finished} argument to True. If
+these sections are not to be skipped, \vn{track1_custom} should set
+\vn{finished} to False and return without doing anything when
+\vn{entry_pt} has a value of \vn{entry_pt1\$}. In the middle section,
+\vn{track1_custom} will be called with \vn{entry_pt} set to
+\vn{entry_pt2\$}.
 
 The
 \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
@@ -156,7 +145,7 @@ unlike all other elements, the particle coordinates passed to
 \Hyperref{r:em.field.custom}{em_field_custom} are the coordinates with
 respect to the exit coordinate frame and not the entrance coordinate
 frame. If field must be calculated in the entrance coordinate frame, 
-a transformation between entance and exit frames must be done:
+a transformation between entrance and exit frames must be done:
 \begin{example}
   subroutine em_field_custom (ele, param, s_rel, time, orb, &
                                   local_ref_frame, field, calc_dfield, err_flag)
@@ -199,7 +188,7 @@ To keep tracking, the particle must be marked as alive
 \end{example}
 Note: \vn{odeint_bmad} normally does not check for wall collisions.
 To change the default behavior, the \vn{runge_kutta_com} common block
-must modified. This strucutre is defined in \vn{runge_kutta_mod.f90}:
+must modified. This structure is defined in \vn{runge_kutta_mod.f90}:
 \begin{example}
   type runge_kutta_common_struct
     logical :: check_wall_aperture = .false.
@@ -213,7 +202,7 @@ must be set to true. The \vn{%hit_when} components determines what
 constitutes a collision. If this is set to \vn{outside_wall\$} (the
 default), then any particle that is outside the wall is considered to
 have hit the wall. If \vn{%hit_when} is set to \vn{wall_transition\$},
-a collision occures when the particle crosses the wall boundary. The
+a collision occurs when the particle crosses the wall boundary. The
 distinction between \vn{outside_wall\$} and \vn{wall_transition\$} is
 important if particles are to be allowed to travel outside the wall.
 
@@ -322,7 +311,7 @@ stored in
 Generally \vn{ele%time_ref_orb_in} is the zero orbit. The exception
 comes when an element is a \vn{super_slave}. In this case, the
 reference orbit through the super_slaves of a given \vn{super_lord} is
-constructed to be continuous. This is done for consistancey sake. For
+constructed to be continuous. This is done for consistency sake. For
 example, to ensure that when a marker is superimposed on top of a
 wiggler the reference orbit, and hence the reference time, is not altered.
 

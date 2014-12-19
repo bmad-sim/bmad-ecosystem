@@ -55,7 +55,7 @@ integer tracking_method
 character(8), parameter :: r_name = 'track1'
 
 logical, optional :: err_flag, ignore_radiation
-logical err, do_extra
+logical err, do_extra, finished
 
 ! Use start2_orb since start_orb is strictly input.
 
@@ -116,9 +116,12 @@ endif
 ! Custom tracking if the custom routine is to do everything.
 
 if (ele%tracking_method == custom$) then
-  call track1_custom (start2_orb, ele, param, end_orb, track, err)
-  if (present(err_flag)) err_flag = err
-  return
+  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1$, finished)
+  if (err) return
+  if (finished) then
+    if (present(err_flag)) err_flag = err
+    return
+  endif
 endif
 
 ! Init
@@ -183,12 +186,13 @@ case (boris$)
 case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
 
-! Note: To use track1_custom2 instead of track1_custom, set 
-! ele%tracking_method = custom2$ in init_custom. See manual for details.
-
-case (custom2$)
-  call track1_custom2 (start2_orb, ele, param, end_orb, track, err)
+case (custom$)
+  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt2$, finished)
   if (err) return
+  if (finished) then
+    if (present(err_flag)) err_flag = err
+    return
+  endif
 
 case (time_runge_kutta$)
   call track1_time_runge_kutta (start2_orb, ele, param, end_orb, err, track)

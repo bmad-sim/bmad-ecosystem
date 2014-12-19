@@ -52,7 +52,7 @@ real(rp), parameter :: zero_vec(6) = 0
 integer mat6_calc_method, species
 
 logical, optional :: end_in, err_flag
-logical end_input, rad_fluct_save, err
+logical end_input, rad_fluct_save, err, finished
 
 character(16), parameter :: r_name = 'make_mat6'
 
@@ -83,14 +83,6 @@ if (end_input) then
   endif
 endif
 
-! custom calc
-
-if (ele%mat6_calc_method == custom$) then
-  call make_mat6_custom (ele, param, a_start_orb, a_end_orb, err)
-  if (present(err_flag)) err_flag = err
-  return
-endif
-
 ! init
 
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele, param)
@@ -107,11 +99,8 @@ bmad_com%radiation_fluctuations_on = .false.
 
 select case (mat6_calc_method)
 
-! Note: To use make_mat6_custom2 instead of make_mat6_custom, set 
-! ele%mat6_calc_method = custom2$ in init_custom. See manual for details.
-
-case (custom2$)
-  call make_mat6_custom2 (ele, param, a_start_orb, a_end_orb, err)
+case (custom$)
+  call make_mat6_custom (ele, param, a_start_orb, a_end_orb, err)
   if (err) return
 
 case (taylor$)
@@ -139,7 +128,7 @@ case (tracking$)
 case (mad$)
   call make_mat6_mad (ele, param, a_start_orb, a_end_orb)
 
-! Static is used with hybrid elements since the transfer map in this case is not recomputable.
+! Static is used with hybrid elements since, in this case, the transfer map is not recomputable.
 
 case (static$)
   if (present(err_flag)) err_flag = .false.
@@ -167,7 +156,7 @@ endif
 
 ele%map_ref_orb_in = a_start_orb
 ele%map_ref_orb_out = a_end_orb
-if (present(end_orb) .and. .not. end_input) end_orb = a_end_orb
+if (present(end_orb) .and. .not. logic_option (.false., end_in)) end_orb = a_end_orb
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
 
