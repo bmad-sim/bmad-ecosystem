@@ -15,10 +15,12 @@ q1: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
 q2: quadrupole, l = 1, k1 = 0.4, tracking_method = runge_kutta, x_pitch = 0.002
 p1: patch, z_offset = 1, mat6_calc_method = tracking, tracking_method = runge_kutta, 
            field_calc = custom, x_pitch = 0.002
+p2: patch, flexible = True
 
-p_line: line = (q1, q2, p1)
+mm: line[multipass] = (q1, q2, p1)
+l2: line = (mm, p2, mm)
 
-use, p_line
+use, l2
 
 
 ! superimpose including overlapping superimpose

@@ -1,6 +1,7 @@
 parameter[geometry] = open
 parameter[e_tot] = 1e9
 dd: drift, l = 100
-ll: line = (dd)
+pp: patch, z_offset = 1, y_offset = 0.03, y_pitch = 0.05
+ll: line = (dd, pp)
 use, ll
 
