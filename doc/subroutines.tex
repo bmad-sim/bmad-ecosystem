@@ -263,7 +263,7 @@ Routine to calculate the Touschek lifetime for a lat.
 \index[routine]{em_field_calc}
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
-    em_field_calc (ele, param, s_rel, time, orbit, local_ref_frame, field, \\
+    em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, \\
     \hspace*{1in} calc_dfield, err_flag) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
@@ -805,7 +805,7 @@ Routine to create a new control element.
 \label{r:pointer.to.attribute}
 \item[\protect\parbox{6in}{
   pointer_to_attribute (ele, attrib_name, do_allocation, \\
-  \hspace*{1in} ptr_attrib, err_flag, err_print_flag, ix_attrib)}] \Newline
+  \hspace*{1in} a_ptr, err_flag, err_print_flag, ix_attrib)}] \Newline
 Returns a pointer to an attribute of an element with name attrib_name. 
 
 \index[routine]{pointers_to_attribute}
@@ -1281,9 +1281,7 @@ c_multi(n, m) = +/- ("n choose m")/n!
 
 \index[routine]{ele_compute_ref_energy_and_time}
 \label{r:ele.compute.ref.energy.and.time}
-\item[\protect\parbox{6in}{
-    ele_compute_ref_energy_and_time (ele, param, \\
-    \hspace*{1in} e_tot_start, p0c_start, ref_time_start, err_flag)} ] \Newline 
+\item[ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)] \Newline 
 Routine to compute the reference energy and reference time at the end
 of an element given the reference enegy and reference time at the
 start of the element.
@@ -1344,7 +1342,7 @@ Routine to parse (read in) a Bmad input file.
 \item[bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)] \Newline
 Routine to parse (read in) a Bmad input file to modify an existing lattice. 
 
-\index[routine]{bmad_to_mad_or_xsif}
+\index[routine]{bmad_to_mad_and_xsif}
 \label{r:bmad.to.mad.or.xsif}
 \item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, out_file_name, lat, use_matrix_model, \\
   \hspace*{1in} ix_start, ix_end, converted_lat, err)}] \Newline 
@@ -1739,12 +1737,6 @@ Routine that is used to set one coord_struct equal to another.
 Routine that is used to set one element equal to another. 
 This routine takes care of the pointers in ele1. 
 
-\index[routine]{ele_vec_equal_ele_vec}
-\label{r:ele.vec.equal.ele.vec}
-\item[ele_vec_equal_ele_vec (ele1, ele2)] \Newline
-Routine that is used to set one element vector equal to another. 
-This routine takes care of the pointers in ele1. 
-
 \index[routine]{real_8_equal_taylor}
 \item[real_8_equal_taylor (y8, bmad_taylor)] \Newline
 Routine to overload "=" in expressions real_8 (PTC) = bmad_taylor.
@@ -1849,7 +1841,7 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, rel_charge)] \Newline
+\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2673,11 +2665,6 @@ using closed formulas.
 \item[make_mat6_custom (ele, param, c0, c1, err_flag)] \Newline
 Routine for custom calculations of the 6x6 transfer matrices.
 
-\index[routine]{make_mat6_custom2}
-\label{r:make.mat6.custom2}
-\item[make_mat6_custom2 (ele, param, c0, c1, err_flag)] \Newline
-Routine for custom calculations of the 6x6 transfer matrices.
-
 \index[routine]{make_mat6_symp_lie_ptc}
 \label{r:make.mat6.symp.lie.ptc}
 \item[make_mat6_symp_lie_ptc (ele, param, c0)] \Newline
@@ -2813,7 +2800,7 @@ Routine to concatenate two taylor series: taylor3(x) = taylor2(taylor1(x))
 
 \index[routine]{ele_to_taylor}
 \label{r:ele.to.taylor}
-\item[ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets)] \Newline
+\item[ele_to_taylor (ele, param, bmad_taylor, orb0, taylor_map_includes_offsets)] \Newline
 Routine to make a Taylor map for an element. The order of the map is set by set_ptc.
 
 \index[routine]{equivalent_taylor_attributes}
@@ -2996,9 +2983,9 @@ the photon position to correspond to the local crystal or mirror coordinates.
 Routine to calculate the "invariant" amplitude of a particle at a 
 particular point in its orbit. 
 
-\index[routine]{particle_is_moving_backward}
-\label{r:particle.is.moving.backward}
-\item[particle_is_moving_backward (orbit) result (is_moving_backward)] \Newline 
+\index[routine]{particle_is_moving_backwards}
+\label{r:particle.is.moving.backwards}
+\item[particle_is_moving_backwards (orbit) result (is_moving_backward)] \Newline 
 Routine to determine if a particle is moving in the backward -s direction.
 If not moving backward it is dead or is moving backward.
 
@@ -3282,11 +3269,6 @@ Particle tracking through a single element BMAD_standard style.
 \index[routine]{track1_custom}
 \label{r:track1.custom}
 \item[track1_custom (start_orb, ele, param, end_orb, track, err_flag)] \Newline
-Dummy routine for custom tracking.
-
-\index[routine]{track1_custom2}
-\label{r:track1.custom2}
-\item[track1_custom2 (start_orb, ele, param, end_orb, track, err_flag)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}

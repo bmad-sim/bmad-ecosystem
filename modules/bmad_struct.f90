@@ -1030,29 +1030,26 @@ integer, parameter :: runge_kutta$ = 3
 integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
 integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
 integer, parameter :: boris$ = 12, mad$ = 14
-integer, parameter :: time_runge_kutta$ = 15, custom2$ = 16
-integer, parameter :: n_methods$ = 16
+integer, parameter :: time_runge_kutta$ = 15
+integer, parameter :: n_methods$ = 15
 
 character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
       'Linear          ', 'Garbage         ', 'Symp_Map        ', 'Custom          ', &
       'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta', &
-      'Custom2         ']
+      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
 
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
       'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
       'Garbage         ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Garbage         ', &
-      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ', &
-      'Custom2         ']
+      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']
 
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
       'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
       'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a', &
-      'Custom2         ']
+      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a']
 
 integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
 character(16), parameter :: ptc_integration_type_name(0:3) = [&
@@ -1163,6 +1160,8 @@ end type
 
 !------------------------------------------------------------------------------
 ! misc
+
+integer, parameter :: entry_pt1$ = 1, entry_pt2$ = 2
 
 ! This is for debugging radiation damping and fluctuations.
 
