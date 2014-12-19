@@ -1,5 +1,5 @@
 !+
-! Subroutine track1_taylor (start_orb, ele, param, end_orb)
+! Subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
 !
 ! Subroutine to track through an element using the element's taylor map.
 ! If the taylor map does not exist, one will be created using the old
@@ -9,17 +9,18 @@
 !   use bmad
 !
 ! Input:
-!   start_orb  -- Coord_struct: Starting coords.
-!   ele        -- Ele_struct: Element to track through.
-!   param      -- lat_param_struct: Beam parameters.
-!     %enegy     -- Energy in GeV
-!     %particle  -- Particle type [positron$, or electron$]
-!
+!   start_orb     -- Coord_struct: Starting coords.
+!   ele           -- Ele_struct: Element to track through.
+!   param         -- lat_param_struct: Beam parameters.
+!     %enegy        -- Energy in GeV
+!     %particle     -- Particle type [positron$, or electron$]
+!   taylor_in(6)  -- taylor_struct, optional: Alternative map to use instead of ele%taylor. 
+
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.
 !-
 
-subroutine track1_taylor (start_orb, ele, param, end_orb)
+subroutine track1_taylor (start_orb, ele, param, end_orb, taylor_in)
 
 use ptc_interface_mod, except_dummy => track1_taylor
 
@@ -27,23 +28,33 @@ implicit none
 
 type (coord_struct) :: start_orb, end_orb, start2_orb
 type (coord_struct) :: orb0
+type (taylor_struct), optional, target :: taylor_in(6)
 type (lat_param_struct) :: param
 type (ele_struct), target :: ele
 type (taylor_struct), pointer :: taylor(:)
+
 real(rp) dtime_ref
 integer dir
 character(*), parameter :: r_name = 'track1_taylor'
 
 
+! Which map to use?
+
+if (present(taylor_in)) then
+  taylor => taylor_in
+else
+  taylor => ele%taylor
+endif
+
 ! Err checking
 
-if (.not. associated(ele%taylor(1)%term)) then
+if (.not. associated(taylor(1)%term)) then
   if (global_com%type_out) then
     ! 'WARNING: TAYLOR SERIES NOT PRESENT FOR: ' // ele%name
     ! 'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...'
   endif
-  orb0%vec = ele%taylor%ref
-  call ele_to_taylor(ele, param, ele%taylor)
+  orb0%vec = taylor%ref
+  call ele_to_taylor(ele, param, taylor)
 endif
 
 !if (abs(relative_tracking_charge(start_orb, param) - param%default_rel_tracking_charge) > 1e-10) then
@@ -54,9 +65,7 @@ endif
 
 ! If tracking backwards then need to invert the Taylor map
 
-if (start_orb%direction == 1) then
-  taylor => ele%taylor
-else
+if (start_orb%direction /= 1) then
   if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
     call out_io (s_fatal$, r_name, 'CANNOT BACKWARDS TRACK WITH A TAYLOR MAP ELEMENTS WITH RF FIELDS: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
