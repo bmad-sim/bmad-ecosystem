@@ -1582,8 +1582,8 @@ real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3)
 real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
 real(rp) xp, yp, roll, r_roll, tilt, dx, dy
 
-integer i
-logical include_upstream_end, include_downstream_end, err_flag
+integer i, ifr
+logical include_upstream_end, include_downstream_end, err_flag, include_entrance, include_exit
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1595,6 +1595,14 @@ if (abs(slave%value(l$)) >= abs(lord%value(l$))) then
   coef = 1
 else
   coef = slave%value(l$) / lord%value(l$) 
+endif
+
+if (lord%orientation == 1) then
+  include_entrance = include_upstream_end
+  include_exit     = include_downstream_end
+else
+  include_entrance = include_downstream_end
+  include_exit     = include_upstream_end
 endif
 
 ! Reference energy and time computed in ele_compute_ref_energy_and_time.
@@ -1620,12 +1628,21 @@ endif
 
 ! fringe fields 
 
-if (include_upstream_end .and. include_downstream_end) then
-  value(fringe_at$) = both_ends$
-elseif (include_upstream_end) then
-  value(fringe_at$) = entrance_end$
+ifr = nint(value(fringe_at$))
+if (include_entrance .and. include_exit) then
+  ! Inherit from lord
+elseif (include_entrance) then
+  if (ifr == entrance_end$ .or. ifr == both_ends$) then
+    value(fringe_at$) = entrance_end$
+  else
+    value(fringe_at$) = no_end$
+  endif
 elseif (include_downstream_end) then
-  value(fringe_at$) = exit_end$
+  if (ifr == exit_end$ .or. ifr == both_ends$) then
+    value(fringe_at$) = exit_end$
+  else
+    value(fringe_at$) = no_end$
+  endif
 else
   value(fringe_at$) = no_end$
 endif
@@ -1733,16 +1750,15 @@ if (slave%key == wiggler$ .or. slave%key == undulator$) slave%value(n_pole$) = l
 !     2) zero the face angles next to the split
 
 if (slave%key == sbend$) then
-  if ((slave%orientation == 1 .and. .not. include_upstream_end) .or. &
-      (slave%orientation == -1 .and. .not. include_downstream_end)) then 
+  ifr = nint(value(fringe_at$))
+  if (ifr == no_end$ .or. ifr == exit_end$) then
     slave%value(e1$)    = 0
     slave%value(h1$)    = 0
     slave%value(fint$)  = 0
     slave%value(hgap$)  = 0
   endif
 
-  if ((slave%orientation == 1 .and. .not. include_downstream_end) .or. &
-      (slave%orientation == -1 .and. .not. include_upstream_end)) then
+  if (ifr == no_end$ .or. ifr == entrance_end$) then
     slave%value(e2$)    = 0
     slave%value(h2$)    = 0
     slave%value(fintx$) = 0
