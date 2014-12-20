@@ -3053,7 +3053,7 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3141,23 +3141,31 @@ case (sad_mult$)
 
 case (sbend$) 
   ptc_key%magnet = 'sbend'
-  ptc_key%list%b0   = ele%value(g$) * leng ! Yep this is correct. 
+  ptc_key%list%b0   = ele%value(g$) * leng
   ptc_key%list%t1   = ele%value(e1$)
   ptc_key%list%t2   = ele%value(e2$)
-  ptc_key%list%hgap = ele%value(hgap$)
-  ptc_key%list%fint = ele%value(fint$)
 
-  if (ele%value(fintx$) /= ele%value(fint$)) then
-    call out_io (s_error$, r_name, &
-        'FINT AND FINTX ARE NOT THE SAME FOR BEND: ' // ele%name, &
-        'PTC CANNOT HANDLE THIS!')
-  endif
-
-  if (ele%value(hgapx$) /= ele%value(hgap$)) then
-    call out_io (s_error$, r_name, &
-        'HGAP AND HGAPX ARE NOT THE SAME FOR BEND: ' // ele%name, &
-        'PTC CANNOT HANDLE THIS!')
-  endif
+  select case (nint(ele%value(fringe_at$)))
+  case (both_ends$)
+    ptc_key%list%hgap = ele%value(hgap$)
+    ptc_key%list%fint = ele%value(fint$)
+    fh  = ele%value(fint$) * ele%value(hgap$) 
+    fhx = ele%value(fintx$) * ele%value(hgapx$)
+    if (abs(fh - fhx) > 1d-10 * (abs(fh) + abs(fhx))) then
+      call out_io (s_error$, r_name, &
+          'FINT*HGAP AND FINTX*HGAPX ARE NOT THE SAME FOR BEND: ' // ele%name, &
+          'PTC CANNOT HANDLE THIS!')
+    endif
+  case (entrance_end$)
+    ptc_key%list%hgap = ele%value(hgap$)
+    ptc_key%list%fint = ele%value(fint$)
+  case (exit_end$)
+    ptc_key%list%hgap = ele%value(hgapx$)
+    ptc_key%list%fint = ele%value(fintx$)
+  case (no_end$)
+    ptc_key%list%hgap = ele%value(hgap$)
+    ptc_key%list%fint = ele%value(fint$)
+  end select
 
   ix = nint(ele%value(ptc_field_geometry$))
   if (ix == straight$) then
