@@ -1541,8 +1541,8 @@ end function gradient_shift_sr_wake
 !   ele           -- ele_struct: Element.
 !     %bookkeeping_state   -- Status block to set.
 !   status_group  -- Integer: Which flag groups to set. Possibilities are:
-!                      attribute_group$, control_group$, floor_position_group$,
-!                      s_position_group$, ref_energy_group$, or mat6_group$, all_groups$
+!                      attribute_group$, control_group$, floor_position_group$, s_position_group$, 
+!                      s_and_floor_position_group$, ref_energy_group$, or mat6_group$, all_groups$
 !   set_slaves    -- Logical, optional: If present and False then do not set
 !                      the status for any slaves. Default is True.
 !-
@@ -1588,9 +1588,14 @@ case (floor_position_group$)
   call set_mat6_status
   call set_ptc_status
 
-case (s_position_group$)
+case (s_and_floor_position_group$)
   call set_s_position_status
   call set_floor_position_status
+  call set_mat6_status
+  call set_ptc_status
+
+case (s_position_group$)
+  call set_s_position_status
   call set_mat6_status
   call set_ptc_status
 

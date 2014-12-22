@@ -421,7 +421,7 @@ end type
 integer, parameter :: super_ok$ = 0, stale$ = 2
 integer, parameter :: attribute_group$ = 1, control_group$ = 2, floor_position_group$ = 3
 integer, parameter :: s_position_group$ = 4, ref_energy_group$ = 5, mat6_group$ = 6
-integer, parameter :: rad_int_group$ = 7, all_groups$ = 8
+integer, parameter :: rad_int_group$ = 7, all_groups$ = 8, s_and_floor_position_group$ = 9
 
 ! The bookkeeping_state_struct is used for keeping track of what bookkeeping has
 ! been done on an element. NOTE: The information in this structure is ignored if 

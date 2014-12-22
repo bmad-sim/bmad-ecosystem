@@ -2183,7 +2183,7 @@ if (.not. bmad_com%auto_bookkeeper) then
   endif
 
   if (ele%old_value(l$) /= val(l$)) then
-    call set_ele_status_stale (ele, s_position_group$)
+    call set_ele_status_stale (ele, s_and_floor_position_group$)
   endif
 
   if (ele%lord_status /= multipass_lord$) then
@@ -3020,7 +3020,7 @@ if (ele%lord_status /= not_a_lord$) call set_ele_status_stale (ele, control_grou
 ! Groups and overlays do not have any dependent attributes. 
 ! For all others set the attributes flag stale.
 
-if (ele%key /= group$ .and. ele%key /= overlay$) then
+if (ele%key /= group$ .and. ele%key /= overlay$ .and. dep_set) then
   call set_ele_status_stale (ele, attribute_group$)
 endif
 
@@ -3051,7 +3051,7 @@ if (associated(a_ptr, ele%value(x1_limit$)) .or. associated(a_ptr, ele%value(x2_
 
 if (associated(a_ptr, ele%value(l$))) then
   if (ele%key /= overlay$ .and. ele%key /= group$) then
-    call set_ele_status_stale (ele, s_position_group$)
+    call set_ele_status_stale (ele, s_and_floor_position_group$)
     call set_ele_status_stale (ele, floor_position_group$)
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
