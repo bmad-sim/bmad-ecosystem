@@ -36,7 +36,7 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), optional, target :: low_E_lat, high_E_lat
 type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
-type (lat_struct), target :: this_lat
+type (lat_struct), target, save :: this_lat
 type (lat_struct), pointer :: lat2
 type (coord_struct), allocatable, target :: this_orb(:)
 type (branch_struct), pointer :: branch, branch2

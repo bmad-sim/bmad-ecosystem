@@ -624,7 +624,7 @@ type (lat_param_struct) param
 real(rp), optional :: mat6(6,6)
 real(rp) e, g_tot, fint, hgap, ht_x, ht_y, cos_e, sin_e, tan_e, v0(6)
 real(rp) c_dir
-real(rp) ht2, hs2, sec_e, k1
+real(rp) ht2, hs2, sec_e
 integer particle_at, element_end
 
 logical, optional :: make_matrix
@@ -640,10 +640,8 @@ element_end = physical_ele_end(particle_at, orb%direction, ele%orientation)
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(g_err$)) * c_dir
-  k1 = ele%value(k1$) * c_dir
 else
   g_tot = 0
-  k1 = 0
 endif
 
 if (element_end == entrance_end$) then
@@ -824,10 +822,140 @@ end subroutine mad_bend_edge_kick
 !----------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------
 !+
+! Subroutine bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
+!
+! Routine to track through the hard edge bend fringe field for a bend.
+! Only the bend field is taken into account here. Higher order multipolse must be handled elsewhere.
+!
+! Input:
+!   ele         -- ele_struct: Element with fringe.
+!   param       -- lat_param_struct: Tracking parameters.
+!   particle_at -- integer: Either first_track_edge$ or second_track_edge$.
+!   orbit       -- coord_struct: Starting coordinates.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix up to the fringe.
+!   make_matrix -- real(rp), optional: Propagate the transfer matrix? Default is False.
+!
+! Output:
+!   orbit       -- coord_struct: Ending coordinates.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix including the fringe.
+!-
+
+subroutine bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
+
+implicit none
+
+type (ele_struct) ele
+type (coord_struct) orbit
+type (lat_param_struct) param
+
+real(rp), optional :: mat6(6,6)
+real(rp) p_vec(3), r_vec(3), sin_e, cos_e, vec_in(6), e_angle
+real(rp) rel_pc
+
+integer fringe_type, fringe_at, physical_end, particle_at
+integer i, i_max, element_end
+
+logical, optional :: make_matrix
+
+! Fringe here?
+
+fringe_type = nint(ele%value(fringe_type$))
+if (fringe_type /= full$ .and. fringe_type /= hard_edge_only$) return
+
+fringe_at = nint(ele%value(fringe_at$))
+physical_end = physical_ele_end (particle_at, orbit%direction, ele%orientation)
+if (.not. at_this_ele_end(physical_end, fringe_at)) return
+
+!
+
+element_end = physical_ele_end(particle_at, orbit%direction, ele%orientation)
+if (element_end == entrance_end$) then
+  e_angle = ele%value(e1$)
+else
+  e_angle = ele%value(e2$)
+endif
+
+sin_e = sin(e_angle)
+cos_e = cos(e_angle)
+
+!
+
+rel_pc = 1 + orbit%vec(6)
+vec_in = orbit%vec
+
+p_vec = [orbit%vec(2), orbit%vec(4), orbit%direction * sqrt(rel_pc**2 - orbit%vec(2)**2 - orbit%vec(4)**2)]
+r_vec = [orbit%vec(1), orbit%vec(3), 0.0_rp]
+
+if (particle_at == first_track_edge$) then
+  call track_between_physical_and_nominal_edges (.false.)
+  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_mat6)
+  call track_between_physical_and_nominal_edges (.true.)
+  
+else
+  call track_between_physical_and_nominal_edges (.true.)
+  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_mat6)
+  call track_between_physical_and_nominal_edges (.false.)
+endif
+
+
+!----------------------------------------------------------------------------------------------
+contains
+
+! Transport between the nominal edge and the physical bend edge.
+! The nominal edge is the same as the physical edge when e1/e2 are zero.
+
+subroutine track_between_physical_and_nominal_edges (in_field_region)
+
+real(rp) g, ll
+logical in_field_region
+
+! If in the bend field region then we are transporting "back" from the physical edge to the nominal edge.
+
+if (in_field_region) sin_e = -sin_e
+
+! Field free transport
+
+p_vec = [p_vec(1) * cos_e + p_vec(3) * sin_e, p_vec(2), -p_vec(1) * sin_e + p_vec(3) * cos_e]
+r_vec = [r_vec(1) * cos_e, r_vec(2), -r_vec(1) * sin_e]
+ll = -r_vec(3) * rel_pc / p_vec(3)
+
+orbit%vec(1) = orbit%vec(1) - r_vec(3)  * p_vec(1) / p_vec(3)
+orbit%vec(2) = p_vec(1)
+orbit%vec(3) = orbit%vec(3) - r_vec(3)  * p_vec(2) / p_vec(3)
+orbit%vec(4) = p_vec(2)
+orbit%vec(5) = orbit%vec(5) - ll
+
+! Treat the bend field as a perturbation to the field free transport.
+! That is, the path length is small compared to the bending radius.
+
+if (in_field_region) then
+  g = (ele%value(g$) + ele%value(g_err$) + vec_in(1) + ele%value(k1$) * ll * vec_in(2) / (2 * rel_pc)) / rel_pc
+  orbit%vec(1) = orbit%vec(1) - ll**2 * g / 2
+  orbit%vec(2) = orbit%vec(2) - ll * g
+endif
+
+!
+
+if (make_matrix) then
+
+endif
+
+end subroutine track_between_physical_and_nominal_edges
+
+end subroutine bmad_standard_hard_bend_edge_kick
+
+!----------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------
+!+
 ! Subroutine no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix, g_bend, tilt)
 !
-! Routine to track through the "linear" bend fringe field for a bend or sad_mult element.
-! This includes the effect of finite e1/e2 pole face rotation.
+! Routine to track through the hard edge bend fringe field for a bend or sad_mult element.
+! Only the bend field is taken into account here. Higher order multipolse must be handled elsewhere.
+!
+! This routine assumes that the particle coordinates are with respect to the actual magnet face.
+! Thus finite e1/e2 must be taken into account by other routines.
+!
+! SAD calls this the "linear" fringe even though it is nonlinear.
 !
 ! Input:
 !   ele         -- ele_struct: Element with fringe.
@@ -853,14 +981,13 @@ type (coord_struct) orbit
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6), g_bend, tilt
-real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, sin_e, ppx2
+real(rp) g, px, y, y2, rel_p, p_zy, yg, kmat(6,6), c_dir, t0, ppx2
 
 integer fringe_type, fringe_at, physical_end, particle_at
 integer i, i_max, element_end
 
 logical, optional :: make_matrix
 
-! Note: Curently this routine is only used with sad_mult elements
 ! Fringe here?
 
 fringe_type = nint(ele%value(fringe_type$))
@@ -873,16 +1000,9 @@ if (.not. at_this_ele_end(physical_end, fringe_at)) return
 ! extract params from ele
 
 if (ele%key == sbend$) then
-  element_end = physical_ele_end(particle_at, orbit%direction, ele%orientation)
-  if (element_end == entrance_end$) then
-    sin_e = sin(ele%value(e1$))
-  else
-    sin_e = sin(ele%value(e2$))
-  endif
   g = ele%value(g$) + ele%value(g_err$)
   t0 = 0
 else
-  sin_e = 0
   g = g_bend
   t0 = tilt
 endif
@@ -894,7 +1014,6 @@ c_dir = relative_tracking_charge(orbit, param) * ele%orientation * orbit%directi
 g = g * c_dir
 
 if (particle_at == second_track_edge$) then
-  sin_e = -sin_e
   g = -g
 endif
 
@@ -902,7 +1021,7 @@ endif
 
 if (t0 /= 0) call tilt_coords (t0, orbit%vec)
 
-px = orbit%vec(2) + sin_e
+px = orbit%vec(2)
 y = orbit%vec(3)
 y2 = y**2
 rel_p = 1 + orbit%vec(6)
@@ -1448,11 +1567,11 @@ character(*), parameter :: r_name = 'bend_edge_kick'
 physical_end = physical_ele_end (particle_at, orb%direction, ele%orientation)
 if (.not. at_this_ele_end (physical_end, nint(ele%value(fringe_at$)))) return
 
-! Higher order fringe
+! Higher order fringes. 
+! Remember: In a bend, these fringes are turned on/off by ele%value(higher_order_fringe_type$)
 
 if (particle_at == first_track_edge$) then
   call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
-  call soft_quadrupole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 endif
 
 ! Bend Fringe
@@ -1481,6 +1600,9 @@ case (sad_soft_edge_only$)
 case (linear_edge$)
   call linear_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 
+case (test_edge$)
+  call bmad_standard_hard_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+
 case (none$)
 
 case default
@@ -1491,7 +1613,6 @@ end select
 ! Higher order fringe
 
 if (particle_at == second_track_edge$) then
-  call soft_quadrupole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
   call hard_multipole_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 endif
 
