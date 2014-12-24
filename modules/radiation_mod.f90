@@ -166,8 +166,7 @@ case (wiggler$, undulator$)
   ! Reuse g2 and g3 values from start_edge
   if (ele%sub_key == map_type$) then
     if (edge == start_edge$) then
-      if (.not. associated(ele%rad_int_cache)) call calc_radiation_tracking_consts(ele, param)
-      if (ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
+      if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
       g2 = ele%rad_int_cache%g2_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
       g3 = ele%rad_int_cache%g3_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
       if (g3 < 0) g3 = 0
@@ -269,12 +268,14 @@ if (ele%sub_key /= map_type$) return
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
 ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
 
+track%n_pt = -1
 call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
 call calc_g (track, ele%rad_int_cache%g2_0, ele%rad_int_cache%g3_0)
 
 do j = 1, 4
   start_orb = ele%map_ref_orb_in
   start_orb%vec(j) = start_orb%vec(j) + del_orb
+  track%n_pt = -1
   call symp_lie_bmad (ele, param, start_orb, end_orb, .false., track)
   call calc_g (track, g2, g3)
   ele%rad_int_cache%dg2_dorb(j) = (g2 - ele%rad_int_cache%g2_0) / del_orb
