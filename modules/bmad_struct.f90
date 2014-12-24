@@ -1192,11 +1192,12 @@ character(16), parameter :: aperture_type_name(0:7) = &
 
 integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
 integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
-integer, parameter :: n_non_bend_fringe_type$ = 4
+integer, parameter :: n_non_bend_fringe_type$ = 4, test_edge$ = 9
 
-character(20), parameter :: fringe_type_name(0:8) = ['Garbage!          ', &
+character(20), parameter :: fringe_type_name(0:9) = ['Garbage!          ', &
                                'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
-                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ']
+                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', &
+                               'Test              ']
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
 

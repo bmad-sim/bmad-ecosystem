@@ -86,7 +86,8 @@ use reverse_mod, only: lat_reverse
 
 implicit none
 
-type (lat_struct), target ::  lat, rev_lat
+type (lat_struct), target ::  lat
+type (lat_struct), target, save :: rev_lat
 type (lat_struct), pointer :: this_lat
 type (ele_struct), pointer :: ele, ele_start
 type (branch_struct), pointer :: branch
