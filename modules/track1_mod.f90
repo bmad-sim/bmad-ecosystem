@@ -888,12 +888,12 @@ r_vec = [orbit%vec(1), orbit%vec(3), 0.0_rp]
 
 if (particle_at == first_track_edge$) then
   call track_between_physical_and_nominal_edges (.false.)
-  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_mat6)
+  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
   call track_between_physical_and_nominal_edges (.true.)
   
 else
   call track_between_physical_and_nominal_edges (.true.)
-  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_mat6)
+  call no_edge_angle_hard_bend_edge_kick (ele, param, particle_at, orbit, mat6, make_matrix)
   call track_between_physical_and_nominal_edges (.false.)
 endif
 
