@@ -55,7 +55,7 @@ integer tracking_method
 character(8), parameter :: r_name = 'track1'
 
 logical, optional :: err_flag, ignore_radiation
-logical err, do_extra, finished
+logical err, do_extra, finished, radiation_included
 
 ! Use start2_orb since start_orb is strictly input.
 
@@ -63,6 +63,10 @@ if (present(err_flag)) err_flag = .true.
 start2_orb = start_orb
 
 do_extra = .not. logic_option(.false., ignore_radiation)
+
+! symp_lie_bmad tracking does include radiation effects
+
+radiation_included = (ele%tracking_method == symp_lie_bmad$) 
 
 ! For historical reasons, the calling routine may not have correctly 
 ! initialized the starting orbit. If so, we do an init here.
@@ -116,7 +120,7 @@ endif
 ! Custom tracking if the custom routine is to do everything.
 
 if (ele%tracking_method == custom$) then
-  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1$, finished)
+  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1$, finished, radiation_included)
   if (err) return
   if (finished) then
     if (present(err_flag)) err_flag = err
@@ -140,8 +144,8 @@ endif
 
 ! Radiation damping and/or fluctuations for the 1st half of the element.
 
-if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) &
-                                                       .and. ele%is_on .and. do_extra) then
+if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
+                                           .not. radiation_included .and. ele%is_on .and. do_extra) then
   call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$) 
 endif
 
@@ -187,7 +191,7 @@ case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt2$, finished)
+  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt2$, finished, radiation_included)
   if (err) return
   if (finished) then
     if (present(err_flag)) err_flag = err
@@ -227,7 +231,7 @@ endif
 ! Radiation damping and/or fluctuations for the last half of the element
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
-                                                         ele%is_on .and. do_extra) then
+                                            .not. radiation_included .and. ele%is_on .and. do_extra) then
   call track1_radiation (end_orb, ele, param, end_orb, end_edge$) 
 endif
 

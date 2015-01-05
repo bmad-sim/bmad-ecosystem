@@ -89,13 +89,13 @@ logical :: init_needed = .true.
 character(20) :: r_name = 'track1_radiation'
 
 ! If not a magnetic element then nothing to do.
-! Also symplectic tracking handles the radiation.
 
-if (ele%tracking_method == symp_lie_bmad$ .or. .not. any (ele%key == &
-          [quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$])) then
+select case (ele%key)
+case (quadrupole$, sextupole$, octupole$, sbend$, sol_quad$, wiggler$, undulator$)
+case default
   orb_end = orb_start
   return
-endif
+end select
 
 ! The total radiation length is the element length + any change in path length.
 ! If entering the element then the length over which radiation is generated
