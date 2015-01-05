@@ -58,7 +58,7 @@ interface
     logical err_flag, finished
   end subroutine
 
-  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
+  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished, radiation_included)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
@@ -67,7 +67,7 @@ interface
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
     integer entry_pt
-    logical err_flag, finished
+    logical err_flag, finished, radiation_included
   end subroutine
 
   subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)

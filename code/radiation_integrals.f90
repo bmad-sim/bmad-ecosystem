@@ -269,16 +269,15 @@ if (use_cache .or. init_cache) then
     orb_start = orbit(i-1)
     call offset_particle (branch%ele(i), branch%param, set$, orb_start, set_multipoles = .false., set_hvkicks = .false.)
 
-    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$) then
+    if (key2 == wiggler$ .and. ele2%sub_key == periodic_type$ .and. ele2%tracking_method /= custom$) then
+      ! bmad_standard and taylor will not properly do partial track through a periodic_type wiggler so
+      ! switch to symp_lie_bmad type tracking.
       n_step = max(nint(10 * ele2%value(l$) / ele2%value(l_pole$)), 1)
       del_z = ele2%value(l$) / n_step
-      ! bmad_standard will not properly do partial track through a periodic_type wiggler so
-      ! switch to symp_lie_bmad type tracking.
       ele2%tracking_method = symp_lie_bmad$  
       ele2%mat6_calc_method = symp_lie_bmad$  
     else
-      call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), &
-                                    bmad_com%default_ds_step, del_z, n_step)
+      call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
     endif
 
     cache_ele%del_z = del_z
@@ -289,7 +288,7 @@ if (use_cache .or. init_cache) then
 
     ! map_type wiggler
 
-    if (key2 == wiggler$ .and. ele2%sub_key == map_type$) then
+    if (key2 == wiggler$ .and. ele2%sub_key == map_type$ .and. ele2%tracking_method /= custom$) then
       track%n_pt = -1
       call symp_lie_bmad (ele2, branch%param, orb_start, orb_end, calc_mat6 = .true., track = track)
       do k = 0, track%n_pt
@@ -420,7 +419,7 @@ do ir = 1, branch%n_ele_track
   ! for an periodic type wiggler we make the approximation that the variation of G is
   ! fast compaired to the variation in eta.
 
-  if (key == wiggler$ .and. ele%sub_key == periodic_type$) then
+  if (key == wiggler$ .and. ele%sub_key == periodic_type$ .and. ele%tracking_method /= custom$) then
     if (ele%value(l_pole$) == 0) cycle        ! Cannot do calculation
     G_max = sqrt(2*abs(ele%value(k1$)))       ! 1/rho at max B
     g3_ave = 4 * G_max**3 / (3 * pi)

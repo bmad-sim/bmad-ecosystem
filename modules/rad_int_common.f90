@@ -402,7 +402,8 @@ endif
 ! bmad_standard will not properly do partial tracking through a periodic_type wiggler so
 ! switch to symp_lie_bmad type tracking.
 
-if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == periodic_type$) then
+if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
+                    ele%sub_key == periodic_type$ .and. ele%tracking_method /= custom$) then
   tm_saved = ele%tracking_method  
   m6cm_saved = ele%mat6_calc_method  
   ele%tracking_method = symp_lie_bmad$
