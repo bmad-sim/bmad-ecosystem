@@ -23,6 +23,17 @@ program anaylzer
     end subroutine
   end interface
 
+ interface
+  subroutine track_for_picture(ring,co,traj,n_turns)
+   use bmad
+   implicit none
+   type (lat_struct) ring
+   type (coord_struct) traj, orb_at_s
+   type (coord_struct), allocatable :: co(:)
+   integer n_turns,i
+  end subroutine
+ end interface
+
   type (rad_int_all_ele_struct) rad_int
   type (lat_struct) ring_1, ring_2
   type (lat_struct), save :: ring, ring_two(-1:1)
@@ -61,7 +72,7 @@ program anaylzer
   real*4, allocatable :: z(:), x(:), y(:), zz(:,:), xx(:,:), yy(:,:)
   real*4, allocatable :: zz_diff(:), xx_diff(:), yy_diff(:)
 
-  real*4 width/7./, aspect/1.3/
+  real*4 width/7./, aspect/1./
   real*4 xmax/0./, ymax/0./, xmax0, ymax0
   real*4 xscale, yscale, x_low, y_low
   real*4 xa(4), za(4)
@@ -85,6 +96,7 @@ program anaylzer
   real(rp) betah_tot, betav_tot
   real(rp) energy
   real(rp) n_part, bemit
+  real(rp) sum1, sum2
      
   character*40 lattice
   character*120 lat_file
@@ -864,6 +876,18 @@ program anaylzer
          x(i) = rad_int%ele(i)%i5a
          y(i) = rad_int%ele(i)%i5b
        end do
+
+       if(write) then
+        print *,' Write orbit to '//trim(name_flag(plot_flag))//'.dat'
+         write(lun,'(a16,5a12)')'element','s','i5a','i5b',' sum_i5a','sum_i5b'
+         sum1=0.
+         sum2=0.
+         do i=0,n_all
+          sum1=sum1 + rad_int%ele(i)%i5a
+          sum2=sum2 + rad_int%ele(i)%i5b
+          write(lun,'(a16,5e12.4)')ring%ele(i)%name,ring%ele(i)%s,rad_int%ele(i)%i5a, rad_int%ele(i)%i5b,sum1,sum2
+         end do
+       endif
       endif
 
       if(plot_flag == sext$)then
@@ -1402,12 +1426,12 @@ program anaylzer
     print *,'           Use "/home/dlr/gnuplot_macro/plot_hb_compare.gnu" to plot'
     print *,'                                            two hard bend layouts' 
     print *,' At <Plot> prompt:'
-    print *,'                  print "PS" or "GIF" for hardcopy of last plot'
     print *,'                  type "<data_type>  X  <x_min>  <x_max> " to'
     print *,'                   set xrange' 
     print *,'                  type "<data_type>  Y  <y_up>  <y_low> " to'
     print *,'                   set absolute yrange for upper and lower plots'
     print *,'                  print "WRITE" to write the last thing plotted to a file"' 
+    print *,' "PS" or "GIF" for hardcopy of last plot'
     print *,' "PLOT_WIDTH #" :set plot width to # '
     print *,' "PLOT_ASPECT #" :set plot width to # '
     print *
@@ -1536,6 +1560,18 @@ program anaylzer
   subroutine psp(ring, co, traj, n_turns, istat2, ix_start, ix_end)
   use bmad
   implicit none
+
+ interface
+  subroutine track_for_picture(ring,co,traj,n_turns)
+   use bmad
+   implicit none
+   type (lat_struct) ring
+   type (coord_struct) traj, orb_at_s
+   type (coord_struct), allocatable :: co(:)
+   integer n_turns,i
+  end subroutine
+ end interface
+
   type (lat_struct) ring
   type (coord_struct) traj, psp_all
   type (coord_struct), allocatable :: co(:), psp_save(:)
@@ -1587,7 +1623,7 @@ program anaylzer
   call init_coord(orbit(ix_start), traj%vec, ring%ele(ix_start), downstream_end$)
   open(unit = 51, file = 'phase_space_cesr_bpm.dat')
   open(unit = 52, file = 'phase_space_start.dat')
-   write(51,'(a6,a12,6a12)')' turn ','  Element   ','     x      ','     xp     ','     y      ','    yp      ', &
+   write(51,'(a6,a12,7a12)')' turn ','  Element   ','s','     x      ','     xp     ','     y      ','    yp      ', &
                                                                                   '   delta l  ','  delta E/E '
   call string_trim(ring%ele(ix_end)%name, end_name, ix)
 
@@ -1599,7 +1635,7 @@ program anaylzer
       call track_many(ring, orbit, istart, ix_det(j), 1, track_state = track_state)
       psp_all%vec(1:6)= (orbit(ix_det(j))%vec(1:6) - co(ix_det(j))%vec(1:6))*1000.
      
-      write(51,'(i6,a12,6e12.4)')i,detector(j),psp_all%vec(1:6)
+      write(51,'(i6,a12,7e12.4)')i,detector(j),ring%ele(ix_det(j))%s,psp_all%vec(1:6)
 !      if(ix_det(j) == ix_ele)write(52,'(i6,4e12.4)')i,psp_save(i)%vec(1:4)
 
       istart = ix_det(j)
@@ -1632,7 +1668,7 @@ program anaylzer
       enddo
     if(track_state /= moving_forward$)exit
 
-    write(51,'(i6,a12,6e12.4)')i,end_name(1:ix),psp_all%vec(1:6)
+    write(51,'(i6,a12,7e12.4)')i,end_name(1:ix),ring%ele(ix_end)%s,psp_all%vec(1:6)
     write(52,'(i6,6e12.4)')i,psp_save(i)%vec(1:6)
 
   end do
@@ -1642,6 +1678,9 @@ program anaylzer
    print *,' Write phase space data at cesr BPMs to: phase_space_start.dat'
   number_turns = i-1
   print *,' Number of turns = ', number_turns
+
+  call track_for_picture(ring,co,traj,n_turns)
+
   traj%vec = orbit(0)%vec
 
   xscale=0.
@@ -1787,3 +1826,46 @@ program anaylzer
   call pgsch(2.)
   return
  end
+
+
+  subroutine track_for_picture(ring,co,traj,n_turns)
+  use bmad
+  implicit none
+  type (lat_struct) ring
+  type(ele_struct) ele_at_s
+  type (coord_struct) traj, orb_at_s
+  type (coord_struct), allocatable :: co(:)
+  type (coord_struct), allocatable, save :: orbit(:)
+
+  integer n_turns,i
+  integer lun1,lun2
+  real(rp) s_end, ds/1./
+
+  call reallocate_coord(orbit, ring%n_ele_max)
+
+    call twiss_at_start(ring)
+ orbit(0) = traj
+ lun1=lunget()
+ open(unit=lun1, file='step-through-ring.dat')
+ lun2=lunget()
+ open(unit=lun2, file='phase-space-end-ring.dat')
+ do i=1,n_turns
+    call track_all(ring, orbit)
+
+
+      s_end=0
+      do while(s_end < ring%ele(ring%n_ele_track)%s)
+       call twiss_and_track_at_s(ring, s_end, ele_at_s, orbit, orb_at_s)          
+          write(lun1,'(es12.4,1x,6es12.4)')s_end, orb_at_s%vec 
+          s_end = s_end + ds
+      end do
+   write(lun2,'(i10,6es12.4)')i,orbit(ring%n_ele_track)%vec
+   orbit(0) = orbit(ring%n_ele_track)
+! write(21,'(/,a1,/)')"#"
+end do
+print '(/,a8,i5,a6,a,f3.1,a1,a10)',' Write ',n_turns,' turns', ' to "step-through-ring.dat" ', ds,'m',' intervals' 
+print '(a8,i5,a6,a12,a)',' Write ',n_turns,' turns', ' end of ring',' to "phase-space-end-ring.dat"'
+close(lun1)
+close(lun2)
+return
+end
