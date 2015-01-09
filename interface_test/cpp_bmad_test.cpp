@@ -629,7 +629,7 @@ void set_CPP_wake_sr_mode_test_pattern (CPP_wake_sr_mode& C, int ix_patt) {
   rhs = 9 + offset; C.polarization = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.kick_linear_in = rhs;
+  rhs = 10 + offset; C.transverse_dependence = rhs;
 
 
 }

@@ -659,7 +659,7 @@ public:
   Real a_sin;
   Real a_cos;
   Int polarization;
-  Int kick_linear_in;
+  Int transverse_dependence;
 
   CPP_wake_sr_mode() :
     amp(0.0),
@@ -671,7 +671,7 @@ public:
     a_sin(0.0),
     a_cos(0.0),
     polarization(Bmad::NONE),
-    kick_linear_in(Bmad::LEADING_OFFSET)
+    transverse_dependence(Bmad::NOT_SET)
     {}
 
   ~CPP_wake_sr_mode() {

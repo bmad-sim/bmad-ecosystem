@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 145;
+  const int BMAD_INC_VERSION = 148;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
@@ -47,11 +47,11 @@ namespace Bmad {
   const int LOST_Z_APERTURE = 7;
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int X_AXIS = 2, Y_AXIS = 3;
-  const int LEADING_OFFSET = 1, TRAILING_OFFSET = 2;
+  const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
-  const int RAD_INT_GROUP = 7, ALL_GROUPS = 8;
+  const int RAD_INT_GROUP = 7, ALL_GROUPS = 8, S_AND_FLOOR_POSITION_GROUP = 9;
   const int SEGMENTED = 2, H_MISALIGN = 3;
   const int INCOHERENT = 1, COHERENT = 2;
   const int OPAL = 1, IMPACTT = 2;
@@ -260,8 +260,8 @@ namespace Bmad {
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
   const int HARD_EDGE_MODEL = 9, SYMP_LIE_BMAD = 10, STATIC = 11;
   const int BORIS = 12, MAD = 14;
-  const int TIME_RUNGE_KUTTA = 15, CUSTOM2 = 16;
-  const int N_METHODS = 16;
+  const int TIME_RUNGE_KUTTA = 15;
+  const int N_METHODS = 15;
   const int DRIFT_KICK = 1, MATRIX_KICK = 2, RIPKEN_KICK = 3;
   const int MAP_TYPE = 1, PERIODIC_TYPE = 3, CONST_REF_ENERGY = 4, NONCONST_REF_ENERGY = 5;
   const int GRID = 2, MAP = 3, REFER_TO_LORDS = 4, NO_FIELD = 5;
@@ -271,12 +271,13 @@ namespace Bmad {
   const int ALL = 203;
   const int RADIANS = 1, DEGREES = 2, CYCLES = 3, KHZ = 4;
   const int ROTATIONALLY_SYMMETRIC_RZ = 1, XYZ = 2;
+  const int ENTRY_PT1 = 1, ENTRY_PT2 = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int RECTANGULAR = 1, ELLIPTICAL = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_SOFT_EDGE_ONLY = 5, SAD_FULL = 6, LINEAR_EDGE = 7, BASIC_BEND = 8;
-  const int N_NON_BEND_FRINGE_TYPE = 4;
+  const int N_NON_BEND_FRINGE_TYPE = 4, TEST_EDGE = 9;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const int N_POLE_MAXX = 21;

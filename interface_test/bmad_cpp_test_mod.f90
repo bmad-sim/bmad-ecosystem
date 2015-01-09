@@ -963,7 +963,7 @@ rhs = 8 + offset; F%a_cos = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 9 + offset; F%polarization = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%kick_linear_in = rhs
+rhs = 10 + offset; F%transverse_dependence = rhs
 
 end subroutine set_wake_sr_mode_test_pattern
 
