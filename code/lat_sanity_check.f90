@@ -23,6 +23,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, slave, lord, lord2, slave1, slave2, ele2
 type (branch_struct), pointer :: branch, slave_branch, branch2
 type (photon_surface_struct), pointer :: surf
+type (wake_sr_mode_struct), pointer :: sr_mode
 
 real(rp) s1, s2, ds, ds_small, l_lord
 
@@ -260,6 +261,31 @@ do i_b = 0, ubound(lat%branch, 1)
           endif
         enddo
       endif
+
+      if (allocated(ele%wake%sr_long%mode)) then
+        do iw = 1, size(ele%wake%sr_long%mode)
+          sr_mode => ele%wake%sr_long%mode(iw)
+          if (sr_mode%transverse_dependence == none$) then
+            if (sr_mode%polarization /= none$) then
+              call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS SR Longitudinal wake (#\i0\) with transverse_dependence = None but polarization != None', &
+                      i_array = [iw])
+              err_flag = .true.
+            endif
+
+          else  ! transverse_dep /= none
+            if (sr_mode%polarization == none$) then
+              call out_io (s_fatal$, r_name, &
+                      'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                      'HAS SR Longitudinal wake (#\i0\) with transverse_dependence != None but polarization = None', &
+                      i_array = [iw])
+              err_flag = .true.
+            endif
+          endif
+        enddo
+      endif
+
     endif
 
     ! Check that %ix_ele and %ix_branch are correct. 

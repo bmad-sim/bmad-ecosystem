@@ -713,10 +713,11 @@ if (associated(ele%wake)) then
       call re_associate (li, nl+size(ele%wake%sr_long%mode)+100, .false.)
       nl=nl+1; li(nl) = 'Short-Range Longitudinal Pseudo Modes:'
       nl=nl+1; li(nl) = &
-            '   #        Amp        Damp           K         Phi'
+            '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
       do i = 1, size(ele%wake%sr_long%mode)
         mode => ele%wake%sr_long%mode(i)
-        nl=nl+1; write (li(nl), '(i4, 4es12.4)') i, mode%amp, mode%damp, mode%k, mode%phi
+        nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
+                  sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
       enddo
     else
       nl=nl+1; li(nl) = 'No short-range longitudinal pseudo modes.'
@@ -729,11 +730,11 @@ if (associated(ele%wake)) then
       call re_associate (li, nl+size(ele%wake%sr_trans%mode)+100, .false.)
       nl=nl+1; li(nl) = 'Short-Range Transverse Pseudo Modes:'
       nl=nl+1; li(nl) = &
-            '   #        Amp        Damp           K         Phi   Polarization  Kick_Linear_in'
+            '   #        Amp        Damp           K         Phi   Polarization  Transverse_Dependence'
       do i = 1, size(ele%wake%sr_trans%mode)
         mode => ele%wake%sr_trans%mode(i)
         nl=nl+1; write (li(nl), '(i4, 4es12.4, a15, a16)') i, mode%amp, mode%damp, mode%k, mode%phi, &
-                  sr_polarization_name(mode%polarization), sr_kick_linear_in_name(mode%kick_linear_in)
+                  sr_polarization_name(mode%polarization), sr_transverse_dependence_name(mode%transverse_dependence)
       enddo
     else
      nl=nl+1; li(nl) = 'No short-range transverse pseudo modes.'

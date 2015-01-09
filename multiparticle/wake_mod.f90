@@ -349,11 +349,30 @@ do i = 1, size(ele%wake%sr_long%mode)
   ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
 
   w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
-  orbit%vec(6) = orbit%vec(6) - w_norm
+
+  select case (mode%transverse_dependence)
+  case (none$, linear_leading$)
+    orbit%vec(6) = orbit%vec(6) - w_norm
+  case default  ! linear_trailing$
+    if (mode%polarization == x_axis$) then
+      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(1)
+    else  ! y_axis
+      orbit%vec(6) = orbit%vec(6) - w_norm * orbit%vec(3)
+    endif
+  end select
 
   ! Self kick
 
-  orbit%vec(6) = orbit%vec(6) - ff * sin(mode%phi) / 2
+  select case (mode%transverse_dependence)
+  case (none$)
+    orbit%vec(6) = orbit%vec(6) - ff * sin(mode%phi) / 2
+  case default  ! linear_leading or linear_trailing
+    if (mode%polarization == x_axis$) then
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(1) * ff * sin(mode%phi) / 2
+    else  ! y_axis
+      orbit%vec(6) = orbit%vec(6) - orbit%vec(3) * ff * sin(mode%phi) / 2
+    endif
+  end select
 
   ! Add to wake
 
@@ -363,8 +382,19 @@ do i = 1, size(ele%wake%sr_long%mode)
 
   ! The monipole wake does not have any skew components.
 
-  mode%b_sin = mode%b_sin * exp_factor + ff * c
-  mode%b_cos = mode%b_cos * exp_factor + ff * s
+  select case (mode%transverse_dependence)
+  case (none$, linear_trailing$)
+    mode%b_sin = mode%b_sin * exp_factor + ff * c
+    mode%b_cos = mode%b_cos * exp_factor + ff * s
+  case default
+    if (mode%polarization == x_axis$) then
+      mode%b_sin = mode%b_sin * exp_factor + orbit%vec(1) * ff * c
+      mode%b_cos = mode%b_cos * exp_factor + orbit%vec(1) * ff * s
+    else  ! y_axis
+      mode%b_sin = mode%b_sin * exp_factor + orbit%vec(3) * ff * c
+      mode%b_cos = mode%b_cos * exp_factor + orbit%vec(3) * ff * s
+    endif
+  end select
 
 enddo
 
@@ -411,7 +441,7 @@ do i = 1, size(ele%wake%sr_trans%mode)
 
   mode => ele%wake%sr_trans%mode(i)
 
-  ! Kick particle
+  ! Kick particle...
 
   exp_factor = exp(dz * mode%damp)
 
@@ -419,25 +449,29 @@ do i = 1, size(ele%wake%sr_trans%mode)
   c = cos (arg)
   s = sin (arg)
 
-  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
+  ! X-axis kick
+
+  if (mode%polarization /= y_axis$) then
     w_norm = mode%b_sin * exp_factor * s + mode%b_cos * exp_factor * c
-    if (mode%kick_linear_in == trailing_offset$) then
+    if (mode%transverse_dependence == linear_trailing$) then
       orbit%vec(2) = orbit%vec(2) - w_norm * orbit%vec(1)
     else
       orbit%vec(2) = orbit%vec(2) - w_norm
     endif
   endif
 
-  if (mode%polarization == none$ .or. mode%polarization == y_axis$) then
+  ! Y-axis kick
+
+  if (mode%polarization /= x_axis$) then
     w_skew = mode%a_sin * exp_factor * s + mode%a_cos * exp_factor * c
-    if (mode%kick_linear_in == trailing_offset$) then
+    if (mode%transverse_dependence == linear_trailing$) then
       orbit%vec(4) = orbit%vec(4) - w_skew * orbit%vec(3)
     else
       orbit%vec(4) = orbit%vec(4) - w_skew
     endif
   endif
 
-  ! Add to wake
+  ! Add to wake...
 
   ff = abs(orbit%charge) * mode%amp * ele%value(l$) / ele%value(p0c$)
 
@@ -445,8 +479,10 @@ do i = 1, size(ele%wake%sr_trans%mode)
   c = cos (arg)
   s = sin (arg)
 
-  if (mode%polarization == none$ .or. mode%polarization == x_axis$) then
-    if (mode%kick_linear_in == leading_offset$) then
+  ! Add to x-axis wake (b_sin, b_cos)
+
+  if (mode%polarization /= y_axis$) then
+    if (mode%transverse_dependence == linear_leading$) then
       mode%b_sin = mode%b_sin * exp_factor + ff * c * orbit%vec(1)
       mode%b_cos = mode%b_cos * exp_factor + ff * s * orbit%vec(1)
     else
@@ -455,8 +491,10 @@ do i = 1, size(ele%wake%sr_trans%mode)
     endif
   endif
 
-  if (mode%polarization == none$ .or. mode%polarization == y_axis$) then
-    if (mode%kick_linear_in == leading_offset$) then
+  ! Add to y-axis wake (a_sin, a_cos)
+
+  if (mode%polarization /= x_axis$) then
+    if (mode%transverse_dependence == linear_leading$) then
       mode%a_sin = mode%a_sin * exp_factor + ff * c * orbit%vec(3)
       mode%a_cos = mode%a_cos * exp_factor + ff * s * orbit%vec(3)
     else

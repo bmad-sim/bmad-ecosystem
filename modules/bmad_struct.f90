@@ -20,7 +20,7 @@ use definition, only: genfield, fibre, layout
 ! INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 147
+integer, parameter :: bmad_inc_version$ = 148
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -255,13 +255,12 @@ type wig_struct
 end type
 
 ! Wakefield structs...
-! 
 
 integer, parameter :: x_axis$ = 2, y_axis$ = 3
 character(8), parameter :: sr_polarization_name(3) = ['None  ', 'X_Axis', 'Y_Axis']
 
-integer, parameter :: leading_offset$ = 1, trailing_offset$ = 2
-character(16), parameter :: sr_kick_linear_in_name(2) = ['leading_offset ', 'trailing_offset']
+integer, parameter :: linear_leading$ = 2, linear_trailing$ = 3
+character(16), parameter :: sr_transverse_dependence_name(3) = ['none           ', 'linear_leading ', 'linear_trailing']
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
@@ -272,8 +271,8 @@ type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
   real(rp) :: b_cos = 0     ! non-skew (x) cos-like component of the wake
   real(rp) :: a_sin = 0     ! skew (y) sin-like component of the wake
   real(rp) :: a_cos = 0     ! skew (y) cos-like component of the wake
-  integer :: polarization = none$                 ! or x_axis$ or y_axis$
-  integer :: kick_linear_in = leading_offset$     ! or trailing_offset$
+  integer :: polarization = none$                 ! none$, x_axis$ or y_axis$
+  integer :: transverse_dependence = not_set$     ! linear_leading$, linear_trailing, none$
 end type
 
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct 

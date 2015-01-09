@@ -323,7 +323,7 @@ is_eq = is_eq .and. (f1%a_cos == f2%a_cos)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%polarization == f2%polarization)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%kick_linear_in == f2%kick_linear_in)
+is_eq = is_eq .and. (f1%transverse_dependence == f2%transverse_dependence)
 
 end function eq_wake_sr_mode
 
