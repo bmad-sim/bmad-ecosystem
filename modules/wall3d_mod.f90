@@ -612,8 +612,8 @@ end subroutine calc_wall_radius
 ! The radius is measured from the line connecting the section centers and not 
 ! the (x,y) = (0,0) origin
 !
-! Note: If the longitudinal position is at a trunk section, the results are not well defined.
-! Solution: Always make sure the particle's position is at a trunk section. 
+! Note: If the longitudinal position is exactly at a trunk section, the results are not well defined.
+! Solution: Always make sure the particle's position is not at a trunk section. 
 !
 ! Module needed:
 !   use wall3d_mod

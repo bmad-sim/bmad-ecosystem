@@ -75,7 +75,7 @@ character(4000) line
 character(200) wake_name, file_name, path, basename
 character(60) alias
 character(40) name, look_for, attrib_name
-character(16) polar, linear_in
+character(16) polar, dependence
 character(10) angle
 character(4) end_str, last
 character(40), allocatable :: names(:)
@@ -565,24 +565,28 @@ do ib = 0, ubound(lat%branch, 1)
             iuw = lunget()
             open (iuw, file = wake_name)
             write (iuw, *) '! Pseudo Wake modes:'
-            write (iuw, *) '!                 Amp	  Damp    K   Phase    Polarization  Kick_Linear_in'
+            write (iuw, *) '!                 Amp	  Damp    K   Phase    Polarization  Transverse_dependence'
             write (iuw, *) '! Longitudinal: [V/C/m] [1/m] [1/m] [rad]'
             write (iuw, *) '! Transverse: [V/C/m^2] [1/m] [1/m] [rad]'
             write (iuw, *) ''
             write (iuw, *) '&short_range_modes'
             do n = 1, size(ele%wake%sr_long%mode)
               sr => ele%wake%sr_long%mode(n)
-              write (iuw, '(a, i0, a, 4es15.5)') 'logitudinal(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi 
+              dependence = '' ! Use for default
+              if (sr%transverse_dependence /= none$) dependence = sr_transverse_dependence_name(sr%transverse_dependence)
+              polar = ''      ! Use for default
+              if (sr%polarization /= sr0%polarization .or. dependence /= '') polar = sr_polarization_name(sr%polarization)
+              write (iuw, '(a, i0, a, 4es15.5)') 'logitudinal(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi, polar, dependence
             enddo
+
             write (iuw, *) ''
             do n = 1, size(ele%wake%sr_trans%mode)
               sr => ele%wake%sr_trans%mode(n)
-              polar = ''   ! Use for default
-              if (sr%polarization /= sr0%polarization) polar = sr_polarization_name(sr%polarization)
-              linear_in = '' ! Use for default
-              if (sr%kick_linear_in /= sr0%kick_linear_in) linear_in = sr_kick_linear_in_name(sr%kick_linear_in)
-              write (iuw, '(a, i0, a, 4es15.5)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, &
-                                                                            sr%phi, polar, linear_in
+              dependence = '' ! Use for default
+              if (sr%transverse_dependence /= linear_leading$) dependence = sr_transverse_dependence_name(sr%transverse_dependence)
+              polar = ''      ! Use for default
+              if (sr%polarization /= sr0%polarization .or. dependence /= '') polar = sr_polarization_name(sr%polarization)
+              write (iuw, '(a, i0, a, 4es15.5)') 'transverse(', n, ') =', sr%amp, sr%damp, sr%k, sr%phi, polar, dependence
             enddo
             write (iuw, *) '/'
             close(iuw)

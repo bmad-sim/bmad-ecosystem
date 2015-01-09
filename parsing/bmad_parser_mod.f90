@@ -3297,24 +3297,31 @@ do
     call string_trim(line(13:), line, ixx)
     sr => longitudinal
     if (.not. get_this_sr1 (sr, sr1)) return
-    if (.not. expect_equal_sign()) return
-    if (.not. get_this_param (sr1%amp)) return
-    if (.not. get_this_param (sr1%damp)) return
-    if (.not. get_this_param (sr1%k)) return
-    if (.not. get_this_param (sr1%phi)) return
-    if (.not. expect_nothing ()) return
+    sr1%transverse_dependence = none$    ! Default
+    sr1%polarization = none$             ! Default
 
-  elseif (line(1:10) == 'transverse') then
-    call string_trim(line(11:), line, ixx)
-    sr => transverse
-    if (.not. get_this_sr1 (sr, sr1)) return
     if (.not. expect_equal_sign()) return
     if (.not. get_this_param (sr1%amp)) return
     if (.not. get_this_param (sr1%damp)) return
     if (.not. get_this_param (sr1%k)) return
     if (.not. get_this_param (sr1%phi)) return
     if (.not. get_this_switch (sr1%polarization, sr_polarization_name)) return
-    if (.not. get_this_switch (sr1%kick_linear_in, sr_kick_linear_in_name)) return
+    if (.not. get_this_switch (sr1%transverse_dependence, sr_transverse_dependence_name)) return
+    if (.not. expect_nothing ()) return
+
+  elseif (line(1:10) == 'transverse') then
+    call string_trim(line(11:), line, ixx)
+    sr => transverse
+    if (.not. get_this_sr1 (sr, sr1)) return
+    sr1%transverse_dependence = linear_leading$     ! Default
+
+    if (.not. expect_equal_sign()) return
+    if (.not. get_this_param (sr1%amp)) return
+    if (.not. get_this_param (sr1%damp)) return
+    if (.not. get_this_param (sr1%k)) return
+    if (.not. get_this_param (sr1%phi)) return
+    if (.not. get_this_switch (sr1%polarization, sr_polarization_name)) return
+    if (.not. get_this_switch (sr1%transverse_dependence, sr_transverse_dependence_name)) return
     if (.not. expect_nothing ()) return
 
   elseif (line(1:ixx) == 'z_max') then
