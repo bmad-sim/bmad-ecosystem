@@ -177,7 +177,7 @@ call init_ele (ele2)
 call init_ele (ele_start)
 call init_ele (ele_end)
 
-if (orbit(1)%species == not_set$) then
+if (any(orbit(1:branch%n_ele_track)%species == not_set$)) then
   call out_io (s_error$, r_name, 'ORBIT IN UNINITALIZED STATE! RADIATION INTEGRALS NOT COMPUTED.')
   return
 endif
