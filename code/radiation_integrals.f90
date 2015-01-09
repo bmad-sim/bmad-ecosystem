@@ -129,7 +129,7 @@ real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt
 integer, optional :: ix_cache, ix_branch
 integer i, j, k, ip, ir, key, key2, n_step
 
-character(20) :: r_name = 'radiation_integrals'
+character(*), parameter :: r_name = 'radiation_integrals'
 
 logical do_alloc, use_cache, init_cache, cache_only_wig, err, has_nonzero_pole
 logical, parameter :: t = .true., f = .false.
@@ -176,6 +176,11 @@ int_tot = rad_int1_struct()
 call init_ele (ele2)
 call init_ele (ele_start)
 call init_ele (ele_end)
+
+if (orbit(1)%species == not_set$) then
+  call out_io (s_error$, r_name, 'ORBIT IN UNINITALIZED STATE! RADIATION INTEGRALS NOT COMPUTED.')
+  return
+endif
 
 !---------------------------------------------------------------------
 ! Caching
