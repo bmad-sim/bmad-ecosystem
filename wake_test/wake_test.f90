@@ -44,14 +44,17 @@ ele => lat%ele(1)
 write (1, '(a, 2i4, f10.2)') '"SR-Size" ABS 0' , &
                 size(ele%wake%sr_long%mode), size(ele%wake%sr_trans%mode), ele%wake%z_sr_max
 
-w => ele%wake%sr_trans%mode(1)
-write (1, '(a, 4f14.5, 2i4)') '"SR-T1" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
-w => ele%wake%sr_trans%mode(2)
-write (1, '(a, 4f14.5, 2i4)') '"SR-T2" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
-w => ele%wake%sr_trans%mode(3)
-write (1, '(a, 4f14.5, 2i4)') '"SR-T3" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
-w => ele%wake%sr_long%mode(3)
-write (1, '(a, 4f14.5, 2i4)') '"SR-L3" ABS 0', w%amp, w%damp, w%k, w%phi, w%polarization, w%kick_linear_in
+do i = 1, size(ele%wake%sr_trans%mode)
+  w => ele%wake%sr_trans%mode(i)
+  write (1, '(a, i0, a, 4f14.5, 2i4)') '"SR-T', i, '" ABS 0', &
+                                w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
+enddo
+
+do i = 1, size(ele%wake%sr_long%mode)
+  w => ele%wake%sr_long%mode(i)
+  write (1, '(a, i0, a, 4f14.5, 2i4)') '"SR-L', i, '" ABS 0', &
+                               w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
+enddo
 
 !
 

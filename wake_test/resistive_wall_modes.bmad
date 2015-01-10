@@ -1,11 +1,11 @@
 &short_range_modes
-  longitudinal(1) =  -8266.67   26.6   46089.2  1.578966
-  longitudinal(2) =   1764.00   19.7  -9746.59  3.661213
-  longitudinal(3) =  -4155.13   16.8  -73.1528  3.66933
-  longitudinal(4) =   7248.99   11.2  -1672.137  3.071617
+  longitudinal(1) =  -8266.67   26.6   46089.2  1.578966  x_axis   linear_tra
+  longitudinal(2) =   1764.00   19.7  -9746.59  3.661213  y_axis   linear_leading
+  longitudinal(3) =  -4155.13   16.8  -73.1528  3.66933   none     none
+  longitudinal(4) =   7248.99   11.2  -1672.137 3.071617
   transverse(1)   =  -8266.67   26.6   46089.2  1.578966
-  transverse(2)   =   1764.00   19.7  -9746.59  3.661213 y_axis  trailing_off
-  transverse(3)   =  -4155.13   16.8  -73.1528  3.66933  
+  transverse(2)   =   1764.00   19.7  -9746.59  3.661213 y_axis  linear_trailing
+  transverse(3)   =  -4155.13   16.8  -73.1528  3.66933  none    linear_leading
   z_max = 1e3 
 /
 
