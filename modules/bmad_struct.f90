@@ -146,10 +146,11 @@ type wall3d_section_struct
   type (wall3d_vertex_struct), allocatable :: v(:)  ! Array of vertices
   type (photon_reflect_surface_struct), pointer :: surface => null()
                                             ! Surface reflectivity tables.
-  integer :: type = normal$                 ! normal$, clear$, opaque$, crotch$, crotch1$, leg2$, ...
+  integer :: type = normal$                 ! normal$, clear$, opaque$, trunk$, trunk1$, leg2$, ...
   integer :: n_vertex_input = 0             ! Number of vertices specified by the user.
   integer :: ix_ele = 0                     ! index of lattice element containing section
   integer :: ix_branch = 0                  ! Index of branch lattice element is in.
+  integer :: patch_in_region = .false.      ! Patch element exists between this section and previous one?
   real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
   real(rp) :: x0 = 0, y0 = 0                ! Center of section

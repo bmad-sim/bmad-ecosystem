@@ -1083,6 +1083,8 @@ is_eq = is_eq .and. (f1%n_vertex_input == f2%n_vertex_input)
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%patch_in_region == f2%patch_in_region)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%thickness == f2%thickness)
 !! f_side.equality_test[real, 0, NOT]
