@@ -1542,6 +1542,7 @@ public:
   Int n_vertex_input;
   Int ix_ele;
   Int ix_branch;
+  Int patch_in_region;
   Real thickness;
   Real s;
   Real x0;
@@ -1565,6 +1566,7 @@ public:
     n_vertex_input(0),
     ix_ele(0),
     ix_branch(0),
+    patch_in_region(false),
     thickness(-1),
     s(0.0),
     x0(0.0),

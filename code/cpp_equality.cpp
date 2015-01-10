@@ -633,6 +633,7 @@ bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   is_eq = is_eq && (x.n_vertex_input == y.n_vertex_input);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
+  is_eq = is_eq && (x.patch_in_region == y.patch_in_region);
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && (x.x0 == y.x0);

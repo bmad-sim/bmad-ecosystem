@@ -3603,42 +3603,44 @@ rhs = 8 + offset; F%n_vertex_input = rhs
 rhs = 9 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 10 + offset; F%ix_branch = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 11 + offset; F%patch_in_region = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%thickness = rhs
+rhs = 12 + offset; F%thickness = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%s = rhs
+rhs = 13 + offset; F%s = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%x0 = rhs
+rhs = 14 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%y0 = rhs
+rhs = 15 + offset; F%y0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 15 + offset; F%x_safe = rhs
+rhs = 16 + offset; F%x_safe = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 16 + offset; F%y_safe = rhs
+rhs = 17 + offset; F%y_safe = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 17 + offset; F%dx0_ds = rhs
+rhs = 18 + offset; F%dx0_ds = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 18 + offset; F%dy0_ds = rhs
+rhs = 19 + offset; F%dy0_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%x0_coef,1); lb1 = lbound(F%x0_coef,1) - 1
-  rhs = 100 + jd1 + 19 + offset
+  rhs = 100 + jd1 + 20 + offset
   F%x0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%y0_coef,1); lb1 = lbound(F%y0_coef,1) - 1
-  rhs = 100 + jd1 + 20 + offset
+  rhs = 100 + jd1 + 21 + offset
   F%y0_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 0, NOT]
-rhs = 21 + offset; F%dr_ds = rhs
+rhs = 22 + offset; F%dr_ds = rhs
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p1_coef,1); lb1 = lbound(F%p1_coef,1) - 1
-  rhs = 100 + jd1 + 22 + offset
+  rhs = 100 + jd1 + 23 + offset
   F%p1_coef(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%p2_coef,1); lb1 = lbound(F%p2_coef,1) - 1
-  rhs = 100 + jd1 + 23 + offset
+  rhs = 100 + jd1 + 24 + offset
   F%p2_coef(jd1+lb1) = rhs
 enddo
 
