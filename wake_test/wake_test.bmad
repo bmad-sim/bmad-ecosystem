@@ -1,3 +1,4 @@
+no_digested
 parameter[e_tot]    = 1e9
 parameter[particle] = ELECTRON        
 parameter[geometry] = open

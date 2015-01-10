@@ -1,6 +1,6 @@
 abs_time_test
 autoscale_test
-bbu_test   ! Does not have corresponding cmake.* file
+bbu_test   ! Note: Does not have corresponding cmake.* file
 bookkeeper_test
 coord_test
 geometry_test
@@ -11,11 +11,13 @@ parse_test
 patch_test
 photon_test
 ptc_test
+NOTE: Skipping reverse test
 !reverse_test
 sim_utils_test
 slice_test
 superimpose_test
-synrad3d_test
+NOTE: Skipping synrad3d_test
+!synrad3d_test
 time_runge_kutta_test
 tracking_method_test
 twiss_track_test

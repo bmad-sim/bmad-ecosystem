@@ -83,6 +83,12 @@ for test_dir in test_dir_list:
   if ix != -1: test_dir = test_dir[:ix]
   if len(test_dir) == 0: continue
 
+  # Is this a note:
+
+  if test_dir[:5] == 'NOTE:':
+    print_all ('Note in tests.list file: ' + test_dir, False, True)
+    continue
+
   #-----------------------------------------------------------
   # Run the programs
 
