@@ -668,7 +668,7 @@ integer, optional :: ix_section
 logical, optional :: err_flag, in_antechamber
 logical err, is_branch_wall, wrapped
 
-character(32), parameter :: r_name = 'wall3d_d_radius' 
+character(*), parameter :: r_name = 'wall3d_d_radius' 
 
 ! Find the wall definition
 
@@ -759,13 +759,13 @@ if (sec1%type /= normal$ .and. sec2%type /= normal$) then
 endif
 
 !----------------------------
-! If we are in a patch element then the geometry is more complicated since the section planes
+! If we are in a region with a patch then the geometry is more complicated since the section planes
 ! may not be perpendicular to the z-axis
 
 cos_theta = 1  ! Default if r_particle == 0
 sin_theta = 0
 
-if (ele%key == patch$) then
+if (sec2%patch_in_region) then
   ! ele1 and ele2 are lattice elements of sec1 and sec2
   ele1 => pointer_to_ele (ele%branch%lat, sec1%ix_ele, sec1%ix_branch)
   ele2 => pointer_to_ele (ele%branch%lat, sec2%ix_ele, sec2%ix_branch)
@@ -907,9 +907,16 @@ if (ele%key == patch$) then
   endif
 
 !----------------------------
-! non-patch element
+! non-patch region
 
 else
+
+  if (ele%key == patch$) then
+    call out_io (s_fatal$, r_name, 'WALL3D BOOKKEEPING FAILURE TO PROPERLY MARK PATCH SECTION')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+
   ds = sec2%s - sec1%s
 
   if (ds == 0) then
@@ -1223,6 +1230,10 @@ do i = 0, ubound(lat%branch, 1)
     ws%ix_branch = sp(j)%ele%ix_branch
   enddo
 
+  ! Mark patch regions
+
+  call mark_patch_regions(branch)
+
 enddo
 
 !-----------------------------------------------------------------------------------------------
@@ -1409,5 +1420,48 @@ endif
 end subroutine superimpose_this_wall 
 
 end subroutine create_concatenated_wall3d
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine mark_patch_regions (branch)
+!
+! Routine to mark which regions in a wall3d structure contain patch elements.
+! This routine should be called by any routine that creates a beam chamber wall.
+!
+! Input:
+!   branch -- branch_struct: Lattice branch with %wall3d beam chamber wall.
+!
+! Output:
+!   branch -- branch_struct: Lattice branch with %wall3d%section(i)%patch_in_region marked.
+!-
+
+subroutine mark_patch_regions (branch)
+
+implicit none
+
+type (branch_struct), target :: branch
+type (wall3d_struct), pointer :: wall
+
+integer i, j
+
+!
+
+wall => branch%wall3d
+wall%section%patch_in_region = .false.
+
+do i = 2, size(wall%section)
+
+  do j = wall%section(i-1)%ix_ele, wall%section(i)%ix_ele
+    if (branch%ele(j)%key /= patch$) cycle
+    wall%section(i)%patch_in_region = .true.
+    exit
+  enddo
+
+enddo
+
+end subroutine mark_patch_regions
+
 
 end module
