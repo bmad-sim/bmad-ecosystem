@@ -1055,17 +1055,6 @@ case, if the \vn{end_marker} section is set to ``closed'', a
 \vn{in_zig} cross-section would be added at $s = 13.000$~meters.
 
 %------------------------------------------------------------------
-\subsubsection{Chamber Wall and Patch Elements}
-\label{sss:patch}
-
-A \vn{patch} element, which shifts the reference coordinate system
-(see the Bmad manual for more details), complicates the calculation of
-where a photon hits the wall. To simplify matters, \srthree does not
-allow wall cross-sections to be defined whose longitudinal position
-overlaps any \vn{patch} element.
-
-
-%------------------------------------------------------------------
 \subsection{Chamber Surface Reflectivity}
 \label{sss:surface}
 
@@ -1170,6 +1159,28 @@ A photon at $(r,\theta, s)$ is inside the chamber if
 \Begineq
   r < r_w(\theta, s)
 \Endeq
+
+%------------------------------------------------------------------
+\subsubsection{Chamber Wall and Patch Elements}
+\label{sss:patch}
+
+A \vn{patch} element, which shifts the reference coordinate system
+complicates the calculation of where a photon hits the wall. The Bmad
+manual has a full explanation but the essential factor is that, since
+the reference orbit is discontinuous in a patch, to avoid a
+discontinuity in the chamber wall, wall interpolation is done using
+the global reference system. This can lead to non-intuative behavior
+when the region between two wall sections contains both a bend and a
+patch since, without the patch, the center of the chamber follows the
+curved reference orbit but with the patch the chamber wall center
+follows a straight line between the wall sections.
+
+To avoid this nonintuative behavior, if a region between wall sections
+contains both a patch and a bend, extra sections will be added to
+eliminate this situation.
+
+To simplify matters, \srthree does not allow wall cross-sections to be
+defined whose longitudinal position overlaps any \vn{patch} element.
 
 %------------------------------------------------------------------
 \subsection{Photon Tracking}

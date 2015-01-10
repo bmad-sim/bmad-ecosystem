@@ -188,8 +188,9 @@ introduce a discontinuity in the local reference coordinates. Since
 this is not physical, Synrad uses a different rule for interpolating
 between vertex points that span a \vn{patch}. In such a case, linear
 interpolation in the global coordinate system is used as shown in
-Fig.~\ref{f:patch}. That the wall may be discontinuous in $(x, s)$
-space is not a problem.
+Fig.~\ref{f:patch}. With this convention, the wall may be
+discontinuous in $(x, s)$ space but this is not a problem since the
+wall will be continuous in the global coordinate system.
 
 %------------------------------------------------------------------
 
@@ -207,14 +208,14 @@ a straight line in the global coordinate system.
 
 %------------------------------------------------------------------
 
-For calculational purposes, in constructing the vacuum chamber wall,
-Synrad will add vertex points at the boundaries of bend magnets. This
-is generally transparent to the user except it may result in segment
-lengths shifting slightly. The only time it can affect results is when
-there is a \vn{patch} element and the section of the wall between
-vertex points that spans a \vn{patch} also overlaps a bend. The
-solution is to specify the wall vertex points to make sure that this
-situation does not arise.
+In constructing the vacuum chamber wall, Synrad will add vertex points
+at the boundaries of bend magnets. This is generally transparent to
+the user except it may result in segment lengths shifting slightly.
+The $x$ values of the added points are interpolated using the $x$
+values of the vertex points to either side, ignoring whether there are
+any patch elements between the vertex points to either side. That is,
+the interpolation is done in the curvalinear reference coordinate
+system.
 
 %------------------------------------------------------------------
 \section{Simulation Technique} 

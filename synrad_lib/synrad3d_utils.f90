@@ -4,6 +4,7 @@ use synrad3d_struct
 use random_mod
 use photon_init_mod
 use capillary_mod
+use track1_mod
 
 type sr3d_wall_section_input
   real(rp) s                      ! Longitudinal position.
@@ -48,7 +49,7 @@ implicit none
 
 type (branch_struct), target :: branch
 type (sr3d_wall_struct), target :: wall
-type (sr3d_wall_section_struct), pointer :: sec, sec0, sec2
+type (sr3d_wall_section_struct), pointer :: sec, sec0, sec1, sec2
 type (sr3d_wall_section_struct), allocatable :: temp_section(:)
 type (sr3d_wall_section_struct) ref_section
 type (sr3d_wall_section_input) section
@@ -65,7 +66,7 @@ real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ig, ix, iu, iv, n_wall_section_max, ios, n_shape, n_surface, n_repeat
-integer m_max, n_add, ix1, ix2, n_old_style
+integer m_max, n_add, ix1, ix2, n_old_style, ix_ele0, ix_ele1, ix_bend, ix_patch
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
@@ -137,7 +138,7 @@ do
   n_wall_section_max = n_wall_section_max + 1
 enddo
 
-print *, 'number of wall cross-sections read:', n_wall_section_max + 1
+print *, 'number of wall cross-sections read:', n_wall_section_max
 if (n_wall_section_max < 1) then
   print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
   call err_exit
@@ -469,7 +470,59 @@ if (branch%param%geometry == closed$) then
   endif
 endif
 
-! computations
+! Regions between wall sections are not allowed to contain both bends and patch elements.
+! If this is the case then add additional sections to avoid this situation
+
+i = 0
+do
+  i = i + 1
+  if (i == wall%n_section_max) exit
+
+  ix_ele0 = element_at_s(branch%lat, wall%section(i)%s, .true., branch%ix_branch)
+  ix_ele1 = element_at_s(branch%lat, wall%section(i+1)%s, .false., branch%ix_branch)
+
+  ix_bend = -1    ! Index of last bend before patch or first bend after patch
+  ix_patch = -1   ! Index of last patch before bend or first patch after bend
+  do j = ix_ele0, ix_ele1
+    if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
+    if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
+  enddo
+
+  if (ix_bend == -1 .and. ix_patch == -1) cycle
+
+  ! Need to add an additional section
+
+  if (size(wall%section) == wall%n_section_max) then
+    call move_alloc (wall%section, temp_section)
+    n = wall%n_section_max
+    allocate (wall%section(1:n+10))
+    wall%section(1:i) = temp_section(1:i)
+    wall%section(i+2:n+1) = temp_section(i+1:n)
+    deallocate (temp_section)
+    wall%n_section_max = n + 1
+  endif
+
+  sec => wall%section(i+1)
+
+  if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
+    sec = wall%section(i)
+    sec%s = branch%ele(ix_bend)%s
+  else  ! Add section at beginning of bend, after patch
+    sec = wall%section(i+2)
+    sec%s = branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$)
+  endif
+
+  if (sec%name(1:6) /= 'ADDED:') then
+    n = len(sec%name)
+    sec%name = 'ADDED:' // sec%name(1:n-6)
+  endif
+
+  call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', &
+                                r_array = [sec%s])
+
+enddo
+
+! Computations
 
 do i = 1, wall%n_section_max
   sec => wall%section(i)
@@ -747,6 +800,8 @@ do i = 1, wall%n_section_max
 enddo
 
 deallocate(wall%gen_shape)
+
+call mark_patch_regions (branch)
 
 end subroutine sr3d_read_wall_file 
 
@@ -1141,6 +1196,8 @@ implicit none
 type (coord_struct), target :: p_orb
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
+type (ele_struct), pointer :: ele
+type (floor_position_struct) here
 
 real(rp) d_radius, position(6), origin(3)
 real(rp), optional :: dw_perp(3)
@@ -1164,11 +1221,25 @@ if (logic_option(.false., check_safe)) then
   endif
 endif
 
-!
+! If in a patch element, position will be with respect to the face the particle is going towards.
+! If this is not the exit face then must transform.
 
-ix_ele = wall3d%section(ix)%ix_ele
+
+! If in a patch then must transform to patch coordinates if necessary
+
 position = p_orb%vec
+ele => branch%ele(p_orb%ix_ele)
+
+if (ele%key == patch$ .and. p_orb%direction == -1) then
+  here = coords_relative_to_floor (branch%ele(p_orb%ix_ele-1)%floor, p_orb%vec(1:5:2))
+  here = coords_floor_to_relative(ele%floor, here, .false.)
+  position(1:5:2) = here%r
+else
+  ix_ele = wall3d%section(ix)%ix_ele
+endif
+
 position(5) = p_orb%s - branch%ele(ix_ele-1)%s
+
 d_radius = wall3d_d_radius (position, branch%ele(ix_ele), dw_perp, ix, in_antechamber, origin, err_flag)
 
 end subroutine sr3d_photon_d_radius
@@ -1211,6 +1282,7 @@ integer ix_section, n_max
 wall3d => branch%wall3d
 n_max = ubound(wall3d%section, 1)
 ix_section = p_orb%species      ! %species used for section index.
+if (ix_section == not_set$) ix_section = 1
 
 if (ix_section == n_max) ix_section = n_max - 1
 

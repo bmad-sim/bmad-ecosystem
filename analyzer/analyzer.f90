@@ -1864,7 +1864,7 @@ program anaylzer
    orbit(0) = orbit(ring%n_ele_track)
 ! write(21,'(/,a1,/)')"#"
 end do
-print '(/,a8,i5,a6,a,f3.1,a1,a10)',' Write ',n_turns,' turns', ' to "step-through-ring.dat" ', ds,'m',' intervals' 
+print '(/,a8,i5,a6,a,f4.1,a1,a10)',' Write ',n_turns,' turns', ' to "step-through-ring.dat"', ds,'m',' intervals' 
 print '(a8,i5,a6,a12,a)',' Write ',n_turns,' turns', ' end of ring',' to "phase-space-end-ring.dat"'
 close(lun1)
 close(lun2)
