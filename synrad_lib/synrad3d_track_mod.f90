@@ -258,7 +258,7 @@ type (coord_struct), pointer :: now
 type (ele_struct), pointer :: ele
 
 real(rp) dl_step, dl_left, s_stop, denom, v_x, v_s, sin_t, cos_t
-real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st
+real(rp) g, new_x, radius, theta, tan_t, dl, dl2, ct, st, s_ent
 real(rp), pointer :: vec(:)
 
 integer ixw, stop_location
@@ -277,50 +277,60 @@ wall3d => branch%wall3d
 ! A sub-step might be to the next element boundary since tracking in a bend is
 !  different from all other elements.
 
+! Note: now%vec(6) is with respect to an element's coordinates. now%direction is with
+! respect to the s-axis. That is, in an element with ele%orientation = -1, 
+! now%vec(6) will be opposite in sign of now%direction.
+
+! How to handle patch elements:
+! If the particle is traveling in the +s direction then use the reference frame at the downstream
+! end of the patch. If traveling in the -s direciton then use the referce frame at the upstream
+! end of the patch. This makes it easy to propagate to the patch edge. 
+
 propagation_loop: do
 
   check_section_here = .false.
   if (stop_at_check_pt) then
-    ! %species used for section index.
+    ! %species used to save the section index.
     call bracket_index2 (wall3d%section%s, 1, ubound(wall3d%section, 1), now%s, now%species, ixw)
     now%species = ixw
   endif
 
   ! If we are crossing over to a new element then update now%ix_ele.
 
-  if (now%vec(6) > 0) then  ! direction = 1
-    if (now%location /= inside$) then
-      do
-        if (now%s >= branch%ele(now%ix_ele)%s) then
-          if (now%ix_ele == branch%n_ele_track) then
-            if (branch%param%geometry == open$) return
-            now%s = now%s - branch%param%total_length
-            now%ix_ele = 1
-            photon%crossed_lat_end = .not. photon%crossed_lat_end
-            exit
-          endif
+  if (now%direction == 1) then
+    do
+      if (now%location == inside$) exit
 
-          ! Entering a patch: Needs coordinate transformation.
-
-          if (branch%ele(now%ix_ele+1)%key == patch$) then
-            
-          endif
-
-          now%ix_ele = now%ix_ele + 1
-          now%location = upstream_end$
-
-        elseif (now%s < branch%ele(now%ix_ele-1)%s) then
-          now%ix_ele = now%ix_ele - 1
-          now%location = downstream_end$
-          if (now%ix_ele == 0) then
-            print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL +ERROR'
-            call err_exit
-          endif
-        else
+      if (now%s >= branch%ele(now%ix_ele)%s) then
+        if (now%ix_ele == branch%n_ele_track) then
+          if (branch%param%geometry == open$) return
+          now%s = now%s - branch%param%total_length
+          now%ix_ele = 1
+          photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
-      enddo
-    endif
+
+        now%ix_ele = now%ix_ele + 1
+        now%location = upstream_end$
+        ele => branch%ele(now%ix_ele)
+
+        ! Entering a patch: Transform coordinates to be with respect to the downstream end.
+
+        if (ele%key == patch$) then
+          now%vec(6) = 0  ! Pretend photon is a charged particle
+          call track_a_patch (ele, now, .false., s_ent)
+          now%s = ele%s + s_ent
+          now%vec(5) = ele%value(l$) + s_ent
+          now%vec(6) = ele%orientation * sqrt(1 - now%vec(2)**2 - now%vec(4)**2)
+        endif
+
+      elseif (now%s > branch%ele(now%ix_ele)%s) then
+        print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL -DIR ERROR'
+        call err_exit
+      else
+        exit
+      endif
+    enddo
 
     s_stop = branch%ele(now%ix_ele)%s
     stop_location = downstream_end$
@@ -333,36 +343,50 @@ propagation_loop: do
       endif
     endif
 
+  !----------------------
+
   else   ! direction = -1
-    if (now%location /= inside$) then
-      do
-        if (now%s <= branch%ele(now%ix_ele-1)%s) then
-          if (now%ix_ele <= 1) then
-            if (branch%param%geometry == open$) return
-            now%s = now%s + branch%param%total_length
-            now%ix_ele = branch%n_ele_track
-            photon%crossed_lat_end = .not. photon%crossed_lat_end
-            exit
-          endif
-          now%ix_ele = now%ix_ele - 1
-          now%location = downstream_end$
-        elseif (now%s > branch%ele(now%ix_ele)%s) then
-          now%ix_ele = now%ix_ele + 1
-          now%location = upstream_end$
-          if (now%ix_ele == branch%n_ele_track+1) then
-            print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL -ERROR'
-            call err_exit
-          endif
-        else
+    do
+      if (now%location == inside$) exit
+      if (now%s <= branch%ele(now%ix_ele-1)%s) then
+        if (now%ix_ele <= 1) then
+          if (branch%param%geometry == open$) return
+          now%s = now%s + branch%param%total_length
+          now%ix_ele = branch%n_ele_track
+          photon%crossed_lat_end = .not. photon%crossed_lat_end
           exit
         endif
-      enddo
-    endif
+        now%ix_ele = now%ix_ele - 1
+        now%location = downstream_end$
+        ele => branch%ele(now%ix_ele)
+
+        ! Entering a patch: Transform coordinates to be with respect to the downstream end.
+
+        if (ele%key == patch$) then
+          now%vec(6) = 0  ! Pretend photon is a charged particle
+          call track_a_patch (ele, now, .false., s_ent)
+          now%s = ele%s + s_ent
+          now%vec(5) = ele%value(l$) + s_ent
+          now%vec(6) = -ele%orientation * sqrt(1 - now%vec(2)**2 - now%vec(4)**2)
+        endif
+
+      elseif (now%s > branch%ele(now%ix_ele)%s) then
+        now%ix_ele = now%ix_ele + 1
+        now%location = upstream_end$
+        if (now%ix_ele == branch%n_ele_track+1) then
+          print *, 'ERROR IN PROPAGATE_PHOTON: INTERNAL -ERROR'
+          call err_exit
+        endif
+      else
+        exit
+      endif
+
+    enddo
 
     s_stop = branch%ele(now%ix_ele-1)%s
     stop_location = upstream_end$
 
-    if (stop_at_check_pt .and. ixw > 0) then
+    if (stop_at_check_pt .and. ixw > 1) then
       if (wall3d%section(ixw)%s == now%s) ixw = ixw - 1
       if (wall3d%section(ixw)%s > s_stop) then
         s_stop = wall3d%section(ixw)%s
@@ -389,14 +413,14 @@ propagation_loop: do
 
     g = ele%value(g$)
     radius = 1 / g
-    theta = (s_stop - now%s) * g
+    theta = (s_stop - now%s) * g * ele%orientation
     tan_t = tan(theta)
 
     if (abs(tan_t * (radius + now%vec(1))) > dl_left * abs(now%vec(6) - tan_t * now%vec(2))) then
       dl = dl_left
       tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
       theta = atan(tan_t)
-      s_stop = now%s + radius * theta
+      s_stop = now%s + radius * theta * ele%orientation
       stop_location = inside$
       check_section_here = .false.
     else
@@ -411,7 +435,7 @@ propagation_loop: do
         dl = dl2 * (1 + sr3d_params%significant_length) ! Add extra to make sure we are not short due to roundoff.
         tan_t = (dl * now%vec(6)) / (radius + now%vec(1) + dl * now%vec(2))
         theta = atan(tan_t)
-        s_stop = now%s + radius * theta
+        s_stop = now%s + radius * theta * ele%orientation
         stop_location = inside$
         check_section_here = .true.
       endif
@@ -439,14 +463,7 @@ propagation_loop: do
 
     if (ele%value(ref_tilt_tot$) /= 0) call tilt_coords(-ele%value(ref_tilt_tot$), now%vec)
 
-  ! Patch element.
-
-  elseif (ele%key == patch$) then
-
-
-
-
-  ! Else we are not in a bend or patch
+  ! Else we are not in a bend
 
   else
 
@@ -458,6 +475,7 @@ propagation_loop: do
       dl = dl_left
       check_section_here = .false.
       s_stop = now%s + dl * now%vec(6)
+      stop_location = inside$
     endif
 
     ! And move to the next position
@@ -736,6 +754,7 @@ graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
 ! %species used for section index.
+if (photon%now%species == not_set$) call sr3d_get_section_index (photon%now, branch, photon%now%species)
 surface => branch%wall3d%section(photon%now%species+1)%surface
 
 call photon_reflectivity (graze_angle, photon%now%p0c, surface, reflectivity, rel_reflect_specular)
