@@ -80,6 +80,7 @@ do while (i < cesr_iargc())
   case ('-plot')
     i = i + 1
     call cesr_getarg(i, plotting)
+    if (plotting == '') ok = .false.
   case ('-test')
     i = i + 1
     call cesr_getarg(i, test)

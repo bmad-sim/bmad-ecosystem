@@ -491,7 +491,7 @@ do i = 1, min(1000, ubound(wall3d%section, 1))
   print '(i8, f14.6, 2x, a)', i, section%s, section%name
 enddo
 
-ix_section = 0
+ix_section = 1
 s_pos = wall3d%section(ix_section)%s
 s_pos_old = s_pos
 at_section = .true.
@@ -507,6 +507,7 @@ do
   ! an independent check on the routines used to detect intersections of the photon with the wall.
 
   photon%now%s = s_pos
+  photon%now%ix_ele = element_at_s (branch%lat, s_pos, .true., branch%ix_branch)
 
   do i = 1, size(x)
 
@@ -637,7 +638,7 @@ do
     endif
 
   elseif (ans == '') then
-    ix_section = modulo(ix_section + 1, n_sec_max + 1)
+    ix_section = modulo(ix_section, n_sec_max-1) + 1
     s_pos_old = s_pos
     s_pos = wall3d%section(ix_section)%s
     at_section = .true.
