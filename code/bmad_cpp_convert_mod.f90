@@ -4167,8 +4167,9 @@ interface
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region
+    integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
     integer(c_int), value :: n1_v, n_surface
+    logical(c_bool) :: z_patch_in_region
     character(c_char) :: z_name(*), z_material(*)
     real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
     real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
@@ -4206,8 +4207,8 @@ if (associated(F%surface)) n_surface = 1
 !! f_side.to_c2_call
 call wall3d_section_to_c2 (C, trim(F%name) // c_null_char, trim(F%material) // c_null_char, &
     z_v, n1_v, c_loc(F%surface), n_surface, F%type, F%n_vertex_input, F%ix_ele, F%ix_branch, &
-    F%patch_in_region, F%thickness, F%s, F%x0, F%y0, F%x_safe, F%y_safe, F%dx0_ds, F%dy0_ds, &
-    fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
+    c_logic(F%patch_in_region), F%thickness, F%s, F%x0, F%y0, F%x_safe, F%y_safe, F%dx0_ds, &
+    F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
     fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
@@ -4241,8 +4242,9 @@ type(wall3d_section_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 type(photon_reflect_surface_struct), pointer :: f_surface
-integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region
+integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
 integer(c_int), value :: n1_v, n_surface
+logical(c_bool) :: z_patch_in_region
 character(c_char) :: z_name(*), z_material(*)
 real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
 real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
@@ -4285,8 +4287,8 @@ F%n_vertex_input = z_n_vertex_input
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_branch = z_ix_branch
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%patch_in_region = z_patch_in_region
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%patch_in_region = f_logic(z_patch_in_region)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%thickness = z_thickness
 !! f_side.to_f2_trans[real, 0, NOT]

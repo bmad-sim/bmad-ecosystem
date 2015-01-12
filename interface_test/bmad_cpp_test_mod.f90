@@ -3603,8 +3603,8 @@ rhs = 8 + offset; F%n_vertex_input = rhs
 rhs = 9 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 10 + offset; F%ix_branch = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 11 + offset; F%patch_in_region = rhs
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 11 + offset; F%patch_in_region = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[real, 0, NOT]
 rhs = 12 + offset; F%thickness = rhs
 !! f_side.test_pat[real, 0, NOT]

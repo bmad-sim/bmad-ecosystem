@@ -2407,8 +2407,8 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   // c_side.test_pat[integer, 0, NOT]
   rhs = 10 + offset; C.ix_branch = rhs;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 11 + offset; C.patch_in_region = rhs;
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 11 + offset; C.patch_in_region = (rhs % 2 == 0);
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 12 + offset; C.thickness = rhs;

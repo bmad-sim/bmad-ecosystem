@@ -1542,7 +1542,7 @@ public:
   Int n_vertex_input;
   Int ix_ele;
   Int ix_branch;
-  Int patch_in_region;
+  Bool patch_in_region;
   Real thickness;
   Real s;
   Real x0;
