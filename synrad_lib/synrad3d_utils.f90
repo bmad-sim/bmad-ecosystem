@@ -54,13 +54,11 @@ type (sr3d_wall_section_struct), allocatable :: temp_section(:)
 type (sr3d_wall_section_struct) ref_section
 type (sr3d_wall_section_input) section
 type (wall3d_vertex_struct) v(100)
-type (wall3d_section_struct), pointer :: wall3d_section
+type (wall3d_section_struct), pointer :: sec3d
 type (sr3d_multi_section_struct), pointer :: m_sec
 type (surface_input) surface
 type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
-type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
 type (wall3d_struct), pointer :: wall3d
-type (wall3d_section_struct), pointer :: sec3d
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
@@ -237,7 +235,7 @@ do i = 1, n_shape
 
   ! Count number of vertices and calc angles.
 
-  wall3d_section => wall%gen_shape(i)%wall3d_section
+  sec3d => wall%gen_shape(i)%wall3d_section
   do n = 1, size(v)
     if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
   enddo
@@ -248,11 +246,11 @@ do i = 1, n_shape
     call err_exit
   endif
 
-  allocate(wall3d_section%v(n-1))
-  wall3d_section%v = v(1:n-1)
-  wall3d_section%n_vertex_input = n-1    
+  allocate(sec3d%v(n-1))
+  sec3d%v = v(1:n-1)
+  sec3d%n_vertex_input = n-1    
 
-  call wall3d_section_initializer (wall3d_section, err)
+  call wall3d_section_initializer (sec3d, err)
   if (err) then
     print *, 'ERROR AT GEN_SHAPE: ', trim(name)
     call err_exit
@@ -260,8 +258,8 @@ do i = 1, n_shape
 
   wall%gen_shape(i)%ix_vertex_ante = ix_vertex_ante
   if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
-    if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(wall3d_section%v) .or. &
-        ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(wall3d_section%v)) then
+    if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(sec3d%v) .or. &
+        ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(sec3d%v)) then
       print *, 'ERROR IN IX_VERTEX_ANTE:', ix_vertex_ante
       print *, '      FOR GEN_SHAPE: ', trim(name)
       call err_exit
@@ -270,8 +268,8 @@ do i = 1, n_shape
 
   wall%gen_shape(i)%ix_vertex_ante2 = ix_vertex_ante2
   if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
-    if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(wall3d_section%v) .or. &
-        ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(wall3d_section%v)) then
+    if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(sec3d%v) .or. &
+        ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(sec3d%v)) then
       print *, 'ERROR IN IX_VERTEX_ANTE2:', ix_vertex_ante2
       print *, '      FOR GEN_SHAPE: ', trim(name)
       call err_exit
@@ -488,7 +486,7 @@ do
     if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
   enddo
 
-  if (ix_bend == -1 .and. ix_patch == -1) cycle
+  if (ix_bend == -1 .or. ix_patch == -1) cycle
 
   ! Need to add an additional section
 
@@ -596,20 +594,20 @@ do i = 1, wall%n_section_max
   ! If there is an associated shape then mark where antichamber is.
 
   if (associated(sec%gen_shape)) then
-    wall3d_section => sec%gen_shape%wall3d_section
+    sec3d => sec%gen_shape%wall3d_section
 
     ix1 = sec%gen_shape%ix_vertex_ante(1)
     ix2 = sec%gen_shape%ix_vertex_ante(2)
     if (ix2 > ix1) then
       do iv = ix1+1, ix2
-        wall3d_section%v(iv)%type = antechamber$
+        sec3d%v(iv)%type = antechamber$
       enddo
     elseif (ix2 < ix1) then
-      do iv = ix1+1, size(wall3d_section%v)
-        wall3d_section%v(iv)%type = antechamber$
+      do iv = ix1+1, size(sec3d%v)
+        sec3d%v(iv)%type = antechamber$
       enddo
       do iv = 1, ix2
-        wall3d_section%v(iv)%type = antechamber$
+        sec3d%v(iv)%type = antechamber$
       enddo
     endif
 
@@ -617,14 +615,14 @@ do i = 1, wall%n_section_max
     ix2 = sec%gen_shape%ix_vertex_ante2(2)
     if (ix2 > ix1) then
       do iv = ix1+1, ix2
-        wall3d_section%v(iv)%type = antechamber$
+        sec3d%v(iv)%type = antechamber$
       enddo
     elseif (ix2 < ix1) then
-      do iv = ix1+1, size(wall3d_section%v)
-        wall3d_section%v(iv)%type = antechamber$
+      do iv = ix1+1, size(sec3d%v)
+        sec3d%v(iv)%type = antechamber$
       enddo
       do iv = 1, ix2
-        wall3d_section%v(iv)%type = antechamber$
+        sec3d%v(iv)%type = antechamber$
       enddo
     endif
 
@@ -648,19 +646,19 @@ do i = 1, wall%n_section_max
     sec%gen_shape => wall%gen_shape(ig)
   endif
 
-  wall3d_section => sec%gen_shape%wall3d_section
+  sec3d => sec%gen_shape%wall3d_section
 
   ! Simple rectangle or ellipse
 
   if (sec%width2_plus <= 0 .and. sec%width2_minus <= 0) then
-    allocate (wall3d_section%v(1))
-    wall3d_section%n_vertex_input = 1
+    allocate (sec3d%v(1))
+    sec3d%n_vertex_input = 1
     if (sec%basic_shape == 'elliptical') then
-      wall3d_section%v(1)%radius_x = sec%width2
-      wall3d_section%v(1)%radius_y = sec%height2
+      sec3d%v(1)%radius_x = sec%width2
+      sec3d%v(1)%radius_y = sec%height2
     else
-      wall3d_section%v(1)%x = sec%width2
-      wall3d_section%v(1)%y = sec%height2
+      sec3d%v(1)%x = sec%width2
+      sec3d%v(1)%y = sec%height2
     endif  
 
   ! Has antichamber(s) or beam stop(s)
@@ -679,13 +677,18 @@ do i = 1, wall%n_section_max
       v(1)%x = sec%width2_plus
       v(1)%y = sec%y0_plus
     else                                        ! Antechamber
-      iv = 2
       v(1)%x    = sec%width2_plus
       v(1)%y    = sec%ante_height2_plus
       v(1)%type = antechamber$
       v(2)%x    = sec%ante_x0_plus
       v(2)%y    = sec%ante_height2_plus
       v(2)%type = antechamber$
+      iv = 2
+      if (sec%basic_shape == 'rectangular') then
+        v(3)%x    = sec%width2
+        v(3)%y    = sec%height2
+        iv = 3
+      endif
     endif
 
     if (sec%basic_shape == 'elliptical') then
@@ -702,58 +705,33 @@ do i = 1, wall%n_section_max
       v(iv)%x = -sec%width2_minus
       v(iv)%y =  sec%y0_minus
     else                                        ! Antechamber
+      if (sec%basic_shape == 'rectangular') then
+        iv = iv + 1
+        v(iv)%x    = -sec%width2
+        v(iv)%y    = sec%height2
+      endif
+      v(iv+1)%x    = -sec%ante_x0_minus
+      v(iv+1)%y    =  sec%ante_height2_minus
+      v(iv+2)%x    = -sec%width2_minus
+      v(iv+2)%y    =  sec%ante_height2_minus
+      v(iv+2)%type = antechamber$
+      v(iv+3)%x    = -sec%width2_minus
+      v(iv+3)%y    =  0
+      v(iv+3)%type = antechamber$
       iv = iv + 3
-      v(iv-2)%x    = -sec%ante_x0_minus
-      v(iv-2)%y    =  sec%ante_height2_minus
-      v(iv-1)%x    = -sec%width2_minus
-      v(iv-1)%y    =  sec%ante_height2_minus
-      v(iv-1)%type = antechamber$
-      v(iv)%x      = -sec%width2_minus
-      v(iv)%y      =  0
-      v(iv)%type   = antechamber$
     endif
 
-    allocate (wall3d_section%v(iv))
-    wall3d_section%v = v(1:iv)
-    wall3d_section%n_vertex_input = iv
+    allocate (sec3d%v(iv))
+    sec3d%v = v(1:iv)
+    sec3d%n_vertex_input = iv
 
-    if (sec%width2_plus > sec%width2) sec%gen_shape%ix_vertex_ante = [size(wall3d_section%v)-1, 2]
+    if (sec%width2_plus > sec%width2) sec%gen_shape%ix_vertex_ante = [size(sec3d%v)-1, 2]
     if (sec%width2_minus > sec%width2) sec%gen_shape%ix_vertex_ante2 = [iv-2, iv+2]
 
   endif
 
-  call wall3d_section_initializer (wall3d_section, err)
+  call wall3d_section_initializer (sec3d, err)
   if (err) call err_exit
-
-enddo
-
-! Calculate largest "safe" box for each section.
-! implemented in this instance. 
-
-wall%gen_shape(:)%wall3d_section%x_safe = 0
-wall%gen_shape(:)%wall3d_section%y_safe = 0
-
-do i = 1, wall%n_section_max
-  sec => wall%section(i)
-
-  if (sec%gen_shape%wall3d_section%x_safe > 0) cycle   ! Already computed
-
-  max_area = 0
-  do j = 1, 39
-    angle = j * pi / 39
-    cos_a = cos(angle); sin_a = sin(angle)
-    call calc_wall_radius (sec%gen_shape%wall3d_section%v,  cos_a,  sin_a, radius(1), dr_dtheta)
-    call calc_wall_radius (sec%gen_shape%wall3d_section%v,  cos_a, -sin_a, radius(2), dr_dtheta)
-    call calc_wall_radius (sec%gen_shape%wall3d_section%v, -cos_a,  sin_a, radius(3), dr_dtheta)
-    call calc_wall_radius (sec%gen_shape%wall3d_section%v, -cos_a, -sin_a, radius(4), dr_dtheta)
-    rad = minval(radius)
-    area = rad**2 * cos_a * sin_a
-    if (area > max_area) then
-      sec%gen_shape%wall3d_section%x_safe = 0.999 * rad * cos_a
-      sec%gen_shape%wall3d_section%y_safe = 0.999 * rad * sin_a
-      max_area = area
-    endif
-  enddo
 
 enddo
 
@@ -802,6 +780,35 @@ enddo
 deallocate(wall%gen_shape)
 
 call mark_patch_regions (branch)
+
+! Calculate largest "safe" box for each section.
+! implemented in this instance. 
+
+wall3d%section%x_safe = -1
+wall3d%section%y_safe = -1
+
+do i = 1, wall%n_section_max
+  sec3d => wall3d%section(i)
+  if (sec3d%patch_in_region) cycle  ! Cannot compute safe box.
+
+  max_area = 0
+  do j = 1, 39
+    angle = j * pi / 39
+    cos_a = cos(angle); sin_a = sin(angle)
+    call calc_wall_radius (sec3d%v,  cos_a,  sin_a, radius(1), dr_dtheta)
+    call calc_wall_radius (sec3d%v,  cos_a, -sin_a, radius(2), dr_dtheta)
+    call calc_wall_radius (sec3d%v, -cos_a,  sin_a, radius(3), dr_dtheta)
+    call calc_wall_radius (sec3d%v, -cos_a, -sin_a, radius(4), dr_dtheta)
+    rad = minval(radius)
+    area = rad**2 * cos_a * sin_a
+    if (area > max_area) then
+      sec3d%x_safe = 0.999 * rad * cos_a
+      sec3d%y_safe = 0.999 * rad * sin_a
+      max_area = area
+    endif
+  enddo
+
+enddo
 
 end subroutine sr3d_read_wall_file 
 
