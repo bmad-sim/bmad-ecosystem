@@ -722,7 +722,7 @@ else
   ! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
 
   call bracket_index (wall3d%section%s, 1, size(wall3d%section), s_particle, ix_w)
-  if (s_particle == wall3d%section(ix_w)%s .and. position(6) > 0) ix_w = ix_w - 1
+  if (s_particle == wall3d%section(ix_w)%s .and. (position(6) > 0 .or. ix_w == size(wall3d%section))) ix_w = ix_w - 1
 
   ! sec1 and sec2 are the cross-sections to either side of the particle.
   ! Calculate the radius values at the cross-sections.
