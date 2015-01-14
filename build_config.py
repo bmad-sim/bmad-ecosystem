@@ -77,7 +77,7 @@ offline_base_dir = '/nfs/acc/libs'
 offline_util_dir = offline_base_dir + '/util'
 offline_host = 'acc101.lns.cornell.edu'
 
-online_base_dir = '/gfs/cesr/online/lib'
+online_base_dir = '/nfs/cesr/online/lib'
 online_util_dir = online_base_dir + '/util'
 online_host = 'cesr109.lns.cornell.edu'
 
