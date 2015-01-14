@@ -189,10 +189,10 @@ do
 
   p%p0c = 1000             ! Arbitrary
   p%ix_ele = element_at_s(lat, p%s, .true.)
-  photon%start = p
+  photon%start%orb = p
   photon%n_wall_hit = 0
 
-  call sr3d_check_if_photon_init_coords_outside_wall (p, branch, is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignored)
 
   n_photon = n_photon + 1
   photon%ix_photon_generated = n_photon

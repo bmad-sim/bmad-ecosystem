@@ -14,6 +14,11 @@ type sr3d_photon_wall_hit_struct
   real(rp) reflectivity                 ! Reflectivity probability
 end type
 
+type sr3d_coord_struct
+  type (coord_struct) orb
+  integer :: ix_wall_section = not_set$    ! Wall section index.
+end type  
+
 ! This structure defines the full track of the photon from start to finish
 ! %start           -- Starting position.
 ! %old             -- Used by the tracking code. Not useful otherwise.
@@ -28,11 +33,11 @@ end type
 ! %n_wall_hit      -- Number of wall hits.
 
 type sr3d_photon_track_struct
-  type (coord_struct) start, old, now  ! coords:
+  type (sr3d_coord_struct) start, old, now  ! positions
   logical :: crossed_lat_end = .false.     ! Photon crossed through the lattice beginning or end?
   logical :: hit_antechamber = .false.     
-  integer ix_photon                        ! Photon index.
-  integer ix_photon_generated
+  integer :: ix_photon                     ! Photon index.
+  integer :: ix_photon_generated
   integer :: n_wall_hit = 0                ! Number of wall hits
   integer :: status                        ! is_through_wall$, at_lat_end$, or inside_the_wall$
 end type
@@ -44,10 +49,10 @@ end type
 ! With no antechamber: width2_plus and width2_minus specify beam stops.
 
 type sr3d_gen_shape_struct
-  character(40) name
-  type (wall3d_section_struct) :: wall3d_section
-  integer ix_vertex_ante(2)
-  integer ix_vertex_ante2(2)
+  character(40) :: name = ''
+  type (wall3d_section_struct) :: wall3d_section = wall3d_section_struct()
+  integer :: ix_vertex_ante(2) = -1
+  integer :: ix_vertex_ante2(2) = -1
 end type
 
 type sr3d_wall_section_struct
@@ -67,7 +72,7 @@ type sr3d_wall_section_struct
   real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
   real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
   logical is_local
-  type (sr3d_gen_shape_struct), pointer :: gen_shape => null()            ! Gen_shape info
+  type (sr3d_gen_shape_struct) gen_shape         ! Gen_shape info
   type (sr3d_wall_section_struct), pointer :: m_sec   ! Multi-section pointer
 end type
 
@@ -82,7 +87,6 @@ end type
 
 type sr3d_wall_struct
   type (sr3d_wall_section_struct), allocatable :: section(:)  ! indexed from 1
-  type (sr3d_gen_shape_struct), allocatable :: gen_shape(:)
   type (sr3d_multi_section_struct), allocatable :: multi_section(:)
   integer n_section_max
 end type

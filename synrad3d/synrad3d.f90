@@ -26,7 +26,7 @@ type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_plot_param_struct) plot_param
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (coord_struct) p
+type (sr3d_coord_struct) :: p
 type (random_state_struct) ran_state
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
@@ -369,7 +369,7 @@ if (photon_start_input_file /= '') then
       if (is_inside) exit
     enddo
 
-    p%ix_ele = element_at_s(lat, p%s, .true., branch%ix_branch)
+    p%orb%ix_ele = element_at_s(lat, p%orb%s, .true., branch%ix_branch)
 
     n_photon_generated = n_photon_generated + 1
     n_photon_array = n_photon_array + 1
@@ -499,11 +499,10 @@ else
         endif
 
         photon%n_wall_hit = 0
-        photon%start%ix_ele = ix_ele
+        photon%start%orb%ix_ele = ix_ele
 
         do
-          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, &
-                               emit_a, emit_b, sig_e, photon_direction, photon%start)
+          call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon%start%orb)
           call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignore_generated_outside_wall)
           if (is_inside) exit
         enddo
@@ -511,9 +510,9 @@ else
         if (photon_start_output_file /= '') then
           call ran_default_state (get_state = ran_state)
           write (iu_start, '(a)')           '&start'
-          write (iu_start, '(a, 6es20.12)') '  p%vec     = ', photon%start%vec
-          write (iu_start, '(a, es20.12)')  '  p%s       =', photon%start%s
-          write (iu_start, '(a, es20.12)')  '  p%p0c  =', photon%start%p0c
+          write (iu_start, '(a, 6es20.12)') '  p%vec     = ', photon%start%orb%vec
+          write (iu_start, '(a, es20.12)')  '  p%s       =', photon%start%orb%s
+          write (iu_start, '(a, es20.12)')  '  p%p0c     =', photon%start%orb%p0c
           write (iu_start, *)               '  ran_state = ', ran_state
           write (iu_start, '(a)')           '/'
         endif
@@ -582,25 +581,25 @@ integer n_photon
 
 !
 
-start_vec = [photon%start%vec(1:4), photon%start%s, photon%start%vec(6)]
-now_vec = [photon%now%vec(1:4), photon%now%s, photon%now%vec(6)]
+start_vec = [photon%start%orb%vec(1:4), photon%start%orb%s, photon%start%orb%vec(6)]
+now_vec = [photon%now%orb%vec(1:4), photon%now%orb%s, photon%now%orb%vec(6)]
 
 iu = 1
 if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
-write (iu, '(2i8, f12.4, 2x, a)') n_photon, photon%n_wall_hit, photon%start%p0c, '! index, n_wall_hit, eV'
+write (iu, '(2i8, f12.4, 2x, a)') n_photon, photon%n_wall_hit, photon%start%orb%p0c, '! index, n_wall_hit, eV'
 write (iu, '(4f12.6, f12.3, f12.6, a)') start_vec, '  ! Start position'
 write (iu, '(4f12.6, f12.3, f12.6, a)') now_vec,   '  ! End position'
-write (iu, '(f12.6, a)') photon%now%path_len, '  ! photon_path_len' 
-dtrack = photon%now%path_len - photon_direction * &
-    modulo2((photon%now%s - photon%start%s), branch%param%total_length/2)
+write (iu, '(f12.6, a)') photon%now%orb%path_len, '  ! photon_path_len' 
+dtrack = photon%now%orb%path_len - photon_direction * &
+    modulo2((photon%now%orb%s - photon%start%orb%s), branch%param%total_length/2)
 write (iu, '(f12.6, a)') dtrack, '  ! photon_path_len - ds_beam'
-j = photon%now%ix_ele
+j = photon%now%orb%ix_ele
 write (iu, '(i8, 3x, 2a)') j, key_name(branch%ele(j)%key), '  ! Lat ele index and class'
 
 if (iu == 1) then
   write (3, '(2i8, es14.6, 2(4f12.6, f12.3, f12.6), 2f12.6, i8, 3x, a)') &
-        n_photon, photon%n_wall_hit, photon%start%p0c, start_vec, now_vec, &
-        photon%now%path_len, dtrack, j, trim(key_name(branch%ele(j)%key)) 
+        n_photon, photon%n_wall_hit, photon%start%orb%p0c, start_vec, now_vec, &
+        photon%now%orb%path_len, dtrack, j, trim(key_name(branch%ele(j)%key)) 
 endif
 
 end subroutine write_photon_data
@@ -631,16 +630,16 @@ ok = .true.
 if (filter_on) then
   filter_this = .false.
   if (init_filter) then
-    if (e_init_filter_min > 0 .and. photon%now%p0c < e_init_filter_min) filter_this = .true.
-    if (e_init_filter_max > 0 .and. photon%now%p0c > e_init_filter_max) filter_this = .true.
+    if (e_init_filter_min > 0 .and. photon%now%orb%p0c < e_init_filter_min) filter_this = .true.
+    if (e_init_filter_max > 0 .and. photon%now%orb%p0c > e_init_filter_max) filter_this = .true.
   else
-    if (e_filter_min > 0 .and. photon%now%p0c < e_filter_min) filter_this = .true.
-    if (e_filter_max > 0 .and. photon%now%p0c > e_filter_max) filter_this = .true.
+    if (e_filter_min > 0 .and. photon%now%orb%p0c < e_filter_min) filter_this = .true.
+    if (e_filter_max > 0 .and. photon%now%orb%p0c > e_filter_max) filter_this = .true.
     if (s_wrap_on) then
-      if (photon%now%s > s_filter_max .and. photon%now%s < s_filter_min) filter_this = .true.
+      if (photon%now%orb%s > s_filter_max .and. photon%now%orb%s < s_filter_min) filter_this = .true.
     else
-      if (s_filter_min > 0 .and. photon%now%s < s_filter_min) filter_this = .true.
-      if (s_filter_max > 0 .and. photon%now%s > s_filter_max) filter_this = .true.
+      if (s_filter_min > 0 .and. photon%now%orb%s < s_filter_min) filter_this = .true.
+      if (s_filter_max > 0 .and. photon%now%orb%s > s_filter_max) filter_this = .true.
     endif
   endif
 

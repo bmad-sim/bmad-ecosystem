@@ -59,12 +59,13 @@ type (sr3d_multi_section_struct), pointer :: m_sec
 type (surface_input) surface
 type (photon_reflect_surface_struct), pointer :: surface_ptr  => null()
 type (wall3d_struct), pointer :: wall3d
+type (sr3d_gen_shape_struct), allocatable, target :: gen_shape(:)
 
 real(rp) ix_vertex_ante(2), ix_vertex_ante2(2), s_lat
 real(rp) rad, radius(4), area, max_area, cos_a, sin_a, angle, dr_dtheta
 
 integer i, j, k, im, n, ig, ix, iu, iv, n_wall_section_max, ios, n_shape, n_surface, n_repeat
-integer m_max, n_add, ix1, ix2, n_old_style, ix_ele0, ix_ele1, ix_bend, ix_patch
+integer m_max, n_add, ix1, ix2, ix_ele0, ix_ele1, ix_bend, ix_patch
 
 character(28), parameter :: r_name = 'sr3d_read_wall_file'
 character(40) name
@@ -173,7 +174,7 @@ do i = 1, n_wall_section_max
           section%basic_shape, '', '', section%s, section%width2, section%height2, &
           section%width2_plus, section%ante_height2_plus, &
           section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., null(), null())
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., sr3d_gen_shape_struct(), null())
 
   ix = index(section%basic_shape, ':')
   if (ix /= 0) then
@@ -203,14 +204,8 @@ do
   n_shape = n_shape + 1
 enddo
 
-n_old_style = count(wall%section%basic_shape == 'rectangular') + count(wall%section%basic_shape == 'elliptical')
-do i = 1, size(wall%multi_section)
-  n_old_style = n_old_style + count(wall%multi_section(i)%section%basic_shape == 'rectangular') + &
-                              count(wall%multi_section(i)%section%basic_shape == 'elliptical')
-enddo
-
-if (allocated(wall%gen_shape)) deallocate(wall%gen_shape)
-allocate (wall%gen_shape(n_shape+n_old_style))
+if (allocated(gen_shape)) deallocate(gen_shape)
+allocate (gen_shape(n_shape))
 
 rewind(iu)
 do i = 1, n_shape
@@ -226,16 +221,16 @@ do i = 1, n_shape
   endif
 
   do j = 1, i-1
-    if (wall%gen_shape(j)%name == name) then
+    if (gen_shape(j)%name == name) then
       print *, 'TWO GEN_SHAPE_DEFS HAVE THE SAME NAME: ', trim(name)
       call err_exit
     endif
   enddo
-  wall%gen_shape(i)%name = name
+  gen_shape(i)%name = name
 
   ! Count number of vertices and calc angles.
 
-  sec3d => wall%gen_shape(i)%wall3d_section
+  sec3d => gen_shape(i)%wall3d_section
   do n = 1, size(v)
     if (v(n)%x == 0 .and. v(n)%y == 0 .and. v(n)%radius_x == 0) exit
   enddo
@@ -256,7 +251,7 @@ do i = 1, n_shape
     call err_exit
   endif
 
-  wall%gen_shape(i)%ix_vertex_ante = ix_vertex_ante
+  gen_shape(i)%ix_vertex_ante = ix_vertex_ante
   if (ix_vertex_ante(1) > 0 .or. ix_vertex_ante(2) > 0) then
     if (ix_vertex_ante(1) < 1 .or. ix_vertex_ante(1) > size(sec3d%v) .or. &
         ix_vertex_ante(2) < 1 .or. ix_vertex_ante(2) > size(sec3d%v)) then
@@ -266,7 +261,7 @@ do i = 1, n_shape
     endif
   endif
 
-  wall%gen_shape(i)%ix_vertex_ante2 = ix_vertex_ante2
+  gen_shape(i)%ix_vertex_ante2 = ix_vertex_ante2
   if (ix_vertex_ante2(1) > 0 .or. ix_vertex_ante2(2) > 0) then
     if (ix_vertex_ante2(1) < 1 .or. ix_vertex_ante2(1) > size(sec3d%v) .or. &
         ix_vertex_ante2(2) < 1 .or. ix_vertex_ante2(2) > size(sec3d%v)) then
@@ -346,9 +341,9 @@ enddo outer
 section_loop: do i = 1, wall%n_section_max
   sec => wall%section(i)
   if (sec%basic_shape /= 'gen_shape') cycle
-  do j = 1, size(wall%gen_shape)
-    if (sec%shape_name /= wall%gen_shape(j)%name) cycle
-    sec%gen_shape => wall%gen_shape(j)
+  do j = 1, size(gen_shape)
+    if (sec%shape_name /= gen_shape(j)%name) cycle
+    sec%gen_shape = gen_shape(j)
     cycle section_loop
   enddo
 
@@ -403,7 +398,7 @@ do i = 1, wall%n_section_max
   ! Gen_shape checks
 
   if (sec%basic_shape == 'gen_shape') then
-    if (.not. associated (sec%gen_shape)) then
+    if (sec%gen_shape%name == '') then
       call out_io (s_fatal$, r_name, 'BAD SHAPE ASSOCIATION')
       call err_exit
     endif
@@ -485,6 +480,11 @@ do
     if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
     if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
   enddo
+
+  if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
+    call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
+    call err_exit
+  endif
 
   if (ix_bend == -1 .or. ix_patch == -1) cycle
 
@@ -593,7 +593,7 @@ do i = 1, wall%n_section_max
 
   ! If there is an associated shape then mark where antichamber is.
 
-  if (associated(sec%gen_shape)) then
+  if (sec%gen_shape%name /= '') then
     sec3d => sec%gen_shape%wall3d_section
 
     ix1 = sec%gen_shape%ix_vertex_ante(1)
@@ -633,22 +633,15 @@ do i = 1, wall%n_section_max
   ! All equivalent multi-section sections point to the same gen_shape.
 
   if (associated(sec%m_sec)) then  
-    if (associated(sec%m_sec%gen_shape)) then
-      sec%gen_shape => sec%m_sec%gen_shape
+    if (sec%m_sec%gen_shape%name /= '') then
+      sec%gen_shape = sec%m_sec%gen_shape
       cycle
-    else
-      ig = ig + 1
-      sec%gen_shape => wall%gen_shape(ig)
-      sec%m_sec%gen_shape => wall%gen_shape(ig)
     endif
-  else
-    ig = ig + 1
-    sec%gen_shape => wall%gen_shape(ig)
   endif
 
-  sec3d => sec%gen_shape%wall3d_section
-
   ! Simple rectangle or ellipse
+
+  sec3d => sec%gen_shape%wall3d_section
 
   if (sec%width2_plus <= 0 .and. sec%width2_minus <= 0) then
     allocate (sec3d%v(1))
@@ -770,14 +763,24 @@ do i = 1, wall%n_section_max
   sec3d%ix_branch = branch%ix_branch
   sec3d%ix_ele    = element_at_s(branch%lat, sec3d%s, .true., branch%ix_branch)
 
-  if (branch%ele(sec3d%ix_ele)%key == patch$) then
-    call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
-                                   'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
-    call err_exit
+  ! Error if the section is inside a patch element. 
+  ! OK if on the edge but associated element (%ix_ele) may not point to the patch since there may
+  ! be a ambiguity of the coordinate system associated with the section.
+  ix = sec3d%ix_ele
+  if (branch%ele(ix)%key == patch$) then
+    if (sec3d%s == branch%ele(ix-1)%s) then
+      sec3d%ix_ele = ix - 1
+    elseif (sec3d%s == branch%ele(ix)%s) then
+      sec3d%ix_ele = ix + 1
+    else
+      call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
+                                     'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
+      call err_exit
+    endif
   endif
 enddo
 
-deallocate(wall%gen_shape)
+deallocate(gen_shape)
 
 call mark_patch_regions (branch)
 
@@ -921,7 +924,7 @@ do i = 1, n_multi
 
   do j = 1, i-1
     if (wall%multi_section(j)%name == name) then
-      print *, 'TWO GEN_SHAPE_DEFS HAVE THE SAME NAME: ', trim(name)
+      print *, 'TWO MULTI_SECTION_DEFS HAVE THE SAME NAME: ', trim(name)
       call err_exit
     endif
   enddo
@@ -942,7 +945,7 @@ do i = 1, n_multi
           section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), '', &
           section(j)%s, section(j)%width2, section(j)%height2, section(j)%width2_plus, &
           section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., null(), null())
+          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., sr3d_gen_shape_struct(), null())
   enddo
 enddo
 
@@ -1200,7 +1203,7 @@ subroutine sr3d_photon_d_radius (p_orb, branch, d_radius, dw_perp, in_antechambe
 
 implicit none
 
-type (coord_struct), target :: p_orb
+type (sr3d_coord_struct), target :: p_orb
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 type (ele_struct), pointer :: ele
@@ -1209,7 +1212,7 @@ type (floor_position_struct) here
 real(rp) d_radius, position(6), origin(3)
 real(rp), optional :: dw_perp(3)
 
-integer ix, ix_ele
+integer ix
 
 logical, optional :: in_antechamber, check_safe
 logical err_flag
@@ -1217,37 +1220,26 @@ logical err_flag
 ! If the photon's position (abs(x), abs(y)) is within the box (x_safe, y_safe) then the photon
 ! is guaranteed to be within the vacuum chamber.
 
-call sr3d_get_section_index (p_orb, branch, ix)
+call sr3d_get_section_index (p_orb, branch)
+ix = p_orb%ix_wall_section
 wall3d => branch%wall3d
 
 if (logic_option(.false., check_safe)) then
-  if (abs(p_orb%vec(1)) < min(wall3d%section(ix)%x_safe, wall3d%section(ix+1)%x_safe) .and. &
-      abs(p_orb%vec(3)) < min(wall3d%section(ix)%y_safe, wall3d%section(ix+1)%y_safe)) then
+  if (abs(p_orb%orb%vec(1)) < min(wall3d%section(ix)%x_safe, wall3d%section(ix+1)%x_safe) .and. &
+      abs(p_orb%orb%vec(3)) < min(wall3d%section(ix)%y_safe, wall3d%section(ix+1)%y_safe)) then
     d_radius = -1
     return
   endif
 endif
 
-! If in a patch element, position will be with respect to the face the particle is going towards.
-! If this is not the exit face then must transform.
+! 
 
+ele => branch%ele(p_orb%orb%ix_ele)
 
-! If in a patch then must transform to patch coordinates if necessary
+position = p_orb%orb%vec
+position(5) = p_orb%orb%s - branch%ele(p_orb%orb%ix_ele-1)%s
 
-position = p_orb%vec
-ele => branch%ele(p_orb%ix_ele)
-
-if (ele%key == patch$ .and. p_orb%direction == -1) then
-  here = coords_relative_to_floor (branch%ele(p_orb%ix_ele-1)%floor, p_orb%vec(1:5:2))
-  here = coords_floor_to_relative(ele%floor, here, .false.)
-  position(1:5:2) = here%r
-else
-  ix_ele = wall3d%section(ix)%ix_ele
-endif
-
-position(5) = p_orb%s - branch%ele(ix_ele-1)%s
-
-d_radius = wall3d_d_radius (position, branch%ele(ix_ele), dw_perp, ix, in_antechamber, origin, err_flag)
+d_radius = wall3d_d_radius (position, ele, dw_perp, ix, in_antechamber, origin, err_flag)
 
 end subroutine sr3d_photon_d_radius
 
@@ -1255,54 +1247,54 @@ end subroutine sr3d_photon_d_radius
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_get_section_index (p_orb, branch, ix_section)
+! Subroutine sr3d_get_section_index (p_orb, branch)
 !
 ! Routine to get the wall index such that 
-! For p_orb%vec(6) > 0 (forward motion):
+! For p_orb%orb%vec(6) > 0 (forward motion):
 !   wall%section(ix_section)%s < p_orb%s <= wall%section(ix_section+1)%s
-! For p_orb%vec(6) < 0 (backward motion):
+! For p_orb%orb%vec(6) < 0 (backward motion):
 !   wall%section(ix_section)%s <= p_orb%s < wall%section(ix_section+1)%s
 ! Exceptions:
 !   If p_orb%s == wall%section(1)%s (= 0)       -> ix_section = 0
 !   If p_orb%s == wall%section(wall%n_section_max)%s -> ix_section = wall%n_section_max - 1
 !
 ! Input:
-!   p_orb  -- coord_struct: Photon position.
+!   p_orb  -- sr3d_coord_struct: Photon position.
 !   branch -- branch_struct: Lattice branch containing the wall.
 !
 ! Output:
-!   ix_section -- Integer: Wall index
+!   p_orb%ix_section -- Integer: Wall index
 !-
 
-subroutine sr3d_get_section_index (p_orb, branch, ix_section)
+subroutine sr3d_get_section_index (p_orb, branch)
 
 implicit none
 
-type (coord_struct) :: p_orb
+type (sr3d_coord_struct), target :: p_orb
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall3d
 
-integer ix_section, n_max
+integer, pointer :: ix_sec
+integer n_max
 
 ! 
 
 wall3d => branch%wall3d
 n_max = ubound(wall3d%section, 1)
-ix_section = p_orb%species      ! %species used for section index.
-if (ix_section == not_set$) ix_section = 1
 
-if (ix_section == n_max) ix_section = n_max - 1
+ix_sec => p_orb%ix_wall_section
+if (ix_sec == not_set$) ix_sec = 1
+if (ix_sec == n_max) ix_sec = n_max - 1
 
-if (p_orb%s < wall3d%section(ix_section)%s .or. p_orb%s > wall3d%section(ix_section+1)%s) then
-  call bracket_index2 (wall3d%section%s, 1, n_max, p_orb%s, p_orb%species, ix_section)
-  p_orb%species = ix_section
-  if (ix_section == n_max) ix_section = n_max - 1
+if (p_orb%orb%s < wall3d%section(ix_sec)%s .or. p_orb%orb%s > wall3d%section(ix_sec+1)%s) then
+  call bracket_index2 (wall3d%section%s, 1, n_max, p_orb%orb%s, ix_sec, ix_sec)
+  if (ix_sec == n_max) ix_sec = n_max - 1
 endif
 
 ! vec(5) at boundary cases
 
-if (p_orb%s == wall3d%section(ix_section)%s   .and. p_orb%vec(6) > 0 .and. ix_section /= 1)       ix_section = ix_section - 1
-if (p_orb%s == wall3d%section(ix_section+1)%s .and. p_orb%vec(6) < 0 .and. ix_section /= n_max-1) ix_section = ix_section + 1
+if (p_orb%orb%s == wall3d%section(ix_sec)%s   .and. p_orb%orb%vec(6) > 0 .and. ix_sec /= 1)       ix_sec = ix_sec - 1
+if (p_orb%orb%s == wall3d%section(ix_sec+1)%s .and. p_orb%orb%vec(6) < 0 .and. ix_sec /= n_max-1) ix_sec = ix_sec + 1
 
 end subroutine sr3d_get_section_index
 
