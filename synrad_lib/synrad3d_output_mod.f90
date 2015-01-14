@@ -43,8 +43,8 @@ if (iu == -1) then
 endif
 
 write (iu, *) '*********************************************'
-write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%p0c
-write (iu, fm) photon%start%vec
+write (iu, '(2i8, f10.1)') photon%ix_photon, 0, photon%start%orb%p0c
+write (iu, fm) photon%start%orb%vec
 
 do n = 1, photon%n_wall_hit
   hit => wall_hit(n)
@@ -68,9 +68,9 @@ if (iu_hit_file == -1) then
   write (iu, *) '  ran_state%number_stored =', sr3d_params%ran_state%number_stored
   write (iu, *) '  ran_state%engine        =', sr3d_params%ran_state%engine
   write (iu, *)
-  write (iu, *) '  p%vec  =', photon%start%vec
-  write (iu, *) '  p%p0c  =', photon%start%p0c
-  write (iu, *) '  p%direction =', photon%start%direction
+  write (iu, *) '  p%vec  =', photon%start%orb%vec
+  write (iu, *) '  p%p0c  =', photon%start%orb%p0c
+  write (iu, *) '  p%direction =', photon%start%orb%direction
   write (iu, *) '/'
   close (iu)
   print *, 'Written file: error_photon_start'

@@ -323,11 +323,11 @@ allocate(s(plot_param%n_pt), xy_in(plot_param%n_pt), xy_out(plot_param%n_pt))
 
 if (plane == 'xs') then
   plane_str = 'X (cm)'
-  photon_xy => photon%now%vec(1)
+  photon_xy => photon%now%orb%vec(1)
   wall_xy => x_wall
 elseif (plane == 'ys') then
   plane_str = 'Y (cm)'
-  photon_xy => photon%now%vec(3)
+  photon_xy => photon%now%orb%vec(3)
   wall_xy => y_wall
 else
   call err_exit
@@ -361,8 +361,8 @@ do
 
     s(i) = s_min + (i - 1) * (s_max - s_min) / (size(s) - 1)
 
-    photon%now%vec = 0
-    photon%now%s = s(i)
+    photon%now%orb%vec = 0
+    photon%now%orb%s = s(i)
 
     photon_xy = -r_max
     call sr3d_find_wall_point (photon, branch, x_wall, y_wall)
@@ -506,8 +506,8 @@ do
   ! This is an approximation to the true shape but it is good enough for plotting and serves as
   ! an independent check on the routines used to detect intersections of the photon with the wall.
 
-  photon%now%s = s_pos
-  photon%now%ix_ele = element_at_s (branch%lat, s_pos, .true., branch%ix_branch)
+  photon%now%orb%s = s_pos
+  photon%now%orb%ix_ele = element_at_s (branch%lat, s_pos, .true., branch%ix_branch)
 
   do i = 1, size(x)
 
@@ -515,8 +515,8 @@ do
     ! photon%now is at 1 meter radius which is assumed to be outside the wall.
 
     theta = (i-1) * twopi / (size(x) - 1)
-    photon%now%vec(1) = r_max * cos(theta)  
-    photon%now%vec(3) = r_max * sin(theta)
+    photon%now%orb%vec(1) = r_max * cos(theta)  
+    photon%now%orb%vec(3) = r_max * sin(theta)
 
     if (draw_norm .and. modulo(i, 4) == 0) then
       j = (i / 4)
@@ -545,7 +545,7 @@ do
   else
     write (label, '(a, f0.3)') 'S: ', s_pos
     ! %species used for section index.
-    label2 = 'Surface: ' // wall3d%section(photon%now%species+1)%surface%descrip
+    label2 = 'Surface: ' // wall3d%section(photon%now%ix_wall_section+1)%surface%descrip
   endif
 
   call qp_clear_page
@@ -705,32 +705,33 @@ real(rp), optional :: x1_norm, x2_norm, y1_norm, y2_norm
 real(rp) tri_vert0(3), tri_vert1(3), tri_vert2(3)
 real(rp) dtrack, d_radius, r_old, dw_perp(3)
 
-integer j, ixp
+integer j
 
 logical, optional :: in_ante
 logical is_through
 
 !
 
-call sr3d_get_section_index (photon%now, branch, ixp)
+call sr3d_get_section_index (photon%now, branch)
 
-photon%old%vec = 0
-photon%old%s = photon%now%s
-r_old = sqrt(photon%now%vec(1)**2 + photon%now%vec(3)**2)
-photon%now%path_len = photon%old%path_len + r_old
+
+photon%old%orb%vec = 0
+photon%old%orb%s = photon%now%orb%s
+r_old = sqrt(photon%now%orb%vec(1)**2 + photon%now%orb%vec(3)**2)
+photon%now%orb%path_len = photon%old%orb%path_len + r_old
 
 call sr3d_photon_d_radius (photon%now, branch, d_radius, in_antechamber = in_ante)
 if (d_radius < 0) then
   print *, 'INTERNAL COMPUTATION ERROR!'
   call err_exit
 endif
-x_wall = (r_old - d_radius) * photon%now%vec(1) / r_old
-y_wall = (r_old - d_radius) * photon%now%vec(3) / r_old
+x_wall = (r_old - d_radius) * photon%now%orb%vec(1) / r_old
+y_wall = (r_old - d_radius) * photon%now%orb%vec(3) / r_old
 
 ! The length of the normal vector is 1 cm.
 
 if (present(x1_norm)) then
-  photon%now%vec(1) = x_wall; photon%now%vec(3) = y_wall
+  photon%now%orb%vec(1) = x_wall; photon%now%orb%vec(3) = y_wall
   call sr3d_photon_d_radius (photon%now, branch, d_radius, dw_perp, in_ante)
   x1_norm = x_wall;                  y1_norm = y_wall
   x2_norm = x_wall + dw_perp(1)/100; y2_norm = y_wall + dw_perp(2)/100
