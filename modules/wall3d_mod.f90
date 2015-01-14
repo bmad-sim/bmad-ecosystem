@@ -657,7 +657,7 @@ real(rp), optional :: perp(3), origin(3)
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
 real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp
-real(rp) p1, p2, dp1, dp2, s_particle, dz_offset, x, y, x0, y0, f
+real(rp) p1, p2, dp1, dp2, s_particle, ds_offset, x, y, x0, y0, f
 real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
@@ -675,13 +675,13 @@ character(*), parameter :: r_name = 'wall3d_d_radius'
 if (present(err_flag)) err_flag = .true.
 d_radius = -1
 
-wall3d => pointer_to_wall3d (ele, dz_offset, is_branch_wall)
+wall3d => pointer_to_wall3d (ele, ds_offset, is_branch_wall)
 if (.not. associated(wall3d)) return
 
 !------------------
 ! Init
 
-s_particle = position(5) + dz_offset
+s_particle = position(5) + ds_offset
 n_sec = size(wall3d%section)
 
 ! The outward normal vector is discontinuous at the wall sections.

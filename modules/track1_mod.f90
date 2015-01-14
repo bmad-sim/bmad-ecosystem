@@ -2430,10 +2430,10 @@ end subroutine rf_coupler_kick
 !   use track1_mod
 !
 ! Input:
-!   ele           -- ele_struct: patch, fork, or photon_fork element.
+!   ele           -- ele_struct: patch element.
 !   orbit         -- coord_struct: Starting phase space coords
 !   drift_to_exit -- Logical, optional: If False then do not drift the particle from
-!                      Entrance to exit faces. Also do not correct for a reference energy shift.
+!                      beginning to end face. Also do not correct for a reference energy shift.
 !                      Default is True. 
 !
 ! Output:

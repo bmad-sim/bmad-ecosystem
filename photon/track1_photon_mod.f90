@@ -20,6 +20,95 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
+! Subroutine track_a_patch_photon (ele, orbit, drift_to_exit, use_z_pos)
+!
+! Routine to track through a patch element with a photon.
+! The steps for tracking are:
+!   1) Transform from entrance to exit coordinates.
+!   2) Drift particle from the entrance to the exit coordinants.
+!
+! Input:
+!   ele           -- ele_struct: patch element.
+!   orbit         -- coord_struct: Starting phase space coords
+!   drift_to_exit -- logical, optional: If False then do not drift the particle from
+!                      start to ending faces. Default is True.
+!   use_z_pos     -- loigical, optional: If present and True, use orbit%vec(5) as the true
+!                      z-position relative to the start of the element instead of assuming 
+!                      that the particle is at the patch edge.
+!
+! Output:
+!   orbit         -- coord_struct: Coords after applying a patch transformation.
+!-
+
+Subroutine track_a_patch_photon (ele, orbit, drift_to_exit, use_z_pos)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+
+real(rp) w(3,3)
+
+logical, optional :: drift_to_exit, use_z_pos
+
+!
+
+if (orbit%direction == 1) then
+  ! Translate (x, y, z) to coordinate system with respect to downstream origin.
+  orbit%vec(1) = orbit%vec(1) - ele%value(x_offset$)
+  orbit%vec(3) = orbit%vec(3) - ele%value(y_offset$)
+  if (logic_option(.false., use_z_pos)) then
+    orbit%vec(5) = orbit%vec(5) - ele%value(z_offset$)   
+  else
+    orbit%vec(5) = -ele%value(z_offset$)   
+  endif
+
+  if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w)
+    orbit%vec(2:6:2) = matmul(w, orbit%vec(2:6:2))
+    orbit%vec(1:5:2) = matmul(w, orbit%vec(1:5:2))
+  endif
+
+  if (logic_option(.true., drift_to_exit)) then
+    call track_a_drift_photon (orbit, -orbit%vec(5), .false.)
+  endif
+
+  orbit%vec(5) = orbit%vec(5) + ele%value(l$)
+  orbit%s = (ele%s - ele%value(l$)) + orbit%vec(5)
+
+else
+  
+  ! Shift to z being with respect to exit end coords.
+  if (logic_option(.false., use_z_pos)) then
+    orbit%vec(5) = orbit%vec(5) - ele%value(l$)
+  else
+    orbit%vec(5) = 0   ! Assume particle starts at downstream face
+  endif
+
+  if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
+    call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = w)
+    orbit%vec(2:6:2) = matmul(w, orbit%vec(2:6:2))
+    orbit%vec(1:5:2) = matmul(w, orbit%vec(1:5:2))
+  endif
+
+  orbit%vec(1) = orbit%vec(1) + ele%value(x_offset$)
+  orbit%vec(3) = orbit%vec(3) + ele%value(y_offset$)
+  orbit%vec(5) = orbit%vec(5) + ele%value(z_offset$)
+
+  if (logic_option(.true., drift_to_exit)) then
+    call track_a_drift_photon (orbit, -orbit%vec(5), .false.)
+  endif
+
+  orbit%s = (ele%s - ele%value(l$)) + orbit%vec(5)
+
+endif
+
+end subroutine track_a_patch_photon
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track1_diffraction_plate (ele, param, orbit)
 !
 ! Routine to track through a diffraction plate element.

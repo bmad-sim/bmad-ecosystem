@@ -168,37 +168,7 @@ case (multilayer_mirror$)
 
 case (patch$)
 
-  if (end_orb%direction == 1) then
-    ! Translate (x, y, z) to coordinate system with respect to downstream origin.
-    end_orb%vec(1) = end_orb%vec(1) - ele%value(x_offset$)
-    end_orb%vec(3) = end_orb%vec(3) - ele%value(y_offset$)
-    end_orb%vec(5) = -ele%value(z_offset$)   
-    
-    if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w)
-      end_orb%vec(2:6:2) = matmul(w, end_orb%vec(2:6:2))
-      end_orb%vec(1:5:2) = matmul(w, end_orb%vec(1:5:2))
-    endif
-
-    call track_a_drift_photon (end_orb, -end_orb%vec(5), .false.)
-    end_orb%s = ele%s
-
-  else
-    end_orb%s = ele%s - ele%value(l$)
-    end_orb%vec(5) = 0   ! Assume particle starts at downstream face
-
-    if (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0 .or. ele%value(tilt$) /= 0) then
-      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat = w)
-      end_orb%vec(2:6:2) = matmul(w, end_orb%vec(2:6:2))
-      end_orb%vec(1:5:2) = matmul(w, end_orb%vec(1:5:2))
-    endif
-
-    end_orb%vec(1) = end_orb%vec(1) + ele%value(x_offset$)
-    end_orb%vec(3) = end_orb%vec(3) + ele%value(y_offset$)
-
-    call track_a_drift_photon (end_orb, ele%value(z_offset$), .false.)
-
-  endif
+  call track_a_patch_photon (ele, end_orb)
 
 !-----------------------------------------------
 ! Sample
@@ -231,5 +201,9 @@ case default
   return
 
 end select
+
+!---------------------------------------------------------------------------------------------------
+
+end_orb%location = downstream_end$
 
 end subroutine track1_bmad_photon
