@@ -9,6 +9,7 @@ type (lat_struct), target :: lat
 type (sr3d_photon_track_struct) :: photon
 type (coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
+type (ele_struct), pointer :: ele
 
 real(rp) vel
 integer ios, num_ignored, n_photon
@@ -56,21 +57,24 @@ do
     stop
   endif
   p%vec(2:6:2) = p%vec(2:6:2) / vel
+  p%direction = sign_of(p%vec(6))
 
   p%p0c = 1000             ! Arbitrary
+  p%s = p%vec(5)
   p%ix_ele = element_at_s(lat, p%s, .true.)
-  photon%start = p
+  ele => lat%ele(p%ix_ele)
+  p%vec(5) = p%s - (ele%s - ele%value(l$))
+  photon%start%orb = p
   photon%n_wall_hit = 0
 
   n_photon = n_photon + 1
   photon%ix_photon = n_photon
   photon%ix_photon_generated = n_photon
 
-  call sr3d_check_if_photon_init_coords_outside_wall (p, lat%branch(0), is_inside, num_ignored)
+  call sr3d_check_if_photon_init_coords_outside_wall (photon%start, lat%branch(0), is_inside, num_ignored)
 
   call sr3d_track_photon (photon, lat%branch(0), wall_hit, err, .true.)
-  write (1, '(a, i0, a, 3f20.16)') '"Photon:',  n_photon, '"    ABS   1.0E-14', &
-                                                            wall_hit(1)%after_reflect%vec(2:6:2)
+  write (1, '(a, i0, a, 3f20.16)') '"Photon:',  n_photon, '"    ABS   1.0E-14', wall_hit(1)%after_reflect%vec(2:6:2)
 enddo
 
 end program
