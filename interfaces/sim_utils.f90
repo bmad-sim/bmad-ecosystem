@@ -10,8 +10,8 @@ module sim_utils
   use output_mod
   use filename_mod
   use word_mod
-  use precision_def
   use physical_constants
+  use sign_of_mod
 
   ! This is to suppress the ranlib "has no symbols" message
   integer, private :: private_dummy
