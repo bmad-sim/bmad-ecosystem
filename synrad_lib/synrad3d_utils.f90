@@ -1101,8 +1101,8 @@ end subroutine sr3d_get_emission_pt_params
 !   use synrad3d_utils
 !
 ! Input:
-!   ele_here  -- Ele_struct: Element emitting the photon. Emission is at the exit end of the element.
-!   orb_here  -- coord_struct: orbit of particles emitting the photon.
+!   ele_here  -- Ele_struct: Emission is at the exit end of this element (which is a slice_slave).
+!   orb_here  -- coord_struct: orbit of particle emitting the photon.
 !   gx, gy    -- Real(rp): Horizontal and vertical bending strengths.
 !   emit_a    -- Real(rp): Emittance of the a-mode.
 !   emit_b    -- Real(rp): Emittance of the b-mode.
@@ -1119,6 +1119,7 @@ subroutine sr3d_emit_photon (ele_here, orb_here, gx, gy, emit_a, emit_b, sig_e, 
 implicit none
 
 type (ele_struct), target :: ele_here
+type (ele_struct), pointer :: ele
 type (coord_struct) :: orb_here
 type (coord_struct) :: p_orb
 type (twiss_struct), pointer :: t
@@ -1171,6 +1172,7 @@ endif
 
 p_orb%vec(6) = photon_direction * sqrt(1 - v2)
 p_orb%direction = photon_direction
+p_orb%ix_ele = element_at_s(ele_here%branch, ele_here%s, .false.)
 
 end subroutine sr3d_emit_photon
 
