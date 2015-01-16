@@ -821,6 +821,12 @@ if (r <= reflectivity) then
   endif
 endif
 
+if (photon%now%orb%vec(6) < 0) then
+  photon%now%orb%direction = -1
+else
+  photon%now%orb%direction = 1
+endif
+
 ! Record
 
 wall_hit(n_wall_hit)%dw_perp = dw_perp

@@ -499,7 +499,6 @@ else
         endif
 
         photon%n_wall_hit = 0
-        photon%start%orb%ix_ele = ix_ele
 
         do
           call sr3d_emit_photon (ele_here, orbit_here, gx, gy, emit_a, emit_b, sig_e, photon_direction, photon%start%orb)
