@@ -233,19 +233,6 @@ interface
     logical err
   end subroutine
 
-  function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
-    import
-    implicit none
-    type (lat_struct) lat
-    type (coord_struct), optional :: position
-    real(rp) s
-    integer ix_ele
-    logical choose_max
-    integer, optional :: ix_branch
-    logical, optional :: err_flag
-    real(rp), optional :: s_eff
-  end function
-
   subroutine emit_calc (lat, what, mode)
     import
     implicit none
