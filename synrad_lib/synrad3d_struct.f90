@@ -50,30 +50,30 @@ end type
 
 type sr3d_gen_shape_struct
   character(40) :: name = ''
-  type (wall3d_section_struct) :: wall3d_section = wall3d_section_struct()
+  type (wall3d_section_struct) :: wall3d_section
   integer :: ix_vertex_ante(2) = -1
   integer :: ix_vertex_ante2(2) = -1
 end type
 
 type sr3d_wall_section_struct
-  character(40) name              ! Name of this section
-  character(16) basic_shape       ! "elliptical", "rectangular", "gen_shape", or "multi_section"
-  character(40) shape_name
-  character(40) surface_name 
-  real(rp) s                      ! Longitudinal position.
-  real(rp) width2                 ! Half width ignoring antechamber.
-  real(rp) height2                ! Half height ignoring antechamber.
-  real(rp) width2_plus            ! Distance from pipe center to +x side edge.
-  real(rp) ante_height2_plus      ! Antechamber half height on +x side of the wall
-  real(rp) width2_minus           ! Distance from pipe center -x side edge.
-  real(rp) ante_height2_minus     ! Antechamber half height on -x side of the wall
-  real(rp) ante_x0_plus           ! Computed: x coord at +x antechamber opening.
-  real(rp) ante_x0_minus          ! Computed: x coord at -x antechamber opening.
-  real(rp) y0_plus                ! Computed: y coord at edge of +x beam stop.
-  real(rp) y0_minus               ! Computed: y coord at edge of -x beam stop.
-  logical is_local
-  type (sr3d_gen_shape_struct) gen_shape         ! Gen_shape info
-  type (sr3d_wall_section_struct), pointer :: m_sec   ! Multi-section pointer
+  character(40) :: name = ''              ! Name of this section
+  character(16) :: basic_shape = ''       ! "elliptical", "rectangular", "gen_shape", or "multi_section"
+  character(40) :: shape_name = ''
+  character(40) :: surface_name = ''
+  real(rp) :: s = -1                      ! Longitudinal position.
+  real(rp) :: width2 = -1                 ! Half width ignoring antechamber.
+  real(rp) :: height2 = -1                ! Half height ignoring antechamber.
+  real(rp) :: width2_plus = -1            ! Distance from pipe center to +x side edge.
+  real(rp) :: ante_height2_plus = -1      ! Antechamber half height on +x side of the wall
+  real(rp) :: width2_minus = -1           ! Distance from pipe center -x side edge.
+  real(rp) :: ante_height2_minus = -1     ! Antechamber half height on -x side of the wall
+  real(rp) :: ante_x0_plus = -1           ! Computed: x coord at +x antechamber opening.
+  real(rp) :: ante_x0_minus = -1          ! Computed: x coord at -x antechamber opening.
+  real(rp) :: y0_plus = -1                ! Computed: y coord at edge of +x beam stop.
+  real(rp) :: y0_minus = -1               ! Computed: y coord at edge of -x beam stop.
+  logical :: is_local = .false.
+  type (sr3d_gen_shape_struct) :: gen_shape                      ! Gen_shape info
+  type (sr3d_wall_section_struct), pointer :: m_sec => null()    ! Multi-section pointer
 end type
 
 ! multi_section structure
