@@ -170,11 +170,16 @@ do i = 1, n_wall_section_max
     section%basic_shape = section%basic_shape(2:)
   endif
 
-  sec = sr3d_wall_section_struct(section%name, &
-          section%basic_shape, '', '', section%s, section%width2, section%height2, &
-          section%width2_plus, section%ante_height2_plus, &
-          section%width2_minus, section%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., sr3d_gen_shape_struct(), null())
+  sec%name                = section%name
+  sec%basic_shape         = section%basic_shape
+  sec%shape_name          = section%basic_shape
+  sec%s                   = section%s
+  sec%width2              = section%width2
+  sec%height2             = section%height2
+  sec%width2_plus         = section%width2_plus
+  sec%ante_height2_plus   = section%ante_height2_plus
+  sec%width2_minus        = section%width2_minus
+  sec%ante_height2_minus  = section%ante_height2_minus
 
   ix = index(section%basic_shape, ':')
   if (ix /= 0) then
@@ -877,7 +882,9 @@ end subroutine sr3d_associate_surface
 subroutine sr3d_read_wall_multi_section (iu, wall)
 
 type (sr3d_wall_struct), target :: wall
-type (sr3d_wall_section_input) section(1:100)
+type (sr3d_wall_section_input), target :: section(1:100)
+type (sr3d_wall_section_struct), pointer :: sec
+type (sr3d_wall_section_input), pointer :: sec_in
 
 integer i, j, iu, ix, n_multi, n_section, ios
 
@@ -941,11 +948,18 @@ do i = 1, n_multi
   do j = 1, n_section
     ix = index(section(j)%basic_shape, ':')
     if (ix == 0) ix = len_trim(section(j)%basic_shape) + 1
-    wall%multi_section(i)%section(j) = sr3d_wall_section_struct(section(j)%name, &
-          section(j)%basic_shape(:ix-1), section(j)%basic_shape(ix+1:), '', &
-          section(j)%s, section(j)%width2, section(j)%height2, section(j)%width2_plus, &
-          section(j)%ante_height2_plus, section(j)%width2_minus, section(j)%ante_height2_minus, &
-          -1.0_rp, -1.0_rp, -1.0_rp, -1.0_rp, .false., sr3d_gen_shape_struct(), null())
+    sec => wall%multi_section(i)%section(j)
+    sec_in => section(j)
+    sec%name                = sec_in%name
+    sec%basic_shape(:ix-1)  = sec_in%basic_shape
+    sec%shape_name(ix+1:)   = sec_in%basic_shape
+    sec%s                   = sec_in%s
+    sec%width2              = sec_in%width2
+    sec%height2             = sec_in%height2
+    sec%width2_plus         = sec_in%width2_plus
+    sec%ante_height2_plus   = sec_in%ante_height2_plus
+    sec%width2_minus        = sec_in%width2_minus
+    sec%ante_height2_minus  = sec_in%ante_height2_minus
   enddo
 enddo
 
