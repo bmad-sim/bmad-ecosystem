@@ -498,5 +498,3 @@ print '\n\nBuild name is: ' + build_name
 print "Waiting..."
 time.sleep(15)
 print '\n\nStill alive...'
-
-#
