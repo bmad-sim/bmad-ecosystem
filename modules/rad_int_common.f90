@@ -92,7 +92,7 @@ type (rad_int1_struct) rad_int1, int_tot
 type (lat_param_struct) param
 
 integer, parameter :: num_int = 9
-integer j, j0, n, n_pts
+integer n,  j, j1, j_min_test, j_max, n_pts
 
 real(rp) :: eps_int, eps_sum, gamma
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
@@ -100,13 +100,14 @@ real(rp) i_sum(num_int), rad_int_vec(num_int), int_tot_vec(num_int)
 
 logical do_int(num_int), complete
 
-integer, parameter :: jmax = 14
 type ri_array_struct
   real(rp) h(num_int)
   real(rp) sum(num_int)
 end type
 
-type (ri_array_struct) ri_array(0:jmax)
+type (ri_array_struct) ri_array(0:4) ! ri_array(n) holds info for the integrals for a particular step.
+
+character(*), parameter :: r_name = 'qromb_rad_int'
 
 !
 
@@ -133,10 +134,26 @@ if (associated(info%cache_ele)) then
   call offset_particle (ele, param, set$, end, set_multipoles = .false., set_hvkicks = .false., ds_pos = ll)
 endif
 
-! Loop until integrals converge.
-! ri_array(j) holds the info for the integrals on the j^th step.
+  ! For j >= 3 we test if the integral calculation has converged.
+  ! Exception: Since wigglers have a periodic field, the calculation can 
+  ! fool itself if we stop before j = 5.
 
-do j = 1, jmax
+j_min_test = 3
+j_max = 14
+
+if (ele%key == wiggler$ .or. ele%key == undulator$) then
+  if (ele%sub_key == periodic_type$) then
+    j_min_test = 3 + log(max(1.0_rp, ele%value(n_pole$))) / log(2.0_rp)
+    j_max = j_min_test + 8
+  else
+    j_min_test = 5
+    j_max = 16
+  endif
+endif
+
+! Loop until integrals converge.
+
+do j = 1, j_max
 
   !---------------
   ! This is trapzd from Numerical Recipes
@@ -178,35 +195,36 @@ do j = 1, jmax
     i_sum(9) = i_sum(9) + info%g2 * info%g * info%b%beta
   enddo
 
-  ri_array(j)%h = ri_array(j-1)%h / 4
-  ri_array(j)%sum = (ri_array(j-1)%sum + del_z * i_sum) / 2
+  if (j <= 4) then
+    j1 = j
+  else
+    ri_array(0:3) = ri_array(1:4)
+    j1 = 4
+  endif
+
+  ri_array(j1)%h = ri_array(j1-1)%h / 4
+  ri_array(j1)%sum = (ri_array(j1-1)%sum + del_z * i_sum) / 2
 
   !--------------
   ! Back to qromb.
-  ! For j >= 3 we test if the integral calculation has converged.
-  ! Exception: Since wigglers have a periodic field, the calculation can 
-  ! fool itself if we stop before j = 5.
 
-  if (j < 3) cycle
-  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. j < 5) cycle
-
-  j0 = max(j-4, 1)
+  if (j < j_min_test) cycle
 
   complete = .true.
   d_max = 0
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
-    call polint (ri_array(j0:j)%h(n), ri_array(j0:j)%sum(n), 0.0_rp, rad_int_vec(n), dint)
+    call polint (ri_array(1:j1)%h(n), ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint)
     d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
     if (abs(dint) > d0)  complete = .false.
-    if (d0 /= 0) d_max = abs(dint) / d0
+    if (d0 /= 0) d_max = max(d_max, abs(dint) / d0)
   enddo
 
-  ! If we have convergance or we are giving up (when j = jmax) then 
+  ! If we have convergance or we are giving up (when j = j_max) then 
   ! stuff the results in the proper places.
 
-  if (complete .or. j == jmax) then
+  if (complete .or. j == j_max) then
 
     rad_int1%n_steps = j
 
@@ -241,8 +259,8 @@ end do
 
 ! We should not be here
 
-print *, 'QROMB_RAD_INT: Note: Radiation Integral is not converging', d_max
-print *, '     For element: ', ele%name
+call out_io (s_warn$, r_name, 'Note: Radiation Integral is not converging \es12.3\ ', &
+                              'For element: ' // ele%name, r_array = [d_max])
 
 end subroutine qromb_rad_int
 
