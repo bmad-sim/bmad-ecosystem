@@ -151,7 +151,7 @@ if (ele%sub_key /= 0) then
   nl=nl+1; write (li(nl), *) 'Sub Key: ', sub_key_name(ele%sub_key)
 endif
 
-nl=nl+1; write (li(nl), '(1x, a, f14.5)')  'S:       ', ele%s
+nl=nl+1; write (li(nl), '(1x, a, f15.6)')  'S:       ', ele%s
 nl=nl+1; write (li(nl), '(1x, a, es14.6)') 'Ref_time:', ele%ref_time
 
 nl=nl+1; li(nl) = ''

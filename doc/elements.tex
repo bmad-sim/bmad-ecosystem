@@ -67,7 +67,7 @@ particle and photon use.
   Drift              & \ref{s:drift}         &  Photon_Fork        & \ref{s:fork}       \HH
   Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
   Floor_Shift        & \ref{s:floor.ele}     &  Sample             & \ref{s:sample}     \HH 
-  Fork               & \ref{s:fork}          &  X_Ray_Init         & \ref{s:x.init}     \HH
+  Fork               & \ref{s:fork}          &  X_Ray_Source       & \ref{s:x.source}   \HH
   Instrument         & \ref{s:monitor}       &                     &                    \HH
 \end{tabular}
 }
@@ -3535,13 +3535,13 @@ machine geometry calculations and is irrelevant for lattice
 computations.
 
 %-----------------------------------------------------------------
-\section{X_Ray_Init}
-\label{s:x.init}
-\index{x_ray_init|hyperbf}
+\section{X_Ray_Source}
+\label{s:x.source}
+\index{x_ray_source|hyperbf}
 
-A \vn{x_ray_init} element is used to simulate a general purpose x-ray source.
+A \vn{x_ray_source} element is used to simulate a general purpose x-ray source.
 
-General \vn{x_ray_init} attributes are:
+General \vn{x_ray_source} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
@@ -3555,7 +3555,7 @@ General \vn{x_ray_init} attributes are:
 \toffset
 
 \index{x_half_length}\index{y_half_length}
-Attributes specific to an \vn{x_ray_init} element are:
+Attributes specific to an \vn{x_ray_source} element are:
 \begin{example}
   x_half_length = <Real>     ! Horizontal strong beam sigma   
   x_half_length = <Real>     ! Horizontal strong beam sigma   
