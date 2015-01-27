@@ -1645,7 +1645,7 @@ case ('lattice')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
     column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false.)
     column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
     column( 6)  = show_lat_column_struct('ele::#[x_position]',     'f12.5',    12, 'X',     .false.)
     column( 7)  = show_lat_column_struct('ele::#[y_position]',     'f12.5',    12, 'Y',     .false.)
@@ -1658,7 +1658,7 @@ case ('lattice')
     column( 1)  = show_lat_column_struct('#',                      'i6',        6, '', .false.)
     column( 2)  = show_lat_column_struct('x',                      'x',         2, '', .false.)
     column( 3)  = show_lat_column_struct('ele::#[name]',           'a',         0, '', .false.)
-    column( 4)  = show_lat_column_struct('ele::#[key]',            'a16',      16, '', .false.)
+    column( 4)  = show_lat_column_struct('ele::#[key]',            'a17',      17, '', .false.)
     column( 5)  = show_lat_column_struct('ele::#[s]',              'f10.3',    10, '', .false.)
     column( 6)  = show_lat_column_struct('ele::#[orbit_x]',        'es14.6',   14, '', .false.)
     column( 7)  = show_lat_column_struct('ele::#[orbit_px]',       'es14.6',   14, '', .false.)
@@ -1671,7 +1671,7 @@ case ('lattice')
     column(1)  = show_lat_column_struct('#',                     'i6',        6, '', .false.)
     column(2)  = show_lat_column_struct('x',                     'x',         2, '', .false.)
     column(3)  = show_lat_column_struct('ele::#[name]',          'a',         0, '', .false.)
-    column(4)  = show_lat_column_struct('ele::#[key]',           'a16',      16, '', .false.)
+    column(4)  = show_lat_column_struct('ele::#[key]',           'a17',      17, '', .false.)
     column(5)  = show_lat_column_struct('ele::#[s]',             'f10.3',    10, '', .false.)
     if (branch%param%geometry == open$) then
       column(6)  = show_lat_column_struct('lat::rad_int1.i1[#]',     'es10.2',  10, '', .true.)
@@ -1694,7 +1694,7 @@ case ('lattice')
     column(1)  = show_lat_column_struct('#',                 'i6',        6, '', .false.)
     column(2)  = show_lat_column_struct('x',                 'x',         2, '', .false.)
     column(3)  = show_lat_column_struct('ele::#[name]',      'a',         0, '', .false.)
-    column(4)  = show_lat_column_struct('ele::#[key]',       'a16',      16, '', .false.)
+    column(4)  = show_lat_column_struct('ele::#[key]',       'a17',      17, '', .false.)
     column(5)  = show_lat_column_struct('ele::#[s]',         'f10.3',    10, '', .false.)
     column(6)  = show_lat_column_struct('ele::#[l]',         'f8.3',      8, '', .false.)
     column(7)  = show_lat_column_struct('ele::#[beta_a]',    'f8.2',      8, '', .false.)
@@ -1705,6 +1705,7 @@ case ('lattice')
     column(12) = show_lat_column_struct('ele::#[phi_b]',     'f8.3',      8, '', .false.)
     column(13) = show_lat_column_struct('ele::#[eta_b]',     'f7.2',      7, '', .false.)
     column(14) = show_lat_column_struct('ele::#[orbit_y]',   '3p, f8.3',  8, 'orbit|y [mm]', .false.)
+
   end select
 
   if (what_to_print /= 'custom' .and. show_lords) then
@@ -1814,11 +1815,26 @@ case ('lattice')
   line2 = ""
   line3 = ""
   do i = 1, size(column)
-    if (column(i)%name == "") cycle
+    if (column(i)%name == '') cycle
 
     ! Convert from old 'dat::' format to 'lat::' format.
     ix = index(column(i)%name, 'dat::')
-    if (ix /= 0) column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
+    if (ix /= 0) then
+      call out_io (s_error$, r_name, 'Column uses old "dat::" syntax. Please switch this to "lat::".', &
+                                     'For now, will accept this old syntax...')
+      column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
+    endif
+
+    ! Use finer scale for s if needed.
+
+    if (what_to_print /= 'custom' .and. column(i)%name == 'ele::#[s]') then
+      if (branch%ele(branch%n_ele_track)%s < 0.1) then
+        column(i)%label = 's [mm]'
+        column(i)%format = '3p, f10.3'
+      endif
+    endif
+
+    !
 
     column(i)%format = '(' // trim(column(i)%format) // ')'
 
@@ -2684,7 +2700,8 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) '%beam%saved_at:        = ', trim(u%beam%saved_at)
   nl=nl+1; lines(nl) = ''
   nl=nl+1; write(lines(nl), amt) 'Lattice name:           ', lat%lattice
-  nl=nl+1; write(lines(nl), amt) 'Input_file_name:        ', lat%input_file_name
+  nl=nl+1; write(lines(nl), amt) 'Used line in lat file:  ', lat%use_name
+  nl=nl+1; write(lines(nl), amt) 'Lattice file name:      ', lat%input_file_name
   nl=nl+1; write(lines(nl), amt) 'Reference species:      ', species_name(branch%param%particle)
   if (branch%param%particle == photon$) then
     nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)

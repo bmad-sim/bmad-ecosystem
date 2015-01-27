@@ -868,7 +868,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  sol_quad$, '*'), &
       tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   solenoid$, '*'), &
       tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   wiggler$, '*'), &
-      tao_ele_shape_struct('X_RAY_INIT::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.,   x_ray_init$, '*') ]
+      tao_ele_shape_struct('X_RAY_SOURCE::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.,   x_ray_source$, '*') ]
 
 real(rp) y_layout, dx, dy, dz
 integer np, n, nr
