@@ -52,7 +52,7 @@ select case (ele%key)
 !--------------------------------------------------------
 ! Crystal
 
-case (crystal$, sample$, x_ray_init$)
+case (crystal$, sample$, x_ray_source$)
 
   ! Not yet implemented
 

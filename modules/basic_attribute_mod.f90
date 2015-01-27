@@ -419,7 +419,7 @@ do i = 1, n_key$
 
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
-  if (i == x_ray_init$)        cycle
+  if (i == x_ray_source$)        cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
@@ -1111,9 +1111,9 @@ call init_attribute_name1 (wiggler$, field$,                        'FIELD')
 call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
 
-call init_attribute_name1 (x_ray_init$, l$,                   'L')
-call init_attribute_name1 (x_ray_init$, x_half_length$,       'X_HALF_LENGTH')
-call init_attribute_name1 (x_ray_init$, y_half_length$,       'Y_HALF_LENGTH')
+call init_attribute_name1 (x_ray_source$, l$,                   'L')
+call init_attribute_name1 (x_ray_source$, x_half_length$,       'X_HALF_LENGTH')
+call init_attribute_name1 (x_ray_source$, y_half_length$,       'Y_HALF_LENGTH')
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

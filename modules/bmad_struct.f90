@@ -762,7 +762,7 @@ integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40
 integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
-integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_init$ = 53
+integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_source$ = 53
 integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, def_bmad_com$ = 57
 !!! rel_controller$ = , abs_controller$ = 
 
@@ -783,7 +783,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_INIT       ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
+    'X_RAY_SOURCE     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
     'DEF_BMAD_COM     ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
