@@ -5384,36 +5384,52 @@ end subroutine settable_dep_var_bookkeeping
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
+! Subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file, use_line)
 !
 ! Subroutine to form the standard name of the Bmad digested file. 
-! The standard digested file name has the suffix '_digested' added to the file name.
+! The standard digested file name has the suffix added to the file name:
+!     suffix = '.digested' + bmad_inc_version$ 
+! Exception: If the use_line argument is present and not blank, the suffix will be:
+!     suffix = '.' + use_line + '.digested' + bmad_inc_version$ 
+!   
 !
 ! Modules needed:
 !   use bmad_parser_mod
 !
 ! Input:
-!   lat_file -- Character(200): Input lattice file name.
+!   lat_file -- Character(*): Input lattice file name.
+!   use_line -- Character(*), optional: Line used for lattice expansion. If not present
+!                 or blank, the line used is the one that was specified in the lattice file.
 !
 ! Output:
 !   digested_file -- Character(200): Name of the digested file.
-!   full_lat_file  -- Character(200), optional: Input lattice file name with full directory
-!
+!   full_lat_file -- Character(200), optional: Input lattice file name with full directory.
+!                       Can be used for error messages.
 !-
 
-subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file)
+subroutine form_digested_bmad_file_name (lat_file, digested_file, full_lat_file, use_line)
 
 character(*) lat_file, digested_file
-character(*), optional :: full_lat_file
+character(*), optional :: full_lat_file, use_line
 character(200) full_name
 
 integer ix
 
-!
+! Get the full_lat_file name
 
 call fullfilename (lat_file, full_name)
 inquire (file = full_name, name = full_name)  ! full input file_name
 if (present (full_lat_file)) full_lat_file = full_name
+
+! Construct the digested_file name
+
+if (present(use_line)) then
+  if (use_line /= '') then
+    write (digested_file, '(4a, i0)') trim(full_name), '.', trim(use_line), '.digested', bmad_inc_version$ 
+    return
+  endif
+endif
+
 write (digested_file, '(2a, i0)') trim(full_name), '.digested', bmad_inc_version$ 
 
 end subroutine form_digested_bmad_file_name
@@ -5559,12 +5575,12 @@ allocate (used_line(n_max))
 
 call find_indexx (use_name, seq_name, seq_indexx, iseq_tot, i_use)
 if (i_use == 0) then
-  call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, ' ')
+  call parser_error ('CANNOT FIND DEFINITION OF LINE IN "USE" STATEMENT: ' // use_name, stop_here = .true.)
   return
 endif
 
 if (sequence(i_use)%type /= line$) then
-  call parser_error ('NAME IN "USE" STATEMENT IS NOT A LINE!', ' ')
+  call parser_error ('NAME IN "USE" STATEMENT IS NOT A LINE!', stop_here = .true.)
   return
 endif
 

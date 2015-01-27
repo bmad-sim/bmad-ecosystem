@@ -97,7 +97,7 @@ bp_com%input_from_file = .true.
 debug_line = ''
 
 if (.not. bp_com%always_parse) then
-  call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name)
+  call form_digested_bmad_file_name (lat_file, digested_file, full_lat_file_name, use_line)
   call read_digested_bmad_file (digested_file, lat, digested_version, err_flag = err)
 endif
 
@@ -765,6 +765,10 @@ branch_loop: do i_loop = 1, n_branch_max
     endif
 
     call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+    if (bp_com%fatal_error_flag) then
+      call parser_end_stuff (.false.)
+      return
+    endif
     is_photon_fork = .false.
   endif
 
