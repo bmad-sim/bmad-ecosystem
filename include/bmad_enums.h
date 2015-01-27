@@ -72,7 +72,7 @@ namespace Bmad {
   const int FORK = 41, MIRROR = 42, CRYSTAL = 43;
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
-  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, X_RAY_INIT = 53;
+  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, X_RAY_SOURCE = 53;
   const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, DEF_BMAD_COM = 57;
   const int N_KEY = 57;
   const int N_PART = 2, TAYLOR_ORDER = 3;
