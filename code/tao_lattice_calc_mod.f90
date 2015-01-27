@@ -353,7 +353,7 @@ endif
 
 ! Twiss
 
-if (u%calc%mat6) then
+if (u%calc%mat6 .and. branch%param%particle /= photon$) then
 
   do i = 1, branch%n_ele_track
     if (branch%ele(i)%tracking_method == linear$) then
