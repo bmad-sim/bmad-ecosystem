@@ -2053,7 +2053,7 @@ longitudinal and dipole transverse wakes. An example input file is:
     longitudinal(1) = 3.23e14     1.23e3     3.62e3     0.123
     longitudinal(2) = 6.95e13     5.02e2     1.90e3    -1.503
     .. etc ..
-    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789    X       Trailing
+    transverse(1) =   4.23e14     2.23e3     5.62e3     0.789    X  linear_trailing
     transverse(2) =   8.40e13     5.94e2     1.92e3     1.455
      .. etc ..
     z_max = -1.3e-3
@@ -2065,6 +2065,7 @@ the maximum $z$ value at which the pseudo mode fit is valid. \bmad
 will check the distance between particles does not exceed \vn{z_max}.
 If it does, \bmad will report an error.
 
+\index{none}\index{x_axis}\index{y_axis}
 The \vn{polarizaiton} parmeter is used to specify the wake
 polarization. Possible settings for this parameter are:
 \begin{example}
@@ -2076,14 +2077,15 @@ The \vn{polarization} name may be abbreviated.  For example, if the
 \vn{polarization} is set to \vn{x_axis}, there is no vertical kick
 from the psudo mode.
 
+\index{none}\index{linear_leading}\index{linear_trailing}
 The \vn{transverse_dependence} parameter sets whether the wake kick
 is linear in the offset of the leading or trailing particle or is
 independent of the transverse offset.
 Possible settings of this parameter are:
 \begin{example}
-  none            ! Default for longitudinal modes
-  leading_offset  ! Default for transverse modes
-  trailing_offset
+  none              ! Default for longitudinal modes
+  linear_leading    ! Default for transverse modes
+  linear_trailing
 \end{example}
 The \vn{transverse_dependence} parameter may be abbreviated. Note: Due
 to the way the wake file is parsed, if \vn{transverse_dependence} is
