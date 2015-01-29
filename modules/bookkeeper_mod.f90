@@ -2165,12 +2165,13 @@ logical :: dval_change(num_ele_attrib$)
 
 val => ele%value
 
-! Overlay and group elements do not have any dependent attributes
+! Overlay and group and hybrid elements do not have any dependent attributes
 
-if (ele%key == overlay$ .or. ele%key == group$) then
+select case (ele%key)
+case (overlay$, group$, hybrid$)
   ele%bookkeeping_state%attributes = ok$
   return
-endif
+end select
 
 ! Intelligent bookkeeping
 
