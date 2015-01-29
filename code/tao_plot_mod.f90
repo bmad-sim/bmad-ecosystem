@@ -609,8 +609,8 @@ if (is_bend) then
   length = ele%value(l$)     * ele%orientation
   do j = 0, n_bend
     angle = j * ang / n_bend
-    cos_t = cos(ele%value(tilt$))
-    sin_t = sin(ele%value(tilt$))
+    cos_t = cos(ele%value(ref_tilt_tot$))
+    sin_t = sin(ele%value(ref_tilt_tot$))
     cos_a = cos(angle)
     sin_a = sin(angle)
     if (ele%value(g$) == 0) then
