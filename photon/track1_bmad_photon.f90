@@ -35,7 +35,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
 
-real(rp) length, w(3,3), vec0(6), mat6(6,6)
+real(rp) w(3,3), vec0(6), mat6(6,6)
 real(rp) vel_vec(3), hit_point(3), cos_g, sin_g
 
 integer i, n, n_slice, key
@@ -52,7 +52,7 @@ if (present(err_flag)) err_flag = .false.
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
 end_orb = start_orb     ! transfer start to end
-length = ele%value(l$)
+end_orb%vec(5) = 0      ! start at beginning of element
 
 !-----------------------------------------------
 ! Select
@@ -101,7 +101,8 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
   endif
 
   call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track_a_drift_photon (end_orb, length, .true.); if (end_orb%state /= alive$) return
+  call track_a_drift_photon (end_orb, ele%value(l$), .true.)
+  if (end_orb%state /= alive$) return
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
   end_orb%s = ele%s

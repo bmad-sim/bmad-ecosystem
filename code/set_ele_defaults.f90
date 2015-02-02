@@ -69,6 +69,7 @@ case (def_parameter$)
 
 case (detector$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
+  ele%aperture_type = auto_aperture$
 !!! Due to ifort bug:  ele%photon = photon_element_struct()
   call init_photon_element_struct(ele%photon)
 

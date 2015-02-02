@@ -3895,27 +3895,34 @@ integer nn, i
 
 if (allocated(bp_com%var)) deallocate (bp_com%var)
 
-nn = 15  ! number of standard (non-user defined) constants
-bp_com%ivar_init = nn
-bp_com%ivar_tot  = nn
-
+nn = 22  ! number of standard (non-user defined) constants
 allocate (bp_com%var(nn))
 
 bp_com%var( 1) = bp_var_struct('PI', pi, 0)
 bp_com%var( 2) = bp_var_struct('TWOPI', twopi, 0)
-bp_com%var( 3) = bp_var_struct('DEGRAD', 180 / pi, 0)
-bp_com%var( 4) = bp_var_struct('RADDEG', pi / 180, 0)
-bp_com%var( 5) = bp_var_struct('E_LOG', 2.718281828459_rp, 0)
-bp_com%var( 6) = bp_var_struct('E_MASS', e_mass, 0)
-bp_com%var( 7) = bp_var_struct('C_LIGHT', c_light, 0)
-bp_com%var( 8) = bp_var_struct('M_ELECTRON', m_electron, 0)
-bp_com%var( 9) = bp_var_struct('M_PROTON', m_proton, 0)
-bp_com%var(10) = bp_var_struct('R_P', r_p, 0)
-bp_com%var(11) = bp_var_struct('E_CHARGE', e_charge, 0)
-bp_com%var(12) = bp_var_struct('EMASS', e_mass, 0)
-bp_com%var(13) = bp_var_struct('CLIGHT', c_light, 0)
-bp_com%var(14) = bp_var_struct('R_E', r_e, 0)
-bp_com%var(15) = bp_var_struct('DEGREES', pi / 180, 0) ! From degrees to radians.
+bp_com%var( 3) = bp_var_struct('FOURPI', fourpi, 0)
+bp_com%var( 4) = bp_var_struct('E_LOG', 2.718281828459_rp, 0)
+bp_com%var( 5) = bp_var_struct('SQRT_2', sqrt_2, 0)
+bp_com%var( 6) = bp_var_struct('DEGRAD', 180 / pi, 0)
+bp_com%var( 7) = bp_var_struct('DEGREES', pi / 180, 0) ! From degrees to radians.
+bp_com%var( 8) = bp_var_struct('RADDEG', pi / 180, 0)
+bp_com%var( 9) = bp_var_struct('M_ELECTRON', m_electron, 0)
+bp_com%var(10) = bp_var_struct('M_MUON', m_muon, 0)
+bp_com%var(11) = bp_var_struct('M_PION_0', m_pion_0)
+bp_com%var(12) = bp_var_struct('M_PION_CHARGED', m_pion_charged, 0)
+bp_com%var(13) = bp_var_struct('M_PROTON', m_proton, 0)
+bp_com%var(14) = bp_var_struct('C_LIGHT', c_light, 0)
+bp_com%var(15) = bp_var_struct('R_E', r_e, 0)
+bp_com%var(16) = bp_var_struct('R_P', r_p, 0)
+bp_com%var(17) = bp_var_struct('E_CHARGE', e_charge, 0)
+bp_com%var(18) = bp_var_struct('H_PLANCK', h_planck, 0)
+bp_com%var(19) = bp_var_struct('H_BAR_PLANCK', h_bar_planck, 0)
+bp_com%var(20) = bp_var_struct('PMASS', p_mass, 0)
+bp_com%var(21) = bp_var_struct('EMASS', e_mass, 0)
+bp_com%var(22) = bp_var_struct('CLIGHT', c_light, 0)
+
+bp_com%ivar_init = nn
+bp_com%ivar_tot  = nn
 
 call indexx (bp_com%var(1:nn)%name, bp_com%var(1:nn)%indexx)
 

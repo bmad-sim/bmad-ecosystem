@@ -184,6 +184,10 @@ wavelength = c_light * h_planck / orbit%p0c
 orbit%field = orbit%field * (vz0 + orbit%vec(6)) / (2 * wavelength)
 orbit%phase = orbit%phase - pi / 2
 
+if (ele%value(field_scale_factor$) /= 0) then
+  orbit%field = orbit%field * ele%value(field_scale_factor$)
+endif
+
 end subroutine track1_diffraction_plate
 
 !-----------------------------------------------------------------------------------------------
@@ -372,7 +376,8 @@ end subroutine track1_sample
 !   orbit              -- Coord_struct: phase-space coords of photon.
 !                      --   Will be in curved surface coords if there is a curved surface.
 !   direction          -- Integer: +1 -> Emit in forward +z direction, -1 -> emit backwards.
-!   solid_angle        -- real(rp): Solid angle photons may be emitted over.
+!   solid_angle        -- real(rp): Area of the solid angle photons may be emitted over.
+!                           solid_angle is used for normalizing the photon field.
 !   w_to_surface(3,3)  -- real(rp), optional: Rotation matrix for curved surface.
 !
 ! Output:
