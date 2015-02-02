@@ -275,6 +275,7 @@ else
 
   endif
 
+  ! All elements...
   ! Unset: Transport to element nominal end.
   ! The s-position calc breaks down for reflective elements in track_a_drift_photon so 
   ! simply set orbit%s to what it should be.
@@ -289,20 +290,23 @@ else
 
   ! Unset: intensities
 
-  field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1))), &
-           cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)))]
-
   if (is_reflective_element) then
     tilt = p(ref_tilt_tot$) + cos(graze2) * tilt
   endif
-  field = [cos(tilt) * field(1) - sin(tilt)*field(2), &
-           sin(tilt) * field(1) + cos(tilt)*field(2)]
 
-  orbit%field(1) = abs(field(1))
-  orbit%phase(1) = atan2(aimag(field(1)),real(field(1)))
+  if (tilt /= 0) then
+    field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1))), &
+             cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)))]
 
-  orbit%field(2) = abs(field(2))
-  orbit%phase(2) = atan2(aimag(field(2)),real(field(2)))
+    field = [cos(tilt) * field(1) - sin(tilt)*field(2), &
+             sin(tilt) * field(1) + cos(tilt)*field(2)]
+
+    orbit%field(1) = abs(field(1))
+    orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
+
+    orbit%field(2) = abs(field(2))
+    orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+  endif
 
 endif
 

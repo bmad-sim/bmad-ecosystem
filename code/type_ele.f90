@@ -75,7 +75,7 @@ type (lat_param_struct) param
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
 integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
-integer nl, nt, n_term, n_att, attrib_type, n_char, iy
+integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle
 
 real(rp) coef
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
@@ -109,8 +109,10 @@ if (associated(ele%branch)) call lat_sanity_check(ele%branch%lat, err_flag)
 if (associated(ele%branch)) then
   branch => ele%branch
   lat => branch%lat
+  particle = branch%param%particle
 else
   nullify(lat)
+  particle = electron$
 endif
 
 ! Encode element name and type
@@ -196,9 +198,15 @@ else
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
 
     elseif (a_name == 'P0C') then
-      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
+      if (particle == photon$) then
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es14.6)') &
+                        i, a_name(1:n_att), '=', ele%value(i), ',', &
+                        'REF_WAVELENGTH  =', c_light * h_planck / ele%value(p0c$)
+      else
+        nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, f13.9)') &
                         i, a_name(1:n_att), '=', ele%value(i), ',', &
                         'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
+      endif
 
     elseif (a_name == 'E_TOT' .and. attribute_name(ele, e_tot_start$) == 'E_TOT_START') then
       nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &

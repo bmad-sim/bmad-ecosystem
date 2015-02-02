@@ -668,7 +668,9 @@ call init_attribute_name1 (detector$, l$,                             'L', depen
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
+call init_attribute_name1 (diffraction_plate$, l$,                  'l', private$)
 call init_attribute_name1 (diffraction_plate$, mode$,               'MODE')
+call init_attribute_name1 (diffraction_plate$, field_scale_factor$, 'FIELD_SCALE_FACTOR')
 
 call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')

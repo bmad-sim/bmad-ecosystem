@@ -216,7 +216,7 @@ follows:
 \vn{sig_x}, \vn{sig_y} are the transverse sigmas of the strong beam
 at $s_0$ which is the $s$-position where the \vn{beambeam} element is located. 
 For calculating the the sigmas of any given slice, \vn{sig_x} and \vn{sig_y} 
-are extrapolated using the Twiss paramteters at $s_0$. The Twiss parameters
+are extrapolated using the Twiss parameters at $s_0$. The Twiss parameters
 at $s_0$ are set by \vn{beta_a}, \vn{beta_b}, \vn{alpha_a}, and \vn{alpha_b}.
 If \vn{beta_a} is zero (the default), the $a$-mode Twiss parameters as 
 calculated from the lattice is used. Similarly, 
@@ -965,23 +965,36 @@ file that contains parameters for the element.
 \index{detector|hyperbf}
 
 A \vn{detector} element is used to detect particles and X-rays.  A
-\vn{detector} is modeled as a plate upon which particles and x-rays
-can impinge.
+\vn{detector} is modeled as a grid of pixels which detect particles and x-rays
+impinging upon them.
 
 General \vn{detector} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
-  Chamber wall               & \ref{s:wall}    & Surface Properties         & \ref{s:s.curve} \HH
-  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
-  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                 \HH
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section           \HH
+  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}    \HH
+  Chamber Wall               & \ref{s:wall}    & Detector Geometry          & \ref{s:surf.grid} \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods}   \HH
+  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                   \HH
 \end{tabular}
 \end{center}
 \toffset
 
+The detector pixels are are arranged in a rectangular grid (\sref{s:surf.grid}). 
 
+\index{aperture_type}
+The \vn{aperture_type} (\sref{s:limit}) parameter of a
+\vn{detector} will default to \vn{auto} which will set the
+aperture limits to define a rectangular aperture that just cover the
+clear area of the plate.
+
+Example:
+\begin{example}
+  det: detector, surface = {grid = 
+          {ix_bounds = (-4,5), iy_bounds = (-10,10), dr = (0.01, 0.01)}}
+\end{example}
+This example defines a detector with 1~cm x 1~cm pixels.
 
 %-----------------------------------------------------------------
 \section{Diffraction_Plate}
@@ -1003,17 +1016,19 @@ General \vn{diffraction_plate} element attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
   Aperture Limits            & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
+  Plate geometry             & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
 
-\index{mode}
+\index{mode}\index{field_scale_factor}
 Attributes specific to a \vn{diffraction_plate} element are:
 \begin{example}
-  mode               = <type>       ! reflection or transmission
+  mode               = <Type>       ! Reflection or transmission
+  field_scale_factor = <Real>       ! Factor to scale the photon field
 \end{example}
+
 The \vn{mode} switch sets whether X-rays are transmitted through the
 \vn{diffraction_plate} or or reflected. Possible values for the
 \vn{mode} switch are:
@@ -1031,10 +1046,25 @@ transversely to the beam. Like all other elements, the
 \vn{diffraction_plate} can be reoriented using the element's offsets,
 pitches and tilt attributes (\sref{s:offset}).
 
+\index{aperture_type}
 The \vn{aperture_type} (\sref{s:limit}) parameter of a
 \vn{diffraction_plate} will default to \vn{auto} which will set the
 aperture limits to define a rectangular aperture that just cover the
 clear area of the plate.
+
+\index{field_scale_factor}
+The \vn{field_scale_factor}, if set to a non-zero value (zero is the
+default) will be used to scale the field of photons as they pass through
+the \vn{diffraction_plate} element:
+\begin{example}
+  field -> field * field_scale_factor
+\end{example}
+Scaling is useful since the electric field of photons traveling through a
+\vn{diffraction_plate} are renormalized (see \Eqs{eeo4p} and
+\eq{eek4p}). This can lead to large variation of the photon field and
+can, for example, make visual interpretation of plots of field verses
+longitudinal position difficult to interpret. \vn{field_scale_factor}
+can be used to keep the field more or less constant.
 
 Example:
 \begin{example}

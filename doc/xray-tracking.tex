@@ -92,7 +92,7 @@ decrease the simulation time, simulated photons may be limited to be
 generated with a direction to be within some solid angle $\Omega_1$ if
 photons with a direction outside this solid angle will not contribute
 to the simulation results. In this case, there are two channels.
-Channel 1 consists of all photons whose direction is withing
+Channel 1 consists of all photons whose direction is within
 $\Omega_1$ and channel 2 is all the other photons. To limit the
 photons to channel 1, $P_1$ is taken to be 1 and $P_2$ is taken to be
 0. Additionaly, if the light, say, is being generated isotropically
@@ -146,8 +146,8 @@ at the observation point of
 \Endeq
 which falls off as $1/R$ as expected.
 
-At an aperture where diffraction effects are to be simulated, the
-following procedure is used:
+At a \vn{diffraction_plate} element where diffraction effects are to
+be simulated, the following procedure is used:
   \begin{enumerate}
   \item
 The electric field components are multiplied by the propagation length $L$:
@@ -158,12 +158,23 @@ The propagation length is reset to zero so that the at the next point
 where the propagation length is factored into the electric field the
 propagation length will be the length starting at the aperture.
   \item
-The photon is given a random direction over the $2 \, \pi$ solid angle
-of the opening.
+Depending upon the program, the photon is is either given a random
+direction over $2 \, \pi$ solid angle or the photon's direction
+is restricted to be within some solid angle choosen to increase
+the probability that the photon will make it through some downstream aperture.
+
+If the photon is restricted to some aperture dependent solid angle of area $\Omega$,
+the photon's electric field is scalled by
+\Begineq
+  E \rightarrow E \, \frac{\Omega}{4 \, \pi}
+  \label{eeo4p}
+\Endeq
+
   \item
 The electric field components are scaled by
 \Begineq
   E \rightarrow E \, \frac{k}{4 \, \pi \, i} \, (\cos\theta_1 + \cos\theta_2)
+  \label{eek4p}
 \Endeq
 where $\theta_1$ and $\theta_2$ are the dirction cosines of the
 incoming and outgoing directions of the photon with respect to the

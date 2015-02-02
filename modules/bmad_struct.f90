@@ -14,10 +14,8 @@ use definition, only: genfield, fibre, layout
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST 
-! INCREASE THE VERSION NUMBER !!!
+! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
 integer, parameter :: bmad_inc_version$ = 148
@@ -836,7 +834,7 @@ integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinate
 integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5, b_max$ = 5, v_displace$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, sig_z$ = 6, noise$ = 6, new_branch$ = 6
-integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6
+integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
