@@ -320,7 +320,7 @@ end subroutine order_particles_in_z
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, param, beam_init, beam)
+! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
 !
 ! Subroutine to initialize a beam of particles. 
 ! 
@@ -341,10 +341,10 @@ end subroutine order_particles_in_z
 !
 ! Output:
 !   beam        -- Beam_struct: Structure with initialized particles.
-!
+!   err_flag    -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
-subroutine init_beam_distribution (ele, param, beam_init, beam)
+subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag)
  
 use random_mod
 
@@ -359,15 +359,23 @@ type (coord_struct), pointer :: p
 
 real(rp) :: beta_vel
 integer i_bunch, i, n, n_kv
-logical :: err_flag
+logical, optional :: err_flag
+logical err_here
 
 character(22) :: r_name = "init_beam_distribution"
+
+!
+
+if (present(err_flag)) err_flag = .true.
 
 ! Special init from file
 
 if (upcase(beam_init%distribution_type(1)) == 'FILE') then
-  call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_flag)
-  if (err_flag) call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+  call read_beam_file (beam_init%file_name, beam, beam_init, .false., err_here)
+  if (err_here) then
+    call out_io (s_abort$, r_name, "Problem with beam file: "//beam_init%file_name)
+    return
+  endif
   do i_bunch = 1, size(beam%bunch)
     bunch => beam%bunch(i_bunch)
     do i = 1, size(bunch%particle)
@@ -378,6 +386,7 @@ if (upcase(beam_init%distribution_type(1)) == 'FILE') then
       call init_coord (p, p, ele, downstream_end$, beam_init%species)
     enddo
   enddo
+  if (present(err_flag)) err_flag = .false.
   return
 endif
 
@@ -390,7 +399,8 @@ call reallocate_beam (beam, beam_init%n_bunch, 0)
 
 do i_bunch = 1, size(beam%bunch)
   bunch => beam%bunch(i_bunch)
-  call init_bunch_distribution (ele, param, beam_init, bunch)
+  call init_bunch_distribution (ele, param, beam_init, bunch, err_here)
+  if (err_here) return
 
   bunch%t_center = (i_bunch-1) * beam_init%dt_bunch
   bunch%z_center = -bunch%t_center * c_light * ele%value(e_tot$) / ele%value(p0c$)
@@ -400,13 +410,15 @@ do i_bunch = 1, size(beam%bunch)
 
 enddo
   
+if (present(err_flag)) err_flag = .false.
+
 end subroutine init_beam_distribution
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_bunch_distribution (ele, param, beam_init, bunch)
+! Subroutine init_bunch_distribution (ele, param, beam_init, bunch, err_flag)
 !
 ! Subroutine to initialize a distribution of particles of a bunch.
 !
@@ -442,9 +454,10 @@ end subroutine init_beam_distribution
 !
 ! Output:
 !   bunch        -- bunch_struct: Structure with initialized particles.
+!   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine init_bunch_distribution (ele, param, beam_init, bunch)
+subroutine init_bunch_distribution (ele, param, beam_init, bunch, err_flag)
 
 use mode3_mod
 
@@ -476,14 +489,18 @@ integer :: ix_kv(3) ! indices (1,2,3) of the two KV planes or 0 if uninitialized
 character(16) old_engine, old_converter  
 character(22) :: r_name = "init_bunch_distribution"
 
+logical, optional :: err_flag
 logical ok, correct_for_coupling(6)
-logical ran_gauss_here
+logical ran_gauss_here, err
 
 ! Checking that |beam_init%dpz_dz| < mode%sigE_E / mode%sig_z
+
+if (present(err_flag)) err_flag = .true.
 
 if (abs(beam_init%dPz_dz * beam_init%sig_z) > beam_init%sig_e) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 ! Save and set the random number generator parameters.
@@ -557,7 +574,8 @@ enddo
 if (n_kv == 2) call init_KV_distribution (ix_kv(1), ix_kv(2), beam_init%kv, twiss_ele, bunch)
 
 if (ran_gauss_here) then
-  call init_random_distribution (twiss_ele, species, beam_init, bunch)
+  call init_random_distribution (twiss_ele, species, beam_init, bunch, err)
+  if (err) return
 endif
 
 if (beam_init%full_6D_coupling_calc) then
@@ -658,6 +676,7 @@ endif
 
 call ran_engine (old_engine)
 call ran_gauss_converter (old_converter, old_cutoff)
+if (present(err_flag)) err_flag = .false.
   
 end subroutine init_bunch_distribution
 
@@ -737,7 +756,7 @@ end subroutine calc_this_emit
 ! Note: This routine is private. Use init_bunch_distribution instead.
 !-
 
-subroutine init_random_distribution (ele, species, beam_init, bunch)
+subroutine init_random_distribution (ele, species, beam_init, bunch, err_flag)
  
 use random_mod
 
@@ -755,7 +774,7 @@ real(rp) center(6), ran_g(2), old_cutoff
 
 integer i, j, j2, n, i_bunch, n_particle, species
 
-logical is_ran_plane(3)
+logical is_ran_plane(3), err_flag
 
 character(16) old_engine, old_converter  
 character(28) :: r_name = "init_random_distribution"
@@ -763,6 +782,7 @@ character(28) :: r_name = "init_random_distribution"
 ! If random is to be combined with other distributions, the number
 ! of particles is set by the other distributions.
 
+err_flag = .true.
 is_ran_plane = (beam_init%distribution_type == '' .or. beam_init%distribution_type == 'RAN_GAUSS')
 
 n_particle = beam_init%n_particle
@@ -771,6 +791,7 @@ if (any(.not. is_ran_plane)) n_particle = size(bunch%particle)
 if (n_particle < 1) then
   call out_io (s_abort$, r_name, 'NUMBER OF PARTICLES TO INIT FOR BEAM IS ZERO!')
   if (global_com%exit_on_error) call err_exit
+  return
 endif
 
 allocate(p(n_particle))
@@ -871,6 +892,7 @@ if (sigma(6) == 0 .or. dpz_dz == 0) then
 else if (abs(dpz_dz * sigma(5)) > sigma(6)) then
   call out_io (s_abort$, r_name, "|dpz_dz| MUST be < mode%sigE_E / mode%sig_z")
   if (global_com%exit_on_error) call err_exit
+  return
 else
   a = dpz_dz * sigma(5) / sigma(6)
 endif
@@ -893,6 +915,7 @@ end do
 
 p(:)%charge = 1.0_rp / n_particle
 call combine_bunch_distributions (bunch, p, is_ran_plane, .false.)
+err_flag = .false.
 
 end subroutine init_random_distribution
 
