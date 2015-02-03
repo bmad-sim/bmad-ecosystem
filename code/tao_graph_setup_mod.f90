@@ -337,7 +337,7 @@ do k = 1, size(graph%curve)
     do ib = 1, size(beam%bunch)
       if (curve%ix_bunch /= 0 .and. curve%ix_bunch /= ib) cycle
       p => beam%bunch(ib)%particle
-      m = size(p)
+      m = count(beam%bunch(ib)%particle%state == alive$)
       call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, scratch%axis1)
       call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
