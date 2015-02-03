@@ -76,20 +76,19 @@ contains
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_generate_photon (photon, lat, photon_init, ix_energy, lux_param)
+! Subroutine lux_generate_photon (photon, lat, photon_init, lux_param)
 !
 ! Routine to generate the starting photon coordinates
 !
 ! Input:
 !   lat           -- lat_struct: Lattice.
 !   photon_init   -- photon_init_struct: 
-!   ix_energy     -- Integer: Energy slice index.
 !
 ! Ouput:
 !   photon     -- lux_photon_struct: Initialized starting coords.
 !-
 
-subroutine lux_generate_photon (photon, lat, photon_init, ix_energy, lux_param)
+subroutine lux_generate_photon (photon, lat, photon_init, lux_param)
 
 use nr
 
@@ -109,7 +108,7 @@ real(rp) x, y, phi, r(3), dir(2), ds, rr, r_emit(5), prob, f
 real(rp) v_mat(4,4), v_inv_mat(4,4), vec(4), dE, e(3), b(3), sig_vec(6)
 real(rp) g_bend(3), gamma_electron
 
-integer ix, n_slice, ix_energy
+integer ix, n_slice
 
 ! Init
 
@@ -134,10 +133,10 @@ else
 endif
 
 !-----------------------------------------------------
-! x_ray_init source
+! x_ray_source source
 
 select case (lux_com%source_ele%key)
-case (x_ray_init$)
+case (x_ray_source$)
 
   ! Set position
 
@@ -176,25 +175,13 @@ case (x_ray_init$)
 
   ! Set energy
 
-  if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
-    if (photon_init%energy_distribution == 'UNIFORM') then
-      !!! rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
-    else if (photon_init%energy_distribution == 'GAUSSIAN') then
-      !! rr = sqrt_2 * erfc((ix_energy - 0.5_rp) / lux_param%n_energy_pts) 
-    else
-      print *, 'BAD PHOTON_INIT%ENERGY_DISTRIBUTION SETTING: ', photon_init%energy_distribution 
-    endif
-
+  if (photon_init%energy_distribution == 'UNIFORM') then
+    call ran_uniform(rr)
+    rr = (2 * rr - 1) / 2.0
+  else if (photon_init%energy_distribution == 'GAUSSIAN') then
+    call ran_gauss(rr)
   else
-    if (photon_init%energy_distribution == 'UNIFORM') then
-      call ran_uniform(rr)
-      rr = (2 * rr - 1) / 2.0
-    else if (photon_init%energy_distribution == 'GAUSSIAN') then
-      call ran_gauss(rr)
-    else
-      print *, 'BAD PHOTON_INIT%ENERGY_DISTRIBUTION SETTING: ', photon_init%energy_distribution 
-    endif
-
+    print *, 'BAD PHOTON_INIT%ENERGY_DISTRIBUTION SETTING: ', photon_init%energy_distribution 
   endif
 
   orb%p0c = photon_init%sig_E * rr + photon_init%dE_center
@@ -267,12 +254,13 @@ case default
   ! Init photon
 
   gamma_electron = source_ele%value(p0c$) * (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-  if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
-    !!! rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
-    call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, E_integ_prob = rr)
-  else
-    call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max)
-  endif
+  !! Note: Energy slices not yet implemented.
+  !! if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
+  !!   rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
+  !!   call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max, rr)
+  !! endif
+
+  call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max)
   call absolute_photon_position (charged_orb, orb)
 
   orb%s = sl(ix-1)%ele%s + f * sl(ix)%ele%value(l$)
@@ -356,10 +344,10 @@ do ie = 1, branch%n_ele_track
 enddo
 
 !-------------------------------------------------------------
-! x_ray_init source
+! x_ray_source source
 
 select case (lux_com%source_ele%key)
-case (x_ray_init$)
+case (x_ray_source$)
   call photon_target_setup (lux_com%source_ele)
 
   if (photon_init%energy_distribution == 'UNIFORM') then

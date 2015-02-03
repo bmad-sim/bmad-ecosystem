@@ -18,7 +18,7 @@ type (branch_struct), pointer :: s_branch, d_branch
 
 real(rp) intens, intens_x, intens_y, intens_max, intens_tot, dtime
 real(rp) cut, normalization, area, intens_tot_x, intens_tot_y
-real(rp) total_dead_intens, pix_in_file_intens, x, phase
+real(rp) total_dead_intens, pix_in_file_intens, x, phase, phase_x, phase_y
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
 
 integer i, j, n, ix, ie, nt, n_track_at_energy, n_track_tot, n_live, track_state
@@ -163,7 +163,7 @@ endif
 !
 
 select case (lux_com%source_ele%key)
-case (x_ray_init$)
+case (x_ray_source$)
 
 case (sbend$, wiggler$, undulator$)
   nullify (lux_com%fork_ele)
@@ -244,7 +244,7 @@ endif
 n_live = 0
 n_track_tot = 0
 
-energy_loop: do ie = 1, 1
+energy_loop: do ie = 1, 1   ! Energy loop not implemented yet.
 
   n_track_at_energy = 0
   intens_tot = 0
@@ -257,7 +257,7 @@ energy_loop: do ie = 1, 1
     n_track_tot = n_track_tot + 1
     photon%n_photon_generated = n_track_tot
 
-    call lux_generate_photon (photon, lat, photon_init, ie, lux_param)
+    call lux_generate_photon (photon, lat, photon_init, lux_param)
     if (lux_param%debug) then
       call init_coord (photon%orb(0), lat%beam_start, d_branch%ele(0), downstream_end$, photon$, &
                                           1, d_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
@@ -288,7 +288,9 @@ energy_loop: do ie = 1, 1
 
     !
 
-    if (track_state /= moving_forward$) cycle
+    if (track_state /= moving_forward$) then
+      cycle
+    endif
 
     ! Go to coordinates of the detector
 
@@ -348,9 +350,11 @@ energy_loop: do ie = 1, 1
       intens_x = pix%E_x(1)**2 + pix%E_x(2)**2
       intens_y = pix%E_y(1)**2 + pix%E_y(2)**2
       intens = intens_x + intens_y
-      pix%intensity = pix%intensity + intens
-      pix%energy_ave = pix%energy_ave + intens * (end_orb%p0c - e_ref)
-      pix%energy_rms = pix%energy_rms + intens * (end_orb%p0c - e_ref)**2
+      pix%intensity_x = intens_x
+      pix%intensity_y = intens_y
+      pix%intensity   = pix%intensity + intens
+      pix%energy_ave  = pix%energy_ave + intens * (end_orb%p0c - e_ref)
+      pix%energy_rms  = pix%energy_rms + intens * (end_orb%p0c - e_ref)**2
     enddo; enddo
   endif
 
@@ -401,7 +405,7 @@ if (det_pix_out_file /= '') then
   write (3, '(a, i8)')     'ny_active_min       =', ny_active_min
   write (3, '(a, i8)')     'ny_active_max       =', ny_active_max
   write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#     ix      iy        x_pix        y_pix     Intensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity  N_photn     E_ave     E_rms'
 
   do i = nx_min, nx_max
   do j = ny_min, ny_max
@@ -410,9 +414,14 @@ if (det_pix_out_file /= '') then
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
     pix%energy_ave = pix%energy_ave / pix%intensity
     pix%energy_rms = sqrt(max(0.0_rp, pix%energy_rms / pix%intensity - pix%energy_ave**2)) 
-    write (3, '(2i8, 2f13.8, 3es16.5, i8, 2f10.3)') i, j, [i,j]*detector%dr+detector%r0, &
-           pix%intensity_x * normalization, pix%intensity_y * normalization, pix%intensity * normalization, &
-           pix%n_photon, pix%energy_ave, pix%energy_rms
+    phase_x = 0; phase_y = 0
+    if (lat%photon_type == coherent$) then
+      phase_x = atan2(pix%e_x(1), pix%e_x(2))
+      phase_y = atan2(pix%e_y(1), pix%e_y(2))
+    endif
+    write (3, '(2i8, 2f13.8, 5es14.5, i8, 2f10.3)') i, j, [i,j]*detector%dr+detector%r0, &
+           pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
+           pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
     pix_in_file_intens = pix_in_file_intens + pix%intensity 
   enddo
   enddo
@@ -422,16 +431,20 @@ if (det_pix_out_file /= '') then
 
   open (3, file = trim(det_pix_out_file) // '.x')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     ix        x_pix        Intensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')        '#     ix        x_pix      ntensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
   do i = nx_min, nx_max
     pixel = surface_grid_pt_struct()
     pixel%intensity_x = sum(detector%pt(i,:)%intensity_x)
     pixel%intensity_y = sum(detector%pt(i,:)%intensity_y)
     pixel%intensity   = sum(detector%pt(i,:)%intensity)
     pixel%n_photon    = sum(detector%pt(i,:)%n_photon)
-    !! if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
-    pixel%energy_ave = sum(detector%pt(i,:)%energy_ave) / pixel%intensity
-    pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
+    if (pixel%intensity == 0) then
+      pixel%energy_ave = 0
+      pixel%energy_rms = 0
+    else
+      pixel%energy_ave = sum(detector%pt(i,:)%energy_ave) / pixel%intensity
+      pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
+    endif
     write (3, '(i8, f13.8, 3es16.5, i9, 2f10.3)') i, i*detector%dr(1)+detector%r0(1), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
@@ -449,9 +462,13 @@ if (det_pix_out_file /= '') then
     pixel%intensity_y = sum(detector%pt(:,j)%intensity_y)
     pixel%intensity   = sum(detector%pt(:,j)%intensity)
     pixel%n_photon    = sum(detector%pt(:,j)%n_photon)
-    !! if (pixel%intensity <= cut .or. pixel%n_photon == 0) cycle
-    pixel%energy_ave = sum(detector%pt(:,j)%energy_ave) / pixel%intensity
-    pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
+    if (pixel%intensity == 0) then
+      pixel%energy_ave = 0
+      pixel%energy_rms = 0
+    else
+      pixel%energy_ave = sum(detector%pt(:,j)%energy_ave) / pixel%intensity
+      pixel%energy_rms = sqrt(max(0.0_rp, sum(detector%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
+    endif
     write (3, '(i8, f13.8, 3es16.5, i8, 2f10.3)') j, j*detector%dr(2)+detector%r0(2), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
