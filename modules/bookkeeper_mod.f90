@@ -2200,17 +2200,17 @@ ele%bookkeeping_state%ptc     = stale$
 ! For auto bookkeeping if no change then we don't need to do anything
 
 if (bmad_com%auto_bookkeeper) then
-  ! f is used to scale things so that the multipole values are all in the same ballpark.
   if (ele%key == sad_mult$) then
-    f = 1
+    ele0 => ele
+    if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)
     val(check_sum$) = 0
     do i = 0, ubound(ele%a_pole, 1)
-      val(check_sum$) = val(check_sum$) + (sum(ele%a_pole) + sum(ele%b_pole)) * f
-      f = f / 10
+      val(check_sum$) = val(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
+      val(check_sum$) = val(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
     enddo
   else
     val(check_sum$) = ele%tracking_method
-    if (ele%is_on) val(check_sum$) = val(check_sum$) + 100
+    if (ele%is_on) val(check_sum$) = val(check_sum$) + 1
   endif
 
   dval = abs(val - ele%old_value)
