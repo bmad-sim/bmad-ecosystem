@@ -1398,13 +1398,13 @@ class Bmad_photon_target_class {};  // Opaque class for pointers to correspondin
 
 class CPP_photon_target {
 public:
-  Bool enabled;
+  Int type;
   Int n_corner;
   CPP_target_point_ARRAY corner;
   CPP_target_point center;
 
   CPP_photon_target() :
-    enabled(false),
+    type(Bmad::OFF),
     n_corner(0),
     corner(CPP_target_point_ARRAY(CPP_target_point(), 8)),
     center()

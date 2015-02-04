@@ -3779,14 +3779,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_target_to_c2 (C, z_enabled, z_n_corner, z_corner, z_center) bind(c)
+  subroutine photon_target_to_c2 (C, z_type, z_n_corner, z_corner, z_center) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    logical(c_bool) :: z_enabled
     type(c_ptr), value :: z_center
     type(c_ptr) :: z_corner(*)
-    integer(c_int) :: z_n_corner
+    integer(c_int) :: z_type, z_n_corner
   end subroutine
 end interface
 
@@ -3807,7 +3806,7 @@ do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
 enddo
 
 !! f_side.to_c2_call
-call photon_target_to_c2 (C, c_logic(F%enabled), F%n_corner, z_corner, c_loc(F%center))
+call photon_target_to_c2 (C, F%type, F%n_corner, z_corner, c_loc(F%center))
 
 end subroutine photon_target_to_c
 
@@ -3827,7 +3826,7 @@ end subroutine photon_target_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_target_to_f2 (Fp, z_enabled, z_n_corner, z_corner, z_center) bind(c)
+subroutine photon_target_to_f2 (Fp, z_type, z_n_corner, z_corner, z_center) bind(c)
 
 
 implicit none
@@ -3836,15 +3835,14 @@ type(c_ptr), value :: Fp
 type(photon_target_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-logical(c_bool) :: z_enabled
 type(c_ptr), value :: z_center
 type(c_ptr) :: z_corner(*)
-integer(c_int) :: z_n_corner
+integer(c_int) :: z_type, z_n_corner
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%enabled = f_logic(z_enabled)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_corner = z_n_corner
 !! f_side.to_f2_trans[type, 1, NOT]

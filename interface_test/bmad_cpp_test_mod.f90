@@ -3176,8 +3176,8 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 1 + offset; F%enabled = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%type = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 2 + offset; F%n_corner = rhs
 !! f_side.test_pat[type, 1, NOT]

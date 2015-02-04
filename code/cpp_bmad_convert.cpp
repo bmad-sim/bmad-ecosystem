@@ -1439,7 +1439,7 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Bmad_surface_
 extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
 
 // c_side.to_f2_arg
-extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Bool&, c_Int&, const
+extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Int&, c_Int&, const
     CPP_target_point**, const CPP_target_point&);
 
 extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_target_class* F) {
@@ -1448,17 +1448,16 @@ extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_targ
   for (int i = 0; i < 8; i++) {z_corner[i] = &C.corner[i];}
 
   // c_side.to_f2_call
-  photon_target_to_f2 (F, C.enabled, C.n_corner, z_corner, C.center);
+  photon_target_to_f2 (F, C.type, C.n_corner, z_corner, C.center);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_enabled, c_Int&
-    z_n_corner, const Bmad_target_point_class** z_corner, const Bmad_target_point_class*
-    z_center) {
+extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Int& z_type, c_Int& z_n_corner,
+    const Bmad_target_point_class** z_corner, const Bmad_target_point_class* z_center) {
 
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.enabled = z_enabled;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_corner = z_n_corner;
   // c_side.to_c2_set[type, 1, NOT]

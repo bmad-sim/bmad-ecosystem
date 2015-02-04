@@ -2107,8 +2107,8 @@ void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 1 + offset; C.enabled = (rhs % 2 == 0);
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 2 + offset; C.n_corner = rhs;

@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 148;
+  const int BMAD_INC_VERSION = 149;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
@@ -48,6 +48,7 @@ namespace Bmad {
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int X_AXIS = 2, Y_AXIS = 3;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
+  const int ELLIPTICAL = 1, RECTANGULAR = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
@@ -106,7 +107,7 @@ namespace Bmad {
   const int LR_FREQ_SPREAD = 5, GRAZE_ANGLE = 5, K2 = 5, SIG_Y = 5, B_MAX = 5, V_DISPLACE = 5;
   const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5;
   const int GRADIENT = 6, K3 = 6, SIG_Z = 6, NOISE = 6, NEW_BRANCH = 6;
-  const int G = 6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6;
+  const int G = 6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6;
   const int G_ERR = 7, N_POLE = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7;
   const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7;
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
@@ -274,7 +275,6 @@ namespace Bmad {
   const int ENTRY_PT1 = 1, ENTRY_PT2 = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
-  const int RECTANGULAR = 1, ELLIPTICAL = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_SOFT_EDGE_ONLY = 5, SAD_FULL = 6, LINEAR_EDGE = 7, BASIC_BEND = 8;
   const int N_NON_BEND_FRINGE_TYPE = 4, TEST_EDGE = 9;
