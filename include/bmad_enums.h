@@ -48,7 +48,6 @@ namespace Bmad {
   const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
   const int X_AXIS = 2, Y_AXIS = 3;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
-  const int ELLIPTICAL = 1, RECTANGULAR = 2, AUTO_APERTURE = 3, CUSTOM_APERTURE = 7;
   const int SUPER_OK = 0, STALE = 2;
   const int ATTRIBUTE_GROUP = 1, CONTROL_GROUP = 2, FLOOR_POSITION_GROUP = 3;
   const int S_POSITION_GROUP = 4, REF_ENERGY_GROUP = 5, MAT6_GROUP = 6;
@@ -130,9 +129,9 @@ namespace Bmad {
   const int QUAD_TILT = 25, DE_ETA_MEAS = 25, ALPHA_A = 25;
   const int GEOMETRY = 26, BEND_TILT = 26, MODE = 26, ALPHA_B = 26;
   const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26, CMAT_11 = 27;
-  const int PHI0_REF = 27, X_HALF_LENGTH = 27, DX_ORIGIN =  27;
+  const int PHI0_REF = 27, DX_ORIGIN =  27;
   const int LATTICE_TYPE = 27, X_QUAD = 27;
-  const int PHI0_MAX = 28, Y_HALF_LENGTH = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
+  const int PHI0_MAX = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
   const int CMAT_12 = 28, HIGHER_ORDER_FRINGE_TYPE = 28;
   const int FRINGE_TYPE = 29, FLOOR_SET = 29, UPSTREAM_ELE_DIR = 29, DZ_ORIGIN = 29, CMAT_21 = 29;
   const int FRINGE_AT = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30;
@@ -275,6 +274,7 @@ namespace Bmad {
   const int ENTRY_PT1 = 1, ENTRY_PT2 = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
+  const int AUTO_APERTURE = 1, RECTANGULAR = 2, ELLIPTICAL = 3, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_SOFT_EDGE_ONLY = 5, SAD_FULL = 6, LINEAR_EDGE = 7, BASIC_BEND = 8;
   const int N_NON_BEND_FRINGE_TYPE = 4, TEST_EDGE = 9;
