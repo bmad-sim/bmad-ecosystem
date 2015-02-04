@@ -1114,8 +1114,6 @@ call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_star
 call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
 
 call init_attribute_name1 (x_ray_source$, l$,                   'L')
-call init_attribute_name1 (x_ray_source$, x_half_length$,       'X_HALF_LENGTH')
-call init_attribute_name1 (x_ray_source$, y_half_length$,       'Y_HALF_LENGTH')
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

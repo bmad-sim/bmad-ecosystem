@@ -27,7 +27,7 @@ implicit none
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
 type (photon_target_struct), pointer :: target
-
+type (surface_grid_struct), pointer :: gr
 real(rp), pointer :: val(:)
 real(rp) z
 logical :: is_bending_element, follow_fork
@@ -55,7 +55,7 @@ do
 
   ap_ele => pointer_to_next_ele (ap_ele, skip_beginning = .true., follow_fork = follow_fork)
 
-  if (ap_ele%value(x1_limit$) /= 0) exit
+  if (ap_ele%value(x1_limit$) /= 0 .or. ap_ele%key == detector$) exit
 
   select case (ap_ele%key)
   case (diffraction_plate$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$, patch$)
@@ -74,40 +74,57 @@ enddo
 
 if (.not. associated(ele%photon)) allocate(ele%photon)
 target => ele%photon%target
-val => ap_ele%value
 
+if (ap_ele%key == detector$) then
+  target%type = detector$
+  target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
 
-z = 0
-if (stream_ele_end (ap_ele%aperture_at, ap_ele%orientation) == upstream_end$) z = -ap_ele%value(l$)
+  z = 0
+  gr => ap_ele%photon%surface%grid
+  
+  call photon_target_corner_calc (ap_ele, gr%r0(1),          gr%r0(2),          z, ele, target%center)
+  call photon_target_corner_calc (ap_ele, gr%r0(1)+gr%dr(1), gr%r0(2),          z, ele, target%corner(1))
+  call photon_target_corner_calc (ap_ele, gr%r0(1),          gr%r0(2)+gr%dr(2), z, ele, target%corner(2))
 
-call photon_target_corner_calc (ap_ele,  0.0_rp,          0.0_rp,         z, ele, target%center)
+!
 
-call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(1))
-call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(2))
-call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(3))
-call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(4))
-target%n_corner = 4
+else
 
-! If there is surface curvature then the aperture rectangle becomes a 3D aperture box.
+  target%type = rectangular$
 
-if (associated(ap_ele%photon)) then
-  if (ap_ele%photon%surface%has_curvature .and. ap_ele%aperture_at == surface$) then
-    z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$))
-    call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(5))
+  val => ap_ele%value
 
-    z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$))
-    call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(6))
+  z = 0
+  if (stream_ele_end (ap_ele%aperture_at, ap_ele%orientation) == upstream_end$) z = -ap_ele%value(l$)
 
-    z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$))
-    call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(7))
+  call photon_target_corner_calc (ap_ele,  0.0_rp,          0.0_rp,         z, ele, target%center)
 
-    z = z_at_surface(ele, val(x1_limit$), val(y1_limit$))
-    call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(8))
-    target%n_corner = 8
+  call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(1))
+  call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(2))
+  call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(3))
+  call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(4))
+  target%n_corner = 4
+
+  ! If there is surface curvature then the aperture rectangle becomes a 3D aperture box.
+
+  if (associated(ap_ele%photon)) then
+    if (ap_ele%photon%surface%has_curvature .and. ap_ele%aperture_at == surface$) then
+      z = z_at_surface(ele, -val(x1_limit$), -val(y1_limit$))
+      call photon_target_corner_calc (ap_ele, -val(x1_limit$), -val(y1_limit$), z, ele, target%corner(5))
+
+      z = z_at_surface(ele, -val(x1_limit$), val(y1_limit$))
+      call photon_target_corner_calc (ap_ele, -val(x1_limit$),  val(y2_limit$), z, ele, target%corner(6))
+
+      z = z_at_surface(ele, val(x1_limit$), -val(y1_limit$))
+      call photon_target_corner_calc (ap_ele,  val(x2_limit$), -val(y1_limit$), z, ele, target%corner(7))
+
+      z = z_at_surface(ele, val(x1_limit$), val(y1_limit$))
+      call photon_target_corner_calc (ap_ele,  val(x2_limit$),  val(y1_limit$), z, ele, target%corner(8))
+      target%n_corner = 8
+    endif
   endif
-endif
 
-target%enabled = .true.
+endif
 
 end subroutine photon_target_setup 
 

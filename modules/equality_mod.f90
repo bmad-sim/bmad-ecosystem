@@ -948,8 +948,8 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%enabled .eqv. f2%enabled)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_corner == f2%n_corner)
 !! f_side.equality_test[type, 1, NOT]

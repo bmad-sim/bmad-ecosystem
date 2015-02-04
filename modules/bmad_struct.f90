@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 148
+integer, parameter :: bmad_inc_version$ = 149
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -404,8 +404,8 @@ end type
 ! Structure to hold the information of where an individual element is in the lattice.
 
 type lat_ele_loc_struct
-  integer ix_ele
-  integer ix_branch
+  integer :: ix_ele = -1
+  integer :: ix_branch = 0
 end type
 
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
@@ -493,8 +493,9 @@ type target_point_struct
 end type
 
 type photon_target_struct
-  logical :: enabled = .false.
+  integer :: type = off$
   integer :: n_corner = 0
+  type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()
   type (target_point_struct) :: center = target_point_struct()
 end type
@@ -857,9 +858,9 @@ integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, p
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, cmat_11$ = 27
-integer, parameter :: phi0_ref$ = 27, x_half_length$ = 27, dx_origin$ =  27
+integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27
-integer, parameter :: phi0_max$ = 28, y_half_length$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
+integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29, cmat_21$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30, cmat_22$ = 30
@@ -1180,9 +1181,9 @@ integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
 
 !
 
-integer, parameter :: rectangular$ = 1, elliptical$ = 2, auto_aperture$ = 3, custom_aperture$ = 7
+integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, custom_aperture$ = 7
 character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Rectangular', 'Elliptical ', 'Auto       ', &
+                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
                                      'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 ! fringe_type

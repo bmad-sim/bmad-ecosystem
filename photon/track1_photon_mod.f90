@@ -366,7 +366,7 @@ end subroutine track1_sample
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+! Subroutine isotropic_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
 !
 ! Routine to emit a photon from a surface in a random direction.
 !
@@ -376,37 +376,43 @@ end subroutine track1_sample
 !   orbit              -- Coord_struct: phase-space coords of photon.
 !                      --   Will be in curved surface coords if there is a curved surface.
 !   direction          -- Integer: +1 -> Emit in forward +z direction, -1 -> emit backwards.
-!   solid_angle        -- real(rp): Area of the solid angle photons may be emitted over.
-!                           solid_angle is used for normalizing the photon field.
+!   max_target_area    -- real(rp): Area of the solid angle photons may be emitted over.
+!                           max_target_area is used for normalizing the photon field.
+!                           generally will be equal to twopi or fourpi.
 !   w_to_surface(3,3)  -- real(rp), optional: Rotation matrix for curved surface.
 !
 ! Output:
 !   orbit    -- Coord_struct: Final phase-space coords
 !-
 
-subroutine isotropic_photon_emission (ele, param, orbit, direction, solid_angle, w_to_surface)
+subroutine isotropic_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
 
 implicit none
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
+type (ele_struct), pointer :: det_ele
 type (lat_param_struct) :: param
 type (photon_target_struct), pointer :: target
 type (target_point_struct) corner(8)
+type (surface_grid_struct), pointer :: gr
 
 real(rp), optional :: w_to_surface(3,3)
 real(rp) ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
-real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), solid_angle, cos2_dphi
+real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), max_target_area, cos2_dphi
+real(rp) lb(2), ub(2), r_len, dr_x(3), dr_y(3), area
 
 integer direction
-integer n, i, ix
+integer n, i, ix, iy
 
 !
 
 call ran_uniform(ran)
 
 target => ele%photon%target
-if (target%enabled) then
+
+select case (target%type)
+case (rectangular$)
   r_particle = orbit%vec(1:5:2)
   r = target%center%r - r_particle
   if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
@@ -458,34 +464,81 @@ if (target%enabled) then
   orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
   orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
 
+  ! Field scaling
+
   if (photon_type(ele) == coherent$) then
-    orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / solid_angle
+    orbit%field = orbit%field * (y_max - y_min) * (phi_max - phi_min) / max_target_area
     ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
     if (orbit%path_len /= 0) then
       orbit%field = orbit%field * orbit%path_len
       orbit%path_len = 0
     endif
   else
-    orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / solid_angle)
+    orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / max_target_area)
   endif
 
-else
+! Detector target
+
+case (detector$)
+  r_particle = orbit%vec(1:5:2)
+  r = target%center%r - r_particle
+  if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
+  call target_rot_mats (r, w_to_target, w_to_ele)
+
+  det_ele => pointer_to_ele(ele%branch%lat, target%ele_loc)
+  gr => det_ele%photon%surface%grid
+  lb = lbound(gr%pt); ub = ubound(gr%pt)
+  ix = lb(1) + int((ub(1) - lb(1) + 1 - 1e-10) * ran(1))
+  iy = lb(2) + int((ub(2) - lb(2) + 1 - 1e-10) * ran(2))
+  
+  r = target%center%r + ix * (target%corner(1)%r - target%center%r) + &
+                        iy * (target%corner(2)%r - target%center%r) - r_particle
+  r = matmul (w_to_target, r)
+  r_len = norm2(r)
+  r = r / r_len
+  y = r(2)
+  rho = sqrt(1 - y*y)
+  r = matmul(w_to_ele, [rho * r(1), y, rho * r(3)])
+  orbit%vec(2:6:2) = r
+
+  ! Field scaling
+
+  dr_x = matmul(w_to_ele, target%corner(1)%r - target%center%r)
+  dr_y = matmul(w_to_ele, target%corner(2)%r - target%center%r)
+  area = norm2(cross_product(dr_x, r)) * norm2(cross_product(dr_y, r)) / r_len**2
+
+  if (photon_type(ele) == coherent$) then
+    orbit%field = orbit%field * area / max_target_area
+    if (orbit%path_len /= 0) then
+      orbit%field = orbit%field * orbit%path_len
+      orbit%path_len = 0
+    endif
+  else
+    orbit%field = orbit%field * sqrt(area / max_target_area)
+  endif
+
+! No targeting
+
+case (off$)
   y = 2 * ran(1) - 1
   phi = pi * (ran(2) - 0.5_rp)
   rho = sqrt(1 - y**2)
   orbit%vec(2:6:2) = [rho * sin(phi), y, direction * rho * cos(phi)]
   ! Without targeting photons are emitted into twopi solid angle.
   if (photon_type(ele) == coherent$) then
-    orbit%field = orbit%field * twopi / solid_angle
+    orbit%field = orbit%field * twopi / max_target_area
     ! If path_len = 0 then assume that photon is being initialized so only normalize field if path_len /= 0
     if (orbit%path_len /= 0) then
       orbit%field = orbit%field * orbit%path_len
       orbit%path_len = 0
     endif
   else
-    orbit%field = orbit%field * sqrt(twopi / solid_angle)
+    orbit%field = orbit%field * sqrt(twopi / max_target_area)
   endif
-endif
+
+case default
+  call err_exit  ! Internal bookkeeping error
+end select
 
 end subroutine isotropic_photon_emission 
 
