@@ -358,7 +358,6 @@ propagation_loop: do
         ! Adjust photon coords when exiting a patch
 
         if (ele%key == patch$ .and. ele%orientation == 1) then
-          now%vec(6) = 0  ! Pretend photon is a charged particle
           call track_a_patch_photon (ele, now, .false.)
           now%location = inside$
         endif
@@ -604,10 +603,10 @@ if (wall_hit(photon%n_wall_hit)%after_reflect%path_len == photon%old%orb%path_le
     path_len0 = (path_len0 + 3*photon%old%orb%path_len) / 4
     if (i == 30) then
       print *, 'ERROR: CANNOT FIND HIT SPOT REGION LOWER BOUND!'
-      print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
-      print *, '       Start: ', photon%start%orb%vec
-      print *, '       Now:   ', photon%now%orb%vec
-      print *, '       WILL IGNORE THIS PHOTON.'
+      print '(8x, a, 3i8, f12.4)', 'Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
+      print '(8x, a, 6es13.5)', 'Start: ', photon%start%orb%vec
+      print '(8x, a, 6es13.5)', 'Now:   ', photon%now%orb%vec
+      print '(8x, a, 6es13.5)', 'WILL IGNORE THIS PHOTON.'
       call print_hit_points (-1, photon, wall_hit, .true.)
       err = .true.
       return
@@ -625,9 +624,9 @@ path_len = super_zbrent (sr3d_photon_hit_func, path_len0, path_len1, sr3d_params
 if (err) then
   call print_hit_points (-1, photon, wall_hit, .true.)
   print *, 'WILL IGNORE THIS PHOTON.'
-  print *, '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
-  print *, '       Start: ', photon%start%orb%vec
-  print *, '       Now:   ', photon%now%orb%vec
+  print '(8x, a, 3i8, f12.4)', '       Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
+  print '(8x, a, 6es13.5)', '       Start: ', photon%start%orb%vec
+  print '(8x, a, 6es13.5)', '       Now:   ', photon%now%orb%vec
   return
 endif
 
@@ -788,11 +787,11 @@ wall_hit(n_wall_hit)%reflectivity = reflectivity
 
 if (cos_perp < 0) then
   print *, 'ERROR: PHOTON AT WALL HAS VELOCITY DIRECTED INWARD!', cos_perp
-  print *, '       dw_perp:', dw_perp
-  print *, '       Photon: ', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
-  print *, '       Start:  ', photon%start%orb%vec
-  print *, '       Now:    ', photon%now%orb%vec
-  print *, '       WILL IGNORE THIS PHOTON...'
+  print '(8x, a, 6es13.5)', 'dw_perp:', dw_perp
+  print '(8x, a, 3i8, f12.4)', 'Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
+  print '(8x, a, 6es13.5)', 'Start:  ', photon%start%orb%vec
+  print '(8x, a, 6es13.5)', 'Now:    ', photon%now%orb%vec
+  print '(8x, a, 6es13.5)', 'WILL IGNORE THIS PHOTON...'
   call print_hit_points (-1, photon, wall_hit, .true.)
   err_flag = .true.
   return
