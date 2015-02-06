@@ -172,6 +172,9 @@ open (1, file = param_file, status = 'old')
 read (1, nml = synrad3d_parameters)
 close (1)
 
+print *,'Lattice file: ',trim(lattice_file)
+print *,'Wall file: ',trim(wall_file)
+
 if (reflect_file /= '') wall_hit_file = reflect_file  ! Accept old syntax.
 
 call ran_seed_put (random_seed)
