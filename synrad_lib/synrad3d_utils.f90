@@ -6,6 +6,8 @@ use photon_init_mod
 use capillary_mod
 use track1_mod
 
+implicit none
+
 type sr3d_wall_section_input
   real(rp) s                      ! Longitudinal position.
   character(40) name              ! Name of setion
@@ -509,10 +511,12 @@ do
 
   if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
     sec = wall%section(i)
-    sec%s = branch%ele(ix_bend)%s
+    ! Remember: Patch can have negative length
+    sec%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
   else  ! Add section at beginning of bend, after patch
     sec = wall%section(i+2)
-    sec%s = branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$)
+    ! Remember: Patch can have negative length
+    sec%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
   endif
 
   if (sec%name(1:6) /= 'ADDED:') then
@@ -1187,6 +1191,7 @@ endif
 p_orb%vec(6) = photon_direction * sqrt(1 - v2)
 p_orb%direction = photon_direction
 p_orb%ix_ele = element_at_s(ele_here%branch, ele_here%s, .false.)
+p_orb%location = inside$
 
 end subroutine sr3d_emit_photon
 
@@ -1313,5 +1318,27 @@ if (p_orb%orb%s == wall3d%section(ix_sec)%s   .and. p_orb%orb%vec(6) > 0 .and. i
 if (p_orb%orb%s == wall3d%section(ix_sec+1)%s .and. p_orb%orb%vec(6) < 0 .and. ix_sec /= n_max-1) ix_sec = ix_sec + 1
 
 end subroutine sr3d_get_section_index
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine sr3d_print_photon_info (photon)
+!
+! Routine to print information on the photon being tracked.
+!
+! Input:
+!   photon -- sr3d_photon_track_struct: Photon being tracked.
+!-
+
+subroutine sr3d_print_photon_info (photon)
+
+type (sr3d_photon_track_struct) photon
+
+print '(8x, a, 3i8, f12.4)', 'Photon:', photon%ix_photon, photon%ix_photon_generated, photon%n_wall_hit, photon%start%orb%p0c
+print '(8x, a, 6es13.5, f13.6)', 'Start:  ', photon%start%orb%vec, photon%start%orb%s
+print '(8x, a, 6es13.5, f13.6)', 'Now:    ', photon%now%orb%vec, photon%now%orb%s
+
+end subroutine sr3d_print_photon_info
 
 end module
