@@ -14,8 +14,6 @@ type tao_top10_struct
   logical :: valid = .false.   ! valid entry?
 end type
 
-private print_vars
-
 contains
 
 !----------------------------------------------------------------------------
@@ -261,7 +259,7 @@ if (ix > n) return   ! not big enough to be in list.
 top10(ix+1:n) = top10(ix:n-1) 
 top10(ix) = tao_top10_struct(name, value, c_index, .true.)
 
-end subroutine
+end subroutine tao_to_top10
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -470,7 +468,7 @@ call tao_write_out (iunit, line(1:nl))
 
 deallocate (con, ixm)
 
-end subroutine
+end subroutine tao_show_constraints
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -512,7 +510,7 @@ logical, optional :: show_good_opt_only
 ! Output to terminal?
 
 if (out_file == '') then
-  call print_vars (0, 0, show_good_opt_only)
+  call tao_print_vars_bmad_format (0, 0, show_good_opt_only)
   return
 endif
 
@@ -535,8 +533,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     return
   endif
 
-  call print_vars (iu, i, show_good_opt_only)
-  call tao_write_out (iu, (/ '        ', 'end_file', '        ' /))
+  call tao_print_vars_bmad_format (iu, i, show_good_opt_only)
+  call tao_write_out (iu, ['        ', 'end_file', '        '])
   call tao_show_constraints (iu, 'TOP10')
   if (size(s%u) == 1) call tao_show_constraints (iu, '*')
 
@@ -586,10 +584,11 @@ end subroutine tao_var_write
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine print_vars (iu, ix_uni, show_good_opt_only)
+subroutine tao_print_vars_bmad_format (iu, ix_uni, show_good_opt_only, v_array)
 
 implicit none
 
+type (tao_var_array_struct), optional :: v_array(:)
 integer iu, ix_uni, j
 character(40) useit_str
 character(200) str(1)
@@ -597,21 +596,41 @@ logical, optional :: show_good_opt_only
 
 !
 
-do j = 1, s%n_var_used
-  if (.not. s%var(j)%exists) cycle
-  if (iu /= 0 .and. .not. any (s%var(j)%this(:)%ix_uni == ix_uni)) cycle
-  if (logic_option(.false., show_good_opt_only) .and. .not. s%var(j)%useit_opt) cycle
-  if (s%var(j)%useit_opt) then
-    useit_str = ''
-  else
-    useit_str = '! Not used in optimizing'
-  endif
-  write (str(1), '(4a, es22.14, 3x, a)')  trim(s%var(j)%ele_name), &
-            '[', trim(s%var(j)%attrib_name), '] = ', s%var(j)%model_value, useit_str
-  call tao_write_out (iu, str(1:1))
-enddo
+if (present(v_array)) then
+  do j = 1, size(v_array)
+    call print_this_var(v_array(j)%v)
+  enddo
 
-end subroutine print_vars
+else
+  do j = 1, s%n_var_used
+    call print_this_var(s%var(j))
+  enddo
+endif
+
+!----------------
+
+contains
+subroutine print_this_var (var)
+
+type (tao_var_struct) var
+
+!
+
+if (.not. var%exists) return
+if (iu /= 0 .and. .not. any (var%this(:)%ix_uni == ix_uni)) return
+if (logic_option(.false., show_good_opt_only) .and. .not. var%useit_opt) return
+if (var%useit_opt) then
+  useit_str = ''
+else
+  useit_str = '! Not used in optimizing'
+endif
+write (str(1), '(4a, es22.14, 3x, a)')  trim(var%ele_name), &
+          '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+call tao_write_out (iu, str(1:1))
+
+end subroutine print_this_var
+
+end subroutine tao_print_vars_bmad_format
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -644,6 +663,6 @@ else
   enddo
 endif
 
-end subroutine
+end subroutine tao_write_out
 
 end module

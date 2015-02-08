@@ -2930,14 +2930,6 @@ case ('variable')
     return 
   endif
 
-  ! Bmad format
-
-  if (bmad_format) then
-    call tao_var_write (' ', good_opt_only)
-    result_id = 'variable:bmad'
-    return
-  endif
-
   ! If 'n@' is present then write out stuff for universe n
 
   ix = index(word1, '@')
@@ -2970,8 +2962,7 @@ case ('variable')
         if (s%var(i)%this(j)%ix_uni == ix_u) found = .true.
       enddo
       if (.not. found) cycle
-      nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), &
-                                                      tao_var_attrib_name(s%var(i))
+      nl=nl+1; write(lines(nl), '(5x, a25, a40)') tao_var1_name(s%var(i)), tao_var_attrib_name(s%var(i))
     enddo
     result_id = 'variable:@'
     return
@@ -2979,7 +2970,14 @@ case ('variable')
 
   ! If just "show var" then show all names
 
-  if (word1 == ' ') then
+  if (word1 == '') then
+    ! Bmad format
+    if (bmad_format) then
+      call tao_print_vars_bmad_format (0, 0, good_opt_only)
+      result_id = 'variable:bmad'
+      return
+    endif
+
     if (print_header_lines) then
       nl=nl+1; write(lines(nl), '(7x, a, t50, a)') 'Name', 'Using for Optimization'
     endif
@@ -3004,6 +3002,13 @@ case ('variable')
   if (err) return
   n_size = 0
   if (allocated(v_array)) n_size = size(v_array)
+
+  ! Bmad format
+  if (bmad_format) then
+    call tao_print_vars_bmad_format (0, 0, good_opt_only, v_array)
+    result_id = 'variable:bmad'
+    return
+  endif
 
   ! v_ptr is valid then show the variable info.
 
