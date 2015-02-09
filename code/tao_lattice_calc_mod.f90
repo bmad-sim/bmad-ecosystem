@@ -299,6 +299,8 @@ lat_branch%track_state = moving_forward$
 ! Track.
 ! By design, Tao turns off radiation fluctuations (but not damping) for single particle tracking.
 
+ix_lost = branch%n_ele_track + 1
+
 if (u%calc%track) then
 
   radiation_fluctuations_on = bmad_com%radiation_fluctuations_on
@@ -355,7 +357,7 @@ endif
 
 if (u%calc%mat6 .and. branch%param%particle /= photon$) then
 
-  do i = 1, branch%n_ele_track
+  do i = 1, ix_lost - 1
     if (branch%ele(i)%tracking_method == linear$) then
       call lat_make_mat6 (lat, i, ix_branch = ix_branch)
     else
@@ -371,7 +373,7 @@ if (u%calc%mat6 .and. branch%param%particle /= photon$) then
     endif
   endif
 
-  call twiss_propagate_all (lat, ix_branch)
+  call twiss_propagate_all (lat, ix_branch, err, 0, ix_lost - 1)
 
 endif
 
