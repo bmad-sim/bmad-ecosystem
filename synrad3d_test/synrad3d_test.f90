@@ -62,6 +62,7 @@ do
   p%p0c = 1000             ! Arbitrary
   p%s = p%vec(5)
   p%ix_ele = element_at_s(lat, p%s, .true.)
+  p%location = inside$
   ele => lat%ele(p%ix_ele)
   p%vec(5) = p%s - (ele%s - ele%value(l$))
   photon%start%orb = p
