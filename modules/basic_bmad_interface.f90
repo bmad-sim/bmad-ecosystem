@@ -840,23 +840,12 @@ interface
     logical, optional :: err
   end subroutine
 
-  subroutine twiss_propagate_all (lat, ix_branch, err_flag)
+  subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
     import
     implicit none
     type (lat_struct) lat
-    integer, optional :: ix_branch
-    logical, optional :: err_flag
-  end subroutine
-
-  subroutine twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)
-    import
-    implicit none
-    type (lat_struct) :: lat
-    integer, intent(in) :: ix_start
-    integer, intent(in) :: ix_end
-    integer, intent(in) :: direction
-    integer, optional :: ix_branch
-    logical, optional :: err_flag
+    integer, optional :: ix_branch, ie_start, ie_end
+    logical, optional :: err_flag, zero_uncalculated
   end subroutine
 
   subroutine type_coord (coord)

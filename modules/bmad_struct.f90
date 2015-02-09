@@ -388,7 +388,7 @@ type space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) eta, etap
+  real(rp) :: eta = 0, etap = 0
 end type
 
 ! Structure to be used for an array of pointers to elements.

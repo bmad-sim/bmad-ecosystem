@@ -1,5 +1,5 @@
 !+
-! Subroutine twiss_propagate_all (lat, ix_branch, err_flag)
+! Subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
 !
 ! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
 ! the start to the end of a lattice branch.
@@ -9,19 +9,21 @@
 !   use bmad
 !
 ! Input:
-!   lat        -- Lat_struct: lattice.
-!     %branch(ix_branch%rele(0) -- Branch beginning element with the starting parameters.
-!   ix_branch  -- Integer, optional: Branch index. Default is 0 (main lattice).
-!   bmad_status  -- Common block status structure:
-!       %type_out      -- If True then will type a message if the modes are flipped.
-!       %exit_on_error -- If True then stop if there is an error.
+!   lat                -- lat_struct: lattice.
+!     %branch(ix_branch)%ele(0) -- Branch beginning element with the starting parameters.
+!   ix_branch          -- integer, optional: Branch index. Default is 0 (main lattice).
+!   ie_start           -- integer, optional: Starting element index. Default is 0.
+!                           Note: The first element at which the Twiss parameters are calculated is ie_start+1.
+!   ie_end             -- integer, optional: Ending element index, Default is branch%n_ele_track.
+!   zero_uncalculated  -- logical, optional: Set to zero Twiss parameters not calculated in 
+!                           range [ie_start, ie_end]? Default is True.
 !
 ! Output:
 !   lat          -- lat_struct: Lattice with parameters computed for the branch.
-!   err_flag     -- Logical, optional: Set True if there is an error. False otherwise.
+!   err_flag     -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine twiss_propagate_all (lat, ix_branch, err_flag)
+subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)
 
 use bmad_interface, except_dummy => twiss_propagate_all
 
@@ -31,11 +33,13 @@ type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: lord, slave, ele
 
-integer n, n_track
-integer, optional :: ix_branch
+integer n, n_track, i_start, i_end
+integer, optional :: ix_branch, ie_start, ie_end
 
-logical, optional :: err_flag
+logical, optional :: err_flag, zero_uncalculated
 logical err
+
+character(*), parameter :: r_name = 'twiss_propagate_all'
 
 ! Twiss parameters for photons do not make much sense so do not bother to calculate anything.
 
@@ -44,29 +48,46 @@ if (branch%param%particle == photon$) return
 
 ! Make sure gamma for ele(0) is correct.
 
-ele => branch%ele(0)
+i_start = integer_option(0, ie_start)
+n_track = branch%n_ele_track
+i_end = integer_option(n_track, ie_end)
+
+ele => branch%ele(i_start)
 if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 
 ! Propagate twiss
 
-n_track = branch%n_ele_track
-
 if (present(err_flag)) err_flag = .true.
 
-do n = 1, n_track
+do n = i_start, i_end
   call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err)
   if (err) return
 enddo
 
+if (logic_option(.true., zero_uncalculated)) then
+  do n = 0, i_start-1
+    branch%ele(n)%a = twiss_struct()
+    branch%ele(n)%b = twiss_struct()
+    branch%ele(n)%x = xy_disp_struct()
+    branch%ele(n)%y = xy_disp_struct()
+  enddo
+
+  do n = i_end+1, n_track
+    branch%ele(n)%a = twiss_struct()
+    branch%ele(n)%b = twiss_struct()
+    branch%ele(n)%x = xy_disp_struct()
+    branch%ele(n)%y = xy_disp_struct()
+  enddo
+endif
+
 ! Make sure final mode is same as initial mode
 
-if (branch%param%geometry == closed$) then
+if (branch%param%geometry == closed$ .and. ie_start == 0 .and. ie_end == n_track) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
     call do_mode_flip (branch%ele(n_track), err)
     if (err .and. global_com%type_out) then
-      print *, 'ERROR IN TWISS_PROPAGATE_ALL: CANNOT MAKE FINAL FLIP STATE'
-      print *, '      EQUAL TO THE INITIAL'
+      call out_io (s_error$, r_name,  'CANNOT MAKE FINAL FLIP STATE EQUAL TO THE INITIAL')
     endif
   endif
 endif
