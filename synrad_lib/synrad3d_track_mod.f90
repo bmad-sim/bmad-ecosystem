@@ -319,6 +319,13 @@ if (dl_step < 0) then
   call err_exit
 endif
 
+if (ele%key /= patch$ .and. now%location /= inside$) then
+  if (abs(now%s - s0) > sl .and. abs(now%s - ele%s) > sl) then
+    print *, 'PHOTON LOCATION BOOKKEEPING ERROR IN SR3D_PROPAGATING_PHOTON_A_STEP!'
+    call err_exit
+  endif
+endif
+
 ! propagate the photon a number of sub-steps until we have gone a distance dl_step
 ! A sub-step might be to the next element boundary since tracking in a bend is
 !  different from all other elements.
