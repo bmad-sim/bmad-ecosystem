@@ -60,7 +60,7 @@ if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 
 if (present(err_flag)) err_flag = .true.
 
-do n = i_start, i_end
+do n = i_start+1, i_end
   call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err)
   if (err) return
 enddo
@@ -83,7 +83,7 @@ endif
 
 ! Make sure final mode is same as initial mode
 
-if (branch%param%geometry == closed$ .and. ie_start == 0 .and. ie_end == n_track) then
+if (branch%param%geometry == closed$ .and. i_start == 0 .and. i_end == n_track) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
     call do_mode_flip (branch%ele(n_track), err)
     if (err .and. global_com%type_out) then
