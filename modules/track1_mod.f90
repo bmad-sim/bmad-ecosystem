@@ -1770,7 +1770,7 @@ end subroutine soft_bend_edge_kick
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! private subroutine ptc_wedger (a, g_tot, beta0, X, mat6, make_matrix)
+! private subroutine ptc_wedger (a, g_tot, beta0, X, err_flag, mat6, make_matrix)
 !
 ! Subroutine to track PTC coordinates through a wedge
 !
@@ -1784,10 +1784,11 @@ end subroutine soft_bend_edge_kick
 !   make_matrix -- logical, optional: Propagate transfer matrix? Default is False.
 !
 ! Output:
-!   X(6)   -- real(rp): PTC phase space coordinates
-!   mat6   -- Real(rp), optional: Transfer matrix.
+!   X(6)        -- real(rp): PTC phase space coordinates
+!   err_flag    -- real(rp): Set true if ther is a problem.
+!   mat6        -- real(rp), optional: Transfer matrix.
 !-
-subroutine ptc_wedger (a, g_tot, beta0, X, mat6, make_matrix)
+subroutine ptc_wedger (a, g_tot, beta0, X, err_flag, mat6, make_matrix)
 
 implicit none
 
@@ -1800,14 +1801,16 @@ real(rp), optional :: mat6(6,6)
 real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5
 real(rp) dpzs_dx1, dpzs_dx2, dpzs_dx4, dpzs_dx5, factor1, factor2
 
+logical err_flag
 logical, optional :: make_matrix
 
 ! No net field case...
 
+err_flag = .true.
 b1 = g_tot
 
 if (b1==0) then
-  call ptc_rot_xz(a, X, beta0, mat6, make_matrix)
+  call ptc_rot_xz(a, X, beta0, err_flag, mat6, make_matrix)
   return
 endif
 
@@ -1881,6 +1884,8 @@ X(1)=Xn(1)
 X(2)=Xn(2)
 X(3)=Xn(3)
 X(6)=Xn(6)
+
+err_flag = .false.
 
 end subroutine ptc_wedger
 
@@ -2114,7 +2119,7 @@ end subroutine ptc_fringe_dipoler
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! private subroutine ptc_rot_xz(a, X, beta0, mat6, make_matrix)
+! private subroutine ptc_rot_xz(a, X, beta0, err_flag, mat6, make_matrix)
 !
 ! Subroutine to rotate the local reference frame about the Y axis in PTC coordinates.  
 ! Adapted from forest/code/Sc_euclidean.f90 : ROT_XZ
@@ -2126,11 +2131,12 @@ end subroutine ptc_fringe_dipoler
 !   make_matrix -- logical, optional: Make the matrix? Default is false.
 !
 ! Output:
-!   X(6)   -- real(rp): PTC phase space coordinates
-!   mat6   -- Real(rp), optional: Transfer matrix.
+!   X(6)        -- real(rp): PTC phase space coordinates
+!   err_flag    -- real(rp): Set true if ther is a problem.
+!   mat6        -- real(rp), optional: Transfer matrix.
 !-
 
-subroutine ptc_rot_xz(a, X, beta0, mat6, make_matrix)
+subroutine ptc_rot_xz(a, X, beta0, err_flag, mat6, make_matrix)
 
 implicit none
 
@@ -2139,13 +2145,18 @@ real(rp) :: xn(6),pz,pt
 real(rp) :: a, beta0
 character(20) :: r_name = 'ptc_rot_xz'
 real(rp), optional :: mat6(6,6)
-real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx2, dpt_dx4, dpt_dx5
+real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx2, dpt_dx4, dpt_dx5, arg
 
+logical err_flag
 logical, optional :: make_matrix
 
 !
 
-pz=sqrt(1.0_rp+2.0_rp*x(5)/ beta0+x(5)**2-x(2)**2-x(4)**2)
+err_flag = .true.
+
+arg = 1.0_rp+2.0_rp*x(5)/ beta0+x(5)**2-x(2)**2-x(4)**2
+if (arg < 0) return
+pz=sqrt(arg)
 dpz_dx2 = -X(2)/pz
 dpz_dx4 = -X(4)/pz
 dpz_dx5 = (1/beta0+X(5))/pz
@@ -2183,6 +2194,8 @@ x(1)=xn(1)
 x(2)=xn(2)
 x(3)=xn(3)
 x(6)=xn(6)
+
+err_flag = .false.
 
 end subroutine ptc_rot_xz
 
@@ -2226,6 +2239,7 @@ real(rp) :: X(6), ct
 real(rp) :: beta0, g_tot, edge_angle, hgap, fint
 integer :: particle_at
 
+logical err_flag
 logical, optional :: make_matrix
 character(20) :: r_name = 'exact_bend_edge_kick'
 
@@ -2264,7 +2278,11 @@ ct = X(6)
 
 if (particle_at == first_track_edge$) then
   ! Drift forward
-  call ptc_wedger(edge_angle, 0.0_rp, beta0, X, mat6_int, make_matrix)
+  call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Edge kick
@@ -2272,12 +2290,20 @@ if (particle_at == first_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Backtrack
-  call ptc_wedger(-edge_angle, g_tot, beta0, X, mat6_int, make_matrix)
+  call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
 else if (particle_at == second_track_edge$) then
   ! Backtrack
-  call ptc_wedger(-edge_angle, g_tot, beta0, X, mat6_int, make_matrix)
+  call ptc_wedger(-edge_angle, g_tot, beta0, X, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Edge kick
@@ -2285,7 +2311,11 @@ else if (particle_at == second_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Drift forward
-  call ptc_wedger(edge_angle, 0.0_rp, beta0, X, mat6_int, make_matrix)
+  call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
 else
