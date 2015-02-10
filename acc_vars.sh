@@ -72,6 +72,8 @@ ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-1.1/'
 ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
+ONLINE_OPT_DIR='/nfs/cesr/opt'
+
 #--------------------------------------------------------------
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
@@ -86,6 +88,7 @@ OFFLINE_GFORTRAN_SETUP_COMMAND=(${OFFLINE_GFORTRAN_SETUP_DIR}/enable)
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
 
+OFFLINE_OPT_DIR='/nfs/opt'
 
 #--------------------------------------------------------------
 # Support functions
@@ -185,12 +188,14 @@ fi
 case $(uname -n) in
     cesr*) IFORT_SETUP_COMMAND=${ONLINE_IFORT_SETUP_COMMAND}
            GFORTRAN_SETUP_COMMAND=${ONLINE_GFORTRAN_SETUP_COMMAND}
-					 export LM_LICENSE_FILE="/nfs/cesr/opt/totalview/license.dat:/nfs/opt/totalview/license.dat:/nfs/cesr/opt/MathWorks/Matlab_r2013a/licenses/network.lic:/nfs/opt/MathWorks/Matlab_r2013a/licenses/network.lic"
-					 ;;					 
+	   export LM_LICENSE_FILE="${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
+	   export PATH=${PATH}:${ONLINE_OPT_DIR}/totalview/bin
+	   ;;					 
         *) IFORT_SETUP_COMMAND=${OFFLINE_IFORT_SETUP_COMMAND}
            GFORTRAN_SETUP_COMMAND=${OFFLINE_GFORTRAN_SETUP_COMMAND}
-					 export LM_LICENSE_FILE="/nfs/opt/totalview/license.dat:/nfs/cesr/opt/totalview/license.dat:/nfs/opt/MathWorks/Matlab_r2013a/licenses/network.lic:/nfs/cesr/opt/MathWorks/Matlab_r2013a/licenses/network.lic"
-					 ;;					 
+	   export LM_LICENSE_FILE="${OFFLINE_OPT_DIR}/totalview/license.dat:${ONLINE_OPT_DIR}/totalview/license.dat:${OFFLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic:${ONLINE_OPT_DIR}/MathWorks/Matlab_r2013a/licenses/network.lic"
+	   export PATH=${PATH}:${OFFLINE_OPT_DIR}/totalview/bin
+	   ;;					 
 esac
 
 
@@ -492,5 +497,5 @@ fi
 # depending on where in their .bashrc acc_vars.sh is sourced.
 #--------------------------------------------------------------
 ulimit -S -c 0
-ulimit -S -s 102400
+ulimit -S -s 10240
 ulimit -S -d 25165824
