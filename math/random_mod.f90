@@ -36,6 +36,10 @@ type random_state_struct
   integer(i4_b) :: in_sobseq = 0
   integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0
   real(rp) :: x_sobseq(sobseq_maxdim)
+  ! Saved variables for use by particular routines
+  real(rp), allocatable :: g(:)    ! Used by ran_gauss_scalar
+  integer :: n_g = -1               ! Used by ran_gauss_scalar
+
 end type
 
 type (random_state_struct), private, target, save :: ran_state_dflt
@@ -138,17 +142,15 @@ type (random_state_struct), pointer :: r_state
 
 real(rp), intent(out) :: harvest
 real(rp) a(2), v1, v2, r, sigma_cut, fac
-real(rp), allocatable, save :: g(:)
 
 integer, optional :: index_quasi
 integer i, ss, ix, n_g_new
-integer, save :: n_g = -1
 
 ! quasi-random must use the quick_gaussian since the exact_gaussian can
 ! use several uniform random numbers to generate a single Gaussian random number.
 ! This invalidates the algorithm used to generate a quasi-random Gaussian vector.
 
-! g is the normalized error function and maps from the 
+! ran_state%g is the normalized error function and maps from the 
 ! interval [0, 0.5] to [0, infinity].
 
 if (present(ran_state)) then
@@ -166,15 +168,15 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
   endif
   n_g_new = max(nint(sigma_cut * r_state%n_pts_per_sigma), 10)
 
-  if (n_g_new /= n_g) then
-    n_g = n_g_new
-    if (allocated(g)) deallocate(g)
-    allocate (g(0:n_g))
+  if (n_g_new /= ran_state%n_g) then
+    ran_state%n_g = n_g_new
+    if (allocated(ran_state%g)) deallocate(ran_state%g)
+    allocate (ran_state%g(0:ran_state%n_g))
     fac = 2 * erf_s (sigma_cut/sqrt_2)
-    do i = 0, n_g-1
-      g(i) = erf_s (sigma_cut * i / (sqrt_2 * n_g)) / fac
+    do i = 0, ran_state%n_g-1
+      ran_state%g(i) = erf_s (sigma_cut * i / (sqrt_2 * ran_state%n_g)) / fac
     enddo
-    g(n_g) = 0.50000000001_rp
+    ran_state%g(ran_state%n_g) = 0.50000000001_rp
   endif
 
   call ran_uniform_scalar (r, r_state, index_quasi)
@@ -185,8 +187,9 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
     r = 0.5 - r
     ss = -1
   endif
-  call bracket_index(g, 0, n_g, r, ix)    
-  harvest = ss * (ix + (g(ix+1) - r) / (g(ix+1) - g(ix))) * sigma_cut / n_g
+  call bracket_index(ran_state%g, 0, ran_state%n_g, r, ix)    
+  harvest = ss * (ix + (ran_state%g(ix+1) - r) / (ran_state%g(ix+1) - ran_state%g(ix))) * &
+                                                                      sigma_cut / ran_state%n_g
   return
 
 endif
