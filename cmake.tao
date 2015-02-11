@@ -17,6 +17,15 @@ set (LINK_LIBS
   blas
 )
 
+
+
+set (SHARED_LINK_LIBS
+  pangocairo-1.0
+  cairo
+  pango-1.0
+  gobject-2.0
+)
+
 set (EXTRA_SHARED_LINK_LIBS
   readline
   curses
