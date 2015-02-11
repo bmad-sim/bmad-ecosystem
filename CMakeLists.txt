@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set (LIBNAME tao)
 
-set (CREATE_SHARED true)
+## set (CREATE_SHARED true)
 
 ## Profiler flags
 # set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
@@ -12,22 +12,17 @@ set (CREATE_SHARED true)
 set(SRC_DIRS
   code 
   hook
-)
+  )
 
 set (EXE_SPECS
   cmake.tao
-)
+  )
 
 set(SHARED_DEPS
-  bmad.so
+  bmad
   lapack95
   lapack
   blas
   )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
-
-
-
-
-
