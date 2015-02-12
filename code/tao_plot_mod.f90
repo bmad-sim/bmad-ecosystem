@@ -930,7 +930,9 @@ if (ele_shape%label /= 'none') then
     dx = -2 * dx_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
     dy = -2 * dy_bend(n) / sqrt(dx_bend(n)**2 + dy_bend(n)**2)
   endif
-  theta = modulo2 (atan2(dy, dx) * 180 / pi, 90.0_rp)
+  ! The extra factors of 2 are to shift the branch cut away from +/- 90.
+  ! This is done since many lattices have elements with theta at +/- 90.
+  theta = modulo2 (2 + atan2(dy, dx) * 180 / pi, 90.0_rp) - 2
   if (dx > 0) then
     justify = 'LC'
   else

@@ -1657,14 +1657,15 @@ To customize the output use the command \vn{show lattice -custom
 <file_name>}. A customization file looks like:
 \begin{example}
   &custom_show_list
-    column(1) = "#",                     "i6",     6 
-    column(2) = "x",                     "x"       1       ! blank space
-    column(3) = "ele::#[name]",          "a",      0
-    column(4) = "ele::#[key]",           "a16",   16
-    column(5) = "ele::#[s]",             "f10.3", 10
-    column(6) = "ele::#[l]",             "f10.3", 10
-    column(7) = "ele::#[beta_a]",        "f7.2",   7
-    column(8) = "1e3 * ele::#[orbit_x]", "f8.3",   8, "Orbit_x| (mm)" 
+    column(1) = "#",                      "i6",     6 
+    column(2) = "x",                      "x"       1   ! blank space
+    column(3) = "ele::#[name]",           "a",      0
+    column(4) = "ele::#[key]",            "a16",   16
+    column(5) = "ele::#[s]",              "f10.3", 10
+    column(6) = "ele::#[l]",              "f10.3", 10
+    column(7) = "ele::#[beta_a]",         "f7.2",   7
+    column(8) = "1e3 * ele::#[orbit_x]",  "f8.3",   8, "Orbit_x| (mm)" 
+    column(8) = "lat::unstable.orbit[#]", "f8.3",   8, 
   /
 \end{example}
 each \vn{column(1)} has four components. The first component is what

@@ -246,7 +246,7 @@ type tao_plot_page_struct
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
   real(rp) :: axis_number_text_scale = 0.9  ! Relative to text_height
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
-  real(rp) :: legend_text_scale      = 0.8  ! Relative to text_height
+  real(rp) :: legend_text_scale      = 0.7  ! Relative to text_height
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
   real(rp) :: curve_legend_line_len  = 50   ! Points
   real(rp) :: curve_legend_text_offset = 10 ! Points
