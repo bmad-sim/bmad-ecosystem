@@ -71,15 +71,13 @@ type (coord_struct) :: orb_start, orb_end
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_param_struct) :: param
-type (coord_struct), save :: orb_start2
+type (coord_struct) :: orb_start2
 
 integer :: edge
 
-real(rp), save :: z_start, g2, g3
-real(rp) s_len, g, g_x, g_y, this_ran, mc2
+real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3
 real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
-real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * &
-                                                h_bar_planck * c_light / (24 * sqrt_3)
+real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 
 integer direc
 
@@ -107,10 +105,10 @@ if (edge == start_edge$) then
   set = set$
   s_len = ele%value(l$) / 2
   direc = +1
-  z_start = orb_start%vec(5)
+  ele%rad_int_cache%z_start = orb_start%vec(5)
 elseif (edge == end_edge$) then
   set = unset$
-  s_len = ele%value(l$)/2 + (orb_start%vec(5) - z_start)
+  s_len = ele%value(l$)/2 + (orb_start%vec(5) - ele%rad_int_cache%z_start)
   direc = -1
 else
   call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
@@ -252,7 +250,8 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) start0_orb, start_orb, end_orb
-type (track_struct), save :: track
+type (track_struct), save, target :: track_save
+type (track_struct), pointer :: track
 
 real(rp), parameter :: del_orb = 1e-4
 real(rp) g2, g3
@@ -267,6 +266,12 @@ if (ele%sub_key /= map_type$) return
 
 if (.not. associated(ele%rad_int_cache)) allocate (ele%rad_int_cache)
 ele%rad_int_cache%orb0 = ele%map_ref_orb_in%vec
+
+if (global_com%be_thread_safe) then
+  allocate(track)
+else
+  track => track_save
+endif
 
 track%n_pt = -1
 call symp_lie_bmad (ele, param, ele%map_ref_orb_in, end_orb, .false., track)
@@ -283,6 +288,11 @@ do j = 1, 4
 enddo
 
 ele%rad_int_cache%stale = .false.
+
+if (global_com%be_thread_safe) then
+  deallocate(track%orb, track%field, track%map)
+  deallocate(track)
+endif
 
 !-------------------------------------------------------
 contains

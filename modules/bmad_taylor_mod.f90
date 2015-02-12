@@ -557,7 +557,7 @@ end subroutine add_taylor_term2
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_taylor_series (bmad_taylor, n_term, save)
+! Subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 !
 ! Subroutine to initialize a Bmad Taylor series (6 of these series make
 ! a Taylor map). Note: This routine does not zero the structure. The calling
@@ -570,14 +570,14 @@ end subroutine add_taylor_term2
 !   bmad_taylor -- Taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
 !                   n_term < 1 => bmad_taylor%term pointer will be disassociated.
-!   save        -- Logical, optional: If True then save any old terms when
+!   save_old    -- Logical, optional: If True then save any old terms when
 !                   bmad_taylor is resized. Default is False.
 !
 ! Output:
 !   bmad_taylor -- Taylor_struct: Initalized structure.
 !-
 
-subroutine init_taylor_series (bmad_taylor, n_term, save)
+subroutine init_taylor_series (bmad_taylor, n_term, save_old)
 
 implicit none
 
@@ -585,7 +585,7 @@ type (taylor_struct) bmad_taylor
 type (taylor_term_struct), allocatable :: term(:)
 integer n_term
 integer n
-logical, optional :: save
+logical, optional :: save_old
 
 !
 
@@ -603,7 +603,7 @@ if (size(bmad_taylor%term) == n_term) return
 
 !
 
-if (logic_option (.false., save) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
+if (logic_option (.false., save_old) .and. n_term > 0 .and. size(bmad_taylor%term) > 0) then
   n = min (n_term, size(bmad_taylor%term))
   allocate (term(n))
   term = bmad_taylor%term(1:n)

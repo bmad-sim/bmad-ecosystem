@@ -445,6 +445,7 @@ type rad_int_ele_cache_struct
   real(rp) g3_0           ! g3 factor when orbit = %vec0
   real(rp) dg2_dorb(6)    ! variation of g2 with respect to orbit.
   real(rp) dg3_dorb(6)    ! Variation of g3 with respect to orbit.
+  real(rp) z_start        ! Saved variable for track1_radiation
   logical :: stale = .true.
 end type 
 
