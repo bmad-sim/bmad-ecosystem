@@ -35,7 +35,7 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, j, n, iu, ix, random_seed, iu_start
+integer i, n, iu, ix, random_seed, iu_start, j_photon
 integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
@@ -486,7 +486,7 @@ else
       ! Generate photons, track to the wall 
 
       n_photon_here = nint(g * gamma * ds / d_i0)
-      do j = 1, n_photon_here
+      do j_photon = 1, n_photon_here
         n_photon_generated = n_photon_generated + 1
         n_photon_array = n_photon_array + 1
         if (n_photon_array > size(photons)) then
@@ -578,8 +578,8 @@ contains
 subroutine write_photon_data (n_photon, photon)
 
 type (sr3d_photon_track_struct) :: photon
-real(rp) start_vec(6), now_vec(6)
-integer n_photon
+real(rp) start_vec(6), now_vec(6), dtrack
+integer n_photon, j, iu
 
 !
 
