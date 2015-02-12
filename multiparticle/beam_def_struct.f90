@@ -65,26 +65,27 @@ type beam_init_struct
                                             ! Or 'quick'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1      ! Cut-off in sigmas.
   !!! The following are used  by all distribution types
-  type(beam_spin_struct)  spin        ! Initialize the spin
-  real(rp) :: a_norm_emit = 0         ! a-mode normalized emittance (emit * gamma)
-  real(rp) :: b_norm_emit = 0         ! b-mode normalized emittance (emit * gamma)
-  real(rp) :: a_emit = 0              ! a-mode emittance
-  real(rp) :: b_emit = 0              ! b-mode emittance
-  real(rp) :: dPz_dz = 0              ! Correlation of Pz with long position.
-  real(rp) :: center(6) = 0           ! Bench center offset relative to reference.
-  real(rp) :: dt_bunch = 0            ! Time between bunches.
-  real(rp) :: sig_z = 0               ! Z sigma in m.
-  real(rp) :: sig_e = 0               ! e_sigma in dE/E.
-  real(rp) :: bunch_charge = 1        ! charge in a bunch. Default is something non-zero.
-  integer :: n_bunch = 1              ! Number of bunches.
-  integer :: species = not_set$       ! positron$, etc. not_set$ => use referece particle.
-  logical :: init_spin     = .false.  ! initialize beam spinors
+  type(beam_spin_struct)  spin               ! Initialize the spin
+  real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * gamma)
+  real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * gamma)
+  real(rp) :: a_emit = 0                     ! a-mode emittance
+  real(rp) :: b_emit = 0                     ! b-mode emittance
+  real(rp) :: dPz_dz = 0                     ! Correlation of Pz with long position.
+  real(rp) :: center(6) = 0                  ! Bench center offset relative to reference.
+  real(rp) :: dt_bunch = 0                   ! Time between bunches.
+  real(rp) :: sig_z = 0                      ! Z sigma in m.
+  real(rp) :: sig_e = 0                      ! e_sigma in dE/E.
+  real(rp) :: bunch_charge = 1               ! charge in a bunch. Default is something non-zero.
+  integer :: n_bunch = 1                     ! Number of bunches.
+  integer :: species = not_set$              ! positron$, etc. not_set$ => use referece particle.
+  logical :: init_spin     = .false.         ! initialize beam spinors
   logical :: full_6D_coupling_calc = .false. ! Use V from 6x6 1-turn mat to match distribution?  
                                              !   Else use 4x4 1-turn mat used.
-  logical :: use_t_coords = .false.   ! If true, the distributions will be taken as in t-coordinates  
-  logical :: use_z_as_t   = .false.   ! Only used if  use_t_coords = .true.
-                                      !   If true,  z describes the t distribution 
-                                      !   If false, z describes the s distribution
+  logical :: use_lattice_center = .false.    ! Use beam_start[...] in lattice rather than beam_init%center(:)?
+  logical :: use_t_coords = .false.          ! If true, the distributions will be taken as in t-coordinates  
+  logical :: use_z_as_t   = .false.          ! Only used if  use_t_coords = .true.
+                                             !   If true,  z describes the t distribution 
+                                             !   If false, z describes the s distribution
 end type
 
 type bunch_params_struct

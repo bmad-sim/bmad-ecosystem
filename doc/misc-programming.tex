@@ -337,7 +337,6 @@ Additionally, photonic elements like \vn{crystal}, \vn{capillary},
 
 \index{bmad_com}
 \index{bmad_status}
-
 There are two common variables used by Bmad for communication between
 routines. These are \vn{bmad_com}, which is a \vn{bmad_common_struct}
 structure, and \vn{bmad_status} which is a \vn{bmad_status_struct}
@@ -367,5 +366,22 @@ messages should be printed. With Severe errors, the code may ignore
 The \vn{%exit_on_error} component tell a routine if it is ok to stop a
 program on a severe error.
 
+%-----------------------------------------------------------------------------
+\section{Parallel Processing}
+\label{s:parallel.proc}
 
+\index{global_common_struct!parallel processing}
+\index{global_com!parallel processing}
+\bmad was initially developed without regard to parallel
+processing. When a demand for multithreading capability arose, \bmad
+was modified to meet the need. In order to ratain some of the speedups
+that can be achieved with saved variables, a switch was introduced
+in the \vn{global_common_struct} called \vn{%be_thread_safe}. The
+default is False. This should be set True in a a multithreaded program:
+\begin{example}
+  global_com%be_thread_safe = .true.
+\end{example}
 
+\index{lat_struct!parallel processing}
+One rule to follow in multithreaded programs: \vn{lat_struct}
+instances must be local.
