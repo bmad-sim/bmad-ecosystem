@@ -53,7 +53,7 @@ type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
 
-real(rp) beta
+real(rp) beta, val
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
@@ -776,7 +776,7 @@ branch_loop: do i_loop = 1, n_branch_max
   branch => lat%branch(n_branch)
 
   call find_indexx2 (this_name, in_name, in_indexx, 0, n_max, ix)
-  ele => in_lat%ele(ix)    
+  ele => in_lat%ele(ix) ! line_ele element associated with this branch.
   ele0 => branch%ele(0)
 
   ele0%value(e_tot$) = -1
@@ -872,7 +872,11 @@ branch_loop: do i_loop = 1, n_branch_max
 
   !
 
-  branch%param%default_tracking_species = nint(ele%value(default_tracking_species$))
+  branch%param%default_tracking_species = ref_particle$
+  val = bp_com%param_ele%value(default_tracking_species$)
+  if (n_branch == 0 .and.  val /= real_garbage$) branch%param%default_tracking_species = nint(val)
+  val = ele%value(default_tracking_species$)
+  if (val /= real_garbage$) branch%param%default_tracking_species = nint(val)
 
   if (ele%value(p0c$)>= 0)        ele0%value(p0c$)   = ele%value(p0c$)
   if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$) = ele%value(e_tot$)

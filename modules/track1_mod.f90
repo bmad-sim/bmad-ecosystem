@@ -1785,7 +1785,7 @@ end subroutine soft_bend_edge_kick
 !
 ! Output:
 !   X(6)        -- real(rp): PTC phase space coordinates
-!   err_flag    -- real(rp): Set true if ther is a problem.
+!   err_flag    -- real(rp): Set true if there is a problem.
 !   mat6        -- real(rp), optional: Transfer matrix.
 !-
 subroutine ptc_wedger (a, g_tot, beta0, X, err_flag, mat6, make_matrix)
@@ -1893,7 +1893,7 @@ end subroutine ptc_wedger
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! private subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, mat6, make_matrix)
+! private subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6, make_matrix)
 !
 ! Subroutine to compute the exact hard edge fringe field of a bend.
 ! 
@@ -1910,23 +1910,24 @@ end subroutine ptc_wedger
 !   make_matrix -- logical, optional: Make the matrix? Default is False. 
 !
 ! Output:
-!   X(6)   -- real(rp): PTC phase space coordinates
-!   mat6   -- Real(rp), optional: Transfer matrix.
+!   X(6)        -- real(rp): PTC phase space coordinates
+!   err_flag    -- real(rp): Set true if ther is a problem.
+!   mat6        -- Real(rp), optional: Transfer matrix.
 !-
 
-subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, mat6, make_matrix)
+subroutine ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6, make_matrix)
 
 implicit none
 
-real(rp) :: X(6) !PTC phase space coordinates
-real(rp) :: FINT, HGAP
-real(rp) :: beta0, g_tot
-real(rp) :: PZ,XP,YP,TIME_FAC
-real(rp) :: D(3,3),FI(3),FI0,B,co1,co2
 integer  :: i
 integer  :: particle_at
-character(20) :: r_name = 'ptc_fringe_dipoler'
+
 real(rp), optional :: mat6(6,6)
+real(rp) :: X(6) !PTC phase space coordinates
+real(rp) :: FINT, HGAP
+real(rp) :: beta0, g_tot, fac
+real(rp) :: PZ,XP,YP,TIME_FAC
+real(rp) :: D(3,3),FI(3),FI0,B,co1,co2
 real(rp) :: dpz_dx2, dpz_dx4, dpz_dx5, dtime_fac_dx5
 real(rp) :: dxp_dx2, dxp_dx4, dxp_dx5, dyp_dx2, dyp_dx4, dyp_dx5
 real(rp) :: d11_dx2, d11_dx4, d11_dx5, d21_dx2, d21_dx4, d21_dx5, d31_dx2, d31_dx4, d31_dx5
@@ -1937,9 +1938,14 @@ real(rp) :: dfi0_dx2, dfi0_dx4, dfi0_dx5, dfi1_dx2, dfi1_dx4, dfi1_dx5
 real(rp) :: dfi2_dx2, dfi2_dx4, dfi2_dx5, dfi3_dx2, dfi3_dx4, dfi3_dx5
 real(rp) :: factor1, factor2 
 
+character(*), parameter :: r_name = 'ptc_fringe_dipoler'
+
+logical err_flag
 logical, optional :: make_matrix
 
 !
+
+err_flag = .true.
 
 if (particle_at == second_track_edge$) then
    B = -g_tot  !EL%CHARGE*BN(1)
@@ -2077,7 +2083,9 @@ if (logic_option(.false., make_matrix)) then
   mat6(3,4) = 2*x(3)**2*(fi(1)*d12_dx4+fi(2)*d22_dx4+fi(3)*d32_dx4+d(1,2)*dfi1_dx4+d(2,2)*dfi2_dx4+d(3,2)*dfi3_dx4)/(factor1*factor2)
   mat6(3,5) = 2*x(3)**2*(fi(1)*d12_dx5+fi(2)*d22_dx5+fi(3)*d32_dx5+d(1,2)*dfi1_dx5+d(2,2)*dfi2_dx5+d(3,2)*dfi3_dx5)/(factor1*factor2)
 end if
-x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(1.0_rp-2.0_rp*b*x(3)) )
+fac = 1.0_rp-2.0_rp*b*x(3)
+if (fac < 0) return
+x(3)=2.0_rp*x(3)/(1.0_rp+ sqrt(fac))
 
 x(4)=x(4)-fi0*x(3)
 if (logic_option(.false., make_matrix)) then
@@ -2112,6 +2120,8 @@ if (logic_option(.false., make_matrix)) then
   mat6(6,4) = -x(3)*b*mat6(3,4)-0.5*x(3)**2*(fi(1)*d13_dx4+fi(2)*d23_dx4+fi(3)*d33_dx4+d(1,3)*dfi1_dx4+d(2,3)*dfi2_dx4+d(3,3)*dfi3_dx4)
   mat6(6,5) = -x(3)*b*mat6(3,5)-0.5*x(3)**2*(fi(1)*d13_dx5+fi(2)*d23_dx5+fi(3)*d33_dx5+d(1,3)*dfi1_dx5+d(2,3)*dfi2_dx5+d(3,3)*dfi3_dx5)
 end if
+
+err_flag = .false.
     
 end subroutine ptc_fringe_dipoler
 
@@ -2286,7 +2296,11 @@ if (particle_at == first_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, mat6_int, make_matrix)
+  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Backtrack
@@ -2307,7 +2321,11 @@ else if (particle_at == second_track_edge$) then
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Edge kick
-  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, mat6_int, make_matrix)
+  call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  if (err_flag) then
+    orb%state = lost_z_aperture$
+    return
+  endif
   if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
 
   ! Drift forward

@@ -27,9 +27,9 @@ integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
 
 character(20), parameter :: particle_name(-4:7) = [&
-                'PION_MINUS       ', 'MUON             ', 'ANTIPROTON       ', 'ELECTRON         ', &
-                'PHOTON           ', 'POSITRON         ', 'PROTON           ', 'ANTIMUON         ', &
-                'PION_PLUS        ', 'PION_0           ', 'REF_PARTICLE     ', 'ANTI_REF_PARTICLE']
+                'Pion_Minus       ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
+                'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
+                'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle']
 
 integer, parameter :: charge_of(-4:5) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0]
 real(rp), parameter :: mass_of(-4:5) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
