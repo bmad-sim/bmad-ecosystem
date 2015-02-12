@@ -150,17 +150,18 @@ ENDIF ()
 #-----------------------------------
 find_package(X11)
 
-#-----------------------------------                                                                                
-# For non-Linux or non-ifort or non-64-bit builds, do not                                                           
-# use unspported flag option "-mcmodel=medium"                                                                      
-#-----------------------------------                                                                                
-
 #-----------------------------------
 # C / C++ Compiler flags
 #-----------------------------------
 SET (BASE_C_FLAGS "-Df2cFortran -O0 -std=gnu99 -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 SET (BASE_CXX_FLAGS "-O0 -Wno-deprecated -DCESR_UNIX -DCESR_LINUX -D_POSIX -D_REENTRANT -Wall -fPIC -Wno-trigraphs -Wno-unused ${ACC_MPI_COMPILER_FLAGS}")
 
+#-----------------------------------                                                                                
+# For non-Linux or non-ifort or 
+# non-64-bit builds, do not use
+# unspported flag option 
+# "-mcmodel=medium"                                                                      
+#-----------------------------------                                                                                
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND ${FORTRAN_COMPILER} MATCHES "ifort" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
   SET (BASE_C_FLAGS "${BASE_C_FLAGS} -mcmodel=medium")
   SET (BASE_CXX_FLAGS "${BASE_CXX_FLAGS} -mcmodel=medium")
@@ -198,9 +199,9 @@ ENDIF ()
 
 IF (${DISTRIBUTION_BUILD})
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
-ELSE()
+ELSE ()
     SET (ACC_LINK_FLAGS "-lreadline -ltermcap -lcurses -lpthread -lstdc++ -lactivemq-cpp" ${ACC_LINK_FLAGS} ${ACC_MPI_LINKER_FLAGS})
-ENDIF()
+ENDIF ()
 
 SET (ACC_INC_DIRS ${ACC_MPI_INC_DIRS} ${ACC_PLOT_INC_DIRS} ${ACC_INC_DIRS})
 SET (ACC_LIB_DIRS ${ACC_MPI_LIB_DIRS} ${ACC_PLOT_LIB_DIRS} ${ACC_LIB_DIRS})
@@ -269,13 +270,13 @@ message("Plotting Libraries   : ${PLOT_LINK_LIBS}")
 IF ($ENV{ACC_ENABLE_OPENMP})
   IF (${FORTRAN_COMPILER} MATCHES "ifort")
     message("OpenMP ifort Flag    : -openmp")
-  ELSE()
+  ELSE ()
     message("OpenMP gfortran Flag : -fopenmp")
     message("OpenMP Linker Libs   : ${OPENMP_LINK_LIBS}")
   ENDIF()
-ELSE()
+ELSE ()
   message("OpenMP Support       : Not Enabled")
-ENDIF()
+ENDIF ()
 IF ($ENV{ACC_ENABLE_MPI})
   message("MPI Support          : Enabled")
 ELSE()
@@ -343,7 +344,7 @@ foreach (dir ${INC_DIRS})
     LIST (APPEND MASTER_INC_DIRS ${dir})
     LIST (APPEND MASTER_INC_DIRS ${RELEASE_DIR}/${dirnew})
   ELSE ()
-    LIST(APPEND MASTER_INC_DIRS ${dir})
+    LIST (APPEND MASTER_INC_DIRS ${dir})
   ENDIF ()
 endforeach(dir)
 
@@ -724,10 +725,23 @@ foreach(exespec ${EXE_SPECS})
           ${EXENAME}
   )
 
-  if (DEFINED LINKER_LANGUAGE_PROP)
+  IF (DEFINED LINKER_LANGUAGE_PROP)
     SET_TARGET_PROPERTIES (${EXENAME}-exe PROPERTIES LINKER_LANGUAGE ${LINKER_LANGUAGE_PROP})
-    unset (LINKER_LANGUAGE_PROP)
-  endif ()
+    UNSET (LINKER_LANGUAGE_PROP)
+  ENDIF ()
+
+  #----------------------------------------------
+  # When linking an executable using differnet 
+  # linker then the one used to build libraries 
+  # in the LINK_LIBS statement, the user must 
+  # set IMPLICIT_LINK_LIBS to the <lang> of the  
+  # libraries in LINK_LIBS. RT#37678 
+  #----------------------------------------------
+  IF (DEFINED IMPLICIT_LINK_LIBS)
+    SET (IMPLICIT_LINKER_LIBRARIES ${CMAKE_${IMPLICIT_LINK_LIBS}_IMPLICIT_LINK_LIBRARIES})
+    MESSAGE ("Implicit ${FORTRAN_COMPILER} Linker Flags   : ${IMPLICIT_LINKER_LIBRARIES}\n")
+    UNSET (IMPLICIT_LINK_LIBS)
+  ENDIF ()
 
   # Create map file output directory if it doesn't yet exist.
   IF (IS_DIRECTORY ${OUTPUT_BASEDIR}/map)
@@ -761,7 +775,7 @@ foreach(exespec ${EXE_SPECS})
           ${STATIC_FLAG} ${LINK_LIBS} 
           ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
           ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS}
-          ${LINK_FLAGS} ${MAPLINE}
+          ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
   )
 
   SET(CFLAGS)
