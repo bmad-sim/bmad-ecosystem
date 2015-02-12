@@ -332,8 +332,15 @@ any branch can be specified using a statement of the form
 \end{example}
 This construct is called a \vn{line parameter} statement
 Here \vn{line_name} is the name of a line and \vn{parameter} is the
-name of a parameter. The parameters that can be set here are identical
-to the parameters that can be set with the \vn{beginning} statement.
+name of a parameter. The parameters that can be set here are the same
+parameters that can be set with the \vn{beginning} statement with the additional
+parameters from the \vn{parameter} statement:
+\index{geometry}\index{particle}\index{default_tracking_species}
+\begin{example}
+  geometry
+  particle
+  default_tracking_species
+\end{example}
 Example:
 \begin{example}
   x_ray_fork: fork, to_line = x_ray

@@ -65,7 +65,8 @@ case (def_beam$)
 
 case (def_parameter$)
   ele%value(geometry$) = -1
-  ele%value(particle$) = positron$  
+  ele%value(particle$) = positron$
+  ele%value(default_tracking_species$) = real_garbage$
 
 case (detector$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -116,7 +117,7 @@ case (lcavity$)
 case (line_ele$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = real_garbage$
-  ele%value(default_tracking_species$) = ref_particle$
+  ele%value(default_tracking_species$) = real_garbage$
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 
