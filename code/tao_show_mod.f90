@@ -539,7 +539,7 @@ case ('branch')
     if (branch%param%particle == photon$) then
       nl=nl+1; write(lines(nl), amt) 'lat%photon_type            = ', photon_type_name(lat%photon_type)
     endif
-    nl=nl+1; write(lines(nl), '(2a)') '%default_tracking_species =', particle_name(branch%param%default_tracking_species)
+    nl=nl+1; write(lines(nl), '(2a)') '%default_tracking_species = ', particle_name(branch%param%default_tracking_species)
 
   else
     nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele   From                From                To'
