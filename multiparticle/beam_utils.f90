@@ -9,7 +9,7 @@ use time_tracker_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
-private recenter_bunch, combine_bunch_distributions, calc_this_emit
+private combine_bunch_distributions, calc_this_emit
 
 interface assignment (=)
   module procedure bunch_equal_bunch
@@ -460,6 +460,7 @@ end subroutine init_beam_distribution
 subroutine init_bunch_distribution (ele, param, beam_init, bunch, err_flag)
 
 use mode3_mod
+use random_mod
 
 implicit none
 
@@ -472,7 +473,7 @@ type (coord_struct) p_temp
 type (coord_struct), pointer :: p
 type (kv_beam_init_struct), pointer :: kv
 
-real(rp) beta(3), alpha(3), emit(3), covar
+real(rp) beta(3), alpha(3), emit(3), covar, ran(6), center(6)
 real(rp) v_mat(4,4), v_inv(4,4), beta_vel
 real(rp) old_cutoff
 
@@ -610,7 +611,25 @@ enddo
 
 ! recenter the bunch and include beam jitter
 
-call recenter_bunch (beam_init, bunch)
+if (beam_init%use_lattice_center) then
+  if (.not. associated (ele%branch)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_LATTICE_CENTER = T.')
+    return
+  endif
+  if (.not. associated (ele%branch%lat)) then
+    call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_LATTICE_CENTER = T.')
+    return
+  endif
+  beam_init%center = ele%branch%lat%beam_start%vec
+endif
+
+call ran_gauss(ran)
+center = beam_init%center + beam_init%center_jitter * ran
+
+do i = 1, beam_init%n_particle
+  p => bunch%particle(i)
+  p%vec = p%vec + center
+enddo
 
 bunch%z_center = 0  ! Default
 bunch%t_center = 0  ! Default
@@ -1318,53 +1337,6 @@ else
 endif
 
 end subroutine combine_bunch_distributions
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! Subroutine recenter_bunch (beam_init, bunch)
-!
-! Recenters the bunch and puts in the beam jitter
-!
-! Input:
-!   beam_init  -- beam_init_struct: Use "getf beam_init_struct" for more details.
-!     %center(6)          -- Bunch center offset relative to reference
-!     %center_jitter(6)   -- Bunch center rms jitter
-!   bunch      -- bunch centered at the reference
-
-! Output:
-!   bunch      -- bunch recentered
-!-
-
-subroutine recenter_bunch (beam_init, bunch)
-
-use random_mod
-
-implicit none
-
-type (beam_init_struct) beam_init
-type (bunch_struct), target :: bunch
-type (coord_struct), pointer :: p
-
-real(rp) ran(6), center(6)
-integer i
-
-call ran_gauss(ran)
-center(1) = beam_init%center(1) + beam_init%center_jitter(1)*ran(1)
-center(2) = beam_init%center(2) + beam_init%center_jitter(2)*ran(2) 
-center(3) = beam_init%center(3) + beam_init%center_jitter(3)*ran(3)
-center(4) = beam_init%center(4) + beam_init%center_jitter(4)*ran(4)
-center(5) = beam_init%center(5) + beam_init%center_jitter(5)*ran(5)
-center(6) = beam_init%center(6) + beam_init%center_jitter(6)*ran(6)
-
-do i = 1, beam_init%n_particle
-   p => bunch%particle(i)
-   p%vec = p%vec + center
-enddo
-
-end subroutine recenter_bunch
-
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
