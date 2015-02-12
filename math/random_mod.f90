@@ -32,14 +32,9 @@ type random_state_struct
   real(sp) :: am
   integer :: gauss_converter = exact_gaussian$
   real(rp) :: gauss_sigma_cut = -1
-  integer :: n_pts_per_sigma = 20
   integer(i4_b) :: in_sobseq = 0
   integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0
   real(rp) :: x_sobseq(sobseq_maxdim)
-  ! Saved variables for use by particular routines
-  real(rp), allocatable :: g(:)    ! Used by ran_gauss_scalar
-  integer :: n_g = -1               ! Used by ran_gauss_scalar
-
 end type
 
 type (random_state_struct), private, target, save :: ran_state_dflt
@@ -140,11 +135,15 @@ implicit none
 type (random_state_struct), optional, target :: ran_state
 type (random_state_struct), pointer :: r_state
 
+integer, parameter :: sigma_max = 8, n_pts_per_sigma = 25
+integer, parameter :: max_g = sigma_max * n_pts_per_sigma
+
 real(rp), intent(out) :: harvest
 real(rp) a(2), v1, v2, r, sigma_cut, fac
+real(rp), save :: g(0:max_g) = 0
 
 integer, optional :: index_quasi
-integer i, ss, ix, n_g_new
+integer i, ss, ix
 
 ! quasi-random must use the quick_gaussian since the exact_gaussian can
 ! use several uniform random numbers to generate a single Gaussian random number.
@@ -161,23 +160,20 @@ endif
 
 if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussian$) then
 
-  if (r_state%gauss_sigma_cut > 0) then
-    sigma_cut = r_state%gauss_sigma_cut
-  else 
-    sigma_cut = 10
-  endif
-  n_g_new = max(nint(sigma_cut * r_state%n_pts_per_sigma), 10)
+  ! Init g
 
-  if (n_g_new /= ran_state%n_g) then
-    ran_state%n_g = n_g_new
-    if (allocated(ran_state%g)) deallocate(ran_state%g)
-    allocate (ran_state%g(0:ran_state%n_g))
-    fac = 2 * erf_s (sigma_cut/sqrt_2)
-    do i = 0, ran_state%n_g-1
-      ran_state%g(i) = erf_s (sigma_cut * i / (sqrt_2 * ran_state%n_g)) / fac
+  if (g(1) == 0) then
+    fac = 2 * erf_s (sigma_max/sqrt_2)
+    do i = 0, max_g-1
+      g(i) = erf_s (i / (n_pts_per_sigma * sqrt_2)) / fac
     enddo
-    ran_state%g(ran_state%n_g) = 0.50000000001_rp
+    g(max_g) = 0.50000000001_rp
   endif
+
+  !
+
+  sigma_cut = sigma_max
+  if (r_state%gauss_sigma_cut > 0) sigma_cut = min(r_state%gauss_sigma_cut, sigma_cut)
 
   call ran_uniform_scalar (r, r_state, index_quasi)
   if (r > 0.5) then
@@ -187,9 +183,9 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
     r = 0.5 - r
     ss = -1
   endif
-  call bracket_index(ran_state%g, 0, ran_state%n_g, r, ix)    
-  harvest = ss * (ix + (ran_state%g(ix+1) - r) / (ran_state%g(ix+1) - ran_state%g(ix))) * &
-                                                                      sigma_cut / ran_state%n_g
+  call bracket_index(g, 0, max_g, r, ix) 
+  harvest = (ix + (r - g(ix)) / (g(ix+1) - g(ix))) * ss / n_pts_per_sigma
+  if (harvest > sigma_cut) harvest = sigma_cut
   return
 
 endif
