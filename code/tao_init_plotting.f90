@@ -844,8 +844,8 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
-      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   fork$, '*'), &
-      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   crystal$, '*'), &
+      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   fork$, '*'), &
+      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   crystal$, '*'), &
       tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   detector$, '*'), &
       tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   diffraction_plate$, '*'), &
       tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   e_gun$, '*'), &
@@ -854,11 +854,11 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  instrument$, '*'), &
       tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   lcavity$, '*'), &
       tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  marker$, '*'), &
-      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   mirror$, '*'), &
+      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   mirror$, '*'), &
       tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  monitor$, '*'), &
-      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   multilayer_mirror$, '*'), &
+      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   multilayer_mirror$, '*'), &
       tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  octupole$, '*'), &
-      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.10_rp, 'name', .true.,   photon_fork$, '*'), &
+      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   photon_fork$, '*'), &
       tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   quadrupole$, '*'), &
       tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  rcollimator$, '*'), &
       tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   rfcavity$, '*'), &
@@ -868,7 +868,7 @@ type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
       tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  sol_quad$, '*'), &
       tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   solenoid$, '*'), &
       tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   wiggler$, '*'), &
-      tao_ele_shape_struct('X_RAY_SOURCE::*',        'BOX',    'BLACK',   0.30_rp, 'name', .true.,   x_ray_source$, '*') ]
+      tao_ele_shape_struct('X_RAY_SOURCE::*',      'BOX',    'BLACK',   0.30_rp, 'name', .true.,   x_ray_source$, '*') ]
 
 real(rp) y_layout, dx, dy, dz
 integer np, n, nr
@@ -890,7 +890,7 @@ if (.not. allocated(s%plot_page%floor_plan%ele_shape)) then
   allocate (s%plot_page%floor_plan%ele_shape(30))
   s%plot_page%floor_plan%ele_shape(:)%ele_id = ''
   s%plot_page%floor_plan%ele_shape(1:n) = dflt_lat_layout
-  s%plot_page%floor_plan%ele_shape%size = 40 * s%plot_page%floor_plan%ele_shape%size
+  s%plot_page%floor_plan%ele_shape%size = 20 * s%plot_page%floor_plan%ele_shape%size
 endif
 
 !---------------------------------
