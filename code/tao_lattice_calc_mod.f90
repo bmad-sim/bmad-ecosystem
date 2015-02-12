@@ -710,13 +710,10 @@ if (ix_branch > 0) then
   return
 endif
 
-! Init for main branch
-
-beam_init => u%beam%beam_init
-model%lat%beam_start%vec = beam_init%center
-
+! Init for main branch...
 ! If there is an init file then read from the file
 
+beam_init => u%beam%beam_init
 beam => uni_branch%ele(0)%beam
 
 if (u%beam%beam0_file /= "") then
@@ -755,7 +752,6 @@ endif
 ! Only reinit beam has not already been initialized or if commanded via %init_beam0.
 
 if (u%beam%init_beam0 .or. .not. allocated(beam%bunch)) then
-  beam_init%center = model%lat%beam_start%vec
   if (beam_init%n_bunch < 1) beam_init%n_bunch = 1   ! Default if not set.
   call init_beam_distribution (model%lat%ele(uni_branch%ix_track_start), &
                                     model%lat%param, beam_init, beam, err)
