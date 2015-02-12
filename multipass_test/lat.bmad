@@ -1,7 +1,7 @@
 parameter[geometry] = Open            
  
 parameter[p0c]                    =9.9999986944E8
-parameter[particle]               = POSITRON            
+parameter[particle]               = Positron            
 parameter[auto_scale_field_phase]    = T
 parameter[auto_scale_field_amp]      = T
 parameter[absolute_time_tracking]    = F
@@ -33,5 +33,5 @@ L1: line = ( x__D1, slave_drift_001, PFORK, slave_drift_002, M)
 L2: line = ( D2, FORK2)
  
 L2[geometry]            = Open            
-L2[particle] = PHOTON              
+L2[particle] = Photon              
 L2[p0c]      = 100                     
