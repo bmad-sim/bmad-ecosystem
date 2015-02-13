@@ -1798,7 +1798,7 @@ real(rp) :: Xn(6),pz,pzs,pt,b1
 character(20) :: r_name = 'ptc_wedger'
 real(rp), optional :: mat6(6,6)
 
-real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5
+real(rp) dpz_dx2, dpz_dx4, dpz_dx5, dpt_dx4, dpt_dx5, fac
 real(rp) dpzs_dx1, dpzs_dx2, dpzs_dx4, dpzs_dx5, factor1, factor2
 
 logical err_flag
@@ -1816,7 +1816,9 @@ endif
 
 ! Normal case
 
-pz=sqrt(1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(2)**2-X(4)**2)
+fac = 1.0_rp+2.0_rp*X(5)/beta0+X(5)**2-X(2)**2-X(4)**2
+if (fac < 0) return
+pz=sqrt(fac)
 dpz_dx2 = -X(2)/pz
 dpz_dx4 = -X(4)/pz
 dpz_dx5 = (1/beta0+X(5))/pz
@@ -1956,7 +1958,9 @@ else
   call err_exit
 endif
 
-pz=sqrt(1.0_rp+2.0_rp*x(5)/beta0+x(5)**2-x(2)**2-x(4)**2)
+fac = 1.0_rp+2.0_rp*x(5)/beta0+x(5)**2-x(2)**2-x(4)**2
+if (fac == 0) return
+pz=sqrt(fac)
 dpz_dx2 = -X(2)/pz
 dpz_dx4 = -X(4)/pz
 dpz_dx5 = (1/beta0+X(5))/pz
