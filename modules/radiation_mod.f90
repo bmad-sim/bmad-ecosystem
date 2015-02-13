@@ -165,14 +165,11 @@ case (sbend$)
   endif
 
 case (wiggler$, undulator$)
-  ! Reuse g2 and g3 values from start_edge
   if (ele%sub_key == map_type$) then
-    if (edge == start_edge$) then
-      if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
-      g2 = ele%rad_int_cache%g2_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
-      g3 = ele%rad_int_cache%g3_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
-      if (g3 < 0) g3 = 0
-    endif
+    if (.not. associated(ele%rad_int_cache) .or. ele%rad_int_cache%stale) call calc_radiation_tracking_consts(ele, param)
+    g2 = ele%rad_int_cache%g2_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg2_dorb(1:4))
+    g3 = ele%rad_int_cache%g3_0 + dot_product(orb_start%vec(1:4)-ele%rad_int_cache%orb0(1:4), ele%rad_int_cache%dg3_dorb(1:4))
+    if (g3 < 0) g3 = 0
   elseif (ele%sub_key == periodic_type$) then
     g2 = abs(ele%value(k1$))
     g3 = 4 * sqrt(2*g2)**3 / (3 * pi)  
