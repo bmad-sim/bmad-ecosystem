@@ -49,7 +49,7 @@ type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
-real(rp) p0c_start
+real(rp) p0c_start, z_start
 integer tracking_method
 
 character(8), parameter :: r_name = 'track1'
@@ -146,7 +146,7 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
                                            .not. radiation_included .and. ele%is_on .and. do_extra) then
-  call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$) 
+  call track1_radiation (start2_orb, ele, param, start2_orb, start_edge$, z_start) 
 endif
 
 ! bmad_standard handles the case when the element is turned off.
@@ -232,7 +232,7 @@ endif
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &
                                             .not. radiation_included .and. ele%is_on .and. do_extra) then
-  call track1_radiation (end_orb, ele, param, end_orb, end_edge$) 
+  call track1_radiation (end_orb, ele, param, end_orb, end_edge$, z_start) 
 endif
 
 ! space charge
