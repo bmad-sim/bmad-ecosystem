@@ -42,13 +42,11 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct) dummy
 
 integer i, i2, n, ix2, ie, ib, ie0
-logical stale, stale_lord
+logical stale
 
 character(16), parameter :: r_name = 'lat_geometry'
 
 !
-
-stale_lord = .false.
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
@@ -122,7 +120,6 @@ enddo
 lat%lord_state%floor_position = ok$
 lat%param%bookkeeping_state%floor_position = ok$
 
-if (.not. stale_lord) return
 if (bmad_com%auto_bookkeeper) lat%ele(lat%n_ele_track+1:lat%n_ele_max)%bookkeeping_state%floor_position = stale$
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
@@ -187,7 +184,6 @@ endif
 
 if (ele%n_lord > 0) then
   call set_lords_status_stale (ele, floor_position_group$)
-  stale_lord = .true.
 endif
 
 end subroutine
