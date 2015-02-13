@@ -43,7 +43,7 @@ end subroutine release_rad_int_cache
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine track1_radiation (orb_start, ele, param, orb_end, edge)
+! Subroutine track1_radiation (orb_start, ele, param, orb_end, edge, z_start)
 !
 ! Subroutine to put in radiation dampling and/or fluctuations.
 ! This routine calculates half the radiation of an element so this routine
@@ -59,9 +59,13 @@ end subroutine release_rad_int_cache
 !
 ! Output:
 !   orb_end   -- coord_struct: Particle position after radiation has been applied.
+!
+! Scratch:
+!   z_start   -- real(rp): Used by track1_radiation to save the z-coordinate.
+!                 z_start is an argument to avoid making it saved.
 !-
 
-subroutine track1_radiation (orb_start, ele, param, orb_end, edge)
+subroutine track1_radiation (orb_start, ele, param, orb_end, edge, z_start)
 
 use random_mod
 
@@ -75,7 +79,7 @@ type (coord_struct) :: orb_start2
 
 integer :: edge
 
-real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3
+real(rp) s_len, g, g_x, g_y, this_ran, mc2, g2, g3, z_start
 real(rp) x_ave, y_ave, gamma_0, dE_p, fact_d, fact_f
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 
@@ -84,7 +88,7 @@ integer direc
 logical set
 logical :: init_needed = .true.
 
-character(20) :: r_name = 'track1_radiation'
+character(*), parameter :: r_name = 'track1_radiation'
 
 ! If not a magnetic element then nothing to do.
 
@@ -105,10 +109,10 @@ if (edge == start_edge$) then
   set = set$
   s_len = ele%value(l$) / 2
   direc = +1
-  ele%rad_int_cache%z_start = orb_start%vec(5)
+  z_start = orb_start%vec(5)
 elseif (edge == end_edge$) then
   set = unset$
-  s_len = ele%value(l$)/2 + (orb_start%vec(5) - ele%rad_int_cache%z_start)
+  s_len = ele%value(l$)/2 + (orb_start%vec(5) - z_start)
   direc = -1
 else
   call out_io (s_fatal$, r_name, 'BAD EDGE ARGUMENT:', set)
