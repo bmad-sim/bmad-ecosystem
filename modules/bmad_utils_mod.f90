@@ -1103,6 +1103,8 @@ end subroutine clear_lat_1turn_mats
 ! Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
 ! at two points.
 !
+! Note: This routine assumes no RF acceleration and the value of m(5,6) will be zero. 
+!
 ! Modules Needed:
 !   use bmad
 !
@@ -1145,9 +1147,23 @@ endif
 
 ! Transfer matrices without coupling or dispersion
 
-call mat_make_unit (m)
-call transfer_mat2_from_twiss (ele1%a, ele2%a, m(1:2,1:2))
-call transfer_mat2_from_twiss (ele1%b, ele2%b, m(3:4,3:4))
+m = 0
+m(5,5) = 1
+m(6,6) = 1
+
+if (ele1%mode_flip .and. ele2%mode_flip) then
+  call transfer_mat2_from_twiss (ele1%b, ele2%b, m(1:2,1:2))
+  call transfer_mat2_from_twiss (ele1%a, ele2%a, m(3:4,3:4))
+elseif (ele1%mode_flip .and. .not. ele2%mode_flip) then
+  call transfer_mat2_from_twiss (ele1%b, ele2%b, m(3:4,1:2))  ! E sub-matrix
+  call transfer_mat2_from_twiss (ele1%a, ele2%a, m(1:2,3:4))  ! F sub-matrix
+elseif (.not. ele1%mode_flip .and. ele2%mode_flip) then
+  call transfer_mat2_from_twiss (ele1%a, ele2%a, m(3:4,1:2))  ! E sub-matrix
+  call transfer_mat2_from_twiss (ele1%b, ele2%b, m(1:2,3:4))  ! F sub-matrix
+elseif (.not. ele1%mode_flip .and. .not. ele2%mode_flip) then
+  call transfer_mat2_from_twiss (ele1%a, ele2%a, m(1:2,1:2))
+  call transfer_mat2_from_twiss (ele1%b, ele2%b, m(3:4,3:4))
+endif
 
 ! Add in coupling
 
