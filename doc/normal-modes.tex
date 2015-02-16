@@ -77,24 +77,24 @@ routine can be used. Example:
 The \vn{%mode_flip} logical component of an \vn{ele_struct} indicates
 whether the $a$ and $b$ normal modes have been flipped relative to the
 beginning of the lattice. See Sagan and Rubin\cite{b:coupling} for a
-discussion of this. The convention adopted  by \bmad is that the
+discussion of this. The convention adopted by \bmad is that the
 \vn{%a} component of all the elements in a lattice will all correspond
-to the same physical normal mode. Similarly, the \vn{%b} component of all
-the elements will all correspond to some (other) physical normal mode.
-That is, at an element where there is a mode flip (with \vn{%mode_flip} 
-set to True), 
-the \vn{%a} component actually corresponds to the $\bfB$ matrix
-element in \Eq{ua00b} and vice versa. The advantage of this convention
-is that routines that calculate properties of the modes (for example the
-emittance), can ignore whether the modes are flipped or not.
+to the same physical normal mode. Similarly, the \vn{%b} component of
+all the elements will all correspond to some (other) physical normal
+mode.  That is, at an element where there is a mode flip (with
+\vn{%mode_flip} set to True), the \vn{%a} component actually
+corresponds to the $\bfB$ matrix element in \Eq{ua00b} and vice
+versa. The advantage of this convention is that calculations of mode
+properties (for example the emittance), can ignore whether the modes
+are flipped or not.
 
-The normal mode analysis of Sagan and Rubin,
-while it has the benefit of simplicity, is strictly
-only applicable to lattices where the RF cavities are turned off. 
-The full 6-dimensional analysis is summarized by Wolski\cite{b:wolski.coupling}. 
-The \Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine perform 
-the full analysis. The results are put in
-the \vn{%mode3} component of the \vn{ele_struct} which is of type \vn{mode3_struct}:
+The normal mode analysis of Sagan and Rubin, while it has the benefit
+of simplicity, is strictly only applicable to lattices where the RF
+cavities are turned off.  The full 6-dimensional analysis is
+summarized by Wolski\cite{b:wolski.coupling}.  The
+\Hyperref{r:normal.mode3.calc}{normal_mode3_calc} routine perform the
+full analysis. The results are put in the \vn{%mode3} component of the
+\vn{ele_struct} which is of type \vn{mode3_struct}:
 \index{ele_struct!\%mode3}
 \index{mode3_struct}
 \begin{example}

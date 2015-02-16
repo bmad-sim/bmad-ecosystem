@@ -171,16 +171,16 @@ endif
 
 !---------------------------------------------------------------------
 ! Propagate twiss.
+! If there is a mode flip, ele%a is the "b"-mode. That is, ele%a is associated with
+! the lower right block of the U matrix (See Sagan & Rubin: Linear Analysis of Coupled Lattices).
+! Another way of saying this: ele%a always represents the same physical mode.
 
-call twiss1_propagate (ele1%a, mat2_a, ele2%key, ele2%value(l$), ele2%a, error)
-if (error) return
-call twiss1_propagate (ele1%b, mat2_b, ele2%key, ele2%value(l$), ele2%b, error)
-if (error) return
-
-if (ele2%mode_flip .neqv. ele1%mode_flip) then
-  twiss_a = ele2%a
-  ele2%a = ele2%b
-  ele2%b = twiss_a
+if (ele1%mode_flip) then
+  call twiss1_propagate (ele1%a, mat2_b, ele2%key, ele2%value(l$), ele2%a, error); if (error) return
+  call twiss1_propagate (ele1%b, mat2_a, ele2%key, ele2%value(l$), ele2%b, error); if (error) return
+else
+  call twiss1_propagate (ele1%a, mat2_a, ele2%key, ele2%value(l$), ele2%a, error); if (error) return
+  call twiss1_propagate (ele1%b, mat2_b, ele2%key, ele2%value(l$), ele2%b, error); if (error) return
 endif
 
 ! Comming out of a flipped state, the calculation is often off by a factor of twopi.
