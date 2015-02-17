@@ -1,3 +1,10 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
-set(EXE_SPECS cmake.lux)
+
+if ($ENV{ACC_ENBALE_MPI})
+  message ('Building MPI version...')
+  set(EXE_SPECS cmake.lux_mpi)
+else ()
+  set(EXE_SPECS cmake.lux)
+endif ()
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

@@ -1,7 +1,7 @@
 set (EXENAME lux)
 
 FILE (GLOB SRC_FILES "code/*.f90")
-set (SRC_FILES program/lux.f90 ${SRC_FILES})
+set (SRC_FILES program/lux_mpi.f90 ${SRC_FILES})
 
 set (LINK_LIBS
   bmad

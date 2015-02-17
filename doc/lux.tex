@@ -150,34 +150,18 @@ The master input file consists of a single \vn{namelist} called \vn{params}.
 An example is:
 \begin{example}
   &params
-    lattice_file = 'test.bmad'                     ! Defines experimental layout.
-    photon1_out_file = 'lux.photon1'               ! Individual photon positions.
-    det_pix_out_file = 'lux.det_pix#'
+    lux_param%lattice_file = 'test.bmad'           ! Defines experimental layout.
+    lux_param%photon1_out_file = 'lux.photon1'     ! Individual photon positions.
+    lux_param%det_pix_out_file = 'lux.det_pix#'
 
     lux_param%source_element = 'b03w'              ! Name of source element
     lux_param%detector_element = 'det'
     lux_param%photon1_element = ''
 
-    random_seed = 0                                ! 0 => Use system clock
-    random_engine = 'pseudo'
+    lux_param%random_seed = 0                      ! 0 => Use system clock
+    lux_param%random_engine = 'pseudo'
 
-    photon_init%energy_distribution = 'GAUSSIAN'     ! Or 'UNIFORM'. 
-    photon_init%spatial_distribution = 'GAUSSIAN'    ! Or 'UNIFORM'. 
-    photon_init%velocity_distribution = 'GAUSSIAN'   ! Or 'SHPERICAL', 'UNIFORM'. 
-    photon_init%sig_x = 0
-    photon_init%sig_y = 0
-    photon_init%sig_z = 0
-    photon_init%sig_vx = 0
-    photon_init%sig_vy = 0
-    photon_init%sig_E = 0                            ! Initial photon energy width (eV).
-    photon_init%sigma_cut = 3                      
-    photon_init%dE_center = 0                        ! Initial photon energy shift (eV).
-    photon_init%dE_relative_to_ref = True            ! dE_center relative to reference E?
-    photon_init%e_field_x = 0                        ! Polarization. x & y = 0 -> random
-    photon_init%e_field_y = 0
-    photon_init%scale_initial_field_to_1 = False
-    photon_init%ds_slice
-
+    lux_param%scale_initial_field_to_1 = False
     lux_param%intensity_normalization_coef = 1e6   ! photon intensities norm.
 
     lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
@@ -197,26 +181,26 @@ An example is:
 
 The components of the params namelist are:
   \begin{description}
-  \item[\vn{det_pix_out_file}] \Newline
+  \item[\vn{lux_param%det_pix_out_file}] \Newline
 Name of the output data file recording the X-ray intensity on the
 detector. See section~\sref{s:det.pix.file} for more details. The file
 name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
 blank file name will prevent a file being generated.
 
-  \item[\vn{lattice_file}] \Newline
+  \item[\vn{lux_param%lattice_file}] \Newline
 Name of the input file that defines the X-ray optics setup from source
 to detector. The syntax of the file conforms to the Bmad lattice
 format. The Bmad manual has a detailed description of this format.
 Examples are presented in section~\sref{s:lat.file}.
 
-  \item[\vn{photon1_out_file}] \Newline
+  \item[\vn{lux_param%photon1_out_file}] \Newline
 Name of the output data file recording the starting and ending
 positions of individual photons. See section~\sref{s:photon1.file} for
 more details. The file name may be ``numbered'' using 
 a ``\#'' character (\sref{s:number}). A blank file name will prevent a
 file being generated.
 
-  \item[\vn{random_engine}] \Newline
+  \item[\vn{lux_param%random_engine}] \Newline
 Type of ``random'' number generator to use. Possibilities are:
 \begin{example}
   quasi      
@@ -227,7 +211,7 @@ distribution of numbers. That is, a quasi random generator is not
 actually random. The numbers generated with the quasi random generator
 are always the same from run to run.
 
-  \item[\vn{random_seed}] \Newline
+  \item[\vn{lux_param%random_seed}] \Newline
 Random number seed used in by the random number generator if the
 \vn{random_engine} is set to \vn{pseudo}. If set to 0, the system
 clock will be used. That is, if set to 0, the output results will vary
@@ -266,6 +250,10 @@ photon_out file any photons that do not reach the detector. This switch
 is only relavent when the lattice element at which the photon positions
 are being evaluated is not the detector (\sref{s:photon1.file}).
 
+  \item[\vn{photon_init\%scale_initial_field_to_1}] \Newline
+Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
+one field component is non-zero.
+
   \item[\vn{lux_param\%source_element}] \Newline
 Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
 
@@ -274,103 +262,6 @@ Maximum number of photons to track (\sref{s:det}).
 
   \item[\vn{lux_param\%stop_total_intensity}] \Newline
 Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
-
-  \item[\vn{photon_init\%dE_center}] \Newline
-Average initial photon energy in eV. If
-\vn{photon_init%dE_relative_to_ref} is set to True (default)
-then \vn{photon_init%dE_center} will be relative to the reference energy
-(\sref{ss:x.ray.init}).
-
-  \item[\vn{photon_init\%dE_relative_to_ref}] \Newline
-Is \vn{photon_init%dE_center} with respect to the reference energy or
-an absolute value (\sref{ss:x.ray.init})?
-
-  \item[\vn{photon_init\%ds_slice}] \Newline
-Used when the source element is an insertion device or a bend: The
-source element is sliced into pieces of thickness \vn{%ds_slice} and
-each slice is tested to see if photons from the slice can possibly
-pass through the first aperture. When photons are generated, photons
-will only be generated from slices where they have a hope of passing
-through the first aperture. This makes the simulation more efficient.
-The default value of \vn{%ds_slice} is 0.01 meter.
-
-  \item[\vn{photon_init\%e_field_x}, \vn{photon_init\%e_field_y}] \Newline
-Electric field component of initial photons in the $x$ and $y$ planes
-(\sref{s:photon.descrip}).  If both are set to 0 then a random field is
-chosen with unit intensity $E_x^2 + E_y^2 = 1$.
-
-  \item[\vn{photon_init\%energy_distribution}] \Newline
-Sets the type of energy spectrum for emitted photons
-(\sref{ss:x.ray.init}).
-Possible settings are:
-\begin{example}
-  GAUSSIAN
-  UNIFORM
-\end{example}
-The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
-set by \vn{photon_init%sig_E}. The \vn{'UNIFORM'} setting gives a flat
-distribution in the range:
-\begin{example}
-  [-photon_init%sig_E, photon_init%sig_E]
-\end{example}
-
-  \item[\vn{photon_init\%scale_initial_field_to_1}] \Newline
-Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
-one field component is non-zero.
-
-  \item[\vn{photon_init\%spatial_distribution}] \Newline
-Sets spacial $(x, y, z)$ spectrum of emitted photons
-(\sref{s:photon.descrip}). Possible settings are:
-\begin{example}
-  GAUSSIAN
-  UNIFORM
-\end{example}
-The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
-set by \vn{photon_init%sig_E}. The \vn{'UNIFORM'} setting gives a flat
-distribution in the range:
-\begin{example}
-  [-photon_init%sig_E, photon_init%sig_E]
-\end{example}
-The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
-$\sigma$ where $sigma$ is 
-\begin{example}
-  photon_init%sig_x     for x distribution
-  photon_init%sig_y     for y distribution
-  photon_init%sig_z     for z distribution
-\end{example}
-The \vn{'UNIFORM'} setting gives a flat
-distribution in the range: $[-\sigma, \sigma]$.
-
-  \item[\vn{photon_init\%sig_E}] \Newline
-Energy width in eV. See \vn{photon_init%energy_distribution} for more
-details.
-
-  \item[\vn{photon_init\%sig_vx, photon_init\%sig_vy}] \Newline
-Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
-\vn{photon_init%velocity_distribution} for more details.
-
-  \item[\vn{photon_init\%sig_x, photon_init\%sig_y, photon_init\%sig_z}] \Newline
-Width of emitted photons in $x$, $y$ and $z$ directions. See
-\vn{photon_init%spatial_distribution} for more details.
-
-  \item[\vn{photon_init\%velocity_distribution}] \Newline
-Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
-photons. The longitudinal velocity is always computed to make $v_x^2 +
-v_y^2 + v_z^2 = c^2$ Possible settings are:
-\begin{example}
-  GAUSSIAN
-  SPHERICAL
-  UNIFORM
-\end{example}
-The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
-$\sigma$ where $sigma$ is 
-\begin{example}
-  photon_init%sig_vx     for vx/c distribution
-  photon_init%sig_vy     for vy/c distribution
-\end{example}
-The \vn{'UNIFORM'} setting gives a flat distribution in the range:
-$[-\sigma, \sigma]$.
-The \vn{SPHERICAL} setting gives flat distribution in all directions.
 
   \end{description}
 
@@ -417,14 +308,15 @@ parameter in the master input file, $C_f$ can be used, for example, to
 scale the output numbers to correspond to actual measured values.
 
 %------------------------------------------------------------------
-\subsection{Polarization Init}
+\subsection{Photon Polarization Initialization}
 
-The polarization of the photons is set in the master input file by
-\begin{example}
-  photon_init%e_field_x     ! Polarization along the x-axis
-  photon_init%e_field_y     ! polarization along the y-axis
-\end{example}
-If the parameter \vn{photon_init%scale_initial_field_to_1} is set to
+when using an \vn{x_ray_source} element, the polarization of the
+photons is set by the element parameters \vn{e_field_x} and
+\vn{e_field_y}. For bend, wiggler, and undulator elements, the initial
+polarization of a given photon is determined by the properties of the
+element and the initial photon direction.
+
+If the parameter \vn{lux_param%scale_initial_field_to_1} is set to
 True, \lux will scale the field so that the \vn{unnormalized}
 intensity (\sref{s:photon.descrip}) of each photon is 1 at the start
 of tracking. If both field components are set to zero, the
@@ -470,7 +362,7 @@ parameter must be of type:
   sbend or rbend    ! Example in \sref{ss:bend}
   undulator
   wiggler
-  x_ray_init        ! Example in \sref{ss:x.ray.init}
+  x_ray_source        ! Example in \sref{ss:x.ray.init}
 \end{example}
 
 The detector element, specified by the \vn{lux_param%detector_element}
@@ -486,10 +378,10 @@ The detector element must define a grid of pixels. Example:
 See the Bmad manual for details of the detector syntax.
 
 %------------------------------------------------------------------
-\subsection{Example: Lattice Using an X_ray_init Source}
+\subsection{Example: Lattice Using an x_ray_source Source}
 \label{ss:x.ray.init}
 
-An example lattice using an \vn{x_ray_init} element as the photon source is:
+An example lattice using an \vn{x_ray_source} element as the photon source is:
 \begin{listing}{1}
 beginning[e_tot] = 1e4
 parameter[particle] = photon
@@ -501,8 +393,7 @@ angle  = 80 * pi / 180
 qq = r0 * tan(pi/2-graze_angle)
 dft_len = sqrt(qq^2 + r0^2)
 
-src: x_ray_init, l = 0, x_offset = 0, y_offset = 0, z_offset = 0, 
-        tilt = 0, x_pitch = 0, y_pitch = 0
+src: x_ray_source, energy_distribution = gaussian
 drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
 cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
         a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
