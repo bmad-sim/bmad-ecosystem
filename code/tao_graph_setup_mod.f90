@@ -283,7 +283,7 @@ do k = 1, size(graph%curve)
   endif
   ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
-  if (name == ' ') name = ele%name
+  if (name == '') name = ele%name
   if (same_uni) then
     write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
                                 '[', curve%ix_ele_ref, ': ', trim(name), ']'
@@ -613,7 +613,7 @@ do k = 1, size(graph%curve)
   endif
   ele => u%model%lat%ele(curve%ix_ele_ref_track)
   name = curve%ele_ref_name
-  if (name == ' ') name = ele%name
+  if (name == '') name = ele%name
   if (same_uni) then
     write (graph%title_suffix, '(2a, i0, 3a)') trim(graph%title_suffix), &
                                 '[', curve%ix_ele_ref, ': ', trim(name), ']'
@@ -938,7 +938,7 @@ model_lat => u%model%lat
 base_lat => u%base%lat
 branch => model_lat%branch(curve%ix_branch)
 
-if (curve%ele_ref_name == ' ') then
+if (curve%ele_ref_name == '') then
   zero_average_phase = .true.
 else
   zero_average_phase = .false.
@@ -1393,10 +1393,20 @@ case ('s')
     scratch%good = .true.
 
     call tao_split_component(graph%component, scratch%comp, err)
-    if (err) return
+    if (err) then
+      graph%valid = .false.
+      graph%why_invalid = 'Bad Graph Component Expression'
+      return
+    endif
+    if (graph%component == '') then
+      graph%valid = .false.
+      graph%why_invalid = 'No Graph Component.'
+      return
+    endif
+
     do m = 1, size(scratch%comp)
       select case (scratch%comp(m)%name)
-      case (' ') 
+      case ('') 
         cycle
       case ('model')
         call calc_data_at_s (u%model, curve, scratch%comp(m)%sign, scratch%good)
@@ -1849,7 +1859,7 @@ do ii = 1, size(curve%x_line)
     expnt = 0
     i = tao_read_this_index (data_type, 4); if (i == 0) return
     do j = 5, 15
-      if (data_type(j:j) == ' ') exit
+      if (data_type(j:j) == '') exit
       k = tao_read_this_index (data_type, j); if (k == 0) return
       expnt(k) = expnt(k) + 1
     enddo
@@ -1975,7 +1985,17 @@ datum%data_source    = curve%data_source
 datum%ix_branch      = curve%ix_branch
 
 call tao_split_component (curve%g%component, scratch%comp, err)
-if (err) return
+if (err) then
+  valid = .false.
+  curve%g%why_invalid = 'Bad Graph Component Expression.'
+  return
+endif
+if (curve%g%component == '') then
+  valid = .false.
+  curve%g%why_invalid = 'No Graph Components.'
+  return
+endif
+
 do m = 1, size(scratch%comp)
 
   do ie = 1, n_dat
@@ -1984,7 +2004,7 @@ do m = 1, size(scratch%comp)
     datum%ix_branch = eles(ie)%ele%ix_branch
 
     select case (scratch%comp(m)%name)
-    case (' ') 
+    case ('') 
       cycle
     case ('model')   
       call tao_evaluate_a_datum (datum, u, u%model, y_val, valid, why_invalid)
