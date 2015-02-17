@@ -43,11 +43,11 @@ case (monitor$, instrument$, marker$, detector$)
 case default
   call out_io (s_error$, r_name, &
                 'MONITOR CALCULATION CALLED FOR ELEMENT THAT IS NEITHER', &
-                'A MONITOR, INSTRUMENT OR MARKER: ' // ele%name)
+                'A MONITOR, INSTRUMENT, MARKER, NOR DETECTOR: ' // ele%name)
   err = .true.
 end select
 
-end subroutine
+end subroutine check_if_ele_is_monitor
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -140,7 +140,8 @@ end subroutine compute_bpm_transformation_numbers
 !
 ! Output:
 !  reading  -- Real(rp): BPM reading
-!  err      -- Logical: Set True if ele%is_on = False.
+!  err      -- Logical: Set True if there is no valid reading.
+!                For example, if ele%is_on = False.
 !-
 
 subroutine to_orbit_reading (orb, ele, axis, reading, err)
@@ -159,13 +160,15 @@ integer axis
 
 character(20) :: r_name = "to_orbit_reading"
 
-logical err
+logical err, error
 
 ! Monitor check is currently disabled.
 
 reading = 0.0
 
 err = .true.
+
+call check_if_ele_is_monitor (ele, error); if (error) return
 if (.not. ele%is_on) return
 
 call compute_bpm_transformation_numbers (ele)
@@ -241,20 +244,16 @@ integer axis
 
 character(20) :: r_name = "to_eta_reading"
 
-logical err
-
-! Monitor check is currently disabled.
+logical err, error
 
 reading = 0.0
-
-!call check_if_ele_is_monitor (ele, err)
-!if (err) return
 
 !
 
 err = .true.
-if (.not. ele%is_on) return
 
+if (.not. ele%is_on) return
+call check_if_ele_is_monitor (ele, error); if (error) return
 
 if (ele%value(noise$) /= 0) then
   if (ele%value(de_eta_meas$) == 0) then
@@ -327,22 +326,21 @@ integer axis
 
 character(40) :: r_name = "to_phase_and_coupling_reading"
 
-logical err
+logical err, error
 
-! Monitor check is currently disabled
+! 
 
 reading%K_22a = 0
 reading%K_12a = 0
 reading%K_11b = 0
 reading%K_12b = 0
 
-! call check_if_ele_is_monitor (ele, err)
-! if (err) return
-
 !
 
 err = .true.
+
 if (.not. ele%is_on) return
+call check_if_ele_is_monitor (ele, error); if (error) return
 
 call compute_bpm_transformation_numbers (ele)
 

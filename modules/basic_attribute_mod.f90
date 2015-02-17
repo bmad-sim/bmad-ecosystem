@@ -319,7 +319,7 @@ do i = 1, n_key$
   end select
 
   select case(i)
-  case (monitor$, instrument$, marker$, pipe$, detector$)
+  case (monitor$, instrument$, marker$, detector$)
     call init_attribute_name1 (i, x_gain_err$,      'X_GAIN_ERR')
     call init_attribute_name1 (i, y_gain_err$,      'Y_GAIN_ERR')
     call init_attribute_name1 (i, crunch$,          'CRUNCH')
