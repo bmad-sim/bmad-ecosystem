@@ -2699,25 +2699,25 @@ character(40), parameter :: r_name = 'tao_print_command_line_info'
 !
 
 call out_io (s_blank$, r_name, [ &
-        'Syntax:                            ', &
-        '  tao {OPTIONS}                    ', &
-        'Options are:                       ', &
-        '  -beam <beam_file>                ', &
-        '  -beam_all <all_beam_file>        ', &
-        '  -beam0 <beam0_file>              ', &
-        '  -building_wall <wall_file>       ', &
-        '  -data <data_file>                ', &
-        '  -geometry <width>x<height>       ', &
-        '  -init <tao_init_file>            ', &
-        '  -lat <bmad_lattice_file>         ', &
-        '  -lat xsif::<xsif_lattice_file>   ', &
-        '  -log_startup                     ', &
-        '  -noinit                          ', &
-        '  -noplot                          ', &
-        '  -plot <plot_file>                ', &
-        '  -rf_on                           ', &
-        '  -startup <starup_command_file>   ', &
-        '  -var <var_file>                  '])
+        'Syntax:                                                                           ', &
+        '  tao {OPTIONS}                                                                   ', &
+        'Options are:                                                                      ', &
+        '  -beam <beam_file>               # Beam init particle positions                  ', &
+        '  -beam0 <beam0_file>             # Beam init params (beam size, etc.)            ', &
+        '  -beam_all <all_beam_file>       # Beam info from previous tracking              ', &
+        '  -building_wall <wall_file>      # Define the building tunnel wall               ', &
+        '  -data <data_file>               # Define data for plotting and optimization     ', &
+        '  -geometry <width>x<height>      # Plot window geometry                          ', &
+        '  -init <tao_init_file>           # Tao init file                                 ', &
+        '  -lat <bmad_lattice_file>        # Bmad lattice file                             ', &
+        '  -lat xsif::<xsif_lattice_file>  # XSIF lattice file                             ', &
+        '  -log_startup                    # Write startup debugging info                  ', &
+        '  -noinit                         # Do not useTao init file                       ', &
+        '  -noplot                         # Do not open a plotting window                 ', &
+        '  -plot <plot_file>               # Define plot setup info                        ', &
+        '  -rf_on                          # Keep RF on (Default is to turn off)           ', &
+        '  -startup <starup_command_file>  # Commands to run after parsing Tao init file   ', &
+        '  -var <var_file>                 # Define variables for plotting and optimization'])
 
 
 end subroutine tao_print_command_line_info
