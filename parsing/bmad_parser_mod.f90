@@ -1176,15 +1176,17 @@ case ('USE_HARD_EDGE_DRIFTS')
   bp_com%extra%use_hard_edge_drifts_set = .true.
   bp_com%extra%use_hard_edge_drifts = bmad_com%use_hard_edge_drifts
 
+case ('APERTURE_AT')
+  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
+
 case ('APERTURE_LIMIT_ON') 
   call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
 
+case ('APERTURE_TYPE')
+  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele)
+
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
-
-case ('CREATE_JUMBO_SLAVE')
-  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag)
 
 case ('AUTO_SCALE_FIELD_PHASE')
   call get_logical (attrib_word, lat%auto_scale_field_phase, err_flag)
@@ -1192,8 +1194,24 @@ case ('AUTO_SCALE_FIELD_PHASE')
 case ('AUTO_SCALE_FIELD_AMP')
   call get_logical (attrib_word, lat%auto_scale_field_amp, err_flag)
 
+case ('COUPLER_AT')
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
+  ele%value(coupler_at$) = ix
+
+case ('CREATE_JUMBO_SLAVE')
+  if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
+  call get_logical (attrib_word, pele%create_jumbo_slave, err_flag)
+
 case ('CSR_CALC_ON')
   call get_logical (attrib_word, ele%csr_calc_on, err_flag)
+
+case ('DEFAULT_TRACKING_SPECIES')
+  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
+  ele%value(default_tracking_species$) = ix + lbound(particle_name, 1) - 1 
+
+case ('ENERGY_DISTRIBUTION')
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  ele%value(energy_distribution$) = ix
 
 case ('PTC_EXACT_MODEL')
   call get_logical (attrib_word, logic, err_flag)
@@ -1203,9 +1221,6 @@ case ('PTC_EXACT_MISALIGN')
   call get_logical (attrib_word, logic, err_flag)
   if (err_flag) return
   call set_ptc (exact_misalign = logic)
-
-case ('TAYLOR_MAP_INCLUDES_OFFSETS')
-  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag)
 
 case ('OFFSET_MOVES_APERTURE')
   call get_logical (attrib_word, ele%offset_moves_aperture, err_flag)
@@ -1219,21 +1234,11 @@ case ('SCALE_MULTIPOLES')
 case ('FIELD_CALC')
   call get_switch (attrib_word, field_calc_name(1:), ele%field_calc, err_flag, ele)
 
-case ('APERTURE_AT')
-  call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
-
 case ('REF_ORIGIN')
   call get_switch (attrib_word, anchor_pt_name(1:), pele%ref_pt, err_flag, ele)
 
 case ('ELE_ORIGIN')
   call get_switch (attrib_word, anchor_pt_name(1:), pele%ele_pt, err_flag, ele)
-
-case ('APERTURE_TYPE')
-  call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele)
-
-case ('COUPLER_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
-  ele%value(coupler_at$) = ix
 
 case ('PTC_FRINGE_GEOMETRY')
   call get_switch (attrib_word, ptc_fringe_geometry_name(1:), ix, err_flag, ele)
@@ -1250,42 +1255,6 @@ case ('FRINGE_TYPE')
 case ('HIGHER_ORDER_FRINGE_TYPE')
   call get_switch (attrib_word, higher_order_fringe_type_name(1:), ix, err_flag, ele)
   ele%value(higher_order_fringe_type$) = ix
-
-case ('FRINGE_AT')
-  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
-  ele%value(fringe_at$) = ix
-
-case ('ORIGIN_ELE_REF_PT')
-  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele)
-  ele%value(origin_ele_ref_pt$) = ix
-
-case ('TRACKING_METHOD')
-  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele)
-  if (err_flag) return
-  if (.not. valid_tracking_method (ele, not_set$, switch)) then
-    if (wild_key0) then
-      err_flag = .false.
-    else
-      call parser_error ('NOT A VALID TRACKING_METHOD: ' // word, &
-                         'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
-    endif
-    return
-  endif
-  ele%tracking_method = switch
-
-case ('SPIN_TRACKING_METHOD')
-  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
-  if (err_flag) return
-  if (.not. valid_spin_tracking_method (ele, switch)) then
-    if (wild_key0) then
-      err_flag = .false.
-    else
-      call parser_error ('NOT A VALID SPIN_TRACKING_METHOD: ' // word, &
-                         'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
-    endif
-    return
-  endif
-  ele%spin_tracking_method = switch
 
 case ('MAT6_CALC_METHOD')
   call get_switch (attrib_word, mat6_calc_method_name(1:), switch, err_flag, ele)
@@ -1320,10 +1289,6 @@ case ('PARTICLE')
   call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
   ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
 
-case ('DEFAULT_TRACKING_SPECIES')
-  call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
-  ele%value(default_tracking_species$) = ix + lbound(particle_name, 1) - 1 
-
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
   ele%value(ptc_field_geometry$) = ix
@@ -1344,6 +1309,53 @@ case ('PHOTON_TYPE')
 case ('LATTICE_TYPE')   ! Old style
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele)
   ele%value(geometry$) = ix
+
+case ('FRINGE_AT')
+  call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
+  ele%value(fringe_at$) = ix
+
+case ('ORIGIN_ELE_REF_PT')
+  call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele)
+  ele%value(origin_ele_ref_pt$) = ix
+
+case ('SPATIAL_DISTRIBUTION')
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  ele%value(spatial_distribution$) = ix
+
+case ('SPIN_TRACKING_METHOD')
+  call get_switch (attrib_word, spin_tracking_method_name(1:), switch, err_flag, ele)
+  if (err_flag) return
+  if (.not. valid_spin_tracking_method (ele, switch)) then
+    if (wild_key0) then
+      err_flag = .false.
+    else
+      call parser_error ('NOT A VALID SPIN_TRACKING_METHOD: ' // word, &
+                         'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    endif
+    return
+  endif
+  ele%spin_tracking_method = switch
+
+case ('TAYLOR_MAP_INCLUDES_OFFSETS')
+  call get_logical (attrib_word, ele%taylor_map_includes_offsets, err_flag)
+
+case ('TRACKING_METHOD')
+  call get_switch (attrib_word, tracking_method_name(1:), switch, err_flag, ele)
+  if (err_flag) return
+  if (.not. valid_tracking_method (ele, not_set$, switch)) then
+    if (wild_key0) then
+      err_flag = .false.
+    else
+      call parser_error ('NOT A VALID TRACKING_METHOD: ' // word, &
+                         'FOR: ' // trim(ele%name), 'WHICH IS A: ' // key_name(ele%key))
+    endif
+    return
+  endif
+  ele%tracking_method = switch
+
+case ('VELOCITY_DISTRIBUTION')
+  call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele)
+  ele%value(velocity_distribution$) = ix
 
 case default   ! normal attribute
 

@@ -493,7 +493,7 @@ type target_point_struct
 end type
 
 type photon_target_struct
-  integer :: type = off$
+  integer :: type = off$       ! or rectangular$, or detector$
   integer :: n_corner = 0
   type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()
@@ -836,35 +836,37 @@ integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, sig_z$ = 6, noise$ = 6, new_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
-integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
+integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, sig_vx$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
-integer, parameter :: rho$ = 8, delta_e$ = 8
+integer, parameter :: rho$ = 8, delta_e$ = 8, sig_vy$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: l_chord$ = 9, voltage$ = 9
+integer, parameter :: l_chord$ = 9, voltage$ = 9, sig_E$ = 9
 integer, parameter :: fb1$ = 14
 integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, dE_center$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21
-integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22
+integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, dE_relative_to_ref$ = 21
+integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
-integer, parameter :: traveling_wave$ = 23, beta_a$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24
+integer, parameter :: traveling_wave$ = 23, beta_a$ = 23, velocity_distribution$ = 23
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
-integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25
-integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, cmat_11$ = 27
-integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27
-integer, parameter :: lattice_type$ = 27, x_quad$ = 27
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
+integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
+integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
 integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
-integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29, cmat_21$ = 29
-integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, downstream_ele_dir$ = 30, cmat_22$ = 30
-integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31
+integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
+integer, parameter :: cmat_21$ = 29, transverse_sigma_cut$ = 30
+integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30
+integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
+integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31
 integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
 integer, parameter :: x_pitch$ = 34
@@ -1078,6 +1080,11 @@ character(16), parameter :: field_calc_name(0:7) = &
 
 integer, parameter :: bragg$ = 1, laue$ = 2
 character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
+
+! Distribution
+
+integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
+character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 'Gaussian ', 'Spherical']
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.

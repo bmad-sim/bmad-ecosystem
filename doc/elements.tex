@@ -3587,7 +3587,113 @@ General \vn{x_ray_source} attributes are:
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{x_ray_source} element are:
 \begin{example}
-  x_half_length = <Real>     ! Horizontal strong beam sigma   
-  x_half_length = <Real>     ! Horizontal strong beam sigma   
+    energy_distribution = 'GAUSSIAN'     ! Or 'UNIFORM'. 
+    spatial_distribution = 'GAUSSIAN'    ! Or 'UNIFORM'. 
+    velocity_distribution = 'GAUSSIAN'   ! Or 'SHPERICAL', 'UNIFORM'. 
+    sig_x = 0
+    sig_y = 0
+    sig_z = 0
+    sig_vx = 0
+    sig_vy = 0
+    sig_E = 0                            ! Initial photon energy width (eV).
+    transverse_sigma_cut = 3                      
+    dE_center = 0                        ! Initial photon energy shift (eV).
+    dE_relative_to_ref = True            ! dE_center relative to reference E?
+    e_field_x = 0                        ! Polarization. x & y = 0 -> random
+    e_field_y = 0
+    ds_slice
 \end{example}
+
+  \item[\vn{dE_center}] \Newline
+Average initial photon energy in eV. If
+\vn{dE_relative_to_ref} is set to True (default)
+then \vn{dE_center} will be relative to the reference energy
+(\sref{ss:x.ray.init}).
+
+  \item[\vn{dE_relative_to_ref}] \Newline
+Is \vn{dE_center} with respect to the reference energy or
+an absolute value (\sref{ss:x.ray.init})?
+
+  \item[\vn{ds_slice}] \Newline
+Used when the source element is an insertion device or a bend: The
+source element is sliced into pieces of thickness \vn{%ds_slice} and
+each slice is tested to see if photons from the slice can possibly
+pass through the first aperture. When photons are generated, photons
+will only be generated from slices where they have a hope of passing
+through the first aperture. This makes the simulation more efficient.
+The default value of \vn{%ds_slice} is 0.01 meter.
+
+  \item[\vn{e_field_x}, \vn{e_field_y}] \Newline
+Electric field component of initial photons in the $x$ and $y$ planes
+(\sref{s:photon.descrip}).  If both are set to 0 then a random field is
+chosen with unit intensity $E_x^2 + E_y^2 = 1$.
+
+  \item[\vn{energy_distribution}] \Newline
+Sets the type of energy spectrum for emitted photons
+(\sref{ss:x.ray.init}).
+Possible settings are:
+\begin{example}
+  gaussian
+  uniform
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+set by \vn{sig_E}. The \vn{'UNIFORM'} setting gives a flat
+distribution in the range:
+\begin{example}
+  [-sig_E, sig_E]
+\end{example}
+
+  \item[\vn{spatial_distribution}] \Newline
+Sets spacial $(x, y, z)$ spectrum of emitted photons
+(\sref{s:photon.descrip}). Possible settings are:
+\begin{example}
+  GAUSSIAN
+  UNIFORM
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+set by \vn{sig_E}. The \vn{'UNIFORM'} setting gives a flat
+distribution in the range:
+\begin{example}
+  [-sig_E, sig_E]
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example}
+  sig_x     for x distribution
+  sig_y     for y distribution
+  sig_z     for z distribution
+\end{example}
+The \vn{'UNIFORM'} setting gives a flat
+distribution in the range: $[-\sigma, \sigma]$.
+
+  \item[\vn{sig_E}] \Newline
+Energy width in eV. See \vn{energy_distribution} for more
+details.
+
+  \item[\vn{sig_vx, sig_vy}] \Newline
+Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
+\vn{velocity_distribution} for more details.
+
+  \item[\vn{sig_x, sig_y, sig_z}] \Newline
+Width of emitted photons in $x$, $y$ and $z$ directions. See
+\vn{spatial_distribution} for more details.
+
+  \item[\vn{velocity_distribution}] \Newline
+Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
+photons. The longitudinal velocity is always computed to make $v_x^2 +
+v_y^2 + v_z^2 = c^2$ Possible settings are:
+\begin{example}
+  GAUSSIAN
+  SPHERICAL
+  UNIFORM
+\end{example}
+The \vn{'GAUSSIAN'} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example}
+  sig_vx     for vx/c distribution
+  sig_vy     for vy/c distribution
+\end{example}
+The \vn{'UNIFORM'} setting gives a flat distribution in the range:
+$[-\sigma, \sigma]$.
+The \vn{SPHERICAL} setting gives flat distribution in all directions.
 
