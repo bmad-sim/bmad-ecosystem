@@ -190,6 +190,10 @@ case (x_ray_source$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
 !!! Due to ifort bug:  ele%photon = photon_element_struct()
   call init_photon_element_struct(ele%photon)
+  ele%value(velocity_distribution$) = gaussian$
+  ele%value(energy_distribution$) = gaussian$
+  ele%value(spatial_distribution$) = gaussian$
+  ele%value(transverse_sigma_cut$) = 3
 
 end select
 

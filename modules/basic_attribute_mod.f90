@@ -419,7 +419,7 @@ do i = 1, n_key$
 
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
-  if (i == x_ray_source$)        cycle
+  if (i == x_ray_source$)      cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
@@ -1114,7 +1114,25 @@ call init_attribute_name1 (wiggler$, field$,                        'FIELD')
 call init_attribute_name1 (wiggler$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start', private$)
 
-call init_attribute_name1 (x_ray_source$, l$,                   'L')
+attrib_array(undulator$, :) = attrib_array(wiggler$, :)
+
+call init_attribute_name1 (x_ray_source$, l$,                         'L', dependent$)
+call init_attribute_name1 (x_ray_source$, sig_x$,                     'SIG_X')
+call init_attribute_name1 (x_ray_source$, sig_y$,                     'SIG_Y')
+call init_attribute_name1 (x_ray_source$, sig_z$,                     'SIG_Z')
+call init_attribute_name1 (x_ray_source$, sig_vx$,                    'SIG_VX')
+call init_attribute_name1 (x_ray_source$, sig_vy$,                    'SIG_VY')
+call init_attribute_name1 (x_ray_source$, sig_E$,                     'SIG_E')
+call init_attribute_name1 (x_ray_source$, dE_center$,                 'DE_CENTER')
+call init_attribute_name1 (x_ray_source$, dE_relative_to_ref$,        'DE_RELATIVE_TO_REF')
+call init_attribute_name1 (x_ray_source$, spatial_distribution$,      'SPATIAL_DISTRIBUTION')
+call init_attribute_name1 (x_ray_source$, velocity_distribution$,     'VELOCITY_DISTRIBUTION')
+call init_attribute_name1 (x_ray_source$, energy_distribution$,       'ENERGY_DISTRIBUTION')
+call init_attribute_name1 (x_ray_source$, e_field_x$,                 'E_FIELD_X')
+call init_attribute_name1 (x_ray_source$, e_field_y$,                 'E_FIELD_Y')
+call init_attribute_name1 (x_ray_source$, scale_field_to_one$,        'SCALE_FIELD_TO_ONE')
+call init_attribute_name1 (x_ray_source$, transverse_sigma_cut$,      'TRANSVERSE_SIGMA_CUT')
+call init_attribute_name1 (x_ray_source$, ds_slice$,                  'DS_SLICE')
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -1300,7 +1318,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
-      'BRANCHES_ARE_COHERENT')
+      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &
@@ -1312,7 +1330,8 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
-      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE')
+      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', &
+      'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
@@ -1502,6 +1521,10 @@ case ('DEFAULT_TRACKING_SPECIES')
   call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
   if (present(is_default)) is_default = (ix_attrib == ref_particle$)
 
+case ('ENERGY_DISTRIBUTION')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == gaussian$)
+
 case ('PHOTON_TYPE')
   call get_this_attrib_name (attrib_val_name, ix_attrib, photon_type_name, lbound(photon_type_name, 1))
   if (present(is_default)) is_default = (ix_attrib == incoherent$)
@@ -1598,6 +1621,10 @@ case ('REF_ORBIT_FOLLOWS')
     is_default = (ix_attrib == bragg_diffracted$)
   endif
 
+case ('SPATIAL_DISTRIBUTION')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == gaussian$)
+
 case ('SPIN_TRACKING_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
   if (present(is_default)) then
@@ -1610,6 +1637,10 @@ case ('TRACKING_METHOD')
   if (present(is_default)) then
     is_default = (ix_attrib == ele2%tracking_method)
   endif
+
+case ('VELOCITY_DISTRIBUTION')
+  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib == gaussian$)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)

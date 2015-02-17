@@ -81,6 +81,39 @@ end function is_true
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
+! Function is_false (param) result (this_false)
+!
+! Routine to translate from a real number to a boolian True or False.
+! Translation: 0 = False, nonzero = True
+!
+! The typical use of this routine is for parameters in ele_struct%value(:) which
+! is a real array. Some of the elements in the %value array are used to specify
+! boolian attributes. For example, quadrupoles use ele%value(scale_multipoles$).
+! 
+! Input:
+!   param    -- real(rp): Real number to be translated
+!
+! Output:
+!   this_false -- logical: Set True if param is zero. False otherwise.
+!-
+
+function is_false (param) result (this_false)
+
+implicit none
+
+real(rp) param
+logical this_false
+
+!
+
+this_false = (param == 0)
+
+end function is_false
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
 ! Function species_name (species) result (species_str)
 !
 ! Routine to return the string representation of the type of particle under consideration.
