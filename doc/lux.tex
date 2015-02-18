@@ -80,11 +80,34 @@ photons at a source element and tracking them through to a
 detector. \lux uses the Bmad subroutine library\cite{b:bmad} for
 tracking and lattice bookkeeping.
 
+\lux comes in two versions: A single threaded version whose executable
+is called \vn{lux} and an parallel compute version using MPI whose
+executable is called \vn{mpi_lux}.
+
+%------------------------------------------------------------------
+\section{Building \lux} 
+\label{s:run}
+
+Chances are that a \lux excutable is already built for you to use. If
+you do need to build \lux, first copy the \vn{lux} directory (ask your
+local Bmad guru where this directory resides if you need to) to your
+local area 
+
+\lux is built using the same build system based on \vn{CMake} that is
+used for building Bmad. To build the single threaded version of \lux,
+go to the \lux directory and use the \vn{mk} and/or the \vn{mkd}
+command to build production and/or debug executables (See the
+documentation of the Bmad build system for more details).
+
+To build the parallel version of \lux, go to the \lux directory and
+use the \vn{./build_mpi mk} and/or the \vn{./build_mpi mkd} command to
+build production and/or debug executables.
+
 %------------------------------------------------------------------
 \section{Running \lux} 
 \label{s:run}
 
-Syntax for invoking \lux:
+Syntax for invoking the single threaded version of \lux:
 \begin{example}
  <path-to-lux-exe>/lux \{-silent\} \{<master-input-file-name>\}
 \end{example}
@@ -96,6 +119,17 @@ The \vn{-silent} optional argument supresses the terminal output that
 output when \lux is run repeatedly via a script.
 
 Example input files are in the \vn{lux/examples} subdirectory.
+
+To run the parallel version of \lux, a script \vn{run_lux_mpi.sh} for
+running on the Laboratory compute farm is provided in
+\vn{lux/examples} subdirectory. [For non-Cornell people, ask your
+local MPI guru for help.] To run on the Lab compute farm, copy this
+script into a local directory, modify as needed (at minimum you will
+need to set where the \lux executable is and how many nodes you want
+to use in this script), and then start \lux with the command:
+\begin{example}
+  qsub run_lux_mpi.sh
+\end{example}
 
 %------------------------------------------------------------------
 \section{Data Visualization}
@@ -165,13 +199,16 @@ An example is:
     lux_param%intensity_normalization_coef = 1e6   ! photon intensities norm.
 
     lux_param%stop_total_intensity = 10            ! Cumulative intensity to stop at.
-    lux_param%stop_num_photons = 0                 ! Max number of photons to track.
+    lux_param%stop_num_photons = 1e8               ! Max number of photons to track.
+    lux_param%mpi_run_size = 0.1                   ! Normalized num photons to track.
 
     lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
 
     lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
     lux_param%reject_dead_at_det_photon1 = False
     lux_param%n_energy_bin_pts = 40                ! Number of energy bins
+
+
   /
 \end{example}
 
@@ -181,41 +218,11 @@ An example is:
 
 The components of the params namelist are:
   \begin{description}
-  \item[\vn{lux_param%det_pix_out_file}] \Newline
+  \item[\vn{lux_param\%det_pix_out_file}] \Newline
 Name of the output data file recording the X-ray intensity on the
 detector. See section~\sref{s:det.pix.file} for more details. The file
 name may be ``numbered'' using a ``\#'' character (\sref{s:number}). A
 blank file name will prevent a file being generated.
-
-  \item[\vn{lux_param%lattice_file}] \Newline
-Name of the input file that defines the X-ray optics setup from source
-to detector. The syntax of the file conforms to the Bmad lattice
-format. The Bmad manual has a detailed description of this format.
-Examples are presented in section~\sref{s:lat.file}.
-
-  \item[\vn{lux_param%photon1_out_file}] \Newline
-Name of the output data file recording the starting and ending
-positions of individual photons. See section~\sref{s:photon1.file} for
-more details. The file name may be ``numbered'' using 
-a ``\#'' character (\sref{s:number}). A blank file name will prevent a
-file being generated.
-
-  \item[\vn{lux_param%random_engine}] \Newline
-Type of ``random'' number generator to use. Possibilities are:
-\begin{example}
-  quasi      
-  pseudo      ! Default
-\end{example}
-The \vn{quasi} number generator gives a more-or-less uniform
-distribution of numbers. That is, a quasi random generator is not
-actually random. The numbers generated with the quasi random generator
-are always the same from run to run.
-
-  \item[\vn{lux_param%random_seed}] \Newline
-Random number seed used in by the random number generator if the
-\vn{random_engine} is set to \vn{pseudo}. If set to 0, the system
-clock will be used. That is, if set to 0, the output results will vary
-from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
 
   \item[\vn{lux_param\%detector_element}] \Newline
 Name of the lattice detector element where the photon are absorbed.
@@ -233,16 +240,59 @@ the photon1_out file (\sref{s:photon1.file}).
   \item[\vn{lux_param\%intensity_normalization_coef}] \Newline
 Coefficient used to normalize the photon intensity with (\sref{s:det}).
 
+  \item[\vn{lux_param\%lattice_file}] \Newline
+Name of the input file that defines the X-ray optics setup from source
+to detector. The syntax of the file conforms to the Bmad lattice
+format. The Bmad manual has a detailed description of this format.
+Examples are presented in section~\sref{s:lat.file}.
+
+  \item[\vn{lux_param\%mpi_run_size}] \Newline
+Only used when running the parallel version of \lux. This parameter
+determins how many photons a slave process is asked to track before
+sending back data to the master process:
+\begin{example}
+  Number to track = lux_param%stop_num_photons * 
+           lux_param%mpi_run_size / (Number_processes - 1)
+\end{example}
+\vn{%mpi_run_size} should be set to some number between 0 and 1.
+The value 0.1 is the default. Changing this number can affect
+running time but the running time should be fairly insensitive
+to the value of \vn{%mpi_run_size}.
+
+  \item[\vn{lux_param\%n_energy_bin_pts}] \Newline
+Number of energy bins used for the table of intensity of photons
+hitting the detector as a function of photon energy
+(\sref{s:det.pix.file}).
+
   \item[\vn{lux_param\%photon1_element}] \Newline
 The photon position recorded in the photon1_out file will be the
 photon position at the lattice element named by \vn{lux_param%photon1_element}. 
 If \vn{photon1_element} is blank (default), the
 detector element used will be used (\sref{s:photon1.file}).
 
-  \item[\vn{lux_param\%n_energy_bin_pts}] \Newline
-Number of energy bins used for the table of intensity of photons
-hitting the detector as a function of photon energy
-(\sref{s:det.pix.file}).
+  \item[\vn{lux_param\%photon1_out_file}] \Newline
+Name of the output data file recording the starting and ending
+positions of individual photons. See section~\sref{s:photon1.file} for
+more details. The file name may be ``numbered'' using 
+a ``\#'' character (\sref{s:number}). A blank file name will prevent a
+file being generated.
+
+  \item[\vn{lux_param\%random_engine}] \Newline
+Type of ``random'' number generator to use. Possibilities are:
+\begin{example}
+  quasi      
+  pseudo      ! Default
+\end{example}
+The \vn{quasi} number generator gives a more-or-less uniform
+distribution of numbers. That is, a quasi random generator is not
+actually random. The numbers generated with the quasi random generator
+are always the same from run to run.
+
+  \item[\vn{lux_param\%random_seed}] \Newline
+Random number seed used in by the random number generator if the
+\vn{random_engine} is set to \vn{pseudo}. If set to 0, the system
+clock will be used. That is, if set to 0, the output results will vary
+from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
 
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
 If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
@@ -261,7 +311,10 @@ Name of the lattice element that is the source of the photons (\sref{s:lat.file}
 Maximum number of photons to track (\sref{s:det}).
 
   \item[\vn{lux_param\%stop_total_intensity}] \Newline
-Cumulative unnormalized intensity at the detector to stop at. (\sref{s:det}).
+Cumulative unnormalized intensity at the detector to stop
+at. (\sref{s:det}).  Note: This parameter is ignored if running the
+parallel version of \lux and only \vn{lux_param\%stop_num_photons}
+is used.
 
   \end{description}
 

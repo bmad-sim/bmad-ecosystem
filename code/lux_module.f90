@@ -59,9 +59,10 @@ type lux_common_struct
   type (lat_struct) :: lat
   type (branch_struct), pointer :: source_branch, detec_branch
   type (ele_struct), pointer :: source_ele, fork_ele, detec_ele, photon1_ele
-  integer n_bend_slice                                       ! Number of slices
+  integer n_bend_slice             ! Number of slices
+  integer :: n_photon_stop1        ! Number of photons to track when lux_track_photons is called
   integer :: mpi_rank  = -1
-  integer :: mpi_n_proc = 1                      ! Number of processeses including master
+  integer :: mpi_n_proc = 1        ! Number of processeses including master
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   type (surface_grid_pt_struct), allocatable :: energy_bin(:)
   real(rp) dE_bin
@@ -152,7 +153,7 @@ if (.not. lux_com%verbose) call output_direct (0, .false., max_level = s_success
 call ran_seed_put (lux_param%random_seed)
 if (lux_com%using_mpi) then
   call ran_seed_get (ir)
-  call ran_sed_put (ir + 100 * lux_com%mpi_rank)
+  call ran_seed_put (ir + 100 * lux_com%mpi_rank)
 endif
 
 if (lux_param%random_engine == 'quasi') then
@@ -265,6 +266,9 @@ call run_timer('START')
 
 !
 
+lux_com%n_photon_stop1 = lux_param%stop_num_photons
+if (lux_com%using_mpi) lux_com%n_photon_stop1 = 1 + lux_com%n_photon_stop1 * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
+
 call lux_tracking_setup (lux_param, lux_com)
 
 if (lat%photon_type == coherent$) then
@@ -329,7 +333,7 @@ lux_data%ny_max = ubound(detec_grid%pt, 2)
 
 lux_data%n_track_tot = 0
 
-
+detec_grid%pt = surface_grid_pt_struct()
 
 end subroutine lux_init_data
 
@@ -747,7 +751,7 @@ end subroutine lux_tracking_setup
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_tracking (lux_param, lux_com, lux_data)
+! Subroutine lux_track_photons (lux_param, lux_com, lux_data)
 !
 ! Routine to init Lux.
 !
@@ -759,7 +763,7 @@ end subroutine lux_tracking_setup
 !   lux_data    -- lux_output_data_struct: 
 !-
 
-subroutine lux_tracking (lux_param, lux_com, lux_data)
+subroutine lux_track_photons (lux_param, lux_com, lux_data)
 
 type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
@@ -774,9 +778,9 @@ type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
 
 real(rp) intens, intens_x, intens_y
-real(rp) e_ref, phase
+real(rp) e_ref, phase, intensity_tot
 
-integer ix, nt, nx, ny, track_state, stop_num_photons
+integer ix, nt, nx, ny, track_state
 
 logical accept
 
@@ -790,9 +794,6 @@ d_branch => lux_com%detec_branch
 s_branch => lux_com%source_branch
 
 nt = d_branch%n_ele_track
-stop_number_of_photons = lux_param%stop_number_of_photons
-if (lux_com%using_mpi) stop_number_of_photons = 1 + &
-                              stop_number_of_photons * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
 
 call reallocate_coord (photon%orb, lat, d_branch%ix_branch)
 
@@ -804,8 +805,12 @@ endif
 
 !
 
+intensity_tot = 0
+
 do 
-  if (stop_num_photons > 0 .and. lux_data%n_track_tot >= stop_num_photons) exit
+  if (lux_com%n_photon_stop1 > 0 .and. lux_data%n_track_tot >= lux_com%n_photon_stop1) exit
+  if (.not. lux_com%using_mpi .and. lux_param%stop_total_intensity > 0 .and. &
+                                             intensity_tot >= lux_param%stop_total_intensity) exit
   lux_data%n_track_tot = lux_data%n_track_tot + 1
   photon%n_photon_generated = lux_data%n_track_tot
 
@@ -847,6 +852,7 @@ do
   ! Go to coordinates of the detector
 
   lux_data%n_live = lux_data%n_live + 1
+  intensity_tot = intensity_tot + intens
 
   nx = nint((end_orb%vec(1) - detec_grid%r0(1)) / detec_grid%dr(1))
   ny = nint((end_orb%vec(3) - detec_grid%r0(2)) / detec_grid%dr(2))
@@ -906,9 +912,50 @@ endif
     pix%energy_rms = pix%energy_rms / pix%intensity
   enddo; enddo
 
+end subroutine lux_track_photons
 
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com, lux_data)
+!
+! Routine to combine data from an MPI slave to the master data structure.
+!
+! Input:
+!   slave_pt(:,:) -- surface_grid_struct: Grid of data points
+!   lux_param     -- lux_param_struct: Lux input parameters.
+!   lux_com       -- lux_common_struct: Common parameters.
+!   lux_data      -- lux_output_data_struct: Tracking data.
+!
+! Output:
+!   lux_com%lat%detec_ele%photon%grid%pt
+!-
 
-end subroutine lux_tracking
+subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com, lux_data)
+
+type (lux_param_struct) lux_param
+type (lux_common_struct), target :: lux_com
+type (lux_output_data_struct) lux_data
+type (surface_grid_pt_struct) slave_pt(:,:)
+type (surface_grid_pt_struct), pointer :: pt(:,:)
+
+!
+
+pt => lux_com%detec_ele%photon%surface%grid%pt
+
+pt%E_x(1)      = pt%E_x(1)      + slave_pt%E_x(1)
+pt%E_x(2)      = pt%E_x(2)      + slave_pt%E_x(2)
+pt%E_y(1)      = pt%E_y(1)      + slave_pt%E_y(1)
+pt%E_y(2)      = pt%E_y(2)      + slave_pt%E_y(2)
+pt%intensity_x = pt%intensity_x + slave_pt%intensity_x
+pt%intensity_y = pt%intensity_y + slave_pt%intensity_y
+pt%intensity   = pt%intensity   + slave_pt%intensity
+pt%n_photon    = pt%n_photon    + slave_pt%n_photon
+pt%energy_ave  = pt%energy_ave  + slave_pt%energy_ave
+pt%energy_rms  = pt%energy_rms  + slave_pt%energy_rms
+
+end subroutine lux_add_in_slave_data 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -916,7 +963,7 @@ end subroutine lux_tracking
 !+
 ! Subroutine lux_write_data (lux_param, lux_com, lux_data)
 !
-! Routine to write the photon tracking data .
+! Routine to write the photon tracking data.
 !
 ! Output:
 !   lux_param   -- lux_param_struct: Lux input parameters.

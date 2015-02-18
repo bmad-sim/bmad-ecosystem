@@ -15,7 +15,7 @@ integer nx, ny
 
 call lux_init (lux_param, lux_com)
 call lux_init_data (lux_param, lux_com, lux_data)
-call lux_tracking (lux_param, lux_com, lux_data)
+call lux_track_photons (lux_param, lux_com, lux_data)
 call lux_write_data (lux_param, lux_com, lux_data)
 
 end program

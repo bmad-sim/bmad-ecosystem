@@ -1,4 +1,4 @@
-set (EXENAME lux)
+set (EXENAME lux_mpi)
 
 FILE (GLOB SRC_FILES "code/*.f90")
 set (SRC_FILES program/lux_mpi.f90 ${SRC_FILES})

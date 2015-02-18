@@ -1,0 +1,3 @@
+export ACC_ENABLE_MPI=Y
+$@
+unset ACC_ENABLE_MPI
