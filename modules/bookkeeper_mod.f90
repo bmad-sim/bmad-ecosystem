@@ -2150,6 +2150,7 @@ real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
+real(rp), parameter :: small_rel_change = 1d-14
 
 integer i, n, n_div
 
@@ -2654,7 +2655,7 @@ v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 
 dval = abs(val - ele%old_value)
 dval(scratch$) = 0
-dval_change = (dval > 1d-15 * abs(val))
+dval_change = (dval > small_rel_change * abs(val))
 ! delta_ref_time can have relatively large changes since this is computed 
 ! as an absolute time difference. Also it is a dependent attribute.
 dval_change(delta_ref_time$) = .false.  
