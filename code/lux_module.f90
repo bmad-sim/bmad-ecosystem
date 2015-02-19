@@ -41,7 +41,7 @@ type lux_param_struct
   real(rp) :: stop_total_intensity = 10           ! stop intensity per energy
   real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp  ! For plotting
   real(rp) :: intensity_normalization_coef = 1e6
-  real(rp) :: stop_num_photons = 0                  ! stop number. Use real for clearer input
+  real(rp) :: stop_num_photons = 0               ! stop number. Use real for clearer input
   real(rp) :: mpi_run_size = 0.1                 ! Normalized number of photons to track
   integer :: n_energy_bin_pts = 40
   integer :: random_seed = 0
@@ -75,10 +75,10 @@ type lux_common_struct
 end type
 
 type lux_output_data_struct
-  integer :: n_track_tot = 0
+  integer(8) :: n_track_tot = 0
+  integer(8) :: n_live = 0
+  integer(8) :: n_lost = 0
   integer :: nx_min = 0, nx_max = 0, ny_min = 0, ny_max = 0
-  integer :: n_live = 0
-  integer :: n_lost = 0
 end type
 
 contains
@@ -272,8 +272,11 @@ call run_timer('START')
 
 !
 
-lux_com%n_photon_stop1 = lux_param%stop_num_photons
-if (lux_com%using_mpi) lux_com%n_photon_stop1 = 0.1 + lux_com%n_photon_stop1 * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
+if (lux_com%using_mpi) then
+  lux_com%n_photon_stop1 = 0.1 + lux_param%stop_num_photons * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
+else
+  lux_com%n_photon_stop1 = lux_param%stop_num_photons
+endif
 
 call lux_tracking_setup (lux_param, lux_com)
 
@@ -1151,11 +1154,11 @@ endif
 call run_timer ('READ', dtime)
 
 if (lux_com%verbose) then
-  print *, 'Photons Tracked:                       ', lux_data%n_track_tot
-  print *, 'Photons at detector:                   ', lux_data%n_live
-  print *, 'Normalization factor:                  ', normalization
-  print *, 'Total intensity (unnormalized):        ', intens_tot
-  print *, 'Total intensity (normalized):          ', intens_tot * normalization
+  print '(a, t35, i, 5x, es10.2)', 'Photons Tracked:', lux_data%n_track_tot, float(lux_data%n_track_tot)
+  print '(a, t35, i)',      'Photons at detector:', lux_data%n_live
+  print '(a, t35, es12.4)', 'Normalization factor:', normalization
+  print '(a, t35, es12.4)', 'Total intensity (unnormalized):', intens_tot
+  print '(a, t35, es12.4)', 'Total intensity (normalized):', intens_tot * normalization
 
   if (intens_tot /= 0) then
     x_sum = 0; x2_sum = 0; y_sum = 0; y2_sum = 0
