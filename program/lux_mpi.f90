@@ -95,7 +95,7 @@ if (lux_com%mpi_rank == master_rank) then
     call print_this ('Master: Gathered data from Slave: ', slave_rank)
 
     ! Tell slave if more tracking needed
-    call print_this ('Master: Commanding Slave. Photons left:', num_photons_left)
+    call print_this ('Master: Commanding this Slave. Photons left:', num_photons_left)
     if (num_photons_left < 1) slave_is_done(slave_rank) = .true.
     call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag, MPI_COMM_WORLD, ierr)
     if (.not. slave_is_done(slave_rank)) num_photons_left = num_photons_left - lux_com%n_photon_stop1
@@ -119,9 +119,9 @@ endif
 !-------------------------------
 ! A slave process tracks photons
 
-do
-  call print_this ('Slave: Starting...')
+call print_this ('Slave: Starting...')
 
+do
   ! Init the output arrays
   call print_this ('Slave: Tracking Photons...')
   call lux_init_data (lux_param, lux_com, lux_data)
@@ -137,6 +137,8 @@ do
   if (am_i_done) exit
 
 enddo
+
+if (lux_param%photon1_out_file /= '') close (lux_com%iu_photon1_out)
 
 call print_this ('Slave: All done!')
 

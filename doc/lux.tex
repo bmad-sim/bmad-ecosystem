@@ -185,8 +185,8 @@ An example is:
 \begin{example}
   &params
     lux_param%lattice_file = 'test.bmad'           ! Defines experimental layout.
-    lux_param%photon1_out_file = 'lux.photon1'     ! Individual photon positions.
     lux_param%det_pix_out_file = 'lux.det_pix#'
+    lux_param%photon1_out_file = 'lux.photon1'     ! Individual photon positions.
 
     lux_param%source_element = 'b03w'              ! Name of source element
     lux_param%detector_element = 'det'
@@ -205,6 +205,7 @@ An example is:
     lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
 
     lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
+    lux_param%n_photon1_out_max = 100              ! Max photons in photon1_out_file.
     lux_param%reject_dead_at_det_photon1 = False
     lux_param%n_energy_bin_pts = 40                ! Number of energy bins
 
@@ -263,6 +264,10 @@ to the value of \vn{%mpi_run_size}.
 Number of energy bins used for the table of intensity of photons
 hitting the detector as a function of photon energy
 (\sref{s:det.pix.file}).
+
+  \item[\vn{lux_param%n_photon1_out_max}
+Maximum number of photons to record in the \vn{photon1_out_file}.
+Default is 100.
 
   \item[\vn{lux_param\%photon1_element}] \Newline
 The photon position recorded in the photon1_out file will be the
@@ -616,6 +621,13 @@ number given, one can edit the file:
 \begin{example}
   lux_out_file.number
 \end{example}
+
+When using the parallel version of \lux, if the \vn{photon1_out_file}
+contains an ``\vn{\@}'' character, then, for each slave process doing
+tracking, that slave process will generate a file with the rank id
+number of slave process substituted for the \@ character. If the
+single tread version of \lux is being used then a zero character will
+be substituted.
 
 %------------------------------------------------------------------
 \section{Photon1 Data File}

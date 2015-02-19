@@ -45,7 +45,8 @@ type lux_param_struct
   real(rp) :: mpi_run_size = 0.1                 ! Normalized number of photons to track
   integer :: n_energy_bin_pts = 40
   integer :: random_seed = 0
-  logical :: debug = .false.     ! For debugging
+  integer :: n_photon1_out_max = 100     ! Max number of photons allowed in photon1_out_file.
+  logical :: debug = .false.             ! For debugging
   logical :: reject_dead_at_det_photon1 = .false.
   logical :: scale_initial_field_to_1 = .true.
 end type
@@ -63,6 +64,8 @@ type lux_common_struct
   integer :: n_photon_stop1        ! Number of photons to track when lux_track_photons is called
   integer :: mpi_rank  = -1
   integer :: mpi_n_proc = 1        ! Number of processeses including master
+  integer :: n_photon1_out = 1     ! Count of photons in photon1_out_file
+  integer :: iu_photon1_out        ! Open unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   type (surface_grid_pt_struct), allocatable :: energy_bin(:)
   real(rp) dE_bin
@@ -104,10 +107,11 @@ type (ele_struct), pointer :: source_ele
 real(rp) cut, r
 
 integer i, j, n, ix, ie, ir
-integer n_throw, n_loc
+integer n_throw, n_loc, iu, rank_id
 
 character(3) num_str
 character(40) arg, plotting, number_file
+character(100) photon1_out_file
 
 logical ok, is_there, err
 
@@ -150,8 +154,10 @@ endif
 
 if (.not. lux_com%verbose) call output_direct (0, .false., max_level = s_success$) ! Suppress bmad_parser info output.
 
-call ran_seed_put (lux_param%random_seed)
-if (lux_com%using_mpi) then
+! Negative radom_seed is used for testing and turns off the dithering with MPI
+
+call ran_seed_put (abs(lux_param%random_seed))
+if (lux_com%using_mpi .and. lux_param%random_seed >= 0) then
   call ran_seed_get (ir)
   call ran_seed_put (ir + 100 * lux_com%mpi_rank)
 endif
@@ -267,7 +273,7 @@ call run_timer('START')
 !
 
 lux_com%n_photon_stop1 = lux_param%stop_num_photons
-if (lux_com%using_mpi) lux_com%n_photon_stop1 = 1 + lux_com%n_photon_stop1 * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
+if (lux_com%using_mpi) lux_com%n_photon_stop1 = 0.1 + lux_com%n_photon_stop1 * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
 
 call lux_tracking_setup (lux_param, lux_com)
 
@@ -276,6 +282,26 @@ if (lat%photon_type == coherent$) then
     print *, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!'
   endif
 endif
+
+!
+
+if (lux_param%photon1_out_file /= '') then
+  lux_com%n_photon1_out = 1
+  iu = lunget()
+  lux_com%iu_photon1_out = iu
+
+  photon1_out_file = lux_param%photon1_out_file 
+  ix = index(photon1_out_file, '@')
+  if (ix /= 0) then
+    rank_id = 0
+    if (lux_com%using_mpi) rank_id = lux_com%mpi_rank
+    write (photon1_out_file, '(a, i0, a)') photon1_out_file(1:ix-1), rank_id, photon1_out_file(ix+1:)
+  endif
+  open (iu, file = photon1_out_file, recl = 240)
+  write (iu, '(a)') '#      |                               Start (x 1e3)                    |                                    End (x 1e3)                     |                 End'
+  write (iu, '(a)') '#   Ix |          x           vx            y           vy            z |             x           vx            y           vy            z  |     Energy     Intens_x     Intens_y'
+endif
+
 
 !--------------------------------------------------------------------
 contains
@@ -797,12 +823,6 @@ nt = d_branch%n_ele_track
 
 call reallocate_coord (photon%orb, lat, d_branch%ix_branch)
 
-if (lux_param%photon1_out_file /= '') then
-  open (1, file = lux_param%photon1_out_file, recl = 240)
-  write (1, '(a)') '#      |                               Start (x 1e3)                    |                                    End (x 1e3)                     |                 End'
-  write (1, '(a)') '#   Ix |          x           vx            y           vy            z |             x           vx            y           vy            z  |     Energy     Intens_x     Intens_y'
-endif
-
 !
 
 intensity_tot = 0
@@ -831,13 +851,20 @@ do
 
   ! Write results
 
-  if (lux_param%photon1_out_file /= '' .and. intens >= lux_param%intensity_min_photon1_cutoff) then
+  if (lux_param%photon1_out_file /= '') then
+                                                  
     this_orb => photon%orb(lux_com%photon1_ele%ix_ele)
+
     accept = .true.
     if (lux_param%reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
     if (this_orb%state /= alive$) accept = .false.
+    if (intens < lux_param%intensity_min_photon1_cutoff) accept = .false.
+    if (lux_com%n_photon1_out > lux_param%n_photon1_out_max) accept = .false.
+
     if (accept) then
-      write (1, '(i6, 5f13.6, 3x, 5f13.6, 3x, f11.3, 2es13.4)') lux_data%n_track_tot, 1d3*photon%orb(1)%vec(1:5), &
+      lux_com%n_photon1_out = lux_com%n_photon1_out + 1
+      write (lux_com%iu_photon1_out, '(i6, 5f13.6, 3x, 5f13.6, 3x, f11.3, 2es13.4)') &
+                      lux_data%n_track_tot, 1d3*photon%orb(1)%vec(1:5), &
                       1d3*this_orb%vec(1:5), this_orb%p0c, end_orb%field(1)**2, end_orb%field(2)**2
     endif
   endif
@@ -891,27 +918,6 @@ enddo
 
 !
 
-close(1)
-
-if (lat%photon_type == coherent$) then
-  do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
-    pix => detec_grid%pt(nx,ny)
-    intens_x = pix%E_x(1)**2 + pix%E_x(2)**2
-    intens_y = pix%E_y(1)**2 + pix%E_y(2)**2
-    intens = intens_x + intens_y
-    pix%intensity_x = intens_x
-    pix%intensity_y = intens_y
-    pix%intensity   = pix%intensity + intens
-  enddo; enddo
-endif
-
-  do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
-    pix => detec_grid%pt(nx,ny)
-    if (pix%intensity == 0) cycle
-    pix%energy_ave = pix%energy_ave / pix%intensity
-    pix%energy_rms = pix%energy_rms / pix%intensity
-  enddo; enddo
-
 end subroutine lux_track_photons
 
 !-------------------------------------------------------------------------------------------
@@ -955,6 +961,10 @@ pt%n_photon    = pt%n_photon    + slave_pt%n_photon
 pt%energy_ave  = pt%energy_ave  + slave_pt%energy_ave
 pt%energy_rms  = pt%energy_rms  + slave_pt%energy_rms
 
+lux_data%n_track_tot = lux_data%n_track_tot + lux_com%n_photon_stop1
+lux_data%n_live      = lux_data%n_live      + sum(slave_pt%n_photon)
+lux_data%n_lost      = lux_data%n_lost      + lux_com%n_photon_stop1 - sum(slave_pt%n_photon)
+
 end subroutine lux_add_in_slave_data 
 
 !-------------------------------------------------------------------------------------------
@@ -994,6 +1004,20 @@ integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 
 detec_grid => lux_com%detec_ele%photon%surface%grid
 lat => lux_com%lat
+
+do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_max
+  pix => detec_grid%pt(nx,ny)
+
+  if (lat%photon_type == coherent$) then
+    pix%intensity_x = pix%E_x(1)**2 + pix%E_x(2)**2
+    pix%intensity_y = pix%E_y(1)**2 + pix%E_y(2)**2
+    pix%intensity   = pix%intensity_x + pix%intensity_y 
+  endif
+
+  if (pix%intensity == 0) cycle
+  pix%energy_ave = pix%energy_ave / pix%intensity
+  pix%energy_rms = pix%energy_rms / pix%intensity
+enddo; enddo
 
 !------------------------------------------
 ! lux_param%det_pix_out_file
