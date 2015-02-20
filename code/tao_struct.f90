@@ -550,6 +550,7 @@ type tao_global_struct
   logical :: rf_on = .false.                      ! RFcavities on or off? Does not affect lcavities.
   logical :: draw_curve_off_scale_warn = .true.   ! Display warning on graphs?
   logical :: wait_for_CR_in_single_mode = .false. ! For use with a python GUI. 
+  logical :: disable_smooth_line_calc             ! Global disable of the smooth line calculation.
   logical :: debug_on = .false.                   ! For debugging.
 end type
 

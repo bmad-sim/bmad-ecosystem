@@ -355,25 +355,25 @@ type tao_global_struct
   character(16) optimizer     = "de"             ! optimizer to use.
   character(40) print_command = "lpr"
   character(80) var_out_file  = "var#.out"
-  logical var_limits_on = T             ! Respect the variable limits?
-  logical var_limit_only_used = F       ! Apply limits only if variable is used in optimization?
-  logical opt_with_ref = F              ! use reference data in optimization?
-  logical opt_with_base = F             ! use base data in optimization?
-  logical init_opt_wrapper = T
-  logical label_lattice_elements = T    ! For lat_layout plots
-  logical label_keys = T                ! For lat_layout plots
+  logical command_file_print_on = T     ! Toggle printing when using a command file.
   logical derivative_recalc = T         ! Recalc derivatives before each optimizer loop?
   logical derivative_uses_design = F    ! Derivative matrix uses the design lattice?
-  logical init_plot_needed = T          ! reinitialize plotting?
-  logical plot_on = T                   ! Do plotting?
-  logical lattice_calc_on = T           ! Master switch.
-  logical svd_retreat_on_merit_increase = T    
-  logical command_file_print_on = T     ! Toggle printing when using a command file.
-  logical rf_on = F                     ! RFcavities on?
-  logical optimizer_var_limit_warn = T  ! Warn when variables reach a limit when
-                                        !   optimizing.
+  logical disable_smooth_line_calc = F  ! Disable the plotting smooth line calc?
   logical draw_curve_off_scale_warn = T ! Display warning on graphs when any part of the 
                                         !   curve is out-of-bounds
+  logical init_opt_wrapper = T
+  logical init_plot_needed = T          ! reinitialize plotting?
+  logical label_lattice_elements = T    ! For lat_layout plots
+  logical label_keys = T                ! For lat_layout plots
+  logical lattice_calc_on = T           ! Master switch.
+  logical opt_with_ref = F              ! use reference data in optimization?
+  logical opt_with_base = F             ! use base data in optimization?
+  logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
+  logical plot_on = T                   ! Do plotting?
+  logical rf_on = F                     ! RFcavities on?
+  logical svd_retreat_on_merit_increase = T    
+  logical var_limits_on = T             ! Respect the variable limits?
+  logical var_limit_only_used = F       ! Apply limits only if variable is used in optimization?
 end type
 \end{example}
 
@@ -395,6 +395,10 @@ derivative matrix is recalculated every optimization loop. The
 \vn{global%derivative_uses_design} logical determines if the design
 lattice is used in the derivative matrix calculation instead of the
 model lattice. 
+
+The \vn{global%disable_smooth_line_calc} is used to disable
+computation of the ``smooth curves'' used in plotting.  This can be
+used to speed up \tao as discussed in \sref{s:plot.data}.
 
 The \vn{merit_stop_value} establishes a point such that, during
 optimization, if the merit function falls below that value, the
@@ -1882,7 +1886,10 @@ reasons so setting \vn{curve%smooth_line_calc} to False will prevent
 this calculation and the curve will be drawn as a series of lines
 connecting the symbols. The default of \vn{curve%smooth_line_calc} is
 True. Use the \vn{set curve} command (\sref{s:set}) to toggle the
-drawing of lines.
+drawing of lines. Alternatively, the \vn{-disable_smooth_line_calc}
+switch can be used on the command line (\sref{s:command.line}) or the
+global variable \vn{global%disable_smooth_line_calc} can be set in
+the \tao initialization file (\sref{s:globals}).
 
 The \vn{graph%draw_only_good_user_data_or_vars} switch determines
 whether datums (\sref{s:init.data}) or variables (\sref{s:init.var})

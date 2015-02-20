@@ -2578,12 +2578,13 @@ do
   if (i_arg == n_arg) exit
   call get_next_arg (arg0)
 
-  call match_word (arg0, ['-?            ', &
-        '-init         ', '-noinit       ', '-beam_all     ', '-beam0        ', &
-        '-noplot       ', '-lat          ', '-log_startup  ', '-beam         ', &
-        '-var          ', '-data         ', '-building_wall', '-plot         ', &
-        '-startup      ', 'help          ', '-help         ', '?             ', &
-        '-geometry     ', '-rf_on        ', '-debug        '], ix, .true., matched_name=switch)
+  call match_word (arg0,         ['-?                          ', &
+        '-init                    ', '-noinit                  ', '-beam_all                ', '-beam0                   ', &
+        '-noplot                  ', '-lat                     ', '-log_startup             ', '-beam                    ', &
+        '-var                     ', '-data                    ', '-building_wall           ', '-plot                    ', &
+        '-startup                 ', 'help                     ', '-help                    ', '?                        ', &
+        '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc'], &
+              ix, .true., matched_name=switch)
 
   select case (switch)
 
@@ -2610,6 +2611,9 @@ do
 
   case ('-data')
     call get_next_arg (s%com%data_file)
+
+  case ('-disable_smooth_line_calc')
+    s%global%disable_smooth_line_calc = .true.
 
   case ('-debug')
     s%global%debug_on = .true.
@@ -2707,6 +2711,7 @@ call out_io (s_blank$, r_name, [ &
         '  -beam_all <all_beam_file>       # Beam info from previous tracking              ', &
         '  -building_wall <wall_file>      # Define the building tunnel wall               ', &
         '  -data <data_file>               # Define data for plotting and optimization     ', &
+        '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting ', &
         '  -geometry <width>x<height>      # Plot window geometry                          ', &
         '  -init <tao_init_file>           # Tao init file                                 ', &
         '  -lat <bmad_lattice_file>        # Bmad lattice file                             ', &

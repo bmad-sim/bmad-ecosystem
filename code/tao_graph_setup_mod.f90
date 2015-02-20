@@ -1370,7 +1370,7 @@ case ('s')
 
   smooth_curve = (curve%data_source == 'lat') .or. &
                  (curve%data_source == 'beam' .and. allocated(u%model%bunch_params2))
-  smooth_curve = smooth_curve .and. curve%smooth_line_calc
+  smooth_curve = smooth_curve .and. curve%smooth_line_calc .and. .not. s%global%disable_smooth_line_calc
 
   if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
