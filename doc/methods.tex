@@ -127,10 +127,11 @@ calculation. This method is symplectic but can be slow.
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
-uses Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton
-search method must be used. This will slow things down from the Taylor
-method but this is guaranteed symplectic. Note: Due to memory limitations
-in PTC, the number of elements using symp_map is limited to be of order 50.
+uses Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the
+map is implicit, a Newton search method must be used. This will slow
+things down from the Taylor method but this is guaranteed
+symplectic. Note: Due to memory limitations in PTC, the number of
+elements using symp_map is limited to be of order 50.
 
 \index{taylor!tracking_method}
 \item[\vn{Taylor}]
@@ -143,7 +144,12 @@ made. This method is non-symplectic away from the expansion
 point. Whether the Taylor map is generated taking into account the
 offset an element has is governed by the \vn{taylor_map_includes_offsets}
 attribute (\sref{s:mapoff}). \vn{bmad_standard} and \vn{taylor}
-tracking methods are identical. Note: Taylor maps for \vn{match}, and
+tracking methods are identical. 
+
+The order of a Taylor map is set by the \vn{parameter[taylor_order]}
+parameter (\sref{s:param}).
+
+Note: Taylor maps for \vn{match}, and
 \vn{patch} elements are limited to first order.
 
 \index{time_runge_kutta!tracking_method}
@@ -342,6 +348,9 @@ offset an element has is governed by the \vn{taylor_map_includes_offsets}
 attribute (\sref{s:mapoff}). \vn{bmad_standard} and \vn{taylor}
 tracking methods are identical. Note: Taylor maps for \vn{match}, and
 \vn{patch} elements are limited to first order.
+
+The order of a Taylor map is set by the \vn{parameter[taylor_order]}
+parameter (\sref{s:param}).
 
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}]
