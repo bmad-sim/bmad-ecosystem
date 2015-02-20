@@ -127,6 +127,7 @@ if (.not. err .and. .not. bp_com%always_parse) then
     if (lat%input_taylor_order /= 0) ptc_com%taylor_order_saved = lat%input_taylor_order
     call set_ptc (1.0e9_rp, lat%param%particle)  ! Energy value used does not matter here
     if (present(digested_read_ok)) digested_read_ok = .true.
+    call parser_init_custom_elements ()
     call parser_end_stuff (.false.)
     return
   endif
@@ -1104,20 +1105,7 @@ if (logic_option (.true., make_mats6)) then
   endif
 endif
 
-! Init custom stuff.
-
-do n = 0, ubound(lat%branch, 1)
-  branch => lat%branch(n)
-  do i = 1, branch%n_ele_max
-    ele => branch%ele(i)
-    if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
-        ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
-        ele%aperture_type == custom_aperture$) then
-      call init_custom (ele, err)
-      if (err) bp_com%error_flag = .true.
-    endif
-  enddo
-enddo
+call parser_init_custom_elements ()
 
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
@@ -1225,6 +1213,30 @@ call deallocate_lat_pointers(in_lat)
 call deallocate_lat_pointers(lat2)
 
 end subroutine parser_end_stuff 
+
+!---------------------------------------------------------------------
+! contains
+
+subroutine parser_init_custom_elements ()
+
+integer i, n
+
+! Init custom stuff.
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%key == custom$ .or. ele%tracking_method == custom$ .or. &
+        ele%mat6_calc_method == custom$ .or. ele%field_calc == custom$ .or. &
+        ele%aperture_type == custom_aperture$) then
+      call init_custom (ele, err)
+      if (err) bp_com%error_flag = .true.
+    endif
+  enddo
+enddo
+
+end subroutine parser_init_custom_elements
 
 !---------------------------------------------------------------------
 ! contains
