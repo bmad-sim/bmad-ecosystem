@@ -615,8 +615,7 @@ The \vn{reinitialize} command reinitializes various things. Format:
 \begin{example}
   reinitialize beam
   reinitialize data
-  reinitialize tao \{-init <tao_input_file>\} \{-beam_all <beam_file>\} 
-     \{-beam0 <beam_file>\} \{-lat <lattice_file>\} \{-noinit\} \{-noplot\}
+  reinitialize tao \{command line optional arguments\}
 \end{example}
 
 \vskip 0.2in 
@@ -632,8 +631,8 @@ debugging purposes.
 
 \vn{reinitializes tao} reinitializes \tao. This can be useful to reset
 everything to initial conditions or to perform analysis with more than
-one initialization file.  See section \sref{s:command.line} for
-details on the arguments.  If an argument is not set, the
+one initialization file. See section \sref{s:command.line} for
+a list of the optional arguments.  If an argument is not set, the
 \vn{reinitialize} command uses the same argument value that were used in
 the last \vn{reinitialize} command, or, if this is the first
 reinitialization, what was used to start \tao. 
