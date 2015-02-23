@@ -61,7 +61,7 @@ type lux_common_struct
   type (branch_struct), pointer :: source_branch, detec_branch
   type (ele_struct), pointer :: source_ele, fork_ele, detec_ele, photon1_ele
   integer n_bend_slice             ! Number of slices
-  integer :: n_photon_stop1        ! Number of photons to track when lux_track_photons is called
+  integer(8) :: n_photon_stop1     ! Number of photons to track when lux_track_photons is called
   integer :: mpi_rank  = -1
   integer :: mpi_n_proc = 1        ! Number of processeses including master
   integer :: n_photon1_out = 1     ! Count of photons in photon1_out_file
@@ -1065,7 +1065,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, i8)')     'ny_active_min       =', ny_active_min
   write (3, '(a, i8)')     'ny_active_max       =', ny_active_max
   write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity    N_photon     E_ave     E_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
   do j = lux_data%ny_min, lux_data%ny_max
@@ -1079,7 +1079,7 @@ if (lux_param%det_pix_out_file /= '') then
       phase_x = atan2(pix%e_x(1), pix%e_x(2))
       phase_y = atan2(pix%e_y(1), pix%e_y(2))
     endif
-    write (3, '(2i8, 2es13.5, 5es14.5, i8, 2f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
            pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
            pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
     pix_in_file_intens = pix_in_file_intens + pix%intensity 
@@ -1091,7 +1091,7 @@ if (lux_param%det_pix_out_file /= '') then
 
   open (3, file = trim(lux_param%det_pix_out_file) // '.x')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     ix        x_pix      ntensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')        '#     ix        x_pix      ntensity_x     Intensity_y       Intensity    N_photon     E_ave     E_rms'
   do i = lux_data%nx_min, lux_data%nx_max
     pixel = surface_grid_pt_struct()
     pixel%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
@@ -1105,7 +1105,7 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%energy_ave = sum(detec_grid%pt(i,:)%energy_ave) / pixel%intensity
       pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i9, 2f10.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
@@ -1115,7 +1115,7 @@ if (lux_param%det_pix_out_file /= '') then
 
   open (3, file = trim(lux_param%det_pix_out_file) // '.y')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     iy        y_pix      Intensity_x     Intensity_y       Intensity  N_photn     E_ave     E_rms'
+  write (3, '(a)')        '#     iy        y_pix      Intensity_x     Intensity_y       Intensity   N_photon     E_ave     E_rms'
   do j = lux_data%ny_min, lux_data%ny_max
     pixel = surface_grid_pt_struct()
     pixel%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
@@ -1129,7 +1129,7 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%energy_ave = sum(detec_grid%pt(:,j)%energy_ave) / pixel%intensity
       pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
     endif
-    write (3, '(i8, es13.5, 3es16.5, i8, 2f10.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
@@ -1139,10 +1139,10 @@ if (lux_param%det_pix_out_file /= '') then
 
   open (3, file = trim(lux_param%det_pix_out_file) // '.energy')
   write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#      Energy     Intensity_x     Intensity_y       Intensity  N_photn'
+  write (3, '(a)')        '#      Energy     Intensity_x     Intensity_y       Intensity   N_photon'
   do j = 1, ubound(lux_com%energy_bin, 1)
     pix => lux_com%energy_bin(j)
-    write (3, '(f13.5, 3es16.5, i9)') pix%energy_ave, pix%intensity_x * normalization, &
+    write (3, '(f13.5, 3es16.5, i12)') pix%energy_ave, pix%intensity_x * normalization, &
                        pix%intensity_y * normalization, pix%intensity * normalization, pix%n_photon
   enddo
   close(3)

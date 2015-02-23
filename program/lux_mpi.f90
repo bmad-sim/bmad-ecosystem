@@ -6,6 +6,7 @@
 program lux_mpi
 
 use lux_module
+! use mpi
 
 implicit none
 
@@ -18,8 +19,9 @@ type (surface_grid_struct) :: slave_grid
 type (surface_grid_struct), pointer :: detec_grid
 
 integer master_rank, ierr, rc, leng, i, stat(MPI_STATUS_SIZE)
-integer data_size, num_photons_left, num_slaves
+integer data_size, num_slaves
 integer results_tag, is_done_tag, slave_rank
+integer(8) num_photons_left
 
 logical am_i_done
 logical, allocatable :: slave_is_done(:)
@@ -95,7 +97,7 @@ if (lux_com%mpi_rank == master_rank) then
     call print_this ('Master: Gathered data from Slave: ', slave_rank)
 
     ! Tell slave if more tracking needed
-    call print_this ('Master: Commanding this Slave. Photons left:', num_photons_left)
+    call print_this ('Master: Commanding this Slave. Photons left:', num8 = num_photons_left)
     if (num_photons_left < 1) slave_is_done(slave_rank) = .true.
     call mpi_send (slave_is_done(slave_rank), 1, MPI_LOGICAL, slave_rank, is_done_tag, MPI_COMM_WORLD, ierr)
     if (.not. slave_is_done(slave_rank)) num_photons_left = num_photons_left - lux_com%n_photon_stop1
@@ -150,17 +152,20 @@ call mpi_finalize(ierr)
 !---------------------------------------------------------------------
 contains
 
-subroutine print_this (line, inum)
+subroutine print_this (line, num, num8)
 
 character(*) line
 character(20) dtime
-integer, optional :: inum
+integer, optional :: num
+integer(8), optional :: num8
 
 !
 
 call date_and_time_stamp (dtime)
-if (present(inum)) then
-  print '(a, 2x, i0, 2a, 1x, i0)', dtime, lux_com%mpi_rank, ': ', trim(line), inum
+if (present(num)) then
+  print '(a, 2x, i0, 2a, 1x, i0)', dtime, lux_com%mpi_rank, ': ', trim(line), num
+elseif (present(num8)) then
+  print '(a, 2x, i0, 2a, 1x, i0)', dtime, lux_com%mpi_rank, ': ', trim(line), num8
 else
   print '(a, 2x, i0, 2a)', dtime, lux_com%mpi_rank, ': ', trim(line)
 endif
