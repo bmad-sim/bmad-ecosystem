@@ -260,7 +260,7 @@ do i = 1, n
   if (v(i)%angle <= v(i-1)%angle) v(i)%angle = v(i)%angle + twopi
 
   if (v(i)%angle >= v(i-1)%angle + pi .or. v(i)%angle <= v(i-1)%angle) then
-    call out_io (s_error$, r_name, 'WALL SECTION VERTEX NOT IN CLOCKWISE ORDER: (\2F10.5\)', &
+    call out_io (s_error$, r_name, 'WALL SECTION VERTEX NOT IN COUNTER-CLOCKWISE ORDER: (\2F10.5\)', &
                  r_array = [v(i)%x, v(i)%y])
     return
   endif

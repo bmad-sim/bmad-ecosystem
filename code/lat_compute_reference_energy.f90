@@ -292,10 +292,11 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
 
   if (lord%bookkeeping_state%ref_energy /= stale$) cycle
+  lord%bookkeeping_state%ref_energy = ok$
+
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
   call set_ele_status_stale (lord, attribute_group$)
-  lord%bookkeeping_state%ref_energy = ok$
 
   ! Multipass lords have their enegy computed above.
 
