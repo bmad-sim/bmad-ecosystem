@@ -951,9 +951,10 @@ IMPLICIT NONE
 TYPE (lat_struct) lat
 
 INTEGER i
+logical err_flag
 
 DO i = 1, lat%n_ele_track
-  call twiss3_propagate1 (lat%ele(i-1), lat%ele(i))
+  call twiss3_propagate1 (lat%ele(i-1), lat%ele(i), err_flag)
 ENDDO
 
 END SUBROUTINE twiss3_propagate_all
@@ -964,7 +965,7 @@ END SUBROUTINE twiss3_propagate_all
 ! Subroutine to propagate the twiss parameters using all three normal modes.
 !-
 
-SUBROUTINE twiss3_propagate1 (ele1, ele2)
+SUBROUTINE twiss3_propagate1 (ele1, ele2, err_flag)
 
 IMPLICIT NONE
 
@@ -975,12 +976,14 @@ END TYPE
 TYPE (ele_struct) ele1, ele2
 TYPE (mat2_struct) w(3)
 
-REAL(rp) gamma(3), tv(6,6), w_inv(2,2)
+REAL(rp) gamma(3), tv(6,6), w_inv(2,2), radx
 
 INTEGER i, ik
-LOGICAL err
+LOGICAL err, err_flag
 
 !
+
+err_flag = .true.
 
 IF (.NOT. ASSOCIATED(ele2%mode3)) ALLOCATE(ele2%mode3)
 
@@ -989,7 +992,9 @@ tv = MATMUL (ele2%mat6, ele1%mode3%v)
 DO i = 1, 3
   ik = 2 * i - 1
   w(i)%m = tv(ik:ik+1,ik:ik+1)
-  gamma(i) = SQRT(determinant (w(i)%m))
+  radx = determinant (w(i)%m)
+  if (radx < 0) return
+  gamma(i) = SQRT(radx)
   w(i)%m = w(i)%m / gamma(i)
   call mat_symp_conj (w(i)%m, w_inv)
   ele2%mode3%v(1:6, ik:ik+1) = matmul(tv(1:6, ik:ik+1), w_inv)
@@ -1002,8 +1007,13 @@ ele2%mode3%x%etap = ele2%mode3%v(1,5)
 ele2%mode3%y%etap = ele2%mode3%v(3,5)
 
 call twiss1_propagate (ele1%mode3%a, w(1)%m,  ele2%key, ele2%value(l$), ele2%mode3%a, err)
+if (err) return
 call twiss1_propagate (ele1%mode3%b, w(2)%m,  ele2%key, ele2%value(l$), ele2%mode3%b, err)
+if (err) return
 call twiss1_propagate (ele1%mode3%c, w(3)%m,  ele2%key, 0.0_rp,         ele2%mode3%c, err)
+if (err) return
+
+err_flag = .false.
 
 END SUBROUTINE
 

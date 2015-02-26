@@ -56,7 +56,10 @@ enddo
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
+
   if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%s_position /= stale$) cycle
+  lord%bookkeeping_state%s_position = ok$
+
   if (lord%key == null_ele$) cycle
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
 
@@ -73,7 +76,6 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lord%s = 0
   end select
 
-  lord%bookkeeping_state%s_position = ok$
 enddo
 
 lat%lord_state%s_position = ok$
