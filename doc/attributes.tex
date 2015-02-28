@@ -1710,10 +1710,10 @@ An \vn{ab_multipole} (\sref{s:ab.m}) specifies multipoles using normal
 \end{example}
 Here \vn{n} ranges from 0 (dipole component) through 21. Example:
 \begin{example}
-  q1: ab_multipole, b0 = 0.12, a20 = 1e7
+  q1: ab_multipole, b2 = 0.12, a20 = 1e7
 \end{example}
 
-\index{radius}
+\index{radius}\index{scale_multipoles}
 Elements like \vn{quadrupoles} and \vn{sextupoles} can have assigned
 to them multipole fields. In this case, the fields are specified using
 the same convention as the \vn{ab_multipole}.
@@ -1725,7 +1725,15 @@ quadrupole), and $r_0$ is the ``measurement radius'' and is set by the
 is not given, is 1.0.  This behavior may be turned off by setting the
 \vn{scale_multipoles} attribute.  Example:
 \begin{example}
-  q1: quadrupole, b0 = 0.12, a20 = 1e7, scale_multipoles = F
+  q1: quadrupole, b2 = 0.12, a20 = 1e7, scale_multipoles = F
+\end{example}
+
+\index{multipoles_on}
+The multipole kick can be toggled on or off using the
+\vn{multipoles_on} attribute. Example:
+\begin{example}
+  call, file = 'lattice.bmad'          ! Read in a lattice file
+  quadrupole::*[multipoles_on] = False     ! But I want
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1824,6 +1832,16 @@ this \vn{master_scale} is to provide a way to scale the 3D fields with
 the element strength parameter (K1 for a quadrupole) which is separate
 from auto scaling. The \vn{master_scale} also provides a way to scale
 separate \vn{mode}s jointly.
+
+\index{em_field}\index{field_factor}
+For an \vn{em_field} element, the \vn{master_scale} defaults to the
+element parameter
+\begin{example}
+  field_factor
+\end{example}
+For all other elements, \vn{master_scale} defaults to \vn{none} which
+means that the \vn{master_scale_value} is taken to be unity when
+calculating the fields.
 
 The field of a given mode oscillates as given by Eq.~\ref{eseei}  
 \Begineq

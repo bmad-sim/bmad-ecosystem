@@ -7,6 +7,7 @@
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
 !     ele_attribute_value
+!     set_ele_attribute
 !
 ! Modules needed:
 !   use bmad
@@ -270,6 +271,7 @@ case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offs
 case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
 case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
 case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
+case ('MULTIPOLES_ON');                  a_ptr%l => ele%multipoles_on
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
 case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
 case ('TRAVELING_WAVE');                 a_ptr%r => ele%value(traveling_wave$)

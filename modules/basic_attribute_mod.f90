@@ -498,6 +498,7 @@ do i = 1, n_key$
     if (i == ab_multipole$) cycle
     if (i == sad_mult$) cycle
     call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
+    call init_attribute_name1 (i, multipoles_on$,     'MULTIPOLES_ON')
   end select
 enddo
 
@@ -989,6 +990,7 @@ call init_attribute_name1 (sbend$, field_master$,                   'FIELD_MASTE
 call init_attribute_name1 (sbend$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (sbend$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (sbend$, ptc_field_geometry$,             'PTC_FIELD_GEOMETRY')
+call init_attribute_name1 (sbend$, field$,                          'FIELD')
 
 attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
@@ -1318,7 +1320,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
-      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE')
+      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'MULTIPOLES_ON')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &

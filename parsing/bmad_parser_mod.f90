@@ -810,6 +810,8 @@ if (attrib_word == 'FIELD') then
       i_mode = 1
     endif
 
+    if (ele%key == em_field$) ele%em_field%mode(i_mode)%master_scale = field_factor$
+
     em_mode => ele%em_field%mode(i_mode)
     if (ele%key == lcavity$ .or. ele%key == rfcavity$) em_mode%harmonic = 1 ! Default
 
