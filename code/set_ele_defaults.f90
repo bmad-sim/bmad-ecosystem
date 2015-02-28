@@ -95,6 +95,7 @@ case (ecollimator$)
 
 case (em_field$)
   ele%value(fringe_type$) = full$
+  ele%value(field_factor$) = 1
 
 case (fiducial$)
   ele%value(origin_ele_ref_pt$) = center_pt$

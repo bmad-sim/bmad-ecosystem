@@ -936,7 +936,7 @@ integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
 integer, parameter :: start_edge$  = 83, eta_y$ = 83
 integer, parameter :: end_edge$  = 84, etap_x$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
-integer, parameter :: lattice$ = 86, phi_a$ = 86
+integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
 integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89

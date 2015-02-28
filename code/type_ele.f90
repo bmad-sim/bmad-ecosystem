@@ -260,6 +260,8 @@ else
       nl=nl+1; write (li(nl), '(a, l1)') 'Scale_Multipoles: ', ele%scale_multipoles
     endif
 
+    nl=nl+1; write (li(nl), '(a, l1)')   'Multipoles_on:    ', ele%multipoles_on 
+
     do i = 0, n_pole_maxx
       if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
 
@@ -295,7 +297,7 @@ if (associated(ele%em_field)) then
     do i = 1, size(ele%em_field%mode)
       rfm => ele%em_field%mode(i)
       if (rfm%master_scale == 0) then
-        name = '---'
+        name = 'None'
       else
         name = attribute_name(ele, rfm%master_scale)
       endif
@@ -345,10 +347,6 @@ endif
 
 if (.not. ele%is_on) then
   nl=nl+1; write (li(nl), *) '*** Note: Element is turned OFF ***'
-endif
-
-if (.not. ele%multipoles_on) then
-  nl=nl+1; write (li(nl), *) '*** Note: Element Multipoles are turned OFF ***'
 endif
 
 ! wiggler terms
