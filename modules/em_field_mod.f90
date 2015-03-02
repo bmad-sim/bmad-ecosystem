@@ -184,7 +184,7 @@ type (em_field_grid_pt_struct) :: local_field
 type (em_field_mode_struct), pointer :: mode
 type (em_field_map_term_struct), pointer :: term
 
-real(rp) :: x, y, s, t, xx, yy, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
 real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
@@ -764,8 +764,7 @@ case(grid$)
     return
   endif
   
-  ! radial coordinate
-  r = sqrt(x**2 + y**2)
+
 
   ! reference time for oscillating elements
   select case (ele%key)
@@ -809,6 +808,14 @@ case(grid$)
       if (present(err_flag)) err_flag = .true.
       return
     end select
+    
+    z = s_rel-s0
+       
+    ! Sbend grids are in cartesian coordinates
+    if (ele%key == sbend$) call convert_curvilinear_to_cartesian()
+
+    ! radial coordinate
+    r = sqrt(x**2 + y**2)
 
     ! DC modes should have mode%harmonic = 0
 
@@ -834,7 +841,7 @@ case(grid$)
 
     case (xyz$)
     
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, s_rel-s0)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, x, y, z)
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -852,7 +859,7 @@ case(grid$)
       ! Interpolate 2D (r, z) grid
       ! local_field is a em_field_pt_struct, which has complex E and B
 
-      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, s_rel-s0)
+      call em_grid_linear_interpolate(ele, mode%grid, local_field, err, r, z)
       if (err) then
         if (global_com%exit_on_error) call err_exit
         if (present(err_flag)) err_flag = .true.
@@ -886,6 +893,9 @@ case(grid$)
       if (present(err_flag)) err_flag = .true.
       return
     end select
+    
+    if (ele%key == sbend$) call restore_curvilinear()
+
   enddo
 
 !----------------------------------------------------------------------------
@@ -900,12 +910,11 @@ end select
 
 call convert_fields_to_lab_coords
 
+contains
+
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! convert fields to lab coords
-
-contains
-
 subroutine convert_fields_to_lab_coords
 
 if (local_ref_frame) return
@@ -957,6 +966,52 @@ if (ele%value(y_pitch_tot$) /= 0) then
 endif
 
 end subroutine convert_fields_to_lab_coords
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! convert_curvilinear_to_cartesian()
+!
+!For sbend with Grid calculation. 
+subroutine convert_curvilinear_to_cartesian()
+real(rp) :: temp
+
+if (ele%value(g$) == 0) return
+
+cos_ang = cos( (s_rel-s0)*ele%value(g$) )
+sin_ang = sin( (s_rel-s0)*ele%value(g$) )
+
+! Save values because modes may have different anchor points
+x_save = x
+x = (x_save + ele%value(rho$) )*cos_ang - ele%value(rho$)
+z = (x_save + ele%value(rho$) )*sin_ang 
+
+! Rotate current field into this frame
+temp       = field%e(1)*cos_ang + field%e(3)*sin_ang
+field%e(3) = field%e(1)*sin_ang - field%e(3)*cos_ang
+field%e(1) = temp
+temp       = field%b(1)*cos_ang + field%b(3)*sin_ang
+field%b(3) = field%b(1)*sin_ang - field%b(3)*cos_ang
+field%b(1) = temp 
+
+end subroutine convert_curvilinear_to_cartesian
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! restore_curvilinear()
+!
+subroutine restore_curvilinear()
+real(rp) :: temp
+!For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
+if (ele%value(g$) == 0) return
+x = x_save
+temp       = field%e(1)*cos_ang - field%e(3)*sin_ang
+field%e(3) = field%e(1)*sin_ang + field%e(3)*cos_ang
+field%e(1) = temp
+temp       = field%b(1)*cos_ang - field%b(3)*sin_ang
+field%b(3) = field%b(1)*sin_ang + field%b(3)*cos_ang
+field%b(1) = temp 
+end subroutine restore_curvilinear
+
 
 end subroutine em_field_calc 
 

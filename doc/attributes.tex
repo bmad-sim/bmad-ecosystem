@@ -1921,7 +1921,7 @@ of the element to make up the difference.
 \subsection {Grid}
 \label{ss:grid}
 
-A grid of field points can be specified using the general format:
+A grid of field points in Cartesian coordinates can be specified using the general format:
 \begin{example}
   field = \{
     grid = \{ 
@@ -1992,7 +1992,9 @@ where \vn{z} is measured from the beginning of the element and
   center              (0, 0, L/2)
   end                 (0, 0, L)
 \end{example}
-with \vn{L} being the length of the element.
+with \vn{L} being the length of the element. For elements in curvilinear
+coordinates (\vn{sbend}, \vn{bend}) the anchor point is used to orient
+the Cartesian grid. 
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
