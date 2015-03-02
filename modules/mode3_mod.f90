@@ -325,6 +325,7 @@ SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
   INTEGER i_error
   INTEGER pair1(1), pair2(1), pair3(1), pairIndexes(6)
   LOGICAL error
+  integer i
 
   !CALL mat_eigen (mat, eval_r, eval_i, evec_r, evec_i, error)
   !evec_r = TRANSPOSE(evec_r)
@@ -352,9 +353,14 @@ SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
   evec_i(:,6) = -VR(:,6)
 
   !Order eigenvector pairs
+  ! pair1 = MAXLOC( [ ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5)) ] )
+  ! pair2 = MAXLOC( [ ABS(evec_r(3,1)), ABS(evec_r(3,3)), ABS(evec_r(3,5)) ] )
+  ! pair3 = MAXLOC( [ ABS(evec_r(5,1)), ABS(evec_r(5,3)), ABS(evec_r(5,5)) ] )
   pair1 = MAXLOC( [ ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5)) ] )
-  pair2 = MAXLOC( [ ABS(evec_r(3,1)), ABS(evec_r(3,3)), ABS(evec_r(3,5)) ] )
-  pair3 = MAXLOC( [ ABS(evec_r(5,1)), ABS(evec_r(5,3)), ABS(evec_r(5,5)) ] )
+  pair2 = MAXLOC( [ ((pair1(1)==1) + 1)*ABS(evec_r(3,1)), ((pair1(1)==2) + 1)*ABS(evec_r(3,3)), ((pair1(1)==3) + 1)*ABS(evec_r(3,5)) ] )
+  pair3 = MAXLOC( [ ((pair1(1)==1) + 1)*((pair2(1)==1) + 1)*ABS(evec_r(5,1)), &
+                    ((pair1(1)==2) + 1)*((pair2(1)==2) + 1)*ABS(evec_r(5,3)), &
+                    ((pair1(1)==3) + 1)*((pair2(1)==3) + 1)*ABS(evec_r(5,5)) ] )
   pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
   evec_r = evec_r(:,pairIndexes)
   evec_i = evec_i(:,pairIndexes)
@@ -827,22 +833,22 @@ SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
   ENDIF
 
   !Normalize to make symplectic
-  DO i=1,5,2
-    norm = ABS(determinant(N(1:2,1:2)) + determinant(N(3:4,1:2)) + determinant(N(5:6,1:2)))
-    N(:,1:2) = N(:,1:2)/SQRT(norm)
-    norm = ABS(determinant(N(1:2,3:4)) + determinant(N(3:4,3:4)) + determinant(N(5:6,3:4)))
-    N(:,3:4) = N(:,3:4)/SQRT(norm)
-    norm = ABS(determinant(N(1:2,5:6)) + determinant(N(3:4,5:6)) + determinant(N(5:6,5:6)))
-    N(:,5:6) = N(:,5:6)/SQRT(norm)
-  ENDDO
+  norm = ABS(determinant(N(1:2,1:2)) + determinant(N(3:4,1:2)) + determinant(N(5:6,1:2)))
+  N(:,1:2) = N(:,1:2)/SQRT(norm)
+  norm = ABS(determinant(N(1:2,3:4)) + determinant(N(3:4,3:4)) + determinant(N(5:6,3:4)))
+  N(:,3:4) = N(:,3:4)/SQRT(norm)
+  norm = ABS(determinant(N(1:2,5:6)) + determinant(N(3:4,5:6)) + determinant(N(5:6,5:6)))
+  N(:,5:6) = N(:,5:6)/SQRT(norm)
+
 
   !Order eigenvector pairs
-  pair1 = MAXLOC( [ N(1,1)**2+N(1,2)**2, N(1,3)**2+N(1,4)**2, N(1,5)**2+N(1,6)**2 ] )
-  pair2 = MAXLOC( [ N(3,1)**2+N(3,2)**2, N(3,3)**2+N(3,4)**2, N(3,5)**2+N(3,6)**2 ] )
-  pair3 = MAXLOC( [ N(5,1)**2+N(5,2)**2, N(5,3)**2+N(5,4)**2, N(5,5)**2+N(5,6)**2 ] )
-  pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
-  N = N(:,pairIndexes)
-  Lambda = Lambda(pairIndexes,pairIndexes)
+  ! Already ordered by eigen_decomp_6mat
+  ! pair1 = MAXLOC( [ N(1,1)**2+N(1,2)**2, N(1,3)**2+N(1,4)**2, N(1,5)**2+N(1,6)**2 ] )
+  ! pair2 = MAXLOC( [ N(3,1)**2+N(3,2)**2, N(3,3)**2+N(3,4)**2, N(3,5)**2+N(3,6)**2 ] )
+  ! pair3 = MAXLOC( [ N(5,1)**2+N(5,2)**2, N(5,3)**2+N(5,4)**2, N(5,5)**2+N(5,6)**2 ] )
+  ! pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
+  ! N = N(:,pairIndexes)
+  ! Lambda = Lambda(pairIndexes,pairIndexes)
 
   !Fix sign to make diagonal entries positive
   IF( N(1,1) < 0 ) THEN
