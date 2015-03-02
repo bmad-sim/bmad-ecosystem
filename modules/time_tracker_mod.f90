@@ -815,13 +815,15 @@ end subroutine drift_orbit_time
 !       'ASTRA' style (global Cartesian coordinates, first line is the reference particle used for z, pz, and t calculation):
 !       x/m y/m  z/m  m*c^2 \beta_x*\gamma/eV m*c^2 \beta_y*\gamma/eV m*c^2 \beta_z*\gamma/eV time/ns charge/nC species status
 !       
+!       'GPT' style (global Cartesian coordinates, with header labeling the columns)
+!       x/m y/m z/m \beta_x*\gamma \beta_y*\gamma \beta_z*\gamma t/s elementary_charge/C charge/elementary_charge
 !
 ! Input:
 !   time_file_unit -- Integer: unit number to write to, if > 0
 !   bunch          -- bunch_struct: bunch to be written.
 !                            Particles are drifted to bmad_bunch%t_center for output
 !   style          -- character(16), optional: Style of output file:
-!                            'BMAD' (default), 'OPAL', 'ASTRA'
+!                            'BMAD' (default), 'OPAL', 'ASTRA', 'GPT'
 !   branch         -- branch_struct, optional: Required for 'ASTRA' style
 !
 ! Output:          
@@ -846,13 +848,14 @@ real(rp)        :: dt, pc, gmc, gammabeta(3), charge_alive
 character(10)   ::  rfmt 
 integer :: n_alive
 integer :: i, i_style, a_particle_index, a_status
-integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3
+integer, parameter :: bmad$ = 1, opal$ = 2, astra$ = 3, gpt$ = 4
 logical, optional   :: err
 
 character(*), optional  :: style 
-character(16) :: style_names(3) = ['BMAD        ', &
+character(16) :: style_names(4) = ['BMAD        ', &
 								   'OPAL        ', &
-								   'ASTRA       ']
+								   'ASTRA       ', & 
+								   'GPT         ']
 character(40)	:: r_name = 'write_time_particle_distribution'
 
 !
@@ -878,7 +881,7 @@ n_alive = count(bunch%particle(:)%state == alive$)
 select case (i_style)
   case (bmad$, opal$)
     ! Number of particles
-    write(time_file_unit, '(i8)') n_alive !was: size(bunch%particle)
+    write(time_file_unit, '(i8)') n_alive !was: size(bunch%particle)  
   case (astra$)
     ! Reference particle is the average of all particles
     if (.not. present(branch)) call out_io (s_error$, r_name, 'Branch must be specified for ASTRA style')
@@ -905,6 +908,9 @@ select case (i_style)
     endif
     write(time_file_unit, '(8'//rfmt//', 2i8)') orb_ref%vec(1:5:2), orb_ref%vec(2:6:2), &
                      1e9_rp*orb_ref%t, 1e9_rp*orb_ref%charge, a_particle_index, a_status
+  case (gpt$)
+    write(time_file_unit, '(9a13)') 'x', 'y', 'z', 'GBx', 'GBy', 'GBz', 't', 'q', 'nmacro'
+                       
 end select
 
 ! All particles
@@ -946,10 +952,10 @@ do i = 1, size(bunch%particle)
 										    orb%vec(3), gammabeta(2), &
 											orb%vec(5), gammabeta(3)
   case (astra$)
-     orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
-     a_particle_index = astra_particle_index(orb_ref%species)
-     ! The reference particle is used for z, pz, and t
-     write(time_file_unit, '(8'//rfmt//', 2i8)') orb%vec(1), &
+    orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
+    a_particle_index = astra_particle_index(orb_ref%species)
+    ! The reference particle is used for z, pz, and t
+    write(time_file_unit, '(8'//rfmt//', 2i8)')  orb%vec(1), &
 	    	 									 orb%vec(3), &
 	    	 									 orb%vec(5) - orb_ref%vec(5), &
 	    	 									 orb%vec(2), &
@@ -959,7 +965,14 @@ do i = 1, size(bunch%particle)
                                                  1e9_rp*orb%charge, &
                                                  a_particle_index, &
                                                  a_status
-  
+  case (gpt$)
+    orb = particle_in_global_frame (orb,  branch, in_time_coordinates = .true.)
+    gammabeta =  orb%vec(2:6:2) / mass_of(orb%species) 
+    write(time_file_unit, '(9'//rfmt//')')  orb%vec(1), orb%vec(3), orb%vec(5), &
+                                            gammabeta(1), gammabeta(2), gammabeta(3), &
+										    orb%t, &
+											charge_of(orb%species)*e_charge, &
+											orb%charge/e_charge  
   end select
 
 end do 
