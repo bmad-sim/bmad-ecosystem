@@ -320,10 +320,10 @@ SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
   REAL(rp) A(6,6)
   REAL(rp) VR(6,6)
   REAL(rp) eval_r(6), eval_i(6)
-  REAL(rp) evec_r(6,6), evec_i(6,6)
+  REAL(rp) evec_r(6,6), evec_i(6,6), vec(3)
   
   INTEGER i_error
-  INTEGER pair1(1), pair2(1), pair3(1), pairIndexes(6)
+  INTEGER pair1, pair2, pair3, pairIndexes(6)
   LOGICAL error
   integer i
 
@@ -356,12 +356,17 @@ SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
   ! pair1 = MAXLOC( [ ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5)) ] )
   ! pair2 = MAXLOC( [ ABS(evec_r(3,1)), ABS(evec_r(3,3)), ABS(evec_r(3,5)) ] )
   ! pair3 = MAXLOC( [ ABS(evec_r(5,1)), ABS(evec_r(5,3)), ABS(evec_r(5,5)) ] )
-  pair1 = MAXLOC( [ ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5)) ] )
-  pair2 = MAXLOC( [ ((pair1(1)==1) + 1)*ABS(evec_r(3,1)), ((pair1(1)==2) + 1)*ABS(evec_r(3,3)), ((pair1(1)==3) + 1)*ABS(evec_r(3,5)) ] )
-  pair3 = MAXLOC( [ ((pair1(1)==1) + 1)*((pair2(1)==1) + 1)*ABS(evec_r(5,1)), &
-                    ((pair1(1)==2) + 1)*((pair2(1)==2) + 1)*ABS(evec_r(5,3)), &
-                    ((pair1(1)==3) + 1)*((pair2(1)==3) + 1)*ABS(evec_r(5,5)) ] )
-  pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
+
+  pair1 = MAXLOC([ABS(evec_r(1,1)), ABS(evec_r(1,3)), ABS(evec_r(1,5))], 1)
+
+  vec = [ABS(evec_r(3,1)), ABS(evec_r(3,3)), ABS(evec_r(3,5))]
+  vec(pair1) = -1
+  pair2 = maxloc(vec, 1)
+
+  pari3 = 6 - pari1 - pari3
+
+  pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
+
   evec_r = evec_r(:,pairIndexes)
   evec_i = evec_i(:,pairIndexes)
   eval_r = eval_r(pairIndexes)
@@ -788,7 +793,6 @@ SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
   REAL(rp) check_mat(6,6)
   REAL(rp) N(6,6)
   REAL(rp) Lambda(6,6)
-  INTEGER pair1(1), pair2(1), pair3(1), pairIndexes(6)
   INTEGER i
 
   check_mat = MATMUL(MATMUL(TRANSPOSE(evec_r),S),evec_i) + MATMUL(MATMUL(TRANSPOSE(evec_i),S),evec_r)
