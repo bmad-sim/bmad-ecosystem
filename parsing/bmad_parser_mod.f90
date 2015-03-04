@@ -93,10 +93,11 @@ integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
 integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: atan2$ = 23, factorial$ = 24, numeric$ = 100
+integer, parameter, private :: atan2$ = 23, factorial$ = 24, int$ = 25, nint$ = 26
+integer, parameter, private :: floor$ = 27, ceiling$ = 28, numeric$ = 100
 
-integer, parameter, private :: eval_level(24) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter, private :: eval_level(28) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 type eval_stack_struct
   integer type
@@ -725,7 +726,7 @@ if (attrib_word == 'SURFACE') then
           if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', surf%grid%r0, .true.)) return
 
         case ('IX_BOUNDS', 'IY_BOUNDS')
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), i_vec, .true.)) return
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID ' // trim(word), lat, i_vec, .true.)) return
           if (word == 'IX_BOUNDS') ix_bounds = i_vec
           if (word == 'IY_BOUNDS') iy_bounds = i_vec
 
@@ -741,7 +742,7 @@ if (attrib_word == 'SURFACE') then
 
         case ('PT')
           bp_com%parse_line = delim // bp_com%parse_line
-          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', i_vec, .true.)) return
+          if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, i_vec, .true.)) return
           if (.not. allocated(surf%grid%pt)) then
             call parser_error ('SURFACE PT_MAX MISSING', 'FOR: ' // ele%name)
             return
@@ -2526,6 +2527,14 @@ parsing_loop: do
         call pushit (op, i_op, ran_gauss$)
         ran_function_pending = .true.
         call bp_set_ran_status
+      case ('INT')
+        call pushit (op, i_op, int$)
+      case ('NINT')
+        call pushit (op, i_op, nint$)
+      case ('FLOOR')
+        call pushit (op, i_op, floor$)
+      case ('CEILING')
+        call pushit (op, i_op, ceiling$)
       case default
         call parser_error ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
                                                 'FOR: ' // err_str)
@@ -2670,29 +2679,32 @@ if (i_lev == 0) call parser_error ('NO VALUE FOUND FOR: ' // err_str)
 
 i2 = 0
 do i = 1, i_lev
-  if (stk(i)%type == numeric$) then
+
+  select case (stk(i)%type)
+
+  case (numeric$)
     i2 = i2 + 1
     stk(i2)%value = stk(i)%value
 
-  elseif (stk(i)%type == unary_minus$) then
+  case (unary_minus$)
     stk(i2)%value = -stk(i2)%value
 
-  elseif (stk(i)%type == unary_plus$) then
+  case (unary_plus$)
     stk(i2)%value = stk(i2)%value
 
-  elseif (stk(i)%type == plus$) then
+  case (plus$)
     stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
     i2 = i2 - 1
 
-  elseif (stk(i)%type == minus$) then
+  case (minus$)
     stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
     i2 = i2 - 1
 
-  elseif (stk(i)%type == times$) then
+  case (times$)
     stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
     i2 = i2 - 1
 
-  elseif (stk(i)%type == divide$) then
+  case (divide$)
     if (stk(i2)%value == 0) then
       call parser_error ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
       return
@@ -2700,79 +2712,91 @@ do i = 1, i_lev
     stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
     i2 = i2 - 1
 
-  elseif (stk(i)%type == power$) then
+  case (power$)
     stk(i2-1)%value = stk(i2-1)%value**stk(i2)%value
     i2 = i2 - 1
 
-  elseif (stk(i)%type == sin$) then
+  case (sin$)
     stk(i2)%value = sin(stk(i2)%value)
 
-  elseif (stk(i)%type == cos$) then
+  case (cos$)
     stk(i2)%value = cos(stk(i2)%value)
 
-  elseif (stk(i)%type == tan$) then
+  case (tan$)
     stk(i2)%value = tan(stk(i2)%value)
 
-  elseif (stk(i)%type == asin$) then
+  case (asin$)
     if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
       call parser_error ('ASIN ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
       return
     endif
     stk(i2)%value = asin(stk(i2)%value)
 
-  elseif (stk(i)%type == acos$) then
+  case (acos$)
     if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
       call parser_error ('ACOS ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
       return
     endif
     stk(i2)%value = acos(stk(i2)%value)
 
-  elseif (stk(i)%type == factorial$) then
+  case (factorial$)
     stk(i2)%value = factorial(nint(stk(i2)%value))
     if (stk(i2)%value < 0) then
       call parser_error ('FACTORIAL PROBLEM FOR: ' // err_str)
       return
     endif
 
-  elseif (stk(i)%type == atan$) then
+  case (atan$)
     stk(i2)%value = atan(stk(i2)%value)
 
-  elseif (stk(i)%type == atan2$) then
+  case (atan2$)
     stk(i2-1)%value = atan2(stk(i2-1)%value, stk(i2)%value)
     i2 = i2 - 1
 
-  elseif (stk(i)%type == abs$) then
+  case (abs$)
     stk(i2)%value = abs(stk(i2)%value)
 
-  elseif (stk(i)%type == sqrt$) then
+  case (sqrt$)
     if (stk(i2)%value < 0) then
       call parser_error ('SQRT ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
       return
     endif
     stk(i2)%value = sqrt(stk(i2)%value)
 
-  elseif (stk(i)%type == log$) then
+  case (log$)
     if (stk(i2)%value < 0) then
       call parser_error ('LOG ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
       return
     endif
     stk(i2)%value = log(stk(i2)%value)
 
-  elseif (stk(i)%type == exp$) then
+  case (exp$)
     stk(i2)%value = exp(stk(i2)%value)
 
-  elseif (stk(i)%type == ran$) then
+  case (int$)
+    stk(i2)%value = int(stk(i2)%value)
+
+  case (nint$)
+    stk(i2)%value = nint(stk(i2)%value)
+
+  case (floor$)
+    stk(i2)%value = floor(stk(i2)%value)
+
+  case (ceiling$)
+    stk(i2)%value = ceiling(stk(i2)%value)
+
+  case (ran$)
     i2 = i2 + 1
     call ran_uniform(stk(i2)%value)
 
-  elseif (stk(i)%type == ran_gauss$) then
+  case (ran_gauss$)
     i2 = i2 + 1
     call ran_gauss(stk(i2)%value)
 
-  else
+  case default
     call parser_error ('INTERNAL ERROR #02: GET HELP')
     if (global_com%exit_on_error) call err_exit
-  endif
+  end select
 enddo
 
 if (i2 /= 1) then
@@ -4167,8 +4191,9 @@ call settable_dep_var_bookkeeping (super_ele_in)
 call init_ele(super_ele_saved)
 call init_ele(super_ele)
 
-super_ele_saved = super_ele_in      ! in case super_ele_in changes
-super_ele = super_ele_saved        ! 
+super_ele = super_ele_in
+super_ele%old_is_on = .false.
+super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 
 ! If no refrence point then superposition is simple
@@ -6376,7 +6401,7 @@ do
 
     ! Get indices
     bp_com%parse_line = delim // bp_com%parse_line
-    if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', array(pt_counter)%ix, .false.)) return
+    if (.not. parse_integer_list (trim(ele%name) // ' GRID PT', lat, array(pt_counter)%ix, .false.)) return
       
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
     call get_next_word (word2, ix_word2, '{}=,()', delim2, delim_found2)
@@ -6539,7 +6564,7 @@ end subroutine parse_rf_grid
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_integer_list (err_str, int_array, exact_size, open_delim, 
+! Function parse_integer_list (err_str, lat, int_array, exact_size, open_delim, 
 !           separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of integers of the form:
@@ -6550,10 +6575,12 @@ end subroutine parse_rf_grid
 ! See parse_integer_list2 for more details
 !-
 
-function parse_integer_list (err_str, int_array, exact_size, open_delim, &
+function parse_integer_list (err_str, lat, int_array, exact_size, open_delim, &
                           separator, close_delim, default_value) result (is_ok)
 
 implicit none
+
+type (lat_struct) lat
 
 integer int_array(:)
 integer, optional :: default_value
@@ -6569,7 +6596,7 @@ logical is_ok, exact_size
 !
 
 is_ok = .false.
-if (.not. parse_integer_list2 (err_str, vec, num_found, size(int_array), &
+if (.not. parse_integer_list2 (err_str, lat, vec, num_found, size(int_array), &
                           open_delim, separator, close_delim, default_value)) return
 
 if (num_found > size(int_array) .or. (exact_size .and. num_found < size(int_array))) then
@@ -6587,7 +6614,7 @@ end function parse_integer_list
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function parse_integer_list2 (err_str, int_array, num_found, num_expected, open_delim, 
+! Function parse_integer_list2 (err_str, lat, int_array, num_found, num_expected, open_delim, 
 !                               separator, close_delim, default_value) result (is_ok)
 !
 ! Routine to parse a list of integers of the form
@@ -6596,7 +6623,8 @@ end function parse_integer_list
 !
 ! Input:
 !  err_str    -- character(*): Error string to print if there is an error. 
-!  int_array -- Integer, allocatable: the array to be read in 
+!  lat        -- lat_struct: lattice
+!  int_array  -- Integer, allocatable: the array to be read in 
 !
 !   Optional: 
 !   num_expected = 1     -- integer : number of expected arguments
@@ -6612,10 +6640,12 @@ end function parse_integer_list
 !   num_found                  -- integer : number of elements
 !-
 
-function parse_integer_list2 (err_str, int_array, num_found, num_expected, open_delim, &
+function parse_integer_list2 (err_str, lat, int_array, num_found, num_expected, open_delim, &
                               separator, close_delim, default_value) result (is_ok)
 
-! Arguments
+
+type (lat_struct) lat
+
 integer, allocatable :: int_array(:)
 integer :: num_found
 integer, optional :: num_expected, default_value
@@ -6627,8 +6657,9 @@ logical is_ok
 integer num_expect
 character(1) delim, op_delim, cl_delim, sep
 character(40) :: word
+real(rp) rval
 integer  ix_word
-logical delim_found
+logical delim_found, err_flag
 
 ! Optional arguments
 
@@ -6657,22 +6688,21 @@ num_found = 0
 
 ! Get integers
 do 
-  call get_next_word (word, ix_word, sep // cl_delim, delim, delim_found)
-  if (.not. is_integer(word) ) then 
+
+  call evaluate_value ('BAD NUMBER IN: ' // err_str, rval, lat, delim, delim_found, err_flag, sep // cl_delim)
+  if (err_flag) return
+  if (abs(rval - nint(rval)) > 1e-10) then
     call parser_error ('BAD INTEGER NUMBER IN: ' // err_str)
     return
    end if    
-  ! integer is found
+
   num_found = num_found + 1
-  ! reallocate if needed  
-  ! reallocate if needed  
   if (size(int_array) < num_found) then
     call re_allocate (int_array, 2*num_found, .false.)
     int_array(num_found:2*num_found) = integer_option(0, default_value)
   endif
   
-  ! Read value
-   read (word, *)  int_array(num_found) 
+  int_array(num_found) = nint(rval)
   
   ! Exit if cl_delim is found
   if (delim == cl_delim) exit

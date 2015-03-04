@@ -3,6 +3,8 @@ module photon_target_mod
 use geometry_mod
 use photon_utils_mod
 
+implicit none
+
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -21,8 +23,6 @@ contains
 !-
 
 subroutine photon_target_setup (ele)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ap_ele
@@ -70,17 +70,20 @@ do
 
 enddo
 
-! get aperture corners 
+! get aperture corners...
+! Target info is stored in ele%photon%target so allocate ele%photon if needed.
 
 if (.not. associated(ele%photon)) allocate(ele%photon)
-target => ele%photon%target
 
-if (ap_ele%key == detector$) then
-  target%type = detector$
+target => ele%photon%target
+gr => ap_ele%photon%surface%grid
+
+if (gr%dr(1) /= 0 .or. gr%dr(2) /= 0) then  ! If grid defined.
+  target%type = grid$
   target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
+  gr%type = diffract_target$
 
   z = 0
-  gr => ap_ele%photon%surface%grid
   
   call photon_target_corner_calc (ap_ele, gr%r0(1),          gr%r0(2),          z, ele, target%center)
   call photon_target_corner_calc (ap_ele, gr%r0(1)+gr%dr(1), gr%r0(2),          z, ele, target%corner(1))
@@ -147,8 +150,6 @@ end subroutine photon_target_setup
 
 subroutine photon_target_corner_calc (aperture_ele, x_lim, y_lim, z_lim, source_ele, corner)
 
-implicit none
-
 type (ele_struct), target :: aperture_ele, source_ele
 type (ele_struct), pointer :: ele0
 type (target_point_struct) corner
@@ -187,5 +188,74 @@ call offset_photon (source_ele, orb, set$, offset_position_only = .true.)
 corner%r = orb%vec(1:5:2)
 
 end subroutine photon_target_corner_calc
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine photon_add_to_detector_statistics (orbit, ele, ix_pt, iy_pt)
+!
+! Routine to add the field of a photon to a "detector" grid.
+!
+! Input:
+!   orbit   -- coord_struct: Photon coords at the detector
+!   ele     -- ele_struct: Element with grid.
+!
+! Output:
+!   ele           -- ele_struct: Element with updatted grid.
+!   ix_pt, iy_pt  -- integer, optional: Index of upgraded ele%photon%surface%grid%pt(:,:) point.
+!-
+
+subroutine photon_add_to_detector_statistics (orbit, ele, ix_pt, iy_pt)
+
+type (coord_struct) orbit, orb
+type (ele_struct), target :: ele
+type (surface_grid_struct), pointer :: grid
+type (surface_grid_pt_struct), pointer :: pix
+
+real(rp) phase, intens_x, intens_y, intens
+integer, optional :: ix_pt, iy_pt
+integer nx, ny
+
+! If outside of detector area then do nothing.
+
+orb = orbit
+call offset_photon (ele, orb, set$)  ! Go to coordinates of the detector
+
+grid => ele%photon%surface%grid
+
+! dr(i) can be zero for 1-dim grid
+
+nx = 0; ny = 0
+if (grid%dr(1) /= 0) nx = nint((orb%vec(1) - grid%r0(1)) / grid%dr(1))
+if (grid%dr(2) /= 0) ny = nint((orb%vec(3) - grid%r0(2)) / grid%dr(2))
+
+if (present(ix_pt)) ix_pt = nx
+if (present(iy_pt)) iy_pt = ny
+
+if (nx < lbound(grid%pt, 1) .or. nx > ubound(grid%pt, 1) .or. &
+    ny < lbound(grid%pt, 2) .or. ny > ubound(grid%pt, 2)) return
+
+! Add to det stat
+
+pix => grid%pt(nx,ny)
+pix%n_photon  = pix%n_photon + 1
+if (ele%branch%lat%photon_type == coherent$) then
+  phase = orb%phase(1) 
+  pix%E_x = pix%E_x + orb%field(1) * [cos(phase), sin(phase)]
+  phase = orb%phase(2) 
+  pix%E_y = pix%E_y + orb%field(2) * [cos(phase), sin(phase)]
+else
+  intens_x = orbit%field(1)**2
+  intens_y = orbit%field(2)**2
+  intens = intens_x + intens_y
+  pix%intensity_x = pix%intensity_x + intens_x
+  pix%intensity_y = pix%intensity_y + intens_y
+  pix%intensity   = pix%intensity   + intens
+  pix%energy_ave  = pix%energy_ave  + intens * (orb%p0c - ele%value(e_tot$))
+  pix%energy_rms  = pix%energy_rms  + intens * (orb%p0c - ele%value(e_tot$))**2
+endif
+
+end subroutine photon_add_to_detector_statistics
 
 end module

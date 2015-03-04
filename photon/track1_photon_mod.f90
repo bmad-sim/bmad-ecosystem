@@ -5,6 +5,8 @@ use wall3d_mod
 use photon_utils_mod
 use xraylib_interface
 
+implicit none
+
 ! This is for passing info into the field_calc_routine
 
 type, private :: crystal_param_struct
@@ -15,6 +17,98 @@ end type
 private e_field_calc
 
 contains
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Subroutine track1_x_ray_source (ele, orbit)
+!
+! Routine to initialize a photon from an x_ray_source element.
+!
+! Input:
+!   ele           -- ele_struct: patch element.
+!   param         -- lat_param_struct
+!
+! Output:
+!   orbit         -- coord_struct: Coords after applying a patch transformation.
+!-
+
+Subroutine track1_x_ray_source (ele, param, orbit)
+
+type (ele_struct) ele
+type (lat_param_struct) param
+type (coord_struct) orbit
+
+real(rp) r(3), dir, rr
+
+character(*), parameter :: r_name = 'track1_x_ray_source'
+
+!
+
+if (nint(ele%value(spatial_distribution$)) == uniform$) then
+  call ran_uniform(r)
+  r = 2 * r - 1
+elseif (nint(ele%value(spatial_distribution$)) == gaussian$) then
+  call ran_gauss(r)
+else
+  call out_io (s_fatal$, r_name, 'BAD ELE SPATIAL_DISTRIBUTION: ' // &
+                                             distribution_name(nint(ele%value(spatial_distribution$))))
+  if (global_com%exit_on_error) call err_exit
+  orbit%state = lost$
+  return
+endif
+
+orbit%vec(1:5:2) = [ele%value(x_offset_tot$) + ele%value(sig_x$) * r(1), &
+                    ele%value(y_offset_tot$) + ele%value(sig_y$) * r(2), &
+                    ele%value(z_offset_tot$) + ele%value(sig_z$) * r(3)]
+
+! Set direction
+
+select case (nint(ele%value(velocity_distribution$)))
+case (spherical$)
+  call point_photon_emission (ele, param, orbit, +1, twopi)
+
+case (uniform$)
+  call ran_uniform(dir)
+  dir = 2 * dir - 1
+  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+
+case (gaussian$)
+  call ran_gauss(dir)
+  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+
+end select
+
+! Set energy
+
+if (nint(ele%value(energy_distribution$)) == uniform$) then
+  call ran_uniform(rr)
+  rr = 2 * rr - 1
+else if (nint(ele%value(energy_distribution$)) == gaussian$) then
+  call ran_gauss(rr)
+else
+  call out_io (s_fatal$, r_name, 'BAD ELE%VALUE(ENERGY_DISTRIBUTION SETTING: ' // &
+                                             distribution_name(nint(ele%value(energy_distribution$))))
+endif
+
+orbit%p0c = ele%value(sig_E$) * rr + ele%value(dE_center$)
+if (is_true(ele%value(dE_relative_to_ref$))) orbit%p0c = orbit%p0c + ele%value(p0c$) 
+
+call init_coord (orbit, orbit%vec, ele, upstream_end$, photon$, 1, orbit%p0c) 
+orbit%s = orbit%vec(5) + orbit%s + ele%value(z_offset_tot$)
+orbit%t = 0
+
+! Translate from element to lab coordinates
+! and track to entrance end of ele
+
+call offset_photon (ele, orbit, unset$)
+
+call track_a_drift_photon (orbit, -orbit%s, .true.)
+
+end subroutine track1_x_ray_source
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -41,8 +135,6 @@ contains
 !-
 
 Subroutine track_a_patch_photon (ele, orbit, drift_to_exit, use_z_pos)
-
-implicit none
 
 type (coord_struct) orbit
 type (ele_struct) ele
@@ -124,8 +216,6 @@ end subroutine track_a_patch_photon
 
 subroutine track1_diffraction_plate (ele, param, orbit)
 
-implicit none
-
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
@@ -176,7 +266,7 @@ endif
 ! Choose outgoing direction
 
 vz0 = orbit%vec(6)
-call isotropic_photon_emission (ele, param, orbit, +1, twopi)
+call point_photon_emission (ele, param, orbit, +1, twopi)
 
 ! Rescale field
 
@@ -211,8 +301,6 @@ end subroutine track1_diffraction_plate
 !-
 
 function diffraction_plate_hit_spot (ele, orbit) result (ix_section)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
@@ -304,8 +392,6 @@ end function diffraction_plate_hit_spot
 
 subroutine track1_sample (ele, param, orbit)
 
-implicit none
-
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
@@ -337,7 +423,7 @@ endif
 select case (nint(ele%value(mode$)))
 case (reflection$)
 
-  call isotropic_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
+  call point_photon_emission (ele, param, orbit, -1, fourpi, w_to_surface)
 
 case (transmission$)
   call photon_absorption_and_phase_shift (ele%component_name, orbit%p0c, absorption, phase_shift, err_flag)
@@ -366,9 +452,10 @@ end subroutine track1_sample
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine isotropic_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
+! Subroutine point_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
 !
-! Routine to emit a photon from a surface in a random direction.
+! Routine to emit a photon from a point that may be on a surface.
+! If there is a downstream target, the emission calc will take this into account.
 !
 ! Input:
 !   ele                -- ele_struct: Emitting element.
@@ -385,9 +472,7 @@ end subroutine track1_sample
 !   orbit    -- Coord_struct: Final phase-space coords
 !-
 
-subroutine isotropic_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
-
-implicit none
+subroutine point_photon_emission (ele, param, orbit, direction, max_target_area, w_to_surface)
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -398,7 +483,7 @@ type (target_point_struct) corner(8)
 type (surface_grid_struct), pointer :: gr
 
 real(rp), optional :: w_to_surface(3,3)
-real(rp) ran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
+real(rp) zran(2), r_particle(3), w_to_target(3,3), w_to_ele(3,3)
 real(rp) phi_min, phi_max, y_min, y_max, y, phi, rho, r(3), max_target_area, cos2_dphi
 real(rp) lb(2), ub(2), r_len, dr_x(3), dr_y(3), area
 
@@ -406,8 +491,6 @@ integer direction
 integer n, i, ix, iy
 
 !
-
-call ran_uniform(ran)
 
 target => ele%photon%target
 
@@ -458,8 +541,9 @@ case (rectangular$)
 
   !
 
-  y = y_min + (y_max-y_min) * ran(1)
-  phi = phi_min + (phi_max-phi_min) * ran(2)
+  call ran_uniform(zran)
+  y = y_min + (y_max-y_min) * zran(1)
+  phi = phi_min + (phi_max-phi_min) * zran(2)
   rho = sqrt(1 - y*y)
   orbit%vec(2:6:2) = [rho * sin(phi), y, rho * cos(phi)]
   orbit%vec(2:6:2) = matmul(w_to_ele, orbit%vec(2:6:2))
@@ -477,9 +561,9 @@ case (rectangular$)
     orbit%field = orbit%field * sqrt ((y_max - y_min) * (phi_max - phi_min) / max_target_area)
   endif
 
-! Detector target
+! Grid target
 
-case (detector$)
+case (grid$)
   r_particle = orbit%vec(1:5:2)
   r = target%center%r - r_particle
   if (ele%photon%surface%has_curvature) r = matmul(w_to_surface, r)
@@ -488,8 +572,15 @@ case (detector$)
   det_ele => pointer_to_ele(ele%branch%lat, target%ele_loc)
   gr => det_ele%photon%surface%grid
   lb = lbound(gr%pt); ub = ubound(gr%pt)
-  ix = lb(1) + int((ub(1) - lb(1) + 1 - 1e-10) * ran(1))
-  iy = lb(2) + int((ub(2) - lb(2) + 1 - 1e-10) * ran(2))
+
+  if (target%deterministic_grid) then
+    ix = target%ix_grid
+    iy = target%iy_grid
+  else
+    call ran_uniform(zran)
+    ix = lb(1) + int((ub(1) - lb(1) + 1 - 1e-10) * zran(1))
+    iy = lb(2) + int((ub(2) - lb(2) + 1 - 1e-10) * zran(2))
+  endif
   
   r = target%center%r + ix * (target%corner(1)%r - target%center%r) + &
                         iy * (target%corner(2)%r - target%center%r) - r_particle
@@ -520,8 +611,9 @@ case (detector$)
 ! No targeting
 
 case (off$)
-  y = 2 * ran(1) - 1
-  phi = pi * (ran(2) - 0.5_rp)
+  call ran_uniform(zran)
+  y = 2 * zran(1) - 1
+  phi = pi * (zran(2) - 0.5_rp)
   rho = sqrt(1 - y**2)
   orbit%vec(2:6:2) = [rho * sin(phi), y, direction * rho * cos(phi)]
   ! Without targeting photons are emitted into twopi solid angle.
@@ -540,7 +632,7 @@ case default
   call err_exit  ! Internal bookkeeping error
 end select
 
-end subroutine isotropic_photon_emission 
+end subroutine point_photon_emission 
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
@@ -560,8 +652,6 @@ end subroutine isotropic_photon_emission
 !-
 
 subroutine track1_mirror (ele, param, orbit)
-
-implicit none
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -618,8 +708,6 @@ end subroutine track1_mirror
 !-
 
 subroutine track1_multilayer_mirror (ele, param, orbit)
-
-implicit none
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -765,8 +853,6 @@ end subroutine track1_multilayer_mirror
 !-
 
 subroutine track1_crystal (ele, param, orbit)
-
-implicit none
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -1105,8 +1191,6 @@ subroutine track_to_surface (ele, orbit, curved_surface_rot)
 
 use nr, only: zbrent
 
-implicit none
-
 type (ele_struct) ele
 type (coord_struct) orbit
 type (segmented_surface_struct), pointer :: segment
@@ -1187,8 +1271,6 @@ contains
 
 function photon_depth_in_element (s_len) result (delta_h)
 
-implicit none
-
 real(rp), intent(in) :: s_len
 real(rp) :: delta_h
 real(rp) :: point(3)
@@ -1223,8 +1305,6 @@ end subroutine track_to_surface
 !-
 
 subroutine rotate_for_curved_surface (ele, orbit, set, rot_mat)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
@@ -1295,8 +1375,6 @@ end subroutine rotate_for_curved_surface
 
 subroutine crystal_h_misalign (ele, orbit, h_vec)
 
-implicit none
-
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
@@ -1352,8 +1430,6 @@ end subroutine crystal_h_misalign
 
 subroutine target_rot_mats (r_center, w_to_target, w_to_ele)
 
-implicit none
-
 real(rp) r_center(3), w_to_target(3,3), w_to_ele(3,3)
 real(rp) r(3), cos_theta, sin_theta, cos_phi, sin_phi
 
@@ -1402,8 +1478,6 @@ end subroutine target_rot_mats
 !-
 
 subroutine target_min_max_calc (r_corner1, r_corner2, y_min, y_max, phi_min, phi_max, initial)
-
-implicit none
 
 real(rp)  r_corner1(3), r_corner2(3), y_min, y_max, phi_min, phi_max
 real(rp) phi1, phi2, k, t, alpha, beta, y
@@ -1463,8 +1537,6 @@ end subroutine target_min_max_calc
 
 subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
 
-implicit none
-
 type (coord_struct) orb
 real(rp) length, path_len, l, v2, dp
 logical phase_relative_to_ref
@@ -1521,8 +1593,6 @@ end subroutine track_a_drift_photon
 !-
 
 subroutine track_a_bend_photon (orb, ele, length)
-
-implicit none
 
 type (coord_struct) orb
 type (ele_struct) ele

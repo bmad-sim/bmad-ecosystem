@@ -1259,14 +1259,13 @@ integer, optional :: ix_branch, ix_ele
 call deallocate_ele_pointers (ele)
 if (present(branch)) ele%branch => branch
 
-ele%type = ' '
-ele%alias = ' '
+ele%type = ''
+ele%alias = ''
 ele%name = '<Initialized>'
 ele%component_name = ' '
 
 ele%key = integer_option (0, key)
 ele%sub_key = integer_option (0, sub_key)
-if (present(key)) call set_ele_defaults(ele)
 
 ele%value(:) = 0
 ele%old_value(:) = 0
@@ -1321,43 +1320,17 @@ ele%offset_moves_aperture = .false.
 ele%aperture_type = rectangular$
 ele%aperture_at   = exit_end$
 
-! init Twiss
-
 ele%c_mat = 0
 ele%gamma_c = 1.0
 
-ele%x%eta  = 0
-ele%x%etap = 0
+ele%x = xy_disp_struct()
+ele%y = xy_disp_struct()
 
-ele%y%eta  = 0
-ele%y%etap = 0
+ele%a = twiss_struct()
+ele%b = twiss_struct()
+ele%z = twiss_struct()
 
-ele%a%beta     = 0
-ele%a%alpha    = 0
-ele%a%gamma    = 0
-ele%a%eta      = 0
-ele%a%etap     = 0
-ele%a%phi      = 0
-ele%a%sigma    = 0
-ele%a%emit     = 0
-
-ele%b%beta     = 0
-ele%b%alpha    = 0
-ele%b%gamma    = 0
-ele%b%eta      = 0
-ele%b%etap     = 0
-ele%b%phi      = 0
-ele%b%sigma    = 0
-ele%b%emit     = 0
-
-ele%z%beta     = 0
-ele%z%alpha    = 0
-ele%z%gamma    = 0
-ele%z%eta      = 0
-ele%z%etap     = 1
-ele%z%phi      = 0
-ele%z%sigma    = 0
-ele%z%emit     = 0
+if (present(key)) call set_ele_defaults(ele)
 
 end subroutine init_ele
 

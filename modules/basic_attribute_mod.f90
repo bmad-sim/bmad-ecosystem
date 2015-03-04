@@ -612,6 +612,7 @@ call init_attribute_name1 (crystal$, darwin_width_pi$,              'DARWIN_WIDT
 call init_attribute_name1 (crystal$, pendellosung_period_sigma$,    'PENDELLOSUNG_PERIOD_SIGMA', dependent$)
 call init_attribute_name1 (crystal$, pendellosung_period_pi$,       'PENDELLOSUNG_PERIOD_PI', dependent$)
 call init_attribute_name1 (crystal$, dbragg_angle_de$,              'DBRAGG_ANGLE_DE', dependent$)
+call init_attribute_name1 (crystal$, diffraction_limited$,          'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (def_bmad_com$, max_aperture_limit$,         'MAX_APERTURE_LIMIT')
 call init_attribute_name1 (def_bmad_com$, default_ds_step$,            'DEFAULT_DS_STEP')
@@ -1090,6 +1091,7 @@ call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_AN
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
 call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
+call init_attribute_name1 (mirror$, diffraction_limited$,           'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
 call init_attribute_name1 (multilayer_mirror$, graze_angle$,          'GRAZE_ANGLE')
@@ -1104,6 +1106,7 @@ call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVEL
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
+call init_attribute_name1 (multilayer_mirror$, diffraction_limited$,  'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (taylor$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (taylor$, p0c_start$,                     'p0c_start', private$)
@@ -1327,7 +1330,8 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
-      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'MULTIPOLES_ON')
+      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
+      'MULTIPOLES_ON')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'N_REF_PASS', 'DIRECTION', 'N_CELL', &

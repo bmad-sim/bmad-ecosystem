@@ -18,9 +18,111 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 149
+integer, parameter :: bmad_inc_version$ = 150
 
 !-------------------------------------------------------------------------
+! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
+
+integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
+integer, parameter :: runge_kutta$ = 3 
+integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
+integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
+integer, parameter :: boris$ = 12, mad$ = 14
+integer, parameter :: time_runge_kutta$ = 15
+integer, parameter :: n_methods$ = 15
+
+character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
+      'Linear          ', 'Garbage         ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
+
+character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
+      'Garbage         ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Garbage         ', &
+      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']
+
+character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
+      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
+      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
+      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
+      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a']
+
+integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
+character(16), parameter :: ptc_integration_type_name(0:3) = [&
+         'GARBAGE!   ', 'Drift_Kick ', 'Matrix_Kick', 'Ripken_Kick']
+
+
+! sbend$ and rbend$ are from key definitions.
+
+integer, parameter :: map_type$ = 1, periodic_type$ = 3, const_ref_energy$ = 4, nonconst_ref_energy$ = 5
+character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map                ', &
+    'SBend              ', 'Periodic           ', 'Const_Ref_Energy   ', 'NonConst_Ref_Energy', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
+    'RBend              ']
+
+! field_calc names.
+! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
+!   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
+
+integer, parameter :: map$ = 2, grid$ = 3, Refer_to_lords$ = 4, no_field$ = 5
+character(16), parameter :: field_calc_name(0:7) = &
+    ['GARBAGE!       ', 'Bmad_Standard  ', 'Map            ', 'Grid           ', &
+     'Refer_to_Lords.', 'No_Field       ', 'GARBAGE!       ', 'Custom         ']
+
+! Crystal sub_key values.
+
+integer, parameter :: bragg$ = 1, laue$ = 2
+character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
+
+! Distribution
+
+integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
+character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 'Gaussian ', 'Spherical']
+
+! Control element logicals
+! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
+
+integer, parameter :: free$ = 1, super_slave$ = 2, control_slave$ = 3
+integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
+integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
+integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
+
+character(16), parameter :: control_name(12) = [ &
+            'FREE           ', 'SUPER_SLAVE    ', 'CONTROL_SLAVE  ', 'GROUP_LORD     ', &
+            'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
+            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
+
+logical, parameter :: set$ = .true., unset$ = .false.
+
+!
+
+integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, custom_aperture$ = 7
+character(16), parameter :: aperture_type_name(0:7) = &
+                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
+                                     'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
+
+! fringe_type
+! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
+
+integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
+integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
+integer, parameter :: n_non_bend_fringe_type$ = 4, test_edge$ = 9
+
+character(20), parameter :: fringe_type_name(0:9) = ['Garbage!          ', &
+                               'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
+                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', &
+                               'Test              ']
+
+character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
+
+integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
+character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
+                                   'x_invariant       ', 'multipole_symmetry']
+
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
 
@@ -458,13 +560,13 @@ type surface_grid_pt_struct
   real(rp) :: energy_ave = 0, energy_rms = 0
 end type
 
-integer, parameter :: segmented$ = 2, h_misalign$ = 3
-character(16), parameter :: surface_grid_type_name(0:3) = &
-                          ['GARBAGE!  ', 'Off       ', 'Segmented ', 'H_Misalign']
+integer, parameter :: segmented$ = 2, h_misalign$ = 3, diffract_target$ = 4
+character(16), parameter :: surface_grid_type_name(0:4) = ['GARBAGE!       ', 'Off            ',  &
+                                        'Segmented      ', 'H_Misalign     ', 'Diffract_Target']
 
 type surface_grid_struct
   character(200) :: file = ''
-  integer :: type = off$   ! or segmented$, or h_misalign$
+  integer :: type = off$   ! or segmented$, or h_misalign$, or diffract_target$
   real(rp) :: dr(2) = 0, r0(2) = 0
   type (surface_grid_pt_struct), allocatable :: pt(:,:)   ! Lower bound: (0,0)
 end type
@@ -493,7 +595,9 @@ type target_point_struct
 end type
 
 type photon_target_struct
-  integer :: type = off$       ! or rectangular$, or detector$
+  logical :: deterministic_grid = .false.     ! Use ix/iy_grid instead of random number?  
+  integer :: ix_grid = 0, iy_grid = 0         ! Grid pt to go to if deterministic_grid = T.
+  integer :: type = off$       ! or rectangular$, or grid$
   integer :: n_corner = 0
   type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()
@@ -510,7 +614,7 @@ type photon_material_struct
   real(rp) :: l_ref(3) = 0   ! Crystal reference orbit displacement vector in element coords.
 end type
 
-! Photon container structure
+! photon_element_struct is an ele_struct component holding photon parameters
 
 type photon_element_struct
   type (photon_surface_struct) :: surface = photon_surface_struct()
@@ -527,14 +631,14 @@ end type
 !     Modify ele_equal_ele
 
 type ele_struct
-  character(40) name                           ! name of element.
-  character(40) type                           ! type name.
-  character(40) alias                          ! Another name.
-  character(40) component_name                 ! Used by overlays, multipass patch, etc.
-  character(200), pointer :: descrip => null() ! Description string.
-  type (twiss_struct)  a, b, z                 ! Twiss parameters at end of element
-  type (xy_disp_struct) x, y                   ! Projected dispersions.
-  type (bookkeeping_state_struct) bookkeeping_state     ! Element attribute bookkeeping
+  character(40) :: name = '<Initialized>'         ! name of element.
+  character(40) :: type = ''                      ! type name.
+  character(40) :: alias = ''                     ! Another name.
+  character(40) :: component_name = ''            ! Used by overlays, multipass patch, etc.
+  character(200), pointer :: descrip => null()    ! Description string.
+  type (twiss_struct) :: a, b, z                  ! Twiss parameters at end of element
+  type (xy_disp_struct) :: x, y                   ! Projected dispersions.
+  type (bookkeeping_state_struct) :: bookkeeping_state  ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch => null()     ! Pointer to branch containing element.
   type (ele_struct), pointer :: lord => null()          ! Pointer to a slice lord.
   type (em_fields_struct), pointer :: em_field => null()! DC and AC E/M fields
@@ -550,58 +654,58 @@ type ele_struct
   type (wake_struct), pointer :: wake => null()         ! Wakes
   type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()    ! Wiggler field
-  type (coord_struct) map_ref_orb_in     ! Transfer map ref orbit at entrance end of element.
-  type (coord_struct) map_ref_orb_out    ! Transfer map ref orbit at exit end of element.
-  type (coord_struct) time_ref_orb_in    ! Reference orbit at entrance end for ref_time calc.
-  type (coord_struct) time_ref_orb_out   ! Reference orbit at exit end for ref_time calc.
-  real(rp) value(num_ele_attrib$)                ! attribute values.
-  real(rp) old_value(num_ele_attrib$)            ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                               ! constant part of the genfield map.
-  real(rp) vec0(6)                               ! 0th order transport vector.
-  real(rp) mat6(6,6)                             ! 1st order transport matrix.
-  real(rp) c_mat(2,2)                            ! 2x2 C coupling matrix
-  real(rp) gamma_c                               ! gamma associated with C matrix
-  real(rp) s                                     ! longitudinal ref position at the exit end.
-  real(rp) ref_time                              ! Time ref particle passes exit end.
+  type (coord_struct) :: map_ref_orb_in          ! Entrance end transfer map ref orbit
+  type (coord_struct) :: map_ref_orb_out         ! Exit end transfer map ref orbit
+  type (coord_struct) :: time_ref_orb_in         ! Reference orbit at entrance end for ref_time calc.
+  type (coord_struct) :: time_ref_orb_out        ! Reference orbit at exit end for ref_time calc.
+  real(rp) :: value(num_ele_attrib$) = 0         ! attribute values.
+  real(rp) :: old_value(num_ele_attrib$) = 0     ! Used to see if %value(:) array has changed.
+  real(rp) :: gen0(6) = 0                        ! constant part of the genfield map.
+  real(rp) :: vec0(6) = 0                        ! 0th order transport vector.
+  real(rp) :: mat6(6,6) = 0                      ! 1st order transport matrix.
+  real(rp) :: c_mat(2,2) = 0                     ! 2x2 C coupling matrix
+  real(rp) :: gamma_c = 0                        ! gamma associated with C matrix
+  real(rp) :: s = 0                              ! longitudinal ref position at the exit end.
+  real(rp) :: ref_time = 0                       ! Time ref particle passes exit end.
   real(rp), pointer :: r(:,:,:) => null()        ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()       ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()       ! tilt for multipole elements.
-  integer key                    ! key value 
-  integer sub_key                ! For wigglers: map_type$, periodic_type$
-  integer :: ix_ele = -1         ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer ix_value               ! Overlays: Index of control attribute. 
-  integer slave_status           ! super_slave$, etc.
-  integer n_slave                ! Number of slaves
-  integer ix1_slave              ! Start index for slave elements
-  integer ix2_slave              ! Stop  index for slave elements
-  integer lord_status            ! overlay_lord$, etc.
-  integer n_lord                 ! Number of lords
-  integer ic1_lord               ! Start index for lord elements
-  integer ic2_lord               ! Stop  index for lord elements
-  integer ix_pointer             ! For general use. Not used by Bmad.
-  integer ixx, iyy               ! Index for Bmad internal use
-  integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
-  integer tracking_method        ! bmad_standard$, taylor$, etc.
-  integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
-  integer ptc_integration_type   ! drift_kick$, matrix_kick$, or ripken_kick$
-  integer field_calc             ! bmad_standard$, no_field$, map$, grid$, refer_to_lords$, or custom$
-  integer aperture_at            ! Aperture location: entrance_end$, ...
-  integer aperture_type          ! rectangular$, elliptical$, auto_aperture$, ...
-  integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
-  logical symplectify            ! Symplectify mat6 matrices.
-  logical mode_flip              ! Have the normal modes traded places?
-  logical multipoles_on          ! For turning multipoles on/off
-  logical scale_multipoles       ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                                 !        scaled by the strength of the element?
-  logical taylor_map_includes_offsets ! Taylor map calculated with element misalignments?
-  logical field_master           ! Calculate strength from the field value?
-  logical is_on                  ! For turning element on/off.
-  logical old_is_on              ! For saving the element on/off state.
-  logical logic                  ! For general use. Not used by Bmad.
-  logical bmad_logic             ! For Bmad internal use only.
-  logical csr_calc_on            ! Coherent synchrotron radiation calculation
-  logical offset_moves_aperture  ! element offsets affects aperture?
+  integer :: key = 0                    ! key value 
+  integer :: sub_key = 0                ! For wigglers: map_type$, periodic_type$
+  integer :: ix_ele = -1                ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer :: ix_branch = 0              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer :: ix_value = 0               ! Overlays: Index of control attribute. 
+  integer :: slave_status = free$       ! super_slave$, etc.
+  integer :: n_slave = 0                ! Number of slaves
+  integer :: ix1_slave = 0              ! Start index for slave elements
+  integer :: ix2_slave = -1             ! Stop  index for slave elements
+  integer :: lord_status = not_a_lord$  ! overlay_lord$, etc.
+  integer :: n_lord = 0                 ! Number of lords
+  integer :: ic1_lord = 0               ! Start index for lord elements
+  integer :: ic2_lord = -1              ! Stop  index for lord elements
+  integer :: ix_pointer = 0             ! For general use. Not used by Bmad.
+  integer :: ixx = 0, iyy = 0           ! Index for Bmad internal use
+  integer :: mat6_calc_method = bmad_standard$     ! taylor$, symp_lie_ptc$, etc.
+  integer :: tracking_method = bmad_standard$      ! taylor$, linear$, etc.
+  integer :: spin_tracking_method = bmad_standard$ ! symp_lie_ptc$, etc.
+  integer :: ptc_integration_type = matrix_kick$   ! drift_kick$, matrix_kick$, or ripken_kick$
+  integer :: field_calc = bmad_standard$           ! no_field$, map$, grid$, refer_to_lords$, or custom$
+  integer :: aperture_at = exit_end$               ! Aperture location: entrance_end$, ...
+  integer :: aperture_type = rectangular$          ! rectangular$, elliptical$, auto_aperture$, ...
+  integer :: orientation = 1            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
+  logical :: symplectify = .false.      ! Symplectify mat6 matrices.
+  logical :: mode_flip = .false.        ! Have the normal modes traded places?
+  logical :: multipoles_on = .true.     ! For turning multipoles on/off
+  logical :: scale_multipoles = .true.  ! Are ab_multipoles within other elements (EG: quads, etc.) 
+                                        !        scaled by the strength of the element?
+  logical :: taylor_map_includes_offsets = .true. ! Taylor map calculated with element misalignments?
+  logical :: field_master = .false.     ! Calculate strength from the field value?
+  logical :: is_on = .true.             ! For turning element on/off.
+  logical :: old_is_on = .true.         ! For saving the element on/off state.
+  logical :: logic = .false.            ! For general use. Not used by Bmad.
+  logical :: bmad_logic = .false.       ! For Bmad internal use only.
+  logical :: csr_calc_on = .true.       ! Coherent synchrotron radiation calculation
+  logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 end type
 
 ! struct for element to element control
@@ -839,7 +943,7 @@ integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_fa
 integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, sig_vx$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
-integer, parameter :: rho$ = 8, delta_e$ = 8, sig_vy$ = 8
+integer, parameter :: rho$ = 8, delta_e$ = 8, sig_vy$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
 integer, parameter :: l_chord$ = 9, voltage$ = 9, sig_E$ = 9
 integer, parameter :: fb1$ = 14
@@ -1010,83 +1114,6 @@ character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        '
 
 logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
-! control element logicals
-! Idea: Combine girder_lord, overlay_lord and group_lord -> control_lord
-
-integer, parameter :: free$ = 1, super_slave$ = 2, control_slave$ = 3
-integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
-integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
-integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12
-
-character(16), parameter :: control_name(12) = [ &
-            'FREE           ', 'SUPER_SLAVE    ', 'CONTROL_SLAVE  ', 'GROUP_LORD     ', &
-            'SUPER_LORD     ', 'OVERLAY_LORD   ', 'GIRDER_LORD    ', 'MULTIPASS_LORD ', &
-            'MULTIPASS_SLAVE', 'NOT_A_LORD     ', 'SLICE_SLAVE    ', 'CONTROL_LORD   ']
-
-logical, parameter :: set$ = .true., unset$ = .false.
-
-! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
-
-integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2
-integer, parameter :: runge_kutta$ = 3 
-integer, parameter :: linear$ = 4, tracking$ = 5, symp_map$ = 6
-integer, parameter :: hard_edge_model$ = 9, symp_lie_bmad$ = 10, static$ = 11
-integer, parameter :: boris$ = 12, mad$ = 14
-integer, parameter :: time_runge_kutta$ = 15
-integer, parameter :: n_methods$ = 15
-
-character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Runge_Kutta     ', &
-      'Linear          ', 'Garbage         ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Boris           ', 'GARBAGE!        ', 'MAD             ', 'Time_Runge_Kutta']
-
-character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
-      'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
-      'Garbage         ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Garbage         ', &
-      'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']
-
-character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
-      'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
-      'Linear          ', 'Tracking        ', 'Symp_Map        ', 'Custom          ', &
-      'Taylor          ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Static          ', &
-      'Garbage         ', 'GARBAGE!        ', 'MAD             ', 'Garbage        a']
-
-integer, parameter :: drift_kick$ = 1, matrix_kick$ = 2, ripken_kick$ = 3
-character(16), parameter :: ptc_integration_type_name(0:3) = [&
-         'GARBAGE!   ', 'Drift_Kick ', 'Matrix_Kick', 'Ripken_Kick']
-
-
-! sbend$ and rbend$ are from key definitions.
-
-integer, parameter :: map_type$ = 1, periodic_type$ = 3, const_ref_energy$ = 4, nonconst_ref_energy$ = 5
-character(20), parameter :: sub_key_name(0:18) = ['GARBAGE!           ', 'Map                ', &
-    'SBend              ', 'Periodic           ', 'Const_Ref_Energy   ', 'NonConst_Ref_Energy', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', 'GARBAGE!           ', &
-    'RBend              ']
-
-! field_calc names.
-! Note: refer_to_lords is an "internal" value which is not valid for use in a lattice file.
-!   The period in "Refer_to_Lords." is used to prevent sets in the lattice file.
-
-integer, parameter :: grid$ = 2, map$ = 3, Refer_to_lords$ = 4, no_field$ = 5
-character(16), parameter :: field_calc_name(0:7) = &
-    ['GARBAGE!       ', 'Bmad_Standard  ', 'Grid           ', 'Map            ', &
-     'Refer_to_Lords.', 'No_Field       ', 'GARBAGE!       ', 'Custom         ']
-
-! Crystal sub_key values.
-
-integer, parameter :: bragg$ = 1, laue$ = 2
-character(8), parameter :: diffraction_type_name(0:2) = ['GARBAGE!', 'Bragg   ', 'Laue    ']
-
-! Distribution
-
-integer, parameter :: uniform$ = 1, gaussian$ = 2, spherical$ = 3
-character(12), parameter :: distribution_name(0:3) = ['GARBAGE! ', 'Uniform  ', 'Gaussian ', 'Spherical']
-
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
 
@@ -1166,7 +1193,6 @@ type track_struct
 end type
 
 !------------------------------------------------------------------------------
-! misc
 
 integer, parameter :: entry_pt1$ = 1, entry_pt2$ = 2
 
@@ -1186,31 +1212,6 @@ integer, parameter :: is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$
 ! For coords_floor_to_curvilinear status argument
 
 integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
-
-!
-
-integer, parameter :: auto_aperture$ = 1, rectangular$ = 2, elliptical$ = 3, custom_aperture$ = 7
-character(16), parameter :: aperture_type_name(0:7) = &
-                                    ['garbage!   ', 'Auto       ', 'Rectangular', 'Elliptical ', &
-                                     'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
-
-! fringe_type
-! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
-
-integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
-integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
-integer, parameter :: n_non_bend_fringe_type$ = 4, test_edge$ = 9
-
-character(20), parameter :: fringe_type_name(0:9) = ['Garbage!          ', &
-                               'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
-                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', &
-                               'Test              ']
-
-character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
-
-integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
-character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
-                                   'x_invariant       ', 'multipole_symmetry']
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %deterministic:
