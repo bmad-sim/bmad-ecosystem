@@ -1186,6 +1186,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.param == y.param);
   is_eq = is_eq && (x.lord_state == y.lord_state);
   is_eq = is_eq && (x.ele_init == y.ele_init);
+  is_eq = is_eq && (x.beam_start_ele == y.beam_start_ele);
   is_eq = is_eq && is_all_equal(x.ele, y.ele);
   is_eq = is_eq && is_all_equal(x.branch, y.branch);
   is_eq = is_eq && is_all_equal(x.control, y.control);

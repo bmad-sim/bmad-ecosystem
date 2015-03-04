@@ -73,6 +73,7 @@ call test1_f_beam_spin(ok); if (.not. ok) all_ok = .false.
 call test1_f_bunch_params(ok); if (.not. ok) all_ok = .false.
 call test1_f_beam(ok); if (.not. ok) all_ok = .false.
 
+print *
 if (all_ok) then
   print *, 'Bottom Line: Everything OK!'
 else

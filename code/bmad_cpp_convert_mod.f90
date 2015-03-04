@@ -7396,10 +7396,11 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine lat_to_c2 (C, z_use_name, z_lattice, z_input_file_name, z_title, &
       z_attribute_alias, n1_attribute_alias, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, &
-      z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, &
-      z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
-      z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-      z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts) bind(c)
+      z_beam_start_ele, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, &
+      n1_surface, z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, &
+      z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, &
+      z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, &
+      z_ptc_uses_hard_edge_drifts) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -7408,8 +7409,8 @@ interface
     integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
     logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
     character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
-    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
-    type(c_ptr), value :: z_pre_tracker
+    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start_ele
+    type(c_ptr), value :: z_beam_start, z_pre_tracker
     type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
   end subroutine
 end interface
@@ -7493,12 +7494,12 @@ endif
 call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_char, &
     trim(F%input_file_name) // c_null_char, trim(F%title) // c_null_char, z_attribute_alias, &
     n1_attribute_alias, c_loc(F%a), c_loc(F%b), c_loc(F%z), c_loc(F%param), &
-    c_loc(F%lord_state), c_loc(F%ele_init), z_ele, n1_ele, z_branch, n1_branch, z_control, &
-    n1_control, z_surface, n1_surface, c_loc(F%beam_start), c_loc(F%pre_tracker), F%version, &
-    F%n_ele_track, F%n_ele_max, F%n_control_max, F%n_ic_max, F%input_taylor_order, &
-    fvec2vec(F%ic, n1_ic), n1_ic, F%photon_type, c_logic(F%absolute_time_tracking), &
-    c_logic(F%auto_scale_field_phase), c_logic(F%auto_scale_field_amp), &
-    c_logic(F%ptc_uses_hard_edge_drifts))
+    c_loc(F%lord_state), c_loc(F%ele_init), c_loc(F%beam_start_ele), z_ele, n1_ele, z_branch, &
+    n1_branch, z_control, n1_control, z_surface, n1_surface, c_loc(F%beam_start), &
+    c_loc(F%pre_tracker), F%version, F%n_ele_track, F%n_ele_max, F%n_control_max, F%n_ic_max, &
+    F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, F%photon_type, &
+    c_logic(F%absolute_time_tracking), c_logic(F%auto_scale_field_phase), &
+    c_logic(F%auto_scale_field_amp), c_logic(F%ptc_uses_hard_edge_drifts))
 
 end subroutine lat_to_c
 
@@ -7519,10 +7520,10 @@ end subroutine lat_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_input_file_name, z_title, z_attribute_alias, &
-    n1_attribute_alias, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_ele, n1_ele, &
-    z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, z_beam_start, &
-    z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, &
-    z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
+    n1_attribute_alias, z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start_ele, &
+    z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, &
+    z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
+    z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
     z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts) bind(c)
 
 
@@ -7538,8 +7539,8 @@ character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(
 logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
 character(c_char), pointer :: f_attribute_alias
 integer(c_int), pointer :: f_ic(:)
-type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start
-type(c_ptr), value :: z_pre_tracker, z_ic
+type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start_ele
+type(c_ptr), value :: z_beam_start, z_pre_tracker, z_ic
 type(c_ptr) :: z_attribute_alias(*), z_ele(*), z_branch(*), z_control(*), z_surface(*)
 
 call c_f_pointer (Fp, F)
@@ -7579,6 +7580,8 @@ call lat_param_to_f(z_param, c_loc(F%param))
 call bookkeeping_state_to_f(z_lord_state, c_loc(F%lord_state))
 !! f_side.to_f2_trans[type, 0, NOT]
 call ele_to_f(z_ele_init, c_loc(F%ele_init))
+!! f_side.to_f2_trans[type, 0, NOT]
+call ele_to_f(z_beam_start_ele, c_loc(F%beam_start_ele))
 !! f_side.to_f2_trans[type, 1, PTR]
 if (n1_ele == 0) then
   if (associated(F%ele)) deallocate(F%ele)

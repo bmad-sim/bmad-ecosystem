@@ -3128,10 +3128,10 @@ extern "C" void lat_to_c (const Bmad_lat_class*, CPP_lat&);
 // c_side.to_f2_arg
 extern "C" void lat_to_f2 (Bmad_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Char*, Int, const
     CPP_mode_info&, const CPP_mode_info&, const CPP_mode_info&, const CPP_lat_param&, const
-    CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele**, Int, const CPP_branch**, Int,
-    const CPP_control**, Int, const CPP_photon_reflect_surface**, Int, const CPP_coord&, const
-    CPP_pre_tracker&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_IntArr, Int, c_Int&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele&, const CPP_ele**, Int, const
+    CPP_branch**, Int, const CPP_control**, Int, const CPP_photon_reflect_surface**, Int, const
+    CPP_coord&, const CPP_pre_tracker&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    c_IntArr, Int, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
@@ -3179,10 +3179,10 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f2_call
   lat_to_f2 (F, C.use_name.c_str(), C.lattice.c_str(), C.input_file_name.c_str(),
       C.title.c_str(), z_attribute_alias, n1_attribute_alias, C.a, C.b, C.z, C.param,
-      C.lord_state, C.ele_init, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control,
-      z_surface, n1_surface, C.beam_start, C.pre_tracker, C.version, C.n_ele_track,
-      C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic, n1_ic,
-      C.photon_type, C.absolute_time_tracking, C.auto_scale_field_phase,
+      C.lord_state, C.ele_init, C.beam_start_ele, z_ele, n1_ele, z_branch, n1_branch,
+      z_control, n1_control, z_surface, n1_surface, C.beam_start, C.pre_tracker, C.version,
+      C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic,
+      n1_ic, C.photon_type, C.absolute_time_tracking, C.auto_scale_field_phase,
       C.auto_scale_field_amp, C.ptc_uses_hard_edge_drifts);
 
   // c_side.to_f_cleanup[character, 1, ALLOC]
@@ -3202,14 +3202,14 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     z_input_file_name, c_Char z_title, c_Char* z_attribute_alias, Int n1_attribute_alias, const
     Bmad_mode_info_class* z_a, const Bmad_mode_info_class* z_b, const Bmad_mode_info_class*
     z_z, const Bmad_lat_param_class* z_param, const Bmad_bookkeeping_state_class* z_lord_state,
-    const Bmad_ele_class* z_ele_init, Bmad_ele_class** z_ele, Int n1_ele, Bmad_branch_class**
-    z_branch, Int n1_branch, Bmad_control_class** z_control, Int n1_control,
-    Bmad_photon_reflect_surface_class** z_surface, Int n1_surface, const Bmad_coord_class*
-    z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int& z_version, c_Int&
-    z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int& z_n_ic_max, c_Int&
-    z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type, c_Bool&
-    z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool& z_auto_scale_field_amp,
-    c_Bool& z_ptc_uses_hard_edge_drifts) {
+    const Bmad_ele_class* z_ele_init, const Bmad_ele_class* z_beam_start_ele, Bmad_ele_class**
+    z_ele, Int n1_ele, Bmad_branch_class** z_branch, Int n1_branch, Bmad_control_class**
+    z_control, Int n1_control, Bmad_photon_reflect_surface_class** z_surface, Int n1_surface,
+    const Bmad_coord_class* z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int&
+    z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
+    z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
+    c_Bool& z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool&
+    z_auto_scale_field_amp, c_Bool& z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -3235,6 +3235,8 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   bookkeeping_state_to_c(z_lord_state, C.lord_state);
   // c_side.to_c2_set[type, 0, NOT]
   ele_to_c(z_ele_init, C.ele_init);
+  // c_side.to_c2_set[type, 0, NOT]
+  ele_to_c(z_beam_start_ele, C.beam_start_ele);
   // c_side.to_c2_set[type, 1, PTR]
   C.ele.resize(n1_ele);
   for (int i = 0; i < n1_ele; i++) ele_to_c(z_ele[i], C.ele[i]);
