@@ -1076,7 +1076,7 @@ omega = omega - ( anomalous_moment*dot_product(p_vec,field%B) / &
 
 omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0))* cross_product(p_vec,field%E)
 
-omega = (charge/p_z)*omega
+omega = -(charge/p_z)*omega
 
 end function spin_omega_at
 

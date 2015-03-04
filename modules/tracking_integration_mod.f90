@@ -49,10 +49,10 @@ real(rp) s_here, ds
 real(rp) :: Omega(3)
 complex(rp) :: dspin_dz(2), quaternion(2,2)
 
-! this uses a modified Omega' = -Omega/v_z
+! this uses a modified Omega' = Omega/v_z
 
 Omega = spin_omega_at (field, orbit, ele, param, s_here)
-quaternion = (i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
 
 !   quaternion = normalized_quaternion (quaternion)
 
