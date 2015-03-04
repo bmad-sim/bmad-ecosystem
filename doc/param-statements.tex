@@ -214,21 +214,28 @@ for particle tracking. If multiple branches are present
 (\sref{s:branch.def}), these variables pertain to the \vn{root}
 branch.
 \begin{example}
-  beam_start[x]           = <Real>   ! Horizontal position.
-  beam_start[px]          = <Real>   ! Horizontal momentum.
-  beam_start[y]           = <Real>   ! Vertical position.
-  beam_start[py]          = <Real>   ! Vertical momentum.
-  beam_start[z]           = <Real>   ! Longitudinal position.
-  beam_start[pz]          = <Real>   ! Momentum deviation. Only used for non-photons
-  beam_start[E_photon]    = <Real>   ! Energy (eV). Only used for photons.
-  beam_start[emittance_a] = <Real>   ! A-mode emittance
-  beam_start[emittance_b] = <Real>   ! B-mode emittance
-  beam_start[emittance_z] = <Real>   ! Z-mode emittance
-  beam_start[field_x]     = <Real>   ! Photon beam field along x-axis
-  beam_start[field_y]     = <Real>   ! Photon beam field along y-axis
-  beam_start[phase_x]     = <Real>   ! Photon beam phase along x-axis
-  beam_start[phase_y]     = <Real>   ! Photon beam phase along y-axis
-  beam_start[t]           = <Real>   ! Absolute time
+  beam_start[x]                   = <Real>   ! Horizontal position.
+  beam_start[px]                  = <Real>   ! Horizontal momentum.
+  beam_start[y]                   = <Real>   ! Vertical position.
+  beam_start[py]                  = <Real>   ! Vertical momentum.
+  beam_start[z]                   = <Real>   ! Longitudinal position.
+  beam_start[pz]                  = <Real>   ! Momentum deviation. Only used for non-photons
+  beam_start[E_photon]            = <Real>   ! Energy (eV). Only used for photons.
+  beam_start[emittance_a]         = <Real>   ! A-mode emittance
+  beam_start[emittance_b]         = <Real>   ! B-mode emittance
+  beam_start[emittance_z]         = <Real>   ! Z-mode emittance
+  beam_start[field_x]             = <Real>   ! Photon beam field along x-axis
+  beam_start[field_y]             = <Real>   ! Photon beam field along y-axis
+  beam_start[phase_x]             = <Real>   ! Photon beam phase along x-axis
+  beam_start[phase_y]             = <Real>   ! Photon beam phase along y-axis
+  beam_start[t]                   = <Real>   ! Absolute time
+  beam_start[spin_x]              = <Real>   ! Spin polarization x-coordinate
+  beam_start[spin_y]              = <Real>   ! Spin polarization y-coordinate
+  beam_start[spin_z]              = <Real>   ! Spin polarization z-coordinate
+  beam_start[spinor_theta]        = <Real>   ! Spin angle
+  beam_start[spinor_phi]          = <Real>   ! Spin angle
+  beam_start[spinor_xi]           = <Real>   ! Spin angle
+  beam_start[spinor_polarization] = <Real>   ! Spin polarization
 \end{example}
 Normally the absolute time, set by \vn{beam_start[t]}, is a dependent
 parameter set by solving \Eq{zbctt} for $t$. The exception is when the
@@ -236,9 +243,12 @@ initial velocity is zero. (This can happen if there is an \vn{e_gun}
 (\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
 zero and $t$ is an independent parameter that can be set.
 
+For particles with spin, the spin can be 
+
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
 (Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set
 so that \Eq{bbb1} is obayed.
+
 
 Example
 \begin{example}

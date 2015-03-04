@@ -84,16 +84,15 @@ type (ele_struct) ele
 type (ele_struct), pointer :: hard_ele
 type (lat_param_struct) param
 type (track_struct), optional :: track
-type (em_field_struct) field
 
 real(rp), intent(in) :: s1, s2
 real(rp), parameter :: tiny = 1.0e-30_rp
 real(rp) :: ds, ds_did, ds_next, s, s_sav, rel_tol_eff, abs_tol_eff, sqrt_N, ds_save
-real(rp) :: dr_ds(7), r_scal(7), t, s_edge_track, s_edge_hard, position(6)
+real(rp) :: dr_ds(11), r_scal(11), t, s_edge_track, s_edge_hard, position(6), pol
 real(rp) :: wall_d_radius, old_wall_d_radius = 0, s_save, t_save, ds_intersect, ds_tiny
 
 integer, parameter :: max_step = 10000
-integer :: n_step, s_dir, hard_end
+integer :: n_step, s_dir, hard_end, nr_max
 
 logical local_ref_frame, err_flag, err, at_hard_edge, has_hit
 
@@ -167,7 +166,7 @@ do n_step = 1, max_step
 
   ! Need to propagate a step. First calc tolerances.
 
-  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds, field, err)
+  call kick_vector_calc (ele, param, s, t, orb_end, local_ref_frame, dr_ds, err)
   if (err) return
 
   ds = ds_next
@@ -182,9 +181,10 @@ do n_step = 1, max_step
   sqrt_N = sqrt(abs((s2-s1)/ds))  ! number of steps we would take with this ds
   rel_tol_eff = bmad_com%rel_tol_adaptive_tracking / sqrt_N
   abs_tol_eff = bmad_com%abs_tol_adaptive_tracking / sqrt_N
-  r_scal(:) = abs([orb_end%vec(:), t]) + abs(ds*dr_ds(:)) + TINY
+  pol = sqrt(abs(orb_end%spin(1)) + abs(orb_end%spin(2)))
+  r_scal(:) = abs([orb_end%vec(:), t, pol, pol, pol, pol]) + abs(ds*dr_ds(:)) + TINY
 
-  call rk_adaptive_step (ele, param, orb_end, dr_ds, field, s, t, ds, &
+  call rk_adaptive_step (ele, param, orb_end, dr_ds, s, t, ds, &
                       rel_tol_eff, abs_tol_eff, r_scal, ds_did, ds_next, local_ref_frame, err)
   if (err) return
 
@@ -279,11 +279,11 @@ function wall_intersection_func (ds) result (d_radius)
 
 real(rp), intent(in) :: ds
 real(rp) d_radius
-real(rp) t_new, r_err(7)
+real(rp) t_new, r_err(11)
 
 !
 
-call rk_step1 (ele, param, orb_save, dr_ds, field, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
+call rk_step1 (ele, param, orb_save, dr_ds, s_save, t_save, ds, orb_end, t, r_err, local_ref_frame, err_flag)
 
 s = s_save + ds
 position = [orb_end%vec(1:4), s, 1.0_rp]
@@ -300,7 +300,7 @@ end subroutine odeint_bmad
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
 !+
-! Subroutine rk_adaptive_step (ele, param, orb, dr_ds, field, s, t, ds_try, rel_tol, abs_tol, &
+! Subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
 !                                       r_scal, ds_did, ds_next, local_ref_frame, err_flag)
 !
 ! Private routine used by odeint_bmad.
@@ -308,12 +308,11 @@ end subroutine odeint_bmad
 !
 ! Input:
 !   dr_ds(7) -- real(rp): Derivative at beginning of step. 
-!   field    -- em_field_struct: Field at beginning of step.
 !
 ! Output:
 !-
 
-subroutine rk_adaptive_step (ele, param, orb, dr_ds, field, s, t, ds_try, rel_tol, abs_tol, &
+subroutine rk_adaptive_step (ele, param, orb, dr_ds, s, t, ds_try, rel_tol, abs_tol, &
                                        r_scal, ds_did, ds_next, local_ref_frame, err_flag)
 
 implicit none
@@ -321,15 +320,14 @@ implicit none
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new
-type (em_field_struct) field
 
-real(rp), intent(in)    :: dr_ds(7), r_scal(7)
+real(rp), intent(in)    :: dr_ds(11), r_scal(11)
 real(rp), intent(inout) :: s, t
 real(rp), intent(in)    :: ds_try, rel_tol, abs_tol
 real(rp), intent(out)   :: ds_did, ds_next
 
 real(rp) :: err_max, ds, ds_temp, s_new, p2
-real(rp) :: r_err(7), r_temp(7)
+real(rp) :: r_err(11), r_temp(11)
 real(rp) :: rel_pc, t_new
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
 real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
@@ -344,10 +342,10 @@ orb_new = orb
 
 do
 
-  call rk_step1 (ele, param, orb, dr_ds, field, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
+  call rk_step1 (ele, param, orb, dr_ds, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err_flag)
   ! Can get errors due to step size too large 
   if (err_flag) then
-    if (ds < 1d-3) THEN
+    if (ds < 1d-3) then
       call out_io (s_fatal$, r_name, 'CANNOT COMPLETE STEP. ABORTING.')
       if (global_com%exit_on_error) call err_exit
       return
@@ -392,19 +390,18 @@ end subroutine rk_adaptive_step
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 
-subroutine rk_step1 (ele, param, orb, dr_ds1, field1, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err)
+subroutine rk_step1 (ele, param, orb, dr_ds1, s, t, ds, orb_new, t_new, r_err, local_ref_frame, err)
 
 implicit none
 
 type (ele_struct) ele
 type (lat_param_struct) param
 type (coord_struct) orb, orb_new, orb_temp(5)
-type (em_field_struct) field1, field2, field3, field4, field5, field6
 
-real(rp), intent(in) :: dr_ds1(7)
+real(rp), intent(in) :: dr_ds1(11)
 real(rp), intent(in) :: s, t, ds
-real(rp), intent(out) :: r_err(7), t_new
-real(rp) :: dr_ds2(7), dr_ds3(7), dr_ds4(7), dr_ds5(7), dr_ds6(7), t_temp(5)
+real(rp), intent(out) :: r_err(11), t_new
+real(rp) :: dr_ds2(11), dr_ds3(11), dr_ds4(11), dr_ds5(11), dr_ds6(11), t_temp(5)
 real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     a5=1.0_rp, a6=0.875_rp, b21=0.2_rp, b31=3.0_rp/40.0_rp, &
     b32=9.0_rp/40.0_rp, b41=0.3_rp, b42=-0.9_rp, b43=1.2_rp, &
@@ -425,37 +422,30 @@ logical local_ref_frame, err
 !
 
 call transfer_this_orbit (orb, b21*ds*dr_ds1, orb_temp(1), t_temp(1))
-call kick_vector_calc(ele, param, s + a2*ds, t_temp(1), orb_temp(1), local_ref_frame, dr_ds2, field2, err)
+call kick_vector_calc(ele, param, s + a2*ds, t_temp(1), orb_temp(1), local_ref_frame, dr_ds2, err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b31*dr_ds1 + b32*dr_ds2), orb_temp(2), t_temp(2))
-call kick_vector_calc(ele, param, s + a3*ds, t_temp(2), orb_temp(2), local_ref_frame, dr_ds3, field3, err)
+call kick_vector_calc(ele, param, s + a3*ds, t_temp(2), orb_temp(2), local_ref_frame, dr_ds3, err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b41*dr_ds1 + b42*dr_ds2 + b43*dr_ds3), orb_temp(3), t_temp(3))
-call kick_vector_calc(ele, param, s + a4*ds, t_temp(3), orb_temp(3), local_ref_frame, dr_ds4, field4, err)
+call kick_vector_calc(ele, param, s + a4*ds, t_temp(3), orb_temp(3), local_ref_frame, dr_ds4, err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b51*dr_ds1 + b52*dr_ds2 + b53*dr_ds3 + b54*dr_ds4), orb_temp(4), t_temp(4))
-call kick_vector_calc(ele, param, s + a5*ds, t_temp(4), orb_temp(4), local_ref_frame, dr_ds5, field5, err)
+call kick_vector_calc(ele, param, s + a5*ds, t_temp(4), orb_temp(4), local_ref_frame, dr_ds5, err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(b61*dr_ds1 + b62*dr_ds2 + b63*dr_ds3 + b64*dr_ds4 + b65*dr_ds5), orb_temp(5), t_temp(5))
-call kick_vector_calc(ele, param, s + a6*ds, t_temp(5), orb_temp(5), local_ref_frame, dr_ds6, field6, err)
+call kick_vector_calc(ele, param, s + a6*ds, t_temp(5), orb_temp(5), local_ref_frame, dr_ds6, err)
 if (err) return
 
 call transfer_this_orbit (orb, ds*(c1*dr_ds1 + c3*dr_ds3 + c4*dr_ds4 + c6*dr_ds6), orb_new, t_new)
 r_err=ds*(dc1*dr_ds1 + dc3*dr_ds3 + dc4*dr_ds4 + dc5*dr_ds5 + dc6*dr_ds6)
 
-! Spin
-
-if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call dspin_dz (ele, param, s,         t,         orb,         field1, dspin1)
-  call dspin_dz (ele, param, s + a3*ds, t_temp(2), orb_temp(2), field2, dspin3)
-  call dspin_dz (ele, param, s + a4*ds, t_temp(3), orb_temp(3), field3, dspin4)
-  call dspin_dz (ele, param, s + a6*ds, t_temp(5), orb_temp(5), field5, dspin6)
-
-  orb_new%spin = orb%spin + ds * (c1*dspin1 + c3*dspin3 + c4*dspin4 + c6*dspin6)
+if (.not. (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)) then
+  r_err(8:11) = 0
 endif
 
 !----------------------------------------------------------
@@ -464,7 +454,7 @@ contains
 subroutine transfer_this_orbit (orb_in, dvec, orb_out, t_temp)
 
 type (coord_struct) orb_in, orb_out
-real(rp) dvec(7), t_temp
+real(rp) dvec(11), t_temp
 
 !
 
@@ -478,37 +468,12 @@ endif
 
 t_temp = t + dvec(7)
 
-end subroutine
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  orb_out%spin(1) = orb_out%spin(1) + cmplx(dvec(8), dvec(9))
+  orb_out%spin(2) = orb_out%spin(2) + cmplx(dvec(10), dvec(11))
+endif
 
-!----------------------------------------------------------
-! contains
-
-subroutine dspin_dz (ele, param, s, t, orb, field, dspin)
-
-implicit none
-
-type (ele_struct) ele
-type (lat_param_struct) param
-type (coord_struct) orb
-type (em_field_struct) :: field
-
-real(rp) s, t
-real(rp) :: Omega(3)
-
-complex(rp) :: dspin(2), quaternion(2,2)
-
-logical local_ref_frame
-
-! This uses a modified Omega' = Omega/v_z
-
-Omega = spin_omega_at (field, orb, ele, param, s)
-quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
-
-! Quaternion = normalized_quaternion (quaternion)
-
-dspin = matmul(quaternion, orb%spin)
-
-end subroutine dspin_dz
+end subroutine transfer_this_orbit
 
 end subroutine rk_step1
 
@@ -519,7 +484,7 @@ end subroutine rk_step1
 ! Subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds, field, err)
 !
 ! Subroutine to calculate the dr/ds "kick vector" where
-!     r = [x, p_x, y, p_y, z, p_z, t] 
+!     r = [x, p_x, y, p_y, z, p_z, t, spin1_re, spin1_im, spin2_re, spin2_im] 
 !
 ! Remember: In order to simplify the calculation, in the body of any element, P0 is taken to be 
 ! the P0 at the exit end of the element.
@@ -568,12 +533,12 @@ end subroutine rk_step1
 !               as being with respect to the frame of referene of the element. 
 !
 ! Output:
-!   dr_ds(7) -- real(rp): Kick vector.
+!   dr_ds(11) -- real(rp): Kick vector.
 !   field    -- em_field_struct: Local field.
 !   err      -- Logical: Set True if there is an error.
 !-
 
-subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds, field, err)
+subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds, err)
 
 implicit none
 
@@ -583,10 +548,13 @@ type (em_field_struct) field
 type (coord_struct) orbit
 
 real(rp), intent(in) :: s_rel, t_rel 
-real(rp), intent(out) :: dr_ds(7)
+real(rp), intent(out) :: dr_ds(11)
 real(rp) f_bend, gx_bend, gy_bend, dt_ds, dp_ds, dbeta_ds
 real(rp) vel(3), E_force(3), B_force(3)
 real(rp) e_tot, dt_ds_ref, p0, beta0, v2, pz_p0
+real(rp) :: Omega(3)
+
+complex(rp) :: dspin(2), quaternion(2,2)
 
 integer direction
 logical :: local_ref_frame, err
@@ -642,6 +610,18 @@ dr_ds(4) = (E_force(2) + B_force(2)) * dt_ds / p0 + gy_bend * pz_p0
 dr_ds(5) = orbit%beta * c_light * (dt_ds_ref - dt_ds) + dbeta_ds * orbit%vec(5) / orbit%beta
 dr_ds(6) = dp_ds / p0
 dr_ds(7) = dt_ds
+
+dr_ds(8:11) = 0
+if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
+  ! This uses a modified Omega' = Omega/v_z
+  Omega = spin_omega_at (field, orbit, ele, param, s_rel) + [-gy_bend, gx_bend, 0.0_rp]
+  quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
+  dspin = matmul(quaternion, orbit%spin)
+  dr_ds(8) = real(dspin(1))
+  dr_ds(9) = aimag(dspin(1))
+  dr_ds(10) = real(dspin(2))
+  dr_ds(11) = aimag(dspin(2))
+endif
 
 err = .false.
 
