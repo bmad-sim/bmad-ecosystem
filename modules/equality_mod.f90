@@ -2120,6 +2120,8 @@ is_eq = is_eq .and. (f1%param == f2%param)
 is_eq = is_eq .and. (f1%lord_state == f2%lord_state)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%ele_init == f2%ele_init)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%beam_start_ele == f2%beam_start_ele)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%ele) .eqv. associated(f2%ele))
 if (.not. is_eq) return
