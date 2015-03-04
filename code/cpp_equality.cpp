@@ -256,6 +256,18 @@ template bool is_all_equal (const CPP_wake_lr_MATRIX&, const CPP_wake_lr_MATRIX&
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_lat_ele_loc& x, const CPP_lat_ele_loc& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.ix_ele == y.ix_ele);
+  is_eq = is_eq && (x.ix_branch == y.ix_branch);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_lat_ele_loc_ARRAY&, const CPP_lat_ele_loc_ARRAY&);
+template bool is_all_equal (const CPP_lat_ele_loc_MATRIX&, const CPP_lat_ele_loc_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_wake& x, const CPP_wake& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.sr_file == y.sr_file);
@@ -559,8 +571,12 @@ template bool is_all_equal (const CPP_photon_surface_MATRIX&, const CPP_photon_s
 
 bool operator== (const CPP_photon_target& x, const CPP_photon_target& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.deterministic_grid == y.deterministic_grid);
+  is_eq = is_eq && (x.ix_grid == y.ix_grid);
+  is_eq = is_eq && (x.iy_grid == y.iy_grid);
   is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.n_corner == y.n_corner);
+  is_eq = is_eq && (x.ele_loc == y.ele_loc);
   is_eq = is_eq && is_all_equal(x.corner, y.corner);
   is_eq = is_eq && (x.center == y.center);
   return is_eq;

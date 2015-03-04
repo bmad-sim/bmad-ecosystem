@@ -107,6 +107,11 @@ typedef valarray<CPP_wake_lr>          CPP_wake_lr_ARRAY;
 typedef valarray<CPP_wake_lr_ARRAY>    CPP_wake_lr_MATRIX;
 typedef valarray<CPP_wake_lr_MATRIX>   CPP_wake_lr_TENSOR;
 
+class CPP_lat_ele_loc;
+typedef valarray<CPP_lat_ele_loc>          CPP_lat_ele_loc_ARRAY;
+typedef valarray<CPP_lat_ele_loc_ARRAY>    CPP_lat_ele_loc_MATRIX;
+typedef valarray<CPP_lat_ele_loc_MATRIX>   CPP_lat_ele_loc_TENSOR;
+
 class CPP_wake;
 typedef valarray<CPP_wake>          CPP_wake_ARRAY;
 typedef valarray<CPP_wake_ARRAY>    CPP_wake_MATRIX;
@@ -758,6 +763,32 @@ bool operator== (const CPP_wake_lr&, const CPP_wake_lr&);
 
 
 //--------------------------------------------------------------------
+// CPP_lat_ele_loc
+
+class Bmad_lat_ele_loc_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_lat_ele_loc {
+public:
+  Int ix_ele;
+  Int ix_branch;
+
+  CPP_lat_ele_loc() :
+    ix_ele(-1),
+    ix_branch(0)
+    {}
+
+  ~CPP_lat_ele_loc() {
+  }
+
+};   // End Class
+
+extern "C" void lat_ele_loc_to_c (const Bmad_lat_ele_loc_class*, CPP_lat_ele_loc&);
+extern "C" void lat_ele_loc_to_f (const CPP_lat_ele_loc&, Bmad_lat_ele_loc_class*);
+
+bool operator== (const CPP_lat_ele_loc&, const CPP_lat_ele_loc&);
+
+
+//--------------------------------------------------------------------
 // CPP_wake
 
 class Bmad_wake_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -1398,14 +1429,22 @@ class Bmad_photon_target_class {};  // Opaque class for pointers to correspondin
 
 class CPP_photon_target {
 public:
+  Bool deterministic_grid;
+  Int ix_grid;
+  Int iy_grid;
   Int type;
   Int n_corner;
+  CPP_lat_ele_loc ele_loc;
   CPP_target_point_ARRAY corner;
   CPP_target_point center;
 
   CPP_photon_target() :
+    deterministic_grid(false),
+    ix_grid(0),
+    iy_grid(0),
     type(Bmad::OFF),
     n_corner(0),
+    ele_loc(),
     corner(CPP_target_point_ARRAY(CPP_target_point(), 8)),
     center()
     {}

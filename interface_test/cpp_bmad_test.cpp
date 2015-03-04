@@ -816,6 +816,60 @@ extern "C" void test_c_wake_lr (Bmad_wake_lr_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_lat_ele_loc (CPP_lat_ele_loc&, bool&);
+
+void set_CPP_lat_ele_loc_test_pattern (CPP_lat_ele_loc& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 1 + offset; C.ix_ele = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.ix_branch = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_lat_ele_loc (Bmad_lat_ele_loc_class* F, bool& c_ok) {
+
+  CPP_lat_ele_loc C, C2;
+
+  c_ok = true;
+
+  lat_ele_loc_to_c (F, C);
+  set_CPP_lat_ele_loc_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " lat_ele_loc: C side convert F->C: Good" << endl;
+  } else {
+    cout << " lat_ele_loc: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_lat_ele_loc_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_lat_ele_loc (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_lat_ele_loc_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " lat_ele_loc: F side convert F->C: Good" << endl;
+  } else {
+    cout << " lat_ele_loc: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_lat_ele_loc_test_pattern (C2, 4);
+  lat_ele_loc_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_wake (CPP_wake&, bool&);
 
 void set_CPP_wake_test_pattern (CPP_wake& C, int ix_patt) {
@@ -2107,15 +2161,27 @@ void set_CPP_photon_target_test_pattern (CPP_photon_target& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.type = rhs;
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 1 + offset; C.deterministic_grid = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.n_corner = rhs;
+  rhs = 2 + offset; C.ix_grid = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.iy_grid = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.type = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 5 + offset; C.n_corner = rhs;
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_lat_ele_loc_test_pattern(C.ele_loc, ix_patt);
 
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.corner.size(); i++)
-    {int rhs = 101 + i + 3 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 7 + offset; set_CPP_target_point_test_pattern(C.corner[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, NOT]
   set_CPP_target_point_test_pattern(C.center, ix_patt);
 

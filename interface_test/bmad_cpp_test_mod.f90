@@ -1175,6 +1175,94 @@ end subroutine set_wake_lr_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_lat_ele_loc (ok)
+
+implicit none
+
+type(lat_ele_loc_struct), target :: f_lat_ele_loc, f2_lat_ele_loc
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_lat_ele_loc (c_lat_ele_loc, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_lat_ele_loc
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_lat_ele_loc_test_pattern (f2_lat_ele_loc, 1)
+
+call test_c_lat_ele_loc(c_loc(f2_lat_ele_loc), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_lat_ele_loc_test_pattern (f_lat_ele_loc, 4)
+if (f_lat_ele_loc == f2_lat_ele_loc) then
+  print *, 'lat_ele_loc: C side convert C->F: Good'
+else
+  print *, 'lat_ele_loc: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_lat_ele_loc
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_lat_ele_loc (c_lat_ele_loc, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_lat_ele_loc
+type(lat_ele_loc_struct), target :: f_lat_ele_loc, f2_lat_ele_loc
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call lat_ele_loc_to_f (c_lat_ele_loc, c_loc(f_lat_ele_loc))
+
+call set_lat_ele_loc_test_pattern (f2_lat_ele_loc, 2)
+if (f_lat_ele_loc == f2_lat_ele_loc) then
+  print *, 'lat_ele_loc: F side convert C->F: Good'
+else
+  print *, 'lat_ele_loc: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_lat_ele_loc_test_pattern (f2_lat_ele_loc, 3)
+call lat_ele_loc_to_c (c_loc(f2_lat_ele_loc), c_lat_ele_loc)
+
+end subroutine test2_f_lat_ele_loc
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_lat_ele_loc_test_pattern (F, ix_patt)
+
+implicit none
+
+type(lat_ele_loc_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 1 + offset; F%ix_ele = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 2 + offset; F%ix_branch = rhs
+
+end subroutine set_lat_ele_loc_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_wake (ok)
 
 implicit none
@@ -3176,13 +3264,21 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 1 + offset; F%deterministic_grid = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%type = rhs
+rhs = 2 + offset; F%ix_grid = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 2 + offset; F%n_corner = rhs
+rhs = 3 + offset; F%iy_grid = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%type = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 5 + offset; F%n_corner = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_lat_ele_loc_test_pattern (F%ele_loc, ix_patt)
 !! f_side.test_pat[type, 1, NOT]
 do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
-  rhs = 100 + jd1 + 3 + offset
+  rhs = 100 + jd1 + 7 + offset
   call set_target_point_test_pattern (F%corner(jd1+lb1), ix_patt+jd1)
 enddo
 !! f_side.test_pat[type, 0, NOT]

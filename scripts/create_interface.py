@@ -2021,6 +2021,7 @@ for struct in struct_definitions:
   f_test.write ('call test1_f_' + struct.short_name + '(ok); if (.not. ok) all_ok = .false.\n')
 
 f_test.write('''
+print *
 if (all_ok) then
   print *, 'Bottom Line: Everything OK!'
 else

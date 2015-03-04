@@ -116,6 +116,15 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine lat_ele_loc_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine wake_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -1834,6 +1843,87 @@ F%m = z_m
 F%polarized = f_logic(z_polarized)
 
 end subroutine wake_lr_to_f2
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine lat_ele_loc_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad lat_ele_loc_struct to a C++ CPP_lat_ele_loc structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad lat_ele_loc_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_lat_ele_loc struct.
+!-
+
+subroutine lat_ele_loc_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine lat_ele_loc_to_c2 (C, z_ix_ele, z_ix_branch) bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    integer(c_int) :: z_ix_ele, z_ix_branch
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(lat_ele_loc_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call lat_ele_loc_to_c2 (C, F%ix_ele, F%ix_branch)
+
+end subroutine lat_ele_loc_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine lat_ele_loc_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_lat_ele_loc structure to a Bmad lat_ele_loc_struct structure.
+! This routine is called by lat_ele_loc_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the lat_ele_loc_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad lat_ele_loc_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine lat_ele_loc_to_f2 (Fp, z_ix_ele, z_ix_branch) bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(lat_ele_loc_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_ix_ele, z_ix_branch
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_ele = z_ix_ele
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_branch = z_ix_branch
+
+end subroutine lat_ele_loc_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -3779,13 +3869,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine photon_target_to_c2 (C, z_type, z_n_corner, z_corner, z_center) bind(c)
+  subroutine photon_target_to_c2 (C, z_deterministic_grid, z_ix_grid, z_iy_grid, z_type, &
+      z_n_corner, z_ele_loc, z_corner, z_center) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr), value :: z_center
+    logical(c_bool) :: z_deterministic_grid
+    type(c_ptr), value :: z_ele_loc, z_center
     type(c_ptr) :: z_corner(*)
-    integer(c_int) :: z_type, z_n_corner
+    integer(c_int) :: z_ix_grid, z_iy_grid, z_type, z_n_corner
   end subroutine
 end interface
 
@@ -3806,7 +3898,8 @@ do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
 enddo
 
 !! f_side.to_c2_call
-call photon_target_to_c2 (C, F%type, F%n_corner, z_corner, c_loc(F%center))
+call photon_target_to_c2 (C, c_logic(F%deterministic_grid), F%ix_grid, F%iy_grid, F%type, &
+    F%n_corner, c_loc(F%ele_loc), z_corner, c_loc(F%center))
 
 end subroutine photon_target_to_c
 
@@ -3826,7 +3919,8 @@ end subroutine photon_target_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine photon_target_to_f2 (Fp, z_type, z_n_corner, z_corner, z_center) bind(c)
+subroutine photon_target_to_f2 (Fp, z_deterministic_grid, z_ix_grid, z_iy_grid, z_type, &
+    z_n_corner, z_ele_loc, z_corner, z_center) bind(c)
 
 
 implicit none
@@ -3835,16 +3929,25 @@ type(c_ptr), value :: Fp
 type(photon_target_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-type(c_ptr), value :: z_center
+logical(c_bool) :: z_deterministic_grid
+type(c_ptr), value :: z_ele_loc, z_center
 type(c_ptr) :: z_corner(*)
-integer(c_int) :: z_type, z_n_corner
+integer(c_int) :: z_ix_grid, z_iy_grid, z_type, z_n_corner
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%deterministic_grid = f_logic(z_deterministic_grid)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_grid = z_ix_grid
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%iy_grid = z_iy_grid
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%type = z_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_corner = z_n_corner
+!! f_side.to_f2_trans[type, 0, NOT]
+call lat_ele_loc_to_f(z_ele_loc, c_loc(F%ele_loc))
 !! f_side.to_f2_trans[type, 1, NOT]
 do jd1 = 1, size(F%corner,1); lb1 = lbound(F%corner,1) - 1
   call target_point_to_f(z_corner(jd1), c_loc(F%corner(jd1+lb1)))

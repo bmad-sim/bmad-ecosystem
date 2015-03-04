@@ -671,6 +671,31 @@ extern "C" void wake_lr_to_c2 (CPP_wake_lr& C, c_Real& z_freq, c_Real& z_freq_in
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_lat_ele_loc
+
+extern "C" void lat_ele_loc_to_c (const Bmad_lat_ele_loc_class*, CPP_lat_ele_loc&);
+
+// c_side.to_f2_arg
+extern "C" void lat_ele_loc_to_f2 (Bmad_lat_ele_loc_class*, c_Int&, c_Int&);
+
+extern "C" void lat_ele_loc_to_f (const CPP_lat_ele_loc& C, Bmad_lat_ele_loc_class* F) {
+
+  // c_side.to_f2_call
+  lat_ele_loc_to_f2 (F, C.ix_ele, C.ix_branch);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void lat_ele_loc_to_c2 (CPP_lat_ele_loc& C, c_Int& z_ix_ele, c_Int& z_ix_branch) {
+
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_ele = z_ix_ele;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_branch = z_ix_branch;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_wake
 
 extern "C" void wake_to_c (const Bmad_wake_class*, CPP_wake&);
@@ -1439,8 +1464,8 @@ extern "C" void photon_surface_to_c2 (CPP_photon_surface& C, const Bmad_surface_
 extern "C" void photon_target_to_c (const Bmad_photon_target_class*, CPP_photon_target&);
 
 // c_side.to_f2_arg
-extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Int&, c_Int&, const
-    CPP_target_point**, const CPP_target_point&);
+extern "C" void photon_target_to_f2 (Bmad_photon_target_class*, c_Bool&, c_Int&, c_Int&,
+    c_Int&, c_Int&, const CPP_lat_ele_loc&, const CPP_target_point**, const CPP_target_point&);
 
 extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_target_class* F) {
   // c_side.to_f_setup[type, 1, NOT]
@@ -1448,18 +1473,29 @@ extern "C" void photon_target_to_f (const CPP_photon_target& C, Bmad_photon_targ
   for (int i = 0; i < 8; i++) {z_corner[i] = &C.corner[i];}
 
   // c_side.to_f2_call
-  photon_target_to_f2 (F, C.type, C.n_corner, z_corner, C.center);
+  photon_target_to_f2 (F, C.deterministic_grid, C.ix_grid, C.iy_grid, C.type, C.n_corner,
+      C.ele_loc, z_corner, C.center);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Int& z_type, c_Int& z_n_corner,
-    const Bmad_target_point_class** z_corner, const Bmad_target_point_class* z_center) {
+extern "C" void photon_target_to_c2 (CPP_photon_target& C, c_Bool& z_deterministic_grid, c_Int&
+    z_ix_grid, c_Int& z_iy_grid, c_Int& z_type, c_Int& z_n_corner, const
+    Bmad_lat_ele_loc_class* z_ele_loc, const Bmad_target_point_class** z_corner, const
+    Bmad_target_point_class* z_center) {
 
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.deterministic_grid = z_deterministic_grid;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.ix_grid = z_ix_grid;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.iy_grid = z_iy_grid;
   // c_side.to_c2_set[integer, 0, NOT]
   C.type = z_type;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_corner = z_n_corner;
+  // c_side.to_c2_set[type, 0, NOT]
+  lat_ele_loc_to_c(z_ele_loc, C.ele_loc);
   // c_side.to_c2_set[type, 1, NOT]
   for (unsigned int i = 0; i < C.corner.size(); i++) target_point_to_c(z_corner[i], C.corner[i]);
   // c_side.to_c2_set[type, 0, NOT]

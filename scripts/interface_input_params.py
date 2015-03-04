@@ -29,6 +29,7 @@ struct_list = [
     'wake_sr_mode_struct',
     'wake_sr_struct',
     'wake_lr_struct',
+    'lat_ele_loc_struct',
     'wake_struct',
     'em_field_map_term_struct',
     'em_field_map_struct',
