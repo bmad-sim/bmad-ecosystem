@@ -39,7 +39,7 @@ implicit none
 type (lat_struct), target :: lat
 type (lat_struct), save :: lat2
 type (ele_struct), pointer :: ele
-type (ele_struct), target, save :: beam_ele, param_ele, beam_start_ele, bmad_com_ele
+type (ele_struct), target, save :: mad_beam_ele, param_ele, beam_start_ele, bmad_com_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -92,13 +92,13 @@ n_max_old = n_max
 
 call allocate_plat (plat, 4)
 
-bp_com%beam_ele => beam_ele
-call init_ele(beam_ele)
-beam_ele%name = 'BEAM'              ! For MAD compatibility.
-beam_ele%key = def_mad_beam$        
-beam_ele%value(n_part$)     = lat%param%n_part
-beam_ele%value(particle$)   = lat%param%particle
-beam_ele%ixx = 1                    ! Pointer to plat%ele() array
+bp_com%mad_beam_ele => mad_beam_ele
+call init_ele(mad_beam_ele)
+mad_beam_ele%name = 'BEAM'              ! For MAD compatibility.
+mad_beam_ele%key = def_mad_beam$        
+mad_beam_ele%value(n_part$)     = lat%param%n_part
+mad_beam_ele%value(particle$)   = lat%param%particle
+mad_beam_ele%ixx = 1                    ! Pointer to plat%ele() array
 
 bp_com%param_ele => param_ele
 call init_ele (param_ele)
@@ -214,7 +214,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call parser_set_attribute (def$, beam_ele, lat, delim, delim_found, err, check_free = .true.)
+        call parser_set_attribute (def$, mad_beam_ele, lat, delim, delim_found, err, check_free = .true.)
         if (err) cycle parsing_loop
       endif
     enddo
@@ -513,7 +513,7 @@ do i = 0, ubound(lat%branch, 1)
 enddo
 
 v1 = param_ele%value(n_part$)
-v2 = beam_ele%value(n_part$)
+v2 = mad_beam_ele%value(n_part$)
 if (lat%param%n_part /= v1 .and. lat%param%n_part /= v2) then
   call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
 else if (v1 /= lat%param%n_part) then
@@ -523,7 +523,7 @@ else
 endif
 
 ix1 = nint(param_ele%value(particle$))
-ix2 = nint(beam_ele%value(particle$))
+ix2 = nint(mad_beam_ele%value(particle$))
 if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
         call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
 lat%param%particle = ix1
