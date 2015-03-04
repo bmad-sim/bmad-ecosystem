@@ -118,6 +118,18 @@ case ('BEAM_START')
   case ('EMITTANCE_A'); ptr_array(1)%r => lat%a%emit 
   case ('EMITTANCE_B'); ptr_array(1)%r => lat%b%emit
   case ('EMITTANCE_Z'); ptr_array(1)%r => lat%z%emit
+
+  case ('SPIN_X', 'SPIN_Y', 'SPIN_Z', 'SPINOR_POLARIZATION', 'SPINOR_THETA', 'SPINOR_PHI', 'SPINOR_XI')
+    call lat_ele_locator (ele_name, lat, eles2, n_loc, err_flag)
+    if (n_loc == 0) then
+      if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+      if (allocated(ptr_array)) deallocate (ptr_array)
+      err_flag = .true.
+      return  
+    endif
+    i = attribute_index(eles2(1)%ele, attrib_name)
+    ptr_array(1)%r => eles2(1)%ele%value(i)
+
   case default
     beam_start%key = def_beam_start$
     ix = attribute_index (beam_start, attrib_name)
@@ -154,6 +166,11 @@ case ('BEAM_START')
       ptr_array(1)%r => lat%beam_start%t
     case (e_photon$)
       ptr_array(1)%r => lat%beam_start%p0c
+    case default
+      if (do_print) call out_io (s_error$, r_name, &
+               'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+      deallocate (ptr_array)
+      err_flag = .true.
     end select
   end select
 

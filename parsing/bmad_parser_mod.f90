@@ -1427,7 +1427,7 @@ case default   ! normal attribute
           ele%value(p0c$) = -1
         endif
 
-      case ('ENERGY')    ! Only in def_beam
+      case ('ENERGY')    ! Only in def_mad_beam
         lat%ele(0)%value(e_tot$) = 1d9 * value
         lat%ele(0)%value(p0c$) = -1
 
@@ -1439,7 +1439,7 @@ case default   ! normal attribute
           ele%value(e_tot$) = -1
         endif
 
-      case ('PC')    ! Only in def_beam
+      case ('PC')    ! Only in def_mad_beam
         lat%ele(0)%value(p0c$) = 1d9 * value
         ele%value(e_tot$) = -1
 
@@ -5199,13 +5199,15 @@ end subroutine parser_add_lord
 subroutine settable_dep_var_bookkeeping (ele)
 
 use random_mod
+use spin_mod
 
 implicit none
 
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
+type (spin_polar_struct) :: polar
 
-real(rp) angle, rr
+real(rp) angle, rr, vec(3)
 integer n
 logical kick_set, length_set, set_done, err_flag
 
@@ -5379,6 +5381,20 @@ case (elseparator$)
       endif
     endif
   endif
+
+case (def_beam_start$)
+  
+  polar = spin_polar_struct(ele%value(spinor_polarization$), ele%value(spinor_theta$), &
+                            ele%value(spinor_phi$), ele%value(spinor_xi$))
+
+  vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
+  if (any(vec /= 0) .and. .not. (polar%polarization /= 1 .and. &
+                                 polar%theta /= 0 .and. polar%phi /= 0 .and. polar%xi /= 0)) then
+    call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+  endif
+  if (any(vec /= 0)) call vec_to_polar (vec, polar)
+
+  call polar_to_spinor (polar, ele%branch%lat%beam_start)
 
 case (e_gun$)
   if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)

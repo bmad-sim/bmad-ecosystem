@@ -94,8 +94,8 @@ call allocate_plat (plat, 4)
 
 bp_com%beam_ele => beam_ele
 call init_ele(beam_ele)
-beam_ele%name = 'BEAM'              ! fake beam element
-beam_ele%key = def_beam$            ! "definition of beam"
+beam_ele%name = 'BEAM'              ! For MAD compatibility.
+beam_ele%key = def_mad_beam$        
 beam_ele%value(n_part$)     = lat%param%n_part
 beam_ele%value(particle$)   = lat%param%particle
 beam_ele%ixx = 1                    ! Pointer to plat%ele() array

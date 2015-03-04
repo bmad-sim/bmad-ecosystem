@@ -336,7 +336,7 @@ do i = 1, n_key$
   end select
 
   if (i == hybrid$)         cycle
-  if (i == def_beam$)       cycle
+  if (i == def_mad_beam$)       cycle
   if (i == def_parameter$)  cycle
   if (i == def_beam_start$) cycle
   if (i == beginning_ele$) cycle
@@ -624,10 +624,10 @@ call init_attribute_name1 (def_bmad_com$, init_ds_adaptive_tracking$,  'INIT_DS_
 call init_attribute_name1 (def_bmad_com$, min_ds_adaptive_tracking$,   'MIN_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, fatal_ds_adaptive_tracking$, 'FATAL_DS_ADAPTIVE_TRACKING')
 
-call init_attribute_name1 (def_beam$, particle$,                      'PARTICLE')
-call init_attribute_name1 (def_beam$, e_tot$,                         'ENERGY')
-call init_attribute_name1 (def_beam$, p0c$,                           'PC')
-call init_attribute_name1 (def_beam$, n_part$,                        'N_PART')
+call init_attribute_name1 (def_mad_beam$, particle$,                      'PARTICLE')
+call init_attribute_name1 (def_mad_beam$, e_tot$,                         'ENERGY')
+call init_attribute_name1 (def_mad_beam$, p0c$,                           'PC')
+call init_attribute_name1 (def_mad_beam$, n_part$,                        'N_PART')
 
 call init_attribute_name1 (def_beam_start$, x$,                       'X')
 call init_attribute_name1 (def_beam_start$, px$,                      'PX')
@@ -641,6 +641,13 @@ call init_attribute_name1 (def_beam_start$, phase_x$,                 'PHASE_X')
 call init_attribute_name1 (def_beam_start$, phase_y$,                 'PHASE_Y')
 call init_attribute_name1 (def_beam_start$, t$,                       'T')
 call init_attribute_name1 (def_beam_start$, e_photon$,                'E_PHOTON')
+call init_attribute_name1 (def_beam_start$, spin_x$,                  'SPIN_X')
+call init_attribute_name1 (def_beam_start$, spin_y$,                  'SPIN_Y')
+call init_attribute_name1 (def_beam_start$, spin_z$,                  'SPIN_Z')
+call init_attribute_name1 (def_beam_start$, spinor_theta$,            'SPINOR_THETA')
+call init_attribute_name1 (def_beam_start$, spinor_phi$,              'SPINOR_PHI')
+call init_attribute_name1 (def_beam_start$, spinor_xi$,               'SPINOR_XI')
+call init_attribute_name1 (def_beam_start$, spinor_polarization$,     'SPINOR_POLARIZATION')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2', override = .true.)

@@ -176,8 +176,8 @@ call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 bp_com%beam_ele => in_lat%ele(1)
-bp_com%beam_ele%name = 'BEAM'                 ! For mad compatibility.
-bp_com%beam_ele%key = def_beam$               ! "definition of beam"
+bp_com%beam_ele%name = 'BEAM'                 ! For MAD compatibility.
+bp_com%beam_ele%key = def_mad_beam$           
 call set_ele_defaults (bp_com%beam_ele)
 call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
 
@@ -480,7 +480,7 @@ parsing_loop: do
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
       ! No wild card matches permitted for these.
-      if (ele%key == beginning_ele$ .or. ele%key == def_beam$ .or. &
+      if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 

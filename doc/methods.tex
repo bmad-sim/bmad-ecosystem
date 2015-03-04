@@ -450,28 +450,30 @@ called \vn{spin_tracking_on} (\sref{s:bmad.params}) that determines
 whether spin is tracked or not.  Access to this parameter is
 implemented on a program-by-program basis.
 
+Possible \vn{spin_tracking_method} settings are:
 \begin{description}
 
-\index{bmad_standard!spin_tracking_method}
+\index{bmad_standard!spin_tracking_method} \Newline
 \item[\vn{Bmad_Standard}]
 Uses formulas for the calculation. The formulas generally use the
 paraxial approximation. The emphasis here is on speed.
 
-\index{custom!spin_tracking_method}
+\index{custom!spin_tracking_method} \Newline
 \item[\vn{Custom}]
 This method will call a routine \vn{track1_spin_custom} which must be
 supplied by the programmer implementing the custom spin tracking
 calculation. See \vn{s:custom.ele} for more details.
 
-\index{tracking!mat6_calc_method}
+\index{tracking!mat6_calc_method} \Newline
 \item[\vn{Tracking}]
-If \vn{tracking_method} is set to \vn{boris}, or
+How spin is tracked here will depend also on the setting of
+\vn{tracking_method}. If \vn{tracking_method} is set to \vn{boris}, or
 \vn{runge_kutta} then the spin will be tracked along with the phase
 space particle coordinates using the local fields. For all other
 \vn{tracking_method}s, the spin will be tracked using the
 \vn{bmad_standard} spin tracking method.
 
-\index{symp_lie_ptc!spin_tracking_method}
+\index{symp_lie_ptc!spin_tracking_method} \Newline
 \item[\vn{Symp_Lie_PTC}]
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
