@@ -19,7 +19,7 @@ logical print_extra
  
 !
 
-fmt = '(2a,7es18.10)'
+fmt = '(a,t40, a, 7es18.10)'
 
 print_extra = .false.
 nargs = cesr_iargc()
@@ -27,7 +27,7 @@ if (nargs == 1)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt = '(2a,7es14.6)'
+  fmt = '(a, t40, a, 7es14.6)'
 
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
@@ -35,6 +35,8 @@ elseif (nargs > 1) then
 endif
 
 call bmad_parser (lat_file, lat)
+
+bmad_com%spin_tracking_on = .true.
 
 open (1, file = 'output.now')
 
@@ -45,30 +47,37 @@ endif
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  DO i = 1, branch%n_ele_max - 1
-     ele => branch%ele(i)
-     DO j = 1, n_methods$
-        if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
-        call kill_taylor(ele%taylor)
+  do i = 1, branch%n_ele_max - 1
+    ele => branch%ele(i)
+    ele%spin_tracking_method = tracking$
+    do j = 1, n_methods$
+      if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
+      call kill_taylor(ele%taylor)
+      ele%tracking_method = j
+      if (j == linear$) then
+        ele%tracking_method = symp_lie_ptc$
+        if(ele%key == beambeam$) ele%tracking_method = bmad_standard$
+        call make_mat6 (ele, branch%param, lat%beam_start)
         ele%tracking_method = j
-        if (j == linear$) then
-          ele%tracking_method = symp_lie_ptc$
-          if(ele%key == beambeam$) ele%tracking_method = bmad_standard$
-          call make_mat6 (ele, branch%param, lat%beam_start)
-          ele%tracking_method = j
-        endif
-        start_orb = lat%beam_start
-        call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
-        start_orb%field = [1, 2]
-        call track1 (start_orb, ele, branch%param, end_orb)
-        final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) // '"' 
-        write (1,fmt) final_str, tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
-        if (branch%param%particle == photon$) then
-          write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 5E-08', end_orb%field
-        endif
-     END DO
-     write (1,*)
-  END DO
+      endif
+      start_orb = lat%beam_start
+      call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
+      start_orb%field = [1, 2]
+      call track1 (start_orb, ele, branch%param, end_orb)
+      final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) 
+      write (1,fmt) trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+
+      if (j == bmad_standard$ .or. j == runge_kutta$) then
+        write (1, '(a, t40, a,  4f14.9)') trim(final_str) // ' Spin"', 'ABS 1E-8 ', end_orb%spin
+      endif
+
+      if (branch%param%particle == photon$) then
+        write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 5E-08', end_orb%field
+      endif
+    end do
+
+    write (1,*)
+  end do
 enddo
 
 close(1)
