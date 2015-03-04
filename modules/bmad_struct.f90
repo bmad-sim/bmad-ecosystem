@@ -822,7 +822,8 @@ type lat_struct
   type (mode_info_struct) a, b, z             ! Tunes, etc.
   type (lat_param_struct) param               ! Parameters
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
-  type (ele_struct)  ele_init                 ! For use by any program
+  type (ele_struct) ele_init                  ! For use by any program
+  type (ele_struct) beam_start_ele            ! Element for holding spin info
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list

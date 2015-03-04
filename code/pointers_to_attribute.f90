@@ -120,15 +120,8 @@ case ('BEAM_START')
   case ('EMITTANCE_Z'); ptr_array(1)%r => lat%z%emit
 
   case ('SPIN_X', 'SPIN_Y', 'SPIN_Z', 'SPINOR_POLARIZATION', 'SPINOR_THETA', 'SPINOR_PHI', 'SPINOR_XI')
-    call lat_ele_locator (ele_name, lat, eles2, n_loc, err_flag)
-    if (n_loc == 0) then
-      if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
-      if (allocated(ptr_array)) deallocate (ptr_array)
-      err_flag = .true.
-      return  
-    endif
-    i = attribute_index(eles2(1)%ele, attrib_name)
-    ptr_array(1)%r => eles2(1)%ele%value(i)
+    i = attribute_index(lat%beam_start_ele, attrib_name)
+    ptr_array(1)%r => lat%beam_start_ele%value(i)
 
   case default
     beam_start%key = def_beam_start$

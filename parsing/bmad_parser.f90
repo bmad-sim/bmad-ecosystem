@@ -40,6 +40,7 @@ use ptc_interface_mod, dummy2 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
 use random_mod
+use spin_mod
 
 implicit none
 
@@ -53,8 +54,9 @@ type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
+type (spin_polar_struct) :: polar
 
-real(rp) beta, val
+real(rp) beta, val, vec(3)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
@@ -176,20 +178,21 @@ bp_com%input_line_meaningful = .true.
 call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
-bp_com%beam_ele => in_lat%ele(1)
-bp_com%beam_ele%name = 'BEAM'                 ! For MAD compatibility.
-bp_com%beam_ele%key = def_mad_beam$           
-call set_ele_defaults (bp_com%beam_ele)
-call find_indexx2 (in_lat%ele(1)%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
+ele => in_lat%ele(1)
+ele%name = 'BEAM'                 ! For MAD compatibility.
+ele%key = def_mad_beam$           
+call set_ele_defaults (ele)
+call find_indexx2 (ele%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
+bp_com%mad_beam_ele => ele
 
-bp_com%param_ele => in_lat%ele(2)
-bp_com%param_ele%name = 'PARAMETER'           ! For parameters 
-bp_com%param_ele%key = def_parameter$
-call set_ele_defaults (bp_com%param_ele)
-call find_indexx2 (in_lat%ele(2)%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
+ele => in_lat%ele(2)
+ele%name = 'PARAMETER'           ! For parameters 
+ele%key = def_parameter$
+call set_ele_defaults (ele)
+call find_indexx2 (ele%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
+bp_com%param_ele => ele
 
-! The parser actually puts beam_start parameters into in_lat%beam_start so
-! the beam_start element is actually only needed to act as a place holder.
+! Note: All values to beam_start are actually put in lat%beam_start and lat%beam_start_ele
 
 ele => in_lat%ele(3)
 ele%name = 'BEAM_START'           ! For beam starting parameters 
@@ -364,7 +367,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call parser_set_attribute (def$, bp_com%beam_ele, in_lat, delim, delim_found, err)
+      call parser_set_attribute (def$, bp_com%mad_beam_ele, in_lat, delim, delim_found, err)
       if (bp_com%fatal_error_flag) exit parsing_loop
     enddo
     cycle parsing_loop
@@ -792,6 +795,7 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
     lat%beam_start              = in_lat%beam_start
+    lat%beam_start_ele          = in_lat%beam_start_ele
     lat%a                       = in_lat%a
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z
@@ -800,18 +804,20 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%auto_scale_field_amp    = in_lat%auto_scale_field_amp
     lat%input_taylor_order      = in_lat%input_taylor_order
 
+
+
     if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
     call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
 
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
 
-    if (bp_com%beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
+    if (bp_com%mad_beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
               call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-    lat%param%n_part = max(bp_com%beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
+    lat%param%n_part = max(bp_com%mad_beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
 
     ix1 = nint(bp_com%param_ele%value(particle$))
-    ix2 = nint(bp_com%beam_ele%value(particle$))
+    ix2 = nint(bp_com%mad_beam_ele%value(particle$))
     if (ix1 /= positron$ .and. ix2 /= positron$) &
             call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
     lat%param%particle = ix1
@@ -1094,6 +1100,23 @@ if (detected_expand_lattice_cmd) then
   global_com%exit_on_error = exit_on_error
 endif
 
+!
+
+ele => lat%beam_start_ele
+polar = spin_polar_struct(ele%value(spinor_polarization$), ele%value(spinor_theta$), &
+                          ele%value(spinor_phi$), ele%value(spinor_xi$))
+
+vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
+if (any(vec /= 0) .and. (polar%polarization /= 1 .or. &
+                               polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0)) then
+  call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+endif
+if (any(vec /= 0)) call vec_to_polar (vec, polar)
+
+call polar_to_spinor (polar, lat%beam_start)
+
+
+
 ! Bookkeeping
 
 if (logic_option (.true., make_mats6)) then
@@ -1273,7 +1296,7 @@ if (n_max > ubound(in_lat%ele, 1)) then
   call allocate_lat_ele_array (in_lat)
   call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
   call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
-  bp_com%beam_ele => in_lat%ele(1)
+  bp_com%mad_beam_ele => in_lat%ele(1)
   bp_com%param_ele => in_lat%ele(2)
   call allocate_plat (plat, ubound(in_lat%ele, 1))
 endif

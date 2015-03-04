@@ -143,7 +143,7 @@ type bp_var_struct
 end type
 
 type bp_common_struct
-  type (ele_struct), pointer :: param_ele, beam_ele
+  type (ele_struct), pointer :: param_ele, mad_beam_ele
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
@@ -5224,15 +5224,13 @@ end subroutine parser_add_lord
 subroutine settable_dep_var_bookkeeping (ele)
 
 use random_mod
-use spin_mod
 
 implicit none
 
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
-type (spin_polar_struct) :: polar
 
-real(rp) angle, rr, vec(3)
+real(rp) angle, rr
 integer n
 logical kick_set, length_set, set_done, err_flag
 
@@ -5406,20 +5404,6 @@ case (elseparator$)
       endif
     endif
   endif
-
-case (def_beam_start$)
-  
-  polar = spin_polar_struct(ele%value(spinor_polarization$), ele%value(spinor_theta$), &
-                            ele%value(spinor_phi$), ele%value(spinor_xi$))
-
-  vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
-  if (any(vec /= 0) .and. .not. (polar%polarization /= 1 .and. &
-                                 polar%theta /= 0 .and. polar%phi /= 0 .and. polar%xi /= 0)) then
-    call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
-  endif
-  if (any(vec /= 0)) call vec_to_polar (vec, polar)
-
-  call polar_to_spinor (polar, ele%branch%lat%beam_start)
 
 case (e_gun$)
   if (ele%value(gradient$) == 0 .and. ele%value(l$) /= 0) ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)

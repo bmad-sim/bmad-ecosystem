@@ -1183,6 +1183,7 @@ integer, optional :: n
 call deallocate_lat_pointers (lat)
 if (present(n)) call allocate_lat_ele_array(lat, n)
 call init_ele (lat%ele_init)
+call init_ele (lat%beam_start_ele, def_beam_start$)
 
 call reallocate_control (lat, 100)
 
