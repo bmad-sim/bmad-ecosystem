@@ -778,15 +778,15 @@ if (logic_option(.false., type_floor_coords)) then
   case (crystal$, mirror$, multilayer_mirror$)
     call ele_geometry (ele%floor, ele, floor, -1.0_rp)
     floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor)
   case (girder$)
     floor = coords_relative_to_floor (ele%floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
   case default
     call ele_geometry (ele%floor, ele, floor, -0.5_rp)
     floor = coords_relative_to_floor (floor, [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)], &
-                                        ele%value(x_pitch_tot$), ele%value(x_pitch_tot$), ele%value(tilt_tot$)) 
+                                        ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$)) 
     call ele_geometry (floor, ele, floor, 0.5_rp)
   end select
   nl=nl+1; li(nl) = ''
