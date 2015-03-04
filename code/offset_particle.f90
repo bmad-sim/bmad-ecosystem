@@ -193,12 +193,15 @@ if (set) then
         coord%vec(2) = coord%vec(2) - sign_z_vel * xp * E_rel
         coord%vec(3) = coord%vec(3) - y_off - yp * z_rel_center
         coord%vec(4) = coord%vec(4) - sign_z_vel * yp * E_rel
+        ! Note: dz needs to be zero if coord%beta = 0
         dz = sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_rel_center / 2)
-        coord%vec(5) = coord%vec(5) + dz
-        coord%t = coord%t - dz / (coord%beta * c_light) 
+        if (dz /= 0) then
+          coord%vec(5) = coord%vec(5) + dz
+          coord%t = coord%t - dz / (coord%beta * c_light) 
+        endif
       endif
 
-    endif   ! has oeientation attributes
+    endif   ! has orientation attributes
 
   endif
 
@@ -420,9 +423,12 @@ else
       ! Else not a bend
 
       else
+        ! Note: dz needs to be zero if coord%beta = 0
         dz = -sign_z_vel * (xp * coord%vec(1) + yp * coord%vec(3) + (xp**2 + yp**2) * z_rel_center / 2)
-        coord%t = coord%t - dz / (coord%beta * c_light) 
-        coord%vec(5) = coord%vec(5) + dz
+        if (dz /= 0) then
+          coord%t = coord%t - dz / (coord%beta * c_light) 
+          coord%vec(5) = coord%vec(5) + dz
+        endif
         coord%vec(1) = coord%vec(1) + x_off + xp * z_rel_center
         coord%vec(2) = coord%vec(2) + sign_z_vel * xp * E_rel
         coord%vec(3) = coord%vec(3) + y_off + yp * z_rel_center
