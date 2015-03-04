@@ -38,6 +38,7 @@ subroutine bmad_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, e
 use bmad_parser_mod, except_dummy => bmad_parser
 use ptc_interface_mod, dummy2 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
+use photon_target_mod, dummy4 => bmad_parser
 use random_mod
 
 implicit none
@@ -1105,6 +1106,17 @@ if (logic_option (.true., make_mats6)) then
   endif
 endif
 
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  do i = 1, branch%n_ele_max
+    ele => branch%ele(i)
+    select case (ele%key)
+    case (sample$, diffraction_plate$, x_ray_source$) 
+      call photon_target_setup (ele)
+    end select
+  enddo
+enddo
+
 call parser_init_custom_elements ()
 
 ! Make the transfer matrices.
@@ -1125,11 +1137,11 @@ endif
 call init_coord (lat%beam_start, lat%beam_start%vec, lat%ele(0), downstream_end$, E_photon = lat%beam_start%p0c, shift_vec6 = .false.)
 
 !-------------------------------------------------------------------------
-! write out if debug is on
+! Print lattice info if debug is on
 
 if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 
-! write to digested file
+! Write digested file
 
 if (.not. bp_com%error_flag) then            
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$

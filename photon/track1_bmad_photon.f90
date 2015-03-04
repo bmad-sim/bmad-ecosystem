@@ -47,7 +47,7 @@ character(*), parameter :: r_name = 'track1_bmad_photon'
 
 ! initially set end_orb = start_orb
 
-if (present(err_flag)) err_flag = .false.
+if (present(err_flag)) err_flag = .true.
 
 start2_orb = start_orb ! In case start_orb and end_orb share the same memory.
 
@@ -110,10 +110,9 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 !-----------------------------------------------
 ! Marker, etc.
 
-case (marker$, x_ray_source$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
+case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 
   end_orb%vec(5) = 0
-  return
 
 !-----------------------------------------------
 ! Match
@@ -127,24 +126,23 @@ case (match$)
     ele%value(py0$) = start2_orb%vec(4)
     ele%value(z0$)  = start2_orb%vec(5)
     ele%value(pz0$) = start2_orb%vec(6)
-    end_orb%vec = [ ele%value(x1$), ele%value(px1$), &
-                ele%value(y1$), ele%value(py1$), &
-                ele%value(z1$), ele%value(pz1$) ]
-    return
-  endif
+    end_orb%vec = [ele%value(x1$), ele%value(px1$), &
+                   ele%value(y1$), ele%value(py1$), &
+                   ele%value(z1$), ele%value(pz1$)]
 
-  call match_ele_to_mat6 (ele, vec0, mat6, err)
-  if (err) then
-    ! Since there are cases where this error may be raised many 
-    ! times, do not print an error message.
-    if (present(err_flag)) err_flag = .true.
-    end_orb%state = lost$
-    return
-  endif
+  else
 
-  end_orb%vec = matmul (mat6, end_orb%vec) + vec0
-  end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
-  end_orb%s = ele%s
+    call match_ele_to_mat6 (ele, vec0, mat6, err)
+    if (err) then
+      ! Since there are cases where this error may be raised many 
+      ! times, do not print an error message.
+      end_orb%state = lost$
+    endif
+
+    end_orb%vec = matmul (mat6, end_orb%vec) + vec0
+    end_orb%t = start2_orb%t + (ele%value(l$) + start2_orb%vec(5) - end_orb%vec(5)) / (c_light)
+    end_orb%s = ele%s
+  endif
 
 !-----------------------------------------------
 ! Mirror
@@ -190,6 +188,13 @@ case (taylor$)
   end_orb%s = ele%s
 
 !-----------------------------------------------
+! X_Ray_Source
+
+case (x_ray_source$)
+  call track1_x_ray_source (ele, param, end_orb)
+  if (end_orb%state /= alive$) return
+
+!-----------------------------------------------
 ! Not recognized
 
 case default
@@ -206,5 +211,6 @@ end select
 !---------------------------------------------------------------------------------------------------
 
 end_orb%location = downstream_end$
+if (present(err_flag)) err_flag = .false.
 
 end subroutine track1_bmad_photon
