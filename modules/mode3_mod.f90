@@ -1,6 +1,8 @@
 MODULE mode3_mod
 USE bmad
 
+implicit none
+
 REAL(rp), PARAMETER :: m = 0.707106781d0  ! 1/sqrt(2)
 REAL(rp), PARAMETER :: o = 0.0d0  ! for compact code
 REAL(rp), PARAMETER :: l = 1.0d0  ! for compact code
@@ -44,8 +46,6 @@ CONTAINS
 !-
 SUBROUTINE normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
   USE bmad
-
-  IMPLICIT NONE
 
   REAL(rp) mat(6,6)
   REAL(rp) tune(3)
@@ -104,8 +104,6 @@ END SUBROUTINE normal_mode3_calc
 !-
 SUBROUTINE make_HVBP (N, B, V, H, Vbar, Hbar)
   USE bmad
-
-  IMPLICIT NONE
 
   REAL(rp) N(6,6)
   REAL(rp) B(6,6)
@@ -227,8 +225,6 @@ END SUBROUTINE make_HVBP
 SUBROUTINE xyz_to_action(ring,ix,X,J,error)
   USE bmad
 
-  IMPLICIT none
-
   TYPE(lat_struct) ring
   INTEGER ix
   REAL(rp) J(1:6)
@@ -270,8 +266,6 @@ END SUBROUTINE xyz_to_action
 !-
 SUBROUTINE action_to_xyz(ring,ix,J,X,error)
   USE bmad
-
-  IMPLICIT none
 
   TYPE(lat_struct) ring
   INTEGER ix
@@ -363,7 +357,7 @@ SUBROUTINE eigen_decomp_6mat(mat, eval_r, eval_i, evec_r, evec_i, error)
   vec(pair1) = -1
   pair2 = maxloc(vec, 1)
 
-  pari3 = 6 - pari1 - pari3
+  pair3 = 6 - pair1 - pair2
 
   pairIndexes = [ 2*pair1-1, 2*pair1, 2*pair2-1, 2*pair2, 2*pair3-1, 2*pair3 ]
 
@@ -399,8 +393,6 @@ END SUBROUTINE eigen_decomp_6mat
 !-
 SUBROUTINE make_N(t6,N,error,tunes,synchrotron_motion)
   USE bmad
-
-  IMPLICIT NONE
 
   REAL(rp) t6(6,6)
   REAL(rp) eval_r(6), eval_i(6)
@@ -473,8 +465,6 @@ END SUBROUTINE make_N
 !-
 SUBROUTINE normal_sigma_mat(sigma_mat,normal)
   USE bmad
-
-  IMPLICIT none
 
   REAL(rp) sigma_mat(1:6,1:6)
   REAL(rp) normal(1:3)
@@ -600,7 +590,6 @@ END SUBROUTINE get_abc_from_updated_smat
 !
 !-
 SUBROUTINE beam_tilts(S, angle_xy, angle_xz, angle_yz, angle_xpz, angle_ypz)
-  IMPLICIT NONE
 
   REAL(rp) S(6,6)
   REAL(rp) angle_xy, angle_xz, angle_yz
@@ -687,8 +676,6 @@ END SUBROUTINE make_smat_from_abc
 SUBROUTINE cplx_symp_conj(evec_r, evec_i, symp_evec_r, symp_evec_i)
 
   USE bmad
-
-  IMPLICIT NONE
 
   REAL(rp) evec_r(6,6)
   REAL(rp) evec_i(6,6)
@@ -782,8 +769,6 @@ END FUNCTION dagger2
 SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
 
   USE bmad
-
-  IMPLICIT NONE
 
   REAL(rp) evec_r(6,6)
   REAL(rp) evec_i(6,6)
@@ -914,8 +899,6 @@ SUBROUTINE project_emit_to_xyz(ring, ix, mode, sigma_x, sigma_y, sigma_z)
 
   USE bmad
 
-  IMPLICIT NONE
-
   TYPE(lat_struct) ring
   INTEGER ix
   TYPE(normal_modes_struct) mode
@@ -956,8 +939,6 @@ END SUBROUTINE project_emit_to_xyz
 
 SUBROUTINE twiss3_propagate_all (lat)
 
-IMPLICIT NONE
-
 TYPE (lat_struct) lat
 
 INTEGER i
@@ -976,8 +957,6 @@ END SUBROUTINE twiss3_propagate_all
 !-
 
 SUBROUTINE twiss3_propagate1 (ele1, ele2, err_flag)
-
-IMPLICIT NONE
 
 TYPE mat2_struct
   REAL(rp) m(2,2)
@@ -1052,8 +1031,6 @@ END SUBROUTINE
 !-
 
 SUBROUTINE twiss3_at_start (lat, error)
-
-IMPLICIT NONE
 
 TYPE (lat_struct) lat
 REAL(rp) g(6,6), tune3(3)

@@ -60,7 +60,10 @@ case (custom$)
   ele%tracking_method  = custom$
   ele%field_calc       = custom$
 
-case (def_beam$)
+case (def_beam_start$)
+  ele%value(spinor_polarization$) = 1
+
+case (def_mad_beam$)
   ele%value(particle$) = positron$
 
 case (def_parameter$)

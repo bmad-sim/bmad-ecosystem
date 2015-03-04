@@ -751,7 +751,7 @@ integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
 integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
 integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
 integer, parameter :: multipole$ = 19, key_dummy$ = 20
-integer, parameter :: def_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
+integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
 integer, parameter :: null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
@@ -774,7 +774,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'RFCAVITY         ', 'ELSEPARATOR      ', 'BEAMBEAM         ', 'WIGGLER          ', &
     'SOL_QUAD         ', 'MARKER           ', 'KICKER           ', 'HYBRID           ', &
     'OCTUPOLE         ', 'RBEND            ', 'MULTIPOLE        ', 'BEND_SOL_        ', &
-    'DEF_BEAM         ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
+    'DEF_MAD_BEAM     ', 'AB_MULTIPOLE     ', 'SOLENOID         ', 'PATCH            ', &
     'LCAVITY          ', 'DEF_PARAMETER    ', 'NULL_ELE         ', 'BEGINNING_ELE    ', &
     'LINE_ELE         ', 'MATCH            ', 'MONITOR          ', 'INSTRUMENT       ', &
     'HKICKER          ', 'VKICKER          ', 'RCOLLIMATOR      ', 'ECOLLIMATOR      ', &
@@ -847,17 +847,18 @@ integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, dE_center$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, dE_center$ = 20, spin_x$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, dE_relative_to_ref$ = 21
+integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, dE_relative_to_ref$ = 21, spin_y$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
-integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23
+integer, parameter :: spin_z$ = 22
+integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spinor_theta$ = 23
 integer, parameter :: traveling_wave$ = 23, beta_a$ = 23, velocity_distribution$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24, spinor_phi$ = 24
 integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
-integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25, spinor_xi$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, spinor_polarization$ = 26
 integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28

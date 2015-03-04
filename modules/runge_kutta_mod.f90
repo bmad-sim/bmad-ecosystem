@@ -446,7 +446,7 @@ r_err=ds*(dc1*dr_ds + dc3*ak3 + dc4*ak4 + dc5*ak5 + dc6*ak6)
 ! Spin
 
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
-  call dspin_dz (ele, param, s,        t,         orb,         local_ref_frame, dspin1)
+  call dspin_dz (ele, param, s,         t,         orb,         local_ref_frame, dspin1)
   call dspin_dz (ele, param, s + a3*ds, t_temp(2), orb_temp(2), local_ref_frame, dspin3)
   call dspin_dz (ele, param, s + a4*ds, t_temp(3), orb_temp(3), local_ref_frame, dspin4)
   call dspin_dz (ele, param, s + a6*ds, t_temp(5), orb_temp(5), local_ref_frame, dspin6)

@@ -1005,20 +1005,21 @@ end subroutine lcav_edge_track
 !
 ! Return the modified T-BMT spin omega vector.
 !
-! Omega = - Omega_TBMT / v_z
-!
 ! Modules needed:
 !   use spin_mod
 !   use em_field_mod
 !
-! Input :
+! Input:
 !   field      -- em_field_struct: E and B fields
 !   coord      -- coord_struct: particle momentum
 !   ele        -- ele_struct: element evauluated in
 !      %value(E_TOT$) -- reaL(rp): needed to find momentum
 !   param      -- lat_param_struct: Beam parameters.
-!   omega(3)   -- Real(rp): Omega in cartesian coordinates
-!   s          -- Real(rp): evaluate at position s in element
+!   omega(3)   -- real(rp): Omega in cartesian coordinates
+!   s          -- real(rp): evaluate at position s in element
+!
+! Output:
+!   omega(3)   -- real(rp): Omega_TBMT / v_z
 !-
 
 function spin_omega_at (field, coord, ele, param, s) result (omega)
@@ -1040,6 +1041,7 @@ call initialize_pauli_vector
 
 ! FIX_ME!!!
 ! get e_particle and pc at position in element
+
 if (ele%key == lcavity$) then
   phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) - &
                       coord%vec(5) * ele%value(rf_frequency$) / c_light)
@@ -1049,29 +1051,28 @@ if (ele%key == lcavity$) then
   gradient = gradient + gradient_shift_sr_wake(ele, param)
   pc = ele%value(p0c_start$) * (1 + coord%vec(6))
   call convert_pc_to (pc, coord%species, E_tot = e_particle)
-  e_particle = e_particle + gradient*s
+  e_particle = e_particle + gradient * s
 else
   pc = ele%value(p0c$) * (1 + coord%vec(6))
   call convert_pc_to (pc, coord%species, E_tot = e_particle)
 endif
 
-! want everything in units of Ev
+! Want everything in units of eV
+
 anomalous_moment = anomalous_moment_of (coord%species)
 charge = charge_of(coord%species)
 m_particle = mass_of(coord%species)
 gamma0 = e_particle / m_particle
-p_z = (ele%value(p0c$)/c_light)*&
-                   sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
+p_z = (ele%value(p0c$)/c_light) * sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
 p_vec(1:2) = (ele%value(p0c$)/c_light)* [coord%vec(2), coord%vec(4)]
 p_vec(3) = p_z
 
 omega = (1 + anomalous_moment*gamma0) * field%B
 
-omega = omega - ( anomalous_moment*dot_product(p_vec,field%B)   /&
+omega = omega - ( anomalous_moment*dot_product(p_vec,field%B) / &
                   ((gamma0+1)*(m_particle**2/c_light**2))  )*p_vec
 
-omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0))*&
-                   cross_product(p_vec,field%E)
+omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0))* cross_product(p_vec,field%E)
 
 omega = (charge/p_z)*omega
 
