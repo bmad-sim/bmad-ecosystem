@@ -4,6 +4,7 @@ use random_mod
 use photon_init_mod
 use photon_target_mod
 use track1_photon_mod
+use photon_bunch_mod
 use em_field_mod
 use bmad
 use quick_plot
@@ -49,6 +50,7 @@ type lux_param_struct
   logical :: debug = .false.             ! For debugging
   logical :: reject_dead_at_det_photon1 = .false.
   logical :: scale_initial_field_to_1 = .true.
+  logical :: track_bunch = .false.
 end type
 
 type lux_photon_struct
@@ -370,7 +372,7 @@ end subroutine lux_init_data
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine lux_generate_photon (photon, lux_param, lux_com)
+! Subroutine lux_generate_photon (orb, lux_param, lux_com)
 !
 ! Routine to generate the starting photon coordinates
 !
@@ -379,17 +381,16 @@ end subroutine lux_init_data
 !   lux_com     -- lux_common_struct: Common parameters.
 !
 ! Ouput:
-!   photon     -- lux_photon_struct: Initialized starting coords.
+!   orb         -- coord_struct: Initialized starting coords.
 !-
 
-subroutine lux_generate_photon (photon, lux_param, lux_com)
+subroutine lux_generate_photon (orb, lux_param, lux_com)
 
 use nr
 
 type (lat_struct), pointer :: lat
-type (lux_photon_struct), target :: photon
 type (coord_struct) charged_orb
-type (coord_struct), pointer :: orb
+type (coord_struct) :: orb
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_bend_slice_struct), pointer :: sl(:)
@@ -404,7 +405,6 @@ integer ix, n_slice
 
 ! Init
 
-orb => photon%orb(0)
 source_ele => lux_com%source_ele
 lat => lux_com%lat
 
@@ -431,66 +431,7 @@ endif
 select case (source_ele%key)
 case (x_ray_source$)
 
-  ! Set position
-
-  if (nint(source_ele%value(spatial_distribution$)) == uniform$) then
-    call ran_uniform(r)
-    r = 2 * r - 1
-  elseif (nint(source_ele%value(spatial_distribution$)) == gaussian$) then
-    call ran_gauss(r)
-  else
-    print *, 'BAD SOURCE_ELE SPATIAL_DISTRIBUTION: ', distribution_name(nint(source_ele%value(spatial_distribution$)))
-    call err_exit
-  endif
-
-  orb%vec(1:5:2) = lat%beam_start%vec(1:5:2) + &
-                    [source_ele%value(sig_x$) * r(1), source_ele%value(sig_y$) * r(2), source_ele%value(sig_z$) * r(3)]
-
-  ! Set direction
-
-  select case (nint(source_ele%value(velocity_distribution$)))
-  case (spherical$)
-    call isotropic_photon_emission (source_ele, lat%param, orb, +1, twopi)
-
-  case (uniform$)
-    call ran_uniform(dir)
-    dir = 2 * dir - 1
-    orb%vec(2:4:2) = lat%beam_start%vec(2:4:2) + dir * [source_ele%value(sig_vx$), source_ele%value(sig_vy$)]
-    orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
-
-  case (gaussian$)
-    call ran_gauss(dir)
-    orb%vec(2:4:2) = lat%beam_start%vec(2:4:2) + dir * [source_ele%value(sig_vx$), source_ele%value(sig_vy$)]
-    orb%vec(6) = sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
-
-  end select
-
-  ! Set energy
-
-  if (nint(source_ele%value(energy_distribution$)) == uniform$) then
-    call ran_uniform(rr)
-    rr = 2 * rr - 1
-  else if (nint(source_ele%value(energy_distribution$)) == gaussian$) then
-    call ran_gauss(rr)
-  else
-    print *, 'BAD SOURCE_ELE%VALUE(ENERGY_DISTRIBUTION SETTING: ', distribution_name(nint(source_ele%value(energy_distribution$)))
-  endif
-
-  orb%p0c = source_ele%value(sig_E$) * rr + source_ele%value(dE_center$)
-  if (is_true(source_ele%value(dE_relative_to_ref$))) orb%p0c = orb%p0c + source_ele%value(p0c$) 
-
-  call init_coord (orb, orb%vec, source_ele, upstream_end$, photon$, 1, orb%p0c) 
-  orb%s = orb%vec(5) + orb%s + source_ele%value(z_offset_tot$)
-  orb%t = 0
-
-  ! Translate from element to lab coordinates
-  ! and track to entrance end of source_ele
-
-  call offset_photon (source_ele, orb, unset$)
-
-  call track_a_drift_photon (orb, -orb%s, .true.)
-
-  return
+  return  ! Handled by Bmad
 
 !-----------------------------------------------------
 ! bend, wiggler, undulator source
@@ -618,22 +559,11 @@ logical err, hit_below_top, hit_above_bottom, hit_right_of_left_edge, hit_left_o
 logical old_hit_below_top, old_hit_above_bottom, old_hit_right_of_left_edge, old_hit_left_of_right_edge
 
 !-------------------------------------------------------------
-! Lattice has sample element.
+! x_ray_source source
 
 lat => lux_com%lat
 branch => lux_com%detec_branch
 source_ele => lux_com%source_ele
-
-do ie = 1, branch%n_ele_track
-  ele => branch%ele(ie)
-  select case (ele%key)
-  case (sample$, diffraction_plate$) 
-    call photon_target_setup (ele)
-  end select
-enddo
-
-!-------------------------------------------------------------
-! x_ray_source source
 
 select case (source_ele%key)
 case (x_ray_source$)
@@ -799,19 +729,19 @@ type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
 type (lux_photon_struct), target :: photon
 type (lat_struct), pointer :: lat
-type (coord_struct), pointer :: end_orb, this_orb
+type (coord_struct), pointer :: this_orb
 type (ele_struct), pointer :: detec_ele, source_ele
 type (branch_struct), pointer :: s_branch, d_branch
 type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
+type (bunch_struct) bunch
 
-real(rp) intens, intens_x, intens_y
-real(rp) e_ref, phase, intensity_tot
+real(rp) phase, intensity_tot, intens
 
-integer ix, nt, nx, ny, track_state
+integer ix, n, nt, nx, ny, track_state, ip, ie
 
-logical accept
+logical accept, err_flag
 
 !
 
@@ -822,11 +752,31 @@ source_ele => lux_com%source_ele
 d_branch => lux_com%detec_branch
 s_branch => lux_com%source_branch
 
-nt = d_branch%n_ele_track
+nt = detec_ele%ix_ele
 
 call reallocate_coord (photon%orb, lat, d_branch%ix_branch)
 
-!
+! Photon bunch tracking
+
+if (lux_param%track_bunch) then
+
+  n = lux_com%n_photon_stop1
+  allocate (bunch%particle(n))
+
+  do ip = 1, n
+    call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
+  enddo
+
+  call track_photon_bunch (bunch, d_branch, 0, detec_ele%ix_ele)
+
+  do ip = 1, n
+    call add_to_detector_statistics (bunch%particle(ip), intens)
+  enddo
+
+  return
+endif
+
+! Individual photon tracking
 
 intensity_tot = 0
 
@@ -837,7 +787,7 @@ do
   lux_data%n_track_tot = lux_data%n_track_tot + 1
   photon%n_photon_generated = lux_data%n_track_tot
 
-  call lux_generate_photon (photon, lux_param, lux_com)
+  call lux_generate_photon (photon%orb(0), lux_param, lux_com)
   if (lux_param%debug) then
     call init_coord (photon%orb(0), lat%beam_start, d_branch%ele(0), downstream_end$, photon$, &
                                         1, d_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
@@ -845,14 +795,9 @@ do
 
   call track_all (lat, photon%orb, d_branch%ix_branch, track_state)
 
-  end_orb => photon%orb(nt)
-  call offset_photon (detec_ele, end_orb, set$)
+  call add_to_detector_statistics (photon%orb(nt), intens)
 
-  intens_x = end_orb%field(1)**2
-  intens_y = end_orb%field(2)**2
-  intens = intens_x + intens_y
-
-  ! Write results
+  ! Write to photon1_out_file
 
   if (lux_param%photon1_out_file /= '') then
                                                   
@@ -868,58 +813,51 @@ do
       lux_com%n_photon1_out = lux_com%n_photon1_out + 1
       write (lux_com%iu_photon1_out, '(i6, 5f13.6, 3x, 5f13.6, 3x, f11.3, 2es13.4)') &
                       lux_data%n_track_tot, 1d3*photon%orb(1)%vec(1:5), &
-                      1d3*this_orb%vec(1:5), this_orb%p0c, end_orb%field(1)**2, end_orb%field(2)**2
+                      1d3*this_orb%vec(1:5), this_orb%p0c, this_orb%field(1)**2, this_orb%field(2)**2
     endif
-  endif
-
-  !
-
-  if (track_state /= moving_forward$) then
-    lux_data%n_lost = lux_data%n_lost + 1
-    cycle
-  endif
-
-  ! Go to coordinates of the detector
-
-  lux_data%n_live = lux_data%n_live + 1
-  intensity_tot = intensity_tot + intens
-
-  nx = nint((end_orb%vec(1) - detec_grid%r0(1)) / detec_grid%dr(1))
-  ny = nint((end_orb%vec(3) - detec_grid%r0(2)) / detec_grid%dr(2))
-
-  if (lux_data%nx_min <= nx .and. nx <= lux_data%nx_max .and. lux_data%ny_min <= ny .and. ny <= lux_data%ny_max) then
-    pix => detec_grid%pt(nx,ny)
-    pix%n_photon  = pix%n_photon + 1
-    if (lat%photon_type == coherent$) then
-      phase = end_orb%phase(1) 
-      pix%E_x = pix%E_x + end_orb%field(1) * [cos(phase), sin(phase)]
-      phase = end_orb%phase(2) 
-      pix%E_y = pix%E_y + end_orb%field(2) * [cos(phase), sin(phase)]
-    else
-      pix%intensity_x = pix%intensity_x + intens_x
-      pix%intensity_y = pix%intensity_y + intens_y
-      pix%intensity   = pix%intensity   + intens
-      pix%energy_ave  = pix%energy_ave  + intens * (end_orb%p0c - e_ref)
-      pix%energy_rms  = pix%energy_rms  + intens * (end_orb%p0c - e_ref)**2
-    endif
-
-    if (is_true(source_ele%value(dE_relative_to_ref$))) then
-      ix = nint((end_orb%p0c - lux_com%detec_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
-    else
-      ix = nint((end_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
-    endif
-    if (ix < 1) ix = 1
-    if (ix > ubound(lux_com%energy_bin, 1)) ix = ubound(lux_com%energy_bin, 1)
-    lux_com%energy_bin(ix)%intensity   = intens
-    lux_com%energy_bin(ix)%intensity_x = intens_x
-    lux_com%energy_bin(ix)%intensity_y = intens_y
-    lux_com%energy_bin(ix)%n_photon    = lux_com%energy_bin(ix)%n_photon + 1
-
   endif
 
 enddo
 
+!--------------------------------------------------------------------
+contains
+
+subroutine add_to_detector_statistics (det_orb, intens)
+
+type (coord_struct) det_orb
+real(rp) intens, intens_x, intens_y
+
 !
+
+intens_x = det_orb%field(1)**2
+intens_y = det_orb%field(2)**2
+intens = intens_x + intens_y
+
+!
+
+if (det_orb%state /= alive$) then
+  lux_data%n_lost = lux_data%n_lost + 1
+  return
+endif
+
+lux_data%n_live = lux_data%n_live + 1
+intensity_tot = intensity_tot + intens
+
+call photon_add_to_detector_statistics (det_orb, detec_ele)
+
+if (is_true(source_ele%value(dE_relative_to_ref$))) then
+  ix = nint((det_orb%p0c - lux_com%detec_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
+else
+  ix = nint((det_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
+endif
+if (ix < 1) ix = 1
+if (ix > ubound(lux_com%energy_bin, 1)) ix = ubound(lux_com%energy_bin, 1)
+lux_com%energy_bin(ix)%intensity   = intens
+lux_com%energy_bin(ix)%intensity_x = intens_x
+lux_com%energy_bin(ix)%intensity_y = intens_y
+lux_com%energy_bin(ix)%n_photon    = lux_com%energy_bin(ix)%n_photon + 1
+
+end subroutine add_to_detector_statistics
 
 end subroutine lux_track_photons
 
@@ -952,17 +890,7 @@ type (surface_grid_pt_struct), pointer :: pt(:,:)
 !
 
 pt => lux_com%detec_ele%photon%surface%grid%pt
-
-pt%E_x(1)      = pt%E_x(1)      + slave_pt%E_x(1)
-pt%E_x(2)      = pt%E_x(2)      + slave_pt%E_x(2)
-pt%E_y(1)      = pt%E_y(1)      + slave_pt%E_y(1)
-pt%E_y(2)      = pt%E_y(2)      + slave_pt%E_y(2)
-pt%intensity_x = pt%intensity_x + slave_pt%intensity_x
-pt%intensity_y = pt%intensity_y + slave_pt%intensity_y
-pt%intensity   = pt%intensity   + slave_pt%intensity
-pt%n_photon    = pt%n_photon    + slave_pt%n_photon
-pt%energy_ave  = pt%energy_ave  + slave_pt%energy_ave
-pt%energy_rms  = pt%energy_rms  + slave_pt%energy_rms
+pt = surface_grid_pt_struct()
 
 lux_data%n_track_tot = lux_data%n_track_tot + lux_com%n_photon_stop1
 lux_data%n_live      = lux_data%n_live      + sum(slave_pt%n_photon)
@@ -997,7 +925,7 @@ type (lat_struct), pointer :: lat
 real(rp) normalization, area, cut, dtime
 real(rp) total_dead_intens, pix_in_file_intens
 real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
-real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave, e_ref
+real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
 real(rp) phase_x, phase_y, x, y
 
 integer i, j, nx, ny
