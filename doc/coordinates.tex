@@ -651,6 +651,57 @@ can then be used with \Eq{s330}.
 \index{phase space coordinates|hyperbf}
 
 %-----------------------------------------------------------------------------
+\subsection{Reference Particle, Reference Energy, and Reference Time}
+\label{s:ref.energy}
+\index{reference particle|hyperbf}
+\index{reference energy|hyperbf}
+\index{reference time|hyperbf}
+
+The \vn{reference energy} and \vn{reference time} are needed in
+evaluating the phase space coordinates of charged particles
+(\sref{s:phase.space}).  
+
+All lattice elements, except for controller elements, have an
+associated \vn{reference energy} energy.  The reference energy at the
+start of a lattice's \vn{root branch} (\sref{s:branch.def}) is set in
+the lattice file by setting the reference momentum (\vn{p0c}) or total
+energy (\vn{E_tot}) using a \vn{parameter} (\sref{s:param}) or
+\vn{beginning} (\sref{s:beginning}) statement. For other branches, the
+energy at the start of the branch is set using the appropriate line
+parameter (\sref{s:beginning}) statement.
+
+\index{custom!reference energy}\index{em_field!reference energy}
+\index{hybrid!reference energy}\index{lcavity!reference energy}
+\index{patch!reference energy}
+For most elements, the reference energy is the same as the reference
+energy of the preceeding element. The following elements are
+exceptions:
+\begin{example}
+  custom
+  em_field
+  hybrid
+  lcavity
+  patch
+\end{example}
+The reference energy of these elements is determined by tracking a
+particle (the ``\vn{reference particle}'') through the element with the
+particle starting on the reference orbit and whose energy is equal to
+the reference energy.  The energy of the particle at the downstream
+end is the reference energy of the element.
+
+\index{wiggler!reference time}
+Besides the reference energy, lattice elements have an associated
+\vn{reference time} which is computed, for most elements, by the
+time-of-flight of the \vn{reference particle} assuming that the
+reference particle is following the reference orbit. Exceptions are
+\vn{wiggler} elements which uses the time-of-flight of the actual
+undulating trajectory. [Actually what is used in the computation of the
+$z$ phase space coordinate (\Eq{zbctt}) is the sum of reference time
+deltas of the elements that a particle has passed through. It is not
+possible to assign a unique reference time to an element when particles
+are recirculating through elements as in a storage ring.]
+
+%-----------------------------------------------------------------------------
 \subsection{Charged Particle Phase Space Coordinates}
 \label{s:phase.space}
 \index{phase space coordinates|hyperbf}
@@ -666,7 +717,7 @@ particle and the particle.}
 \label{f:canonical.z}
 \end{figure}
 
-For charged particles (as opposed to photons
+For charged particles (more correctly, for everything but photons
 (\sref{s:photon.phase.space})), \bmad uses the phase space coordinates
 \Begineq
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
@@ -684,7 +735,6 @@ reference (sometimes called the design) momentum $P_0$
   \label{ppp}
 \end{align}
 where $P_x$ and $P_y$ are respectively the $x$ and $y$ momentums.
-
 
 \index{lcavity}\index{rfcavity}
 The phase space $z$ coordinate is 

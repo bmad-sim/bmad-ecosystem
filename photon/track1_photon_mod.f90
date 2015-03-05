@@ -94,8 +94,8 @@ else
                                              distribution_name(nint(ele%value(energy_distribution$))))
 endif
 
-orbit%p0c = ele%value(sig_E$) * rr + ele%value(dE_center$)
-if (is_true(ele%value(dE_relative_to_ref$))) orbit%p0c = orbit%p0c + ele%value(p0c$) 
+orbit%p0c = ele%value(sig_E$) * rr + ele%value(E_center$)
+if (is_true(ele%value(E_center_relative_to_ref$))) orbit%p0c = orbit%p0c + ele%value(p0c$) 
 
 call init_coord (orbit, orbit%vec, ele, upstream_end$, photon$, 1, orbit%p0c) 
 orbit%s = orbit%vec(5) + orbit%s + ele%value(z_offset_tot$)

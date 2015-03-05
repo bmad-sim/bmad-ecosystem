@@ -952,9 +952,9 @@ integer, parameter :: fb2$ = 15
 integer, parameter :: fq1$ = 16
 integer, parameter :: fq2$ = 17
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, dE_center$ = 20, spin_x$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, spin_x$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, dE_relative_to_ref$ = 21, spin_y$ = 21
+integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_to_ref$ = 21, spin_y$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
 integer, parameter :: spin_z$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spinor_theta$ = 23
