@@ -1037,29 +1037,12 @@ real(rp) omega(3),  p_vec(3)
 real(rp) anomalous_moment, charge, m_particle, p_z, gamma0
 real(rp) s, e_particle, pc, phase, cos_phi, gradient
 
-!
+! Want everything in units of eV
 
 call initialize_pauli_vector
 
-! FIX_ME!!!
-! get e_particle and pc at position in element
-
-if (ele%key == lcavity$) then
-  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) - &
-                      coord%vec(5) * ele%value(rf_frequency$) / c_light)
-  cos_phi = cos(phase)
-  gradient = (ele%value(gradient$) + ele%value(gradient_err$)) * cos_phi
-  if (.not. ele%is_on) gradient = 0
-  gradient = gradient + gradient_shift_sr_wake(ele, param)
-  pc = ele%value(p0c_start$) * (1 + coord%vec(6))
-  call convert_pc_to (pc, coord%species, E_tot = e_particle)
-  e_particle = e_particle + gradient * s
-else
-  pc = ele%value(p0c$) * (1 + coord%vec(6))
-  call convert_pc_to (pc, coord%species, E_tot = e_particle)
-endif
-
-! Want everything in units of eV
+pc = ele%value(p0c$) * (1 + coord%vec(6))
+call convert_pc_to (pc, coord%species, E_tot = e_particle)
 
 anomalous_moment = anomalous_moment_of (coord%species)
 charge = charge_of(coord%species)

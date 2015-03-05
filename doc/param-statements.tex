@@ -25,7 +25,7 @@ set by \vn{parameter} are
   parameter[aperture_limit_on]        = <Logical>  ! Use aperture limits in tracking.
   parameter[auto_scale_field_phase]   = <Logical>  ! Automatic phase scaling.
   parameter[auto_scale_field_amp]     = <Logical>  ! Automatic amplitude scaling.
-  parameter[custom_attributeN]        = <string>   ! Defining custom attribues (\sref{s:custom.attrib}).
+  parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:custom.attrib}).
   parameter[e_tot]                    = <Real>     ! Reference total Energy. 
                                                    !      Default: 1000 * rest_energy.
   parameter[geometry]                 = <Switch>   ! Open or closed
@@ -209,6 +209,8 @@ cavity to keep the total length constant. Default is \vn{True}.
 \index{x}\index{px}\index{y}\index{py}\index{z}\index{pz}
 \index{emittance_a}\index{emittance_b}\index{emittance_z}
 \index{field_x}\index{field_y}\index{phase_x}\index{phase_y}
+\index{spin_x}\index{spin_y}\index{spin_z}\index{spinor_theta}
+\index{spinor_phi}\index{spinor_xi}\index{spinor_polarization}
 The \vn{beam_start} statement is used to set the starting coordinates
 for particle tracking. If multiple branches are present
 (\sref{s:branch.def}), these variables pertain to the \vn{root}
@@ -243,7 +245,14 @@ initial velocity is zero. (This can happen if there is an \vn{e_gun}
 (\sref{s:e.gun}) element in the lattice). In this case, $z$ must be
 zero and $t$ is an independent parameter that can be set.
 
-For particles with spin, the spin can be 
+For particles with spin, the spin can be specified in one of two ways:
+One way is to specify the $(x, y, z)$ spin components using
+\vn{spin_x}, \vn{spin_y}, and \vn{spin_z}. The second way is by
+specifying the polar angles and magnitude with \vn{spinor_theta},
+\vn{spinor_phi}, \vn{spinor_xi}, and \vn{spinor_polarization}. The
+relationship between the two spin representations is given by
+\Eq{pp1p2}. To prevent ambiguity, only one representation can can be
+used in lattice.
 
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
 (Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set
