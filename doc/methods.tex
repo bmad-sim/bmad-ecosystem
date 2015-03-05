@@ -453,19 +453,19 @@ implemented on a program-by-program basis.
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}
 
-\index{bmad_standard!spin_tracking_method} \Newline
-\item[\vn{Bmad_Standard}]
+\index{bmad_standard!spin_tracking_method}
+\item[\vn{Bmad_Standard}] \Newline
 Uses formulas for the calculation. The formulas generally use the
 paraxial approximation. The emphasis here is on speed.
 
-\index{custom!spin_tracking_method} \Newline
-\item[\vn{Custom}]
+\index{custom!spin_tracking_method}
+\item[\vn{Custom}] \Newline
 This method will call a routine \vn{track1_spin_custom} which must be
 supplied by the programmer implementing the custom spin tracking
 calculation. See \vn{s:custom.ele} for more details.
 
-\index{tracking!mat6_calc_method} \Newline
-\item[\vn{Tracking}]
+\index{tracking!mat6_calc_method}
+\item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of
 \vn{tracking_method}. If \vn{tracking_method} is set to \vn{boris}, or
 \vn{runge_kutta} then the spin will be tracked along with the phase
@@ -473,8 +473,8 @@ space particle coordinates using the local fields. For all other
 \vn{tracking_method}s, the spin will be tracked using the
 \vn{bmad_standard} spin tracking method.
 
-\index{symp_lie_ptc!spin_tracking_method} \Newline
-\item[\vn{Symp_Lie_PTC}]
+\index{symp_lie_ptc!spin_tracking_method}
+\item[\vn{Symp_Lie_PTC}] \Newline
 Symplectic integration using a Hamiltonian and Lie operators.
 This uses Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.

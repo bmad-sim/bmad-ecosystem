@@ -461,7 +461,7 @@ For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed fr
 \label{s:spin.dyn}   
 \index{spin|hyperbf}   
 
-\textit{\large [Spin dynamics developed by Jeff Smith]}
+\textit{\large [Spin dynamics initially developed by Jeff Smith]}
 
 The classical spin vector $\Bf S$ is described in the   
 local reference frame (\sref{s:ref}) by a
@@ -504,15 +504,16 @@ where ${\bfsig} = (\sigma_x, \sigma_y, \sigma_z)$ are the
 three Pauli matrices. In polar coordinates
 \Begineq   
   \Psi = \begin{pmatrix} \psi_{1} \\ \psi_{2} \end{pmatrix}
-       = e^{i \xi} \begin{pmatrix} \cos \frac{\theta}{2}\\   
-                     e^{i \phi} \, \sin \frac{\theta}{2}   
-                     \end{pmatrix}
-         \, \sqrt{P}
+       = \sqrt{P} \, e^{i \xi} 
+         \begin{pmatrix} 
+            \cos \frac{\theta}{2} \\   
+            e^{i \phi} \, \sin \frac{\theta}{2}   
+         \end{pmatrix}
   \qquad \longleftrightarrow \qquad
-  \Bf S = \begin{pmatrix} \sin \theta \cos \phi \\   
+  \Bf S = P \, \begin{pmatrix} \sin \theta \cos \phi \\   
                           \sin \theta \sin \phi \\   
                           \cos \theta \end{pmatrix}
-          \, P
+  \label{pp1p2}
 \Endeq
 where $P$ is the polarization. $P = 1$ for a single particle.
 The $\xi$ being an extra phase factor. Due to the unitarity of the spin vector,   

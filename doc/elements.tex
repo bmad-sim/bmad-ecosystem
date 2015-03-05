@@ -3587,33 +3587,32 @@ General \vn{x_ray_source} attributes are:
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{x_ray_source} element are:
 \begin{example}
-    energy_distribution = 'GAUSSIAN'     ! Or 'UNIFORM'. 
-    spatial_distribution = 'GAUSSIAN'    ! Or 'UNIFORM'. 
-    velocity_distribution = 'GAUSSIAN'   ! Or 'SHPERICAL', 'UNIFORM'. 
-    sig_x = 0
-    sig_y = 0
-    sig_z = 0
-    sig_vx = 0
-    sig_vy = 0
-    sig_E = 0                            ! Initial photon energy width (eV).
-    transverse_sigma_cut = 3                      
-    dE_center = 0                        ! Initial photon energy shift (eV).
-    dE_relative_to_ref = True            ! dE_center relative to reference E?
-    e_field_x = 0                        ! Polarization. x & y = 0 -> random
-    e_field_y = 0
-    ds_slice
+    energy_distribution   = <Switch>  ! GAUSSIAN or UNIFORM
+    spatial_distribution  = <Switch>  ! GAUSSIAN or UNIFORM. 
+    velocity_distribution = <Switch>  ! GAUSSIAN, SHPERICAL, or UNIFORM. 
+    sig_x                 = <Real>
+    sig_y                 = <Real>
+    sig_z                 = <Real>
+    sig_vx                = <Real>
+    sig_vy                = <Real>
+    sig_E                 = <Real>    ! Initial photon energy width (eV).
+    transverse_sigma_cut  = <Real>
+    dE_center             = <Real>    ! Initial photon energy shift (eV).
+    dE_relative_to_ref    = <Real>    ! dE_center relative to reference E?
+    e_field_x             = <Real>    ! Polarization. x & y = 0 -> random
+    e_field_y             = <Real>
+    ds_slice              = <Real>
 \end{example}
 
   \begin{description}
   \item[\vn{dE_center}] \Newline
 Average initial photon energy in eV. If
 \vn{dE_relative_to_ref} is set to True (default)
-then \vn{dE_center} will be relative to the reference energy
-(\sref{ss:x.ray.init}).
+then \vn{dE_center} will be relative to the reference energy,
 
   \item[\vn{dE_relative_to_ref}] \Newline
 Is \vn{dE_center} with respect to the reference energy or
-an absolute value (\sref{ss:x.ray.init})?
+an absolute value?
 
   \item[\vn{ds_slice}] \Newline
 Used when the source element is an insertion device or a bend: The
