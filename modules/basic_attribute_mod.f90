@@ -1135,8 +1135,8 @@ call init_attribute_name1 (x_ray_source$, sig_z$,                     'SIG_Z')
 call init_attribute_name1 (x_ray_source$, sig_vx$,                    'SIG_VX')
 call init_attribute_name1 (x_ray_source$, sig_vy$,                    'SIG_VY')
 call init_attribute_name1 (x_ray_source$, sig_E$,                     'SIG_E')
-call init_attribute_name1 (x_ray_source$, dE_center$,                 'DE_CENTER')
-call init_attribute_name1 (x_ray_source$, dE_relative_to_ref$,        'DE_RELATIVE_TO_REF')
+call init_attribute_name1 (x_ray_source$, E_center$,                  'E_CENTER')
+call init_attribute_name1 (x_ray_source$, E_center_relative_to_ref$,  'E_CENTER_RELATIVE_TO_REF')
 call init_attribute_name1 (x_ray_source$, spatial_distribution$,      'SPATIAL_DISTRIBUTION')
 call init_attribute_name1 (x_ray_source$, velocity_distribution$,     'VELOCITY_DISTRIBUTION')
 call init_attribute_name1 (x_ray_source$, energy_distribution$,       'ENERGY_DISTRIBUTION')
@@ -1330,7 +1330,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
-      'BRANCHES_ARE_COHERENT', 'DE_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
+      'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON')
   attrib_type = is_logical$
 
