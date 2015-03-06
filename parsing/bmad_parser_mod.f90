@@ -3166,7 +3166,8 @@ type (lr_wake_input_struct) lr(500)
 integer n_row, iu, i, j, ios
 character(*) lr_file_name
 character(200) full_file_name
-logical set_done
+logical set_done, finished, err
+
 namelist / long_range_modes / lr
 
 ! Init
@@ -3178,8 +3179,9 @@ if (allocated(ele%wake%lr)) deallocate (ele%wake%lr)
 
 ! get data
 
-call find_this_file (iu, lr_file_name, full_file_name)
-if (iu < 0) return
+call parser_file_stack ('push', lr_file_name, finished, err)
+if (err) return
+iu = bp_com%current_file%f_unit
 
 ele%wake%lr_file = lr_file_name
 
@@ -3192,12 +3194,15 @@ lr%a_cos = 0
 lr%t_ref = 0
 
 read (iu, nml = long_range_modes, iostat = ios)
-close (iu)
+call parser_file_stack ('pop')
+
 if (ios > 0 .or. lr(1)%freq == -1) then
   call parser_error ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
                 'FROM FILE: '// full_file_name)
   return
 endif
+
+! Transfer info to ele structure.
 
 n_row = count(lr%freq /= -1)
 allocate (ele%wake%lr(n_row))
@@ -3280,7 +3285,7 @@ character(*) sr_file_name
 character(140) line, line_in
 character(200) full_file_name
 
-logical in_namelist
+logical in_namelist, finished, err
 
 ! init
 
@@ -3291,10 +3296,10 @@ if (allocated(ele%wake%sr_trans%mode)) deallocate (ele%wake%sr_trans%mode)
 
 ! Open file
 
-iu = 0
 ele%wake%sr_file = sr_file_name
-call find_this_file (iu, sr_file_name, full_file_name)
-if (iu < 0) return
+call parser_file_stack ('push', sr_file_name, finished, err)
+if (err) return
+iu = bp_com%current_file%f_unit
 
 ! Get data
 
@@ -3377,7 +3382,7 @@ do
 
 enddo
 
-close (iu)
+call parser_file_stack ('pop')
 
 ! Put data in element
 
@@ -3545,55 +3550,6 @@ is_ok = .true.
 end function expect_nothing
 
 end subroutine read_sr_wake
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine find_this_file (iu, file, full_file_name)
-!
-! Subroutine to open a file.
-! This subroutine is used by bmad_parser and bmad_parser2.
-!
-! Input:
-!   file -- Character(*): Name of wake field file
-!
-! Output:
-!   iu             -- Integer: Open file unit. 
-!                       If negative then there was an error. 
-!   full_file_name -- Character(*): Full name with directory spec.
-!-
-
-subroutine find_this_file (iu, file, full_file_name)
-
-implicit none
-
-character(*) file, full_file_name
-integer iu, ios, n
-logical found_it
-
-! open file
-
-iu = lunget()
-bp_com%dirs(2) = bp_com%calling_file%dir
-call find_file (file, found_it, full_file_name, bp_com%dirs)
-open (iu, file = full_file_name, status = 'OLD', action = 'READ', iostat = ios)
-if (ios /= 0) then
-call parser_error ('CANNOT OPEN WAKE FILE: ' // file)
-iu = -1
-return
-endif
-
-! If we have not read in this file before then add this to the list of files
-! that are used to create the lattice.
-
-n = size(bp_com%lat_file_names)
-if (n < bp_com%num_lat_files + 1) call re_allocate (bp_com%lat_file_names, n + 100)
-n = bp_com%num_lat_files
-inquire (file = full_file_name, name = bp_com%lat_file_names(n+1))
-if (all(bp_com%lat_file_names(n+1) /= bp_com%lat_file_names(1:n))) &
-                                              bp_com%num_lat_files = n + 1
-end subroutine find_this_file
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
