@@ -1003,7 +1003,7 @@ end subroutine lcav_edge_track
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega_at (field, coord, ele, param), result (omega)
+! Function spin_omega_at (field, coord, ele), result (omega)
 !
 ! Return the modified T-BMT spin omega vector.
 !
@@ -1016,26 +1016,22 @@ end subroutine lcav_edge_track
 !   coord      -- coord_struct: particle momentum
 !   ele        -- ele_struct: element evauluated in
 !      %value(E_TOT$) -- reaL(rp): needed to find momentum
-!   param      -- lat_param_struct: Beam parameters.
-!   omega(3)   -- real(rp): Omega in cartesian coordinates
-!   s          -- real(rp): evaluate at position s in element
 !
 ! Output:
-!   omega(3)   -- real(rp): Omega_TBMT / v_z
+!   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates
 !-
 
-function spin_omega_at (field, coord, ele, param, s) result (omega)
+function spin_omega_at (field, coord, ele) result (omega)
 
 implicit none
 
 type (em_field_struct) :: field
 type (coord_struct) :: coord
 type (ele_struct) :: ele
-type (lat_param_struct) :: param
 
 real(rp) omega(3),  p_vec(3)
 real(rp) anomalous_moment, charge, m_particle, p_z, gamma0
-real(rp) s, e_particle, pc, phase, cos_phi, gradient
+real(rp) e_particle, pc
 
 ! Want everything in units of eV
 
@@ -1055,9 +1051,9 @@ p_vec(3) = p_z
 omega = (1 + anomalous_moment*gamma0) * field%B
 
 omega = omega - ( anomalous_moment*dot_product(p_vec,field%B) / &
-                  ((gamma0+1)*(m_particle**2/c_light**2))  )*p_vec
+                  ((gamma0+1)*(m_particle**2/c_light**2)) )*p_vec
 
-omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0))* cross_product(p_vec,field%E)
+omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0)) * cross_product(p_vec,field%E)
 
 omega = -(charge/p_z)*omega
 
