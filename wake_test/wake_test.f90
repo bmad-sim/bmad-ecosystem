@@ -46,13 +46,13 @@ write (1, '(a, 2i4, f10.2)') '"SR-Size" ABS 0' , &
 
 do i = 1, size(ele%wake%sr_trans%mode)
   w => ele%wake%sr_trans%mode(i)
-  write (1, '(a, i0, a, 4f14.5, 2i4)') '"SR-T', i, '" ABS 0', &
+  write (1, '(a, i0, a, 4es14.6, 2i4)') '"SR-T', i, '" ABS 0', &
                                 w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
 enddo
 
 do i = 1, size(ele%wake%sr_long%mode)
   w => ele%wake%sr_long%mode(i)
-  write (1, '(a, i0, a, 4f14.5, 2i4)') '"SR-L', i, '" ABS 0', &
+  write (1, '(a, i0, a, 4es14.6, 2i4)') '"SR-L', i, '" ABS 0', &
                                w%amp, w%damp, w%k, w%phi, w%polarization, w%transverse_dependence
 enddo
 
