@@ -322,7 +322,7 @@ do j = n0, n1
   g2_here = g(1)**2 + g(2)**2 ! = g_x^2 + g_y^2
   g3_here = sqrt(g2_here)**3
 
-  if (i == n0 .or. i == n1) then
+  if (j == n0 .or. j == n1) then
     g2_here = g2_here / 2
     g3_here = g3_here / 2
   endif
@@ -335,7 +335,7 @@ enddo
 g2 = g2 / (n1 - n0 + 1)
 g3 = g3 / (n1 - n0 + 1)
 
-end subroutine
+end subroutine calc_g
 
 end subroutine calc_radiation_tracking_consts
 

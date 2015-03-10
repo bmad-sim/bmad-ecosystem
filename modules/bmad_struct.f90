@@ -542,11 +542,11 @@ end type
 ! radiation integral data cache
 
 type rad_int_ele_cache_struct
-  real(rp) orb0(6)        ! Reference orbit for the calculation
-  real(rp) g2_0           ! g2 factor when orbit = %vec0
-  real(rp) g3_0           ! g3 factor when orbit = %vec0
-  real(rp) dg2_dorb(6)    ! variation of g2 with respect to orbit.
-  real(rp) dg3_dorb(6)    ! Variation of g3 with respect to orbit.
+  real(rp) :: orb0(6) = 0       ! Reference orbit for the calculation
+  real(rp) :: g2_0 = 0          ! g2 factor when orbit = %vec0
+  real(rp) :: g3_0 = 0          ! g3 factor when orbit = %vec0
+  real(rp) :: dg2_dorb(6) = 0   ! variation of g2 with respect to orbit.
+  real(rp) :: dg3_dorb(6) = 0   ! Variation of g3 with respect to orbit.
   logical :: stale = .true.
 end type 
 
