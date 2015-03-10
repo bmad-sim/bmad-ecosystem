@@ -7,7 +7,6 @@ implicit none
 
 type (lat_struct), target :: lat, lat2
 type (ele_struct) ele, ele0, ele1
-type (ele_struct), pointer :: pel
 type (coord_struct), allocatable :: orb(:), orb2(:)
 type (coord_struct) orb0, orb1
 type (normal_modes_struct) mode
@@ -35,7 +34,6 @@ call read_digested_bmad_file ('digested.file', lat2, version)
 lat = lat2
 
 allocate (orb(0:lat%n_ele_max))     
-allocate (orb2(0:lat%n_ele_max))     
 
 bmad_com%rel_tol_tracking = 1e-7
 bmad_com%abs_tol_tracking = 1e-10
@@ -62,31 +60,28 @@ write (2, '(3a)') '"Second Descrip"     STR  "', trim(ele%descrip), '"'
 delta_e = 0.0
 call chrom_calc (lat, delta_e, chrom_x, chrom_y)
 
-! Use fixed orbit and Twiss to decouple radiation calc from orbit & Twiss calc
+!
 
-!! open (40, file = 'no_wig.orbit', form = 'unformatted')
-!! do n = 1, lat%n_ele_max
-!!   pel => lat%ele(n)
-!!   write (40) n, orb(n)%vec, pel%a, pel%b, pel%x, pel%y, pel%z, pel%c_mat, pel%gamma_c
-!! enddo
-!! close (40)
-
-call reallocate_coord (orb2, lat)
-orb2 = orb
-lat2 = lat
-
-open (40, file = 'no_wig.orbit', form = 'unformatted', action = 'read', status = 'old')
-do n = 1, lat2%n_ele_max
-  pel => lat2%ele(n)
-  read (40) i, orb2(n)%vec, pel%a, pel%b, pel%x, pel%y, pel%z, pel%c_mat, pel%gamma_c
+call mat_make_unit (m6)
+open (1, file = 'twiss.out')
+do n = 1, lat%n_ele_track
+  write (1, *) '!------------------------------------'
+  write (1, *) 'Index:', n
+  call type_ele (lat%ele(n), .false., 0, .false., 0, .false., lines = lines, n_lines = n_lines)
+  do i = 1, n_lines
+    write (1, '(a)') lines(i)
+  enddo
+  m6 = matmul (lat%ele(n)%mat6, m6)
+  do i = 1, 6
+    write (1, '(6f11.5)') (m6(i, j), j = 1, 6)
+  enddo
 enddo
-close (40)
 
 ix_cache = 0
-call radiation_integrals (lat2, orb2, mode, ix_cache, 0, rad_int2)
+call radiation_integrals (lat, orb, mode, ix_cache, 0, rad_int2)
 call ri_out('rad_int_no_wig_cache.dat', rad_int2)
 
-call radiation_integrals (lat2, orb2, mode, rad_int_by_ele = rad_int)
+call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
 call ri_out('rad_int_no_wig_no_cache.dat', rad_int)
 
 call ri_diff('no_wig')
@@ -121,42 +116,42 @@ call data_out (ele1%b%etap - ele0%b%etap, 1.0d-6, 'Dif:Etap_Y')
 
 ele = lat%ele(96)
 
-call data_out (ele%a%beta,           1.0D-06, 'Lat:No_Wig:Beta_a')
-call data_out (ele%a%alpha,          1.0D-06, 'Lat:No_Wig:Alpha_a')
-call data_out (ele%a%eta,            1.0D-06, 'Lat:No_Wig:Eta_a')
-call data_out (ele%a%etap,           1.0D-06, 'Lat:No_Wig:Etap_a')
-call data_out (ele%x%eta,            1.0D-06, 'Lat:No_Wig:Eta_x')
-call data_out (ele%x%etap,           1.0D-06, 'Lat:No_Wig:Etap_x')
-call data_out (ele%a%phi,            1.0D-06, 'Lat:No_Wig:Phi_a')
-call data_out (ele%b%beta,           1.0D-06, 'Lat:No_Wig:Beta_b')
-call data_out (ele%b%alpha,          1.0D-06, 'Lat:No_Wig:Alpha_y')
-call data_out (ele%b%eta,            1.0D-06, 'Lat:No_Wig:Eta_b')
-call data_out (ele%b%etap,           1.0D-06, 'Lat:No_Wig:Etap_y')
-call data_out (ele%y%eta,            1.0D-06, 'Lat:No_Wig:Eta_y')
-call data_out (ele%y%etap,           1.0D-06, 'Lat:No_Wig:Etap_y')
-call data_out (ele%b%phi,            1.0D-06, 'Lat:No_Wig:Phi_y')
-call data_out (orb(96)%vec(1),       1.0D-10, 'Lat:No_Wig:Orb X')
-call data_out (orb(96)%vec(2),       1.0D-10, 'Lat:No_Wig:Orb P_X')
-call data_out (orb(96)%vec(3),       1.0D-10, 'Lat:No_Wig:Orb Y')
-call data_out (orb(96)%vec(4),       1.0D-10, 'Lat:No_Wig:Orb P_Y')
-call data_out (orb(96)%vec(5),       1.0D-10, 'Lat:No_Wig:Orb Z')
-call data_out (orb(96)%vec(6),       1.0D-10, 'Lat:No_Wig:Orb P_Z')
-call data_out (chrom_x,              1.0D-05, 'Lat:No_Wig:Chrom_x')
-call data_out (chrom_y,              1.0D-05, 'Lat:No_Wig:Chrom_y')
-call data_out (mode%synch_int(1),    1.0D-06, 'Lat:No_Wig:Synch_int(1)')
-call data_out (mode%synch_int(2),    1.0D-06, 'Lat:No_Wig:Synch_int(2)')
-call data_out (mode%synch_int(3),    1.0D-06, 'Lat:No_Wig:Synch_int(3)')
-call data_out (mode%sige_e,          1.0D-10, 'Lat:No_Wig:Sige_e')
-call data_out (mode%sig_z,           1.0D-08, 'Lat:No_Wig:Sig_z')
-call data_out (mode%e_loss,          1.0D-01, 'Lat:No_Wig:E_loss')
-call data_out (mode%a%emittance,     1.0D-12, 'Lat:No_Wig:A%Emittance')
-call data_out (mode%b%emittance,     1.0D-14, 'Lat:No_Wig:B%Emittance')
-call data_out (mode%z%emittance,     1.0D-11, 'Lat:No_Wig:Z%Emittance')
-call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat:No_Wig:A%Synch_int(4)')
-call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat:No_Wig:A%Synch_int(5)')
-call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat:No_Wig:B%Synch_int(4)')
-call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat:No_Wig:B%Synch_int(5)')
-call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat:No_Wig:Z%Synch_int(4)')
+call data_out (ele%a%beta,           1.0D-06, 'Lat1:Beta_a')
+call data_out (ele%a%alpha,          1.0D-06, 'Lat1:Alpha_a')
+call data_out (ele%a%eta,            1.0D-06, 'Lat1:Eta_a')
+call data_out (ele%a%etap,           1.0D-06, 'Lat1:Etap_a')
+call data_out (ele%x%eta,            1.0D-06, 'Lat1:Eta_x')
+call data_out (ele%x%etap,           1.0D-06, 'Lat1:Etap_x')
+call data_out (ele%a%phi,            1.0D-06, 'Lat1:Phi_a')
+call data_out (ele%b%beta,           1.0D-06, 'Lat1:Beta_b')
+call data_out (ele%b%alpha,          1.0D-06, 'Lat1:Alpha_y')
+call data_out (ele%b%eta,            1.0D-06, 'Lat1:Eta_b')
+call data_out (ele%b%etap,           1.0D-06, 'Lat1:Etap_y')
+call data_out (ele%y%eta,            1.0D-06, 'Lat1:Eta_y')
+call data_out (ele%y%etap,           1.0D-06, 'Lat1:Etap_y')
+call data_out (ele%b%phi,            1.0D-06, 'Lat1:Phi_y')
+call data_out (orb(96)%vec(1),       1.0D-10, 'Lat1:Orb X')
+call data_out (orb(96)%vec(2),       1.0D-10, 'Lat1:Orb P_X')
+call data_out (orb(96)%vec(3),       1.0D-10, 'Lat1:Orb Y')
+call data_out (orb(96)%vec(4),       1.0D-10, 'Lat1:Orb P_Y')
+call data_out (orb(96)%vec(5),       1.0D-10, 'Lat1:Orb Z')
+call data_out (orb(96)%vec(6),       1.0D-10, 'Lat1:Orb P_Z')
+call data_out (chrom_x,              1.0D-05, 'Lat1:Chrom_x')
+call data_out (chrom_y,              1.0D-05, 'Lat1:Chrom_y')
+call data_out (mode%synch_int(1),    1.0D-06, 'Lat1:Synch_int(1)')
+call data_out (mode%synch_int(2),    1.0D-06, 'Lat1:Synch_int(2)')
+call data_out (mode%synch_int(3),    1.0D-06, 'Lat1:Synch_int(3)')
+call data_out (mode%sige_e,          1.0D-10, 'Lat1:Sige_e')
+call data_out (mode%sig_z,           1.0D-08, 'Lat1:Sig_z')
+call data_out (mode%e_loss,          1.0D-01, 'Lat1:E_loss')
+call data_out (mode%a%emittance,     1.0D-12, 'Lat1:A%Emittance')
+call data_out (mode%b%emittance,     1.0D-14, 'Lat1:B%Emittance')
+call data_out (mode%z%emittance,     1.0D-11, 'Lat1:Z%Emittance')
+call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat1:A%Synch_int(4)')
+call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat1:A%Synch_int(5)')
+call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat1:B%Synch_int(4)')
+call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat1:B%Synch_int(5)')
+call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat1:Z%Synch_int(4)')
  
 call set_z_tune (lat, -0.05 * twopi)
 
@@ -175,32 +170,12 @@ call lat_make_mat6 (lat, -1, orb)
 call twiss_at_start (lat)
 call twiss_propagate_all (lat)
 
-! Use fixed orbit and Twiss to decouple radiation calc from orbit & Twiss calc
-
-!! open (40, file = 'wig.orbit', form = 'unformatted')
-!! do n = 1, lat%n_ele_max
-!!   pel => lat%ele(n)
-!!   write (40) n, orb(n)%vec, pel%a, pel%b, pel%x, pel%y, pel%z, pel%c_mat, pel%gamma_c
-!! enddo
-!! close (40)
-
-call reallocate_coord (orb2, lat)
-orb2 = orb
-lat2 = lat
-
-open (40, file = 'wig.orbit', form = 'unformatted', action = 'read', status = 'old')
-do n = 1, lat2%n_ele_max
-  pel => lat2%ele(n)
-  read (40) i, orb2(n)%vec, pel%a, pel%b, pel%x, pel%y, pel%z, pel%c_mat, pel%gamma_c
-enddo
-close (40)
-
 ix_cache = 0
 call set_on_off (rfcavity$, lat, on$)
-call radiation_integrals (lat2, orb2, mode, ix_cache, 0, rad_int2)
+call radiation_integrals (lat, orb, mode, ix_cache, 0, rad_int2)
 call ri_out('rad_int_wig_cache.dat', rad_int2)
 
-call radiation_integrals (lat2, orb2, mode, rad_int_by_ele = rad_int)
+call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
 call ri_out('rad_int_wig_no_cache.dat', rad_int)
 
 call ri_diff('wig')
@@ -209,64 +184,45 @@ call chrom_calc (lat, delta_e, chrom_x, chrom_y)
 
 ele = lat%ele(96)
  
-call data_out (ele%a%beta,           1.0D-05, 'Lat:Wig:Beta_a')
-call data_out (ele%a%alpha,          1.0D-05, 'Lat:Wig:Alpha_a')
-call data_out (ele%a%eta,            1.0D-05, 'Lat:Wig:Eta_a')
-call data_out (ele%a%etap,           1.0D-05, 'Lat:Wig:Etap_a')
-call data_out (ele%x%eta,            1.0D-05, 'Lat:Wig:Eta_x')
-call data_out (ele%x%etap,           1.0D-05, 'Lat:Wig:Etap_x')
-call data_out (ele%a%phi,            1.0D-05, 'Lat:Wig:Phi_a')
-call data_out (ele%b%beta,           1.0D-05, 'Lat:Wig:Beta_b')
-call data_out (ele%b%alpha,          1.0D-05, 'Lat:Wig:Alpha_b')
-call data_out (ele%b%eta,            1.0D-05, 'Lat:Wig:Eta_b')
-call data_out (ele%b%etap,           1.0D-05, 'Lat:Wig:Etap_b')
-call data_out (ele%y%eta,            1.0D-05, 'Lat:Wig:Eta_y')
-call data_out (ele%y%etap,           1.0D-05, 'Lat:Wig:Etap_y')
-call data_out (ele%b%phi,            1.0D-05, 'Lat:Wig:Phi_b')
-call data_out (orb(96)%vec(1),       1.0D-07, 'Lat:Wig:Orb X')
-call data_out (orb(96)%vec(2),       1.0D-07, 'Lat:Wig:Orb P_X')
-call data_out (orb(96)%vec(3),       1.0D-07, 'Lat:Wig:Orb Y')
-call data_out (orb(96)%vec(4),       1.0D-07, 'Lat:Wig:Orb P_Y')
-call data_out (orb(96)%vec(5),       1.0D-07, 'Lat:Wig:Orb Z')
-call data_out (orb(96)%vec(6),       1.0D-07, 'Lat:Wig:Orb P_Z')
-call data_out (chrom_x,              1.0D-04, 'Lat:Wig:Chrom_x')
-call data_out (chrom_y,              1.0D-04, 'Lat:Wig:Chrom_y')
-call data_out (mode%synch_int(1),    1.0D-06, 'Lat:Wig:Synch_int(1)')
-call data_out (mode%synch_int(2),    1.0D-06, 'Lat:Wig:Synch_int(2)')
-call data_out (mode%synch_int(3),    1.0D-06, 'Lat:Wig:Synch_int(3)')
-call data_out (mode%sige_e,          1.0D-10, 'Lat:Wig:Sige_e')
-call data_out (mode%sig_z,           1.0D-08, 'Lat:Wig:Sig_z')
-call data_out (mode%e_loss,          1.0D-01, 'Lat:Wig:E_loss')
-call data_out (mode%a%emittance,     1.0D-12, 'Lat:Wig:A%Emittance')
-call data_out (mode%b%emittance,     1.0D-14, 'Lat:Wig:B%Emittance')
-call data_out (mode%z%emittance,     1.0D-11, 'Lat:Wig:Z%Emittance')
-call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat:Wig:A%Synch_int(4)')
-call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat:Wig:A%Synch_int(5)')
-call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat:Wig:B%Synch_int(4)')
-call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat:Wig:B%Synch_int(5)')
-call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat:Wig:Z%Synch_int(4)')
+call data_out (ele%a%beta,           1.0D-05, 'Lat2:Beta_a')
+call data_out (ele%a%alpha,          1.0D-05, 'Lat2:Alpha_a')
+call data_out (ele%a%eta,            1.0D-05, 'Lat2:Eta_a')
+call data_out (ele%a%etap,           1.0D-05, 'Lat2:Etap_a')
+call data_out (ele%x%eta,            1.0D-05, 'Lat2:Eta_x')
+call data_out (ele%x%etap,           1.0D-05, 'Lat2:Etap_x')
+call data_out (ele%a%phi,            1.0D-05, 'Lat2:Phi_a')
+call data_out (ele%b%beta,           1.0D-05, 'Lat2:Beta_b')
+call data_out (ele%b%alpha,          1.0D-05, 'Lat2:Alpha_b')
+call data_out (ele%b%eta,            1.0D-05, 'Lat2:Eta_b')
+call data_out (ele%b%etap,           1.0D-05, 'Lat2:Etap_b')
+call data_out (ele%y%eta,            1.0D-05, 'Lat2:Eta_y')
+call data_out (ele%y%etap,           1.0D-05, 'Lat2:Etap_y')
+call data_out (ele%b%phi,            1.0D-05, 'Lat2:Phi_b')
+call data_out (orb(96)%vec(1),       1.0D-07, 'Lat2:Orb X')
+call data_out (orb(96)%vec(2),       1.0D-07, 'Lat2:Orb P_X')
+call data_out (orb(96)%vec(3),       1.0D-07, 'Lat2:Orb Y')
+call data_out (orb(96)%vec(4),       1.0D-07, 'Lat2:Orb P_Y')
+call data_out (orb(96)%vec(5),       1.0D-07, 'Lat2:Orb Z')
+call data_out (orb(96)%vec(6),       1.0D-07, 'Lat2:Orb P_Z')
+call data_out (chrom_x,              1.0D-04, 'Lat2:Chrom_x')
+call data_out (chrom_y,              1.0D-04, 'Lat2:Chrom_y')
+call data_out (mode%synch_int(1),    1.0D-06, 'Lat2:Synch_int(1)')
+call data_out (mode%synch_int(2),    1.0D-06, 'Lat2:Synch_int(2)')
+call data_out (mode%synch_int(3),    1.0D-06, 'Lat2:Synch_int(3)')
+call data_out (mode%sige_e,          1.0D-10, 'Lat2:Sige_e')
+call data_out (mode%sig_z,           1.0D-08, 'Lat2:Sig_z')
+call data_out (mode%e_loss,          1.0D-01, 'Lat2:E_loss')
+call data_out (mode%a%emittance,     1.0D-12, 'Lat2:A%Emittance')
+call data_out (mode%b%emittance,     1.0D-14, 'Lat2:B%Emittance')
+call data_out (mode%z%emittance,     1.0D-11, 'Lat2:Z%Emittance')
+call data_out (mode%a%synch_int(4),  1.0D-07, 'Lat2:A%Synch_int(4)')
+call data_out (mode%a%synch_int(5),  1.0D-07, 'Lat2:A%Synch_int(5)')
+call data_out (mode%b%synch_int(4),  1.0D-07, 'Lat2:B%Synch_int(4)')
+call data_out (mode%b%synch_int(5),  1.0D-11, 'Lat2:B%Synch_int(5)')
+call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
 
-write (2, '(a, l1, a)') '"Lat:Wig:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
+write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
-!
-
-call mat_make_unit (m6)
-open (1, file = 'twiss.out')
-do n = 1, lat%n_ele_track
-  write (1, *) '!------------------------------------'
-  write (1, *) 'Index:', n
-  call type_ele (lat%ele(n), .false., 0, .false., 0, .false., lines = lines, n_lines = n_lines)
-  do i = 1, n_lines
-    write (1, '(a)') trim(lines(i))
-  enddo
-  m6 = matmul (lat%ele(n)%mat6, m6)
-  do i = 1, 6
-    write (1, '(6f11.5)') (m6(i, j), j = 1, 6)
-  enddo
-enddo
-close(1)
-
-!--------------------------------------------------------------------
 contains
 
 subroutine data_out (now, err_tol, what)
