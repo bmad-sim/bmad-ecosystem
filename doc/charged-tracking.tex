@@ -174,9 +174,9 @@ The rotation matrix $\bfS_c$ transforming
 from the center of the bend (where the misalignments are defined) to the
 entrance face of the bend is
 \begin{align}
-  \bfS_c &= \bfW_\Psi^{-1} (\theta_t) \, \bfW_\Theta (\alpha_b/2) \, \bfW_\Psi (\theta_t) \\
+  \bfS_c &= \bfR_{z}^{-1} (\theta_t) \, \bfR_{y} (\alpha_b/2) \, \bfR_{z} (\theta_t) \\
 \end{align}
-where $\bfW_\Psi$ and $\bfW_\Theta$ are given by \Eqs{wtt0t},
+where $\bfR_{z}$ and $\bfR_{y}$ are given by \Eqs{wtt0t},
 $\theta_t$ is the \vn{ref_tilt} attribute of the bend and $\alpha_b$
 is the bend \vn{angle}.
 
@@ -194,7 +194,7 @@ In the laboratory entrance coordinates, the pitches and offset are
 \end{align}
 where the offset vector $\bfL_c$ is
 \Begineq
-  \bfL_c = \bfW_\Psi(\theta_t) \,
+  \bfL_c = \bfR_{z}(\theta_t) \,
       \begin{pmatrix}
         2 \, \rho \, \sin^2 (\alpha_b / 2) \\ 0 \\ -\rho \, \sin(\alpha_b / 2)
       \end{pmatrix}
@@ -1108,14 +1108,10 @@ occur when an element is flipped longitudinally).
 The transformation between entrance and exit coordinate systems is given by \Eqs{rwlr} and \eq{pps}
 \begin{alignat}{1}
   \bfr &\rightarrow 
-    \bfS^{-1} \, (\bfr - \bfL) \CRNO
+    \bfS^{-1} \, (\bfr - \bfL_\text{off}) \CRNO
   \bfP &\rightarrow \bfS^{-1} \, \bfP
 \end{alignat}
-where $\bf L$ is given by \Eq{lxyz}
-\begin{example}
-  \(\bf L\) =  (x_offset, y_offset, z_offset)
-  \label{lxyz2}
-\end{example}
+where $\bfL_\text{off}$ is given by \Eq{lxyz}
 
 After this transformation, the particle must be propagated by a longitudinal length
 $-r_z$ to intersect the $r_z = 0$ plane of the exit face.

@@ -1,4 +1,4 @@
-\chapter{Coordinates}
+n\chapter{Coordinates}
 \index{coordinates|hyperbf}
 
 %-----------------------------------------------------------------------------
@@ -314,24 +314,24 @@ The column vectors of $\bfW$ are the unit vectors spanning the local
 coordinate axes in the order $(x, y, z)$. $\bfW$ can be expressed in
 terms of the angles $\theta$, $\phi$, and $\psi$ via the formula
 \Begineq
-  \bfW = \bfW_\Theta \, \bfW_\Phi \, \bfW_\Psi
+  \bfW = \bfR_{y}(\theta) \; \bfR_{-x}(\phi) \; \bfR_{z}(\psi)
   \label{wwww}
 \Endeq
 where
 \Begineq
-  \bfW_\Theta(\theta) = 
+  \bfR_{y}(\theta) = 
   \begin{pmatrix}
     \cos\theta  & 0 & \sin\theta \\
     0           & 1 & 0          \\
     -\sin\theta & 0 & \cos\theta 
   \end{pmatrix}, \quad
-  \bfW_\Phi(\phi) = 
+  \bfR_{-x}(\phi) = 
   \begin{pmatrix}
     1 & 0 & 0                \\
     0 & \cos\phi  & \sin\phi \\
     0 & -\sin\phi & \cos\phi 
   \end{pmatrix}, \quad
-  \bfW_\Psi(\psi) = 
+  \bfR_{z}(\psi) = 
   \begin{pmatrix}
     \cos\psi & -\sin\psi & 0 \\
     \sin\psi &  \cos\psi & 0 \\
@@ -339,6 +339,8 @@ where
   \end{pmatrix}
   \label{wtt0t}
 \Endeq
+Notice that $\bfR_{-x}(\phi)$, for positive $\phi$, represents a
+rotation around the negative $x$-axis.
 
 %-----------------------------------------------------------------------------
 \subsection{Lattice Element Positioning}
@@ -349,9 +351,9 @@ where
 at the first element of the lattice and iteratively using the
 equations
 \begin{align}
-  \bfV_i &= \bfW_{i-1} \, \bfL_i + \bfV_{i-1}, 
+  \bfV_i &= \bfW_{i-1} \; \bfL_i + \bfV_{i-1}, 
     \label{vwlv} \\
-  \bfW_i &= \bfW_{i-1} \, \bfS_i
+  \bfW_i &= \bfW_{i-1} \; \bfS_i
     \label{wws}
 \end{align}
 $\bfL_i$ is the displacement vector for the $i$\Th element and matrix
@@ -372,6 +374,7 @@ $\bfL$ and $\bfS$ are
       0 & 1 & 0 \\
       0 & 0 & 1
   \end{pmatrix},
+  \label{l00l}
 \Endeq
 Where $L$ is the length of the element. 
 
@@ -381,10 +384,10 @@ Where $L$ is the length of the element.
 \centering \includegraphics{tilt-bend.pdf} 
 \caption[Orientation of a Bend.] 
   {
-A) Rotation axes for four different \vn{ref_tilt} angles of $\theta_t$
-= 0, $\pm \pi/2$, and $\pi$. $(x_0, y_0, z_0)$ are the local
-coordinates at the entrance end of the bend with the $z_0$ axis being
-directed into the page. Any rotation axis will be displaced by a
+A) Rotation axes (bold arrows) for four different \vn{ref_tilt} angles
+of $\theta_t$ = 0, $\pm \pi/2$, and $\pi$. $(x_0, y_0, z_0)$ are the
+local coordinates at the entrance end of the bend with the $z_0$ axis
+being directed into the page. Any rotation axis will be displaced by a
 distance of the bend radius \vn{rho} from the origin. B) The $(x, y,
 z)$ coordinates at the exit end of the bend for the same four
 \vn{ref_tilt} angles. In this case the bend angle is taken to be
@@ -410,35 +413,20 @@ bend angle \vn{angle} of $\pi/2$.
 
 For a bend, $\bfL$ and $\bfS$ are given by
 \Begineq
-  \bfL = \bfT \, \bftilde L, \quad
-  \bfS = \bfT \, \bftilde S \, \bfT^{-1}
+  \bfL = \bfR_{z}(\theta_t) \; \bftilde L, \quad
+  \bfS = \bfR_{z}(\theta_t) \; \bfR_{y}(-\alpha_b) \; \bfR_{z}(-\theta_t)
   \label{ltl}
 \Endeq
-where
+where $\alpha_b$ is the bend \vn{angle} (\sref{s:bend}),
+$\theta_t$ is the \vn{ref_tilt} angle (\sref{s:offset}), and
 \Begineq
   \bftilde L = 
   \begin{pmatrix}
     \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
-  \end{pmatrix}, 
-  \quad
-  \bftilde S = 
-  \begin{pmatrix}
-    \cos\alpha_b & 0 & -\sin\alpha_b \\
-    0          & 1 & 0           \\
-    \sin\alpha_b & 0 & \cos\alpha_b
-  \end{pmatrix},
-  \quad
-  \bfT = 
-  \begin{pmatrix}
-    \cos\theta_t & -\sin\theta_t & 0 \\
-    \sin\theta_t &  \cos\theta_t & 0 \\
-    0            &  0            & 1                
   \end{pmatrix}
-  \label{lrca1}
 \Endeq
-with $\rho$ being the bend radius (\vn{rho}), $\alpha_b$ is the bend
-\vn{angle} (\sref{s:bend}), and $\theta_t$ is the \vn{ref_tilt} angle
-(\sref{s:offset}). Without a \vn{ref_tilt}, $\bfT$ is the unit matrix
+with $\rho$ being the bend radius (\vn{rho}). 
+Without a \vn{ref_tilt}, $\bfT$ is the unit matrix
 resulting in $\bfL = \bftilde L$ and $\bfS = \bftilde
 S$. Notice that for a bend in the horizontal $X-Z$ plane, a positive
 bend \vn{angle} will result in a decreasing azimuth angle $\theta$.
@@ -481,21 +469,21 @@ the undiffracted beam (shown in red) as the reference trajectory.
 \subsection{Position Transformation When Transforming Coordinates}
 \label{s:pos.trans}
 
-A point $\bfR = (X, Y, Z)$ defined in the global coordinate system,
+A point $\bfQ_g = (X, Y, Z)$ defined in the global coordinate system,
 when expressed in the coordinate system defined by $(\bfV, \bfW)$ is
 \Begineq
-  \bfR_{VW} = \bfW^{-1} \left( \bfR - \bfV \right)
+  \bfQ_{VW} = \bfW^{-1} \left( \bfQ_g - \bfV \right)
   \label{rwrv}
 \Endeq
 This is essentially the inverse of \Eq{vwlv}. That is, vectors
 propagate inversely to the propagation of the coordinate system.
 
 Using \Eq{rwrv} with \Eqs{vwlv}, and \eq{wws}, the transformation of a
-particle's position $\bfr = (x,y,z)$ and momentum $\bfP = (P_x, P_y,
+particle's position $\bfq = (x,y,z)$ and momentum $\bfP = (P_x, P_y,
 P_z)$ when the coordinate frame is transformed from frame
 $(\bfV_{i-1}, \bfW_{i-1})$ to frame $(\bfV_i, \bfW_i)$ is
 \begin{align}
-  \bfr_i &= \bfS_i^{-1} \, \left( \bfr_{i-1} - \bfL_i \right), 
+  \bfq_i &= \bfS_i^{-1} \, \left( \bfq_{i-1} - \bfL_i \right), 
     \label{rwlr} \\
   \bfP_i &= \bfS_i^{-1} \, \bfP_{i-1}
     \label{pps}
@@ -559,68 +547,98 @@ Section~\sref{ss:crystal.ref}.
 \label{s:patch.coords}
 
 The \vn{Element Body} coordinates are the coordinate system attached
-to an element. Without any misalignments (Here \vn{``misalignment''}
-is {\em defined} to be any offset, pitch or tilt (\sref{s:offset}),
-the laboratory and element body coordinates are the same. With
-misalignments, the transformation is given by \Eqs{vwlv} and \eq{wws}
-where 
-\Begineq
-  \bfL =  (\text{x_offset}, \, \text{y_offset}, \, \text{z_offset})
-  \label{lxyz}
-\Endeq
-and the $\bfS$ matrix is defined by 
-\Begineq
-  \bfS = \bfW_\Theta \, \bfW_\Phi \, \bfW_\Psi
+to an element. Without any misalignments, where \vn{``misalignments''}
+are here defined to be any offset, pitch or tilt (\sref{s:offset}),
+the laboratory and element body coordinates are the same.  With
+misalignments, the transformation at the center of the element from
+laboratory coordinates specified by $(\bfL_\lab, \bfW_\lab)$ to
+element coordinates specified by $(\bfL_\ele, \bfW_\ele)$ is, for
+straight line elements, given in analogy to \Eqs{vwlv} and \eq{wws} by
+\begin{align}
+  \bfV_\ele &= \bfW_\lab \; \bfL_\mis + \bfV_\lab, 
+    \CRNO
+  \bfW_\ele &= \bfW_\lab \; \bfS_\mis
+    \label{wws2}
+\end{align}
+where, by definition of the offset, pitch and tilt parameters
+\begin{align}
+  \bfL_\mis &\equiv \bfL_\text{off} \CRNO
+  \bfS_\mis &\equiv \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
   \label{swww}
-\Endeq
-with
+\end{align}
+and
 \Begineq
-  \Theta = \text{x_pitch},  \qquad \Phi = \text{y_pitch},  \qquad \Psi = \text{tilt}
-  \label{txppyp}
+  \bfL_\text{off} = 
+    \begin{pmatrix} 
+      \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
+    \end{pmatrix}
+    \label{lxyz}
 \Endeq
-The form of \Eq{swww} was chosen to correspond to the form of \Eq{wwww}.
+the transformation between laboratory and element coordinates at the
+ends of a non-bend element (which are needed for particle tracking)
+can be calculated by concatination, using \Eqs{vwlv} and \eq{wws}, of
+three transformations. For the transformation at the entrance end of
+the element, for example, the first transformation is from laboratory
+entrance coordinates to laboratory coordinates at the center of the
+element. This is just \Eqs{l00l} with the replacement $L \rightarrow
+L/2$. The second transformation is given by \Eqs{swww} above.  The
+last transformaion is from element coordinates at the center back to
+element coordinates at the entrance end. This is again given by
+\Eqs{l00l} with the replacement $L \rightarrow -L/2$.
 
-\index{patch}\index{floor_shift}
+\index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
 For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele})
 elements, the above equations are also used to calculate the the shift
 in the reference coordinates from the entrance end to the exit end of
 the element.
 
-\index{rbend}\index{sbend}\index{roll}\index{tilt}
-For \vn{rbend} and \vn{sbend} elements the above equations are modified
-by using 
-\Begineq
-  \Psi = 0
-\Endeq
-This is used since, unlike other elements, the \vn{ref_tilt} attribute of
-a bend affects the reference orbit (cf.~\Eq{ltl}). In the place of a
-\vn{tilt}, the \vn{roll} attribute can be used (\sref{s:offset}). For
-a \vn{roll}, the transformation at the entrance end to go from laboratory
-coordinates to element coordinates is
-\Begineq
-  \bfL = 0, \qquad 
-  \bfS = \bfW_\Theta(\text{-angle/2}) \, \bfW_\Psi(\text{roll}) \, \bfW_\Theta(\text{angle/2})
-\Endeq
-where \vn{angle} is the total bend angle.
-The transformation back to the laboratory frame at the exit end of the bend is
-\Begineq
-  \bfL = 0, \qquad 
-  \bfS = \bfW_\Theta(\text{angle/2}) \, \bfW_\Psi(\text{-roll}) \, \bfW_\Theta(\text{-angle/2})
-\Endeq
-Notice that these transformations are not inverses of one another.
-
 \index{girder}\index{fiducial}
 For \vn{fiducial} and \vn{girder} elements the above equations are
 used to calculate the alignment of reference coordinates with respect
-to ``\vn{origin}'' coordinates. In this case, the vector $\bfL$ is
-constructed via
+to ``\vn{origin}'' coordinates. In this case, the transformation is
+\begin{align}
+  \bfL &= 
+    \begin{pmatrix} 
+      \text{dx_origin} \\ \text{dy_origin} \\ \text{dz_origin}
+    \end{pmatrix}
+    \CRNO
+  \bfS &= \bfR_{y} (\text{dtheta_origin}) \; \bfR_{-x} (\text{dphi_origin}) \; \bfR_{z} (\text{dpsi_origin})
+\end{align}
+
+\index{rbend!coordinate transformation}\index{sbend!coordinate transformation}
+\index{roll!coordinate transformation}\index{tilt!coordinate transformation}
+For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt}
+attribute.  Rather, there is the \vn{roll} attribute and a
+\vn{ref_tilt} attribute. The latter affects both the reference orbit
+and the bend position (\sref{ss:bend.orient}). The transformation at
+the center of the bend from the laboratory coordinates to the element
+coordinates is
+\begin{align}
+  \bfL_\text{mis} &= \bfL_\text{off} + 
+    \left[ \bfR_z(\text{roll}) - \Bf1 \right] \; \bfR_z(\theta_t) \; \bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
+  \bfS_\text{mis} &= \bfR_{y}(\text{x_pitch}) \; \bfR_{-x}(\text{y_pitch}) \; \bfR_z(\text{roll})
+  \label{lcmis}
+\end{align}
+where
 \Begineq
-  \bfL = (\text{dx_origin}, \qquad \text{dy_origin}, \qquad \text{dz_origin})
+  \bfL_c = \begin{pmatrix}
+    \rho (\cos(\alpha_b/2) - 1) \\ 0 \\ \rho \, \sin(\alpha_b/2)
+  \end{pmatrix}
 \Endeq
-And the attributes use to shift the reference coordinates orientation are:
-\Begineq
-  \Theta = \text{dtheta_origin}, \qquad \Phi = \text{dphi_origin}, \qquad \Psi = \text{dpsi_origin}
-\Endeq
+
+The transformations between laboratory and element coordinates at the
+ends of the bend are obtaind in the same way as with straight elements
+by using three transformations concatinated together. The first
+transformation is from laboratory entrance coordinates to laboratory
+coordinates at the center of the bend. This is just \Eqs{ltl} with the
+replacement $\alpha_b \rightarrow \alpha_b/2$. The second
+transformation is given by \Eqs{lcmis}. The last transformaion is from
+element coordinates at the center to element coordinates at the
+entrance end:
+\begin{align}
+  \bfL_\text{CEele} &= -\bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
+  \bfS_\text{CEele} &= \bfR_{y}(\alpha_b/2)
+\end{align}
 
 %-----------------------------------------------------------------------------
 \subsection{Reflection Patch}

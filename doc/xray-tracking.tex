@@ -292,7 +292,7 @@ the entrance coordinates.
   \begin{enumerate}
   \item
 Apply offsets, pitches and tilt using the formulas in
-\sref{s:pos.trans} along with \Eqs{lxyz}, \eq{swww}, and \eq{txppyp}.
+\sref{s:pos.trans} along with \Eqs{wws2}, and \eq{swww}.
   \item
 Apply the \vn{tilt} to the electric field (\Eq{ertee}).
   \item
@@ -320,7 +320,7 @@ rotate to element from element surface coordinates to element exit coordinates
 Apply the reverse \vn{tilt} to the electric field (\Eq{ertee}).
   \item
 Apply reverse offsets, pitches and tilt using the formulas in
-\sref{s:pos.trans} along with \Eqs{lxyz}, \eq{swww}, and \eq{txppyp}.
+\sref{s:pos.trans} along with \Eqs{wws2}, and \eq{swww}.
   \end{enumerate}
 
 %-------------------------------------------------------------------------
@@ -730,15 +730,16 @@ $\theta_{B,in}+\theta_{B,out}$ as explained in section
 When $\psi_H$ is non-zero, the situation is complicated since, if
 $\bfS$ as calculated above is used, the vector $\bfkbar_H$ would be
 bent out of the $x$-$z$ plane even though it has been assumed that the
-\vn{ref_tilt} $\theta_t$ is zero. But $\bfkbar_H$ points in the same direction
-as the $z$ axis of the outgoing reference trajectory. Furthermore, by
-{\em definition}, the reference trajectory has the form given by
-\Eq{lrca1} with the $\bfT$ matrix depending only upon the \vn{ref_tilt}
-parameter (which is here taken to be zero). To satisfy \Eq{lrca1}, the
-crystal must be reorientated to keep the $\bfk_H$ vector in the
-$x$-$z$ plane of the laboratory entrance coordinates.  The
-reorientation is done by rotating the crystal about the laboratory
-entrance $\Bf z$ axis by an amount $\theta_{corr}$ (\vn{tilt_corr}).
+\vn{ref_tilt} $\theta_t$ is zero. But $\bfkbar_H$ points in the same
+direction as the $z$ axis of the outgoing reference
+trajectory. Furthermore, by {\em definition}, the reference trajectory
+has the form given by \Eq{ltl} with the $\bfR_{z}(\theta_t)$ matrix
+depending only upon the \vn{ref_tilt} parameter (which is here taken
+to be zero). To satisfy \Eq{ltl}, the crystal must be reorientated to
+keep the $\bfk_H$ vector in the $x$-$z$ plane of the laboratory
+entrance coordinates.  The reorientation is done by rotating the
+crystal about the laboratory entrance $\Bf z$ axis by an amount
+$\theta_{corr}$ (\vn{tilt_corr}).
 
 With this tilt correction the transformation $\Bf\Sigma_1$ is a
 rotation about the $z$ axis
@@ -756,7 +757,7 @@ coordinates is not affected by a finite $\psi_H$ and so \Eq{mt0t010}
 is unmodified. The $\bfk_H$ vector, expressed in laboratory entrance
 coordinates, is $\Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H$ where the
 components of $\bfk_H$ are given by \Eq{k1dapl}. To
-satisfy \Eq{lrca1}, this vector must have zero $y$ component
+satisfy \Eq{ltl}, this vector must have zero $y$ component
 \Begineq
   \left( \Bf\Sigma_1^{-1} \, \Bf\Sigma_2^{-1} \, \bfk_H \right) \dotproduct
   \begin{pmatrix} 0 \\ 1 \\ 0 \end{pmatrix}
@@ -770,7 +771,7 @@ Solving gives
 The transformation $\Bf\Sigma_3$ from element surface coordinates to
 element exit coordinates is now obtained by requiring that the total
 transformation from laboratory entrance to laboratory exit coordinates
-be the $\bftilde S$ matrix given in \Eq{lrca1}
+be the $\bfR_{y}(-\alpha_b)$ matrix given in \Eq{ltl}
 \Begineq
   \Bf\Sigma_3 \, \Bf\Sigma_2 \, \Bf\Sigma_1 = 
   \begin{pmatrix}
