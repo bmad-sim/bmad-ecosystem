@@ -945,11 +945,10 @@ integer i, j
 a = 0.0
 if (.not. associated(map)) return
 do i = 1, size(map)
-  a_part = 1.0
+  a_part = map(i)%coef
   do j = 1, 6
     a_part = a_part * temp_middle%vec(j)**map(i)%expn(j)
   enddo
-  a_part = map(i)%coef * a_part
   a = a + a_part
 enddo
 

@@ -1644,12 +1644,10 @@ if (present(upper_bound))  ub = upper_bound
 if (associated (ele)) then
   if (ub == ubound(ele, 1)) return
   curr_ub = min(ub, ubound(ele, 1))
-  allocate (temp_ele(0:curr_ub))
-  call transfer_eles (ele(0:curr_ub), temp_ele)
   do i = curr_ub+1, ubound(ele, 1)
     call deallocate_ele_pointers(ele(i))
   enddo
-  deallocate (ele)
+  temp_ele => ele
   allocate(ele(0:ub))
   call transfer_eles (temp_ele(0:curr_ub), ele(0:curr_ub))
   deallocate (temp_ele)

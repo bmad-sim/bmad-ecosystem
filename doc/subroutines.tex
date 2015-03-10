@@ -138,13 +138,13 @@ Finds all bunch parameters for a slice through the beam distribution.
 
 \index[routine]{init_beam_distribution}
 \label{r:init.beam.distribution}
-\item[init_beam_distribution (ele, param, beam_init, beam)] \Newline 
+\item[init_beam_distribution (ele, param, beam_init, beam, err_flag)] \Newline 
 Routine to initialize a distribution of particles matched to
 the Twiss parameters, centroid position, and Energy - z correlation
 
 \index[routine]{init_bunch_distribution}
 \label{r:init.bunch.distribution}
-\item[init_bunch_distribution (ele, param, beam_init, bunch)] \Newline 
+\item[init_bunch_distribution (ele, param, beam_init, bunch, err_flag)] \Newline 
 Routine to initialize either a random or tail-weighted distribution of particles.  
 
 \index[routine]{reallocate_beam}
@@ -686,6 +686,11 @@ Routine to convert a string to down case.
 \label{r:str.substitute}
 \item[str_substitute (string, str_match, str_replace, do_trim)] \Newline 
 Routine to substitute all instances of one sub-string for another in a string
+
+\index[routine]{upcase}
+\label{r:upcase}
+\item[upcase (str_in) result (str_out)] \Newline 
+Routine to convert a string to upper case.
 
 \index[routine]{upcase_string}
 \label{r:upcase.string}
@@ -1342,10 +1347,10 @@ Routine to parse (read in) a Bmad input file.
 \item[bmad_parser2 (lat_file, lat, orbit, make_mats6, err_flag)] \Newline
 Routine to parse (read in) a Bmad input file to modify an existing lattice. 
 
-\index[routine]{bmad_to_mad_and_xsif}
-\label{r:bmad.to.mad.or.xsif}
-\item[\protect\parbox{6in}{bmad_to_mad_or_xsif (out_type, out_file_name, lat, use_matrix_model, \\
-  \hspace*{1in} ix_start, ix_end, converted_lat, err)}] \Newline 
+\index[routine]{write_lattice_in_foreign_format}
+\label{r:write.lattice.in.foreign.format}
+\item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, \\
+  \hspace*{1in} use_matrix_model, ix_start, ix_end, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
@@ -1853,6 +1858,11 @@ Function to return the coefficient of the map y(:) up to 3rd order.
 \label{r:kill.ptc.genfield}
 \item[kill_ptc_genfield (ptc_genfield)] \Newline 
 Subroutine to kill a ptc_genfield.
+
+\index[routine]{kill_ptc_layouts}
+\label{r:kill.ptc.layouts}
+\item[kill_ptc_layouts (lat)] \Newline 
+Routine to kill the layouts associated with a Bmad lattice.
 
 \index[routine]{kind_name}
 \label{r:kind.name}
@@ -2667,7 +2677,7 @@ Routine for custom calculations of the 6x6 transfer matrices.
 
 \index[routine]{make_mat6_symp_lie_ptc}
 \label{r:make.mat6.symp.lie.ptc}
-\item[make_mat6_symp_lie_ptc (ele, param, c0)] \Newline
+\item[make_mat6_symp_lie_ptc (ele, param, c0, c1)] \Newline
 Routine to make the 6x6 transfer matrix for an element using
 the PTC symplectic integrator.
 
@@ -2811,7 +2821,7 @@ that their Taylor Maps would be the same.
 
 \index[routine]{init_taylor_series}
 \label{r:init.taylor.series}
-\item[init_taylor_series (bmad_taylor, n_term, save)] \Newline
+\item[init_taylor_series (bmad_taylor, n_term, save_old)] \Newline
 Routine to initialize a Bmad Taylor series. 
 
 \index[routine]{kill_taylor}
@@ -3056,6 +3066,13 @@ Routine to calculate the twiss parameters, transport matrices and orbit.
     \hspace*{1in} use_last, compute_floor_coords)} ] \Newline
 Routine to calculate the Twiss parameters and orbit at a particular longitudinal position. 
 
+\index[routine]{twiss_and_track_from_s_to_s}
+\label{r:twiss.and.track.from.s.to.s}
+\item[\protect\parbox{6in}{
+    twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, \\
+    \hspace*{1in} ele_start, ele_end, err, compute_floor_coords)} ] \Newline
+Routine to track a particle from one location to another.
+
 \index[routine]{twiss_and_track_intra_ele}
 \label{r:twiss.and.track.intra.ele}
 \item[\protect\parbox{6in}{
@@ -3268,7 +3285,9 @@ Particle tracking through a single element BMAD_standard style.
 
 \index[routine]{track1_custom}
 \label{r:track1.custom}
-\item[track1_custom (start_orb, ele, param, end_orb, track, err_flag)] \Newline
+\item[\protect\parbox{6in}{
+    track1_custom (start_orb, ele, param, end_orb, track, err_flag, \\
+    \hspace*{1in} entry_pt, finished, radiation_included)} ] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_linear}
@@ -3278,7 +3297,7 @@ Particle tracking through a single element using the transfer matrix..
 
 \index[routine]{track1_radiation}
 \label{r:track1.radiation}
-\item[track1_radiation (orb_start, ele, param, orb_end, edge)] \Newline
+\item[track1_radiation (orb_start, ele, param, orb_end, edge, z_start)] \Newline
 Routine to put in radiation damping and/or fluctuations. 
 
 \index[routine]{track1_runge_kutta}
@@ -3300,7 +3319,7 @@ taylor map (In PTC/FPP this is called a genfield).
 
 \index[routine]{track1_taylor}
 \label{r:track1.taylor}
-\item[track1_taylor (start_orb, ele, param, end_orb)] \Newline
+\item[track1_taylor (start_orb, ele, param, end_orb, taylor_in)] \Newline
 Routine to track through an element using the elements taylor series. 
 
 \end{description}
@@ -3412,13 +3431,8 @@ Routine to propagate the Twiss parameters from the end of ELE1 to the end of ELE
 
 \index[routine]{twiss_propagate_all}
 \label{r:twiss.propagate.all}
-\item[twiss_propagate_all (lat, ix_branch, err_flag)] \Newline
+\item[twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end, zero_uncalculated)] \Newline
 Routine to propagate the Twiss parameters from the start to the end. 
-
-\index[routine]{twiss_propagate_many}
-\label{r:twiss.propagate.many}
-\item[twiss_propagate_many (lat, ix_start, ix_end, direction, ix_branch, err_flag)] \Newline
-Routine to propagate the Twiss parameters from one element in the lat to another. 
 
 \index[routine]{twiss_to_1_turn_mat}
 \label{r:twiss.to.1.turn.mat}
@@ -3447,7 +3461,7 @@ Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{twiss3_propagate1}
 \label{r:twiss3.propagate1}
-\item[twiss3_propagate1 (ele1, ele2)] \Newline 
+\item[twiss3_propagate1 (ele1, ele2, err_flag)] \Newline 
 Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{twiss3_at_start}

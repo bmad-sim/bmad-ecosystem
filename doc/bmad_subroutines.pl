@@ -33,7 +33,6 @@ $pl_hash{"re_allocate2_logical"} = "re_allocate_mod.f90";
 $pl_hash{"form_digested_bmad_file_name"} = "bmad_parser_mod.f90";
 $pl_hash{"add_this_multipass"} = "bmad_parser_mod.f90";
 $pl_hash{"settable_dep_var_bookkeeping"} = "bmad_parser_mod.f90";
-$pl_hash{"find_this_file"} = "bmad_parser_mod.f90";
 $pl_hash{"compute_slave_coupler"} = "bookkeeper_mod.f90";
 $pl_hash{"makeup_multipass_slave"} = "bookkeeper_mod.f90";
 $pl_hash{"ran_uniform_vector"} = "random_mod.f90";
