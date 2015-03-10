@@ -1,8 +1,8 @@
 program tracking_method_test
 
 use bmad
-
 use mad_mod
+use spin_mod
 
 implicit none
 
@@ -10,6 +10,7 @@ type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
+type (spin_polar_struct) start_p, end_p
 
 character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str, fmt
@@ -19,7 +20,7 @@ logical print_extra
  
 !
 
-fmt = '(a,t40, a, 7es18.10)'
+fmt = '(a,t42, a, 7es18.10)'
 
 print_extra = .false.
 nargs = cesr_iargc()
@@ -27,7 +28,7 @@ if (nargs == 1)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
-  fmt = '(a, t40, a, 7es14.6)'
+  fmt = '(a, t42, a, 7es14.6)'
 
 elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
@@ -54,6 +55,11 @@ do ib = 0, ubound(lat%branch, 1)
       if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
       call kill_taylor(ele%taylor)
       ele%tracking_method = j
+      if (ele%tracking_method == symp_lie_ptc$) then
+        ele%spin_tracking_method = symp_lie_ptc$
+      else
+        ele%spin_tracking_method = tracking$
+      endif
       if (j == linear$) then
         ele%tracking_method = symp_lie_ptc$
         if(ele%key == beambeam$) ele%tracking_method = bmad_standard$
@@ -64,15 +70,20 @@ do ib = 0, ubound(lat%branch, 1)
       call init_coord (start_orb, start_orb, ele, upstream_end$, branch%param%particle, E_photon = ele%value(p0c$) * 1.006)
       start_orb%field = [1, 2]
       call track1 (start_orb, ele, branch%param, end_orb)
-      final_str = '"' // trim(ele%name) // ':' // trim(tracking_method_name(j)) 
-      write (1,fmt) trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
+      final_str = trim(ele%name) // ':' // trim(tracking_method_name(j)) 
+      write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
 
-      if (j == bmad_standard$ .or. j == runge_kutta$) then
-        write (1, '(a, t40, a,  4f14.9)') trim(final_str) // ' Spin"', 'ABS 1E-8 ', end_orb%spin
+      if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
+        call spinor_to_polar(start_orb, start_p)
+        call spinor_to_polar(end_orb, end_p)
+        final_str = trim(final_str) // ' Spin'
+        write (1, '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
+              end_p%theta-start_p%theta, end_p%phi-start_p%phi, &
+              end_p%xi-start_p%xi, end_p%polarization - start_p%polarization
       endif
 
       if (branch%param%particle == photon$) then
-        write (1, '(4a, 2es18.10)') '"', trim(ele%name), ':E_Field', '"              REL 5E-08', end_orb%field
+        write (1, '(3a, t42, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
       endif
     end do
 
@@ -89,21 +100,29 @@ character(10) function tolerance(instr)
 character(38) :: instr
 
   select case (instr)
-    case('"MIRROR1:Bmad_Standard"')      ; tolerance = 'ABS  1E-09'
-    case('"RFCAVITY1:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
-    case('"RFCAVITY2:Linear"')           ; tolerance = 'REL  1E-07'
-    case('"RFCAVITY2:Time_Runge_Kutta"') ; tolerance = 'REL  1E-08'
-    case('"SBEND4:Symp_Lie_PTC"')        ; tolerance = 'REL  2E-05'
-    case('"SBEND4:Runge_Kutta"')         ; tolerance = 'REL  3E-07'
-    case('"SBEND4:Linear"')              ; tolerance = 'REL  2E-05'
-    case('"SBEND4:Taylor"')              ; tolerance = 'REL  2E-07'
-    case('"SBEND6:Symp_Lie_PTC"')        ; tolerance = 'REL  2E-05'
-    case('"SBEND6:Linear"')              ; tolerance = 'REL  2E-05'
-    case('"SBEND6:Taylor"')              ; tolerance = 'REL  2E-07'
-    case('"LCAVITY1:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
-    case('"LCAVITY3:Time_Runge_Kutta"')  ; tolerance = 'REL  1E-08'
-    case default                         ; tolerance = 'REL  1E-10'
+    case('RFCAVITY1:Time_Runge_Kutta')           ; tolerance = 'REL 1E-09'
+    case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'REL 1E-09'
+    case('SBEND4:Symp_Lie_PTC')                  ; tolerance = 'REL 2E-05'
+    case('SBEND4:Linear')                        ; tolerance = 'REL 2E-05'
+    case('SBEND6:Symp_Lie_PTC')                  ; tolerance = 'REL 2E-05'
+    case('SBEND6:Linear')                        ; tolerance = 'REL 2E-05'
+    case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'REL 1E-09'
+    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'REL 1E-09'
+    case default                                 ; tolerance = 'REL 1E-10'
   end select
 
 end function tolerance
+
+!--------------------------------------------------------------------------------------
+! contains
+  
+character(10) function tolerance_spin(instr)
+character(38) :: instr
+
+  select case (instr)
+    case('WIGGLER_PERIODIC1:Runge_Kutta Spin')   ; tolerance_spin = 'ABS 2E-7'
+    case default                                 ; tolerance_spin = 'ABS 1E-8'
+  end select
+
+end function tolerance_spin
 end program
