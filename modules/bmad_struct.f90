@@ -627,7 +627,7 @@ end type
 !     Increase bmad_inc_version by 1.
 !     Modify read_digested_bmad_file.
 !     Modify write_digested_bmad_file.
-!     Modify init_ele (in bmad_utils_mod).
+!     Modify init_ele
 !     Modify ele_equal_ele
 
 type ele_struct
@@ -636,40 +636,43 @@ type ele_struct
   character(40) :: alias = ''                     ! Another name.
   character(40) :: component_name = ''            ! Used by overlays, multipass patch, etc.
   character(200), pointer :: descrip => null()    ! Description string.
-  type (twiss_struct) :: a, b, z                  ! Twiss parameters at end of element
-  type (xy_disp_struct) :: x, y                   ! Projected dispersions.
-  type (bookkeeping_state_struct) :: bookkeeping_state  ! Element attribute bookkeeping
-  type (branch_struct), pointer :: branch => null()     ! Pointer to branch containing element.
-  type (ele_struct), pointer :: lord => null()          ! Pointer to a slice lord.
-  type (em_fields_struct), pointer :: em_field => null()! DC and AC E/M fields
-  type (fibre), pointer :: ptc_fibre => null()          ! PTC tracking.
-  type (floor_position_struct) floor                    ! Reference position in global coords.
-  type (genfield), pointer :: ptc_genfield => null()    ! For symp_map$
-  type (mode3_struct), pointer :: mode3 => null()       ! 6D normal mode structure.
+  type (twiss_struct) :: a = twiss_struct()       ! Twiss parameters at end of element
+  type (twiss_struct) :: b = twiss_struct()       ! Twiss parameters at end of element
+  type (twiss_struct) :: z = twiss_struct()       ! Twiss parameters at end of element
+  type (xy_disp_struct) :: x = xy_disp_struct()   ! Projected dispersions.
+  type (xy_disp_struct) :: y = xy_disp_struct()   ! Projected dispersions.
+  type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
+  type (branch_struct), pointer :: branch => null()            ! Pointer to branch containing element.
+  type (ele_struct), pointer :: lord => null()                 ! Pointer to a slice lord.
+  type (em_fields_struct), pointer :: em_field => null()       ! DC and AC E/M fields
+  type (fibre), pointer :: ptc_fibre => null()                 ! PTC tracking.
+  type (floor_position_struct) :: floor = floor_position_struct() ! Reference position in global coords.
+  type (genfield), pointer :: ptc_genfield => null()           ! For symp_map$
+  type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
-                                                        ! Radiation integral calc cached values 
+                                                               ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge => null()
-  type (taylor_struct) :: taylor(6)                     ! Taylor terms
-  type (wake_struct), pointer :: wake => null()         ! Wakes
-  type (wall3d_struct), pointer :: wall3d => null()     ! Chamber or capillary wall
-  type (wig_struct), pointer :: wig => null()    ! Wiggler field
-  type (coord_struct) :: map_ref_orb_in          ! Entrance end transfer map ref orbit
-  type (coord_struct) :: map_ref_orb_out         ! Exit end transfer map ref orbit
-  type (coord_struct) :: time_ref_orb_in         ! Reference orbit at entrance end for ref_time calc.
-  type (coord_struct) :: time_ref_orb_out        ! Reference orbit at exit end for ref_time calc.
-  real(rp) :: value(num_ele_attrib$) = 0         ! attribute values.
-  real(rp) :: old_value(num_ele_attrib$) = 0     ! Used to see if %value(:) array has changed.
-  real(rp) :: gen0(6) = 0                        ! constant part of the genfield map.
-  real(rp) :: vec0(6) = 0                        ! 0th order transport vector.
-  real(rp) :: mat6(6,6) = 0                      ! 1st order transport matrix.
-  real(rp) :: c_mat(2,2) = 0                     ! 2x2 C coupling matrix
-  real(rp) :: gamma_c = 0                        ! gamma associated with C matrix
-  real(rp) :: s = 0                              ! longitudinal ref position at the exit end.
-  real(rp) :: ref_time = 0                       ! Time ref particle passes exit end.
-  real(rp), pointer :: r(:,:,:) => null()        ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:) => null()       ! knl for multipole elements.
-  real(rp), pointer :: b_pole(:) => null()       ! tilt for multipole elements.
+  type (taylor_struct) :: taylor(6) = taylor_struct()          ! Taylor terms
+  type (wake_struct), pointer :: wake => null()                ! Wakes
+  type (wall3d_struct), pointer :: wall3d => null()            ! Chamber or capillary wall
+  type (wig_struct), pointer :: wig => null()                  ! Wiggler field
+  type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
+  type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
+  type (coord_struct) :: time_ref_orb_in = coord_struct()      ! Reference orbit at entrance end for ref_time calc.
+  type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
+  real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
+  real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
+  real(rp) :: gen0(6) = 0                                      ! constant part of the genfield map.
+  real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
+  real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
+  real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
+  real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
+  real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
+  real(rp) :: ref_time = 0                                     ! Time ref particle passes exit end.
+  real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
+  real(rp), pointer :: a_pole(:) => null()                     ! knl for multipole elements.
+  real(rp), pointer :: b_pole(:) => null()                     ! tilt for multipole elements.
   integer :: key = 0                    ! key value 
   integer :: sub_key = 0                ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1                ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].

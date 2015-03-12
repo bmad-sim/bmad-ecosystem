@@ -84,15 +84,10 @@ character(16), parameter :: r_name = 'make_hybrid_lat'
 n = count(keep_ele(1:r_in%n_ele_max))
 call init_lat (r_out, n+100)
 
-if (present(use_taylor)) then
-  do_taylor = use_taylor
-else
-  do_taylor = .false.
-endif
-
+do_taylor = logic_option(.false., use_taylor)
 i_out = 0                        ! index for current out lat
-r_out%ele(0) = r_in%ele(0)     !
-init_hybrid_needed = .true.         ! we need to init out lat element
+r_out%ele(0) = r_in%ele(0)    
+init_hybrid_needed = .true.      ! we need to init out lat element
 
 if (r_in%n_ele_track == 0) then
   call out_io (s_fatal$, r_name, 'LAT_IN%n_ele_track = 0!')

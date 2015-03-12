@@ -1258,80 +1258,18 @@ integer, optional :: ix_branch, ix_ele
 !
 
 call deallocate_ele_pointers (ele)
+
+ele = ele_struct()
+
 if (present(branch)) ele%branch => branch
-
-ele%type = ''
-ele%alias = ''
-ele%name = '<Initialized>'
-ele%component_name = ' '
-
-ele%key = integer_option (0, key)
-ele%sub_key = integer_option (0, sub_key)
-
-ele%value(:) = 0
-ele%old_value(:) = 0
-ele%map_ref_orb_in   = coord_struct()
-ele%map_ref_orb_out  = coord_struct()
-ele%time_ref_orb_in  = coord_struct()
-ele%time_ref_orb_out = coord_struct()
-
-ele%lord_status  = not_a_lord$
-ele%slave_status = free$
-ele%ix_value     = 0
-ele%ic1_lord     = 0
-ele%ic2_lord     = -1
-ele%n_lord       = 0
-ele%ix1_slave    = 0
-ele%ix2_slave    = -1
-ele%n_slave      = 0
-ele%ix_pointer   = 0
-ele%s            = 0
-ele%ref_time     = 0
-ele%ix_branch    = 0
-ele%ix_ele       = -1
-ele%orientation  = 1
-
-ele%ixx = 0
-ele%iyy = 0
-
-call set_status_flags (ele%bookkeeping_state, stale$)
 
 if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
 
-call init_floor (ele%floor)
-
-ele%mat6_calc_method     = bmad_standard$
-ele%tracking_method      = bmad_standard$
-ele%spin_tracking_method = bmad_standard$
-ele%field_calc           = bmad_standard$
-ele%ptc_integration_type = matrix_kick$
-
-ele%is_on             = .true.
-ele%multipoles_on     = .true.
-ele%scale_multipoles  = .true.
-ele%symplectify       = .false.
-ele%taylor_map_includes_offsets  = .true.
-ele%csr_calc_on       = .true.
-ele%logic             = .false.
-ele%mode_flip         = .false.
-ele%field_master      = .false.
-ele%offset_moves_aperture = .false.
-
-ele%aperture_type = rectangular$
-ele%aperture_at   = exit_end$
-
-ele%c_mat = 0
-ele%gamma_c = 1.0
-
-ele%x = xy_disp_struct()
-ele%y = xy_disp_struct()
-
-ele%a = twiss_struct()
-ele%b = twiss_struct()
-ele%z = twiss_struct()
-
+if (present(key)) ele%key = key
 if (present(key)) call set_ele_defaults(ele)
+
+if (present(sub_key)) ele%sub_key = sub_key
 
 end subroutine init_ele
 
@@ -1384,33 +1322,6 @@ else
 endif
 
 end subroutine multipole_init
-
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!----------------------------------------------------------------------
-!+ 
-! Subroutine init_floor (floor)
-!
-! Routine to initialize a floor_position_struct to zero.
-!
-! Output:
-!   floor -- Floor_position_struct: Floor coordinates to init.
-!-
-
-subroutine init_floor (floor)
-
-implicit none
-
-type (floor_position_struct) floor
-
-!
-
-floor%r     = 0
-floor%theta = 0
-floor%phi   = 0
-floor%psi   = 0
-
-end subroutine init_floor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
