@@ -198,7 +198,7 @@ case (x_ray_source$)
   ele%value(energy_distribution$) = gaussian$
   ele%value(spatial_distribution$) = gaussian$
   ele%value(transverse_sigma_cut$) = 3
-  ele%value(E_center_relative_to_ref$) = .true.
+  ele%value(E_center_relative_to_ref$) = true$
 
 end select
 
