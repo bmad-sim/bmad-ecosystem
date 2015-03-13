@@ -118,4 +118,171 @@ w_mat(3,1:3) = [x*z * (1 - cos_a) - y * sin_a, y*z * (1 - cos_a) + x * sin_a, z*
 
 end subroutine axis_angle_to_w_mat
 
+
+
+
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_vec(vec, i, j, angle)
+!            rotate_vec(vec, i, j, cos_angle, sin_angle)
+!            
+! Basic routine to rotate vector components i and j in place by angle in the ij plane.
+! If sin_angle is not present, the cosines and sines will be computed. 
+! 
+! In 3D, i and j are: 2, 3 about x-axis
+!                     3, 1 about y-axis
+!                     1, 2 about z-axis
+!
+! Module needed:
+!   use rotation_3d_mod
+!
+! Input:
+!   vec(:)             -- real(rp): vector
+!   i, j               -- integer: indices to rotate
+!   cos_angle or angle -- real(rp): cosine of the angle to rotate
+!   sin_angle          -- real(rp): sine of the angle to rotate
+!
+! Output:
+!   vec(:)   -- real(rp): vector 
+!-
+
+subroutine rotate_vec(vec, i, j, cos_angle, sin_angle)
+implicit none
+real(rp) :: vec(:),  cos_angle, temp, ca, sa
+real(rp), optional :: sin_angle
+integer :: i, j
+if (present(sin_angle)) then
+  ! cos, sin given
+  temp   =  cos_angle*vec(i) - sin_angle*vec(j)
+  vec(j) =  sin_angle*vec(i) + cos_angle*vec(j)
+  vec(i) = temp
+else
+  ! angle given
+  if (cos_angle == 0) return ! Simple case 
+  ca = cos(cos_angle)
+  sa = sin(cos_angle) 
+  temp   =  ca*vec(i) - sa*vec(j)
+  vec(j) =  sa*vec(i) + ca*vec(j)
+  vec(i) = temp  
+endif
+  
+end subroutine
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_vec_x(vec, angle)
+!   wrapper for rotate_vec(vec, 2, 3, angle)
+! -
+subroutine rotate_vec_x(vec, angle)
+real(rp) :: vec(3), angle
+call rotate_vec(vec, 2, 3, angle)
+end subroutine 
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_vec_y(vec, angle)
+!   wrapper for rotate_vec(vec, 3, 1, angle)
+!-
+subroutine rotate_vec_y(vec, angle)
+real(rp) :: vec(3), angle
+call rotate_vec(vec, 3, 1, angle)
+end subroutine 
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_vec_y(vec, angle)
+!   wrapper for rotate_vec(vec, 1, 2, angle)
+!-
+subroutine rotate_vec_z(vec, angle)
+real(rp) :: vec(3), angle
+call rotate_vec(vec, 1, 2, angle)
+end subroutine
+
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_mat(mat, i, j, angle)
+!            rotate_mat(mat, i, j, cos_angle, sin_angle)
+!            
+! Basic routine to apply a rotation matrix to mat that rotates components i and j 
+! in place by angle in the ij plane.
+!
+! mat = rotation(angle).mat
+!
+! If sin_angle is not present, the cosines and sines will be computed. 
+! 
+! Module needed:
+!   use rotation_3d_mod
+!
+! Input:
+!   mat(:,:)           -- real(rp): matrix
+!   i, j               -- integer: indices to rotate
+!   cos_angle or angle -- real(rp): cosine of the angle to rotate
+!   sin_angle          -- real(rp): sine of the angle to rotate
+!
+! Output:
+!   vec(:)   -- real(rp): vector 
+!-
+
+subroutine rotate_mat(mat, i, j, cos_angle, sin_angle)
+implicit none
+real(rp) :: mat(:,:),  cos_angle, temp, ca, sa
+real(rp), optional :: sin_angle
+integer :: i, j, col
+
+if (present(sin_angle)) then
+  do col = lbound(mat,2), ubound(mat,2)
+    call rotate_vec(mat(:, col), i, j, cos_angle, sin_angle)
+  end do 
+else
+  ! angle only given
+  if (cos_angle == 0) return ! Simple case
+  ca = cos(cos_angle)
+  sa = sin(cos_angle) 
+  do col = lbound(mat,2), ubound(mat,2)
+    call rotate_vec(mat(:, col), i, j, ca, sa)
+  end do 
+endif
+  
+end subroutine
+
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_mat_x(mat, angle)
+!   wrapper for rotate_mat(vec, 2, 3, angle)
+! -
+subroutine rotate_mat_x(mat, angle)
+real(rp) :: mat(:,:), angle
+call rotate_mat(mat, 2, 3, angle)
+end subroutine 
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_mat_y(mat, angle)
+!   wrapper for rotate_mat(vec, 3, 1, angle)
+! -
+subroutine rotate_mat_y(mat, angle)
+real(rp) :: mat(:,:), angle
+call rotate_mat(mat, 3, 1, angle)
+end subroutine 
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine rotate_mat_z(mat, angle)
+!   wrapper for rotate_mat(vec, 1, 2, angle)
+! -
+subroutine rotate_mat_z(mat, angle)
+real(rp) :: mat(:,:), angle
+call rotate_mat(mat, 1, 2, angle)
+end subroutine 
+
+
+
+
 end module
