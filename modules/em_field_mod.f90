@@ -986,12 +986,13 @@ x = (x_save + ele%value(rho$) )*cos_ang - ele%value(rho$)
 z = (x_save + ele%value(rho$) )*sin_ang 
 
 ! Rotate current field into this frame
-temp       = field%e(1)*cos_ang + field%e(3)*sin_ang
-field%e(3) = field%e(1)*sin_ang - field%e(3)*cos_ang
-field%e(1) = temp
-temp       = field%b(1)*cos_ang + field%b(3)*sin_ang
-field%b(3) = field%b(1)*sin_ang - field%b(3)*cos_ang
-field%b(1) = temp 
+! Note that we are rotating the zx plane 
+temp       = field%e(3)*cos_ang + field%e(1)*sin_ang
+field%e(1) = field%e(3)*sin_ang - field%e(1)*cos_ang
+field%e(3) = temp
+temp       = field%b(3)*cos_ang + field%b(1)*sin_ang
+field%b(1) = field%b(3)*sin_ang - field%b(1)*cos_ang
+field%b(3) = temp 
 
 end subroutine convert_curvilinear_to_cartesian
 
@@ -1004,12 +1005,12 @@ real(rp) :: temp
 !For sbend with Grid calculation Restores x and s_rel, and rotates output fields.
 if (ele%value(g$) == 0) return
 x = x_save
-temp       = field%e(1)*cos_ang - field%e(3)*sin_ang
-field%e(3) = field%e(1)*sin_ang + field%e(3)*cos_ang
-field%e(1) = temp
-temp       = field%b(1)*cos_ang - field%b(3)*sin_ang
-field%b(3) = field%b(1)*sin_ang + field%b(3)*cos_ang
-field%b(1) = temp 
+temp       = field%e(3)*cos_ang - field%e(1)*sin_ang
+field%e(1) = field%e(3)*sin_ang + field%e(1)*cos_ang
+field%e(3) = temp
+temp       = field%b(3)*cos_ang - field%b(1)*sin_ang
+field%b(1) = field%b(3)*sin_ang + field%b(1)*cos_ang
+field%b(3) = temp 
 end subroutine restore_curvilinear
 
 

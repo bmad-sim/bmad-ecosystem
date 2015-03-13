@@ -5,6 +5,8 @@ use bmad_interface
 use lat_ele_loc_mod
 use rotation_3d_mod
 
+implicit none
+
 contains
 
 !---------------------------------------------------------------------------------------
@@ -33,8 +35,6 @@ contains
 !-
 
 subroutine lat_geometry (lat)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, b_ele, ele0, ele2
@@ -249,8 +249,6 @@ recursive subroutine ele_geometry (floor0, ele, floor, len_scale)
 
 use multipole_mod
 use multipass_mod
-
-implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2
@@ -622,8 +620,6 @@ end subroutine ele_geometry
 
 subroutine floor_angles_to_w_mat (theta, phi, psi, w_mat, w_mat_inv)
 
-implicit none
-
 real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
 real(rp) theta, phi, psi
 real(rp) s_the, c_the, s_phi, c_phi, s_psi, c_psi
@@ -690,8 +686,6 @@ end subroutine floor_angles_to_w_mat
 !-
 
 subroutine floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)
-
-implicit none
 
 type (floor_position_struct), optional :: floor0
 type (floor_position_struct) f0
@@ -762,8 +756,6 @@ end subroutine floor_w_mat_to_angles
 
 function patch_flips_propagation_direction (x_pitch, y_pitch) result (is_flip)
 
-implicit none
-
 real(rp) x_pitch, y_pitch
 logical is_flip
 
@@ -802,8 +794,6 @@ end function patch_flips_propagation_direction
 !-
 
 function coords_relative_to_floor (floor0, dr, theta, phi, psi) result (floor1)
-
-implicit none
 
 type (floor_position_struct) floor0, floor1
 real(rp) dr(3)
@@ -848,8 +838,6 @@ end function coords_relative_to_floor
 !-
 
 function coords_floor_to_relative (floor0, global_position, calculate_angles, is_delta_position) result (local_position)
-
-implicit none
 
 type (floor_position_struct) floor0, global_position, local_position
 real(rp) :: w0_mat(3,3), w_mat(3,3)
@@ -916,8 +904,6 @@ end function coords_floor_to_relative
 function coords_floor_to_local_curvilinear (global_position, ele, status, w_mat) result(local_position)
 
 use nr, only: zbrent
-
-implicit none
 
 type (floor_position_struct) :: global_position, local_position
 type (ele_struct)   :: ele, ele2
@@ -1036,8 +1022,6 @@ end function coords_floor_to_local_curvilinear
 !-  
 
 function coords_floor_to_curvilinear (floor_coords, ele0, ele1, status, w_mat) result(local_coords)
-
-implicit none
 
 type (floor_position_struct) floor_coords, local_coords
 type (ele_struct), target :: ele0
@@ -1166,7 +1150,8 @@ end function coords_floor_to_curvilinear
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_local_curvilinear_to_floor (local_position, ele, w_mat) result (global_position)
+! Function coords_local_curvilinear_to_floor (local_position, ele, 
+!                                             in_ele_frame, w_mat) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 !
@@ -1174,6 +1159,8 @@ end function coords_floor_to_curvilinear
 !   local_position  -- floor_position_struct: Floor position in local curvilinear coordinates.
 !     %r(3)             -- Position from beginning of element.
 !   ele             -- ele_struct: element that local_position coordinates are relative to.
+!   in_ele_frame    -- logical, optional :: local_position is in ele_frame and includes offsets
+!                               Default: .false.
 !
 ! Result:
 !   global_position -- floor_position_struct: Position in global coordinates.
@@ -1182,60 +1169,134 @@ end function coords_floor_to_curvilinear
 !                                  v_local = transpose(w_mat) . v_global
 !-  
 
-function coords_local_curvilinear_to_floor (local_position, ele, w_mat) result (global_position)
+function coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)
 
-implicit none
 
-type (floor_position_struct) :: local_position, global_position, floor, floor0
+type (floor_position_struct) :: local_position, global_position, p
 type (ele_struct)  ele
 real(rp) :: L_save
-real(rp) :: dr(3)
+real(rp) :: w_mat_local(3,3), L_vec(3), S_mat(3,3), s
 real(rp), optional :: w_mat(3,3)
+logical, optional :: in_ele_frame
 
 ! Set x and y for floor offset 
 
-dr = local_position%r
+p = local_position
  
-if (ele%key == sbend$) then
-  ! Element has a curved geometry. Shorten ele
-  L_save = ele%value(L$)
-  ele%value(L$) = local_position%r(3)
+if (logic_option(.false., in_ele_frame)) then
+   p = coords_element_frame_to_local(p, ele, w_mat = S_mat)
+   
+elseif (ele%key == sbend$) then
+  ! Curved geometry, no misalignments. Get relative to ele's end
+  s = p%r(3)
+  p%r(3) = 0
+  p%r = bend_shift_xyz(p%r, ele%value(g$), ele%value(L$) - s, w_mat = S_mat, tilt=ele%value(ref_tilt_tot$) )
   
-  ! calculate floor from previous element
-  if (associated (ele%branch) ) then
-    ! Get floor0 from previous element
-    floor0 = ele%branch%ele(ele%ix_ele-1)%floor
-  else
-    ! ele is without a lat. Propagate backwards to get floor0
-    ele%value(L$) = -L_save
-    call ele_geometry(ele%floor, ele, floor0)
-    ele%value(L$) = L_save
-  endif
-    
-  call ele_geometry(floor0, ele, floor)
-  ! position is exactly at ele's exit now. 
-  dr(3) = 0
-  
-  !Restore ele's length
-  ele%value(L$) = L_save
-
 else
    ! Element has Cartesian geometry. 
-   floor = ele%floor
-      
    ! position is relative to ele's exit: 
-   dr(3) =  local_position%r(3) - ele%value(L$) 
+  p%r(3) = p%r(3) - ele%value(L$)
+  call mat_make_unit(S_mat)
 endif 
 
 ! Get global floor coordinates
-global_position = coords_relative_to_floor (floor, dr, local_position%theta, local_position%phi, local_position%psi)
+global_position = coords_relative_to_floor (ele%floor, p%r, p%theta, p%phi, p%psi)
 
 ! Optionally return w_mat
 if (present(w_mat) ) then
-  call floor_angles_to_w_mat (global_position%theta, global_position%phi,global_position%psi, w_mat)
+  call floor_angles_to_w_mat (global_position%theta, global_position%phi, global_position%psi, w_mat)
+  w_mat = matmul(w_mat, s_mat)
 endif 
 
 end function coords_local_curvilinear_to_floor
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function coords_element_frame_to_local(ele_position, ele, w_mat) 
+!          result(local_position)
+!
+!  Takes s coordinates relative to beginning of element in ele frame 
+!  an returns Cartesian coordinates relative to ele%floor (end of element)
+!
+! Input:
+!   ele_position    -- floor_position_struct: element frame curvilinear coordinates.
+!     %r(3)                                 Position from beginning of element [x, y, s]
+!   ele             -- ele_struct: element that local_position coordinates are relative to.
+!   in_ele_frame    -- logical, optional :: local_position is in ele_frame and includes offsets
+!                               Default: .false.
+!  
+! Output         
+!   local_position  -- floor_position_struct; Cartesian coortinates relative to
+!     %r(3)                                   ele%floor (end of the element)
+!
+!   w_mat(3,3)      -- real(rp), optional: W matrix at to transform vectors. 
+!                                  v_local     = w_mat . v_ele_frame
+!                                  v_ele_frame = transpose(w_mat) . v_local
+!
+!-
+function coords_element_frame_to_local(ele_position, ele, w_mat) result(local_position)
+
+type (floor_position_struct) :: ele_position, local_position
+type (ele_struct) :: ele
+real(rp) :: s, g, theta, Sb(3,3), Lb(3)
+real(rp) ::  L_mis(3), S_mis(3,3) , S_mat0(3,3)
+real(rp), optional :: w_mat(3,3)
+
+local_position = ele_position
+
+s = ele_position%r(3)
+
+call ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+
+if (ele%key == sbend$) then
+  ! Get coords relative to center
+  theta = ele%value(g$)*s
+  ! In ele frame. Move to center frame
+  call convert_local_curvilinear_to_local_cartesian(ele_position%r(1), s - ele%value(L$)/2, &
+                    ele%value(g$), local_position%r(1), local_position%r(3))
+  ! Put into tilted frame
+  call rotate_vec_z(local_position%r, ele%value(ref_tilt_tot$))
+
+  ! Misalign
+  local_position%r = matmul(s_mis, local_position%r) + L_mis
+
+  ! Transform to element end 
+  local_position%r = bend_shift_xyz(local_position%r, ele%value(g$), ele%value(L$)/2, w_mat = Sb, tilt=ele%value(ref_tilt_tot$) )
+ 
+ if (present(w_mat)) then
+   ! Initial rotation to ele's center frame and the tilt
+   call w_mat_for_x_pitch (S_mat0, -(theta-ele%value(angle$)/2 ))
+   call rotate_mat_z(S_mat0, ele%value(ref_tilt_tot$))
+   w_mat = matmul(S_mis, S_mat0)
+   w_mat = matmul(Sb, w_mat)
+ 
+  ! call floor_angles_to_w_mat (local_position%theta, local_position%phi, local_position%psi, w_mat)
+  ! w_mat = s_mis
+  endif
+
+else
+  if (ele%value(x_pitch_tot$) /= 0 .or. ele%value(y_pitch_tot$) /= 0 .or. ele%value(tilt_tot$) /= 0) then
+    ! need to rotate element frame to align with local frame. 
+    call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), S_mis)
+    local_position%r(3) = local_position%r(3) - ele%value(L$)/2 ! Angle offsets are relative to the center of the element
+    local_position%r = matmul(S_mis, local_position%r)
+    local_position%r(3)  = local_position%r(3) - ele%value(L$)/2 ! Shift relative to end of element for output
+  else
+    ! Just shift relative to end
+    call mat_make_unit(S_mis)
+    local_position%r(3) = local_position%r(3)  - ele%value(L$)
+  endif
+  local_position%r = local_position%r + [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+  
+  if (present(w_mat)) w_mat = S_mis
+endif
+
+end function
+
+
+
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1255,8 +1316,6 @@ end function coords_local_curvilinear_to_floor
 !-
 
 function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)
-
-implicit none
 
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
@@ -1297,8 +1356,6 @@ end function coords_curvilinear_to_floor
 
 Subroutine w_mat_for_x_pitch (w_mat, x_pitch)
 
-implicit none
-
 real(rp) w_mat(3,3), x_pitch, c_ang, s_ang
 
 ! An x_pitch corresponds to a rotation around the y axis.
@@ -1330,8 +1387,6 @@ end subroutine w_mat_for_x_pitch
 !-   
 
 Subroutine w_mat_for_y_pitch (w_mat, y_pitch)
-
-implicit none
 
 real(rp) w_mat(3,3), y_pitch, c_ang, s_ang
 
@@ -1365,8 +1420,6 @@ end subroutine w_mat_for_y_pitch
 
 Subroutine w_mat_for_tilt (w_mat, tilt)
 
-implicit none
-
 real(rp) w_mat(3,3), tilt, c_ang, s_ang
 
 ! An tilt corresponds to a rotation around the y axis.
@@ -1378,5 +1431,197 @@ w_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
 w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
 
 end subroutine w_mat_for_tilt
+
+
+
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine convert_local_curvilinear_to_local_cartesian(x, s, g, xout, zout)
+! 
+! Convert from element frame with curvature g to element frame in Cartesian coordinates
+! with origin at x=0, s=0
+!
+! Module needed:
+!   use geometry_mod
+!
+! Input:
+!   x, s       -- real(rp): Curvilinear x and s positions 
+!   g          -- real(rp): curvature (1/rho)
+!
+! Output:
+!  xout, zout  -- real(rp): Cartesian x and z relative to the frame at s = 0
+!-  
+subroutine convert_local_curvilinear_to_local_cartesian(x, s, g, xout, zout)
+real(rp) :: x, s, g, rho, xout, zout, theta, factor
+xout = x
+zout = s
+if (g == 0) return
+rho = 1/g
+theta = s/rho
+factor = (x + rho)
+xout = factor*cos(theta) - rho
+zout = factor*sin(theta)
+end subroutine
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine convert_local_cartesian_to_local_curvilinear(x, z, g, xout, sout)
+! 
+! Convert from element frame Cartesian coordinates to element frame coordinates with curvature g
+! with origin at x=0, z=0
+!
+! Module needed:
+!   use geometry_mod
+!
+! Input:
+!   x, z       -- real(rp): Cartesian x and z positions 
+!   g          -- real(rp): curvature (1/rho)
+!
+! Output:
+!  xout, sout  -- real(rp): Curvilinear x and s relative to the frame at z = 0
+!-  
+subroutine convert_local_cartesian_to_local_curvilinear(x, z, g, xout, sout)
+real(rp) :: x, z, g, rho, xout, sout, theta
+if (g == 0) then
+  xout = x
+  sout = z
+  return
+endif
+rho = 1/g
+theta = atan2(z, abs(x + rho)) 
+sout = theta*abs(rho)
+if (abs(theta) < pi/2) then
+  xout = (x + rho)/cos(theta) - rho
+else
+  xout = z/sin(theta) - rho
+endif
+
+end subroutine
+
+!---------------------------------------------------------------------------
+!+
+! Subroutine ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+! 
+! Calculates transformation vector L_mis and matrix S_mis due to misalignments for an ele
+! Used to transform coordinates and vectors relative to the center of the element
+!
+!
+! Module needed:
+!   use geometry_mod
+!
+! Input:
+!   ele       -- real(rp): Element
+!
+! Output:
+!   L_mis(3)  -- real(rp): Misalignment vector relative to center of element
+!   S_mis(3)  -- real(rp): Misalignment matrix relative to center of element
+!
+!-  
+subroutine ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+type(ele_struct) :: ele 
+real(rp) :: chalf, shalf, Lc(3), Sb(3,3), s0, theta0
+real(rp) :: L_mis(3), S_mis(3,3)
+
+select case(ele%key)
+case(sbend$)
+  ! L_mis at ele center:
+  ! L_mis = L_offsets + [Rz(roll) - 1] . Rz(tilt) . Ry(bend_angle/2) . rho*[cos(bend_angle/2) -1, 0, sin(bend_angle/2)]
+  chalf = cos(ele%value(angle$)/2)
+  shalf = sin(ele%value(angle$)/2) 
+  Lc = ele%value(rho$)*[chalf-1, 0.0_rp, shalf]
+  call rotate_vec(Lc, 3, 1, chalf, shalf)  ! rotate to entrance about y axis by half angle 
+  call rotate_vec(Lc, 1, 2, ele%value(ref_tilt_tot$)) ! rotate about z axis by tilt
+  L_mis = -Lc
+  call rotate_vec(Lc, 1, 2, ele%value(roll$)) ! rotate about z axis for roll
+  L_mis = L_mis + Lc + [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+
+  ! S_mis at ele center
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), s_mis)
+  
+case default
+    call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), S_mis)
+    L_mis = [ele%value(x_offset_tot$), ele%value(y_offset_tot$), ele%value(z_offset_tot$)]
+
+end select
+
+end subroutine
+
+
+!---------------------------------------------------------------------------
+!+
+! Function bend_L_vec(g, delta_s, tilt) result(L_vec)
+function bend_L_vec(g, delta_s, tilt) result(L_vec)
+real(rp) :: g, delta_s, L_vec(3), angle
+real(rp), optional :: tilt
+if (g==0) then
+  L_vec = [0.0_rp, 0.0_rp, delta_s]
+else
+  angle = g*delta_s
+  L_vec = [cos(angle)-1, 0, sin(angle)]/g
+  if (present(tilt)) call rotate_vec_z(L_vec, tilt)
+endif
+end function
+
+!---------------------------------------------------------------------------
+!+
+! Function bend_S_mat(angle, tilt) result(S_mat)
+function bend_S_mat(angle, tilt) result(S_mat)
+real(rp) :: angle, S_mat(3,3)
+real(rp), optional :: tilt
+call mat_make_unit(S_mat)
+if (present(tilt) .and. tilt /= 0) then
+  call rotate_mat_z(S_mat, -tilt)
+  call rotate_mat_y(S_mat, -angle)
+  call rotate_mat_z(S_mat,  tilt)
+else
+  call rotate_mat_y(S_mat, -angle)
+endif
+end function
+
+
+!---------------------------------------------------------------------------
+!+
+! Function bend_shift_xyz(xyz1, g, delta_s, w_mat, tilt) result(xyz2)
+!
+! Function to shift frame of reference within a bend with curvature g and tilt
+! 
+! Module needed:
+!   use geometry_mod
+!
+! Input:
+!   xyz1(3)     -- real(rp): frame 1 Cartesian coordinates
+!   g           -- real(rp): curvature (1/rho)
+!   delta_s     -- real(rp): relative s-position of frame 2 to frame 1
+!   tilt        -- real(rp), optional: tilt. Default: 0
+!
+! Result:
+!   xyz2(3)     -- real(rp): Cartesian coordinates relative to frame 2
+!   w_mat(3,3)  -- real(rp): W matrix used in the transformation   
+!
+function bend_shift_xyz(xyz1, g, delta_s, w_mat, tilt) result(xyz2)
+real(rp) :: xyz1(3), xyz2(3), g, delta_s, S_mat(3,3), L_vec(3)
+real(rp), optional :: w_mat(3,3), tilt
+
+if (present(tilt) .and. tilt /= 0) then
+  s_mat = bend_S_mat( -delta_s * g, tilt)
+  L_vec = bend_L_vec(g, -delta_s, tilt)
+else
+  s_mat = bend_S_mat( -delta_s * g)
+  L_vec = bend_L_vec(g, -delta_s)
+endif
+
+xyz2 = matmul(S_mat, xyz1) + L_vec
+
+if (present(w_mat)) w_mat = s_mat
+
+end function 
+
 
 end module
