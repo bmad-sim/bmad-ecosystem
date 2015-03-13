@@ -39,7 +39,7 @@ type (surface_grid_struct), pointer :: gr
 type (photon_target_struct), pointer :: target
 
 integer, optional :: ix_start, ix_end
-integer i, ie, ie2, npart, i_start, i_end, lb(2), ub(2), sz(2)
+integer i, ie, ie2, npart0, i_start, i_end, lb(2), ub(2), sz(2)
 integer ix, iy, nx, ny
 
 logical setup_grid_target
@@ -50,7 +50,7 @@ character(*), parameter :: r_name = 'track_photon_bunch'
 
 i_start = integer_option(0, ix_start)
 i_end   = integer_option(branch%n_ele_track, ix_end)
-npart = size(bunch%particle)
+npart0 = size(bunch%particle)
 
 ie = i_start
 do 
@@ -59,7 +59,7 @@ do
 
   ele => branch%ele(ie)
 
-  setup_grid_target = grid_target_here(ele)
+  setup_grid_target = grid_target_found(ele)
   if (setup_grid_target) then
     target => ele%photon%target
     target%deterministic_grid = .true.
@@ -77,14 +77,18 @@ do
 
     ! Track to target and gather statistics.
 
-    do i = 1, npart
+    do i = 1, size(bunch%particle)
       do ix = lb(1), ub(1)
-      do iy = lb(2), ub(2)
+      iy_loop: do iy = lb(2), ub(2)
         target%ix_grid = ix
         target%iy_grid = iy
         orb = bunch%particle(i)
         do ie2 = ie, targ_ele%ix_ele - 1
           call track1 (orb, branch%ele(ie2), branch%param, orb)
+          if (orb%state /= alive$) then
+            bunch%particle(i) = orb
+            cycle iy_loop
+          endif
         enddo
 
         call photon_add_to_detector_statistics (orb, targ_ele, nx, ny)
@@ -93,29 +97,36 @@ do
           if (global_com%exit_on_error) call err_exit
         endif
 
-      enddo
+      enddo iy_loop
       enddo
     enddo
 
     ! Generate photons from target grid.
     ! Don't need to do this if there is a grid target
 
-    ele => branch%ele(targ_ele%ix_ele)
-    if (.not. grid_target_here(ele)) then
-      do i = 1, npart
-        ix = modulo(i-1, sz(1)) + 1
-        iy = modulo((i-1)/sz(1), sz(2)) + 1
-        bunch%particle(i)%vec(1) = ix * gr%dr(1) + gr%r0(1)
-        bunch%particle(i)%vec(3) = iy * gr%dr(2) + gr%r0(2)
-        call point_photon_emission (ele, branch%param, bunch%particle(i), 1, twopi)
-      enddo
+    ie = targ_ele%ix_ele - 1
+    if (grid_target_found(targ_ele)) then      
+      call reallocate_bunch (bunch, sz(1)*sz(2))
+    else
+      call reallocate_bunch (bunch, npart0)
     endif
+
+    do i = 1, size(bunch%particle)
+      ix = modulo(i-1, sz(1)) + lb(1)
+      iy = modulo((i-1)/sz(1), sz(2)) + lb(2)
+      bunch%particle(i)%vec(1) = ix * gr%dr(1) + gr%r0(1)
+      bunch%particle(i)%vec(3) = iy * gr%dr(2) + gr%r0(2)
+      bunch%particle(i)%field(1) = abs(gr%pt(ix,iy)%E_x)
+      bunch%particle(i)%field(2) = abs(gr%pt(ix,iy)%E_y)
+      bunch%particle(i)%phase(1) = atan2(aimag(gr%pt(ix,iy)%E_x), real(gr%pt(ix,iy)%E_x))
+      bunch%particle(i)%phase(2) = atan2(aimag(gr%pt(ix,iy)%E_y), real(gr%pt(ix,iy)%E_y))
+    enddo
 
   ! Simple case without a grid target.
   ! Just track through a single element
 
   else
-    do i = 1, npart
+    do i = 1, size(bunch%particle)
       call track1 (bunch%particle(i), ele, branch%param, bunch%particle(i))
     enddo
   endif
@@ -125,18 +136,18 @@ enddo
 !-------------------------------------------------------------------------------------
 contains
 
-function grid_target_here (ele) result (target_here)
+function grid_target_found (ele) result (target_found)
 
 type (ele_struct) ele
-logical target_here
+logical target_found
 
 !
 
-target_here = .false.
+target_found = .false.
 if (.not. associated(ele%photon)) return
-if (ele%photon%target%type == grid$) target_here = .true.
+if (ele%photon%target%type == grid$) target_found = .true.
 
-end function grid_target_here
+end function grid_target_found
 
 end subroutine track_photon_bunch
 
