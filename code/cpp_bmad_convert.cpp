@@ -1270,22 +1270,21 @@ extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_sur
 
 // c_side.to_f2_arg
 extern "C" void surface_grid_pt_to_f2 (Bmad_surface_grid_pt_class*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_Int&, c_Real&, c_Real&);
+    c_Real&, c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&, c_Int&, c_Real&, c_Real&);
 
 extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Bmad_surface_grid_pt_class* F) {
 
   // c_side.to_f2_call
-  surface_grid_pt_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms, &C.e_x[0],
-      &C.e_y[0], C.intensity_x, C.intensity_y, C.intensity, C.n_photon, C.energy_ave,
-      C.energy_rms);
+  surface_grid_pt_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms, C.e_x, C.e_y,
+      C.intensity_x, C.intensity_y, C.intensity, C.n_photon, C.energy_ave, C.energy_rms);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, c_Real& z_x_pitch, c_Real&
-    z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms, c_RealArr z_e_x, c_RealArr z_e_y,
-    c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity, c_Int& z_n_photon,
-    c_Real& z_energy_ave, c_Real& z_energy_rms) {
+    z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms, c_Complex& z_e_x, c_Complex&
+    z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity, c_Int&
+    z_n_photon, c_Real& z_energy_ave, c_Real& z_energy_rms) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.x_pitch = z_x_pitch;
@@ -1295,10 +1294,10 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, c_Real& z_x_pitch
   C.x_pitch_rms = z_x_pitch_rms;
   // c_side.to_c2_set[real, 0, NOT]
   C.y_pitch_rms = z_y_pitch_rms;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.e_x << z_e_x;
-  // c_side.to_c2_set[real, 1, NOT]
-  C.e_y << z_e_y;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.e_x = z_e_x;
+  // c_side.to_c2_set[complex, 0, NOT]
+  C.e_y = z_e_y;
   // c_side.to_c2_set[real, 0, NOT]
   C.intensity_x = z_intensity_x;
   // c_side.to_c2_set[real, 0, NOT]

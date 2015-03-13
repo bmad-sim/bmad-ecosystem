@@ -2763,16 +2763,10 @@ rhs = 2 + offset; F%y_pitch = rhs
 rhs = 3 + offset; F%x_pitch_rms = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%y_pitch_rms = rhs
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%e_x,1); lb1 = lbound(F%e_x,1) - 1
-  rhs = 100 + jd1 + 5 + offset
-  F%e_x(jd1+lb1) = rhs
-enddo
-!! f_side.test_pat[real, 1, NOT]
-do jd1 = 1, size(F%e_y,1); lb1 = lbound(F%e_y,1) - 1
-  rhs = 100 + jd1 + 6 + offset
-  F%e_y(jd1+lb1) = rhs
-enddo
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 5 + offset; F%e_x = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 6 + offset; F%e_y = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%intensity_x = rhs
 !! f_side.test_pat[real, 0, NOT]

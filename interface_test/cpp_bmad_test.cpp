@@ -1834,12 +1834,12 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   // c_side.test_pat[real, 0, NOT]
   rhs = 4 + offset; C.y_pitch_rms = rhs;
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.e_x.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.e_x[i] = rhs;}
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.e_y.size(); i++)
-    {int rhs = 101 + i + 6 + offset; C.e_y[i] = rhs;}
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 5 + offset; C.e_x = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 6 + offset; C.e_y = Complex(rhs, 100+rhs);
+
   // c_side.test_pat[real, 0, NOT]
   rhs = 7 + offset; C.intensity_x = rhs;
 

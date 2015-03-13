@@ -1265,8 +1265,8 @@ public:
   Real y_pitch;
   Real x_pitch_rms;
   Real y_pitch_rms;
-  Real_ARRAY e_x;
-  Real_ARRAY e_y;
+  Complex e_x;
+  Complex e_y;
   Real intensity_x;
   Real intensity_y;
   Real intensity;
@@ -1279,8 +1279,8 @@ public:
     y_pitch(0.0),
     x_pitch_rms(0.0),
     y_pitch_rms(0.0),
-    e_x(0.0, 2),
-    e_y(0.0, 2),
+    e_x(0.0),
+    e_y(0.0),
     intensity_x(0.0),
     intensity_y(0.0),
     intensity(0.0),
@@ -2444,7 +2444,7 @@ public:
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
-    gamma_c(0.0),
+    gamma_c(1),
     s(0.0),
     ref_time(0.0),
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
