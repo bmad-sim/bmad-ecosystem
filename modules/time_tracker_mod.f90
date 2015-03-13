@@ -534,7 +534,7 @@ vel(1:3) = c_light*[  orbit%vec(2),  orbit%vec(4),  orbit%vec(6) ]/ e_tot
 ! dx/dt   = v_x 
 ! dcp_x/dt = cp_s * v_s * \kappa_x / h + c*charge * ( Ex + v_y * Bs - v_s * By )
 ! dy/dt   = v_y
-! dcp_y/dt = cp_s * v_s * \kappa_y / h + c*charge * ( Ey + * Bx - v_x * Bs )
+! dcp_y/dt = cp_s * v_s * \kappa_y / h + c*charge * ( Ey + v_s * Bx - v_x * Bs )
 ! ds/dt = v_s / h 
 ! dcp_s/dt = -(1/h) * cp_s * ( v_x * \kappa_x + v_y * \kappa_y ) + c*charge * ( Es + v_x By - v_y Bx )
 
@@ -627,7 +627,7 @@ floor_at_particle%theta = 0.0_rp
 floor_at_particle%phi = 0.0_rp
 floor_at_particle%psi = 0.0_rp
 ! Get [X,Y,Z] and w_mat for momenta rotation below
-global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, w_mat)
+global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, in_ele_frame = .true. , w_mat = w_mat)
 
 !Set x, y, z
 particle%vec(1:5:2) = global_position%r
@@ -673,7 +673,7 @@ real(rp), pointer :: vec(:)
 vec => particle%vec
 p0c = particle%p0c
 pctot = sqrt (vec(2)**2 + vec(4)**2 + vec(6)**2)
-if (vec(6) > 0) then
+if (vec(6) >= 0) then
   particle%direction = 1
 else
   particle%direction = -1
