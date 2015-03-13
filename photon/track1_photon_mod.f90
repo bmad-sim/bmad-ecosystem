@@ -22,7 +22,7 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track1_x_ray_source (ele, orbit)
+! Subroutine track1_x_ray_source (ele, param, orbit)
 !
 ! Routine to initialize a photon from an x_ray_source element.
 !
@@ -65,22 +65,27 @@ orbit%vec(1:5:2) = [ele%value(x_offset_tot$) + ele%value(sig_x$) * r(1), &
 
 ! Set direction
 
-select case (nint(ele%value(velocity_distribution$)))
-case (spherical$)
+if (ele%photon%target%type == grid$) then
   call point_photon_emission (ele, param, orbit, +1, twopi)
 
-case (uniform$)
-  call ran_uniform(dir)
-  dir = 2 * dir - 1
-  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
-  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+else
+  select case (nint(ele%value(velocity_distribution$)))
+  case (spherical$)
+    call point_photon_emission (ele, param, orbit, +1, twopi)
 
-case (gaussian$)
-  call ran_gauss(dir)
-  orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
-  orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+  case (uniform$)
+    call ran_uniform(dir)
+    dir = 2 * dir - 1
+    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+    orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
 
-end select
+  case (gaussian$)
+    call ran_gauss(dir)
+    orbit%vec(2:4:2) = [ele%value(x_pitch$), ele%value(y_pitch$)] + dir * [ele%value(sig_vx$), ele%value(sig_vy$)]
+    orbit%vec(6) = sqrt(1 - orbit%vec(2)**2 - orbit%vec(4)**2)
+
+  end select
+endif
 
 ! Set energy
 

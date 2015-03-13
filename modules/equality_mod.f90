@@ -834,10 +834,10 @@ is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
 is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%e_x == f2%e_x)
-!! f_side.equality_test[real, 1, NOT]
-is_eq = is_eq .and. all(f1%e_y == f2%e_y)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%e_x == f2%e_x)
+!! f_side.equality_test[complex, 0, NOT]
+is_eq = is_eq .and. (f1%e_y == f2%e_y)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
 !! f_side.equality_test[real, 0, NOT]

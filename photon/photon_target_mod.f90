@@ -220,7 +220,7 @@ integer nx, ny
 ! If outside of detector area then do nothing.
 
 orb = orbit
-call offset_photon (ele, orb, set$)  ! Go to coordinates of the detector
+call offset_photon (ele, orb, set$, offset_position_only = .true.)  ! Go to coordinates of the detector
 
 grid => ele%photon%surface%grid
 
@@ -242,9 +242,9 @@ pix => grid%pt(nx,ny)
 pix%n_photon  = pix%n_photon + 1
 if (ele%branch%lat%photon_type == coherent$) then
   phase = orb%phase(1) 
-  pix%E_x = pix%E_x + orb%field(1) * [cos(phase), sin(phase)]
+  pix%E_x = pix%E_x + orb%field(1) * cmplx(cos(phase), sin(phase))
   phase = orb%phase(2) 
-  pix%E_y = pix%E_y + orb%field(2) * [cos(phase), sin(phase)]
+  pix%E_y = pix%E_y + orb%field(2) * cmplx(cos(phase), sin(phase))
 else
   intens_x = orbit%field(1)**2
   intens_y = orbit%field(2)**2
