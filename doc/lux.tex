@@ -420,7 +420,7 @@ parameter must be of type:
   sbend or rbend    ! Example in \sref{ss:bend}
   undulator
   wiggler
-  x_ray_source        ! Example in \sref{ss:x.ray.init}
+  x_ray_source      ! Example in \sref{ss:x.ray.init}
 \end{example}
 
 The detector element, specified by the \vn{lux_param%detector_element}
@@ -488,35 +488,6 @@ The source can be moved spatially by setting the parameters
   x_pitch, y_pitch, tilt
 \end{example}
 See the Bmad manual for more details.
-
-The emission spectrum is governed by the master input file parameters:
-\begin{example}
-  photon_init%sig_E
-  photon_init%dE_center
-  photon_init%dE_relative_to_ref
-  photon_init%energy_distribution
-  photon_init%spatial_distribution     ! (x, y) spacial distribution
-  photon_init%velocity_distribution    ! (vx, vy) spacial distribution
-\end{example}
-If \vn{photon_init%dE_relative_to_ref} is set to True, The average
-starting photon energy is
-\begin{example}
-  E_average = photon_init%dE_center + beginning[e_tot]
-\end{example}
-where the reference energy \vn{beginning[e_tot]} is set in the lattice file. 
-If \vn{photon_init%dE_relative_to_ref} is set to False, The average
-starting photon energy is simply \vn{photon_init%dE_center}.
-
-The width of the energy distribution, in eV, is set by \vn{%sig_E}.
-The \vn{%energy_distribution} and \vn{%transverse_distribution} parameters
-establish the type of energy and spatial spectrum used. Possible
-settings for these parameters are:
-\begin{example}
-  "UNIFORM"
-  "GAUSSIAN"
-\end{example}
-A \vn{UNIFORM} spectrum has a constant probability of emission out to
-1~sigma and zero outside of this range.
 
 %------------------------------------------------------------------
 \subsection{Example: Lattice Using an Bend Source}

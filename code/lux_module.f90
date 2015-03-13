@@ -574,9 +574,9 @@ case (x_ray_source$)
   else
     f = 3
   endif
-  lux_com%E_min = source_ele%value(dE_center$) - f * source_ele%value(sig_E$)
-  lux_com%E_max = source_ele%value(dE_center$) + f * source_ele%value(sig_E$)
-  if (is_false(source_ele%value(dE_relative_to_ref$))) then
+  lux_com%E_min = source_ele%value(E_center$) - f * source_ele%value(sig_E$)
+  lux_com%E_max = source_ele%value(E_center$) + f * source_ele%value(sig_E$)
+  if (is_false(source_ele%value(E_center_relative_to_ref$))) then
     lux_com%E_min = lux_com%E_min - source_ele%value(p0c$) 
     lux_com%E_max = lux_com%E_max - source_ele%value(p0c$) 
   endif
@@ -591,8 +591,8 @@ case default
   lux_com%n_bend_slice = n_slice
   allocate (lux_com%bend_slice(0:n_slice))
 
-  lux_com%E_min = source_ele%value(dE_center$) - source_ele%value(sig_E$)
-  if (is_true(source_ele%value(dE_relative_to_ref$))) lux_com%E_min = lux_com%E_min + lux_com%detec_ele%value(p0c$) 
+  lux_com%E_min = source_ele%value(E_center$) - source_ele%value(sig_E$)
+  if (is_true(source_ele%value(E_center_relative_to_ref$))) lux_com%E_min = lux_com%E_min + lux_com%detec_ele%value(p0c$) 
   if (source_ele%value(sig_E$) == 0) then
     lux_com%E_max = lux_com%E_min + 1d-10  ! Need some small offset for the calculation
   else
@@ -701,7 +701,7 @@ if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
 do i = 1, lux_param%n_energy_bin_pts
   lux_com%energy_bin(i)%energy_ave = lux_com%E_min + lux_com%dE_bin * (i - 0.5)
 enddo
-if (is_true(source_ele%value(dE_relative_to_ref$))) lux_com%energy_bin%energy_ave = &
+if (is_true(source_ele%value(E_center_relative_to_ref$))) lux_com%energy_bin%energy_ave = &
                                                   lux_com%energy_bin%energy_ave - lux_com%detec_ele%value(p0c$) 
 
 end subroutine lux_tracking_setup 
@@ -761,7 +761,7 @@ call reallocate_coord (photon%orb, lat, d_branch%ix_branch)
 if (lux_param%track_bunch) then
 
   n = lux_com%n_photon_stop1
-  allocate (bunch%particle(n))
+  call reallocate_bunch (bunch, n)
 
   do ip = 1, n
     call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
@@ -772,6 +772,8 @@ if (lux_param%track_bunch) then
   do ip = 1, n
     call add_to_detector_statistics (bunch%particle(ip), intens)
   enddo
+
+  lux_data%n_track_tot = n
 
   return
 endif
@@ -845,7 +847,7 @@ intensity_tot = intensity_tot + intens
 
 call photon_add_to_detector_statistics (det_orb, detec_ele)
 
-if (is_true(source_ele%value(dE_relative_to_ref$))) then
+if (is_true(source_ele%value(E_center_relative_to_ref$))) then
   ix = nint((det_orb%p0c - lux_com%detec_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
 else
   ix = nint((det_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
@@ -940,8 +942,8 @@ do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_m
   pix => detec_grid%pt(nx,ny)
 
   if (lat%photon_type == coherent$) then
-    pix%intensity_x = pix%E_x(1)**2 + pix%E_x(2)**2
-    pix%intensity_y = pix%E_y(1)**2 + pix%E_y(2)**2
+    pix%intensity_x = abs(pix%E_x)
+    pix%intensity_y = abs(pix%E_y)
     pix%intensity   = pix%intensity_x + pix%intensity_y 
   endif
 
@@ -1004,8 +1006,8 @@ if (lux_param%det_pix_out_file /= '') then
     pix%energy_rms = sqrt(max(0.0_rp, pix%energy_rms / pix%intensity - pix%energy_ave**2)) 
     phase_x = 0; phase_y = 0
     if (lat%photon_type == coherent$) then
-      phase_x = atan2(pix%e_x(1), pix%e_x(2))
-      phase_y = atan2(pix%e_y(1), pix%e_y(2))
+      phase_x = atan2(aimag(pix%e_x), real(pix%e_x))
+      phase_y = atan2(aimag(pix%e_y), real(pix%e_y))
     endif
     write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
            pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
