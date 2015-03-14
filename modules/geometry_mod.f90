@@ -1564,7 +1564,7 @@ if (g==0) then
   L_vec = [0.0_rp, 0.0_rp, delta_s]
 else
   angle = g*delta_s
-  L_vec = [cos(angle)-1, 0, sin(angle)]/g
+  L_vec = [cos(angle)-1, 0.0_rp, sin(angle)]/g
   if (present(tilt)) call rotate_vec_z(L_vec, tilt)
 endif
 end function
