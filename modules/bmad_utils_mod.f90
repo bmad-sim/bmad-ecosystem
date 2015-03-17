@@ -1098,7 +1098,7 @@ end subroutine clear_lat_1turn_mats
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine transfer_mat_from_twiss (ele1, ele2, m)
+! Subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
 !
 ! Subroutine to make a 6 x 6 transfer matrix from the twiss parameters
 ! at two points.
@@ -1109,28 +1109,32 @@ end subroutine clear_lat_1turn_mats
 !   use bmad
 !
 ! Input:
-!   ele1 -- Ele_struct: Element with twiss parameters for the starting point.
-!     %a, %b -- a-mode and b-mode Twiss paramters
-!       %beta   -- Beta parameter.
-!       %alpha  -- Alpha parameter.
-!       %phi    -- Phase at initial point.
-!     %x  %y -- dispersion values
-!       %eta    -- Dispersion at initial point.
-!       %etap   -- Dispersion derivative at initial point.
-!     %c_mat(2,2) -- Coupling matrix
-!   ele2 -- Ele_struct: Element with twiss parameters for the ending point.
+!   ele1     -- Ele_struct: Element with twiss parameters for the starting point.
+!     %a, %b       -- a-mode and b-mode Twiss paramters
+!       %beta         -- Beta parameter.
+!       %alpha        -- Alpha parameter.
+!       %phi          -- Phase at initial point.
+!     %x, %y       -- dispersion values
+!       %eta          -- Dispersion at initial point.
+!       %etap         -- Dispersion derivative at initial point.
+!     %c_mat(2,2)  -- Coupling matrix
+!   ele2     -- Ele_struct: Element with twiss parameters for the ending point.
+!   orb1(6)  -- real(rp): Reference orbit at ele1 (affects m(i,6) dispersion terms).
+!   orb2(6)  -- real(rp): Reference orbit at ele2 (affects m(i,6) dispersion terms).
 !
 ! Output:
 !   m(6,6) -- Real(rp): Transfer matrix between the two points.
 !-
 
-subroutine transfer_mat_from_twiss (ele1, ele2, m)
+subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
 
 implicit none
 
 type (ele_struct) ele1, ele2
 
+real(rp) orb1(6), orb2(6)
 real(rp) m(6,6), v_mat(4,4), v_inv_mat(4,4), det
+real(rp) rel_p1, rel_p2, eta1(4), eta2(4)
 character(20) :: r_name = 'transfer_mat_from_twiss'
 
 ! Error check
@@ -1182,9 +1186,16 @@ if (any(ele2%c_mat /= 0)) then
 endif
 
 ! Add in dispersion.
+! See the Bmad manual for a derivation of the equations here.
 
-m(1:4,6) = [ele2%x%eta, ele2%x%etap, ele2%y%eta, ele2%y%etap] - &
-        matmul (m(1:4,1:4), [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap]) 
+rel_p1 = 1 + orb1(6)
+rel_p2 = 1 + orb2(6)
+
+eta1 = [ele1%x%eta, rel_p1 * ele1%x%etap, ele1%y%eta, rel_p1 * ele1%y%etap]
+eta2 = [ele2%x%eta, rel_p2 * ele2%x%etap, ele2%y%eta, rel_p2 * ele2%y%etap]
+eta2 = eta2 - (m(1:4,2) * orb1(2) + m(1:4,4) * orb1(4)) / rel_p1 + [0.0_rp, orb2(2), 0.0_rp, orb2(4)] / rel_p2
+
+m(1:4,6) = eta2 - matmul (m(1:4,1:4), eta1) 
 
 ! The m(5,x) terms follow from the symplectic condition.
 
@@ -1226,6 +1237,7 @@ type (ele_struct), target :: ele, ele0, ele1
 
 real(rp) mat6(6,6), vec0(6)
 real(rp), pointer :: v(:)
+real(rp) orb0(6), orb1(6)
 
 logical err_flag
 
@@ -1279,12 +1291,14 @@ ele1%gamma_c = 1
 ele0%name = ele%name
 ele1%name = ele%name
 
-call transfer_mat_from_twiss (ele0, ele1, mat6)
+orb0 = [v(x0$), v(px0$), v(y0$), v(py0$), v(z0$), v(pz0$)]
+orb1 = [v(x1$), v(px1$), v(y1$), v(py1$), v(z1$), v(pz1$)]
+
+call transfer_mat_from_twiss (ele0, ele1, orb0, orb1, mat6)
 
 ! Kick part
 
-vec0 = [v(x1$), v(px1$), v(y1$), v(py1$), v(z1$), v(pz1$)] - &
-       matmul (mat6, [v(x0$), v(px0$), v(y0$), v(py0$), v(z0$), v(pz0$)])
+vec0 = orb1 - matmul (mat6, orb0)
 
 end subroutine match_ele_to_mat6
 
