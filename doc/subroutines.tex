@@ -840,6 +840,11 @@ in the array of elements in a lattice branch.
   }] \Newline 
 Routine to point to a given element.
 
+\index[routine]{pointer_to_element_at_s}
+\label{r:pointer.to.element.at.s}
+\item[pointer_to_element_at_s (branch, s, choose_max, err_flag, s_eff, position) result (ele)] \Newline 
+Function to return a pointer to the element at position s.
+
 \index[routine]{remove_eles_from_lat}
 \label{r:remove.eles.from.lat}
 \item[remove_eles_from_lat (lat, check_sanity)] \Newline 
@@ -1350,7 +1355,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
 \item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, \\
-  \hspace*{1in} use_matrix_model, ix_start, ix_end, converted_lat, err)}] \Newline 
+  \hspace*{1in} use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
