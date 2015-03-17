@@ -892,6 +892,8 @@ branch_loop: do i_loop = 1, n_branch_max
   if (ele%b%beta /= 0)            ele0%b             = ele%b
   if (ele%value(floor_set$) /= 0) ele0%floor         = ele%floor 
 
+  call settable_dep_var_bookkeeping(ele0)
+
   if (bp_com%error_flag) then
     call parser_end_stuff ()
     return
