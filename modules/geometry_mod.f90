@@ -509,7 +509,6 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
       if (ix_pass > 0) then
         ele2 => chain_ele(1)%ele
-        if (ele2%ix_ele /= 0) ele2 => pointer_to_next_ele(ele2, -1)
       endif
 
       if (ele2%bookkeeping_state%floor_position == stale$) then
@@ -519,12 +518,14 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         if (global_com%exit_on_error) call err_exit
       endif
 
+      call ele_geometry (ele2%floor, ele2, floor_ref, -1.0_rp) 
+      
       ele0 => pointer_to_next_ele(ele, -1)
       call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
-      call floor_angles_to_w_mat (ele2%floor%theta, ele2%floor%phi, ele2%floor%psi, w_mat)
+      call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
       w_mat = matmul(w_mat_inv, w_mat)
       call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
-      r_vec = matmul(w_mat_inv, ele2%floor%r - ele0%floor%r)
+      r_vec = matmul(w_mat_inv, floor_ref%r - ele0%floor%r)
       ele%value(x_offset$) = r_vec(1)
       ele%value(y_offset$) = r_vec(2)
       ele%value(z_offset$) = r_vec(3)
