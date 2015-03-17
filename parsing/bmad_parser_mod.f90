@@ -5186,7 +5186,7 @@ implicit none
 type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) angle, rr
+real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4)
 integer n
 logical kick_set, length_set, set_done, err_flag
 
@@ -5211,6 +5211,19 @@ endif
 kick_set = (ele%value(hkick$) /= 0) .or. (ele%value(vkick$) /= 0)
 
 select case (ele%key)
+
+case (beginning_ele$)
+
+  if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
+  if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
+
+  call make_v_mats (ele, v_inv_mat = v_inv_mat)
+  eta_vec = matmul (v_inv_mat, [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap])
+
+  ele%a%eta  = eta_vec(1)
+  ele%a%etap = eta_vec(2)
+  ele%b%eta  = eta_vec(3)
+  ele%b%etap = eta_vec(4)
 
 ! Convert rbends to sbends and evaluate G if needed.
 ! Needed is the length and either: angle, G, or rho.

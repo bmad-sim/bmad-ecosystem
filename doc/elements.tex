@@ -2318,19 +2318,17 @@ vector $\Bf V$ is the zeroth order part of the map.
 \index{eta_y0}\index{etap_y0}
 \index{dphi_a}\index{dphi_b}
 Nomenclature: The parameters \vn{beta_a0}, \vn{alpha_a0}, etc. of the
-\vn{match} element are called the ``entrance Twiss parameters''. The
-parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of the \vn{match} element
-are called the ``exit Twiss parameters''.
+\vn{match} element are called the beginning (upstream) ``design''
+Twiss parameters. The parameters \vn{beta_a1}, \vn{alpha_a1}, etc. of
+the \vn{match} element are called the ending (downstream) ``design'' Twiss
+parameters.
 
-The matrix $\Bf M$ is calculated such that if the actual (computed)
-Twiss parameters at the exit end of the element preceding the
-\vn{match} element are equal to the entrance Twiss parameters of the
-\vn{match} element, then the computed Twiss parameters at the exit
-end of the \vn{match} element will be the exit Twiss parameters of the
-\vn{match} element and the phase advances (in radians) will be
-\vn{dphi_a} and \vn{dphi_b}. Notice that there is no guarantee that
-the actual Twiss parameters after a \vn{match} element be equal to 
-the exit Twiss parameters of the \vn{match} element.
+The matrix $\Bf M$ is calculated such that if (and only if) the actual
+(computed) Twiss parameters at the beginning \vn{match} element are
+equal to the beginning design Twiss parameters, then the computed
+Twiss parameters at the end of the \vn{match} element will be the end
+design Twiss parameters and the phase advances (in radians) will be
+\vn{dphi_a} and \vn{dphi_b}.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
@@ -2348,12 +2346,10 @@ y1, py1, z1, pz1)}. With this, $\Bf V$ will be:
     \end{pmatrix}
 \Endeq
 
-
 \index{l}
-The attribute \vn{l} is not used in the transfer matrix
-calculation. It is sometimes needed by a program for other
-computations. For example, to compute the time it takes to go through
-a match element.
+The length attribute \vn{l} is not used in the transfer matrix
+calculation. The length \vn{l} is used to compute the time it takes to
+go through a match element.
 
 Example:
 \begin{example}
@@ -2363,37 +2359,39 @@ Example:
   \begin{description} 
   \index{open}
   \index{match_end}
-  \item[Match_end] \Newline
-The \vn{match_end} attribute is used for appropriately setting the
-entrance Twiss parameters of the \vn{match} element from within a
-program. If the \vn{match_end} attribute is set to True, the entrance
-Twiss parameters are set to be equal to the Twiss parameters from the
-exit end of the previous element. That is, the actual Twiss parameters
-at the exit end of the match element will be the exit Twiss parameters
-of the \vn{match} element. The \vn{match_end} attribute may only be
-used with \vn{open} lattices (\sref{s:param}) since, for a \vn{closed}
-lattice, it is not possible to calculate the Twiss parameters at the
-previous element independently of the exit Twiss parameters at the
-\vn{match} element.
+  \item[match_end] \Newline
+The default value of \vn{match_end} is False. The \vn{match_end}
+attribute is used for appropriately setting the beginning design Twiss
+parameters from within a program. If the \vn{match_end} attribute is
+set to True, the beginning design Twiss parameters are set to be equal
+to the actual Twiss parameters from the exit end of the previous
+element. In this case, the actual Twiss parameters at the end of the
+match element will be the design end Twiss parameters. The
+\vn{match_end} attribute may only be set to True with \vn{open} lattices
+(\sref{s:param}) since, for a \vn{closed} lattice, it is not possible
+to calculate the Twiss parameters at the previous element
+independently of the design end Twiss parameters at the \vn{match} element.
 
 When running a program, if a \vn{match} element initially has it's
 \vn{match_end} attribute is set to True, the \bmad bookkeeping
-routines will ensure that the \vn{match} element's beginning Twiss
-parameters are appropriately set as explained above. If \vn{match_end}
-is now toggled to False by the program, the beginning Twiss attribute
-values, and hence the transfer matrix for the \vn{match} element, will
-be frozen. Variation now of any parameter in the lattice that affects
-the calculated Twiss parameters through the \vn{match} element will
-not affect the \vn{match} element's transfer matrix.
+routines will ensure that the \vn{match} element's beginning design
+Twiss parameters are appropriately set as explained above. If
+\vn{match_end} is now toggled to False by the program, the beginning
+Twiss attribute values, and hence the transfer matrix for the
+\vn{match} element, will be frozen. Variation now of any parameter in
+the lattice that affects the calculated Twiss parameters through the
+\vn{match} element will not affect the \vn{match} element's transfer
+matrix.
 
   \index{match_end_orbit}
   \item[match_end_orbit]
 The \vn{match_end_orbit} attribute is similar to the \vn{match_end}
-attribute.  When running a program, if \vn{match_end_orbit} is set to
-True, when any particle is tracked through the \vn{match} element, the
-\vn{match} element's starting coordinate parameters, \vn{(x0, px0, y0,
-py0, z0, pz0)}, will be set to the particle's coordinates at the exit
-end of the previous element. That is, the particle will always have
+attribute. The default value of \vn{match_end_orbit} is False. When
+running a program, if \vn{match_end_orbit} is set to True, when any
+particle is tracked through the \vn{match} element, the \vn{match}
+element's starting coordinate parameters, \vn{(x0, px0, y0, py0, z0,
+pz0)}, will be set to the particle's coordinates at the exit end of
+the previous element. That is, the particle will always have
 coordinates equal to \vn{(x1, px1, y1, py1, z1, pz1)} at the end of
 the \vn{match} element.  If \vn{match_end_orbit} is now toggled to
 False by the program, the ending coordinate parameters, and hence the

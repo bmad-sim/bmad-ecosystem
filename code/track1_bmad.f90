@@ -488,8 +488,6 @@ case (match$)
 
   ! Until match_end = False, use unit matrix.
 
-  !! if (is_true(ele%value(match_end$))) return
-
   call match_ele_to_mat6 (ele, vec0, mat6, err)
   if (err) then
     ! Since there are cases where this error may be raised many 
