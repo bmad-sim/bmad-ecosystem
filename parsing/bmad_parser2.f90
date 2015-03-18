@@ -563,7 +563,7 @@ do i = 1, ele_num
   ixx = ele%ixx
 
   do j = 0, ubound(lat%branch, 1)
-    call add_all_superimpose (lat%branch(j), ele, plat%ele(ixx))
+    call parser_add_superimpose (lat%branch(j), ele, plat%ele(ixx))
   enddo
 enddo
 

@@ -113,7 +113,7 @@ type parser_ele_struct
   character(40), allocatable :: attrib_name(:) ! For overlays and groups
   character(200) lat_file                      ! File where element was defined.
   real(rp), allocatable :: coef(:)             ! For overlays and groups
-  real(rp) s
+  real(rp) offset
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
   integer ele_pt, ref_pt
@@ -1144,7 +1144,7 @@ case ('OFFSET')
   call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
   if (err_flag) return
   if (.not. present(pele)) call parser_error ('INTERNAL ERROR...')
-  pele%s = value
+  pele%offset = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
      'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE')
@@ -3965,7 +3965,7 @@ else
   lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
-lord%old_is_on = .false.  ! So add_all_superimpose will not try to use as ref ele.
+lord%old_is_on = .false.  ! So parser_add_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
@@ -4110,7 +4110,7 @@ end subroutine reallocate_bp_com_var
 ! This subroutine is not intended for general use.
 !-
 
-subroutine add_all_superimpose (branch, super_ele_in, pele, in_lat, plat)
+subroutine parser_add_superimpose (branch, super_ele_in, pele, in_lat, plat)
 
 use multipass_mod
 
@@ -4219,13 +4219,16 @@ do i = 1, n_loc
   eles(i)%ele%old_is_on = .true. ! Tag reference element.
 enddo
 
-!
+! Note: branch%n_ele_max will vary when an element is superimposed.
 
 do 
 
   have_inserted = .false.
 
-  ele_loop: do i_ele = 0, branch%n_ele_max
+  i_ele = -1
+  ele_loop: do 
+    i_ele = i_ele + 1
+    if (i_ele > branch%n_ele_max) exit
 
     ref_ele => branch%ele(i_ele)
      
@@ -4389,7 +4392,7 @@ do
 
 enddo
 
-end subroutine add_all_superimpose
+end subroutine parser_add_superimpose
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -4415,7 +4418,7 @@ real(rp) s_ref_begin, s_ref_end
 
 ! Find the reference point on the element being superimposed.
 
-super_ele%s = pele%s
+super_ele%s = pele%offset
 
 if (pele%ele_pt == anchor_beginning$) then
   super_ele%s = super_ele%s + super_ele%value(l$)
@@ -4830,7 +4833,7 @@ do i = n_now+1, ubound(plat%ele, 1)
   plat%ele(i)%ref_name = blank_name$
   plat%ele(i)%ref_pt  = not_set$
   plat%ele(i)%ele_pt  = not_set$
-  plat%ele(i)%s       = 0
+  plat%ele(i)%offset  = 0
   plat%ele(i)%create_jumbo_slave = .false.
 enddo
 
