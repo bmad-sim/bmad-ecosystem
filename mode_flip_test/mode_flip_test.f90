@@ -15,6 +15,7 @@ type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: co(:)
 
 real(rp) mat_track(6,6), mat_twiss(6,6)
+real(rp) vec0(6), vec1(6)
 integer i
 character(40) fmt
 
@@ -57,7 +58,9 @@ do i = n1+1, n2
   mat_track = matmul(lat%ele(i)%mat6, mat_track)
 enddo
 
-call transfer_mat_from_twiss (lat%ele(n1), lat%ele(n2), mat_twiss)
+vec0 = [0.01, 0.02, 0.03, 0.04, 0.05, 0.06]
+vec1 = [0.07, 0.08, 0.09, 0.10, 0.11, 0.12]
+call transfer_mat_from_twiss (lat%ele(n1), lat%ele(n2), vec0, vec0, mat_twiss)
 
 fmt = '(3a, 3f20.15, 5x, 3f20.15)'
 do i = 1, 6
