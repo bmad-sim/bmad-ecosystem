@@ -907,7 +907,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   do i = 1, n_max
     if (in_lat%ele(i)%lord_status /= super_lord$) cycle
-    call add_all_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat, plat)
+    call parser_add_superimpose (branch, in_lat%ele(i), plat%ele(i), in_lat, plat)
     call s_calc (lat)  ! calc longitudinal distances of new branch elements
   enddo
 
@@ -1044,7 +1044,7 @@ call set_ptc (1000*mass_of(lat%param%particle), lat%param%particle)
 do i = 1, n_max
   if (in_lat%ele(i)%lord_status == super_lord$) cycle
   pele => plat%ele(i)
-  if (pele%ref_name /= blank_name$ .or. pele%s /= 0 .or. &
+  if (pele%ref_name /= blank_name$ .or. pele%offset /= 0 .or. &
       pele%ele_pt /= not_set$ .or. pele%ref_pt /= not_set$) then
     call parser_error ('SUPERPOSITION ATTRIBUTE SET BUT "SUPERPOSITION" NOT SPECIFIED FOR: ' // in_lat%ele(i)%name)
   endif
