@@ -2367,10 +2367,11 @@ set to True, the beginning design Twiss parameters are set to be equal
 to the actual Twiss parameters from the exit end of the previous
 element. In this case, the actual Twiss parameters at the end of the
 match element will be the design end Twiss parameters. The
-\vn{match_end} attribute may only be set to True with \vn{open} lattices
-(\sref{s:param}) since, for a \vn{closed} lattice, it is not possible
-to calculate the Twiss parameters at the previous element
-independently of the design end Twiss parameters at the \vn{match} element.
+\vn{match_end} attribute may only be set to True with \vn{open}
+lattices (\sref{s:param}) since, for a \vn{closed} lattice, it is not
+possible to calculate the Twiss parameters at the previous element
+independently of the design end Twiss parameters at the \vn{match}
+element.
 
 When running a program, if a \vn{match} element initially has it's
 \vn{match_end} attribute is set to True, the \bmad bookkeeping
@@ -2378,10 +2379,10 @@ routines will ensure that the \vn{match} element's beginning design
 Twiss parameters are appropriately set as explained above. If
 \vn{match_end} is now toggled to False by the program, the beginning
 Twiss attribute values, and hence the transfer matrix for the
-\vn{match} element, will be frozen. Variation now of any parameter in
-the lattice that affects the calculated Twiss parameters through the
-\vn{match} element will not affect the \vn{match} element's transfer
-matrix.
+\vn{match} element, will be frozen. Thereafter, variation of any
+parameter in the lattice that affects the calculated Twiss parameters
+through the \vn{match} element will not affect the \vn{match}
+element's transfer matrix.
 
   \index{match_end_orbit}
   \item[match_end_orbit]
@@ -3584,9 +3585,9 @@ General \vn{x_ray_source} attributes are:
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{x_ray_source} element are:
 \begin{example}
-    energy_distribution      = <Switch>  ! gaussian or uniform
-    spatial_distribution     = <Switch>  ! gaussian or uniform. 
-    velocity_distribution    = <Switch>  ! gaussian, shperical, or uniform. 
+    energy_distribution      = <Switch>  ! Gaussian or uniform
+    spatial_distribution     = <Switch>  ! Gaussian or uniform. 
+    velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
     sig_x                    = <Real>
     sig_y                    = <Real>
     sig_z                    = <Real>
@@ -3614,7 +3615,7 @@ energy.
 reference energy (\sref{s:ref.energy}). That is, if set to True, the
 center energy \vn{<E>} is
 \begin{example}
-  <E> = E_center + Referece_Energy
+  <E> = E_center + Reference_Energy
 \end{example}
 
   \item[\vn{ds_slice}] \Newline

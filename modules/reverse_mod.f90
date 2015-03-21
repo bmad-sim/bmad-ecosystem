@@ -117,7 +117,7 @@ do ib = 0, ubound(lat_in%branch, 1)
 
   branch%param%t1_with_RF = 0  ! Init
   branch%param%t1_no_RF = 0    ! Init
-
+  branch%ele(0)%s = 0
 enddo
 
 ! Finish
