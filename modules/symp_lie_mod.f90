@@ -8,12 +8,12 @@ use random_mod
 use track1_mod
 
 type save_coef_struct
-  real(rp) coef, dx_coef, dy_coef
+  real(rp) :: coef = 0, dx_coef = 0, dy_coef = 0
 end type
 
 type wiggler_computations_struct
   type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
-  real(rp) c_x, s_x, c_y, s_y, c_z, s_z, s_x_kx, s_y_ky, c1_ky2
+  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0, s_x_kx = 0, s_y_ky = 0, c1_ky2 = 0
 end type
 
 private save_coef_struct, wiggler_computations_struct
@@ -216,8 +216,8 @@ Case (wiggler$, undulator$)
     call radiation_kick()
 
     if (calculate_mat6) then
-      mat6(2,1:6) = mat6(2,1:6) + ds * da_z_dx__dx() * mat6(1,1:6) + ds * da_z_dx__dy() * mat6(3,1:6)
-      mat6(4,1:6) = mat6(4,1:6) + ds * da_z_dy__dx() * mat6(1,1:6) + ds * da_z_dy__dy() * mat6(3,1:6)
+      mat6(2,1:6) = mat6(2,1:6) + ds * (da_z_dx__dx() * mat6(1,1:6) + da_z_dx__dy() * mat6(3,1:6))
+      mat6(4,1:6) = mat6(4,1:6) + ds * (da_z_dy__dx() * mat6(1,1:6) + da_z_dy__dy() * mat6(3,1:6))
     endif 
 
     ! Drift_2
@@ -452,7 +452,7 @@ end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(2)**2 / (2*rel_E2)
 end_orb%s = end_orb%s + ds2
 
 if (do_mat6) then
-  mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)           * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
+  mat6(1,1:6) = mat6(1,1:6) + (ds2 / rel_E)               * mat6(2,1:6) - (ds2*end_orb%vec(2)/rel_E2)    * mat6(6,1:6) 
   mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(2)/rel_E2) * mat6(2,1:6) + (ds2*end_orb%vec(2)**2/rel_E3) * mat6(6,1:6)
 endif
 
@@ -470,7 +470,7 @@ end_orb%vec(3) = end_orb%vec(3) + ds2 * end_orb%vec(4) / rel_E
 end_orb%vec(5) = end_orb%vec(5) - ds2 * end_orb%vec(4)**2 / (2*rel_E2)
 
 if (do_mat6) then
-  mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)           * mat6(4,1:6) - (ds2*end_orb%vec(4)/rel_E2)    * mat6(6,1:6) 
+  mat6(3,1:6) = mat6(3,1:6) + (ds2 / rel_E)               * mat6(4,1:6) - (ds2*end_orb%vec(4)/rel_E2)    * mat6(6,1:6) 
   mat6(5,1:6) = mat6(5,1:6) - (ds2*end_orb%vec(4)/rel_E2) * mat6(4,1:6) + (ds2*end_orb%vec(4)**2/rel_E3) * mat6(6,1:6)
 endif      
 
@@ -628,15 +628,15 @@ real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = charge_dir * c_light / ele%value(p0c$)
+factor = rel_tracking_charge * c_light / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
   coef = factor * wt%coef * field_ele%value(polarity$)
-  tm(j)%a_y%coef         = -coef * wt%kz      ! / (wt%kx * wt%ky)
-  tm(j)%dint_a_y_dx%coef = -coef * wt%kz      ! / wt%ky**2
-  tm(j)%da_z_dx%coef     = -coef 
-  tm(j)%da_z_dy%coef     = -coef * wt%ky      ! / wt%kx
+  tm(j)%a_y%coef         = -coef * wt%kz                   ! / (wt%kx * wt%ky)
+  tm(j)%dint_a_y_dx%coef = -coef * wt%kz                   ! / wt%ky**2
+  tm(j)%da_z_dx%coef     = -coef         * orientation
+  tm(j)%da_z_dy%coef     = -coef * wt%ky * orientation     ! / wt%kx
   if (wt%type == hyper_x$) then
     tm(j)%da_z_dy%coef     = -tm(j)%da_z_dy%coef
     tm(j)%dint_a_y_dx%coef = -tm(j)%dint_a_y_dx%coef 
@@ -711,16 +711,11 @@ do j = 1, num_wig_terms
   endif
 enddo
 
-exp_kyy(1:n_hypr) = EXP(hypr_kyy(1:n_hypr))
+exp_kyy(1:n_hypr) = exp(hypr_kyy(1:n_hypr))
 exp_kyy_inv(1:n_hypr) = 1.0/exp_kyy(1:n_hypr)
 
-! !DIR$ vector always
-! do j=1,n_trig
-!   sin_kyy(j) = SIN(trig_kyy(j))
-!   cos_kyy(j) = COS(trig_kyy(j))
-! enddo
-sin_kyy(1:n_trig) = SIN(trig_kyy(1:n_trig))
-cos_kyy(1:n_trig) = COS(trig_kyy(1:n_trig))
+sin_kyy(1:n_trig) = sin(trig_kyy(1:n_trig))
+cos_kyy(1:n_trig) = cos(trig_kyy(1:n_trig))
 
 n_hypr = 0
 n_trig = 0
@@ -831,11 +826,6 @@ spz_offset = s + z_offset
 if (orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
 
-! !DIR$ vector always
-! do j=1,num_wig_terms
-!   tm(j)%c_z = cos(kzz(j))
-!   tm(j)%s_z = sin(kzz(j))
-! enddo
 tm(1:num_wig_terms)%c_z = cos(kzz(1:num_wig_terms))
 tm(1:num_wig_terms)%s_z = sin(kzz(1:num_wig_terms))
 
