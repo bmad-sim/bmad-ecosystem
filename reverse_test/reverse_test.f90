@@ -63,9 +63,11 @@ max_diff_mat = 0
 
 !
 
-do i = 1, lat%n_ele_max - 1
+do i = 1, lat%n_ele_max - 1 ! Do not test end marker
+  
 
   ele => lat%ele(i)
+
   call test_this (ele)
 
   if (valid_tracking_method (ele, lat%param%particle, runge_kutta$)) then
@@ -265,9 +267,11 @@ case ('"QUADRUPOLE5@Bmad_Standard:dorb_r"');    tol = 'ABS 1e-9'
 case ('"QUADRUPOLE5@Symp_Lie_Bmad:dorb_r"');    tol = 'ABS 1e-9'
 case ('"RFCAVITY1@Runge_Kutta:dorb_r"');        tol = 'ABS 3e-9'
 case ('"RFCAVITY2@Bmad_Standard:dorb_r"');      tol = 'ABS 1e-6'
+case ('"SBEND4@Bmad_Standard:dorb_b"');         tol = 'ABS 2e-8'
+case ('"SBEND4@Runge_Kutta:dorb_b"');           tol = 'ABS 1e-7'
 case ('"SBEND4@Bmad_Standard:dorb_r"');         tol = 'ABS 2e-8'
 case ('"SBEND4@Runge_Kutta:dorb_r"');           tol = 'ABS 1e-7'
-case ('"SBEND4@Runge_Kutta:xmat"');             tol = 'ABS 1e-9'
+case ('"SBEND4@Runge_Kutta:xmat"');             tol = 'ABS 2e-5'
 end select
 
 write (str_out, '(a, t47, a, t60, es12.4)') trim(str_out), tol, val
