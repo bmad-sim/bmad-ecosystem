@@ -62,10 +62,13 @@ logical, optional :: err, compute_floor_coords
 ! Construct a "runt" element to track through.
 
 if (present(err)) err = .true.
+
 call transfer_ele(ele, runt, .true.)
+
 do_upstream = (track_upstream_end .and. l_start == 0)
 if (present(orbit_start)) do_upstream = (do_upstream .and. orbit_start%location /= inside$)
 do_downstream = (track_downstream_end .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
+
 call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
 if (err_flag) return
 
@@ -74,15 +77,16 @@ if (err_flag) return
 
 if (present(ele_end)) then
   if (present(orbit_start)) then
-    call make_mat6 (runt, param, orbit_start, orb_at_end)
+    call make_mat6 (runt, param, orbit_start, orb_at_end, err_flag = err_flag)
     if (present(orbit_end)) then
       orbit_end = orb_at_end
       orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
       if (.not. do_downstream) orbit_end%location = inside$
     endif
   else
-    call make_mat6 (runt, param)
+    call make_mat6 (runt, param, err_flag = err_flag)
   endif
+  if (err_flag) return
   call twiss_propagate1 (ele_start, runt, err_flag)
   if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, runt, runt%floor)
   call transfer_ele(runt, ele_end, .true.)

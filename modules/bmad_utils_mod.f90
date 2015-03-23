@@ -1211,7 +1211,7 @@ end subroutine transfer_mat_from_twiss
 !--------------------------------------------------------------------
 !--------------------------------------------------------------------
 !+
-! Subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag)
+! Subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag, twiss_ele)
 !
 ! Subroutine to make the 6 x 6 transfer matrix from the twiss parameters
 ! at the entrance and exit ends of the element.
@@ -1220,8 +1220,9 @@ end subroutine transfer_mat_from_twiss
 !   use bmad
 !
 ! Input:
-!   ele -- Ele_struct: Match element.
-!     %value(beta_a0$) -- Beta_a at the start
+!   ele       -- ele_struct: Match element.
+!   twiss_ele -- ele_struct, optional: If present and ele%value(match_end$) is True, 
+!                  then use the Twiss parameters in this element as the upstream end Twiss.
 !
 ! Output:
 !   vec0(6)   -- Real(rp): Currently just set to zero.
@@ -1229,12 +1230,13 @@ end subroutine transfer_mat_from_twiss
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag)
+subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag, twiss_ele)
 
 implicit none
 
 type (ele_struct), target :: ele, ele0, ele1
-type (ele_struct), pointer :: pre_ele
+type (ele_struct), optional, target :: twiss_ele
+type (ele_struct), pointer :: t_ele
 
 real(rp) mat6(6,6), vec0(6)
 real(rp), pointer :: v(:)
@@ -1245,17 +1247,21 @@ logical err_flag
 ! Match_end
 
 if (ele%key == match$ .and. is_true(ele%value(match_end$))) then
-  pre_ele => pointer_to_next_ele (ele, -1)
-  ele%value(beta_a0$)  = pre_ele%a%beta
-  ele%value(beta_b0$)  = pre_ele%b%beta
-  ele%value(alpha_a0$) = pre_ele%a%alpha
-  ele%value(alpha_b0$) = pre_ele%b%alpha
-  ele%value(eta_x0$)   = pre_ele%x%eta
-  ele%value(eta_y0$)   = pre_ele%y%eta
-  ele%value(etap_x0$)  = pre_ele%x%etap
-  ele%value(etap_y0$)  = pre_ele%y%etap
-  ele%value(c_11$:c_22$) = [pre_ele%c_mat(1,1), pre_ele%c_mat(1,2), pre_ele%c_mat(2,1), pre_ele%c_mat(2,2)]
-  ele%value(gamma_c$) = pre_ele%gamma_c
+  if (present(twiss_ele)) then
+    t_ele => twiss_ele
+  else
+    t_ele => pointer_to_next_ele (ele, -1)
+  endif
+  ele%value(beta_a0$)    = t_ele%a%beta
+  ele%value(beta_b0$)    = t_ele%b%beta
+  ele%value(alpha_a0$)   = t_ele%a%alpha
+  ele%value(alpha_b0$)   = t_ele%b%alpha
+  ele%value(eta_x0$)     = t_ele%x%eta
+  ele%value(eta_y0$)     = t_ele%y%eta
+  ele%value(etap_x0$)    = t_ele%x%etap
+  ele%value(etap_y0$)    = t_ele%y%etap
+  ele%value(gamma_c$)    = t_ele%gamma_c
+  ele%value(c_11$:c_22$) = [t_ele%c_mat(1,1), t_ele%c_mat(1,2), t_ele%c_mat(2,1), t_ele%c_mat(2,2)]
 endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.

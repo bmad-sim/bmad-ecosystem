@@ -97,11 +97,12 @@ bmad_com%radiation_fluctuations_on = .false.
 
 !
 
+err = .false.
+
 select case (mat6_calc_method)
 
 case (custom$)
   call make_mat6_custom (ele, param, a_start_orb, a_end_orb, err)
-  if (err) return
 
 case (taylor$)
   call make_mat6_taylor (ele, param, a_start_orb)
@@ -113,7 +114,6 @@ case (bmad_standard$)
   else
     call make_mat6_bmad (ele, param, a_start_orb, a_end_orb, end_input, err)
   endif
-  if (err) return
 
 case (symp_lie_ptc$)
   call make_mat6_symp_lie_ptc (ele, param, a_start_orb, a_end_orb)
@@ -131,6 +131,7 @@ case (mad$)
 
 case (static$)
   if (present(err_flag)) err_flag = .false.
+  if (present(end_orb) .and. .not. logic_option (.false., end_in)) call track1 (a_end_orb, ele, param, end_orb)
   return
 
 case default
@@ -138,6 +139,11 @@ case default
   if (global_com%exit_on_error) call err_exit
   return
 end select
+
+if (err) then
+  if (present(end_orb) .and. .not. logic_option (.false., end_in)) end_orb = a_end_orb
+  return
+endif
 
 ! Add space charge effects
 
