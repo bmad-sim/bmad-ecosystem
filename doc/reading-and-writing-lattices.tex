@@ -127,12 +127,13 @@ To create a \bmad lattice file from a \vn{lat_struct} instance, use the routine
 \index{MAD!MAD-8}
 \mad--8, \mad--X, or \vn{XSIF} compatible lattice 
 files can be created from a \vn{lat_struct} variable 
-using the routine \Hyperref{r:bmad.to.mad.or.xsif}{bmad_to_mad_or_xsif}:
+using the routine 
+\Hyperref{r:write.lattice.in.foreign.format}{write_lattice_in_foreign_format}:
 \begin{example}
   type (lat_struct) lat             ! lattice
   ...
   call bmad_parser (bmad_lat_file, lat)               ! Read in a lattice
-  call bmad_to_mad_or_xsif ('lat.mad', 'MAD-8', lat)  ! create MAD file
+  call write_lattice_in_foreign_format ('lat.mad', 'MAD-8', lat)  ! create MAD file
 \end{example}
 Information can be lost when creating a \mad or \vn{XSIF} file.
 For example, neither \mad nor \vn{XSIF} has the concept of 

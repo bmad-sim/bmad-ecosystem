@@ -73,17 +73,7 @@ key2 = ele2%key
 !---------------------------------------------------------------------
 ! Special match case
 
-if (ele2%key == match$ .and. ele2%value(match_end$) /= 0) then
-  ele2%value(beta_a0$)  = ele1%a%beta
-  ele2%value(beta_b0$)  = ele1%b%beta
-  ele2%value(alpha_a0$) = ele1%a%alpha
-  ele2%value(alpha_b0$) = ele1%b%alpha
-  ele2%value(eta_x0$)   = ele1%x%eta
-  ele2%value(eta_y0$)   = ele1%y%eta
-  ele2%value(etap_x0$)  = ele1%x%etap
-  ele2%value(etap_y0$)  = ele1%y%etap
-  ele2%value(c_11$:c_22$) = [ele1%c_mat(1,1), ele1%c_mat(1,2), ele1%c_mat(2,1), ele1%c_mat(2,2)]
-  ele2%value(gamma_c$) = ele1%gamma_c
+if (ele2%key == match$ .and. is_true(ele2%value(match_end$))) then
   call match_ele_to_mat6 (ele2, ele2%vec0, ele2%mat6, error)
 endif
 

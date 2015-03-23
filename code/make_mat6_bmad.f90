@@ -93,20 +93,17 @@ charge_dir = rel_tracking_charge * ele%orientation
 c00 = c0
 c00%direction = +1
 
-! sad_mult will handle the calc of c1 if needed.
+! Note: sad_mult and match code will handle the calc of c1 if needed.
 
-if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$) then
+if (.not. logic_option (.false., end_in) .and. ele%key /= sad_mult$ .and. ele%key /= match$) then
   if (ele%tracking_method == linear$) then
     c00%state = alive$
     call track1_bmad (c00, ele, param, c1)
   else
     call track1 (c00, ele, param, c1)
   endif
-  ! If the particle has been lost in tracking this is an error.
-  ! Exception: A match element with match_end set to True. 
-  ! Here the problem is most likely that twiss_propagate_all has not yet 
-  ! been called so ignore this case.
-  if (c1%state /= alive$ .and. (ele%key /= match$ .or. v(match_end$) == 0)) then
+
+  if (c1%state /= alive$) then
     mat6 = 0
     if (present(err)) err = .true.
     call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // trim(ele%name) // '  (\i0\) ', &
@@ -627,6 +624,21 @@ case (marker$, detector$, fork$, photon_fork$, floor_shift$, fiducial$)
 case (match$)
   call match_ele_to_mat6 (ele, ele%vec0, ele%mat6, err_flag)
   if (present(err)) err = err_flag
+  if (err_flag) return
+  if (.not. logic_option (.false., end_in)) then
+    call track1_bmad (c00, ele, param, c1)
+
+    ! If the particle is lost with a match element with match_end set to True,
+    ! the problem is most likely that twiss_propagate_all has not yet
+    ! been called (so the previous element's Twiss parameters are not yet set). 
+    ! In this case, ignore a lost particle.
+
+    if (c1%state /= alive$ .and. is_false(v(match_end$))) then
+      call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING AT: ' // trim(ele%name) // '  (\i0\) ', &
+                   i_array = [ele%ix_ele] )
+    endif
+  endif
+  return
 
 !--------------------------------------------------------
 ! Mirror

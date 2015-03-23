@@ -28,9 +28,9 @@ available in \bmad.
   Hybrid            & \ref{s:hybrid}      &  Sol_Quad          & \ref{s:sq}       \HH
   Instrument        & \ref{s:monitor}     &  Solenoid          & \ref{s:sol}      \HH
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \HH
-  Lcavity           & \ref{s:lcav}        &  VKicker           & \ref{s:hvkicker} \HH  
-  Marker            & \ref{s:mark}        &  Wiggler           & \ref{s:wiggler}  \HH
-  Match             & \ref{s:match}       &                    &                  \HH
+  Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \HH
+  Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \HH  
+  Match             & \ref{s:match}       &  Wiggler           & \ref{s:wiggler}  \HH
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -3364,11 +3364,16 @@ Example \vn{taylor} element definition:
 \end{example}
 
 %-----------------------------------------------------------------
-\section{Wiggler} 
+\section{Wiggler and Undulator} 
 \label{s:wiggler}
 \index{wiggler|hyperbf} 
+\index{undulator|hyperbf} 
 
-A \vn{wiggler} is basically a periodic array of alternating bends.
+A \vn{wiggler} or \vn{undulator} element is basically a periodic array of alternating bends.
+The only difference between \vn{wigglers} and \vn{undulators} is in the x-ray emission spectrum.
+Charged particle tracking will be the same. 
+
+Henceforth, the term ``wiggler'' will denote either a \vn{wiggler} or \vn{undulator}
 
 General \vn{wiggler} attributes are:
 \begin{center}
@@ -3386,7 +3391,7 @@ General \vn{wiggler} attributes are:
 \end{center}
 \toffset
 
-There are two types of wigglers. Those that that are described using a
+There are two types of wigglerss. Those that that are described using a
 magnetic field map (``map type'') and those that are described
 assuming a periodic field (``periodic type''). 
 
@@ -3401,8 +3406,8 @@ field is written as a sum of terms $B_i$
   \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, \phi_z)
 \Endeq 
 Each term $B_i$ is specified using five numbers: 
-$(C, k_x, k_y, k_z, \phi_z)$. A term can take one of three forms: The first
-form is
+$(C, k_x, k_y, k_z, \phi_z)$. A term can take one of three forms: 
+The first form is
 \begin{alignat}{4}
   B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\kzzz) \CRNEG
   B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\kzzz) \CRNEG
@@ -3427,7 +3432,7 @@ The relationship between $k_x$, $k_y$, and $k_z$ ensures that
 Maxwell's equations are satisfied.
 
 \index{polarity}
-\index{term (for a Wiggler)}
+\index{term (for a wiggler)}
 Attributes specific to a \vn{map type} \vn{wiggler} element are:
 \begin{example}
   term(i)  = \{<Wig_Term>\} 
@@ -3517,9 +3522,9 @@ calculations the true horizontal trajectory with $y = 0$ is needed
   x = \frac{\sqrt{2 \, |k_1|}}{k_z^2} \, \cos (k_z \, z)
 \Endeq
 
-With \vn{periodic type} wigglers and \vn{bmad_standard} tracking, the
-phase $\phi_z$ in \Eqs{bbkykz} is irrelevant. When the tracking
-involves Taylor maps and symplectic integration, the phase is
+With \vn{periodic type} wigglers and \vn{bmad_standard}
+tracking, the phase $\phi_z$ in \Eqs{bbkykz} is irrelevant. When the
+tracking involves Taylor maps and symplectic integration, the phase is
 important. Here the phase is chosen so that $B_y$ is symmetric about
 the center of the wiggler
 \Begineq
