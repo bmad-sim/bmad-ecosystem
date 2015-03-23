@@ -324,13 +324,10 @@ if (u%calc%track) then
     if (lat_branch%has_open_match_element) then
       do n = 1, branch%n_ele_track
         ele => branch%ele(n)
-        ! twiss_propagate1 will make the xfer matrix for a match element.
-        if (ele%key /= match$) then
-          call make_mat6(ele, branch%param, orbit(n-1), orbit(n), err_flag = err)
-          if (err .or. .not. particle_is_moving_forward(orbit(n))) then
-            lat_branch%track_state = n
-            exit
-          endif
+        call make_mat6(ele, branch%param, orbit(n-1), orbit(n), err_flag = err)
+        if (err .or. .not. particle_is_moving_forward(orbit(n))) then
+          lat_branch%track_state = n
+          exit
         endif
         call twiss_propagate1(branch%ele(n-1), ele)
       enddo
