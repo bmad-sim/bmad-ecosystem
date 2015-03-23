@@ -1234,12 +1234,29 @@ subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag)
 implicit none
 
 type (ele_struct), target :: ele, ele0, ele1
+type (ele_struct), pointer :: pre_ele
 
 real(rp) mat6(6,6), vec0(6)
 real(rp), pointer :: v(:)
 real(rp) orb0(6), orb1(6)
 
 logical err_flag
+
+! Match_end
+
+if (ele%key == match$ .and. is_true(ele%value(match_end$))) then
+  pre_ele => pointer_to_next_ele (ele, -1)
+  ele%value(beta_a0$)  = pre_ele%a%beta
+  ele%value(beta_b0$)  = pre_ele%b%beta
+  ele%value(alpha_a0$) = pre_ele%a%alpha
+  ele%value(alpha_b0$) = pre_ele%b%alpha
+  ele%value(eta_x0$)   = pre_ele%x%eta
+  ele%value(eta_y0$)   = pre_ele%y%eta
+  ele%value(etap_x0$)  = pre_ele%x%etap
+  ele%value(etap_y0$)  = pre_ele%y%etap
+  ele%value(c_11$:c_22$) = [pre_ele%c_mat(1,1), pre_ele%c_mat(1,2), pre_ele%c_mat(2,1), pre_ele%c_mat(2,2)]
+  ele%value(gamma_c$) = pre_ele%gamma_c
+endif
 
 ! Special case where match_end is set but there is no beginning beta value yet.
 ! In this case, just return the unit matrix and set the err_flag.

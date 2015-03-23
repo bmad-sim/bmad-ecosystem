@@ -289,7 +289,7 @@ Track as in a drift a distance \vn{-z_offset_tot}.
 \section{Hamiltonian}
 \label{s:mag.hamiltonian}
 The time dependent Hamiltonian $H_t$ in the curvilinear coordinate system shown
-in \fig{f:local.coords} is
+in \fig{f:local.coords} is (\cite{b:ruth})
 \Begineq
   H_t = \wt\psi + \left[ \left( \frac{p_s - a_s}{1 + g\, x} \right)^2 + \wt m^2 + 
   (p_x - a_x)^2 + (p_y - a_y)^2 \right]^{1/2}
@@ -304,7 +304,7 @@ potentials:
   \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c}
   \label{mmccp}
 \Endeq
-In terms of the normalized velocities $\beta_x$, $beta_y$, the canonical momentum are
+In terms of the normalized velocities $\beta_x$, $\beta_y$, the canonical momentum are
 \Begineq
   p_x = \frac{m \, c^2}{P_0 \, c} \, \beta_x + a_x, \qquad 
   p_y = \frac{m \, c^2}{P_0 \, c} \, \beta_y + a_y
@@ -312,39 +312,27 @@ In terms of the normalized velocities $\beta_x$, $beta_y$, the canonical momentu
 \Endeq
 
 The $s$-dependent Hamiltonian is obtained from $H_t$ by solving for
-$-p_s$. For particles propagating in the positive $s$ direction the
-$s$-dependent Hamiltonian is
+$-p_s$ and using a contact transformation to convert to \bmad
+coordinates (\sref{s:phase.space}). For particles propagating in the
+positive $s$ direction, the $s$-dependent Hamiltonian is, assuming
+$\wt\psi$ is zero
 \Begineq
-  H_{s,E} = -(1 + g \, x) \sqrt{\wt E^2 - \wt m^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s
-  \label{hse1gx1}
-\Endeq
-where $\wt E = E/c\, P_0$ is the normalized energy and the equation 
-has been simplified by assuming that $\wt\psi$ is zero. Using a contact
-transformation to convert to \bmad coordinates (\sref{s:phase.space}) gives
-\Begineq
-  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s +
-  \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
+  H \equiv H_s = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - 
+  a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{h1gx1}
 \Endeq
-where $\beta_0$ is the reference velocity. The last term on the RHS of
-\Eq{h1gx1} accounts for the fact that the \bmad canonical $z$ (\Eq{zbctt})
-has an ``extra'' term $\beta \, c \, t_0$ so that \bmad canonical $z$ is with
-respect to the reference particle's $z$.
+where $\beta_0$ is the reference velocity and the equality $(1 +
+p_z)^2 = (E/c\, P_0)^2 - \wt m^2$ has been used. The last term on the
+RHS of \Eq{h1gx1} accounts for the fact that the \bmad canonical $z$
+(\Eq{zbctt}) has an ``extra'' term $\beta \, c \, t_0$ so that \bmad
+canonical $z$ is with respect to the reference particle's $z$.
 
-The equations
-of motion are
+The equations of motion are
 \begin{equation}
   \frac{dq_i}{ds} = \frac{\partial H}{\partial p_i} \qquad
   \frac{dp_i}{ds} = -\frac{\partial H}{\partial q_i}
   \label{rshp}
 \end{equation}
-
-For backwards propagation, where $p_s$ is negative, solving for $p_s$ involves using
-a different part of the square root branch. the Hamiltonian $H_{-s}$ is then
-\Begineq
-  H_{-s} = (1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} - a_s - 
-  \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
-\Endeq
 
 \label{paraxial approximation} 
 Without an electric field, $\psi$ is zero. Assuming a non-curved
@@ -352,7 +340,7 @@ coordinate system ($g = 0$), and using the paraxial approximation
 (\sref{s:phase.space}), \Eq{h1gx1} becomes
 \Begineq
   H = \frac{(p_x - a_x)^2}{2 (1 + p_z)} + \frac{(p_y - a_y)^2}{2 (1 + p_z)} - 
-  (1 + g \, x) \, a_s +   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
+  (1 + g \, x) \, (1 + p_z) - a_s +   \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
   \label{hpapa}
 \Endeq
 
@@ -392,6 +380,17 @@ potential up to second order is (cf.~\Eq{byx0b})
   a_s = -k_0 \left( x - \frac{g \, x^2}{2 (1 + g\, x)} \right) -
   \frac{1}{2} k_1 \left( x^2 - y^2 \right)
   \label{akxgx}
+\Endeq
+
+For backwards propagation, where particle are traveling in the $-\Bf
+s$ direction and where $p_s$ is negative, solving for $p_s$ involves
+using a different part of the square root branch. There is also an
+overall negative sign coming from switching from using $s$ as the
+independent variable to $\wt s \equiv -s$ as the independent
+variable. the Hamiltonian $H_{\wt s}$ is then
+\Begineq
+  H_{\wt s} = -(1 + g \, x) \sqrt{(1 + p_z)^2 - (p_x - a_x)^2 - (p_y - a_y)^2} + 
+  a_s + \frac{1}{\beta_0} \, \sqrt{(1+p_z)^2 + \wt m^2}
 \Endeq
 
 %---------------------------------------------------------------------------------
@@ -1411,3 +1410,28 @@ fringe field is assumed to end abruptly at the edges of the solenoid
 (as shown in \fig{f:solenoid}), and the reference axis $\Bf z$-axis (at
 $x$ = $y$ = 0) is placed along the centerline of the solenoid so that
 there is cylendrical symmetry around the $\Bf z$-axis.
+
+%---------------------------------------------------------------------------------
+\section{Wiggler and Undulator Tracking}
+\label{s:wiggler.std}
+\index{wiggler!tracking}
+
+For \vn{map_type} wigglers and undulators, symplectic integration as
+outlined in \sref{s:symp.track} is used for tracking. In this case,
+the gauge where $a_x$ is zero is used. With this, the other components
+of the vector potential are:
+The first form (cf.~\Eq{f1})
+\begin{alignat}{4}
+  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sin(\kxx) \sinh(\kyy) \sin(\kzzz) \label{af1} \CRNO
+  a_s &= -&C &\dfrac{1}{k_x}          & \sin(\kxx) \cosh(\kyy) \cos(\kzzz) 
+\end{alignat}
+The second form (cf.~\Eq{f2})
+\begin{alignat}{4}
+  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sinh(\kyy) \sin(\kzzz) \label{af2} \CRNO
+  a_s &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \cosh(\kyy) \cos(\kzzz) 
+\end{alignat}
+The third form (cf.~\Eq{f3})
+\begin{alignat}{4}
+  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sin(\kyy) \sin(\kzzz) \label{af3} \CRNO
+  a_s &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \cos(\kyy) \cos(\kzzz) 
+\end{alignat}

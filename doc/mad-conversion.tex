@@ -32,16 +32,17 @@ Elements like a \vn{sad_mult} cannot be translated.
 \index{sol_quad!conversion to MAD}
 Besides using the \vn{Universal Accelerator Parser} for conversion
 from \bmad to \mad, there is a conversion routine called
-\Hyperref{r:bmad.to.mad.or.xsif}{bmad_to_mad_or_xsif}. The advantage of this routine is that
-since \mad does not have a \vn{wiggler} or a \vn{sol_quad} element,
-this conversion routine can make an ``equivalent'' substitution. For a
-\vn{sol_quad}, the equivalent substitution will be a
-drift-matrix-drift series of elements. For a \vn{wiggler}, a series of
-bend and drift elements will be used (the program can also use a
-drift-matrix-drift model here but that is not as accurate). The bends
-and drifts for the \vn{wiggler} model are constructed so that the
-global geometry of the lattice does not change. Additionally the bends
-and drifts are constructed to most nearly match the wiggler's
+\Hyperref{r:write.lattice.in.foreign.format}{write_lattice_in_foreign_format}. 
+The advantage of this routine is that since \mad does not have a
+\vn{wiggler} or a \vn{sol_quad} element, this conversion routine can
+make an ``equivalent'' substitution. For a \vn{sol_quad}, the
+equivalent substitution will be a drift-matrix-drift series of
+elements. For a \vn{wiggler}, a series of bend and drift elements will
+be used (the program can also use a drift-matrix-drift model here but
+that is not as accurate). The bends and drifts for the \vn{wiggler}
+model are constructed so that the global geometry of the lattice does
+not change. Additionally the bends and drifts are constructed to most
+nearly match the wiggler's
 \begin{example}
   Transfer matrix
   $I_2$ and $I_3$ synchrotron radiation integrals (\sref{s:synch.ints})
