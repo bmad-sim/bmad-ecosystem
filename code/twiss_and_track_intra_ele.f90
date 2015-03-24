@@ -59,9 +59,27 @@ real(rp) l_start, l_end, mat6(6,6), vec0(6)
 logical track_upstream_end, track_downstream_end, do_upstream, do_downstream, err_flag
 logical, optional :: err, compute_floor_coords
 
-! Construct a "runt" element to track through.
+character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
+
+!
 
 if (present(err)) err = .true.
+
+! zero length element
+
+if (ele%value(l$) == 0) then
+  if (.not. track_upstream_end .or. .not. track_downstream_end) then
+    call out_io (s_fatal$, r_name, 'Partial tracking through a zero length element does not make sense: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  ! Track and return
+  call track1 (orbit_start, ele, param, orbit_end)
+  if (present(err)) err = .false.
+  return
+endif
+
+! Construct a "runt" element to track through.
 
 call transfer_ele(ele, runt, .true.)
 
