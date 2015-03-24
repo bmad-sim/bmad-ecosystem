@@ -1409,11 +1409,11 @@ case ('s')
       case ('') 
         cycle
       case ('model')
-        call calc_data_at_s (u%model, curve, scratch%comp(m)%sign, scratch%good)
+        call tao_calc_data_at_s (u%model, curve, scratch%comp(m)%sign, scratch%good)
       case ('base')  
-        call calc_data_at_s (u%base, curve, scratch%comp(m)%sign, scratch%good)
+        call tao_calc_data_at_s (u%base, curve, scratch%comp(m)%sign, scratch%good)
       case ('design')  
-        call calc_data_at_s (u%design, curve, scratch%comp(m)%sign, scratch%good)
+        call tao_calc_data_at_s (u%design, curve, scratch%comp(m)%sign, scratch%good)
       case default
         call out_io (s_error$, r_name, &
                      'BAD PLOT COMPONENT WITH "S" X-AXIS: ' // scratch%comp(m)%name)
@@ -1503,7 +1503,7 @@ end subroutine tao_curve_data_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine calc_data_at_s (tao_lat, curve, comp_sign, good)
+subroutine tao_calc_data_at_s (tao_lat, curve, comp_sign, good)
 
 use transfer_map_mod
 
@@ -1530,7 +1530,7 @@ integer i, ii, ix, j, k, expnt(6), ix_ele, ix_ref, ix_branch, idum
 
 character(40) data_type, name
 character(40) data_type_select, data_source
-character(20) :: r_name = 'calc_data_at_s'
+character(*), parameter :: r_name = 'tao_calc_data_at_s'
 logical err, good(:), first_time
 
 ! Some init
@@ -1590,8 +1590,8 @@ if (data_type_select(1:3) == 'tt.') data_type_select = 'tt.'
 
 do ii = 1, size(curve%x_line)
 
-  ! Good(ii) may be false if this is not first time calc_data_at_s is called from tao_curve_data_setup.
-  ! For example, calc_data_at_s is called twice when plotting "meas - design".
+  ! Good(ii) may be false if this is not first time tao_calc_data_at_s is called from tao_curve_data_setup.
+  ! For example, tao_calc_data_at_s is called twice when plotting "meas - design".
 
   if (.not. good(ii)) then
     first_time = .true.
@@ -1879,7 +1879,7 @@ do ii = 1, size(curve%x_line)
 
 enddo
 
-end subroutine calc_data_at_s
+end subroutine tao_calc_data_at_s
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
