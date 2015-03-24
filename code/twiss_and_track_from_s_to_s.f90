@@ -126,6 +126,7 @@ endif
 
 call twiss_and_track_intra_ele (ele0, branch%param, s_start-s0, ele0%value(l$), track_upstream_end, &
                               .true., orbit_start, orbit_end, ele_start, ele_end, err_flag, compute_floor_coords)
+
 if (present(err)) err = err_flag
 if (err_flag) return
 if (.not. particle_is_moving_forward(orbit_end)) return
