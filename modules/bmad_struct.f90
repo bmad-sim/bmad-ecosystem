@@ -569,7 +569,7 @@ type surface_grid_struct
   character(200) :: file = ''
   integer :: type = off$   ! or segmented$, or h_misalign$, or diffract_target$
   real(rp) :: dr(2) = 0, r0(2) = 0
-  type (surface_grid_pt_struct), allocatable :: pt(:,:)   ! Lower bound: (0,0)
+  type (surface_grid_pt_struct), allocatable :: pt(:,:) 
 end type
 
 ! Scratch space for segmented surface calculations

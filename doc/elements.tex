@@ -763,7 +763,7 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
   l                          ! Length of reference orbit.
   pendellosung_period_pi     ! Pendellosung period for pi polarized light.
   pendellosung_period_sigma  ! Pendellosung period for sigma polarized light.
-  ref_wavelength             ! Reference wavelength.
+  ref_wavelength             ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
   ref_cap_gamma              ! \(\Gamma\) at the reference wavelength.
   tilt_corr                  ! Tilt correction due to a finite psi_angle.
   v_unitcell                 ! Unit cell volume. 
@@ -1024,8 +1024,9 @@ General \vn{diffraction_plate} element attributes are:
 \index{mode}\index{field_scale_factor}
 Attributes specific to a \vn{diffraction_plate} element are:
 \begin{example}
-  mode               = <Type>       ! Reflection or transmission
-  field_scale_factor = <Real>       ! Factor to scale the photon field
+  mode               = <Type>   ! Reflection or transmission
+  field_scale_factor = <Real>   ! Factor to scale the photon field
+  ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 The \vn{mode} switch sets whether X-rays are transmitted through the
@@ -2424,8 +2425,9 @@ General \vn{mirror} attributes are:
 
 Attributes specific to a \vn{mirror} element are:
 \begin{example}
-  graze_angle     = <Real>    ! Angle between incoming beam and mirror surface.
-  critical_angle  = <Real>    ! Critical angle.
+  graze_angle     = <Real>   ! Angle between incoming beam and mirror surface.
+  critical_angle  = <Real>   ! Critical angle.
+  ref_wavelength             ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 The reference trajectory for a
@@ -2507,10 +2509,11 @@ General \vn{crystal} attributes are:
 \index{n_cell}
 The attributes specific to a \vn{multilayer_mirror} are 
 \begin{example}
-  material_type        = <String>  ! Materials in each layer.
-  d1_thickness         = <Real>    ! Thickness of layer 1
-  d2_thickness         = <Real>    ! Thickness of layer 2
-  n_cell               = <Integer> ! Number of cells (= Number of layers / 2)
+  material_type    = <String>  ! Materials in each layer.
+  d1_thickness     = <Real>    ! Thickness of layer 1
+  d2_thickness     = <Real>    ! Thickness of layer 2
+  n_cell           = <Integer> ! Number of cells (= Number of layers / 2)
+  ref_wavelength               ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
 
 \index{graze_angle}
@@ -3590,21 +3593,22 @@ General \vn{x_ray_source} attributes are:
 \index{x_half_length}\index{y_half_length}
 Attributes specific to an \vn{x_ray_source} element are:
 \begin{example}
-    energy_distribution      = <Switch>  ! Gaussian or uniform
-    spatial_distribution     = <Switch>  ! Gaussian or uniform. 
-    velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
-    sig_x                    = <Real>
-    sig_y                    = <Real>
-    sig_z                    = <Real>
-    sig_vx                   = <Real>
-    sig_vy                   = <Real>
-    sig_E                    = <Real>    ! Initial photon energy width (eV).
-    transverse_sigma_cut     = <Real>
-    E_center                 = <Real>    ! Average initial photon energy (eV).
-    E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
-    e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
-    e_field_y                = <Real>
-    ds_slice                 = <Real>
+  energy_distribution      = <Switch>  ! Gaussian or uniform
+  spatial_distribution     = <Switch>  ! Gaussian or uniform. 
+  velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
+  sig_x                    = <Real>
+  sig_y                    = <Real>
+  sig_z                    = <Real>
+  sig_vx                   = <Real>
+  sig_vy                   = <Real>
+  sig_E                    = <Real>    ! Initial photon energy width (eV).
+  transverse_sigma_cut     = <Real>
+  E_center                 = <Real>    ! Average initial photon energy (eV).
+  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
+  e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
+  e_field_y                = <Real>
+  ds_slice                 = <Real>
+  ref_wavelength    ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
 \end{example}
 
   \begin{description}
