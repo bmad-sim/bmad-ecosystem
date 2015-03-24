@@ -678,9 +678,10 @@ call init_attribute_name1 (detector$, l$,                             'L', depen
 call init_attribute_name1 (detector$, E_tot_start$,                   'E_tot_start', private$)
 call init_attribute_name1 (detector$, p0c_start$,                     'p0c_start', private$)
 
-call init_attribute_name1 (diffraction_plate$, l$,                  'l', private$)
-call init_attribute_name1 (diffraction_plate$, mode$,               'MODE')
-call init_attribute_name1 (diffraction_plate$, field_scale_factor$, 'FIELD_SCALE_FACTOR')
+call init_attribute_name1 (diffraction_plate$, l$,                    'l', private$)
+call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
+call init_attribute_name1 (diffraction_plate$, field_scale_factor$,   'FIELD_SCALE_FACTOR')
+call init_attribute_name1 (diffraction_plate$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 
 call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')
@@ -1090,7 +1091,7 @@ call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE
 call init_attribute_name1 (mirror$, critical_angle$,                'CRITICAL_ANGLE')
 call init_attribute_name1 (mirror$, ref_tilt$,                      'REF_TILT')
 call init_attribute_name1 (mirror$, ref_tilt_tot$,                  'REF_TILT_TOT', dependent$)
-call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH')
+call init_attribute_name1 (mirror$, ref_wavelength$,                'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (mirror$, diffraction_limited$,           'DIFFRACTION_LIMITED')
 
 call init_attribute_name1 (multilayer_mirror$, l$,                    'L', dependent$)
@@ -1102,7 +1103,7 @@ call init_attribute_name1 (multilayer_mirror$, d1_thickness$,         'D1_THICKN
 call init_attribute_name1 (multilayer_mirror$, d2_thickness$,         'D2_THICKNESS')
 call init_attribute_name1 (multilayer_mirror$, v1_unitcell$,          'V1_UNITCELL')
 call init_attribute_name1 (multilayer_mirror$, v2_unitcell$,          'V2_UNITCELL')
-call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH')
+call init_attribute_name1 (multilayer_mirror$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
 call init_attribute_name1 (multilayer_mirror$, material_type$,        'MATERIAL_TYPE')
 call init_attribute_name1 (multilayer_mirror$, e_tot_start$,          'e_tot_start', private$)
 call init_attribute_name1 (multilayer_mirror$, p0c_start$,            'p0c_start', private$)
@@ -1145,6 +1146,7 @@ call init_attribute_name1 (x_ray_source$, e_field_y$,                 'E_FIELD_Y
 call init_attribute_name1 (x_ray_source$, scale_field_to_one$,        'SCALE_FIELD_TO_ONE')
 call init_attribute_name1 (x_ray_source$, transverse_sigma_cut$,      'TRANSVERSE_SIGMA_CUT')
 call init_attribute_name1 (x_ray_source$, ds_slice$,                  'DS_SLICE')
+call init_attribute_name1 (x_ray_source$, ref_wavelength$,            'REF_WAVELENGTH', dependent$)
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.

@@ -8,6 +8,8 @@ module bmad_utils_mod
 
 use basic_attribute_mod
 
+implicit none
+
 private pointer_to_ele1, pointer_to_ele2, does_this_ele_contain_the_next_edge 
 private pointer_to_branch_given_name, pointer_to_branch_given_ele
 
@@ -103,8 +105,6 @@ contains
 
 function relative_tracking_charge (orbit, param) result (rel_charge)
 
-implicit none
-
 type (coord_struct) orbit
 type (lat_param_struct) param
 real(rp) rel_charge
@@ -140,8 +140,6 @@ end function relative_tracking_charge
 
 subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
 
-implicit none
-
 type (coord_struct) orbit(0:)
 integer n, n1, n2
 integer, optional :: ix_noset
@@ -174,8 +172,6 @@ end subroutine set_orbit_to_zero
 !- 
 
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
-
-implicit none
 
 type (ele_struct), target :: slave, lord
 type (branch_struct), pointer :: branch
@@ -223,8 +219,6 @@ end function lord_edge_aligned
 !- 
 
 function at_this_ele_end (now_at, where_at) result (is_at_this_end)
-
-implicit none
 
 integer now_at, where_at
 logical is_at_this_end
@@ -287,8 +281,6 @@ end function at_this_ele_end
 
 function physical_ele_end (track_end, track_direction, ele_orientation) result (physical_end)
 
-implicit none
-
 integer track_end, track_direction, ele_orientation, physical_end
 character(*), parameter :: r_name  = 'physical_ele_end'
 
@@ -349,8 +341,6 @@ end function physical_ele_end
 !-
 
 function stream_ele_end (physical_end, ele_orientation) result (stream_end)
-
-implicit none
 
 integer stream_end, ele_orientation, physical_end
 character(*), parameter :: r_name  = 'stream_ele_end'
@@ -425,8 +415,6 @@ end function stream_ele_end
 
 subroutine check_if_s_in_bounds (branch, s, err_flag, translated_s)
 
-implicit none
-
 type (branch_struct) branch
 
 real(rp) s, ss, s_min, s_max, ds_fudge, s_bound
@@ -499,8 +487,6 @@ end subroutine check_if_s_in_bounds
 
 function ele_loc_to_string (ele, show_branch0) result (str)
 
-implicit none
-
 type (ele_struct) ele
 logical, optional :: show_branch0
 
@@ -532,8 +518,6 @@ end function ele_loc_to_string
 !- 
 
 function on_a_girder(ele) result (is_on_girder)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -573,8 +557,6 @@ end function on_a_girder
 !-
 
 subroutine check_controller_controls (contrl, name, err)
-
-implicit none
 
 type (control_struct), target :: contrl(:)
 type (control_struct), pointer :: c1, c2
@@ -624,8 +606,6 @@ end subroutine check_controller_controls
 
 function particle_is_moving_forward (orbit) result (is_moving_forward)
 
-implicit none
-
 type (coord_struct) orbit
 integer particle
 logical is_moving_forward
@@ -656,8 +636,6 @@ end function particle_is_moving_forward
 !-
 
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
-
-implicit none
 
 type (coord_struct) orbit
 logical is_moving_backwards
@@ -690,8 +668,6 @@ end function particle_is_moving_backwards
 !-
 
 function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
-
-implicit none
 
 character(*) key_str
 character(16) name
@@ -753,8 +729,6 @@ end function key_name_to_key_index
 
 function ele_has_nonzero_kick (ele) result (has_kick)
 
-implicit none
-
 type (ele_struct) ele
 logical has_kick
 
@@ -797,8 +771,6 @@ end function ele_has_nonzero_kick
 
 subroutine zero_ele_kicks (ele)
 
-implicit none
-
 type (ele_struct) ele
 
 !
@@ -840,8 +812,6 @@ end subroutine zero_ele_kicks
 !-
 
 function ele_has_offset (ele) result (has_offset)
-
-implicit none
 
 type (ele_struct) ele
 logical has_offset
@@ -890,8 +860,6 @@ end function ele_has_offset
 !-
 
 subroutine zero_ele_offsets (ele)
-
-implicit none
 
 type (ele_struct) ele
 
@@ -952,8 +920,6 @@ end subroutine zero_ele_offsets
 
 subroutine apply_energy_kick (dE, orbit)
 
-implicit none
-
 type (coord_struct) orbit
 real(rp) dE, mc2, new_pc, new_beta, p0c, new_E, pc, beta, t3
 
@@ -1012,8 +978,6 @@ end subroutine apply_energy_kick
 !-
 
 function equivalent_taylor_attributes (ele_taylor, ele2) result (equiv)
-
-implicit none
 
 type (ele_struct) :: ele_taylor, ele2
 
@@ -1084,8 +1048,6 @@ end function equivalent_taylor_attributes
 
 subroutine clear_lat_1turn_mats (lat)
 
-implicit none
-
 type (lat_struct) lat
 
 lat%param%t1_no_RF = 0
@@ -1127,8 +1089,6 @@ end subroutine clear_lat_1turn_mats
 !-
 
 subroutine transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)
-
-implicit none
 
 type (ele_struct) ele1, ele2
 
@@ -1231,8 +1191,6 @@ end subroutine transfer_mat_from_twiss
 !-
 
 subroutine match_ele_to_mat6 (ele, vec0, mat6, err_flag, twiss_ele)
-
-implicit none
 
 type (ele_struct), target :: ele, ele0, ele1
 type (ele_struct), optional, target :: twiss_ele
@@ -1355,8 +1313,6 @@ end subroutine match_ele_to_mat6
 !-
 
 subroutine calc_super_slave_key (lord1, lord2, slave, create_jumbo_slave)
-
-implicit none
 
 type (ele_struct), target :: lord1, lord2, slave
 integer key1, key2
@@ -1556,8 +1512,6 @@ end subroutine calc_super_slave_key
 
 function gradient_shift_sr_wake (ele, param) result (grad_shift)
 
-implicit none
-
 type (ele_struct) ele
 type (lat_param_struct) param
 real(rp) grad_shift
@@ -1601,8 +1555,6 @@ end function gradient_shift_sr_wake
 !-
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
-
-implicit none
 
 type (bookkeeping_state_struct), pointer :: state
 type (ele_struct), target :: ele
@@ -1788,8 +1740,6 @@ end subroutine set_ele_status_stale
 
 recursive subroutine set_lords_status_stale (ele, stat_group, flag)
 
-implicit none
-
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
 integer stat_group, i
@@ -1831,8 +1781,6 @@ end subroutine set_lords_status_stale
 !-
 
 function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
-
-implicit none
 
 type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
@@ -1896,8 +1844,6 @@ end function pointer_to_branch_given_name
 
 recursive function pointer_to_branch_given_ele (ele) result (branch_ptr)
 
-implicit none
-
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch_ptr
 
@@ -1943,8 +1889,6 @@ end function pointer_to_branch_given_ele
 !-
 
 subroutine remove_lord_slave_link (lord, slave)
-
-implicit none
 
 type (ele_struct), target :: lord, slave
 type (ele_struct), pointer :: ele
@@ -2042,8 +1986,6 @@ end subroutine remove_lord_slave_link
 
 function pointer_to_slave (lord, ix_slave, ix_control) result (slave_ptr)
 
-implicit none
-
 type (ele_struct), target :: lord
 type (ele_struct), pointer :: slave_ptr
 type (control_struct), pointer :: con
@@ -2098,8 +2040,6 @@ end function pointer_to_slave
 !-
 
 function pointer_to_lord (slave, ix_lord, ix_control, ix_slave) result (lord_ptr)
-
-implicit none
 
 type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord_ptr
@@ -2200,8 +2140,6 @@ end function pointer_to_lord
 !-
 
 function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
-
-implicit none
 
 type (ele_struct), target :: this_ele
 type (ele_struct), pointer :: next_ele
@@ -2313,8 +2251,6 @@ end function pointer_to_next_ele
 
 function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
 
-implicit none
-
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr
 
@@ -2343,8 +2279,6 @@ end function pointer_to_ele1
 !-
 
 function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_ptr
@@ -2381,8 +2315,6 @@ end function pointer_to_ele2
 !-
 
 function ele_has_constant_ds_dt_ref (ele) result (is_const)
-
-implicit none
 
 type (ele_struct) ele
 logical is_const
@@ -2427,8 +2359,6 @@ end function ele_has_constant_ds_dt_ref
 
 function tracking_uses_end_drifts (ele, use_hard_edge_model) result (has_drifts)
 
-implicit none
-
 type (ele_struct) ele
 logical has_drifts
 logical, optional :: use_hard_edge_model
@@ -2468,8 +2398,6 @@ end function tracking_uses_end_drifts
 !-
 
 function element_has_fringe_fields (ele) result (has_fringe)
-
-implicit none
 
 type (ele_struct) ele
 logical has_fringe
@@ -2524,8 +2452,6 @@ end function element_has_fringe_fields
 !-
 
 subroutine calc_next_fringe_edge (track_ele, track_direction, s_edge_track, hard_ele, s_edge_hard, hard_end, init_needed, orbit)
-
-implicit none
 
 type (ele_struct), target :: track_ele
 type (ele_struct), pointer :: hard_ele, lord
@@ -2583,7 +2509,7 @@ contains
 subroutine init_this_ele (this_ele)
 
 type (ele_struct) this_ele
-real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, ds_small, s_orb
+real(rp) s_off, s1, s2, s_hard_upstream, s_hard_downstream, s_orb, ds_small
 
 !
 
@@ -2661,7 +2587,7 @@ subroutine does_this_ele_contain_the_next_edge (this_ele, track_ele, hard_ele, d
 
 type (ele_struct), target :: this_ele, track_ele
 type (ele_struct), pointer :: hard_ele
-real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_track, s_edge_hard
+real(rp) s_this_edge, s1, s2, s_hard_upstream, s_hard_downstream, s_off, s_edge_track, s_edge_hard, ds_small
 integer this_end, dir, hard_end
 
 ! Remamber: element length can be less than zero.
@@ -2674,6 +2600,8 @@ s2 = s_off + (this_ele%value(l$) + hard_edge_model_length(this_ele)) / 2
 
 s_hard_upstream   = min(s1, s2)
 s_hard_downstream = max(s1, s2)
+
+ds_small = bmad_com%significant_length / 100
 
 if (dir == 1) then
   select case (this_ele%ixx)
@@ -2688,7 +2616,7 @@ if (dir == 1) then
   case default
     call err_exit
   end select
-  if (s_this_edge > s_edge_track .and. .not. associated(hard_ele)) return
+  if (s_this_edge > s_edge_track + ds_small .and. .not. associated(hard_ele)) return
 
 else
   select case (this_ele%ixx)
@@ -2703,7 +2631,7 @@ else
   case default
     call err_exit
   end select
-  if (s_this_edge < s_edge_track .and. .not. associated(hard_ele)) return
+  if (s_this_edge < s_edge_track - ds_small .and. .not. associated(hard_ele)) return
 endif
 
 ! This looks like the next hard edge
@@ -2739,8 +2667,6 @@ end subroutine does_this_ele_contain_the_next_edge
 !-
 
 subroutine create_hard_edge_drift (ele_in, which_end, drift_ele)
-
-implicit none
 
 type (ele_struct) ele_in, drift_ele
 real(rp) E_tot, p0c
@@ -2790,8 +2716,6 @@ end subroutine create_hard_edge_drift
 !-
 
 function hard_edge_model_length (ele) result (l_hard)
-
-implicit none
 
 type (ele_struct) ele
 real(rp) l_hard
@@ -2870,8 +2794,6 @@ end function absolute_time_tracking
 
 function particle_time (orbit, ele) result (time)
 
-implicit none
-
 type (coord_struct) orbit
 type (ele_struct) ele
 
@@ -2918,8 +2840,6 @@ end function particle_time
 
 function rf_ref_time_offset (ele) result (time)
 
-implicit none
-
 type (coord_struct) orbit
 type (ele_struct) ele
 type (ele_struct), pointer :: lord
@@ -2954,8 +2874,6 @@ end function rf_ref_time_offset
 !-
 
 function rf_is_on (branch) result (is_on)
-
-implicit none
 
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele
@@ -2995,8 +2913,6 @@ end function rf_is_on
 
 subroutine canonical_to_angle_coords (orbit)
 
-implicit none
-
 type (coord_struct) orbit
 
 !
@@ -3023,8 +2939,6 @@ end subroutine canonical_to_angle_coords
 !-
 
 subroutine angle_to_canonical_coords (orbit)
-
-implicit none
 
 type (coord_struct) orbit
 
