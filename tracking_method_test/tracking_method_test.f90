@@ -102,8 +102,9 @@ character(38) :: instr
   select case (instr)
     case('RFCAVITY1:Time_Runge_Kutta')           ; tolerance = 'REL 1E-09'
     case('RFCAVITY2:Time_Runge_Kutta')           ; tolerance = 'REL 1E-09'
-    case('SBEND4:Symp_Lie_PTC')                  ; tolerance = 'REL 2E-05'
-    case('SBEND4:Linear')                        ; tolerance = 'REL 2E-05'
+    case('SBEND4:Symp_Lie_PTC')                  ; tolerance = 'REL 1E-09'
+    case('SBEND4:Bmad_Standard')                 ; tolerance = 'REL 1E-09'
+    case('SBEND4:Linear')                        ; tolerance = 'REL 1E-09'
     case('SBEND6:Symp_Lie_PTC')                  ; tolerance = 'REL 2E-05'
     case('SBEND6:Linear')                        ; tolerance = 'REL 2E-05'
     case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'REL 1E-09'
