@@ -140,10 +140,19 @@ default. The exception is that if there is an \vn{Lcavity} element
 present or the reference particle is a photon, \vn{open} will be the
 default.
 
+Notice that by specifying a \vn{closed} geometry it {\em does} not
+mean that the downstream end of the last element of the lattice has
+the same global coordinates (\sref{s:global}) as the global
+coordinates at the beginning. Setting the geometry to \vn{closed}
+simply signals to a program to compute closed orbits and periodic
+Twiss parameters as opposed to calculating orbits and Twiss parameters
+based upon initial orbit and Twiss parameters at the beginning of the
+lattice. And indeed, it is sometimes convenient to treat lattices as
+closed even though there is no closure in the global coordinate sense.
+
 Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed}
 used to be called \vn{circular_lattice} and \vn{open} used to be
-called \vn{linear_lattice}. This old syntax is still accepted in
-lattice files.
+called \vn{linear_lattice}.
 
 \index{default_tracking_species}
 The \vn{parameter[default_tracking_species]} switch establishes the

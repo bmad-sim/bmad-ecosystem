@@ -139,7 +139,6 @@ do i = lat%n_ele_track+1, lat%n_ele_max
     lord%floor = slave%floor
   case (girder_lord$)
     call girder_lord_geometry (lord)
-    lord%bookkeeping_state%control = stale$
   end select
 
 enddo
@@ -252,9 +251,9 @@ use multipass_mod
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0, ele00, slave0, slave1, ele2
-type (floor_position_struct) floor0, floor, floor_ref
+type (floor_position_struct) floor0, floor, floor_ref, floor_saved
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_pointer_struct), allocatable :: chain_ele(:)
+type (ele_pointer_struct), allocatable, target :: chain_ele(:)
 type (lat_param_struct) param
 
 real(rp), optional :: len_scale
@@ -266,7 +265,7 @@ real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_ma
 
 integer i, key, n_loc, ix_pass
 
-logical has_nonzero_pole, err, calc_done
+logical has_nonzero_pole, err, calc_done, doit
 
 character(16), parameter :: r_name = 'ele_geometry'
 
@@ -275,7 +274,10 @@ character(16), parameter :: r_name = 'ele_geometry'
 ele%bookkeeping_state%floor_position = ok$
 len_factor = ele%orientation * real_option(1.0_rp, len_scale)
 
-floor   = floor0
+if (ele%key /= girder$) then
+  floor   = floor0
+endif
+
 theta   = floor0%theta
 phi     = floor0%phi
 psi     = floor0%psi
@@ -372,6 +374,7 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
 
   ! Girder uses center of itself by default.
   else  ! must be a girder
+    floor_ref = floor  ! Save
     call find_element_ends (ele, slave0, slave1)
     r0 = (slave0%floor%r + slave1%floor%r) / 2
     ! 
@@ -402,6 +405,10 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
   w_mat = matmul(w_mat, s_mat)
   call floor_w_mat_to_angles (w_mat, 0.0_rp, floor%theta, floor%phi, floor%psi, floor0)
 
+  if (any(floor%r /= floor_ref%r) .or. floor%theta /= floor_ref%theta .or. &
+      floor%phi /= floor_ref%phi .or. floor%psi /= floor_ref%psi) then
+    call set_ele_status_stale (ele, control_group$, .false.)
+  endif
   return
 endif
 
@@ -502,43 +509,67 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
   case (patch$)
 
     ! Flexible bookkeeping to compute offsets and pitches. 
-    ! Only needs to be done if element is part of a lattice (as opposed to, for example, a slice_slave)
+    ! Only needs to be done if element is part of a lattice (as opposed to, for example, a slice_slave) and,
+    ! if part of a multipass region, only needs to be done if this is a first pass slave.
 
     if (is_true(ele%value(flexible$)) .and. ele%ix_ele > 0) then
-      ele2 => pointer_to_next_ele(ele, 1)
-      call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
-      if (ix_pass > 0) then
-        ele2 => chain_ele(1)%ele
-      endif
+      doit = .true.
+      if (ele%lord_status == multipass_lord$) doit = .false.
+      call multipass_chain (ele, ix_pass, chain_ele = chain_ele)
+      if (ix_pass > 1) doit = .false.
 
-      if (ele2%bookkeeping_state%floor_position == stale$) then
-        call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
-                                                        '  (' // trim(ele_loc_to_string(ele)) // ')', &
-                                       'DOES NOT HAVE A WELL DEFINED POSITION')
-        if (global_com%exit_on_error) call err_exit
-      endif
+      if (doit) then
+        ele2 => pointer_to_next_ele(ele, 1)
+        call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
+        if (ix_pass > 0) then
+          ele2 => chain_ele(1)%ele
+        endif
 
-      call ele_geometry (ele2%floor, ele2, floor_ref, -1.0_rp) 
-      
-      ele0 => pointer_to_next_ele(ele, -1)
-      call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
-      call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
-      w_mat = matmul(w_mat_inv, w_mat)
-      call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
-      r_vec = matmul(w_mat_inv, floor_ref%r - ele0%floor%r)
-      ele%value(x_offset$) = r_vec(1)
-      ele%value(y_offset$) = r_vec(2)
-      ele%value(z_offset$) = r_vec(3)
-      call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
-      ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
-                      w_mat_inv(3,3) * ele%value(z_offset$)
-      if (ele%value(l$) /= ele%old_value(l$)) then
-        call set_ele_status_stale (ele, s_position_group$)
-        ele%old_value(l$) = ele%value(l$)
+        if (ele2%bookkeeping_state%floor_position == stale$) then
+          call out_io (s_fatal$, r_name, 'ELEMENT AFTER FLEXIBLE PATCH: ' // trim(ele%name) // &
+                                                          '  (' // trim(ele_loc_to_string(ele)) // ')', &
+                                         'DOES NOT HAVE A WELL DEFINED POSITION')
+          if (global_com%exit_on_error) call err_exit
+        endif
+
+        call ele_geometry (ele2%floor, ele2, floor_ref, -1.0_rp) 
+        
+        ele0 => pointer_to_next_ele(ele, -1)
+        call floor_angles_to_w_mat (ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, w_mat_inv = w_mat_inv)
+        call floor_angles_to_w_mat (floor_ref%theta, floor_ref%phi, floor_ref%psi, w_mat)
+        w_mat = matmul(w_mat_inv, w_mat)
+        call floor_w_mat_to_angles (w_mat, 0.0_rp, ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$))
+        r_vec = matmul(w_mat_inv, floor_ref%r - ele0%floor%r)
+        ele%value(x_offset$) = r_vec(1)
+        ele%value(y_offset$) = r_vec(2)
+        ele%value(z_offset$) = r_vec(3)
+        call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
+        ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
+                        w_mat_inv(3,3) * ele%value(z_offset$)
+        if (ele%value(l$) /= ele%old_value(l$)) then
+          call set_ele_status_stale (ele, s_position_group$)
+          ele%old_value(l$) = ele%value(l$)
+        endif
+
+        ! Transfer offsets and pitches if patch is part of a multipass retion
+        if (ele%slave_status == multipass_slave$) then
+          call multipass_chain (ele, ix_pass, chain_ele = chain_ele)
+          do i = 2, size(chain_ele)
+            ele2 => chain_ele(i)%ele
+            ele2%value(x_offset$) = ele%value(x_offset$)
+            ele2%value(y_offset$) = ele%value(y_offset$)
+            ele2%value(z_offset$) = ele%value(z_offset$)
+            ele2%value(x_pitch$)  = ele%value(x_pitch$)
+            ele2%value(y_pitch$)  = ele%value(y_pitch$)
+            ele2%value(tilt$)     = ele%value(z_offset$)
+            ele2%value(l$)        = ele%value(l$)
+          enddo
+        endif
+
       endif
     endif
 
-    ! Now find
+    ! Now calculate the geometry.
 
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
 

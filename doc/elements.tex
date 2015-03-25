@@ -1598,12 +1598,11 @@ last element in the target branch must be a marker-like element. Note
 that, by default, a marker element is placed at the end of all
 branches (\sref{s:branch.construct})
 
-If the branch line is to transport particles different from the
-originating line the particle type and the beginning reference energy
-must be set for that line using line parameter statements
-(\sref{s:beginning}). This is useful, for example, for a photon branch line
-that is branching from a storage ring where the photon energy is not
-simply related to the particle energy. 
+The reference energy of a target branch line, needs to be set using
+line parameter statements (\sref{s:beginning}). The default referece
+particle type of a branch line will be a \vn{photon} is using a
+\vn{photon_fork} or will be the same type of particle as the base
+branch if a \vn{fork} element is used.
 
 Example showing an injection line branching to a ring which, in turn,
 branches to two x-ray lines:
@@ -2787,6 +2786,11 @@ depend upon the geometry of the rest of the lattice and, therefore, if
 the geometry of the rest of the lattice is modified (is ``flexed''),
 the geometry of the \vn{patch} will vary as well. See
 Section~\sref{s:ex.erl} for an example.
+
+If a \vn{flexible} patch is within a \vn{multipass} (\sref{s:multipass})
+region (as opposed to being just outside a multipass region as in
+the example in Section~\sref{s:ex.erl}), the offsets, pitches, and tilt
+will be computed using the geometry of the first pass.
 
 With \vn{bmad_standard} tracking (\sref{s:tkm}) A particle, starting
 at the upstream face of the \vn{patch}, is propagated in a straight

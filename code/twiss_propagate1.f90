@@ -160,8 +160,8 @@ else
 endif
 
 !---------------------------------------------------------------------
-! Propagate twiss.
-! If there is a mode flip, ele%a is the "b"-mode. That is, ele%a is associated with
+! Propagate Twiss.
+! If there is a mode flip (ele%mode_flip = T), ele%a is the "b"-mode. That is, ele%a is associated with
 ! the lower right block of the U matrix (See Sagan & Rubin: Linear Analysis of Coupled Lattices).
 ! Another way of saying this: ele%a always represents the same physical mode.
 

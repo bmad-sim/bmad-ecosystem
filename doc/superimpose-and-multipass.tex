@@ -388,6 +388,11 @@ lords called \vn{A} and one called \vn{B}. The first \vn{A} lord
 controls the 1\St and 4\Th elements in the tracking part of the lattice 
 and the second \vn{A} lord controls the 2\Nd and 5\Th elements.
 
+Notice that the global coordinates (\sref{s:global}) of the slaves of
+a given multipass lord are not constrained by \bmad to be the same. It
+is up to the lattice designer to make sure the physical positions of
+the slaves makes sense.
+
 %-----------------------------------------------------------------------------
 \subsection{The Reference Energy in a Multipass Line}
 \label{s:ref.e.multi}
@@ -403,8 +408,7 @@ multipass line must have their magnetic or electric field strength set
 as the independent attribute (\sref{s:depend}), {\em or} a reference
 energy (\sref{s:energy}) must be defined. A reference energy is
 defined by setting \vn{e_tot} or \vn{p0c}, or by setting
-\vn{n_ref_pass} as described below. The default is for \vn{n_ref_pass}
-to be set to 1.
+\vn{n_ref_pass} as described below. 
 
 To set the reference energy, one (and only one) of the attributes
 \vn{n_ref_pass}, \vn{e_tot} or \vn{p0c} needs to be
@@ -413,5 +417,7 @@ define the reference energy for the lord element. The default if
 nothing is set, is for \vn{n_ref_pass} to be set to 1.  Note: If
 \vn{ref_orbit} is set to \vn{match_global_coords}, or for any element
 where the reference energy is not constant (like an \vn{lcavity}),
-\vn{n_ref_pass} must be used and must be set to 1.
+\vn{n_ref_pass} must be used and must be set to 1. if both \vn{p0c}
+and \vn{e_tot} are not set, then the default value of \vn{n_ref_pass}
+is 1.
 

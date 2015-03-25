@@ -206,13 +206,6 @@ do ib = 0, ubound(lat%branch, 1)
       ele%value(downstream_ele_dir$) = ele2%orientation
     endif
 
-    !
-
-    if (ele%key == fork$ .or. ele%key == photon_fork$) then
-      ibb = nint(ele%value(ix_to_branch$))
-      call set_ele_status_stale (lat%branch(ibb)%ele(0), ref_energy_group$)
-    endif
-
     ! If we are in the middle of a super_lord region then the "zero" orbit is just the continuation
     ! of the "zero" orbit of the previous element. This is important in wigglers. If the fact
     ! that the "zero" orbit is not truely zero is not taken into account, splitting 
@@ -276,8 +269,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (err) return
 
     ele%bookkeeping_state%ref_energy = ok$
-    call set_ele_status_stale (ele, attribute_group$)
-    call set_lords_status_stale (ele, ref_energy_group$)
 
   enddo
 
@@ -295,8 +286,6 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   lord%bookkeeping_state%ref_energy = ok$
 
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
-
-  call set_ele_status_stale (lord, attribute_group$)
 
   ! Multipass lords have their enegy computed above.
 
@@ -324,6 +313,11 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     slave => pointer_to_slave(lord, 1)
     lord%value(E_tot_start$) = slave%value(E_tot_start$)
     lord%value(p0c_start$)   = slave%value(p0c_start$)
+  endif
+
+  if (abs(lord%value(p0c$) - lord%old_value(p0c$)) > small_rel_change$ * lord%value(p0c$) .or. &
+      abs(lord%value(p0c_start$) - lord%old_value(p0c_start$)) > small_rel_change$ * lord%value(p0c_start$)) then
+    call set_ele_status_stale (lord, attribute_group$)
   endif
 
 enddo ! Branch loop
@@ -514,6 +508,7 @@ if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /=
   ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
   ele%old_value(p0c$) = old_p0c
   ele%old_value(e_tot$) = old_e_tot
+  call set_lords_status_stale (ele, ref_energy_group$)
 endif
 
 err_flag = .false.
