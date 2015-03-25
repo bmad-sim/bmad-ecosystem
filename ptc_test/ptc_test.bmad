@@ -2,7 +2,7 @@ no_digested
 ! Wiggler tracking uses ultra relativistic approximation so want to compare methods
 ! at very large energies.
 parameter[e_tot] = 1e12
-parameter[lattice_type] = linear_lattice
+parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 

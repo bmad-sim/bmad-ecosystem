@@ -1,6 +1,6 @@
 no_digested
 parameter[e_tot] = 1e6
-parameter[lattice_type] = linear_lattice
+parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 

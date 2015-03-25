@@ -10,7 +10,7 @@ parameter[absolute_time_tracking]=true
 parameter[auto_scale_field_phase] = true
 parameter[auto_scale_field_amp] = true
 
-PARAMETER[LATTICE_TYPE] = LINEAR_LATTICE
+PARAMETER[geometry] = open
 PARAMETER[E_TOT] = 1.5E7
 
 !
