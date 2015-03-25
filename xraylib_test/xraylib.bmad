@@ -1,7 +1,7 @@
 l2: line = (crystal, multilayer_mirror)
 
 l2[e_tot] = 1e4
-l2[lattice_type] = linear_lattice
+l2[geometry] = open
 l2[particle] = photon
 
 use, l2

@@ -2,7 +2,7 @@ no_digested
 parameter[e_tot] = 1e6
 parameter[n_part] = 1e10
 parameter[ptc_exact_model] = true
-parameter[lattice_type] = linear_lattice
+parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
@@ -82,7 +82,7 @@ l1: line = (l_a, l_b)
 l2: line = (crystal1, mirror1, multilayer_mirror1)
 
 l2[e_tot] = 1e4
-l2[lattice_type] = linear_lattice
+l2[geometry] = open
 l2[particle] = photon
 
 r0 = 1

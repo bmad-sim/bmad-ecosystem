@@ -11,7 +11,7 @@ beginning[beta_a] =  10
 beginning[beta_b] =  10
 
 e_tot = 1e10
-parameter[lattice_type] = linear_lattice
+parameter[geometry] = open
 beginning[e_tot] = e_tot
 parameter[absolute_time_tracking] = T
 
