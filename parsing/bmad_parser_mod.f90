@@ -1310,6 +1310,9 @@ case ('PHOTON_TYPE')
   ele%value(photon_type$) = ix
 
 case ('LATTICE_TYPE')   ! Old style
+  call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
+                     'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED', &
+                     'THIS PROGRAM WILL RUN NORMALLY...', warn_only = .true.)
   call get_switch (attrib_word, lattice_type_name(1:), ix, err_flag, ele)
   ele%value(geometry$) = ix
 

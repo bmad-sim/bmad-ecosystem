@@ -1299,6 +1299,8 @@ end type
 
 type (ptc_common_struct), save :: ptc_com
 
+real(rp), parameter :: small_rel_change$ = 1d-14
+
 ! Some routines need to keep track of where elements are when elements are added or removed from
 ! the lattice. 
 

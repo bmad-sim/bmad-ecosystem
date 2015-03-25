@@ -8,6 +8,8 @@ use equality_mod
 use em_field_mod
 use xraylib_interface
 
+implicit none
+
 integer, parameter :: save_state$ = 3, restore_state$ = 4
 
 private control_bookkeeper1, makeup_control_slave
@@ -102,8 +104,6 @@ contains
 
 subroutine lattice_bookkeeper (lat, err_flag)
 
-implicit none
-
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
@@ -112,75 +112,88 @@ type (bookkeeping_state_struct), pointer :: stat
 integer i, j
 
 logical, optional :: err_flag
-logical found, err
+logical found, err, auto_saved
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
-! Control_bookkeeper is called twice to make sure
-! that Girders are correctly adjusted.
+! Turn on intelligent bookkeeping while this routine is running
+! If bookkeeping has nt been intelligent then mark everything as stale.
+
+auto_saved = bmad_com%auto_bookkeeper
+if (auto_saved) then
+  bmad_com%auto_bookkeeper = .false.
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    do j = 0, branch%n_ele_max
+      call set_ele_status_stale (branch%ele(j), all_groups$, .false.) 
+      call attributes_need_bookkeeping(branch%ele(j))
+    enddo
+  enddo
+endif
 
 if (present(err_flag)) err_flag = .true.
 
-call control_bookkeeper (lat)
+! Cases where bookkeeping routines have to be called multiple times:
+!   * Control_bookkeeper to make sure that girders are correctly adjusted.
+!       Especially when lattice has bends with field_master = True.
+!   * lat_geometry in case the energy changes and there is a bend with field_master = T.
+!   * Recompute ref energy for cases where a flexible patch has changed its geometry and this
+!       affects the reference energy due to the presence of lcavity elements.
 
-call lat_geometry (lat)
-call s_calc (lat)
-
-call lat_compute_ref_energy_and_time (lat, err)
-if (err) return
-call control_bookkeeper (lat, mark_eles_as_stale = .false.)
-
-! Call lat_geometry again in case the energy changes and there is a bend with field_master = T
-
-call lat_geometry (lat)
-call s_calc (lat)
+do i = 1, 3
+  call control_bookkeeper (lat)
+  call lat_geometry (lat)
+  call s_calc (lat)
+  call lat_compute_ref_energy_and_time (lat, err)
+  if (err) return
+enddo
 
 call ptc_bookkeeper (lat)
 
 ! See if all status flags have been properly reset.
 ! Exception is mat6 flag since the bookkeeping routines do not touch this.
 
-if (.not. bmad_com%auto_bookkeeper) then
+stat => lat%lord_state
+if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
+    stat%s_position == stale$ .or. stat%ref_energy == stale$) then
+  call out_io (s_info$, r_name, 'Stale bookkeeping lord_status flags detected.', &
+                                'Please contact DCS!', 'Status: \5i6\ ', &
+          i_array = [stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
+endif
+call reset_status_flags_to_ok(stat)
 
-  stat => lat%lord_state
+do i = 0, ubound(lat%branch, 1)
+
+  branch => lat%branch(i)
+  stat => branch%param%bookkeeping_state
   if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
       stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-    call out_io (s_info$, r_name, 'Stale bookkeeping lord_status flags detected.', &
+    call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at branch: \i0\.', &
                                   'Please contact DCS!', 'Status: \5i6\ ', &
-            i_array = [stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
+            i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
   endif
   call reset_status_flags_to_ok(stat)
 
-  do i = 0, ubound(lat%branch, 1)
-
-    branch => lat%branch(i)
-    stat => branch%param%bookkeeping_state
+  do j = 0, branch%n_ele_max
+    ele => branch%ele(j)
+    if (ele%key == null_ele$) cycle 
+    stat => ele%bookkeeping_state
     if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
         stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-      call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at branch: \i0\.', &
-                                    'Please contact DCS!', 'Status: \5i6\ ', &
-              i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
+      call out_io (s_info$, r_name, &
+            'Stale bookkeeping status flags detected at element: ' // trim(ele%name) // ' (\i0\>>\i0\).', &
+            'Please contact DCS!', 'Status: \5i6\ ', &
+            i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
     endif
     call reset_status_flags_to_ok(stat)
-
-    do j = 0, branch%n_ele_max
-      ele => branch%ele(j)
-      if (ele%key == null_ele$) cycle 
-      stat => ele%bookkeeping_state
-      if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
-          stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-        call out_io (s_info$, r_name, &
-              'Stale bookkeeping status flags detected at element: ' // trim(ele%name) // ' (\i0\>>\i0\).', &
-              'Please contact DCS!', 'Status: \5i6\ ', &
-              i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
-      endif
-      call reset_status_flags_to_ok(stat)
-    enddo
-
   enddo
-endif
+
+enddo
+
+!
 
 if (present(err_flag)) err_flag = .false.
+bmad_com%auto_bookkeeper = auto_saved
 
 !----------------------------------------------------------
 contains
@@ -229,8 +242,6 @@ end subroutine lattice_bookkeeper
 
 recursive subroutine control_bookkeeper (lat, ele, mark_eles_as_stale)
 
-implicit none
-
 type (lat_struct), target :: lat
 type (ele_struct), optional :: ele
 type (ele_struct), pointer :: slave, lord, branch_ele, ele2
@@ -278,8 +289,6 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%control /= stale$ .and. &
                                            branch%param%bookkeeping_state%attributes /= stale$) cycle
-  branch%param%bookkeeping_state%attributes = ok$
-  branch%param%bookkeeping_state%control = ok$
 
   do ie = 0, branch%n_ele_track
     ele2 => branch%ele(ie)
@@ -287,6 +296,9 @@ do ib = 0, ubound(lat%branch, 1)
     call attribute_bookkeeper (ele2, branch%param)
     ele2%bookkeeping_state%control = ok$
   enddo
+
+  branch%param%bookkeeping_state%attributes = ok$
+  branch%param%bookkeeping_state%control = ok$
 
 enddo
 
@@ -307,8 +319,6 @@ end subroutine control_bookkeeper
 !-
 
 recursive subroutine control_bookkeeper1 (lat, ele, force_bookkeeping)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) ele
@@ -384,8 +394,6 @@ end subroutine control_bookkeeper1
 !-
 
 Subroutine makeup_group_lord (lat, lord)   
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) :: lord
@@ -575,8 +583,6 @@ end subroutine change_this_edge
 
 recursive subroutine group_change_this (ele, ix_attrib, coef, this_lord, this_pad)
 
-implicit none
-
 type (ele_struct) ele
 type (ele_struct), optional :: this_lord
 type (ele_struct), pointer :: my_lord
@@ -657,8 +663,6 @@ end subroutine makeup_group_lord
 !-
 
 subroutine makeup_multipass_slave (lat, slave)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
@@ -799,8 +803,6 @@ end subroutine makeup_multipass_slave
 !-
        
 subroutine makeup_super_slave (lat, slave)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
@@ -1371,8 +1373,6 @@ end subroutine makeup_super_slave
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
                              param, include_upstream_end, include_downstream_end, err_flag, old_slice)
 
-implicit none
-
 type (ele_struct), target :: sliced_ele, ele_in, ele0
 type (ele_struct), optional :: old_slice
 type (ele_struct) :: ele2
@@ -1380,7 +1380,6 @@ type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
 real(rp) l_slice, offset, in_len, r
-real(rp) w_inv(3,3), dl
 
 logical include_upstream_end, include_downstream_end, err_flag, err2_flag
 
@@ -1412,44 +1411,6 @@ if (ele_in%slave_status /= super_slave$) then
   sliced_ele%lord => ele_in
 else
   nullify(sliced_ele%lord)
-endif
-
-! Patch
-! The rotation part of the patch is applied at the entrance end of the patch.
-! Excluding the rotation, a patch is just a drift.
-
-if (ele_in%key == patch$) then
-  if ((include_upstream_end .and. ele_in%orientation == 1) .or. &
-      (include_downstream_end .and. ele_in%orientation == -1)) then
-    call floor_angles_to_w_mat (ele_in%value(x_pitch$), ele_in%value(y_pitch$), ele_in%value(tilt$), w_mat_inv = w_inv)
-    sliced_ele%key = patch$
-    dl = ele_in%value(l$) - l_slice
-    sliced_ele%value(x_offset$)     = ele_in%value(x_offset$) - dl * w_inv(3,1)
-    sliced_ele%value(y_offset$)     = ele_in%value(y_offset$) - dl * w_inv(3,2)
-    sliced_ele%value(z_offset$)     = ele_in%value(z_offset$) - dl * w_inv(3,3)
-    sliced_ele%value(t_offset$)     = ele_in%value(t_offset$)
-    sliced_ele%value(e_tot_offset$) = ele_in%value(e_tot_offset$)
-  else
-    sliced_ele%key = drift$
-    sliced_ele%value(x_pitch$)     = 0
-    sliced_ele%value(y_pitch$)     = 0
-    sliced_ele%value(x_offset$)    = 0
-    sliced_ele%value(y_offset$)    = 0
-    sliced_ele%value(z_offset$)    = 0
-    sliced_ele%value(t_offset$)    = 0
-    sliced_ele%value(e_tot_offset$) = 0
-  endif
-
-  sliced_ele%value(x_pitch_tot$)     = sliced_ele%value(x_pitch$)
-  sliced_ele%value(y_pitch_tot$)     = sliced_ele%value(y_pitch$)
-  sliced_ele%value(x_offset_tot$)    = sliced_ele%value(x_offset$)
-  sliced_ele%value(y_offset_tot$)    = sliced_ele%value(y_offset$)
-  sliced_ele%value(z_offset_tot$)    = sliced_ele%value(z_offset$)
-
-  call ele_compute_ref_energy_and_time (ele_in, sliced_ele, param, err2_flag)
-  err_flag = .false.
-  return
-
 endif
 
 ! Err check. Remember: the element length may be negative
@@ -1572,18 +1533,18 @@ end subroutine create_element_slice
 
 subroutine makeup_super_slave1 (slave, lord, offset, param, include_upstream_end, include_downstream_end, err_flag)
 
-implicit none
-
 type (ele_struct), target :: slave, lord
+type (ele_struct), pointer :: slave2
 type (lat_param_struct) param
 
 real(rp) offset, s_del, coef, lord_ang, slave_ang, angle
 real(rp) value(num_ele_attrib$), cos_a, sin_a, dr(3)
 real(rp) off(3), rot(3), cos_t, sin_t, m_trans(3,3)
 real(rp) xp, yp, roll, r_roll, tilt, dx, dy
+real(rp) w_inv(3,3), dl
 
 integer i, ifr
-logical include_upstream_end, include_downstream_end, err_flag, include_entrance, include_exit
+logical include_upstream_end, include_downstream_end, err_flag, include_entrance, include_exit, err2_flag
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1778,6 +1739,43 @@ if (associated (slave%wake)) then
   slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
 endif
 
+! Patch
+! The rotation part of the patch is applied at the entrance end of the patch.
+! Excluding the rotation, a patch is just a drift.
+
+if (lord%key == patch$) then
+  if ((include_upstream_end .and. lord%orientation == 1) .or. &
+      (include_downstream_end .and. lord%orientation == -1)) then
+    call floor_angles_to_w_mat (lord%value(x_pitch$), lord%value(y_pitch$), lord%value(tilt$), w_mat_inv = w_inv)
+    slave%key = patch$
+    dl = lord%value(l$) - slave%value(l$)
+    slave%value(x_offset$)     = lord%value(x_offset$) - dl * w_inv(3,1)
+    slave%value(y_offset$)     = lord%value(y_offset$) - dl * w_inv(3,2)
+    slave%value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
+    slave%value(t_offset$)     = lord%value(t_offset$)
+    slave%value(e_tot_offset$) = lord%value(e_tot_offset$)
+  else
+    slave%key = drift$
+    slave%value(x_pitch$)     = 0
+    slave%value(y_pitch$)     = 0
+    slave%value(x_offset$)    = 0
+    slave%value(y_offset$)    = 0
+    slave%value(z_offset$)    = 0
+    slave%value(t_offset$)    = 0
+    slave%value(e_tot_offset$) = 0
+  endif
+
+  slave%value(x_pitch_tot$)     = slave%value(x_pitch$)
+  slave%value(y_pitch_tot$)     = slave%value(y_pitch$)
+  slave%value(x_offset_tot$)    = slave%value(x_offset$)
+  slave%value(y_offset_tot$)    = slave%value(y_offset$)
+  slave%value(z_offset_tot$)    = slave%value(z_offset$)
+  slave%value(flexible$) = false$  ! Flexible calc must be handled by the lord.
+
+  call ele_compute_ref_energy_and_time (lord, slave, param, err2_flag)
+
+endif
+
 !
 
 if (slave%key == lcavity$ .or. slave%key == rfcavity$) call compute_slave_coupler (slave)
@@ -1804,8 +1802,6 @@ end subroutine makeup_super_slave1
 !-
 
 subroutine compute_slave_coupler (slave)
-
-implicit none
 
 type (ele_struct) slave
 type (ele_struct), pointer :: lord
@@ -1843,8 +1839,6 @@ end subroutine compute_slave_coupler
 !-
 
 subroutine makeup_control_slave (lat, slave)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: slave
@@ -2137,10 +2131,8 @@ end subroutine makeup_control_slave
 
 subroutine attribute_bookkeeper (ele, param, force_bookkeeping)
 
-implicit none
-
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord, ele0, slave, slave2
+type (ele_struct), pointer :: lord, slave, slave2
 type (lat_param_struct) param
 type (coord_struct) start, end
 type (em_field_struct) field
@@ -2150,14 +2142,13 @@ real(rp) factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time
 real(rp) w_inv(3,3), len_old, f
 real(rp), pointer :: val(:), tt
 real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
-real(rp), parameter :: small_rel_change = 1d-14
 
 integer i, n, n_div
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
 logical, optional :: force_bookkeeping
-logical err_flag, has_nonzero
+logical err_flag, has_nonzero, set_l
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
 logical :: v_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
@@ -2174,11 +2165,14 @@ case (overlay$, group$, hybrid$)
   return
 end select
 
-! Intelligent bookkeeping
+! 
 
-if (.not. bmad_com%auto_bookkeeper) then
-  if (ele%bookkeeping_state%attributes /= stale$ .and. &
-      .not. logic_option(.false., force_bookkeeping)) return
+if (bmad_com%auto_bookkeeper) then
+  call attributes_need_bookkeeping(ele, dval)
+  if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
+
+else
+  if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
   if (ele%lord_status /= not_a_lord$) then
     call set_ele_status_stale (ele, control_group$)
@@ -2192,36 +2186,12 @@ if (.not. bmad_com%auto_bookkeeper) then
     call set_ele_status_stale (ele, mat6_group$)
   endif
 
+  dval = abs(val - ele%old_value)
 endif
 
 ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
 ele%bookkeeping_state%ptc     = stale$
-
-! For auto bookkeeping if no change then we don't need to do anything
-
-if (bmad_com%auto_bookkeeper) then
-  if (ele%key == sad_mult$) then
-    ele0 => ele
-    if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)
-    val(check_sum$) = 0
-    do i = 0, ubound(ele%a_pole, 1)
-      val(check_sum$) = val(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
-      val(check_sum$) = val(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
-    enddo
-  else
-    val(check_sum$) = ele%tracking_method
-    if (ele%is_on) val(check_sum$) = val(check_sum$) + 1
-  endif
-
-  dval = abs(val - ele%old_value)
-  dval(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
-  dval(custom_attribute1$:custom_attribute_max$) = 0
-  dval(scratch$) = 0
-  if (all(dval == 0) .and. ele%key /= capillary$) return
-else
-  dval = abs(val - ele%old_value)
-endif
 
 ! Transfer tilt to tilt_tot, etc.
 
@@ -2470,6 +2440,7 @@ case (lcavity$)
 ! Patch
 
 case (patch$) 
+
   call floor_angles_to_w_mat (val(x_pitch$), val(y_pitch$), val(tilt$), w_mat_inv = w_inv)
   val(l$) = w_inv(3,1) * val(x_offset$) + w_inv(3,2) * val(y_offset$) + w_inv(3,3) * val(z_offset$)
   val(ds_step$) = val(l$)
@@ -2655,7 +2626,7 @@ v_mask(custom_attribute1$:custom_attribute_max$) = .false.
 
 dval = abs(val - ele%old_value)
 dval(scratch$) = 0
-dval_change = (dval > small_rel_change * abs(val))
+dval_change = (dval > small_rel_change$ * abs(val))
 ! delta_ref_time can have relatively large changes since this is computed 
 ! as an absolute time difference. Also it is a dependent attribute.
 dval_change(delta_ref_time$) = .false.  
@@ -2735,8 +2706,6 @@ end subroutine attribute_bookkeeper
 
 subroutine aperture_bookkeeper (ele)
 
-implicit none
-
 type (ele_struct), target :: ele
 type (surface_grid_struct), pointer :: grid
 type (wall3d_section_struct), pointer :: sec
@@ -2810,8 +2779,6 @@ end subroutine aperture_bookkeeper
 
 subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
 
-implicit none
-
 type (ele_struct), target :: ele
 type (all_pointer_struct) all_attrib
 logical, optional :: set_dependent
@@ -2837,8 +2804,6 @@ end subroutine set_flags_for_changed_all_attribute
 !-
 
 subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
@@ -2908,8 +2873,6 @@ end subroutine set_flags_for_changed_integer_attribute
 
 subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 
-implicit none
-
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 
@@ -2959,8 +2922,6 @@ end subroutine set_flags_for_changed_logical_attribute
 
 subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
 
-implicit none
-
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
@@ -2992,8 +2953,6 @@ end subroutine set_flags_for_changed_lat_attribute
 !-
 
 subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
@@ -3204,8 +3163,6 @@ case (sbend$)
 
 end select
 
-!
-
 end subroutine set_flags_for_changed_real_attribute
 
 !--------------------------------------------------------------------------
@@ -3258,8 +3215,6 @@ end subroutine set_flags_for_changed_real_attribute
 !-
 
 subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)
-
-implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
@@ -3326,5 +3281,66 @@ do ib = 0, ubound(lat%branch, 1)
 enddo
 
 end subroutine set_on_off
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine attributes_need_bookkeeping (ele, dval) result (is_needed)
+!
+! Routine, when bmad_com%auto_bookkeeper = False, to decide if attribute
+! bookkeeping needs to be done for an element.
+!
+! Input:
+!   ele         -- ele_struct: Element under consideration.
+!
+! Output:
+!   dval(:)     -- real(rp), optional: Array of differences between old and new ele%value(:) values.
+!   ele%bookkeeping_state%attributes 
+!                    -- Set ok$ if not needed, stale$ otherwise
+!-
+
+subroutine attributes_need_bookkeeping (ele, dval)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+real(rp), optional :: dval(:)
+real(rp) dv(num_ele_attrib$)
+integer i
+
+!
+
+select case (ele%key)
+case (overlay$, group$, hybrid$)
+  ele%bookkeeping_state%attributes = ok$
+  return
+end select
+
+if (ele%key == sad_mult$) then
+  ele0 => ele
+  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)
+  ele%value(check_sum$) = 0
+  do i = 0, ubound(ele%a_pole, 1)
+    ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
+    ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
+  enddo
+else
+  ele%value(check_sum$) = ele%tracking_method
+  if (ele%is_on) ele%value(check_sum$) = ele%value(check_sum$) + 1
+endif
+
+dv = abs(ele%value - ele%old_value)
+dv(x1_limit$:y2_limit$) = 0  ! Limit changes do not need bookkeeping
+dv(custom_attribute1$:custom_attribute_max$) = 0
+dv(scratch$) = 0
+if (present(dval)) dval = dv
+
+if (all(dv == 0) .and. ele%key /= capillary$) then
+  ele%bookkeeping_state%attributes = ok$
+else
+  ele%bookkeeping_state%attributes = stale$
+endif
+
+end subroutine attributes_need_bookkeeping
 
 end module
