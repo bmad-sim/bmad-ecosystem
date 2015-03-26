@@ -29,10 +29,17 @@ real(rp) sqrt_beta_a, sqrt_beta_b, alpha_a, alpha_b
 
 !
 
-sqrt_beta_a  = sqrt(ele%a%beta)
-sqrt_beta_b  = sqrt(ele%b%beta)
-alpha_a = ele%a%alpha
-alpha_b = ele%b%alpha
+if (ele%mode_flip) then
+  sqrt_beta_a  = sqrt(ele%b%beta)
+  sqrt_beta_b  = sqrt(ele%a%beta)
+  alpha_a = ele%b%alpha
+  alpha_b = ele%a%alpha
+else
+  sqrt_beta_a  = sqrt(ele%a%beta)
+  sqrt_beta_b  = sqrt(ele%b%beta)
+  alpha_a = ele%a%alpha
+  alpha_b = ele%b%alpha
+endif
 
 g_a(1,1) = 1 / sqrt_beta_a
 g_a(1,2) = 0
