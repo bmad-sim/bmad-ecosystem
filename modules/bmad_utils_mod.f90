@@ -2949,4 +2949,44 @@ orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))
 
 end subroutine angle_to_canonical_coords
 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function ele_value_has_changed (ele, list, set_old) result (has_changed)
+!
+! Routine to see if a value in a lattice element has changed significantly.
+!
+! Input:
+!   ele       -- ele_struct: Element under consideration.
+!   list(:)   -- integer: List of indexes of ele%value(:) array to check.
+!   set_old   -- logical: If True then set ele%old_value(j) = ele%value(j) for j in list
+!
+! Output:
+!   ele         -- ele_struct: ele%old_value may be set depending upon setting of set_old
+!   has_changed -- logical: Set True if a value has changed significantly.
+!-
+
+function ele_value_has_changed (ele, list, set_old) result (has_changed)
+
+type (ele_struct) ele
+integer list(:)
+integer i, j
+logical set_old, has_changed
+
+!
+
+has_changed = .false.
+do i = 1, size(list)
+  j = list(i)
+  if (abs(ele%value(j) - ele%old_value(j)) > small_rel_change$ * (abs(ele%value(j) + abs(ele%old_value(j))))) then
+    has_changed = .true.
+    exit
+  endif
+enddo
+
+if (set_old) ele%old_value(list) = ele%value(list)
+
+end function ele_value_has_changed
+
 end module

@@ -334,7 +334,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! First make sure the attribute bookkeeping for this element is correct since
   ! the makeup_*_slave routines may need it.
 
-  call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+  call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param, force_bookkeeping)
 
   ! Slave bookkeeping
 
@@ -368,7 +368,7 @@ if (ele%bookkeeping_state%control == stale$ .or. ele%bookkeeping_state%attribute
   ! Example: super_slave will, at this point, have its lord's num_steps value but 
   ! num_steps in the slave is different from the lord due to differences in length.
 
-  if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param)
+  if (call_a_bookkeeper) call attribute_bookkeeper (ele, lat%branch(ele%ix_branch)%param, force_bookkeeping)
 
   ele%bookkeeping_state%control = ok$
 
@@ -3157,7 +3157,7 @@ case (patch$)
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
-      associated(a_ptr, ele%value(rho$)) .or. associated(a_ptr, ele%value(b_field$))) then
+      associated(a_ptr, ele%value(rho$))) then
     call set_ele_status_stale (ele, floor_position_group$)
   endif
 

@@ -438,7 +438,10 @@ case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, x_ray_source$)
   ele%ref_time = ref_time_start
 
 case (patch$) 
-  if (is_true(ele%value(flexible$))) call ele_geometry(ele0%floor, ele, ele%floor)
+  if (is_true(ele%value(flexible$))) then
+    call ele_geometry(ele0%floor, ele, ele%floor)
+  endif
+
   if (ele%is_on .and. ele%value(e_tot_offset$) /= 0) then
     if (ele%orientation == 1) then
       ele%value(E_tot$) = e_tot_start + ele%value(e_tot_offset$)
@@ -503,12 +506,21 @@ if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /=
       call control_bookkeeper (ele%branch%lat, lord)
     enddo
   endif
-  call control_bookkeeper (ele%branch%lat, ele)
-  call ele_geometry (ele0%floor, ele, ele%floor)
+
+!  if ((ele%key == sbend$ .and. (ele%field_master .or. ele%lord_status == multipass_lord$)) .or. &
+!      (ele%key == patch$ .and. is_true(ele%value(flexible$)))) then
+!    call set_ele_status_stale (ele, s_and_floor_position_group$)
+!  endif
+
   ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
   ele%old_value(p0c$) = old_p0c
   ele%old_value(e_tot$) = old_e_tot
+
+  call control_bookkeeper (ele%branch%lat, ele)
+  call ele_geometry (ele0%floor, ele, ele%floor)
+  ele%bookkeeping_state%floor_position = ele0%bookkeeping_state%floor_position
   call set_lords_status_stale (ele, ref_energy_group$)
+
 endif
 
 err_flag = .false.

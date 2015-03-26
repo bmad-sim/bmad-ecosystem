@@ -288,7 +288,7 @@ n_link = 0
 
 if (ele%slave_status == multipass_slave$) then
   m_lord => pointer_to_lord(ele, 1)
-  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .true.)
   n_link = m_lord%n_slave
   do j = 1, m_lord%n_slave
     slave => pointer_to_slave(m_lord, j)
@@ -315,7 +315,7 @@ if (ele%slave_status == super_slave$) then
   ! Construct chain
 
   m_lord => pointer_to_lord(s_lord, 1)
-  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .false.)
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .true.)
   n_link = m_lord%n_slave
   do j = 1, m_lord%n_slave
     s_lord => pointer_to_slave(m_lord, j)
