@@ -1243,7 +1243,7 @@ Format:
 \begin{example}
   alias
   beam \{<element_name_or_index>\}
-  branch \{\{-branch\} <name_or_index>\} \{-universe <universe>\} 
+  branch \{-universe <universe>\} 
   building_wall  
   constraints
   curve \{-line\} \{-no_header\} \{-symbol\} <curve_name> 
@@ -1334,21 +1334,18 @@ of the \vn{beam_init} structure.
 
 %% show branch --------------------------------------------------------------
 
-\item[show branch \{\{-branch\} <name_or_index>\} \{-universe <universe>\}] \Newline
+\item[show branch \{-universe <universe>\}] \Newline
 
 \vskip -0.2in
 
 Lists the lattice branches of the lattice associated with the given universe
-along with information on the fork elements connecting the branches.'
+along with information on the fork elements connecting the branches.
 If no universe is given, the current default universe (\sref{s:universe}) is used.
 
-If \vn{-branch <name_or_index>} is present, more detailed info on the given branch
-will be given. Here \vn{<name_or_index>} can be either the branch name or index.
 
 Example:
 \begin{example}
   show branch -u 2     ! Show info on lattice branches associated with universe 2
-  show branch xray1    ! Show info on branch xray1 of the default universe.
 \end{example}
 
 %% show building_wall --------------------------------------------------------------
