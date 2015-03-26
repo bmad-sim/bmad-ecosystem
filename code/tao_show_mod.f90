@@ -229,7 +229,7 @@ integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_r
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib
 
-logical bmad_format, good_opt_only, show_lords, print_wall, show_lost
+logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
@@ -486,15 +486,12 @@ case ('branch')
 
   do 
 
-    call tao_next_switch (stuff2, ['-branch     ', '-universe   '], switch, err, ix_s2)
+    call tao_next_switch (stuff2, ['-universe   '], switch, err, ix_s2)
 
     if (err) return
     if (switch == '') exit
 
     select case (switch)
-    case ('-branch')
-      sub_name = stuff2(1:ix_s2)
-      call string_trim(stuff2(ix_s2+1:), stuff2, ix_s2)
 
     case ('-universe')
       read (stuff2(1:ix_s2), *, iostat = ios) ix
@@ -521,63 +518,37 @@ case ('branch')
     nl=nl+1; write(lines(nl), '()') 'For the lattice of universe: ', ix_u
   endif
 
-  if (sub_name /= '') then
-    branch => pointer_to_branch(sub_name, u%model%lat)
-    if (.not. associated(branch)) then
-      nl=1; write(lines(1), *) 'Bad branch index:', ix_branch
-      return
-    endif
+  nl=nl+1; lines(nl) = '                        N_ele N_ele                  Default'
+  nl=nl+1; lines(nl) = '  Branch                Track   Max   Ref_Particle   Tracking_Species    Geometry'
 
-    nl=nl+1; lines(nl) =             '%name                      = ' // trim(branch%name)
-    nl=nl+1; write(lines(nl), imt)   '%ix_branch                 =', branch%ix_branch 
-    nl=nl+1; write(lines(nl), imt)   '%ix_from_branch            =', branch%ix_from_branch 
-    nl=nl+1; write(lines(nl), imt)   '%ix_from ele               =', branch%ix_from_ele
-    nl=nl+1; write(lines(nl), imt)   '%n_ele_track               =', branch%n_ele_track
-    nl=nl+1; write(lines(nl), imt)   '%n_ele_max                 =', branch%n_ele_max
-    nl=nl+1; write(lines(nl), amt)   '%param%particle            = ', trim(species_name(branch%param%particle))
-    nl=nl+1; write(lines(nl), amt)   '%param%geometry            = ', geometry_name(branch%param%geometry)
-    if (branch%param%particle == photon$) then
-      nl=nl+1; write(lines(nl), amt) 'lat%photon_type            = ', photon_type_name(lat%photon_type)
-    endif
-    nl=nl+1; write(lines(nl), '(2a)') '%default_tracking_species = ', particle_name(branch%param%default_tracking_species)
 
-  else
+  fmt = '((i3, 2a), t26, (i3, i6), t39, a, t54, a, t74, a)'
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
+              trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
+              trim(geometry_name(branch%param%geometry))
+  enddo
 
-    nl=nl+1; lines(nl) = '  Branch                   N_ele_Track N_ele_Max    From_Fork_Element          Forking_to_Element'
+  nl=nl+1; lines(nl) = ''
+  nl=nl+1; lines(nl) = '                                                                               Defines'
+  nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                      Direction    To_Branch?'
 
-    fmt = '((i3, 2a), t28, (i6, i10), 9x (2(i0, a), 3a), t80, (2(i0, a), 3a))'
-    do i = 0, ubound(lat%branch, 1)
-      branch => lat%branch(i)
-      if (branch%ix_from_ele < 0) then
-        nl=nl+1; write(lines(nl), fmt) i, ': ', &
-                  branch%name, branch%n_ele_track, branch%n_ele_max
-      else
-        ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
-        ele1 => pointer_to_next_ele (ele, 1, follow_fork = .true.)
-        nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
-                  branch%ix_from_branch, '>>', ele%ix_ele, ': ', trim(lat%branch(ele%ix_branch)%name), '>>', trim(ele%name), &
-                  i, '>>', ele1%ix_ele, ': ', trim(branch%name), '>>', trim(ele1%name)
-      endif
+
+  fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t70, i2, l14)'
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    do j = 1, branch%n_ele_max
+      ele => branch%ele(j)
+      if (ele%key /= fork$ .and. ele%key /= photon_fork$) cycle
+      branch2 => lat%branch(nint(ele%value(ix_to_branch$)))
+      logic = (ele%ix_ele == branch2%ix_from_ele .and. ele%ix_branch == branch2%ix_from_branch)
+      ele2 => branch2%ele(nint(ele%value(ix_to_element$)))
+      nl=nl+1; write(lines(nl), fmt) i, '>>', j, ': ', trim(branch%name), '>>', trim(ele%name), &
+                branch2%ix_branch, '>>', ele2%ix_ele, ': ', trim(branch2%name), '>>', trim(ele2%name), &
+                nint(ele%value(direction$)), logic
     enddo
-
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                      Direction'
-
-
-    fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t70, i2)'
-    do i = 0, ubound(lat%branch, 1)
-      branch => lat%branch(i)
-      do j = 1, branch%n_ele_max
-        ele => branch%ele(j)
-        if (ele%key /= fork$ .and. ele%key /= photon_fork$) cycle
-        branch2 => lat%branch(nint(ele%value(ix_to_branch$)))
-        ele2 => branch2%ele(nint(ele%value(ix_to_element$)))
-        nl=nl+1; write(lines(nl), fmt) i, '>>', j, ': ', trim(branch%name), '>>', trim(ele%name), &
-                  branch2%ix_branch, '>>', ele2%ix_ele, ': ', trim(branch2%name), '>>', trim(ele2%name), nint(ele%value(direction$))
-      enddo
-    enddo
-
-  endif
+  enddo
 
   result_id = show_what
 
@@ -2735,6 +2706,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), lmt) 'Auto_Scale_Field_Phase: ', lat%auto_scale_field_phase
   nl=nl+1; write(lines(nl), lmt) 'Auto_scale_Field_Amp:   ', lat%auto_scale_field_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
+  nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
   nl=nl+1; write(lines(nl), amt) 'Geometry:               ', geometry_name(branch%param%geometry)
   nl=nl+1; write(lines(nl), lmt) 'global%rf_on:           ', s%global%rf_on
   nl=nl+1; write(lines(nl), imt) &
