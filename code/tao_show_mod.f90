@@ -162,7 +162,7 @@ type (tao_ele_shape_struct), pointer :: shape
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
-type (ele_struct), pointer :: ele, ele1
+type (ele_struct), pointer :: ele, ele1, ele2
 type (ele_struct), target :: ele3, ele0
 type (bunch_struct), pointer :: bunch
 type (wake_lr_struct), pointer :: lr
@@ -171,7 +171,7 @@ type (bunch_params_struct) bunch_params
 type (bunch_params_struct), pointer :: bunch_p
 type (taylor_struct) taylor(6)
 type (ele_pointer_struct), allocatable, save :: eles(:)
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, branch2
 type (tao_universe_branch_struct), pointer :: uni_branch
 type (wall3d_struct), pointer :: wall
 type (wall3d_section_struct), pointer :: wall_sec
@@ -203,7 +203,7 @@ character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
 character(40) ele_name, sub_name, ele1_name, ele2_name, switch
 character(40) replacement_for_blank
 character(60) nam, attrib_list(20), attrib
-character(80) :: word1, fmt, fmt2, fmt3
+character(100) :: word1, fmt, fmt2, fmt3
 character(100) file_name, name, why_invalid
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
@@ -542,26 +542,41 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(2a)') '%default_tracking_species = ', particle_name(branch%param%default_tracking_species)
 
   else
-    nl=nl+1; lines(nl) = 'Branch  Branch                N_ele  N_ele   From                From                To'
-    nl=nl+1; lines(nl) = ' Index  Name                  Track    Max   Branch              Fork_Ele            Ele'
 
+    nl=nl+1; lines(nl) = '  Branch                   N_ele_Track N_ele_Max    From_Fork_Element          Forking_to_Element'
 
-    branch => lat%branch(0)
-    nl=nl+1; write(lines(nl), '(i6, 2x, a21, i6, i7)') 0, branch%name, branch%n_ele_track, branch%n_ele_max
-
-    fmt = '(i6, 2x, a21, i6, i7, 3x (i0, 1x, a20), t66, (i0, 1x, a20), t86, (i0, 1x, a))'
-    do i = 1, ubound(lat%branch, 1)
+    fmt = '((i3, 2a), t28, (i6, i10), 9x (2(i0, a), 3a), t80, (2(i0, a), 3a))'
+    do i = 0, ubound(lat%branch, 1)
       branch => lat%branch(i)
       if (branch%ix_from_ele < 0) then
-        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, branch%ix_from_branch
+        nl=nl+1; write(lines(nl), fmt) i, ': ', &
+                  branch%name, branch%n_ele_track, branch%n_ele_max
       else
         ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
         ele1 => pointer_to_next_ele (ele, 1, follow_fork = .true.)
-        nl=nl+1; write(lines(nl), fmt) i, branch%name, branch%n_ele_track, branch%n_ele_max, &
-                  branch%ix_from_branch, lat%branch(ele%ix_branch)%name, &
-                  ele%ix_ele, ele%name, ele1%ix_ele, ele1%name
+        nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
+                  branch%ix_from_branch, '>>', ele%ix_ele, ': ', trim(lat%branch(ele%ix_branch)%name), '>>', trim(ele%name), &
+                  i, '>>', ele1%ix_ele, ': ', trim(branch%name), '>>', trim(ele1%name)
       endif
     enddo
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                      Direction'
+
+
+    fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t70, i2)'
+    do i = 0, ubound(lat%branch, 1)
+      branch => lat%branch(i)
+      do j = 1, branch%n_ele_max
+        ele => branch%ele(j)
+        if (ele%key /= fork$ .and. ele%key /= photon_fork$) cycle
+        branch2 => lat%branch(nint(ele%value(ix_to_branch$)))
+        ele2 => branch2%ele(nint(ele%value(ix_to_element$)))
+        nl=nl+1; write(lines(nl), fmt) i, '>>', j, ': ', trim(branch%name), '>>', trim(ele%name), &
+                  branch2%ix_branch, '>>', ele2%ix_ele, ': ', trim(branch2%name), '>>', trim(ele2%name), nint(ele%value(direction$))
+      enddo
+    enddo
+
   endif
 
   result_id = show_what
