@@ -65,7 +65,7 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     if (ele%key /= fiducial$) cycle
-    call ele_geometry (dummy, ele, ele%floor)
+    call ele_geometry (dummy, ele, ele%floor, set_ok = .true.)
 
     do i2 = i+1, branch%n_ele_track
       ele2 => branch%ele(i2)
@@ -75,7 +75,7 @@ do n = 0, ubound(lat%branch, 1)
         if (global_com%exit_on_error) call err_exit
         exit
       endif
-      call ele_geometry (branch%ele(i2-1)%floor, ele2, ele2%floor)
+      call ele_geometry (branch%ele(i2-1)%floor, ele2, ele2%floor, set_ok = .true.)
     enddo
 
     branch%ele(i-1)%floor = ele%floor  ! Save time
@@ -89,6 +89,7 @@ do n = 0, ubound(lat%branch, 1)
         exit
       endif
       call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, -1.0_rp)
+      branch%ele(i2-1)%bookkeeping_state%floor_position = ok$
     enddo
   enddo
 
@@ -98,6 +99,7 @@ do n = 0, ubound(lat%branch, 1)
     b_ele => pointer_to_ele (lat, branch%ix_from_ele, branch%ix_from_branch)
     ie0 = nint(b_ele%value(ix_to_element$))
     call ele_geometry (b_ele%floor, b_ele, branch%ele(ie0)%floor)
+    branch%ele(ie0)%bookkeeping_state%floor_position = ok$
     stale = .true.
   else
     ie0 = 0
@@ -166,9 +168,10 @@ else
 endif
 
 if (dir == 1) then
-  call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp)
+  call ele_geometry (branch%ele(ie-1)%floor, ele, ele%floor, 1.0_rp, set_ok = .true.)
 else
   call ele_geometry (branch%ele(ie+1)%floor, branch%ele(ie+1), ele%floor, -1.0_rp)
+  ele%bookkeeping_state%floor_position = ok$
 endif
 
 ! target branch only needs to be recomputed if target branch index is greater than present branch.
@@ -206,7 +209,7 @@ do i = 1, ele%n_lord
   call girder_lord_geometry (lord)
 enddo
 
-call ele_geometry (dummy, ele, ele%floor)
+call ele_geometry (dummy, ele, ele%floor, set_ok = .true.)
 
 end subroutine girder_lord_geometry
 
@@ -216,7 +219,7 @@ end subroutine lat_geometry
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine ele_geometry (floor0, ele, floor, len_scale)
+! Subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok)
 !
 ! Routine to calculate the global (floor) coordinates of an element given the
 ! global coordinates of the preceeding element. This is the same as the MAD convention.
@@ -230,13 +233,14 @@ end subroutine lat_geometry
 !   use bmad
 !
 ! Input:
-!   floor0          -- Starting floor coordinates at upstream end.
-!                        Not used for fiducial and girder elements.
-!   ele             -- Ele_struct: Element to propagate the geometry through.
-!   len_scale       -- Real(rp), optional: factor to scale the length of the element.
-!                         1.0_rp => Output is geometry at end of element (default).
-!                         0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
-!                        -1.0_rp => Used to propagate geometry in reverse.
+!   floor0        -- Starting floor coordinates at upstream end.
+!                      Not used for fiducial and girder elements.
+!   ele           -- Ele_struct: Element to propagate the geometry through.
+!   len_scale     -- Real(rp), optional: factor to scale the length of the element.
+!                       1.0_rp => Output is geometry at end of element (default).
+!                       0.5_rp => Output is geometry at center of element. [Cannot be used for crystals.]
+!                      -1.0_rp => Used to propagate geometry in reverse.
+!   set_ok        -- logical, optional: If present and True, set ele%bookkeeping_state%floor_position = T.
 !
 ! Output:
 !   floor       -- floor_position_struct: Floor position at downstream end.
@@ -244,7 +248,7 @@ end subroutine lat_geometry
 !     %theta, phi, %psi  -- Orientation angles 
 !-
 
-recursive subroutine ele_geometry (floor0, ele, floor, len_scale)
+recursive subroutine ele_geometry (floor0, ele, floor, len_scale, set_ok)
 
 use multipole_mod
 use multipass_mod
@@ -266,13 +270,14 @@ real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_ma
 integer i, key, n_loc, ix_pass
 
 logical has_nonzero_pole, err, calc_done, doit
+logical, optional :: set_ok
 
-character(16), parameter :: r_name = 'ele_geometry'
+character(*), parameter :: r_name = 'ele_geometry'
 
-! Init
+! Init. 
 
-ele%bookkeeping_state%floor_position = ok$
 len_factor = ele%orientation * real_option(1.0_rp, len_scale)
+if (logic_option(.false., set_ok)) ele%bookkeeping_state%floor_position = ok$
 
 if (ele%key /= girder$) then
   floor   = floor0
@@ -546,16 +551,19 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
         ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
                         w_mat_inv(3,3) * ele%value(z_offset$)
-        if (ele%value(l$) /= ele%old_value(l$)) then
+        if (ele_value_has_changed(ele, [l$], .true.)) then
           call set_ele_status_stale (ele, s_position_group$)
-          ele%old_value(l$) = ele%value(l$)
         endif
 
         ! Transfer offsets and pitches if patch is part of a multipass retion
         if (ele%slave_status == multipass_slave$) then
           call multipass_chain (ele, ix_pass, chain_ele = chain_ele)
-          do i = 2, size(chain_ele)
-            ele2 => chain_ele(i)%ele
+          do i = 1, size(chain_ele)
+            if (i == 1) then
+              ele2 => pointer_to_lord(ele, 1)
+            else
+              ele2 => chain_ele(i)%ele
+            endif
             ele2%value(x_offset$) = ele%value(x_offset$)
             ele2%value(y_offset$) = ele%value(y_offset$)
             ele2%value(z_offset$) = ele%value(z_offset$)
