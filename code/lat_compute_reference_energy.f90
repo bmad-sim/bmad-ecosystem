@@ -356,6 +356,7 @@ implicit none
 
 type (ele_struct), target :: ele, ele0
 type (ele_struct), pointer :: lord
+type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
@@ -517,8 +518,10 @@ if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /=
   ele%old_value(e_tot$) = old_e_tot
 
   call control_bookkeeper (ele%branch%lat, ele)
+  old_floor = ele%floor
   call ele_geometry (ele0%floor, ele, ele%floor)
   ele%bookkeeping_state%floor_position = ele0%bookkeeping_state%floor_position
+  if (.not. old_floor == ele%floor) call set_lords_status_stale (ele, floor_position_group$) ! Need to update girders
   call set_lords_status_stale (ele, ref_energy_group$)
 
 endif
