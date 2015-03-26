@@ -569,7 +569,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
             ele2%value(z_offset$) = ele%value(z_offset$)
             ele2%value(x_pitch$)  = ele%value(x_pitch$)
             ele2%value(y_pitch$)  = ele%value(y_pitch$)
-            ele2%value(tilt$)     = ele%value(z_offset$)
+            ele2%value(tilt$)     = ele%value(tilt$)
             ele2%value(l$)        = ele%value(l$)
           enddo
         endif
