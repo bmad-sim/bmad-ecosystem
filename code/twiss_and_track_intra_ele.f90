@@ -65,30 +65,23 @@ character(*), parameter :: r_name = 'twiss_and_track_intra_ele'
 
 if (present(err)) err = .true.
 
-! zero length element
-
-if (ele%value(l$) == 0) then
-  if (.not. track_upstream_end .or. .not. track_downstream_end) then
-    call out_io (s_fatal$, r_name, 'Partial tracking through a zero length element does not make sense: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-  ! Track and return
-  call track1 (orbit_start, ele, param, orbit_end)
-  if (present(err)) err = .false.
-  return
-endif
+! zero length element:
+! Must ignore track_upstream_end and track_downstream_end since they do not make sense in this case.
 
 ! Construct a "runt" element to track through.
 
 call transfer_ele(ele, runt, .true.)
 
-do_upstream = (track_upstream_end .and. l_start == 0)
-if (present(orbit_start)) do_upstream = (do_upstream .and. orbit_start%location /= inside$)
-do_downstream = (track_downstream_end .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
+if (ele%value(l$) == 0) then
+  do_downstream = .true.
+else
+  do_upstream = (track_upstream_end .and. l_start == 0)
+  if (present(orbit_start)) do_upstream = (do_upstream .and. orbit_start%location /= inside$)
+  do_downstream = (track_downstream_end .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
 
-call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
-if (err_flag) return
+  call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
+  if (err_flag) return
+endif
 
 ! Now track. 
 ! Must take care if orbit_start and orbit_end are the same actual argument so use temporary orb_at_end.
