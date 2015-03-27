@@ -66,12 +66,12 @@ SUBROUTINE normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)
     WRITE(*,'(A,I6,A)') "BAD: Eigenvectors of transfer matrix not found for element."
     RETURN
   ENDIF
-  !CALL make_HVBP (N, dagger6(B), V, H)
+  !CALL make_HVBP (N, dagger(B), V, H)
   CALL make_HVBP (N, B, V, H)
   HV = MATMUL(H,V)
 
-!  HV=dagger6(HV) 
-  B = dagger6(B)  !for legacy compatability
+!  HV=dagger(HV) 
+  B = dagger(B)  !for legacy compatability
 
 END SUBROUTINE normal_mode3_calc
 
@@ -133,8 +133,8 @@ SUBROUTINE make_HVBP (N, B, V, H, Vbar, Hbar)
 
   a = SQRT(ABS(determinant(N(5:6,5:6))))
   BcPc = N(5:6,5:6) / a
-  Hx = MATMUL(N(1:2,5:6),dagger2(BcPc))
-  Hy = MATMUL(N(3:4,5:6),dagger2(BcPc))
+  Hx = MATMUL(N(1:2,5:6),dagger(BcPc))
+  Hy = MATMUL(N(3:4,5:6),dagger(BcPc))
   ax = determinant(Hx)/(1.0d0+a)  !shorthand
   ay = determinant(Hy)/(1.0d0+a)  !shorthand
 
@@ -143,24 +143,24 @@ SUBROUTINE make_HVBP (N, B, V, H, Vbar, Hbar)
   H(5:6,5:6) = a*I2
   H(1:2,5:6) = Hx
   H(3:4,5:6) = Hy
-  H(5:6,1:2) = -1.0d0*dagger2(Hx)
-  H(5:6,3:4) = -1.0d0*dagger2(Hy)
-  H(1:2,3:4) = -1.0d0 * MATMUL(Hx,dagger2(Hy)) / (1.0d0 + a)
-  H(3:4,1:2) = -1.0d0 * MATMUL(Hy,dagger2(Hx)) / (1.0d0 + a)
+  H(5:6,1:2) = -1.0d0*dagger(Hx)
+  H(5:6,3:4) = -1.0d0*dagger(Hy)
+  H(1:2,3:4) = -1.0d0 * MATMUL(Hx,dagger(Hy)) / (1.0d0 + a)
+  H(3:4,1:2) = -1.0d0 * MATMUL(Hy,dagger(Hx)) / (1.0d0 + a)
 
-  VBP = MATMUL(dagger6(H),N)
+  VBP = MATMUL(dagger(H),N)
 
   mu = SQRT(ABS(determinant(VBP(1:2,1:2))))
   BaPa = VBP(1:2,1:2)/mu
   BbPb = VBP(3:4,3:4)/mu
-  V2 = MATMUL(VBP(1:2,3:4),dagger2(BbPb))
+  V2 = MATMUL(VBP(1:2,3:4),dagger(BbPb))
 
   V = 0.0d0
   V(1:2,1:2) = mu*I2
   V(3:4,3:4) = mu*I2
   V(5:6,5:6) = I2
   V(1:2,3:4) = V2
-  V(3:4,1:2) = -1.0d0*dagger2(V2)
+  V(3:4,1:2) = -1.0d0*dagger(V2)
 
   BP = 0.0d0
   BP(1:2,1:2) = BaPa
@@ -190,8 +190,8 @@ SUBROUTINE make_HVBP (N, B, V, H, Vbar, Hbar)
 
   B = MATMUL(BP,Pinv)
 
-  IF( PRESENT(Vbar) ) Vbar = MATMUL(dagger6(B),MATMUL(V,B))
-  IF( PRESENT(Hbar) ) Hbar = MATMUL(dagger6(B),MATMUL(H,B))
+  IF( PRESENT(Vbar) ) Vbar = MATMUL(dagger(B),MATMUL(V,B))
+  IF( PRESENT(Hbar) ) Hbar = MATMUL(dagger(B),MATMUL(H,B))
 END SUBROUTINE make_HVBP
 
 !+
@@ -239,7 +239,7 @@ SUBROUTINE xyz_to_action(ring,ix,X,J,error)
     RETURN
   ENDIF
 
-  J = MATMUL(dagger6(N),X)
+  J = MATMUL(dagger(N),X)
 END SUBROUTINE xyz_to_action
 
 !+
@@ -389,7 +389,7 @@ END SUBROUTINE eigen_decomp_6mat
 !  Ninv(6,6)           -- real(rp): J = Ninv.X
 !  error               -- logical: Set to true on error.  Often means Eigen decomposition failed.
 !  gamma(3)            -- real(rp): gamma1, gamma2, and gamma3, related to calculation of G
-!  tunes(3)            -- real(rp): Tune of the 3 normal modes of the beam (radians)
+!  tunes(3)            -- real(rp): Fractional tune of the 3 normal modes of the beam (radians)
 !-
 SUBROUTINE make_N(t6,N,error,tunes,synchrotron_motion)
   USE bmad
@@ -608,7 +608,12 @@ END SUBROUTINE beam_tilts
 ! Given the 1-turn transfer matrix and a normal_modes_struct containing the normal mode
 ! emittances, this routine returns the beam envelop sigma matrix.
 !
-! sigma_mat.S = N.D.dagger(N)
+! sigma_mat = N.D.transpose(N)
+! equivalent to: sigma_mat.S = N.D.dagger(N)
+!
+! One way to populate mode%a%tune and mode%b%tune:
+!   mode%a%tune = (lat%ele(lat%n_ele_track)%a%phi/twopi - int(lat%ele(lat%n_ele_track)%a%phi/twopi))*twopi
+!   mode%b%tune = (lat%ele(lat%n_ele_track)%b%phi/twopi - int(lat%ele(lat%n_ele_track)%b%phi/twopi))*twopi
 !
 ! Input:
 !  t6(6,6)          -- real(rp): 1-turn transfer matrix
@@ -616,6 +621,8 @@ END SUBROUTINE beam_tilts
 !      %a%emittance -- real(rp): a-mode emittance
 !      %b%emittance -- real(rp): b-mode emittance
 !      %z%emittance -- real(rp): z-mode emittance
+!      %a%tune      -- real(rp): a-mode tune.  Used to associate emittances with the proper mode.
+!      %b%tune      -- real(rp): b-mode tune.  Used to associate emittances with the proper mode.
 ! Output:
 !  sigma_mat(6,6)   -- real(rp): beam envelop sigma matrix
 !  error            -- logical:  set to true if something goes wrong.  Usually means Eigen decomposition of the 1-turn matrix failed.
@@ -632,27 +639,44 @@ SUBROUTINE make_smat_from_abc(t6, mode, sigma_mat, error)
   REAL(rp) N(6,6)
   REAL(rp) D(6,6)
   REAL(rp) Lambda(6,6)
+  REAL(rp) tunes(3), mode_check_1, mode_check_2
 
   INTEGER i
 
   error = .false.
 
-  CALL make_N(t6, N, error)
+  CALL make_N(t6, N, error, tunes)
   IF( error ) THEN
     WRITE(*,'(A,I6,A)') "BAD: Eigenvectors of transfer matrix not found for element."
     RETURN
   ENDIF
 
+  mode_check_1 = abs(tunes(1) - mode%a%tune)
+  mode_check_2 = abs(tunes(2) - mode%a%tune)
+
+  if( (mode_check_1 .gt. 0.0001) .and. (mode_check_2 .gt. 0.0001) ) then
+    write(*,'(a,4f11.4)') "Mode match not found in make_smat_from_abc.  Will proceed assuming no mode flip."
+    write(*,*) "Perhaps mode%a%tune has not been set to fractional tune in radians."
+    mode_check_1 = 0.1
+    mode_check_2 = 0.2
+  endif
+
   D = 0.0d0
-  D(1,2) =  mode%a%emittance
-  D(2,1) = -mode%a%emittance
-  D(3,4) =  mode%b%emittance
-  D(4,3) = -mode%b%emittance
-  D(5,6) =  mode%z%emittance
-  D(6,5) = -mode%z%emittance
+  if( mode_check_1 .lt. mode_check_2 ) then
+    D(1,1) = mode%a%emittance
+    D(2,2) = mode%a%emittance
+    D(3,3) = mode%b%emittance
+    D(4,4) = mode%b%emittance
+  else
+    D(1,1) = mode%b%emittance
+    D(2,2) = mode%b%emittance
+    D(3,3) = mode%a%emittance
+    D(4,4) = mode%a%emittance
+  endif
+  D(5,5) = mode%z%emittance
+  D(6,6) = mode%z%emittance
 
-  sigma_mat = MATMUL( MATMUL( MATMUL(N,D),dagger6(N) ),dagger6(S) )
-
+  sigma_mat = MATMUL( MATMUL(N,D),transpose(N) )
 END SUBROUTINE make_smat_from_abc
 
 !+
@@ -682,72 +706,55 @@ SUBROUTINE cplx_symp_conj(evec_r, evec_i, symp_evec_r, symp_evec_i)
   REAL(rp) symp_evec_r(6,6)
   REAL(rp) symp_evec_i(6,6)
 
-  symp_evec_r(1:2,1:2) = dagger2(evec_i(1:2,1:2))
-  symp_evec_r(1:2,3:4) = dagger2(evec_i(3:4,1:2))
-  symp_evec_r(1:2,5:6) = dagger2(evec_i(5:6,1:2))
-  symp_evec_r(3:4,1:2) = dagger2(evec_i(1:2,3:4))
-  symp_evec_r(3:4,3:4) = dagger2(evec_i(3:4,3:4))
-  symp_evec_r(3:4,5:6) = dagger2(evec_i(5:6,3:4))
-  symp_evec_r(5:6,1:2) = dagger2(evec_i(1:2,5:6))
-  symp_evec_r(5:6,3:4) = dagger2(evec_i(3:4,5:6))
-  symp_evec_r(5:6,5:6) = dagger2(evec_i(5:6,5:6))
+  symp_evec_r(1:2,1:2) = dagger(evec_i(1:2,1:2))
+  symp_evec_r(1:2,3:4) = dagger(evec_i(3:4,1:2))
+  symp_evec_r(1:2,5:6) = dagger(evec_i(5:6,1:2))
+  symp_evec_r(3:4,1:2) = dagger(evec_i(1:2,3:4))
+  symp_evec_r(3:4,3:4) = dagger(evec_i(3:4,3:4))
+  symp_evec_r(3:4,5:6) = dagger(evec_i(5:6,3:4))
+  symp_evec_r(5:6,1:2) = dagger(evec_i(1:2,5:6))
+  symp_evec_r(5:6,3:4) = dagger(evec_i(3:4,5:6))
+  symp_evec_r(5:6,5:6) = dagger(evec_i(5:6,5:6))
 
-  symp_evec_i(1:2,1:2) = -dagger2(evec_r(1:2,1:2))
-  symp_evec_i(1:2,3:4) = -dagger2(evec_r(3:4,1:2))
-  symp_evec_i(1:2,5:6) = -dagger2(evec_r(5:6,1:2))
-  symp_evec_i(3:4,1:2) = -dagger2(evec_r(1:2,3:4))
-  symp_evec_i(3:4,3:4) = -dagger2(evec_r(3:4,3:4))
-  symp_evec_i(3:4,5:6) = -dagger2(evec_r(5:6,3:4))
-  symp_evec_i(5:6,1:2) = -dagger2(evec_r(1:2,5:6))
-  symp_evec_i(5:6,3:4) = -dagger2(evec_r(3:4,5:6))
-  symp_evec_i(5:6,5:6) = -dagger2(evec_r(5:6,5:6))
+  symp_evec_i(1:2,1:2) = -dagger(evec_r(1:2,1:2))
+  symp_evec_i(1:2,3:4) = -dagger(evec_r(3:4,1:2))
+  symp_evec_i(1:2,5:6) = -dagger(evec_r(5:6,1:2))
+  symp_evec_i(3:4,1:2) = -dagger(evec_r(1:2,3:4))
+  symp_evec_i(3:4,3:4) = -dagger(evec_r(3:4,3:4))
+  symp_evec_i(3:4,5:6) = -dagger(evec_r(5:6,3:4))
+  symp_evec_i(5:6,1:2) = -dagger(evec_r(1:2,5:6))
+  symp_evec_i(5:6,3:4) = -dagger(evec_r(3:4,5:6))
+  symp_evec_i(5:6,5:6) = -dagger(evec_r(5:6,5:6))
 END SUBROUTINE cplx_symp_conj
 
 !+
-! Function dagger6(A) RESULT(Ad)
+! Function dagger(A) RESULT(Ad)
 !
-! Return the complex symplectic conjugate of a 6x6 matrix.
+! Return the symplectic conjugate of a 2N x 2N matrix.
 !
 ! A_dagger = -S.Transpose(A).S
 !
 ! Input:
-!  A(6,6)   -- real(rp): 6x6 matrix
+!  A(2N,2N)   -- real(rp): 2N x 2N matrix
 ! Output:
-!  Ad(6,6)  -- real(rp): A_dagger
+!  Ad(2N,2N)  -- real(rp): A_dagger
 !-
-FUNCTION dagger6(A) RESULT(Ad)
+FUNCTION dagger(A) RESULT(Ad)
   USE bmad
 
-  REAL(rp) A(6,6)
-  REAL(rp) Ad(6,6)
+  REAL(rp) A(:,:)
+  REAL(rp) Ad(size(A(:,1)),size(A(1,:)))
+  INTEGER n, m
 
-  Ad = -1.0_rp * MATMUL(S,MATMUL(TRANSPOSE(A),S))
-END FUNCTION dagger6
+  n = size(A(:,1))
+  m = size(A(1,:))
+  if( (mod(n,2) .ne. 0) .or. (m .ne. n) ) then
+    write(*,*) "fatal: argument of dagger is not 2N x 2N."
+    stop
+  endif
 
-!+
-! Function dagger2(A) RESULT(Ad)
-!
-! Return the complex symplectic conjugate of a 2x2 matrix.
-!
-! A_dagger = / A22  -A12 \
-!            \ -A21  A11 /
-!
-! Input:
-!  A(2,2)   -- real(rp): 2x2 matrix
-! Output:
-!  Ad(2,2)  -- real(rp): A_dagger
-!-
-FUNCTION dagger2(A) RESULT(Ad)
-  USE bmad
-
-  REAL(rp) A(2,2)
-  REAL(rp) Ad(2,2)
-
-  Ad(1,1) =  A(2,2)
-  Ad(1,2) = -A(1,2)
-  Ad(2,1) = -A(2,1)
-  Ad(2,2) =  A(1,1)
-END FUNCTION dagger2
+  Ad = -1.0_rp * MATMUL(S(1:n,1:n),MATMUL(TRANSPOSE(A),S(1:n,1:n)))
+END FUNCTION dagger
 
 !+
 ! Subroutine real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
