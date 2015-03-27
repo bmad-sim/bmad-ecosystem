@@ -1051,7 +1051,7 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   ENDIF
 
   IF( PRESENT(s) ) THEN
-    t6 = MATMUL(ele%mat6,  MATMUL(dagger6(lat%ele(ix_use)%mat6), MATMUL(t6, MATMUL(lat%ele(ix_use)%mat6, dagger6(ele%mat6)))))
+    t6 = MATMUL(ele%mat6,  MATMUL(dagger(lat%ele(ix_use)%mat6), MATMUL(t6, MATMUL(lat%ele(ix_use)%mat6, dagger(ele%mat6)))))
   ENDIF
 
   energy = ele%value(E_TOT$)
@@ -1080,16 +1080,12 @@ SUBROUTINE kubo1_twiss_wrapper(lat, ibs_sim_params, rates, ix, s)
   CALL kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, 0.1_rp, energy, lat%param%n_part)
 
   CALL normal_sigma_mat(sigma_mat_updated,normal)
-
   
   !dt = ele%value(l$) / c_light
   dt = 0.1 / c_light
   rates%inv_Ta = ((normal(1) - ele%a%emit) / dt)/ele%a%emit/2.0d0
   rates%inv_Tb = ((normal(2) - ele%b%emit) / dt)/ele%b%emit/2.0d0
   rates%inv_Tz = ((normal(3) - ele%z%emit) / dt)/ele%z%emit/2.0d0
-
-!  WRITE(45,*) "FOO: ", ele%a%emit, ele%b%emit, ele%z%emit
-!  WRITE(46,*) "FOO: ", rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
 
   !CALL deallocate_ele_pointers(ele)
 END SUBROUTINE kubo1_twiss_wrapper
@@ -1115,7 +1111,7 @@ END SUBROUTINE kubo1_twiss_wrapper
 SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, energy, n_part)
   ! Some parts of this subroutine are patterned from the SAD accelerator code.
 
-  !USE eigen_mod
+  USE eigen_mod
   USE LA_PRECISION, ONLY: WP => DP
   USE f95_lapack
 
@@ -1189,7 +1185,6 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
 !  Tspat(3,4) = element_length/4
 !  Tspat(5,6) = element_length/4/gamma/gamma
   spatial_sigma_mat = MATMUL(Tspat,MATMUL(sigma_mat,TRANSPOSE(Tspat)))
-
   ! boost sigma matrix to COM frame of bunch
   Tboost = 0.0d0
   do i=1,6
@@ -1207,6 +1202,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   !CALL eigensys(sig_xx, u, R, etypes, 3, error)
   R=sig_xx  ! LA_SYEV destroys the contents of R
   CALL LA_SYEV(R,u,JOBZ='V')  !evals and evecs of symmetric real matrix
+
   vol1 = SQRT(u(1)*u(2)*u(3))
   vol = SQRT(4.0d0*pi)**3 * vol1
   bm = SQRT(MIN( u(1), u(2), u(3) ))  !minimum beam dimension
@@ -1221,9 +1217,15 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   sig_pl = sig_pp - MATMUL(TRANSPOSE(sig_xp),MATMUL(sig_xx_inv,sig_xp))
 
   !Get eigen vectors of local momentum matrix
-  !CALL eigensys(sig_pl, u, R, etypes, 3, error)
-  R=sig_pl
-  CALL LA_SYEV(R,u,JOBZ='V',INFO=error)  !evals and evecs of symmetric real matrix
+  CALL eigensys(sig_pl, u, R, etypes, 3, error)
+
+  !R=sig_pl
+  !CALL LA_SYEV(R,u,JOBZ='V',INFO=error)  !evals and evecs of symmetric real matrix
+  !LA_SYEV seems to be less robust than eigensys.
+  u(1) = max(u(1),1.0d-20)
+  u(2) = max(u(2),1.0d-20)
+  u(3) = max(u(3),1.0d-20)
+
   IF( error .ne. 0 ) THEN
     WRITE(*,'(A,I6," ",A)') "BAD: Eigenvectors of local momentum matrix not found."
     sigma_mat_updated = sigma_mat
@@ -1232,7 +1234,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   R=TRANSPOSE(R) !R is defined as inverse of eigenvector matrix, and tr(R) = inv(r)
   ptrans = SQRT(u(1)+u(2)+u(3))
   pvol = SQRT(u(1)*u(2)*u(3))
-  
+
   !- Integration using fgsl
   integ_wk = fgsl_integration_workspace_alloc(limit)
   ptr = c_loc(args)
@@ -1278,6 +1280,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
   Dw(2,2) = cI*(g1-g2+g3-g2)
   Dw(3,3) = cI*(g1-g3+g2-g3)
 
+
   !- Build update matrix
   sig_pp_update = MATMUL(MATMUL(R,Dw),TRANSPOSE(R))
   sigma_update = 0.0d0
@@ -1286,7 +1289,7 @@ SUBROUTINE kubo1(sigma_mat, ibs_sim_params, sigma_mat_updated, element_length, e
       sigma_update(i*2,j*2) = sig_pp_update(i,j)
     ENDDO
   ENDDO
-  
+
   ! boost updates to lab frame
   CALL mat_inverse(Tboost,Tboost_inv,ok)
   IF( .not. ok ) THEN
