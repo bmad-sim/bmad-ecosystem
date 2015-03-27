@@ -5579,7 +5579,7 @@ type (branch_struct), pointer :: branch
 type (used_seq_struct), allocatable ::  used_line(:)
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
-integer iseq_tot, i_lev, i_use, n0_multi, n_ele_use, n_max
+integer iseq_tot, i_lev, i_use, n_ele_use, n_max
 integer i, j, k, n, ix, ix_multipass, ix_branch, flip
 
 character(*), allocatable ::  in_name(:), seq_name(:)
@@ -5842,9 +5842,8 @@ line_expansion: do
     stack(i_lev)%ix_ele = ix
     stack(i_lev)%rep_count = seq%ele(ix)%rep_count
 
-    if (stack(i_lev)%multipass .and. .not. stack(i_lev-1)%multipass) then
+    if (seq%multipass) then
       ix_multipass = 1
-      n0_multi = n_ele_use + 1
     endif
 
   case default
