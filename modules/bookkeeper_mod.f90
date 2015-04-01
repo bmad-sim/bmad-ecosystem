@@ -1693,6 +1693,49 @@ if (has_orientation_attributes(slave)) then
   endif
 endif
 
+! Patch
+! The rotation part of the patch is applied at the entrance end of the patch.
+! Excluding the rotation, a patch is just a drift.
+
+if (lord%key == patch$) then
+  if ((include_upstream_end .and. lord%orientation == 1) .or. (include_downstream_end .and. lord%orientation == -1)) then
+    call floor_angles_to_w_mat (lord%value(x_pitch$), lord%value(y_pitch$), lord%value(tilt$), w_mat_inv = w_inv)
+    dl = lord%value(l$) - slave%value(l$)
+    value(x_offset$)     = lord%value(x_offset$) - dl * w_inv(3,1)
+    value(y_offset$)     = lord%value(y_offset$) - dl * w_inv(3,2)
+    value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
+    value(t_offset$)     = lord%value(t_offset$)
+    value(e_tot_offset$) = lord%value(e_tot_offset$)
+  else
+    value(x_pitch$)      = 0
+    value(y_pitch$)      = 0
+    value(tilt$)         = 0
+    value(x_offset$)     = 0
+    value(y_offset$)     = 0
+    value(z_offset$)     = slave%value(z_offset$)
+    value(t_offset$)     = 0
+    value(e_tot_offset$) = 0
+  endif
+
+  value(x_pitch_tot$)     = value(x_pitch$)
+  value(y_pitch_tot$)     = value(y_pitch$)
+  value(tilt_tot$)        = value(tilt$)
+  value(x_offset_tot$)    = value(x_offset$)
+  value(y_offset_tot$)    = value(y_offset$)
+  value(z_offset_tot$)    = value(z_offset$)
+  value(flexible$) = false$  ! Flexible calc must be handled by the lord.
+
+  ! During parsing the reference energy may not be set.
+  ! In this case, do not try to compute things since will get a divide by zero.
+
+  if (lord%value(p0c$) /= 0) then
+    call ele_compute_ref_energy_and_time (lord, slave, param, err2_flag)
+  endif
+
+endif
+
+!
+
 slave%value = value
 slave%is_on = lord%is_on
 slave%mat6_calc_method = lord%mat6_calc_method
@@ -1737,43 +1780,6 @@ if (associated (slave%wake)) then
   slave%wake%lr%m         = lord%wake%lr%m
   slave%wake%lr%polarized = lord%wake%lr%polarized
   slave%wake%lr%r_over_q  = lord%wake%lr%r_over_q * coef
-endif
-
-! Patch
-! The rotation part of the patch is applied at the entrance end of the patch.
-! Excluding the rotation, a patch is just a drift.
-
-if (lord%key == patch$) then
-  if ((include_upstream_end .and. lord%orientation == 1) .or. &
-      (include_downstream_end .and. lord%orientation == -1)) then
-    call floor_angles_to_w_mat (lord%value(x_pitch$), lord%value(y_pitch$), lord%value(tilt$), w_mat_inv = w_inv)
-    slave%key = patch$
-    dl = lord%value(l$) - slave%value(l$)
-    slave%value(x_offset$)     = lord%value(x_offset$) - dl * w_inv(3,1)
-    slave%value(y_offset$)     = lord%value(y_offset$) - dl * w_inv(3,2)
-    slave%value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
-    slave%value(t_offset$)     = lord%value(t_offset$)
-    slave%value(e_tot_offset$) = lord%value(e_tot_offset$)
-  else
-    slave%key = drift$
-    slave%value(x_pitch$)     = 0
-    slave%value(y_pitch$)     = 0
-    slave%value(x_offset$)    = 0
-    slave%value(y_offset$)    = 0
-    slave%value(z_offset$)    = 0
-    slave%value(t_offset$)    = 0
-    slave%value(e_tot_offset$) = 0
-  endif
-
-  slave%value(x_pitch_tot$)     = slave%value(x_pitch$)
-  slave%value(y_pitch_tot$)     = slave%value(y_pitch$)
-  slave%value(x_offset_tot$)    = slave%value(x_offset$)
-  slave%value(y_offset_tot$)    = slave%value(y_offset$)
-  slave%value(z_offset_tot$)    = slave%value(z_offset$)
-  slave%value(flexible$) = false$  ! Flexible calc must be handled by the lord.
-
-  call ele_compute_ref_energy_and_time (lord, slave, param, err2_flag)
-
 endif
 
 !
