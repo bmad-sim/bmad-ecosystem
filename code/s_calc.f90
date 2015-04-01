@@ -16,7 +16,7 @@
 
 subroutine s_calc (lat)
 
-use bmad_interface, except_dummy => s_calc
+use bookkeeper_mod, except_dummy => s_calc
 
 implicit none
 
@@ -42,6 +42,8 @@ do i = 0, ubound(lat%branch, 1)
   do n = 0, branch%n_ele_track
     ele => branch%ele(n)
     if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
+    ! Patch element have a length that is a dependent variable
+    if (ele%key == patch$ .and. ele%bookkeeping_state%attributes /= ok$) call attribute_bookkeeper(ele, branch%param)
     ss = ss + ele%value(l$)
     ele%s = ss
   enddo
@@ -50,9 +52,11 @@ do i = 0, ubound(lat%branch, 1)
   branch%param%bookkeeping_state%s_position = ok$
 enddo
 
-! Now fill in the s positions of the super_lords and zero everyone else.
+! Now fill in the s positions of the lords.
 ! Exception: A null_ele lord element is the result of a superposition on a multipass section.
-! We need to preserve the s value of this element.
+! We need to preserve the s-value of this element.
+! Note: The s-position of a overlay, group, or control lord will not make sense if the lord
+! controls multiple disjoint elements.
 
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
@@ -64,7 +68,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   if (lord%n_slave == 0) cycle  ! Can happen when manipulating a lattice.
 
   select case (lord%lord_status)
-  case (super_lord$, overlay_lord$)
+  case (super_lord$, overlay_lord$, group_lord$, control_lord$)
     slave => pointer_to_slave(lord, lord%n_slave)
     lord%s = slave%s - lord%value(lord_pad2$)
   case (girder_lord$)
@@ -72,7 +76,7 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lord%s = slave%s
     lord%value(l$) = slave%s - slave0%s
     if (lord%value(l$) < 0) lord%value(l$) = lord%value(l$) + slave0%branch%param%total_length
-  case default
+  case default ! multipass_lord elements do not have an s-position.
     lord%s = 0
   end select
 

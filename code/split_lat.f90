@@ -14,26 +14,28 @@
 !
 ! Input:
 !   lat             -- lat_struct: Original lat structure.
-!   s_split         -- Real(rp): Position at which lat is to be split.
-!   add_suffix      -- Logical, optional: If True (default) add '#1' and '#2" suffixes
+!   s_split         -- real(rp): Position at which lat%branch(ix_branch) is to be split.
+!   ix_branch       -- integer: Index of lat%branch(:) to use.
+!   add_suffix      -- logical, optional: If True (default) add '#1' and '#2" suffixes
 !                        to the split elements. 
-!   check_sanity  -- Logical, optional: If True (default) then call lat_sanity_check
+!   check_sanity    -- logical, optional: If True (default) then call lat_sanity_check
 !                        after the split to make sure everything is ok.
-!   save_null_drift -- Logical, optional: Save a copy of a drift to be split as a null_ele?
+!   save_null_drift -- logical, optional: Save a copy of a drift to be split as a null_ele?
 !                         This is useful if when superpositions are done. See add_superimpose for more info.
 !                         Default is False.
 !
 ! Output:
 !   lat        -- lat_struct: Modified lat structure.
-!   ix_split   -- Integer: Index of element just before the split.
-!   split_done -- Logical: True if lat was split.
-!   err_flag   -- Logical, optional: Set true if there is an error, false otherwise.
+!   ix_split   -- integer: Index of element just before the split.
+!   split_done -- logical: True if lat was split.
+!   err_flag   -- logical, optional: Set true if there is an error, false otherwise.
 !-
 
 subroutine split_lat (lat, s_split, ix_branch, ix_split, split_done, add_suffix, check_sanity, save_null_drift, err_flag)
 
 use bmad_interface, except_dummy => split_lat
 use bookkeeper_mod, only: control_bookkeeper
+use geometry_mod, only: floor_angles_to_w_mat
 
 implicit none
 
@@ -43,6 +45,7 @@ type (ele_struct), pointer :: ele1, ele2, slave, lord, super_lord
 type (branch_struct), pointer :: branch, br
 
 real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old, ds_fudge
+real(rp) dl, w_inv(3,3)
 
 integer i, j, k, ix, ix_branch, ib, ie
 integer ix_split, ixc, ix_attrib, ix_super_lord
@@ -85,7 +88,7 @@ len_orig = ele%value(l$)
 len2 = branch%ele(ix_split)%s - s_split
 len1 = len_orig - len2
 
-! there is a problem with custom elements in that we don't know which
+! There is a problem with custom elements in that we don't know which
 ! attributes (if any) scale with length.
 
 if (ele%key == custom$ .or. ele%key == match$) then
@@ -93,7 +96,7 @@ if (ele%key == custom$ .or. ele%key == match$) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-! save element to be split as a null element if needed
+! Save element to be split as a null element if needed
 
 if (branch%ele(ix_split)%key == drift$ .and. logic_option(.false., save_null_drift)) then
   call new_control (lat, ixc)
@@ -116,7 +119,7 @@ if (logic_option(.true., add_suffix)) then
   ele2%name = ele%name(:ix) // '#2'
 endif
 
-! kill any talyor series, etc.
+! Kill any talyor series, etc.
 ! Note that %a_pole and %b_pole components are the exception
 
 call deallocate_ele_pointers (ele1, nullify_branch = .false., dealloc_poles = .false.)
@@ -271,7 +274,35 @@ lat%ic(inc) = ixc + 1
 
 8000  continue
 
-! last details
+! Last details...
+
+! The length of a Patch element is a dependent attribute so adjust offsets and pitches accordingly.
+
+if (ele1%key == patch$) then
+  lord => pointer_to_lord (ele1, 1)
+  ele1 => pointer_to_slave (lord, 1)
+  call floor_angles_to_w_mat (lord%value(x_pitch$), lord%value(y_pitch$), lord%value(tilt$), w_mat_inv = w_inv)
+  dl = lord%value(l$) - ele1%value(l$)
+  ele1%value(x_offset$)     = lord%value(x_offset$) - dl * w_inv(3,1)
+  ele1%value(y_offset$)     = lord%value(y_offset$) - dl * w_inv(3,2)
+  ele1%value(z_offset$)     = lord%value(z_offset$) - dl * w_inv(3,3)
+  ele1%value(t_offset$)     = lord%value(t_offset$)
+  ele1%value(e_tot_offset$) = lord%value(e_tot_offset$)
+
+  do i = 2, lord%n_slave
+    ele2 => pointer_to_slave (lord, i)
+    ele2%value(x_pitch$)      = 0
+    ele2%value(y_pitch$)      = 0
+    ele2%value(tilt$)         = 0
+    ele2%value(x_offset$)     = 0
+    ele2%value(y_offset$)     = 0
+    ele2%value(z_offset$)     = ele2%value(l$)
+    ele2%value(t_offset$)     = 0
+    ele2%value(e_tot_offset$) = 0
+  enddo
+endif
+
+!
 
 ele1%bookkeeping_state%attributes = stale$
 ele1%bookkeeping_state%floor_position = stale$
