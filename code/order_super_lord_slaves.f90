@@ -29,7 +29,7 @@ type (branch_struct), pointer :: branch
 integer i, ix_lord, ix1, ix2, ns
 integer, allocatable :: ixx(:), iyy(:)
 
-real(rp) ds, s1_lord, l_branch
+real(rp) ds, s1_lord, l_branch, ds_small
 real(rp), allocatable :: s_rel(:)
 
 character(32), parameter :: r_name = 'order_super_lord_slaves'
@@ -49,6 +49,7 @@ endif
 
 ns = lord%n_slave
 allocate (s_rel(ns), ixx(ns), iyy(ns), cs(ns))
+ds_small = bmad_com%significant_length / 2
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i)
@@ -56,7 +57,7 @@ do i = 1, lord%n_slave
   ds = slave%s - lord%s
   s1_lord = lord%s - lord%value(l$)
   l_branch = branch%param%total_length
-  if (s1_lord < branch%ele(0)%s .and. s1_lord + l_branch < slave%s) ds = ds - l_branch
+  if (s1_lord < branch%ele(0)%s - ds_small .and. s1_lord + l_branch < slave%s) ds = ds - l_branch
   s_rel(i) = ds
 enddo
 
