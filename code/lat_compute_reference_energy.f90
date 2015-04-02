@@ -360,8 +360,7 @@ type (floor_position_struct) old_floor
 type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end
 
-real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase
-real(rp) old_delta_ref_time, old_p0c, old_e_tot, velocity
+real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity
 integer i, key
 logical err_flag, err, changed, saved_is_on
 
@@ -370,9 +369,6 @@ character(32), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 !
 
 err_flag = .true.
-old_delta_ref_time = ele%value(delta_ref_time$)
-old_p0c = ele%value(p0c$)
-old_e_tot = ele%value(e_tot$)
 
 E_tot_start    = ele0%value(E_tot$)
 p0c_start      = ele0%value(p0c$)
@@ -487,7 +483,7 @@ end select
 
 ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 
-if (abs(ele%value(delta_ref_time$) - old_delta_ref_time) > bmad_com%significant_length / c_light) then
+if (abs(ele%value(delta_ref_time$) - ele%old_value(delta_ref_time$)) * c_light > bmad_com%significant_length) then
   if (associated (ele%taylor(1)%term) .and. ele%key /= taylor$) call kill_taylor (ele%taylor)
   ele%bookkeeping_state%mat6 = stale$
 endif
@@ -497,7 +493,7 @@ endif
 ! Example: A lattice with bends with field_master = True, flexible patch, and absolute time tracking has
 ! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
 
-if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /= ele%value(delta_ref_time$)) then
+if (ele_value_has_changed(ele, [p0c$, delta_ref_time$, e_tot$], .true.)) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord
@@ -512,10 +508,6 @@ if (ele%old_value(p0c$) /=ele%value(p0c$) .or. ele%old_value(delta_ref_time$) /=
 !      (ele%key == patch$ .and. is_true(ele%value(flexible$)))) then
 !    call set_ele_status_stale (ele, s_and_floor_position_group$)
 !  endif
-
-  ele%old_value(delta_ref_time$) = ele%value(delta_ref_time$) 
-  ele%old_value(p0c$) = old_p0c
-  ele%old_value(e_tot$) = old_e_tot
 
   call control_bookkeeper (ele%branch%lat, ele)
   old_floor = ele%floor
