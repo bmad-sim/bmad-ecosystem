@@ -8,7 +8,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele0, ele
+type (ele_struct), pointer :: ele0, ele, zele
 type (ele_struct) ele1, ele2a, ele2b, end_ele
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
@@ -39,6 +39,9 @@ endif
 
 call bmad_parser ('slice_test.bmad', lat)
 open (1, file = 'output.now')
+
+zele => lat%branch(1)%ele(1)
+print *, determinant(zele%mat6)
 
 !------------------------------------------------
 ! Test branch 0
