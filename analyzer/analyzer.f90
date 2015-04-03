@@ -45,7 +45,7 @@ program anaylzer
   type (normal_modes_struct) mode
   type (coord_struct) track_start
 
-  integer pgopen, istat1, istat2
+  integer pgopen, istat1, istat2/0/
   integer i, j, k(6)/1,3,6,2,4,5/
   integer ix
   integer, allocatable :: track_meth(:)
@@ -463,14 +463,15 @@ program anaylzer
      ring%param%particle = positron$
 
      call lat_make_mat6(ring,-1,co)
-    if(.not. transfer_line) &
+    if(.not. transfer_line)then
      call twiss_at_start(ring)
      call calc_z_tune (ring)
-
-      call twiss_propagate_all(ring)
-       call twiss3_at_start(ring,error)
+     call twiss3_at_start(ring,error)
         if(error)print *,' mode3 calc error'
-       call twiss3_propagate_all(ring)
+      call twiss3_propagate_all(ring)
+    endif
+      call twiss_propagate_all(ring)
+
 
        frev=c_light/ring%ele(ring%n_ele_track)%s
 !      print *,' Recompute tunes with new matrices'
