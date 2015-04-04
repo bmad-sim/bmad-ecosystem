@@ -41,7 +41,19 @@ write (1, '(3a)') '"MS-11"  STR  "', trim(lat%ele(11)%name), '"'
 write (1, '(3a)') '"MS-12"  STR  "', trim(lat%ele(12)%name), '"'
 write (1, '(3a)') '"MS-13"  STR  "', trim(lat%ele(13)%name), '"'
 
-!
+! fiducial and flexible patch
+
+call bmad_parser ('patch.bmad', lat)
+call write_bmad_lattice_file ('lat.bmad', lat)
+call bmad_parser ('lat.bmad', lat)
+
+write (1, '(a, f12.6)')  '"P-0S" ABS 0', lat%branch(1)%ele(0)%s
+write (1, '(a, es14.6)') '"P-0T" ABS 0', lat%branch(1)%ele(0)%ref_time
+ele => lat%branch(1)%ele(6)
+write (1, '(a, 3f12.6)') '"P-6MI" ABS 0', ele%value(z_offset$), ele%value(x_pitch$), ele%value(y_pitch$)
+ele => lat%branch(1)%ele(7)
+write (1, '(a, 3f12.6)') '"P-7FR" ABS 0', ele%floor%r
+write (1, '(a, 3f12.6)') '"P-7FA" ABS 0', ele%floor%theta, ele%floor%phi, ele%floor%psi
 
 
 ! And close

@@ -1,0 +1,6 @@
+! Bare bones for plotting purposes.
+
+&synrad3d_parameters
+  lattice_file     = 'lat.bmad'
+  wall_file        = 'ellipse.wall'                          ! File specifying the vacuum chamber wall
+/
