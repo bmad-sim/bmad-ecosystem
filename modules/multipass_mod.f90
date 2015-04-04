@@ -3,7 +3,7 @@ module multipass_mod
 use bmad_struct
 use bmad_interface
 
-! Multipass_top_info_struct gives complete information about a single 
+! Multipass_lord_info_struct gives complete information about a single 
 ! multipass_lord and all its slaves ("from the top down"). 
 ! If the multipass_lord has super_lords as slaves, n_super will be the number of 
 ! super_slaves per super_lord.
@@ -11,7 +11,7 @@ use bmad_interface
 ! If there are no super_lords then n_super_slave = 1 and 
 !      super_lord(1:n_pass) = slave (1:n_pass, 1)
 
-type multipass_top_info_struct
+type multipass_lord_info_struct
   type (ele_struct), pointer :: lord          ! Lord element
   integer n_pass           ! Number of passes (= number of slaves)
   integer n_super_slave    ! Number of super_slaves per super_lord. 
@@ -19,22 +19,26 @@ type multipass_top_info_struct
   type (ele_pointer_struct), allocatable :: slave(:,:)     ! Slaves list in tracking part.
 end type
 
-! Multipass_bottom_info_struct gives information about a singe
-! multipass_slave ("from the bottom up").
+! Multipass_ele_info_struct gives information about a singe element in the lattice
+! ("from the bottom up").
 
-type multipass_bottom_info_struct
+type multipass_ele_info_struct
   logical multipass     ! True if involved in multipass. False otherwise
   integer ix_pass       ! Pass number
-  integer, allocatable :: ix_top(:)   ! Pointers to top(:) array
+  integer, allocatable :: ix_lord(:)   ! Pointers to lord(:) array
   integer, allocatable :: ix_super(:) ! Indexes to slave(ix_pass, super_slave%ix_ele) matrix
 end type
 
-! top(i), i = 1, ..., n = number of multipass_lords in the lattice.
-! bottom(i), i = 1, ..., n = lat%n_ele_track.
+type multipass_branch_info_struct
+  type (multipass_ele_info_struct), allocatable :: ele(:)
+end type
+
+! %lord(i), i = 1, ..., n = number of multipass_lords in the lattice.
+! %branch(i), i = 0, ..., n = ubound(lat%branch)
 
 type multipass_all_info_struct
-  type (multipass_top_info_struct), allocatable :: top(:)      ! Array of lords
-  type (multipass_bottom_info_struct), allocatable :: bottom(:)
+  type (multipass_lord_info_struct), allocatable :: lord(:)      ! Array of lords
+  type (multipass_branch_info_struct), allocatable :: branch(:)
 end type
 
 contains
@@ -65,10 +69,12 @@ subroutine multipass_all_info (lat, info)
 implicit none
 
 type (lat_struct), target :: lat
-type (multipass_all_info_struct) info
+type (multipass_all_info_struct), target :: info
 type (ele_struct), pointer :: m_lord, super_lord, slave1, slave
+type (multipass_ele_info_struct), pointer :: s_info
+type (branch_struct), pointer :: branch
 
-integer i, j, k, n, ik, ie, nl
+integer i, j, k, n, ib, ik, ie, nl
 integer n_multi_lord, n_pass, ix_pass, n_super_slave
 
 ! First get the number of multipass_lords.
@@ -82,12 +88,17 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   n_multi_lord = n_multi_lord + 1
 enddo
 
-allocate (info%top(n_multi_lord), info%bottom(lat%n_ele_max))
-info%bottom(:)%multipass = .false.
-info%bottom(:)%ix_pass = -1
-do i = 1, lat%n_ele_max
-  allocate (info%bottom(i)%ix_top(0))
-  allocate (info%bottom(i)%ix_super(0))
+allocate (info%lord(n_multi_lord), info%branch(0:ubound(lat%branch, 1)))
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  allocate (info%branch(ib)%ele(branch%n_ele_max))
+  info%branch(ib)%ele(:)%multipass = .false.
+  info%branch(ib)%ele(:)%ix_pass = -1
+  do i = 1, branch%n_ele_max
+    s_info => info%branch(ib)%ele(i)
+    allocate (s_info%ix_lord(0))
+    allocate (s_info%ix_super(0))
+  enddo
 enddo
 
 ! Fill in rest of the information
@@ -98,57 +109,61 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   if (m_lord%lord_status /= multipass_lord$) cycle
   nl = nl + 1
 
-  info%top(nl)%lord => m_lord
+  info%lord(nl)%lord => m_lord
   n_pass = m_lord%n_slave
-  info%top(nl)%n_pass = n_pass
-  info%bottom(ie)%multipass = .true.
-  n = size(info%bottom(ie)%ix_top)
-  call re_allocate(info%bottom(ie)%ix_top, n+1)
-  info%bottom(ie)%ix_top(n+1) = nl
+  info%lord(nl)%n_pass = n_pass
+  s_info => info%branch(0)%ele(ie)
+  s_info%multipass = .true.
+  n = size(s_info%ix_lord)
+  call re_allocate(s_info%ix_lord, n+1)
+  s_info%ix_lord(n+1) = nl
 
-  allocate (info%top(nl)%super_lord(n_pass))
+  allocate (info%lord(nl)%super_lord(n_pass))
 
   slave1 => pointer_to_slave(m_lord, 1)
 
   if (slave1%lord_status == super_lord$) then
     n_super_slave = slave1%n_slave
-    info%top(nl)%n_super_slave = n_super_slave
-    allocate (info%top(nl)%slave(n_pass, n_super_slave))
+    info%lord(nl)%n_super_slave = n_super_slave
+    allocate (info%lord(nl)%slave(n_pass, n_super_slave))
     do j = 1, m_lord%n_slave
       super_lord => pointer_to_slave(m_lord, j)
-      info%top(nl)%super_lord(j)%ele => super_lord
-      info%bottom(super_lord%ix_ele)%multipass = .true.
-      n = size(info%bottom(super_lord%ix_ele)%ix_top)
-      call re_allocate(info%bottom(super_lord%ix_ele)%ix_top, n+1)
-      info%bottom(super_lord%ix_ele)%ix_top(n+1) = nl
-      info%bottom(super_lord%ix_ele)%ix_pass = j
+      info%lord(nl)%super_lord(j)%ele => super_lord
+      s_info => info%branch(0)%ele(super_lord%ix_ele)
+      s_info%multipass = .true.
+      n = size(s_info%ix_lord)
+      call re_allocate(s_info%ix_lord, n+1)
+      s_info%ix_lord(n+1) = nl
+      s_info%ix_pass = j
       do k = 1, super_lord%n_slave
         slave => pointer_to_slave(super_lord, k)
-        info%top(nl)%slave(j, k)%ele => slave
-        info%bottom(slave%ix_ele)%multipass = .true.
-        info%bottom(slave%ix_ele)%ix_pass = j
-        n = size(info%bottom(slave%ix_ele)%ix_top)
-        call re_allocate(info%bottom(slave%ix_ele)%ix_top, n+1)
-        call re_allocate(info%bottom(slave%ix_ele)%ix_super, n+1)
-        info%bottom(slave%ix_ele)%ix_top(n+1) = nl
-        info%bottom(slave%ix_ele)%ix_super(n+1) = k
+        info%lord(nl)%slave(j, k)%ele => slave
+        s_info => info%branch(slave%ix_branch)%ele(slave%ix_ele)
+        s_info%multipass = .true.
+        s_info%ix_pass = j
+        n = size(s_info%ix_lord)
+        call re_allocate(s_info%ix_lord, n+1)
+        call re_allocate(s_info%ix_super, n+1)
+        s_info%ix_lord(n+1) = nl
+        s_info%ix_super(n+1) = k
       enddo
     enddo
 
   else
-    info%top(nl)%n_super_slave = 1
-    allocate (info%top(nl)%slave(n_pass, 1))
+    info%lord(nl)%n_super_slave = 1
+    allocate (info%lord(nl)%slave(n_pass, 1))
     do j = 1, m_lord%n_slave
       slave => pointer_to_slave(m_lord, j)
-      info%top(nl)%super_lord(j)%ele => slave
-      info%top(nl)%slave(j, 1)%ele => slave
-      info%bottom(slave%ix_ele)%multipass = .true.
-      info%bottom(slave%ix_ele)%ix_pass = j
-      n = size(info%bottom(slave%ix_ele)%ix_top)
-      call re_allocate(info%bottom(slave%ix_ele)%ix_top, n+1)
-      call re_allocate(info%bottom(slave%ix_ele)%ix_super, n+1)
-      info%bottom(slave%ix_ele)%ix_top(n+1) = nl
-      info%bottom(slave%ix_ele)%ix_super(n+1) = 1
+      info%lord(nl)%super_lord(j)%ele => slave
+      info%lord(nl)%slave(j, 1)%ele => slave
+      s_info => info%branch(slave%ix_branch)%ele(slave%ix_ele)
+      s_info%multipass = .true.
+      s_info%ix_pass = j
+      n = size(s_info%ix_lord)
+      call re_allocate(s_info%ix_lord, n+1)
+      call re_allocate(s_info%ix_super, n+1)
+      s_info%ix_lord(n+1) = nl
+      s_info%ix_super(n+1) = 1
     enddo
   endif
 
@@ -182,8 +197,8 @@ type (multipass_all_info_struct) info
 
 !
 
-if (allocated(info%top)) deallocate(info%top)
-if (allocated(info%bottom)) deallocate(info%bottom)
+if (allocated(info%lord)) deallocate(info%lord)
+if (allocated(info%branch)) deallocate(info%branch)
 
 end subroutine
 
@@ -293,7 +308,7 @@ if (ele%slave_status == multipass_slave$) then
   do j = 1, m_lord%n_slave
     slave => pointer_to_slave(m_lord, j)
     if (present(chain_ele)) chain_ele(j)%ele => slave
-    if (slave%ix_ele  == ele%ix_ele) ix_pass = j
+    if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) ix_pass = j
   enddo
 endif
 
@@ -307,7 +322,7 @@ if (ele%slave_status == super_slave$) then
 
   do j = 1, s_lord%n_slave
     slave => pointer_to_slave(s_lord, j)
-    if (slave%ix_ele /= ele%ix_ele) cycle
+    if (slave%ix_ele /= ele%ix_ele .or. slave%ix_branch /= ele%ix_branch) cycle
     ix_off = j
     exit
   enddo
@@ -321,7 +336,7 @@ if (ele%slave_status == super_slave$) then
     s_lord => pointer_to_slave(m_lord, j)
     slave => pointer_to_slave(s_lord, ix_off)
     if (present(chain_ele)) chain_ele(j)%ele => slave
-    if (slave%ix_ele == ele%ix_ele) ix_pass = j
+    if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) ix_pass = j
   enddo
 
 endif

@@ -59,6 +59,7 @@ do n = 0, ubound(lat%branch, 1)
   endif
 
   branch%param%bookkeeping_state%floor_position = ok$
+  branch%ele(0)%value(floor_set$) = false$
 
   ! If there are fiducial elements then survey the fiducial regions
 
@@ -89,6 +90,7 @@ do n = 0, ubound(lat%branch, 1)
         exit
       endif
       call ele_geometry (ele2%floor, ele2, branch%ele(i2-1)%floor, -1.0_rp)
+      if (i2 - 1 == 0) branch%ele(i2-1)%value(floor_set$) = true$
       branch%ele(i2-1)%bookkeeping_state%floor_position = ok$
     enddo
   enddo
@@ -156,6 +158,7 @@ integer ie, dir, ix
 
 ele => branch%ele(ie)
 if (.not. stale .and. ele%bookkeeping_state%floor_position /= stale$) return
+if (ele%ix_ele == 0) ele%value(floor_set$) = true$
 
 if (ele%key == patch$ .and. is_true(ele%value(flexible$))) then
   if (dir == -1) then

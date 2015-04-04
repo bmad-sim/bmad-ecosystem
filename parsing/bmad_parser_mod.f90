@@ -4298,13 +4298,13 @@ do
 
       ! Reconnect drifts that were part of the multipass region.
 
-      do i = 1, size(m_info%top) ! Loop over multipass lords
-        do j = 1, size(m_info%top(i)%slave, 2)   ! loop over super_slaves
-          slave => m_info%top(i)%slave(1, j)%ele
+      do i = 1, size(m_info%lord) ! Loop over multipass lords
+        do j = 1, size(m_info%lord(i)%slave, 2)   ! loop over super_slaves
+          slave => m_info%lord(i)%slave(1, j)%ele
           if (slave%key /= drift$) cycle
           if (slave%slave_status == multipass_slave$) cycle
-          do k = 1, size(m_info%top(i)%slave(:, j))   ! Loop over all passes
-            ele => m_info%top(i)%slave(k, j)%ele
+          do k = 1, size(m_info%lord(i)%slave(:, j))   ! Loop over all passes
+            ele => m_info%lord(i)%slave(k, j)%ele
             m_slaves(k) = ele_to_lat_loc (ele)  ! Make a list slave elements
             ib = index(ele%name, '\') ! '
             if (ib /= 0) ele%name = ele%name(1:ib-1) // ele%name(ib+2:)
@@ -4354,8 +4354,7 @@ do
 
       do i = 1, size(m_slaves)
         ele => pointer_to_ele (lat, m_slaves(i))
-        m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - &
-                                count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
+        m_slaves(i)%ix_ele = m_slaves(i)%ix_ele - count(lat%branch(ele%ix_branch)%ele(1:ele%ix_ele)%key == -1)
       enddo
 
       call remove_eles_from_lat (lat, .false.)
