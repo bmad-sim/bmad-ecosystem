@@ -40,23 +40,33 @@ subroutine write_bmad_lattice_file (bmad_file, lat, err)
 
 implicit none
 
-type multipass_info_struct
+type multipass_region_ele_struct
   integer ix_region
   logical region_start_pt
   logical region_stop_pt
 end type
 
-type (multipass_info_struct), allocatable :: multipass(:)
+type multipass_region_branch_struct
+  type (multipass_region_ele_struct), allocatable :: ele(:)
+end type
+
+type multipass_region_lat_struct
+  type (multipass_region_branch_struct), allocatable :: branch(:)
+end type
+
+type (multipass_region_lat_struct), target :: m_region
+type (multipass_region_ele_struct), pointer :: e_region(:)
 
 type (ele_attribute_struct) attrib
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch, branch2
-type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt
+type (ele_struct), pointer :: ele, super, slave, lord, s1, s2, multi_lord, slave2, ele2, ele_dflt, ele0
 type (ele_struct), target :: ele_default(n_key$)
 type (wig_term_struct) wt
 type (control_struct) ctl
 type (taylor_term_struct) tm
 type (multipass_all_info_struct), target :: m_info
+type (multipass_ele_info_struct), pointer :: e_info
 type (wake_lr_struct), pointer :: lr
 type (wake_sr_mode_struct), parameter :: sr0 = wake_sr_mode_struct()
 type (wake_sr_mode_struct), pointer :: sr
@@ -85,7 +95,7 @@ character(*), parameter :: r_name = 'write_bmad_lattice_file'
 integer i, j, k, n, ix, iu, iu2, iuw, ios, ixs, n_sr, n_lr, ix1, ie, ib, ic, ic2
 integer unit(6), n_names, ix_match, ie2, id1, id2, id3
 integer ix_slave, ix_ss, ix_l, ix_r, ix_pass
-integer ix_top, ix_super, default_val, imax, ibr
+integer ix_lord, ix_super, default_val, imax, ibr
 integer, allocatable :: an_indexx(:)
 
 logical, optional :: err
@@ -149,7 +159,7 @@ if (lat%input_taylor_order /= 0) write (iu, '(a, i0)') 'parameter[taylor_order] 
 
 write (iu, *)
 write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c_start$)))
-write (iu, '(4a)')    'parameter[particle]               = ', particle_name(lat%param%particle)
+write (iu, '(4a)')    'parameter[particle]               = ', trim(particle_name(lat%param%particle))
 
 if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'
 if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_part]                 = ', lat%param%n_part
@@ -814,14 +824,18 @@ enddo  ! branch loop
 
 ! Multipass stuff...
 
-allocate (multipass(lat%n_ele_max))
-multipass(:)%ix_region = 0
-multipass(:)%region_start_pt = .false.
-multipass(:)%region_stop_pt   = .false.
+allocate (m_region%branch(0:ubound(lat%branch, 1)))
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  allocate (m_region%branch(ib)%ele(branch%n_ele_max))
+  m_region%branch(ib)%ele(:)%ix_region = 0
+  m_region%branch(ib)%ele(:)%region_start_pt = .false.
+  m_region%branch(ib)%ele(:)%region_stop_pt   = .false.
+enddo
 
 call multipass_all_info (lat, m_info)
 
-if (size(m_info%top) /= 0) then
+if (size(m_info%lord) /= 0) then
 
   ! Go through and mark all 1st pass regions
   ! In theory the original lattice file could have something like:
@@ -834,53 +848,62 @@ if (size(m_info%top) /= 0) then
   ! in the first pass region but not contiguous in some higher pass region, 
   ! we need to break the first pass region into two.
 
-  ix_r = 0
-  in_multi_region = .false.
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    e_region => m_region%branch(ib)%ele
 
-  do ie = 1, lat%n_ele_track+1
-    ele => lat%ele(ie)
-    ix_pass = m_info%bottom(ie)%ix_pass
-    if (ix_pass /= 1 .or. ie == lat%n_ele_track+1) then  ! Not a first pass region
-      if (in_multi_region) multipass(ie-1)%region_stop_pt = .true.
-      in_multi_region = .false.
-      cycle
-    endif
-    ! If start of a new region...
-    if (.not. in_multi_region) then  
-      ix_r = ix_r + 1
-      multipass(ie)%ix_region = ix_r
-      multipass(ie)%region_start_pt = .true.
-      in_multi_region = .true.
-      ix_top = m_info%bottom(ie)%ix_top(1)
-      ix_super = m_info%bottom(ie)%ix_super(1)
-      ss1 => m_info%top(ix_top)%slave(:,ix_super)
-      cycle
-    endif
-    ix_top = m_info%bottom(ie)%ix_top(1)
-    ix_super = m_info%bottom(ie)%ix_super(1)
-    ss2 => m_info%top(ix_top)%slave(:, ix_super)
+    ix_r = 0
+    in_multi_region = .false.
 
-    need_new_region = .false.
-    if (size(ss1) /= size(ss2)) then
-      need_new_region = .true.
-    else
-      do ix_pass = 2, size(ss1)
-        if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
-        ! not contiguous then need a new region
+    do ie = 1, branch%n_ele_track
+      ele => branch%ele(ie)
+      e_info => m_info%branch(ib)%ele(ie)
+      ix_pass = e_info%ix_pass
+      if (ix_pass /= 1) then  ! Not a first pass region
+        if (in_multi_region) e_region(ie-1)%region_stop_pt = .true.
+        in_multi_region = .false.
+        cycle
+      endif
+      ! If start of a new region...
+      if (.not. in_multi_region) then  
+        ix_r = ix_r + 1
+        e_region(ie)%ix_region = ix_r
+        e_region(ie)%region_start_pt = .true.
+        in_multi_region = .true.
+        ix_lord = e_info%ix_lord(1)
+        ix_super = e_info%ix_super(1)
+        ss1 => m_info%lord(ix_lord)%slave(:,ix_super)
+        cycle
+      endif
+      ix_lord = e_info%ix_lord(1)
+      ix_super = e_info%ix_super(1)
+      ss2 => m_info%lord(ix_lord)%slave(:, ix_super)
+
+      need_new_region = .false.
+      if (size(ss1) /= size(ss2)) then
         need_new_region = .true.
-        exit
-      enddo
-    endif
+      else
+        do ix_pass = 2, size(ss1)
+          if (abs(ss1(ix_pass)%ele%ix_ele - ss2(ix_pass)%ele%ix_ele) == 1) cycle
+          ! not contiguous then need a new region
+          need_new_region = .true.
+          exit
+        enddo
+      endif
 
-    if (need_new_region) then
-      ix_r = ix_r + 1
-      multipass(ie-1)%region_stop_pt = .true.
-      multipass(ie)%region_start_pt = .true.
-    endif
+      if (need_new_region) then
+        ix_r = ix_r + 1
+        e_region(ie-1)%region_stop_pt = .true.
+        e_region(ie)%region_start_pt = .true.
+      endif
 
-    ss1 => ss2
-    multipass(ie)%ix_region = ix_r
+      ss1 => ss2
+      e_region(ie)%ix_region = ix_r
+    enddo
+
   enddo
+
+  if (in_multi_region) e_region(branch%n_ele_track)%region_stop_pt = .true.
 
   ! Each 1st pass region is now a valid multipass line.
   ! Write out this info.
@@ -888,29 +911,34 @@ if (size(m_info%top) /= 0) then
   write (iu, *)
   write (iu, '(a)') '!-------------------------------------------------------'
 
-  ix_r = 0
-  in_multi_region = .false.
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    e_region => m_region%branch(ib)%ele
 
-  do ie = 1, lat%n_ele_track
+    ix_r = 0
+    in_multi_region = .false.
 
-    ele => lat%ele(ie)
-    if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
+    do ie = 1, branch%n_ele_track
 
-    ix_pass = m_info%bottom(ie)%ix_pass
-    if (ix_pass /= 1) cycle 
+      ele => branch%ele(ie)
+      if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
 
-    if (multipass(ie)%region_start_pt) then
-      if (ix_r > 0) then
-        line = line(:len_trim(line)-1) // ')'
-        call write_lat_line (line, iu, .true.)
+      ix_pass = m_info%branch(ib)%ele(ie)%ix_pass
+      if (ix_pass /= 1) cycle 
+
+      if (m_region%branch(ib)%ele(ie)%region_start_pt) then
+        if (ix_r > 0) then
+          line = line(:len_trim(line)-1) // ')'
+          call write_lat_line (line, iu, .true.)
+        endif
+        ix_r = ix_r + 1
+        write (iu, *)
+        write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
       endif
-      ix_r = ix_r + 1
-      write (iu, *)
-      write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ': line[multipass] = ('
-    endif
 
-    call write_line_element (line, iu, ele, lat)
+      call write_line_element (line, iu, ele, lat)
 
+    enddo
   enddo
 
   line = line(:len_trim(line)-1) // ')'
@@ -918,97 +946,126 @@ if (size(m_info%top) /= 0) then
 
 end if
 
-! Main line.
+! Lines for all the branches.
 ! If we get into a multipass region then name in the main_line list is "multi_line_nn".
 ! But only write this once.
 
-write (iu, *)
-name = lat%branch(0)%name
-if (name == '') name = 'lat_line'
-line = trim(name) // ': line = ('
-
-in_multi_region = .false.
-do ie = 1, lat%n_ele_track
-
-  ele => lat%ele(ie)
-  if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
-
-  if (.not. m_info%bottom(ie)%multipass) then
-    call write_line_element (line, iu, ele, lat)
-    cycle
-  endif
-
-  ix_top = m_info%bottom(ie)%ix_top(1)
-  ix_super = m_info%bottom(ie)%ix_super(1)
-  ix1 = m_info%top(ix_top)%slave(1,ix_super)%ele%ix_ele
-  ix_r = multipass(ix1)%ix_region
-
-  ! If entering new multipass region
-  if (.not. in_multi_region) then
-    in_multi_region = .true.
-    if (multipass(ix1)%region_start_pt) then
-      write (line, '(2a, i2.2, a)') trim(line), ' multi_line_', ix_r, ','
-      look_for = 'stop'
-    else
-      write (line, '(2a, i2.2, a)') trim(line), ' -multi_line_', ix_r, ','
-      look_for = 'start'
-    endif
-  endif
-
-  if (look_for == 'start' .and. multipass(ix1)%region_start_pt .or. &
-      look_for == 'stop' .and. multipass(ix1)%region_stop_pt) then 
-    in_multi_region = .false.
-  endif
-
-enddo
-
-line = line(:len_trim(line)-1) // ')'
-call write_lat_line (line, iu, .true.)
-
-line = 'use, ' // trim(name)
-do ib = 1, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  if (branch%ix_from_branch > -1) cycle
-  line = trim(line) // ', ' // branch%name
-enddo
-
-write (iu, *)
-write (iu, *) trim(line)
-
-! Branch lines
-
-do ib = 1, ubound(lat%branch, 1)
-
+do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
   write (iu, *)
-  write (iu, '(a)') '!-------------------------------------------------------'
-  write (iu, *)
-  line = trim(branch%name) // ': line = ('
+  name = branch%name
+  if (name == '') name = 'lat_line'
+  line = trim(name) // ': line = ('
 
+  in_multi_region = .false.
   do ie = 1, branch%n_ele_track
+    e_info => m_info%branch(ib)%ele(ie)
     ele => branch%ele(ie)
     if (ie == ele%branch%n_ele_track .and. ele%name == 'END' .and. ele%key == marker$) cycle
-    call write_line_element (line, iu, ele, lat) 
+
+    if (.not. e_info%multipass) then
+      call write_line_element (line, iu, ele, lat)
+      cycle
+    endif
+
+    ix_lord = e_info%ix_lord(1)
+    ix_super = e_info%ix_super(1)
+    do j = 1, ubound(m_info%lord(ix_lord)%slave, 1)
+      if (m_info%lord(ix_lord)%slave(j,ix_super)%ele%ix_branch /= ib) cycle
+      ix1 = m_info%lord(ix_lord)%slave(j,ix_super)%ele%ix_ele
+      exit
+    enddo
+    e_region => m_region%branch(ib)%ele
+    ix_r = e_region(ix1)%ix_region
+
+    ! If entering new multipass region
+    if (.not. in_multi_region) then
+      in_multi_region = .true.
+      if (e_region(ix1)%region_start_pt) then
+        write (line, '(2a, i2.2, a)') trim(line), ' multi_line_', ix_r, ','
+        look_for = 'stop'
+      else
+        write (line, '(2a, i2.2, a)') trim(line), ' -multi_line_', ix_r, ','
+        look_for = 'start'
+      endif
+    endif
+
+    if (look_for == 'start' .and. e_region(ix1)%region_start_pt .or. &
+        look_for == 'stop' .and. e_region(ix1)%region_stop_pt) then 
+      in_multi_region = .false.
+    endif
+
   enddo
 
   line = line(:len_trim(line)-1) // ')'
   call write_lat_line (line, iu, .true.)
 
+  ! Branch line info
+
+  if (ib == 0) cycle
+
   write (iu, *)
-  write (iu, '(3a)') trim(branch%name), '[geometry]            = ', geometry_name(branch%param%geometry)
+  write (iu, '(3a)') trim(branch%name), '[geometry] = ', trim(geometry_name(branch%param%geometry))
   if (branch%param%default_tracking_species /= ref_particle$) write (iu, '(3a)') trim(branch%name), &
-                        '[default_tracking_species] = ', particle_name(branch%param%default_tracking_species)
+                        '[default_tracking_species] = ', trim(particle_name(branch%param%default_tracking_species))
  
   if (branch%ix_from_branch > -1) then
     branch2 => lat%branch(branch%ix_from_branch)
     if (branch2%param%particle == branch%param%particle) cycle
   endif
 
-  write (iu, '(3a)') trim(branch%name), '[particle] = ', particle_name(branch%param%particle)
-  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', str(branch%ele(0)%value(p0c$))
+  ele0 => branch%ele(0)
+
+  write (iu, '(3a)') trim(branch%name), '[particle] = ', trim(particle_name(branch%param%particle))
+  write (iu, '(3a)') trim(branch%name), '[p0c]      = ', trim(str(ele0%value(p0c$)))
+
+  if (is_false (ele0%value(floor_set$))) then
+    if (ele0%floor%r(1) /= 0)   write (iu, '(3a)') trim(branch%name), '[x_position]     = ', trim(str(ele0%floor%r(1)))
+    if (ele0%floor%r(2) /= 0)   write (iu, '(3a)') trim(branch%name), '[y_position]     = ', trim(str(ele0%floor%r(2)))
+    if (ele0%floor%r(3) /= 0)   write (iu, '(3a)') trim(branch%name), '[z_position]     = ', trim(str(ele0%floor%r(3)))
+    if (ele0%floor%theta /= 0)  write (iu, '(3a)') trim(branch%name), '[theta_position] = ', trim(str(ele0%floor%theta))
+    if (ele0%floor%phi /= 0)    write (iu, '(3a)') trim(branch%name), '[phi_position]   = ', trim(str(ele0%floor%phi))
+    if (ele0%floor%psi /= 0)    write (iu, '(3a)') trim(branch%name), '[psi_position]   = ', trim(str(ele0%floor%psi))
+  endif
+
+  if (ele0%s /= 0)              write (iu, '(3a)') trim(branch%name), '[s]        = ', trim(str(ele0%s))
+  if (ele0%ref_time /= 0)       write (iu, '(3a)') trim(branch%name), '[ref_time] = ', trim(str(ele0%ref_time))
+  if (branch%param%n_part /= 0) write (iu, '(2a, es12.4)') trim(branch%name), '[n_part]                 = ', lat%param%n_part
+
+  if (branch%param%geometry == open$) then
+    write (iu, '(3a)')
+    if (ele0%a%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_a]   = ', trim(str(ele0%a%beta))
+    if (ele0%a%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_a]  = ', trim(str(ele0%a%alpha))
+    if (ele0%a%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_a]    = ', trim(str(ele0%a%phi))
+    if (ele0%x%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_x]    = ', trim(str(ele0%x%eta))
+    if (ele0%x%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_x]   = ', trim(str(ele0%x%etap))
+    if (ele0%b%beta /= 0)     write (iu, '(3a)') trim(branch%name), '[beta_b]   = ', trim(str(ele0%b%beta))
+    if (ele0%b%alpha /= 0)    write (iu, '(3a)') trim(branch%name), '[alpha_b]  = ', trim(str(ele0%b%alpha))
+    if (ele0%b%phi /= 0)      write (iu, '(3a)') trim(branch%name), '[phi_b]    = ', trim(str(ele0%b%phi))
+    if (ele0%y%eta /= 0)      write (iu, '(3a)') trim(branch%name), '[eta_y]    = ', trim(str(ele0%y%eta))
+    if (ele0%y%etap /= 0)     write (iu, '(3a)') trim(branch%name), '[etap_y]   = ', trim(str(ele0%y%etap))
+    if (ele0%c_mat(1,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_11]  = ', trim(str(ele0%c_mat(1,1)))
+    if (ele0%c_mat(1,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_12]  = ', trim(str(ele0%c_mat(1,2)))
+    if (ele0%c_mat(2,1) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_21]  = ', trim(str(ele0%c_mat(2,1)))
+    if (ele0%c_mat(2,2) /= 0) write (iu, '(3a)') trim(branch%name), '[cmat_22]  = ', trim(str(ele0%c_mat(2,2)))
+  endif
 
 enddo
+
+! Use line
+
+line = 'use'
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  if (branch%ix_from_branch > -1) cycle
+  name = branch%name
+  if (name == '') name = 'lat_line'
+  line = trim(line) // ', ' // name
+enddo
+
+write (iu, *)
+write (iu, *) trim(line)
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
@@ -1030,7 +1087,7 @@ enddo
 
 close(iu)
 deallocate (names, an_indexx)
-deallocate (multipass)
+deallocate (m_region%branch)
 call deallocate_multipass_all_info_struct (m_info)
 
 if (present(err)) err = .false.

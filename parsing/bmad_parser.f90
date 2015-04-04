@@ -23,8 +23,7 @@
 !
 ! Output:
 !   lat              -- lat_struct: Lat structure. See bmad_struct.f90 for more details.
-!     %ele(:)%mat6      -- This is computed assuming an on-axis orbit 
-!     %ele(:)%s         -- This is also computed.
+!     %ele(:)%mat6      -- This is computed assuming an on-axis orbit if make_mats6 = T.
 !   digested_read_ok -- Logical, optional: Set True if the digested file was
 !                        successfully read. False otherwise.
 !   err_flag         -- Logical, optional: Set true if there is an error, false otherwise.
@@ -878,7 +877,7 @@ branch_loop: do i_loop = 1, n_branch_max
     endif
   endif
 
-  !
+  ! Transfer info from line element if parameters have been set.
 
   branch%param%default_tracking_species = ref_particle$
   val = bp_com%param_ele%value(default_tracking_species$)
@@ -886,11 +885,13 @@ branch_loop: do i_loop = 1, n_branch_max
   val = ele%value(default_tracking_species$)
   if (val /= real_garbage$) branch%param%default_tracking_species = nint(val)
 
-  if (ele%value(p0c$)>= 0)        ele0%value(p0c$)   = ele%value(p0c$)
-  if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$) = ele%value(e_tot$)
-  if (ele%a%beta /= 0)            ele0%a             = ele%a
-  if (ele%b%beta /= 0)            ele0%b             = ele%b
-  if (ele%value(floor_set$) /= 0) ele0%floor         = ele%floor 
+  if (ele%value(p0c$)>= 0)        ele0%value(p0c$)      = ele%value(p0c$)
+  if (ele%value(e_tot$)>= 0)      ele0%value(e_tot$)    = ele%value(e_tot$)
+  if (ele%a%beta /= 0)            ele0%a                = ele%a
+  if (ele%b%beta /= 0)            ele0%b                = ele%b
+  if (ele%value(floor_set$) /= 0) ele0%floor            = ele%floor
+  if (ele%s /= 0)                 ele0%s                = ele%s
+  if (ele%ref_time /= 0)          ele0%ref_time         = ele%ref_time
 
   call settable_dep_var_bookkeeping(ele0)
 
