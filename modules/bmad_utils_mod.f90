@@ -1785,7 +1785,7 @@ function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
 type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
 
-integer i, ib, ios
+integer ib, ios
 character(*) branch_name
 character(32), parameter :: r_name = 'pointer_to_branch_given_name'
 
@@ -1806,8 +1806,8 @@ if (is_integer(trim(branch_name))) then
 ! Is name.
 
 else
-  do i = lbound(lat%branch, 1), ubound(lat%branch, 1)
-    if (lat%branch(i)%name == branch_name) then
+  do ib = lbound(lat%branch, 1), ubound(lat%branch, 1)
+    if (lat%branch(ib)%name == branch_name) then
       branch_ptr => lat%branch(ib)
       return
     endif
