@@ -69,7 +69,6 @@ $pl_hash{"get_called_file"} = "bmad_parser_mod.f90";
 $pl_hash{"mexp"} = "bmad_basic_mod.f90";
 $pl_hash{"integration_timer_fibre"} = "integration_timer_mod.f90";
 $pl_hash{"propagate_part_way"} = "rad_int_common.f90";
-$pl_hash{"add_all_superimpose"} = "bmad_parser_mod.f90";
 $pl_hash{"evaluate_value"} = "bmad_parser_mod.f90";
 $pl_hash{"reallocate_bp_com_var"} = "bmad_parser_mod.f90";
 $pl_hash{"parser_debug_print_info"} = "bmad_parser_mod.f90";
