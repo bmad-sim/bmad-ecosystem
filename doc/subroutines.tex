@@ -557,6 +557,18 @@ This routine is typically used when a program detects an error condition.
 Function to return True or False depending upon the state of an 
 optional integer.
 
+\index[routine]{is_false}
+\label{r:is.false}
+\item[is_false (param) result (this_false)] \Newline 
+Routine to translate from a real number to a boolian True or False.
+Translation: 0 = False, nonzero = True.
+
+\index[routine]{is_true}
+\label{r:is.true}
+\item[is_true (param) result (this_true)] \Newline 
+Routine to translate from a real number to a boolian True or False.
+Translation: 0 = False, nonzero = True.
+
 \index[routine]{logic_option}
 \label{r:logic.option}
 \item[logic_option (logic_default, opt_logic)] \Newline 
@@ -885,7 +897,7 @@ hybridized by \vn{make_hybrid_lat}.
 
 \index[routine]{ele_geometry}
 \label{r:ele.geometry}
-\item[ele_geometry (floor0, ele, floor, len_scale)] \Newline 
+\item[ele_geometry (floor0, ele, floor, len_scale, set_ok)] \Newline 
 Routine to calculate the physical (floor) placement of an element given the
 placement of the preceding element. This is the same as the MAD convention.
 
@@ -934,7 +946,7 @@ This is true if the tranformation matrix element S(3,3) = cos(x_pitch) * cos(y_p
 
 \index[routine]{coords_local_curvilinear_to_floor}
 \label{r:position.in.global.frame}
-\item[coords_local_curvilinear_to_floor (local_position, ele, w_mat) result (global_position)] \Newline 
+\item[coords_local_curvilinear_to_floor (local_position, ele, in_ele_frame, w_mat) result (global_position)] \Newline 
 Given a position local to ele, return global floor coordinates
 
 \index[routine]{coords_floor_to_local_curvilinear}
@@ -1482,7 +1494,7 @@ and the 0th order transfer vector.
 
 \index[routine]{match_ele_to_mat6}
 \label{r:match.ele.to.mat6}
-\item[match_ele_to_mat6 (ele, vec0, mat6, err_flag)] \Newline 
+\item[match_ele_to_mat6 (ele, vec0, mat6, err_flag, twiss_ele)] \Newline 
 Routine to make the 6 x 6 transfer matrix from the twiss parameters.
 
 \index[routine]{multi_turn_tracking_to_mat}
@@ -1518,7 +1530,7 @@ Routine to make a 2 x 2 transfer matrix from the Twiss parameters at the end poi
 
 \index[routine]{transfer_mat_from_twiss}
 \label{r:transfer.mat.from.twiss}
-\item[transfer_mat_from_twiss (ele1, ele2, m)] \Newline 
+\item[transfer_mat_from_twiss (ele1, ele2, orb1, orb2, m)] \Newline 
 Routine to make a 6 x 6 transfer matrix from the twiss parameters
 at the beginning and end of the element.
 
