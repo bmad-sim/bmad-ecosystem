@@ -1569,7 +1569,6 @@ endif
 ! Reference energy and time computed in ele_compute_ref_energy_and_time.
 
 value = lord%value
-value(check_sum$) = 0  ! Slave does not have multipoles
 
 value(l$)              = slave%value(l$)                ! do not change slave length, etc.
 value(delta_ref_time$) = slave%value(delta_ref_time$)

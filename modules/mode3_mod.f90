@@ -757,7 +757,7 @@ FUNCTION dagger(A) RESULT(Ad)
 END FUNCTION dagger
 
 !+
-! Subroutine real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
+! Subroutine real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda, err_flag)
 !
 ! Applies a normalization to the columns of a 6x6 matrix of eigenvectors, where the columns are complex
 ! conjugate pairs.  The normalization is such that the sum of the determinants of the 2x2 blocks down each pair of rows is 1.  
@@ -765,112 +765,126 @@ END FUNCTION dagger
 !  tr(N).S.N = S
 !
 ! Input:
-!  evec_r(6,6)      -- real(rp): real part of Eigen matrix
-!  evec_i(6,6)      -- real(rp): imaginary part of Eigen matrix
-!  eval_r(6)        -- real(rp): real part of eigen vectors.
-!  eval_i(6)        -- real(rp): imaginary part of Eigen vectors.
+!   evec_r(6,6)      -- real(rp): real part of Eigen matrix
+!   evec_i(6,6)      -- real(rp): imaginary part of Eigen matrix
+!   eval_r(6)        -- real(rp): real part of eigen vectors.
+!   eval_i(6)        -- real(rp): imaginary part of Eigen vectors.
+!
 ! Output:
-!  N(6,6)           -- real(rp): matrix of eigenvectors in real form.  Normalized symplectic.
-!  Lambda(6,6)      -- real(rp): matrix of eigenvalues in block diagonal form.  Normalized symplectic.
+!   N(6,6)           -- real(rp): matrix of eigenvectors in real form.  Normalized symplectic.
+!   Lambda(6,6)      -- real(rp): matrix of eigenvalues in block diagonal form.  Normalized symplectic.
+!   err_flag         -- logical, optional: Set True if unstable matrix prevents anal.
 !-
-SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda)
 
-  USE bmad
+SUBROUTINE real_and_symp(evec_r, evec_i, eval_r, eval_i, N, Lambda, err_flag)
 
-  REAL(rp) evec_r(6,6)
-  REAL(rp) evec_i(6,6)
-  REAL(rp) eval_r(6)
-  REAL(rp) eval_i(6)
-  REAL(rp) norm
-  REAL(rp) check_mat(6,6)
-  REAL(rp) N(6,6)
-  REAL(rp) Lambda(6,6)
-  INTEGER i
+USE bmad
 
-  check_mat = MATMUL(MATMUL(TRANSPOSE(evec_r),S),evec_i) + MATMUL(MATMUL(TRANSPOSE(evec_i),S),evec_r)
-  IF( check_mat(1,2) < 0.0 ) THEN
-    CALL swap(evec_r(:,1),evec_r(:,2))
-    CALL swap(evec_i(:,1),evec_i(:,2))
-    CALL swap(eval_r(1),eval_r(2))
-    CALL swap(eval_i(1),eval_i(2))
-  ENDIF
-  IF( check_mat(3,4) < 0.0 ) THEN
-    CALL swap(evec_r(:,3),evec_r(:,4))
-    CALL swap(evec_i(:,3),evec_i(:,4))
-    CALL swap(eval_r(3),eval_r(4))
-    CALL swap(eval_i(3),eval_i(4))
-  ENDIF
-  IF( check_mat(5,6) < 0.0 ) THEN
-    CALL swap(evec_r(:,5),evec_r(:,6))
-    CALL swap(evec_i(:,5),evec_i(:,6))
-    CALL swap(eval_r(5),eval_r(6))
-    CALL swap(eval_i(5),eval_i(6))
-  ENDIF
+REAL(rp) evec_r(6,6)
+REAL(rp) evec_i(6,6)
+REAL(rp) eval_r(6)
+REAL(rp) eval_i(6)
+REAL(rp) norm
+REAL(rp) check_mat(6,6)
+REAL(rp) N(6,6)
+REAL(rp) Lambda(6,6)
+INTEGER i
+logical, optional :: err_flag
 
-  !Transform to real basis
-  N = MATMUL(evec_r,Qr) - MATMUL(evec_i,Qi)
-  Lambda = 0.0d0
-  Lambda(1,1) =  eval_r(1)
-  Lambda(2,2) =  eval_r(1)
-  Lambda(1,2) = -eval_i(1)
-  Lambda(2,1) =  eval_i(1)
-  Lambda(3,3) =  eval_r(3)
-  Lambda(4,4) =  eval_r(3)
-  Lambda(3,4) = -eval_i(3)
-  Lambda(4,3) =  eval_i(3)
-  Lambda(5,5) =  eval_r(5)
-  Lambda(6,6) =  eval_r(5)
-  Lambda(5,6) = -eval_i(5)
-  Lambda(6,5) =  eval_i(5)
+!
 
-  IF( (ABS(eval_i(1)) .LT. 1.0E-7) .OR. (ABS(eval_i(3)) .LT. 1.0E-7) .OR. (ABS(eval_i(5)) .LT. 1.0E-7) ) THEN
-    WRITE(*,*) "Unstable transfer matrix detected.  Maybe check pwd settings."
-    STOP
-  ENDIF
+if (present(err_flag)) err_flag = .true.
 
-  !Normalize to make symplectic
-  norm = ABS(determinant(N(1:2,1:2)) + determinant(N(3:4,1:2)) + determinant(N(5:6,1:2)))
-  N(:,1:2) = N(:,1:2)/SQRT(norm)
-  norm = ABS(determinant(N(1:2,3:4)) + determinant(N(3:4,3:4)) + determinant(N(5:6,3:4)))
-  N(:,3:4) = N(:,3:4)/SQRT(norm)
-  norm = ABS(determinant(N(1:2,5:6)) + determinant(N(3:4,5:6)) + determinant(N(5:6,5:6)))
-  N(:,5:6) = N(:,5:6)/SQRT(norm)
+check_mat = MATMUL(MATMUL(TRANSPOSE(evec_r),S),evec_i) + MATMUL(MATMUL(TRANSPOSE(evec_i),S),evec_r)
+IF( check_mat(1,2) < 0.0 ) THEN
+  CALL swap(evec_r(:,1),evec_r(:,2))
+  CALL swap(evec_i(:,1),evec_i(:,2))
+  CALL swap(eval_r(1),eval_r(2))
+  CALL swap(eval_i(1),eval_i(2))
+ENDIF
+IF( check_mat(3,4) < 0.0 ) THEN
+  CALL swap(evec_r(:,3),evec_r(:,4))
+  CALL swap(evec_i(:,3),evec_i(:,4))
+  CALL swap(eval_r(3),eval_r(4))
+  CALL swap(eval_i(3),eval_i(4))
+ENDIF
+IF( check_mat(5,6) < 0.0 ) THEN
+  CALL swap(evec_r(:,5),evec_r(:,6))
+  CALL swap(evec_i(:,5),evec_i(:,6))
+  CALL swap(eval_r(5),eval_r(6))
+  CALL swap(eval_i(5),eval_i(6))
+ENDIF
+
+!Transform to real basis
+N = MATMUL(evec_r,Qr) - MATMUL(evec_i,Qi)
+Lambda = 0.0d0
+Lambda(1,1) =  eval_r(1)
+Lambda(2,2) =  eval_r(1)
+Lambda(1,2) = -eval_i(1)
+Lambda(2,1) =  eval_i(1)
+Lambda(3,3) =  eval_r(3)
+Lambda(4,4) =  eval_r(3)
+Lambda(3,4) = -eval_i(3)
+Lambda(4,3) =  eval_i(3)
+Lambda(5,5) =  eval_r(5)
+Lambda(6,6) =  eval_r(5)
+Lambda(5,6) = -eval_i(5)
+Lambda(6,5) =  eval_i(5)
+
+IF( (ABS(eval_i(1)) .LT. 1.0E-7) .OR. (ABS(eval_i(3)) .LT. 1.0E-7) .OR. (ABS(eval_i(5)) .LT. 1.0E-7) ) THEN
+  WRITE(*,*) "Unstable transfer matrix detected.  Maybe check pwd settings."
+  if (global_com%exit_on_error) call err_exit
+  return
+ENDIF
+
+!Normalize to make symplectic
+norm = ABS(determinant(N(1:2,1:2)) + determinant(N(3:4,1:2)) + determinant(N(5:6,1:2)))
+N(:,1:2) = N(:,1:2)/SQRT(norm)
+norm = ABS(determinant(N(1:2,3:4)) + determinant(N(3:4,3:4)) + determinant(N(5:6,3:4)))
+N(:,3:4) = N(:,3:4)/SQRT(norm)
+norm = ABS(determinant(N(1:2,5:6)) + determinant(N(3:4,5:6)) + determinant(N(5:6,5:6)))
+N(:,5:6) = N(:,5:6)/SQRT(norm)
 
 
-  !Order eigenvector pairs
-  ! Already ordered by eigen_decomp_6mat
-  ! pair1 = MAXLOC( [ N(1,1)**2+N(1,2)**2, N(1,3)**2+N(1,4)**2, N(1,5)**2+N(1,6)**2 ] )
-  ! pair2 = MAXLOC( [ N(3,1)**2+N(3,2)**2, N(3,3)**2+N(3,4)**2, N(3,5)**2+N(3,6)**2 ] )
-  ! pair3 = MAXLOC( [ N(5,1)**2+N(5,2)**2, N(5,3)**2+N(5,4)**2, N(5,5)**2+N(5,6)**2 ] )
-  ! pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
-  ! N = N(:,pairIndexes)
-  ! Lambda = Lambda(pairIndexes,pairIndexes)
+!Order eigenvector pairs
+! Already ordered by eigen_decomp_6mat
+! pair1 = MAXLOC( [ N(1,1)**2+N(1,2)**2, N(1,3)**2+N(1,4)**2, N(1,5)**2+N(1,6)**2 ] )
+! pair2 = MAXLOC( [ N(3,1)**2+N(3,2)**2, N(3,3)**2+N(3,4)**2, N(3,5)**2+N(3,6)**2 ] )
+! pair3 = MAXLOC( [ N(5,1)**2+N(5,2)**2, N(5,3)**2+N(5,4)**2, N(5,5)**2+N(5,6)**2 ] )
+! pairIndexes = [ 2*pair1(1)-1, 2*pair1(1), 2*pair2(1)-1, 2*pair2(1), 2*pair3(1)-1, 2*pair3(1) ]
+! N = N(:,pairIndexes)
+! Lambda = Lambda(pairIndexes,pairIndexes)
 
-  !Fix sign to make diagonal entries positive
-  IF( N(1,1) < 0 ) THEN
-    N(:,1) = -1*N(:,1)
-    N(:,2) = -1*N(:,2)
-  ENDIF
-  IF( N(3,3) < 0 ) THEN
-    N(:,3) = -1*N(:,3)
-    N(:,4) = -1*N(:,4)
-  ENDIF
-  IF( N(5,5) < 0 ) THEN
-    N(:,5) = -1*N(:,5)
-    N(:,6) = -1*N(:,6)
-  ENDIF
+!Fix sign to make diagonal entries positive
+IF( N(1,1) < 0 ) THEN
+  N(:,1) = -1*N(:,1)
+  N(:,2) = -1*N(:,2)
+ENDIF
+IF( N(3,3) < 0 ) THEN
+  N(:,3) = -1*N(:,3)
+  N(:,4) = -1*N(:,4)
+ENDIF
+IF( N(5,5) < 0 ) THEN
+  N(:,5) = -1*N(:,5)
+  N(:,6) = -1*N(:,6)
+ENDIF
 
-  CONTAINS
 
-    ELEMENTAL SUBROUTINE swap(a,b)
-      REAL(rp), INTENT(INOUT):: a
-      REAL(rp), INTENT(INOUT):: b
-      REAL(rp) t
+if (present(err_flag)) err_flag = .false.
 
-      t=b
-      b=a
-      a=t
-    END SUBROUTINE swap
+!-----------------
+
+CONTAINS
+
+ELEMENTAL SUBROUTINE swap(a,b)
+  REAL(rp), INTENT(INOUT):: a
+  REAL(rp), INTENT(INOUT):: b
+  REAL(rp) t
+
+  t=b
+  b=a
+  a=t
+END SUBROUTINE swap
 
 END SUBROUTINE real_and_symp
 

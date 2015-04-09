@@ -62,7 +62,6 @@ character(16), parameter :: r_name = 'make_mat6'
 ! tracking and ele is downstream from the loss point), init the orbit to zero.
 
 if (present(err_flag)) err_flag = .true.
-if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 
 if (present(start_orb)) then
   if (start_orb%state == not_set$) then
@@ -132,6 +131,7 @@ case (mad$)
 case (static$)
   if (present(err_flag)) err_flag = .false.
   if (present(end_orb) .and. .not. logic_option (.false., end_in)) call track1 (a_end_orb, ele, param, end_orb)
+  if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
   return
 
 case default
@@ -165,6 +165,7 @@ if (present(end_orb) .and. .not. logic_option (.false., end_in)) end_orb = a_end
 
 bmad_com%radiation_fluctuations_on = rad_fluct_save
 
+if (ele%bookkeeping_state%mat6 == stale$) ele%bookkeeping_state%mat6 = ok$
 if (present(err_flag)) err_flag = .false.
 
 end subroutine
