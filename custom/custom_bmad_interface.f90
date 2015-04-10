@@ -70,16 +70,6 @@ interface
     logical err_flag, finished, radiation_included
   end subroutine
 
-  subroutine track1_bunch_custom (bunch_start, lat, ele, bunch_end, err_flag)
-    use bmad_struct, only: lat_struct, ele_struct
-    use beam_def_struct, only: bunch_struct
-    implicit none
-    type (bunch_struct) bunch_start, bunch_end
-    type (lat_struct), target :: lat
-    type (ele_struct) :: ele
-    logical err_flag
-  end subroutine
-
   subroutine track1_postprocess (start_orb, ele, param, end_orb)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
