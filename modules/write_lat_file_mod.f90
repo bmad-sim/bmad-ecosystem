@@ -1562,10 +1562,6 @@ do
   ! Bmad does not have a sol element so use null_ele to designate the sol element in the Bmad lattice.
   ! This works since there cannot be any actual null_eles in the lattice.
 
-  if (out_type /= 'SAD' .and. ele%key /= sad_mult$) then
-    call out_io (s_fatal$, r_name, 'NO TRANSLATION POSSIBLE FOR SAD_MULT ELEMENT: ' // ele%name)
-  endif
-
   if (out_type == 'SAD' .and. ele%value(l$) /= 0) then
     bs_field = 0
     if (ele_has (ele, 'BS_FIELD')) bs_field = ele%value(bs_field$)
@@ -1820,7 +1816,7 @@ do
 
 enddo
 
-! If converting to SAD, if there is a finite bs_field then create a final null_ele element
+! If converting to SAD: if there is a finite bs_field then create a final null_ele element
 
 if (out_type == 'SAD' .and. bs_field /= 0) then
   ele => branch_out%ele(ie2)
@@ -2142,7 +2138,7 @@ do ix_ele = ie1, ie2
     cycle
   endif
 
-  !-------------
+  !-----------------------------------
   ! For anything else but OPAL
 
   select case (ele%key)
@@ -2274,7 +2270,11 @@ do ix_ele = ie1, ie2
 
   ! taylor
 
-  case (taylor$)
+  case (taylor$, sad_mult$, patch$)
+
+    if (.not. associated (ele%taylor(1)%term)) then
+      call ele_to_taylor (ele, branch%param, ele%taylor, ele%map_ref_orb_in, .true.)
+    endif
 
     line_out = trim(ele%name) // ': matrix'
     warn_printed = .false.
