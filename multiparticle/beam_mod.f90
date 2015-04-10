@@ -192,14 +192,6 @@ integer i, j, n, im, ix_pass, ixs, ix, n_links
 logical csr_on, err
 
 !------------------------------------------------
-! Custom tracking
-
-if (ele%tracking_method == custom$) then
-  call track1_bunch_custom (bunch_start, lat, ele, bunch_end, err)
-  bunch_end%ix_ele = ele%ix_ele
-  return
-endif
-
 ! Tracking
 
 csr_on = bmad_com%coherent_synch_rad_on .and. ele%csr_calc_on
