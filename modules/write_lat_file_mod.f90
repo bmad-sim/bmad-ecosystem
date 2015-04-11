@@ -1405,6 +1405,13 @@ end subroutine
 !
 ! Also see: write_bmad_lattice_file
 !
+! NOTE: When translating to XSIF or MAD: sad_mult and patch element are translated
+!  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the referece orbit
+!  used to construct the 2nd order map is taked to be the reference orbit that was used to
+!  construct the element's transfer matrix. Thus, if the lattice contains sad_mult or patch
+!  elements, and the lattice is being translated to XSIF or MAD, it is important that before 
+!  this routine is called, the transfer matrices for the elements be constructed around the closed orbit.
+!
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
