@@ -276,11 +276,11 @@ end function
 !   ele  -- Ele_pointer_struct: Element in a multipass chain.
 !
 ! Output
-!   ix_pass      -- Integer: Multipass pass number of the input element. 
-!                     Set to -1 if input element is not in a multipass section.
-!   n_links      -- Integer, optional: Number of times the physical element is passed through.
-!   chain_ele(:) -- Ele_pointer_struct, optional, allocatable: pointers to the
-!                    elements of the chain. Note: chain_ele(ix_pass)%ele => ele
+!   ix_pass              -- Integer: Multipass pass number of the input element. 
+!                             Set to -1 if input element is not in a multipass section.
+!   n_links              -- Integer: Number of times the physical element is passed through.
+!   chain_ele(1:n_links) -- Ele_pointer_struct, optional, allocatable: pointers to the
+!                             elements of the chain. Note: chain_ele(ix_pass)%ele => ele
 !-
 
 subroutine multipass_chain (ele, ix_pass, n_links, chain_ele)
@@ -291,20 +291,20 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: m_lord, s_lord, slave
 type (ele_pointer_struct), allocatable, optional :: chain_ele(:)
 
-integer, optional :: n_links
-integer i, j, ix_pass, ix_off, n_link
+integer :: n_links
+integer i, j, ix_pass, ix_off
 
 ! Init
 
 ix_pass = -1
-n_link = 0
+n_links = 0
 
 ! element is a multipass_slave case
 
 if (ele%slave_status == multipass_slave$) then
   m_lord => pointer_to_lord(ele, 1)
-  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .true.)
-  n_link = m_lord%n_slave
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave)
+  n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
     slave => pointer_to_slave(m_lord, j)
     if (present(chain_ele)) chain_ele(j)%ele => slave
@@ -330,8 +330,8 @@ if (ele%slave_status == super_slave$) then
   ! Construct chain
 
   m_lord => pointer_to_lord(s_lord, 1)
-  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave, .true.)
-  n_link = m_lord%n_slave
+  if (present(chain_ele)) call re_allocate_eles (chain_ele, m_lord%n_slave)
+  n_links = m_lord%n_slave
   do j = 1, m_lord%n_slave
     s_lord => pointer_to_slave(m_lord, j)
     slave => pointer_to_slave(s_lord, ix_off)
@@ -340,8 +340,6 @@ if (ele%slave_status == super_slave$) then
   enddo
 
 endif
-
-if (present(n_links)) n_links = n_link
 
 end subroutine multipass_chain
 
