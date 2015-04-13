@@ -270,7 +270,7 @@ real(rp) chord_len, angle, ang, leng, rho, len_factor
 real(rp) theta, phi, psi, tlt, dz(3), z0(3), z_cross(3)
 real(rp) :: s_ang, c_ang, w_mat(3,3), w_mat_inv(3,3), s_mat(3,3), r_vec(3), t_mat(3,3)
 
-integer i, key, n_loc, ix_pass
+integer i, key, n_loc, ix_pass, n_links
 
 logical has_nonzero_pole, err, calc_done, doit
 logical, optional :: set_ok
@@ -523,12 +523,12 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     if (is_true(ele%value(flexible$)) .and. ele%ix_ele > 0) then
       doit = .true.
       if (ele%lord_status == multipass_lord$) doit = .false.
-      call multipass_chain (ele, ix_pass, chain_ele = chain_ele)
+      call multipass_chain (ele, ix_pass, n_links, chain_ele)
       if (ix_pass > 1) doit = .false.
 
       if (doit) then
         ele2 => pointer_to_next_ele(ele, 1)
-        call multipass_chain (ele2, ix_pass, chain_ele = chain_ele)
+        call multipass_chain (ele2, ix_pass, n_links, chain_ele)
         if (ix_pass > 0) then
           ele2 => chain_ele(1)%ele
         endif
@@ -560,8 +560,8 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
 
         ! Transfer offsets and pitches if patch is part of a multipass retion
         if (ele%slave_status == multipass_slave$) then
-          call multipass_chain (ele, ix_pass, chain_ele = chain_ele)
-          do i = 1, size(chain_ele)
+          call multipass_chain (ele, ix_pass, n_links, chain_ele)
+          do i = 1, n_links
             if (i == 1) then
               ele2 => pointer_to_lord(ele, 1)
             else

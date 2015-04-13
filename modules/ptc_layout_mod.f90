@@ -92,13 +92,12 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele0
-type (ele_pointer_struct), allocatable :: chain_ele(:)
 type (fibre), pointer :: save_fib
 type (layout), pointer :: lay
 
 real(rp) ptc_orientation(3,3), ang(3)
 
-integer i, j, ix_pass, n_links
+integer i, j, ix_pass
 logical logic
 logical, optional :: use_hard_edge_drifts
 
@@ -244,7 +243,7 @@ type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
 type (ele_pointer_struct), allocatable :: chain_ele(:)
 
-integer n, ib, ie, ix_pass, ix_pass0
+integer n, ib, ie, ix_pass, ix_pass0, n_links
 logical doneit, ele_inserted_in_layout
 logical, optional :: use_hard_edge_drifts
 
@@ -259,7 +258,7 @@ call add_ptc_layout_to_list (branch%ptc,  m_u%end)   ! Save layout
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
 
-  call multipass_chain(ele, ix_pass, chain_ele = chain_ele)
+  call multipass_chain(ele, ix_pass, n_links, chain_ele)
   if (ix_pass > 1) then
     ele%ptc_fibre => chain_ele(1)%ele%ptc_fibre
     ix_pass0 = ix_pass
