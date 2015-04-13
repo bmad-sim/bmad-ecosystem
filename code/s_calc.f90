@@ -26,12 +26,16 @@ type (branch_struct), pointer :: branch
 
 integer i, j, n, ic, icon, ix2
 real(8) ss, s_end
+logical s_shift
 
 ! Just go through all the elements and add up the lengths.
+
+s_shift = .false.
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%s_position /= stale$) cycle
+  s_shift = .true.
 
   ! Branches that branch from another branch start from zero
   ele => branch%ele(0)
@@ -58,10 +62,12 @@ enddo
 ! Note: The s-position of a overlay, group, or control lord will not make sense if the lord
 ! controls multiple disjoint elements.
 
+lat%lord_state%s_position = ok$
+
+if (.not. s_shift) return
+
 do n = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(n)
-
-  if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%s_position /= stale$) cycle
   lord%bookkeeping_state%s_position = ok$
 
   if (lord%key == null_ele$) cycle
@@ -81,7 +87,5 @@ do n = lat%n_ele_track+1, lat%n_ele_max
   end select
 
 enddo
-
-lat%lord_state%s_position = ok$
 
 end subroutine

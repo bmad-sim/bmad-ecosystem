@@ -1711,7 +1711,7 @@ if (lord%key == patch$) then
     value(tilt$)         = 0
     value(x_offset$)     = 0
     value(y_offset$)     = 0
-    value(z_offset$)     = slave%value(z_offset$)
+    value(z_offset$)     = slave%value(l$) ! L is set by create_element_slice
     value(t_offset$)     = 0
     value(e_tot_offset$) = 0
   endif
