@@ -1458,15 +1458,15 @@ integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
 integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, n_name_warn_max
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo
+integer :: ix_line_min = 70, ix_line_max = 90
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer, parameter :: bound$ = custom_attribute1$, geo$ = custom_attribute2$
 
 character(*) out_type, out_file_name
 character(300) line, knl_str, ksl_str
-character(40) orig_name
+character(40) orig_name, str
 character(40), allocatable :: names(:)
-character(1000) line_out
-character(8) str
+character(4000) line_out   ! Can be this large for taylor maps.
 character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(2) continue_char, eol_char, comment_char, separator_char
 
@@ -1501,20 +1501,27 @@ if (out_type == 'MAD-X' .or. out_type == 'OPAL-T') then
   continue_char = ''
   eol_char = ';'
   separator_char = ','
+  ix_line_max = 100
+
 elseif (out_type == 'MAD-8' .or. out_type == 'XSIF') then
   comment_char = '!'
   continue_char = ' &'
   eol_char = ''
   separator_char = ','
+  ix_line_max = 80
 elseif (out_type == 'SAD') then
   comment_char = '!'
   continue_char = ''
   eol_char = ';'
   separator_char = ''
+  ix_line_max = 100
+
 else
   call out_io (s_error$, r_name, 'BAD OUT_TYPE: ' // out_type)
   return
 endif
+
+ix_line_min = ix_line_max - 20
 
 call init_ele (col_ele)
 call init_ele (drift_ele, drift$)
@@ -1682,7 +1689,7 @@ do
           col_ele%key = ecollimator$
         endif
         a_count = a_count + 1
-        write (col_ele%name, '(a, i3.3)')  'COLLIMATOR_N', a_count
+        write (col_ele%name, '(a, i0)')  'COLLIMATOR_N', a_count
         col_ele%value = val
         col_ele%value(l$) = 0
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
@@ -1707,7 +1714,7 @@ do
 
   if (ele%key == sbend$ .and. val(roll$) /= 0) then
     j_count = j_count + 1
-    write (kicker_ele%name,   '(a, i3.3)') 'ROLL_Z', j_count
+    write (kicker_ele%name,   '(a, i0)') 'ROLL_Z', j_count
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
     kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
@@ -1728,7 +1735,7 @@ do
       ab_ele%b_pole = ab_ele%b_pole / 2
       if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
-      write (ab_ele%name,   '(a, i3.3)') 'MULTIPOLE_Z', j_count
+      write (ab_ele%name,   '(a, i0)') 'MULTIPOLE_Z', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch)
       call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch)
       ie2 = ie2 + 2
@@ -1742,7 +1749,7 @@ do
   if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) then
     if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
       j_count = j_count + 1
-      write (kicker_ele%name,   '(a, i3.3)') 'KICKER_Z', j_count
+      write (kicker_ele%name,   '(a, i0)') 'KICKER_Z', j_count
       kicker_ele%value(hkick$) = val(hkick$) / 2
       kicker_ele%value(vkick$) = val(vkick$) / 2
       val(hkick$) = 0; val(vkick$) = 0
@@ -1768,8 +1775,8 @@ do
       ! Add drifts before and after wigglers and sol_quads so total length is invariant
       j_count = j_count + 1
       t_count = t_count + 1
-      write (drift_ele%name, '(a, i3.3)') 'DRIFT_Z', j_count
-      write (taylor_ele%name, '(a, i3.3)') 'SOL_QUAD', j_count
+      write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
+      write (taylor_ele%name, '(a, i0)') 'SOL_QUAD', j_count
       drift_ele%value(l$) = val(l$) / 2
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
@@ -1858,10 +1865,10 @@ select case (out_type)
 case ('MAD-8', 'MAD-X', 'XSIF')
   ele => branch_out%ele(ie1-1)
 
-  write (iu, '(2a, 2(a, es14.6), a)')  &
+  write (line_out, '(2a, 2(a, es14.6), a)')  &
         'beam_def: Beam, Particle = ', trim(particle_name(branch_out%param%particle)),  &
         ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', branch_out%param%n_part, trim(eol_char)
-
+  call write_line (line_out)
   write (iu, *)
 
 case ('SAD')
@@ -1906,11 +1913,11 @@ do ix_ele = ie1, ie2
 
     select case (ele%key)
 
-    case (marker$, detector$)
+    case (marker$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
-    case (drift$, pipe$)
+    case (drift$, instrument$, pipe$, detector$, monitor$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
     case (sbend$)
@@ -1972,7 +1979,7 @@ do ix_ele = ie1, ie2
 
       select case (ele%key)
 
-      case (drift$, monitor$, instrument$, pipe$)
+      case (drift$, instrument$, pipe$, detector$, monitor$)
         write (line_out, '(3a, es13.5)') 'DRIFT ', trim(ele%name), ' = (L =', val(l$)
 
       case (ab_multipole$)
@@ -2152,7 +2159,7 @@ do ix_ele = ie1, ie2
 
   ! drift
 
-  case (drift$, instrument$, pipe$)
+  case (drift$, instrument$, pipe$, detector$, monitor$)
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
   
@@ -2234,7 +2241,7 @@ do ix_ele = ie1, ie2
 
   ! marker
 
-  case (detector$, marker$, fork$, photon_fork$)
+  case (marker$, fork$, photon_fork$)
 
     line_out = trim(ele%name) // ': marker'
 
@@ -2315,7 +2322,7 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
 
         case default
-          if (.not. warn_printed) then
+          if (.not. warn_printed .and. ele%key == taylor$) then
             call out_io (s_warn$, r_name, &
                   'Higher order taylor term(s) in: ' // trim(ele%name) // &
                   'cannot be converted to mad matrix term')
@@ -2474,47 +2481,6 @@ do n = ie1, ie2
 
 enddo
 
-!---------------------------------------------------
-! Element offsets
-
-if (out_type(1:3) == 'MAD') then
-
-  write (iu, *)
-  write (iu, *) comment_char, '---------------------------------', trim(eol_char)
-  write (iu, *)
-
-  allocate (n_repeat(n_names))
-  n_repeat = 0
-
-  do ix_ele = ie1, ie2
-
-    ele => branch_out%ele(ix_ele)
-    val => ele%value
-    
-    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
-    n_repeat(ix_match) = n_repeat(ix_match) + 1
-    
-    if (val(x_pitch$) == 0 .and. val(y_pitch$) == 0 .and. &
-        val(x_offset_tot$) == 0 .and. val(y_offset_tot$) == 0 .and. val(z_offset_tot$) == 0) cycle
-
-    write (iu, *) 'select, flag = error, clear', trim(eol_char)
-    write (iu, '(3a, i0, 2a)') 'select, flag = error, range = ', trim(ele%name), &
-                                    '[', n_repeat(ix_match), ']', trim(eol_char)
-
-    line_out = 'ealign'
-    call value_to_line (line_out,  val(x_pitch$), 'dtheta', 'es12.4', 'R')
-    call value_to_line (line_out, -val(y_pitch$), 'dphi', 'es12.4', 'R')
-    call value_to_line (line_out, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'es12.4', 'R')
-    call value_to_line (line_out, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'es12.4', 'R')
-    call value_to_line (line_out, val(z_offset$), 'ds', 'es12.4', 'R')
-    call write_line (line_out)
-
-  enddo
-
-  deallocate (n_repeat)
-
-endif
-
 ! Write twiss parameters for a non-closed lattice.
 
 ele => branch_out%ele(ie1-1)
@@ -2557,7 +2523,57 @@ elseif (out_type /= 'OPAL-T') then
   write (iu, '(a)') 'use, lat'
 endif
 
-!
+!---------------------------------------------------
+! Element offsets for MAD.
+! This must come after use statement.
+
+if (out_type(1:3) == 'MAD') then
+
+  write (iu, *)
+  write (iu, *) comment_char, '---------------------------------', trim(eol_char)
+  write (iu, *)
+
+  allocate (n_repeat(n_names))
+  n_repeat = 0
+
+  do ix_ele = ie1, ie2
+
+    ele => branch_out%ele(ix_ele)
+    val => ele%value
+
+    ! sad_mult and patch elements are translated to a matrix which does not have offsets.
+    ! And marker like elements also do not have offsets
+
+    if (ele%key == sad_mult$ .or. ele%key == patch$) cycle
+    if (ele%key == marker$ .or. ele%key == fork$ .or. ele%key == photon_fork$) cycle
+
+    !
+
+    call find_indexx (ele%name, names, an_indexx, n_names, ix_match)
+    n_repeat(ix_match) = n_repeat(ix_match) + 1
+    
+    if (val(x_pitch$) == 0 .and. val(y_pitch$) == 0 .and. &
+        val(x_offset_tot$) == 0 .and. val(y_offset_tot$) == 0 .and. val(z_offset_tot$) == 0) cycle
+
+    write (iu, *) 'select, flag = error, clear', trim(eol_char)
+    write (iu, '(3a, i0, 2a)') 'select, flag = error, range = ', trim(ele%name), &
+                                    '[', n_repeat(ix_match), ']', trim(eol_char)
+
+    line_out = 'ealign'
+    call value_to_line (line_out,  val(x_pitch$), 'dtheta', 'es12.4', 'R')
+    call value_to_line (line_out, -val(y_pitch$), 'dphi', 'es12.4', 'R')
+    call value_to_line (line_out, val(x_offset$) - val(x_pitch$) * val(l$) / 2, 'dx', 'es12.4', 'R')
+    call value_to_line (line_out, val(y_offset$) - val(y_pitch$) * val(l$) / 2, 'dy', 'es12.4', 'R')
+    call value_to_line (line_out, val(z_offset$), 'ds', 'es12.4', 'R')
+    call write_line (line_out)
+
+  enddo
+
+  deallocate (n_repeat)
+
+endif
+
+! End stuff
 
 call out_io (s_info$, r_name, 'Written ' // trim(out_type) // &
                                 ' lattice file: ' // trim(out_file_name))
@@ -2594,28 +2610,27 @@ implicit none
 
 character(*) line_out
 integer ix, ix1, ix2, ix3
-integer, parameter :: ix_min = 70, ix_max = 90
 
 ! Prefer to breakup a line after a comma
 
 do
-  if (len_trim(line_out) < ix_max) exit
-  ix1 = index(line_out(ix_min+1:), ',')
-  ix2 = index(line_out(ix_min+1:), '=')
-  ix3 = index(line_out(ix_min+1:), ' ')
+  if (len_trim(line_out) < ix_line_max) exit
+  ix1 = index(line_out(ix_line_min+1:), ',')
+  ix2 = index(line_out(ix_line_min+1:), '=')
+  ix3 = index(line_out(ix_line_min+1:), ' ')
 
-  if (ix1 /= 0 .and. ix1+ix_min < ix_max) then
-    ix = ix1 + ix_min
-  elseif (ix2 /= 0 .and. ix2+ix_min < ix_max) then
-    ix = ix2 + ix_min
-  elseif (ix3 /= 0 .and. ix3+ix_min < ix_max) then
-    ix = ix3 + ix_min
+  if (ix1 /= 0 .and. ix1+ix_line_min < ix_line_max) then
+    ix = ix1 + ix_line_min
+  elseif (ix2 /= 0 .and. ix2+ix_line_min < ix_line_max) then
+    ix = ix2 + ix_line_min
+  elseif (ix3 /= 0 .and. ix3+ix_line_min < ix_line_max) then
+    ix = ix3 + ix_line_min
   elseif (ix1 /= 0) then
-    ix = ix1 + ix_min
+    ix = ix1 + ix_line_min
   elseif (ix2 /= 0) then
-    ix = ix2 + ix_min
+    ix = ix2 + ix_line_min
   else
-    ix = ix3 + ix_min
+    ix = ix3 + ix_line_min
   endif
 
   write (iu, '(2a)') line_out(:ix), trim(continue_char)
