@@ -354,7 +354,7 @@ SUBROUTINE touschek_rate1(mode, rate, lat, ix, s)
                     *( beta_a2/sigma_x_beta2*(1._rp-sigma_h2*(Dxt**2)/sigma_x_beta2) - &
                       beta_b2/sigma_y_beta2*(1._rp-sigma_h2*(Dyt**2)/sigma_y_beta2) )**2 &
                     + ( (sigma_h2**2)*beta_a2*beta_b2*(Dxt**2)*(Dyt**2)/(beta2**2)/(g2**2) &
-                      /(sigma_x_beta2**2)/(sigma_x_beta2**2) ) )
+                      /(sigma_x_beta2**2)/(sigma_y_beta2**2) ) )
 
   tau_min = tau_m
   tau_max = 1.0_rp
