@@ -53,7 +53,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele%spin_tracking_method = tracking$
     do j = 1, n_methods$
       if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
-      call kill_taylor(ele%taylor)
+      if (ele%key /= taylor$) call kill_taylor(ele%taylor)
       ele%tracking_method = j
       if (ele%tracking_method == symp_lie_ptc$) then
         ele%spin_tracking_method = symp_lie_ptc$
