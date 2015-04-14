@@ -3029,7 +3029,14 @@ endif
 ! for lattices with an e_gun element
 
 if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
-  call set_ele_status_stale (ele, ref_energy_group$)
+  select case (ele%key)
+  case (lcavity$, rfcavity$, e_gun$, em_field$)
+    call set_ele_status_stale (ele, ref_energy_group$, .true.)
+  case default
+    ! Lord energy is set from slave. Not other way around.
+    call set_ele_status_stale (ele, ref_energy_group$, .false.)
+  end select
+
   if (dep_set) then
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
     if (ele%key == beginning_ele$) then
@@ -3041,7 +3048,14 @@ if (associated(a_ptr, ele%value(e_tot$)) .and. associated(branch)) then
 endif
 
 if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
-  call set_ele_status_stale (ele, ref_energy_group$)
+  select case (ele%key)
+  case (lcavity$, rfcavity$, e_gun$, em_field$)
+    call set_ele_status_stale (ele, ref_energy_group$, .true.)
+  case default
+    ! Lord energy is set from slave. Not other way around.
+    call set_ele_status_stale (ele, ref_energy_group$, .false.)
+  end select
+
   if (dep_set) then
     call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
     if (ele%key == beginning_ele$) then
@@ -3054,13 +3068,25 @@ endif
 
 if (associated(a_ptr, ele%value(e_tot_start$)) .and. associated(branch)) then
   call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
-  call set_ele_status_stale (ele, ref_energy_group$)
+  select case (ele%key)
+  case (lcavity$, rfcavity$, e_gun$, em_field$)
+    call set_ele_status_stale (ele, ref_energy_group$, .true.)
+  case default
+    ! Lord energy is set from slave. Not other way around.
+    call set_ele_status_stale (ele, ref_energy_group$, .false.)
+  end select
   return
 endif
 
 if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
   call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
-  call set_ele_status_stale (ele, ref_energy_group$)
+  select case (ele%key)
+  case (lcavity$, rfcavity$, e_gun$, em_field$)
+    call set_ele_status_stale (ele, ref_energy_group$, .true.)
+  case default
+    ! Lord energy is set from slave. Not other way around.
+    call set_ele_status_stale (ele, ref_energy_group$, .false.)
+  end select
   return
 endif
 

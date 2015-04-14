@@ -26,24 +26,24 @@ set by \vn{parameter} are
   parameter[auto_scale_field_phase]   = <Logical>  ! Automatic phase scaling.
   parameter[auto_scale_field_amp]     = <Logical>  ! Automatic amplitude scaling.
   parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:custom.attrib}).
+  parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
+                                                   !    Default is ref_particle.
   parameter[e_tot]                    = <Real>     ! Reference total Energy. 
                                                    !      Default: 1000 * rest_energy.
+  parameter[electric_dipole_moment]   = <Real>     ! Electric dipole moment of tracked particles.
   parameter[geometry]                 = <Switch>   ! Open or closed
   parameter[lattice]                  = <String>   ! Lattice name 
   parameter[n_part]                   = <Real>     ! Number of particles in a bunch.
   parameter[no_end_marker]            = <Logical>  ! Default: False.
-  parameter[particle]                 = <Switch>   ! Reference species: positron, proton, etc.
   parameter[p0c]                      = <Real>     ! Reference momentum.
+  parameter[particle]                 = <Switch>   ! Reference species: positron, proton, etc.
   parameter[photon_type]              = <Switch>   ! Incoherent or coherent photons?
   parameter[ptc_exact_model]          = <Logical>  ! PTC to do "exact" tracking?
   parameter[ptc_exact_misalignment]   = <Logical>  ! PTC to "exactly" misalign elements?
   parameter[ptc_max_fringe_order]     = <Integer>  ! Max fringe order. 
                                                    !    Default: 2 => Quadrupole.
-  parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
-                                                   !    Default is ref_particle.
   parameter[ran_seed]                 = <Integer>  ! Random number generator init.
   parameter[taylor_order]             = <Integer>  ! Default: 3
-  parameter[use_ptc_layout]           = <Logical>  ! Construct layout for calculations?
   parameter[use_hard_edge_drifts]     = <Logical>
 \end{example}
 
@@ -56,37 +56,48 @@ Examples
   parameter[E_tot]        = 5.6e9    ! eV
 \end{example}
 
-\index{end element}
-The \vn{parameter[no_end_marker]} is use to suppress the automatic inclusion
-of a marker named \vn{END} at the end of the lattice (\sref{s:branch.construct}). 
-
-For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
-
+  \begin{description}
+  \index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
+  \item[{parameter[absolute_time_tracking]}] \Newline
+The \vn{absolute_time_tracking} switch sets whether the clock for the
+\vn{lcavity} and \vn{rfcavity} elements is tied to the reference
+particle or to uses the absolute time (\sref{s:rf.time}). A value of
+\vn{False} (the default) mandates relative time and a value of
+\vn{True} mandates absolute time.
+  \index{aperture_limit_on}
+  \item[{parameter[aperture_limit_on]}] \Newline
+Aperture limits may be set for elements in the lattice
+(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
+disable all set apertures. \vn{True} is the default.
+  \index{auto_scale_field_phase}\index{auto_scale_field_amp}
+  \index{rfcavity}\index{lcavity}\index{em_field}
+  \item[{parameter[auto_scale_field_phase], parameter[auto_scale_field_amp]}] \Newline
+The \vn{auto_scale_field_phase} and \vn{auto_scale_field_amp} switches
+toggle the automatic scaling of the RF phase and/or amplitude for
+\vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements
+(\sref{c:autoscale}).
+  \index{custom_attributeN}
+  \item[{parameter[custom_attributeN]}] \Newline
 For more information on defining custom attributes, see \sref{s:custom.attrib}.
-
-\index{particle}
-\index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
-\index{muon}\index{antimuon}\index{pion_0}\index{pion_minus}\index{pion_plus}
-The \vn{parameter[particle]} switch sets the reference particle. Valid settings are:
+  \index{default_tracking_species}
+  \item[{parameter[default_tracking_species]}] \Newline
+The \vn{parameter[default_tracking_species]} switch establishes the
+default type of particles to be tracked. Possible setting include
+all the settings of \vn{parameter[particle]}. In addition, 
+this switch can be set to:
 \begin{example}
-  electron,     positron,   
-  muon,         antimuon,
-  proton,       antiproton,
-  photon,       pion_0,
-  pion_minus,   pion_plus
+  ref_particle     ! default
+  anti_ref_particle
 \end{example}
-The setting of the reference particle is used, for example, to
-determine the direction of the field in a magnet and given the
-normalized field strength (EG: \vn{k1} for a quadrupole).  Generally,
-the particles that by default are tracked through a lattice are the
-same as the reference particle. This default behavior can be altered
-by setting \vn{parameter[default_tracking_species]}.
-
-\index{e_tot}
-\index{e_tot}
-\index{lcavity}
-\index{patch}
-\index{p0c}
+By default, \vn{default_tracking_species} is set to \vn{ref_particle}
+so that the particle being tracked is the same as the reference
+particle set by \vn{param[particle]}. In the case, for example,
+where there are particles going one way and antiparticles going another,
+\vn{default_tracking_species} can be used to switch between
+tracking the particles or antiparticles.
+  \index{e_tot}\index{p0c}
+  \index{lcavity}\index{patch}
+  \item[{parameter[e_tot], parameter[p0c]}] \Newline
 The \vn{parameter[e_tot]} and \vn{parameter[p0c]} are the reference
 total energy and momentum at the start of the lattice. Each element
 in a lattice has an individual reference \vn{e_tot} and \vn{p0c} attributes
@@ -95,37 +106,13 @@ change between \vn{LCavity} or \vn{Patch} elements. The starting
 reference energy, if not set, will be set to 1000 time the particle
 rest energy.  Note: \vn{beginning[e_tot]} and \vn{beginning[p0c]} (\sref{s:beginning}) are
 equivalent to \vn{parameter[e_tot]} and \vn{parameter[p0c]}.
-
-\index{beambeam}
-\index{n_part}
-\index{lcavity}
-The \vn{parameter[n_part]} is the number of particle in a bunch.
-it is used with \vn{BeamBeam} elements and is used to calculate the
-change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
-details.
-
-\index{aperture_limit_on}
-Aperture limits may be set for elements in the lattice
-(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
-disable all set apertures. \vn{True} is the default.
-
-\index{photon_type}
-The \vn{photon_type} switch is used to set the type of photons that
-are used in tracking. Possible settings are:
-\begin{example}
-  incoherent    ! Default
-  coherent 
-\end{example}
-The general rule is use incoherent tracking except when there is a
-\vn{diffraction_plate} element in the lattice. 
-
-\index{lattice statement}
-The \vn{lattice} name is stored by \bmad for use by a program but it does
-not otherwise effect any \bmad routines. 
-
-\noindent
-\index{closed}\index{open}
-\index{lcavity!and geometry}
+  \index{electric_dipole_moment}
+  \item[{parameter[electric_dipole_moment]}] \Newline
+The \vn{electric_dipole_moment} sets the electric dipole moment value $\eta$ for use
+when tracking with spin (\sref{s:spin.dyn}). 
+  \index{geometry}\index{closed}\index{open}
+  \index{lcavity!and geometry}
+  \item[{parameter[geometry]}] \Newline
 Valid \vn{geometry} settings are
 \begin{example}
   closed  ! Default w/o LCavity element present.
@@ -153,55 +140,78 @@ closed even though there is no closure in the global coordinate sense.
 Note: \vn{geometry} used to be called \vn{lattice_type}, \vn{closed}
 used to be called \vn{circular_lattice} and \vn{open} used to be
 called \vn{linear_lattice}.
-
-\index{default_tracking_species}
-The \vn{parameter[default_tracking_species]} switch establishes the
-default type of particles to be tracked. Possible setting include
-all the settings of \vn{parameter[particle]}. In addition, 
-this switch can be set to:
+  \index{lattice}
+  \item[{parameter[lattice]}] \Newline
+Used to set the lattice name. The \vn{lattice} name is stored by \bmad
+for use by a program but it does not otherwise effect any \bmad
+routines.
+  \index{n_part}\index{beambeam}\index{lcavity}
+  \item[{parameter[n_part]}] \Newline
+The \vn{parameter[n_part]} is the number of particle in a bunch.
+it is used with \vn{BeamBeam} elements and is used to calculate the
+change in energy through an \vn{Lcavity}. See~\sref{s:lcav} for more
+details.
+  \index{no_end_marker}\index{end element}
+  \item[{parameter[no_end_marker]}] \Newline
+The \vn{parameter[no_end_marker]} is use to suppress the automatic inclusion
+of a marker named \vn{END} at the end of the lattice (\sref{s:branch.construct}). 
+  \item[{parameter[p0c]}] \Newline
+See \vn{parameter[e_tot]}.
+  \index{particle}
+  \index{positron}\index{electron}\index{proton}\index{antiproton}\index{photon}
+  \index{muon}\index{antimuon}\index{pion_0}\index{pion_minus}\index{pion_plus}
+  \item[{parameter[particle]}] \Newline
+The \vn{parameter[particle]} switch sets the reference particle. Valid settings are:
 \begin{example}
-  ref_particle     ! default
-  anti_ref_particle
+  electron,     positron,   
+  muon,         antimuon,
+  proton,       antiproton,
+  photon,       pion_0,
+  pion_minus,   pion_plus
 \end{example}
-By default, \vn{default_tracking_species} is set to \vn{ref_particle}
-so that the particle being tracked is the same as the reference
-particle set by \vn{param[particle]}. In the case, for example,
-where there are particles going one way and antiparticles going another,
-\vn{default_tracking_species} can be used to switch between
-tracking the particles or antiparticles.
+The setting of the reference particle is used, for example, to
+determine the direction of the field in a magnet and given the
+normalized field strength (EG: \vn{k1} for a quadrupole).  Generally,
+the particles that by default are tracked through a lattice are the
+same as the reference particle. This default behavior can be altered
+by setting \vn{parameter[default_tracking_species]}.
 
+  \index{photon_type}
+  \item[{parameter[photon_type]}] \Newline
+The \vn{photon_type} switch is used to set the type of photons that
+are used in tracking. Possible settings are:
+\begin{example}
+  incoherent    ! Default
+  coherent 
+\end{example}
+The general rule is use incoherent tracking except when there is a
+\vn{diffraction_plate} element in the lattice. 
 
-\index{taylor_order}
-The Taylor order (\sref{s:taylor.phys}) is set by
-\vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
-
-\index{auto_scale_field_phase}\index{auto_scale_field_amp}
-\index{rfcavity}\index{lcavity}\index{em_field}
-The \vn{auto_scale_field_phase} and \vn{auto_scale_field_amp} switches
-toggle the automatic scaling of the RF phase and/or amplitude for
-\vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements
-(\sref{c:autoscale}).
-
-\index{absolute_time_tracking}\index{lcavity}\index{rfcavity}
-The \vn{absolute_time_tracking} switch sets whether the clock for the
-\vn{lcavity} and \vn{rfcavity} elements is tied to the reference
-particle or to uses the absolute time (\sref{s:rf.time}). A value of
-\vn{False} (the default) mandates relative time and a value of
-\vn{True} mandates absolute time.
-
-\index{ptc_exact_model}\index{ptc_exact_misalign}
+  \index{ptc_exact_model}\index{ptc_exact_misalign}
+  \item[{parameter[ptc_exact_model]}] \Newline
 The \vn{ptc_exact_model} and \vn{ptc_exact_misalign} switches affect
 tracking using the \vn{PTC} library. See \sref{s:integ} for more
 details.
 
-\index{ptc_max_fringe_order}
+  \index{ptc_max_fringe_order}
+  \item[{parameter[ptc_max_fringe_order]}] \Newline
 When using PTC tracking (\sref{s:ptc.intro}), the
 \vn{parameter[ptc_max_fringe_order]} determines the maximum order of
 the calculated fringe fields. The default is 2 which means that fringe
 fields due to a quadrupolar field. These fields are 3\Rd order in the
 transverse coordinates.
 
-\index{use_hard_edge_drifts}
+  \index{ran_seed}
+  \item[{parameter[ran_seed]}] \Newline
+For more information on \vn{parameter[ran_seed]} see \sref{s:functions}.
+
+  \index{taylor_order}
+  \item[{parameter[taylor_order]}] \Newline
+The Taylor order (\sref{s:taylor.phys}) is set by
+\vn{parameter[taylor_order]} and is the maximum order for a Taylor map.
+
+  \index{use_hard_edge_drifts}
+  \item[{parameter[use_hard_edge_drifts]}] \Newline
 The \vn{use_hard_edge_drifts} switch determines if a ``hard edge''
 model of certain elements is used. For example, if \vn{runge_kutta}
 tracking is used for an \vn{rfcavity} or \vn{lcavity} using a standing
@@ -209,6 +219,8 @@ wave model then the cavity length should be a multiple of the RF
 wavlength/2. To achieve this, during tracking, the cavity length is
 appropriately modified and drifts are inserted at either ends of the
 cavity to keep the total length constant. Default is \vn{True}.
+
+  \end{description}
 
 %-----------------------------------------------------------------------------
 \section{Beam_start Statement} \label{s:beam.start}

@@ -167,6 +167,8 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
+read (d_unit, err = 9025) bmad_com%electric_dipole_moment
+
 read (d_unit, err = 9030)  &   
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &

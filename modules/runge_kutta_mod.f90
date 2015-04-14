@@ -415,8 +415,6 @@ real(rp), parameter :: a2=0.2_rp, a3=0.3_rp, a4=0.6_rp, &
     dc3=c3-18575.0_rp/48384.0_rp, dc4=c4-13525.0_rp/55296.0_rp, &
     dc5=-277.0_rp/14336.0_rp, dc6=c6-0.25_rp
 
-complex(rp) dspin1(2), dspin3(2), dspin4(2), dspin6(2)
-
 logical local_ref_frame, err
 
 !
@@ -614,7 +612,7 @@ dr_ds(7) = dt_ds
 dr_ds(8:11) = 0
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! This uses a modified Omega' = Omega/v_z
-  Omega = spin_omega_at (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
+  Omega = spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
   quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
   dspin = matmul(quaternion, orbit%spin)
   dr_ds(8) = real(dspin(1))

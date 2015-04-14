@@ -1623,6 +1623,8 @@ is_eq = is_eq .and. (f1%init_ds_adaptive_tracking == f2%init_ds_adaptive_trackin
 is_eq = is_eq .and. (f1%min_ds_adaptive_tracking == f2%min_ds_adaptive_tracking)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%fatal_ds_adaptive_tracking == f2%fatal_ds_adaptive_tracking)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%electric_dipole_moment == f2%electric_dipole_moment)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%taylor_order == f2%taylor_order)
 !! f_side.equality_test[integer, 0, NOT]
