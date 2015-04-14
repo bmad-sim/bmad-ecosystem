@@ -2331,9 +2331,9 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 
 // c_side.to_f2_arg
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
+    c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2341,10 +2341,10 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
   bmad_common_to_f2 (F, C.max_aperture_limit, &C.d_orb[0], C.default_ds_step,
       C.significant_length, C.rel_tol_tracking, C.abs_tol_tracking,
       C.rel_tol_adaptive_tracking, C.abs_tol_adaptive_tracking, C.init_ds_adaptive_tracking,
-      C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.taylor_order,
-      C.default_integ_order, C.ptc_max_fringe_order, C.use_hard_edge_drifts, C.sr_wakes_on,
-      C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper, C.space_charge_on,
-      C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
+      C.min_ds_adaptive_tracking, C.fatal_ds_adaptive_tracking, C.electric_dipole_moment,
+      C.taylor_order, C.default_integ_order, C.ptc_max_fringe_order, C.use_hard_edge_drifts,
+      C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
+      C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
       C.auto_scale_field_phase_default, C.auto_scale_field_amp_default, C.debug);
 
@@ -2355,14 +2355,15 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_d_orb, c_Real& z_default_ds_step, c_Real& z_significant_length, c_Real&
     z_rel_tol_tracking, c_Real& z_abs_tol_tracking, c_Real& z_rel_tol_adaptive_tracking,
     c_Real& z_abs_tol_adaptive_tracking, c_Real& z_init_ds_adaptive_tracking, c_Real&
-    z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Int& z_taylor_order,
-    c_Int& z_default_integ_order, c_Int& z_ptc_max_fringe_order, c_Bool&
-    z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool& z_lr_wakes_on, c_Bool&
-    z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool& z_space_charge_on, c_Bool&
-    z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool& z_radiation_damping_on,
-    c_Bool& z_radiation_fluctuations_on, c_Bool& z_conserve_taylor_maps, c_Bool&
-    z_absolute_time_tracking_default, c_Bool& z_auto_scale_field_phase_default, c_Bool&
-    z_auto_scale_field_amp_default, c_Bool& z_debug) {
+    z_min_ds_adaptive_tracking, c_Real& z_fatal_ds_adaptive_tracking, c_Real&
+    z_electric_dipole_moment, c_Int& z_taylor_order, c_Int& z_default_integ_order, c_Int&
+    z_ptc_max_fringe_order, c_Bool& z_use_hard_edge_drifts, c_Bool& z_sr_wakes_on, c_Bool&
+    z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
+    z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
+    z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
+    z_auto_scale_field_phase_default, c_Bool& z_auto_scale_field_amp_default, c_Bool& z_debug)
+    {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2386,6 +2387,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.min_ds_adaptive_tracking = z_min_ds_adaptive_tracking;
   // c_side.to_c2_set[real, 0, NOT]
   C.fatal_ds_adaptive_tracking = z_fatal_ds_adaptive_tracking;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.electric_dipole_moment = z_electric_dipole_moment;
   // c_side.to_c2_set[integer, 0, NOT]
   C.taylor_order = z_taylor_order;
   // c_side.to_c2_set[integer, 0, NOT]

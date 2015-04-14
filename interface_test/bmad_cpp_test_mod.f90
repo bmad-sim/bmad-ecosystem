@@ -5372,42 +5372,44 @@ rhs = 9 + offset; F%init_ds_adaptive_tracking = rhs
 rhs = 10 + offset; F%min_ds_adaptive_tracking = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 11 + offset; F%fatal_ds_adaptive_tracking = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 12 + offset; F%electric_dipole_moment = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 12 + offset; F%taylor_order = rhs
+rhs = 13 + offset; F%taylor_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 13 + offset; F%default_integ_order = rhs
+rhs = 14 + offset; F%default_integ_order = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 14 + offset; F%ptc_max_fringe_order = rhs
+rhs = 15 + offset; F%ptc_max_fringe_order = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 15 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 16 + offset; F%use_hard_edge_drifts = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 16 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 17 + offset; F%sr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 17 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
+rhs = 18 + offset; F%lr_wakes_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 18 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
+rhs = 19 + offset; F%mat6_track_symmetric = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 19 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
+rhs = 20 + offset; F%auto_bookkeeper = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 20 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
+rhs = 21 + offset; F%space_charge_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 21 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
+rhs = 22 + offset; F%coherent_synch_rad_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 22 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
+rhs = 23 + offset; F%spin_tracking_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 23 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
+rhs = 24 + offset; F%radiation_damping_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 24 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
+rhs = 25 + offset; F%radiation_fluctuations_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 25 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
+rhs = 26 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 26 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
+rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 27 + offset; F%auto_scale_field_phase_default = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%auto_scale_field_phase_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%auto_scale_field_amp_default = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%auto_scale_field_amp_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

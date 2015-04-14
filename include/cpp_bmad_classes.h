@@ -2167,6 +2167,7 @@ public:
   Real init_ds_adaptive_tracking;
   Real min_ds_adaptive_tracking;
   Real fatal_ds_adaptive_tracking;
+  Real electric_dipole_moment;
   Int taylor_order;
   Int default_integ_order;
   Int ptc_max_fringe_order;
@@ -2198,6 +2199,7 @@ public:
     init_ds_adaptive_tracking(1e-3),
     min_ds_adaptive_tracking(0.0),
     fatal_ds_adaptive_tracking(1e-8),
+    electric_dipole_moment(0.0),
     taylor_order(0),
     default_integ_order(2),
     ptc_max_fringe_order(2),

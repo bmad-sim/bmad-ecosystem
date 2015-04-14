@@ -927,6 +927,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.init_ds_adaptive_tracking == y.init_ds_adaptive_tracking);
   is_eq = is_eq && (x.min_ds_adaptive_tracking == y.min_ds_adaptive_tracking);
   is_eq = is_eq && (x.fatal_ds_adaptive_tracking == y.fatal_ds_adaptive_tracking);
+  is_eq = is_eq && (x.electric_dipole_moment == y.electric_dipole_moment);
   is_eq = is_eq && (x.taylor_order == y.taylor_order);
   is_eq = is_eq && (x.default_integ_order == y.default_integ_order);
   is_eq = is_eq && (x.ptc_max_fringe_order == y.ptc_max_fringe_order);

@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 150;
+  const int BMAD_INC_VERSION = 151;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -221,7 +221,7 @@ namespace Bmad {
   const int FATAL_DS_ADAPTIVE_TRACKING = 90;
   const int LR_WAKE_FILE = 81, ALPHA_B_BEGIN = 81, USE_HARD_EDGE_DRIFTS = 81;
   const int ALIAS  = 82, ETA_X = 82, PTC_MAX_FRINGE_ORDER = 82;
-  const int START_EDGE  = 83, ETA_Y = 83;
+  const int START_EDGE  = 83, ETA_Y = 83, ELECTRIC_DIPOLE_MOMENT = 83;
   const int END_EDGE  = 84, ETAP_X = 84;
   const int ACCORDION_EDGE  = 85, ETAP_Y = 85;
   const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86;
@@ -284,6 +284,7 @@ namespace Bmad {
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
+  const double SMALL_REL_CHANGE = 1E-14;
   const int N_POLE_MAXX = 21;
   const int NOT_SET = -999;
   const int REF_PARTICLE = 6, ANTI_REF_PARTICLE = 7;

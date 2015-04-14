@@ -5974,10 +5974,10 @@ interface
   subroutine bmad_common_to_c2 (C, z_max_aperture_limit, z_d_orb, z_default_ds_step, &
       z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, &
       z_rel_tol_adaptive_tracking, z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, &
-      z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_taylor_order, &
-      z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, &
-      z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
-      z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
+      z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, &
+      z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, &
+      z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
+      z_space_charge_on, z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
       z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
@@ -5987,7 +5987,7 @@ interface
     logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
     logical(c_bool) :: z_debug
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
-    real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking
+    real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
     integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
   end subroutine
 end interface
@@ -6007,14 +6007,14 @@ call c_f_pointer (Fp, F)
 call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default_ds_step, &
     F%significant_length, F%rel_tol_tracking, F%abs_tol_tracking, F%rel_tol_adaptive_tracking, &
     F%abs_tol_adaptive_tracking, F%init_ds_adaptive_tracking, F%min_ds_adaptive_tracking, &
-    F%fatal_ds_adaptive_tracking, F%taylor_order, F%default_integ_order, &
-    F%ptc_max_fringe_order, c_logic(F%use_hard_edge_drifts), c_logic(F%sr_wakes_on), &
-    c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), c_logic(F%auto_bookkeeper), &
-    c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), c_logic(F%spin_tracking_on), &
-    c_logic(F%radiation_damping_on), c_logic(F%radiation_fluctuations_on), &
-    c_logic(F%conserve_taylor_maps), c_logic(F%absolute_time_tracking_default), &
-    c_logic(F%auto_scale_field_phase_default), c_logic(F%auto_scale_field_amp_default), &
-    c_logic(F%debug))
+    F%fatal_ds_adaptive_tracking, F%electric_dipole_moment, F%taylor_order, &
+    F%default_integ_order, F%ptc_max_fringe_order, c_logic(F%use_hard_edge_drifts), &
+    c_logic(F%sr_wakes_on), c_logic(F%lr_wakes_on), c_logic(F%mat6_track_symmetric), &
+    c_logic(F%auto_bookkeeper), c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), &
+    c_logic(F%spin_tracking_on), c_logic(F%radiation_damping_on), &
+    c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
+    c_logic(F%absolute_time_tracking_default), c_logic(F%auto_scale_field_phase_default), &
+    c_logic(F%auto_scale_field_amp_default), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -6037,12 +6037,12 @@ end subroutine bmad_common_to_c
 subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_step, &
     z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking, &
     z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, &
-    z_fatal_ds_adaptive_tracking, z_taylor_order, z_default_integ_order, &
-    z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, &
-    z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on, &
-    z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, &
-    z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, &
-    z_auto_scale_field_amp_default, z_debug) bind(c)
+    z_fatal_ds_adaptive_tracking, z_electric_dipole_moment, z_taylor_order, &
+    z_default_integ_order, z_ptc_max_fringe_order, z_use_hard_edge_drifts, z_sr_wakes_on, &
+    z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
+    z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
+    z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
+    z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, z_debug) bind(c)
 
 
 implicit none
@@ -6055,7 +6055,7 @@ logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_
 logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
 logical(c_bool) :: z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
-real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking
+real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
 integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
 
 call c_f_pointer (Fp, F)
@@ -6082,6 +6082,8 @@ F%init_ds_adaptive_tracking = z_init_ds_adaptive_tracking
 F%min_ds_adaptive_tracking = z_min_ds_adaptive_tracking
 !! f_side.to_f2_trans[real, 0, NOT]
 F%fatal_ds_adaptive_tracking = z_fatal_ds_adaptive_tracking
+!! f_side.to_f2_trans[real, 0, NOT]
+F%electric_dipole_moment = z_electric_dipole_moment
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%taylor_order = z_taylor_order
 !! f_side.to_f2_trans[integer, 0, NOT]
