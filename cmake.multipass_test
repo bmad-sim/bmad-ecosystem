@@ -1,8 +1,6 @@
 set (EXENAME multipass_test)
 
-set (SRC_FILES
-  multipass_test/multipass_test.f90
-)
+FILE (GLOB SRC_FILES "multipass_test/*.f90")
 
 set (INC_DIRS
 )
