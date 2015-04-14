@@ -12,7 +12,7 @@ alphab=0
 
 beginning[e_tot] = 5e9
 
-parameter[lattice_type] = linear_lattice
+parameter[geometry] = open
 
 
 rfw: lcavity, l = 0, gradient = 0.0, lr_wake_file="prstab2004.dat", lr_freq_spread=0.0E-3, rf_frequency = 1.3e9

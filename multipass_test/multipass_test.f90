@@ -15,8 +15,8 @@ open (1, file = 'output.now')
 ! Forking with a branch element
 
 call bmad_parser ('branch_fork.bmad', lat)
-call write_bmad_lattice_file ('lat.bmad', lat)
-call bmad_parser ('lat.bmad', lat)
+call write_bmad_lattice_file ('lat1.bmad', lat)
+call bmad_parser ('lat1.bmad', lat)
 
 ele => lat%branch(1)%ele(2)
 write (1, '(3a)')       '"BF-01"  STR  "', trim(ele%name), '"'
@@ -44,8 +44,8 @@ write (1, '(3a)') '"MS-13"  STR  "', trim(lat%ele(13)%name), '"'
 ! fiducial and flexible patch
 
 call bmad_parser ('patch.bmad', lat)
-call write_bmad_lattice_file ('lat.bmad', lat)
-call bmad_parser ('lat.bmad', lat)
+call write_bmad_lattice_file ('lat2.bmad', lat)
+call bmad_parser ('lat2.bmad', lat)
 
 write (1, '(a, f12.6)')  '"P-0S" ABS 0', lat%branch(1)%ele(0)%s
 write (1, '(a, es14.6)') '"P-0T" ABS 0', lat%branch(1)%ele(0)%ref_time
