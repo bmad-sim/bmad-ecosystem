@@ -671,6 +671,7 @@ call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,     'AUTO_SCAL
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,       'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,     'USE_HARD_EDGE_DRIFTS')
+call init_attribute_name1 (def_parameter$, electric_dipole_moment$,   'ELECTRIC_DIPOLE_MOMENT')
 call init_attribute_name1 (def_parameter$, ptc_max_fringe_order$,     'PTC_MAX_FRINGE_ORDER')
 call init_attribute_name1 (def_parameter$, default_tracking_species$, 'DEFAULT_TRACKING_SPECIES')
 

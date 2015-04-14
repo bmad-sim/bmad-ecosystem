@@ -483,12 +483,22 @@ if (.not. any(ele%tracking_method == [boris$, runge_kutta$, symp_lie_ptc$]) .and
 
 select case (method)
 case (bmad_standard$)
+  if (bmad_com%electric_dipole_moment /= 0) then
+    call out_io (s_fatal$, r_name, &
+          'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR BMAD_STANDARD TRACKING')
+    if (global_com%exit_on_error) call err_exit
+  endif
   call track1_spin_bmad (start_orb, ele, param, end_orb)
 
 case (custom$)
   call track1_spin_custom (start_orb, ele, param, end_orb, err)
 
 case (symp_lie_ptc$)
+  if (bmad_com%electric_dipole_moment /= 0) then
+    call out_io (s_fatal$, r_name, &
+          'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR BMAD_STANDARD TRACKING')
+    if (global_com%exit_on_error) call err_exit
+  endif
   call track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
 
 case (tracking$)
@@ -1002,7 +1012,7 @@ end subroutine lcav_edge_track
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function spin_omega_at (field, coord, ele), result (omega)
+! Function spin_omega (field, coord, ele), result (omega)
 !
 ! Return the modified T-BMT spin omega vector.
 !
@@ -1020,7 +1030,7 @@ end subroutine lcav_edge_track
 !   omega(3)   -- real(rp): Omega_TBMT/v_z in cartesian coordinates
 !-
 
-function spin_omega_at (field, coord, ele) result (omega)
+function spin_omega (field, coord, ele) result (omega)
 
 implicit none
 
@@ -1029,7 +1039,7 @@ type (coord_struct) :: coord
 type (ele_struct) :: ele
 
 real(rp) omega(3),  p_vec(3)
-real(rp) anomalous_moment, charge, m_particle, p_z, gamma0
+real(rp) anomalous_moment, charge, mc2, p_z, gamma0
 real(rp) e_particle, pc
 
 ! Want everything in units of eV
@@ -1041,22 +1051,28 @@ call convert_pc_to (pc, coord%species, E_tot = e_particle)
 
 anomalous_moment = anomalous_moment_of (coord%species)
 charge = charge_of(coord%species)
-m_particle = mass_of(coord%species)
-gamma0 = e_particle / m_particle
+mc2 = mass_of(coord%species)
+gamma0 = e_particle / mc2
 p_z = (ele%value(p0c$)/c_light) * sqrt((1 + coord%vec(6))**2 - coord%vec(2)**2 - coord%vec(4)**2)
 p_vec(1:2) = (ele%value(p0c$)/c_light)* [coord%vec(2), coord%vec(4)]
 p_vec(3) = p_z
 
 omega = (1 + anomalous_moment*gamma0) * field%B
 
-omega = omega - ( anomalous_moment*dot_product(p_vec,field%B) / &
-                  ((gamma0+1)*(m_particle**2/c_light**2)) )*p_vec
+omega = omega - p_vec * (anomalous_moment*dot_product(p_vec,field%B) / ((gamma0+1)*(mc2**2/c_light**2)))
 
-omega = omega - (1/m_particle) * (anomalous_moment + 1/(1+gamma0)) * cross_product(p_vec,field%E)
+omega = omega - (1/mc2) * (anomalous_moment + 1/(1+gamma0)) * cross_product(p_vec,field%E)
 
-omega = -(charge/p_z)*omega
+if (bmad_com%electric_dipole_moment /= 0) then
+  omega = omega - (gamma0 * bmad_com%electric_dipole_moment / (2 * c_light)) * &
+            (field%E - &
+             gamma0 * dot_product(p_vec, field%E) * field%E / ((1 + gamma0) * mc2) + &
+             c_light**2 * cross_product(p_vec, field%B))
+endif
 
-end function spin_omega_at
+omega = -(charge/p_z) * omega
+
+end function spin_omega
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

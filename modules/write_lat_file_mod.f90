@@ -179,6 +179,8 @@ endif
 if (bmad_com%use_hard_edge_drifts .neqv. bmad_com_default%use_hard_edge_drifts) &
             write (iu, '(a, l1)') 'parameter[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
 
+if (bmad_com%electric_dipole_moment /= 0) &
+            write (iu, '(a, l1)') 'parameter[electric_dipole_moment] = ', bmad_com%electric_dipole_moment
 
 ele => lat%ele(0) 
 

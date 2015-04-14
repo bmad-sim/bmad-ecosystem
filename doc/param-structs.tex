@@ -43,7 +43,7 @@ Section~\sref{s:bmad.params} the syntax is
 \index{space_charge_on}\index{coherent_synch_rad_on}
 \index{spin_tracking_on}\index{radiation_damping_on}
 \index{radiation_fluctuations_on}\index{be_thread_safe}
-\index{use_ptc_layout_default}\index{absolute_time_tracking_default}
+\index{absolute_time_tracking_default}
 \index{auto_scale_field_phase_default}\index{auto_scale_field_amp_default}
 
 Some overall parameters are stored in the \vn{bmad_common_struct}
@@ -76,7 +76,6 @@ this structure along with the default values are:
     logical radiation_fluctuations_on = F      ! Fluctuations toggle.
     logical conserve_taylor_maps = T           ! Enable bookkeeper to set
                                                ! ele%taylor_map_includes_offsets = F?
-    logical use_ptc_layout_default = F         ! Default for lat%use_ptc_layout
     logical absolute_time_tracking_default = F ! Default for lat%absolute_time_tracking
     logical auto_scale_field_phase_default = T ! Default for lat%auto_scale_field_phase
     logical auto_scale_field_amp_default = T   ! Default for lat%auto_scale_field_amp
@@ -185,11 +184,6 @@ Toggle to turn on or off effects due to radiation fluctuations in particle track
 Toggle to determine if the Taylor map for an element include any
 element ``misalignments''.  See Section~\sref{s:mapoff} for more
 details.
-
-\item[\vn{\%use_ptc_layout_default}] \Newline
-Default setting to be applied to a lattice if \vn{use_ptc_layout} is
-not specified in a lattice file.  This feature has not yet been
-implementd.
 
 \item[\vn{\%absolute_time_tracking_default}] \Newline
 Default setting to be applied to a lattice if

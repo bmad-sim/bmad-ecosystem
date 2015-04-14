@@ -93,6 +93,8 @@ enddo
 ! Write the lat structure to the digested file. We do this in pieces
 ! since the whole structure is too big to write in 1 statement.
 
+write (d_unit) bmad_com%electric_dipole_moment
+
 write (d_unit) &
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &

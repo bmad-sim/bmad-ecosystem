@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 150
+integer, parameter :: bmad_inc_version$ = 151
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -1043,7 +1043,7 @@ integer, parameter :: fatal_ds_adaptive_tracking$ = 90
 
 integer, parameter :: lr_wake_file$ = 81, alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82
-integer, parameter :: start_edge$  = 83, eta_y$ = 83
+integer, parameter :: start_edge$  = 83, eta_y$ = 83, electric_dipole_moment$ = 83
 integer, parameter :: end_edge$  = 84, etap_x$ = 84
 integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
@@ -1261,6 +1261,7 @@ type bmad_common_struct
   real(rp) :: init_ds_adaptive_tracking = 1e-3        ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1e-8       ! If actual step size is below this particle is lost.
+  real(rp) :: electric_dipole_moment = 0              ! Particle's EDM
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved
                                                       !   ptc_com%taylor_order_ptc gives actual order in use. 

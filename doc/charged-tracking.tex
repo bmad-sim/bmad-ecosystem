@@ -462,32 +462,46 @@ For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed fr
 
 \textit{\large [Spin dynamics initially developed by Jeff Smith]}
 
-The classical spin vector $\Bf S$ is described in the   
-local reference frame (\sref{s:ref}) by a
-modified Thomas-Bargmann-Michel-Telegdi (T-BMT) equation\cite{b:spin}
+The classical spin vector $\Bf S$ is described in the local reference
+frame (\sref{s:ref}) by a modified Thomas-Bargmann-Michel-Telegdi
+(T-BMT) equation\cite{b:spin}
 \Begineq
   \frac{\mathrm{d}}{\mathrm{d}s} \Bf S = 
   \left\{ \frac{(1+\Bf r_t \dotproduct \bfg) \, P}{v \, P_s} \, 
-  {\pmb\Omega}_{BMT} (\mathbf{r,P},s) - \bfg \times \bfhat z \right\} \times \mathbf{S}
+  \left( {\pmb\Omega}_{BMT} + {\pmb\Omega}_{EDM} \right) - 
+  \bfg \times \bfhat z \right\} \times \mathbf{S}
 \Endeq
 where $\bfg$ is the curvature function which points away from the
 center of curvature of the particle's orbit (see
 \fig{f:local.coords}), $\Bf r_t = (x, y)$ are the transverse
 coordinates, $P$ is the momentum, $P_s$ is the longitudinal momentum,
 $v$ is the velocity, $\bfhat z$ is the unit vector in the
-$z$-direction, and
+$z$-direction. $\pmb\Omega_{BMT}$ is the usual T-BMT precession vector
+due to the particle's magnetic moment and $\pmb\Omega_{EDM}$ is the
+precession vector due to a finite electric dipole moment (EDM) \cite{b:silenko}
 \Begineq
-  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) = - \frac{q}{m \gamma} \left[\left(1   
-  + G \gamma \right) \Bf B - \frac{G \Bf P \dotproduct \Bf B}{\left( \gamma   
-  + 1\right) m^{2} c^{2}} \Bf P - \frac{1}{m c^{2}}\left(G +   
-  \frac{1}{1 + \gamma}\right)\mathbf{ P \times  E}\right],   
-\Endeq  
+  {\pmb\Omega}_{BMT} (\mathbf{r,P},t) = 
+    - \frac{q}{m \gamma} \left[ 
+    \left(1 + G \gamma \right) \Bf B - 
+    \frac{G \, \Bf P \dotproduct \Bf B}{(1 + \gamma) \, m^2 \, c^2} \, \Bf P -
+    \frac{1}{m \, c^2} \left( G + \frac{1}{1 + \gamma} \right) \mathbf{P \times  E} 
+    \right]
+\Endeq
+and
+\Begineq
+  {\pmb\Omega}_{EDM} (\mathbf{r,P},t) = 
+  - \frac{q \, \eta}{2 \, m} \left[
+  \frac{1}{c} \, \Bf E - \frac{\gamma}{1 + \gamma} \, 
+  \frac{\Bf P \dotproduct \Bf E}{m \, c^3} \, \Bf P +
+  \frac{1}{m \, c} \, \mathbf{P \times B}
+  \right]
+\Endeq
 Here $\Bf E (\Bf r ,t)$ and $\Bf B (\Bf r ,t)$ are the electric and
 magnetic fields, $\gamma$ is the particle's relativistic gamma factor,
-$q$ and $m$ are the particle's charge and mass, and $G =
-\frac{\left(g-2\right)}{2}$ is the particle's anomalous gyro-magnetic
-g-factor which is $1.793$ for protons and $0.00116$ for electrons and
-positrons.
+$q$, $m$, and $\eta$ are the particle's charge, mass, and
+magnetic_moment, and $G = (g-2)/2$ is the particle's anomalous
+gyro-magnetic g-factor which is $1.793$ for protons and $0.00116$ for
+electrons and positrons.
    
 It is more efficient to use the SU(2) representation rather than SO(3) when   
 describing rotations of spin. In the SU(2) representation, a spin $\Bf s$ is   
