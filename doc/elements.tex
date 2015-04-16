@@ -3362,15 +3362,15 @@ with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term
 \end{example}
 will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
 
-The \vn{l} length attribute is not in any map calculation. \vn{l} can
-be used to set the longitudinal $s$ distance between the previous and
-next elements and a program can, for example, use \vn{l} to compute
-the time it takes to go through the element.
+The \vn{l} length attribute does not affect phase space cocordinates
+but will affect the longitudinal $s$ position of succeeding elements
+and will affect the time it takes a particle to track through the
+element.
 
 Example \vn{taylor} element definition:
 \begin{example}
-  tt: Taylor, \{4:  2.73, 0 0 2 0 0 1\}, &
-              \{2: .2.73, 2 0 0 0 0 1\}
+  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, &
+              \{2:  1.9, 2 0 0 0 0 1\}
 \end{example}
 
 %-----------------------------------------------------------------

@@ -1124,7 +1124,7 @@ if (ele%key == sbend$) then
     call set_integer (p%permfringe, pp%permfringe, 1)
   case (hard_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 1)
-  case (sad_soft_edge_only$)
+  case (soft_edge_only$)
     call set_integer (p%permfringe, pp%permfringe, 2)
   case (sad_full$)
     call set_integer (p%permfringe, pp%permfringe, 3)

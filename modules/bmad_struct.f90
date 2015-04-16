@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 151
+integer, parameter :: bmad_inc_version$ = 152
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -109,13 +109,12 @@ character(16), parameter :: aperture_type_name(0:7) = &
 ! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
 
 integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
-integer, parameter :: sad_soft_edge_only$ = 5, sad_full$ = 6, linear_edge$ = 7, basic_bend$ = 8
-integer, parameter :: n_non_bend_fringe_type$ = 4, test_edge$ = 9
+integer, parameter :: sad_full$ = 5, linear_edge$ = 6, basic_bend$ = 7, test_edge$ = 8
+integer, parameter :: n_non_bend_fringe_type$ = 4
 
-character(20), parameter :: fringe_type_name(0:9) = ['Garbage!          ', &
+character(20), parameter :: fringe_type_name(0:8) = ['Garbage!          ', &
                                'None              ', 'Soft_Edge_Only    ', 'Hard_edge_only    ', 'Full              ', &
-                               'SAD_Soft_Edge_Only', 'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', &
-                               'Test              ']
+                               'SAD_Full          ', 'Linear_Edge       ', 'Basic_Bend        ', 'Test              ']
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
 
@@ -134,7 +133,7 @@ type photon_reflect_table_struct
   real(rp), allocatable :: angle(:)              ! Vector of angle values for %p_reflect
   real(rp), allocatable :: energy(:)             ! Vector of energy values for %p_reflect
   type (interval1_coef_struct), allocatable :: int1(:)
-  real(rp), allocatable :: p_reflect(:,:) ! (angle, ev) Logarithm of smooth surface reflection probability
+  real(rp), allocatable :: p_reflect(:,:)        ! (angle, ev) Logarithm of smooth surface reflection probability
   real(rp) max_energy                            ! maximum energy for this table
   real(rp), allocatable :: p_reflect_scratch(:)       ! Scratch space
 end type

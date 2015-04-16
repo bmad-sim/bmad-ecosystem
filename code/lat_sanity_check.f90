@@ -149,7 +149,7 @@ do i_b = 0, ubound(lat%branch, 1)
 
     if (ele%key == sbend$ .or. ele%key == rbend$) then
       select case (nint(ele%value(fringe_type$)))
-      case (none$, soft_edge_only$, sad_soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$, test_edge$)
+      case (none$, soft_edge_only$, hard_edge_only$, full$, basic_bend$, sad_full$, linear_edge$, test_edge$)
       case default
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
