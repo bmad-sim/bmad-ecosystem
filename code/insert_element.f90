@@ -1,9 +1,12 @@
 !+
-! Subroutine Insert_Element (lat, insert_ele, insert_index, ix_branch)
+! Subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
 !
 ! Insert a new element into the tracking part of the lattice list.
 ! The existing elements from insert_index to n_ele_max get shoved up 1
 ! in the element array.
+!
+! Additionally, the length of an optional orbit array can be correspondingly increased
+! by addition of an element at the corresponding point in the orbit array.
 !
 ! Note: This routine is not for creating new control elements. For creating
 !   new control elements use the routine new_control.
@@ -18,12 +21,14 @@
 !     insert_ele   -- ele_struct: element to insert into the lat
 !     insert_index -- integer: lat index where the new element is inserted.
 !     ix_branch    -- Integer, optional :: branch index for the insertion. Default = 0.
+!     orbit(:)     -- coord_struct, optional, allocatable: orbit array to enlarge.
 !
 ! Output:
-!     lat -- lat_struct: lattice with new element inserted
+!     lat       -- lat_struct: lattice with new element inserted
+!     orbit(:)  -- coord_struct, optional, allocatable: Enlarged orbit array.
 !-
 
-subroutine insert_element (lat, insert_ele, insert_index, ix_branch)
+subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
 
 use bookkeeper_mod, except_dummy => insert_element
 
@@ -35,6 +40,7 @@ type (ele_struct), pointer :: inserted_ele, ele0, ele2
 type (branch_struct), pointer :: branch, branch2
 type (control_struct), pointer :: con
 type (lat_ele_loc_struct), pointer :: loc
+type (coord_struct), optional, allocatable :: orbit(:)
 
 integer insert_index, ix, ix_br, i, j
 integer, optional :: ix_branch
@@ -43,7 +49,7 @@ character(16), parameter :: r_name = 'insert_element'
 
 logical err_flag
 
-! transfer_ele is fast since it re reuse storage.
+! transfer_ele is fast since it reuses storage.
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
@@ -55,6 +61,14 @@ do ix = branch%n_ele_max-1, insert_index, -1
   call transfer_ele (branch%ele(ix), branch%ele(ix+1))
   branch%ele(ix+1)%ix_ele = ix+1
 enddo
+
+! Enlarge orbit array
+
+if (present(orbit)) then
+  call reallocate_coord(orbit, branch%n_ele_max)
+  orbit(insert_index+1:branch%n_ele_max) = orbit(insert_index:branch%n_ele_max-1)
+  orbit(insert_index) = coord_struct()
+endif
 
 ! branch%ele(insert_index) pointers need to be nullified since they now point to
 ! the same memory as branch%ele(insert_index+1)

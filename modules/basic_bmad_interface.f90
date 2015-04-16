@@ -249,13 +249,14 @@ interface
     integer, optional :: ix_multipass
   end subroutine
 
-  subroutine insert_element (lat, insert_ele, insert_index, ix_branch)
+  subroutine insert_element (lat, insert_ele, insert_index, ix_branch, orbit)
     import
     implicit none
     type (lat_struct) lat
     type (ele_struct) insert_ele
     integer insert_index
     integer, optional :: ix_branch
+    type (coord_struct), optional, allocatable :: orbit(:)
   end subroutine
 
   subroutine kill_ptc_layouts (lat)
