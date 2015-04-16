@@ -104,10 +104,9 @@ endif
 end_orb%s = ele%s
 end_orb%p0c = ele%value(p0c$)
 
-! If delta_ref_time has not been set then just assume that the particle has constant velocity.
+! Time change of particle
 
 dtime_ref = ele%value(delta_ref_time$)
-if (dtime_ref == 0) dtime_ref = ele%value(l$) / (end_orb%beta * c_light)
 
 if (ele%value(p0c$) == ele%value(p0c_start$)) then
   end_orb%t = start2_orb%t + dtime_ref + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)

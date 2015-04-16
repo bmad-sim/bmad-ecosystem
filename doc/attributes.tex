@@ -2232,7 +2232,6 @@ settings are:
   full
   linear_edge
   basic_bend        ! Default 
-  sad_soft_edge_only
   sad_full
 \end{example}
 The \vn{basic_bend} setting, which is the default, is essentially the
@@ -2254,19 +2253,23 @@ to define the symmetry of the fringe fields. Possible settings are:
   multipole_symmetry
 \end{example}
 \index{ptc_max_fringe_order}
-Additionally, when using PTC tracking (\sref{s:ptc.intro}), the
-\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the maximum
-order of the calculated fringe fields.
+The difference between \vn{x_invariant} and \vn{multipole_symmetry} is
+that with \vn{multipole_symmetry} the fringe field for an $n$\Th order
+multipole is assumed to have the same rotational symmetry as the
+multipole. With this assumption, the fringe field has $n+1$\St order
+terms.  With \vn{x_invariant}, the fringe field is calculated assuming
+that there is translational invariance along the horizontal $x$
+axis. This differes from \vn{multipole_symmetry} by adding terms of
+increasing order consistent with the translational invariance. See
+Etienne Forest's book\cite{b:forest} for more details. Which setting
+of \vn{ptc_fringe_geometry} is appropriate depends upon how the dipole
+under consideration is constructed. The two settings of
+\vn{ptc_fringe_geometry} represent two points of a continuum of
+possible fringe field geometries.
 
-The difference between \vn{full_bend} and \vn{full_straight} is that
-with \vn{full_straight} the fringe field is assumed to have the
-perfect symmetry of the multipole. At the bend edge, Maxwell's
-equations leads to next order terms with the same symmetry of the
-multipole. With \vn{full_bend}, the fringe field is calculated
-assuming that there is translational invariance along the horizontal
-$x$ axis. This differes from \vn{full_straight} by adding an infinite
-number of multipoles consistent with the dipole symmetry. See Etienne
-Forest's book\cite{b:forest} for more details.
+Additionally, when using PTC tracking (\sref{s:ptc.intro}), the
+\vn{parameter[ptc_max_fringe_order]} (\sref{s:param}) determines the
+maximum order of the calculated fringe fields.
 
 Example:
 \begin{example}

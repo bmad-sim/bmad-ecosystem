@@ -3280,7 +3280,7 @@ if (ele%key == sbend$) then
     ptc_key%list%permfringe = 1
   case (hard_edge_only$)
     ptc_key%list%permfringe = 1
-  case (sad_soft_edge_only$)
+  case (soft_edge_only$)
     ptc_key%list%permfringe = 2
   case (sad_full$)
     ptc_key%list%permfringe = 3
