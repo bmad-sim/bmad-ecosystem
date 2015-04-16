@@ -2269,7 +2269,7 @@ endif
 ! Convert to PTC coordinates
 if (logic_option(.false., make_matrix)) then 
   call vec_bmad_to_ptc(orb%vec, beta0, X, mat6_int)
-  mat6 = mat6_int
+  mat6 = matmul(mat6_int, mat6)
 else
   call vec_bmad_to_ptc(orb%vec, beta0, X)
 end if
@@ -2297,7 +2297,7 @@ if (particle_at == first_track_edge$) then
     orb%state = lost_z_aperture$
     return
   endif
-  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
@@ -2313,7 +2313,7 @@ if (particle_at == first_track_edge$) then
     orb%state = lost_z_aperture$
     return
   endif
-  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
 else if (particle_at == second_track_edge$) then
   ! Backtrack
@@ -2322,7 +2322,7 @@ else if (particle_at == second_track_edge$) then
     orb%state = lost_z_aperture$
     return
   endif
-  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
   ! Edge kick
   call ptc_fringe_dipoler(X, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
@@ -2330,7 +2330,7 @@ else if (particle_at == second_track_edge$) then
     orb%state = lost_z_aperture$
     return
   endif
-  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
   ! Drift forward
   call ptc_wedger(edge_angle, 0.0_rp, beta0, X, err_flag, mat6_int, make_matrix)
@@ -2338,7 +2338,7 @@ else if (particle_at == second_track_edge$) then
     orb%state = lost_z_aperture$
     return
   endif
-  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+  if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
 else
   !error!
@@ -2347,7 +2347,7 @@ endif
 
 ! Convert back to bmad coordinates
 call vec_ptc_to_bmad (X, beta0, orb%vec, mat6_int)
-if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int,mat6)
+if (logic_option(.false., make_matrix)) mat6 = matmul(mat6_int, mat6)
 
 ! Correct time
 orb%t = orb%t + (X(6) - ct)/c_light
