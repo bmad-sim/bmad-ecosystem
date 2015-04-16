@@ -13,6 +13,12 @@
 cmake_policy (SET CMP0015 NEW)
 
 
+#-----------------------------------------------------------
+# Disable the inclusion of RPATH from the Acc Build System
+#-----------------------------------------------------------
+SET (CMAKE_SKIP_RPATH TRUE)
+
+
 #------------------------------------------
 # Honor requests for compiling with openmp
 # made via environment variable.
