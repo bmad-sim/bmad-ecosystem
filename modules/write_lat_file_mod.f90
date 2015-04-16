@@ -1399,7 +1399,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+ 
-! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, &
+! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
 !                           use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
 !
 ! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
@@ -1408,11 +1408,8 @@ end subroutine
 ! Also see: write_bmad_lattice_file
 !
 ! NOTE: When translating to XSIF or MAD: sad_mult and patch element are translated
-!  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the referece orbit
-!  used to construct the 2nd order map is taked to be the reference orbit that was used to
-!  construct the element's transfer matrix. Thus, if the lattice contains sad_mult or patch
-!  elements, and the lattice is being translated to XSIF or MAD, it is important that before 
-!  this routine is called, the transfer matrices for the elements be constructed around the closed orbit.
+!  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
+!  used as the reference orbit for construction of the 2nd order map.
 !
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
@@ -1421,26 +1418,28 @@ end subroutine
 !   use write_lat_file_mod
 !
 ! Input:
-!   out_type      -- Character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
-!   out_file_name -- Character(*): Name of the mad output lattice file.
+!   out_type      -- character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
+!   out_file_name -- character(*): Name of the mad output lattice file.
 !   lat           -- lat_struct: Holds the lattice information.
+!   ref_orbit(0:) -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
+!                      This argument must be present if the lattice has sad_mult or patch elements.
 !   use_matrix_model
-!                 -- Logical, optional: Use a drift-matrix_drift model for wigglers
+!                 -- logical, optional: Use a drift-matrix_drift model for wigglers
 !                       and sol_quad elements? Default is False.
-!   ix_start      -- Integer, optional: Starting index of lat%ele(i)
+!   ix_start      -- integer, optional: Starting index of lat%ele(i)
 !                       used for output.
-!   ix_end        -- Integer, optional: Ending index of lat%ele(i)
+!   ix_end        -- integer, optional: Ending index of lat%ele(i)
 !                       used for output.
 !   ix_branch     -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
-!   converted_lat -- Lat_struct, optional: Equivalent Bmad lattice with wiggler and 
+!   converted_lat -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
 !                       sol_quad elements replaced by their respective models.
 !                       This is only valid for MAD-8, MAD-X, and XSIF conversions.
-!   err           -- Logical, optional: Set True if, say a file could not be opened.
+!   err           -- logical, optional: Set True if, say a file could not be opened.
 !-
 
-subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, &
+subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
                           use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
 
 implicit none
@@ -1449,6 +1448,8 @@ type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
+type (coord_struct), allocatable, optional :: ref_orbit(:)
+type (coord_struct), allocatable :: orbit_out(:)
 type (taylor_term_struct) :: term
 type (branch_struct), pointer :: branch, branch_out
 
@@ -1550,6 +1551,10 @@ call out_io (s_info$, r_name, &
 
 lat_out = lat
 branch_out => lat_out%branch(branch%ix_branch)
+
+call reallocate_coord(orbit_out, size(ref_orbit))
+orbit_out = ref_orbit
+
 j_count = 0    ! drift around solenoid or sol_quad index
 t_count = 0    ! taylor element count.
 a_count = 0    ! Aperture count
@@ -1601,7 +1606,7 @@ do
         s_count = s_count + 1
         write (null_ele%name, '(a, i0)') 'SOL_', s_count  
         null_ele%value(bs_field$) = bs_field
-        call insert_element (lat_out, null_ele, ix_ele, branch%ix_branch)
+        call insert_element (lat_out, null_ele, ix_ele, branch%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
         if (old_bs_field == 0 .or. bs_field == 0) sol_ele%value(bound$) = 1
         ie2 = ie2 + 1
@@ -1628,7 +1633,7 @@ do
     if (ele%key == patch$ .and. val(z_offset$) /= 0) then
       drift_ele%name = 'DRIFT_' // ele%name
       drift_ele%value(l$) = val(z_offset$)
-      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch)
+      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch, orbit_out)
       ix_ele = ix_ele + 1
       ele => branch_out%ele(ix_ele)
       val => ele%value
@@ -1697,11 +1702,11 @@ do
         val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
         aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
         if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele+1, branch%ix_branch)
+          call insert_element (lat_out, col_ele, ix_ele+1, branch%ix_branch, orbit_out)
           ie2 = ie2 + 1
         endif
         if (aperture_at == both_ends$ .or. aperture_at == upstream_end$ .or. aperture_at == continuous$) then
-          call insert_element (lat_out, col_ele, ix_ele, branch%ix_branch)
+          call insert_element (lat_out, col_ele, ix_ele, branch%ix_branch, orbit_out)
           ie2 = ie2 + 1
         endif
         ix_ele = ix_ele - 1 ! Want to process the element again on the next loop.
@@ -1720,8 +1725,8 @@ do
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
     kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
-    call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch)
-    call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch)
+    call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
+    call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
     ie2 = ie2 + 2
     cycle
   endif
@@ -1738,8 +1743,8 @@ do
       if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
       write (ab_ele%name,   '(a, i0)') 'MULTIPOLE_Z', j_count
-      call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch)
-      call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch)
+      call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
     endif
@@ -1755,8 +1760,8 @@ do
       kicker_ele%value(hkick$) = val(hkick$) / 2
       kicker_ele%value(vkick$) = val(vkick$) / 2
       val(hkick$) = 0; val(vkick$) = 0
-      call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch)
-      call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch)
+      call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
     endif
@@ -1782,9 +1787,9 @@ do
       drift_ele%value(l$) = val(l$) / 2
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
-      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch)
-      call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch)
-      call insert_element (lat_out, drift_ele, ix_ele+2, branch%ix_branch)
+      call insert_element (lat_out, drift_ele, ix_ele, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch, orbit_out)
+      call insert_element (lat_out, drift_ele, ix_ele+2, branch%ix_branch, orbit_out)
       ie2 = ie2 + 2
       cycle
 
@@ -1823,7 +1828,7 @@ do
       ele%key = -1 ! Mark for deletion
       call remove_eles_from_lat (lat_out)
       do j = 1, lat_model%n_ele_track
-        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch%ix_branch)
+        call insert_element (lat_out, lat_model%ele(j), ix_ele+j-1, branch%ix_branch, orbit_out)
       enddo
       ie2 = ie2 + lat_model%n_ele_track - 1
       cycle
@@ -1844,7 +1849,7 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
     write (null_ele%name, '(a, i0)') 'SOL_', s_count  
     null_ele%value(bs_field$) = bs_field
     ie2 = ie2 + 1
-    call insert_element (lat_out, null_ele, ie2, branch%ix_branch)
+    call insert_element (lat_out, null_ele, ie2, branch%ix_branch, orbit_out)
     ele => branch_out%ele(ie2)
   endif
 
@@ -2289,11 +2294,18 @@ do ix_ele = ie1, ie2
   case (taylor$, sad_mult$, patch$)
 
     if (.not. associated (ele%taylor(1)%term)) then
-      call ele_to_taylor (ele, branch%param, ele%taylor, ele%map_ref_orb_in, .true.)
+      if (.not. present(ref_orbit)) then
+        call out_io (s_error$, r_name, &
+                      'ORBIT ARGUMENT NEEDS TO BE PRESENT WHEN TRANSLATING', &
+                      'A LATTICE WITH A SAD_MULT OR PATCH ELEMENT')           
+        cycle
+      endif
+      call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele), .true.)
     endif
 
     line_out = trim(ele%name) // ': matrix'
     warn_printed = .false.
+    call value_to_line (line_out, ele%value(l$), 'l', 'es13.5', 'R')
     do i = 1, 6
       do k = 1, size(ele%taylor(i)%term)
         term = ele%taylor(i)%term(k)
