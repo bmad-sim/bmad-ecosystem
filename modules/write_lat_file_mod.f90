@@ -1411,6 +1411,10 @@ end subroutine
 !  to a XSIF/MAD matrix element (which is a 2nd order map). In this case, the ref_orbit orbit is
 !  used as the reference orbit for construction of the 2nd order map.
 !
+! If a sad_mult or patch element is translated to a matrix element, and the referece orbit
+! is non-zero, the calculation must use 2nd order maps thourghout in order to avoid "feed down".
+! If the PTC map order is different from 2, PTC will be temperarily switched to 2. 
+!
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
@@ -1460,8 +1464,8 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
 integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, n_name_warn_max
-integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo
-integer :: ix_line_min = 70, ix_line_max = 90
+integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo, n_taylor_order_saved
+integer :: ix_line_min, ix_line_max
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer, parameter :: bound$ = custom_attribute1$, geo$ = custom_attribute2$
 
@@ -1480,6 +1484,7 @@ logical parsing, warn_printed, converted
 ! open file
 
 if (present(err)) err = .true.
+n_taylor_order_saved = ptc_com%taylor_order_ptc
 
 iu = lunget()
 call fullfilename (out_file_name, line)
@@ -1895,7 +1900,7 @@ do ix_ele = ie1, ie2
 
   if (out_type == 'XSIF') then
     if (ele%key == elseparator$) ele%key = drift$  ! XSIF does not have elsep elements.
-    call out_io (s_info$, r_name, 'Elseparator being converted into a drift: ' // ele%name)  
+    call out_io (s_info$, r_name, 'Elseparator being converted into a drift for XSIF conversion: ' // ele%name)  
   endif
 
   ! do not make duplicate specs
@@ -2300,6 +2305,10 @@ do ix_ele = ie1, ie2
                       'A LATTICE WITH A SAD_MULT OR PATCH ELEMENT')           
         cycle
       endif
+      if (any(orbit_out(ix_ele)%vec /= 0) .and. ptc_com%taylor_order_ptc /= 2) then
+        call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
+        call set_ptc (taylor_order = 2) 
+      endif
       call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele), .true.)
     endif
 
@@ -2320,8 +2329,13 @@ do ix_ele = ie1, ie2
           elseif (out_type == 'XSIF') then
             write (str, '(a, 2i0)') 'r', i, j
           endif
-          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
-          
+
+          if (j == i) then
+            call value_to_line (line_out, term%coef, str, 'es13.5', 'R', .false.)
+          else
+            call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+          endif
+
         case (2)
           j = maxloc(term%expn, 1)
           term%expn(j) = term%expn(j) - 1
@@ -2344,17 +2358,6 @@ do ix_ele = ie1, ie2
           endif  
         end select
       enddo
-
-      if (ele%mat6(i,i) == 0) then
-        if (out_type == 'MAD-8') then
-          write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', i, ')'
-        elseif (out_type == 'MAD-X') then
-          write (str, '(a, 2i0)') 'rm', i, i
-        elseif (out_type == 'XSIF') then
-          write (str, '(a, 2i0)') 'r', i, i
-        endif
-        call value_to_line (line_out, 0.0_rp, str, 'es13.5', 'R')
-      endif
 
     enddo
 
@@ -2614,6 +2617,7 @@ endif
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
 
+if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
 
 !------------------------------------------------------------------------
 contains
