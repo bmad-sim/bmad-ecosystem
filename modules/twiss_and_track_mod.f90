@@ -23,7 +23,9 @@ use geometry_mod
 ! Note: This is not necessarily the fastest way to do things since this
 ! routine does the entire calculation from scratch.
 !
-! For a circular ring the computed orbit will be the closed orbit.
+! For a circular ring: If the RF is on, the computed orbit will be the 6D closed orbit.
+! If the RF is off, the 4D transverse closed orbit using orbi(0)%vec(6) is computed.
+!
 ! For an open lattice, the orbit will be computed using orb(0) as 
 ! starting conditions.
 !
@@ -182,8 +184,13 @@ if (branch%param%geometry == closed$) then
   call lat_make_mat6 (lat, -1, ix_branch = ix_branch)
   call twiss_at_start (lat, status)
   if (status /= ok$) return
-  call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  if (rf_is_on(branch)) then
+    call closed_orbit_calc (lat, orb, 6, err_flag = err)
+  else
+    call closed_orbit_calc (lat, orb, 4, err_flag = err)
+  endif
   if (err) return
+
 else
   do i = 1, branch%n_ele_track
     if (branch%ele(i)%key == match$ .and. branch%ele(i)%value(match_end$) /= 0) then

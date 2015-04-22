@@ -1463,9 +1463,9 @@ real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
-integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, n_name_warn_max
-integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, sad_geo, n_taylor_order_saved
-integer :: ix_line_min, ix_line_max
+integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match
+integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, sad_geo, n_taylor_order_saved
+integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
 integer, parameter :: bound$ = custom_attribute1$, geo$ = custom_attribute2$
 
@@ -1573,6 +1573,7 @@ branch_out%ele%value(bound$) = 0
 sad_geo = 0
 old_bs_field = 0
 n_name_change_warn = 0
+n_elsep_warn = 0
 ix_ele = ie1 - 1
 
 do 
@@ -1666,10 +1667,9 @@ do
     ele%name(j:j) = '_'
   enddo
 
-  n_name_warn_max = 10
-  if (ele%name /= orig_name .and. n_name_change_warn <= n_name_warn_max) then
+  if (ele%name /= orig_name .and. n_name_change_warn <= n_warn_max) then
     call out_io (s_info$, r_name, 'Element name changed from: ' // trim(orig_name) // ' to: ' // ele%name)
-    if (n_name_change_warn == n_name_warn_max) call out_io (s_info$, r_name, &
+    if (n_name_change_warn == n_warn_max) call out_io (s_info$, r_name, &
                            'Enough name change warnings. Will stop issuing them now.')
     n_name_change_warn = n_name_change_warn + 1
   endif
@@ -1899,8 +1899,11 @@ do ix_ele = ie1, ie2
   val => ele%value
 
   if (out_type == 'XSIF') then
-    if (ele%key == elseparator$) ele%key = drift$  ! XSIF does not have elsep elements.
-    call out_io (s_info$, r_name, 'Elseparator being converted into a drift for XSIF conversion: ' // ele%name)  
+    if (ele%key == elseparator$) then 
+      n_elsep_warn = n_elsep_warn + 1
+      ele%key = drift$  ! XSIF does not have elsep elements.
+      call out_io (s_info$, r_name, 'Elseparator being converted into a drift for XSIF conversion: ' // ele%name)  
+    endif
   endif
 
   ! do not make duplicate specs
