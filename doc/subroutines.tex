@@ -358,6 +358,24 @@ Routine to print to the terminal for command line type programs.
 The idea is that for programs with a gui this routine can be easily
 replaced with another routine.
 
+\index[routine]{out_io_called}
+\label{r:out.io.called}
+\item[out_io_called (level, routine_name)] \Newline 
+Dummy routine for linker.
+See out_io for more details.
+
+\index[routine]{out_io_end}
+\label{r:out.io.end}
+\item[out_io_end ()] \Newline 
+Dummy routine for linker.
+See out_io for more details.
+
+\index[routine]{out_io_line}
+\label{r:out.io.line}
+\item[out_io_line (line)] \Newline 
+Dummy routine for linker.
+See out_io for more details.
+
 \index[routine]{read_a_line}
 \label{r:read.a.line}
 \item[read_a_line (prompt, line_out, trim_prompt)] \Newline 
@@ -793,7 +811,7 @@ This routine uses the mrqmin nonlinear optimizer to vary the parameters in the w
 
 \index[routine]{insert_element}
 \label{r:insert.element}
-\item[insert_element (lat, insert_ele, insert_index, ix_branch)] \Newline
+\item[insert_element (lat, insert_ele, insert_index, ix_branch, orbit)] \Newline
 Routine to Insert a new element into the tracking part of the 
 lat structure. 
 
@@ -1105,6 +1123,11 @@ A multi_lord will be found for:
 \item[pointer_to_slave (lord, ix_slave, ix_control) result (slave_ptr)] \Newline 
 Function to point to a slave of a lord.
 
+\index[routine]{rf_is_on}
+\label{r:rf.is.on}
+\item[rf_is_on (branch) result (is_on)] \Newline 
+Routine to check if any rfcavity is powered in a branch.
+
 \index[routine]{type_ele}
 \label{r:type.ele}
 \item[\protect\parbox{6in}{type_ele (ele, type_zero_attrib, type_mat6, type_taylor, \\
@@ -1361,7 +1384,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
-\item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, \\
+\item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit \\
   \hspace*{1in} use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
@@ -2657,6 +2680,11 @@ Function to return the angle between two spin vectors in polar coordinates.
 \label{r:quaternion.track}
 \item[quaternion_track (a, spin)] \Newline
 Subroutine to track the spin with the Euler four-vector quaternion a.
+
+\index[routine]{spin_omega}
+\label{r:spin.omega}
+\item[spin_omega (field, coord, ele), result (omega)] \Newline 
+Return the modified T-BMT spin omega vector.
 
 \index[routine]{track1_spin}
 \label{r:track1.spin}

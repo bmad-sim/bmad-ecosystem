@@ -458,6 +458,13 @@ for an \vn{sbend} gives a wedge shaped magnet (\fig{f:bend}b).
 An \vn{sbend} with an \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent 
 to an \vn{rbend} with \vn{e1} = \vn{e2} = 0 (see above).
 This formula holds for both positive and negative angles.
+
+Note: The correspondence between \vn{e1} and \vn{e2} and the
+corresponding SAD parameters is:
+\begin{example}
+  e1(Bmad) =  e1(SAD) * angle + ae1(SAD)
+  e2(Bmad) =  e2(SAD) * angle + ae2(SAD)
+\end{example}
   \index{fint}\index{fintx}\index{hgapx}\index{hgapx}
   \item[fint, fintx, \Newline hgap, hgapx] \Newline
 The field integrals for the entrance and
