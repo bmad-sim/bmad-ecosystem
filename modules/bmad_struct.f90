@@ -857,9 +857,8 @@ integer, parameter :: sextupole$ = 5, overlay$ = 6, custom$ = 7, taylor$ = 8
 integer, parameter :: rfcavity$ = 9
 integer, parameter :: elseparator$ = 10, beambeam$ = 11, wiggler$ = 12
 integer, parameter :: sol_quad$ = 13, marker$ = 14, kicker$ = 15
-integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18
-integer, parameter :: multipole$ = 19, key_dummy$ = 20
-integer, parameter :: def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
+integer, parameter :: hybrid$ = 16, octupole$ = 17, rbend$ = 18, multipole$ = 19
+integer, parameter :: def_bmad_com$ = 20, def_mad_beam$ = 21, ab_multipole$ = 22, solenoid$ = 23
 integer, parameter :: patch$ = 24, lcavity$ = 25, def_parameter$ = 26
 integer, parameter :: null_ele$ = 27, beginning_ele$ = 28, line_ele$ = 29
 integer, parameter :: match$ = 30, monitor$ = 31, instrument$ = 32
@@ -870,12 +869,12 @@ integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_source$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, def_bmad_com$ = 57
+integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56
 !!! rel_controller$ = , abs_controller$ = 
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 57
+integer, parameter :: n_key$ = 56
 character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
@@ -890,8 +889,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_SOURCE     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
-    'DEF_BMAD_COM     ']
+    'X_RAY_SOURCE     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

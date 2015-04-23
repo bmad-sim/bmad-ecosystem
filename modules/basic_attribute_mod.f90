@@ -2,6 +2,8 @@ module basic_attribute_mod
 
 use equal_mod
 
+implicit none
+
 ! attrib_array(key, ix_param)%type gives the type of the attribute.
 ! This may be one of:
 !   does_not_exist$ -- Does not exist.
@@ -26,28 +28,28 @@ logical, private, save :: attribute_array_init_needed = .true.
 logical, private, save :: has_orientation_attributes_key(n_key$)
 private init_short_attrib_array
 
-contains
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
 !+             
-! Function attribute_index (ele, name, full_name) result (attrib_index)
+! Function attribute_index (...) result (attrib_index)
 !
 ! Function to return the index of a attribute for a given BMAD element type
 ! and the name of the attribute. Abbreviations are permitted but must be at 
 ! least 3 characters.
 !
+! This routine is an overloaded name for:
+!   attribute_index1 (ele, name, full_name) result (attrib_index)
+!   attribute_index2 (key, name, full_name) result (attrib_index)
+!
 ! Note:
-!   If ele%key = key_dummy$ -> Entire name table will be searched.
+!   If ele%key or key = 0 -> Entire name table will be searched.
 !
 ! Modules Needed:
 !   use bmad
 !
 ! Input:
-!   ele  -- Ele_struct: attribute_index will restrict the name search to 
-!             valid attributes of the given element. 
-!   name -- Character(40): Attribute name. Must be uppercase.
+!   ele     -- Ele_struct: attribute_index will restrict the name search to 
+!                valid attributes of the given element. 
+!   key     -- Integer: Equivalent to ele%key.
+!   name    -- Character(40): Attribute name. Must be uppercase.
 !
 ! Output:
 !   full_name    -- Character(40), optional: Non-abbreviated name.
@@ -61,11 +63,45 @@ contains
 !     ix -> k1$
 !-
 
-function attribute_index (ele, name, full_name) result (attrib_index)
+interface attribute_index
+  module procedure attribute_index1
+  module procedure attribute_index2
+end interface
 
-implicit none
+contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+             
+! Function attribute_index1 (ele, name, full_name) result (attrib_index)
+!
+! Overloaded by attribute_index. See attribute_index for more details 
+!-
+
+function attribute_index1 (ele, name, full_name) result (attrib_index)
 
 type (ele_struct) ele
+integer attrib_index
+character(*) name
+character(*), optional :: full_name
+
+!
+
+attrib_index = attribute_index2 (ele%key, name, full_name)
+
+end function attribute_index1
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+             
+! Function attribute_index1 (key, name, full_name) result (attrib_index)
+!
+! Overloaded by attribute_index. See attribute_index for more details 
+!-
+
+function attribute_index2 (key, name, full_name) result (attrib_index)
 
 integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev
 integer attrib_index
@@ -74,12 +110,9 @@ character(*) name
 character(*), optional :: full_name
 character(40) name40
 
-!-----------------------------------------------------------------------
-
 if (attribute_array_init_needed) call init_attribute_name_array
 
 name40 = name           ! make sure we have 40 characters
-key = ele%key
 attrib_index = 0        ! match not found
 if (present(full_name)) full_name = ''
 
@@ -93,7 +126,7 @@ n_abbrev = 0            ! number of abbreviation matches.
 
 ! Overlay attribute must be real except for TYPE, ALIAS, and DESCRIP
 
-if (key == overlay$ .or. key == key_dummy$) then
+if (key == overlay$ .or. key == 0) then
   if (key == overlay$ .and. attribute_type(name40) /= is_real$ .and. &
       name40 /= 'TYPE' .and. name40 /= 'ALIAS' .and. name40 /= 'DESCRIP') return
   do k = 1, n_key$
@@ -138,7 +171,7 @@ endif
 
 if (n_abbrev == 1) attrib_index = ix_abbrev
 
-end function attribute_index 
+end function attribute_index2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -172,8 +205,6 @@ end function attribute_index
 !-
 
 function attribute_name (ele, ix_att) result (attrib_name)
-
-implicit none
 
 type (ele_struct) ele
 integer i, key, ix_att
@@ -239,8 +270,6 @@ end function attribute_name
 
 function attribute_info (ele, ix_att) result (attrib_info)
 
-implicit none
-
 type (ele_struct) ele
 type (ele_attribute_struct) attrib_info
 integer i, key, ix_att
@@ -280,8 +309,6 @@ end function attribute_info
 
 subroutine init_attribute_name_array ()
 
-implicit none
-
 type (photon_surface_struct) surface
 integer i, j, num, ix, iy
 character(40) word
@@ -292,7 +319,6 @@ if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key$
 
-  if (i == key_dummy$) cycle
   if (i == def_bmad_com$) cycle
 
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
@@ -336,11 +362,11 @@ do i = 1, n_key$
   end select
 
   if (i == hybrid$)         cycle
-  if (i == def_mad_beam$)       cycle
+  if (i == def_mad_beam$)   cycle
   if (i == def_parameter$)  cycle
   if (i == def_beam_start$) cycle
-  if (i == beginning_ele$) cycle
-  if (i == line_ele$)     cycle
+  if (i == beginning_ele$)  cycle
+  if (i == line_ele$)       cycle
 
   call init_attribute_name1 (i, type$,      'TYPE')
   call init_attribute_name1 (i, alias$,     'ALIAS')
@@ -1183,8 +1209,6 @@ end subroutine init_attribute_name_array
 
 subroutine init_short_attrib_array (ix_key)
 
-implicit none
-
 integer ix_key, num, j
 
 !
@@ -1224,8 +1248,6 @@ end subroutine init_short_attrib_array
 !-
 
 subroutine init_attribute_name1 (ix_key, ix_attrib, name, attrib_state, override)
-
-implicit none
 
 integer ix_key, ix_attrib
 character(*) name
@@ -1273,8 +1295,6 @@ end subroutine init_attribute_name1
 
 function has_orientation_attributes (ele) result (has_attribs)
 
-implicit none
-
 type (ele_struct) ele
 logical has_attribs
 
@@ -1319,8 +1339,6 @@ end function has_orientation_attributes
 !-
 
 function attribute_type (attrib_name) result (attrib_type)
-
-implicit none
 
 character(*) attrib_name
 integer attrib_type
@@ -1388,8 +1406,6 @@ end function attribute_type
 
 function corresponding_tot_attribute_index (ele, ix_attrib) result (ix_tot_attrib)
 
-implicit none
-
 type (ele_struct) ele
 integer ix_attrib, ix_tot_attrib
 character(40) a_name
@@ -1439,8 +1455,6 @@ end function corresponding_tot_attribute_index
 !-
 
 function is_a_tot_attribute (ele, ix_attrib) result (is_a_tot_attrib)
-
-implicit none
 
 type (ele_struct) ele
 integer ix_attrib
@@ -1493,8 +1507,6 @@ end function is_a_tot_attribute
 !-
 
 function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default) result (attrib_val_name)
-
-implicit none
 
 type (ele_struct) :: ele
 type (ele_struct) ele2
@@ -1698,7 +1710,6 @@ end function switch_attrib_value_name
 
 function n_attrib_string_max_len () result (max_len)
 
-implicit none
 integer max_len
 integer, save :: max_length = 0
 
@@ -1727,8 +1738,6 @@ end function
 !-
 
 function ele_has (ele, attrib) result (has_it)
-
-implicit none
 
 type (ele_struct) ele
 character(*) attrib
