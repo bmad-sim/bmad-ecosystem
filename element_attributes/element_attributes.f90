@@ -60,7 +60,6 @@ n_used = 0
 do ik = 1, n_key$
   i = key_indx(ik)
   if (i == overlay$) cycle
-  if (i == key_dummy$) cycle
   write (1, *) '!---------------------------------'
   write (1, '(i3, 2x, a)') i, key_name(i)
   ele%key = i
@@ -94,7 +93,6 @@ do i = 1, a0$
   write (1, '(a, i0)') 'Index: ', i
   do j = 1, n_key$
     if (j == overlay_lord$) cycle
-    if (i == key_dummy$) cycle
     ele%key = j
     attrib = attribute_info(ele, i)
     if (attrib%name == null_name$) cycle
@@ -117,7 +115,6 @@ n_char = 0
 do n = 1, n_key$
   i = key_indx(n)
   if (i == overlay$) cycle
-  if (i == key_dummy$) cycle
 
   it = it + 1
   table(it)%name = key_name(i)

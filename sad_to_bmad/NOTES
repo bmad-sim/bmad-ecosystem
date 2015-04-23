@@ -1,10 +1,22 @@
+    if head == 'fshift': print ('Fshift: ' + sad_info.)
+
+
+How to translate: 
+
+The translation script is:
+  sad_to_bmad.py
+
+To get help on the syntax of the command line arguments for this
+script just run the script with no arguments.
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
 Known Translation Limitations (at the present time):
 
 CAVI: 
-  Translated to rfcavity. Therefore does not handle accelerating cavities.
   Parameters not translated: 
-		V1, V20, V11, V02
-		DISFRIN, FRINGE
+    V1, V20, V11, V02
+    DISFRIN, FRINGE
     DPHI
 
 Misalignments in SOL element with GEO = 1 not yet implemented.
@@ -32,7 +44,8 @@ if not, run the lattice through SAD to generate a lattice with them.
 
 'end' is a reserved bmad element name. If used in the lattice file, 'end_ele' will be substituted.
 
----------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
 What to do if translation fails:
 
 Multiple "use" statements may confuse the translator. Remove unused use statements in case of trouble.

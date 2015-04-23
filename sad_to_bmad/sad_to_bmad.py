@@ -33,6 +33,7 @@ class sad_info_struct:
     self.ele_list = OrderedDict()
     self.param_list = OrderedDict()
     self.var_list = OrderedDict()
+    self.ds_lat = 0.0
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
@@ -50,14 +51,25 @@ def add_units (line):
 def print_help():
   print (''' \
 Syntax: 
-  sad_to_bmad.py {-open} {-closed} {-ignore_marker_offsets} {-include <bmad_header_file>} <input-sad-file>
+  sad_to_bmad.py {-open} {-closed} {-ignore_marker_offsets} {-no_fshift} {-include <bmad_header_file>} <input-sad-file>
 
 Options:
   -open                   # Put "parameter[geometry] = open" line in the bmad lattice file
+
   -closed                 # Put "parameter[geometry] = closed" line in the bmad lattice file
+
+  -no_fshift              # In tracking, SAD puts a z-shift to shift a particle's z-position through
+                          #   every element. This is done so that the closed orbit will have pz
+                          #   approximately zero (pz shifts would show up in SuperKEKB where the
+                          #   reference orbit is through the center of the solenoid but the
+                          #   on-energy particle orbit is displaced due to the crossing angle). 
+                          #   Normally, Bmad patch elements are inserted just before RF cavities to mimic this.
+                          #   If -no_fshift is present, these patch elements are not inserted.
+
   -ignore_marker_offsets  # SAD mark elements which have an offset are translated to a marker element that 
                           #   is superimposed on the lattice. The -ignore_marker_offsets switch means 
                           #   that the offset is ignored and no superposition is done. 
+
   -include <bmad_header_file>  # Include lines from this file in the Bmad lattice file.
 
 Output:
@@ -210,14 +222,16 @@ sad_reversed_params = {
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def output_line (sad_line, sad_info, inside_sol, bz):
+def output_lattice_line (sad_line, sad_info, inside_sol, bz):
 
-  global ix_null
+  global ix_null, patch_for_fshift
 
   f_out.write ('\n')
 
   bmad_line = []
   sad_line.printed = True
+
+  # Loop over all SAD elements
 
   for ix_s_ele, sad_ele in enumerate(sad_line.list):
 
@@ -227,7 +241,7 @@ def output_line (sad_line, sad_info, inside_sol, bz):
 
     if ele_name in sad_info.lat_line_list:
       if not sad_info.lat_line_list[ele_name].printed: 
-        output_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz)
+        output_lattice_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz)
       bmad_line.append(sad_ele)
       continue
 
@@ -897,6 +911,7 @@ def parse_directive(directive, sad_info):
 header_file = ''
 mark_open = False
 mark_closed = False
+patch_for_fshift = True
 inputfile = None
 ignore_marker_offsets = False
 
@@ -909,6 +924,8 @@ while i < len(sys.argv):
     mark_closed = True
   elif n > 1 and '-ignore_marker_offsets'[:n] == sys.argv[i]:
     ignore_marker_offsets = True
+  elif n > 1 and '-no_fshift'[:n] == sys.argv[i]:
+    patch_for_fshift = False
   elif sys.argv[i] == '-include':
     i += 1
     header_file = sys.argv[i]
@@ -1040,7 +1057,13 @@ for var in sad_info.var_list:
 inside_sol = False
 bz = '0'
 
-output_line (sad_line, sad_info, inside_sol, bz)
+if 'fshift' in sad_info.var_list['fshift']:
+  if float(sad_info.var_list['fshift']): patch_for_fshift = False
+else:
+  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
+  patch_for_fshift = False
+
+output_lattice_line (sad_line, sad_info, inside_sol, bz)
 
 #-------------------------------------------------------------------
 
