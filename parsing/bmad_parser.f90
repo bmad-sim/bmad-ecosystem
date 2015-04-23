@@ -470,9 +470,7 @@ parsing_loop: do
 
     !! print_err = (key == 0 .and. word_1 /= '*')   ! False only when word_1 = "*"
 
-    this_ele%key = key
-    if (key == 0) this_ele%key = key_dummy$    ! So entire name table is searched.
-    if (attribute_index (this_ele, word_2) == 0) then
+    if (attribute_index (key, word_2) == 0) then
       call parser_error ('BAD ATTRIBUTE')
       bp_com%parse_line = '' 
       cycle parsing_loop
