@@ -224,7 +224,7 @@ character(n_char_show) stuff2
 character(9) angle_str
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, width
-integer nl, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
+integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib
@@ -518,11 +518,11 @@ case ('branch')
     nl=nl+1; write(lines(nl), '()') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                        N_ele N_ele                  Default'
-  nl=nl+1; lines(nl) = '  Branch                Track   Max   Ref_Particle   Tracking_Species    Geometry'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele                  Default'
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Ref_Particle   Tracking_Species    Geometry'
 
 
-  fmt = '((i3, 2a), t26, (i3, i6), t39, a, t54, a, t74, a)'
+  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
@@ -533,7 +533,7 @@ case ('branch')
   nl=nl+1; lines(nl) = ''
   nl=nl+1; lines(nl) = '                                                                               Defines'
   nl=nl+1; lines(nl) = '  Fork_Element                    Forking_To                      Direction    To_Branch?'
-
+  nl0 = nl
 
   fmt = '((i3, a, i0, 4a), t35, (2(i0, a), 3a), t70, i2, l14)'
   do i = 0, ubound(lat%branch, 1)
@@ -549,6 +549,8 @@ case ('branch')
                 nint(ele%value(direction$)), logic
     enddo
   enddo
+
+  if (nl == nl0) nl = nl - 3 ! Erase header if no info.
 
   result_id = show_what
 
@@ -1188,23 +1190,20 @@ case ('element')
     endif
   endif
 
-  found = .false.
-  do i = 2, size(eles)
-    if (size(lines) < nl+2) call re_allocate (lines, nl+10, .false.)
-    if (found) then
-      nl=nl+1; lines(nl) = ''
-      found = .true.
-    endif
-    nl=nl+1
-    if (eles(i)%ele%ix_branch == 0) then
-      write(lines(nl), '(a, i0)') &
-              'Note: Found another element with same name at: ', eles(i)%ele%ix_ele
-    else
-      write(lines(nl), '(a, i0, a,i0)') &
-              'Note: Found another element with same name at: ', &
-              eles(i)%ele%ix_branch, '.', eles(i)%ele%ix_ele
-    endif
-  enddo
+  if (size(eles) > 1) then
+    nl=nl+1; lines(nl) = ''
+  endif
+
+  if (size(eles) > 10) then
+      nl=nl+1; write(lines(nl), '(a, i0)') &
+                'NOTE: The number of other elements in the lattice with the same name is: ', size(eles) - 1
+  else
+    call re_allocate (lines, nl+size(eles), .false.)
+    do i = 2, size(eles)
+      nl=nl+1; write(lines(nl), '(2a)') &
+                'NOTE: There is another element with the same name at: ', trim(ele_loc_to_string(eles(i)%ele))
+    enddo
+  endif
 
   result_id = show_what
 
