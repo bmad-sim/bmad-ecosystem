@@ -174,7 +174,7 @@ is_inside = .true.
 if (photon%status /= inside_the_wall$ .and. photon%status /= at_lat_end$) then
   is_inside = .false.
   ix = photon_start%orb%ix_ele
-  print *,                       'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', photon%ix_photon_generated
+  print *,                       'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!'
   print '(a, 4f10.4, a, f12.4)', '       PHOTON COORDS:', photon_start%orb%vec(1:4), ',  S =', photon_start%orb%s
   print '(a, i0, 2x, a)',        '       AT ELEMENT: ', ix, trim(branch%ele(ix)%name)
 
