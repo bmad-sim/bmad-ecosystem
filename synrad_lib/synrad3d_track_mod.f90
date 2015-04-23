@@ -159,7 +159,7 @@ type (sr3d_photon_track_struct) photon
 type (branch_struct), target :: branch
 
 real(rp) d_radius
-integer bad_photon_counter
+integer bad_photon_counter, ix
 logical is_inside
 
 ! 
@@ -173,8 +173,10 @@ is_inside = .true.
 
 if (photon%status /= inside_the_wall$ .and. photon%status /= at_lat_end$) then
   is_inside = .false.
-  print *,              'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', photon%ix_photon_generated
-  print '(a, 6f10.4)', '        INITIALIZATION PT: ', photon_start%orb%vec      
+  ix = photon_start%orb%ix_ele
+  print *,                       'ERROR: INITIALIZED PHOTON IS OUTSIDE THE WALL!', photon%ix_photon_generated
+  print '(a, 4f10.4, a, f12.4)', '       PHOTON COORDS:', photon_start%orb%vec(1:4), ',  S =', photon_start%orb%s
+  print '(a, i0, 2x, a)',        '       AT ELEMENT: ', ix, trim(branch%ele(ix)%name)
 
   ! bad_photon_counter is decremented by one. When counter is zero the program will be stopped.
 
