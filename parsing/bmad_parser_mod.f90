@@ -4133,7 +4133,7 @@ type (branch_struct), target :: branch
 type (lat_struct), pointer :: lat
 
 integer ix, i, j, k, it, nic, nn, i_ele, ib
-integer n_con, ix_branch, n_loc
+integer n_con, ix_branch, n_loc, ix_insert
 
 character(40) name, ref_name
 character(40), allocatable :: multi_name(:)
@@ -4158,7 +4158,7 @@ lat => branch%lat
 ! If no refrence point then superposition is simple
 
 if (pele%ref_name == blank_name$) then
-  call compute_super_lord_s (branch%ele(0), super_ele, pele)
+  call compute_super_lord_s (branch%ele(0), super_ele, pele, ix_insert)
   call check_for_multipass_superimpose_problem (branch%ele(0), super_ele, err_flag); if (err_flag) return
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
                                  create_jumbo_slave = pele%create_jumbo_slave)
@@ -4262,12 +4262,12 @@ do
 
       do i = 1, ref_ele%n_slave
         ele => pointer_to_ele (lat, ele_loc_com%branch(1)%ele(i))
-        call compute_super_lord_s (ele, super_ele, pele)
+        call compute_super_lord_s (ele, super_ele, pele, ix_insert)
         super_ele%iyy = ele%iyy   ! Multipass info
         call check_for_multipass_superimpose_problem (ele, super_ele, err_flag); if (err_flag) return
         ! Don't need to save drifts since a multipass_lord drift already exists.
         call add_superimpose (lat, super_ele, ix_branch, err_flag, super_ele_out, &
-                      save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave)
+               save_null_drift = .false., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
         if (err_flag) bp_com%error_flag = .true.
         super_ele_out%name = 'temp_name!'
       enddo
@@ -4371,13 +4371,13 @@ do
     ! Else not superimposing on a multipass_lord ...
 
     else
-      call compute_super_lord_s (branch%ele(i_ele), super_ele, pele)
+      call compute_super_lord_s (branch%ele(i_ele), super_ele, pele, ix_insert)
       super_ele%iyy = branch%ele(i_ele)%iyy   ! Multipass info
       call check_for_multipass_superimpose_problem (branch%ele(i_ele), super_ele, err_flag); if (err_flag) return
       call string_trim(super_ele_saved%name, super_ele_saved%name, ix)
       super_ele%name = super_ele_saved%name(:ix)            
       call add_superimpose (lat, super_ele, branch%ix_branch, err_flag, super_ele_out, &
-                  save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave)
+         save_null_drift = .true., create_jumbo_slave = pele%create_jumbo_slave, ix_insert = ix_insert)
       if (err_flag) bp_com%error_flag = .true.
       call control_bookkeeper (lat, super_ele_out)
     endif
@@ -4404,7 +4404,7 @@ end subroutine parser_add_superimpose
 ! This subroutine is not intended for general use.
 !-
 
-subroutine compute_super_lord_s (ref_ele, super_ele, pele)
+subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 
 implicit none
 
@@ -4414,12 +4414,13 @@ type (ele_struct), pointer :: slave
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ix
+integer i, ix, ix_insert
 
 real(rp) s_ref_begin, s_ref_end
 
 ! Find the reference point on the element being superimposed.
 
+ix_insert = -1
 super_ele%s = pele%offset
 
 if (pele%ele_pt == anchor_beginning$) then
@@ -4472,6 +4473,19 @@ if (branch%param%geometry == closed$) then
     super_ele%s = super_ele%s - branch%param%total_length
   elseif (super_ele%s < 0) then
     super_ele%s = super_ele%s + branch%param%total_length
+  endif
+endif
+
+! Compute ix_insert which is used for positioning zero length super_lords in case
+! They are next to an element which is also zero length.
+
+if (ref_ele%value(l$) == 0 .and. super_ele%value(l$) == 0 .and. pele%offset == 0) then
+  if (ref_ele%ix_ele == 0) then  ! Automatically must be at downstream end.
+    ix_insert = 1
+  elseif (pele%ref_pt == anchor_beginning$) then
+    ix_insert = ref_ele%ix_ele  
+  elseif (pele%ref_pt == anchor_end$) then
+    ix_insert = ref_ele%ix_ele + 1 
   endif
 endif
 

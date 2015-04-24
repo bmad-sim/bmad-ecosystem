@@ -95,6 +95,7 @@ bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) err
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 bp_com%do_superimpose = .true.
 bp_com%input_from_file = .true.
+bp_com%write_digested = .true.
 debug_line = ''
 
 if (.not. bp_com%always_parse) then
@@ -1169,8 +1170,7 @@ if (debug_line /= '') call parser_debug_print_info (lat, debug_line)
 if (.not. bp_com%error_flag .and. .not. bp_com%always_parse) then
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
-    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, &
-                                                            bp_com%lat_file_names, bp_com%extra, err)
+    call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%extra, err)
     if (.not. err .and. global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif

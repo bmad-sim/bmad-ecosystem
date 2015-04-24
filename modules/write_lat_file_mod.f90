@@ -1557,8 +1557,12 @@ call out_io (s_info$, r_name, &
 lat_out = lat
 branch_out => lat_out%branch(branch%ix_branch)
 
-call reallocate_coord(orbit_out, size(ref_orbit))
-orbit_out = ref_orbit
+if (present(ref_orbit)) then
+  call reallocate_coord(orbit_out, size(ref_orbit))
+  orbit_out = ref_orbit
+else
+  call reallocate_coord(orbit_out, branch%n_ele_max)
+endif
 
 j_count = 0    ! drift around solenoid or sol_quad index
 t_count = 0    ! taylor element count.
