@@ -191,6 +191,19 @@ The lattice will have three elements in the tracking section:
 \end{example}
 The lord section of the lattice will have the element \vn{Q}. 
 
+To superimpose a zero length element ``\vn{S}'' next to a zero length
+element ``\vn{Z}'', and to make sure that \vn{S} will be on the
+correct side of \vn{Z}, set the \vn{ref_origin} appropriately.
+For example:
+\begin{example}
+  S1: marker, superimpose, ref = Z, ref_origin = beginning
+  S2: marker, superimpose, ref = Z, ref_origin = end
+  Z: marker
+\end{example}
+This will place \vn{S1} upstream and \vn{S2} downstream of \vn{Z}.  If
+\vn{ref_origin} is not present or set to \vn{center}, the ordering of the
+elements will be arbitrary.
+
 \index{drift!superposition}\index{pipe!superposition}
 When a superposition is made that overlaps a drift the drift, not
 being a "real" element, vanishes. That is, it does not get put in the
@@ -434,7 +447,7 @@ there would be two \vn{B} elements in the tracking part of the lattice
 and no \vn{B} lord.
 
 Multipass lines do not have to be at the same ``level'' in terms of
-nexting of lines within lines. Additionally, multipass can be used with line reversal
+nesting of lines within lines. Additionally, multipass can be used with line reversal
 (\sref{s:ele.reverse}). Example:
 \begin{example}
   m_line: line[multipass] = (A, B)

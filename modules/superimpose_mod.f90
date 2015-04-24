@@ -14,14 +14,14 @@ contains
 !-----------------------------------------------------------------------------------------
 !+
 ! Subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, 
-!                                                       save_null_drift, create_jumbo_slave)
+!                                                 save_null_drift, create_jumbo_slave, ix_insert)
 !
 ! Routine to superimpose an element. If the element can be inserted
 ! into the lat without making a super_lord element then this will be done.
 !
 ! Note: This routine, since it handles only one superposition, is not sufficient for
 !   superposition in a multipass region. For historical reasons, the extra code needed 
-!   is buried in the bmad_parser code. If you need to do multipass superpositions 
+!   is buried in the parser_add_superimpose code. If you need to do multipass superpositions 
 !   please contact David Sagan and this situation will be rectified.
 !
 ! Note: Bookkeeping like recalculating reference energies and recalculating transfer matrices 
@@ -45,6 +45,12 @@ contains
 !                   -- Logical, optional: Default is False. If True then super_slaves
 !                       that are created that have super_ele_in as their super_lord are
 !                       em_field elements.
+!   ix_insert       -- integer, optional: If present and positive, and super_ele_in has zero length,
+!                       use ix_insert as the index to insert super_ele_in at. ix_insert is useful 
+!                       when superposing next to another zero length element and you want to make sure 
+!                       that the superimposed element is on the correct side of the existing element.
+!                       Note: As a sanity check, it is an error if super_ele_in%s does not match the 
+!                       s-position at ix_insert.
 !
 ! Output:
 !   lat           -- lat_struct: Modified lat.
@@ -53,7 +59,7 @@ contains
 !-
 
 subroutine add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, &
-                                                            save_null_drift, create_jumbo_slave)
+                                                    save_null_drift, create_jumbo_slave, ix_insert)
 
 implicit none
 
@@ -70,6 +76,7 @@ type (lat_ele_loc_struct), pointer :: loc
 real(rp) s1, s2, s1_lat, s2_lat, s1_lat_fudge, s2_lat_fudge, s1_in, s2_in
 real(rp) ds_small, l_super
 
+integer, optional :: ix_insert
 integer i, j, jj, k, ix, n, i2, ic, n_con, ixs, ix_branch, ii
 integer ix1_split, ix2_split, ix_super, ix_super_con, ix_ic
 integer ix_slave, ixn, ixc, ix_1lord, ix_lord_max_old
@@ -147,7 +154,7 @@ if (s1 < s1_lat_fudge .or. s2 < s1_lat_fudge .or. s1 > s2_lat_fudge .or. s2 > s2
   if (global_com%exit_on_error) call err_exit
   return
 endif
- 
+
 !-------------------------------------------------------------------------
 ! If the element has zero length, just insert it in the tracking part of the lattice list.
 
@@ -156,9 +163,19 @@ endif
 
 if (super_saved%value(l$) == 0) then
   super_saved%lord_status  = not_a_lord$ 
-  call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
+  ix = integer_option(-1, ix_insert)
+  if (ix > 0) then
+    if (abs(branch%ele(ix-1)%s - s1) > bmad_com%significant_length / 10) then
+      call out_io (s_abort$, r_name, 'SUPERIMPOSE CONFUSION WITH ZERO LENGTH SUPERPOSITION.')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+    ix1_split = ix - 1
+  else
+    call split_lat (lat, s1, ix_branch, ix1_split, split1_done, &
                                 check_sanity = .false., save_null_drift = save_null_drift, err_flag = err)
-  if (err) return
+    if (err) return
+  endif
   call insert_element (lat, super_saved, ix1_split+1, ix_branch)
   ix_super = ix1_split + 1
   if (present(super_ele_out)) super_ele_out => branch%ele(ix_super)
