@@ -439,7 +439,8 @@ case ('mad_lattice', 'mad8_lattice', 'madx_lattice', 'opal_latice', 'sad_lattice
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    call write_lattice_in_foreign_format ('SAD', file_name, s%u(i)%model%lat, err = err)
+    call write_lattice_in_foreign_format (lat_type, file_name, s%u(i)%model%lat, &
+                                             s%u(i)%model%lat_branch(0)%orbit, err = err)
     if (err) return
     call out_io (s_info$, r_name, 'Writen: ' // file_name)
   enddo

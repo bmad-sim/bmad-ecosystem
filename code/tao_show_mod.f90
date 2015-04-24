@@ -195,8 +195,9 @@ real(rp) mat6(6,6), vec0(6), vec_in(6)
 real(rp), allocatable, save :: value(:)
 
 character(*) :: what, stuff
+character(*), parameter :: r_name = "tao_show_cmd"
+
 character(3) undef_str
-character(20) :: r_name = "tao_show_cmd"
 character(24) show_name, show2_name, what_to_print
 character(24) :: var_name, blank_str = ''
 character(24)  :: plane, imt, lmt, amt, iamt, ramt, f3mt, rmt, irmt, iimt
