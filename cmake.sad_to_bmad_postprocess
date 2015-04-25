@@ -1,0 +1,21 @@
+set (EXENAME sad_to_bmad_postprocess)
+
+set (SRC_FILES
+  sad_to_bmad/sad_to_bmad_postprocess.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad 
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP 
+  forest 
+	lapack95
+	lapack
+	blas
+)

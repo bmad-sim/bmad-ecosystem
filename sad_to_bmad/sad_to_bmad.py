@@ -181,7 +181,7 @@ ele_param_translate = {
     'dz': 'z_offset',
     'sol:chi1': ['x_pitch', ' * -1'],
     'sol:chi2': ['y_pitch', ' * -1'],
-    'sol:dz': ['t_offset', ' / -c_light'],
+    'sol:dz': ['t_offset', ' / c_light'],
     'mult:chi1': 'x_pitch_mult',
     'mult:chi2': 'y_pitch_mult',
     'chi1': 'x_pitch',
@@ -222,9 +222,9 @@ sad_reversed_params = {
 #------------------------------------------------------------------
 #------------------------------------------------------------------
 
-def output_lattice_line (sad_line, sad_info, inside_sol, bz):
+def output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list):
 
-  global ix_null, patch_for_fshift
+  global ix_null
 
   f_out.write ('\n')
 
@@ -241,7 +241,7 @@ def output_lattice_line (sad_line, sad_info, inside_sol, bz):
 
     if ele_name in sad_info.lat_line_list:
       if not sad_info.lat_line_list[ele_name].printed: 
-        output_lattice_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz)
+        output_lattice_line(sad_info.lat_line_list[ele_name], sad_info, inside_sol, bz, rf_list)
       bmad_line.append(sad_ele)
       continue
 
@@ -307,6 +307,7 @@ def output_lattice_line (sad_line, sad_info, inside_sol, bz):
     # Regular element not getting superimposed
 
     bmad_line.append(sad_ele)
+    if s_ele.type == 'cavi': rf_list.append(s_ele.name)
 
     if s_ele.printed == True: continue
 
@@ -955,6 +956,8 @@ print ('Output file is: ' + outputfile)
 
 f_in = open(inputfile, 'r')
 f_out = open(outputfile, 'w')
+f_out.write ('! Translated from SAD file: ' + inputfile + "\n\n")
+
 
 sad_ele_type_names = ("drift", "bend", "quad", "sext", "oct", "mult", "sol", "cavi", "moni", "line", "beambeam", "apert", "mark")
 
@@ -1049,7 +1052,11 @@ for name in sad_info.param_list:
 f_out.write ('\n')
 
 for var in sad_info.var_list:
-  f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
+  if var == 'fshift':
+    f_out.write ('++NOTE: IF YOU ARE READING THIS THEN THIS FILE HAS NOT BEEN PROCESSED BY THE PROGRAM sad_to_bmad_postprocess AS IT SHOULD!\n')
+    f_out.write ('++fshift = ???  ! In SAD file: ' + sad_info.var_list[var] + '\n')
+  else:
+    f_out.write (var + ' = ' + sad_info.var_list[var] + '\n')
 
 #------------------------------------------------------------------
 # Translate and write element defs
@@ -1057,13 +1064,8 @@ for var in sad_info.var_list:
 inside_sol = False
 bz = '0'
 
-if 'fshift' in sad_info.var_list['fshift']:
-  if float(sad_info.var_list['fshift']): patch_for_fshift = False
-else:
-  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
-  patch_for_fshift = False
-
-output_lattice_line (sad_line, sad_info, inside_sol, bz)
+rf_list = []
+output_lattice_line (sad_line, sad_info, inside_sol, bz, rf_list)
 
 #-------------------------------------------------------------------
 
@@ -1071,6 +1073,44 @@ f_out.write ('\n')
 f_out.write ('use, ' + line0_name + '\n')
 
 print ('Execution time: ' + str(time.time() - start_time))
+
+#-------------------------------------------------------------------
+# Insert patches for finite fshift 
+
+if 'fshift' in sad_info.var_list:
+  if float(sad_info.var_list['fshift']) == 0: patch_for_fshift = False
+else:
+  if patch_for_fshift: print ('Note: No FSHIFT value found in SAD file.')
+  patch_for_fshift = False
+
+if patch_for_fshift:
+  f_out.write ('\n' + 'expand_lattice\n')
+  f_out.write ('t_shift = -fshift / c_light\n')
+
+  rf_dict = {}
+  old_full_rf_name = ''
+  for rf_name in rf_list:
+    if rf_name in rf_dict:
+      rf_dict[rf_name] = rf_dict[rf_name] + 1
+    else:
+      rf_dict[rf_name] = 1
+
+    ns = str(rf_dict[rf_name])
+    full_rf_name = rf_name + '##' + ns
+    f_out.write (rf_name + '_patch' + ns + ': patch, superimpose, ref_origin = beginning, ref = ' + full_rf_name)
+    if old_full_rf_name == '':
+      f_out.write (', t_offset = t_shift * ' + full_rf_name + '[s]\n')
+    else:
+      f_out.write (', t_offset = t_shift * (' + full_rf_name + '[s] - ' + old_full_rf_name + '[s])\n')
+
+    old_full_rf_name = full_rf_name
+
+  f_out.write ('end_patch: patch, superimpose, ref_origin = end, ref = ' + full_rf_name)
+  f_out.write (', t_offset = t_shift * (end[s] - ' + old_full_rf_name + '[s])\n')
+
+  print ('REMEMBER! Run "sad_to_bmad_postprocess <bmad-lat-file>" to complete the translation.')
+
+#-------------------------------------------------------------------
 
 f_in.close()
 f_out.close()

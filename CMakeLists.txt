@@ -20,6 +20,7 @@ set (EXE_SPECS
   cmake.element_attributes
   cmake.f77_to_f90
   cmake.lattice_cleaner
+  cmake.sad_to_bmad_postprocess
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
