@@ -2331,10 +2331,9 @@ do ix_ele = ie1, ie2
         case (0)
           select case (out_type)
           case ('MAD-8') 
-            call out_io (s_error$, r_name, 'MAD-8 DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
-            cycle
+            write (str, '(a, i0, a)') 'kick(', i, ')'
           case ('MAD-X') 
-            write (str, '(a, 2i0)') 'kick', i
+            write (str, '(a, i0)') 'kick', i
           case ('XSIF') 
             call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
             cycle
