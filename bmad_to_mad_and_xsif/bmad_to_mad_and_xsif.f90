@@ -2,7 +2,7 @@
 ! Program to convert a Bmad file to an XSIF file and a MAD file
 !
 ! Usage:
-!   bmad_to_mad_and_xsif {-nobpm} <bmad_file_name>
+!   bmad_to_mad_and_xsif {-nobpm} {-xsif} {-mad8} {-madx} <bmad_file_name>
 !
 ! The MAD and XSIF files will be created in the current directory.
 !
@@ -32,14 +32,17 @@ type (lat_struct) lat
 type (coord_struct), allocatable :: orbit(:)
 
 integer i, n_arg, ix
-character(120) file_name, out_name, dir
-character(16) bpm_ans
 logical is_rel, nobpm
+
+character(120) file_name, out_name, dir, arg
+character(16) bpm_ans, out_type
 
 !
 
 n_arg = cesr_iargc()
 nobpm = .false.
+file_name = ''
+out_type = 'all'
 
 if (n_arg == 0) then
   write (*, '(a)', advance = 'NO') 'Create lattices with and without bpm markers? (default = n) : '
@@ -59,17 +62,24 @@ if (n_arg == 0) then
 
 else
 
-  call cesr_getarg (1, file_name)
-  if (file_name == '-nobpm') then
-    nobpm = .true.
-    call cesr_getarg (2, file_name)
-  elseif (file_name(1:1) == '-') then
-    print *, 'Bad switch: ', trim(file_name)
-    stop
-  endif
+  do i = 1, n_arg
+    call cesr_getarg (i, arg)
+    select case (arg)
+    case ('-nobpm')
+      nobpm = .true.
+    case ('-xsif', '-mad8', '-madx')
+      out_type = arg
+    case default
+      if (arg(1:1) == '-') then
+        print *, 'Bad switch: ', trim(arg)
+      else
+        file_name = arg
+      endif
+    end select
+  enddo
 
-  if ((nobpm .and. n_arg > 2) .or. (.not. nobpm .and. n_arg > 1)) then
-    print *, 'Usage: bmad_to_mad_and_xsif {-nobpm} <bmad_file_name>'
+  if (file_name == '') then
+    print *, 'Usage: bmad_to_mad_and_xsif {-nobpm} {-xsif} {-mad8} {-madx} <bmad_file_name>'
     stop
   endif
 
@@ -91,14 +101,20 @@ if (nobpm) then
   out_name = out_name(1:ix-1) // '_with_bpm'
 endif
 
-call file_suffixer (out_name, out_name, 'xsif', .true.)
-call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit)
+if (out_type == 'all' .or. out_type == '-xsif') then
+  call file_suffixer (out_name, out_name, 'xsif', .true.)
+  call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit)
+endif
 
-call file_suffixer (out_name, out_name, 'mad8', .true.)
-call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit)
+if (out_type == 'all' .or. out_type == '-mad8') then
+  call file_suffixer (out_name, out_name, 'mad8', .true.)
+  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit)
+endif
 
-call file_suffixer (out_name, out_name, 'madx', .true.)
-call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit)
+if (out_type == 'all' .or. out_type == '-madx') then
+  call file_suffixer (out_name, out_name, 'madx', .true.)
+  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit)
+endif
 
 ! Lattices without bpm markers.
 ! Also combine drifts to either side of a detector.
