@@ -2322,20 +2322,35 @@ do ix_ele = ie1, ie2
     line_out = trim(ele%name) // ': matrix'
     warn_printed = .false.
     call value_to_line (line_out, ele%value(l$), 'l', 'es13.5', 'R')
+
     do i = 1, 6
       do k = 1, size(ele%taylor(i)%term)
         term = ele%taylor(i)%term(k)
 
         select case (sum(term%expn))
+        case (0)
+          select case (out_type)
+          case ('MAD-8') 
+            call out_io (s_error$, r_name, 'MAD-8 DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
+            cycle
+          case ('MAD-X') 
+            write (str, '(a, 2i0)') 'kick', i
+          case ('XSIF') 
+            call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
+            cycle
+          end select
+          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+
         case (1)
           j = maxloc(term%expn, 1)
-          if (out_type == 'MAD-8') then
+          select case (out_type)
+          case ('MAD-8')
             write (str, '(a, i0, a, i0, a)') 'rm(', i, ',', j, ')'
-          elseif (out_type == 'MAD-X') then
+          case ('MAD-X')
             write (str, '(a, 2i0)') 'rm', i, j
-          elseif (out_type == 'XSIF') then
+          case ('XSIF')
             write (str, '(a, 2i0)') 'r', i, j
-          endif
+          end select
 
           if (j == i) then
             call value_to_line (line_out, term%coef, str, 'es13.5', 'R', .false.)
@@ -2347,13 +2362,14 @@ do ix_ele = ie1, ie2
           j = maxloc(term%expn, 1)
           term%expn(j) = term%expn(j) - 1
           j2 = maxloc(term%expn, 1)
-          if (out_type == 'MAD-8') then
+          select case (out_type)
+          case ('MAD-8')
             write (str, '(a, 3(i0, a))') 'tm(', i, ',', j, ',', j2, ')'
-          elseif (out_type == 'MAD-X') then
+          case ('MAD-X')
             write (str, '(a, 3i0)') 'tm', i, j, j2
-          elseif (out_type == 'XSIF') then
+          case ('XSIF')
             write (str, '(a, 3i0)') 't', i, j, j2
-          endif
+          end select
           call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
 
         case default
