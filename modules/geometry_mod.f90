@@ -554,7 +554,7 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
         call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(tilt$), w_mat_inv = w_mat_inv)
         ele%value(l$) = w_mat_inv(3,1) * ele%value(x_offset$) + w_mat_inv(3,2) * ele%value(y_offset$) + &
                         w_mat_inv(3,3) * ele%value(z_offset$)
-        if (ele_value_has_changed(ele, [l$], .true.)) then
+        if (ele_value_has_changed(ele, [l$], [bmad_com%significant_length], .true.)) then
           call set_ele_status_stale (ele, s_position_group$)
         endif
 

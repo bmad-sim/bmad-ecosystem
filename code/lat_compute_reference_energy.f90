@@ -493,7 +493,7 @@ endif
 ! Example: A lattice with bends with field_master = True, flexible patch, and absolute time tracking has
 ! a problem since the reference energy depends upon the geometry and the geometry depends upon the ref energy.
 
-if (ele_value_has_changed(ele, [p0c$, delta_ref_time$, e_tot$], .true.)) then
+if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], [1e-3_rp, bmad_com%significant_length/c_light], .true.)) then
   ! Transfer ref energy to super_lord before bookkeeping done. This is important for bends.
   if (ele%slave_status == super_slave$ .and. ele%key == sbend$) then
     do i = 1, ele%n_lord
