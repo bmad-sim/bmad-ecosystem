@@ -100,7 +100,7 @@ select case (ele%key)
 case (sbend$)
   write (line, '(a, 3(a, es14.6))') trim(line), c, ele%value(angle$), c, ele%value(e1$), c, ele%value(e2$)
 case (crystal$, detector$, mirror$, multilayer_mirror$, diffraction_plate$)
-  write (line, '(a, 3(a, es14.6))') trim(line), c, ele%value(x_limit$), c, ele%value(y_limit$), c, 1e-3_rp
+  write (line, '(a, 3(a, es14.6))') trim(line), c, ele%value(x1_limit$), c, ele%value(y1_limit$), c, 1e-3_rp
 case default
   write (line, '(2a)') trim(line), ', 0.0, 0.0, 0.0'
 end select
