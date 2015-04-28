@@ -9,10 +9,11 @@ set(INC_DIRS
 set(SRC_DIRS 
   code 
   custom
+  interface
   modules
+  multiparticle
   photon
   parsing
-  multiparticle
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
