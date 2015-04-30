@@ -2513,7 +2513,11 @@ case ('taylor_map', 'matrix')
     endif
 
     if (n_order > 1) then
-      call transfer_map_calc (lat, taylor, ix1, ix2, one_turn = .true.)
+      call transfer_map_calc (lat, taylor, err, ix1, ix2, one_turn = .true.)
+      if (err) then
+        nl = 1; lines(1) = 'TAYLOR MAP TERMP OVERFLOW.'
+        return
+      endif
     else
       call transfer_matrix_calc (lat, .true., mat6, vec0, ix1, ix2, ix_branch, one_turn = .true.)
     endif
