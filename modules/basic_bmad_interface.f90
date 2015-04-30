@@ -604,12 +604,13 @@ interface
     logical, optional :: one_turn
   end subroutine
 
-  subroutine transfer_map_calc (lat, t_map, ix1, ix2, ix_branch, integrate, one_turn, unit_start)
+  subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integrate, one_turn, unit_start)
     import
     implicit none
     type (lat_struct) lat
     type (taylor_struct) :: t_map(:)
     integer, intent(in), optional :: ix1, ix2, ix_branch
+    logical err_flag
     logical, optional :: integrate, one_turn, unit_start
   end subroutine
 
