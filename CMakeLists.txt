@@ -3,9 +3,6 @@
 cmake_minimum_required(VERSION $ENV{ACC_CMAKE_VERSION})
 
 set(INC_DIRS 
-  ../include
-  ../cfortran/include
-  ../cesr_utils/include
 )
 
 set(SRC_DIRS
