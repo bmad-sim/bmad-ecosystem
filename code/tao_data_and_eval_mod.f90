@@ -585,8 +585,6 @@ endif
 
 !---------------------------------------------------
 
-call tao_set_invalid (datum, 'DATA_SOURCE = "' // trim(data_source) // '" NOT VALID', why_invalid)
-
 select case (head_data_type)
 
 !-----------
