@@ -769,7 +769,7 @@ elements can be added.
 \label{r:add.superimpose}
 \item[\protect\parbox{6in}{
     add_superimpose (lat, super_ele_in, ix_branch, err_flag, super_ele_out, \\
-    \hspace*{1in} save_null_drift, create_jumbo_slave)} ] \Newline
+    \hspace*{1in} save_null_drift, create_jumbo_slave, ix_insert)} ] \Newline
 Routine to make a superimposed element. 
 
 \index[routine]{attribute_bookkeeper}
@@ -1384,7 +1384,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
-\item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit \\
+\item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, \\
   \hspace*{1in} use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
@@ -3423,7 +3423,7 @@ Routine to set the longitudinal tune by setting the RF voltages in the RF caviti
 
 \index[routine]{transfer_map_calc}
 \label{r:transfer.map.calc}
-\item[transfer_map_calc (lat, t_map, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
+\item[transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ix_branch, integrate, one_turn, unit_start) ] \Newline 
 Routine to calculate the transfer map between two elements.
 
 \index[routine]{transfer_map_from_s_to_s}
