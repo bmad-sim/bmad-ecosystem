@@ -2086,17 +2086,18 @@ case ('push', 'push_inline')
   bp_com%num_lat_files = n_file
   inquire (file = file_name, name = bp_com%lat_file_names(n_file))
 
-  ! The same file may be validly called multiple times if it is an inline file.
+  ! Note: The same file may be validly called multiple times if it is an inline file.
   ! EG: A wall file called inline.
+  ! Therefore the warning is disabled.
 
-  if (how == 'push') then
-    do i = 1, n_file - 1
-      if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
-      call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
-                         warn_only = .true.)
-      exit
-    enddo
-  endif
+!  if (how == 'push') then
+!    do i = 1, n_file - 1
+!      if (bp_com%lat_file_names(i) /= bp_com%lat_file_names(n_file)) cycle
+!      call parser_error ('Same lattice file called multiple times: ' // trim(bp_com%lat_file_names(n_file)), &
+!                         warn_only = .true.)
+!      exit
+!    enddo
+!  endif
 
 ! "pop" means close the current file and pop its name off the stack
 
@@ -3862,9 +3863,11 @@ if (global_com%type_out .and. bp_com%print_err) then
 
 endif
 
-! Warnings do not result in bp_com%error_flag being set
+! Warnings do not result in bp_com%error_flag being set. Just no digested file is generated.
 
-if (.not. logic_option(.false., warn_only)) then
+if (logic_option(.false., warn_only)) then
+  bp_com%write_digested = .false.
+else
   bp_com%error_flag = .true.
   if (logic_option(.false., stop_here)) then
     if (global_com%exit_on_error) stop
