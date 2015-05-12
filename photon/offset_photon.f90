@@ -86,23 +86,23 @@ if (set) then
   tilt = p(tilt_tot$)
   if (ele%key == crystal$) tilt = tilt + p(tilt_corr$)
   if (is_reflective_element) tilt = tilt + p(ref_tilt_tot$)
-  call tilt_coords (tilt, vec)
+  if (tilt /= 0) then
+    call tilt_coords (tilt, vec)
 
-  ! Set: intensity and phase rotation due to the tilt
+    if (.not. logic_option(.false., offset_position_only)) then
 
-  if (.not. logic_option(.false., offset_position_only)) then
+      field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
+               orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
 
-    field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
-             orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
+      field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
+              -sin(tilt) * field(1) + cos(tilt)*field(2)]
 
-    field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
-            -sin(tilt) * field(1) + cos(tilt)*field(2)]
+      orbit%field(1) = abs(field(1))
+      orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
 
-    orbit%field(1) = abs(field(1))
-    orbit%phase(1) = atan2(aimag(field(1)), real(field(1)))
-
-    orbit%field(2) = abs(field(2))
-    orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+      orbit%field(2) = abs(field(2))
+      orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+    endif
   endif
 
   ! Set: Rotate to ele coords. 
@@ -169,19 +169,21 @@ else
       rot_angle = p(graze_angle$) + pi/2
     end select
 
-    sin_g = sin(rot_angle)
-    cos_g = cos(rot_angle)
+    if (rot_angle /= 0) then
+      sin_g = sin(rot_angle)
+      cos_g = cos(rot_angle)
 
-    orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
-                       -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
+      orbit%vec(2:6:2) = [cos_g * orbit%vec(2) + sin_g * orbit%vec(6), orbit%vec(4), &
+                         -sin_g * orbit%vec(2) + cos_g * orbit%vec(6)]
 
-    orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
-                       -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
-    if (present(rot_mat)) then
-      r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
-      r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
-      r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
-      rot_mat = matmul(r_mat, rot_mat)
+      orbit%vec(1:5:2) = [cos_g * orbit%vec(1) + sin_g * orbit%vec(5), orbit%vec(3), &
+                         -sin_g * orbit%vec(1) + cos_g * orbit%vec(5)]
+      if (present(rot_mat)) then
+        r_mat(1,:) = [ cos_g, 0.0_rp,  sin_g]
+        r_mat(2,:) = [0.0_rp, 1.0_rp, 0.0_rp]
+        r_mat(3,:) = [-sin_g, 0.0_rp,  cos_g]
+        rot_mat = matmul(r_mat, rot_mat)
+      endif
     endif
 
     if (.not. logic_option(.false., offset_position_only)) then
@@ -253,7 +255,7 @@ else
     ! Unset: tilt
 
     tilt = p(tilt_tot$)
-    call tilt_coords (-tilt, vec)
+    if (tilt /= 0) call tilt_coords (-tilt, vec)
     rot = 0
 
     ! Unset: Pitch
