@@ -7,4 +7,9 @@ else ()
   set(EXE_SPECS cmake.lux)
 endif ()
 
+# For profiling...
+# set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+# set (FFLAGS "-pg") 
+# set (CFLAGS "-pg")
+
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)

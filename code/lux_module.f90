@@ -197,6 +197,7 @@ endif
 
 ! Read in lattice
 
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser (lux_param%lattice_file, lux_com%lat)
 lat => lux_com%lat
 
