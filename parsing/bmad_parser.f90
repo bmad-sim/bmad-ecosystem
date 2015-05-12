@@ -1053,6 +1053,10 @@ enddo
 
 call parser_add_lord (in_lat, n_max, plat, lat)
 
+! Skiped to here if XSIF was called
+
+8000 continue  
+
 ! If harmon is set for rfcavity then need to calc rf_frequency
 
 do i = 0, ubound(lat%branch, 1)
@@ -1087,20 +1091,6 @@ if (err) then
   return
 endif
 
-! Do we need to expand the lattice and call bmad_parser2?
-
-8000 continue
-
-if (detected_expand_lattice_cmd) then
-  exit_on_error = global_com%exit_on_error
-  global_com%exit_on_error = .false.
-  bp_com%bmad_parser_calling = .true.
-  bp_com%old_lat => in_lat
-  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false.)
-  bp_com%bmad_parser_calling = .false.
-  global_com%exit_on_error = exit_on_error
-endif
-
 !
 
 ele => lat%beam_start_ele
@@ -1116,9 +1106,9 @@ if (any(vec /= 0)) call vec_to_polar (vec, polar)
 
 call polar_to_spinor (polar, lat%beam_start)
 
-
-
-! Bookkeeping
+! Bookkeeping...
+! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
+! file may contain references to dependent variables.
 
 if (logic_option (.true., make_mats6)) then
   call set_flags_for_changed_attribute(lat)
@@ -1128,6 +1118,18 @@ if (logic_option (.true., make_mats6)) then
     call parser_end_stuff
     return
   endif
+endif
+
+! Do we need to expand the lattice and call bmad_parser2?
+
+if (detected_expand_lattice_cmd) then
+  exit_on_error = global_com%exit_on_error
+  global_com%exit_on_error = .false.
+  bp_com%bmad_parser_calling = .true.
+  bp_com%old_lat => in_lat
+  call bmad_parser2 ('FROM: BMAD_PARSER', lat, make_mats6 = .false.)
+  bp_com%bmad_parser_calling = .false.
+  global_com%exit_on_error = exit_on_error
 endif
 
 do n = 0, ubound(lat%branch, 1)

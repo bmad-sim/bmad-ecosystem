@@ -105,7 +105,7 @@ Frank Schmidt for permission to use the MAD tracking code within
 This uses a 4\Th order Runge Kutta integration algorithm with adaptive
 step size control.  This is essentially the \vn{ODEINT} subroutine
 from Numerical Recipes\cite{b:nr}. This may be slow but it should be
-accurate. This method is non-symplectic. Warning: When using
+accurate. This method is non-symplectic. \vn{Warning:} When using
 \vn{custom} fields, if the fields do not obey Maxwell's equation,
 there is the possibility of the \vn{runge_kutta} tracking halting mid
 way through an element. See section~\sref{s:integ} for more details.
@@ -670,7 +670,7 @@ need the appropriate custom routine (\sref{s:custom.ele}). Elements
 that set \vn{field_calc} to \vn{grid} or \vn{map} need the appropriate
 \vn{field} attribute (\sref{s:em.fields}).  
 
-Warning: When tracking a particle through a custom field using
+\vn{Warning:} When tracking a particle through a custom field using
 \vn{runge_kutta}, it is important that the field obey Maxwell's
 equations. Fields that do not obey Maxwell's Equations may cause the
 \vn{runge_kutta} adaptive step size control algorithm to take smaller
