@@ -30,7 +30,7 @@ type (photon_target_struct), pointer :: target
 type (surface_grid_struct), pointer :: gr
 real(rp), pointer :: val(:)
 real(rp) z
-logical :: is_bending_element, follow_fork
+logical :: is_bending_element, follow_fork, grid_defined
 character(*), parameter :: r_name = 'photon_target_setup '
 
 ! Init
@@ -76,9 +76,16 @@ enddo
 if (.not. associated(ele%photon)) allocate(ele%photon)
 
 target => ele%photon%target
-gr => ap_ele%photon%surface%grid
 
-if (gr%dr(1) /= 0 .or. gr%dr(2) /= 0) then  ! If grid defined.
+grid_defined = .false.
+if (associated(ap_ele%photon)) then
+  gr => ap_ele%photon%surface%grid
+  grid_defined = (gr%dr(1) /= 0 .or. gr%dr(2) /= 0)
+endif
+
+! If grid defined...
+
+if (grid_defined) then 
   target%type = grid$
   target%ele_loc = lat_ele_loc_struct(ap_ele%ix_ele, ap_ele%ix_branch)
   gr%type = diffract_target$
@@ -89,7 +96,7 @@ if (gr%dr(1) /= 0 .or. gr%dr(2) /= 0) then  ! If grid defined.
   call photon_target_corner_calc (ap_ele, gr%r0(1)+gr%dr(1), gr%r0(2),          z, ele, target%corner(1))
   call photon_target_corner_calc (ap_ele, gr%r0(1),          gr%r0(2)+gr%dr(2), z, ele, target%corner(2))
 
-!
+! If grid not defined..
 
 else
 
