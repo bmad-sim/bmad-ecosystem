@@ -32,7 +32,7 @@ type lux_param_struct
   character(100) :: det_pix_out_file = ''
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
-  character(40) :: source_element = ''            ! element name
+  character(40) :: photon_init_element = ''            ! element name
   character(40) :: detector_element = ''          ! element name
   character(40) :: photon1_element = ''           ! element name
   character(20) :: plotting = ''
@@ -60,8 +60,8 @@ end type
 
 type lux_common_struct
   type (lat_struct) :: lat
-  type (branch_struct), pointer :: source_branch, detec_branch
-  type (ele_struct), pointer :: source_ele, fork_ele, detec_ele, photon1_ele
+  type (branch_struct), pointer :: physical_source_branch, tracking_branch
+  type (ele_struct), pointer :: physical_source_ele, photon_init_ele, fork_ele, detec_ele, photon1_ele
   integer n_bend_slice             ! Number of slices
   integer(8) :: n_photon_stop1     ! Number of photons to track when lux_track_photons is called
   integer :: mpi_rank  = -1
@@ -104,7 +104,7 @@ type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lat_struct), pointer :: lat
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_struct), pointer :: source_ele
+type (ele_struct), pointer :: photon_init_ele
 
 real(rp) cut, r
 
@@ -117,6 +117,7 @@ character(100) photon1_out_file
 
 logical ok, is_there, err
 
+character(*), parameter :: r_name = 'lux_init'
 
 namelist / params / lux_param
 
@@ -136,8 +137,7 @@ do while (i < cesr_iargc())
     call cesr_getarg (i, plotting)
   case default
     if (arg(1:1) == '-') then
-      print *, 'I DO NOT UNDERSTAND: ', trim(arg)
-      print *
+      call out_io (s_fatal$, r_name, 'I DO NOT UNDERSTAND: ' // trim(arg))
       ok = .false.
     endif
     lux_param%param_file = arg
@@ -151,7 +151,7 @@ read (1, nml = params)
 close (1) 
  
 if (lux_param%debug) then
-  print *, 'Note: lux_param%debug = True'
+  call out_io (s_info$, r_name, 'Note: lux_param%debug = True')
 endif
 
 if (.not. lux_com%verbose) call output_direct (0, .false., max_level = s_success$) ! Suppress bmad_parser info output.
@@ -201,35 +201,65 @@ bmad_com%auto_bookkeeper = .false.
 call bmad_parser (lux_param%lattice_file, lux_com%lat)
 lat => lux_com%lat
 
-! locate source element
+! locate photon_init element
 
-call lat_ele_locator (lux_param%source_element, lat, eles, n_loc, err)
+call lat_ele_locator (lux_param%photon_init_element, lat, eles, n_loc, err)
 if (n_loc == 0) then
-  print *, 'NO SOURCE ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  call out_io (s_fatal$, r_name, 'NO PHOTON_INIT ELEMENT FOUND MATCHING NAME: "' // trim(lux_param%photon_init_element) // '"')
   stop
 elseif (n_loc > 1) then
-  print *, 'MULTIPLE SOURCE ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  call out_io (s_fatal$, r_name, 'MULTIPLE PHOTON_INIT ELEMENTS FOUND MATCHING NAME: "' // trim(lux_param%photon_init_element) // '"')
   stop
 endif
 
-lux_com%source_ele => eles(1)%ele
-lux_com%source_branch => lux_com%source_ele%branch
+lux_com%photon_init_ele => eles(1)%ele
+photon_init_ele => lux_com%photon_init_ele
 
-source_ele => lux_com%source_ele
+if (photon_init_ele%key /= photon_init$) then
+  call out_io (s_fatal$, r_name, 'CANNOT SIMULATE PHOTONS GENERATED IN ELEMENT OF TYPE: ' // key_name(photon_init_ele%key))
+  stop   
+endif
+
+! Is there an assocaited physical source element?
+
+if (photon_init_ele%component_name == '') then
+  nullify (lux_com%physical_source_ele, lux_com%physical_source_branch)
+else
+  call lat_ele_locator (photon_init_ele%component_name, lat, eles, n_loc, err)
+  if (n_loc == 0) then
+    call out_io (s_fatal$, r_name, 'PHYSICAL SOURCE ELEMENT ASSOCIATED WITH PHOTON_INIT ELEMENT NO FOUND: ' // photon_init_ele%component_name)
+    stop
+  elseif (n_loc > 1) then
+    call out_io (s_fatal$, r_name, 'MULTIPLE PHYSICAL SOURCE ELEMENTS ASSOCIATED WITH PHOTON_INIT ELEMENT FOUND: ' // photon_init_ele%component_name)
+    stop
+  endif
+  lux_com%physical_source_ele => eles(1)%ele
+  lux_com%physical_source_branch => lux_com%physical_source_ele%branch
+  lux_com%fork_ele => pointer_to_ele (lux_com%lat, photon_init_ele%branch%ix_from_ele, photon_init_ele%branch%ix_from_branch)
+  if (lux_com%fork_ele%ix_branch /= lux_com%physical_source_ele%ix_branch) then
+    call out_io (s_fatal$, r_name, 'FORK ELEMENT TO BRANCH CONTAINING THE PHOTON_INIT ELEMEMENT NOT THE SAME AS THE BRANCH OF THE PHYSICAL SOURCE ELEMENT!')
+    stop
+  endif
+endif
 
 ! Locate detector element
 
 call lat_ele_locator (lux_param%detector_element, lat, eles, n_loc, err)
 if (n_loc == 0) then
-  print *, 'NO DETECTOR ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  call out_io (s_fatal$, r_name, 'NO DETECTOR ELEMENT FOUND MATCHING NAME: "' // trim(lux_param%detector_element) // '"')
   stop
 elseif (n_loc > 1) then
-  print *, 'MULTIPLE DETECTOR ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+  call out_io (s_fatal$, r_name, 'MULTIPLE DETECTOR ELEMENTS FOUND MATCHING NAME: "' // trim(lux_param%detector_element) // '"')
   stop
 endif
 
 lux_com%detec_ele => eles(1)%ele
-lux_com%detec_branch => lux_com%detec_ele%branch
+lux_com%tracking_branch => lux_com%detec_ele%branch
+
+if (lux_com%detec_ele%ix_branch /= photon_init_ele%ix_branch) then
+  call out_io (s_fatal$, r_name, 'PHOTON_INIT ELEMENT AND DETECTOR ELEMENT NOT IN THE SAME BRANCH!')
+  stop
+endif
 
 ! Locate photon1 element
 
@@ -238,36 +268,16 @@ if (lux_param%photon1_element == '') then
 else
   call lat_ele_locator (lux_param%photon1_element, lat, eles, n_loc, err)
   if (n_loc == 0) then
-    print *, 'NO PHOTON1 ELEMENT FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+    call out_io (s_fatal$, r_name, 'NO PHOTON1 ELEMENT FOUND MATCHING NAME: "' // trim(lux_param%photon1_element) // '"')
     stop
   elseif (n_loc > 1) then
-    print *, 'MULTIPLE PHOTON1 ELEMENTS FOUND MATCHING NAME: "', trim(lux_param%source_element), '"'
+    call out_io (s_fatal$, r_name, 'MULTIPLE PHOTON1 ELEMENTS FOUND MATCHING NAME: "' // trim(lux_param%photon1_element) // '"')
     stop
   endif
   lux_com%photon1_ele => eles(1)%ele 
 endif
 
 !
-
-select case (source_ele%key)
-case (x_ray_source$)
-
-case (sbend$, wiggler$, undulator$)
-  nullify (lux_com%fork_ele)
-  do i = 1, lux_com%source_branch%n_ele_track
-    if (lux_com%source_branch%ele(i)%key /= photon_fork$) cycle
-    lux_com%fork_ele => lux_com%source_branch%ele(i)
-    exit
-  enddo
-  if (.not. associated(lux_com%fork_ele)) then
-    print *, 'NO APPROPRIATE FORK/PHOTON_FORK ELEMENT FOUND IN LATTICE!'
-    stop
-  endif
-
-case default
-  print *, 'CANNOT SIMULATE PHOTONS GENERATED IN ELEMENT OF TYPE: ', trim(key_name(source_ele%key))
-  stop
-end select
 
 ! Some init
 
@@ -284,8 +294,8 @@ endif
 call lux_tracking_setup (lux_param, lux_com)
 
 if (lat%photon_type == coherent$) then
-  if (source_ele%value(e_field_x$) == 0 .and. source_ele%value(e_field_y$) == 0) then
-    print *, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!'
+  if (photon_init_ele%value(e_field_x$) == 0 .and. photon_init_ele%value(e_field_y$) == 0) then
+    call out_io (s_fatal$, r_name, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!')
   endif
 endif
 
@@ -321,7 +331,7 @@ ix = index(file_name, '#')
 if (ix == 0) return
 file_name = file_name(:ix-1) // num_str // trim(file_name(ix+1:))
 
-end subroutine
+end subroutine sub_in
 
 end subroutine lux_init
 
@@ -348,13 +358,14 @@ type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
 type (surface_grid_struct), pointer :: detec_grid
 
+character(*), parameter :: r_name = 'lux_init_data'
 
 !
 
 detec_grid => lux_com%detec_ele%photon%surface%grid
 
 if (.not. allocated(detec_grid%pt)) then
-  print *, 'DETECTOR GRID NOT SET!'
+  call out_io (s_fatal$, r_name, 'DETECTOR GRID NOT SET!')
   stop
 endif
 
@@ -396,7 +407,7 @@ type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_bend_slice_struct), pointer :: sl(:)
 type (ele_struct) ele
-type (ele_struct), pointer :: source_ele
+type (ele_struct), pointer :: photon_init_ele, physical_source_ele
 
 real(rp) x, y, phi, r(3), dir(2), ds, rr, r_emit(5), prob, f
 real(rp) v_mat(4,4), v_inv_mat(4,4), vec(4), dE, e(3), b(3), sig_vec(6)
@@ -406,111 +417,104 @@ integer ix, n_slice
 
 ! Init
 
-source_ele => lux_com%source_ele
+photon_init_ele => lux_com%photon_init_ele
+physical_source_ele => lux_com%physical_source_ele
 lat => lux_com%lat
 
-! Field
-
-x = source_ele%value(e_field_x$); y = source_ele%value(e_field_y$)
-if (x == 0 .and. y == 0) then
-  call ran_uniform(rr)
-  orb%field(1) = cos(twopi * rr)
-  orb%field(2) = sin(twopi * rr)
-else
-  if (lux_param%scale_initial_field_to_1) then
-    orb%field(1) = x / sqrt(x**2 + y**2)
-    orb%field(2) = y / sqrt(x**2 + y**2)
-  else
-    orb%field(1) = x
-    orb%field(2) = y
-  endif
-endif
-
 !-----------------------------------------------------
-! x_ray_source source
+! Everything but the field handled by Bmad
 
-select case (source_ele%key)
-case (x_ray_source$)
-
-  return  ! Handled by Bmad
+if (.not. associated(lux_com%physical_source_ele)) then
+  x = photon_init_ele%value(e_field_x$); y = photon_init_ele%value(e_field_y$)
+  if (x == 0 .and. y == 0) then
+    call ran_uniform(rr)
+    orb%field(1) = cos(twopi * rr)
+    orb%field(2) = sin(twopi * rr)
+  else
+    if (lux_param%scale_initial_field_to_1) then
+      orb%field(1) = x / sqrt(x**2 + y**2)
+      orb%field(2) = y / sqrt(x**2 + y**2)
+    else
+      orb%field(1) = x
+      orb%field(2) = y
+    endif
+  endif
+  return
+endif
 
 !-----------------------------------------------------
 ! bend, wiggler, undulator source
 
-case default
-  sl => lux_com%bend_slice
-  n_slice = ubound(sl, 1)
+sl => lux_com%bend_slice
+n_slice = ubound(sl, 1)
 
-  ! Find where photon emitted
+! Find where photon emitted
 
-  call ran_uniform(rr)  ! longitudinal position
-  call bracket_index (sl%integrated_emit_prob, 0, n_slice, rr, ix)
-  ix = ix + 1
-  if (ix == n_slice) ix = n_slice - 1
-  f = (rr - sl(ix-1)%integrated_emit_prob) / (sl(ix)%integrated_emit_prob - sl(ix-1)%integrated_emit_prob)
+call ran_uniform(rr)  ! longitudinal position
+call bracket_index (sl%integrated_emit_prob, 0, n_slice, rr, ix)
+ix = ix + 1
+if (ix == n_slice) ix = n_slice - 1
+f = (rr - sl(ix-1)%integrated_emit_prob) / (sl(ix)%integrated_emit_prob - sl(ix-1)%integrated_emit_prob)
 
-  ! Calculate electron average position
+! Calculate electron average position
 
-  charged_orb = sl(ix)%orbit
-  charged_orb%vec = (1-f) * sl(ix)%orbit%vec + f * sl(ix+1)%orbit%vec
+charged_orb = sl(ix)%orbit
+charged_orb%vec = (1-f) * sl(ix)%orbit%vec + f * sl(ix+1)%orbit%vec
 
-  ele%a = average_twiss(1-f, sl(ix)%ele%a, sl(ix+1)%ele%a)
-  ele%b = average_twiss(1-f, sl(ix)%ele%b, sl(ix+1)%ele%b)
-  ele%c_mat   = (1-f) * sl(ix)%ele%c_mat   + f * sl(ix+1)%ele%c_mat
-  ele%gamma_c = (1-f) * sl(ix)%ele%gamma_c + f * sl(ix+1)%ele%gamma_c
-  call make_v_mats (ele, v_mat, v_inv_mat)
+ele%a = average_twiss(1-f, sl(ix)%ele%a, sl(ix+1)%ele%a)
+ele%b = average_twiss(1-f, sl(ix)%ele%b, sl(ix+1)%ele%b)
+ele%c_mat   = (1-f) * sl(ix)%ele%c_mat   + f * sl(ix+1)%ele%c_mat
+ele%gamma_c = (1-f) * sl(ix)%ele%gamma_c + f * sl(ix+1)%ele%gamma_c
+call make_v_mats (ele, v_mat, v_inv_mat)
 
-  ! Add offsets due to finite bunch size to the electron position.
-  ! To do this must transform to the normal mode coords
+! Add offsets due to finite bunch size to the electron position.
+! To do this must transform to the normal mode coords
 
-  call ran_gauss(r_emit)  ! electron momentum offset.
-  dE = r_emit(5) * source_ele%value(sig_E$) / source_ele%value(p0c$)
-  charged_orb%vec(6) = charged_orb%vec(6) + dE
+call ran_gauss(r_emit)  ! electron momentum offset.
+dE = r_emit(5) * photon_init_ele%value(sig_E$) / photon_init_ele%value(p0c$)
+charged_orb%vec(6) = charged_orb%vec(6) + dE
 
-  vec = matmul (v_inv_mat, charged_orb%vec(1:4))
-  vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele%a%eta, ele%a%etap] * dE
-  vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele%b%eta, ele%b%etap] * dE
+vec = matmul (v_inv_mat, charged_orb%vec(1:4))
+vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele%a%eta, ele%a%etap] * dE
+vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele%b%eta, ele%b%etap] * dE
 
-  vec(1) = vec(1) + sqrt(lux_com%source_branch%a%emit * ele%a%beta) * r_emit(1)
-  vec(2) = vec(2) + sqrt(lux_com%source_branch%a%emit / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
+vec(1) = vec(1) + sqrt(lux_com%physical_source_branch%a%emit * ele%a%beta) * r_emit(1)
+vec(2) = vec(2) + sqrt(lux_com%physical_source_branch%a%emit / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
 
-  vec(3) = vec(3) + sqrt(lux_com%source_branch%b%emit * ele%b%beta) * r_emit(3)
-  vec(4) = vec(4) + sqrt(lux_com%source_branch%b%emit / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
+vec(3) = vec(3) + sqrt(lux_com%physical_source_branch%b%emit * ele%b%beta) * r_emit(3)
+vec(4) = vec(4) + sqrt(lux_com%physical_source_branch%b%emit / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
 
-  charged_orb%vec(1:4) = matmul(v_mat, vec)
+charged_orb%vec(1:4) = matmul(v_mat, vec)
 
-  ! Calculate bending strength
+! Calculate bending strength
 
-  B = (1-f) * sl(ix)%field%b + f * sl(ix+1)%field%b
-  E = 0
-  g_bend = g_bend_from_em_field (B, E, charged_orb)
-  
-  ! Init photon
+B = (1-f) * sl(ix)%field%b + f * sl(ix+1)%field%b
+E = 0
+g_bend = g_bend_from_em_field (B, E, charged_orb)
 
-  gamma_electron = source_ele%value(p0c$) * (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
-  !! Note: Energy slices not yet implemented.
-  !! if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
-  !!   rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
-  !!   call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max, rr)
-  !! endif
+! Init photon
 
-  call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max)
-  call absolute_photon_position (charged_orb, orb)
+gamma_electron = physical_source_ele%value(p0c$) * (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
+!! Note: Energy slices not yet implemented.
+!! if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
+!!   rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
+!!   call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max, rr)
+!! endif
 
-  orb%s = sl(ix-1)%ele%s + f * sl(ix)%ele%value(l$)
+call bend_photon_init (g_bend(1), g_bend(2), gamma_electron, orb, lux_com%E_min, lux_com%E_max)
+call absolute_photon_position (charged_orb, orb)
 
-  ! Track to fork element.
+orb%s = sl(ix-1)%ele%s + f * sl(ix)%ele%value(l$)
 
-  ds = lux_com%fork_ele%s - orb%s  
+! Track to fork element.
 
-  if (source_ele%key == sbend$) then
-    call track_a_bend_photon (orb, ele, ds)
-  else
-    call track_a_drift_photon (orb, ds, .true.)
-  endif
+ds = lux_com%fork_ele%s - orb%s  
 
-  return
-end select
+if (physical_source_ele%key == sbend$) then
+  call track_a_bend_photon (orb, ele, ds)
+else
+  call track_a_drift_photon (orb, ds, .true.)
+endif
 
 end subroutine lux_generate_photon
 
@@ -537,7 +541,7 @@ type (lux_common_struct), target :: lux_com
 type (lux_param_struct) lux_param
 type (floor_position_struct) floor
 type (ele_struct) twiss_ele
-type (ele_struct), pointer :: ele, fork_ele, source_ele
+type (ele_struct), pointer :: ele, fork_ele, photon_init_ele, physical_source_ele
 type (lux_bend_slice_struct), pointer :: sl(:)
 type (coord_struct) orb
 type (coord_struct), pointer :: orbit
@@ -560,51 +564,51 @@ logical err, hit_below_top, hit_above_bottom, hit_right_of_left_edge, hit_left_o
 logical old_hit_below_top, old_hit_above_bottom, old_hit_right_of_left_edge, old_hit_left_of_right_edge
 
 !-------------------------------------------------------------
-! x_ray_source source
+! photon_init source
 
 lat => lux_com%lat
-branch => lux_com%detec_branch
-source_ele => lux_com%source_ele
+branch => lux_com%tracking_branch
+photon_init_ele => lux_com%photon_init_ele
+physical_source_ele => lux_com%physical_source_ele
 
-select case (source_ele%key)
-case (x_ray_source$)
-  call photon_target_setup (source_ele)
+if (.not. associated(lux_com%physical_source_ele)) then
+  call photon_target_setup (photon_init_ele)
 
-  if (nint(source_ele%value(energy_distribution$)) == uniform$) then
+  if (nint(photon_init_ele%value(energy_distribution$)) == uniform$) then
     f = 1
   else
     f = 3
   endif
-  lux_com%E_min = source_ele%value(E_center$) - f * source_ele%value(sig_E$)
-  lux_com%E_max = source_ele%value(E_center$) + f * source_ele%value(sig_E$)
-  if (is_false(source_ele%value(E_center_relative_to_ref$))) then
-    lux_com%E_min = lux_com%E_min - source_ele%value(p0c$) 
-    lux_com%E_max = lux_com%E_max - source_ele%value(p0c$) 
+  lux_com%E_min = photon_init_ele%value(E_center$) - f * photon_init_ele%value(sig_E$)
+  lux_com%E_max = photon_init_ele%value(E_center$) + f * photon_init_ele%value(sig_E$)
+  if (is_false(photon_init_ele%value(E_center_relative_to_ref$))) then
+    lux_com%E_min = lux_com%E_min - photon_init_ele%value(p0c$) 
+    lux_com%E_max = lux_com%E_max - photon_init_ele%value(p0c$) 
   endif
 
 !-------------------------------------------------------------
 ! Sbend or wiggler source
 
-case default
+else
   call photon_target_setup (lux_com%fork_ele)
   
-  n_slice = max(1, nint(source_ele%value(l$) / source_ele%value(ds_slice$)))
+  n_slice = max(1, nint(physical_source_ele%value(l$) / photon_init_ele%value(ds_slice$)))
   lux_com%n_bend_slice = n_slice
   allocate (lux_com%bend_slice(0:n_slice))
 
-  lux_com%E_min = source_ele%value(E_center$) - source_ele%value(sig_E$)
-  if (is_true(source_ele%value(E_center_relative_to_ref$))) lux_com%E_min = lux_com%E_min + lux_com%detec_ele%value(p0c$) 
-  if (source_ele%value(sig_E$) == 0) then
+  lux_com%E_min = photon_init_ele%value(E_center$) - photon_init_ele%value(sig_E$)
+  if (is_true(photon_init_ele%value(E_center_relative_to_ref$))) lux_com%E_min = lux_com%E_min + lux_com%detec_ele%value(p0c$) 
+  if (photon_init_ele%value(sig_E$) == 0) then
     lux_com%E_max = lux_com%E_min + 1d-10  ! Need some small offset for the calculation
   else
-    lux_com%E_max = lux_com%E_min + 2 * source_ele%value(sig_E$)
+    lux_com%E_max = lux_com%E_min + 2 * photon_init_ele%value(sig_E$)
   endif
 
-  ! Track through source ele and gather data
+  ! Track through physical source ele and gather data
 
-  call init_coord (orb, lat%beam_start, source_ele, upstream_end$)
-  twiss_ele = pointer_to_next_ele (source_ele, -1)
-  ds = source_ele%value(l$) / n_slice
+  call init_coord (orb, lat%beam_start, physical_source_ele, upstream_end$)
+  twiss_ele = pointer_to_next_ele (physical_source_ele, -1)
+  ds = physical_source_ele%value(l$) / n_slice
   s_now = 0
 
   gamma = (orb%p0c / orb%beta) / mass_of(orb%species)
@@ -619,7 +623,7 @@ case default
 
     call transfer_ele (twiss_ele, sl(i)%ele)
     sl(i)%orbit   = orb
-    call em_field_calc (source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(i)%field)
+    call em_field_calc (physical_source_ele, lat%param, s_now, 0.0_rp, orb, .false., sl(i)%field)
 
     g_bend = g_bend_from_em_field (sl(i)%field%b, sl(i)%field%e, orb)
     g_abs = norm2(g_bend)
@@ -637,13 +641,13 @@ case default
 
     call make_v_mats (twiss_ele, v_mat)
     p_coord(1)%vec = matmul(v_mat, [1.0_rp, -twiss_ele%a%alpha, 0.0_rp, 0.0_rp]) * &
-                              sqrt(lux_com%source_branch%a%emit * twiss_ele%a%beta) * source_ele%value(transverse_sigma_cut$)
+                              sqrt(lux_com%physical_source_branch%a%emit * twiss_ele%a%beta) * photon_init_ele%value(transverse_sigma_cut$)
     p_coord(2)%vec = matmul(v_mat, [0.0_rp, 1.0_rp, 0.0_rp, 0.0_rp]) * &
-                              sqrt(lux_com%source_branch%a%emit / twiss_ele%a%beta) * source_ele%value(transverse_sigma_cut$)
+                              sqrt(lux_com%physical_source_branch%a%emit / twiss_ele%a%beta) * photon_init_ele%value(transverse_sigma_cut$)
     p_coord(3)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 1.0_rp, -twiss_ele%b%alpha]) * &
-                              sqrt(lux_com%source_branch%b%emit * twiss_ele%b%beta) * source_ele%value(transverse_sigma_cut$)
+                              sqrt(lux_com%physical_source_branch%b%emit * twiss_ele%b%beta) * photon_init_ele%value(transverse_sigma_cut$)
     p_coord(4)%vec = matmul(v_mat, [0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp]) * &
-                              sqrt(lux_com%source_branch%b%emit / twiss_ele%b%beta) * source_ele%value(transverse_sigma_cut$)
+                              sqrt(lux_com%physical_source_branch%b%emit / twiss_ele%b%beta) * photon_init_ele%value(transverse_sigma_cut$)
 
     fork_ele => lux_com%fork_ele
     do k = 1, fork_ele%photon%target%n_corner
@@ -669,7 +673,7 @@ case default
 
     !
 
-    call twiss_and_track_intra_ele (source_ele, lat%param, s_now, s_now+ds, &
+    call twiss_and_track_intra_ele (physical_source_ele, lat%param, s_now, s_now+ds, &
                                       .true., .true., orb, orb, twiss_ele, twiss_ele, err, .true.)
     if (err) call err_exit
     s_now = s_now + ds
@@ -687,9 +691,9 @@ case default
   sl%integrated_emit_prob = sl%integrated_emit_prob / sl(n_slice)%integrated_emit_prob
 
   if (lux_com%verbose) print '(a, i4)', &
-            'Number of slices of source element to be used for photon generation:', count(sl%good_emit) 
+            'Number of slices of physical_source element to be used for photon generation:', count(sl%good_emit) 
 
-end select
+endif
 
 ! Setup energy binning
 
@@ -702,7 +706,7 @@ if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
 do i = 1, lux_param%n_energy_bin_pts
   lux_com%energy_bin(i)%energy_ave = lux_com%E_min + lux_com%dE_bin * (i - 0.5)
 enddo
-if (is_true(source_ele%value(E_center_relative_to_ref$))) lux_com%energy_bin%energy_ave = &
+if (is_true(photon_init_ele%value(E_center_relative_to_ref$))) lux_com%energy_bin%energy_ave = &
                                                   lux_com%energy_bin%energy_ave - lux_com%detec_ele%value(p0c$) 
 
 end subroutine lux_tracking_setup 
@@ -731,8 +735,8 @@ type (lux_output_data_struct) lux_data
 type (lux_photon_struct), target :: photon
 type (lat_struct), pointer :: lat
 type (coord_struct), pointer :: this_orb
-type (ele_struct), pointer :: detec_ele, source_ele
-type (branch_struct), pointer :: s_branch, d_branch
+type (ele_struct), pointer :: detec_ele, photon_init_ele
+type (branch_struct), pointer :: s_branch, t_branch
 type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
@@ -749,13 +753,13 @@ logical accept, err_flag
 lat => lux_com%lat
 detec_ele => lux_com%detec_ele
 detec_grid => lux_com%detec_ele%photon%surface%grid
-source_ele => lux_com%source_ele
-d_branch => lux_com%detec_branch
-s_branch => lux_com%source_branch
+photon_init_ele => lux_com%photon_init_ele
+t_branch => lux_com%tracking_branch
+s_branch => lux_com%physical_source_branch
 
 nt = detec_ele%ix_ele
 
-call reallocate_coord (photon%orb, lat, d_branch%ix_branch)
+call reallocate_coord (photon%orb, lat, t_branch%ix_branch)
 
 ! Photon bunch tracking
 
@@ -768,7 +772,7 @@ if (lux_param%track_bunch) then
     call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
   enddo
 
-  call track_photon_bunch (bunch, d_branch, 0, detec_ele%ix_ele)
+  call track_photon_bunch (bunch, t_branch, 0, detec_ele%ix_ele)
 
   do ip = 1, n
     call add_to_detector_statistics (bunch%particle(ip), intens)
@@ -792,11 +796,11 @@ do
 
   call lux_generate_photon (photon%orb(0), lux_param, lux_com)
   if (lux_param%debug) then
-    call init_coord (photon%orb(0), lat%beam_start, d_branch%ele(0), downstream_end$, photon$, &
-                                        1, d_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
+    call init_coord (photon%orb(0), lat%beam_start, t_branch%ele(0), downstream_end$, photon$, &
+                                        1, t_branch%ele(0)%value(E_tot$) * (1 + lat%beam_start%vec(6)))
   endif
 
-  call track_all (lat, photon%orb, d_branch%ix_branch, track_state)
+  call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
   call add_to_detector_statistics (photon%orb(nt), intens)
 
@@ -848,7 +852,7 @@ intensity_tot = intensity_tot + intens
 
 call photon_add_to_detector_statistics (det_orb, detec_ele)
 
-if (is_true(source_ele%value(E_center_relative_to_ref$))) then
+if (is_true(photon_init_ele%value(E_center_relative_to_ref$))) then
   ix = nint((det_orb%p0c - lux_com%detec_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
 else
   ix = nint((det_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 

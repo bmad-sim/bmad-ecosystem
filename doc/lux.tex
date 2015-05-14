@@ -188,7 +188,7 @@ An example is:
     lux_param%det_pix_out_file = 'lux.det_pix#'
     lux_param%photon1_out_file = 'lux.photon1'     ! Individual photon positions.
 
-    lux_param%source_element = 'b03w'              ! Name of source element
+    lux_param%photon_init_element = 'p_init'       ! Name of element emitting photons
     lux_param%detector_element = 'det'
     lux_param%photon1_element = ''
 
@@ -265,7 +265,10 @@ Number of energy bins used for the table of intensity of photons
 hitting the detector as a function of photon energy
 (\sref{s:det.pix.file}).
 
-  \item[\vn{lux_param%n_photon1_out_max}
+  \item[\vn{lux_param\%photon_init_element}] \Newline
+Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
+
+  \item[\vn{lux_param\%n_photon1_out_max}] \Newline
 Maximum number of photons to record in the \vn{photon1_out_file}.
 Default is 100.
 
@@ -305,20 +308,17 @@ photon_out file any photons that do not reach the detector. This switch
 is only relavent when the lattice element at which the photon positions
 are being evaluated is not the detector (\sref{s:photon1.file}).
 
-  \item[\vn{photon_init\%scale_initial_field_to_1}] \Newline
+  \item[\vn{lux_param\%scale_initial_field_to_1}] \Newline
 Scale the field so that $E_x^2 + E_y^2 = 1$ Only used if at least
 one field component is non-zero.
-
-  \item[\vn{lux_param\%source_element}] \Newline
-Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
 
   \item[\vn{lux_param\%stop_num_photons}] \Newline
 Maximum number of photons to track (\sref{s:det}).
 
   \item[\vn{lux_param\%stop_total_intensity}] \Newline
 Cumulative unnormalized intensity at the detector to stop
-at. (\sref{s:det}).  Note: This parameter is ignored if running the
-parallel version of \lux and only \vn{lux_param\%stop_num_photons}
+at (\sref{s:det}).  Note: This parameter is ignored if running the
+parallel version of \lux and only \vn{lux_param%stop_num_photons}
 is used.
 
   \end{description}
@@ -368,11 +368,14 @@ scale the output numbers to correspond to actual measured values.
 %------------------------------------------------------------------
 \subsection{Photon Polarization Initialization}
 
-when using an \vn{x_ray_source} element, the polarization of the
-photons is set by the element parameters \vn{e_field_x} and
-\vn{e_field_y}. For bend, wiggler, and undulator elements, the initial
-polarization of a given photon is determined by the properties of the
-element and the initial photon direction.
+When using a \vn{photon_init} element without an associated ``physical
+elemement'', the polarization of the photons is set by the
+\vn{photon_init} parameters \vn{e_field_x} and \vn{e_field_y}. 
+
+When using a \vn{photon_init} element with an associated physical
+element (which is generally a bend, wiggler, and undulator element),
+the polarization the photons is determined by the
+properties of the physical element.
 
 If the parameter \vn{lux_param%scale_initial_field_to_1} is set to
 True, \lux will scale the field so that the \vn{unnormalized}
@@ -414,14 +417,13 @@ experimental setup is given by the \vn{lattice_file} parameter in the
 master input file (\sref{s:master.file}). Bmad standard syntax is
 used\cite{b:bmad}. 
 
-The source element, specified by the \vn{lux_param%source_element}
-parameter must be of type:
+The starting element for tracking photons, specified by the
+\vn{lux_param%photon_init_element} parameter must be of type:
 \begin{example}
-  sbend or rbend    ! Example in \sref{ss:bend}
-  undulator
-  wiggler
-  x_ray_source      ! Example in \sref{ss:x.ray.init}
+  photon_init
 \end{example}
+This element may have an associated ``physical source'' element which
+should be a bend, wiggler, or undulator element.
 
 The detector element, specified by the \vn{lux_param%detector_element}
 parameter must be of type:
@@ -436,10 +438,11 @@ The detector element must define a grid of pixels. Example:
 See the Bmad manual for details of the detector syntax.
 
 %------------------------------------------------------------------
-\subsection{Example: Lattice Using an x_ray_source Source}
+\subsection{Example: Lattice Using an photon_init Source}
 \label{ss:x.ray.init}
 
-An example lattice using an \vn{x_ray_source} element as the photon source is:
+An example lattice using an \vn{photon_init} element without an
+associated physical source is:
 \begin{listing}{1}
 beginning[e_tot] = 1e4
 parameter[particle] = photon
@@ -451,7 +454,7 @@ angle  = 80 * pi / 180
 qq = r0 * tan(pi/2-graze_angle)
 dft_len = sqrt(qq^2 + r0^2)
 
-src: x_ray_source, energy_distribution = gaussian
+src: photon_init, energy_distribution = gaussian
 drift1: pipe, l = dft_len, x_limit = 0.01, y_limit = 0.01
 cryst: crystal, crystal_type = 'Si(444)', b_param = -1, tilt = pi, 
         a2_trans_curve = 1 / (2 * c_rad), a4_trans_curve = 1 / (8 * c_rad^3)
