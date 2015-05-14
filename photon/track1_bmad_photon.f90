@@ -188,10 +188,10 @@ case (taylor$)
   end_orb%s = ele%s
 
 !-----------------------------------------------
-! X_Ray_Source
+! Photon_Init
 
-case (x_ray_source$)
-  call track1_x_ray_source (ele, param, end_orb)
+case (photon_init$)
+  call track1_photon_init (ele, param, end_orb)
   if (end_orb%state /= alive$) return
 
 !-----------------------------------------------

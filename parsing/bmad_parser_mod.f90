@@ -1147,7 +1147,7 @@ case ('OFFSET')
   pele%offset = value
 
 case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
-     'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE')
+     'TO_LINE', 'TO_ELEMENT', 'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'ORIGIN_ELE', 'PHYSICAL_SOURCE')
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('PTC_MAX_FRINGE_ORDER')
@@ -3103,8 +3103,7 @@ endif
 select case (attrib_name)
 case ('ALIAS')
   ele%alias = type_name
-  ele%alias = type_name
-case ('CRYSTAL_TYPE', 'MATERIAL_TYPE')
+case ('CRYSTAL_TYPE', 'MATERIAL_TYPE', 'PHYSICAL_SOURCE')
   ele%component_name = type_name
 case ('DESCRIP', 'LATTICE')
   if (.not. associated(ele%descrip)) allocate (ele%descrip) 

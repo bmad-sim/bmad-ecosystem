@@ -1137,7 +1137,7 @@ do n = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
     select case (ele%key)
-    case (sample$, diffraction_plate$, x_ray_source$) 
+    case (sample$, diffraction_plate$, photon_init$) 
       call photon_target_setup (ele)
     end select
   enddo

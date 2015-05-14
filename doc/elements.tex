@@ -65,9 +65,9 @@ particle and photon use.
   Detector           & \ref{s:detector}      &  Multilayer_Mirror  & \ref{s:multilayer} \HH
   Diffraction_Plate  & \ref{s:diff.plate}    &  Patch              & \ref{s:patch}      \HH
   Drift              & \ref{s:drift}         &  Photon_Fork        & \ref{s:fork}       \HH
-  Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
-  Floor_Shift        & \ref{s:floor.ele}     &  Sample             & \ref{s:sample}     \HH 
-  Fork               & \ref{s:fork}          &  X_Ray_Source       & \ref{s:x.source}   \HH
+  Fiducial           & \ref{s:fiducial}      &  Photon_Init        & \ref{s:photon.init}\HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \HH
+  Fork               & \ref{s:fork}          &  Sample             & \ref{s:sample}     \HH 
   Instrument         & \ref{s:monitor}       &                     &                    \HH
 \end{tabular}
 }
@@ -417,19 +417,6 @@ Attributes specific to \vn{rbend} and \vn{sbend} elements are:
   roll        = <Real>     ! See \ref{s:offset}.
 \end{example}
 
-\index{l}
-The difference between \vn{rbend} and \vn{sbend} elements
-is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
-To ease the bookkeeping burden, after reading in a lattice, \bmad will
-internally convert all \vn{rbend}s into \vn{sbend}s. 
-This is done using the following transformation on \vn{rbend}s:
-\begin{example}
-  l_chord(internal) = l(input)
-  l(internal) = 2 * asin(l_chord * g / 2) / g
-  e1(internal) = e1(input) + theta / 2
-  e2(internal) = e2(input) + theta / 2
-\end{example}
-
 \begin{figure}[tb]
   \centering
   \subfigure[rbend]
@@ -548,6 +535,21 @@ the physical element. Note that the MAD \vn{tilt} attribute for bends
 is equivalent to the \bmad \vn{ref_tilt}. Bends in \bmad do not have
 a \vn{tilt} attribute.
   \end{description}
+
+%---------------
+
+\index{l}
+The difference between \vn{rbend} and \vn{sbend} elements
+is the way the \vn{l}, \vn{e1}, and \vn{e2} attributes are interpreted.
+To ease the bookkeeping burden, after reading in a lattice, \bmad will
+internally convert all \vn{rbend}s into \vn{sbend}s. 
+This is done using the following transformation on \vn{rbend}s:
+\begin{example}
+  l_chord(internal) = l(input)
+  l(internal) = 2 * asin(l_chord * g / 2) / g
+  e1(internal) = e1(input) + theta / 2
+  e2(internal) = e2(input) + theta / 2
+\end{example}
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are
 specified for an element \bmad will calculate the appropriate value
@@ -747,7 +749,7 @@ General \vn{crystal} attributes are:
 Attributes specific to a \vn{crystal} element are:
 \begin{example}
   b_param            = <Real>       ! b parameter
-  crystal_type       = <String>     ! Crystal material and reflection plane.
+  crystal_type       = <String>     ! Crystal material (\sref{s:cryst.list}) and reflection plane.
   psi_angle          = <Real>       ! Rotation of H-vector about the surface normal.
   thickness          = <Real>       ! Thickness of crystal for Laue diffraction.
   ref_orbit_follows  = <which_beam> ! Reference orbit aligned with what outgoing beam?
@@ -778,17 +780,17 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 
 The \vn{crystal_type} attribute defines the crystal material and
 diffraction lattice plane. The syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ}
-is the atomic formula for the material and \vn{ijk} are the Miller
+is the material name and \vn{ijk} are the Miller
 indices for the diffraction plane. For example,
 \begin{example}
   b_cryst1: crystal, crystal_type = "Si(111)", b_param = -1, ...
 \end{example}
 The atomic formula is case sensitive so, for example, \vn{"SI(111)"}
-is not acceptable.  Given the \vn{crystal_type}, the spacing between
+is not acceptable. The list of known crystal materials is given in
+\sref{s:cryst.list}. Given the \vn{crystal_type}, the spacing between
 lattice planes (\vn{d_spacing}), the unit cell volume
 (\vn{v_unitcell}), and the structure factor\cite{b:batterman} values
-can be computed. The list of known crystals is given in
-\sref{s:cryst.list}.
+can be computed.
 
 The \vn{b_param} is the standard asymmetry factor
 \Begineq
@@ -1556,7 +1558,6 @@ target branch needs to be modified, this can be accomplished using a
 The \vn{is_on} attribute, while provided for use by a program, is
 ignored by \bmad proper.
 
-
 If the reference orbit needs to be shifted when forking from one ring
 to another ring, a patch can be placed in a separate ``transfer'' line
 to isolate it from the branches defining the rings. Example:
@@ -1634,6 +1635,20 @@ be distinct. If \vn{new_branch} is set to \vn{False}, a new lattice
 branch will not be created if a lattice branch created from the same
 line already exists. This is useful, for example, when a chicane line
 branches off from the main line and then branches back to it.
+
+When a lattice is expanded (\sref{s:expand}), the branches defined by
+the \vn{use} statement (\sref{s:use}) are searched for fork elements
+that branch to new target branches. If found, the appropriate branches are
+instantiated and the process repeated until there are no more branches
+to be instantiated. This process does {\em not} go in reverse. That is
+the lines defined in a lattice file are not searched for fork elements
+that have target instantiated branches. For example, if, in the above example,
+the use statement was:
+\begin{example}
+  use, x_line
+\end{example}
+then only the \vn{x_line} would be instantiated and the lines \vn{inj} and
+\vn{ring} would be ignored.
 
 %-----------------------------------------------------------------
 \section{Girder}
@@ -2870,6 +2885,210 @@ Section~\sref{s:reflect.patch} for more details on how a reflection
 patch is defined.
 
 %-----------------------------------------------------------------
+\section{Photon_Init}
+\label{s:photon.init}
+\index{photon_init|hyperbf}
+
+A \vn{photon_init} element is used as a starting element for x-ray
+tracking.  A \vn{photon_init} element can be used to define such
+things as the initial energy spectrum and angular orientation. As
+explained below, a \vn{photon_init} element can be a ``stand alone''
+photon source or it can have an assoricated ``phyical source''
+element.
+
+General \vn{photon_init} attributes are:
+\begin{center}
+\tt
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
+  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
+  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
+\end{tabular}
+\end{center}
+\toffset
+
+\index{x_half_length}\index{y_half_length}
+Attributes specific to an \vn{photon_init} element are:
+\begin{example}
+  energy_distribution      = <Switch>  ! Gaussian or uniform
+  spatial_distribution     = <Switch>  ! Gaussian or uniform. 
+  velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
+  sig_x                    = <Real>
+  sig_y                    = <Real>
+  sig_z                    = <Real>
+  sig_vx                   = <Real>
+  sig_vy                   = <Real>
+  sig_E                    = <Real>    ! Initial photon energy width (eV).
+  physical_source          = <String>  ! physical source of x-rays
+  transverse_sigma_cut     = <Real>
+  E_center                 = <Real>    ! Average initial photon energy (eV).
+  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
+  e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
+  e_field_y                = <Real>
+  ds_slice                 = <Real>
+  ref_wavelength    ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
+\end{example}
+
+  \begin{description}
+  \index{e_center}
+  \item[\vn{E_center}] \Newline
+Average initial photon energy in eV. If \vn{E_center_relative_to_ref}
+is set to True, \vn{E_center} will be relative to the reference
+energy.
+
+  \index{E_center_relative_to_ref}
+  \item[\vn{E_center_relative_to_ref}] \Newline
+\vn{E_center} an absolute value (referenced to zero) if
+\vn{E_center_relative_to_ref} is set to False. With a setting of True
+(the default), \vn{E_center} is taken to be with respect to the
+reference energy (\sref{s:ref.energy}). That is, if set to True, the
+center energy \vn{<E>} is
+\begin{example}
+  <E> = E_center + Reference_Energy
+\end{example}
+
+  \index{ds_slice}
+  \item[\vn{ds_slice}] \Newline
+Used when there is an associated physical source element. The physical
+source element is sliced into pieces of thickness \vn{ds_slice} and
+each slice is tested to see if photons from the slice can possibly
+pass through the first aperture. When photons are generated, photons
+will only be generated from slices where they have a hope of passing
+through the first aperture. This makes the simulation more efficient.
+The default value of \vn{ds_slice} is 0.01 meter.
+
+  \index{e_field_x}\index{e_field_y}
+  \item[\vn{e_field_x}, \vn{e_field_y}] \Newline
+Electric field component of initial photons in the $x$ and $y$ planes.
+If both are set to 0 then a random field is chosen with unit intensity
+$E_x^2 + E_y^2 = 1$.
+
+  \index{energy_distribution}
+  \item[\vn{energy_distribution}] \Newline
+Sets the type of energy spectrum for emitted photons. If there is an
+associated physical element then this parameter is ignored and the
+energy distribution is calculated from the physical element. Possible
+settings are:
+\begin{example2}
+  gaussian   ! Default
+  uniform
+\end{example2}
+The \vn{gaussian} setting gives a Gaussian distribution with width
+set by \vn{sig_E}. The \vn{uniform} setting gives a flat
+distribution in the range:
+\begin{example2}
+  [-sig_E, sig_E]
+\end{example2}
+
+  \index{spatial_distribution}
+  \item[\vn{spatial_distribution}] \Newline
+Sets spacial $(x, y, z)$ spectrum of emitted photons. If there is an
+associated physical element then this parameter is ignored and the
+energy distribution is calculated from the physical element. Possible
+settings are:
+\begin{example2}
+  gaussian    ! Default
+  uniform
+\end{example2}
+The \vn{gaussian} setting gives a Gaussian distribution with width
+set by \vn{sig_E}. The \vn{uniform} setting gives a flat
+distribution in the range:
+\begin{example2}
+  [-sig_E, sig_E]
+\end{example2}
+The \vn{gaussian} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example2}
+  sig_x     ! for x distribution
+  sig_y     ! for y distribution
+  sig_z     ! for z distribution
+\end{example2}
+The \vn{uniform} setting gives a flat
+distribution in the range: $[-\sigma, \sigma]$.
+
+  \index{physical_source}
+  \item[\vn{physical_source}] \Newline
+Used to specify the ``physical'' source of the photons. See below for more details
+
+  \index{sig_E}
+  \item[\vn{sig_E}] \Newline
+Energy width in eV. See \vn{energy_distribution} for more
+details.
+
+  \index{sig_vx}\index{sig_vy}
+  \item[\vn{sig_vx, sig_vy}] \Newline
+Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
+\vn{velocity_distribution} for more details.
+
+  \index{sig_x}\index{sig_y}\index{sig_z}
+  \item[\vn{sig_x, sig_y, sig_z}] \Newline
+Width of emitted photons in $x$, $y$ and $z$ directions. See
+\vn{spatial_distribution} for more details.
+
+  \index{velocity_distribution}
+  \item[\vn{velocity_distribution}] \Newline
+Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
+photons. If there is an associated physical element then this
+parameter is ignored and the energy distribution is calculated from
+the physical element. The longitudinal velocity is always computed to
+make $v_x^2 + v_y^2 + v_z^2 = c^2$ Possible settings are:
+\begin{example2}
+  gaussian    ! Default
+  spherical
+  uniform
+\end{example2}
+The \vn{gaussian} setting gives a Gaussian distribution with width
+$\sigma$ where $sigma$ is 
+\begin{example2}
+  sig_vx     for vx/c distribution
+  sig_vy     for vy/c distribution
+\end{example2}
+The \vn{uniform} setting gives a flat distribution in the range:
+$[-\sigma, \sigma]$.
+The \vn{spherical} setting gives flat distribution in all directions.
+  \end{description}
+
+For the purposes of positioning the elements in the lattice around it,
+a \vn{photon_init} element is considered to have zero length.
+
+\vn{photon_init} elements are used in one of two modes: With or
+without an associated physical source element specified by the
+\vn{physical_source} attribute. Without an associated physical source,
+the \vn{photon_init} element completely specifies the initial photon
+spectrum. With an associated physical source element, the photon
+spectrum is determined by the physical source but the shape of the
+spectrum can be modified by setting attributes in the \vn{photon_init}
+element. Example:
+\begin{example}
+  b05w: sbend, l = 3.2, angle = 0.1
+  pfork: photon_fork, to_line = c_line, superimpose, ref = b052, offset = 0.4
+  bend_line: line = (..., b05w, ...)
+  use bend_line
+
+  c_line: line = (pinit, ...)
+  c_line[e_tot] = 15e3
+  pinit: photon_init, physical_source = 'b5w', sig_E = 2.1
+\end{exaple}
+In this example, the bend \vn{b05w} is a bend producing photons. It is
+part of the line \vn{bend_line}. \vn{bend_line} also contains a
+\vn{photon_fork} element named \vn{pfork} which branches to the line
+\vn{c_line}. \vn{c_line} contains the \vn{photon_init} element
+\vn{pinit} which references \vn{b03w} as the associated physical
+source element. When photons are tracked, they are generated in
+\vn{b05w} and then propagated to the \vn{pfork} fork.  After this they
+are propagated through \vn{c_line}. The \vn{pinit} element acts like a
+zero length \vn{marker} element when photons propagate through
+it. That is, the \vn{pinit} element essentially serves to associate
+\vn{c_line} with \vn{b03w} for the purposes of photon tracking. Also,
+in this example, \vn{pinit} modifies the photon energy spectrum so
+that only photons whose energy is within 2.1 eV are generated
+
+
+
+
+%-----------------------------------------------------------------
 \section{Quadrupole}
 \label{s:quad}
 \index{quadrupole|hyperbf}
@@ -3583,144 +3802,3 @@ both types of wigglers have the following attributes:
 light line measured from the exit end of the element. This is used for
 machine geometry calculations and is irrelevant for lattice
 computations.
-
-%-----------------------------------------------------------------
-\section{X_Ray_Source}
-\label{s:x.source}
-\index{x_ray_source|hyperbf}
-
-A \vn{x_ray_source} element is used to simulate a general purpose x-ray source.
-
-General \vn{x_ray_source} attributes are:
-\begin{center}
-\tt
-\begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
-  Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
-  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
-\end{tabular}
-\end{center}
-\toffset
-
-\index{x_half_length}\index{y_half_length}
-Attributes specific to an \vn{x_ray_source} element are:
-\begin{example}
-  energy_distribution      = <Switch>  ! Gaussian or uniform
-  spatial_distribution     = <Switch>  ! Gaussian or uniform. 
-  velocity_distribution    = <Switch>  ! Gaussian, spherical, or uniform. 
-  sig_x                    = <Real>
-  sig_y                    = <Real>
-  sig_z                    = <Real>
-  sig_vx                   = <Real>
-  sig_vy                   = <Real>
-  sig_E                    = <Real>    ! Initial photon energy width (eV).
-  transverse_sigma_cut     = <Real>
-  E_center                 = <Real>    ! Average initial photon energy (eV).
-  E_center_relative_to_ref = <Logic>   ! E_center relative to reference E?
-  e_field_x                = <Real>    ! Polarization. x & y = 0 -> random
-  e_field_y                = <Real>
-  ds_slice                 = <Real>
-  ref_wavelength    ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
-\end{example}
-
-  \begin{description}
-  \item[\vn{E_center}] \Newline
-Average initial photon energy in eV. If \vn{E_center_relative_to_ref}
-is set to True, \vn{E_center} will be relative to the reference
-energy.
-
-  \item[\vn{E_center_relative_to_ref}] \Newline
-\vn{E_center} an absolute value (referenced to zero) if
-\vn{E_center_relative_to_ref} is set to False. With a setting of True
-(the default), \vn{E_center} is taken to be with respect to the
-reference energy (\sref{s:ref.energy}). That is, if set to True, the
-center energy \vn{<E>} is
-\begin{example}
-  <E> = E_center + Reference_Energy
-\end{example}
-
-  \item[\vn{ds_slice}] \Newline
-Used when the source element is an insertion device or a bend: The
-source element is sliced into pieces of thickness \vn{ds_slice} and
-each slice is tested to see if photons from the slice can possibly
-pass through the first aperture. When photons are generated, photons
-will only be generated from slices where they have a hope of passing
-through the first aperture. This makes the simulation more efficient.
-The default value of \vn{ds_slice} is 0.01 meter.
-
-  \item[\vn{e_field_x}, \vn{e_field_y}] \Newline
-Electric field component of initial photons in the $x$ and $y$ planes.
-If both are set to 0 then a random field is chosen with unit intensity
-$E_x^2 + E_y^2 = 1$.
-
-  \item[\vn{energy_distribution}] \Newline
-Sets the type of energy spectrum for emitted photons
-Possible settings are:
-\begin{example2}
-  gaussian
-  uniform
-\end{example2}
-The \vn{gaussian} setting gives a Gaussian distribution with width
-set by \vn{sig_E}. The \vn{uniform} setting gives a flat
-distribution in the range:
-\begin{example2}
-  [-sig_E, sig_E]
-\end{example2}
-
-  \item[\vn{spatial_distribution}] \Newline
-Sets spacial $(x, y, z)$ spectrum of emitted photons.
-Possible settings are:
-\begin{example2}
-  gaussian
-  uniform
-\end{example2}
-The \vn{gaussian} setting gives a Gaussian distribution with width
-set by \vn{sig_E}. The \vn{uniform} setting gives a flat
-distribution in the range:
-\begin{example2}
-  [-sig_E, sig_E]
-\end{example2}
-The \vn{gaussian} setting gives a Gaussian distribution with width
-$\sigma$ where $sigma$ is 
-\begin{example2}
-  sig_x     for x distribution
-  sig_y     for y distribution
-  sig_z     for z distribution
-\end{example2}
-The \vn{uniform} setting gives a flat
-distribution in the range: $[-\sigma, \sigma]$.
-
-  \item[\vn{sig_E}] \Newline
-Energy width in eV. See \vn{energy_distribution} for more
-details.
-
-  \item[\vn{sig_vx, sig_vy}] \Newline
-Width of emitted photons in $v_x/c$ and $v_y/c$ directions. See
-\vn{velocity_distribution} for more details.
-
-  \item[\vn{sig_x, sig_y, sig_z}] \Newline
-Width of emitted photons in $x$, $y$ and $z$ directions. See
-\vn{spatial_distribution} for more details.
-
-  \item[\vn{velocity_distribution}] \Newline
-Sets the transverse $(v_x/c, v_y/c)$ velocity spectrum of emitted
-photons. The longitudinal velocity is always computed to make $v_x^2 +
-v_y^2 + v_z^2 = c^2$ Possible settings are:
-\begin{example2}
-  gaussian
-  spherical
-  uniform
-\end{example2}
-The \vn{gaussian} setting gives a Gaussian distribution with width
-$\sigma$ where $sigma$ is 
-\begin{example2}
-  sig_vx     for vx/c distribution
-  sig_vy     for vy/c distribution
-\end{example2}
-The \vn{uniform} setting gives a flat distribution in the range:
-$[-\sigma, \sigma]$.
-The \vn{spherical} setting gives flat distribution in all directions.
-
-  \end{description}
