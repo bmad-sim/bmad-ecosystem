@@ -22,9 +22,9 @@ contains
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track1_x_ray_source (ele, param, orbit)
+! Subroutine track1_photon_init (ele, param, orbit)
 !
-! Routine to initialize a photon from an x_ray_source element.
+! Routine to initialize a photon from an photon_init element.
 !
 ! Input:
 !   ele           -- ele_struct: patch element.
@@ -34,7 +34,7 @@ contains
 !   orbit         -- coord_struct: Coords after applying a patch transformation.
 !-
 
-Subroutine track1_x_ray_source (ele, param, orbit)
+Subroutine track1_photon_init (ele, param, orbit)
 
 type (ele_struct) ele
 type (lat_param_struct) param
@@ -42,7 +42,7 @@ type (coord_struct) orbit
 
 real(rp) r(3), dir, rr
 
-character(*), parameter :: r_name = 'track1_x_ray_source'
+character(*), parameter :: r_name = 'track1_photon_init'
 
 !
 
@@ -113,7 +113,7 @@ call offset_photon (ele, orbit, unset$)
 
 call track_a_drift_photon (orbit, -orbit%s, .true.)
 
-end subroutine track1_x_ray_source
+end subroutine track1_photon_init
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

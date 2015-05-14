@@ -376,7 +376,7 @@ case (wiggler$, undulator$)
     end select
   endif
 
-case (x_ray_source$)
+case (photon_init$)
   if (present(num_valid)) num_valid = 2
   select case (tracking_method)
   case (bmad_standard$, custom$)
@@ -683,7 +683,7 @@ case (wiggler$, undulator$)
     end select
   endif
 
-case (x_ray_source$)
+case (photon_init$)
   if (present(num_valid)) num_valid = 4
   select case (mat6_calc_method)
   case (bmad_standard$, static$, tracking$, custom$)

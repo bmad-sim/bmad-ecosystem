@@ -190,7 +190,7 @@ case (wiggler$, undulator$)
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
 
-case (x_ray_source$)
+case (photon_init$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
 !!! Due to ifort bug:  ele%photon = photon_element_struct()
   call init_photon_element_struct(ele%photon)

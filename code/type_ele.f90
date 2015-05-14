@@ -386,6 +386,10 @@ if (attribute_name(ele, origin_ele$) == 'ORIGIN_ELE') then
   nl=nl+1; write (li(nl), fmt_a) 'ORIGIN_ELE', '=', '"', trim(ele%component_name), '"'
 endif
 
+if (attribute_name(ele, physical_source$) == 'PHYSICAL_SOURCE') then
+  nl=nl+1; write (li(nl), fmt_a) 'PHYSICAL_SOURCE', '=', '"', trim(ele%component_name), '"'
+endif
+
 if (attribute_name(ele, tracking_method$) == 'TRACKING_METHOD') then
   nl=nl+1; write (li(nl), fmt_a) &
                   'TRACKING_METHOD', '=', tracking_method_name(ele%tracking_method)

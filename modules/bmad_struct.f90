@@ -868,7 +868,7 @@ integer, parameter :: def_beam_start$ = 39, photon_fork$ = 40
 integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
-integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, x_ray_source$ = 53
+integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, photon_init$ = 53
 integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56
 !!! rel_controller$ = , abs_controller$ = 
 
@@ -889,7 +889,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'X_RAY_SOURCE     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
+    'PHOTON_INIT     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1058,7 +1058,7 @@ integer, parameter :: y_limit$ = 97, auto_scale_field_phase$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: aperture_limit_on$ = 99
 
-integer, parameter :: ptc_exact_misalign$ = 100
+integer, parameter :: ptc_exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_a_begin$ = 100
 integer, parameter :: term$ = 101
 integer, parameter :: x_position$ = 102, s_spline$ = 102, ptc_exact_model$ = 102

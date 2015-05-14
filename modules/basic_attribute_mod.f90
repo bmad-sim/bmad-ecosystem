@@ -445,7 +445,7 @@ do i = 1, n_key$
 
   if (i == capillary$)         cycle
   if (i == diffraction_plate$) cycle
-  if (i == x_ray_source$)      cycle
+  if (i == photon_init$)      cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
@@ -1156,24 +1156,25 @@ call init_attribute_name1 (wiggler$, p0c_start$,                     'p0c_start'
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
-call init_attribute_name1 (x_ray_source$, l$,                         'L', dependent$)
-call init_attribute_name1 (x_ray_source$, sig_x$,                     'SIG_X')
-call init_attribute_name1 (x_ray_source$, sig_y$,                     'SIG_Y')
-call init_attribute_name1 (x_ray_source$, sig_z$,                     'SIG_Z')
-call init_attribute_name1 (x_ray_source$, sig_vx$,                    'SIG_VX')
-call init_attribute_name1 (x_ray_source$, sig_vy$,                    'SIG_VY')
-call init_attribute_name1 (x_ray_source$, sig_E$,                     'SIG_E')
-call init_attribute_name1 (x_ray_source$, E_center$,                  'E_CENTER')
-call init_attribute_name1 (x_ray_source$, E_center_relative_to_ref$,  'E_CENTER_RELATIVE_TO_REF')
-call init_attribute_name1 (x_ray_source$, spatial_distribution$,      'SPATIAL_DISTRIBUTION')
-call init_attribute_name1 (x_ray_source$, velocity_distribution$,     'VELOCITY_DISTRIBUTION')
-call init_attribute_name1 (x_ray_source$, energy_distribution$,       'ENERGY_DISTRIBUTION')
-call init_attribute_name1 (x_ray_source$, e_field_x$,                 'E_FIELD_X')
-call init_attribute_name1 (x_ray_source$, e_field_y$,                 'E_FIELD_Y')
-call init_attribute_name1 (x_ray_source$, scale_field_to_one$,        'SCALE_FIELD_TO_ONE')
-call init_attribute_name1 (x_ray_source$, transverse_sigma_cut$,      'TRANSVERSE_SIGMA_CUT')
-call init_attribute_name1 (x_ray_source$, ds_slice$,                  'DS_SLICE')
-call init_attribute_name1 (x_ray_source$, ref_wavelength$,            'REF_WAVELENGTH', dependent$)
+call init_attribute_name1 (photon_init$, l$,                         'L', dependent$)
+call init_attribute_name1 (photon_init$, sig_x$,                     'SIG_X')
+call init_attribute_name1 (photon_init$, sig_y$,                     'SIG_Y')
+call init_attribute_name1 (photon_init$, sig_z$,                     'SIG_Z')
+call init_attribute_name1 (photon_init$, sig_vx$,                    'SIG_VX')
+call init_attribute_name1 (photon_init$, sig_vy$,                    'SIG_VY')
+call init_attribute_name1 (photon_init$, sig_E$,                     'SIG_E')
+call init_attribute_name1 (photon_init$, E_center$,                  'E_CENTER')
+call init_attribute_name1 (photon_init$, E_center_relative_to_ref$,  'E_CENTER_RELATIVE_TO_REF')
+call init_attribute_name1 (photon_init$, spatial_distribution$,      'SPATIAL_DISTRIBUTION')
+call init_attribute_name1 (photon_init$, velocity_distribution$,     'VELOCITY_DISTRIBUTION')
+call init_attribute_name1 (photon_init$, energy_distribution$,       'ENERGY_DISTRIBUTION')
+call init_attribute_name1 (photon_init$, e_field_x$,                 'E_FIELD_X')
+call init_attribute_name1 (photon_init$, e_field_y$,                 'E_FIELD_Y')
+call init_attribute_name1 (photon_init$, scale_field_to_one$,        'SCALE_FIELD_TO_ONE')
+call init_attribute_name1 (photon_init$, transverse_sigma_cut$,      'TRANSVERSE_SIGMA_CUT')
+call init_attribute_name1 (photon_init$, ds_slice$,                  'DS_SLICE')
+call init_attribute_name1 (photon_init$, physical_source$,           'PHYSICAL_SOURCE')
+call init_attribute_name1 (photon_init$, ref_wavelength$,            'REF_WAVELENGTH', dependent$)
 
 !-----------------------------------------------------------------------
 ! We make a short list to compare against to make things go faster.
@@ -1368,7 +1369,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
   attrib_type = is_switch$
 
-case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', &
+case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO', 'PHYSICAL_SOURCE', &
      'CRYSTAL_TYPE', 'MATERIAL_TYPE', 'REFERENCE', 'TO_LINE', 'TO_ELEMENT', 'ORIGIN_ELE')
   attrib_type = is_string$
 
