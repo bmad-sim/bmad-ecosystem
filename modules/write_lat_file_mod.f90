@@ -1762,17 +1762,19 @@ do
   ! If there are nonzero kick values and this is not a kick type element then put
   ! kicker elements at half strength just before and just after the element
 
-  if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) then
-    if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
-      j_count = j_count + 1
-      write (kicker_ele%name,   '(a, i0)') 'KICKER_Z', j_count
-      kicker_ele%value(hkick$) = val(hkick$) / 2
-      kicker_ele%value(vkick$) = val(vkick$) / 2
-      val(hkick$) = 0; val(vkick$) = 0
-      call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
-      call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
-      ie2 = ie2 + 2
-      cycle
+  if (has_hkick_attributes(ele%key)) then
+    if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
+      if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
+        j_count = j_count + 1
+        write (kicker_ele%name,   '(a, i0)') 'KICKER_Z', j_count
+        kicker_ele%value(hkick$) = val(hkick$) / 2
+        kicker_ele%value(vkick$) = val(vkick$) / 2
+        val(hkick$) = 0; val(vkick$) = 0
+        call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
+        call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
+        ie2 = ie2 + 2
+        cycle
+      endif
     endif
   endif
 
