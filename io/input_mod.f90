@@ -100,7 +100,6 @@ integer ios
 
 !
 
-#ifndef CESR_WINCVF
 do 
   call get_tty_char (this_char, wait, .false.)  ! no flush
   if (.not. wait) return
@@ -110,19 +109,6 @@ do
     if (this_char /= achar(0)) return  ! finished if not a null char
   endif
 enddo
-
-#else
-do
- read (*, '(a)', iostat = ios) this_char
- if (ios /= 0) cycle
- if (.not. wait) return
- if (present(ignore_this)) then
-   if (all(this_char /= ignore_this)) return
- else
-   return  ! finished if not a null char
- endif
-enddo
-#endif
 
 end subroutine get_a_char
 
@@ -163,21 +149,11 @@ logical, optional :: trim_prompt
 
 !
 
-#ifndef CESR_WINCVF
-
 if (logic_option(.true., trim_prompt)) then
   call read_line (trim(prompt) // ' ' // achar(0), line_out)  
 else
   call read_line (prompt // achar(0), line_out)
 endif
-
-#else
-
-write (*, '(a)', advance = 'NO') trim(prompt)
-read (*, '(a)', iostat = ios) line_out
-
-#endif
-
 
 end subroutine read_a_line
 
