@@ -214,7 +214,7 @@ use utilities_mod
 use output_mod
 
 #if defined (CESR_PLPLOT)
-  use plplot_interface!
+  use plplot_interface
 #else
   use pgplot_interface
 #endif
