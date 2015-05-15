@@ -1401,7 +1401,7 @@ end subroutine
 !-------------------------------------------------------------------------
 !+ 
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-!                           use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
+!               use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
 !
 ! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -1429,8 +1429,12 @@ end subroutine
 !   ref_orbit(0:) -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
 !                      This argument must be present if the lattice has sad_mult or patch elements.
 !   use_matrix_model
-!                 -- logical, optional: Use a drift-matrix_drift model for wigglers
-!                       and sol_quad elements? Default is False.
+!                 -- logical, optional: Use a drift-matrix_drift model for wigglers/undulators?
+!                       [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
+!                       Default is False -> Use a bend-drift-bend model. 
+!                       Note: sol_quad elements always use a drift-matrix-drift model.
+!   include_apertures 
+!                 -- logical, optional: Include aperture info? Ignored for SAD convertion. Default is True.
 !   ix_start      -- integer, optional: Starting index of lat%ele(i)
 !                       used for output.
 !   ix_end        -- integer, optional: Ending index of lat%ele(i)
@@ -1445,7 +1449,7 @@ end subroutine
 !-
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-                          use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)
+               use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
 
 implicit none
 
@@ -1478,7 +1482,7 @@ character(4000) line_out   ! Can be this large for taylor maps.
 character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(2) continue_char, eol_char, comment_char, separator_char
 
-logical, optional :: use_matrix_model, err
+logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, has_nonzero_pole
 logical parsing, warn_printed, converted
 
@@ -1681,8 +1685,8 @@ do
 
   ! If there is an aperture...
 
-  if (val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. &
-      val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) then
+  if ((val(x1_limit$) /= 0 .or. val(x2_limit$) /= 0 .or. &
+      val(y1_limit$) /= 0 .or. val(y2_limit$) /= 0) .and. logic_option(.true., include_apertures)) then
 
     if (val(x1_limit$) /= val(x2_limit$)) then
       call out_io (s_warn$, r_name, 'Asymmetric x_limits cannot be converted for: ' // ele%name, &
@@ -2035,7 +2039,7 @@ do ix_ele = ie1, ie2
 
       case (elseparator$)
         call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
-        write (line_out, '(3a, es13.5)') 'mult ', trim(ele%name), ' = (L =', val(l$)
+        write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
         call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
@@ -2453,7 +2457,7 @@ do ix_ele = ie1, ie2
 
   ! Add apertures for mad-x. Use 1 meter for unset apertures
 
-  if (out_type == 'MAD-X') then
+  if (out_type == 'MAD-X' .and. logic_option(.true., include_apertures)) then
     if (val(x1_limit$) /= 0 .or. val(y1_limit$) /= 0) then
       limit = [val(x1_limit$), val(y1_limit$)]
       where (limit == 0) limit = 1
@@ -2462,8 +2466,7 @@ do ix_ele = ie1, ie2
       else
         line_out = trim(line_out) // ', apertype = ellipse'
       endif
-      write (line_out, '(2a, es13.5, a, es13.5, a)') trim(line_out), &
-                                  ', aperture = (', limit(1), ',', limit(2), ')'
+      write (line_out, '(2a, es13.5, a, es13.5, a)') trim(line_out), ', aperture = (', limit(1), ',', limit(2), ')'
     endif
   endif
 
