@@ -1,4 +1,4 @@
- 2015-01-29 11:15:51 
+ 2015-05-12 16:37:22 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -8,55 +8,54 @@
    6   OVERLAY                                   45   CAPILLARY
    7   CUSTOM                                    43   CRYSTAL
    8   TAYLOR                                     7   CUSTOM
-   9   RFCAVITY                                  21   DEF_BEAM
-  10   ELSEPARATOR                               39   DEF_BEAM_START
-  11   BEAMBEAM                                  57   DEF_BMAD_COM
-  12   WIGGLER                                   26   DEF_PARAMETER
-  13   SOL_QUAD                                  55   DETECTOR
-  14   MARKER                                    52   DIFFRACTION_PLATE
-  15   KICKER                                     1   DRIFT
-  16   HYBRID                                    36   ECOLLIMATOR
-  17   OCTUPOLE                                  10   ELSEPARATOR
-  18   RBEND                                     48   EM_FIELD
-  19   MULTIPOLE                                 47   E_GUN
-  20   BEND_SOL_                                 50   FIDUCIAL
-  21   DEF_BEAM                                  49   FLOOR_SHIFT
-  22   AB_MULTIPOLE                              41   FORK
-  23   SOLENOID                                  37   GIRDER
-  24   PATCH                                      4   GROUP
-  25   LCAVITY                                   33   HKICKER
-  26   DEF_PARAMETER                             16   HYBRID
-  27   NULL_ELE                                  32   INSTRUMENT
-  28   BEGINNING_ELE                             15   KICKER
-  29   LINE_ELE                                  25   LCAVITY
-  30   MATCH                                     29   LINE_ELE
-  31   MONITOR                                   14   MARKER
-  32   INSTRUMENT                                30   MATCH
-  33   HKICKER                                   42   MIRROR
-  34   VKICKER                                   31   MONITOR
-  35   RCOLLIMATOR                               46   MULTILAYER_MIRROR
-  36   ECOLLIMATOR                               19   MULTIPOLE
-  37   GIRDER                                    27   NULL_ELE
-  38   BEND_SOL_QUAD                             17   OCTUPOLE
-  39   DEF_BEAM_START                             6   OVERLAY
-  40   PHOTON_FORK                               24   PATCH
-  41   FORK                                      40   PHOTON_FORK
-  42   MIRROR                                    44   PIPE
-  43   CRYSTAL                                    3   QUADRUPOLE
-  44   PIPE                                      18   RBEND
-  45   CAPILLARY                                 35   RCOLLIMATOR
-  46   MULTILAYER_MIRROR                          9   RFCAVITY
-  47   E_GUN                                     56   SAD_MULT
-  48   EM_FIELD                                  54   SAMPLE
-  49   FLOOR_SHIFT                                2   SBEND
-  50   FIDUCIAL                                   5   SEXTUPOLE
-  51   UNDULATOR                                 23   SOLENOID
-  52   DIFFRACTION_PLATE                         13   SOL_QUAD
-  53   X_RAY_SOURCE                               8   TAYLOR
-  54   SAMPLE                                    51   UNDULATOR
-  55   DETECTOR                                  34   VKICKER
-  56   SAD_MULT                                  12   WIGGLER
-  57   DEF_BMAD_COM                              53   X_RAY_SOURCE
+   9   RFCAVITY                                  39   DEF_BEAM_START
+  10   ELSEPARATOR                               21   DEF_MAD_BEAM
+  11   BEAMBEAM                                  26   DEF_PARAMETER
+  12   WIGGLER                                   55   DETECTOR
+  13   SOL_QUAD                                  52   DIFFRACTION_PLATE
+  14   MARKER                                     1   DRIFT
+  15   KICKER                                    36   ECOLLIMATOR
+  16   HYBRID                                    10   ELSEPARATOR
+  17   OCTUPOLE                                  48   EM_FIELD
+  18   RBEND                                     47   E_GUN
+  19   MULTIPOLE                                 50   FIDUCIAL
+  20   BEND_SOL_                                 49   FLOOR_SHIFT
+  21   DEF_MAD_BEAM                              41   FORK
+  22   AB_MULTIPOLE                              37   GIRDER
+  23   SOLENOID                                   4   GROUP
+  24   PATCH                                     33   HKICKER
+  25   LCAVITY                                   16   HYBRID
+  26   DEF_PARAMETER                             32   INSTRUMENT
+  27   NULL_ELE                                  15   KICKER
+  28   BEGINNING_ELE                             25   LCAVITY
+  29   LINE_ELE                                  29   LINE_ELE
+  30   MATCH                                     14   MARKER
+  31   MONITOR                                   30   MATCH
+  32   INSTRUMENT                                42   MIRROR
+  33   HKICKER                                   31   MONITOR
+  34   VKICKER                                   46   MULTILAYER_MIRROR
+  35   RCOLLIMATOR                               19   MULTIPOLE
+  36   ECOLLIMATOR                               27   NULL_ELE
+  37   GIRDER                                    17   OCTUPOLE
+  38   BEND_SOL_QUAD                              6   OVERLAY
+  39   DEF_BEAM_START                            24   PATCH
+  40   PHOTON_FORK                               40   PHOTON_FORK
+  41   FORK                                      44   PIPE
+  42   MIRROR                                     3   QUADRUPOLE
+  43   CRYSTAL                                   18   RBEND
+  44   PIPE                                      35   RCOLLIMATOR
+  45   CAPILLARY                                  9   RFCAVITY
+  46   MULTILAYER_MIRROR                         56   SAD_MULT
+  47   E_GUN                                     54   SAMPLE
+  48   EM_FIELD                                   2   SBEND
+  49   FLOOR_SHIFT                                5   SEXTUPOLE
+  50   FIDUCIAL                                  23   SOLENOID
+  51   UNDULATOR                                 13   SOL_QUAD
+  52   DIFFRACTION_PLATE                          8   TAYLOR
+  53   X_RAY_SOURCE                              51   UNDULATOR
+  54   SAMPLE                                    34   VKICKER
+  55   DETECTOR                                  12   WIGGLER
+  56   SAD_MULT                                  53   X_RAY_SOURCE
  
  !---------------------------------
  22  AB_MULTIPOLE                            
@@ -198,7 +197,6 @@
          5  Z_BEAM_START                            
          6  PZ_BEAM_START                           
          8  ABS_TIME_START                          
-        20  DEFAULT_TRACKING_SPECIES                
         27  LATTICE_TYPE                            
         29  floor_set                                 [private]
         50  delta_ref_time                            [private]
@@ -238,6 +236,19 @@
        109  BETA_B                                  
        114  WALL                                    
        116  PHI_B                                   
+ 
+ !---------------------------------
+ 20  BEND_SOL_                               
+        81  MAX_APERTURE_LIMIT                      
+        82  DEFAULT_DS_STEP                         
+        83  SIGNIFICANT_LENGTH                      
+        84  REL_TOL_TRACKING                        
+        85  ABS_TOL_TRACKING                        
+        86  REL_TOL_ADAPTIVE_TRACKING               
+        87  ABS_TOL_ADAPTIVE_TRACKING               
+        88  INIT_DS_ADAPTIVE_TRACKING               
+        89  MIN_DS_ADAPTIVE_TRACKING                
+        90  FATAL_DS_ADAPTIVE_TRACKING              
  
  !---------------------------------
  38  BEND_SOL_QUAD                           
@@ -303,6 +314,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -410,6 +422,7 @@
          5  REF_ORBIT_FOLLOWS                       
          6  BRAGG_ANGLE_IN                          
          7  BRAGG_ANGLE_OUT                         
+         8  DIFFRACTION_LIMITED                     
         20  BRAGG_ANGLE                             
         21  ALPHA_ANGLE                             
         22  PSI_ANGLE                               
@@ -575,20 +588,6 @@
        129  CREATE_JUMBO_SLAVE                      
  
  !---------------------------------
- 21  DEF_BEAM                                
-         2  N_PART                                  
-        25  PARTICLE                                
-        53  PC                                      
-        54  ENERGY                                  
-        70  scratch                                   [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
-        80  check_sum                                 [private]
- 
- !---------------------------------
  39  DEF_BEAM_START                          
          1  X                                       
          2  PX                                      
@@ -602,6 +601,13 @@
         12  PHASE_X                                 
         13  PHASE_Y                                 
         14  E_PHOTON                                
+        20  SPIN_X                                  
+        21  SPIN_Y                                  
+        22  SPIN_Z                                  
+        23  SPINOR_THETA                            
+        24  SPINOR_PHI                              
+        25  SPINOR_XI                               
+        26  SPINOR_POLARIZATION                     
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -611,22 +617,24 @@
         80  check_sum                                 [private]
  
  !---------------------------------
- 57  DEF_BMAD_COM                            
-        81  MAX_APERTURE_LIMIT                      
-        82  DEFAULT_DS_STEP                         
-        83  SIGNIFICANT_LENGTH                      
-        84  REL_TOL_TRACKING                        
-        85  ABS_TOL_TRACKING                        
-        86  REL_TOL_ADAPTIVE_TRACKING               
-        87  ABS_TOL_ADAPTIVE_TRACKING               
-        88  INIT_DS_ADAPTIVE_TRACKING               
-        89  MIN_DS_ADAPTIVE_TRACKING                
-        90  FATAL_DS_ADAPTIVE_TRACKING              
+ 21  DEF_MAD_BEAM                            
+         2  N_PART                                  
+        25  PARTICLE                                
+        53  PC                                      
+        54  ENERGY                                  
+        70  scratch                                   [private]
+        71  CUSTOM_ATTRIBUTE1                         [private]
+        72  CUSTOM_ATTRIBUTE2                         [private]
+        73  CUSTOM_ATTRIBUTE3                         [private]
+        74  CUSTOM_ATTRIBUTE4                         [private]
+        75  CUSTOM_ATTRIBUTE5                         [private]
+        80  check_sum                                 [private]
  
  !---------------------------------
  26  DEF_PARAMETER                           
          2  N_PART                                  
          3  TAYLOR_ORDER                            
+        20  DEFAULT_TRACKING_SPECIES                
         25  PARTICLE                                
         26  GEOMETRY                                
         27  LATTICE_TYPE                            
@@ -643,6 +651,7 @@
         80  check_sum                                 [private]
         81  USE_HARD_EDGE_DRIFTS                    
         82  PTC_MAX_FRINGE_ORDER                    
+        83  ELECTRIC_DIPOLE_MOMENT                  
         86  LATTICE                                 
         95  AUTO_SCALE_FIELD_AMP                    
         96  ABSOLUTE_TIME_TRACKING                  
@@ -729,7 +738,9 @@
  
  !---------------------------------
  52  DIFFRACTION_PLATE                       
+         1  l                                         [private]
          2  TILT                                    
+         6  FIELD_SCALE_FACTOR                      
         26  MODE                                    
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -746,6 +757,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
+        69  REF_WAVELENGTH                          
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -992,6 +1004,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -1449,6 +1462,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -1649,6 +1663,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -1999,6 +2014,7 @@
          3  REF_TILT                                
          5  GRAZE_ANGLE                             
          7  CRITICAL_ANGLE                          
+         8  DIFFRACTION_LIMITED                     
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -2156,6 +2172,7 @@
          2  TILT                                    
          3  REF_TILT                                
          5  GRAZE_ANGLE                             
+         8  DIFFRACTION_LIMITED                     
         20  D1_THICKNESS                            
         21  D2_THICKNESS                            
         22  V1_UNITCELL                             
@@ -2353,6 +2370,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -2651,6 +2669,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -2762,6 +2781,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -2782,6 +2802,7 @@
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
        114  WALL                                    
+       115  FIELD                                   
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3195,6 +3216,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3215,6 +3237,7 @@
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
        114  WALL                                    
+       115  FIELD                                   
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3284,6 +3307,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3374,6 +3398,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3465,6 +3490,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3569,10 +3595,17 @@
  51  UNDULATOR                               
          1  L                                       
          2  TILT                                    
+         4  K1                                      
+         5  B_MAX                                   
+         7  N_POLE                                  
+         8  RHO                                     
+        21  POLARITY                                
+        25  L_POLE                                  
         29  FRINGE_TYPE                             
         30  FRINGE_AT                               
         31  L_HARD_EDGE                             
         32  FIELD_FACTOR                            
+        33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3583,6 +3616,8 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  E_tot_start                               [private]
         53  P0C                                     
         54  E_TOT                                   
         55  X_PITCH_TOT                             
@@ -3592,6 +3627,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         62  N_REF_PASS                              
+        63  RADIUS                                  
         64  ref_time_start                            [private]
         65  INTEGRATOR_ORDER                        
         66  NUM_STEPS                               
@@ -3613,6 +3649,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3625,12 +3662,16 @@
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
        100  SR_WAKE_FILE                            
+       101  TERM                                    
        103  SYMPLECTIFY                             
        105  IS_ON                                   
+       106  FIELD_CALC                              
        108  APERTURE_AT                             
+       111  FIELD_MASTER                            
        112  DESCRIP                                 
        113  SCALE_MULTIPOLES                        
        114  WALL                                    
+       115  FIELD                                   
        117  TYPE                                    
        118  REF_ORIGIN                              
        119  ELE_ORIGIN                              
@@ -3695,6 +3736,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3788,6 +3830,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_CALC_ON                             
@@ -3829,8 +3872,22 @@
  53  X_RAY_SOURCE                            
          1  L                                       
          2  TILT                                    
-        27  X_HALF_LENGTH                           
-        28  Y_HALF_LENGTH                           
+         4  SIG_X                                   
+         5  SIG_Y                                   
+         6  SIG_Z                                   
+         7  SIG_VX                                  
+         8  SIG_VY                                  
+         9  SIG_E                                   
+        20  E_CENTER                                
+        21  E_CENTER_RELATIVE_TO_REF                
+        22  SPATIAL_DISTRIBUTION                    
+        23  VELOCITY_DISTRIBUTION                   
+        24  ENERGY_DISTRIBUTION                     
+        25  E_FIELD_X                               
+        26  E_FIELD_Y                               
+        27  SCALE_FIELD_TO_ONE                      
+        30  TRANSVERSE_SIGMA_CUT                    
+        31  DS_SLICE                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -3846,6 +3903,7 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
+        69  REF_WAVELENGTH                          
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -3887,15 +3945,15 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    49
+     1    50
      2    49
      3    24
-     4    21
-     5    25
-     6    21
-     7    17
-     8    19
-     9     7
+     4    23
+     5    27
+     6    23
+     7    19
+     8    24
+     9     8
     10     2
     11     3
     12     3
@@ -3906,20 +3964,20 @@
     17     3
     18     2
     19     5
-    20    16
-    21    15
-    22    11
-    23    13
-    24    12
-    25    18
-    26    20
+    20    18
+    21    18
+    22    13
+    23    15
+    24    14
+    25    21
+    26    22
     27    12
-    28    10
+    28     9
     29    34
-    30    33
-    31    28
+    30    34
+    31    29
     32    28
-    33    10
+    33    11
     34    40
     35    40
     36    42
@@ -3937,8 +3995,8 @@
     48     3
     49     7
     50    48
-    51    33
-    52    34
+    51    34
+    52    35
     53    49
     54    49
     55    39
@@ -3949,13 +4007,13 @@
     60    40
     61    13
     62    25
-    63    11
+    63    12
     64    48
     65    26
     66    26
     67    26
     68    26
-    69    29
+    69    31
     70    54
     71    54
     72    54
@@ -3969,10 +4027,10 @@
     80    54
     81     6
     82    52
-    83    29
+    83    30
     84    29
     85    29
-    86     4
+    86    18
     87    47
     88    36
     89    28
@@ -3987,21 +4045,21 @@
     98    44
     99     1
    100    27
-   101     1
+   101     2
    102     4
    103    31
    104     2
    105    36
-   106    23
+   106    24
    107     2
    108    46
    109     6
    110     2
-   111    23
+   111    24
    112    48
    113    14
    114    38
-   115    12
+   115    15
    116     5
    117    48
    118    46
@@ -4116,6 +4174,7 @@ Index: 1
     FLOOR_SHIFT                             
     FIDUCIAL                                
     UNDULATOR                               
+    DIFFRACTION_PLATE                       
     X_RAY_SOURCE                            
     SAMPLE                                  
     DETECTOR                                
@@ -4140,7 +4199,7 @@ Index: 2
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -4222,6 +4281,8 @@ Index: 4
     CRYSTAL                                 
     PIPE                                    
     CAPILLARY                               
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4249,6 +4310,8 @@ Index: 5
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4273,6 +4336,8 @@ Index: 6
     CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
+    DIFFRACTION_PLATE                       
+    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4294,6 +4359,8 @@ Index: 7
     CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4314,7 +4381,12 @@ Index: 8
     DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
+    MIRROR                                  
+    CRYSTAL                                 
     PIPE                                    
+    MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4327,6 +4399,7 @@ Index: 9
     LCAVITY                                 
     MATCH                                   
     E_GUN                                   
+    X_RAY_SOURCE                            
  
  !---------------------------------
 Index: 10
@@ -4393,6 +4466,24 @@ Index: 19
  
  !---------------------------------
 Index: 20
+    SBEND                                   
+    CUSTOM                                  
+    BEAMBEAM                                
+    MARKER                                  
+    RBEND                                   
+    DEF_PARAMETER                           
+    LINE_ELE                                
+    MATCH                                   
+    MONITOR                                 
+    INSTRUMENT                              
+    DEF_BEAM_START                          
+    CRYSTAL                                 
+    PIPE                                    
+    MULTILAYER_MIRROR                       
+    E_GUN                                   
+    X_RAY_SOURCE                            
+    DETECTOR                                
+    SAD_MULT                                
  
  !---------------------------------
 Index: 21
@@ -4407,9 +4498,12 @@ Index: 21
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4421,9 +4515,11 @@ Index: 22
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4437,9 +4533,11 @@ Index: 23
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4453,8 +4551,10 @@ Index: 24
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
+    DEF_BEAM_START                          
     PIPE                                    
     E_GUN                                   
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4466,7 +4566,7 @@ Index: 25
     WIGGLER                                 
     MARKER                                  
     RBEND                                   
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     LCAVITY                                 
     DEF_PARAMETER                           
     LINE_ELE                                
@@ -4474,8 +4574,11 @@ Index: 25
     MONITOR                                 
     INSTRUMENT                              
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     PIPE                                    
     E_GUN                                   
+    UNDULATOR                               
+    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4493,11 +4596,13 @@ Index: 26
     INSTRUMENT                              
     GIRDER                                  
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     PIPE                                    
     E_GUN                                   
     FLOOR_SHIFT                             
     FIDUCIAL                                
     DIFFRACTION_PLATE                       
+    X_RAY_SOURCE                            
     SAMPLE                                  
     DETECTOR                                
  
@@ -4527,7 +4632,6 @@ Index: 28
     GIRDER                                  
     BEND_SOL_QUAD                           
     FIDUCIAL                                
-    X_RAY_SOURCE                            
  
  !---------------------------------
 Index: 29
@@ -4600,6 +4704,7 @@ Index: 30
     FLOOR_SHIFT                             
     FIDUCIAL                                
     UNDULATOR                               
+    X_RAY_SOURCE                            
     SAD_MULT                                
  
  !---------------------------------
@@ -4632,6 +4737,7 @@ Index: 31
     EM_FIELD                                
     FIDUCIAL                                
     UNDULATOR                               
+    X_RAY_SOURCE                            
  
  !---------------------------------
 Index: 32
@@ -4675,6 +4781,7 @@ Index: 33
     MATCH                                   
     BEND_SOL_QUAD                           
     MULTILAYER_MIRROR                       
+    UNDULATOR                               
     SAD_MULT                                
  
  !---------------------------------
@@ -5141,6 +5248,7 @@ Index: 51
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
     DETECTOR                                
  
  !---------------------------------
@@ -5178,6 +5286,7 @@ Index: 52
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
     DETECTOR                                
  
  !---------------------------------
@@ -5198,7 +5307,7 @@ Index: 53
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -5250,7 +5359,7 @@ Index: 54
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -5596,6 +5705,7 @@ Index: 63
     RBEND                                   
     SOLENOID                                
     BEND_SOL_QUAD                           
+    UNDULATOR                               
  
  !---------------------------------
 Index: 64
@@ -5795,6 +5905,8 @@ Index: 69
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
+    DIFFRACTION_PLATE                       
+    X_RAY_SOURCE                            
  
  !---------------------------------
 Index: 70
@@ -5816,7 +5928,7 @@ Index: 70
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -5873,7 +5985,7 @@ Index: 71
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -5930,7 +6042,7 @@ Index: 72
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -5987,7 +6099,7 @@ Index: 73
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6044,7 +6156,7 @@ Index: 74
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6101,7 +6213,7 @@ Index: 75
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6346,7 +6458,7 @@ Index: 80
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_BEAM                                
+    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6386,11 +6498,11 @@ Index: 80
  !---------------------------------
 Index: 81
     RFCAVITY                                
+    BEND_SOL_                               
     LCAVITY                                 
     DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 82
@@ -6411,6 +6523,7 @@ Index: 82
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
+    BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6445,7 +6558,6 @@ Index: 82
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 83
@@ -6462,8 +6574,10 @@ Index: 83
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
+    DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
     MONITOR                                 
@@ -6477,7 +6591,6 @@ Index: 83
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 84
@@ -6494,6 +6607,7 @@ Index: 84
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
     BEGINNING_ELE                           
@@ -6509,7 +6623,6 @@ Index: 84
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 85
@@ -6526,6 +6639,7 @@ Index: 85
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
     BEGINNING_ELE                           
@@ -6541,14 +6655,27 @@ Index: 85
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 86
+    SBEND                                   
+    QUADRUPOLE                              
+    SEXTUPOLE                               
+    ELSEPARATOR                             
+    WIGGLER                                 
+    SOL_QUAD                                
+    KICKER                                  
+    OCTUPOLE                                
+    RBEND                                   
+    BEND_SOL_                               
+    SOLENOID                                
     DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
-    DEF_BMAD_COM                            
+    HKICKER                                 
+    VKICKER                                 
+    BEND_SOL_QUAD                           
+    UNDULATOR                               
  
  !---------------------------------
 Index: 87
@@ -6568,6 +6695,7 @@ Index: 87
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
+    BEND_SOL_                               
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6598,7 +6726,6 @@ Index: 87
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 88
@@ -6615,6 +6742,7 @@ Index: 88
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
     BEGINNING_ELE                           
@@ -6637,7 +6765,6 @@ Index: 88
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 89
@@ -6653,6 +6780,7 @@ Index: 89
     KICKER                                  
     OCTUPOLE                                
     RBEND                                   
+    BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
     BEGINNING_ELE                           
@@ -6668,14 +6796,13 @@ Index: 89
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 90
     GROUP                                   
+    BEND_SOL_                               
     BEGINNING_ELE                           
     LINE_ELE                                
-    DEF_BMAD_COM                            
  
  !---------------------------------
 Index: 91
@@ -7103,6 +7230,7 @@ Index: 100
  !---------------------------------
 Index: 101
     WIGGLER                                 
+    UNDULATOR                               
  
  !---------------------------------
 Index: 102
@@ -7214,6 +7342,7 @@ Index: 106
     BEND_SOL_QUAD                           
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 107
@@ -7308,6 +7437,7 @@ Index: 111
     PHOTON_FORK                             
     FORK                                    
     PIPE                                    
+    UNDULATOR                               
  
  !---------------------------------
 Index: 112
@@ -7420,6 +7550,7 @@ Index: 114
  
  !---------------------------------
 Index: 115
+    SBEND                                   
     QUADRUPOLE                              
     SEXTUPOLE                               
     RFCAVITY                                
@@ -7427,11 +7558,13 @@ Index: 115
     WIGGLER                                 
     SOL_QUAD                                
     OCTUPOLE                                
+    RBEND                                   
     SOLENOID                                
     LCAVITY                                 
     BEND_SOL_QUAD                           
     E_GUN                                   
     EM_FIELD                                
+    UNDULATOR                               
  
  !---------------------------------
 Index: 116
