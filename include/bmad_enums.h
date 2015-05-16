@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 151;
+  const int BMAD_INC_VERSION = 153;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -42,8 +42,8 @@ namespace Bmad {
   const int NOT_A_LORD = 10, SLICE_SLAVE = 11, CONTROL_LORD = 12;
   const int AUTO_APERTURE = 1, RECTANGULAR = 2, ELLIPTICAL = 3, CUSTOM_APERTURE = 7;
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
-  const int SAD_SOFT_EDGE_ONLY = 5, SAD_FULL = 6, LINEAR_EDGE = 7, BASIC_BEND = 8;
-  const int N_NON_BEND_FRINGE_TYPE = 4, TEST_EDGE = 9;
+  const int SAD_FULL = 5, LINEAR_EDGE = 6, BASIC_BEND = 7, TEST_EDGE = 8;
+  const int N_NON_BEND_FRINGE_TYPE = 4;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
@@ -81,9 +81,8 @@ namespace Bmad {
   const int RFCAVITY = 9;
   const int ELSEPARATOR = 10, BEAMBEAM = 11, WIGGLER = 12;
   const int SOL_QUAD = 13, MARKER = 14, KICKER = 15;
-  const int HYBRID = 16, OCTUPOLE = 17, RBEND = 18;
-  const int MULTIPOLE = 19, KEY_DUMMY = 20;
-  const int DEF_MAD_BEAM = 21, AB_MULTIPOLE = 22, SOLENOID = 23;
+  const int HYBRID = 16, OCTUPOLE = 17, RBEND = 18, MULTIPOLE = 19;
+  const int DEF_BMAD_COM = 20, DEF_MAD_BEAM = 21, AB_MULTIPOLE = 22, SOLENOID = 23;
   const int PATCH = 24, LCAVITY = 25, DEF_PARAMETER = 26;
   const int NULL_ELE = 27, BEGINNING_ELE = 28, LINE_ELE = 29;
   const int MATCH = 30, MONITOR = 31, INSTRUMENT = 32;
@@ -93,9 +92,9 @@ namespace Bmad {
   const int FORK = 41, MIRROR = 42, CRYSTAL = 43;
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
-  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, X_RAY_SOURCE = 53;
-  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, DEF_BMAD_COM = 57;
-  const int N_KEY = 57;
+  const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, PHOTON_INIT = 53;
+  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56;
+  const int N_KEY = 56;
   const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
@@ -238,7 +237,7 @@ namespace Bmad {
   const int Y_LIMIT = 97, AUTO_SCALE_FIELD_PHASE = 97, ETAP_B = 97;
   const int OFFSET_MOVES_APERTURE = 98;
   const int APERTURE_LIMIT_ON = 99;
-  const int PTC_EXACT_MISALIGN = 100;
+  const int PTC_EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
   const int SR_WAKE_FILE = 100, ALPHA_A_BEGIN = 100;
   const int TERM = 101;
   const int X_POSITION = 102, S_SPLINE = 102, PTC_EXACT_MODEL = 102;

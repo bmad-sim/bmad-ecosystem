@@ -243,6 +243,64 @@ extern "C" void test_c_photon_reflect_surface (Bmad_photon_reflect_surface_class
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_controller_var (CPP_controller_var&, bool&);
+
+void set_CPP_controller_var_test_pattern (CPP_controller_var& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.value = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.old_value = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_controller_var (Bmad_controller_var_class* F, bool& c_ok) {
+
+  CPP_controller_var C, C2;
+
+  c_ok = true;
+
+  controller_var_to_c (F, C);
+  set_CPP_controller_var_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " controller_var: C side convert F->C: Good" << endl;
+  } else {
+    cout << " controller_var: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_var_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_controller_var (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_controller_var_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " controller_var: F side convert F->C: Good" << endl;
+  } else {
+    cout << " controller_var: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_controller_var_test_pattern (C2, 4);
+  controller_var_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_coord (CPP_coord&, bool&);
 
 void set_CPP_coord_test_pattern (CPP_coord& C, int ix_patt) {
@@ -464,6 +522,64 @@ extern "C" void test_c_bpm_phase_coupling (Bmad_bpm_phase_coupling_class* F, boo
 
   set_CPP_bpm_phase_coupling_test_pattern (C2, 4);
   bpm_phase_coupling_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+extern "C" void test2_f_expression_stack (CPP_expression_stack&, bool&);
+
+void set_CPP_expression_stack_test_pattern (CPP_expression_stack& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[character, 0, NOT]
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 2 + offset; C.type = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.value = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_expression_stack (Bmad_expression_stack_class* F, bool& c_ok) {
+
+  CPP_expression_stack C, C2;
+
+  c_ok = true;
+
+  expression_stack_to_c (F, C);
+  set_CPP_expression_stack_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " expression_stack: C side convert F->C: Good" << endl;
+  } else {
+    cout << " expression_stack: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_expression_stack_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_expression_stack (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_expression_stack_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " expression_stack: F side convert F->C: Good" << endl;
+  } else {
+    cout << " expression_stack: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_expression_stack_test_pattern (C2, 4);
+  expression_stack_to_f (C2, F);
 
 }
 
@@ -2752,20 +2868,28 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[type, 1, ALLOC]
+  if (ix_patt < 3) 
+    C.stack.resize(0);
+  else {
+    C.stack.resize(3);
+    for (unsigned int i = 0; i < C.stack.size(); i++)  {set_CPP_expression_stack_test_pattern(C.stack[i], ix_patt+i+1);}
+  }
+
   // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.coef = rhs;
+  rhs = 3 + offset; C.coef = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 2 + offset; C.ix_lord = rhs;
+  rhs = 4 + offset; C.ix_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.ix_slave = rhs;
+  rhs = 5 + offset; C.ix_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 4 + offset; C.ix_branch = rhs;
+  rhs = 6 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ix_attrib = rhs;
+  rhs = 7 + offset; C.ix_attrib = rhs;
 
 
 }
@@ -3877,6 +4001,57 @@ extern "C" void test_c_rad_int_all_ele (Bmad_rad_int_all_ele_class* F, bool& c_o
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_ptc_genfield (CPP_ptc_genfield&, bool&);
+
+void set_CPP_ptc_genfield_test_pattern (CPP_ptc_genfield& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.vec0.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.vec0[i] = rhs;}
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_ptc_genfield (Bmad_ptc_genfield_class* F, bool& c_ok) {
+
+  CPP_ptc_genfield C, C2;
+
+  c_ok = true;
+
+  ptc_genfield_to_c (F, C);
+  set_CPP_ptc_genfield_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " ptc_genfield: C side convert F->C: Good" << endl;
+  } else {
+    cout << " ptc_genfield: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ptc_genfield_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_ptc_genfield (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_ptc_genfield_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " ptc_genfield: F side convert F->C: Good" << endl;
+  } else {
+    cout << " ptc_genfield: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_ptc_genfield_test_pattern (C2, 4);
+  ptc_genfield_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_ele (CPP_ele&, bool&);
 
 void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
@@ -3926,6 +4101,14 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
 
+  // c_side.test_pat[type, 1, PTR]
+  if (ix_patt < 3) 
+    C.control_var.resize(0);
+  else {
+    C.control_var.resize(3);
+    for (unsigned int i = 0; i < C.control_var.size(); i++)  {set_CPP_controller_var_test_pattern(C.control_var[i], ix_patt+i+1);}
+  }
+
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
     C.em_field = NULL;
@@ -3936,6 +4119,9 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_floor_position_test_pattern(C.floor, ix_patt);
+
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_ptc_genfield_test_pattern(C.ptc_genfield, ix_patt);
 
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
@@ -3971,7 +4157,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, NOT]
   for (unsigned int i = 0; i < C.taylor.size(); i++)
-    {int rhs = 101 + i + 24 + offset; set_CPP_taylor_test_pattern(C.taylor[i], ix_patt+i+1);}
+    {int rhs = 101 + i + 27 + offset; set_CPP_taylor_test_pattern(C.taylor[i], ix_patt+i+1);}
   // c_side.test_pat[type, 0, PTR]
   if (ix_patt < 3) 
     C.wake = NULL;
@@ -4011,33 +4197,30 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   C.value[0] = 0;
   for (unsigned int i = 1; i < Bmad::NUM_ELE_ATTRIB+1; i++)
-    {int rhs = 100 + i + 35 + offset; C.value[i] = rhs;}
+    {int rhs = 100 + i + 38 + offset; C.value[i] = rhs;}
 
   // c_side.test_pat[real, 1, NOT]
   C.old_value[0] = 0;
   for (unsigned int i = 1; i < Bmad::NUM_ELE_ATTRIB+1; i++)
-    {int rhs = 100 + i + 36 + offset; C.old_value[i] = rhs;}
+    {int rhs = 100 + i + 39 + offset; C.old_value[i] = rhs;}
 
-  // c_side.test_pat[real, 1, NOT]
-  for (unsigned int i = 0; i < C.gen0.size(); i++)
-    {int rhs = 101 + i + 37 + offset; C.gen0[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.vec0.size(); i++)
-    {int rhs = 101 + i + 38 + offset; C.vec0[i] = rhs;}
+    {int rhs = 101 + i + 40 + offset; C.vec0[i] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.mat6.size(); i++)  for (unsigned int j = 0; j < C.mat6[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 39 + offset; C.mat6[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 41 + offset; C.mat6[i][j] = rhs;}
   // c_side.test_pat[real, 2, NOT]
   for (unsigned int i = 0; i < C.c_mat.size(); i++)  for (unsigned int j = 0; j < C.c_mat[0].size(); j++) 
-    {int rhs = 101 + i + 10*(j+1) + 40 + offset; C.c_mat[i][j] = rhs;}
+    {int rhs = 101 + i + 10*(j+1) + 42 + offset; C.c_mat[i][j] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 41 + offset; C.gamma_c = rhs;
+  rhs = 43 + offset; C.gamma_c = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 42 + offset; C.s = rhs;
+  rhs = 44 + offset; C.s = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 43 + offset; C.ref_time = rhs;
+  rhs = 45 + offset; C.ref_time = rhs;
 
   // c_side.test_pat[real, 3, PTR]
   if (ix_patt < 3) 
@@ -4049,7 +4232,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
       for (unsigned int j = 0; j < C.r[0].size(); j++) {
         C.r[i][j].resize(1);
         for (unsigned int k = 0; k < C.r[0][0].size(); k++) {
-          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 44 + offset; C.r[i][j][k] = rhs;
+          int rhs = 101 + i + 10*(j+1) + 100*(k+1) + 46 + offset; C.r[i][j][k] = rhs;
         }
       }
     }
@@ -4061,7 +4244,7 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.a_pole.resize(3);
     for (unsigned int i = 0; i < C.a_pole.size(); i++)
-      {int rhs = 101 + i + 48 + offset; C.a_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 50 + offset; C.a_pole[i] = rhs;}  }
 
   // c_side.test_pat[real, 1, PTR]
   if (ix_patt < 3) 
@@ -4069,115 +4252,115 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   else {
     C.b_pole.resize(3);
     for (unsigned int i = 0; i < C.b_pole.size(); i++)
-      {int rhs = 101 + i + 50 + offset; C.b_pole[i] = rhs;}  }
+      {int rhs = 101 + i + 52 + offset; C.b_pole[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 52 + offset; C.key = rhs;
+  rhs = 54 + offset; C.key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 53 + offset; C.sub_key = rhs;
+  rhs = 55 + offset; C.sub_key = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 54 + offset; C.ix_ele = rhs;
+  rhs = 56 + offset; C.ix_ele = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 55 + offset; C.ix_branch = rhs;
+  rhs = 57 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 56 + offset; C.ix_value = rhs;
+  rhs = 58 + offset; C.ix_value = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 57 + offset; C.slave_status = rhs;
+  rhs = 59 + offset; C.slave_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 58 + offset; C.n_slave = rhs;
+  rhs = 60 + offset; C.n_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 59 + offset; C.ix1_slave = rhs;
+  rhs = 61 + offset; C.ix1_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 60 + offset; C.ix2_slave = rhs;
+  rhs = 62 + offset; C.ix2_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 61 + offset; C.lord_status = rhs;
+  rhs = 63 + offset; C.lord_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 62 + offset; C.n_lord = rhs;
+  rhs = 64 + offset; C.n_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 63 + offset; C.ic1_lord = rhs;
+  rhs = 65 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 64 + offset; C.ic2_lord = rhs;
+  rhs = 66 + offset; C.ic2_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 65 + offset; C.ix_pointer = rhs;
+  rhs = 67 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 66 + offset; C.ixx = rhs;
+  rhs = 68 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 67 + offset; C.iyy = rhs;
+  rhs = 69 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 68 + offset; C.mat6_calc_method = rhs;
+  rhs = 70 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 69 + offset; C.tracking_method = rhs;
+  rhs = 71 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 70 + offset; C.spin_tracking_method = rhs;
+  rhs = 72 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 71 + offset; C.ptc_integration_type = rhs;
+  rhs = 73 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 72 + offset; C.field_calc = rhs;
+  rhs = 74 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 73 + offset; C.aperture_at = rhs;
+  rhs = 75 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 74 + offset; C.aperture_type = rhs;
+  rhs = 76 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 75 + offset; C.orientation = rhs;
+  rhs = 77 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 76 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 78 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 77 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 79 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 78 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 80 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 79 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 81 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 80 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 82 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 81 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 83 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 82 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 84 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 83 + offset; C.old_is_on = (rhs % 2 == 0);
+  rhs = 85 + offset; C.old_is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 84 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 86 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 85 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 87 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 86 + offset; C.csr_calc_on = (rhs % 2 == 0);
+  rhs = 88 + offset; C.csr_calc_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 87 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 89 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }

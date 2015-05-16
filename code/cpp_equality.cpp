@@ -118,6 +118,19 @@ template bool is_all_equal (const CPP_photon_reflect_surface_MATRIX&, const CPP_
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_controller_var& x, const CPP_controller_var& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.name == y.name);
+  is_eq = is_eq && (x.value == y.value);
+  is_eq = is_eq && (x.old_value == y.old_value);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_controller_var_ARRAY&, const CPP_controller_var_ARRAY&);
+template bool is_all_equal (const CPP_controller_var_MATRIX&, const CPP_controller_var_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_coord& x, const CPP_coord& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.vec, y.vec);
@@ -171,6 +184,19 @@ bool operator== (const CPP_bpm_phase_coupling& x, const CPP_bpm_phase_coupling& 
 
 template bool is_all_equal (const CPP_bpm_phase_coupling_ARRAY&, const CPP_bpm_phase_coupling_ARRAY&);
 template bool is_all_equal (const CPP_bpm_phase_coupling_MATRIX&, const CPP_bpm_phase_coupling_MATRIX&);
+
+//--------------------------------------------------------------
+
+bool operator== (const CPP_expression_stack& x, const CPP_expression_stack& y) {
+  bool is_eq = true;
+  is_eq = is_eq && (x.name == y.name);
+  is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && (x.value == y.value);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_expression_stack_ARRAY&, const CPP_expression_stack_ARRAY&);
+template bool is_all_equal (const CPP_expression_stack_MATRIX&, const CPP_expression_stack_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -714,6 +740,7 @@ template bool is_all_equal (const CPP_taylor_MATRIX&, const CPP_taylor_MATRIX&);
 
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.stack, y.stack);
   is_eq = is_eq && (x.coef == y.coef);
   is_eq = is_eq && (x.ix_lord == y.ix_lord);
   is_eq = is_eq && (x.ix_slave == y.ix_slave);
@@ -992,6 +1019,17 @@ template bool is_all_equal (const CPP_rad_int_all_ele_MATRIX&, const CPP_rad_int
 
 //--------------------------------------------------------------
 
+bool operator== (const CPP_ptc_genfield& x, const CPP_ptc_genfield& y) {
+  bool is_eq = true;
+  is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
+  return is_eq;
+};
+
+template bool is_all_equal (const CPP_ptc_genfield_ARRAY&, const CPP_ptc_genfield_ARRAY&);
+template bool is_all_equal (const CPP_ptc_genfield_MATRIX&, const CPP_ptc_genfield_MATRIX&);
+
+//--------------------------------------------------------------
+
 bool operator== (const CPP_ele& x, const CPP_ele& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
@@ -1007,10 +1045,12 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.x == y.x);
   is_eq = is_eq && (x.y == y.y);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
+  is_eq = is_eq && is_all_equal(x.control_var, y.control_var);
   is_eq = is_eq && ((x.em_field == NULL) == (y.em_field == NULL));
   if (!is_eq) return false;
   if (x.em_field != NULL) is_eq = (*x.em_field == *y.em_field);
   is_eq = is_eq && (x.floor == y.floor);
+  is_eq = is_eq && (x.ptc_genfield == y.ptc_genfield);
   is_eq = is_eq && ((x.mode3 == NULL) == (y.mode3 == NULL));
   if (!is_eq) return false;
   if (x.mode3 != NULL) is_eq = (*x.mode3 == *y.mode3);
@@ -1039,7 +1079,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.time_ref_orb_out == y.time_ref_orb_out);
   is_eq = is_eq && is_all_equal(x.value, y.value);
   is_eq = is_eq && is_all_equal(x.old_value, y.old_value);
-  is_eq = is_eq && is_all_equal(x.gen0, y.gen0);
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   is_eq = is_eq && is_all_equal(x.c_mat, y.c_mat);

@@ -1,6 +1,7 @@
 # List of files containing definitions of the structures to setup interfaces for.
 
 struct_def_files = [
+    '../bmad/modules/basic_bmad_mod.f90', 
     '../bmad/modules/bmad_struct.f90', 
     '../bmad/modules/twiss_mod.f90', 
     '../bmad/modules/bmad_taylor_mod.f90',
@@ -21,9 +22,11 @@ struct_list = [
     'interval1_coef_struct',
     'photon_reflect_table_struct',
     'photon_reflect_surface_struct',
+    'controller_var_struct',
     'coord_struct',
     'coord_array_struct',
     'bpm_phase_coupling_struct',
+    'expression_stack_struct',
     'wig_term_struct',
     'wig_struct',
     'wake_sr_mode_struct',
@@ -72,6 +75,7 @@ struct_list = [
     'bmad_common_struct',
     'rad_int1_struct',
     'rad_int_all_ele_struct',
+    'ptc_genfield_struct',
     'ele_struct',
     'complex_taylor_term_struct',
     'complex_taylor_struct',

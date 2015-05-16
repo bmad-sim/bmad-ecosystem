@@ -67,6 +67,11 @@ typedef valarray<CPP_photon_reflect_surface>          CPP_photon_reflect_surface
 typedef valarray<CPP_photon_reflect_surface_ARRAY>    CPP_photon_reflect_surface_MATRIX;
 typedef valarray<CPP_photon_reflect_surface_MATRIX>   CPP_photon_reflect_surface_TENSOR;
 
+class CPP_controller_var;
+typedef valarray<CPP_controller_var>          CPP_controller_var_ARRAY;
+typedef valarray<CPP_controller_var_ARRAY>    CPP_controller_var_MATRIX;
+typedef valarray<CPP_controller_var_MATRIX>   CPP_controller_var_TENSOR;
+
 class CPP_coord;
 typedef valarray<CPP_coord>          CPP_coord_ARRAY;
 typedef valarray<CPP_coord_ARRAY>    CPP_coord_MATRIX;
@@ -81,6 +86,11 @@ class CPP_bpm_phase_coupling;
 typedef valarray<CPP_bpm_phase_coupling>          CPP_bpm_phase_coupling_ARRAY;
 typedef valarray<CPP_bpm_phase_coupling_ARRAY>    CPP_bpm_phase_coupling_MATRIX;
 typedef valarray<CPP_bpm_phase_coupling_MATRIX>   CPP_bpm_phase_coupling_TENSOR;
+
+class CPP_expression_stack;
+typedef valarray<CPP_expression_stack>          CPP_expression_stack_ARRAY;
+typedef valarray<CPP_expression_stack_ARRAY>    CPP_expression_stack_MATRIX;
+typedef valarray<CPP_expression_stack_MATRIX>   CPP_expression_stack_TENSOR;
 
 class CPP_wig_term;
 typedef valarray<CPP_wig_term>          CPP_wig_term_ARRAY;
@@ -322,6 +332,11 @@ typedef valarray<CPP_rad_int_all_ele>          CPP_rad_int_all_ele_ARRAY;
 typedef valarray<CPP_rad_int_all_ele_ARRAY>    CPP_rad_int_all_ele_MATRIX;
 typedef valarray<CPP_rad_int_all_ele_MATRIX>   CPP_rad_int_all_ele_TENSOR;
 
+class CPP_ptc_genfield;
+typedef valarray<CPP_ptc_genfield>          CPP_ptc_genfield_ARRAY;
+typedef valarray<CPP_ptc_genfield_ARRAY>    CPP_ptc_genfield_MATRIX;
+typedef valarray<CPP_ptc_genfield_MATRIX>   CPP_ptc_genfield_TENSOR;
+
 class CPP_ele;
 typedef valarray<CPP_ele>          CPP_ele_ARRAY;
 typedef valarray<CPP_ele_ARRAY>    CPP_ele_MATRIX;
@@ -471,6 +486,34 @@ bool operator== (const CPP_photon_reflect_surface&, const CPP_photon_reflect_sur
 
 
 //--------------------------------------------------------------------
+// CPP_controller_var
+
+class Bmad_controller_var_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_controller_var {
+public:
+  string name;
+  Real value;
+  Real old_value;
+
+  CPP_controller_var() :
+    name(),
+    value(0.0),
+    old_value(0.0)
+    {}
+
+  ~CPP_controller_var() {
+  }
+
+};   // End Class
+
+extern "C" void controller_var_to_c (const Bmad_controller_var_class*, CPP_controller_var&);
+extern "C" void controller_var_to_f (const CPP_controller_var&, Bmad_controller_var_class*);
+
+bool operator== (const CPP_controller_var&, const CPP_controller_var&);
+
+
+//--------------------------------------------------------------------
 // CPP_coord
 
 class Bmad_coord_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -586,6 +629,34 @@ extern "C" void bpm_phase_coupling_to_c (const Bmad_bpm_phase_coupling_class*, C
 extern "C" void bpm_phase_coupling_to_f (const CPP_bpm_phase_coupling&, Bmad_bpm_phase_coupling_class*);
 
 bool operator== (const CPP_bpm_phase_coupling&, const CPP_bpm_phase_coupling&);
+
+
+//--------------------------------------------------------------------
+// CPP_expression_stack
+
+class Bmad_expression_stack_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_expression_stack {
+public:
+  string name;
+  Int type;
+  Real value;
+
+  CPP_expression_stack() :
+    name(),
+    type(0),
+    value(0.0)
+    {}
+
+  ~CPP_expression_stack() {
+  }
+
+};   // End Class
+
+extern "C" void expression_stack_to_c (const Bmad_expression_stack_class*, CPP_expression_stack&);
+extern "C" void expression_stack_to_f (const CPP_expression_stack&, Bmad_expression_stack_class*);
+
+bool operator== (const CPP_expression_stack&, const CPP_expression_stack&);
 
 
 //--------------------------------------------------------------------
@@ -1728,6 +1799,7 @@ class Bmad_control_class {};  // Opaque class for pointers to corresponding fort
 
 class CPP_control {
 public:
+  CPP_expression_stack_ARRAY stack;
   Real coef;
   Int ix_lord;
   Int ix_slave;
@@ -1735,6 +1807,7 @@ public:
   Int ix_attrib;
 
   CPP_control() :
+    stack(CPP_expression_stack_ARRAY(CPP_expression_stack(), 0)),
     coef(0.0),
     ix_lord(-1),
     ix_slave(-1),
@@ -2312,6 +2385,30 @@ bool operator== (const CPP_rad_int_all_ele&, const CPP_rad_int_all_ele&);
 
 
 //--------------------------------------------------------------------
+// CPP_ptc_genfield
+
+class Bmad_ptc_genfield_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_ptc_genfield {
+public:
+  Real_ARRAY vec0;
+
+  CPP_ptc_genfield() :
+    vec0(0.0, 6)
+    {}
+
+  ~CPP_ptc_genfield() {
+  }
+
+};   // End Class
+
+extern "C" void ptc_genfield_to_c (const Bmad_ptc_genfield_class*, CPP_ptc_genfield&);
+extern "C" void ptc_genfield_to_f (const CPP_ptc_genfield&, Bmad_ptc_genfield_class*);
+
+bool operator== (const CPP_ptc_genfield&, const CPP_ptc_genfield&);
+
+
+//--------------------------------------------------------------------
 // CPP_ele
 
 class Bmad_ele_class {};  // Opaque class for pointers to corresponding fortran structs.
@@ -2329,8 +2426,10 @@ public:
   CPP_xy_disp x;
   CPP_xy_disp y;
   CPP_bookkeeping_state bookkeeping_state;
+  CPP_controller_var_ARRAY control_var;
   CPP_em_fields* em_field;
   CPP_floor_position floor;
+  CPP_ptc_genfield ptc_genfield;
   CPP_mode3* mode3;
   CPP_photon_element* photon;
   CPP_rad_int_ele_cache* rad_int_cache;
@@ -2345,7 +2444,6 @@ public:
   CPP_coord time_ref_orb_out;
   Real_ARRAY value;
   Real_ARRAY old_value;
-  Real_ARRAY gen0;
   Real_ARRAY vec0;
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
@@ -2426,8 +2524,10 @@ public:
     x(),
     y(),
     bookkeeping_state(),
+    control_var(CPP_controller_var_ARRAY(CPP_controller_var(), 0)),
     em_field(NULL),
     floor(),
+    ptc_genfield(),
     mode3(NULL),
     photon(NULL),
     rad_int_cache(NULL),
@@ -2442,7 +2542,6 @@ public:
     time_ref_orb_out(),
     value(double(0), Bmad::NUM_ELE_ATTRIB+1),
     old_value(double(0), Bmad::NUM_ELE_ATTRIB+1),
-    gen0(0.0, 6),
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
