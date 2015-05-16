@@ -10,6 +10,18 @@ use sim_utils
 
 integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
+type expression_stack_struct
+  character(40) :: name = ''
+  integer :: type = 0
+  real(rp) :: value = 0
+end type
+
+type controller_var_struct
+  character(40) :: name = ''
+  real(rp) :: value = 0
+  real(rp) :: old_value = 0
+end type
+
 ! Species ID, mass, and charge.
 
 integer, parameter :: not_set$ = -999

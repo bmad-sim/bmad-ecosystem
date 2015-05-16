@@ -2852,7 +2852,7 @@ call kill(y0)
 call kill(y8)
 call kill(bet)
 
-if (associated (ele%ptc_genfield)) call kill_ptc_genfield (ele%ptc_genfield)
+if (associated (ele%ptc_genfield%field)) call kill_ptc_genfield (ele%ptc_genfield%field)
 
 call set_ele_status_stale (ele, mat6_group$)
 

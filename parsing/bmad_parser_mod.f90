@@ -85,25 +85,6 @@ type stack_file_struct
   logical inline_call_active
 end type
 
-!-----------------------------------------------------------
-
-integer, parameter, private :: plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
-integer, parameter, private :: l_parens$ = 5, r_parens$ = 6, power$ = 7
-integer, parameter, private :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
-integer, parameter, private :: sin$ = 11, cos$ = 12, tan$ = 13
-integer, parameter, private :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
-integer, parameter, private :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
-integer, parameter, private :: atan2$ = 23, factorial$ = 24, int$ = 25, nint$ = 26
-integer, parameter, private :: floor$ = 27, ceiling$ = 28, numeric$ = 100
-
-integer, parameter, private :: eval_level(28) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
-
-type eval_stack_struct
-  integer type
-  real(rp) value
-end type
-
 ! structure for holding the control names and pointers for superimpose and overlay elements
 
 type parser_ele_struct
@@ -294,7 +275,6 @@ if (ele%key == overlay$) then
     call bmad_parser_type_get (ele, word, delim, delim_found)
 
   else
-
     if (i < 1) then
       if (wild_key0) then
         err_flag = .false.
@@ -2392,12 +2372,12 @@ end function evaluate_logical
 
 subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
 
-use random_mod
+use expression_mod
 
 implicit none
 
 type (lat_struct)  lat
-type (eval_stack_struct) stk(200)
+type (expression_stack_struct) stk(200)
 
 integer i_lev, i_op, i
 
@@ -2408,7 +2388,7 @@ real(rp) value
 character(*) err_str
 character(*), optional :: end_delims
 character(1) delim
-character(80) word, word2
+character(80) word, word2, err_type
 
 logical delim_found, split, ran_function_pending, first_get_next_word_call
 logical err_flag
@@ -2648,7 +2628,7 @@ parsing_loop: do
   ! to the STK stack
 
   do i = i_op, 1, -1
-    if (eval_level(op(i)) >= eval_level(i_delim)) then
+    if (eval_level$(op(i)) >= eval_level$(i_delim)) then
       if (op(i) == l_parens$) then
         if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
         call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
@@ -2672,6 +2652,15 @@ parsing_loop: do
 enddo parsing_loop
 
 !------------------------------------------------------------------
+! Check that final delim matches.
+
+if (present(end_delims)) then
+  if (.not. delim_found .or. index(end_delims, delim) == 0) then
+    call parser_error ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
+    return
+  endif
+endif
+
 ! now go through the stack and perform the operations
 
 if (i_op /= 0) then
@@ -2681,145 +2670,10 @@ endif
 
 if (i_lev == 0) call parser_error ('NO VALUE FOUND FOR: ' // err_str)
 
-i2 = 0
-do i = 1, i_lev
-
-  select case (stk(i)%type)
-
-  case (numeric$)
-    i2 = i2 + 1
-    stk(i2)%value = stk(i)%value
-
-  case (unary_minus$)
-    stk(i2)%value = -stk(i2)%value
-
-  case (unary_plus$)
-    stk(i2)%value = stk(i2)%value
-
-  case (plus$)
-    stk(i2-1)%value = stk(i2-1)%value + stk(i2)%value
-    i2 = i2 - 1
-
-  case (minus$)
-    stk(i2-1)%value = stk(i2-1)%value - stk(i2)%value
-    i2 = i2 - 1
-
-  case (times$)
-    stk(i2-1)%value = stk(i2-1)%value * stk(i2)%value
-    i2 = i2 - 1
-
-  case (divide$)
-    if (stk(i2)%value == 0) then
-      call parser_error ('DIVIDE BY 0 ON RHS', 'FOR: ' // err_str)
-      return
-    endif
-    stk(i2-1)%value= stk(i2-1)%value / stk(i2)%value
-    i2 = i2 - 1
-
-  case (power$)
-    stk(i2-1)%value = stk(i2-1)%value**stk(i2)%value
-    i2 = i2 - 1
-
-  case (sin$)
-    stk(i2)%value = sin(stk(i2)%value)
-
-  case (cos$)
-    stk(i2)%value = cos(stk(i2)%value)
-
-  case (tan$)
-    stk(i2)%value = tan(stk(i2)%value)
-
-  case (asin$)
-    if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
-      call parser_error ('ASIN ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
-      return
-    endif
-    stk(i2)%value = asin(stk(i2)%value)
-
-  case (acos$)
-    if (stk(i2)%value < -1 .or. stk(i2)%value > 1) then
-      call parser_error ('ACOS ARGUMENT HAS MAGNITUDE GREATER THAN 1', 'FOR: ' // err_str)
-      return
-    endif
-    stk(i2)%value = acos(stk(i2)%value)
-
-  case (factorial$)
-    stk(i2)%value = factorial(nint(stk(i2)%value))
-    if (stk(i2)%value < 0) then
-      call parser_error ('FACTORIAL PROBLEM FOR: ' // err_str)
-      return
-    endif
-
-  case (atan$)
-    stk(i2)%value = atan(stk(i2)%value)
-
-  case (atan2$)
-    stk(i2-1)%value = atan2(stk(i2-1)%value, stk(i2)%value)
-    i2 = i2 - 1
-
-  case (abs$)
-    stk(i2)%value = abs(stk(i2)%value)
-
-  case (sqrt$)
-    if (stk(i2)%value < 0) then
-      call parser_error ('SQRT ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
-      return
-    endif
-    stk(i2)%value = sqrt(stk(i2)%value)
-
-  case (log$)
-    if (stk(i2)%value < 0) then
-      call parser_error ('LOG ARGUMENT IS NEGATIVE ', 'FOR: ' // err_str)
-      return
-    endif
-    stk(i2)%value = log(stk(i2)%value)
-
-  case (exp$)
-    stk(i2)%value = exp(stk(i2)%value)
-
-  case (int$)
-    stk(i2)%value = int(stk(i2)%value)
-
-  case (nint$)
-    stk(i2)%value = nint(stk(i2)%value)
-
-  case (floor$)
-    stk(i2)%value = floor(stk(i2)%value)
-
-  case (ceiling$)
-    stk(i2)%value = ceiling(stk(i2)%value)
-
-  case (ran$)
-    i2 = i2 + 1
-    call ran_uniform(stk(i2)%value)
-
-  case (ran_gauss$)
-    i2 = i2 + 1
-    call ran_gauss(stk(i2)%value)
-
-  case default
-    call parser_error ('INTERNAL ERROR #02: GET HELP')
-    if (global_com%exit_on_error) call err_exit
-  end select
-enddo
-
-if (i2 /= 1) then
-  call parser_error ('INTERNAL ERROR #03: GET HELP')
-  if (global_com%exit_on_error) call err_exit
+call evaluate_expression_stack (stk(1:i_lev), value, err_flag, err_type)
+if (err_flag) then
+  call parser_error (err_type, 'FOR: ' // err_str)
 endif
-
-value = stk(1)%value
-err_flag = .false.
-
-! Check that final delim matches.
-
-if (present(end_delims)) then
-  if (.not. delim_found .or. index(end_delims, delim) == 0) then
-    call parser_error ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
-    err_flag = .true.
-  endif
-endif
-
 
 end subroutine evaluate_value
 

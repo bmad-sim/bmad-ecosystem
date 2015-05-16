@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 152
+integer, parameter :: bmad_inc_version$ = 153
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -509,6 +509,13 @@ type lat_ele_loc_struct
   integer :: ix_branch = 0
 end type
 
+! Structure for ptc genfield
+
+type ptc_genfield_struct
+  type (genfield), pointer :: field => null()           ! For symp_map$
+  real(rp) :: vec0(6) = 0                               ! constant part of the genfield map.
+end type
+
 ! The mode3_struct is used for normal mode analysis of the full 6x6 transfer matrix.
 
 type mode3_struct
@@ -642,12 +649,13 @@ type ele_struct
   type (xy_disp_struct) :: x = xy_disp_struct()   ! Projected dispersions.
   type (xy_disp_struct) :: y = xy_disp_struct()   ! Projected dispersions.
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct() ! Attribute bookkeeping
-  type (branch_struct), pointer :: branch => null()            ! Pointer to branch containing element.
-  type (ele_struct), pointer :: lord => null()                 ! Pointer to a slice lord.
-  type (em_fields_struct), pointer :: em_field => null()       ! DC and AC E/M fields
-  type (fibre), pointer :: ptc_fibre => null()                 ! PTC tracking.
-  type (floor_position_struct) :: floor = floor_position_struct() ! Reference position in global coords.
-  type (genfield), pointer :: ptc_genfield => null()           ! For symp_map$
+  type (branch_struct), pointer :: branch => null()                  ! Pointer to branch containing element.
+  type (controller_var_struct), pointer :: control_var(:) => null()  ! group & overlay variables.
+  type (ele_struct), pointer :: lord => null()                       ! Pointer to a slice lord.
+  type (em_fields_struct), pointer :: em_field => null()             ! DC and AC E/M fields
+  type (fibre), pointer :: ptc_fibre => null()                       ! PTC tracking.
+  type (floor_position_struct) :: floor = floor_position_struct()    ! Reference position in global coords.
+  type (ptc_genfield_struct) :: ptc_genfield = ptc_genfield_struct() ! For symp_map$
   type (mode3_struct), pointer :: mode3 => null()              ! 6D normal mode structure.
   type (photon_element_struct), pointer :: photon => null()
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
@@ -663,7 +671,6 @@ type ele_struct
   type (coord_struct) :: time_ref_orb_out = coord_struct()     ! Reference orbit at exit end for ref_time calc.
   real(rp) :: value(num_ele_attrib$) = 0                       ! attribute values.
   real(rp) :: old_value(num_ele_attrib$) = 0                   ! Used to see if %value(:) array has changed.
-  real(rp) :: gen0(6) = 0                                      ! constant part of the genfield map.
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
@@ -714,11 +721,19 @@ end type
 ! struct for element to element control
 
 type control_struct
+  type (expression_stack_struct), allocatable :: stack(:) ! Evaluation stack
   real(rp) :: coef = 0           ! Control coefficient
   integer :: ix_lord = -1        ! Index to lord element
   integer :: ix_slave = -1       ! Index to slave element
   integer :: ix_branch = 0       ! Index to branch line of slave
   integer :: ix_attrib = 0       ! Index of attribute controlled
+end type
+
+! extended_control_struct is used as an argument to create_group and create_overlay
+
+type extended_control_struct
+  character(100) expression
+	type (control_struct) cs
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
@@ -889,7 +904,7 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'PHOTON_INIT     ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
+    'PHOTON_INIT      ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.

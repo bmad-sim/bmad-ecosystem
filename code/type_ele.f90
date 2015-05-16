@@ -52,6 +52,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
 
 use multipole_mod, except_dummy => type_ele
 use geometry_mod, only: pointer_to_indexed_attribute, coords_relative_to_floor, ele_geometry
+use expression_mod
 
 implicit none
 
@@ -86,8 +87,9 @@ real(rp), pointer :: r_ptr
 character(*), optional, allocatable :: lines(:)
 character(200), pointer :: li(:)
 character(200), allocatable :: li2(:)
+character(100) coef_str
 character(40) str1, str2, str3
-character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, coef_str, fmt
+character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
 character(12) val_str, units
 character(8) angle, index_str
 character(2) str_i
@@ -169,7 +171,23 @@ write (fmt_i, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, i6)'
 write (fmt_l, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, l1)'
 write (fmt_r, '(a, i0, a)') '(9x, a, t', n_att+10, ', a, 2x, es15.7)'
 
-if (ele%key == overlay$) then
+
+if (associated(ele%control_var)) then
+  if (ele%lord_status == group_lord$) then
+    do i = 1, size(ele%control_var)
+      a_name = ele%control_var(i)%name
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, 11x, 3a, es15.7)')  i, &
+                    a_name(1:n_att), '=', ele%control_var(i)%value, ',', &
+                    'OLD_', a_name(1:n_att), '=', ele%control_var(i)%old_value
+    enddo
+  else  ! overlay_lord
+    do i = 1, size(ele%control_var)
+      nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, &
+                    ele%control_var(i)%name, '=', ele%control_var(i)%value
+    enddo
+  endif
+
+elseif (ele%key == overlay$) then
   i = ele%ix_value
   call pointer_to_indexed_attribute (ele, i, .false., r_ptr, err_flag)
   if (err_flag) call err_exit
@@ -559,7 +577,7 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
 
 endif
 
-! Encode slave info.
+! Encode lord/slave info.
 ! For super_lords there is no attribute_name associated with a slave.
 ! For slaves who are overlay_lords then the attribute_name is obtained by
 !   looking at the overlay_lord's 1st slave (slave of slave of the input ele).
@@ -581,7 +599,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   if (ele%n_lord /= 0) then
 
     nl=nl+1; write (li(nl), *) &
-      '   Index   Name                            Attribute         Coefficient       Value  Lord_Type'
+      '   Index   Name                            Attribute            Value      Lord_Type             Coefficient'
 
     do i = 1, ele%n_lord
       lord => pointer_to_lord (ele, i, ic)
@@ -591,7 +609,11 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         a_name = ''
         val_str = ''
       case default
-        write (coef_str, '(es11.3)') lat%control(ic)%coef
+        if (allocated(lat%control(ic)%stack)) then
+          call expression_stack_to_string (lat%control(ic)%stack, coef_str)
+        else
+          write (coef_str, '(es11.3)') lat%control(ic)%coef
+        endif
         iv = lat%control(ic)%ix_attrib
         a_name = attribute_name(ele, iv)
         ix = lord%ix_value
@@ -603,8 +625,8 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         endif
       end select
 
-      nl=nl+1; write (li(nl), '(i9, 3x, a32, a18, a11, a12, 2x, a)') &
-            lord%ix_ele, lord%name, a_name, coef_str, val_str, trim(trim(key_name(lord%key)))
+      nl=nl+1; write (li(nl), '(i9, 3x, a32, a18, a12, 2x, a20, a)') &
+            lord%ix_ele, lord%name, a_name, val_str, key_name(lord%key), coef_str
     enddo
     nl=nl+1; li(nl) = ''
 
@@ -643,12 +665,15 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), ' Index      Attribute         Coefficient'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
+        if (allocated(lat%control(i)%stack)) then
+          call expression_stack_to_string (lat%control(i)%stack, coef_str)
+        else
+          write (coef_str, '(es11.3)') lat%control(i)%coef
+        endif
         iv = lat%control(i)%ix_attrib
-        coef = lat%control(i)%coef
         a_name = attribute_name(slave, iv)
         index_str = trim(ele_loc_to_string(slave))
-        nl=nl+1; write (li(nl), '(3x, a, 5x, a8, 2x, a18, es11.3, es12.3)') &
-                           slave%name(1:n_char), index_str, a_name, coef
+        nl=nl+1; write (li(nl), '(3x, a, 5x, a8, 2x, a18, a)') slave%name(1:n_char), index_str, a_name, coef_str
       enddo
     end select
 

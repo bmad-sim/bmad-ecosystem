@@ -704,7 +704,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%wake)
   nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
-  nullify (ele%ptc_genfield)
+  nullify (ele%ptc_genfield%field)
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
   nullify (ele%wall3d)
@@ -752,7 +752,7 @@ if (associated (ele%taylor(1)%term)) deallocate &
          (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
          ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
 
-call kill_ptc_genfield (ele%ptc_genfield)
+call kill_ptc_genfield (ele%ptc_genfield%field)
 
 end subroutine deallocate_ele_pointers
 
@@ -1846,7 +1846,7 @@ implicit none
 type (lat_struct) lat
 type (control_struct), allocatable :: control(:)
 integer, intent(in) :: n
-integer n_old
+integer i, n_old
 
 !
 
@@ -1858,13 +1858,17 @@ endif
 n_old = size(lat%control)
 if (n_old >= n) return
 
-allocate (control(n_old))
-control = lat%control
+call move_alloc (lat%control, control)
 
-deallocate (lat%control)
 allocate (lat%control(n))
-lat%control(1:n_old) = control
-deallocate (control)
+do i = 1, n_old
+  call move_alloc(control(i)%stack, lat%control(i)%stack)
+  lat%control(i)%coef = control(i)%coef
+  lat%control(i)%ix_lord   = control(i)%ix_lord
+  lat%control(i)%ix_slave  = control(i)%ix_slave
+  lat%control(i)%ix_branch = control(i)%ix_branch
+  lat%control(i)%ix_attrib = control(i)%ix_attrib
+enddo
 
 call re_allocate(lat%ic, max(n, size(lat%ic) + n - n_old))
 lat%ic(n_old+1:) = 0

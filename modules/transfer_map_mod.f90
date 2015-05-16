@@ -451,7 +451,7 @@ do
 
   use_saved = .false.
   if (present(ele_save)) then
-    if (ele_save%s == s_now .and. ele_save%ix_value == ele%ix_ele) use_saved = .true.
+    if (ele_save%s == s_now .and. ele_save%ix_ele == ele%ix_ele) use_saved = .true.
   endif
 
   if (track_entire_ele) then

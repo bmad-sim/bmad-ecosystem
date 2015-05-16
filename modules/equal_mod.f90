@@ -38,7 +38,7 @@ type (ele_struct), intent(inout) :: ele1
 type (ele_struct), intent(in) :: ele2
 type (ele_struct) ele_save
 
-integer i, n2, ub(2), ub1
+integer i, n, n2, ub(2), ub1
 
 ! 1) Save ele1 pointers in ele_save
 ! 2) Set ele1 = ele2.
@@ -67,6 +67,9 @@ endif
 ! In this case, the wiggler field depends upon the setting of
 ! ele%value(b_max$) and ele%value(l_pole$) so sharing the same memeory location would
 ! lead to trouble if these attributes are modified in one element but not the other.
+
+! If the memory allocated for the wiggler field for ele1 and ele2 are different
+! then must adjust the number of links and deallocate if necessary.
 
 if ((ele1%key == wiggler$ .or. ele1%key == undulator$) .and. ele1%sub_key == periodic_type$ .and. &
     ele_save%slave_status /= super_slave$ .and. ele_save%slave_status /= multipass_slave$ .and. &
@@ -105,9 +108,6 @@ else
   ele1%wig => ele_save%wig ! Reinstate for transfer call 
   call transfer_wig (ele2%wig, ele1%wig)
 endif
-
-! If the memory allocated for the wiggler field for ele1 and ele2 are different
-! then must adjust the number of links and deallocate if necessary.
 
 ! %em_field
 
@@ -169,6 +169,21 @@ if (associated(ele2%photon)) then
   ele1%photon = ele2%photon
 else
   if (associated (ele_save%photon)) deallocate (ele_save%photon)
+endif
+
+! %control_var
+
+if (associated(ele2%control_var)) then
+  n = size(ele2%control_var)
+  ele1%control_var => ele_save%control_var   ! reinstate
+  if (associated(ele1%control_var)) then
+    if (size(ele1%control_var) /= n) deallocate(ele1%control_var)
+  endif
+  if (.not. associated(ele1%control_var)) allocate(ele1%control_var(n))
+  ele1%control_var = ele2%control_var
+
+else
+  if (associated (ele_save%control_var)) deallocate(ele_save%control_var)
 endif
 
 ! %taylor
@@ -239,11 +254,11 @@ endif
 ele1%wake => ele_save%wake  ! reinstate
 call transfer_wake (ele2%wake, ele1%wake)
 
-! %ptc_genfields are hard because it involves pointers in PTC.
+! %ptc_genfield%fields are hard because it involves pointers in PTC.
 ! just kill the ptc_genfield in ele1 for now.
 
-if (associated(ele_save%ptc_genfield)) call kill_ptc_genfield (ele_save%ptc_genfield)
-if (associated(ele1%ptc_genfield)) nullify (ele1%ptc_genfield)
+if (associated(ele_save%ptc_genfield%field)) call kill_ptc_genfield (ele_save%ptc_genfield%field)
+if (associated(ele1%ptc_genfield%field)) nullify (ele1%ptc_genfield%field)
 
 end subroutine ele_equal_ele
 
@@ -271,9 +286,9 @@ subroutine lat_equal_lat (lat_out, lat_in)
 implicit none
 
 type (lat_struct), intent(inout), target :: lat_out
-type (lat_struct), intent(in) :: lat_in
+type (lat_struct), intent(in), target :: lat_in
 type (branch_struct), pointer :: branch_out
-
+type (control_struct), pointer :: c_in, c_out
 integer i, n, ie, n_out, n_in
 
 ! Kill allociated PTC layouts if they exist
@@ -317,6 +332,22 @@ if (allocated (lat_in%control)) then
     deallocate (lat_out%control)
     allocate (lat_out%control(n))
   endif
+
+  do i = 1, size(lat_in%control)
+    c_in => lat_in%control(i); c_out => lat_out%control(i)
+    if (allocated(c_in%stack)) then
+      n = size(c_in%stack)
+      if (.not. allocated(c_out%stack)) allocate(c_out%stack(n))
+      if (size(c_out%stack) /= size(c_in%stack)) then
+        deallocate (c_out%stack)
+        allocate (c_out%stack(n))
+      endif
+
+    else
+      if (allocated(c_out%stack)) deallocate(c_out%stack)
+    endif
+  enddo
+
   lat_out%control = lat_in%control
 else
   if (allocated(lat_out%control)) deallocate (lat_out%control)
