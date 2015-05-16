@@ -7,6 +7,7 @@ use geometry_mod
 use equality_mod
 use em_field_mod
 use xraylib_interface
+use expression_mod
 
 implicit none
 
@@ -431,35 +432,35 @@ do i = 1, lord%n_slave
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
         slave2 => pointer_to_slave (slave, j)
-        call change_this_edge (slave2)
+        call change_this_edge (slave2, lat%control(ix))
       enddo
     else
-      call change_this_edge (slave)
+      call change_this_edge (slave, lat%control(ix))
     endif
 
   !---------
   ! x_limit, y_limit, aperture
 
   case (x_limit$)
-    call group_change_this (slave, x1_limit$, coef)
-    call group_change_this (slave, x2_limit$, coef)
+    call group_change_this (slave, x1_limit$, lat%control(ix), 1)
+    call group_change_this (slave, x2_limit$, lat%control(ix), 1)
 
   case (y_limit$)
-    call group_change_this (slave, y1_limit$, coef)
-    call group_change_this (slave, y2_limit$, coef)
+    call group_change_this (slave, y1_limit$, lat%control(ix), 1)
+    call group_change_this (slave, y2_limit$, lat%control(ix), 1)
 
   case (aperture$) 
-    call group_change_this (slave, x1_limit$, coef)
-    call group_change_this (slave, x2_limit$, coef)
-    call group_change_this (slave, y1_limit$, coef)
-    call group_change_this (slave, y2_limit$, coef)
+    call group_change_this (slave, x1_limit$, lat%control(ix), 1)
+    call group_change_this (slave, x2_limit$, lat%control(ix), 1)
+    call group_change_this (slave, y1_limit$, lat%control(ix), 1)
+    call group_change_this (slave, y2_limit$, lat%control(ix), 1)
 
   !---------
   ! All else
 
   case default
 
-    call group_change_this (slave, ix_attrib, coef)
+    call group_change_this (slave, ix_attrib, lat%control(ix), 1)
 
   end select
 
@@ -477,12 +478,12 @@ lord%bookkeeping_state%control = ok$
 !---------------------------------------------------------------------------------
 contains
 
-subroutine change_this_edge (this_slave)
+subroutine change_this_edge (this_slave, ctl)
 
 type (ele_struct) this_slave
 type (ele_struct), pointer :: this_slave2
 type (branch_struct), pointer :: branch
-
+type (control_struct) ctl
 integer ix_min, ix_max, ix1, ix2
 
 !
@@ -543,32 +544,32 @@ endif
 select case (ix_attrib)
 
 case (l$)
-  call group_change_this (branch%ele(ix_max), l$, coef)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
 
 case (start_edge$)
-  call group_change_this (branch%ele(ix_min), l$, -coef)
-  call group_change_this (branch%ele(ix1), l$, coef)
+  call group_change_this (branch%ele(ix_min), l$, ctl, -1)
+  call group_change_this (branch%ele(ix1), l$, ctl, 1)
 
 case (end_edge$)
-  call group_change_this (branch%ele(ix_max), l$, coef)
-  call group_change_this (branch%ele(ix2), l$, -coef)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
+  call group_change_this (branch%ele(ix2), l$, ctl, -1)
 
 case (accordion_edge$)
-  call group_change_this (branch%ele(ix_min), l$, coef)
-  call group_change_this (branch%ele(ix1), l$, -coef)
+  call group_change_this (branch%ele(ix_min), l$, ctl, 1)
+  call group_change_this (branch%ele(ix1), l$, ctl, -1)
 
-  call group_change_this (branch%ele(ix_max), l$, coef)
-  call group_change_this (branch%ele(ix2), l$, -coef)
+  call group_change_this (branch%ele(ix_max), l$, ctl, 1)
+  call group_change_this (branch%ele(ix2), l$, ctl, -1)
 
 case (s_position$)
-  call group_change_this (branch%ele(ix1), l$, coef)
-  call group_change_this (branch%ele(ix2), l$, -coef)
+  call group_change_this (branch%ele(ix1), l$, ctl, 1)
+  call group_change_this (branch%ele(ix2), l$, ctl, -1)
 
 case (lord_pad1$)
-  call group_change_this (branch%ele(ix1), l$, coef, this_slave, lord_pad1$)
+  call group_change_this (branch%ele(ix1), l$, ctl, 1, this_slave, lord_pad1$)
 
 case (lord_pad2$)
-  call group_change_this (branch%ele(ix2), l$, coef, this_slave, lord_pad1$)
+  call group_change_this (branch%ele(ix2), l$, ctl, 1, this_slave, lord_pad1$)
 
 end select
 
@@ -581,23 +582,38 @@ end subroutine change_this_edge
 ! any one of them is present.
 !-
 
-recursive subroutine group_change_this (ele, ix_attrib, coef, this_lord, this_pad)
+recursive subroutine group_change_this (ele, ix_attrib, ctl, dir, this_lord, this_pad)
 
 type (ele_struct) ele
 type (ele_struct), optional :: this_lord
 type (ele_struct), pointer :: my_lord
+type (control_struct) ctl
 
+integer dir
 integer ix_attrib, il, ix_slave
 integer, optional :: this_pad
 
 real(rp) coef, new_val
 real(rp), pointer :: r_ptr
 
+character(100) err_str
+
 !
 
 call pointer_to_indexed_attribute (ele, ix_attrib, .false., r_ptr, err_flag)
 if (err_flag) call err_exit
-r_ptr = r_ptr + delta * coef
+
+if (allocated(ctl%stack)) then
+  call evaluate_expression_stack (ctl%stack, delta, err_flag, err_str, lord%control_var)
+  if (err_flag) then
+    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+    return
+  endif
+  r_ptr = r_ptr + delta * dir
+else
+  r_ptr = r_ptr + delta * dir * ctl%coef
+endif
+
 call set_flags_for_changed_attribute (ele, r_ptr)
 ! super_slave length can be varied by a group so don't check this.
 if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
@@ -630,12 +646,12 @@ if (ele%slave_status == super_slave$) then
   do il = 1, ele%n_lord
     my_lord => pointer_to_lord(ele, il)
     if (my_lord%lord_status /= super_lord$) cycle
-    call group_change_this (my_lord, ix_attrib, coef)
+    call group_change_this (my_lord, ix_attrib, ctl, dir)
   enddo
 
   if (present(this_lord)) then
-    call group_change_this (my_lord, ix_attrib, -coef)  ! Take out length change.
-    call group_change_this (my_lord, this_pad, coef)    ! And change pad length instead.
+    call group_change_this (my_lord, ix_attrib, ctl, -dir)  ! Take out length change.
+    call group_change_this (my_lord, this_pad, ctl, dir)    ! And change pad length instead.
   endif
 
 endif
@@ -645,7 +661,7 @@ endif
 
 if (ele%slave_status == multipass_slave$) then
   my_lord => pointer_to_lord(ele, 1, ix_slave)
-  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, coef)
+  if (ix_slave == 1) call group_change_this (my_lord, ix_attrib, ctl, 1)
 endif
 
 end subroutine group_change_this
@@ -1851,7 +1867,7 @@ type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
 
-real(rp) coef, ds, s_slave, val_slave(num_ele_attrib_extended$)
+real(rp) ds, s_slave, val_slave(num_ele_attrib_extended$)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
 real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
 real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr, length
@@ -1940,24 +1956,24 @@ do i = 1, slave%n_lord
   endif     
 
 
-  coef = lat%control(ix_con)%coef
-  iv = lat%control(ix_con)%ix_attrib
+  ! overlay lord
 
+  iv = lat%control(ix_con)%ix_attrib  
   select case (iv)
 
   case (x_limit$)
-    call overlay_change_this(x1_limit$)
-    call overlay_change_this(x2_limit$)
+    call overlay_change_this(x1_limit$, lat%control(ix_con))
+    call overlay_change_this(x2_limit$, lat%control(ix_con))
   case (y_limit$)
-    call overlay_change_this(y1_limit$)
-    call overlay_change_this(y2_limit$)
+    call overlay_change_this(y1_limit$, lat%control(ix_con))
+    call overlay_change_this(y2_limit$, lat%control(ix_con))
   case (aperture$)
-    call overlay_change_this(x1_limit$)
-    call overlay_change_this(x2_limit$)
-    call overlay_change_this(y1_limit$)
-    call overlay_change_this(y2_limit$)
+    call overlay_change_this(x1_limit$, lat%control(ix_con))
+    call overlay_change_this(x2_limit$, lat%control(ix_con))
+    call overlay_change_this(y1_limit$, lat%control(ix_con))
+    call overlay_change_this(y2_limit$, lat%control(ix_con))
   case default
-    call overlay_change_this(iv)
+    call overlay_change_this(iv, lat%control(ix_con))
   end select
 
 enddo
@@ -2048,23 +2064,39 @@ slave%bookkeeping_state%control = ok$
 !-------------------------------------------------------------------------------
 contains
 
-subroutine overlay_change_this (iv)
+subroutine overlay_change_this (iv, c)
 
 type (ele_struct), pointer :: my_lord, my_slave
-integer iv
+type (control_struct) c
+
 real(rp), pointer :: r_lord
+real(rp) delta
+integer iv
+logical err_flag
+
+character(100) err_str
 
 !
-
-call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_lord, err_flag)
-if (err_flag) call err_exit
 
 if (.not. has_been_set(iv)) then
   val_slave(iv) = 0
   has_been_set(iv) = .true.
 endif
 
-val_slave(iv) = val_slave(iv) + r_lord * coef
+if (allocated(c%stack)) then
+  call evaluate_expression_stack(c%stack, delta, err_flag, err_str, lord%control_var)
+  if (err_flag) then
+    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+    return
+  endif
+  val_slave(iv) = val_slave(iv) + delta
+
+else
+  call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_lord, err_flag)
+  if (err_flag) call err_exit
+  val_slave(iv) = val_slave(iv) + r_lord * c%coef
+endif
+
 
 end subroutine overlay_change_this
 
@@ -2671,7 +2703,7 @@ endif
 
 if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offsets)) then
   if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-  if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
+  if (associated(ele%ptc_genfield%field)) call kill_ptc_genfield(ele%ptc_genfield%field)
 endif
 
 ! Make stale ele%rad_int_cache if allocated

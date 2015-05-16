@@ -106,7 +106,7 @@ do ib = 0, ubound(lat_in%branch, 1)
     ele%ix_ele = i
     ele%orientation = -ele%orientation
     if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
-    if (associated(ele%ptc_genfield)) call kill_ptc_genfield(ele%ptc_genfield)
+    if (associated(ele%ptc_genfield%field)) call kill_ptc_genfield(ele%ptc_genfield%field)
     if (i <= nr) then
       ele%s = branch%param%total_length - (ele%s - ele%value(l$))
       ele%ref_time = branch_in%ele(nr)%ref_time - branch_in%ele(nr-i)%ref_time

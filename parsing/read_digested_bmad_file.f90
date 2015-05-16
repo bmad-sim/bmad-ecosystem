@@ -33,6 +33,7 @@ type (lat_struct), target, intent(inout) :: lat
 type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
+type (control_struct), pointer :: c
 
 real(rp) value(num_ele_attrib$)
 
@@ -225,7 +226,11 @@ enddo
 ! read the control info, etc
 
 do i = 1, lat%n_control_max
-  read (d_unit, err = 9040) lat%control(i)
+  c => lat%control(i)
+  read (d_unit, err = 9040) n, c%coef, c%ix_lord, c%ix_slave, c%ix_branch, c%ix_attrib
+  do j = 1, n
+    read (d_unit) c%stack(j)
+  enddo
 enddo
 
 do i = 1, lat%n_ic_max
@@ -390,9 +395,11 @@ type (em_field_mode_struct), pointer :: mode
 type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
 
+real(rp) rdum
+
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max
-integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, idum5, ix_d, ix_m
+integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, idum4, n_var, ix_d, ix_m
 integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch
 integer i0, i1, j0, j1, j2
 
@@ -405,10 +412,10 @@ error = .true.
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
         idum2, idum3, ix_d, ix_m, ix_t, idum4, ix_sr_long, ix_sr_trans, &
-        ix_lr, ix_wall3d, n_em_field_mode, idum5
+        ix_lr, ix_wall3d, n_em_field_mode, n_var
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
-        ele%a, ele%b, ele%z, ele%gen0, ele%vec0, ele%mat6, &
+        ele%a, ele%b, ele%z, rdum, ele%vec0, ele%mat6, &
         ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
         ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
         ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
@@ -430,7 +437,16 @@ do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
 
-! RF field def
+! Control vars
+
+if (n_var /= 0) then
+  allocate (ele%control_var(n_var))
+  do i = 1, n_var
+    read (d_unit) ele%control_var(i)
+  enddo
+endif
+
+! EM field def
 
 call init_em_field (ele%em_field, n_em_field_mode)
 

@@ -48,7 +48,7 @@ type (all_pointer_struct) a_ptr
 real(rp), pointer :: ptr_attrib
 
 integer, optional :: ix_attrib
-integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy
+integer ix_d, n, ios, n_lr, ix_a, ix1, ix2, n_cc, n_coef, n_v, ix, iy, i
 
 character(*) attrib_name
 character(40) a_name
@@ -67,6 +67,30 @@ nullify (a_ptr%r, a_ptr%i, a_ptr%l)
 do_print = logic_option (.true., err_print_flag)
 call str_upcase (a_name, attrib_name)
 if (present(ix_attrib)) ix_attrib = 0
+
+!--------------------
+! If a controller with a defined list of variables
+
+if (associated (ele%control_var)) then
+  if (attrib_name(1:4) == 'OLD_') then
+    do i = 1, size(ele%control_var)
+      if (ele%control_var(i)%name /= attrib_name(5:)) cycle
+      a_ptr%r => ele%control_var(i)%old_value
+      err_flag = .false.
+      return
+    enddo
+
+  else
+    do i = 1, size(ele%control_var)
+      if (ele%control_var(i)%name /= attrib_name) cycle
+      a_ptr%r => ele%control_var(i)%value
+      err_flag = .false.
+      return
+    enddo
+  endif
+
+  return
+endif
 
 !--------------------
 ! Check to see if the attribute is a long-range wake

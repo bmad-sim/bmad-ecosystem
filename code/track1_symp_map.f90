@@ -68,11 +68,11 @@ subroutine track1_this_body
 
 ! Make the genfield map if needed.
 
-if (.not. (associated(ele%ptc_genfield) .and. associated(ele%taylor(1)%term))) then
+if (.not. (associated(ele%ptc_genfield%field) .and. associated(ele%taylor(1)%term))) then
   if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, param, ele%taylor, end_orb)
-  call kill_ptc_genfield (ele%ptc_genfield)  ! clean up if necessary
-  allocate (ele%ptc_genfield)
-  call taylor_to_genfield (ele%taylor, ele%ptc_genfield, ele%gen0)
+  call kill_ptc_genfield (ele%ptc_genfield%field)  ! clean up if necessary
+  allocate (ele%ptc_genfield%field)
+  call taylor_to_genfield (ele%taylor, ele%ptc_genfield%field, ele%ptc_genfield%vec0)
 endif
 
 ! track and add the constant term back in
@@ -80,11 +80,11 @@ endif
 beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
 call vec_bmad_to_ptc (end_orb%vec, beta0, re(1:6))
 
-re = ele%ptc_genfield * re
+re = ele%ptc_genfield%field * re
 
 beta0 = ele%value(p0c$) / ele%value(e_tot$)
 call vec_ptc_to_bmad (re(1:6), beta0, end_orb%vec)
-end_orb%vec = end_orb%vec + ele%gen0
+end_orb%vec = end_orb%vec + ele%ptc_genfield%vec0
 
 end subroutine
 
