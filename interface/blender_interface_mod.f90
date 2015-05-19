@@ -92,7 +92,7 @@ end select
 
 call floor_w_mat_to_angles (w_mat, 0.0_rp, p%theta, p%phi, p%psi)
 
-write(line, '(2a, i0, 6(es14.6, a), 2a, es14.6, a)') trim(ele%name), c,  ele%ix_ele, c, &
+write(line, '(2a, i0, a, 6(es14.6, a), 2a, es14.6, a)') trim(ele%name), c,  ele%ix_ele, c, &
                     p%r(1), c, p%r(2), c, p%r(3), c, p%theta, c, p%phi, c, p%psi, c, &
                     trim(key_name(ele%key)), c, ele%value(l$)
 
@@ -106,7 +106,7 @@ case default
 end select
 
 if (associated(ele%descrip)) then
-  write (line, '(4a)') trim(line), ', "', ele%descrip, '"'
+  write (line, '(4a)') trim(line), ', "', trim(ele%descrip), '"'
 else
   write (line, '(2a)') trim(line), ', ""'
 endif
