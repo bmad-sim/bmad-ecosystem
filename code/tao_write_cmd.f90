@@ -11,6 +11,7 @@ subroutine tao_write_cmd (what)
 
 use quick_plot
 use write_lat_file_mod
+use blender_interface_mod
 use tao_mod, dummy => tao_write_cmd
 use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
@@ -39,13 +40,13 @@ character(20) :: r_name = 'tao_write_cmd'
 character(200) file_name0, file_name, what2
 character(200) :: word(10)
 
-character(20) :: names(23) = [ &
+character(20) :: names(24) = [ &
       'hard             ', 'gif              ', 'ps               ', 'variable         ', &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
       'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ', &
-      'gif-l            ', 'ptc              ', 'sad_lattice      ']
+      'gif-l            ', 'ptc              ', 'sad_lattice      ', 'blender_layout   ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2
@@ -202,6 +203,30 @@ case ('beam')
     endif
 
   enddo uni_loop
+
+
+!---------------------------------------------------
+! blender_layout
+
+case ('blender_layout')
+
+  file_name0 = 'lat_#.layout_table'
+  if (word(1) /= '') file_name0 = word(1) 
+
+  if (word(2) /= '') then
+    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+    return
+  endif
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
+    iu = lunget()
+    open (iu, file = file_name)
+    call write_blender_lat_layout (iu, s%u(i)%model%lat)
+    close(iu)
+    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+  enddo
+
 
 !---------------------------------------------------
 ! bmad_lattice
