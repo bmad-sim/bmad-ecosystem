@@ -2225,6 +2225,7 @@ The \vn{write} command creates various files.
 Format:
 \begin{example}
   write 3d_floor_plan \{<file_name>\}      ! Write python script for displaying lattice.
+  write blender_layout \{<file_name>\}     ! Write a layout table for external use in blender
   write bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
   write beam \{-ascii\} -at <element_list> \{<file_name>\} 
                                          ! Write beam distribution data (\sref{s:beamfile}).
@@ -2254,6 +2255,7 @@ If \vn{<file_name>} is not given then the defaults are:
   Command                        Default File Name
   ------------------             ------------------
   write 3d_floor_plan            3d_floor_plan.jou
+  write blender_layout           lat_#.layout_table
   write bmad_lattice             lat_#.bmad
   write beam                     beam_#.dat
   write curve                    curve
