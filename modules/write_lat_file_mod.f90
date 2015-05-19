@@ -2328,7 +2328,7 @@ do ix_ele = ie1, ie2
 
     line_out = trim(ele%name) // ': matrix'
     warn_printed = .false.
-    call value_to_line (line_out, ele%value(l$), 'l', 'es13.5', 'R')
+    call value_to_line (line_out, ele%value(l$), 'l', 'es15.7', 'R')
 
     do i = 1, 6
       do k = 1, size(ele%taylor(i)%term)
@@ -2345,7 +2345,7 @@ do ix_ele = ie1, ie2
             call out_io (s_error$, r_name, 'XSIF DOES NOT HAVE A CONSTRUCT FOR ZEROTH ORDER TAYLOR TERMS NEEDED FOR: ' // ele%name)
             cycle
           end select
-          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+          call value_to_line (line_out, term%coef, str, 'es15.7', 'R')
 
         case (1)
           j = maxloc(term%expn, 1)
@@ -2359,9 +2359,9 @@ do ix_ele = ie1, ie2
           end select
 
           if (j == i) then
-            call value_to_line (line_out, term%coef, str, 'es13.5', 'R', .false.)
+            call value_to_line (line_out, term%coef, str, 'es15.7', 'R', .false.)
           else
-            call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+            call value_to_line (line_out, term%coef, str, 'es15.7', 'R')
           endif
 
         case (2)
@@ -2376,7 +2376,7 @@ do ix_ele = ie1, ie2
           case ('XSIF')
             write (str, '(a, 3i0)') 't', i, j, j2
           end select
-          call value_to_line (line_out, term%coef, str, 'es13.5', 'R')
+          call value_to_line (line_out, term%coef, str, 'es15.7', 'R')
 
         case default
           if (.not. warn_printed .and. ele%key == taylor$) then
