@@ -92,7 +92,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{June 30, 2014}
+\date{May 19, 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -973,15 +973,15 @@ the form
 \begin{example}
   &multi_section_def
     name = "<multi_name>"
-    section(0) = 0.0,  "<section0_name>", "<section0_id>", ...
-    section(1) = <s1>, "<section1_name>", "<section1_id>", ...
-    section(2) = <s2>, "<section2_name>", "<section2_id>", ...
+    section(1) = 0.0,  "<section0_name>", "<section0_id>", ...
+    section(2) = <s1>, "<section1_name>", "<section1_id>", ...
+    section(3) = <s2>, "<section2_name>", "<section2_id>", ...
     ...
   /
 \end{example}
 The syntax for any of the \vn{section(n)} sections is the same as
 described above for \vn{rectangular}, \vn{elliptical}, and \vn{gen_shape}.
-shapes. The first section, \vn{section(0)}, must
+shapes. The first section, \vn{section(1)}, must
 have \vn{<s0>} set to 0 and the \vn{<s>} of the other cross-sections
 represent an offset from this 0\Th section. The last
 \vn{section(N)} section must have \vn{<sectionN_name>} set to one of
@@ -1000,9 +1000,9 @@ discussed below. Example:
 \begin{example}
   &multi_section_def
     name = "zig_zag"
-    section(0) = 0.000, "in_zig",  "rectangle", 0.09,  0.04
-    section(1) = 0.002. "out_zag", "rectangle", 0.0901 0.04
-    section(2) = 0.003, "open",  "end_marker"
+    section(1) = 0.000, "in_zig",  "rectangle", 0.09,  0.04
+    section(2) = 0.002. "out_zag", "rectangle", 0.0901 0.04
+    section(3) = 0.003, "open",  "end_marker"
   /
 \end{example}
 Here the basic repeat pattern is 0.003 meters long and is made up of
@@ -1049,7 +1049,7 @@ times and the series of cross-sections will be:
 Since the \vn{end_marker} section is ``open'', the basic pattern is
 repeated exactly 1000 times and there will be 2 * 1000
 cross-sections. If the \vn{end_marker} section is ``closed'', an extra
-\vn{section(0)} cross-section would be added at the end to make the
+\vn{section(1)} cross-section would be added at the end to make the
 ending cross-section the same as the beginning cross-section. In this
 case, if the \vn{end_marker} section is set to ``closed'', a
 \vn{in_zig} cross-section would be added at $s = 13.000$~meters.
