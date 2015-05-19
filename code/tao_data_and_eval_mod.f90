@@ -3153,9 +3153,17 @@ parsing_loop: do
       case ('ran') 
         call pushit (op, i_op, ran$)
         ran_function_pending = .true.
-      case ('ran_gauss') 
+      case ('ran_gauss')
         call pushit (op, i_op, ran_gauss$)
         ran_function_pending = .true.
+      case ('int')
+        call pushit (op, i_op, int$)
+      case ('nint')
+        call pushit (op, i_op, nint$)
+      case ('floor')
+        call pushit (op, i_op, floor$)
+      case ('ceiling')
+        call pushit (op, i_op, ceiling$)
       case default
         call out_io (s_warn$, r_name, 'UNEXPECTED CHARACTERS BEFORE "(": ', &
                                       'IN EXPRESSION: ' // expression)
