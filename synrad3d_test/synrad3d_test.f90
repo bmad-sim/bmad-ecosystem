@@ -10,6 +10,7 @@ type (sr3d_photon_track_struct) :: photon
 type (coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 type (ele_struct), pointer :: ele
+type (wall3d_section_struct), pointer :: section(:)
 
 real(rp) vel
 integer ios, num_ignored, n_photon
@@ -77,5 +78,15 @@ do
   call sr3d_track_photon (photon, lat%branch(0), wall_hit, err, .true.)
   write (1, '(a, i0, a, 3f20.16)') '"Photon:',  n_photon, '"    ABS   1.0E-14', wall_hit(1)%after_reflect%vec(2:6:2)
 enddo
+
+! Multi-section test
+
+call sr3d_read_wall_file ('multi_sec.wall', lat%branch(0))
+section => lat%branch(0)%wall3d%section
+write (1, '(3a)')       '"Multi-sec22-name"  STR  "', trim(section(22)%name), '"'
+write (1, '(3a)')       '"Multi-sec23-name"  STR  "', trim(section(23)%name), '"'
+write (1, '(a, f12.4)') '"Multi-sec22-s"   ABS 0 ', section(22)%s
+write (1, '(a, f12.4)') '"Multi-sec23-s"   ABS 0 ', section(23)%s
+write (1, '(a, i3)')    '"Multi-sec-size"  ABS 0  ', size(section)
 
 end program

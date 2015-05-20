@@ -1,0 +1,16 @@
+&gen_shape_def
+name = "rectangular1"
+v(1) = 0.045, 0.025
+/
+&multi_section_def
+name = "zigzag"
+section(1) = 0.00, "inzig", "rectangular", 0.09, 0.04
+section(2) = 0.02, "outzag", "rectangular", 0.0901, 0.04
+section(3) = 0.08, "closed", "end_marker"
+/
+
+&section_def section = 0.0, 'rec1', 'gen_shape:rectangular1' /
+&section_def section = 10.0, "", "multi_section:zigzag", 10 /
+&section_def section = 14.0, 'rec2', 'gen_shape:rectangular1' /
+
+ 
