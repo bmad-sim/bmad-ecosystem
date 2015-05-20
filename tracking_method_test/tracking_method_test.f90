@@ -7,7 +7,7 @@ use spin_mod
 implicit none
 
 type (lat_struct), target :: lat
-type (coord_struct) start_orb, end_orb
+type (coord_struct) start_orb, end_orb, end_bs, end_ptc
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (spin_polar_struct) start_p, end_p
@@ -42,7 +42,7 @@ bmad_com%spin_tracking_on = .true.
 open (1, file = 'output.now')
 
 if (print_extra) then
-  print '(a, 42x, 7es18.10)', 'Start:', lat%beam_start%vec
+  print '(a, t36, 7es18.10)', 'Start:', lat%beam_start%vec
   print *
 endif
 
@@ -73,6 +73,9 @@ do ib = 0, ubound(lat%branch, 1)
       final_str = trim(ele%name) // ':' // trim(tracking_method_name(j)) 
       write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
 
+      if (j == bmad_standard$) end_bs = end_orb
+      if (j == symp_lie_ptc$)  end_ptc = end_orb
+
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
         call spinor_to_polar(start_orb, start_p)
         call spinor_to_polar(end_orb, end_p)
@@ -86,6 +89,11 @@ do ib = 0, ubound(lat%branch, 1)
         write (1, '(3a, t42, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
       endif
     end do
+
+    if (print_extra) then
+      print '(a, t36, 7es18.10)', 'Diff PTC - BS:', end_ptc%vec - end_bs%vec
+      print *
+    endif
 
     write (1,*)
   end do
