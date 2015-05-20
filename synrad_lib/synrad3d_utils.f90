@@ -303,9 +303,9 @@ outer: do
     m_max = ubound(m_sec%section, 1)
 
     if (m_sec%section(m_max)%name == 'closed') then
-      n_add = n_repeat * m_max + 1
+      n_add = n_repeat * (m_max - 1) + 1
     elseif (m_sec%section(m_max)%name == 'open') then
-      n_add = n_repeat * m_max
+      n_add = n_repeat * (m_max - 1)
     else
       print *, 'ERROR: LAST SECTION IN MULTI_SECTION IS NOT "closed" NOR "open"'
       call err_exit
@@ -320,15 +320,16 @@ outer: do
     wall%n_section_max = n + n_add - 1
 
     do k = 1, n_repeat
-      do im = 1, m_max
-        sec2 => wall%section(i+(k-1)*m_max+im)
+      do im = 1, m_max - 1
+        sec2 => wall%section(i+(k-1)*(m_max-1)+(im-1))
         sec2 = m_sec%section(im)
         sec2%s = ref_section%s + (k-1) * m_sec%section(m_max)%s + m_sec%section(im)%s
         sec2%m_sec => m_sec%section(im)
       enddo
     enddo
+
     if (m_sec%section(m_max)%name == 'closed') then
-      sec2 => wall%section(i+n_repeat*m_max)
+      sec2 => wall%section(i+n_repeat*(m_max-1))
       sec2 = m_sec%section(1)
       sec2%s = ref_section%s + n_repeat * m_sec%section(m_max)%s
       sec2%m_sec => m_sec%section(1)
@@ -943,7 +944,7 @@ do i = 1, n_multi
   wall%multi_section(i)%name = name
 
   n_section = count(section%basic_shape /= '')
-  if (any(section(n_section:)%basic_shape /= '')) then
+  if (any(section(n_section+1:)%basic_shape /= '')) then
     print *, 'CONFUSED MULTI_SECTION_DEF: ', trim(name)
     call err_exit
   endif
