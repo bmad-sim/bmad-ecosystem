@@ -3054,6 +3054,7 @@ type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx
+real(rp) dx, dy, cos_t, sin_t
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3356,19 +3357,23 @@ if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
 endif
 
 if (ele%key == sad_mult$) then
+  cos_t = cos(ele%value(tilt_tot$))
+  sin_t = sin(ele%value(tilt_tot$))
+  dx =  ele%value(x_offset_mult$) * cos_t + ele%value(y_offset_mult$) * sin_t 
+  dy = -ele%value(x_offset_mult$) * sin_t + ele%value(y_offset_mult$) * cos_t
 
   if (ptc_fibre%mag%kind == kind5) then
-    ptc_fibre%mag%s5%dx  = ele%value(x_offset_mult$)
-    ptc_fibre%mag%s5%dy  = ele%value(y_offset_mult$)
+    ptc_fibre%mag%s5%dx = dx
+    ptc_fibre%mag%s5%dy = dy
 
-    ptc_fibre%magp%s5%dx  = ele%value(x_offset_mult$)
-    ptc_fibre%magp%s5%dy  = ele%value(y_offset_mult$)
+    ptc_fibre%magp%s5%dx = dx
+    ptc_fibre%magp%s5%dy = dy
  elseif (ptc_fibre%mag%kind == kind3) then
-    ptc_fibre%mag%k3%dx  = ele%value(x_offset_mult$)
-    ptc_fibre%mag%k3%dy  = ele%value(y_offset_mult$)
+    ptc_fibre%mag%k3%dx = dx
+    ptc_fibre%mag%k3%dy = dy
 
-    ptc_fibre%magp%k3%dx  = ele%value(x_offset_mult$)
-    ptc_fibre%magp%k3%dy  = ele%value(y_offset_mult$)
+    ptc_fibre%magp%k3%dx = dx
+    ptc_fibre%magp%k3%dy = dy
   else 
     call out_io (s_fatal$, r_name, 'INTERNAL ERROR SETTING MULT OFFSET. PLEASE CONTACT DAVID SAGAN.')
   endif
