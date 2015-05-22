@@ -18,7 +18,7 @@ real(rp), parameter :: p_mass   = 0.938272046d0          ! [GeV] FOR MAD COMPATI
 
 real(rp), parameter :: m_electron = 0.510998910d6        ! Mass [eV]
 real(rp), parameter :: m_proton   = 0.938272046d9        ! Mass [eV]
-real(rp), parameter :: m_muon     = 105.65836668d6       ! Mass [eV]
+real(rp), parameter :: m_muon     = 105.6583715d6        ! Mass [eV]
 
 real(rp), parameter :: m_pion_0 = 134.9766d6             ! Mass [eV]
 real(rp), parameter :: m_pion_charged = 139.57018d6      ! Mass [eV]
