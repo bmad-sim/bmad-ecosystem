@@ -364,6 +364,14 @@ interface
     logical upcase
   end subroutine
 
+  function real_to_string (num, fmt) result (str)
+    import
+    implicit none
+    real(rp) num
+    character(*), optional :: fmt
+    character(24) str
+  end function
+
   function remove_quotes (str_in) result (str_out)
     implicit none
     character(*) str_in
