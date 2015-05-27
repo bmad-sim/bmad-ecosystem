@@ -48,7 +48,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   ele => lat%ele(i)
   if (ele%lord_status == group_lord$) then
-    write (1, '(3a, f10.4)') '"', trim(ele%name), '[COMMAND]"      ABS 0', ele%value(command$)
+    write (1, '(3a, f10.4)') '"', trim(ele%name), '[COMMAND]"      ABS 0', ele%control_var(1)%value
   endif
 
   if (ele%lord_status == super_lord$) then
@@ -57,8 +57,9 @@ do i = lat%n_ele_track+1, lat%n_ele_max
 
   if (ele%lord_status == overlay_lord$) then
     write (1, '(5a, f10.4)') '"', trim(ele%name), '[', &
-                      trim(ele%component_name), ']"      ABS 0', ele%value(ele%ix_value)
+                      trim(ele%control_var(1)%name), ']"      ABS 0', ele%control_var(1)%value
   endif
+
 
 enddo
 
