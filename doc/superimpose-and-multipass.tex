@@ -325,19 +325,19 @@ length of the most downstream \vn{super_slave} is varied.
 With the first example in Section~\sref{s:super}, the \vn{group} \vn{G}
 varying the length of \vn{Q} defined by:
 \begin{example}
-  G: group = \{Q\}, l
+  G: group = \{Q\}, var = \{l\}
 \end{example}
 would vary the length of \vn{Q{\B}S} which would result in an equal
 variation of the length of \vn{S}. To keep the length of \vn{S}
 invariant while varying \vn{Q} the individual \vn{super_slave} lengths
 can be varied. Example:
 \begin{example}
-  G2: group = \{Q{\#}1, S{\#}1:-1\}, l
+  G2: group = \{Q{\#}1, S{\#}1:-1\}, var = \{l\}
 \end{example}
 Another, in this case cleaner, way of doing this is just to vary the
 downstream edge of \vn{Q}:
 \begin{example}
-  G3: group = \{Q\}, end_edge
+  G3: group = \{Q\}, var = \{end_edge\}
 \end{example}
 
 %-----------------------------------------------------------------------------

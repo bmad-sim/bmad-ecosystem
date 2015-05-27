@@ -1,106 +1,85 @@
 !+
-! Subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
+! Subroutine create_overlay (lord, contl, err, err_print_flag)
 !
-! Subroutine to add the controller information to slave elements of
-! an overlay_lord.
+! Subroutine to add the controller information to slave elements of an overlay_lord.
+!
+! Note: If the stack (in contl(i)%stack(:)) array has a single numeric term,
+! the arithmatic expression is modified so that the controlled attribute is linear
+! in lord%control_var(1) with a coefficient given by the single numeric term.
+!
+! Note: See the Bmad manual for directions as to how to use this routine.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   lat            -- lat_struct: Lat to modify.
-!   ix_overlay     -- Integer: Index of overlay element.
-!   attrib_name    -- Character(40): Name of attribute in the overlay that is
-!                     to be varied.
+!   lord           -- ele_struct: Overlay element.
 !   contl(:)       -- Control_struct: control info. 1 element for each slave.
-!     %ix_slave      -- Index of element to control
+!     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
+!     slave%ix_ele      -- Index of element to control
 !     %ix_branch     -- Index of branch element belongs to.
 !     %ix_attrib     -- Index of attribute controlled
-!     %coef          -- Coefficient
 !   err            -- Logical: Set True if an attribute is not free to be controlled.
 !   err_print_flag -- Logical, optional: If present and False then suppress
 !                       printing of an error message if attribute is not free.  
 !
 ! Output:
-!   lat    -- lat_struct: Modified lat.
-!
-! Note: Use NEW_CONTROL to get an index for the overlay element
-!
-! Example:
-!   call new_control (lat, ix_ovr)     ! get index of overlay in lat%ele
-!   lat%ele(ix_ovr)%name = 'OVERLAY1'  ! overlay name
-!   lat%ele(ix_ovr)%value(k1$) = 0.1   ! starting value
-!
-!   contl(1)%ix_slave = 10   ! LAT%ele(10) is, say, a quadrupole.
-!   contl(1)%ix_attrib = k1$ ! The overlay controls the quadrupole strength.
-!   contl(1)%coef = 0.1      ! A change in the overlay value of 1 produces
-!                            !    a change of 0.1 in k1 of element 10.
-!
-!   contl(2)%ix_slave = 790  ! LAT%ele(790) is, say, a sextupole.
-!   contl(2)%ix_attrib = k2$ ! The overlay controls the sextupole strength.
-!   contl(2)%coef = -0.1     ! make changes antisymmetric.
-!
-!   call create_overlay (lat, ix_ovr, 'K1', contl(1:2))  ! create the overlay
+!   lord          -- ele_struct: Modified overlay elment
 !-
 
-subroutine create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)
+subroutine create_overlay (lord, contl, err, err_print_flag)
 
 use bmad_interface, except_dummy => create_overlay
+use expression_mod
 use bookkeeper_mod, only: control_bookkeeper
 
 implicit none
 
-type (lat_struct), target :: lat
-type (ele_struct), pointer :: slave, lord
+type (ele_struct), target :: lord
+type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: slave
 type (control_struct)  contl(:)
+type (control_struct), pointer :: c
 
-integer i, j, nc0, ix_overlay, nc2, ix_con
+integer i, j, nc0, nc2, ix_con, is, n
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
-character(*) attrib_name
 character(40) at_name
 character(16), parameter :: r_name = 'create_overlay'
-logical err, free
+logical err, free, var_found
 logical, optional :: err_print_flag
 
 ! Error check
 
+lat => lord%branch%lat
 n_slave = size (contl)
+err = .true.
 
 do j = 1, n_slave
-  ix_slave  = contl(j)%ix_slave
-  ix_branch = contl(j)%ix_branch
+  ix_slave  = contl(j)%slave%ix_ele
+  ix_branch = contl(j)%slave%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
     call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
     if (global_com%exit_on_error) call err_exit
+    return
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
     call out_io (s_fatal$, r_name,  'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
     if (global_com%exit_on_error) call err_exit
+    return
   endif
 enddo
 
 ! Mark element as an overlay lord
 
-lord => lat%ele(ix_overlay)
 call check_controller_controls (contl, lord%name, err)
 if (err) return
 
 lord%lord_status = overlay_lord$
 lord%key = overlay$
 call set_ele_defaults(lord)
-
-call str_upcase (at_name, attrib_name)
-ix_attrib =  attribute_index (lord, at_name)
-if (ix_attrib == 0) then
-  call out_io (s_fatal$, r_name,  'BAD ATTRIBUTE_NAME: ' // attrib_name, &
-                                  'TRYING TO CREATE OVERLAY: ' // lord%name)
-  if (global_com%exit_on_error) call err_exit
-endif
-lord%component_name = at_name
-lord%ix_value = ix_attrib
 
 if (n_slave == 0) return ! If no slaves then nothing to do.
 
@@ -111,20 +90,42 @@ nc2 = nc0
 
 do j = 1, n_slave
   ix_attrib = contl(j)%ix_attrib
-  ix_slave = contl(j)%ix_slave
-  slave => lat%branch(contl(j)%ix_branch)%ele(ix_slave)
+  ix_slave = contl(j)%slave%ix_ele
+  slave => lat%branch(contl(j)%slave%ix_branch)%ele(ix_slave)
 
   if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
 
   ! If the slave attribute is a multipole component, make sure it exists.
-  if (ix_attrib > num_ele_attrib$ .and. .not. associated (slave%a_pole)) then
+  if (is_attribute(ix_attrib, multipole$) .and. .not. associated (slave%a_pole)) then
     call multipole_init(slave)
   endif
   free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag, .true.)
   err = err .or. .not. free
-  lat%control(nc2+1) = contl(j)
-  lat%control(nc2+1)%ix_lord = ix_overlay
+  c => lat%control(nc2+1)
+  call reallocate_expression_stack(c%stack, size(contl(j)%stack))
+  c = contl(j)
+  c%ix_lord = lord%ix_ele
   nc2 = nc2 + 1
+
+  ! Convert a stack of a single constant "const" to "const * control_var(1)"
+  var_found = .false.
+  do is = 1, size(c%stack)
+    if (c%stack(is)%type < old_var_offset$) cycle
+    if (c%stack(is)%type == end_stack$) exit
+    var_found = .true.
+    exit
+  enddo
+
+  if (.not. var_found) then
+    if (size(c%stack) == 1 .and. c%stack(1)%name == '1' .or. c%stack(1)%name == '1.0') then
+      c%stack(1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+    else
+      n = size(c%stack)
+      call reallocate_expression_stack(c%stack, n+2)
+      c%stack(n+1) = expression_atom_struct(lord%control_var(1)%name, 1+var_offset$, 0.0_rp)
+      c%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
+    endif
+  endif
 
 enddo
 

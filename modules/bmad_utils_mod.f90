@@ -7,6 +7,7 @@
 module bmad_utils_mod
 
 use basic_attribute_mod
+use equality_mod
 
 implicit none
 
@@ -573,8 +574,7 @@ do i = 1, size(contrl)
   c1 => contrl(i)
   do j = i+1, size(contrl)
     c2 => contrl(j)
-    if (c1%ix_slave == c2%ix_slave .and. c1%ix_branch == c2%ix_branch .and. &
-                                         c1%ix_attrib == c2%ix_attrib) then
+    if (c1%slave == c2%slave .and. c1%ix_attrib == c2%ix_attrib) then
       call out_io (s_error$, r_name, 'DUPLICATE SLAVE CONTROL FOR LORD: ' // name)
       return
     endif
@@ -2005,7 +2005,7 @@ endif
 lat => lord%branch%lat
 icon = lord%ix1_slave + ix_slave - 1
 con => lat%control(icon)
-slave_ptr => lat%branch(con%ix_branch)%ele(con%ix_slave)
+slave_ptr => lat%branch(con%slave%ix_branch)%ele(con%slave%ix_ele)
 if (present(ix_control)) ix_control = icon
 
 end function pointer_to_slave

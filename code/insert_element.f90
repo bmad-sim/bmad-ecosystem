@@ -84,7 +84,7 @@ inserted_ele%branch => branch
 
 do ix = 1, lat%n_control_max
   con => lat%control(ix)
-  if (con%ix_slave >= insert_index .and. con%ix_branch == ix_br)  con%ix_slave = con%ix_slave + 1
+  if (con%slave%ix_ele >= insert_index .and. con%slave%ix_branch == ix_br)  con%slave%ix_ele = con%slave%ix_ele + 1
   if (con%ix_lord >= insert_index .and. ix_br == 0) con%ix_lord = con%ix_lord + 1
 enddo
 

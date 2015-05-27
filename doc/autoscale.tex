@@ -54,11 +54,11 @@ Additionally, when the phase is auto scaled, all secondary modes will
 have their \vn{phi0_ref} phases adjusted by the same difference that
 the \vn{phi0_ref} of the primary mode is changed. Example:
 \begin{example}
-  rf2334: lcavity, field_type = grid, field = {
+  rf2334: lcavity, field_type = grid, field = \{
     mode_to_autoscale = 1,
-    mode = {master_scale = gradient, ...},   ! Primary mode
-    mode = {master_scale = gradient, ...},   ! Secondary mode
-    mode = {master_scale = none, ...} }      ! Not involved in auto scale
+    mode = \{master_scale = gradient, ...\},   ! Primary mode
+    mode = \{master_scale = gradient, ...\},   ! Secondary mode
+    mode = \{master_scale = none, ...\} \}      ! Not involved in auto scale
 \end{example}
 
 When the fields are {\em not} specified using modes, the element's

@@ -56,7 +56,7 @@ rlat = lat_in  ! Use temp lattice in case lat_in and lat_rev are the same actual
 
 do i = 1, rlat%n_control_max
   con => rlat%control(i)
-  if (con%ix_slave <= rlat%n_ele_track) con%ix_slave = rlat%n_ele_track+1-con%ix_slave
+  if (con%slave%ix_ele <= rlat%n_ele_track) con%slave%ix_ele = rlat%n_ele_track+1-con%slave%ix_ele
   if (con%ix_lord <= rlat%n_ele_track)  con%ix_lord  = rlat%n_ele_track+1-con%ix_lord
 enddo
 

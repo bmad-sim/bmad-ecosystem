@@ -227,10 +227,13 @@ enddo
 
 do i = 1, lat%n_control_max
   c => lat%control(i)
-  read (d_unit, err = 9040) n, c%coef, c%ix_lord, c%ix_slave, c%ix_branch, c%ix_attrib
-  do j = 1, n
-    read (d_unit) c%stack(j)
-  enddo
+  read (d_unit, err = 9040) n, c%ix_lord, c%slave, c%ix_attrib
+  if (n > 0) then
+    allocate (c%stack(n))
+    do j = 1, n
+      read (d_unit, err = 9045) c%stack(j)
+    enddo
+  endif
 enddo
 
 do i = 1, lat%n_ic_max
@@ -350,6 +353,15 @@ return
 
 !--------------------------------------------------------------
 
+9045  continue
+if (global_com%type_out) then
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
+endif
+close (d_unit)
+return
+
+!--------------------------------------------------------------
+
 9050  continue
 if (global_com%type_out) then
    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
@@ -417,7 +429,7 @@ read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
         ele%a, ele%b, ele%z, rdum, ele%vec0, ele%mat6, &
         ele%c_mat, ele%gamma_c, ele%s, ele%key, ele%floor, &
-        ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, ele%ix_value, &
+        ele%is_on, ele%sub_key, ele%lord_status, ele%slave_status, &
         ele%n_slave, ele%ix1_slave, ele%ix2_slave, ele%n_lord, &
         ele%ic1_lord, ele%ic2_lord, ele%ix_pointer, ele%ixx, &
         ele%ix_ele, ele%mat6_calc_method, ele%tracking_method, &

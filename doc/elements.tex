@@ -565,7 +565,8 @@ For example:
   g_in = 1.52
   l_coef = asin(l_ch * g_in / 2) / g_in
   my_bend: rbend, l = l_ch, g = g_in
-  my_overlay: overlay = \{my_bend, my_bend[e1]:l_coef, my_bend[e2]:l_coef\}, g = g_in
+  my_overlay: overlay = \{my_bend, my_bend[e1]:l_coef, my_bend[e2]:l_coef\}, 
+                var = \{g\}, g = g_in
 \end{example}
 Notice that \vn{l_coef} is just \vn{arc_length/2}.
 
@@ -999,8 +1000,8 @@ clear area of the plate.
 
 Example:
 \begin{example}
-  det: detector, surface = {grid = 
-          {ix_bounds = (-4,5), iy_bounds = (-10,10), dr = (0.01, 0.01)}}
+  det: detector, surface = \{grid = 
+          \{ix_bounds = (-4,5), iy_bounds = (-10,10), dr = (0.01, 0.01)\}\}
 \end{example}
 This example defines a detector with 1~cm x 1~cm pixels.
 
@@ -1841,14 +1842,14 @@ The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
 \vn{Group} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
-other elements during execution of a program. For example, to simulate
-the action of a control room knob that changes the beam tune in a
-storage ring, a \vn{Group} can be used to vary the strength of
-selected quads in a specified manner. Also see \vn{overlay}
-(\sref{s:overlay}) The difference between \vn{group} and \vn{overlay}
-elements is that \vn{overlay} elements set the values of the
-attributes directly while \vn{group} elements make changes to
-attribute values.
+other elements (called ``slave'' attributes) during execution of a
+program. For example, to simulate the action of a control room knob
+that changes the beam tune in a storage ring, a \vn{group} element can
+be used to vary the strength of selected quads in a specified
+manner. Also see \vn{overlay} (\sref{s:overlay}) The difference
+between \vn{group} and \vn{overlay} elements is that \vn{overlay}
+elements set the values of the attributes directly while \vn{group}
+elements make delta changes to attribute values.
 
 General \vn{girder} attributes are:
 \begin{center}
@@ -1860,61 +1861,114 @@ General \vn{girder} attributes are:
 \end{center}
 \toffset
 
-\index{old_command}\index{command}
-\index{coef}\index{type}
-\index{alias}\index{descrip}
+\index{var}
 Attributes specific to a \vn{Group} element are:
 \begin{example}
-  command     = <Real>    ! Command value.
-  old_command = <Real>    ! Old command value.
-  coef        = <Real>    ! Conversion factor. Not used by Bmad.  
+  var = \{<var1>, <var2>, ...\}   ! List of variables.
 \end{example}
-The \vn{coef} attribute is not used by any \bmad routine. It is
-defined for individual programs to store, say, a needed conversion
-factor.
 
 The general syntax for a \vn{group} element is
 \begin{example}
-  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
-                                                  default_attrib = init_value
+  name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
+                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
 \end{example}
-\vn{name} is the name of the \vn{group}, the list in brackets \{...\}
-is a list of element attributes to vary along with the coefficients
-used for the variation. In any item \vn{ele[attrib]:coef} in the list,
-both \vn{attrib} and \vn{coef} are optional. If not present,
-\vn{attrib} will default to \vn{default_attrib}. If not present,
-\vn{coef} will default to 1. Finally, \vn{init_value} is the initial
-value to use for the \vn{group}.
+See Section~\sref{s:go.syntax} for a detailed description of this syntax.
+
+As explained further below, there are two numbers associated with each
+variable in a group: One number is the value of the variable (also
+called the ``present'' value) and the other number is the ``old''
+value. To refer to these old values prepend the string ``old_'' to the
+variable name. Thus, in the above example, the old variable values
+have names \vn{old_a} and \vn{old_b} and these old values can be set
+in the same manner as the present values. Example:
+\begin{example}
+  gr1: group = \{...\}, var = \{a, b\}, old_a = 1
+  gr2[old_b] = 2
+\end{example}
 
 A \vn{group} element is like an \vn{overlay} element in that a
 \vn{group} element controls the attribute values of other ``slave''
-elements. A \vn{group} element is used to make changes in value. This
-is unlike an \vn{overlay} which sets a specific value directly. An
-example will make this clear
+elements. Unlike an \vn{overlay}, which sets a specific value directly,
+a \vn{group} element is used to make changes in value. An
+example will make this clear:
 \begin{example}
-  gr: group = \{q1\}, k1 
-  gr[command] = 0.34 
-  q1, quad, l = ...
-  q1[k1] = 0.57
+  gr: group = \{q1[k1]:a^2\}, var = \{a\} 
+  q, quad, k1 = 0.5
 \end{example}
-In this example the group \vn{gr} controls the \vn{k1} attribute of
-the element \vn{q1}. Unlike overlays, values are assigned to group
-elements using the \vn{command} attribute. When a lattice file is
-read in then command values for any groups are always applied
-last. This is independent of the order that they appear in the file.
-Thus in this example the value of q1[k1] would be $0.91 = 0.57 + 0.34$.
-When the changes are made to the slave attributes the value of
-\vn{command} is stored in the \vn{group}'s \vn{old_command} attribute.
-After the lattice is read in a program can change the \vn{gr[command]}
-attribute and this change will be added to the value of
-\vn{q1[k1]}. The bookkeeping routine that transfers the change from
-\vn{gr[command]} to \vn{q1[k1]} doesn't care what the current value of
-\vn{q1[k1]} is. It only knows it has to change it by the change in
-\vn{gr[command]}.
+When a program reads the lattice, the value of \vn{q[k1]} will be 0.5
+and the value of \vn{gr[a]}, along with the associated old value
+\vn{gr[old_a]} will have the default value of 0. Now if the program
+sets \vn{gr[a]} (just as a program can set any attribute in the
+lattice) to, say, the value 0.3, the \bmad bookkeeping code will
+compute a delta value of
+\begin{example}
+  delta = a^2 - old_a^2
+        = 0.09
+\end{example}
+In general, deltas are computed as the difference between the
+arithmetic expression evaluated with the present variable values and
+the arithmetic expression evaluated with the old variable values.  In
+the present example, there is a single delta and it is applied to
+\vn{q[k1]} which gives this attribute a value of 0.59 = 0.5 +
+0.09. After all deltas are applied, the old variable values are set to
+the present variable values so that further evaluations will give zero
+deltas. In the present example, \vn{gr[old_a]} is set to 0.3 which is
+the value of \vn{gr[a]}
 
-A \vn{group} will control all elements of a given name. Thus, in
-the above example, if there are multiple elements named \vn{q1}
-then \vn{gr} will control the \vn{k1}  attribute of all of them.
+Within a program, if both a group variable and a slave attribute are
+modified, the value of the slave attribute will be dependent upon the
+order of which is modified first. For example:
+\begin{example}
+  gr: group = \{q[k1]:a^2\}, var = \{a\} 
+  q, quad
+\end{example}
+Now if a program first sets \vn{gr[a]} to 0.3 and then sets \vn{q[k1]}
+to 0.5, the result is that \vn{q[k1]} will have a value of 0.5. That
+is, the value of \vn{q[k1]} will be independent of \vn{gr[a]}. If the
+setting is reversed so that \vn{q[k1]} is set first, the value of
+\vn{q[k1]} will be 0.59. Since the result is order dependent, trying
+to ``simultaneously'' vary the attributes of both group variables and
+slave attributes can lead to unpredictable results. For example,
+consider lattice ``optimization'' where a program varies a set of
+lattice parameters to achieve certain goals (for example, minimum beta
+at some point in the lattice, etc.). If the list of parameters to be
+varied contains both group variables and slave attributes, the actual
+changes to slave attributes may be different from what the program
+expects when the program varies its list of parameters.
+
+When a lattice file is read in, variable values for any groups are
+always applied last. This is independent of the order that they appear
+in the file. For example:
+\begin{example}
+  gr: group = \{q1[k1]:a^2\}, var = \{a\}, a = 0.6, old_a = 0.2
+  q, quad, k1 = 0.5
+\end{example}
+In this example, when the lattice is read in, the value of q1[k1] would be
+$0.57 = 0.5 + (0.6^2 - 0.2^2)$ 
+
+
+\index{overlay}\index{girder}
+Different \vn{group} elements may control the same slave attribute and
+a \vn{group} element may control other \vn{group}, \vn{overlay} or
+\vn{girder} element attributes. However, It does not make sense, and
+it is not permitted, for a \vn{group} element to control the same
+attribute as an \vn{overlay} element or for a \vn{group} element to
+control a \vn{dependent} attribute (\sref{s:depend}). To setup a group
+element to control the same slave attribute as an \vn{overlay}, define
+an intermediate \vn{overlay}. For example:
+\begin{example}
+  ov: overlay = \{q{k1}\, q2[k1], ...\}, var = \{a\}
+  q, quad                                          
+  gr: group = \{ov_q[k1]:a^2\}, var = \{a\}  ! New
+  ov_q: overlay = \{q\}, var = \{k1\}        ! New
+\end{example}
+In this example, the overlay \vn{ov} controls the attribute \vn{q[k1]}
+so it is not permitted for \vn{q[k1]} to be a slave of a group
+element.  To have group control of \vn{q[k1]}, two elements are
+introduced: the group \vn{gr} is setup controling \vn{ov_q[k1]} and
+overlay \vn{ov_q} is an overlay that controls \vn{q[k1]}. Notice that
+trying to control \vn{ov} directly by a group element will not work
+since \vn{ov} controls multiple elements.
 
 \index{accordion_edge}\index{start_edge}
 \index{end_edge}\index{symmetric_edge}
@@ -1949,37 +2003,10 @@ either side are varied accordingly. For example
   d1: drift, l = ...
   d2: drift, l = ...
   this_line: line = (... d1, q10, d2, q11, ...)
-  gr2: group = \{q10\}, start_edge = 0.1
+  gr2: group = \{q10[start_edge]\}, var = \{a\}, a = 0.1
 \end{example}
-This last line that defines \vn{gr2} is just a shorthand notation for
-\begin{example}
-  gr2: group = \{q10\}, start_edge 
-  gr2[command] = 0.1
-\end{example}
-The effect will be to lengthen the length of \vn{q10} and shorten the
-length of \vn{d1}.
-
-Like \vn{overlay}s, coefficients can be specified for the individual
-elements under a \vn{group}'s control and \vn{group}s can control more
-than one type of attribute. For example
-\begin{example}
-  gr3: group = \{q1[k1]:-1.0, q2[tilt], oct1:-2.0\}, k3
-  gr3[command] = 2.0
-  gr3[old_command] = 1.5
-\end{example}
-In this example \vn{gr3} controls 3 attributes of 3 different
-elements. The change in \vn{gr3} when the lattice is read in is $0.5
-= 2.0 - 1.5$. this 0.5 change will change \vn{q1[k1]} by $-0.5 = -1
-\times 0.5$, \vn{q2[tilt]} will change by 0.5 and \vn{oct1[k3]} will
-change by $-1.0 = -2.0 * 0.5$.
-
-\index{overlay}\index{girder}
-Different \vn{group} elements may control the same element
-attribute. And a \vn{group} element may control other \vn{group}
-\vn{overlay} or \vn{girder} elements. However, It does not make sense
-for a \vn{group} element to control the same attribute as an
-\vn{overlay} element or for a \vn{group} element to control a
-\vn{dependent} attribute (\sref{s:depend}).
+The effect of varying \vn{gr2[a]} will be to lengthen the length of
+\vn{q10} and shorten the length of \vn{d1}.
 
 %-----------------------------------------------------------------
 \section{Hybrid}
@@ -2629,12 +2656,13 @@ Example:
 
 \vn{Overlay} elements are a type of \vn{control} element
 (\sref{s:lord.slave}) used to make variations in the attributes of
-other elements while a program is running. For example, to simulate
-the action of a magnet power supply that controls a string of
-magnets. Also see \vn{group} (\sref{s:group}) The difference between
-\vn{group} and \vn{overlay} elements is that \vn{overlay} elements set
-the values of the attributes directly while \vn{group} elements make
-changes to attribute values.
+other elements (called ``slave'' attributes) while a program is
+running. For example, to simulate the action of a magnet power supply
+that controls a string of magnets. Also see \vn{group}
+(\sref{s:group}) The difference between \vn{group} and \vn{overlay}
+elements is that \vn{overlay} elements set the values of the
+attributes directly while \vn{group} elements make delta changes to
+attribute values.
 
 General \vn{girder} attributes are:
 \begin{center}
@@ -2646,24 +2674,24 @@ General \vn{girder} attributes are:
 \end{center}
 \toffset
 
+\index{var}
+Attributes specific to a \vn{Group} element are:
+\begin{example}
+  var = \{<var1>, <var2>, ...\}   ! List of variables.
+\end{example}
+
 The general syntax for a \vn{overlay} element is
 \begin{example}
   name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
                                                        default_attrib = init_value
 \end{example}
-\vn{name} is the name of the \vn{overlay}, the list in brackets \{...\}
-is a list of element attributes to vary along with the coefficients
-used for the variation. In any item \vn{ele[attrib]:coef} in the list,
-both \vn{attrib} and \vn{coef} are optional. If not present,
-\vn{attrib} will default to \vn{default_attrib}. If not present,
-\vn{coef} will default to 1. Finally, \vn{init_value} is the initial
-value to use for the \vn{overlay}.
+See Section~\sref{s:go.syntax} for a detailed description of this syntax.
 
 An \vn{overlay} element is used to control the attributes of other elements. 
 For example: 
 \begin{example}
-  over1: overlay = \{a_ele, b_ele:2.0\}, hkick = 0.003
-  over2: overlay = \{b_ele\}, hkick
+  over1: overlay = \{a_ele, b_ele:2.0\}, var = \{hkick\}, hkick = 0.003
+  over2: overlay = \{b_ele\}, var = \{hkick\}
   over2[hkick] = 0.9
   a_ele: quad, hkick = 0.05, ...
   b_ele: rbend, ...
@@ -2674,44 +2702,25 @@ For example:
 In the example the overlay \vn{over1} controls the \vn{hkick}
 attribute of the "slave" elements \vn{a_ele} and
 \vn{b_ele}. \vn{over2} controls the hkick attribute of just
-\vn{b_ele}. \vn{over1} has a \vn{hkick} value of 0.003 and \vn{over2}
-has been assigned a value for \vn{hkick} of 0.9.
-
-There are coefficients associated with the control of a slave element. 
-The default coefficient is 1.0. To specify a coefficient use a vertical colon ":"
-after the element name followed by the coefficient. In the above example 
-the coefficient for the control of \vn{b_ele} from \vn{over1} is 2.0 
-and for the others the default 1.0 is used. thus 
+\vn{b_ele}. \vn{over1[hick]} has a value of 0.003 and \vn{over2[hkick]}
+has been assigned a value of 0.9. Thus:
 \begin{example}
   a_ele[hkick] = over1[hkick]
                = 0.003
   b_ele[hkick] = over2[hkick] + 2 * over1[hkick] 
                = 0.906
 \end{example}
-Note: An older notation allowed a slash "/" to be used in place of the
-colon ":" for the separator between the slave name and the
-coefficient. While the slash is still accepted, its use is
-discouraged.
 
-An \vn{overlay} will control all elements of a given name. Thus, in
-the above example, if there are multiple elements in the lattice
-with the name \vn{b_ele} then the \vn{over1} and \vn{over2} overlays
-will control the \vn{hkick} attribute of all of them.
-
-Note: Overlays completely determine the value of the attributes that
+Overlays completely determine the value of the attributes that
 are controlled by the overlay. in the above example, the hkick of 0.05
 assigned directly to \vn{a_ele} is overwritten by the overlay action
 of \vn{over1}.
 
 \noindent The default value for an overlay is 0 so for example
 \begin{example}
-  over3: overlay = \{c_ele\}, k1
+  over3: overlay = \{c_ele\}, var = \{k1\}
 \end{example}
-will make \vn{c_ele[k1]} = 0. Overlays can also control more than one
-type of attribute as the following example shows
-\begin{example}
-  over4: overlay = \{this_quad[k1]:5.4, this_sextupole[k2], ...\}, hkick
-\end{example}
+will make \vn{c_ele[k1]} = 0. 
 
 \index{group}\index{girder}
 As illustrated above, different \vn{overlay} elements may control the

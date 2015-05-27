@@ -1863,10 +1863,8 @@ call move_alloc (lat%control, control)
 allocate (lat%control(n))
 do i = 1, n_old
   call move_alloc(control(i)%stack, lat%control(i)%stack)
-  lat%control(i)%coef = control(i)%coef
   lat%control(i)%ix_lord   = control(i)%ix_lord
-  lat%control(i)%ix_slave  = control(i)%ix_slave
-  lat%control(i)%ix_branch = control(i)%ix_branch
+  lat%control(i)%slave     = control(i)%slave
   lat%control(i)%ix_attrib = control(i)%ix_attrib
 enddo
 

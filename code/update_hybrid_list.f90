@@ -47,7 +47,7 @@ keep_ele(n_in) = .true.
 ! all appropriate controllers are on the list
 
 do i = lat%ele(n_in)%ix1_slave, lat%ele(n_in)%ix2_slave
-  ix = lat%control(i)%ix_slave
+  ix = lat%control(i)%slave%ix_ele
   if (keep_ele(ix)) cycle
   call update_hybrid_list (lat, ix, keep_ele)
 enddo

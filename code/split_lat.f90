@@ -44,7 +44,7 @@ type (ele_struct), save :: ele
 type (ele_struct), pointer :: ele1, ele2, slave, lord, super_lord
 type (branch_struct), pointer :: branch, br
 
-real(rp) s_split, len_orig, len1, len2, coef1, coef2, coef_old, ds_fudge
+real(rp) s_split, len_orig, len1, len2, ds_fudge
 real(rp) dl, w_inv(3,3)
 
 integer i, j, k, ix, ix_branch, ib, ie
@@ -166,27 +166,14 @@ if (ele%slave_status == super_slave$) then
 
     n_ic2 = n_ic2 + 1
 
-    coef_old = lat%control(icon)%coef
     ix_attrib = lat%control(icon)%ix_attrib
-
-    if (ele%slave_status == super_slave$ .or. ix_attrib == hkick$ .or. ix_attrib == vkick$) then
-      coef1 = coef_old * len1 / len_orig
-      coef2 = coef_old * len2 / len_orig
-    else
-      coef1 = coef_old
-      coef2 = coef_old
-    endif
-
-    lat%control(icon)%coef = coef2
 
     lord%n_slave = lord%n_slave + 1
     call add_lattice_control_structs (lat, lord)
 
     ix2 = lord%ix2_slave
-    lat%control(ix2)%ix_slave  = ix_split
-    lat%control(ix2)%ix_branch = ix_branch
+    lat%control(ix2)%slave = lat_ele_loc_struct(ix_split, ix_branch)
     lat%control(ix2)%ix_attrib = ix_attrib
-    lat%control(ix2)%coef = coef1
     lat%ic(n_ic2) = ix2
 
     ele1%ic1_lord = ixc + 1
@@ -232,22 +219,17 @@ super_lord%ix2_slave = ixc + 1
 super_lord%n_slave = 2
 lat%n_control_max = ixc + 1
 lat%control(ixc)%ix_lord   = ix_super_lord
-lat%control(ixc)%ix_slave  = ix_split
-lat%control(ixc)%ix_branch = ix_branch
-lat%control(ixc)%coef = len1 / len_orig
+lat%control(ixc)%slave = lat_ele_loc_struct(ix_split, ix_branch)
 lat%control(ixc+1)%ix_lord   = ix_super_lord
-lat%control(ixc+1)%ix_slave  = ix_split + 1
-lat%control(ixc+1)%ix_branch = ix_branch
-lat%control(ixc+1)%coef = len2 / len_orig
+lat%control(ixc+1)%slave = lat_ele_loc_struct(ix_split + 1, ix_branch)
 
 ! lord elements of the split element must now point towards the super lord
 
 do i = 1, ele%n_lord
   lord => pointer_to_lord(ele, i)
   do k = lord%ix1_slave, lord%ix2_slave
-    if (lat%control(k)%ix_slave == ix_split+1) then
-      lat%control(k)%ix_slave  = ix_super_lord
-      lat%control(k)%ix_branch = 0
+    if (lat%control(k)%slave%ix_ele == ix_split+1) then
+      lat%control(k)%slave = lat_ele_loc_struct(ix_super_lord, 0)
     endif
   enddo
 enddo

@@ -165,6 +165,120 @@ comma (,) or the end of the line marks the end of the string. Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Syntax for Group and Overlay Elements}
+\label{s:go.syntax}
+\index{group!syntax}\index{overlay!syntax}
+
+The syntax for specifying \vn{group} (\sref{s:group}) and \vn{overlay}
+(\sref{s:overlay}) elements are virtually identical and is discussed
+below. The name ``\vn{controller}'' will be used to denote either a
+\vn{group} or \vn{overlay} element.
+
+The general syntax for a \vn{group} element is
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
+                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
+\end{example}
+For an \vn{overlay} element the syntax is identical except OVERLAY is
+substituted for GROUP:
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
+                 VAR = \{var1, var2, ...\}, var1 = init_val1, ...
+\end{example}
+\vn{Name} is the name of the controller element. Example:
+\begin{example}
+  gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
+\end{example}
+
+To define a \vn{controller} element, two lists are needed: One list defines
+the attributes to be controlled (called ``slave'' attributes) along
+with the arithmetic expressions used for computation. The other list
+defines the variables within the \vn{controller} element that can be
+varied. In the above example, the variables are \vn{a} and \vn{b}, and
+the slave attributes are the \vn{k1} attribute of element \vn{q1}
+and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
+expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
+
+A \vn{controller} will control all elements of a given name. Thus, in
+the above example, if there are multiple elements named \vn{q1}
+then \vn{gr1} will control the \vn{k1}  attribute of all of them.
+
+The syntax for specifying an attribute \vn{attrib} of element \vn{ele}
+to be controlled is \vn{ele[attrib]}. The attribute part \vn{[attrib]}
+may be omitted and in this case the name of the attribute will be
+taken to be the name of the first variable. Example:
+\begin{example}
+  ov1: overlay = \{sex1:-tan(k2)^b\}, var = \{k2, b\}
+\end{example}
+In this example, the controlled attribute of element \vn{sex1} is
+\vn{k2}.  Except in cases where this default attribute syntax is used,
+the names of the variables are arbitrary and do not have to correspond
+to the name of any actual attribute.
+
+The arithmetic expressions used to evaluate controlled attribute value
+changes may be a constant. In this case, the actual expression used is
+this constant times the first variable. If the expression is omitted
+entirely, along with the separating ``:'', the constant will be taken
+to be unity. Example:
+\begin{example}
+  gr1: group = \{b1, b3:-pi\}, var = \{angle\}
+\end{example}
+This is equivalent to
+\begin{example}
+  gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
+\end{example}
+
+Initial values can be assigned to the variables from within the
+definition of the controller element. Example:
+\begin{example}
+  ov1: overlay = \{...\}, var = \{a, b\}, a = 7, b = 2
+\end{example}
+Here the initial values 7 and 2 are assigned to \vn{a} and \vn{b} respectively.
+Alternatively, variables can be set after a controller element has been defined. 
+Example:
+\begin{example}
+  ov1: overlay = \{...\}, var = \{a, b\}
+  ov1[a] = 7
+  gr1[b] = 2
+\end{example}
+
+There is an old deprecated syntax. For \vn{group} elements the syntax was:
+\begin{example}
+  name: GROUP = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                       attrib = init_value  ! DO NOT USE THIS SYNTAX!
+\end{example}
+and for \vn{overlay} elements the old syntax was identical except
+that \vn{GROUP} was replaced by \vn{OVERLAY}:
+\begin{example}
+  name: OVERLAY = \{ele1[attrib1]:coef1, ele2[attrib2]:coef2, ...\}, 
+                       attrib = init_value  ! DO NOT USE THIS SYNTAX!
+\end{example}
+
+With this old syntax, there is only one variable. Additionally, there
+are no arithmetic expressions. Rather, attribute changes are linear in
+the \vn{command} variable with the constant of proportionality given
+by a specified coefficient. For example with the old syntax
+\begin{example}
+  ov1: overlay = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
+\end{example}
+is equivalent, in the present syntax, to:
+\begin{example}
+  ov1: overlay = \{sq[k0]:3.7, sq2[tilt]\}, var = \{k0\}, k0 = 2  
+\end{example}
+Note: In this old syntax the colon ``:'' separating the controlled
+attribute from the linear coefficient may be replaced by a slash
+``/''.  For \vn{group} elements, there was an added wrinkle that, with
+the old syntax, the variable's name is fixed to be \vn{command}. For
+example, with the old syntax
+\begin{example}
+  gr1: group = \{sq1:3.7, sq2[tilt]\}, k0 = 2  ! DO NOT USE THIS SYNTAX!
+\end{example}
+is equivalent, in the present syntax, to:
+\begin{example}
+  gr1: group = \{sq[k0]:3.7, sq2[tilt]\}, var = \{command\}, command = 2  
+\end{example}
+
+%-----------------------------------------------------------------
 \section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ ref_wavelength }
 \label{s:energy}
 \index{parameter statement}\index{e_tot}

@@ -729,9 +729,9 @@ do i_b = 0, ubound(lat%branch, 1)
 
     if (l_stat == super_lord$) then
       do i = ele%ix1_slave+1, ele%ix2_slave
-        slave_branch => lat%branch(lat%control(i)%ix_branch)
-        ix1 = lat%control(i-1)%ix_slave
-        ix2 = lat%control(i)%ix_slave
+        slave_branch => lat%branch(lat%control(i)%slave%ix_branch)
+        ix1 = lat%control(i-1)%slave%ix_ele
+        ix2 = lat%control(i)%slave%ix_ele
         if (ix1 == ix2) then
           call out_io (s_fatal$, r_name, &
                     'DUPLICATE SUPER_SLAVES: ', trim(slave_branch%ele(ix1)%name) // '  (\i0)', &
@@ -827,8 +827,8 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
       endif
 
-      i_t2 = lat%control(j)%ix_slave
-      i_b2 = lat%control(j)%ix_branch
+      i_t2 = lat%control(j)%slave%ix_ele
+      i_b2 = lat%control(j)%slave%ix_branch
 
       if (i_t2 < 1 .or. i_t2 > lat%branch(i_b2)%n_ele_max) then
         call out_io (s_fatal$, r_name, &
@@ -905,12 +905,12 @@ do i_b = 0, ubound(lat%branch, 1)
         cycle
       endif
 
-      if (lat%control(j)%ix_slave /= i_t) then
+      if (lat%control(j)%slave%ix_ele /= i_t) then
         call out_io (s_fatal$, r_name, &
                   'SLAVE: ' // trim(ele%name) // '  ' // str_ix_ele, &
                   'HAS A %IX_SLAVE POINTER MISMATCH: \i0\ ', &
                   'AT: \2i7\ ', &
-                  i_array = [lat%control(j)%ix_slave, ix, j] )
+                  i_array = [lat%control(j)%slave%ix_ele, ix, j] )
         err_flag = .true.
       endif
 

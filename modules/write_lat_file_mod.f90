@@ -83,6 +83,7 @@ real(rp) s0, x_lim, y_lim, val
 character(*) bmad_file
 character(4000) line
 character(200) wake_name, file_name, path, basename
+character(100) string
 character(60) alias
 character(40) name, look_for, attrib_name
 character(16) polar, dependence
@@ -299,20 +300,27 @@ do ib = 0, ubound(lat%branch, 1)
           write (line, '(3a)') trim(line), ', ', trim(slave%name)
         endif
         name = attribute_name(slave, ctl%ix_attrib)  
-        if (name /= ele%component_name) line = trim(line) // '[' // trim(name) // ']'
-        if (ctl%coef /= 1) write (line, '(3a)') trim(line), '/', trim(str(ctl%coef))
+        if (name /= ele%control_var(1)%name) line = trim(line) // '[' // trim(name) // ']'
+        string = expression_stack_to_string(ctl%stack)
+        if (string /= ele%control_var(1)%name) write (line, '(3a)') trim(line), ':', trim(string)
       enddo j_loop
+      line = trim(line) // '}, var = {' // ele%control_var(1)%name
+
+      do j = 2, size(ele%control_var)
+        line = trim(line) // ', ' // ele%control_var(j)%name
+      enddo
+
       line = trim(line) // '}'
-      if (ele%component_name == ' ') then
-        line = trim(line) // ', command'
-      else
-        line = trim(line) // ', ' // ele%component_name
-      endif
-      if (ele%key == overlay$) then
-        ix = ele%ix_value
-        if (ele%value(ix) /= 0) write (line, '(3a)') &
-                            trim(line), ' = ', str(ele%value(ix))
-      endif
+
+      do j = 1, size(ele%control_var)
+        if (ele%control_var(j)%value /= 0) then
+          line = trim(line) // ', ' // ele%control_var(j)%name // ' = ' // trim(str(ele%control_var(j)%value))
+        endif
+        if (ele%control_var(j)%old_value /= 0) then
+          line = trim(line) // ', old_' // ele%control_var(j)%name // ' = ' // trim(str(ele%control_var(j)%value))
+        endif
+      enddo
+
       if (ele%type /= ' ') line = trim(line) // ', type = "' // trim(ele%type) // '"'
       if (ele%alias /= ' ') line = trim(line) // ', alias = "' // trim(ele%alias) // '"'
       if (associated(ele%descrip)) line = trim(line) // &
@@ -359,7 +367,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     is_multi_sup = .false.
     if (ele%lord_status == multipass_lord$) then
-      ix1 = lat%control(ele%ix1_slave)%ix_slave
+      ix1 = lat%control(ele%ix1_slave)%slave%ix_ele
       if (lat%ele(ix1)%lord_status == super_lord$) is_multi_sup = .true.
     endif
 

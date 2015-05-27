@@ -26,6 +26,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
   
   use lat_ele_loc_mod, except_dummy => twiss_at_element
+  use expression_mod, only: linear_coef
   use nr
   
   implicit none
@@ -40,6 +41,8 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   integer i, ix, n_slave, key
 
   real(rp) rr, tot, l_now
+
+  logical err_flag
 
 !
 
@@ -101,7 +104,7 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   end select
 
 ! Average calc for a lord.
-! %control(:)%coef is proportional to the length of the save for super_lords
+! We need the "length" of the element.
 ! The "length" is tricky for group and overlay lords: Essentially it is the 
 ! length weighted by the coefficient.
 
@@ -112,9 +115,9 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
 
   tot = 0
   do i = ele%ix1_slave, ele%ix2_slave
-    ix = lat%control(i)%ix_slave
+    ix = lat%control(i)%slave%ix_ele
     if (key == group$ .or. key == overlay$) then
-      tot = tot + abs(lat%control(i)%coef) * lat%ele(ix)%value(l$)
+      tot = tot + abs(linear_coef(lat%control(i)%stack, err_flag)) * lat%ele(ix)%value(l$)
     else
       tot = tot + lat%ele(ix)%value(l$)
     endif
@@ -122,12 +125,12 @@ recursive subroutine twiss_at_element (lat, ix_ele, start, end, average)
   average%value(l$) = tot
 
   do i = ele%ix1_slave, ele%ix2_slave
-    ix = lat%control(i)%ix_slave
+    ix = lat%control(i)%slave%ix_ele
     call twiss_at_element (lat, ix, average = slave_ave)
     if (tot == 0) then
       rr = 1.0 / ele%n_slave
     elseif (key == group$ .or. key == overlay$) then
-      rr = abs(lat%control(i)%coef) * slave_ave%value(l$) / tot
+      rr = abs(linear_coef(lat%control(i)%stack, err_flag)) * slave_ave%value(l$) / tot
     else
       rr = slave_ave%value(l$) / tot
     endif

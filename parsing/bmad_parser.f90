@@ -627,12 +627,12 @@ parsing_loop: do
   if (.not. match_found) then
     if (word_2 == 'BRANCH') then
       call parser_error ('"BRANCH" ELEMENT IS NOW NAMED A "FORK" ELEMENT.', &
-                       'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
       word_2 = 'FORK'
     endif
     if (word_2 == 'PHOTON_BRANCH') then
       call parser_error ('"PHOTON_BRANCH" ELEMENT IS NOW NAMED A "PHOTON_FORK" ELEMENT.', &
-                       'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
+                         'PLEASE MODIFY YOUR LATTICE FILE ACCORDINGLY.', warn_only = .true.)
       word_2 = 'PHOTON_FORK'
     endif
     in_lat%ele(n_max)%key = key_name_to_key_index(word_2, .true.)
@@ -644,7 +644,7 @@ parsing_loop: do
 
   if (.not. match_found) then
     call parser_error ('KEY NAME NOT RECOGNIZED OR AMBIGUOUS: ' // word_2,  &
-                  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+                       'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
     cycle parsing_loop
   endif
 
@@ -655,7 +655,7 @@ parsing_loop: do
   if (key == overlay$ .or. key == group$ .or. key == girder$) then
     if (delim /= '=') then
       call parser_error ('EXPECTING: "=" BUT GOT: ' // delim,  &
-                  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+                         'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       cycle parsing_loop        
     endif
 
@@ -663,8 +663,7 @@ parsing_loop: do
     if (key == group$)   in_lat%ele(n_max)%lord_status = group_lord$
     if (key == girder$)  in_lat%ele(n_max)%lord_status = girder_lord$
 
-    call get_overlay_group_names(in_lat%ele(n_max), in_lat, &
-                                                plat%ele(n_max), delim, delim_found)
+    call get_overlay_group_names(in_lat%ele(n_max), in_lat, plat%ele(n_max), delim, delim_found)
 
     if (key /= girder$ .and. .not. delim_found) then
       call parser_error ('NO CONTROL ATTRIBUTE GIVEN AFTER CLOSING "}"',  &
@@ -680,8 +679,7 @@ parsing_loop: do
   do 
     if (.not. delim_found) exit   ! If no delim then we are finished with this element.
     if (delim /= ',') then
-      call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  &
-                    'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
+      call parser_error ('EXPECTING: "," BUT GOT: ' // delim,  'FOR ELEMENT: ' // in_lat%ele(n_max)%name)
       exit
     endif
     call parser_set_attribute (def$, in_lat%ele(n_max), in_lat, delim, delim_found, err, plat%ele(n_max))

@@ -46,7 +46,7 @@ subroutine quad_beta_ave (lat, ix_ele, beta_a_ave, beta_b_ave)
 ! controlled element
 
   if (ix_ele > lat%n_ele_track) then
-    ix = lat%control(ele%ix1_slave)%ix_slave
+    ix = lat%control(ele%ix1_slave)%slave%ix_ele
     beta_a_ave = lat%ele(ix)%a%beta
     beta_b_ave = lat%ele(ix)%b%beta
     return
