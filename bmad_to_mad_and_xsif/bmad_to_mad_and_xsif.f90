@@ -75,6 +75,8 @@ else
     case default
       if (arg(1:1) == '-') then
         print *, 'Bad switch: ', trim(arg)
+        file_name = ''
+        exit
       else
         file_name = arg
       endif
@@ -82,7 +84,7 @@ else
   enddo
 
   if (file_name == '') then
-    print *, 'Usage: bmad_to_mad_and_xsif {-nobpm} {-noaperture} {-xsif} {-mad8} {-madx} <bmad_file_name>'
+    print '(a)', 'Usage: bmad_to_mad_and_xsif {-nobpm} {-noaperture} {-xsif} {-mad8} {-madx} <bmad_file_name>'
     stop
   endif
 
@@ -138,13 +140,19 @@ call remove_eles_from_lat(lat)
 
 out_name = file_name
 
-call file_suffixer (out_name, out_name, 'xsif', .true.)
-call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit, include_apertures = aperture)
+if (out_type == 'all' .or. out_type == '-xsif') then
+  call file_suffixer (out_name, out_name, 'xsif', .true.)
+  call write_lattice_in_foreign_format ('XSIF', out_name, lat, orbit, include_apertures = aperture)
+endif
 
-call file_suffixer (out_name, out_name, 'mad8', .true.)
-call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture)
+if (out_type == 'all' .or. out_type == '-mad8') then
+  call file_suffixer (out_name, out_name, 'mad8', .true.)
+  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture)
+endif
 
-call file_suffixer (out_name, out_name, 'madx', .true.)
-call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture)
+if (out_type == 'all' .or. out_type == '-madx') then
+  call file_suffixer (out_name, out_name, 'madx', .true.)
+  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture)
+endif
 
 end program
