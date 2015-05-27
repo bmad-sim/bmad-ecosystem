@@ -446,7 +446,7 @@ do i = lbound(master_node%children, 1), ubound(master_node%children, 1)
     lat%control(n)%ix_lord = ele%ix_ele
     ix_ele = node%slaves(j)%node%ix
     slave_ele => lat%ele(ix_ele)
-    lat%control(n)%ix_slave = ix_ele
+    lat%control(n)slave%ix_ele = ix_ele
     lat%control(n)%coef = slave_ele%value(l$) / ele%value(l$)
   end do
 
@@ -515,7 +515,7 @@ do i = lbound(control_node%children, 1), ubound(control_node%children, 1)
     do k = lbound(slave_node%slaves, 1), ubound(slave_node%slaves, 1)
       n = k + n_con1 - lbound(slave_node%slaves, 1)
       ix_slave = slave_node%slaves(k)%node%ix
-      lat%control(n)%ix_slave = ix_slave
+      lat%control(n)slave%ix_ele = ix_slave
       lat%control(n)%ix_lord = ele%ix_ele
 
       found =  parser_set_attribute_value (attrib_node%children(j), 'coef', coef_str)
@@ -553,7 +553,7 @@ enddo
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
   if (lat%ele(ix)%key == group$) cycle
-  ix = lat%control(i)%ix_slave
+  ix = lat%control(i)slave%ix_ele
   lat%ele(ix)%n_lord = lat%ele(ix)%n_lord + 1
 enddo
 
@@ -570,7 +570,7 @@ enddo
 do i = 1, lat%n_control_max
   ix = lat%control(i)%ix_lord
   if (lat%ele(ix)%key == group$) cycle
-  ix = lat%control(i)%ix_slave
+  ix = lat%control(i)slave%ix_ele
   slave_ele => lat%ele(ix)
   if (slave_ele%n_lord == 0) cycle
   j = slave_ele%ixx

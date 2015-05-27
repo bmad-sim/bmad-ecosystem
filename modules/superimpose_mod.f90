@@ -276,7 +276,7 @@ do
     branch%ele(ix) = branch%ele(i)       ! copy null_ele
     do ic = branch%ele(i)%ic1_lord, branch%ele(i)%ic2_lord
       j = lat%ic(ic)
-      lat%control(j)%ix_slave = ix ! point to new null_ele.
+      lat%control(j)%slave%ix_ele = ix ! point to new null_ele.
     enddo
     branch%ele(i)%key = -1  ! Mark old null_ele for deletion
     call remove_eles_from_lat (lat)
@@ -341,14 +341,14 @@ do i = ix1_split+1, ix2_split
   lord%lord_status = super_lord$
   ! Point control info to this new lord
   do j = 1, lat%n_control_max
-    if (lat%control(j)%ix_slave == i) lat%control(j)%ix_slave = ixs
+    if (lat%control(j)%slave%ix_ele == i) lat%control(j)%slave%ix_ele = ixs
   enddo
   ! Now put in the info to make the original element a super_slave
   lord%n_slave = 1
   call add_lattice_control_structs (lat, lord)
   ix = lord%ix1_slave
-  lat%control(ix)%ix_slave = i
-  lat%control(ix)%ix_branch = ix_branch
+  lat%control(ix)%slave%ix_ele = i
+  lat%control(ix)%slave%ix_branch = ix_branch
   slave%slave_status = super_slave$
   slave%name = trim(slave%name) // '#1'
   slave%n_lord = 1
@@ -466,14 +466,12 @@ do
     lat%ele(ixn)%ix2_slave = ixc
     lat%ele(ixn)%n_slave = 1
     lat%control(ixc)%ix_lord = ixn
-    lat%control(ixc)%ix_slave = ix_slave
-    lat%control(ixc)%ix_branch = ix_branch
-    lat%control(ixc)%coef = 1.0
+    lat%control(ixc)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
     lat%n_control_max = ixc
 
     do j = lat%ele(ixn)%ic1_lord, lat%ele(ixn)%ic2_lord
       jj = lat%ic(j)
-      lat%control(jj)%ix_slave = ixn
+      lat%control(jj)%slave%ix_ele = ixn
     enddo
 
     ic = lat%n_ic_max + 1
@@ -498,14 +496,8 @@ do
   ! add control info for main super lord to list
 
   ix_super_con = ix_super_con + 1
-  sup_con(ix_super_con)%ix_slave = ix_slave
-  sup_con(ix_super_con)%ix_branch = ix_branch
+  sup_con(ix_super_con)%slave = lat_ele_loc_struct(ix_slave, ix_branch)
   sup_con(ix_super_con)%ix_lord = ix_super
-  if (zero_length_lord) then
-    sup_con(ix_super_con)%coef = 1
-  else
-    sup_con(ix_super_con)%coef = slave_saved%value(l$) / l_super
-  endif
   sup_con(ix_super_con)%ix_attrib = 0
 
   ! change the element key
@@ -551,7 +543,7 @@ if (present(super_ele_out)) super_ele_out => lat%ele(ix_super)
 
 do k = 1, ix_super_con
   lat%control(k+ixc-1) = sup_con(k)
-  ix_slave = lat%control(k+ixc-1)%ix_slave
+  ix_slave = lat%control(k+ixc-1)%slave%ix_ele
   i2 = branch%ele(ix_slave)%ic2_lord
   lat%ic(i2) = k+ixc-1
 enddo
@@ -615,8 +607,8 @@ if (logic_option(.false., create_jumbo_slave)) then
           
           cntl => lat%control(lord%ix1_slave)
           cntl%ix_lord = lord%ix_ele
-          cntl%ix_slave = ele0%ix_ele
-          cntl%ix_branch = ele0%ix_branch
+          cntl%slave%ix_ele = ele0%ix_ele
+          cntl%slave%ix_branch = ele0%ix_branch
           lat%ic(ele0%ic2_lord) = lord%ix1_slave
 
         enddo

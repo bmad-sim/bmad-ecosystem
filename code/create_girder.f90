@@ -11,7 +11,7 @@
 !   lat          -- lat_struct: Lat to modify.
 !   ix_girder    -- Integer: Index of girder element.
 !   contrl(:)    -- Control_struct: What to control.
-!     %ix_slave       -- Integer: Index in lat%branch()%ele() of element controlled.
+!     slave%ix_ele       -- Integer: Index in lat%branch()%ele() of element controlled.
 !     %ix_branch      -- Integer: Branch index.  
 !   ele_init     -- Element containing attributes to be transfered
 !                   to the Girder element:
@@ -62,7 +62,6 @@ if (n_con2 > size(lat%control)) call reallocate_control (lat, n_con2+500)
 do j = 1, n_slave
   lat%control(ix+j)           = contrl(j)
   lat%control(ix+j)%ix_lord   = ix_girder
-  lat%control(ix+j)%coef      = 0
   lat%control(ix+j)%ix_attrib = 0
 enddo
 

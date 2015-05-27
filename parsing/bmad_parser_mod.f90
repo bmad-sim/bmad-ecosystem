@@ -93,13 +93,14 @@ type parser_ele_struct
   character(40), allocatable :: name(:)        ! For overlays and groups
   character(40), allocatable :: attrib_name(:) ! For overlays and groups
   character(200) lat_file                      ! File where element was defined.
-  real(rp), allocatable :: coef(:)             ! For overlays and groups
+  character(100), allocatable :: expression(:)       ! For overlays and groups
   real(rp) offset
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
   integer ele_pt, ref_pt
   integer indexx
   logical create_jumbo_slave
+  character(40) :: default_attrib = ''        ! For group/overlay elements: slave attribute 
 end type
 
 type parser_lat_struct
@@ -214,7 +215,7 @@ type (all_pointer_struct) a_ptr
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
 real(rp), pointer :: r_ptr
 
-integer i, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
+integer i, i2, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2)
 
@@ -266,100 +267,66 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   return
 endif
 
-! overlay
+! overlay or group
 
-if (ele%key == overlay$) then
+if (ele%key == overlay$ .or. ele%key == group$) then
   i = attribute_index(ele, word)       ! general attribute search
 
   if (i == type$ .or. i == alias$ .or. i == descrip$) then
     call bmad_parser_type_get (ele, word, delim, delim_found)
-
-  else
-    if (i < 1) then
-      if (wild_key0) then
-        err_flag = .false.
-        return
-      endif
-      call parser_error ('BAD OVERLAY ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
-      return
-    endif
-
-    if (how == def$) then
-      ele%ix_value = i
-      ele%component_name = word
-    endif
-
-    value = 0
-    if (delim == '=') then  ! value
-      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-      if (err_flag) return
-    endif
-
-    if (ele%ix_value /= i) then
-      if (wild_key0) then
-        err_flag = .false.
-        return
-      endif
-      call parser_error ('BAD OVERLAY ATTRIBUTE SET FOR: ' // ele%name, &
-            'YOU ARE TRYING TO SET: ' // word, &
-            'BUT YOU SHOULD BE SETTING: ' // ele%component_name)
-      return
-    endif
-
-    call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
-    r_ptr = value
-
-    if (attrib_free_problem(word)) return
-
-  endif
-
-  err_flag = .false.
-  return
-endif
-
-! group...
-
-if (ele%key == group$) then
-
-  if (how == def$) then
-    ele0%key = overlay$
-    i = attribute_index(ele0, word)       ! general attribute search
-  else   ! how == redef$
-    i = attribute_index(ele, word)
-  endif
-
-  if (i < 1) then
-    call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+    err_flag = .false.
     return
   endif
 
-  if (i == type$ .or. i == alias$) then
-    call bmad_parser_type_get (ele, word, delim, delim_found)
-  else
-    if (how == def$) then
-      ele%ix_value = i
-      ele%component_name = word
+  if (i == var$) then
+    if (how == redef$ .or. associated(ele%control_var)) then
+      call parser_error ('RESETTING VAR = {...} IS NOT PERMITTED', 'FOR: ' // ele%name)
+      return
     endif
-    if (delim == '=') then  ! value
-      call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
-      if (err_flag) return
-      if (how == def$) then
-        ele%value(command$) = value
-      elseif (i > num_ele_attrib$) then
-        call parser_error ('BAD GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
-        return
-      else
-        ele%value(i) = value
-      endif
-    elseif (how == redef$) then
-      call parser_error ('NO VALUE GIVEN FOR ATTRIBUTE FOR: ' // ele%name)
-    endif
-    if (attrib_free_problem(word)) return
+    call get_overlay_group_names(ele, lat, pele, delim, delim_found, .true.)
+    pele%default_attrib = ele%control_var(1)%name
+    err_flag = .false.
+    return
   endif
+
+  ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordian_edge for example.
+
+  i2 = attribute_index(0, word)
+  if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. i2 > 0) then 
+    allocate (ele%control_var(1))
+    if (ele%key == group$) then
+      ele%control_var(1)%name = 'COMMAND'
+    else
+      ele%control_var(1)%name = word
+    endif
+    pele%default_attrib = word
+    i = 1 + var_offset$
+  endif
+
+  !
+
+  if (i < 1) then
+    if (wild_key0) then
+      err_flag = .false.
+      return
+    endif
+    call parser_error ('BAD OVERLAY/GROUP ATTRIBUTE: ' // word, 'FOR: ' // ele%name)
+    return
+  endif
+
+  value = 0
+  if (delim == '=') then  ! value
+    call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag)
+    if (err_flag) return
+  endif
+
+  call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
+  r_ptr = value
+
+  if (attrib_free_problem(word)) return
 
   err_flag = .false.
   return
-
 endif
 
 ! beam_start and bmad_com element can have attributes that are not part of the element so
@@ -461,7 +428,7 @@ if (word(1:5) == 'WALL.') then
   return
 endif
 
-! if not an overlay then see if it is an ordinary attribute.
+! if not an overlay/group then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 
 if (ix_word == 0) then  ! no word
@@ -1353,7 +1320,7 @@ case default   ! normal attribute
     if (err_flag) return
 
     ! multipole attribute?
-    if (ix_attrib >= a0$ .and. ix_attrib <= b21$ .and. attrib_word(1:4) /= 'CURV') then  
+    if (is_attribute(ix_attrib, multipole$) .and. attrib_word(1:4) /= 'CURV') then  
         if (.not. associated(ele%a_pole)) call multipole_init (ele)
         if (ix_attrib >= b0$) then
           ele%b_pole(ix_attrib-b0$) = value
@@ -2360,351 +2327,121 @@ end function evaluate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
+!-------------------------------------------------------------------------      
 !+
 ! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
 !
-! This routine creates an "evaluation stack" structure which can be used 
+! This routine creates an "evaluation stack" structure which can be used
 ! to evaluate an arithmethic expression.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
 
-subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
+subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
 
 use expression_mod
 
 implicit none
 
 type (lat_struct)  lat
-type (expression_stack_struct) stk(200)
-
-integer i_lev, i_op, i
-
-integer op(200), ix_word, i_delim, i2, ix_word2
+type (expression_atom_struct) :: stk(100)
 
 real(rp) value
+
+integer i, ix_word, ix_str, n_parens, n_stk
 
 character(*) err_str
 character(*), optional :: end_delims
 character(1) delim
-character(80) word, word2, err_type
+character(200) str
+character(100) err_type
+character(60) word
+character(*), optional :: string_out
 
-logical delim_found, split, ran_function_pending, first_get_next_word_call
-logical err_flag
+logical delim_found, ran_function_pending
+logical err_flag, call_check
 
-! The general idea is to rewrite the expression on a stack in reverse polish.
-! Reverse polish means that the operand goes last so that 2 * 3 is writen 
-! on the stack as: [2, 3, *]
+! Get string
 
-! The stack is called: stk
-! Since operations move towards the end of the stack we need a separate
-! stack called op which keeps track of what operations have not yet
-! been put on stk.
-
-! init
-
+call_check = .true.
+str = ''
+ix_str = 0
+n_parens = 0
 err_flag = .true.
-i_lev = 0
-i_op = 0
-ran_function_pending = .false.
-first_get_next_word_call = .true.
 
-! parsing loop to build up the stack.
-
-parsing_loop: do
-
-  ! get a word
-
-  if (first_get_next_word_call) then
-    call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found, call_check = .true.)
-    first_get_next_word_call = .false.
-  else
-    call get_next_word (word, ix_word, '+-*/()^,:} ', delim, delim_found)
-  endif
-
-  if (delim == '*' .and. word(1:1) == '*') then
-    call parser_error ('EXPONENTIATION SYMBOL IS "^" AS OPPOSED TO "**"!',  &
-                  'for: ' // err_str)
-    return
-  endif
-
-  if (ran_function_pending .and. (ix_word /= 0 .or. delim /= ')')) then
-    call parser_error ('RAN AND RAN_GAUSS DO NOT TAKE AN ARGUMENT', 'FOR: ' // err_str)
-    return
-  endif
-
-  !--------------------------
-  ! Preliminary: If we have split up something that should have not been split
-  ! then put it back together again...
-
-  ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
-  ! get split at the "-" even though "-" is a delimiter
-
-  split = .true.         ! assume initially that we have a split number
-  if (ix_word == 0) then
-    split = .false.
-  elseif (word(ix_word:ix_word) /= 'E' .and. word(ix_word:ix_word) /= 'D') then
-    split = .false.
-  endif
-  if (delim(1:1) /= '-' .and. delim(1:1) /= '+') split = .false.
-  do i = 1, ix_word-1
-    if (index('.0123456789', word(i:i)) == 0) split = .false.
-  enddo
-
-  ! If still SPLIT = .TRUE. then we need to unsplit
-
-  if (split) then
-    word = word(:ix_word) // delim
-    call get_next_word (word2, ix_word2, '+-*/()^,:}', delim, delim_found)
-    word = word(:ix_word+1) // word2
-    ix_word = ix_word + ix_word2
-  endif
-
-  ! Something like "lcav[lr(2).freq]" will get split on the "("
-
-  if (delim == '(' .and. index(word, '[LR') /= 0) then
-    call get_next_word (word2, ix_word2, '+-*/(^,:}', delim, delim_found)
-    word = word(:ix_word) // '(' // word2
-    ix_word = ix_word + ix_word2 + 1
-  endif
-
-  !---------------------------
-  ! Now see what we got...
-
-  ! For a "(" delim we must have a function
-
-  if (delim == '(') then
-
-    ran_function_pending = .false.
-    if (ix_word /= 0) then
-      select case (word)
-      case ('SIN') 
-        call pushit (op, i_op, sin$)
-      case ('COS') 
-        call pushit (op, i_op, cos$)
-      case ('TAN') 
-        call pushit (op, i_op, tan$)
-      case ('ASIN') 
-        call pushit (op, i_op, asin$)
-      case ('ACOS') 
-        call pushit (op, i_op, acos$)
-      case ('ATAN') 
-        call pushit (op, i_op, atan$)
-      case ('ATAN2') 
-        call pushit (op, i_op, atan2$)
-      case ('ABS') 
-        call pushit (op, i_op, abs$)
-      case ('SQRT') 
-        call pushit (op, i_op, sqrt$)
-      case ('LOG') 
-        call pushit (op, i_op, log$)
-      case ('EXP') 
-        call pushit (op, i_op, exp$)
-      case ('FACTORIAL') 
-        call pushit (op, i_op, factorial$)
-      case ('RAN') 
-        call pushit (op, i_op, ran$)
-        ran_function_pending = .true.
-        call bp_set_ran_status
-      case ('RAN_GAUSS') 
-        call pushit (op, i_op, ran_gauss$)
-        ran_function_pending = .true.
-        call bp_set_ran_status
-      case ('INT')
-        call pushit (op, i_op, int$)
-      case ('NINT')
-        call pushit (op, i_op, nint$)
-      case ('FLOOR')
-        call pushit (op, i_op, floor$)
-      case ('CEILING')
-        call pushit (op, i_op, ceiling$)
-      case default
-        call parser_error ('UNEXPECTED CHARACTERS ON RHS BEFORE "(": ' // word,  &
-                                                'FOR: ' // err_str)
-        return
-      end select
-    endif
-
-    call pushit (op, i_op, l_parens$)
-    cycle parsing_loop
-
-  ! for a unary "-"
-
-  elseif (delim == '-' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_minus$)
-    cycle parsing_loop
-
-  ! for a unary "+"
-
-  elseif (delim == '+' .and. ix_word == 0) then
-    call pushit (op, i_op, unary_plus$)
-    cycle parsing_loop
-
-  ! for a ")" delim
-
-  elseif (delim == ')') then
-    if (ix_word == 0) then
-      if (.not. ran_function_pending) then
-        call parser_error  ('CONSTANT OR VARIABLE MISSING BEFORE ")"', 'FOR: ' // err_str)
-        return
-      endif
-      ran_function_pending = .false.
-    else
-      call word_to_value (word, lat, value)
-      call pushit (stk%type, i_lev, numeric$)
-      stk(i_lev)%value = value
-    endif
-
-    do
-      do i = i_op, 1, -1     ! release pending ops
-        if (op(i) == l_parens$) exit          ! break do loop
-        call pushit (stk%type, i_lev, op(i))
-      enddo
-
-      if (i == 0) then
-        if (index(end_delims, ')') /= 0) then
-          i_op = 0
-          exit   ! End of expression
-        endif
-        call parser_error ('UNMATCHED ")" ON RHS', 'FOR: ' // err_str)
-        return
-      endif
-
-      i_op = i - 1
-
-      call get_next_word (word, ix_word, '+-*/()^,:}', delim, delim_found)
-      if (ix_word /= 0) then
-        call parser_error ('UNEXPECTED CHARACTERS ON RHS AFTER ")"',  &
-                                                  'FOR: ' // err_str)
-        return
-      endif
-
-      if (delim /= ')') exit  ! if no more ')' then no need to release more
-    enddo
-
-
-    if (delim == '(') then
-      call parser_error ('")(" CONSTRUCT DOES NOT MAKE SENSE FOR: ' // err_str)
-      return
-    endif
-
-  ! For binary "+-/*^" delims
-
-  else
-    if (ix_word == 0) then
-      call parser_error ('CONSTANT OR VARIABLE MISSING IN EVALUATING: ' // err_str)
-      return
-    endif
-    call word_to_value (word, lat, value)
-    call pushit (stk%type, i_lev, numeric$)
-    stk(i_lev)%value = value
-  endif
-
-  ! If we are here then we have an operation that is waiting to be identified
-
-  if (.not. delim_found) delim = ':'
+do
+  call get_next_word (word, ix_word, '(),:}', delim, delim_found, call_check = call_check)
+  call_check = .false.
+  str = str(1:ix_str) // word
+  ix_str = ix_str + ix_word
+  if (.not. delim_found) exit
 
   select case (delim)
-  case ('+')
-    i_delim = plus$
-  case ('-')
-    i_delim = minus$
-  case ('*')
-    i_delim = times$
-  case ('/')
-    i_delim = divide$
-  case ('^')
-    i_delim = power$
-  case (',', '}', ':', ')')   ! End of expression delims
-    i_delim = no_delim$
-  case default
-    call parser_error ('MALFORMED EXPRESSION')
-    bp_com%parse_line = ' '
-    return
+  case (',', ')', '}') 
+    if (n_parens == 0) exit
+  case (':')
+    exit
   end select
 
-  ! now see if there are operations on the OP stack that need to be transferred
-  ! to the STK stack
+  ix_str = ix_str + 1
+  str(ix_str:ix_str) = delim
+  if (delim == '(') n_parens = n_parens + 1
+  if (delim == ')') n_parens = n_parens - 1
+enddo
 
-  do i = i_op, 1, -1
-    if (eval_level$(op(i)) >= eval_level$(i_delim)) then
-      if (op(i) == l_parens$) then
-        if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
-        call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
-        return
-      endif
-      call pushit (stk%type, i_lev, op(i))
-    else
-      exit
-    endif
-  enddo
-
-  ! put the pending operation on the OP stack
-
-  i_op = i
-  if (i_delim == no_delim$) then
-    exit parsing_loop
-  else
-    call pushit (op, i_op, i_delim)
-  endif
-
-enddo parsing_loop
-
-!------------------------------------------------------------------
 ! Check that final delim matches.
 
 if (present(end_delims)) then
   if (.not. delim_found .or. index(end_delims, delim) == 0) then
-    call parser_error ('BAD DELIMITOR AFTER VALUE FOR: ' // err_str)
+    err_str = 'BAD DELIMITOR AFTER VALUE'
     return
   endif
 endif
 
-! now go through the stack and perform the operations
+! If the string_out argument is present then just return the string for later evaluation
 
-if (i_op /= 0) then
-  call parser_error ('UNMATCHED "(" IN EVALUATING: ' // err_str)
+if (present(string_out)) then
+  string_out = str
+  err_flag = .false.
   return
 endif
 
-if (i_lev == 0) call parser_error ('NO VALUE FOUND FOR: ' // err_str)
+! If expression is just a number then evaluate and return
 
-call evaluate_expression_stack (stk(1:i_lev), value, err_flag, err_type)
+if (is_real(str)) then
+  read (str, *) value
+  err_flag = .false.
+  return
+endif
+
+! Make a stack
+
+call expression_string_to_stack(str, stk, n_stk,  err_flag, err_type)
+if (err_flag) then
+  call parser_error (err_type, 'FOR: ' // err_str)
+  if (err_str == 'MALFORMED EXPRESSION') bp_com%parse_line = ''
+  return
+endif
+
+do i = 1, n_stk
+  select case (stk(i)%type)
+  case (ran$, ran_gauss$)
+    call bp_set_ran_status
+  case (numeric$)
+    call word_to_value (stk(i)%name, lat, stk(i)%value)
+  end select
+enddo
+
+! Evaluate
+
+call evaluate_expression_stack (stk, value, err_flag, err_type)
 if (err_flag) then
   call parser_error (err_type, 'FOR: ' // err_str)
 endif
 
 end subroutine evaluate_value
 
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! This subroutine is used by bmad_parser and bmad_parser2.
-! This subroutine is not intended for general use.
-!-
-
-subroutine pushit (stack, i_lev, value)
-
-implicit none
-
-integer stack(:), i_lev, value
-
-!
-
-i_lev = i_lev + 1
-
-if (i_lev > size(stack)) then
-  call parser_error ('STACK OVERFLOW.', 'EXPERT HELP IS NEEDED!')
-  if (global_com%exit_on_error) call err_exit
-endif
-
-stack(i_lev) = value
-
-end subroutine pushit
-                     
-!-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -3412,13 +3149,13 @@ end subroutine read_sr_wake
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found)
+! Subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, use_control_var)
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
       
-subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found)
+subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, use_control_var)
 
 implicit none
 
@@ -3426,16 +3163,17 @@ type (ele_struct)  ele
 type (parser_ele_struct) pele
 type (lat_struct)  lat
 
-real(rp) coef(200)
 real(rp) value
 
-integer ix_word, ixs, j, k
+integer ix_word, n_slave, j, k
                            
 character(1) delim
 character(40) word_in, word
 character(40) name(200), attrib_name(200)
+character(100) expression(200)
 
-logical delim_found, err_flag, end_of_file
+logical, optional :: use_control_var
+logical delim_found, err_flag, end_of_file, to_cv
                     
 !
 
@@ -3444,20 +3182,22 @@ if (delim /= '{' .or. ix_word /= 0) call parser_error  &
         ('BAD ' // control_name(ele%lord_status) // 'SPEC: ' // word_in,  &
         'FOR ELEMENT: ' // ele%name)
 
+to_cv = logic_option(.false., use_control_var)
+
 ! loop over all names in "{...}" list
 
+n_slave = 0
 do 
 
   call get_next_word (word_in, ix_word, '{,}/:', delim, delim_found, .true.)
 
   ! If "{}" with no slaves... 
-  if (delim == '}' .and. ix_word == 0 .and. ele%n_slave == 0) then
+  if (delim == '}' .and. ix_word == 0 .and. n_slave == 0) then
     call get_next_word (word, ix_word, ',=:', delim, delim_found, .true.)
     exit
   endif
 
-  ele%n_slave = ele%n_slave + 1
-  ixs = ele%n_slave
+  n_slave = n_slave + 1
   word = word_in
 
   j = index(word, '[')
@@ -3467,26 +3207,32 @@ do
       call parser_error ('BAD ATTRIBUTE SPEC: ' // word_in, 'FOR: ' // ele%name)
       word = word(:k-1) // word(j+1:)
     else
-      attrib_name(ixs) = word(j+1:k-1)
+      attrib_name(n_slave) = word(j+1:k-1)
       word = word(:j-1) // word(k+1:)
     endif
   else
-    attrib_name(ixs) = blank_name$
+    attrib_name(n_slave) = blank_name$
   endif
 
-  name(ixs) = word
+  name(n_slave) = word
+
+  ! If to_cv = True then evaluating "var = {...}" construct.
+  ! In this case, there are no expressions
+  
+  expression(n_slave) = '1'
 
   if (delim == '/' .or. delim == ':') then
-    call evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag)
-    if (err_flag) then
-      call parser_error ('BAD COEFFICIENT: ' // word_in,  &
-                                        'FOR ELEMENT: ' // ele%name)
-      call load_parse_line ('new_command', 1, end_of_file)         ! next line
+    if (to_cv) then
+      call parser_error ('BAD VAR = {...} CONSTRUCT.', 'FOR: ' // ele%name)
       return
+    else
+      call evaluate_value (trim(ele%name), value, lat, delim, delim_found, err_flag, ',}', expression(n_slave))
+      if (err_flag) then
+        call parser_error ('BAD EXPRESSION: ' // word_in,  'FOR ELEMENT: ' // ele%name)
+        call load_parse_line ('new_command', 1, end_of_file)         ! next line
+        return
+      endif
     endif
-    coef(ixs) = value
-  else
-    coef(ixs) = 1.0
   endif
 
   if (delim == '}') then
@@ -3502,15 +3248,18 @@ enddo
 
 !
 
-ixs = ele%n_slave
-
-! if (ixs == 0) call parser_error ( &
+! if (n_slave == 0) call parser_error ( &
 !        'NO SLAVE ELEMENTS ASSOCIATED WITH GROUP/OVERLAY ELEMENT: ' // ele%name)
 
-allocate (pele%coef(ixs), pele%name(ixs), pele%attrib_name(ixs))
-pele%coef = coef(1:ixs)
-pele%name = name(1:ixs)
-pele%attrib_name = attrib_name(1:ixs)
+if (to_cv) then
+  allocate(ele%control_var(n_slave))
+  ele%control_var%name = name(1:n_slave)
+else
+  allocate (pele%expression(n_slave), pele%name(n_slave), pele%attrib_name(n_slave))
+  pele%expression = expression(1:n_slave)
+  pele%name = name(1:n_slave)
+  pele%attrib_name = attrib_name(1:n_slave)
+endif
 
 end subroutine get_overlay_group_names
 
@@ -3849,8 +3598,7 @@ do i = 1, n_multipass
   slave => pointer_to_ele (lat, m_slaves(i))
   ixc = i + lord%ix1_slave - 1
   lat%control(ixc)%ix_lord = ix_lord
-  lat%control(ixc)%ix_slave = slave%ix_ele
-  lat%control(ixc)%ix_branch = slave%ix_branch
+  lat%control(ixc)%slave = lat_ele_loc_struct(slave%ix_ele, slave%ix_branch)
   if (slave%n_lord /= 0) then
     call parser_error ('INTERNAL ERROR: CONFUSED MULTIPASS SETUP.', &
                   'PLEASE GET EXPERT HELP!')
@@ -4733,17 +4481,19 @@ type (lat_struct), target :: in_lat, lat
 type (ele_struct), pointer :: lord, lord2, slave, ele, g_lord, g_slave0, g_slave1
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
-type (control_struct), allocatable :: cs(:)
+type (control_struct), allocatable, target :: cs(:)
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
+type (expression_atom_struct) :: stk(40)
 
-integer i, n, ic, ig, k, ix, j, ib, ie, n_list, ns, ixs, ii, ix_end, n2
-integer n_match, n_slave, nn, n_loc
+integer i, n, ic, ig, k, ix, ib, ie, n_list, ns, ixs, ii, ix_end, n2
+integer n_match, n_slave, nn, n_loc, n_stk, n_names
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 
+character(60) err_str
 character(40) name, input_slave_name, attrib_name, missing_slave_name
 
-logical err, slave_not_in_lat, created_girder_lord
+logical err, slave_not_in_lat, created_girder_lord, err_flag
 
 ! loop over lord elements
 
@@ -4768,7 +4518,7 @@ main_loop: do n = 1, n2
 
     ! First count the number of slaves
     n_match = 0
-    do i = 1, lord%n_slave
+    do i = 1, size(pele%name)
       call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
       n_match = n_match + n_loc
     enddo
@@ -4778,10 +4528,10 @@ main_loop: do n = 1, n2
     endif
     if (.not. allocated(cs)) allocate (cs(n_match))
 
-    j = 0 ! number of slaves found
+    n_slave = 0 ! number of slaves found
     slave_not_in_lat = .false.  ! Is there a slave that is not in the lattice?
 
-    do i = 1, lord%n_slave
+    do i = 1, size(pele%name)
 
       name = pele%name(i)
       call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
@@ -4791,7 +4541,7 @@ main_loop: do n = 1, n2
         missing_slave_name = name
       endif
 
-      if ((n_loc == 0 .and. j > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
+      if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
           (n_loc == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
         call parser_error ('CANNOT FIND SLAVE FOR: ' // lord%name, &
                       'CANNOT FIND: '// missing_slave_name, pele = pele)
@@ -4804,13 +4554,37 @@ main_loop: do n = 1, n2
       ! Put the info into the cs structure.
 
       do k = 1, n_loc
-        j = j + 1
-        cs(j)%coef = pele%coef(i)
-        cs(j)%ix_slave = eles(k)%ele%ix_ele
-        cs(j)%ix_branch = eles(k)%ele%ix_branch
-        cs(j)%ix_lord = -1             ! dummy value
+        n_slave = n_slave + 1
+
+        call expression_string_to_stack (pele%expression(i), stk, n_stk, err_flag, err_str)
+        call reallocate_expression_stack (cs(n_slave)%stack, n_stk)
+        if (err_flag) then
+          call parser_error (err_str, 'FOR ELEMENT: ' // lord%name)
+          cycle main_loop
+        endif
+
+        do ic = 1, n_stk
+          select case (stk(ic)%type)
+          case (ran$, ran_gauss$)
+            call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                               'FOR ELEMENT: ' // lord%name)
+          case (numeric$)
+            call match_word (stk(ic)%name, lord%control_var%name, ix, can_abbreviate = .false.)
+            if (ix > 0) then
+              stk(ix)%type = ix + var_offset$
+            else
+              call word_to_value (stk(ic)%name, lat, stk(ic)%value)
+            endif
+          end select
+        enddo
+
+
+        call reallocate_expression_stack (cs(n_slave)%stack, n_stk)
+        cs(n_slave)%stack = stk(1:n_stk)
+        cs(n_slave)%slave = lat_ele_loc_struct(eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
+        cs(n_slave)%ix_lord = -1             ! dummy value
         attrib_name = pele%attrib_name(i)
-        if (attrib_name == blank_name$) attrib_name = lord%component_name
+        if (attrib_name == blank_name$) attrib_name = pele%default_attrib
         slave => pointer_to_ele (lat, eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
         ix = attribute_index(slave, attrib_name)
         ! If attribute not found it may be a special attribute like accordian_edge$.
@@ -4819,7 +4593,7 @@ main_loop: do n = 1, n2
           ix = attribute_index(lord, attrib_name)
           if (ix <= num_ele_attrib$) ix = 0  ! Mark as not valid
         endif
-        cs(j)%ix_attrib = ix
+        cs(n_slave)%ix_attrib = ix
         if (ix < 1) then
           call parser_error ('IN OVERLAY OR GROUP ELEMENT: ' // lord%name, &
                         'ATTRIBUTE: ' // attrib_name, &
@@ -4831,24 +4605,20 @@ main_loop: do n = 1, n2
 
     enddo
 
-    lord%n_slave = j
-
     ! If the lord has no slaves then discard it
 
-    if (j == 0) then
+    if (n_slave == 0) then
       lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
       cycle main_loop
     endif
 
     ! create the lord
 
-    ns = lord%n_slave
-
     select case (lord%key)
     case (overlay$)
-      call create_overlay (lat, ix_lord, lord%component_name, cs(1:ns), err)
+      call create_overlay (lat%ele(ix_lord), cs(1:n_slave), err)
     case (group$)
-      call create_group (lat, ix_lord, cs(1:ns), err)
+      call create_group (lat%ele(ix_lord), cs(1:n_slave), err)
     end select
     if (err) call parser_error ('ELEMENT OR GROUP: ' // lord%name, &
                            'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
@@ -4866,7 +4636,7 @@ main_loop: do n = 1, n2
     ! Loop over all elements in the lattice.
 
     if (allocated(cs)) deallocate(cs)
-    allocate (cs(lord%n_slave))
+    allocate (cs(size(pele%name)))
 
     created_girder_lord = .false.
 
@@ -4895,7 +4665,7 @@ main_loop: do n = 1, n2
             ix_ele_now = ix_ele_now - branch%n_ele_track
           endif
 
-          if (ixs > lord%n_slave) exit
+          if (ixs > size(pele%name)) exit
           input_slave_name = pele%name(ixs)
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
@@ -4938,7 +4708,7 @@ main_loop: do n = 1, n2
         call create_girder (lat, ix_lord, cs(1:n_slave), lord)
         created_girder_lord = .true.
 
-        ix_girder_end = cs(lord%n_slave)%ix_slave
+        ix_girder_end = cs(n_slave)%slave%ix_ele
         if (ix_girder_end < ie) exit ele_loop  ! And on to next branch
 
       enddo ele_loop
@@ -4974,8 +4744,7 @@ if (match_wild(ele%name, input_slave_name)) then
   is_matched = .true.
   if (ele%key /= drift$) then
     n_slave = n_slave + 1
-    cs(n_slave)%ix_slave  = ele%ix_ele
-    cs(n_slave)%ix_branch = ele%ix_branch
+    cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
   endif
   ixs = ixs + 1  ! Next girder slave
   ix_ele_now = ix_ele_now + 1

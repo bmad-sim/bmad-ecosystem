@@ -5,8 +5,9 @@ use bmad_struct
 use bmad_interface
 
 type (lat_struct), private, pointer :: lat_com
+type (real_pointer_struct) :: voltage_control(100)
 real(rp), private :: volt0(100), z_tune_wanted
-integer, private :: ix_rf(100), ix_attrib(100), n_rf
+integer, private :: ix_rf(100), n_rf
 
 contains
 
@@ -46,6 +47,7 @@ contains
 subroutine set_z_tune (lat, z_tune, ok)
 
 use nr, only: zbrent
+use expression_mod, only: linear_coef
 
 implicit none
 
@@ -60,7 +62,7 @@ logical, optional :: ok
 integer i, j, k, ix
 integer :: loop_max = 10
 
-logical found_control, rf_is_on
+logical found_control, rf_is_on, err_flag
 
 character(16), parameter :: r_name = 'set_z_tune'
 
@@ -113,7 +115,7 @@ do i = 1, lat%n_ele_max
     ix_rf(n_rf) = i
     phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
     coef_tot = coef_tot + twopi * cos(phase) * ele%value(rf_frequency$) / (c_light * E0)
-    ix_attrib(n_rf) = voltage$
+    voltage_control(n_rf)%r => ele%value(voltage$)
 
   endif
 
@@ -122,7 +124,7 @@ do i = 1, lat%n_ele_max
   if (ele%key == overlay$) then
     found_control = .false.
     do j = ele%ix1_slave, ele%ix2_slave
-      ix = lat%control(j)%ix_slave
+      ix = lat%control(j)%slave%ix_ele
       ele2 => lat%ele(ix)
 
       if (found_control .and. &
@@ -138,9 +140,9 @@ do i = 1, lat%n_ele_max
       if (.not. found_control) n_rf = n_rf + 1
       found_control = .true.
       phase = twopi * (ele2%value(phi0$) + ele2%value(phi0_multipass$))
-      coef_tot = coef_tot + lat%control(j)%coef * twopi * &
+      coef_tot = coef_tot + linear_coef(lat%control(j)%stack, err_flag) * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
-      ix_attrib(n_rf) = ele%ix_value
+      voltage_control(n_rf)%r => ele%control_var(1)%value
     enddo
   endif
 
@@ -172,8 +174,8 @@ if (abs(lat%z%tune) < dQz_max .or. z_tune_wanted == 0) then
   volt = -z_tune_wanted**2 / (lat%param%t1_with_RF(5,6) * coef_tot)
   do i = 1, n_rf
     ele => lat%ele(ix_rf(i))
-    ele%value(ix_attrib(i)) = volt
-    call set_flags_for_changed_attribute (ele, ele%value(ix_attrib(i)))
+    voltage_control(i)%r = volt
+    call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
     call lat_make_mat6 (lat, ix_rf(i))
   enddo
   call calc_z_tune (lat)
@@ -183,7 +185,7 @@ endif
 
 do i = 1, n_rf
   ele => lat%ele(ix_rf(i))
-  volt0(i) = ele%value(ix_attrib(i))
+  volt0(i) = voltage_control(i)%r
 enddo
 
 dz_tune = lat%z%tune - z_tune_wanted
@@ -234,8 +236,8 @@ integer i
 
 do i = 1, n_rf
   ele => lat_com%ele(ix_rf(i))
-  ele%value(ix_attrib(i)) = volt0(i) * coef
-  call set_flags_for_changed_attribute (ele, ele%value(ix_attrib(i)))
+  voltage_control(i)%r = volt0(i) * coef
+  call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
   call lat_make_mat6 (lat_com, ix_rf(i))
 enddo
 

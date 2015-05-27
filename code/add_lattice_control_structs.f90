@@ -55,7 +55,7 @@ subroutine add_lattice_control_structs (lat, ele, add_at_end)
     i2 = ele%ix2_slave
     n_con2 = lat%n_control_max + n_add
     if (n_con2 > size(lat%control)) call reallocate_control(lat, nint(1.2*n_con2)+10)
-    lat%control(lat%n_control_max+1:) = control_struct(null(), 0.0_rp, 0, 0, 0, 0)
+    lat%control(lat%n_control_max+1:) = control_struct(null(), lat_ele_loc_struct(), -1, 0)
 
     ! If no existing slaves of this lord then just put the new lat%control elements
     ! at the end of the array.
@@ -72,19 +72,15 @@ subroutine add_lattice_control_structs (lat, ele, add_at_end)
       if (logic_option(.true., add_at_end)) then
         lat%control(i2+n_add+1:n_con+n_add) = lat%control(i2+1:n_con)
         lat%control(i2+1:i2+n_add)%ix_lord = ele%ix_ele
-        lat%control(i2+1:i2+n_add)%ix_slave = -1
-        lat%control(i2+1:i2+n_add)%ix_branch = 0
+        lat%control(i2+1:i2+n_add)%slave = lat_ele_loc_struct()
         lat%control(i2+1:i2+n_add)%ix_attrib = 0
-        lat%control(i2+1:i2+n_add)%coef = 0
         where (lat%ic > i2) lat%ic = lat%ic + n_add
       else
         i1 = ele%ix1_slave
         lat%control(i1+n_add:n_con+n_add) = lat%control(i1:n_con)
         lat%control(i1:i1+n_add-1)%ix_lord = ele%ix_ele
-        lat%control(i1:i1+n_add-1)%ix_slave = -1
-        lat%control(i1:i1+n_add-1)%ix_branch = 0
+        lat%control(i1:i1+n_add-1)%slave = lat_ele_loc_struct()
         lat%control(i1:i1+n_add-1)%ix_attrib = 0
-        lat%control(i1:i1+n_add-1)%coef = 0
         where (lat%ic >= i1) lat%ic = lat%ic + n_add
       endif
 

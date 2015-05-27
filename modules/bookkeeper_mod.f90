@@ -400,7 +400,6 @@ type (lat_struct), target :: lat
 type (ele_struct) :: lord
 type (ele_struct), pointer :: slave, slave2
 
-real(rp) delta, coef
 real(rp), pointer :: r_ptr
 
 integer ix, ix_attrib, i, j
@@ -411,16 +410,12 @@ character(20) :: r_name = 'makeup_group_lord'
 
 !
 
-delta = lord%value(command$) - lord%value(old_command$)    ! change
-lord%value(old_command$) = lord%value(command$) ! save old
-
 moved = .false.   ! have we longitudinally moved an element?
 
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, ix)
   ix_attrib = lat%control(ix)%ix_attrib
   if (ix_attrib == l$) moved = .true.
-  coef = lat%control(ix)%coef
 
   select case (ix_attrib)
 
@@ -467,11 +462,16 @@ do i = 1, lord%n_slave
 enddo
 
 !---------
+! End stuff
 
 if (moved) then
   call s_calc (lat)       ! recompute s distances
   call lat_geometry (lat)
 endif
+
+do i = 1, size(lord%control_var)
+  lord%control_var(i)%old_value = lord%control_var(i)%value ! update old
+enddo
 
 lord%bookkeeping_state%control = ok$
 
@@ -593,7 +593,7 @@ integer dir
 integer ix_attrib, il, ix_slave
 integer, optional :: this_pad
 
-real(rp) coef, new_val
+real(rp) coef, new_val, val, val_old, delta
 real(rp), pointer :: r_ptr
 
 character(100) err_str
@@ -603,16 +603,14 @@ character(100) err_str
 call pointer_to_indexed_attribute (ele, ix_attrib, .false., r_ptr, err_flag)
 if (err_flag) call err_exit
 
-if (allocated(ctl%stack)) then
-  call evaluate_expression_stack (ctl%stack, delta, err_flag, err_str, lord%control_var)
-  if (err_flag) then
-    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
-    return
-  endif
-  r_ptr = r_ptr + delta * dir
-else
-  r_ptr = r_ptr + delta * dir * ctl%coef
+call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control_var, .false.)
+call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control_var, .true.)
+delta = val - val_old
+if (err_flag) then
+  call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+  return
 endif
+r_ptr = r_ptr + delta * dir
 
 call set_flags_for_changed_attribute (ele, r_ptr)
 ! super_slave length can be varied by a group so don't check this.
@@ -1866,23 +1864,26 @@ type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
+type (real_pointer_struct) ptr_attrib(20)
 
-real(rp) ds, s_slave, val_slave(num_ele_attrib_extended$)
+real(rp) ds, s_slave, val_attrib(20)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
 real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
 real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr, length
-real(rp), pointer :: v(:), vs(:), tt, r_slave
+real(rp), pointer :: v(:), vs(:), tt, r_attrib
 
-integer i, j, ix_con, ix, iv, ix_slave, icom, l_stat
+integer i, j, ix_con, ix, iv, ix_slave, icom, l_stat, n_attrib
 logical err_flag, on_an_offset_girder
 
 character(40) a_name
 character(*), parameter :: r_name = 'makeup_control_slave'
-logical is_free, has_been_set(num_ele_attrib_extended$)
+logical is_free
 
 !
                              
 branch => slave%branch
+n_attrib = 0
+val_attrib = 0
 
 call set_ele_status_stale (slave, attribute_group$)
 
@@ -1890,7 +1891,6 @@ l_stat = slave%lord_status
 ix_slave = slave%ix_ele
 
 on_an_offset_girder = .false.
-has_been_set = .false.
 
 do i = 1, slave%n_lord
   lord => pointer_to_lord(slave, i, ix_con)
@@ -1962,47 +1962,45 @@ do i = 1, slave%n_lord
   select case (iv)
 
   case (x_limit$)
-    call overlay_change_this(x1_limit$, lat%control(ix_con))
-    call overlay_change_this(x2_limit$, lat%control(ix_con))
+    call overlay_change_this(slave%value(x1_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(x2_limit$), lat%control(ix_con))
   case (y_limit$)
-    call overlay_change_this(y1_limit$, lat%control(ix_con))
-    call overlay_change_this(y2_limit$, lat%control(ix_con))
+    call overlay_change_this(slave%value(y1_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(y2_limit$), lat%control(ix_con))
   case (aperture$)
-    call overlay_change_this(x1_limit$, lat%control(ix_con))
-    call overlay_change_this(x2_limit$, lat%control(ix_con))
-    call overlay_change_this(y1_limit$, lat%control(ix_con))
-    call overlay_change_this(y2_limit$, lat%control(ix_con))
+    call overlay_change_this(slave%value(x1_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(x2_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(y1_limit$), lat%control(ix_con))
+    call overlay_change_this(slave%value(y2_limit$), lat%control(ix_con))
   case default
-    call overlay_change_this(iv, lat%control(ix_con))
+    a_name = attribute_name(slave, iv)
+    is_free = attribute_free (slave, a_name, .true., .true.)
+    if (.not. is_free) then
+      call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
+           'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
+      err_flag = .true.
+      return
+    endif
+
+    call pointer_to_indexed_attribute (slave, iv, .true., r_attrib, err_flag)
+    if (err_flag) call err_exit
+    call overlay_change_this(r_attrib, lat%control(ix_con))
   end select
 
 enddo
 
-! Transfer values from val_slave to slave
+! Transfer values from val_attrib to slave elements
 
-do iv = 1, size(val_slave)
+do iv = 1, n_attrib
 
-  if (.not. has_been_set(iv)) cycle
-
-  a_name = attribute_name(slave, iv)
-  is_free = attribute_free (slave, a_name, .true., .true.)
-  if (.not. is_free) then
-    call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
-         'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(a_name) // ']')
-    err_flag = .true.
-    return
-  endif
-
-  call pointer_to_indexed_attribute (slave, iv, .true., r_slave, err_flag)
-  if (err_flag) call err_exit
-
-  if (r_slave == val_slave(iv)) cycle
-  r_slave = val_slave(iv)
-  call set_flags_for_changed_attribute (slave, r_slave)
+  r_attrib => ptr_attrib(iv)%r
+  if (r_attrib == val_attrib(iv)) cycle
+  r_attrib = val_attrib(iv)
+  call set_flags_for_changed_attribute (slave, r_attrib)
 
   ! If varying length then must update any associated super_lords and super_slaves
 
-  if (iv == l$) then
+  if (associated(r_attrib, slave%value(l$))) then
 
     ! If varying a  super_lord length then adjust last super_slave length to match.
     if (slave%lord_status == super_lord$) then
@@ -2012,7 +2010,7 @@ do iv = 1, size(val_slave)
         length = length + my_slave%value(l$)
       enddo
       my_slave => pointer_to_slave(slave, slave%n_slave)
-      my_slave%value(l$) = r_slave + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
+      my_slave%value(l$) = r_attrib + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
       call set_flags_for_changed_attribute (my_slave, my_slave%value(l$))
     else
       my_slave => slave
@@ -2064,12 +2062,12 @@ slave%bookkeeping_state%control = ok$
 !-------------------------------------------------------------------------------
 contains
 
-subroutine overlay_change_this (iv, c)
+subroutine overlay_change_this (r_attrib, c)
 
 type (ele_struct), pointer :: my_lord, my_slave
 type (control_struct) c
 
-real(rp), pointer :: r_lord
+real(rp), target :: r_attrib
 real(rp) delta
 integer iv
 logical err_flag
@@ -2078,25 +2076,21 @@ character(100) err_str
 
 !
 
-if (.not. has_been_set(iv)) then
-  val_slave(iv) = 0
-  has_been_set(iv) = .true.
+call evaluate_expression_stack(c%stack, delta, err_flag, err_str, lord%control_var, .false.)
+if (err_flag) then
+  call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
+  return
 endif
 
-if (allocated(c%stack)) then
-  call evaluate_expression_stack(c%stack, delta, err_flag, err_str, lord%control_var)
-  if (err_flag) then
-    call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
-    return
-  endif
-  val_slave(iv) = val_slave(iv) + delta
+do iv = 1, n_attrib
+  if (.not. associated(ptr_attrib(iv)%r, r_attrib)) cycle
+  val_attrib(iv) = val_attrib(iv) + delta
+  return
+enddo
 
-else
-  call pointer_to_indexed_attribute (lord, lord%ix_value, .false., r_lord, err_flag)
-  if (err_flag) call err_exit
-  val_slave(iv) = val_slave(iv) + r_lord * c%coef
-endif
-
+n_attrib = n_attrib + 1
+ptr_attrib(n_attrib)%r => r_attrib
+val_attrib(n_attrib) = val_attrib(n_attrib) + delta
 
 end subroutine overlay_change_this
 

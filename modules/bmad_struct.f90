@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 153
+integer, parameter :: bmad_inc_version$ = 156
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -121,6 +121,8 @@ character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_nam
 integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
 character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
                                    'x_invariant       ', 'multipole_symmetry']
+
+integer, parameter :: present_var$ = 1, old_var$ = 2, all_var$ = 3
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
@@ -684,7 +686,6 @@ type ele_struct
   integer :: sub_key = 0                ! For wigglers: map_type$, periodic_type$
   integer :: ix_ele = -1                ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer :: ix_branch = 0              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer :: ix_value = 0               ! Overlays: Index of control attribute. 
   integer :: slave_status = free$       ! super_slave$, etc.
   integer :: n_slave = 0                ! Number of slaves
   integer :: ix1_slave = 0              ! Start index for slave elements
@@ -721,19 +722,10 @@ end type
 ! struct for element to element control
 
 type control_struct
-  type (expression_stack_struct), allocatable :: stack(:) ! Evaluation stack
-  real(rp) :: coef = 0           ! Control coefficient
+  type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
+  type (lat_ele_loc_struct) slave
   integer :: ix_lord = -1        ! Index to lord element
-  integer :: ix_slave = -1       ! Index to slave element
-  integer :: ix_branch = 0       ! Index to branch line of slave
   integer :: ix_attrib = 0       ! Index of attribute controlled
-end type
-
-! extended_control_struct is used as an argument to create_group and create_overlay
-
-type extended_control_struct
-  character(100) expression
-	type (control_struct) cs
 end type
 
 ! lat_param_struct should be called branch_param_struct [Present name is historical artifact.]
@@ -948,9 +940,9 @@ integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
 integer, parameter :: l$ = 1                          ! Assumed unique. Do not assign 1 to another attribute.
-integer, parameter :: tilt$ = 2, command$ = 2, roll$ = 2  ! Important: tilt$ = roll$
+integer, parameter :: tilt$ = 2, roll$ = 2  ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
-integer, parameter :: old_command$ = 3, kick$ = 3, x_gain_err$ = 3
+integer, parameter :: kick$ = 3, x_gain_err$ = 3
 integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, sig_x$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
 integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5, b_max$ = 5, v_displace$ = 5
@@ -976,7 +968,7 @@ integer, parameter :: spin_z$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spinor_theta$ = 23
 integer, parameter :: traveling_wave$ = 23, beta_a$ = 23, velocity_distribution$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24, spinor_phi$ = 24
-integer, parameter :: phi0_err$ = 25, coef$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
+integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25, spinor_xi$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
 integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, spinor_polarization$ = 26
@@ -1061,7 +1053,7 @@ integer, parameter :: accordion_edge$  = 85, etap_y$ = 85
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, cmat_11_begin$ = 88, surface_attrib$ = 88
-integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89
+integer, parameter :: csr_calc_on$ = 89, cmat_12_begin$ = 89, var$ = 89
 integer, parameter :: s_position$ = 90, cmat_21_begin$ = 90
 integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
@@ -1396,5 +1388,46 @@ case default;                  state_str = 'UNKNOWN!'
 end select
 
 end function coord_state_name
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
+! Function is_attribute (ix_attrib, which) result (is_attrib)
+!
+! Routine to determine if an attribute index corresponds to a control variable for overlys/groups.
+!
+! Input:
+!   ix_attrib -- integer: Attribute index.
+!   which     -- integer: present_var$, old_var$, all_var$, multipole$
+!
+! Output:
+!   is_attrib -- logical: True if a control variable
+!-
+
+function is_attribute (ix_attrib, which) result (is_attrib)
+
+integer ix_attrib, which
+logical is_attrib
+
+!
+
+select case (which)
+case (present_var$)
+  is_attrib = (ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20)
+  
+case (old_var$)
+  is_attrib = (ix_attrib > old_var_offset$ .and. ix_attrib < old_var_offset$+20)
+
+case (all_var$)
+  is_attrib = ((ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20) .or. &
+               (ix_attrib > old_var_offset$ .and. ix_attrib < old_var_offset$+20))
+
+case (multipole$)
+  is_attrib = (ix_attrib >= k0l$ .and. ix_attrib <= t21$)
+
+end select
+
+end function is_attribute
 
 end module

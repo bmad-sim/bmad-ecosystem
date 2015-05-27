@@ -550,29 +550,27 @@ The element control information is stored in the \vn{lat%control(:)} array.
 Each element of this array is a \vn{control_struct} structure 
 \begin{example}
   type control_struct
-    real(rp) coef                  ! control coefficient
-    integer ix_lord                ! index to lord element
-    integer ix_slave               ! index to slave element
-    integer ix_branch              ! Branch index of the slave element.
-    integer ix_attrib              ! index of attribute controlled
+    type (expression_atom_struct), allocatable :: stack(:) ! Evaluation stack
+    type (lat_ele_loc_struct) slave ! Slave location
+    integer ix_lord                 ! index to lord element
+    real(rp) coef                   ! control coefficient
+    integer ix_attrib               ! index of attribute controlled
   end type
 \end{example}
 \index{girder}\index{overlay}\index{group}
 \index{lat_struct!\%control}
 Each element in the \vn{lat%control(:)} array holds the information on
-one lord/slave pair. The \vn{%ix_lord} component gives the index of the
-lord element which is always in the root branch --- branch 0. The
-\vn{%ix_slave}  and \vn{%ix_branch} components give the element index
-and branch index of the slave element. The \vn{%coef} and \vn{%ix_attrib}
-components are used to store the coefficient and
-attribute index for \vn{overlay} and \vn{group} control. The appropriate
-control_struct for a given lord/slave pair can be obtained
-from the optional fourth argument of the 
+one lord/slave pair. The \vn{%ix_lord} component gives the index of
+the lord element which is always in the root branch --- branch 0. The
+\vn{%slave} component give the element location of the slave element.
+The \vn{%stack} and \vn{%ix_attrib} components are used to store the
+arithmetic expression and attribute index for \vn{overlay} and \vn{group}
+control. The appropriate control_struct for a given lord/slave pair
+can be obtained from the optional fourth argument of the
 \Hyperref{r:pointer.to.lord}{pointer_to_lord} and
-\Hyperref{r:pointer.to.slave}{pointer_to_slave} functions. 
-Example: The following prints 
-a list of the slaves, along with the attributes controlled and coefficients,
-on all group elements in a lattice.
+\Hyperref{r:pointer.to.slave}{pointer_to_slave} functions.  Example:
+The following prints a list of the slaves, along with the attributes
+controlled and coefficients, on all group elements in a lattice.
 \begin{example}
   type (lat_struct), target :: lat
   type (ele_struct), pointer :: lord, slave

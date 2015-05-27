@@ -164,12 +164,11 @@ interface
     logical, optional :: err_flag
   end subroutine
 
-  subroutine create_group (lat, ix_ele, con, err, err_print_flag)
+  subroutine create_group (lord, con, err, err_print_flag)
     import
     implicit none
-    type (lat_struct) lat
+    type (ele_struct) lord
     type (control_struct) con(:)
-    integer ix_ele
     logical err
     logical, optional :: err_print_flag
   end subroutine
@@ -183,12 +182,10 @@ interface
     integer, intent(in) :: ix_ele
   end subroutine
 
-  subroutine create_overlay (lat, ix_overlay, attrib_value, contl, err, err_print_flag)
+  subroutine create_overlay (lord, contl, err, err_print_flag)
     import
     implicit none
-    type (lat_struct) lat
-    integer ix_overlay
-    character(*) attrib_value
+    type (ele_struct) lord
     type (control_struct) contl(:)
     logical err
     logical, optional :: err_print_flag

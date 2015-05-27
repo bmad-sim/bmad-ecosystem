@@ -572,7 +572,7 @@ logical changed, has_changed
 ele%old_value = ele%value
 saved_is_on = ele%is_on
 ele%is_on = .true.
-ele%ix_value = ele%tracking_method
+ele%iyy = ele%tracking_method
 
 has_changed = .false.
 
@@ -631,7 +631,7 @@ integer i
 
 ele%value = ele%old_value
 ele%is_on = saved_is_on
-ele%tracking_method = ele%ix_value
+ele%tracking_method = ele%iyy
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   do i = 1, ele%n_lord

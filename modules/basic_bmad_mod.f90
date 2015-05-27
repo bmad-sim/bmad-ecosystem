@@ -8,10 +8,15 @@ module basic_bmad_mod
 
 use sim_utils
 
+implicit none
+
 integer, parameter :: n_pole_maxx = 21  ! maximum multipole order
 
-type expression_stack_struct
-  character(40) :: name = ''
+integer, parameter :: old_var_offset$ = 1000  ! For indexing into ele%control_var(:) array
+integer, parameter :: var_offset$ = 2000      ! Important: var_offset$ > old_var_offset$
+
+type expression_atom_struct
+  character(60) :: name = ''
   integer :: type = 0
   real(rp) :: value = 0
 end type
@@ -60,6 +65,45 @@ contains
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+ 
+! Subroutine reallocate_expression_stack (stack, n, exact)
+!
+! Routine to resize an expression stack array.
+!
+! Input:
+!   stack(:)  -- expression_atom_stuct, allocatable: Existing stack array.
+!   n         -- integer: Array size needed.
+!   exact     -- logical, optional: If present and False then the size of the
+!                  output array is permitted to be larger than n.
+!                  Default is True.
+! Output:
+!   stack(:)  -- expression_atom_struct, allocatable: Resized stack.
+!                  The stack info will be preserved.
+!-
+
+subroutine reallocate_expression_stack (stack, n, exact)
+
+type (expression_atom_struct), allocatable :: stack(:)
+type (expression_atom_struct), allocatable :: stack_temp(:)
+integer n, nn
+logical, optional :: exact
+
+!
+
+if (.not. allocated(stack)) allocate(stack(n))
+
+if (size(stack) == n .or. size(stack) > n .and. .not. logic_option(.true., exact)) return
+
+call move_alloc (stack, stack_temp)
+allocate (stack(n))
+nn = min(size(stack_temp), size(stack))
+stack(1:nn) = stack_temp(1:nn)
+
+end subroutine reallocate_expression_stack
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+ 
 ! Function is_true (param) result (this_true)
 !
 ! Routine to translate from a real number to a boolian True or False.
@@ -77,8 +121,6 @@ contains
 !-
 
 function is_true (param) result (this_true)
-
-implicit none
 
 real(rp) param
 logical this_true
@@ -111,8 +153,6 @@ end function is_true
 
 function is_false (param) result (this_false)
 
-implicit none
-
 real(rp) param
 logical this_false
 
@@ -143,8 +183,6 @@ end function is_false
 !-
 
 Function species_name (species) result (species_str)
-
-implicit none
 
 integer species
 character(12) species_str
@@ -189,8 +227,6 @@ end function species_name
 !-
 
 subroutine convert_total_energy_to (E_tot, particle, gamma, kinetic, beta, pc, brho, dbeta, err_flag)
-
-implicit none
 
 real(rp), intent(in) :: E_tot
 real(rp), intent(out), optional :: kinetic, beta, pc, brho, gamma, dbeta
@@ -266,8 +302,6 @@ end subroutine convert_total_energy_to
 
 subroutine convert_pc_to (pc, particle, E_tot, gamma, kinetic, beta, brho, dbeta, err_flag)
 
-implicit none
-
 real(rp), intent(in) :: pc
 real(rp), intent(out), optional :: E_tot, kinetic, beta, brho, gamma, dbeta
 real(rp) g2, mc2, E_tot_this 
@@ -328,8 +362,6 @@ end subroutine convert_pc_to
 
 subroutine compute_even_steps (ds_in, length, ds_default, ds_out, n_step)
 
-implicit none
-
 real(rp) ds_in, length, ds_default, ds_out
 integer n_step
 
@@ -365,8 +397,6 @@ end subroutine compute_even_steps
 !-
 
 function c_multi (n, m, no_n_fact, c_full) result (c_out)
-
-implicit none
 
 integer, intent(in) :: n, m
 integer in, im
@@ -440,8 +470,6 @@ end function c_multi
 !-
 
 function mexp (x, m) result (this_exp)
-
-implicit none
 
 real(rp) x, this_exp
 integer m

@@ -7,7 +7,7 @@ implicit none
 ! attrib_array(key, ix_param)%type gives the type of the attribute.
 ! This may be one of:
 !   does_not_exist$ -- Does not exist.
-!   is_free$        -- Free to vary as long as attribute has not controlled by, eg, overlay.
+!   is_free$        -- Free to vary as long as attribute has not controlled by another element (overlay, super_lord, etc.)
 !   quasi_free$     -- May be free or not. For example, k1 is only free if field_master = F.
 !   dependent$      -- Value calculated by Bmad. Cannot be user varied as an independent parameter.
 !   private$        -- Internal parameter used in calculations. Will not be displayed by type_ele.
@@ -33,7 +33,8 @@ private init_short_attrib_array
 !
 ! Function to return the index of a attribute for a given BMAD element type
 ! and the name of the attribute. Abbreviations are permitted but must be at 
-! least 3 characters.
+! least 3 characters. Exception: overlay and group varialbe names may not
+! be abbreviated.
 !
 ! This routine is an overloaded name for:
 !   attribute_index1 (ele, name, full_name) result (attrib_index)
@@ -82,11 +83,29 @@ contains
 function attribute_index1 (ele, name, full_name) result (attrib_index)
 
 type (ele_struct) ele
-integer attrib_index
+integer attrib_index, i
 character(*) name
 character(*), optional :: full_name
 
-!
+! Note: ele%control_var may not be associated during parsing.
+
+if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_var)) then
+  if (name(1:4) == 'OLD_') then
+    do i = 1, size(ele%control_var)
+      if (full_name(5:) /= ele%control_var(i)%name) cycle
+      attrib_index = i + old_var_offset$
+      if (present(full_name)) full_name = name
+      return
+    enddo
+  else  
+    do i = 1, size(ele%control_var)
+      if (name /= ele%control_var(i)%name) cycle
+      attrib_index = i + var_offset$
+      if (present(full_name)) full_name = name
+      return
+    enddo
+  endif
+endif
 
 attrib_index = attribute_index2 (ele%key, name, full_name)
 
@@ -96,7 +115,7 @@ end function attribute_index1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index1 (key, name, full_name) result (attrib_index)
+! Function attribute_index2 (key, name, full_name) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details 
 !-
@@ -109,6 +128,7 @@ integer attrib_index
 character(*) name
 character(*), optional :: full_name
 character(40) name40
+character(*), parameter :: r_name = 'attribute_index2'
 
 if (attribute_array_init_needed) call init_attribute_name_array
 
@@ -124,11 +144,7 @@ n_abbrev = 0            ! number of abbreviation matches.
 !-----------------------------------------------------------------------
 ! search for name
 
-! Overlay attribute must be real except for TYPE, ALIAS, and DESCRIP
-
-if (key == overlay$ .or. key == 0) then
-  if (key == overlay$ .and. attribute_type(name40) /= is_real$ .and. &
-      name40 /= 'TYPE' .and. name40 /= 'ALIAS' .and. name40 /= 'DESCRIP') return
+if (key == 0) then
   do k = 1, n_key$
     do i = 1, attrib_num(k)
       if (short_attrib_array(k, i) == name40) then
@@ -163,7 +179,7 @@ elseif (key > 0 .and. key <= n_key$) then
 ! error
 
 else
-  print *, 'ERROR IN ATTRIBUTE_INDEX: BAD KEY', key
+  call out_io (s_fatal$, r_name, 'BAD KEY \i0\ ', i_array = [key])
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -194,7 +210,6 @@ end function attribute_index2
 !   attrib_name -- Character(40): Name of attribute. 
 !      = "!BAD ELE KEY"                 %key is invalid
 !      = "!BAD INDEX"                   ix_att is invalid (out of range).
-!      = "!INVALID INDEX"               ix_att is invalid for an overlay 
 !      = "!NULL" (null_name$)           ix_att does not correspond to an attribute or is private.
 !
 ! Example:
@@ -207,7 +222,7 @@ end function attribute_index2
 function attribute_name (ele, ix_att) result (attrib_name)
 
 type (ele_struct) ele
-integer i, key, ix_att
+integer i, key, ix_att, ix
 character(40) attrib_name
 
 !
@@ -218,14 +233,26 @@ key = ele%key
 
 if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
+
+elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, present_var$)) then
+  ix = ix_att - var_offset$
+  if (ix > size(ele%control_var)) then
+    attrib_name = '!BAD INDEX'
+  else
+    attrib_name = ele%control_var(ix)%name
+  endif
+
+elseif (ele%key == group$ .and. is_attribute(ix_att, old_var$)) then
+  ix = ix_att - old_var_offset$
+  if (ix > size(ele%control_var)) then
+    attrib_name = '!BAD INDEX'
+  else
+    attrib_name = 'OLD_' // ele%control_var(ix)%name
+  endif
+
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
-elseif (ele%key == overlay$) then
-  if (ix_att == ele%ix_value) then
-    attrib_name = ele%component_name
-  else
-    attrib_name = '!INVALID INDEX'
-  endif
+
 else
   if (attrib_array(key, ix_att)%type == private$) then
     attrib_name = null_name$
@@ -272,25 +299,44 @@ function attribute_info (ele, ix_att) result (attrib_info)
 
 type (ele_struct) ele
 type (ele_attribute_struct) attrib_info
-integer i, key, ix_att
+integer i, ix, key, ix_att
 
-!
+! Init
 
 if (attribute_array_init_needed) call init_attribute_name_array()
 
 attrib_info%type = does_not_exist$
 
+! Overlay and group control vars.
+
+if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, present_var$)) then
+  ix = ix_att - var_offset$
+  if (ix > size(ele%control_var)) then
+    attrib_info%name = '!BAD INDEX'
+  else
+    attrib_info%name = ele%control_var(ix)%name
+    attrib_info%type = is_free$
+  endif
+  return
+endif
+
+if (ele%key == group$ .and. ix_att > old_var_offset$) then
+  ix = ix_att - old_var_offset$
+  if (ix > size(ele%control_var)) then
+    attrib_info%name = '!BAD INDEX'
+  else
+    attrib_info%name = 'OLD_' // ele%control_var(ix)%name
+    attrib_info%type = is_free$
+  endif
+  return
+endif
+
+! All else.
+
 if (ele%key <= 0 .or. ele%key > n_key$) then
   attrib_info%name = '!BAD ELE KEY'
 elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_info%name = '!BAD INDEX'
-elseif (ele%key == overlay$) then
-  if (ix_att == ele%ix_value) then
-    attrib_info%name = ele%component_name
-    attrib_info%type = free$
-  else
-    attrib_info%name = '!INVALID INDEX'
-  endif
 else
   attrib_info = attrib_array(ele%key, ix_att)
 endif
@@ -773,9 +819,9 @@ call init_attribute_name1 (girder$, dtheta_origin$,                 'DTHETA_ORIG
 call init_attribute_name1 (girder$, dphi_origin$,                   'DPHI_ORIGIN')
 call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN')
 
-call init_attribute_name1 (group$, command$,                        'COMMAND')
-call init_attribute_name1 (group$, old_command$,                    'OLD_COMMAND')
-call init_attribute_name1 (group$, coef$,                           'COEF')
+call init_attribute_name1 (overlay$, var$,                          'VAR')
+
+call init_attribute_name1 (group$, var$,                            'VAR')
 call init_attribute_name1 (group$, start_edge$,                     'START_EDGE')
 call init_attribute_name1 (group$, end_edge$,                       'END_EDGE')
 call init_attribute_name1 (group$, accordion_edge$,                 'ACCORDION_EDGE')

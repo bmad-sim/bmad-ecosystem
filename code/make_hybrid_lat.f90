@@ -254,17 +254,15 @@ do i_out = 1, r_out%n_ele_max
   do j = ele_out%ix1_slave, ele_out%ix2_slave
     k = n_con + j - ele_out%ix2_slave
     ica(j) = k
-    ix = r_in%control(j)%ix_slave
+    ix = r_in%control(j)%slave%ix_ele
     if (r_in%ele(ix)%ixx == 0) then
       r_out%control(k)%ix_lord = i_out
-      r_out%control(k)%ix_slave = ubound(r_out%ele, 1) ! point to dummy ele
+      r_out%control(k)%slave%ix_ele = ubound(r_out%ele, 1) ! point to dummy ele
       r_out%control(k)%ix_attrib = -1
-      r_out%control(k)%coef = 0
     else
       r_out%control(k)%ix_lord = i_out
-      r_out%control(k)%ix_slave = r_in%ele(ix)%ixx
+      r_out%control(k)%slave%ix_ele = r_in%ele(ix)%ixx
       r_out%control(k)%ix_attrib = r_in%control(j)%ix_attrib
-      r_out%control(k)%coef = r_in%control(j)%coef
     endif
   enddo
 

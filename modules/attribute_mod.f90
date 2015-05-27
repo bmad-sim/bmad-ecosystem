@@ -1012,6 +1012,26 @@ err_flag = .true.
 nullify (ptr_attrib)
 do_print = logic_option (.true., err_print_flag)
 
+! overlay or group
+
+if (ele%key == overlay$ .or. ele%key == group$) then
+  if (is_attribute(ix_attrib, present_var$)) then
+    ix = ix_attrib - var_offset$ 
+    if (ix > size(ele%control_var)) return
+    ptr_attrib => ele%control_var(ix)%value
+    err_flag = .false.
+    return
+  endif
+
+  if (is_attribute(ix_attrib, old_var$)) then
+    ix = ix_attrib - old_var_offset$ 
+    if (ix > size(ele%control_var)) return
+    ptr_attrib => ele%control_var(ix)%old_value
+    err_flag = .false.
+    return
+  endif
+endif
+
 ! Multipole or curvature attribute
 ! Note that elements that have surface curvature automatically have ele%photon allocated.
 
@@ -1207,20 +1227,10 @@ endif
 
 ! only one particular attribute of an overlay lord is allowed to be adjusted
 
-if (ele%key == overlay$) then
-  if (ix_attrib /= ele%ix_value) then
+if (ele%key == overlay$ .or. ele%key == group$) then
+  if (all(attrib_name /= ele%control_var%name)) then
     if (do_print) call print_error (ele, ix_attrib, &
            'FOR THIS OVERLAY ELEMENT THE ATTRIBUTE TO VARY IS: ' // ele%component_name)
-  else
-    free = .true.
-  endif
-  return
-endif
-
-if (ele%key == group$) then
-  if (ix_attrib /= command$ .and. ix_attrib /= old_command$) then
-    if (do_print) call print_error (ele, ix_attrib, &
-          'FOR THIS GROUP ELEMENT THE ATTRIBUTE TO VARY IS: "COMMAND" OR "OLD_COMMAND"')
   else
     free = .true.
   endif
@@ -1275,8 +1285,7 @@ if (.not. do_except_overlay) then
     endif
     if (lord%key == overlay$) then
       if (lat%control(ix)%ix_attrib == ix_attrib) then 
-        if (do_print) call print_error (ele, ix_attrib, & 
-           'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
+        if (do_print) call print_error (ele, ix_attrib, 'IT IS CONTROLLED BY THE OVERLAY: ' // lord%name)
         return
       endif
     endif

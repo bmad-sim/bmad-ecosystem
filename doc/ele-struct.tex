@@ -34,17 +34,19 @@ type ele_struct
   type (xy_disp_struct) x, y               ! Projected dispersions \sref{c:normal.modes}.
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
-  type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
-  type (floor_position_struct) floor           ! Global floor position.
+  type (controller_var_struct), pointer :: control_var(:) 
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
-  type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
+  type (em_fields_struct), pointer :: em_field ! DC and RF E/M fields
   type (fibre), pointer :: ptc_fiber           ! PTC tracking.
-  type (genfield), pointer :: ptc_genfield     ! For symp_map
+  type (floor_position_struct) floor           ! Global floor position.
+  type (ptc_genfield_struct), pointer :: ptc_genfield  ! For symp_map
+  type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
+  type (photon_element_struct), pointer :: photon
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
                                                ! Radiation integral calc cached values 
-  type (wake_struct), pointer :: wake    ! Wakes
   type (space_charge_struct), pointer :: space_charge 
   type (taylor_struct) :: taylor(6)            ! Taylor terms
+  type (wake_struct), pointer :: wake    ! Wakes
     ele_struct definition continued on next figure...
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
@@ -67,7 +69,6 @@ The complete structure is shown in this and the following figure.}
   type(coord_struct) time_ref_orb_out(6)       ! Reference orbit at downstream end for ref_time calc.
   real(rp) value(n_attrib_maxx)                ! attribute values.
   real(rp) old_value(n_attrib_maxx)            ! Used to see if %value(:) array has changed.
-  real(rp) gen0(6)                             ! constant part of the genfield map.
   real(rp) vec0(6)                             ! 0th order transport vector.
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
@@ -77,12 +78,10 @@ The complete structure is shown in this and the following figure.}
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:)               ! multipole
   real(rp), pointer :: b_pole(:)               ! multipoles
-  real(rp), pointer :: const(:)                ! Working constants.
   integer key                    ! key value
   integer sub_key                ! EG for wigglers: map_type$, periodic_type$
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer ix_value               ! Overlays: Index of control attribute. 
   integer slave_status           ! super_slave$, etc.
   integer n_slave                ! Number of slaves
   integer ix1_slave              ! Start index for slave elements
@@ -92,10 +91,11 @@ The complete structure is shown in this and the following figure.}
   integer ic1_lord               ! Start index for lord elements
   integer ic2_lord               ! Stop  index for lord elements
   integer ix_pointer             ! For general use. Not used by Bmad.
-  integer ixx                    ! Index for Bmad internal use
+  integer ixx, iyy               ! Index for Bmad internal use
   integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
+  integer ptc_integration_type   ! drift_kick$, matrix_kick$, etc.
   integer field_calc             ! Used with Boris, Runge-Kutta integrators.
   integer aperture_at            ! Aperture location: exit_end$, ...
   integer aperture_type          ! Type of aperture: rectanular$, elliptical$, or custom$. 

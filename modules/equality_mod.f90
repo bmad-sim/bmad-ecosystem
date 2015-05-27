@@ -15,7 +15,7 @@ use beam_def_struct
 
 interface operator (==)
   module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var, eq_coord
-  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_stack, eq_wig_term, eq_wig
+  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wig_term, eq_wig
   module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_lat_ele_loc, eq_wake
   module procedure eq_em_field_map_term, eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode
   module procedure eq_em_fields, eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss
@@ -265,11 +265,11 @@ end function eq_bpm_phase_coupling
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_expression_stack (f1, f2) result (is_eq)
+elemental function eq_expression_atom (f1, f2) result (is_eq)
 
 implicit none
 
-type(expression_stack_struct), intent(in) :: f1, f2
+type(expression_atom_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -282,7 +282,7 @@ is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%value == f2%value)
 
-end function eq_expression_stack
+end function eq_expression_atom
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -1284,14 +1284,10 @@ if (.not. is_eq) return
 if (allocated(f1%stack)) is_eq = all(shape(f1%stack) == shape(f2%stack))
 if (.not. is_eq) return
 if (allocated(f1%stack)) is_eq = all(f1%stack == f2%stack)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%coef == f2%coef)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%slave == f2%slave)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_lord == f2%ix_lord)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_slave == f2%ix_slave)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_attrib == f2%ix_attrib)
 
@@ -1945,8 +1941,6 @@ is_eq = is_eq .and. (f1%sub_key == f2%sub_key)
 is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%ix_value == f2%ix_value)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%slave_status == f2%slave_status)
 !! f_side.equality_test[integer, 0, NOT]

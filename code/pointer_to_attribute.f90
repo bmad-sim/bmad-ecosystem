@@ -30,7 +30,7 @@
 !     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !   ix_attrib  -- Integer, optional: If applicable, this is the index to the 
-!                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole(:) arrays.
+!                     attribute in the ele%value(:), ele%control_var(:), ele%a_pole(:) or ele%b_pole(:) arrays.
 !-
 
 subroutine pointer_to_attribute (ele, attrib_name, do_allocation, &
@@ -76,6 +76,7 @@ if (associated (ele%control_var)) then
     do i = 1, size(ele%control_var)
       if (ele%control_var(i)%name /= attrib_name(5:)) cycle
       a_ptr%r => ele%control_var(i)%old_value
+      if (present(ix_attrib)) ix_attrib = old_var_offset$ + i
       err_flag = .false.
       return
     enddo
@@ -84,6 +85,7 @@ if (associated (ele%control_var)) then
     do i = 1, size(ele%control_var)
       if (ele%control_var(i)%name /= attrib_name) cycle
       a_ptr%r => ele%control_var(i)%value
+      if (present(ix_attrib)) ix_attrib = var_offset$ + i
       err_flag = .false.
       return
     enddo
