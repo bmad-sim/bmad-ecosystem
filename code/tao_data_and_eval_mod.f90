@@ -3293,7 +3293,7 @@ parsing_loop: do
   ! to the STK stack
 
   do i = i_op, 1, -1
-    if (eval_level$(op(i)) >= eval_level$(i_delim)) then
+    if (expression_eval_level(op(i)) >= expression_eval_level(i_delim)) then
       if (op(i) == l_parens$) then
         if (i > 1 .and. op(max(1,i-1)) == atan2$ .and. delim == ',') cycle parsing_loop
         call out_io (s_warn$, r_name, 'UNMATCHED "(" IN EXPRESSION: ' // expression)

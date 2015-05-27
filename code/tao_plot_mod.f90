@@ -377,7 +377,7 @@ do n = 0, ubound(lat%branch, 1)
     if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
-        ic = lat%control(j)%ix_slave
+        ic = lat%control(j)%slave%ix_ele
         call tao_draw_ele_for_floor_plan (plot, graph, lat, branch%ele(ic), '', ele_shape, .false.)
       enddo
     else
