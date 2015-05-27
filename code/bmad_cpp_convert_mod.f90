@@ -80,7 +80,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine expression_stack_to_f (C, Fp) bind(c)
+  subroutine expression_atom_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -1439,24 +1439,24 @@ end subroutine bpm_phase_coupling_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine expression_stack_to_c (Fp, C) bind(c)
+! Subroutine expression_atom_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad expression_stack_struct to a C++ CPP_expression_stack structure
+! Routine to convert a Bmad expression_atom_struct to a C++ CPP_expression_atom structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad expression_stack_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad expression_atom_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_expression_stack struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_expression_atom struct.
 !-
 
-subroutine expression_stack_to_c (Fp, C) bind(c)
+subroutine expression_atom_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine expression_stack_to_c2 (C, z_name, z_type, z_value) bind(c)
+  subroutine expression_atom_to_c2 (C, z_name, z_type, z_value) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -1468,7 +1468,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(expression_stack_struct), pointer :: F
+type(expression_atom_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -1478,33 +1478,33 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call expression_stack_to_c2 (C, trim(F%name) // c_null_char, F%type, F%value)
+call expression_atom_to_c2 (C, trim(F%name) // c_null_char, F%type, F%value)
 
-end subroutine expression_stack_to_c
+end subroutine expression_atom_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine expression_stack_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine expression_atom_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_expression_stack structure to a Bmad expression_stack_struct structure.
-! This routine is called by expression_stack_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_expression_atom structure to a Bmad expression_atom_struct structure.
+! This routine is called by expression_atom_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the expression_stack_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the expression_atom_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad expression_stack_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad expression_atom_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine expression_stack_to_f2 (Fp, z_name, z_type, z_value) bind(c)
+subroutine expression_atom_to_f2 (Fp, z_name, z_type, z_value) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(expression_stack_struct), pointer :: F
+type(expression_atom_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_value
@@ -1520,7 +1520,7 @@ F%type = z_type
 !! f_side.to_f2_trans[real, 0, NOT]
 F%value = z_value
 
-end subroutine expression_stack_to_f2
+end subroutine expression_atom_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -4959,14 +4959,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine control_to_c2 (C, z_stack, n1_stack, z_coef, z_ix_lord, z_ix_slave, z_ix_branch, &
-      z_ix_attrib) bind(c)
+  subroutine control_to_c2 (C, z_stack, n1_stack, z_slave, z_ix_lord, z_ix_attrib) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
+    integer(c_int) :: z_ix_lord, z_ix_attrib
     integer(c_int), value :: n1_stack
-    real(c_double) :: z_coef
-    integer(c_int) :: z_ix_lord, z_ix_slave, z_ix_branch, z_ix_attrib
+    type(c_ptr), value :: z_slave
     type(c_ptr) :: z_stack(*)
   end subroutine
 end interface
@@ -4994,8 +4993,7 @@ if (allocated(F%stack)) then
 endif
 
 !! f_side.to_c2_call
-call control_to_c2 (C, z_stack, n1_stack, F%coef, F%ix_lord, F%ix_slave, F%ix_branch, &
-    F%ix_attrib)
+call control_to_c2 (C, z_stack, n1_stack, c_loc(F%slave), F%ix_lord, F%ix_attrib)
 
 end subroutine control_to_c
 
@@ -5015,8 +5013,7 @@ end subroutine control_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine control_to_f2 (Fp, z_stack, n1_stack, z_coef, z_ix_lord, z_ix_slave, z_ix_branch, &
-    z_ix_attrib) bind(c)
+subroutine control_to_f2 (Fp, z_stack, n1_stack, z_slave, z_ix_lord, z_ix_attrib) bind(c)
 
 
 implicit none
@@ -5025,9 +5022,9 @@ type(c_ptr), value :: Fp
 type(control_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_ix_lord, z_ix_attrib
 integer(c_int), value :: n1_stack
-real(c_double) :: z_coef
-integer(c_int) :: z_ix_lord, z_ix_slave, z_ix_branch, z_ix_attrib
+type(c_ptr), value :: z_slave
 type(c_ptr) :: z_stack(*)
 
 call c_f_pointer (Fp, F)
@@ -5042,18 +5039,14 @@ else
   endif
   if (.not. allocated(F%stack)) allocate(F%stack(1:n1_stack+1-1))
   do jd1 = 1, n1_stack
-    call expression_stack_to_f (z_stack(jd1), c_loc(F%stack(jd1+1-1)))
+    call expression_atom_to_f (z_stack(jd1), c_loc(F%stack(jd1+1-1)))
   enddo
 endif
 
-!! f_side.to_f2_trans[real, 0, NOT]
-F%coef = z_coef
+!! f_side.to_f2_trans[type, 0, NOT]
+call lat_ele_loc_to_f(z_slave, c_loc(F%slave))
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_lord = z_ix_lord
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_slave = z_ix_slave
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_branch = z_ix_branch
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_attrib = z_ix_attrib
 
@@ -6686,20 +6679,20 @@ interface
       n_wake, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, &
       z_time_ref_orb_in, z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, &
       z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, &
-      n1_b_pole, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, &
-      z_n_slave, z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, &
-      z_ix_pointer, z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, &
-      z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
-      z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
-      z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_old_is_on, &
-      z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture) bind(c)
+      n1_b_pole, z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, &
+      z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, &
+      z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, &
+      z_ptc_integration_type, z_field_calc, z_aperture_at, z_aperture_type, z_orientation, &
+      z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, &
+      z_taylor_map_includes_offsets, z_field_master, z_is_on, z_old_is_on, z_logic, &
+      z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, z_n_slave
-    integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer
-    integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc
-    integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
+    integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_ix1_slave
+    integer(c_int) :: z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx
+    integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
+    integer(c_int) :: z_aperture_type, z_orientation
     integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
     integer(c_int), value :: n_wake, n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
     integer(c_int), value :: n1_b_pole
@@ -6818,10 +6811,10 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), F%gamma_c, F%s, &
     F%ref_time, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, fvec2vec(F%a_pole, &
     n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, F%key, F%sub_key, &
-    F%ix_ele, F%ix_branch, F%ix_value, F%slave_status, F%n_slave, F%ix1_slave, F%ix2_slave, &
-    F%lord_status, F%n_lord, F%ic1_lord, F%ic2_lord, F%ix_pointer, F%ixx, F%iyy, &
-    F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%ptc_integration_type, &
-    F%field_calc, F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
+    F%ix_ele, F%ix_branch, F%slave_status, F%n_slave, F%ix1_slave, F%ix2_slave, F%lord_status, &
+    F%n_lord, F%ic1_lord, F%ic2_lord, F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, &
+    F%tracking_method, F%spin_tracking_method, F%ptc_integration_type, F%field_calc, &
+    F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
     c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
     c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
     c_logic(F%old_is_on), c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%csr_calc_on), &
@@ -6852,8 +6845,8 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
     z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, &
     z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_key, &
-    z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, z_n_slave, z_ix1_slave, &
-    z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx, z_iyy, &
+    z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_ix1_slave, z_ix2_slave, &
+    z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx, z_iyy, &
     z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, &
     z_field_calc, z_aperture_at, z_aperture_type, z_orientation, z_symplectify, z_mode_flip, &
     z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
@@ -6869,10 +6862,10 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
 logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
-integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_ix_value, z_slave_status, z_n_slave
-integer(c_int) :: z_ix1_slave, z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer
-integer(c_int) :: z_ixx, z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc
-integer(c_int) :: z_aperture_at, z_aperture_type, z_orientation
+integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_ix1_slave
+integer(c_int) :: z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx
+integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
+integer(c_int) :: z_aperture_type, z_orientation
 type(mode3_struct), pointer :: f_mode3
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
 integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
@@ -7082,8 +7075,6 @@ F%sub_key = z_sub_key
 F%ix_ele = z_ix_ele
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%ix_branch = z_ix_branch
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%ix_value = z_ix_value
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%slave_status = z_slave_status
 !! f_side.to_f2_trans[integer, 0, NOT]

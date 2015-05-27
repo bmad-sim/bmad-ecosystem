@@ -26,7 +26,7 @@ struct_list = [
     'coord_struct',
     'coord_array_struct',
     'bpm_phase_coupling_struct',
-    'expression_stack_struct',
+    'expression_atom_struct',
     'wig_term_struct',
     'wig_struct',
     'wake_sr_mode_struct',

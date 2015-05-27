@@ -87,10 +87,10 @@ typedef valarray<CPP_bpm_phase_coupling>          CPP_bpm_phase_coupling_ARRAY;
 typedef valarray<CPP_bpm_phase_coupling_ARRAY>    CPP_bpm_phase_coupling_MATRIX;
 typedef valarray<CPP_bpm_phase_coupling_MATRIX>   CPP_bpm_phase_coupling_TENSOR;
 
-class CPP_expression_stack;
-typedef valarray<CPP_expression_stack>          CPP_expression_stack_ARRAY;
-typedef valarray<CPP_expression_stack_ARRAY>    CPP_expression_stack_MATRIX;
-typedef valarray<CPP_expression_stack_MATRIX>   CPP_expression_stack_TENSOR;
+class CPP_expression_atom;
+typedef valarray<CPP_expression_atom>          CPP_expression_atom_ARRAY;
+typedef valarray<CPP_expression_atom_ARRAY>    CPP_expression_atom_MATRIX;
+typedef valarray<CPP_expression_atom_MATRIX>   CPP_expression_atom_TENSOR;
 
 class CPP_wig_term;
 typedef valarray<CPP_wig_term>          CPP_wig_term_ARRAY;
@@ -632,31 +632,31 @@ bool operator== (const CPP_bpm_phase_coupling&, const CPP_bpm_phase_coupling&);
 
 
 //--------------------------------------------------------------------
-// CPP_expression_stack
+// CPP_expression_atom
 
-class Bmad_expression_stack_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Bmad_expression_atom_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_expression_stack {
+class CPP_expression_atom {
 public:
   string name;
   Int type;
   Real value;
 
-  CPP_expression_stack() :
+  CPP_expression_atom() :
     name(),
     type(0),
     value(0.0)
     {}
 
-  ~CPP_expression_stack() {
+  ~CPP_expression_atom() {
   }
 
 };   // End Class
 
-extern "C" void expression_stack_to_c (const Bmad_expression_stack_class*, CPP_expression_stack&);
-extern "C" void expression_stack_to_f (const CPP_expression_stack&, Bmad_expression_stack_class*);
+extern "C" void expression_atom_to_c (const Bmad_expression_atom_class*, CPP_expression_atom&);
+extern "C" void expression_atom_to_f (const CPP_expression_atom&, Bmad_expression_atom_class*);
 
-bool operator== (const CPP_expression_stack&, const CPP_expression_stack&);
+bool operator== (const CPP_expression_atom&, const CPP_expression_atom&);
 
 
 //--------------------------------------------------------------------
@@ -1799,19 +1799,15 @@ class Bmad_control_class {};  // Opaque class for pointers to corresponding fort
 
 class CPP_control {
 public:
-  CPP_expression_stack_ARRAY stack;
-  Real coef;
+  CPP_expression_atom_ARRAY stack;
+  CPP_lat_ele_loc slave;
   Int ix_lord;
-  Int ix_slave;
-  Int ix_branch;
   Int ix_attrib;
 
   CPP_control() :
-    stack(CPP_expression_stack_ARRAY(CPP_expression_stack(), 0)),
-    coef(0.0),
+    stack(CPP_expression_atom_ARRAY(CPP_expression_atom(), 0)),
+    slave(),
     ix_lord(-1),
-    ix_slave(-1),
-    ix_branch(0),
     ix_attrib(0)
     {}
 
@@ -2457,7 +2453,6 @@ public:
   Int sub_key;
   Int ix_ele;
   Int ix_branch;
-  Int ix_value;
   Int slave_status;
   Int n_slave;
   Int ix1_slave;
@@ -2555,7 +2550,6 @@ public:
     sub_key(0),
     ix_ele(-1),
     ix_branch(0),
-    ix_value(0),
     slave_status(Bmad::FREE),
     n_slave(0),
     ix1_slave(0),

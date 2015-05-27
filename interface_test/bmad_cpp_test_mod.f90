@@ -767,18 +767,18 @@ end subroutine set_bpm_phase_coupling_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_expression_stack (ok)
+subroutine test1_f_expression_atom (ok)
 
 implicit none
 
-type(expression_stack_struct), target :: f_expression_stack, f2_expression_stack
+type(expression_atom_struct), target :: f_expression_atom, f2_expression_atom
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_expression_stack (c_expression_stack, c_ok) bind(c)
+  subroutine test_c_expression_atom (c_expression_atom, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_expression_stack
+    type(c_ptr), value :: c_expression_atom
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -786,58 +786,58 @@ end interface
 !
 
 ok = .true.
-call set_expression_stack_test_pattern (f2_expression_stack, 1)
+call set_expression_atom_test_pattern (f2_expression_atom, 1)
 
-call test_c_expression_stack(c_loc(f2_expression_stack), c_ok)
+call test_c_expression_atom(c_loc(f2_expression_atom), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_expression_stack_test_pattern (f_expression_stack, 4)
-if (f_expression_stack == f2_expression_stack) then
-  print *, 'expression_stack: C side convert C->F: Good'
+call set_expression_atom_test_pattern (f_expression_atom, 4)
+if (f_expression_atom == f2_expression_atom) then
+  print *, 'expression_atom: C side convert C->F: Good'
 else
-  print *, 'expression_stack: C SIDE CONVERT C->F: FAILED!'
+  print *, 'expression_atom: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_expression_stack
+end subroutine test1_f_expression_atom
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_expression_stack (c_expression_stack, c_ok) bind(c)
+subroutine test2_f_expression_atom (c_expression_atom, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_expression_stack
-type(expression_stack_struct), target :: f_expression_stack, f2_expression_stack
+type(c_ptr), value ::  c_expression_atom
+type(expression_atom_struct), target :: f_expression_atom, f2_expression_atom
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call expression_stack_to_f (c_expression_stack, c_loc(f_expression_stack))
+call expression_atom_to_f (c_expression_atom, c_loc(f_expression_atom))
 
-call set_expression_stack_test_pattern (f2_expression_stack, 2)
-if (f_expression_stack == f2_expression_stack) then
-  print *, 'expression_stack: F side convert C->F: Good'
+call set_expression_atom_test_pattern (f2_expression_atom, 2)
+if (f_expression_atom == f2_expression_atom) then
+  print *, 'expression_atom: F side convert C->F: Good'
 else
-  print *, 'expression_stack: F SIDE CONVERT C->F: FAILED!'
+  print *, 'expression_atom: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_expression_stack_test_pattern (f2_expression_stack, 3)
-call expression_stack_to_c (c_loc(f2_expression_stack), c_expression_stack)
+call set_expression_atom_test_pattern (f2_expression_atom, 3)
+call expression_atom_to_c (c_loc(f2_expression_atom), c_expression_atom)
 
-end subroutine test2_f_expression_stack
+end subroutine test2_f_expression_atom
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_expression_stack_test_pattern (F, ix_patt)
+subroutine set_expression_atom_test_pattern (F, ix_patt)
 
 implicit none
 
-type(expression_stack_struct) F
+type(expression_atom_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -853,7 +853,7 @@ rhs = 2 + offset; F%type = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%value = rhs
 
-end subroutine set_expression_stack_test_pattern
+end subroutine set_expression_atom_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
@@ -4305,19 +4305,15 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%stack)) allocate (F%stack(-1:1))
   do jd1 = 1, size(F%stack,1); lb1 = lbound(F%stack,1) - 1
-    call set_expression_stack_test_pattern (F%stack(jd1+lb1), ix_patt+jd1)
+    call set_expression_atom_test_pattern (F%stack(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%coef = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_lat_ele_loc_test_pattern (F%slave, ix_patt)
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 4 + offset; F%ix_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 5 + offset; F%ix_slave = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%ix_branch = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%ix_attrib = rhs
+rhs = 5 + offset; F%ix_attrib = rhs
 
 end subroutine set_control_test_pattern
 
@@ -6193,69 +6189,67 @@ rhs = 56 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 57 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 58 + offset; F%ix_value = rhs
+rhs = 58 + offset; F%slave_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 59 + offset; F%slave_status = rhs
+rhs = 59 + offset; F%n_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 60 + offset; F%n_slave = rhs
+rhs = 60 + offset; F%ix1_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 61 + offset; F%ix1_slave = rhs
+rhs = 61 + offset; F%ix2_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 62 + offset; F%ix2_slave = rhs
+rhs = 62 + offset; F%lord_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 63 + offset; F%lord_status = rhs
+rhs = 63 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 64 + offset; F%n_lord = rhs
+rhs = 64 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 65 + offset; F%ic1_lord = rhs
+rhs = 65 + offset; F%ic2_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 66 + offset; F%ic2_lord = rhs
+rhs = 66 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 67 + offset; F%ix_pointer = rhs
+rhs = 67 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 68 + offset; F%ixx = rhs
+rhs = 68 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 69 + offset; F%iyy = rhs
+rhs = 69 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 70 + offset; F%mat6_calc_method = rhs
+rhs = 70 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 71 + offset; F%tracking_method = rhs
+rhs = 71 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 72 + offset; F%spin_tracking_method = rhs
+rhs = 72 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 73 + offset; F%ptc_integration_type = rhs
+rhs = 73 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 74 + offset; F%field_calc = rhs
+rhs = 74 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 75 + offset; F%aperture_at = rhs
+rhs = 75 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 76 + offset; F%aperture_type = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 77 + offset; F%orientation = rhs
+rhs = 76 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 78 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 77 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 79 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 78 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 80 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 79 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 81 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 80 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 82 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 81 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 83 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 82 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 84 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 83 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 85 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
+rhs = 84 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 86 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 85 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 87 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 86 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 88 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
+rhs = 87 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 89 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 88 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 

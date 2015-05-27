@@ -528,14 +528,14 @@ extern "C" void test_c_bpm_phase_coupling (Bmad_bpm_phase_coupling_class* F, boo
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_expression_stack (CPP_expression_stack&, bool&);
+extern "C" void test2_f_expression_atom (CPP_expression_atom&, bool&);
 
-void set_CPP_expression_stack_test_pattern (CPP_expression_stack& C, int ix_patt) {
+void set_CPP_expression_atom_test_pattern (CPP_expression_atom& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
   // c_side.test_pat[character, 0, NOT]
-  C.name.resize(40);
+  C.name.resize(60);
   for (unsigned int i = 0; i < C.name.size(); i++)
     {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
@@ -549,37 +549,37 @@ void set_CPP_expression_stack_test_pattern (CPP_expression_stack& C, int ix_patt
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_expression_stack (Bmad_expression_stack_class* F, bool& c_ok) {
+extern "C" void test_c_expression_atom (Bmad_expression_atom_class* F, bool& c_ok) {
 
-  CPP_expression_stack C, C2;
+  CPP_expression_atom C, C2;
 
   c_ok = true;
 
-  expression_stack_to_c (F, C);
-  set_CPP_expression_stack_test_pattern (C2, 1);
+  expression_atom_to_c (F, C);
+  set_CPP_expression_atom_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " expression_stack: C side convert F->C: Good" << endl;
+    cout << " expression_atom: C side convert F->C: Good" << endl;
   } else {
-    cout << " expression_stack: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " expression_atom: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_expression_stack_test_pattern (C2, 2);
+  set_CPP_expression_atom_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_expression_stack (C2, c_ok2);
+  test2_f_expression_atom (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_expression_stack_test_pattern (C, 3);
+  set_CPP_expression_atom_test_pattern (C, 3);
   if (C == C2) {
-    cout << " expression_stack: F side convert F->C: Good" << endl;
+    cout << " expression_atom: F side convert F->C: Good" << endl;
   } else {
-    cout << " expression_stack: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " expression_atom: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_expression_stack_test_pattern (C2, 4);
-  expression_stack_to_f (C2, F);
+  set_CPP_expression_atom_test_pattern (C2, 4);
+  expression_atom_to_f (C2, F);
 
 }
 
@@ -2873,23 +2873,17 @@ void set_CPP_control_test_pattern (CPP_control& C, int ix_patt) {
     C.stack.resize(0);
   else {
     C.stack.resize(3);
-    for (unsigned int i = 0; i < C.stack.size(); i++)  {set_CPP_expression_stack_test_pattern(C.stack[i], ix_patt+i+1);}
+    for (unsigned int i = 0; i < C.stack.size(); i++)  {set_CPP_expression_atom_test_pattern(C.stack[i], ix_patt+i+1);}
   }
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.coef = rhs;
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_lat_ele_loc_test_pattern(C.slave, ix_patt);
 
   // c_side.test_pat[integer, 0, NOT]
   rhs = 4 + offset; C.ix_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 5 + offset; C.ix_slave = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.ix_branch = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 7 + offset; C.ix_attrib = rhs;
+  rhs = 5 + offset; C.ix_attrib = rhs;
 
 
 }
@@ -4267,100 +4261,97 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 57 + offset; C.ix_branch = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 58 + offset; C.ix_value = rhs;
+  rhs = 58 + offset; C.slave_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 59 + offset; C.slave_status = rhs;
+  rhs = 59 + offset; C.n_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 60 + offset; C.n_slave = rhs;
+  rhs = 60 + offset; C.ix1_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 61 + offset; C.ix1_slave = rhs;
+  rhs = 61 + offset; C.ix2_slave = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 62 + offset; C.ix2_slave = rhs;
+  rhs = 62 + offset; C.lord_status = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 63 + offset; C.lord_status = rhs;
+  rhs = 63 + offset; C.n_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 64 + offset; C.n_lord = rhs;
+  rhs = 64 + offset; C.ic1_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 65 + offset; C.ic1_lord = rhs;
+  rhs = 65 + offset; C.ic2_lord = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 66 + offset; C.ic2_lord = rhs;
+  rhs = 66 + offset; C.ix_pointer = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 67 + offset; C.ix_pointer = rhs;
+  rhs = 67 + offset; C.ixx = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 68 + offset; C.ixx = rhs;
+  rhs = 68 + offset; C.iyy = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 69 + offset; C.iyy = rhs;
+  rhs = 69 + offset; C.mat6_calc_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 70 + offset; C.mat6_calc_method = rhs;
+  rhs = 70 + offset; C.tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 71 + offset; C.tracking_method = rhs;
+  rhs = 71 + offset; C.spin_tracking_method = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 72 + offset; C.spin_tracking_method = rhs;
+  rhs = 72 + offset; C.ptc_integration_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 73 + offset; C.ptc_integration_type = rhs;
+  rhs = 73 + offset; C.field_calc = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 74 + offset; C.field_calc = rhs;
+  rhs = 74 + offset; C.aperture_at = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 75 + offset; C.aperture_at = rhs;
+  rhs = 75 + offset; C.aperture_type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 76 + offset; C.aperture_type = rhs;
-
-  // c_side.test_pat[integer, 0, NOT]
-  rhs = 77 + offset; C.orientation = rhs;
+  rhs = 76 + offset; C.orientation = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 78 + offset; C.symplectify = (rhs % 2 == 0);
+  rhs = 77 + offset; C.symplectify = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 79 + offset; C.mode_flip = (rhs % 2 == 0);
+  rhs = 78 + offset; C.mode_flip = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 80 + offset; C.multipoles_on = (rhs % 2 == 0);
+  rhs = 79 + offset; C.multipoles_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 81 + offset; C.scale_multipoles = (rhs % 2 == 0);
+  rhs = 80 + offset; C.scale_multipoles = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 82 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
+  rhs = 81 + offset; C.taylor_map_includes_offsets = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 83 + offset; C.field_master = (rhs % 2 == 0);
+  rhs = 82 + offset; C.field_master = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 84 + offset; C.is_on = (rhs % 2 == 0);
+  rhs = 83 + offset; C.is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 85 + offset; C.old_is_on = (rhs % 2 == 0);
+  rhs = 84 + offset; C.old_is_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 86 + offset; C.logic = (rhs % 2 == 0);
+  rhs = 85 + offset; C.logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 87 + offset; C.bmad_logic = (rhs % 2 == 0);
+  rhs = 86 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 88 + offset; C.csr_calc_on = (rhs % 2 == 0);
+  rhs = 87 + offset; C.csr_calc_on = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 89 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 88 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }

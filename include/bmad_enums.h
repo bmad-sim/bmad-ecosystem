@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 153;
+  const int BMAD_INC_VERSION = 155;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -146,7 +146,7 @@ namespace Bmad {
   const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23, SPINOR_THETA = 23;
   const int TRAVELING_WAVE = 23, BETA_A = 23, VELOCITY_DISTRIBUTION = 23;
   const int PHI0 = 24, TILT_CALIB = 24, BETA_B = 24, ENERGY_DISTRIBUTION = 24, SPINOR_PHI = 24;
-  const int PHI0_ERR = 25, COEF = 25, CURRENT = 25, L_POLE = 25, PARTICLE = 25;
+  const int PHI0_ERR = 25, CURRENT = 25, L_POLE = 25, PARTICLE = 25;
   const int QUAD_TILT = 25, DE_ETA_MEAS = 25, ALPHA_A = 25, E_FIELD_X = 25, SPINOR_XI = 25;
   const int GEOMETRY = 26, BEND_TILT = 26, MODE = 26, ALPHA_B = 26, E_FIELD_Y = 26;
   const int PHI0_MULTIPASS = 26, N_SAMPLE = 26, ORIGIN_ELE_REF_PT = 26, SPINOR_POLARIZATION = 26;
@@ -226,7 +226,7 @@ namespace Bmad {
   const int LATTICE = 86, PHI_A = 86, MULTIPOLES_ON = 86;
   const int APERTURE_TYPE = 87, ETA_Z = 87;
   const int TAYLOR_MAP_INCLUDES_OFFSETS = 88, CMAT_11_BEGIN = 88, SURFACE_ATTRIB = 88;
-  const int CSR_CALC_ON = 89, CMAT_12_BEGIN = 89;
+  const int CSR_CALC_ON = 89, CMAT_12_BEGIN = 89, VAR = 89;
   const int S_POSITION = 90, CMAT_21_BEGIN = 90;
   const int MAT6_CALC_METHOD = 91, CMAT_22_BEGIN = 91;
   const int TRACKING_METHOD  = 92, S_LONG = 92;

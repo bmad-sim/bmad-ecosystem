@@ -187,7 +187,7 @@ template bool is_all_equal (const CPP_bpm_phase_coupling_MATRIX&, const CPP_bpm_
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_expression_stack& x, const CPP_expression_stack& y) {
+bool operator== (const CPP_expression_atom& x, const CPP_expression_atom& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.type == y.type);
@@ -195,8 +195,8 @@ bool operator== (const CPP_expression_stack& x, const CPP_expression_stack& y) {
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_expression_stack_ARRAY&, const CPP_expression_stack_ARRAY&);
-template bool is_all_equal (const CPP_expression_stack_MATRIX&, const CPP_expression_stack_MATRIX&);
+template bool is_all_equal (const CPP_expression_atom_ARRAY&, const CPP_expression_atom_ARRAY&);
+template bool is_all_equal (const CPP_expression_atom_MATRIX&, const CPP_expression_atom_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -741,10 +741,8 @@ template bool is_all_equal (const CPP_taylor_MATRIX&, const CPP_taylor_MATRIX&);
 bool operator== (const CPP_control& x, const CPP_control& y) {
   bool is_eq = true;
   is_eq = is_eq && is_all_equal(x.stack, y.stack);
-  is_eq = is_eq && (x.coef == y.coef);
+  is_eq = is_eq && (x.slave == y.slave);
   is_eq = is_eq && (x.ix_lord == y.ix_lord);
-  is_eq = is_eq && (x.ix_slave == y.ix_slave);
-  is_eq = is_eq && (x.ix_branch == y.ix_branch);
   is_eq = is_eq && (x.ix_attrib == y.ix_attrib);
   return is_eq;
 };
@@ -1092,7 +1090,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.sub_key == y.sub_key);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
-  is_eq = is_eq && (x.ix_value == y.ix_value);
   is_eq = is_eq && (x.slave_status == y.slave_status);
   is_eq = is_eq && (x.n_slave == y.n_slave);
   is_eq = is_eq && (x.ix1_slave == y.ix1_slave);
