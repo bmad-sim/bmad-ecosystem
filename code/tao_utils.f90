@@ -2813,7 +2813,7 @@ elseif (ix_ele <= lat%branch(ix_branch)%n_ele_track) then
 
 elseif (lat%ele(ix_ele)%lord_status == super_lord$) then
   ix_c = lat%ele(ix_ele)%ix2_slave
-  ix_ele_track = lat%control(ix_c)%ix_slave ! element at exit end.
+  ix_ele_track = lat%control(ix_c)%slave%ix_ele ! element at exit end.
 
 else  ! overlays, multipass_lords, etc.
   ix_ele_track = -1
