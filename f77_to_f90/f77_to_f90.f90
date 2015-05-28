@@ -470,6 +470,7 @@ endif
 
 call flx_word_test (line, 'CONDITIONAL', is_there, ix1, ix2, ix_end)
 
+initial_if_here = .false.
 if (is_there .and. ix2 == 0) then
   call push_stack (stack, i_stk, 'CONDITIONAL')
   call push_stack (stack2, i_stk2, 'CONDITIONAL')
