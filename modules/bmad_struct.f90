@@ -1202,9 +1202,6 @@ type track_struct
 end type
 
 !------------------------------------------------------------------------------
-
-integer, parameter :: entry_pt1$ = 1, entry_pt2$ = 2
-
 ! This is for debugging radiation damping and fluctuations.
 
 type synch_rad_common_struct

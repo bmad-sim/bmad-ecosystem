@@ -119,13 +119,13 @@ endif
 
 ! Custom tracking if the custom routine is to do everything.
 
-if (ele%tracking_method == custom$) then
-  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1$, finished, radiation_included)
-  if (err) return
-  if (finished) then
-    if (present(err_flag)) err_flag = err
-    return
-  endif
+finished = .false.
+call track1_preprocess (start2_orb, ele, param, err, finished, radiation_included, track)
+if (err) return
+if (finished) then
+  end_orb = start_orb
+  if (present(err_flag)) err_flag = err
+  return
 endif
 
 ! Init
@@ -191,7 +191,7 @@ case (mad$)
   call track1_mad (start2_orb, ele, param, end_orb)
 
 case (custom$)
-  call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt2$, finished, radiation_included)
+  call track1_custom (start2_orb, ele, param, end_orb, err, finished, track)
   if (err) return
   if (finished) then
     if (present(err_flag)) err_flag = err

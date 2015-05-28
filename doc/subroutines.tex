@@ -788,7 +788,7 @@ superposition lord to a slave when the slave has only one lord.
 
 \index[routine]{create_group}
 \label{r:create.group}
-\item[create_group (lat, ix_lord, contrl, err, err_print_flag)] \Newline
+\item[create_group (lord, contrl, err, err_print_flag)] \Newline
 Routine to create a group control element. 
 
 \index[routine]{create_girder}
@@ -799,7 +799,7 @@ Routine to create a group control element.
 
 \index[routine]{create_overlay}
 \label{r:create.overlay}
-\item[create_overlay (lat, ix_overlay, attrib_name, contl, err, err_print_flag)] \Newline
+\item[create_overlay (lord, attrib_name, contl, err, err_print_flag)] \Newline
 Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
@@ -1385,7 +1385,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
 \item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, \\
-  \hspace*{1in} use_matrix_model, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
+  \hspace*{1in} use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
@@ -3325,10 +3325,18 @@ Particle tracking through a single element BMAD_standard style.
 
 \index[routine]{track1_custom}
 \label{r:track1.custom}
-\item[\protect\parbox{6in}{
-    track1_custom (start_orb, ele, param, end_orb, track, err_flag, \\
-    \hspace*{1in} entry_pt, finished, radiation_included)} ] \Newline
+    track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
 Dummy routine for custom tracking.
+
+\index[routine]{track1_postprocess}
+\label{r:track1.postprocess}
+\item[track1_postprocess (start_orb, ele, param, end_orb)] \Newline 
+Dummy routine for post processing after the track1 routine is done.
+
+\index[routine]{track1_preprocess}
+\label{r:track1.preprocess}
+\item[track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)] \Newline 
+Dummy routine for pre processing at the start of the track1 routine.
 
 \index[routine]{track1_linear}
 \label{r:track1.linear}
@@ -3490,7 +3498,7 @@ Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 
 \index[routine]{normal_mode3_calc}
 \label{r:normal.mode3.calc}
-\item[normal_mode3_calc (mat, tune, B, HV, synchrotron_motion)] \Newline 
+\item[normal_mode3_calc (t6, tune, B, HV, counter_rotating_z)] \Newline 
 Decompose a 2n x 2n symplectic matrix into normal modes.
 For more details see:
 
@@ -3506,9 +3514,8 @@ Routine to propagate the twiss parameters using all three normal modes.
 
 \index[routine]{twiss3_at_start}
 \label{r:twiss3.at.start}
-\item[twiss3_at_start (lat, error)] \Newline 
+\item[twiss3_at_start (lat, err_flag)] \Newline 
 Routine to propagate the twiss parameters using all three normal modes.
-
 
 \end{description}
 
