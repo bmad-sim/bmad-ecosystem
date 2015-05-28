@@ -3,6 +3,10 @@
 !
 ! Dummy routine for post processing after the track1 routine is done.
 !
+! Also see:
+!   track1_preprocess
+!   track1_custom
+!
 ! General rule: Your code may NOT modify any argument that is not listed as
 ! an output agument below.
 !
@@ -21,7 +25,7 @@
 
 subroutine track1_postprocess (start_orb, ele, param, end_orb)
 
-use bmad_interface, except_dummy => track1_postprocess
+use bmad, except_dummy => track1_postprocess
 
 implicit none
 

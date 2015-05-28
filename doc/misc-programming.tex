@@ -72,48 +72,9 @@ matrix through an element.
 
 The \Hyperref{r:track1.custom}{track1_custom} routine is called by the
 \Hyperref{r:track1}{track1} routine when the \vn{tracking_method} for
-the element is set to \vn{custom}.  \vn{track1_custom} is actually
-called twice by \vn{track1}. The reason for this is as follows:
-The code of \vn{track1} can be divided into three sections. The middle
-section uses the value of \vn{ele%tracking_method} to call the appropriate routine for the
-indicated calculational method. This section looks like:
-\begin{example}
-  select case (tracking_method)
-  case (runge_kutta\$) 
-    call track1_runge_kutta (start2_orb, ele, param, end_orb, err, track)
-    if (err) return
-  case (custom\$) 
-    call track1_custom (start2_orb, ele, param, end_orb, track, entry_pt2\$, finished)
-  ... etc ...
-  end select
-\end{example} 
-The first and last sections that are before and after the middle
-section do a number of things that are common to all tracking
-methods. For example, checking apertures, adding in radiation damping
-and excitation kicks, etc. In some cases with custom tracking, the
-code in the first and last sections needs to be skipped. In order to
-do this, \vn{track1_custom} is called at the start of \vn{track1}:
-\begin{example}
-  if (ele%tracking_method == custom\$) then
-    call track1_custom (start2_orb, ele, param, end_orb, track, err, entry_pt1\$, finished)
-    if (err) return
-    if (finished) then
-      if (present(err_flag)) err_flag = err
-      return
-    endif
-  endif
-\end{example}
-The definition of \vn{track1_custom} is:
-\begin{example}
-  track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished)
-\end{example}
-The idea is that to skip the first and last sections,
-\vn{track1_custom} simply sets the \vn{finished} argument to True. If
-these sections are not to be skipped, \vn{track1_custom} should set
-\vn{finished} to False and return without doing anything when
-\vn{entry_pt} has a value of \vn{entry_pt1\$}. In the middle section,
-\vn{track1_custom} will be called with \vn{entry_pt} set to
-\vn{entry_pt2\$}.
+the element is set to \vn{custom}. Further customization can be set by
+the routines \vn{track1_preprocess} and \vn{track1_postprocess}. See
+Section~\sref{s:custom.track} for more details.
 
 The
 \Hyperref{r:check.aperture.limit.custom}{check_aperture_limit_custom}
@@ -204,6 +165,41 @@ have hit the wall. If \vn{%hit_when} is set to \vn{wall_transition\$},
 a collision occurs when the particle crosses the wall boundary. The
 distinction between \vn{outside_wall\$} and \vn{wall_transition\$} is
 important if particles are to be allowed to travel outside the wall.
+
+%-----------------------------------------------------------------------------
+\section{Custom Tracking: track1_preprocess and track1_postprocess)
+\label{s:custom.track}
+\index{track1_preprocess}\index{track1_postprocess}
+
+For customizing tracking, there are three routines that are available:
+\begin{example}
+  \zzz{track1_preprocess}
+  \zzz{track1_custom}
+  \zzz{track1_postprocess}
+\end{example}
+All three routines are called by the \zzz{track1} routine.
+\vn{track1_custom} is only called when the element being tracked
+through has its tracking method set to \vn{custom}. See
+Section~\sref{s:custom.ele} for more details. The other routines are
+always called. The \vn{track1_preprocess} and \vn{track1_postprocess}
+routines are useful for a number of things. For example, if the effect
+of an electron cloud is to be modeled, these two routines can
+be used to put in half the electron cloud kick at the beginning of
+an element and half the kick at the end.
+
+The routine \vn{track1_preprocess} has an additional feature in that
+it has an argument \vn{radiation_included} that can be set to \vn{True}
+if the routine \vn{track1_custom} will be called and \vn{track1_custom} will
+be handling radiation damping and excitation effects.
+
+A potential problem with \vn{track1_custom} is that the calling
+routine, that is \vn{track1}, does some work like checking aperture,
+etc. (see the \vn{track1} code for more details). If this is not
+desired, the \vn{track1_preprocess} routine can be used to do custom
+tracking and to make sure that \vn{track1} does not do any extra
+calculations. This is accomplished by putting the custom tracking code
+in \vn{track1_preprocess} and by setting the \vn{finished} argument of
+\vn{track1_preprocess} to True. 
 
 %-----------------------------------------------------------------------------
 \section{Physical and Mathematical Constants}
@@ -373,7 +369,7 @@ program on a severe error.
 \index{global_com!parallel processing}
 \bmad was initially developed without regard to parallel
 processing. When a demand for multithreading capability arose, \bmad
-was modified to meet the need. In order to ratain some of the speedups
+was modified to meet the need. In order to retain some of the speedups
 that can be achieved with saved variables, a switch was introduced
 in the \vn{global_common_struct} called \vn{%be_thread_safe}. The
 default is False. This should be set True in a a multithreaded program:

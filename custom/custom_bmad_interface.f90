@@ -54,11 +54,10 @@ interface
     type (ele_struct), target :: ele
     type (coord_struct) :: start_orb, end_orb
     type (lat_param_struct) param
-    integer entry_pt
     logical err_flag, finished
   end subroutine
 
-  subroutine track1_custom (start_orb, ele, param, end_orb, track, err_flag, entry_pt, finished, radiation_included)
+  subroutine track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)
     use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
     implicit none
     type (coord_struct) :: start_orb
@@ -66,7 +65,6 @@ interface
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
     type (track_struct), optional :: track
-    integer entry_pt
     logical err_flag, finished, radiation_included
   end subroutine
 
@@ -77,6 +75,17 @@ interface
     type (coord_struct) :: end_orb
     type (ele_struct) :: ele
     type (lat_param_struct) :: param
+  end subroutine
+
+  subroutine track1_preprocess (start_orb, ele, param, err_flag, finished, radiation_included, track)
+    use bmad_struct, only: ele_struct, coord_struct, lat_param_struct, track_struct
+    implicit none
+    type (coord_struct) :: start_orb
+    type (coord_struct) :: end_orb
+    type (ele_struct) :: ele
+    type (lat_param_struct) :: param
+    type (track_struct), optional :: track
+    logical err_flag, finished, radiation_included
   end subroutine
 
   subroutine track1_spin_custom (start_orb, ele, param, end_orb, err_flag, track)
