@@ -2356,7 +2356,7 @@ character(*), optional :: end_delims
 character(1) delim
 character(200) str
 character(100) err_type
-character(60) word
+character(200) word
 character(*), optional :: string_out
 
 logical delim_found, ran_function_pending
