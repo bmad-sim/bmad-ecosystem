@@ -72,25 +72,27 @@ if (present(ix_attrib)) ix_attrib = 0
 ! If a controller with a defined list of variables
 
 if (associated (ele%control_var)) then
-  if (attrib_name(1:4) == 'OLD_') then
-    do i = 1, size(ele%control_var)
-      if (ele%control_var(i)%name /= attrib_name(5:)) cycle
-      a_ptr%r => ele%control_var(i)%old_value
-      if (present(ix_attrib)) ix_attrib = old_var_offset$ + i
-      err_flag = .false.
-      return
-    enddo
 
-  else
-    do i = 1, size(ele%control_var)
-      if (ele%control_var(i)%name /= attrib_name) cycle
-      a_ptr%r => ele%control_var(i)%value
-      if (present(ix_attrib)) ix_attrib = var_offset$ + i
-      err_flag = .false.
+  if (len(attrib_name) > 4) then
+    if (attrib_name(1:4) == 'OLD_') then
+      do i = 1, size(ele%control_var)
+        if (ele%control_var(i)%name /= attrib_name(5:)) cycle
+        a_ptr%r => ele%control_var(i)%old_value
+        if (present(ix_attrib)) ix_attrib = old_var_offset$ + i
+        err_flag = .false.
+        return
+      enddo
       return
-    enddo
+    endif
   endif
 
+  do i = 1, size(ele%control_var)
+    if (ele%control_var(i)%name /= attrib_name) cycle
+    a_ptr%r => ele%control_var(i)%value
+    if (present(ix_attrib)) ix_attrib = var_offset$ + i
+    err_flag = .false.
+    return
+  enddo
   return
 endif
 
