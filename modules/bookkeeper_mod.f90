@@ -1593,6 +1593,21 @@ value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(num_steps$)      = slave%value(num_steps$)
 
+! Taylor element. The taylor map gets applied at the entrance end.
+! There is no reason why the entrance end was chosen over the exit end.
+
+if (lord%key == taylor$) then
+  slave%value = value
+  slave%is_on = lord%is_on
+  if (include_entrance) then
+    slave%key = taylor$
+    slave%taylor = lord%taylor
+  else
+    slave%key = marker$
+  endif
+  return
+endif
+
 ! Ref energy shift for e_gun only happens at start of element.
 
 if (lord%key == e_gun$ .and. .not. include_upstream_end) then

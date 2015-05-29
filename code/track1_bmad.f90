@@ -463,8 +463,12 @@ case (lcavity$)
 
 !-----------------------------------------------
 ! marker, etc.
+! Note: marker elements can have finite length in the case where it is a slice_slave of a taylor 
+! element (the first slice is a taylor element and all other slices are markers).
 
 case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$)
+
+  end_orb%t = start2_orb%t + ele%value(delta_ref_time$)
 
   return
 
