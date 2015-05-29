@@ -22,9 +22,9 @@
 !   l_start              -- Real(rp): Start position measured from the beginning of the element.
 !   l_end                -- Real(rp): Stop position measured from the beginning of the element.
 !   track_upstream_end   -- Logical: If True then entrance effects are included in the tracking.
-!                            But only if l_start = 0.
+!                            But only if l_start = 0 and orbit_start%location /= inside$.
 !   track_downstream_end -- Logical: If True then exit effects are included in the tracking but 
-!                            only if l_end = ele%value(l$) (within bmad_com%significant_length tol).
+!                            only if l_end = ele%value(l$) (within bmad_com%significant_length tol)
 !   orbit_start          -- Coord_struct, optional: Starting phase space coordinates at l_start.
 !   ele_start            -- Ele_struct, optional: Holds the starting Twiss parameters at l_start.
 !   compute_floor_coords -- logical, optional: If present and True then the global "floor" coordinates 
@@ -50,9 +50,10 @@ implicit none
 type (coord_struct), optional :: orbit_start, orbit_end
 type (coord_struct) orb_at_end
 type (ele_struct), optional :: ele_start, ele_end
-type (ele_struct) ele
+type (ele_struct), target :: ele
 type (lat_param_struct) param
-type (ele_struct) :: runt
+type (ele_struct), target :: runt
+type (ele_struct), pointer :: ele_p
 
 real(rp) l_start, l_end, mat6(6,6), vec0(6)
 
@@ -68,19 +69,26 @@ if (present(err)) err = .true.
 ! zero length element:
 ! Must ignore track_upstream_end and track_downstream_end since they do not make sense in this case.
 
-! Construct a "runt" element to track through.
-
 call transfer_ele(ele, runt, .true.)
 
 if (ele%value(l$) == 0) then
+  do_upstream = .true.
   do_downstream = .true.
 else
-  do_upstream = (track_upstream_end .and. l_start == 0)
+  do_upstream = (track_upstream_end .and. abs(l_start) < bmad_com%significant_length)
   if (present(orbit_start)) do_upstream = (do_upstream .and. orbit_start%location /= inside$)
   do_downstream = (track_downstream_end .and. abs(l_end - ele%value(l$)) < bmad_com%significant_length)
+endif
 
+! Special case: tracking though the whole element.
+! Otherwise: Construct a "runt" element to track through.
+
+if (do_upstream .and. do_downstream) then
+  ele_p => ele
+else
   call create_element_slice (runt, ele, l_end - l_start, l_start, param, do_upstream, do_downstream, err_flag, ele_start)
   if (err_flag) return
+  ele_p => runt
 endif
 
 ! Now track. 
@@ -88,24 +96,24 @@ endif
 
 if (present(ele_end)) then
   if (present(orbit_start)) then
-    call make_mat6 (runt, param, orbit_start, orb_at_end, err_flag = err_flag)
+    call make_mat6 (ele_p, param, orbit_start, orb_at_end, err_flag = err_flag)
     if (present(orbit_end)) then
       orbit_end = orb_at_end
-      orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
+      orbit_end%ix_ele = ele%ix_ele  ! Since ele_p%ix_ele gets set to -2 to indicate it is a slice.
       if (.not. do_downstream) orbit_end%location = inside$
     endif
   else
-    call make_mat6 (runt, param, err_flag = err_flag)
+    call make_mat6 (ele_p, param, err_flag = err_flag)
   endif
   if (err_flag) return
-  call twiss_propagate1 (ele_start, runt, err_flag)
-  if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, runt, runt%floor)
-  call transfer_ele(runt, ele_end, .true.)
+  call twiss_propagate1 (ele_start, ele_p, err_flag)
+  if (logic_option(.false., compute_floor_coords)) call ele_geometry (ele_start%floor, ele_p, ele_p%floor)
+  call transfer_ele(ele_p, ele_end, .true.)
   if (err_flag) return
 
 elseif (present(orbit_end)) then  ! and not present(ele_start)
-  call track1 (orbit_start, runt, param, orbit_end)
-  orbit_end%ix_ele = ele%ix_ele  ! Since runt%ix_ele gets set to -2 to indicate it is a slice.
+  call track1 (orbit_start, ele_p, param, orbit_end)
+  orbit_end%ix_ele = ele%ix_ele  ! Since ele_p%ix_ele gets set to -2 to indicate it is a slice.
   if (.not. do_downstream) orbit_end%location = inside$
 endif
 
