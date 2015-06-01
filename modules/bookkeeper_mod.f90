@@ -1437,7 +1437,7 @@ if (l_slice*in_len < 0 .or. abs(l_slice) > abs(in_len) + bmad_com%significant_le
   return
 endif
 
-if (ele_in%key == taylor$ .or. ele_in%key == hybrid$) then
+if (ele_in%key == hybrid$) then
   call out_io (s_fatal$, r_name, &
         'CANNOT SLICE ELEMENT OF TYPE: ' // key_name(ele_in%key), &
         'CANNOT SLICE: ' // ele_in%name)
@@ -1603,7 +1603,7 @@ if (lord%key == taylor$) then
     slave%key = taylor$
     slave%taylor = lord%taylor
   else
-    slave%key = marker$
+    slave%key = floor_shift$
   endif
   return
 endif
