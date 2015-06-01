@@ -223,7 +223,8 @@ character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
-logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0, err_flag2
+logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
+logical is_attrib, err_flag2
 logical, optional :: check_free, wild_and_key0
 
 ! Get next WORD.
@@ -291,8 +292,8 @@ if (ele%key == overlay$ .or. ele%key == group$) then
 
   ! Parse old style control var syntax: "i > num_ele_attrib$" handles accordian_edge for example.
 
-  i2 = attribute_index(0, word)
-  if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. i2 > 0) then 
+  is_attrib = (attribute_index(0, word) > 0 .or. (ele%key == group$ .and. word == 'COMMAND'))
+  if (how == def$ .and. .not. associated(ele%control_var) .and. (i < 1 .or. i > num_ele_attrib$) .and. is_attrib) then 
     allocate (ele%control_var(1))
     if (ele%key == group$) then
       ele%control_var(1)%name = 'COMMAND'
