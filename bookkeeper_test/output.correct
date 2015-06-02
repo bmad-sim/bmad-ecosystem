@@ -18,6 +18,9 @@
 "GR2[COMMAND]"   1.0000
 "GR3[COMMAND]"   0.2000
 "GR4[COMMAND]"   8.0000
+"GRN[A]"   0.0100
+"GRN[B]"   2.0000
+"GRN[string]"    "tan(A)*B"
 "Next-1"   0
 "Next-2"   1
 "Next-3"   2

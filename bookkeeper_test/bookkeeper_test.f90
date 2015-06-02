@@ -9,6 +9,7 @@ type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, nele
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
+character(100) str
 
 integer :: i, j, k, nargs
 logical print_extra
@@ -47,19 +48,22 @@ enddo
 do i = lat%n_ele_track+1, lat%n_ele_max
 
   ele => lat%ele(i)
-  if (ele%lord_status == group_lord$) then
-    write (1, '(3a, f10.4)') '"', trim(ele%name), '[COMMAND]"      ABS 0', ele%control_var(1)%value
-  endif
-
   if (ele%lord_status == super_lord$) then
     write (1, '(3a, f10.4)') '"', trim(ele%name), '[L]"      ABS 0', ele%value(l$)
   endif
 
-  if (ele%lord_status == overlay_lord$) then
-    write (1, '(5a, f10.4)') '"', trim(ele%name), '[', &
-                      trim(ele%control_var(1)%name), ']"      ABS 0', ele%control_var(1)%value
+  if (ele%key == overlay$ .or. ele%key == group$) then
+    do j = 1, size(ele%control_var)
+      write (1, '(5a, f10.4)') '"', trim(ele%name), '[', &
+                      trim(ele%control_var(j)%name), ']"      ABS 0', ele%control_var(j)%value
+    enddo
   endif
 
+  if (ele%name == 'GRN') then
+    j = ele%ix1_slave
+    str = expression_stack_to_string(lat%control(j)%stack)
+    write (1, '(5a, f10.4)') '"GRN[string]" STR "', trim(str), '"'
+  endif
 
 enddo
 
