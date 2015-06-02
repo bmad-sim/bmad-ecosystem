@@ -16,7 +16,7 @@ integer, parameter :: old_var_offset$ = 1000  ! For indexing into ele%control_va
 integer, parameter :: var_offset$ = 2000      ! Important: var_offset$ > old_var_offset$
 
 type expression_atom_struct
-  character(60) :: name = ''
+  character(40) :: name = ''
   integer :: type = 0
   real(rp) :: value = 0
 end type

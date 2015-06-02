@@ -93,7 +93,7 @@ type parser_ele_struct
   character(40), allocatable :: name(:)        ! For overlays and groups
   character(40), allocatable :: attrib_name(:) ! For overlays and groups
   character(200) lat_file                      ! File where element was defined.
-  character(100), allocatable :: expression(:)       ! For overlays and groups
+  character(200), allocatable :: expression(:) ! For overlays and groups
   real(rp) offset
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
@@ -1833,7 +1833,7 @@ integer n, ix
 logical delim_found, end_of_file
 logical, optional :: upper_case_word, call_check
 
-character(100) line
+character(n_parse_line) line
 character(6) str
 
 ! Possible inline call...
@@ -1856,7 +1856,7 @@ endif
 if (bp_com%input_from_file) then 
   do
     n = len_trim(bp_com%parse_line)
-    if (n == 0 .or. n > 60) exit
+    if (n == 0 .or. n > 90) exit
 
     select case (bp_com%parse_line(n:n))
     case (',', '(', '{', '[', '=')
@@ -2372,7 +2372,8 @@ n_parens = 0
 err_flag = .true.
 
 do
-  call get_next_word (word, ix_word, '(),:}', delim, delim_found, call_check = call_check)
+  ! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
+  call get_next_word (word, ix_word, '(),:}+-', delim, delim_found, call_check = call_check)
   call_check = .false.
   str = str(1:ix_str) // word
   ix_str = ix_str + ix_word
@@ -2383,6 +2384,8 @@ do
     if (n_parens == 0) exit
   case (':')
     exit
+  case default
+    ! Nothing to do
   end select
 
   ix_str = ix_str + 1
@@ -3171,11 +3174,11 @@ integer ix_word, n_slave, j, k
 character(1) delim
 character(40) word_in, word
 character(40) name(200), attrib_name(200)
-character(100) expression(200)
+character(200) expression(200)
 
 logical, optional :: use_control_var
 logical delim_found, err_flag, end_of_file, to_cv
-                    
+
 !
 
 call get_next_word (word_in, ix_word, '{,}', delim, delim_found, .true.)
@@ -3216,6 +3219,7 @@ do
   endif
 
   name(n_slave) = word
+  if (word == '') call parser_error ('SLAVE ELEMENT NAME MISSING WHEN PARSING LORD: ' // ele%name)
 
   ! If to_cv = True then evaluating "var = {...}" construct.
   ! In this case, there are no expressions
@@ -4485,7 +4489,7 @@ type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable, target :: cs(:)
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
-type (expression_atom_struct) :: stk(40)
+type (expression_atom_struct) :: stk(200)
 
 integer i, n, ic, ig, k, ix, ib, ie, n_list, ns, ixs, ii, ix_end, n2
 integer n_match, n_slave, nn, n_loc, n_stk, n_names
@@ -4535,7 +4539,7 @@ main_loop: do n = 1, n2
     do i = 1, size(pele%name)
 
       name = pele%name(i)
-      call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
+      call lat_ele_locator (name, lat, eles, n_loc, err)
 
       if (n_loc == 0) then
         slave_not_in_lat = .true.
@@ -4550,36 +4554,35 @@ main_loop: do n = 1, n2
         cycle main_loop
       endif
 
+      ! Expression string to stack
+
+      call expression_string_to_stack (pele%expression(i), stk, n_stk, err_flag, err_str)
+      if (err_flag) then
+        call parser_error (err_str, 'FOR ELEMENT: ' // lord%name, 'EXPRESSION: ' // trim(pele%expression(i)))
+        cycle main_loop
+      endif
+
+      do ic = 1, n_stk
+        select case (stk(ic)%type)
+        case (ran$, ran_gauss$)
+          call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                             'FOR ELEMENT: ' // lord%name)
+        case (numeric$)
+          call match_word (stk(ic)%name, lord%control_var%name, ix, can_abbreviate = .false.)
+          if (ix > 0) then
+            stk(ic)%type = ix + var_offset$
+          else
+            call word_to_value (stk(ic)%name, lat, stk(ic)%value)
+          endif
+        end select
+      enddo
+
       ! There might be more than 1 element with same name. 
       ! Loop over all elements whose name matches name.
       ! Put the info into the cs structure.
 
       do k = 1, n_loc
         n_slave = n_slave + 1
-
-        call expression_string_to_stack (pele%expression(i), stk, n_stk, err_flag, err_str)
-        call reallocate_expression_stack (cs(n_slave)%stack, n_stk)
-        if (err_flag) then
-          call parser_error (err_str, 'FOR ELEMENT: ' // lord%name)
-          cycle main_loop
-        endif
-
-        do ic = 1, n_stk
-          select case (stk(ic)%type)
-          case (ran$, ran_gauss$)
-            call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
-                               'FOR ELEMENT: ' // lord%name)
-          case (numeric$)
-            call match_word (stk(ic)%name, lord%control_var%name, ix, can_abbreviate = .false.)
-            if (ix > 0) then
-              stk(ic)%type = ix + var_offset$
-            else
-              call word_to_value (stk(ic)%name, lat, stk(ic)%value)
-            endif
-          end select
-        enddo
-
-
         call reallocate_expression_stack (cs(n_slave)%stack, n_stk)
         cs(n_slave)%stack = stk(1:n_stk)
         cs(n_slave)%slave = lat_ele_loc_struct(eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)

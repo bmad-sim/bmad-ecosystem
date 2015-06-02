@@ -577,7 +577,7 @@ end subroutine evaluate_expression_stack
 !   polish    -- logical, optional, Construct expression in reverse polish? Default is False.
 !
 ! Output:
-!   str       -- character(100): Expression in string form.
+!   str       -- character(200): Expression in string form.
 !-
 
 function expression_stack_to_string (stack, polish) result (str)
@@ -586,7 +586,8 @@ type (expression_atom_struct), target :: stack(:)
 type (expression_atom_struct), pointer :: atom, atom2
 type (expression_atom_struct) s2(20)
 
-character(100) str
+character(200) str
+character(200) s2_name(20)
 
 integer i, i2, ix
 logical, optional :: polish
@@ -627,69 +628,64 @@ else
     if (is_attribute(atom%type, all_var$)) then
       i2 = i2 + 1
       s2(i2)%type = numeric$
-      write (s2(i2)%name, '(a, i4.4)') '#', i  ! Temp encoding to avoid string overflow.
+
+      if (atom%name == '') then
+        s2_name(i2) = trim(real_to_string(atom%value))
+      else
+        s2_name(i2) = trim(atom%name)
+      endif
       cycle
     endif
 
     select case (atom%type)
     case (plus$, minus$, times$, divide$, power$)
-      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2(i2-1)%name = '(' // trim(s2(i2-1)%name) // ')'
+      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2(i2-1)%name = '(' // trim(s2_name(i2-1)) // ')'
       if (atom%type == minus$ .or. atom%type == divide$) then
-        if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2(i2)%name = '(' // trim(s2(i2)%name) // ')'
+        if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       else
-        if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2(i2)%name = '(' // trim(s2(i2)%name) // ')'
+        if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       endif
-      !!s2(i2-1)%name = trim(s2(i2-1)%name) // ' ' // expression_op_name(atom%type) // ' ' // s2(i2)%name
-      s2(i2-1)%name = trim(s2(i2-1)%name) // trim(expression_op_name(atom%type)) // s2(i2)%name
+      s2_name(i2-1) = trim(s2_name(i2-1)) // trim(expression_op_name(atom%type)) // s2_name(i2)
       i2 = i2 - 1
       s2%type = atom%type
 
     case (numeric$)
       i2 = i2 + 1
-      s2(i2) = atom
-      if (s2(i2)%name == '') s2(i2)%name = real_to_string(s2(i2)%value)
+      s2(i2)%type = atom%type
+      if (atom%name == '') then
+        s2_name(i2) = real_to_string(atom%value)
+      else
+        s2_name(i2) = atom%name
+      endif
 
     case (unary_minus$, unary_plus$)
-      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2(i2)%name = '(' // trim(s2(i2)%name) // ')'
-      s2(i2)%name = '-' // s2(i2)%name
+      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
+      s2_name(i2) = '-' // s2_name(i2)
  
     case (ran$, ran_gauss$)
       i2 = i2 + 1
-      s2(i2)%name = trim(expression_op_name(atom%type)) // '()'
+      s2_name(i2) = trim(expression_op_name(atom%type)) // '()'
       s2%type = atom%type
 
     case (atan2$)
-      s2(i2-1)%name = trim(expression_op_name(atom%type)) // '(' // trim(s2(i2-1)%name) // ',' // trim(s2(i2)%name) // ')'
+      s2_name(i2-1) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2-1)) // ',' // trim(s2_name(i2)) // ')'
       i2 = i2 - 1
       s2%type = atom%type
 
     case (factorial$)
-      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2(i2)%name = '(' // trim(s2(i2)%name) // ')'
-      s2(i2)%name = trim(s2(i2)%name) // '!'
+      if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
+      s2_name(i2) = trim(s2_name(i2)) // '!'
       s2%type = atom%type
 
     case default ! Function
-      s2(i2)%name = trim(expression_op_name(atom%type)) // '(' // trim(s2(i2)%name) // ')'
+      s2_name(i2) = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)) // ')'
       s2%type = atom%type
 
     end select
 
   enddo
 
-  str = s2(i2)%name
-
-  ! expand control var encoding
-
-  do 
-    i = index(str, '#')
-    if (i == 0) exit
-    read (str(i+1:i+4), *) ix
-    if (stack(ix)%name == '') then
-      write (str, '(a, es12.4, a)') str(1:i-1), stack(ix)%value, str(i+5:)
-    else
-      str = str(1:i-1) // trim(stack(ix)%name) // str(i+5:)
-    endif
-  enddo
+  str = s2_name(i2)
 
 endif
 

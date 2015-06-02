@@ -87,13 +87,13 @@ real(rp), pointer :: r_ptr
 character(*), optional, allocatable :: lines(:)
 character(200), pointer :: li(:)
 character(200), allocatable :: li2(:)
-character(100) coef_str
-character(40) str1, str2, str3
+character(200) coef_str
+character(60) str1, str2
 character(40) a_name, name, fmt_r, fmt_a, fmt_i, fmt_l, fmt
 character(12) val_str, units
 character(8) angle, index_str
-character(2) str_i
-character(12), parameter :: r_name = 'type_ele'
+
+character(*), parameter :: r_name = 'type_ele'
 
 logical, optional, intent(in) :: type_taylor, type_wake
 logical, optional, intent(in) :: type_control, type_zero_attrib
@@ -630,7 +630,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
   if (ele%n_slave /= 0) then
     nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
 
-    n_char = 20
+    n_char = 10
     do i = 1, ele%n_slave
       slave => pointer_to_slave (ele, i)
       n_char = max(n_char, len_trim(slave%name))
@@ -639,18 +639,15 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
     select case (ele%lord_status)
 
     case (multipass_lord$, super_lord$, girder_lord$)
-      name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 3x, a)') name(1:n_char), 'Type                Index'
+      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type'
       do i = 1, ele%n_slave
         slave => pointer_to_slave (ele, i)
-        nl=nl+1; write (li(nl), '(3x, a, 3x, a20, a)') &
-                    slave%name(1:n_char), key_name(slave%key), trim(ele_loc_to_string(slave))
+        nl=nl+1; write (li(nl), '(a8, t12, a, a)') &
+                    trim(ele_loc_to_string(slave)), slave%name(1:n_char), key_name(slave%key)
       enddo
 
     case default
-      name = 'Name'
-      nl=nl+1; write (li(nl), '(3x, a, 5x, a)') name(1:n_char), 'Index     Attribute         Expression'
-
+      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute         Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         if (allocated(lat%control(i)%stack)) then
@@ -664,8 +661,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
         endif
         iv = lat%control(i)%ix_attrib
         a_name = attribute_name(slave, iv)
-        index_str = trim(ele_loc_to_string(slave))
-        nl=nl+1; write (li(nl), '(3x, a, 5x, a8, 2x, a18, a)') slave%name(1:n_char), index_str, a_name, trim(coef_str)
+        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, a)') trim(ele_loc_to_string(slave)), slave%name(1:n_char), a_name, trim(coef_str)
       enddo
     end select
 

@@ -167,17 +167,17 @@ distinction between \vn{outside_wall\$} and \vn{wall_transition\$} is
 important if particles are to be allowed to travel outside the wall.
 
 %-----------------------------------------------------------------------------
-\section{Custom Tracking: track1_preprocess and track1_postprocess)
+\section{Custom Tracking: track1_preprocess and track1_postprocess}
 \label{s:custom.track}
 \index{track1_preprocess}\index{track1_postprocess}
 
 For customizing tracking, there are three routines that are available:
 \begin{example}
-  \zzz{track1_preprocess}
-  \zzz{track1_custom}
-  \zzz{track1_postprocess}
+  \Hyperref{r:track1.preprocess}{track1_preprocess}
+  \Hyperref{r:track1.custom}{track1_custom}
+  \Hyperref{r:track1.postprocess}{track1_postprocess}
 \end{example}
-All three routines are called by the \zzz{track1} routine.
+All three routines are called by the \Hyperref{r:track1}{track1} routine.
 \vn{track1_custom} is only called when the element being tracked
 through has its tracking method set to \vn{custom}. See
 Section~\sref{s:custom.ele} for more details. The other routines are
