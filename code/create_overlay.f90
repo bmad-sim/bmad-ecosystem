@@ -1,9 +1,9 @@
 !+
-! Subroutine create_overlay (lord, contl, err, err_print_flag)
+! Subroutine create_overlay (lord, contrl, err, err_print_flag)
 !
 ! Subroutine to add the controller information to slave elements of an overlay_lord.
 !
-! Note: If the stack (in contl(i)%stack(:)) array has a single numeric term,
+! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term,
 ! the arithmatic expression is modified so that the controlled attribute is linear
 ! in lord%control_var(1) with a coefficient given by the single numeric term.
 !
@@ -14,7 +14,7 @@
 !
 ! Input:
 !   lord           -- ele_struct: Overlay element.
-!   contl(:)       -- Control_struct: control info. 1 element for each slave.
+!   contrl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
 !     slave%ix_ele      -- Index of element to control
 !     %ix_branch     -- Index of branch element belongs to.
@@ -27,7 +27,7 @@
 !   lord          -- ele_struct: Modified overlay elment
 !-
 
-subroutine create_overlay (lord, contl, err, err_print_flag)
+subroutine create_overlay (lord, contrl, err, err_print_flag)
 
 use bmad_interface, except_dummy => create_overlay
 use expression_mod
@@ -38,10 +38,10 @@ implicit none
 type (ele_struct), target :: lord
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: slave
-type (control_struct)  contl(:)
+type (control_struct)  contrl(:)
 type (control_struct), pointer :: c
 
-integer i, j, nc0, nc2, ix_con, is, n
+integer i, j, nc0, nc2, ix_con, is, n, iv
 integer ix_slave, n_slave, ix_attrib, ix_branch
 
 character(40) at_name
@@ -52,12 +52,16 @@ logical, optional :: err_print_flag
 ! Error check
 
 lat => lord%branch%lat
-n_slave = size (contl)
+n_slave = size (contrl)
 err = .true.
 
+do iv = 1, size(lord%control_var)
+  call upcase_string(lord%control_var(iv)%name)
+enddo
+
 do j = 1, n_slave
-  ix_slave  = contl(j)%slave%ix_ele
-  ix_branch = contl(j)%slave%ix_branch
+  ix_slave  = contrl(j)%slave%ix_ele
+  ix_branch = contrl(j)%slave%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
     call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
@@ -74,7 +78,7 @@ enddo
 
 ! Mark element as an overlay lord
 
-call check_controller_controls (contl, lord%name, err)
+call check_controller_controls (contrl, lord%name, err)
 if (err) return
 
 lord%lord_status = overlay_lord$
@@ -89,9 +93,9 @@ nc0 = lat%n_control_max
 nc2 = nc0
 
 do j = 1, n_slave
-  ix_attrib = contl(j)%ix_attrib
-  ix_slave = contl(j)%slave%ix_ele
-  slave => lat%branch(contl(j)%slave%ix_branch)%ele(ix_slave)
+  ix_attrib = contrl(j)%ix_attrib
+  ix_slave = contrl(j)%slave%ix_ele
+  slave => lat%branch(contrl(j)%slave%ix_branch)%ele(ix_slave)
 
   if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
 
@@ -102,10 +106,29 @@ do j = 1, n_slave
   free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag, .true.)
   err = err .or. .not. free
   c => lat%control(nc2+1)
-  call reallocate_expression_stack(c%stack, size(contl(j)%stack))
-  c = contl(j)
+  do is = 1, size(contrl(j)%stack)
+    if (contrl(j)%stack(is)%type == end_stack$) exit
+  enddo
+  call reallocate_expression_stack(c%stack, is-1)
+
+  c%stack     = contrl(j)%stack(1:is-1)
+  c%ix_attrib = contrl(j)%ix_attrib
+  c%slave     = contrl(j)%slave
+  c%ix_lord   = lord%ix_ele
+
   c%ix_lord = lord%ix_ele
   nc2 = nc2 + 1
+
+  ! Convert numeric$ type to variable index if name matches a variable
+  do is = 1, size(c%stack)
+    if (c%stack(is)%type == end_stack$) exit
+    if (c%stack(is)%type /= numeric$) cycle
+    do iv = 1, size(lord%control_var)
+      if (upcase(c%stack(is)%name) /= lord%control_var(iv)%name) cycle
+      c%stack(is)%type = iv + var_offset$
+      exit
+    enddo
+  enddo
 
   ! Convert a stack of a single constant "const" to "const * control_var(1)"
   var_found = .false.
