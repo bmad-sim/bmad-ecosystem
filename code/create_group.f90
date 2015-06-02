@@ -3,7 +3,7 @@
 !
 ! Subroutine to add the controller information to slave elements of a group_lord.
 !
-! Note: If the stack (in contl(i)%stack(:)) array has a single numeric term,
+! Note: If the stack (in contrl(i)%stack(:)) array has a single numeric term,
 ! the arithmatic expression is modified so that the controlled attribute is linear
 ! in lord%control_var(1) with a coefficient given by the single numeric term.
 !
@@ -14,7 +14,7 @@
 !
 ! Input:
 !   lord           -- ele_struct: Overlay element.
-!   contl(:)       -- Control_struct: control info. 1 element for each slave.
+!   contrl(:)      -- Control_struct: control info. 1 element for each slave.
 !     %stack         -- Arithmetic expression stack for evaluating the controlled parameter value.
 !     %slave         -- Integer: Index to lat%branch()%ele() of element controlled.
 !     %ix_attrib     -- Integer: Index in %value() array of attribute controlled.
@@ -40,7 +40,7 @@ type (control_struct)  contrl(:)
 type (branch_struct), pointer :: branch
 type (control_struct), pointer :: c
 
-integer i, ix_attrib, n_control, n_con, is, n
+integer i, j, ix_attrib, n_control, n_con, is, iv, n
 integer ix1, ix2, ix_min, ix_max, ix_slave, ix_branch
 
 logical err, free, var_found
@@ -83,6 +83,10 @@ err = .true.
 n_con = lat%n_control_max
 lord%ix1_slave = n_con + 1
 
+do iv = 1, size(lord%control_var)
+  call upcase_string(lord%control_var(iv)%name)
+enddo
+
 ! loop over all controlled elements
 
 do i = 1, n_control
@@ -124,9 +128,27 @@ do i = 1, n_control
   n_con = n_con + 1
   if (n_con > size(lat%control)) call reallocate_control (lat, n_con+100)
   c => lat%control(n_con)
-  call reallocate_expression_stack(c%stack, size(contrl(i)%stack))
-  c = contrl(i)
-  c%ix_lord = lord%ix_ele
+
+  do is = 1, size(contrl(i)%stack)
+    if (contrl(i)%stack(is)%type == end_stack$) exit
+  enddo
+  call reallocate_expression_stack(c%stack, is-1)
+
+  c%stack     = contrl(i)%stack(1:is-1)
+  c%ix_attrib = contrl(i)%ix_attrib
+  c%slave     = contrl(i)%slave
+  c%ix_lord   = lord%ix_ele
+
+  ! Convert numeric$ type to variable index if name matches a variable
+  do is = 1, size(c%stack)
+    if (c%stack(is)%type == end_stack$) exit
+    if (c%stack(is)%type /= numeric$) cycle
+    do iv = 1, size(lord%control_var)
+      if (upcase(c%stack(is)%name) /= lord%control_var(iv)%name) cycle
+      c%stack(is)%type = iv + var_offset$
+      exit
+    enddo
+  enddo
 
   ! Convert a stack of a single constant "const" to "const * control_var(1)"
   var_found = .false.

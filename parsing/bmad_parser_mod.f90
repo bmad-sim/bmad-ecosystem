@@ -4572,7 +4572,7 @@ main_loop: do n = 1, n2
           case (numeric$)
             call match_word (stk(ic)%name, lord%control_var%name, ix, can_abbreviate = .false.)
             if (ix > 0) then
-              stk(ix)%type = ix + var_offset$
+              stk(ic)%type = ix + var_offset$
             else
               call word_to_value (stk(ic)%name, lat, stk(ic)%value)
             endif
