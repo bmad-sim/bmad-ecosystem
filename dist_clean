@@ -1,6 +1,1 @@
-# General cleaning of a distribution
-
-rm -rf ${DIST_BASE_DIR}/production
-rm -rf ${DIST_BASE_DIR}/debug
-rm -rf ${DIST_BASE_DIR}/*/production
-rm -rf ${DIST_BASE_DIR}/*/debug
+Distribution_User_Utility_Wrapper
