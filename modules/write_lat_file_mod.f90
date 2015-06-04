@@ -1470,7 +1470,7 @@ type (coord_struct), allocatable :: orbit_out(:)
 type (taylor_term_struct) :: term
 type (branch_struct), pointer :: branch, branch_out
 
-real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b
+real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
@@ -1785,8 +1785,9 @@ do
         kicker_ele%value(vkick$) = val(vkick$) / 2
         val(hkick$) = 0; val(vkick$) = 0
         if (ele%key == sbend$) then
-          kicker_ele%value(hkick$) = kicker_ele%value(hkick$) - cos(ele%value(ref_tilt_tot$)) * val(g_err$) / 2
-          kicker_ele%value(vkick$) = kicker_ele%value(vkick$) - sin(ele%value(ref_tilt_tot$)) * val(vkick$) / 2
+          f = val(g_err$) * val(l$) / 2
+          kicker_ele%value(hkick$) = kicker_ele%value(hkick$) - cos(ele%value(ref_tilt_tot$)) * f
+          kicker_ele%value(vkick$) = kicker_ele%value(vkick$) - sin(ele%value(ref_tilt_tot$)) * f
           val(g_err$) = 0
         endif
         call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
