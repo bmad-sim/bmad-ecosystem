@@ -1907,7 +1907,7 @@ compute a delta value of
 \end{example}
 In general, deltas are computed as the difference between the
 arithmetic expression evaluated with the present variable values and
-the arithmetic expression evaluated with the old variable values.  In
+the arithmetic expression evaluated with the old variable values. In
 the present example, there is a single delta and it is applied to
 \vn{q[k1]} which gives this attribute a value of 0.59 = 0.5 +
 0.09. After all deltas are applied, the old variable values are set to
@@ -1946,7 +1946,6 @@ in the file. For example:
 In this example, when the lattice is read in, the value of q1[k1] would be
 $0.57 = 0.5 + (0.6^2 - 0.2^2)$ 
 
-
 \index{overlay}\index{girder}
 Different \vn{group} elements may control the same slave attribute and
 a \vn{group} element may control other \vn{group}, \vn{overlay} or
@@ -1979,24 +1978,26 @@ using the following as the \vn{default_attrib}
   accordion_edge  ! Element grows or shrinks symmetrically
   start_edge      ! Varies element's upstream edge s-position
   end_edge        ! Varies element's downstream edge s-position
-  symmetric_edge  ! Varies element's overall s-position. Constant length.
-  z_offset        ! Similar to symmetric_edge
+  s_position      ! Varies element's overall s-position. Constant length.
 \end{example}
 With \vn{accordion_edge}, \vn{start_edge}, \vn{end_edge}, and
 \vn{symmetric_edge} the longitudinal position of an elements edges are
 varied. This is done by appropriate control of the element's length
-and the lengths of the elements to either side. With \vn{z_offset} the
-physical element is offset from its reference position
-(\sref{s:offset}) and the elements on either side are untouched.
-In all cases the total length of the lattice is kept invariant.
+and the lengths of the elements to either side. With \vn{s_position}
+the physical element is offset from its reference position
+(\sref{s:offset}) and the elements on either side are untouched.  In
+all cases the total length of the lattice is kept invariant.
 
 As an example, consider \vn{accordion_edge} which varies the edges of
 an element so that the center of the element is fixed but the length
-varies. With \vn{accordion_edge} a change of, say, 0.1 in a
-\vn{group}'s \vn{command} attribute moves both edges of the element by
-0.1 meters so that the length of the element changes by 0.2 meters. To
-keep the total lattice length invariant the lengths of the elements to
-either side are varied accordingly. For example
+varies':
+\begin{example}
+  gr: group = \{Z[accordian_edge]}, var = {offset}
+A change of, say, 0.1 \vn{gr}'s \vn{offset} variable moves both edges
+of element \vn{Z} by 0.1 meters so that the length of \vn{Z} changes
+by 0.2 meters but the center of \vn{Z} is constant. To keep the total
+lattice length invariant, the lengths of the elements to either side
+are decreased by 0.1 meters to keep the total lattice length constant.
 \begin{example}
   q10: quad, l = ...
   q11: quad, l = ...
@@ -2005,7 +2006,7 @@ either side are varied accordingly. For example
   this_line: line = (... d1, q10, d2, q11, ...)
   gr2: group = \{q10[start_edge]\}, var = \{a\}, a = 0.1
 \end{example}
-The effect of varying \vn{gr2[a]} will be to lengthen the length of
+The effect of  \vn{gr2[a]} will be to lengthen the length of
 \vn{q10} and shorten the length of \vn{d1}.
 
 %-----------------------------------------------------------------

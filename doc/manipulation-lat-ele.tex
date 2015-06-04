@@ -70,6 +70,18 @@ This example constructs a group element with one variable with name
 expression ``$3.2 \cdot A^2$'' where \vn{A} is the name of the control
 variable.
 
+For constructing \vn{group} elements (but not \vn{overlay} elements),
+the controlled attribute (set by \vn{con(1)%ix_attrib} in the above
+example) can be set to, besides the set of element attributes, any one
+in the following list:
+\begin{example}
+  accordion_edge$  ! Element grows or shrinks symmetrically
+  start_edge$      ! Varies element's upstream edge s-position
+  end_edge$        ! Varies element's downstream edge s-position
+  s_position$      ! Varies element's overall s-position. Constant length.
+\end{example}
+See Section~\sref{s:group} for the meaning of these attributes
+
 %---------------------------------------------------------------------------
 \section{Finding Elements and Changing Attribute Values}
 \label{s:lat.ele.change}

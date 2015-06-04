@@ -1,6 +1,5 @@
 
 import bpy
-import os
 import re
 from mathutils import Matrix, Vector
 from math import sin, cos, pi, sqrt
@@ -73,35 +72,14 @@ def clear_objects():
     
 #clear_objects()
 
-
-
-def map_table_dict(line):
-    d = {}
-    vals = line.split(',')[0:14]
-    #d['layer']  = vals[0].strip()
-    d['name']   = vals[0].strip()
-    d['index']  = int(vals[1])
-    d['x']      = float(vals[2])
-    d['y']      = float(vals[3])
-    d['z']      = float(vals[4])
-    d['theta']  = float(vals[5])
-    d['phi']    = float(vals[6])
-    d['psi']    = float(vals[7])
-    d['key']    = vals[8].strip()
-    d['L']      = float(vals[9])  
-    if d['key']=='SBEND':
-        d['angle'] = float(vals[10]) 
-        d['e1'] = float(vals[11]) 
-        d['e2'] = float(vals[12])  
-    d['descrip'] = vals[13]  
-    return d
-
 def blendfile(ele):
     match = re.search('3DMODEL=(.+?).blend', ele['descrip'])
     if match:
         return match.group(1)+'.blend'
     else:
         return None
+
+# import_lattice is no longer used and can be deleted...
 
 def import_lattice(file):
     f = open(file, 'r')
@@ -282,19 +260,12 @@ def add_children_from_blend(parent, blendfilepath, libdict):
         child.parent = parent         
 
 
-#basename = 'erl0.lat'
-#basename = 'cesr_upgrade'
-basename = 'lat_1'
-#basename = 'erl_1pass.lat'
-#basename = 'lat_1'
-#basename='basics'
-#basename = 'simple_arc'
-#ROOT='C:\\Users\\Chrisonian\\Dropbox\\Blender\\'
-ROOT='/home/dcs16/xray/reu2015/'
-CATALOGUE=ROOT+'Catalogue/'
-file = ROOT+basename+'.layout_table'
-print('IMPORTING: ', file)
-lat = import_lattice(file)    
+## basename = 'lat_1'
+## file = basename + '.layout_table'
+## print('IMPORTING: ', file)
+## lat = import_lattice(file)    
+
+CATALOGUE='Catalogue/'
 
 REALMODELSON = True
 
@@ -430,10 +401,10 @@ def make_floor():
   
 print('XYZ centers: ', Xcenter, Ycenter, Zcenter)  
   
-bpy.context.scene.render.filepath = ROOT+basename+".png"
+bpy.context.scene.render.filepath = basename+".png"
 bpy.context.scene.render.resolution_percentage = 100
 #bpy.ops.render.render(use_viewport = True, write_still=True)
 
 #ortho_camera_at(10, 35)
-#bpy.context.scene.render.filepath = ROOT+basename+"_ortho.png"
+#bpy.context.scene.render.filepath = basename+"_ortho.png"
 #bpy.ops.render.render(use_viewport = True, write_still=True)
