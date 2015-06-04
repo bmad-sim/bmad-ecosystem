@@ -340,7 +340,9 @@ Note: The \vn{help} command works by parsing the file
 Line Mode Commands chapter of the \tao manual. Thus, for the \vn{help}
 command to work properly, the environmental variable \vn{TAO_DIR} must
 be appropriately defined. Generally, \vn{TAO_DIR} will be defined if
-the \bmad library setup scripts have been run.
+the appropriate setup script has been run. For ``Distributions'', this
+is the same setup script used to setup a distribution. See your local
+\bmad guru for details.
 
 %% history --------------------------------------------------------------
 \section{history}\index{commands!history}
@@ -2224,11 +2226,11 @@ Examples:
 The \vn{write} command creates various files.
 Format:
 \begin{example}
-  write 3d_floor_plan \{<file_name>\}      ! Write python script for displaying lattice.
-  write blender_layout \{<file_name>\}     ! Write a layout table for external use in blender
+  write 3d_model \{<file_name>\}           ! Write a blender script for a 3D lattice display.
   write bmad_lattice \{<file_name>\}       ! Write a Bmad lattice file of the model
   write beam \{-ascii\} -at <element_list> \{<file_name>\} 
                                          ! Write beam distribution data (\sref{s:beamfile}).
+  write blender \{<file_name>\}            ! Write a blender script (Same as 3d_model).
   write covariance_matrix \{file_name\}    ! Write the covariance and alpha matrices 
                                          !   from the Levenburg (lm) optimization.
   write curve <curve_name> \{<file_name>\} ! Write the curve data
@@ -2254,10 +2256,10 @@ If \vn{<file_name>} is not given then the defaults are:
 \begin{example}
   Command                        Default File Name
   ------------------             ------------------
-  write 3d_floor_plan            3d_floor_plan.jou
-  write blender_layout           lat_#.layout_table
+  write 3d_model                 blender_lat_#.py
   write bmad_lattice             lat_#.bmad
   write beam                     beam_#.dat
+  write blender                  blender_lat_#.py
   write curve                    curve
   write derivative_mat           derivative_matrix.dat              
   write digested                 digested8_lat_universe_#.bmad
@@ -2285,23 +2287,17 @@ scale for the postscript file. The default is 0 which autoscales to fit an
 8-1/2 by 11 sheet of paper. A value of 1.0 will result in no scaling,
 2.0 will double the size, etc.
 
-The \vn{write 3d_floor_plan} creates a script which can then be run
-read in by the \vn{cubit} program\cite{b:cubit}. This script will
-create a 3D display of the lattice in the current default universe
-(\sref{s:universe}). The suffix '.jou' will be appended if the given
-file name does not have it. To read in the script to \vn{cubit}:
+The \vn{write 3d_model} or \vn{write blender} creates a script which
+can then be run by the \vn{blender} program\cite{b:blender}.
+\vn{Blender} is a free, open source, program for creating, among other
+things, 3D images. This script will create a 3D model of the lattice
+in the current default universe (\sref{s:universe}). The suffix must
+by '.py' and if this suffix is not present it will be added. To run in
+the script in \vn{blender}:
 \begin{example}
-  0) Run cubit
-  1) Click on the ``Play Journal File'' button (near the upper right hand corner).
-     And then choose the correct file from the file view pop up window.
+  0) Run blender
+  1) ...
 \end{example}
-Note: To change the 3D rotation center in \vn{cubit}, use the command:
-\begin{example}
-  view at <volume-name>
-\end{example}
-or choose a volume, right click in the Graphics Window, and choose
-``Rotate About''.  See the \vn{cubit} manual for instructions
-for panning, zooming, etc.
 
 The \vn{write variable} command has an optional \vn{-good_var_only}
 switch.  If present, only the information on variables that are
