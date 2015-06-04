@@ -405,6 +405,20 @@ interface
     integer ix_match
   end function
 
+  function str_find_last_in_set(line, set) result (ix_match)
+    implicit none
+    character(*) line
+    character(*) set
+    integer ix_match
+  end function
+
+  function str_find_last_not_in_set(line, set) result (ix_match)
+    implicit none
+    character(*) line
+    character(*) set
+    integer ix_match
+  end function
+
   subroutine string_to_int (line, default, value, err_flag)
     implicit none
     integer default
