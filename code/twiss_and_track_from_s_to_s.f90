@@ -34,7 +34,7 @@
 !
 ! Output:
 !   orbit_end      -- Coord_struct: End phase space coordinates. 
-!   ele_end        -- Ele_struct, optional: Holds the ending Twiss parameters.
+!   ele_end        -- Ele_struct, optional: Holds the ending Twiss parameters and the transfer matrix.
 !                       If present then the ele_start argument must also be present.
 !   err            -- Logical, optional: Set True if there is a problem like 
 !                      the particle gets lost in tracking
