@@ -20,7 +20,34 @@ integer :: iu, n, ix_ele
 
 ! Header
 
-write(iu, '(a)') 'ele_name, ix_ele, x, y, z, theta ,phi, psi, key, L, custom1, custom2, custom3, descrip'
+write (iu, '(a)') "import os"
+write (iu, *)
+write (iu, '(a)') "def map_table_dict(line, des):"
+write (iu, '(a)') "    d = {}"
+write (iu, '(a)') "    vals = line.split(',')[0:14]"
+write (iu, '(a)') "    #d['layer']  = vals[0].strip()"
+write (iu, '(a)') "    d['name']   = vals[0].strip()"
+write (iu, '(a)') "    d['index']  = int(vals[1])"
+write (iu, '(a)') "    d['x']      = float(vals[2])"
+write (iu, '(a)') "    d['y']      = float(vals[3])"
+write (iu, '(a)') "    d['z']      = float(vals[4])"
+write (iu, '(a)') "    d['theta']  = float(vals[5])"
+write (iu, '(a)') "    d['phi']    = float(vals[6])"
+write (iu, '(a)') "    d['psi']    = float(vals[7])"
+write (iu, '(a)') "    d['key']    = vals[8].strip()"
+write (iu, '(a)') "    d['L']      = float(vals[9])  "
+write (iu, '(a)') "    if d['key']=='SBEND':"
+write (iu, '(a)') "        d['angle'] = float(vals[10])"
+write (iu, '(a)') "        d['e1'] = float(vals[11])"
+write (iu, '(a)') "        d['e2'] = float(vals[12])"
+write (iu, '(a)') "    d['descrip'] = des"
+write (iu, '(a)') "    return d"
+write (iu, *)
+write (iu, '(a)') 'lat = []'
+write (iu, '(a)') '# ele_name, ix_ele, x, y, z, theta ,phi, psi, key, L, custom1, custom2, custom3, descrip'
+write (iu, *)
+
+! Elements
 
 do n = 0, ubound(lat%branch, 1)
   do ix_ele = 0, lat%branch(n)%n_ele_max
@@ -31,6 +58,13 @@ do n = 0, ubound(lat%branch, 1)
 
   enddo
 enddo
+
+! Footer
+
+write (iu, *)
+write (iu, '(a)') "tao_dir = os.environ['TAO_DIR']"
+write (iu, '(a)') "template_file = tao_dir + '../bmad/scripts/blender_script_template.py'"
+write (iu, '(a)') "execfile(template_file)"
 
 end subroutine write_blender_lat_layout
 
@@ -72,6 +106,7 @@ real(rp) :: w_mat(3,3), w2_mat(3,3)
 integer :: iu
 
 character(2), parameter :: c = ', '
+character(200) des
 character(500) line
 
 !
@@ -92,6 +127,8 @@ end select
 
 call floor_w_mat_to_angles (w_mat, 0.0_rp, p%theta, p%phi, p%psi)
 
+
+
 write(line, '(2a, i0, a, 6(es14.6, a), 2a, es14.6, a)') trim(ele%name), c,  ele%ix_ele, c, &
                     p%r(1), c, p%r(2), c, p%r(3), c, p%theta, c, p%phi, c, p%psi, c, &
                     trim(key_name(ele%key)), c, ele%value(l$)
@@ -105,15 +142,12 @@ case default
   write (line, '(2a)') trim(line), ', 0.0, 0.0, 0.0'
 end select
 
-if (associated(ele%descrip)) then
-  write (line, '(4a)') trim(line), ', "', trim(ele%descrip), '"'
-else
-  write (line, '(2a)') trim(line), ', ""'
-endif
+des = ''
+if (associated(ele%descrip)) des = ele%descrip
 
 !
 
-write (iu, '(a)') trim(line)
+write (iu, '(5a)') 'lat.append(map_table_dict("', trim(line), '", "', trim(des), '"))'
 
 end subroutine write_blender_ele
 

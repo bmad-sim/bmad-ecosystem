@@ -595,7 +595,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       end select
 
       nl=nl+1; write (li(nl), '(i8, 3x, a32, a18, 2x, a20, a)') &
-            lord%ix_ele, lord%name, a_name, key_name(lord%key), coef_str
+            lord%ix_ele, lord%name, a_name, key_name(lord%key), trim(coef_str)
     enddo
     nl=nl+1; li(nl) = ''
 
