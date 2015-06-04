@@ -4,9 +4,6 @@
 ! Function to locate the first character in "line" that matches
 ! a character in "set". If no match is found, function returns 0.
 !
-! Modules needed:
-!   
-!
 ! Input:
 !   line, set -- Character(*)
 !
@@ -23,7 +20,7 @@ integer ix_match
 ! Find first character in "line" that is in "set"
 
 do ix_match = 1, len(line)
-   if(index(set,line(ix_match:ix_match)) /= 0) return
+   if (index(set,line(ix_match:ix_match)) /= 0) return
 enddo
 
 ix_match = 0 ! no match found

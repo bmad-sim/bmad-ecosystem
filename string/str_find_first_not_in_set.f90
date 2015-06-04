@@ -5,9 +5,6 @@
 ! does not match a character in "set". If all characters match,
 ! function returns 0.
 !
-! Modules needed:
-!   
-!
 ! Input:
 !   line, set -- Character(*)
 !
@@ -24,7 +21,7 @@ integer ix_match
 ! return the first character in "set" not found in "line"
 
 do ix_match = 1, len(line)
-   if(index(set, line(ix_match:ix_match)) == 0) return
+   if (index(set, line(ix_match:ix_match)) == 0) return
 enddo
 
 ix_match = 0 ! no match found
