@@ -1,3 +1,9 @@
+!+
+! This module is for creating a Cubit script.
+! This module is not used. 
+! 3D modeling is now done with the Blender program.
+!-
+
 module tao_write_3d_mod
 
 use tao_utils

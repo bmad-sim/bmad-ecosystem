@@ -16,7 +16,6 @@ use tao_mod, dummy => tao_write_cmd
 use tao_command_mod, dummy2 => tao_write_cmd
 use tao_plot_mod, dummy3 => tao_write_cmd
 use tao_top10_mod, dummy4 => tao_write_cmd
-use tao_write_3d_mod, dummy5 => tao_write_cmd
 use madx_ptc_module, only: m_u, m_t, print_universe_pointed, print_complex_single_structure, print_new_flat, print_universe
 
 implicit none
@@ -45,8 +44,8 @@ character(20) :: names(24) = [ &
       'bmad_lattice     ', 'derivative_matrix', 'digested         ', 'curve            ', &
       'mad_lattice      ', 'beam             ', 'ps-l             ', 'hard-l           ', &
       'covariance_matrix', 'orbit            ', 'mad8_lattice     ', 'madx_lattice     ', &
-      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_floor_plot    ', &
-      'gif-l            ', 'ptc              ', 'sad_lattice      ', 'blender_layout   ']
+      'pdf              ', 'pdf-l            ', 'opal_lattice     ', '3d_model         ', &
+      'gif-l            ', 'ptc              ', 'sad_lattice      ', 'blender          ']
 
 integer i, j, n, ie, ix, iu, nd, ii, i_uni, ib, ip, ios, loc
 integer i_chan, ix_beam, ix_word, ix_w2
@@ -74,24 +73,6 @@ endif
 action = names(ix)
 
 select case (action)
-
-!---------------------------------------------------
-! 3d_floor_plot
-
-case ('3d_floor_plot')
-
-  file_name = '3d_floor_plot.jou'
-  if (word(1) /= '') file_name = word(1)
-
-  if (word(2) /= '') then
-    call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
-    return
-  endif
-
-  ix = max(1, len_trim(file_name) - 3)
-  if (file_name(ix:ix+3) /= '.jou') file_name(ix+3:) = '.jou'
-
-  call tao_write_3d_floor_plan(file_name, s%u(s%com%default_universe)%model%lat)
 
 !---------------------------------------------------
 ! beam
@@ -206,11 +187,11 @@ case ('beam')
 
 
 !---------------------------------------------------
-! blender_layout
+! 3D model script for Blender
 
-case ('blender_layout')
+case ('3d_model', 'blender')
 
-  file_name0 = 'lat_#.layout_table'
+  file_name0 = 'blender_lat_#.py'
   if (word(1) /= '') file_name0 = word(1) 
 
   if (word(2) /= '') then
@@ -220,13 +201,9 @@ case ('blender_layout')
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. tao_subin_uni_number (file_name0, i, file_name)) return
-    iu = lunget()
-    open (iu, file = file_name)
-    call write_blender_lat_layout (iu, s%u(i)%model%lat)
-    close(iu)
-    call out_io (s_info$, r_name, 'Writen: ' // file_name)
+    call write_blender_lat_layout (file_name, s%u(i)%model%lat)
+    call out_io (s_info$, r_name, 'Written: ' // file_name)
   enddo
-
 
 !---------------------------------------------------
 ! bmad_lattice
