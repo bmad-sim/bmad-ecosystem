@@ -1316,7 +1316,7 @@ endif
 
 if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
   sp(ix_wrap2:n_sec)%s = sp(ix_wrap2:n_sec)%s - (s_max - s_min)
-  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2)]
+  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2-1)]
 endif
 
 end subroutine add_in_ele_wall_sections
@@ -1413,8 +1413,8 @@ if (ix_wrap2 /= 0 .and. branch%param%geometry == closed$) then
     n_sec = n_sec - ii
     ix_wrap2 = ix_wrap2 - ii
     exit
-  enddo    
-  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2)]
+  enddo
+  sp(1:n_sec) = [sp(ix_wrap2:n_sec), sp(1:ix_wrap2-1)]
 endif
 
 end subroutine superimpose_this_wall 
