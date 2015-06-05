@@ -698,10 +698,9 @@ do ib = 0, ubound(lat%branch, 1)
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
       if (attrib%name == null_name$) then
-        print *, 'ERROR IN WRITE_BMAD_LATTICE_FILE:'
-        print *, '      ELEMENT: ', ele%name
-        print *, '      HAS AN UNKNOWN ATTRIBUTE INDEX:', j
-        stop
+        call out_io (s_error$, r_name, 'ELEMENT: ' // ele%name, 'HAS AN UNKNOWN ATTRIBUTE INDEX: \i0\ ', i_array = [j])
+        if (global_com%exit_on_error) call err_exit
+        return
       endif
 
       if (attrib%name == 'COUPLER_AT') then
@@ -1194,7 +1193,7 @@ endif
 
 if (len_trim(line) > 80) call write_lat_line(line, iu, .false.)
 
-end subroutine
+end subroutine write_line_element
 
 !-------------------------------------------------------
 !-------------------------------------------------------
@@ -1400,9 +1399,9 @@ else
   write (iu, '(2x, a)') trim(line2)
 endif
 
-end subroutine
+end subroutine write_this
 
-end subroutine
+end subroutine write_lat_line
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -1774,13 +1773,14 @@ do
 
   ! If there are nonzero kick values and this is not a kick type element then put
   ! kicker elements at half strength just before and just after the element.
+  ! Also add a matrix element to get the change in z correct.
   ! A sad_mult gets translated to a matrix element which has kick components so no extra kickers needed here.
 
   if (has_hkick_attributes(ele%key)) then
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0 .or. (ele%key == sbend$ .and. ele%value(g_err$) /= 0)) then
         j_count = j_count + 1
-        write (kicker_ele%name,   '(a, i0)') 'KICKER_Z', j_count
+        write (kicker_ele%name, '(a, i0)') 'KICKER_Z', j_count
         kicker_ele%value(hkick$) = val(hkick$) / 2
         kicker_ele%value(vkick$) = val(vkick$) / 2
         val(hkick$) = 0; val(vkick$) = 0
@@ -1790,9 +1790,14 @@ do
           kicker_ele%value(vkick$) = kicker_ele%value(vkick$) - sin(ele%value(ref_tilt_tot$)) * f
           val(g_err$) = 0
         endif
+        write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
+        call taylor_make_unit(taylor_ele%taylor)
+        f = -(kicker_ele%value(hkick$)**2 + kicker_ele%value(vkick$)**2) * val(l$) / 6
+        call add_taylor_term (taylor_ele%taylor(5), f)
         call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
         call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
-        ie2 = ie2 + 2
+        call insert_element (lat_out, taylor_ele, ix_ele+3, branch%ix_branch, orbit_out)
+        ie2 = ie2 + 3
         cycle
       endif
     endif
