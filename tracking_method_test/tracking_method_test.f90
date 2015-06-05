@@ -115,8 +115,9 @@ character(38) :: instr
     case('SBEND4:Linear')                        ; tolerance = 'REL 1E-09'
     case('SBEND6:Symp_Lie_PTC')                  ; tolerance = 'REL 2E-05'
     case('SBEND6:Linear')                        ; tolerance = 'REL 2E-05'
+    case('SBEND6:Taylor')                        ; tolerance = 'REL 2E-08'
     case('LCAVITY1:Time_Runge_Kutta')            ; tolerance = 'REL 1E-09'
-    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'REL 1E-09'
+    case('LCAVITY3:Time_Runge_Kutta')            ; tolerance = 'REL 2E-09'
     case default                                 ; tolerance = 'REL 1E-10'
   end select
 
