@@ -86,7 +86,7 @@ roughly corresponds to the PTC \vn{layout_array(:)}, the
 \end{figure}
 
 %--------------------------------------------------------------------------
-\section{Initialization}
+\section{PTC Initialization}
 \label{s:ptc.init}
 \index{PTC/FPP!initialization}
 
@@ -100,6 +100,21 @@ That is, if a program does not use \vn{bmad_parser} then to use PTC it
 must call \vn{set_ptc}. Note that resetting PTC to a different order
 reinitializes PTC's internal memory so one must be careful if one wants
 to change the order in mid program.
+
+%--------------------------------------------------------------------------
+\section{Variable Initialization and Finalization}
+\label{s:ptc.var.init}
+\index{PTC/FPP variable!initialization}
+
+PTC variables must be initialized and finalized. This is done with
+the\vn{alloc()} and \vn{kill()} routines. In addition, the \vn{real_8_init}
+routine can initialize a \vn{real_8} array:
+\begin{example}
+  type (real_8) y8(6) 
+  ...
+  call real_8_init (y8)
+  call kill (y8)
+\end[example}
 
 %--------------------------------------------------------------------------
 \section{Correspondence between Bmad elements and PTC fibres}.
