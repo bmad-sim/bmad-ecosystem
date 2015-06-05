@@ -1,8 +1,6 @@
 set (EXENAME wall3d_test)
 
-set (SRC_FILES
-  wall3d_test/wall3d_test.f90
-)
+FILE (GLOB SRC_FILES "wall3d_test/*.f90")
 
 set (INC_DIRS
 )
