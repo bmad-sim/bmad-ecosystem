@@ -75,7 +75,7 @@ write (iu, '(a)') "bmad_base_dir = os.getenv('BMAD_BASE_DIR')"
 write (iu, '(a)') "if bmad_base_dir == None: bmad_base_dir = os.getenv('DIST_BASE_DIR')"
 write (iu, '(a)') "if bmad_base_dir == None: bmad_base_dir = os.getenv('ACC_RELEASE_DIR')"
 write (iu, '(a)') "basename = '" // trim(basename) // "'"
-write (iu, '(a)') "template_file = bmad_base_dir + '/bmad/scripts/blender_script_template.py'"
+write (iu, '(a)') "template_file = bmad_base_dir + '/bmad/scripts/blender_base.py'"
 write (iu, '(a)') "exec(open(template_file).read())"
 
 close(iu)
