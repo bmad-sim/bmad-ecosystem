@@ -190,6 +190,7 @@ write (1, '(a, es10.2)')  '"mat_convert" ABS 1E-15', maxval(abs(m6))
 
 ! Map translation
 
+call real_8_init(y8)
 call taylor_to_real_8 (lat3%ele(1)%taylor, lat3%ele(1)%taylor%ref, beta0, beta1, y8)
 call real_8_to_taylor (y8, lat3%ele(1)%taylor%ref, beta0, beta1, bmad_taylor)
 bmad_taylor = bmad_taylor - lat3%ele(1)%taylor
