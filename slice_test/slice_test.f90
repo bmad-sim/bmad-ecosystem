@@ -9,23 +9,23 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele0, ele, zele
-type (ele_struct) ele1, ele2a, ele2b, end_ele
+type (ele_struct) ele1, ele2a, ele2b, end_ele, ele2
 type (coord_struct), allocatable :: ref_orb(:)
 type (coord_struct) orb1, orb2a, orb2b, orb2c, orb2d
 type (coord_struct) start_orb, end_orb, end_orb2, orbit
 type (taylor_struct) t_map(6)
 type (em_field_struct) field
 
-real(rp) s1, s2, s_end
-real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6), xmat(6,6)
+real(rp) s0, s1, s2, s_end
+real(rp) xmat_c(6,6), vec0_c(6), xmat_d(6,6), vec0_d(6), xmat(6,6), xmat2(6,6)
 
-integer i, j, idum, nargs
+integer i, j, idum, nargs, is
 logical print_extra, err
 character(100) lat_file
 
-!
+! test with elements.bmad
 
-lat_file = 'slice_test.bmad'
+lat_file = 'elements.bmad'
 print_extra = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
@@ -36,6 +36,35 @@ elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
 endif
+
+call bmad_parser (lat_file, lat)
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  call init_coord (start_orb, lat%beam_start, ele, upstream_end$, lat%param%particle)
+  call track1 (start_orb, ele, lat%param, end_orb)
+  call make_mat6 (ele, lat%param, start_orb)
+  xmat = ele%mat6
+  s0 = lat%ele(i-1)%s; s1 = ele%s
+  end_orb2 = start_orb
+  ele2 = lat%ele(i-1)
+  ele2%a = lat%ele(0)%a;  ele2%b = lat%ele(0)%b  ! Just to have some non-zero beta
+  call mat_make_unit(xmat2)
+  do is = 1, 10
+    s_end = (s0 * (10 - is) + s1 * is) / 10
+    call twiss_and_track_from_s_to_s (lat%branch(0), end_orb2, s_end, end_orb2, ele2, ele2, err)
+    xmat2 = matmul(ele2%mat6, xmat2)
+    if (err) exit
+  enddo
+  !write (1, '()') end_orb2%vec - end_orb%vec
+  !write (1, '()') end_orb2%vec - end_orb%vec
+enddo
+
+if (print_extra) stop
+
+!-------------------------------------------------
+!-------------------------------------------------
+! test with slice_test.bmad
 
 call bmad_parser ('slice_test.bmad', lat)
 open (1, file = 'output.now')
@@ -93,8 +122,6 @@ write (1, '(a, 6es18.9)') '"rfcav-rk:dvec" ABS 1e-14', end_orb2%vec - end_orb%ve
 write (1, '(a, es18.9)')  '"rfcav-rk:dt"   ABS 1e-8 ', c_light * (end_orb2%t - end_orb%t)
 write (1, '(a, 6es18.9)') '"rfcav-rk:dmat" ABS 1e-10', (maxval(abs(xmat(j,:)-branch%ele(4)%mat6(j,:))), j = 1, 6)
 
-
-if (print_extra) stop
 
 !------------------------------------------------
 ! Test branch 1
