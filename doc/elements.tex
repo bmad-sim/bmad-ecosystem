@@ -633,9 +633,10 @@ as shown in \fig{f:true.rbend}. That is
 \end{example}
 In this case, the tracking geometry is parallel, to the bend face as
 shown in the figure. This can be an advantage in some situations but
-Etienne discourages use of \vn{true_rbend} due to complications of how
-to handle the reference frames in particular when you have more than
-one of them in a row.
+Etienne Forest discourages use of \vn{true_rbend} due to complications
+of how to handle the reference frames. In particular, how to handle
+the reference frames is problematic when you have more than one of
+them in a row.
 
 %-----------------------------------------------------------------
 \section{Capillary}
@@ -1992,7 +1993,8 @@ As an example, consider \vn{accordion_edge} which varies the edges of
 an element so that the center of the element is fixed but the length
 varies':
 \begin{example}
-  gr: group = \{Z[accordian_edge]}, var = {offset}
+  gr: group = \{Z[accordian_edge]\}, var = \{offset\}
+\end{example}
 A change of, say, 0.1 \vn{gr}'s \vn{offset} variable moves both edges
 of element \vn{Z} by 0.1 meters so that the length of \vn{Z} changes
 by 0.2 meters but the center of \vn{Z} is constant. To keep the total
@@ -2008,6 +2010,14 @@ are decreased by 0.1 meters to keep the total lattice length constant.
 \end{example}
 The effect of  \vn{gr2[a]} will be to lengthen the length of
 \vn{q10} and shorten the length of \vn{d1}.
+
+A lattice file may contain lines and lattice elements that are not
+part of the actual lattice when the lattice is constructed. \vn{Group}
+elements where {\em none} of its slave elements are part of the
+finished lattice are ignored and are also not part of the finished
+lattice. It is not permitted to have \vn{group} elements that have
+some slave elements that are part of the finished lattice and some
+slave elements that are not.
 
 %-----------------------------------------------------------------
 \section{Hybrid}
@@ -2730,6 +2740,14 @@ same element attribute. And an \vn{overlay} element may control other
 make sense for an \vn{overlay} element to control the same attribute
 as a \vn{group} element or for an \vn{overlay} element to control a
 \vn{dependent} attribute (\sref{s:depend}).
+
+A lattice file may contain lines and lattice elements that are not
+part of the actual lattice when the lattice is constructed. \vn{Overlay}
+elements where {\em none} of its slave elements are part of the
+finished lattice are ignored and are also not part of the finished
+lattice. It is not permitted to have \vn{overlay} elements that have
+some slave elements that are part of the finished lattice and some
+slave elements that are not.
 
 %-----------------------------------------------------------------
 \section{Patch}
