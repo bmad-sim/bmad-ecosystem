@@ -121,13 +121,13 @@ improvement in speed over \vn{Symp_Lie_PTC}.
 \index{symp_lie_ptc!tracking_method}
 \item[\vn{Symp_Lie_PTC}]
 Symplectic tracking using a Hamiltonian with Lie operator techniques.
-This uses Etienne Forest's PTC (\sref{s:ptc.intro}) software for the
+This uses \'Etienne Forest's PTC (\sref{s:ptc.intro}) software for the
 calculation. This method is symplectic but can be slow.
 
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
-uses Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the
+uses \'Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the
 map is implicit, a Newton search method must be used. This will slow
 things down from the Taylor method but this is guaranteed
 symplectic. Note: Due to memory limitations in PTC, the number of
@@ -330,14 +330,14 @@ This method is symplectic but can be slow.
 \index{symp_map!tracking_method}
 \item[\vn{Symp_Map}]
 This uses a partially inverted, implicit Taylor map. The calculation
-uses Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton
+uses \'Etienne Forest's PTC software (\sref{s:ptc.intro}).  Since the map is implicit, a Newton
 search method must be used. This will slow things down from the Taylor
 method but this is guaranteed symplectic. Note: Due to memory limitations
 in PTC, the number of elements using symp_map is limited to be of order 50.
 
 \index{taylor!mat6_calc_method}
 \item[\vn{Taylor}]
-This uses a Taylor map generated from Etienne's PTC
+This uses a Taylor map generated from \'Etienne's PTC
 package. Generating the map may take time but once you have it it
 should be very fast. One possible problem with using a Taylor map is
 that you have to worry about the accuracy if you do a calculation at
@@ -476,7 +476,7 @@ space particle coordinates using the local fields. For all other
 \index{symp_lie_ptc!spin_tracking_method}
 \item[\vn{Symp_Lie_PTC}] \Newline
 Symplectic integration using a Hamiltonian and Lie operators.
-This uses Etienne's PTC software for the calculation.
+This uses \'Etienne's PTC software for the calculation.
 This method is symplectic but can be slow.
 
 \end{description}
