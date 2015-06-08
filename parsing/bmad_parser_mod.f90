@@ -4492,7 +4492,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (expression_atom_struct) :: stk(200)
 
 integer i, n, ic, ig, k, ix, ib, ie, n_list, ns, ixs, ii, ix_end, n2
-integer n_match, n_slave, nn, n_loc, n_stk, n_names
+integer n_slave, nn, n_loc, n_stk, n_names, n_in_loc
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 
 character(60) err_str
@@ -4513,46 +4513,51 @@ main_loop: do n = 1, n2
   select case (lord%key)
   case (overlay$, group$)
  
-    call new_control (lat, ix_lord)  ! get index in lat where lord goes
-    lat%ele(ix_lord) = lord
+    ! If all slave elements are defined in in_lat, but are not present in lat, then
+    ! this lord can be ignored.
 
-    ! Find where the slave elements are. 
-    ! If a slave element is not in lat but is in in_lat then the slave has 
-    ! not yet been used in the lattice list. 
-    ! In this case, do not add the lord to the lattice.
-
-    ! First count the number of slaves
-    n_match = 0
-    do i = 1, size(pele%name)
-      call lat_ele_locator (pele%name(i), lat, eles, n_loc, err)
-      n_match = n_match + n_loc
-    enddo
-
-    if (allocated(cs)) then
-      if (size(cs) < n_match) deallocate(cs)
-    endif
-    if (.not. allocated(cs)) allocate (cs(n_match))
-
-    n_slave = 0 ! number of slaves found
-    slave_not_in_lat = .false.  ! Is there a slave that is not in the lattice?
+    slave_not_in_lat = .false.
+    n_in_loc = 1
+    n_slave = 0
 
     do i = 1, size(pele%name)
-
       name = pele%name(i)
       call lat_ele_locator (name, lat, eles, n_loc, err)
+      n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
         slave_not_in_lat = .true.
         missing_slave_name = name
+        call lat_ele_locator (name, in_lat, eles, n_in_loc, err)
       endif
 
       if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
-          (n_loc == 0 .and. all(in_lat%ele(1:n2)%name /= name))) then
+          (n_loc == 0 .and. n_in_loc == 0)) then
         call parser_error ('CANNOT FIND SLAVE FOR: ' // lord%name, &
-                      'CANNOT FIND: '// missing_slave_name, pele = pele)
-        lat%n_ele_max = lat%n_ele_max - 1 ! Undo new_control call
+                           'CANNOT FIND: '// missing_slave_name, pele = pele)
         cycle main_loop
       endif
+    enddo
+
+    if (n_slave == 0) cycle main_loop
+
+    ! Create the lord in lat
+
+    call new_control (lat, ix_lord)  ! get index in lat where lord goes
+    lat%ele(ix_lord) = lord
+
+    if (allocated(cs)) then
+      if (size(cs) < n_slave) deallocate(cs)
+    endif
+    if (.not. allocated(cs)) allocate (cs(n_slave))
+
+    ! Slave setup
+
+    n_slave = 0 ! number of slaves found
+    do i = 1, size(pele%name)
+
+      name = pele%name(i)
+      call lat_ele_locator (name, lat, eles, n_loc, err)
 
       ! Expression string to stack
 

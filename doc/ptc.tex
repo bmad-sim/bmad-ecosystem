@@ -1,10 +1,10 @@
-\chapter{Etienne Forest's PTC/FPP}
+\chapter{\'Etienne Forest's PTC/FPP}
 \label{c:ptc}
 \index{PTC/FPP}
 %----------------------------------------------------------------------------
 
 The PTC/FPP (Polymorphic Tracking Code / Fully Polymorphic Package)
-library of Etienne Forest handles Taylor maps to any arbitrary
+library of \'Etienne Forest handles Taylor maps to any arbitrary
 order. this is also known as Truncated Power Series Algebra
 (TPSA). The core Differential Algebra (DA) package used by PTC was
 developed by Martin Berz\cite{b:berz}.  For more information see the
@@ -151,7 +151,7 @@ end.
 \index{PTC/FPP!real_8}\index{PTC/FPP!universal_taylor}
 FPP stores its \vn{real_8} Taylor maps in such a way that it is not
 easy to access them directly to look at the particular terms. To
-simplify life, Etienne has implemented the
+simplify life, \'Etienne has implemented the
 \vn{universal_taylor}structure:
 \begin{example}
   type universal_taylor
@@ -162,7 +162,7 @@ simplify life, Etienne has implemented the
   end type
 \end{example}
 \bmad always sets \vn{nv} = 6. \bmad overloads the equal sign to call 
-routines to convert between Etienne's
+routines to convert between \'Etienne's
 \vn{real_8} Taylor maps and \vn{universal_taylor}:
 \begin{example}
   type (real_8) tlr(6)           ! Taylor map
