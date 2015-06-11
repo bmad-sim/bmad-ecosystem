@@ -13,11 +13,11 @@ use geometry_mod
 ! Routine to calculate the twiss parameters, transport matrices and orbit.
 !
 ! This routine is an overloaded name for:
-!   twiss_and_track_main (lat, orb, ok, ix_branch)
+!   twiss_and_track_branch (lat, orb, ok, ix_branch, use_beam_start)
 !   twiss_and_track_all (lat, orb_array, ok)
 !
 ! The essential difference between these two procedures is that
-! twiss_and_track_main only does the main branch while twiss_and_track_all
+! twiss_and_track_branch only does the main branch while twiss_and_track_all
 ! does everything but the photon_fork elements.
 !
 ! Note: This is not necessarily the fastest way to do things since this
@@ -38,12 +38,14 @@ use geometry_mod
 !                                = closed$ implies a closed lattice.
 !                                all others imply an open lattice.
 !   orb(0:)             -- Coord_struct, allocatable: Orbit to be computed
-!     orb(0)            -- Initial conditions to be used for an open lat.
+!     orb(0)            -- Initial conditions to be used for an open geometry lattices.
 !     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit 
 !                             is computed.
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orb(0) -- Used as the starting point for a linear lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
+!   use_beam_start      -- logical, optional: If True, use lat%beam_start instead of orb(0)
+!                            as the initial coords for open geometry lattices. Default is False.
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
@@ -54,11 +56,11 @@ use geometry_mod
 !-
 
 interface twiss_and_track
-  module procedure twiss_and_track_main
+  module procedure twiss_and_track_branch
   module procedure twiss_and_track_all
 end interface
 
-private twiss_and_track_main, twiss_and_track_all, twiss_and_track1
+private twiss_and_track_branch, twiss_and_track_all, twiss_and_track1
 
 contains
 
@@ -66,7 +68,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_main (lat, orb, ok, ix_branch)
+! Subroutine twiss_and_track_branch (lat, orb, ok, ix_branch, use_beam_start)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -74,24 +76,30 @@ contains
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_main (lat, orb, ok, ix_branch)
+subroutine twiss_and_track_branch (lat, orb, ok, ix_branch, use_beam_start)
 
 implicit none
 
 type (lat_struct) lat
 type (coord_struct), allocatable :: orb(:)
 
+
 integer, optional :: ix_branch
-logical, optional :: ok
+integer ib
+
+logical, optional :: ok, use_beam_start
 logical err_flag
 
 !
 
-call reallocate_coord (orb, lat%n_ele_max)
-call twiss_and_track1 (lat, orb, integer_option(0, ix_branch), err_flag)
+ib = integer_option(0, ix_branch)
+call reallocate_coord (orb, lat%branch(ib)%n_ele_max)
+if (logic_option(.false., use_beam_start)) &
+                    call init_coord (orb(0), lat%beam_start, lat%branch(ib)%ele(0), downstream_end$)
+call twiss_and_track1 (lat, orb, ib, err_flag)
 if (present(ok)) ok = .not. err_flag
 
-end subroutine twiss_and_track_main
+end subroutine twiss_and_track_branch
 
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
@@ -148,7 +156,7 @@ end subroutine twiss_and_track_all
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
 ! This routine is private and used by:
-!   twiss_and_track_main
+!   twiss_and_track_branch
 !   twiss_and_track_all
 !-
 

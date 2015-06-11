@@ -1792,7 +1792,9 @@ do
         endif
         write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
         call taylor_make_unit(taylor_ele%taylor)
-        f = -(kicker_ele%value(hkick$)**2 + kicker_ele%value(vkick$)**2) * val(l$) / 6
+        f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) + (ele%value(l$) / 2) * &
+                (((ele%map_ref_orb_out%vec(2) + ele%map_ref_orb_in%vec(2)) / 2)**2 +  &
+                 ((ele%map_ref_orb_out%vec(4) + ele%map_ref_orb_in%vec(4)) / 2)**2)
         call add_taylor_term (taylor_ele%taylor(5), f)
         call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
         call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
