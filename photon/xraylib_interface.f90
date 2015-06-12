@@ -44,7 +44,7 @@ character(*) material
 
 real(rp) Energy, absorption, phase_shift
 real(rp) wavelength, factor, volume, number_fraction
-real(c_float) debye_temp_factor, f0, fp, fpp, rel_angle, q, E_kev
+real(c_double) debye_temp_factor, f0, fp, fpp, rel_angle, q, E_kev
 
 complex(rp) f0_tot
 
@@ -205,7 +205,7 @@ type (compoundDataNIST), pointer :: compound
 
 real(rp) v_unitcell
 real(rp)  density, number_fraction_min, number_fraction
-real(c_float) energy, debye_temp_factor, f0_atom, fp, fpp, rel_angle, q
+real(c_double) energy, debye_temp_factor, f0_atom, fp, fpp, rel_angle, q
 
 complex(rp) f0
 
@@ -309,7 +309,7 @@ type (ele_struct) ele
 type (crystal_struct), pointer :: cryst
 
 real(rp) bp, r
-real(c_float) energy, debye_temp_factor, fp, fpp, rel_angle
+real(c_double) energy, debye_temp_factor, fp, fpp, rel_angle
 
 complex(rp) f0, fh
 
