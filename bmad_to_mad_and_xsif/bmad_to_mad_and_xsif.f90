@@ -45,49 +45,29 @@ file_name = ''
 out_type = 'all'
 aperture = .true.
 
-if (n_arg == 0) then
-  write (*, '(a)', advance = 'NO') 'Create lattices with and without bpm markers? (default = n) : '
-  read (*, '(a)') bpm_ans
-  write (*, '(a)', advance = 'NO') 'Bmad file name: '
-  read (*, '(a)') file_name
-  call string_trim (bpm_ans, bpm_ans, ix)
-  call str_upcase (bpm_ans, bpm_ans)
-  if (ix /= 0) then
-    if (index('YES', bpm_ans(1:ix)) == 1) then
-      nobpm = .true.
-    else if (index('NO', bpm_ans(1:ix)) == 1) then
-      print *, 'I do not understand this: ', trim(bpm_ans)
-      stop
+do i = 1, n_arg
+  call cesr_getarg (i, arg)
+  select case (arg)
+  case ('-nobpm')
+    nobpm = .true.
+  case ('-noaperture')
+    aperture = .false.
+  case ('-xsif', '-mad8', '-madx')
+    out_type = arg
+  case default
+    if (arg(1:1) == '-') then
+      print *, 'Bad switch: ', trim(arg)
+      file_name = ''
+      exit
+    else
+      file_name = arg
     endif
-  endif
+  end select
+enddo
 
-else
-
-  do i = 1, n_arg
-    call cesr_getarg (i, arg)
-    select case (arg)
-    case ('-nobpm')
-      nobpm = .true.
-    case ('-noaperture')
-      aperture = .false.
-    case ('-xsif', '-mad8', '-madx')
-      out_type = arg
-    case default
-      if (arg(1:1) == '-') then
-        print *, 'Bad switch: ', trim(arg)
-        file_name = ''
-        exit
-      else
-        file_name = arg
-      endif
-    end select
-  enddo
-
-  if (file_name == '') then
-    print '(a)', 'Usage: bmad_to_mad_and_xsif {-nobpm} {-noaperture} {-xsif} {-mad8} {-madx} <bmad_file_name>'
-    stop
-  endif
-
+if (file_name == '') then
+  print '(a)', 'Usage: bmad_to_mad_and_xsif {-nobpm} {-noaperture} {-xsif} {-mad8} {-madx} <bmad_file_name>'
+  stop
 endif
 
 ! Get the lattice
