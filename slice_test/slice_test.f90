@@ -23,12 +23,16 @@ integer i, j, idum, nargs, is
 logical print_extra, err
 character(100) lat_file
 
-! test with elements.bmad
+! Init
+
+open (1, file = 'output.now')
+
+! Test with elements.bmad
 
 lat_file = 'elements.bmad'
 print_extra = .false.
 nargs = cesr_iargc()
-if (nargs == 1)then
+if (nargs == 1) then
    call cesr_getarg(1, lat_file)
    print *, 'Using ', trim(lat_file)
    print_extra = .true.
@@ -56,18 +60,45 @@ do i = 1, lat%n_ele_track
     xmat2 = matmul(ele2%mat6, xmat2)
     if (err) exit
   enddo
-  !write (1, '()') end_orb2%vec - end_orb%vec
-  !write (1, '()') end_orb2%vec - end_orb%vec
+!!!!!  write (1, '(3a, 6es11.3)') '"', trim(ele%name), ':dvec" ABS 1e-10', end_orb2%vec - end_orb%vec
+  do j = 1, 6
+!!!!!    write (1, '(3a, i0, a, 6f11.6)') '"', trim(ele%name), ':dmat', j, '" ABS 1e-10', ele%mat6(j,:)-xmat2(j,:)
+  enddo
+
+  if (print_extra) then
+    print *
+    print *, '!--------------------------------------------------'
+    print *, ele%name
+    print '(a, 6es11.3)', 'Start:', start_orb%vec
+    print '(a, 6es11.3)', 'Whole:', end_orb%vec
+    print '(a, 6es11.3)', 'Split:', end_orb2%vec
+    print '(a, 7es11.3)', 'Diff: ', end_orb2%vec - end_orb%vec, maxval(abs(end_orb2%vec - end_orb%vec))
+    print *
+    print *, 'Whole:'
+    do j = 1, 6
+      print '(6f11.6)', ele%mat6(j,:)
+    enddo
+    print *
+    print *, 'Split:'
+    do j = 1, 6
+      print '(6f11.6)', xmat2(j,:)
+    enddo
+    print *
+    print *, 'Diff:', maxval(abs(ele%mat6-xmat2))
+    do j = 1, 6
+      print '(6f11.6)', ele%mat6(j,:)-xmat2(j,:)
+    enddo
+  endif
+
 enddo
 
 if (print_extra) stop
 
 !-------------------------------------------------
 !-------------------------------------------------
-! test with slice_test.bmad
+! Test with slice_test.bmad
 
 call bmad_parser ('slice_test.bmad', lat)
-open (1, file = 'output.now')
 
 zele => lat%branch(1)%ele(1)
 print *, determinant(zele%mat6)
