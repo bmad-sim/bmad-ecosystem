@@ -45,6 +45,12 @@ B03W:  B03, ALIAS = "B03W"
 B03AW: B04, ALIAS = "B03AW" 
 DET_03W: MARKER, ALIAS = "3W" 
 
+! 
+
+l2: line = (3*(-ll))
+use, l2
+
+!
 
 beam, energy =   5.28900
 
@@ -77,6 +83,13 @@ phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
 phot[beta_b] = 10
+
+! Group using element not in constructed lattice is ok
+
+zzz: quad
+gzzz: group = {zz*[k1]}, var = {a}
+
+!
 
 expand_lattice
 
