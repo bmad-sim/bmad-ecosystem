@@ -2292,12 +2292,29 @@ can then be run by the \vn{blender} program\cite{b:blender}.
 \vn{Blender} is a free, open source, program for creating, among other
 things, 3D images. This script will create a 3D model of the lattice
 in the current default universe (\sref{s:universe}). The suffix must
-by '.py' and if this suffix is not present it will be added. To run in
-the script in \vn{blender}:
+by '.py' and if this suffix is not present it will be added. To run
+the script in \vn{blender}, use the following on the operating system
+command line:
 \begin{example}
-  0) Run blender
-  1) ...
+  <path-to-blender-exe>/blender -P <script-file-from-tao>
 \end{example}
+To learn how to pan, zoom, etc. in \vn{blender}, consult any one of
+a number of online tutorials and videos. A good place to start is:
+\begin{example}
+  https://www.blender.org/support/tutorials/  
+\end{example}
+Note: In order of the script to work, the script must be able to find
+the ``base'' file \vn{blender_base.py}. This base file
+lives in the \vn{bmad/scripts} directory and the \vn{bmad} directory
+is found using one of the following environmental variables:
+\begin{example}
+  BMAD_BASE_DIR
+  DIST_BASE_DIR
+  ACC_RELEASE_DIR
+\end{example}
+Generally, one of the latter two environmental variables will be
+defined.  If not, a copy of the \bmad directory must be created and
+then \vn{BMAD_BASE_DIR} be appropriately defined.
 
 The \vn{write variable} command has an optional \vn{-good_var_only}
 switch.  If present, only the information on variables that are
