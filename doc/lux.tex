@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.1 \\ August 1, 2013}
+\date{Revision 1.2 \\ June, 15 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -86,7 +86,7 @@ executable is called \vn{mpi_lux}.
 
 %------------------------------------------------------------------
 \section{Building \lux} 
-\label{s:run}
+\label{s:build}
 
 Chances are that a \lux excutable is already built for you to use. If
 you do need to build \lux, first copy the \vn{lux} directory (ask your
@@ -232,7 +232,8 @@ Name of the lattice detector element where the photon are absorbed.
 Sets the threshold absorbed photon intensity such that all pixels
 who's intensity is below this will not be included in the
 \vn{det_pix_out} file (\sref{s:det.pix.file}). This intensity is
-relative to the maximum pixel intensity. 
+relative to the maximum pixel intensity. [Note: pixels must also have
+non-zero intensity to be included.]
 
   \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
 Cutoff intensity below which a photon will not be included in
@@ -653,7 +654,8 @@ If the file name is blank then no file will be generated. The file
 name may be ``numbered'' using a ``\#'' character (\sref{s:number}).
 
 The intensity of a pixel is the accumulated intensity of the photons
-hitting the pixel. Only pixels whose intensity is greater than
+hitting the pixel. Only pixels whose intensity is non-zero and whose
+intensity is greater than
 \vn{lux_param%intensity_min_det_pixel_cutoff} are recorded in the
 output file. This cutoff is relative to the intensity of the pixel
 with the highest intensity.

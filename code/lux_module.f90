@@ -971,7 +971,7 @@ normalization = lux_param%intensity_normalization_coef * area / (lux_data%n_trac
 if (lux_param%det_pix_out_file /= '') then
   open (3, file = lux_param%det_pix_out_file, recl = 160)
   intens_max = maxval(detec_grid%pt%intensity)
-  cut = intens_max * lux_param%intensity_min_det_pixel_cutoff
+  cut = max(0.0_rp, intens_max * lux_param%intensity_min_det_pixel_cutoff)
 
   nx_active_min = lux_data%nx_max;    nx_active_max = lux_data%nx_min
   ny_active_min = lux_data%ny_max;    ny_active_max = lux_data%ny_min
@@ -1007,14 +1007,12 @@ if (lux_param%det_pix_out_file /= '') then
     pix => detec_grid%pt(i,j)
     intens_tot = intens_tot + pix%intensity 
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
-    pix%energy_ave = pix%energy_ave / pix%intensity
-    pix%energy_rms = sqrt(max(0.0_rp, pix%energy_rms / pix%intensity - pix%energy_ave**2)) 
     phase_x = 0; phase_y = 0
     if (lat%photon_type == coherent$) then
       phase_x = atan2(aimag(pix%e_x), real(pix%e_x))
       phase_y = atan2(aimag(pix%e_y), real(pix%e_y))
     endif
-    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+    write (3, '(2i8, 2es13.5, 5es14.5, i12, f10.3, f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
            pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
            pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
     pix_in_file_intens = pix_in_file_intens + pix%intensity 
@@ -1037,10 +1035,10 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%energy_ave = 0
       pixel%energy_rms = 0
     else
-      pixel%energy_ave = sum(detec_grid%pt(i,:)%energy_ave) / pixel%intensity
-      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%energy_rms) / pixel%intensity - pixel%energy_ave**2))
+      pixel%energy_ave = sum(detec_grid%pt(i,:)%energy_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
+      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%energy_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%energy_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+    write (3, '(i8, es13.5, 3es16.5, i12, f10.3, f10.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo
@@ -1061,10 +1059,10 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%energy_ave = 0
       pixel%energy_rms = 0
     else
-      pixel%energy_ave = sum(detec_grid%pt(:,j)%energy_ave) / pixel%intensity
-      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%energy_rms) / pixel%intensity - pixel%energy_ave**2)) 
+      pixel%energy_ave = sum(detec_grid%pt(:,j)%energy_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
+      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%energy_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%energy_ave**2)) 
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+    write (3, '(i8, es13.5, 3es16.5, i12, f10.3, f10.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms
   enddo

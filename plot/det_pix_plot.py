@@ -20,14 +20,14 @@ Usage:
                 = i         # Total intensity (sum of x & y polarizations)
   Defaults:
     <scale>          = 1e3
-    <data_file_name> = lux.det_pix
+    <data_file_name> = det_pix
     <who_to_plot>    = i
-'''  
+''')
   exit() 
 
 # Defaults
 
-dat_file_name = 'lux.det_pix'
+dat_file_name = 'det.pix'
 
 scale = 1e3
 
@@ -59,14 +59,15 @@ while i < len(sys.argv):
 
   i += 1
 
-# Select appropriate column in file to use
+# Select appropriate column in file to use.
+# First column has index 0.
 
 if who_to_plot == 'x':
   p_col = 4
 elif who_to_plot == 'y':
-  p_col = 5
-elif who_to_plot == 'i':
   p_col = 6
+elif who_to_plot == 'i':
+  p_col = 8
 else:
   print_help()
 
@@ -77,7 +78,7 @@ dat_file = open (dat_file_name)
 for n_header in range(1, 1000):
   line = dat_file.readline()
   if line[0:3] == '#--': break
-  exec line
+  exec (line)
 
 dat_file.close()
 
@@ -93,7 +94,8 @@ ny_max = ny_active_max + y_margin
 pix_mat = np.zeros((nx_max+1-nx_min, ny_max+1-ny_min))
 
 for pix in pix_dat:
-  pix_mat[pix[0]-nx_min,pix[1]-ny_min] = pix[2]
+  pix_mat[pix[0]-nx_min, pix[1]-ny_min] = pix[2]
+  print (str(pix[0]) + ' ' + str(pix[1]) + ': ' + str(pix[2]))
 
 # And plot
 
@@ -104,8 +106,6 @@ y_max = scale * ny_max * dy_pixel
 
 if 'ix_plot' not in locals(): ix_plot = 0
 ix_plot = ix_plot + 1
-
-plt.set_cmap('gnuplot2_r')
 
 fig = plt.figure(ix_plot)
 ax = fig.add_subplot(111)
@@ -118,6 +118,9 @@ else:
   ax.xaxis.set_major_locator(ticker.MaxNLocator(it))
 
 dens = ax.imshow(np.transpose(pix_mat), origin = 'lower', extent = (x_min, x_max, y_min, y_max))
+
+##plt.set_cmap('gnuplot2_r')
+dens.set_cmap('gnuplot2')
 
 fig.colorbar(dens)
 
