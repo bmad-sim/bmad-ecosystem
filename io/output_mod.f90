@@ -25,7 +25,7 @@ type output_mod_com_struct
   logical :: do_print(-1:9) = .true.
   integer :: file_unit(-1:9) = 0
   integer :: to_routine(-1:9) = 0
-  integer :: indent_num(-1:9) = [0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
+  integer :: indent_num(-1:9) = [0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4 ]
 end type
 
 type (output_mod_com_struct), save, private :: output_com
