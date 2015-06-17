@@ -1,4 +1,4 @@
-\chapter{\'Etienne Forest's PTC/FPP}
+\chapter{PTC/FPP}
 \label{c:ptc}
 \index{PTC/FPP}
 %----------------------------------------------------------------------------
@@ -21,16 +21,13 @@ each \vn{branch_struct} holding an array of \vn{ele_struct}s. The
 \vn{ele_struct} holds information about both the physical element and
 the reference orbit through it.
 
-PTC has a somewhat different philosopy as illustrated in
+PTC has a somewhat different philosophy as illustrated in
 \fig{f:ptc-struct}. A PTC \vn{layout} structure is roughly equivalent
 to a \bmad \vn{branch_struct}. A \vn{layout} has a pointer to a linked
 list of \vn{fibre} structures. Each \vn{fibre} has a pointer to a
 \vn{magnet} structure which holds the information about the physical
 element and each \vn{fibre} holds information about the reference
 orbit through the element.
-
-separates the actual uses
-a \vn{layout} structure
 
 %--------------------------------------------------------------------------
 \section{Phase Space}
@@ -51,7 +48,7 @@ where
 \Begineq
   p_t = \frac{\Delta E}{P_0}
 \Endeq
-This choice of phase space is set in \Hyperref{r:set.ptc}{set_ptc}.  Specificially,
+This choice of phase space is set in \Hyperref{r:set.ptc}{set_ptc}.  Specifically,
 the PTC global variable \vn{DEFAULT}, which is of type
 \vn{internal_states}, has the \vn{%time} switch set to \vn{True}.
 
@@ -117,12 +114,13 @@ routine can initialize a \vn{real_8} array:
 \end{example}
 
 %--------------------------------------------------------------------------
-\section{Correspondence between Bmad elements and PTC fibres}.
+\section{Correspondence Between Bmad Elements and PTC Fibres}.
 \label{s:ele.fib}
 \index{fibre}
 
 When a PTC \vn{layout} is created from a \bmad \vn{lat_struct}
-instance using the routine \Hyperref{r:lat.to.ptc.layout}{lat_to_ptc_layout}, the correspondence
+instance using the routine
+\Hyperref{r:lat.to.ptc.layout}{lat_to_ptc_layout}, the correspondence
 between the \bmad elements and the PTC fibres is maintained through
 the \vn{ele%ptc_fiber} pointer. The following rules apply:
   \begin{enumerate}

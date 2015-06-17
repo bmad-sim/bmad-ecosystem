@@ -115,18 +115,21 @@ endif
 c11 = c1
 
 !--------------------------------------------------------
-! Drift or element is off.
+! If element is off.
 
-if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$
-
-if (key == drift$) then
-  call drift_mat6_calc (mat6, length, ele, param, c00)
-  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
-  return
+if (.not. ele%is_on) then
+  select case (key)
+  case (taylor$, match$, fiducial$, floor_shift$)
+    return
+  case (ab_multipole$, multipole$, lcavity$, sbend$, patch$)
+    ! Nothing to do here
+  case default
+    key = drift$  
+  end select
 endif
 
 !--------------------------------------------------------
-! selection
+! Selection...
 
 if (key == sol_quad$ .and. v(k1$) == 0) key = solenoid$
 
@@ -200,7 +203,15 @@ case (custom$)
   return
 
 !-----------------------------------------------
-! elseparator
+! Drift
+
+case (drift$) 
+  call drift_mat6_calc (mat6, length, ele, param, c00)
+  ele%vec0 = c1%vec - matmul(mat6, c0%vec)
+  return
+
+!-----------------------------------------------
+! Elseparator
 
 case (elseparator$)
 

@@ -399,8 +399,12 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
     endif
   endif
 
-  ! Now offset from origin pt.
-  if (ele%key == floor_shift$) then
+  ! Now offset from origin pt. 
+  ! Fiducial and floor_shift elements are not allowed to be be turned off.
+  if (ele%key == girder$ .and. .not. ele%is_on) then
+    r_vec = 0
+    theta = 0
+  elseif (ele%key == floor_shift$) then
     r_vec = [ele%value(x_offset$), ele%value(y_offset$), ele%value(z_offset$)]
     theta = ele%value(x_pitch$);  phi = ele%value(y_pitch$);  psi = ele%value(tilt$)
   else

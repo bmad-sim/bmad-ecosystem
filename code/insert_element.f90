@@ -66,8 +66,7 @@ enddo
 
 if (present(orbit)) then
   call reallocate_coord(orbit, branch%n_ele_max)
-  orbit(insert_index+1:branch%n_ele_max) = orbit(insert_index:branch%n_ele_max-1)
-  orbit(insert_index) = coord_struct()
+  orbit(insert_index:branch%n_ele_max) = orbit(insert_index-1:branch%n_ele_max-1)
 endif
 
 ! branch%ele(insert_index) pointers need to be nullified since they now point to

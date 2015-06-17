@@ -106,7 +106,7 @@ character(16), parameter :: aperture_type_name(0:7) = &
                                      'Surface    ', 'garbage!   ', 'garbage!   ', 'Custom     ']
 
 ! fringe_type
-! non-bend fringe type names areinthe range fringe_type(1:n_non_bend_fringe_type$)
+! non-bend fringe type names are in the range fringe_type(1:n_non_bend_fringe_type$)
 
 integer, parameter :: soft_edge_only$ = 2, hard_edge_only$ = 3, full$ = 4
 integer, parameter :: sad_full$ = 5, linear_edge$ = 6, basic_bend$ = 7, test_edge$ = 8

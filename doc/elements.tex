@@ -651,10 +651,9 @@ General \vn{capillary} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Is_on                      & \ref{s:is.on}   \HH 
-  Capillary Wall         & \ref{s:wall}    &                            &                 \HH
+  Description strings    & \ref{s:alias}   & Capillary Wall         & \ref{s:wall}        \HH
+  Reference energy       & \ref{s:energy}  & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH 
+  Aperture Limits        & \ref{s:limit}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1025,9 +1024,10 @@ General \vn{diffraction_plate} element attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Plate geometry             & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
-  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture Limits            & \ref{s:limit}   & Plate geometry             & \ref{s:wall}    \HH
+  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH
+  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Offsets, pitches, \& tilt  & \ref{s:offset}  &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -1076,6 +1076,10 @@ Scaling is useful since the electric field of photons traveling through a
 can, for example, make visual interpretation of plots of field verses
 longitudinal position difficult to interpret. \vn{field_scale_factor}
 can be used to keep the field more or less constant.
+
+A \vn{diffraction_plate} that is ``turned off'' (\vn{is_on} attribute
+set to False), does not diffract at all and transmits through all
+the light incident on it.
 
 Example:
 \begin{example}
@@ -1417,10 +1421,10 @@ General \vn{floor_shift} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Description strings    & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH
-  is_on                  & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
+  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Length                     & \ref{s:l}       &                            &                 \HH  
 \end{tabular}
 \end{center}
 \toffset
@@ -1683,8 +1687,8 @@ General \vn{girder} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Description strings        & \ref{s:alias}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH 
-  Length                     & \ref{s:l}       &                            &                 \HH
+  Description strings        & \ref{s:alias}   & Length                     & \ref{s:l}       \HH
+  Is_on                      & \ref{s:is.on}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH 
 \end{tabular}
 \end{center}
 \toffset
@@ -1835,6 +1839,9 @@ Using a small angle approximation to simplify the calculation, the
 $0.01 = 0.002 * 5$. This, added to the offsets of \vn{g4} and \vn{q2},
 give the total offset of \vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$.
 The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
+
+A \vn{grider} that has its \vn{is_on} attribute set to False is considered to be
+unshifted with respect to it's reference frame.
 
 %-----------------------------------------------------------------------------
 \section{Group}
@@ -2342,8 +2349,8 @@ General \vn{match} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
 \end{center}
@@ -2463,8 +2470,12 @@ $\Bf V$ vector, will become fixed. As with the \vn{match_end}
 attribute, the \vn{match_end_orbit} attribute may only be used with
 \vn{open} lattices (\sref{s:param}).
 
-
 \end{description}
+
+A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set
+to False), is considered to be like a \vn{marker} element. That is,
+the orbit and twiss parameters are unchanged when tracking through
+a \vn{match} element that is turned off.
 
 %-----------------------------------------------------------------
 \section{Mirror}
@@ -2776,10 +2787,9 @@ General \vn{patch} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  is_on                  & \ref{s:is.on}   & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}   \HH 
-  Length                 & \ref{s:l}       &                            &                 \HH
+  Length                 & \ref{s:l}       & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
+  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -3569,7 +3579,7 @@ General \vn{taylor} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Description strings    & \ref{s:alias}  & Is_on                      & \ref{s:is.on}   \HH 
+  Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Reference energy       & \ref{s:energy}  & Offsets \& tilt            & \ref{s:offset}  \HH
@@ -3623,6 +3633,11 @@ Example \vn{taylor} element definition:
   tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, &
               \{2:  1.9, 2 0 0 0 0 1\}
 \end{example}
+
+A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set
+to False), is considered to be like a \vn{marker} element. That is,
+the orbit and twiss parameters are unchanged when tracking through
+a \vn{taylor} element that is turned off.
 
 %-----------------------------------------------------------------
 \section{Wiggler and Undulator} 
