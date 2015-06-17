@@ -1394,7 +1394,7 @@ type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
 real(rp) l_slice, offset, in_len, r
-
+integer i
 logical include_upstream_end, include_downstream_end, err_flag, err2_flag
 
 character(24) :: r_name = 'create_element_slice'
@@ -1465,6 +1465,13 @@ endif
 
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, include_upstream_end, include_downstream_end, err2_flag)
 if (err2_flag) return
+
+! %taylor%term components point to lord. 
+! The routine deallocate_ele_pointers will only nullify and never deallocate these components of a slice_slave.
+
+do i = 1, 6
+  sliced_ele%taylor(i)%term => ele_in%taylor(i)%term
+enddo
 
 ! Use a speedier tracking method.
 
@@ -1559,6 +1566,7 @@ real(rp) w_inv(3,3), dl
 
 integer i, ifr
 logical include_upstream_end, include_downstream_end, err_flag, include_entrance, include_exit, err2_flag
+logical has_fringe
 character(24) :: r_name = 'makeup_super_slave1'
 
 ! Physically, the lord length cannot be less than the slave length.
@@ -1593,19 +1601,19 @@ value(E_tot$)          = slave%value(E_tot$)
 value(p0c$)            = slave%value(p0c$)
 value(num_steps$)      = slave%value(num_steps$)
 
-! Taylor element. The taylor map gets applied at the entrance end.
+! Taylor element has a zero length map. Rule: The map gets applied at the entrance end.
 ! There is no reason why the entrance end was chosen over the exit end.
+! Note: multipole, and ab_multipole have zero length maps but in this case multipole_ele_to_kt
+! will scale the multipole strength proportional to the slave length.
+
+slave%is_on = lord%is_on
+has_fringe = .true.
 
 if (lord%key == taylor$) then
-  slave%value = value
-  slave%is_on = lord%is_on
-  if (include_entrance) then
-    slave%key = taylor$
-    slave%taylor = lord%taylor
-  else
-    slave%key = floor_shift$
-  endif
-  return
+  if (.not. include_entrance) slave%is_on = .false.
+  has_fringe = .false.
+elseif (lord%key == multipole$ .or. lord%key == ab_multipole$) then
+  has_fringe = .false.
 endif
 
 ! Ref energy shift for e_gun only happens at start of element.
@@ -1617,23 +1625,25 @@ endif
 
 ! fringe fields 
 
-ifr = nint(value(fringe_at$))
-if (include_entrance .and. include_exit) then
-  ! Inherit from lord
-elseif (include_entrance) then
-  if (ifr == entrance_end$ .or. ifr == both_ends$) then
-    value(fringe_at$) = entrance_end$
+if (has_fringe) then
+  ifr = nint(value(fringe_at$))
+  if (include_entrance .and. include_exit) then
+    ! Inherit from lord
+  elseif (include_entrance) then
+    if (ifr == entrance_end$ .or. ifr == both_ends$) then
+      value(fringe_at$) = entrance_end$
+    else
+      value(fringe_at$) = no_end$
+    endif
+  elseif (include_downstream_end) then
+    if (ifr == exit_end$ .or. ifr == both_ends$) then
+      value(fringe_at$) = exit_end$
+    else
+      value(fringe_at$) = no_end$
+    endif
   else
     value(fringe_at$) = no_end$
   endif
-elseif (include_downstream_end) then
-  if (ifr == exit_end$ .or. ifr == both_ends$) then
-    value(fringe_at$) = exit_end$
-  else
-    value(fringe_at$) = no_end$
-  endif
-else
-  value(fringe_at$) = no_end$
 endif
 
 !
@@ -1765,7 +1775,6 @@ endif
 !
 
 slave%value = value
-slave%is_on = lord%is_on
 slave%mat6_calc_method = lord%mat6_calc_method
 slave%tracking_method  = lord%tracking_method
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets

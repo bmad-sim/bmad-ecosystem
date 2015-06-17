@@ -663,7 +663,11 @@ end subroutine transfer_wake
 ! Subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)
 !
 ! Subroutine to deallocate the pointers in an element.
+!
 ! Note: ele%branch is always nullified. 
+!
+! Note: ele%taylor(:)%term pointers are nullified and not deallocated for a slice_slave since
+! these pointers always just point to the lord's corresponding components.
 !
 ! Modules needed:
 !   use bmad
@@ -714,8 +718,9 @@ endif
 
 ! Normal deallocate.
 
-if (associated (ele%a_pole) .and. logic_option(.true., dealloc_poles)) &
-                                     deallocate (ele%a_pole, ele%b_pole)
+if (associated (ele%a_pole) .and. logic_option(.true., dealloc_poles)) then
+  deallocate (ele%a_pole, ele%b_pole)
+endif
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
@@ -748,9 +753,16 @@ if (associated(ele%wig)) then
   endif
 endif
 
-if (associated (ele%taylor(1)%term)) deallocate &
-         (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
-         ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+if (associated (ele%taylor(1)%term)) then
+  if (ele%slave_status == slice_slave$) then
+    nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
+             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+
+  else
+    deallocate (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
+                ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+  endif
+endif
 
 call kill_ptc_genfield (ele%ptc_genfield%field)
 

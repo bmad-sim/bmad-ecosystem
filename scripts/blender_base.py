@@ -143,10 +143,8 @@ def ele_color(ele):
     color = (0.5, 0.5, 0.5)  
   return color
 
+#
 
-def ele_section():
-    return 0
-    
 def faces_from(sections, closed=True):
     """
     A section is a list of vertices that defines a cross-section of an element
@@ -181,12 +179,17 @@ def multipole_section(X, aperture, n):
 def ele_section(s_rel, ele):
     # Make sections relatice to center of element
     sc = ele_x_scale(ele)
+
     if ele['key'] == 'QUADRUPOLE':
-        return multipole_section(s_rel, sc, 4) 
-    if ele['key'] == 'SEXTUPOLE':
+        return multipole_section(s_rel, sc, 4)
+
+    elif ele['key'] == 'SEXTUPOLE':
         return multipole_section(s_rel, sc, 6)     
+
+    elif ele['key'] in ['MIRROR', 'MULTILAYER_MIRROR', 'CRYSTAL']:
+        return box_section(s_rel, 0.001, 0.001) 
+
     elif ele['key'] == 'SBEND':
-        
         a = ele['angle']
         if abs(a) < 1e-5 or abs(ele['L']) < 1e-5:
             return box_section(s_rel, sc, sc) 
@@ -212,6 +215,8 @@ def ele_section(s_rel, ele):
         return box_section(s_rel, sc, 2*sc)    
     else:
         return ellipse_section(s_rel, sc, sc)
+
+#
 
 def ele_mesh(ele):
     name = ele['name']
@@ -275,15 +280,17 @@ CATALOGUE='Catalogue/'
 
 REALMODELSON = True
 
+# Makes Blender mesh and object from element info
+
 LIBDICT={}
 def ele_object(ele):
     name = ele['name']
     mesh = ele_mesh(ele)
 
-    object = bpy.data.objects.new(name, mesh)
-    bpy.context.scene.objects.link(object)
+    object = bpy.data.objects.new(name, mesh)   # New object
+    bpy.context.scene.objects.link(object)      # links to scene
     object.location = (0, 0, 0) 
-    bfile=blendfile(ele)
+    bfile=blendfile(ele)                         # Looks for real model of element
     if bfile and REALMODELSON:
         f=CATALOGUE+bfile
         if os.path.isfile(f):
@@ -295,16 +302,16 @@ def ele_object(ele):
         else:
             print('Blend file missing: ', f)
             
-    mat = ele_material(ele)
+    mat = ele_material(ele)                       # Material is needed for lighting
     #print('color: ', color)
     #mat.diffuse_color = ele_color(ele)
-    object.data.materials.append(mat)
+    object.data.materials.append(mat)             # Add material to object 
     return object
 
     #bpy.context.scene.objects.link(object)
     
 
-
+#
 
 def lat_borders(lat, dim='x'):
   xlist = [ele[dim] for ele in lat]

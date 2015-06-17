@@ -1300,7 +1300,7 @@ do it = len(out), 1, -1
   return
 enddo
 
-end function
+end function rchomp
 
 !-------------------------------------------------------
 !-------------------------------------------------------
@@ -1408,7 +1408,7 @@ end subroutine write_lat_line
 !-------------------------------------------------------------------------
 !+ 
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-!               use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+!        use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
 !
 ! Subroutine to write a MAD-8, MAD-X, OPAL, SAD, or XSIF lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -1423,6 +1423,11 @@ end subroutine write_lat_line
 ! is non-zero, the calculation must use 2nd order maps thourghout in order to avoid "feed down".
 ! If the PTC map order is different from 2, PTC will be temperarily switched to 2. 
 !
+! The MAD drift model is approximate and this can be a problem if the reference orbit is large.
+! For a drift, the value of transfer matrix element R12 is equal to L/(1+pz) for small
+! deviations of the ref_orbit from zero. dr12_drift_max sets the maximum deviation of R12 beyound 
+! which an extra matrix element is inserted to make the MAD model better agree with Bmad.
+!
 ! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
@@ -1430,52 +1435,58 @@ end subroutine write_lat_line
 !   use write_lat_file_mod
 !
 ! Input:
-!   out_type      -- character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
-!   out_file_name -- character(*): Name of the mad output lattice file.
-!   lat           -- lat_struct: Holds the lattice information.
-!   ref_orbit(0:) -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
-!                      This argument must be present if the lattice has sad_mult or patch elements.
-!   use_matrix_model
-!                 -- logical, optional: Use a drift-matrix_drift model for wigglers/undulators?
-!                       [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
-!                       Default is False -> Use a bend-drift-bend model. 
-!                       Note: sol_quad elements always use a drift-matrix-drift model.
-!   include_apertures 
-!                 -- logical, optional: Include aperture info? Ignored for SAD convertion. Default is True.
-!   ix_start      -- integer, optional: Starting index of lat%ele(i)
-!                       used for output.
-!   ix_end        -- integer, optional: Ending index of lat%ele(i)
-!                       used for output.
-!   ix_branch     -- Integer, optional: Index of lattice branch to use. Default = 0.
+!   out_type          -- character(*): Either 'XSIF', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T'.
+!   out_file_name     -- character(*): Name of the mad output lattice file.
+!   lat               -- lat_struct: Holds the lattice information.
+!   ref_orbit(0:)     -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
+!                          This argument must be present if the lattice has sad_mult or patch elements.
+!   use_matrix_model  -- logical, optional: Use a drift-matrix_drift model for wigglers/undulators?
+!                           [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
+!                           Default is False -> Use a bend-drift-bend model. 
+!                           Note: sol_quad elements always use a drift-matrix-drift model.
+!   include_apertures -- logical, optional: Include aperture info? Ignored for SAD convertion. Default is True.
+!   dr12_drift_max    -- real(rp), optional: Max deviation for drifts allowed before a correction matrix element
+!                           is added. Default value is 1d-5.
+!   ix_start          -- integer, optional: Starting index of lat%ele(i)
+!                           used for output.
+!   ix_end            -- integer, optional: Ending index of lat%ele(i)
+!                           used for output.
+!   ix_branch         -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
-!   converted_lat -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
-!                       sol_quad elements replaced by their respective models.
-!                       This is only valid for MAD-8, MAD-X, and XSIF conversions.
-!   err           -- logical, optional: Set True if, say a file could not be opened.
+!   converted_lat     -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
+!                           sol_quad elements replaced by their respective models.
+!                           This is only valid for MAD-8, MAD-X, and XSIF conversions.
+!   err               -- logical, optional: Set True if, say a file could not be opened.
 !-
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-               use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)
+      use_matrix_model, include_apertures, dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)
+
+use mad_mod
 
 implicit none
 
 type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, ele_a, ele_b
+type (coord_struct) orb_start, orb_end
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 type (coord_struct), allocatable :: orbit_out(:)
 type (taylor_term_struct) :: term
 type (branch_struct), pointer :: branch, branch_out
+type (mad_energy_struct) energy
+type (mad_map_struct) mad_map
 
 real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp), optional :: dr12_drift_max
 
 integer, optional :: ix_start, ix_end, ix_branch
-integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, ix_ele
-integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match
+integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
+integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, sad_geo, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -1490,7 +1501,7 @@ character(*), parameter :: r_name = "write_lattice_in_foreign_format"
 character(2) continue_char, eol_char, comment_char, separator_char
 
 logical, optional :: use_matrix_model, include_apertures, err
-logical init_needed, has_nonzero_pole
+logical init_needed, has_nonzero_pole, mad_out
 logical parsing, warn_printed, converted
 
 ! open file
@@ -1541,6 +1552,9 @@ else
   return
 endif
 
+mad_out = .false.
+if (out_type == 'MAD-X' .or. out_type == 'MAD-8') mad_out = .true.
+
 ix_line_min = ix_line_max - 20
 
 call init_ele (col_ele)
@@ -1576,7 +1590,8 @@ else
   call reallocate_coord(orbit_out, branch%n_ele_max)
 endif
 
-j_count = 0    ! drift around solenoid or sol_quad index
+f_count = 0    ! fringe around bends and quads. Also drift nonlinearities.
+j_count = 0    ! drift around solenoid or sol_quad index. Also z shift count.
 t_count = 0    ! taylor element count.
 a_count = 0    ! Aperture count
 s_count = 0    ! SAD solenoid count
@@ -1792,9 +1807,11 @@ do
         endif
         write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
         call taylor_make_unit(taylor_ele%taylor)
-        f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) + (ele%value(l$) / 2) * &
-                (((ele%map_ref_orb_out%vec(2) + ele%map_ref_orb_in%vec(2)) / 2)**2 +  &
-                 ((ele%map_ref_orb_out%vec(4) + ele%map_ref_orb_in%vec(4)) / 2)**2)
+        orb_start = orbit_out(ix_ele-1)
+        orb_start%vec(2) = orb_start%vec(2) - kicker_ele%value(hkick$)
+        orb_start%vec(4) = orb_start%vec(4) - kicker_ele%value(vkick$)
+        call track1 (orb_start, ele, branch%param, orb_end) 
+        f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) - (orb_end%vec(5) - orb_start%vec(5))
         call add_taylor_term (taylor_ele%taylor(5), f)
         call insert_element (lat_out, kicker_ele, ix_ele, branch%ix_branch, orbit_out)
         call insert_element (lat_out, kicker_ele, ix_ele+2, branch%ix_branch, orbit_out)
@@ -1803,6 +1820,93 @@ do
         cycle
       endif
     endif
+  endif
+
+  ! A quadrupole with fringe = full or soft_edge_only has its fringe kicks modeled as a 2nd order map.
+
+  iv = nint(ele%value(fringe_type$))
+  if (mad_out .and. ele%key == quadrupole$ .and. (iv == full$ .or. iv == soft_edge_only$)) then
+    taylor_ele = ele
+    ele%value(fringe_type$) = none$
+
+    if (ptc_com%taylor_order_ptc /= 2) then
+      call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
+      call set_ptc (taylor_order = 2) 
+    endif
+
+    f_count = f_count + 1
+    write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
+    taylor_ele%value(fringe_at$) = entrance_end$
+    taylor_ele%value(l$) = 1e-30
+    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele-1))
+    taylor_ele%key = taylor$
+    call insert_element (lat_out, taylor_ele, ix_ele, branch%ix_branch, orbit_out)
+
+    write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
+    taylor_ele%value(fringe_at$) = exit_end$
+    taylor_ele%key = quadrupole$
+    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele+1)) ! ix_ele+1 since insert_element shifted eles
+    taylor_ele%key = taylor$
+    call insert_element (lat_out, taylor_ele, ix_ele+2, branch%ix_branch, orbit_out)
+    ie2 = ie2 + 2
+    cycle
+  endif
+
+  ! A bend with fringe = sad_full its fringe kicks modeled as a 2nd order map.
+
+  iv = nint(ele%value(fringe_type$))
+  if (mad_out .and. ele%key == sbend$ .and. iv == sad_full$) then
+    taylor_ele = ele
+    ele%value(fringe_type$) = basic_bend$
+    ele%value(e1$) = 0
+    ele%value(e2$) = 0
+
+    if (ptc_com%taylor_order_ptc /= 2) then
+      call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
+      call set_ptc (taylor_order = 2) 
+    endif
+
+    f_count = f_count + 1
+    write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
+    taylor_ele%value(fringe_at$) = entrance_end$
+    taylor_ele%value(l$) = 1e-30
+    taylor_ele%value(e2$) = 0
+    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele-1))
+    taylor_ele%key = taylor$
+    call insert_element (lat_out, taylor_ele, ix_ele, branch%ix_branch, orbit_out)
+
+    write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
+    taylor_ele%value(fringe_at$) = exit_end$
+    taylor_ele%key = sbend$
+    taylor_ele%value(e1$) = 0
+    taylor_ele%value(e2$) = lat_out%ele(ix_ele+1)%value(e2$)  ! Note: sbend has shifted index in lat_out%ele(:) array.
+    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele+1)) ! ix_ele+1 since insert_element shifted eles
+    taylor_ele%key = taylor$
+    call insert_element (lat_out, taylor_ele, ix_ele+2, branch%ix_branch, orbit_out)
+    ie2 = ie2 + 2
+    cycle
+  endif
+
+  ! A drift where the ref orbit is too large needs an added matrix element 
+
+  f = ele%value(l$) / (1 + orbit_out(ele%ix_ele)%vec(6))
+  if (mad_out .and. ele%key == drift$ .and. abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
+
+    drift_ele = ele
+    drift_ele%value(l$) = -drift_ele%value(l$)
+    call make_mad_map (drift_ele, branch%param, energy, mad_map)
+    call mad_map_to_taylor (mad_map, energy, ele_a%taylor)
+
+    drift_ele%value(l$) = -drift_ele%value(l$)
+    call ele_to_taylor (drift_ele, branch%param, ele_b%taylor, orbit_out(ix_ele-1))
+    call concat_taylor (ele_a%taylor, ele_b%taylor, taylor_ele%taylor)
+
+    f_count = f_count + 1
+    write (taylor_ele%name, '(a, i0)') 'DRIFT_NONLIN', f_count
+    call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch, orbit_out)
+    ie2 = ie2 + 1
+    ix_ele = ix_ele + 1
+    cycle
   endif
 
   ! Convert sol_quad_and wiggler elements to an "equivalent" set of elements.
@@ -2341,11 +2445,11 @@ do ix_ele = ie1, ie2
                       'A LATTICE WITH A SAD_MULT OR PATCH ELEMENT')           
         cycle
       endif
-      if (any(orbit_out(ix_ele)%vec /= 0) .and. ptc_com%taylor_order_ptc /= 2) then
-        call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
+      if (ptc_com%taylor_order_ptc /= 2) then
+        call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for conversion')
         call set_ptc (taylor_order = 2) 
       endif
-      call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele), .true.)
+      call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele-1), .true.)
     endif
 
     line_out = trim(ele%name) // ': matrix'
@@ -2404,7 +2508,7 @@ do ix_ele = ie1, ie2
           if (.not. warn_printed .and. ele%key == taylor$) then
             call out_io (s_warn$, r_name, &
                   'Higher order taylor term(s) in: ' // trim(ele%name) // &
-                  'cannot be converted to mad matrix term')
+                  ' cannot be converted to mad matrix term')
             warn_printed = .true.
           endif  
         end select
@@ -2500,7 +2604,7 @@ enddo
 
 !---------------------------------------------------------------------------------------
 ! Write the lattice line
-! bmad has a limit of 4000 characters so we may need to break the lat into pieces.
+! MAD has a limit of 4000 characters so we may need to break the lat into pieces.
 
 i_unique = 1000
 i_line = 0
@@ -2517,32 +2621,32 @@ do n = ie1, ie2
     write (iu, *)
     i_line = i_line + 1
     if (out_type == 'SAD') then
-      write (line, '(a, i0, 2a)') 'LINE line_', i_line, ' = (', ele%name
+      write (line_out, '(a, i0, 2a)') 'LINE line_', i_line, ' = (', ele%name
     else
-      write (line, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
+      write (line_out, '(a, i0, 2a)') 'line_', i_line, ': line = (', ele%name
     endif
     iout = 0
     init_needed = .false.
 
   else
 
-    ix = len_trim(line) + len_trim(ele%name)
+    ix = len_trim(line_out) + len_trim(ele%name)
 
     if (ix > 75) then
-      write (iu, '(3a)') trim(line), trim(separator_char), trim(continue_char)
+      write (iu, '(3a)') trim(line_out), trim(separator_char), trim(continue_char)
       iout = iout + 1
-      line = '   ' // ele%name
+      line_out = '   ' // ele%name
     else
-      line = trim(line) // trim(separator_char) // ' ' // ele%name
+      line_out = trim(line_out) // trim(separator_char) // ' ' // ele%name
     endif
   endif
 
   ! Output line if long enough or at end
 
   if (n == ie2 .or. iout > 48) then
-    line = trim(line) // ')'
-    write (iu, '(2a)') trim(line), trim(eol_char)
-    line = ' '
+    line_out = trim(line_out) // ')'
+    write (iu, '(2a)') trim(line_out), trim(eol_char)
+    line_out = ' '
     init_needed = .true.
   endif
 
@@ -2570,17 +2674,17 @@ write (iu, *) comment_char, '---------------------------------', trim(eol_char)
 write (iu, *)
 
 if (out_type == 'SAD') then
-  line = 'LINE LAT = (line_1'
+  line_out = 'LINE LAT = (line_1'
 else
-  line = 'lat: line = (line_1'
+  line_out = 'lat: line = (line_1'
 endif
 
 do i = 2, i_line
-  write (line, '(3a, i0)') trim(line), trim(separator_char), ' line_', i
+  write (line_out, '(3a, i0)') trim(line_out), trim(separator_char), ' line_', i
 enddo
 
-line = trim(line) // ')'
-call write_line (line)
+line_out = trim(line_out) // ')'
+call write_line (line_out)
 
 if (out_type == 'MAD-X') then
   write (iu, '(a)') 'use, period = lat;'

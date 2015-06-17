@@ -87,12 +87,24 @@ rel_tracking_charge = relative_tracking_charge(start_orb, param)
 charge_dir = rel_tracking_charge * orientation
 
 !-----------------------------------------------
-! Select
-! If element is off looks like a drift. LCavities will still do wakefields.
+! If element is off... 
 
 key = ele%key
 if (key == sol_quad$ .and. ele%value(k1$) == 0) key = solenoid$
-if (.not. ele%is_on .and. key /= lcavity$ .and. key /= sbend$) key = drift$  
+
+if (.not. ele%is_on) then
+  select case (key)
+  case (taylor$, match$, fiducial$, floor_shift$)
+    call set_end_orb_s()
+    return
+  case (ab_multipole$, multipole$, lcavity$, sbend$, patch$)
+    ! Note: LCavities will still do wakefields.
+  case default
+    key = drift$  
+  end select
+endif
+
+! Select.
 
 select case (key)
 
@@ -177,6 +189,7 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
     end if
   end do
   call offset_particle (ele, param, unset$, end_orb, set_tilt = .false., set_hvkicks = .false.)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! drift
@@ -186,6 +199,7 @@ case (drift$)
   call offset_particle (ele, param, set$, end_orb)
   call track_a_drift (end_orb, ele, length)
   call offset_particle (ele, param, unset$, end_orb)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! elseparator
@@ -256,7 +270,7 @@ case (elseparator$)
   call tilt_coords (-angle, end_orb%vec)
 
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.) 
-  end_orb%s = ele%s
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! kicker
@@ -305,7 +319,9 @@ case (kicker$, hkicker$, vkicker$)
     end_orb%vec(1) = end_orb%vec(1) + ele%value(h_displace$)
     end_orb%vec(3) = end_orb%vec(3) + ele%value(v_displace$)
   endif
-   
+
+  call set_end_orb_s()
+
 !-----------------------------------------------
 ! LCavity: Linac rf cavity.
 ! Modified version of the ultra-relativistic formalism from:
@@ -459,7 +475,7 @@ case (lcavity$)
     end_orb%t = start2_orb%t + (pc_end - pc_start) / (gradient_net * c_light)
   endif
 
-  end_orb%s = ele%s
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! marker, etc.
@@ -517,6 +533,8 @@ case (multipole$, ab_multipole$)
 
   call offset_particle (ele, param, unset$, end_orb, set_multipoles = .false., set_tilt = .false.)
 
+  call set_end_orb_s()
+
 !-----------------------------------------------
 ! octupole
 ! The octupole is modeled using kick-drift.
@@ -547,6 +565,8 @@ case (octupole$)
   enddo
 
   call offset_particle (ele, param, unset$, end_orb)
+
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! patch
@@ -647,12 +667,16 @@ case (rfcavity$)
 
   call offset_particle (ele, param, unset$, end_orb)
 
+  call set_end_orb_s()
+
 !-----------------------------------------------
 ! sad_multipole
 
 case (sad_mult$)
 
-call sad_mult_track_and_mat (ele, param, start_orb, end_orb, .false., .false.)
+  call sad_mult_track_and_mat (ele, param, start_orb, end_orb, .false., .false.)
+
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! sbend
@@ -681,6 +705,7 @@ case (sextupole$)
   enddo
 
   call offset_particle (ele, param, unset$, end_orb)
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! Solenoid
@@ -827,7 +852,8 @@ case (wiggler$, undulator$)
   call track1_low_energy_z_correction (end_orb, ele, param)
 
   end_orb%t = start2_orb%t + (ele%value(l$) - 0.5*k1*length / k_z**2 * rel_p**2) / (end_orb%beta * c_light)
-  end_orb%s = ele%s
+
+  call set_end_orb_s()
 
 !-----------------------------------------------
 ! unknown
@@ -849,9 +875,22 @@ contains
 subroutine time_and_s_calc ()
 
 end_orb%t = start2_orb%t + ele%value(delta_ref_time$) + (start2_orb%vec(5) - end_orb%vec(5)) / (end_orb%beta * c_light)
-end_orb%s = ele%s
+call set_end_orb_s()
 
 end subroutine time_and_s_calc
+
+!------------------------------------------
+! contains
+
+subroutine set_end_orb_s
+
+if (end_orb%direction == 1) then
+  end_orb%s = ele%s
+else
+  end_orb%s = ele%s - ele%value(l$)
+endif
+
+end subroutine set_end_orb_s
 
 !--------------------------------------------------------------
 ! contains

@@ -235,6 +235,10 @@ logical err_flag
 
 character(60) material
 
+! If the plate is turned off then all photons are simply transmitted through.
+
+if (.not. ele%is_on) return
+
 ! Photon is lost if in an opaque section
 
 ix_sec = diffraction_plate_hit_spot (ele, orbit)

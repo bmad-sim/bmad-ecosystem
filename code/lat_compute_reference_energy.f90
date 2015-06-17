@@ -504,11 +504,6 @@ if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], [1e-3_rp, bmad_com%signi
     enddo
   endif
 
-!  if ((ele%key == sbend$ .and. (ele%field_master .or. ele%lord_status == multipass_lord$)) .or. &
-!      (ele%key == patch$ .and. is_true(ele%value(flexible$)))) then
-!    call set_ele_status_stale (ele, s_and_floor_position_group$)
-!  endif
-
   call control_bookkeeper (ele%branch%lat, ele)
   old_floor = ele%floor
   call ele_geometry (ele0%floor, ele, ele%floor)

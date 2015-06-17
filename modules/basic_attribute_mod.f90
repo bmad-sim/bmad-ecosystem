@@ -472,7 +472,7 @@ do i = 1, n_key$
   call init_attribute_name1 (i, y_pitch$,       'Y_PITCH')
   call init_attribute_name1 (i, tilt$,          'TILT' )
 
-  if (i == floor_shift$) cycle
+  if (i == floor_shift$)  cycle
   if (i == patch$)        cycle
 
   call init_attribute_name1 (i, tilt_tot$,      'TILT_TOT', dependent$)
@@ -490,16 +490,16 @@ do i = 1, n_key$
   if (i /= drift$) call init_attribute_name1 (i, wall_attribute$,         'WALL')
 
   if (i == capillary$)         cycle
-  if (i == diffraction_plate$) cycle
-  if (i == photon_init$)      cycle
+  if (i == photon_init$)       cycle
 
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
-  if (i == marker$)        cycle
-  if (i == detector$)      cycle
-  if (i == beambeam$)      cycle
-  if (i == multipole$)     cycle 
-  if (i == ab_multipole$)  cycle
+  if (i == diffraction_plate$) cycle
+  if (i == marker$)            cycle
+  if (i == detector$)          cycle
+  if (i == beambeam$)          cycle
+  if (i == multipole$)         cycle 
+  if (i == ab_multipole$)      cycle
 
   call init_attribute_name1 (i, l$,                   'L')
 
@@ -818,6 +818,7 @@ call init_attribute_name1 (girder$, dz_origin$,                     'DZ_ORIGIN')
 call init_attribute_name1 (girder$, dtheta_origin$,                 'DTHETA_ORIGIN')
 call init_attribute_name1 (girder$, dphi_origin$,                   'DPHI_ORIGIN')
 call init_attribute_name1 (girder$, dpsi_origin$,                   'DPSI_ORIGIN')
+call init_attribute_name1 (girder$, is_on$,                         'IS_ON')
 
 call init_attribute_name1 (overlay$, var$,                          'VAR')
 
