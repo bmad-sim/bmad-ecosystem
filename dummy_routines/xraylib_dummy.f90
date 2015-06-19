@@ -34,7 +34,7 @@ end function
 
 function crystal_f_h_structurefactor (cryst, E_kev, i, j, k, debye, angle) result (f_h)
 type (crystal_struct) cryst
-real(c_float) E_kev, debye, angle
+real(c_double) E_kev, debye, angle
 integer i, j, k
 complex(8) f0_tot
 f_h = 0
@@ -48,24 +48,24 @@ end function
 
 function atomicweight(n) result (weight)
 integer n
-real(c_float) weight
+real(c_double) weight
 weight = 0
 end function
 
 function atomicdensity(n) result (density)
 integer n
-real(c_float) density
+real(c_double) density
 density = 0
 end function
 
 subroutine atomic_factors (n, E_kev, q, debye, f0, fp, fpp) 
 integer n
-real(c_float) E_kev, q, debye, f0, fp, fpp
+real(c_double) E_kev, q, debye, f0, fp, fpp
 end subroutine
 
 function elementdensity(n) result (density)
 integer n
-real(c_float) density
+real(c_double) density
 density = 0
 end function
 
