@@ -11,6 +11,8 @@ module xraylib
 
 use iso_c_binding
 
+implicit none
+
 type crystal_struct
   real volume
 end type
@@ -19,6 +21,11 @@ type compounddatanist
   integer nElements, elements(1)
   real massFractions(1), density
 end type
+
+TYPE, BIND(C) :: xrlComplex_C
+        REAL (C_DOUBLE) :: re
+        REAL (C_DOUBLE) :: im
+ENDTYPE
 
 real, parameter :: r_e = 0
 
@@ -37,7 +44,8 @@ type (crystal_struct) cryst
 real(c_double) E_kev, debye, angle
 integer i, j, k
 complex(8) f0_tot
-f_h = 0
+type (xrlComplex_C) f_h
+f_h = xrlComplex_C(0.0, 0.0)
 end function
 
 function atomicnumbertosymbol(n) result (sym)
