@@ -165,11 +165,12 @@ end subroutine set_orbit_to_zero
 !
 ! Input:
 !   slave       -- ele_struct: Slave element.
-!   slave_edge  -- integer: End under consideration: entrance_end$, or exit_end$.
+!   slave_edge  -- integer: End under consideration: entrance_end$, exit_end$, in_between$, etc.
 !   lord        -- ele_struct: Lord element.
 !
 ! Output:
 !   is_aligned  -- integer: True if a lord edge is aligned with the slave edge.
+!                   If slave_edge is not entrance_end$ nor exit_end$ then is_aligned is False.
 !- 
 
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
@@ -196,8 +197,7 @@ case (downstream_end$)
   is_aligned = (abs(slave%s - lord%s) < bmad_com%significant_length)
 
 case default
-  call out_io (s_fatal$, r_name, 'BAD SLAVE_EDGE VALUE!')
-  if (global_com%exit_on_error) call err_exit
+  is_aligned = .false.
 end select
 
 end function lord_edge_aligned
