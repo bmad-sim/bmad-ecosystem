@@ -247,15 +247,40 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
     return
   endif
 
-  call evaluate_value (str, coef, lat, delim, delim_found, err_flag)
-  if (err_flag) return
+  call evaluate_value (str, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+  delim2 = delim   ! Save
+  expn = 0
 
-  call get_next_word (line, ix_word, '},', delim, delim_found)
-  read (line, *, iostat = ios) expn
-  if (delim /= '}' .or. ix_word == 0 .or. ios /= 0) then
-    call parser_error ('BAD "EXPONENT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
-    return
+  ! Need to check for "{1: xxx |}" case where there are no exponents.
+  if (delim2 == '|') then
+    call get_next_word (word, ix_word, '}', delim, delim_found)
+    ! If there are exponents then rewind the get_next_word call.
+    if (ix_word /= 0 .or. delim /= '}') then
+      bp_com%parse_line = trim(word) // delim // bp_com%parse_line
+      delim = delim2
+    endif
   endif
+
+  ! Parse exponents
+
+  do j = 1, 100 
+    if (delim == '}') exit
+    call get_integer (n, err_flag, 'BAD EXPONENT');   if (err_flag) return
+    if (.not. expect_either ('} ', .true.)) return
+    if (delim2 == ',') then
+      select case (j)
+      case (6);      if( .not. expect_either ('}', .true.)) return
+      case default;  if (.not. expect_either (' ', .true.)) return
+      end select
+      expn(j) = n
+    else
+      if (n < 1 .or. n > 6) then
+        call parser_error ('BAD EXPONENT VALUE FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+        return
+      endif
+      expn(n) = expn(n) + 1
+    endif
+  enddo
 
   call add_this_taylor_term (ele, i_out, coef, expn)
   call get_next_word (word, ix_word, '},', delim, delim_found)
@@ -777,7 +802,7 @@ if (attrib_word == 'FIELD') then
 
     if (word2 == 'MODE_TO_AUTOSCALE') then
       if (.not. expect_this ('=', .true., .true., 'AFTER "MODE_TO_AUTOSCALE"')) return
-      call get_integer (ele%em_field%mode_to_autoscale, .false., err_flag, 'BAD MODE_TO_AUTOSCALE VALUE')
+      call get_integer (ele%em_field%mode_to_autoscale, err_flag, 'BAD MODE_TO_AUTOSCALE VALUE')
       if (err_flag) return
     endif
 
@@ -824,9 +849,9 @@ if (attrib_word == 'FIELD') then
       case ('M', 'HARMONIC')
 
         select case (word2)
-        case ('M');        call get_integer (em_mode%m, .false., err_flag, &
+        case ('M');        call get_integer (em_mode%m, err_flag, &
                                       'BAD "FIELD MODE M = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
-        case ('HARMONIC'); call get_integer (em_mode%harmonic, .false., err_flag, &
+        case ('HARMONIC'); call get_integer (em_mode%harmonic, err_flag, &
                                       'BAD "FIELD MODE HARMONIC = <INT>" CONSTRUCT', 'IN ELEMENT: ' // ele%name)
         end select
 
@@ -914,7 +939,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     return
   endif
 
-  call get_integer (ix, .false., err_flag, 'BAD WIGGLER "TERM(IX)" CONSTRUCT'); if (err_flag) return
+  call get_integer (ix, err_flag, 'BAD WIGGLER "TERM(IX)" CONSTRUCT'); if (err_flag) return
 
   if (delim /= ')') then
     call parser_error ('CANNOT FIND CLOSING ")" for a "TERM(i)" FOR A WIGGLER"', 'FOR: ' // ele%name)
@@ -1099,12 +1124,12 @@ case('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'TO'
   call bmad_parser_type_get (ele, attrib_word, delim, delim_found, pele = pele)
 
 case ('PTC_MAX_FRINGE_ORDER')
-  call get_integer (bmad_com%ptc_max_fringe_order, .false., err_flag)
+  call get_integer (bmad_com%ptc_max_fringe_order, err_flag)
   bp_com%extra%ptc_max_fringe_order_set = .true.
   bp_com%extra%ptc_max_fringe_order = bmad_com%ptc_max_fringe_order
 
 case ('TAYLOR_ORDER')
-  call get_integer (ix, .false., err_flag)
+  call get_integer (ix, err_flag)
   if (ix <= 0) then
     call parser_error ('TAYLOR_ORDER IS LESS THAN 1')
     return
@@ -1542,21 +1567,15 @@ end subroutine get_logical
 !--------------------------------------------------------
 ! contains
 
-subroutine get_integer (i, look_for_equal_sign, err, str1, str2)
+subroutine get_integer (int_val, err, str1, str2)
 
-integer i
-logical look_for_equal_sign, err
+integer int_val
+logical err
 character(*), optional :: str1, str2
 
 !
 
-if (look_for_equal_sign) then
-
-endif
-
-!
-
-call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .true.)
+call get_next_word (word, ix_word, ':,=(){} ', delim, delim_found, .true.)
 if (.not. is_integer(word) ) then
   if (present(str1)) then
     call parser_error (str1, str2)
@@ -1566,7 +1585,7 @@ if (.not. is_integer(word) ) then
   err = .true.
 
 else
-  read (word, *) i 
+  read (word, *) int_val
   err = .false.
 endif
 
@@ -2226,8 +2245,8 @@ end subroutine load_parse_line
 !+
 ! Function evaluate_array_index (err_flag, delim_list1, word2, delim_list2, delim2) result (this_index)
 !
-! Function of evaluate the index of an array. Typically the text peing parsed looks like:
-!      "5) = ..."  or
+! Function of evaluate the index of an array. Typically the text being parsed looks like:
+!      "5) = ..."         or
 !      "6).COMP = ..."
 !
 ! Input:
@@ -2373,7 +2392,7 @@ err_flag = .true.
 
 do
   ! Include "+-" as delims to avoid error with sub-expression exceeding 90 characters and with ending "&" continuation char.
-  call get_next_word (word, ix_word, '(),:}+-', delim, delim_found, call_check = call_check)
+  call get_next_word (word, ix_word, '(),:}+-|', delim, delim_found, call_check = call_check)
   call_check = .false.
   str = str(1:ix_str) // word
   ix_str = ix_str + ix_word
@@ -2382,7 +2401,7 @@ do
   select case (delim)
   case (',', ')', '}') 
     if (n_parens == 0) exit
-  case (':')
+  case (':', '|')
     exit
   case default
     ! Nothing to do
@@ -6227,9 +6246,9 @@ end function parse_integer_list
 ! Example:   (1, 2, 4, 8) 
 !
 ! Input:
-!  err_str    -- character(*): Error string to print if there is an error. 
-!  lat        -- lat_struct: lattice
-!  int_array  -- Integer, allocatable: the array to be read in 
+!  err_str       -- character(*): Error string to print if there is an error. 
+!  lat           -- lat_struct: lattice
+!  int_array(:)  -- Integer, allocatable: the array to be read in 
 !
 !   Optional: 
 !   num_expected = 1     -- integer : number of expected arguments
@@ -6237,7 +6256,7 @@ end function parse_integer_list
 !   open_delim   = '('   -- character(1) : opening delimeter
 !   separator    = ','   -- character(1) : separating character
 !   close_delim  = ')'   -- character(1) : closing delimeter
-!   default_value = 0    -- real(rp) : inital assignment of real_array elements
+!   default_value = 0    -- real(rp) : inital assignment of int_array elements
 !
 ! Output:
 !   is_ok                   -- logical: Set True if everything is ok
@@ -6255,7 +6274,7 @@ integer, allocatable :: int_array(:)
 integer :: num_found
 integer, optional :: num_expected, default_value
 character(*) err_str
-character(1), optional :: open_delim, close_delim, separator
+character(*), optional :: open_delim, close_delim, separator
 logical is_ok
 
 ! Local
@@ -6278,11 +6297,13 @@ if (present(close_delim)) cl_delim = close_delim
 if (present(separator)) sep = separator
 
 ! Expect op_delim
-call get_next_word (word, ix_word, op_delim, delim, delim_found)
-if ((word /= '') .or. (delim /= op_delim)) then
-  call parser_error (err_str)
-  return
-end if
+if (op_delim /= '') then
+  call get_next_word (word, ix_word, op_delim, delim, delim_found)
+  if ((word /= '') .or. (delim /= op_delim)) then
+    call parser_error (err_str)
+    return
+  end if
+endif
 
 ! Initial allocation
 call re_allocate(int_array, num_expected, .false.)
