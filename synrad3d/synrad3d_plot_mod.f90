@@ -638,7 +638,7 @@ do
     endif
 
   elseif (ans == '') then
-    ix_section = modulo(ix_section, n_sec_max-1) + 1
+    ix_section = modulo(ix_section, n_sec_max) + 1
     s_pos_old = s_pos
     s_pos = wall3d%section(ix_section)%s
     at_section = .true.
@@ -661,7 +661,8 @@ do
     print *, 'Writen: cross_section.dat'
 
   elseif (ans == 'b') then
-    ix_section = modulo(ix_section - 1, n_sec_max + 1)
+    ix_section = ix_section - 1
+    if (ix_section < 1) ix_section = ix_section + n_sec_max
     s_pos_old = s_pos
     s_pos = wall3d%section(ix_section)%s
     at_section = .true.
@@ -673,7 +674,7 @@ do
       cycle
     endif
     if (i_in < 0 .or. i_in > n_sec_max) then
-      print *, 'Number is out of range!'
+      print '(a, i0, a)', 'Number is out of range! (maximum = ', n_sec_max, ')'
       cycle
     endif
     ix_section = i_in
