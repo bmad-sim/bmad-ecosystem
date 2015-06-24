@@ -44,6 +44,10 @@ real(rp) r(3), dir, rr
 
 character(*), parameter :: r_name = 'track1_photon_init'
 
+! If there is an associated physical element then just pass through
+
+if (ele%component_name /= '') return
+
 !
 
 if (nint(ele%value(spatial_distribution$)) == uniform$) then
