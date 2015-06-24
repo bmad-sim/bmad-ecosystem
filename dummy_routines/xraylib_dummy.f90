@@ -44,8 +44,8 @@ type (crystal_struct) cryst
 real(c_double) E_kev, debye, angle
 integer i, j, k
 complex(8) f0_tot
-type (xrlComplex_C) f_h
-f_h = xrlComplex_C(0.0, 0.0)
+complex(c_double) f_h
+f_h = cmplx(0.0, 0.0)
 end function
 
 function atomicnumbertosymbol(n) result (sym)
