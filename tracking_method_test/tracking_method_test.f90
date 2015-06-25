@@ -12,9 +12,10 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (spin_polar_struct) start_p, end_p
 
+character(200) :: line(3)
 character(40) :: lat_file  = 'tracking_method_test.bmad'
 character(38) :: final_str, fmt
-integer :: i, j, ib, nargs
+integer :: i, j, ib, nargs, isn
 
 logical print_extra
  
@@ -51,6 +52,7 @@ do ib = 0, ubound(lat%branch, 1)
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
     ele%spin_tracking_method = tracking$
+    isn = 0
     do j = 1, n_methods$
       if(.not. valid_tracking_method(ele, branch%param%particle, j) .or. j == symp_map$ .or. j == custom$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
@@ -77,10 +79,11 @@ do ib = 0, ubound(lat%branch, 1)
       if (j == symp_lie_ptc$)  end_ptc = end_orb
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
+        isn = isn + 1
         call spinor_to_polar(start_orb, start_p)
         call spinor_to_polar(end_orb, end_p)
         final_str = trim(final_str) // ' Spin'
-        write (1, '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
+        write (line(isn), '(a, t42, a,  4f14.9, 4x, f14.9)') '"' // trim(final_str) // '"', tolerance_spin(final_str), &
               end_p%theta-start_p%theta, end_p%phi-start_p%phi, &
               end_p%xi-start_p%xi, end_p%polarization - start_p%polarization
       endif
@@ -89,6 +92,10 @@ do ib = 0, ubound(lat%branch, 1)
         write (1, '(3a, t42, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 5E-08', end_orb%field
       endif
     end do
+
+    do j = 1, isn
+      write (1, '(a)') trim(line(j))
+    enddo
 
     if (print_extra) then
       print '(a, t36, 7es18.10)', 'Diff PTC - BS:', end_ptc%vec - end_bs%vec
