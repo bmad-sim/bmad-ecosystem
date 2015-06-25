@@ -114,8 +114,7 @@ interface
     character(*) string
   end subroutine
 
-  subroutine file_get_open (string, dflt_file_name, &
-                                    file_name, file_unit, readonly)
+  subroutine file_get_open (string, dflt_file_name, file_name, file_unit, readonly)
     implicit none
     character(*) file_name
     character(*) dflt_file_name
@@ -479,8 +478,7 @@ interface
     character(*) wording
   end function
 
-  subroutine word_read (in_str, delim_list, word, &
-                                       ix_word, delim, delim_found, out_str)
+  subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out_str)
     implicit none
     character(*) in_str, out_str
     character(*) word
@@ -500,11 +498,6 @@ interface
     implicit none
     character(*) string
     logical, optional :: numeric_month
-  end subroutine
-
-  subroutine find_file (file_in, found, file_out, dirs)
-    character(*) file_in, dirs(:), file_out
-    logical found
   end subroutine
 
   subroutine get_file_time_stamp (file, time_stamp)
