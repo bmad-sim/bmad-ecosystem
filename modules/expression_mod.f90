@@ -532,7 +532,7 @@ do i = 1, size(stack)
 
   case default
 
-    if (is_attribute(stack(i)%type, present_var$)) then
+    if (is_attribute(stack(i)%type, control_var$)) then
       if (.not. present(var)) then
         err_flag = .true.
         err_str = 'VAR ARGUMENT NOT PRESENT! GET HELP!'
@@ -625,7 +625,7 @@ else
     i = i + 1
     atom => stack(i)
 
-    if (is_attribute(atom%type, all_var$)) then
+    if (is_attribute(atom%type, all_control_var$)) then
       i2 = i2 + 1
       s2(i2)%type = numeric$
 

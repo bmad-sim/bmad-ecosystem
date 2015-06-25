@@ -104,8 +104,13 @@ do i = 1, n_control
   slave => branch%ele(ix_slave)
 
   ! If the slave attribute is a multipole component, make sure it exists.
+
   if (is_attribute(ix_attrib, multipole$) .and. .not. associated (slave%a_pole)) then
     call multipole_init(slave)
+  endif
+
+  if (is_attribute(ix_attrib, elec_multipole$) .and. .not. associated (slave%a_pole_elec)) then
+    call elec_multipole_init(slave)
   endif
 
   ! Varying the length of a super_slave is permitted so do not check in this case.
@@ -153,7 +158,7 @@ do i = 1, n_control
   ! Convert a stack of a single constant "const" to "const * control_var(1)"
   var_found = .false.
   do is = 1, size(c%stack)
-    if (c%stack(is)%type < old_var_offset$) cycle
+    if (c%stack(is)%type < old_control_var_offset$) cycle
     if (c%stack(is)%type == end_stack$) exit
     var_found = .true.
     exit

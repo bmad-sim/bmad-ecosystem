@@ -1010,7 +1010,7 @@ end function kind_name
 !   Always supply both of these args together or not at all. 
 ! Note: If you just want to use FPP without PTC then call the FPP routine init directly.
 ! Note: This subroutine cannot be used if you want to have "knobs" (in the PTC sense).
-! Note: Use the routine get_ptc_param to get the state of PTC parameters.
+! Note: Use the routine get_ptc_params to get the state of PTC parameters.
 !
 ! Modules needed:
 !   use ptc_interface_mod
@@ -3126,6 +3126,7 @@ case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
+  ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (sad_mult$)
   if (ele%value(l$) == 0) then
@@ -3181,17 +3182,21 @@ case (sbend$)
 
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
+  ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (octupole$)
   ptc_key%magnet = 'octupole'
+  ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (solenoid$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
+  ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (sol_quad$)
   ptc_key%magnet = 'solenoid'
   ptc_key%list%bsol = val(ks$)
+  ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shift$, fiducial$)
   ptc_key%magnet = 'marker'
@@ -3312,12 +3317,19 @@ if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attri
   ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
 endif
 
+! Electric fields present?
+
+if (associated(ele%a_pole_elec)) then
+  ptc_key%magnet = 'sbend'
+  SOLVE_ELECTRIC = .true.
+endif
+
 ! Multipole components
 
 call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
 ! Create ptc_fibre
-! EXCEPTION is an error_flag. Set to 1 if error. Never reset.
+! The EXCEPTION argument is an error_flag. Set to 1 if error. Never reset.
 
 n = lielib_print(12)
 lielib_print(12) = 0  ! No printing info messages
@@ -3344,16 +3356,30 @@ ptc_fibre%dir = ele%orientation
 
 lielib_print(12) = n
 
-! sad_mult & quadrupole
+! The E-field units that PTC wants on input are MV/m (MAD convention). 
+! Note: PTC convert MV/m to GV/m internally.
 
-if (ele%key == sad_mult$ .or. ele%key == quadrupole$) then
-  if (ele%value(l$) /= 0) then
-    ptc_fibre%mag%va  = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
-    ptc_fibre%magp%va = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
-
-    ptc_fibre%mag%vs  = ele%value(fq2$)
-    ptc_fibre%magp%vs = ele%value(fq2$)
+if (associated(ele%a_pole_elec)) then
+  if (ele%key /= sbend$) then
+    ptc_fibre%mag%p%bend_fringe = .false.
+    ptc_fibre%magp%p%bend_fringe = .false.
   endif
+  fh = 1d-9 / VOLT_C
+  do i = 0, ubound(ele%a_pole_elec, 1)
+    if (ele%a_pole_elec(i) /= 0) call add (ptc_fibre, -(i+1), 0, fh*ele%a_pole_elec(i), electric = .true.)
+    if (ele%b_pole_elec(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*ele%b_pole_elec(i), electric = .true.)
+  enddo
+  SOLVE_ELECTRIC = .false.
+endif
+
+! sad_mult & quadrupole
+! Following the SAD convention: A zero length sad_mult has no fringe.
+
+if ((ele%key == sad_mult$ .and. ele%value(l$) /= 0) .or. ele%key == quadrupole$) then
+  ptc_fibre%mag%va  = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
+  ptc_fibre%magp%va = -sign(sqrt(24 * abs(ele%value(fq1$))), ele%value(fq1$))
+  ptc_fibre%mag%vs  = ele%value(fq2$)
+  ptc_fibre%magp%vs = ele%value(fq2$)
 endif
 
 if (ele%key == sad_mult$) then

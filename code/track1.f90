@@ -50,12 +50,12 @@ type (lat_param_struct) :: param
 type (track_struct), optional :: track
 
 real(rp) p0c_start, z_start
-integer tracking_method
+integer tracking_method, stm
 
 character(8), parameter :: r_name = 'track1'
 
 logical, optional :: err_flag, ignore_radiation
-logical err, do_extra, finished, radiation_included
+logical err, do_extra, finished, radiation_included, do_spin_tracking
 
 ! Use start2_orb since start_orb is strictly input.
 
@@ -151,6 +151,8 @@ endif
 
 ! bmad_standard handles the case when the element is turned off.
 
+do_spin_tracking = bmad_com%spin_tracking_on
+
 tracking_method = ele%tracking_method
 if (.not. ele%is_on) tracking_method = bmad_standard$
 
@@ -180,8 +182,10 @@ case (symp_map$)
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, start2_orb, end_orb, .false., track)
 
-case (symp_lie_ptc$) 
+case (symp_lie_ptc$)
   call track1_symp_lie_ptc (start2_orb, ele, param, end_orb)
+  stm = ele%spin_tracking_method
+  if (stm == tracking$ .or. stm == symp_lie_ptc$) do_spin_tracking = .false.
 
 case (boris$) 
   call track1_boris (start2_orb, ele, param, end_orb, err, track)
@@ -208,6 +212,10 @@ case default
   return
 
 end select
+
+! spin tracking. Must do after regular tracking in the case of spin_tracking_method = bmad_standard
+ 
+if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! Set ix_ele. If the element is a slice_slave then the appropriate ix_ele is given by the lord.
 
@@ -239,10 +247,6 @@ endif
 
 if (bmad_com%space_charge_on .and. do_extra) &
       call track1_ultra_rel_space_charge (ele, param, end_orb)
-
-! spin tracking
- 
-if (bmad_com%spin_tracking_on .and. do_extra) call track1_spin (start2_orb, ele, param, end_orb)
 
 ! check for particles outside aperture
 

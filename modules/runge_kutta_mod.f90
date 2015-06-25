@@ -515,7 +515,12 @@ end subroutine rk_step1
 !
 !   dr(6)/ds = (EM_Force dot v_hat) * dt/ds / P0
 !   where:
-!      v_hat = velocity normalized to 1. 
+!      v_hat = velocity normalized to 1.
+!
+!   dr(7)/ds = dt/ds
+!
+!   dr(8)/ds  + i dr(9)/ds  = d(orbit%spin(1))/ds  ! Is complex
+!   dr(10)/ds + i dr(11)/ds = d(orbit%spin(2))/ds  ! Is complex
 !
 ! Modules needed:
 !   use bmad
@@ -532,8 +537,8 @@ end subroutine rk_step1
 !
 ! Output:
 !   dr_ds(11) -- real(rp): Kick vector.
-!   field    -- em_field_struct: Local field.
-!   err      -- Logical: Set True if there is an error.
+!   field     -- em_field_struct: Local field.
+!   err       -- Logical: Set True if there is an error.
 !-
 
 subroutine kick_vector_calc (ele, param, s_rel, t_rel, orbit, local_ref_frame, dr_ds, err)

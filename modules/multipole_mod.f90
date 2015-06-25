@@ -692,4 +692,102 @@ endif
 
 end subroutine ab_multipole_kick
 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine elec_multipole_kick (a, b, n, coord, kx, ky, dk, compute_dk)
+!
+! Subroutine to put in the kick due to an electric_multipole.
+!
+! Modules Needed:
+!   use bmad
+!                          
+! Input:
+!   a       -- Real(rp): Multipole skew component.
+!   b       -- Real(rp): Multipole normal component.
+!   n       -- Real(rp): Multipole order.
+!   coord   -- Coord_struct:
+!
+! Output:
+!   kx          -- Real(rp): X kick.
+!   ky          -- Real(rp): Y kick.
+!   dk(2,2)     -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
+!   compute_dk  -- logical, optional: If False, do not compute dk even if present.
+!                     Default is True.
+!-
+
+subroutine elec_multipole_kick (a, b, n, coord, kx, ky, dk, compute_dk)
+
+implicit none
+
+type (coord_struct)  coord
+
+real(rp) a, b, x, y
+real(rp), optional :: dk(2,2)
+real(rp) kx, ky, f
+
+integer n, m, n1
+logical, optional :: compute_dk
+logical compute
+
+! Init
+
+kx = 0
+ky = 0
+compute = (present(dk) .and. logic_option(.true., compute_dk))
+
+if (compute) dk = 0
+
+! simple case
+
+if (a == 0 .and. b == 0) return
+
+! normal case
+! Note that c_multi can be + or -
+
+x = coord%vec(1)
+y = coord%vec(3)
+
+do m = 0, n, 2
+  f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
+  kx = kx - b * f
+  ky = ky - a * f
+enddo
+
+do m = 1, n, 2
+  f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
+  kx = kx + a * f
+  ky = ky - b * f
+enddo
+
+! dk calc
+
+if (compute) then
+
+  n1 = n - 1
+  
+  do m = 0, n1, 2
+    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
+    dk(1,1) = dk(1,1) - b * f
+    dk(2,1) = dk(2,1) - a * f
+
+    dk(1,2) = dk(1,2) - a * f
+    dk(2,2) = dk(2,2) + b * f
+  enddo
+
+
+  do m = 1, n1, 2
+    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
+    dk(1,2) = dk(1,2) - b * f
+    dk(2,2) = dk(2,2) - a * f
+
+    dk(1,1) = dk(1,1) + a * f
+    dk(2,1) = dk(2,1) - b * f
+  enddo
+
+endif
+
+end subroutine elec_multipole_kick
+
 end module

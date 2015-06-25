@@ -93,9 +93,9 @@ particle and photon use.
 \label{s:ab.m}
 \index{ab_multipole|hyperbf}
 
-An \vn{ab_multipole} is a thin multipole lens up to 20th order. The
+An \vn{ab_multipole} is a thin magnetic multipole lens up to 21\St order. The
 basic difference between this and a \vn{multipole} (\sref{s:mult} is
-the input format. See section~\sref{s:fields} for how the multipole
+the input format. See section~\sref{s:mag.field} for how the multipole
 coefficients are defined.
 
 General \vn{ab_multipole} Attributes are:
@@ -112,7 +112,7 @@ General \vn{ab_multipole} Attributes are:
 \end{center}
 \toffset
 
-For \vn{a$n$} and \vn{b$n$}, $n$ is in the range 0 through 20.
+For \vn{a$n$} and \vn{b$n$}, $n$ is in the range 0 through 21.
 
 \index{x_pitch}\index{y_pitch}
 The length \vn{l} is a fictitious length that is used for synchrotron
@@ -285,12 +285,12 @@ General \vn{bend_sol_quad} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles     & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
+  Fringe fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}    \HH
   Hkick \& Vkick             & \ref{s:kick}      & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -377,7 +377,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -1133,7 +1133,7 @@ General \vn{e_gun} attributes are:
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
-  Hkick \& Vkick         & \ref{s:kick}    & a$n$, b$n$ multipoles      & \ref{s:multip}  \HH
+  Hkick \& Vkick         & \ref{s:kick}    & Mag \& Elec multipoles      & \ref{s:multip}  \HH
   Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
 \end{center}
@@ -1220,7 +1220,7 @@ General \vn{elseparator} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -1402,7 +1402,7 @@ Example:
 \begin{example}
   f1: fiducial, origin_ele = mark1, x_offset = 0.04
 \end{example}
-See \sref{s:ex.collide} for an exmple where a fiducial element is
+See \sref{s:ex.collide} for an example where a fiducial element is
 used to position the second ring in a dual ring colliding beam 
 machine.
 
@@ -1616,7 +1616,7 @@ that, by default, a marker element is placed at the end of all
 branches (\sref{s:branch.construct})
 
 The reference energy of a target branch line, needs to be set using
-line parameter statements (\sref{s:beginning}). The default referece
+line parameter statements (\sref{s:beginning}). The default reference
 particle type of a branch line will be a \vn{photon} is using a
 \vn{photon_fork} or will be the same type of particle as the base
 branch if a \vn{fork} element is used.
@@ -1840,8 +1840,8 @@ $0.01 = 0.002 * 5$. This, added to the offsets of \vn{g4} and \vn{q2},
 give the total offset of \vn{q2} to be $0.06 = 0.01 + 0.03 + 0.02$.
 The total \vn{x_pitch} of \vn{q2} is $0.022 = 0.02 + 0.001$.
 
-A \vn{grider} that has its \vn{is_on} attribute set to False is considered to be
-unshifted with respect to it's reference frame.
+A \vn{girder} that has its \vn{is_on} attribute set to False is considered to be
+unsifted with respect to it's reference frame.
 
 %-----------------------------------------------------------------------------
 \section{Group}
@@ -1972,7 +1972,7 @@ an intermediate \vn{overlay}. For example:
 In this example, the overlay \vn{ov} controls the attribute \vn{q[k1]}
 so it is not permitted for \vn{q[k1]} to be a slave of a group
 element.  To have group control of \vn{q[k1]}, two elements are
-introduced: the group \vn{gr} is setup controling \vn{ov_q[k1]} and
+introduced: the group \vn{gr} is setup controlling \vn{ov_q[k1]} and
 overlay \vn{ov_q} is an overlay that controls \vn{q[k1]}. Notice that
 trying to control \vn{ov} directly by a group element will not work
 since \vn{ov} controls multiple elements.
@@ -2000,7 +2000,7 @@ As an example, consider \vn{accordion_edge} which varies the edges of
 an element so that the center of the element is fixed but the length
 varies':
 \begin{example}
-  gr: group = \{Z[accordian_edge]\}, var = \{offset\}
+  gr: group = \{Z[accordion_edge]\}, var = \{offset\}
 \end{example}
 A change of, say, 0.1 \vn{gr}'s \vn{offset} variable moves both edges
 of element \vn{Z} by 0.1 meters so that the length of \vn{Z} changes
@@ -2096,7 +2096,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -2135,7 +2135,7 @@ General \vn{kicker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}        & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -2519,9 +2519,9 @@ local reference coordinates are used for these misalignments.
 \label{s:mult}
 \index{multipole|hyperbf}
 
-A \vn{multipole} is a thin multipole lens up to 20th order. The basic
+A \vn{multipole} is a thin magnetic multipole lens up to 21\St order. The basic
 difference between this and an \vn{ab_multipole} is the input
-format. See section~\sref{s:fields} for how the multipole coefficients
+format. See section~\sref{s:mag.field} for how the multipole coefficients
 are defined.
 
 General \vn{multipole} attributes are:
@@ -2636,7 +2636,7 @@ superpositions (\sref{s:super}). It is not generally useful otherwise.
 \index{octupole|hyperbf}
 
 An \vn{octupole} is a magnetic element with a cubic field dependence
-with transverse offset (\sref{s:fields}).  The \vn{bmad_standard}
+with transverse offset (\sref{s:mag.field}).  The \vn{bmad_standard}
 calculation treats an octupole using a kick--drift--kick model.
 
 General \vn{octupole} attributes are:
@@ -2644,7 +2644,7 @@ General \vn{octupole} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -2931,7 +2931,7 @@ A \vn{photon_init} element is used as a starting element for x-ray
 tracking.  A \vn{photon_init} element can be used to define such
 things as the initial energy spectrum and angular orientation. As
 explained below, a \vn{photon_init} element can be a ``stand alone''
-photon source or it can have an assoricated ``phyical source''
+photon source or it can have an associated ``physical source''
 element.
 
 General \vn{photon_init} attributes are:
@@ -3101,13 +3101,13 @@ spectrum can be modified by setting attributes in the \vn{photon_init}
 element. Example:
 \begin{example}
   b05w: sbend, l = 3.2, angle = 0.1
-  pfork: photon_fork, to_line = c_line, superimpose, ref = b052, offset = 0.4
+  pfork: photon_fork, to_line = c_line, superimpose, ref = b05w, offset = 0.4
   bend_line: line = (..., b05w, ...)
   use bend_line
 
   c_line: line = (pinit, ...)
   c_line[e_tot] = 15e3
-  pinit: photon_init, physical_source = 'b5w', sig_E = 2.1
+  pinit: photon_init, physical_source = 'b05w', sig_E = 2.1
 \end{example}
 In this example, the bend \vn{b05w} is a bend producing photons. It is
 part of the line \vn{bend_line}. \vn{bend_line} also contains a
@@ -3129,14 +3129,14 @@ that only photons whose energy is within 2.1 eV are generated
 \index{quadrupole|hyperbf}
 
 A \vn{quadrupole} is a magnetic element with a linear field dependence
-with transverse offset (\sref{s:fields}).
+with transverse offset (\sref{s:mag.field}).
 
 General \vn{quadrupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -3163,7 +3163,7 @@ is used.
 
 For a quadrupole with zero \vn{tilt} and a positive \vn{k1}, the
 quadrupole is horizontally focusing and vertically defocusing
-(\sref{s:fields}).
+(\sref{s:mag.field}).
 
 The \vn{fq1} and \vn{fq2} parameters are used to specify the
 quadrupolar ``soft'' edge fringe. See \sref{ss:q.soft} for more details.
@@ -3291,7 +3291,7 @@ General \vn{sample} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Magnetic multipoles        & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
@@ -3345,7 +3345,7 @@ aligned with the axis of the elements within the solenoid region).
 The SAD \vn{mult} element uses normal \vn{Kn} and skew \vn{KSn}
 multipole components. The \bmad \vn{sad_mult} element used normal
 \vn{an} and skew \vn{bn} multipole components. As can be seen from the
-equations in \sref{s:fields}, there is a factor of $n!$ between the
+equations in \sref{s:mag.field}, there is a factor of $n!$ between the
 two representations.
 
 The \vn{fq1} and \vn{fq2} parameters are used to specify the
@@ -3453,14 +3453,14 @@ Example:
 \index{sextupole|hyperbf}
 
 A \vn{sextupole} is a magnetic element with a quadratic field
-dependence with transverse offset (\sref{s:fields}).
+dependence with transverse offset (\sref{s:mag.field}).
 
 General \vn{sextupole} attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -3501,7 +3501,7 @@ General \vn{solenoid} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -3541,7 +3541,7 @@ General \vn{sol_quad} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -3589,21 +3589,39 @@ General \vn{taylor} attributes are:
 
 Attributes specific to a \vn{taylor} element are:
 \begin{example}
-  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6> \}  ! Taylor coefficient. 
+  \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
+  \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
 \end{example}
+where \vn{<coef>} is a real number and \vn{<out>}, \vn{<e1>},
+\vn{<n1>}, etc. are integers. Notice that the first form uses
+a comma ``,'' to separate the \vn{<coef>} from \vn{<e1>} while
+the second form uses a vertical bar ``|'' to separate \vn{<coef>}
+from \vn{<n1>}.
 
 A term in a Taylor map is of the form
 \Begineq
   x_j({\rm out}) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}({\rm in})
 \Endeq
-where $\Bf x = (x, p_x, y, p_y, z, p_z)$. For example a term
-in a Taylor map that was
+where $\Bf x = (x, p_x, y, p_y, z, p_z)$. A term in a Taylor map can
+be specified by one of two forms (see above). The first form specifies
+the six exponents $e_i$ using the integers \vn{<e1>} corresponding to
+$e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in
+a Taylor map that was
 \Begineq
   p_y({\rm out}) = 2.73 \cdot y^2({\rm in}) \, p_z({\rm in})
 \Endeq
 would be written as
 \begin{example}
-  \{4: 2.73, 0 0 2 0 0 1\}
+  \{4: 2.73, 0 0 2 0 0 1\} or
+\end{example}
+
+The second form for specifying a Taylor term uses a set of integers \vn{<n1>},
+\vn{<n2>}, etc. Each integer must be between 1 and 6 inclusive. The value of 
+the $i$\Th exponent $e_i$ is equal to the number of integers that are equal
+to $i$. For example, the term of the above example would be written using
+the second form as
+\begin{example}
+  \{4: 2.73 | 3 3 6\}
 \end{example}
 
 By default a \vn{taylor} element starts out as the unit map. 
@@ -3616,6 +3634,16 @@ That is, a \vn{taylor} element starts with the following 6 terms
   \{5: 1.0, 0 0 0 0 1 0\}
   \{6: 1.0, 0 0 0 0 0 1\}
 \end{example}
+Which is equivalent to
+\begin{example}
+  \{1: 1.0 | 1\}
+  \{2: 1.0 | 2\}
+  \{3: 1.0 | 3\}
+  \{4: 1.0 | 4\}
+  \{5: 1.0 | 5\}
+  \{6: 1.0 | 6\}
+\end{example}
+
 A term in a \vn{taylor} element will override any previous term
 with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term:
 \begin{example}
@@ -3623,15 +3651,14 @@ with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term
 \end{example}
 will override the default \vn{\{1: 1.0, 1 0 0 0 0 0\}} term.
 
-The \vn{l} length attribute does not affect phase space cocordinates
+The \vn{l} length attribute does not affect phase space coordinates
 but will affect the longitudinal $s$ position of succeeding elements
 and will affect the time it takes a particle to track through the
 element.
 
 Example \vn{taylor} element definition:
 \begin{example}
-  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, &
-              \{2:  1.9, 2 0 0 0 0 1\}
+  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\}
 \end{example}
 
 A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set
@@ -3656,7 +3683,7 @@ General \vn{wiggler} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  a$n$, b$n$ multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Mag \& Elec multipoles     & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
   Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches, \& tilt  & \ref{s:offset}  \HH
@@ -3667,7 +3694,7 @@ General \vn{wiggler} attributes are:
 \end{center}
 \toffset
 
-There are two types of wigglerss. Those that that are described using a
+There are two types of wigglers. Those that that are described using a
 magnetic field map (``map type'') and those that are described
 assuming a periodic field (``periodic type''). 
 

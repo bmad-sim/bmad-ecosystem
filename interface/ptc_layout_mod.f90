@@ -1227,6 +1227,8 @@ end subroutine update_ptc_fibre_from_bmad
 
 subroutine update_bmad_ele_from_ptc (ele)
 
+use precision_constants, only: volt_c
+
 implicit none
 
 type (ele_struct), target :: ele
@@ -1235,7 +1237,7 @@ type (fibre), pointer :: fib
 
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx), tilt, kick
-integer nmul, ix
+integer nmul, i, ix
 character(40) name
 
 !
@@ -1259,7 +1261,8 @@ endif
 name = attribute_name(ele, integrator_order$)
 if (name(1:1) /= '!') call update_this_real (ele%value(integrator_order$), real(fib%mag%p%method, rp))
 
-!
+! Multipole
+
 a_pole = 0
 b_pole = 0
 nmul = min(fib%mag%p%nmul, n_pole_maxx+1)
@@ -1267,6 +1270,19 @@ a_pole(0:nmul-1) = fib%mag%an(1:nmul)
 b_pole(0:nmul-1) = fib%mag%bn(1:nmul)
 
 call multipole_ab_to_kt (a_pole, b_pole, knl, tn)
+
+! Electric Multipole
+
+if (associated(fib%mag%tp10)) then
+  if (associated(fib%mag%tp10%ae)) then
+    if (.not. associated(ele%a_pole_elec)) call elec_multipole_init(ele)
+    nmul = min(size(fib%mag%tp10%ae), n_pole_maxx+1)
+    ele%a_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%ae(1:nmul)
+    ele%b_pole_elec(0:nmul-1) = 1d9 * VOLT_C * fib%mag%tp10%be(1:nmul)
+  endif
+endif
+
+!
 
 if (ele%key == sbend$) then
   call update_this_real (ele%value(ref_tilt_tot$), fib%mag%p%tiltd)

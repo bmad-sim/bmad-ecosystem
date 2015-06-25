@@ -78,7 +78,7 @@ if (associated (ele%control_var)) then
       do i = 1, size(ele%control_var)
         if (ele%control_var(i)%name /= attrib_name(5:)) cycle
         a_ptr%r => ele%control_var(i)%old_value
-        if (present(ix_attrib)) ix_attrib = old_var_offset$ + i
+        if (present(ix_attrib)) ix_attrib = old_control_var_offset$ + i
         err_flag = .false.
         return
       enddo

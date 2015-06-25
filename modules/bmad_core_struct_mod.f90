@@ -676,7 +676,7 @@ end subroutine transfer_wake
 !   ele            -- ele_struct: Element with pointers.
 !   nullify_only   -- Logical, optional: If present and True: Nullify & do not deallocate.
 !   nullify_branch -- Logical, optional: Nullify ele%branch? Default is True.
-!   dealloc_poles  -- Logical, optional: Dealloc ele%a_pole, ele%b_pole? Default is True.
+!   dealloc_poles  -- Logical, optional: Dealloc ele%a/b_pole, ele%a/b_pole_elec? Default is True.
 !
 ! Output:
 !   ele -- Ele_struct: Element with deallocated pointers.
@@ -705,6 +705,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%r)
   nullify (ele%descrip)
   nullify (ele%a_pole, ele%b_pole)
+  nullify (ele%a_pole_elec, ele%b_pole_elec)
   nullify (ele%wake)
   nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
@@ -721,6 +722,11 @@ endif
 if (associated (ele%a_pole) .and. logic_option(.true., dealloc_poles)) then
   deallocate (ele%a_pole, ele%b_pole)
 endif
+
+if (associated (ele%a_pole_elec) .and. logic_option(.true., dealloc_poles)) then
+  deallocate (ele%a_pole_elec, ele%b_pole_elec)
+endif
+
 if (associated (ele%rad_int_cache))  deallocate (ele%rad_int_cache)
 if (associated (ele%r))              deallocate (ele%r)
 if (associated (ele%descrip))        deallocate (ele%descrip)
@@ -1289,9 +1295,59 @@ end subroutine init_ele
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
+! Subroutine elec_multipole_init (ele, zero)
+!
+! Subroutine to allocate memory for the ele%a_pole_elec and ele%b_pole_elec 
+! electric multipole vectors.
+!
+! Modules needed:
+!   use bmad
+!
+! Input:
+!   zero -- Logical, optional: If present and True then zero the arrays
+!             even if they already exist when this routine is called. 
+!             Default is False which means that if the arrays already 
+!             exist then this routine will do nothing.
+!
+! Output:
+!   ele -- Ele_struct: Element holding the elec_multipoles.
+!     %a_pole_elec(0:n_pole_maxx) -- Elec_multipole An array 
+!     %b_pole_elec(0:n_pole_maxx) -- Multipole Bn array
+!-
+
+subroutine elec_multipole_init (ele, zero)
+
+implicit none
+
+type (ele_struct) ele
+logical, optional :: zero
+
+! If %a_pole_elec and %b_pole_elec already exist then zero them if zero argument present 
+! and True.
+
+if (associated (ele%a_pole_elec)) then
+  if (logic_option(.false., zero)) then
+    ele%a_pole_elec = 0
+    ele%b_pole_elec = 0
+  endif
+
+! If memory not allocated then allocate and zero.
+
+else
+  allocate (ele%a_pole_elec(0:n_pole_maxx), ele%b_pole_elec(0:n_pole_maxx))
+  ele%a_pole_elec = 0
+  ele%b_pole_elec = 0
+endif
+
+end subroutine elec_multipole_init
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
 ! Subroutine multipole_init (ele, zero)
 !
-! Subroutine to allocate memory for the the ele%a_pole and ele%b_pole multipole 
+! Subroutine to allocate memory for the ele%a_pole and ele%b_pole multipole 
 ! vectors.
 !
 ! Modules needed:
