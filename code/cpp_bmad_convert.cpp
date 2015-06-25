@@ -2628,10 +2628,11 @@ extern "C" void ele_to_f2 (Bmad_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Ch
     const CPP_taylor**, const CPP_wake&, Int, const CPP_wall3d&, Int, const CPP_wig&, Int,
     const CPP_coord&, const CPP_coord&, const CPP_coord&, const CPP_coord&, c_RealArr,
     c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&, c_RealArr, Int, Int,
-    Int, c_RealArr, Int, c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
+    Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -2693,6 +2694,18 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   if (n1_b_pole > 0) {
     z_b_pole = &C.b_pole[0];
   }
+  // c_side.to_f_setup[real, 1, PTR]
+  int n1_a_pole_elec = C.a_pole_elec.size();
+  c_RealArr z_a_pole_elec = NULL;
+  if (n1_a_pole_elec > 0) {
+    z_a_pole_elec = &C.a_pole_elec[0];
+  }
+  // c_side.to_f_setup[real, 1, PTR]
+  int n1_b_pole_elec = C.b_pole_elec.size();
+  c_RealArr z_b_pole_elec = NULL;
+  if (n1_b_pole_elec > 0) {
+    z_b_pole_elec = &C.b_pole_elec[0];
+  }
 
   // c_side.to_f2_call
   ele_to_f2 (F, C.name.c_str(), C.type.c_str(), C.alias.c_str(), C.component_name.c_str(),
@@ -2702,13 +2715,14 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
       z_taylor, *C.wake, n_wake, *C.wall3d, n_wall3d, *C.wig, n_wig, C.map_ref_orb_in,
       C.map_ref_orb_out, C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0], &C.old_value[0],
       &C.vec0[0], z_mat6, z_c_mat, C.gamma_c, C.s, C.ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole,
-      n1_a_pole, z_b_pole, n1_b_pole, C.key, C.sub_key, C.ix_ele, C.ix_branch, C.slave_status,
-      C.n_slave, C.ix1_slave, C.ix2_slave, C.lord_status, C.n_lord, C.ic1_lord, C.ic2_lord,
-      C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method, C.tracking_method,
-      C.spin_tracking_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
-      C.aperture_type, C.orientation, C.symplectify, C.mode_flip, C.multipoles_on,
-      C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master, C.is_on, C.old_is_on,
-      C.logic, C.bmad_logic, C.csr_calc_on, C.offset_moves_aperture);
+      n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec,
+      n1_b_pole_elec, C.key, C.sub_key, C.ix_ele, C.ix_branch, C.slave_status, C.n_slave,
+      C.ix1_slave, C.ix2_slave, C.lord_status, C.n_lord, C.ic1_lord, C.ic2_lord, C.ix_pointer,
+      C.ixx, C.iyy, C.mat6_calc_method, C.tracking_method, C.spin_tracking_method,
+      C.ptc_integration_type, C.field_calc, C.aperture_at, C.aperture_type, C.orientation,
+      C.symplectify, C.mode_flip, C.multipoles_on, C.scale_multipoles,
+      C.taylor_map_includes_offsets, C.field_master, C.is_on, C.old_is_on, C.logic,
+      C.bmad_logic, C.csr_calc_on, C.offset_moves_aperture);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_control_var;
@@ -2732,8 +2746,9 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     Bmad_coord_class* z_time_ref_orb_in, const Bmad_coord_class* z_time_ref_orb_out, c_RealArr
     z_value, c_RealArr z_old_value, c_RealArr z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat,
     c_Real& z_gamma_c, c_Real& z_s, c_Real& z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int
-    n3_r, c_RealArr z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_Int& z_key,
-    c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_slave_status, c_Int&
+    n3_r, c_RealArr z_a_pole, Int n1_a_pole, c_RealArr z_b_pole, Int n1_b_pole, c_RealArr
+    z_a_pole_elec, Int n1_a_pole_elec, c_RealArr z_b_pole_elec, Int n1_b_pole_elec, c_Int&
+    z_key, c_Int& z_sub_key, c_Int& z_ix_ele, c_Int& z_ix_branch, c_Int& z_slave_status, c_Int&
     z_n_slave, c_Int& z_ix1_slave, c_Int& z_ix2_slave, c_Int& z_lord_status, c_Int& z_n_lord,
     c_Int& z_ic1_lord, c_Int& z_ic2_lord, c_Int& z_ix_pointer, c_Int& z_ixx, c_Int& z_iyy,
     c_Int& z_mat6_calc_method, c_Int& z_tracking_method, c_Int& z_spin_tracking_method, c_Int&
@@ -2891,6 +2906,16 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
 
   C.b_pole.resize(n1_b_pole);
   C.b_pole << z_b_pole;
+
+  // c_side.to_c2_set[real, 1, PTR]
+
+  C.a_pole_elec.resize(n1_a_pole_elec);
+  C.a_pole_elec << z_a_pole_elec;
+
+  // c_side.to_c2_set[real, 1, PTR]
+
+  C.b_pole_elec.resize(n1_b_pole_elec);
+  C.b_pole_elec << z_b_pole_elec;
 
   // c_side.to_c2_set[integer, 0, NOT]
   C.key = z_key;

@@ -6180,76 +6180,98 @@ else
     F%b_pole(jd1+lb1) = rhs
   enddo
 endif
+!! f_side.test_pat[real, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%a_pole_elec)) deallocate (F%a_pole_elec)
+else
+  if (.not. associated(F%a_pole_elec)) allocate (F%a_pole_elec(-1:1))
+  do jd1 = 1, size(F%a_pole_elec,1); lb1 = lbound(F%a_pole_elec,1) - 1
+    rhs = 100 + jd1 + 54 + offset
+    F%a_pole_elec(jd1+lb1) = rhs
+  enddo
+endif
+!! f_side.test_pat[real, 1, PTR]
+
+if (ix_patt < 3) then
+  if (associated(F%b_pole_elec)) deallocate (F%b_pole_elec)
+else
+  if (.not. associated(F%b_pole_elec)) allocate (F%b_pole_elec(-1:1))
+  do jd1 = 1, size(F%b_pole_elec,1); lb1 = lbound(F%b_pole_elec,1) - 1
+    rhs = 100 + jd1 + 56 + offset
+    F%b_pole_elec(jd1+lb1) = rhs
+  enddo
+endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 54 + offset; F%key = rhs
+rhs = 58 + offset; F%key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 55 + offset; F%sub_key = rhs
+rhs = 59 + offset; F%sub_key = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 56 + offset; F%ix_ele = rhs
+rhs = 60 + offset; F%ix_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 57 + offset; F%ix_branch = rhs
+rhs = 61 + offset; F%ix_branch = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 58 + offset; F%slave_status = rhs
+rhs = 62 + offset; F%slave_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 59 + offset; F%n_slave = rhs
+rhs = 63 + offset; F%n_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 60 + offset; F%ix1_slave = rhs
+rhs = 64 + offset; F%ix1_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 61 + offset; F%ix2_slave = rhs
+rhs = 65 + offset; F%ix2_slave = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 62 + offset; F%lord_status = rhs
+rhs = 66 + offset; F%lord_status = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 63 + offset; F%n_lord = rhs
+rhs = 67 + offset; F%n_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 64 + offset; F%ic1_lord = rhs
+rhs = 68 + offset; F%ic1_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 65 + offset; F%ic2_lord = rhs
+rhs = 69 + offset; F%ic2_lord = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 66 + offset; F%ix_pointer = rhs
+rhs = 70 + offset; F%ix_pointer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 67 + offset; F%ixx = rhs
+rhs = 71 + offset; F%ixx = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 68 + offset; F%iyy = rhs
+rhs = 72 + offset; F%iyy = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 69 + offset; F%mat6_calc_method = rhs
+rhs = 73 + offset; F%mat6_calc_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 70 + offset; F%tracking_method = rhs
+rhs = 74 + offset; F%tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 71 + offset; F%spin_tracking_method = rhs
+rhs = 75 + offset; F%spin_tracking_method = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 72 + offset; F%ptc_integration_type = rhs
+rhs = 76 + offset; F%ptc_integration_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 73 + offset; F%field_calc = rhs
+rhs = 77 + offset; F%field_calc = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 74 + offset; F%aperture_at = rhs
+rhs = 78 + offset; F%aperture_at = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 75 + offset; F%aperture_type = rhs
+rhs = 79 + offset; F%aperture_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 76 + offset; F%orientation = rhs
+rhs = 80 + offset; F%orientation = rhs
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 77 + offset; F%symplectify = (modulo(rhs, 2) == 0)
+rhs = 81 + offset; F%symplectify = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 78 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
+rhs = 82 + offset; F%mode_flip = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 79 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
+rhs = 83 + offset; F%multipoles_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 80 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
+rhs = 84 + offset; F%scale_multipoles = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 81 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
+rhs = 85 + offset; F%taylor_map_includes_offsets = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 82 + offset; F%field_master = (modulo(rhs, 2) == 0)
+rhs = 86 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 83 + offset; F%is_on = (modulo(rhs, 2) == 0)
+rhs = 87 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 84 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
+rhs = 88 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 85 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 89 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 86 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 90 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 87 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
+rhs = 91 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 88 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 92 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 

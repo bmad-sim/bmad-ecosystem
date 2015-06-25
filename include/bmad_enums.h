@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 155;
+  const int BMAD_INC_VERSION = 157;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -45,6 +45,7 @@ namespace Bmad {
   const int SAD_FULL = 5, LINEAR_EDGE = 6, BASIC_BEND = 7, TEST_EDGE = 8;
   const int N_NON_BEND_FRINGE_TYPE = 4;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;
+  const int CONTROL_VAR = 1, OLD_CONTROL_VAR = 2, ALL_CONTROL_VAR = 3, ELEC_MULTIPOLE = 4;
   const int NUM_ELE_ATTRIB = 80;
   const int OFF = 1, ON = 2;
   const int NONE = 1;
@@ -118,9 +119,9 @@ namespace Bmad {
   const int E1 = 19, E2 = 20;
   const int FINT = 21, FINTX = 22, HGAP = 23, HGAPX = 24, H1 = 25, H2 = 26;
   const int L = 1;
-  const int TILT = 2, COMMAND = 2, ROLL = 2;
+  const int TILT = 2, ROLL = 2;
   const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3;
-  const int OLD_COMMAND = 3, KICK = 3, X_GAIN_ERR = 3;
+  const int KICK = 3, X_GAIN_ERR = 3;
   const int RF_FREQUENCY_ERR = 4, K1 = 4, SIG_X = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
   const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
   const int LR_FREQ_SPREAD = 5, GRAZE_ANGLE = 5, K2 = 5, SIG_Y = 5, B_MAX = 5, V_DISPLACE = 5;
@@ -268,23 +269,26 @@ namespace Bmad {
   const int REF_CENTER     = 127;
   const int REF_END        = 128;
   const int CREATE_JUMBO_SLAVE = 129;
-  const int A0  = 130, K0L  = 130;
-  const int A21 = 151, K21L = 151;
-  const int B0  = 160, T0  = 160;
-  const int B21 = 181, T21 = 181;
-  const int NUM_ELE_ATTRIB_EXTENDED = T21;
+  const int A0  = 130, A21  = 151;
+  const int B0  = 160, B21 = 181;
+  const int K0L = 130, K21L = 151;
+  const int T0  = 160, T21 = 181;
+  const int A0_ELEC  = 190, A21_ELEC  = 211;
+  const int B0_ELEC  = 220, B21_ELEC = 241;
+  const int NUM_ELE_ATTRIB_EXTENDED = A21_ELEC;
   const int OPEN = 1, CLOSED = 2;
   const int BENDS = 201;
   const int WIGGLERS = 202;
   const int ALL = 203;
   const int RADIANS = 1, DEGREES = 2, CYCLES = 3, KHZ = 4;
   const int ROTATIONALLY_SYMMETRIC_RZ = 1, XYZ = 2;
-  const int ENTRY_PT1 = 1, ENTRY_PT2 = 2;
   const int IS_LOGICAL = 1, IS_INTEGER = 2, IS_REAL = 3, IS_SWITCH = 4, IS_STRING = 5;
   const int PATCH_PROBLEM = 2, OUTSIDE = 3, CANNOT_FIND = 4;
   const int SECTOR = 1, STRAIGHT = 2, TRUE_RBEND = 3;
   const double SMALL_REL_CHANGE = 1E-14;
   const int N_POLE_MAXX = 21;
+  const int OLD_CONTROL_VAR_OFFSET = 1000;
+  const int VAR_OFFSET = 2000;
   const int NOT_SET = -999;
   const int REF_PARTICLE = 6, ANTI_REF_PARTICLE = 7;
   const int PION_0     = +5;
@@ -315,7 +319,7 @@ namespace Bmad {
   const double P_MASS   = 0.938272046E0;
   const double M_ELECTRON = 0.510998910E6;
   const double M_PROTON   = 0.938272046E9;
-  const double M_MUON     = 105.65836668E6;
+  const double M_MUON     = 105.6583715E6;
   const double M_PION_0 = 134.9766E6;
   const double M_PION_CHARGED = 139.57018E6;
   const double C_LIGHT = 2.99792458E8;

@@ -1086,6 +1086,8 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.r, y.r);
   is_eq = is_eq && is_all_equal(x.a_pole, y.a_pole);
   is_eq = is_eq && is_all_equal(x.b_pole, y.b_pole);
+  is_eq = is_eq && is_all_equal(x.a_pole_elec, y.a_pole_elec);
+  is_eq = is_eq && is_all_equal(x.b_pole_elec, y.b_pole_elec);
   is_eq = is_eq && (x.key == y.key);
   is_eq = is_eq && (x.sub_key == y.sub_key);
   is_eq = is_eq && (x.ix_ele == y.ix_ele);

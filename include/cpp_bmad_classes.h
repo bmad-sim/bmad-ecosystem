@@ -2449,6 +2449,8 @@ public:
   Real_TENSOR r;
   Real_ARRAY a_pole;
   Real_ARRAY b_pole;
+  Real_ARRAY a_pole_elec;
+  Real_ARRAY b_pole_elec;
   Int key;
   Int sub_key;
   Int ix_ele;
@@ -2546,6 +2548,8 @@ public:
     r(Real_MATRIX(Real_ARRAY(0.0, 0), 0), 0),
     a_pole(0.0, 0),
     b_pole(0.0, 0),
+    a_pole_elec(0.0, 0),
+    b_pole_elec(0.0, 0),
     key(key_),
     sub_key(0),
     ix_ele(-1),
