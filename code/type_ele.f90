@@ -238,7 +238,17 @@ do i = 1, num_ele_attrib$
   endif
 enddo
 
+! Multipoles
+
+if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
+  nl=nl+1; write (li(nl), '(a, l1)')   'Multipoles_on:    ', ele%multipoles_on 
+endif
+
 if (associated(ele%a_pole)) then
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=nl+1; write (li(nl), '(a, l1)') 'Scale_Multipoles: ', ele%scale_multipoles
+  endif
+
   if (associated(branch)) param = branch%param
 
   a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
@@ -250,12 +260,6 @@ if (associated(ele%a_pole)) then
     call multipole_ele_to_ab (ele, .true.,  has_nonzero_pole, a2, b2)
     call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
   endif
-
-  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=nl+1; write (li(nl), '(a, l1)') 'Scale_Multipoles: ', ele%scale_multipoles
-  endif
-
-  nl=nl+1; write (li(nl), '(a, l1)')   'Multipoles_on:    ', ele%multipoles_on 
 
   do i = 0, n_pole_maxx
     if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
@@ -279,6 +283,18 @@ if (associated(ele%a_pole)) then
              'B', i, '(Scaled) =', b(i), 'B', i, '(w/Tilt) =', b2(i), 'T', i, '(equiv)  =', tn(i)
     endif
 
+  enddo
+
+endif
+
+! Electric Multipoles
+
+if (associated(ele%a_pole_elec)) then
+
+  do i = 0, n_pole_maxx
+    if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', i, '_elec =', ele%a_pole_elec(i)
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', i, '_elec =', ele%b_pole_elec(i)
   enddo
 
 endif

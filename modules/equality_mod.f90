@@ -1933,6 +1933,18 @@ if (.not. is_eq) return
 if (associated(f1%b_pole)) is_eq = all(shape(f1%b_pole) == shape(f2%b_pole))
 if (.not. is_eq) return
 if (associated(f1%b_pole)) is_eq = all(f1%b_pole == f2%b_pole)
+!! f_side.equality_test[real, 1, PTR]
+is_eq = is_eq .and. (associated(f1%a_pole_elec) .eqv. associated(f2%a_pole_elec))
+if (.not. is_eq) return
+if (associated(f1%a_pole_elec)) is_eq = all(shape(f1%a_pole_elec) == shape(f2%a_pole_elec))
+if (.not. is_eq) return
+if (associated(f1%a_pole_elec)) is_eq = all(f1%a_pole_elec == f2%a_pole_elec)
+!! f_side.equality_test[real, 1, PTR]
+is_eq = is_eq .and. (associated(f1%b_pole_elec) .eqv. associated(f2%b_pole_elec))
+if (.not. is_eq) return
+if (associated(f1%b_pole_elec)) is_eq = all(shape(f1%b_pole_elec) == shape(f2%b_pole_elec))
+if (.not. is_eq) return
+if (associated(f1%b_pole_elec)) is_eq = all(f1%b_pole_elec == f2%b_pole_elec)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%key == f2%key)
 !! f_side.equality_test[integer, 0, NOT]

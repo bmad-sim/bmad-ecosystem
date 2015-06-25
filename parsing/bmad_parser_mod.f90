@@ -76,7 +76,6 @@ end type
 ! that are currently open.
 
 type stack_file_struct
-  character(200) logical_name
   character(200) :: full_name = ''
   character(200) :: dir = './'
   character(200) parse_line_saved
@@ -138,7 +137,6 @@ type bp_common_struct
   character(n_parse_line) input_line1          ! For debug messages
   character(n_parse_line) input_line2          ! For debug messages
   character(40) parser_name
-  character(200) :: dirs(2) 
   logical :: bmad_parser_calling = .false.              ! used for expand_lattice
   logical error_flag                           ! Set True on error
   logical fatal_error_flag                     ! Set True on fatal (must abort now) error 
@@ -150,6 +148,7 @@ type bp_common_struct
   logical input_from_file     ! Input is from a lattice file?
   logical inline_call_active
   logical :: print_err = .true.  ! Print error messages?
+  logical :: use_local_lat_file = .false.
 end type
 
 !
@@ -1353,6 +1352,15 @@ case default   ! normal attribute
         else
           ele%a_pole(ix_attrib-a0$) = value
         endif
+    ! Electric multipole attribute
+    elseif (is_attribute(ix_attrib, elec_multipole$)) then
+        if (.not. associated(ele%a_pole_elec)) call elec_multipole_init (ele)
+        if (ix_attrib >= b0_elec$) then
+          ele%b_pole_elec(ix_attrib-b0_elec$) = value
+        else
+          ele%a_pole_elec(ix_attrib-a0_elec$) = value
+        endif
+    !
     elseif (attrib_word == 'RAN_SEED') then
       call ran_seed_put (nint(value))  ! init random number generator
       if (nint(value) == 0) then  ! Using system clock -> Not determinisitc.
@@ -1968,9 +1976,7 @@ if (present(err)) err = .true.
 
 if (how == 'init') then
   i_level = 0
-  call fullfilename('./', file_name)
-  bp_com%dirs(2) = file_name
-  file(:)%dir = file_name
+  call fullfilename ('./', file(0)%dir)
   if (present(err)) err = .false.
   if (.not. allocated(bp_com%lat_file_names)) allocate(bp_com%lat_file_names(100))
   bp_com%inline_call_active = .false.
@@ -2019,13 +2025,22 @@ case ('push', 'push_inline')
   endif
 
   ix = splitfilename (file_name2, file(i_level)%dir, basename, is_relative)
-  if (is_relative) then
+
+  if (bp_com%use_local_lat_file) then
+    inquire (file = basename, exist = found_it, name = file_name2)
+    if (found_it) file(i_level)%dir = file(0)%dir
+  else
+    found_it = .false.
+  endif
+
+  if (is_relative .and. .not. found_it) then
     call append_subdirectory (trim(file(i_level-1)%dir), file(i_level)%dir, file(i_level)%dir, err_flag)
     if (err_flag) call parser_error ('BAD DIRECTORY SYNTAX FOR: ' // file_name, stop_here = .true.)
+    call append_subdirectory (file(i_level-1)%dir, file_name2, file_name2, err_flag)
   endif
-  bp_com%dirs(1) = file(i_level-1)%dir
-  call find_file (file_name2, found_it, file_name, bp_com%dirs)
-  file(i_level)%logical_name = file_name2
+
+  inquire (file = file_name2, exist = found_it, name = file_name)
+
   file(i_level)%full_name = file_name
   file(i_level)%f_unit = lunget()
 
@@ -2036,8 +2051,7 @@ case ('push', 'push_inline')
       call parser_error ('UNABLE TO OPEN FILE: ' // file_name, stop_here = .true.)
     else
       call parser_error ('UNABLE TO OPEN FILE: ' // file_name, &
-                    'THIS FROM THE LOGICAL FILE NAME: ' // file_name2, &
-                    stop_here = .true.)
+                         'THIS FROM THE LOGICAL FILE NAME: ' // file_name_in, stop_here = .true.)
     endif
     do i = 1, i_level-1
       close (file(i_level)%f_unit)

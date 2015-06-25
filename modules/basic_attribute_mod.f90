@@ -93,7 +93,7 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_va
   if (name(1:4) == 'OLD_') then
     do i = 1, size(ele%control_var)
       if (full_name(5:) /= ele%control_var(i)%name) cycle
-      attrib_index = i + old_var_offset$
+      attrib_index = i + old_control_var_offset$
       if (present(full_name)) full_name = name
       return
     enddo
@@ -234,7 +234,7 @@ key = ele%key
 if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
 
-elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, present_var$)) then
+elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
   if (ix > size(ele%control_var)) then
     attrib_name = '!BAD INDEX'
@@ -242,8 +242,8 @@ elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, 
     attrib_name = ele%control_var(ix)%name
   endif
 
-elseif (ele%key == group$ .and. is_attribute(ix_att, old_var$)) then
-  ix = ix_att - old_var_offset$
+elseif (ele%key == group$ .and. is_attribute(ix_att, old_control_var$)) then
+  ix = ix_att - old_control_var_offset$
   if (ix > size(ele%control_var)) then
     attrib_name = '!BAD INDEX'
   else
@@ -309,7 +309,7 @@ attrib_info%type = does_not_exist$
 
 ! Overlay and group control vars.
 
-if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, present_var$)) then
+if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
   if (ix > size(ele%control_var)) then
     attrib_info%name = '!BAD INDEX'
@@ -320,8 +320,8 @@ if ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, pres
   return
 endif
 
-if (ele%key == group$ .and. ix_att > old_var_offset$) then
-  ix = ix_att - old_var_offset$
+if (ele%key == group$ .and. ix_att > old_control_var_offset$) then
+  ix = ix_att - old_control_var_offset$
   if (ix > size(ele%control_var)) then
     attrib_info%name = '!BAD INDEX'
   else
@@ -571,6 +571,16 @@ do i = 1, n_key$
     if (i == sad_mult$) cycle
     call init_attribute_name1 (i, scale_multipoles$,  'SCALE_MULTIPOLES')
     call init_attribute_name1 (i, multipoles_on$,     'MULTIPOLES_ON')
+    attrib_array(i, a0_elec$:a21_elec$)%name = ['A0_ELEC ', &
+                                    'A1_ELEC ', 'A2_ELEC ', 'A3_ELEC ', 'A4_ELEC ', 'A5_ELEC ', & 
+                                    'A6_ELEC ', 'A7_ELEC ', 'A8_ELEC ', 'A9_ELEC ', 'A10_ELEC', &
+                                    'A11_ELEC', 'A12_ELEC', 'A13_ELEC', 'A14_ELEC', 'A15_ELEC', &
+                                    'A16_ELEC', 'A17_ELEC', 'A18_ELEC', 'A19_ELEC', 'A20_ELEC', 'A21_ELEC']
+    attrib_array(i, b0_elec$:b21_elec$)%name = ['B0_ELEC ', &
+                                    'B1_ELEC ', 'B2_ELEC ', 'B3_ELEC ', 'B4_ELEC ', 'B5_ELEC ', & 
+                                    'B6_ELEC ', 'B7_ELEC ', 'B8_ELEC ', 'B9_ELEC ', 'B10_ELEC', &
+                                    'B11_ELEC', 'B12_ELEC', 'B13_ELEC', 'B14_ELEC', 'B15_ELEC', &
+                                    'B16_ELEC', 'B17_ELEC', 'B18_ELEC', 'B19_ELEC', 'B20_ELEC', 'B21_ELEC']
   end select
 enddo
 

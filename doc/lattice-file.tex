@@ -325,13 +325,19 @@ These reserved names are:
   beam
   beam_start
   beginning
+  debug_marker
   end
+  no_digested
   parameter
+  parser_debug
+  print
   root
+  title
+  use
 \end{example}
 
 Where appropriate, for example when setting element attributes
-(\sref{s:lat.attribs}), the wildcards \vn{``*''} and \vn{``%''} can be
+(\sref{s:lat.attribs}), the wild cards \vn{``*''} and \vn{``%''} can be
 used to select multiple elements.  The \vn{``*''} character will match
 any number of characters (including zero) while \vn{``%''} maches to
 any single character. Additionally, matching can be restricted to a
@@ -351,7 +357,7 @@ specify a set of elements is:
 \begin{example}
   \{class::\}\{branch_id>>\}element_id\{##N\}
 \end{example}
-where \vn{\{...\}} markes an optional component, \vn{class} is a class
+where \vn{\{...\}} marks an optional component, \vn{class} is a class
 name, \vn{branch_id} is a branch name or index (\sref{s:branch.def}),
 \vn{element_id} is and element name or element index
 (\sref{s:lines.wo.arg}), and \vn{\#\#N} indicates that the N\Th matching
@@ -462,11 +468,11 @@ may be set using the syntax as discussed in Section \sref{s:ele.names}. Example:
 \label{s:custom.attrib}
 \index{element attributes!defining custom attributes}
 
-Real scaler custom element attributes may be defined for any class of
+Real scalar custom element attributes may be defined for any class of
 element.  Custom element attributes are useful with programs that need
 to associate ``extra'' information with particular lattice elements
 and it is desired that this extra information be settable from within
-a lattice file. For example, a program might need error tollerances
+a lattice file. For example, a program might need error tolerance
 for the strength of quadrupoles.
 
 Adding custom attributes will not disrupt programs that are not
@@ -490,7 +496,7 @@ can be prefixed to the attribute name. Examples:
   parameter[custom_attribute1] = "quadrupole::error_k1"
   parameter[custom_attribute2] = "color"
 \end{example}
-The first line in the example assigns a custom attributge name of
+The first line in the example assigns a custom attribute name of
 \vn{mag_id} to all elements.  The second line in the example overrides
 the setting of \vn{custom_attribute1} for quadrupole elements only. 
 
@@ -751,18 +757,17 @@ Example:
 \bmad will read the called file until a \vn{return} or \vn{end_file}
 statement is encountered or the end of the file is reached.
 
-For filenames that are relative, the called file will be searched for in
-two different locations:
+For filenames that have a relative pathname, the called file will be
+searched for relative to the directory of the calling file.  Thus, in
+the above example, if the file containing the call statements is in the
+directory \vn{/path/to/lat_dir}, the first call will open the file:
 \begin{example}
-  1) Relative to the directory of the calling file.
-  2) Relative to the current directory.
+  /path/to/lat_dir/../layout/my_layout.bmad 
 \end{example}
-The first instance where a file is found is used.
-Thus, in the above example, the first call will search for:
-\begin{example}
-  1) ../layout/my_layout.bmad  (relative to the calling file directory)
-  2) ../layout/my_layout.bmad  (relative to the current directory)
-\end{example}
+
+Where a called file is searched for may be modified by using a
+\vn{use_local_lat_file} statement. See Section~\sref{s:use.loc} for
+more details.
 
 An XSIF (\sref{s:lattice.file.formats}) lattice file may be called
 from within a \bmad lattice file by prepending \vn{"xsif::"} to the
@@ -807,9 +812,39 @@ Example:
   c: crystal, call::my_curvature.bmad, surface = call::my_surface.bmad, ...
 \end{example}  
 
+%--------------------------------------------------------------------------
+\section{Use_local_lat_file Statement}
+\label{s:use.loc}
+\index{use_local_lat_file_statement|hyperbf}
+
+It is sometimes convenient to override where \bmad looks for called
+files (see \sref{s:call}). For example, suppose it is desired to
+temporarily override the settings in a called file without modifying
+the called file itself. In this case, the \vn{use_local_lat_file}
+statement can be used. When this statement is encountered in a lattice
+file, the local directory (that is, the directory from which the
+program is run) is searched first for the called file and if a file
+of the correct name is found, that file is used.
+
+An example will make this clear. Suppose lattice file \vn{/A/lat.bmad}
+contains the call:
+\begin{example}
+  call, filename = "/B/sub.bmad"
+\end{example}
+Now suppose that you want to use \vn{lat.bmad} with a modified
+\vn{sub.bmad} but you do not want to modify \vn{/A/lat.bmad} or
+\vn{/B/sub.bmad}. The solution is to create two new files. One file,
+call it \vn{new.bmad}, which can be situated in any directory, has two
+lines in it:
+\begin{example}
+  use_local_lat_file
+  call, filename = "/A/lat.bmad"
+\end{example}
+The second new file is the modified \vn{sub.bmad} and it must be in the
+directory from which the program is run.
 
 %--------------------------------------------------------------------------
-\section{Return and End_File statements}
+\section{Return and End_File Statements}
 \index{return statement|hyperbf}
 \index{end_file statement|hyperbf}
 
@@ -867,7 +902,7 @@ A lattice file where all the statements are post lattice expansion
 valid is called a ``\vn{secondary lattice file}''.  To promote
 flexibility, \bmad has methods for parsing lattices in a two step
 process: First, a ``primary'' lattice file that defines the basic
-lattice is read. After the promary lattice has been parsed and lattice
+lattice is read. After the primary lattice has been parsed and lattice
 expansion has been done, the second step is to read in one or more
 secondary lattice files. Such secondary lattice files can be used, for
 example, to set such things as element misalignments. The point here

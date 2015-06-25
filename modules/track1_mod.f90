@@ -72,7 +72,7 @@ if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
-    if (.not. (lord_edge_aligned (ele, physical_end, lord) .or. lord%aperture_at == continuous$)) cycle
+    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
     call check_aperture_limit (orb, lord, particle_at, param, check_momentum)
     if (orb%state /= alive$) return
   enddo

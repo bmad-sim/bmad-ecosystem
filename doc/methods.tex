@@ -467,10 +467,10 @@ calculation. See \vn{s:custom.ele} for more details.
 \index{tracking!mat6_calc_method}
 \item[\vn{Tracking}] \Newline
 How spin is tracked here will depend also on the setting of
-\vn{tracking_method}. If \vn{tracking_method} is set to \vn{boris}, or
-\vn{runge_kutta} then the spin will be tracked along with the phase
-space particle coordinates using the local fields. For all other
-\vn{tracking_method}s, the spin will be tracked using the
+\vn{tracking_method}. If \vn{tracking_method} is set to \vn{boris},
+\vn{runge_kutta}, or \vn{symp_lie_ptc}, the spin will be tracked along
+with the phase space particle coordinates using the local fields. For
+all other \vn{tracking_method}s, the spin will be tracked using the
 \vn{bmad_standard} spin tracking method.
 
 \index{symp_lie_ptc!spin_tracking_method}
@@ -505,42 +505,42 @@ Example:
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
 %                               BS   C  SLP Trk 
-  \vn{ab_multipole}            & D & X &   &   \\  
+  \vn{ab_multipole}            & X & X &   & D \\  
   \vn{beambeam}                &   & X &   &   \\  
-  \vn{bend_sol_quad}           & D & X & X & X \\  
+  \vn{bend_sol_quad}           & X & X & X & D \\  
   \vn{capillary}               &   &   &   &   \\  
   \vn{crystal}                 &   &   &   &   \\  
   \vn{custom}                  &   & D &   & X \\  
-  \vn{drift}                   & D & X & X & X \\  
+  \vn{drift}                   & X & X & X & D \\  
   \vn{e_gun}                   &   & X &   & D \\  
-  \vn{ecollimator}             & D & X & X & X \\  
-  \vn{elseparator}             & D & X & X & X \\  
+  \vn{ecollimator}             & X & X & X & D \\  
+  \vn{elseparator}             & X & X & X & D \\  
   \vn{em_field}                &   & X &   & D \\  
-  \vn{hkicker}                 & D & X & X & X \\  
-  \vn{instrument}              & D & X & X & X \\  
-  \vn{kicker}                  & D & X & X & X \\  
-  \vn{lcavity}                 & D & X & X & X \\  
-  \vn{marker}                  & D & X & X & X \\  
+  \vn{hkicker}                 & X & X & X & D \\  
+  \vn{instrument}              & X & X & X & D \\  
+  \vn{kicker}                  & X & X & X & D \\  
+  \vn{lcavity}                 & X & X & X & D \\  
+  \vn{marker}                  & X & X & X & D \\  
   \vn{match}                   &   & X &   &   \\  
   \vn{mirror}                  &   &   &   &   \\  
-  \vn{monitor}                 & D & X & X & X \\  
-  \vn{multipole}               & D & X & X &   \\  
+  \vn{monitor}                 & X & X & X & D \\  
+  \vn{multipole}               & X & X & X & D \\  
   \vn{multilayer}              &   &   &   &   \\  
-  \vn{octupole}                & D & X & X & X \\ 
+  \vn{octupole}                & X & X & X & D \\ 
   \vn{patch}                   &   & X & X &   \\ 
-  \vn{quadrupole}              & D & X & X & X \\ 
-  \vn{rbend}                   & D & X & X & X \\ 
-  \vn{rcollimator}             & D & X & X & X \\ 
-  \vn{rfcavity}                & D & X & X & X \\ 
+  \vn{quadrupole}              & X & X & X & D \\ 
+  \vn{rbend}                   & X & X & X & D \\ 
+  \vn{rcollimator}             & X & X & X & D \\ 
+  \vn{rfcavity}                & X & X & X & D \\ 
   \vn{sad_mult}                &   & X &   &   \\  
   \vn{sample}                  &   &   &   &   \\  
-  \vn{sbend}                   & D & X & X & X \\ 
-  \vn{sextupole}               & D & X & X & X \\ 
-  \vn{solenoid}                & D & X & X & X \\ 
-  \vn{sol_quad}                & D & X & X & X \\ 
+  \vn{sbend}                   & X & X & X & D \\ 
+  \vn{sextupole}               & X & X & X & D \\ 
+  \vn{solenoid}                & X & X & X & D \\ 
+  \vn{sol_quad}                & X & X & X & D \\ 
   \vn{taylor}                  &   &   &   &   \\ 
-  \vn{vkicker}                 & D & X & X & X \\ 
-  \vn{wiggler}                 & D & X & X & X \\ \bottomrule
+  \vn{vkicker}                 & X & X & X & D \\ 
+  \vn{wiggler}                 & X & X & X & D \\ \bottomrule
 \end{tabular}
 }
 

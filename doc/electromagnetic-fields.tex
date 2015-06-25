@@ -1,8 +1,8 @@
 \chapter{Electromagnetic Fields}
 
 %-----------------------------------------------------------------
-\section{Magnetic Fields}
-\label{s:fields}
+\section{Magnetic Static Fields}
+\label{s:mag.field}
 \index{magnetic fields|hyperbf}
 
 \index{MAD}
@@ -100,6 +100,7 @@ the fields into normal $b_n$ and skew $a_n$ components. In terms of
 these components the magnetic field for the $n$\Th\ order multipole is
 \Begineq
   \frac{q \, L}{P_0} \, (B_y + i B_x) = (b_n + i a_n) \, (x + i y)^n
+  \label{qlpbb}
 \Endeq
 The conversion between $(a_n, b_n)$ and $(K_nL, \theta_n)$ is
 \Begineq
@@ -186,7 +187,29 @@ non-multipole elements.
 \end{table}
 
 %-----------------------------------------------------------------
-\section{RF fields}
+\section{Electric Static Fields}
+\label{s:elec.field}
+\index{electric fields}
+
+Except for the \vn{elseparator} element, \bmad specifies DC electric
+fields using normal $b_{en}$ and skew $a_{en}$ components. In 
+terms of these componenents, the electric field for the $n$\Th order
+multipole is
+\Begineq
+  E_x - i E_y = (b_{en} - i a_{en}) \, (x + i y)^n
+\Endeq
+Notice that the magnetic multipole components $a_n$ and $b_n$ are
+normalized by the element length and reference momentum (\Eq{qlpbb})
+while their electric counterparts are not.
+
+The kick given a particle due to the electric field is
+\begin{align}
+  \frac{dp_x}{ds} &= \frac{q \, E_x}{P0}
+  \etcetc
+\end{align}
+
+%-----------------------------------------------------------------
+\section{RF Fields}
 \label{s:rf.fields.phys}
 \index{rf fields|hyperbf}
 

@@ -1015,7 +1015,7 @@ do_print = logic_option (.true., err_print_flag)
 ! overlay or group
 
 if (ele%key == overlay$ .or. ele%key == group$) then
-  if (is_attribute(ix_attrib, present_var$)) then
+  if (is_attribute(ix_attrib, control_var$)) then
     ix = ix_attrib - var_offset$ 
     if (ix > size(ele%control_var)) return
     ptr_attrib => ele%control_var(ix)%value
@@ -1023,8 +1023,8 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     return
   endif
 
-  if (is_attribute(ix_attrib, old_var$)) then
-    ix = ix_attrib - old_var_offset$ 
+  if (is_attribute(ix_attrib, old_control_var$)) then
+    ix = ix_attrib - old_control_var_offset$ 
     if (ix > size(ele%control_var)) return
     ptr_attrib => ele%control_var(ix)%old_value
     err_flag = .false.
@@ -1062,6 +1062,27 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
       ptr_attrib => ele%a_pole(ix_attrib-a0$)
     endif
   endif
+
+! Electric Multipole 
+
+if (ix_attrib >= a0_elec$ .and. ix_attrib <= b21_elec$) then   
+  a_name = attribute_name(ele, ix_attrib)
+
+  if (.not. associated(ele%a_pole_elec)) then
+    if (do_allocation) then
+      call multipole_init (ele, .true.)
+    else
+      if (do_print) call out_io (s_error$, r_name, 'MULTIPOLE NOT ALLOCATED FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  endif
+
+  if (ix_attrib >= b0_elec$) then
+    ptr_attrib => ele%b_pole_elec(ix_attrib-b0_elec$)
+  else
+    ptr_attrib => ele%a_pole_elec(ix_attrib-a0_elec$)
+  endif
+endif
 
 ! Out of bounds
 

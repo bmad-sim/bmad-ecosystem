@@ -811,6 +811,15 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
     
+    if (associated(ele%a_pole_elec)) then
+      do j = 0, ubound(ele%a_pole_elec, 1)
+        if (ele%a_pole_elec(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+a0_elec$)) // ' = ' // str(ele%a_pole_elec(j))
+        if (ele%b_pole_elec(j) /= 0) line = trim(line) // ', ' // &
+                trim(attribute_name(ele, j+b0_elec$)) // ' = ' // str(ele%b_pole_elec(j))
+      enddo
+    endif
+    
     if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then
       line = trim(line) // ', &'
       call write_lat_line (line, iu, .true.)  
@@ -1470,7 +1479,8 @@ implicit none
 type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
-type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, ele_a, ele_b
+type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
+type (ele_struct), save :: bend_ele, ele_a, ele_b, quad_ele
 type (coord_struct) orb_start, orb_end
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 type (coord_struct), allocatable :: orbit_out(:)
@@ -1478,15 +1488,16 @@ type (taylor_term_struct) :: term
 type (branch_struct), pointer :: branch, branch_out
 type (mad_energy_struct) energy
 type (mad_map_struct) mad_map
+type (ptc_parameter_struct) ptc_param
 
-real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f
+real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f, e2
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp), optional :: dr12_drift_max
 
 integer, optional :: ix_start, ix_end, ix_branch
 integer i, j, ib, j2, k, n, ix, i_unique, i_line, iout, iu, n_names, j_count, f_count, ix_ele
-integer ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv
+integer ie, ie1, ie2, ios, t_count, s_count, a_count, ix_lord, ix_match, iv, ifa
 integer ix1, ix2, n_lord, aperture_at, n_name_change_warn, n_elsep_warn, sad_geo, n_taylor_order_saved
 integer :: ix_line_min, ix_line_max, n_warn_max = 10
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -1516,6 +1527,11 @@ if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
   return
 endif
+
+! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
+
+call get_ptc_params(ptc_param)
+call set_ptc (exact_modeling = .true.)
 
 ! Init
 
@@ -1562,6 +1578,8 @@ call init_ele (drift_ele, drift$)
 call init_ele (taylor_ele, taylor$)
 call init_ele (ab_ele, ab_multipole$)
 call init_ele (kicker_ele, kicker$) 
+call init_ele (quad_ele, quadrupole$)
+call init_ele (bend_ele, sbend$)
 call multipole_init (ab_ele)
 null_ele%key = null_ele$
 
@@ -1826,7 +1844,7 @@ do
 
   iv = nint(ele%value(fringe_type$))
   if (mad_out .and. ele%key == quadrupole$ .and. (iv == full$ .or. iv == soft_edge_only$)) then
-    taylor_ele = ele
+    quad_ele = ele
     ele%value(fringe_type$) = none$
 
     if (ptc_com%taylor_order_ptc /= 2) then
@@ -1835,20 +1853,28 @@ do
     endif
 
     f_count = f_count + 1
-    write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
-    taylor_ele%value(fringe_at$) = entrance_end$
-    taylor_ele%value(l$) = 1e-30
-    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele-1))
-    taylor_ele%key = taylor$
-    call insert_element (lat_out, taylor_ele, ix_ele, branch%ix_branch, orbit_out)
+    ie = ix_ele
 
-    write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
-    taylor_ele%value(fringe_at$) = exit_end$
-    taylor_ele%key = quadrupole$
-    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele+1)) ! ix_ele+1 since insert_element shifted eles
-    taylor_ele%key = taylor$
-    call insert_element (lat_out, taylor_ele, ix_ele+2, branch%ix_branch, orbit_out)
-    ie2 = ie2 + 2
+    ifa = nint(ele%value(fringe_at$))
+    if (ifa == entrance_end$ .or. ifa == both_ends$) then
+      quad_ele%value(fringe_at$) = entrance_end$
+      quad_ele%value(l$) = 1e-30
+      call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
+      write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
+      call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
+      ie = ie + 1
+      ie2 = ie2 + 1
+    endif
+
+    if (ifa == exit_end$ .or. ifa == both_ends$) then
+      quad_ele%value(fringe_at$) = exit_end$
+      quad_ele%value(l$) = 1e-30
+      call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie))
+      write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
+      call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
+      ie2 = ie2 + 1
+    endif
+
     cycle
   endif
 
@@ -1856,7 +1882,7 @@ do
 
   iv = nint(ele%value(fringe_type$))
   if (mad_out .and. ele%key == sbend$ .and. iv == sad_full$) then
-    taylor_ele = ele
+    bend_ele = ele
     ele%value(fringe_type$) = basic_bend$
     ele%value(e1$) = 0
     ele%value(e2$) = 0
@@ -1867,23 +1893,32 @@ do
     endif
 
     f_count = f_count + 1
-    write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
-    taylor_ele%value(fringe_at$) = entrance_end$
-    taylor_ele%value(l$) = 1e-30
-    taylor_ele%value(e2$) = 0
-    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele-1))
-    taylor_ele%key = taylor$
-    call insert_element (lat_out, taylor_ele, ix_ele, branch%ix_branch, orbit_out)
+    ie = ix_ele
 
-    write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
-    taylor_ele%value(fringe_at$) = exit_end$
-    taylor_ele%key = sbend$
-    taylor_ele%value(e1$) = 0
-    taylor_ele%value(e2$) = lat_out%ele(ix_ele+1)%value(e2$)  ! Note: sbend has shifted index in lat_out%ele(:) array.
-    call ele_to_taylor (taylor_ele, branch%param, taylor_ele%taylor, orbit_out(ix_ele+1)) ! ix_ele+1 since insert_element shifted eles
-    taylor_ele%key = taylor$
-    call insert_element (lat_out, taylor_ele, ix_ele+2, branch%ix_branch, orbit_out)
-    ie2 = ie2 + 2
+    ifa = nint(ele%value(fringe_at$))
+    if (ifa == entrance_end$ .or. ifa == both_ends$) then
+      bend_ele%value(fringe_at$) = entrance_end$
+      bend_ele%value(l$) = 1e-30
+      e2 = bend_ele%value(e2$)
+      bend_ele%value(e2$) = 0
+      call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
+      write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
+      call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
+      ie = ie + 1
+      ie2 = ie2 + 1
+    endif
+
+    if (ifa == exit_end$ .or. ifa == both_ends$) then
+      bend_ele%value(fringe_at$) = exit_end$
+      bend_ele%value(l$) = 1e-30
+      bend_ele%value(e1$) = 0
+      bend_ele%value(e2$) = e2
+      call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie)) 
+      write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
+      call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
+      ie2 = ie2 + 1
+    endif
+
     cycle
   endif
 
@@ -2771,7 +2806,10 @@ endif
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)
 
+! Restore ptc settings
+
 if (n_taylor_order_saved /= ptc_com%taylor_order_ptc) call set_ptc (taylor_order = n_taylor_order_saved) 
+call set_ptc (exact_modeling = ptc_param%exact_model)
 
 !------------------------------------------------------------------------
 contains

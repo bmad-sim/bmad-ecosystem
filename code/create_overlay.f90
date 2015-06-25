@@ -100,9 +100,17 @@ do j = 1, n_slave
   if (nc2+4 > size(lat%control)) call reallocate_control (lat, nc2+100)
 
   ! If the slave attribute is a multipole component, make sure it exists.
+
   if (is_attribute(ix_attrib, multipole$) .and. .not. associated (slave%a_pole)) then
     call multipole_init(slave)
   endif
+
+  if (is_attribute(ix_attrib, elec_multipole$) .and. .not. associated (slave%a_pole_elec)) then
+    call elec_multipole_init(slave)
+  endif
+
+  !
+
   free = attribute_free (slave, attribute_name(slave, ix_attrib), err_print_flag, .true.)
   err = err .or. .not. free
   c => lat%control(nc2+1)
@@ -133,7 +141,7 @@ do j = 1, n_slave
   ! Convert a stack of a single constant "const" to "const * control_var(1)"
   var_found = .false.
   do is = 1, size(c%stack)
-    if (c%stack(is)%type < old_var_offset$) cycle
+    if (c%stack(is)%type < old_control_var_offset$) cycle
     if (c%stack(is)%type == end_stack$) exit
     var_found = .true.
     exit

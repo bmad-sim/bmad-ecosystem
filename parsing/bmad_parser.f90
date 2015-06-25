@@ -96,6 +96,7 @@ bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
 bp_com%do_superimpose = .true.
 bp_com%input_from_file = .true.
 bp_com%write_digested = .true.
+bp_com%use_local_lat_file = .false.
 debug_line = ''
 
 if (.not. bp_com%always_parse) then
@@ -263,10 +264,18 @@ parsing_loop: do
     if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
     n_ptr = n_ptr + 1
     bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    if (global_com%type_out) call out_io (s_dwarn$, r_name, &
+    if (global_com%type_out) call out_io (s_info$, r_name, &
                                      'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     ! This prevents bmad_parser from thinking print string is a command.
     call load_parse_line ('init', 1, end_of_file)
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! USE_LOCAL_LAT_FILE
+
+  if (word_1(:ix_word) == 'USE_LOCAL_LAT_FILE') then
+    bp_com%use_local_lat_file = .true.
     cycle parsing_loop
   endif
 

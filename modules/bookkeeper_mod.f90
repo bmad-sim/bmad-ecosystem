@@ -773,6 +773,14 @@ if (associated (slave%a_pole)) then
   endif
 endif
 
+! Electric Multipoles
+
+if (associated (slave%a_pole_elec)) then
+  slave%a_pole_elec      = lord%a_pole_elec
+  slave%b_pole_elec      = lord%b_pole_elec
+  slave%multipoles_on    = lord%multipoles_on
+endif
+
 ! RF wakes
 
 call transfer_wake (lord%wake, slave%wake)

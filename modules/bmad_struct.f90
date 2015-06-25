@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 156
+integer, parameter :: bmad_inc_version$ = 157
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -40,7 +40,7 @@ character(16), parameter :: tracking_method_name(0:n_methods$) = [ &
 character(16), parameter :: spin_tracking_method_name(0:n_methods$) = [ &
       'GARBAGE!        ', 'Bmad_Standard   ', 'Symp_Lie_PTC    ', 'Garbage         ', &
       'Garbage         ', 'Tracking        ', 'Garbage         ', 'Custom          ', &
-      'Garbage         ', 'Garbage         ', 'Symp_Lie_Bmad   ', 'Garbage         ', &
+      'Garbage         ', 'Garbage         ', 'Garbage         ', 'Garbage         ', &
       'Garbage         ', 'GARBAGE!        ', 'Garbage         ', 'Garbage         ']
 
 character(16), parameter :: mat6_calc_method_name(0:n_methods$) = [ &
@@ -122,7 +122,7 @@ integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
 character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
                                    'x_invariant       ', 'multipole_symmetry']
 
-integer, parameter :: present_var$ = 1, old_var$ = 2, all_var$ = 3
+integer, parameter :: control_var$ = 1, old_control_var$ = 2, all_control_var$ = 3, elec_multipole$ = 4
 
 !-------------------------------------------------------------------------
 ! Structure for holding the photon reflection probability tables.
@@ -682,40 +682,42 @@ type ele_struct
   real(rp), pointer :: r(:,:,:) => null()                      ! For general use. Not used by Bmad.
   real(rp), pointer :: a_pole(:) => null()                     ! knl for multipole elements.
   real(rp), pointer :: b_pole(:) => null()                     ! tilt for multipole elements.
-  integer :: key = 0                    ! key value 
-  integer :: sub_key = 0                ! For wigglers: map_type$, periodic_type$
-  integer :: ix_ele = -1                ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
-  integer :: ix_branch = 0              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
-  integer :: slave_status = free$       ! super_slave$, etc.
-  integer :: n_slave = 0                ! Number of slaves
-  integer :: ix1_slave = 0              ! Start index for slave elements
-  integer :: ix2_slave = -1             ! Stop  index for slave elements
-  integer :: lord_status = not_a_lord$  ! overlay_lord$, etc.
-  integer :: n_lord = 0                 ! Number of lords
-  integer :: ic1_lord = 0               ! Start index for lord elements
-  integer :: ic2_lord = -1              ! Stop  index for lord elements
-  integer :: ix_pointer = 0             ! For general use. Not used by Bmad.
-  integer :: ixx = 0, iyy = 0           ! Index for Bmad internal use
-  integer :: mat6_calc_method = bmad_standard$     ! taylor$, symp_lie_ptc$, etc.
-  integer :: tracking_method = bmad_standard$      ! taylor$, linear$, etc.
-  integer :: spin_tracking_method = bmad_standard$ ! symp_lie_ptc$, etc.
-  integer :: ptc_integration_type = matrix_kick$   ! drift_kick$, matrix_kick$, or ripken_kick$
-  integer :: field_calc = bmad_standard$           ! no_field$, map$, grid$, refer_to_lords$, or custom$
-  integer :: aperture_at = exit_end$               ! Aperture location: entrance_end$, ...
-  integer :: aperture_type = rectangular$          ! rectangular$, elliptical$, auto_aperture$, ...
-  integer :: orientation = 1            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
-  logical :: symplectify = .false.      ! Symplectify mat6 matrices.
-  logical :: mode_flip = .false.        ! Have the normal modes traded places?
-  logical :: multipoles_on = .true.     ! For turning multipoles on/off
-  logical :: scale_multipoles = .true.  ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                                        !        scaled by the strength of the element?
+  real(rp), pointer :: a_pole_elec(:) => null()                ! Electrostatic multipoles.
+  real(rp), pointer :: b_pole_elec(:) => null()                ! Electrostatic multipoles.
+  integer :: key = 0                              ! key value 
+  integer :: sub_key = 0                          ! For wigglers: map_type$, periodic_type$
+  integer :: ix_ele = -1                          ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
+  integer :: ix_branch = 0                        ! Index in lat%branch(:) array [0 => In lat%ele(:)].
+  integer :: slave_status = free$                 ! super_slave$, etc.
+  integer :: n_slave = 0                          ! Number of slaves
+  integer :: ix1_slave = 0                        ! Start index for slave elements
+  integer :: ix2_slave = -1                       ! Stop  index for slave elements
+  integer :: lord_status = not_a_lord$            ! overlay_lord$, etc.
+  integer :: n_lord = 0                           ! Number of lords
+  integer :: ic1_lord = 0                         ! Start index for lord elements
+  integer :: ic2_lord = -1                        ! Stop  index for lord elements
+  integer :: ix_pointer = 0                       ! For general use. Not used by Bmad.
+  integer :: ixx = 0, iyy = 0                     ! Index for Bmad internal use
+  integer :: mat6_calc_method = bmad_standard$    ! taylor$, symp_lie_ptc$, etc.
+  integer :: tracking_method = bmad_standard$     ! taylor$, linear$, etc.
+  integer :: spin_tracking_method = tracking$     ! symp_lie_ptc$, etc.
+  integer :: ptc_integration_type = matrix_kick$  ! drift_kick$, matrix_kick$, or ripken_kick$
+  integer :: field_calc = bmad_standard$          ! no_field$, map$, grid$, refer_to_lords$, or custom$
+  integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
+  integer :: aperture_type = rectangular$         ! rectangular$, elliptical$, auto_aperture$, ...
+  integer :: orientation = 1                 ! -1 -> Element is longitudinally reversed. +1 -> Normal.
+  logical :: symplectify = .false.           ! Symplectify mat6 matrices.
+  logical :: mode_flip = .false.             ! Have the normal modes traded places?
+  logical :: multipoles_on = .true.          ! For turning multipoles on/off
+  logical :: scale_multipoles = .true.       ! Are ab_multipoles within other elements (EG: quads, etc.) 
+                                             !        scaled by the strength of the element?
   logical :: taylor_map_includes_offsets = .true. ! Taylor map calculated with element misalignments?
-  logical :: field_master = .false.     ! Calculate strength from the field value?
-  logical :: is_on = .true.             ! For turning element on/off.
-  logical :: old_is_on = .true.         ! For saving the element on/off state.
-  logical :: logic = .false.            ! For general use. Not used by Bmad.
-  logical :: bmad_logic = .false.       ! For Bmad internal use only.
-  logical :: csr_calc_on = .true.       ! Coherent synchrotron radiation calculation
+  logical :: field_master = .false.          ! Calculate strength from the field value?
+  logical :: is_on = .true.                  ! For turning element on/off.
+  logical :: old_is_on = .true.              ! For saving the element on/off state.
+  logical :: logic = .false.                 ! For general use. Not used by Bmad.
+  logical :: bmad_logic = .false.            ! For Bmad internal use only.
+  logical :: csr_calc_on = .true.            ! Coherent synchrotron radiation calculation
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 end type
 
@@ -1101,13 +1103,16 @@ integer, parameter :: ref_center$     = 127
 integer, parameter :: ref_end$        = 128
 integer, parameter :: create_jumbo_slave$ = 129
 
-integer, parameter :: a0$  = 130, k0l$  = 130
-integer, parameter :: a21$ = 151, k21l$ = 151
+integer, parameter :: a0$  = 130, a21$  = 151
+integer, parameter :: b0$  = 160, b21$ = 181
 
-integer, parameter :: b0$  = 160, t0$  = 160
-integer, parameter :: b21$ = 181, t21$ = 181
+integer, parameter :: k0l$ = 130, k21l$ = 151
+integer, parameter :: t0$  = 160, t21$ = 181
 
-integer, parameter :: num_ele_attrib_extended$ = t21$
+integer, parameter :: a0_elec$  = 190, a21_elec$  = 211
+integer, parameter :: b0_elec$  = 220, b21_elec$ = 241
+
+integer, parameter :: num_ele_attrib_extended$ = b21_elec$
 
 character(40), parameter :: null_name$ = '!NULL' 
 character(40), parameter :: blank_name$ = ' '
@@ -1396,7 +1401,7 @@ end function coord_state_name
 !
 ! Input:
 !   ix_attrib -- integer: Attribute index.
-!   which     -- integer: present_var$, old_var$, all_var$, multipole$
+!   which     -- integer: control_var$, old_control_var$, all_control_var$, multipole$, elec_multipole$
 !
 ! Output:
 !   is_attrib -- logical: True if a control variable
@@ -1410,18 +1415,21 @@ logical is_attrib
 !
 
 select case (which)
-case (present_var$)
+case (control_var$)
   is_attrib = (ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20)
   
-case (old_var$)
-  is_attrib = (ix_attrib > old_var_offset$ .and. ix_attrib < old_var_offset$+20)
+case (old_control_var$)
+  is_attrib = (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$+20)
 
-case (all_var$)
+case (all_control_var$)
   is_attrib = ((ix_attrib > var_offset$ .and. ix_attrib < var_offset$+20) .or. &
-               (ix_attrib > old_var_offset$ .and. ix_attrib < old_var_offset$+20))
+               (ix_attrib > old_control_var_offset$ .and. ix_attrib < old_control_var_offset$+20))
 
 case (multipole$)
   is_attrib = (ix_attrib >= k0l$ .and. ix_attrib <= t21$)
+
+case (elec_multipole$)
+  is_attrib = (ix_attrib >= a0_elec$ .and. ix_attrib <= b21_elec$)
 
 end select
 

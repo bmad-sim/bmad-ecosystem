@@ -203,7 +203,7 @@ type (em_field_mode_struct), pointer :: mode, mode2
 type (photon_surface_struct), pointer :: surf
 type (surface_grid_pt_struct), pointer :: s_pt
 
-integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_t(6), ie, ib, ix_wall3d_branch
+integer ix_wig, ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ie, ib, ix_wall3d_branch
 integer ix_sr_long, ix_sr_trans, ix_lr, ie_max, ix_s, n_var
 integer i, j, k, n, ng, nf, n_em_field_mode, ix_ele, ix_branch, ix_wig_branch
 
@@ -211,7 +211,7 @@ logical write_wake, mode3
 
 !
 
-ix_wig = 0; ix_d = 0; ix_m = 0; ix_t = 0; ix_r = 0; ix_s = 0
+ix_wig = 0; ix_d = 0; ix_m = 0; ix_e = 0; ix_t = 0; ix_r = 0; ix_s = 0
 ix_sr_long = 0; ix_sr_trans = 0; ix_lr = 0; n_var = 0
 mode3 = .false.; ix_wall3d = 0; n_em_field_mode = 0; ix_wig_branch = 0
 
@@ -221,6 +221,7 @@ if (associated(ele%r))              ix_r = 1
 if (associated(ele%photon))         ix_s = 1
 if (associated(ele%descrip))        ix_d = 1
 if (associated(ele%a_pole))         ix_m = 1
+if (associated(ele%a_pole_elec))    ix_e = 1
 if (associated(ele%taylor(1)%term)) ix_t = [(size(ele%taylor(j)%term), j = 1, 6)]
 if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d%section)
 if (associated(ele%em_field))       n_em_field_mode = size(ele%em_field%mode)
@@ -289,7 +290,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, 0, 0, ix_d, ix_m, ix_t, &
-          0, ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d, n_em_field_mode, n_var
+          ix_e, ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d, n_em_field_mode, n_var
 
 write (d_unit) &
           ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -429,8 +430,9 @@ if (associated (ele%photon)) then
 
 endif
 
-if (associated(ele%descrip))  write (d_unit) ele%descrip
-if (associated(ele%a_pole))   write (d_unit) ele%a_pole, ele%b_pole
+if (associated(ele%descrip))      write (d_unit) ele%descrip
+if (associated(ele%a_pole))       write (d_unit) ele%a_pole, ele%b_pole
+if (associated(ele%a_pole_elec))  write (d_unit) ele%a_pole_elec, ele%b_pole_elec
     
 do j = 1, 6
   if (ix_t(j) == 0) cycle

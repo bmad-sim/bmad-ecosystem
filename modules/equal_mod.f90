@@ -210,6 +210,18 @@ else
   if (associated (ele_save%a_pole)) deallocate (ele_save%a_pole, ele_save%b_pole)
 endif
 
+! %a_pole_elec, and %b_pole_elec
+
+if (associated(ele2%a_pole_elec)) then
+  ele1%a_pole_elec => ele_save%a_pole_elec   ! reinstate
+  ele1%b_pole_elec => ele_save%b_pole_elec   ! reinstate
+  call elec_multipole_init (ele1)
+  ele1%a_pole_elec = ele2%a_pole_elec
+  ele1%b_pole_elec = ele2%b_pole_elec
+else
+  if (associated (ele_save%a_pole_elec)) deallocate (ele_save%a_pole_elec, ele_save%b_pole_elec)
+endif
+
 ! %descrip
 
 if (associated(ele2%descrip)) then

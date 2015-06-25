@@ -465,21 +465,30 @@ use ptc_interface_mod
 
 implicit none
 
-type (coord_struct) :: start_orb, end_orb
+type (coord_struct) :: start_orb, end_orb, temp_orb
 type (ele_struct) :: ele
 type (lat_param_struct) :: param
 
 integer method
+integer, parameter :: do_nothing$ = -99
 character(16), parameter :: r_name = 'track1_spin'
 logical err
 
-! Use bmad_standard if spin tracking = tracking$ but particle tracking is not using an integration method.
+! Use bmad_standard if spin_tracking_method = tracking$ and particle tracking is not using an integration method.
 
 if (start_orb%species == photon$) return
 
 method = ele%spin_tracking_method
-if (.not. any(ele%tracking_method == [boris$, runge_kutta$, symp_lie_ptc$]) .and. &
-                                            method == tracking$) method = bmad_standard$
+if (method == tracking$) then
+  select case (ele%tracking_method)
+  case (boris$, runge_kutta$, symp_lie_ptc$)
+    return ! Spin tracking is done at the same time orbital tracking is done
+  case default
+    method = bmad_standard$
+  end select
+endif
+
+!
 
 select case (method)
 case (bmad_standard$)
@@ -493,16 +502,14 @@ case (bmad_standard$)
 case (custom$)
   call track1_spin_custom (start_orb, ele, param, end_orb, err)
 
+! Notice that PTC spin tracking is only done here only when the (orbital) tracking_method is *not* symp_lie_ptc
 case (symp_lie_ptc$)
   if (bmad_com%electric_dipole_moment /= 0) then
     call out_io (s_fatal$, r_name, &
           'TRACKING WITH AN ELECTRIC DIPOLE MOMENT NOT YET DEVELOPED FOR BMAD_STANDARD TRACKING')
     if (global_com%exit_on_error) call err_exit
   endif
-  call track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
-
-case (tracking$)
-  ! Spin tracking here is handled by the particle coordinate tracker.
+  call track1_symp_lie_ptc (start_orb, ele, param, temp_orb)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // spin_tracking_method_name(ele%spin_tracking_method), &
@@ -511,68 +518,6 @@ case default
 end select
 
 end subroutine track1_spin
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
-! subroutine track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
-!
-! Particle spin tracking through a single element using Symplectic integration with
-! Etienne Forset's PTC code.
-!
-! Modules needed:
-!   use spin_mod
-!
-! Input :
-!   start_orb  -- Coord_struct: Starting coords.
-!   ele        -- Ele_struct: Element to track through.
-!   param      -- lat_param_struct: Beam parameters.
-!
-! Output:
-!   end_orb    -- Coord_struct: Ending coords.
-!      %spin(2)   -- complex(rp): Ending spinor
-!-
-
-subroutine track1_spin_symp_lie_ptc (start_orb, ele, param, end_orb)
-
-use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
-use ptc_interface_mod
-
-implicit none
-
-type (coord_struct) :: start_orb, end_orb
-type (ele_struct) :: ele
-type (lat_param_struct) :: param
-type (spin_map_struct), pointer :: map
-type (probe) spin_probe
-type (fibre), pointer :: fibre_ele
-
-real(rp) spin_vec(3), re(6), beta0, beta1
-
-integer key
-
-logical isTreatedHere, isKicker
-
-character(16), parameter :: r_name = 'track1_spin_symp_lie_ptc'
-
-! PTC spin tracking
-
-beta0 = ele%value(p0c_start$) / ele%value(e_tot_start$)
-
-call vec_bmad_to_ptc (start_orb%vec, beta0, re)
-call spinor_to_vec (start_orb, spin_vec)
-
-spin_probe = re
-spin_probe%s(1)%x = real(spin_vec, dp)
-
-call ele_to_fibre (ele, fibre_ele, param, .true.)
-call track_probe (spin_probe, DEFAULT+SPIN0, fibre1 = fibre_ele)
-
-spin_vec = spin_probe%s(1)%x
-call vec_to_spinor (spin_vec, end_orb)
-
-end subroutine track1_spin_symp_lie_ptc
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
