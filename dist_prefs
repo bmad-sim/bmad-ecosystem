@@ -34,14 +34,8 @@ export DIST_F90_REQUEST="gfortran"
 # of the desired plotting library will allow for its use
 # during the build.
 #
-# NOTE: The PLplot source is not included with nor 
-#  	maintained as a component of the distribution.
-#	It is the users's responsibility to obtain and 
-#	install that library, if they wish to use it.
-#
-#	The PGPLOT source is actually supplied along with 
-#	the distribution and will be built if this variable 
-#	is set to "pgplot".
+# NOTE: The PGPLOT will be built, along side PLplot,
+# 	if this variable is set to "plplot".
 #
 #  Supported options are:
 #   "plplot"
