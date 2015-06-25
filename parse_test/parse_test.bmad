@@ -2,6 +2,8 @@ no_digested
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
+call, file = sub_dir/sub.bmad
+
 parameter[custom_attribute1] = quadrupole::my_custom
 
 c: diffraction_plate, mode = reflection, 

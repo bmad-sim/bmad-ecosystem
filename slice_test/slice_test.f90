@@ -76,17 +76,17 @@ do i = 1, lat%n_ele_track
     print *
     print *, 'Whole:'
     do j = 1, 6
-      print '(6f11.6)', ele%mat6(j,:)
+      print '(6f12.6)', ele%mat6(j,:)
     enddo
     print *
     print *, 'Split:'
     do j = 1, 6
-      print '(6f11.6)', xmat2(j,:)
+      print '(6f12.6)', xmat2(j,:)
     enddo
     print *
     print *, 'Diff:', maxval(abs(ele%mat6-xmat2))
     do j = 1, 6
-      print '(6f11.6)', ele%mat6(j,:)-xmat2(j,:)
+      print '(6f12.6)', ele%mat6(j,:)-xmat2(j,:)
     enddo
   endif
 
