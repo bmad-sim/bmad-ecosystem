@@ -1,0 +1,98 @@
+#$ -S /bin/csh -v
+#
+#
+# Job submission script for program BBU_PROGRAM
+#
+#----------------------------------------------------
+# This script is intended to be run in the directory
+#           $HOME/erl/bsim/bbu
+#----------------------------------------------------
+# For details on using the grid batch submission queues
+# see http://www.lepp.cornell.edu/~critten/cesr/grid 
+#
+# Specify architecture for linux pc farm submission
+#$ -l arch=lx24-x86
+#
+echo === Background job submission script for program BBU_PROGRAM ===
+# 22 April 2009 J.A.Crittenden
+#
+#====================================================================
+echo === Begin compile step ...
+setenv CESRLIB 'devel'
+source /home/cesrulib/bin/cesrdef 
+cd $HOME/erl/bsim
+#----------------------------------------------------------------------------
+# M.bbu_gprof adapted from M.bbu to be used with gprof for cpu usage analysis
+# 14 July 2009 J.A.Crittenden
+# Usage: 1) Compile and link with M.bbu_gprof
+#        2) ../bin/bbu_program (can be interrupted with ctr-c if desired)
+#           This will create the file gmon.out
+#        3) gprof ../bin/bbu_program > out.txt
+#
+#gmake  -f M.bbu_gprof
+#
+gmake  -f M.bbu
+#-----------------------------------------------------------------------------
+set stat=$status
+echo === Compile finished ===  status: $stat
+#
+if ( $stat == 0 ) then
+echo === ... Compile finished successfully === 
+#====================================================================
+#
+pwd
+cd $HOME/erl/bsim/bbu
+pwd
+#
+@ jexist=(-e jobs)
+#echo == jexist = $jexist ==
+if ( $jexist == 0 ) then
+ echo === Subdirectory ./jobs not found, creating it ===
+ mkdir jobs
+endif
+
+# Calculate the next job number JOBID, which is the highest existing
+# jobid incremented by 1
+set jobid = `ls jobs/ | awk 'BEGIN{ FS = "job" }; $2 > max { max = $2 }; END{ print max+1 }'`
+# Create a job-number-specific subdirectory of ./jobs which will contain log and data files
+
+echo The job id is $jobid
+
+#Create working directory for log files and data files
+set workdir = jobs/job"$jobid"
+echo Creating log directory $workdir
+mkdir $workdir
+
+cp bbu.init $workdir/bbu_"$jobid".init
+cd $workdir
+ln -sf bbu_"$jobid".init bbu.init
+cp $HOME/erl/bsim/bbu/bbu_program.f90 .
+cp $HOME/erl/bsim/bbu/bbu_track_mod.f90 .
+cp $HOME/erl/bsim/bbu/erl.lat .
+cp $HOME/erl/bsim/bbu/7cell*.dat .
+cp $HOME/erl/bsim/bbu/Matthias*.dat .
+cp $HOME/erl/bsim/bbu/prstab*.dat .
+#
+# Create the submission batch script
+if (-e batch_script) rm batch_script
+echo "#$ -S /bin/csh" >batch_script
+echo "#$ -l arch=lx24-x86" >> batch_script
+echo "cd $HOME/erl/bsim/bbu/$workdir" >> batch_script
+echo "$HOME/erl/bin/bbu_program" >> batch_script
+#echo "/home/dcs/dcs/tao_lib/bin/bbu_program" >> batch_script
+#
+####################################################################################
+# All queues
+set wc_queue_list = all.q@lnx1622.lns.cornell.edu,all.q@lnx1623.lns.cornell.edu,all.q@lnx1624.lns.cornell.edu,all.q@lnx1625.lns.cornell.edu,all.q@lnx1626.lns.cornell.edu,all.q@lnx187.lns.cornell.edu,all.q@lnx189.lns.cornell.edu,all.q@lnx301.lns.cornell.edu,all.q@lnx302.lns.cornell.edu,all.q@lnx303.lns.cornell.edu,all.q@lnx304.lns.cornell.edu,all.q@lnx305.lns.cornell.edu,all.q@lnx307.lns.cornell.edu,all.q@lnx308.lns.cornell.edu,all.q@lnx309.lns.cornell.edu,all.q@lnx310.lns.cornell.edu,all.q@lnx311.lns.cornell.edu,all.q@lnx312.lns.cornell.edu,all.q@lnx313.lns.cornell.edu,all.q@lnx314.lns.cornell.edu,all.q@lnx315.lns.cornell.edu,all.q@lnx316.lns.cornell.edu,all.q@lnx317.lns.cornell.edu,all.q@lnx318.lns.cornell.edu,all.q@lnx319.lns.cornell.edu,all.q@lnx320.lns.cornell.edu,all.q@lnx321.lns.cornell.edu,all.q@lnx322.lns.cornell.edu,all.q@lnx323.lns.cornell.edu,all.q@lnx324.lns.cornell.edu,all.q@lnx325.lns.cornell.edu,all.q@lnx65101.lns.cornell.edu,all.q@lnx65102.lns.cornell.edu,all.q@lnx65103.lns.cornell.edu,all.q@lnx65104.lns.cornell.edu,all.q@lnx65105.lns.cornell.edu,all.q@lnx65106.lns.cornell.edu,all.q@lnx65107.lns.cornell.edu,all.q@lnx65108.lns.cornell.edu,all.q@lnx65109.lns.cornell.edu,all.q@lnx65110.lns.cornell.edu,all.q@lnx65111.lns.cornell.edu
+####################################################################################
+# Selected queues
+set wc_queue_list = all.q@lnx1622.lns.cornell.edu,all.q@lnx1623.lns.cornell.edu,all.q@lnx1624.lns.cornell.edu,all.q@lnx1626.lns.cornell.edu,all.q@lnx187.lns.cornell.edu,all.q@lnx189.lns.cornell.edu,all.q@lnx301.lns.cornell.edu,all.q@lnx302.lns.cornell.edu,all.q@lnx303.lns.cornell.edu,all.q@lnx304.lns.cornell.edu,all.q@lnx305.lns.cornell.edu,all.q@lnx307.lns.cornell.edu,all.q@lnx308.lns.cornell.edu,all.q@lnx309.lns.cornell.edu,all.q@lnx310.lns.cornell.edu,all.q@lnx311.lns.cornell.edu,all.q@lnx312.lns.cornell.edu,all.q@lnx313.lns.cornell.edu,all.q@lnx314.lns.cornell.edu,all.q@lnx315.lns.cornell.edu,all.q@lnx316.lns.cornell.edu,all.q@lnx317.lns.cornell.edu,all.q@lnx318.lns.cornell.edu,all.q@lnx319.lns.cornell.edu,all.q@lnx320.lns.cornell.edu,all.q@lnx321.lns.cornell.edu,all.q@lnx322.lns.cornell.edu,all.q@lnx323.lns.cornell.edu,all.q@lnx324.lns.cornell.edu,all.q@lnx325.lns.cornell.edu,all.q@lnx65101.lns.cornell.edu,all.q@lnx65102.lns.cornell.edu,all.q@lnx65103.lns.cornell.edu,all.q@lnx65104.lns.cornell.edu,all.q@lnx65105.lns.cornell.edu,all.q@lnx65106.lns.cornell.edu,all.q@lnx65107.lns.cornell.edu,all.q@lnx65108.lns.cornell.edu,all.q@lnx65109.lns.cornell.edu,all.q@lnx65110.lns.cornell.edu,all.q@lnx65111.lns.cornell.edu
+####################################################################################
+#
+  echo === Submit background job with log file bbu_"$jobid".log.onnnn ===
+  qsub -m a -M jac243@cornell.edu -N bbu_"$jobid".log -o $HOME/erl/bsim/bbu/$workdir -q $wc_queue_list  batch_script
+#
+else
+  echo === Compile failed ===  status: $stat
+endif
+exit
