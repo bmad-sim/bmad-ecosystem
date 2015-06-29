@@ -51,6 +51,31 @@ interface
     integer change
   end subroutine
 
+  subroutine cplx_lubksb(a,indx,b)
+    use nrtype
+    import
+    complex(dp), dimension(:,:), intent(in) :: a
+    integer(I4B), dimension(:), intent(in) :: indx
+    complex(dp), dimension(:), intent(inout) :: b
+  end subroutine
+
+  subroutine cplx_ludcmp(a,indx,d)
+    use nrtype
+    import
+    complex(dp), dimension(:,:), intent(inout) :: a
+    integer(I4B), dimension(:), intent(out) :: indx
+    real(dp), intent(out) :: d
+  end subroutine
+
+  subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
+    import
+    real(rp) :: mat_r(:,:)
+    real(rp) :: mat_i(:,:)
+    real(rp) :: inv_r(:,:)
+    real(rp) :: inv_i(:,:)
+    logical, optional :: ok, print_err
+  end subroutine
+
   subroutine complex_error_function (wr, wi, zr, zi)
     import
     implicit none
@@ -67,6 +92,12 @@ interface
     real(rp) c(3)
   end function
 
+  subroutine date_and_time_stamp (string, numeric_month)
+    implicit none
+    character(*) string
+    logical, optional :: numeric_month
+  end subroutine
+
   function determinant (mat) result (det)
     import
     implicit none
@@ -79,6 +110,17 @@ interface
     character(*) str_out
     character quote*1
   end subroutine
+
+  subroutine downcase_string(string)
+    implicit none
+    character(*) string
+  end subroutine
+
+  function downcase(str_in) result (str_out)
+    implicit none
+    character(*) str_in
+    character(len(str_in)) str_out
+  end function
 
   function even (num) result (is_even)
     implicit none
@@ -131,11 +173,6 @@ interface
     character(*) suffix
   end subroutine
 
-  subroutine type_this_file(filename)
-    implicit none
-    character(*) filename
-  end subroutine
-
   subroutine get_file_number (file_name, cnum_in, num_out, err_flag)
     implicit none
     character(*) file_name
@@ -149,6 +186,11 @@ interface
     character(*) filein
     character(*) cnum
     integer digits
+  end subroutine
+
+  subroutine get_file_time_stamp (file, time_stamp)
+    implicit none
+    character(*) file, time_stamp
   end subroutine
 
   function I_bessel(m, arg) result (i_bes)
@@ -233,6 +275,22 @@ interface
     logical, optional :: exact_case
   end subroutine
 
+   function lunget ()
+     implicit none
+     integer lunget
+   end function lunget
+
+   function match_reg(str, pat) result (is_match)
+     implicit none
+     logical is_match
+     character(*) str, pat
+   end function match_reg
+
+   subroutine milli_sleep (milli_sec)
+    implicit none
+    integer milli_sec
+  end subroutine
+
   subroutine make_legal_comment (comment_in, comment_out)
     implicit none
     character(*) comment_in
@@ -245,31 +303,6 @@ interface
     character(*) string
     character(*) template
   end function
-
-  subroutine cplx_lubksb(a,indx,b)
-    use nrtype
-    import
-    complex(dp), dimension(:,:), intent(in) :: a
-    integer(I4B), dimension(:), intent(in) :: indx
-    complex(dp), dimension(:), intent(inout) :: b
-  end subroutine
-
-  subroutine cplx_ludcmp(a,indx,d)
-    use nrtype
-    import
-    complex(dp), dimension(:,:), intent(inout) :: a
-    integer(I4B), dimension(:), intent(out) :: indx
-    real(dp), intent(out) :: d
-  end subroutine
-
-  subroutine cplx_mat_inverse(mat_r, mat_i, inv_r, inv_i, ok, print_err)
-    import
-    real(rp) :: mat_r(:,:)
-    real(rp) :: mat_i(:,:)
-    real(rp) :: inv_r(:,:)
-    real(rp) :: inv_i(:,:)
-    logical, optional :: ok, print_err
-  end subroutine
 
   subroutine mat_inverse (mat, mat_inv, ok, print_err)
     import
@@ -330,6 +363,13 @@ interface
     real(rp) mat(:,:)
   end subroutine
 
+  function max_nonzero (lbnd, array1, array2) result (ix_max)
+    import
+    real(rp) array1(:)
+    real(rp), optional :: array2(:)
+    integer lbnd, ix_max
+  end function
+
   subroutine node_put (node, n1, n2, val_in, cmd_only, val_out, bad_set)
     implicit none
     integer n1
@@ -353,6 +393,12 @@ interface
     real(rp) prob
     real(rp) x
   end function
+
+  subroutine ps2gif (ps_file, gif_file, kill_ps_file)
+    implicit none
+    character(*) ps_file, gif_file
+    logical, optional :: kill_ps_file
+  end subroutine
 
   subroutine query_string (query_str, upcase, return_str, ix, ios)
     implicit none
@@ -450,16 +496,10 @@ interface
     logical tracker_locked(2)
   end subroutine
 
-  subroutine downcase_string(string)
+  subroutine type_this_file(filename)
     implicit none
-    character(*) string
+    character(*) filename
   end subroutine
-
-  function downcase(str_in) result (str_out)
-    implicit none
-    character(*) str_in
-    character(len(str_in)) str_out
-  end function
 
   function upcase(str_in) result (str_out)
     implicit none
@@ -492,39 +532,6 @@ interface
     character(*) string
     character(*), optional :: str_match, str_replace
     logical, optional :: do_trim
-  end subroutine
-
-  subroutine date_and_time_stamp (string, numeric_month)
-    implicit none
-    character(*) string
-    logical, optional :: numeric_month
-  end subroutine
-
-  subroutine get_file_time_stamp (file, time_stamp)
-    implicit none
-    character(*) file, time_stamp
-  end subroutine
-
-   function lunget ()
-     implicit none
-     integer lunget
-   end function lunget
-
-   function match_reg(str, pat) result (is_match)
-     implicit none
-     logical is_match
-     character(*) str, pat
-   end function match_reg
-
-   subroutine milli_sleep (milli_sec)
-    implicit none
-    integer milli_sec
-  end subroutine
-
-  subroutine ps2gif (ps_file, gif_file, kill_ps_file)
-    implicit none
-    character(*) ps_file, gif_file
-    logical, optional :: kill_ps_file
   end subroutine
 
   recursive function str_match_wild(str, pat) result (a_match)
