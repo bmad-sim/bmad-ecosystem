@@ -2407,6 +2407,11 @@ integer fringe_type
 
 has_fringe = .false.
 
+if (associated(ele%a_pole_elec)) then
+  has_fringe = .true.
+  return
+endif
+
 select case (ele%key)
 case (lcavity$, rfcavity$, e_gun$, sextupole$, quadrupole$, octupole$)
   if (ele%field_calc == bmad_standard$) has_fringe = .true.
