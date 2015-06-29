@@ -1811,7 +1811,7 @@ do
 
   if (has_hkick_attributes(ele%key)) then
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
-      if (val(hkick$) /= 0 .or. val(vkick$) /= 0 .or. (ele%key == sbend$ .and. ele%value(g_err$) /= 0)) then
+      if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
         write (kicker_ele%name, '(a, i0)') 'KICKER_Z', j_count
         kicker_ele%value(hkick$) = val(hkick$) / 2
@@ -1878,42 +1878,49 @@ do
     cycle
   endif
 
-  ! A bend with fringe = sad_full its fringe kicks modeled as a 2nd order map.
+  ! A bend with fringe = sad_full or has non-zero g_err has its fringe kicks modeled as a 2nd order map.
 
   iv = nint(ele%value(fringe_type$))
-  if (mad_out .and. ele%key == sbend$ .and. iv == sad_full$) then
+  if (mad_out .and. ele%key == sbend$ .and. (iv == sad_full$ .or. ele%value(g_err$) /= 0)) then
     bend_ele = ele
     ele%value(fringe_type$) = basic_bend$
     ele%value(e1$) = 0
     ele%value(e2$) = 0
+    ele%value(g_err$) = 0
 
     if (ptc_com%taylor_order_ptc /= 2) then
       call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
       call set_ptc (taylor_order = 2) 
     endif
 
+    ele%value(l$) = -ele%value(l$)/2  ! Note negative sign
+    call ele_to_taylor (ele, branch%param, ele_b%taylor, orbit_out(ix_ele-1))
+    ele%value(l$) = bend_ele%value(l$)
+
+
     f_count = f_count + 1
     ie = ix_ele
 
     ifa = nint(ele%value(fringe_at$))
-    if (ifa == entrance_end$ .or. ifa == both_ends$) then
+    if (ifa == entrance_end$ .or. ifa == both_ends$ .or. bend_ele%value(g_err$) /= 0) then
       bend_ele%value(fringe_at$) = entrance_end$
-      bend_ele%value(l$) = 1e-30
+      bend_ele%value(l$) = bend_ele%value(l$) / 2
       e2 = bend_ele%value(e2$)
       bend_ele%value(e2$) = 0
       call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
+      call concat_taylor (ele_b%taylor, taylor_ele%taylor, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
       ie = ie + 1
       ie2 = ie2 + 1
     endif
 
-    if (ifa == exit_end$ .or. ifa == both_ends$) then
+    if (ifa == exit_end$ .or. ifa == both_ends$ .or. bend_ele%value(g_err$) /= 0) then
       bend_ele%value(fringe_at$) = exit_end$
-      bend_ele%value(l$) = 1e-30
       bend_ele%value(e1$) = 0
       bend_ele%value(e2$) = e2
       call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie)) 
+      call concat_taylor (taylor_ele%taylor, ele_b%taylor, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
       ie2 = ie2 + 1

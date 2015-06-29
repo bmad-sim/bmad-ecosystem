@@ -1078,6 +1078,7 @@ end subroutine no_edge_angle_hard_bend_edge_kick
 !   lcavity
 !   rfcavity 
 !   e_gun
+! Additionally, Any element that has an electric multipole has an edge kick.
 !
 ! Module needed:
 !   use track1_mod
@@ -1105,9 +1106,10 @@ type (coord_struct) orb
 type (lat_param_struct) param
 type (em_field_struct) field
 
-real(rp) t, f, l_drift, ks, t_rel, s_edge, s
+real(rp) t, f, l_drift, ks, t_rel, s_edge, s, phi
+complex(rp) xiy
 
-integer particle_at, physical_end, dir
+integer particle_at, physical_end, dir, i
 
 ! The setting of hard_ele%ixx is used by calc_next_fringe_edge to calculate the next fringe location.
 
@@ -1126,7 +1128,23 @@ endif
 if (hard_ele%field_calc /= bmad_standard$) return
 physical_end = physical_ele_end (particle_at, orb%direction, track_ele%orientation)
 
-!
+! Static electric
+
+if (associated(hard_ele%a_pole_elec)) then
+  xiy = 1
+  do i = 0, max_nonzero(0, hard_ele%a_pole_elec, hard_ele%b_pole_elec)
+    xiy = xiy * cmplx(orb%vec(1), orb%vec(3))
+    if (hard_ele%a_pole_elec(i) == 0 .and. hard_ele%b_pole_elec(i) == 0) cycle
+    phi = -real(cmplx(hard_ele%b_pole_elec(i), -hard_ele%a_pole_elec(i)) * xiy)
+    if (particle_at == first_track_edge$) then
+      orb%vec(6) = orb%vec(6) - phi / orb%p0c
+    else
+      orb%vec(6) = orb%vec(6) + phi / orb%p0c
+    endif
+  enddo
+endif
+
+! Static magnetic and electromagnetic fringes
 
 select case (hard_ele%key)
 case (quadrupole$)
