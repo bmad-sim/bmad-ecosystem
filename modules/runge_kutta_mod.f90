@@ -617,7 +617,7 @@ dr_ds(7) = dt_ds
 dr_ds(8:11) = 0
 if (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$) then
   ! This uses a modified Omega' = Omega/v_z
-  Omega = spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
+  Omega = f_bend * spin_omega (field, orbit, ele) + [-gy_bend, gx_bend, 0.0_rp]
   quaternion = -(i_imaginary/2.0_rp)* (pauli(1)%sigma*Omega(1) + pauli(2)%sigma*Omega(2) + pauli(3)%sigma*Omega(3))
   dspin = matmul(quaternion, orbit%spin)
   dr_ds(8) = real(dspin(1))
