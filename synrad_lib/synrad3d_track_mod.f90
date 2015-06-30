@@ -51,6 +51,7 @@ endif
 
 photon%start%orb%path_len = 0
 photon%now = photon%start
+photon%crossed_lat_end = .false.
 wall_hit(0)%after_reflect = photon%start%orb
 
 call ran_default_state (get_state = sr3d_params%ran_state)  ! Save 
