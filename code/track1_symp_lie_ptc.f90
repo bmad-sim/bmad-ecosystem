@@ -23,7 +23,7 @@ use ptc_interface_mod, except_dummy => track1_symp_lie_ptc
 use ptc_spin, rename_dummy => dp, rename2_dummy => twopi
 use s_tracking, only: DEFAULT, alloc_fibre
 use mad_like, only: fibre, kill, ptc_track => track
-use spin_mod
+use spin_mod, except_dummy2 => track1_symp_lie_ptc
 
 implicit none
 
