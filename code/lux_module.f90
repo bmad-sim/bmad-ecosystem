@@ -20,7 +20,6 @@ type lux_bend_slice_struct
   type (coord_struct) orbit
   real(rp) integrated_emit_prob    ! Probability of photon emission from element start to slice end
   real(rp) emit_prob               ! Probability of photon emission withing slice
-  real(rp) g_x, g_y
   logical good_emit                ! Only generate photons in slices with %good_emit = True. Photons generated 
                                    !   in slices with good_emit = False will not make it through the aperture
 end type
@@ -63,10 +62,11 @@ type lux_common_struct
   type (branch_struct), pointer :: physical_source_branch, tracking_branch
   type (ele_struct), pointer :: physical_source_ele, photon_init_ele, fork_ele, detec_ele, photon1_ele
   integer n_bend_slice             ! Number of slices
-  integer(8) :: n_photon_stop1     ! Number of photons to track when lux_track_photons is called
+  integer(8) :: n_photon_stop1     ! Number of photons to track per processor.
+                                   ! This is equal to lux_param%stop_num_photons when not using mpi.
   integer :: mpi_rank  = -1
   integer :: mpi_n_proc = 1        ! Number of processeses including master
-  integer :: n_photon1_out = 1     ! Count of photons in photon1_out_file
+  integer :: n_photon1_out = 0     ! Count of photons in photon1_out_file
   integer :: iu_photon1_out        ! Open unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   type (surface_grid_pt_struct), allocatable :: energy_bin(:)
@@ -302,7 +302,7 @@ endif
 !
 
 if (lux_param%photon1_out_file /= '') then
-  lux_com%n_photon1_out = 1
+  lux_com%n_photon1_out = 0
   iu = lunget()
   lux_com%iu_photon1_out = iu
 
@@ -314,8 +314,8 @@ if (lux_param%photon1_out_file /= '') then
     write (photon1_out_file, '(a, i0, a)') photon1_out_file(1:ix-1), rank_id, photon1_out_file(ix+1:)
   endif
   open (iu, file = photon1_out_file, recl = 240)
-  write (iu, '(a)') '#      |                               Start (x 1e3)                    |                                    End (x 1e3)                     |                 End'
-  write (iu, '(a)') '#   Ix |          x           vx            y           vy            z |             x           vx            y           vy            z  |     Energy     Intens_x     Intens_y'
+  write (iu, '(a)') '#      |                               Start                            |                                    End                             |                 End'
+  write (iu, '(a)') '#   Ix |     x (mm)           vx       y (mm)           vy            z |        x (mm)           vx       y (mm)           vy            z  |     Energy     Intens_x     Intens_y'
 endif
 
 
@@ -406,7 +406,7 @@ type (coord_struct) :: orb
 type (lux_param_struct) lux_param
 type (lux_common_struct), target :: lux_com
 type (lux_bend_slice_struct), pointer :: sl(:)
-type (ele_struct) ele
+type (ele_struct) ele_ave
 type (ele_struct), pointer :: photon_init_ele, physical_source_ele
 
 real(rp) x, y, phi, r(3), dir(2), ds, rr, r_emit(5), prob, f
@@ -461,28 +461,31 @@ f = (rr - sl(ix-1)%integrated_emit_prob) / (sl(ix)%integrated_emit_prob - sl(ix-
 charged_orb = sl(ix)%orbit
 charged_orb%vec = (1-f) * sl(ix)%orbit%vec + f * sl(ix+1)%orbit%vec
 
-ele%a = average_twiss(1-f, sl(ix)%ele%a, sl(ix+1)%ele%a)
-ele%b = average_twiss(1-f, sl(ix)%ele%b, sl(ix+1)%ele%b)
-ele%c_mat   = (1-f) * sl(ix)%ele%c_mat   + f * sl(ix+1)%ele%c_mat
-ele%gamma_c = (1-f) * sl(ix)%ele%gamma_c + f * sl(ix+1)%ele%gamma_c
-call make_v_mats (ele, v_mat, v_inv_mat)
+ele_ave%a = average_twiss(1-f, sl(ix)%ele%a, sl(ix+1)%ele%a)
+ele_ave%b = average_twiss(1-f, sl(ix)%ele%b, sl(ix+1)%ele%b)
+ele_ave%c_mat   = (1-f) * sl(ix)%ele%c_mat   + f * sl(ix+1)%ele%c_mat
+ele_ave%gamma_c = (1-f) * sl(ix)%ele%gamma_c + f * sl(ix+1)%ele%gamma_c
+call make_v_mats (ele_ave, v_mat, v_inv_mat)
 
 ! Add offsets due to finite bunch size to the electron position.
 ! To do this must transform to the normal mode coords
 
 call ran_gauss(r_emit)  ! electron momentum offset.
-dE = r_emit(5) * photon_init_ele%value(sig_E$) / photon_init_ele%value(p0c$)
-charged_orb%vec(6) = charged_orb%vec(6) + dE
 
+charged_orb%vec(6) = charged_orb%vec(6) + r_emit(5) * lat%beam_start_ele%value(sig_E$)
+
+dE = charged_orb%vec(6)
 vec = matmul (v_inv_mat, charged_orb%vec(1:4))
-vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele%a%eta, ele%a%etap] * dE
-vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele%b%eta, ele%b%etap] * dE
+vec(1:2) = vec(1:2) + charged_orb%vec(1:2) + [ele_ave%a%eta, ele_ave%a%etap] * dE
+vec(3:4) = vec(3:4) + charged_orb%vec(1:2) + [ele_ave%b%eta, ele_ave%b%etap] * dE
 
-vec(1) = vec(1) + sqrt(lux_com%physical_source_branch%a%emit * ele%a%beta) * r_emit(1)
-vec(2) = vec(2) + sqrt(lux_com%physical_source_branch%a%emit / ele%a%beta) * (r_emit(2) - ele%a%alpha * r_emit(1))
+vec(1) = vec(1) + sqrt(lat%beam_start_ele%value(emittance_a$) * ele_ave%a%beta) * r_emit(1)
+vec(2) = vec(2) + sqrt(lat%beam_start_ele%value(emittance_a$) / ele_ave%a%beta) * &
+                                                                 (r_emit(2) - ele_ave%a%alpha * r_emit(1))
 
-vec(3) = vec(3) + sqrt(lux_com%physical_source_branch%b%emit * ele%b%beta) * r_emit(3)
-vec(4) = vec(4) + sqrt(lux_com%physical_source_branch%b%emit / ele%b%beta) * (r_emit(4) - ele%b%alpha * r_emit(3))
+vec(3) = vec(3) + sqrt(lat%beam_start_ele%value(emittance_b$) * ele_ave%b%beta) * r_emit(3)
+vec(4) = vec(4) + sqrt(lat%beam_start_ele%value(emittance_b$) / ele_ave%b%beta) * &
+                                                                 (r_emit(4) - ele_ave%b%alpha * r_emit(3))
 
 charged_orb%vec(1:4) = matmul(v_mat, vec)
 
@@ -494,7 +497,8 @@ g_bend = g_bend_from_em_field (B, E, charged_orb)
 
 ! Init photon
 
-gamma_electron = physical_source_ele%value(p0c$) * (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
+gamma_electron = physical_source_ele%value(p0c$) * &
+                                (1 + sl(ix)%orbit%vec(6)) / sl(ix)%orbit%beta / mass_of(sl(ix)%orbit%species)
 !! Note: Energy slices not yet implemented.
 !! if (lux_com%lat%photon_type == coherent$ .and. ix_energy > 0) then
 !!   rr = (ix_energy - 0.5_rp) / lux_param%n_energy_pts
@@ -511,7 +515,7 @@ orb%s = sl(ix-1)%ele%s + f * sl(ix)%ele%value(l$)
 ds = lux_com%fork_ele%s - orb%s  
 
 if (physical_source_ele%key == sbend$) then
-  call track_a_bend_photon (orb, ele, ds)
+  call track_a_bend_photon (orb, physical_source_ele, ds)
 else
   call track_a_drift_photon (orb, ds, .true.)
 endif
@@ -734,19 +738,18 @@ type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
 type (lux_photon_struct), target :: photon
 type (lat_struct), pointer :: lat
-type (coord_struct), pointer :: this_orb
-type (ele_struct), pointer :: detec_ele, photon_init_ele
+type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
 type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
-type (bunch_struct) bunch
+type (bunch_struct) bunch, bunch_stop1, bunch_start
 
 real(rp) phase, intensity_tot, intens
 
 integer ix, n, nt, nx, ny, track_state, ip, ie
 
-logical accept, err_flag
+logical err_flag
 
 !
 
@@ -754,6 +757,7 @@ lat => lux_com%lat
 detec_ele => lux_com%detec_ele
 detec_grid => lux_com%detec_ele%photon%surface%grid
 photon_init_ele => lux_com%photon_init_ele
+photon1_ele => lux_com%photon1_ele
 t_branch => lux_com%tracking_branch
 s_branch => lux_com%physical_source_branch
 
@@ -772,10 +776,20 @@ if (lux_param%track_bunch) then
     call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
   enddo
 
-  call track_photon_bunch (bunch, t_branch, 0, detec_ele%ix_ele)
+  if (lux_param%photon1_out_file /= '') then
+    bunch_start = bunch
+    call track_photon_bunch (bunch, t_branch, 0, photon1_ele%ix_ele)
+    bunch_stop1 = bunch
+    call track_photon_bunch (bunch, t_branch, photon1_ele%ix_ele, detec_ele%ix_ele)
+  else
+    call track_photon_bunch (bunch, t_branch, 0, detec_ele%ix_ele)
+  endif
 
   do ip = 1, n
     call add_to_detector_statistics (bunch%particle(ip), intens)
+    if (lux_param%photon1_out_file /= '') then
+      call photon1_out (bunch_start%particle(ip), bunch_stop1%particle(ip), bunch%particle(ip), ip)
+    endif
   enddo
 
   lux_data%n_track_tot = n
@@ -807,27 +821,38 @@ do
   ! Write to photon1_out_file
 
   if (lux_param%photon1_out_file /= '') then
-                                                  
-    this_orb => photon%orb(lux_com%photon1_ele%ix_ele)
-
-    accept = .true.
-    if (lux_param%reject_dead_at_det_photon1 .and. track_state /= moving_forward$) accept = .false.
-    if (this_orb%state /= alive$) accept = .false.
-    if (intens < lux_param%intensity_min_photon1_cutoff) accept = .false.
-    if (lux_com%n_photon1_out > lux_param%n_photon1_out_max) accept = .false.
-
-    if (accept) then
-      lux_com%n_photon1_out = lux_com%n_photon1_out + 1
-      write (lux_com%iu_photon1_out, '(i6, 5f13.6, 3x, 5f13.6, 3x, f11.3, 2es13.4)') &
-                      lux_data%n_track_tot, 1d3*photon%orb(1)%vec(1:5), &
-                      1d3*this_orb%vec(1:5), this_orb%p0c, this_orb%field(1)**2, this_orb%field(2)**2
-    endif
+    call photon1_out (photon%orb(1), photon%orb(photon1_ele%ix_ele), &
+                                        photon%orb(detec_ele%ix_ele), int(lux_data%n_track_tot))
   endif
-
 enddo
 
 !--------------------------------------------------------------------
 contains
+
+subroutine photon1_out (orb_start, orb1, orb_det, ix_photon)
+
+type (coord_struct) orb_start, orb1, orb_det
+real(rp) v_start(5), v1(5)
+integer ix_photon
+
+!
+
+if (lux_param%reject_dead_at_det_photon1 .and. orb_det%state /= alive$) return
+if (orb1%state /= alive$) return
+if (intens < lux_param%intensity_min_photon1_cutoff) return
+lux_com%n_photon1_out = lux_com%n_photon1_out + 1
+if (lux_com%n_photon1_out > lux_param%n_photon1_out_max) return
+
+v_start = orb_start%vec(1:5); v_start(1) = 1d3* v_start(1); v_start(3) = 1d3* v_start(3)
+v1 = orb1%vec(1:5); v1(1) = 1d3* v1(1); v1(3) = 1d3* v1(3)
+
+write (lux_com%iu_photon1_out, '(i6, 2(5f13.6, 3x), f11.3, 2es13.4)') ix_photon, &
+                        v_start, v1, orb1%p0c, orb_start%field(1)**2, orb1%field(2)**2
+
+end subroutine photon1_out
+
+!--------------------------------------------------------------------
+! contains
 
 subroutine add_to_detector_statistics (det_orb, intens)
 

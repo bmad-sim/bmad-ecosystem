@@ -18,6 +18,7 @@ Usage:
   <who_to_plot> = x         # Intensity of x-polarized photons
                 = y         # Intensity of y-polarized photons
                 = i         # Total intensity (sum of x & y polarizations)
+                = e         # Energy
   Defaults:
     <scale>          = 1e3
     <data_file_name> = det_pix
@@ -68,6 +69,8 @@ elif who_to_plot == 'y':
   p_col = 6
 elif who_to_plot == 'i':
   p_col = 8
+elif who_to_plot == 'e':
+  p_col = 10
 else:
   print_help()
 
@@ -95,7 +98,7 @@ pix_mat = np.zeros((nx_max+1-nx_min, ny_max+1-ny_min))
 
 for pix in pix_dat:
   pix_mat[pix[0]-nx_min, pix[1]-ny_min] = pix[2]
-  print (str(pix[0]) + ' ' + str(pix[1]) + ': ' + str(pix[2]))
+  ## print (str(pix[0]) + ' ' + str(pix[1]) + ': ' + str(pix[2]))
 
 # And plot
 
@@ -118,9 +121,9 @@ else:
   ax.xaxis.set_major_locator(ticker.MaxNLocator(it))
 
 dens = ax.imshow(np.transpose(pix_mat), origin = 'lower', extent = (x_min, x_max, y_min, y_max))
+dens.set_cmap('gnuplot2')
 
 ##plt.set_cmap('gnuplot2_r')
-dens.set_cmap('gnuplot2')
 
 fig.colorbar(dens)
 
