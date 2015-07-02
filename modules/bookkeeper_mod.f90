@@ -1412,6 +1412,7 @@ character(24) :: r_name = 'create_element_slice'
 err_flag = .true.
 in_len = ele_in%value(l$)
 
+sliced_ele%lord_status = not_a_lord$
 sliced_ele%slave_status = slice_slave$
 sliced_ele%ix_ele = -2  ! Indicate sliced ele is not an element in the lattice.
 sliced_ele%value(l$) = l_slice
