@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 157
+integer, parameter :: bmad_inc_version$ = 158
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -932,7 +932,7 @@ integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, &
 integer, parameter :: x$ = 1, px$ = 2, y$ = 3, py$ = 4, z$ = 5, pz$ = 6
 integer, parameter :: t$ = 8
 integer, parameter :: field_x$ = 10, field_y$ = 11, phase_x$ = 12, phase_y$ = 13
-integer, parameter :: e_photon$ = 14
+integer, parameter :: e_photon$ = 9
 
 integer, parameter :: x_beam_start$ = 1, px_beam_start$ = 2, y_beam_start$ = 3
 integer, parameter :: py_beam_start$ = 4, z_beam_start$ = 5, pz_beam_start$ = 6
@@ -945,22 +945,24 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2  ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, rf_frequency$ = 3, direction$ = 3
 integer, parameter :: kick$ = 3, x_gain_err$ = 3
-integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, sig_x$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
+integer, parameter :: rf_frequency_err$ = 4, k1$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4
 integer, parameter :: critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coordinates$ = 4
-integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, sig_y$ = 5, b_max$ = 5, v_displace$ = 5
+integer, parameter :: lr_freq_spread$ = 5, graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5
 integer, parameter :: ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5
-integer, parameter :: gradient$ = 6, k3$ = 6, sig_z$ = 6, noise$ = 6, new_branch$ = 6
+integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6
 integer, parameter :: g$ = 6, bragg_angle_in$ = 6, symmetry$ = 6, field_scale_factor$ = 6
-integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, sig_vx$ = 7
+integer, parameter :: g_err$ = 7, n_pole$ = 7, bbi_const$ = 7, osc_amplitude$ = 7
 integer, parameter :: gradient_err$ = 7, critical_angle$ = 7
 integer, parameter :: bragg_angle_out$ = 7, ix_to_branch$ = 7
-integer, parameter :: rho$ = 8, delta_e$ = 8, sig_vy$ = 8, diffraction_limited$ = 8
+integer, parameter :: rho$ = 8, delta_e$ = 8, diffraction_limited$ = 8
 integer, parameter :: charge$ = 8, x_gain_calib$ = 8, ix_to_element$ = 8
-integer, parameter :: l_chord$ = 9, voltage$ = 9, sig_E$ = 9
-integer, parameter :: fb1$ = 14
-integer, parameter :: fb2$ = 15
-integer, parameter :: fq1$ = 16
-integer, parameter :: fq2$ = 17
+integer, parameter :: l_chord$ = 9, voltage$ = 9
+integer, parameter :: fb1$ = 14, sig_x$ = 14
+integer, parameter :: fb2$ = 15, sig_y$ = 15
+integer, parameter :: fq1$ = 16, sig_z$ = 16
+integer, parameter :: fq2$ = 17, sig_vx$ = 17
+integer, parameter :: sig_vy$ = 18
+integer, parameter :: sig_e$ = 19
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, spin_x$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
@@ -977,11 +979,11 @@ integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ =
 integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
-integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
+integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28, emittance_a$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
-integer, parameter :: cmat_21$ = 29, transverse_sigma_cut$ = 30
-integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30
-integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30
+integer, parameter :: cmat_21$ = 29, emittance_b$ = 29
+integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
+integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, emittance_z$ = 30
 integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31
 integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33

@@ -731,6 +731,11 @@ call init_attribute_name1 (def_beam_start$, spinor_theta$,            'SPINOR_TH
 call init_attribute_name1 (def_beam_start$, spinor_phi$,              'SPINOR_PHI')
 call init_attribute_name1 (def_beam_start$, spinor_xi$,               'SPINOR_XI')
 call init_attribute_name1 (def_beam_start$, spinor_polarization$,     'SPINOR_POLARIZATION')
+call init_attribute_name1 (def_beam_start$, emittance_a$,             'EMITTANCE_A')
+call init_attribute_name1 (def_beam_start$, emittance_b$,             'EMITTANCE_B')
+call init_attribute_name1 (def_beam_start$, emittance_z$,             'EMITTANCE_Z')
+call init_attribute_name1 (def_beam_start$, sig_e$,                   'SIG_E')
+call init_attribute_name1 (def_beam_start$, sig_z$,                   'SIG_Z')
 
 call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1', override = .true.)
 call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2', override = .true.)

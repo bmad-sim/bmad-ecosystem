@@ -115,11 +115,9 @@ case ('BEAM_START')
   call re_allocate (ptr_array, 1)
 
   select case(attrib_name)
-  case ('EMITTANCE_A'); ptr_array(1)%r => lat%a%emit 
-  case ('EMITTANCE_B'); ptr_array(1)%r => lat%b%emit
-  case ('EMITTANCE_Z'); ptr_array(1)%r => lat%z%emit
 
-  case ('SPIN_X', 'SPIN_Y', 'SPIN_Z', 'SPINOR_POLARIZATION', 'SPINOR_THETA', 'SPINOR_PHI', 'SPINOR_XI')
+  case ('SPIN_X', 'SPIN_Y', 'SPIN_Z', 'SPINOR_POLARIZATION', 'SPINOR_THETA', 'SPINOR_PHI', 'SPINOR_XI', &
+                       'EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z', 'SIG_E', 'SIG_Z')
     i = attribute_index(lat%beam_start_ele, attrib_name)
     ptr_array(1)%r => lat%beam_start_ele%value(i)
 
