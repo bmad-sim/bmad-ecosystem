@@ -3378,7 +3378,7 @@ end subroutine set_on_off
 !+
 ! Subroutine attributes_need_bookkeeping (ele, dval) result (is_needed)
 !
-! Routine, when bmad_com%auto_bookkeeper = False, to decide if attribute
+! Routine, when bmad_com%auto_bookkeeper = True, to decide if attribute
 ! bookkeeping needs to be done for an element.
 !
 ! Input:

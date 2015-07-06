@@ -1796,7 +1796,7 @@ do
       ab_ele%b_pole = ab_ele%b_pole / 2
       if (associated(ele%a_pole)) deallocate (ele%a_pole, ele%b_pole)
       j_count = j_count + 1
-      write (ab_ele%name,   '(a, i0)') 'MULTIPOLE_Z', j_count
+      write (ab_ele%name, '(a1, a, i0)') key_name(ele%key), 'MULTIPOLE_', j_count
       call insert_element (lat_out, ab_ele, ix_ele, branch%ix_branch, orbit_out)
       call insert_element (lat_out, ab_ele, ix_ele+2, branch%ix_branch, orbit_out)
       ie2 = ie2 + 2
@@ -1813,7 +1813,7 @@ do
     if (ele%key /= kicker$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$ .and. ele%key /= sad_mult$) then
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
-        write (kicker_ele%name, '(a, i0)') 'KICKER_Z', j_count
+        write (kicker_ele%name, '(a1, a, i0)') key_name(ele%key), '_KICKER_', j_count
         kicker_ele%value(hkick$) = val(hkick$) / 2
         kicker_ele%value(vkick$) = val(vkick$) / 2
         val(hkick$) = 0; val(vkick$) = 0
@@ -1847,10 +1847,7 @@ do
     quad_ele = ele
     ele%value(fringe_type$) = none$
 
-    if (ptc_com%taylor_order_ptc /= 2) then
-      call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
-      call set_ptc (taylor_order = 2) 
-    endif
+    if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
 
     f_count = f_count + 1
     ie = ix_ele
@@ -1878,25 +1875,22 @@ do
     cycle
   endif
 
-  ! A bend with fringe = sad_full or has non-zero g_err has its fringe kicks modeled as a 2nd order map.
+  ! A bend with fringe = sad_full or has non-zero g_err has its fringe kicks modeled as a 1st order map.
 
   iv = nint(ele%value(fringe_type$))
   if (mad_out .and. ele%key == sbend$ .and. (iv == sad_full$ .or. ele%value(g_err$) /= 0)) then
     bend_ele = ele
     ele%value(fringe_type$) = basic_bend$
-    ele%value(e1$) = 0
-    ele%value(e2$) = 0
+    !! ele%value(e1$) = 0
+    !! ele%value(e2$) = 0
     ele%value(g_err$) = 0
 
-    if (ptc_com%taylor_order_ptc /= 2) then
-      call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for sad_mult/patch conversion')
-      call set_ptc (taylor_order = 2) 
-    endif
+    if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
 
     ele%value(l$) = -ele%value(l$)/2  ! Note negative sign
     call ele_to_taylor (ele, branch%param, ele_b%taylor, orbit_out(ix_ele-1))
     ele%value(l$) = bend_ele%value(l$)
-
+    ele%value(angle$) = bend_ele%value(angle$)
 
     f_count = f_count + 1
     ie = ix_ele
@@ -1929,10 +1923,12 @@ do
     cycle
   endif
 
-  ! A drift where the ref orbit is too large needs an added matrix element 
+  ! A drift where the ref orbit is too large needs an added 1st roder matrix element 
 
   f = ele%value(l$) / (1 + orbit_out(ele%ix_ele)%vec(6))
   if (mad_out .and. ele%key == drift$ .and. abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
+
+    if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1) 
 
     drift_ele = ele
     drift_ele%value(l$) = -drift_ele%value(l$)
@@ -2287,6 +2283,17 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(angle$), 'ANGLE', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'es13.5', 'R', .true., .false.)
+        if (out_type == 'MAD-X') then
+          call value_to_line (line_out, val(fint$), 'FINT', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, val(fintx$), 'FINTX', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, val(hgap$), 'HGAP', 'es13.5', 'R', .true., .false.)
+        else
+          if (val(fintx$) /= val(fint$)) then
+            call out_io (s_info$, r_name, 'FINTX != FINT FOR BEND' // ele%name, 'CANNOT TRANSLATE FINTX')
+          endif
+          call value_to_line (line_out, val(fint$), 'FINT', 'es13.5', 'R', .true., .false.)
+          call value_to_line (line_out, val(hgap$), 'HGAP', 'es13.5', 'R', .true., .false.)
+        endif
 
       case (sextupole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
@@ -2487,10 +2494,7 @@ do ix_ele = ie1, ie2
                       'A LATTICE WITH A SAD_MULT OR PATCH ELEMENT')           
         cycle
       endif
-      if (ptc_com%taylor_order_ptc /= 2) then
-        call out_io (s_info$, r_name, 'PTC Taylor map order temperarily switched to 2 for conversion')
-        call set_ptc (taylor_order = 2) 
-      endif
+      if (ptc_com%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
       call ele_to_taylor (ele, branch%param, ele%taylor, orbit_out(ix_ele-1), .true.)
     endif
 

@@ -596,7 +596,7 @@ select case (ele%field_calc)
 
     do i = 0, n_pole_maxx
       if (ele%a_pole_elec(i) == 0 .and. ele%b_pole_elec(i) == 0) cycle
-      call elec_multipole_kick(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, kx, ky, dkm, df_calc)
+      call elec_multipole_field(ele%a_pole_elec(i), ele%b_pole_elec(i), i, local_orb, kx, ky, dkm, df_calc)
       field%E(1) = field%E(1) + kx
       field%E(2) = field%E(2) + ky
       if (df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm

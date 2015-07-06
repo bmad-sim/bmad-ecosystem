@@ -173,10 +173,10 @@ else
   call twiss1_propagate (ele1%b, mat2_b, ele2%key, ele2%value(l$), ele2%b, error); if (error) return
 endif
 
-! Comming out of a flipped state, the calculation is often off by a factor of twopi.
-! The code corrects this. However, since there is no proof that this always happens, 
-! this is a bit of a kludge. Factors of twopi are not physically meaningful so this
-! does not affect any calculations.
+! Comming out of a flipped state, the phase is often off by a factor of twopi from what one would expect.
+! Factors of twopi are not physically meaningful so this does not affect any calculations.
+! Unfortunately there is no definitive way to calcuate what the "right" way to handle this is.
+! Subtracting off a factor of twopi is a bit of a kludge but it is better than nothing. 
 
 if (ele1%mode_flip .and. .not. ele2%mode_flip) then
   ele2%a%phi = ele2%a%phi - twopi
