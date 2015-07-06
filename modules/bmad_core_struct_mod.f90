@@ -666,8 +666,8 @@ end subroutine transfer_wake
 !
 ! Note: ele%branch is always nullified. 
 !
-! Note: ele%taylor(:)%term pointers are nullified and not deallocated for a slice_slave since
-! these pointers always just point to the lord's corresponding components.
+! Note: For Taylor elements that are slice_slaves: The ele%taylor(:)%term pointers are nullified and 
+! not deallocated since these pointers always just point to the lord's corresponding components.
 !
 ! Modules needed:
 !   use bmad
@@ -760,7 +760,7 @@ if (associated(ele%wig)) then
 endif
 
 if (associated (ele%taylor(1)%term)) then
-  if (ele%slave_status == slice_slave$) then
+  if (ele%slave_status == slice_slave$ .and. ele%key == taylor$) then
     nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
              ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
 

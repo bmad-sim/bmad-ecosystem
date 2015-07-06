@@ -1475,12 +1475,14 @@ endif
 call makeup_super_slave1 (sliced_ele, ele_in, offset, param, include_upstream_end, include_downstream_end, err2_flag)
 if (err2_flag) return
 
-! %taylor%term components point to lord. 
+! For a sliced taylor element the %taylor%term components point to the lord components. 
 ! The routine deallocate_ele_pointers will only nullify and never deallocate these components of a slice_slave.
 
-do i = 1, 6
-  sliced_ele%taylor(i)%term => ele_in%taylor(i)%term
-enddo
+if (ele_in%key == taylor$) then
+  do i = 1, 6
+    sliced_ele%taylor(i)%term => ele_in%taylor(i)%term
+  enddo
+endif
 
 ! Use a speedier tracking method.
 
