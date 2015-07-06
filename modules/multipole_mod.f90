@@ -696,9 +696,9 @@ end subroutine ab_multipole_kick
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine elec_multipole_kick (a, b, n, coord, kx, ky, dk, compute_dk)
+! Subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)
 !
-! Subroutine to put in the kick due to an electric_multipole.
+! Subroutine to put in the field due to an electric_multipole.
 !
 ! Modules Needed:
 !   use bmad
@@ -710,34 +710,34 @@ end subroutine ab_multipole_kick
 !   coord   -- Coord_struct:
 !
 ! Output:
-!   kx          -- Real(rp): X kick.
-!   ky          -- Real(rp): Y kick.
-!   dk(2,2)     -- Real(rp), optional: Kick derivative: dkick(x,y)/d(x,y).
-!   compute_dk  -- logical, optional: If False, do not compute dk even if present.
+!   Ex          -- Real(rp): X field component
+!   Ey          -- Real(rp): Y field component.
+!   dE(2,2)     -- Real(rp), optional: Field derivative: dfield(x,y)/d(x,y).
+!   compute_dE  -- logical, optional: If False, do not compute dE even if present.
 !                     Default is True.
 !-
 
-subroutine elec_multipole_kick (a, b, n, coord, kx, ky, dk, compute_dk)
+subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)
 
 implicit none
 
 type (coord_struct)  coord
 
 real(rp) a, b, x, y
-real(rp), optional :: dk(2,2)
-real(rp) kx, ky, f
+real(rp), optional :: dE(2,2)
+real(rp) Ex, Ey, f
 
 integer n, m, n1
-logical, optional :: compute_dk
+logical, optional :: compute_dE
 logical compute
 
 ! Init
 
-kx = 0
-ky = 0
-compute = (present(dk) .and. logic_option(.true., compute_dk))
+Ex = 0
+Ey = 0
+compute = (present(dE) .and. logic_option(.true., compute_dE))
 
-if (compute) dk = 0
+if (compute) dE = 0
 
 ! simple case
 
@@ -751,17 +751,17 @@ y = coord%vec(3)
 
 do m = 0, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx - b * f
-  ky = ky - a * f
+  Ex = Ex - b * f
+  Ey = Ey - a * f
 enddo
 
 do m = 1, n, 2
   f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + a * f
-  ky = ky - b * f
+  Ex = Ex + a * f
+  Ey = Ey - b * f
 enddo
 
-! dk calc
+! dE calc
 
 if (compute) then
 
@@ -769,25 +769,25 @@ if (compute) then
   
   do m = 0, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,1) = dk(1,1) - b * f
-    dk(2,1) = dk(2,1) - a * f
+    dE(1,1) = dE(1,1) - b * f
+    dE(2,1) = dE(2,1) - a * f
 
-    dk(1,2) = dk(1,2) - a * f
-    dk(2,2) = dk(2,2) + b * f
+    dE(1,2) = dE(1,2) - a * f
+    dE(2,2) = dE(2,2) + b * f
   enddo
 
 
   do m = 1, n1, 2
     f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,2) = dk(1,2) - b * f
-    dk(2,2) = dk(2,2) - a * f
+    dE(1,2) = dE(1,2) - b * f
+    dE(2,2) = dE(2,2) - a * f
 
-    dk(1,1) = dk(1,1) + a * f
-    dk(2,1) = dk(2,1) - b * f
+    dE(1,1) = dE(1,1) + a * f
+    dE(2,1) = dE(2,1) - b * f
   enddo
 
 endif
 
-end subroutine elec_multipole_kick
+end subroutine elec_multipole_field
 
 end module
