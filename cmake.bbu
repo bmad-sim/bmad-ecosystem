@@ -1,8 +1,8 @@
 set (EXENAME bbu)
 
 set (SRC_FILES
-  bbu_old/bbu_program.f90
-  bbu_old/bbu_track_mod.f90
+  bbu/bbu_program.f90
+  bbu/bbu_track_mod.f90
 )
 
 set (INC_DIRS
