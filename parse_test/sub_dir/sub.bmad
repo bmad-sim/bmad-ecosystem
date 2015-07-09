@@ -1,0 +1,2 @@
+print, 'In sub_dir/sub.bmad'
+call, file = sub2_dir/sub2.bmad
