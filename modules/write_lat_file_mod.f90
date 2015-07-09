@@ -1480,8 +1480,8 @@ type (lat_struct), target :: lat, lat_model, lat_out
 type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele
-type (ele_struct), save :: bend_ele, ele_a, ele_b, quad_ele
-type (coord_struct) orb_start, orb_end
+type (ele_struct), save :: bend_ele, quad_ele
+type (coord_struct) orb_start, orb_end, orb_center
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 type (coord_struct), allocatable :: orbit_out(:)
 type (taylor_term_struct) :: term
@@ -1489,6 +1489,7 @@ type (branch_struct), pointer :: branch, branch_out
 type (mad_energy_struct) energy
 type (mad_map_struct) mad_map
 type (ptc_parameter_struct) ptc_param
+type (taylor_struct) taylor_a(6), taylor_b(6)
 
 real(rp) field, hk, vk, tilt, limit(2), old_bs_field, bs_field, length, a, b, f, e2
 real(rp), pointer :: val(:)
@@ -1879,51 +1880,69 @@ do
 
   iv = nint(ele%value(fringe_type$))
   if (mad_out .and. ele%key == sbend$ .and. (iv == sad_full$ .or. ele%value(g_err$) /= 0)) then
-    bend_ele = ele
-    ele%value(fringe_type$) = basic_bend$
-    !! ele%value(e1$) = 0
-    !! ele%value(e2$) = 0
-    ele%value(g_err$) = 0
 
     if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1)
-
-    ele%value(l$) = -ele%value(l$)/2  ! Note negative sign
-    call ele_to_taylor (ele, branch%param, ele_b%taylor, orbit_out(ix_ele-1))
-    ele%value(l$) = bend_ele%value(l$)
-    ele%value(angle$) = bend_ele%value(angle$)
 
     f_count = f_count + 1
     ie = ix_ele
 
-    ifa = nint(ele%value(fringe_at$))
-    if (ifa == entrance_end$ .or. ifa == both_ends$ .or. bend_ele%value(g_err$) /= 0) then
-      bend_ele%value(fringe_at$) = entrance_end$
-      bend_ele%value(l$) = bend_ele%value(l$) / 2
-      e2 = bend_ele%value(e2$)
-      bend_ele%value(e2$) = 0
-      call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
-      call concat_taylor (ele_b%taylor, taylor_ele%taylor, taylor_ele%taylor)
+    bend_ele = ele
+    bend_ele%value(l$) = ele%value(l$)/2
+    bend_ele%value(angle$) = ele%value(angle$)/2
+    bend_ele%value(e2$) = 0
+    call set_fringe_on_off (bend_ele%value(fringe_at$), exit_end$, off$)
+    call track1 (orbit_out(ie-1), bend_ele, branch%param, orb_center)
+
+    if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
+      call ele_to_taylor (bend_ele, branch%param, taylor_a, orbit_out(ie-1))
+
+      bend_ele%value(fringe_type$) = basic_bend$
+      bend_ele%value(g_err$) = 0
+      orb_start = orb_center
+      orb_start%direction = -1
+      orb_start%species = antiparticle(orb_center%species)
+      call track1 (orb_start, bend_ele, branch%param, orb_start)  ! bactrack to entrance end
+      call ele_to_taylor (bend_ele, branch%param, taylor_b, orb_start)
+
+      call taylor_inverse (taylor_b, taylor_b)
+      call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
+      ele => branch_out%ele(ix_ele+1)
+      call kill_taylor (taylor_a)
+      call kill_taylor (taylor_b)
       ie = ie + 1
       ie2 = ie2 + 1
     endif
 
-    if (ifa == exit_end$ .or. ifa == both_ends$ .or. bend_ele%value(g_err$) /= 0) then
-      bend_ele%value(fringe_at$) = exit_end$
+    if (at_this_ele_end(exit_end$, nint(ele%value(fringe_at$))) .or. ele%value(g_err$) /= 0) then
+      bend_ele = ele
+      bend_ele%value(l$) = ele%value(l$)/2
+      bend_ele%value(angle$) = ele%value(angle$)/2
       bend_ele%value(e1$) = 0
-      bend_ele%value(e2$) = e2
-      call ele_to_taylor (bend_ele, branch%param, taylor_ele%taylor, orbit_out(ie)) 
-      call concat_taylor (taylor_ele%taylor, ele_b%taylor, taylor_ele%taylor)
+      call set_fringe_on_off (bend_ele%value(fringe_at$), entrance_end$, off$)
+
+      call ele_to_taylor (bend_ele, branch%param, taylor_a, orb_center)
+
+      bend_ele%value(fringe_type$) = basic_bend$
+      bend_ele%value(g_err$) = 0
+      call ele_to_taylor (bend_ele, branch%param, taylor_b, orb_center)
+      call taylor_inverse (taylor_b, taylor_b)
+
+      call concat_taylor (taylor_b, taylor_a, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
+      call kill_taylor (taylor_a)
+      call kill_taylor (taylor_b)
       ie2 = ie2 + 1
     endif
 
+    ele%value(fringe_type$) = basic_bend$
+    ele%value(g_err$) = 0
     cycle
   endif
 
-  ! A drift where the ref orbit is too large needs an added 1st roder matrix element 
+  ! A drift where the ref orbit is too large needs an added 1st order matrix element 
 
   f = ele%value(l$) / (1 + orbit_out(ele%ix_ele)%vec(6))
   if (mad_out .and. ele%key == drift$ .and. abs(ele%mat6(1,2) - f) > real_option(1d-5, dr12_drift_max)) then
@@ -1931,16 +1950,18 @@ do
     if (ptc_com%taylor_order_ptc /= 1) call set_ptc (taylor_order = 1) 
 
     drift_ele = ele
-    drift_ele%value(l$) = -drift_ele%value(l$)
-    call make_mad_map (drift_ele, branch%param, energy, mad_map)
-    call mad_map_to_taylor (mad_map, energy, ele_a%taylor)
+    drift_ele%value(l$) = -ele%value(l$)
+    call make_mat6_mad (drift_ele, branch%param, orbit_out(ix_ele), orb_end)
+    call mat6_to_taylor (drift_ele%vec0, drift_ele%mat6, taylor_a)
 
-    drift_ele%value(l$) = -drift_ele%value(l$)
-    call ele_to_taylor (drift_ele, branch%param, ele_b%taylor, orbit_out(ix_ele-1))
-    call concat_taylor (ele_a%taylor, ele_b%taylor, taylor_ele%taylor)
+    drift_ele%value(l$) = ele%value(l$)
+    call ele_to_taylor (drift_ele, branch%param, taylor_b, orbit_out(ix_ele-1))
+    call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
+    call kill_taylor (taylor_a)
+    call kill_taylor (taylor_b)
 
     f_count = f_count + 1
-    write (taylor_ele%name, '(a, i0)') 'DRIFT_NONLIN', f_count
+    write (taylor_ele%name, '(a, i0)') 'D_NONLIN', f_count
     call insert_element (lat_out, taylor_ele, ix_ele+1, branch%ix_branch, orbit_out)
     ie2 = ie2 + 1
     ix_ele = ix_ele + 1
@@ -2103,18 +2124,24 @@ do ix_ele = ie1, ie2
 
     select case (ele%key)
 
+    ! OPAL-T
     case (marker$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': marker'
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
+    ! OPAL-T
     case (drift$, instrument$, pipe$, detector$, monitor$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+
+    ! OPAL-T
     case (sbend$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': sbend, l =', val(l$)
       call value_to_line (line_out, val(b_field$), 'k0', 'es13.5', 'R')
       call value_to_line (line_out, val(e_tot$), 'designenergy', 'es13.5', 'R')
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
+
+    ! OPAL-T
     case (quadrupole$)
       write (line_out, '(a, es13.5)') trim(ele%name) // ': quadrupole, l =', val(l$)
       !Note that OPAL-T has k1 = dBy/dx, and that bmad needs a -1 sign for electrons
@@ -2122,6 +2149,7 @@ do ix_ele = ie1, ie2
       !elemedge The edge of the field is specifieda bsolute (floor space co-ordinates) in m.
       call value_to_line (line_out, ele%s - val(L$), 'elemedge', 'es13.5', 'R', .false.)
 
+    ! OPAL-T
     case default
       call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
              'CONVERTING TO DRIFT')
@@ -2143,18 +2171,22 @@ do ix_ele = ie1, ie2
       converted = .true.
       select case (ele%key)
 
+      ! SAD
       case (octupole$)
         write (line_out, '(3a, es13.5)') 'OCT ', trim(ele%name), ' = (l =', val(l$)
         call value_to_line (line_out, val(k3$)*val(l$), 'k3', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (quadrupole$)
         write (line_out, '(3a, es13.5)') 'QUAD ', trim(ele%name), ' = (l =', val(l$)
         call value_to_line (line_out, val(k1$)*val(l$), 'k1', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (sextupole$)
         write (line_out, '(3a, es13.5)') 'SEXT ', trim(ele%name), ' = (l =', val(l$)
         call value_to_line (line_out, val(k2$)*val(l$), 'k2', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case default
         converted = .false.
       end select
@@ -2169,13 +2201,16 @@ do ix_ele = ie1, ie2
 
       select case (ele%key)
 
+      ! SAD
       case (drift$, instrument$, pipe$, detector$, monitor$)
         write (line_out, '(3a, es13.5)') 'DRIFT ', trim(ele%name), ' = (L =', val(l$)
 
+      ! SAD
       case (ab_multipole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
         call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
+      ! SAD
       case (bend_sol_quad$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(angle$), val(bend_tilt$), 0, a, b)
@@ -2187,6 +2222,7 @@ do ix_ele = ie1, ie2
         if (val(x_quad$) /= 0 .or. val(y_quad$) /= 0) call out_io (s_error$, r_name, &
                           'X/Y_QUAD OF BEND_SOL_QUAD CANNOT BE CONVERTED FOR: ' // ele%name)
 
+      ! SAD
       case (ecollimator$)
         write (line_out, '(3a, es13.5)') 'APERT ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(x_offset$), 'DX', 'es13.5', 'R', .true., .false.)
@@ -2194,6 +2230,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, val(x1_limit$), 'AX', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(y1_limit$), 'AY', 'es13.5', 'R', .true., .false.)
         
+      ! SAD
       case (rcollimator$)
         write (line_out, '(3a, es13.5)') 'APERT ', trim(ele%name), ' = ('
         call value_to_line (line_out, -val(x1_limit$), 'DX1', 'es13.5', 'R', .true., .false.)
@@ -2201,6 +2238,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, -val(x2_limit$), 'DX2', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, -val(y2_limit$), 'DY2', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (elseparator$)
         call out_io (s_warn$, r_name, 'Elseparator will be converted into a mult: ' // ele%name)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
@@ -2209,16 +2247,19 @@ do ix_ele = ie1, ie2
         call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (hkicker$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(kick$), 0.0_rp, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (vkicker$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(kick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (kicker$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (-val(hkick$), 0.0_rp, 0, a, b)
@@ -2226,6 +2267,7 @@ do ix_ele = ie1, ie2
         call multipole1_kt_to_ab (-val(vkick$), pi/2, 0, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (lcavity$)
         write (line_out, '(3a, es13.5)') 'CAVI ', trim(ele%name), ' = (L =', val(l$)
         call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .false.)
@@ -2233,6 +2275,7 @@ do ix_ele = ie1, ie2
         call value_to_line (line_out, 0.25 - val(phi0$), 'PHI', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (marker$)
         write (line_out, '(3a, es13.5)') 'MARK ', trim(ele%name), ' = ('
         if (branch_out%param%geometry == open$ .and. ix_ele == 1) then
@@ -2246,68 +2289,71 @@ do ix_ele = ie1, ie2
           call value_to_line (line_out, ele%y%etap, 'PEPY', 'es13.5', 'R', .true., .false.)
         endif
 
+      ! SAD
       case (multipole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = ('
         call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a_pole, b_pole)
 
+      ! SAD
       case (null_ele$)
         write (line_out, '(3a, es13.5)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(geo$), 'GEO', 'i0', 'I', .true., .false.)
         call value_to_line (line_out, val(bound$), 'BOUND', 'i0', 'I', .true., .false.)
 
+      ! SAD
       case (octupole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 3, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (patch$)
         write (line_out, '(3a, es13.5)') 'COORD ', trim(ele%name), ' = ('
 
+      ! SAD
       case (quadrupole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (rfcavity$)
         write (line_out, '(3a, es13.5)') 'CAVI ', trim(ele%name), ' = (L =', val(l$)
         call value_to_line (line_out, val(rf_frequency$), 'FREQ', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(voltage$), 'VOLT', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, twopi * val(phi0$), 'DPHI', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (sad_mult$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
 
+      ! SAD
       case (sbend$)
         write (line_out, '(3a, es13.5)') 'BEND ', trim(ele%name), ' = (L =', val(l$)
         call value_to_line (line_out, val(angle$), 'ANGLE', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(g_err$)*val(l$), 'K0', 'es13.5', 'R', .true., .false.)
         call value_to_line (line_out, val(k1$)*val(l$), 'K1', 'es13.5', 'R', .true., .false.)
-        if (out_type == 'MAD-X') then
-          call value_to_line (line_out, val(fint$), 'FINT', 'es13.5', 'R', .true., .false.)
-          call value_to_line (line_out, val(fintx$), 'FINTX', 'es13.5', 'R', .true., .false.)
-          call value_to_line (line_out, val(hgap$), 'HGAP', 'es13.5', 'R', .true., .false.)
-        else
-          if (val(fintx$) /= val(fint$)) then
-            call out_io (s_info$, r_name, 'FINTX != FINT FOR BEND' // ele%name, 'CANNOT TRANSLATE FINTX')
-          endif
-          call value_to_line (line_out, val(fint$), 'FINT', 'es13.5', 'R', .true., .false.)
-          call value_to_line (line_out, val(hgap$), 'HGAP', 'es13.5', 'R', .true., .false.)
-        endif
+        call value_to_line (line_out, val(fint$)*val(hgap$)/12, 'FB1', 'es13.5', 'R', .true., .false.)
+        call value_to_line (line_out, val(fintx$)*val(hgapx$)/12, 'FB2', 'es13.5', 'R', .true., .false.)
 
+      ! SAD
       case (sextupole$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k3$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case (solenoid$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
 
+      ! SAD
       case (sol_quad$)
         write (line_out, '(3a, es13.5)') 'MULT ', trim(ele%name), ' = (L =', val(l$)
         call multipole1_kt_to_ab (val(k1$), 0.0_rp, 1, a, b)
         a_pole = a_pole + a;  b_pole = b_pole + b
 
+      ! SAD
       case default
         call out_io (s_error$, r_name, 'UNKNOWN ELEMENT TYPE: ' // key_name(ele%key), &
                'CONVERTING TO DRIFT')
@@ -2354,17 +2400,17 @@ do ix_ele = ie1, ie2
   endif
 
   !-----------------------------------
-  ! For anything else but OPAL
+  ! For anything else but OPAL & SAD
 
   select case (ele%key)
 
-  ! drift
+  ! drift MAD
 
   case (drift$, instrument$, pipe$, detector$, monitor$)
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': drift, l =', val(l$)
   
-  ! beambeam
+  ! beambeam MAD
 
   case (beambeam$)
 
@@ -2376,7 +2422,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(charge$), 'charge', 'es13.5', 'R')
 
 
-  ! ecollimator
+  ! r/ecollimator MAD
 
   case (ecollimator$, rcollimator$)
 
@@ -2384,7 +2430,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(x1_limit$), 'xsize', 'es13.5', 'R')
     call value_to_line (line_out, val(y1_limit$), 'ysize', 'es13.5', 'R')
 
-  ! elseparator
+  ! elseparator MAD
 
   case (elseparator$)
 
@@ -2412,7 +2458,7 @@ do ix_ele = ie1, ie2
 
     endif
 
-  ! hkicker
+  ! hkicker MAD
 
   case (hkicker$)
 
@@ -2421,7 +2467,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(hkick$), 'kick', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! kicker
+  ! kicker MAD
 
   case (kicker$)
 
@@ -2431,7 +2477,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(vkick$), 'vkick', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! vkicker
+  ! vkicker MAD
 
   case (vkicker$)
 
@@ -2440,13 +2486,13 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(vkick$), 'kick', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! marker
+  ! marker MAD
 
   case (marker$, fork$, photon_fork$)
 
     line_out = trim(ele%name) // ': marker'
 
-  ! octupole
+  ! octupole MAD
 
   case (octupole$)
 
@@ -2455,7 +2501,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(k3$), 'k3', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! quadrupole
+  ! quadrupole MAD
 
   case (quadrupole$)
 
@@ -2463,7 +2509,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! sbend
+  ! sbend MAD
 
   case (sbend$)
 
@@ -2474,8 +2520,19 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(e2$), 'e2', 'es13.5', 'R')
     call value_to_line (line_out, val(k1$), 'k1', 'es13.5', 'R')
     call value_to_line (line_out, val(ref_tilt$), 'tilt', 'es13.5', 'R')
+    if (out_type == 'MAD-X') then
+      call value_to_line (line_out, val(fint$), 'fint', 'es13.5', 'R')
+      call value_to_line (line_out, val(fintx$), 'fintx', 'es13.5', 'R')
+      call value_to_line (line_out, val(hgap$), 'hgap', 'es13.5', 'R')
+    else
+      if (val(fintx$) /= val(fint$)) then
+        call out_io (s_info$, r_name, 'FINTX != FINT FOR BEND' // ele%name, 'CANNOT TRANSLATE FINTX')
+      endif
+      call value_to_line (line_out, val(fint$), 'fint', 'es13.5', 'R')
+      call value_to_line (line_out, val(hgap$), 'hgap', 'es13.5', 'R')
+    endif
 
-  ! sextupole
+  ! sextupole MAD
 
   case (sextupole$)
 
@@ -2483,7 +2540,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(k2$), 'k2', 'es13.5', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'es13.5', 'R')
 
-  ! taylor
+  ! taylor MAD
 
   case (taylor$, sad_mult$, patch$)
 
@@ -2562,7 +2619,7 @@ do ix_ele = ie1, ie2
 
     enddo
 
-  ! rfcavity
+  ! rfcavity MAD
 
   case (rfcavity$)
 
@@ -2571,7 +2628,7 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(phi0$)+val(phi0_multipass$)+0.5, 'lag', 'es13.5', 'R')
     call value_to_line (line_out, val(harmon$), 'harmon', 'i8', 'I')
 
-  ! lcavity
+  ! lcavity MAD
 
   case (lcavity$)
 
@@ -2580,14 +2637,14 @@ do ix_ele = ie1, ie2
     call value_to_line (line_out, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
     call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'es13.5', 'R')
 
-  ! solenoid
+  ! solenoid MAD
 
   case (solenoid$)
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': solenoid, l =', val(l$)
     call value_to_line (line_out, val(ks$), 'ks', 'es13.5', 'R')
 
-  ! multipole
+  ! multipole MAD
 
   case (multipole$, ab_multipole$)
 
@@ -2617,7 +2674,7 @@ do ix_ele = ie1, ie2
       enddo
     endif
 
-  ! unknown
+  ! unknown MAD
 
   case default
 

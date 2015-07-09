@@ -990,23 +990,16 @@ do j = 1, slave%n_lord
     slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
   endif
 
-  at = nint(value(fringe_at$))
-  if (is_first .and. ele_has(lord, 'FRINGE_TYPE') .and. (at == no_end$ .or. at == exit_end$)) then
-    if (at == no_end$) then
-      value(fringe_at$) = entrance_end$
-    else
-      value(fringe_at$) = both_ends$
+  if (ele_has(lord, 'FRINGE_TYPE')) then
+    if (is_first .and. at_this_ele_end(entrance_end$, nint(lord%value(fringe_at$)))) then
+      call set_fringe_on_off(value(fringe_at$), entrance_end$, on$)
+      value(fringe_type$) = lord%value(fringe_type$)
     endif
-    value(fringe_type$) = lord%value(fringe_type$)
-  endif
 
-  if (is_last .and. ele_has(lord, 'FRINGE_TYPE') .and. (at == no_end$ .or. at == entrance_end$)) then 
-    if (at == no_end$) then
-      value(fringe_at$) = exit_end$
-    else
-      value(fringe_at$) = both_ends$
+    if (is_last .and. at_this_ele_end(exit_end$, nint(lord%value(fringe_at$)))) then
+      call set_fringe_on_off(value(fringe_at$), exit_end$, on$)
+      value(fringe_type$) = lord%value(fringe_type$)
     endif
-    value(fringe_type$) = lord%value(fringe_type$)
   endif
 
   if (lord%key /= pipe$) then

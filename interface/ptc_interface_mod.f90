@@ -2785,14 +2785,14 @@ use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_
 
 if (present(orb0)) then
   bmad_taylor(:)%ref = orb0%vec
-  x = orb0%vec  ! y = IdentityMap + const
+  x = orb0%vec  ! = IdentityMap + const
 else
   bmad_taylor(:)%ref = 0
   x = 0
 endif
 
 call real_8_init(y0)
-y0 = x ! y = IdentityMap + const
+y0 = x ! = IdentityMap + const
 
 ! Convert to PTC
 
