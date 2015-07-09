@@ -34,7 +34,7 @@ contains
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine make_mat6_mad (ele, param, map, c0, c1)
+! Subroutine make_mat6_mad (ele, param, c0, c1)
 !
 ! Subroutine to make the 6x6 transfer matrix for an element from the 
 ! 2nd order MAD transport map. The map is stored in ele%taylor.
