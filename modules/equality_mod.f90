@@ -14,23 +14,47 @@ module equality_mod
 use beam_def_struct
 
 interface operator (==)
-  module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var, eq_coord
-  module procedure eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wig_term, eq_wig
-  module procedure eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_lat_ele_loc, eq_wake
-  module procedure eq_em_field_map_term, eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid, eq_em_field_mode
-  module procedure eq_em_fields, eq_floor_position, eq_space_charge, eq_xy_disp, eq_twiss
-  module procedure eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt, eq_surface_grid
-  module procedure eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target, eq_photon_material
-  module procedure eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_taylor_term
-  module procedure eq_taylor, eq_control, eq_lat_param, eq_mode_info, eq_pre_tracker
-  module procedure eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field, eq_track_map
-  module procedure eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common, eq_rad_int1
-  module procedure eq_rad_int_all_ele, eq_ptc_genfield, eq_ele, eq_complex_taylor_term, eq_complex_taylor
-  module procedure eq_normal_form, eq_branch, eq_lat, eq_bunch, eq_beam_spin
-  module procedure eq_bunch_params, eq_beam
+  module procedure eq_surface_orientation, eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_controller_var
+  module procedure eq_coord, eq_coord_array, eq_bpm_phase_coupling, eq_expression_atom, eq_wig_term
+  module procedure eq_wig, eq_wake_sr_mode, eq_wake_sr, eq_wake_lr, eq_lat_ele_loc
+  module procedure eq_wake, eq_em_field_map_term, eq_em_field_map, eq_em_field_grid_pt, eq_em_field_grid
+  module procedure eq_em_field_mode, eq_em_fields, eq_floor_position, eq_space_charge, eq_xy_disp
+  module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_int_ele_cache, eq_surface_grid_pt
+  module procedure eq_surface_grid, eq_segmented_surface, eq_target_point, eq_photon_surface, eq_photon_target
+  module procedure eq_photon_material, eq_photon_element, eq_wall3d_vertex, eq_wall3d_section, eq_wall3d
+  module procedure eq_taylor_term, eq_taylor, eq_control, eq_lat_param, eq_mode_info
+  module procedure eq_pre_tracker, eq_anormal_mode, eq_linac_normal_mode, eq_normal_modes, eq_em_field
+  module procedure eq_track_map, eq_track, eq_synch_rad_common, eq_csr_parameter, eq_bmad_common
+  module procedure eq_rad_int1, eq_rad_int_all_ele, eq_ptc_genfield, eq_ele, eq_complex_taylor_term
+  module procedure eq_complex_taylor, eq_normal_form, eq_branch, eq_lat, eq_bunch
+  module procedure eq_beam_spin, eq_bunch_params, eq_beam
 end interface
 
 contains
+
+!--------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------
+
+elemental function eq_surface_orientation (f1, f2) result (is_eq)
+
+implicit none
+
+type(surface_orientation_struct), intent(in) :: f1, f2
+logical is_eq
+
+!
+
+is_eq = .true.
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch == f2%x_pitch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+
+end function eq_surface_orientation
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -871,14 +895,10 @@ logical is_eq
 !
 
 is_eq = .true.
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch == f2%x_pitch)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch == f2%y_pitch)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%orientation == f2%orientation)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
 !! f_side.equality_test[complex, 0, NOT]
 is_eq = is_eq .and. (f1%e_x == f2%e_x)
 !! f_side.equality_test[complex, 0, NOT]
@@ -889,12 +909,18 @@ is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
 is_eq = is_eq .and. (f1%intensity_y == f2%intensity_y)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%intensity == f2%intensity)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_photon == f2%n_photon)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%energy_ave == f2%energy_ave)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%energy_rms == f2%energy_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch_ave == f2%x_pitch_ave)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch_ave == f2%y_pitch_ave)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
 
 end function eq_surface_grid_pt
 
@@ -1703,10 +1729,6 @@ is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%auto_scale_field_phase_default .eqv. f2%auto_scale_field_phase_default)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%auto_scale_field_amp_default .eqv. f2%auto_scale_field_amp_default)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 
 end function eq_bmad_common
@@ -2255,10 +2277,6 @@ if (allocated(f1%ic)) is_eq = all(f1%ic == f2%ic)
 is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking .eqv. f2%absolute_time_tracking)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%auto_scale_field_phase .eqv. f2%auto_scale_field_phase)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%auto_scale_field_amp .eqv. f2%auto_scale_field_amp)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%ptc_uses_hard_edge_drifts .eqv. f2%ptc_uses_hard_edge_drifts)
 

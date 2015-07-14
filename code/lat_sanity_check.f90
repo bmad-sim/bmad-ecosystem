@@ -227,7 +227,7 @@ do i_b = 0, ubound(lat%branch, 1)
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A1 OR BETA_B1 THAT IS NOT POSITIVE.')
         err_flag = .true.
       endif
-      if (ele%value(match_end$) == 0 .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
+      if (is_false(ele%value(match_end$)) .and. (ele%value(beta_a0$) <= 0 .or. ele%value(beta_b0$) <= 0)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A MATCH ELEMENT HAS A BETA_A0 OR BETA_B0 THAT IS NOT POSITIVE.')
@@ -408,7 +408,7 @@ do i_b = 0, ubound(lat%branch, 1)
     ! match elements with match_end set should only appear in opens
 
     if (ele%key == match$) then
-      if (ele%value(match_end$) /= 0 .and. lat%param%geometry /= open$) then
+      if (is_true(ele%value(match_end$)) .and. lat%param%geometry /= open$) then
         call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'WHICH IS A: MATCH ELEMENT', &

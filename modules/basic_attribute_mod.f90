@@ -83,14 +83,15 @@ contains
 function attribute_index1 (ele, name, full_name) result (attrib_index)
 
 type (ele_struct) ele
-integer attrib_index, i
+integer attrib_index, i, n
 character(*) name
 character(*), optional :: full_name
 
 ! Note: ele%control_var may not be associated during parsing.
 
 if ((ele%key == group$ .or. ele%key == overlay$) .and. associated(ele%control_var)) then
-  if (name(1:4) == 'OLD_') then
+  n = min(4, len(name))
+  if (name(1:n) == 'OLD_') then
     do i = 1, size(ele%control_var)
       if (full_name(5:) /= ele%control_var(i)%name) cycle
       attrib_index = i + old_control_var_offset$
@@ -753,8 +754,8 @@ call init_attribute_name1 (def_parameter$, photon_type$,              'PHOTON_TY
 call init_attribute_name1 (def_parameter$, aperture_limit_on$,        'APERTURE_LIMIT_ON')
 call init_attribute_name1 (def_parameter$, no_end_marker$,            'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$,   'ABSOLUTE_TIME_TRACKING')
-call init_attribute_name1 (def_parameter$, auto_scale_field_phase$,   'AUTO_SCALE_FIELD_PHASE')
-call init_attribute_name1 (def_parameter$, auto_scale_field_amp$,     'AUTO_SCALE_FIELD_AMP')
+call init_attribute_name1 (def_parameter$, autoscale_phase$,   'AUTOSCALE_PHASE')
+call init_attribute_name1 (def_parameter$, autoscale_amplitude$,     'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,       'PTC_EXACT_MISALIGN')
 call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,     'USE_HARD_EDGE_DRIFTS')
@@ -778,6 +779,8 @@ call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start',
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
 call init_attribute_name1 (drift$, fringe_at$,                      'fringe_at', private$)
 
+call init_attribute_name1 (e_gun$, autoscale_amplitude$,           'AUTOSCALE_AMPLITUDE')
+call init_attribute_name1 (e_gun$, autoscale_phase$,         'AUTOSCALE_PHASE')
 call init_attribute_name1 (e_gun$, e_tot_ref_init$,                 'e_tot_ref_init', private$)
 call init_attribute_name1 (e_gun$, p0c_ref_init$,                   'p0c_ref_init', private$)
 call init_attribute_name1 (e_gun$, e_tot_start$,                    'e_tot_start', private$)
@@ -843,6 +846,8 @@ call init_attribute_name1 (group$, end_edge$,                       'END_EDGE')
 call init_attribute_name1 (group$, accordion_edge$,                 'ACCORDION_EDGE')
 call init_attribute_name1 (group$, s_position$,                     'S_POSITION')
 
+call init_attribute_name1 (lcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
+call init_attribute_name1 (lcavity$, autoscale_phase$,       'AUTOSCALE_PHASE')
 call init_attribute_name1 (lcavity$, traveling_wave$,               'TRAVELING_WAVE')
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
@@ -1033,6 +1038,8 @@ call init_attribute_name1 (patch$, upstream_ele_dir$,               'UPSTREAM_EL
 call init_attribute_name1 (patch$, downstream_ele_dir$,             'DOWNSTREAM_ELE_DIR', dependent$)
 call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDINATES')
 
+call init_attribute_name1 (rfcavity$, autoscale_amplitude$,        'AUTOSCALE_AMPLITUDE')
+call init_attribute_name1 (rfcavity$, autoscale_phase$,      'AUTOSCALE_PHASE')
 call init_attribute_name1 (rfcavity$, traveling_wave$,              'TRAVELING_WAVE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
@@ -1410,8 +1417,8 @@ integer attrib_type
 
 select case (attrib_name)
 case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
-      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTO_SCALE_FIELD_PHASE', &
-      'AUTO_SCALE_FIELD_AMP', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', &
+      'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &

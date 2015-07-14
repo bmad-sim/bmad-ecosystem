@@ -729,7 +729,7 @@ if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
 ! are calculated in twiss_propagate1).
 
 if (lord%key == match$) then
-  if (lord%value(match_end$) /= 0) then
+  if (is_true(lord%value(match_end$))) then
     slave%value(beta_a0$)    = slave_val(beta_a0$)
     slave%value(beta_b0$)    = slave_val(beta_b0$)
     slave%value(alpha_a0$)   = slave_val(alpha_a0$)
@@ -742,7 +742,7 @@ if (lord%key == match$) then
     slave%value(gamma_c$)    = slave_val(gamma_c$)
   endif
 
-  if (lord%value(match_end_orbit$) /= 0) then
+  if (is_true(lord%value(match_end_orbit$))) then
     slave%value(x0$)  = slave_val(x0$)
     slave%value(px0$) = slave_val(px0$)
     slave%value(y0$)  = slave_val(y0$)

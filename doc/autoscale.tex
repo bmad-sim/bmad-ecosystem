@@ -6,7 +6,6 @@
 The elements that can have accelerating fields are:
 \begin{example}
   e_gun       ! \sref{s:e.gun}
-  em_field    ! \sref{s:em.field}
   lcavity     ! \sref{s:lcav}
   rfcavity    ! \sref{s:rfcav}
 \end{example}
@@ -25,10 +24,14 @@ integrated formula that is designed to give the proper acceleration.
 
 To help with the scaling problem, \bmad has the capability to automatically
 scale an accelerating field's amplitude and/or phase. The two
-parameters that turn on/off auto scaling are (\sref{s:param}):
+lattice element parameters that turn on/off auto scaling are (\sref{s:param}):
 \begin{example}
-  parameter[auto_scale_field_phase]    = <Logical>  ! Automatic phase scaling.
-  parameter[auto_scale_field_amp]      = <Logical>  ! Automatic amplitude scaling.
+  autoscale_phase    = <Logical>  ! Automatic phase scaling.
+  autoscale_amplitude      = <Logical>  ! Automatic amplitude scaling.
+\end{example}
+Example:
+\begin{example}
+  rf2: rfcavity, autoscale_phase = F
 \end{example}
 The default value is True for both parameters. 
 

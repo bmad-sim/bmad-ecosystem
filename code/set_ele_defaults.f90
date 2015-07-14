@@ -70,6 +70,8 @@ case (def_parameter$)
   ele%value(geometry$) = -1
   ele%value(particle$) = positron$
   ele%value(default_tracking_species$) = real_garbage$
+  ele%value(autoscale_amplitude$) = .true.
+  ele%value(autoscale_phase$) = .true.
 
 case (detector$)
   if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -91,6 +93,8 @@ case (e_gun$)
   ele%value(field_factor$) = 1
   ele%value(fringe_at$) = exit_end$
   ele%value(fringe_type$) = full$
+  ele%value(autoscale_amplitude$) = .true.
+  ele%value(autoscale_phase$) = .true.
 
 case (ecollimator$)
   ele%aperture_type = elliptical$
@@ -117,6 +121,8 @@ case (lcavity$)
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
   ele%value(fringe_type$) = full$
+  ele%value(autoscale_amplitude$) = .true.
+  ele%value(autoscale_phase$) = .true.
 
 case (line_ele$)
   ele%value(particle$) = real_garbage$
@@ -167,6 +173,8 @@ case (rfcavity$)
   ele%value(n_cell$) = 1
   ele%value(traveling_wave$) = false$
   ele%value(fringe_type$) = full$
+  ele%value(autoscale_amplitude$) = .true.
+  ele%value(autoscale_phase$) = .true.
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
