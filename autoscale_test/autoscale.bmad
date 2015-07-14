@@ -7,16 +7,13 @@ beginning[alpha_b] = 0.29530240044
 parameter[particle] = electron
 parameter[absolute_time_tracking]=true
 
-parameter[auto_scale_field_phase] = true
-parameter[auto_scale_field_amp] = true
-
 PARAMETER[geometry] = open
 PARAMETER[E_TOT] = 1.5E7
 
 !
 
 cavity2_3D: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
-field_calc = grid, rf_frequency = 1.3e9,
+field_calc = grid, rf_frequency = 1.3e9, autoscale_amplitude = T, autoscale_phase = T,
 L = 	0.568,
 field = { 
  mode = {

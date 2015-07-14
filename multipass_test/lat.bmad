@@ -2,8 +2,6 @@ parameter[geometry] = Open
  
 parameter[p0c]                    =9.9999986944E8
 parameter[particle]               = Positron
-parameter[auto_scale_field_phase]    = T
-parameter[auto_scale_field_amp]      = T
 parameter[absolute_time_tracking]    = F
 beginning[s]        = 3
 
