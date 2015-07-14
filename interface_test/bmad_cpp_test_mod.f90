@@ -10,6 +10,98 @@ contains
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
+subroutine test1_f_surface_orientation (ok)
+
+implicit none
+
+type(surface_orientation_struct), target :: f_surface_orientation, f2_surface_orientation
+logical(c_bool) c_ok
+logical ok
+
+interface
+  subroutine test_c_surface_orientation (c_surface_orientation, c_ok) bind(c)
+    import c_ptr, c_bool
+    type(c_ptr), value :: c_surface_orientation
+    logical(c_bool) c_ok
+  end subroutine
+end interface
+
+!
+
+ok = .true.
+call set_surface_orientation_test_pattern (f2_surface_orientation, 1)
+
+call test_c_surface_orientation(c_loc(f2_surface_orientation), c_ok)
+if (.not. f_logic(c_ok)) ok = .false.
+
+call set_surface_orientation_test_pattern (f_surface_orientation, 4)
+if (f_surface_orientation == f2_surface_orientation) then
+  print *, 'surface_orientation: C side convert C->F: Good'
+else
+  print *, 'surface_orientation: C SIDE CONVERT C->F: FAILED!'
+  ok = .false.
+endif
+
+end subroutine test1_f_surface_orientation
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine test2_f_surface_orientation (c_surface_orientation, c_ok) bind(c)
+
+implicit  none
+
+type(c_ptr), value ::  c_surface_orientation
+type(surface_orientation_struct), target :: f_surface_orientation, f2_surface_orientation
+logical(c_bool) c_ok
+
+!
+
+c_ok = c_logic(.true.)
+call surface_orientation_to_f (c_surface_orientation, c_loc(f_surface_orientation))
+
+call set_surface_orientation_test_pattern (f2_surface_orientation, 2)
+if (f_surface_orientation == f2_surface_orientation) then
+  print *, 'surface_orientation: F side convert C->F: Good'
+else
+  print *, 'surface_orientation: F SIDE CONVERT C->F: FAILED!'
+  c_ok = c_logic(.false.)
+endif
+
+call set_surface_orientation_test_pattern (f2_surface_orientation, 3)
+call surface_orientation_to_c (c_loc(f2_surface_orientation), c_surface_orientation)
+
+end subroutine test2_f_surface_orientation
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
+subroutine set_surface_orientation_test_pattern (F, ix_patt)
+
+implicit none
+
+type(surface_orientation_struct) F
+integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
+
+!
+
+offset = 100 * ix_patt
+
+!! f_side.test_pat[real, 0, NOT]
+rhs = 1 + offset; F%x_pitch = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%y_pitch = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 3 + offset; F%x_pitch_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 4 + offset; F%y_pitch_rms = rhs
+
+end subroutine set_surface_orientation_test_pattern
+
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------
+
 subroutine test1_f_interval1_coef (ok)
 
 implicit none
@@ -2939,30 +3031,32 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
-!! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%x_pitch = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%y_pitch = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 3 + offset; F%x_pitch_rms = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%y_pitch_rms = rhs
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 5 + offset; F%e_x = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[complex, 0, NOT]
-rhs = 6 + offset; F%e_y = cmplx(rhs, 100+rhs)
-!! f_side.test_pat[real, 0, NOT]
-rhs = 7 + offset; F%intensity_x = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%intensity_y = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%intensity = rhs
+!! f_side.test_pat[type, 0, NOT]
+call set_surface_orientation_test_pattern (F%orientation, ix_patt)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 10 + offset; F%n_photon = rhs
+rhs = 2 + offset; F%n_photon = rhs
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 3 + offset; F%e_x = cmplx(rhs, 100+rhs)
+!! f_side.test_pat[complex, 0, NOT]
+rhs = 4 + offset; F%e_y = cmplx(rhs, 100+rhs)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%energy_ave = rhs
+rhs = 5 + offset; F%intensity_x = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%energy_rms = rhs
+rhs = 6 + offset; F%intensity_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%intensity = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 8 + offset; F%energy_ave = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 9 + offset; F%energy_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 10 + offset; F%x_pitch_ave = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 11 + offset; F%y_pitch_ave = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 12 + offset; F%x_pitch_rms = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 13 + offset; F%y_pitch_rms = rhs
 
 end subroutine set_surface_grid_pt_test_pattern
 
@@ -5595,11 +5689,7 @@ rhs = 26 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%auto_scale_field_phase_default = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%auto_scale_field_amp_default = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -6941,11 +7031,7 @@ rhs = 32 + offset; F%photon_type = rhs
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 33 + offset; F%absolute_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 34 + offset; F%auto_scale_field_phase = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 35 + offset; F%auto_scale_field_amp = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 36 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
+rhs = 34 + offset; F%ptc_uses_hard_edge_drifts = (modulo(rhs, 2) == 0)
 
 end subroutine set_lat_test_pattern
 

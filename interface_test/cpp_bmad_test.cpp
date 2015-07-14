@@ -17,6 +17,66 @@ using namespace std;
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
+extern "C" void test2_f_surface_orientation (CPP_surface_orientation&, bool&);
+
+void set_CPP_surface_orientation_test_pattern (CPP_surface_orientation& C, int ix_patt) {
+
+  int rhs, offset = 100 * ix_patt;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 1 + offset; C.x_pitch = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 2 + offset; C.y_pitch = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 3 + offset; C.x_pitch_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 4 + offset; C.y_pitch_rms = rhs;
+
+
+}
+
+//--------------------------------------------------------------
+
+extern "C" void test_c_surface_orientation (Bmad_surface_orientation_class* F, bool& c_ok) {
+
+  CPP_surface_orientation C, C2;
+
+  c_ok = true;
+
+  surface_orientation_to_c (F, C);
+  set_CPP_surface_orientation_test_pattern (C2, 1);
+
+  if (C == C2) {
+    cout << " surface_orientation: C side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_orientation: C SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_orientation_test_pattern (C2, 2);
+  bool c_ok2;
+  test2_f_surface_orientation (C2, c_ok2);
+  if (!c_ok2) c_ok = false;
+
+  set_CPP_surface_orientation_test_pattern (C, 3);
+  if (C == C2) {
+    cout << " surface_orientation: F side convert F->C: Good" << endl;
+  } else {
+    cout << " surface_orientation: F SIDE CONVERT F->C: FAILED!" << endl;
+    c_ok = false;
+  }
+
+  set_CPP_surface_orientation_test_pattern (C2, 4);
+  surface_orientation_to_f (C2, F);
+
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
 extern "C" void test2_f_interval1_coef (CPP_interval1_coef&, bool&);
 
 void set_CPP_interval1_coef_test_pattern (CPP_interval1_coef& C, int ix_patt) {
@@ -1938,41 +1998,44 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
 
   int rhs, offset = 100 * ix_patt;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 1 + offset; C.x_pitch = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.y_pitch = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 3 + offset; C.x_pitch_rms = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.y_pitch_rms = rhs;
-
-  // c_side.test_pat[complex, 0, NOT]
-  rhs = 5 + offset; C.e_x = Complex(rhs, 100+rhs);
-
-  // c_side.test_pat[complex, 0, NOT]
-  rhs = 6 + offset; C.e_y = Complex(rhs, 100+rhs);
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 7 + offset; C.intensity_x = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.intensity_y = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.intensity = rhs;
+  // c_side.test_pat[type, 0, NOT]
+  set_CPP_surface_orientation_test_pattern(C.orientation, ix_patt);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 10 + offset; C.n_photon = rhs;
+  rhs = 2 + offset; C.n_photon = rhs;
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 3 + offset; C.e_x = Complex(rhs, 100+rhs);
+
+  // c_side.test_pat[complex, 0, NOT]
+  rhs = 4 + offset; C.e_y = Complex(rhs, 100+rhs);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.energy_ave = rhs;
+  rhs = 5 + offset; C.intensity_x = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.energy_rms = rhs;
+  rhs = 6 + offset; C.intensity_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.intensity = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 8 + offset; C.energy_ave = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 9 + offset; C.energy_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 10 + offset; C.x_pitch_ave = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 11 + offset; C.y_pitch_ave = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 12 + offset; C.x_pitch_rms = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 13 + offset; C.y_pitch_rms = rhs;
 
 
 }
@@ -3790,13 +3853,7 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 27 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.auto_scale_field_phase_default = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.auto_scale_field_amp_default = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 28 + offset; C.debug = (rhs % 2 == 0);
 
 
 }
@@ -4855,13 +4912,7 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   rhs = 33 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.auto_scale_field_phase = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 35 + offset; C.auto_scale_field_amp = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 36 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 34 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }

@@ -161,6 +161,37 @@ void void_tensor_to_vec (const valarray< valarray< valarray< void** > > >& tenso
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
+// CPP_surface_orientation
+
+extern "C" void surface_orientation_to_c (const Bmad_surface_orientation_class*, CPP_surface_orientation&);
+
+// c_side.to_f2_arg
+extern "C" void surface_orientation_to_f2 (Bmad_surface_orientation_class*, c_Real&, c_Real&,
+    c_Real&, c_Real&);
+
+extern "C" void surface_orientation_to_f (const CPP_surface_orientation& C, Bmad_surface_orientation_class* F) {
+
+  // c_side.to_f2_call
+  surface_orientation_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms);
+
+}
+
+// c_side.to_c2_arg
+extern "C" void surface_orientation_to_c2 (CPP_surface_orientation& C, c_Real& z_x_pitch,
+    c_Real& z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms) {
+
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch = z_x_pitch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch = z_y_pitch;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch_rms = z_x_pitch_rms;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch_rms = z_y_pitch_rms;
+}
+
+//--------------------------------------------------------------------
+//--------------------------------------------------------------------
 // CPP_interval1_coef
 
 extern "C" void interval1_coef_to_c (const Bmad_interval1_coef_class*, CPP_interval1_coef&);
@@ -1325,31 +1356,30 @@ extern "C" void rad_int_ele_cache_to_c2 (CPP_rad_int_ele_cache& C, c_RealArr z_o
 extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_surface_grid_pt&);
 
 // c_side.to_f2_arg
-extern "C" void surface_grid_pt_to_f2 (Bmad_surface_grid_pt_class*, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&, c_Int&, c_Real&, c_Real&);
+extern "C" void surface_grid_pt_to_f2 (Bmad_surface_grid_pt_class*, const
+    CPP_surface_orientation&, c_Int&, c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&,
+    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
 
 extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Bmad_surface_grid_pt_class* F) {
 
   // c_side.to_f2_call
-  surface_grid_pt_to_f2 (F, C.x_pitch, C.y_pitch, C.x_pitch_rms, C.y_pitch_rms, C.e_x, C.e_y,
-      C.intensity_x, C.intensity_y, C.intensity, C.n_photon, C.energy_ave, C.energy_rms);
+  surface_grid_pt_to_f2 (F, C.orientation, C.n_photon, C.e_x, C.e_y, C.intensity_x,
+      C.intensity_y, C.intensity, C.energy_ave, C.energy_rms, C.x_pitch_ave, C.y_pitch_ave,
+      C.x_pitch_rms, C.y_pitch_rms);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, c_Real& z_x_pitch, c_Real&
-    z_y_pitch, c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms, c_Complex& z_e_x, c_Complex&
-    z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity, c_Int&
-    z_n_photon, c_Real& z_energy_ave, c_Real& z_energy_rms) {
+extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
+    Bmad_surface_orientation_class* z_orientation, c_Int& z_n_photon, c_Complex& z_e_x,
+    c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
+    c_Real& z_energy_ave, c_Real& z_energy_rms, c_Real& z_x_pitch_ave, c_Real& z_y_pitch_ave,
+    c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms) {
 
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch = z_x_pitch;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch = z_y_pitch;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch_rms = z_x_pitch_rms;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch_rms = z_y_pitch_rms;
+  // c_side.to_c2_set[type, 0, NOT]
+  surface_orientation_to_c(z_orientation, C.orientation);
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.n_photon = z_n_photon;
   // c_side.to_c2_set[complex, 0, NOT]
   C.e_x = z_e_x;
   // c_side.to_c2_set[complex, 0, NOT]
@@ -1360,12 +1390,18 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, c_Real& z_x_pitch
   C.intensity_y = z_intensity_y;
   // c_side.to_c2_set[real, 0, NOT]
   C.intensity = z_intensity;
-  // c_side.to_c2_set[integer, 0, NOT]
-  C.n_photon = z_n_photon;
   // c_side.to_c2_set[real, 0, NOT]
   C.energy_ave = z_energy_ave;
   // c_side.to_c2_set[real, 0, NOT]
   C.energy_rms = z_energy_rms;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch_ave = z_x_pitch_ave;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch_ave = z_y_pitch_ave;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.x_pitch_rms = z_x_pitch_rms;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.y_pitch_rms = z_y_pitch_rms;
 }
 
 //--------------------------------------------------------------------
@@ -2399,7 +2435,7 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
     c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2412,7 +2448,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
       C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.auto_scale_field_phase_default, C.auto_scale_field_amp_default, C.debug);
+      C.debug);
 
 }
 
@@ -2427,9 +2463,7 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
     z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_auto_scale_field_phase_default, c_Bool& z_auto_scale_field_amp_default, c_Bool& z_debug)
-    {
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2485,10 +2519,6 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.conserve_taylor_maps = z_conserve_taylor_maps;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.auto_scale_field_phase_default = z_auto_scale_field_phase_default;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.auto_scale_field_amp_default = z_auto_scale_field_amp_default;
   // c_side.to_c2_set[logical, 0, NOT]
   C.debug = z_debug;
 }
@@ -3259,7 +3289,7 @@ extern "C" void lat_to_f2 (Bmad_lat_class*, c_Char, c_Char, c_Char, c_Char, c_Ch
     CPP_bookkeeping_state&, const CPP_ele&, const CPP_ele&, const CPP_ele**, Int, const
     CPP_branch**, Int, const CPP_control**, Int, const CPP_photon_reflect_surface**, Int, const
     CPP_coord&, const CPP_pre_tracker&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_IntArr, Int, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_IntArr, Int, c_Int&, c_Bool&, c_Bool&);
 
 extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
   // c_side.to_f_setup[character, 1, ALLOC]
@@ -3310,8 +3340,7 @@ extern "C" void lat_to_f (const CPP_lat& C, Bmad_lat_class* F) {
       C.lord_state, C.ele_init, C.beam_start_ele, z_ele, n1_ele, z_branch, n1_branch,
       z_control, n1_control, z_surface, n1_surface, C.beam_start, C.pre_tracker, C.version,
       C.n_ele_track, C.n_ele_max, C.n_control_max, C.n_ic_max, C.input_taylor_order, z_ic,
-      n1_ic, C.photon_type, C.absolute_time_tracking, C.auto_scale_field_phase,
-      C.auto_scale_field_amp, C.ptc_uses_hard_edge_drifts);
+      n1_ic, C.photon_type, C.absolute_time_tracking, C.ptc_uses_hard_edge_drifts);
 
   // c_side.to_f_cleanup[character, 1, ALLOC]
  delete[] z_attribute_alias;
@@ -3336,8 +3365,7 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
     const Bmad_coord_class* z_beam_start, const Bmad_pre_tracker_class* z_pre_tracker, c_Int&
     z_version, c_Int& z_n_ele_track, c_Int& z_n_ele_max, c_Int& z_n_control_max, c_Int&
     z_n_ic_max, c_Int& z_input_taylor_order, c_IntArr z_ic, Int n1_ic, c_Int& z_photon_type,
-    c_Bool& z_absolute_time_tracking, c_Bool& z_auto_scale_field_phase, c_Bool&
-    z_auto_scale_field_amp, c_Bool& z_ptc_uses_hard_edge_drifts) {
+    c_Bool& z_absolute_time_tracking, c_Bool& z_ptc_uses_hard_edge_drifts) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.use_name = z_use_name;
@@ -3406,10 +3434,6 @@ extern "C" void lat_to_c2 (CPP_lat& C, c_Char z_use_name, c_Char z_lattice, c_Ch
   C.photon_type = z_photon_type;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking = z_absolute_time_tracking;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.auto_scale_field_phase = z_auto_scale_field_phase;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.auto_scale_field_amp = z_auto_scale_field_amp;
   // c_side.to_c2_set[logical, 0, NOT]
   C.ptc_uses_hard_edge_drifts = z_ptc_uses_hard_edge_drifts;
 }

@@ -52,6 +52,11 @@ typedef valarray<Real_MATRIX>      Real_TENSOR;
 typedef valarray<Int_MATRIX>       Int_TENSOR;
 
 
+class CPP_surface_orientation;
+typedef valarray<CPP_surface_orientation>          CPP_surface_orientation_ARRAY;
+typedef valarray<CPP_surface_orientation_ARRAY>    CPP_surface_orientation_MATRIX;
+typedef valarray<CPP_surface_orientation_MATRIX>   CPP_surface_orientation_TENSOR;
+
 class CPP_interval1_coef;
 typedef valarray<CPP_interval1_coef>          CPP_interval1_coef_ARRAY;
 typedef valarray<CPP_interval1_coef_ARRAY>    CPP_interval1_coef_MATRIX;
@@ -386,6 +391,36 @@ class CPP_beam;
 typedef valarray<CPP_beam>          CPP_beam_ARRAY;
 typedef valarray<CPP_beam_ARRAY>    CPP_beam_MATRIX;
 typedef valarray<CPP_beam_MATRIX>   CPP_beam_TENSOR;
+
+//--------------------------------------------------------------------
+// CPP_surface_orientation
+
+class Bmad_surface_orientation_class {};  // Opaque class for pointers to corresponding fortran structs.
+
+class CPP_surface_orientation {
+public:
+  Real x_pitch;
+  Real y_pitch;
+  Real x_pitch_rms;
+  Real y_pitch_rms;
+
+  CPP_surface_orientation() :
+    x_pitch(0.0),
+    y_pitch(0.0),
+    x_pitch_rms(0.0),
+    y_pitch_rms(0.0)
+    {}
+
+  ~CPP_surface_orientation() {
+  }
+
+};   // End Class
+
+extern "C" void surface_orientation_to_c (const Bmad_surface_orientation_class*, CPP_surface_orientation&);
+extern "C" void surface_orientation_to_f (const CPP_surface_orientation&, Bmad_surface_orientation_class*);
+
+bool operator== (const CPP_surface_orientation&, const CPP_surface_orientation&);
+
 
 //--------------------------------------------------------------------
 // CPP_interval1_coef
@@ -1332,32 +1367,34 @@ class Bmad_surface_grid_pt_class {};  // Opaque class for pointers to correspond
 
 class CPP_surface_grid_pt {
 public:
-  Real x_pitch;
-  Real y_pitch;
-  Real x_pitch_rms;
-  Real y_pitch_rms;
+  CPP_surface_orientation orientation;
+  Int n_photon;
   Complex e_x;
   Complex e_y;
   Real intensity_x;
   Real intensity_y;
   Real intensity;
-  Int n_photon;
   Real energy_ave;
   Real energy_rms;
+  Real x_pitch_ave;
+  Real y_pitch_ave;
+  Real x_pitch_rms;
+  Real y_pitch_rms;
 
   CPP_surface_grid_pt() :
-    x_pitch(0.0),
-    y_pitch(0.0),
-    x_pitch_rms(0.0),
-    y_pitch_rms(0.0),
+    orientation(),
+    n_photon(0),
     e_x(0.0),
     e_y(0.0),
     intensity_x(0.0),
     intensity_y(0.0),
     intensity(0.0),
-    n_photon(0),
     energy_ave(0.0),
-    energy_rms(0.0)
+    energy_rms(0.0),
+    x_pitch_ave(0.0),
+    y_pitch_ave(0.0),
+    x_pitch_rms(0.0),
+    y_pitch_rms(0.0)
     {}
 
   ~CPP_surface_grid_pt() {
@@ -2252,8 +2289,6 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
-  Bool auto_scale_field_phase_default;
-  Bool auto_scale_field_amp_default;
   Bool debug;
 
   CPP_bmad_common() :
@@ -2284,8 +2319,6 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
-    auto_scale_field_phase_default(true),
-    auto_scale_field_amp_default(true),
     debug(false)
     {}
 
@@ -2790,8 +2823,6 @@ public:
   Int_ARRAY ic;
   Int photon_type;
   Bool absolute_time_tracking;
-  Bool auto_scale_field_phase;
-  Bool auto_scale_field_amp;
   Bool ptc_uses_hard_edge_drifts;
 
   CPP_lat() :
@@ -2822,8 +2853,6 @@ public:
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
     absolute_time_tracking(false),
-    auto_scale_field_phase(false),
-    auto_scale_field_amp(false),
     ptc_uses_hard_edge_drifts(false)
     {}
 

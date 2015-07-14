@@ -17,6 +17,15 @@ use, intrinsic :: iso_c_binding
 !--------------------------------------------------------------------------
 
 interface 
+  subroutine surface_orientation_to_f (C, Fp) bind(c)
+    import c_ptr
+    type(c_ptr), value :: C, Fp
+  end subroutine
+end interface
+
+!--------------------------------------------------------------------------
+
+interface 
   subroutine interval1_coef_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
@@ -618,6 +627,93 @@ interface
 end interface
 
 contains
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine surface_orientation_to_c (Fp, C) bind(c)
+!
+! Routine to convert a Bmad surface_orientation_struct to a C++ CPP_surface_orientation structure
+!
+! Input:
+!   Fp -- type(c_ptr), value :: Input Bmad surface_orientation_struct structure.
+!
+! Output:
+!   C -- type(c_ptr), value :: Output C++ CPP_surface_orientation struct.
+!-
+
+subroutine surface_orientation_to_c (Fp, C) bind(c)
+
+implicit none
+
+interface
+  !! f_side.to_c2_f2_sub_arg
+  subroutine surface_orientation_to_c2 (C, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms) &
+      bind(c)
+    import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
+    !! f_side.to_c2_type :: f_side.to_c2_name
+    type(c_ptr), value :: C
+    real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms
+  end subroutine
+end interface
+
+type(c_ptr), value :: Fp
+type(c_ptr), value :: C
+type(surface_orientation_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_c_var
+
+!
+
+call c_f_pointer (Fp, F)
+
+
+!! f_side.to_c2_call
+call surface_orientation_to_c2 (C, F%x_pitch, F%y_pitch, F%x_pitch_rms, F%y_pitch_rms)
+
+end subroutine surface_orientation_to_c
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine surface_orientation_to_f2 (Fp, ...etc...) bind(c)
+!
+! Routine used in converting a C++ CPP_surface_orientation structure to a Bmad surface_orientation_struct structure.
+! This routine is called by surface_orientation_to_c and is not meant to be called directly.
+!
+! Input:
+!   ...etc... -- Components of the structure. See the surface_orientation_to_f2 code for more details.
+!
+! Output:
+!   Fp -- type(c_ptr), value :: Bmad surface_orientation_struct structure.
+!-
+
+!! f_side.to_c2_f2_sub_arg
+subroutine surface_orientation_to_f2 (Fp, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms) &
+    bind(c)
+
+
+implicit none
+
+type(c_ptr), value :: Fp
+type(surface_orientation_struct), pointer :: F
+integer jd, jd1, jd2, jd3, lb1, lb2, lb3
+!! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms
+
+call c_f_pointer (Fp, F)
+
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch = z_x_pitch
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch = z_y_pitch
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch_rms = z_x_pitch_rms
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch_rms = z_y_pitch_rms
+
+end subroutine surface_orientation_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -3567,15 +3663,16 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine surface_grid_pt_to_c2 (C, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, &
-      z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_n_photon, z_energy_ave, &
-      z_energy_rms) bind(c)
+  subroutine surface_grid_pt_to_c2 (C, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
+      z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave, &
+      z_x_pitch_rms, z_y_pitch_rms) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_e_x, z_e_y
-    real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_intensity_x, z_intensity_y, z_intensity
-    real(c_double) :: z_energy_ave, z_energy_rms
+    type(c_ptr), value :: z_orientation
+    real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave
+    real(c_double) :: z_x_pitch_rms, z_y_pitch_rms
     integer(c_int) :: z_n_photon
   end subroutine
 end interface
@@ -3592,8 +3689,9 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call surface_grid_pt_to_c2 (C, F%x_pitch, F%y_pitch, F%x_pitch_rms, F%y_pitch_rms, F%e_x, &
-    F%e_y, F%intensity_x, F%intensity_y, F%intensity, F%n_photon, F%energy_ave, F%energy_rms)
+call surface_grid_pt_to_c2 (C, c_loc(F%orientation), F%n_photon, F%e_x, F%e_y, F%intensity_x, &
+    F%intensity_y, F%intensity, F%energy_ave, F%energy_rms, F%x_pitch_ave, F%y_pitch_ave, &
+    F%x_pitch_rms, F%y_pitch_rms)
 
 end subroutine surface_grid_pt_to_c
 
@@ -3613,9 +3711,9 @@ end subroutine surface_grid_pt_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine surface_grid_pt_to_f2 (Fp, z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, &
-    z_e_x, z_e_y, z_intensity_x, z_intensity_y, z_intensity, z_n_photon, z_energy_ave, &
-    z_energy_rms) bind(c)
+subroutine surface_grid_pt_to_f2 (Fp, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
+    z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave, &
+    z_x_pitch_rms, z_y_pitch_rms) bind(c)
 
 
 implicit none
@@ -3625,20 +3723,17 @@ type(surface_grid_pt_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 complex(c_double_complex) :: z_e_x, z_e_y
-real(c_double) :: z_x_pitch, z_y_pitch, z_x_pitch_rms, z_y_pitch_rms, z_intensity_x, z_intensity_y, z_intensity
-real(c_double) :: z_energy_ave, z_energy_rms
+type(c_ptr), value :: z_orientation
+real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave
+real(c_double) :: z_x_pitch_rms, z_y_pitch_rms
 integer(c_int) :: z_n_photon
 
 call c_f_pointer (Fp, F)
 
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x_pitch = z_x_pitch
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y_pitch = z_y_pitch
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x_pitch_rms = z_x_pitch_rms
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y_pitch_rms = z_y_pitch_rms
+!! f_side.to_f2_trans[type, 0, NOT]
+call surface_orientation_to_f(z_orientation, c_loc(F%orientation))
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%n_photon = z_n_photon
 !! f_side.to_f2_trans[complex, 0, NOT]
 F%e_x = z_e_x
 !! f_side.to_f2_trans[complex, 0, NOT]
@@ -3649,12 +3744,18 @@ F%intensity_x = z_intensity_x
 F%intensity_y = z_intensity_y
 !! f_side.to_f2_trans[real, 0, NOT]
 F%intensity = z_intensity
-!! f_side.to_f2_trans[integer, 0, NOT]
-F%n_photon = z_n_photon
 !! f_side.to_f2_trans[real, 0, NOT]
 F%energy_ave = z_energy_ave
 !! f_side.to_f2_trans[real, 0, NOT]
 F%energy_rms = z_energy_rms
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch_ave = z_x_pitch_ave
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch_ave = z_y_pitch_ave
+!! f_side.to_f2_trans[real, 0, NOT]
+F%x_pitch_rms = z_x_pitch_rms
+!! f_side.to_f2_trans[real, 0, NOT]
+F%y_pitch_rms = z_y_pitch_rms
 
 end subroutine surface_grid_pt_to_f2
 
@@ -6203,13 +6304,12 @@ interface
       z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, &
       z_space_charge_on, z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
       z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-      z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, z_debug) bind(c)
+      z_debug) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
-    logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
-    logical(c_bool) :: z_debug
+    logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_debug
     real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
     real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
     integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -6237,8 +6337,7 @@ call bmad_common_to_c2 (C, F%max_aperture_limit, fvec2vec(F%d_orb, 6), F%default
     c_logic(F%auto_bookkeeper), c_logic(F%space_charge_on), c_logic(F%coherent_synch_rad_on), &
     c_logic(F%spin_tracking_on), c_logic(F%radiation_damping_on), &
     c_logic(F%radiation_fluctuations_on), c_logic(F%conserve_taylor_maps), &
-    c_logic(F%absolute_time_tracking_default), c_logic(F%auto_scale_field_phase_default), &
-    c_logic(F%auto_scale_field_amp_default), c_logic(F%debug))
+    c_logic(F%absolute_time_tracking_default), c_logic(F%debug))
 
 end subroutine bmad_common_to_c
 
@@ -6266,7 +6365,7 @@ subroutine bmad_common_to_f2 (Fp, z_max_aperture_limit, z_d_orb, z_default_ds_st
     z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, &
     z_coherent_synch_rad_on, z_spin_tracking_on, z_radiation_damping_on, &
     z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, &
-    z_auto_scale_field_phase_default, z_auto_scale_field_amp_default, z_debug) bind(c)
+    z_debug) bind(c)
 
 
 implicit none
@@ -6276,8 +6375,7 @@ type(bmad_common_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_use_hard_edge_drifts, z_sr_wakes_on, z_lr_wakes_on, z_mat6_track_symmetric, z_auto_bookkeeper, z_space_charge_on, z_coherent_synch_rad_on
-logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_auto_scale_field_phase_default, z_auto_scale_field_amp_default
-logical(c_bool) :: z_debug
+logical(c_bool) :: z_spin_tracking_on, z_radiation_damping_on, z_radiation_fluctuations_on, z_conserve_taylor_maps, z_absolute_time_tracking_default, z_debug
 real(c_double) :: z_max_aperture_limit, z_d_orb(*), z_default_ds_step, z_significant_length, z_rel_tol_tracking, z_abs_tol_tracking, z_rel_tol_adaptive_tracking
 real(c_double) :: z_abs_tol_adaptive_tracking, z_init_ds_adaptive_tracking, z_min_ds_adaptive_tracking, z_fatal_ds_adaptive_tracking, z_electric_dipole_moment
 integer(c_int) :: z_taylor_order, z_default_integ_order, z_ptc_max_fringe_order
@@ -6338,10 +6436,6 @@ F%radiation_fluctuations_on = f_logic(z_radiation_fluctuations_on)
 F%conserve_taylor_maps = f_logic(z_conserve_taylor_maps)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_tracking_default = f_logic(z_absolute_time_tracking_default)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%auto_scale_field_phase_default = f_logic(z_auto_scale_field_phase_default)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%auto_scale_field_amp_default = f_logic(z_auto_scale_field_amp_default)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%debug = f_logic(z_debug)
 
@@ -7772,15 +7866,14 @@ interface
       z_beam_start_ele, z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, &
       n1_surface, z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, &
       z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, &
-      z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, &
-      z_ptc_uses_hard_edge_drifts) bind(c)
+      z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_ic(*)
     integer(c_int) :: z_photon_type
     integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
-    logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
+    logical(c_bool) :: z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts
     character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
     type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start_ele
     type(c_ptr), value :: z_beam_start, z_pre_tracker
@@ -7871,8 +7964,7 @@ call lat_to_c2 (C, trim(F%use_name) // c_null_char, trim(F%lattice) // c_null_ch
     n1_branch, z_control, n1_control, z_surface, n1_surface, c_loc(F%beam_start), &
     c_loc(F%pre_tracker), F%version, F%n_ele_track, F%n_ele_max, F%n_control_max, F%n_ic_max, &
     F%input_taylor_order, fvec2vec(F%ic, n1_ic), n1_ic, F%photon_type, &
-    c_logic(F%absolute_time_tracking), c_logic(F%auto_scale_field_phase), &
-    c_logic(F%auto_scale_field_amp), c_logic(F%ptc_uses_hard_edge_drifts))
+    c_logic(F%absolute_time_tracking), c_logic(F%ptc_uses_hard_edge_drifts))
 
 end subroutine lat_to_c
 
@@ -7897,7 +7989,7 @@ subroutine lat_to_f2 (Fp, z_use_name, z_lattice, z_input_file_name, z_title, z_a
     z_ele, n1_ele, z_branch, n1_branch, z_control, n1_control, z_surface, n1_surface, &
     z_beam_start, z_pre_tracker, z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, &
     z_n_ic_max, z_input_taylor_order, z_ic, n1_ic, z_photon_type, z_absolute_time_tracking, &
-    z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts) bind(c)
+    z_ptc_uses_hard_edge_drifts) bind(c)
 
 
 implicit none
@@ -7909,7 +8001,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 integer(c_int) :: z_version, z_n_ele_track, z_n_ele_max, z_n_control_max, z_n_ic_max, z_input_taylor_order, z_photon_type
 integer(c_int), value :: n1_attribute_alias, n1_ele, n1_branch, n1_control, n1_surface, n1_ic
 character(c_char) :: z_use_name(*), z_lattice(*), z_input_file_name(*), z_title(*)
-logical(c_bool) :: z_absolute_time_tracking, z_auto_scale_field_phase, z_auto_scale_field_amp, z_ptc_uses_hard_edge_drifts
+logical(c_bool) :: z_absolute_time_tracking, z_ptc_uses_hard_edge_drifts
 character(c_char), pointer :: f_attribute_alias
 integer(c_int), pointer :: f_ic(:)
 type(c_ptr), value :: z_a, z_b, z_z, z_param, z_lord_state, z_ele_init, z_beam_start_ele
@@ -8044,10 +8136,6 @@ endif
 F%photon_type = z_photon_type
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%absolute_time_tracking = f_logic(z_absolute_time_tracking)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%auto_scale_field_phase = f_logic(z_auto_scale_field_phase)
-!! f_side.to_f2_trans[logical, 0, NOT]
-F%auto_scale_field_amp = f_logic(z_auto_scale_field_amp)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%ptc_uses_hard_edge_drifts = f_logic(z_ptc_uses_hard_edge_drifts)
 

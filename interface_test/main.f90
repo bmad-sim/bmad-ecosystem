@@ -8,6 +8,7 @@ logical ok, all_ok
 !
 
 all_ok = .true.
+call test1_f_surface_orientation(ok); if (.not. ok) all_ok = .false.
 call test1_f_interval1_coef(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_reflect_table(ok); if (.not. ok) all_ok = .false.
 call test1_f_photon_reflect_surface(ok); if (.not. ok) all_ok = .false.

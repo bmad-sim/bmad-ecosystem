@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 157;
+  const int BMAD_INC_VERSION = 159;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -112,7 +112,7 @@ namespace Bmad {
   const int X = 1, PX = 2, Y = 3, PY = 4, Z = 5, PZ = 6;
   const int T = 8;
   const int FIELD_X = 10, FIELD_Y = 11, PHASE_X = 12, PHASE_Y = 13;
-  const int E_PHOTON = 14;
+  const int E_PHOTON = 9;
   const int X_BEAM_START = 1, PX_BEAM_START = 2, Y_BEAM_START = 3;
   const int PY_BEAM_START = 4, Z_BEAM_START = 5, PZ_BEAM_START = 6;
   const int ABS_TIME_START = 8;
@@ -122,22 +122,24 @@ namespace Bmad {
   const int TILT = 2, ROLL = 2;
   const int REF_TILT = 3, RF_FREQUENCY = 3, DIRECTION = 3;
   const int KICK = 3, X_GAIN_ERR = 3;
-  const int RF_FREQUENCY_ERR = 4, K1 = 4, SIG_X = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
+  const int RF_FREQUENCY_ERR = 4, K1 = 4, HARMON = 4, H_DISPLACE = 4, Y_GAIN_ERR = 4;
   const int CRITICAL_ANGLE_FACTOR = 4, TILT_CORR = 4, REF_COORDINATES = 4;
-  const int LR_FREQ_SPREAD = 5, GRAZE_ANGLE = 5, K2 = 5, SIG_Y = 5, B_MAX = 5, V_DISPLACE = 5;
+  const int LR_FREQ_SPREAD = 5, GRAZE_ANGLE = 5, K2 = 5, B_MAX = 5, V_DISPLACE = 5;
   const int KS = 5, FLEXIBLE = 5, CRUNCH = 5, REF_ORBIT_FOLLOWS = 5;
-  const int GRADIENT = 6, K3 = 6, SIG_Z = 6, NOISE = 6, NEW_BRANCH = 6;
+  const int GRADIENT = 6, K3 = 6, NOISE = 6, NEW_BRANCH = 6;
   const int G = 6, BRAGG_ANGLE_IN = 6, SYMMETRY = 6, FIELD_SCALE_FACTOR = 6;
-  const int G_ERR = 7, N_POLE = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7, SIG_VX = 7;
+  const int G_ERR = 7, N_POLE = 7, BBI_CONST = 7, OSC_AMPLITUDE = 7;
   const int GRADIENT_ERR = 7, CRITICAL_ANGLE = 7;
   const int BRAGG_ANGLE_OUT = 7, IX_TO_BRANCH = 7;
-  const int RHO = 8, DELTA_E = 8, SIG_VY = 8, DIFFRACTION_LIMITED = 8;
+  const int RHO = 8, DELTA_E = 8, DIFFRACTION_LIMITED = 8;
   const int CHARGE = 8, X_GAIN_CALIB = 8, IX_TO_ELEMENT = 8;
-  const int L_CHORD = 9, VOLTAGE = 9, SIG_E = 9;
-  const int FB1 = 14;
-  const int FB2 = 15;
-  const int FQ1 = 16;
-  const int FQ2 = 17;
+  const int L_CHORD = 9, VOLTAGE = 9;
+  const int FB1 = 14, SIG_X = 14;
+  const int FB2 = 15, SIG_Y = 15;
+  const int FQ1 = 16, SIG_Z = 16;
+  const int FQ2 = 17, SIG_VX = 17;
+  const int SIG_VY = 18, AUTO_SCALE_FIELD_AMP = 18;
+  const int SIG_E = 19, AUTO_SCALE_FIELD_PHASE = 19;
   const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20, E_CENTER = 20, SPIN_X = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;
@@ -154,11 +156,11 @@ namespace Bmad {
   const int PHI0_REF = 27, DX_ORIGIN =  27, CMAT_11 = 27, SCALE_FIELD_TO_ONE = 27;
   const int LATTICE_TYPE = 27, X_QUAD = 27, DS_PHOTON_SLICE = 27;
   const int PHI0_MAX = 28, DY_ORIGIN = 28, Y_QUAD = 28, PHOTON_TYPE = 28;
-  const int CMAT_12 = 28, HIGHER_ORDER_FRINGE_TYPE = 28;
+  const int CMAT_12 = 28, HIGHER_ORDER_FRINGE_TYPE = 28, EMITTANCE_A = 28;
   const int FRINGE_TYPE = 29, FLOOR_SET = 29, UPSTREAM_ELE_DIR = 29, DZ_ORIGIN = 29;
-  const int CMAT_21 = 29, TRANSVERSE_SIGMA_CUT = 30;
-  const int FRINGE_AT = 30, DTHETA_ORIGIN = 30, B_PARAM = 30;
-  const int DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30;
+  const int CMAT_21 = 29, EMITTANCE_B = 29;
+  const int FRINGE_AT = 30, DTHETA_ORIGIN = 30, B_PARAM = 30, TRANSVERSE_SIGMA_CUT = 30;
+  const int DOWNSTREAM_ELE_DIR = 30, CMAT_22 = 30, EMITTANCE_Z = 30;
   const int L_HARD_EDGE = 31, DPHI_ORIGIN = 31, REF_CAP_GAMMA = 31, DS_SLICE = 31;
   const int FIELD_FACTOR = 32, DPSI_ORIGIN = 32;
   const int ANGLE = 33, N_CELL = 33, X_RAY_LINE_LEN = 33;
@@ -233,9 +235,9 @@ namespace Bmad {
   const int TRACKING_METHOD  = 92, S_LONG = 92;
   const int REF_TIME = 93, PTC_INTEGRATION_TYPE = 93;
   const int SPIN_TRACKING_METHOD = 94, ETA_A = 94;
-  const int APERTURE = 95, AUTO_SCALE_FIELD_AMP = 95, ETAP_A = 95;
+  const int APERTURE = 95, ETAP_A = 95;
   const int X_LIMIT = 96, ABSOLUTE_TIME_TRACKING = 96, ETA_B = 96;
-  const int Y_LIMIT = 97, AUTO_SCALE_FIELD_PHASE = 97, ETAP_B = 97;
+  const int Y_LIMIT = 97, ETAP_B = 97;
   const int OFFSET_MOVES_APERTURE = 98;
   const int APERTURE_LIMIT_ON = 99;
   const int PTC_EXACT_MISALIGN = 100, PHYSICAL_SOURCE = 100;
@@ -275,7 +277,7 @@ namespace Bmad {
   const int T0  = 160, T21 = 181;
   const int A0_ELEC  = 190, A21_ELEC  = 211;
   const int B0_ELEC  = 220, B21_ELEC = 241;
-  const int NUM_ELE_ATTRIB_EXTENDED = A21_ELEC;
+  const int NUM_ELE_ATTRIB_EXTENDED = B21_ELEC;
   const int OPEN = 1, CLOSED = 2;
   const int BENDS = 201;
   const int WIGGLERS = 202;
