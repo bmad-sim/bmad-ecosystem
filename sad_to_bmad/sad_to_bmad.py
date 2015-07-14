@@ -1046,6 +1046,10 @@ for name in sad_info.param_list:
     else:
       f_out.write(global_param_translate[name] + ' = ' + sad_info.param_list[name] + '\n')
 
+# The SuperKEK-B sler lattice may need PTC_exact_model = True
+
+f_out.write ('parameter[ptc_exact_model] = true')
+
 #------------------------------------------------------------------
 # Write variable definitions
 

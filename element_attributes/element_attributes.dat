@@ -1,4 +1,4 @@
- 2015-05-12 16:37:22 
+ 2015-07-13 12:36:03 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -40,22 +40,22 @@
   38   BEND_SOL_QUAD                              6   OVERLAY
   39   DEF_BEAM_START                            24   PATCH
   40   PHOTON_FORK                               40   PHOTON_FORK
-  41   FORK                                      44   PIPE
-  42   MIRROR                                     3   QUADRUPOLE
-  43   CRYSTAL                                   18   RBEND
-  44   PIPE                                      35   RCOLLIMATOR
-  45   CAPILLARY                                  9   RFCAVITY
-  46   MULTILAYER_MIRROR                         56   SAD_MULT
-  47   E_GUN                                     54   SAMPLE
-  48   EM_FIELD                                   2   SBEND
-  49   FLOOR_SHIFT                                5   SEXTUPOLE
-  50   FIDUCIAL                                  23   SOLENOID
-  51   UNDULATOR                                 13   SOL_QUAD
-  52   DIFFRACTION_PLATE                          8   TAYLOR
-  53   X_RAY_SOURCE                              51   UNDULATOR
-  54   SAMPLE                                    34   VKICKER
-  55   DETECTOR                                  12   WIGGLER
-  56   SAD_MULT                                  53   X_RAY_SOURCE
+  41   FORK                                      53   PHOTON_INIT
+  42   MIRROR                                    44   PIPE
+  43   CRYSTAL                                    3   QUADRUPOLE
+  44   PIPE                                      18   RBEND
+  45   CAPILLARY                                 35   RCOLLIMATOR
+  46   MULTILAYER_MIRROR                          9   RFCAVITY
+  47   E_GUN                                     56   SAD_MULT
+  48   EM_FIELD                                  54   SAMPLE
+  49   FLOOR_SHIFT                                2   SBEND
+  50   FIDUCIAL                                   5   SEXTUPOLE
+  51   UNDULATOR                                 23   SOLENOID
+  52   DIFFRACTION_PLATE                         13   SOL_QUAD
+  53   PHOTON_INIT                                8   TAYLOR
+  54   SAMPLE                                    51   UNDULATOR
+  55   DETECTOR                                  34   VKICKER
+  56   SAD_MULT                                  12   WIGGLER
  
  !---------------------------------
  22  AB_MULTIPOLE                            
@@ -116,11 +116,11 @@
  11  BEAMBEAM                                
          1  L                                       
          2  TILT                                    
-         4  SIG_X                                   
-         5  SIG_Y                                   
-         6  SIG_Z                                   
          7  BBI_CONSTANT                            
          8  CHARGE                                  
+        14  SIG_X                                   
+        15  SIG_Y                                   
+        16  SIG_Z                                   
         20  N_SLICE                                 
         23  BETA_A                                  
         24  BETA_B                                  
@@ -596,11 +596,13 @@
          5  Z                                       
          6  PZ                                      
          8  T                                       
+         9  E_PHOTON                                
         10  FIELD_X                                 
         11  FIELD_Y                                 
         12  PHASE_X                                 
         13  PHASE_Y                                 
-        14  E_PHOTON                                
+        16  SIG_Z                                   
+        19  SIG_E                                   
         20  SPIN_X                                  
         21  SPIN_Y                                  
         22  SPIN_Z                                  
@@ -608,6 +610,9 @@
         24  SPINOR_PHI                              
         25  SPINOR_XI                               
         26  SPINOR_POLARIZATION                     
+        28  EMITTANCE_A                             
+        29  EMITTANCE_B                             
+        30  EMITTANCE_Z                             
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -780,6 +785,7 @@
         96  X_LIMIT                                 
         97  Y_LIMIT                                 
         98  OFFSET_MOVES_APERTURE                   
+       105  IS_ON                                   
        108  APERTURE_AT                             
        112  DESCRIP                                 
        114  WALL                                    
@@ -1389,15 +1395,13 @@
         75  CUSTOM_ATTRIBUTE5                         [private]
         80  check_sum                                 [private]
         82  ALIAS                                   
+       105  IS_ON                                   
        109  ORIGIN_ELE                              
        112  DESCRIP                                 
        117  TYPE                                    
  
  !---------------------------------
   4  GROUP                                   
-         2  COMMAND                                 
-         3  OLD_COMMAND                             
-        25  COEF                                    
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -1409,6 +1413,7 @@
         83  START_EDGE                              
         84  END_EDGE                                
         85  ACCORDION_EDGE                          
+        89  VAR                                     
         90  S_POSITION                              
        112  DESCRIP                                 
        117  TYPE                                    
@@ -2502,6 +2507,81 @@
        108  APERTURE_AT                             
        110  TO_LINE                                 
        111  TO_ELEMENT                              
+       112  DESCRIP                                 
+       114  WALL                                    
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  ELE_BEGINNING                           
+       124  ELE_CENTER                              
+       125  ELE_END                                 
+       126  REF_BEGINNING                           
+       127  REF_CENTER                              
+       128  REF_END                                 
+       129  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
+ 53  PHOTON_INIT                             
+         1  L                                       
+         2  TILT                                    
+        14  SIG_X                                   
+        15  SIG_Y                                   
+        16  SIG_Z                                   
+        17  SIG_VX                                  
+        18  SIG_VY                                  
+        19  SIG_E                                   
+        20  E_CENTER                                
+        21  E_CENTER_RELATIVE_TO_REF                
+        22  SPATIAL_DISTRIBUTION                    
+        23  VELOCITY_DISTRIBUTION                   
+        24  ENERGY_DISTRIBUTION                     
+        25  E_FIELD_X                               
+        26  E_FIELD_Y                               
+        27  SCALE_FIELD_TO_ONE                      
+        30  TRANSVERSE_SIGMA_CUT                    
+        31  DS_SLICE                                
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        64  ref_time_start                            [private]
+        69  REF_WAVELENGTH                          
+        70  scratch                                   [private]
+        71  CUSTOM_ATTRIBUTE1                         [private]
+        72  CUSTOM_ATTRIBUTE2                         [private]
+        73  CUSTOM_ATTRIBUTE3                         [private]
+        74  CUSTOM_ATTRIBUTE4                         [private]
+        75  CUSTOM_ATTRIBUTE5                         [private]
+        76  X1_LIMIT                                
+        77  X2_LIMIT                                
+        78  Y1_LIMIT                                
+        79  Y2_LIMIT                                
+        80  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  PHYSICAL_SOURCE                         
+       108  APERTURE_AT                             
        112  DESCRIP                                 
        114  WALL                                    
        117  TYPE                                    
@@ -3869,112 +3949,38 @@
        130  A0                                      
  
  !---------------------------------
- 53  X_RAY_SOURCE                            
-         1  L                                       
-         2  TILT                                    
-         4  SIG_X                                   
-         5  SIG_Y                                   
-         6  SIG_Z                                   
-         7  SIG_VX                                  
-         8  SIG_VY                                  
-         9  SIG_E                                   
-        20  E_CENTER                                
-        21  E_CENTER_RELATIVE_TO_REF                
-        22  SPATIAL_DISTRIBUTION                    
-        23  VELOCITY_DISTRIBUTION                   
-        24  ENERGY_DISTRIBUTION                     
-        25  E_FIELD_X                               
-        26  E_FIELD_Y                               
-        27  SCALE_FIELD_TO_ONE                      
-        30  TRANSVERSE_SIGMA_CUT                    
-        31  DS_SLICE                                
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        50  DELTA_REF_TIME                          
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
-        64  ref_time_start                            [private]
-        69  REF_WAVELENGTH                          
-        70  scratch                                   [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
-        76  X1_LIMIT                                
-        77  X2_LIMIT                                
-        78  Y1_LIMIT                                
-        79  Y2_LIMIT                                
-        80  check_sum                                 [private]
-        82  ALIAS                                   
-        87  APERTURE_TYPE                           
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       108  APERTURE_AT                             
-       112  DESCRIP                                 
-       114  WALL                                    
-       117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       123  ELE_BEGINNING                           
-       124  ELE_CENTER                              
-       125  ELE_END                                 
-       126  REF_BEGINNING                           
-       127  REF_CENTER                              
-       128  REF_END                                 
-       129  CREATE_JUMBO_SLAVE                      
- 
- !---------------------------------
  Index usage:
     Ix Count
      1    50
-     2    49
-     3    24
-     4    23
-     5    27
-     6    23
-     7    19
-     8    24
+     2    48
+     3    23
+     4    21
+     5    25
+     6    21
+     7    18
+     8    23
      9     8
     10     2
     11     3
     12     3
     13     3
-    14     4
-    15     4
-    16     4
-    17     3
-    18     2
-    19     5
+    14     5
+    15     6
+    16     7
+    17     4
+    18     3
+    19     7
     20    18
     21    18
     22    13
     23    15
     24    14
-    25    21
+    25    20
     26    22
     27    12
-    28     9
-    29    34
-    30    34
+    28    10
+    29    35
+    30    35
     31    29
     32    28
     33    11
@@ -4033,7 +4039,7 @@
     86    18
     87    47
     88    36
-    89    28
+    89    29
     90     4
     91    47
     92    47
@@ -4044,12 +4050,12 @@
     97    45
     98    44
     99     1
-   100    27
+   100    28
    101     2
    102     4
    103    31
    104     2
-   105    36
+   105    38
    106    24
    107     2
    108    46
@@ -4126,6 +4132,66 @@
    179     0
    180     0
    181     0
+   182     0
+   183     0
+   184     0
+   185     0
+   186     0
+   187     0
+   188     0
+   189     0
+   190     0
+   191     0
+   192     0
+   193     0
+   194     0
+   195     0
+   196     0
+   197     0
+   198     0
+   199     0
+   200     0
+   201     0
+   202     0
+   203     0
+   204     0
+   205     0
+   206     0
+   207     0
+   208     0
+   209     0
+   210     0
+   211     0
+   212     0
+   213     0
+   214     0
+   215     0
+   216     0
+   217     0
+   218     0
+   219     0
+   220     0
+   221     0
+   222     0
+   223     0
+   224     0
+   225     0
+   226     0
+   227     0
+   228     0
+   229     0
+   230     0
+   231     0
+   232     0
+   233     0
+   234     0
+   235     0
+   236     0
+   237     0
+   238     0
+   239     0
+   240     0
+   241     0
  
  !---------------------------------
 Index: 1
@@ -4175,7 +4241,7 @@ Index: 1
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -4185,7 +4251,6 @@ Index: 2
     DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
-    GROUP                                   
     SEXTUPOLE                               
     CUSTOM                                  
     TAYLOR                                  
@@ -4227,7 +4292,7 @@ Index: 2
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -4235,7 +4300,6 @@ Index: 2
  !---------------------------------
 Index: 3
     SBEND                                   
-    GROUP                                   
     RFCAVITY                                
     MARKER                                  
     RBEND                                   
@@ -4264,7 +4328,6 @@ Index: 4
     SBEND                                   
     QUADRUPOLE                              
     RFCAVITY                                
-    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
     MARKER                                  
@@ -4282,7 +4345,6 @@ Index: 4
     PIPE                                    
     CAPILLARY                               
     UNDULATOR                               
-    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4290,7 +4352,6 @@ Index: 5
     SBEND                                   
     SEXTUPOLE                               
     RFCAVITY                                
-    BEAMBEAM                                
     WIGGLER                                 
     SOL_QUAD                                
     MARKER                                  
@@ -4311,7 +4372,6 @@ Index: 5
     PIPE                                    
     MULTILAYER_MIRROR                       
     UNDULATOR                               
-    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4319,7 +4379,6 @@ Index: 5
 Index: 6
     SBEND                                   
     RFCAVITY                                
-    BEAMBEAM                                
     MARKER                                  
     OCTUPOLE                                
     RBEND                                   
@@ -4337,7 +4396,6 @@ Index: 6
     PIPE                                    
     E_GUN                                   
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4360,7 +4418,6 @@ Index: 7
     PIPE                                    
     E_GUN                                   
     UNDULATOR                               
-    X_RAY_SOURCE                            
     DETECTOR                                
  
  !---------------------------------
@@ -4386,7 +4443,6 @@ Index: 8
     PIPE                                    
     MULTILAYER_MIRROR                       
     UNDULATOR                               
-    X_RAY_SOURCE                            
     DETECTOR                                
     SAD_MULT                                
  
@@ -4398,8 +4454,8 @@ Index: 9
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
+    DEF_BEAM_START                          
     E_GUN                                   
-    X_RAY_SOURCE                            
  
  !---------------------------------
 Index: 10
@@ -4427,34 +4483,42 @@ Index: 13
  !---------------------------------
 Index: 14
     CUSTOM                                  
+    BEAMBEAM                                
     MATCH                                   
-    DEF_BEAM_START                          
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
 Index: 15
     QUADRUPOLE                              
     CUSTOM                                  
+    BEAMBEAM                                
     MATCH                                   
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
 Index: 16
     QUADRUPOLE                              
     CUSTOM                                  
+    BEAMBEAM                                
     MATCH                                   
+    DEF_BEAM_START                          
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
 Index: 17
     CUSTOM                                  
     MATCH                                   
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
 Index: 18
     CUSTOM                                  
     MATCH                                   
+    PHOTON_INIT                             
  
  !---------------------------------
 Index: 19
@@ -4462,6 +4526,8 @@ Index: 19
     CUSTOM                                  
     RBEND                                   
     MATCH                                   
+    DEF_BEAM_START                          
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
@@ -4481,7 +4547,7 @@ Index: 20
     PIPE                                    
     MULTILAYER_MIRROR                       
     E_GUN                                   
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
     SAD_MULT                                
  
@@ -4503,7 +4569,7 @@ Index: 21
     PIPE                                    
     MULTILAYER_MIRROR                       
     UNDULATOR                               
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
  
  !---------------------------------
@@ -4519,7 +4585,7 @@ Index: 22
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
  
  !---------------------------------
@@ -4537,7 +4603,7 @@ Index: 23
     CRYSTAL                                 
     PIPE                                    
     MULTILAYER_MIRROR                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
  
  !---------------------------------
@@ -4554,13 +4620,12 @@ Index: 24
     DEF_BEAM_START                          
     PIPE                                    
     E_GUN                                   
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
  
  !---------------------------------
 Index: 25
     SBEND                                   
-    GROUP                                   
     RFCAVITY                                
     BEAMBEAM                                
     WIGGLER                                 
@@ -4578,7 +4643,7 @@ Index: 25
     PIPE                                    
     E_GUN                                   
     UNDULATOR                               
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
  
  !---------------------------------
@@ -4602,7 +4667,7 @@ Index: 26
     FLOOR_SHIFT                             
     FIDUCIAL                                
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
  
@@ -4619,7 +4684,7 @@ Index: 27
     BEND_SOL_QUAD                           
     E_GUN                                   
     FIDUCIAL                                
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
  
  !---------------------------------
 Index: 28
@@ -4631,6 +4696,7 @@ Index: 28
     MATCH                                   
     GIRDER                                  
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     FIDUCIAL                                
  
  !---------------------------------
@@ -4662,6 +4728,7 @@ Index: 29
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     PIPE                                    
     E_GUN                                   
     EM_FIELD                                
@@ -4697,6 +4764,7 @@ Index: 30
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
+    DEF_BEAM_START                          
     CRYSTAL                                 
     PIPE                                    
     E_GUN                                   
@@ -4704,7 +4772,7 @@ Index: 30
     FLOOR_SHIFT                             
     FIDUCIAL                                
     UNDULATOR                               
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAD_MULT                                
  
  !---------------------------------
@@ -4737,7 +4805,7 @@ Index: 31
     EM_FIELD                                
     FIDUCIAL                                
     UNDULATOR                               
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
  
  !---------------------------------
 Index: 32
@@ -4822,7 +4890,7 @@ Index: 34
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -4865,7 +4933,7 @@ Index: 35
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -4910,7 +4978,7 @@ Index: 36
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -4955,7 +5023,7 @@ Index: 37
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5000,7 +5068,7 @@ Index: 38
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5209,7 +5277,7 @@ Index: 50
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5336,7 +5404,7 @@ Index: 53
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5388,7 +5456,7 @@ Index: 54
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5430,7 +5498,7 @@ Index: 55
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5471,7 +5539,7 @@ Index: 56
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5514,7 +5582,7 @@ Index: 57
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5557,7 +5625,7 @@ Index: 58
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5600,7 +5668,7 @@ Index: 59
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5643,7 +5711,7 @@ Index: 60
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5753,7 +5821,7 @@ Index: 64
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -5906,7 +5974,7 @@ Index: 69
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
  
  !---------------------------------
 Index: 70
@@ -5960,7 +6028,7 @@ Index: 70
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6017,7 +6085,7 @@ Index: 71
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6074,7 +6142,7 @@ Index: 72
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6131,7 +6199,7 @@ Index: 73
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6188,7 +6256,7 @@ Index: 74
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6245,7 +6313,7 @@ Index: 75
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6292,7 +6360,7 @@ Index: 76
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6339,7 +6407,7 @@ Index: 77
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6386,7 +6454,7 @@ Index: 78
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6433,7 +6501,7 @@ Index: 79
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6490,7 +6558,7 @@ Index: 80
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6554,7 +6622,7 @@ Index: 82
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6722,7 +6790,7 @@ Index: 87
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6771,6 +6839,7 @@ Index: 89
     DRIFT                                   
     SBEND                                   
     QUADRUPOLE                              
+    GROUP                                   
     SEXTUPOLE                               
     CUSTOM                                  
     RFCAVITY                                
@@ -6849,7 +6918,7 @@ Index: 91
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6899,7 +6968,7 @@ Index: 92
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6949,7 +7018,7 @@ Index: 93
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -6997,7 +7066,7 @@ Index: 94
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7045,7 +7114,7 @@ Index: 95
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7093,7 +7162,7 @@ Index: 96
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7141,7 +7210,7 @@ Index: 97
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7188,7 +7257,7 @@ Index: 98
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7226,6 +7295,7 @@ Index: 100
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
+    PHOTON_INIT                             
  
  !---------------------------------
 Index: 101
@@ -7307,6 +7377,7 @@ Index: 105
     VKICKER                                 
     RCOLLIMATOR                             
     ECOLLIMATOR                             
+    GIRDER                                  
     BEND_SOL_QUAD                           
     PHOTON_FORK                             
     FORK                                    
@@ -7314,6 +7385,7 @@ Index: 105
     E_GUN                                   
     EM_FIELD                                
     UNDULATOR                               
+    DIFFRACTION_PLATE                       
     DETECTOR                                
     SAD_MULT                                
  
@@ -7393,7 +7465,7 @@ Index: 108
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7485,7 +7557,7 @@ Index: 112
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7544,7 +7616,7 @@ Index: 114
     EM_FIELD                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     DETECTOR                                
     SAD_MULT                                
  
@@ -7620,7 +7692,7 @@ Index: 117
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7669,7 +7741,7 @@ Index: 118
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7718,7 +7790,7 @@ Index: 119
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7767,7 +7839,7 @@ Index: 120
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7816,7 +7888,7 @@ Index: 121
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7865,7 +7937,7 @@ Index: 122
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7914,7 +7986,7 @@ Index: 123
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -7963,7 +8035,7 @@ Index: 124
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -8012,7 +8084,7 @@ Index: 125
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -8061,7 +8133,7 @@ Index: 126
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -8110,7 +8182,7 @@ Index: 127
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -8159,7 +8231,7 @@ Index: 128
     FIDUCIAL                                
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
@@ -8206,7 +8278,7 @@ Index: 129
     FLOOR_SHIFT                             
     UNDULATOR                               
     DIFFRACTION_PLATE                       
-    X_RAY_SOURCE                            
+    PHOTON_INIT                             
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
