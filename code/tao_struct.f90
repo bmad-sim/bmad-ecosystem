@@ -127,7 +127,7 @@ end type
 
 type tao_curve_struct
   character(40) :: name = ''             ! Name identifying the curve.
-  character(40) :: data_source  = ''     ! 'lat', 'dat', 'var', etc.
+  character(40) :: data_source  = ''     ! 'lat', 'data' (deprecated: 'dat'), 'var', etc.
   character(100) :: data_index  = ''     ! Used for calculating %ix_symb(:).
   character(200) :: data_type_x = ''     ! Used for data slices and phase space plots.
   character(200) :: data_type   = ''     ! 'orbit.x', etc.
