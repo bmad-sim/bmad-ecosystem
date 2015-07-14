@@ -1391,7 +1391,7 @@ subroutine crystal_h_misalign (ele, orbit, h_vec)
 type (ele_struct), target :: ele
 type (coord_struct) orbit
 type (photon_surface_struct), pointer :: s
-type (surface_grid_pt_struct), pointer :: pt
+type (surface_orientation_struct), pointer :: orient
 
 real(rp) h_vec(3), r(2)
 integer ij(2)
@@ -1411,13 +1411,13 @@ endif
 
 ! Make small angle approximation
 
-pt => s%grid%pt(ij(1), ij(2))
-if (pt%x_pitch == 0 .and. pt%y_pitch == 0 .and. pt%x_pitch_rms == 0 .and. pt%y_pitch_rms == 0) return
+orient => s%grid%pt(ij(1), ij(2))%orientation
+if (orient%x_pitch == 0 .and. orient%y_pitch == 0 .and. orient%x_pitch_rms == 0 .and. orient%y_pitch_rms == 0) return
 
-h_vec(1:2) = h_vec(1:2) + [pt%x_pitch, pt%y_pitch]
-if (pt%x_pitch_rms /= 0 .or. pt%y_pitch /= 0) then
+h_vec(1:2) = h_vec(1:2) + [orient%x_pitch, orient%y_pitch]
+if (orient%x_pitch_rms /= 0 .or. orient%y_pitch /= 0) then
   call ran_gauss (r)
-  h_vec(1:2) = h_vec(1:2) + [pt%x_pitch_rms, pt%y_pitch_rms] * r
+  h_vec(1:2) = h_vec(1:2) + [orient%x_pitch_rms, orient%y_pitch_rms] * r
 endif
 
 h_vec(3) = sqrt(1 - h_vec(1)**2 - h_vec(2)**2)

@@ -663,14 +663,14 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case default
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute         Expression'
+      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute               Value    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         if (allocated(lat%control(i)%stack)) then
           coef_str = expression_stack_to_string (lat%control(i)%stack)
           if (ele%key == overlay$) then
             call evaluate_expression_stack(lat%control(i)%stack, val, err_flag, str1, ele%control_var)
-            write (coef_str, '(2a, es12.4)') trim(coef_str), ' =', val
+            write (coef_str, '(es12.4, 4x, a)') val, trim(coef_str)
           endif
         else
           coef_str = ''

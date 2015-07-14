@@ -804,8 +804,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
-    lat%auto_scale_field_phase  = in_lat%auto_scale_field_phase
-    lat%auto_scale_field_amp    = in_lat%auto_scale_field_amp
     lat%input_taylor_order      = in_lat%input_taylor_order
 
 

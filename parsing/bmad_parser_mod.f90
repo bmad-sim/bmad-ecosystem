@@ -199,6 +199,7 @@ implicit none
 type (lat_struct), target :: lat
 type (parser_ele_struct), optional :: pele
 type (ele_struct), target ::  ele
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
@@ -265,11 +266,11 @@ if (ele%key == taylor$ .and. word(1:1) == '{') then
   do j = 1, 100 
     if (delim == '}') exit
     call get_integer (n, err_flag, 'BAD EXPONENT');   if (err_flag) return
-    if (.not. expect_either ('} ', .true.)) return
+    if (.not. expect_one_of ('} ', .true.)) return
     if (delim2 == ',') then
       select case (j)
-      case (6);      if( .not. expect_either ('}', .true.)) return
-      case default;  if (.not. expect_either (' ', .true.)) return
+      case (6);      if( .not. expect_one_of ('}', .true.)) return
+      case default;  if (.not. expect_one_of (' ', .true.)) return
       end select
       expn(j) = n
     else
@@ -503,7 +504,35 @@ if (attrib_word == 'WALL') then
 
   i_section = 0
   allocate (ele%wall3d)
-  if (.not. expect_this ('={', .true., .true., 'AFTER "WALL"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
+
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "= ele_name[wall]" construct
+
+  if (delim == '[') then
+    call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
+    if (delim2 /= ']' .or. word2 /= 'WALL') then
+      call parser_error ('BAD WALL CONSTRUCT')
+      return
+    endif
+    if (.not. expect_this (' ', .false., .false., '')) return
+    call lat_ele_locator (word, lat, eles, n, err_flag)
+    if (err_flag .or. n /= 1) then
+      call parser_error ('LATTICE ELEMENT NOT FOUND: ' // word)
+      return
+    endif
+    if (.not. associated(eles(1)%ele%wall3d)) then
+      call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    ele%wall3d = eles(1)%ele%wall3d
+    return
+  endif
+
+  !
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER "WALL"')) return
 
   ! Loop wall3d_struct components.
 
@@ -639,9 +668,9 @@ if (attrib_word == 'WALL') then
           return
         end select   ! section components
 
-        if (.not. expect_either (',}', .true.)) return
+        if (.not. expect_one_of (',}', .true.)) return
         if (delim == '}') then
-          if (.not. expect_either(',}', .false.)) return
+          if (.not. expect_one_of(',}', .false.)) return
           exit
         endif
       enddo wall3d_section_loop
@@ -651,14 +680,14 @@ if (attrib_word == 'WALL') then
       return
     end select   ! wall components
 
-    if (.not. expect_either (',}', .true.)) return
+    if (.not. expect_one_of (',}', .true.)) return
     if (delim == '}') exit
 
   enddo wall3d_loop
 
   ! Next thing on line should be either a "," or end-of-line
 
-  logic = expect_either(', ', .false.)
+  logic = expect_one_of(', ', .false.)
   return
 
 endif
@@ -725,7 +754,7 @@ if (attrib_word == 'SURFACE') then
           endif
           if (.not. expect_this ('=', .false., .false., 'GRID PT')) return
           if (.not. parse_real_list (lat, trim(ele%name) // ' GRID PT', r_vec(1:4), .true.)) return
-          surf%grid%pt(i_vec(1), i_vec(2)) = surface_grid_pt_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
+          surf%grid%pt(i_vec(1), i_vec(2))%orientation = surface_orientation_struct(r_vec(1), r_vec(2), r_vec(3), r_vec(4))
 
         case ('TYPE')
           call get_switch ('SURFACE GRID TYPE', surface_grid_type_name(1:), surf%grid%type, err_flag2, ele)
@@ -737,9 +766,9 @@ if (attrib_word == 'SURFACE') then
           return
         end select
 
-        if (.not. expect_either (',}', .false.)) return
+        if (.not. expect_one_of (',}', .false.)) return
         if (delim == '}') then
-          if (.not. expect_either (',}', .false.)) return
+          if (.not. expect_one_of (',}', .false.)) return
           exit
         endif
 
@@ -754,7 +783,7 @@ if (attrib_word == 'SURFACE') then
 
   enddo surface_loop
 
-  if (.not. expect_either(', ', .false.)) return
+  if (.not. expect_one_of(', ', .false.)) return
   err_flag = .false.
   return
 
@@ -1163,12 +1192,6 @@ case ('APERTURE_TYPE')
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
 
-case ('AUTO_SCALE_FIELD_PHASE')
-  call get_logical (attrib_word, lat%auto_scale_field_phase, err_flag)
-
-case ('AUTO_SCALE_FIELD_AMP')
-  call get_logical (attrib_word, lat%auto_scale_field_amp, err_flag)
-
 case ('COUPLER_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
   ele%value(coupler_at$) = ix
@@ -1445,11 +1468,17 @@ err_flag = .false.
 !--------------------------------------------------------
 contains
 
+! delim_list    -- character(*): String of tokens expected. 
+! check_delim   -- logical: If True then use "delim" character as first token to check.
+!                    A blank character indicates end of command is expected.
+! call_check    -- Logical: If True then check for 'call::<filename>' construct.
+
 function expect_this (expecting, check_delim, call_check, err_str) result (is_ok)
 
 implicit none
 
 character(*) expecting, err_str
+character(40) word
 logical is_ok, check_delim, call_check
 integer ix
 
@@ -1457,23 +1486,22 @@ integer ix
 
 is_ok = .false.
 
-ix = 1
-if (check_delim) then
-  if (delim /= expecting(1:1)) then
-    call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
-    return
+do ix = 1, len(expecting)
+  if (ix == 1 .and. check_delim) then
+    word = ''
+  else
+    call get_next_word (word, ix_word, expecting(ix:ix), delim, delim_found, call_check = call_check)
   endif
-  ix = 2
-endif
 
-do
-  if (ix > len(expecting)) exit
-  call get_next_word (word, ix_word, expecting(ix:ix), delim, delim_found, call_check = call_check)
-  if (delim /= expecting(ix:ix) .or. word /= '') then
+  if (expecting(ix:ix) == ' ') then
+    if (delim_found .or. word /= '') then
+      call parser_error ('EXTRA STUFF ON LINE.', err_str)
+      return
+    endif
+  elseif (delim /= expecting(ix:ix) .or. word /= '') then
     call parser_error ('NO "' // expecting // '" FOUND ' // err_str, 'FOR ELEMENT: ' // ele%name)
     return
   endif
-  ix = ix + 1
 enddo
 
 is_ok = .true.
@@ -1485,8 +1513,9 @@ end function expect_this
 
 ! delim_list -- character(*): List of valid tokens. If list contains a space character
 !                 then no token (indicating the end of the command) is a valid possibility.
+!
 
-function expect_either (delim_list, check_delim) result (is_ok)
+function expect_one_of (delim_list, check_delim) result (is_ok)
 
 character(*) delim_list
 logical check_delim, is_ok, must_have_delim
@@ -1504,7 +1533,7 @@ if (check_delim) then
   endif
 
 else
-  call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
+  call get_next_word (word, ix_word, '{}=,()[]', delim, delim_found)
   if (word /= '' .or. (must_have_delim .and. .not. delim_found) .or. &
       (delim /= '' .and. index(delim_list, delim) == 0)) then
     call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele%name)
@@ -1514,7 +1543,7 @@ endif
 
 is_ok = .true.
 
-end function expect_either
+end function expect_one_of
 
 !--------------------------------------------------------
 ! contains
@@ -5578,7 +5607,7 @@ deallocate(used_line)
 
 ! Add End marker and make sure it's orientation is consistant
 
-if (nint(bp_com%param_ele%value(no_end_marker$)) == 0 .and. logic_option(.true., allow_end_marker)) then
+if (is_false(bp_com%param_ele%value(no_end_marker$)) .and. logic_option(.true., allow_end_marker)) then
   n_ele_use = n_ele_use + 1
   ele => ele_line(n_ele_use)
   ele%name = 'END'

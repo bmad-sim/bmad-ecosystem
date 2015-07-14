@@ -195,7 +195,7 @@ Except for the \vn{elseparator} element, \bmad specifies DC electric
 fields using normal $b_{en}$ and skew $a_{en}$ components. The
 potential $\phi_n$ for the $n$\Th\ order multipole is
 \Begineq
-  \phi_n = -\re \left( \frac{b_{en} - i a_{en}}{n + 1} \, (x + i y)^{n+1} \right)
+  \phi_n = -\re \left[ \frac{b_{en} - i a_{en}}{n + 1} \, (x + i y)^{n+1} \right]
 \Endeq
 and the electric field for the $n$\Th order
 multipole is
@@ -206,11 +206,10 @@ Notice that the magnetic multipole components $a_n$ and $b_n$ are
 normalized by the element length and reference momentum (\Eq{qlpbb})
 while their electric counterparts are not.
 
-The kick given a particle due to the electric field is
-\begin{align}
-  \frac{dp_x}{ds} &= \frac{q \, E_x}{P0}
-  \etcetc
-\end{align}
+Using the paraxial approximation, The kick given a particle due to the electric field is
+\Begineq
+  \frac{dp_x}{ds} = \frac{q \, E_x}{P_0}, \qquad \frac{dp_y}{ds} = \frac{q \, E_y}{P_0}
+\Endeq
 
 %-----------------------------------------------------------------
 \section{RF Fields}

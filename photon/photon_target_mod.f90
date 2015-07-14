@@ -220,7 +220,7 @@ type (ele_struct), target :: ele
 type (surface_grid_struct), pointer :: grid
 type (surface_grid_pt_struct), pointer :: pix
 
-real(rp) phase, intens_x, intens_y, intens
+real(rp) phase, intens_x, intens_y, intens, ang
 integer, optional :: ix_pt, iy_pt
 integer nx, ny
 
@@ -261,6 +261,12 @@ else
   pix%intensity   = pix%intensity   + intens
   pix%energy_ave  = pix%energy_ave  + intens * (orb%p0c - ele%value(e_tot$))
   pix%energy_rms  = pix%energy_rms  + intens * (orb%p0c - ele%value(e_tot$))**2
+  ang = atan2(orb%vec(2), orb%vec(6))
+  pix%x_pitch_ave  = pix%x_pitch_ave  + intens * ang
+  pix%x_pitch_rms  = pix%x_pitch_rms  + intens * ang**2
+  ang = atan2(orb%vec(4), orb%vec(6))
+  pix%y_pitch_ave  = pix%y_pitch_ave  + intens * ang
+  pix%y_pitch_rms  = pix%y_pitch_rms  + intens * ang**2
 endif
 
 end subroutine photon_add_to_detector_statistics

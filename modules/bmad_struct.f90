@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 158
+integer, parameter :: bmad_inc_version$ = 159
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -561,12 +561,17 @@ end type
 ! Structure for surfaces of mirrors, crystals, etc.
 ! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
 
-type surface_grid_pt_struct
+type surface_orientation_struct
   real(rp) :: x_pitch = 0, y_pitch = 0, x_pitch_rms = 0, y_pitch_rms = 0
+end type
+
+type surface_grid_pt_struct
+  type (surface_orientation_struct) :: orientation = surface_orientation_struct()
+  integer :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
-  integer :: n_photon = 0
   real(rp) :: energy_ave = 0, energy_rms = 0
+  real(rp) :: x_pitch_ave = 0, y_pitch_ave = 0, x_pitch_rms = 0, y_pitch_rms = 0
 end type
 
 integer, parameter :: segmented$ = 2, h_misalign$ = 3, diffract_target$ = 4
@@ -851,8 +856,6 @@ type lat_struct
   integer, allocatable :: ic(:)           ! Index to %control(:)
   integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
   logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
-  logical auto_scale_field_phase          ! See auto_scale_field_phase_and_amp routine.
-  logical auto_scale_field_amp            ! See auto_scale_field_phase_and_amp routine.
   logical ptc_uses_hard_edge_drifts       ! Does associated ptc layout have hard edge model drifts?
 end type
 
@@ -961,8 +964,8 @@ integer, parameter :: fb1$ = 14, sig_x$ = 14
 integer, parameter :: fb2$ = 15, sig_y$ = 15
 integer, parameter :: fq1$ = 16, sig_z$ = 16
 integer, parameter :: fq2$ = 17, sig_vx$ = 17
-integer, parameter :: sig_vy$ = 18
-integer, parameter :: sig_e$ = 19
+integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
+integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
 integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, spin_x$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
@@ -1063,9 +1066,9 @@ integer, parameter :: mat6_calc_method$ = 91, cmat_22_begin$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
 integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94
-integer, parameter :: aperture$ = 95, auto_scale_field_amp$ = 95, etap_a$ = 95
+integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
-integer, parameter :: y_limit$ = 97, auto_scale_field_phase$ = 97, etap_b$ = 97
+integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: aperture_limit_on$ = 99
 
@@ -1288,8 +1291,6 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
-  logical :: auto_scale_field_phase_default = .true.  ! Default for lat%auto_scale_field_phase
-  logical :: auto_scale_field_amp_default = .true.    ! Default for lat%auto_scale_field_amp
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   

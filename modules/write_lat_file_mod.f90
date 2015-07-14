@@ -165,8 +165,6 @@ write (iu, '(4a)')    'parameter[particle]               = ', trim(particle_name
 if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'
 if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_part]                 = ', lat%param%n_part
 
-write (iu, '(a, l1)') 'parameter[auto_scale_field_phase]    = ', lat%auto_scale_field_phase
-write (iu, '(a, l1)') 'parameter[auto_scale_field_amp]      = ', lat%auto_scale_field_amp
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
 ele => lat%ele(lat%n_ele_track)
 if (ele%name /= 'END' .or. ele%key /= marker$) then

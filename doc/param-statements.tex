@@ -14,7 +14,6 @@ the lattice as a whole and not simply associated with a single element.
 \index{taylor_order}\index{e_tot}
 \index{p0c}\index{ran_seed}\index{absolute_time_tracking}
 \index{n_part}\index{no_end_marker}
-\index{auto_scale_field_phase}\index{auto_scale_field_amp}
 \index{ptc_exact_model}\index{ptc_exact_misalign}
 The \vn{parameter} statement is used to set the \vn{lattice} name and
 other variables. If multiple branches are present (\sref{s:branch.def}), these
@@ -23,8 +22,6 @@ set by \vn{parameter} are
 \begin{example}
   parameter[absolute_time_tracking]   = <Logical>  ! Absolute time used for RF clock?
   parameter[aperture_limit_on]        = <Logical>  ! Use aperture limits in tracking.
-  parameter[auto_scale_field_phase]   = <Logical>  ! Automatic phase scaling.
-  parameter[auto_scale_field_amp]     = <Logical>  ! Automatic amplitude scaling.
   parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:custom.attrib}).
   parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
                                                    !    Default is ref_particle.
@@ -69,13 +66,6 @@ particle or to uses the absolute time (\sref{s:rf.time}). A value of
 Aperture limits may be set for elements in the lattice
 (\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
 disable all set apertures. \vn{True} is the default.
-  \index{auto_scale_field_phase}\index{auto_scale_field_amp}
-  \index{rfcavity}\index{lcavity}\index{em_field}
-  \item[{parameter[auto_scale_field_phase], parameter[auto_scale_field_amp]}] \Newline
-The \vn{auto_scale_field_phase} and \vn{auto_scale_field_amp} switches
-toggle the automatic scaling of the RF phase and/or amplitude for
-\vn{rfcavity}, \vn{lcavity}, and \vn{em_field} elements
-(\sref{c:autoscale}).
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
 For more information on defining custom attributes, see \sref{s:custom.attrib}.

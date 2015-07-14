@@ -134,11 +134,12 @@ way to obtain from an input string a pointer that points to the
 appropriate attribute. For example:
 \begin{example}
   type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  type (all_pointer_struct) attrib_ptr
   character(40) attrib_name, ele_name
-  real(rp), pointer :: attrib_ptr
   real(rp) set_value
-  logical err_flag
-  integer ix_attrib, ie
+  logical err
+  integer ie
   ...
   write (*, '(a)', advance = 'no') ' Name of element to vary: '
   accept '(a)', ele_name
@@ -146,14 +147,22 @@ appropriate attribute. For example:
   accept '(a)', attrib_name
   write (*, '(a)', advance = 'no') ' Value to set attribute at: '
   accept *, set_value
-  do ie = 1, lat%n_ele_max
-    if (lat%ele(ie)%name == ele_name) then
-      call pointer_to_attribute (lat%ele(ie), attrib_name, &
-                            .false., attrib_ptr, ix_attrib, err_flag)
-      if (err_flag) exit      ! Do nothing on an error
-      attrib_ptr = set_value  ! Set the attribute
+
+  call lat_ele_locator (name, lat, eles, n_loc, err)
+  if (err) ....
+  do ie = 1, size(eles)
+    call pointer_to_attribute (eles(ie)%ele, attrib_name, .false., attrib_ptr, err)
+    if (err) exit      ! Do nothing on an error
+    if (associated(attrib_ptr%r)) then  ! Real attribute
+      attrib_ptr%r = set_value  ! Set the attribute
+    elseif (associated(attrib_ptr%i)) then ! Integer attribute
+      attrib_ptr%i = nint(set_value)
+    else
+      print *, 'Not a real or integer type attribute!'
     endif
   enddo
+
+  call lattice_bookkeeper (lat)  ! Bookkeeping needed due to parameter change 
 \end{example}
 
 changing an element attribute generally involves changing values in the 
