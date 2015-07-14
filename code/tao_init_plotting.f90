@@ -622,7 +622,8 @@ do  ! Loop over plot files
 
         if (crv%data_source == 'beam_tracking') crv%data_source = 'beam'
         if (crv%data_source == 'lattice')       crv%data_source = 'lat'
-        if (crv%data_source == 'data_array')    crv%data_source = 'dat'
+        if (crv%data_source == 'data_array')    crv%data_source = 'data'
+        if (crv%data_source == 'dat')           crv%data_source = 'data'
         if (crv%data_source == 'var_array')     crv%data_source = 'var'
 
         if (.not. curve(j)%draw_interpolated_curve) then

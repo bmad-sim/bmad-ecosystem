@@ -1054,10 +1054,10 @@ structure. For each \vn{n_d1_data} structure there must be a
     default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
     default_weight         = <number>            ! Merit function weight. 
                                                  !   Default = 0.0
-    default_data_source    = "<source>"          ! "lat" (dflt), "dat", "var", or "beam". 
+    default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
     ix_min_data            = <integer>           ! Minimum array index.
     ix_max_data            = <integer>           ! Maximum array index.
-    datum(j)%data_source    = "<source>"         ! "lat" (dflt), "dat", "var", or "beam". 
+    datum(j)%data_source    = "<source>"         ! "lat" (dflt), "data", "var", or "beam". 
     datum(j)%data_type      = "<type_name>"      ! Eg: "orbit.x", etc.
     datum(j)%ele_name       = "<ele_name>"       ! Lattice element name.
     datum(j)%ele_start_name = "<ele_start_name>" ! Start element name.
@@ -1119,8 +1119,9 @@ element whose longitudinal position at the exit end is closest to
 The \vn{datum(:)%data_source} component specifies where the data is 
 coming from. Possible values are:
 \begin{example}
-  "beam"      ! Calculation using the beam distribution.
-  "lat"       ! (Default) Calculation using the lattice layout.
+  "beam"        ! Value is from multiparticle beam tracking.
+  "data"        ! Value is from a \tao datum in a data array (\sref{s:data.org}).
+  "lat"         ! Value is from the lattice.
 \end{example}
 See \sref{s:data.types} for more details.  With \vn{%data_source} set
 to \vn{"beam"}, the particular bunch that the data is extracted from
@@ -1710,7 +1711,7 @@ For example:
     graph%y%major_div_nominal = 4
     graph%n_curve             = 1
     graph%component           = "model - design"
-    curve(1)%data_source      = "dat"
+    curve(1)%data_source      = "data"
     curve(1)%data_type        = "orbit.x"
     curve(1)%units_factor     = 1000
     curve(1)%use_y2           = F
@@ -1823,20 +1824,20 @@ linear combination of the above. For example:
 This will plot the difference between the \vn{model} and \vn{design}
 values.
 
-\index{dat}\index{var}\index{calculation}
+\index{data}\index{var}\index{calculation}
 \index{curve!data_source}
 The \vn{curve} structure is used to define the data that is plotted
 in each graph. \vn{curve%data_source} is the type of information for
 the source of the data points. \vn{curve%data_source} must be one of:
 \begin{example}
-  "dat"               ! A d1_data array is the source of the curve points.
+  "data"              ! A d1_data array is the source of the curve points.
   "var"               ! A v1_var array is the source of the curve points.
   "lat" (Default)     ! The curve points are computed directly from the lattice.
   "beam"              ! The curve points are computed tracking a beam of particles.
   "multi_turn_orbit"  ! Computation is from multi-turn tracking. 
 \end{example}
 The default for \vn{curve%data_source} is \vn{"lat"}. With
-\vn{curve%data_source} set to \vn{dat}, the values of the curve
+\vn{curve%data_source} set to \vn{data}, the values of the curve
 points come from the \vn{d1_data} array structure named by
 \vn{curve%data_type}. Thus in the above example the curve point values
 are obtained from \vn{orbit.x} data. To be valid the data structure
@@ -1930,7 +1931,7 @@ points (x, y) where:
 When defining a template for graphing a data slice, the
 plot%x_axis_type is set to \vn{"data"}, and the \vn{graph%type} must
 be set to \vn{"data"}, the \vn{curve(:)%data_source} must be set to
-\vn{"dat"} and the \vn{curve(:)%data_type_x} and
+\vn{"data"} and the \vn{curve(:)%data_type_x} and
 \vn{curve%data_type} are used to define the x and y axes respectively.
 In the strings given by \vn{<curve%data_type_x} or
 \vn{<curve%data_type}, all substrings that look like \vn{\#ref} are
@@ -1953,7 +1954,7 @@ place holder for the \vn{graph%component} Example:
     graph%type = "data"
     graph%n_curve = 1
     graph%x_axis_scale_factor = 1000
-    curve(1)%data_source = "dat"
+    curve(1)%data_source = "data"
     curve(1)%data_type_x = "[2:57]@orbit.x[#ref]|#comp"
     curve(1)%data_type   = "[2:57]@orbit.y[#ref]|#comp"
     curve(1)%data_index  = "[2:57]@orbit.y[#ref]|ix_uni"
@@ -2233,13 +2234,13 @@ For Example:
 \begin{example}
   &floor_plan_drawing
     !               name                    Shape     Color  V_Size   Label Draw?
-    ele_shape(1) = "quadrupole::q*"         "box"     "red"     0.75     "name"  T    
-    ele_shape(2) = "quadrupole::*"          "xbox"    "red"     0.75     "none" 
-    ele_shape(3) = "sbend::*"               "box"     "blue"    0.37     "none"  F
-    ele_shape(4) = "wiggler::*"             "xbox"    "green"   0.50     "name"
-    ele_shape(5) = "var::quad_k1"           "circle"  "purple"  0.25     "name"
-    ele_shape(6) = "dat::orbit.x|useit_opt" "x"       "orange"  0.25     "name"
-    ele_shape(7) = "wall::building"         "-"       "black"    0       "-"
+    ele_shape(1) = "quadrupole::q*"          "box"     "red"     0.75     "name"  T    
+    ele_shape(2) = "quadrupole::*"           "xbox"    "red"     0.75     "none" 
+    ele_shape(3) = "sbend::*"                "box"     "blue"    0.37     "none"  F
+    ele_shape(4) = "wiggler::*"              "xbox"    "green"   0.50     "name"
+    ele_shape(5) = "var::quad_k1"            "circle"  "purple"  0.25     "name"
+    ele_shape(6) = "data::orbit.x|useit_opt" "x"       "orange"  0.25     "name"
+    ele_shape(7) = "wall::building"          "-"       "black"    0       "-"
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
@@ -2256,7 +2257,7 @@ the \vn{set shape} command (\sref{s:set})) to set shape parameters on the
 command line.
 
 Data and variables can also be specified to be drawn by using a
-\vn{name} beginning with \vn{dat::} for drawing data and \vn{var::}
+\vn{name} beginning with \vn{data::} for drawing data and \vn{var::}
 for drawing variable locations. In the above example, it is assumed
 that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have
 been setup. A circle will be drawn at each element under control of a

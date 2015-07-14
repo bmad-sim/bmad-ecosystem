@@ -136,7 +136,7 @@ Data (\sref{s:data.org}) and variable values
 referenced in expressions. The general form of a term for
 data and variables is
 \begin{example}
-  \{[<universe(s)>]@\}<source>::<var_or_dat_name>[<index_list>]\{|<component>\}
+  \{[<universe(s)>]@\}<source>::<var_or_data_name>[<index_list>]\{|<component>\}
 \end{example}
 For lattice and beam parameters the format is
 \begin{example}
@@ -152,7 +152,7 @@ And for element parameters the format is
 The components of this syntax are:
 \begin{example}
   <universe_range>    Optional universe specification (\sref{s:universe})
-  <var_or_dat_name>   Variable or data name.
+  <var_or_data_name>  Variable or data name.
   <source>            Source of the data.
   <param_name>        Name of the parameter, datum, or variable.
   <index_list>        List of indexes.
@@ -171,21 +171,21 @@ Examples:
                                    with names beginning with "q".
   lat::3[l]|design               Length of the design lattice element #3 
                                    in the default universe.
-  dat::orbit.x[2:7,8]|model
+  data::orbit.x[2:7,8]|model
 \end{example}
 
 The \vn{<source>} field may be one of:
 \begin{example}
-  beam        Value is from beam tracking.
-  dat         Value is from a \tao datum in a data array (\sref{s:data.org}).
-  ele         Value at exit end of element.
-  ele_mid     Value at middle of element.
-  lat         Value is from the lattice.
-  var         Value is from a \tao variable (\sref{c:var}).
+  beam        ! Value is from multiparticle beam tracking.
+  data        ! Value is from a \tao datum in a data array (\sref{s:data.org}).
+  ele         ! Value at exit end of element.
+  ele_mid     ! Value at middle of element.
+  lat         ! Value is from the lattice.
+  var         ! Value is from a \tao variable (\sref{c:var}).
 \end{example}
 
-When a term has a \vn{dat} source, The value of the term comes from a 
-data structure. With a \vn{dat} source, \vn{<var_or_dat_name>} is the name
+When a term has a \vn{data} source, The value of the term comes from a 
+data structure. With a \vn{data} source, \vn{<var_or_dat_name>} is the name
 of a \vn{d2_name.d1_name} data array (\sref{s:data.org}) and 
 \vn{<index_list>} is a list of indexes. \vn{<index_list>} will determine
 how many elements are in the array. For example, \vn{orbit.x[10:21,44]} 
@@ -195,13 +195,13 @@ listed in Section~\sref{s:datum.values}. The default is \vn{model}.
 
 When a term has a \vn{var} source, the value of the term comes from a
 \tao variable (\sref{c:var}). With a \vn{var} source,
-\vn{<var_or_dat_name>} is the name of a \vn{v1_var} variable array. Like
-terms with a \vn{dat} source, \vn{<index_list>} is a list of indexes.
+\vn{<var_or_data_name>} is the name of a \vn{v1_var} variable array. Like
+terms with a \vn{data} source, \vn{<index_list>} is a list of indexes.
 The optional \vn{<component>} indicates what component of the variable
 is to be used. Possible components are listed in Section~\sref{c:var}.
 The default is \vn{model}.
 
-% Note: when combining components from the same \vn{dat} or \vn{var} source
+% Note: when combining components from the same \vn{data} or \vn{var} source
 % in an expression, the common prefix can be eliminated. 
 % For example
 % \begin{example}
@@ -244,9 +244,9 @@ lattice is to be used. Possible components are
 The default is \vn{model}.
 
 Notice the difference between, say, ``\vn{lat::orbit.x[10]}'' and
-``\vn{dat::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element 
+``\vn{data::orbit.x[10]}''. With the ``\vn{lat::}'' source, the element 
 index, in this case \vn{10}, refers to the 10th lattice element. With the
-``\vn{dat::}'' source, ``\vn{10}'' refers to the 10\Th element in
+``\vn{data::}'' source, ``\vn{10}'' refers to the 10\Th element in
 the \vn{orbit.x} data array which may or may not correspond to the
 10\Th lattice element and which may not even refer to orbit data.
 
@@ -273,5 +273,5 @@ source (see above).
 
 Generally, if the \vn{<source>} field is not present, for example, 
 ``\vn{orbit.x[10]}'', \tao will search 
-for a match assuming that the source is either \vn{dat} or \vn{var}. 
+for a match assuming that the source is either \vn{data} or \vn{var}. 
 Exceptions will be noted in the manual.

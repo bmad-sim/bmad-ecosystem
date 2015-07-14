@@ -1047,7 +1047,7 @@ case ('plot_x_axis_var')
 !----------------------------------------------------------------------------
 ! Case: data_source is a data_array
 
-case ('dat')
+case ('dat', 'data')
 
   ! Calculate values
 

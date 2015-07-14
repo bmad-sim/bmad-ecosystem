@@ -51,7 +51,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type   = 'orbit.x'
   curve(1)%y_axis_scale_factor = 1000
 /
@@ -67,7 +67,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type   = 'orbit.y'
   curve(1)%y_axis_scale_factor = 1000
 /
@@ -96,7 +96,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   graph%component = 'model - design'
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 
@@ -112,7 +112,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%major_div = 4
   graph%n_curve = 1
   graph%component = 'model - design'
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%y_axis_scale_factor = 57.29578
 /
 
@@ -139,7 +139,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type   = 'beta.a'
   curve(1)%y_axis_scale_factor = 1
 /
@@ -155,7 +155,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type   = 'beta.b'
   curve(1)%y_axis_scale_factor = 1
 /
@@ -183,7 +183,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type   = 'eta.x'
 /
 
@@ -198,7 +198,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -20
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%data_type = 'eta.y'
 /
 
@@ -225,7 +225,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
 /
 
 &tao_template_graph
@@ -239,7 +239,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%y_axis_scale_factor = 1
 /
 
@@ -254,7 +254,7 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%min = -0.10
   graph%y%major_div = 4
   graph%n_curve = 1
-  curve(1)%data_source = 'data_array'
+  curve(1)%data_source = 'data'
   curve(1)%y_axis_scale_factor = 1
 /
 

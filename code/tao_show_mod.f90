@@ -2707,8 +2707,6 @@ case ('universe')
   endif
   nl=nl+1; write(lines(nl), rmt) 'Reference energy:       ', branch%ele(0)%value(e_tot$)
   nl=nl+1; write(lines(nl), rmt) 'Reference momentum:     ', branch%ele(0)%value(p0c$)
-  nl=nl+1; write(lines(nl), lmt) 'Auto_Scale_Field_Phase: ', lat%auto_scale_field_phase
-  nl=nl+1; write(lines(nl), lmt) 'Auto_scale_Field_Amp:   ', lat%auto_scale_field_amp
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking: ', lat%absolute_time_tracking
   nl=nl+1; write(lines(nl), amt) 'photon_type:            ', photon_type_name(lat%photon_type)
   nl=nl+1; write(lines(nl), amt) 'Geometry:               ', geometry_name(branch%param%geometry)

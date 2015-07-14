@@ -349,9 +349,9 @@ do i = 1, size(ix_datum)
   case (model$)
     call tao_evaluate_a_datum (datum, u, u%model, datum%model_value, datum%good_model)
   case (design$)
-    call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, good)
+    call tao_evaluate_a_datum (datum, u, u%design, datum%design_value, datum%good_design)
   case (base$)
-    call tao_evaluate_a_datum (datum, u, u%base, datum%base_value, good)
+    call tao_evaluate_a_datum (datum, u, u%base, datum%base_value, datum%good_base)
   end select
 enddo
 
@@ -440,7 +440,7 @@ type (all_pointer_struct) a_ptr
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2
-real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3)
+real(rp) gamma, one_pz, w0_mat(3,3), w_mat(3,3), vec3(3), value
 real(rp) dz, dx, cos_theta, sin_theta, z_pt, x_pt, z0_pt, x0_pt
 real(rp) z_center, x_center, x_wall
 real(rp), allocatable, save :: value_vec(:)
@@ -533,10 +533,15 @@ if (head_data_type  == 'rad_int.' .or. head_data_type == 'rad_int1.') then
   endif
 endif
 
-if (data_source /= 'lat' .and. data_source /= 'beam' .and. head_data_type /= 'expression:') then
-  call tao_set_invalid (datum, 'UNKNOWN DATA_SOURCE: ' // data_source, why_invalid)
-  return
-endif
+select case (data_source)
+case ('lat', 'beam')
+  ! Valid data source
+case default
+  if ( head_data_type /= 'expression:') then
+    call tao_set_invalid (datum, 'UNKNOWN DATA_SOURCE: ' // data_source, why_invalid)
+    return
+  endif
+end select
 
 ! ele_ref must not be specified for some data types. Check this.
 
@@ -1432,9 +1437,6 @@ case ('k.')
     return
 
   end select
-
-
-
 
 !-----------
 
@@ -2374,7 +2376,6 @@ elseif (associated(ele)) then
   datum%s = ele%s
 endif
 
-
 end subroutine tao_evaluate_a_datum
 
 !-----------------------------------------------------------------------
@@ -2900,7 +2901,7 @@ end subroutine
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
 !   dflt_component -- Character(*), optional: Default component to use if not specified in the expression.
-!   dflt_source    -- Character(*), optional: Default source ('lat', 'dat', etc.). Default is ''.
+!   dflt_source    -- Character(*), optional: Default source ('lat', 'data', etc.). Default is ''.
 !   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
 !   dflt_ele       -- Ele_struct, pointer, optional: Default element to evaluate at.
@@ -3476,7 +3477,7 @@ source = dflt_source
 ix = index(name, '::')
 if (ix /= 0) then
   s = name(max(1,ix-3):ix-1)
-  if (s == 'lat' .or. s == 'ele' .or. s == 'dat' .or. s == 'var') then
+  if (s == 'lat' .or. s == 'ele' .or. s == 'dat' .or. s == 'data' .or. s == 'var') then
     source = s
   else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
     source = 'ele'
@@ -3518,7 +3519,7 @@ else
     stack%type = var_num$
   endif
 
-  if (source == 'dat' .or. (err_flag .and. source == '')) then
+  if ((source == 'dat' .or. source == 'data') .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
                         dflt_index = dflt_dat_index, print_err = print_error)
     stack%type = data_num$
