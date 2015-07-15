@@ -174,8 +174,7 @@ parsing_loop: do
     if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
     n_ptr = n_ptr + 1
     bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    if (global_com%type_out) call out_io (s_dwarn$, r_name, &
-                                     'Print Message in Lattice File: ' // parse_line_save(ix+2:))
+    call out_io (s_dwarn$, r_name, 'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     ! This prevents bmad_parser from thinking print string is a command.
     call load_parse_line ('init', 1, end_of_file)
     cycle parsing_loop

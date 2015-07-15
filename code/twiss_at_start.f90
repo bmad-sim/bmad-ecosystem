@@ -10,9 +10,6 @@
 ! Input:
 !   lat         -- lat_struct: Lat
 !   ix_branch   -- Integer, option: Branch to use. Default is 0 (main branch).
-!   bmad_status -- BMAD Common block status structure
-!     %type_out  -- Logical: If .true. then will type a message for
-!                       non ok$ STATUS
 !
 ! Output:
 !   lat         -- Lat_struct: Lattice with twiss parameters computed.
@@ -110,7 +107,7 @@ branch%param%t1_no_RF = mat6
 ! Compute twiss parameters
 
 call twiss_from_mat6 (mat6, branch%ele(1)%map_ref_orb_in%vec, branch%ele(0), &
-                branch%param%stable, branch%param%unstable_factor, stat, global_com%type_out)
+                branch%param%stable, branch%param%unstable_factor, stat, .true.)
 if (present(status)) status = stat
 
 lat%a%tune = branch%ele(0)%a%phi

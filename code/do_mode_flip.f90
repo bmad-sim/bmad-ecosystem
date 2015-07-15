@@ -10,8 +10,6 @@
 !
 ! Input:
 !   ele          -- Ele_struct: Starting Element
-!   bmad_status  -- Status_struct: Status common block.
-!      %type_out   -- If true then type out when an error occurs.
 !
 ! Output:
 !     ele         -- Ele_struct: Flipped element
@@ -38,7 +36,7 @@ character(12), parameter :: r_name = 'do_mode_flip'
 if (present(err_flag)) err_flag = .true.
 
 if (ele%gamma_c >= 1.0) then
-  if (global_com%type_out) call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
+  call out_io (s_fatal$, r_name, 'CANNOT MODE FLIP ELEMENT')
   if (global_com%exit_on_error) call err_exit
   return
 endif

@@ -117,13 +117,11 @@ endif
 if (.not. err .and. .not. bp_com%always_parse) then
   if (ptc_com%taylor_order_ptc /= 0 .and. lat%input_taylor_order /= 0 .and. &
                                              lat%input_taylor_order /= ptc_com%taylor_order_ptc) then
-    if (global_com%type_out) then
-       call out_io (s_info$, r_name, 'Taylor_order has changed.', &
+     call out_io (s_info$, r_name, 'Taylor_order has changed.', &
            'Taylor_order in digested file: \i4\ ', &
            'Taylor_order now:              \i4\ ', &
            'Will now set to the new Taylor order...', &
            i_array = [lat%input_taylor_order, ptc_com%taylor_order_ptc])
-    endif
     if (lat%input_taylor_order > ptc_com%taylor_order_ptc) bp_com%write_digested = .false.
 
   else
@@ -151,7 +149,7 @@ do i = 0, ubound(in_lat%ele, 1)
   in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
 enddo
 
-if (global_com%type_out) call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
+call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
@@ -251,7 +249,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PARSER_DEBUG') then
     debug_line = bp_com%parse_line
-    if (global_com%type_out) call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
+    call out_io (s_info$, r_name, 'Found in file: "PARSER_DEBUG". Debug is now on')
     cycle parsing_loop
   endif
 
@@ -264,8 +262,7 @@ parsing_loop: do
     if (size(bp_com%lat_file_names) < n_ptr + 1) call re_allocate(bp_com%lat_file_names, n_ptr+100)
     n_ptr = n_ptr + 1
     bp_com%lat_file_names(n_ptr) = '!PRINT:' // trim(parse_line_save(ix+2:)) ! To save in digested
-    if (global_com%type_out) call out_io (s_info$, r_name, &
-                                     'Print Message in Lattice File: ' // parse_line_save(ix+2:))
+    call out_io (s_info$, r_name, 'Print Message in Lattice File: ' // parse_line_save(ix+2:))
     ! This prevents bmad_parser from thinking print string is a command.
     call load_parse_line ('init', 1, end_of_file)
     cycle parsing_loop
@@ -284,8 +281,7 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'NO_DIGESTED') then
     bp_com%write_digested = .false.
-    if (global_com%type_out) call out_io (s_info$, r_name, &
-                            'Found in file: "NO_DIGESTED". No digested file will be created')
+    call out_io (s_info$, r_name, 'Found in file: "NO_DIGESTED". No digested file will be created')
     cycle parsing_loop
   endif
 
@@ -866,13 +862,11 @@ branch_loop: do i_loop = 1, n_branch_max
     if (branch%param%particle == photon$) then
       branch%param%geometry = open$
     elseif (any(branch%ele(:)%key == lcavity$)) then
-      if (global_com%type_out) then
-        if (n_branch == 0) then
-          call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
-        else
-          call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', &
-                                        'SETTING THE GEOMETRY TO OPEN.')
-        endif
+      if (n_branch == 0) then
+        call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
+      else
+        call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', &
+                                      'SETTING THE GEOMETRY TO OPEN.')
       endif
       branch%param%geometry = open$
     else
@@ -954,18 +948,16 @@ do i = 0, ubound(lat%branch, 1)
   elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
     call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
   else
-    if (global_com%type_out) then
-      if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-        if (branch%param%particle == photon$) then
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                         'WILL USE 1000 eV!', i_array = [i])
-        else
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                         'WILL USE 1000 * MC^2!', i_array = [i])
-        endif
+    if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
+      if (branch%param%particle == photon$) then
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                       'WILL USE 1000 eV!', i_array = [i])
       else
-        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                       'WILL USE 1000 * MC^2!', i_array = [i])
       endif
+    else
+      call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
     endif
     ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
     if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
@@ -1178,14 +1170,14 @@ if (.not. bp_com%error_flag .and. .not. bp_com%always_parse) then
   bp_com%write_digested = bp_com%write_digested .and. digested_version <= bmad_inc_version$
   if (bp_com%write_digested) then
     call write_digested_bmad_file (digested_file, lat, bp_com%num_lat_files, bp_com%lat_file_names, bp_com%extra, err)
-    if (.not. err .and. global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+    if (.not. err) call out_io (s_info$, r_name, 'Created new digested file')
   endif
 endif
 
 call parser_end_stuff ()
 
 if (bp_com%extra%ran_function_was_called) then
-  if (global_com%type_out) call out_io(s_warn$, r_name, &
+  call out_io(s_warn$, r_name, &
                 'NOTE: THE RANDOM NUMBER FUNCTION WAS USED IN THE LATTICE FILE SO THIS', &
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
 endif

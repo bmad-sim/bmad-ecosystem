@@ -622,9 +622,9 @@ if (bp_com%write_digested) then
   enddo
   call write_digested_bmad_file (digested_file, lat, n_names, file_names) 
   deallocate (file_names)
-  if (global_com%type_out) call out_io (s_info$, r_name, 'Created new digested file')
+  call out_io (s_info$, r_name, 'Created new digested file')
 else
-  if (global_com%type_out) call out_io (s_info$, r_name, 'NOT crating a digested file due to warnings.')
+  call out_io (s_info$, r_name, 'NOT crating a digested file due to warnings.')
 endif
 
 !------------------------------------------------------------------------
@@ -730,7 +730,6 @@ character(*), optional :: line2
 
 !
 
-if (.not. global_com%type_out) return
 call out_io (s_error$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 
@@ -746,7 +745,6 @@ character(*), optional :: line2
 
 !
 
-if (.not. global_com%type_out) return
 call out_io (s_warn$, r_name, 'FOR XSIF FILE: ' // xsif_file, line1, line2)
 bp_com%write_digested = .false.
 

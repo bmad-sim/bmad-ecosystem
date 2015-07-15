@@ -80,7 +80,7 @@ if (i_dim == 2) then
 
 elseif (i_dim == 4) then
 
-  call twiss_from_mat6 (ele%mat6, track0%vec, ele, stable, growth_rate, stat, global_com%type_out)
+  call twiss_from_mat6 (ele%mat6, track0%vec, ele, stable, growth_rate, stat, .true.)
   if (stat /= ok$) return
 
   call make_v_mats (ele, v_mat, v_inv_mat)

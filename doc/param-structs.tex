@@ -44,7 +44,7 @@ Section~\sref{s:bmad.params} the syntax is
 \index{spin_tracking_on}\index{radiation_damping_on}
 \index{radiation_fluctuations_on}\index{be_thread_safe}
 \index{absolute_time_tracking_default}
-
+\index{bmad_common_struct|hyperbf}
 Some overall parameters are stored in the \vn{bmad_common_struct}
 structure. The instance name here is \vn{bmad_com}. The parameters of
 this structure along with the default values are:
@@ -54,10 +54,10 @@ this structure along with the default values are:
     real(rp) d_orb(6)           = 1e-5         ! for the make_mat6_tracking routine.
     real(rp) default_ds_step    = 0.2          ! Integration step size.  
     real(rp) significant_length = 1e-10        ! meter 
-    real(rp) rel_tol_tracking = 1e-6           ! Runge-Kutta: Relative tolerance.
-    real(rp) abs_tol_tracking = 1e-8           ! Runge-Kutta: Absolute tolerance.
-    real(rp) rel_tol_adaptive_tracking = 1e-8  ! Tracking relative tolerance.
-    real(rp) abs_tol_adaptive_tracking = 1e-10 ! Tracking absolute tolerance.
+    real(rp) rel_tol_tracking = 1e-8           ! Closed orbit relative tolerance.
+    real(rp) abs_tol_tracking = 1e-10          ! Closed orbit absolute tolerance.
+    real(rp) rel_tol_adaptive_tracking = 1e-8  ! Runge-Kutta tracking relative tolerance.
+    real(rp) abs_tol_adaptive_tracking = 1e-10 ! Runge-Kutta tracking absolute tolerance.
     real(rp) init_ds_adaptive_tracking = 1e-3  ! Initial step size.
     real(rp) min_ds_adaptive_tracking = 0      ! Minimum step size to use.
     real(rp) fatal_ds_adaptive_tracking = 1e-8 ! Threshold for loosing particles.
@@ -199,7 +199,7 @@ Used for communication between program units for debugging purposes.
 \label{s:beam.init}
 \index{beam initialization parameters|hyperbf}
 
-\index{beam_init_struct}
+\index{beam_init_struct|hyperbf}
 Beams of particles are used for simulating inter-bunch intra-bunch effects.
 The \vn{beam_init_struct} structure holds parameters which are used to initialize
 the beam. The parameters of this structure are:
@@ -464,6 +464,7 @@ should be set to False.
 \label{s:de.params}
 \index{de optimizer parameters|hyperbf}
 
+\index{opti_de_param_struct}
 The Differential Evolution (\vn{DE}) optimizer is used in nonlinear
 optimization problems. This optimizer is based upon the work of Storn
 and Price\cite{b:de}. There are a number of parameters that can be
@@ -471,14 +472,16 @@ varied to vary how the optimizer works. These parameters are are
 contained in a structure named \vn{opti_de_param_struct}. the instance
 name is \vn{opti_de_param}.  This structure has components
 \begin{example}
-                         Default
-  real(rp) CR               0.8    ! Crossover Probability.
-  real(rp) F                0.8    !
-  real(rp) l_best           0.0    ! Percentage of best solution used.
-  logical  binomial_cross   False  ! IE: Default = Exponential.
-  logical  use_2nd_diff     False  ! use F * (x_4 - x_5) term
-  logical  randomize_F      False  !
-  logical  minimize_merit   True   ! F => maximize the Merit func.
+                              Default
+  type opti_de_param_struct
+    real(rp) CR             = 0.8    ! Crossover Probability.
+    real(rp) F              = 0.8    !
+    real(rp) l_best         = 0.0    ! Percentage of best solution used.
+    logical  binomial_cross = False  ! IE: Default = Exponential.
+    logical  use_2nd_diff   = False  ! use F * (x_4 - x_5) term
+    logical  randomize_F    = False  !
+    logical  minimize_merit = True   ! F => maximize the Merit func.
+  end type
 \end{example}
 
 The "perturbed vector" is
@@ -501,21 +504,17 @@ generation  is randomly chosen to be within the range
 [0, 2*F] with average F.
 
 %-----------------------------------------------------------------
-\section{Programming Common Parameters}
-\label{s:prog.com}
-\index{programming common parameters}
+\section{Dynamic Aperture Simulation Parameters}
 
-The \vn{global_common_struct} is meant to hold common parameters that should
-not be modified by the user. 
+\index{dynamic_aperture_struct|hyperbf}
+The \vn{dynamic_aperture_struct} is used for dynamic aperture
+calculations. This structure has components:
 \begin{example}
-  type global_common_struct
-    logical be_thread_safe = .false.    ! Avoid thread unsafe practices?
+  type aperture_param_struct
+    integer :: n_turn = 100                   ! Number of turns a particle must survive
+    real(rp) :: x_init = 1e-3_rp              ! Initial estimate for horizontal aperture
+    real(rp) :: y_init = 1e-3_rp              ! Initial estimate for vertical aperture
+    real(rp) :: accuracy = 1e-5_rp            ! Resolution of bracketed aperture.
   end type
 \end{example}
 
-\begin{description}
-\item[\vn{\%be_thread_safe}] \Newline
-Toggle to prevent non thread safe calculational optimizations from
-being done.  Currently, converting \bmad to be thread safe is an
-active project. Please contact the \bmad maintainers for more details.
-\end{description}
