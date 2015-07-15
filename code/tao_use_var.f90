@@ -16,6 +16,7 @@ implicit none
 
 character(*) :: action
 character(*) :: var_name
+character(16) match
 
 type (tao_var_array_struct), allocatable, save :: var(:)
 type (tao_v1_var_array_struct), allocatable, save :: v1(:)
@@ -30,7 +31,7 @@ logical err
 
 ! Use, veto or restore?
 
-call match_word (action, name$%use_veto_restore, which)
+call match_word (action, ["use    ", "veto   ", "restore"], which, match_name = match)
 
 call tao_find_var (err, var_name, v1_array = v1, v_array = var)
 if (err) return
@@ -38,7 +39,7 @@ if (err) return
 ! If "use" then must veto everything first
 
 
-if (which == use$) then
+if (match == 'use') then
   do i = 1, size(v1)
     v1(i)%v1%v%good_user = .false.
   enddo
@@ -47,14 +48,14 @@ endif
 ! now do the set.
 
 do i = 1, size(var)
-  select case (which)
-  case (use$, restore$)
+  select case (match)
+  case ('use', 'restore')
     var(i)%v%good_user = .true.
-  case (veto$)
+  case ('veto')
     var(i)%v%good_user = .false.
   case default
     call out_io (s_error$, r_name, &
-                    "Internal error picking name$%use_veto_restore")
+                    "Internal error picking use/veto/restore")
     err = .true.
   end select
 enddo

@@ -22,6 +22,7 @@ type (tao_data_array_struct), allocatable, save :: d_dat(:)
 
 character(*) :: action
 character(*) :: data_name
+character(16) match
 
 integer i, which
 
@@ -31,14 +32,14 @@ character(12) :: r_name = "tao_use_data"
 
 ! decipher action
 
-call match_word (action, name$%use_veto_restore, which)
+call match_word (action, name$%use_veto_restore, which, match_name = match)
 
 ! If "use" is choisen then must veto everything first.
 
 call tao_find_data (err, data_name, d1_array = d1_dat, d_array = d_dat)
 if (err) return
 
-if (which == use$) then
+if (match == 'use') then
   do i = 1, size(d1_dat)
     d1_dat(i)%d1%d%good_user = .false.
   enddo
@@ -47,10 +48,10 @@ endif
 ! Now do the set
 
 do i = 1, size(d_dat)
-  select case (which)
-  case (use$, restore$)
+  select case (match)
+  case ('use', 'restore')
     d_dat(i)%d%good_user = .true. 
-  case (veto$)
+  case ('veto')
     d_dat(i)%d%good_user = .false.
   case default
     call out_io (s_error$, r_name, "Internal error picking name$%use_veto_restore")
