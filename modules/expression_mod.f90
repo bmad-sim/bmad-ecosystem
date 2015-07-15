@@ -11,7 +11,7 @@ integer, parameter :: sin$ = 11, cos$ = 12, tan$ = 13
 integer, parameter :: asin$ = 14, acos$ = 15, atan$ = 16, abs$ = 17, sqrt$ = 18
 integer, parameter :: log$ = 19, exp$ = 20, ran$ = 21, ran_gauss$ = 22
 integer, parameter :: atan2$ = 23, factorial$ = 24, int$ = 25, nint$ = 26
-integer, parameter :: floor$ = 27, ceiling$ = 28, numeric$ = 29
+integer, parameter :: floor$ = 27, ceiling$ = 28, numeric$ = 29, variable$ = 30
 
 character(12), parameter :: expression_op_name(28) = [character(12) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
@@ -19,8 +19,8 @@ character(12), parameter :: expression_op_name(28) = [character(12) :: '+', '-',
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling']
 
 
-integer, parameter :: expression_eval_level(29) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
-                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+integer, parameter :: expression_eval_level(30) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+                            9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
 private pushit
 
@@ -34,7 +34,11 @@ contains
 !
 ! This routine creates an expression stack array which can be used 
 ! to evaluate an arithmethic expression.
-! The end elements of stack not used are marked stack(i)%type = end_stack$
+!
+! Stack end elements not used are marked stack(i)%type = end_stack$
+!
+! Stack elements with stack(i)%type = variable$ are elements that need
+! to be evaluated before calling evaluate_expression_stack.
 !
 ! Input:
 !   string    -- character(*): Expression to be converted.
@@ -63,7 +67,7 @@ character(200) parse_line
 
 
 logical delim_found, split, zero_arg_function_pending
-logical err_flag
+logical err_flag, err
 
 ! The general idea is to rewrite the expression on a stack in reverse polish.
 ! Reverse polish means that the operand goes last so that 2 * 3 is writen 
@@ -214,9 +218,7 @@ parsing_loop: do
       endif
       zero_arg_function_pending = .false.
     else
-      call pushit (stack%type, n_stack, numeric$)
-      stack(n_stack)%name = word
-      
+      call push_numeric_or_var(err); if (err) return
     endif
 
     do
@@ -254,8 +256,7 @@ parsing_loop: do
       err_str = 'CONSTANT OR VARIABLE MISSING'
       return
     endif
-    call pushit (stack%type, n_stack, numeric$)
-    stack(n_stack)%name = word
+    call push_numeric_or_var (err); if (err) return
   endif
 
   ! If we are here then we have an operation that is waiting to be identified
@@ -339,6 +340,43 @@ call word_read (parse_line, delim_list, word, ix_word, delim, delim_found, parse
 
 end subroutine get_next_chunk
 
+!-------------------------------------------------------------------------
+! contains
+
+subroutine push_numeric_or_var (err)
+
+logical err
+integer ios
+
+!
+
+err = .true.
+
+if (is_real(word)) then
+  call pushit (stack%type, n_stack, numeric$)
+  read (word, *, iostat = ios) stack(n_stack)%value
+  if (ios /= 0) then
+    err_str = 'BAD NUMERIC: ' // trim(word)
+    return
+  endif
+  stack(n_stack)%name = word
+  if (i_op > 0) then
+    if (op(i_op) == unary_minus$) then
+      stack(n_stack)%name = '-' // stack(n_stack)%name
+      stack(n_stack)%value = -stack(n_stack)%value
+      i_op = i_op - 1
+    endif
+  endif
+
+else
+  call pushit (stack%type, n_stack, variable$)
+  stack(n_stack)%name = word
+endif
+
+err = .false.
+
+end subroutine push_numeric_or_var
+
 end subroutine expression_string_to_stack
 
 !-------------------------------------------------------------------------
@@ -380,6 +418,9 @@ end subroutine pushit
 ! Routine to evaluate an mathematical expression represented by an "expression stack".
 ! Expression stacks are created by bmad_parser code.
 !
+! Note: Stack elements with stack(i)%type == variable$ need to be evelauated before
+! calling this routine and the value placed in stack(i)%value.
+!
 ! Input:
 !   stack(:)    -- expression_atom_struct: Expression to evaluate.
 !   var(:)      -- controller_var_struct, optional: Array of variables.
@@ -419,7 +460,7 @@ do i = 1, size(stack)
   case (end_stack$)
     exit
 
-  case (numeric$)
+  case (numeric$, variable$)
     i2 = i2 + 1
     stack2(i2)%value = stack(i)%value
 
