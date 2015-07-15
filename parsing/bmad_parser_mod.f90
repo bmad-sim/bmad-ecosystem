@@ -2494,7 +2494,7 @@ do i = 1, n_stk
   select case (stk(i)%type)
   case (ran$, ran_gauss$)
     call bp_set_ran_status
-  case (numeric$)
+  case (variable$)
     call word_to_value (stk(i)%name, lat, stk(i)%value)
   end select
 enddo

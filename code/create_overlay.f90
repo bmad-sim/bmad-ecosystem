@@ -127,10 +127,10 @@ do j = 1, n_slave
   c%ix_lord = lord%ix_ele
   nc2 = nc2 + 1
 
-  ! Convert numeric$ type to variable index if name matches a variable
+  ! Convert variable$ type to variable index if name matches a variable
   do is = 1, size(c%stack)
     if (c%stack(is)%type == end_stack$) exit
-    if (c%stack(is)%type /= numeric$) cycle
+    if (c%stack(is)%type /= variable$) cycle
     do iv = 1, size(lord%control_var)
       if (upcase(c%stack(is)%name) /= lord%control_var(iv)%name) cycle
       c%stack(is)%type = iv + var_offset$
