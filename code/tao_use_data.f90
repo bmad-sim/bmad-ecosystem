@@ -32,7 +32,7 @@ character(12) :: r_name = "tao_use_data"
 
 ! decipher action
 
-call match_word (action, name$%use_veto_restore, which, match_name = match)
+call match_word (action, ["use    ", "veto   ", "restore"], which, matched_name = match)
 
 ! If "use" is choisen then must veto everything first.
 
