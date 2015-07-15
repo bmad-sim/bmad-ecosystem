@@ -90,19 +90,19 @@ end subroutine
 
 subroutine read_parameter (param_node, value_str, value)
 
-  implicit none
+implicit none
 
-  type (uap_node_struct) param_node
-  character(*) value_str
-  real(rp) value
-  integer ios
+type (uap_node_struct) param_node
+character(*) value_str
+real(rp) value
+integer ios
 
 !
 
-  read (value_str, *, iostat = ios) value
-  if (ios /= 0) then
-    call parser_error ('BAD PARAMETER VALUE: ', node = param_node)
-  endif
+read (value_str, *, iostat = ios) value
+if (ios /= 0) then
+  call parser_error ('BAD PARAMETER VALUE: ', node = param_node)
+endif
 
 end subroutine
 
@@ -111,27 +111,23 @@ end subroutine
 
 subroutine parser_error (what1, what2, what3, node)
 
-  implicit none
+implicit none
 
-  character(*) what1
-  character(*), optional :: what2, what3
-  type (uap_node_struct), optional :: node
+character(*) what1
+character(*), optional :: what2, what3
+type (uap_node_struct), optional :: node
 
 ! BP_COM%ERROR_FLAG is a common logical used so program will stop at end of parsing
 
-  if (global_com%type_out) then
+print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
 
-    print *, 'ERROR IN ', trim(bp_com%parser_name), ': ', trim(what1)
+if (present(what2)) print '(22x, a)', trim(what2)
+if (present(what3)) print '(22x, a)', trim(what3)
+if (present(node)) call uap_print_node (node)
 
-    if (present(what2)) print '(22x, a)', trim(what2)
-    if (present(what3)) print '(22x, a)', trim(what3)
-    if (present(node)) call uap_print_node (node)
+print *
 
-    print *
-
-  endif
-
-  bp_com%error_flag = .true.
+bp_com%error_flag = .true.
 
 end subroutine
 
@@ -237,15 +233,12 @@ if (bmad_status%ok) then
     if (present(digested_read_ok)) digested_read_ok = .true.
     return
   else
-    if (global_com%type_out) then
-       call out_io (s_info$, r_name, 'Taylor_order has changed.', &
-           'Taylor_order in digested file: \i4\ ', &
-           'Taylor_order now:              \i4\ ', &
-           i_array = [lat%input_taylor_order, bmad_com%taylor_order ])
-       bmad_status%ok = .false.
-    endif
-    if (lat%input_taylor_order > bmad_com%taylor_order) &
-                                         bp_com%write_digested = .false.
+     call out_io (s_info$, r_name, 'Taylor_order has changed.', &
+         'Taylor_order in digested file: \i4\ ', &
+         'Taylor_order now:              \i4\ ', &
+         i_array = [lat%input_taylor_order, bmad_com%taylor_order ])
+     bmad_status%ok = .false.
+    if (lat%input_taylor_order > bmad_com%taylor_order) bp_com%write_digested = .false.
   endif
 endif
 

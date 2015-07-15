@@ -80,9 +80,8 @@ allocate (file_names(n_files))
 can_read_this_old_version = .false.
 
 if (file_version < bmad_inc_version$) then
-  if (global_com%type_out) call out_io (s_info$, r_name, &
-         ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
-          i_array = [bmad_inc_version$, file_version ])
+  call out_io (s_info$, r_name, ['DIGESTED FILE VERSION OUT OF DATE \i0\ > \i0\ ' ],  &
+                                i_array = [bmad_inc_version$, file_version ])
   if (can_read_this_old_version) then 
     err_found = .true.
   else
@@ -92,11 +91,11 @@ if (file_version < bmad_inc_version$) then
 endif
 
 if (file_version > bmad_inc_version$) then
-  if (global_com%type_out) call out_io (s_info$, r_name, &
+  call out_io (s_info$, r_name, &
        'DIGESTED FILE HAS VERSION: \i0\ ', &
        'GREATER THAN VERSION OF THIS PROGRAM: \i0\ ', &
        'WILL NOT USE THE DIGESTED FILE. YOU SHOULD RECOMPILE THIS PROGRAM.', &
-       i_array = [file_version, bmad_inc_version$ ])
+       i_array = [file_version, bmad_inc_version$])
   close (d_unit)
   return
 endif
@@ -128,8 +127,7 @@ do i = 1, n_files
     digested_prefix_in = fname_read(1:j1-j)
     digested_prefix_out = full_digested_file(1:j2-j)
     if (.not. is_match) then
-      if (global_com%type_out .and. .not. err_found) &
-                      call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
+      if (.not. err_found) call out_io(s_info$, r_name, ' NOTE: MOVED DIGESTED FILE.')
       err_found = .true.
     endif
     cycle
@@ -158,8 +156,7 @@ do i = 1, n_files
   inquire (file = fname_versionless, exist = found_it, name = fname_full)
   call simplify_path (fname_full, fname_full)
   if (.not. found_it .or. fname_read /= fname_full .or. .not. is_match) then
-    if (global_com%type_out .and. .not. err_found) &
-            call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
+    if (.not. err_found) call out_io(s_info$, r_name, 'NOTE: DIGESTED FILE OUT OF DATE.')
     err_found = .true.
   endif
 
@@ -245,7 +242,7 @@ read (d_unit, err = 9060) lat%beam_start
 
 read (d_unit, iostat = ios) ptc_param
 if (ios /= 0) then
-  if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
+  call out_io(s_error$, r_name, 'ERROR READING PTC PARAMETERS.')
   close (d_unit)
   return
 endif
@@ -285,7 +282,7 @@ inc_version = file_version
 
 if (present(err_flag)) err_flag = err_found
 
-if (.not. err_found .and. global_com%type_out) then
+if (.not. err_found) then
   do i = 1, size(file_names)
     fname_read = file_names(i)
     if (fname_read(1:7) /= '!PRINT:') cycle
@@ -298,100 +295,84 @@ return
 !------------------
 
 9000  continue
-!! if (global_com%type_out) call out_io (s_warn$, r_name, 'Digested file does not exist: ' // trim(full_digested_file))
+!! call out_io (s_warn$, r_name, 'Digested file does not exist: ' // trim(full_digested_file))
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9010  continue
-if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE VERSION.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9020  continue
-if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE FILE AND DATE.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9025  continue
-if (global_com%type_out) call out_io(s_error$, r_name, 'ERROR READING BMAD_COM COMMON BLOCK.')
+call out_io(s_error$, r_name, 'ERROR READING BMAD_COM COMMON BLOCK.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9030  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE LATTICE GLOBALS.')
-endif
+ call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE LATTICE GLOBALS.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9035  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE GENERAL PARAMETER NAME LIST.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE GENERAL PARAMETER NAME LIST.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9040  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9045  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE CONTROL STACK.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9050  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE IC.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9060  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED BEAM_INIT.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED BEAM_INIT.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9070  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE BRANCH DATA.')
 close (d_unit)
 return
 
 !--------------------------------------------------------------
 
 9080  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED RANDOM NUMBER STATE.')
-endif
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED RANDOM NUMBER STATE.')
 close (d_unit)
 return
 
@@ -595,9 +576,7 @@ elseif (ix_wall3d < 0) then
   read (d_unit, err = 9900) idum1
   ele%wall3d => lat%branch(ix_wall3d_branch)%ele(abs(ix_wall3d))%wall3d
   if (.not. associated(ele%wall3d)) then
-    if (global_com%type_out) then
-      call out_io(s_error$, r_name, 'ERROR IN WALL3D INIT.')
-    endif
+    call out_io(s_error$, r_name, 'ERROR IN WALL3D INIT.')
     close (d_unit)
     return
   endif
@@ -617,181 +596,137 @@ return
 !--------------------------------------------------------------
 
 9100  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING ELEMENT # \i0\ ', &
                                   i_array = [ix_ele_in])
-endif
 close (d_unit)
 return
 
 9110  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING K_MAX OF ELEMENT # \i0\ ', &
                                   i_array = [ix_ele_in])
-endif
 close (d_unit)
 return
 
 9120  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                  'ERROR READING VALUES OF ELEMENT # \i0\ ', &
                                   i_array = [ix_ele_in])
-endif
 close (d_unit)
 return
 
 9140  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
         'ERROR READING EM_FIELD COMPONENT FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9150  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
         'ERROR READING MODE3 COMPONENT FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9200  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
         'ERROR READING WIGGLER TERM FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9350  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %R ARRAY SIZE: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9360  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %PHOTON FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9361  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %PHOTON%GRID BOUNDS FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9362  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %PHOTON%SURFACE%GRID FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9400  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING R TERM FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9500  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING DESCRIP TERM FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9600  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING AN,BN TERMS FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9650  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING %TAYLOR(:)%REF FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9700  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING TAYLOR TERMS FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9800  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%SR_FILE FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9820  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%LR_FILE FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9830  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%LR FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9840  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%sr_long%mode FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9850  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%sr_trans%mode FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9860  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING WAKE%Z_SR_MAX FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
 9900  continue
-if (global_com%type_out) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
           'ERROR READING IDUM1 FOR ELEMENT: ' // ele%name)
-endif
 close (d_unit)
 return
 
@@ -819,10 +754,8 @@ if (n_wall_section == 0) then
 endif
 
 if (ios /= 0) then
-  if (global_com%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                    'ERROR READING WALL3D N_WALL_SECTION NUMBER')
-  endif
   close (d_unit)
   return
 endif
@@ -832,10 +765,8 @@ read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%superimpose, &
       wall3d%thickness, wall3d%clear_material, wall3d%opaque_material
 
 if (ios /= 0) then
-  if (global_com%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
                                    'ERROR READING WALL PRIORITY')
-  endif
   close (d_unit)
   return
 endif
@@ -867,10 +798,7 @@ read (d_unit, iostat = ios) sec%name, sec%material, sec%type, sec%n_vertex_input
                    sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, &
                    sec%p2_coef, nv
 if (ios /= 0) then
-  if (global_com%type_out) then
-     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-                                   'ERROR READING WALL3D SECTION')
-  endif
+  call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', 'ERROR READING WALL3D SECTION')
   close (d_unit)
   return
 endif
@@ -879,10 +807,7 @@ allocate(sec%v(nv))
 do k = 1, nv
   read (d_unit, iostat = ios) sec%v(k)
   if (ios /= 0) then
-    if (global_com%type_out) then
-       call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-                                     'ERROR READING WALL3D VERTEX')
-    endif
+    call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', 'ERROR READING WALL3D VERTEX')
     close (d_unit)
     return
   endif

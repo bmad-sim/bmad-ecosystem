@@ -49,10 +49,9 @@ endif
 ! Err checking
 
 if (.not. associated(taylor(1)%term)) then
-  if (global_com%type_out) then
-    ! 'WARNING: TAYLOR SERIES NOT PRESENT FOR: ' // ele%name
-    ! 'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...'
-  endif
+  ! call out_io (s_warn$, r_name, &
+  !       'TAYLOR SERIES NOT PRESENT FOR: ' // ele%name, &
+  !       'I WILL MAKE A TAYLOR SERIES AROUND THE ZERO ORBIT...')
   orb0%vec = taylor%ref
   call ele_to_taylor(ele, param, taylor)
 endif

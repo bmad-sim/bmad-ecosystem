@@ -1265,10 +1265,10 @@ type bmad_common_struct
   real(rp) :: d_orb(6)           = 1e-5           ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp         ! Integration step size.  
   real(rp) :: significant_length = 1e-10          ! meter 
-  real(rp) :: rel_tol_tracking = 1e-8
-  real(rp) :: abs_tol_tracking = 1e-10
-  real(rp) :: rel_tol_adaptive_tracking = 1e-8        ! Adaptive tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-10       ! Adaptive tracking absolute tolerance.
+  real(rp) :: rel_tol_tracking = 1e-8                 ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1e-10                ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_adaptive_tracking = 1e-8        ! Runge-Kutta tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1e-10       ! Runge-Kutta tracking absolute tolerance.
   real(rp) :: init_ds_adaptive_tracking = 1e-3        ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
   real(rp) :: fatal_ds_adaptive_tracking = 1e-8       ! If actual step size is below this particle is lost.

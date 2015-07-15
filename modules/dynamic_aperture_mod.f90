@@ -14,7 +14,6 @@ type aperture_data_struct
 end type
 
 type aperture_param_struct
-  type (coord_struct)  :: closed_orbit      ! about which the aperture is scanned
   integer :: n_turn = 100                   ! Number of turns a particle must survive
   real(rp) :: x_init = 1e-3_rp              ! initial estimate for horizontal aperture
   real(rp) :: y_init = 1e-3_rp              ! initial estimate for vertical aperture
@@ -34,7 +33,7 @@ contains
 
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture_scan(lat, aperture_scan, parallel)
+! Subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
 !
 ! Driver routine for dynamic_aperture. 
 ! 
@@ -46,6 +45,7 @@ contains
 !
 ! Input:
 !   lat                 -- lat_struct: Lat containing the lattice.
+!   orb0                -- coord_struct: Closed orbit at IP.
 !   aperture_scan       -- aperture_scan_struct: 
 !     %param            -- aperture_param_struct: input parameters
 !     %min_angle, max_angle, n_angle -- integer: angle scan parameters
@@ -56,7 +56,7 @@ contains
 !   aperture_scan       -- aperture_scan_struct 
 !     %aperture(:)      -- aperture_data_struct: apertures for each angle
 !-
-subroutine dynamic_aperture_scan(lat, aperture_scan, parallel)
+subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
 
 !$ use omp_lib
 
@@ -64,6 +64,7 @@ implicit none
 type (lat_struct) :: lat
 type (aperture_scan_struct) :: aperture_scan
 type (aperture_data_struct) :: aperture
+type (coord_struct) orb0
 real(rp), allocatable  :: angle_list(:)
 real(rp) :: delta_angle, x_init_temp, y_init_temp
 integer :: i, omp_n
@@ -91,7 +92,7 @@ if (aperture_scan%param%x_init == 0 ) then
   aperture_scan%param%x_init = 0.001_rp
   y_init_temp = aperture_scan%param%y_init
   aperture_scan%param%y_init = 0.001_rp
-  call dynamic_aperture (lat, aperture_scan%param%closed_orbit, 0.0_rp, aperture_scan%param, aperture)
+  call dynamic_aperture (lat, orb0, 0.0_rp, aperture_scan%param, aperture)
   aperture_scan%param%x_init = aperture%x
   aperture_scan%param%y_init = y_init_temp
 endif
@@ -99,7 +100,7 @@ if (aperture_scan%param%y_init == 0 ) then
   aperture_scan%param%y_init = 0.001_rp
   x_init_temp = aperture_scan%param%x_init
   aperture_scan%param%x_init = 0.001_rp
-  call dynamic_aperture (lat, aperture_scan%param%closed_orbit, pi/2, aperture_scan%param, aperture)
+  call dynamic_aperture (lat, orb0, pi/2, aperture_scan%param, aperture)
   aperture_scan%param%y_init = aperture%y
   aperture_scan%param%x_init = x_init_temp
 endif
@@ -108,10 +109,10 @@ endif
 omp_n = 1
 !$ omp_n = omp_get_max_threads()
 if (logic_option(.false., parallel) .and. omp_n > 1) then
-  call dynamic_aperture_parallel(lat, aperture_scan%param%closed_orbit, angle_list, aperture_scan%param, aperture_scan%aperture)
+  call dynamic_aperture_parallel(lat, orb0, angle_list, aperture_scan%param, aperture_scan%aperture)
 else
   do i=1, aperture_scan%n_angle
-    call dynamic_aperture (lat, aperture_scan%param%closed_orbit, angle_list(i), aperture_scan%param, aperture_scan%aperture(i))
+    call dynamic_aperture (lat, orb0, angle_list(i), aperture_scan%param, aperture_scan%aperture(i))
   enddo
 endif
 
@@ -149,8 +150,6 @@ end subroutine dynamic_aperture_scan
 !       %plane        -- Plane in which lost (X_PLANE$ or Y_PLANE$)
 !       %ix_lat       -- Index where lost
 !       %i_turn       -- Turn where lost
-!     aperture_param     -- aperture_param_struct:
-!       %closed_orbit -- Closed orbit coordinates
 !
 ! Note: The radial lines are spaced equally in angle using coordinates
 !       normalized by %X_INIT and %Y_INIT
@@ -268,11 +267,10 @@ enddo test_loop
 aperture%x = x1
 aperture%y = y1
 aperture%i_turn = turn_lost
-aperture_param%closed_orbit = orb0
 
 lat%param = param_save
 
-end subroutine
+end subroutine dynamic_aperture
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
@@ -341,7 +339,6 @@ do i=1, omp_n
 end do
 deallocate(omp_lat, omp_aperture)
   
-end subroutine
-
+end subroutine dynamic_aperture_parallel
 
 end module

@@ -27,10 +27,6 @@
 !   init_guess -- Coord_struct, optional: Starting guess for the closed 
 !                orbit at the start of the lat. If not present then
 !                the origin will be used. 
-!   bmad_status -- BMAD status common block:
-!         %type_out      -- If True then the subroutine will type out
-!                           a warning message if the orbit does not converge.
-!
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: closed orbit. 
@@ -62,6 +58,8 @@ integer i_dim, i, i1, i2, j, jmax, n_ele, j0, jj, nd, nnd, msk(6), track_state
 
 logical, optional :: err_flag
 logical :: debug = .false., rf_on, fluct_saved, aperture_saved
+
+character(*), parameter :: r_name = 'closed_orbit_from_tracking'
 
 ! init
 
@@ -209,12 +207,10 @@ enddo
 
 ! error
 
-if (global_com%type_out) then
-  if (j == jmax+1) then
-    print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: ORBIT NOT CONVERGING!'
-  else
-    print *, 'ERROR IN CLOSED_ORBIT_FROM_TRACKING: PROBLEM TRACKING ORBIT.'
-  endif
+if (j == jmax+1) then
+  call out_io (s_error$, r_name, 'ORBIT NOT CONVERGING!')
+else
+  call out_io (s_error$, r_name, 'PROBLEM TRACKING ORBIT.')
 endif
 
 end subroutine

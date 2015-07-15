@@ -14,8 +14,6 @@
 !                              differently from other elements.
 !     %map_ref_orb_in     -- Important for the dispersion calc.
 !     %map_ref_orb_out    -- Important for the dispersion calc.
-!   bmad_status -- Common block status structure:
-!       %exit_on_error -- If True then stop if there is an error.
 !
 ! Output:
 !   ele2     -- Ele_struct: Structure for the ending parameters.

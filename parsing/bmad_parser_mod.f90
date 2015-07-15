@@ -3476,7 +3476,7 @@ logical, optional :: stop_here, warn_only
 
 ! bp_com%error_flag is a common logical used so program will stop at end of parsing
 
-if (global_com%type_out .and. bp_com%print_err) then
+if (bp_com%print_err) then
 
   nl = 0
 

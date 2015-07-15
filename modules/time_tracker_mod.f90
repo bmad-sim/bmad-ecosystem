@@ -238,13 +238,9 @@ do
 
   ! Did not get to end
 
-  if (global_com%type_out) then
-    call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
-    orb%location = inside$
-    return
-  end if
-
-  if (global_com%exit_on_error) call err_exit
+  call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
+  orb%location = inside$
+  orb%state = lost$
 
 enddo
 

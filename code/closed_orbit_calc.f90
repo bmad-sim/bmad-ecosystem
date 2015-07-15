@@ -64,9 +64,6 @@
 !   ix_branch      -- Integer, optional: Lattice branch to find the closed orbit of. 
 !                       Default is 0 (main branch).
 !
-!   global_com    -- Global_common_struct: Bmad status common block
-!     %type_out      -- If True then the subroutine will type out
-!                         a warning message if the orbit does not converge.
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
 !     %rel_tol_tracking -- Relative error. See above. Default = 1e-8
 !     %abs_tol_tracking -- Absolute error. See above. Default = 1e-10
@@ -248,12 +245,10 @@ do i_loop = 1, i_max
   call track_all (this_lat, closed_orb, branch%ix_branch, track_state)
 
   if (i_loop == i_max .or. track_state /= moving_forward$) then
-    if (global_com%type_out) then
-      if (track_state /= moving_forward$) then
-        call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
-      else
-        call out_io (s_error$, r_name, 'NONLINEAR ORBIT NOT CONVERGING!')
-      endif
+    if (track_state /= moving_forward$) then
+      call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
+    else
+      call out_io (s_error$, r_name, 'NONLINEAR ORBIT NOT CONVERGING!')
     endif
     call end_cleanup
     return
@@ -415,7 +410,7 @@ mat(1:nt,1:nt) = mat(1:nt,1:nt) - t1(1:nt,1:nt)
 call mat_inverse(mat(1:nt,1:nt), t11_inv(1:nt,1:nt), ok2)
 
 if (.not. ok1 .or. .not. ok2) then 
-  if (global_com%type_out) call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
+  call out_io (s_error$, r_name, 'MATRIX INVERSION FAILED!')
   return
 endif
 

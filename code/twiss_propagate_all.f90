@@ -86,9 +86,7 @@ endif
 if (branch%param%geometry == closed$ .and. i_start == 0 .and. i_end == n_track) then
   if (branch%ele(0)%mode_flip .neqv. branch%ele(n_track)%mode_flip) then
     call do_mode_flip (branch%ele(n_track), err)
-    if (err .and. global_com%type_out) then
-      call out_io (s_error$, r_name,  'CANNOT MAKE FINAL FLIP STATE EQUAL TO THE INITIAL')
-    endif
+    if (err) call out_io (s_error$, r_name,  'CANNOT MAKE FINAL FLIP STATE EQUAL TO THE INITIAL')
   endif
 endif
 

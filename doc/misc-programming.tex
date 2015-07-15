@@ -327,39 +327,43 @@ Additionally, photonic elements like \vn{crystal}, \vn{capillary},
 \end{example}
 
 %-----------------------------------------------------------------------------
-\section{Common Structures}
-\label{s:common.struct}
+\section{Global Common Structures}
+\label{s:com.struct}
 
 \index{bmad_com}
-\index{bmad_status}
+\index{global_com}
 There are two common variables used by Bmad for communication between
 routines. These are \vn{bmad_com}, which is a \vn{bmad_common_struct}
-structure, and \vn{bmad_status} which is a \vn{bmad_status_struct}
+structure, and \vn{global_com} which is a \vn{global_common_struct}
 structure. The \vn{bmad_com} structure is documented in
-Section~\sref{s:bmad.params}. The \vn{bmad_status_struct}
-\index{status}\index{ok}
-\index{type_out}\index{sub_type_out}
-\index{exit_on_error}
-The \vn{bmad_status_struct} structure is, along with the default values:
+Section~\sref{s:bmad.params}. 
+
+\index{global_common_struct|hyperbf}
+The \vn{global_common_struct} is meant to hold common parameters that should
+not be modified by the user. 
 \begin{example}
-type bmad_status_struct
-  logical :: ok             = .true.   ! Error flag
-  logical :: type_out       = .true.   ! Print error messages?
-  logical :: exit_on_error  = .true.   ! Exit program on error?
-end type
+  type global_common_struct
+    logical be_thread_safe = F    ! Avoid thread unsafe practices?
+    logical exit_on_error  = T    ! Exit program on error?
+  end type
 \end{example}
-The \vn{%ok} component can be set to indicate that an error has been
-encountered in a routine. Using \vn{%ok} is deprecated for a number of
-reasons. For one, it is not thread safe. The long term goal is to
-replace this by adding error flag arguments to the appropriate
-routines.
+A global variable \vn{global_com} is defined in the \vn{sim_utils} library:
+\begin{example}
+  type (global_common_struct), save :: global_com
+\end{example}
+And various routines use the settings in \vn{global_com}.
 
-The \vn{%type_out} component tells a routine if warning or error
-messages should be printed. With Severe errors, the code may ignore
-\vn{%type_out} and print an error message irregardless.
-
-The \vn{%exit_on_error} component tell a routine if it is ok to stop a
-program on a severe error.
+\begin{description}
+\item[\vn{\%be_thread_safe}] \Newline
+Toggle to prevent non thread safe calculational optimizations from
+being done. See Sec.~\sref{s:parallel.proc} for more details.
+\item[\vn{\%exit_on_error}] \Newline
+The \vn{%exit_on_error} component tell a routine if it is OK to stop a
+program on a severe error. Stopping is generally the right thing when
+a program is simply doing a calculation and getting a wrong answer is
+not productive. In control system programs and in interactive programs
+like \vn{Tao}, it is generally better not to stop on an error.
+\end{description}
 
 %-----------------------------------------------------------------------------
 \section{Parallel Processing}
@@ -370,9 +374,10 @@ program on a severe error.
 \bmad was initially developed without regard to parallel
 processing. When a demand for multithreading capability arose, \bmad
 was modified to meet the need. In order to retain some of the speedups
-that can be achieved with saved variables, a switch was introduced
-in the \vn{global_common_struct} called \vn{%be_thread_safe}. The
-default is False. This should be set True in a a multithreaded program:
+that can be achieved with saved variables, a switch was introduced in
+the \vn{global_common_struct} (\sref{s:com.struct}) called
+\vn{%be_thread_safe}. The default is False. This should be set True in
+a a multithreaded program:
 \begin{example}
   global_com%be_thread_safe = .true.
 \end{example}
@@ -380,3 +385,7 @@ default is False. This should be set True in a a multithreaded program:
 \index{lat_struct!parallel processing}
 One rule to follow in multithreaded programs: \vn{lat_struct}
 instances must be local.
+
+Currently, converting \bmad to be thread safe is an active
+project. Please contact the \bmad maintainers for more details.
+

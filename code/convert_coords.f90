@@ -54,6 +54,7 @@ real(rp) mat(4,4), mat_inv(4,4), mat2(2,2), mat2_inv(2,2), eta_vec(4)
 integer :: lab$ = 1, normal_mode$ = 2, normalized$ = 3, action_angle$ = 4
 character(16) :: type_names(5) = ['LAB         ', 'MODE        ', &
                     'NORMALIZED  ', 'ACTION-ANGLE', '            ' ]
+character(*), parameter :: r_name = 'convert_coords'
 
 logical, optional :: err_flag
 
@@ -65,8 +66,7 @@ if (present(err_flag)) err_flag = .true.
 call match_word (in_type_str, type_names, in_type)
 
 if (in_type <= 0) then
-  if (global_com%type_out) print *, &
-              'ERROR IN CONVERT_COORDS: UNKNOWN IN_TYPE_STR: ', in_type_str
+  call out_io (s_fatal$, r_name, 'UNKNOWN IN_TYPE_STR: ' // in_type_str)
   if (global_com%exit_on_error) call err_exit
   return
 endif
@@ -74,8 +74,7 @@ endif
 call match_word (out_type_str, type_names, out_type)
 
 if (out_type <= 0) then
-  if (global_com%type_out) print *, &
-             'ERROR IN CONVERT_COORDS: UNKNOWN OUT_TYPE_STR: ', out_type_str
+  call out_io (s_fatal$, r_name, 'UNKNOWN OUT_TYPE_STR: ' // out_type_str)
   if (global_com%exit_on_error) call err_exit
   return
 endif
