@@ -42,6 +42,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
+type (coord_struct) :: closed_orb0
 type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
@@ -192,18 +193,18 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. s%global%rf_on) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
-        scan%param%closed_orbit = lat_branch%orb0
+        closed_orb0 = lat_branch%orb0
        
-       ! If the RF is off, new fixed points will be calculated for various pz
+        ! If the RF is off, new fixed points will be calculated for various pz
         if (.not. s%global%rf_on) then
           call  closed_orbit_calc (tao_lat%lat, orb, 4)
-          scan%param%closed_orbit = orb(0)
+          closed_orb0 = orb(0)
         endif
         
-        scan%param%closed_orbit%vec(6) = scan%param%closed_orbit%vec(6) + u%dynamic_aperture%pz(j)
+        closed_orb0%vec(6) = closed_orb0%vec(6) + u%dynamic_aperture%pz(j)
         
         call out_io (s_info$, r_name, 'dynamic aperture scan for pz: ', u%dynamic_aperture%pz(j))
-        call dynamic_aperture_scan(tao_lat%lat, scan, parallel = .true. )
+        call dynamic_aperture_scan(tao_lat%lat, closed_orb0, scan, parallel = .true. )
       enddo
     endif
     
