@@ -357,7 +357,7 @@ case ('restore', 'use', 'veto')
   call tao_cmd_split(cmd_line, 2, cmd_word, .true., err)
   if (err) return
   
-  call match_word (cmd_word(1), ["data    ", "variable"], which, .true., match_name = cmd_name)
+  call match_word (cmd_word(1), ["data    ", "variable"], which, .true., matched_name = cmd_name)
   
   if (cmd_name == 'data') then
     call tao_use_data (cmd_name, cmd_word(2))

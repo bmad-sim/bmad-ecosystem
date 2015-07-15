@@ -31,7 +31,7 @@ logical err
 
 ! Use, veto or restore?
 
-call match_word (action, ["use    ", "veto   ", "restore"], which, match_name = match)
+call match_word (action, ["use    ", "veto   ", "restore"], which, matched_name = match)
 
 call tao_find_var (err, var_name, v1_array = v1, v_array = var)
 if (err) return
