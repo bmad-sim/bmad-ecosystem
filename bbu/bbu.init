@@ -1,34 +1,28 @@
 &bbu_params
-  bbu_param%lat_file_name = 'erl.lat'         ! Bmad lattice file name
+!  bbu_param%lat_filename = '/home/cem52/erl/CERL/lattice_devel/CornellBNL/lattice/erl_1pass.lat'   ! Bmad lattice file name. Usually erl.lat
+!  bbu_param%lat_file_name = 'bbu/test/lat.bmad'
+
+  bbu_param%lat_filename = 'oneturn_lat.bmad'
   bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
-  bbu_param%limit_factor = 5                ! Init_hom_amp * limit_factor = simulation unstable limit
+  bbu_param%limit_factor = 1e-3                ! Init_hom_amp * limit_factor = simulation unstable limit
                                               ! Must be greater than 2
-  bbu_param%simulation_turns_max = 10         ! Must be greater than 10
+  bbu_param%simulation_turns_max = 100         ! Must be greater than 10
   bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
   bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
-!  bbu_param%keep_all_lcavities = .true.      ! Keep when hybridizing?
-  bbu_param%current = 100e-3                   ! Starting current (amps)
-  bbu_param%rel_tol = 1e-1                    ! Final threshold current accuracy.
+  bbu_param%keep_all_lcavities = .true.       ! Keep when hybridizing?
+  bbu_param%current = 2.0               ! Starting current (amps)
+  bbu_param%rel_tol = 1e-3                    ! Final threshold current accuracy.
   bbu_param%write_hom_info = .true.  
-  bbu_param%drscan = .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
-  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN
+  bbu_param%drscan =  .false.                  ! If true, do DR scan as in PRSTAB 7 (2004) Fig. 3.
+  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN, default is arc
   bbu_param%nstep = 50                        ! Number of steps for DRSCAN
-! PRSTAB 2004
-  bbu_param%begdr = 5.234
-  bbu_param%enddr = 6.135
-! CERL7.4
-!  bbu_param%begdr = 3.
-!  bbu_param%enddr = 4.5
 
   bbu_param%use_interpolated_threshold = .true.
 
-  bbu_param%nrep = 1500   ! Number of times to repeat threshold calculation
+  bbu_param%lat2_filename = 'lat2.lat'                ! Changed for drscan
 
-  bbu_param%ran_seed = 0                       ! Set specific seed if desired (0 uses system clock)
+  bbu_param%nrep = 1500                       ! Number of times to repeat threshold calculation
+
+  bbu_param%ran_seed = 5                       ! Set specific seed if desired (0 uses system clock)
   bbu_param%ran_gauss_sigma_cut = 3           ! If positive, limit ran_gauss values to within N sigma
-
-  bbu_param%stable_orbit_anal = .true.  ! Write out cavity orbit data for SIMULATION_TURNS_MAX turns
-                                         ! No thresholds are calculated
-                                         ! Repeated NREP times with HOM frequencies re-randomized
-                                         ! DRSCAN disabled
 /
