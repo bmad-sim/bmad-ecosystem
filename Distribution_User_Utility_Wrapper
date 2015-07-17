@@ -11,7 +11,7 @@
 DIRLIST=( xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
 
 # Build PLplot, if requested
-[ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST="plplot ${DIRLIST}"
+[ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
     
 
 
