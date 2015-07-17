@@ -128,7 +128,7 @@ def calculate( t, bool_stable, rel_tol ):
 #==========================================================
 def  run_bbu ( temp_curr ):
 ##################### Run the bbu program once for a current
-  if (bbu_params.variable == "current"):
+  if (bbu_params.mode == "current"):
     print ('Trying current ', str(temp_curr))
     template_file = open (bbu_params.template_file, 'r' ) 
     temp_file = open  ('bbu.init', 'wt')
@@ -139,7 +139,7 @@ def  run_bbu ( temp_curr ):
     temp_file.close()
     subprocess.call(bbu_params.exec_path, shell = True)  # Run bbu 
 
-  if (bbu_params.variable == "drscan"):
+  if (bbu_params.mode == "drscan"):
     print ('Including lat2.lat')
     template_file = open (bbu_params.template_file, 'r' )
     temp_file = open  ('bbu.init', 'wt')   

@@ -661,7 +661,7 @@ allocate(erltime(800))
 
 !
 open(20, file = 'hom_infos.dat')
-open(21, file = 'voltage_v_turns.txt', status = 'unknown', access = 'append')
+!open(21, file = 'voltage_v_turns.txt', status = 'unknown', access = 'append')
 
 ! Initialize the identity matrix
 call mat_make_unit(imat)

@@ -5,25 +5,23 @@ use bbu_track_mod
 implicit none
 
 type (ele_pointer_struct), allocatable :: eles(:)
-integer n_loc
-logical err
-
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (lat_struct) lat, lat_in, lat0
 type (beam_init_struct) beam_init
-type (ele_struct), pointer :: ele, ele2
+type (ele_struct), pointer :: ele
 type (wake_lr_struct), pointer :: lr(:)
 
-integer i, ix, j, n_hom, n, nn, n_ele, ix_pass, i_lr, ie, o
 integer, allocatable :: ix_out(:)
+integer i, ix, j, n, nn, n_ele, ix_pass, o
 integer irep
+integer n_loc
 real(rp) dr
 real(rp) time
-real(rp) hom_voltage_gain, charge0, charge1, charge_old, charge_threshold
-real(rp) trtb, currth, growth_rate, growth_rate0, growth_rate1, growth_rate_old
-
+real(rp) hom_voltage_gain
+real(rp) growth_rate
 logical, allocatable :: keep_ele(:)
+logical err
 logical lost
 
 namelist / bbu_params / bbu_param, beam_init, bmad_com
@@ -45,19 +43,19 @@ if (bbu_param%ran_gauss_sigma_cut > 0) then
   call ran_gauss_converter (set_sigma_cut = bbu_param%ran_gauss_sigma_cut)
 endif
 
-! Init
+! Init and parse
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
 call bmad_parser (bbu_param%lat_filename, lat_in)
 call twiss_propagate_all (lat_in)
 call run_timer ('START')
 
-!Parse additional settings
+!Parse additional settings for drscan
 if (bbu_param%lat2_filename /= '') then
   print *, 'Parsing: ',bbu_param%lat2_filename
   call bmad_parser2 (bbu_param%lat2_filename, lat_in)
 endif
 
-! Remove HOM's of higher order
+! Remove HOMs of higher order
 if (bbu_param%hom_order_cutoff > 0) then
   do i = 1, lat_in%n_ele_max
     ele => lat_in%ele(i)
@@ -88,7 +86,7 @@ if (bbu_param%hybridize) then
   keep_ele = .false.
   do i = 1, lat_in%n_ele_max
     ! Keep element if defined as end of tracking
-    if(lat_in%ele(i)%name == bbu_param%ele_track_end)then
+    if(lat_in%ele(i)%name == bbu_param%ele_track_end) then
        call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
        cycle
     endif
@@ -109,7 +107,7 @@ endif
 lat0 = lat
 
 ! Define element at which tracking ends
-if (bbu_param%ele_track_end.ne.' ')then
+if (bbu_param%ele_track_end.ne.' ') then
   call lat_ele_locator(bbu_param%ele_track_end,lat, eles, n_loc, err)
   if(err)call err_exit
   if(n_loc.eq.0)then
@@ -149,12 +147,10 @@ beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
 print *, 'Number of elements in lattice:      ', lat%n_ele_track
-
 lat = lat0 ! Restore lr wakes
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 o = lunget() 
-open(o, file = 'for_py.txt', status = 'unknown')
-!need three tabs indent or python will cry
+open(o, file = 'scripts/for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
 write(o,'(a, es14.6)') 'v_gain = ', hom_voltage_gain
 write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
@@ -164,6 +160,5 @@ write(o,'(a, es14.6)') 'growth_rate = ', growth_rate
 close(o)
  
 call run_timer ('STOP', time)
-
 
 end program

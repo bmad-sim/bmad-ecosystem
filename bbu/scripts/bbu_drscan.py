@@ -38,7 +38,7 @@ def make_dr_plot ( ):
   f = []
   lines = []
   p = []
-  my_plotfile = "thresh_v_trotb.txt"
+  my_plotfile = "scripts/thresh_v_trotb.txt"
   f = open(my_plotfile, 'r')
   lines = f.readlines()
   f.close()
