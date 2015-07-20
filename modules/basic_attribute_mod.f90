@@ -810,6 +810,7 @@ call init_attribute_name1 (em_field$, e_tot_start$,                 'E_TOT_START
 call init_attribute_name1 (em_field$, p0c_start$,                   'P0C_START', dependent$)
 call init_attribute_name1 (em_field$, field$,                       'FIELD')
 call init_attribute_name1 (em_field$, field_calc$,                  'FIELD_CALC')
+call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
 
 call init_attribute_name1 (girder$, l$,                             'L', dependent$)
 call init_attribute_name1 (girder$, x_offset$,                      'X_OFFSET')

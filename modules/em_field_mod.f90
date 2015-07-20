@@ -186,14 +186,17 @@ type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
-real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2)
+real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
-real(rp) radius, phi, t_ref, tilt, omega, freq, B_phi_coef
+real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
+real(rp) Er_dc, Ep_dc, Ez_dc, Br_dc, Bp_dc, Bz_dc 
+real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z 
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-complex(rp) E_rho, E_phi, E_z, BEr, Er, Ep, Ez, B_rho, B_phi, B_z, Br, Bp, Bz, expi, expt, dEp, dEr
-complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm
+complex(rp) Er, Ep, Ez, Br, Bp, Bz
+complex(rp) exp_kz, exp_m, expt, dEp, dEr
+complex(rp) Im_0, Im_plus, Im_minus, Im_0_R, kappa_n, Im_plus2, cm, sm, q
 
 integer i, j, m, n
 
@@ -294,10 +297,10 @@ endif
 
 select case (ele%field_calc)
   
-  !----------------------------------------------------------------------------
-  ! Bmad_standard field calc 
+!----------------------------------------------------------------------------
+! Bmad_standard field calc 
 
-  case (bmad_standard$)
+case (bmad_standard$)
 
   select case (ele%key)
 
@@ -326,7 +329,7 @@ select case (ele%field_calc)
     field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
 
   !------------------------------------------
-  ! RFcavity and Lcavity
+  ! RFcavity and Lcavity  bmad_standard
   !
   ! For standing wave cavity:
   ! Use N_cell half-wave pillbox formulas for TM_011 mode with infinite wall radius.
@@ -388,7 +391,7 @@ select case (ele%field_calc)
     field%B(2) =  B_phi_coef * x
 
     if (df_calc) then
-      call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY!')
+      call out_io (s_fatal$, r_name, 'dFIELD NOT YET IMPLEMENTED FOR LCAVITY AND RFCAVITY!')
       if (global_com%exit_on_error) call err_exit
     endif
 
@@ -627,70 +630,111 @@ select case (ele%field_calc)
   endif
 
 !----------------------------------------------------------------------------
-! Map field calc 
+! Map field calc...
 
 case(map$)
 
-!------------------------------------------
+  if (.not. associated(ele%em_field)) then
+    call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
+    if (global_com%exit_on_error) call err_exit
+    if (present(err_flag)) err_flag = .true.
+    return  
+  endif
+
+  radius = sqrt(x**2 + y**2)
+  phi = atan2(y, x)
+
+  ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
 
   select case (ele%key)
-
-  !------------------------------------------
-  ! RFcavity and Lcavity
-
-  case(rfcavity$, lcavity$)
-    if (.not. associated(ele%em_field)) then
-      call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Map', 'FOR: ' // ele%name) 
-      if (global_com%exit_on_error) call err_exit
-      if (present(err_flag)) err_flag = .true.
-      return  
-    endif
-
-    E_rho = 0; E_phi = 0; E_z = 0
-    B_rho = 0; B_phi = 0; B_z = 0
-
-    radius = sqrt(x**2 + y**2)
-    phi = atan2(y, x)
-
-    ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
-
-    freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
-    if (freq == 0) then
+  case (lcavity$, rfcavity$, em_field$)
+    freq0 = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
+    if (freq0 == 0 .and. ele%key /= em_field$) then
       call out_io (s_fatal$, r_name, 'Frequency is zero for map in cavity: ' // ele%name)
       if (ele%em_field%mode(1)%harmonic == 0) call out_io (s_fatal$, r_name, '   ... due to harmonic = 0')
       if (global_com%exit_on_error) call err_exit
       if (present(err_flag)) err_flag = .true.
       return  
     endif
-    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
-    if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
+    t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq0
+    if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
 
-    do i = 1, size(ele%em_field%mode)
-      mode => ele%em_field%mode(i)
-      m = mode%m
+  case default ! Where rf_frequency is not defined
+    if (any(ele%em_field%mode%harmonic /= 0)) then
+      call out_io (s_fatal$, r_name, 'RF FIELD MAPS NOT IMPLEMENTED FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+  end select
 
-      k_t = twopi * ele%value(rf_frequency$) * mode%harmonic / c_light
+  !
 
-      Er = 0; Ep = 0; Ez = 0
-      Br = 0; Bp = 0; Bz = 0
+  E_rho = 0; E_phi = 0; E_z = 0
+  B_rho = 0; B_phi = 0; B_z = 0
 
-      select case (mode%map%ele_anchor_pt)
-      case (anchor_beginning$); s0 = 0
-      case (anchor_center$);    s0 = ele%value(l$) / 2
-      case (anchor_end$);       s0 = ele%value(l$)
-      case default
-        call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD MODE IN ELEMENT: ' // ele%name)
-        if (global_com%exit_on_error) call err_exit
-      end select
+  do i = 1, size(ele%em_field%mode)
+    mode => ele%em_field%mode(i)
+    m = mode%m
 
-      do n = 1, size(mode%map%term)
+    Er = 0; Ep = 0; Ez = 0
+    Br = 0; Bp = 0; Bz = 0
 
-        term => mode%map%term(n)
-        k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
-        if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
+    Er_dc = 0; Ep_dc = 0; Ez_dc = 0
+    Br_dc = 0; Bp_dc = 0; Bz_dc = 0
 
-        expi = cmplx(cos(k_zn * (s_rel-s0)), sin(k_zn * s_rel))
+    if (mode%harmonic /= 0) k_t = twopi * ele%value(rf_frequency$) * mode%harmonic / c_light
 
+    select case (mode%map%ele_anchor_pt)
+    case (anchor_beginning$); s0 = 0
+    case (anchor_center$);    s0 = ele%value(l$) / 2
+    case (anchor_end$);       s0 = ele%value(l$)
+    case default
+      call out_io (s_fatal$, r_name, 'BAD ELE_ANCHOR_PT FOR FIELD MODE IN ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+    end select
+
+    do n = 1, size(mode%map%term)
+
+      term => mode%map%term(n)
+      k_zn = twopi * (n - 1) / (size(mode%map%term) * mode%map%dz)
+      if (2 * n > size(mode%map%term)) k_zn = k_zn - twopi / mode%map%dz
+
+      cos_ks = cos(k_zn * (s_rel-s0))
+      sin_ks = sin(k_zn * (s_rel-s0))
+      exp_kz = cmplx(cos_ks, sin_ks)
+
+      ! DC
+      if (mode%harmonic == 0) then
+
+        kap_rho = k_zn * radius
+        if (m == 0) then
+          Im_0    = I_bessel(0, kap_rho)
+          Im_plus = I_bessel(1, kap_rho)
+          Er_dc = Er_dc + real(term%e_coef * exp_kz * Im_plus)
+          Br_dc = Br_dc + real(term%b_coef * exp_kz * Im_plus)
+          Ez_dc = Ez_dc + real(term%e_coef * exp_kz * Im_0 * i_imaginary)
+          Bz_dc = Bz_dc + real(term%b_coef * exp_kz * Im_0 * i_imaginary)
+        else
+          Im_plus  = I_bessel(m+1, kap_rho)
+          Im_minus = I_bessel(m-1, kap_rho)
+          Im_0     = kap_rho * (Im_minus - Im_plus) / (2 * m)
+          exp_m = cmplx(cos(m * phi), sin(m * phi))
+
+          q = exp_kz * exp_m * (Im_minus + Im_plus) / 2
+          Er_dc = Er_dc + real(term%e_coef * q)
+          Br_dc = Br_dc + real(term%b_coef * q)
+
+          q = i_imaginary * exp_kz * exp_m * (Im_minus - Im_plus) / 2
+          Ep_dc = Ep_dc + real(term%e_coef * q)
+          Bp_dc = Bp_dc + real(term%b_coef * q)
+
+          q = i_imaginary * exp_kz * exp_m * Im_0
+          Ez_dc = Ez_dc + real(term%e_coef * q)
+          Bz_dc = Bz_dc + real(term%b_coef * q)
+        endif
+
+      ! RF mode 
+      else
         kappa2_n = k_zn**2 - k_t**2
         kappa_n = sqrt(abs(kappa2_n))
         kap_rho = kappa_n * radius
@@ -700,22 +744,22 @@ case(map$)
         endif
 
         if (m == 0) then
-          Im_0    = I_bessel(0, kap_rho)
-          Im_plus = I_bessel(1, kap_rho) / kappa_n
+          Im_0    = I_bessel_extended(0, kap_rho)
+          Im_plus = I_bessel_extended(1, kap_rho) / kappa_n
 
-          Er = Er - term%e_coef * Im_plus * expi * I_imaginary * k_zn
-          Ep = Ep + term%b_coef * Im_plus * expi
-          Ez = Ez + term%e_coef * Im_0    * expi
+          Er = Er - term%e_coef * Im_plus * exp_kz * I_imaginary * k_zn
+          Ep = Ep + term%b_coef * Im_plus * exp_kz
+          Ez = Ez + term%e_coef * Im_0    * exp_kz
 
-          Br = Br - term%b_coef * Im_plus * expi * k_zn
-          Bp = Bp - term%e_coef * Im_plus * expi * k_t**2 * I_imaginary
-          Bz = Bz - term%b_coef * Im_0    * expi * I_imaginary
+          Br = Br - term%b_coef * Im_plus * exp_kz * k_zn
+          Bp = Bp - term%e_coef * Im_plus * exp_kz * k_t**2 * I_imaginary
+          Bz = Bz - term%b_coef * Im_0    * exp_kz * I_imaginary
 
         else
-          cm = expi * cos(m * phi - mode%phi0_azimuth)
-          sm = expi * sin(m * phi - mode%phi0_azimuth)
-          Im_plus  = I_bessel(m+1, kap_rho) / kappa_n**(m+1)
-          Im_minus = I_bessel(m-1, kap_rho) / kappa_n**(m-1)
+          cm = exp_kz * cos(m * phi - mode%phi0_azimuth)
+          sm = exp_kz * sin(m * phi - mode%phi0_azimuth)
+          Im_plus  = I_bessel_extended(m+1, kap_rho) / kappa_n**(m+1)
+          Im_minus = I_bessel_extended(m-1, kap_rho) / kappa_n**(m-1)
 
           ! Reason for computing Im_0_R like this is to avoid divide by zero when radius = 0.
           Im_0_R  = (Im_minus - Im_plus * kappa_n**2) / (2 * m) ! = Im_0 / radius
@@ -731,46 +775,44 @@ case(map$)
                                         term%b_coef * k_zn * Im_0_R)
           Bz = Bz +               sm * (-term%e_coef * k_zn * Im_0 + term%b_coef * kappa2_n * Im_0 / m)
 
-
        endif
+      endif ! mode%harmonic /= 0
         
-      enddo
+    enddo  ! mode%term
 
-      ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
+    ! Notice that phi0, phi0_multipass, and phi0_err are folded into t_ref above.
 
+    if (mode%harmonic == 0) then
+      E_rho = E_rho + Er_dc
+      E_phi = E_phi + Ep_dc
+      E_z   = E_z   + Ez_dc
+
+      B_rho = B_rho + Br_dc
+      B_phi = B_phi + Bp_dc
+      B_z   = B_z   + Bz_dc
+    else
       freq = ele%value(rf_frequency$) * mode%harmonic
       expt = mode%field_scale * exp(-I_imaginary * twopi * (freq * (time + t_ref) + mode%phi0_ref))
       if (mode%master_scale > 0) expt = expt * ele%value(mode%master_scale)
-      E_rho = E_rho + Er * expt
-      E_phi = E_phi + Ep * expt
-      E_z   = E_z   + Ez * expt
+      E_rho = E_rho + real(Er * expt)
+      E_phi = E_phi + real(Ep * expt)
+      E_z   = E_z   + real(Ez * expt)
 
       expt = expt / (twopi * freq)
-      B_rho = B_rho + Br * expt
-      B_phi = B_phi + Bp * expt
-      B_z   = B_z   + Bz * expt
+      B_rho = B_rho + real(Br * expt)
+      B_phi = B_phi + real(Bp * expt)
+      B_z   = B_z   + real(Bz * expt)
+    endif
 
-    enddo
+  enddo
 
-    field%E = [cos(phi) * real(E_rho) - sin(phi) * real(E_phi), sin(phi) * real(E_rho) + cos(phi) * real(E_phi), real(E_z)]
-    field%B = [cos(phi) * real(B_rho) - sin(phi) * real(B_phi), sin(phi) * real(B_rho) + cos(phi) * real(B_phi), real(B_z)]
-
-  !------------------------------------------
-  ! Error
-
-  case default
-    call out_io (s_fatal$, r_name, 'ELEMENT NOT YET CODED FOR MAP METHOD: ' // key_name(ele%key), &
-                                   'FOR: ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-  end select
+  field%E = [cos(phi) * E_rho - sin(phi) * E_phi, sin(phi) * E_rho + cos(phi) * E_phi, E_z]
+  field%B = [cos(phi) * B_rho - sin(phi) * B_phi, sin(phi) * B_rho + cos(phi) * B_phi, B_z]
 
 !----------------------------------------------------------------------------
 ! Grid field calc 
 
 case(grid$)
-
-  !-----------------------------------------
-  ! 
 
   if (.not. associated(ele%em_field)) then
     call out_io (s_fatal$, r_name, 'No accociated em_field for field calc = Grid', 'FOR: ' // ele%name)
@@ -779,11 +821,11 @@ case(grid$)
     return
   endif
   
+  !-------------------
+  ! First calc reference time for oscillating elements
 
-
-  ! reference time for oscillating elements
   select case (ele%key)
-  case(rfcavity$, lcavity$) 
+  case(rfcavity$, lcavity$)
     ! Notice that it is mode%phi0_ref that is used below. Not ele%value(phi0_ref$).
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
     if (freq == 0) then
@@ -796,6 +838,7 @@ case(grid$)
     endif
     t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
     if (ele%key == rfcavity$) t_ref = 0.25/freq - t_ref
+
   case(e_gun$) 
     ! Same as above, but no error checking for zero frequency
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
@@ -804,15 +847,18 @@ case(grid$)
     else
       t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$)) / freq
     endif
+
   case default
     t_ref = 0
   end select
 
-  ! Loop over modes
+  !-------------------
+  ! Now loop over grid modes
+
   do i = 1, size(ele%em_field%mode)
     mode => ele%em_field%mode(i)
     m = mode%m
-    
+
     select case (mode%grid%ele_anchor_pt)
     case (anchor_beginning$); s0 = 0
     case (anchor_center$);    s0 = ele%value(l$) / 2
@@ -823,7 +869,7 @@ case(grid$)
       if (present(err_flag)) err_flag = .true.
       return
     end select
-    
+
     z = s_rel-s0
        
     ! Sbend grids are in cartesian coordinates
@@ -914,7 +960,7 @@ case(grid$)
   enddo
 
 !----------------------------------------------------------------------------
-! Unknown field calc
+! Unknown field_calc
 
 case default
   call out_io (s_fatal$, r_name, 'BAD FIELD_CALC METHOD FOR ELEMENT: ' // ele%name)
