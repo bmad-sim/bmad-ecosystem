@@ -280,8 +280,8 @@ if (significant_mode(0)) then
       kap_rho = -kap_rho
     endif
   
-    mode(0)%term(i)%e = Ez_fft(i) / (I_bessel(0, kap_rho) * n2_z)
-    mode(0)%term(i)%b = Ephi_fft(i) * kappa_n / (I_bessel(1, kap_rho) * n2_z)
+    mode(0)%term(i)%e = Ez_fft(i) / (I_bessel_extended(0, kap_rho) * n2_z)
+    mode(0)%term(i)%b = Ephi_fft(i) * kappa_n / (I_bessel_extended(1, kap_rho) * n2_z)
   enddo
 endif
 
@@ -316,10 +316,10 @@ do im = -m_max, m_max
       kap_rho = -kap_rho
     endif
   
-    mode(im)%term(i)%e = Ez_fft(i) * kappa_n**md%m / (I_bessel(md%m, kap_rho) * n2_z)
-    mode(im)%term(i)%b = (radius * kappa_n**md%m / I_bessel(md%m, kap_rho)) * &
+    mode(im)%term(i)%e = Ez_fft(i) * kappa_n**md%m / (I_bessel_extended(md%m, kap_rho) * n2_z)
+    mode(im)%term(i)%b = (radius * kappa_n**md%m / I_bessel_extended(md%m, kap_rho)) * &
           (i_imaginary * Erho_fft(i) / n2_z - &
-           k_z * mode(im)%term(i)%e * I_bessel(md%m+1, kap_rho)/kappa_n**(md%m+1))
+           k_z * mode(im)%term(i)%e * I_bessel_extended(md%m+1, kap_rho)/kappa_n**(md%m+1))
 
     abell_mode%term(i)%e = mode(im)%term(i)%e * dz / kappa_n**md%m
     abell_mode%term(i)%b = mode(im)%term(i)%b * dz / kappa_n**md%m
@@ -442,9 +442,9 @@ do i = 1, n2_z
     kap_rho = -kap_rho
   endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho)
-  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * (I_bessel(1, kap_rho) / kappa_n)
-  Ephi_fft(i) = mode(0)%term(i)%b * (I_bessel(1, kap_rho) / kappa_n)
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel_extended(0, kap_rho)
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * (I_bessel_extended(1, kap_rho) / kappa_n)
+  Ephi_fft(i) = mode(0)%term(i)%b * (I_bessel_extended(1, kap_rho) / kappa_n)
 enddo
 
 call four1(Ez_fft, 1)
@@ -494,9 +494,9 @@ do i = 1, n2_z
     kap_rho = -kap_rho
   endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, kap_rho/2)
-  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel(1, kap_rho/2) / kappa_n
-  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, kap_rho/2) / kappa_n
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel_extended(0, kap_rho/2)
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel_extended(1, kap_rho/2) / kappa_n
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel_extended(1, kap_rho/2) / kappa_n
 enddo
 
 call four1(Ez_fft, 1)
@@ -536,9 +536,9 @@ do i = 1, n2_z
     kap_rho = -kap_rho
   endif
 
-  Ez_fft(i) = mode(0)%term(i)%e * I_bessel(0, 0.0_rp)
-  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel(1, 0.0_rp) / kappa_n
-  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel(1, 0.0_rp) / kappa_n
+  Ez_fft(i) = mode(0)%term(i)%e * I_bessel_extended(0, 0.0_rp)
+  Erho_fft(i) = -i_imaginary * k_z * mode(0)%term(i)%e * I_bessel_extended(1, 0.0_rp) / kappa_n
+  Ephi_fft(i) = mode(0)%term(i)%b * I_bessel_extended(1, 0.0_rp) / kappa_n
 enddo
 
 call four1(Ez_fft, 1)

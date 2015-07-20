@@ -17,4 +17,7 @@ set (LINK_LIBS
   forest
   xsif
   ${PLOT_LINK_LIBS} 
+  fgsl
+  gsl
+  gslcblas
 )
