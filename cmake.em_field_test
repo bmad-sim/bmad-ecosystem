@@ -1,8 +1,6 @@
-set (EXENAME autoscale_test)
+set (EXENAME em_field_test)
 
-set (SRC_FILES
-  autoscale_test/autoscale_test.f90
-)
+FILE (GLOB SRC_FILES "em_field_test/*.f90")
 
 set (INC_DIRS
 )
