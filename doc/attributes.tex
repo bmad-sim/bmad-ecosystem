@@ -1883,7 +1883,7 @@ The multipole kick can be toggled on or off using the
 \end{example}
 
 %-----------------------------------------------------------------
-\section{EM Fields -- Tables and Maps}
+\section{EM Fields -- Grids and Maps}
 \label{s:em.fields}
 
 \index{field_calc}
@@ -1914,7 +1914,6 @@ However RF fields can only be associated with the following elements:
   lcavity
   rfcavity
 \end{example}
-Currently there is the restriction that DC fields must use \vn{grid}.
 
 The syntax for specifying the electromagnetic fields is
 \label{v:field}
@@ -1932,7 +1931,7 @@ The syntax for specifying the electromagnetic fields is
       field_scale   = <Real>,      ! Scale factor for the E & B fields.
       master_scale  = <Name>,      ! Master scaling parameter for E & B fields.
       phi0_azimuth  = <Real>,      ! Azimuthal orientation.
-      map           = \{<EM_field_map>\},     ! EM field map data
+      map           = \{<EM_field_map>\},    ! EM field map data
       grid          = \{<EM_field_grid>\} \}, ! EM field grid data
     mode = \{...\}\}
 \end{example}
@@ -2022,7 +2021,7 @@ through the cavity on crest for an \vn{e_gun} or  \vn{lcavity} and on the
 zero-crossing for an \vn{rfcavity}. 
 
 %-----------------------------------------------------------------
-\subsection{Map}
+\subsection{Field Map}
 
 The \vn{map} specification has the form
 \begin{example}
@@ -2034,8 +2033,8 @@ The \vn{map} specification has the form
     b_coef_im = (<Real>, <Real>, ....),  ! Imaginary part of b.
   \}
 \end{example}
-For rf fields the basic equations used for the mode decomposition of
-the rf fields are given in Section~\sref{s:rf.fields.phys}. 
+The basic equations used for the map decomposition of
+the fields are given in Section~\sref{s:rf.fields.phys}. 
 \vn{e_re} and \vn{e_im} give the real an imaginary part of $e$ and
 \vn{b_re} and \vn{b_im} give the real and imaginary part of $b$. All
 of these vectors must be present and have the same length. The
@@ -2053,18 +2052,15 @@ running from 0 to $N-1$, is associated with a wavelength $k_n$
 This convention follows the convention used by Numerical
 Recipes\cite{b:nr}.  
 
- The longitudinal length
-of the field is
+The longitudinal length of the field is
 \begin{equation}
   L_{\text{field}} = \frac{N - 1}{dz}
 \end{equation}
 this may be different from the length \vn{l} specified for the
-element. If there is a difference, the field is assumed to be centered
-on the element and drifts will be used at the entrance and exit ends
-of the element to make up the difference.
+element.
 
 %-----------------------------------------------------------------
-\subsection {Grid}
+\subsection {Field Grid}
 \label{ss:grid}
 
 A grid of field points in Cartesian coordinates can be specified using the general format:
