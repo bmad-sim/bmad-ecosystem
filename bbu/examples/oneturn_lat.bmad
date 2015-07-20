@@ -1,2 +1,2 @@
-call, file = 'examples/oneturn_lat_examp.bmad' 
-call, file = 'examples/oneturn_assignHOMs.bmad'  
+call, file = '~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat_examp.bmad' 
+call, file = '~/nfs/linux_lib/bsim/bbu/examples/oneturn_assignHOMs.bmad'  

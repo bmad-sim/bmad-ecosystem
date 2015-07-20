@@ -282,12 +282,12 @@ do
       hom_voltage_normalized = -1   ! Dummy value for output
     endif
 
-    write(*,'(a,i8,a,es15.6,5x,a,es15.6/,a,es13.6,a,i9,a/,a,es13.6)')&
-         ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
-         ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
-         ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
-         '   over ', n_count, ' bunch passages', &
-         ' HOM normalized voltage (gain factor): ', hom_voltage_normalized
+!    write(*,'(a,i8,a,es15.6,5x,a,es15.6/,a,es13.6,a,i9,a/,a,es13.6)')&
+!         ' Period ', n_period_old,'   Time: ',bbu_beam%time_now, &
+!         ' Beam current(A): ',beam_init%bunch_charge / beam_init%dt_bunch, &
+!         ' Sum of max HOM wake amplitudes (V): ', hom_voltage_sum, &
+!         '   over ', n_count, ' bunch passages', &
+!         ' HOM normalized voltage (gain factor): ', hom_voltage_normalized
 
     !write to file for Voltage v Turns plot
     !write(21,'(i8,a,es13.6)') n_period_old,'       ',hom_voltage_sum
@@ -297,7 +297,7 @@ do
         if (hom_voltage_normalized < 1/bbu_param%limit_factor) exit
         if (hom_voltage_normalized > bbu_param%limit_factor) exit      
       else
-        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_normalized
+!        write(57,'(2i10,e13.6,x,i8,x,e15.6)')irep,n_period_old,hom_voltage_sum,n_count,hom_voltage_normalized
       endif
     endif
 
@@ -686,7 +686,7 @@ do i = 1, lat%n_ele_track
       enddo
     endif
     if (judge) then
-      write(20, *) ' Storing time for HOM cavity',k,time
+!      write(20, *) ' Storing time for HOM cavity',k,time
       erltime(k)=time
       time=0
       k=k+1       
