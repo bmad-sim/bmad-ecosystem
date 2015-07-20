@@ -958,7 +958,7 @@ real(rp) normalization, area, cut, dtime
 real(rp) total_dead_intens, pix_in_file_intens
 real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
-real(rp) phase_x, phase_y, x, y
+real(rp) phase_x, phase_y, x, y, energy_rms, x_pitch_rms, y_pitch_rms
 
 integer i, j, nx, ny
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
@@ -980,6 +980,10 @@ do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_m
   if (pix%intensity == 0) cycle
   pix%energy_ave = pix%energy_ave / pix%intensity
   pix%energy_rms = pix%energy_rms / pix%intensity
+  pix%x_pitch_ave = pix%x_pitch_ave / pix%intensity
+  pix%x_pitch_rms = pix%x_pitch_rms / pix%intensity
+  pix%y_pitch_ave = pix%y_pitch_ave / pix%intensity
+  pix%y_pitch_rms = pix%y_pitch_rms / pix%intensity
 enddo; enddo
 
 !------------------------------------------
@@ -994,7 +998,7 @@ area = fourpi
 normalization = lux_param%intensity_normalization_coef * area / (lux_data%n_track_tot * fourpi)
 
 if (lux_param%det_pix_out_file /= '') then
-  open (3, file = lux_param%det_pix_out_file, recl = 160)
+  open (3, file = lux_param%det_pix_out_file, recl = 200)
   intens_max = maxval(detec_grid%pt%intensity)
   cut = max(0.0_rp, intens_max * lux_param%intensity_min_det_pixel_cutoff)
 
@@ -1025,7 +1029,7 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, i8)')     'ny_active_min       =', ny_active_min
   write (3, '(a, i8)')     'ny_active_max       =', ny_active_max
   write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity    N_photon     E_ave     E_rms'
+  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity    N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
   do j = lux_data%ny_min, lux_data%ny_max
@@ -1037,9 +1041,13 @@ if (lux_param%det_pix_out_file /= '') then
       phase_x = atan2(aimag(pix%e_x), real(pix%e_x))
       phase_y = atan2(aimag(pix%e_y), real(pix%e_y))
     endif
-    write (3, '(2i8, 2es13.5, 5es14.5, i12, f10.3, f10.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+    energy_rms = sqrt(max(0.0_rp, pix%energy_rms - pix%energy_ave**2))
+    x_pitch_rms = sqrt(max(0.0_rp, pix%x_pitch_rms - pix%x_pitch_ave**2))
+    y_pitch_rms = sqrt(max(0.0_rp, pix%y_pitch_rms - pix%y_pitch_ave**2))
+    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3, 4f11.6)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
            pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
-           pix%intensity * normalization, pix%n_photon, pix%energy_ave, pix%energy_rms
+           pix%intensity * normalization, pix%n_photon, pix%energy_ave, energy_rms, &
+           pix%x_pitch_ave, x_pitch_rms, pix%y_pitch_ave, y_pitch_rms
     pix_in_file_intens = pix_in_file_intens + pix%intensity 
   enddo
   enddo
@@ -1048,8 +1056,8 @@ if (lux_param%det_pix_out_file /= '') then
   ! det_pix_out_file.x
 
   open (3, file = trim(lux_param%det_pix_out_file) // '.x')
-  write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     ix        x_pix      ntensity_x     Intensity_y       Intensity    N_photon     E_ave     E_rms'
+  write (3, '(a)') '#-----------------------------------------------------'
+  write (3, '(a)') '#     ix        x_pix      ntensity_x     Intensity_y       Intensity    N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
   do i = lux_data%nx_min, lux_data%nx_max
     pixel = surface_grid_pt_struct()
     pixel%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
@@ -1059,21 +1067,29 @@ if (lux_param%det_pix_out_file /= '') then
     if (pixel%intensity == 0) then
       pixel%energy_ave = 0
       pixel%energy_rms = 0
+      pixel%x_pitch_ave = 0
+      pixel%x_pitch_rms = 0
+      pixel%y_pitch_ave = 0
+      pixel%y_pitch_rms = 0
     else
       pixel%energy_ave = sum(detec_grid%pt(i,:)%energy_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
       pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%energy_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%energy_ave**2))
+      pixel%x_pitch_ave = sum(detec_grid%pt(i,:)%x_pitch_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
+      pixel%x_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%x_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%x_pitch_ave**2))
+      pixel%y_pitch_ave = sum(detec_grid%pt(i,:)%y_pitch_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
+      pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%y_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, f10.3, f10.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
-                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms
+                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
   close(3)
 
   ! det_pix_out_file.y
 
   open (3, file = trim(lux_param%det_pix_out_file) // '.y')
-  write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#     iy        y_pix      Intensity_x     Intensity_y       Intensity   N_photon     E_ave     E_rms'
+  write (3, '(a)') '#-----------------------------------------------------'
+  write (3, '(a)') '#     iy        y_pix      Intensity_x     Intensity_y       Intensity   N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
   do j = lux_data%ny_min, lux_data%ny_max
     pixel = surface_grid_pt_struct()
     pixel%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
@@ -1083,13 +1099,21 @@ if (lux_param%det_pix_out_file /= '') then
     if (pixel%intensity == 0) then
       pixel%energy_ave = 0
       pixel%energy_rms = 0
+      pixel%x_pitch_ave = 0
+      pixel%x_pitch_rms = 0
+      pixel%y_pitch_ave = 0
+      pixel%y_pitch_rms = 0
     else
       pixel%energy_ave = sum(detec_grid%pt(:,j)%energy_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
       pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%energy_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%energy_ave**2)) 
+      pixel%x_pitch_ave = sum(detec_grid%pt(:,j)%x_pitch_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
+      pixel%x_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%x_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%x_pitch_ave**2))
+      pixel%y_pitch_ave = sum(detec_grid%pt(:,j)%y_pitch_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
+      pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%y_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, f10.3, f10.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
                        pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
-                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms
+                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
   close(3)
 

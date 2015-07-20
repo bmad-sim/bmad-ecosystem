@@ -675,9 +675,12 @@ file are:
   n_photon          ! Number of photons hitting pixel
   E_ave             ! Average energy deviation from reference (eV)
   E_rms             ! RMS about the average energy (eV)
+  x_ang_ave         ! Average angle in the x-z plane of the stricking photons.
+  y_ang_ave         ! Average angle in the y-z plane of the stricking photons.
 \end{example}
-\vn{E_ave} is an intensity weighted average photon energy deviation
-from the reference energy at a pixel. \vn{E_rms} is the RMS variation
+All averages (\vn{E_ave}, \vn{x_ang_ave}, and \vn{y_ang_ave}) are
+intensity weighted averages. \vn{E_ave} is the photon energy deviation
+from the reference energy. \vn{E_rms} is the RMS variation
 of the photon energy with respect to \vn{E_ave}.
 
 In addition to the pixel-by-pixel data file, three additional files
