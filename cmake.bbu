@@ -19,7 +19,10 @@ set (LINK_LIBS
   forest
   pgplot
   xsif
-	lapack95
+  lapack95
   lapack
   blas
+  fgsl
+  gsl
+  gslcblas
 )

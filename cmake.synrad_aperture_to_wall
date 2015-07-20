@@ -17,4 +17,7 @@ set (LINK_LIBS
   forest
   pgplot
   xsif
+  fgsl
+  gsl
+  gslcblas
 )

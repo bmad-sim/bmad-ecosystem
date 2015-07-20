@@ -20,7 +20,7 @@ set (LINK_LIBS
   gslcblas
   ${PLOT_LINK_LIBS}
   xsif
-	lapack95
+  lapack95
   lapack
   blas
 )
