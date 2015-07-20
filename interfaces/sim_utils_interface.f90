@@ -197,6 +197,13 @@ interface
     import
     implicit none
     integer m
+    real(rp) arg, i_bes
+  end function
+
+  function I_bessel_extended(m, arg) result (i_bes)
+    import
+    implicit none
+    integer m
     real(rp) arg
     complex(rp) i_bes
   end function
