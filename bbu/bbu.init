@@ -1,22 +1,18 @@
 &bbu_params
-
-  bbu_param%lat_filename = 'examples/oneturn_lat.bmad'
-  bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
-  bbu_param%limit_factor = 3 !1e-3              ! Init_hom_amp * limit_factor = simulation unstable limit
-                                              ! Must be greater than 2
-  bbu_param%simulation_turns_max = 1000         ! Must be greater than 10
-  bbu_param%hybridize = .true.                ! Combine non-hom elements to speed up simulation?
-  bbu_param%keep_overlays_and_groups = .false. ! Keep when hybridizing?
-  bbu_param%keep_all_lcavities = .true.       ! Keep when hybridizing?
-  bbu_param%current = 1.0242608554218067               ! Starting current (amps) set from bbu.py; set current in bbu_params.py
-  bbu_param%rel_tol = 1e-3                    ! Final threshold current accuracy.
-  bbu_param%write_hom_info = .true.  
-  bbu_param%elname = 'T1'                     ! Element to step length for DRSCAN, default is arc
-  bbu_param%nstep = 50                        ! Number of steps for DRSCAN
-
-  bbu_param%lat2_filename = ''                ! Changed for drscan
-
-  bbu_param%nrep = 1500                       ! Number of times to repeat threshold calculation
-  bbu_param%ran_seed = 0                       ! Set specific seed if desired (0 uses system clock)
-  bbu_param%ran_gauss_sigma_cut = 3           ! If positive, limit ran_gauss values to within N sigma
+  bbu_param%lat_filename = '~/nfs/linux_lib/bsim/bbu/examples/oneturn_lat.bmad'
+  bbu_param%keep_overlays_and_groups = .false.
+  bbu_param%simulation_turns_max = 1000
+  bbu_param%ran_seed = 5
+  bbu_param%elname = 'T1'
+  bbu_param%nstep = 50
+  bbu_param%current = 1.7618284598158064e-41
+  bbu_param%hybridize = .true.
+  bbu_param%rel_tol = 1
+  bbu_param%nrep = 1500
+  bbu_param%write_hom_info = .true.
+  bbu_param%lat2_filename = ''
+  bbu_param%limit_factor = 1
+  bbu_param%keep_all_lcavities = .true.
+  bbu_param%ran_gauss_sigma_cut = 3
+  bbu_param%bunch_freq = 1300000000.0
 /

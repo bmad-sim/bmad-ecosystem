@@ -150,7 +150,7 @@ print *, 'Number of elements in lattice:      ', lat%n_ele_track
 lat = lat0 ! Restore lr wakes
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
 o = lunget() 
-open(o, file = 'scripts/for_py.txt', status = 'unknown')
+open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
 write(o,'(a, es14.6)') 'v_gain = ', hom_voltage_gain
 write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 

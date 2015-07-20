@@ -1,1 +1,1 @@
-cavity1[lr_wake] = examples/vhoms_cavity_1.dat
+cavity1[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
