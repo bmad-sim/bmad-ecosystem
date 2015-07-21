@@ -54,8 +54,8 @@ do i = 1, size(d_dat)
   case ('veto')
     d_dat(i)%d%good_user = .false.
   case default
-    call out_io (s_error$, r_name, "Internal error picking name$%use_veto_restore")
-    err = .true.
+    call out_io (s_error$, r_name, "Internal error picking use/veto/restore")
+    return
   end select
 enddo
 
