@@ -665,10 +665,16 @@ void set_CPP_wig_term_test_pattern (CPP_wig_term& C, int ix_patt) {
   rhs = 4 + offset; C.kz = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.phi_z = rhs;
+  rhs = 5 + offset; C.phi_x = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 6 + offset; C.phi_y = rhs;
+
+  // c_side.test_pat[real, 0, NOT]
+  rhs = 7 + offset; C.phi_z = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.type = rhs;
+  rhs = 8 + offset; C.type = rhs;
 
 
 }

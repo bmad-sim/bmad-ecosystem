@@ -1639,11 +1639,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wig_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_phi_z, z_type) bind(c)
+  subroutine wig_term_to_c2 (C, z_coef, z_kx, z_ky, z_kz, z_phi_x, z_phi_y, z_phi_z, z_type) &
+      bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_phi_z
+    real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_phi_x, z_phi_y, z_phi_z
     integer(c_int) :: z_type
   end subroutine
 end interface
@@ -1660,7 +1661,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call wig_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%phi_z, F%type)
+call wig_term_to_c2 (C, F%coef, F%kx, F%ky, F%kz, F%phi_x, F%phi_y, F%phi_z, F%type)
 
 end subroutine wig_term_to_c
 
@@ -1680,7 +1681,8 @@ end subroutine wig_term_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wig_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_phi_z, z_type) bind(c)
+subroutine wig_term_to_f2 (Fp, z_coef, z_kx, z_ky, z_kz, z_phi_x, z_phi_y, z_phi_z, z_type) &
+    bind(c)
 
 
 implicit none
@@ -1689,7 +1691,7 @@ type(c_ptr), value :: Fp
 type(wig_term_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_phi_z
+real(c_double) :: z_coef, z_kx, z_ky, z_kz, z_phi_x, z_phi_y, z_phi_z
 integer(c_int) :: z_type
 
 call c_f_pointer (Fp, F)
@@ -1702,6 +1704,10 @@ F%kx = z_kx
 F%ky = z_ky
 !! f_side.to_f2_trans[real, 0, NOT]
 F%kz = z_kz
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi_x = z_phi_x
+!! f_side.to_f2_trans[real, 0, NOT]
+F%phi_y = z_phi_y
 !! f_side.to_f2_trans[real, 0, NOT]
 F%phi_z = z_phi_z
 !! f_side.to_f2_trans[integer, 0, NOT]

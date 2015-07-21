@@ -1037,9 +1037,13 @@ rhs = 3 + offset; F%ky = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%kz = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%phi_z = rhs
+rhs = 5 + offset; F%phi_x = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%phi_y = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 7 + offset; F%phi_z = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%type = rhs
+rhs = 8 + offset; F%type = rhs
 
 end subroutine set_wig_term_test_pattern
 

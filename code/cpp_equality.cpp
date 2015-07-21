@@ -220,6 +220,8 @@ bool operator== (const CPP_wig_term& x, const CPP_wig_term& y) {
   is_eq = is_eq && (x.kx == y.kx);
   is_eq = is_eq && (x.ky == y.ky);
   is_eq = is_eq && (x.kz == y.kz);
+  is_eq = is_eq && (x.phi_x == y.phi_x);
+  is_eq = is_eq && (x.phi_y == y.phi_y);
   is_eq = is_eq && (x.phi_z == y.phi_z);
   is_eq = is_eq && (x.type == y.type);
   return is_eq;

@@ -561,18 +561,18 @@ extern "C" void wig_term_to_c (const Bmad_wig_term_class*, CPP_wig_term&);
 
 // c_side.to_f2_arg
 extern "C" void wig_term_to_f2 (Bmad_wig_term_class*, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Int&);
+    c_Real&, c_Real&, c_Real&, c_Int&);
 
 extern "C" void wig_term_to_f (const CPP_wig_term& C, Bmad_wig_term_class* F) {
 
   // c_side.to_f2_call
-  wig_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.phi_z, C.type);
+  wig_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.phi_x, C.phi_y, C.phi_z, C.type);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c_Real& z_ky,
-    c_Real& z_kz, c_Real& z_phi_z, c_Int& z_type) {
+    c_Real& z_kz, c_Real& z_phi_x, c_Real& z_phi_y, c_Real& z_phi_z, c_Int& z_type) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.coef = z_coef;
@@ -582,6 +582,10 @@ extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c
   C.ky = z_ky;
   // c_side.to_c2_set[real, 0, NOT]
   C.kz = z_kz;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi_x = z_phi_x;
+  // c_side.to_c2_set[real, 0, NOT]
+  C.phi_y = z_phi_y;
   // c_side.to_c2_set[real, 0, NOT]
   C.phi_z = z_phi_z;
   // c_side.to_c2_set[integer, 0, NOT]

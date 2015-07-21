@@ -705,6 +705,8 @@ public:
   Real kx;
   Real ky;
   Real kz;
+  Real phi_x;
+  Real phi_y;
   Real phi_z;
   Int type;
 
@@ -713,6 +715,8 @@ public:
     kx(0.0),
     ky(0.0),
     kz(0.0),
+    phi_x(0.0),
+    phi_y(0.0),
     phi_z(0.0),
     type(0)
     {}
