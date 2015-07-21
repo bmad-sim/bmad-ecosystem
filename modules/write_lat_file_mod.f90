@@ -825,9 +825,9 @@ do ib = 0, ubound(lat%branch, 1)
         wt = ele%wig%term(j)
         last = '}, &'
         if (j == size(ele%wig%term)) last = '}'
-        write (iu, '(a, i3, 11a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
+        write (iu, '(a, i3, 15a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
           trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &
-          ', ', trim(str(wt%phi_z)), trim(last)  
+          ', ', trim(str(wt%phi_x)), ', ', trim(str(wt%phi_y)), ', ', trim(str(wt%phi_z)), trim(last)  
       enddo
     else
       call write_lat_line (line, iu, .true.)  

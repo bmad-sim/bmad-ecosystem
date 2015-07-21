@@ -502,24 +502,24 @@ case (bmad_standard$)
       wig => ele%wig%term(i)
 
       if (wig%type == hyper_y$) then
-        c_x = cos(wig%kx * x)
-        s_x = sin(wig%kx * x)
+        c_x = cos(wig%kx * x + wig%phi_x)
+        s_x = sin(wig%kx * x + wig%phi_x)
         sgn_x = 1
         dc_x = -1
       else
-        c_x = cosh(wig%kx * x)
-        s_x = sinh(wig%kx * x)
+        c_x = cosh(wig%kx * x + wig%phi_x)
+        s_x = sinh(wig%kx * x + wig%phi_x)
         sgn_x = -1
         dc_x = 1
       endif
 
       if (wig%type == hyper_y$ .or. wig%type == hyper_xy$) then
-        c_y = cosh (wig%ky * y)
-        s_y = sinh (wig%ky * y)
+        c_y = cosh (wig%ky * y + wig%phi_y)
+        s_y = sinh (wig%ky * y + wig%phi_y)
         dc_y = 1
       else
-        c_y = cos (wig%ky * y)
-        s_y = sin (wig%ky * y)
+        c_y = cos (wig%ky * y + wig%phi_y)
+        s_y = sin (wig%ky * y + wig%phi_y)
         dc_y = -1
       endif
 

@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 159
+integer, parameter :: bmad_inc_version$ = 160
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -343,10 +343,10 @@ character(8), parameter :: wig_term_type_name(0:3) = ['Garbage ', 'Hyper_Y ', 'H
 ! Single wiggler term
 
 type wig_term_struct
-  real(rp) coef
-  real(rp) kx, ky, kz
-  real(rp) phi_z
-  integer type      ! hyper_y$, hyper_xy$, or hyper_x$
+  real(rp) :: coef = 0
+  real(rp) :: kx = 0, ky = 0, kz = 0
+  real(rp) :: phi_x = 0, phi_y = 0, phi_z = 0
+  integer :: type = 0        ! hyper_y$, hyper_xy$, or hyper_x$
 end type
 
 ! Wiggler field

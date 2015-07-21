@@ -3426,9 +3426,7 @@ if (key == wiggler$ .or. key == undulator$) then
 
   if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
                                         hyper_xy$ /= hyperbolic_xydollar) then
-    print *, 'ERROR IN ELE_TO_FIBRE: WIGGLER FORM/TYPE MISMATCH!'
-    print *, '     ', hyper_y$, hyper_xy$, hyper_x$
-    print *, '     ', hyperbolic_ydollar, hyperbolic_xydollar, hyperbolic_xdollar
+    call out_io (s_fatal$, r_name, 'WIGGLER FORM/TYPE MISMATCH!')
     if (global_com%exit_on_error) call err_exit
   endif
 
@@ -3445,6 +3443,11 @@ if (key == wiggler$ .or. key == undulator$) then
   ptc_fibre%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
   ptc_fibre%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
   ptc_fibre%mag%wi%w%form(1:n_term) = ele2%wig%term%type
+  if (any(ele2%wig%term%phi_x /= 0) .or. any(ele2%wig%term%phi_y /= 0)) then
+    call out_io (s_fatal$, r_name, 'WIGGLER WITH TERM WITH NON-ZERO PHI_X OR PHI_Y NOT YET IMPLEMENTED IN PTC!', &
+                                   'PLEASE CONTACT DAVID SAGAN!')
+    if (global_com%exit_on_error) call err_exit
+  endif
 
   ! Correct z-position 
 

@@ -330,6 +330,10 @@ is_eq = is_eq .and. (f1%ky == f2%ky)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%kz == f2%kz)
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi_x == f2%phi_x)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%phi_y == f2%phi_y)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi_z == f2%phi_z)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%type == f2%type)
