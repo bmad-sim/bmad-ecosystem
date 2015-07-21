@@ -1000,20 +1000,17 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
 
   err_str = trim(ele%name) // ' ' // str_ix
 
-  call evaluate_value (err_str, ele%wig%term(ix)%coef, lat, delim, delim_found, err_flag, ',')
-  if (err_flag) return
- 
-  call evaluate_value (err_str, ele%wig%term(ix)%kx, lat, delim, delim_found, err_flag, ',')
-  if (err_flag) return
+  call evaluate_value (err_str, ele%wig%term(ix)%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
+  call evaluate_value (err_str, ele%wig%term(ix)%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ele%wig%term(ix)%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ele%wig%term(ix)%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
-  call evaluate_value (err_str, ele%wig%term(ix)%ky, lat, delim, delim_found, err_flag, ',')
-  if (err_flag) return
-
-  call evaluate_value (err_str, ele%wig%term(ix)%kz, lat, delim, delim_found, err_flag, ',')
-  if (err_flag) return
-
-  call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, '}')
-  if (err_flag) return
+  if (delim == ',') then
+    ele%wig%term(ix)%phi_x = ele%wig%term(ix)%phi_z
+    call evaluate_value (err_str, ele%wig%term(ix)%phi_y, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, '}'); if (err_flag) return
+  endif
 
   kx = ele%wig%term(ix)%kx
   ky = ele%wig%term(ix)%ky

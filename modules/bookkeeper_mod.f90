@@ -2654,6 +2654,8 @@ case (wiggler$, undulator$)
     ele%wig%term(1)%coef   = val(b_max$)
     ele%wig%term(1)%kx     = 0
     ele%wig%term(1)%kz     = ele%wig%term(1)%ky
+    ele%wig%term(1)%phi_x  = 0
+    ele%wig%term(1)%phi_y  = 0
     ele%wig%term(1)%phi_z  = -ele%wig%term(1)%kz * val(l$) / 2 
     ele%wig%term(1)%type   = hyper_y$
   endif

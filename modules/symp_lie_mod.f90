@@ -691,7 +691,7 @@ real(rp) cos_kyy(1:num_wig_terms)
 
 integer n_trig, n_hypr
 
-kyy(1:num_wig_terms) = wig_term(1:num_wig_terms)%ky * end_orb%vec(3)
+kyy(1:num_wig_terms) = wig_term(1:num_wig_terms)%ky * end_orb%vec(3) + wig_term(1:num_wig_terms)%phi_y
 n_hypr = 0
 n_trig = 0
 do j = 1, num_wig_terms
@@ -773,7 +773,7 @@ real(rp) spz_offset
 
 integer n_hypr, n_trig
 
-kxx(1:num_wig_terms) = wig_term(1:num_wig_terms)%kx * end_orb%vec(1)
+kxx(1:num_wig_terms) = wig_term(1:num_wig_terms)%kx * end_orb%vec(1) + wig_term(1:num_wig_terms)%phi_x
 n_hypr = 0
 n_trig = 0
 do j = 1, num_wig_terms
