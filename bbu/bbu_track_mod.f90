@@ -45,7 +45,6 @@ type bbu_param_struct
   character(100) :: bunch_by_bunch_info_file = '' ! For outputting bunch-by-bunch info.
   type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
-  logical :: write_hom_info = .true.             ! Write HOM parameters to main output file?
   logical :: keep_overlays_and_groups = .false.  ! Keep when hybridizing?
   logical :: keep_all_lcavities  = .false.       ! Keep when hybridizing?
   logical :: use_taylor_for_hybrids = .false.    ! Use taylor map for hybrids when true. Otherwise tracking method is linear.
@@ -96,14 +95,12 @@ real(rp) dt_bunch, rr(4)
 character(16) :: r_name = 'bbu_setup'
 
 ! Size bbu_beam%bunch
-
 if (dt_bunch == 0) then
   call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
   call err_exit
 endif
 
 ! Find all elements that have a lr wake.
-
 n_stage = 0
 do i = 1, lat%n_ele_track
   ele => lat%ele(i)
@@ -165,7 +162,6 @@ do i = 1, lat%n_ele_track
 enddo
 
 ! Bunch init
-
 if (bbu_param%ix_ele_track_end == -1) bbu_param%ix_ele_track_end = bbu_beam%stage(n_stage)%ix_ele_lr_wake
 ix_track_end = bbu_param%ix_ele_track_end 
 
@@ -206,7 +202,6 @@ logical lost
 character(16) :: r_name = 'bbu_track_all'
 
 ! Setup.
-
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
 call lattice_bookkeeper (lat)
@@ -219,7 +214,6 @@ enddo
 call reallocate_coord (orbit, lat%n_ele_track)
 
 ! init time at hom and hom_voltage
-
 bbu_beam%stage%hom_voltage_max = 0
 bbu_beam%hom_voltage_max = 0
 bbu_beam%ix_stage_voltage_max = 1
@@ -247,14 +241,12 @@ do
   if (lost) exit
 
   ! If the head bunch is finished then remove it and seed a new one.
-
   if (bbu_beam%bunch(bbu_beam%ix_bunch_head)%ix_ele == bbu_param%ix_ele_track_end) then
     call bbu_remove_head_bunch (bbu_beam)
     call bbu_add_a_bunch (lat, bbu_beam, bbu_param, beam_init)
   endif
 
   ! Test for the end of the period
-
   r_period = bbu_beam%time_now / bbu_beam%one_turn_time
   n_period = int(r_period) + 1
 
@@ -302,7 +294,6 @@ do
     endif
 
     ! Exit loop over periods of max period reached
-
     if (r_period > bbu_param%simulation_turns_max) then
       call out_io (s_warn$, r_name, 'Simulation turns max exceeded -- Ending Tracking  \f10.2\ ', &
                                                    r_array = (/ hom_voltage_normalized /) )
@@ -329,7 +320,6 @@ do
 enddo
 
 ! Finalize
-
 bmad_com%auto_bookkeeper = .true.
 
 
@@ -339,7 +329,6 @@ end subroutine bbu_track_all
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! This routine tracks one bunch through one stage.
-
 subroutine bbu_track_a_stage (lat, bbu_beam, bbu_param, lost)
 
 implicit none
@@ -360,13 +349,11 @@ character(20) :: r_name = 'bbu_track_a_stage'
 logical err, lost
 
 ! Look at each stage track the bunch with the earliest time to finish and track this stage.
-
 i_stage_min = minloc(bbu_beam%stage%time_at_wake_ele, 1)
 this_stage => bbu_beam%stage(i_stage_min)
 bbu_beam%time_now = this_stage%time_at_wake_ele
 
 ! With the last stage track to the end of the lattice
-
 ix_ele_end = this_stage%ix_ele_lr_wake
 if (i_stage_min == size(bbu_beam%stage)) ix_ele_end = bbu_param%ix_ele_track_end
 ie = bbu_param%ix_ele_track_end
@@ -376,7 +363,6 @@ ib = this_stage%ix_head_bunch
 ix_ele_start = bbu_beam%bunch(ib)%ix_ele
 
 ! Track the bunch
-
 do j = ix_ele_start+1, ix_ele_end
 
   call track1_bunch(bbu_beam%bunch(ib), lat, lat%ele(j), bbu_beam%bunch(ib), err)
@@ -400,7 +386,6 @@ do j = ix_ele_start+1, ix_ele_end
 enddo
 
 ! Write info to file if needed
-
 if (bbu_param%bunch_by_bunch_info_file /= '') call write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 ! If the next stage does not have any bunches waiting to go through then the
@@ -428,7 +413,6 @@ else
 endif
 
 ! Now correct min_time array
-
 ix_bunch = this_stage%ix_head_bunch
 if (ix_bunch < 0) then
   this_stage%time_at_wake_ele = 1e30  ! something large
@@ -446,7 +430,6 @@ if (i_stage_min /= size(bbu_beam%stage)) then  ! If not last stage
 endif
 
 ! Misc.
-
 bbu_beam%ix_last_stage_tracked = i_stage_min
 lost = .false.
 
@@ -472,7 +455,6 @@ real(rp) r(2), t_rel, d_charge
 character(20) :: r_name = 'bbu_add_a_bunch'
 
 ! Init bunch
-
 if (bbu_beam%ix_bunch_end == -1) then ! if no bunches
   ixb = bbu_beam%ix_bunch_head
 else
@@ -487,7 +469,6 @@ bunch => bbu_beam%bunch(ixb)
 call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
 
 ! Vary the bunch current if desired
-
 if (bbu_param%current_vary%variation_on) then
   t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
   d_charge = 0
@@ -523,7 +504,6 @@ if (bbu_param%current_vary%variation_on) then
 endif
 
 ! If this is not the first bunch need to correct some of the bunch information
-
 if (ixb /= bbu_beam%ix_bunch_head) then
   ix0 = bbu_beam%ix_bunch_end
   bunch%ix_bunch = bbu_beam%bunch(ix0)%ix_bunch + 1
@@ -534,7 +514,6 @@ endif
 bbu_beam%ix_bunch_end = ixb
 
 ! Offset particles if the particle is born within the first turn period.
-
 if (bunch%t_center < bbu_beam%one_turn_time) then
   do i = 1, size(bunch%particle)
     call ran_gauss (r)
@@ -556,18 +535,15 @@ type (bbu_beam_struct) bbu_beam
 character(20) :: r_name = 'bbu_remove_head_bunch'
 
 ! If there are no bunches then there is an error
-
 if (bbu_beam%ix_bunch_end == -1) then
   call out_io (s_fatal$, r_name, 'TRYING TO REMOVE NON-EXISTANT BUNCH!')
   call err_exit
 endif
 
 ! Mark ix_bunch_end if we are poping the last bunch.
-
 if (bbu_beam%ix_bunch_end == bbu_beam%ix_bunch_head) bbu_beam%ix_bunch_end = -1
 
 ! Update ix_bunch_head 
-
 bbu_beam%ix_bunch_head = modulo(bbu_beam%ix_bunch_head, size(bbu_beam%bunch)) + 1
 
 end subroutine bbu_remove_head_bunch
@@ -576,7 +552,6 @@ end subroutine bbu_remove_head_bunch
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 ! Calculates voltage in mode with maximal amplitude
-
 subroutine bbu_hom_voltage_calc (lat, bbu_beam)
 
 implicit none
@@ -590,7 +565,6 @@ real(rp) hom_voltage_max, hom_voltage2
 integer i, j, i1, ixm, ix
 
 ! Only need to update the last stage tracked
-
 hom_voltage_max = -1
 i = bbu_beam%ix_last_stage_tracked
 i1 = bbu_beam%stage(i)%ix_stage_pass1
@@ -605,12 +579,10 @@ do j = 1, size(lat%ele(ix)%wake%lr)
 enddo
 
 ! Update the new hom voltage.
-
 hom_voltage_max = sqrt(hom_voltage_max)
 bbu_beam%stage(i1)%hom_voltage_max = hom_voltage_max
 
 ! Find the maximum hom voltage in any element.
-
 if (hom_voltage_max > bbu_beam%hom_voltage_max) then
   bbu_beam%ix_stage_voltage_max = i1
   bbu_beam%hom_voltage_max = hom_voltage_max
@@ -659,8 +631,6 @@ real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
-!
-open(20, file = 'hom_infos.dat')
 !open(21, file = 'voltage_v_turns.txt', status = 'unknown', access = 'append')
 
 ! Initialize the identity matrix
@@ -856,7 +826,6 @@ kk=1
 enddo
 
 ! Analytic approxmation is valid only for a single HOM in a single cavity
-
 if (.not. anavalid) currth = 0.0
 deallocate (erlmat, erltime)
 
@@ -879,8 +848,6 @@ type (wake_lr_struct), pointer :: lr
 integer :: i, ios
 integer, save :: iu = 0
 
-!
-
 if (iu == 0) then
   iu = lunget()
   open(iu, file = bbu_param%bunch_by_bunch_info_file, iostat = ios)
@@ -897,7 +864,8 @@ enddo
 
 end subroutine write_bunch_by_bunch_info
 
-!---
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 function hom_voltage(lr_wake) result(voltage)
 implicit none
 type(wake_lr_struct) lr_wake
@@ -907,6 +875,8 @@ voltage = max(hypot(lr_wake%a_sin,lr_wake%a_cos), hypot(lr_wake%b_sin,lr_wake%b_
 
 end function
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 function logical_to_python (logic) result (string)
 implicit none
 
