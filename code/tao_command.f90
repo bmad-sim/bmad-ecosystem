@@ -357,11 +357,11 @@ case ('restore', 'use', 'veto')
   call tao_cmd_split(cmd_line, 2, cmd_word, .true., err)
   if (err) return
   
-  call match_word (cmd_word(1), ["data    ", "variable"], which, .true., matched_name = cmd_name)
+  call match_word (cmd_word(1), ["data    ", "variable"], which, .true., matched_name = switch)
   
-  if (cmd_name == 'data') then
+  if (switch == 'data') then
     call tao_use_data (cmd_name, cmd_word(2))
-  elseif (cmd_name == 'variable') then
+  elseif (switch == 'variable') then
     call tao_use_var (cmd_name, cmd_word(2))
   else
     call out_io (s_error$, r_name, "Use/veto/restore what? data or variable?")
@@ -449,8 +449,7 @@ case ('scale')
   do 
     word = cmd_word(1)
     if (word(1:1) /= '-') exit
-    call match_word (word, ['-y     ', '-y2    ', &
-                              '-nogang', '-gang  '], ix, .true., matched_name=switch)
+    call match_word (word, ['-y     ', '-y2    ', '-nogang', '-gang  '], ix, .true., matched_name=switch)
 
     select case (switch)
     case ('-y', '-y2') 
