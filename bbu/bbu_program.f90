@@ -127,10 +127,6 @@ if (bbu_param%ele_track_end.ne.' ') then
   bbu_param%ix_ele_track_end = ix
 endif
 
-if (bbu_param%write_hom_info) then
-   call write_homs(lat, bbu_param%bunch_freq)
-endif
-
 call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
 

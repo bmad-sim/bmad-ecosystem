@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import bbu_find_threshold
-import bbu_params
 import subprocess
 import pylab
 import os
@@ -8,16 +6,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #######################
-def setup_dr_scan ( arc_time ):
+def setup_drscan ( arc_time ):
 #######################
     # Make lat2 txt file
-    print("Filling LAT2 txt file now")
+    print("Filling lat2.txt now")
     # Calculate the arclength for this given recirculation time
     arc_l = calc_arcl ( arc_time )
     my_file = open('lat2.lat','w')
     my_file.write('arc[L] = '+str(arc_l))
     my_file.close()
-
 
 #######################
 def calc_arcl ( arctime ):
@@ -29,7 +26,6 @@ def calc_arcl ( arctime ):
   #arc_l = arctime * c  # Approximation
   return arc_l
 
-
 #######################
 def make_dr_plot ( ):
 ####################### 
@@ -38,7 +34,7 @@ def make_dr_plot ( ):
   f = []
   lines = []
   p = []
-  my_plotfile = "scripts/thresh_v_trotb.txt"
+  my_plotfile = "thresh_v_trotb.txt"
   f = open(my_plotfile, 'r')
   lines = f.readlines()
   f.close()
@@ -50,7 +46,6 @@ def make_dr_plot ( ):
 
     xv = np.array(x)
     yv = np.array(y)
-
 
   plt.scatter(xv, yv, marker = 'o', color = 'b')
   plt.title("BBI paper reproduction")
