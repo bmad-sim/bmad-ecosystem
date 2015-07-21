@@ -801,12 +801,12 @@ kk=1
               ! Threshold current for case epsilon * nr >> 1
               currth = cnumerator / ( epsilon * abs(mat(1,2)) )
 
-              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )  .le. pi )then
-               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi ) / nr )**2 )
-               write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+              if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )  .le. pi )then
+               currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi ) / nr )**2 )
+               write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
               else
-               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )) / nr )**2 )
-               write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.,stest)*pi/2, 2*pi )
+               currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )) / nr )**2 )
+               write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
               endif
 !
               if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
