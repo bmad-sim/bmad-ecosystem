@@ -1,0 +1,50 @@
+This initialization file defines how plotting is done.
+
+The following namelist block defines how the plot window (also called
+the plot page) is broken up.
+
+&tao_plot_page
+  include_default_plots = True
+  plot_page%size = 400, 300
+  plot_page%text_height = 12.0 
+  plot_page%border = 0, 0, 0, 0, '%PAGE'  
+  plot_page%title(1)%string = 'Dynamic Aperture Demo'
+  region(1) = 'all'    0.0, 1.0, 0.0, 0.95
+  place(1) = 'all', 'da'
+/
+
+
+!----------------------------------------------------------------
+Templates define the basics of, say, how to display an orbit.
+
+! dynamic aperture
+&tao_template_plot
+  plot%name = 'da'
+  plot%x%min = 0
+  plot%x%max = 0
+  plot%x%major_div_nominal = 10
+  plot%x%label = 'x (mm)'
+  plot%x_axis_type = 'phase_space'
+  plot%n_graph = 1
+/
+
+&tao_template_graph
+  graph%name = 'g1'
+  graph%type = 'dynamic_aperture'
+  graph_index = 1
+  !graph%box = 1, 2, 1, 2
+  graph%title = 'dynamic aperture'
+  graph%margin =  0.15, 0.06, 0.12, 0.12, '%BOX'
+  graph%x_axis_scale_factor = 1000
+  graph%y%label = 'y (mm)'
+  graph%y%label_offset = .2
+  graph%y%max = 0
+  graph%y%min = 0
+  graph%y%major_div = 4
+  graph%n_curve = 2
+  curve(1)%y_axis_scale_factor = 1000
+  curve(2)%y_axis_scale_factor = 1000
+  curve(1)%draw_symbols = F
+  curve(2)%draw_symbols = F
+ /
+

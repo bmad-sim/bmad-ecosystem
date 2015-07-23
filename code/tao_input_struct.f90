@@ -159,6 +159,7 @@ type tao_design_lat_input
   character(16) :: language = ''
   character(40) :: use_line = ''
   logical :: one_turn_map_calc = .false.
+  logical :: dynamic_aperture_calc = .false.
   logical :: reverse_element_order = .false.  ! Reverse the order of elements in the lattice?
 end type
 
@@ -193,6 +194,17 @@ type tao_plot_page_input
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
   type (tao_title_struct) :: title(2)       ! Titles at top of page.
   type (qp_rect_struct) :: border           ! Border around plots edge of page.
+end type
+
+type tao_dynamic_aperture_input
+  real(rp) :: min_angle = 0
+  real(rp) :: max_angle = pi
+  integer :: n_angle   = 9
+  integer :: n_turn = 100         ! Number of turns a particle must survive
+  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
+  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
+  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture
+  real(rp) :: pz(100) = real_garbage$  
 end type
 
 contains

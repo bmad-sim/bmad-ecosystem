@@ -30,8 +30,6 @@ use random_mod
 use csr_mod, only: csr_param
 use opti_de_mod, only: opti_de_param
 
-implicit none
-
 type (tao_global_struct), save :: global, default_global
 
 integer ios, iu, i, j, k, ix, num
@@ -143,8 +141,6 @@ subroutine tao_init_beams (init_file)
 
 use spin_mod
 use tao_input_struct
-
-implicit none
 
 type (tao_universe_struct), pointer :: u
 type (beam_init_struct) beam_init
@@ -279,8 +275,6 @@ subroutine init_beam (u)
 
 use tao_read_beam_mod
 
-implicit none
-
 type (tao_universe_struct), target :: u
 type (ele_pointer_struct), allocatable, save, target :: eles(:)
 type (ele_struct), pointer :: ele
@@ -396,9 +390,12 @@ end subroutine tao_init_beams
 ! Subroutine tao_init_dynamic_aperture (init_file)
 !
 !-
+
 subroutine tao_init_dynamic_aperture(init_file)
-implicit none
-type (tao_dynamic_aperture_init_struct)  :: da_init(200)
+
+use tao_input_struct
+
+type (tao_dynamic_aperture_input) :: da_init(200)
 type (tao_universe_struct), pointer :: u
 
 integer :: ios, iu, i, j, n_pz
@@ -413,7 +410,6 @@ namelist / tao_dynamic_aperture / da_init
 
 if (init_file == '') return
 
-!call out_io (s_blank$, r_name, '*Init: Opening Init File: ' // file_name)
 call tao_open_file (init_file, iu, file_name, s_blank$)
 if (iu == 0) then
   call out_io (s_blank$, r_name, "Note: Cannot open init file for tao_dynamic_aperture namelist read")
@@ -433,26 +429,30 @@ if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namel
 close(iu)
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
- ! Count the list of pz
-  do n_pz=1, 200
-    if (da_init(i)%pz(n_pz) == real_garbage$) exit
+  ! Count the list of pz
+  do n_pz = 0, 199
+    if (da_init(i)%pz(n_pz+1) == real_garbage$) exit
   enddo
-  n_pz = n_pz - 1
-  if (n_pz == 0 ) cycle
-  
+
+  ! Default if no pz set
+  if (n_pz == 0) then
+    n_pz = 1
+    da_init(i)%pz(1) = 0
+  endif
+
   ! Set 
   u => s%u(i)
   allocate(u%dynamic_aperture%scan(n_pz))
   allocate(u%dynamic_aperture%pz(n_pz))
-  call out_io (s_blank$, r_name, 'Found n_pz: ', n_pz)
-  u%dynamic_aperture%scan(:)%param = da_init(i)%param
-  u%dynamic_aperture%scan(:)%min_angle = da_init(i)%min_angle
-  u%dynamic_aperture%scan(:)%max_angle = da_init(i)%max_angle
-  u%dynamic_aperture%scan(:)%n_angle = da_init(i)%n_angle
-  u%dynamic_aperture%pz(1:n_pz) = da_init(i)%pz(1:n_pz)
-  
+  u%dynamic_aperture%scan(:)%param%n_turn    = da_init(i)%n_turn
+  u%dynamic_aperture%scan(:)%param%x_init    = da_init(i)%x_init
+  u%dynamic_aperture%scan(:)%param%y_init    = da_init(i)%y_init
+  u%dynamic_aperture%scan(:)%param%accuracy  = da_init(i)%accuracy
+  u%dynamic_aperture%scan(:)%param%min_angle = da_init(i)%min_angle
+  u%dynamic_aperture%scan(:)%param%max_angle = da_init(i)%max_angle
+  u%dynamic_aperture%scan(:)%param%n_angle   = da_init(i)%n_angle
+  u%dynamic_aperture%pz(1:n_pz)              = da_init(i)%pz(1:n_pz)  
 enddo
-
 
 end subroutine tao_init_dynamic_aperture
 

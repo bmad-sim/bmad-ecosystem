@@ -226,11 +226,11 @@ character(9) angle_str
 
 integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, width
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
-integer ix, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
+integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
 integer xfer_mat_print, twiss_out, ix_sec, n_attrib
 
-logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic
+logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
 logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
@@ -671,65 +671,134 @@ case ('curve')
         nl=nl+1; write(lines(nl), imt)  'hist%number             = ', c1%hist%number
       endif
     endif
+
+    ! Show symbol points
     
     if (show_sym) then
-      n = nl + size(c1%x_symb) + 10
-      if (n > size(lines)) call re_allocate(lines, n, .false.)
-      if (print_header) then
-        nl=nl+1; lines(nl) = ''
-        nl=nl+1; lines(nl) = '# Symbol points:'
-        nl=nl+1; lines(nl) = '#     i  index        x-axis'
-      endif
-
-      err = .false.
+      nc = 0
+      ix0 = 0
+      aligned = .true.    ! True => can have one x column for all curves.
       do j = 1, size(curve)
-        str = curve(j)%c%name
-        lines(nl) = lines(nl)(1:28+(j-2)*14) // adjustr(str(1:14))
-      enddo
-
-      do j = 2, size(curve)
-        if (size(curve(j)%c%y_symb) /= size(c1%y_symb)) then
-          nl=nl+1; lines(nl) = 'NUMBER OF SYMBOL POINTS NOT THE SAME IN ALL CURVES!'
-          err = .true.
-          exit
+        if (.not. allocated(curve(j)%c%x_symb)) cycle
+        nc = max(nc, size(curve(j)%c%x_symb))
+        if (ix0 == 0) ix0 = j
+        if (size(curve(j)%c%x_symb) /= size(curve(ix0)%c%x_symb)) then
+          aligned = .false.
+        else
+          if (any(curve(j)%c%x_symb /= curve(ix0)%c%x_symb)) aligned = .false.
         endif
       enddo
 
-      if (.not. err) then
-        do i = 1, size(c1%x_symb)
-          nl=nl+1; write(lines(nl), '(2i7, 10es14.6)') i, c1%ix_symb(i), &
-                      c1%x_symb(i), [ (curve(j)%c%y_symb(i), j = 1, size(curve)) ]
-        enddo
+      n = nl + nc + 10
+      if (n > size(lines)) call re_allocate(lines, n, .false.)
+
+      if (print_header) then
+        nl=nl+1; lines(nl)   = ''
+        nl=nl+1; lines(nl)   = '# Symbol points:'
+        if (aligned) then
+          nl=nl+1; lines(nl)   = '#     i  index        x-axis'
+        else
+          nl=nl+1; lines(nl)   = '#     i'
+        endif
+        nl0 = nl
+        if (nc == 0) then
+          nl=nl+1; lines(nl) = '#     No Symbol Points'
+        endif
       endif
+
+      do j = 1, size(curve)
+        str = curve(j)%c%name
+        if (aligned) then
+          lines(nl0) = lines(nl0)(1:28+(j-1)*14) // adjustr(str(1:14))
+        else
+          lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '          x-axis' // adjustr(str(1:12))
+        endif
+      enddo
+
+      do i = 1, nc
+        if (aligned) then
+          nl=nl+1; write(lines(nl), '(2i7, 10es14.6)') i, curve(ix0)%c%ix_symb(i), curve(ix0)%c%x_symb(i)
+        else
+          nl=nl+1; write(lines(nl), '(i7, 10es14.6)') i
+        endif
+
+        do j = 1, size(curve)
+          if (.not. allocated(curve(j)%c%x_symb)) cycle
+          if (size(curve(j)%c%x_symb) < j) cycle
+          if (aligned) then
+            write(lines(nl)(29+(j-1)*14:), '(10es14.6)') curve(j)%c%y_symb(i)
+          else
+            write(lines(nl)(10+(j-1)*28:), '(10es13.5)') curve(j)%c%x_symb(i), curve(j)%c%y_symb(i)
+          endif
+        enddo
+
+      enddo
     endif
 
+    ! Show line points
+
     if (show_line) then
+
+      nc = 0
+      ix0 = 0
+      aligned = .true.    ! True => can have one x column for all curves.
+      do j = 1, size(curve)
+        if (.not. allocated(curve(j)%c%x_line)) cycle
+        nc = max(nc, size(curve(j)%c%x_line))
+        if (ix0 == 0) ix0 = j
+        if (size(curve(j)%c%x_line) /= size(curve(ix0)%c%x_line)) then
+          aligned = .false.
+        else
+          if (any(curve(j)%c%x_line /= curve(ix0)%c%x_line)) aligned = .false.
+        endif
+      enddo
+
+      n = nl + nc + 10
+      if (n > size(lines)) call re_allocate(lines, n, .false.)
+
+
+
       if (print_header) then
-        nl=nl+1; lines(nl) = ''
-        nl=nl+1; lines(nl) = '# Smooth line points:'
-        nl=nl+1; lines(nl) = '#Index        x-axis'
+        nl=nl+1; lines(nl)   = ''
+        nl=nl+1; lines(nl)   = '# Smooth line points:'
+        if (aligned) then
+          nl=nl+1; lines(nl)   = '# index        x-axis'
+        else
+          nl=nl+1; lines(nl)   = '# index'
+        endif
+        nl0 = nl
+        if (nc == 0) then
+          nl=nl+1; lines(nl) = '#     No Line Points'
+        endif
       endif
 
       do j = 1, size(curve)
         str = curve(j)%c%name
-        lines(nl) = lines(nl)(1:20+(j-1)*14) // adjustr(str(1:14))
-      enddo
-
-      do j = 2, size(curve)
-        if (size(curve(j)%c%y_line) /= size(c1%y_line)) then
-          nl=nl+1; lines(nl) = 'NUMBER OF LINE POINTS NOT THE SAME IN ALL CURVES!'
-          err = .true.
-          exit
+        if (aligned) then
+          lines(nl0) = lines(nl0)(1:21+(j-1)*14) // adjustr(str(1:14))
+        else
+          lines(nl0) = lines(nl0)(1:7+(j-1)*28) // '        x-axis' // adjustr(str(1:14))
         endif
       enddo
 
-      if (.not. err) then
-        call re_allocate (lines, nl+size(c1%x_line)+100, .false.)
-        do i = 1, size(c1%x_line)
-          nl=nl+1; write(lines(nl), '(i6, 10es14.6)') i, c1%x_line(i), &
-                                        [ (curve(j)%c%y_line(i), j = 1, size(curve)) ]
+      do i = 1, nc
+        if (aligned) then
+          nl=nl+1; write(lines(nl), '(i7, es14.6)') i, curve(ix0)%c%x_line(i)
+        else
+          nl=nl+1; write(lines(nl), '(i7, es14.6)') i
+        endif
+
+        do j = 1, size(curve)
+          if (.not. allocated(curve(j)%c%x_line)) cycle
+          if (size(curve(j)%c%x_line) < j) cycle
+          if (aligned) then
+            write(lines(nl)(22+(j-1)*14:), '(10es14.6)') curve(j)%c%y_line(i)
+          else
+            write(lines(nl)(8+(j-1)*28:), '(10es14.6)') curve(j)%c%x_line(i), curve(j)%c%y_line(i)
+          endif
         enddo
-      endif
+
+      enddo
     endif
 
   else
@@ -999,27 +1068,23 @@ case ('dynamic_aperture')
     return
   endif
 
-  !call tao_next_switch (stuff2, ['-order'], switch, err, ix)
-  !if (err) return
-  do i = 1, size(u%dynamic_aperture%scan)
-    aperture_scan => u%dynamic_aperture%scan(i) 
-    nl=nl+1; write(lines(nl), '(a12, es15.7)')  'pz        : ', u%dynamic_aperture%pz(i)
-    nl=nl+1; write(lines(nl), '(a12, i10)')     'n_angle   : ', aperture_scan%n_angle
-    nl=nl+1; write(lines(nl), '(a12, f10.6)')   'min_angle : ', aperture_scan%min_angle
-    nl=nl+1; write(lines(nl), '(a12, f10.6)')   'max_angle : ', aperture_scan%max_angle
-    nl=nl+1; write(lines(nl), '(a20, i10)')      '%praram%n_turn :  ', aperture_scan%param%n_turn
-    nl=nl+1; write(lines(nl), '(a20, f10.6)')   '%param%accuracy : ', aperture_scan%param%accuracy
-    if (.not. allocated(aperture_scan%aperture)) then
-      nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
-    else
-      nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
-      do j = 1, size(aperture_scan%aperture)
-        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
-      enddo
-    endif
-  enddo
-
-
+  aperture_scan => u%dynamic_aperture%scan(1) 
+  nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz
+  nl=nl+1; write(lines(nl), '(a, i10)')     'n_angle:   ', aperture_scan%param%n_angle
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'min_angle: ', aperture_scan%param%min_angle
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   'max_angle: ', aperture_scan%param%max_angle
+  nl=nl+1; write(lines(nl), '(a, i10)')     '%n_turn:   ', aperture_scan%param%n_turn
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%x_init:   ', aperture_scan%param%x_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%y_init:   ', aperture_scan%param%y_init
+  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%accuracy: ', aperture_scan%param%accuracy
+  if (.not. allocated(aperture_scan%aperture)) then
+    nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
+  else
+    nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
+    do j = 1, size(aperture_scan%aperture)
+      nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
+    enddo
+  endif
 
   result_id = show_what
 
@@ -1702,7 +1767,6 @@ case ('lattice')
     column(7)  = show_lat_column_struct("ele::#[lord_status]", 'a16',      16, '', .false.) 
   endif
 
-
   ! remove_line_if_zero bookkeeping. Ignore space lines (name = 'x')
 
   if (ix_remove > 0) then
@@ -1741,8 +1805,9 @@ case ('lattice')
     picked_ele(0:branch%n_ele_track) = .false.
     picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .true.
   else
-    picked_ele(0:branch%n_ele_track) = .true.
-    picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
+    picked_ele(0:branch%n_ele_max) = .true.
+    !! picked_ele(0:branch%n_ele_track) = .true.
+    !! picked_ele(branch%n_ele_track+1:branch%n_ele_max) = .false.
   endif
 
   if (by_s) then
@@ -1777,8 +1842,10 @@ case ('lattice')
     if (err) return
     picked_ele = .false.
     do i = 1, size(eles)
+      if (show_lords .and. eles(i)%ele%lord_status == not_a_lord$) cycle
       picked_ele(eles(i)%ele%ix_ele) = .true.
     enddo
+
 
   elseif (.not. show_lords) then
     if (count(picked_ele) > 300) then

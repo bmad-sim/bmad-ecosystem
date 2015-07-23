@@ -251,7 +251,8 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
 
   !
 
-  u%calc%one_turn_map = design_lat%one_turn_map_calc
+  u%calc%one_turn_map     = design_lat%one_turn_map_calc
+  u%calc%dynamic_aperture = design_lat%dynamic_aperture_calc
 
   ! Custom stuff
 

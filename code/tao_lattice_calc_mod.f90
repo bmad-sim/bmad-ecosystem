@@ -49,6 +49,7 @@ type (tao_lattice_branch_struct), pointer :: lat_branch
 type (normal_form_struct), pointer :: normal_form
 type (aperture_scan_struct), pointer :: scan
 
+real(rp) tt
 integer iuni, j, ib, ix, n_max, iu, it, id, ie
 
 character(20) :: r_name = "tao_lattice_calc"
@@ -188,8 +189,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
     endif
 
     ! Dynamic aperture calc. Only for rings
-    ! u%calc%dynamic_aperture 
-    if (u%calc%dynamic_aperture .and. branch%param%geometry == closed$ .and. allocated(u%dynamic_aperture%pz)) then
+
+    if (u%calc%dynamic_aperture .and. branch%param%geometry == closed$) then
       if (.not. s%global%rf_on) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
@@ -203,12 +204,13 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
         
         closed_orb0%vec(6) = closed_orb0%vec(6) + u%dynamic_aperture%pz(j)
         
-        call out_io (s_info$, r_name, 'dynamic aperture scan for pz: ', u%dynamic_aperture%pz(j))
-        call dynamic_aperture_scan(tao_lat%lat, closed_orb0, scan, parallel = .true. )
+        call out_io (s_info$, r_name, 'Starting Dynamic aperture scan for pz: \f10.6\ ... ', r_array = [u%dynamic_aperture%pz(j)])
+        call run_timer ('START')
+        call dynamic_aperture_scan(tao_lat%lat, closed_orb0, scan, parallel = .true.)
+        call run_timer ('READ', tt)
+        call out_io (s_info$, r_name, 'Computation time for aperture scan at this energy (min): \f10.2\ ', tt/60)
       enddo
     endif
-    
-    
     
     ! PTC one-turn-map and normal form calc. Only for rings. 
     if (u%calc%one_turn_map .and. branch%param%geometry == closed$) then
