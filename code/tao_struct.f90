@@ -764,16 +764,8 @@ end type
 !-----------------------------------------------------------------------
 ! tao_dynamic_aperture_struct
 
-type tao_dynamic_aperture_init_struct
-  type(aperture_param_struct) :: param
-  real(rp)           :: min_angle = 0
-  real(rp)           :: max_angle = pi
-  integer            :: n_angle   = 9
-  real(rp) :: pz(100) = real_garbage$  
-end type
-
 type tao_dynamic_aperture_struct
-  type(aperture_scan_struct), allocatable :: scan(:)
+  type(aperture_scan_struct), allocatable :: scan(:) ! One scan for each pz.
   real(rp), allocatable :: pz(:)
 end type
 

@@ -104,7 +104,7 @@ if (.not. all_same) call out_io (s_warn$, r_name, &
       'Note: Not all plots have the same min/max due to different ', &
       '      x-axis major_div or major_div_nominal values.')
 
-end subroutine
+end subroutine tao_x_scale_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -163,9 +163,9 @@ if (present(gang)) then
   end select
 endif
 
-if (do_gang) then
+if (do_gang .and. all(plot%graph%valid)) then
 
-  if (x_min == x_max) then
+  if (x_min == x_max) then  
     this_min = minval (plot%graph(:)%x%min)
     this_max = maxval (plot%graph(:)%x%max)
     major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
@@ -188,7 +188,7 @@ if (do_gang) then
 
 endif
 
-end subroutine
+end subroutine tao_x_scale_plot
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -235,7 +235,9 @@ if (x_max /= x_min) then
 
 endif
 
-! Auto scale
+! Auto scale. But not until there is valid data.
+
+if (.not. graph%valid) return
 
 this_min =  1e30
 this_max = -1e30
@@ -339,6 +341,6 @@ endif
 call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
 call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
 
-end subroutine 
+end subroutine tao_x_scale_graph
 
 end module

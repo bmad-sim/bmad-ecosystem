@@ -115,6 +115,7 @@ default_plot%autoscale_y = .false.
 default_plot%n_graph = 0
 
 default_graph = tao_graph_input()
+default_graph%x                     = init_axis
 default_graph%y                     = init_axis
 default_graph%y%major_div           = -1
 default_graph%y%major_div_nominal   = -1
@@ -902,7 +903,8 @@ if (allocated(s%plot_page%template)) then
   allocate (s%plot_page%template(n + 29))
   s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
-  np = n + 1
+  np = n
+  if (s%plot_page%template(np)%name == 'scratch') np = np - 1
 else
   allocate (s%plot_page%template(29))
   np = 0
@@ -933,11 +935,13 @@ grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
+grph%x                    = init_axis
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -954,9 +958,11 @@ grph%type                 = 'data'
 grph%margin               = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 grph%scale_margin         = qp_rect_struct(0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, '%GRAPH')
 grph%box                  = [1, 2, 1, 2]
+grph%x                    = init_axis
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
@@ -995,6 +1001,7 @@ grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%component            = 'model'
@@ -1003,6 +1010,7 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
+grph%x                    = init_axis
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -1061,6 +1069,7 @@ grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%component            = 'model'
@@ -1069,6 +1078,7 @@ grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%text_legend_origin   = default_graph%text_legend_origin
 grph%curve_legend_origin  = default_graph%curve_legend_origin
+grph%x                    = init_axis
 grph%x%label = 's [m]'
 
 crv => grph%curve(1)
@@ -1109,11 +1119,13 @@ grph%box                  = [1, 1, 1, 1]
 grph%y                    = init_axis
 grph%y%label_offset       = 0.15
 grph%y%major_div_nominal  = 4
+grph%y2                   = init_axis
 grph%y2%major_div_nominal = 4
 grph%y2%draw_numbers      = .false.
 grph%draw_axes            = .true.
 grph%draw_grid            = .true.
 grph%component            = 'model'
+grph%x                    = init_axis
 grph%x%label              = 's [m]'
 
 crv => grph%curve(1)
@@ -2043,9 +2055,9 @@ endif
 y_layout = 0.15
 
 if (all(s%plot_page%region(:)%name /= 'layout')) then
-  s%plot_page%region(1)%name = 'layout'
   nr = nr + 1
-  s%plot_page%region(1)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
+  s%plot_page%region(nr)%name = 'layout'
+  s%plot_page%region(nr)%location = [0.0_rp, 1.0_rp, 0.0_rp, y_layout]
 endif
 
 do i = 1, 4
