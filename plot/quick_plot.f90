@@ -1047,8 +1047,7 @@ character(20) :: r_name = 'qp_calc_axis_scale'
 ! Error check
 
 if (axis%major_div < 1) then
-  call out_io (s_abort$, r_name, &
-                    '"AXIS%MAJOR_DIV" NUMBER IS LESS THAN 1! \i\ ', axis%major_div)
+  call out_io (s_abort$, r_name, '"AXIS%MAJOR_DIV" NUMBER IS LESS THAN 1! \i\ ', axis%major_div)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -1057,8 +1056,7 @@ endif
 if (axis%type == 'LOG') then
 
   if (data_min <= 0 .or. data_max <= 0) then
-    call out_io (s_abort$, r_name, &
-                    'DATA IS NEGATIVE FOR LOG AXIS CALC: \2es12.2\ ', min(data_min, data_max))
+    call out_io (s_abort$, r_name, 'DATA IS NEGATIVE FOR LOG AXIS CALC: \2es12.2\ ', min(data_min, data_max))
     if (global_com%exit_on_error) call err_exit
   endif
 
@@ -4221,7 +4219,7 @@ type (qp_axis_struct) ax1, ax2
 real(rp) del, dx0, dum, x1, y1, dy, x0, y0, y_pos, dy1, dy2
 real(rp) dy11, dy22, x11, dg, xl0
 
-integer i, j, m_div, who_sign, divisions, n_draw
+integer i, j, m_div, who_sign, divisions, n_draw, major_div
 
 character(*) who
 character(16) justify, str
@@ -4250,10 +4248,11 @@ endif
 ! the axis line itself
 
 call qp_set_line_attrib ('AXIS')
-call qp_draw_polyline_no_set ([0.0_rp, 1.0_rp ], &
-                                [y_pos, y_pos ], '%GRAPH')  
+call qp_draw_polyline_no_set ([0.0_rp, 1.0_rp ], [y_pos, y_pos ], '%GRAPH')  
 
-del = (ax1%max - ax1%min) / ax1%major_div
+major_div = ax1%major_div
+if (major_div < 1) major_div = max(1, ax1%major_div_nominal)
+del = (ax1%max - ax1%min) / major_div
 
 if (ax1%minor_div == 0) then
   call qp_calc_minor_div (del, ax1%minor_div_max, m_div)
@@ -4279,9 +4278,9 @@ call qp_to_inch_rel (1.0_rp, 0.0_rp, dg, dum, '%GRAPH')
 if (ax1%type == 'LOG') then
   divisions = nint(log10(ax1%max)) - nint(log10(ax1%min))
   xl0 = (nint(log10(ax1%min)) - log10(ax1%min)) * dg / divisions
-  n_draw = max(nint(real(divisions)/ax1%major_div), 1)
+  n_draw = max(nint(real(divisions)/major_div), 1)
 else
-  divisions = ax1%major_div
+  divisions = major_div
   xl0 = 0
   n_draw = 1
 endif
@@ -4335,7 +4334,7 @@ do i = 0, divisions
 
   if (i == 0) then
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
-  elseif (i == ax1%major_div) then
+  elseif (i == major_div) then
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
   else
     call qp_draw_text_no_set (str, x1, y1, 'INCH', justify)
@@ -4386,7 +4385,7 @@ type (qp_axis_struct) ax1, ax2
 real(rp) del, dum, x1, y1, dx, x0, y0, x_pos, dx1, dx2, dx11, dx22
 real(rp) number_len, dy0, y11, dg, yl0
 
-integer i, j, m_div, who_sign, number_side, divisions, n_draw
+integer i, j, m_div, who_sign, number_side, divisions, n_draw, major_div
 
 character(*) who
 character(2) justify
@@ -4422,7 +4421,9 @@ call qp_draw_polyline_no_set ([x_pos, x_pos], [0.0_rp, 1.0_rp], '%GRAPH')
 
 ! major and minor divisions calc
 
-del = (ax1%max - ax1%min) / ax1%major_div
+major_div = ax1%major_div
+if (major_div < 1) major_div = max(1, ax1%major_div_nominal)
+del = (ax1%max - ax1%min) / major_div
 
 if (ax1%minor_div == 0) then
   call qp_calc_minor_div (del, ax1%minor_div_max, m_div)
@@ -4448,9 +4449,9 @@ call qp_to_inch_rel (0.0_rp, 1.0_rp, dum, dg, '%GRAPH')
 if (ax1%type == 'LOG') then
   divisions = nint(log10(ax1%max)) - nint(log10(ax1%min))
   yl0 = (nint(log10(ax1%min)) - log10(ax1%min)) * dg / divisions
-  n_draw = max(nint(real(divisions/ax1%major_div)), 1)
+  n_draw = max(nint(real(divisions/major_div)), 1)
 else
-  divisions = ax1%major_div
+  divisions = major_div
   yl0 = 0
   n_draw = 1
 endif
@@ -4506,7 +4507,7 @@ do i = 0, divisions
 
   if (i == 0) then
     justify(2:2) = 'B'
-  elseif (i == ax1%major_div) then
+  elseif (i == major_div) then
     justify(2:2) = 'T'
   else
     justify(2:2) = 'C'
@@ -4557,7 +4558,7 @@ implicit none
 type (qp_axis_struct) axis
 
 integer i, ix_n, ie, n_char, n_log_min, n_log_max, n_log_delta
-integer n_zero_crit, ix, n_log, p
+integer n_zero_crit, ix, n_log, p, major_div
 
 real(rp) val, delta, v, effective_zero
 
@@ -4584,9 +4585,10 @@ endif
 
 ! Calculate output number
 
-delta = (axis%max - axis%min) / axis%major_div
+major_div = axis%major_div
+if (major_div < 1) major_div = max(1, axis%major_div_nominal)
+delta = (axis%max - axis%min) / major_div
 val = axis%min + ix_n * delta
-n_log_delta = floor(log10(abs(delta)) + 0.0001)
 effective_zero = max(abs(axis%max), abs(axis%min)) / 10.0_rp**qp_com%max_digits
 
 ! If the number is essentially zero then life is simple
@@ -4600,10 +4602,10 @@ endif
 
 n_log_min = 1000
 n_log_max = -1000
-do i = 0, axis%major_div
+do i = 0, major_div
   v = axis%min + i * delta
   if (abs(v) < effective_zero) cycle  ! Ignore zero.
-  n_log = floor(log10(abs(v)) + 0.0001)
+  n_log = floor(log10(abs(v+1d-30)) + 0.0001)
   n_log_min   = min (n_log_min, n_log)
   n_log_max   = max (n_log_max, n_log)
 enddo
@@ -4619,6 +4621,7 @@ too_large = .false.
 too_small = .false.
 n_zero_crit = qp_com%max_axis_zero_digits 
 
+n_log_delta = floor(log10(abs(delta)+1d-30) + 0.0001)
 if (axis%places <= 0) then  ! check for too big
   if (n_log_delta > n_zero_crit) then 
     too_large = .true.
@@ -4742,7 +4745,7 @@ implicit none
 
 type (qp_axis_struct), pointer :: axis
 real(rp) r0, z(2), r01(2)
-integer i, divisions
+integer i, divisions, major_div
 
 !
 
@@ -4759,6 +4762,7 @@ if (axis%type == 'LOG') then
   r0 = (nint(log10(axis%min)) - log10(axis%min)) / divisions
 else
   divisions = axis%major_div
+  if (divisions < 1) divisions = max(1, axis%major_div_nominal)
   r0 = 0
 endif
 
@@ -4776,6 +4780,7 @@ if (axis%type == 'LOG') then
   r0 = (nint(log10(axis%min)) - log10(axis%min)) / divisions
 else
   divisions = axis%major_div
+  if (divisions < 1) divisions = max(1, axis%major_div_nominal)
   r0 = 0
 endif
 
