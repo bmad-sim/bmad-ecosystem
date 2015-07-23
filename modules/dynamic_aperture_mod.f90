@@ -5,32 +5,32 @@ use bmad_interface
 
 implicit none
 
-
 type aperture_data_struct
-  real(rp) x, y     ! aperture
+  real(rp) x, y     ! (x,y) aperture point
   integer plane     ! plane determining loss
   integer ix_lat    ! ele index lost at
   integer i_turn    ! turn lost at
 end type
 
 type aperture_param_struct
-  integer :: n_turn = 100                   ! Number of turns a particle must survive
-  real(rp) :: x_init = 1e-3_rp              ! initial estimate for horizontal aperture
-  real(rp) :: y_init = 1e-3_rp              ! initial estimate for vertical aperture
-  real(rp) :: accuracy = 1e-5_rp            ! resolution of bracketed aperture
+  real(rp) :: min_angle = 0
+  real(rp) :: max_angle = pi
+  integer :: n_angle   = 9
+  integer :: n_turn = 100         ! Number of turns a particle must survive
+  real(rp) :: x_init = 1e-3_rp    ! Initial x coordinate to start with for theta_xy = 0.
+  real(rp) :: y_init = 1e-3_rp    ! Initial y coordinate to start with for theta_xy = pi/2.
+  real(rp) :: accuracy = 1e-5_rp  ! Resolution of bracketed aperture (meters.)
 end type
 
 type aperture_scan_struct
   type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
   type(aperture_param_struct) :: param                   ! parameters used for the scan            
-  real(rp)           :: min_angle = 0
-  real(rp)           :: max_angle = pi
-  integer            :: n_angle   = 9
 end type
 
 contains
 
-
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
 ! Subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
@@ -47,8 +47,6 @@ contains
 !   lat                 -- lat_struct: Lat containing the lattice.
 !   orb0                -- coord_struct: Closed orbit at IP.
 !   aperture_scan       -- aperture_scan_struct: 
-!     %param            -- aperture_param_struct: input parameters
-!     %min_angle, max_angle, n_angle -- integer: angle scan parameters
 !   parallel            -- logical, optional :: Use OpenMP parallel routine. 
 !                                               Default: False
 !
@@ -56,63 +54,60 @@ contains
 !   aperture_scan       -- aperture_scan_struct 
 !     %aperture(:)      -- aperture_data_struct: apertures for each angle
 !-
+
 subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
 
 !$ use omp_lib
 
-implicit none
 type (lat_struct) :: lat
-type (aperture_scan_struct) :: aperture_scan
+type (aperture_scan_struct), target :: aperture_scan
 type (aperture_data_struct) :: aperture
+type (aperture_param_struct), pointer :: ap_param
 type (coord_struct) orb0
 real(rp), allocatable  :: angle_list(:)
-real(rp) :: delta_angle, x_init_temp, y_init_temp
+real(rp) :: delta_angle
 integer :: i, omp_n
 logical, optional :: parallel
 character(40) :: r_name = 'dynamic_aperture_scan'
 
-!
-
 ! Angle preparation
-allocate(angle_list(aperture_scan%n_angle))
-delta_angle = (aperture_scan%max_angle - aperture_scan%min_angle)/(aperture_scan%n_angle -1)
-do i=1, aperture_scan%n_angle
-  angle_list(i) = (i-1)*delta_angle + aperture_scan%min_angle
+
+ap_param => aperture_scan%param
+
+allocate(angle_list(ap_param%n_angle))
+delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle -1)
+do i=1, ap_param%n_angle
+  angle_list(i) = (i-1)*delta_angle + ap_param%min_angle
 enddo
 
 ! Array control
 if ( allocated(aperture_scan%aperture)) then
-  if (size(aperture_scan%aperture) /= aperture_scan%n_angle) deallocate(aperture_scan%aperture)
+  if (size(aperture_scan%aperture) /= ap_param%n_angle) deallocate(aperture_scan%aperture)
 endif
-if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(aperture_scan%n_angle))
+if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_param%n_angle))
 
 
 ! Auto-set x_init and y_init if they are zero
-if (aperture_scan%param%x_init == 0 ) then
-  aperture_scan%param%x_init = 0.001_rp
-  y_init_temp = aperture_scan%param%y_init
-  aperture_scan%param%y_init = 0.001_rp
-  call dynamic_aperture (lat, orb0, 0.0_rp, aperture_scan%param, aperture)
-  aperture_scan%param%x_init = aperture%x
-  aperture_scan%param%y_init = y_init_temp
+if (ap_param%x_init == 0) then
+  ap_param%x_init = 0.001_rp
+  call dynamic_aperture (lat, orb0, 0.0_rp, ap_param, aperture, .false.)
+  ap_param%x_init = aperture%x
 endif
-if (aperture_scan%param%y_init == 0 ) then
-  aperture_scan%param%y_init = 0.001_rp
-  x_init_temp = aperture_scan%param%x_init
-  aperture_scan%param%x_init = 0.001_rp
-  call dynamic_aperture (lat, orb0, pi/2, aperture_scan%param, aperture)
-  aperture_scan%param%y_init = aperture%y
-  aperture_scan%param%x_init = x_init_temp
+if (ap_param%y_init == 0) then
+  ap_param%y_init = 0.001_rp
+  call dynamic_aperture (lat, orb0, pi/2, ap_param, aperture, .false.)
+  ap_param%y_init = aperture%y
 endif
 
 ! Only call the parallel routine if there is more than one thread available 
+
 omp_n = 1
 !$ omp_n = omp_get_max_threads()
 if (logic_option(.false., parallel) .and. omp_n > 1) then
-  call dynamic_aperture_parallel(lat, orb0, angle_list, aperture_scan%param, aperture_scan%aperture)
+  call dynamic_aperture_parallel(lat, orb0, angle_list, ap_param, aperture_scan%aperture)
 else
-  do i=1, aperture_scan%n_angle
-    call dynamic_aperture (lat, orb0, angle_list(i), aperture_scan%param, aperture_scan%aperture(i))
+  do i = 1, ap_param%n_angle
+    call dynamic_aperture (lat, orb0, angle_list(i), ap_param, aperture_scan%aperture(i))
   enddo
 endif
 
@@ -122,7 +117,7 @@ end subroutine dynamic_aperture_scan
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture)
+! Subroutine dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)
 !
 ! Subroutine to determine the dynamic aperture of a lattice by tracking.
 ! The subroutine works by determining where on a radial line y = const * x
@@ -132,32 +127,22 @@ end subroutine dynamic_aperture_scan
 !   use dynamic_aperture_mod
 !
 ! Input:
-!   lat        -- lat_struct: Lat containing the lattice.
-!   orb0        -- Coord_struct: Closed orbit at the start.
-!     %vec(6)      -- Energy offset of closed orbit.
-!   theta_xy    -- Real(rp): Angle of radial line (in radians) in x-y space.
-!                    Angle is "normalized" by %x_init, %y_init.
+!   lat            -- lat_struct: Lat containing the lattice.
+!   orb0           -- Coord_struct: Closed orbit at the start.
+!   theta_xy       -- Real(rp): Angle of radial line (in radians) in x-y space.
+!                         Angle is "normalized" by %x_init, %y_init.
 !   aperture_param -- aperture_param_struct: Structure holding the input data:
-!     %n_turn     -- Number of turns tracked.
-!     %x_init     -- Initial x coordinate to start with for theta_xy = 0.
-!     %y_init     -- Initial y coordinate to start with for theta_xy = pi/2.
-!     %accuracy   -- Accuracy needed of aperture results.
+!   check_xy_init  -- logical, optional: If True, do not check that aperture_param%x_init 
+!                         and %y_init are non-zero. Default is True.
 !
 ! Output:
 !     aperture  -- aperture_data_struct:
-!       %x            -- X at aperture limit
-!       %y            -- Y at aperture limit
-!       %plane        -- Plane in which lost (X_PLANE$ or Y_PLANE$)
-!       %ix_lat       -- Index where lost
-!       %i_turn       -- Turn where lost
 !
 ! Note: The radial lines are spaced equally in angle using coordinates
 !       normalized by %X_INIT and %Y_INIT
 !-
 
-subroutine dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture)
-
-implicit none
+subroutine dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)
 
 type (lat_struct)  lat
 type (lat_param_struct)  param_save
@@ -172,19 +157,22 @@ integer it, turn_lost, track_state
 
 character(40) :: r_name = 'dynamic_aperture'
 
+logical, optional :: check_xy_init
 logical aperture_bracketed
 
 ! init setup
 
-if (aperture_param%x_init == 0) then
-  call out_io(s_error$, r_name, 'aperture_param.x_init == 0') 
-  if (global_com%exit_on_error) call err_exit
-endif
+if (logic_option(.true., check_xy_init)) then
+  if (aperture_param%x_init == 0) then
+    call out_io(s_fatal$, r_name, 'aperture_param.x_init == 0') 
+    if (global_com%exit_on_error) call err_exit
+  endif
 
 
-if (aperture_param%y_init == 0) then
-  call out_io(s_error$, r_name, 'aperture_param.y_init == 0') 
-  if (global_com%exit_on_error) call err_exit
+  if (aperture_param%y_init == 0) then
+    call out_io(s_fatal$, r_name, 'aperture_param.y_init == 0') 
+    if (global_com%exit_on_error) call err_exit
+  endif
 endif
 
 param_save = lat%param
@@ -282,17 +270,13 @@ end subroutine dynamic_aperture
 ! to process a list of angles theta_xy_list(:) 
 ! and return a list of apertures aperture_list(:) 
 !
-!
 ! See subroutine dynamic_aperture
-!
-!----------------------------------------------------------------------
+!-
 
 
 subroutine dynamic_aperture_parallel(lat, orb0, angle_list, aperture_param, aperture_list)
 
 !$ use omp_lib
-
-implicit none
 
 type (lat_struct) :: lat
 type (coord_struct) :: orb0

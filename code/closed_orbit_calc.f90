@@ -246,9 +246,9 @@ do i_loop = 1, i_max
 
   if (i_loop == i_max .or. track_state /= moving_forward$) then
     if (track_state /= moving_forward$) then
-      call out_io (s_error$, r_name, 'ORBIT DIVERGING TO INFINITY!')
+      call out_io (s_error$, r_name, 'CLOSED ORBIT SEARCH DIVERGING TO INFINITY!')
     else
-      call out_io (s_error$, r_name, 'NONLINEAR ORBIT NOT CONVERGING!')
+      call out_io (s_error$, r_name, 'CLOSED ORBIT NOT CONVERGING! ERROR IN CLOSED ORBIT: \es10.2\ ', amp_del)
     endif
     call end_cleanup
     return
