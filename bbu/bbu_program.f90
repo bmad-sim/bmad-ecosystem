@@ -47,6 +47,8 @@ endif
 print *, 'Lattice file: ', trim(bbu_param%lat_filename)
 call bmad_parser (bbu_param%lat_filename, lat_in)
 call twiss_propagate_all (lat_in)
+call lat_make_mat6(lat_in)  ! Necessary if a match lattice element is present.
+
 call run_timer ('START')
 
 !Parse additional settings for drscan
