@@ -80,6 +80,7 @@ endif
 if (bbu_param%verbose) print *, 'Lattice file: ', trim(bbu_param%lat_file_name)
 call bmad_parser (bbu_param%lat_file_name, lat_in)
 call twiss_propagate_all (lat_in)
+call lat_make_mat6(lat_in)  ! Necessary if a match lattice element is present.
 call run_timer ('START')
 
 ! Remove HOM's of higher order

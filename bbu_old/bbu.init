@@ -1,5 +1,5 @@
 &bbu_params
-  bbu_param%lat_file_name = 'erl.lat'         ! Bmad lattice file name
+  bbu_param%lat_file_name = 'mlc.lat'         ! Bmad lattice file name
   bbu_param%bunch_freq = 1.3e9                ! Freq in Hz.
   bbu_param%limit_factor = 5                ! Init_hom_amp * limit_factor = simulation unstable limit
                                               ! Must be greater than 2
