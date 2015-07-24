@@ -94,6 +94,9 @@ if (r_in%n_ele_track == 0) then
   if (global_com%exit_on_error) call err_exit
 endif
 
+call init_coord (c0, particle = r_in%param%particle)
+call init_coord (c2, particle = r_in%param%particle)
+
 ! loop over all in lat elements
 
 do j_in = 1, r_in%n_ele_track
