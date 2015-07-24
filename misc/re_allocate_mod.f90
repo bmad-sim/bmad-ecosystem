@@ -523,7 +523,7 @@ end subroutine re_allocate_logical
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact  -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -574,7 +574,7 @@ end subroutine re_allocate2_string
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact   -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -626,7 +626,7 @@ end subroutine re_allocate2_integer
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact  -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -678,7 +678,7 @@ end subroutine re_allocate2_complex
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact  -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -730,7 +730,7 @@ end subroutine re_allocate2_real
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact  -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -782,7 +782,7 @@ end subroutine re_allocate2_real_pointer
 !   n1     -- Integer: Desired lower bound.
 !   n2     -- Integer: Desired upper bound.
 !   exact    -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -833,7 +833,7 @@ end subroutine  re_allocate2_logical
 !   str2(:,:) -- Character(*), allocatable: String array.
 !   n1, n2    -- Integer: Size wanted.
 !   exact     -- Logical, optional: If present and False then the size of 
-!                  the output array is permitted to be larger than n. 
+!                  the output array is permitted to be larger than [n1, n2]. 
 !                  Default is True.
 !
 ! Output:
@@ -883,7 +883,7 @@ end subroutine re_allocate_string2d
 !   inte2(:,:) -- Integer, allocatable: Integer array.
 !   n1, n2     -- Integer: Size wanted.
 !   exact      -- Logical, optional: If present and False then the size of 
-!                   the output array is permitted to be larger than n. 
+!                   the output array is permitted to be larger than [n1, n2]. 
 !                   Default is True.
 !
 ! Output:
@@ -934,7 +934,7 @@ end subroutine re_allocate_integer2d
 !   re2(:,:) -- Real(rp), Allocatable: Real array.
 !   n1, n2   -- Integer: Size wanted.
 !   exact    -- Logical, optional: If present and False then the size of 
-!                 the output array is permitted to be larger than n. 
+!                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
@@ -987,7 +987,7 @@ end subroutine re_allocate_real2d
 !   logic2(:,:) -- Logical, allocatable: Logical array.
 !   n1, n2      -- Integer: Size wanted.
 !   exact       -- Logical, optional: If present and False then the size of 
-!                    the output array is permitted to be larger than n. 
+!                    the output array is permitted to be larger than [n1, n2]. 
 !                    Default is True.
 !
 ! Output:
