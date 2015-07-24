@@ -2634,7 +2634,7 @@ case default
   ! If this is bmad_parser, and not bmad_parser2, then dependent attributes have not been set and cannot
   ! be used.
 
-  if (ix_attrib > 0 .and. bp_com%parser_name == 'bmad_parser') then
+  if (ix_attrib > 0 .and. size(eles) > 0 .and. bp_com%parser_name == 'bmad_parser') then
     attrib_info = attribute_info (eles(1)%ele, ix_attrib)
     if (attrib_info%type == dependent$) then
       call parser_error ('DEPENDENT ATTRIBUTE IS NOT CALCULATED BEFORE LATTICE EXPANSION AND', &
