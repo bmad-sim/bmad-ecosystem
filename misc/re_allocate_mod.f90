@@ -18,12 +18,12 @@ use sim_utils_struct
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_allocate_string (str, n, exact)
-!   Subroutine re_allocate_integer (inte, n, exact)
-!   Subroutine re_allocate_real (re, n, exact)
-!   Subroutine re_allocate_complex (cmpl, n, exact)
-!   Subroutine re_allocate_logical (logic, n, exact)
+!   Subroutine re_allocate_string (str, n, exact, init_val)
+!   Subroutine re_allocate_integer (inte, n, exact, init_val)
+!   Subroutine re_allocate_real (re, n, exact, init_val)
 !   Subroutine re_allocate_real_pointer (re_ptr, n, exact)
+!   Subroutine re_allocate_complex (cmpl, n, exact, init_val)
+!   Subroutine re_allocate_logical (logic, n, exact, init_val)
 !
 ! Modules needed:
 !   use re_allocate_mod
@@ -39,6 +39,8 @@ use sim_utils_struct
 !   exact       -- Logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than n. 
 !                    Default is True.
+!   init_val    -- optional: If present, init created array space to this value.
+!                    If init_val is not present, no init will be done.
 !
 ! Output:
 !   str(:)      -- Character(*), allocatable: Allocated array. 
@@ -73,11 +75,12 @@ end interface
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_allocate2_string (str, n_min, n_max, exact)
-!   Subroutine re_allocate2_integer (inte, n_min, n_max, exact)
-!   Subroutine re_allocate2_real (re, n_min, n_max, exact)
-!   Subroutine re_allocate2_complex (cmpl, n_min, n_max, exact)
-!   Subroutine re_allocate2_logical (logic, n_min, n_max, exact)
+!   Subroutine re_allocate2_string (str, n_min, n_max, exact, init_val)
+!   Subroutine re_allocate2_integer (inte, n_min, n_max, exact, init_val)
+!   Subroutine re_allocate2_real (re, n_min, n_max, exact, init_val)
+!   Subroutine re_allocate2_real_pointer (re, n_min, n_max, exact)
+!   Subroutine re_allocate2_complex (cmpl, n_min, n_max, exact, init_val)
+!   Subroutine re_allocate2_logical (logic, n_min, n_max, exact, init_val)
 !
 ! Modules needed:
 !   use re_allocate_mod
@@ -94,6 +97,8 @@ end interface
 !   exact       -- Logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than n. 
 !                    Default is True.
+!   init_val    -- optional: If present, init created array space to this value.
+!                    If init_val is not present, no init will be done.
 !
 ! Output:
 !   str(:)      -- Character(*), allocatable: Allocated array. 
@@ -127,10 +132,10 @@ end interface
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_allocate_string2d (str2, n1, n2, exact)
-!   Subroutine re_allocate_integer2d (inte2, n1, n2, exact)
-!   Subroutine re_allocate_real2d (re2, n1, n2, exact)
-!   Subroutine re_allocate_logical2d (logic2, n1, n2, exact)
+!   Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
+!   Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
+!   Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
+!   Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
 !
 ! Modules needed:
 !   use re_allocate_mod
@@ -144,6 +149,8 @@ end interface
 !   exact       -- Logical, optional: If present and False then the size of 
 !                    the output array is permitted to be larger than n. 
 !                    Default is True.
+!   init_val    -- optional: If present, init created array space to this value.
+!                    If init_val is not present, no init will be done.
 !
 ! Output:
 !   str2(:,:)   -- Character(*), allocatable: Allocated array ,
@@ -174,10 +181,10 @@ end interface
 ! preventing unneccessary deallocations/reallocations.
 !
 ! This routine is an overloaded name for: 
-!   Subroutine re_associate_string (str, n, exact)
-!   Subroutine re_associate_integer (inte, n, exact)
-!   Subroutine re_associate_real (re, n, exact)
-!   Subroutine re_associate_logical (logic, n, exact)
+!   Subroutine re_associate_string (str, n, exact, init_val)
+!   Subroutine re_associate_integer (inte, n, exact, init_val)
+!   Subroutine re_associate_real (re, n, exact, init_val)
+!   Subroutine re_associate_logical (logic, n, exact, init_val)
 !
 ! Modules needed:
 !   use re_allocate_mod
@@ -191,6 +198,8 @@ end interface
 !   exact    -- Logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than n. 
 !                 Default is True.
+!   init_val    -- optional: If present, init created array space to this value.
+!                    If init_val is not present, no init will be done.
 !
 ! Output:
 !   str(:)   -- Character(*), pointer: Associated array with size(str) >= n.
@@ -212,7 +221,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_string (str, n, exact)
+! Subroutine re_allocate_string (str, n, exact, init_val)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -230,13 +239,14 @@ contains
 !   str(:) -- Character(*), allocatable: Allocated array with size(str) >= n.
 !-
 
-subroutine re_allocate_string (str, n, exact)
+subroutine re_allocate_string (str, n, exact, init_val)
 
   implicit none
 
   integer n, n_old, n_save
   character(*), allocatable :: str(:)
   character(len(str)), allocatable :: temp_str(:)
+  character(*), optional :: init_val
 
   logical, optional :: exact
 
@@ -248,11 +258,13 @@ subroutine re_allocate_string (str, n, exact)
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     call move_alloc (str, temp_str)
     allocate (str(n))
+    if (present(init_val)) str = init_val
     n_save = min(n, n_old)
     str(1:n_save) = temp_str(1:n_save)
     deallocate (temp_str)  
   else
     allocate (str(n))
+    if (present(init_val)) str = init_val
   endif
 
 end subroutine re_allocate_string
@@ -261,7 +273,7 @@ end subroutine re_allocate_string
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_integer (inte, n, exact)
+! Subroutine re_allocate_integer (inte, n, exact, init_val)
 !
 ! Routine to reallocate an array of integers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -279,7 +291,7 @@ end subroutine re_allocate_string
 !   inte(:) -- Integer, allocatable: Allocated array with size(inte) >= n.
 !-
 
-subroutine re_allocate_integer (inte, n, exact)
+subroutine re_allocate_integer (inte, n, exact, init_val)
 
   implicit none
 
@@ -287,6 +299,7 @@ subroutine re_allocate_integer (inte, n, exact)
 
   integer, intent(in) :: n
   integer n_save, n_old
+  integer, optional :: init_val
 
   logical, optional :: exact
 
@@ -298,11 +311,13 @@ subroutine re_allocate_integer (inte, n, exact)
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     call move_alloc (inte, temp_inte)
     allocate (inte(n))
+    if (present(init_val)) inte = init_val
     n_save = min(n, n_old)
     inte(1:n_save) = temp_inte(1:n_save)
     deallocate (temp_inte)  
   else
     allocate (inte(n))
+    if (present(init_val)) inte = init_val
   endif
 
 end subroutine re_allocate_integer
@@ -311,7 +326,7 @@ end subroutine re_allocate_integer
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_complex (cmpl, n, exact)
+! Subroutine re_allocate_complex (cmpl, n, exact, init_val)
 !
 ! Routine to reallocate an array of complex numbers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -329,11 +344,12 @@ end subroutine re_allocate_integer
 !   cmpl(:)  -- Complex(rp), Allocatable: Allocated array with size(cmpl) >= n.
 !-
 
-subroutine re_allocate_complex (cmpl, n, exact)
+subroutine re_allocate_complex (cmpl, n, exact, init_val)
 
   implicit none
 
   complex(rp), allocatable :: cmpl(:), temp_cmpl(:)
+  complex(rp), optional :: init_val
 
   integer, intent(in) :: n
   integer n_save, n_old
@@ -348,11 +364,13 @@ subroutine re_allocate_complex (cmpl, n, exact)
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     call move_alloc (cmpl, temp_cmpl)
     allocate (cmpl(n))
+    if (present(init_val)) cmpl = init_val
     n_save = min(n, n_old)
     cmpl(1:n_save) = temp_cmpl(1:n_save)
     deallocate (temp_cmpl)  
   else
     allocate (cmpl(n))
+    if (present(init_val)) cmpl = init_val
   endif
 
 end subroutine re_allocate_complex
@@ -361,7 +379,7 @@ end subroutine re_allocate_complex
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_real (re, n, exact)
+! Subroutine re_allocate_real (re, n, exact, init_val)
 !
 ! Routine to reallocate an array of reals.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -379,11 +397,12 @@ end subroutine re_allocate_complex
 !   re(:)  -- Real(rp), Allocatable: Allocated array with size(re) >= n.
 !-
 
-subroutine re_allocate_real (re, n, exact)
+subroutine re_allocate_real (re, n, exact, init_val)
 
   implicit none
 
   real(rp), allocatable :: re(:), temp_re(:)
+  real(rp), optional :: init_val
 
   integer, intent(in) :: n
   integer n_save, n_old
@@ -398,11 +417,13 @@ subroutine re_allocate_real (re, n, exact)
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     call move_alloc (re, temp_re)
     allocate (re(n))
+    if (present(init_val)) re = init_val
     n_save = min(n, n_old)
     re(1:n_save) = temp_re(1:n_save)
     deallocate (temp_re)  
   else
     allocate (re(n))
+    if (present(init_val)) re = init_val
   endif
 
 end subroutine re_allocate_real
@@ -450,9 +471,13 @@ subroutine re_allocate_real_pointer (re_ptr, n, exact)
     allocate (re_ptr(n))
     n_save = min(n, n_old)
     forall (i = 1:n_save) re_ptr(i)%r => temp_re(i)%r
-    deallocate (temp_re)  
+    deallocate (temp_re)
+    do i = n_save+1, n
+      re_ptr(i)%r => null()
+    enddo
   else
     allocate (re_ptr(n))
+    forall (i = 1:n) re_ptr(i)%r => null()
   endif
 
 end subroutine re_allocate_real_pointer
@@ -461,7 +486,7 @@ end subroutine re_allocate_real_pointer
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_logical (logic, n, exact)
+! Subroutine re_allocate_logical (logic, n, exact, init_val)
 !
 ! Routine to reallocate a string array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -479,7 +504,7 @@ end subroutine re_allocate_real_pointer
 !   logic(:) -- Logical, allocatable: Allocated array with size(logic) >= n.
 !-
 
-subroutine re_allocate_logical (logic, n, exact)
+subroutine re_allocate_logical (logic, n, exact, init_val)
 
   implicit none
 
@@ -489,6 +514,7 @@ subroutine re_allocate_logical (logic, n, exact)
   integer n_save, n_old
 
   logical, optional :: exact
+  logical, optional :: init_val
 
 !
 
@@ -498,11 +524,13 @@ subroutine re_allocate_logical (logic, n, exact)
     if (.not. logic_option(.true., exact) .and. n < n_old) return
     call move_alloc(logic, temp_logic)
     allocate (logic(n))
+    if (present(init_val)) logic = init_val
     n_save = min(n, n_old)
     logic(1:n_save) = temp_logic(1:n_save)
     deallocate (temp_logic)  
   else
     allocate (logic(n))
+    if (present(init_val)) logic = init_val
   endif
 
 end subroutine re_allocate_logical
@@ -511,7 +539,7 @@ end subroutine re_allocate_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_string (str, n1, n2, exact)
+! Subroutine re_allocate2_string (str, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -531,13 +559,14 @@ end subroutine re_allocate_logical
 !               bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_string (str, n1, n2, exact)
+subroutine re_allocate2_string (str, n1, n2, exact, init_val)
 
   implicit none
 
   integer n1, n2, n1_old, n2_old, n1_save, n2_save
   character(*), allocatable :: str(:)
   character(len(str)), allocatable :: temp_str(:)
+  character(*), optional :: init_val
 
   logical, optional :: exact
 
@@ -549,11 +578,13 @@ subroutine re_allocate2_string (str, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     call move_alloc(str, temp_str)
     allocate (str(n1:n2))
+    if (present(init_val)) str = init_val
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     str(n1_save:n2_save) = temp_str(n1_save:n2_save)
     deallocate (temp_str)  
   else
     allocate (str(n1:n2))
+    if (present(init_val)) str = init_val
   endif
 
 end subroutine re_allocate2_string
@@ -562,7 +593,7 @@ end subroutine re_allocate2_string
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_integer (inte, n1, n2, exact)
+! Subroutine re_allocate2_integer (inte, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of integers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -582,7 +613,7 @@ end subroutine re_allocate2_string
 !                bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_integer (inte, n1, n2, exact)
+subroutine re_allocate2_integer (inte, n1, n2, exact, init_val)
 
   implicit none
 
@@ -590,6 +621,7 @@ subroutine re_allocate2_integer (inte, n1, n2, exact)
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
+  integer, optional :: init_val
 
   logical, optional :: exact
 
@@ -601,11 +633,13 @@ subroutine re_allocate2_integer (inte, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     call move_alloc(inte, temp_inte)
     allocate (inte(n1:n2))
+    if (present(init_val)) inte = init_val
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     inte(n1_save:n2_save) = temp_inte(n1_save:n2_save)
     deallocate (temp_inte)  
   else
     allocate (inte(n1:n2))
+    if (present(init_val)) inte = init_val
   endif
 
 end subroutine re_allocate2_integer
@@ -614,7 +648,7 @@ end subroutine re_allocate2_integer
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_complex (cmpl, n1, n2, exact)
+! Subroutine re_allocate2_complex (cmpl, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of complex numbers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -634,11 +668,12 @@ end subroutine re_allocate2_integer
 !                bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_complex (cmpl, n1, n2, exact)
+subroutine re_allocate2_complex (cmpl, n1, n2, exact, init_val)
 
   implicit none
 
   complex(rp), allocatable :: cmpl(:), temp_cmpl(:)
+  complex(rp), optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -653,11 +688,13 @@ subroutine re_allocate2_complex (cmpl, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     call move_alloc(cmpl, temp_cmpl)
     allocate (cmpl(n1:n2))
+    if (present(init_val)) cmpl = init_val
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     cmpl(n1_save:n2_save) = temp_cmpl(n1_save:n2_save)
     deallocate (temp_cmpl)  
   else
     allocate (cmpl(n1:n2))
+    if (present(init_val)) cmpl = init_val
   endif
 
 end subroutine re_allocate2_complex
@@ -666,7 +703,7 @@ end subroutine re_allocate2_complex
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_real (re, n1, n2, exact)
+! Subroutine re_allocate2_real (re, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of reals.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -686,11 +723,12 @@ end subroutine re_allocate2_complex
 !                bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_real (re, n1, n2, exact)
+subroutine re_allocate2_real (re, n1, n2, exact, init_val)
 
   implicit none
 
   real(rp), allocatable :: re(:), temp_re(:)
+  real(rp), optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -705,11 +743,13 @@ subroutine re_allocate2_real (re, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     call move_alloc(re, temp_re)
     allocate (re(n1:n2))
+    if (present(init_val)) re = init_val
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     re(n1_save:n2_save) = temp_re(n1_save:n2_save)
     deallocate (temp_re)  
   else
     allocate (re(n1:n2))
+    if (present(init_val)) re = init_val
   endif
 
 end subroutine re_allocate2_real
@@ -745,7 +785,7 @@ subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
   type(real_pointer_struct), allocatable :: re_ptr(:), temp_re_ptr(:)
 
   integer, intent(in) :: n1, n2
-  integer n1_save, n2_save, n1_old, n2_old
+  integer n1_save, n2_save, n1_old, n2_old, i
 
   logical, optional :: exact
 
@@ -760,8 +800,14 @@ subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     re_ptr(n1_save:n2_save) = temp_re_ptr(n1_save:n2_save)
     deallocate (temp_re_ptr)  
+    do i = n1, n2
+      if (i >= n1_old .and. i <= n2_old) cycle
+      re_ptr(i)%r => null()
+    enddo
+
   else
     allocate (re_ptr(n1:n2))
+    forall (i = n1:n2) re_ptr(i)%r => null()
   endif
 
 end subroutine re_allocate2_real_pointer
@@ -770,7 +816,7 @@ end subroutine re_allocate2_real_pointer
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_logical (logic, n1, n2, exact)
+! Subroutine re_allocate2_logical (logic, n1, n2, exact, init_val)
 !
 ! Routine to reallocate a logical array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -790,11 +836,12 @@ end subroutine re_allocate2_real_pointer
 !                 bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_logical (logic, n1, n2, exact)
+subroutine re_allocate2_logical (logic, n1, n2, exact, init_val)
 
   implicit none
 
   logical, allocatable :: logic(:), temp_logic(:)
+  logical, optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -809,11 +856,13 @@ subroutine re_allocate2_logical (logic, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
     call move_alloc(logic, temp_logic)
     allocate (logic(n1:n2))
+    if (present(init_val)) logic = init_val
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
     logic(n1_save:n2_save) = temp_logic(n1_save:n2_save)
     deallocate (temp_logic)  
   else
     allocate (logic(n1:n2))
+    if (present(init_val)) logic = init_val
   endif
 
 end subroutine  re_allocate2_logical
@@ -822,7 +871,7 @@ end subroutine  re_allocate2_logical
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_string2d (str2, n1, n2, exact)
+! Subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of strings.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -841,13 +890,14 @@ end subroutine  re_allocate2_logical
 !                  bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_string2d (str2, n1, n2, exact)
+subroutine re_allocate_string2d (str2, n1, n2, exact, init_val)
 
   implicit none
 
   integer n1, n2, n1_old, n2_old, n1_save, n2_save
   character(*), allocatable :: str2(:,:)
   character(len(str2)), allocatable :: temp_str2(:,:)
+  character(*), optional :: init_val
 
   logical, optional :: exact
 
@@ -859,11 +909,13 @@ subroutine re_allocate_string2d (str2, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
     call move_alloc(str2, temp_str2)
     allocate (str2(n1,n2))
+    if (present(init_val)) str2 = init_val
     n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
     str2(1:n1_save,1:n2_save) = temp_str2(1:n1_save,1:n2_save)
     deallocate (temp_str2)  
   else
     allocate (str2(n1,n2))
+    if (present(init_val)) str2 = init_val
   endif
 
 end subroutine re_allocate_string2d
@@ -872,7 +924,7 @@ end subroutine re_allocate_string2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_integer2d (inte2, n1, n2, exact)
+! Subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of integers.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -891,11 +943,12 @@ end subroutine re_allocate_string2d
 !                   bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_integer2d (inte2, n1, n2, exact)
+subroutine re_allocate_integer2d (inte2, n1, n2, exact, init_val)
 
   implicit none
 
   integer, allocatable :: inte2(:,:), temp_inte2(:,:)
+  integer, optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -910,11 +963,13 @@ subroutine re_allocate_integer2d (inte2, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
     call move_alloc(inte2, temp_inte2)
     allocate (inte2(n1,n2))
+    if (present(init_val)) inte2 = init_val
     n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
     inte2(1:n1_save,1:n2_save) = temp_inte2(1:n1_save,1:n2_save)
     deallocate (temp_inte2)  
   else
     allocate (inte2(n1,n2))
+    if (present(init_val)) inte2 = init_val
   endif
 
 end subroutine re_allocate_integer2d
@@ -923,7 +978,7 @@ end subroutine re_allocate_integer2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_real2d (re2, n1, n2, exact)
+! Subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
 !
 ! Routine to reallocate an array of reals.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -942,11 +997,12 @@ end subroutine re_allocate_integer2d
 !                 bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_real2d (re2, n1, n2, exact)
+subroutine re_allocate_real2d (re2, n1, n2, exact, init_val)
 
   implicit none
 
   real(rp), allocatable :: re2(:,:), temp_re2(:,:)
+  real(rp), optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -964,10 +1020,12 @@ subroutine re_allocate_real2d (re2, n1, n2, exact)
     temp_re2 = re2(1:n1_save,1:n2_save)
     deallocate (re2)
     allocate (re2(n1,n2))
+    if (present(init_val)) re2 = init_val
     re2(1:n1_save,1:n2_save) = temp_re2
     deallocate (temp_re2)  
   else
     allocate (re2(n1,n2))
+    if (present(init_val)) re2 = init_val
   endif
 
 end subroutine re_allocate_real2d
@@ -976,7 +1034,7 @@ end subroutine re_allocate_real2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_logical2d (logic2, n1, n2, exact)
+! Subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
 !
 ! Routine to reallocate a logical array.
 ! This is modeled after the reallocate functions in Numerical Recipes.
@@ -995,11 +1053,12 @@ end subroutine re_allocate_real2d
 !                    bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate_logical2d (logic2, n1, n2, exact)
+subroutine re_allocate_logical2d (logic2, n1, n2, exact, init_val)
 
   implicit none
 
   logical, allocatable :: logic2(:,:), temp_logic2(:,:)
+  logical, optional :: init_val
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old
@@ -1014,11 +1073,13 @@ subroutine re_allocate_logical2d (logic2, n1, n2, exact)
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2_old <= n2) return
     call move_alloc(logic2, temp_logic2)
     allocate (logic2(n1,n2))
+    if (present(init_val)) logic2 = init_val
     n1_save = min(n1, n1_old); n2_save = min(n2, n2_old)
     logic2(1:n1_save,1:n2_save) = temp_logic2(1:n1_save,1:n2_save)
     deallocate (temp_logic2)  
   else
     allocate (logic2(n1,n2))
+    if (present(init_val)) logic2 = init_val
   endif
 
 end subroutine re_allocate_logical2d
@@ -1027,7 +1088,7 @@ end subroutine re_allocate_logical2d
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_string (str, n, exact)
+! Subroutine re_associate_string (str, n, exact, init_val)
 !
 ! Routine to reassociate an array of strings.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -1045,13 +1106,15 @@ end subroutine re_allocate_logical2d
 !   str(:) -- Character(*), pointer: Allocated array with size(str) >= n.
 !-
 
-subroutine re_associate_string (str, n, exact)
+subroutine re_associate_string (str, n, exact, init_val)
 
   implicit none
 
-  integer n, n_old, n_save
   character(*), pointer :: str(:)
   character(len(str)), pointer :: temp_str(:)
+  character(*), optional :: init_val
+
+  integer n, n_old, n_save
 
   logical, optional :: exact
 
@@ -1064,10 +1127,12 @@ subroutine re_associate_string (str, n, exact)
     n_save = min(n, n_old)
     temp_str => str
     allocate (str(n))
+    if (present(init_val)) str = init_val
     str(1:n_save) = temp_str
     deallocate (temp_str)  
   else
     allocate (str(n))
+    if (present(init_val)) str = init_val
   endif
 
 end subroutine re_associate_string
@@ -1076,7 +1141,7 @@ end subroutine re_associate_string
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_integer (inte, n, exact)
+! Subroutine re_associate_integer (inte, n, exact, init_val)
 !
 ! Routine to reassociate an array of integers.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -1094,7 +1159,7 @@ end subroutine re_associate_string
 !   inte(:) -- Integer, pointer: Allocated array with size(inte) >= n.
 !-
 
-subroutine re_associate_integer (inte, n, exact)
+subroutine re_associate_integer (inte, n, exact, init_val)
 
   implicit none
 
@@ -1102,6 +1167,7 @@ subroutine re_associate_integer (inte, n, exact)
 
   integer, intent(in) :: n
   integer n_save, n_old
+  integer, optional :: init_val
 
   logical, optional :: exact
 
@@ -1114,10 +1180,12 @@ subroutine re_associate_integer (inte, n, exact)
     n_save = min(n, n_old)
     temp_inte => inte
     allocate (inte(n))
+    if (present(init_val)) inte = init_val
     inte(1:n_save) = temp_inte
     deallocate (temp_inte)  
   else
     allocate (inte(n))
+    if (present(init_val)) inte = init_val
   endif
 
 end subroutine re_associate_integer
@@ -1126,7 +1194,7 @@ end subroutine re_associate_integer
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_real (re, n, exact)
+! Subroutine re_associate_real (re, n, exact, init_val)
 !
 ! Routine to reassociate an array of reals.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -1144,11 +1212,12 @@ end subroutine re_associate_integer
 !   re(:)  -- Real(rp), Pointer: Allocated array with size(re) >= n.
 !-
 
-subroutine re_associate_real (re, n, exact)
+subroutine re_associate_real (re, n, exact, init_val)
 
   implicit none
 
   real(rp), pointer :: re(:), temp_re(:)
+  real(rp), optional :: init_val
 
   integer, intent(in) :: n
   integer n_save, n_old
@@ -1164,10 +1233,12 @@ subroutine re_associate_real (re, n, exact)
     n_save = min(n, n_old)
     temp_re => re
     allocate (re(n))
+    if (present(init_val)) re = init_val
     re(1:n_save) = temp_re
     deallocate (temp_re)  
   else
     allocate (re(n))
+    if (present(init_val)) re = init_val
   endif
 
 
@@ -1177,7 +1248,7 @@ end subroutine re_associate_real
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_logical (logic, n, exact)
+! Subroutine re_associate_logical (logic, n, exact, init_val)
 !
 ! Routine to reassociate a string array.
 ! This is modeled after the reassociate functions in Numerical Recipes.
@@ -1195,7 +1266,7 @@ end subroutine re_associate_real
 !   logic(:) -- Logical, pointer: Allocated array with size(logic) >= n.
 !-
 
-subroutine re_associate_logical (logic, n, exact)
+subroutine re_associate_logical (logic, n, exact, init_val)
 
   implicit none
 
@@ -1205,6 +1276,7 @@ subroutine re_associate_logical (logic, n, exact)
   integer n_save, n_old
 
   logical, optional :: exact
+  logical, optional :: init_val
 
 !
 
@@ -1215,10 +1287,12 @@ subroutine re_associate_logical (logic, n, exact)
     n_save = min(n, n_old)
     temp_logic => logic
     allocate (logic(n))
+    if (present(init_val)) logic = init_val
     logic(1:n_save) = temp_logic
     deallocate (temp_logic)  
   else
     allocate (logic(n))
+    if (present(init_val)) logic = init_val
   endif
 
 
