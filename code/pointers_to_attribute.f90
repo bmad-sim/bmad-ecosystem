@@ -4,6 +4,8 @@
 !
 ! Returns an array of pointers to an attribute with name attrib_name within 
 ! elements with name ele_name.
+! Note: If, for example, ele_name = 'BMAD_COM', there is not corresponding lattice element and
+!   therefore eles will have size 0 on output.
 ! Note: ele_name = 'BEAM_START' corresponds to the lat%beam_start substructure. 
 ! Note: ele_name can be a list of element indices. For example:
 !           ele_name = "3:5"
