@@ -31,11 +31,14 @@ type lux_param_struct
   character(100) :: det_pix_out_file = ''
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
+  character(100) :: histogram_out_file = ''
   character(40) :: photon_init_element = ''            ! element name
   character(40) :: detector_element = ''          ! element name
   character(40) :: photon1_element = ''           ! element name
   character(20) :: plotting = ''
   character(16) :: random_engine = 'pseudo'
+  character(16) :: histogram_variable = ''
+  real(rp) :: histogram_bin_width = 0
   real(rp) :: intensity_min_det_pixel_cutoff = 1e-6
   real(rp) :: intensity_min_photon1_cutoff = 1e-6
   real(rp) :: stop_total_intensity = 10           ! stop intensity per energy
@@ -67,9 +70,10 @@ type lux_common_struct
   integer :: mpi_rank  = -1
   integer :: mpi_n_proc = 1        ! Number of processeses including master
   integer :: n_photon1_out = 0     ! Count of photons in photon1_out_file
-  integer :: iu_photon1_out        ! Open unit number.
+  integer :: iu_photon1_out        ! File I/O unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
   type (surface_grid_pt_struct), allocatable :: energy_bin(:)
+  real(rp), allocatable :: histogram_bin(:)
   real(rp) dE_bin
   real(rp) E_min, E_max                                      ! Photon energy range 
   logical :: verbose = .false.
@@ -277,29 +281,7 @@ else
   lux_com%photon1_ele => eles(1)%ele 
 endif
 
-!
-
-! Some init
-
-call run_timer('START')
-
-!
-
-if (lux_com%using_mpi) then
-  lux_com%n_photon_stop1 = 0.1 + lux_param%stop_num_photons * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
-else
-  lux_com%n_photon_stop1 = lux_param%stop_num_photons
-endif
-
-call lux_tracking_setup (lux_param, lux_com)
-
-if (lat%photon_type == coherent$) then
-  if (photon_init_ele%value(e_field_x$) == 0 .and. photon_init_ele%value(e_field_y$) == 0) then
-    call out_io (s_fatal$, r_name, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!')
-  endif
-endif
-
-!
+! Photon1 file init
 
 if (lux_param%photon1_out_file /= '') then
   lux_com%n_photon1_out = 0
@@ -318,6 +300,46 @@ if (lux_param%photon1_out_file /= '') then
   write (iu, '(a)') '#   Ix |     x (mm)           vx       y (mm)           vy            z |        x (mm)           vx       y (mm)           vy            z  |     Energy     Intens_x     Intens_y'
 endif
 
+
+! Histogram setup
+
+if (lux_param%histogram_out_file /= '') then
+  select case (lux_param%histogram_variable)
+  case ('x_angle', 'y_angle', 'energy')
+  case default
+    call out_io (s_fatal$, r_name, 'BAD HISTOGRAM_VARIABLE SETTING: ' // lux_param%histogram_variable, &
+                                   'SHOULD BE ONE OF: "x_angle", "y_angle", OR "energy"')
+    stop
+  end select
+
+  if (lux_param%histogram_bin_width == 0) then
+    call out_io (s_fatal$, r_name, 'HISTOGRAM_BIN_WIDTH IS ZERO!')
+    stop
+  endif
+
+  allocate(lux_com%histogram_bin(-100:100))
+  lux_com%histogram_bin = 0
+endif
+
+! Tracking init
+
+call run_timer('START')
+
+!
+
+if (lux_com%using_mpi) then
+  lux_com%n_photon_stop1 = 0.1 + lux_param%stop_num_photons * lux_param%mpi_run_size / (lux_com%mpi_n_proc - 1)
+else
+  lux_com%n_photon_stop1 = lux_param%stop_num_photons
+endif
+
+call lux_tracking_setup (lux_param, lux_com)
+
+if (lat%photon_type == coherent$) then
+  if (photon_init_ele%value(e_field_x$) == 0 .and. photon_init_ele%value(e_field_y$) == 0) then
+    call out_io (s_fatal$, r_name, 'WARNING: INPUT E_FIELD IS ZERO SO RANDOM FILED WILL BE GENERATED WITH COHERENT PHOTONS!')
+  endif
+endif
 
 !--------------------------------------------------------------------
 contains
@@ -858,6 +880,7 @@ subroutine add_to_detector_statistics (det_orb, intens)
 
 type (coord_struct) det_orb
 real(rp) intens, intens_x, intens_y
+integer ix, i1, i2
 
 !
 
@@ -888,6 +911,26 @@ lux_com%energy_bin(ix)%intensity   = intens
 lux_com%energy_bin(ix)%intensity_x = intens_x
 lux_com%energy_bin(ix)%intensity_y = intens_y
 lux_com%energy_bin(ix)%n_photon    = lux_com%energy_bin(ix)%n_photon + 1
+
+!
+
+if (lux_param%histogram_out_file /= '') then
+  select case (lux_param%histogram_variable)
+  case ('x_angle')
+    ix = nint(det_orb%vec(2) / lux_param%histogram_bin_width)
+  case ('y_angle')
+    ix = nint(det_orb%vec(4) / lux_param%histogram_bin_width)
+  case ('energy')
+    ix = nint((det_orb%p0c-detec_ele%value(p0c$)) / lux_param%histogram_bin_width)
+  end select
+
+  if (ix < lbound(lux_com%histogram_bin,1) .or. ix > ubound(lux_com%histogram_bin,1)) then
+    i1 = min(ix, lbound(lux_com%histogram_bin,1)); i2 = max(ix, ubound(lux_com%histogram_bin,1))
+    call re_allocate2 (lux_com%histogram_bin, i1, i2, .false., 0.0_rp)
+  endif
+
+  lux_com%histogram_bin(ix) = lux_com%histogram_bin(ix) + intens / lux_param%histogram_bin_width
+endif
 
 end subroutine add_to_detector_statistics
 
@@ -960,7 +1003,7 @@ real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
 real(rp) phase_x, phase_y, x, y, energy_rms, x_pitch_rms, y_pitch_rms
 
-integer i, j, nx, ny
+integer i, j, nx, ny, n_min, n_max
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 
 !------------------------------------------
@@ -1132,6 +1175,33 @@ if (lux_param%det_pix_out_file /= '') then
 endif
 
 !------------------------------------------
+! histogram_out_file
+
+if (lux_param%histogram_out_file /= '') then
+  open (3, file = lux_param%histogram_out_file)
+  write (3, '(2a)') '# Histogram of: ', trim(lux_param%histogram_variable)
+  write (3, '(2a, 7x, a)') '#  Index', adjustr(lux_param%histogram_variable(1:14)), 'density'
+
+  do i = lbound(lux_com%histogram_bin,1), ubound(lux_com%histogram_bin,1)
+    if (lux_com%histogram_bin(i) == 0) cycle
+    n_min = i
+    exit
+  enddo
+
+  do i = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
+    if (lux_com%histogram_bin(i) == 0) cycle
+    n_max = i
+    exit
+  enddo
+
+  do i = n_min, n_max
+    write (3, '(i8, 2es14.6)') i, i * lux_param%histogram_bin_width, lux_com%histogram_bin(i)
+  enddo
+
+  close (3)
+endif
+
+!------------------------------------------
 
 call run_timer ('READ', dtime)
 
@@ -1173,8 +1243,9 @@ if (lux_com%verbose) then
   print '(a, f10.2)', &
           ' Simulation time (min):               ', dtime/60
   print *
-  print *, 'Photon1 data file:        ', trim(lux_param%photon1_out_file)
   print *, 'Detector pixel data file: ', trim(lux_param%det_pix_out_file)
+  print *, 'Photon1 data file:        ', trim(lux_param%photon1_out_file)
+  print *, 'Histogram data file:      ', trim(lux_param%histogram_out_file)
 endif
 
 ! End plotting

@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{Revision 1.2 \\ June, 15 2015}
+\date{Revision 1.3 \\ July, 24 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -88,7 +88,7 @@ executable is called \vn{mpi_lux}.
 \section{Building \lux} 
 \label{s:build}
 
-Chances are that a \lux excutable is already built for you to use. If
+Chances are that a \lux executable is already built for you to use. If
 you do need to build \lux, first copy the \vn{lux} directory (ask your
 local Bmad guru where this directory resides if you need to) to your
 local area 
@@ -114,7 +114,7 @@ Syntax for invoking the single threaded version of \lux:
 The \vn{<master-input-file-name>} optional argument is used to set the
 master input file name. The default is ``\vn{lux.init}''. 
 
-The \vn{-silent} optional argument supresses the terminal output that
+The \vn{-silent} optional argument suppresses the terminal output that
 \lux generates at the end of a run. This is useful to avoid long
 output when \lux is run repeatedly via a script.
 
@@ -187,6 +187,7 @@ An example is:
     lux_param%lattice_file = 'test.bmad'           ! Defines experimental layout.
     lux_param%det_pix_out_file = 'lux.det_pix#'
     lux_param%photon1_out_file = 'lux.photon1'     ! Individual photon positions.
+    lux_param%histogram_out_file = ''              ! Histogram of photon x', y', or angle
 
     lux_param%photon_init_element = 'p_init'       ! Name of element emitting photons
     lux_param%detector_element = 'det'
@@ -209,6 +210,8 @@ An example is:
     lux_param%reject_dead_at_det_photon1 = False
     lux_param%n_energy_bin_pts = 40                ! Number of energy bins
 
+    lux_param%histogram_variable = 'x_angle'       ! "x_angle", "y_angle", or "energy"
+    lux_param%histogram_bin_width = 1e-4           ! Width of histogram bins.
 
   /
 \end{example}
@@ -227,6 +230,21 @@ blank file name will prevent a file being generated.
 
   \item[\vn{lux_param\%detector_element}] \Newline
 Name of the lattice detector element where the photon are absorbed.
+
+  \item[\vn{lux_param\%histogram_bin_width}] \Newline
+Bin width of histogram. (\sref{s:histo}).
+
+  \item[\vn{lux_param\%histogram_out_file}] \Newline
+File name of file where the histogram data is put (\sref{s:histo}).
+
+  \item[\vn{lux_param\%histogram_variable}] \Newline
+Variable used in constructing the histogram (\sref{s:histo}).
+Possibilities are:
+\begin{example}
+  x_angle      ! Angle of photon velocity in (z,x) plane.
+  y_angle      ! Angle of photon velocity in (z,y) plane.
+  energy       ! photon energy relative to the reference.
+\end{example}
 
   \item[\vn{lux_param\%intensity_min_det_pixel_cutoff}] \Newline
 Sets the threshold absorbed photon intensity such that all pixels
@@ -250,7 +268,7 @@ Examples are presented in section~\sref{s:lat.file}.
 
   \item[\vn{lux_param\%mpi_run_size}] \Newline
 Only used when running the parallel version of \lux. This parameter
-determins how many photons a slave process is asked to track before
+determines how many photons a slave process is asked to track before
 sending back data to the master process:
 \begin{example}
   Number to track = lux_param%stop_num_photons * 
@@ -306,7 +324,7 @@ from run to run. Not used if the \vn{random_engine} is set to \vn{quasi}.
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
 If \vn{reject_dead_to_det_photon1} is set to True, do not print to the
 photon_out file any photons that do not reach the detector. This switch
-is only relavent when the lattice element at which the photon positions
+is only relevant when the lattice element at which the photon positions
 are being evaluated is not the detector (\sref{s:photon1.file}).
 
   \item[\vn{lux_param\%scale_initial_field_to_1}] \Newline
@@ -342,7 +360,7 @@ interesting). $(v_x/c, v_y/c, v_z)/c$ is the photon velocity normalized to 1.
 Generally photons that make it to the detector will have $v_z/c$ close to
 1 and $v_x/c$ and $v_y/c$ small.
 
-The photon phases \vn{phase_x} and \vn{phase_y} are only relavent with
+The photon phases \vn{phase_x} and \vn{phase_y} are only relevant with
 coherent tracking set in the lattice by the
 \vn{parameter[photon_type]}. See the Bmad manual for more details.
 
@@ -370,7 +388,7 @@ scale the output numbers to correspond to actual measured values.
 \subsection{Photon Polarization Initialization}
 
 When using a \vn{photon_init} element without an associated ``physical
-elemement'', the polarization of the photons is set by the
+element'', the polarization of the photons is set by the
 \vn{photon_init} parameters \vn{e_field_x} and \vn{e_field_y}. 
 
 When using a \vn{photon_init} element with an associated physical
@@ -615,7 +633,7 @@ coordinates of a set of photons.
 The location where the ``end'' coordinates are evaluated is set by the
 \vn{photon1_element} parameter from the master input file. If
 \vn{photon1_element} is blank, the end coordinates are
-evalueated at the detector element.  
+evaluated at the detector element.  
 
 If \vn{reject_dead_at_det_photon1} is set to True, photons that do not
 make it to the detector will not be included in the photon1_out
@@ -675,8 +693,8 @@ file are:
   n_photon          ! Number of photons hitting pixel
   E_ave             ! Average energy deviation from reference (eV)
   E_rms             ! RMS about the average energy (eV)
-  x_ang_ave         ! Average angle in the x-z plane of the stricking photons.
-  y_ang_ave         ! Average angle in the y-z plane of the stricking photons.
+  x_ang_ave         ! Average angle in the x-z plane of the striking photons.
+  y_ang_ave         ! Average angle in the y-z plane of the striking photons.
 \end{example}
 All averages (\vn{E_ave}, \vn{x_ang_ave}, and \vn{y_ang_ave}) are
 intensity weighted averages. \vn{E_ave} is the photon energy deviation
@@ -686,7 +704,7 @@ of the photon energy with respect to \vn{E_ave}.
 In addition to the pixel-by-pixel data file, three additional files
 will be generated. Two of these files contain data projected on the
 $x$ and $y$ detector axes. The name of these two files will be the same as
-\vn{det_pix_out_file} with ``.x'' and ``.y'' suffilux indicating
+\vn{det_pix_out_file} with ``.x'' and ``.y'' suffix indicating
 projected data on the $x$ and $y$ axes respectively. The columns for
 the $x$-axis projected data is:
 \begin{example}
@@ -717,7 +735,7 @@ This file will contain a table with columns:
   intensity         ! Normalized intensity = intensity_x + intensity_y
   n_photon          ! Number of photons in bin.
 \end{example}
-Photons that fall on the detector are binned acording to the photon's
+Photons that fall on the detector are binned according to the photon's
 energy.  Each row in the file represents one bin. \vn{n_photon} is the
 number of photon in a bin and the intensity columns are the
 intensities of these photons. 
@@ -732,6 +750,30 @@ set to 'GAUSSIAN', the span of the energy bins is set to
 6*\vn{photon_init%sig_E}. In this latter case, if photons have an
 energy that falls outside the energy range of bins, these photons are
 counted in the edge bin with the nearest energy.
+
+%------------------------------------------------------------------
+\section{Histogram Output}
+\label{s:histo}
+
+A histogram of the photon velocity angle or energy distribution can
+created by setting \vn{lux_param%histogram_out_file} to a non-blank
+string. 
+
+The photon property to be histogrammed is given by 
+\vn{lux_param%histogram_variable} which may be one of:
+\begin{example}
+  "x_angle"      ! Angle of photon velocity in (z,x) plane
+  "y_angle"      ! Angle of photon velocity in (z,y) plane
+  "energy"       ! photon energy relative to the reference
+\end{example}
+
+The width of the histogram bins is set by
+\vn{lux_param%histogram_bin_width}. The value given for a histogram
+bin is computed using the formula:
+\begin{example}
+  intensity_of_photons_in_bin / bin_width
+\end{example}
+All photons hitting a detector pixel are used for the histogram. 
 
 %------------------------------------------------------------------
 \section{Python Scripting}
@@ -816,14 +858,14 @@ out_file.close()
 The heart of the script is the loop that begins on line 21 and ends on
 line 64. Each iteration of this loop changes one variable in the
 lattice file (lines 28 to 34), runs \lux (line 39), and then extracts
-the pertanent data (lines 44 to 48). Finally at the end of the loop
+the pertinent data (lines 44 to 48). Finally at the end of the loop
 the data is appended to the output file in lines 52 through 64.
 
 
 The lattice file that \lux uses is called \vn{lat.bmad} (this is set
 by the \vn{lattice_file} parameter in the \vn{lux.init} file which is
 not shown). The python script constructs this \vn{lat.bmad} file by
-first readinging in a lattice file called \vn{template.bmad} (lines (8
+first reading in a lattice file called \vn{template.bmad} (lines (8
 to 10). In lines 30 to 32 the script transfers, line-by-line, the lines
 from \vn{template.bmad} to \vn{lat.bmad}. It has been arranged that
 the \vn{template.bmad} file contains the following:
