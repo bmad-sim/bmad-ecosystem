@@ -259,7 +259,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%slave_status == super_slave$) then
       ixs = ixs + 1
       ele%ixx = ixs
-      write (iu, '(a, i3.3, 2a)') 'slave_drift_', ixs, ': drift, l = ', trim(str(ele%value(l$)))
+      write (iu, '(a, i0, 2a)') 'slave_drift_', ixs, ': drift, l = ', trim(str(ele%value(l$)))
       cycle
     endif
 
@@ -1184,7 +1184,7 @@ if (ele%slave_status == super_slave$) then
       write (line, '(4a)') trim(line), ' x__', trim(lord_name), ',' 
     endif
   enddo
-  write (line, '(2a, i3.3, a)') trim(line), ' slave_drift_', ele%ixx, ','
+  write (line, '(2a, i0, a)') trim(line), ' slave_drift_', ele%ixx, ','
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)

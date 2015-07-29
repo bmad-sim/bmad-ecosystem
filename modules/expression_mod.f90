@@ -447,6 +447,7 @@ logical, optional :: use_old
 logical err_flag
 
 character(*) err_str
+character(*), parameter :: r_name = 'evaluate_expression_stack'
 
 !
 
@@ -589,7 +590,11 @@ do i = 1, size(stack)
 
     else
       err_str = 'INTERNAL ERROR #02: GET HELP'
-      if (global_com%exit_on_error) call err_exit
+      if (global_com%exit_on_error) then
+        call out_io (s_fatal$, r_name, err_str)
+        call err_exit
+      endif
+      return
     endif
 
   end select
@@ -597,7 +602,11 @@ enddo
 
 if (i2 /= 1) then
   err_str = 'INTERNAL ERROR #03: GET HELP'
-  if (global_com%exit_on_error) call err_exit
+  if (global_com%exit_on_error) then
+    call out_io (s_fatal$, r_name, err_str)
+    call err_exit
+  endif
+  return
 endif
 
 value = stack2(1)%value
