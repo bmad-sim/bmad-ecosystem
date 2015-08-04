@@ -228,7 +228,7 @@ integer :: data_number, ix_plane, ix_class, n_live, n_order, i1, i2, ix_branch, 
 integer nl, nl0, loc, ixl, iu, nc, n_size, ix_u, ios, ie, nb, id, iv, jd, jv, stat, lat_type
 integer ix, ix0, ix1, ix2, ix_s2, i, j, k, n, show_index, ju, ios1, ios2, i_uni, ix_remove
 integer num_locations, ix_ele, n_name, n_start, n_ele, n_ref, n_tot, ix_p, ix_word
-integer xfer_mat_print, twiss_out, ix_sec, n_attrib
+integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0
 
 logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
@@ -1980,9 +1980,21 @@ case ('lattice')
     endif
   endif
 
+  ie0 = branch%n_ele_max
   line_loop: do ie = 0, branch%n_ele_max
     if (.not. picked_ele(ie)) cycle
+
     if (size(lines) < nl+100) call re_allocate (lines, nl+200, .false.)
+
+    ! Add separator line to distinguish lord vs slave elements
+
+    if (ie0 <= branch%n_ele_track .and. ie > branch%n_ele_track .and. print_header_lines) then
+      nl=nl+1; lines(nl) = 'Lord Elements:'
+    endif
+    ie0 = ie
+
+    !
+
     line = ''
     nc = 1
     ele => branch%ele(ie)
