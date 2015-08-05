@@ -66,6 +66,22 @@ character(1), parameter :: lf$ = achar(10)
 
 integer, parameter :: true$ = 1, false$ = 0
 
+! Color escape sequences
+
+character(*), parameter :: black_color = achar(1) // achar(z'1B') // '[30m' // achar(2) 
+character(*), parameter :: red_color = achar(1) // achar(z'1B') // '[31m' // achar(2) 
+character(*), parameter :: green_color = achar(1) // achar(z'1B') // '[32m' // achar(2) 
+character(*), parameter :: yellow_color = achar(1) // achar(z'1B') // '[33m' // achar(2) 
+character(*), parameter :: blue_color = achar(1) // achar(z'1B') // '[34m' // achar(2) 
+character(*), parameter :: magenta_color = achar(1) // achar(z'1B') // '[35m' // achar(2) 
+character(*), parameter :: cyan_color = achar(1) // achar(z'1B') // '[36m' // achar(2) 
+character(*), parameter :: gray_color = achar(1) // achar(z'1B') // '[37m' // achar(2) 
+
+character(*), parameter :: blink_color = achar(1) // achar(z'1B') // '[5m' // achar(2) 
+character(*), parameter :: bold_color = achar(1) // achar(z'1B') // '[1m' // achar(2) 
+
+character(*), parameter :: reset_color = achar(1) // achar(z'1B') // '[0m' // achar(2) 
+
 ! This is to suppress the ranlib "has no symbols" message
 
 integer, private :: private_dummy
