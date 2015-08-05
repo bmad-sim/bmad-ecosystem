@@ -197,6 +197,9 @@ if (logic_option(.false., prompt_bold)) then
   post = reset_color
 endif
 
+if (pre /= '') pre = rl_prompt_start_ignore // trim(pre) // rl_prompt_end_ignore
+if (post /= '') post = rl_prompt_start_ignore // trim(post) // rl_prompt_end_ignore
+
 if (logic_option(.true., trim_prompt)) then
   call read_line (trim(pre) // trim(prompt) // ' ' // trim(post) // achar(0), line_out)  
 else
