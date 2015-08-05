@@ -197,7 +197,7 @@ if (s%com%shell_interactive) then
     cmd_line = ' '
     tag = trim(prompt_string) // '> '
     s%com%cmd_from_cmd_file = .false.
-    call read_a_line (tag, cmd_line)
+    call read_a_line (tag, cmd_line, prompt_color = s%global%prompt_color, prompt_bold = .true.)
   endif
 endif
 

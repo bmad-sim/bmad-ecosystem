@@ -759,11 +759,31 @@ variables, etc. Format:
 
 \vskip 0.2in 
 
+The \vn{show} command (\sref{s:show}) is able to display the settings
+of many variables that can be set by the \vn{set} command.
+
 Note: For setting element attributes in the \vn{model}
 lattice use the \vn{change} command.
 
 To apply a set to all data or variable classes use ``*''
 in place of \vn{<data_name>} or \vn{var_name}.
+
+To set the prompt color, use the command
+\begin{example}
+  set global prompt_color = <value>
+\end{example}
+Where \vn{<value>} may be one of:
+\begin{example}
+  'BLACK'
+  'RED'
+  'GREEN'
+  'YELLOW'
+  'BLUE'
+  'MAGENTA'
+  'CYAN'
+  'GRAY'
+  'DEFAULT'       ! Default forground color
+\end{example}
 
 % Use the command:
 %   help set <what>
