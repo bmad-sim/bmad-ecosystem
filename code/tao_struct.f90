@@ -525,7 +525,7 @@ type tao_global_struct
   character(16) :: random_engine = 'pseudo'         ! Non-beam random number engine
   character(16) :: random_gauss_converter = 'exact' ! Non-beam
   character(16) :: track_type    = 'single'         ! or 'beam'  
-  character(16) :: prompt_string = 'Tao'
+  character(40) :: prompt_string = 'Tao'
   character(16) :: optimizer     = 'de'             ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
