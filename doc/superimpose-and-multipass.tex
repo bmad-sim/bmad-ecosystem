@@ -345,6 +345,7 @@ downstream edge of \vn{Q}:
 \label{s:multipass}
 \index{multipass|hyperbf}
 
+\index{multipass_slave}\index{multipass_lord}
 Some lattices have the beam recirculating through the same element
 multiple times. For example, an Energy Recovery Linac (ERL) will
 circulate the beam back through the LINAC part to retrieve the energy
@@ -368,19 +369,21 @@ will have two \vn{RF1} elements in the tracking part of the lattice:
   RF1\B1, ..., RF1\B2, ...
 \end{example}
 Since the two elements are derived from a \vn{multipass} line, they
-are given unique names by adding a \vn{{\B}n} suffix. In addition,
-there is a lord element (that doesn't get tracked through) called
-\vn{RF1} in the lord part of the lattice (\sref{s:lord.slave}).
-Changes to attributes of the lord \vn{RF1} element will be passed to
-the slave elements by \bmad's bookkeeping routines. Assuming that the
-phase of \vn{RF1\B1} gives acceleration, to make \vn{RF1\B2}
-decelerate the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to
-0.5. This is the one attribute that \bmad's bookkeeping routines will
-not touch when transferring attribute values from \vn{RF1} to its
-slaves. Notice that the \vn{phi0_multipass} attribute had to be set
-after \vn{expand_lattice} (\sref{s:expand}) is used to expand the
-lattice since \bmad does immediate evaluation and \vn{RF1\B2} does not
-exist before the lattice is expanded.
+are given unique names by adding a \vn{{\B}n} suffix. These types of
+elements are known as \vn{multipass_slave} elements. In addition, to
+the \vn{multipass_slave} elements, there is a \vn{multipass_lord}
+element (that doesn't get tracked through) called \vn{RF1} in the lord
+part of the lattice (\sref{s:lord.slave}).  Changes to attributes of
+the lord \vn{RF1} element will be passed to the slave elements by
+\bmad's bookkeeping routines. Assuming that the phase of \vn{RF1\B1}
+gives acceleration, to make \vn{RF1\B2} decelerate the
+\vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is
+the one attribute that \bmad's bookkeeping routines will not touch
+when transferring attribute values from \vn{RF1} to its slaves. Notice
+that the \vn{phi0_multipass} attribute had to be set after
+\vn{expand_lattice} (\sref{s:expand}) is used to expand the lattice
+since \bmad does immediate evaluation and \vn{RF1\B2} does not exist
+before the lattice is expanded.
 
 Multiple elements of the same name in a multipass line are considered 
 physically distinct. Example:

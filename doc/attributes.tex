@@ -773,6 +773,7 @@ store \vn{x_limit}, \vn{y_limit}, or \vn{aperture}. This means that
 using \vn{x_limit}, \vn{y_limit} or aperture in arithmetic expressions is
 an error:
 \begin{example}
+  q1: quad, aperture = 0.09         
   q2: quad, aperture = q1[aperture]   ! THIS IS AN ERROR!
   q2: quad, aperture = q1[x1_limit]   ! Correct
 \end{example}
