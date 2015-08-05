@@ -4722,23 +4722,29 @@ main_loop: do n = 1, n2
 
         ix_ele_now = ie
         ix_super_lord_end = -1   ! Not in a super_lord
-        ixs = 1       ! Index of girder slave element we are looking for
-        n_slave = 0   ! Number of actual slaves found.
+        ixs = 1                  ! Index of girder slave element we are looking for.
+        n_slave = 0              ! Number of actual slaves found.
+
+        if (size(pele%name) == 0) then
+          call parser_error ('GIRDER DOES NOT HAVE ANY ELEMENTS TO SUPPORT: ' // lord%name)
+          cycle main_loop
+        endif
 
         ! loop over all girder slaves and see if lattice eles match slaves.
 
         slave_loop: do
+          if (ixs > size(pele%name)) exit
 
+          ! Wrap around the origin if needed.
           if (ix_ele_now > branch%n_ele_track) then
             ix_ele_now = ix_ele_now - branch%n_ele_track
           endif
 
-          if (ixs > size(pele%name)) exit
           input_slave_name = pele%name(ixs)
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 
-          if (girder_match_this(ele)) cycle
+          if (girder_match_slave_element(ele, ele, n_slave, ixs, ix_ele_now)) cycle
 
           ! Here if no match. 
           ! If not previously in a super lord then there is no overall match to the slave list.
@@ -4795,12 +4801,13 @@ enddo main_loop
 !-------------------------------------------------------------------------
 contains
 
-recursive function girder_match_this (ele) result (is_matched)
+recursive function girder_match_slave_element (ele, slave, n_slave, ixs, ix_ele_now) result (is_matched)
 
-type (ele_struct), target :: ele
+type (ele_struct), target :: ele, slave
 type (ele_struct), pointer :: lord, slave1, slave2
 
-integer ii
+integer n_slave, ixs, ix_ele_now
+integer ii, ls
 logical is_matched
 
 ! Try to match
@@ -4815,15 +4822,24 @@ if (match_wild(ele%name, input_slave_name)) then
     cs(n_slave)%slave = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
   endif
   ixs = ixs + 1  ! Next girder slave
-  ix_ele_now = ix_ele_now + 1
 
   ! If a super_lord the logic here is complicated by the fact that 
   ! elements can, for example, be completely contained within another element.
+  ! Note: slave can be a super_lord if ele is a multipass_lord
 
   if (ele%lord_status == super_lord$) then
     slave2 => pointer_to_slave(ele, ele%n_slave)
     ix_super_lord_end = ix_far_index(ix_ele_now-1, ix_super_lord_end, slave2%ix_ele)
   endif
+
+  if (slave%lord_status == super_lord$) then
+    slave2 => pointer_to_slave(slave, slave%n_slave)
+    ix_super_lord_end = ix_far_index(ix_ele_now-1, ix_super_lord_end, slave2%ix_ele)
+  endif
+
+  ! If in a super_slave region then need to recheck the current slave against the next girder slave name.
+
+  if (ix_super_lord_end == -1) ix_ele_now = ix_ele_now + 1
 
   ! If match to a girder then move pointers to element after latst girder slave
 
@@ -4839,12 +4855,13 @@ endif
 
 do ii = 1, ele%n_lord
   lord => pointer_to_lord (ele, ii)
-  if (lord%key == group$ .or. lord%key == overlay$) cycle
-  is_matched = girder_match_this(lord)
+  ls = lord%lord_status
+  if (ls /= super_lord$ .and. ls /= multipass_lord$ .and. ls /= girder_lord$) cycle
+  is_matched = girder_match_slave_element(lord, ele, n_slave, ixs, ix_ele_now)
   if (is_matched) return
 enddo
 
-end function girder_match_this
+end function girder_match_slave_element
 
 !-------------------------------------------------------------------------
 ! contains
