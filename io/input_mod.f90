@@ -116,7 +116,7 @@ end subroutine get_a_char
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine read_a_line (prompt, line_out, trim_prompt)
+! Subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)
 !
 ! Subroutine to read a line of input from the terminal.
 ! The line is also add to the history buffer so that the up-arrow
@@ -129,30 +129,78 @@ end subroutine get_a_char
 !   readline curses
 !
 ! Input:
-!   prompt      -- Character(*): Prompt string to use.
-!   trim_prompt -- Logical, optional: If present and True then trim the 
-!                   prompt string and add a single blank before printing 
-!                   the prompt string. Default is True.
+!   prompt        -- character(*): Prompt string to use.
+!   trim_prompt   -- logical, optional: If present and True then trim the 
+!                     prompt string and add a single blank before printing 
+!                     the prompt string. Default is True.
+!   prompt_color  -- character(*), optional: Color of the prompt. Possibilities are: 
+!                     'BLACK', 'RED', 'GREEN', 'YELLOW', 'BLUE', 'MAGENTA', 'CYAN', 'GRAY', 'DEFAULT'.
+!                     The 'DEFAULT' setting (the default) does not set the prompt color.
+!   prompt_bold   -- logical, optional: If present and True then the prompt will be printed in bold.
 !
 ! Output:
 !   line_out   -- Character(*): Line typed by the user.
 !-
 
-subroutine read_a_line (prompt, line_out, trim_prompt)
+subroutine read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)
 
 use sim_utils
 
 implicit none
 
 character(*) prompt, line_out
-logical, optional :: trim_prompt
+character(*), optional :: prompt_color
+character(16) pre, post
+character(*), parameter :: r_name = 'read_a_line'
+
+logical, optional :: trim_prompt, prompt_bold
 
 !
 
+pre = ''
+post = ''
+
+if (present(prompt_color)) then
+  select case (prompt_color)
+  case ('BLACK')
+    pre = black_color
+    post = reset_color
+  case ('RED')
+    pre = red_color
+    post = reset_color
+  case ('GREEN')
+    pre = green_color
+    post = reset_color
+  case ('YELLOW')
+    pre = yellow_color
+    post = reset_color
+  case ('BLUE')
+    pre = blue_color
+    post = reset_color
+  case ('MAGENTA')
+    pre = magenta_color
+    post = reset_color
+  case ('CYAN')
+    pre = cyan_color
+    post = reset_color
+  case ('GRAY')
+    pre = gray_color
+    post = reset_color
+  case ('', 'DEFAULT')
+  case default
+    call out_io (s_warn$, r_name, 'Bad color name: ' // prompt_color)
+  end select
+endif
+
+if (logic_option(.false., prompt_bold)) then
+  pre = trim(pre) // bold_color
+  post = reset_color
+endif
+
 if (logic_option(.true., trim_prompt)) then
-  call read_line (trim(prompt) // ' ' // achar(0), line_out)  
+  call read_line (trim(pre) // trim(prompt) // ' ' // trim(post) // achar(0), line_out)  
 else
-  call read_line (prompt // achar(0), line_out)
+  call read_line (trim(pre) // prompt // trim(post) // achar(0), line_out)
 endif
 
 end subroutine read_a_line
