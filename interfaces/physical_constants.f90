@@ -68,19 +68,32 @@ integer, parameter :: true$ = 1, false$ = 0
 
 ! Color escape sequences
 
-character(*), parameter :: black_color = achar(1) // achar(z'1B') // '[30m' // achar(2) 
-character(*), parameter :: red_color = achar(1) // achar(z'1B') // '[31m' // achar(2) 
-character(*), parameter :: green_color = achar(1) // achar(z'1B') // '[32m' // achar(2) 
-character(*), parameter :: yellow_color = achar(1) // achar(z'1B') // '[33m' // achar(2) 
-character(*), parameter :: blue_color = achar(1) // achar(z'1B') // '[34m' // achar(2) 
-character(*), parameter :: magenta_color = achar(1) // achar(z'1B') // '[35m' // achar(2) 
-character(*), parameter :: cyan_color = achar(1) // achar(z'1B') // '[36m' // achar(2) 
-character(*), parameter :: gray_color = achar(1) // achar(z'1B') // '[37m' // achar(2) 
+character(*), parameter :: rl_prompt_start_ignore = achar(1)   ! For use with GNU readline routine.
+character(*), parameter :: rl_prompt_end_ignore = achar(2)     ! For use with GNU readline routine.
 
-character(*), parameter :: blink_color = achar(1) // achar(z'1B') // '[5m' // achar(2) 
-character(*), parameter :: bold_color = achar(1) // achar(z'1B') // '[1m' // achar(2) 
+character(*), parameter :: black_color = achar(27) // '[30m' 
+character(*), parameter :: red_color = achar(27) // '[31m' 
+character(*), parameter :: green_color = achar(27) // '[32m' 
+character(*), parameter :: yellow_color = achar(27) // '[33m' 
+character(*), parameter :: blue_color = achar(27) // '[34m' 
+character(*), parameter :: magenta_color = achar(27) // '[35m' 
+character(*), parameter :: cyan_color = achar(27) // '[36m' 
+character(*), parameter :: gray_color = achar(27) // '[37m' 
 
-character(*), parameter :: reset_color = achar(1) // achar(z'1B') // '[0m' // achar(2) 
+
+character(*), parameter :: dark_gray_color = achar(27) // '[90m' 
+character(*), parameter :: peach_color = achar(27) // '[91m' 
+character(*), parameter :: light_green_color = achar(27) // '[92m' 
+character(*), parameter :: light_yellow_color = achar(27) // '[93m' 
+character(*), parameter :: light_blue_color = achar(27) // '[94m' 
+character(*), parameter :: pink_color = achar(27) // '[95m' 
+character(*), parameter :: aqua_color = achar(27) // '[96m' 
+character(*), parameter :: white_color = achar(27) // '[97m' 
+
+character(*), parameter :: blink_color = achar(27) // '[5m' 
+character(*), parameter :: bold_color = achar(27) // '[1m' 
+
+character(*), parameter :: reset_color = achar(27) // '[0m' 
 
 ! This is to suppress the ranlib "has no symbols" message
 
