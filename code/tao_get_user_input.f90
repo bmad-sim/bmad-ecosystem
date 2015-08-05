@@ -290,18 +290,35 @@ end subroutine
 
 subroutine check_for_multi_commands
 
-  integer ix
+integer ix
+character(1) quote
 
-  if (cmd_line(1:5) == 'alias') return
+!
 
-  ix = index (cmd_line, ';')
-  if (ix /= 0) then
-    s%com%multi_commands_here = .true.
-    saved_line = cmd_line(ix+1:)
-    cmd_line = cmd_line(:ix-1)
-  else
-    saved_line = ' '
+if (cmd_line(1:5) == 'alias') return
+
+quote = ''   ! Not in quote string
+do ix = 1, len(cmd_line)
+
+  if (quote == '') then
+    select case (cmd_line(ix:ix))
+    case (';')
+      s%com%multi_commands_here = .true.
+      saved_line = cmd_line(ix+1:)
+      cmd_line = cmd_line(:ix-1)
+      return
+
+    case ("'", '"')
+     quote = cmd_line(ix:ix)
+    end select
+
+  else ! quote /= ''
+    if (cmd_line(ix:ix) == quote .and. cmd_line(ix-1:ix-1) /= '\') quote = ''           ! '
   endif
+
+enddo
+
+saved_line = ' '
 
 end subroutine
 
