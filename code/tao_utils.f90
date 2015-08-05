@@ -2583,7 +2583,8 @@ do
         '-noplot                  ', '-lat                     ', '-log_startup             ', '-beam                    ', &
         '-var                     ', '-data                    ', '-building_wall           ', '-plot                    ', &
         '-startup                 ', 'help                     ', '-help                    ', '?                        ', &
-        '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc'], &
+        '-geometry                ', '-rf_on                   ', '-debug                   ', '-disable_smooth_line_calc', &
+        '-color_prompt            '], &
               ix, .true., matched_name=switch)
 
   select case (switch)
@@ -2608,6 +2609,9 @@ do
 
   case ('-building_wall')
     call get_next_arg (s%com%building_wall_file)
+
+  case ('-color_prompt')
+    s%global%prompt_color = 'RED'
 
   case ('-data')
     call get_next_arg (s%com%data_file)

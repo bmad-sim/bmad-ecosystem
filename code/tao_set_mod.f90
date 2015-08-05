@@ -299,12 +299,8 @@ call tao_data_check (err)
 if (err) return
 
 select case (who)
-case ('track_type')
-  if (set_value /= 'single' .and. set_value /= 'beam') then
-    call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
-    return
-  endif
-  s%u%calc%lattice = .true.
+case ('prompt_color')
+  call upcase_string(global%prompt_color)
 case ('random_seed')
   call ran_seed_put (global%random_seed)
 case ('random_engine')
@@ -320,6 +316,12 @@ case ('rf_on')
       call set_on_off (rfcavity$, u%model%lat, off$)
     endif
   enddo
+  s%u%calc%lattice = .true.
+case ('track_type')
+  if (set_value /= 'single' .and. set_value /= 'beam') then
+    call out_io (s_error$, r_name, 'BAD VALUE. MUST BE "single" OR "beam".')
+    return
+  endif
   s%u%calc%lattice = .true.
 end select
 
