@@ -64,22 +64,26 @@ fi
 #--------------------------------------------------------------
 
 ONLINE_ARCHIVE_BASE_DIR='/nfs/cesr/online/lib'
+ONLINE_OPT_DIR='/nfs/cesr/opt'
+
 ONLINE_RELEASE_MGMT_DIR=${ONLINE_ARCHIVE_BASE_DIR}'/util'
 
-ONLINE_IFORT_SETUP_DIR='/nfs/cesr/opt/intel/composer_xe_2013_sp1.1.106/bin'
+ONLINE_IFORT_SETUP_DIR=${ONLINE_OPT_DIR}'/intel/composer_xe_2013_sp1.1.106/bin'
 ONLINE_IFORT_SETUP_COMMAND=(${ONLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
 ONLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-1.1/'
 ONLINE_GFORTRAN_SETUP_COMMAND=(${ONLINE_GFORTRAN_SETUP_DIR}/enable)
 
-ONLINE_OPT_DIR='/nfs/cesr/opt'
-
 #--------------------------------------------------------------
 
 OFFLINE_ARCHIVE_BASE_DIR='/nfs/acc/libs'
+OFFLINE_OPT_DIR='/nfs/opt'
+
+[ "${OFFLINE_LOCAL_ARCHIVE_BASE_DIR}" ] && OFFLINE_ARCHIVE_BASE_DIR=${OFFLINE_LOCAL_ARCHIVE_BASE_DIR}
+
 OFFLINE_RELEASE_MGMT_DIR=${OFFLINE_ARCHIVE_BASE_DIR}'/util'
 
-OFFLINE_IFORT_SETUP_DIR='/nfs/opt/intel/composer_xe_2013_sp1.1.106/bin'
+OFFLINE_IFORT_SETUP_DIR=${OFFLINE_OPT_DIR}'/intel/composer_xe_2013_sp1.1.106/bin'
 OFFLINE_IFORT_SETUP_COMMAND=(${OFFLINE_IFORT_SETUP_DIR}'/compilervars.sh intel64')
 
 OFFLINE_GFORTRAN_SETUP_DIR='/opt/rh/devtoolset-1.1/'
@@ -88,24 +92,22 @@ OFFLINE_GFORTRAN_SETUP_COMMAND=(${OFFLINE_GFORTRAN_SETUP_DIR}/enable)
 # Capture value of ACC_BIN to allow removal from path for cleanliness.
 OLD_ACC_BIN=${ACC_BIN}
 
-OFFLINE_OPT_DIR='/nfs/opt'
-
 #--------------------------------------------------------------
 # Support functions
 #--------------------------------------------------------------
 # Is argument $1 missing from argument $2 (or PATH)?
 function no_path() {
-        eval "case :\$${2-PATH}: in *:$1:*) return 1;; *) return 0;; esac"
+    eval "case :\$${2-PATH}: in *:$1:*) return 1;; *) return 0;; esac"
 }
 
 # If argument path ($1) exists and is not in path, append it.
 function add_path() {
-  [ -d ${1:-.} ] && no_path $* && eval ${2:-PATH}="\$${2:-PATH}:$1"
+    [ -d ${1:-.} ] && no_path $* && eval ${2:-PATH}="\$${2:-PATH}:$1"
 }
 
 # If argument ($1) is in PATH (or 2nd argument), remove it.
 function del_path() {
-  no_path $* || eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: |
+    no_path $* || eval ${2:-PATH}=`eval echo :'$'${2:-PATH}: |
     /bin/sed -e "s;:$1:;:;g" -e "s;^:;;" -e "s;:\$;;"`
 }
 
@@ -119,7 +121,6 @@ function has_substring() {
 	return `false`
     fi
 }
-
 
 # Function to remove duplicate path entries for any path variable
 # passed as an argument.
@@ -292,6 +293,7 @@ unset ACCLIB
 unset ACC_RELEASE_REQUEST
 
 export ACC_RELEASE_DIR=${PLATFORM_DIR}/${ACC_RELEASE}
+export ACC_ROOT_DIR=${ACC_RELEASE_DIR} # Defined for both Release and Distribution Builds
 export ACC_TRUE_RELEASE=`readlink ${ACC_RELEASE_DIR}`
 if ( [ "${ACC_TRUE_RELEASE}" == "" ] ) then
     ACC_TRUE_RELEASE=${ACC_RELEASE}
@@ -303,13 +305,9 @@ export ACC_DEBUG=${ACC_RELEASE_DIR}/debug/bin
 export ACC_PKG=${ACC_RELEASE_DIR}/packages
 export ACC_REPO=https://accserv.lepp.cornell.edu/svn/
 export ACCR=https://accserv.lepp.cornell.edu/svn/
-
-export ACC_GMAKE=${ACC_RELEASE_DIR}/Gmake
-
 export ACC_BUILD_SYSTEM=${RELEASE_ARCHIVE_BASE_DIR}/build_system
 export ACC_BUILD_EXES=Y
 export ACC_CMAKE_VERSION=2.8.5
-export CESR_GMAKE=${ACC_GMAKE}  # For backwards compatibility.
 export TAO_DIR=${ACC_RELEASE_DIR}/tao
 
 #--------------------------------------------------------------
@@ -331,11 +329,6 @@ export PGPLOT_FONTS=${ACC_PKG}/PGPLOT
 case ${ACC_OS_ARCH} in
 
     "Linux_x86_64" )
-	#has_substring ${PATH} "/nfs/opt/intel/composer_xe_2011_sp1.6.233/bin/intel64"
-	#if [ "${?}" == "1" ]; then
-            # FIXME: Inherit from LIBRARY_PATH (not duplicated) as set by ifort setup scripts.
-            # source ${IFORT_SETUP_COMMAND}
-	#fi
 	if ( [ "${ACC_SET_F_COMPILER}" == "ifort" ] ) then
 	    source ${IFORT_SETUP_COMMAND}
 	else

@@ -93,6 +93,9 @@ USE_OVERRIDE_BASEDIR=N
 #----------------------------------------------------------
 # Determine if current working directory is the top level
 # of a distribution source tree.
+#
+# Set universal ACC_ROOT_DIR variable. Defined for both 
+# Release and Distribution Builds.
 #----------------------------------------------------------
 USE_CWD_BASEDIR="N"
 
@@ -104,6 +107,7 @@ if ( [ "${DIRCHECK}" == "Y" ] ); then
   "echo" "Current working directory is the root of a distribution tree." >> ${DIST_SETUP_LOG}
   USE_CWD_BASEDIR="Y"
   export DIST_BASE_DIR="${CWD}"
+  export ACC_ROOT_DIR="${DIST_BASE_DIR}"
 else
   "echo" "Current working directory is not the top level of a distribution tree." >> $DIST_SETUP_LOG
 fi
@@ -149,6 +153,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   "echo" "" >> $DIST_SETUP_LOG
 
   "echo" "\$DIST_BASE_DIR = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
+  "echo" "\$ACC_ROOT_DIR = ${DIST_BASE_DIR}"  >> $DIST_SETUP_LOG
 
 
   #--------------------------------------------------------------
@@ -179,7 +184,7 @@ if [ "${USE_OVERRIDE_BASEDIR}" == "Y" ] || [ "${USE_CWD_BASEDIR}" == "Y" ]; then
   export DIST_OS_ARCH="${DIST_OS}_${DIST_ARCH}"
   export DIST_PLATFORM="${DIST_OS_ARCH}_${DIST_F90}"
   export DIST_PLATFORM_VERSION=$(uname -r | cut -d. -f1)
-
+  export ACC_ROOT_DIR="${DIST_BASE_DIR}"
 
 
   #--------------------------------------------------------------
