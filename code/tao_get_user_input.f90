@@ -46,7 +46,7 @@ character(200), save :: saved_line
 character(40) :: r_name = 'tao_get_user_input'
 
 logical, optional :: wait_flag, will_need_cmd_line_input
-logical err, wait, flush
+logical err, wait, flush, boldit
 logical, save :: init_needed = .true.
 
 ! Init single char input
@@ -197,7 +197,8 @@ if (s%com%shell_interactive) then
     cmd_line = ' '
     tag = trim(prompt_string) // '> '
     s%com%cmd_from_cmd_file = .false.
-    call read_a_line (tag, cmd_line, prompt_color = s%global%prompt_color, prompt_bold = .true.)
+    boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
+    call read_a_line (tag, cmd_line, prompt_color = s%global%prompt_color, prompt_bold = boldit)
   endif
 endif
 
