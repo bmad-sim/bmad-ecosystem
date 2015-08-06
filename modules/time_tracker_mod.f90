@@ -66,7 +66,7 @@ type (track_struct), optional :: track
 
 real(rp), intent(in) :: s1, s2, dt1
 real(rp), target :: t_rel, t_old, dt_tol
-real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save
+real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
 real(rp), target  :: dvec_dt(6), vec_err(6), s_target 
 real(rp) :: wall_d_radius, old_wall_d_radius = 0
 real(rp) :: s_edge_track, s_edge_hard, ref_time
@@ -119,7 +119,7 @@ do
         orb%location = downstream_end$
         add_ds_safe = .false.
         exit_flag = .true.
-      elseif (orb%direction == -1 .and. s_edge_track == 0) then
+      elseif (orb%direction == -1 .and. abs(s_edge_track) < ds_safe) then
         orb%location = upstream_end$
         add_ds_safe = .false.
         exit_flag = .true.
@@ -129,10 +129,9 @@ do
 
       dt_tol = ds_safe / (orb%beta * c_light)
       if (zbrent_needed) then
-        ! Save old_orb, and reinstate after zbrent so that the wall check can still work. 
-        orb_save = orb_old
         dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
-        orb_old = orb_save
+        dummy = delta_s_target(dt) ! Final call to set orb
+        dt_did = dt
       endif
 
       ! Need to apply hard edge kick. 
@@ -188,7 +187,10 @@ do
 
       if (has_hit) then
         dt_tol = ds_safe / (orb%beta * c_light) 
-        if (n_step /= 1) dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
+        if (n_step /= 1) then
+          dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
+          dummy = wall_intersection_func(dt) ! Final call to set orb
+        endif
         orb%state = lost$
         ! Convert for wall handler
         call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
