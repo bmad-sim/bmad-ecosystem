@@ -12,7 +12,6 @@ type (beam_init_struct) beam_init
 type (ele_struct), pointer :: ele
 type (wake_lr_struct), pointer :: lr(:)
 
-integer, allocatable :: ix_out(:)
 integer i, ix, j, n, nn, n_ele, ix_pass, o
 integer irep
 integer n_loc
@@ -20,7 +19,6 @@ real(rp) dr
 real(rp) time
 real(rp) hom_voltage_gain
 real(rp) growth_rate
-logical, allocatable :: keep_ele(:)
 logical err
 logical lost
 
@@ -83,25 +81,22 @@ endif
 
 if (bbu_param%hybridize) then
   print *, 'Note: Hybridizing lattice...'
-  allocate (keep_ele(lat_in%n_ele_max))
-  allocate (ix_out(lat_in%n_ele_max))
-  keep_ele = .false.
   do i = 1, lat_in%n_ele_max
     ! Keep element if defined as end of tracking
-    if(lat_in%ele(i)%name == bbu_param%ele_track_end) then
-       call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
-       cycle
+    ele => lat_in%ele(i)
+    ele%select = .false.
+    if (ele%name == bbu_param%ele_track_end) then
+      ele%select = .true.
+      cycle
     endif
-    if (lat_in%ele(i)%key /= lcavity$) cycle
+    if (ele%key /= lcavity$) cycle
     if (.not. bbu_param%keep_all_lcavities) then
-      if (.not. associated (lat_in%ele(i)%wake)) cycle
-      if (size(lat_in%ele(i)%wake%lr) == 0) cycle
+      if (.not. associated (ele%wake)) cycle
+      if (size(ele%wake%lr) == 0) cycle
     endif
-    call update_hybrid_list (lat_in, i, keep_ele, bbu_param%keep_overlays_and_groups)
+    ele%select = .true.
   enddo
-  call make_hybrid_lat (lat_in, keep_ele, .false., lat, ix_out, bbu_param%use_taylor_for_hybrids)
-  deallocate (keep_ele)
-  deallocate (ix_out)
+  call make_hybrid_lat (lat_in, lat, bbu_param%use_taylor_for_hybrids)
 else
   lat = lat_in
 endif
