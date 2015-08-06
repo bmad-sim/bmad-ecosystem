@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 159;
+  const int BMAD_INC_VERSION = 160;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -138,8 +138,8 @@ namespace Bmad {
   const int FB2 = 15, SIG_Y = 15;
   const int FQ1 = 16, SIG_Z = 16;
   const int FQ2 = 17, SIG_VX = 17;
-  const int SIG_VY = 18, AUTO_SCALE_FIELD_AMP = 18;
-  const int SIG_E = 19, AUTO_SCALE_FIELD_PHASE = 19;
+  const int SIG_VY = 18, AUTOSCALE_AMPLITUDE = 18;
+  const int SIG_E = 19, AUTOSCALE_PHASE = 19;
   const int D1_THICKNESS = 20, VOLTAGE_ERR = 20, DEFAULT_TRACKING_SPECIES = 20;
   const int N_SLICE = 20, Y_GAIN_CALIB = 20, BRAGG_ANGLE = 20, E_CENTER = 20, SPIN_X = 20;
   const int POLARITY = 21, CRUNCH_CALIB = 21, ALPHA_ANGLE = 21, D2_THICKNESS = 21;

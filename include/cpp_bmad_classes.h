@@ -2521,6 +2521,7 @@ public:
   Bool old_is_on;
   Bool logic;
   Bool bmad_logic;
+  Bool select;
   Bool csr_calc_on;
   Bool offset_moves_aperture;
 
@@ -2620,6 +2621,7 @@ public:
     old_is_on(true),
     logic(false),
     bmad_logic(false),
+    select(false),
     csr_calc_on(true),
     offset_moves_aperture(false)
         {

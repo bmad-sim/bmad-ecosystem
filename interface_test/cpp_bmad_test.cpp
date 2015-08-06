@@ -4427,10 +4427,13 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
   rhs = 90 + offset; C.bmad_logic = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 91 + offset; C.csr_calc_on = (rhs % 2 == 0);
+  rhs = 91 + offset; C.select = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 92 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
+  rhs = 92 + offset; C.csr_calc_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 93 + offset; C.offset_moves_aperture = (rhs % 2 == 0);
 
 
 }

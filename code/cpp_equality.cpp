@@ -1136,6 +1136,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.old_is_on == y.old_is_on);
   is_eq = is_eq && (x.logic == y.logic);
   is_eq = is_eq && (x.bmad_logic == y.bmad_logic);
+  is_eq = is_eq && (x.select == y.select);
   is_eq = is_eq && (x.csr_calc_on == y.csr_calc_on);
   is_eq = is_eq && (x.offset_moves_aperture == y.offset_moves_aperture);
   return is_eq;

@@ -6785,8 +6785,8 @@ interface
       z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, &
       z_field_calc, z_aperture_at, z_aperture_type, z_orientation, z_symplectify, z_mode_flip, &
       z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, &
-      z_is_on, z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture) &
-      bind(c)
+      z_is_on, z_old_is_on, z_logic, z_bmad_logic, z_select, z_csr_calc_on, &
+      z_offset_moves_aperture) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -6798,7 +6798,7 @@ interface
     integer(c_int), value :: n_wake, n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
-    logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
+    logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture
     character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
     real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_s
     real(c_double) :: z_ref_time, z_r(*), z_a_pole(*), z_b_pole(*), z_a_pole_elec(*), z_b_pole_elec(*)
@@ -6931,8 +6931,8 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     F%field_calc, F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
     c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
     c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
-    c_logic(F%old_is_on), c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%csr_calc_on), &
-    c_logic(F%offset_moves_aperture))
+    c_logic(F%old_is_on), c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%select), &
+    c_logic(F%csr_calc_on), c_logic(F%offset_moves_aperture))
 
 end subroutine ele_to_c
 
@@ -6965,7 +6965,7 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at, &
     z_aperture_type, z_orientation, z_symplectify, z_mode_flip, z_multipoles_on, &
     z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on, z_old_is_on, &
-    z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture) bind(c)
+    z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture) bind(c)
 
 
 implicit none
@@ -6975,7 +6975,7 @@ type(ele_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
-logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_csr_calc_on, z_offset_moves_aperture
+logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture
 integer(c_int) :: z_key, z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_ix1_slave
 integer(c_int) :: z_ix2_slave, z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx
 integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
@@ -7273,6 +7273,8 @@ F%old_is_on = f_logic(z_old_is_on)
 F%logic = f_logic(z_logic)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%bmad_logic = f_logic(z_bmad_logic)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%select = f_logic(z_select)
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%csr_calc_on = f_logic(z_csr_calc_on)
 !! f_side.to_f2_trans[logical, 0, NOT]
