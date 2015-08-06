@@ -2,10 +2,11 @@ program bookkeeper_test
 
 use bmad
 use mad_mod
+use write_lat_file_mod
 
 implicit none
 
-type (lat_struct), target :: lat
+type (lat_struct), target :: lat, lat2
 type (ele_struct), pointer :: ele, nele
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
@@ -26,6 +27,20 @@ elseif (nargs > 1) then
   print *, 'Only one command line arg permitted.'
   call err_exit
 endif
+
+!-------------
+
+call bmad_parser ('bookkeeper_test2.bmad', lat)
+
+do i = 1, lat%n_ele_max
+  lat%ele(i)%select = .false.
+  if (lat%ele(i)%type == 'A') lat%ele(i)%select = .true.
+enddo
+
+call make_hybrid_lat (lat, lat2)
+call write_bmad_lattice_file('out.bmad', lat2)
+
+!-------------
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
