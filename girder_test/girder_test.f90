@@ -11,11 +11,11 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: girder, slave, slave2
+type (ele_struct), pointer :: girder, slave, slave2, slave3
 type (floor_position_struct), pointer :: floor
 
 real(rp) w_mat(3,3), w_mat_inv(3,3), mat3(3,3)
-integer i, ig, j, nargs
+integer i, ig, j, k, nargs
 
 character(40) fmt
 character(100) lat_file
@@ -43,14 +43,15 @@ call bmad_parser (lat_file, lat)
 !
 
 open (1, file = 'output.now')
-fmt = '(a, a10, a, 3f20.15, 5x, 3f20.15)'
+fmt = '(3a, t20, a, 3f20.15, 5x, 3f20.15)'
 
 do ig = lat%n_ele_track+1, lat%n_ele_max
   girder => lat%ele(ig)
   if (girder%lord_status /= girder_lord$) cycle
 
   floor => girder%floor
-  write (1, fmt) '"Floor:  ', trim(girder%name), '" ABS 1e-14 ', floor%r, floor%theta, floor%phi, floor%psi
+  write (1, fmt) '"Floor-r: ', trim(girder%name), '"', 'ABS 1e-14 ', floor%r
+  write (1, fmt) '"Floor-ang: ', trim(girder%name), '"', 'ABS 1e-14 ', floor%theta, floor%phi, floor%psi
 
   do i = 1, girder%n_slave
     slave => pointer_to_slave(girder, i)
@@ -59,6 +60,12 @@ do ig = lat%n_ele_track+1, lat%n_ele_max
     do j = 1, slave%n_slave
       slave2 => pointer_to_slave(slave, j)
       call write_this (slave2)
+
+      do k = 1, slave2%n_slave
+        slave3 => pointer_to_slave(slave2, k)
+        call write_this (slave3)
+      enddo
+
     enddo
 
   enddo
@@ -85,15 +92,15 @@ type (ele_struct), target :: ele
 real(rp), pointer :: v(:)
 
 v => ele%value
-write (1, fmt) '"Offset: ', trim(ele%name), '" ABS 1e-14 ', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
+write (1, fmt) '"Offset: ', trim(ele%name), '"', 'ABS 1e-14 ', v(x_offset_tot$), v(y_offset_tot$), v(z_offset_tot$)
 
 select case (ele%key)
 case (sbend$)
-  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(roll_tot$), v(ref_tilt_tot$)
+  write (1, fmt) '"Angle: ', trim(ele%name), '"',  'ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(roll_tot$), v(ref_tilt_tot$)
 case (multilayer_mirror$, mirror$, crystal$)
-  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), v(ref_tilt_tot$)
+  write (1, fmt) '"Angle: ', trim(ele%name), '"', 'ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$), v(ref_tilt_tot$)
 case default
-  write (1, fmt) '"Angle:  ', trim(ele%name), '" ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$)
+  write (1, fmt) '"Angle: ', trim(ele%name), '"', 'ABS 1e-14 ', v(x_pitch_tot$), v(y_pitch_tot$), v(tilt_tot$)
 end select
 
 write (1, *)
