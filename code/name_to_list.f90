@@ -1,9 +1,8 @@
 !+
-! Subroutine name_to_list (lat, ele_names, use_ele)
+! Subroutine name_to_list (lat, ele_names)
 !
-! Subroutine to make a list of elements in LAT of the elements whose name
-! matches the names in ELE_NAMES.
-! This subroutine is typiclly used with make_hybrid_lat
+! Routine to mark the elements in lat whose name matches the names in ELE_NAMES.
+! This routine is typiclly used with make_hybrid_lat.
 !
 ! Modules Needed:
 !   use bmad
@@ -11,68 +10,48 @@
 ! Input:
 !   lat         -- lat_struct: Input lat.
 !   ele_names(:) -- Character(*): list of element names. Wild card
-!                     characters may be used. The last array element must
-!                     be blank.
+!                     characters may be used.
 !
 ! Output:
-!   use_ele(:)   -- Logical array: list elements referenced to the element
-!                    list in LAT.
+!   lat%branch(:)%ele(:)%select  -- Set True if there is a match. False otherwise
 !
-! Example: The following makes a list of the quads and bends.
+! Example: The following makes a list of element whose name begin with "Q" or "B"
 !
-!   ele_names(1) = 'Q*'      ! quads
-!   ele_names(2) = 'B*'      ! bends
-!   ele_names(3) = ' '       ! end of ELE_NAMES list
+!   ele_names(1) = 'Q*'  
+!   ele_names(2) = 'B*'
 !-
 
-subroutine name_to_list (lat, ele_names, use_ele)
+subroutine name_to_list (lat, ele_names)
 
-  use bmad_interface, except_dummy => name_to_list
+use bmad_interface, except_dummy => name_to_list
 
-  implicit none
+implicit none
 
-  type (lat_struct)  lat
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
 
-  integer n, m, n_names
-  integer ic
+integer ib, n, m
 
-  logical use_ele(:)
+character(*) ele_names(:)
 
-  character(*) ele_names(:)
-
-  logical searching
-
-! find end of lists
-
-  ic = len(ele_names(1))
-
-  n_names = 0
-  searching = .true.
-  do while (searching)
-    n_names = n_names + 1
-    if (len_trim(ele_names(n_names)) == 0) searching = .false.
-  enddo
-
-! initialize
-
-  do n = 1, lat%n_ele_max
-    use_ele(n) = .false.      ! no match yet
-  enddo
+logical searching
 
 ! match
 
-  do n = 1, lat%n_ele_max
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  do n = 1, branch%n_ele_max
+    ele => branch%ele(n)
+    ele%select = .false.
 
-    do m = 1, n_names
-      if (match_wild(lat%ele(n)%name, ele_names(m))) then
-        use_ele(n) = .true.
-        call update_hybrid_list (lat, n, use_ele)
-        goto 1000
-      endif
+    do m = 1, len(ele_names)
+      if (.not. match_wild(ele%name, ele_names(m))) cycle
+      ele%select = .true.
+      exit
     enddo
 
-1000    continue
-
   enddo
+enddo
 
 end subroutine

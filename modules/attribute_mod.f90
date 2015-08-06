@@ -221,6 +221,13 @@ case (hkicker$)
     is_valid = .true.
   end select
 
+case (hybrid$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (linear$, taylor$)
+    is_valid = .true.
+  end select
+
 case (instrument$, pipe$)
   if (present(num_valid)) num_valid = 9
   select case (tracking_method)
@@ -281,6 +288,13 @@ case (patch$)
   if (present(num_valid)) num_valid = 5
   select case (tracking_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, custom$, runge_kutta$)
+    is_valid = .true.
+  end select
+
+case (photon_init$)
+  if (present(num_valid)) num_valid = 2
+  select case (tracking_method)
+  case (bmad_standard$, custom$)
     is_valid = .true.
   end select
 
@@ -375,13 +389,6 @@ case (wiggler$, undulator$)
       is_valid = .true.
     end select
   endif
-
-case (photon_init$)
-  if (present(num_valid)) num_valid = 2
-  select case (tracking_method)
-  case (bmad_standard$, custom$)
-    is_valid = .true.
-  end select
 
 case default
   call err_exit   ! Should not be here
@@ -534,11 +541,17 @@ case (floor_shift$)
     is_valid = .true.
   end select
 
-
 case (hkicker$)
   if (present(num_valid)) num_valid = 6
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, taylor$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (hybrid$)
+  if (present(num_valid)) num_valid = 2
+  select case (mat6_calc_method)
+  case (taylor$, static$)
     is_valid = .true.
   end select
 
@@ -602,6 +615,13 @@ case (patch$)
   if (present(num_valid)) num_valid = 5
   select case (mat6_calc_method)
   case (bmad_standard$, symp_lie_ptc$, static$, tracking$, custom$)
+    is_valid = .true.
+  end select
+
+case (photon_init$)
+  if (present(num_valid)) num_valid = 4
+  select case (mat6_calc_method)
+  case (bmad_standard$, static$, tracking$, custom$)
     is_valid = .true.
   end select
 
@@ -683,14 +703,6 @@ case (wiggler$, undulator$)
     end select
   endif
 
-case (photon_init$)
-  if (present(num_valid)) num_valid = 4
-  select case (mat6_calc_method)
-  case (bmad_standard$, static$, tracking$, custom$)
-    is_valid = .true.
-  end select
-
-
 case default
   call err_exit
 
@@ -748,6 +760,10 @@ case (custom$)
   case (tracking$, custom$)
     is_valid = .true.
   end select
+
+case (hybrid$)
+  if (present(num_valid)) num_valid = 0
+  is_valid = .false.
 
 case (sad_mult$, patch$)
   if (present(num_valid)) num_valid = 1

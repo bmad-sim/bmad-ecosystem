@@ -585,6 +585,15 @@ do i = 1, n_key$
   end select
 enddo
 
+attrib_array(hybrid$, a0$+1:a0$+6)%name = ['KICK1', 'KICK2', 'KICK3', 'KICK4', 'KICK5', 'KICK6']
+attrib_array(hybrid$, a0_elec$+1:a0_elec$+36)%name = &
+                                           ['MAT11', 'MAT12', 'MAT13', 'MAT14', 'MAT15', 'MAT16', &
+                                            'MAT21', 'MAT22', 'MAT23', 'MAT24', 'MAT25', 'MAT26', &
+                                            'MAT31', 'MAT32', 'MAT33', 'MAT34', 'MAT35', 'MAT36', &
+                                            'MAT41', 'MAT42', 'MAT43', 'MAT44', 'MAT45', 'MAT46', &
+                                            'MAT51', 'MAT52', 'MAT53', 'MAT54', 'MAT55', 'MAT56', &
+                                            'MAT61', 'MAT62', 'MAT63', 'MAT64', 'MAT65', 'MAT66']
+
 !
 
 call init_attribute_name1 (photon_fork$, l$,                       'L', dependent$)
@@ -1180,6 +1189,8 @@ call init_attribute_name1 (hybrid$, delta_ref_time$,                'DELTA_REF_T
 call init_attribute_name1 (hybrid$, ref_time_start$,                'ref_time_start', private$)
 call init_attribute_name1 (hybrid$, e_tot_start$,                   'E_TOT_START', dependent$)
 call init_attribute_name1 (hybrid$, p0c_start$,                     'P0C_START', dependent$)
+call init_attribute_name1 (hybrid$, mat6_calc_method$,              'MAT6_CALC_METHOD')
+call init_attribute_name1 (hybrid$, tracking_method$,               'TRACKING_METHOD')
 
 call init_attribute_name1 (mirror$, l$,                             'L', dependent$)
 call init_attribute_name1 (mirror$, graze_angle$,                   'GRAZE_ANGLE')

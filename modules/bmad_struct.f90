@@ -722,6 +722,7 @@ type ele_struct
   logical :: old_is_on = .true.              ! For saving the element on/off state.
   logical :: logic = .false.                 ! For general use. Not used by Bmad.
   logical :: bmad_logic = .false.            ! For Bmad internal use only.
+  logical :: select = .false.                ! For element selection. Used by make_hybrid_ring, etc.
   logical :: csr_calc_on = .true.            ! Coherent synchrotron radiation calculation
   logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
 end type
@@ -1128,10 +1129,6 @@ integer, parameter :: open$ = 1, closed$ = 2
 
 character(16), parameter :: lattice_type_name(0:2) = ['GARBAGE!        ', 'LINEAR_LATTICE  ', 'CIRCULAR_LATTICE']
 character(16), parameter :: geometry_name(0:2) = ['GARBAGE!    ', 'Open        ', 'Closed      ']
-
-! logicals for MAKE_HYBIRD_lat
-
-logical, parameter :: remove_markers$ = .true., no_remove_markers$ = .false.
 
 ! The linac_normal_mode_struct is basically the synchrotron integrals with the
 ! energy factors thrown in. Useful for linacs.
