@@ -702,7 +702,9 @@ negatively charged particle is opposite this.
   \includegraphics{apertures.pdf}
   \caption[Apertures for ecollimator and rcollimator elements.]
   {Apertures for ecollimator and rcollimator elements. 
-  Positive $s$ points up out of the page.}
+  [note: positive $z$ points up, out of the page.] 
+  As drawn, all limits \vn{x1_limit}, \vn{x2_limit}, 
+  \vn{y1_limit}, \vn{y2_limit} are  positive.}  
   \label{f:limit}
 \end{figure}
 
@@ -736,6 +738,25 @@ figure~\ref{f:limit}. A zero \vn{x1_limit}, \vn{x2_limit},
 \vn{y1_limit}, or \vn{y2_limit} is interpreted as no aperture in the
 appropriate plane.
 
+For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
+\vn{x2_limit} to a common value. Example:
+\begin{example}
+  s: sextupole, x1_limit = 0.09, x2_limit = 0.09
+  s: sextupole, x_limit = 0.09   ! Same as above
+\end{example}
+Similarly, \vn{y_limit} can be used
+to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute
+can be use to set all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}
+and \vn{y2_limit} to a common value. Internally, the \bmad code does {\em not}
+store \vn{x_limit}, \vn{y_limit}, or \vn{aperture}. This means that
+using \vn{x_limit}, \vn{y_limit} or aperture in arithmetic expressions is
+an error:
+\begin{example}
+  q1: quad, aperture = 0.09         
+  q2: quad, aperture = q1[aperture]   ! THIS IS AN ERROR!
+  q2: quad, aperture = q1[x1_limit]   ! Correct
+\end{example}
+
 By default, apertures are assumed to be rectangular except that an
 \vn{ecollimator} has a elliptical aperture. This can be changed by
 setting the \vn{aperture_type} attribute. The possible values of this
@@ -757,26 +778,21 @@ setting is only to be used when there is an associated surface grid
 (\sref{s:surf.grid}) for the element and, in this case, \bmad to set
 the four limits to just cover the surface grid
 
+For rectangular apertures, the limits \vn{x1_limit}, \vn{x2_limit},
+\vn{y1_limit}, or \vn{y2_limit} may be negative. For example:
+\begin{example}
+  s: sextupole, x1_limit = -0.02, x2_limit = 0.09
+\end{example}
+In this case, particles will hit the aperture if their $x$-coordinate
+is outside the interval [0.02, 0.09]. That is, particles at the origin
+will be lost.
+
 To avoid numerical overflow and other errors in tracking, a particle
 will be considered to have hit an aperture in an element, even if
 there are no apertures set for that element, if its orbit exceeds 1000
 meters. Additionally, there are other situations where a particle will
 be considered lost. For example, if a particle's trajectory does
 not intersect the output face in a bend.
-
-For convenience, \vn{x_limit} can be used to set \vn{x1_limit} and
-\vn{x2_limit} to a common value. Similarly, \vn{y_limit} can be used
-to set \vn{y1_limit} and \vn{y2_limit}.  The \vn{aperture} attribute
-can be use to set all four \vn{x1_limit}, \vn{x2_limit}, \vn{y1_limit}
-and \vn{y2_limit} to a common value. Internally, the \bmad code does {\em not}
-store \vn{x_limit}, \vn{y_limit}, or \vn{aperture}. This means that
-using \vn{x_limit}, \vn{y_limit} or aperture in arithmetic expressions is
-an error:
-\begin{example}
-  q1: quad, aperture = 0.09         
-  q2: quad, aperture = q1[aperture]   ! THIS IS AN ERROR!
-  q2: quad, aperture = q1[x1_limit]   ! Correct
-\end{example}
 
 Examples:
 \begin{example}

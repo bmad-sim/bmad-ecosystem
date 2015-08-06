@@ -270,17 +270,13 @@ interface
     real(rp) g_inv_mat(4,4)
   end subroutine
 
-  subroutine make_hybrid_lat (r_in, use_ele, remove_markers, &
-                                           r_out, ix_out, use_taylor, orb0)
+  subroutine make_hybrid_lat (r_in, r_out, use_taylor, orb0)
     import
     implicit none
     type (lat_struct), target :: r_in
     type (lat_struct), target :: r_out
-    integer, optional :: ix_out(:)
-    logical remove_markers
-    logical use_ele(:)
     logical, optional :: use_taylor
-    type (coord_struct), optional :: orb0(0:)
+    type (coord_array_struct), optional :: orb0(0:)
   end subroutine
 
   recursive subroutine make_mat6 (ele, param, start_orb, end_orb, end_in, err_flag)
@@ -359,11 +355,10 @@ interface
     type (lat_param_struct) param
   end subroutine
 
-  subroutine name_to_list (lat, ele_names, use_ele)
+  subroutine name_to_list (lat, ele_names)
     import
     implicit none
     type (lat_struct) lat
-    logical use_ele(:)
     character(*) ele_names(:)
   end subroutine
 
@@ -886,15 +881,6 @@ interface
     character(*), optional :: file_names(:)
     type (extra_parsing_info_struct), optional :: extra
     logical, optional :: err_flag
-  end subroutine
-
-  recursive subroutine update_hybrid_list (lat, n_in, use_ele, keep_overlays_and_groups)
-    import
-    implicit none
-    type (lat_struct) lat
-    logical use_ele(:)
-    integer n_in
-    logical, optional :: keep_overlays_and_groups
   end subroutine
 
   subroutine add_lattice_control_structs (lat, ele, add_at_end)

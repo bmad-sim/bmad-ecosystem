@@ -778,7 +778,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Encode taylor
 
-    if (ele%key == taylor$) then
+    if (ele%key == taylor$ .or. (ele%key == hybrid$ .and. ele%tracking_method == taylor$)) then
       do j = 1, 6
         unit_found = .false.
         unit = 0
@@ -792,13 +792,28 @@ do ib = 0, ubound(lat%branch, 1)
           else
             write_term = .true.
           endif
-          if (write_term) write (line, '(2a, i0, 3a, 6i2, a)') &
-                trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%expn, '}'
+          if (write_term) write (line, '(2a, i0, 3a, 6i2, a)') trim(line), ', {', j, ': ', trim(str(tm%coef)), ',', tm%expn, '}'
         enddo
-        if (.not. unit_found) write (line, '(2a, i0, a, 6i2, a)') &
-                trim(line), ', {', j, ': 0,', tm%expn, '}'
+        if (.not. unit_found) write (line, '(2a, i0, a, 6i2, a)') trim(line), ', {', j, ': 0,', tm%expn, '}'
       enddo
     endif
+
+    ! Encode linear hybrid
+
+    if (ele%key == hybrid$ .and. ele%tracking_method == linear$) then
+      do i = 1, 6
+        if (ele%vec0(i) == 0) cycle
+        write (line, '(2a, i0, 2a)') trim(line), ', kick', i, ' = ', trim(str(ele%vec0(i)))
+      enddo 
+      do i = 1, 6
+        do j = 1, 6
+          if (ele%mat6(i,j) == 0) cycle
+          write (line, '(2a, 2i0, 2a)') trim(line), ', mat', i, j, ' = ', trim(str(ele%mat6(i,j)))
+        enddo
+      enddo
+    endif
+
+    ! Encode multipoles
 
     if (associated(ele%a_pole)) then
       do j = 0, ubound(ele%a_pole, 1)

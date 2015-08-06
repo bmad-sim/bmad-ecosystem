@@ -234,11 +234,11 @@ logical, optional :: check_free, wild_and_key0
 err_flag = .true.  ! assume the worst
 call get_next_word (word, ix_word, ':, =()', delim, delim_found, call_check = .true.)
 
-! taylor
+! Taylor
 
 wild_key0 = logic_option(.false., wild_and_key0)
 
-if (ele%key == taylor$ .and. word(1:1) == '{') then
+if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
 
   word = word(2:)             ! strip off '{'
   read (word, *, iostat = ios) i_out
@@ -1365,7 +1365,13 @@ case default   ! normal attribute
     if (err_flag) return
 
     ! multipole attribute?
-    if (is_attribute(ix_attrib, multipole$) .and. attrib_word(1:4) /= 'CURV') then  
+    if (ele%key == hybrid$ .and. is_attribute(ix_attrib, multipole$)) then
+      ele%vec0(ix_attrib-a0$) = value
+    elseif (ele%key == hybrid$ .and. is_attribute(ix_attrib, elec_multipole$)) then
+      i = 1 + (ix_attrib - a0_elec$ - 1) / 6
+      j = ix_attrib - a0_elec$ - 6 * (i - 1)
+      ele%mat6(i,j) = value
+    elseif (is_attribute(ix_attrib, multipole$) .and. attrib_word(1:4) /= 'CURV') then  
         if (.not. associated(ele%a_pole)) call multipole_init (ele)
         if (ix_attrib >= b0$) then
           ele%b_pole(ix_attrib-b0$) = value

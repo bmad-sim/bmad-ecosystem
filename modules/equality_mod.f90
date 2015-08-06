@@ -2038,6 +2038,8 @@ is_eq = is_eq .and. (f1%logic .eqv. f2%logic)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%bmad_logic .eqv. f2%bmad_logic)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%select .eqv. f2%select)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%csr_calc_on .eqv. f2%csr_calc_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%offset_moves_aperture .eqv. f2%offset_moves_aperture)
