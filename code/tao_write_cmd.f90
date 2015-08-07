@@ -514,6 +514,11 @@ case ('orbit')
 
 case ('ps', 'ps-l', 'gif', 'gif-l', 'pdf', 'pdf-l')
 
+  if (qp_base_library == 'PGPLOT' .and. action(1:3) == 'pdf') then
+    call out_io (s_error$, r_name, 'PGPLOT DOES NOT SUPPORT PDF!')
+    return
+  endif
+
   file_name = "tao.ps"
   if (action(1:3) == 'gif') file_name = 'tao.gif'
   if (action(1:3) == 'pdf') file_name = 'tao.pdf'
