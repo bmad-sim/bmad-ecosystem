@@ -215,8 +215,10 @@ use output_mod
 
 #if defined (CESR_PLPLOT)
   use plplot_interface
+  character(*), parameter :: qp_base_library = 'PLPLOT'
 #else
   use pgplot_interface
+  character(*), parameter :: qp_base_library = 'PGPLOT'
 #endif
 
 !---------------------------------------------------------------------------
