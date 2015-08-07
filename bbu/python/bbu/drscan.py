@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 import subprocess
 import pylab
 import os
@@ -6,13 +7,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #######################
-def setup_drscan ( arc_time ):
+def setup_drscan ( arc_time, py_par ):
 #######################
     # Make lat2 txt file
     print("Filling lat2.txt now")
     # Calculate the arclength for this given recirculation time
     arc_l = calc_arcl ( arc_time )
-    my_file = open('lat2.lat','w')
+    my_file = open(os.path.join(py_par['temp_dir'],'lat2.lat'),'w')
     my_file.write('arc[L] = '+str(arc_l))
     my_file.close()
 
@@ -27,7 +28,7 @@ def calc_arcl ( arctime ):
   return arc_l
 
 #######################
-def make_dr_plot ( ):
+def make_dr_plot ( py_par ):
 ####################### 
   x = []
   y = []
@@ -35,7 +36,7 @@ def make_dr_plot ( ):
   lines = []
   p = []
   my_plotfile = "thresh_v_trotb.txt"
-  f = open(my_plotfile, 'r')
+  f = open(os.path.join(py_par['temp_dir'],my_plotfile), 'r')
   lines = f.readlines()
   f.close()
 
@@ -49,7 +50,8 @@ def make_dr_plot ( ):
 
   plt.scatter(xv, yv, marker = 'o', color = 'b')
   plt.title("BBI paper reproduction")
-  plt.xlabel("tr/tb")
+  plt.rcParams.update({'font.size': 20})
+  plt.xlabel("Arc Time / Bunch Time")
   plt.ylabel("Log( HOM Voltage )")
   #plt.text(.15, .9, 'PRSTAB 7 (2004) Fig. 3.')
   plt.show()

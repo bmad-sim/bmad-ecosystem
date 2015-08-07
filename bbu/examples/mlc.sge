@@ -1,0 +1,10 @@
+#$ -S /bin/bash
+#$ -l arch=linux-x64
+####$ -l hostname=lnx337
+####$ -l hostname="lnx33[4-5]"
+#$ -l hostname="lnx33*"
+#$ -cwd 
+
+python3 run_examp_bbu.py 1 $JOB_ID '/home/mt728/nfs/linux_lib/bsim/bbu/test/grid_outfiles/cut/'
+
+#  RUNFILE  	#THRESHOLDS TO FIND	#GRID ID TO NAME OUTFILES      OUTPUT DIRECTORY (must already exist)
