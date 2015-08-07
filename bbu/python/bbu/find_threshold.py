@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 import subprocess
+import os
+import random
+import tempfile
+import shutil
+import glob
 
 #===============================================================
 def get_stability(gain, lost_bool):
@@ -118,40 +123,110 @@ def calc_new_charge( t, bool_stable, rel_tol ):
       t['bunch_charge'] = (t['charge0'] + t['charge1']) / 2
     else:  # Still searching for an unstable point
       t['bunch_charge'] = t['bunch_charge'] * 2
+
+#==========================================================
+def make_tempdir ( namecode, dir ):
+##################### Makes the temporary directory 
+  '''
+  tdir = os.path.join( dir, 'bbu_temp_'+str(namecode))
+  # Check directories
+  if (not os.path.exists( dir )):
+    print( 'Error: this directory does not exist: ', dir )
+  if (os.path.exists( tdir )):
+    print('Error: temp subdir already exists: ', tdir )
+    dir = ''
+    
+  if (dir == ''):
+    # Get a temporary directory name
+    print( 'Putting temp directories here instead' )
+    my_tdir = tempfile.mkdtemp(str(namecode), 'bbu_temp_', dir)
+  '''
+  my_tdir = tempfile.mkdtemp(str(namecode), 'bbu_temp_', dir)
+  tdir = os.path.join(dir, my_tdir)
+  
+  return tdir
+
+def cleanup_workdir(tempdir):
+  if (not os.path.exists(tempdir)):
+    print('Error: workdir was already removed!: ', tempdir)
+  else:
+    shutil.rmtree(tempdir)
+
   
 #==========================================================
-def make_init ( bbu_params ):
+def make_init ( bbu_params, temp_dir ):
 ##################### Makes the template bbu init file from user-set params
-  bt = open('bbu_template.init','w')
+  bt = open(os.path.join(temp_dir,'bbu_template.init'),'w')
   bt.write('&bbu_params\n')
   for key in bbu_params:
     bt.write('  bbu_param%'+ key + ' = ' +str( bbu_params[key])+'\n' )
   bt.write('/')
   bt.close()
 
+
 #==========================================================
-def  run_bbu ( temp_curr, exec_path, mode ):
+def make_assign ( py_par, lat_file, runcode ):
+##################### Makes the randomly assigned HOM lattice file
+  f_lat = open(os.path.join(py_par['temp_dir'],'temp_lat.lat'), 'w')
+  f_lat.write('call, file = '+lat_file+'\n')
+  f_lat.close()
+  if (runcode == 'need_names'):
+    run_bbu( py_par['threshold_start_curr'], py_par, 'current' )  # Runs bbu with no homs assigned to get cav names 
+#  files_in_dir = os.listdir( py_par['hom_dir'] )
+  if (runcode== 'have_names'):
+    files_in_dir = glob.glob( os.path.join(py_par['hom_dir'], '*dat') )
+    # Get all cavity names
+    f = open(os.path.join(py_par['temp_dir'], 'hom_info.txt'),'r')   # Parse for cavity names
+    cav_names = []
+    #Skip the first lof
+    next(f)
+    for line in f:
+      s = line.split()
+      seen = False
+      if len(s) > 0:
+        cav_name = s[0]
+        # Exit so dont double count for multipass
+        for i in range(len(cav_names)):
+          if (cav_name == cav_names[i]):
+            seen = True
+        if (not seen): cav_names.append(cav_name) 
+    # Create assignement file
+    f_assign = open(os.path.join(py_par['temp_dir'],'rand_assign_homs.bmad'), 'w')
+    for r in range(len(cav_names)): 
+      # Choose a file at random for each cavity
+      i = random.randrange(0, len(files_in_dir))
+      cavstring = cav_names[r]+'[lr_wake] = '+os.path.join(py_par['hom_dir'],files_in_dir[i])+'\n' 
+      f_assign.write(cavstring)
+    f_assign.close()
+    f_lat2 = open(os.path.join(py_par['temp_dir'],'temp_lat.lat'), 'w')
+    f_lat2.write('call, file = '+lat_file+'\n')
+    f_lat2.write("call, file = \'"+os.path.join(py_par['temp_dir'],'rand_assign_homs.bmad')+"\'\n")
+    f_lat2.close()
+
+
+#==========================================================
+def  run_bbu ( temp_curr, py_par, mode ):
 ##################### Prepare bbu.init and run the bbu program once for a current
   if ( mode == 'current' ):
     print ('Trying current ', str(temp_curr))
-    template_file = open ( 'bbu_template.init', 'r' ) 
-    temp_file = open  ('bbu.init', 'wt')
+    template_file = open (os.path.join(py_par['temp_dir'], 'bbu_template.init'), 'r' ) 
+    temp_file = open (os.path.join(py_par['temp_dir'],'bbu.init'), 'wt')
     # Change the bbu.init's current to the temp_curr
     for line in template_file:
       temp_file.write( line.replace( "temp_curr", str(temp_curr)) )  
     template_file.close()
     temp_file.close()
-    subprocess.call( exec_path, shell = True)  # Run bbu 
+    subprocess.call( py_par['exec_path'], shell = True)  # Run bbu 
 
   if ( mode == 'drscan' ):
     print ('Including lat2.lat')
-    template_file = open ( 'bbu_template.init', 'r' ) 
-    temp_file = open  ('bbu.init', 'wt')   
+    template_file = open (os.path.join(py_par['temp_dir'], 'bbu_template.init'), 'r' ) 
+    temp_file = open  (os.path.join(py_par['temp_dir'],'bbu.init'), 'wt')   
     # In DR scan mode, include secondary lattice file so arclength may be varied
     ftemp = template_file.read()  
     ftemp = ftemp.replace( "temp_curr", str(temp_curr))
-    ftemp = ftemp.replace( "lat2_filename = ''", "lat2_filename = 'lat2.lat'" )
+    ftemp = ftemp.replace( "lat2_filename = ''", "lat2_filename = '"+os.path.join(py_par['temp_dir'],'lat2.lat')+"'")
     temp_file.write(ftemp)  
     template_file.close()
     temp_file.close()
-    subprocess.call( exec_path, shell = True)  # Run bbu
+    subprocess.call( py_par['exec_path'], shell = True)  # Run bbu

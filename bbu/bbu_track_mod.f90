@@ -40,8 +40,8 @@ type bbu_current_variation_struct
 end type
 
 type bbu_param_struct
-  character(80) :: lat_filename = 'erl.lat'     ! Bmad lattice file name
-  character(80) :: lat2_filename = ''     ! Bmad lattice2 file name for secondary parser
+  character(500) :: lat_filename = 'erl.lat'     ! Bmad lattice file name
+  character(500) :: lat2_filename = ''     ! Bmad lattice2 file name for secondary parser
   character(100) :: bunch_by_bunch_info_file = '' ! For outputting bunch-by-bunch info.
   type (bbu_current_variation_struct) :: current_vary
   logical :: hybridize = .true.                  ! Combine non-hom elements to speed up simulation?
@@ -57,6 +57,7 @@ type bbu_param_struct
   real(rp) :: rel_tol = 1e-2                     ! Final threshold current accuracy.
   logical :: drscan = .true.                     ! If true, scan DR variable as in PRSTAB 7 (2004) Fig. 3.
   logical :: use_interpolated_threshold = .true.
+  logical :: write_hom_info = .true.             ! Write HOM parameters to main output file?
   integer :: elindex
   character*40 :: elname = 'T1'                  ! Element to step length for DRSCAN
   integer :: nstep = 100                         ! Number of steps for DRSCAN.      
@@ -99,6 +100,7 @@ if (dt_bunch == 0) then
   call out_io (s_fatal$, r_name, 'DT_BUNCH IS ZERO!')
   call err_exit
 endif
+
 
 ! Find all elements that have a lr wake.
 n_stage = 0
@@ -153,6 +155,7 @@ do i = 1, lat%n_ele_track
       endif
     enddo
     if (k > j) then
+      print *, 'BOOKKEEPING ERROR'
       call out_io (s_fatal$, r_name, 'BOOKKEEPING ERROR.')
       call err_exit
     endif
@@ -173,6 +176,8 @@ allocate(bbu_beam%bunch(bbu_beam%n_bunch_in_lat+10))
 bbu_beam%ix_bunch_head = 1
 bbu_beam%ix_bunch_end = -1  ! Indicates: No bunches
 
+
+
 call re_allocate (bbu_beam%ix_ele_bunch, bbu_beam%n_bunch_in_lat+10)
 
 end subroutine bbu_setup
@@ -186,6 +191,7 @@ subroutine bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_norma
 implicit none
 
 type (lat_struct) lat
+!type (ele_struct), pointer :: ele
 type (bbu_beam_struct) bbu_beam
 type (bbu_param_struct) bbu_param
 type (beam_init_struct) beam_init
@@ -196,6 +202,7 @@ real(rp) hom_voltage_normalized, growth_rate, orb(6)
 real(rp) max_x,rms_x,max_y,rms_y
 
 integer i, n, n_period, n_count, n_period_old, ix_ele,irep
+integer, save :: m = 0
 
 logical lost
 
@@ -219,6 +226,7 @@ bbu_beam%hom_voltage_max = 0
 bbu_beam%ix_stage_voltage_max = 1
 growth_rate = real_garbage$
 
+open(28, file = 'volt_v_turn.txt', status = 'unknown', access = 'append')
 
 bbu_beam%stage%time_at_wake_ele = 1e30  ! something large
 ix_ele = bbu_beam%stage(1)%ix_ele_lr_wake
@@ -281,8 +289,6 @@ do
 !         '   over ', n_count, ' bunch passages', &
 !         ' HOM normalized voltage (gain factor): ', hom_voltage_normalized
 
-    !write to file for Voltage v Turns plot
-    !write(21,'(i8,a,es13.6)') n_period_old,'       ',hom_voltage_sum
 
     if (n_period_old > 3) then
       if (.not. bbu_param%stable_orbit_anal) then
@@ -316,6 +322,14 @@ do
   call bbu_hom_voltage_calc (lat, bbu_beam)
   hom_voltage_sum = hom_voltage_sum + bbu_beam%hom_voltage_max
   n_count = n_count + 1
+  ! Write to file for Voltage v Turns plot for first cavity
+!  do i=1, lat%n_ele_track
+!    ele=> lat%ele(i)
+!    if (ele%key == lcavity$) then
+!      write(28,'(i10, es15.6)') n_period_old, hom_voltage_sum
+!      exit
+!    endif
+!  end do
   
 enddo
 
@@ -472,7 +486,6 @@ call init_bunch_distribution (lat%ele(0), lat%param, beam_init, bunch)
 if (bbu_param%current_vary%variation_on) then
   t_rel = bunch%t_center - bbu_param%current_vary%t_ramp_start
   d_charge = 0
-
   if (t_rel > 0) then
     if (t_rel < bbu_param%current_vary%dt_ramp) then
       d_charge = bbu_param%current_vary%d_charge * t_rel / bbu_param%current_vary%dt_ramp
@@ -599,7 +612,7 @@ end subroutine bbu_hom_voltage_calc
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 
-subroutine write_homs (lat, bunch_freq)
+subroutine write_homs (lat, bunch_freq, trtb, currth)
 
 ! Write out information on lattice and HOMs
 ! Adapted from Changsheng's Get_Info.f90
@@ -631,8 +644,7 @@ real(rp) bunch_freq
 allocate(erlmat(800, matrixsize, matrixsize))
 allocate(erltime(800))
 
-!open(21, file = 'voltage_v_turns.txt', status = 'unknown', access = 'append')
-
+ 
 ! Initialize the identity matrix
 call mat_make_unit(imat)
 
@@ -643,7 +655,6 @@ time=0
 k=1     
 
 do i = 1, lat%n_ele_track
-
   gamma=lat%ele(i)%value(E_TOT$)/m_electron       ! Calculate the z component of the velocity
   Vz=c_light*sqrt(1.-1./gamma**2)
    
@@ -678,7 +689,6 @@ testmat = imat
 P0i=lat%ele(0)%value(p0c$)     ! Get the first longitudinal reference momentum
 judge =.false.
 anavalid = .true.
-
 
 do i=0, lat%n_ele_track
    
@@ -737,12 +747,13 @@ kk=1
            ! a factor of two larger than the "circuit definition." 
            ! The HOM files are in the "circuit definition" and
            ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%wake%lr(j)%R_over_Q is in Ohms.
+
            rovq = 2*lat%ele(i)%wake%lr(j)%R_over_Q * (c_light/(2*pi*lat%ele(i)%wake%lr(j)%freq))**2
            !write(20, *) ' RovQ in Ohms',rovq
 
            ! Follow PRSTAB 7, 054401 (2004) (some bug here)
            !kappa   = 2 * c_light * bunch_freq / (  rovq * (2*pi*lat%ele(i)%wake%lr(j)%freq)**2 )
-
+!!!OUT
            cnumerator = 2  * c_light / ( rovq * lat%ele(i)%wake%lr(j)%Q * 2*pi*lat%ele(i)%wake%lr(j)%freq )
 
            stest = mat(1,2) * sin ( 2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k) ) 
@@ -773,18 +784,18 @@ kk=1
 
               if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )  .le. pi )then
                currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi ) / nr )**2 )
-               write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
+               !write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
               else
                currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )) / nr )**2 )
-               write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
+               !write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) - sign(1.0_rp, stest)*pi/2, 2*pi )
               endif
 !
               if ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )  .le. pi )then
                currth = currth * sqrt ( epsilon**2 + ( mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi ) / nr )**2 )
-               write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+               !write(20, *) ' First half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               else
                currth = currth * sqrt ( epsilon**2 + ( (2*pi - mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )) / nr )**2 )
-               write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
+               !write(20, *) ' Second half. Tr/tb, T12*sin, Currth, Mod =',trtb,stest,currth,mod( 2*pi*lat%ele(i)%wake%lr(j)%freq * erltime(k) + pi/2, 2*pi )
               endif
              currth = abs ( cnumerator / mat(1,2) )
            else
@@ -798,10 +809,11 @@ kk=1
           currthc = -1
           if (matc /= 0) currthc = currth * abs ( mat(1,2) / matc )
 
-!          write(20, *) '(i4, i9, 3x, 2es11.2, es12.5, 9es12.3, es14.5)', k, j, currth, currthc, erltime(k), &
- !                          lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
-  !                         mat(1,2),mat(1,4),mat(3,2),mat(3,4), &
-   !                        sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
+          write (20, *) '(a)', ' Cavity    HOM      Ith(A)  Ith_coup(A)      tr       homfreq    R/Q(ohms/m^2)     Q       Pol Angle       T12         sin omega*tr     tr/tb'
+    !      write(20, *) k, j, currth, currthc, erltime(k), &
+     !                     lat%ele(i)%wake%lr(j)%freq, lat%ele(i)%wake%lr(j)%R_over_Q,lat%ele(i)%wake%lr(j)%Q,lat%ele(i)%wake%lr(j)%angle, &
+   !                       mat(1,2),&
+      !                    sin (2*pi*lat%ele(i)%wake%lr(j)%freq*erltime(k)),trtb
 
 !          print '(13x,a,es12.5,3x,a,es12.5,3x,a,es12.5)','R/Q= ', rovq, ' Ohms  epsilon= ', epsilon, 'nr*epsilon= ', nr*epsilon
 
@@ -830,11 +842,75 @@ if (.not. anavalid) currth = 0.0
 deallocate (erlmat, erltime)
 
 end subroutine write_homs
+!-------------------------------------------
+!-------------------------------------------
+!-------------------------------------------
+subroutine lr_wake_info (lat)
+implicit none
 
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
+type (bbu_param_struct) bbu_param
+type (lat_struct) lat
+type (ele_struct), pointer :: ele
 
+real(rp) rovq, RoQ, freq, Q
+integer i, j, p, n
+character(25) cav_name
+
+open(20, file = 'hom_info.txt', status = 'unknown')
+write(20,'(6a15)') 'cavity#','HOM_n','R/Q (Ohms/m^2)','Q','HOM_freq','cavity_name'
+
+do i = 1, lat%n_ele_track
+cav_name = lat%ele(i)%name 
+n = lat%ele(i)%n_lord
+ele => lat%ele(i)
+if (ele%key /= lcavity$) cycle
+if (ele%slave_status == multipass_slave$)   ele => pointer_to_lord(ele, 1)
+if (associated(ele%wake))then 
+  if (allocated(ele%wake%lr))then 
+    do j=1, size(ele%wake%lr)
+     RoQ = ele%wake%lr(j)%R_over_Q      
+           ! This code uses the "linac definition" of R/Q, which is
+           ! a factor of two larger than the "circuit definition." 
+           ! The HOM files are in the "circuit definition" and
+           ! the R/Q values are Ohms/m^2, whereas lat%ele(i)%wake%lr(j)%R_over_Q
+           ! is in Ohms.
+      rovq = 2*ele%wake%lr(j)%R_over_Q * (c_light/(2*pi*ele%wake%lr(j)%freq))**2
+      freq = ele%wake%lr(j)%freq 
+      Q = ele%wake%lr(j)%Q 
+      write(20,'(2i15, 3F25.8, a25, $)') i, j, RoQ, Q, freq, trim(adjustl(cav_name))   ! 3es30.8,
+      write(20,*)  
+    enddo
+  endif
+endif
+enddo
+
+end subroutine lr_wake_info
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+subroutine rf_cav_names (lat)
+implicit none
+type (bbu_param_struct) bbu_param
+type (lat_struct), target :: lat
+type (ele_struct), pointer :: ele
+integer i
+character(25) cav_name
+
+open(20, file = 'hom_info.txt', status = 'unknown')
+write(20,'(a15)') 'cavity_name'
+
+do i = 1, lat%n_ele_track
+  ele => lat%ele(i)
+  if (ele%key /= lcavity$) cycle
+  if (ele%slave_status == multipass_slave$)   ele => pointer_to_lord(ele, 1)
+  cav_name = ele%name
+  write(20,'(a25)') trim(adjustl(cav_name))
+enddo
+
+end subroutine rf_cav_names
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 subroutine write_bunch_by_bunch_info (lat, bbu_beam, bbu_param, this_stage)
 
 implicit none

@@ -16,7 +16,7 @@ integer i, ix, j, n, nn, n_ele, ix_pass, o
 integer irep
 integer n_loc
 real(rp) dr
-real(rp) time
+real(rp) time, trtb, currth
 real(rp) hom_voltage_gain
 real(rp) growth_rate
 logical err
@@ -80,7 +80,9 @@ if (bbu_param%hom_order_cutoff > 0) then
 endif
 
 if (bbu_param%hybridize) then
-  print *, 'Note: Hybridizing lattice...'
+  print *, 'CANT HYBRIDIZE -- SET THIS TO FALSE'
+  print *, 'WILL TRY ANYWAY'
+!  call err_exit
   do i = 1, lat_in%n_ele_max
     ! Keep element if defined as end of tracking
     ele => lat_in%ele(i)
@@ -124,8 +126,12 @@ if (bbu_param%ele_track_end.ne.' ') then
   bbu_param%ix_ele_track_end = ix
 endif
 
-call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
+if (bbu_param%write_hom_info) then
+ call rf_cav_names (lat)
+endif
+
+call bbu_setup (lat, beam_init%dt_bunch, bbu_param, bbu_beam)
 
 n_ele = 0
 do i = 1, size(bbu_beam%stage)
@@ -140,12 +146,14 @@ beam_init%bunch_charge = bbu_param%current * beam_init%dt_bunch
 print *, 'Number of lr wake elements in tracking lattice:', size(bbu_beam%stage)
 
 print *, 'Number of elements in lattice:      ', lat%n_ele_track
+
 lat = lat0 ! Restore lr wakes
 call bbu_track_all (lat, bbu_beam, bbu_param, beam_init, hom_voltage_gain, growth_rate, lost, irep)
+
 o = lunget() 
 open(o, file = 'for_py.txt', status = 'unknown')
 write(o,'(2a)') 'lostbool = ', logical_to_python(lost)  
-write(o,'(a, es14.6)') 'v_gain = ', hom_voltage_gain
+write(o,'(a, es18.8)') 'v_gain = ', hom_voltage_gain
 write(o,'(a,es14.6)') 'rel_tol = ', bbu_param%rel_tol 
 write(o,'(a,es14.6)') 'bunch_dt = ', beam_init%dt_bunch
 write(o,'(2a)') 'growth_rate_set = ', logical_to_python( .NOT.(growth_rate == real_garbage$))

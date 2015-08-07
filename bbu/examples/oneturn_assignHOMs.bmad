@@ -1,1 +1,2 @@
-cavity1[lr_wake] = ~/nfs/linux_lib/bsim/bbu/examples/vhoms_cavity_1.dat
+cavity1[lr_wake] = vhoms_cavity_1.dat 
+!cavity1[lr_wake] = /home/cem52/nfs/erl/CM_devel/Cavity_HOM_measurement/HOM_lists/vhoms_cavity_100.dat
