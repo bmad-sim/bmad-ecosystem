@@ -1,0 +1,44 @@
+no_digested
+
+parameter[lattice] = "Cornell ERL Main Linac Cryomodule (MLC) for L0E"
+
+BEGINNING[BETA_A]  = 10
+BEGINNING[ALPHA_A]=  0
+BEGINNING[BETA_B] = 10
+BEGINNING[ALPHA_B] = 0
+
+PARAMETER[particle] = electron
+PARAMETER[geometry] = open
+
+parameter[e_tot] = 6e6
+parameter[absolute_time_tracking] = F
+
+call, file = la.bmad
+call, file = la.X.bmad
+
+!*[autoscale_amplitude] = T
+!*[autoscale_phase] = T
+
+*[ds_step] = 1e-3
+
+! Arc
+arc.m12 =  10
+!arc.time = 3.46154e-9
+arc: Taylor, {1: arc.m12, 0 1 0 0 0 0}
+Rf_freq = 1.3e9
+arc[L] = c_light * (1./Rf_freq) * 300.! + c_light*.3202  ! An erl with (n+1/2)Trf*c
+
+LA.match0: match, match_end=T, match_end_orbit = T, beta_a1=10, beta_b1=10
+LA.match0[x1] = 0
+LA.match0[px1] = 0
+LA.match0[y1] = 0
+LA.match0[py1] = 0
+LA.match0[z1] = 0
+LA.match0[pz1] = 0
+
+Mar.BEG: marker
+RECIRCULATE: floor_shift, origin_ele = Mar.BEG
+lat: LINE = (Mar.BEG,
+  LA.match0, LA, arc, recirculate, LA)
+
+use, lat
