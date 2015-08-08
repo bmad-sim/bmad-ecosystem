@@ -299,15 +299,6 @@ do
       endif
     endif
 
-    call track_all (lat, orbit)
-    n = bbu_param%ix_ele_track_end
-    max_x = maxval(abs(orbit(1:n)%vec(1)))
-    max_y = maxval(abs(orbit(1:n)%vec(3)))
-    rms_x = sqrt(sum(orbit(1:n)%vec(1)**2)/n)
-    rms_y = sqrt(sum(orbit(1:n)%vec(3)**2)/n)
-    if (bbu_param%verbose) print *,'      Orbit max and rms  X:',max_x,rms_x, &
-                                   '      -----------------  Y:',max_y,rms_y
-
     ! Exit loop over periods of max period reached
 
     if (r_period > bbu_param%simulation_turns_max) then
