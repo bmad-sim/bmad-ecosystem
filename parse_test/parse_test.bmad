@@ -23,6 +23,8 @@ cap: capillary, wall = {
   section = {s = 0, v(1) = {1, 1}},
   section = {s = 1, v(1) = {1, 1}}}
 
+cry: crystal, crystal_type = 'Si(111)'
+
  B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
  B02: SBEND, L = 3.237903, ANGLE = 0.102289270 ! RHO =  31.65434
  B03: RBEND, L = 2.945314, ANGLE = 0.020944245 ! RHO = 140.6264
@@ -80,7 +82,7 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 ll: line = (aa, aa, bb, bb, cc, pp)
 use, ll, phot
 
-phot: line = (cap)
+phot: line = (cap, cry)
 phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
@@ -93,7 +95,12 @@ gzzz: group = {zz*[k1]}, var = {a}
 
 !
 
+*[thickness] = 1.3
+*::*[b_param] = -1.1
+
 expand_lattice
+
++*[psi_angle] = 2.1
 
 aa[k1] = 2
 a*[tracking_method] = symp_lie_bmad
