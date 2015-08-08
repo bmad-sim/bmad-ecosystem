@@ -372,7 +372,7 @@ case (bmad_standard$)
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
     t_eff = time - s_hard_offset / (c_light * beta_start)
 
-    if (is_true(ele%value(traveling_wave$))) then
+    if (nint(ele%value(cavity_type$)) == traveling_wave$) then
       phi = omega * t_eff + phase - k_wave * s_eff
       E_z        =  gradient * cos(phi)
       E_r_coef   = -gradient * k_wave * sin(phi) / 2

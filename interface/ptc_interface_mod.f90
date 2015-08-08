@@ -3214,14 +3214,21 @@ case (rfcavity$, lcavity$)
     return
   endif
 
-  if (is_true(ele%value(traveling_wave$))) then
+  select case (nint(ele%value(cavity_type$)))
+  case (traveling_wave$)
     ptc_key%magnet = 'twcavity'
     ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
-  else
+  case (standing_wave$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
-  endif
+  case (ptc_standard$)
+    ptc_key%magnet = 'rfcavity'
+    ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
+    ptc_key%list%n_bessel = 0
+    ptc_key%list%permfringe = 0
+	  ptc_key%list%cavity_totalpath = 0
+  end select
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)

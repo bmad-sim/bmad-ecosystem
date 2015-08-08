@@ -1,25 +1,27 @@
 !+
-! Subroutine set_ele_defaults (ele)
+! Subroutine set_ele_defaults (ele, do_allocate)
 !
 ! Subroutine set the defaults for an element of a given type.
 ! For example, the default aperture type for an ecollimator$
 !   element is ele%aperture_type = elliptical$.
 !
 ! Input:
-!   ele   -- ele_struct: Element to init.
-!     %key -- Type of element.
+!   ele           -- ele_struct: Element to init.
+!     %key          -- Type of element.
+!   do_allocate   -- logical, optional: Do default allocation of element components? Default is True.
 !
 ! Output:
 !   ele   -- ele_struct: Initialized element.
 !-
 
-subroutine set_ele_defaults (ele)
+subroutine set_ele_defaults (ele, do_allocate)
 
 use bmad_interface, dummy => set_ele_defaults
 
 implicit none
 
 type (ele_struct) ele
+logical, optional :: do_allocate
 
 ! Default fringe set for non bend elements
 
@@ -51,9 +53,11 @@ case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (custom$)  
   ele%mat6_calc_method = custom$
@@ -72,18 +76,22 @@ case (def_parameter$)
   ele%value(default_tracking_species$) = real_garbage$
 
 case (detector$)
-  if (.not. associated(ele%photon)) allocate(ele%photon)
   ele%aperture_type = auto_aperture$
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (diffraction_plate$)
   ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
   ele%value(geometry$) = transmission$
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (e_gun$)
   ele%tracking_method = time_runge_kutta$
@@ -117,7 +125,7 @@ case (lcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
-  ele%value(traveling_wave$) = false$
+  ele%value(cavity_type$) = standing_wave$
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
@@ -132,19 +140,25 @@ case (line_ele$)
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (multilayer_mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (multipole$, ab_multipole$)
-  call multipole_init (ele, .true.)
+  if (logic_option(.true., do_allocate)) then
+    call multipole_init (ele, .true.)
+  endif
   ele%scale_multipoles = .false.
 
 case (patch$)
@@ -169,7 +183,7 @@ case (rfcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_factor$) = 1
   ele%value(n_cell$) = 1
-  ele%value(traveling_wave$) = false$
+  ele%value(cavity_type$) = standing_wave$
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
@@ -177,34 +191,42 @@ case (rfcavity$)
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
   ele%scale_multipoles = .false.
-  call multipole_init (ele, .true.)
+  if (logic_option(.true., do_allocate)) then
+    call multipole_init (ele, .true.)
+  endif
 
 case (sample$)
   ele%aperture_at = surface$
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
   ele%value(geometry$) = reflection$
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 case (taylor$)   ! start with unit matrix
   ele%tracking_method = taylor$  
   ele%mat6_calc_method = taylor$ 
   ele%taylor_map_includes_offsets = .false.
-  call taylor_make_unit (ele%taylor)
+  if (logic_option(.true., do_allocate)) then
+    call taylor_make_unit (ele%taylor)
+  endif
 
 case (wiggler$, undulator$) 
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
 
 case (photon_init$)
-  if (.not. associated(ele%photon)) allocate(ele%photon)
-!!! Due to ifort bug:  ele%photon = photon_element_struct()
-  call init_photon_element_struct(ele%photon)
   ele%value(velocity_distribution$) = gaussian$
   ele%value(energy_distribution$) = gaussian$
   ele%value(spatial_distribution$) = gaussian$
   ele%value(transverse_sigma_cut$) = 3
   ele%value(E_center_relative_to_ref$) = true$
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
 
 end select
 

@@ -97,6 +97,7 @@ case ('BMAD_COM')
   case ('INIT_DS_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%init_ds_adaptive_tracking
   case ('MIN_DS_ADAPTIVE_TRACKING');    ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
   case ('FATAL_DS_ADAPTIVE_TRACKING');  ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
+  case ('ELECTRIC_DIPOLE_MOMENT');      ptr_array(1)%r => bmad_com%electric_dipole_moment
   case default
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)

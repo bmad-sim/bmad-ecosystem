@@ -856,7 +856,7 @@ call init_attribute_name1 (group$, s_position$,                     'S_POSITION'
 
 call init_attribute_name1 (lcavity$, autoscale_amplitude$,          'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (lcavity$, autoscale_phase$,              'AUTOSCALE_PHASE')
-call init_attribute_name1 (lcavity$, traveling_wave$,               'TRAVELING_WAVE')
+call init_attribute_name1 (lcavity$, cavity_type$,                  'CAVITY_TYPE')
 call init_attribute_name1 (lcavity$, p0c_start$,                    'P0C_START', dependent$)
 call init_attribute_name1 (lcavity$, e_tot_start$,                  'E_TOT_START', dependent$)
 call init_attribute_name1 (lcavity$, phi0_multipass$,               'PHI0_MULTIPASS')
@@ -1048,7 +1048,7 @@ call init_attribute_name1 (patch$, ref_coordinates$,                'REF_COORDIN
 
 call init_attribute_name1 (rfcavity$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
 call init_attribute_name1 (rfcavity$, autoscale_phase$,             'AUTOSCALE_PHASE')
-call init_attribute_name1 (rfcavity$, traveling_wave$,              'TRAVELING_WAVE')
+call init_attribute_name1 (rfcavity$, cavity_type$,                 'CAVITY_TYPE')
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
 call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
@@ -1430,7 +1430,7 @@ case ('MATCH_END', 'MATCH_END_ORBIT', 'NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', &
       'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', &
       'AUTOSCALE_AMPLITUDE', 'CSR_CALC_ON', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
-      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'TRAVELING_WAVE', 'HARMON_MASTER', &
+      'FLEXIBLE', 'USE_HARD_EDGE_DRIFTS', 'NEW_BRANCH', 'HARMON_MASTER', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'DIFFRACTION_LIMITED', &
       'MULTIPOLES_ON')
   attrib_type = is_logical$
@@ -1444,7 +1444,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'HIGHER_ORDER_FRINGE_TYPE', &
       'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', &
-      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', &
+      'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDINATES', 'MODE', 'CAVITY_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION')
   attrib_type = is_switch$
 
@@ -1588,167 +1588,172 @@ end function is_a_tot_attribute
 
 function switch_attrib_value_name (attrib_name, attrib_value, ele, is_default) result (attrib_val_name)
 
-type (ele_struct) :: ele
-type (ele_struct) ele2
+type (ele_struct) :: ele, ele2
 character(*) attrib_name
 real(rp) attrib_value
-integer ix_attrib
+integer ix_attrib_val
 character(40) attrib_val_name
 character(24) :: r_name = 'switch_attrib_value_name'
 logical, optional :: is_default
 
-!
+! 
 
-ix_attrib = nint(attrib_value)
+ix_attrib_val = nint(attrib_value)
 
 select case (attrib_name)
 
 case ('APERTURE_AT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, aperture_at_name, lbound(aperture_type_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, aperture_at_name, lbound(aperture_type_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == exit_end$)
+    is_default = (ix_attrib_val == exit_end$)
   endif
 
 case ('APERTURE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, aperture_type_name, lbound(aperture_type_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, aperture_type_name, lbound(aperture_type_name, 1))
   if (present(is_default)) then
     if (ele%key == ecollimator$) then
-      is_default = (ix_attrib == elliptical$)
+      is_default = (ix_attrib_val == elliptical$)
     else
-      is_default = (ix_attrib == rectangular$)
+      is_default = (ix_attrib_val == rectangular$)
     endif
   endif
 
-case ('COUPLER_AT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
+case ('CAVITY_TYPE')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, cavity_type_name, lbound(cavity_type_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == downstream_end$)
+    is_default = (ix_attrib_val == default_value(ele, cavity_type$))
+  endif
+
+case ('COUPLER_AT')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == downstream_end$)
   endif
 
 case ('DEFAULT_TRACKING_SPECIES')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == ref_particle$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, particle_name, lbound(particle_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == ref_particle$)
 
 case ('ENERGY_DISTRIBUTION')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == gaussian$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
 
 case ('PHOTON_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, photon_type_name, lbound(photon_type_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == incoherent$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, photon_type_name, lbound(photon_type_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == incoherent$)
 
 case ('FIELD_CALC')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, field_calc_name, lbound(field_calc_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == bmad_standard$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, field_calc_name, lbound(field_calc_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == bmad_standard$)
 
 
 case ('FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, fringe_type_name, lbound(fringe_type_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, fringe_type_name, lbound(fringe_type_name, 1))
   if (present(is_default)) then
     select case (ele%key)
     case (sad_mult$)
-      is_default = (ix_attrib == hard_edge_only$)      
+      is_default = (ix_attrib_val == hard_edge_only$)      
     case (rbend$, sbend$)
-      is_default = (ix_attrib == basic_bend$)
+      is_default = (ix_attrib_val == basic_bend$)
     case default
-      is_default = (ix_attrib == none$)
+      is_default = (ix_attrib_val == none$)
     end select
   endif
 
 case ('PTC_FRINGE_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_fringe_geometry_name, lbound(ptc_fringe_geometry_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == x_invariant$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_fringe_geometry_name, lbound(ptc_fringe_geometry_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == x_invariant$)
 
 case ('GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
 
 case ('MODE')
   if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
-    call get_this_attrib_name (attrib_val_name, ix_attrib, mode_name, lbound(mode_name, 1))
+    call get_this_attrib_name (attrib_val_name, ix_attrib_val, mode_name, lbound(mode_name, 1))
     if (present(is_default)) then
-      call init_ele (ele2, ele%key)
-      is_default = (ix_attrib == ele2%value(mode$))
+      is_default = (ix_attrib_val == default_value(ele, mode$))
     endif
   else
-    call get_this_attrib_name (attrib_val_name, ix_attrib, geometry_name, lbound(geometry_name, 1))
+    call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
     if (present(is_default)) then
-      is_default = (ix_attrib == open$)
+      is_default = (ix_attrib_val == open$)
     endif
   endif
 
 case ('FRINGE_AT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name, lbound(end_at_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name, lbound(end_at_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == both_ends$)
+    is_default = (ix_attrib_val == both_ends$)
   endif
 
 case ('HIGHER_ORDER_FRINGE_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, higher_order_fringe_type_name, lbound(higher_order_fringe_type_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == none$)
+    is_default = (ix_attrib_val == none$)
   endif
 
 case ('MAT6_CALC_METHOD')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, mat6_calc_method_name, lbound(mat6_calc_method_name, 1))
   if (present(is_default)) then
-    call init_ele (ele2, ele%key)
-    is_default = (ix_attrib == ele2%mat6_calc_method)
+    call default_ele(ele, ele2)
+    is_default = (ix_attrib_val == ele2%mat6_calc_method)
   endif
 
 case ('ORIGIN_ELE_REF_PT')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_pt_name, lbound(ref_pt_name, 1))
-    if (present(is_default)) is_default = (ix_attrib == center_pt$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_pt_name, lbound(ref_pt_name, 1))
+    if (present(is_default)) is_default = (ix_attrib_val == center_pt$)
 
 case ('PARTICLE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, particle_name, lbound(particle_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, particle_name, lbound(particle_name, 1))
   if (present(is_default)) then
     if (ele%key == photon_fork$) then
-      is_default = (ix_attrib == photon$)
+      is_default = (ix_attrib_val == photon$)
     else
       is_default = .false. ! Cannot tell so assume the worst.
     endif
   endif
 
 case ('PTC_FIELD_GEOMETRY')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_field_geometry_name, &
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_field_geometry_name, &
                                                   lbound(ptc_field_geometry_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == sector$)
+  if (present(is_default)) is_default = (ix_attrib_val == sector$)
 
 case ('PTC_INTEGRATION_TYPE')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ptc_integration_type_name, &
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ptc_integration_type_name, &
                                                   lbound(ptc_integration_type_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == matrix_kick$)
+  if (present(is_default)) is_default = (ix_attrib_val == matrix_kick$)
 
 case ('REF_COORDINATES')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, end_at_name(1:2), 1)
-  if (present(is_default)) is_default = (ix_attrib == exit_end$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, end_at_name(1:2), 1)
+  if (present(is_default)) is_default = (ix_attrib_val == exit_end$)
 
 case ('REF_ORBIT_FOLLOWS')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, ref_orbit_follows_name, lbound(ref_orbit_follows_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == bragg_diffracted$)
+    is_default = (ix_attrib_val == bragg_diffracted$)
   endif
 
 case ('SPATIAL_DISTRIBUTION')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == gaussian$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
 
 case ('SPIN_TRACKING_METHOD')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_tracking_method_name, lbound(spin_tracking_method_name, 1))
   if (present(is_default)) then
-    call init_ele (ele2, ele%key)
-    is_default = (ix_attrib == ele2%spin_tracking_method)
+    call default_ele (ele, ele2)
+    is_default = (ix_attrib_val == ele2%spin_tracking_method)
   endif
 
 case ('TRACKING_METHOD')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, tracking_method_name, lbound(tracking_method_name, 1))
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, tracking_method_name, lbound(tracking_method_name, 1))
   if (present(is_default)) then
-    is_default = (ix_attrib == ele2%tracking_method)
+    call default_ele (ele, ele2)
+    is_default = (ix_attrib_val == ele2%tracking_method)
   endif
 
 case ('VELOCITY_DISTRIBUTION')
-  call get_this_attrib_name (attrib_val_name, ix_attrib, distribution_name, lbound(distribution_name, 1))
-  if (present(is_default)) is_default = (ix_attrib == gaussian$)
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, distribution_name, lbound(distribution_name, 1))
+  if (present(is_default)) is_default = (ix_attrib_val == gaussian$)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD ATTRIBUTE NAME: ' // attrib_name)
@@ -1757,21 +1762,58 @@ end select
 !---------------------------------------
 contains
 
-subroutine get_this_attrib_name (val_name, ix_attrib, name_array, min_arr)
+subroutine get_this_attrib_name (val_name, ix_attrib_val, name_array, min_arr)
 
-integer ix_attrib, min_arr
+integer ix_attrib_val, min_arr
 character(*) val_name
 character(*) name_array(min_arr:)
 
 !
 
-if (ix_attrib < lbound(name_array, 1) .or. ix_attrib > ubound(name_array, 1)) then
+if (ix_attrib_val < lbound(name_array, 1) .or. ix_attrib_val > ubound(name_array, 1)) then
   val_name = 'Garbage!'
 else
-  val_name = name_array(ix_attrib)
+  val_name = name_array(ix_attrib_val)
 endif
 
-end subroutine
+end subroutine get_this_attrib_name
+
+!---------------------------------------
+! contains
+
+! Note: This only works if switch is stored in ele%value(:) array.
+
+function default_value(ele, ix_attrib) result (default_val)
+
+type (ele_struct) ele, ele2
+integer ix_attrib, default_val
+
+!
+
+ele2 = ele_struct()
+ele2%key = ele%key
+ele2%sub_key = ele%key
+call set_ele_defaults (ele2, do_allocate = .false.)
+default_val = nint(ele2%value(ix_attrib))
+
+end function default_value
+
+!---------------------------------------
+! contains
+
+
+subroutine default_ele(ele, ele_default)
+
+type (ele_struct) ele, ele_default
+
+!
+
+ele_default = ele_struct()
+ele_default%key = ele%key
+ele_default%sub_key = ele%key
+call set_ele_defaults (ele_default, do_allocate = .false.)
+
+end subroutine default_ele
 
 end function switch_attrib_value_name 
 
