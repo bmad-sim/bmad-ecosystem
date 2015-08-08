@@ -65,7 +65,7 @@ character(280) parse_line_save, call_file
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical check, err_if_not_found
+logical check, err_if_not_found, wild_here, wild_and_key0
 
 ! Init...
 
@@ -279,12 +279,20 @@ parsing_loop: do
 
     parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
+    ! 
+
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = word_1 // '::*'
       err_if_not_found = .false.
     else
       name = word_1
     endif
+
+    wild_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) ! Wild card character found
+    key = 0
+    ix = index(name, '::')
+    if (ix /= 0) key = key_name_to_key_index (word_1(1:ix-1))
+    wild_and_key0 = (wild_here .and. key == 0)
 
     ! When setting an attribute for all elements then suppress error printing.
 
@@ -305,25 +313,23 @@ parsing_loop: do
           ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') then
         if (word_1 /= ele%name) cycle
       endif
+
+      if (attribute_index (ele, word_2) == 0) then
+        if (wild_and_key0) cycle
+        call parser_error ('BAD ATTRIBUTE')
+        bp_com%parse_line = '' 
+        cycle parsing_loop
+      endif
+
       bp_com%parse_line = parse_line_save
-      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = check)
+      found = .true.
+      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = check, wild_and_key0 = wild_and_key0)
       if (.not. err .and. delim_found) then
         call parser_error ('BAD DELIMITER: ' // delim)
         exit
       endif
 
       call set_flags_for_changed_attribute (ele)
-
-      if (.not. found) then   ! First time
-        if (attribute_index (ele, word_2)  == 0) then
-          call parser_error ('BAD ATTRIBUTE')
-          bp_com%parse_line = '' 
-          cycle parsing_loop
-        endif
-      endif
-
-      found = .true.
-
     enddo
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.

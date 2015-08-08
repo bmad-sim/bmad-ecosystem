@@ -557,10 +557,11 @@ interface
     logical, optional :: err_print_flag
   end subroutine
 
-  subroutine set_ele_defaults (ele)
+  subroutine set_ele_defaults (ele, do_allocate)
     import
     implicit none
     type (ele_struct) ele
+    logical, optional :: do_allocate
   end subroutine
 
   subroutine set_tune (phi_a_set, phi_b_set, dk1, lat, orb, ok)

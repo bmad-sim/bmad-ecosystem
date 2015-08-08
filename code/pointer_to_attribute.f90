@@ -302,7 +302,6 @@ case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
 case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
 case ('MULTIPOLES_ON');                  a_ptr%l => ele%multipoles_on
 case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
-case ('TRAVELING_WAVE');                 a_ptr%r => ele%value(traveling_wave$)
 !  attrib_type = is_integer$
 case ('N_SLICE');                        a_ptr%r => ele%value(n_slice$)
 case ('N_REF_PASS');                     a_ptr%r => ele%value(n_ref_pass$)

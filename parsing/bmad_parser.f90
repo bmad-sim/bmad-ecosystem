@@ -482,6 +482,8 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
+    wild_and_key0 = (key == 0 .and. wild_here)
+
     do i = 0, n_max
       ele => in_lat%ele(i)
       if (key /= 0 .and. ele%key /= key) cycle
@@ -490,12 +492,9 @@ parsing_loop: do
           ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
-      if (key == 0 .and. wild_here) then
-        if (attribute_index(ele, word_2) < 1) cycle
-      endif
+      if (wild_and_key0 .and. attribute_index(ele, word_2) < 1) cycle
       bp_com%parse_line = parse_line_save
       ele_found = .true.
-      wild_and_key0 = (key == 0 .and. wild_here)
       call parser_set_attribute (redef$, ele, in_lat, delim, delim_found, err, plat%ele(ele%ixx), wild_and_key0 = wild_and_key0)
       if (bp_com%fatal_error_flag) exit parsing_loop
       if (err .or. delim_found) then

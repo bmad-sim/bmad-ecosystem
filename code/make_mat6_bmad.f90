@@ -444,7 +444,7 @@ case (lcavity$)
 
   ! Body tracking transverse
 
-  if (is_true(ele%value(traveling_wave$))) then
+  if (nint(ele%value(cavity_type$)) == traveling_wave$) then
 
     kmat6(1,1) = 1
     kmat6(1,2) = length

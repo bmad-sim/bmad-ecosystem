@@ -729,6 +729,7 @@ end function particle_is_moving_backwards
 ! Function key_name_to_key_index (key_str, abbrev_allowed) result (key_index)
 !
 ! Function to convert a character string  (eg: "drift") to an index (eg: drift$).
+! Wildcard "*" is translated to key_index = 0 (match all)
 !
 ! Modules needed:
 !   use bmad
@@ -756,9 +757,16 @@ integer i, n_name, n_match
 
 !
 
+if (key_str == '*') then
+  key_index = 0
+  return
+endif
+
 n_match = 0
 key_index = -1
 if (key_str == '') return
+
+!
 
 call str_upcase (name, key_str)
 call string_trim (name, name, n_name)

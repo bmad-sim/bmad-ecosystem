@@ -118,9 +118,12 @@ character(20), parameter :: fringe_type_name(0:8) = ['Garbage!          ', &
 
 character(16), parameter :: higher_order_fringe_type_name(0:4) = fringe_type_name(0:4)
 
+integer, parameter :: standing_wave$ = 1, traveling_wave$ = 2, ptc_standard$ = 3
+character(16), parameter :: cavity_type_name(0:3) = ['Garbage!      ', 'Standing_Wave ', 'Traveling_Wave', 'PTC_Standard  ']
+
+
 integer, parameter :: x_invariant$ = 1, multipole_symmetry$ = 2
-character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', &
-                                   'x_invariant       ', 'multipole_symmetry']
+character(16), parameter :: ptc_fringe_geometry_name(0:2) = ['Garbage!          ', 'x_invariant       ', 'multipole_symmetry']
 
 integer, parameter :: control_var$ = 1, old_control_var$ = 2, all_control_var$ = 3, elec_multipole$ = 4
 
@@ -974,7 +977,7 @@ integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_t
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
 integer, parameter :: spin_z$ = 22
 integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spinor_theta$ = 23
-integer, parameter :: traveling_wave$ = 23, beta_a$ = 23, velocity_distribution$ = 23
+integer, parameter :: cavity_type$ = 23, beta_a$ = 23, velocity_distribution$ = 23
 integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24, spinor_phi$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
 integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25, spinor_xi$ = 25
@@ -1051,7 +1054,6 @@ integer, parameter :: abs_tol_adaptive_tracking$ = 87
 integer, parameter :: init_ds_adaptive_tracking$ = 88
 integer, parameter :: min_ds_adaptive_tracking$ = 89
 integer, parameter :: fatal_ds_adaptive_tracking$ = 90
-
 
 integer, parameter :: lr_wake_file$ = 81, alpha_b_begin$ = 81, use_hard_edge_drifts$ = 81
 integer, parameter :: alias$  = 82, eta_x$ = 82, ptc_max_fringe_order$ = 82

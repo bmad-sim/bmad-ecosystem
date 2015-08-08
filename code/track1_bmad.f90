@@ -396,7 +396,7 @@ case (lcavity$)
 
   ! Body tracking transverse. Kick is only with standing wave cavities.
 
-  if (is_true(ele%value(traveling_wave$))) then
+  if (nint(ele%value(cavity_type$)) == traveling_wave$) then
     end_orb%vec(2) = end_orb%vec(2) / rel_p    ! Convert to x'
     end_orb%vec(4) = end_orb%vec(4) / rel_p    ! Convert to y'
 
