@@ -3441,20 +3441,17 @@ if (key == wiggler$ .or. key == undulator$) then
   call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
   if (ele%is_on) then
-    ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(e_tot$)
+    ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(p0c$)
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0
   endif
-  ptc_fibre%mag%wi%w%k(1,1:n_term)  = ele2%wig%term%kx
-  ptc_fibre%mag%wi%w%k(2,1:n_term)  = ele2%wig%term%ky
-  ptc_fibre%mag%wi%w%k(3,1:n_term)  = ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%f(1:n_term)    = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%form(1:n_term) = ele2%wig%term%type
-  if (any(ele2%wig%term%phi_x /= 0) .or. any(ele2%wig%term%phi_y /= 0)) then
-    call out_io (s_fatal$, r_name, 'WIGGLER WITH TERM WITH NON-ZERO PHI_X OR PHI_Y NOT YET IMPLEMENTED IN PTC!', &
-                                   'PLEASE CONTACT DAVID SAGAN!')
-    if (global_com%exit_on_error) call err_exit
-  endif
+  ptc_fibre%mag%wi%w%k(1,1:n_term)   = ele2%wig%term%kx
+  ptc_fibre%mag%wi%w%k(2,1:n_term)   = ele2%wig%term%ky
+  ptc_fibre%mag%wi%w%k(3,1:n_term)   = ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%f(1:n_term)     = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%phi_x(1:n_term) = ele2%wig%term%phi_x
+  ptc_fibre%mag%wi%w%phi_y(1:n_term) = ele2%wig%term%phi_y
+  ptc_fibre%mag%wi%w%form(1:n_term)  = ele2%wig%term%type
 
   ! Correct z-position 
 

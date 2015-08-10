@@ -181,7 +181,9 @@ Case (wiggler$, undulator$)
 
   ! Correction for finite vector potential at the entrance end
 
-  call apply_wig_exp_int_ay(1, calculate_mat6)
+  if (bmad_com%apply_wiggler_end_kicks) then
+    call apply_wig_exp_int_ay(1, calculate_mat6)
+  endif
 
   ! loop over all steps
 
@@ -243,11 +245,12 @@ Case (wiggler$, undulator$)
 
   ! Correction for finite vector potential at exit end
 
-  call update_wig_coefs (calculate_mat6)
-  call update_wig_y_terms (err); if (err) return
-  call update_wig_x_s_terms (err); if (err) return
-
-  call apply_wig_exp_int_ay(-1, calculate_mat6)
+  if (bmad_com%apply_wiggler_end_kicks) then
+    call update_wig_coefs (calculate_mat6)
+    call update_wig_y_terms (err); if (err) return
+    call update_wig_x_s_terms (err); if (err) return
+    call apply_wig_exp_int_ay(-1, calculate_mat6)
+  endif
 
 !----------------------------------------------------------------------------
 ! rf cavity
