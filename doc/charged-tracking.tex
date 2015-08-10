@@ -441,15 +441,7 @@ With an analogous expression for $I_{y/2}$.
 \index{quadrupole}\index{sextupole}\index{wiggler}
 For magnetic elements that do not have longitudinal fields
 (quadrupoles, sextupoles, etc.), $a_x$ and $a_y$ can be taken to be
-zero (cf.~\Eq{akxgx}). For wigglers (\sref{s:wiggler}), \bmad computes $\Bf A$ using
-\begin{align}
-  A_x(x,y,s) &= 0 \CRNO
-  A_y(x,y,s) &=  \int_0^x d\wt x \, B_z(\wt x, y, s) 
-  \label{a0a0a0} \\
-  A_s(x,y,s) &= -\int_0^x d\wt x \, B_y(\wt x, y, s) \nonumber
-\end{align}
-given the form of the of the magnetic field of \Eqs{f1}, \eq{f2}, and
-\eq{f3}, the integrals in \Eq{a0a0a0} and \eq{ids2} are easily calculated.
+zero (cf.~\Eq{akxgx}).
 
 \index{lcavity}\index{rfcavity}
 For \vn{lcavity} and \vn{rfcavity} elements, the vector potential is computed from
@@ -1431,21 +1423,32 @@ there is cylendrical symmetry around the $\Bf z$-axis.
 \index{wiggler!tracking}
 
 For \vn{map_type} wigglers and undulators, symplectic integration as
-outlined in \sref{s:symp.track} is used for tracking. In this case,
-the gauge where $a_x$ is zero is used. With this, the other components
-of the vector potential are:
-The first form (cf.~\Eq{f1})
+outlined in \sref{s:symp.track} is used for tracking. The vector
+potential is constructed to avoid singularities when one of the wave
+vectors $k_x$, $k_y$, or $k_z$ is zero. [The singular case where $k_x
+= k_y = k_z = 0$ will be excluded from consideration since, in this
+case, the field will be zero. And since it is not possible to have only
+one of the $k$'s being non-zero, at most one $k$ can be zero.
+
+The vector potential for first form (cf.~\Eq{f1}) is
 \begin{alignat}{4}
-  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sin(\kxx) \sinh(\kyy) \sin(\kzz) \label{af1} \CRNO
-  a_s &= -&C &\dfrac{1}{k_x}          & \sin(\kxx) \cosh(\kyy) \cos(\kzz) 
+  A_x &=  &C &\dfrac{k_z}{k_y} & \cos(\kxx) \cosh(\kyy) \sin(\kzz) \label{af1} \CRNO
+  A_y &=  &0 && \\
+  A_s &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \cosh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-The second form (cf.~\Eq{f2})
+The vector potential for the second form (cf.~\Eq{f2}) is
 \begin{alignat}{4}
-  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{af2} \CRNO
-  a_s &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \cosh(\kyy) \cos(\kzz) 
+  A_x &=  &C &\dfrac{k_y}{k_z} & \cosh(\kxx) \cosh(\kyy) \sin(\kzz) \CRNO
+  A_y &= -&C &\dfrac{k_x}{k_z} & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{af2} \\
+  A_s &=  &0 && \nonumber
 \end{alignat}
 The third form (cf.~\Eq{f3})
 \begin{alignat}{4}
-  a_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{af3} \CRNO
-  a_s &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \cos(\kyy) \cos(\kzz) 
+  A_x &=  &0 &&\CRNO
+  A_y &= -&C &\dfrac{k_z}{k_x} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{af3} \\
+  A_s &= -&C &\dfrac{k_y}{k_x} & \sinh(\kxx) \cos(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
+
+Since $k_y$ must be non-zero for the first form (remember, $k_y^2 = k_x^2 + k_z^2$ for
+this form), and $k_z$ must be non-zero for the second form, and $k_x$ must be nonzero
+for the third form, this choise for the vector potential is never singular.

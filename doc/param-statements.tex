@@ -247,10 +247,10 @@ branch.
   beam_start[spin_x]              = <Real>   ! Spin polarization x-coordinate
   beam_start[spin_y]              = <Real>   ! Spin polarization y-coordinate
   beam_start[spin_z]              = <Real>   ! Spin polarization z-coordinate
+  beam_start[spinor_polarization] = <Real>   ! Spin polarization
   beam_start[spinor_theta]        = <Real>   ! Spin angle
   beam_start[spinor_phi]          = <Real>   ! Spin angle
   beam_start[spinor_xi]           = <Real>   ! Spin angle
-  beam_start[spinor_polarization] = <Real>   ! Spin polarization
 \end{example}
 Normally the absolute time, set by \vn{beam_start[t]}, is a dependent
 parameter set by solving \Eq{zbctt} for $t$. The exception is when the
@@ -265,7 +265,17 @@ specifying the polar angles and magnitude with \vn{spinor_theta},
 \vn{spinor_phi}, \vn{spinor_xi}, and \vn{spinor_polarization}. The
 relationship between the two spin representations is given by
 \Eq{pp1p2}. To prevent ambiguity, only one representation can can be
-used in lattice.
+used in lattice. The default is
+\begin{example}
+  spinor_polarization = 1
+  spinor_theta        = 0
+  spinor_phi          = 0
+  spinor_xi           = 0
+
+  spin_x              = 0
+  spin_y              = 0
+  spin_z              = 1
+\end{example}
 
 For photons, \vn{px}, \vn{py}, and \vn{pz} are the normalized velocity components
 (Cf.~\Eq{xbybzb}). For photons \vn{pz} is a dependent parameter which will be set

@@ -1090,15 +1090,16 @@ endif
 !
 
 ele => lat%beam_start_ele
+
+vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
 polar = spin_polar_struct(ele%value(spinor_polarization$), ele%value(spinor_theta$), &
                           ele%value(spinor_phi$), ele%value(spinor_xi$))
 
-vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
-if (any(vec /= 0) .and. (polar%polarization /= 1 .or. &
-                               polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0)) then
-  call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+if (any(vec /= [0, 0, 1])) then
+  if (polar%polarization /= 1 .or. polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0) &
+          call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+  call vec_to_polar (vec, polar)
 endif
-if (any(vec /= 0)) call vec_to_polar (vec, polar)
 
 call polar_to_spinor (polar, lat%beam_start)
 

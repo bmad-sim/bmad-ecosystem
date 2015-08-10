@@ -66,6 +66,7 @@ case (custom$)
 
 case (def_beam_start$)
   ele%value(spinor_polarization$) = 1
+  ele%value(spin_z$) = 1
 
 case (def_mad_beam$)
   ele%value(particle$) = positron$

@@ -1290,6 +1290,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
+  logical :: apply_wiggler_end_kicks = .true.         ! Apply kicks due to finite fields at wiggler ends?
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   
