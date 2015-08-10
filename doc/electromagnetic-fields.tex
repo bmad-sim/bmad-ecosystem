@@ -212,10 +212,21 @@ Using the paraxial approximation, The kick given a particle due to the electric 
 
 Electric and magnetic fields can be parameterized as the sum over a
 number of ``modes''. The decomposition of RF fields is discussed in
-Sec.~\sref{s:rf.fields.phys}. For RF fields, the mode parameterization
-used by \bmad essentially follows Venturini et
-al.\cite{b:vent.map}. The electric and magnetic fields are both
-described by a scaler potential
+Sec.~\sref{s:rf.fields.phys}. There are two different mode forms used
+by \bmad. In both forms the modes are solutions to the Laplace
+equation. In the ``cylindrical mode'' form, each mode is of the form
+that is obtained when the Laplace equation is solved using separation
+of variables in cylindrical coordinates. In the ``Cartesian mode'' form,
+each mode is of the form that is obtained when the Laplace equation is solved
+in Cartesian coordinates.
+
+%-----------------------------------------------------------------
+\subsection{Cylindrical Mode Decomposition}
+\label{s:cylindrical.mode}
+
+The cylindrical mode parameterization used by \bmad essentially
+follows Venturini et al.\cite{b:vent.map}. The electric and magnetic
+fields are both described by a scaler potential
 \Begineq
   \bfB = \nabla \, \psi_B, \qquad \bfE = \nabla \, \psi_E
 \Endeq
@@ -310,6 +321,43 @@ For $m \ne 0$, the vector potential is chosen so that $A_\phi$ is zero.
     e^{i \, m \, \phi} \, b_m(n) \,
     I_m(k_n \, \rho) \right] \nonumber
 \end{align}
+
+%-----------------------------------------------------------------
+\subsection{Cartesian Mode Decomposition}
+\label{s:cartesian.mode}
+
+The \vn{Cartesian} mode decomposition for DC fields is modeled using
+an extension of the method of Sagan, Crittenden, and
+Rubin\cite{b:wiggler}. In this model the magnetic (or electric) field is written as
+a sum of terms $B_i$
+\Begineq
+  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)
+\Endeq 
+Each term $B_i$ is specified using seven numbers: 
+$(C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)$. A term can take one of three forms: 
+The first form is
+\begin{alignat}{4}
+  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
+\end{alignat}
+The second form is
+\begin{alignat}{4}
+  B_x &=  &C &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
+  & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
+\end{alignat}
+The third form is
+\begin{alignat}{4}
+  B_x &=  &C &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm3} \\
+  & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
+\end{alignat}
+The relationship between $k_x$, $k_y$, and $k_z$ ensures that
+Maxwell's equations are satisfied.
 
 %-----------------------------------------------------------------
 \section{RF Fields: Mode Decomposition}
