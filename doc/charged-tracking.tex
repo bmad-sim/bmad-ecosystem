@@ -1425,30 +1425,23 @@ there is cylendrical symmetry around the $\Bf z$-axis.
 For \vn{map_type} wigglers and undulators, symplectic integration as
 outlined in \sref{s:symp.track} is used for tracking. The vector
 potential is constructed to avoid singularities when one of the wave
-vectors $k_x$, $k_y$, or $k_z$ is zero. [The singular case where $k_x
-= k_y = k_z = 0$ will be excluded from consideration since, in this
-case, the field will be zero. And since it is not possible to have only
-one of the $k$'s being non-zero, at most one $k$ can be zero.
+vectors $k_x$, $k_y$, or $k_z$ is zero. 
 
-The vector potential for first form (cf.~\Eq{f1}) is
+The vector potential for first form (cf.~\Eq{cm1}) is
 \begin{alignat}{4}
   A_x &=  &C &\dfrac{k_z}{k_y^2} & \cos(\kxx) \cosh(\kyy) \sin(\kzz) \label{af1} \CRNO
   A_y &=  &0 && \\
   A_s &= -&C &\dfrac{k_x}{k_y^2} & \sin(\kxx) \cosh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-The vector potential for the second form (cf.~\Eq{f2}) is
+The vector potential for the second form (cf.~\Eq{cm2}) is
 \begin{alignat}{4}
   A_x &=  &C &\dfrac{k_y}{k_z^2} & \cosh(\kxx) \cosh(\kyy) \sin(\kzz) \CRNO
   A_y &= -&C &\dfrac{k_x}{k_z^2} & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{af2} \\
   A_s &=  &0 && \nonumber
 \end{alignat}
-The third form (cf.~\Eq{f3})
+The third form (cf.~\Eq{cm3})
 \begin{alignat}{4}
   A_x &=  &0 &&\CRNO
   A_y &= -&C &\dfrac{k_z}{k_x^2} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{af3} \\
   A_s &= -&C &\dfrac{k_y}{k_x^2} & \sinh(\kxx) \cos(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-
-Since $k_y$ must be non-zero for the first form (remember, $k_y^2 = k_x^2 + k_z^2$ for
-this form), and $k_z$ must be non-zero for the second form, and $k_x$ must be nonzero
-for the third form, this choise for the vector potential is never singular.

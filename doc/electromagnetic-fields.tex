@@ -324,7 +324,7 @@ For $m \ne 0$, the vector potential is chosen so that $A_\phi$ is zero.
 
 %-----------------------------------------------------------------
 \subsection{Cartesian Mode Decomposition}
-\label{s:cartesian.mode}
+\label{s:cart.mode}
 
 The \vn{Cartesian} mode decomposition for DC fields is modeled using
 an extension of the method of Sagan, Crittenden, and
@@ -337,27 +337,35 @@ Each term $B_i$ is specified using seven numbers:
 $(C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)$. A term can take one of three forms: 
 The first form is
 \begin{alignat}{4}
-  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  B_x &= -&C \, &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm1} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
 The second form is
 \begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
+  B_x &=  &C \, &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
   & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
 \end{alignat}
 The third form is
 \begin{alignat}{4}
-  B_x &=  &C &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm3} \\
+  B_x &=  &C \, &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm3} \\
   & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
 The relationship between $k_x$, $k_y$, and $k_z$ ensures that
-Maxwell's equations are satisfied.
+Maxwell's equations are satisfied. 
+
+The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a
+uniform field is needed, a term with very small $k_x$, $k_y$, and
+$k_z$ can be used. Notice that since $k_y$ must be non-zero for the
+first form (remember, $k_y^2 = k_x^2 + k_z^2$ for this form and not
+all $k$s can be zero), and $k_z$ must be non-zero for the second form,
+and $k_x$ must be nonzero for the third form, The magnetic field is
+always well defined even if one of the $k$s is zero.
 
 %-----------------------------------------------------------------
 \section{RF Fields: Mode Decomposition}

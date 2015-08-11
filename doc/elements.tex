@@ -3745,37 +3745,8 @@ assuming a periodic field (``periodic type'').
 \subsection{Map\_Type Wigglers}
 \label{s:wiggler.map}
 
-The \vn{map type} wigglers are modeled using the method of Sagan,
-Crittenden, and Rubin\cite{b:wiggler}. In this model the magnetic
-field is written as a sum of terms $B_i$
-\Begineq
-  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)
-\Endeq 
-Each term $B_i$ is specified using seven numbers: 
-$(C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)$. A term can take one of three forms: 
-The first form is
-\begin{alignat}{4}
-  B_x &= -&C &\dfrac{k_x}{k_y} & \sin(\kxx) \sinh(\kyy) \cos(\kzz) \CRNEG
-  B_y &=  &C &                 & \cos(\kxx) \cosh(\kyy) \cos(\kzz) \CRNEG
-  B_s &= -&C &\dfrac{k_z}{k_y} & \cos(\kxx) \sinh(\kyy) \sin(\kzz) \label{f1} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&  \nonumber
-\end{alignat}
-The second form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sinh(\kyy) \cos(\kzz) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cosh(\kyy) \cos(\kzz) \CRNEG
-  B_s &= -&C &\dfrac{k_z}{k_y} & \cosh(\kxx) \sinh(\kyy) \sin(\kzz) \label{f2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&  \nonumber
-\end{alignat}
-The third form is
-\begin{alignat}{4}
-  B_x &=  &C &\dfrac{k_x}{k_y} & \sinh(\kxx) \sin(\kyy) \cos(\kzz) \CRNEG
-  B_y &=  &C &                 & \cosh(\kxx) \cos(\kyy) \cos(\kzz) \CRNEG
-  B_s &= -&C &\dfrac{k_z}{k_y} & \cosh(\kxx) \sin(\kyy) \sin(\kzz) \label{f3} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&& \nonumber
-\end{alignat}
-The relationship between $k_x$, $k_y$, and $k_z$ ensures that
-Maxwell's equations are satisfied.
+The \vn{map type} wigglers are modeled using the Cartesian mode
+decomposition of Sec.~\sref{s:cart.mode}. 
 
 \index{polarity}
 \index{term (for a wiggler)}
@@ -3786,24 +3757,16 @@ Attributes specific to a \vn{map type} \vn{wiggler} element are:
                       !   Dependent attribute (\sref{s:depend}).
 \end{example}
 
-A \vn{\{<Wig_Term>\}} has one of two forms. Originally, the form of
-\vn{\{<Wig_Term>\}} assumed that $\phi_x$ and $\phi_y$ where zero. That is,
-that there was horizontal and vertical symmetry. This form used the syntax:
-\Begineq
-  \{ C, k_x, k_y, k_z, \phi_z \}
-\Endeq
-The second form used the syntax:
+A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{cm3}):
 \Begineq
   \{ C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z \}
 \Endeq
-
 The \vn{polarity} value is used to scale the magnetic field. By
 default, \vn{polarity} has a value of 1.0.  Example:
 \begin{example}
-  wig1: wiggler, l = 1.6, \&
-        term(1) = \{0.03, 3.00, 4.00, 5.00, 0.63\}, \&        ! Old style
-        term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\}, \&  ! New style
-        term(3) = ...
+  wig1: wiggler, l = 1.6,
+        term(1) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\},
+        term(2) = ...
   ...
   wig1[polarity] = -1  ! Reverse the polarity of the wiggler
 \end{example}
@@ -3814,6 +3777,46 @@ seen in tracking is thus scaled by the \vn{polarity}.
 
 There is no \vn{bmad_standard} tracking for a \vn{map_type}
 \vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
+
+\vn{Note:} When the wiggler model was first developed, the definition of the field
+was somewhat different. The old definition assumed horizontal and vertical symmetry
+and had a different normalization:
+The old style first form was
+\begin{alignat}{5}
+  B_x &= -&\wt C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  &\wt C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&&  \nonumber
+\end{alignat}
+The old style second form was
+\begin{alignat}{5}
+  B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&&  \nonumber
+\end{alignat}
+The old style third form was
+\begin{alignat}{5}
+  B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
+  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
+\end{alignat}
+The correspondence between $\wt C$ and $C$ is given by comparing
+\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm1}, \eq{cm2}, \eq{cm3}. In
+a lattice file, the old field definition will be used if a
+\vn{\{<Wig_Term>\}} has just 5 numbers:
+\Begineq
+  \{ \wt C, k_x, k_y, k_z, \phi_z \}
+\Endeq
+Example
+\begin{example}
+  wig1: wiggler, l = 1.6, \&
+        term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63\}, \&    ! Old style
+        term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\}, \&  ! New style
+        term(3) = ...
+\end{example}
+Internally, \bmad will convert to the new style.
 
 %-----------------------------------------------------
 \subsection{Periodic\_Type Wiggler Element Tracking}
