@@ -699,7 +699,7 @@ else
       i2 = i2 - 1
       s2%type = atom%type
 
-    case (numeric$)
+    case (numeric$, variable$)
       i2 = i2 + 1
       s2(i2)%type = atom%type
       if (atom%name == '') then
