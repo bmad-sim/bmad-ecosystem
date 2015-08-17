@@ -320,8 +320,9 @@ if (u%calc%track) then
       do i = 0, ubound(orbit, 1)
         orbit(i)%vec = (/ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 /)
       enddo
+    else
+      lat_branch%orb0 = orbit(0)   ! Save beginning orbit as initial guess next time.
     endif
-    lat_branch%orb0 = orbit(0)   ! Save beginning orbit
 
   else
     if (lat_branch%has_open_match_element) then
