@@ -24,6 +24,26 @@ of the line is ignored.  Example:
   set default uni = 2; show global  ! Two commands and a comment
 \end{example}
 
+This chapter uses the following special characters to define the
+command line syntax:
+\begin{example}
+  \{\}        ! Identifies an optional argument. 
+              !   Arguments now enclosed in brackets are required
+  <>        ! Indicates a non-literal argument.
+\end{example}
+
+Example:
+\begin{example}
+  change \{-silent\} variable <name>[<locations>] <number>
+\end{example}
+Here the \vn{-silent} argument is optional while the \vn{variable} argument
+is manditory. Appropriate values for \vn{<name>}, \vn{<locations>},
+and \vn{<number>} must be substituted. A possible 
+
+\begin{example}
+  change var steering[34:36] @1e-3  ! set the steering strength #34-36 to 0.001
+\end{example}
+
 %% command_table -----------------------------------------------------
 
 \begin{table}[h]
@@ -133,30 +153,22 @@ In the above example the argument ``abc'' is substituted for any
 The \vn{change} command changes element attribute values or variable
 values in the \vn{model} lattice. Format:
 \begin{example}
-  change element <element_list> <attribute> <number>
-  change \{-silent\} variable <name> <locations> <number>
-  change  \{n@\}beam_start <coordinate> <number>
+  change element <element_list> <attribute> \{prefix>\} <number>
+  change \{-silent\} variable <name>[<locations>] \{<prefix>\} <number>
+  change  \{n@\}beam_start <coordinate> \{prefix>\} <number>
 \end{example}
 
 \vskip 0.2in 
-Generally \vn{<number>} is added to the existing value of the
-attribute or variable. That is:
+If \vn{<prefix>} is not present, \vn{<number>} is added
+to the existing value of the attribute or variable. That is:
 \begin{example}
   final_model_value = initial_model_value + <number>
 \end{example}
-If "@" is prepended to \vn{<number>} then just the value of
-\vn{<number>} is used to set the value
+If \vn{<prefix>} is present, it may be one of
 \begin{example}
-  final_model_value = <number>
-\end{example}
-If "d" is prepended to \vn{<number>} then the final value will be the
-\vn{design} value plus \vn{<number>}:
-\begin{example}
-  final_model_value = design_value + <number>
-\end{example}
-If "\%" is prepended to \vn{<number>} then the final value will be
-\begin{example}
-  final_model_value = initial_model_value * (1 + <number> / 100)
+  @       final_model_value = <number>
+  d       final_model_value = design_value + <number>
+  \%       final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
 
 Element list format (\sref{s:ele.list.format}), without any embedded
@@ -1279,6 +1291,7 @@ Format:
   dynamic_aperture
   element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-everything\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
+  field <ele> <x> <y> <z> \{t\}
   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   graph <graph_name>
   hom
@@ -1490,8 +1503,7 @@ is explained in section \sref{s:ele.list.format}. If
 \vn{<ele_name>} contains a wild card or a class name then a list of
 elements that match the name are shown. If no wild--card or class name
 is present then information about the element whose name matches
-\vn{<ele_name>} is shown. If \vn{<ele_name>} is a number $n$, then the $n$\Th
-element in the lattice list will be shown.
+\vn{<ele_name>} is shown.
 
 If the \vn{-ptc} switch is used, then the associated PTC fibre
 information will be displayed. If there is not associated PTC fibre
@@ -1561,9 +1573,17 @@ Example:
   show ele -all_att 105         ! Show element #105 in the lattice.
 \end{example}
 
-%% show global --------------------------------------------------------------
+%% show field --------------------------------------------------------------
 
-\vskip 0.1 in
+\item[show field <ele> <x> <y> <z> \{t\} ] \Newline
+
+The \vn{show field} command shows the electric and magnetic field at a
+point in space-time. The \vn{<z>} coordinate is with respect to the
+beginning of the element specified by \vn{<ele>}.  The syntax for
+\vn{<ele>} is explained in section \sref{s:ele.list.format}. In this
+case, \vn{<ele>} must specify a single element.
+
+%% show global --------------------------------------------------------------
 
 \item[show global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} ] \Newline
 
