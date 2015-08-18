@@ -191,10 +191,10 @@ constructed beginning at these elements.
   \includegraphics[width=5in]{patch-problem.pdf}
   \caption[The local reference coordinates in a \vn{patch} element.]
 {The local reference coordinates in a \vn{patch} element. The
-\vn{patch} element, shown schematically as an ellipse, is sandwiched
-between elements \vn{ele_a} and \vn{ele_b}. \vn{L} is the length of
-the \vn{patch}. In this example, the \vn{patch} has a finite
-\vn{x_pitch}.}
+\vn{patch} element, shown schematically as an irregular quadrilateral,
+is sandwiched between elements \vn{ele_a} and \vn{ele_b}. \vn{L} is
+the length of the \vn{patch}. In this example, the \vn{patch} has a
+finite \vn{x_pitch}.}
   \label{f:patch.prob}
 \end{figure}
 
@@ -206,17 +206,18 @@ the \vn{patch}. In this example, the \vn{patch} has a finite
 
 Generally, if a particle is reasonably near the reference orbit, there
 is a one-to-one mapping between the particle's position and $(x, y,
-s)$ coordinates. A \vn{patch} (\sref{s:patch}) elements with non-zero
-pitch breaks the one-to-one mapping. This is illustrated in
-\fig{f:patch.prob}.  The \vn{patch} element, shown schematically as an
-ellipse, is sandwiched between elements \vn{ele_a} and \vn{ele_b}. The
-local coordinate system with origin at $\alpha$ are the coordinates at
-the end of \vn{ele_a}. The coordinates at the end of the \vn{patch}
-has its origin labeled $\gamma$. By convention, the length of the
-patch \vn{L} is taken to be the longitudinal distance from $\alpha$ to
+s)$ coordinates. A \vn{patch} (\sref{s:patch}) elements with a
+non-zero \vn{x_pitch} or non-zero \vn{y_pitch} breaks the one-to-one
+mapping. This is illustrated in \fig{f:patch.prob}.  The \vn{patch}
+element, shown schematically as an, irregular quadrilateral, is
+sandwiched between elements \vn{ele_a} and \vn{ele_b}. The local
+coordinate system with origin at $\alpha$ are the coordinates at the
+end of \vn{ele_a}. The coordinates at the end of the \vn{patch} has
+its origin labeled $\gamma$. By convention, the length of the patch
+\vn{L} is taken to be the longitudinal distance from $\alpha$ to
 $\gamma$ with the \vn{patch}'s exit coordinates defining the
-longitudinal direction. The ``beginning'' point of the \vn{patch} on the
-reference orbit a distance \vn{L} from point $\gamma$ is labeled
+longitudinal direction. The ``beginning'' point of the \vn{patch} on
+the reference orbit a distance \vn{L} from point $\gamma$ is labeled
 $\beta$ in the figure.
 
 In the local $(x, y, s)$ coordinate system a particle at $\alpha$ will

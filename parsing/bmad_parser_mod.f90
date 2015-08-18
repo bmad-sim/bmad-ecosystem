@@ -204,6 +204,7 @@ type (ele_struct), target, save ::  ele0
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
 type (wig_term_struct), pointer :: wig_term(:)
+type (wig_term_struct), pointer :: wt
 type (real_pointer_struct), allocatable :: r_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
@@ -224,7 +225,7 @@ character(1) delim, delim1, delim2
 character(80) str, err_str, line
 
 logical delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, wild_key0
-logical is_attrib, err_flag2
+logical is_attrib, err_flag2, old_style_input
 logical, optional :: check_free, wild_and_key0
 
 ! Get next WORD.
@@ -243,11 +244,11 @@ if ((ele%key == taylor$ .or. ele%key == hybrid$) .and. word(1:1) == '{') then
   word = word(2:)             ! strip off '{'
   read (word, *, iostat = ios) i_out
   if (delim /= ':' .or. ix_word == 0 .or. ios /= 0) then
-    call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name, 'CANNOT PARSE: ' // str)
+    call parser_error ('BAD "OUT" IN TERM FOR TAYLOR ELEMENT: ' // ele%name)
     return
   endif
 
-  call evaluate_value (str, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
+  call evaluate_value (ele%name, coef, lat, delim, delim_found, err_flag, ',|');  if (err_flag) return
   delim2 = delim   ! Save
   expn = 0
 
@@ -443,7 +444,7 @@ if (word(1:5) == 'WALL.') then
       return
     endif
 
-    call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag)
+    call evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag)
 
   ! Not recognized
 
@@ -553,7 +554,7 @@ if (attrib_word == 'WALL') then
       call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d%clear_material)
 
     case ('THICKNESS') 
-      call evaluate_value (err_str, ele%wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
+      call evaluate_value (ele%name, ele%wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
@@ -598,25 +599,25 @@ if (attrib_word == 'WALL') then
           call bmad_parser_type_get (ele, word, delim, delim_found, str_out = section%material)
 
         case ('THICKNESS')
-          call evaluate_value (trim(ele%name), section%thickness, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%thickness, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('S')
-          call evaluate_value (trim(ele%name), section%s, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%s, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
           if (ele%key == capillary$) ele%value(l$) = section%s
 
         case ('DR_DS') 
-          call evaluate_value (trim(ele%name), section%dr_ds, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
                   
         case ('X0') 
-          call evaluate_value (trim(ele%name), section%x0, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%x0, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
                   
         case ('Y0') 
-          call evaluate_value (trim(ele%name), section%y0, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%y0, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
 
         ! Parse "V() = ..." constructs.
@@ -907,7 +908,7 @@ if (attrib_word == 'FIELD') then
         return
       end select
 
-      if (do_evaluate) call evaluate_value (trim(ele%name), r_ptr, lat, delim, delim_found, err_flag, ',}')
+      if (do_evaluate) call evaluate_value (ele%name, r_ptr, lat, delim, delim_found, err_flag, ',}')
 
       ! Possible "}" is end of mode
       if (delim == '}') exit
@@ -999,30 +1000,39 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   endif
 
   err_str = trim(ele%name) // ' ' // str_ix
+  wt => ele%wig%term(ix)
 
-  call evaluate_value (err_str, ele%wig%term(ix)%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
-  call evaluate_value (err_str, ele%wig%term(ix)%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ele%wig%term(ix)%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ele%wig%term(ix)%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
-  call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
+  call evaluate_value (err_str, wt%coef, lat, delim, delim_found, err_flag, ',');   if (err_flag) return
+  call evaluate_value (err_str, wt%kx, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, wt%ky, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, wt%kz, lat, delim, delim_found, err_flag, ',');     if (err_flag) return
+  call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, ',}'); if (err_flag) return
 
+  old_style_input = .true.
   if (delim == ',') then
-    ele%wig%term(ix)%phi_x = ele%wig%term(ix)%phi_z
-    call evaluate_value (err_str, ele%wig%term(ix)%phi_y, lat, delim, delim_found, err_flag, ','); if (err_flag) return
-    call evaluate_value (err_str, ele%wig%term(ix)%phi_z, lat, delim, delim_found, err_flag, '}'); if (err_flag) return
+    wt%phi_x = wt%phi_z
+    call evaluate_value (err_str, wt%phi_y, lat, delim, delim_found, err_flag, ','); if (err_flag) return
+    call evaluate_value (err_str, wt%phi_z, lat, delim, delim_found, err_flag, '}'); if (err_flag) return
+    old_style_input = .false.
   endif
 
-  kx = ele%wig%term(ix)%kx
-  ky = ele%wig%term(ix)%ky
-  kz = ele%wig%term(ix)%kz
+  kx = wt%kx
+  ky = wt%ky
+  kz = wt%kz
   tol = 1e-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
-    ele%wig%term(ix)%type = hyper_y$
+    wt%type = hyper_y$
+    if (old_style_input) wt%type = hyper_y_old$
+
   elseif (abs(ky**2 + kx**2 - kz**2) < tol) then
-    ele%wig%term(ix)%type = hyper_xy$
+    wt%type = hyper_xy$
+    if (old_style_input) wt%type = hyper_xy_old$
+
   elseif (abs(ky**2 - kx**2 + kz**2) < tol) then
-    ele%wig%term(ix)%type = hyper_x$
+    wt%type = hyper_x$
+    if (old_style_input) wt%type = hyper_x_old$
+
   else
     call parser_error ('WIGGLER TERM DOES NOT HAVE CONSISTANT Kx, Ky, and Kz', &
                   'FOR WIGGLER: ' // ele%name // '  ' // str_ix)
@@ -2401,11 +2411,21 @@ end function evaluate_logical
 !+
 ! Subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims)
 !
-! This routine creates an "evaluation stack" structure which can be used
-! to evaluate an arithmethic expression.
+! This routine evaluates as a real number the characters at the beginning of bp_com%parse_line.
 !
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
+!
+! Input:
+!   err_str     -- character(*): String to print as part of error message if there is an error.
+!   lat         -- lat_struct: 
+!   end_delims  -- character(*): List of delimiters that should be present after section of line used for evaluation.
+!
+! Output:
+!   value       -- real(rp):
+!   delim       -- character(1): Actual delimiter found. Set to blank is no delim found
+!   delim_found -- logical: Set False if end-of-line found instead of a delimiter.
+!   err_flag    -- logical:
 !-
 
 subroutine evaluate_value (err_str, value, lat, delim, delim_found, err_flag, end_delims, string_out)
@@ -2425,7 +2445,7 @@ character(*) err_str
 character(*), optional :: end_delims
 character(1) delim
 character(200) str
-character(100) err_type
+character(100) err_str2
 character(200) word
 character(*), optional :: string_out
 
@@ -2467,7 +2487,7 @@ enddo
 
 if (present(end_delims)) then
   if (.not. delim_found .or. index(end_delims, delim) == 0) then
-    err_str = 'BAD DELIMITOR AFTER VALUE'
+    call parser_error ('BAD DELIMITOR AFTER VALUE', 'FOR: ' // err_str)
     return
   endif
 endif
@@ -2490,10 +2510,10 @@ endif
 
 ! Make a stack
 
-call expression_string_to_stack(str, stk, n_stk,  err_flag, err_type)
+call expression_string_to_stack(str, stk, n_stk,  err_flag, err_str2)
 if (err_flag) then
-  call parser_error (err_type, 'FOR: ' // err_str)
-  if (err_str == 'MALFORMED EXPRESSION') bp_com%parse_line = ''
+  call parser_error (err_str2, 'FOR: ' // err_str)
+  if (err_str2 == 'MALFORMED EXPRESSION') bp_com%parse_line = ''
   return
 endif
 
@@ -2508,9 +2528,9 @@ enddo
 
 ! Evaluate
 
-call evaluate_expression_stack (stk, value, err_flag, err_type)
+call evaluate_expression_stack (stk, value, err_flag, err_str2)
 if (err_flag) then
-  call parser_error (err_type, 'FOR: ' // err_str)
+  call parser_error (err_str2, 'FOR: ' // err_str)
 endif
 
 end subroutine evaluate_value

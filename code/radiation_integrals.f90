@@ -148,6 +148,7 @@ bmad_com_save = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
 bmad_com%space_charge_on = .false.
+bmad_com%cancel_wiggler_end_kicks = .true.
 
 if (allocated(rad_int_all%ele)) then
   if (ubound(rad_int_all%ele, 1) < branch%n_ele_max) then 

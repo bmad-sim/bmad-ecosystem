@@ -3,7 +3,7 @@ module symp_lie_mod
 use bmad_struct
 use bmad_interface
 use make_mat6_mod
-use em_field_mod   
+use em_field_mod
 use random_mod
 use track1_mod
 
@@ -12,8 +12,8 @@ type save_coef_struct
 end type
 
 type wiggler_computations_struct
-  type (save_coef_struct) a_y, dint_a_y_dx, da_z_dx, da_z_dy
-  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0, s_x_kx = 0, s_y_ky = 0, c1_ky2 = 0
+  type (save_coef_struct) Ax, dint_Ax_dy, Ay, dint_Ay_dx, dAz_dx, dAz_dy
+  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0, s_over_kx = 0, one_minus_c_over_ky
 end type
 
 private save_coef_struct, wiggler_computations_struct
@@ -31,11 +31,11 @@ contains
 !
 ! Convention: Start and end p_y and p_x coordinates are the field free momentum.
 ! That is, at the start the coordinates are transformed by:
-!   (p_x, p_y) -> (p_x + A_x, p_y + A_y)
+!   (p_x, p_y) -> (p_x + Ax, p_y + Ay)
 ! and at the end there is a transformation:
-!   (p_x, p_y) -> (p_x - A_x, p_y - A_y)
-! Where (A_x, A_y) components of the magnetic vector potential.
-! If the start and end coordinates are in field free regions then (A_x, A_y) will be zero
+!   (p_x, p_y) -> (p_x - Ax, p_y - Ay)
+! Where (Ax, Ay) components of the magnetic vector potential.
+! If the start and end coordinates are in field free regions then (Ax, Ay) will be zero
 ! and the transformations will not affect the result. 
 ! The reason for this convention is to be able to compute the local bending radius via 
 ! tracking. Also this convention gives more "intuative" results when, say, using
@@ -74,7 +74,7 @@ type (lat_param_struct)  param
 type (track_struct), optional :: track
 type (wig_term_struct), pointer :: wig_term(:)
 
-type (wiggler_computations_struct), allocatable :: tm(:)
+type (wiggler_computations_struct), allocatable, target :: tm(:)
 type (wig_term_struct), pointer :: wt
 
 real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6)
@@ -130,10 +130,6 @@ ds2 = ds / 2
 
 s = 0   ! longitudianl position
 
-if (present(track)) then
-  call save_this_track_pt (0.0_rp)
-endif
-
 ! radiation damping and fluctuations...
 ! The same kick is applied over the entire wiggler to save time.
 
@@ -175,14 +171,22 @@ Case (wiggler$, undulator$)
 
   allocate (tm(num_wig_terms))
 
-  call update_wig_coefs (calculate_mat6)
+  call calc_wig_coefs (calculate_mat6)
   call update_wig_y_terms (err); if (err) return
-  call update_wig_x_s_terms (err); if (err) return
+  call update_wig_x_terms (err); if (err) return
+  call update_wig_s_terms
 
-  ! Correction for finite vector potential at the entrance end
+  if (present(track)) then
+    call save_this_track_pt (s)
+  endif
 
-  if (bmad_com%apply_wiggler_end_kicks) then
-    call apply_wig_exp_int_ay(1, calculate_mat6)
+  ! Symplectic integration gives a kick to the physical momentum (but not the canonical momentum) at the ends of an 
+  ! element if there is a finite vector potential. This is necessary for symplecticity but can complicate comparisons
+  ! with runge_kutta. That is, only set bmad_com%cancel_wiggler_end_kicks = True for testing purposes.
+
+  if (bmad_com%cancel_wiggler_end_kicks) then
+    end_orb%vec(2) = end_orb%vec(2) + Ax()
+    end_orb%vec(4) = end_orb%vec(4) + Ay()
   endif
 
   ! loop over all steps
@@ -192,14 +196,18 @@ Case (wiggler$, undulator$)
     ! s half step
 
     s = s + ds2
+    call update_wig_s_terms
 
-    ! Drift_1 = P_x^2 / (2 * (1 + dE))
-    ! Note: We are using the gauge where A_x = 0.
+    ! Drift_1 = (P_x - Ax)^2 / (2 * (1 + dE))
+
+    call apply_wig_exp_int_ax (-1, calculate_mat6)
 
     call apply_p_x (calculate_mat6)
-    call update_wig_x_s_terms (err); if (err) return
+    call update_wig_x_terms (err); if (err) return
 
-    ! Drift_2 = (P_y - a_y)^2 / (2 * (1 + dE))
+    call apply_wig_exp_int_ax (+1, calculate_mat6)
+
+    ! Drift_2 = (P_y - Ay)^2 / (2 * (1 + dE))
 
     call apply_wig_exp_int_ay (-1, calculate_mat6)
 
@@ -208,18 +216,18 @@ Case (wiggler$, undulator$)
 
     call apply_wig_exp_int_ay (+1, calculate_mat6)
 
-    ! Kick = a_z
+    ! Kick = Az
 
-    dpx = da_z_dx()
-    dpy = da_z_dy()
+    dpx = dAz_dx()
+    dpy = dAz_dy()
     end_orb%vec(2) = end_orb%vec(2) + ds * dpx
     end_orb%vec(4) = end_orb%vec(4) + ds * dpy
 
     call radiation_kick()
 
     if (calculate_mat6) then
-      mat6(2,1:6) = mat6(2,1:6) + ds * (da_z_dx__dx() * mat6(1,1:6) + da_z_dx__dy() * mat6(3,1:6))
-      mat6(4,1:6) = mat6(4,1:6) + ds * (da_z_dy__dx() * mat6(1,1:6) + da_z_dy__dy() * mat6(3,1:6))
+      mat6(2,1:6) = mat6(2,1:6) + ds * (dAz_dx__dx() * mat6(1,1:6) + dAz_dx__dy() * mat6(3,1:6))
+      mat6(4,1:6) = mat6(4,1:6) + ds * (dAz_dy__dx() * mat6(1,1:6) + dAz_dy__dy() * mat6(3,1:6))
     endif 
 
     ! Drift_2
@@ -233,23 +241,27 @@ Case (wiggler$, undulator$)
 
     ! Drift_1
 
+    call apply_wig_exp_int_ax (-1, calculate_mat6)
+
     call apply_p_x (calculate_mat6)
+    call update_wig_x_terms (err); if (err) return
+
+    call apply_wig_exp_int_ax (+1, calculate_mat6)
 
     ! s half step
 
     s = s + ds2
+    call update_wig_s_terms
 
     if (present(track)) call save_this_track_pt (s)
 
   enddo
 
-  ! Correction for finite vector potential at exit end
+  ! Correction for finite vector potential at exit end.
 
-  if (bmad_com%apply_wiggler_end_kicks) then
-    call update_wig_coefs (calculate_mat6)
-    call update_wig_y_terms (err); if (err) return
-    call update_wig_x_s_terms (err); if (err) return
-    call apply_wig_exp_int_ay(-1, calculate_mat6)
+  if (bmad_com%cancel_wiggler_end_kicks) then
+    end_orb%vec(2) = end_orb%vec(2) - Ax()
+    end_orb%vec(4) = end_orb%vec(4) - Ay()
   endif
 
 !----------------------------------------------------------------------------
@@ -431,7 +443,7 @@ integer ix
 !
 
 call save_a_step (track, ele, param, .true., s, end_orb, s_sav)
-  
+
 if (calculate_mat6) then
   ix = track%n_pt
   track%map(ix)%mat6 = mat6
@@ -439,7 +451,13 @@ if (calculate_mat6) then
   call mat6_add_pitch (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%orientation, track%map(ix)%mat6)
   track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb%vec)
 endif
- 
+
+if (bmad_com%cancel_wiggler_end_kicks) then
+  ix = track%n_pt
+  track%orb(ix)%vec(2) = track%orb(ix)%vec(2) - Ax()
+  track%orb(ix)%vec(4) = track%orb(ix)%vec(4) - Ay()
+endif
+
 end subroutine save_this_track_pt
 
 !----------------------------------------------------------------------------
@@ -487,7 +505,7 @@ subroutine rf_drift1 (do_mat6)
 
 logical do_mat6
 
-! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
+! Drift_1 = (P_x - Ax)**2 / (2 * (1 + dE))
 
 end_orb%vec(2) = end_orb%vec(2) 
 end_orb%vec(4) = end_orb%vec(4) 
@@ -521,10 +539,10 @@ subroutine bsq_drift1 (do_mat6)
 
 logical do_mat6
 
-! Drift_1 = (P_x - a_x)**2 / (2 * (1 + dE))
+! Drift_1 = (P_x - Ax)**2 / (2 * (1 + dE))
 
-end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) - a_x
-end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) - dint_a_x_dy
+end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) - Ax
+end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) - dint_Ax_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
@@ -537,8 +555,8 @@ call apply_p_x (do_mat6)
 
 !
 
-end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) + a_x
-end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) + dint_a_x_dy
+end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) + Ax
+end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) + dint_Ax_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
@@ -555,10 +573,10 @@ subroutine bsq_drift2 (do_mat6)
 
 logical do_mat6
 
-! Drift_2 = (P_y - a_y)**2 / (2 * (1 + dE))
+! Drift_2 = (P_y - Ay)**2 / (2 * (1 + dE))
 
-end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) - dint_a_y_dx
-end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) - a_y
+end_orb%vec(2) = end_orb%vec(2) - end_orb%vec(3) * ks_tot_2   !  vec(2) - dint_Ay_dx
+end_orb%vec(4) = end_orb%vec(4) - end_orb%vec(1) * ks_tot_2   !  vec(4) - Ay
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ks_tot_2 * mat6(3,1:6)
@@ -571,8 +589,8 @@ call apply_p_y (do_mat6)
 
 !
 
-end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) + dint_a_y_dx
-end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) + a_y
+end_orb%vec(2) = end_orb%vec(2) + end_orb%vec(3) * ks_tot_2   !  vec(2) + dint_Ay_dx
+end_orb%vec(4) = end_orb%vec(4) + end_orb%vec(1) * ks_tot_2   !  vec(4) + Ay
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + ks_tot_2 * mat6(3,1:6)
@@ -590,10 +608,10 @@ subroutine bsq_kick (do_mat6)
 logical do_mat6
 
 dpx = k1_norm * (x_q - end_orb%vec(1)) - k1_skew * end_orb%vec(3) - g_x
-end_orb%vec(2) = end_orb%vec(2) + ds * dpx  ! da_z_dx
+end_orb%vec(2) = end_orb%vec(2) + ds * dpx  ! dAz_dx
               
 dpy = k1_norm * (end_orb%vec(3) - y_q) - k1_skew * end_orb%vec(1) - g_y
-end_orb%vec(4) = end_orb%vec(4) + ds * dpy  ! da_z_dy
+end_orb%vec(4) = end_orb%vec(4) + ds * dpy  ! dAz_dy
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) - ds * k1_norm * mat6(1,1:6) - ds * k1_skew * mat6(3,1:6)
@@ -606,17 +624,36 @@ end subroutine bsq_kick
 !----------------------------------------------------------------------------
 ! contains
 
+subroutine apply_wig_exp_int_ax (sgn, do_mat6)
+
+integer sgn
+logical do_mat6
+
+end_orb%vec(2) = end_orb%vec(2) + sgn * Ax()
+end_orb%vec(4) = end_orb%vec(4) + sgn * dint_Ax_dy()
+
+if (do_mat6) then
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (Ax__dx()         * mat6(1,1:6) + Ax__dy()         * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (dint_Ax_dy__dx() * mat6(1,1:6) + dint_Ax_dy__dy() * mat6(3,1:6))
+endif      
+
+end subroutine apply_wig_exp_int_ax
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
 subroutine apply_wig_exp_int_ay (sgn, do_mat6)
 
 integer sgn
 logical do_mat6
 
-end_orb%vec(2) = end_orb%vec(2) + sgn * dint_a_y_dx()
-end_orb%vec(4) = end_orb%vec(4) + sgn * a_y()
+end_orb%vec(2) = end_orb%vec(2) + sgn * dint_Ay_dx()
+end_orb%vec(4) = end_orb%vec(4) + sgn * Ay()
 
 if (do_mat6) then
-  mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_a_y_dx__dx() * mat6(1,1:6) + dint_a_y_dx__dy() * mat6(3,1:6))
-  mat6(4,1:6) = mat6(4,1:6) + sgn * (a_y__dx()         * mat6(1,1:6) + a_y__dy()         * mat6(3,1:6))
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_Ay_dx__dx() * mat6(1,1:6) + dint_Ay_dx__dy() * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (Ay__dx()         * mat6(1,1:6) + Ay__dy()         * mat6(3,1:6))
 endif      
 
 end subroutine apply_wig_exp_int_ay
@@ -625,51 +662,171 @@ end subroutine apply_wig_exp_int_ay
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_coefs (do_mat6)
+subroutine calc_wig_coefs (do_mat6)
 
+type (wiggler_computations_struct), pointer :: tmj
 real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = rel_tracking_charge * c_light / ele%value(p0c$)
+factor = rel_tracking_charge * c_light * field_ele%value(polarity$) / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
-  coef = factor * wt%coef * field_ele%value(polarity$)
-  tm(j)%a_y%coef         = -coef * wt%kz                   ! / (wt%kx * wt%ky)
-  tm(j)%dint_a_y_dx%coef = -coef * wt%kz                   ! / wt%ky**2
-  tm(j)%da_z_dx%coef     = -coef         * orientation
-  tm(j)%da_z_dy%coef     = -coef * wt%ky * orientation     ! / wt%kx
-  if (wt%type == hyper_x$) then
-    tm(j)%da_z_dy%coef     = -tm(j)%da_z_dy%coef
-    tm(j)%dint_a_y_dx%coef = -tm(j)%dint_a_y_dx%coef 
-  endif
+  tmj => tm(j)
+  coef = factor * wt%coef 
+
+  select case (wt%type)
+  case (hyper_y$)
+    tmj%Ax%coef         =  coef * wt%kz / wt%ky**2
+    tmj%Ay%coef         =  0
+    tmj%dint_Ax_dy%coef =  tmj%Ax%coef * wt%ky               ! / wt%kx
+    tmj%dint_Ay_dx%coef =  0
+    tmj%dAz_dx%coef     = -coef * orientation * (wt%kx / wt%ky)**2
+    tmj%dAz_dy%coef     = -coef * orientation * wt%kx / wt%ky
+    tmj%Ax%dx_coef         = -tmj%Ax%coef * wt%kx
+    tmj%Ax%dy_coef         =  tmj%Ax%coef * wt%ky
+    tmj%Ay%dx_coef         =  0
+    tmj%Ay%dy_coef         =  0
+    tmj%dint_Ax_dy%dx_coef =  tmj%Ax%coef * wt%ky
+    tmj%dint_Ax_dy%dy_coef =  tmj%dint_Ax_dy%coef * wt%ky   ! / wt%kx
+    tmj%dint_Ay_dx%dx_coef =  0
+    tmj%dint_Ay_dx%dy_coef =  0
+    tmj%dAz_dx%dx_coef     = -tmj%dAz_dx%coef * wt%kx
+    tmj%dAz_dx%dy_coef     =  tmj%dAz_dx%coef * wt%ky
+    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
+    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+
+  case (hyper_xy$)
+    tmj%Ax%coef         =  coef * wt%ky / wt%kz**2
+    tmj%Ay%coef         = -coef * wt%kx / wt%kz**2
+    tmj%dint_Ax_dy%coef =  tmj%Ax%coef * wt%ky              ! / wt%kx
+    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx              ! / wt%ky
+    tmj%dAz_dx%coef     =  0
+    tmj%dAz_dy%coef     =  0
+    tmj%Ax%dx_coef         =  tmj%Ax%coef * wt%kx
+    tmj%Ax%dy_coef         =  tmj%Ax%coef * wt%ky
+    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
+    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
+    tmj%dint_Ax_dy%dx_coef =  tmj%Ax%coef * wt%ky
+    tmj%dint_Ax_dy%dy_coef =  tmj%dint_Ax_dy%coef * wt%ky   ! / wt%kx
+    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx   ! / wt%ky
+    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
+    tmj%dAz_dx%dx_coef     =  0
+    tmj%dAz_dx%dy_coef     =  0
+    tmj%dAz_dy%dx_coef     =  0
+    tmj%dAz_dy%dy_coef     =  0
+
+  case (hyper_x$)
+    tmj%Ax%coef         =  0
+    tmj%Ay%coef         = -coef * wt%kz / wt%kx**2 
+    tmj%dint_Ax_dy%coef =  0
+    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx             ! / wt%ky
+    tmj%dAz_dx%coef     = -coef * orientation * wt%ky / wt%kx
+    tmj%dAz_dy%coef     =  coef * orientation * (wt%ky / wt%kx)**2
+    tmj%Ax%dx_coef         =  0
+    tmj%Ax%dy_coef         =  0
+    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
+    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
+    tmj%dint_Ax_dy%dx_coef =  0
+    tmj%dint_Ax_dy%dy_coef =  0
+    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx  ! / wt%ky
+    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
+    tmj%dAz_dx%dx_coef     =  tmj%dAz_dx%coef * wt%kx
+    tmj%dAz_dx%dy_coef     = -tmj%dAz_dx%coef * wt%ky
+    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
+    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+
+  case (hyper_y_old$, hyper_xy_old$, hyper_x_old$)
+    if (abs(wt%kx) < 1d-30) wt%kx = 1d-30   ! To prevent 0/0
+    tmj%Ax%coef         =  0
+    tmj%Ay%coef         = -coef * wt%kz / (wt%kx * wt%ky) 
+    tmj%dint_Ax_dy%coef =  0
+    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx             ! / wt%ky
+    tmj%dAz_dx%coef     = -coef * orientation
+    tmj%dAz_dy%coef     = -coef * orientation * wt%ky / wt%kx
+    tmj%Ax%dx_coef         =  0
+    tmj%Ax%dy_coef         =  0
+    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
+    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
+    tmj%dint_Ax_dy%dx_coef =  0
+    tmj%dint_Ax_dy%dy_coef =  0
+    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx  ! / wt%ky
+    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
+    tmj%dAz_dx%dx_coef     =  tmj%dAz_dx%coef * wt%kx
+    tmj%dAz_dx%dy_coef     =  tmj%dAz_dx%coef * wt%ky
+    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
+    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+
+    select case (wt%type)
+    case (hyper_y_old$)
+      tmj%dint_Ay_dx%dx_coef =  -tmj%dint_Ay_dx%dx_coef
+      tmj%dAz_dx%dx_coef     =  -tmj%dAz_dx%dx_coef
+    case (hyper_x_old$)
+      tmj%dAz_dy%coef        =  -tmj%dAz_dy%coef
+      tmj%dAz_dx%dy_coef     =  -tmj%dAz_dx%dy_coef
+      tmj%dAz_dy%dy_coef     =  -tmj%dAz_dy%dy_coef
+      tmj%dAz_dy%dx_coef     =  -tmj%dAz_dy%dx_coef
+    end select
+
+  end select
 enddo
 
-if (.not. do_mat6) return
+end subroutine calc_wig_coefs
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+subroutine update_wig_x_terms (err)
+
+type (wiggler_computations_struct), pointer :: tmj
+
+real(rp) kxx, kxx0
+integer j
+logical err
+
+!
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
-  tm(j)%a_y%dx_coef = tm(j)%a_y%coef
-  tm(j)%a_y%dy_coef = tm(j)%a_y%coef
-  tm(j)%dint_a_y_dx%dx_coef = tm(j)%dint_a_y_dx%coef * wt%kx
-  tm(j)%dint_a_y_dx%dy_coef = tm(j)%dint_a_y_dx%coef
-  tm(j)%da_z_dx%dx_coef = tm(j)%da_z_dx%coef * wt%kx
-  tm(j)%da_z_dx%dy_coef = tm(j)%da_z_dx%coef * wt%ky
-  tm(j)%da_z_dy%dx_coef = tm(j)%da_z_dy%coef
-  tm(j)%da_z_dy%dy_coef = tm(j)%da_z_dy%coef * wt%ky
-  
-  if (wt%type == hyper_y$) then
-    tm(j)%dint_a_y_dx%dx_coef = -tm(j)%dint_a_y_dx%dx_coef 
-    tm(j)%da_z_dx%dx_coef     = -tm(j)%da_z_dx%dx_coef 
-  elseif (wt%type == hyper_x$) then
-    tm(j)%dint_a_y_dx%dy_coef = -tm(j)%dint_a_y_dx%dy_coef
-    tm(j)%da_z_dx%dy_coef     = -tm(j)%da_z_dx%dy_coef      
-  endif
+  tmj => tm(j)
+
+  kxx0 = wt%kx * end_orb%vec(1)
+  kxx = kxx0 + wt%phi_x
+
+  select case (wt%type)
+  case (hyper_y$, hyper_y_old$)
+    tmj%c_x = cos(kxx)
+    tmj%s_x = sin(kxx)
+
+    if (abs(kxx0) < 1e-4) then
+      tmj%s_over_kx = end_orb%vec(1) * ((1 - kxx0**2/6) * cos(wt%phi_x) + (-kxx0/2 + kxx0**3/24) * sin(wt%phi_x))
+    else
+      tmj%s_over_kx = (tmj%s_x - sin(wt%phi_x)) / wt%kx
+    endif
+
+  !
+  case (hyper_xy$, hyper_x$, hyper_xy_old$, hyper_x_old$)
+    if (abs(kxx) > 30 .or. abs(wt%phi_x) > 30) then
+      call err_set (err, x_plane$)
+      return
+    endif
+
+    tmj%c_x = cosh(kxx)
+    tmj%s_x = sinh(kxx)
+
+    if (abs(kxx0) < 1e-4) then
+      tmj%s_over_kx = end_orb%vec(1) * ((1 + kxx0**2/6) * cosh(wt%phi_x) + &
+                                        kxx0 * (0.5_rp + kxx0**2/24) * sinh(wt%phi_x))
+    else
+      tmj%s_over_kx = (tmj%s_x - sinh(wt%phi_x)) / wt%kx
+    endif
+  end select
+
 enddo
 
-
-end subroutine update_wig_coefs
+end subroutine update_wig_x_terms
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -677,74 +834,48 @@ end subroutine update_wig_coefs
 
 subroutine update_wig_y_terms (err)
 
-real(rp) kyy(1:num_wig_terms)
+type (wiggler_computations_struct), pointer :: tmj
+
+real(rp) kyy, kyy0
 integer j
 logical err
 
-real(rp) exp_term
-real(rp) exp_term_inv
+!
 
-real(rp) hypr_kyy(1:num_wig_terms)
-real(rp) trig_kyy(1:num_wig_terms)
-
-real(rp) exp_kyy(1:num_wig_terms)
-real(rp) exp_kyy_inv(1:num_wig_terms)
-real(rp) sin_kyy(1:num_wig_terms)
-real(rp) cos_kyy(1:num_wig_terms)
-
-integer n_trig, n_hypr
-
-kyy(1:num_wig_terms) = wig_term(1:num_wig_terms)%ky * end_orb%vec(3) + wig_term(1:num_wig_terms)%phi_y
-n_hypr = 0
-n_trig = 0
 do j = 1, num_wig_terms
   wt => wig_term(j)
-  if (abs(kyy(j)) < 1e-20) then
-    !do nothing
-  elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
-    if (abs(kyy(j)) > 30) then
+  tmj => tm(j)
+
+  kyy0 = wt%ky * end_orb%vec(3)
+  kyy = kyy0 + wt%phi_y
+
+  select case (wt%type)
+  case (hyper_y$, hyper_xy$, hyper_y_old$, hyper_xy_old$)
+    if (abs(kyy) > 30 .or. abs(wt%phi_y) > 30) then
       call err_set (err, y_plane$)
       return
     endif
-    n_hypr = n_hypr + 1
-    hypr_kyy(n_hypr) = kyy(j)    
-  else
-    n_trig = n_trig + 1
-    trig_kyy(n_trig) = kyy(j)
-  endif
-enddo
 
-exp_kyy(1:n_hypr) = exp(hypr_kyy(1:n_hypr))
-exp_kyy_inv(1:n_hypr) = 1.0/exp_kyy(1:n_hypr)
+    tmj%c_y = cosh(kyy)
+    tmj%s_y = sinh(kyy)
 
-sin_kyy(1:n_trig) = sin(trig_kyy(1:n_trig))
-cos_kyy(1:n_trig) = cos(trig_kyy(1:n_trig))
-
-n_hypr = 0
-n_trig = 0
-do j = 1, num_wig_terms
-  wt => wig_term(j)
-  if (abs(kyy(j)) < 1e-20) then
-    tm(j)%c_y = 1
-    tm(j)%s_y = kyy(j)
-    tm(j)%s_y_ky = end_orb%vec(3)
-    tm(j)%c1_ky2 = end_orb%vec(3)**2 / 2
-    if (wt%type == hyper_x$) then
-      tm(j)%c1_ky2 = -tm(j)%c1_ky2 
+    if (abs(kyy0) < 1e-4) then
+      tmj%one_minus_c_over_ky = end_orb%vec(3) * ((kyy0/2 + kyy0**3/24) * cosh(wt%phi_y) + (1 + kyy0**2/6) * sinh(wt%phi_y))
+    else
+      tmj%one_minus_c_over_ky = (tmj%c_y - cosh(wt%phi_y)) / wt%ky
     endif
-  elseif (wt%type == hyper_y$ .or. wt%type == hyper_xy$) then
-    n_hypr = n_hypr + 1
-    tm(j)%c_y = (exp_kyy(n_hypr)+exp_kyy_inv(n_hypr))*0.5d0 !  tm(j)%c_y = cosh(kyy)
-    tm(j)%s_y = (exp_kyy(n_hypr)-exp_kyy_inv(n_hypr))*0.5d0 !  tm(j)%s_y = sinh(kyy)
-    tm(j)%c1_ky2 = (tm(j)%c_y-1) / wt%ky**2   !  tm(j)%c1_ky2 = 2 * sinh(kyy(j)/2)**2 / wt%ky**2
-    tm(j)%s_y_ky = tm(j)%s_y / wt%ky
-  else
-    n_trig = n_trig + 1
-    tm(j)%c_y = cos_kyy(n_trig)
-    tm(j)%s_y = sin_kyy(n_trig)
-    tm(j)%s_y_ky = tm(j)%s_y / wt%ky
-    tm(j)%c1_ky2 = -1*(1.0d0 - cos_kyy(n_trig)) / wt%ky**2
-  endif
+
+  !
+  case (hyper_x$, hyper_x_old$)
+    tmj%c_y = cos(kyy)
+    tmj%s_y = sin(kyy)
+
+    if (abs(kyy0) < 1e-4) then
+      tmj%one_minus_c_over_ky = end_orb%vec(3) * ((kyy0/2 - kyy0**3/24) * cos(wt%phi_y) + (1 - kyy0**2/6) * sin(wt%phi_y))
+    else
+      tmj%one_minus_c_over_ky = (cos(wt%phi_y) - tmj%c_y) / wt%ky
+    endif
+  end select
 enddo
 
 end subroutine update_wig_y_terms
@@ -753,78 +884,13 @@ end subroutine update_wig_y_terms
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine update_wig_x_s_terms (err)
-
-integer j
-logical err
-
-real(rp) kxx(1:num_wig_terms)
-real(rp) kzz(1:num_wig_terms)
-
-real(rp) hypr_kxx(1:num_wig_terms)
-real(rp) trig_kxx(1:num_wig_terms)
-
-real(rp) exp_kxx(1:num_wig_terms)
-real(rp) exp_kxx_inv(1:num_wig_terms)
-real(rp) cos_kxx(1:num_wig_terms)
-real(rp) sin_kxx(1:num_wig_terms)
-
-real(rp) exp_term
-real(rp) exp_term_inv
+subroutine update_wig_s_terms
 
 real(rp) spz_offset
+real(rp) kzz(1:num_wig_terms)
 
-integer n_hypr, n_trig
+!
 
-kxx(1:num_wig_terms) = wig_term(1:num_wig_terms)%kx * end_orb%vec(1) + wig_term(1:num_wig_terms)%phi_x
-n_hypr = 0
-n_trig = 0
-do j = 1, num_wig_terms
-  wt => wig_term(j)
-  if (abs(kxx(j)) < 1e-20) then
-    !do nothing
-  elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
-    if (abs(kxx(j)) > 30) then
-      call err_set (err, x_plane$)
-      return
-    endif
-    n_hypr = n_hypr + 1
-    hypr_kxx(n_hypr) = kxx(j)
-  else
-    n_trig = n_trig + 1
-    trig_kxx(n_trig) = kxx(j)
-  endif
-enddo
-
-exp_kxx(1:n_hypr) = EXP(hypr_kxx(1:n_hypr))
-exp_kxx_inv(1:n_hypr) = 1.0/exp_kxx(1:n_hypr)
-
-sin_kxx(1:n_trig) = sin(trig_kxx(1:n_trig))
-cos_kxx(1:n_trig) = cos(trig_kxx(1:n_trig))
-
-n_hypr = 0
-n_trig = 0
-do j = 1, num_wig_terms
-  wt => wig_term(j)
-
-  if (abs(kxx(j)) < 1e-20) then
-    tm(j)%c_x = 1
-    tm(j)%s_x = kxx(j)
-    tm(j)%s_x_kx = end_orb%vec(1)
-  elseif (wt%type == hyper_x$ .or. wt%type == hyper_xy$) then
-    n_hypr = n_hypr + 1
-    tm(j)%c_x = (exp_kxx(n_hypr)+exp_kxx_inv(n_hypr))*0.5d0 ! tm(j)%c_x = cosh(kxx(j))
-    tm(j)%s_x = (exp_kxx(n_hypr)-exp_kxx_inv(n_hypr))*0.5d0 ! tm(j)%s_x = sinh(kxx(j))
-    tm(j)%s_x_kx = tm(j)%s_x / wt%kx
-  else
-    n_trig = n_trig + 1
-    tm(j)%c_x = cos_kxx(n_trig)
-    tm(j)%s_x = sin_kxx(n_trig)
-    tm(j)%s_x_kx = tm(j)%s_x / wt%kx
-  endif
-enddo
-
-! update s-terms
 spz_offset = s + z_offset
 if (orientation == -1) spz_offset = ele%value(l$) - spz_offset
 kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:num_wig_terms)%phi_z
@@ -832,13 +898,13 @@ kzz(1:num_wig_terms) = wig_term(1:num_wig_terms)%kz * spz_offset + wig_term(1:nu
 tm(1:num_wig_terms)%c_z = cos(kzz(1:num_wig_terms))
 tm(1:num_wig_terms)%s_z = sin(kzz(1:num_wig_terms))
 
-end subroutine update_wig_x_s_terms
+end subroutine update_wig_s_terms
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function a_y() result (value)
+function Ax() result (value)
 
 real(rp) value
 integer j
@@ -847,16 +913,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%s_y_ky * tm(j)%s_z
+  value = value + tm(j)%Ax%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%s_z
 enddo
 
-end function a_y
+end function Ax
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_y_dx() result (value)
+function Ay() result (value)
 
 real(rp) value
 integer j
@@ -865,16 +931,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%a_y%coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
+  value = value + tm(j)%Ay%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function da_y_dx
+end function Ay
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_y_dy() result (value)
+function dAx_dx() result (value)
 
 real(rp) value
 integer j
@@ -883,16 +949,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%a_y%coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
+  value = value + tm(j)%Ax%coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
 enddo
 
-end function da_y_dy
+end function dAx_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_a_y_dx() result (value)
+function dAy_dx() result (value)
 
 real(rp) value
 integer j
@@ -901,16 +967,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_a_y_dx%coef * tm(j)%c_x * tm(j)%c1_ky2 * tm(j)%s_z
+  value = value + tm(j)%Ay%coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function dint_a_y_dx
+end function dAy_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dx() result (value)
+function dAx_dy() result (value)
 
 real(rp) value
 integer j
@@ -919,16 +985,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dx%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
+  value = value + tm(j)%Ax%coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function da_z_dx
+end function dAx_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dy() result (value)
+function dAy_dy() result (value)
 
 real(rp) value
 integer j
@@ -937,16 +1003,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dy%coef * tm(j)%s_x_kx * tm(j)%s_y * tm(j)%c_z
+  value = value + tm(j)%Ay%coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
 enddo
 
-end function da_z_dy
+end function dAy_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_a_y_dx__dx() result (value)
+function dint_Ax_dy() result (value)
 
 real(rp) value
 integer j
@@ -955,16 +1021,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_a_y_dx%dx_coef * tm(j)%s_x * tm(j)%c1_ky2 * tm(j)%s_z
+  value = value + tm(j)%dint_Ax_dy%coef * tm(j)%s_over_kx * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function dint_a_y_dx__dx
+end function dint_Ax_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_a_y_dx__dy() result (value)
+function dint_Ay_dx() result (value)
 
 real(rp) value
 integer j
@@ -973,16 +1039,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_a_y_dx%dy_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
+  value = value + tm(j)%dint_Ay_dx%coef * tm(j)%c_x * tm(j)%one_minus_c_over_ky * tm(j)%s_z
 enddo
 
-end function dint_a_y_dx__dy
+end function dint_Ay_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function a_y__dx() result (value)
+function dAz_dx() result (value)
 
 real(rp) value
 integer j
@@ -991,16 +1057,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%a_y%dx_coef * tm(j)%c_x * tm(j)%s_y_ky * tm(j)%s_z
+  value = value + tm(j)%dAz_dx%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
 enddo
 
-end function a_y__dx
+end function dAz_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function a_y__dy() result (value)
+function dAz_dy() result (value)
 
 real(rp) value
 integer j
@@ -1009,16 +1075,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%a_y%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%s_z
+  value = value + tm(j)%dAz_dy%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%c_z
 enddo
 
-end function a_y__dy
+end function dAz_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dx__dx() result (value)
+function dint_Ax_dy__dx() result (value)
 
 real(rp) value
 integer j
@@ -1027,16 +1093,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dx%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
+  value = value + tm(j)%dint_Ax_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function da_z_dx__dx
+end function dint_Ax_dy__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dx__dy() result (value)
+function dint_Ay_dx__dx() result (value)
 
 real(rp) value
 integer j
@@ -1045,16 +1111,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
+  value = value + tm(j)%dint_Ay_dx%dx_coef * tm(j)%s_x * tm(j)%one_minus_c_over_ky * tm(j)%s_z
 enddo
 
-end function da_z_dx__dy
+end function dint_Ay_dx__dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dy__dx() result (value)
+function dint_Ax_dy__dy() result (value)
 
 real(rp) value
 integer j
@@ -1063,16 +1129,16 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
+  value = value + tm(j)%dint_Ax_dy%dy_coef * tm(j)%s_over_kx * tm(j)%c_y * tm(j)%s_z
 enddo
 
-end function da_z_dy__dx
+end function dint_Ax_dy__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function da_z_dy__dy() result (value)
+function dint_Ay_dx__dy() result (value)
 
 real(rp) value
 integer j
@@ -1081,10 +1147,154 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%da_z_dy%dy_coef * tm(j)%s_x_kx * tm(j)%c_y * tm(j)%c_z
+  value = value + tm(j)%dint_Ay_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
 enddo
 
-end function da_z_dy__dy
+end function dint_Ay_dx__dy
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function Ax__dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%Ax%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
+enddo
+
+end function Ax__dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function Ay__dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%Ay%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+enddo
+
+end function Ay__dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function Ax__dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%Ax%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+enddo
+
+end function Ax__dy
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function Ay__dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%Ay%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
+enddo
+
+end function Ay__dy
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAz_dx__dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%dAz_dx%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
+enddo
+
+end function dAz_dx__dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAz_dx__dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%dAz_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
+enddo
+
+end function dAz_dx__dy
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAz_dy__dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%dAz_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
+enddo
+
+end function dAz_dy__dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAz_dy__dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  value = value + tm(j)%dAz_dy%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
+enddo
+
+end function dAz_dy__dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
