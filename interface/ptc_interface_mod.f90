@@ -3046,6 +3046,7 @@ implicit none
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (ele_struct), pointer :: field_ele, ele2
+type (wig_term_struct), pointer :: wt
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key
 type (ele_pointer_struct), allocatable :: field_eles(:)
@@ -3431,8 +3432,8 @@ if (key == wiggler$ .or. key == undulator$) then
     endif
   enddo
 
-  if (hyper_x$ /= hyperbolic_xdollar .or. hyper_y$ /= hyperbolic_ydollar .or. &
-                                        hyper_xy$ /= hyperbolic_xydollar) then
+  if (hyper_x_old$ /= hyperbolic_xdollar .or. hyper_y_old$ /= hyperbolic_ydollar .or. &
+                                        hyper_xy_old$ /= hyperbolic_xydollar) then
     call out_io (s_fatal$, r_name, 'WIGGLER FORM/TYPE MISMATCH!')
     if (global_com%exit_on_error) call err_exit
   endif
@@ -3441,7 +3442,20 @@ if (key == wiggler$ .or. key == undulator$) then
   call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
   if (ele%is_on) then
-    ptc_fibre%mag%wi%w%a(1:n_term) = c_light * ele2%value(polarity$) * ele2%wig%term%coef / ele%value(p0c$)
+    do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
+      wt => ele2%wig%term(i)
+      select case (wt%type)
+      case (hyper_y_old$)
+        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      case (hyper_xy_old$)
+        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      case (hyper_x_old$)
+        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      case default
+        call out_io (s_fatal$, r_name, 'PTC WIGGLER MODEL NOT YET UPDATED FOR NEW BMAD WIGGLER MODEL!')
+        if (global_com%exit_on_error) call err_exit
+      end select
+    enddo
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0
   endif

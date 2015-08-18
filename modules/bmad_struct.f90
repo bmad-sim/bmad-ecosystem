@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 160
+integer, parameter :: bmad_inc_version$ = 161
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -340,8 +340,10 @@ end type
 
 ! Wiggler 
 
-integer, parameter :: hyper_y$ = 1, hyper_xy$ = 2, hyper_x$ = 3
-character(8), parameter :: wig_term_type_name(0:3) = ['Garbage ', 'Hyper_Y ', 'Hyper_XY', 'Hyper_X ']
+integer, parameter :: hyper_y_old$ = 1, hyper_xy_old$ = 2, hyper_x_old$ = 3
+integer, parameter :: hyper_y$ = 4, hyper_xy$ = 5, hyper_x$ = 6
+character(12), parameter :: wig_term_type_name(0:6) = ['Garbage ', 'Hyper_Y_old ', 'Hyper_XY_old', 'Hyper_X_old ', &
+                                                                   'Hyper_Y     ', 'Hyper_XY    ', 'Hyper_X     ']
 
 ! Single wiggler term
 
@@ -1290,7 +1292,8 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
-  logical :: apply_wiggler_end_kicks = .true.         ! Apply kicks due to finite fields at wiggler ends?
+  logical :: cancel_wiggler_end_kicks = .false.       ! Cancel kicks due to finite vector potential at wiggler ends?
+                                                      !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   

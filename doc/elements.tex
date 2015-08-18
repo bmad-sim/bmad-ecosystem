@@ -2813,10 +2813,11 @@ General \vn{patch} element attributes are:
 \begin{center}
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
-  {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}   & Description strings        & \ref{s:alias}   \HH 
-  Length                 & \ref{s:l}       & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
-  Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
+  Aperture Limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH 
+  Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
+  Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Length                     & \ref{s:l}       &                            &                 \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -2952,6 +2953,11 @@ between. See \sref{s:ex.patch} for an example. Such a \vn{patch}, (or
 patches) is called a \vn{reflection} \vn{patch}. See
 Section~\sref{s:reflect.patch} for more details on how a reflection
 patch is defined.
+
+\index{wall}
+Since the geometry of a \vn{patch} element is complicated,
+interpolation of the chamber wall in the region of a patch follows
+special rules. See section~\sref{s:wall.vacuum} for more details.
 
 %-----------------------------------------------------------------
 \section{Photon_Init}
@@ -3816,7 +3822,13 @@ Example
         term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\}, \&  ! New style
         term(3) = ...
 \end{example}
-Internally, \bmad will convert to the new style.
+Note: For backwards compatibility in terms of tracking results, \bmad,
+when doing symplectic tracking, will use a different vector potential
+with fields defined in the old style (\sref{s:wiggler.std}). If the
+field is zero at the ends of the wiggler, this distinction does not
+matter. However, if the field is not zero at the ends, the ``edge
+kick'' inherent in the symplectic tracking will be different.
+
 
 %-----------------------------------------------------
 \subsection{Periodic\_Type Wiggler Element Tracking}

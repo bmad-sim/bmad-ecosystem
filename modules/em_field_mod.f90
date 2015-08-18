@@ -186,7 +186,7 @@ type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
-real(rp) :: cos_ang, sin_ang, sgn_x, dc_x, dc_y, kx, ky, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
@@ -501,50 +501,54 @@ case (bmad_standard$)
     do i = 1, n
       wig => ele%wig%term(i)
 
-      if (wig%type == hyper_y$) then
+      select case (wig%type)
+      case (hyper_y$, hyper_y_old$)
+        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%ky
         c_x = cos(wig%kx * x + wig%phi_x)
         s_x = sin(wig%kx * x + wig%phi_x)
-        sgn_x = 1
-        dc_x = -1
-      else
-        c_x = cosh(wig%kx * x + wig%phi_x)
-        s_x = sinh(wig%kx * x + wig%phi_x)
-        sgn_x = -1
-        dc_x = 1
-      endif
-
-      if (wig%type == hyper_y$ .or. wig%type == hyper_xy$) then
         c_y = cosh (wig%ky * y + wig%phi_y)
         s_y = sinh (wig%ky * y + wig%phi_y)
-        dc_y = 1
-      else
+        sgn_x = -1
+
+      case (hyper_xy$, hyper_xy_old$)
+        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kz
+        c_x = cosh(wig%kx * x + wig%phi_x)
+        s_x = sinh(wig%kx * x + wig%phi_x)
+        c_y = cosh (wig%ky * y + wig%phi_y)
+        s_y = sinh (wig%ky * y + wig%phi_y)
+        sgn_x = 1
+        if (wig%type == hyper_xy_old$) coef = coef * wig%kz / wig%ky
+
+      case (hyper_x$, hyper_x_old$)
+        coef = wig%coef * ele%value(polarity$) / ref_charge / wig%kx
+        c_x = cosh(wig%kx * x + wig%phi_x)
+        s_x = sinh(wig%kx * x + wig%phi_x)
         c_y = cos (wig%ky * y + wig%phi_y)
         s_y = sin (wig%ky * y + wig%phi_y)
-        dc_y = -1
-      endif
+        sgn_x = 1
+        if (wig%type == hyper_x_old$) coef = coef * wig%kx / wig%ky
+      end select
 
       c_z = cos (wig%kz * s_rel + wig%phi_z)
       s_z = sin (wig%kz * s_rel + wig%phi_z)
 
-      coef = wig%coef * ele%value(polarity$) / ref_charge
-
-      field%B(1) = field%B(1) - coef  * (wig%kx / wig%ky) * s_x * s_y * c_z * sgn_x
-      field%B(2) = field%B(2) + coef  *                 c_x * c_y * c_z
-      field%B(3) = field%B(3) - coef  * (wig%kz / wig%ky) * c_x * s_y * s_z
+      field%B(1) = field%B(1) + coef  * wig%kx * s_x * s_y * c_z * sgn_x
+      field%B(2) = field%B(2) + coef  * wig%ky * c_x * c_y * c_z
+      field%B(3) = field%B(3) - coef  * wig%kz * c_x * s_y * s_z
 
       if (df_calc) then
         f = coef * wig%kx
-        field%dB(1,1) = field%dB(1,1) - f  * (wig%kx / wig%ky) * c_x * s_y * c_z * sgn_x
-        field%dB(2,1) = field%dB(2,1) + f  *                 s_x * c_y * c_z * dc_x
-        field%dB(3,1) = field%dB(3,1) - f  * (wig%kz / wig%ky) * s_x * s_y * s_z * dc_x
+        field%dB(1,1) = field%dB(1,1) + f  * wig%kx * c_x * s_y * c_z * sgn_x
+        field%dB(2,1) = field%dB(2,1) + f  * wig%ky * s_x * c_y * c_z 
+        field%dB(3,1) = field%dB(3,1) - f  * wig%kz * s_x * s_y * s_z 
         f = coef * wig%ky
-        field%dB(1,2) = field%dB(1,2) - f  * (wig%kx / wig%ky) * s_x * c_y * c_z * sgn_x
-        field%dB(2,2) = field%dB(2,2) + f  *                 c_x * s_y * c_z * dc_y
-        field%dB(3,2) = field%dB(3,2) - f  * (wig%kz / wig%ky) * c_x * c_y * s_z 
+        field%dB(1,2) = field%dB(1,2) + f  * wig%kx * s_x * c_y * c_z * sgn_x
+        field%dB(2,2) = field%dB(2,2) + f  * wig%ky * c_x * s_y * c_z 
+        field%dB(3,2) = field%dB(3,2) - f  * wig%kz * c_x * c_y * s_z 
         f = coef * wig%kz
-        field%dB(1,3) = field%dB(1,3) + f  * (wig%kx / wig%ky) * s_x * s_y * s_z * sgn_x
-        field%dB(2,3) = field%dB(2,3) - f  *                 c_x * c_y * s_z * dc_y
-        field%dB(3,3) = field%dB(3,3) - f  * (wig%kz / wig%ky) * c_x * s_y * c_z 
+        field%dB(1,3) = field%dB(1,3) - f  * wig%kx * s_x * s_y * s_z * sgn_x
+        field%dB(2,3) = field%dB(2,3) - f  * wig%ky * c_x * c_y * s_z 
+        field%dB(3,3) = field%dB(3,3) - f  * wig%kz * c_x * s_y * c_z 
       endif
 
     enddo

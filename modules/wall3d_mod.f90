@@ -912,7 +912,12 @@ if (sec2%patch_in_region) then
 else
 
   if (ele%key == patch$) then
-    call out_io (s_fatal$, r_name, 'WALL3D BOOKKEEPING FAILURE TO PROPERLY MARK PATCH SECTION')
+    call out_io (s_fatal$, r_name, &
+          'WALL3D RADIUS CALCULATION FAILURE IN/NEAR PATCH ELEMENT' // trim(ele%name) // '(\i0\)', &
+          'THE PROBLEM GENERALLY IS A WALL SECTION TOO NEAR A PATCH ELEMENT.', &
+          'SEE THE BMAD MANUAL FOR MORE DETAILS', &
+          'THE SOLUTION GENERALLY IS TO MOVE THE WALL SECTION AWAY FROM THE PATH ELEMENT', &
+          i_array = [ele%ix_ele])
     if (global_com%exit_on_error) call err_exit
     return
   endif

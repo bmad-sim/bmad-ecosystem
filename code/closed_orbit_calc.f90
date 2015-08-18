@@ -248,7 +248,11 @@ do i_loop = 1, i_max
     if (track_state /= moving_forward$) then
       call out_io (s_error$, r_name, 'CLOSED ORBIT SEARCH DIVERGING TO INFINITY!')
     else
-      call out_io (s_error$, r_name, 'CLOSED ORBIT NOT CONVERGING! ERROR IN CLOSED ORBIT: \es10.2\ ', amp_del)
+      call out_io (s_error$, r_name, &
+                'Closed orbit not converging! error in closed orbit: \es10.2\ ', &
+                'If this error is acceptable, change bmad_com%rel_tol_tracking (\es10.2\) and/or', &
+                'bmad_com%abs_tol_tracking (\es10.2\)', &
+                r_array = [amp_del, bmad_com%rel_tol_tracking, bmad_com%abs_tol_tracking])
     endif
     call end_cleanup
     return
