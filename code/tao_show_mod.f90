@@ -164,6 +164,7 @@ type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: ele, ele1, ele2
 type (ele_struct), target :: ele3, ele0
+type (em_field_struct) field
 type (bunch_struct), pointer :: bunch
 type (wake_lr_struct), pointer :: lr
 type (coord_struct), target :: orb
@@ -209,14 +210,14 @@ character(100) file_name, name, why_invalid
 character(120) header, str
 character(200), allocatable :: alloc_lines(:)
 
-character(16) :: show_what, show_names(31) = [ &
+character(16) :: show_what, show_names(32) = [ &
    'data            ', 'variable        ', 'global          ', 'alias           ', 'top10           ', &
    'optimizer       ', 'element         ', 'lattice         ', 'constraints     ', 'plot            ', &
    'beam            ', 'tune            ', 'graph           ', 'curve           ', 'particle        ', &
    'hom             ', 'key_bindings    ', 'universe        ', 'orbit           ', 'derivative      ', &
    'branch          ', 'use             ', 'taylor_map      ', 'value           ', 'wave            ', &
    'twiss_and_orbit ', 'building_wall   ', 'wall            ', 'normal_form     ', 'dynamic_aperture', &
-   'matrix          ']
+   'matrix          ', 'field           ']
 
 character(*), allocatable :: lines(:)
 character(*) result_id
@@ -1399,6 +1400,62 @@ case ('global')
   endif
 
   result_id = show_what
+
+!----------------------------------------------------------------------
+! field
+
+case ('field')
+
+  call  str_upcase(ele_name, word1)
+  call tao_pick_universe (ele_name, ele_name, picked_uni, err, ix_u)
+  if (err) return
+  u => s%u(ix_u)
+  call tao_locate_elements (ele_name, ix_u, eles, err, lat_type)
+  if (err) return
+  ele => eles(1)%ele
+  call init_coord (orb, ele = ele, element_end = downstream_end$)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing X value'
+    result_id = 'field:bad-x'
+    return
+  endif
+  read(stuff2, *) orb%vec(1)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing Y value'
+    result_id = 'field:bad-y'
+    return
+  endif
+  read(stuff2, *) orb%vec(3)
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (ix_word == 0 .or. .not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad or missing Z value'
+    result_id = 'field:bad-z'
+    return
+  endif
+  read(stuff2, *) z
+
+  call string_trim(stuff2(ix_word+1:), stuff2, ix_word)
+  if (.not. is_real(stuff2, .true.)) then
+    nl = 1; lines(1) = 'Bad T value'
+    result_id = 'field:bad-t'
+    return
+  endif
+  if (ix_word == 0) then
+    orb%t = 0
+  else
+    read(stuff2, *) orb%t
+  endif
+
+  call em_field_calc (ele, ele%branch%param, z, orb%t, orb, .false., field, err_flag = err)
+  if (err) return
+
+  nl=nl+1; write (lines(nl), '(a, 3f12.6)') 'B: ', field%B
+  nl=nl+1; write (lines(nl), '(a, 3f12.6)') 'E: ', field%E
 
 !----------------------------------------------------------------------
 ! graph
