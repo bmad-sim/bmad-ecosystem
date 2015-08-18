@@ -1189,6 +1189,10 @@ case ('APERTURE_TYPE')
 case ('ABSOLUTE_TIME_TRACKING')
   call get_logical (attrib_word, lat%absolute_time_tracking, err_flag)
 
+case ('CAVITY_TYPE')
+  call get_switch (attrib_word, cavity_type_name(1:), ix, err_flag, ele)
+  ele%value(cavity_type$) = ix
+
 case ('COUPLER_AT')
   call get_switch (attrib_word, end_at_name(1:), ix, err_flag, ele)
   ele%value(coupler_at$) = ix
