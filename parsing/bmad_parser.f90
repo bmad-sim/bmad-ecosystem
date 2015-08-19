@@ -54,6 +54,7 @@ type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
 type (spin_polar_struct) :: polar
+type (parser_controller_struct), allocatable :: pcon(:)
 
 real(rp) beta, val, vec(3)
 
@@ -1006,23 +1007,27 @@ do i = 1, n_max
   do 
     j = j + 1
     if (j > lord%n_slave) exit
-    call find_indexx(pele%name(j), seq_name, seq_indexx, size(seq_name), k, k2)
+    call find_indexx(pele%control(j)%name, seq_name, seq_indexx, size(seq_name), k, k2)
     if (k == 0) cycle
     call init_lat (lat2)
-    call parser_expand_line (lat2, pele%name(j), sequence, in_name, in_indexx, &
+    call parser_expand_line (lat2, pele%control(j)%name, sequence, in_name, in_indexx, &
                                       seq_name, seq_indexx, in_lat, n_ele_use, .false.)
     ! Put elements from the line expansion into the slave list.
     ! Remember to ignore drifts.
     lord%n_slave = lord%n_slave - 1   ! Remove beam line name
-    pele%name(1:lord%n_slave) = [pele%name(1:j-1), pele%name(j+1:lord%n_slave+1)]
-    call re_allocate (pele%name, lord%n_slave+n_ele_use)
+    pele%control(1:lord%n_slave)%name = [pele%control(1:j-1)%name, pele%control(j+1:lord%n_slave+1)%name]
+
+    call move_alloc(pele%control, pcon)
+    allocate (pele%control(lord%n_slave+n_ele_use))
+    pele%control(1:size(pcon)) = pcon
+
     do k = 1, n_ele_use
       call find_indexx2 (lat2%ele(k)%name, in_name, in_indexx, 0, n_max, ix, ix2)      
       if (ix /= 0) then
         if (in_lat%ele(ix)%key == drift$) cycle
       endif
       lord%n_slave = lord%n_slave + 1
-      pele%name(lord%n_slave) = lat2%ele(k)%name
+      pele%control(lord%n_slave)%name = lat2%ele(k)%name
     enddo
   enddo
 enddo

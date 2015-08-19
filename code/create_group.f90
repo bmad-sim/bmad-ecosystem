@@ -58,12 +58,14 @@ do i = 1, n_control
   ix_branch = contrl(i)%slave%ix_branch
 
   if (ix_branch < 0 .or. ix_branch > ubound(lat%branch, 1)) then
-    call out_io (s_fatal$, r_name, 'BRANCH INDEX OUT OF BOUNDS. \i0\ ', ix_branch)
+    call out_io (s_fatal$, r_name,  'BRANCH INDEX OUT OF BOUNDS. \i0\ ', &
+                                    'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_branch])
     if (global_com%exit_on_error) call err_exit
   endif
 
   if (ix_slave <= 0 .or. ix_slave > ubound(lat%branch(ix_branch)%ele, 1)) then
-    call out_io (s_fatal$, r_name, 'INDEX OUT OF BOUNDS. \i0\ ', ix_slave)
+    call out_io (s_fatal$, r_name, 'LATTICE ELEMENT INDEX OUT OF BOUNDS. \i0\ ', &
+                                   'CONSTRUCTING GROUP: ' // lord%name, i_array = [ix_slave])
     if (global_com%exit_on_error) call err_exit
   endif
 enddo
@@ -144,7 +146,7 @@ do i = 1, n_control
   c%slave     = contrl(i)%slave
   c%ix_lord   = lord%ix_ele
 
-  ! Convert variable$ type to variable index if name matches a variable
+  ! Convert variable$ type to group variable index if name matches a group variable name
   do is = 1, size(c%stack)
     if (c%stack(is)%type == end_stack$) exit
     if (c%stack(is)%type /= variable$) cycle
