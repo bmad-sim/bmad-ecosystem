@@ -32,19 +32,17 @@ contains
 !
 ! Examples:  
 !    Assume we have a variable DUMMY which is defined as an environment
-!    variable on Unix and a logical on VMS.
-!      On Unix:  DUMMY = /home/cesr/dummy
-!      On VMS:   DUMMY = [cesr.dummy]
+!    variable
+!      DUMMY = /home/cesr/dummy
 !    Then the following behaviors will result when using fullfilename:
-!    (Note: Logicals are automatically interpreted by the system under VMS) 
 !
-!      System    filename                    outfile
-!      ------   ------------------------    ---------------------------
-!      UNIX     'DUMMY:foo.bar'             '/home/cesr/dummy/foo.bar'
-!      UNIX     'DUMMY:[a.b]foo.bar'        '/home/cesr/dummy/a/b/foo.bar'
-!      UNIX     '$DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
-!      UNIX     '/home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
-!      UNIX     '[cesr.dummy]foo.bar'        NOT a valid Unix file name.
+!      Filename                    outfile
+!      -----------------------    ---------------------------
+!      DUMMY:foo.bar'             '/home/cesr/dummy/foo.bar'
+!      DUMMY:[a.b]foo.bar'        '/home/cesr/dummy/a/b/foo.bar'
+!      $DUMMY/foo.bar'            '/home/cesr/dummy/foo.bar'
+!      /home/cesr/dummy/foo.bar'  '/home/cesr/dummy/foo.bar'
+!      [cesr.dummy]foo.bar'        NOT a valid Unix file name.
 ! 
 ! Author     :  M. Palmer   9/20/01
 !-
@@ -334,7 +332,7 @@ End function
 !     $ENV/abc  ! Absolute
 !     /nfs/opt  ! Absolute
 !
-! Note: This routine works for Unix and VMS. Has not been extended to Windows.
+! Note: This routine works for Unix and has not been extended to Windows.
 !
 ! Input:
 !   file_name -- Character(*): Name of file or path.
@@ -463,10 +461,6 @@ end subroutine
 !     UNIX       "abc"      "/def"      "abc/def"
 !     UNIX       "abc/"     "def"       "abc/def"
 !     UNIX       "abc/"     "/def"      "abc/def"
-!     VMS        "[abc]"    "[def]"     "[abc.def]" 
-!     VMS        "[abc]"    "[.def]"    "[abc.def]"
-!     VMS        "[abc]"    "def"       "[abc]def"
-!     VMS        ""         "[.def]"    "[.def]"
 !
 ! Modules needed:
 !   use filename_mod
@@ -496,7 +490,7 @@ logical err
 
 err = .false.
 
-if (dir == "") then
+if (dir == "" .or. dir == './' .or. dir == '.') then
   dir_out = sub_dir
   return
 elseif (sub_dir == "") then
@@ -505,34 +499,6 @@ elseif (sub_dir == "") then
 endif
 
 err = .true.
-
-! VMS version
-
-#if defined(CESR_VMS)
-
-n_dir = len_trim(dir)
-
-if (dir(n_dir:n_dir) /= ']') then
-  call out_io (s_fatal$, r_name, 'BAD DIRECTORY STRUCTURE: ' // dir)
-  dir_out = 'XXX'
-  return
-endif
-
-if (sub_dir(1:1) == '[') then
-  if (sub_dir(2:2) == '.') then
-    temp = dir(:n_dir-1) // sub_dir(2:)
-  else
-    temp = dir(:n_dir-1) // '.' // sub_dir(2:)
-  endif
-else
-  temp = dir(:n_dir) // sub_dir(:)
-endif
-
-dir_out = temp
-
-! non-VMS version
-
-#else
 
 n_dir = len_trim(dir)
 
@@ -546,8 +512,6 @@ else
 endif
 
 dir_out = temp
-
-#endif
 
 err = .false.
 
