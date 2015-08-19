@@ -86,13 +86,18 @@ end type
 
 ! structure for holding the control names and pointers for superimpose and overlay elements
 
+type parser_controller_struct ! For overlays and groups
+  character(40) :: name     
+  character(40) :: attrib_name
+  type (expression_atom_struct), allocatable :: stack(:) ! Arithmetic expression stack
+  integer n_stk 
+end type
+
 type parser_ele_struct
+  type (parser_controller_struct), allocatable :: control(:)
   character(40) ref_name
   character(40) :: ele_name = ''               ! For patch.
-  character(40), allocatable :: name(:)        ! For overlays and groups
-  character(40), allocatable :: attrib_name(:) ! For overlays and groups
   character(200) lat_file                      ! File where element was defined.
-  character(200), allocatable :: expression(:) ! For overlays and groups
   real(rp) offset
   integer ix_line_in_file    ! Line in file where element was defined.
   integer ix_count
@@ -989,7 +994,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
     deallocate (wig_term)
   endif
 
-! 1) chop "=", 2) chop to "{", 3) chop to "}", 4) chop to "," if it exists
+  ! 1) chop "=", 2) chop to "{", 3) chop to "}", 4) chop to "," if it exists
 
   call get_next_word (word, ix_word1, ':,={}', delim1, delim_found, .true.) 
   call get_next_word (word, ix_word2, ':,={}', delim2, delim_found, .true., call_check = .true.)  
@@ -2435,7 +2440,7 @@ use expression_mod
 implicit none
 
 type (lat_struct)  lat
-type (expression_atom_struct) :: stk(100)
+type (expression_atom_struct), allocatable :: stk(:)
 
 real(rp) value
 
@@ -3253,17 +3258,18 @@ subroutine get_overlay_group_names (ele, lat, pele, delim, delim_found, use_cont
 implicit none
 
 type (ele_struct)  ele
-type (parser_ele_struct) pele
+type (parser_ele_struct), target :: pele
 type (lat_struct)  lat
+type (parser_controller_struct), pointer :: pc
 
 real(rp) value
 
-integer ix_word, n_slave, j, k
+integer ix_word, n_slave, i, j, k
                            
 character(1) delim
 character(40) word_in, word
 character(40) name(200), attrib_name(200)
-character(200) expression(200)
+character(200) expression(200), err_str
 
 logical, optional :: use_control_var
 logical delim_found, err_flag, end_of_file, to_cv
@@ -3349,10 +3355,17 @@ if (to_cv) then
   allocate(ele%control_var(n_slave))
   ele%control_var%name = name(1:n_slave)
 else
-  allocate (pele%expression(n_slave), pele%name(n_slave), pele%attrib_name(n_slave))
-  pele%expression = expression(1:n_slave)
-  pele%name = name(1:n_slave)
-  pele%attrib_name = attrib_name(1:n_slave)
+  allocate (pele%control(n_slave))
+  pele%control%name = name(1:n_slave)
+  pele%control%attrib_name = attrib_name(1:n_slave)
+  do i = 1, n_slave
+    ! Expression string to stack
+    pc => pele%control(i)
+    call expression_string_to_stack (expression(i), pc%stack, pc%n_stk, err_flag, err_str)
+    if (err_flag) then
+      call parser_error (err_str, 'FOR ELEMENT: ' // ele%name, 'EXPRESSION: ' // trim(expression(i)))
+    endif
+  enddo
 endif
 
 end subroutine get_overlay_group_names
@@ -3898,9 +3911,9 @@ if (n_loc == 0) then
   ref_ele => in_lat%ele(i)
   if (ref_ele%key /= group$ .and. ref_ele%key /= overlay$) return
   ref_pele => plat%ele(ref_ele%ixx)
-  ref_name = ref_pele%name(1)
-  do i = 2, size(ref_pele%name)
-    if (ref_pele%name(i) /= ref_name) then
+  ref_name = ref_pele%control(1)%name
+  do i = 2, size(ref_pele%control)
+    if (ref_pele%control(i)%name /= ref_name) then
       call parser_error ('SUPERPOSITION USING A GROUP OR OVERLAY AS A REFERENCE ELEMENT IS ONLY ALLOWED', &
                          'WHEN THE GROUP OR OVERLAY CONTROLS A SINGLE ELEMENT.', &
                          'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
@@ -4578,14 +4591,15 @@ type (parser_ele_struct), pointer :: pele
 type (control_struct), allocatable, target :: cs(:)
 type (branch_struct), pointer :: branch
 type (ele_pointer_struct), allocatable :: eles(:)
-type (expression_atom_struct) :: stk(200)
+type (parser_controller_struct), pointer :: pc
+type (control_struct), pointer :: con
 
 integer i, n, ic, ig, k, ix, ib, ie, n_list, ns, ixs, ii, ix_end, n2
-integer n_slave, nn, n_loc, n_stk, n_names, n_in_loc
+integer n_slave, nn, n_loc, n_names, n_in_loc
 integer ix_lord, k_slave, ix_ele_now, ix_girder_end, ix_super_lord_end
 
 character(60) err_str
-character(40) name, input_slave_name, attrib_name, missing_slave_name
+character(40) input_slave_name, attrib_name, missing_slave_name
 
 logical err, slave_not_in_lat, created_girder_lord, err_flag
 
@@ -4609,15 +4623,15 @@ main_loop: do n = 1, n2
     n_in_loc = 1
     n_slave = 0
 
-    do i = 1, size(pele%name)
-      name = pele%name(i)
-      call lat_ele_locator (name, lat, eles, n_loc, err)
+    do i = 1, size(pele%control)
+      pc => pele%control(i)
+      call lat_ele_locator (pc%name, lat, eles, n_loc, err)
       n_slave = n_slave + n_loc
 
       if (n_loc == 0) then
         slave_not_in_lat = .true.
-        missing_slave_name = name
-        call lat_ele_locator (name, in_lat, eles, n_in_loc, err)
+        missing_slave_name = pc%name
+        call lat_ele_locator (pc%name, in_lat, eles, n_in_loc, err)
       endif
 
       if ((n_loc == 0 .and. n_slave > 0) .or. (n_loc > 0 .and. slave_not_in_lat) .or. &
@@ -4643,45 +4657,23 @@ main_loop: do n = 1, n2
     ! Slave setup
 
     n_slave = 0 ! number of slaves found
-    do i = 1, size(pele%name)
+    do i = 1, size(pele%control)
 
-      name = pele%name(i)
-      call lat_ele_locator (name, lat, eles, n_loc, err)
-
-      ! Expression string to stack
-
-      call expression_string_to_stack (pele%expression(i), stk, n_stk, err_flag, err_str)
-      if (err_flag) then
-        call parser_error (err_str, 'FOR ELEMENT: ' // lord%name, 'EXPRESSION: ' // trim(pele%expression(i)))
-        cycle main_loop
-      endif
-
-      do ic = 1, n_stk
-        select case (stk(ic)%type)
-        case (ran$, ran_gauss$)
-          call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
-                             'FOR ELEMENT: ' // lord%name)
-        case (numeric$)
-          call match_word (stk(ic)%name, lord%control_var%name, ix, can_abbreviate = .false.)
-          if (ix > 0) then
-            stk(ic)%type = ix + var_offset$
-          else
-            call word_to_value (stk(ic)%name, lat, stk(ic)%value)
-          endif
-        end select
-      enddo
+      pc => pele%control(i)
 
       ! There might be more than 1 element with same name. 
       ! Loop over all elements whose name matches name.
       ! Put the info into the cs structure.
 
+      call lat_ele_locator (pc%name, lat, eles, n_loc, err)
+
       do k = 1, n_loc
         n_slave = n_slave + 1
-        call reallocate_expression_stack (cs(n_slave)%stack, n_stk)
-        cs(n_slave)%stack = stk(1:n_stk)
+        call reallocate_expression_stack (cs(n_slave)%stack, pc%n_stk)
+        cs(n_slave)%stack = pc%stack(1:pc%n_stk)
         cs(n_slave)%slave = lat_ele_loc_struct(eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
         cs(n_slave)%ix_lord = -1             ! dummy value
-        attrib_name = pele%attrib_name(i)
+        attrib_name = pc%attrib_name
         if (attrib_name == blank_name$) attrib_name = pele%default_attrib
         slave => pointer_to_ele (lat, eles(k)%ele%ix_ele, eles(k)%ele%ix_branch)
         ix = attribute_index(slave, attrib_name)
@@ -4718,9 +4710,30 @@ main_loop: do n = 1, n2
     case (group$)
       call create_group (lat%ele(ix_lord), cs(1:n_slave), err)
     end select
-    if (err) call parser_error ('ELEMENT OR GROUP: ' // lord%name, &
+    if (err) call parser_error ('MALFORMED OVERLAY OR GROUP: ' // lord%name, &
                            'IS TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY!', &
                            pele = pele)
+
+    ! Evaluate any variable values.
+
+    lord2 => lat%ele(ix_lord)
+    do k = lord2%ix1_slave, lord2%ix2_slave
+      con => lat%control(k)
+      do ic = 1, size(con%stack)
+        select case (con%stack(ic)%type)
+        case (ran$, ran_gauss$)
+          call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
+                             'FOR ELEMENT: ' // lord%name)
+        case (variable$)
+          if (index(con%stack(ic)%name, '[') /= 0) then
+            call parser_error ( &
+                'ARITHMETIC EXPRESSION USED TO DEFINE AN OVERLAY/GROUP: ' // lord%name, &
+                'MAY NOT CONTAIN AN ELEMENT ATTRIBUTE: ' // con%stack(ic)%name)
+          endif
+          call word_to_value (con%stack(ic)%name, lat, con%stack(ic)%value)
+        end select
+      enddo
+    enddo
 
   !-----------------------------------------------------
   ! girder
@@ -4734,7 +4747,7 @@ main_loop: do n = 1, n2
     ! Loop over all elements in the lattice.
 
     if (allocated(cs)) deallocate(cs)
-    allocate (cs(size(pele%name)))
+    allocate (cs(size(pele%control)))
 
     created_girder_lord = .false.
 
@@ -4755,7 +4768,7 @@ main_loop: do n = 1, n2
         ixs = 1                  ! Index of girder slave element we are looking for.
         n_slave = 0              ! Number of actual slaves found.
 
-        if (size(pele%name) == 0) then
+        if (size(pele%control) == 0) then
           call parser_error ('GIRDER DOES NOT HAVE ANY ELEMENTS TO SUPPORT: ' // lord%name)
           cycle main_loop
         endif
@@ -4763,14 +4776,14 @@ main_loop: do n = 1, n2
         ! loop over all girder slaves and see if lattice eles match slaves.
 
         slave_loop: do
-          if (ixs > size(pele%name)) exit
+          if (ixs > size(pele%control)) exit
 
           ! Wrap around the origin if needed.
           if (ix_ele_now > branch%n_ele_track) then
             ix_ele_now = ix_ele_now - branch%n_ele_track
           endif
 
-          input_slave_name = pele%name(ixs)
+          input_slave_name = pele%control(ixs)%name
 
           ele => pointer_to_ele (lat, ix_ele_now, ib)
 

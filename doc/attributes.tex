@@ -185,19 +185,25 @@ substituted for GROUP:
   name: OVERLAY = \{ele1[attrib1]:exp1, ele2[attrib2]:exp2, ...\}, 
                  VAR = \{var1, var2, ...\}, var1 = init_val1, ...
 \end{example}
-\vn{Name} is the name of the controller element. Example:
+\vn{Name} is the name of the controller element, \vn{ele1}, \vn{ele2},
+... are the elements whose attributes are to be controlled,
+\vn{attrib1}, \vn{attrib2}, etc. are the controlled attributes (called
+``slave'' attributes), \vn{var1}, \vn{var2}, etc. are the control
+variables, and \vn{exp1}, \vn{exp2}, etc. are the arithmetical
+expressions that define the relationship between the variables and the
+slave attributes. Example:
 \begin{example}
   gr1: group = \{q1[k1]:-tan(a)*b, q2[tilt]:b^2\}, var = \{a, b\}
 \end{example}
 
-To define a \vn{controller} element, two lists are needed: One list defines
-the attributes to be controlled (called ``slave'' attributes) along
-with the arithmetic expressions used for computation. The other list
+To define a \vn{controller} element, two lists are needed: One list
+defines the slave attributes along with the arithmetic expressions
+used for computing the value of the slave attributes. The other list
 defines the variables within the \vn{controller} element that can be
 varied. In the above example, the variables are \vn{a} and \vn{b}, and
-the slave attributes are the \vn{k1} attribute of element \vn{q1}
-and the \vn{tilt} attribute of element \vn{q2}. The arithmetic
-expressions used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
+the slave attributes are the \vn{k1} attribute of element \vn{q1} and
+the \vn{tilt} attribute of element \vn{q2}. The arithmetic expressions
+used for the control are \vn{-tan(a)*b} and \vn{b\^{}2}.
 
 A \vn{controller} will control all elements of a given name. Thus, in
 the above example, if there are multiple elements named \vn{q1}
@@ -226,6 +232,28 @@ to be unity. Example:
 This is equivalent to
 \begin{example}
   gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
+\end{example}
+
+For reasons of expediency, the arithmetic expressions may not
+themselves contain element attributes. However, an expression may
+contain symbolic constants defined in the lattice. Example:
+\begin{example}
+  a_con = atan(0.3)
+  ov1: overlay = \{s1[k2]:a_con, ...       ! OK.
+  ov2: overlay = \{s2[k2]:0.7*q1[k1], ...  ! BAD, q1[k1] not allowed.
+\end{example}
+If it is desired to use an element attribute in an expression then
+this may be effectively done by defining a variable to take its place.
+As an example, consider an overlay that controls the \vn{g_err}
+attribute of a bend \vn{bb} such that the value of \vn{g_err} is equal
+to the bend strength \vn{g} times the control variable \vn{e_rel}:
+\begin{example}
+  ov1: overlay = \{bb[g_err]:bb[g]*e_rel\}, var = \{e_rel\}  ! BAD
+\end{example}
+Since the above construction is not permitted, an equivalent controller
+may be defined by adding a second control variable:
+\begin{example}
+  ov1: overlay = \{bb[g_err]:g*e_rel, bb[g]:g\}, var = \{e_rel, g\}
 \end{example}
 
 Initial values can be assigned to the variables from within the

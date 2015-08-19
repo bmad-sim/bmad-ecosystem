@@ -4,6 +4,10 @@ use bmad_struct
 
 implicit none
 
+! The numeric$ category is for numeric constants [EG: "1.3e-5"].
+! The variable$ category includes symbolic constants defined in a lattice file, lattice
+! parameters, etc.
+
 integer, parameter :: end_stack$ = 0, plus$ = 1, minus$ = 2, times$ = 3, divide$ = 4
 integer, parameter :: l_parens$ = 5, r_parens$ = 6, power$ = 7
 integer, parameter :: unary_minus$ = 8, unary_plus$ = 9, no_delim$ = 10
@@ -44,7 +48,7 @@ contains
 !   string    -- character(*): Expression to be converted.
 !
 ! Output:
-!   stack(:)  -- expression_atom_struct: Expression evaluation stack.
+!   stack(:)  -- expression_atom_struct, allocatable: Expression evaluation stack.
 !   n_stack   -- integer: number of "atoms" used by the expression
 !   err_flag  -- logical: Set True if there is an error (EG divide by 0).
 !   err_str   -- character(*): String describing the error.
@@ -52,7 +56,7 @@ contains
 
 subroutine expression_string_to_stack (string, stack, n_stack, err_flag, err_str)
 
-type (expression_atom_struct) :: stack(:)
+type (expression_atom_struct), allocatable :: stack(:)
 
 integer i_op, i
 
@@ -83,6 +87,7 @@ err_flag = .true.
 n_stack = 0
 i_op = 0
 zero_arg_function_pending = .false.
+if (.not. allocated(stack)) allocate(stack(10))
 stack(:)%type = end_stack$
 call str_upcase (parse_line, string)
 
@@ -224,7 +229,7 @@ parsing_loop: do
     do
       do i = i_op, 1, -1     ! release pending ops
         if (op(i) == l_parens$) exit          ! break do loop
-        call pushit (stack%type, n_stack, op(i))
+        call pushit_stack (stack, n_stack, op(i))
       enddo
 
       if (i == 0) then
@@ -291,7 +296,7 @@ parsing_loop: do
         err_str = 'UNMATCHED "("'
         return
       endif
-      call pushit (stack%type, n_stack, op(i))
+      call pushit_stack (stack, n_stack, op(i))
     else
       exit
     endif
@@ -353,7 +358,7 @@ integer ios
 err = .true.
 
 if (is_real(word)) then
-  call pushit (stack%type, n_stack, numeric$)
+  call pushit_stack (stack, n_stack, numeric$)
   read (word, *, iostat = ios) stack(n_stack)%value
   if (ios /= 0) then
     err_str = 'BAD NUMERIC: ' // trim(word)
@@ -369,7 +374,7 @@ if (is_real(word)) then
   endif
 
 else
-  call pushit (stack%type, n_stack, variable$)
+  call pushit_stack (stack, n_stack, variable$)
   stack(n_stack)%name = word
 endif
 
@@ -377,35 +382,55 @@ err = .false.
 
 end subroutine push_numeric_or_var
 
+!-------------------------------------------------------------------------
+! contains
+
+subroutine pushit_stack (stack, ix_stack, value)
+
+type (expression_atom_struct), allocatable :: stack(:), temp_stack(:)
+integer ix_stack, value
+
+!
+
+if (ix_stack == size(stack)) then
+  call move_alloc(stack, temp_stack)
+  allocate (stack(ix_stack+10))
+  stack(1:ix_stack) = temp_stack
+endif
+
+call pushit (stack%type, ix_stack, value)
+
+end subroutine pushit_stack
+
 end subroutine expression_string_to_stack
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! subroutine pushit (stack, i_stk, value)
+! subroutine pushit (array, ix_arr, value)
 !
 ! Private routine used by expression_string_to_stack
 !-
 
-subroutine pushit (stack, i_stk, value)
+subroutine pushit (array, ix_arr, value)
 
 implicit none
 
-integer stack(:), i_stk, value
+integer array(:), ix_arr, value
 character(*), parameter :: r_name = 'pushit'
 
 !
 
-i_stk = i_stk + 1
+ix_arr = ix_arr + 1
 
-if (i_stk > size(stack)) then
-  call out_io (s_fatal$, r_name, 'STACK OVERFLOW, EXPERT HELP IS NEEDED!')
+if (ix_arr > size(array)) then
+  call out_io (s_fatal$, r_name, 'ARRAY OVERFLOW, EXPERT HELP IS NEEDED!')
   if (global_com%exit_on_error) call err_exit
   return
 endif
 
-stack(i_stk) = value
+array(ix_arr) = value
 
 end subroutine pushit
                      
@@ -677,7 +702,7 @@ else
 
     if (is_attribute(atom%type, all_control_var$)) then
       i2 = i2 + 1
-      s2(i2)%type = numeric$
+      s2(i2)%type = variable$
 
       if (atom%name == '') then
         s2_name(i2) = trim(real_to_string(atom%value))
