@@ -7,7 +7,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
-type (real_pointer_struct), allocatable :: ptr_array(:)
+type (all_pointer_struct), allocatable :: ptr_array(:)
 
 character(40) :: input_file  = 'compare_tracking_methods_plot.bmad'
 character(40) :: output_file = 'compare_tracking_methods_plot'

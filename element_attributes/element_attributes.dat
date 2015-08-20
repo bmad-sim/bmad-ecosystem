@@ -1,4 +1,4 @@
- 2015-07-13 12:36:03 
+ 2015-08-06 11:26:04 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -658,9 +658,7 @@
         82  PTC_MAX_FRINGE_ORDER                    
         83  ELECTRIC_DIPOLE_MOMENT                  
         86  LATTICE                                 
-        95  AUTO_SCALE_FIELD_AMP                    
         96  ABSOLUTE_TIME_TRACKING                  
-        97  AUTO_SCALE_FIELD_PHASE                  
         99  APERTURE_LIMIT_ON                       
        100  PTC_EXACT_MISALIGN                      
        102  PTC_EXACT_MODEL                         
@@ -1051,6 +1049,7 @@
  48  EM_FIELD                                
          1  L                                       
          2  TILT                                    
+         3  RF_FREQUENCY                            
         29  FRINGE_TYPE                             
         30  FRINGE_AT                               
         31  L_HARD_EDGE                             
@@ -1134,6 +1133,8 @@
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          9  VOLTAGE                                 
+        18  AUTOSCALE_AMPLITUDE                     
+        19  AUTOSCALE_PHASE                         
         20  VOLTAGE_ERR                             
         24  PHI0                                    
         25  PHI0_ERR                                
@@ -1518,6 +1519,8 @@
         74  CUSTOM_ATTRIBUTE4                         [private]
         75  CUSTOM_ATTRIBUTE5                         [private]
         80  check_sum                                 [private]
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
  
  !---------------------------------
  32  INSTRUMENT                              
@@ -1713,6 +1716,8 @@
          6  GRADIENT                                
          7  GRADIENT_ERR                            
          9  VOLTAGE                                 
+        18  AUTOSCALE_AMPLITUDE                     
+        19  AUTOSCALE_PHASE                         
         21  E_LOSS                                  
         23  TRAVELING_WAVE                          
         24  PHI0                                    
@@ -2987,6 +2992,8 @@
          6  GRADIENT                                
          7  gradient_err                              [private]
          9  VOLTAGE                                 
+        18  AUTOSCALE_AMPLITUDE                     
+        19  AUTOSCALE_PHASE                         
         23  TRAVELING_WAVE                          
         24  PHI0                                    
         25  phi0_err                                  [private]
@@ -3953,7 +3960,7 @@
     Ix Count
      1    50
      2    48
-     3    23
+     3    24
      4    21
      5    25
      6    21
@@ -3968,8 +3975,8 @@
     15     6
     16     7
     17     4
-    18     3
-    19     7
+    18     6
+    19    10
     20    18
     21    18
     22    13
@@ -4041,13 +4048,13 @@
     88    36
     89    29
     90     4
-    91    47
-    92    47
+    91    48
+    92    48
     93    47
     94    45
-    95    45
+    95    44
     96    45
-    97    45
+    97    44
     98    44
     99     1
    100    28
@@ -4321,6 +4328,7 @@ Index: 3
     PIPE                                    
     MULTILAYER_MIRROR                       
     E_GUN                                   
+    EM_FIELD                                
     DETECTOR                                
  
  !---------------------------------
@@ -4517,16 +4525,22 @@ Index: 17
  !---------------------------------
 Index: 18
     CUSTOM                                  
+    RFCAVITY                                
+    LCAVITY                                 
     MATCH                                   
+    E_GUN                                   
     PHOTON_INIT                             
  
  !---------------------------------
 Index: 19
     SBEND                                   
     CUSTOM                                  
+    RFCAVITY                                
     RBEND                                   
+    LCAVITY                                 
     MATCH                                   
     DEF_BEAM_START                          
+    E_GUN                                   
     PHOTON_INIT                             
     SAD_MULT                                
  
@@ -6888,6 +6902,7 @@ Index: 91
     SOL_QUAD                                
     MARKER                                  
     KICKER                                  
+    HYBRID                                  
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
@@ -6938,6 +6953,7 @@ Index: 92
     SOL_QUAD                                
     MARKER                                  
     KICKER                                  
+    HYBRID                                  
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
@@ -7093,7 +7109,6 @@ Index: 95
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
@@ -7189,7 +7204,6 @@ Index: 97
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     MATCH                                   
     MONITOR                                 
     INSTRUMENT                              
