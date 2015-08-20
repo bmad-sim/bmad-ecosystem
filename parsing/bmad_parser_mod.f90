@@ -510,24 +510,14 @@ if (attrib_word == 'WALL') then
 
   i_section = 0
   allocate (ele%wall3d)
-  if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
 
+  if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "= ele_name[wall]" construct
+  ! "ele1[wall] = ele2[wall]" construct
 
   if (delim == '[') then
-    call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
-    if (delim2 /= ']' .or. word2 /= 'WALL') then
-      call parser_error ('BAD WALL CONSTRUCT')
-      return
-    endif
-    if (.not. expect_this (' ', .false., .false., '')) return
-    call lat_ele_locator (word, lat, eles, n, err_flag)
-    if (err_flag .or. n /= 1) then
-      call parser_error ('LATTICE ELEMENT NOT FOUND: ' // word)
-      return
-    endif
+    call parser_ele1_attribute_equal_ele2_attribute ('WALL')
     if (.not. associated(eles(1)%ele%wall3d)) then
       call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
@@ -704,7 +694,24 @@ endif
 if (attrib_word == 'SURFACE') then
   surf => ele%photon%surface
 
-  if (.not. expect_this ('={', .true., .true., 'AFTER "SURFACE"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "SURFACE"')) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "ele1[surface] = ele2[surface]" construct
+
+  if (delim == '[') then
+    call parser_ele1_attribute_equal_ele2_attribute ('SURFACE')
+    if (.not. associated(eles(1)%ele%photon)) then
+      call parser_error ('NO SURFACE ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    ele%photon%surface = eles(1)%ele%photon%surface
+    return
+  endif
+
+  !
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER "SURFACE"')) return
 
   surface_loop: do
 
@@ -800,7 +807,23 @@ endif
 
 if (attrib_word == 'FIELD') then
 
-  if (.not. expect_this ('={', .true., .true., 'AFTER "FIELD"')) return
+  if (.not. expect_this ('=', .true., .true., 'AFTER "FIELD"')) return
+  call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
+
+  ! "ele1[field] = ele2[field]" construct
+
+  if (delim == '[') then
+    call parser_ele1_attribute_equal_ele2_attribute ('FIELD')
+    if (err_flag) return
+    if (.not. associated(eles(1)%ele%em_field)) then
+      call parser_error ('NO FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+      return
+    endif
+    ele%em_field = eles(1)%ele%em_field
+    return
+  endif
+
+  if (.not. expect_this ('{', .true., .true., 'AFTER "FIELD"')) return
 
   ! Loop over all modes
 
@@ -1566,6 +1589,27 @@ endif
 is_ok = .true.
 
 end function expect_one_of
+
+!--------------------------------------------------------
+! contains
+
+subroutine parser_ele1_attribute_equal_ele2_attribute (who)
+
+character(*) who
+
+call get_next_word (word2, ix_word, '[],(){}', delim2, delim_found, call_check = .true.)
+if (delim2 /= ']' .or. word2 /= who) then
+  call parser_error ('BAD ' // who // ' CONSTRUCT')
+  return
+endif
+if (.not. expect_this (' ', .false., .false., '')) return
+call lat_ele_locator (word, lat, eles, n, err_flag)
+if (err_flag .or. n /= 1) then
+  call parser_error ('LATTICE ELEMENT NOT FOUND: ' // word)
+  return
+endif
+
+end subroutine parser_ele1_attribute_equal_ele2_attribute
 
 !--------------------------------------------------------
 ! contains
