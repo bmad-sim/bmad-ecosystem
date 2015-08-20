@@ -522,7 +522,7 @@ if (attrib_word == 'WALL') then
       call parser_error ('NO WALL ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    ele%wall3d = eles(1)%ele%wall3d
+    call transfer_wall3d(eles(1)%ele%wall3d, ele%wall3d)
     return
   endif
 
@@ -819,7 +819,7 @@ if (attrib_word == 'FIELD') then
       call parser_error ('NO FIELD ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    ele%em_field = eles(1)%ele%em_field
+    call transfer_em_field(eles(1)%ele%em_field, ele%em_field)
     return
   endif
 
