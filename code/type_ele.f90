@@ -663,7 +663,7 @@ if (associated(lat) .and. logic_option(.true., type_control)) then
       enddo
 
     case default
-      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute               Value    Expression'
+      nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Attribute                Value    Expression'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, i)
         if (allocated(lat%control(i)%stack)) then
