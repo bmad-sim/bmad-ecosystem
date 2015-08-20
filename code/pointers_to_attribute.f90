@@ -34,7 +34,7 @@
 !                       printing of an error message on error.
 !
 ! Output:
-!   ptr_array(:) -- Real_pointer_struct, allocatable: Pointer to the attribute.
+!   ptr_array(:) -- all_pointer_struct, allocatable: Pointer to the attribute.
 !                     Pointer will be deassociated if there is a problem.
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
@@ -52,8 +52,8 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), target :: beam_start
-type (real_pointer_struct), allocatable :: ptr_array(:)
-type (real_pointer_struct), allocatable :: ptrs(:)
+type (all_pointer_struct), allocatable :: ptr_array(:)
+type (all_pointer_struct), allocatable :: ptrs(:)
 type (ele_pointer_struct), optional, allocatable :: eles(:)
 type (ele_pointer_struct), allocatable :: eles2(:)
 type (all_pointer_struct) a_ptr
@@ -73,6 +73,9 @@ logical, optional :: err_print_flag
 
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
+if (allocated(ptr_array)) deallocate(ptr_array)
+
+!---
 
 select case (ele_name)
 

@@ -1892,7 +1892,7 @@ type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
-type (real_pointer_struct) ptr_attrib(20)
+type (all_pointer_struct) ptr_attrib(20)
 
 real(rp) ds, s_slave, val_attrib(20)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)

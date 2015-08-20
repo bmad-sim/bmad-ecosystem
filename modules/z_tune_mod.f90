@@ -5,7 +5,7 @@ use bmad_struct
 use bmad_interface
 
 type (lat_struct), private, pointer :: lat_com
-type (real_pointer_struct) :: voltage_control(100)
+type (all_pointer_struct) :: voltage_control(100)
 real(rp), private :: volt0(100), z_tune_wanted
 integer, private :: ix_rf(100), n_rf
 

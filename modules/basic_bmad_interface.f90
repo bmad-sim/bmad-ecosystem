@@ -463,7 +463,7 @@ interface
     import
     implicit none
     type (lat_struct) lat
-    type (real_pointer_struct), allocatable :: ptr_array(:)
+    type (all_pointer_struct), allocatable :: ptr_array(:)
     character(*) ele_name, attrib_name
     logical err_flag
     logical do_allocation
