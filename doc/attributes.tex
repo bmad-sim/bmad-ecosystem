@@ -234,26 +234,23 @@ This is equivalent to
   gr1: group = \{b1[angle]:angle, b3[angle]:-pi*angle\}, var = \{angle\}
 \end{example}
 
-For reasons of expediency, the arithmetic expressions may not
-themselves contain element attributes. However, an expression may
-contain symbolic constants defined in the lattice. Example:
+Arithmetic expressions may themselves contain element attributes.
+Example:
 \begin{example}
-  a_con = atan(0.3)
-  ov1: overlay = \{s1[k2]:a_con, ...       ! OK.
-  ov2: overlay = \{s2[k2]:0.7*q1[k1], ...  ! BAD, q1[k1] not allowed.
+  sk_q20W: overlay = \{sex_20W[a1]:sex_20W[l]\}, k1
 \end{example}
-If it is desired to use an element attribute in an expression then
-this may be effectively done by defining a variable to take its place.
-As an example, consider an overlay that controls the \vn{g_err}
-attribute of a bend \vn{bb} such that the value of \vn{g_err} is equal
-to the bend strength \vn{g} times the control variable \vn{e_rel}:
+Here the \vn{sk_q20w} overlay controls the \vn{a1} multipole attribute
+of element \vn{sex_20w} and the length of \vn{sex_20w} is used as a
+scale factor between the overlay's variable \vn{k1} and the controlled
+attribute \vn{a1}. The potential problem here is that, to keep the
+internal bookkeeping simple, the value of \vn{sex_20w[l]} is evaluated
+once during parsing of the lattice file and never reevaluated. This is
+in line with the general philosophy of immediate substitution
+(\sref{s:arith}). If it is desired to use a variable element attribute
+in an expression, this may be effectively done by defining a control
+variable to take its place. Thus the above overlay may be recast as:
 \begin{example}
-  ov1: overlay = \{bb[g_err]:bb[g]*e_rel\}, var = \{e_rel\}  ! BAD
-\end{example}
-Since the above construction is not permitted, an equivalent controller
-may be defined by adding a second control variable:
-\begin{example}
-  ov1: overlay = \{bb[g_err]:g*e_rel, bb[g]:g\}, var = \{e_rel, g\}
+  sk_q20W: overlay = \{sex_20W[l]:ll, sex_20W[a1]:ll*k1\}, var = \{k1, ll\}
 \end{example}
 
 Initial values can be assigned to the variables from within the

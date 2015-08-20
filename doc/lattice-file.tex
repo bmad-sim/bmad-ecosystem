@@ -555,7 +555,7 @@ The name ``switch'' can refer to the variable (for example,
 %---------------------------------------------------------------------------
 \section{Arithmetic Expressions}
 \index{arithmetic expressions} 
-\label{arithmetic}
+\label{s:arith}
 
 Arithmetic expressions can be used in a place where a real value is required.
 The standard operators are defined: \hfil\break
@@ -611,14 +611,25 @@ Element attributes can be used after they have been defined but not
 before.  Example:
 \begin{example}
   sa: sextupole, l = 0.3, k2 = 0.01 * sa[l]  ! Good
-  sb: sextupole, k2 = 0.01 * sb[l], l = 0.3  ! BAD SET OF K2!
+  sb: sextupole, k2 = 0.01 * sb[l], l = 0.3  ! BAD SET OF K2. L IS DEFINED AFTER.
 \end{example}
 In this example, the \vn{k2} attribute of element \vn{sa} is correctly
 set since \vn{k2} is defined after \vn{l}. On the other hand, \vn{k2}
 of element \vn{sb} will have a value of zero since \vn{l} of \vn{sb}
 defaults to zero before it is set.
 
-Another potential pitfall with immediate substitution is when using
+One potential pitfall with immediate substitution is that when
+an element attribute changes, it does not affect prior evaluations.
+Example:
+\begin{example}
+  s1: sextupole, k2 = 2.3
+  aa = s1[k2]              ! aa = 2.3
+  s1[k2] = 1.7             ! value of aa does not change
+\end{example}
+Here the value of constant \vn{aa} will remain fixed at 2.3 no matter how
+the value of \vn{s1[k2]} is altered after \vn{aa} is defined.
+
+Another potential pitfall is when using
 dependent element attributes (\sref{s:depend}). For example:
 \begin{example}
   b01w: sbend, l = 0.5, angle = 0.02
