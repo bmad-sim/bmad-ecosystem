@@ -32,7 +32,7 @@ type lux_param_struct
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
   character(100) :: histogram_out_file = ''
-  character(40) :: photon_init_element = ''            ! element name
+  character(40) :: photon_init_element = ''       ! element name
   character(40) :: detector_element = ''          ! element name
   character(40) :: photon1_element = ''           ! element name
   character(20) :: plotting = ''
@@ -929,7 +929,7 @@ if (lux_param%histogram_out_file /= '') then
     call re_allocate2 (lux_com%histogram_bin, i1, i2, .false., 0.0_rp)
   endif
 
-  lux_com%histogram_bin(ix) = lux_com%histogram_bin(ix) + intens / lux_param%histogram_bin_width
+  lux_com%histogram_bin(ix) = lux_com%histogram_bin(ix) + intens
 endif
 
 end subroutine add_to_detector_statistics
@@ -951,7 +951,7 @@ end subroutine lux_track_photons
 !   lux_data      -- lux_output_data_struct: Tracking data.
 !
 ! Output:
-!   lux_com%lat%detec_ele%photon%grid%pt
+!   lux_com%lat%detec_ele%photon%surface%grid%pt
 !-
 
 subroutine lux_add_in_slave_data (slave_pt, lux_param, lux_com, lux_data)
@@ -967,9 +967,9 @@ type (surface_grid_pt_struct), pointer :: pt(:,:)
 pt => lux_com%detec_ele%photon%surface%grid%pt
 pt = surface_grid_pt_struct()
 
-lux_data%n_track_tot = lux_data%n_track_tot + lux_com%n_photon_stop1
-lux_data%n_live      = lux_data%n_live      + sum(slave_pt%n_photon)
-lux_data%n_lost      = lux_data%n_lost      + lux_com%n_photon_stop1 - sum(slave_pt%n_photon)
+lux_data%n_track_tot   = lux_data%n_track_tot   + lux_com%n_photon_stop1
+lux_data%n_live        = lux_data%n_live        + sum(slave_pt%n_photon)
+lux_data%n_lost        = lux_data%n_lost        + lux_com%n_photon_stop1 - sum(slave_pt%n_photon)
 
 end subroutine lux_add_in_slave_data 
 
@@ -997,8 +997,8 @@ type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
 type (lat_struct), pointer :: lat
 
-real(rp) normalization, area, cut, dtime
-real(rp) total_dead_intens, pix_in_file_intens
+real(rp) normalization, cut, dtime
+real(rp) total_dead_intens, pix_in_file_intens, norm2
 real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
 real(rp) phase_x, phase_y, x, y, energy_rms, x_pitch_rms, y_pitch_rms
@@ -1037,8 +1037,7 @@ intens_tot_x = 0
 intens_tot_y = 0
 intens_tot = 0
 
-area = fourpi
-normalization = lux_param%intensity_normalization_coef * area / (lux_data%n_track_tot * fourpi)
+normalization = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * detec_grid%dr(1) * detec_grid%dr(2))
 
 if (lux_param%det_pix_out_file /= '') then
   open (3, file = lux_param%det_pix_out_file, recl = 200)
@@ -1098,6 +1097,7 @@ if (lux_param%det_pix_out_file /= '') then
 
   ! det_pix_out_file.x
 
+  norm2 = normalization / size(detec_grid%pt, 2)
   open (3, file = trim(lux_param%det_pix_out_file) // '.x')
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#     ix        x_pix      ntensity_x     Intensity_y       Intensity    N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
@@ -1123,13 +1123,14 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%y_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
     write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
-                       pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
+                       pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
   close(3)
 
   ! det_pix_out_file.y
 
+  norm2 = normalization / size(detec_grid%pt, 1)
   open (3, file = trim(lux_param%det_pix_out_file) // '.y')
   write (3, '(a)') '#-----------------------------------------------------'
   write (3, '(a)') '#     iy        y_pix      Intensity_x     Intensity_y       Intensity   N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
@@ -1155,20 +1156,20 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%y_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
     write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
-                       pixel%intensity_x * normalization, pixel%intensity_y * normalization, pixel%intensity * normalization, &
+                       pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
   close(3)
 
   ! det_pix_out_file.energy
 
+  norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_com%dE_bin)
   open (3, file = trim(lux_param%det_pix_out_file) // '.energy')
   write (3, '(a)')        '#-----------------------------------------------------'
   write (3, '(a)')        '#      Energy     Intensity_x     Intensity_y       Intensity   N_photon'
   do j = 1, ubound(lux_com%energy_bin, 1)
     pix => lux_com%energy_bin(j)
-    write (3, '(f13.5, 3es16.5, i12)') pix%energy_ave, pix%intensity_x * normalization, &
-                       pix%intensity_y * normalization, pix%intensity * normalization, pix%n_photon
+    write (3, '(f13.5, 3es16.5, i12)') pix%energy_ave, pix%intensity_x * norm2, pix%intensity_y * norm2, pix%intensity * norm2, pix%n_photon
   enddo
   close(3)
 
@@ -1178,9 +1179,10 @@ endif
 ! histogram_out_file
 
 if (lux_param%histogram_out_file /= '') then
+  norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
   open (3, file = lux_param%histogram_out_file)
-  write (3, '(2a)') '# Histogram of: ', trim(lux_param%histogram_variable)
-  write (3, '(2a, 7x, a)') '#  Index', adjustr(lux_param%histogram_variable(1:14)), 'density'
+  write (3, '(2a)')        '# Histogram of: ', trim(lux_param%histogram_variable)
+  write (3, '(2a, 5x, a)') '#  Index', adjustr(lux_param%histogram_variable(1:14)), 'Intensity'
 
   do i = lbound(lux_com%histogram_bin,1), ubound(lux_com%histogram_bin,1)
     if (lux_com%histogram_bin(i) == 0) cycle
@@ -1195,7 +1197,7 @@ if (lux_param%histogram_out_file /= '') then
   enddo
 
   do i = n_min, n_max
-    write (3, '(i8, 2es14.6)') i, i * lux_param%histogram_bin_width, lux_com%histogram_bin(i)
+    write (3, '(i8, 2es14.6)') i, i * lux_param%histogram_bin_width, norm2 * lux_com%histogram_bin(i)
   enddo
 
   close (3)
@@ -1208,9 +1210,10 @@ call run_timer ('READ', dtime)
 if (lux_com%verbose) then
   print '(a, t35, i, 5x, es10.2)', 'Photons Tracked:', lux_data%n_track_tot, float(lux_data%n_track_tot)
   print '(a, t35, i)',      'Photons at detector:', lux_data%n_live
-  print '(a, t35, es12.4)', 'Normalization factor:', normalization
-  print '(a, t35, es12.4)', 'Total intensity (unnormalized):', intens_tot
-  print '(a, t35, es12.4)', 'Total intensity (normalized):', intens_tot * normalization
+  print '(a, t35, i)',      'Photons hitting pix:', int(sum(detec_grid%pt%n_photon), 8)
+  print '(a, t45, es12.4)', 'Normalization factor:', normalization
+  print '(a, t45, es12.4)', 'Total intensity on pix (unnormalized):', intens_tot
+  print '(a, t45, es12.4)', 'Total intensity on pix (normalized):', intens_tot * normalization
 
   if (intens_tot /= 0) then
     x_sum = 0; x2_sum = 0; y_sum = 0; y2_sum = 0
@@ -1231,8 +1234,8 @@ if (lux_com%verbose) then
 
     x_ave = x_sum / intens_tot; y_ave = y_sum / intens_tot
     e_ave = e_ave / intens_tot; e_rms = e_rms / intens_tot
-    print '(a, f10.3)', &
-            ' %Intensity at pixels not in det_pix file:', 100 * (intens_tot - pix_in_file_intens) / intens_tot
+    print '(a, f10.3)',  '%Intensity not in det_pix file (due to %intensity_min_det_pixel_cutoff):', &
+                                                               100 * (intens_tot - pix_in_file_intens) / intens_tot
     print '(a, 2f12.5)', 'Average position at det (x, y) (mm):     ', 1000 * x_ave, 1000 * y_ave
     print '(a, 2f12.5)', 'RMS at det (x, y) (mm):                  ', 1000 * sqrt(x2_sum / intens_tot - x_ave**2), &
                                                                       1000 * sqrt(y2_sum / intens_tot - y_ave**2)

@@ -104,7 +104,6 @@ if (lux_com%mpi_rank == master_rank) then
 
     ! All done?
     if (all(slave_is_done)) exit
-
   enddo
 
   call print_this ('Master: All done!')

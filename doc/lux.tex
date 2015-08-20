@@ -369,20 +369,22 @@ The unnormalized intensity of a photon is:
   I(unnormalized) = e_field_x^2 + e_field_y^2
 \end{example}
 
-To properly normalize the intensity at the detector in the output
-files, a normalization factor $f_n$ is applied.
+To properly normalize the light intensity of the detector pixels in
+the output files, a normalization factor $f_n$ is applied.
 \Begineq
   I (\mbox{normalized}) = f_n I (\mbox{unnormalized}) 
 \Endeq
 $f_n$ is constructed so that the normalized intensity will be
-independent of the number of simulation photons. Explicitly:
+independent of the number of simulation photons and independent of the
+detector pixel size. Explicitly:
 \Begineq
-  f_n = \frac{C_f}{N_p}
+  f_n = \frac{C_f}{A_{pix} \, N_p}
 \Endeq
-where $N_p$ is the number of photons tracked, and $C_f$ is a
-normalization coefficient set by the \vn{intensity_normalization_coef}
-parameter in the master input file, $C_f$ can be used, for example, to
-scale the output numbers to correspond to actual measured values.
+where $A_{pix}$ is the area of the pixels, $N_p$ is the number of
+photons tracked, and $C_f$ is a normalization coefficient set by the
+\vn{intensity_normalization_coef} parameter in the master input file,
+$C_f$ can be used, for example, to scale the output numbers to
+correspond to actual measured values.
 
 %------------------------------------------------------------------
 \subsection{Photon Polarization Initialization}
