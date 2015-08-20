@@ -171,7 +171,7 @@ subroutine tao_change_ele (ele_name, attrib_name, num_str)
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (real_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
+type (all_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 
@@ -223,12 +223,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
   u => s%u(iu)
 
-  call pointers_to_attribute (u%design%lat, e_name, a_name, .true., &
-                                                  d_ptr, err, .true., eles)
+  call pointers_to_attribute (u%design%lat, e_name, a_name, .true., d_ptr, err, .true., eles)
   if (err) return
 
-  call pointers_to_attribute (u%model%lat, e_name, a_name, .true., &
-                                                  m_ptr, err, .true., eles)
+  call pointers_to_attribute (u%model%lat, e_name, a_name, .true., m_ptr, err, .true., eles)
   if (err) return
 
   ! Make sure attributes are free to vary. 
