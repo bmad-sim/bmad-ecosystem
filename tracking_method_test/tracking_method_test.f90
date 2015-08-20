@@ -25,20 +25,33 @@ fmt = '(a,t42, a, 7es18.10)'
 
 print_extra = .false.
 nargs = cesr_iargc()
-if (nargs == 1)then
+if (nargs > 1) then
+  print *, 'Only one command line arg permitted.'
+  call err_exit
+
+elseif (nargs > 0)then
   call cesr_getarg(1, lat_file)
   print *, 'Using ', trim(lat_file)
   print_extra = .true.
   fmt = '(a, t42, a, 7es14.6)'
-
-elseif (nargs > 1) then
-  print *, 'Only one command line arg permitted.'
-  call err_exit
 endif
 
 call bmad_parser (lat_file, lat)
 
-bmad_com%spin_tracking_on = .true.
+if (print_extra) then
+  if (lat%param%geometry == open$) then
+    bmad_com%cancel_wiggler_end_kicks = .false.
+    print *, '*** Note: wiggler end kicks not cancelled (so like PTC tracking).'
+  else
+    bmad_com%cancel_wiggler_end_kicks = .true.
+    print *, '*** Note: wiggler end kicks cancelled (so like RUNGE_KUTTA tracking).'
+  endif
+endif
+
+
+if (lat%beam_start%spin(1) /= 0 .or. lat%beam_start%spin(2) /= 0) then
+  bmad_com%spin_tracking_on = .true.
+endif
 
 open (1, file = 'output.now')
 

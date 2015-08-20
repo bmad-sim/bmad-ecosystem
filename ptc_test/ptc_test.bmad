@@ -8,7 +8,7 @@ beginning[beta_b] = 10
 
 wig0: wiggler, l= 1.2, tracking_method = symp_lie_bmad, num_steps = 100, &
       mat6_calc_method = symp_lie_bmad, polarity = 1.2, 
-      term(001)={1.0E+0, 0.3, 0.4, 0.5, 0.6}
+      term(001)={1.0E+0, 0.5, 0.4, 0.3, 0.6}
 
 xoff = 5e-3
 xpitch = 1e-4
