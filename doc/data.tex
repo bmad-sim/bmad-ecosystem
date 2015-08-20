@@ -437,6 +437,11 @@ type. Thus the user is free to group data as s/he sees fit.
 Description of the data types:
 
   \begin{description}
+
+  \index{alpha.}
+  \item[alpha.] \Newline
+Possible subdata types of the twiss function \vn{alphaa} are 
+
   \index{apparent_emit.}
   \item[apparent_emit.] \Newline
 The apparent emittance is the emittance that one would calculate based
@@ -581,8 +586,8 @@ universe it is in.
 
   \index{floor.}
   \item[floor.] \Newline
-This is the global floor position at the exit end of evaluation element. See the
-\bmad manual for details on the global coordinate system. See also
+This is the global floor position at the exit end of evaluation element. 
+See the \bmad manual for details on the global coordinate system. See also
 \vn{rel_floor.}.
 
   \index{n_particle_loss}
@@ -894,8 +899,10 @@ squared.
 
   expression: <arithmetic expression> & See the text                                  & lat       \\ \hline 
 
-  floor.x, floor.y, floor.z, floor.theta 
-                                      & Global (``floor'') position                   & lat       \\ \hline 
+  \begin{tabular}{@{}l}   
+    floor.x, floor.y, floor.z, \\
+    floor.theta, floor.phi, floor.psi
+  \end{tabular}                       & Global (``floor'') position                   & lat       \\ \hline 
 
   gamma.a, gamma.b                    & Normal-mode gamma function                    & lat       \\ \hline 
 
@@ -916,7 +923,7 @@ squared.
   \begin{tabular}{@{}l}   
     multi\_turn\_orbit.x, multi\_turn\_orbit.px \\ 
     multi\_turn\_orbit.y, multi\_turn\_orbit.py \\
-    multi\_turn\_orbit.z, multi\_turn\_orbit.pz \\
+    multi\_turn\_orbit.z, multi\_turn\_orbit.pz
   \end{tabular}                       & Bunch size                                    & lat       \\ \hline 
 
   n\_particle\_loss                   & Number of particles lost                      & beam      \\ \hline 

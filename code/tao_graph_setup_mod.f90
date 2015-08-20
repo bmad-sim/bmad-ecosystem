@@ -1778,6 +1778,12 @@ do ii = 1, size(curve%x_line)
     value = ele%floor%r(2)
   case ('floor.z')
     value = ele%floor%r(3)
+  case ('floor.theta')
+    value = ele%floor%theta
+  case ('floor.phi')
+    value = ele%floor%phi
+  case ('floor.psi')
+    value = ele%floor%psi
   case ('e_tot')
     if (orbit%beta == 0) then
       value = mass_of(branch%param%particle)

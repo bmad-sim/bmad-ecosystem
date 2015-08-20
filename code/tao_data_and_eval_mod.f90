@@ -1373,6 +1373,9 @@ case ('floor.')
   case ('floor.phi')
     call tao_load_this_datum (branch%ele(:)%floor%phi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
+  case ('floor.psi')
+    call tao_load_this_datum (branch%ele(:)%floor%psi, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+
   case default
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(datum%data_type) // '" NOT VALID', why_invalid)
     return
