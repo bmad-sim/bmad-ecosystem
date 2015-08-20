@@ -7,12 +7,8 @@ module sim_utils_struct
 use precision_def
 use physical_constants
 
-! A real_pointer_struct is just a pointer to a real number.
-! This is used to construct arrays of real pointers.
-
-type real_pointer_struct
-  real(rp), pointer :: r => null()
-end type 
+! A all_pointer_struct is just a pointer to either a real, integer, or logical variable.
+! This is used to construct arrays of pointers.
 
 type all_pointer_struct
   real(rp), pointer :: r => null()

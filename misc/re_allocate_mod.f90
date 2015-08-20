@@ -21,7 +21,7 @@ use sim_utils_struct
 !   Subroutine re_allocate_string (str, n, exact, init_val)
 !   Subroutine re_allocate_integer (inte, n, exact, init_val)
 !   Subroutine re_allocate_real (re, n, exact, init_val)
-!   Subroutine re_allocate_real_pointer (re_ptr, n, exact)
+!   Subroutine re_allocate_all_pointer (a_ptr, n, exact)
 !   Subroutine re_allocate_complex (cmpl, n, exact, init_val)
 !   Subroutine re_allocate_logical (logic, n, exact, init_val)
 !
@@ -32,7 +32,7 @@ use sim_utils_struct
 !   str(:)      -- Character(*), allocatable: String array.
 !   inte(:)     -- Integer, allocatable: Integer array.
 !   re(:)       -- Real(rp), Allocatable: Real array.
-!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   a_ptr(:)    -- All_pointer_struct: array of all_pointer_structs.
 !   cmpl(:)     -- Complex(rp), Allocatable: Complex array.
 !   logic(:)    -- Logical, allocatable: Logical array.
 !   n           -- Integer: Minimum size needed for 1-dimensional arrays.
@@ -46,7 +46,7 @@ use sim_utils_struct
 !   str(:)      -- Character(*), allocatable: Allocated array. 
 !   inte(:)     -- Integer, allocatable: Allocated array. 
 !   re(:)       -- Real(rp), Allocatable: Allocated array. 
-!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   a_ptr(:)    -- All_pointer_struct: Real pointer array.
 !   cmpl(:)     -- Complex(rp), Allocatable: Allocated Array.
 !   logic(:)    -- Logical, allocatable: Allocated array.
 !-
@@ -56,7 +56,7 @@ interface re_allocate
   module procedure re_allocate_integer
   module procedure re_allocate_logical
   module procedure re_allocate_real
-  module procedure re_allocate_real_pointer
+  module procedure re_allocate_all_pointer
   module procedure re_allocate_complex
 end interface
 
@@ -78,7 +78,7 @@ end interface
 !   Subroutine re_allocate2_string (str, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_integer (inte, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_real (re, n_min, n_max, exact, init_val)
-!   Subroutine re_allocate2_real_pointer (re, n_min, n_max, exact)
+!   Subroutine re_allocate2_all_pointer (a_ptr, n_min, n_max, exact)
 !   Subroutine re_allocate2_complex (cmpl, n_min, n_max, exact, init_val)
 !   Subroutine re_allocate2_logical (logic, n_min, n_max, exact, init_val)
 !
@@ -89,7 +89,7 @@ end interface
 !   str(:)      -- Character(*), allocatable: String array.
 !   inte(:)     -- Integer, allocatable: Integer array.
 !   re(:)       -- Real(rp), Allocatable: Real array.
-!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   a_ptr(:)    -- All_pointer_struct: array of all_pointer_structs.
 !   cmpl(:)     -- Complex(rp), Allocatable: Complex array.
 !   logic(:)    -- Logical, allocatable: Logical array.
 !   n_min       -- Integer: Desired lower bound.
@@ -104,7 +104,7 @@ end interface
 !   str(:)      -- Character(*), allocatable: Allocated array. 
 !   inte(:)     -- Integer, allocatable: Allocated array. 
 !   re(:)       -- Real(rp), Allocatable: Allocated array. 
-!   re_ptr(:)   -- Real_pointer_struct: Real pointer array.
+!   a_ptr(:)    -- All_pointer_struct: Real pointer array.
 !   cmpl(:)     -- Complex(rp), Allocatable: Allocated Array.
 !   logic(:)    -- Logical, allocatable: Allocated array.
 !-
@@ -114,7 +114,7 @@ interface re_allocate2
   module procedure re_allocate2_integer
   module procedure re_allocate2_logical
   module procedure re_allocate2_real
-  module procedure re_allocate2_real_pointer
+  module procedure re_allocate2_all_pointer
   module procedure re_allocate2_complex
 end interface
 
@@ -432,29 +432,29 @@ end subroutine re_allocate_real
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate_real_pointer (re_ptr, n, exact)
+! Subroutine re_allocate_all_pointer (a_ptr, n, exact)
 !
-! Routine to reallocate an array of real pointers.
+! Routine to reallocate an array of all_pointer_structs.
 ! This is modeled after the reallocate functions in Numerical Recipes.
 ! Note: The pointers of the array are preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   re_ptr(:) -- Real_pointer_struct, Allocatable: Real_pointer array.
+!   a_ptr(:)  -- All_pointer_struct, Allocatable: All_pointer array.
 !   n         -- Integer: Size wanted.
 !   exact     -- Logical, optional: If present and False then the size of 
 !                  the output array is permitted to be larger than n. 
 !                  Default is True.
 !
 ! Output:
-!   re(:)  -- Real_pointer_struct, Allocatable: Allocated array with size(re) >= n.
+!   a_ptr(:)  -- All_pointer_struct, Allocatable: Allocated array with size(re) >= n.
 !-
 
-subroutine re_allocate_real_pointer (re_ptr, n, exact)
+subroutine re_allocate_all_pointer (a_ptr, n, exact)
 
   implicit none
 
-  type(real_pointer_struct), allocatable :: re_ptr(:), temp_re(:)
+  type(all_pointer_struct), allocatable :: a_ptr(:), temp_a(:)
 
   integer, intent(in) :: n
   integer n_save, n_old, i
@@ -463,24 +463,23 @@ subroutine re_allocate_real_pointer (re_ptr, n, exact)
 
 !
 
-  if (allocated(re_ptr)) then
-    n_old = size(re_ptr)
+  if (allocated(a_ptr)) then
+    n_old = size(a_ptr)
     if (n == n_old) return
     if (.not. logic_option(.true., exact) .and. n < n_old) return
-    call move_alloc(re_ptr, temp_re)
-    allocate (re_ptr(n))
+    call move_alloc(a_ptr, temp_a)
+    allocate (a_ptr(n))
     n_save = min(n, n_old)
-    forall (i = 1:n_save) re_ptr(i)%r => temp_re(i)%r
-    deallocate (temp_re)
+    a_ptr(1:n_save) = temp_a(1:n_save) 
+    deallocate (temp_a)
     do i = n_save+1, n
-      re_ptr(i)%r => null()
+      a_ptr(i)%r => null()
     enddo
   else
-    allocate (re_ptr(n))
-    forall (i = 1:n) re_ptr(i)%r => null()
+    allocate (a_ptr(n))
   endif
 
-end subroutine re_allocate_real_pointer
+end subroutine re_allocate_all_pointer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -758,31 +757,31 @@ end subroutine re_allocate2_real
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
+! Subroutine re_allocate2_all_pointer (a_ptr, n1, n2, exact)
 !
-! Routine to reallocate an array of reals.
+! Routine to reallocate an array of all_pointer_structs
 ! This is modeled after the reallocate functions in Numerical Recipes.
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if [n1, n2] is less than the original size of the array
 !
 ! Input:
-!   re_ptr(:) -- Real_pointer_struct, allocatable: Real array.
-!   n1     -- Integer: Desired lower bound.
-!   n2     -- Integer: Desired upper bound.
-!   exact  -- Logical, optional: If present and False then the size of 
+!   a_ptr(:) -- All_pointer_struct, allocatable: Real array.
+!   n1       -- Integer: Desired lower bound.
+!   n2       -- Integer: Desired upper bound.
+!   exact    -- Logical, optional: If present and False then the size of 
 !                 the output array is permitted to be larger than [n1, n2]. 
 !                 Default is True.
 !
 ! Output:
-!   re_ptr(:)  -- Real_pointer_struct, allocatable: Allocated array with 
+!   a_ptr(:)  -- All_pointer_struct, allocatable: Allocated array with 
 !                  bounds spanning at least [n1, n2]
 !-
 
-subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
+subroutine re_allocate2_all_pointer (a_ptr, n1, n2, exact)
 
   implicit none
 
-  type(real_pointer_struct), allocatable :: re_ptr(:), temp_re_ptr(:)
+  type(all_pointer_struct), allocatable :: a_ptr(:), temp_a_ptr(:)
 
   integer, intent(in) :: n1, n2
   integer n1_save, n2_save, n1_old, n2_old, i
@@ -791,26 +790,21 @@ subroutine re_allocate2_real_pointer (re_ptr, n1, n2, exact)
 
 !
 
-  if (allocated(re_ptr)) then
-    n1_old = lbound(re_ptr, 1); n2_old = ubound(re_ptr, 1)
+  if (allocated(a_ptr)) then
+    n1_old = lbound(a_ptr, 1); n2_old = ubound(a_ptr, 1)
     if (n1 == n1_old .and. n2 == n2_old) return
     if (.not. logic_option(.true., exact) .and. n1_old <= n1 .and. n2 <= n2_old) return
-    call move_alloc(re_ptr, temp_re_ptr)
-    allocate (re_ptr(n1:n2))
+    call move_alloc(a_ptr, temp_a_ptr)
+    allocate (a_ptr(n1:n2))
     n1_save = max(n1, n1_old); n2_save = min(n2, n2_old)
-    re_ptr(n1_save:n2_save) = temp_re_ptr(n1_save:n2_save)
-    deallocate (temp_re_ptr)  
-    do i = n1, n2
-      if (i >= n1_old .and. i <= n2_old) cycle
-      re_ptr(i)%r => null()
-    enddo
+    a_ptr(n1_save:n2_save) = temp_a_ptr(n1_save:n2_save)
+    deallocate (temp_a_ptr)  
 
   else
-    allocate (re_ptr(n1:n2))
-    forall (i = n1:n2) re_ptr(i)%r => null()
+    allocate (a_ptr(n1:n2))
   endif
 
-end subroutine re_allocate2_real_pointer
+end subroutine re_allocate2_all_pointer
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
