@@ -4769,12 +4769,15 @@ main_loop: do n = 1, n2
           call parser_error ('RANDOM NUMBER FUNCITON MAY NOT BE USED WITH AN OVERLAY OR GROUP', &
                              'FOR ELEMENT: ' // lord%name)
         case (variable$)
-          if (index(con%stack(ic)%name, '[') /= 0) then
-            call parser_error ( &
-                'ARITHMETIC EXPRESSION USED TO DEFINE AN OVERLAY/GROUP: ' // lord%name, &
-                'MAY NOT CONTAIN AN ELEMENT ATTRIBUTE: ' // con%stack(ic)%name)
-          endif
           call word_to_value (con%stack(ic)%name, lat, con%stack(ic)%value)
+          ! Variables in the arithmetic expression are immediately evaluated and never reevaluated.
+          ! If the variable is an element attribute (looks like: "ele_name[attrib_name]") then this may
+          ! be confusing if the attribute value changes later. To avoid some (but not all) confusion, 
+          ! turn the variable into a numeric$ so the output from the type_ele routine looks "sane".
+          if (index(con%stack(ic)%name, '[') /= 0) then
+            con%stack(ic)%type = numeric$
+            con%stack(ic)%name = ''
+          endif
         end select
       enddo
     enddo
