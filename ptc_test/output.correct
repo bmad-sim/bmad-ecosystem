@@ -22,33 +22,33 @@
 "IN-OUT:WIGGLER_PERIODIC1"    "INTEGRATOR_ORDER    2.0000000000E+00    0.0000000000E+00"
 "IN-OUT:END"    "NO-DIFF"
  
-"Bmad:vec(1)"   3.2102345884E-03
-"Bmad:vec(2)"   1.7356572607E-03
-"Bmad:vec(3)"   7.7761199417E-03
-"Bmad:vec(4)"   4.0000012474E-03
-"Bmad:vec(5)"   -1.1526848338E-05
+"Bmad:vec(1)"   3.1949821673E-03
+"Bmad:vec(2)"   1.6947506206E-03
+"Bmad:vec(3)"   7.7761182792E-03
+"Bmad:vec(4)"   4.0000003009E-03
+"Bmad:vec(5)"   -1.1496453589E-05
 "Bmad:vec(6)"   5.0000000000E-03
-"Bmad:orb%t "   4.0028076481E-09
+"Bmad:orb%t "   4.0028075584E-09
  
-"Bmad2:dvec"   7.03E-04  -6.52E-05  1.59E-03  6.52E-10  -3.77E-06  0.00E+00
+"Bmad2:dvec"   6.92E-04  -8.94E-05  1.59E-03  7.62E-11  -3.75E-06  0.00E+00
 "Bmad2:dmat"   4.00E-01
-"Bmad2:dvec0"   9.36E-05
-"Bmad2:dorb%t"   1.26E-14
+"Bmad2:dvec0"   1.05E-04
+"Bmad2:dorb%t"   1.25E-14
  
-"PTC1:dvec"   -2.06E-09  4.56E-09  5.78E-10  -1.21E-09  -5.59E-13  -2.60E-18
-"PTC1:dorb%t"   1.86E-21
-"PTC2:dvec"   7.03E-04  -6.52E-05  1.59E-03  -4.99E-10  -3.77E-06  -5.20E-18
+"PTC1:dvec"   -1.49E-09  -5.46E-11  -8.50E-10  -1.47E-17  4.09E-12  -1.73E-18
+"PTC1:dorb%t"   -1.36E-20
+"PTC2:dvec"   6.92E-04  -8.94E-05  1.59E-03  7.62E-11  -3.75E-06  -3.47E-18
 "PTC2:dmat"   4.00E-01
-"PTC2:dvec0"   9.36E-05
-"PTC2:dorb%t"   1.26E-14
+"PTC2:dvec0"   1.05E-04
+"PTC2:dorb%t"   1.25E-14
  
-"TAYLOR1:dvec"   -2.99E-10  -2.02E-13  -5.97E-10  -1.02E-13  -8.94E-10  2.60E-18
+"TAYLOR1:dvec"   -2.99E-10  -8.15E-14  -5.97E-10  -2.22E-14  -8.94E-10  1.73E-18
 "TAYLOR1:dorb%t"   2.98E-18
-"TAYLOR2:dvec"   7.03E-04  -6.52E-05  1.59E-03  7.12E-10  -3.78E-06  2.60E-18
+"TAYLOR2:dvec"   6.92E-04  -8.94E-05  1.59E-03  7.62E-11  -3.75E-06  1.73E-18
 "TAYLOR2:dmat"   4.00E-01
-"TAYLOR2:dvec0"   9.36E-05
-"TAYLOR2:dorb%t"   1.26E-14
+"TAYLOR2:dvec0"   1.05E-04
+"TAYLOR2:dorb%t"   1.25E-14
  
 "vec_convert"   0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00  0.00E+00
 "mat_convert"   2.22E-16
-"map_convert"   5.55E-17  5.55E-17  5.55E-17  5.55E-17  5.55E-17  5.55E-17
+"map_convert"   2.78E-17  2.78E-17  2.78E-17  2.78E-17  2.78E-17  2.78E-17

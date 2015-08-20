@@ -37,8 +37,20 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
+!
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
+
+if (print_extra) then
+  if (lat%param%geometry == open$) then
+    bmad_com%cancel_wiggler_end_kicks = .false.
+    print *, '*** Note: wiggler end kicks not cancelled (so like PTC tracking).'
+  else
+    bmad_com%cancel_wiggler_end_kicks = .true.
+    print *, '*** Note: wiggler end kicks cancelled (so like RUNGE_KUTTA tracking).'
+  endif
+endif
+
 call lattice_bookkeeper (lat)
 
 open (1, file = 'output.now', recl = 200)
