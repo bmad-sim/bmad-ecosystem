@@ -173,6 +173,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (all_pointer_struct), allocatable, save :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable, save :: eles(:)
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 
 real(rp), allocatable, save :: change_number(:), old_value(:)
@@ -246,9 +247,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (u%model%lat%param%geometry == closed$) then
       free = .false.
       write (name, '(i0, a)') iu, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_dat, print_err = .false.)
+      call tao_find_data (err, name, d2_array, print_err = .false.)
       if (a_name == 'PZ' .and. .not. s%global%rf_on) free = .true.
-      if (associated(d2_dat)) free = .true.
+      if (size(d2_array) > 0) free = .true.
     endif
   else
     do i = 1, nd

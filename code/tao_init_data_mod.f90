@@ -47,9 +47,8 @@ integer :: n_d2_data(lbound(s%u, 1) : ubound(s%u, 1))
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
 character(200) file_name
-character(40) name,  universe, d_typ
-character(40) default_merit_type, data_type, default_data_source, def_merit_type, def_data_source
-character(40) use_same_lat_eles_as, source
+character(40) name,  universe, d_typ, use_same_lat_eles_as
+character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
 character(100) search_for_lat_eles
 character(200) line, default_data_type, def_data_type
 
@@ -557,18 +556,16 @@ do j = n1, n2
   if (dat%data_type(1:9) == 'unstable_') dat%data_type(9:9) = '.'
 
   !
-  data_type = dat%data_type
-  source = dat%data_source
 
-  if (tao_rad_int_calc_needed(data_type, source)) then
+  if (tao_rad_int_calc_needed(dat%data_type, dat%data_source)) then
     u%calc%rad_int_for_data = .true. 
     if (dat%ix_branch /= 0) then
-      call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
+      call out_io (s_fatal$, r_name, 'EVALUATING A DATUM OF TYPE: ' // dat%data_type, 'ON A BRANCH NOT YET IMPLEMENTED!')
       call err_exit
     endif
   endif
 
-  if (tao_chrom_calc_needed(data_type, source)) then
+  if (tao_chrom_calc_needed(dat%data_type, dat%data_source)) then
     if (u%model%lat%branch(dat%ix_branch)%param%geometry == open$) then
       call out_io (s_warn$, r_name, 'CHROMATICITY DATUM NOT VALID FOR NON-CLOSED LATTICE!')
       dat%exists = .false.
@@ -579,23 +576,23 @@ do j = n1, n2
 
   ! Some data types are global and are not associated with a particular element. Check for this.
 
-  if (data_type == 'unstable.orbit') then
+  if (dat%data_type == 'unstable.orbit') then
     dat%exists = .true.
     if (dat%ele_name /= '') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // dat%data_type, &
                         'CANNOT HAVE AN ASSOCIATED ELEMENT: ' // dat%ele_name)
       call err_exit
     endif
   endif
 
-  if (data_type(1:11) == 'expression:' .or. &
+  if (dat%data_type(1:11) == 'expression:' .or. &
               u%design%lat%param%geometry == closed$ .and. &
-              (data_type(1:12)  == 'chrom.dtune.' .or. data_type(1:5)  == 'damp.' .or. &
-               data_type(1:17) == 'multi_turn_orbit.' .or. data_type(1:5) == 'tune.' .or. &
-               data_type(1:13) == 'unstable.ring' .or. index(data_type, 'emit.') /= 0)) then
+              (dat%data_type(1:12)  == 'chrom.dtune.' .or. dat%data_type(1:5)  == 'damp.' .or. &
+               dat%data_type(1:17) == 'multi_turn_orbit.' .or. dat%data_type(1:5) == 'tune.' .or. &
+               dat%data_type(1:13) == 'unstable.ring' .or. index(dat%data_type, 'emit.') /= 0)) then
     dat%exists = .true.
     if (dat%ele_name /= '') then
-      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // data_type, &
+      call out_io (s_abort$, r_name, 'DATUM OF TYPE: ' // dat%data_type, &
                         'CANNOT HAVE AN ASSOCIATED ELEMENT IN A CIRCULAR LATTICE: ' // dat%ele_name)
       call err_exit
     endif

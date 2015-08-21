@@ -243,6 +243,7 @@ type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_x, d1_y
 type (coord_struct), pointer :: p(:)
@@ -352,8 +353,8 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = curve%ix_universe)
-    if (err) then
+    call tao_find_data (err, curve%data_source, d2_array, ix_uni = curve%ix_universe)
+    if (err .or. size(d2_array) /= 1) then
       call out_io (s_error$, r_name, &
                 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       graph%valid = .false.
@@ -361,6 +362,7 @@ do k = 1, size(graph%curve)
     endif
 
     nullify (d1_x, d1_y)
+    d2_ptr => d2_array(1)%d2
     do i = 1, size(d2_ptr%d1)
       if (curve%data_type_x == d2_ptr%d1(i)%name) d1_x => d2_ptr%d1(i)
       if (curve%data_type   == d2_ptr%d1(i)%name) d1_y => d2_ptr%d1(i)
@@ -568,6 +570,7 @@ type (tao_curve_struct), pointer :: curve
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer :: ele
 type (beam_struct), pointer :: beam
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1
 type (coord_struct), pointer :: p(:)
@@ -674,14 +677,15 @@ do k = 1, size(graph%curve)
 
   elseif (curve%data_source == 'multi_turn_orbit') then
     
-    call tao_find_data (err, curve%data_source, d2_ptr, ix_uni = curve%ix_universe)
-    if (err) then
+    call tao_find_data (err, curve%data_source, d2_array, ix_uni = curve%ix_universe)
+    if (err .or. size(d2_array) /= 1) then
       call out_io (s_error$, r_name, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       graph%valid = .false.
       return
     endif
 
     nullify (d1)
+    d2_ptr => d2_array(1)%d2
     do i = 1, size(d2_ptr%d1)
       if (curve%data_type == d2_ptr%d1(i)%name) d1 => d2_ptr%d1(i)
     enddo
@@ -897,6 +901,7 @@ type (tao_curve_struct), target :: curve
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: model_lat, base_lat
 type (tao_ele_shape_struct), pointer :: ele_shape
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_v1_var_struct), pointer :: v1_ptr
@@ -1069,12 +1074,13 @@ case ('dat', 'data')
     endif
   enddo
 
-  call tao_find_data (err, scratch%stack(i)%name, d2_ptr, scratch%d1_array, ix_uni = curve%ix_universe)
+  call tao_find_data (err, scratch%stack(i)%name, d2_array, scratch%d1_array, ix_uni = curve%ix_universe)
   if (err .or. size(scratch%d1_array) /= 1) then
     graph%why_invalid = 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type
     return
   endif
 
+  d2_ptr => d2_array(1)%d2
   if (d2_ptr%name == 'phase' .or. d2_ptr%name == 'bpm_phase') then
     if (all(scratch%d1_array(1)%d1%d(:)%ele_ref_name == '')) then
       zero_average_phase = .true.

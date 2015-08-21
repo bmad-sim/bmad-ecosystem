@@ -33,7 +33,6 @@ type (tao_plot_struct), save, target :: wave_plot
 type (tao_plot_struct), pointer :: plot
 type (tao_graph_struct), pointer :: wg, wg1
 type (tao_curve_struct), pointer :: wc, wc1
-type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_universe_struct), pointer :: u
 
@@ -125,7 +124,7 @@ wc1 => wg1%curve(1)
 wc1%y_axis_scale_factor = 1
 
 if (wc1%data_source == 'data' .or. wc1%data_source == 'dat') then
-  call tao_find_data (err, wc1%data_type, d2_ptr, d1_array, ix_uni = wc1%ix_universe)
+  call tao_find_data (err, wc1%data_type, d1_array = d1_array, ix_uni = wc1%ix_universe)
   d1_dat => d1_array(1)%d1
   wg1%x%min = 0
   if (wg1%x%max < ubound(d1_dat%d, 1)) wg1%x%max = ubound(d1_dat%d, 1)
