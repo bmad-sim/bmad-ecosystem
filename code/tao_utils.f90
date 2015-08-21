@@ -998,7 +998,7 @@ end subroutine tao_orbit_value
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, 
+! Subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, 
 !                       log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 !
 ! Routine to set data pointers to the correct data structures. 
@@ -1010,8 +1010,6 @@ end subroutine tao_orbit_value
 ! 
 ! Example:
 !   data_name = '*@orbit.x'
-! In this case d2_ptr will be nullifed since the data can refer to
-! more than one universe. 
 ! re_array & l_array will have size = 0 since there is no data component specified.
 !
 ! Example:
@@ -1045,31 +1043,30 @@ end subroutine tao_orbit_value
 !
 ! Output:
 !   err          -- Logical: Err condition
-!   d2_ptr       -- Tao_d2_data_struct, pointer, optional: Pointer to the d2 data structure
-!                     if there is a unique structure to point to. Null otherwise.
+!   d2_array(:)  -- Tao_d2_data_array_struct, allocatable, optional: Array of pointers to all 
+!                     the matching d2_data structure. Size(d2_array) = 0 if no structures found.
 !   d1_array(:)  -- Tao_d1_data_array_struct, allocatable, optional: Array of pointers to all 
-!                     the matching d1_data structures.
+!                     the matching d1_data structures. Size(d1_array) = 0 if no structures found.
 !   d_array(:)   -- Tao_data_array_struct, allocatable, optional: Array of pointers to all 
-!                     the matching tao_data_structs.
+!                     the matching tao_data_structs.  Size(d_array) = 0 if no structures found.
 !   re_array(:)  -- Tao_real_pointer_struct, allocatable, optional: Array of pointers to real 
-!                     component values.
+!                     component values.  Size(re_array) = 0 if no structures found.
 !   log_array(:) -- Tao_logical_array_struct, allocatable, optional: Array of pointers to
-!                     logical component values.
+!                     logical component values.  Size(log_array) = 0 if no structures found.
 !   str_array(:) -- Tao_string_array_struct, allocatable, optional: Array of pointers to 
-!                     character component values.
+!                     character component values.  Size(str_array) = 0 if no structures found.
 !   int_array(:) -- Tao_integer_array_struct, allocatable, optional: Array of pointers to
-!                     integer component values
+!                     integer component values.  Size(int_array) = 0 if no structures found.
 !   component    -- Character(*), optional: Name of the component. E.G: 'good_user'
 !                     set to ' ' if no component present.
 !-
 
-subroutine tao_find_data (err, data_name, d2_ptr, d1_array, d_array, re_array, &
+subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
 
 implicit none
 
-type (tao_d2_data_struct), pointer, optional :: d2_ptr
-type (tao_d2_data_struct), pointer :: d2_ptr_loc
+type (tao_d2_data_array_struct), allocatable, optional :: d2_array(:)
 type (tao_d1_data_array_struct), allocatable, optional :: d1_array(:)
 type (tao_data_array_struct), allocatable, optional    :: d_array(:)
 type (tao_real_pointer_struct), allocatable, optional    :: re_array(:)
@@ -1107,8 +1104,12 @@ logical, optional :: print_err
 
 print_error = logic_option(.true., print_err)
 
-nullify (d2_ptr_loc)
-if (present(d2_ptr)) nullify(d2_ptr)
+if (present(d2_array)) then
+  if (allocated (d2_array)) then
+    if (size(d2_array) /= 0) deallocate (d2_array)
+  endif
+  if (.not. allocated(d2_array)) allocate (d2_array(0))
+endif
 
 if (present(d1_array)) then
   if (allocated (d1_array)) then
@@ -1255,15 +1256,9 @@ endif
 ! loop over matching d2 names
 
 do i = 1, uu%n_d2_data_used
-  if (d2_name == '*') then
-    call find_this_d1 (uu%d2_data(i), d1_name, .false., this_err)
-    if (this_err) return
-  elseif (d2_name == uu%d2_data(i)%name) then
-    d2_ptr_loc => uu%d2_data(i)
-    if (present(d2_ptr)) d2_ptr => uu%d2_data(i)
-    call find_this_d1 (uu%d2_data(i), d1_name, .true., this_err)
-    exit
-  endif
+  if (.not. match_wild(uu%d2_data(i)%name, d2_name)) cycle
+  call find_this_d1 (uu%d2_data(i), d1_name, .false., this_err)
+  if (this_err) return
 enddo
 
 end subroutine find_this_d2
@@ -1274,10 +1269,27 @@ end subroutine find_this_d2
 subroutine find_this_d1 (d2, name, found_d1, this_err)
 
 type (tao_d2_data_struct), target :: d2
-integer i, ix
+type (tao_d2_data_array_struct), allocatable :: d2_temp(:)
+integer i, ix, nd
 character(*) name
 character(80) d1_name, d_name
 logical found_d1, this_err
+
+! d2_array
+
+if (present(d2_array)) then
+  if (allocated(d2_array)) then
+    nd = size(d2_array)
+    call move_alloc(d2_array, d2_temp)
+    allocate (d2_array(nd+1))
+    d2_array(1:nd) = d2_temp
+    deallocate(d2_temp)
+    d2_array(nd+1)%d2 => d2
+  else
+    allocate (d2_array(1))
+    d2_array(1)%d2 => d2
+  endif
+endif
 
 ! Everything before a '[' is the d1 name.
 
@@ -1304,16 +1316,12 @@ else
   d_name = d_name(:ix-1)
 endif
 
+if (size(d2%d1) == 1 .and. d1_name == '') d1_name = '*'
+
 do i = 1, size(d2%d1)
-  if (size(d2%d1) == 1 .and. d1_name == '') then
-    call find_this_data (d2%d1(i), d_name, this_err)
-  elseif (d1_name == '*') then
-    call find_this_data (d2%d1(i), d_name, this_err)
-    if (this_err) return
-  elseif (d1_name == d2%d1(i)%name) then
-    call find_this_data (d2%d1(i), d_name, this_err)
-    exit
-  endif
+  if (.not. match_wild(d2%d1(i)%name, d1_name)) cycle
+  call find_this_data (d2%d1(i), d_name, this_err)
+  if (this_err) return
 enddo
 
 end subroutine find_this_d1
@@ -1344,17 +1352,10 @@ logical, allocatable, save :: list(:)
 if (present(d1_array)) then
   if (allocated(d1_array)) then
     nd = size(d1_array)
-    if (nd > 0) then
-      allocate (d1_temp(nd))
-      d1_temp = d1_array
-      deallocate(d1_array)
-      allocate (d1_array(nd+1))
-      d1_array(1:nd) = d1_temp
-      deallocate(d1_temp)
-    else
-      deallocate(d1_array)
-      allocate (d1_array(1))
-    endif
+    call move_alloc(d1_array, d1_temp)
+    allocate (d1_array(nd+1))
+    d1_array(1:nd) = d1_temp
+    deallocate(d1_temp)
     d1_array(nd+1)%d1 => d1
   else
     allocate (d1_array(1))

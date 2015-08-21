@@ -140,6 +140,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (tao_lattice_struct), pointer :: tao_lat
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_ptr
 type (tao_d1_data_struct), pointer :: d1_ptr
 type (tao_data_struct), pointer :: d_ptr
@@ -820,39 +821,15 @@ case ('data')
   call tao_pick_universe (word1, line1, picked_uni, err)
   if (err) return
 
-  if (line1 == ' ') then  ! just specified a universe
-
-    nl=nl+1; lines(nl) = ''
-    nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
-
-    do iu = lbound(s%u, 1), ubound(s%u, 1)
-
-      if (.not. picked_uni(iu)) cycle
-
-      u => s%u(iu)
-
-      do i = 1, u%n_d2_data_used
-        d2_ptr => u%d2_data(i)
-        if (d2_ptr%name == ' ') cycle
-        call tao_data_show_use (d2_ptr, lines, nl)
-      enddo
-    enddo
-
-    result_id = 'data:'
-    return
-  endif
-
   ! get pointers to the data
 
-  call tao_find_data (err, word1, d2_ptr, d1_array, d_array)
+  if (word1 == '') word1 = '*@*'
+  call tao_find_data (err, word1, d2_array, d1_array, d_array)
   if (err) return
-
-  n_size = 0
-  if (allocated(d_array)) n_size = size(d_array)
 
   ! If d_ptr points to something then show the datum info.
 
-  if (n_size == 1) then
+  if (size(d_array) == 1) then
     d_ptr => d_array(1)%d
     nl=nl+1; lines(nl) = ''
     if (size(s%u) > 1) then
@@ -975,10 +952,11 @@ case ('data')
     nl=nl+1; lines(nl) = line2
     nl=nl+1; lines(nl) = line1
 
-  ! else we must have a valid d2_ptr.
+  ! else if a single d2 structure
 
-  elseif (associated(d2_ptr)) then
+  elseif (size(d2_array) == 1) then
 
+    d2_ptr => d2_array(1)%d2
     call re_allocate (lines, nl+100+size(d2_ptr%d1), .false.)
 
     nl=nl+1; write(lines(nl), '(t40, a)')     'Using' 
@@ -1003,10 +981,23 @@ case ('data')
       enddo
     endif
 
+  ! Else several d2 structures
+
+  elseif (size(d2_array) > 1) then
+
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; write(lines(nl), '(a, t40, a)') 'Name', 'Using for Optimization'
+
+    do i = 1, size(d2_array)
+      d2_ptr => d2_array(i)%d2
+      if (d2_ptr%name == ' ') cycle
+      call tao_data_show_use (d2_ptr, lines, nl)
+    enddo
+
   ! error
 
   else
-    nl=1; lines(1) = 'TRY BEING MORE SPECIFIC.'
+    nl=1; lines(1) = 'NO MATCHING DATA FOUND.'
     return
   endif
 

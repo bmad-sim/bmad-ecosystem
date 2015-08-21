@@ -39,6 +39,7 @@ use ptc_layout_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
+type (tao_d2_data_array_struct), allocatable :: d2_array(:)
 type (tao_d2_data_struct), pointer :: d2_dat
 type (tao_d1_data_struct), pointer :: d1_dat
 type (coord_struct), allocatable, save :: orb(:)
@@ -155,9 +156,13 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     if (ib == 0) then
       write (name, '(i0, a)') iuni, '@multi_turn_orbit'
-      call tao_find_data (err, name, d2_dat, print_err = .false.)
+      call tao_find_data (err, name, d2_array, print_err = .false.)
 
-      if (associated(d2_dat)) then
+      if (size(d2_array) > 0) then
+        if (size(d2_array) /= 1) then
+          call out_io (s_error$, r_name, 'MULTIPLE D2 DATA ARRAYS ASSOCIATED WITH: ' // name)
+        endif
+        d2_dat => d2_array(1)%d2
         n_max = 0
         do id = 1, size(d2_dat%d1)
           n_max = max(n_max, ubound(d2_dat%d1(id)%d, 1))

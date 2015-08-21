@@ -391,6 +391,10 @@ type tao_d1_data_array_struct
   type (tao_d1_data_struct), pointer :: d1
 end type
 
+type tao_d2_data_array_struct
+  type (tao_d2_data_struct), pointer :: d2
+end type
+
 !-----------------------------------------------------------------------
 ! tao_this_var_struct is for defining an array of pointers to variables
 ! in the tao_var_struct
