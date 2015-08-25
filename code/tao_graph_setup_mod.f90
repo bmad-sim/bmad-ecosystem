@@ -1268,11 +1268,9 @@ case ('lat', 'beam')
     endif 
     n_dat = max(0, nint(x_max+1-x_min))
     call re_allocate_eles (scratch%eles, n_dat, exact = .true.)
-    if (n_dat > 0) then
-      do i = 1, n_dat
-        scratch%eles(i)%ele => pointer_to_ele (model_lat, i, curve%ix_branch)
-      enddo
-    endif
+    do i = 1, n_dat
+      scratch%eles(i)%ele => pointer_to_ele (model_lat, nint(i+x_min-1), curve%ix_branch)
+    enddo
 
   ! x_axis_type == 's':
 

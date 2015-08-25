@@ -500,9 +500,28 @@ The second order dispersions $\partial\eta_{x,y}/\partial\delta$ and their slope
   \index{element_attrib.}
   \item[element_attrib.] \Newline
 The \vn{element_attrib.<attrib_name>} data type is associated with the
-lattice element attribute named \vn{<attrib_name>}. For any given
-element, if \vn{<attrib_name} is not associated with the element, the
-value of the datum is zero.
+lattice element attribute named \vn{<attrib_name>}. See the \bmad
+(\cite{b:bmad}) manual for information on attribute names. For
+example, to plot the dipole bend strength \vn{g}, the following
+plot template (\sref{s:init.plot}) can be used:
+\begin{example}
+  &tao_template_plot
+    plot%name = 'bend_g'
+    plot%n_graph = 1
+    plot%x_axis_type = 'index'
+  /
+
+  &tao_template_graph
+    graph%name = 'g'
+    graph%type = 'data'
+    graph_index = 1
+    graph%y%label = 'g'
+    graph%n_curve = 1
+    curve(1)%name = 'g'
+    curve(1)%data_type = 'element_attrib.g'
+    curve(1)%draw_line = F
+  /
+\end{example}
 
   \index{emit.}
   \item[emit.] \Newline
