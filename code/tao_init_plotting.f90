@@ -124,6 +124,7 @@ default_graph%y2%major_div          = -1
 default_graph%y2%major_div_nominal  = -1
 default_graph%y2%label_color        = blue$
 default_graph%y2%draw_numbers       = .false.
+default_graph%margin                = qp_rect_struct(0.15, 0.06, 0.12, 0.12, '%BOX')
 
 ! If there is no plot file then use the built-in defaults.
 

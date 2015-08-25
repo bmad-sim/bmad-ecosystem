@@ -424,7 +424,6 @@ type (lat_struct), pointer :: lat
 type (normal_modes_struct) mode
 type (spin_polar_struct) polar
 type (ele_struct), pointer :: ele, ele_start, ele_ref, ele2
-type (ele_struct) ele_dum
 type (coord_struct), pointer :: orb0
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
@@ -1073,23 +1072,25 @@ case ('e_tot')
 case ('element_attrib.')
 
   name = upcase(datum%data_type(16:))
-  ele_dum%key = overlay$  ! so entire attribute name table will be searched
-  i = attribute_index(ele_dum, name)
-  if (i < 1) return  ! Bad attribute name
-
   value_vec = 0
+  good = .false.
+
   do i = ix_start, ix_ele
     call pointer_to_attribute (branch%ele(i), name, .false., a_ptr, err, .false.)
     if (.not. associated (a_ptr%r)) cycle
     value_vec(i) = a_ptr%r
+    good(i) = .true.
   enddo
 
   if (ix_ref > -1) then
     call pointer_to_attribute (ele_ref, name, .false., a_ptr, err, .false.)
-    if (associated (a_ptr%r)) value_vec(ix_ref) = a_ptr%r
+    if (associated (a_ptr%r)) then
+      value_vec(ix_ref) = a_ptr%r
+      good(ix_ref) = .true.
+    endif
   endif
 
-  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
+  call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid, good = good)
 
 !-----------
 
