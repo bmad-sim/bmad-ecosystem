@@ -1292,7 +1292,7 @@ type bmad_common_struct
   logical :: radiation_fluctuations_on = .false.      ! Fluctuations toggle.
   logical :: conserve_taylor_maps = .true.            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
-  logical :: cancel_wiggler_end_kicks = .false.       ! Cancel kicks due to finite vector potential at wiggler ends?
+  logical :: convert_to_kinetic_momentum = .false.    ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                       !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: debug = .false.                          ! Used for code debugging.
 end type
