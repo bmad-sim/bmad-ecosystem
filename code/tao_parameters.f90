@@ -20,5 +20,8 @@ integer, parameter :: n_who_maxx      = 10
 integer, parameter :: single_tracking$ = 1
 integer, parameter :: many_tracking$ = 2
 
+! This is to suppress the ranlib "has no symbols" message
+integer, private :: private_dummy
+
 end module
 
