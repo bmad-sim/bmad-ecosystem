@@ -29,18 +29,6 @@ contains
 ! Subroutine to track through an element (which gives the 0th order map) 
 ! and optionally make the 6x6 transfer matrix (1st order map) as well.
 !
-! Convention: Start and end p_y and p_x coordinates are the field free momentum.
-! That is, at the start the coordinates are transformed by:
-!   (p_x, p_y) -> (p_x + Ax, p_y + Ay)
-! and at the end there is a transformation:
-!   (p_x, p_y) -> (p_x - Ax, p_y - Ay)
-! Where (Ax, Ay) components of the magnetic vector potential.
-! If the start and end coordinates are in field free regions then (Ax, Ay) will be zero
-! and the transformations will not affect the result. 
-! The reason for this convention is to be able to compute the local bending radius via 
-! tracking. Also this convention gives more "intuative" results when, say, using
-! a single wiggler term as a "toy" model for a wiggler.
-!
 ! Modules needed:
 !   use bmad
 !
@@ -60,7 +48,7 @@ contains
 !   track      -- Track_struct, optional: Structure holding the track information.
 !                   When tracking through multiple elements, the trajectory in an element
 !                   is appended to the existing trajectory. To reset: Set track%n_pt = -1.
-!!-
+!-
 
 subroutine symp_lie_bmad (ele, param, start_orb, end_orb, calc_mat6, track, offset_ele)
 
@@ -77,7 +65,7 @@ type (wig_term_struct), pointer :: wig_term(:)
 type (wiggler_computations_struct), allocatable, target :: tm(:)
 type (wig_term_struct), pointer :: wt
 
-real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6)
+real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_saved
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
@@ -182,9 +170,9 @@ Case (wiggler$, undulator$)
 
   ! Symplectic integration gives a kick to the physical momentum (but not the canonical momentum) at the ends of an 
   ! element if there is a finite vector potential. This is necessary for symplecticity but can complicate comparisons
-  ! with runge_kutta. That is, only set bmad_com%cancel_wiggler_end_kicks = True for testing purposes.
+  ! with runge_kutta. That is, only set bmad_com%convert_to_kinetic_momentum = True for testing purposes.
 
-  if (bmad_com%cancel_wiggler_end_kicks) then
+  if (bmad_com%convert_to_kinetic_momentum) then
     end_orb%vec(2) = end_orb%vec(2) + Ax()
     end_orb%vec(4) = end_orb%vec(4) + Ay()
   endif
@@ -259,7 +247,7 @@ Case (wiggler$, undulator$)
 
   ! Correction for finite vector potential at exit end.
 
-  if (bmad_com%cancel_wiggler_end_kicks) then
+  if (bmad_com%convert_to_kinetic_momentum) then
     end_orb%vec(2) = end_orb%vec(2) - Ax()
     end_orb%vec(4) = end_orb%vec(4) - Ay()
   endif
@@ -452,7 +440,7 @@ if (calculate_mat6) then
   track%map(ix)%vec0 = track%orb(ix)%vec - matmul (track%map(ix)%mat6, start_orb%vec)
 endif
 
-if (bmad_com%cancel_wiggler_end_kicks) then
+if (bmad_com%convert_to_kinetic_momentum) then
   ix = track%n_pt
   track%orb(ix)%vec(2) = track%orb(ix)%vec(2) - Ax()
   track%orb(ix)%vec(4) = track%orb(ix)%vec(4) - Ay()
@@ -629,7 +617,8 @@ subroutine apply_wig_exp_int_ax (sgn, do_mat6)
 integer sgn
 logical do_mat6
 
-end_orb%vec(2) = end_orb%vec(2) + sgn * Ax()
+Ax_saved = Ax()
+end_orb%vec(2) = end_orb%vec(2) + sgn * Ax_saved
 end_orb%vec(4) = end_orb%vec(4) + sgn * dint_Ax_dy()
 
 if (do_mat6) then
@@ -648,8 +637,9 @@ subroutine apply_wig_exp_int_ay (sgn, do_mat6)
 integer sgn
 logical do_mat6
 
+Ay_saved = Ay()
 end_orb%vec(2) = end_orb%vec(2) + sgn * dint_Ay_dx()
-end_orb%vec(4) = end_orb%vec(4) + sgn * Ay()
+end_orb%vec(4) = end_orb%vec(4) + sgn * Ay_saved
 
 if (do_mat6) then
   mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_Ay_dx__dx() * mat6(1,1:6) + dint_Ay_dx__dy() * mat6(3,1:6))
@@ -1321,9 +1311,9 @@ dE_p = (1 + end_orb%vec(6)) * (fact_d * g2 + fact_f * sqrt(g3) * this_ran) * syn
 
 ! And kick the particle.
 
-end_orb%vec(2) = end_orb%vec(2) * (1 - dE_p)
-end_orb%vec(4) = end_orb%vec(4) * (1 - dE_p)
-end_orb%vec(6) = end_orb%vec(6)  - dE_p * (1 + end_orb%vec(6))
+end_orb%vec(2) = end_orb%vec(2) - (end_orb%vec(2) - Ax_saved) * dE_p
+end_orb%vec(4) = end_orb%vec(4) - (end_orb%vec(4) - Ay_saved) * dE_p
+end_orb%vec(6) = end_orb%vec(6) - dE_p * (1 + end_orb%vec(6))
 
 ! synch_ran_com%i_calc_on is, by default, False but a program can set this to True for testing purposes.
 
