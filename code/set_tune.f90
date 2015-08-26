@@ -55,7 +55,8 @@ rf_on = rf_is_on(lat%branch(0))
 
 do j = 1, lat%n_ele_max
   if (dk1(j) == 0) cycle
-  if (attribute_free(lat%ele(j), 'K1', .false.)) cycle
+  ele => lat%ele(j)
+  if (attribute_free(ele, 'K1', .false.)) cycle
   call out_io (s_warn$, r_name, 'K1 ATTRIBUTE NOT FREE TO VARY OF ELEMENT: ' // ele%name, 'WILL NOT USE THIS!')
 enddo
 
