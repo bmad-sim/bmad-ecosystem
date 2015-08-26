@@ -342,8 +342,9 @@ end type
 
 integer, parameter :: hyper_y_old$ = 1, hyper_xy_old$ = 2, hyper_x_old$ = 3
 integer, parameter :: hyper_y$ = 4, hyper_xy$ = 5, hyper_x$ = 6
-character(12), parameter :: wig_term_type_name(0:6) = ['Garbage ', 'Hyper_Y_old ', 'Hyper_XY_old', 'Hyper_X_old ', &
-                                                                   'Hyper_Y     ', 'Hyper_XY    ', 'Hyper_X     ']
+character(12), parameter :: wig_term_type_name(0:6) = [ &
+                                        'Garbage     ', 'Hyper_Y_old ', 'Hyper_XY_old', 'Hyper_X_old ', &
+                                        'Hyper_Y     ', 'Hyper_XY    ', 'Hyper_X     ']
 
 ! Single wiggler term
 
