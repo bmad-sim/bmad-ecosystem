@@ -43,10 +43,10 @@ call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
 if (print_extra) then
   if (lat%param%geometry == open$) then
-    bmad_com%cancel_wiggler_end_kicks = .false.
+    bmad_com%convert_to_kinetic_momentum = .false.
     print *, '*** Note: wiggler end kicks not cancelled (so like PTC tracking).'
   else
-    bmad_com%cancel_wiggler_end_kicks = .true.
+    bmad_com%convert_to_kinetic_momentum = .true.
     print *, '*** Note: wiggler end kicks cancelled (so like RUNGE_KUTTA tracking).'
   endif
 endif
