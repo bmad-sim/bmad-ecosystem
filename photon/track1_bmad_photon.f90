@@ -87,7 +87,7 @@ case (crystal$)
 case (diffraction_plate$)
 
   call offset_photon (ele, end_orb, set$); if (end_orb%state /= alive$) return
-  call track1_diffraction_plate (ele, param, end_orb)
+  call track1_diffraction_plate_or_mask (ele, param, end_orb)
   call offset_photon (ele, end_orb, unset$); if (end_orb%state /= alive$) return
 
 !-----------------------------------------------

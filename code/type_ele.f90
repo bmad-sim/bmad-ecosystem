@@ -469,7 +469,7 @@ if (associated(wall3d)) then
     nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(wall3d%ele_anchor_pt)
     select case (ele%key)
     case (capillary$)
-    case (diffraction_plate$)
+    case (diffraction_plate$, mask$)
       nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', wall3d%thickness
       nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(wall3d%clear_material), '"'
       nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(wall3d%opaque_material), '"'

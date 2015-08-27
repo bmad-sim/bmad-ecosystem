@@ -2780,7 +2780,7 @@ character(*), parameter :: r_name = 'aperture_bookkeeper'
 !
 
 select case (ele%key)
-case (diffraction_plate$) 
+case (diffraction_plate$, mask$) 
 
   ele%value(x1_limit$) = -100
   ele%value(y1_limit$) = -100
@@ -2789,7 +2789,7 @@ case (diffraction_plate$)
 
   do i = 1, size(ele%wall3d%section)
     sec => ele%wall3d%section(i)
-    if (sec%type == mask$) cycle
+    if (sec%type == opaque$) cycle
     do j = 1, 100
       angle = twopi * j / 100.0_rp
       call calc_wall_radius (sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
@@ -2803,7 +2803,7 @@ case (diffraction_plate$)
   enddo
 
 
-! Non diffraction_plate element
+! Element not a diffraction_plate nor a mask.
 
 case default
   if (.not. associated (ele%photon)) then

@@ -30,7 +30,8 @@ available in \bmad.
   Kicker            & \ref{s:kicker}      &  Taylor            & \ref{s:taylor}   \HH
   Lcavity           & \ref{s:lcav}        &  Undulator         & \ref{s:wiggler}  \HH
   Marker            & \ref{s:mark}        &  VKicker           & \ref{s:hvkicker} \HH  
-  Match             & \ref{s:match}       &  Wiggler           & \ref{s:wiggler}  \HH
+  Mask              & \ref{s:mask}        &  Wiggler           & \ref{s:wiggler}  \HH
+  Match             & \ref{s:match}       &                    &                  \HH
 \end{tabular}
 }
 \caption{Table of element types suitable for use with charged particles.}
@@ -59,17 +60,17 @@ particle and photon use.
 \begin{tabular}{|l|l||l|l|} \hline
   {\it Element}      & {\it Section}         & {\it Element}       & {\it Section}      \HH
   Beginning_Ele      & \ref{s:begin.ele}     &  Marker             & \ref{s:mark}       \HH
-  Capillary          & \ref{s:capillary}     &  Match              & \ref{s:match}      \HH
-  Crystal            & \ref{s:crystal}       &  Monitor            & \ref{s:monitor}    \HH 
-  Custom             & \ref{s:custom}        &  Mirror             & \ref{s:mirror}     \HH
-  Detector           & \ref{s:detector}      &  Multilayer_Mirror  & \ref{s:multilayer} \HH
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Patch              & \ref{s:patch}      \HH
-  Drift              & \ref{s:drift}         &  Photon_Fork        & \ref{s:fork}       \HH
-  Ecollimator        & \ref{s:col}           &  Photon_Init        & \ref{s:photon.init}\HH
-  Fiducial           & \ref{s:fiducial}      &  Pipe               & \ref{s:monitor}    \HH
-  Floor_Shift        & \ref{s:floor.ele}     &  Rcollimator        & \ref{s:col}        \HH
-  Fork               & \ref{s:fork}          &  Sample             & \ref{s:sample}     \HH 
-  Instrument         & \ref{s:monitor}       &                     &                    \HH
+  Capillary          & \ref{s:capillary}     &  Mask               & \ref{s:mask}       \HH
+  Crystal            & \ref{s:crystal}       &  Match              & \ref{s:match}      \HH
+  Custom             & \ref{s:custom}        &  Monitor            & \ref{s:monitor}    \HH 
+  Detector           & \ref{s:detector}      &  Mirror             & \ref{s:mirror}     \HH
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror  & \ref{s:multilayer} \HH
+  Drift              & \ref{s:drift}         &  Patch              & \ref{s:patch}      \HH
+  Ecollimator        & \ref{s:col}           &  Photon_Fork        & \ref{s:fork}       \HH
+  Fiducial           & \ref{s:fiducial}      &  Photon_Init        & \ref{s:photon.init}\HH
+  Floor_Shift        & \ref{s:floor.ele}     &  Pipe               & \ref{s:monitor}    \HH
+  Fork               & \ref{s:fork}          &  Rcollimator        & \ref{s:col}        \HH
+  Instrument         & \ref{s:monitor}       &  Sample             & \ref{s:sample}     \HH 
 \end{tabular}
 }
 \caption{Table of element types suitable for use with photons.}
@@ -105,7 +106,7 @@ General \vn{ab_multipole} Attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & \s              & {\sl Attribute Class}      & \s              \HH
   a$n$, b$n$ multipoles      & \ref{s:multip}  & Offsets \& tilt            & \ref{s:offset}  \HH
-  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Aperture limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
   Reference energy           & \ref{s:energy}  &                            &                 \HH
@@ -150,7 +151,7 @@ General \vn{beambeam} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
+  Aperture limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
   Reference energy           & \ref{s:energy}  &                            &                 \HH
@@ -287,7 +288,7 @@ General \vn{bend_sol_quad} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles     & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -379,7 +380,7 @@ General \vn{rbend} and \vn{sbend} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -654,7 +655,7 @@ General \vn{capillary} attributes are:
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
   Description strings    & \ref{s:alias}   & Capillary Wall         & \ref{s:wall}        \HH
   Reference energy       & \ref{s:energy}  & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH 
-  Aperture Limits        & \ref{s:limit}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Aperture limits        & \ref{s:limit}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
 \toffset
@@ -692,7 +693,7 @@ General \vn{ecollimator} and \vn{rcollimator} attributes are:
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
   Description strings    & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Aperture limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Symplectify            & \ref{s:symp}    & Integration settings       & \ref{s:integ}   \HH
   Hkick \& Vkick         & \ref{s:kick}    & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
@@ -739,7 +740,7 @@ General \vn{crystal} attributes are:
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
   Description strings        & \ref{s:alias}   & Offsets, Pitches \& Tilt   & \ref{s:offset}  \HH
   Reference energy           & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Aperture limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Surface Properties         & \ref{s:s.curve} &                            &                 \HH
 \end{tabular}
 \end{center}
@@ -927,7 +928,7 @@ General \vn{custom} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits        & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall           & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings    & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map     & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -983,7 +984,7 @@ General \vn{detector} element attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section           \HH
-  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}    \HH
+  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}    \HH
   Chamber Wall               & \ref{s:wall}    & Detector Geometry          & \ref{s:surf.grid} \HH
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods}   \HH
   Offsets, pitches \& tilt   & \ref{s:offset}  &                            &                   \HH
@@ -1020,12 +1021,17 @@ account. This is in contrast to setting an aperture attribute
 (\sref{s:limit} for other elements where diffraction effects are
 ignored.
 
+A \vn{diffraction_plate} element is similar to a \vn{mask}
+(\sref{s:mask}) element except that with a \vn{mask} element coherent
+effects are ignored. Additionally, a \vn{mask} element can be used
+with charged particles while a \vn{diffraction_plate} cannot.
+
 General \vn{diffraction_plate} element attributes are:
 \begin{center}
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Plate geometry             & \ref{s:wall}    \HH
+  Aperture limits            & \ref{s:limit}   & Mask geometry              & \ref{s:wall}    \HH
   Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH
   Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
   Offsets, pitches \& tilt   & \ref{s:offset}  &                            &                 \HH
@@ -1099,7 +1105,7 @@ General \vn{drift} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
+  Aperture limits        & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Description strings    & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH 
   Integration settings   & \ref{s:integ}   & Symplectify                & \ref{s:symp}    \HH 
   Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -1133,7 +1139,7 @@ General \vn{e_gun} attributes are:
   Symplectify            & \ref{s:symp}    & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Aperture limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Hkick \& Vkick         & \ref{s:kick}    & Mag \& Elec multipoles      & \ref{s:multip}  \HH
   Integration settings   & \ref{s:integ}   & Chamber wall               & \ref{s:wall}    \HH
 \end{tabular}
@@ -1225,7 +1231,7 @@ General \vn{elseparator} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -1274,7 +1280,7 @@ attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}    & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits          & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits          & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall             & \ref{s:wall}      & Length                     & \ref{s:l}       \HH 
   Description strings      & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map       & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH
@@ -1302,7 +1308,7 @@ General \vn{fiducial} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Aperture limits        & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
   Description strings    & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
 \end{center}
@@ -1426,7 +1432,7 @@ General \vn{floor_shift} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
   Length                     & \ref{s:l}       &                            &                 \HH  
 \end{tabular}
@@ -1523,7 +1529,7 @@ General \vn{fork} and \vn{photon_fork} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Aperture limits            & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}    & Tracking \& transfer map   & \ref{c:methods} \HH
   Description strings        & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy           & \ref{s:energy}  &                            &                 \HH
@@ -2075,7 +2081,7 @@ General \vn{instrument}, \vn{monitor}, and \vn{pipe} attributes are:
   {\sl Attribute Class}  & Section             & {\sl Attribute Class}      & Section         \HH
   Symplectify            & \ref{s:symp}        & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Reference energy       & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
-  Aperture Limits        & \ref{s:limit}       & Length                     & \ref{s:l}       \HH
+  Aperture limits        & \ref{s:limit}       & Length                     & \ref{s:l}       \HH
   Description strings    & \ref{s:alias}       & Is_on                      & \ref{s:is.on}   \HH 
   Integration settings   & \ref{s:integ}       & Hkick \& Vkick             & \ref{s:kick}    \HH
   Instrumental variables & \ref{s:meas.attrib} & Chamber wall               & \ref{s:wall}    \HH
@@ -2112,7 +2118,7 @@ General \vn{hkicker} \vn{vkicker} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -2151,7 +2157,7 @@ General \vn{kicker} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}        & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -2181,7 +2187,7 @@ General \vn{lcavity} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
   Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
@@ -2333,7 +2339,7 @@ General \vn{marker} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section             & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}       & Instrumental variables     & \ref{s:meas.attrib} \HH
+  Aperture limits            & \ref{s:limit}       & Instrumental variables     & \ref{s:meas.attrib} \HH
   Chamber wall               & \ref{s:wall}        & Is_on                      & \ref{s:is.on}   \HH 
   Description strings        & \ref{s:alias}       & Offsets \& tilt            & \ref{s:offset}  \HH
   Reference energy           & \ref{s:energy}      & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2364,6 +2370,92 @@ Example:
 \end{example}
 
 %-----------------------------------------------------------------
+\section{Mask}
+\label{s:mask}
+\index{mask|hyperbf}
+
+A \vn{mask} element defines an aperture where the mask area can
+essentially have an arbitrary shape. 
+
+For X-ray tracking, a \vn{mask} element is similar to a
+\vn{diffraction_plate} (\sref{s:diff.plate}) element except that with
+a \vn{diffraction_plate} element, coherent effects are taken into
+account while, with a \vn{mask} element, coherent effects are ignored.
+Also a \vn{mask} element can be used with charged particles while a
+\vn{diffraction_plate} cannot.
+
+General \vn{mask} element attributes are:
+\begin{center}
+\tt 
+\begin{tabular}{|l|l||l|l|} \hline
+  {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
+  Aperture limits            & \ref{s:limit}   & Mask geometry              & \ref{s:wall}    \HH
+  Description strings        & \ref{s:alias}   & Reference energy           & \ref{s:energy}  \HH
+  Is_on                      & \ref{s:is.on}   & Tracking \& transfer map   & \ref{c:methods} \HH
+  Offsets, pitches \& tilt   & \ref{s:offset}  &                            &                 \HH
+\end{tabular}
+\end{center}
+\toffset
+
+Notice that, unlike a \vn{rcollimator} or a \vn{ecollimator}, a \vn{mask} element has zero length.
+
+\index{mode}\index{field_scale_factor}
+Attributes specific to a \vn{mask} element are:
+\begin{example}
+  mode               = <Type>   ! Reflection or transmission.
+  field_scale_factor = <Real>   ! Factor to scale the photon field
+  ref_wavelength                ! Reference wavelength (\sref{s:energy}). Dependent attribute (\sref{s:depend}).
+\end{example}
+Note: These attributes are only pertinent for photon tracking. Charged
+particle tracking assumes transmission mode and does not use
+\vn{field_scale_factor} and \vn{ref_wavelength} attributes.
+
+The \vn{mode} switch, which is only used for photon tracking, sets
+whether X-rays are transmitted through the \vn{mask} or
+or reflected. Possible values for the \vn{mode} switch are:
+\begin{example}
+  reflection
+  transmission        ! Default
+\end{example}
+
+The geometry of the mask, that is, where the openings (in
+transmission mode) or reflection regions are, is defined using the
+``wall'' attribute. See (\sref{s:wall}) for more details.
+
+In transmission mode, a \vn{mask} is nominally orientated
+transversely to the beam. Like all other elements, the
+\vn{mask} can be reoriented using the element's offsets,
+pitches and tilt attributes (\sref{s:offset}).
+
+\index{aperture_type}
+The \vn{aperture_type} (\sref{s:limit}) parameter of a
+\vn{mask} will default to \vn{auto} which will set the
+aperture limits to define a rectangular aperture that just cover the
+clear area of the mask.
+
+\index{field_scale_factor}
+The \vn{field_scale_factor}, if set to a non-zero value (zero is the
+default) will be used to scale the field of photons as they pass through
+the \vn{mask} element:
+\begin{example}
+  field -> field * field_scale_factor
+\end{example}
+Scaling is useful since the electric field of photons traveling through a
+\vn{mask} are renormalized (see \Eqs{eeo4p} and
+\eq{eek4p}). This can lead to large variation of the photon field and
+can, for example, make visual interpretation of plots of field verses
+longitudinal position difficult to interpret. \vn{field_scale_factor}
+can be used to keep the field more or less constant.
+
+A \vn{mask} that is ``turned off'' (\vn{is_on} attribute set to
+False), does not mask at all and transmits everything.
+
+Example:
+\begin{example}
+  scrapper: mask, wall = \{...\}
+\end{example}
+
+%-----------------------------------------------------------------
 \section{Match}
 \label{s:match}
 \index{match|hyperbf}
@@ -2376,7 +2468,7 @@ General \vn{match} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
+  Aperture limits        & \ref{s:limit}   & Length                     & \ref{s:l}       \HH
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
   Reference energy       & \ref{s:energy}  & Integration settings       & \ref{s:integ}   \HH
 \end{tabular}
@@ -2516,7 +2608,7 @@ General \vn{mirror} attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
   Description strings        & \ref{s:alias}   & Surface Properties         & \ref{s:s.curve} \HH
   Offsets, pitches \& tilt   & \ref{s:offset}  & Tracking \& transfer map   & \ref{c:methods} \HH
 \end{tabular}
@@ -2556,7 +2648,7 @@ General \vn{multipole} attributes are:
 \tt 
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
+  Aperture limits            & \ref{s:limit}   & Reference energy           & \ref{s:energy}  \HH
   Chamber wall               & \ref{s:wall}    & Is_on                      & \ref{s:is.on}   \HH 
   Description strings        & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   K$n$L, T$n$ multipoles     & \ref{s:multip}  & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -2597,7 +2689,7 @@ General \vn{crystal} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Aperture limits            & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Description strings        & \ref{s:alias}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Reference energy           & \ref{s:energy}  & Tracking \& transfer map   & \ref{c:methods} \HH
   Surface Properties         & \ref{s:s.curve} &                            &                 \HH
@@ -2672,7 +2764,7 @@ General \vn{octupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -2814,7 +2906,7 @@ General \vn{patch} element attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section         & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH 
+  Aperture limits            & \ref{s:limit}   & Offsets, pitches \& tilt   & \ref{s:offset}  \HH 
   Chamber wall               & \ref{s:wall}    & Reference energy           & \ref{s:energy}  \HH
   Description strings        & \ref{s:alias}   & Tracking \& transfer map   & \ref{c:methods} \HH
   Length                     & \ref{s:l}       &                            &                 \HH
@@ -2976,7 +3068,7 @@ General \vn{photon_init} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -3174,7 +3266,7 @@ General \vn{quadrupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -3227,7 +3319,7 @@ General \vn{rfcavity} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \HH 
   Field table or map         & \ref{s:em.fields} & RF Couplers                & \ref{s:rf.coupler} \HH
@@ -3341,7 +3433,7 @@ General \vn{sample} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Magnetic multipoles        & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
+  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}       \HH
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}  \HH 
   Fringe Fields              & \ref{s:fringe}    & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -3459,7 +3551,7 @@ General \vn{sample} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  Aperture Limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
+  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Chamber wall               & \ref{s:wall}      & Reference energy           & \ref{s:energy}  \HH 
   Description strings        & \ref{s:alias}     & Surface Properties         & \ref{s:s.curve} \HH
   Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods} \HH
@@ -3493,7 +3585,7 @@ determine the attenuation and phase shift of the photons.
 
 Example:
 \begin{example}
-  plate: sample, x_limit = 10e-3, y_limit = 20e-3, mode = reflection
+  formula409: sample, x_limit = 10e-3, y_limit = 20e-3, mode = reflection
 \end{example}
 
 %-----------------------------------------------------------------
@@ -3510,7 +3602,7 @@ General \vn{sextupole} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -3551,7 +3643,7 @@ General \vn{solenoid} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -3591,7 +3683,7 @@ General \vn{sol_quad} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
   Mag \& Elec multipoles      & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 
@@ -3629,7 +3721,7 @@ General \vn{taylor} attributes are:
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}  & Section         & {\sl Attribute Class}      & Section         \HH
   Description strings    & \ref{s:alias}   & Is_on                      & \ref{s:is.on}   \HH 
-  Aperture Limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
+  Aperture limits        & \ref{s:limit}   & Symplectify                & \ref{s:symp}    \HH
   Length                 & \ref{s:l}       & Tracking \& transfer map   & \ref{c:methods} \HH
   Reference energy       & \ref{s:energy}  & Offsets \& tilt            & \ref{s:offset}  \HH
 \end{tabular}
@@ -3732,8 +3824,8 @@ General \vn{wiggler} attributes are:
 \tt
 \begin{tabular}{|l|l||l|l|} \hline
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \HH
-  Mag \& Elec multipoles     & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
-  Aperture Limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
+  Mag. \& Elec. multipoles   & \ref{s:multip}    & Integration settings       & \ref{s:integ}   \HH
+  Aperture limits            & \ref{s:limit}     & Is_on                      & \ref{s:is.on}   \HH
   Chamber wall               & \ref{s:wall}      & Length                     & \ref{s:l}       \HH
   Description strings        & \ref{s:alias}     & Offsets, pitches \& tilt   & \ref{s:offset}  \HH
   Field table or map         & \ref{s:em.fields} & Reference energy           & \ref{s:energy}  \HH 

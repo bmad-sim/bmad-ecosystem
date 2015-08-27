@@ -496,6 +496,7 @@ do i = 1, n_key$
   if (i /= drift$) call init_attribute_name1 (i, is_on$,        'IS_ON')
 
   if (i == diffraction_plate$) cycle
+  if (i == mask$)              cycle
   if (i == marker$)            cycle
   if (i == detector$)          cycle
   if (i == beambeam$)          cycle
@@ -778,6 +779,11 @@ call init_attribute_name1 (diffraction_plate$, l$,                    'l', priva
 call init_attribute_name1 (diffraction_plate$, mode$,                 'MODE')
 call init_attribute_name1 (diffraction_plate$, field_scale_factor$,   'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (diffraction_plate$, ref_wavelength$,       'REF_WAVELENGTH', dependent$)
+
+call init_attribute_name1 (mask$, l$,                                 'l', private$)
+call init_attribute_name1 (mask$, mode$,                              'MODE')
+call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
+call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
 
 call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
 call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')
@@ -1668,7 +1674,7 @@ case ('GEOMETRY')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, geometry_name, lbound(geometry_name, 1))
 
 case ('MODE')
-  if (ele%key == diffraction_plate$ .or. ele%key == sample$) then
+  if (ele%key == diffraction_plate$ .or. ele%key == sample$ .or. ele%key == mask$) then
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, mode_name, lbound(mode_name, 1))
     if (present(is_default)) then
       is_default = (ix_attrib_val == default_value(ele, mode$))

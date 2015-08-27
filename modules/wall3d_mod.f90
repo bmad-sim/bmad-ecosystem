@@ -5,6 +5,8 @@ use bmad_interface
 use geometry_mod
 use rotation_3d_mod
 
+implicit none
+
 !
 
 interface re_allocate
@@ -38,8 +40,6 @@ contains
 !-
 
 subroutine re_allocate_wall3d_vertex_array (v, n, exact)
-
-implicit none
 
 type (wall3d_vertex_struct), allocatable :: v(:), temp_v(:)
 
@@ -91,8 +91,6 @@ end subroutine re_allocate_wall3d_vertex_array
 !-
 
 subroutine re_allocate_wall3d_section_array (section, n, exact)
-
-implicit none
 
 type (wall3d_section_struct), allocatable :: section(:), temp_section(:)
 
@@ -149,8 +147,6 @@ end subroutine re_allocate_wall3d_section_array
 !-
 
 subroutine wall3d_initializer (wall3d, err)
-
-implicit none
 
 type (wall3d_struct), target :: wall3d
 type (wall3d_section_struct), pointer :: s1, s2
@@ -226,8 +222,6 @@ end subroutine wall3d_initializer
 !-
 
 subroutine wall3d_section_initializer (section, err)
-
-implicit none
 
 type (wall3d_section_struct), target :: section
 type (wall3d_vertex_struct), pointer :: v(:)
@@ -483,8 +477,6 @@ end subroutine wall3d_section_initializer
 
 subroutine calc_wall_radius (v, cos_ang, sin_ang, r_wall, dr_dtheta, ix_vertex)
 
-implicit none
-
 type (wall3d_vertex_struct), target :: v(:)
 type (wall3d_vertex_struct), pointer :: v1, v2
 
@@ -639,8 +631,6 @@ end subroutine calc_wall_radius
 !-
 
 function wall3d_d_radius (position, ele, perp, ix_section, in_antechamber, origin, err_flag) result (d_radius)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (wall3d_section_struct), pointer :: sec1, sec2
@@ -1069,8 +1059,6 @@ end function wall3d_d_radius
 
 function pointer_to_wall3d (ele, ds_offset, is_branch_wall) result (wall3d)
 
-implicit none
-
 character(32), parameter :: r_name = 'pointer_to_wall3d'
 
 type (ele_struct), target :: ele
@@ -1081,7 +1069,8 @@ logical, optional :: is_branch_wall
 
 ! 
 
-if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. associated (ele%branch)) then
+if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. &
+                                ele%key /= mask$ .and. associated (ele%branch)) then
   wall3d => ele%branch%wall3d
   ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   if (present(is_branch_wall)) is_branch_wall = .true.
@@ -1125,8 +1114,6 @@ end function pointer_to_wall3d
 
 Subroutine create_concatenated_wall3d (lat, err)
 
-implicit none
-
 type section_ptr_struct
   type (wall3d_section_struct), pointer :: sec
   type (ele_struct), pointer :: ele
@@ -1162,6 +1149,7 @@ do i = 0, ubound(lat%branch, 1)
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
+    if (ele%key == mask$) cycle
     if (ele%lord_status == multipass_lord$) cycle  ! wall info also in slaves
     n_sec = n_sec + size(ele%wall3d%section)
   enddo
@@ -1183,6 +1171,7 @@ do i = 0, ubound(lat%branch, 1)
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
+    if (ele%key == mask$) cycle
     if (ele%wall3d%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
     call add_in_ele_wall_sections (ele, ele) ; if (err) return
@@ -1195,6 +1184,7 @@ do i = 0, ubound(lat%branch, 1)
     if (.not. associated(ele%wall3d)) cycle
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
+    if (ele%key == mask$) cycle
     if (.not. ele%wall3d%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
     call superimpose_this_wall (ele, ele) ; if (err) return
@@ -1444,8 +1434,6 @@ end subroutine create_concatenated_wall3d
 
 subroutine mark_patch_regions (branch)
 
-implicit none
-
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
 
@@ -1468,5 +1456,97 @@ enddo
 
 end subroutine mark_patch_regions
 
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
+! Function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
+!
+! Routine to determine where a particle hits on a diffraction_plate or mask element.
+!
+! Note: It is assumed that orbit is in the frame of reference of the element.
+! That is, offset_photon/offset_particle needs to be called before this routine.
+!
+! Input:
+!   ele     -- ele_struct: diffraction_plate or mask element.
+!   orbit   -- coord_struct: particle position.
+!
+! Output:
+!   ix_section -- integer, Set to index of clear section hit. Set to zero if
+!                   photon is outside all clear areas.
+!-
 
-end module
+function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
+
+type (ele_struct), target :: ele
+type (coord_struct) orbit
+type (wall3d_struct), pointer :: wall3d
+
+integer :: ix_section
+integer i, ix_sec
+
+! Logic: A particle is in a clear section if it is inside the section and outside
+! all subsiquent opaque sections up to the next clear section.
+
+wall3d => ele%wall3d
+ix_section = 0
+ix_sec = 0
+
+section_loop: do 
+
+  ! Skip any opaque sections
+
+  do
+    ix_sec = ix_sec + 1
+    if (ix_sec > size(wall3d%section)) exit section_loop
+    if (wall3d%section(ix_sec)%type == clear$) exit
+  enddo
+
+  ! Section must be clear. Check if photon is within the section
+
+  if (.not. in_section(wall3d%section(ix_sec))) cycle
+  ix_section = ix_sec
+
+  ! Now check if photon is within an opaque section
+
+  do
+    ix_sec = ix_sec + 1
+    if (ix_sec > size(wall3d%section)) return           ! In this clear area
+    if (wall3d%section(ix_sec)%type == clear$) return   ! In this clear area
+    if (in_section(wall3d%section(ix_sec))) cycle section_loop  ! Is opaque
+  enddo
+
+enddo section_loop
+
+! Not in a clear area...
+
+ix_section = 0
+
+!------------------------------------------------------------
+contains
+
+function in_section(sec) result (is_in)
+
+type (wall3d_section_struct) sec
+logical is_in
+
+real(rp) x, y, norm, r_wall, dr_dtheta
+
+!
+
+x = orbit%vec(1) - sec%x0;  y = orbit%vec(3) - sec%y0
+
+if (x == 0 .and. y == 0) then
+  is_in = .true.
+  return
+endif
+
+norm = norm2([x, y])
+call calc_wall_radius (sec%v, x/norm, y/norm, r_wall, dr_dtheta)
+is_in = (norm <= r_wall)
+
+end function in_section
+
+end function diffraction_plate_or_mask_hit_spot
+
+end module wall3d_mod

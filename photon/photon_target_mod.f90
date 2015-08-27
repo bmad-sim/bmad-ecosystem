@@ -58,7 +58,7 @@ do
   if (ap_ele%value(x1_limit$) /= 0 .or. ap_ele%key == detector$) exit
 
   select case (ap_ele%key)
-  case (diffraction_plate$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$, patch$)
+  case (diffraction_plate$, mask$, crystal$, capillary$, mirror$, multilayer_mirror$, sample$, patch$)
     is_bending_element = .true.
   end select
 

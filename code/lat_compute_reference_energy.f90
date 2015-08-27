@@ -427,7 +427,7 @@ case (e_gun$)
   call track_this_ele (.true., err); if (err) return
   call calc_time_ref_orb_out
 
-case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$)
+case (crystal$, mirror$, multilayer_mirror$, diffraction_plate$, photon_init$, mask$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
 

@@ -60,7 +60,7 @@ real(rp) cap_gamma, gamma_0, gamma_h, b_err, dtheta_sin_2theta, b_eff
 real(rp) m_in(3,3) , m_out(3,3), y_out(3), x_out(3), k_out(3)
 real(rp) test, nn, mm, temp_vec(3), p_vec(3), r_vec(3), charge_dir
 
-integer i, n, n_slice, key, orientation
+integer i, n, n_slice, key, orientation, ix_sec
 
 logical, optional :: err_flag
 logical err, has_nonzero_pole
@@ -487,6 +487,23 @@ case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$)
   end_orb%t = start2_orb%t + ele%value(delta_ref_time$)
 
   return
+
+!-----------------------------------------------
+! mask
+
+case (mask$)
+
+  ! If the plate/mask is turned off then all particles are simply transmitted through.
+
+  if (.not. ele%is_on) return
+  
+  ! Particle is lost if in an opaque section
+
+  temp_orb = end_orb
+  call offset_particle (ele, param, set$, temp_orb, set_multipoles = .false., set_hvkicks = .false.)
+
+  ix_sec = diffraction_plate_or_mask_hit_spot (ele, temp_orb)
+  if (ix_sec == 0) end_orb%state = lost$
 
 !-----------------------------------------------
 ! match

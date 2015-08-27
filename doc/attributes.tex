@@ -787,7 +787,7 @@ By default, apertures are assumed to be rectangular except that an
 setting the \vn{aperture_type} attribute. The possible values of this
 attribute are:
 \begin{example}
-  auto         ! Default for detector and diffraction_plate elements
+  auto         ! Default for detector, mask and diffraction_plate elements
   custom
   elliptical   ! Default for \vn{ecollimator} elements
   rectangular  ! Default for most elements.
@@ -795,10 +795,10 @@ attribute are:
 The \vn{custom} setting is used in the case where programs have been
 compiled with custom, non-Bmad, code to handle the aperture
 calculation.  The \vn{auto} setting is used for automatic calculation
-of a rectangular aperture. For a \vn{diffraction_plate} element, the
-\vn{auto} setting causes the four aperture limits to be set to just
-cover the clear area of a \vn{diffraction_plate}
-(\sref{s:wall.diff.plate}). For all other elements, the \vn{auto}
+of a rectangular aperture. For \vn{diffraction_plate} and \vn{mask}
+elements, the \vn{auto} setting causes the four aperture limits to be
+set to just cover the clear area of element
+(\sref{s:masking.wall}). For all other elements, the \vn{auto}
 setting is only to be used when there is an associated surface grid
 (\sref{s:surf.grid}) for the element and, in this case, \bmad to set
 the four limits to just cover the surface grid
@@ -894,6 +894,7 @@ the following elements who have a default of \vn{surface}:
 \begin{example}
   crystal
   diffraction_plate
+  mask
   mirror
   multilayer_mirror
   sample
@@ -1098,6 +1099,7 @@ The following X-ray elements have a surface which X-rays impinge upon:
   crystal               \sref{s:crystal}
   detector              \sref{s:detector}
   diffraction_plate     \sref{s:diff.plate}
+  mask                  \sref{s:mask}
   mirror, and           \sref{s:mirror}
   multilayer_mirror     \sref{s:multilayer}
   sample                \sref{s:sample}
@@ -1251,7 +1253,7 @@ coordinate of the vertices of the rectangular are adjusted so that
 When the \vn{type} component is set to \vn{Off}, the grid will not be used.
 
 %-----------------------------------------------------------------
-\section{Walls: Vacuum Chamber, Capillary and Diffraction Plate}
+\section{Walls: Vacuum Chamber, Capillary and Mask}
 \label{s:wall}
 \index{wall}
 
@@ -1267,9 +1269,9 @@ The topics of the following subsections are:
   \sref{s:wall.syntax}      General wall syntax.
   \sref{s:wall.section}      Cross-section construction. 
   \sref{s:wall.interpolation}      Capillary and vacuum chamber wall interpolation.
-  \sref{s:wall.capillary}      Capillary specific.
-  \sref{s:wall.vacuum}      Vacuum chamber specific.
-  \sref{s:wall.diff.plate}      Diffraction_plate specific.
+  \sref{s:wall.capillary}      Capillary wall.
+  \sref{s:wall.vacuum}      Vacuum chamber wall.
+  \sref{s:masking.wall}      Mask wall for diffraction_plate and mask elements.
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1284,11 +1286,11 @@ The syntax of the \vn{wall} attribute is:
     opaque_material = <material_type>        ! Default opaque material. 
     clear_material = <material_type>         ! Default clear material. 
     section = \{ 
-      type = <section_type>,                 ! Chamber and Diffraction_plate only
+      type = <section_type>,                 ! Chamber Mask, and Diffraction_plate only
       s = <longitudinal_position>,           ! Relative to beginning of element.
       x0 = <value>, y0 = <value>,            ! Section origin
-      material = <material_type>             ! Diffraction_plate only.
-      thickness = <real>                     ! Diffraction_plate only.
+      material = <material_type>             ! Mask and Diffraction_plate only.
+      thickness = <real>                     ! Mask and Diffraction_plate only.
       dr_ds = <value>,                       ! Capillary and Chamber only
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
@@ -1647,14 +1649,14 @@ regions need a different interpolation scheme since, \vn{leg1} and
 to be parallel to each other.
 
 %-----------------------------------------------------------------
-\subsection{Diffraction Plate Wall}
-\label{s:wall.diff.plate}
+\subsection{Mask Wall For Diffraction Plate and Mask Elements}
+\label{s:masking.wall}
 
 \begin{figure}[tb]
   \centering
   \includegraphics[width=5in]{diffraction-plate.pdf}
-  \caption[Example diffraction_plate element]{
-A) The diffraction plate surface is divided into ``clear'' (white) and
+  \caption[Example mask wall]{
+A) The diffraction plate or mask surface is divided into ``clear'' (white) and
 ``opaque'' (black) areas. In this example there are two clear sections
 labeled \#1 and \#2. B) All wall sections must be star shaped with
 respect to the section's origin. In this example, The section is {\em
@@ -1666,29 +1668,28 @@ $o'$.
   \label{f:diff.plate}
 \end{figure}
 
-The \vn{wall} of a \vn{diffraction_plate} (\sref{s:diff.plate})
-specifies the topology of the plate in terms of what areas of the
-plate will transmit or reflect X-rays and what areas will not.  The
+The \vn{wall} of a \vn{diffraction_plate} or \vn{mask} element
+specifies what areas of the
+element will transmit or reflect particle and what areas will not. The
 areas where there is transmission or reflection are called ``clear''
 areas and everything else is called ``opaque''. 
 
 A \vn{wall} is comprised a a ordered list of \vn{sections} as
-discussed in \sref{s:wall.section}. Each section of a
-\vn{diffraction_plate} element must have its \vn{type} attribute set
-to one of:
+discussed in \sref{s:wall.section}. Each section of the wall must have
+its \vn{type} attribute set to one of:
 \begin{example}
   clear
-  mask
+  opaque
 \end{example}
-A section is called ``clear'' or ``mask'' depending upon the setting
+A section is called ``clear'' or ``opaque'' depending upon the setting
 of its \vn{type} attribute. Do not confuse ``clear section'' with 
 ``clear area''.
 
 A clear area is defined by one or more consecutive wall sections. The
 first section that defines a clear area must be a clear section.  All
-the other sections associated with a clear area must be mask sections.
+the other sections associated with a clear area must be opaque sections.
 That is, a clear area starts with a clear section and any preceeding
-mask sections up to the next clear section or the end of the section
+opaque sections up to the next clear section or the end of the section
 list. As a consequence of the above rules, the fist section of the
 wall must be a clear section and the number of clear areas is equal to
 the number of clear sections.
@@ -1696,8 +1697,8 @@ the number of clear sections.
 The default behavior is that a photon will be transmitted if it is
 within any clear area. A photon is considered to be within a given
 clear area if its $(x,y)$ coordinates put in within the corresponding
-clear section but not within any \vn{mask} section of the clear area.
-\vn{Mask} sections only affect the clear area they are associated
+clear section but not within any \vn{opaque} section of the clear area.
+\vn{Opaque} sections only affect the clear area they are associated
 with. See the example below.
 
 Any clear section can be given a \vn{material} and
@@ -1705,10 +1706,10 @@ Any clear section can be given a \vn{material} and
 \sref{s:cryst.list}. A photon transversing a clear area with a defined
 material will be attenuated and have a phase shift. Note that
 \vn{material} and \vn{thickness} properties are not to be assigned to
-\vn{mask} sections.
+\vn{opaque} sections.
 
 To enable \bmad to quickly calculate whether a photon has landed on a
-clear or mask section, All sections, both clear and mask, must be
+clear or opaque section, All sections, both clear and opaque, must be
 ``star shaped'' with respect to the $(x_0, y_0)$ origin used by the
 section. That is, a line drawn from the section origin to any point on
 the section boundary must not pass through any boundary points of the
@@ -1720,11 +1721,11 @@ moving the origin to point $o'$. If it is not possible to make a
 section star shaped by moving the origin, the section must be divided
 into multiple sections.
 
-An example diffraction plate geometry is shown in \fig{f:diff.plate}A.
+An example geometry is shown in \fig{f:diff.plate}A.
 In the figure, there are two openings labeled \#1, and \#2. A
 wall that constructs this geometry is:
 \begin{example}
-  zone1: diffraction_plate, wall = \{
+  z_plate: diffraction_plate, wall = \{
     thickness = <real>
     opaque_material = <material_type>
     clear_material = <material_type>
@@ -1733,27 +1734,27 @@ wall that constructs this geometry is:
       v(1) = \{0.04, 0\}, v(2) = \{0.04, 0.022\},
       v(3) = \{0, 0.03\},
     section = \{
-      type = mask,
+      type = opaque,
       v(1) = \{0.032, 0.016\},
     section = \{          ! Clear area \# 2
       type = clear,
       v(1) = \{0, 0, 0.03, 0.013\},
     section = \{
-      type = mask,
+      type = opaque,
       v(1) = \{0, 0, 0.005\},
     section = \{
-      type = mask,
+      type = opaque,
       x0 = 0.02,
       v(1) = \{0, 0, 0.005\} \}
 \end{example}
-Clear area \#1 has a clear section and one mask section. These
+Clear area \#1 has a clear section and one opaque section. These
 sections rely on the four fold symmetry of the sections so that only
 points in the first quadrant need be specified. Clear area \#2 has one
-clear section in the shape of an ellipse with two mask circles. Notice
-that the \vn{mask} section of clear area \#1 does not affect the clear
+clear section in the shape of an ellipse with two opaque circles. Notice
+that the \vn{opaque} section of clear area \#1 does not affect the clear
 area \#2 even though it (completely) overlaps clear area \#2.
 
-Sections may overlap and a mask section does not have to be wholly
+Sections may overlap and a opaque section does not have to be wholly
 within the corresponding clear section. If a photon is within multiple
 clear areas then, for the purposes of calculation, it is considered to
 be within the first possible clear area in the list.

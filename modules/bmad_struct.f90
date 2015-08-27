@@ -217,10 +217,10 @@ character(16), parameter :: location_name(0:3) = [ &
 ! For v(1), the radius and tilt values are for the arc between v(n) and v(1) where
 !   n = upper bound of v(:) array.
 
-integer, parameter :: normal$ = 1, clear$ = 2, mask$ = 3, trunk$ = 4, trunk1$ = 5, trunk2$ = 6
+integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, trunk$ = 4, trunk1$ = 5, trunk2$ = 6
 integer, parameter :: leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10, triangular$ = 11
 character(16), parameter :: wall3d_section_type_name(11) = [ &
-                     'Normal     ', 'Clear      ', 'Mask       ', 'Trunk      ', &
+                     'Normal     ', 'Clear      ', 'Opaque     ', 'Trunk      ', &
                      'Trunk1     ', 'Trunk2     ', 'Leg1       ', 'Leg2       ', &
                      'Wall_Start ', 'Wall_End   ', 'Triangular ']
 
@@ -888,12 +888,11 @@ integer, parameter :: fork$ = 41, mirror$ = 42, crystal$ = 43
 integer, parameter :: pipe$ = 44, capillary$ = 45, multilayer_mirror$ = 46
 integer, parameter :: e_gun$ = 47, em_field$ = 48, floor_shift$ = 49, fiducial$ = 50
 integer, parameter :: undulator$ = 51, diffraction_plate$ = 52, photon_init$ = 53
-integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56
-!!! rel_controller$ = , abs_controller$ = 
+integer, parameter :: sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 
 ! "bend_sol_" is used to force the use of at least "bend_sol_q" in defining bend_sol_quad elements
 
-integer, parameter :: n_key$ = 56
+integer, parameter :: n_key$ = 57
 character(40), parameter :: key_name(n_key$) = [ &
     'DRIFT            ', 'SBEND            ', 'QUADRUPOLE       ', 'GROUP            ', &
     'SEXTUPOLE        ', 'OVERLAY          ', 'CUSTOM           ', 'TAYLOR           ', &
@@ -908,7 +907,8 @@ character(40), parameter :: key_name(n_key$) = [ &
     'FORK             ', 'MIRROR           ', 'CRYSTAL          ', 'PIPE             ', &
     'CAPILLARY        ', 'MULTILAYER_MIRROR', 'E_GUN            ', 'EM_FIELD         ', &
     'FLOOR_SHIFT      ', 'FIDUCIAL         ', 'UNDULATOR        ', 'DIFFRACTION_PLATE', &
-    'PHOTON_INIT      ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ']
+    'PHOTON_INIT      ', 'SAMPLE           ', 'DETECTOR         ', 'SAD_MULT         ', &
+    'MASK             ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
