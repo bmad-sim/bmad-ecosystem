@@ -447,7 +447,7 @@ info%eta_a = matmul(v, [info%a%eta, info%a%etap, 0.0_rp,   0.0_rp ])
 info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 
 if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
-  call calc_wiggler_g_params (ele, z_here, orb, pt, info)
+  call calc_wiggler_g_params (ele, z_here, orb_end, pt, info)
 else
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
