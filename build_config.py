@@ -190,7 +190,6 @@ local_build_list = [
                 '/CESR/CESR_progs/ethscope',
                 '/CESR/CESR_progs/fbph',
                 '/CESR/CESR_progs/gdl_inp',
-                '/CESR/CESR_progs/getbpm',
                 '/CESR/CESR_progs/gifo',
                 '/CESR/CESR_progs/goo',
                 '/CESR/CESR_progs/grofix',
