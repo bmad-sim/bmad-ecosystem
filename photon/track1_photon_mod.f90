@@ -210,12 +210,12 @@ end subroutine track_a_patch_photon
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine track1_diffraction_plate (ele, param, orbit)
+! Subroutine track1_diffraction_plate_or_mask (ele, param, orbit)
 !
-! Routine to track through a diffraction plate element.
+! Routine to track through diffraction plate and mask elements.
 !
 ! Input:
-!   ele      -- ele_struct: Diffraction plate element.
+!   ele      -- ele_struct: Diffraction plate or mask element.
 !   param    -- lat_param_struct: lattice parameters.
 !   orbit    -- Coord_struct: phase-space coords to be transformed
 !
@@ -223,7 +223,7 @@ end subroutine track_a_patch_photon
 !   orbit    -- Coord_struct: final phase-space coords
 !-
 
-subroutine track1_diffraction_plate (ele, param, orbit)
+subroutine track1_diffraction_plate_or_mask (ele, param, orbit)
 
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
@@ -239,13 +239,13 @@ logical err_flag
 
 character(60) material
 
-! If the plate is turned off then all photons are simply transmitted through.
+! If the plate/mask is turned off then all photons are simply transmitted through.
 
 if (.not. ele%is_on) return
 
 ! Photon is lost if in an opaque section
 
-ix_sec = diffraction_plate_hit_spot (ele, orbit)
+ix_sec = diffraction_plate_or_mask_hit_spot (ele, orbit)
 
 if (ix_sec == 0) then
   if (ele%wall3d%opaque_material == '') then
@@ -279,7 +279,7 @@ endif
 ! Choose outgoing direction
 
 vz0 = orbit%vec(6)
-call point_photon_emission (ele, param, orbit, +1, twopi)
+if (ele%key == diffraction_plate$) call point_photon_emission (ele, param, orbit, +1, twopi)
 
 ! Rescale field
 
@@ -291,100 +291,7 @@ if (ele%value(field_scale_factor$) /= 0) then
   orbit%field = orbit%field * ele%value(field_scale_factor$)
 endif
 
-end subroutine track1_diffraction_plate
-
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------------
-!+
-! Function diffraction_plate_hit_spot (ele, orbit) result (ix_section)
-!
-! Routine to determine where a photon hits on a diffraction_plate element.
-!
-! Note: It is assumed that orbit is in the frame of reference of the element.
-! That is, offset_photon needs to be called before this routine.
-!
-! Input:
-!   ele     -- ele_struct: diffraction_plate element.
-!   orbit   -- coord_struct: photon position.
-!
-! Output:
-!   ix_section -- integer, Set to index of clear section hit. Set to zero if
-!                   photon is outside all clear areas.
-!-
-
-function diffraction_plate_hit_spot (ele, orbit) result (ix_section)
-
-type (ele_struct), target :: ele
-type (coord_struct) orbit
-type (wall3d_struct), pointer :: wall3d
-
-integer :: ix_section
-integer i, ix_sec
-
-! Logic: A particle is in a clear section if it is inside the section and outside
-! all subsiquent mask sections up to the next clear section.
-
-wall3d => ele%wall3d
-ix_section = 0
-ix_sec = 0
-
-section_loop: do 
-
-  ! Skip any mask sections
-
-  do
-    ix_sec = ix_sec + 1
-    if (ix_sec > size(wall3d%section)) exit section_loop
-    if (wall3d%section(ix_sec)%type == clear$) exit
-  enddo
-
-  ! Section must be clear. Check if photon is within the section
-
-  if (.not. in_section(wall3d%section(ix_sec))) cycle
-  ix_section = ix_sec
-
-  ! Now check if photon is within a mask section
-
-  do
-    ix_sec = ix_sec + 1
-    if (ix_sec > size(wall3d%section)) return           ! In this clear area
-    if (wall3d%section(ix_sec)%type == clear$) return   ! In this clear area
-    if (in_section(wall3d%section(ix_sec))) cycle section_loop  ! Is masked
-  enddo
-
-enddo section_loop
-
-! Not in a clear area...
-
-ix_section = 0
-
-!------------------------------------------------------------
-contains
-
-function in_section(sec) result (is_in)
-
-type (wall3d_section_struct) sec
-logical is_in
-
-real(rp) x, y, norm, r_wall, dr_dtheta
-
-!
-
-x = orbit%vec(1) - sec%x0;  y = orbit%vec(3) - sec%y0
-
-if (x == 0 .and. y == 0) then
-  is_in = .true.
-  return
-endif
-
-norm = norm2([x, y])
-call calc_wall_radius (sec%v, x/norm, y/norm, r_wall, dr_dtheta)
-is_in = (norm <= r_wall)
-
-end function in_section
-
-end function diffraction_plate_hit_spot
+end subroutine track1_diffraction_plate_or_mask
 
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------

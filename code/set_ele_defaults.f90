@@ -138,6 +138,16 @@ case (line_ele$)
   ele%value(e_tot$) = -1
   ele%value(p0c$) = -1
 
+case (mask$)
+  ele%aperture_at = surface$
+  ele%aperture_type = auto_aperture$
+  ele%value(geometry$) = transmission$
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do: ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
+
 case (mirror$)
   ele%aperture_at = surface$
   ele%offset_moves_aperture = .true.

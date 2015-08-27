@@ -185,14 +185,14 @@ do i_b = 0, ubound(lat%branch, 1)
 
 
 
-    ! diffraction_plate must have an associated wall3d and all sections must be clear or mask.
-    ! Additionally the first section must be clear
+    ! Diffraction_plate and mask elements must have an associated wall3d and all sections must be clear or opaque.
+    ! Additionally the first section must be clear.
 
-    if (ele%key == diffraction_plate$) then
+    if (ele%key == diffraction_plate$ .or. ele%key == mask$) then
       if (.not. associated (ele%wall3d)) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'WHICH IS A ' // key_name(ele%key), &
                       'DOES NOT HAVE AN ASSOCIATED WALL')
         err_flag = .true.
 
@@ -200,21 +200,29 @@ do i_b = 0, ubound(lat%branch, 1)
         if (ele%wall3d%section(1)%type /= clear$) then
           call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'WHICH IS A ' // key_name(ele%key), &
                       'MUST HAVE ITS FIRST SECTION BE OF TYPE CLEAR')
           err_flag = .true.
         endif
 
         do j = 1, size(ele%wall3d%section)
           ii = ele%wall3d%section(j)%type
-          if (ii == mask$ .or. ii == clear$) cycle
+          if (ii == opaque$ .or. ii == clear$) cycle
           call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
-                      'WHICH IS A DIFFRACTION_PLATE.', &
+                      'WHICH IS A ' // key_name(ele%key), &
                       'HAS A SECTION WITH TYPE NOT CLEAR OR OPAQUE.')
           err_flag = .true.
           exit
         enddo          
+      endif
+
+      if (nint(ele%value(mode$)) == reflection$) then
+        call out_io (s_fatal$, r_name, &
+                    'REFLECTION MODE NOT YET IMPLEMENTED FOR ELEMENT OF TYPE: ' // key_name(ele%key), &
+                    'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
+                    'PLEASE CONTACT A BMAD MAINTAINER...')
+        err_flag = .true.
       endif
     endif
 
