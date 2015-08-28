@@ -840,7 +840,6 @@ case ('bpm_cbar.')
   end select
 
 !-----------
-      call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('c_mat.')
 
@@ -869,7 +868,6 @@ case ('c_mat.')
   end select
 
 !-----------
-      call tao_load_this_datum (branch%ele(:)%a%alpha, ele_ref, ele_start, ele, datum_value, valid_value, datum, lat, why_invalid)
 
 case ('cbar.')
 
