@@ -5281,7 +5281,7 @@ end subroutine form_digested_bmad_file_name
 ! This subroutine is not intended for general use.
 !-
 
-recursive subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
+subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
                                                    seq_name, seq_indexx, in_lat, plat, created_new_branch)
 
 implicit none

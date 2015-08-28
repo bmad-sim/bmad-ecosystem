@@ -104,12 +104,9 @@ if (all(ele2%mat6(1:2,3:4) == 0)) then
 
 else
 
-  ! det_factor is a renormalization factor since det_original != 1
+  ! det_factor is a renormalization factor to handle non-symplectic errors.
 
-  det_factor = 1
-  if (ele2%value(p0c$) /= ele2%value(p0c_start$)) then
-    det_factor = sqrt(determinant (mat6(1:4,1:4)))
-  endif
+  det_factor = sqrt(determinant (mat6(1:4,1:4)))
 
   big_M = mat6(1:2,1:2)
   small_m = mat6(1:2,3:4)
