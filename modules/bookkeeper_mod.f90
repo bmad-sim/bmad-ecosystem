@@ -59,7 +59,7 @@ type (sad_param_struct), save :: sad_param
 !                      For example: ele%is_on.
 !   all_attrib    -- all_pointer_struct: Pointer to attribute.
 !   set_dependent -- logical, optional: If False then dependent variable bookkeeping will not be done.
-!                     Default is True.
+!                     Default is True. Do not set False unless you know what you are doing.
 !
 ! Output:
 !   lat  -- lat_struct: Lattice with appropriate changes.
@@ -3123,7 +3123,6 @@ if (associated(a_ptr, ele%value(p0c$)) .and. associated(branch)) then
 endif
 
 if (associated(a_ptr, ele%value(e_tot_start$)) .and. associated(branch)) then
-  call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
   select case (ele%key)
   case (lcavity$, rfcavity$, e_gun$, em_field$)
     call set_ele_status_stale (ele, ref_energy_group$, .true.)
@@ -3131,11 +3130,13 @@ if (associated(a_ptr, ele%value(e_tot_start$)) .and. associated(branch)) then
     ! Lord energy is set from slave. Not other way around.
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
+  if (dep_set) then
+    call convert_total_energy_to (ele%value(e_tot_start$), branch%param%particle, pc = ele%value(p0c_start$))
+  endif
   return
 endif
 
 if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
-  call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
   select case (ele%key)
   case (lcavity$, rfcavity$, e_gun$, em_field$)
     call set_ele_status_stale (ele, ref_energy_group$, .true.)
@@ -3143,6 +3144,9 @@ if (associated(a_ptr, ele%value(p0c_start$)) .and. associated(branch)) then
     ! Lord energy is set from slave. Not other way around.
     call set_ele_status_stale (ele, ref_energy_group$, .false.)
   end select
+  if (dep_set) then
+    call convert_pc_to (ele%value(p0c_start$), branch%param%particle, e_tot = ele%value(e_tot_start$))
+  endif
   return
 endif
 

@@ -749,16 +749,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   ! Expand branches from branch elements before expanding branches from the use command. 
 
-  if (n_branch_ele /= 0) then
-    ele => branch_ele(1)%ele
-    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
-    this_name = ele%component_name
-    is_photon_fork = (ele%key == photon_fork$)
-    n_branch_ele = n_branch_ele - 1
-    branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
-    if (.not. created_new_branch) cycle 
-
-  else
+  if (n_branch_ele == 0) then
     if (use_line_str == '') exit
     ix = index(use_line_str, ',')
     if (ix == 0) then
@@ -775,6 +766,15 @@ branch_loop: do i_loop = 1, n_branch_max
       return
     endif
     is_photon_fork = .false.
+
+  else
+    ele => branch_ele(1)%ele
+    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
+    this_name = ele%component_name
+    is_photon_fork = (ele%key == photon_fork$)
+    n_branch_ele = n_branch_ele - 1
+    branch_ele(1:n_branch_ele) = branch_ele(2:n_branch_ele+1)
+    if (.not. created_new_branch) cycle 
   endif
 
   n_branch = ubound(lat%branch, 1)
@@ -786,7 +786,6 @@ branch_loop: do i_loop = 1, n_branch_max
 
   ele0%value(e_tot$) = -1
   ele0%value(p0c$)   = -1 
-
 
   ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
 
@@ -801,8 +800,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%z                       = in_lat%z
     lat%absolute_time_tracking  = in_lat%absolute_time_tracking
     lat%input_taylor_order      = in_lat%input_taylor_order
-
-
 
     if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
     call move_alloc (in_lat%attribute_alias, lat%attribute_alias)
@@ -890,6 +887,43 @@ branch_loop: do i_loop = 1, n_branch_max
   if (ele%s /= 0)                 ele0%s                = ele%s
   if (ele%ref_time /= 0)          ele0%ref_time         = ele%ref_time
 
+  ! Reference energy bookkeeping...
+  ! Do not need to have set the energy for branch lines where the particle is the same
+
+  if (branch%ix_from_branch > -1) then
+    branch0 => lat%branch(branch%ix_from_branch)
+    if (branch0%param%particle == branch%param%particle) cycle
+  endif
+
+  ele => branch%ele(0)
+
+  if (ele%value(p0c$) >= 0) then
+    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+  elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+  else
+    if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
+      if (branch%param%particle == photon$) then
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                       'WILL USE 1000 eV!', i_array = [i])
+      else
+        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                       'WILL USE 1000 * MC^2!', i_array = [i])
+      endif
+    else
+      call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+    endif
+    ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
+    if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
+    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+    bp_com%write_digested = .false.
+  endif
+
+  ele%value(e_tot_start$) = ele%value(e_tot$)
+  ele%value(p0c_start$) = ele%value(p0c$)
+
+  !
+
   call settable_dep_var_bookkeeping(ele0)
 
   if (bp_com%error_flag) then
@@ -928,47 +962,6 @@ branch_loop: do i_loop = 1, n_branch_max
   endif 
 
 enddo branch_loop
-
-!--------------------------------------------
-! Reference energy bookkeeping. 
-
-do i = 0, ubound(lat%branch, 1)
-  branch => lat%branch(i)
-
-  ! Do not need to have set the energy for branch lines where the particle is the same
-  if (branch%ix_from_branch > -1) then
-    branch0 => lat%branch(branch%ix_from_branch)
-    if (branch0%param%particle == branch%param%particle) cycle
-  endif
-
-  ele => branch%ele(0)
-
-  if (ele%value(p0c$) >= 0) then
-    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
-  elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
-    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-  else
-    if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-      if (branch%param%particle == photon$) then
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                       'WILL USE 1000 eV!', i_array = [i])
-      else
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                       'WILL USE 1000 * MC^2!', i_array = [i])
-      endif
-    else
-      call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
-    endif
-    ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
-    if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
-    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    bp_com%write_digested = .false.
-  endif
-
-  ele%value(e_tot_start$) = ele%value(e_tot$)
-  ele%value(p0c_start$) = ele%value(p0c$)
-
-enddo 
 
 ! Work on multipass...
 ! Multipass elements are paired by ele%iyy tag and ele%name must both match.
