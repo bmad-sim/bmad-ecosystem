@@ -76,6 +76,7 @@ integer :: n_step, n_pt, old_direction, hard_end
 
 logical, target :: local_ref_frame
 logical :: at_edge_flag, exit_flag, err_flag, err, zbrent_needed, add_ds_safe, has_hit
+logical :: edge_kick_applied
 
 character(30), parameter :: r_name = 'odeint_bmad_time'
 
@@ -105,7 +106,8 @@ do
   exit_flag = .false.
   err_flag = .true.
   has_hit = .false. 
-
+ 
+  
   do n_step = 1, max_step
 
     ! overstepped edge?
@@ -136,10 +138,15 @@ do
 
       ! Need to apply hard edge kick. 
       ! For super_slaves there may be multipole hard edges at a single s-position.
-
+      edge_kick_applied = .false. 
       do 
         if (.not. associated(hard_ele)) exit
         if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
+        ! Get radius before first edge kick
+        if (.not. edge_kick_applied) then 
+          old_wall_d_radius = wall3d_d_radius (orb%vec, ele)
+          edge_kick_applied = .true. 
+        endif  
         if (orb%direction == +1) then 
           ref_time = hard_ele%ref_time - hard_ele%value(delta_ref_time$)
         else 
@@ -157,7 +164,8 @@ do
           orb%vec(5) = orb%vec(5) + orb%direction * ds_safe
           orb%s = orb%s + orb%direction * ds_safe
         endif
-      enddo
+      enddo      
+
 
     endif
 
@@ -167,7 +175,7 @@ do
     ! If so, interpolate position particle at the hit point
 
     if (runge_kutta_com%check_wall_aperture) then
-      wall_d_radius = wall3d_d_radius (orb%vec, ele)
+      wall_d_radius = wall3d_d_radius (orb%vec, ele)      
       select case (runge_kutta_com%hit_when)
       case (outside_wall$)
         has_hit = (wall_d_radius > 0)
@@ -186,8 +194,9 @@ do
       endif
 
       if (has_hit) then
-        dt_tol = ds_safe / (orb%beta * c_light) 
-        if (n_step /= 1) then
+        dt_tol = ds_safe / (orb%beta * c_light)
+        ! Skip zbrent if the edge kick moved the particle outside the wall
+        if (n_step /= 1  .and. .not. (edge_kick_applied .and. old_wall_d_radius < 0)) then
           dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
           dummy = wall_intersection_func(dt) ! Final call to set orb
         endif
