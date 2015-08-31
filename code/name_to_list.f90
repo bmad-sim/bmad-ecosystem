@@ -45,7 +45,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(n)
     ele%select = .false.
 
-    do m = 1, len(ele_names)
+    do m = 1, size(ele_names)
       if (.not. match_wild(ele%name, ele_names(m))) cycle
       ele%select = .true.
       exit

@@ -766,8 +766,8 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 \begin{example}
   alpha_angle                ! Angle of H-vector with respect to the surface normal.
   bragg_angle                ! Nominal Bragg angle at the reference wave length. 
-  bragg_angle_in             ! Angle between incoming beam and mirror surface.
-  bragg_angle_out            ! Angle between outgoing beam and mirror surface.
+  bragg_angle_in             ! Angle between incoming beam and surface.
+  bragg_angle_out            ! Angle between outgoing beam and surface.
   d_spacing                  ! Lattice plane spacing. 
   darwin_width_pi            ! Darwin width for pi polarized light (radians).
   darwin_width_sigma         ! Darwin width for sigma polarized light (radians).
@@ -803,6 +803,7 @@ The \vn{b_param} is the standard asymmetry factor
 where $\theta_B$ is the Bragg angle (\vn{bragg_angle}) 
 \Begineq
   \theta_B = \sin^{-1} \left( \frac{\lambda}{2 \, d} \right)
+  \label{tsl2d}
 \Endeq
 and $\alpha_H$ (\vn{alpha_angle}) is the angle of the reciprocal
 lattice $\bfH$ vector with respect to the surface normal as shown in
@@ -862,6 +863,10 @@ in \fig{f:crystal}A. These angles are computed from the photon
 reference energy and the other crystal parameters such that a photon
 with the reference energy traveling along the reference trajectory
 will be in the center of the Darwin curve (\sref{s:crystal.tracking}).
+
+Notice that due to refraction at the surface, the computed
+\vn{bragg_angle} from \Eq{tsl2d} will deviate slightly from the
+average of \vn{bragg_angle_in} and \vn{bragg_angle_out}.
 
 The reference trajectory in the global coordinate system
 (\sref{s:global}) is determined by the value of the \vn{ref_tilt}

@@ -1388,11 +1388,11 @@ select case (coord_state)
 case (alive$);                 state_str = 'Alive'
 case (lost$);                  state_str = 'Lost'
 case (not_set$);               state_str = 'Not_Set'
-Case (lost_neg_x_aperture$);   state_str = 'Lost_Neg_X_Aperture'
-case (lost_pos_x_aperture$);   state_str = 'Lost_Pos_X_Aperture'
-case (lost_neg_y_aperture$);   state_str = 'Lost_Neg_Y_Aperture'
-case (lost_pos_y_aperture$);   state_str = 'Lost_Pos_Y_Aperture'
-case (lost_z_aperture$);       state_str = 'Lost_Z_Aperture'
+case (lost_neg_x_aperture$);   state_str = 'Hit -X Side'
+case (lost_pos_x_aperture$);   state_str = 'Hit +X Side'
+case (lost_neg_y_aperture$);   state_str = 'Hit -Y Side'
+case (lost_pos_y_aperture$);   state_str = 'Hit +Y Side'
+case (lost_z_aperture$);       state_str = 'Hit Z Side'
 case default;                  state_str = 'UNKNOWN!'
 end select
 

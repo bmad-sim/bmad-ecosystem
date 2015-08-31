@@ -91,8 +91,8 @@ if (set) then
 
     if (.not. logic_option(.false., offset_position_only)) then
 
-      field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1))), &
-               orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)))]
+      field = [orbit%field(1) * cmplx(cos(orbit%phase(1)), sin(orbit%phase(1)), rp), &
+               orbit%field(2) * cmplx(cos(orbit%phase(2)), sin(orbit%phase(2)), rp)]
 
       field = [cos(tilt) * field(1) + sin(tilt)*field(2), &
               -sin(tilt) * field(1) + cos(tilt)*field(2)]
@@ -187,7 +187,8 @@ else
     endif
 
     if (.not. logic_option(.false., offset_position_only)) then
-      orbit%vec(1:5:2) = orbit%vec(1:5:2) - orbit%vec(2:6:2) * (orbit%vec(5) / orbit%vec(6))
+      call track_a_drift_photon (orbit, -orbit%vec(5), .false.)
+      orbit%s = ele%s
     endif
 
     ! ref_tilt rotation
@@ -297,8 +298,8 @@ else
   endif
 
   if (tilt /= 0) then
-    field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1))), &
-             cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)))]
+    field = [cmplx(orbit%field(1)*cos(orbit%phase(1)), orbit%field(1)*sin(orbit%phase(1)), rp), &
+             cmplx(orbit%field(2)*cos(orbit%phase(2)), orbit%field(2)*sin(orbit%phase(2)), rp)]
 
     field = [cos(tilt) * field(1) - sin(tilt)*field(2), &
              sin(tilt) * field(1) + cos(tilt)*field(2)]
@@ -308,6 +309,11 @@ else
 
     orbit%field(2) = abs(field(2))
     orbit%phase(2) = atan2(aimag(field(2)), real(field(2)))
+
+  else
+    ! Want to give similar phase when tilt = 0 compared to when tilt /= 0
+    orbit%phase(1) = modulo2(orbit%phase(1), pi)
+    orbit%phase(2) = modulo2(orbit%phase(2), pi)
   endif
 
 endif
