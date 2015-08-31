@@ -1,15 +1,24 @@
 !+
 ! Function match_wild (string, template) result (this_match)
 !
-! Function to do wild card matches. Note: trailing blanks will be discarded
-! before any matching is done. See str_match_wild for more details.
+! Function to do wild card matches.
+!
+! Note: trailing blanks will be discarded before any matching is done. 
+! If this is not desired, use str_match_wild to include trailing blanks.
+!
+! Wild card characters are:
+!  "*"  -- Match to any number of characters.
+!  "%"  -- Match to any single character.
+!
+! Modules needed:
+!   use sim_utils
 !
 ! Input:
-!   string   -- Character(*): String to be matched do
-!   template -- Character(*): String with wild cards
+!   string   -- Character(*): String to be matched to.
+!   template -- Character(*): String with wild cards.
 !
 ! Output:
-!   this_match -- Logical: Set true if matched
+!   this_match -- Logical: Set true if matched.
 !-
 
 function match_wild (string, template) result (this_match)
