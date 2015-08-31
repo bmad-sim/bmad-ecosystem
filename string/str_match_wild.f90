@@ -3,6 +3,9 @@
 !
 ! Function to match a character string against a regular expression pattern.
 !
+! Note: trailing blanks are included in the match!
+! Use the routine match_wild if trailing blanks are to be ignored.
+!
 ! Wild card characters are:
 !  "*"  -- Match to any number of characters.
 !  "%"  -- Match to any single character.
