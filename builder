@@ -14,6 +14,7 @@ logfile = sys.argv[1]
 file = open(logfile, 'r+')
 inlines = file.readlines()
 checkout_manifest = {}
+error_mail_list = '$USER@cornell.edu,sbp8@cornell.edu'
 
 print 'BUILDER SCRIPT RUNNING on host: ' + socket.gethostname()
 
@@ -211,7 +212,7 @@ for buildpass, target in enumerate(targets):
         print target + ' : ERROR'
         error_log_message_cmd = 'grep -C 10 Error ' + logfile
 #        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
-        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" $USER@cornell.edu'
+        mail_command = error_log_message_cmd + ' | /bin/mailx -s "Nightly build error" ' + error_mail_list
         p = sub.call(mail_command,
                       bufsize=1,
                       shell=True)
