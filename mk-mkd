@@ -38,6 +38,10 @@
 
 #set -x
 
+# Start time
+
+date1=$(date +"%s")
+
 # Assign build type based on invoked name of script.
 
 THIS_SCRIPT=`basename $0`
@@ -126,3 +130,10 @@ case ${1} in
 	fi
 	;;
 esac
+
+# Print delta time
+
+date2=$(date +"%s")
+diff=$(($date2-$date1))
+dtime=$(echo "scale = 2; $diff/60" | bc)
+echo -e "\nCompile/Link time: $dtime minutes"
