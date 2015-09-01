@@ -35,10 +35,12 @@
 !
 ! Output:
 !   ptr_array(:) -- all_pointer_struct, allocatable: Pointer to the attribute.
-!                     Pointer will be deassociated if there is a problem.
+!                     Size of ptr_array will be set to 0 if there is a problem.
 !   err_flag     -- Logical: Set True if attribtute not found or attriubte
 !                     cannot be changed directly.
 !   eles(:)      -- Ele_pointer_struct, optional, allocatable: Array of element pointers.
+!                     Size of eles will be zero if there are no associated lattice elements.
+!                     If there are assocaited lattice eles: size(eles) = size(ptr_array).
 !   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
 !                     attribute in the ele%value(:) array.
 !-
@@ -73,7 +75,7 @@ logical, optional :: err_print_flag
 
 err_flag = .false.
 do_print = logic_option (.true., err_print_flag)
-if (allocated(ptr_array)) deallocate(ptr_array)
+call re_allocate(ptr_array, 0)
 
 !---
 
@@ -104,7 +106,7 @@ case ('BMAD_COM')
   case default
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-    deallocate (ptr_array)
+    call re_allocate(ptr_array, 0)
     err_flag = .true.
   end select
 
@@ -133,7 +135,7 @@ case ('BEAM_START')
     if (ix < 1) then
       if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-      deallocate (ptr_array)
+      call re_allocate(ptr_array, 0)
       err_flag = .true.
       return
     endif
@@ -166,7 +168,7 @@ case ('BEAM_START')
     case default
       if (do_print) call out_io (s_error$, r_name, &
                'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-      deallocate (ptr_array)
+      call re_allocate(ptr_array, 0)
       err_flag = .true.
     end select
   end select
@@ -194,7 +196,7 @@ end select
 call lat_ele_locator (ele_name, lat, eles2, n_loc, err_flag)
 if (n_loc == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
-  if (allocated(ptr_array)) deallocate (ptr_array)
+  call re_allocate(ptr_array, 0)
   err_flag = .true.
   return  
 endif
@@ -216,7 +218,7 @@ enddo
 if (n == 0) then
   if (do_print) call out_io (s_error$, r_name, 'ATTRIBUTE: ' // attrib_name, &
                                                'NOT FOUND FOR: ' // ele_name)
-  if (allocated(ptr_array)) deallocate (ptr_array)
+  call re_allocate(ptr_array, 0)
   err_flag = .true.
   return  
 endif
