@@ -198,13 +198,17 @@ do i = 1, s%n_var_used
   if (.not. v_ptr%useit_opt) cycle
 
   u => s%u(v_ptr%this(1)%ix_uni)
-  branch => u%model%lat%branch(v_ptr%this(1)%ix_branch)
-  ct = branch%ele(v_ptr%this(1)%ix_ele)%lord_status
 
   loc_ele = ''
-  if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
-    write (loc_ele, '(f8.2)') branch%ele(v_ptr%this(1)%ix_ele)%s
-    call string_trim (loc_ele, loc_ele, ix)
+
+  if (v_ptr%this(1)%ix_ele >= 0) then
+    branch => u%model%lat%branch(v_ptr%this(1)%ix_branch)
+    ct = branch%ele(v_ptr%this(1)%ix_ele)%lord_status
+
+    if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+      write (loc_ele, '(f8.2)') branch%ele(v_ptr%this(1)%ix_ele)%s
+      call string_trim (loc_ele, loc_ele, ix)
+    endif
   endif
 
   if (v_ptr%merit_type == 'target') then

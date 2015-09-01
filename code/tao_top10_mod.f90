@@ -109,8 +109,7 @@ do i = 1, size(tao_merit)
   if (m == 0) then
     nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, tao_merit(i)%value
   else
-    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, &
-                                                   tao_merit(i)%value, sqrt(chi2(m)/n_points(m))
+    nl=nl+1; write (lines(nl), '(a, 2es16.4)') tao_merit(i)%name, tao_merit(i)%value, sqrt(chi2(m)/n_points(m))
   endif
 enddo
 
@@ -362,15 +361,22 @@ do i = 1, s%n_var_used
   con(nc)%d2_d1_name = trim(tao_var1_name(var))
   con(nc)%name = trim(tao_var_attrib_name(var))
   u => s%u(var%this(1)%ix_uni)
-  branch => u%model%lat%branch(var%this(1)%ix_branch)
-  ct = branch%ele(var%this(1)%ix_ele)%lord_status
+
   con(nc)%loc_ref = ''
   con(nc)%loc_start = ''
   con(nc)%loc_ele = ''
-  if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
-    write (con(nc)%loc_ele, '(f8.2)') branch%ele(var%this(1)%ix_ele)%s
-    call string_trim (con(nc)%loc_ele, con(nc)%loc_ele, ix)
+
+  if (var%this(1)%ix_ele < 0) then  ! EG beam_start
+    con(nc)%loc_ele = '0'
+  else
+    branch => u%model%lat%branch(var%this(1)%ix_branch)
+    ct = branch%ele(var%this(1)%ix_ele)%lord_status
+    if (ct /= group_lord$ .and. ct /= overlay_lord$ .and. ct /= multipass_lord$) then
+      write (con(nc)%loc_ele, '(f8.2)') branch%ele(var%this(1)%ix_ele)%s
+      call string_trim (con(nc)%loc_ele, con(nc)%loc_ele, ix)
+    endif
   endif
+
   if (var%merit_type == 'target') then
     con(nc)%target_value = var%meas_value
   elseif (var%merit_type == 'limit') then

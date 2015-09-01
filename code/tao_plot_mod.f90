@@ -420,8 +420,12 @@ do i = 1, size(s%plot_page%floor_plan%ele_shape)
     endif
     do k = 1, size(var%this)
       if (var%this(k)%ix_uni /= graph%ix_universe) cycle
-      ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
-      call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_var1_name(var), ele_shape, .true.)
+      if (var%ele_name == 'BEAM_START') then
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, lat%ele(0), tao_var1_name(var), ele_shape, .true.)
+      elseif (var%this(i)%ix_branch >= 0) then
+        ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
+        call tao_draw_ele_for_floor_plan (plot, graph, lat, ele, tao_var1_name(var), ele_shape, .true.)
+      endif
     enddo
   enddo
 enddo
@@ -1090,8 +1094,12 @@ do i = 1, size(s%plot_page%lat_layout%ele_shape)
     do k = 1, size(var%this)
       if (var%this(k)%ix_uni /= graph%ix_universe) cycle
       if (var%this(k)%ix_branch /= graph%ix_branch) cycle
-      ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
-      call draw_shape_for_lat_layout(tao_var1_name(var), ele%s, ele_shape)
+      if (var%attrib_name == 'BEAM_START') then
+        call draw_shape_for_lat_layout(tao_var1_name(var), ele%s, ele_shape)
+      else
+        ele => pointer_to_ele(lat, var%this(k)%ix_ele, var%this(k)%ix_branch)
+        call draw_shape_for_lat_layout(tao_var1_name(var), ele%s, ele_shape)
+      endif
     enddo
   enddo
 enddo

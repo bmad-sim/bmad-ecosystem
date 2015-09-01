@@ -919,22 +919,22 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     if (middle .and. ixe /= 0) then
       call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
                 .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
-      if (parameter(1:6) == 'orbit_') then
-        call tao_orbit_value (parameter, orb, values(n_tot+j), err)
-      else
-        call ele_attribute_value (ele3, parameter, .true., real_val, err, print_err)
+      call tao_orbit_value (parameter, orb, values(n_tot+j), err)
+      if (err) then
+        call ele_attribute_value (ele3, parameter, .true., values(n_tot+j), err, print_err)
+        if (err) return
       endif
+
     else
-      if (parameter(1:6) == 'orbit_') then
-        call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
-      else
-        call ele_attribute_value (branch%ele(ixe), parameter, .true., real_val, err, print_err)
+      call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
+      if (err) then
+        call ele_attribute_value (branch%ele(ixe), parameter, .true., values(n_tot+j), err, print_err)
+        if (err) return
       endif
     endif
 
-    if (err) return
-    if (parameter(1:6) /= 'orbit_') values(n_tot+j) = real_val
   enddo
+
   n_tot = n_tot + size(values)
 enddo
 
@@ -951,12 +951,12 @@ end subroutine tao_evaluate_element_parameters
 ! Routine to return the orbit component indicated by component
 !
 ! Input:
-!   component -- Character(*): 'orbit_x', 'orbit_px', ... or 'orbit_pz'
-!   orbit     -- Coord_struct: orbit.
+!   component -- character(*): 'orbit.x', 'orbit.px', 'intensity.x', 'phase.y', 'energy', 'pc', etc.
+!   orbit     -- coord_struct: Particle orbit.
 !
 ! Output:
-!   value -- Real(rp): orbit component.
-!   err   -- Logical: Set True if component is not recognized. False otherwise.
+!   value -- real(rp): orbit component.
+!   err   -- logical: Set True if component is not recognized. False otherwise.
 !-
 
 subroutine tao_orbit_value (component, orbit, value, err)
@@ -973,19 +973,49 @@ logical err
 
 err = .true.
 
+if (component == 'state') then
+  value = orbit%state
+  err = .false.
+  return
+endif
+
+if (orbit%state /= alive$) return
+
 select case (component)
-case ('orbit_x')
+case ('orbit_x', 'orbit.x')
   value = orbit%vec(1)
-case ('orbit_px')
+case ('orbit_px', 'orbit.px')
   value = orbit%vec(2)
-case ('orbit_y')
+case ('orbit_y', 'orbit.y')
   value = orbit%vec(3)
-case ('orbit_py')
+case ('orbit_py', 'orbit.py')
   value = orbit%vec(4)
-case ('orbit_z')
+case ('orbit_z', 'orbit.z')
   value = orbit%vec(5)
-case ('orbit_pz')
+case ('orbit_pz', 'orbit.pz')
   value = orbit%vec(6)
+case ('intensity')
+  value = orbit%field(1)**2 + orbit%field(2)**2
+case ('intensity_x', 'intensity.x')
+  value = orbit%field(1)**2
+case ('intensity_y', 'intensity.y')
+  value = orbit%field(2)**2
+case ('phase_x', 'phase.x')
+  value = orbit%phase(1)
+case ('phase_y', 'phase.y')
+  value = orbit%phase(2)
+case ('energy')
+  if (orbit%species == photon$) then
+    value = orbit%p0c
+  else
+    call convert_pc_to(orbit%p0c * (1 + orbit%vec(6)), orbit%species, e_tot = value)
+  endif
+case ('pc')
+  if (orbit%species == photon$) then
+    value = orbit%p0c
+  else
+    value = orbit%p0c * (1 + orbit%vec(6))
+  endif
 case default
   return
 end select
@@ -2078,6 +2108,8 @@ subroutine tao_set_var_model_value (var, value, print_limit_warning)
 implicit none
 
 type (tao_var_struct), target :: var
+type (tao_universe_struct), pointer :: u
+type (lat_struct), pointer :: lat
 type (tao_this_var_struct), pointer :: t
 type (ele_struct), pointer :: ele
 
@@ -2106,12 +2138,21 @@ var%model_value = value
 do i = 1, size(var%this)
   t => var%this(i)
   t%model_value = value
-  ele => s%u(t%ix_uni)%model%lat%branch(t%ix_branch)%ele(t%ix_ele)
-  call set_flags_for_changed_attribute (ele, t%model_value)
+  u => s%u(t%ix_uni)
+
   if (s%com%common_lattice .and.  t%ix_uni == ix_common_uni$) then
     s%u(:)%calc%lattice = .true.
   else
-    s%u(t%ix_uni)%calc%lattice = .true.
+    u%calc%lattice = .true.
+  endif
+
+  lat => u%model%lat
+  if (var%ele_name == 'BEAM_START') then
+    u%model%lat_branch(0)%orb0%vec = lat%beam_start%vec
+    u%model%lat_branch(0)%orb0%t   = lat%beam_start%t
+  else
+    ele => lat%branch(t%ix_branch)%ele(t%ix_ele)
+    call set_flags_for_changed_attribute (ele, t%model_value)
   endif
 enddo
 
@@ -2612,7 +2653,7 @@ do
     call get_next_arg (s%com%building_wall_file)
 
   case ('-color_prompt')
-    s%global%prompt_color = 'RED'
+    s%global%prompt_color = 'BLUE'
 
   case ('-data')
     call get_next_arg (s%com%data_file)
@@ -2715,6 +2756,7 @@ call out_io (s_blank$, r_name, [ &
         '  -beam0 <beam0_file>             # Beam init params (beam size, etc.)            ', &
         '  -beam_all <all_beam_file>       # Beam info from previous tracking              ', &
         '  -building_wall <wall_file>      # Define the building tunnel wall               ', &
+        '  -color_prompt                   # Set color of prompt string to blue            ', &
         '  -data <data_file>               # Define data for plotting and optimization     ', &
         '  -disable_smooth_line_calc       # Disable the smooth line calc used in plotting ', &
         '  -geometry <width>x<height>      # Plot window geometry                          ', &

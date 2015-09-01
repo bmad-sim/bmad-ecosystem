@@ -605,6 +605,7 @@ type (tao_var_struct), target :: var
 type (tao_this_var_struct), pointer :: this
 type (tao_universe_struct), pointer :: u
 type (lat_struct), pointer :: lat
+type (all_pointer_struct), allocatable :: a_ptr(:)
 
 integer i, j, n, n1, n2, ie, iu, ib
 
@@ -621,16 +622,24 @@ endif
 
 found = .false.
 do iu = lbound(s%u, 1), ubound(s%u, 1)
+
   if (.not. good_unis(iu)) cycle
   lat => s%u(iu)%model%lat
-  do ib = 0, ubound(lat%branch, 1)
-    do ie = 0, lat%branch(ib)%n_ele_max
-      if (var%ele_name /= lat%branch(ib)%ele(ie)%name) cycle
-      call tao_pointer_to_var_in_lattice (var, iu, lat%branch(ib)%ele(ie), err)
-      if (err) return
-      found = .true.
+
+  if (var%ele_name == 'BEAM_START') then
+    call tao_pointer_to_var_in_lattice2 (var, iu, err)
+    if (err) return
+    found = .true.
+  else
+    do ib = 0, ubound(lat%branch, 1)
+      do ie = 0, lat%branch(ib)%n_ele_max
+        if (var%ele_name /= lat%branch(ib)%ele(ie)%name) cycle
+        call tao_pointer_to_var_in_lattice (var, iu, lat%branch(ib)%ele(ie), err)
+        if (err) return
+        found = .true.
+      enddo
     enddo
-  enddo
+  endif
 enddo
 
 if (.not. found) then
@@ -731,8 +740,7 @@ this => var%this(ix_this)
 ! locate attribute
 
 ele2 => pointer_to_ele (u%model%lat, ele%ix_ele, ele%ix_branch)
-call pointer_to_attribute (ele2, var%attrib_name, .true., &
-                          a_ptr, err, .false., ix_attrib = var%ix_attrib)
+call pointer_to_attribute (ele2, var%attrib_name, .true., a_ptr, err, .false., ix_attrib = var%ix_attrib)
 if (err .or. .not. associated(a_ptr%r)) then
   call out_io (s_error$, r_name, &
             'IN VARIBALE: ' // tao_var1_name(var), &
@@ -786,6 +794,123 @@ if (s%com%common_lattice) then
 endif
 
 end subroutine tao_pointer_to_var_in_lattice
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_pointer_to_var_in_lattice2 (var, ix_uni, err)
+! 
+! Routine to add a pointer from a given Tao variable
+! to the appropriate variable in a lattice.
+!
+! Input:
+!   var       -- Tao_var_struct: Structure has the info of where to point.
+!   ix_uni    -- Integer: the universe to use
+!
+! Output:
+!   var%this(ix_this) -- Tao_this_var_struct: New component of %this(:) array is added. 
+!     %model_ptr
+!     %base_ptr
+!     %ix_ele
+!     %ix_uni
+!   err       -- Logical: Set True if there is an error. False otherwise.
+!-
+
+subroutine tao_pointer_to_var_in_lattice2 (var, ix_uni, err)
+
+implicit none
+
+type (tao_var_struct), target :: var
+type (ele_pointer_struct), allocatable :: eles(:)
+type (tao_universe_struct), pointer :: u
+type (tao_this_var_struct), pointer :: this
+type (tao_this_var_struct) :: this_saved(size(var%this))
+type (all_pointer_struct), allocatable :: a_ptr(:), b_ptr(:), cm_ptr(:), cb_ptr(:)
+
+integer ii, ix, ix_uni, n_old
+logical :: err
+character(30) :: r_name = 'tao_pointer_to_var_in_lattice'
+
+! locate element
+
+err = .true.
+
+u => s%u(ix_uni)
+if (s%com%common_lattice) u => s%com%u_working
+
+call pointers_to_attribute (u%model%lat, var%ele_name, var%attrib_name, .true., a_ptr, err, .false., eles, var%ix_attrib)
+if (err .or. size(a_ptr) == 0) then
+  call out_io (s_error$, r_name, &
+            'IN VARIBALE: ' // tao_var1_name(var), &
+            '  INVALID ATTRIBUTE: ' // var%attrib_name, &
+            '  FOR ELEMENT: ' // var%ele_name)
+  var%model_value => var%old_value
+  var%base_value  => var%old_value
+  var%exists = .false.
+  var%ix_key_table = -1
+  return
+endif
+
+call pointers_to_attribute (u%base%lat, var%ele_name, var%attrib_name, .true., b_ptr, err, .false., eles, var%ix_attrib)
+if (associated(u%common)) then
+  call pointers_to_attribute (u%common%model%lat, var%ele_name, var%attrib_name, .true., cm_ptr, err, .false., eles, var%ix_attrib)
+  call pointers_to_attribute (u%common%base%lat,  var%ele_name, var%attrib_name, .true., cb_ptr, err, .false., eles, var%ix_attrib)
+endif
+
+! allocate space for var%this.
+
+n_old = size(var%this)
+this_saved = var%this
+deallocate (var%this)  
+allocate (var%this(n_old+size(a_ptr)))
+var%this(1:n_old) = this_saved
+
+! locate attribute
+
+
+do ii = 1, size(a_ptr)
+  this => var%this(n_old+ii)
+  this%model_value => a_ptr(ii)%r
+  this%base_value  => b_ptr(ii)%r
+  this%ix_uni = ix_uni
+  if (size(eles) == 0) then
+    this%ix_ele    = -1
+    this%ix_branch = 0
+  else
+    this%ix_ele    = eles(ii)%ele%ix_ele
+    this%ix_branch = eles(ii)%ele%ix_branch
+  endif
+
+  var%model_value => var%this(1)%model_value
+  var%base_value  => var%this(1)%base_value
+  var%design_value = var%this(1)%model_value
+
+  ! Common pointer
+
+  if (associated(u%common)) then
+    var%common%model_value => cm_ptr(ii)%r
+    var%common%base_value  => cb_ptr(ii)%r
+  endif
+
+  ! With unified lattices: model_value and base_value get their own storage
+  ! instead of pointing to var%this(1). 
+  ! Exception: If variable controls a common parameter
+
+  if (s%com%common_lattice) then
+    if (this%ix_uni == ix_common_uni$) then
+      var%model_value => var%common%model_value
+      var%base_value => var%common%base_value
+    else
+      allocate (var%model_value, var%base_value)
+      var%model_value = this%model_value
+      var%base_value = this%base_value
+    endif
+  endif
+
+enddo
+
+end subroutine tao_pointer_to_var_in_lattice2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
