@@ -170,6 +170,7 @@ do i = 1, s%n_var_used
   do j = 1, size(var%this)
     this => var%this(j)
     u => s%u(this%ix_uni)
+    if (this%ix_ele < 0) cycle  ! Do not check EG "beam_start".
     if (.not. attribute_free (this%ix_ele, this%ix_branch, var%attrib_name, u%model%lat)) then
       call out_io (s_abort$, r_name, &
                 'ERROR: VARIABLE TRYING TO CONTROL AN ATTRIBUTE THAT IS NOT FREE TO VARY.', &

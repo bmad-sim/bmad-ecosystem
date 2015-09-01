@@ -97,7 +97,7 @@ do i = 1, size(v_array)
   endif
   max_val = max(max_val, abs(var%old_value))
   max_val = max(max_val, abs(var%design_value)) 
-  max_val = max(max_val, abs(var%model_value)) 
+  max_val = max(max_val, abs(var%model_value))
 enddo
 
 ! print results
