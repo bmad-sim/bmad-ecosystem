@@ -39,16 +39,24 @@
 #set -x
 
 # Start time
+DATE1=$(date +"%s")
 
-date1=$(date +"%s")
+# Function to calculate and display total Compile and Link time
+func_display_build_time () {
+    DATE2=$(date +"%s")
+    DIFF=$((${DATE2}-${DATE1}))
+    DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
+    DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
+    DTIME_SEC=$(echo "$(echo ${DTIME:(-3)})*60" | bc)
+    [ "${DTIME_MIN}" != 0 ] && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" || DTIME_MESS="${DTIME_SEC}sec"
+    echo -e "\nCompile/Link time: ${DTIME_MESS}\n"
+}
 
 # Assign build type based on invoked name of script.
-
 THIS_SCRIPT=`basename $0`
 [ "${THIS_SCRIPT}" == "mk" ] &&  BUILD_TYPE="production" || BUILD_TYPE="debug"
 
 # Determine which cmake is available 
-
 if [ -e /usr/bin/cmake28 ]
 then 
     CMAKE_BINARY=/usr/bin/cmake28
@@ -57,7 +65,6 @@ else
 fi
 
 # Determine which ctest is available 
-
 if [ -e /usr/bin/ctest ]
 then 
     CTEST_BINARY=/usr/bin/ctest
@@ -91,7 +98,7 @@ case ${1} in
     cleaner)
 	rm -rf `pwd`/${BUILD_TYPE}
 	DIR=`pwd`
-	rm -rf "../config/$(basename $DIR)"
+	rm -rf "../config/$(basename ${DIR})"
 	[ -e acc_build ] && ./acc_build -"${BUILD_TYPE}" -"${1}"
 	echo -e "\nRemoved cached files.  This will force a reconfiguration upon the next build request.\n"
 	;;
@@ -99,7 +106,7 @@ case ${1} in
     obliterate)
 	rm -rf `pwd`/${BUILD_TYPE}
 	DIR=`pwd`
-	rm -rf "../config/$(basename $DIR)"
+	rm -rf "../config/$(basename ${DIR})"
 	cd ..
 	rm -rf ${BUILD_TYPE}
 	rm -rf `pwd`/*/${BUILD_TYPE}
@@ -111,9 +118,11 @@ case ${1} in
 	if [ -e acc_build ] 
 	then 
 	    ./acc_build -"${BUILD_TYPE}" -"${1}"
+	    func_display_build_time
 	else
 	    [ -d ${BUILD_TYPE} ] && cd ${BUILD_TYPE}
-	    ${CTEST_BINARY} --verbose --build-and-test 
+	    ${CTEST_BINARY} --verbose --build-and-test
+	    func_display_build_time
 	fi
 	;;
 
@@ -121,19 +130,15 @@ case ${1} in
 	if [ -e acc_build ] 
 	then 
 	    ./acc_build -"${BUILD_TYPE}"
+	    func_display_build_time
 	else
             # If the local out-of-source build directory does not yet exist, create it.
 	    [ ! -d ${BUILD_TYPE} ] && mkdir ${BUILD_TYPE}
 	    cd ${BUILD_TYPE}
 	    ${CMAKE_BINARY} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
 	    gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
+	    func_display_build_time
 	fi
 	;;
 esac
 
-# Print delta time
-
-date2=$(date +"%s")
-diff=$(($date2-$date1))
-dtime=$(echo "scale = 2; $diff/60" | bc)
-echo -e "\nCompile/Link time: $dtime minutes"
