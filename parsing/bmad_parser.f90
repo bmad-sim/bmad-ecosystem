@@ -81,7 +81,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
 logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
-logical detected_expand_lattice_cmd, multipass, wild_and_key0
+logical detected_expand_lattice_cmd, multipass, wild_and_key0, do_energy_bookkeeping
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! see if digested file is open and current. If so read in and return.
@@ -890,37 +890,40 @@ branch_loop: do i_loop = 1, n_branch_max
   ! Reference energy bookkeeping...
   ! Do not need to have set the energy for branch lines where the particle is the same
 
+  do_energy_bookkeeping = .true.
   if (branch%ix_from_branch > -1) then
     branch0 => lat%branch(branch%ix_from_branch)
-    if (branch0%param%particle == branch%param%particle) cycle
+    if (branch0%param%particle == branch%param%particle) do_energy_bookkeeping = .false.
   endif
 
-  ele => branch%ele(0)
+  if (do_energy_bookkeeping) then
+    ele => branch%ele(0)
 
-  if (ele%value(p0c$) >= 0) then
-    call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
-  elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
-    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-  else
-    if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
-      if (branch%param%particle == photon$) then
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                       'WILL USE 1000 eV!', i_array = [i])
-      else
-        call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                       'WILL USE 1000 * MC^2!', i_array = [i])
-      endif
+    if (ele%value(p0c$) >= 0) then
+      call convert_pc_to (ele%value(p0c$), branch%param%particle, e_tot = ele%value(e_tot$))
+    elseif (ele%value(e_tot$) >= mass_of(branch%param%particle)) then
+      call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
     else
-      call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+      if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
+        if (branch%param%particle == photon$) then
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                         'WILL USE 1000 eV!', i_array = [i])
+        else
+          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
+                                         'WILL USE 1000 * MC^2!', i_array = [i])
+        endif
+      else
+        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+      endif
+      ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
+      if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
+      call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
+      bp_com%write_digested = .false.
     endif
-    ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
-    if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
-    call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-    bp_com%write_digested = .false.
-  endif
 
-  ele%value(e_tot_start$) = ele%value(e_tot$)
-  ele%value(p0c_start$) = ele%value(p0c$)
+    ele%value(e_tot_start$) = ele%value(e_tot$)
+    ele%value(p0c_start$) = ele%value(p0c$)
+  endif
 
   !
 
