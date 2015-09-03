@@ -1301,7 +1301,6 @@ if (n_max > ubound(in_lat%ele, 1)) then
   call allocate_plat (plat, ubound(in_lat%ele, 1))
 endif
 
-call init_ele (in_lat%ele(n_max), branch = in_lat%branch(0))
 in_lat%ele(n_max)%name = word_1
 call find_indexx2 (in_lat%ele(n_max)%name, in_name, in_indexx, 0, n_max-1, ix, add_to_list = .true.)
 in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array

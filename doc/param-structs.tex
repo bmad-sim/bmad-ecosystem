@@ -187,7 +187,12 @@ Default setting to be applied to a lattice if
 \vn{absolute_time_tracking} (\sref{s:param}) is not specified in a
 lattice file. Additionally, if an element that is not associated with a lattice
 is tracked, \vn{%absolute_time_tracking_default} will be used to
-determine whether absolute time tracking is used.
+determine whether absolute time tracking is used. 
+
+To change between absolute and relative time tracking
+(\sref{s:rf.time}) after lattice file parsing, the
+\vn{%absolute_time_tracking} component of a \vn{lat_struct}
+(\sref{s:abs.time}) can be appropriately set.
 
 \item[\vn{\%debug}] \Newline
 Used for communication between program units for debugging purposes.

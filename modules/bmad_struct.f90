@@ -862,7 +862,7 @@ type lat_struct
   integer input_taylor_order              ! As set in the input file
   integer, allocatable :: ic(:)           ! Index to %control(:)
   integer :: photon_type = incoherent$    ! Or coherent$. For X-ray simulations.
-  logical absolute_time_tracking          ! Use absolute time in lcavity and rfcavity tracking?
+  logical absolute_time_tracking          ! Use abs. time for RF phase? Call autoscale if toggled.
   logical ptc_uses_hard_edge_drifts       ! Does associated ptc layout have hard edge model drifts?
 end type
 

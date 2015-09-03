@@ -509,8 +509,6 @@ if (attrib_word == 'WALL') then
   endif
 
   i_section = 0
-  allocate (ele%wall3d)
-
   if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
@@ -531,6 +529,8 @@ if (attrib_word == 'WALL') then
   if (.not. expect_this ('{', .true., .true., 'AFTER "WALL"')) return
 
   ! Loop wall3d_struct components.
+
+  allocate (ele%wall3d)
 
   wall3d_loop: do    
 
