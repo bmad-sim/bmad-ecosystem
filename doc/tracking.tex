@@ -551,8 +551,8 @@ matrix. The reverse, however, is not true.  The transfer matrix
 routines (\vn{lat_make_mat6}, etc.)  will do tracking.
 
 For determining what tracking methods are valid for a given element,
-use \Hyperref{r:valid.tracking.method}{valid_tracking_method} and \Hyperref{r:valid.mat6.calc.method}{valid_mat6_calc_method}
-functions
+use \Hyperref{r:valid.tracking.method}{valid_tracking_method} and
+\Hyperref{r:valid.mat6.calc.method}{valid_mat6_calc_method} functions
 \begin{example}
   print *, 'Method is valid: ', valid_tracking_method(ele, boris\$)
 \end{example}
@@ -562,7 +562,7 @@ functions
 just before and after each element. 
 
 %----------------------------------------------------------------
-\section{Time Tracking}
+\section{Using Time as the Independent Variable}
 \label{s:time.tracking}
 
 Time tracking uses time as the independent variable as opposed to the
@@ -575,6 +575,20 @@ Currently, the only \vn{ele%tracking_method} available for time
 tracking is \vn{time_runge_kutta\$}. Time tracking needs extra
 bookkeeping due to the fact that the particle may reverse directions.
 See the \vn{dark_current_tracker} program as an example. 
+
+%----------------------------------------------------------------
+\section{Absolute/Relative Time Tracking}
+\label{s:abs.time}
+\index{absolute time tracking}
+
+\index{lat_struct!absolute_time_tracking}
+Absolute or relative time tracking (\sref{s:rf.time}) can be set after
+the lattice file is parsed, by setting the
+\vn{%absolute_time_tracking} component of the \vn{lat_struct}. when
+\vn{%absolute_time_tracking} is toggled, the
+\Hyperref{r:autoscale.phase.and.amp}{autoscale_phase_and_amp} must be
+called to reset the appropriate phase offsets and scale amplitudes.
+
 
 %----------------------------------------------------------------
 \section{Taylor Maps}
