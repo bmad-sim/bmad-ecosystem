@@ -622,7 +622,7 @@ For the entrance face:
 \Endeq
 with \vn{g_{tot}} is the total bending strength
 \Begineq
-  g_{tot} = \mbox{g} + \mbox{g_err}
+  g_{tot} = \text{g} + \text{g_err}
 \Endeq
 \vn{g} being the reference bend strength and \vn{g_err} being
 bend the difference between the actual and reference bend strengths
@@ -653,7 +653,7 @@ parameters \vn{fb1} (entrance end) and \vn{fb2} (exit end) which
 correspond to the SAD \vn{fb1} and \vn{fb2} parameters. These are related
 to the bend parameters by
 \Begineq
-  \mbox{fb1} = 12 \, F_{H1}, \qquad \mbox{fb2} = 12 \, F_{H2}
+  \text{fb1} = 12 \, F_{H1}, \qquad \text{fb2} = 12 \, F_{H2}
 \Endeq
 
 %---------------------------------------------------------------------------------
@@ -1427,39 +1427,46 @@ outlined in \sref{s:symp.track} is used for tracking. The vector
 potential is constructed to avoid singularities when one of the wave
 vectors $k_x$, $k_y$, or $k_z$ is zero. 
 
-The vector potential for first form (cf.~\Eq{cm1}) is
+The vector potential for the \vn{hyper-y} form group with \vn{plane} set to
+\vn{x} is (cf.~\Eq{cm1})
 \begin{alignat}{4}
-  A_x &=  &C &\dfrac{k_z}{k_y^2} & \cos(\kxx) \cosh(\kyy) \sin(\kzz) \label{af1} \CRNO
-  A_y &=  &0 && \\
-  A_s &= -&C &\dfrac{k_x}{k_y^2} & \sin(\kxx) \cosh(\kyy) \cos(\kzz) \nonumber
+  A_x &=  &C &\dfrac{k_z}{k_y^2}      & \sin(\kxx) \sinh(\kyy) \sin(\kzz) \CRNO
+  A_y &=  &0 && \label{bf1} \\
+  A_s &=  &C &\dfrac{k_x}{k_y^2}      & \cos(\kxx) \sinh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-The vector potential for the second form (cf.~\Eq{cm2}) is
-\begin{alignat}{4}
-  A_x &=  &C &\dfrac{k_y}{k_z^2} & \cosh(\kxx) \cosh(\kyy) \sin(\kzz) \CRNO
-  A_y &= -&C &\dfrac{k_x}{k_z^2} & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{af2} \\
-  A_s &=  &0 && \nonumber
-\end{alignat}
-The third form (cf.~\Eq{cm3})
+For the \vn{hyper-y} form group with \vn{plane} set to \vn{y} the vector potential is: 
 \begin{alignat}{4}
   A_x &=  &0 &&\CRNO
-  A_y &= -&C &\dfrac{k_z}{k_x^2} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{af3} \\
-  A_s &= -&C &\dfrac{k_y}{k_x^2} & \sinh(\kxx) \cos(\kyy) \cos(\kzz) \nonumber
+  A_y &= -&C &\dfrac{k_z}{k_x \, k_y} & \sin(\kxx) \sinh(\kyy) \sin(\kzz) \label{bf2} \\
+  A_s &= -&C &\dfrac{1}{k_x}          & \sin(\kxx) \cosh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
 
-Note: Old style (\sref{s:wiggler.map}) wiggler forms use a vector
-potential where $A_x = 0$ and:
-The old style first form (cf.~\Eq{f1})
+The vector potential for the \vn{hyper-xy} form group with \vn{plane} set to
+\vn{x} is (cf.~\Eq{cm3})
 \begin{alignat}{4}
-  A_y &= -&\wt C &\dfrac{k_z}{k_x \, k_y} & \sin(\kxx) \sinh(\kyy) \sin(\kzz) \label{bf1} \CRNO
-  A_s &= -&\wt C &\dfrac{1}{k_x}          & \sin(\kxx) \cosh(\kyy) \cos(\kzz) 
+  A_x &=  &C &\dfrac{1}{k_y}          & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \CRNO
+  A_y &=  &0 && \label{bf3} \\
+  A_s &=  &C &\dfrac{k_x}{k_y \, k_z} & \cosh(\kxx) \sinh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-The old style second form (cf.~\Eq{f2})
+For the \vn{hyper-xy} form group with \vn{plane} set to \vn{y} the vector potential is: 
 \begin{alignat}{4}
-  A_y &= -&\wt C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{bf2} \CRNO
-  A_s &= -&\wt C &\dfrac{1}{k_x}          & \sinh(\kxx) \cosh(\kyy) \cos(\kzz) 
+  A_x &=  &0 &&\CRNO
+  A_y &= -&C &\dfrac{1}{k_x}          & \sinh(\kxx) \sinh(\kyy) \sin(\kzz) \label{bf4} \\
+  A_s &= -&C &\dfrac{k_y}{k_x \, k_z} & \sinh(\kxx) \cosh(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
-The old style third form (cf.~\Eq{f3})
+
+The vector potential for the \vn{hyper-x} form group with \vn{plane} set to
+\vn{x} is (cf.~\Eq{cm5})
 \begin{alignat}{4}
-  A_y &= -&\wt C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{bf3} \CRNO
-  A_s &= -&\wt C &\dfrac{1}{k_x}          & \sinh(\kxx) \cos(\kyy) \cos(\kzz) 
+  A_x &=  &C &\dfrac{k_z}{k_x \, k_y} & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \CRNO
+  A_y &=  &0 && \label{bf5} \\
+  A_s &=  &C &\dfrac{1}{k_y}          & \cosh(\kxx) \sin(\kyy) \cos(\kzz) \nonumber
 \end{alignat}
+For the \vn{hyper-x} form group with \vn{plane} set to \vn{y} the vector potential is: 
+\begin{alignat}{4}
+  A_x &=  &0 &&\CRNO
+  A_y &= -&C &\dfrac{k_z}{k_x^2}      & \sinh(\kxx) \sin(\kyy) \sin(\kzz) \label{bf6} \\
+  A_s &= -&C &\dfrac{k_y}{k_x^2}      & \sinh(\kxx) \cos(\kyy) \cos(\kzz) \nonumber
+\end{alignat}
+
+

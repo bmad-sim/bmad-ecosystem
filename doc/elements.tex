@@ -3860,18 +3860,16 @@ Attributes specific to a \vn{map type} \vn{wiggler} element are:
                       !   Dependent attribute (\sref{s:depend}).
 \end{example}
 
-A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{cm3}):
+A \vn{\{<Wig_Term>\}} has the form (see \Eqs{cm1} through \eq{cm6}):
 \Begineq
-  \{ C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z \}
+  \{ C, k_x, k_y, k_z, x_0, y_0, \phi_z, \text{plane} \}
 \Endeq
 The \vn{polarity} value is used to scale the magnetic field. By
 default, \vn{polarity} has a value of 1.0.  Example:
 \begin{example}
-  wig1: wiggler, l = 1.6,
-        term(1) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\},
+  wig1: wiggler, l = 1.6, polarity = -1, 
+        term(1) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\},
         term(2) = ...
-  ...
-  wig1[polarity] = -1  ! Reverse the polarity of the wiggler
 \end{example}
 
 The \vn{b_max} attribute for a \vn{map type} \vn{wiggler} is the
@@ -3881,51 +3879,46 @@ seen in tracking is thus scaled by the \vn{polarity}.
 There is no \vn{bmad_standard} tracking for a \vn{map_type}
 \vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
 
-\vn{Note:} When the wiggler model was first developed, the definition of the field
-was somewhat different. The old definition assumed horizontal and vertical symmetry
-and had a different normalization:
-The old style first form was
+\vn{Note:} When the wiggler model was first developed, the definition
+of the field was somewhat different. The old definition assumed
+horizontal and vertical symmetry with an on-axis vertical magnetic
+field. And there were only three different forms instead of the
+present six. The old style \vn{hyper-y} form was
 \begin{alignat}{5}
   B_x &= -&\wt C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_y &=  &\wt C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
   B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cos(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f1} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&&&  \nonumber
 \end{alignat}
-The old style second form was
+The old style \vn{hyper-xy} form was
 \begin{alignat}{5}
   B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
   B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sinh(k_y y) \sin(\kzz) &\label{f2} \\
   & \makebox[1pt][l]{with $k_y^2 = k_z^2 - k_x^2$ ,} &&&&  \nonumber
 \end{alignat}
-The old style third form was
+The old style \vn{hyper_x} form was
 \begin{alignat}{5}
   B_x &=  &\wt C \, &\dfrac{k_x}{k_y} & \sinh(k_x x) \sin(k_y y) \cos(\kzz) &\CRNEG
-  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \mbox{! Old style} \CRNEG
+  B_y &=  &\wt C \, &                 & \cosh(k_x x) \cos(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
   B_s &= -&\wt C \, &\dfrac{k_z}{k_y} & \cosh(k_x x) \sin(k_y y) \sin(\kzz) &\label{f3} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
 \end{alignat}
 The correspondence between $\wt C$ and $C$ is given by comparing
-\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm1}, \eq{cm2}, \eq{cm3}. In
+\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm2}, \eq{cm4}, and \eq{cm6}. In
 a lattice file, the old field definition will be used if a
 \vn{\{<Wig_Term>\}} has just 5 numbers:
 \Begineq
   \{ \wt C, k_x, k_y, k_z, \phi_z \}
 \Endeq
-Example
+For example, the old style syntax:
 \begin{example}
-  wig1: wiggler, l = 1.6, \&
-        term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63\}, \&    ! Old style
-        term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63\}, \&  ! New style
-        term(3) = ...
+  term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63, y\}    ! Old style
 \end{example}
-Note: For backwards compatibility in terms of tracking results, \bmad,
-when doing symplectic tracking, will use a different vector potential
-with fields defined in the old style (\sref{s:wiggler.std}). If the
-field is zero at the ends of the wiggler, this distinction does not
-matter. However, if the field is not zero at the ends, the ``edge
-kick'' inherent in the symplectic tracking will be different.
-
+is equivalent to:
+\begin{example}
+  term(2) = \{0.03, 3.00, 4.00, 5.00, 0, 0, 0.63, y\}  ! New style
+\end{example}
 
 %-----------------------------------------------------
 \subsection{Periodic\_Type Wiggler Element Tracking}

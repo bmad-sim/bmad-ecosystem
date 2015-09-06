@@ -294,9 +294,9 @@ that is present, the field itself is well behaved. Mathematically,
 \Begineq
   \frac{I_m(k_0 \, \rho)}{k_0} \rightarrow 
   \begin{cases}
-    \rho   &\mbox{if } m = 0 \\
-    \rho/2 &\mbox{if } m = 1 \\
-    0      &\mbox{otherwise}
+    \rho   &\text{if } m = 0 \\
+    \rho/2 &\text{if } m = 1 \\
+    0      &\text{otherwise}
   \end{cases}
 \Endeq
 
@@ -331,41 +331,82 @@ an extension of the method of Sagan, Crittenden, and
 Rubin\cite{b:wiggler}. In this model the magnetic (or electric) field is written as
 a sum of terms $B_i$
 \Begineq
-  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)
+  \bfB(x,y,z) = \sum_i \bfB_i(x, y, z; C, k_x, k_y, k_z, x_0, y_0, \phi_z, plane)
 \Endeq 
-Each term $B_i$ is specified using seven numbers: 
-$(C, k_x, k_y, k_z, \phi_x, \phi_y, \phi_z)$. A term can take one of three forms: 
-The first form is
+Each term $B_i$ is specified using seven numbers $(C, k_x, k_y, k_z,
+x_0, y_0, \phi_z)$ and a switch called \vn{plane} which can be either:
+\begin{example}
+  x
+  y
+\end{example}
+There are six possible forms that $\bfB_i$ can take. These six are
+divided into three groups. Each group has two different forms
+specified by plane. Basically, a seeting of \vn{plane} of \vn{x} means
+that the on-axis field is primarily horizontal while a setting of
+\vn{y} gives a form where the on-axis vertical field is primarily
+vertical.
+ 
+The first group of forms is called ``\vn{hyper-y}'' since the vertical
+dependence of the field is hyperbolic in nature. For \vn{plane} set to \vn{x}
+the form is:
+\begin{alignat}{4}
+  B_x &=  &C \, &\dfrac{k_x}{k_y} & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &                 & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &\dfrac{k_z}{k_y} & \sin(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
+\end{alignat}
+and for \vn{plane} set to \vn{y} the \vn{hyper-y} form is
 \begin{alignat}{4}
   B_x &= -&C \, &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm1} \\
+  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
-The second form is
+
+The \vn{hyper-xy} form for \vn{plane} set to \vn{x} is
+\begin{alignat}{4}
+  B_x &=  &C \, &\dfrac{k_x}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &\dfrac{k_y}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &                 & \sinh(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm3} \\
+  & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
+\end{alignat}
+and for \vn{plane} set to \vn{y} the \vn{hyper-xy} form is
 \begin{alignat}{4}
   B_x &=  &C \, &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
+  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm4} \\
   & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
 \end{alignat}
-The third form is
+
+The \vn{hyper-x} form for \vn{plane} set to \vn{x} is
+\begin{alignat}{4}
+  B_x &= -&C \, &                 & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &\dfrac{k_y}{k_x} & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &\dfrac{k_z}{k_x} & \sinh(\kxx) \, \cos(\kyy) \, \sin(\kzz) \label{cm5} \\
+  & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
+\end{alignat}
+and for \vn{plane} set to \vn{y} the \vn{hyper-x} form is
 \begin{alignat}{4}
   B_x &=  &C \, &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm3} \\
+  B_s &= -&C \, &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm6} \\
   & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
+
 The relationship between $k_x$, $k_y$, and $k_z$ ensures that
-Maxwell's equations are satisfied. 
+Maxwell's equations are satisfied. Notice that which form group,
+\vn{hyper-y}, \vn{hyper-xy}, and \vn{hyper-x} a particular $\bfB_i$
+belongs to can be computed by \bmad by seeing which relationship
+between $k_x$, $k_y$, and $k_z$ is satisfied.
 
 The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a
 uniform field is needed, a term with very small $k_x$, $k_y$, and
 $k_z$ can be used. Notice that since $k_y$ must be non-zero for the
-first form (remember, $k_y^2 = k_x^2 + k_z^2$ for this form and not
-all $k$s can be zero), and $k_z$ must be non-zero for the second form,
-and $k_x$ must be nonzero for the third form, The magnetic field is
-always well defined even if one of the $k$s is zero.
+\vn{hyper-y} forms (remember, $k_y^2 = k_x^2 + k_z^2$ for these forms
+and not all $k$'s can be zero), and $k_z$ must be non-zero for the
+\vn{hyper-xy} forms, and $k_x$ must be nonzero for the \vn{hyper-x}
+forms. The magnetic field is always well defined even if one of the
+$k$'s is zero.
 
 %-----------------------------------------------------------------
 \section{RF Fields: Mode Decomposition}
