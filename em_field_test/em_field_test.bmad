@@ -3,8 +3,8 @@ beginning[beta_a] = 10
 beginning[beta_b] = 10
 parameter[e_tot] = 1e9
 parameter[geometry] = open
-beam_start[x] = 1
-beam_start[y] = 4
+beam_start[x] = 0.1
+beam_start[y] = 0.2
 beam_start[z] = 0.3
 beam_start[px] = 1e-5
 
@@ -30,5 +30,17 @@ pillbox_cav: lcavity, tracking_method = runge_kutta, gradient=10e6, mat6_calc_me
            e_coef_im = ( 0, 0) } } }
 
 
-ll: line = (q)
+w1: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     term(001)={1.0e-3, 4, 5, 3, 0.2, 0.1, 2, y}
+
+w2: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     term(001)={1.0e-3, 3, 4, 5, 0.2, 0.1, 2, x}
+
+w3: wiggler, l= 1, tracking_method = symp_lie_bmad, num_steps = 10, &
+     term(001)={1.0e-3, 5, 4, 3, 0.2, 0.1, 0.2, x}
+
+
+
+
+ll: line = (w1)
 use, ll

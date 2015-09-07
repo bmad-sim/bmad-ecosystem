@@ -21,6 +21,8 @@ logical print_extra
  
 !
 
+global_com%exit_on_error = .false.
+
 fmt = '(a,t42, a, 7es18.10)'
 
 print_extra = .false.
