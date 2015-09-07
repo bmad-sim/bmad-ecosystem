@@ -771,7 +771,7 @@ do j = 1, num_wig_terms
 
   if (tmj%plane == y_plane$) then
     if (abs(arg) < 1d-10) then
-      tmj%sx_over_kx = 1
+      tmj%sx_over_kx = x + wt%x0
     else
       tmj%sx_over_kx = tmj%s_x / wt%kx
     endif
@@ -835,7 +835,7 @@ do j = 1, num_wig_terms
 
   if (tmj%plane == x_plane$) then
     if (abs(arg) < 1d-10) then
-      tmj%sy_over_ky = 1
+      tmj%sy_over_ky = y + wt%y0
     else
       tmj%sy_over_ky = tmj%s_y / wt%ky
     endif
