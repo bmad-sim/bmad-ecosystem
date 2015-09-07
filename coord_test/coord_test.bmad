@@ -1,10 +1,18 @@
 parameter[e_tot] = 1e6
 
+beam_start[x]  = 0.1
+beam_start[px] = 0.02
+beam_start[y]  = 0.2
+beam_start[py] = 0.03
+beam_start[z]  = .4
+beam_start[pz] = 2
+
 q: quadrupole, l = 0
 s: sample, x_offset = 1, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, l = 2
 m: mirror, graze_angle = pi/2, &
         x_offset = 2, y_offset = 2, x_pitch = 4, y_pitch = 5, tilt = 6, z_offset = 7, x_limit = 0.1, y_limit = 0.1
-m2: mirror, graze_angle = pi/4, tilt = pi/2
+!!m2: mirror, graze_angle = pi/4, tilt = pi/2
+m2: mirror, graze_angle = pi/4!, tilt = pi/2
 
 l0: line = (q)
 
@@ -13,3 +21,11 @@ l1[e_tot] = 1e4
 l1[particle] = photon
 
 use, l0, l1
+
+end_file
+
+beam_start[x]  = 0.1
+beam_start[px] = 0.70710678
+beam_start[y]  = 0.
+beam_start[py] = 0.
+

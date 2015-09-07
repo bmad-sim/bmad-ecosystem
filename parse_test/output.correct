@@ -6,6 +6,7 @@
 "5 REL"   3.0000
 "TM1"    "Symp_Lie_Bmad"
 "TM5"    "Runge_Kutta"
+"N3"   4
 "Custom"    "MY_CUSTOM"
 "Pion_Minus"   1.395701800000E+08  -1
 "Muon"   1.056583715000E+08  -1

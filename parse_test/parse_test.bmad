@@ -23,6 +23,9 @@ mm: mask, mode = transmission,
     section = {s = 0, v(1) = {1, 1}},
     section = {s = 1, v(1) = {1, 1}}}
 
+m2: mask
+m2[wall] = mm[wall]
+
 cap: capillary, wall = {
   section = {s = 0, v(1) = {1, 1}},
   section = {s = 1, v(1) = {1, 1}}}
@@ -86,11 +89,20 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 ll: line = (aa, aa, bb, bb, cc, pp)
 use, ll, phot
 
-phot: line = (cap, cry)
+phot: line = (cap, cry, ff)
 phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
 phot[beta_b] = 10
+
+
+ff: fork, to_line = f_line
+qq: quadrupole, l = 1
+f_line: line = (qq)
+f_line[particle] = photon
+mk: marker, superimpose, ref = qq, offset = 0.3
+
+
 
 ! Group using element not in constructed lattice is ok
 
