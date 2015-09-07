@@ -1037,9 +1037,9 @@ rhs = 3 + offset; F%ky = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%kz = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 5 + offset; F%phi_x = rhs
+rhs = 5 + offset; F%x0 = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 6 + offset; F%phi_y = rhs
+rhs = 6 + offset; F%y0 = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%phi_z = rhs
 !! f_side.test_pat[integer, 0, NOT]
@@ -5693,7 +5693,9 @@ rhs = 26 + offset; F%conserve_taylor_maps = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 28 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 28 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 29 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

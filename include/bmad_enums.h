@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 160;
+  const int BMAD_INC_VERSION = 162;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -44,6 +44,7 @@ namespace Bmad {
   const int SOFT_EDGE_ONLY = 2, HARD_EDGE_ONLY = 3, FULL = 4;
   const int SAD_FULL = 5, LINEAR_EDGE = 6, BASIC_BEND = 7, TEST_EDGE = 8;
   const int N_NON_BEND_FRINGE_TYPE = 4;
+  const int STANDING_WAVE = 1, TRAVELING_WAVE = 2, PTC_STANDARD = 3;
   const int X_INVARIANT = 1, MULTIPOLE_SYMMETRY = 2;
   const int CONTROL_VAR = 1, OLD_CONTROL_VAR = 2, ALL_CONTROL_VAR = 3, ELEC_MULTIPOLE = 4;
   const int NUM_ELE_ATTRIB = 80;
@@ -57,7 +58,7 @@ namespace Bmad {
   const int FIRST_TRACK_EDGE = 11, SECOND_TRACK_EDGE = 12, IN_BETWEEN = 13;
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3, START_END = 99;
-  const int NORMAL = 1, CLEAR = 2, MASK = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
+  const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
   const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10, TRIANGULAR = 11;
   const int ANTECHAMBER = 2;
   const int X_PLANE = 1, Y_PLANE = 2;
@@ -67,7 +68,8 @@ namespace Bmad {
   const int LOST_NEG_X_APERTURE = 3, LOST_POS_X_APERTURE = 4;
   const int LOST_NEG_Y_APERTURE = 5, LOST_POS_Y_APERTURE = 6;
   const int LOST_Z_APERTURE = 7;
-  const int HYPER_Y = 1, HYPER_XY = 2, HYPER_X = 3;
+  const int HYPER_Y_PLANE_Y = 1, HYPER_XY_PLANE_Y = 2, HYPER_X_PLANE_Y = 3;
+  const int HYPER_Y_PLANE_X = 4, HYPER_XY_PLANE_X = 5, HYPER_X_PLANE_X = 6;
   const int X_AXIS = 2, Y_AXIS = 3;
   const int LINEAR_LEADING = 2, LINEAR_TRAILING = 3;
   const int SUPER_OK = 0, STALE = 2;
@@ -94,8 +96,8 @@ namespace Bmad {
   const int PIPE = 44, CAPILLARY = 45, MULTILAYER_MIRROR = 46;
   const int E_GUN = 47, EM_FIELD = 48, FLOOR_SHIFT = 49, FIDUCIAL = 50;
   const int UNDULATOR = 51, DIFFRACTION_PLATE = 52, PHOTON_INIT = 53;
-  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56;
-  const int N_KEY = 56;
+  const int SAMPLE = 54, DETECTOR = 55, SAD_MULT = 56, MASK = 57;
+  const int N_KEY = 57;
   const int N_PART = 2, TAYLOR_ORDER = 3;
   const int VAL1=11, VAL2=12, VAL3=13, VAL4=14, VAL5=15,
             VAL6=16, VAL7=17, VAL8=18, VAL9=19, VAL10=20, VAL11=21,
@@ -147,7 +149,7 @@ namespace Bmad {
   const int X_OFFSET_CALIB = 22, V1_UNITCELL = 22, PSI_ANGLE = 22, SPATIAL_DISTRIBUTION = 22;
   const int SPIN_Z = 22;
   const int Y_OFFSET_CALIB = 23, V_UNITCELL = 23, V2_UNITCELL = 23, SPINOR_THETA = 23;
-  const int TRAVELING_WAVE = 23, BETA_A = 23, VELOCITY_DISTRIBUTION = 23;
+  const int CAVITY_TYPE = 23, BETA_A = 23, VELOCITY_DISTRIBUTION = 23;
   const int PHI0 = 24, TILT_CALIB = 24, BETA_B = 24, ENERGY_DISTRIBUTION = 24, SPINOR_PHI = 24;
   const int PHI0_ERR = 25, CURRENT = 25, L_POLE = 25, PARTICLE = 25;
   const int QUAD_TILT = 25, DE_ETA_MEAS = 25, ALPHA_A = 25, E_FIELD_X = 25, SPINOR_XI = 25;

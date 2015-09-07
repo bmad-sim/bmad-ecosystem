@@ -665,10 +665,10 @@ void set_CPP_wig_term_test_pattern (CPP_wig_term& C, int ix_patt) {
   rhs = 4 + offset; C.kz = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 5 + offset; C.phi_x = rhs;
+  rhs = 5 + offset; C.x0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 6 + offset; C.phi_y = rhs;
+  rhs = 6 + offset; C.y0 = rhs;
 
   // c_side.test_pat[real, 0, NOT]
   rhs = 7 + offset; C.phi_z = rhs;
@@ -3859,7 +3859,10 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 27 + offset; C.absolute_time_tracking_default = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 28 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 28 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 29 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

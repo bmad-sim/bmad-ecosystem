@@ -220,8 +220,8 @@ bool operator== (const CPP_wig_term& x, const CPP_wig_term& y) {
   is_eq = is_eq && (x.kx == y.kx);
   is_eq = is_eq && (x.ky == y.ky);
   is_eq = is_eq && (x.kz == y.kz);
-  is_eq = is_eq && (x.phi_x == y.phi_x);
-  is_eq = is_eq && (x.phi_y == y.phi_y);
+  is_eq = is_eq && (x.x0 == y.x0);
+  is_eq = is_eq && (x.y0 == y.y0);
   is_eq = is_eq && (x.phi_z == y.phi_z);
   is_eq = is_eq && (x.type == y.type);
   return is_eq;
@@ -985,6 +985,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.radiation_fluctuations_on == y.radiation_fluctuations_on);
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
+  is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };

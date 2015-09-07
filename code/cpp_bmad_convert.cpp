@@ -566,13 +566,13 @@ extern "C" void wig_term_to_f2 (Bmad_wig_term_class*, c_Real&, c_Real&, c_Real&,
 extern "C" void wig_term_to_f (const CPP_wig_term& C, Bmad_wig_term_class* F) {
 
   // c_side.to_f2_call
-  wig_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.phi_x, C.phi_y, C.phi_z, C.type);
+  wig_term_to_f2 (F, C.coef, C.kx, C.ky, C.kz, C.x0, C.y0, C.phi_z, C.type);
 
 }
 
 // c_side.to_c2_arg
 extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c_Real& z_ky,
-    c_Real& z_kz, c_Real& z_phi_x, c_Real& z_phi_y, c_Real& z_phi_z, c_Int& z_type) {
+    c_Real& z_kz, c_Real& z_x0, c_Real& z_y0, c_Real& z_phi_z, c_Int& z_type) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.coef = z_coef;
@@ -583,9 +583,9 @@ extern "C" void wig_term_to_c2 (CPP_wig_term& C, c_Real& z_coef, c_Real& z_kx, c
   // c_side.to_c2_set[real, 0, NOT]
   C.kz = z_kz;
   // c_side.to_c2_set[real, 0, NOT]
-  C.phi_x = z_phi_x;
+  C.x0 = z_x0;
   // c_side.to_c2_set[real, 0, NOT]
-  C.phi_y = z_phi_y;
+  C.y0 = z_y0;
   // c_side.to_c2_set[real, 0, NOT]
   C.phi_z = z_phi_z;
   // c_side.to_c2_set[integer, 0, NOT]
@@ -2439,7 +2439,7 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
     c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2452,7 +2452,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
       C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.debug);
+      C.convert_to_kinetic_momentum, C.debug);
 
 }
 
@@ -2467,7 +2467,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_lr_wakes_on, c_Bool& z_mat6_track_symmetric, c_Bool& z_auto_bookkeeper, c_Bool&
     z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
-    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool& z_debug) {
+    z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
+    z_convert_to_kinetic_momentum, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2523,6 +2524,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.conserve_taylor_maps = z_conserve_taylor_maps;
   // c_side.to_c2_set[logical, 0, NOT]
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.convert_to_kinetic_momentum = z_convert_to_kinetic_momentum;
   // c_side.to_c2_set[logical, 0, NOT]
   C.debug = z_debug;
 }

@@ -705,8 +705,8 @@ public:
   Real kx;
   Real ky;
   Real kz;
-  Real phi_x;
-  Real phi_y;
+  Real x0;
+  Real y0;
   Real phi_z;
   Int type;
 
@@ -715,8 +715,8 @@ public:
     kx(0.0),
     ky(0.0),
     kz(0.0),
-    phi_x(0.0),
-    phi_y(0.0),
+    x0(0.0),
+    y0(0.0),
     phi_z(0.0),
     type(0)
     {}
@@ -2293,6 +2293,7 @@ public:
   Bool radiation_fluctuations_on;
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
+  Bool convert_to_kinetic_momentum;
   Bool debug;
 
   CPP_bmad_common() :
@@ -2323,6 +2324,7 @@ public:
     radiation_fluctuations_on(false),
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
+    convert_to_kinetic_momentum(false),
     debug(false)
     {}
 
