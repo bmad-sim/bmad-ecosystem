@@ -339,65 +339,63 @@ x_0, y_0, \phi_z)$ and a switch called \vn{plane} which can be either:
   x
   y
 \end{example}
-There are six possible forms that $\bfB_i$ can take. These six are
-divided into three groups. Each group has two different forms
-specified by plane. Basically, a seeting of \vn{plane} of \vn{x} means
+Basically, a seting of \vn{plane} of \vn{x} means
 that the on-axis field is primarily horizontal while a setting of
 \vn{y} gives a form where the on-axis vertical field is primarily
 vertical.
- 
-The first group of forms is called ``\vn{hyper-y}'' since the vertical
-dependence of the field is hyperbolic in nature. For \vn{plane} set to \vn{x}
-the form is:
+
+There are six possible forms that $\bfB_i$ can take - Three with
+\vn{plane} set to \vn{x} and three with \vn{plane} set to \vn{y}.
+The groups of three forms are designated as ``\vn{hyper-y}'',
+``\vn{hyper-xy}'', and ``\vn{hyper-x}''. For \vn{plane} set to
+\vn{x} the \vn{hyper-y} form is:
 \begin{alignat}{4}
   B_x &=  &C \, &\dfrac{k_x}{k_y} & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &                 & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
   B_s &= -&C \, &\dfrac{k_z}{k_y} & \sin(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm1} \\
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
-and for \vn{plane} set to \vn{y} the \vn{hyper-y} form is
-\begin{alignat}{4}
-  B_x &= -&C \, &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
-  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
-\end{alignat}
-
-The \vn{hyper-xy} form for \vn{plane} set to \vn{x} is
+The \vn{hyper-xy} form for \vn{plane} set to \vn{x} is:
 \begin{alignat}{4}
   B_x &=  &C \, &\dfrac{k_x}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &\dfrac{k_y}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
   B_s &= -&C \, &                 & \sinh(\kxx) \, \cosh(\kyy) \, \sin(\kzz) \label{cm3} \\
   & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
 \end{alignat}
-and for \vn{plane} set to \vn{y} the \vn{hyper-xy} form is
-\begin{alignat}{4}
-  B_x &=  &C \, &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
-  B_y &=  &C \, &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
-  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm4} \\
-  & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
-\end{alignat}
-
-The \vn{hyper-x} form for \vn{plane} set to \vn{x} is
+And the \vn{hyper-x} form for \vn{plane} set to \vn{x} is:
 \begin{alignat}{4}
   B_x &= -&C \, &                 & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &\dfrac{k_y}{k_x} & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
   B_s &= -&C \, &\dfrac{k_z}{k_x} & \sinh(\kxx) \, \cos(\kyy) \, \sin(\kzz) \label{cm5} \\
   & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
-and for \vn{plane} set to \vn{y} the \vn{hyper-x} form is
+The relationship between $k_x$, $k_y$, and $k_z$ ensures that
+Maxwell's equations are satisfied. Notice that which form
+\vn{hyper-y}, \vn{hyper-xy}, and \vn{hyper-x} a particular $\bfB_i$
+belongs to can be computed by \bmad by looking at the values of $k_x$,
+$k_y$, and $k_z$.
+
+For \vn{plane} set to \vn{y} the \vn{hyper-y} form is:
+\begin{alignat}{4}
+  B_x &= -&C \, &\dfrac{k_x}{k_y} & \sin(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &                 & \cos(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &\dfrac{k_z}{k_y} & \cos(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm2} \\
+  & \makebox[1pt][l]{with $k_y^2 = k_x^2 + k_z^2$ .} &&& \nonumber
+\end{alignat}
+the \vn{hyper-xy} form for \vn{plane} set to \vn{y} is:
+\begin{alignat}{4}
+  B_x &=  &C \, &\dfrac{k_x}{k_z} & \sinh(\kxx) \, \sinh(\kyy) \, \cos(\kzz) \CRNEG
+  B_y &=  &C \, &\dfrac{k_y}{k_z} & \cosh(\kxx) \, \cosh(\kyy) \, \cos(\kzz) \CRNEG
+  B_s &= -&C \, &                 & \cosh(\kxx) \, \sinh(\kyy) \, \sin(\kzz) \label{cm4} \\
+  & \makebox[1pt][l]{with $k_z^2 = k_x^2 + k_y^2$ ,} &&& \nonumber
+\end{alignat}
+and the \vn{hyper-x} form for \vn{plane} set to \vn{y} is:
 \begin{alignat}{4}
   B_x &=  &C \, &                 & \sinh(\kxx) \, \sin(\kyy) \, \cos(\kzz) \CRNEG
   B_y &=  &C \, &\dfrac{k_y}{k_x} & \cosh(\kxx) \, \cos(\kyy) \, \cos(\kzz) \CRNEG
   B_s &= -&C \, &\dfrac{k_z}{k_x} & \cosh(\kxx) \, \sin(\kyy) \, \sin(\kzz) \label{cm6} \\
   & \makebox[1pt][l]{with $k_x^2 = k_y^2 + k_z^2$ .} &&& \nonumber
 \end{alignat}
-
-The relationship between $k_x$, $k_y$, and $k_z$ ensures that
-Maxwell's equations are satisfied. Notice that which form group,
-\vn{hyper-y}, \vn{hyper-xy}, and \vn{hyper-x} a particular $\bfB_i$
-belongs to can be computed by \bmad by seeing which relationship
-between $k_x$, $k_y$, and $k_z$ is satisfied.
 
 The singular case where $k_x = k_y = k_z = 0$ is not allowed. If a
 uniform field is needed, a term with very small $k_x$, $k_y$, and

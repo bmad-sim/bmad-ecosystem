@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 161
+integer, parameter :: bmad_inc_version$ = 162
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -340,19 +340,19 @@ end type
 
 ! Wiggler 
 
-integer, parameter :: hyper_y_old$ = 1, hyper_xy_old$ = 2, hyper_x_old$ = 3
-integer, parameter :: hyper_y$ = 4, hyper_xy$ = 5, hyper_x$ = 6
-character(12), parameter :: wig_term_type_name(0:6) = [ &
-                                        'Garbage     ', 'Hyper_Y_old ', 'Hyper_XY_old', 'Hyper_X_old ', &
-                                        'Hyper_Y     ', 'Hyper_XY    ', 'Hyper_X     ']
+integer, parameter :: hyper_y_plane_y$ = 1, hyper_xy_plane_y$ = 2, hyper_x_plane_y$ = 3
+integer, parameter :: hyper_y_plane_x$ = 4, hyper_xy_plane_x$ = 5, hyper_x_plane_x$ = 6
+character(16), parameter :: wig_term_type_name(0:6) = [ &
+                                        'Garbage         ', 'Hyper_Y_Plane_Y ', 'Hyper_XY_Plane_Y', 'Hyper_X_Plane_Y ', &
+                                        'Hyper_Y_Plane_X ', 'Hyper_XY_Plane_X', 'Hyper_X_Plane_X ']
 
 ! Single wiggler term
 
 type wig_term_struct
   real(rp) :: coef = 0
   real(rp) :: kx = 0, ky = 0, kz = 0
-  real(rp) :: phi_x = 0, phi_y = 0, phi_z = 0
-  integer :: type = 0        ! hyper_y$, hyper_xy$, or hyper_x$
+  real(rp) :: x0 = 0, y0 = 0, phi_z = 0
+  integer :: type = 0        ! hyper_y_plane_x$, etc.
 end type
 
 ! Wiggler field
@@ -1187,6 +1187,10 @@ type em_field_struct
   real(rp) dB(3,3)      ! magnetic field gradient
 end type
 
+type em_potential_struct
+  real(rp) :: phi = 0         ! Electric scaler potential
+  real(rp) :: A(3) = 0        ! Magnetic vector potential
+end type
 
 ! Grid of em_grid information
 integer, parameter :: rotationally_symmetric_rz$ = 1, xyz$ = 2

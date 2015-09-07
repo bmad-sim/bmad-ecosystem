@@ -840,9 +840,15 @@ do ib = 0, ubound(lat%branch, 1)
         wt = ele%wig%term(j)
         last = '}, &'
         if (j == size(ele%wig%term)) last = '}'
-        write (iu, '(a, i3, 15a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
+        select case (wt%type)
+        case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+          name = 'X'
+        case default
+          name = 'Y'
+        end select
+        write (iu, '(a, i3, 17a)') ' term(', j, ')={', trim(str(wt%coef)), ', ', &
           trim(str(wt%kx)), ', ', trim(str(wt%ky)), ', ', trim(str(wt%kz)), &
-          ', ', trim(str(wt%phi_x)), ', ', trim(str(wt%phi_y)), ', ', trim(str(wt%phi_z)), trim(last)  
+          ', ', trim(str(wt%x0)), ', ', trim(str(wt%y0)), ', ', trim(str(wt%phi_z)), ', ', trim(name), trim(last)  
       enddo
     else
       call write_lat_line (line, iu, .true.)  

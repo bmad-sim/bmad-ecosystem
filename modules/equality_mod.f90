@@ -330,9 +330,9 @@ is_eq = is_eq .and. (f1%ky == f2%ky)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%kz == f2%kz)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%phi_x == f2%phi_x)
+is_eq = is_eq .and. (f1%x0 == f2%x0)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%phi_y == f2%phi_y)
+is_eq = is_eq .and. (f1%y0 == f2%y0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi_z == f2%phi_z)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1732,6 +1732,8 @@ is_eq = is_eq .and. (f1%radiation_fluctuations_on .eqv. f2%radiation_fluctuation
 is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 

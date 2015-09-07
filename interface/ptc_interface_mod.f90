@@ -3055,7 +3055,7 @@ type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx
-real(rp) dx, dy, cos_t, sin_t
+real(rp) dx, dy, cos_t, sin_t, coef
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3432,8 +3432,8 @@ if (key == wiggler$ .or. key == undulator$) then
     endif
   enddo
 
-  if (hyper_x_old$ /= hyperbolic_xdollar .or. hyper_y_old$ /= hyperbolic_ydollar .or. &
-                                        hyper_xy_old$ /= hyperbolic_xydollar) then
+  if (hyper_x_plane_y$ /= hyperbolic_xdollar .or. hyper_y_plane_y$ /= hyperbolic_ydollar .or. &
+                                        hyper_xy_plane_y$ /= hyperbolic_xydollar) then
     call out_io (s_fatal$, r_name, 'WIGGLER FORM/TYPE MISMATCH!')
     if (global_com%exit_on_error) call err_exit
   endif
@@ -3441,31 +3441,35 @@ if (key == wiggler$ .or. key == undulator$) then
   n_term = size(ele2%wig%term)
   call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
+  ptc_fibre%mag%wi%w%k(1,1:n_term)   = ele2%wig%term%kx
+  ptc_fibre%mag%wi%w%k(2,1:n_term)   = ele2%wig%term%ky
+  ptc_fibre%mag%wi%w%k(3,1:n_term)   = ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%f(1:n_term)     = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
+  ptc_fibre%mag%wi%w%phi_x(1:n_term) = ele2%wig%term%x0 * ele2%wig%term%kx
+  ptc_fibre%mag%wi%w%phi_y(1:n_term) = ele2%wig%term%y0 * ele2%wig%term%ky
+  ptc_fibre%mag%wi%w%form(1:n_term)  = ele2%wig%term%type
+
   if (ele%is_on) then
     do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
       wt => ele2%wig%term(i)
-      select case (wt%type)
-      case (hyper_y_old$)
-        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
-      case (hyper_xy_old$)
-        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
-      case (hyper_x_old$)
-        ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      coef = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
+      select case (wt%type)        
+      case (hyper_y_plane_y$)
+        ptc_fibre%mag%wi%w%a(i) = coef
+      case (hyper_xy_plane_y$)
+        ptc_fibre%mag%wi%w%a(i) = coef * wt%ky / wt%kz
+      case (hyper_x_plane_y$)
+        ptc_fibre%mag%wi%w%a(i) = coef * wt%ky / wt%kx
       case default
         call out_io (s_fatal$, r_name, 'PTC WIGGLER MODEL NOT YET UPDATED FOR NEW BMAD WIGGLER MODEL!')
         if (global_com%exit_on_error) call err_exit
+        ptc_fibre%mag%wi%w%a(i) = 0                            ! Just to be able to limp along.
+        ptc_fibre%mag%wi%w%form(i)  = ele2%wig%term(i)%type - 3   ! So PTC will limp along.
       end select
     enddo
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0
   endif
-  ptc_fibre%mag%wi%w%k(1,1:n_term)   = ele2%wig%term%kx
-  ptc_fibre%mag%wi%w%k(2,1:n_term)   = ele2%wig%term%ky
-  ptc_fibre%mag%wi%w%k(3,1:n_term)   = ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%f(1:n_term)     = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%phi_x(1:n_term) = ele2%wig%term%phi_x
-  ptc_fibre%mag%wi%w%phi_y(1:n_term) = ele2%wig%term%phi_y
-  ptc_fibre%mag%wi%w%form(1:n_term)  = ele2%wig%term%type
 
   ! Correct z-position 
 

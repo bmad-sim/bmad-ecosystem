@@ -1104,8 +1104,8 @@ if (associated(ele_taylor%wig)) then
     if (ele_taylor%wig%term(it)%kx    /= ele2%wig%term(it)%kx)    cycle
     if (ele_taylor%wig%term(it)%ky    /= ele2%wig%term(it)%ky)    cycle
     if (ele_taylor%wig%term(it)%kz    /= ele2%wig%term(it)%kz)    cycle
-    if (ele_taylor%wig%term(it)%phi_x /= ele2%wig%term(it)%phi_x) cycle
-    if (ele_taylor%wig%term(it)%phi_y /= ele2%wig%term(it)%phi_y) cycle
+    if (ele_taylor%wig%term(it)%x0    /= ele2%wig%term(it)%x0)    cycle
+    if (ele_taylor%wig%term(it)%y0    /= ele2%wig%term(it)%y0)    cycle
     if (ele_taylor%wig%term(it)%phi_z /= ele2%wig%term(it)%phi_z) cycle
   enddo
 endif

@@ -3880,10 +3880,9 @@ There is no \vn{bmad_standard} tracking for a \vn{map_type}
 \vn{wiggler}. \vn{symp_lie_bmad} type tracking is discussed in \sref{s:symp.track}
 
 \vn{Note:} When the wiggler model was first developed, the definition
-of the field was somewhat different. The old definition assumed
-horizontal and vertical symmetry with an on-axis vertical magnetic
-field. And there were only three different forms instead of the
-present six. The old style \vn{hyper-y} form was
+of the field was somewhat different. The old definition used only the three forms
+with \vn{plane} set to \vn{y} and there was a different normalization convention.
+The old style \vn{hyper-y} form was
 \begin{alignat}{5}
   B_x &= -&\wt C \, &\dfrac{k_x}{k_y} & \sin(k_x x) \sinh(k_y y) \cos(\kzz) &\CRNEG
   B_y &=  &\wt C \, &                 & \cos(k_x x) \cosh(k_y y) \cos(\kzz) &\qquad \text{! Old style} \CRNEG
@@ -3905,15 +3904,15 @@ The old style \vn{hyper_x} form was
   & \makebox[1pt][l]{with $k_y^2 = k_x^2 - k_z^2$ .} &&&& \nonumber
 \end{alignat}
 The correspondence between $\wt C$ and $C$ is given by comparing
-\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm2}, \eq{cm4}, and \eq{cm6}. In
+\Eqs{f1}, \eq{f2}, and \eq{f3} with \Eqs{cm4}, \eq{cm5}, and \eq{cm6}. In
 a lattice file, the old field definition will be used if a
 \vn{\{<Wig_Term>\}} has just 5 numbers:
 \Begineq
-  \{ \wt C, k_x, k_y, k_z, \phi_z \}
+  \text{term(i)} = \{ \wt C, k_x, k_y, k_z, \phi_z \}
 \Endeq
 For example, the old style syntax:
 \begin{example}
-  term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63, y\}    ! Old style
+  term(1) = \{0.03*4/5, 3.00, 4.00, 5.00, 0.63 \}    ! Old style
 \end{example}
 is equivalent to:
 \begin{example}
