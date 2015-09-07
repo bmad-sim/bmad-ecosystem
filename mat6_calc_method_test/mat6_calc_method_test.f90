@@ -24,6 +24,8 @@ logical print_extra
 
 !
 
+global_com%exit_on_error = .false.
+
 print_extra = .false.
 nargs = cesr_iargc()
 if (nargs == 1)then
