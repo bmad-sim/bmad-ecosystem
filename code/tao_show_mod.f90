@@ -1820,7 +1820,7 @@ case ('lattice')
       column(6)  = show_lat_column_struct('ele::#[l]',           'f8.3',        8, '', .false.)
       column(7)  = show_lat_column_struct('ele::#[beta_a]',      'f8.2',        8, '', .false.)
       column(8)  = show_lat_column_struct('ele::#[phi_a]',       'f8.3',        8, '', .false.)
-      column(9)  = show_lat_column_struct('ele::#[eta_a]',       'f7.2',        7, '', .false.)
+      column(9)  = show_lat_column_struct('ele::#[etna_a]',       'f7.2',        7, '', .false.)
       column(10) = show_lat_column_struct('ele::#[orbit_x]',     '3p, f8.3',    8, 'orbit|x [mm]', .false.)
       column(11) = show_lat_column_struct('ele::#[beta_b]',      'f8.2',        8, '', .false.)
       column(12) = show_lat_column_struct('ele::#[phi_b]',       'f8.3',        8, '', .false.)
@@ -2031,7 +2031,7 @@ case ('lattice')
       ix = index(name, '|')
       if (ix == 0) then
         if (column(i)%format(2:2) == 'a') then
-          line2(ix1:) = name(1:j)
+          line2(ix1:) = name
         else
           j = len_trim(name)
           line2(ix2-j:) = name(1:j)

@@ -2150,6 +2150,7 @@ do i = 1, size(var%this)
   if (var%ele_name == 'BEAM_START') then
     u%model%lat_branch(0)%orb0%vec = lat%beam_start%vec
     u%model%lat_branch(0)%orb0%t   = lat%beam_start%t
+    u%model%lat_branch(0)%orb0%p0c = lat%beam_start%p0c
   else
     ele => lat%branch(t%ix_branch)%ele(t%ix_ele)
     call set_flags_for_changed_attribute (ele, t%model_value)
