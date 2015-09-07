@@ -1,0 +1,3 @@
+cd ..
+mkd em_field_test-exe
+cd em_field_test
