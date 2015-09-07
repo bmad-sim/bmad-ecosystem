@@ -1181,10 +1181,10 @@ character(8), parameter :: frequency_units_name(4) = ['Radians ', 'Degrees ', 'C
 ! Electric and magnetic fields.
 
 type em_field_struct
-  real(rp) E(3)         ! electric field
-  real(rp) B(3)         ! magnetic field
-  real(rp) dE(3,3)      ! electric field gradient
-  real(rp) dB(3,3)      ! magnetic field gradient
+  real(rp) :: E(3) = 0        ! electric field
+  real(rp) :: B(3) = 0        ! magnetic field
+  real(rp) :: dE(3,3) = 0     ! electric field gradient
+  real(rp) :: dB(3,3) = 0     ! magnetic field gradient
 end type
 
 type em_potential_struct

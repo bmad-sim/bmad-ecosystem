@@ -748,10 +748,8 @@ do j = 1, num_wig_terms
 
     if (abs(darg) < 1e-4) then
       tmj%integral_sx = x * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
-      if (tmj%plane == y_plane$) tmj%sx_over_kx = x * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
     else
       tmj%integral_sx = (cos(arg0) - tmj%c_x) / wt%kx
-      if (tmj%plane == y_plane$) tmj%sx_over_kx = (tmj%s_x - sin(arg0)) / wt%kx
     endif
 
   case (1)
@@ -765,13 +763,19 @@ do j = 1, num_wig_terms
 
     if (abs(darg) < 1e-4) then
       tmj%integral_sx = x * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
-      if (tmj%plane == y_plane$) tmj%sx_over_kx = x * ((1 + darg**2/6) * cosh(arg0) + darg * (0.5_rp + darg**2/24) * sinh(arg0))
     else
       tmj%integral_sx = (tmj%c_x - cosh(arg0)) / wt%kx
-      if (tmj%plane == y_plane$) tmj%sx_over_kx = (tmj%s_x - sinh(arg0)) / wt%kx
     endif
 
   end select
+
+  if (tmj%plane == y_plane$) then
+    if (abs(arg) < 1d-10) then
+      tmj%sx_over_kx = 1
+    else
+      tmj%sx_over_kx = tmj%s_x / wt%kx
+    endif
+  endif
 
 enddo
 
@@ -808,10 +812,8 @@ do j = 1, num_wig_terms
 
     if (abs(darg) < 1e-4) then
       tmj%integral_sy = y * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
-      if (tmj%plane == x_plane$) tmj%sy_over_ky = y * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
     else
       tmj%integral_sy = (cos(arg0) - tmj%c_y) / wt%ky
-      if (tmj%plane == x_plane$) tmj%sy_over_ky = (tmj%s_y - sin(arg0)) / wt%ky
     endif
 
   case (1)
@@ -825,13 +827,21 @@ do j = 1, num_wig_terms
 
     if (abs(darg) < 1e-4) then
       tmj%integral_sy = y * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
-      if (tmj%plane == x_plane$) tmj%sy_over_ky = y * ((1 + darg**2/6) * cosh(arg0) + darg * (0.5_rp + darg**2/24) * sinh(arg0))
     else
       tmj%integral_sy = (tmj%c_y - cosh(arg0)) / wt%ky
-      if (tmj%plane == x_plane$) tmj%sy_over_ky = (tmj%s_y - sinh(arg0)) / wt%ky
     endif
 
   end select
+
+  if (tmj%plane == x_plane$) then
+    if (abs(arg) < 1d-10) then
+      tmj%sy_over_ky = 1
+    else
+      tmj%sy_over_ky = tmj%s_y / wt%ky
+    endif
+  endif
+
+
 enddo
 
 end subroutine update_wig_y_terms
