@@ -190,7 +190,7 @@ type (em_field_map_term_struct), pointer :: term
 
 real(rp) :: x, x_save, y, s, t, time, s_pos, s_rel, z, f, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, coef, fd(3), s0
-real(rp) :: cos_ang, sin_ang, sgn_x, kx, ky, dkm(2,2), cos_ks, sin_ks
+real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, kx, ky, dkm(2,2), cos_ks, sin_ks
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
@@ -213,17 +213,10 @@ character(20) :: r_name = 'em_field_calc'
 ! Initialize field
 ! If element is turned off then return zero
 
-field%E = 0
-field%B = 0
+field = em_field_struct()
+if (present(potential)) potential = em_potential_struct()
 
 df_calc = logic_option (.false., calc_dfield)
-
-if (df_calc) then
-  field%dB = 0
-  field%dE = 0
-endif
-
-if (present(potential)) potential = em_potential_struct()  ! Init to zero
 
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
@@ -506,7 +499,7 @@ case (bmad_standard$)
 
     do i = 1, n
       wig => ele%wig%term(i)
-      sgn_x = 1
+      sgn_x = 1; sgn_y = 1
 
       select case (wig%type)
       case (hyper_y_plane_x$, hyper_y_plane_y$)
@@ -532,7 +525,7 @@ case (bmad_standard$)
         s_x = sinh(wig%kx * (x + wig%x0))
         c_y = cos (wig%ky * (y + wig%y0))
         s_y = sin (wig%ky * (y + wig%y0))
-        if (wig%type == hyper_x_plane_x$) sgn_x = -1
+        if (wig%type == hyper_x_plane_x$) sgn_y = -1
         trig_x = 1; trig_y = -1
       end select
 
@@ -541,8 +534,8 @@ case (bmad_standard$)
 
       select case (wig%type)
       case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
-        field%B(1) = field%B(1) + coef  * wig%kx * c_x * c_y * c_z * sgn_x
-        field%B(2) = field%B(2) + coef  * wig%ky * s_x * s_y * c_z
+        field%B(1) = field%B(1) + coef  * wig%kx * c_x * c_y * c_z
+        field%B(2) = field%B(2) + coef  * wig%ky * s_x * s_y * c_z * sgn_y
         field%B(3) = field%B(3) - coef  * wig%kz * s_x * c_y * s_z
       case default
         field%B(1) = field%B(1) + coef  * wig%kx * s_x * s_y * c_z * sgn_x
@@ -554,30 +547,30 @@ case (bmad_standard$)
         select case (wig%type)
         case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
           f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f  * wig%kx * s_x * c_y * c_z * trig_x * sgn_x
-          field%dB(2,1) = field%dB(2,1) + f  * wig%ky * c_x * s_y * c_z
-          field%dB(3,1) = field%dB(3,1) - f  * wig%kz * c_x * c_y * s_z 
+          field%dB(1,1) = field%dB(1,1) + f * wig%kx * s_x * c_y * c_z * trig_x
+          field%dB(2,1) = field%dB(2,1) + f * wig%ky * c_x * s_y * c_z * sgn_y
+          field%dB(3,1) = field%dB(3,1) - f * wig%kz * c_x * c_y * s_z 
           f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f  * wig%kx * c_x * s_y * c_z * trig_y * sgn_x
-          field%dB(2,2) = field%dB(2,2) + f  * wig%ky * s_x * c_y * c_z
-          field%dB(3,2) = field%dB(3,2) - f  * wig%kz * s_x * s_y * s_z * trig_y
+          field%dB(1,2) = field%dB(1,2) + f * wig%kx * c_x * s_y * c_z * trig_y
+          field%dB(2,2) = field%dB(2,2) + f * wig%ky * s_x * c_y * c_z * sgn_y
+          field%dB(3,2) = field%dB(3,2) - f * wig%kz * s_x * s_y * s_z * trig_y
           f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f  * wig%kx * c_x * c_y * s_z * sgn_x
-          field%dB(2,3) = field%dB(2,3) - f  * wig%ky * s_x * s_y * s_z 
-          field%dB(3,3) = field%dB(3,3) - f  * wig%kz * s_x * c_y * c_z 
+          field%dB(1,3) = field%dB(1,3) - f * wig%kx * c_x * c_y * s_z
+          field%dB(2,3) = field%dB(2,3) - f * wig%ky * s_x * s_y * s_z * sgn_y 
+          field%dB(3,3) = field%dB(3,3) - f * wig%kz * s_x * c_y * c_z 
         case default
           f = coef * wig%kx
-          field%dB(1,1) = field%dB(1,1) + f  * wig%kx * c_x * s_y * c_z * sgn_x
-          field%dB(2,1) = field%dB(2,1) + f  * wig%ky * s_x * c_y * c_z * trig_x
-          field%dB(3,1) = field%dB(3,1) - f  * wig%kz * s_x * s_y * s_z * trig_x
+          field%dB(1,1) = field%dB(1,1) + f * wig%kx * c_x * s_y * c_z * sgn_x
+          field%dB(2,1) = field%dB(2,1) + f * wig%ky * s_x * c_y * c_z * trig_x
+          field%dB(3,1) = field%dB(3,1) - f * wig%kz * s_x * s_y * s_z * trig_x
           f = coef * wig%ky
-          field%dB(1,2) = field%dB(1,2) + f  * wig%kx * s_x * c_y * c_z * sgn_x
-          field%dB(2,2) = field%dB(2,2) + f  * wig%ky * c_x * s_y * c_z * trig_y
-          field%dB(3,2) = field%dB(3,2) - f  * wig%kz * c_x * c_y * s_z 
+          field%dB(1,2) = field%dB(1,2) + f * wig%kx * s_x * c_y * c_z * sgn_x
+          field%dB(2,2) = field%dB(2,2) + f * wig%ky * c_x * s_y * c_z * trig_y
+          field%dB(3,2) = field%dB(3,2) - f * wig%kz * c_x * c_y * s_z 
           f = coef * wig%kz
-          field%dB(1,3) = field%dB(1,3) - f  * wig%kx * s_x * s_y * s_z * sgn_x
-          field%dB(2,3) = field%dB(2,3) - f  * wig%ky * c_x * c_y * s_z 
-          field%dB(3,3) = field%dB(3,3) - f  * wig%kz * c_x * s_y * c_z 
+          field%dB(1,3) = field%dB(1,3) - f * wig%kx * s_x * s_y * s_z * sgn_x
+          field%dB(2,3) = field%dB(2,3) - f * wig%ky * c_x * c_y * s_z 
+          field%dB(3,3) = field%dB(3,3) - f * wig%kz * c_x * s_y * c_z 
         end select
       endif
 
