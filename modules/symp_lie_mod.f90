@@ -7,16 +7,14 @@ use em_field_mod
 use random_mod
 use track1_mod
 
-type save_coef_struct
-  real(rp) :: coef = 0, dx_coef = 0, dy_coef = 0
-end type
-
 type wiggler_computations_struct
-  type (save_coef_struct) Ax, dint_Ax_dy, Ay, dint_Ay_dx, dAz_dx, dAz_dy
-  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0, s_over_kx = 0, one_minus_c_over_ky
+  real(rp) :: c_x = 0, s_x = 0, c_y = 0, s_y = 0, c_z = 0, s_z = 0
+  real(rp) :: coef_Ax = 0, coef_Ay = 0, coef_Az = 0
+  real(rp) :: sx_over_kx = 0, sy_over_ky = 0, integral_sx = 0, integral_sy = 0
+  integer :: trig_x = 0, trig_y = 0, plane = 0
 end type
 
-private save_coef_struct, wiggler_computations_struct
+private wiggler_computations_struct
 
 contains
 
@@ -69,7 +67,7 @@ real(rp) rel_E, rel_E2, rel_E3, ds, ds2, s, m6(6,6), kmat6(6,6), Ax_saved, Ay_sa
 real(rp) g_x, g_y, k1, k1_norm, k1_skew, x_q, y_q, ks_tot_2, ks, dks_ds, z_patch
 real(rp), pointer :: mat6(:,:)
 real(rp), parameter :: z0 = 0, z1 = 1
-real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3
+real(rp) gamma_0, fact_d, fact_f, this_ran, g2, g3, ddAz__dx_dy
 real(rp) dE_p, dpx, dpy, mc2, z_offset, orientation, rel_tracking_charge, charge_dir
 real(rp), parameter :: rad_fluct_const = 55 * classical_radius_factor * h_bar_planck * c_light / (24 * sqrt_3)
 real(rp), allocatable :: dz_offset(:)
@@ -214,8 +212,9 @@ Case (wiggler$, undulator$)
     call radiation_kick()
 
     if (calculate_mat6) then
-      mat6(2,1:6) = mat6(2,1:6) + ds * (dAz_dx__dx() * mat6(1,1:6) + dAz_dx__dy() * mat6(3,1:6))
-      mat6(4,1:6) = mat6(4,1:6) + ds * (dAz_dy__dx() * mat6(1,1:6) + dAz_dy__dy() * mat6(3,1:6))
+      ddAz__dx_dy = ddAz_dx_dy()
+      mat6(2,1:6) = mat6(2,1:6) + ds * (ddAz_dx_dx() * mat6(1,1:6) + ddAz__dx_dy  * mat6(3,1:6))
+      mat6(4,1:6) = mat6(4,1:6) + ds * (ddAz__dx_dy  * mat6(1,1:6) + ddAz_dy_dy() * mat6(3,1:6))
     endif 
 
     ! Drift_2
@@ -616,14 +615,16 @@ subroutine apply_wig_exp_int_ax (sgn, do_mat6)
 
 integer sgn
 logical do_mat6
+real(rp) dAx__dy
 
 Ax_saved = Ax()
 end_orb%vec(2) = end_orb%vec(2) + sgn * Ax_saved
 end_orb%vec(4) = end_orb%vec(4) + sgn * dint_Ax_dy()
 
 if (do_mat6) then
-  mat6(2,1:6) = mat6(2,1:6) + sgn * (Ax__dx()         * mat6(1,1:6) + Ax__dy()         * mat6(3,1:6))
-  mat6(4,1:6) = mat6(4,1:6) + sgn * (dint_Ax_dy__dx() * mat6(1,1:6) + dint_Ax_dy__dy() * mat6(3,1:6))
+  dAx__dy = dAx_dy()
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (dAx_dx() * mat6(1,1:6) + dAx__dy          * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (dAx__dy  * mat6(1,1:6) + ddint_Ax_dy_dy() * mat6(3,1:6))
 endif      
 
 end subroutine apply_wig_exp_int_ax
@@ -636,14 +637,16 @@ subroutine apply_wig_exp_int_ay (sgn, do_mat6)
 
 integer sgn
 logical do_mat6
+real(rp) dAy__dx
 
 Ay_saved = Ay()
 end_orb%vec(2) = end_orb%vec(2) + sgn * dint_Ay_dx()
 end_orb%vec(4) = end_orb%vec(4) + sgn * Ay_saved
 
 if (do_mat6) then
-  mat6(2,1:6) = mat6(2,1:6) + sgn * (dint_Ay_dx__dx() * mat6(1,1:6) + dint_Ay_dx__dy() * mat6(3,1:6))
-  mat6(4,1:6) = mat6(4,1:6) + sgn * (Ay__dx()         * mat6(1,1:6) + Ay__dy()         * mat6(3,1:6))
+  dAy__dx = dAy_dx()
+  mat6(2,1:6) = mat6(2,1:6) + sgn * (ddint_Ay_dx_dx() * mat6(1,1:6) + dAy__dx  * mat6(3,1:6))
+  mat6(4,1:6) = mat6(4,1:6) + sgn * (dAy__dx          * mat6(1,1:6) + dAy_dy() * mat6(3,1:6))
 endif      
 
 end subroutine apply_wig_exp_int_ay
@@ -664,101 +667,51 @@ factor = rel_tracking_charge * c_light * field_ele%value(polarity$) / ele%value(
 do j = 1, num_wig_terms
   wt => wig_term(j)
   tmj => tm(j)
+  tmj = wiggler_computations_struct()
   coef = factor * wt%coef 
 
   select case (wt%type)
-  case (hyper_y$)
-    tmj%Ax%coef         =  coef * wt%kz / wt%ky**2
-    tmj%Ay%coef         =  0
-    tmj%dint_Ax_dy%coef =  tmj%Ax%coef * wt%ky               ! / wt%kx
-    tmj%dint_Ay_dx%coef =  0
-    tmj%dAz_dx%coef     = -coef * orientation * (wt%kx / wt%ky)**2
-    tmj%dAz_dy%coef     = -coef * orientation * wt%kx / wt%ky
-    tmj%Ax%dx_coef         = -tmj%Ax%coef * wt%kx
-    tmj%Ax%dy_coef         =  tmj%Ax%coef * wt%ky
-    tmj%Ay%dx_coef         =  0
-    tmj%Ay%dy_coef         =  0
-    tmj%dint_Ax_dy%dx_coef =  tmj%Ax%coef * wt%ky
-    tmj%dint_Ax_dy%dy_coef =  tmj%dint_Ax_dy%coef * wt%ky   ! / wt%kx
-    tmj%dint_Ay_dx%dx_coef =  0
-    tmj%dint_Ay_dx%dy_coef =  0
-    tmj%dAz_dx%dx_coef     = -tmj%dAz_dx%coef * wt%kx
-    tmj%dAz_dx%dy_coef     =  tmj%dAz_dx%coef * wt%ky
-    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
-    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+  case (hyper_y_plane_x$)
+    tmj%trig_x = -1
+    tmj%trig_y =  1
+    tmj%plane = x_plane$
+    tmj%coef_Ax =  coef * wt%kz / wt%ky                ! Missing factor of: / k_y
+    tmj%coef_Az =  coef * wt%kx / wt%ky * orientation  ! Missing factor of: / k_y
 
-  case (hyper_xy$)
-    tmj%Ax%coef         =  coef * wt%ky / wt%kz**2
-    tmj%Ay%coef         = -coef * wt%kx / wt%kz**2
-    tmj%dint_Ax_dy%coef =  tmj%Ax%coef * wt%ky              ! / wt%kx
-    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx              ! / wt%ky
-    tmj%dAz_dx%coef     =  0
-    tmj%dAz_dy%coef     =  0
-    tmj%Ax%dx_coef         =  tmj%Ax%coef * wt%kx
-    tmj%Ax%dy_coef         =  tmj%Ax%coef * wt%ky
-    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
-    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
-    tmj%dint_Ax_dy%dx_coef =  tmj%Ax%coef * wt%ky
-    tmj%dint_Ax_dy%dy_coef =  tmj%dint_Ax_dy%coef * wt%ky   ! / wt%kx
-    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx   ! / wt%ky
-    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
-    tmj%dAz_dx%dx_coef     =  0
-    tmj%dAz_dx%dy_coef     =  0
-    tmj%dAz_dy%dx_coef     =  0
-    tmj%dAz_dy%dy_coef     =  0
+  case (hyper_y_plane_y$)
+    tmj%trig_x = -1
+    tmj%trig_y =  1
+    tmj%plane = y_plane$
+    tmj%coef_Ay = -coef * wt%kz / wt%ky                ! Missing factor of: / k_x
+    tmj%coef_Az = -coef * orientation                  ! Missing factor of: / k_x
 
-  case (hyper_x$)
-    tmj%Ax%coef         =  0
-    tmj%Ay%coef         = -coef * wt%kz / wt%kx**2 
-    tmj%dint_Ax_dy%coef =  0
-    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx             ! / wt%ky
-    tmj%dAz_dx%coef     = -coef * orientation * wt%ky / wt%kx
-    tmj%dAz_dy%coef     =  coef * orientation * (wt%ky / wt%kx)**2
-    tmj%Ax%dx_coef         =  0
-    tmj%Ax%dy_coef         =  0
-    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
-    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
-    tmj%dint_Ax_dy%dx_coef =  0
-    tmj%dint_Ax_dy%dy_coef =  0
-    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx  ! / wt%ky
-    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
-    tmj%dAz_dx%dx_coef     =  tmj%dAz_dx%coef * wt%kx
-    tmj%dAz_dx%dy_coef     = -tmj%dAz_dx%coef * wt%ky
-    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
-    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+  case (hyper_xy_plane_x$)
+    tmj%trig_x =  1
+    tmj%trig_y =  1
+    tmj%plane = x_plane$
+    tmj%coef_Ax =  coef                                ! Missing factor of: / k_y
+    tmj%coef_Az =  coef * wt%kx / wt%kz * orientation  ! Missing factor of: / k_y
 
-  case (hyper_y_old$, hyper_xy_old$, hyper_x_old$)
-    if (abs(wt%kx) < 1d-30) wt%kx = 1d-30   ! To prevent 0/0
-    tmj%Ax%coef         =  0
-    tmj%Ay%coef         = -coef * wt%kz / (wt%kx * wt%ky) 
-    tmj%dint_Ax_dy%coef =  0
-    tmj%dint_Ay_dx%coef =  tmj%Ay%coef * wt%kx             ! / wt%ky
-    tmj%dAz_dx%coef     = -coef * orientation
-    tmj%dAz_dy%coef     = -coef * orientation * wt%ky / wt%kx
-    tmj%Ax%dx_coef         =  0
-    tmj%Ax%dy_coef         =  0
-    tmj%Ay%dx_coef         =  tmj%Ay%coef * wt%kx
-    tmj%Ay%dy_coef         =  tmj%Ay%coef * wt%ky
-    tmj%dint_Ax_dy%dx_coef =  0
-    tmj%dint_Ax_dy%dy_coef =  0
-    tmj%dint_Ay_dx%dx_coef =  tmj%dint_Ay_dx%coef * wt%kx  ! / wt%ky
-    tmj%dint_Ay_dx%dy_coef =  tmj%Ay%coef * wt%kx
-    tmj%dAz_dx%dx_coef     =  tmj%dAz_dx%coef * wt%kx
-    tmj%dAz_dx%dy_coef     =  tmj%dAz_dx%coef * wt%ky
-    tmj%dAz_dy%dx_coef     =  tmj%dAz_dy%coef * wt%kx
-    tmj%dAz_dy%dy_coef     =  tmj%dAz_dy%coef * wt%ky
+  case (hyper_xy_plane_y$)
+    tmj%trig_x =  1
+    tmj%trig_y =  1
+    tmj%plane = y_plane$
+    tmj%coef_Ay = -coef                                ! Missing factor of: / k_x
+    tmj%coef_Az = -coef * wt%ky / wt%kz * orientation  ! Missing factor of: / k_x
 
-    select case (wt%type)
-    case (hyper_y_old$)
-      tmj%dint_Ay_dx%dx_coef =  -tmj%dint_Ay_dx%dx_coef
-      tmj%dAz_dx%dx_coef     =  -tmj%dAz_dx%dx_coef
-    case (hyper_x_old$)
-      tmj%dAz_dy%coef        =  -tmj%dAz_dy%coef
-      tmj%dAz_dx%dy_coef     =  -tmj%dAz_dx%dy_coef
-      tmj%dAz_dy%dy_coef     =  -tmj%dAz_dy%dy_coef
-      tmj%dAz_dy%dx_coef     =  -tmj%dAz_dy%dx_coef
-    end select
+  case (hyper_x_plane_x$)
+    tmj%trig_x =  1
+    tmj%trig_y = -1
+    tmj%plane = x_plane$
+    tmj%coef_Ax =  coef * wt%kz / wt%kx * orientation  ! Missing factor of: / k_y
+    tmj%coef_Az =  coef                                ! Missing factor of: / k_y
 
+  case (hyper_x_plane_y$)
+    tmj%trig_x =  1
+    tmj%trig_y = -1
+    tmj%plane = y_plane$
+    tmj%coef_Ay = -coef * wt%kz / wt%kx                ! Missing factor of: / k_x
+    tmj%coef_Az = -coef * wt%ky / wt%kx * orientation  ! Missing factor of: / k_x
   end select
 enddo
 
@@ -772,46 +725,52 @@ subroutine update_wig_x_terms (err)
 
 type (wiggler_computations_struct), pointer :: tmj
 
-real(rp) kxx, kxx0
+real(rp) arg0, darg, arg, x
 integer j
 logical err
 
 !
 
+x = end_orb%vec(1)
+
 do j = 1, num_wig_terms
   wt => wig_term(j)
   tmj => tm(j)
 
-  kxx0 = wt%kx * end_orb%vec(1)
-  kxx = kxx0 + wt%phi_x
+  arg0 = wt%kx * wt%x0
+  darg = wt%kx * x
+  arg = arg0 + darg
 
-  select case (wt%type)
-  case (hyper_y$, hyper_y_old$)
-    tmj%c_x = cos(kxx)
-    tmj%s_x = sin(kxx)
+  select case (tmj%trig_x)
+  case (-1)
+    tmj%c_x = cos(arg)
+    tmj%s_x = sin(arg)
 
-    if (abs(kxx0) < 1e-4) then
-      tmj%s_over_kx = end_orb%vec(1) * ((1 - kxx0**2/6) * cos(wt%phi_x) + (-kxx0/2 + kxx0**3/24) * sin(wt%phi_x))
+    if (abs(darg) < 1e-4) then
+      tmj%integral_sx = x * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
+      if (tmj%plane == y_plane$) tmj%sx_over_kx = x * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
     else
-      tmj%s_over_kx = (tmj%s_x - sin(wt%phi_x)) / wt%kx
+      tmj%integral_sx = (cos(arg0) - tmj%c_x) / wt%kx
+      if (tmj%plane == y_plane$) tmj%sx_over_kx = (tmj%s_x - sin(arg0)) / wt%kx
     endif
 
-  !
-  case (hyper_xy$, hyper_x$, hyper_xy_old$, hyper_x_old$)
-    if (abs(kxx) > 30 .or. abs(wt%phi_x) > 30) then
+  case (1)
+    if (abs(arg) > 30 .or. abs(arg0) > 30) then
       call err_set (err, x_plane$)
       return
     endif
 
-    tmj%c_x = cosh(kxx)
-    tmj%s_x = sinh(kxx)
+    tmj%c_x = cosh(arg)
+    tmj%s_x = sinh(arg)
 
-    if (abs(kxx0) < 1e-4) then
-      tmj%s_over_kx = end_orb%vec(1) * ((1 + kxx0**2/6) * cosh(wt%phi_x) + &
-                                        kxx0 * (0.5_rp + kxx0**2/24) * sinh(wt%phi_x))
+    if (abs(darg) < 1e-4) then
+      tmj%integral_sx = x * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
+      if (tmj%plane == y_plane$) tmj%sx_over_kx = x * ((1 + darg**2/6) * cosh(arg0) + darg * (0.5_rp + darg**2/24) * sinh(arg0))
     else
-      tmj%s_over_kx = (tmj%s_x - sinh(wt%phi_x)) / wt%kx
+      tmj%integral_sx = (tmj%c_x - cosh(arg0)) / wt%kx
+      if (tmj%plane == y_plane$) tmj%sx_over_kx = (tmj%s_x - sinh(arg0)) / wt%kx
     endif
+
   end select
 
 enddo
@@ -826,45 +785,52 @@ subroutine update_wig_y_terms (err)
 
 type (wiggler_computations_struct), pointer :: tmj
 
-real(rp) kyy, kyy0
+real(rp) arg0, darg, arg, y
 integer j
 logical err
 
 !
 
+y = end_orb%vec(3)
+
 do j = 1, num_wig_terms
   wt => wig_term(j)
   tmj => tm(j)
 
-  kyy0 = wt%ky * end_orb%vec(3)
-  kyy = kyy0 + wt%phi_y
+  arg0 = wt%ky * wt%y0
+  darg = wt%ky * y
+  arg = arg0 + darg
 
-  select case (wt%type)
-  case (hyper_y$, hyper_xy$, hyper_y_old$, hyper_xy_old$)
-    if (abs(kyy) > 30 .or. abs(wt%phi_y) > 30) then
+  select case (tmj%trig_y)
+  case (-1)
+    tmj%c_y = cos(arg)
+    tmj%s_y = sin(arg)
+
+    if (abs(darg) < 1e-4) then
+      tmj%integral_sy = y * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
+      if (tmj%plane == x_plane$) tmj%sy_over_ky = y * ((1 - darg**2/6) * cos(arg0) + (-darg/2 + darg**3/24) * sin(arg0))
+    else
+      tmj%integral_sy = (cos(arg0) - tmj%c_y) / wt%ky
+      if (tmj%plane == x_plane$) tmj%sy_over_ky = (tmj%s_y - sin(arg0)) / wt%ky
+    endif
+
+  case (1)
+    if (abs(arg) > 30 .or. abs(arg0) > 30) then
       call err_set (err, y_plane$)
       return
     endif
 
-    tmj%c_y = cosh(kyy)
-    tmj%s_y = sinh(kyy)
+    tmj%c_y = cosh(arg)
+    tmj%s_y = sinh(arg)
 
-    if (abs(kyy0) < 1e-4) then
-      tmj%one_minus_c_over_ky = end_orb%vec(3) * ((kyy0/2 + kyy0**3/24) * cosh(wt%phi_y) + (1 + kyy0**2/6) * sinh(wt%phi_y))
+    if (abs(darg) < 1e-4) then
+      tmj%integral_sy = y * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
+      if (tmj%plane == x_plane$) tmj%sy_over_ky = y * ((1 + darg**2/6) * cosh(arg0) + darg * (0.5_rp + darg**2/24) * sinh(arg0))
     else
-      tmj%one_minus_c_over_ky = (tmj%c_y - cosh(wt%phi_y)) / wt%ky
+      tmj%integral_sy = (tmj%c_y - cosh(arg0)) / wt%ky
+      if (tmj%plane == x_plane$) tmj%sy_over_ky = (tmj%s_y - sinh(arg0)) / wt%ky
     endif
 
-  !
-  case (hyper_x$, hyper_x_old$)
-    tmj%c_y = cos(kyy)
-    tmj%s_y = sin(kyy)
-
-    if (abs(kyy0) < 1e-4) then
-      tmj%one_minus_c_over_ky = end_orb%vec(3) * ((kyy0/2 - kyy0**3/24) * cos(wt%phi_y) + (1 - kyy0**2/6) * sin(wt%phi_y))
-    else
-      tmj%one_minus_c_over_ky = (cos(wt%phi_y) - tmj%c_y) / wt%ky
-    endif
   end select
 enddo
 
@@ -903,28 +869,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%Ax%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%s_z
+  if (tm(j)%plane /= x_plane$) cycle
+  value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%s_z
 enddo
 
 end function Ax
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function Ay() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ay%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%s_z
-enddo
-
-end function Ay
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -939,28 +888,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%Ax%coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
+  if (tm(j)%plane /= x_plane$) cycle
+  value = value + tm(j)%coef_Ax * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%s_z * wig_term(j)%kx
 enddo
 
 end function dAx_dx
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAy_dx() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ay%coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
-enddo
-
-end function dAy_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -975,28 +907,11 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%Ax%coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+  if (tm(j)%plane /= x_plane$) cycle
+  value = value + tm(j)%coef_Ax * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
 enddo
 
 end function dAx_dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAy_dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ay%coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
-enddo
-
-end function dAy_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1011,10 +926,89 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ax_dy%coef * tm(j)%s_over_kx * tm(j)%s_y * tm(j)%s_z
+  if (tm(j)%plane /= x_plane$) cycle
+  value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%c_y * tm(j)%s_z
 enddo
 
 end function dint_Ax_dy
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function ddint_Ax_dy_dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  if (tm(j)%plane /= x_plane$) cycle
+  value = value + tm(j)%coef_Ax * tm(j)%integral_sx * tm(j)%s_y * tm(j)%s_z * wig_term(j)%ky * tm(j)%trig_y
+enddo
+
+end function ddint_Ax_dy_dy
+
+
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function Ay() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  if (tm(j)%plane /= y_plane$) cycle
+  value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%s_z
+enddo
+
+end function Ay
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAy_dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  if (tm(j)%plane /= y_plane$) cycle
+  value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+enddo
+
+end function dAy_dx
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function dAy_dy() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  if (tm(j)%plane /= y_plane$) cycle
+  value = value + tm(j)%coef_Ay * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%s_z * wig_term(j)%ky
+enddo
+
+end function dAy_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1029,11 +1023,32 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ay_dx%coef * tm(j)%c_x * tm(j)%one_minus_c_over_ky * tm(j)%s_z
+  if (tm(j)%plane /= y_plane$) cycle
+  value = value + tm(j)%coef_Ay * tm(j)%c_x * tm(j)%integral_sy * tm(j)%s_z
 enddo
 
 end function dint_Ay_dx
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+function ddint_Ay_dx_dx() result (value)
+
+real(rp) value
+integer j
+
+!
+
+value = 0
+do j = 1, size(wig_term)
+  if (tm(j)%plane /= y_plane$) cycle
+  value = value + tm(j)%coef_Ay * tm(j)%s_x * tm(j)%integral_sy * tm(j)%s_z * wig_term(j)%kx * tm(j)%trig_x
+enddo
+
+end function ddint_Ay_dx_dx
+
+!----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
@@ -1047,7 +1062,12 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dx%coef * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
+  select case (tm(j)%plane)
+  case (x_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+  case (y_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
+  end select
 enddo
 
 end function dAz_dx
@@ -1065,7 +1085,12 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dy%coef * tm(j)%s_x * tm(j)%s_y * tm(j)%c_z
+  select case (tm(j)%plane)
+  case (x_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%c_y * tm(j)%c_z
+  case (y_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+  end select
 enddo
 
 end function dAz_dy
@@ -1074,7 +1099,7 @@ end function dAz_dy
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_Ax_dy__dx() result (value)
+function ddAz_dx_dx() result (value)
 
 real(rp) value
 integer j
@@ -1083,16 +1108,21 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ax_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
+  select case (tm(j)%plane)
+  case (x_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%sy_over_ky * tm(j)%c_z * wig_term(j)%kx**2 * tm(j)%trig_x
+  case (y_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+  end select
 enddo
 
-end function dint_Ax_dy__dx
+end function ddAz_dx_dx
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_Ay_dx__dx() result (value)
+function ddAz_dx_dy() result (value)
 
 real(rp) value
 integer j
@@ -1101,16 +1131,21 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ay_dx%dx_coef * tm(j)%s_x * tm(j)%one_minus_c_over_ky * tm(j)%s_z
+  select case (tm(j)%plane)
+  case (x_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z * wig_term(j)%kx * tm(j)%trig_x
+  case (y_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+  end select
 enddo
 
-end function dint_Ay_dx__dx
+end function ddAz_dx_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 ! contains
 
-function dint_Ax_dy__dy() result (value)
+function ddAz_dy_dy() result (value)
 
 real(rp) value
 integer j
@@ -1119,172 +1154,15 @@ integer j
 
 value = 0
 do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ax_dy%dy_coef * tm(j)%s_over_kx * tm(j)%c_y * tm(j)%s_z
+  select case (tm(j)%plane)
+  case (x_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z * wig_term(j)%ky * tm(j)%trig_y
+  case (y_plane$)
+    value = value + tm(j)%coef_Az * tm(j)%sx_over_kx * tm(j)%c_y * tm(j)%c_z * wig_term(j)%ky**2 * tm(j)%trig_y
+  end select
 enddo
 
-end function dint_Ax_dy__dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dint_Ay_dx__dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%dint_Ay_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
-enddo
-
-end function dint_Ay_dx__dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function Ax__dx() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ax%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
-enddo
-
-end function Ax__dx
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function Ay__dx() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ay%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
-enddo
-
-end function Ay__dx
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function Ax__dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ax%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%s_z
-enddo
-
-end function Ax__dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function Ay__dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%Ay%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%s_z
-enddo
-
-end function Ay__dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAz_dx__dx() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dx%dx_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
-enddo
-
-end function dAz_dx__dx
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAz_dx__dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dx%dy_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
-enddo
-
-end function dAz_dx__dy
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAz_dy__dx() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dy%dx_coef * tm(j)%c_x * tm(j)%s_y * tm(j)%c_z
-enddo
-
-end function dAz_dy__dx
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-function dAz_dy__dy() result (value)
-
-real(rp) value
-integer j
-
-!
-
-value = 0
-do j = 1, size(wig_term)
-  value = value + tm(j)%dAz_dy%dy_coef * tm(j)%s_x * tm(j)%c_y * tm(j)%c_z
-enddo
-
-end function dAz_dy__dy
+end function ddAz_dy_dy
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

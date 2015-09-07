@@ -28,9 +28,11 @@
 !     If direction =  1 and ix_start = last-lattice-element -> First tracked = Element #1.
 !     If direction = -1 and ix_end   = last-lattice-element -> Last tracked = Element #1.
 !
-! Note: If needed the subroutine will track through from the end of the lat
+! Note: If needed this routine will track through from the end of the lat
 !   to the beginning (or vice versa) to get to the end point. 
-!   Also: if ix_start = ix_end then the subroutine will track 1 full turn.
+! 
+! Note: If ix_start = ix_end then this routine will track 1 full turn and orbit(ix_start), which
+!   is the starting coordinates, will be overwritten by the ending coordinates.
 !
 ! Note: When tracking with direction = -1, the charge of the particle tracked
 !   generally needs to be opposite of the charge of the reference particle.
