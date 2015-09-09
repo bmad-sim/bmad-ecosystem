@@ -118,11 +118,11 @@ case ${1} in
 	if [ -e acc_build ] 
 	then 
 	    ./acc_build -"${BUILD_TYPE}" -"${1}"
-	    func_display_build_time
+	    [ $? -eq 0 ] && func_display_build_time
 	else
 	    [ -d ${BUILD_TYPE} ] && cd ${BUILD_TYPE}
 	    ${CTEST_BINARY} --verbose --build-and-test
-	    func_display_build_time
+	    [ $? -eq 0 ] && func_display_build_time
 	fi
 	;;
 
@@ -130,14 +130,14 @@ case ${1} in
 	if [ -e acc_build ] 
 	then 
 	    ./acc_build -"${BUILD_TYPE}"
-	    func_display_build_time
+	    [ $? -eq 0 ] && func_display_build_time
 	else
             # If the local out-of-source build directory does not yet exist, create it.
 	    [ ! -d ${BUILD_TYPE} ] && mkdir ${BUILD_TYPE}
 	    cd ${BUILD_TYPE}
 	    ${CMAKE_BINARY} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} .. || exit 1
 	    gmake -j ${ACC_SET_GMAKE_JOBS} ${@}
-	    func_display_build_time
+	    [ $? -eq 0 ] && func_display_build_time
 	fi
 	;;
 esac
