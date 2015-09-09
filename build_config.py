@@ -75,23 +75,25 @@ build_requests['local-packages_gfortran'] = gfortran_local_packages_build_reques
 #-----------------------------------------------------
 offline_base_dir = '/nfs/acc/libs'
 offline_util_dir = offline_base_dir + '/util'
-offline_host = 'acc101.lns.cornell.edu'
+offline_host = 'acc101.classe.cornell.edu'
 
 online_base_dir = '/nfs/cesr/online/lib'
 online_util_dir = online_base_dir + '/util'
-online_host = 'cesr109.lns.cornell.edu'
+online_host = 'cesr109.classe.cornell.edu'
 
 local_base_dir = '/mnt/acc/libs'
 local_util_dir = local_base_dir + '/util'
-local_host = 'lnx7179.lns.cornell.edu'
+local_host = 'lnx7179.classe.cornell.edu'
 
-makefile_dir = '/home/cesrulib/bin/Gmake'
+makefile_dir = '/usr/bin'
 
+release_mail_list = '$USER@cornell.edu,sbp8@cornell.edu'
+local_mail_list = '$USER@cornell.edu'
 
 #-----------------------------------------------------
 #-----------------------------------------------------
 
-local_build_list = [
+release_build_list = [
                 '/trunk/util',
                 '/trunk/build_system',
                 '/trunk/src/include',
@@ -212,6 +214,7 @@ local_build_list = [
 ]
 
 packages_build_list = [
+                '/trunk/packages/recipes_f-90_LEPP',
                 '/trunk/packages/activemq-cpp-3.7.0',
                 '/trunk/packages/cfortran',
                 '/trunk/packages/forest',
@@ -225,14 +228,18 @@ packages_build_list = [
                 '/trunk/packages/fftw',
                 '/trunk/packages/root',
                 '/trunk/packages/xraylib',
+                '/trunk/packages/hdf5',
+                '/trunk/packages/h5hut',
 ]
 
 #-----------------------------------------------------
 #-----------------------------------------------------
 repository_addresses = {
-    'ACC-LEPP'        : 'https://accserv.lepp.cornell.edu/svn',
-    'ACC-LEPP-local'  : '/mnt/svn',
-    'UAP-Sourceforge' : 'https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap'
+    'ACC-CLASSE'        : 'https://accserv.classe.cornell.edu/svn',
+    'ACC-CLASSE-local'  : '/mnt/svn',
+    'ACC-LEPP'          : 'https://accserv.lepp.cornell.edu/svn',
+    'ACC-LEPP-local'    : '/mnt/svn',
+    'UAP-Sourceforge'   : 'https://accelerator-ml.svn.sourceforge.net/svnroot/accelerator-ml/uap'
     }
 
 
@@ -246,8 +253,9 @@ build_specs = {
         'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
         'host'         : offline_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'Linux_x86_64_intel-online' : {
@@ -257,8 +265,9 @@ build_specs = {
         'util_dir'     : online_util_dir,
         'domain'       : 'ONLINE',
         'host'         : online_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'Linux_x86_64_intel-local' : {
@@ -268,8 +277,9 @@ build_specs = {
         'util_dir'     : local_util_dir,
         'domain'       : 'LOCAL',
         'host'         : local_host,
+        'email_list'   : local_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'Linux_x86_64_gfortran-offline' : {
@@ -279,8 +289,9 @@ build_specs = {
         'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
         'host'         : offline_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'Linux_x86_64_gfortran-online' : {
@@ -290,8 +301,9 @@ build_specs = {
         'util_dir'     : online_util_dir,
         'domain'       : 'ONLINE',
         'host'         : online_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'Linux_x86_64_gfortran-local' : {
@@ -301,8 +313,9 @@ build_specs = {
         'util_dir'     : local_util_dir,
         'domain'       : 'LOCAL',
         'host'         : local_host,
+        'email_list'   : local_mail_list,
         'repositories' : {
-            'ACC-LEPP' : local_build_list
+            'ACC-CLASSE' : release_build_list
         }
     },
     'packages_intel'   : {
@@ -312,8 +325,9 @@ build_specs = {
         'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
         'host'         : offline_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : packages_build_list
+            'ACC-CLASSE' : packages_build_list
         }
     },
     'packages_intel-local'   : {
@@ -323,8 +337,9 @@ build_specs = {
         'util_dir'     : local_util_dir,
         'domain'       : 'LOCAL',
         'host'         : local_host,
+        'email_list'   : local_mail_list,
         'repositories' : {
-            'ACC-LEPP' : packages_build_list
+            'ACC-CLASSE' : packages_build_list
         }
     },    
     'packages_gfortran' : {
@@ -334,8 +349,9 @@ build_specs = {
         'util_dir'     : offline_util_dir,
         'domain'       : 'OFFLINE',
         'host'         : offline_host,
+        'email_list'   : release_mail_list,
         'repositories' : {
-            'ACC-LEPP' : packages_build_list
+            'ACC-CLASSE' : packages_build_list
         }
     },
     'packages_gfortran-local' : {
@@ -345,8 +361,9 @@ build_specs = {
         'util_dir'     : local_util_dir,
         'domain'       : 'LOCAL',
         'host'         : local_host,
+        'email_list'   : local_mail_list,
         'repositories' : {
-            'ACC-LEPP' : packages_build_list
+            'ACC-CLASSE' : packages_build_list
         }
     }    
 }

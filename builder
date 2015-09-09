@@ -14,7 +14,7 @@ logfile = sys.argv[1]
 file = open(logfile, 'r+')
 inlines = file.readlines()
 checkout_manifest = {}
-error_mail_list = '$USER@cornell.edu,sbp8@cornell.edu'
+
 
 print 'BUILDER SCRIPT RUNNING on host: ' + socket.gethostname()
 
@@ -48,7 +48,6 @@ file.close()
 file = open(logfile, 'a', 1) # unbuffered, needed?
 
 sys.stdout = file
-
 
 hostname = socket.gethostname()
 #p = sub.Popen('kinit -k -t ~/etc/cesrulib-keytab cesrulib',
@@ -84,8 +83,8 @@ def manifest_to_build_list( manifest ):
 
 def link_to_packages( packages_name ):
     """Create a symbolic link in the release directory
-       called 'packages' to the packages area named in
-       the build setup."""
+    called 'packages' to the packages area named in
+    the build setup."""
     full_packages_dir = invars.libs_basedir+'/'+invars.platform+'/'+packages_name
     if os.path.islink( full_packages_dir ):
         true_packages_name = '../'+os.readlink(full_packages_dir)
@@ -95,7 +94,7 @@ def link_to_packages( packages_name ):
     sys.stdout.write('Setting link to packages: ' + true_packages_name+'\n')
     sys.stdout.flush()
     os.symlink( true_packages_name, invars.full_release_dir+'/packages' )
-
+        
 
 #def determine_build_order( ):
 #"""Examine all source code to build and come up with
@@ -108,23 +107,6 @@ def build_directory( dir, statlist, target ):
     use_32bit = ' '
     if 'lnx209' in hostname:
         use_32bit = ' ACC_FORCE_32_BIT=Y; '
-
-
-
-    # Legacy build system
-    #---------------------
-    #build_command = 'ACCLIB='+invars.build_name+use_32bit + \
-    #                'UTIL_DIR_REQUEST='+invars.util_dir + \
-    #                '; source ' + invars.util_dir + \
-    #                '/acc_vars.sh; ifort -v; printenv | grep ACC; echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"; gmake ' + \
-    #                target + ' PRECISION="_DBL" DO_EXTRA_MAKES=Y USE_PGPLOT=Y'
-
-
-
-
-    # New build system
-    #---------------------
-
     if invars.intel:
         ACC_SET_F_COMPILER = 'ifort'
     if invars.gfortran:
@@ -143,7 +125,8 @@ def build_directory( dir, statlist, target ):
                     ' ; export ACC_SET_GMAKE_JOBS=' + ACC_SET_GMAKE_JOBS + \
                     ' ; export ACC_SET_F_COMPILER=' + ACC_SET_F_COMPILER + \
                     ' ; export ACC_ENABLE_FPIC=' + ACC_ENABLE_FPIC + \
-                    ' ; export UTIL_DIR_REQUEST='+ invars.util_dir + \
+                    ' ; export UTIL_DIR_REQUEST=' + invars.util_dir + \
+                    ' ; export OFFLINE_LOCAL_ARCHIVE_BASE_DIR=' + invars.libs_basedir + \
                     ' ; source ' + invars.util_dir + '/acc_vars.sh' \
                     ' ; export PATH=/usr/local/bin:$PATH' \
                     ' ; export ACC_BUILD_EXES=Y ; export ACC_ENABLE_SHARED=Y ; env | grep ACC ; ' + make_command
@@ -212,7 +195,7 @@ for buildpass, target in enumerate(targets):
         print target + ' : ERROR'
         error_log_message_cmd = 'grep -C 10 Error ' + logfile
 #        mail_command = error_log_message_cmd + ' | /bin/mail -s "Nightly build error" cesrulib@cornell.edu' 
-        mail_command = error_log_message_cmd + ' | /bin/mailx -s "Nightly build error" ' + error_mail_list
+        mail_command = error_log_message_cmd + ' | /bin/mailx -s "Nightly build error" ' + invars.email_list
         p = sub.call(mail_command,
                       bufsize=1,
                       shell=True)
@@ -228,6 +211,15 @@ if invars.nightly:
     for entry in all_OK:
         if not all_OK[entry]:
             rotate_nightly = False
+            rename_error_build_command = 'mv ' +invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name+' '+invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name+'.BAD'
+            rename_error_log_command = 'mv ' + logfile +' '+invars.libs_basedir+'/'+invars.platform+'/log/'+invars.build_name+'.BAD.log'
+            print 'Renaming failed build to '+invars.build_name+'.BAD'
+            p = sub.call(rename_error_build_command,
+                      bufsize=1,
+                      shell=True)
+            p = sub.call(rename_error_log_command,
+                      bufsize=1,
+                      shell=True)
             break
 
     if rotate_nightly:
@@ -240,3 +232,8 @@ if invars.nightly:
         print 'Creating searchf_namelist index files.'
         sub.call(["/nfs/acc/libs/util/create_searchf_namelist", "-r", invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name ])
 
+if invars.build_type == "packages":
+    remove_packages_link_command = 'rm ' +invars.libs_basedir+'/'+invars.platform+'/'+invars.build_name+'/packages'
+    p = sub.call(remove_packages_link_command,
+                 bufsize=1,
+                 shell=True)

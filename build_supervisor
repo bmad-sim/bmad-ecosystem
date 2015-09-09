@@ -224,6 +224,7 @@ class BuildController(threading.Thread):
         self.platform = build_config.build_specs[spec]['platform']
         self.basedir = build_config.build_specs[spec]['basedir']
         self.util_dir = build_config.build_specs[spec]['util_dir']
+        self.email_list = build_config.build_specs[spec]['email_list']
         self.nightly = argresults.nightly
         self.local = argresults.local
         self.intel = argresults.intel
@@ -332,9 +333,9 @@ class BuildController(threading.Thread):
         self.log.write('libs_basedir      ' + self.basedir +'\n')
         self.log.write('platform          ' + self.platform +'\n')
         self.log.write('svn_revision      ' + str(self.svn_revision) +'\n')
-        #self.log.write('fortran_compiler  ' + self.fortran_compiler + '\n')
         self.log.write('util_dir          ' + self.util_dir +'\n')
         self.log.write('makefile_dir      ' + self.makefile_dir +'\n')
+        self.log.write('email_list        ' + self.email_list +'\n')
         self.log.write('build_name        ' + self.name  +'\n')
         self.log.write('full_release_dir  ' + self.full_release_dir +'\n')
         self.log.write('packages_name     ' + self.packages_name +'\n')
