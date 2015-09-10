@@ -288,7 +288,8 @@ type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: lat_branch
 type (ele_struct), pointer :: ele
 
-integer i, ii, n, nn, ix_branch, status, ix_lost
+real(rp), parameter :: vec0(6) = 0
+integer i, ii, n, nn, ix_branch, status, ix_lost, i_dim
 
 character(20) :: r_name = "tao_single_track"
 
@@ -315,11 +316,25 @@ if (u%calc%track) then
   bmad_com%radiation_fluctuations_on = .false.
 
   if (branch%param%geometry == closed$) then
+    
     if (s%global%rf_on) then
-      call closed_orbit_calc (lat, lat_branch%orbit, 6, 1, ix_branch, err_flag = err)
+      i_dim = 6
     else
-      call closed_orbit_calc (lat, lat_branch%orbit, 4, 1, ix_branch, err_flag = err)
+      i_dim = 4
     endif
+
+    call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+    if (err) then
+      ! In desperation try a different starting point
+      call init_coord (orbit(0), lat%beam_start, branch%ele(0), downstream_end$, orbit(0)%species)
+      call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+    endif
+    if (err) then
+      ! In desperation try a different starting point
+      orbit(0)%vec = 0
+      call closed_orbit_calc (lat, lat_branch%orbit, i_dim, 1, ix_branch, err_flag = err)
+    endif
+
     if (err) then
       calc_ok = .false.
       do i = 0, ubound(orbit, 1)

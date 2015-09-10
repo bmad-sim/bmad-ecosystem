@@ -282,3 +282,16 @@ Data and variable values are transferred to the plotting structures.
 The plotting window is regenerated.
 \end{enumerate}
 
+If a closed orbit is to be calculated, \tao uses an iterative method
+to converge on a solution where \tao starts with some initial orbit at
+the beginning of the lattice, tracks from this initial orbit through
+to the end of the lattice, and then adjusts the beginning orbit until
+the end orbit matches the beginning orbit. A problem arises if the
+tracked particle is lost before it reaches the end of the lattice
+since \tao has no good way to calculate how to adjust the beginning
+orbit to prevent the particle from getting lost. In this case, \tao,
+in desperation, will try the orbit specified by \vn{beam_start} in the
+\bmad lattice file (see the \bmad manual for more details on setting
+\vn{beam_start}). Note: \vn{beam_start} can be varied while running
+\tao using the \vn{set beam_start} (\sref{s:set}) or \vn{change
+beam_start} (\sref{s:change}) commands.
