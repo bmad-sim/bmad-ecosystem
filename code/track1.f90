@@ -74,7 +74,7 @@ radiation_included = (ele%tracking_method == symp_lie_bmad$)
 
 if (start2_orb%state == not_set$) then
   if (ele%tracking_method == time_runge_kutta$) then
-    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED!')
+    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]')
     return
   endif
   call init_coord(start2_orb, start2_orb%vec, ele, upstream_end$, particle = default_tracking_species(param)) 
@@ -91,6 +91,23 @@ if (ele%tracking_method /= time_runge_kutta$ .or. start2_orb%location /= inside$
   else
     start2_orb%location = downstream_end$
     start2_orb%s = ele%s
+  endif
+endif
+
+if (start2_orb%species /= photon$) then
+  err = .false.
+
+  if (ele%key == beginning_ele$) then
+    if (ele%value(p0c$) /= start2_orb%p0c) err = .true. ! For e_gun case
+  else if (start2_orb%location == upstream_end$) then
+    if (ele%value(p0c_start$) /= start2_orb%p0c) err = .true.
+  else if (start2_orb%location == downstream_end$) then
+    if (ele%value(p0c$) /= start2_orb%p0c) err = .true. ! For e_gun case
+  endif
+
+  if (err) then
+    call out_io (s_error$, r_name, 'STARTING ORBIT NOT PROPERLY INITIALIZED! [NEEDS AN INIT_COORD CALL?]')
+    return
   endif
 endif
 
