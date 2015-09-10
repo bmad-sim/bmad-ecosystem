@@ -13,15 +13,15 @@
 !   use bmad
 !
 ! Input:
-!   ele     -- Ele_struct: Element holding the transfer matrix.
-!   param   -- lat_param_struct: Lattice global parameters.
-!   start   -- Coord_struct, optional: Coordinates at the beginning of element. 
-!                If not present then default is start = 0.
-!   end_orb -- Coord_struct, optional: Coordinates at the end of element.
-!                end_orb is an input only if end_in is set to True.
-!   end_in  -- Logical, optional: If present and True then the end coords
-!                will be taken as input. not output as normal. 
-!                If end_orb is not present then end_in will be ignored.
+!   ele       -- Ele_struct: Element holding the transfer matrix.
+!   param     -- lat_param_struct: Lattice global parameters.
+!   start_orb -- Coord_struct, optional: Coordinates at the beginning of element. 
+!                  If not present, default is to use the zero orbit.
+!   end_orb   -- Coord_struct, optional: Coordinates at the end of element.
+!                  end_orb is an input only if end_in is set to True.
+!   end_in    -- Logical, optional: If present and True then the end coords
+!                  will be taken as input. not output as normal. 
+!                  If end_orb is not present then end_in will be ignored.
 !
 !
 ! Output:
@@ -63,14 +63,12 @@ character(16), parameter :: r_name = 'make_mat6'
 
 if (present(err_flag)) err_flag = .true.
 
-if (present(start_orb)) then
-  if (start_orb%state == not_set$) then
-    call init_coord(a_start_orb, zero_vec, ele, upstream_end$, param%particle)
-  else
-    a_start_orb = start_orb
-  endif
+if (.not. present(start_orb)) then
+  call init_coord (a_start_orb, zero_vec, ele, upstream_end$, default_tracking_species(param))
+else if (start_orb%state == not_set$ .or. start_orb%p0c /= ele%value(p0c_start$)) then
+  call init_coord(a_start_orb, start_orb, ele, upstream_end$, default_tracking_species(param))
 else
-  call init_coord (a_start_orb, ele = ele, element_end = upstream_end$, particle = default_tracking_species(param))
+  a_start_orb = start_orb
 endif
 
 end_input = (logic_option (.false., end_in) .and. present(end_orb))
