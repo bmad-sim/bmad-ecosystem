@@ -188,6 +188,7 @@ case ('beam')
 
 !---------------------------------------------------
 ! 3D model script for Blender
+! Note: Old cubit interface code was in tao_write_3d_floor_plan.f90 which was deleted 9/2015.
 
 case ('3d_model', 'blender')
 

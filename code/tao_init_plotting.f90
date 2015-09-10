@@ -210,6 +210,8 @@ if (ios > 0) then
 endif
 
 if (ios == 0) then
+  call out_io (s_warn$, r_name, 'ELEMNET_SHAPES NAMELIST IS DEPRECATED.', &
+                                'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.')
   do i = 1, size(shape)
     ele_shape(i)%ele_id = shape(i)%ele_name
     if (shape(i)%key_name /= '') shape(i)%ele_name = trim(shape(i)%key_name) // '::' // ele_shape(i)%ele_id

@@ -2893,7 +2893,7 @@ end subroutine tao_ele_to_ele_track
 !                 there is a problem. Default is True.
 !
 ! Output:
-!   ix_class  -- Integer: Element class. 0 => all classes.
+!   ix_class  -- Integer: Element class. 0 => all classes. -1 => Not an element [EG: str = "var::..."].
 !   ele_name  -- Character(*): Element name.
 !   err       -- Set true if there is a problem translating the element class.
 !-
@@ -2914,6 +2914,12 @@ logical err
 !
 
 err = .false.
+ix_class = -1
+
+if (str(1:5) == 'dat::') return
+if (str(1:5) == 'var::') return
+if (str(1:5) == 'lat::') return
+if (str(1:6) == 'wall::') return
 
 ix = index(str, '::')
 
@@ -3459,40 +3465,95 @@ end function tao_beam_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-function tao_pointer_to_ele_shape (ele, ele_shapes) result (ele_shape)
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, special_name) result (e_shape)
 
 implicit none
 
 type (ele_struct) ele
-type (tao_ele_shape_struct), target :: ele_shapes(:)
-type (tao_ele_shape_struct), pointer :: ele_shape
 
-integer k, n_ele_track
+type (tao_ele_shape_struct), target :: ele_shape(:)
+type (tao_ele_shape_struct), pointer :: e_shape, es
+type (tao_data_array_struct), allocatable, target :: d_array(:)
+type (tao_logical_array_struct), allocatable :: logic_array(:)
+type (tao_data_struct), pointer :: datum
+type (tao_var_array_struct), allocatable, target :: v_array(:)
+type (tao_var_struct), pointer :: var
 
+integer ix_uni
+integer j, j2, k, n_ele_track
+
+character(*), optional :: special_name
 character(*), parameter :: r_name = 'tao_pointer_to_ele_shape'
 
 logical err
 
 !
 
-nullify(ele_shape)
+nullify(e_shape)
+if (present(special_name)) special_name = ''
 
 if (ele%lord_status == group_lord$) return
 if (ele%lord_status == overlay_lord$) return
 if (ele%slave_status == super_slave$) return
 
-do k = 1, size(ele_shapes)
+do k = 1, size(ele_shape)
+  es => ele_shape(k)
 
-  if (ele_shapes(k)%ele_id == '') cycle
-  if (ele_shapes(k)%ele_id(1:5) == 'dat::') cycle
-  if (ele_shapes(k)%ele_id(1:5) == 'var::') cycle
-  if (ele_shapes(k)%ele_id(1:5) == 'lat::') cycle
-  if (ele_shapes(k)%ele_id(1:6) == 'wall::') cycle
+  if (.not. es%draw) cycle
 
-  if (ele_shapes(k)%ix_ele_key /= 0 .and. ele_shapes(k)%ix_ele_key /= ele%key) cycle
-  if (.not. match_wild(ele%name, ele_shapes(k)%name_ele)) cycle
+  ! Data
 
-  ele_shape => ele_shapes(k)
+  if (es%ele_id(1:5) == 'dat::') then
+    call tao_find_data (err, es%ele_id, d_array = d_array, log_array = logic_array)
+    if (err) cycle
+    do j = 1, size(d_array)
+      datum => d_array(j)%d
+      if (datum%d1%d2%ix_uni /= ix_uni) cycle
+      if (size(logic_array) /= 0) then
+        if (.not. logic_array(j)%l) cycle
+      endif
+      if (ele%ix_branch /= datum%ix_branch .or. ele%ix_ele /=  datum%ix_ele) cycle
+      e_shape => es
+      if (present(special_name)) special_name = tao_datum_name(datum)
+      return
+    enddo
+    cycle
+  endif
+
+  ! Variables
+
+  if (es%ele_id(1:5) == 'var::') then
+    call tao_find_var (err, es%ele_id, v_array = v_array, log_array = logic_array)
+    if (err) cycle
+
+    do j = 1, size(v_array)
+      var => v_array(j)%v
+      if (size(logic_array) /= 0) then
+        if (.not. logic_array(j)%l) cycle
+      endif
+      do j2 = 1, size(var%this)
+        if (var%this(j2)%ix_uni /= ix_uni) cycle
+        if (var%ele_name == 'BEAM_START') then
+          if (ele%ix_branch /= 0 .or. ele%ix_ele /= 0) cycle
+        else
+          if (ele%ix_branch /= var%this(j2)%ix_branch .or. ele%ix_ele /=  var%this(j2)%ix_ele) cycle
+        endif
+        e_shape => es
+        if (present(special_name)) special_name = tao_var1_name(var)
+        return
+      enddo
+    enddo
+    cycle
+  endif
+
+  ! All else
+
+  if (es%ele_id == '') cycle
+  if (es%ix_ele_key == -1) cycle
+  if (es%ix_ele_key /= 0 .and. es%ix_ele_key /= ele%key) cycle
+  if (.not. match_wild(ele%name, es%name_ele)) cycle
+
+  e_shape => es
   return
 enddo
 

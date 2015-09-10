@@ -1282,7 +1282,7 @@ case ('lat', 'beam')
     ! Mark all eles in branch if they match a shape.
     do i = 0, branch%n_ele_track
       ele => branch%ele(i)
-      ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%lat_layout%ele_shape)
+      ele_shape => tao_pointer_to_ele_shape (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape)
       if (.not. associated(ele_shape)) cycle
       if (.not. ele_shape%draw) cycle
       call find_element_ends (ele, ele1, ele2)
@@ -1293,7 +1293,7 @@ case ('lat', 'beam')
     ! Mark slaves of lord elements that match a shape.
     do i = model_lat%n_ele_track+1, model_lat%n_ele_max
       ele => model_lat%ele(i)
-      ele_shape => tao_pointer_to_ele_shape (ele, s%plot_page%lat_layout%ele_shape)
+      ele_shape => tao_pointer_to_ele_shape (u%ix_uni, ele, s%plot_page%lat_layout%ele_shape)
       if (.not. associated(ele_shape)) cycle
       if (.not. ele_shape%draw) cycle
       if (ele%lord_status == multipass_lord$) then

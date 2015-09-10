@@ -1240,7 +1240,7 @@ case ('element')
       nl=nl+1; write(lines(nl), fmt2) 'Z:  ', orb%vec(5:6)
     else
       z = (ele%ref_time - orb%t) * orb%beta * c_light
-      fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f9.6)'
+      fmt = '(2x, a, 2f15.8, a, es16.8, 2x, a, f11.6)'
       nl=nl+1; lines(nl) = '         Position[mm] Momentum[mrad]  |                            Time'
       nl=nl+1; write(lines(nl), fmt) 'X:  ', 1000*orb%vec(1:2),   '  | Absolute [sec]:   ', orb%t
       nl=nl+1; write(lines(nl), fmt) 'Y:  ', 1000*orb%vec(3:4),   '  | Abs-Ref [sec]:    ', orb%t - ele%ref_time
