@@ -913,6 +913,7 @@ else
   endif
 
   ds = sec2%s - sec1%s
+  if (wrapped) ds = ds + ele%branch%param%total_length
 
   if (ds == 0) then
     if (position(6) > 0) then
@@ -923,7 +924,6 @@ else
     return
   endif
 
-  if (wrapped) ds = ds + ele%branch%param%total_length
   s_rel = (s_particle - sec1%s) / ds
 
   x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
