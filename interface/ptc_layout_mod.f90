@@ -652,6 +652,8 @@ else
   ptc_state = DEFAULT - radiation0
 endif
 
+call reallocate_coord(closed_orbit, branch%n_ele_max)
+
 x = 0
 fib => branch%ele(0)%ptc_fibre%next
 call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit

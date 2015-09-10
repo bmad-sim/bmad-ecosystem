@@ -656,7 +656,7 @@ integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2
 integer, optional :: ix_section
 
 logical, optional :: err_flag, in_antechamber
-logical err, is_branch_wall, wrapped
+logical err, is_branch_wall
 
 character(*), parameter :: r_name = 'wall3d_d_radius' 
 
@@ -678,16 +678,15 @@ n_sec = size(wall3d%section)
 ! If the particle is at a wall section, use the correct interval.
 ! If moving in +s direction then the correct interval is whith %section(ix_w+1)%s = particle position.
 
-! Case where the particle is outside the wall region. 
+! Case where the particle is outside the wall region longitudinally. 
 ! In this case, wrap if it is a chamber wall with a branch with closed geometry.
 ! Otherwise assume a constant cross-section.
 
 if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .and. position(6) > 0)) then
   if (wrap_wall()) then
-    sec1 => wall3d%section(n_sec)
-    sec2 => wall3d%section(1)
+    sec1 => wall3d%section(n_sec);  s1 = sec1%s - ele%branch%param%total_length
+    sec2 => wall3d%section(1);      s2 = sec2%s
     if (present(ix_section)) ix_section = n_sec
-    wrapped = .true.
   else
     if (s_particle < wall3d%section(1)%s .and. wall3d%section(1)%type == wall_start$) return
     call d_radius_at_section(wall3d%section(1))
@@ -696,10 +695,9 @@ if (s_particle < wall3d%section(1)%s .or. (s_particle == wall3d%section(1)%s .an
 
 elseif (s_particle > wall3d%section(n_sec)%s .or. (s_particle == wall3d%section(n_sec)%s .and. position(6) < 0)) then
   if (wrap_wall()) then
-    sec1 => wall3d%section(n_sec)
-    sec2 => wall3d%section(1)
+    sec1 => wall3d%section(n_sec);  s1 = sec1%s
+    sec2 => wall3d%section(1);      s2 = sec2%s + ele%branch%param%total_length
     if (present(ix_section)) ix_section = n_sec
-    wrapped = .true.
   else
     if (s_particle > wall3d%section(n_sec)%s .and. wall3d%section(n_sec)%type == wall_end$) return
     call d_radius_at_section(wall3d%section(n_sec))
@@ -717,10 +715,9 @@ else
   ! sec1 and sec2 are the cross-sections to either side of the particle.
   ! Calculate the radius values at the cross-sections.
 
-  sec1 => wall3d%section(ix_w)
-  sec2 => wall3d%section(ix_w+1)
+  sec1 => wall3d%section(ix_w);   s1 = sec1%s
+  sec2 => wall3d%section(ix_w+1); s2 = sec2%s
   if (present(ix_section)) ix_section = ix_w
-  wrapped = .false.
 
 endif
 
@@ -732,19 +729,21 @@ if (sec1%type == wall_end$ .or. sec2%type == wall_start$) return
 
 if (sec1%type /= normal$ .and. sec2%type /= normal$) then
 
-  select case (sec1%type)
-  case (leg1$)
-    if (sec2%type /= trunk1$) sec2 => wall3d%section(ix_w+2)
-  case (leg2$)
-    if (sec2%type /= trunk2$) sec2 => wall3d%section(ix_w+2)
-  end select
+  if (sec1%type == leg1$ .and. sec2%type /= trunk1$) then
+    sec2 => wall3d%section(ix_w+2)
+    s2 = sec2%s
+  elseif (sec1%type == leg2$ .and. sec2%type /= trunk2$) then
+    sec2 => wall3d%section(ix_w+2)
+    s2 = sec2%s
+  endif
 
-  select case (sec2%type)
-  case (leg1$)
-    if (sec1%type /= trunk1$) sec1 => wall3d%section(ix_w-1)
-  case (leg2$)
-    if (sec1%type /= trunk2$) sec1 => wall3d%section(ix_w-1)
-  end select
+  if (sec2%type == leg1$ .and. sec1%type /= trunk1$) then
+    sec1 => wall3d%section(ix_w-1)
+    s1 = sec1%s
+  elseif (sec2%type == leg2$ .and. sec1%type /= trunk2$) then
+    sec1 => wall3d%section(ix_w-1)
+    s1 = sec1%s
+  endif
 
 endif
 
@@ -912,8 +911,7 @@ else
     return
   endif
 
-  ds = sec2%s - sec1%s
-  if (wrapped) ds = ds + ele%branch%param%total_length
+  ds = s2 - s1
 
   if (ds == 0) then
     if (position(6) > 0) then
@@ -924,7 +922,7 @@ else
     return
   endif
 
-  s_rel = (s_particle - sec1%s) / ds
+  s_rel = (s_particle - s1) / ds
 
   x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
   y0 = (1 - s_rel) * sec1%y0 + s_rel * sec2%y0
