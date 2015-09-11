@@ -22,6 +22,7 @@
 %---------------------------------------------------------------------------------
 
 \newcommand{\sref}[1]{$\S$\ref{#1}}
+\newcommand{\syn}{\texttt{Synrad}\xspace}
 \newcommand\ttcmd{\begingroup\catcode`\_=11 \catcode`\%=11 \dottcmd}
 \newcommand\dottcmd[1]{\texttt{#1}\endgroup}
 \newcommand{\Begineq}{\begin{equation}}
@@ -58,7 +59,7 @@
 
 %---------------------------------------------------------------------------------
 
-\title{ Synrad Information}
+\title{\syn: Program for Calculating Synchrotron Radiation Power}
 \author{}
 \date{July 21, 2014}
 
@@ -68,9 +69,9 @@
 %------------------------------------------------------------------
 \section{Introduction} 
 
-Synrad is a program for calculating the synchrotron radiation power
+\syn is a program for calculating the synchrotron radiation power
 deposition on the beam chamber walls in a storage ring or
-accelerator. Synrad works by tracking X-rays from creation at the
+accelerator. \syn works by tracking X-rays from creation at the
 beam to absorption at the chamber wall. The tracking is confined to
 the horizontal plane. Reflections from the wall are not considered.
 The vertical extent of the radiation stripe at the wall, important for
@@ -79,43 +80,43 @@ the vertical emittance.
 
 The chamber wall is specified in the horizontal plane by a set of
 vertex points with a straight line between points. Exit and entrance
-lines like x-ray beam lines or dumps can be modeled in Synrad.
+lines like x-ray beam lines or dumps can be modeled in \syn.
 Shadowing of parts of the wall by other parts is taken into account in
 the calculation.
 
-Even though Synrad only tracks photons in the horizontal plane, Synrad
+Even though \syn only tracks photons in the horizontal plane, \syn
 is able to handle lattices with non-horizontal bends. Radiation from
 non-horizontal bends is included in the calculation. Obviously, if
-this radiation is actually striking the top or bottom walls, Synrad
+this radiation is actually striking the top or bottom walls, \syn
 will not give accurate results.
 
-Synrad output includes power deposition per longitudinal length, per
+\syn output includes power deposition per longitudinal length, per
 unit area on the beam center line, and photon flux. The beam orbit is
 not constrained to be zero so calculations to see the affect of
 varying the orbit are possible.
 
-Synrad is not to be confused with another program called Synrad3D.
+\syn is not to be confused with another program called Synrad3D.
 The Synrad3D program uses Monte Carlo to generate photons along with a
 full three dimensional chamber model along with a model for the
-scattering the photons. The advantage of using Synrad is that it is
+scattering the photons. The advantage of using \syn is that it is
 quick and accurate since it does not rely on Monte Carlo methods.
 
-Synrad uses the Bmad subroutine library for relativistic
+\syn uses the Bmad subroutine library for relativistic
 charged-particle simulations\cite{b:bmad} for some of the
 calculations. 
 
 %------------------------------------------------------------------
-\section{Running Synrad}
+\section{Running \syn}
 \label{s:run}
 
-Syntax for invoking Synrad:
+Syntax for invoking \syn:
 \begin{example}
   <path-to-synrad-exe>/synrad \{-plot\} \{<master-input-file-name>\}
 \end{example}
 The \vn{<master-input-file-name>} optional argument is used to set the
 master input file name. The default is ``\vn{synrad.in}''.
 
-The optional \vn{-plot} option causes Synrad to plot the vacuum
+The optional \vn{-plot} option causes \syn to plot the vacuum
 chamber walls. In this case, no synchrotron radiation calculations are
 done.
 
@@ -140,14 +141,14 @@ striking such a section is not to be counted.
 %------------------------------------------------------------------
 \section{Vacuum Chamber Wall}
 
-Synrad uses the Bmad local reference coordinates for specifying the
+\syn uses the Bmad local reference coordinates for specifying the
 vacuum chamber wall (see the \vn{Coordinates} chapter in the Bmad
 manual\cite{b:bmad}). The $s$-axis in this curvilinear coordinate
 system is the longitudinal axis along the direction of the beam. If
 there are no vertical bends, the $y$-axis is in the vertical
 direction, and the $x$-axis is in the horizontal plane.
 
-Since Synrad is only tracking in the horizontal plane, the vacuum
+Since \syn is only tracking in the horizontal plane, the vacuum
 chamber wall is divided into a ``positive $x$'' (``$+x$'') side and a
 ``negative $x$'' (``$-x$'') side as shown in Fig.~\ref{f:wall}. The
 ``$+x$'' section is defined as the wall on the positive $x$ side of
@@ -168,7 +169,7 @@ where the X-rays traveling down the beam line does not contribute to
 the power dissipated on the walls.
 
 For the calculation, the lines between vertex points are broken up
-into roughly equal length segments. While Synrad tries to make
+into roughly equal length segments. While \syn tries to make
 segments of equal size, since the distance between vertex points may
 not be commensurate with the desired segment length, the actual
 segment length can vary. For calculational purposes, segments are
@@ -185,7 +186,7 @@ span a \vn{patch} element is problematical in that, in general, an
 unbroken line in the $(x, s)$ coordinates will be discontinuous in the
 global coordinates. This comes about since \vn{patch} elements can
 introduce a discontinuity in the local reference coordinates. Since
-this is not physical, Synrad uses a different rule for interpolating
+this is not physical, \syn uses a different rule for interpolating
 between vertex points that span a \vn{patch}. In such a case, linear
 interpolation in the global coordinate system is used as shown in
 Fig.~\ref{f:patch}. With this convention, the wall may be
@@ -208,7 +209,7 @@ a straight line in the global coordinate system.
 
 %------------------------------------------------------------------
 
-In constructing the vacuum chamber wall, Synrad will add vertex points
+In constructing the vacuum chamber wall, \syn will add vertex points
 at the boundaries of bend magnets. This is generally transparent to
 the user except it may result in segment lengths shifting slightly.
 The $x$ values of the added points are interpolated using the $x$
@@ -222,9 +223,9 @@ system.
 
 Photon generation is based on the standard synchrotron radiation
 formulas, applicable for dipoles quadrupoles, and wigglers. The
-radiation is assumed to be incoherent, so Synrad cannot treat FEL
-radiation. Since Synrad only deals with the total emitted power (as
-opposed to power emitted in a given energy bandwidth), Synrad can
+radiation is assumed to be incoherent, so \syn cannot treat FEL
+radiation. Since \syn only deals with the total emitted power (as
+opposed to power emitted in a given energy bandwidth), \syn can
 handle undulators.
 
 Photons are generated roughly uniformly along the length of any
@@ -288,7 +289,7 @@ segments due to the radiation section is set to zero.
 \subsection{Fortran Namelist}
 \label{s:namelist}
 
-Fortran namelist syntax is used for parameter input by Synrad. The
+Fortran namelist syntax is used for parameter input by \syn. The
 general form of a namelist is
 \begin{example}
   &<namelist_name>
