@@ -46,6 +46,7 @@ type (lat_param_struct), target :: param
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
+type (em_field_struct) :: saved_field
 
 real(rp) dt_step, ref_time, vec6
 real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
@@ -142,7 +143,12 @@ if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
 endif
 
 if ( present(track) ) then
-  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save, time)
+  ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
+  ! This should be the same as done inside odeint_bmad_time 
+  call save_a_step (track, ele, param, .false., end_orb%vec(5), end_orb, s_save)
+  call em_field_calc (ele, param, end_orb%vec(5), time, end_orb, .true., saved_field, .false., err_flag)
+  if (err_flag) return
+  track%field(track%n_pt) = saved_field
 endif
 
 ! Track through element
