@@ -1086,7 +1086,7 @@ if (lux_param%det_pix_out_file /= '') then
     energy_rms = sqrt(max(0.0_rp, pix%energy_rms - pix%energy_ave**2))
     x_pitch_rms = sqrt(max(0.0_rp, pix%x_pitch_rms - pix%x_pitch_ave**2))
     y_pitch_rms = sqrt(max(0.0_rp, pix%y_pitch_rms - pix%y_pitch_ave**2))
-    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3, 4f11.6)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3, 4es11.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
            pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
            pix%intensity * normalization, pix%n_photon, pix%energy_ave, energy_rms, &
            pix%x_pitch_ave, x_pitch_rms, pix%y_pitch_ave, y_pitch_rms
@@ -1122,7 +1122,7 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%y_pitch_ave = sum(detec_grid%pt(i,:)%y_pitch_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
       pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%y_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4es11.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
                        pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
@@ -1155,7 +1155,7 @@ if (lux_param%det_pix_out_file /= '') then
       pixel%y_pitch_ave = sum(detec_grid%pt(:,j)%y_pitch_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
       pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%y_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4f11.6)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4es11.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
                        pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
                        pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
   enddo
