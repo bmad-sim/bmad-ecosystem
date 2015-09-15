@@ -1504,13 +1504,16 @@ if (offset == 0) then
   ele0%value(e_tot$)    = ele_in%value(e_tot_start$)
   ele0%ref_time        = ele_in%value(ref_time_start$)
   sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
+
 elseif (present(old_slice)) then
   sliced_ele%time_ref_orb_in = time_ref_orb_out
+
 elseif (ele_has_constant_ds_dt_ref(ele_in)) then
   ele0%value(p0c$)      = ele_in%value(p0c$)
   ele0%value(e_tot$)    = ele_in%value(e_tot$)
   ele0%ref_time = ele_in%ref_time - ele_in%value(delta_ref_time$) * (ele_in%value(l$) - offset) / ele_in%value(l$)
   sliced_ele%time_ref_orb_in%vec = 0
+
 else
   call transfer_ele (sliced_ele, ele2)
   call create_element_slice (ele2, ele_in, offset, 0.0_rp, param, .true., .false., err2_flag)
@@ -1526,6 +1529,16 @@ if (err2_flag) return
 
 if (.not. include_upstream_end) sliced_ele%time_ref_orb_in%location = inside$
 if (.not. include_downstream_end) sliced_ele%time_ref_orb_out%location = inside$
+
+! Round off can throw off the ending ref energy.
+! This can be problematic when include_downstream_end = T since a particle traveling through and
+! into the next element will have an energy mismatch and track1 flag this as an error.
+! Solution is to just set the end ref energy to what it should be.
+
+if (include_downstream_end) then
+  sliced_ele%value(p0c$)      = ele_in%value(p0c$)
+  sliced_ele%value(e_tot$)    = ele_in%value(e_tot$)
+endif
 
 err_flag = .false.
 
