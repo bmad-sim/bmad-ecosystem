@@ -564,7 +564,7 @@ type rad_int_ele_cache_struct
   logical :: stale = .true.
 end type 
 
-! Structure for surfaces of mirrors, crystals, etc.
+! Structure for surfaces of detectors, mirrors, crystals, etc.
 ! Rule: This structure is always allocated in the ele_struct for elements that can utilize it.
 
 type surface_orientation_struct
@@ -573,11 +573,14 @@ end type
 
 type surface_grid_pt_struct
   type (surface_orientation_struct) :: orientation = surface_orientation_struct()
+  ! Photon statistics...
   integer :: n_photon = 0
   complex(rp) :: E_x  = 0, E_y = 0
   real(rp) ::  intensity_x = 0, intensity_y = 0, intensity = 0
-  real(rp) :: energy_ave = 0, energy_rms = 0
-  real(rp) :: x_pitch_ave = 0, y_pitch_ave = 0, x_pitch_rms = 0, y_pitch_rms = 0
+  real(rp) :: orbit(6) = 0            ! x, Vx/c, y, Vy/c, dummy, E - E_ref.
+  real(rp) :: orbit_rms(6) = 0        ! RMS statistics.
+  real(rp) :: init_orbit(6) = 0       ! Initial orbit at start of lattice statistics.
+  real(rp) :: init_orbit_rms(6) = 0   ! Initial orbit at start of lattice RMS statistics.
 end type
 
 integer, parameter :: segmented$ = 2, h_misalign$ = 3, diffract_target$ = 4
@@ -617,7 +620,7 @@ end type
 type photon_target_struct
   logical :: deterministic_grid = .false.     ! Use ix/iy_grid instead of random number?  
   integer :: ix_grid = 0, iy_grid = 0         ! Grid pt to go to if deterministic_grid = T.
-  integer :: type = off$       ! or rectangular$, or grid$
+  integer :: type = off$                      ! or rectangular$, or grid$
   integer :: n_corner = 0
   type (lat_ele_loc_struct) :: ele_loc = lat_ele_loc_struct()
   type (target_point_struct) :: corner(8) = target_point_struct()

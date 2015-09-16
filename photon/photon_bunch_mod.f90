@@ -79,25 +79,28 @@ do
 
     do i = 1, size(bunch%particle)
       do ix = lb(1), ub(1)
-      iy_loop: do iy = lb(2), ub(2)
+      do iy = lb(2), ub(2)
+
         target%ix_grid = ix
         target%iy_grid = iy
         orb = bunch%particle(i)
+
         do ie2 = ie, targ_ele%ix_ele - 1
           call track1 (orb, branch%ele(ie2), branch%param, orb)
-          if (orb%state /= alive$) then
-            bunch%particle(i) = orb
-            cycle iy_loop
-          endif
+          if (orb%state /= alive$) exit
         enddo
 
-        call photon_add_to_detector_statistics (orb, targ_ele, nx, ny)
-        if (nx /= ix .or. ny /= iy) then
-          call out_io (s_fatal$, r_name, 'BAD TARGETING')
-          if (global_com%exit_on_error) call err_exit
+        if (orb%state == alive$) then
+          call photon_add_to_detector_statistics (bunch%particle(i), orb, targ_ele, nx, ny)
+          if (nx /= ix .or. ny /= iy) then
+            call out_io (s_fatal$, r_name, 'BAD TARGETING')
+            if (global_com%exit_on_error) call err_exit
+          endif
         endif
 
-      enddo iy_loop
+        bunch%particle(i) = orb
+
+      enddo
       enddo
     enddo
 
