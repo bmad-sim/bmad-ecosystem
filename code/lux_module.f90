@@ -31,13 +31,12 @@ type lux_param_struct
   character(100) :: det_pix_out_file = ''
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
-  character(100) :: histogram_out_file = ''
   character(40) :: photon_init_element = ''       ! element name
   character(40) :: detector_element = ''          ! element name
   character(40) :: photon1_element = ''           ! element name
   character(20) :: plotting = ''
   character(16) :: random_engine = 'pseudo'
-  character(16) :: histogram_variable = ''
+  character(16) :: histogram_variable = 'energy'
   real(rp) :: histogram_bin_width = 0
   real(rp) :: intensity_min_det_pixel_cutoff = 1e-6
   real(rp) :: intensity_min_photon1_cutoff = 1e-6
@@ -46,7 +45,6 @@ type lux_param_struct
   real(rp) :: intensity_normalization_coef = 1e6
   real(rp) :: stop_num_photons = 0               ! stop number. Use real for clearer input
   real(rp) :: mpi_run_size = 0.1                 ! Normalized number of photons to track
-  integer :: n_energy_bin_pts = 40
   integer :: random_seed = 0
   integer :: n_photon1_out_max = 100     ! Max number of photons allowed in photon1_out_file.
   logical :: debug = .false.             ! For debugging
@@ -72,9 +70,7 @@ type lux_common_struct
   integer :: n_photon1_out = 0     ! Count of photons in photon1_out_file
   integer :: iu_photon1_out        ! File I/O unit number.
   type (lux_bend_slice_struct), allocatable :: bend_slice(:) ! Size: (0:n_bend_slice)
-  type (surface_grid_pt_struct), allocatable :: energy_bin(:)
-  real(rp), allocatable :: histogram_bin(:)
-  real(rp) dE_bin
+  type (surface_grid_pt_struct), allocatable :: histogram_bin(:)
   real(rp) E_min, E_max                                      ! Photon energy range 
   logical :: verbose = .false.
   logical :: using_mpi = .false.
@@ -184,7 +180,6 @@ endif
 ! Add number to file name
 
 if (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out_file, '#') /= 0) then
-
   number_file = 'lux_out_file.number'
   inquire(file = number_file, exist = is_there)
   if (.not. is_there) then
@@ -196,7 +191,6 @@ if (index(lux_param%photon1_out_file, '#') /= 0 .or. index(lux_param%det_pix_out
   call increment_file_number (number_file, 3, n, num_str)
   call sub_in (lux_param%photon1_out_file)
   call sub_in (lux_param%det_pix_out_file)
-
 endif
 
 ! Read in lattice
@@ -295,30 +289,20 @@ if (lux_param%photon1_out_file /= '') then
     if (lux_com%using_mpi) rank_id = lux_com%mpi_rank
     write (photon1_out_file, '(a, i0, a)') photon1_out_file(1:ix-1), rank_id, photon1_out_file(ix+1:)
   endif
-  open (iu, file = photon1_out_file, recl = 240)
+  open (iu, file = photon1_out_file, recl = 200)
   write (iu, '(a)') '#      |                               Start                            |                                    End                             |                 End'
   write (iu, '(a)') '#   Ix |     x (mm)           vx       y (mm)           vy            z |        x (mm)           vx       y (mm)           vy            z  |     Energy     Intens_x     Intens_y'
 endif
 
-
 ! Histogram setup
 
-if (lux_param%histogram_out_file /= '') then
-  select case (lux_param%histogram_variable)
-  case ('x_angle', 'y_angle', 'energy')
-  case default
-    call out_io (s_fatal$, r_name, 'BAD HISTOGRAM_VARIABLE SETTING: ' // lux_param%histogram_variable, &
-                                   'SHOULD BE ONE OF: "x_angle", "y_angle", OR "energy"')
-    stop
-  end select
-
+if (lux_param%det_pix_out_file /= '') then
   if (lux_param%histogram_bin_width == 0) then
     call out_io (s_fatal$, r_name, 'HISTOGRAM_BIN_WIDTH IS ZERO!')
     stop
   endif
 
-  allocate(lux_com%histogram_bin(-100:100))
-  lux_com%histogram_bin = 0
+  allocate(lux_com%histogram_bin(-2:2))
 endif
 
 ! Tracking init
@@ -721,20 +705,6 @@ else
 
 endif
 
-! Setup energy binning
-
-if (lux_param%n_energy_bin_pts == 0) lux_param%n_energy_bin_pts = 1
-allocate (lux_com%energy_bin(lux_param%n_energy_bin_pts))
-
-lux_com%dE_bin = (lux_com%E_max - lux_com%E_min) / lux_param%n_energy_bin_pts
-if (lux_com%dE_bin == 0) lux_com%de_bin = 1e-5
-
-do i = 1, lux_param%n_energy_bin_pts
-  lux_com%energy_bin(i)%energy_ave = lux_com%E_min + lux_com%dE_bin * (i - 0.5)
-enddo
-if (is_true(photon_init_ele%value(E_center_relative_to_ref$))) lux_com%energy_bin%energy_ave = &
-                                                  lux_com%energy_bin%energy_ave - lux_com%detec_ele%value(p0c$) 
-
 end subroutine lux_tracking_setup 
 
 !-------------------------------------------------------------------------------------------
@@ -762,16 +732,18 @@ type (lux_photon_struct), target :: photon
 type (lat_struct), pointer :: lat
 type (ele_struct), pointer :: detec_ele, photon_init_ele, photon1_ele
 type (branch_struct), pointer :: s_branch, t_branch
+type (bunch_struct) bunch, bunch_stop1, bunch_start
 type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: pixel
-type (bunch_struct) bunch, bunch_stop1, bunch_start
 
 real(rp) phase, intensity_tot, intens
 
 integer ix, n, nt, nx, ny, track_state, ip, ie
 
 logical err_flag
+
+character(*), parameter :: r_name = 'lux_track_photons'
 
 !
 
@@ -798,8 +770,9 @@ if (lux_param%track_bunch) then
     call lux_generate_photon(bunch%particle(ip), lux_param, lux_com)
   enddo
 
+  bunch_start = bunch
+
   if (lux_param%photon1_out_file /= '') then
-    bunch_start = bunch
     call track_photon_bunch (bunch, t_branch, 0, photon1_ele%ix_ele)
     bunch_stop1 = bunch
     call track_photon_bunch (bunch, t_branch, photon1_ele%ix_ele, detec_ele%ix_ele)
@@ -808,7 +781,7 @@ if (lux_param%track_bunch) then
   endif
 
   do ip = 1, n
-    call add_to_detector_statistics (bunch%particle(ip), intens)
+    call add_to_detector_statistics (bunch_start%particle(ip), bunch%particle(ip), intens)
     if (lux_param%photon1_out_file /= '') then
       call photon1_out (bunch_start%particle(ip), bunch_stop1%particle(ip), bunch%particle(ip), ip)
     endif
@@ -838,7 +811,7 @@ do
 
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
-  call add_to_detector_statistics (photon%orb(nt), intens)
+  call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
 
   ! Write to photon1_out_file
 
@@ -876,9 +849,10 @@ end subroutine photon1_out
 !--------------------------------------------------------------------
 ! contains
 
-subroutine add_to_detector_statistics (det_orb, intens)
+subroutine add_to_detector_statistics (start_orb, det_orb, intens)
 
-type (coord_struct) det_orb
+type (coord_struct) start_orb, det_orb, orb0, orb
+type (surface_grid_pt_struct), allocatable :: temp_bin(:)
 real(rp) intens, intens_x, intens_y
 integer ix, i1, i2
 
@@ -898,43 +872,50 @@ endif
 lux_data%n_live = lux_data%n_live + 1
 intensity_tot = intensity_tot + intens
 
-call photon_add_to_detector_statistics (det_orb, detec_ele)
+call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele)
 
-if (is_true(photon_init_ele%value(E_center_relative_to_ref$))) then
-  ix = nint((det_orb%p0c - lux_com%detec_ele%value(p0c$) - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
-else
-  ix = nint((det_orb%p0c - lux_com%energy_bin(1)%energy_ave) / lux_com%dE_bin) + 1 
-endif
-if (ix < 1) ix = 1
-if (ix > ubound(lux_com%energy_bin, 1)) ix = ubound(lux_com%energy_bin, 1)
-lux_com%energy_bin(ix)%intensity   = intens
-lux_com%energy_bin(ix)%intensity_x = intens_x
-lux_com%energy_bin(ix)%intensity_y = intens_y
-lux_com%energy_bin(ix)%n_photon    = lux_com%energy_bin(ix)%n_photon + 1
+! Histogram
 
-!
+if (lux_param%det_pix_out_file /= '') then
+  orb  = to_photon_angle_coords (det_orb, detec_ele, .true.)
+  orb0 = to_photon_angle_coords (start_orb, detec_ele, .false.)
 
-if (lux_param%histogram_out_file /= '') then
   select case (lux_param%histogram_variable)
+  case ('init_x')
+    ix = nint(orb0%vec(1) / lux_param%histogram_bin_width)
+  case ('init_y')
+    ix = nint(orb0%vec(3) / lux_param%histogram_bin_width)
+  case ('init_x_angle')
+    ix = nint(orb0%vec(2) / lux_param%histogram_bin_width)
+  case ('init_y_angle')
+    ix = nint(orb0%vec(4) / lux_param%histogram_bin_width)
   case ('x_angle')
-    ix = nint(det_orb%vec(2) / lux_param%histogram_bin_width)
+    ix = nint(orb%vec(2) / lux_param%histogram_bin_width)
   case ('y_angle')
-    ix = nint(det_orb%vec(4) / lux_param%histogram_bin_width)
+    ix = nint(orb%vec(4) / lux_param%histogram_bin_width)
   case ('energy')
-    ix = nint((det_orb%p0c-detec_ele%value(p0c$)) / lux_param%histogram_bin_width)
+    ix = nint(orb%vec(6) / lux_param%histogram_bin_width)
+  case default
+    call out_io (s_fatal$, r_name, 'BAD HISTOGRAM_VARIABLE SETTING: ' // lux_param%histogram_variable, &
+                                   'SHOULD BE ONE OF: "init_x", "y_angle", "energy", etc.')
+    stop
   end select
 
   if (ix < lbound(lux_com%histogram_bin,1) .or. ix > ubound(lux_com%histogram_bin,1)) then
     i1 = min(ix, lbound(lux_com%histogram_bin,1)); i2 = max(ix, ubound(lux_com%histogram_bin,1))
-    call re_allocate2 (lux_com%histogram_bin, i1, i2, .false., 0.0_rp)
+    call move_alloc(lux_com%histogram_bin, temp_bin)
+    allocate (lux_com%histogram_bin(i1:i2))
+    i1 = lbound(temp_bin,1); i2 = ubound(temp_bin,1)
+    lux_com%histogram_bin(i1:i2) = temp_bin
   endif
 
-  lux_com%histogram_bin(ix) = lux_com%histogram_bin(ix) + intens
+  call photon_add_to_detector_statistics (start_orb, det_orb, detec_ele, grid_pt = lux_com%histogram_bin(ix))
 endif
 
 end subroutine add_to_detector_statistics
 
 end subroutine lux_track_photons
+
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -994,16 +975,16 @@ type (lux_param_struct) lux_param
 type (lux_output_data_struct) lux_data
 type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
-type (surface_grid_pt_struct) :: pixel
+type (surface_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
 
 real(rp) normalization, cut, dtime
 real(rp) total_dead_intens, pix_in_file_intens, norm2
 real(rp) :: intens_tot, intens_tot_x, intens_tot_y, intens_max
 real(rp) x_sum, y_sum, x2_sum, y2_sum, x_ave, y_ave, e_rms, e_ave
-real(rp) phase_x, phase_y, x, y, energy_rms, x_pitch_rms, y_pitch_rms
+real(rp) phase_x, phase_y, x, y
 
-integer i, j, nx, ny, n_min, n_max
+integer i, j, nx, ny, n_min, n_max, n
 integer nx_active_min, nx_active_max, ny_active_min, ny_active_max
 
 !------------------------------------------
@@ -1021,12 +1002,10 @@ do nx = lux_data%nx_min, lux_data%nx_max; do ny = lux_data%ny_min, lux_data%ny_m
   endif
 
   if (pix%intensity == 0) cycle
-  pix%energy_ave = pix%energy_ave / pix%intensity
-  pix%energy_rms = pix%energy_rms / pix%intensity
-  pix%x_pitch_ave = pix%x_pitch_ave / pix%intensity
-  pix%x_pitch_rms = pix%x_pitch_rms / pix%intensity
-  pix%y_pitch_ave = pix%y_pitch_ave / pix%intensity
-  pix%y_pitch_rms = pix%y_pitch_rms / pix%intensity
+  pix%orbit          = pix%orbit / pix%intensity
+  pix%orbit_rms      = pix%orbit_rms / pix%intensity
+  pix%init_orbit     = pix%init_orbit / pix%intensity
+  pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
 enddo; enddo
 
 !------------------------------------------
@@ -1040,7 +1019,7 @@ intens_tot = 0
 normalization = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * detec_grid%dr(1) * detec_grid%dr(2))
 
 if (lux_param%det_pix_out_file /= '') then
-  open (3, file = lux_param%det_pix_out_file, recl = 200)
+  open (3, file = lux_param%det_pix_out_file, recl = 300)
   intens_max = maxval(detec_grid%pt%intensity)
   cut = max(0.0_rp, intens_max * lux_param%intensity_min_det_pixel_cutoff)
 
@@ -1071,7 +1050,8 @@ if (lux_param%det_pix_out_file /= '') then
   write (3, '(a, i8)')     'ny_active_min       =', ny_active_min
   write (3, '(a, i8)')     'ny_active_max       =', ny_active_max
   write (3, '(a)')         '#-----------------------------------------------------'
-  write (3, '(a)')         '#     ix      iy        x_pix        y_pix   Intensity_x       Phase_x   Intensity_y       Phase_y     Intensity    N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
+  write (3, '(a)')         '#                                                                                                                                                                    |                                          Init'
+  write (3, '(a)')         '#   ix    iy      x_pix      y_pix   Intens_x    Phase_x   Intens_y    Phase_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do i = lux_data%nx_min, lux_data%nx_max
   do j = lux_data%ny_min, lux_data%ny_max
@@ -1079,18 +1059,24 @@ if (lux_param%det_pix_out_file /= '') then
     intens_tot = intens_tot + pix%intensity 
     if (pix%intensity <= cut .or. pix%n_photon == 0) cycle
     phase_x = 0; phase_y = 0
+
     if (lat%photon_type == coherent$) then
       phase_x = atan2(aimag(pix%e_x), real(pix%e_x))
       phase_y = atan2(aimag(pix%e_y), real(pix%e_y))
     endif
-    energy_rms = sqrt(max(0.0_rp, pix%energy_rms - pix%energy_ave**2))
-    x_pitch_rms = sqrt(max(0.0_rp, pix%x_pitch_rms - pix%x_pitch_ave**2))
-    y_pitch_rms = sqrt(max(0.0_rp, pix%y_pitch_rms - pix%y_pitch_ave**2))
-    write (3, '(2i8, 2es13.5, 5es14.5, i12, 2f10.3, 4es11.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
-           pix%intensity_x * normalization, phase_x, pix%intensity_y * normalization, phase_y, &
-           pix%intensity * normalization, pix%n_photon, pix%energy_ave, energy_rms, &
-           pix%x_pitch_ave, x_pitch_rms, pix%y_pitch_ave, y_pitch_rms
-    pix_in_file_intens = pix_in_file_intens + pix%intensity 
+
+    p = pix
+    do n = 1, 6
+      p%orbit_rms(n) = sqrt(max(0.0_rp, pix%orbit_rms(n) - pix%orbit(n)**2))
+      p%init_orbit_rms(n) = sqrt(max(0.0_rp, pix%init_orbit_rms(n) - pix%init_orbit(n)**2))
+    enddo
+
+    write (3, '(2i6, 2es11.3, 5es11.3, i12, 2f10.3, 12es11.3)') i, j, [i,j]*detec_grid%dr+detec_grid%r0, &
+           p%intensity_x * normalization, phase_x, p%intensity_y * normalization, phase_y, &
+           p%intensity * normalization, p%n_photon, p%orbit(6), p%orbit_rms(6), &
+           p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
+           p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
+    pix_in_file_intens = pix_in_file_intens + p%intensity 
   enddo
   enddo
   close(3)
@@ -1098,109 +1084,95 @@ if (lux_param%det_pix_out_file /= '') then
   ! det_pix_out_file.x
 
   norm2 = normalization / size(detec_grid%pt, 2)
-  open (3, file = trim(lux_param%det_pix_out_file) // '.x')
+  open (3, file = trim(lux_param%det_pix_out_file) // '.x', recl = 240)
   write (3, '(a)') '#-----------------------------------------------------'
-  write (3, '(a)') '#     ix        x_pix      ntensity_x     Intensity_y       Intensity    N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
+  write (3, '(a)') '#                                                                                                                             |                    Init'
+  write (3, '(a)') '#   ix      x_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
+
   do i = lux_data%nx_min, lux_data%nx_max
-    pixel = surface_grid_pt_struct()
-    pixel%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
-    pixel%intensity_y = sum(detec_grid%pt(i,:)%intensity_y)
-    pixel%intensity   = sum(detec_grid%pt(i,:)%intensity)
-    pixel%n_photon    = sum(detec_grid%pt(i,:)%n_photon)
-    if (pixel%intensity == 0) then
-      pixel%energy_ave = 0
-      pixel%energy_rms = 0
-      pixel%x_pitch_ave = 0
-      pixel%x_pitch_rms = 0
-      pixel%y_pitch_ave = 0
-      pixel%y_pitch_rms = 0
-    else
-      pixel%energy_ave = sum(detec_grid%pt(i,:)%energy_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
-      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%energy_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%energy_ave**2))
-      pixel%x_pitch_ave = sum(detec_grid%pt(i,:)%x_pitch_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
-      pixel%x_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%x_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%x_pitch_ave**2))
-      pixel%y_pitch_ave = sum(detec_grid%pt(i,:)%y_pitch_ave * detec_grid%pt(i,:)%intensity) / pixel%intensity
-      pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%y_pitch_rms * detec_grid%pt(i,:)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
+    p = surface_grid_pt_struct()
+    p%intensity_x = sum(detec_grid%pt(i,:)%intensity_x)
+    p%intensity_y = sum(detec_grid%pt(i,:)%intensity_y)
+    p%intensity   = sum(detec_grid%pt(i,:)%intensity)
+    p%n_photon    = sum(detec_grid%pt(i,:)%n_photon)
+
+    if (p%intensity /= 0) then
+      do n = 1, 6
+        p%orbit(n) = sum(detec_grid%pt(i,:)%orbit(n) * detec_grid%pt(i,:)%intensity) / p%intensity
+        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%orbit_rms(n) * detec_grid%pt(i,:)%intensity) / p%intensity - p%orbit(n)**2))
+        p%init_orbit(n) = sum(detec_grid%pt(i,:)%init_orbit(n) * detec_grid%pt(i,:)%intensity) / p%intensity
+        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(i,:)%init_orbit_rms(n) * detec_grid%pt(i,:)%intensity) / p%intensity - p%init_orbit(n)**2))
+      enddo
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4es11.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
-                       pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
-                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
+
+    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') i, i*detec_grid%dr(1)+detec_grid%r0(1), &
+                       p%intensity_x * norm2, p%intensity_y * norm2, p%intensity * norm2, &
+                       p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
+                       p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
   close(3)
 
   ! det_pix_out_file.y
 
   norm2 = normalization / size(detec_grid%pt, 1)
-  open (3, file = trim(lux_param%det_pix_out_file) // '.y')
+  open (3, file = trim(lux_param%det_pix_out_file) // '.y', recl = 240)
   write (3, '(a)') '#-----------------------------------------------------'
-  write (3, '(a)') '#     iy        y_pix      Intensity_x     Intensity_y       Intensity   N_photon     E_ave     E_rms  X_ang_ave  X_ang_rms  Y_ang_ave  Y_ang_rms'
+  write (3, '(a)') '#                                                                                                                             |                    Init'
+  write (3, '(a)') '#   iy      y_pix   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms|     X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
   do j = lux_data%ny_min, lux_data%ny_max
-    pixel = surface_grid_pt_struct()
-    pixel%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
-    pixel%intensity_y = sum(detec_grid%pt(:,j)%intensity_y)
-    pixel%intensity   = sum(detec_grid%pt(:,j)%intensity)
-    pixel%n_photon    = sum(detec_grid%pt(:,j)%n_photon)
-    if (pixel%intensity == 0) then
-      pixel%energy_ave = 0
-      pixel%energy_rms = 0
-      pixel%x_pitch_ave = 0
-      pixel%x_pitch_rms = 0
-      pixel%y_pitch_ave = 0
-      pixel%y_pitch_rms = 0
-    else
-      pixel%energy_ave = sum(detec_grid%pt(:,j)%energy_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
-      pixel%energy_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%energy_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%energy_ave**2)) 
-      pixel%x_pitch_ave = sum(detec_grid%pt(:,j)%x_pitch_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
-      pixel%x_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%x_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%x_pitch_ave**2))
-      pixel%y_pitch_ave = sum(detec_grid%pt(:,j)%y_pitch_ave * detec_grid%pt(:,j)%intensity) / pixel%intensity
-      pixel%y_pitch_rms = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%y_pitch_rms * detec_grid%pt(:,j)%intensity) / pixel%intensity - pixel%y_pitch_ave**2))
+    p = surface_grid_pt_struct()
+    p%intensity_x = sum(detec_grid%pt(:,j)%intensity_x)
+    p%intensity_y = sum(detec_grid%pt(:,j)%intensity_y)
+    p%intensity   = sum(detec_grid%pt(:,j)%intensity)
+    p%n_photon    = sum(detec_grid%pt(:,j)%n_photon)
+
+    if (p%intensity /= 0) then
+      do n = 1, 6
+        p%orbit(n) = sum(detec_grid%pt(:,j)%orbit(n) * detec_grid%pt(:,j)%intensity) / p%intensity
+        p%orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%orbit_rms(n) * detec_grid%pt(:,j)%intensity) / p%intensity - p%orbit(n)**2)) 
+        p%init_orbit(n) = sum(detec_grid%pt(:,j)%init_orbit(n) * detec_grid%pt(:,j)%intensity) / p%intensity
+        p%init_orbit_rms(n) = sqrt(max(0.0_rp, sum(detec_grid%pt(:,j)%init_orbit_rms(n) * detec_grid%pt(:,j)%intensity) / p%intensity - p%init_orbit(n)**2)) 
+      enddo
     endif
-    write (3, '(i8, es13.5, 3es16.5, i12, 2f10.3, 4es11.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
-                       pixel%intensity_x * norm2, pixel%intensity_y * norm2, pixel%intensity * norm2, &
-                       pixel%n_photon, pixel%energy_ave, pixel%energy_rms, pixel%x_pitch_ave, pixel%x_pitch_rms, pixel%y_pitch_ave, pixel%y_pitch_rms
+
+    write (3, '(i6, es11.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j*detec_grid%dr(2)+detec_grid%r0(2), &
+                       p%intensity_x * norm2, p%intensity_y * norm2, p%intensity * norm2, &
+                       p%n_photon, p%orbit(6), p%orbit_rms(6), p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
+                       p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
   close(3)
 
-  ! det_pix_out_file.energy
+  !------------------------------------------
+  ! det_pix_out_file.histogram
 
-  norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_com%dE_bin)
-  open (3, file = trim(lux_param%det_pix_out_file) // '.energy')
-  write (3, '(a)')        '#-----------------------------------------------------'
-  write (3, '(a)')        '#      Energy     Intensity_x     Intensity_y       Intensity   N_photon'
-  do j = 1, ubound(lux_com%energy_bin, 1)
-    pix => lux_com%energy_bin(j)
-    write (3, '(f13.5, 3es16.5, i12)') pix%energy_ave, pix%intensity_x * norm2, pix%intensity_y * norm2, pix%intensity * norm2, pix%n_photon
-  enddo
-  close(3)
-
-endif
-
-!------------------------------------------
-! histogram_out_file
-
-if (lux_param%histogram_out_file /= '') then
   norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
-  open (3, file = lux_param%histogram_out_file)
-  write (3, '(2a)')        '# Histogram of: ', trim(lux_param%histogram_variable)
-  write (3, '(2a, 5x, a)') '#  Index', adjustr(lux_param%histogram_variable(1:14)), 'Intensity'
+  open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
+  write (3, '(a)')  '#-----------------------------------------------------'
+  write (3, '(a, t127, a)')  '#', '|                    Init'
+  write (3, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
-  do i = lbound(lux_com%histogram_bin,1), ubound(lux_com%histogram_bin,1)
-    if (lux_com%histogram_bin(i) == 0) cycle
-    n_min = i
-    exit
+  do j = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
+    pix => lux_com%histogram_bin(j)
+    if (pix%intensity == 0) cycle
+
+    pix%orbit          = pix%orbit / pix%intensity
+    pix%orbit_rms      = pix%orbit_rms / pix%intensity
+    pix%init_orbit     = pix%init_orbit / pix%intensity
+    pix%init_orbit_rms = pix%init_orbit_rms / pix%intensity
+
+    p = pix
+    do n = 1, 6
+      p%orbit_rms(n) = sqrt(max(0.0_rp, p%orbit_rms(n) - p%orbit(n)**2))
+      p%init_orbit_rms(n) = sqrt(max(0.0_rp, p%init_orbit_rms(n) - p%init_orbit(n)**2))
+    enddo
+
+    write (3, '(i6, es14.3, 3es11.3, i12, 2f10.3, 12es11.3)') j, j * lux_param%histogram_bin_width, p%intensity_x * norm2, &
+                       p%intensity_y * norm2, p%intensity * norm2, p%n_photon, p%orbit(6), p%orbit_rms(6), &
+                       p%orbit(2), p%orbit_rms(2), p%orbit(4), p%orbit_rms(4), &
+                       p%init_orbit(1), p%init_orbit_rms(1), p%init_orbit(2), p%init_orbit_rms(2), p%init_orbit(3), p%init_orbit_rms(3), p%init_orbit(4), p%init_orbit_rms(4)
   enddo
 
-  do i = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
-    if (lux_com%histogram_bin(i) == 0) cycle
-    n_max = i
-    exit
-  enddo
-
-  do i = n_min, n_max
-    write (3, '(i8, 2es14.6)') i, i * lux_param%histogram_bin_width, norm2 * lux_com%histogram_bin(i)
-  enddo
-
-  close (3)
+  close(3)
 endif
 
 !------------------------------------------
@@ -1227,8 +1199,8 @@ if (lux_com%verbose) then
       x2_sum = x2_sum + pix%intensity * x**2
       y_sum  = y_sum  + pix%intensity * y
       y2_sum = y2_sum + pix%intensity * y**2
-      e_ave = e_ave   + pix%intensity * pix%energy_ave
-      e_rms = e_rms   + pix%intensity * pix%energy_rms
+      e_ave = e_ave   + pix%intensity * pix%orbit(6)
+      e_rms = e_rms   + pix%intensity * pix%orbit_rms(6)
     enddo
     enddo
 
@@ -1248,7 +1220,6 @@ if (lux_com%verbose) then
   print *
   print *, 'Detector pixel data file: ', trim(lux_param%det_pix_out_file)
   print *, 'Photon1 data file:        ', trim(lux_param%photon1_out_file)
-  print *, 'Histogram data file:      ', trim(lux_param%histogram_out_file)
 endif
 
 ! End plotting
