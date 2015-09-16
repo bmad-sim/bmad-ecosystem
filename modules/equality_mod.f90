@@ -913,18 +913,14 @@ is_eq = is_eq .and. (f1%intensity_x == f2%intensity_x)
 is_eq = is_eq .and. (f1%intensity_y == f2%intensity_y)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%intensity == f2%intensity)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%energy_ave == f2%energy_ave)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%energy_rms == f2%energy_rms)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch_ave == f2%x_pitch_ave)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch_ave == f2%y_pitch_ave)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_pitch_rms == f2%x_pitch_rms)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_pitch_rms == f2%y_pitch_rms)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%orbit == f2%orbit)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%orbit_rms == f2%orbit_rms)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%init_orbit == f2%init_orbit)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%init_orbit_rms == f2%init_orbit_rms)
 
 end function eq_surface_grid_pt
 

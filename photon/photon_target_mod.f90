@@ -200,52 +200,66 @@ end subroutine photon_target_corner_calc
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine photon_add_to_detector_statistics (orbit, ele, ix_pt, iy_pt)
+! Subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, grid_pt)
 !
-! Routine to add the field of a photon to a "detector" grid.
+! Routine to add photon statistics to the appropriate pixel of a "detector" grid.
 !
 ! Input:
-!   orbit   -- coord_struct: Photon coords at the detector
+!   orbit0  -- coord_struct: Photon coords at beginning of lattice
+!   orbit   -- coord_struct: Photon coords at the detector.
 !   ele     -- ele_struct: Element with grid.
+!   grid_pt -- surface_grid_pt_struct, optional: If present then use this grid point
+!                 instead of the grid point determined by the (x, y) coords of the photon
+!   
 !
 ! Output:
 !   ele           -- ele_struct: Element with updatted grid.
 !   ix_pt, iy_pt  -- integer, optional: Index of upgraded ele%photon%surface%grid%pt(:,:) point.
+!                       These arguments are not set if the grid_pt argument is present.
 !-
 
-subroutine photon_add_to_detector_statistics (orbit, ele, ix_pt, iy_pt)
+subroutine photon_add_to_detector_statistics (orbit0, orbit, ele, ix_pt, iy_pt, grid_pt)
 
-type (coord_struct) orbit, orb
+type (coord_struct) orbit0, orbit, orb
 type (ele_struct), target :: ele
+type (surface_grid_pt_struct), optional, target :: grid_pt
 type (surface_grid_struct), pointer :: grid
 type (surface_grid_pt_struct), pointer :: pix
 
-real(rp) phase, intens_x, intens_y, intens, ang
+real(rp) phase, intens_x, intens_y, intens, dE
 integer, optional :: ix_pt, iy_pt
 integer nx, ny
 
-! If outside of detector area then do nothing.
+!  Convert to detector and then to angle coords.
 
-orb = orbit
-call offset_photon (ele, orb, set$, offset_position_only = .true.)  ! Go to coordinates of the detector
+orb = to_photon_angle_coords (orbit, ele, .true.)
 
-grid => ele%photon%surface%grid
+! Find grid pt to update.
+! Note: dr(i) can be zero for 1-dim grid
 
-! dr(i) can be zero for 1-dim grid
+if (present(grid_pt)) then
+  pix => grid_pt
 
-nx = 0; ny = 0
-if (grid%dr(1) /= 0) nx = nint((orb%vec(1) - grid%r0(1)) / grid%dr(1))
-if (grid%dr(2) /= 0) ny = nint((orb%vec(3) - grid%r0(2)) / grid%dr(2))
+else
+  grid => ele%photon%surface%grid
 
-if (present(ix_pt)) ix_pt = nx
-if (present(iy_pt)) iy_pt = ny
+  nx = 0; ny = 0
+  if (grid%dr(1) /= 0) nx = nint((orb%vec(1) - grid%r0(1)) / grid%dr(1))
+  if (grid%dr(2) /= 0) ny = nint((orb%vec(3) - grid%r0(2)) / grid%dr(2))
 
-if (nx < lbound(grid%pt, 1) .or. nx > ubound(grid%pt, 1) .or. &
-    ny < lbound(grid%pt, 2) .or. ny > ubound(grid%pt, 2)) return
+  if (present(ix_pt)) ix_pt = nx
+  if (present(iy_pt)) iy_pt = ny
+
+  ! If outside of detector region then do nothing.
+
+  if (nx < lbound(grid%pt, 1) .or. nx > ubound(grid%pt, 1) .or. &
+      ny < lbound(grid%pt, 2) .or. ny > ubound(grid%pt, 2)) return
+
+  pix => grid%pt(nx,ny)
+endif
 
 ! Add to det stat
 
-pix => grid%pt(nx,ny)
 pix%n_photon  = pix%n_photon + 1
 if (ele%branch%lat%photon_type == coherent$) then
   phase = orb%phase(1) 
@@ -256,19 +270,54 @@ else
   intens_x = orbit%field(1)**2
   intens_y = orbit%field(2)**2
   intens = intens_x + intens_y
-  pix%intensity_x = pix%intensity_x + intens_x
-  pix%intensity_y = pix%intensity_y + intens_y
-  pix%intensity   = pix%intensity   + intens
-  pix%energy_ave  = pix%energy_ave  + intens * (orb%p0c - ele%value(e_tot$))
-  pix%energy_rms  = pix%energy_rms  + intens * (orb%p0c - ele%value(e_tot$))**2
-  ang = atan2(orb%vec(2), orb%vec(6))
-  pix%x_pitch_ave  = pix%x_pitch_ave  + intens * ang
-  pix%x_pitch_rms  = pix%x_pitch_rms  + intens * ang**2
-  ang = atan2(orb%vec(4), orb%vec(6))
-  pix%y_pitch_ave  = pix%y_pitch_ave  + intens * ang
-  pix%y_pitch_rms  = pix%y_pitch_rms  + intens * ang**2
+  pix%intensity_x     = pix%intensity_x    + intens_x
+  pix%intensity_y     = pix%intensity_y    + intens_y
+  pix%intensity       = pix%intensity      + intens
+  pix%orbit           = pix%orbit          + intens * orb%vec
+  pix%orbit_rms       = pix%orbit_rms      + intens * orb%vec**2
+
+  orb = to_photon_angle_coords (orbit0, ele, .false.)
+  pix%init_orbit      = pix%init_orbit     + intens * orb%vec
+  pix%init_orbit_rms  = pix%init_orbit_rms + intens * orb%vec**2
 endif
 
 end subroutine photon_add_to_detector_statistics
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function to_photon_angle_coords (orb_in, ele, to_ele_coords) result (orb_out)
+!
+! Routine to convert from standard photon coords to "angle" coords defined as:
+!       x, angle_x, y, angle_y, z, E-E_ref
+!
+! Input:
+!   orb_in        -- coord_struct: orbit in standard photon coords.
+!   ele           -- ele_struct: Reference element (generally the detector element.)
+!   to_ele_coords -- logical: Transform from lab to element coordinates?
+!
+! Output:
+!   orb_out       -- coord_struct: Transformed coordinates.
+!-
+
+function to_photon_angle_coords (orb_in, ele, to_ele_coords) result (orb_out)
+
+type (coord_struct) orb_in, orb_out
+type (ele_struct) ele
+logical to_ele_coords
+
+! To element coords?
+
+orb_out = orb_in
+if (to_ele_coords) call offset_photon (ele, orb_out, set$)  ! Go to coordinates of the detector
+
+! To angle coords
+
+orb_out%vec(2) = atan2(orb_out%vec(2), orb_out%vec(6))
+orb_out%vec(4) = atan2(orb_out%vec(4), orb_out%vec(6))
+orb_out%vec(6) = orb_out%p0c - ele%value(E_tot$)
+
+end function to_photon_angle_coords
 
 end module
