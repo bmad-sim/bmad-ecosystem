@@ -2025,24 +2025,18 @@ void set_CPP_surface_grid_pt_test_pattern (CPP_surface_grid_pt& C, int ix_patt) 
   // c_side.test_pat[real, 0, NOT]
   rhs = 7 + offset; C.intensity = rhs;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 8 + offset; C.energy_ave = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 9 + offset; C.energy_rms = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 10 + offset; C.x_pitch_ave = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 11 + offset; C.y_pitch_ave = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.x_pitch_rms = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.y_pitch_rms = rhs;
-
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.orbit.size(); i++)
+    {int rhs = 101 + i + 8 + offset; C.orbit[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.orbit_rms.size(); i++)
+    {int rhs = 101 + i + 9 + offset; C.orbit_rms[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.init_orbit.size(); i++)
+    {int rhs = 101 + i + 10 + offset; C.init_orbit[i] = rhs;}
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.init_orbit_rms.size(); i++)
+    {int rhs = 101 + i + 11 + offset; C.init_orbit_rms[i] = rhs;}
 
 }
 

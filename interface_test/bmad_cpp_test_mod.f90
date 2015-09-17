@@ -3049,18 +3049,26 @@ rhs = 5 + offset; F%intensity_x = rhs
 rhs = 6 + offset; F%intensity_y = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 7 + offset; F%intensity = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 8 + offset; F%energy_ave = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 9 + offset; F%energy_rms = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 10 + offset; F%x_pitch_ave = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 11 + offset; F%y_pitch_ave = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%x_pitch_rms = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%y_pitch_rms = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%orbit,1); lb1 = lbound(F%orbit,1) - 1
+  rhs = 100 + jd1 + 8 + offset
+  F%orbit(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%orbit_rms,1); lb1 = lbound(F%orbit_rms,1) - 1
+  rhs = 100 + jd1 + 9 + offset
+  F%orbit_rms(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%init_orbit,1); lb1 = lbound(F%init_orbit,1) - 1
+  rhs = 100 + jd1 + 10 + offset
+  F%init_orbit(jd1+lb1) = rhs
+enddo
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%init_orbit_rms,1); lb1 = lbound(F%init_orbit_rms,1) - 1
+  rhs = 100 + jd1 + 11 + offset
+  F%init_orbit_rms(jd1+lb1) = rhs
+enddo
 
 end subroutine set_surface_grid_pt_test_pattern
 

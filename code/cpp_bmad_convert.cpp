@@ -1362,14 +1362,14 @@ extern "C" void surface_grid_pt_to_c (const Bmad_surface_grid_pt_class*, CPP_sur
 // c_side.to_f2_arg
 extern "C" void surface_grid_pt_to_f2 (Bmad_surface_grid_pt_class*, const
     CPP_surface_orientation&, c_Int&, c_Complex&, c_Complex&, c_Real&, c_Real&, c_Real&,
-    c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&);
+    c_RealArr, c_RealArr, c_RealArr, c_RealArr);
 
 extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Bmad_surface_grid_pt_class* F) {
 
   // c_side.to_f2_call
   surface_grid_pt_to_f2 (F, C.orientation, C.n_photon, C.e_x, C.e_y, C.intensity_x,
-      C.intensity_y, C.intensity, C.energy_ave, C.energy_rms, C.x_pitch_ave, C.y_pitch_ave,
-      C.x_pitch_rms, C.y_pitch_rms);
+      C.intensity_y, C.intensity, &C.orbit[0], &C.orbit_rms[0], &C.init_orbit[0],
+      &C.init_orbit_rms[0]);
 
 }
 
@@ -1377,8 +1377,8 @@ extern "C" void surface_grid_pt_to_f (const CPP_surface_grid_pt& C, Bmad_surface
 extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
     Bmad_surface_orientation_class* z_orientation, c_Int& z_n_photon, c_Complex& z_e_x,
     c_Complex& z_e_y, c_Real& z_intensity_x, c_Real& z_intensity_y, c_Real& z_intensity,
-    c_Real& z_energy_ave, c_Real& z_energy_rms, c_Real& z_x_pitch_ave, c_Real& z_y_pitch_ave,
-    c_Real& z_x_pitch_rms, c_Real& z_y_pitch_rms) {
+    c_RealArr z_orbit, c_RealArr z_orbit_rms, c_RealArr z_init_orbit, c_RealArr
+    z_init_orbit_rms) {
 
   // c_side.to_c2_set[type, 0, NOT]
   surface_orientation_to_c(z_orientation, C.orientation);
@@ -1394,18 +1394,14 @@ extern "C" void surface_grid_pt_to_c2 (CPP_surface_grid_pt& C, const
   C.intensity_y = z_intensity_y;
   // c_side.to_c2_set[real, 0, NOT]
   C.intensity = z_intensity;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.energy_ave = z_energy_ave;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.energy_rms = z_energy_rms;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch_ave = z_x_pitch_ave;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch_ave = z_y_pitch_ave;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_pitch_rms = z_x_pitch_rms;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y_pitch_rms = z_y_pitch_rms;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.orbit << z_orbit;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.orbit_rms << z_orbit_rms;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.init_orbit << z_init_orbit;
+  // c_side.to_c2_set[real, 1, NOT]
+  C.init_orbit_rms << z_init_orbit_rms;
 }
 
 //--------------------------------------------------------------------

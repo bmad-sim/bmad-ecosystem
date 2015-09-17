@@ -541,12 +541,10 @@ bool operator== (const CPP_surface_grid_pt& x, const CPP_surface_grid_pt& y) {
   is_eq = is_eq && (x.intensity_x == y.intensity_x);
   is_eq = is_eq && (x.intensity_y == y.intensity_y);
   is_eq = is_eq && (x.intensity == y.intensity);
-  is_eq = is_eq && (x.energy_ave == y.energy_ave);
-  is_eq = is_eq && (x.energy_rms == y.energy_rms);
-  is_eq = is_eq && (x.x_pitch_ave == y.x_pitch_ave);
-  is_eq = is_eq && (x.y_pitch_ave == y.y_pitch_ave);
-  is_eq = is_eq && (x.x_pitch_rms == y.x_pitch_rms);
-  is_eq = is_eq && (x.y_pitch_rms == y.y_pitch_rms);
+  is_eq = is_eq && is_all_equal(x.orbit, y.orbit);
+  is_eq = is_eq && is_all_equal(x.orbit_rms, y.orbit_rms);
+  is_eq = is_eq && is_all_equal(x.init_orbit, y.init_orbit);
+  is_eq = is_eq && is_all_equal(x.init_orbit_rms, y.init_orbit_rms);
   return is_eq;
 };
 

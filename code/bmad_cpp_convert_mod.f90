@@ -3668,15 +3668,13 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine surface_grid_pt_to_c2 (C, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
-      z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave, &
-      z_x_pitch_rms, z_y_pitch_rms) bind(c)
+      z_intensity_y, z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     complex(c_double_complex) :: z_e_x, z_e_y
     type(c_ptr), value :: z_orientation
-    real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave
-    real(c_double) :: z_x_pitch_rms, z_y_pitch_rms
+    real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
     integer(c_int) :: z_n_photon
   end subroutine
 end interface
@@ -3694,8 +3692,8 @@ call c_f_pointer (Fp, F)
 
 !! f_side.to_c2_call
 call surface_grid_pt_to_c2 (C, c_loc(F%orientation), F%n_photon, F%e_x, F%e_y, F%intensity_x, &
-    F%intensity_y, F%intensity, F%energy_ave, F%energy_rms, F%x_pitch_ave, F%y_pitch_ave, &
-    F%x_pitch_rms, F%y_pitch_rms)
+    F%intensity_y, F%intensity, fvec2vec(F%orbit, 6), fvec2vec(F%orbit_rms, 6), &
+    fvec2vec(F%init_orbit, 6), fvec2vec(F%init_orbit_rms, 6))
 
 end subroutine surface_grid_pt_to_c
 
@@ -3716,8 +3714,7 @@ end subroutine surface_grid_pt_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine surface_grid_pt_to_f2 (Fp, z_orientation, z_n_photon, z_e_x, z_e_y, z_intensity_x, &
-    z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave, &
-    z_x_pitch_rms, z_y_pitch_rms) bind(c)
+    z_intensity_y, z_intensity, z_orbit, z_orbit_rms, z_init_orbit, z_init_orbit_rms) bind(c)
 
 
 implicit none
@@ -3728,8 +3725,7 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 complex(c_double_complex) :: z_e_x, z_e_y
 type(c_ptr), value :: z_orientation
-real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_energy_ave, z_energy_rms, z_x_pitch_ave, z_y_pitch_ave
-real(c_double) :: z_x_pitch_rms, z_y_pitch_rms
+real(c_double) :: z_intensity_x, z_intensity_y, z_intensity, z_orbit(*), z_orbit_rms(*), z_init_orbit(*), z_init_orbit_rms(*)
 integer(c_int) :: z_n_photon
 
 call c_f_pointer (Fp, F)
@@ -3748,18 +3744,14 @@ F%intensity_x = z_intensity_x
 F%intensity_y = z_intensity_y
 !! f_side.to_f2_trans[real, 0, NOT]
 F%intensity = z_intensity
-!! f_side.to_f2_trans[real, 0, NOT]
-F%energy_ave = z_energy_ave
-!! f_side.to_f2_trans[real, 0, NOT]
-F%energy_rms = z_energy_rms
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x_pitch_ave = z_x_pitch_ave
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y_pitch_ave = z_y_pitch_ave
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x_pitch_rms = z_x_pitch_rms
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y_pitch_rms = z_y_pitch_rms
+!! f_side.to_f2_trans[real, 1, NOT]
+F%orbit = z_orbit(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%orbit_rms = z_orbit_rms(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%init_orbit = z_init_orbit(1:6)
+!! f_side.to_f2_trans[real, 1, NOT]
+F%init_orbit_rms = z_init_orbit_rms(1:6)
 
 end subroutine surface_grid_pt_to_f2
 

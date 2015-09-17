@@ -1378,12 +1378,10 @@ public:
   Real intensity_x;
   Real intensity_y;
   Real intensity;
-  Real energy_ave;
-  Real energy_rms;
-  Real x_pitch_ave;
-  Real y_pitch_ave;
-  Real x_pitch_rms;
-  Real y_pitch_rms;
+  Real_ARRAY orbit;
+  Real_ARRAY orbit_rms;
+  Real_ARRAY init_orbit;
+  Real_ARRAY init_orbit_rms;
 
   CPP_surface_grid_pt() :
     orientation(),
@@ -1393,12 +1391,10 @@ public:
     intensity_x(0.0),
     intensity_y(0.0),
     intensity(0.0),
-    energy_ave(0.0),
-    energy_rms(0.0),
-    x_pitch_ave(0.0),
-    y_pitch_ave(0.0),
-    x_pitch_rms(0.0),
-    y_pitch_rms(0.0)
+    orbit(0.0, 6),
+    orbit_rms(0.0, 6),
+    init_orbit(0.0, 6),
+    init_orbit_rms(0.0, 6)
     {}
 
   ~CPP_surface_grid_pt() {
