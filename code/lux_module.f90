@@ -298,7 +298,7 @@ endif
 
 if (lux_param%det_pix_out_file /= '') then
   if (lux_param%histogram_bin_width == 0) then
-    call out_io (s_fatal$, r_name, 'HISTOGRAM_BIN_WIDTH IS ZERO!')
+    call out_io (s_fatal$, r_name, 'LUX_PARAM%HISTOGRAM_BIN_WIDTH IS ZERO!')
     stop
   endif
 
@@ -1148,7 +1148,7 @@ if (lux_param%det_pix_out_file /= '') then
   norm2 = lux_param%intensity_normalization_coef / (lux_data%n_track_tot * lux_param%histogram_bin_width)
   open (3, file = trim(lux_param%det_pix_out_file) // '.histogram', recl = 240)
   write (3, '(a)')  '#-----------------------------------------------------'
-  write (3, '(a, t127, a)')  '#', '|                    Init'
+  write (3, '(a, t130, a)')  '#', '|                    Init'
   write (3, '(3a)') '# indx', adjustr(lux_param%histogram_variable(1:14)), '   Intens_x   Intens_y  Intensity    N_photon     E_ave     E_rms  Ang_x_ave  Ang_x_rms  Ang_y_ave  Ang_y_rms |    X_ave      X_rms  Ang_x_ave  Ang_x_rms      Y_ave      Y_rms  Ang_y_ave  Ang_y_rms'
 
   do j = ubound(lux_com%histogram_bin,1), lbound(lux_com%histogram_bin,1), -1
