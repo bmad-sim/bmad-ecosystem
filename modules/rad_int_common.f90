@@ -84,6 +84,13 @@ use nr, only: polint
 
 implicit none
 
+integer, parameter :: num_int = 9
+type ri_array_struct
+  real(rp) h(num_int)
+  real(rp) sum(num_int)
+end type
+
+type (ri_array_struct) ri_array(0:4) ! ri_array(n) holds info for the integrals for a particular step.
 type (ele_struct), pointer :: ele
 type (coord_struct) start, end
 type (rad_int_track_point_struct) pt
@@ -91,21 +98,13 @@ type (rad_int_info_struct) info
 type (rad_int1_struct) rad_int1, int_tot
 type (lat_param_struct) param
 
-integer, parameter :: num_int = 9
 integer n,  j, j1, j_min_test, j_max, n_pts
 
 real(rp) :: eps_int, eps_sum, gamma
 real(rp) :: ll, del_z, l_ref, z_pos, dint, d0, d_max
 real(rp) i_sum(num_int), rad_int_vec(num_int), int_tot_vec(num_int)
 
-logical do_int(num_int), complete
-
-type ri_array_struct
-  real(rp) h(num_int)
-  real(rp) sum(num_int)
-end type
-
-type (ri_array_struct) ri_array(0:4) ! ri_array(n) holds info for the integrals for a particular step.
+logical do_int(num_int), converged
 
 character(*), parameter :: r_name = 'qromb_rad_int'
 
@@ -172,7 +171,7 @@ do j = 1, j_max
 
   do n = 1, n_pts
     z_pos = l_ref + (n-1) * del_z
-    call propagate_part_way (start, param, pt, info, z_pos, j, n)
+    call propagate_part_way (start, param, pt, info, z_pos)
     i_sum(1) = i_sum(1) + info%g_x * (info%eta_a(1) + info%eta_b(1)) + &
                   info%g_y * (info%eta_a(3) + info%eta_b(3))
     i_sum(2) = i_sum(2) + info%g2
@@ -210,21 +209,21 @@ do j = 1, j_max
 
   if (j < j_min_test) cycle
 
-  complete = .true.
+  converged = .true.
   d_max = 0
 
   do n = 1, num_int
     if (.not. do_int(n)) cycle
     call polint (ri_array(1:j1)%h(n), ri_array(1:j1)%sum(n), 0.0_rp, rad_int_vec(n), dint)
     d0 = eps_int * abs(rad_int_vec(n)) + eps_sum * abs(int_tot_vec(n))
-    if (abs(dint) > d0)  complete = .false.
+    if (abs(dint) > d0)  converged = .false.
     if (d0 /= 0) d_max = max(d_max, abs(dint) / d0)
   enddo
 
   ! If we have convergance or we are giving up (when j = j_max) then 
   ! stuff the results in the proper places.
 
-  if (complete .or. j == j_max) then
+  if (converged .or. j == j_max) then
 
     rad_int1%n_steps = j
 
@@ -253,7 +252,7 @@ do j = 1, j_max
 
   endif
 
-  if (complete) return
+  if (converged) return
 
 end do
 
@@ -268,7 +267,7 @@ end subroutine qromb_rad_int
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-subroutine propagate_part_way (orb_start, param, pt, info, z_here, j_loop, n_pt)
+subroutine propagate_part_way (orb_start, param, pt, info, z_here)
 
 implicit none
 
@@ -324,20 +323,27 @@ if (associated(info%cache_ele)) then
 
   ! Interpolate information
 
-  pt%dgx_dx = f0 * pt0%dgx_dx + f1 * pt1%dgx_dx
-  pt%dgx_dy = f0 * pt0%dgx_dy + f1 * pt1%dgx_dy
-  pt%dgy_dx = f0 * pt0%dgy_dx + f1 * pt1%dgy_dx
-  pt%dgy_dy = f0 * pt0%dgy_dy + f1 * pt1%dgy_dy
+  if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
+    orb = orb_start
+    orb%vec = f0 * orb0%vec + f1 * orb1%vec
+    call calc_wiggler_g_params (ele, z_here, orb, pt, info)
 
-  info%g_x   = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                pt0%dgx_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-               f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                pt1%dgx_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
-  info%g_y   = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
-                                pt0%dgy_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
-               f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
-                                pt1%dgy_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
-               
+  else
+    pt%dgx_dx = f0 * pt0%dgx_dx + f1 * pt1%dgx_dx
+    pt%dgx_dy = f0 * pt0%dgx_dy + f1 * pt1%dgx_dy
+    pt%dgy_dx = f0 * pt0%dgy_dx + f1 * pt1%dgy_dx
+    pt%dgy_dy = f0 * pt0%dgy_dy + f1 * pt1%dgy_dy
+
+    info%g_x   = f0 * (pt0%g_x0 + pt0%dgx_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
+                                  pt0%dgx_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
+                 f1 * (pt1%g_x0 + pt1%dgx_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
+                                  pt1%dgx_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
+    info%g_y   = f0 * (pt0%g_y0 + pt0%dgy_dx * (orb0%vec(1) - pt0%ref_orb_out%vec(1)) + &
+                                  pt0%dgy_dy * (orb0%vec(3) - pt0%ref_orb_out%vec(3))) + &
+                 f1 * (pt1%g_y0 + pt1%dgy_dx * (orb1%vec(1) - pt1%ref_orb_out%vec(1)) + &
+                                  pt1%dgy_dy * (orb1%vec(3) - pt1%ref_orb_out%vec(3)))
+  endif
+                 
   info%dg2_x = 2 * (info%g_x * pt%dgx_dx + info%g_y * pt%dgy_dx)
   info%dg2_y = 2 * (info%g_x * pt%dgx_dy + info%g_y * pt%dgy_dy) 
   info%g2 = info%g_x**2 + info%g_y**2
@@ -429,7 +435,6 @@ if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. &
 endif
 
 call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z_here, .true., .false., orb_start, orb_end, ele0, ele_end)
-call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .false., .false., orb_end, orb_end1)
 
 info%a = ele_end%a
 info%b = ele_end%b
@@ -449,6 +454,7 @@ info%eta_b = matmul(v, [0.0_rp,   0.0_rp,    info%b%eta, info%b%etap ])
 if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%sub_key == map_type$) then 
   call calc_wiggler_g_params (ele, z_here, orb_end, pt, info)
 else
+  call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1,     .false., .false., orb_end, orb_end1)
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
 endif

@@ -49,6 +49,9 @@ case (fork$, photon_fork$)
   ele%value(particle$) = real_garbage$
   ele%value(geometry$) = open$
 
+case (capillary$)
+  ele%offset_moves_aperture = .true.
+  
 case (crystal$)
   ele%value(ref_orbit_follows$) = bragg_diffracted$
   ele%aperture_at = surface$
@@ -87,6 +90,7 @@ case (detector$)
 case (diffraction_plate$)
   ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
+  ele%offset_moves_aperture = .true.
   ele%value(geometry$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
@@ -141,6 +145,7 @@ case (line_ele$)
 case (mask$)
   ele%aperture_at = surface$
   ele%aperture_type = auto_aperture$
+  ele%offset_moves_aperture = .true.
   ele%value(geometry$) = transmission$
   if (logic_option(.true., do_allocate)) then
     if (.not. associated(ele%photon)) allocate(ele%photon)
