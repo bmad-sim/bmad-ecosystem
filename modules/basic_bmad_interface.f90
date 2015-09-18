@@ -230,14 +230,6 @@ interface
     logical err
   end subroutine
 
-  subroutine emit_calc (lat, what, mode)
-    import
-    implicit none
-    type (lat_struct) lat
-    type (normal_modes_struct) mode
-    integer what
-  end subroutine
-
   subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
     import
     implicit none
