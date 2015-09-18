@@ -59,12 +59,12 @@
 "Lat1:Z%Synch_int(4)"   -1.97456202685913E-03
  
 "Cache Diff: I1-wig"   544  1.610215994E-03
-"Cache Diff: I2-wig"   917  4.943670312E-05
-"Cache Diff: I3-wig"   917  5.775959567E-06
-"Cache Diff: I4a-wig"   917  2.128620298E-03
-"Cache Diff: I4b-wig"   924  6.973508759E-03
-"Cache Diff: I5a-wig"   918  9.974873815E-06
-"Cache Diff: I5b-wig"   924  8.282835890E-05
+"Cache Diff: I2-wig"   917  4.559410318E-05
+"Cache Diff: I3-wig"   917  5.192230373E-06
+"Cache Diff: I4a-wig"   917  1.886579107E-03
+"Cache Diff: I4b-wig"   924  6.150557855E-03
+"Cache Diff: I5a-wig"   918  8.963303661E-06
+"Cache Diff: I5b-wig"   924  7.419361740E-05
 "Lat2:Beta_a"   1.63968264371786E+01
 "Lat2:Alpha_a"   -1.52278706953339E+00
 "Lat2:Eta_a"   2.25416003181008E+00
@@ -87,18 +87,18 @@
 "Lat2:Orb P_Z"   -1.30359008807685E-06
 "Lat2:Chrom_x"   6.41685858038014E+00
 "Lat2:Chrom_y"   5.70314433657727E+00
-"Lat2:Synch_int(1)"   8.66138717616124E+00
-"Lat2:Synch_int(2)"   9.97119776499196E-01
-"Lat2:Synch_int(3)"   2.62684565522936E-01
-"Lat2:Sige_e"   8.41533133144176E-04
-"Lat2:Sig_z"   2.27505741842166E-02
-"Lat2:E_loss"   1.77244739357835E+05
-"Lat2:A%Emittance"   1.26367536891773E-07
-"Lat2:B%Emittance"   9.90000233932729E-11
-"Lat2:Z%Emittance"   1.91453619740728E-05
-"Lat2:A%Synch_int(4)"   -6.01618671011542E-02
-"Lat2:A%Synch_int(5)"   2.56227010125880E-02
-"Lat2:B%Synch_int(4)"   8.68670908674910E-05
-"Lat2:B%Synch_int(5)"   1.88619813842504E-05
-"Lat2:Z%Synch_int(4)"   -6.00750000102867E-02
+"Lat2:Synch_int(1)"   8.66129711740144E+00
+"Lat2:Synch_int(2)"   1.07589630930803E+00
+"Lat2:Synch_int(3)"   2.92113111687287E-01
+"Lat2:Sige_e"   8.54286007316992E-04
+"Lat2:Sig_z"   2.30952239142450E-02
+"Lat2:E_loss"   1.91247797319676E+05
+"Lat2:A%Emittance"   1.30260440104434E-07
+"Lat2:B%Emittance"   1.02478651910814E-10
+"Lat2:Z%Emittance"   1.97299266257922E-05
+"Lat2:A%Synch_int(4)"   -6.48907162641170E-02
+"Lat2:A%Synch_int(5)"   2.84980937416491E-02
+"Lat2:B%Synch_int(4)"   2.10163470021362E-04
+"Lat2:B%Synch_int(5)"   2.10653573638665E-05
+"Lat2:Z%Synch_int(4)"   -6.46805527940957E-02
 "Lat2:Lat"    "T"
