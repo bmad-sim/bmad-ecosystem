@@ -9,8 +9,8 @@ type (lat_struct), target :: lat, lat2
 type (ele_struct) ele, ele0, ele1
 type (coord_struct), allocatable :: orb(:), orb2(:)
 type (coord_struct) orb0, orb1
-type (normal_modes_struct) mode
-type (rad_int_all_ele_struct) rad_int, rad_int2
+type (normal_modes_struct) mode, mode2
+type (rad_int_all_ele_struct) rad_int, rad_int2, rad_int3
 
 real(rp) chrom_x, chrom_y, delta_e
 real(rp) m6(6,6)
@@ -78,7 +78,7 @@ do n = 1, lat%n_ele_track
 enddo
 
 ix_cache = 0
-call radiation_integrals (lat, orb, mode, ix_cache, 0, rad_int2)
+call radiation_integrals (lat, orb, mode2, ix_cache, 0, rad_int2)
 call ri_out('rad_int_no_wig_cache.dat', rad_int2)
 
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
@@ -172,7 +172,7 @@ call twiss_propagate_all (lat)
 
 ix_cache = 0
 call set_on_off (rfcavity$, lat, on$)
-call radiation_integrals (lat, orb, mode, ix_cache, 0, rad_int2)
+call radiation_integrals (lat, orb, mode2, ix_cache, 0, rad_int2)
 call ri_out('rad_int_wig_cache.dat', rad_int2)
 
 call radiation_integrals (lat, orb, mode, rad_int_by_ele = rad_int)
@@ -223,6 +223,7 @@ call data_out (mode%z%synch_int(4),  1.0D-08, 'Lat2:Z%Synch_int(4)')
 
 write (2, '(a, l1, a)') '"Lat2:Lat"      STR  "', associated(lat2%ele(100)%branch, lat2%branch(0)), '"'
 
+!-----------------------------------------------------------------------------------
 contains
 
 subroutine data_out (now, err_tol, what)
@@ -240,7 +241,7 @@ write (2, '(3a, t30, a, es10.1, es25.14)') '"', what, '" ', 'ABS', err_tol, now
 
 end subroutine
 
-!--------------------------------------------------------------------
+!----------------------------------------------------------------------------------
 ! contains
 
 subroutine ri_out (file_name, rad_int)
@@ -266,7 +267,7 @@ close (1)
 
 end subroutine
 
-!--------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! contains
 
 subroutine ri_diff(str)
@@ -283,7 +284,7 @@ call ri_diff1('Cache Diff: I5b-' // str, rad_int%ele%i5b, rad_int2%ele%i5b)
 
 end subroutine
 
-!--------------------------------------------------------------------
+!---------------------------------------------------------------------------
 ! contains
 
 subroutine ri_diff1 (str, vec1, vec2)
