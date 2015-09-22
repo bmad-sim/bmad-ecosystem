@@ -1416,6 +1416,8 @@ plots go. The syntax of this block is:
     plot_page%axis_label_text_scale  = <num>    ! Relative to text_height. Def = 1.0
     plot_page%legend_text_scale      = <num>    ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num>    ! Relative to text_height. Def = 0.9
+    plot_page%floor_plan_size_is_absolute = <logical>  ! Floor plan shape sizes
+                                                       ! scalled to absolute dimensions?
     plot_page%floor_plan_shape_scale = <num>    ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale = <num>    ! Lat_layout shape size scaling.
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
@@ -1447,7 +1449,7 @@ For example:
 \end{example}
 
 \vn{plot_page%size} sets the horizontal and vertical size of the plot
-window in \vn{POINTS} units (72 points = 1 inch. Roughly 1 point = 1
+window in \vn{points} units (72 points = 1 inch. Roughly 1 point = 1
 pixel). 
 
 \vn{plot_page%text_height} sets the overall height of the text that is
@@ -2167,7 +2169,6 @@ rotations. Example: (\sref{s:init.plot})
   /
 \end{example}
 
-
 Alternatively, the global coordinates at the start of the lattice can
 be defined in the lattice file and this can rotate the floor plan.
 Unless there is an offset specified in the lattice file, a lattice
@@ -2231,7 +2232,7 @@ good for a layout will not necessarily be good for a floor plan.
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
-    ele_shape(i) = "<name>" "<shape>" "<color>" "<v_size>" "<label>" <draw> 
+    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> 
   /
 
   &floor_plan_drawing
@@ -2241,7 +2242,7 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &floor_plan_drawing
-    !               name                     Shape     Color     V_Size   Label Draw?
+    !               name                     Shape     Color     Size     Label Draw?
     ele_shape(1) = "quadrupole::q*"          "box"     "red"     0.75     "name"  T    
     ele_shape(2) = "quadrupole::*"           "xbox"    "red"     0.75     "none" 
     ele_shape(3) = "sbend::*"                "box"     "blue"    0.37     "none"  F
@@ -2295,25 +2296,48 @@ drawn. Valid Shapes are:
 
 The width of a drawn shape is the width of the associated element. The
 exception is the \vn{"x"} shape whose width is always the same as the
-height determined by the \vn{<v_size>} setting.
+height determined by the \vn{<size>} setting.
 
-\vn{<v_size>} is the vertical half height of the shape.  For
-\vn{lat_layout} drawings, \vn{<v_size>} = 1.0 corresponds to full
-scale if the default \vn{graph%y%min} = -1 and \vn{graph%y%max} = 1
-are used. For \vn{var_height_box}, the height is proportional to the
-element strength and here \vn{<v_size>} is the multiplier used to
-scale from element strength to vertical height. For example, for a
-quadrupole the height is proportional to the \vn{K1} focusing
-strength. Not all lattice elements can be used with a
-\vn{var_height_box}.
+\vn{<size>} is the half height of the shape. That is, the size
+transverse to the longitudinal dimension. For \vn{lat_layout}
+drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
+\vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For For
+{floor_plan} drawings, to determine the size of a shape, \vn{<size>}
+is combinded with the \vn{plot_page} (\sref{s:init.plot}) parameter
+\begin{example}
+  floor_plan_size_is_absolute  ! Default: False.
+\end{example}
+If \vn{floor_plan_size_is_absolute} is False (the default),
+\vn{<size>} is taken to be the size of the shape in points (1 point is
+approximately 1 pixel). If \vn{floor_plan_size_is_absolute} is True,
+\vn{<size>} is taken to be the size in meters. That is, If
+\vn{floor_plan_size_is_absolute} is False, zooming in or out will not
+affect the size of an element shape while if
+\vn{floor_plan_size_is_absolute} is True then the size of an element
+will scale with a zoom.
 
-The overall height of all the shapes can be scaled using the
+If an element's shape is set to \vn{var_box} or \vn{asym_var_box}, the
+drawn size of the element is proportional to the element's magnetic or
+electric strength. The associated \vn{<size>} setting is the
+multiplier used to scale from element strength to height. For example,
+for a quadrupole the height is proportional to the \vn{K1} focusing
+strength. The difference between \vn{var_box} or \vn{asym_var_box} is
+that with \vn{var_box} the drawn box is symmetric with respect to the
+centerline with a size independent of the sign of the element
+strength. On the other hand, with \vn{asym_var_box}, the drawn box
+will terminate with one side on the centerline and the side on which
+it is drawn will depend upon the the sign of the element
+strength. Note: Not all lattice elements can be used with a
+\vn{var_box} or \vn{asym_var_box}.
+
+The overall size of all the shapes can be scaled using the
 \vn{plot_page} (\sref{s:init.plot}) parameters
 \begin{example}
   floor_plan_shape_scale     ! For floor_plan drawings. Default = 1
   lat_layout_shape_scale     ! For lat_layout drawings. Default = 1
 \end{example}
-Additionally, the text size in both \vn{floor_plan} and \vn{lat_layout}
+
+The text size in both \vn{floor_plan} and \vn{lat_layout}
 plots can be scalled by using the \vn{plot_page} parameter
 \begin{example}
   legend_text_scale          ! Default = 1
