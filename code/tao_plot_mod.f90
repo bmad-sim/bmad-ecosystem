@@ -518,6 +518,7 @@ character(*) name_in
 character(80) str
 character(40) name
 character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
+character(8) :: draw_units
 character(2) justify
 
 logical is_data_or_var, is_there
@@ -634,6 +635,7 @@ call qp_translate_to_color_index (ele_shape%color, icol)
 off = ele_shape%size * s%plot_page%floor_plan_shape_scale 
 off1 = off
 off2 = off
+
 if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   select case (ele%key)
   case (quadrupole$)
@@ -649,6 +651,12 @@ if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
 endif
 
+if (s%plot_page%floor_plan_size_is_absolute) then
+  draw_units = 'DATA'
+else
+  draw_units = 'POINTS'
+endif
+
 ! x-ray line parameters if present
 
 if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) > 0) then
@@ -657,30 +665,30 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   drift%value(l$) = ele%value(x_ray_line_len$)
   call ele_geometry (ele2%floor, drift, drift%floor) 
   call floor_to_screen_coords (graph, drift%floor, x_ray)
-  call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), 'POINTS')
+  call qp_convert_point_abs (x_ray%r(1), x_ray%r(2), 'DATA', x_ray%r(1), x_ray%r(2), draw_units)
 endif
 
 ! Draw the shape. Since the conversion from floor coords to screen coords can
 ! be different along x and y, we convert to screen coords to make sure that rectangles
 ! remain rectangular.
 
-call qp_convert_point_abs (end1%r(1), end1%r(2), 'DATA', end1%r(1), end1%r(2), 'POINTS')
-call qp_convert_point_abs (end2%r(1), end2%r(2), 'DATA', end2%r(1), end2%r(2), 'POINTS')
+call qp_convert_point_abs (end1%r(1), end1%r(2), 'DATA', end1%r(1), end1%r(2), draw_units)
+call qp_convert_point_abs (end2%r(1), end2%r(2), 'DATA', end2%r(1), end2%r(2), draw_units)
 
 ! dx1, etc. are offsets perpendicular to the refernece orbit
 
-call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, 'POINTS')
+call qp_convert_point_rel (cos(end1%theta), sin(end1%theta), 'DATA', dt_x, dt_y, draw_units)
 dx1 =  off1 * dt_y / sqrt(dt_x**2 + dt_y**2)
 dy1 = -off1 * dt_x / sqrt(dt_x**2 + dt_y**2)
 
-call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, 'POINTS')
+call qp_convert_point_rel (cos(end2%theta), sin(end2%theta), 'DATA', dt_x, dt_y, draw_units)
 dx2 =  off2 * dt_y / sqrt(dt_x**2 + dt_y**2)
 dy2 = -off2 * dt_x / sqrt(dt_x**2 + dt_y**2)
 
 if (is_bend) then
   do j = 0, n_bend
-    call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), 'POINTS')
-    call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, 'POINTS')
+    call qp_convert_point_abs (x_bend(j), y_bend(j), 'DATA', x_bend(j), y_bend(j), draw_units)
+    call qp_convert_point_rel (dx_bend(j), dy_bend(j), 'DATA', dt_x, dt_y, draw_units)
     dx_bend(j) =  off * dt_y / sqrt(dt_x**2 + dt_y**2)
     dy_bend(j) = -off * dt_x / sqrt(dt_x**2 + dt_y**2)
   enddo
@@ -761,7 +769,7 @@ if (attribute_index(ele, 'X_RAY_LINE_LEN') > 0 .and. ele%value(x_ray_line_len$) 
   if (associated(branch_shape)) then
     if (branch_shape%draw) then
       call qp_translate_to_color_index (branch_shape%color, ic)
-      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = 'POINTS', color = ic)
+      call qp_draw_line (x_ray%r(1), end2%r(1), x_ray%r(2), end2%r(2), units = draw_units, color = ic)
     endif
   endif
 endif
@@ -783,17 +791,17 @@ if (ele_shape%shape == 'DIAMOND') then
     y1 = ((end1%r(2) + end2%r(2)) + (dy1 + dy2)) / 2
     y2 = ((end1%r(2) + end2%r(2)) - (dy1 + dy2)) / 2
   endif
-  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = 'POINTS', color = icol)
-  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = 'POINTS', color = icol)
-  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = 'POINTS', color = icol)
-  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = 'POINTS', color = icol)
+  call qp_draw_line (end1%r(1), x1, end1%r(2), y1, units = draw_units, color = icol)
+  call qp_draw_line (end1%r(1), x2, end1%r(2), y2, units = draw_units, color = icol)
+  call qp_draw_line (end2%r(1), x1, end2%r(2), y1, units = draw_units, color = icol)
+  call qp_draw_line (end2%r(1), x2, end2%r(2), y2, units = draw_units, color = icol)
 endif
 
 ! Draw a circle.
 
 if (ele_shape%shape == 'CIRCLE') then
   call qp_draw_circle ((end1%r(1)+end2%r(1))/2, (end1%r(2)+end2%r(2))/2, off, &
-                                                  units = 'POINTS', color = icol)
+                                                  units = draw_units, color = icol)
 endif
 
 ! Draw an X.
@@ -809,8 +817,8 @@ if (ele_shape%shape == 'X') then
     x0 = (end1%r(1) + end2%r(1)) / 2
     y0 = (end1%r(2) + end2%r(2)) / 2
   endif
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = 'POINTS', color = icol) 
-  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = 'POINTS', color = icol) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 - dy1, y0 + dy1, units = draw_units, color = icol) 
+  call qp_draw_line (x0 - dx1, x0 + dx1, y0 + dy1, y0 - dy1, units = draw_units, color = icol) 
 endif
 
 ! Draw top and bottom of boxes and bow_tiw
@@ -818,15 +826,15 @@ endif
 if (ele_shape%shape == 'BOW_TIE' .or. shape_has_box) then
   if (is_bend) then
     call qp_draw_polyline(x_bend(:n_bend) + dx_bend(:n_bend), &
-                          y_bend(:n_bend) + dy_bend(:n_bend), units = 'POINTS', color = icol)
+                          y_bend(:n_bend) + dy_bend(:n_bend), units = draw_units, color = icol)
     call qp_draw_polyline(x_bend(:n_bend) - dx_bend(:n_bend), &
-                          y_bend(:n_bend) - dy_bend(:n_bend), units = 'POINTS', color = icol)
+                          y_bend(:n_bend) - dy_bend(:n_bend), units = draw_units, color = icol)
 
   else
     call qp_draw_line (end1%r(1)+dx1, end2%r(1)+dx1, end1%r(2)+dy1, end2%r(2)+dy1, &
-                                                    units = 'POINTS', color = icol)
+                                                    units = draw_units, color = icol)
     call qp_draw_line (end1%r(1)-dx2, end2%r(1)-dx2, end1%r(2)-dy2, end2%r(2)-dy2, &
-                                                    units = 'POINTS', color = icol)
+                                                    units = draw_units, color = icol)
   endif
 endif
 
@@ -835,15 +843,15 @@ endif
 if (shape_has_box) then
   if (is_bend) then
     call qp_draw_line (x_bend(0)-dx_bend(0), x_bend(0)+dx_bend(0), &
-                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = 'POINTS', color = icol)
+                       y_bend(0)-dy_bend(0), y_bend(0)+dy_bend(0), units = draw_units, color = icol)
     n = n_bend
     call qp_draw_line (x_bend(n)-dx_bend(n), x_bend(n)+dx_bend(n), &
-                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = 'POINTS', color = icol)
+                       y_bend(n)-dy_bend(n), y_bend(n)+dy_bend(n), units = draw_units, color = icol)
   else
     call qp_draw_line (end1%r(1)+dx1, end1%r(1)-dx2, end1%r(2)+dy1, end1%r(2)-dy2, &
-                                                  units = 'POINTS', color = icol)
+                                                  units = draw_units, color = icol)
     call qp_draw_line (end2%r(1)+dx1, end2%r(1)-dx2, end2%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = 'POINTS', color = icol)
+                                                  units = draw_units, color = icol)
   endif
 endif
 
@@ -851,9 +859,9 @@ endif
 
 if (ele_shape%shape == 'XBOX' .or. ele_shape%shape == 'BOW_TIE') then
   call qp_draw_line (end1%r(1)+dx1, end2%r(1)-dx2, end1%r(2)+dy1, end2%r(2)-dy2, &
-                                                  units = 'POINTS', color = icol)
+                                                  units = draw_units, color = icol)
   call qp_draw_line (end1%r(1)-dx2, end2%r(1)+dx1, end1%r(2)-dy1, end2%r(2)+dy2, &
-                                                  units = 'POINTS', color = icol)
+                                                  units = draw_units, color = icol)
 endif
 
 ! Draw the label.
@@ -899,7 +907,7 @@ if (ele_shape%label /= 'none') then
     justify = 'RC'
   endif
   height = s%plot_page%text_height * s%plot_page%legend_text_scale
-  call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = 'POINTS', &
+  call qp_draw_text (name, x_center+dx*off2, y_center+dy*off2, units = draw_units, &
                                height = height, justify = justify, ANGLE = theta)    
 endif
 

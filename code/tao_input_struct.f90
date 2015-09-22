@@ -192,6 +192,7 @@ type tao_plot_page_input
   real(rp) :: curve_legend_line_len  = 50   ! Points
   real(rp) :: curve_legend_text_offset = 10 ! Points
   integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
+  logical :: floor_plan_size_is_absolute = .false.
   type (tao_title_struct) :: title(2)       ! Titles at top of page.
   type (qp_rect_struct) :: border           ! Border around plots edge of page.
 end type
@@ -227,44 +228,46 @@ character(16), parameter :: r_name = 'tao_set_plotting'
 ! 
 
 if (logic_option(.false., reverse)) then
-  plot_page%plot_display_type         = plot_input%plot_display_type
-  plot_page%ps_scale                  = plot_input%ps_scale
-  plot_page%size                      = plot_input%size
-  plot_page%text_height               = plot_input%text_height
-  plot_page%main_title_text_scale     = plot_input%main_title_text_scale
-  plot_page%graph_title_text_scale    = plot_input%graph_title_text_scale
-  plot_page%axis_number_text_scale    = plot_input%axis_number_text_scale
-  plot_page%axis_label_text_scale     = plot_input%axis_label_text_scale
-  plot_page%floor_plan_shape_scale    = plot_input%floor_plan_shape_scale
-  plot_page%lat_layout_shape_scale    = plot_input%lat_layout_shape_scale
-  plot_page%legend_text_scale         = plot_input%legend_text_scale
-  plot_page%key_table_text_scale      = plot_input%key_table_text_scale
-  plot_page%curve_legend_line_len     = plot_input%curve_legend_line_len
-  plot_page%curve_legend_text_offset  = plot_input%curve_legend_text_offset
-  plot_page%n_curve_pts               = plot_input%n_curve_pts
-  plot_page%title                     = plot_input%title 
-  plot_page%border                    = plot_input%border
+  plot_page%plot_display_type            = plot_input%plot_display_type
+  plot_page%ps_scale                     = plot_input%ps_scale
+  plot_page%size                         = plot_input%size
+  plot_page%text_height                  = plot_input%text_height
+  plot_page%main_title_text_scale        = plot_input%main_title_text_scale
+  plot_page%graph_title_text_scale       = plot_input%graph_title_text_scale
+  plot_page%axis_number_text_scale       = plot_input%axis_number_text_scale
+  plot_page%axis_label_text_scale        = plot_input%axis_label_text_scale
+  plot_page%floor_plan_size_is_absolute  = plot_input%floor_plan_size_is_absolute
+  plot_page%floor_plan_shape_scale       = plot_input%floor_plan_shape_scale
+  plot_page%lat_layout_shape_scale       = plot_input%lat_layout_shape_scale
+  plot_page%legend_text_scale            = plot_input%legend_text_scale
+  plot_page%key_table_text_scale         = plot_input%key_table_text_scale
+  plot_page%curve_legend_line_len        = plot_input%curve_legend_line_len
+  plot_page%curve_legend_text_offset     = plot_input%curve_legend_text_offset
+  plot_page%n_curve_pts                  = plot_input%n_curve_pts
+  plot_page%title                        = plot_input%title 
+  plot_page%border                       = plot_input%border
 endif
 
 ! 
 
-plot_input%plot_display_type         = plot_page%plot_display_type
-plot_input%ps_scale                  = plot_page%ps_scale
-plot_input%size                      = plot_page%size
-plot_input%text_height               = plot_page%text_height
-plot_input%main_title_text_scale     = plot_page%main_title_text_scale
-plot_input%graph_title_text_scale    = plot_page%graph_title_text_scale
-plot_input%axis_number_text_scale    = plot_page%axis_number_text_scale
-plot_input%axis_label_text_scale     = plot_page%axis_label_text_scale
-plot_input%floor_plan_shape_scale    = plot_page%floor_plan_shape_scale
-plot_input%lat_layout_shape_scale    = plot_page%lat_layout_shape_scale
-plot_input%legend_text_scale         = plot_page%legend_text_scale
-plot_input%key_table_text_scale      = plot_page%key_table_text_scale
-plot_input%curve_legend_line_len     = plot_page%curve_legend_line_len
-plot_input%curve_legend_text_offset  = plot_page%curve_legend_text_offset
-plot_input%n_curve_pts               = plot_page%n_curve_pts
-plot_input%title                     = plot_page%title 
-plot_input%border                    = plot_page%border
+plot_input%plot_display_type            = plot_page%plot_display_type
+plot_input%ps_scale                     = plot_page%ps_scale
+plot_input%size                         = plot_page%size
+plot_input%text_height                  = plot_page%text_height
+plot_input%main_title_text_scale        = plot_page%main_title_text_scale
+plot_input%graph_title_text_scale       = plot_page%graph_title_text_scale
+plot_input%axis_number_text_scale       = plot_page%axis_number_text_scale
+plot_input%axis_label_text_scale        = plot_page%axis_label_text_scale
+plot_input%floor_plan_size_is_absolute  = plot_page%floor_plan_size_is_absolute
+plot_input%floor_plan_shape_scale       = plot_page%floor_plan_shape_scale
+plot_input%lat_layout_shape_scale       = plot_page%lat_layout_shape_scale
+plot_input%legend_text_scale            = plot_page%legend_text_scale
+plot_input%key_table_text_scale         = plot_page%key_table_text_scale
+plot_input%curve_legend_line_len        = plot_page%curve_legend_line_len
+plot_input%curve_legend_text_offset     = plot_page%curve_legend_text_offset
+plot_input%n_curve_pts                  = plot_page%n_curve_pts
+plot_input%title                        = plot_page%title 
+plot_input%border                       = plot_page%border
 
 ! Plot window geometry specified on cmd line?
 

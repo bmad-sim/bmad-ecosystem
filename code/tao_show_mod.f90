@@ -2467,19 +2467,20 @@ case ('plot')
   if (stuff2 == ' ') then
 
     nl=nl+1; lines(nl) = 'plot_page parameters:'
-    nl=nl+1; write(lines(nl), imt)  '  %size                       = ', nint(s%plot_page%size)
-    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                = ', s%plot_page%n_curve_pts
-    nl=nl+1; write(lines(nl), f3mt) '  %text_height                = ', s%plot_page%text_height 
-    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale      = ', s%plot_page%main_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale     = ', s%plot_page%graph_title_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale     = ', s%plot_page%axis_number_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale      = ', s%plot_page%axis_label_text_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale       = ', s%plot_page%key_table_text_scale 
+    nl=nl+1; write(lines(nl), imt)  '  %size                         = ', nint(s%plot_page%size)
+    nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                  = ', s%plot_page%n_curve_pts
+    nl=nl+1; write(lines(nl), f3mt) '  %text_height                  = ', s%plot_page%text_height 
+    nl=nl+1; write(lines(nl), f3mt) '  %main_title_text_scale        = ', s%plot_page%main_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %graph_title_text_scale       = ', s%plot_page%graph_title_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_number_text_scale       = ', s%plot_page%axis_number_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %axis_label_text_scale        = ', s%plot_page%axis_label_text_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %key_table_text_scale         = ', s%plot_page%key_table_text_scale 
     nl=nl+1; write(lines(nl), '(a, f8.3, 3x, a)') &
-                                    '  %legend_text_scale          = ', s%plot_page%legend_text_scale, &
+                                    '  %legend_text_scale            = ', s%plot_page%legend_text_scale, &
                                                                         '! For legends, plot_page, and lat_layout' 
-    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale     = ', s%plot_page%floor_plan_shape_scale 
-    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale     = ', s%plot_page%lat_layout_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_size_is_absolute  = ', s%plot_page%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %floor_plan_shape_scale       = ', s%plot_page%floor_plan_shape_scale 
+    nl=nl+1; write(lines(nl), f3mt) '  %lat_layout_shape_scale       = ', s%plot_page%lat_layout_shape_scale 
 
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Templates:'

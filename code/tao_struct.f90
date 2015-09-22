@@ -238,9 +238,9 @@ end type
 ! plot page info.
 
 type tao_plot_page_struct
-  character(8) :: plot_display_type = 'X'       ! 'X' or 'TK'
-  character(80) ps_scale             ! scaling when creating PS files.
-  real(rp) size(2)                   ! width and height of window in pixels.
+  character(8) :: plot_display_type = 'X'   ! 'X' or 'TK'
+  character(80) ps_scale                    ! scaling when creating PS files.
+  real(rp) size(2)                          ! width and height of window in pixels.
   real(rp) :: text_height = 12              ! In points. Scales the height of all text
   real(rp) :: main_title_text_scale  = 1.3  ! Relative to text_height
   real(rp) :: graph_title_text_scale = 1.1  ! Relative to text_height
@@ -252,10 +252,11 @@ type tao_plot_page_struct
   real(rp) :: curve_legend_text_offset = 10 ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: lat_layout_shape_scale = 1.0
-  integer :: n_curve_pts = 401           ! Number of points for plotting a smooth curve
-  integer id_window                      ! X window id number.
-  type (tao_title_struct) title(2)       ! Titles at top of page.
-  type (qp_rect_struct) border           ! Border around plots edge of page.
+  integer :: n_curve_pts = 401              ! Number of points for plotting a smooth curve
+  integer :: id_window = -1                 ! X window id number.
+  logical :: floor_plan_size_is_absolute = .false.
+  type (tao_title_struct) title(2)          ! Titles at top of page.
+  type (qp_rect_struct) border              ! Border around plots edge of page.
   type (tao_drawing_struct) :: floor_plan
   type (tao_drawing_struct) :: lat_layout
   type (tao_plot_struct), allocatable :: template(:)  ! Templates for the plots.
