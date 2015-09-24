@@ -7,6 +7,8 @@ use rotation_3d_mod
 
 implicit none
 
+private bend_L_vec, bend_S_mat
+
 contains
 
 !---------------------------------------------------------------------------------------
@@ -1291,18 +1293,21 @@ real(rp) :: s, g, theta, Sb(3,3), Lb(3)
 real(rp) ::  L_mis(3), S_mis(3,3) , S_mat0(3,3)
 real(rp), optional :: w_mat(3,3)
 
-local_position = ele_position
+!
 
+local_position = ele_position
 s = ele_position%r(3)
 
-call ele_misalignment_L_S_calc(ele, L_mis, S_mis)
-
 if (ele%key == sbend$) then
+  call ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+
   ! Get coords relative to center
   theta = ele%value(g$)*s
+
   ! In ele frame. Move to center frame
   call convert_local_curvilinear_to_local_cartesian(ele_position%r(1), s - ele%value(L$)/2, &
-                    ele%value(g$), local_position%r(1), local_position%r(3))
+                                                    ele%value(g$), local_position%r(1), local_position%r(3))
+
   ! Put into tilted frame
   call rotate_vec_z(local_position%r, ele%value(ref_tilt_tot$))
 
@@ -1310,17 +1315,14 @@ if (ele%key == sbend$) then
   local_position%r = matmul(s_mis, local_position%r) + L_mis
 
   ! Transform to element end 
-  local_position%r = bend_shift_xyz(local_position%r, ele%value(g$), ele%value(L$)/2, w_mat = Sb, tilt=ele%value(ref_tilt_tot$) )
+  local_position%r = bend_shift_xyz(local_position%r, ele%value(g$), ele%value(L$)/2, w_mat = Sb, tilt=ele%value(ref_tilt_tot$))
  
- if (present(w_mat)) then
-   ! Initial rotation to ele's center frame and the tilt
-   call w_mat_for_x_pitch (S_mat0, -(theta-ele%value(angle$)/2 ))
-   call rotate_mat_z(S_mat0, ele%value(ref_tilt_tot$))
-   w_mat = matmul(S_mis, S_mat0)
-   w_mat = matmul(Sb, w_mat)
- 
-  ! call floor_angles_to_w_mat (local_position%theta, local_position%phi, local_position%psi, w_mat)
-  ! w_mat = s_mis
+  if (present(w_mat)) then
+    ! Initial rotation to ele's center frame and the tilt
+    call w_mat_for_x_pitch (S_mat0, -(theta-ele%value(angle$)/2))
+    call rotate_mat_z(S_mat0, ele%value(ref_tilt_tot$))
+    w_mat = matmul(S_mis, S_mat0)
+    w_mat = matmul(Sb, w_mat)
   endif
 
 else
@@ -1554,11 +1556,10 @@ end subroutine
 
 !---------------------------------------------------------------------------
 !+
-! Subroutine ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+! Subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
 ! 
 ! Calculates transformation vector L_mis and matrix S_mis due to misalignments for an ele
 ! Used to transform coordinates and vectors relative to the center of the element
-!
 !
 ! Module needed:
 !   use geometry_mod
@@ -1571,7 +1572,7 @@ end subroutine
 !   S_mis(3)  -- real(rp): Misalignment matrix relative to center of element
 !
 !-  
-subroutine ele_misalignment_L_S_calc(ele, L_mis, S_mis)
+subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
 type(ele_struct) :: ele 
 real(rp) :: chalf, shalf, Lc(3), Sb(3,3), s0, theta0
 real(rp) :: L_mis(3), S_mis(3,3)
@@ -1598,13 +1599,14 @@ case default
 
 end select
 
-end subroutine
-
+end subroutine ele_misalignment_L_S_calc
 
 !---------------------------------------------------------------------------
 !+
-! Function bend_L_vec(g, delta_s, tilt) result(L_vec)
-function bend_L_vec(g, delta_s, tilt) result(L_vec)
+! Function bend_L_vec (g, delta_s, tilt) result(L_vec)
+!-
+
+function bend_L_vec (g, delta_s, tilt) result(L_vec)
 real(rp) :: g, delta_s, L_vec(3), angle
 real(rp), optional :: tilt
 if (g==0) then
@@ -1614,12 +1616,14 @@ else
   L_vec = [cos(angle)-1, 0.0_rp, sin(angle)]/g
   if (present(tilt)) call rotate_vec_z(L_vec, tilt)
 endif
-end function
+end function bend_L_vec
 
 !---------------------------------------------------------------------------
 !+
-! Function bend_S_mat(angle, tilt) result(S_mat)
-function bend_S_mat(angle, tilt) result(S_mat)
+! Function bend_S_mat (angle, tilt) result(S_mat)
+!-
+
+function bend_S_mat (angle, tilt) result(S_mat)
 real(rp) :: angle, S_mat(3,3)
 real(rp), optional :: tilt
 call mat_make_unit(S_mat)
@@ -1630,10 +1634,12 @@ if (present(tilt) .and. tilt /= 0) then
 else
   call rotate_mat_y(S_mat, -angle)
 endif
-end function
+end function bend_S_mat
 
 
-!---------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
 !+
 ! Function bend_shift_xyz(xyz1, g, delta_s, w_mat, tilt) result(xyz2)
 !
@@ -1669,6 +1675,5 @@ xyz2 = matmul(S_mat, xyz1) + L_vec
 if (present(w_mat)) w_mat = s_mat
 
 end function 
-
 
 end module
