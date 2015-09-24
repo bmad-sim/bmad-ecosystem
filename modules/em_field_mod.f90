@@ -9,6 +9,8 @@ module em_field_mod
 use bmad_struct
 use bmad_interface
 
+implicit none
+
 contains
 
 !-----------------------------------------------------------------
@@ -30,8 +32,6 @@ contains
 !-
 
 function g_bend_from_em_field (B, E, orbit) result (g_bend)
-
-implicit none
 
 type (coord_struct) orbit
 real(rp) b(3), e(3), g_bend(3)
@@ -74,8 +74,6 @@ end function g_bend_from_em_field
 !-
 
 subroutine save_a_step (track, ele, param, local_ref_frame, s, orb, s_sav, t_ref)
-
-implicit none
 
 type (track_struct) track, track2
 type (ele_struct), target :: ele
@@ -175,7 +173,7 @@ end subroutine save_a_step
 recursive subroutine em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, &
                                                                            calc_dfield, err_flag, potential)
 
-implicit none
+use geometry_mod
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
@@ -195,7 +193,7 @@ real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, t_eff
 real(rp) k_t, k_zn, kappa2_n, kap_rho, s_hard_offset, beta_start
 real(rp) radius, phi, t_ref, tilt, omega, freq0, freq, B_phi_coef
 real(rp) Er_dc, Ep_dc, Ez_dc, Br_dc, Bp_dc, Bz_dc
-real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z 
+real(rp) E_rho, E_phi, E_z, B_rho, B_phi, B_z, sx_over_kx, sy_over_ky
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 complex(rp) Er, Ep, Ez, Br, Bp, Bz
@@ -315,6 +313,13 @@ case (bmad_standard$)
     field%e(3) = e_accel_field (ele, gradient$)
 
   !------------------------------------------
+  ! E_Gun
+
+  case (elseparator$)
+    field%e(1) = ele%value(hkick$) * ele%value(p0c$) * c_light / ele%value(l$)
+    field%e(2) = ele%value(vkick$) * ele%value(p0c$) * c_light / ele%value(l$)
+
+  !------------------------------------------
   ! HKicker
 
   case (hkicker$)
@@ -403,10 +408,10 @@ case (bmad_standard$)
     field%b(2) =  (x**3 - 3*x*y**2) / 6 * ele%value(k3$) * f_p0c 
 
     if (df_calc) then
-      field%dB(1,1) =  y * ele%value(k3$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k3$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k3$) * f_p0c
-      field%dB(2,2) = -y * ele%value(k3$) * f_p0c
+      field%dB(1,1) =  x*y * ele%value(k3$) * f_p0c
+      field%dB(1,2) = (x**2 - y**2) / 2 * ele%value(k3$) * f_p0c
+      field%dB(2,1) = (x**2 - y**2) / 2 * ele%value(k3$) * f_p0c
+      field%dB(2,2) = -x*y * ele%value(k3$) * f_p0c
     endif
 
   !------------------------------------------
@@ -425,8 +430,8 @@ case (bmad_standard$)
     field%b(2) = x * ele%value(k1$) * f_p0c 
 
     if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c
+      field%dB(1,2) =  ele%value(k1$) * f_p0c
+      field%dB(2,1) =  ele%value(k1$) * f_p0c
     endif
 
   !------------------------------------------
@@ -440,7 +445,7 @@ case (bmad_standard$)
     if (df_calc) then
       field%dB(1,1) =  y * ele%value(k2$) * f_p0c
       field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
+      field%dB(2,1) =  x * ele%value(k2$) * f_p0c
       field%dB(2,2) = -y * ele%value(k2$) * f_p0c
     endif
 
@@ -459,10 +464,10 @@ case (bmad_standard$)
     field%b(2) = (x * ele%value(k1$) - ele%value(k2$) * (x**2 - y**2) / 2 + ele%value(g$) + ele%value(g_err$)) * f_p0c 
 
     if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c + y * ele%value(k2$) * f_p0c
-      field%dB(1,2) =  x * ele%value(k2$) * f_p0c
-      field%dB(2,1) = -x * ele%value(k2$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c - y * ele%value(k2$) * f_p0c
+      field%dB(1,1) =  y * ele%value(k2$) * f_p0c
+      field%dB(1,2) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
+      field%dB(2,1) =  (x * ele%value(k2$) + ele%value(k1$)) * f_p0c
+      field%dB(2,2) = -y * ele%value(k2$) * f_p0c
     endif
 
   !------------------------------------------
@@ -475,8 +480,8 @@ case (bmad_standard$)
     field%b(3) = ele%value(ks$) * f_p0c
 
     if (df_calc) then
-      field%dB(1,1) =  ele%value(k1$) * f_p0c
-      field%dB(2,2) = -ele%value(k1$) * f_p0c
+      field%dB(1,2) = ele%value(k1$) * f_p0c
+      field%dB(2,1) = ele%value(k1$) * f_p0c
     endif
 
   !------------------------------------------
@@ -577,24 +582,39 @@ case (bmad_standard$)
       if (present(potential)) then
         coef = wig%coef * ele%value(polarity$) / ref_charge
         select case (wig%type)
+        case (hyper_y_plane_x$, hyper_xy_plane_x$, hyper_x_plane_x$)
+          if (abs(wig%ky * (y + wig%y0)) < 1d-10) then
+            sy_over_ky = y + wig%y0
+          else
+            sy_over_ky = s_y / wig%ky
+          endif
+        case (hyper_y_plane_y$, hyper_xy_plane_y$, hyper_x_plane_y$)
+          if (abs(wig%kx * (x + wig%x0)) < 1d-10) then
+            sx_over_kx = x + wig%x0
+          else
+            sx_over_kx = s_x / wig%kx
+          endif
+        end select
+
+        select case (wig%type)
         case (hyper_y_plane_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * s_y * s_z * wig%kz / wig%ky**2
-          potential%a(3) = potential%a(3) + coef * c_x * s_y * c_z * wig%kx / wig%ky**2
+          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%ky
+          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%ky
         case (hyper_xy_plane_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * s_y * s_z / wig%ky
-          potential%a(3) = potential%a(3) + coef * c_x * s_y * c_z * wig%kx / (wig%ky * wig%kz)
+          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z
+          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z * wig%kx / wig%kz
         case (hyper_x_plane_x$)
-          potential%a(1) = potential%a(1) + coef * s_x * s_y * s_z * wig%kz / (wig%kx * wig%ky)
-          potential%a(3) = potential%a(3) + coef * c_x * s_y * c_z / wig%ky
+          potential%a(1) = potential%a(1) + coef * s_x * sy_over_ky * s_z * wig%kz / wig%kx
+          potential%a(3) = potential%a(3) + coef * c_x * sy_over_ky * c_z
         case (hyper_y_plane_y$)
-          potential%a(2) = potential%a(2) - coef * s_x * s_y * s_z * wig%kz / (wig%kx * wig%ky) 
-          potential%a(3) = potential%a(3) - coef * s_x * c_y * c_z / wig%kx
+          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%ky
+          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z
         case (hyper_xy_plane_y$)
-          potential%a(2) = potential%a(2) - coef * s_x * s_y * s_z / wig%kx
-          potential%a(3) = potential%a(3) - coef * s_x * c_y * c_z * wig%ky / (wig%kx * wig%kz) 
+          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z
+          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kz
         case (hyper_x_plane_y$)
-          potential%a(2) = potential%a(2) - coef * s_x * s_y * s_z * wig%kz / wig%kx**2 
-          potential%a(3) = potential%a(3) - coef * s_x * c_y * c_z * wig%ky / wig%kx**2
+          potential%a(2) = potential%a(2) - coef * sx_over_kx * s_y * s_z * wig%kz / wig%kx
+          potential%a(3) = potential%a(3) - coef * sx_over_kx * c_y * c_z * wig%ky / wig%kx
         end select
       endif
 
@@ -1022,59 +1042,44 @@ end select
 
 call convert_fields_to_lab_coords
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! Convert fields to lab coords
+
 contains
 
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! convert fields to lab coords
-subroutine convert_fields_to_lab_coords
+subroutine convert_fields_to_lab_coords()
 
-if (local_ref_frame) return
-
-if (ele%value(tilt_tot$) /= 0) then
-
-  sin_ang = sin(ele%value(tilt_tot$))
-  cos_ang = cos(ele%value(tilt_tot$))
-
-  fd = field%B
-  field%B(1) = cos_ang * fd(1) - sin_ang * fd(2)
-  field%B(2) = sin_ang * fd(1) + cos_ang * fd(2)
-
-  fd = field%E
-  field%E(1) = cos_ang * fd(1) - sin_ang * fd(2)
-  field%E(2) = sin_ang * fd(1) + cos_ang * fd(2)
-
-  if (df_calc) then
-
-    dk(1,:) = cos_ang * field%dB(1,:) - sin_ang * field%dB(2,:)
-    dk(2,:) = sin_ang * field%dB(1,:) + cos_ang * field%dB(2,:)
-    dk(3,:) = field%dB(3,:)
-
-    field%dB(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-    field%dB(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-    field%dB(:,3) = dk(:,3) 
-
-    dk(1,:) = cos_ang * field%dE(1,:) - sin_ang * field%dE(2,:)
-    dk(2,:) = sin_ang * field%dE(1,:) + cos_ang * field%dE(2,:)
-    dk(3,:) = field%dE(3,:)
-
-    field%dE(:,1) = dk(:,1) * cos_ang - dk(:,2) * sin_ang
-    field%dE(:,2) = dk(:,1) * sin_ang + dk(:,2) * cos_ang
-    field%dE(:,3) = dk(:,3) 
-
-  endif
-endif
+real(rp) w_mat(3,3), w_inv(3,3), wbx(3,3), wbz(3,3)
+real(rp) theta
 
 !
 
-if (ele%value(x_pitch_tot$) /= 0) then
-  field%B(1) = field%B(1) + ele%value(x_pitch_tot$) * field%B(3)
-  field%E(1) = field%E(1) + ele%value(x_pitch_tot$) * field%E(3)
+if (local_ref_frame) return
+
+!
+
+if (ele%key == sbend$) then
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_inv)
+  theta = ele%value(g$)*s
+  call w_mat_for_x_pitch (wbx, -(theta-ele%value(angle$)/2))
+  call rotate_mat_z(wbz, ele%value(ref_tilt_tot$))
+  w_mat = matmul(wbx, matmul(w_mat, wbz))
+  if (df_calc) call mat_inverse(w_mat, w_inv)
+else
+  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
 endif
 
-if (ele%value(y_pitch_tot$) /= 0) then
-  field%B(2) = field%B(2) + ele%value(y_pitch_tot$) * field%B(3)
-  field%E(2) = field%E(2) + ele%value(y_pitch_tot$) * field%E(3)
+field%B = matmul(w_mat, field%B)
+field%E = matmul(w_mat, field%E)
+
+if (present(potential)) then
+  potential%A = matmul(w_mat, potential%A)
+endif
+
+if (df_calc) then
+  field%dB = matmul(w_mat, matmul(field%dB, w_inv))
+  field%dE = matmul(w_mat, matmul(field%dE, w_inv))
 endif
 
 end subroutine convert_fields_to_lab_coords
@@ -1083,7 +1088,8 @@ end subroutine convert_fields_to_lab_coords
 !----------------------------------------------------------------------------
 ! convert_curvilinear_to_cartesian()
 !
-!For sbend with Grid calculation. 
+! For sbend with Grid calculation.
+
 subroutine convert_curvilinear_to_cartesian()
 real(rp) :: temp
 
@@ -1237,8 +1243,6 @@ contains
 
 subroutine get_this_index (x, ix_x, i0, rel_x0, out_of_bounds, err_flag)
 
-implicit none
-
 real(rp) x, rel_x0, x_norm
 integer ix_x, i0, ig0, ig1, idg
 logical out_of_bounds, err_flag
@@ -1318,8 +1322,6 @@ end subroutine em_grid_linear_interpolate
 
 function field_interpolate_3d (position, field_mesh, deltas, position0) result (field)
 
-implicit none
-
 real(rp), optional, intent(in) :: position0(3)
 real(rp), intent(in) :: position(3), field_mesh(0:,0:,0:), deltas(3)
 real(rp) field
@@ -1366,8 +1368,6 @@ contains
 
 function interpolate_1d (x, field1_in) result (field1)
 
-implicit none
-
 real(rp) field1, x, field1_in(4), df_2, df_3
 real(rp) c0, c1, c2, c3
 
@@ -1407,8 +1407,6 @@ end function field_interpolate_3d
 !-
 
 function e_accel_field (ele, voltage_or_gradient) result (field)
-
-implicit none
 
 type (ele_struct) ele
 real(rp) field

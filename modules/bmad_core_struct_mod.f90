@@ -30,6 +30,7 @@ use basic_bmad_interface
 ! so that the particle's energy is maintained at ele%value(p0c_start$).
 !
 ! Note: For a photon, orb%vec(5) is set depending upon where the photon is relative to the element.
+! Note: If the particle is initialized with element_end = inside$, orb%s will not be set.
 !
 ! Modules needed:
 !   use bmad
@@ -1004,11 +1005,11 @@ if (present(ele)) then
     call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
     call err_exit
   endif
-  if (element_end /= upstream_end$ .or. ele%key == beginning_ele$) then
+  if (orb2%location /= upstream_end$ .or. ele%key == beginning_ele$) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     ref_time = ele%ref_time
-    orb2%s = ele%s
+    if (orb2%location == downstream_end$) orb2%s = ele%s
   else
     p0c = ele%value(p0c_start$)
     e_tot = ele%value(e_tot_start$)
