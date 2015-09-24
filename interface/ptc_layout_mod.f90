@@ -167,6 +167,10 @@ do i = 0, ubound(lat%branch, 1)
 
   call survey (m_t%end, ptc_orientation, ele%floor%r)
 
+  !
+
+  call make_node_layout(m_t%end)
+
 enddo
 
 !-----------------------------------------------------------------------------

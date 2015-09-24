@@ -3456,26 +3456,26 @@ This element is in development.
 Attributes specific to an \vn{sextupole} element are:
 \begin{example}
   angle           = <Real>    ! Bend angle. A settable dependent variable (\sref{s:depend})
-  bs_field        = <Real>    ! Solenoid field. See SAD bz attribute.
+  bs_field        = <Real>    ! Solenoid field. SAD equivalent: BZ.
   e1, e2          = <Real>    ! Bend face angles.
-  eps_step_scale  = <Real>    ! Step size scale. Default = 1. See SAD eps attribute.
-  fq1             = <Real>    ! Quadrupole fringe integral. See SAD f1 attribute.
-  fq2             = <Real>    ! Quadrupole fringe integral. See SAD f2 attribute.
+  eps_step_scale  = <Real>    ! Step size scale. Default = 1. SAD equivalent: EPS.
+  fq1             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F1.
+  fq2             = <Real>    ! Quadrupole fringe integral. SAD equivalent: F2.
   g               = <Real>    ! Bend strength 1/rho
   ks              = <Real>    ! Solenoid strength. 
-  x_offset_mult   = <Real>    ! Mult component offset. See SAD dx attribute.
-  y_offset_mult   = <Real>    ! Mult component offset. See SAD dy attribute.
-  x_pitch_mult    = <Real>    ! Mult component pitch. See SAD dpx or chi1 attribute.
-  y_pitch_mult    = <Real>    ! Mult component pitch. See SAD dpy or chi2 attribute.
-  fringe_type     = <Switch>  ! Type of fringe. See SAD disfrin attribute.
-  fringe_at       = <Switch>  ! Where fringe is applied. See SAD fringe attribute.
+  x_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DX.
+  y_offset_mult   = <Real>    ! Mult component offset. SAD equivalent: DY.
+  x_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPX or CHI1.
+  y_pitch_mult    = <Real>    ! Mult component pitch. SAD equivalent: DPY or CHI2.
+  fringe_type     = <Switch>  ! Type of fringe. SAD equivalent: DISFRIN.
+  fringe_at       = <Switch>  ! Where fringe is applied. SAD equivalent: FRINGE.
 \end{example}
 
-%  rf_frequency    = <Real>    ! Rf frequency (Hz). See SAD volt attribute.
-%  harmon          = <Real>    ! Harmonic number. See SAD harm attribute.
-%  phi0            = <Real>    ! Cavity phase. See SAD phi attribute.
+%  rf_frequency    = <Real>    ! Rf frequency (Hz). SAD equivalent: FREQ.
+%  harmon          = <Real>    ! Harmonic number. SAD equivalent: HARM.
+%  phi0            = <Real>    ! Cavity phase. SAD equivalent: PHI.
 %  rho             = <Real>    ! Bend radius. A settable dependent variable (\sref{s:depend})
-%  voltage         = <Real>    ! Cavity voltage. See SAD volt attribute.
+%  voltage         = <Real>    ! Cavity voltage. SAD equivalent: VOLT.
 
 One difference between SAD and \bmad is that SAD defines the solenoid
 field by what are essentially a set of marker elements so that the
