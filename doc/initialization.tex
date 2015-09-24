@@ -877,8 +877,11 @@ where \vn{var(i)%attribute} is not specified in the namelist the
 \vn{default_attribute} will be used.
 
 \vn{var(i)%key_bound} and \vn{var(i)%key_delta} are used to bind
-variables to keys on the keyboard. See~\sref{s:key.bind} for more
-details.
+variables to keys on the keyboard. The default values for these
+parameters are set by \vn{default_key_bound} and
+\vn{default_key_delta}. If not set, \vn{default_key_bound} is set to
+\vn{False} and \vn{default_key_delta} is set to \vn{0}.
+See~\sref{s:key.bind} for more details.
 
 \vn{var(i)%step} establishes what a ``small'' variation of the
 variable is. This is used, for example, by some optimizers when

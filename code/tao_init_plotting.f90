@@ -1748,6 +1748,33 @@ if (all(s%plot_page%template%name /= 'i5b')) then
 endif
 
 !---------------
+! Key table
+
+if (all(s%plot_page%template%name /= 'key_table')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+
+  plt%name           = 'key_table'
+  plt%description    = 'Table of keyboard keys bound to variable values'
+  plt%x_axis_type    = 'none'
+  plt%x              = init_axis
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%name          = 'g1'
+  grph%box           = [1, 1, 1, 1]
+  grph%type          = 'key_table'
+  grph%margin        =  qp_rect_struct(0.00, 0.00, 0.03, 0.12, '%BOX')
+  grph%x             = init_axis
+  grph%y%min         = -1
+  grph%y%max         =  1
+endif
+
+!---------------
 ! Lat Layout plot
 
 if (all(s%plot_page%template%name /= 'lat_layout')) then

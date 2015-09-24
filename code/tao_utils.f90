@@ -28,7 +28,7 @@ type (tao_var_struct), pointer :: var
 
 integer ix_key, ix_min_key, ix_max_key
 integer i, n, m, p, ix_var
-integer, save :: j_var1, j_att, ix_min_old = 0, ix_max_old = 0
+integer :: j_var1, j_att
 
 real(rp) :: y_here, norm, v, x1, x2, y1, y2
 
@@ -41,23 +41,16 @@ character(24) :: r_name = 'tao_key_info_to_str'
 
 ! Compute widths of var1 and attrib fields.
 
-if (ix_min_old /= ix_min_key .or. ix_max_old /= ix_max_key) then
+j_var1 = 4
+j_att = 5
 
-  j_var1 = 4
-  j_att = 5
-
-  do i = ix_min_key, ix_max_key
-    if (i > ubound(s%key, 1)) cycle
-    ix_var = s%key(i)
-    if (ix_var == 0) cycle
-    j_var1 = max(j_var1, len_trim(tao_var1_name(s%var(ix_var))))
-    j_att  = max(j_att,  len_trim(tao_var_attrib_name(s%var(ix_var))))
-  enddo
-
-  ix_min_old = ix_min_key
-  ix_max_old = ix_max_key
-
-endif
+do i = ix_min_key, ix_max_key
+  if (i > ubound(s%key, 1)) cycle
+  ix_var = s%key(i)
+  if (ix_var == 0) cycle
+  j_var1 = max(j_var1, len_trim(tao_var1_name(s%var(ix_var))))
+  j_att  = max(j_att,  len_trim(tao_var_attrib_name(s%var(ix_var))))
+enddo
 
 ! Write header 
 
@@ -1111,17 +1104,17 @@ character(*), optional :: dflt_index
 
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(9) = &
-          (/ 'model  ', 'base   ', 'design ', 'meas   ', 'ref    ', &
-             'old    ', 'fit    ', 'weight ', 'invalid' /)
-character(16), parameter :: logic_components(9) = &
-          (/ 'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
-             'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot' /)
-character(16), parameter :: integer_components(5) = &
-          (/ 'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
-             'ix_d1       ', 'ix_uni      ' /)
-character(16), parameter :: string_components(4) = (/ 'merit_type    ', 'ele_name      ', &
-                                                      'ele_start_name', 'ele_ref_name  ' /)
+character(16), parameter :: real_components(9) = [ &
+             'model    ', 'base     ', 'design   ', 'meas     ', 'ref      ', &
+             'old      ', 'fit      ', 'weight   ', 'invalid  ']
+character(16), parameter :: logic_components(9) = [ &
+             'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
+             'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
+character(16), parameter :: integer_components(5) = [ &
+             'ix_ele      ', 'ix_ele_start', 'ix_ele_ref  ', &
+             'ix_d1       ', 'ix_uni      ']
+character(16), parameter :: string_components(4) = ['merit_type    ', 'ele_name      ', &
+                                                    'ele_start_name', 'ele_ref_name  ']
 
 integer, optional :: ix_uni
 integer :: data_num, ios, n_found
@@ -1693,13 +1686,13 @@ type (tao_string_array_struct), allocatable, optional  :: str_array(:)
 
 integer i, ix, n_var, ios
 
-character(16), parameter :: real_components(10) = &
-          (/ 'model   ', 'base    ', 'design  ', 'meas    ', 'ref     ', &
-             'old     ', 'step    ', 'weight  ', 'high_lim', 'low_lim ' /)
-character(16), parameter :: logic_components(7) = &
-          (/ 'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
-             'useit_opt ', 'useit_plot' /)
-character(16), parameter :: string_components(1) = (/ 'merit_type' /)
+character(16), parameter :: real_components(11) = [ &
+             'model    ', 'base     ', 'design   ', 'meas     ', 'ref      ', &
+             'old      ', 'step     ', 'weight   ', 'high_lim ', 'low_lim  ', 'key_delta']
+character(16), parameter :: logic_components(8) = [ &
+             'exists    ', 'good_var  ', 'good_user ', 'good_opt  ', 'good_plot ', &
+             'useit_opt ', 'useit_plot', 'key_bound ']
+character(16), parameter :: string_components(1) = ['merit_type']
 
 character(*) :: var_name
 character(*), optional :: component
@@ -1963,6 +1956,8 @@ if (present(re_array) .and.  any(component_name == real_components)) then
         re_array(j)%r => v1%v(i)%high_lim
       case ('low_lim')
         re_array(j)%r => v1%v(i)%low_lim
+      case ('key_delta')
+        re_array(j)%r => v1%v(i)%key_delta
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL VAR")
         call err_exit
@@ -2008,6 +2003,8 @@ if (present(log_array) .and. any(component_name == logic_components)) then
         log_array(j)%l => v1%v(i)%useit_opt
       case ('useit_plot')
         log_array(j)%l => v1%v(i)%useit_plot
+      case ('key_bound')
+        log_array(j)%l => v1%v(i)%key_bound
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: LOGIC VAR")
         call err_exit
@@ -3650,5 +3647,36 @@ enddo
 call re_allocate_eles (eles, n_ele, .true., .true.)
 
 end subroutine tao_init_find_elements
+
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------
+! Put the variables marked by key_bound in the key table.
+
+subroutine tao_setup_key_table ()
+
+implicit none
+
+integer i, j
+
+! Key table setup
+
+call re_allocate (s%key, count(s%var%key_bound))
+s%key = -1
+
+j = 0
+do i = 1, s%n_var_used
+  if (s%var(i)%key_bound .and. s%var(i)%exists) then
+    j = j + 1
+    s%key(j) = i
+    s%var(i)%key_val0 = s%var(i)%model_value
+    s%var(i)%ix_key_table = j
+  else
+    s%var(i)%key_bound = .false.
+    s%var(i)%ix_key_table = -1
+  endif
+enddo
+
+end subroutine tao_setup_key_table
 
 end module tao_utils

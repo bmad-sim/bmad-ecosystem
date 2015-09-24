@@ -3243,6 +3243,7 @@ case ('variable')
     nl=nl+1; write(lines(nl), lmt)  '%good_opt         = ', v_ptr%good_opt
     nl=nl+1; write(lines(nl), lmt)  '%useit_opt        = ', v_ptr%useit_opt
     nl=nl+1; write(lines(nl), lmt)  '%useit_plot       = ', v_ptr%useit_plot
+    nl=nl+1; write(lines(nl), lmt)  '%key_bound        = ', v_ptr%key_bound
 
     result_id = 'variable:1:' // word1
 

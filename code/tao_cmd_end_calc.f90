@@ -7,9 +7,7 @@
 ! Input:
 !
 ! Output:
-! s        -- tao_super_universe_struct: lattice calculations and plotting
-!                                        update
-!
+! s        -- tao_super_universe_struct: lattice calculations and plotting update.
 !-
 
 subroutine tao_cmd_end_calc

@@ -74,7 +74,7 @@ s%n_var_used = 0
 
 call tao_hook_init_var() 
 if (.not. s%com%init_var .or. var_file == '') then
-  call tao_init_var_end_stuff ()
+  call tao_setup_key_table ()
   return
 endif
 
@@ -269,7 +269,7 @@ close (iu)
 deallocate (dflt_good_unis, good_unis)
 deallocate (default_key_b, default_key_d)
 
-call tao_init_var_end_stuff ()
+call tao_setup_key_table ()
 
 end subroutine tao_init_variables
 
@@ -344,13 +344,12 @@ if (use_same_lat_eles_as /= '') then
     ix = ix1 + (n - n1)
     ip = 1 + (n - n1) 
 
-    
     s%var(n)%good_user = v1_ptr%v(ip)%good_user
     if (.not. logical_is_garbage(var(ix)%good_user)) s%var(n)%good_user = var(ix)%good_user
 
-    s%var(n)%ix_key_table = v1_ptr%v(ip)%ix_key_table
+    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
     if (.not. logical_is_garbage(var(ix)%key_bound)) then
-      if (var(ix)%key_bound) s%var(n)%ix_key_table = 1
+      if (var(ix)%key_bound) s%var(n)%key_bound = var(ix)%key_bound
     endif
 
     s%var(n)%key_delta = v1_ptr%v(ip)%key_delta
@@ -380,7 +379,7 @@ if (use_same_lat_eles_as /= '') then
     if (default_high_lim /= 1e30) s%var(n)%high_lim = default_high_lim
     if (var(ix)%high_lim /= 1e30) s%var(n)%high_lim = var(ix)%high_lim
 
-    s%var(n)%ix_key_table = v1_ptr%v(ip)%ix_key_table
+    s%var(n)%key_bound = v1_ptr%v(ip)%key_bound
 
     s%var(n)%ix_v1 = ix_min_var + n - n1
     s%var(n)%v1 => v1_var_ptr
@@ -528,9 +527,9 @@ endif
 do n = n1, n2
   i = ix1 + n - n1
 
-  s%var(n)%ix_key_table = -1
+  s%var(n)%key_bound = .false.
   if (.not. logical_is_garbage(var(i)%key_bound)) then
-    if (var(i)%key_bound) s%var(n)%ix_key_table = 1
+    s%var(n)%key_bound = var(i)%key_bound
   endif
 
   if (logical_is_garbage(var(i)%good_user)) then
@@ -616,7 +615,7 @@ logical err, good_unis(lbound(s%u, 1):), found
 
 if (var%ele_name == '') then
   var%exists = .false.
-  var%ix_key_table = 0
+  var%key_bound = .false.
   return
 endif
 
@@ -652,33 +651,6 @@ endif
 if (size(var%this) > 0) then
   var%exists = .true.
 endif
-
-end subroutine
-
-!-----------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------
-!-----------------------------------------------------------------------------------------
-! Put the variables marked by key_bound in the key table.
-
-subroutine tao_init_var_end_stuff ()
-
-implicit none
-
-integer i, j
-
-! Key table setup
-
-allocate (s%key(count(s%var%ix_key_table > 0)))
-s%key = -1
-
-j = 0
-do i = 1, s%n_var_used
-  if (s%var(i)%ix_key_table < 1) cycle
-  j = j + 1
-  s%key(j) = i
-  s%var(i)%key_val0 = s%var(i)%model_value
-  s%var(i)%ix_key_table = j
-enddo
 
 end subroutine
 
@@ -749,7 +721,7 @@ if (err .or. .not. associated(a_ptr%r)) then
   var%model_value => var%old_value
   var%base_value  => var%old_value
   var%exists = .false.
-  var%ix_key_table = -1
+  var%key_bound = .false.
   return
 endif
 
@@ -848,7 +820,7 @@ if (err .or. size(a_ptr) == 0) then
   var%model_value => var%old_value
   var%base_value  => var%old_value
   var%exists = .false.
-  var%ix_key_table = -1
+  var%key_bound = .false.
   return
 endif
 

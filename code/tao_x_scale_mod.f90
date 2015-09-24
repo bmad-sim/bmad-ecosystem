@@ -45,7 +45,7 @@ character(*), optional :: gang
 character(20) :: r_name = 'tao_x_scale_cmd'
 
 logical, optional :: turn_autoscale_off
-logical err, all_same
+logical err, all_same, have_scaled
 
 ! Use local vars for x_min and x_max in case the actual args are something 
 ! like graph%x%min, etc.
@@ -84,14 +84,16 @@ all_same = .true.
 
 if (allocated(graph)) then
   do i = 1, size(graph)
-    call tao_x_scale_graph (graph(i)%g, x_min, x_max)
+    call tao_x_scale_graph (graph(i)%g, x_min, x_max, have_scaled = have_scaled)
+    if (.not. have_scaled) cycle
     if (graph(i)%g%x%max /= graph(1)%g%x%max) all_same = .false.
     if (graph(i)%g%x%min /= graph(1)%g%x%min) all_same = .false.
     if (logic_option(.true., turn_autoscale_off)) graph(i)%g%p%autoscale_x = .false.
   enddo
 else
   do i = 1, size(plot)
-    call tao_x_scale_plot (plot(i)%p, x_min, x_max, gang)
+    call tao_x_scale_plot (plot(i)%p, x_min, x_max, gang, have_scaled)
+    if (.not. have_scaled) cycle
     if (plot(i)%p%x%max /= plot(1)%p%x%max) all_same = .false.
     if (plot(i)%p%x%min /= plot(1)%p%x%min) all_same = .false.
     if (logic_option(.true., turn_autoscale_off)) plot(i)%p%autoscale_x = .false.
@@ -110,7 +112,7 @@ end subroutine tao_x_scale_cmd
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang)
+! Subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang, have_scaled)
 !
 ! Routine to scale a plot. If x_min = x_max
 ! Then the scales will be chosen to show all the data.
@@ -120,21 +122,26 @@ end subroutine tao_x_scale_cmd
 !   x_min_in -- Real(rp): Plot x-axis min value.
 !   x_max_in -- Real(rp): Plot x-axis max value.
 !   gang     -- Character(*), optional: 'gang', 'nogang', ''. Default = ''.
+!
+! Output:
+!   have_scaled -- Logical, optional: Has a graph been scaled?
 !-
 
-subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang)
+subroutine tao_x_scale_plot (plot, x_min_in, x_max_in, gang, have_scaled)
 
 type (tao_plot_struct), target :: plot
 type (tao_graph_struct), pointer :: graph
 
 real(rp) x_min_in, x_max_in, x_min, x_max, this_min, this_max, major_div_nominal
-integer i, j, p1, p2
+integer i, j, p1, p2, n
 character(*), optional :: gang
 character(16) :: r_name = 'tao_x_scale_plot'
-logical do_gang
+logical, optional :: have_scaled
+logical do_gang, scaled
 
 ! Check if the thing exists
 
+if (present(have_scaled)) have_scaled = .false.
 if (.not. allocated (plot%graph)) return
 if (size(plot%graph) == 0) return
 
@@ -146,7 +153,8 @@ x_max = x_max_in
 !
 
 do j = 1, size(plot%graph)
-  call tao_x_scale_graph (plot%graph(j), x_min, x_max)
+  call tao_x_scale_graph (plot%graph(j), x_min, x_max, scaled)
+  if (present(have_scaled)) have_scaled = (have_scaled .or. scaled)
 enddo
 
 ! if ganging is needed...
@@ -165,10 +173,21 @@ endif
 
 if (do_gang .and. all(plot%graph%valid)) then
 
-  if (x_min == x_max) then  
-    this_min = minval (plot%graph(:)%x%min)
-    this_max = maxval (plot%graph(:)%x%max)
-    major_div_nominal = real(sum(plot%graph(:)%x%major_div_nominal)) / size(plot%graph)
+  if (x_min == x_max) then
+    this_min = 1e30; this_max = -1e30
+    n = 0; major_div_nominal = 0
+    do i = 1, size(plot%graph)
+      graph => plot%graph(i)
+      if (.not. graph%visible) cycle
+      if (graph%type == 'key_table') cycle
+      n = n + 1
+      this_min = min (this_min, graph%x%min)
+      this_max = max (this_max, graph%x%max)
+      major_div_nominal = major_div_nominal + graph%x%major_div_nominal
+    enddo
+    if (n == 0) return
+    major_div_nominal = major_div_nominal / n
+
     if (major_div_nominal > 0) then
       p1 = nint(0.7 * major_div_nominal)  
       p2 = nint(1.3 * major_div_nominal)
@@ -179,6 +198,7 @@ if (do_gang .and. all(plot%graph%valid)) then
     do i = 1, size(plot%graph)
       graph => plot%graph(i)
       if (.not. graph%visible) cycle
+      if (graph%type == 'key_table') cycle
       call qp_calc_and_set_axis ('X', this_min, this_max, p1, p2, 'GENERAL', graph%x%type)
       call qp_get_axis_attrib ('X', graph%x%min, graph%x%max, graph%x%major_div, graph%x%places)
     enddo
@@ -194,7 +214,7 @@ end subroutine tao_x_scale_plot
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 
-subroutine tao_x_scale_graph (graph, x_min, x_max)
+subroutine tao_x_scale_graph (graph, x_min, x_max, have_scaled)
 
 implicit none
 
@@ -207,14 +227,20 @@ type (lat_struct), pointer :: lat
 integer i, j, k, n, p1, p2, iu, ix, ib
 real(rp) x_min, x_max
 real(rp) this_min, this_max, del
+logical, optional :: have_scaled
 logical curve_here
 
 character(24) :: r_name = 'tao_x_scale_graph'
 
 ! If specific min/max values are given then life is easy.
 
+if (present(have_scaled)) have_scaled = .false.
+
 if (graph%type == 'key_table') return
 if (.not. graph%visible) return
+if (graph%type == 'key_table') return
+
+if (present(have_scaled)) have_scaled = .true.
 
 if (x_max /= x_min) then
 

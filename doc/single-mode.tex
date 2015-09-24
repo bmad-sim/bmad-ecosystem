@@ -22,18 +22,22 @@ to get into \vn{single mode}. To go back to \vn{line mode} type
 \label{s:key.bind}
 
 \index{key bindings}
-The main purpose of Single Mode is to associate certain keys with
-certain variables so that the pressing of these keys will change their
-associated variable. This is called a \vn{key binding}. Key bindings
-are established via the \vn{var(i)%key_bound} logical (See
-Section~\sref{s:init.var}). The variables are divided into banks of
-10. The 0\Th bank uses the first ten variables that have their
-\vn{key_bound} attribute (\sref{s:init.var}) set to True.
-the 1\St bank uses the next ten, etc.
-At any one time, only one bank is active. To see the status of this
-bank, a \vn{key_table} plot (\sref{s:key.table})can be setup as shown in
-Figure~\ref{f:key.table}. The relationship between the keys and a
-change in a variable is:
+The main purpose of Single Mode is to associate certain keyboard keys
+with certain variables so that the pressing of these keys will change
+their associated model value of the variable. This is called a \vn{key
+binding}. Key bindings are established in a startup file by setting
+the \vn{var(i)%key_bound} and \vn{var(i)%key_delta} parameters (see
+Section~\sref{s:init.var}). After startup, associated variables with
+keyboard keys can be done using the \vn{set variable} command
+(\sref{s:set}).
+
+The variables are divided into banks of 10. The 0\Th bank uses the
+first ten variables that have their \vn{key_bound} attribute
+(\sref{s:init.var}) set to True.  the 1\St bank uses the next ten,
+etc.  At any one time, only one bank is active. To see the status of
+this bank, a \vn{key_table} plot (\sref{s:key.table})can be setup as
+shown in Figure~\ref{f:key.table}. The relationship between the keys
+and a change in a variable is:
 \begin{example}
                  Change by factor of:          
      Variable    -10  -1    1     10
