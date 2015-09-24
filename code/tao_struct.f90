@@ -462,6 +462,7 @@ type tao_var_struct
   logical good_plot         ! See above
   logical useit_opt         ! See above
   logical useit_plot        ! See above
+  logical key_bound         ! Variable bound to keyboard key?
   type (tao_v1_var_struct), pointer :: v1 => null() ! Pointer to the parent.
 end type tao_var_struct  
 

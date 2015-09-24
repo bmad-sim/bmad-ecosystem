@@ -1264,6 +1264,7 @@ else
 endif
 
 call tao_set_var_useit_opt()
+call tao_setup_key_table ()
 
 end subroutine tao_set_var_cmd
 

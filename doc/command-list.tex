@@ -765,7 +765,7 @@ variables, etc. Format:
   set universe <what_universe> recalculate
   set universe <what_universe> mat6_recalc <on/off>
   set universe <what_universe> track_recalc <on/off>
-  set var <var_name>|<component> = <value>
+  set variable <var_name>|<component> = <value>
   set wave <component> = <value>
 \end{example}
 
@@ -1220,9 +1220,9 @@ Example:
   set universe * recalc ! Recalculate in all universes.
 \end{example}
 
-%% set var --------------------------------------------------------------
+%% set variable --------------------------------------------------------------
 
-\item[set var <var\_name>|<component> = <value>] \Newline
+\item[set variable <var\_name>|<component> = <value>] \Newline
 
 \vskip -0.2in
 
@@ -1241,6 +1241,8 @@ For \vn{set var}, the \vn{<component>}s that can be set are:
   good_user   ! This is what is set by the use, veto, and restore commands.
   step        ! Sets what a "small" variation of the variable is.
   merit_type  ! How merit contribution is calculated.
+  key_bound   ! Model value can be modified using keybard?
+  key_delta   ! Change in model value when key is pressed.
 \end{example}
 
 Example:
