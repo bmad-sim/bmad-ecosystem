@@ -29,12 +29,12 @@ type random_state_struct
   integer :: engine = pseudo_random$
   ! Params
   integer :: seed = 0
-  real(sp) :: am
+  real(sp) :: am = 0
   integer :: gauss_converter = exact_gaussian$
   real(rp) :: gauss_sigma_cut = -1
   integer(i4_b) :: in_sobseq = 0
   integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0
-  real(rp) :: x_sobseq(sobseq_maxdim)
+  real(rp) :: x_sobseq(sobseq_maxdim) = 0
 end type
 
 type (random_state_struct), private, target, save :: ran_state_dflt
