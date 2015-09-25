@@ -25,6 +25,10 @@ open (1, file = 'output.now')
 
 call bmad_parser ('parse_test.bmad', lat)
 
+write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_com%max_aperture_limit
+write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
+write (1, '(a, l1, a)') '"bmad_com[convert_to_kinetic_momentum]" STR   "', bmad_com%convert_to_kinetic_momentum, '"'
+
 bp_com%input_from_file = .false.
 bp_com%parse_line = '-2*7)'
 call evaluate_value ('ERR', value, lat, delim, delim_found, err, ',)')

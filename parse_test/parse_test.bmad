@@ -2,6 +2,10 @@ no_digested
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
+bmad_com[max_aperture_limit] = 23.5
+bmad_com[ptc_max_fringe_order] = -1
+bmad_com[convert_to_kinetic_momentum] = .true.
+
 call, file = sub_dir/sub.bmad
 
 parameter[custom_attribute1] = quadrupole::my_custom
