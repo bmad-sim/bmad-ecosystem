@@ -92,17 +92,37 @@ case ('BMAD_COM')
   call re_allocate (ptr_array, 1)
 
   select case(attrib_name)
-  case ('MAX_APERTURE_LIMIT');          ptr_array(1)%r => bmad_com%max_aperture_limit
-  case ('DEFAULT_DS_STEP');             ptr_array(1)%r => bmad_com%default_ds_step
-  case ('SIGNIFICANT_LENGTH');          ptr_array(1)%r => bmad_com%significant_length
-  case ('REL_TOL_TRACKING');            ptr_array(1)%r => bmad_com%rel_tol_tracking
-  case ('ABS_TOL_TRACKING');            ptr_array(1)%r => bmad_com%abs_tol_tracking
-  case ('REL_TOL_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%rel_tol_adaptive_tracking
-  case ('ABS_TOL_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%abs_tol_adaptive_tracking
-  case ('INIT_DS_ADAPTIVE_TRACKING');   ptr_array(1)%r => bmad_com%init_ds_adaptive_tracking
-  case ('MIN_DS_ADAPTIVE_TRACKING');    ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
-  case ('FATAL_DS_ADAPTIVE_TRACKING');  ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
-  case ('ELECTRIC_DIPOLE_MOMENT');      ptr_array(1)%r => bmad_com%electric_dipole_moment
+  case ('MAX_APERTURE_LIMIT');              ptr_array(1)%r => bmad_com%max_aperture_limit
+  case ('DEFAULT_DS_STEP');                 ptr_array(1)%r => bmad_com%default_ds_step
+  case ('SIGNIFICANT_LENGTH');              ptr_array(1)%r => bmad_com%significant_length
+  case ('REL_TOL_TRACKING');                ptr_array(1)%r => bmad_com%rel_tol_tracking
+  case ('ABS_TOL_TRACKING');                ptr_array(1)%r => bmad_com%abs_tol_tracking
+  case ('REL_TOL_ADAPTIVE_TRACKING');       ptr_array(1)%r => bmad_com%rel_tol_adaptive_tracking
+  case ('ABS_TOL_ADAPTIVE_TRACKING');       ptr_array(1)%r => bmad_com%abs_tol_adaptive_tracking
+  case ('INIT_DS_ADAPTIVE_TRACKING');       ptr_array(1)%r => bmad_com%init_ds_adaptive_tracking
+  case ('MIN_DS_ADAPTIVE_TRACKING');        ptr_array(1)%r => bmad_com%min_ds_adaptive_tracking
+  case ('FATAL_DS_ADAPTIVE_TRACKING');      ptr_array(1)%r => bmad_com%fatal_ds_adaptive_tracking
+  case ('ELECTRIC_DIPOLE_MOMENT');          ptr_array(1)%r => bmad_com%electric_dipole_moment
+
+  case ('TAYLOR_ORDER');                    ptr_array(1)%i => bmad_com%taylor_order
+  case ('DEFAULT_INTEG_ORDER');             ptr_array(1)%i => bmad_com%default_integ_order
+  case ('PTC_MAX_FRINGE_ORDER');            ptr_array(1)%i => bmad_com%ptc_max_fringe_order
+
+  case ('USE_HARD_EDGE_DRIFTS');            ptr_array(1)%l => bmad_com%use_hard_edge_drifts
+  case ('SR_WAKES_ON');                     ptr_array(1)%l => bmad_com%sr_wakes_on
+  case ('LR_WAKES_ON');                     ptr_array(1)%l => bmad_com%lr_wakes_on
+  case ('MAT6_TRACK_SYMMETRIC');            ptr_array(1)%l => bmad_com%mat6_track_symmetric
+  case ('AUTO_BOOKKEEPER');                 ptr_array(1)%l => bmad_com%auto_bookkeeper
+  case ('SPACE_CHARGE_ON');                 ptr_array(1)%l => bmad_com%space_charge_on
+  case ('COHERENT_SYNCH_RAD_ON');           ptr_array(1)%l => bmad_com%coherent_synch_rad_on
+  case ('SPIN_TRACKING_ON');                ptr_array(1)%l => bmad_com%spin_tracking_on
+  case ('RADIATION_DAMPING_ON');            ptr_array(1)%l => bmad_com%radiation_damping_on
+  case ('RADIATION_FLUCTUATIONS_ON');       ptr_array(1)%l => bmad_com%radiation_fluctuations_on
+  case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
+  case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default
+  case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
+  case ('DEBUG');                           ptr_array(1)%l => bmad_com%debug
+
   case default
     if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)

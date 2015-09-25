@@ -160,17 +160,14 @@ endif
 
 iseq_tot = 0                            ! number of sequences encountered
 
+bp_com%extra = extra_parsing_info_struct()
+
 call ran_default_state (get_state = bp_com%extra%initial_state) ! Get initial random state.
 if (bp_com%extra%initial_state%ix == -1) then
   bp_com%extra%deterministic = 0
 else
   bp_com%extra%deterministic = 1
 endif
-
-bp_com%extra%ran_function_was_called = .false.
-bp_com%extra%deterministic_ran_function_was_called = .false.
-bp_com%extra%ptc_max_fringe_order_set = .false. 
-bp_com%extra%use_hard_edge_drifts_set = .false.
 
 bp_com%input_line_meaningful = .true.
 
