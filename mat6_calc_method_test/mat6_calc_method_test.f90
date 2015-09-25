@@ -155,7 +155,7 @@ case ('"E_GUN1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-07'
 case ('"E_GUN1:Tracking:Vector"')                  ; tolerance = 'ABS 6e-10'
 
 case ('"ELSEPARATOR1:Tracking:MatrixRow5"')       ; tolerance = 'ABS 1e-10'
-case ('"ELSEPARATOR2:Tracking:MatrixRow5"')       ; tolerance = 'ABS 6e-11'
+case ('"ELSEPARATOR2:Tracking:MatrixRow5"')       ; tolerance = 'ABS 1e-10'
 
 case ('"PATCH1:Tracking:MatrixRow5"')              ; tolerance = 'ABS 3e-11'
 case ('"PATCH1:Tracking:Symp_Err"')                ; tolerance = 'ABS 1e-11'
