@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 162
+integer, parameter :: bmad_inc_version$ = 163
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -1248,13 +1248,39 @@ integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
 !   Only set True when ran function is called with ran_determinisitc = 1.
 
 type extra_parsing_info_struct
-  type (random_state_struct) :: initial_state
-  integer deterministic   
-  logical ran_function_was_called 
-  logical deterministic_ran_function_was_called 
-  logical ptc_max_fringe_order_set, use_hard_edge_drifts_set
-  integer ptc_max_fringe_order
-  logical use_hard_edge_drifts
+  type (random_state_struct) :: initial_state       = random_state_struct()
+  integer :: deterministic                          = 0
+  logical :: ran_function_was_called                = .false.
+  logical :: deterministic_ran_function_was_called  = .false.
+
+  logical :: max_aperture_limit_set                 = .false.
+  logical :: default_ds_step_set                    = .false.
+  logical :: significant_length_set                 = .false.
+  logical :: rel_tol_tracking_set                   = .false.
+  logical :: abs_tol_tracking_set                   = .false.
+  logical :: rel_tol_adaptive_tracking_set          = .false.
+  logical :: abs_tol_adaptive_tracking_set          = .false.
+  logical :: init_ds_adaptive_tracking_set          = .false.
+  logical :: min_ds_adaptive_tracking_set           = .false.
+  logical :: fatal_ds_adaptive_tracking_set         = .false.
+  logical :: electric_dipole_moment_set             = .false.
+  logical :: taylor_order_set                       = .false.
+  logical :: default_integ_order_set                = .false.
+  logical :: ptc_max_fringe_order_set               = .false.
+  logical :: use_hard_edge_drifts_set               = .false.
+  logical :: sr_wakes_on_set                        = .false.
+  logical :: lr_wakes_on_set                        = .false.
+  logical :: mat6_track_symmetric_set               = .false.
+  logical :: auto_bookkeeper_set                    = .false.
+  logical :: space_charge_on_set                    = .false.
+  logical :: coherent_synch_rad_on_set              = .false.
+  logical :: spin_tracking_on_set                   = .false.
+  logical :: radiation_damping_on_set               = .false.
+  logical :: radiation_fluctuations_on_set          = .false.
+  logical :: conserve_taylor_maps_set               = .false.
+  logical :: absolute_time_tracking_default_set     = .false.
+  logical :: convert_to_kinetic_momentum_set        = .false.
+  logical :: debug_set                              = .false.
 end type
 
 ! ptc_field_geometry for bends
@@ -1268,6 +1294,7 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 
 ! %max_aperture_limit is used when no limit is specified or when 
 !   lat%param%aperture_limit_on = False.
+! Remember: Change extra_parsing_info_struct if bmad_common_struct changed.
 
 type bmad_common_struct
   real(rp) :: max_aperture_limit = 1e3            ! Max Aperture.

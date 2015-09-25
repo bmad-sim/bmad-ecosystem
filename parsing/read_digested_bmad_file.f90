@@ -34,12 +34,13 @@ type (branch_struct), pointer :: branch
 type (extra_parsing_info_struct) :: extra
 type (ptc_parameter_struct) ptc_param
 type (control_struct), pointer :: c
+type (bmad_common_struct) bmad_com_read
 
 real(rp) value(num_ele_attrib$)
 
 integer inc_version, d_unit, n_files, file_version, i, j, k, ix, ix_value(num_ele_attrib$)
 integer stat_b(13), stat_b2, stat_b8, stat_b10, n_branch, n, control_type, coupler_at, idum1
-integer ierr, stat, ios, n_wall_section, garbage, idum2, j1, j2
+integer ierr, stat, ios, ios2, n_wall_section, garbage, idum2, j1, j2
 
 character(*) digested_file
 character(200) fname_read, fname_versionless, fname_full
@@ -165,8 +166,6 @@ enddo
 ! we read (and write) the lat in pieces since it is
 ! too big to write in one piece
 
-read (d_unit, err = 9025) bmad_com%electric_dipole_moment
-
 read (d_unit, err = 9030)  &   
         lat%use_name, lat%lattice, lat%input_file_name, lat%title, &
         lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, &
@@ -256,8 +255,40 @@ endif
 read (d_unit, iostat = ios) found_it
 if (found_it) then
   read (d_unit, iostat = ios) extra
-  if (extra%ptc_max_fringe_order_set) bmad_com%ptc_max_fringe_order = extra%ptc_max_fringe_order
-  if (extra%use_hard_edge_drifts_set) bmad_com%use_hard_edge_drifts = extra%use_hard_edge_drifts
+  read (d_unit, iostat = ios2) bmad_com_read
+  if (ios /= 0 .or. ios2 /= 0) then
+    call out_io (s_error$, r_name, 'ERROR READING BMAD COMMON PARAMETERS')
+    close (d_unit)
+    return
+  endif
+  if (extra%max_aperture_limit_set)             bmad_com%max_aperture_limit              = bmad_com_read%max_aperture_limit
+  if (extra%default_ds_step_set)                bmad_com%default_ds_step                 = bmad_com_read%default_ds_step
+  if (extra%significant_length_set)             bmad_com%significant_length              = bmad_com_read%significant_length
+  if (extra%rel_tol_tracking_set)               bmad_com%rel_tol_tracking                = bmad_com_read%rel_tol_tracking
+  if (extra%abs_tol_tracking_set)               bmad_com%abs_tol_tracking                = bmad_com_read%abs_tol_tracking
+  if (extra%rel_tol_adaptive_tracking_set)      bmad_com%rel_tol_adaptive_tracking       = bmad_com_read%rel_tol_adaptive_tracking
+  if (extra%abs_tol_adaptive_tracking_set)      bmad_com%abs_tol_adaptive_tracking       = bmad_com_read%abs_tol_adaptive_tracking
+  if (extra%init_ds_adaptive_tracking_set)      bmad_com%init_ds_adaptive_tracking       = bmad_com_read%init_ds_adaptive_tracking
+  if (extra%min_ds_adaptive_tracking_set)       bmad_com%min_ds_adaptive_tracking        = bmad_com_read%min_ds_adaptive_tracking
+  if (extra%fatal_ds_adaptive_tracking_set)     bmad_com%fatal_ds_adaptive_tracking      = bmad_com_read%fatal_ds_adaptive_tracking
+  if (extra%electric_dipole_moment_set)         bmad_com%electric_dipole_moment          = bmad_com_read%electric_dipole_moment
+  if (extra%taylor_order_set)                   bmad_com%taylor_order                    = bmad_com_read%taylor_order
+  if (extra%default_integ_order_set)            bmad_com%default_integ_order             = bmad_com_read%default_integ_order
+  if (extra%ptc_max_fringe_order_set)           bmad_com%ptc_max_fringe_order            = bmad_com_read%ptc_max_fringe_order
+  if (extra%use_hard_edge_drifts_set)           bmad_com%use_hard_edge_drifts            = bmad_com_read%use_hard_edge_drifts
+  if (extra%sr_wakes_on_set)                    bmad_com%sr_wakes_on                     = bmad_com_read%sr_wakes_on
+  if (extra%lr_wakes_on_set)                    bmad_com%lr_wakes_on                     = bmad_com_read%lr_wakes_on
+  if (extra%mat6_track_symmetric_set)           bmad_com%mat6_track_symmetric            = bmad_com_read%mat6_track_symmetric
+  if (extra%auto_bookkeeper_set)                bmad_com%auto_bookkeeper                 = bmad_com_read%auto_bookkeeper
+  if (extra%space_charge_on_set)                bmad_com%space_charge_on                 = bmad_com_read%space_charge_on
+  if (extra%coherent_synch_rad_on_set)          bmad_com%coherent_synch_rad_on           = bmad_com_read%coherent_synch_rad_on
+  if (extra%spin_tracking_on_set)               bmad_com%spin_tracking_on                = bmad_com_read%spin_tracking_on
+  if (extra%radiation_damping_on_set)           bmad_com%radiation_damping_on            = bmad_com_read%radiation_damping_on
+  if (extra%radiation_fluctuations_on_set)      bmad_com%radiation_fluctuations_on       = bmad_com_read%radiation_fluctuations_on
+  if (extra%conserve_taylor_maps_set)           bmad_com%conserve_taylor_maps            = bmad_com_read%conserve_taylor_maps
+  if (extra%absolute_time_tracking_default_set) bmad_com%absolute_time_tracking_default  = bmad_com_read%absolute_time_tracking_default
+  if (extra%convert_to_kinetic_momentum_set)    bmad_com%convert_to_kinetic_momentum     = bmad_com_read%convert_to_kinetic_momentum
+  if (extra%debug_set)                          bmad_com%debug                           = bmad_com_read%debug
 endif
 
 ! Setup any attribute aliases in the global attribute name table.
