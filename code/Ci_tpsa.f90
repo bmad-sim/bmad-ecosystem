@@ -28,7 +28,7 @@ MODULE c_TPSA
   private dexpt,dcost,dsint,dtant
   PRIVATE GETCHARnd2,GETintnd2,dputchar,dputint, filter,check_j,c_dputint0,c_dputint0r
   private GETintnd2t,equalc_cspinor_cspinor,c_AIMAG,c_real,equalc_ray_ray
-  PRIVATE DEQUAL,REQUAL,varf,varf001  !,CHARINT
+  PRIVATE DEQUAL,REQUAL,varf,varf001,equalc_spinor_cspinor  !,CHARINT
   !  PUBLIC VAR,ASS
   private pbbra,liebra,liebramap,liebramap1,full_absT,c_asstaylor,getcharnd2s,GETintnd2s,GETintk
   private shiftda,shift000,cDEQUAL,pri,rea,cfu000,alloc_DA,alloc_c_spinmatrix,cpbbra
@@ -52,12 +52,12 @@ MODULE c_TPSA
  private equalc_t_ct,equalc_ct_c,matrixMAPr,MAPmatrixr,r_MAPmatrixr,c_EQUALMAP,c_IdentityEQUALMAP
  private c_IdentityEQUALSPIN,c_pri_spinmatrix,c_pri_map,r_matrixMAPr,c_bra_v_v
  private equalc_cmap_map,c_bra_v_ct,c_bra_v_dm,equalc_cvec_vec,c_expflo,c_expflo_map
- private alloc_c_factored_lie,kill_c_factored_lie,c_expflo_fac,equalc_cmap_mapspin
+ private alloc_c_factored_lie,kill_c_factored_lie,c_expflo_fac
  private c_trxspinmatrix,c_inv_as,sqrtt,alloc_c_spinor,kill_c_spinor,c_complex_spinmatrix
  private c_spinmatrix_add_spinmatrix,c_exp_spinor,unarySUB_spinor,c_spinor_add_spinor,c_taylor_spinor
  private c_IdentityEQUALSPINOR,c_spinmatrix_spinor,c_logt,c_pri_factored_lie,equalc_map_cmap
  private c_expflo_fac_inv,c_logc,c_complex_spinor,GETORDERSPINMATRIX,c_pri_spinor
- private c_spinor_cmap,equal_mapspin_c_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da
+ private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da
  PRIVATE CUTORDERMAP,CUTORDERspin,c_concat_da,c_concat_spinor_ray
   type(C_dalevel) c_scratchda(ndumt)   !scratch levels of DA using linked list
 integer, private :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
@@ -116,15 +116,16 @@ logical :: remove_tune_shift=.false.
 
       MODULE PROCEDURE equalc_cmap_map 
       MODULE PROCEDURE equalc_map_cmap
-      MODULE PROCEDURE equal_mapspin_c_cmap
+
       MODULE PROCEDURE equalc_cvec_vec
-      MODULE PROCEDURE equalc_cmap_mapspin
+
       MODULE PROCEDURE c_EQUALVEC
       MODULE PROCEDURE equalc_cspinor_cspinor
       MODULE PROCEDURE equalc_ray_r6
       MODULE PROCEDURE equalc_r6_ray
       MODULE PROCEDURE equalc_ray_ray
       MODULE PROCEDURE equal_c_vector_field_fourier
+      MODULE PROCEDURE equalc_spinor_cspinor
   end  INTERFACE
 
 
@@ -1906,79 +1907,7 @@ end subroutine c_get_indices
 
   END subroutine EQUAL_RAY8_c_map
 
-  SUBROUTINE  equalc_cmap_mapspin(S2,S1) ! spin routine
-    implicit none
-    type (c_damap),INTENT(inOUT)::S2
-    type (damapspin),INTENT(IN)::S1
-    type(complextaylor) t
-
-    integer i,j
-
-    call alloc(t)
  
-
-    call check_snake
-      S2=s1%m
-
-      do i=1,3
-       do j=1,3
-        t%r=S1%s%s(i,j)
-        S2%s%s(i,j)=t
-       enddo
-      enddo
-      
-      do i=1,6
-       do j=1,6
-        S2%e_ij(i,j)=S1%e_ij(i,j)
-       enddo
-      enddo
-
-   !   if(nd2==6) then
-   !    f2=s2
-   !     S2%e_ij=matmul(matmul(f2,S2%e_ij),transpose(f2))
-   !   endif
-
-
-  
-      call kill(t)
-
- end SUBROUTINE  equalc_cmap_mapspin
-
-  SUBROUTINE  equal_mapspin_c_cmap(S2,S1)  
-    implicit none
-    type (c_damap),INTENT(in)::S1
-    type (damapspin),INTENT(INOUT)::S2
-    type(complextaylor) t
-
-    integer i,j
-
-    call alloc(t)
-
-    call c_check_snake
-      S2%m=s1
-
-      do i=1,3
-       do j=1,3
-        t=S1%s%s(i,j)
-        S2%s%s(i,j)=t%r
-       enddo
-      enddo
-
-      do i=1,6
-       do j=1,6
-        S2%e_ij(i,j)=S1%e_ij(i,j)
-       enddo
-      enddo
-
-
-    !   if(nd2==6) then
-    !     f2=(s2%m.sub.1)**(-1)
-    !    S2%e_ij=matmul(matmul(f2,S2%e_ij),transpose(f2))
-    !   endif
-
-
-      call kill(t)
- end SUBROUTINE  equal_mapspin_c_cmap
 
   SUBROUTINE  equalc_cvec_vec(S2,S1)
     implicit none
@@ -2022,6 +1951,22 @@ end subroutine c_get_indices
 
 
  end SUBROUTINE  equalc_cspinor_cspinor
+
+  SUBROUTINE  equalc_spinor_cspinor(S2,S1) ! spin routine
+    implicit none
+    type (spinor),INTENT(inOUT)::S2
+    type (c_spinor),INTENT(IN)::S1
+
+    integer i 
+
+    call check_snake
+
+    do i=1,3
+      s2%x(i)=s1%v(i)
+    enddo
+
+
+ end SUBROUTINE  equalc_spinor_cspinor
 
   SUBROUTINE  c_DPEKMAP(S2,S1)
     implicit none
@@ -6008,7 +5953,6 @@ cgetvectorfield=0
        call c_clean_taylor(s1%v(i),s2%v(i),prec)
     enddo
 
-
   END SUBROUTINE c_clean_vector_field
 
 
@@ -9276,6 +9220,73 @@ prec=1.d-8
     call kill(ss)
 
   end subroutine c_find_n0
+
+!!! this routine is for compatibility after extermination of real FPP spin
+  subroutine get_spin_n0(s0,theta0,n0) ! spin routine
+    implicit none
+    real(dp),intent(inout) :: s0(3,3),theta0
+    real(dp), intent(inout) :: n0(3)
+    real(dp)  norm0, det,detm,ss(3,3),s(3,3)
+ 
+    integer i,is,j
+
+
+!    ss=s0
+
+    
+   do i=1,3
+       do j=1,3
+         ss(i,j)=s0(i,j)
+       enddo
+    enddo
+
+
+
+    do i=1,3
+       s(i,i)=s(i,i)-1.0_dp
+    enddo
+
+    det=(s(2,2)*s(3,3)-s(2,3)*s(3,2))
+ 
+    is=1
+    detm=(s(1,1)*s(3,3)-s(1,3)*s(3,1))
+ 
+    if(abs(detm)>=abs(det)) then
+       det=detm
+       is=2
+    endif
+ 
+    detm=s(1,1)*s(2,2)-s(1,2)*s(2,1)
+    if(abs(detm)>=abs(det)) then
+       det=detm
+       is=3
+    endif
+ 
+
+    n0(is)=1.0_dp
+    if(is==1) then
+       n0(2)=(-s(3,3)*s(2,1)+s(2,3)*s(3,1))/det
+       n0(3)=(-s(2,2)*s(3,1)+s(2,1)*s(3,2))/det
+    elseif(is==2) then
+       n0(1)=(-s(3,3)*s(1,2)+s(3,2)*s(1,3))/det
+       n0(3)=(-s(1,1)*s(3,2)+s(1,2)*s(3,1))/det
+    else
+       n0(1)=(-s(2,2)*s(1,3)+s(2,3)*s(1,2))/det
+       n0(2)=(-s(1,1)*s(2,3)+s(1,3)*s(2,1))/det
+    endif
+
+     norm0=sqrt(n0(1)**2+n0(2)**2+n0(3)**2)
+
+ 
+
+    do i=1,3
+       n0(i)=n0(i)/norm0
+    enddo
+
+
+    theta0=spin_tune_def*atan2(s(1,3),s(1,1))
+
+ end subroutine get_spin_n0
 
   subroutine c_n0_to_nr(n0,nr) ! spin routine
     implicit none
