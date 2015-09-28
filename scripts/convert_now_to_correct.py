@@ -4,6 +4,10 @@
 # Script convert a "output.now" file to a format suitable to "output.correct".
 #-
 
+import re
+
+p1 = re.compile(r'^(.*"[^"]+" +)(STR|\S+ +\S+) ')
+
 now_file = open('output.now', 'r')  
 temp_file = open('output.correct', 'w')
 
@@ -15,23 +19,12 @@ for now_line in now_file:
     temp_file.write(now_line)    # comment line
 
   else:
-    split = now_line.split('"', 4)
 
-    if split[0].strip() != '':
-      print('Cannot parse line: ' + now_line.strip())
-      continue
+    if p1.match(now_line):
+      temp_file.write(p1.sub(r'\1 ', now_line))
 
-    ## print split
-
-    s2 = split[2].split()
-    if len(s2) < 1:
-      print('Cannot subparse line: ' + now_line)
-      continue
-
-    if (s2[0].strip() == 'STR'):
-      temp_file.write('"' + split[1] + '"    "' + split[3] + '"\n')
     else:
-      temp_file.write('"' + split[1] + '"   ' + '  '.join(s2[2:]) + '\n')
+       print('CANNOT SUBPARSE LINE: ' + now_line)
 
 #
 
