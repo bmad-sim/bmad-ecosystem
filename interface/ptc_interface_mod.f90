@@ -3055,7 +3055,7 @@ type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm
-real(rp) dx, dy, cos_t, sin_t, coef, step_info(7), dz_dl_max_err, kick_magnitude
+real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
@@ -3070,7 +3070,6 @@ character(16) :: r_name = 'ele_to_fibre'
 
 !
 
-dz_dl_max_err = 1d-10
 call zero_key(ptc_key)  ! init key
 
 select case (ele%ptc_integration_type)
@@ -3182,11 +3181,6 @@ case (sbend$)
     ptc_key%list%t1   = ele%value(e1$) - ele%value(angle$)/2
     !! ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2 ! Determined by %t1 in this case.
   endif
-
-!  if (.not. present(integ_order)) then
-!    call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ptc_key%method)
-!    ptc_key%nstep = nint(step_info(ptc_key%method+1))
-!  endif
 
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
