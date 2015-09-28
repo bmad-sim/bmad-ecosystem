@@ -413,24 +413,29 @@ end subroutine add_ptc_layout_to_list
 !                        Notice: This closed orbit is the closed orbit with radiation on.
 !-
 
-!subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
-!
-!use madx_ptc_module
-!
-!implicit none
-!
-!type (ele_struct), target :: ele
-!type (internal_state) state
-!type (normal_modes_struct) norm_mode
+subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
+
+use madx_ptc_module
+
+implicit none
+
+type (ele_struct), target :: ele
+type (internal_state) state
+type (normal_modes_struct) norm_mode
 !type (normal_spin) normal
 !type (damapspin) da_map
-!type (probe) x_probe
-!type (probe_8) x_probe8  
-!type (coord_struct) closed_orb
-!type (fibre), pointer :: ptc_fibre
-!
-!real(rp) sigma_mat(6,6)
-!real(dp) x(6), energy, deltap
+type (probe) x_probe
+type (probe_8) x_probe8  
+type (coord_struct) closed_orb
+type (fibre), pointer :: ptc_fibre
+
+real(rp) sigma_mat(6,6)
+real(dp) x(6), energy, deltap
+
+
+print *, 'PTC_EMIT_CALC IS BEING RENOVATED! PLEASE CONTACT DAVID SAGAN!'
+call err_exit()
+
 !
 !!
 !
@@ -485,7 +490,7 @@ end subroutine add_ptc_layout_to_list
 !call kill(x_probe8)
 !call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 !
-!end subroutine ptc_emit_calc 
+end subroutine ptc_emit_calc 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
