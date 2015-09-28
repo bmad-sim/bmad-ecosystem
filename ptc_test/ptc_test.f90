@@ -59,8 +59,18 @@ do i = 1, branch%n_ele_track
   ele2%ptc_fibre => ele%ptc_fibre
   call update_ptc_fibre_from_bmad (ele2)
   call update_bmad_ele_from_ptc (ele)
+enddo
+
+call lattice_bookkeeper (lat)
+
+do i = 1, branch%n_ele_track
+  ele => branch%ele(i)
+  ele2 => branch2%ele(i)
   str = 'NO-DIFF'
   do j = 1, num_ele_attrib$
+    if (j == ds_step$) cycle
+    if (j == num_steps$) cycle
+    if (j == integrator_order$) cycle
     call check_if_different (str, ele, j, ele%value(j), ele2%value(j))
   enddo
   do j = 0, n_pole_maxx

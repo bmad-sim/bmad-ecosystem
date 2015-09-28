@@ -15,7 +15,7 @@ type (branch_struct), pointer :: branch
 real(rp) err_mat(6,6)
 
 character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
-character(44) :: final_str
+character(46) :: final_str
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 
