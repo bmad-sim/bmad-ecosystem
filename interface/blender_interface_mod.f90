@@ -4,7 +4,7 @@ use geometry_mod
 
 implicit none
 
-private skip_ele_blender, write_blender_ele
+!private skip_ele_blender, write_blender_ele
 
 contains
 
@@ -110,7 +110,7 @@ end function skip_ele_blender
 !--------------------------------------------------------------------------------------
 
 
-subroutine write_blender_ele(iu, ele)
+subroutine write_blender_ele(iu, ele, old_format)
 
 type(ele_struct) :: ele
 type(floor_position_struct) :: local_position, p
@@ -118,6 +118,8 @@ type (coord_struct) orbit
 
 real(rp) :: w_mat(3,3), w2_mat(3,3)
 integer :: iu
+
+logical, optional :: old_format
 
 character(2), parameter :: c = ', '
 character(200) des
@@ -160,8 +162,11 @@ des = ''
 if (associated(ele%descrip)) des = ele%descrip
 
 !
-
-write (iu, '(5a)') 'lat.append(map_table_dict("', trim(line), '", "', trim(des), '"))'
+if (logic_option(.false., old_format)) then
+  write (iu, '(4a)') trim(line), ', "', trim(des), '"'
+else
+  write (iu, '(5a)') 'lat.append(map_table_dict("', trim(line), '", "', trim(des), '"))'
+endif
 
 end subroutine write_blender_ele
 
