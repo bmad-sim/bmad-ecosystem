@@ -903,13 +903,13 @@ endif
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
   call move_alloc(s%plot_page%template, temp_template)
-  allocate (s%plot_page%template(n + 29))
+  allocate (s%plot_page%template(n + 35))
   s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
   np = n
   if (s%plot_page%template(np)%name == 'scratch') np = np - 1
 else
-  allocate (s%plot_page%template(29))
+  allocate (s%plot_page%template(35))
   np = 0
 endif
 
