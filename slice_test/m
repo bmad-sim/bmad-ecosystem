@@ -1,0 +1,3 @@
+cd ..
+mkd slice_test-exe
+cd slice_test
