@@ -5068,6 +5068,7 @@ end subroutine parser_add_lord
 subroutine settable_dep_var_bookkeeping (ele)
 
 use random_mod
+use s_fitting, only: check_bend
 
 implicit none
 
@@ -5276,12 +5277,12 @@ if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for thi
     if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%value(l_pole$) /= 0) then
       ele%value(ds_step$) = ele%value(l_pole$) / 10
 
-!    elseif (ele%key == sbend$ .and. ele%value(integrator_order$) == 0) then
-!      dz_dl_max_err = 1d-10
-!      call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ixm)
-!      ele%value(integrator_order$) = ixm
-!      ele%value(num_steps$) = step_info(ixm+1)
-!      ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
+    elseif (ele%key == sbend$ .and. ele%value(integrator_order$) == 0) then
+      dz_dl_max_err = 1d-10
+      call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ixm)
+      ele%value(integrator_order$) = ixm
+      ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
+      ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
 
     else
       ele%value(ds_step$) = bmad_com%default_ds_step
