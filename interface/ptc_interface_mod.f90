@@ -3054,14 +3054,14 @@ type (work) energy_work
 type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
-real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx
-real(rp) dx, dy, cos_t, sin_t, coef
+real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm
+real(rp) dx, dy, cos_t, sin_t, coef, step_info(7), dz_dl_max_err, kick_magnitude
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
 integer, optional :: tracking_species
 integer, optional :: integ_order, steps
-integer i, n, key, n_term, exception, n_field, ix
+integer i, n, key, n_term, exception, n_field, ix, met, net
 
 logical use_offsets
 logical, optional :: for_layout
@@ -3070,6 +3070,7 @@ character(16) :: r_name = 'ele_to_fibre'
 
 !
 
+dz_dl_max_err = 1d-10
 call zero_key(ptc_key)  ! init key
 
 select case (ele%ptc_integration_type)
@@ -3094,6 +3095,10 @@ else
   ptc_key%tiltd = 0
 endif
 
+ptc_key%method = nint(ele%value(integrator_order$))
+if (ptc_key%method == 0) ptc_key%method = bmad_com%default_integ_order 
+if (present(integ_order)) ptc_key%method = integ_order
+
 if (present(steps)) then
   ptc_key%nstep = steps
 elseif (leng == 0) then
@@ -3103,13 +3108,10 @@ else
     call out_io (s_fatal$, r_name, 'DS_STEP IS ZERO FOR ELEMENT: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
   endif
+
   ptc_key%nstep = nint(abs(leng) / ele%value(ds_step$))
   if (ptc_key%nstep == 0) ptc_key%nstep = 1
 endif
-
-ptc_key%method = nint(ele%value(integrator_order$))
-if (ptc_key%method == 0) ptc_key%method = bmad_com%default_integ_order 
-if (present(integ_order)) ptc_key%method = integ_order
 
 !
 
@@ -3181,6 +3183,11 @@ case (sbend$)
     !! ptc_key%list%t2   = ele%value(e2$) - ele%value(angle$)/2 ! Determined by %t1 in this case.
   endif
 
+!  if (.not. present(integ_order)) then
+!    call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ptc_key%method)
+!    ptc_key%nstep = nint(step_info(ptc_key%method+1))
+!  endif
+
 case (sextupole$)
   ptc_key%magnet = 'sextupole'
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
@@ -3205,6 +3212,16 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shi
 
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
+
+!  if (ele%value(l$) /= 0) then
+!    if (ele%key == kicker$) then
+!      kick_magnitude = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) / ele%value(l$)
+!    else
+!      kick_magnitude = ele%value(kick$) / ele%value(l$)
+!    endif
+!    call check_bend (ele%value(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ptc_key%method)
+!    ptc_key%nstep = nint(step_info(ptc_key%method+1))
+!  endif
 
 ! 
 
@@ -3419,6 +3436,16 @@ energy_work = 0
 call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
 
+! Standing wave RFcavity
+
+!if (ptc_key%magnet == 'rfcavity' .and. ptc_key%list%n_bessel==-1) then
+!  call check_symplectic_bmad_cavity(ptc_fibre, norm, met, net, 100, turn_off_tpsa = .false.)
+!  ptc_fibre%mag%p%method  = met 
+!  ptc_fibre%magp%p%method = met 
+!  ptc_fibre%mag%p%nst  = net 
+!  ptc_fibre%magp%p%nst = net 
+!endif
+
 ! wiggler
 
 if (key == wiggler$ .or. key == undulator$) then
@@ -3445,8 +3472,8 @@ if (key == wiggler$ .or. key == undulator$) then
   ptc_fibre%mag%wi%w%k(2,1:n_term)   = ele2%wig%term%ky
   ptc_fibre%mag%wi%w%k(3,1:n_term)   = ele2%wig%term%kz
   ptc_fibre%mag%wi%w%f(1:n_term)     = ele2%wig%term%phi_z + s_rel * ele2%wig%term%kz
-  ptc_fibre%mag%wi%w%phi_x(1:n_term) = ele2%wig%term%x0 * ele2%wig%term%kx
-  ptc_fibre%mag%wi%w%phi_y(1:n_term) = ele2%wig%term%y0 * ele2%wig%term%ky
+  ptc_fibre%mag%wi%w%x0(1:n_term)    = ele2%wig%term%x0
+  ptc_fibre%mag%wi%w%y0(1:n_term)    = ele2%wig%term%y0
   ptc_fibre%mag%wi%w%form(1:n_term)  = ele2%wig%term%type
 
   if (ele%is_on) then

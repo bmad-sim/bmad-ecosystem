@@ -413,79 +413,79 @@ end subroutine add_ptc_layout_to_list
 !                        Notice: This closed orbit is the closed orbit with radiation on.
 !-
 
-subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
-
-use madx_ptc_module
-
-implicit none
-
-type (ele_struct), target :: ele
-type (internal_state) state
-type (normal_modes_struct) norm_mode
-type (normal_spin) normal
-type (damapspin) da_map
-type (probe) x_probe
-type (probe_8) x_probe8  
-type (coord_struct) closed_orb
-type (fibre), pointer :: ptc_fibre
-
-real(rp) sigma_mat(6,6)
-real(dp) x(6), energy, deltap
-
+!subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
 !
-
-check_krein = .false.
-
-state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
-ptc_fibre => ptc_reference_fibre(ele)
-
-x = 0
-call find_orbit_x (x, state, 1.0d-5, fibre1 = ptc_fibre)  ! find closed orbit
-call vec_ptc_to_bmad (x, ptc_fibre%beta0, closed_orb%vec)
-
-call get_loss (ptc_fibre%parent_layout, energy, deltap)
-norm_mode%e_loss = 1d9 * energy
-norm_mode%z%alpha_damp = deltap
-
-call init (state, 1, 0)  ! First order DA
-call alloc(normal)
-call alloc(da_map)
-call alloc(x_probe8)
-
-normal%stochastic = .false. ! Normalization of the stochastic kick not needed.
-
-x_probe = x
-da_map = 1
-x_probe8 = x_probe + da_map
-
-! Remember: ptc calculates things referenced to the beginning of a fibre while
-! Bmad references things at the exit end.
-
-state = state+envelope0
-call track_probe (x_probe8, state, fibre1 = ptc_fibre)
-da_map = x_probe8
-normal = da_map
-
-norm_mode%a%tune = normal%tune(1)   ! Fractional tune with damping
-norm_mode%b%tune = normal%tune(2)
-norm_mode%z%tune = normal%tune(3)
-
-norm_mode%a%alpha_damp = normal%damping(1)
-norm_mode%b%alpha_damp = normal%damping(2)
-norm_mode%z%alpha_damp = normal%damping(3)
-
-norm_mode%a%emittance = normal%emittance(1)
-norm_mode%b%emittance = normal%emittance(2)
-norm_mode%z%emittance = normal%emittance(3)
-
-call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
-
-call kill(normal)
-call kill(da_map)
-call kill(x_probe8)
-call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
-
-end subroutine ptc_emit_calc 
+!use madx_ptc_module
+!
+!implicit none
+!
+!type (ele_struct), target :: ele
+!type (internal_state) state
+!type (normal_modes_struct) norm_mode
+!type (normal_spin) normal
+!type (damapspin) da_map
+!type (probe) x_probe
+!type (probe_8) x_probe8  
+!type (coord_struct) closed_orb
+!type (fibre), pointer :: ptc_fibre
+!
+!real(rp) sigma_mat(6,6)
+!real(dp) x(6), energy, deltap
+!
+!!
+!
+!check_krein = .false.
+!
+!state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
+!ptc_fibre => ptc_reference_fibre(ele)
+!
+!x = 0
+!call find_orbit_x (x, state, 1.0d-5, fibre1 = ptc_fibre)  ! find closed orbit
+!call vec_ptc_to_bmad (x, ptc_fibre%beta0, closed_orb%vec)
+!
+!call get_loss (ptc_fibre%parent_layout, energy, deltap)
+!norm_mode%e_loss = 1d9 * energy
+!norm_mode%z%alpha_damp = deltap
+!
+!call init (state, 1, 0)  ! First order DA
+!call alloc(normal)
+!call alloc(da_map)
+!call alloc(x_probe8)
+!
+!normal%stochastic = .false. ! Normalization of the stochastic kick not needed.
+!
+!x_probe = x
+!da_map = 1
+!x_probe8 = x_probe + da_map
+!
+!! Remember: ptc calculates things referenced to the beginning of a fibre while
+!! Bmad references things at the exit end.
+!
+!state = state+envelope0
+!call track_probe (x_probe8, state, fibre1 = ptc_fibre)
+!da_map = x_probe8
+!normal = da_map
+!
+!norm_mode%a%tune = normal%tune(1)   ! Fractional tune with damping
+!norm_mode%b%tune = normal%tune(2)
+!norm_mode%z%tune = normal%tune(3)
+!
+!norm_mode%a%alpha_damp = normal%damping(1)
+!norm_mode%b%alpha_damp = normal%damping(2)
+!norm_mode%z%alpha_damp = normal%damping(3)
+!
+!norm_mode%a%emittance = normal%emittance(1)
+!norm_mode%b%emittance = normal%emittance(2)
+!norm_mode%z%emittance = normal%emittance(3)
+!
+!call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
+!
+!call kill(normal)
+!call kill(da_map)
+!call kill(x_probe8)
+!call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
+!
+!end subroutine ptc_emit_calc 
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -660,7 +660,7 @@ call reallocate_coord(closed_orbit, branch%n_ele_max)
 
 x = 0
 fib => branch%ele(0)%ptc_fibre%next
-call find_orbit_x (x, ptc_state, 1.0d-5, fibre1 = fib)  ! find closed orbit
+call find_orbit_x (x, ptc_state, 1.0d-7, fibre1 = fib)  ! find closed orbit
 call vec_ptc_to_bmad (x, fib%beta0, vec)
 call init_coord (closed_orbit(0), vec, branch%ele(0), downstream_end$)
 
@@ -961,11 +961,15 @@ end subroutine normal_form_complex_taylors
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
+
 subroutine set_ptc_verbose(on)
+
 use madx_ptc_module
 implicit none
 logical :: on
+
 c_verbose = on
+
 end subroutine set_ptc_verbose
 
 !-----------------------------------------------------------------------------
@@ -1060,6 +1064,9 @@ magp => ele%ptc_fibre%magp
 
 p => mag%p
 pp => magp%p
+
+! call set_integer (p%method, pp%method, nint(ele%value(integrator_order$)))
+! call set_integer (p%nst, pp%nst, nint(ele%value(num_steps$)))
 
 select case (ele%key)
 
@@ -1220,6 +1227,7 @@ end subroutine update_ptc_fibre_from_bmad
 ! Subroutine update_bmad_ele_from_ptc (ele)
 !
 ! Routine to update a bmad lattice element when the associated PTC fibre has been modified.
+! Remember to call lattice_bookkeeper after calling this routine.
 !
 ! Module Needed:
 !   use ptc_layout_mod
