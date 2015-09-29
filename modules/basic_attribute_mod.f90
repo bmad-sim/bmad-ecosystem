@@ -595,16 +595,17 @@ attrib_array(hybrid$, a0_elec$+1:a0_elec$+36)%name = &
                                             'MAT51', 'MAT52', 'MAT53', 'MAT54', 'MAT55', 'MAT56', &
                                             'MAT61', 'MAT62', 'MAT63', 'MAT64', 'MAT65', 'MAT66']
 
-!
+!----------------------------------------------------------
+! Convention: Private attributes have names in lower case.
 
-call init_attribute_name1 (photon_fork$, l$,                       'L', dependent$)
-call init_attribute_name1 (photon_fork$, ix_to_branch$,            'IX_TO_BRANCH', dependent$)
-call init_attribute_name1 (photon_fork$, ix_to_element$,           'IX_TO_ELEMENT', dependent$)
-call init_attribute_name1 (photon_fork$, direction$,               'DIRECTION')
-call init_attribute_name1 (photon_fork$, to_line$,                 'TO_LINE')
-call init_attribute_name1 (photon_fork$, to_element$,              'TO_ELEMENT')
-call init_attribute_name1 (photon_fork$, new_branch$,              'NEW_BRANCH')
-call init_attribute_name1 (photon_fork$, is_on$,                   'IS_ON')
+call init_attribute_name1 (photon_fork$, l$,                        'L', dependent$)
+call init_attribute_name1 (photon_fork$, ix_to_branch$,             'IX_TO_BRANCH', dependent$)
+call init_attribute_name1 (photon_fork$, ix_to_element$,            'IX_TO_ELEMENT', dependent$)
+call init_attribute_name1 (photon_fork$, direction$,                'DIRECTION')
+call init_attribute_name1 (photon_fork$, to_line$,                  'TO_LINE')
+call init_attribute_name1 (photon_fork$, to_element$,               'TO_ELEMENT')
+call init_attribute_name1 (photon_fork$, new_branch$,               'NEW_BRANCH')
+call init_attribute_name1 (photon_fork$, is_on$,                    'IS_ON')
 call init_attribute_name1 (photon_fork$, wall_attribute$,           'WALL')
 
 attrib_array(fork$, :) = attrib_array(photon_fork$, :)
