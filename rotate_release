@@ -147,16 +147,20 @@ def send_notification_email(old_relname):
 archive_linkname = build_mgmt.NewLinkName(release_type)
 for platform in platforms:
 
-    # More definitions
-    platform_dir = builds_basedir+'/'+platform+'/'
+    # Definitions needed for online Rotation
+    platform_dir = builds_basedir +'/'+ platform +'/'
     active_relname = active_relnames[platform]
+    packages_link = os.readlink(platform_dir + buildname +'/packages')
+    packages_dir = packages_link[3:26]
     online_basedir = '/nfs/cesr/online/lib/Linux_x86_64_intel/'
     online_cmd_mkdir = ("ssh cesrulib@cesr104 mkdir " + online_basedir + buildname)
     online_cmd_remote_tar = ("cd " + platform_dir + buildname + "; tar -cf - . | ssh cesrulib@cesr104 'cd "+ online_basedir + buildname + " ; tar -xf - .'")
     online_cmd_rm_link = ("ssh cesrulib@cesr104 rm -f " + online_basedir + release_type)
     online_cmd_new_link = ("ssh cesrulib@cesr104 'cd " + online_basedir + " ; ln -s " + buildname + " " + release_type +"'")
     online_cmd_rotate_link = ("ssh cesrulib@cesr104 'cd " + online_basedir + " ; ln -s " + active_relname + " " + archive_linkname + "'")
-
+    online_cmd_check_packages = ("ssh cesrulib@cesr104 '[ -d " + online_basedir + packages_dir + " ] && echo yes || echo no'")
+    online_cmd_mkdir_packages = ("ssh cesrulib@cesr104 mkdir -p " + online_basedir + packages_dir)
+    online_cmd_remote_packages_tar = ("cd " + platform_dir + packages_dir + "; tar -cf - . | ssh cesrulib@cesr104 'cd "+ online_basedir + packages_dir  + " ; tar -xf - .'")
 
     # 
     print ''
@@ -165,8 +169,6 @@ for platform in platforms:
     print 'Old '+ release_type +' will be rotated to link name: ' + archive_linkname
     print 'Old '+ release_type +':                              ' + active_relname
     print 'CESR Online base directory to copy to:  ' + online_basedir 
-    print ''
-
 
     # ssh/tar release to CESR Online
     if not os.path.exists(online_basedir+buildname):
@@ -176,18 +178,52 @@ for platform in platforms:
                         shell=True,
                         stdout=sub.PIPE,
                         stderr=sub.STDOUT )
-      print 'Making directory ' + online_basedir + buildname
+      print ''
+      print 'Making Build directory:                 ' + online_basedir + buildname
       step1.communicate()
 
       #print online_cmd_remote_tar
-      print ''
       step2 = sub.Popen(online_cmd_remote_tar,
                         bufsize=1,
                         shell=True,
                         stderr=sub.STDOUT )
-      print 'Copying '  + buildname + ' to ' + online_basedir + buildname 
+      print ''
+      print 'Copying ' + buildname + ' to:            ' + online_basedir + buildname 
       step2.communicate()
 
+      # Check for Online packages                                                                                                                                           
+      #print online_cmd_check_packages 
+      step3 = sub.Popen(online_cmd_check_packages,
+                      bufsize=1,
+                      shell=True,
+                      stdout=sub.PIPE,
+                      stderr=sub.STDOUT )
+      output = step3.communicate()[0]
+
+      if "yes" in output:
+          print 'CESR Online Packages directory:         ' + online_basedir + packages_dir
+      else:
+          # Make online packages dir
+          #print online_cmd_mkdir_packages
+          step4 = sub.Popen(online_cmd_mkdir_packages,
+                            bufsize=1,
+                            shell=True,
+                            stdout=sub.PIPE,
+                            stderr=sub.STDOUT )
+          print ''  
+          print 'Making CESR Online Packages directory:  ' + online_basedir + packages_dir
+          step4.communicate()
+
+          # ssh/tar over packages to online
+          #print online_cmd_remote_packages_tar
+          step5 = sub.Popen(online_cmd_remote_packages_tar,
+                    bufsize=1,
+                    shell=True,
+                    stdout=sub.PIPE,
+                    stderr=sub.STDOUT )
+          print ''
+          print 'Copying ' + packages_dir + ' to:        ' + online_basedir + packages_dir
+          step5.communicate()
 
     # Now update off-line links
     os.chdir(platform_dir)
@@ -195,37 +231,36 @@ for platform in platforms:
     os.remove(platform_dir+'/'+release_type)
     os.symlink(buildname, release_type)
 
-
     # Now update on-line links
     #print online_cmd_rm_link
-    print ''
-    step3 = sub.Popen(online_cmd_rm_link,
+    step6 = sub.Popen(online_cmd_rm_link,
                       bufsize=1,
                       shell=True,
                       stdout=sub.PIPE,
                       stderr=sub.STDOUT )
+    print ''
     print 'Cleaning up old ' + release_type + ' link.'
-    step3.communicate()
+    step6.communicate()
 
     #print online_cmd_new_link
-    print ''
-    step4 = sub.Popen(online_cmd_new_link,
+    step7 = sub.Popen(online_cmd_new_link,
                       bufsize=1,
                       shell=True,
                       stdout=sub.PIPE,
                       stderr=sub.STDOUT )
+    print ''
     print 'Making new soft link from ' + buildname + ' to ' + release_type
-    step4.communicate()
+    step7.communicate()
 
     #print online_cmd_rotate_link
-    print ''
-    step5 = sub.Popen(online_cmd_rotate_link,
+    step8 = sub.Popen(online_cmd_rotate_link,
                       bufsize=1,
                       shell=True,
                       stdout=sub.PIPE,
                       stderr=sub.STDOUT )
+    print ''
     print 'Rotating old ' + release_type + ' ' + active_relname + ' to '  + archive_linkname
-    step5.communicate()
+    step8.communicate()
     print ''
 
 
