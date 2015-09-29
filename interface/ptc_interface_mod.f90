@@ -3207,18 +3207,6 @@ case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shi
 case (kicker$, hkicker$, vkicker$)
   ptc_key%magnet = 'kicker'
 
-!  if (ele%value(l$) /= 0) then
-!    if (ele%key == kicker$) then
-!      kick_magnitude = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) / ele%value(l$)
-!    else
-!      kick_magnitude = ele%value(kick$) / ele%value(l$)
-!    endif
-!    call check_bend (ele%value(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ptc_key%method)
-!    ptc_key%nstep = nint(step_info(ptc_key%method+1))
-!  endif
-
-! 
-
 case (rfcavity$, lcavity$)
   if (ele%value(rf_frequency$) == 0) then
     call out_io (s_fatal$, r_name, 'RF FREQUENCY IS ZERO FOR: ' // ele%name)
@@ -3429,16 +3417,6 @@ endif
 energy_work = 0
 call find_energy (energy_work, p0c =  1d-9 * ele%value(p0c$))
 ptc_fibre = energy_work
-
-! Standing wave RFcavity
-
-!if (ptc_key%magnet == 'rfcavity' .and. ptc_key%list%n_bessel==-1) then
-!  call check_symplectic_bmad_cavity(ptc_fibre, norm, met, net, 100, turn_off_tpsa = .false.)
-!  ptc_fibre%mag%p%method  = met 
-!  ptc_fibre%magp%p%method = met 
-!  ptc_fibre%mag%p%nst  = net 
-!  ptc_fibre%magp%p%nst = net 
-!endif
 
 ! wiggler
 

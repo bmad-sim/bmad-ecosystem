@@ -5076,6 +5076,8 @@ type (ele_struct),  target :: ele
 type (branch_struct), pointer :: branch
 
 real(rp) angle, rr, v_inv_mat(4,4), eta_vec(4), step_info(7), dz_dl_max_err
+real(rp) kick_magnitude
+
 integer n, ixm
 logical kick_set, length_set, set_done, err_flag
 
@@ -5268,26 +5270,47 @@ case (e_gun$)
 
 end select
 
-! set ds_step if not already set.
+! Set ds_step and/or num_steps if not already set.
+
+dz_dl_max_err = 1d-10
 
 if (attribute_index(ele, 'DS_STEP') > 0) then  ! If this is an attribute for this element...
+
+  if (ele%value(ds_step$) == 0 .and. ele%value(num_steps$) == 0) then
+    select case (ele%key)
+    case (wiggler$, undulator$) 
+      if (ele%value(l_pole$) /= 0) ele%value(ds_step$) = ele%value(l_pole$) / 10
+
+    case (sbend$)
+      if (ele%value(integrator_order$) == 0) then
+        call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ixm)
+        ele%value(integrator_order$) = ixm
+        ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
+      endif
+
+    case (kicker$, hkicker$, vkicker$)
+      if (ele%value(l$) /= 0) then
+        if (ele%key == kicker$) then
+          kick_magnitude = sqrt(ele%value(hkick$)**2 + ele%value(vkick$)**2) / ele%value(l$)
+        else
+          kick_magnitude = ele%value(kick$) / ele%value(l$)
+        endif
+        call check_bend (ele%value(l$), 0.0_rp, kick_magnitude, dz_dl_max_err, step_info, ixm)
+        ele%value(integrator_order$) = ixm
+        ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
+      endif
+
+    case (lcavity$, rfcavity$)
+      if (ele%value(l$) /= 0) ele%value(num_steps$) = 10
+    end select
+  endif
+
   if (ele%value(num_steps$) > 0) then
     ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
   elseif (ele%value(ds_step$) == 0) then
-    if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele%value(l_pole$) /= 0) then
-      ele%value(ds_step$) = ele%value(l_pole$) / 10
-
-    elseif (ele%key == sbend$ .and. ele%value(integrator_order$) == 0) then
-      dz_dl_max_err = 1d-10
-      call check_bend (ele%value(l$), 0.0_rp, ele%value(g$)+ele%value(g_err$), dz_dl_max_err, step_info, ixm)
-      ele%value(integrator_order$) = ixm
-      ele%value(num_steps$) = max(nint(step_info(ixm+1)), 1)
-      ele%value(ds_step$) = abs(ele%value(l$) / ele%value(num_steps$))
-
-    else
-      ele%value(ds_step$) = bmad_com%default_ds_step
-    endif
+    ele%value(ds_step$) = bmad_com%default_ds_step
   endif
+
 endif
 
 end subroutine settable_dep_var_bookkeeping 
