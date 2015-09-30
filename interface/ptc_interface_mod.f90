@@ -1044,7 +1044,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE
-use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl
+use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info_m, use_info
 
 implicit none
 
@@ -1151,6 +1151,11 @@ endif
 ! Superkill tells PTC to do a through cleanup when killing a fibre.
 
 SUPERKILL = .false.
+
+!
+
+use_info_m = .true.    ! Enable matrix storage
+use_info   = .true.    ! Enable storage space in fibre%i
 
 end subroutine set_ptc
 
@@ -1547,7 +1552,7 @@ subroutine vec_bmad_to_ptc (vec_bmad, beta0, vec_ptc, conversion_mat)
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
-real(rp) beta0
+real(rp) beta0, vec_temp(6)
 real(rp), optional :: conversion_mat(6,6)
 real(rp) factor1, factor2
 
@@ -1555,9 +1560,9 @@ real(rp) factor1, factor2
 ! vec_ptc(6) = c (t - t0)
 ! 1/beta0 + vec_ptc(5) == E / P0c
 
-vec_ptc = vec_bmad
-vec_ptc(5) = (vec_bmad(6)**2 + 2*vec_bmad(6)) / (1/beta0 + sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6)) )
-vec_ptc(6) = -vec_bmad(5) * (1/beta0 + vec_ptc(5)) / (1 + vec_bmad(6))
+vec_temp = vec_bmad
+vec_temp(5) = (vec_bmad(6)**2 + 2*vec_bmad(6)) / (1/beta0 + sqrt(1/beta0**2+vec_bmad(6)**2+2*vec_bmad(6)) )
+vec_temp(6) = -vec_bmad(5) * (1/beta0 + vec_temp(5)) / (1 + vec_bmad(6))
 
 if (present(conversion_mat)) then
   call mat_make_unit(conversion_mat)
@@ -1568,6 +1573,8 @@ if (present(conversion_mat)) then
   conversion_mat(6,5) = -(1/beta0+beta0*vec_bmad(6)*(2+vec_bmad(6))/(1+beta0*factor1))/(1+vec_bmad(6))
   conversion_mat(6,6) = -((beta0**2-1)*vec_bmad(5)*factor1)/((1+vec_bmad(6))**2*factor2)
 end if
+
+vec_ptc = vec_temp
 
 end subroutine vec_bmad_to_ptc 
 
@@ -1596,15 +1603,15 @@ subroutine vec_ptc_to_bmad (vec_ptc, beta0, vec_bmad, conversion_mat)
 implicit none
 
 real(rp) vec_bmad(:), vec_ptc(:)
-real(rp) beta0
+real(rp) beta0, vec_temp(6)
 real(rp), optional :: conversion_mat(6,6)
 real(rp) factor1, factor2
 
 !
 
-vec_bmad = vec_ptc
-vec_bmad(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
-vec_bmad(5) = -vec_ptc(6) * (1 + vec_bmad(6)) / (1/beta0 + vec_ptc(5))
+vec_temp = vec_ptc
+vec_temp(6) = (2*vec_ptc(5)/beta0+vec_ptc(5)**2)/(sqrt(1+2*vec_ptc(5)/beta0+vec_ptc(5)**2)+1)
+vec_temp(5) = -vec_ptc(6) * (1 + vec_temp(6)) / (1/beta0 + vec_ptc(5))
 
 if (present(conversion_mat)) then
   call mat_make_unit(conversion_mat)
@@ -1615,6 +1622,8 @@ if (present(conversion_mat)) then
   conversion_mat(6,5) = (1+beta0*vec_ptc(5))*factor1/factor2
   conversion_mat(6,6) = 0
 end if
+
+vec_bmad = vec_temp
 
 end subroutine vec_ptc_to_bmad 
 
@@ -3218,10 +3227,12 @@ case (rfcavity$, lcavity$)
   case (traveling_wave$)
     ptc_key%magnet = 'twcavity'
     ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
+    ptc_key%list%cavity_totalpath = 1  ! 
   case (standing_wave$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
+    ptc_key%list%cavity_totalpath = 1  ! 
   case (ptc_standard$)
     ptc_key%magnet = 'rfcavity'
     ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
@@ -3241,7 +3252,6 @@ case (rfcavity$, lcavity$)
   endif
 
   ptc_key%list%delta_e = 0     ! For radiation calc.
-  ptc_key%list%cavity_totalpath = 1  ! 
 
 case (elseparator$)
   ptc_key%magnet = 'elseparator'
