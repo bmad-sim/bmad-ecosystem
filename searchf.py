@@ -593,7 +593,7 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'util_programs', '/bmad_to_mad_and_xsif/bmad_to_mad_and_xsif.f90', '')
     choose_path (dir_list, root_dir, 'examples', '/simple_bmad_program/simple_bmad_program.f90', '')
     choose_path (dir_list, root_dir, 'nonlin_bpm', '/code/nonlin_bpm_init.f90', '')
-    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', 'packages/')
+    choose_path (dir_list, root_dir, 'recipes_f-90_LEPP', '/lib_src/nr.f90', '/packages/')
     choose_path (dir_list, root_dir, 'mpmnet', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'genplt', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'instr_utils', '/CMakeLists.txt', '')
