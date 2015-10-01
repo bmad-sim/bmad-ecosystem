@@ -2071,6 +2071,11 @@ eta2=0.0_dp
     APERTURE=c_%APERTURE_FLAG
     c_%APERTURE_FLAG=.false.
     messagelost=' Orbit most likely found'
+    if(state%radiation) then
+     write(6,*) "You have radiation : use find_orbit_x "
+     stop
+    endif
+
     if(.not.present(eps)) then
        if(.not.present(STATE)) then
           call FIND_ORBIT_LAYOUT(RING,FIX,LOC,TURNS=TURNS0)
