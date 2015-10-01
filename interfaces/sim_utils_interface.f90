@@ -3,14 +3,6 @@ module sim_utils_interface
 use precision_def
 
 interface
-  subroutine abs_sort (array, index, n)
-    import
-    implicit none
-    real(rp) array(*)
-    integer index(*)
-    integer n
-  end subroutine
-
   subroutine bbi_kick (x, y, r, kx, ky)
     import
     implicit none
