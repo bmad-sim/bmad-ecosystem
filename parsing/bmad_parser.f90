@@ -47,7 +47,7 @@ type (lat_struct), target :: lat, in_lat, lat2
 type (ele_struct) this_ele
 type (ele_struct), pointer :: ele, slave, lord, ele2, ele0
 type (ele_struct), save :: marker_ele
-type (seq_struct), target :: sequence(1000)
+type (seq_struct), target, allocatable :: sequence(:), temp_seq(:)
 type (branch_struct), pointer :: branch0, branch
 type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
@@ -159,6 +159,7 @@ if (err) then
 endif
 
 iseq_tot = 0                            ! number of sequences encountered
+allocate(sequence(500))
 
 bp_com%extra = extra_parsing_info_struct()
 
@@ -578,8 +579,11 @@ parsing_loop: do
   if (word_2(:ix_word) == 'LINE' .or. word_2(:ix_word) == 'LIST') then
     iseq_tot = iseq_tot + 1
     if (iseq_tot > size(sequence)-1) then
-      call out_io (s_fatal$, r_name, 'ERROR IN BMAD_PARSER: NEED TO INCREASE LINE ARRAY SIZE!')
-      if (global_com%exit_on_error) call err_exit
+      n = size(sequence)
+      call move_alloc (sequence, temp_seq)
+      allocate(sequence(2*n))
+      sequence(1:n) = temp_seq
+      deallocate(temp_seq)
     endif
 
     sequence(iseq_tot)%name = word_1

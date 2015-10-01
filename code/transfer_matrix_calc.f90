@@ -37,8 +37,8 @@
 !                If ix1 is present and lattice is circular: Calculate the 
 !                  one-turn matrix from ix1 back to ix1.
 !   ix_branch -- Integer, optional: Branch index. Default is 0.
-!   one_turn   -- Logical, optional: If present and True, and s1 = s2, and the lattice
-!                   is circular: Construct the one-turn matrix from s1 back to s1.
+!   one_turn   -- Logical, optional: If present and True, and ix1 = ix2, and the lattice
+!                   is circular: Construct the one-turn matrix from ix1 back to ix1.
 !                   Otherwise mat6 is unchanged or the unit map if unit_start = T.
 !                   Default = False.
 !

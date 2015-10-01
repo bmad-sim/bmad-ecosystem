@@ -1044,7 +1044,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
               berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE
-use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info_m, use_info
+use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
 
 implicit none
 
@@ -1154,8 +1154,8 @@ SUPERKILL = .false.
 
 !
 
-use_info_m = .true.    ! Enable matrix storage
 use_info   = .true.    ! Enable storage space in fibre%i
+use_info_m = .true.    ! Enable matrix storage in fibre%i%m
 
 end subroutine set_ptc
 
@@ -3018,7 +3018,8 @@ end subroutine type_map
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)
+! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, 
+!                          for_layout, tracking_species, use_hard_edge_drifts)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -3039,14 +3040,17 @@ end subroutine type_map
 !                    Overrides ele%value(ds_step$).
 !   for_layout  -- Logical, optional: If True then fibre will be put in the layout.
 !                    Default is False.
-!   tracking_species -- Integer, optional: Particle type to be tracked. ref_particle$, electron$, etc.
-!                         Default is determined by param%default_tracking_species.
+!   tracking_species     -- Integer, optional: Particle type to be tracked. ref_particle$, electron$, etc.
+!                             Default is determined by param%default_tracking_species.
+!   use_hard_edge_drifts -- logical, optional: If False then hard edge drifts are not used.
+!                                              If True then this argument has no effect.
 !
 ! Output:
 !   ptc_fibre -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)
+subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, &
+                         for_layout, tracking_species, use_hard_edge_drifts)
 
 use madx_ptc_module
 
@@ -3073,7 +3077,7 @@ integer, optional :: integ_order, steps
 integer i, n, key, n_term, exception, n_field, ix, met, net
 
 logical use_offsets
-logical, optional :: for_layout
+logical, optional :: for_layout, use_hard_edge_drifts
 
 character(16) :: r_name = 'ele_to_fibre'
 
@@ -3243,7 +3247,7 @@ case (rfcavity$, lcavity$)
 
   ptc_key%list%freq0 = ele%value(rf_frequency$)
   phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
-  if (tracking_uses_end_drifts(ele)) ptc_key%list%l = hard_edge_model_length(ele)
+  if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) ptc_key%list%l = hard_edge_model_length(ele)
 
   if (ele%key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot
@@ -3441,12 +3445,6 @@ if (key == wiggler$ .or. key == undulator$) then
     endif
   enddo
 
-  if (hyper_x_plane_y$ /= hyperbolic_xdollar .or. hyper_y_plane_y$ /= hyperbolic_ydollar .or. &
-                                        hyper_xy_plane_y$ /= hyperbolic_xydollar) then
-    call out_io (s_fatal$, r_name, 'WIGGLER FORM/TYPE MISMATCH!')
-    if (global_com%exit_on_error) call err_exit
-  endif
-
   n_term = size(ele2%wig%term)
   call init_sagan_pointers (ptc_fibre%mag%wi%w, n_term)   
 
@@ -3461,20 +3459,7 @@ if (key == wiggler$ .or. key == undulator$) then
   if (ele%is_on) then
     do i = 1, size(ptc_fibre%mag%wi%w%a(1:n_term))
       wt => ele2%wig%term(i)
-      coef = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
-      select case (wt%type)        
-      case (hyper_y_plane_y$)
-        ptc_fibre%mag%wi%w%a(i) = coef
-      case (hyper_xy_plane_y$)
-        ptc_fibre%mag%wi%w%a(i) = coef * wt%ky / wt%kz
-      case (hyper_x_plane_y$)
-        ptc_fibre%mag%wi%w%a(i) = coef * wt%ky / wt%kx
-      case default
-        call out_io (s_fatal$, r_name, 'PTC WIGGLER MODEL NOT YET UPDATED FOR NEW BMAD WIGGLER MODEL!')
-        if (global_com%exit_on_error) call err_exit
-        ptc_fibre%mag%wi%w%a(i) = 0                            ! Just to be able to limp along.
-        ptc_fibre%mag%wi%w%form(i)  = ele2%wig%term(i)%type - 3   ! So PTC will limp along.
-      end select
+      ptc_fibre%mag%wi%w%a(i) = c_light * ele2%value(polarity$) * wt%coef / ele%value(p0c$)
     enddo
   else
     ptc_fibre%mag%wi%w%a(1:n_term) = 0

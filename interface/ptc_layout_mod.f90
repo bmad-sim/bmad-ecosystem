@@ -11,6 +11,8 @@ use ptc_interface_mod
 use multipass_mod
 use track1_mod
 
+implicit none
+
 contains
 
 !-----------------------------------------------------------------------------
@@ -31,8 +33,6 @@ contains
 subroutine type_ptc_layout (lay)
 
 use s_def_all_kinds, only: layout
-
-implicit none
 
 type (layout) lay
 
@@ -86,8 +86,6 @@ subroutine lat_to_ptc_layout (lat, use_hard_edge_drifts)
 
 use madx_ptc_module, only: m_u, m_t, fibre, append_empty_layout, survey, make_node_layout, &
                            append_point, set_up, ring_l
-
-implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
@@ -240,8 +238,6 @@ use s_fibre_bundle, only: ring_l, append, lp, layout, fibre
 use mad_like, only: set_up, kill, lielib_print
 use madx_ptc_module, only: m_u, m_t, append_empty_layout, survey, make_node_layout
 
-implicit none
-
 type (branch_struct) :: branch
 type (ele_struct) drift_ele
 type (ele_struct), pointer :: ele
@@ -282,14 +278,17 @@ do ie = 0, branch%n_ele_track
 
   if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
     call create_hard_edge_drift (ele, upstream_end$, drift_ele)
-    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
+    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., &
+                                    for_layout = .true., use_hard_edge_drifts = use_hard_edge_drifts)
   endif
 
-  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., for_layout = .true.)
+  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., &
+                                    for_layout = .true., use_hard_edge_drifts = use_hard_edge_drifts)
 
   if (tracking_uses_end_drifts(ele, use_hard_edge_drifts)) then
     call create_hard_edge_drift (ele, downstream_end$, drift_ele)
-    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., for_layout = .true.)
+    call ele_to_fibre (drift_ele, drift_ele%ptc_fibre, branch%param, .true., &
+                                    for_layout = .true., use_hard_edge_drifts = use_hard_edge_drifts)
   endif
 
   ele_inserted_in_layout = .true.
@@ -365,8 +364,6 @@ end subroutine branch_to_ptc_m_u
 
 subroutine add_ptc_layout_to_list (branch_ptc_info, layout_end)   
 
-implicit none
-
 type (ptc_branch1_info_struct) branch_ptc_info, temp_info
 type (layout), target :: layout_end
 integer n
@@ -387,6 +384,113 @@ else
 endif 
 
 end subroutine add_ptc_layout_to_list
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+!
+! Routine to compute the one turn matrices and closed orbit for a lattice branch with closed geometry.
+!
+! Note: PTC itself does not compute Twiss parameters. Use twiss_from_mat6 to compute this.
+!
+! Input:
+!   branch            -- branch_struct: Lattice branch.
+!   to_bmad_coords    -- logical: If False then leave results in PTC phase space units.
+!                                 If True, convert to Bmad phase space units
+!   pz                -- real(rp), optional: energy offset around which to 
+!                          calculate the matrices if there is no RF.
+! Output:
+!   branch            -- branch_struct: Lattice branch containing the matrices.
+!     %ele(i)%fibre%i%m(6,6)    -- matrices.
+!     %ele(i)%fibre%i%fix0(6)   -- Closed orbit.
+!-
+
+subroutine ptc_one_turn_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+
+use s_fitting_new, only: default, compute_linear_one_turn_maps, fibre, layout
+
+type (branch_struct), target :: branch
+type (fibre), pointer :: ptc_fibre
+type (layout), pointer :: ptc_layout
+
+real(rp), optional :: pz
+real(rp) c_mat(6,6), c_mat_inv(6,6)
+integer i
+logical to_bmad_coords
+
+!
+
+ptc_fibre => branch%ele(1)%ptc_fibre
+call compute_linear_one_turn_maps (ptc_fibre, DEFAULT, pz)
+
+if (to_bmad_coords) then
+  ptc_layout => ptc_fibre%parent_layout
+  do i = 1, ptc_layout%n
+    call vec_ptc_to_bmad (ptc_fibre%i%fix0, ptc_fibre%beta0, ptc_fibre%i%fix0, c_mat)
+    call mat_inverse(c_mat, c_mat_inv)
+    ptc_fibre%i%m = matmul(matmul(c_mat, ptc_fibre%i%m), c_mat_inv)
+    ptc_fibre => ptc_fibre%next
+  enddo
+endif
+
+end subroutine ptc_one_turn_mat_and_closed_orbit_calc
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine ptc_transfer_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+!
+! Routine to compute the transfer matrices for the individual elements and closed orbit 
+! for a lattice branch with closed geometry.
+!
+! Note: PTC itself does not compute Twiss parameters. Use twiss_from_mat6 to compute this.
+!
+! Input:
+!   branch            -- branch_struct: Lattice branch.
+!   to_bmad_coords    -- logical: If False then leave results in PTC phase space units.
+!                                 If True, convert to Bmad phase space units
+!   pz                -- real(rp), optional: energy offset around which to 
+!                          calculate the matrices if there is no RF.
+! Output:
+!   branch            -- branch_struct: Lattice branch containing the matrices.
+!     %ele(i)%fibre%i%m(6,6)    -- matrices.
+!     %ele(i)%fibre%i%fix0(6)   -- Closed orbit at entrance.
+!     %ele(i)%fibre%i%fix(6)    -- Closed orbit at exit.
+!-
+
+subroutine ptc_transfer_mat_and_closed_orbit_calc (branch, to_bmad_coords, pz)
+
+use s_fitting_new, only: default, compute_linear_one_magnet_maps, fibre, layout
+
+type (branch_struct) branch
+type (fibre), pointer :: ptc_fibre
+type (layout), pointer :: ptc_layout
+
+real(rp), optional :: pz
+real(rp) c_mat(6,6), c_mat_inv(6,6)
+integer i
+logical to_bmad_coords
+
+!
+
+ptc_fibre => branch%ele(1)%ptc_fibre
+call compute_linear_one_magnet_maps (ptc_fibre, DEFAULT, pz)
+
+if (to_bmad_coords) then
+  ptc_layout => ptc_fibre%parent_layout
+  do i = 1, ptc_layout%n
+    call vec_ptc_to_bmad (ptc_fibre%i%fix0, ptc_fibre%beta0, ptc_fibre%i%fix0, c_mat)
+    call vec_ptc_to_bmad (ptc_fibre%i%fix, ptc_fibre%beta0, ptc_fibre%i%fix)
+    call mat_inverse(c_mat, c_mat_inv)
+    ptc_fibre%i%m = matmul(matmul(c_mat, ptc_fibre%i%m), c_mat_inv)
+    ptc_fibre => ptc_fibre%next
+  enddo
+endif
+
+end subroutine ptc_transfer_mat_and_closed_orbit_calc
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -415,81 +519,38 @@ end subroutine add_ptc_layout_to_list
 
 subroutine ptc_emit_calc (ele, norm_mode, sigma_mat, closed_orb)
 
-use madx_ptc_module
+use pointer_lattice
 
-implicit none
-
-type (ele_struct), target :: ele
-type (internal_state) state
+type (ele_struct) ele
 type (normal_modes_struct) norm_mode
-!type (normal_spin) normal
-!type (damapspin) da_map
-type (probe) x_probe
-type (probe_8) x_probe8  
 type (coord_struct) closed_orb
 type (fibre), pointer :: ptc_fibre
 
-real(rp) sigma_mat(6,6)
-real(dp) x(6), energy, deltap
+real(rp) sigma_mat(6,6), emit(3), ptc_sigma_mat(6,6), tune(3), damp(3)
+complex(rp) cmplx_sigma_mat(6,6)
 
 
-print *, 'PTC_EMIT_CALC IS BEING RENOVATED! PLEASE CONTACT DAVID SAGAN!'
-call err_exit()
+ptc_fibre => ptc_reference_fibre(ele)
+call radia_new (ele%branch%ptc%m_t_layout, ptc_fibre%pos, DEFAULT, fix = closed_orb%vec, em = emit, &
+                sij = sigma_mat, sijr = cmplx_sigma_mat, tune = tune, damping = damp)
 
-!
-!!
-!
-!check_krein = .false.
-!
-!state = (default - nocavity0) + radiation0  ! Make sure have RF + radiation on.
-!ptc_fibre => ptc_reference_fibre(ele)
-!
-!x = 0
-!call find_orbit_x (x, state, 1.0d-5, fibre1 = ptc_fibre)  ! find closed orbit
-!call vec_ptc_to_bmad (x, ptc_fibre%beta0, closed_orb%vec)
-!
-!call get_loss (ptc_fibre%parent_layout, energy, deltap)
-!norm_mode%e_loss = 1d9 * energy
-!norm_mode%z%alpha_damp = deltap
-!
-!call init (state, 1, 0)  ! First order DA
-!call alloc(normal)
-!call alloc(da_map)
-!call alloc(x_probe8)
-!
-!normal%stochastic = .false. ! Normalization of the stochastic kick not needed.
-!
-!x_probe = x
-!da_map = 1
-!x_probe8 = x_probe + da_map
-!
-!! Remember: ptc calculates things referenced to the beginning of a fibre while
-!! Bmad references things at the exit end.
-!
-!state = state+envelope0
-!call track_probe (x_probe8, state, fibre1 = ptc_fibre)
-!da_map = x_probe8
-!normal = da_map
-!
-!norm_mode%a%tune = normal%tune(1)   ! Fractional tune with damping
-!norm_mode%b%tune = normal%tune(2)
-!norm_mode%z%tune = normal%tune(3)
-!
-!norm_mode%a%alpha_damp = normal%damping(1)
-!norm_mode%b%alpha_damp = normal%damping(2)
-!norm_mode%z%alpha_damp = normal%damping(3)
-!
-!norm_mode%a%emittance = normal%emittance(1)
-!norm_mode%b%emittance = normal%emittance(2)
-!norm_mode%z%emittance = normal%emittance(3)
-!
-!call sigma_mat_ptc_to_bmad (normal%s_ij0, ptc_fibre%beta0, sigma_mat)
-!
-!call kill(normal)
-!call kill(da_map)
-!call kill(x_probe8)
-!call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
-!
+call init_coord(closed_orb, closed_orb, ele, downstream_end$)
+
+norm_mode%a%tune = tune(1)   ! Fractional tune with damping
+norm_mode%b%tune = tune(2)
+norm_mode%z%tune = tune(3)
+
+norm_mode%a%alpha_damp = damp(1)
+norm_mode%b%alpha_damp = damp(2)
+norm_mode%z%alpha_damp = damp(3)
+
+norm_mode%a%emittance = emit(1)
+norm_mode%b%emittance = emit(2)
+norm_mode%z%emittance = emit(3)
+
+call sigma_mat_ptc_to_bmad (ptc_sigma_mat, ele%ptc_fibre%beta0, sigma_mat)
+
+call init (DEFAULT, ptc_com%taylor_order_ptc, 0)
 end subroutine ptc_emit_calc 
 
 !-----------------------------------------------------------------------------
@@ -519,8 +580,6 @@ end subroutine ptc_emit_calc
 !-
 
 function ptc_reference_fibre (ele) result (ref_fibre)
-
-implicit none
 
 type (ele_struct), target :: ele
 type (fibre), pointer :: ref_fibre
@@ -560,8 +619,6 @@ end function ptc_reference_fibre
 subroutine ptc_track_all (branch, orbit, track_state, err_flag)
 
 use madx_ptc_module
-
-implicit none
 
 type (branch_struct), target :: branch
 type (coord_struct), allocatable :: orbit(:)
@@ -639,8 +696,6 @@ subroutine ptc_closed_orbit_calc (branch, closed_orbit, radiation_damping_on)
 
 use madx_ptc_module
 
-implicit none
-
 type (branch_struct), target :: branch
 type (coord_struct), allocatable :: closed_orbit(:)
 type (fibre), pointer :: fib
@@ -704,8 +759,6 @@ end subroutine ptc_closed_orbit_calc
 subroutine ptc_one_turn_map_at_ele (ele, map, rf_on, pz, order)
 
 use madx_ptc_module
-
-implicit none
 
 type (ele_struct), target :: ele
 type (taylor_struct) map(6)
@@ -796,8 +849,6 @@ subroutine normal_form_taylors (one_turn_taylor, rf_on, dhdj, A, A_inverse)
 
 use madx_ptc_module
 
-implicit none
-
 type (taylor_struct) :: one_turn_taylor(6)
 type (taylor_struct), optional :: A_inverse(6), dhdj(6), A(6)
 type (damap) :: da_map
@@ -866,8 +917,6 @@ end subroutine normal_form_taylors
 subroutine normal_form_complex_taylors(one_turn_taylor, rf_on, F, L, A, A_inverse, order)
 
 use madx_ptc_module
-
-implicit none
 
 type (taylor_struct) :: one_turn_taylor(6)
 type (complex_taylor_struct), optional :: F(6), L(6)
@@ -970,8 +1019,10 @@ end subroutine normal_form_complex_taylors
 subroutine set_ptc_verbose(on)
 
 use madx_ptc_module
-implicit none
+
 logical :: on
+
+!
 
 c_verbose = on
 
@@ -996,8 +1047,6 @@ end subroutine set_ptc_verbose
 subroutine write_ptc_flat_file_lattice (file_name, branch)
 
 use pointer_lattice
-
-implicit none
 
 type (branch_struct) branch
 character(*) file_name
@@ -1029,8 +1078,6 @@ end subroutine write_ptc_flat_file_lattice
 subroutine update_ptc_fibre_from_bmad (ele)
 
 use madx_ptc_module
-
-implicit none
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
@@ -1248,8 +1295,6 @@ subroutine update_bmad_ele_from_ptc (ele)
 
 use precision_constants, only: volt_c
 
-implicit none
-
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
 type (fibre), pointer :: fib
@@ -1463,8 +1508,6 @@ subroutine ptc_calculate_tracking_step_size (ptc_layout, kl_max, ds_max, &
 
 use madx_ptc_module
 
-implicit none
-
 type (layout) ptc_layout
 
 real(rp) kl_max
@@ -1534,8 +1577,6 @@ subroutine ptc_layouts_resplit (dKL_max, l_max, l_max_drift_only, bend_dorb, sex
 
 use s_fitting, only: thin_lens_restart, thin_lens_resplit
 use madx_ptc_module, only: m_u
-
-implicit none
 
 type(layout), pointer :: r
 
