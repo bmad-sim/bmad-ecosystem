@@ -524,7 +524,7 @@ else
 endif
 
 species = beam_init%species
-if (species == not_set$) species = param%particle
+if (species == not_set$) species = default_tracking_species(param)
 
 call calc_this_emit (beam_init, twiss_ele, species)
 

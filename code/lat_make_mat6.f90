@@ -74,7 +74,7 @@ branch => lat%branch(i_branch)
 if (present(ref_orb)) then
   species = ref_orb(0)%species
 else
-  species = branch%param%particle
+  species = default_tracking_species(branch%param)
 endif
 
 if (i_ele == 0 .or. i_ele > branch%n_ele_max) then
