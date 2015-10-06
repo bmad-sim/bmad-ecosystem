@@ -3258,6 +3258,7 @@ case (lcavity$, e_gun$)
 case (patch$)
   ! Any attribute change will shift the reference time.
   call set_ele_status_stale (ele, ref_energy_group$)
+  call set_ele_status_stale (ele, floor_position_group$)
 
 case (sbend$)
   if (associated(a_ptr, ele%value(angle$)) .or. associated(a_ptr, ele%value(g$)) .or. &
