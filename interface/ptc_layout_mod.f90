@@ -532,7 +532,7 @@ complex(rp) cmplx_sigma_mat(6,6)
 
 ptc_fibre => ptc_reference_fibre(ele)
 call radia_new (ele%branch%ptc%m_t_layout, ptc_fibre%pos, DEFAULT, fix = closed_orb%vec, em = emit, &
-                sij = sigma_mat, sijr = cmplx_sigma_mat, tune = tune, damping = damp)
+                sij = ptc_sigma_mat, sijr = cmplx_sigma_mat, tune = tune, damping = damp)
 
 call init_coord(closed_orb, closed_orb, ele, downstream_end$)
 
