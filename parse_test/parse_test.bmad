@@ -34,6 +34,8 @@ cap: capillary, wall = {
   section = {s = 0, v(1) = {1, 1}},
   section = {s = 1, v(1) = {1, 1}}}
 
+*[aperture] = 3
+
 cry: crystal, crystal_type = 'Si(111)'
 
  B01: SBEND, L = 6.574262, ANGLE = 0.074799746, E1=0.018699937, E2=0.018699937
