@@ -118,8 +118,8 @@ type (rad_int1_struct) int_tot
 type (rad_int1_struct), pointer :: rad_int1
 
 real(rp) i1, i2, i3, i4a, i4b, i4z, i5a, i5b, i6b, m65, G_max, g3_ave
-real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f
-real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky
+real(rp) theta, energy, gamma2_factor, energy_loss, arg, ll, gamma_f, ds_step
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), dk(2,2), kx, ky, beta_min
 real(rp) v(4,4), v_inv(4,4), del_z, z_here, z_start, mc2, gamma, gamma4, gamma6
 real(rp) kz, fac, c, s, factor, g2, g_x0, dz, z1, const_q, mat6(6,6), vec0(6)
 ! Cf: Sands Eq 5.46 pg 124.
@@ -283,7 +283,9 @@ if (use_cache .or. init_cache) then
       ele2%tracking_method = symp_lie_bmad$  
       ele2%mat6_calc_method = symp_lie_bmad$  
     else
-      call compute_even_steps (ele2%value(ds_step$), ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
+      beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(i-1)%a%beta, branch%ele(i-1)%b%beta)
+      ds_step = min(ele2%value(ds_step$), beta_min / 10)
+      call compute_even_steps (ds_step, ele2%value(l$), bmad_com%default_ds_step, del_z, n_step)
     endif
 
     cache_ele%del_z = del_z
