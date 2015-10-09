@@ -1876,7 +1876,6 @@ public:
   Int geometry;
   Int ixx;
   Bool stable;
-  Bool aperture_limit_on;
   Bool backwards_time_tracking;
   CPP_bookkeeping_state bookkeeping_state;
 
@@ -1891,7 +1890,6 @@ public:
     geometry(0),
     ixx(0),
     stable(false),
-    aperture_limit_on(true),
     backwards_time_tracking(false),
     bookkeeping_state()
     {}
@@ -2290,6 +2288,7 @@ public:
   Bool conserve_taylor_maps;
   Bool absolute_time_tracking_default;
   Bool convert_to_kinetic_momentum;
+  Bool aperture_limit_on;
   Bool debug;
 
   CPP_bmad_common() :
@@ -2321,6 +2320,7 @@ public:
     conserve_taylor_maps(true),
     absolute_time_tracking_default(false),
     convert_to_kinetic_momentum(false),
+    aperture_limit_on(true),
     debug(false)
     {}
 

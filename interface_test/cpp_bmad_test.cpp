@@ -3027,10 +3027,7 @@ void set_CPP_lat_param_test_pattern (CPP_lat_param& C, int ix_patt) {
   rhs = 10 + offset; C.stable = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 11 + offset; C.aperture_limit_on = (rhs % 2 == 0);
-
-  // c_side.test_pat[logical, 0, NOT]
-  rhs = 12 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
+  rhs = 11 + offset; C.backwards_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[type, 0, NOT]
   set_CPP_bookkeeping_state_test_pattern(C.bookkeeping_state, ix_patt);
@@ -3856,7 +3853,10 @@ void set_CPP_bmad_common_test_pattern (CPP_bmad_common& C, int ix_patt) {
   rhs = 28 + offset; C.convert_to_kinetic_momentum = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 29 + offset; C.debug = (rhs % 2 == 0);
+  rhs = 29 + offset; C.aperture_limit_on = (rhs % 2 == 0);
+
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 30 + offset; C.debug = (rhs % 2 == 0);
 
 
 }

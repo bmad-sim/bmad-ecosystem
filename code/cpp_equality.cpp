@@ -779,7 +779,6 @@ bool operator== (const CPP_lat_param& x, const CPP_lat_param& y) {
   is_eq = is_eq && (x.geometry == y.geometry);
   is_eq = is_eq && (x.ixx == y.ixx);
   is_eq = is_eq && (x.stable == y.stable);
-  is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.backwards_time_tracking == y.backwards_time_tracking);
   is_eq = is_eq && (x.bookkeeping_state == y.bookkeeping_state);
   return is_eq;
@@ -984,6 +983,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.conserve_taylor_maps == y.conserve_taylor_maps);
   is_eq = is_eq && (x.absolute_time_tracking_default == y.absolute_time_tracking_default);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
+  is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };

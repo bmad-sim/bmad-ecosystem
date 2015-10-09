@@ -4533,9 +4533,7 @@ rhs = 9 + offset; F%ixx = rhs
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 10 + offset; F%stable = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 11 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 12 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
+rhs = 11 + offset; F%backwards_time_tracking = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[type, 0, NOT]
 call set_bookkeeping_state_test_pattern (F%bookkeeping_state, ix_patt)
 
@@ -5703,7 +5701,9 @@ rhs = 27 + offset; F%absolute_time_tracking_default = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 28 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 29 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 29 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 30 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 

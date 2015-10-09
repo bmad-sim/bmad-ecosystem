@@ -1965,8 +1965,7 @@ extern "C" void lat_param_to_c (const Bmad_lat_param_class*, CPP_lat_param&);
 
 // c_side.to_f2_arg
 extern "C" void lat_param_to_f2 (Bmad_lat_param_class*, c_Real&, c_Real&, c_Real&, c_RealArr,
-    c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, const
-    CPP_bookkeeping_state&);
+    c_RealArr, c_Int&, c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, const CPP_bookkeeping_state&);
 
 extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F) {
   // c_side.to_f_setup[real, 2, NOT]
@@ -1976,7 +1975,7 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 
   // c_side.to_f2_call
   lat_param_to_f2 (F, C.n_part, C.total_length, C.unstable_factor, z_t1_with_rf, z_t1_no_rf,
-      C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable, C.aperture_limit_on,
+      C.particle, C.default_tracking_species, C.geometry, C.ixx, C.stable,
       C.backwards_time_tracking, C.bookkeeping_state);
 
 }
@@ -1985,8 +1984,8 @@ extern "C" void lat_param_to_f (const CPP_lat_param& C, Bmad_lat_param_class* F)
 extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_total_length,
     c_Real& z_unstable_factor, c_RealArr z_t1_with_rf, c_RealArr z_t1_no_rf, c_Int& z_particle,
     c_Int& z_default_tracking_species, c_Int& z_geometry, c_Int& z_ixx, c_Bool& z_stable,
-    c_Bool& z_aperture_limit_on, c_Bool& z_backwards_time_tracking, const
-    Bmad_bookkeeping_state_class* z_bookkeeping_state) {
+    c_Bool& z_backwards_time_tracking, const Bmad_bookkeeping_state_class* z_bookkeeping_state)
+    {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.n_part = z_n_part;
@@ -2008,8 +2007,6 @@ extern "C" void lat_param_to_c2 (CPP_lat_param& C, c_Real& z_n_part, c_Real& z_t
   C.ixx = z_ixx;
   // c_side.to_c2_set[logical, 0, NOT]
   C.stable = z_stable;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.aperture_limit_on = z_aperture_limit_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.backwards_time_tracking = z_backwards_time_tracking;
   // c_side.to_c2_set[type, 0, NOT]
@@ -2435,7 +2432,7 @@ extern "C" void bmad_common_to_c (const Bmad_bmad_common_class*, CPP_bmad_common
 extern "C" void bmad_common_to_f2 (Bmad_bmad_common_class*, c_Real&, c_RealArr, c_Real&,
     c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Real&, c_Int&,
     c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_class* F) {
 
@@ -2448,7 +2445,7 @@ extern "C" void bmad_common_to_f (const CPP_bmad_common& C, Bmad_bmad_common_cla
       C.sr_wakes_on, C.lr_wakes_on, C.mat6_track_symmetric, C.auto_bookkeeper,
       C.space_charge_on, C.coherent_synch_rad_on, C.spin_tracking_on, C.radiation_damping_on,
       C.radiation_fluctuations_on, C.conserve_taylor_maps, C.absolute_time_tracking_default,
-      C.convert_to_kinetic_momentum, C.debug);
+      C.convert_to_kinetic_momentum, C.aperture_limit_on, C.debug);
 
 }
 
@@ -2464,7 +2461,7 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
     z_space_charge_on, c_Bool& z_coherent_synch_rad_on, c_Bool& z_spin_tracking_on, c_Bool&
     z_radiation_damping_on, c_Bool& z_radiation_fluctuations_on, c_Bool&
     z_conserve_taylor_maps, c_Bool& z_absolute_time_tracking_default, c_Bool&
-    z_convert_to_kinetic_momentum, c_Bool& z_debug) {
+    z_convert_to_kinetic_momentum, c_Bool& z_aperture_limit_on, c_Bool& z_debug) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.max_aperture_limit = z_max_aperture_limit;
@@ -2522,6 +2519,8 @@ extern "C" void bmad_common_to_c2 (CPP_bmad_common& C, c_Real& z_max_aperture_li
   C.absolute_time_tracking_default = z_absolute_time_tracking_default;
   // c_side.to_c2_set[logical, 0, NOT]
   C.convert_to_kinetic_momentum = z_convert_to_kinetic_momentum;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.aperture_limit_on = z_aperture_limit_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.debug = z_debug;
 }
