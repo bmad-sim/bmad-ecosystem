@@ -76,11 +76,18 @@ this structure along with the default values are:
     logical conserve_taylor_maps = T           ! Enable bookkeeper to set
                                                ! ele%taylor_map_includes_offsets = F?
     logical absolute_time_tracking_default = F ! Default for lat%absolute_time_tracking
+    logical aperture_limit_on = T              ! Use aperture limits in tracking.
     logical debug = F                          ! Used for code debugging.
   end type
 \end{example}
 
 \begin{description}
+\index{aperture_limit_on}
+\item[\vn{\%aperture_limit_on]}] \Newline
+Aperture limits may be set for elements in the lattice
+(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
+disable all set apertures. \vn{True} is the default.
+
 \item[\vn{\%max_aperture_limit}] \Newline 
 Sets the maximum amplitude a particle can have
 during tracking. If this amplitude is exceeded, the particle is lost

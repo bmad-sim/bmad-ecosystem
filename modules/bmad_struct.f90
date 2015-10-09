@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 163
+integer, parameter :: bmad_inc_version$ = 164
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -764,7 +764,6 @@ type lat_param_struct
   integer :: geometry = 0                      ! open$ or closed$
   integer :: ixx = 0                           ! Integer for general use
   logical :: stable = .false.                  ! is closed lat stable?
-  logical :: aperture_limit_on = .true.        ! use apertures in tracking?
   logical :: backwards_time_tracking = .false. ! Internal variable. Do not set.  
   type (bookkeeping_state_struct) :: bookkeeping_state = bookkeeping_state_struct()
                                                ! Overall status for the branch.
@@ -1280,6 +1279,7 @@ type extra_parsing_info_struct
   logical :: conserve_taylor_maps_set               = .false.
   logical :: absolute_time_tracking_default_set     = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
+  logical :: aperture_limit_on_set                  = .false.
   logical :: debug_set                              = .false.
 end type
 
@@ -1329,6 +1329,7 @@ type bmad_common_struct
   logical :: absolute_time_tracking_default = .false. ! Default for lat%absolute_time_tracking
   logical :: convert_to_kinetic_momentum = .false.    ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                       !   Set to True to test symp_lie_bmad against runge_kutta.
+  logical :: aperture_limit_on = .true.               ! use apertures in tracking?
   logical :: debug = .false.                          ! Used for code debugging.
 end type
   

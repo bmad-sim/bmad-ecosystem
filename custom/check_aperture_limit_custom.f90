@@ -16,9 +16,6 @@
 !   ele   -- Ele_struct: Element holding the aperture
 !   particle_at    -- Integer: first_track_edge$, second_track_edge$, or surface$
 !   param -- lat_param_struct: Parameter structure
-!     %aperture_limit_on -- The aperture limit is only checked if this is true.
-!               The exception is when the orbit is larger than 
-!               bmad_com%max_aperture_limit.
 !
 ! Output:
 !   orb       -- coord_struct: 

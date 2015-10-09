@@ -168,7 +168,6 @@ end module
 ! Defaults:
 !   lat%param%particle          = positron$
 !   lat%param%geometry      = closed$
-!   lat%param%aperture_limit_on = .true.
 !-
 
 subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
@@ -255,7 +254,6 @@ call save_taylor_elements (lat, old_ele)
 
 lat%param%particle = positron$
 lat%param%stable = .true.
-lat%param%aperture_limit_on = .true.
 
 ! Put lattice information into root_node
 

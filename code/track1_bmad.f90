@@ -45,9 +45,9 @@ real(rp) ks, kss, ksr, sig_x0, sig_y0, beta, mat6(6,6), mat2(2,2), mat4(4,4)
 real(rp) z_slice(100), s_pos, s_pos_old, vec0(6)
 real(rp) rel_p, k_z, pc_start, pc_end, dt_ref, gradient_ref, gradient_max
 real(rp) x_pos, y_pos, cos_phi, gradient_net, e_start, e_end, e_ratio, voltage_max
-real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref
-real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2
-real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8
+real(rp) alpha, sin_a, cos_a, f, r_mat(2,2), volt_ref, p_bend, p2_bend, p2xy
+real(rp) x, y, z, px, py, pz, k, dE0, L, E, pxy2, xp1, xp2, yp1, yp2, px_end
+real(rp) xp_start, yp_start, dz4_coef(4,4), dz_coef(3), sqrt_8, pr, kk
 real(rp) dcos_phi, dgradient, dpz, sin_alpha_over_f
 real(rp) mc2, dpc_start, dE_start, dE_end, dE, dp_dg, dp_dg_ref, g
 real(rp) E_start_ref, E_end_ref, pc_start_ref, pc_end_ref
@@ -175,19 +175,66 @@ case (beambeam$)
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
 
   call offset_particle (ele, param, set$, end_orb, set_tilt = .false., set_hvkicks = .false.)
-  n_slice = max(1, nint(length / ele%value(ds_step$)))
-  end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) / (2 * n_slice)
-  end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) / (2 * n_slice)
-  do i = 1, n_slice
-    call track_a_drift (end_orb, ele, length/n_slice)
-    if(i == n_slice) then
-      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) * charge_dir / (2 * n_slice)
-      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir / (2 * n_slice)
+
+  kick = sqrt(ele%value(vkick$)**2 + ele%value(hkick$)**2) * charge_dir
+
+  if (length == 0) then
+    end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) * charge_dir
+    end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir
+
+  elseif (kick == 0) then
+    call track_a_drift (end_orb, ele, length)
+
+  else
+    angle = atan2(ele%value(vkick$), ele%value(hkick$))
+    cos_a = cos(angle); sin_a = sin(angle)
+
+    end_orb%vec(1:3:2) = [end_orb%vec(1) * cos_a + end_orb%vec(3) * sin_a, &
+                         -end_orb%vec(1) * sin_a + end_orb%vec(3) * cos_a]
+    end_orb%vec(2:4:2) = [end_orb%vec(2) * cos_a + end_orb%vec(4) * sin_a, &
+                         -end_orb%vec(2) * sin_a + end_orb%vec(4) * cos_a]
+
+    px = end_orb%vec(2)
+    px_end = px + kick
+    p2_bend = rel_p**2 - end_orb%vec(4)**2
+    p_bend = sqrt(p2_bend)
+
+    if (abs(px_end) > p_bend) then
+      if (ele%value(hkick$) > abs(ele%value(vkick$))) then
+        end_orb%state = lost_pos_x_aperture$
+      elseif (ele%value(hkick$) < -abs(ele%value(vkick$))) then
+        end_orb%state = lost_neg_x_aperture$
+      elseif (ele%value(vkick$) > 0) then
+        end_orb%state = lost_pos_y_aperture$
+      else
+        end_orb%state = lost_neg_y_aperture$
+      endif
+      return
+    endif
+
+    if (abs(kick) < 1d-3 * p_bend) then
+      pr = px / p_bend
+      kk = kick / p_bend
+      sin_g = length * (1 + kk * pr / 2 + (1 + 2*pr**2) * kk**2 / 6 + pr * (3 + 2*pr**2) * kk**3 / 8) / (p_bend * sqrt(1 - pr**2))
+
+      p2xy = p2_bend - px**2
+      e = kick * (kick + 2*px) / p2xy
+      end_orb%vec(1) = end_orb%vec(1) + length * (kick + 2*px) * (1 + e/4 + e**2/8) / (2 * sqrt(p2xy))
     else
-      end_orb%vec(2) = end_orb%vec(2) + ele%value(hkick$) * charge_dir / n_slice
-      end_orb%vec(4) = end_orb%vec(4) + ele%value(vkick$) * charge_dir / n_slice
-    end if
-  end do
+      sin_g = length * (asin(px_end/p_bend) - asin(px/p_bend)) / kick
+      end_orb%vec(1) = end_orb%vec(1) + length * (sqrt(p2_bend - px**2) - sqrt(p2_bend - px_end**2)) / kick
+    endif
+
+    end_orb%vec(2) = px_end
+    end_orb%vec(3) = end_orb%vec(3) + end_orb%vec(4) * sin_g
+    end_orb%vec(5) = end_orb%vec(5) + length * end_orb%beta * ele%value(e_tot$) / ele%value(p0c$) - rel_p * sin_g
+
+    end_orb%vec(1:3:2) = [end_orb%vec(1) * cos_a - end_orb%vec(3) * sin_a, &
+                          end_orb%vec(1) * sin_a + end_orb%vec(3) * cos_a]
+    end_orb%vec(2:4:2) = [end_orb%vec(2) * cos_a - end_orb%vec(4) * sin_a, &
+                          end_orb%vec(2) * sin_a + end_orb%vec(4) * cos_a]
+  endif
+
   call offset_particle (ele, param, unset$, end_orb, set_tilt = .false., set_hvkicks = .false.)
   call set_end_orb_s()
 
@@ -282,6 +329,7 @@ case (kicker$, hkicker$, vkicker$)
   kick  = charge_dir * ele%value(kick$) 
 
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false.)
+
   n_slice = max(1, nint(length / ele%value(ds_step$)))
   if (ele%key == hkicker$) then
      end_orb%vec(2) = end_orb%vec(2) + kick / (2 * n_slice)
@@ -313,6 +361,7 @@ case (kicker$, hkicker$, vkicker$)
         endif
      endif
   end do
+
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false.)
 
   if (ele%key == kicker$) then

@@ -718,6 +718,7 @@ call init_attribute_name1 (def_bmad_com$, abs_tol_adaptive_tracking$,  'ABS_TOL_
 call init_attribute_name1 (def_bmad_com$, init_ds_adaptive_tracking$,  'INIT_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, min_ds_adaptive_tracking$,   'MIN_DS_ADAPTIVE_TRACKING')
 call init_attribute_name1 (def_bmad_com$, fatal_ds_adaptive_tracking$, 'FATAL_DS_ADAPTIVE_TRACKING')
+call init_attribute_name1 (def_bmad_com$, aperture_limit_on$,          'APERTURE_LIMIT_ON')
 
 call init_attribute_name1 (def_mad_beam$, particle$,                      'PARTICLE')
 call init_attribute_name1 (def_mad_beam$, e_tot$,                         'ENERGY')
@@ -762,7 +763,6 @@ call init_attribute_name1 (def_parameter$, ran_seed$,                 'RAN_SEED'
 call init_attribute_name1 (def_parameter$, n_part$,                   'N_PART')
 call init_attribute_name1 (def_parameter$, particle$,                 'PARTICLE')
 call init_attribute_name1 (def_parameter$, photon_type$,              'PHOTON_TYPE')
-call init_attribute_name1 (def_parameter$, aperture_limit_on$,        'APERTURE_LIMIT_ON')
 call init_attribute_name1 (def_parameter$, no_end_marker$,            'NO_END_MARKER')
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$,   'ABSOLUTE_TIME_TRACKING')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')

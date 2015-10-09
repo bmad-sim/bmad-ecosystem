@@ -36,9 +36,6 @@
 !
 ! Input:
 !   lat             -- lat_struct: Lat to track through.
-!     %branch(ix_branch)%param%aperture_limit_on 
-!                     -- Logical: Sets whether track_backwards_time looks to
-!                                 see whether a particle is lost or not
 !   orbit(ix_start)  -- Coord_struct: Coordinates at start of tracking.
 !   ix_start         -- Integer: Start index (See Note).
 !   ix_end           -- Integer: End index (See Note).

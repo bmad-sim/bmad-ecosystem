@@ -131,8 +131,8 @@ call reallocate_coord (closed_orb, branch%n_ele_max)  ! allocate if needed
 fluct_saved = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.  
 
-aperture_saved = branch%param%aperture_limit_on
-branch%param%aperture_limit_on = .false.
+aperture_saved = bmad_com%aperture_limit_on
+bmad_com%aperture_limit_on = .false.
 
 n_ele = branch%n_ele_track
 
@@ -354,7 +354,7 @@ if (nt == 4 .or. nt == 5) then
 endif
 
 bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-branch%param%aperture_limit_on = aperture_saved
+bmad_com%aperture_limit_on         = aperture_saved
 
 if (dir == -1) then
   closed_orb(1:nt) = closed_orb(nt:1:-1)

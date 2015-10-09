@@ -190,7 +190,9 @@ do i = 1, num_ele_attrib$
                       'BETA_START      =', ele%value(p0c_start$) / ele%value(e_tot_start$)
 
   elseif (a_name == 'E_TOT_START') then
-    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7)')  i, a_name(1:n_att), '=', ele%value(i)
+    nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
+                      i, a_name(1:n_att), '=', ele%value(i), ',', &
+                      'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
 
   elseif (a_name == 'P0C') then
     if (particle == photon$) then
@@ -203,10 +205,10 @@ do i = 1, num_ele_attrib$
                       'BETA            =', ele%value(p0c$) / ele%value(e_tot$)
     endif
 
-  elseif (a_name == 'E_TOT' .and. attribute_name(ele, e_tot_start$) == 'E_TOT_START') then
+  elseif (a_name == 'E_TOT') then
     nl=nl+1; write (li(nl), '(i6, 3x, 2a, es15.7, a, 10x, a, es15.7)') &
                       i, a_name(1:n_att), '=', ele%value(i), ',', &
-                      'DELTA_E         =', ele%value(e_tot$) - ele%value(e_tot_start$)
+                      'GAMMA           =', ele%value(e_tot$) / mass_of(particle)
 
   elseif (index(a_name, 'ANGLE') /= 0 .and. a_name /= 'CRITICAL_ANGLE_FACTOR') then
     units = ' deg]'
