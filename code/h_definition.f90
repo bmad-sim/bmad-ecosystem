@@ -274,8 +274,8 @@ module definition
   include "a_def_sagan.inc"
   include "a_def_element_fibre_layout.inc"
   !@3 ---------------------------------------------</br>
-  type(fibre), pointer :: lost_fibre
-  type(integration_node), pointer :: lost_node
+  type(fibre), pointer :: lost_fibre=>null()
+  type(integration_node), pointer :: lost_node=>null()
 
   type rf_phasor
      real(dp) x(2)
@@ -294,7 +294,7 @@ module definition
      type(rf_phasor) AC
      type(spinor) s(3)
      logical u
-     type(integration_node),pointer :: lost_node
+     type(integration_node),pointer :: lost_node=>null()
   end type probe
   !@3 ---------------------------------------------</br>
   type probe_8
@@ -304,7 +304,7 @@ module definition
      type(spinor_8) s(3)   ! Polymorphic spin s(1:3)
      !   stuff for exception
      logical u
-     type(integration_node),pointer :: lost_node
+     type(integration_node),pointer :: lost_node=>null()
   end type probe_8
   !@3 ---------------------------------------------</br>
   type TEMPORAL_PROBE

@@ -3792,12 +3792,12 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
     TYPE(INTERNAL_STATE) stat
 
-    real(dp)  DIX(6),xdix,xdix0,tiny,freq
+    real(dp)  DIX(6),xdix,xdix0,tiny,freq,beta1
     real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
     integer NO1,ND2,I,IU,ITE,ier,j,ITEM
     TYPE (fibre), POINTER :: C
     TYPE (integration_node), POINTER :: t
-    logical(lp) APERTURE
+    logical(lp) APERTURE,use_bmad_units_temp
     INTEGER TURNS0,trackflag
 
     !    fixed_found=my_true
@@ -3805,6 +3805,20 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     if(.not.associated(RING%t)) call MAKE_NODE_LAYOUT(ring)
     !!    xs%x=zero
     !!    xs%s%x=zero
+    use_bmad_units_temp=use_bmad_units
+ 
+    if(use_bmad_units_temp) then 
+          if(present(fibre1)) then
+           call move_to_p_safe( Ring,c,fibre1)
+           beta1=c%mag%p%beta0
+          else
+           CALL move_to_INTEGRATION_NODE( Ring%T,t,node1 )
+           beta1=t%parent_fibre%mag%p%beta0
+          endif
+      call convert_bmad_to_ptc(fix,beta1,STATE%TIME)
+    endif
+
+    use_bmad_units=.false.
 
     TURNS0=1
     trackflag=0
@@ -3943,7 +3957,9 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        !       CALL TRACK(RING,X,LOC,STAT)
        !       trackflag=TRACK_flag(RING,X,LOC,STAT)
        !!       xs%x=x
+
        call TRACK_probe_X(Ring,x,stat,fibre1=fibre1,node1=node1)
+
        if(.not.check_stable) then
           messagelost(len_trim(messagelost)+1:255)=" -> Unstable tracking guessed orbit "
           c_%APERTURE_FLAG=APERTURE
@@ -3967,6 +3983,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
        DO I=1,TURNS0
           !          CALL TRACK(RING,Y,LOC,STAT)
           !!       xs%x=y
+
           call TRACK_probe_X(Ring,Y,stat,fibre1=fibre1,node1=node1)
           if(.not.check_stable) then
              messagelost(len_trim(messagelost)+1:255)=" -> Unstable while tracking small rays around the guessed orbit "
@@ -4056,7 +4073,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     endif
 
-
+    if(use_bmad_units_temp) then 
+ 
+      call convert_ptc_to_bmad(fix,beta1,STATE%TIME)
+    endif
+   use_bmad_units=use_bmad_units_temp
     !    FIX(6)=FIX(6)+freq*turns0
     c_%APERTURE_FLAG=APERTURE
 
@@ -4077,12 +4098,12 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     TYPE(INTERNAL_STATE),optional, intent(in) :: STATE
     TYPE(INTERNAL_STATE) stat
 
-    real(dp)  DIX(6),xdix,xdix0,tiny,freq
+    real(dp)  DIX(6),xdix,xdix0,tiny,freq,beta1
     real(dp) X(6),Y(6),MX(6,6),sxi(6,6),SX(6,6)
     integer NO1,ND2,I,IU,ITE,ier,j,ITEM
     TYPE (fibre), POINTER :: C
     TYPE (integration_node), POINTER :: t
-    logical(lp) APERTURE
+    logical(lp) APERTURE,use_bmad_units_temp
     INTEGER TURNS0,trackflag
     
     if(present(fibre1)) then
@@ -4096,6 +4117,16 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     if(.not.associated(RING%t)) call MAKE_NODE_LAYOUT(ring)
     !!    xs%x=zero
     !!    xs%s%x=zero
+    use_bmad_units_temp=use_bmad_units
+    if(use_bmad_units_temp) then 
+          if(present(fibre1)) then
+           beta1=fibre1%mag%p%beta0
+          else
+           beta1=node1%parent_fibre%mag%p%beta0
+          endif
+      call convert_bmad_to_ptc(fix,beta1,STATE%TIME)
+    endif
+    use_bmad_units=.false.
 
     TURNS0=1
     trackflag=0
@@ -4347,7 +4378,11 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     endif
 
-
+    if(use_bmad_units_temp) then 
+ 
+      call convert_ptc_to_bmad(fix,beta1,STATE%TIME)
+    endif
+   use_bmad_units=use_bmad_units_temp
     !    FIX(6)=FIX(6)+freq*turns0
     c_%APERTURE_FLAG=APERTURE
 

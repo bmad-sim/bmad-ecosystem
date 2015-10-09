@@ -144,7 +144,9 @@ CONTAINS
     TYPE(WORM),OPTIONAL, INTENT(INOUT):: MID
     TYPE(INTERNAL_STATE) K
 
-    if(associated(el%p%aperture)) call CHECK_APERTURE(EL%p%aperture,X)
+    if(associated(el%p%aperture)) then
+     if(el%p%dir*el%p%aperture%pos<=0) call CHECK_APERTURE(EL%p%aperture,X)
+    endif
     !    if(other_program) then
     !       call track_R(x)
     !       return
@@ -201,6 +203,9 @@ CONTAINS
        write(w_p%c(1),'(1x,i4,a21)') el%kind," not supported TRACKR"
        ! call !write_e(0)
     END SELECT
+    if(associated(el%p%aperture)) then
+     if(el%p%dir*el%p%aperture%pos>=0) call CHECK_APERTURE(EL%p%aperture,X)
+    endif
   END SUBROUTINE TRACKR
 
   SUBROUTINE TRACKP(EL,X,K)
@@ -210,11 +215,9 @@ CONTAINS
     !    TYPE(WORM_8),OPTIONAL, INTENT(INOUT):: MID
     TYPE(INTERNAL_STATE) K
 
-    if(associated(el%p%aperture)) call CHECK_APERTURE(EL%p%aperture,X)
-    !    if(other_program) then
-    !       call track_p(x)
-    !       return
-    !    endif
+    if(associated(el%p%aperture)) then
+     if(el%p%dir*el%p%aperture%pos<=0) call CHECK_APERTURE(EL%p%aperture,X)
+    endif
     SELECT CASE(EL%KIND)
     CASE(KIND0)
        !       IF(PRESENT(MID)) CALL XMID(MID,X,0)
@@ -265,6 +268,9 @@ CONTAINS
        write(w_p%c(1),'(1x,i4,a21)') el%kind," not supported TRACKP"
        ! call !write_e(0)
     END SELECT
+    if(associated(el%p%aperture)) then
+     if(el%p%dir*el%p%aperture%pos>=0) call CHECK_APERTURE(EL%p%aperture,X)
+    endif
   END SUBROUTINE TRACKP
 
   !  SUBROUTINE TRACK_R(X)

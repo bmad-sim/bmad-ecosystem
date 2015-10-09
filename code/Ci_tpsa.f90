@@ -7723,7 +7723,7 @@ subroutine c_locate_planes(vr,vi,idef)
     real(dp), intent(in) ::  vr(ndim2t,ndim2t),vi(ndim2t,ndim2t)
     integer idef(ndim2t/2)
     real(dp) r,rmax
- 
+    logical doit
     integer j,k,kmax
 !    idef=0
 ! write(6,*) " nd2,ndc2t ",nd2,ndc2t 
@@ -7734,14 +7734,34 @@ subroutine c_locate_planes(vr,vi,idef)
        kmax=0
        do k=1,(nd2-ndc2t)/2
          r=abs(vr(2*k-1,j))+abs(vr(2*k,j))+abs(vi(2*k-1,j))+abs(vi(2*k,j))
+
          if(r>rmax) then
            rmax=r
            kmax=k
          endif
+
        enddo
       idef(j/2)=2*kmax-1
     enddo
+   
+ !!!! checking   maybe equal tunes....
+      doit=.false.
+      do j=1,(nd2-ndc2t-2*rf )/2
+      do k=1,(nd2-ndc2t-2*rf )/2
+ 
+         if(j==k) cycle
+        if(idef(j)==idef(k)) doit=.true.
+     
+        if(doit) exit
+      enddo
+      enddo
 
+     if(doit) then
+       if(c_verbose) write(6,*) "warning : trouble locating planes, so chosen arbitrarily "
+       do k=1,(nd2-ndc2t-2*rf )/2
+        idef(k)=2*k-1
+        enddo
+     endif
 !       if(abs(reval(j)-r)<epsflo) then
 !        idef(i/2)=j
 

@@ -136,6 +136,7 @@ module S_status
   logical(lp) :: ramp=my_false
   logical(lp) :: accelerate=my_false, first_particle=my_false
   logical(lp) :: automatic_complex = my_true
+  integer :: aperture_pos_default=0
   TYPE B_CYL
      integer firsttime
      integer, POINTER ::  nmul,n_mono   !,nmul_e,n_mono_e
@@ -241,7 +242,7 @@ CONTAINS
     implicit none
     type (MADX_APERTURE), pointer:: P
 
-    nullify(P%KIND);nullify(P%R);nullify(P%X);nullify(P%Y);nullify(P%dX);nullify(P%dY);
+    nullify(P%KIND);nullify(P%R);nullify(P%X);nullify(P%Y);nullify(P%dX);nullify(P%dY);nullify(P%pos);
   end subroutine NULL_A
 
   SUBROUTINE  alloc_A(p)
@@ -251,8 +252,8 @@ CONTAINS
     nullify(p)
     allocate(p)
     CALL NULL_A(p)
-    ALLOCATE(P%R(2));ALLOCATE(P%X);ALLOCATE(P%Y);ALLOCATE(P%KIND);
-    P%KIND=0; P%R=0.0_dp;P%X=0.0_dp;P%Y=0.0_dp;
+    ALLOCATE(P%R(2));ALLOCATE(P%X);ALLOCATE(P%Y);ALLOCATE(P%KIND);ALLOCATE(P%pos);
+    P%KIND=0; P%R=0.0_dp;P%X=0.0_dp;P%Y=0.0_dp;P%pos=aperture_pos_default;
     ALLOCATE(P%DX);ALLOCATE(P%DY);
     P%DX=0.0_dp;P%DY=0.0_dp;
   end subroutine alloc_A
@@ -263,7 +264,7 @@ CONTAINS
 
     if(associated(p%R)) then
        DEALLOCATE(P%R);DEALLOCATE(P%X);DEALLOCATE(P%Y);DEALLOCATE(P%KIND);
-       DEALLOCATE(P%DX);DEALLOCATE(P%DY);
+       DEALLOCATE(P%DX);DEALLOCATE(P%DY);DEALLOCATE(P%pos);
     endif
   end SUBROUTINE  dealloc_A
 
@@ -469,6 +470,7 @@ CONTAINS
     ELP%Y=EL%Y
     ELP%DX=EL%DX
     ELP%DY=EL%DY
+    ELP%pos=EL%pos
   END SUBROUTINE  equal_A
 
 
@@ -596,6 +598,11 @@ CONTAINS
     CALL CHECK_APERTURE(E,Y)
 
   END SUBROUTINE  CHECK_APERTURE_P
+
+
+
+ 
+
 
   FUNCTION minu( S1,S2  )
     implicit none

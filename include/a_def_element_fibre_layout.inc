@@ -107,6 +107,7 @@ END TYPE POL_BLOCK_INICOND
 
 
 TYPE MADX_APERTURE
+   integer,pointer :: pos
    INTEGER,pointer ::  KIND   ! 1,2,3,4
    REAL(DP),pointer :: R(:)
    REAL(DP),pointer :: X,Y,DX,DY

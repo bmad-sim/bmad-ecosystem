@@ -1015,8 +1015,13 @@ endif
     SELECT CASE(T%CAS)
     CASE(CASEP1)
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
-       if(associated(T%PARENT_FIBRE%MAG%p%aperture)) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
+          if(T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos<=0) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     endif
     CASE(CASEP2)
+     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
+          if(T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos>=0) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     endif
        CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
 
     CASE(CASE1,CASE2)
@@ -1190,11 +1195,13 @@ endif
     SELECT CASE(T%CAS)
     CASE(CASEP1)
        CALL TRACK_FIBRE_FRONT(T%PARENT_FIBRE,X,K)
-       if(associated(T%PARENT_FIBRE%MAGP%p%aperture)) call CHECK_APERTURE(T%PARENT_FIBRE%MAGP%p%aperture,X)
+     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
+          if(T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos<=0) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     endif
     CASE(CASEP2)
-       !    if(abs(x(1))+abs(x(3))>absolute_aperture.or.(.not.CHECK_MADX_APERTURE)) then ! new 2010
-       !       CHECK_STABLE=.false.
-       !    endif
+     if(associated(T%PARENT_FIBRE%MAG%p%aperture)) then
+          if(T%PARENT_FIBRE%MAG%p%dir*T%PARENT_FIBRE%MAG%p%aperture%pos>=0) call CHECK_APERTURE(T%PARENT_FIBRE%MAG%p%aperture,X)
+     endif
        CALL TRACK_FIBRE_BACK(T%PARENT_FIBRE,X,K)
 
     CASE(CASE1,CASE2)
@@ -2148,6 +2155,18 @@ endif
      call kill(t)
 
 
-     end subroutine convert_ptc_to_bmadp   
+     end subroutine convert_ptc_to_bmadp 
+
+     subroutine in_bmad_units
+     implicit none  
+      use_bmad_units=.true.
+      ndpt_bmad=1
+     end subroutine in_bmad_units
+
+     subroutine in_ptc_units
+     implicit none  
+      use_bmad_units=.false.
+      ndpt_bmad=0
+     end subroutine in_ptc_units
 
 end module ptc_multiparticle
