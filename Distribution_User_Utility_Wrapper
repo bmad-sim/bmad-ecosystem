@@ -8,16 +8,13 @@
 [ -d "${DIST_BASE_DIR}" ] || echo -e '\nPlease first initalize the Distribution environment by typing: "source util/dist_source_me"\n'
 
 # List of Project Directories - Order here matters!
-DIRLIST=( xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
+DIRLIST=( hdf5 h5hut xsif PGPLOT lapack gsl fgsl forest recipes_f-90_LEPP sim_utils xraylib bmad tao cpp_bmad_interface examples bsim util_programs regression_tests )
 
 # Build PLplot, if requested
 [ "${ACC_PLOT_PACKAGE}" == "plplot" ] && DIRLIST=( plplot ${DIRLIST[*]} )
     
-
-
+# General Distribution Build Function
 func_dist_build () { 
-
-    # General Distribution Build Function
 
     for DIR in "${DIRLIST[@]}"
     do
@@ -35,18 +32,14 @@ func_dist_build () {
     exit 0
 }
 
-
-
+# General Distribution Cleanup Function
 func_dist_clean () { 
-
-    # General Distribution Cleanup Function
 
     cd ${DIST_BASE_DIR}/${DIRLIST[1]}
     mk obliterate
     mkd obliterate
 
 }
-
 
 
 DIST_SCRIPT=$(basename $0)
