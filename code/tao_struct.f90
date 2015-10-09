@@ -626,7 +626,6 @@ type tao_common_struct
   character(100) :: building_wall_file = ''    ! '-building_wall' command line argument.
   character(16) :: plot_geometry = ''          ! '-geometry' command line argument.
   character(80) :: single_mode_buffer = ''
-  character(16) :: aperture_limit_on
   character(40) :: unique_name_suffix
   character(16) :: valid_plot_who(10)          ! model, base, ref etc...
 end type
