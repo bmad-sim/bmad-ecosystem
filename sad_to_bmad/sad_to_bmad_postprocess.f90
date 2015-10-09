@@ -90,5 +90,6 @@ endif
 ! And now move temp file to lattice file
 
 call system_command ('mv ' // trim(temp_file) // ' ' // trim(lat_file))
+print *, 'Modified file: ', trim(lat_file)
 
 end program
