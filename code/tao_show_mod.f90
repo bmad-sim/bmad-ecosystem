@@ -1371,6 +1371,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
     nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
     nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts      = ', bmad_com%use_hard_edge_drifts
+    nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on         = ', bmad_com%aperture_limit_on
   endif
 
   if (print_csr_param) then
@@ -2886,7 +2887,6 @@ case ('universe')
   endif
 
   nl=nl+1; write(lines(nl), '(a, f0.3)')   'Lattice length:             ', branch%param%total_length
-  nl=nl+1; write(lines(nl), lmt)           'Aperture limits on?:        ', branch%param%aperture_limit_on
 
   if (branch%param%geometry == open$ .and. lat_branch%track_state /= moving_forward$) then
     if (s%global%track_type == 'beam') then

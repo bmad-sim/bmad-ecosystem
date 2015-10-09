@@ -28,7 +28,6 @@ character(*) input_file_name
 character(200) full_input_name, init_lat_file
 character(40) unique_name_suffix, suffix
 character(20) :: r_name = 'tao_init_lattice'
-character(16) aperture_limit_on
 
 integer i, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie
 
@@ -38,7 +37,7 @@ logical err
 
 namelist / tao_design_lattice / design_lattice, &
        combine_consecutive_elements_of_like_name, unique_name_suffix, &
-       aperture_limit_on, common_lattice, n_universes
+       common_lattice, n_universes
 
 ! Defaults
 
@@ -68,7 +67,6 @@ if (s%com%init_read_lat_info) then
   n_universes = s%com%n_universes
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
-  aperture_limit_on = ''
 
   if (input_file_name /= '') then
     read (iu, nml = tao_design_lattice, iostat = ios)
@@ -85,7 +83,6 @@ if (s%com%init_read_lat_info) then
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name
   s%com%common_lattice = common_lattice
   s%com%n_universes = n_universes
-  s%com%aperture_limit_on = aperture_limit_on
   s%com%unique_name_suffix = unique_name_suffix
 endif
 
@@ -233,14 +230,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call bmad_parser2 (design_lat%file2, u%design%lat)
   endif
 
-  ! Aperture limit
-
-  if (s%com%aperture_limit_on /= '') then
-    read (s%com%aperture_limit_on, *) u%design%lat%param%aperture_limit_on
-    do j = 1, ubound(u%design%lat%branch, 1)
-      u%design%lat%branch(j)%param%aperture_limit_on = u%design%lat%param%aperture_limit_on
-    enddo
-  endif
+  ! RF
 
   if (u%design%lat%param%geometry == closed$ .and. .not. s%global%rf_on) then
     call out_io (s_info$, r_name, &
