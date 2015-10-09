@@ -74,12 +74,12 @@ export ACC_ENABLE_MPI="N"
 #-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_GFORTRAN_OPTIMIZATION here 
 # to "Y" will force gfortran -O2 optimization during the 
-# production build. The default depends on how your 
-# gcc/gfortran is configured.
+# production build, "N" will disable. The default depends 
+# on how your gcc/gfortran is configured.
 # Type "gfortran -Q --help=optimizers -O2" to see what
 # optimizations are enabled with the "-O2" flag. 
 #-----------------------------------------------------------
-export ACC_ENABLE_GFORTRAN_OPTIMIZATION="N"
+export ACC_ENABLE_GFORTRAN_OPTIMIZATION="Y"
 
 
 #-----------------------------------------------------------
