@@ -21,7 +21,6 @@ variables pertain to the \vn{root} branch. The variables that can be
 set by \vn{parameter} are
 \begin{example}
   parameter[absolute_time_tracking]   = <Logical>  ! Absolute time used for RF clock?
-  parameter[aperture_limit_on]        = <Logical>  ! Use aperture limits in tracking.
   parameter[custom_attributeN]        = <string>   ! Defining custom attributes (\sref{s:custom.attrib}).
   parameter[default_tracking_species] = <Switch>   ! Default type of tracked particle. 
                                                    !    Default is ref_particle.
@@ -61,11 +60,6 @@ The \vn{absolute_time_tracking} switch sets whether the clock for the
 particle or to uses the absolute time (\sref{s:rf.time}). A value of
 \vn{False} (the default) mandates relative time and a value of
 \vn{True} mandates absolute time.
-  \index{aperture_limit_on}
-  \item[{parameter[aperture_limit_on]}] \Newline
-Aperture limits may be set for elements in the lattice
-(\sref{s:limit}). Setting \vn{aperture_limit_on} to \vn{False} will
-disable all set apertures. \vn{True} is the default.
   \index{custom_attributeN}
   \item[{parameter[custom_attributeN]}] \Newline
 For more information on defining custom attributes, see \sref{s:custom.attrib}.

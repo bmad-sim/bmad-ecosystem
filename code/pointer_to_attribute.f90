@@ -287,13 +287,14 @@ if (ix_a < 1) return
 select case (a_name)
 ! attrib_type = is_real$
 case ('ELECTRIC_DIPOLE_MOMENT');         a_ptr%r => bmad_com%electric_dipole_moment
+case ('APERTURE_LIMIT_ON');              a_ptr%l => bmad_com%aperture_limit_on
+case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
 ! attrib_type = is_logical$
 case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
 case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
 case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
 case ('IS_ON');                          a_ptr%l => ele%is_on
-case ('APERTURE_LIMIT_ON');              a_ptr%l => ele%branch%param%aperture_limit_on
 case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => ele%branch%lat%absolute_time_tracking
 case ('CSR_CALC_ON');                    a_ptr%l => ele%csr_calc_on
 case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offsets
@@ -301,7 +302,6 @@ case ('OFFSET_MOVES_APERTURE');          a_ptr%l => ele%offset_moves_aperture
 case ('FIELD_MASTER');                   a_ptr%l => ele%field_master
 case ('SCALE_MULTIPOLES');               a_ptr%l => ele%scale_multipoles
 case ('MULTIPOLES_ON');                  a_ptr%l => ele%multipoles_on
-case ('USE_HARD_EDGE_DRIFTS');           a_ptr%l => bmad_com%use_hard_edge_drifts
 !  attrib_type = is_integer$
 case ('N_SLICE');                        a_ptr%r => ele%value(n_slice$)
 case ('N_REF_PASS');                     a_ptr%r => ele%value(n_ref_pass$)

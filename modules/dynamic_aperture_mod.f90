@@ -145,7 +145,7 @@ end subroutine dynamic_aperture_scan
 subroutine dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)
 
 type (lat_struct)  lat
-type (lat_param_struct)  param_save
+type (bmad_common_struct)  com_save
 type (coord_struct)  orb0
 type (coord_struct), allocatable :: orbit(:)
 type (aperture_data_struct)  aperture
@@ -175,8 +175,8 @@ if (logic_option(.true., check_xy_init)) then
   endif
 endif
 
-param_save = lat%param
-lat%param%aperture_limit_on = .true.
+com_save = bmad_com
+bmad_com%aperture_limit_on = .true.
 
 call reallocate_coord (orbit, lat%n_ele_max)
 
@@ -256,7 +256,7 @@ aperture%x = x1
 aperture%y = y1
 aperture%i_turn = turn_lost
 
-lat%param = param_save
+bmad_com = com_save
 
 end subroutine dynamic_aperture
 

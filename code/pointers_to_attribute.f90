@@ -121,6 +121,7 @@ case ('BMAD_COM')
   case ('CONSERVE_TAYLOR_MAPS');            ptr_array(1)%l => bmad_com%conserve_taylor_maps
   case ('ABSOLUTE_TIME_TRACKING_DEFAULT');  ptr_array(1)%l => bmad_com%absolute_time_tracking_default
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
+  case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on
   case ('DEBUG');                           ptr_array(1)%l => bmad_com%debug
 
   case default

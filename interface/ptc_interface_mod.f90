@@ -504,11 +504,11 @@ if (associated(mag)) then
   call is_associated (associated(mag%pa),     '%pa     [General B]:')
   call is_associated (associated(mag%he22),   '%he22   [Helical Dipole]:')
 
-  call write_real ('%l      [Len]:    ',  mag%volt,    'es13.5', writeit = .true.)
+  call write_real ('%l      [Len]:    ',  mag%l,       'es13.5', writeit = .true.)
   call write_real ('%volt             ',  mag%volt,    'es13.5')
   call write_real ('%freq             ',  mag%freq,    'es13.5')
   call write_real ('%phas             ',  mag%phas,    'es13.5')
-  call write_real ('%volt             ',  mag%volt,    'es13.5')
+  call write_real ('%lag              ',  mag%lag,     'es13.5')
   call write_real ('%delta_e          ',  mag%delta_e, 'es13.5')
   call write_real ('%fint             ',  mag%fint,    'es13.5')
   call write_real ('%hgap             ',  mag%hgap,    'es13.5')
@@ -3068,13 +3068,13 @@ type (el_list) ptc_el_list
 
 real(rp), allocatable :: dz_offset(:)
 real(rp) leng, hk, vk, s_rel, z_patch, phi_tot, fh, fhx, norm
-real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude
+real(rp) dx, dy, cos_t, sin_t, coef, kick_magnitude, ap_lim(2), ap_dxy(2)
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 
 integer, optional :: tracking_species
 integer, optional :: integ_order, steps
-integer i, n, key, n_term, exception, n_field, ix, met, net
+integer i, n, key, n_term, exception, n_field, ix, met, net, ap_type, ap_pos
 
 logical use_offsets
 logical, optional :: for_layout, use_hard_edge_drifts
@@ -3137,7 +3137,7 @@ endif
 select case (key)
 
 case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$) 
-  ptc_key%magnet = 'drift'
+  ptc_key%magnet = 'quadrupole'
 
 case (quadrupole$) 
   ptc_key%magnet = 'quadrupole'
@@ -3230,16 +3230,16 @@ case (rfcavity$, lcavity$)
   select case (nint(ele%value(cavity_type$)))
   case (traveling_wave$)
     ptc_key%magnet = 'twcavity'
-    ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
+    ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
     ptc_key%list%cavity_totalpath = 1  ! 
   case (standing_wave$)
     ptc_key%magnet = 'rfcavity'
-    ptc_key%list%volt = 2e-6 * e_accel_field(ele, voltage$)
+    ptc_key%list%volt = 2d-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = -1   ! Triggers Bmad compatible cavity.
     ptc_key%list%cavity_totalpath = 1  ! 
   case (ptc_standard$)
     ptc_key%magnet = 'rfcavity'
-    ptc_key%list%volt = 1e-6 * e_accel_field(ele, voltage$)
+    ptc_key%list%volt = 1d-6 * e_accel_field(ele, voltage$)
     ptc_key%list%n_bessel = 0
     ptc_key%list%permfringe = 0
 	  ptc_key%list%cavity_totalpath = 0
@@ -3349,6 +3349,7 @@ endif
 
 call ele_to_an_bn (ele, param, .true., ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
 
+!-----------------------------
 ! Create ptc_fibre
 ! The EXCEPTION argument is an error_flag. Set to 1 if error. Never reset.
 
@@ -3377,6 +3378,7 @@ ptc_fibre%dir = ele%orientation
 
 lielib_print(12) = n
 
+!-----------------------------
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
 ! Note: PTC convert MV/m to GV/m internally.
 
@@ -3391,6 +3393,28 @@ if (associated(ele%a_pole_elec)) then
     if (ele%b_pole_elec(i) /= 0) call add (ptc_fibre,  (i+1), 0, fh*ele%b_pole_elec(i), electric = .true.)
   enddo
   SOLVE_ELECTRIC = .false.
+endif
+
+! Aperture
+
+if (ele%aperture_at /= no_aperture$ .and. (ele%value(x1_limit$) /= 0 .or. ele%value(x2_limit$) /= 0) .and. &
+            (ele%value(y1_limit$) /= 0 .or. ele%value(y2_limit$) /= 0) .and. &
+            (ele%aperture_type == rectangular$ .or. ele%aperture_type == elliptical$)) then
+
+  select case (ele%aperture_type)
+  case (rectangular$);    ap_type = 2
+  case (elliptical$);     ap_type = 1
+  end select
+
+  select case (ele%aperture_at)
+  case (both_ends$);      ap_pos = 0
+  case (entrance_end$);   ap_pos = -1
+  case (exit_end$);       ap_pos = 1
+  end select
+
+  ap_lim = [(ele%value(x1_limit$) + ele%value(x2_limit$)) / 2, (ele%value(y1_limit$) + ele%value(y2_limit$)) / 2]
+  ap_dxy = [(ele%value(x1_limit$) - ele%value(x2_limit$)) / 2, (ele%value(y1_limit$) - ele%value(y2_limit$)) / 2]
+  call assign_aperture (ptc_fibre, ap_type, ap_lim, ap_lim(1), ap_lim(2), ap_dxy(1), ap_dxy(2), pos = ap_pos)
 endif
 
 ! sad_mult & quadrupole
@@ -3721,7 +3745,7 @@ select case (key)
 case (marker$, detector$, fork$, photon_fork$, beginning_ele$, em_field$, patch$, fiducial$, floor_shift$)
   return
 
-case (drift$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$, rfcavity$, lcavity$, &
+case (drift$, rfcavity$, lcavity$, &
       ab_multipole$, multipole$, beambeam$, wiggler$, undulator$)
   ! Nothing to be done
 
@@ -3754,6 +3778,8 @@ case (sbend$)
 case (sextupole$)
   k(3) = val(k2$) / 2
   n_relavent = 3
+
+case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
 case (solenoid$)
 
@@ -3789,8 +3815,7 @@ case default
 
 end select
 
-if (add_kick .and. has_hkick_attributes(ele%key) .and. &
-                        (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
+if (add_kick .and. has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
   hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
   vk = val(vkick$) / leng
   if (ele%key == sbend$) then

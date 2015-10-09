@@ -488,7 +488,8 @@ parsing_loop: do
       if (key /= 0 .and. ele%key /= key) cycle
       ! No wild card matches permitted for these.
       if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
-          ele%key == def_parameter$ .or. ele%key == def_beam_start$) cycle
+          ele%key == def_parameter$ .or. ele%key == def_beam_start$ .or. &
+          ele%key == def_bmad_com$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
       if (wild_and_key0 .and. attribute_index(ele, word_2) < 1) cycle

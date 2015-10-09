@@ -37,9 +37,6 @@ contains
 !   ele            -- Ele_struct: Element holding the aperture
 !   particle_at    -- Integer: first_track_edge$, second_track_edge$, surface$, in_between$
 !   param          -- lat_param_struct: Parameter structure
-!     %aperture_limit_on -- The aperture limit is only checked if this is true.
-!               The exception is when the orbit is larger than 
-!               bmad_com%max_aperture_limit. 
 !   check_momentum -- Logical, optional: If present and false then checking of
 !                       p_x and p_y will be disabled.
 !
@@ -150,7 +147,7 @@ case (elliptical$)
     x_lim = ele%value(x2_limit$)
   endif
 
-  if (x_lim == 0 .or. .not. param%aperture_limit_on) x_lim = bmad_com%max_aperture_limit
+  if (x_lim == 0 .or. .not. bmad_com%aperture_limit_on) x_lim = bmad_com%max_aperture_limit
 
   if (y_particle < 0) then
     y_lim = ele%value(y1_limit$)
@@ -158,7 +155,7 @@ case (elliptical$)
     y_lim = ele%value(y2_limit$)
   endif
 
-  if (y_lim == 0 .or. .not. param%aperture_limit_on) y_lim = bmad_com%max_aperture_limit
+  if (y_lim == 0 .or. .not. bmad_com%aperture_limit_on) y_lim = bmad_com%max_aperture_limit
 
   r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
   if (r > 1) then

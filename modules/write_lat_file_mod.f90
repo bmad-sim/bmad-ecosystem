@@ -162,7 +162,6 @@ write (iu, *)
 write (iu, '(4a)')    'parameter[p0c]                    =', trim(str(lat%ele(0)%value(p0c_start$)))
 write (iu, '(4a)')    'parameter[particle]               = ', trim(particle_name(lat%param%particle))
 
-if (.not. lat%param%aperture_limit_on) write (iu, '(4a)')    'parameter[aperture_limit_on]      = F'
 if (lat%param%n_part /= 0)             write (iu, '(a, es12.4)') 'parameter[n_part]                 = ', lat%param%n_part
 
 write (iu, '(a, l1)') 'parameter[absolute_time_tracking]    = ', lat%absolute_time_tracking
@@ -175,11 +174,14 @@ if (lat%photon_type /= incoherent$) then
   write (iu, '(3a)') 'parameter[photon_type] = ', photon_type_name(lat%photon_type)
 endif
 
+if (bmad_com%aperture_limit_on .neqv. bmad_com_default%aperture_limit_on) &
+            write (iu, '(a, l1)') 'bmad_com[aperture_limit_on] = ', bmad_com%aperture_limit_on
+
 if (bmad_com%use_hard_edge_drifts .neqv. bmad_com_default%use_hard_edge_drifts) &
-            write (iu, '(a, l1)') 'parameter[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
+            write (iu, '(a, l1)') 'bmad_com[use_hard_edge_drifts] = ', bmad_com%use_hard_edge_drifts
 
 if (bmad_com%electric_dipole_moment /= 0) &
-            write (iu, '(a, l1)') 'parameter[electric_dipole_moment] = ', bmad_com%electric_dipole_moment
+            write (iu, '(a, l1)') 'bmad_com[electric_dipole_moment] = ', bmad_com%electric_dipole_moment
 
 ele => lat%ele(0) 
 

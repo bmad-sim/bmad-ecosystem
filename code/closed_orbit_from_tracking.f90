@@ -78,8 +78,8 @@ call reallocate_coord (closed_orb, lat%n_ele_max)
 fluct_saved = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.  
 
-aperture_saved = lat%param%aperture_limit_on
-lat%param%aperture_limit_on = .false.
+aperture_saved = bmad_com%aperture_limit_on
+bmad_com%aperture_limit_on = .false.
 
 ! make a unit matrix
 
@@ -148,7 +148,7 @@ do j = 1, jmax
       lat%ele%old_is_on = lat%ele%bmad_logic
     endif
     bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-    lat%param%aperture_limit_on = aperture_saved
+    bmad_com%aperture_limit_on = aperture_saved
     if (present(err_flag)) err_flag = .false.
     return
   endif

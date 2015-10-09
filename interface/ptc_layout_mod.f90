@@ -508,7 +508,6 @@ end subroutine ptc_transfer_mat_and_closed_orbit_calc
 !
 ! Output:
 !   norm_mode       -- Normal_modes_struct
-!     %e_loss
 !     %a%tune, %b%tune, %z%tune
 !     %a%alpha_damp, etc.
 !     %a%emittance, etc.
@@ -1146,13 +1145,10 @@ case (bend_sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
 case (rfcavity$, lcavity$)
-  phi_tot = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$)
-  if (ele%key == lcavity$) then
-    mag%lag = pi / 2 - twopi * phi_tot
-    call set_real (mag%phas, magp%phas, -mag%lag)
-  else
-    mag%lag = twopi * phi_tot
-  endif
+  phi_tot = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_ref$))
+  if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
+  call set_real (mag%phas, magp%phas, -mag%lag)
+
   call set_real (mag%volt, magp%volt, 2e-6 * e_accel_field(ele, voltage$))
 
 case (sad_mult$)
@@ -1378,8 +1374,18 @@ case (hkicker$)
 
 case (lcavity$, rfcavity$)
   call update_this_real (ele%value(rf_frequency$), fib%mag%freq)
-  call update_this_real (ele%value(voltage$), fib%mag%freq)
-  call update_this_real (ele%value(phi0$), fib%mag%phas)
+
+  select case (nint(ele%value(cavity_type$)))
+  case (traveling_wave$);     call update_this_real (ele%value(voltage$), fib%mag%volt*1d6)
+  case (standing_wave$);      call update_this_real (ele%value(voltage$), fib%mag%volt*0.5d6)
+  case (ptc_standard$);       call update_this_real (ele%value(voltage$), fib%mag%volt*1d6)
+  end select
+
+  if (ele%key == lcavity$) then
+    call update_this_real (ele%value(phi0$), pi/2 - fib%mag%lag/twopi)
+  else
+    call update_this_real (ele%value(phi0$), fib%mag%lag/twopi)
+  endif
 
 case (multipole$)
   ele%a_pole = knl
@@ -1593,5 +1599,50 @@ call thin_lens_restart(r, universe=.true.)
 call thin_lens_resplit(r, dKL_max, even, crossover, l_max, bend_dorb, sex_dx, universe=.true.)
 
 end subroutine ptc_layouts_resplit
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ptc_check_for_lost_particle (state, ptc_fibre, do_reset)
+!
+! Routine to check if a particle has been lost when tracking with PTC.
+!
+! Input:
+!   do_reset -- logical: If True then reset ptc flags.
+!
+! Output:
+!   state     -- integer: Same as coord_struct%state. alive$, lost$, lost_neg_x_aperture$, etc.
+!   ptc_fibre -- fibre, pointer: Pointer to fibre where particle lost. Nullified if particle alive.
+!-
+
+subroutine ptc_check_for_lost_particle (state, ptc_fibre, do_reset)
+
+use definition, only: check_stable, lost_node, lost_fibre, xlost, reset_aperture_flag
+
+type (fibre), pointer :: ptc_fibre
+integer state
+logical do_reset
+
+!
+
+if (check_stable) then
+  state = alive$
+  return
+endif
+
+!
+
+ptc_fibre => lost_fibre
+state = lost$
+
+!! ptc_fibre%map%p%aperture%...
+!! xlost(1:6) is lost position
+
+!
+
+if (do_reset) call reset_aperture_flag()
+
+end subroutine ptc_check_for_lost_particle
 
 end module

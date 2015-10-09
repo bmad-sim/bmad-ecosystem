@@ -92,7 +92,7 @@ if (i1 == i2 .and. .not. one_turn_this) return
 ! Map term overflow defined by |term| > 10^(20*(n+1)) where n = sum(term_exponents)
 
 ex_factor(0) = 1d20
-do i = 1, size(ex_factor)
+do i = 1, ubound(ex_factor, 1)
   ex_factor(i) = ex_factor(i-1) * 1d20
 enddo
 

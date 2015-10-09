@@ -1353,8 +1353,6 @@ is_eq = is_eq .and. (f1%ixx == f2%ixx)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%stable .eqv. f2%stable)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%backwards_time_tracking .eqv. f2%backwards_time_tracking)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%bookkeeping_state == f2%bookkeeping_state)
@@ -1730,6 +1728,8 @@ is_eq = is_eq .and. (f1%conserve_taylor_maps .eqv. f2%conserve_taylor_maps)
 is_eq = is_eq .and. (f1%absolute_time_tracking_default .eqv. f2%absolute_time_tracking_default)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 

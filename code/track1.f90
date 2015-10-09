@@ -15,9 +15,7 @@
 ! Input:
 !   start_orb -- Coord_struct: Starting position.
 !   ele       -- Ele_struct: Element to track through.
-!   param     -- lat_param_struct:
-!     %aperture_limit_on -- If True check if particle is lost by going outside
-!                of the element aperture. 
+!   param     -- lat_param_struct: Reference particle info.
 !   track     -- track_struct, optional: Structure holding existing track.
 !   ignore_radiation
 !             -- Logical, optional: If present and True then do not include radiation

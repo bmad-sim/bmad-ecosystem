@@ -75,7 +75,7 @@ Table~\ref{t:units}.  Note that \mad uses different units. For example,
 \bmad defines commonly used physical and mathematical constants
 shown in Table~\ref{t:constants}.  All symbols use straight SI units
 except for \vn{emass} and \vn{pmass} which are provided for
-compatibility with \mad.
+compatibility with \mad and should be avoided.
 
 \begin{table}
 \centering
@@ -125,7 +125,7 @@ The following (rather silly) example shows some of the features of a
   bend2[g] = 105 - exp(2.3) / 37.5               ! Redefining an attribute
   ln1: line = (ele1, ele2, ele3)                 ! A line definition
   ln2: line = (ln1, ele4, ele5)                  ! Lines can contain lines
-  arg_ln(a, b) = (ele1, a, ele2, b)              ! A line with arguments.
+  arg_ln(a, b): line = (ele1, a, ele2, b)        ! A line with arguments.
   use, ln2                                       ! Which line to use for the lattice
 \end{example}
 

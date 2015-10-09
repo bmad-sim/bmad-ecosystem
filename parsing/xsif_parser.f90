@@ -559,7 +559,6 @@ lat%n_ele_track = i_ele
 lat%n_ele_max  = i_ele
 
 lat%version            = bmad_inc_version$
-lat%param%aperture_limit_on  = .true.
 lat%n_ic_max           = 0                     
 lat%n_control_max      = 0    
 lat%use_name = ktext  ! ktext is global xsif variable

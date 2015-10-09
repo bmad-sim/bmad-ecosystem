@@ -210,7 +210,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: bele
 type (wig_term_struct), pointer :: wig_term(:)
 type (wig_term_struct), pointer :: wt
-type (all_pointer_struct), allocatable :: r_ptrs(:)
+type (all_pointer_struct), allocatable :: a_ptrs(:)
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
@@ -364,53 +364,59 @@ endif
 ! beam_start and bmad_com element can have attributes that are not part of the element so
 ! Need to use pointers_to_attribute.
 
-if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$) then
-  call pointers_to_attribute (lat, ele%name, word, .false., r_ptrs, err_flag, .false.)
-  if (err_flag .or. size(r_ptrs) /= 1) then
+if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON')) then
+  call pointers_to_attribute (lat, ele%name, word, .false., a_ptrs, err_flag, .false.)
+  if (err_flag .or. size(a_ptrs) /= 1) then
     call parser_error ('BAD ATTRIBUTE: ' // word, 'FOR ELEMENT: ' // ele%name)
     return
   endif
 
-  if (associated(r_ptrs(1)%r)) then
+  if (ele%key == def_parameter$ .and. word == 'APERTURE_LIMIT_ON') then
+    call parser_error ('SYNTAX HAS CHANGED: PARAMETER[APERTURE_LIMIT_ON] = ... NEEDS TO BE REPLACED BY BMAD_COM[APERTURE_LIMIT_ON] = ...', &
+                       'THIS IS A WARNING ONLY. THE PROGRAM WILL RUN NORMALLY.', warn_only = .true.)
+  endif
+
+  if (associated(a_ptrs(1)%r)) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
-    r_ptrs(1)%r = value
-    if (associated(r_ptrs(1)%r, bmad_com%max_aperture_limit))             bp_com%extra%max_aperture_limit_set              = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%default_ds_step))                bp_com%extra%default_ds_step_set                 = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%significant_length))             bp_com%extra%significant_length_set              = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%rel_tol_tracking))               bp_com%extra%rel_tol_tracking_set                = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%abs_tol_tracking))               bp_com%extra%abs_tol_tracking_set                = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%rel_tol_adaptive_tracking))      bp_com%extra%rel_tol_adaptive_tracking_set       = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%abs_tol_adaptive_tracking))      bp_com%extra%abs_tol_adaptive_tracking_set       = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%init_ds_adaptive_tracking))      bp_com%extra%init_ds_adaptive_tracking_set       = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))       bp_com%extra%min_ds_adaptive_tracking_set        = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
-    if (associated(r_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
+    a_ptrs(1)%r = value
+    if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))             bp_com%extra%max_aperture_limit_set              = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                bp_com%extra%default_ds_step_set                 = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%significant_length))             bp_com%extra%significant_length_set              = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_tracking))               bp_com%extra%rel_tol_tracking_set                = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_tracking))               bp_com%extra%abs_tol_tracking_set                = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%rel_tol_adaptive_tracking))      bp_com%extra%rel_tol_adaptive_tracking_set       = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%abs_tol_adaptive_tracking))      bp_com%extra%abs_tol_adaptive_tracking_set       = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%init_ds_adaptive_tracking))      bp_com%extra%init_ds_adaptive_tracking_set       = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%min_ds_adaptive_tracking))       bp_com%extra%min_ds_adaptive_tracking_set        = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%fatal_ds_adaptive_tracking))     bp_com%extra%fatal_ds_adaptive_tracking_set      = .true.
+    if (associated(a_ptrs(1)%r, bmad_com%electric_dipole_moment))         bp_com%extra%electric_dipole_moment_set          = .true.
 
-  elseif (associated(r_ptrs(1)%i)) then
+  elseif (associated(a_ptrs(1)%i)) then
     call evaluate_value (trim(ele%name) // ' ' // word, value, lat, delim, delim_found, err_flag) 
     if (err_flag) return
-    r_ptrs(1)%i = nint(value)
-    if (associated(r_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
-    if (associated(r_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
-    if (associated(r_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
+    a_ptrs(1)%i = nint(value)
+    if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
 
-  elseif (associated(r_ptrs(1)%l)) then
-    call get_logical (trim(ele%name) // ' ' // word, r_ptrs(1)%l, err_flag2)
-    if (associated(r_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%mat6_track_symmetric))           bp_com%extra%mat6_track_symmetric_set            = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%space_charge_on))                bp_com%extra%space_charge_on_set                 = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%coherent_synch_rad_on))          bp_com%extra%coherent_synch_rad_on_set           = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%radiation_damping_on))           bp_com%extra%radiation_damping_on_set            = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%radiation_fluctuations_on))      bp_com%extra%radiation_fluctuations_on_set       = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%conserve_taylor_maps))           bp_com%extra%conserve_taylor_maps_set            = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%absolute_time_tracking_default)) bp_com%extra%absolute_time_tracking_default_set  = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
-    if (associated(r_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
+  elseif (associated(a_ptrs(1)%l)) then
+    call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag2)
+    if (associated(a_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%mat6_track_symmetric))           bp_com%extra%mat6_track_symmetric_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%auto_bookkeeper))                bp_com%extra%auto_bookkeeper_set                 = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%space_charge_on))                bp_com%extra%space_charge_on_set                 = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%coherent_synch_rad_on))          bp_com%extra%coherent_synch_rad_on_set           = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%radiation_damping_on))           bp_com%extra%radiation_damping_on_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%radiation_fluctuations_on))      bp_com%extra%radiation_fluctuations_on_set       = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%conserve_taylor_maps))           bp_com%extra%conserve_taylor_maps_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking_default)) bp_com%extra%absolute_time_tracking_default_set  = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
 
   else
     call parser_error ('BOOKKEEPING ERROR. PLEASE CONTACT A BMAD MAINTAINER!')
@@ -1286,9 +1292,6 @@ case ('USE_HARD_EDGE_DRIFTS')
 
 case ('APERTURE_AT')
   call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
-
-case ('APERTURE_LIMIT_ON') 
-  call get_logical (attrib_word, lat%param%aperture_limit_on, err_flag)
 
 case ('APERTURE_TYPE')
   call get_switch (attrib_word, aperture_type_name(1:), ele%aperture_type, err_flag, ele)

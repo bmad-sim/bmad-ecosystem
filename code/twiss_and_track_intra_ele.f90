@@ -17,8 +17,6 @@
 ! Input:
 !   ele                  -- Ele_struct: Element to track through.
 !   param                -- lat_param_struct:
-!     %aperture_limit_on     -- If True check if particle is lost by going outside
-!                                 of the element aperture. 
 !   l_start              -- Real(rp): Start position measured from the beginning of the element.
 !   l_end                -- Real(rp): Stop position measured from the beginning of the element.
 !   track_upstream_end   -- Logical: If True then entrance effects are included in the tracking.
