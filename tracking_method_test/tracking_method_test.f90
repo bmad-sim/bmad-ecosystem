@@ -90,7 +90,11 @@ do ib = 0, ubound(lat%branch, 1)
       final_str = trim(ele%name) // ':' // trim(tracking_method_name(j)) 
       write (1,fmt) '"' // trim(final_str) // '"' , tolerance(final_str), end_orb%vec, c_light * (end_orb%t - start_orb%t)
 
-      if (j == bmad_standard$) end_bs = end_orb
+      if (ele%key == wiggler$) then
+        if (j == symp_lie_bmad$) end_bs = end_orb
+      else
+        if (j == bmad_standard$) end_bs = end_orb
+      endif
       if (j == symp_lie_ptc$)  end_ptc = end_orb
 
       if (j == bmad_standard$ .or. j == runge_kutta$ .or. j == symp_lie_ptc$) then
