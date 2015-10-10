@@ -875,7 +875,7 @@ real(rp), optional :: slop_factor
 
 ! 
 
-score_max = -1e20
+score_max = -1d20
 axis%major_div = 0
 d_min = data_min
 d_max = data_max
@@ -976,8 +976,8 @@ end subroutine qp_calc_axis_places
 ! Subroutine qp_calc_axis_scale (data_min, data_max, axis, niceness_score, slop_factor)
 !
 ! Subroutine to calculate a "nice" plot scale given the minimum and maximum
-! of the data. If data_max - data_min < 1e-30 then axis%max - axis%min will
-! be at least axis%major_div * 1e-30.
+! of the data. If data_max - data_min < 1d-30 then axis%max - axis%min will
+! be at least axis%major_div * 1d-30.
 !
 ! The slop_factor argument is used to increase the effective data_min and
 ! decrease the effective data_max. For example, if data_min = 0 and 

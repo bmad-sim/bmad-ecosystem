@@ -25,7 +25,7 @@
 ! Output:
 !   error         -- Real(rp): difference from symplecticity:
 !                     = 0    --> perfect.
-!                     = 1e-4 --> Fair, but I wouldn't use mat for long term tracking.
+!                     = 1d-4 --> Fair, but I wouldn't use mat for long term tracking.
 !                     = 1    --> Terrible.
 !   err_mat(:,:)  -- Real(rp), optional: Error matrix. Examination of this matrix can give clues 
 !                     as to what part of phase space is contributing most to non-symplectivity.

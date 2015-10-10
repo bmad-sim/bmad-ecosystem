@@ -36,14 +36,14 @@ subroutine complex_error_function (wr, wi, zr, zi)
        u2r, u2i, u3r, u3i, u4r, u4i, u5r, u5i, u6r, u6i, u7r, u7i, &
        fr, fi, dr, di, de
 
-  parameter (c1 = -1.25647718e0,  c2 = 8.25059158e-1, &
-             c3 = -3.19300157e-1, c4 = 7.63191605e-2, &
-             c5 = -1.04697938e-2, c6 = 6.44878652e-4)
+  parameter (c1 = -1.25647718d0,  c2 = 8.25059158d-1, &
+             c3 = -3.19300157d-1, c4 = 7.63191605d-2, &
+             c5 = -1.04697938d-2, c6 = 6.44878652d-4)
 
-  parameter (d1 = -2.38485635e0,  d2 = 2.51608137e0, &
-             d3 = -1.52579040e0,  d4 = 5.75922693e-1, &
-             d5 = -1.35740709e-1, d6 = 1.85678083e-2, &
-             d7 = -1.14243694e-3)
+  parameter (d1 = -2.38485635d0,  d2 = 2.51608137d0, &
+             d3 = -1.52579040d0,  d4 = 5.75922693d-1, &
+             d5 = -1.35740709d-1, d6 = 1.85678083d-2, &
+             d7 = -1.14243694d-3)
 
 
 ! data for pade2
@@ -53,15 +53,15 @@ subroutine complex_error_function (wr, wi, zr, zi)
        z2r, z2i, z3r, z3i, z4r, z4i, &
        zr3
 
-  parameter (c0r = 1.23409804e-4, c0i = 2.01157318e-1, &
-             c1r = 2.33746715e-1, c1i = 1.61133338e-1, &
-             c2r = 1.25689814e-1, c2i = -4.0422725e-2, &
-             c3r = 8.92089179e-3, c3i = -1.81293213e-2)
+  parameter (c0r = 1.23409804d-4, c0i = 2.01157318d-1, &
+             c1r = 2.33746715d-1, c1i = 1.61133338d-1, &
+             c2r = 1.25689814d-1, c2i = -4.0422725d-2, &
+             c3r = 8.92089179d-3, c3i = -1.81293213d-2)
 
-  parameter (d1r = 1.19230984e0,   d1i = -1.16495901e0, &
-             d2r = 8.9401545e-2,   d2i = -1.07372867e0, &
-             d3r = -1.68547429e-1, d3i = -2.70096451e-1, &
-             d4r = -3.20997564e-2, d4i = -1.58578639e-2)
+  parameter (d1r = 1.19230984d0,   d1i = -1.16495901d0, &
+             d2r = 8.9401545d-2,   d2i = -1.07372867d0, &
+             d3r = -1.68547429d-1, d3i = -2.70096451d-1, &
+             d4r = -3.20997564d-2, d4i = -1.58578639d-2)
 
 ! data for asymp
 
@@ -72,21 +72,21 @@ subroutine complex_error_function (wr, wi, zr, zi)
        wi0, eps, pi2, &
        xx1, xx2
 
-  parameter (a1p = 1.94443615e-1, a2p = 7.64384940e-2, &
-             a3p = 1.07825546e-2, a4p = 4.27695730e-4, a5p = 2.43202531e-6)
+  parameter (a1p = 1.94443615d-1, a2p = 7.64384940d-2, &
+             a3p = 1.07825546d-2, a4p = 4.27695730d-4, a5p = 2.43202531d-6)
 
-  parameter (b1 = 3.42901327e-1, b2 = 1.036610830e0, b3 = 1.756683649e0, &
-             b4 = 2.532731674e0, b5 = 3.436159119e0)
+  parameter (b1 = 3.42901327d-1, b2 = 1.036610830d0, b3 = 1.756683649d0, &
+             b4 = 2.532731674d0, b5 = 3.436159119d0)
 
-  parameter (pi2 = 1.12837917e0)
+  parameter (pi2 = 1.12837917d0)
 
-  parameter (xx1 = 3.5e0, xx2 = 4.2e0)
+  parameter (xx1 = 3.5d0, xx2 = 4.2d0)
 
   parameter (eps = 0.01)
 
 !
 
-  eps1 = 0.0625e0 * (zr-x3)
+  eps1 = 0.0625d0 * (zr-x3)
 !
   if (zr < x5) then
     if (zr*zr+zi*zi >= r2) then
@@ -139,7 +139,7 @@ subroutine complex_error_function (wr, wi, zr, zi)
 10    continue
 
   u2r = zi * zi - zr * zr
-  u2i =  - 2.e0 * zr * zi
+  u2i =  - 2.d0 * zr * zi
   u3r =  - u2r * zi - u2i * zr
   u3i = u2r * zr - u2i * zi
   u4r =  - u3r * zi - u3i * zr
@@ -151,10 +151,10 @@ subroutine complex_error_function (wr, wi, zr, zi)
   u7r =  - u6r * zi - u6i * zr
   u7i = u6r * zr - u6i * zi
 
-  fr = 1.e0 - c1 * zi + c2 * u2r + c3 * u3r + c4 * u4r + c5 * u5r + c6 * u6r
+  fr = 1.d0 - c1 * zi + c2 * u2r + c3 * u3r + c4 * u4r + c5 * u5r + c6 * u6r
   fi = c1 * zr + c2 * u2i + c3 * u3i + c4 * u4i + c5 * u5i + c6 * u6i
 
-  dr = 1.e0 - d1 * zi + d2 * u2r + d3 * u3r + d4 * u4r + d5 * u5r + d6 * u6r + d7 * u7r
+  dr = 1.d0 - d1 * zi + d2 * u2r + d3 * u3r + d4 * u4r + d5 * u5r + d6 * u6r + d7 * u7r
   di = d1 * zr + d2 * u2i + d3 * u3i + d4 * u4i + d5 * u5i + d6 * u6i + d7 * u7i
   de = dr * dr + di * di
 
@@ -173,10 +173,10 @@ subroutine complex_error_function (wr, wi, zr, zi)
 
 20    continue
 
-  zr3 = zr - 3.e0
+  zr3 = zr - 3.d0
 
   z2r = zr3 * zr3 - zi * zi
-  z2i = 2.e0 * zr3 * zi
+  z2i = 2.d0 * zr3 * zi
   z3r = z2r * zr3 - z2i * zi
   z3i = z2r * zi + z2i * zr3
   z4r = z3r * zr3 - z3i * zi
@@ -185,7 +185,7 @@ subroutine complex_error_function (wr, wi, zr, zi)
   fr = c0r + c1r * zr3 - c1i * zi + c2r * z2r - c2i * z2i + c3r * z3r - c3i * z3i
   fi = c0i + c1r * zi + c1i * zr3 + c2r * z2i + c2i * z2r + c3r * z3i + c3i * z3r
 
-  dr = 1.e0 + d1r * zr3 - d1i * zi + d2r * z2r - d2i * z2i + d3r * z3r - d3i * z3i + &
+  dr = 1.d0 + d1r * zr3 - d1i * zi + d2r * z2r - d2i * z2i + d3r * z3r - d3i * z3i + &
         d4r * z4r - d4i * z4i
   di = d1r * zi + d1i * zr3 + d2r * z2i + d2i * z2r + d3r * z3i + d3i * z3r + d4r * z4i + &
         d4i * z4r
@@ -232,7 +232,7 @@ subroutine complex_error_function (wr, wi, zr, zi)
         a5p * (ddr5/dde5 + dd5r/dd5e)
 
   if (zr >= xx1) then
-    eps1 = .04e0 / (zr - 3.29e0) - .034e0
+    eps1 = .04d0 / (zr - 3.29d0) - .034d0
     if ((zr*zi < eps1) .or. ((zr >= xx2) .and. (zr * zi < eps))) then
       dde1 = ddr1 * ddr1
       dd1e = dd1r * dd1r
@@ -249,15 +249,15 @@ subroutine complex_error_function (wr, wi, zr, zi)
            a3p * (ddr3/dde3 + dd3r/dd3e) + a4p * (ddr4/dde4 + dd4r/dd4e) + &
            a5p * (ddr5/dde5 + dd5r/dd5e)
 
-      wr = exp(- zr * zr) + 2.e0 * wi0 * zr * zi - pi2 * zi
+      wr = exp(- zr * zr) + 2.d0 * wi0 * zr * zi - pi2 * zi
 
       return
 
     endif
   endif
 
-  wr = (a1p * (1.e0/dde1 + 1.e0/dd1e) + a2p * (1.e0/dde2 + 1.e0/dd2e) + &
-        a3p * (1.e0/dde3 + 1.e0/dd3e) + a4p * (1.e0/dde4 + 1.e0/dd4e) + &
-        a5p * (1.e0/dde5 + 1.e0/dd5e)) * zi
+  wr = (a1p * (1.d0/dde1 + 1.d0/dd1e) + a2p * (1.d0/dde2 + 1.d0/dd2e) + &
+        a3p * (1.d0/dde3 + 1.d0/dd3e) + a4p * (1.d0/dde4 + 1.d0/dd4e) + &
+        a5p * (1.d0/dde5 + 1.d0/dd5e)) * zi
 
 end subroutine

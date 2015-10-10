@@ -48,7 +48,7 @@ case ('START')
 case ('READ', 'STOP')
   if (.not. timer_running) then
     print *, 'ERROR IN RUN_TIMER: "START" NEVER DONE.'
-    time = 1.0e10   ! some non-zero time to not bomb program.
+    time = 1.0d10   ! some non-zero time to not bomb program.
   endif
 
   call date_and_time (values = t1)
