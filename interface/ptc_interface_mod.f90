@@ -1120,7 +1120,7 @@ endif
 
 if (params_present) then
   if (init_needed .or. old_e_tot /= e_tot .or. present(integ_order) .or. present(n_step)) then
-    this_energy = 1e-9 * e_tot
+    this_energy = 1d-9 * e_tot
     if (this_energy == 0) then
       call out_io (s_fatal$, r_name, 'E_TOT IS 0.')
       if (global_com%exit_on_error) call err_exit
@@ -3270,7 +3270,7 @@ case (elseparator$)
     endif
     ptc_key%tiltd = -atan2 (hk, vk) + ele%value(tilt_tot$)
   endif
-  ptc_key%list%volt = 1e-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
+  ptc_key%list%volt = 1d-6 * ele%value(e_tot$) * sqrt(hk**2 + vk**2)
 
 case (ab_multipole$, multipole$)
   ptc_key%magnet = 'multipole'

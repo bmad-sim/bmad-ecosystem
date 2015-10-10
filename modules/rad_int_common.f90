@@ -112,8 +112,8 @@ character(*), parameter :: r_name = 'qromb_rad_int'
 
 ele => info%ele
 
-eps_int = 1e-4
-eps_sum = 1e-6
+eps_int = 1d-4
+eps_sum = 1d-6
 
 ri_array(0)%h = 4
 ri_array(0)%sum = 0
@@ -416,7 +416,7 @@ endif
 ! No caching...
 ! Note: calc_wiggler_g_params assumes that orb is lab (not element) coords.
 
-dz = 1e-3
+dz = 1d-3
 z1 = z_here + dz
 if (z1 > ele%value(l$)) then
   z_here = max(0.0_rp, z_here - dz)

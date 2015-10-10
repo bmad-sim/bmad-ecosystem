@@ -11,11 +11,11 @@
 ! Input:
 !   lat          -- lat_struct: Lat
 !   delta_e      -- Real(rp): Delta energy used for the calculation.
-!                      If 0 then default of 1.0e-4 is used.
+!                      If 0 then default of 1.0d-4 is used.
 !   ix_branch    -- Integer, optional: Index of the lattice branch to use. Default is 0.
 !
 ! Output:
-!   delta_e      -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
+!   delta_e      -- Real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
 !   chrom_x      -- Real(rp): Horizontal chromaticity.
 !   chrom_y      -- Real(rp): Vertical chromaticity.
 !   err_flag     -- Logical, optional: Set true if there is an error. False otherwise.
@@ -57,7 +57,7 @@ ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
 
 if (present(err_flag)) err_flag = .true.
-if (delta_e <= 0) delta_e = 1.0e-4
+if (delta_e <= 0) delta_e = 1.0d-4
 
 ! reference momentum
 pz0 = real_option(0.0_rp, pz)

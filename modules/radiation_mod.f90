@@ -254,7 +254,7 @@ type (coord_struct) start0_orb, start_orb, end_orb
 type (track_struct), save, target :: track_save
 type (track_struct), pointer :: track
 
-real(rp), parameter :: del_orb = 1e-4
+real(rp), parameter :: del_orb = 1d-4
 real(rp) g2, g3
 
 integer i, j

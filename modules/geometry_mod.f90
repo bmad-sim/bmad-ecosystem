@@ -743,7 +743,7 @@ real(rp) diff1(3), diff2(3)
 
 ! special degenerate case
 
-if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1e-12) then 
+if (abs(w_mat(1,3)) + abs(w_mat(3,3)) < 1d-12) then 
   ! Note: Only theta +/- psi is well defined here so this is rather arbitrary.
   if (present(floor0)) then
     theta = floor0%theta

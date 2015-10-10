@@ -356,7 +356,7 @@ else
 
 
   fmt1 = '(i4, a, 2f20.12, 6i3, i9)'
-  fmt2 = '(i4, a, 1p, 2e20.11, 0p, 6i3, i9)'
+  fmt2 = '(i4, a, 1p, 2d20.11, 0p, 6i3, i9)'
 
   do i = 1, 6
     nl=nl+1; li(nl) = ' -----------------------------------------------------------------------'
@@ -375,7 +375,7 @@ else
         if (sum(tt%expn) > max_order) cycle
       endif
 
-      if (abs(tt%coef) < 1e5) then
+      if (abs(tt%coef) < 1d5) then
         fmt = fmt1
       else
         fmt = fmt2

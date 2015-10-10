@@ -746,7 +746,7 @@ do j = 1, num_wig_terms
     tmj%c_x = cos(arg)
     tmj%s_x = sin(arg)
 
-    if (abs(darg) < 1e-4) then
+    if (abs(darg) < 1d-4) then
       tmj%integral_sx = x * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
     else
       tmj%integral_sx = (cos(arg0) - tmj%c_x) / wt%kx
@@ -761,7 +761,7 @@ do j = 1, num_wig_terms
     tmj%c_x = cosh(arg)
     tmj%s_x = sinh(arg)
 
-    if (abs(darg) < 1e-4) then
+    if (abs(darg) < 1d-4) then
       tmj%integral_sx = x * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
     else
       tmj%integral_sx = (tmj%c_x - cosh(arg0)) / wt%kx
@@ -810,7 +810,7 @@ do j = 1, num_wig_terms
     tmj%c_y = cos(arg)
     tmj%s_y = sin(arg)
 
-    if (abs(darg) < 1e-4) then
+    if (abs(darg) < 1d-4) then
       tmj%integral_sy = y * ((darg/2 - darg**3/24) * cos(arg0) + (1 - darg**2/6) * sin(arg0))
     else
       tmj%integral_sy = (cos(arg0) - tmj%c_y) / wt%ky
@@ -825,7 +825,7 @@ do j = 1, num_wig_terms
     tmj%c_y = cosh(arg)
     tmj%s_y = sinh(arg)
 
-    if (abs(darg) < 1e-4) then
+    if (abs(darg) < 1d-4) then
       tmj%integral_sy = y * ((darg/2 + darg**3/24) * cosh(arg0) + (1 + darg**2/6) * sinh(arg0))
     else
       tmj%integral_sy = (tmj%c_y - cosh(arg0)) / wt%ky

@@ -1023,7 +1023,7 @@ if (new_E < 0) then
 endif
 
 t3 = mc2**2 * dE**3 / (2 * p0c * beta * pc**4) 
-if (t3 < 1e-12) then
+if (t3 < 1d-12) then
   orbit%vec(6) = orbit%vec(6) + dE / (beta * p0c) - (mc2 * dE / pc)**2 / (2 * p0c * pc) + t3
   new_pc = p0c * (1 + orbit%vec(6))
 else

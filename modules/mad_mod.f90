@@ -840,7 +840,7 @@ xk = sqrt(abs(xksq))
 xkl = xk * el
 xklsq = xksq * el**2
 
-if (abs(xklsq) < 1.0e-2) then
+if (abs(xklsq) < 1.0d-2) then
   cx = (c1 - xklsq * (c2 - xklsq*c3))
   sx = (s1 - xklsq * (s2 - xklsq*s3)) * el
   dx = (c2 - xklsq * (c3 - xklsq*c4)) * el**2
@@ -878,7 +878,7 @@ yk = sqrt(abs(yksq))
 ykl = yk*el
 yklsq = yksq*el**2
 
-if (abs(yklsq) < 1.0e-2) then
+if (abs(yklsq) < 1.0d-2) then
   cy = (c1 - yklsq * (c2 - yklsq*c3))
   sy = (s1 - yklsq * (s2 - yklsq*s3)) * el
 else if (yklsq > 0.0) then
@@ -946,7 +946,7 @@ y2ksq = 4.0 * yksq
 call mad_tmfoc(el, y2ksq, cyy, syy, dyy, fyy)
 y2klsq = y2ksq * el**2
 
-if (max(abs(y2klsq),abs(xklsq)) .le. 1.0e-2) then
+if (max(abs(y2klsq),abs(xklsq)) .le. 1.0d-2) then
   y0 = 1.0
   y1 = xklsq + y2klsq
   y2 = xklsq**2 + xklsq*y2klsq + y2klsq**2
@@ -1038,7 +1038,7 @@ qk = sqrt(abs(sk1))
 qkl = qk * el
 qkl2 = sk1 * el**2
 
-if (abs(qkl2) .le. 1.0e-2) then
+if (abs(qkl2) .le. 1.0d-2) then
   c = (1.0 - qkl2 * (1.0 - qkl2 / 12.0) /  2.0)
   s = (1.0 - qkl2 * (1.0 - qkl2 / 20.0) /  6.0) * el
   d = (1.0 - qkl2 * (1.0 - qkl2 / 30.0) / 12.0) * el**2 / 2.0
@@ -1108,7 +1108,7 @@ te => map%t
 qk = sqrt(abs(sk1))
 qkl = qk * el
 
-if (abs(qkl) < 1.0e-3) then
+if (abs(qkl) < 1.0d-3) then
   qkl2 = sk1 * el**2
   cx = (1.0 - qkl2 / 2.0)
   sx = (1.0 - qkl2 / 6.0) * el
@@ -1284,7 +1284,7 @@ sk = sks / 2.0
 skl = sk * el
 co = cos(skl)
 si = sin(skl)
-if (abs(skl) < 1.0e-5) then
+if (abs(skl) < 1.0d-5) then
   sibk = (1.0 - skl**2/6.0) * el
 else
   sibk = si/sk

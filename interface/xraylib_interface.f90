@@ -249,7 +249,7 @@ if (ix > -1) then
   compound => GetCompoundDataNISTByIndex(ix)
 
   f0 = 0
-  number_fraction_min = 1e10  ! something larget
+  number_fraction_min = 1d10  ! something larget
 
   do n = 1, compound%nElements
     number_fraction = compound%massFractions(n) / AtomicWeight(compound%elements(n))
