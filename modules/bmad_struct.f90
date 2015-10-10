@@ -1213,7 +1213,7 @@ type track_struct
   type (coord_struct), allocatable :: orb(:)      ! An array of track points: %orb(0:) 
   type (em_field_struct), allocatable:: field(:)  ! An array of em fields: %field(0:) 
   type (track_map_struct), allocatable :: map(:)  ! An array of maps: %map(0:)
-  real(rp) :: ds_save = 1e-3                      ! Min distance between points.
+  real(rp) :: ds_save = 1d-3                      ! Min distance between points.
   integer :: n_pt = -1                            ! Track upper bound for %orb(0:), etc. arrays.
   integer :: n_bad = 0                            ! Number of bad steps when adaptive tracking is done.
   integer :: n_ok = 0                             ! Number of good steps when adaptive tracking is done.
@@ -1297,17 +1297,17 @@ character(16), parameter :: ptc_field_geometry_name(0:3) = [ &
 ! Remember: Change extra_parsing_info_struct if bmad_common_struct changed.
 
 type bmad_common_struct
-  real(rp) :: max_aperture_limit = 1e3            ! Max Aperture.
-  real(rp) :: d_orb(6)           = 1e-5           ! Orbit deltas for the mat6 via tracking calc.
+  real(rp) :: max_aperture_limit = 1d3            ! Max Aperture.
+  real(rp) :: d_orb(6)           = 1d-5           ! Orbit deltas for the mat6 via tracking calc.
   real(rp) :: default_ds_step    = 0.2_rp         ! Integration step size.  
-  real(rp) :: significant_length = 1e-10          ! meter 
-  real(rp) :: rel_tol_tracking = 1e-8                 ! Closed orbit relative tolerance.
-  real(rp) :: abs_tol_tracking = 1e-10                ! Closed orbit absolute tolerance.
-  real(rp) :: rel_tol_adaptive_tracking = 1e-8        ! Runge-Kutta tracking relative tolerance.
-  real(rp) :: abs_tol_adaptive_tracking = 1e-10       ! Runge-Kutta tracking absolute tolerance.
-  real(rp) :: init_ds_adaptive_tracking = 1e-3        ! Initial step size
+  real(rp) :: significant_length = 1d-10          ! meter 
+  real(rp) :: rel_tol_tracking = 1d-8                 ! Closed orbit relative tolerance.
+  real(rp) :: abs_tol_tracking = 1d-10                ! Closed orbit absolute tolerance.
+  real(rp) :: rel_tol_adaptive_tracking = 1d-8        ! Runge-Kutta tracking relative tolerance.
+  real(rp) :: abs_tol_adaptive_tracking = 1d-10       ! Runge-Kutta tracking absolute tolerance.
+  real(rp) :: init_ds_adaptive_tracking = 1d-3        ! Initial step size
   real(rp) :: min_ds_adaptive_tracking = 0            ! Min step size to take.
-  real(rp) :: fatal_ds_adaptive_tracking = 1e-8       ! If actual step size is below this particle is lost.
+  real(rp) :: fatal_ds_adaptive_tracking = 1d-8       ! If actual step size is below this particle is lost.
   real(rp) :: electric_dipole_moment = 0              ! Particle's EDM
   integer :: taylor_order = 0                         ! Input Taylor order for maps. 
                                                       !   0 -> default = ptc%taylor_order_saved

@@ -12,7 +12,7 @@
 ! Input:
 !   lat     -- lat_struct: Lat to use, 
 !   delta_e  -- Real(rp): Delta energy used for the calculation.
-!                    If 0 then default of 1.0e-4 is used.
+!                    If 0 then default of 1.0d-4 is used.
 !   target_x -- Real(rp): Target X Chromaticity
 !   target_y -- Real(rp): Target Y Chromaticity
 !   err_tol  -- Real(rp): Max allowable Error:
@@ -21,7 +21,7 @@
 !
 ! Output:
 !   lat     -- lat_struct: Lat with sextupole set
-!   delta_e  -- Real(rp): Set to 1.0e-4 if on input DELTA_E =< 0.
+!   delta_e  -- Real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
 !   err_flag -- Logical: .false. if match successful, .true. if failed
 !                   Fails if takes longer than 100 iterations.
 !                   If it fails the sextupoles are set to the last value calculated.

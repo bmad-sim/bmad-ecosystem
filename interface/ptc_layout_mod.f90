@@ -1133,7 +1133,7 @@ case (elseparator$)
     endif
     ptc_key%tiltd = -atan2 (hk, vk) + val(tilt_tot$)
   endif
-  call set_real (mag%volt, magp%volt, 1e-6 * val(e_tot$) * sqrt(hk**2 + vk**2))
+  call set_real (mag%volt, magp%volt, 1d-6 * val(e_tot$) * sqrt(hk**2 + vk**2))
 
 case (solenoid$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
@@ -1149,7 +1149,7 @@ case (rfcavity$, lcavity$)
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
   call set_real (mag%phas, magp%phas, -mag%lag)
 
-  call set_real (mag%volt, magp%volt, 2e-6 * e_accel_field(ele, voltage$))
+  call set_real (mag%volt, magp%volt, 2d-6 * e_accel_field(ele, voltage$))
 
 case (sad_mult$)
 
@@ -1363,7 +1363,7 @@ case (drift$)
 ! Can rename to sin & cos when bug is fixed.
 
 case (elseparator$)
-  kick = fib%mag%volt * 1e6 / ele%value(e_tot$)
+  kick = fib%mag%volt * 1d6 / ele%value(e_tot$)
   if (branch%param%particle < 0) kick = -kick
   tilt = fib%mag%p%tiltd - ele%value(tilt_tot$)
   call update_this_real (ele%value(hkick$), -kick * dsin(tilt))

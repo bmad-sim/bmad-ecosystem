@@ -65,8 +65,8 @@
 !                       Default is 0 (main branch).
 !
 !   bmad_com       -- Bmad_common_struct: Bmad common block.
-!     %rel_tol_tracking -- Relative error. See above. Default = 1e-8
-!     %abs_tol_tracking -- Absolute error. See above. Default = 1e-10
+!     %rel_tol_tracking -- Relative error. See above. Default = 1d-8
+!     %abs_tol_tracking -- Absolute error. See above. Default = 1d-10
 !
 ! Output:
 !   closed_orb(0:) -- Coord_struct, allocatable: Closed orbit. closed_orb(i)
@@ -214,7 +214,7 @@ case (6)
 
   ! Assume that frequencies are comensurate otherwise a closed orbit does not exist.
 
-  rf_freq = 1e30
+  rf_freq = 1d30
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (ele%key /= rfcavity$) cycle
@@ -236,7 +236,7 @@ end select
 !--------------------------------------------------------------------------
 ! Because of nonlinearities we may need to iterate to find the solution
 
-amp_del_old = 1e20  ! something large
+amp_del_old = 1d20  ! something large
 i_max = 100  
 call init_coord (start, start, ele_start, start_end$, start%species)
 
@@ -305,7 +305,7 @@ do i_loop = 1, i_max
       return
     endif
 
-    amp_del_old = 1e20  ! something large
+    amp_del_old = 1d20  ! something large
 
     ! For i_dim = 6, there are longitudinally unstable fixed points which we want to avoid.
     ! Note: due to inaccuracies, the maximum eigen value may be slightly over 1 at the stable fixed point..
@@ -314,7 +314,7 @@ do i_loop = 1, i_max
     if (i_dim == 6) then
       call mat_eigen (t1, eigen_val, eigen_vec, error)
       if (maxval(abs(eigen_val)) - 1 > 1d-5) then
-        amp_co = 1e10  ! Something large
+        amp_co = 1d10  ! Something large
         z0 = start%vec(5)
         dz_max = 0
         dz = start%beta * c_light / (8 * rf_freq)

@@ -4,7 +4,7 @@ use bmad_struct
 
 implicit none
 
-! The numeric$ category is for numeric constants [EG: "1.3e-5"].
+! The numeric$ category is for numeric constants [EG: "1.3d-5"].
 ! The variable$ category includes symbolic constants defined in a lattice file, lattice
 ! parameters, etc.
 
@@ -113,7 +113,7 @@ parsing_loop: do
   ! Preliminary: If we have split up something that should have not been split
   ! then put it back together again...
 
-  ! just make sure we are not chopping a number in two, e.g. "3.5e-7" should not
+  ! just make sure we are not chopping a number in two, e.g. "3.5d-7" should not
   ! get split at the "-" even though "-" is a delimiter
 
   split = .true.         ! assume initially that we have a split number

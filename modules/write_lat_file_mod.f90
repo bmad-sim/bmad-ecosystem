@@ -1877,7 +1877,7 @@ do
     ifa = nint(ele%value(fringe_at$))
     if (ifa == entrance_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = entrance_end$
-      quad_ele%value(l$) = 1e-30
+      quad_ele%value(l$) = 1d-30
       call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie-1))
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch%ix_branch, orbit_out)
@@ -1887,7 +1887,7 @@ do
 
     if (ifa == exit_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = exit_end$
-      quad_ele%value(l$) = 1e-30
+      quad_ele%value(l$) = 1d-30
       call ele_to_taylor (quad_ele, branch%param, taylor_ele%taylor, orbit_out(ie))
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch%ix_branch, orbit_out)
@@ -2096,7 +2096,7 @@ case ('MAD-8', 'MAD-X', 'XSIF')
 
   write (line_out, '(2a, 2(a, es14.6), a)')  &
         'beam_def: Beam, Particle = ', trim(particle_name(branch_out%param%particle)),  &
-        ', Energy =', 1e-9*ele%value(E_TOT$), ', Npart =', branch_out%param%n_part, trim(eol_char)
+        ', Energy =', 1d-9*ele%value(E_TOT$), ', Npart =', branch_out%param%n_part, trim(eol_char)
   call write_line (line_out)
   write (iu, *)
 
@@ -2462,7 +2462,7 @@ do ix_ele = ie1, ie2
     if (hk /= 0 .or. vk /= 0) then
 
       ix = len_trim(line_out) + 1
-      field = 1.0e3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
+      field = 1.0d3 * sqrt(hk**2 + vk**2) * val(E_TOT$) / val(l$)
       if (out_type == 'MAD-X') then
         write (line_out(ix:), '(a, es13.5)') ', ey =', field
       else
@@ -2654,8 +2654,8 @@ do ix_ele = ie1, ie2
   case (lcavity$)
 
     write (line_out, '(a, es13.5)') trim(ele%name) // ': lcavity, l =', val(l$)
-    call value_to_line (line_out, val(gradient$)*val(l$)/1e6, 'deltae', 'f11.4', 'R')
-    call value_to_line (line_out, val(rf_frequency$)/1e6, 'freq', 'es13.5', 'R')
+    call value_to_line (line_out, val(gradient$)*val(l$)/1d6, 'deltae', 'f11.4', 'R')
+    call value_to_line (line_out, val(rf_frequency$)/1d6, 'freq', 'es13.5', 'R')
     call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'es13.5', 'R')
 
   ! solenoid MAD

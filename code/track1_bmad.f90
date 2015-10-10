@@ -233,6 +233,8 @@ case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
                           end_orb%vec(1) * sin_a + end_orb%vec(3) * cos_a]
     end_orb%vec(2:4:2) = [end_orb%vec(2) * cos_a - end_orb%vec(4) * sin_a, &
                           end_orb%vec(2) * sin_a + end_orb%vec(4) * cos_a]
+
+    end_orb%t = end_orb%t + rel_p * sin_g / (end_orb%beta * c_light)
   endif
 
   call offset_particle (ele, param, unset$, end_orb, set_tilt = .false., set_hvkicks = .false.)
@@ -295,7 +297,7 @@ case (elseparator$)
     return
   endif
 
-  if (abs(coef) < 1e-3) then
+  if (abs(coef) < 1d-3) then
     sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
     cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
   else
@@ -436,7 +438,7 @@ case (lcavity$)
   end_orb%vec(6) = (pc_end - pc_end_ref) / pc_end_ref 
   end_orb%p0c = pc_end_ref
 
-  if (abs(dE) <  1e-4*(pc_end+pc_start)) then
+  if (abs(dE) <  1d-4*(pc_end+pc_start)) then
     dp_dg = length * (E_start / pc_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
   else
     dp_dg = (pc_end - pc_start) / gradient_net
@@ -462,7 +464,7 @@ case (lcavity$)
     sqrt_8 = 2 * sqrt_2
     voltage_max = gradient_max * length
 
-    if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
+    if (abs(voltage_max * cos_phi) < 1d-5 * E_start) then
       f = voltage_max / E_start
       alpha = f * (1 + f * cos_phi / 2)  / sqrt_8
       coef = length * beta_start * (1 - voltage_max * cos_phi / (2 * E_start))

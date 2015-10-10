@@ -16,14 +16,14 @@ module element_modeling_mod
 use bmad
 
 type wiggler_modeling_common_struct
-  real(rp) :: integral_g2_wgt = 1e4
-  real(rp) :: integral_g3_wgt = 1e4
-  real(rp) :: x_wgt           = 1e10
-  real(rp) :: mat6_wgt        = 1e6
-  real(rp) :: drift_len_wgt     = 1e5 
-  real(rp) :: g_step   = 1e-8  ! Step size for calculating derivatives
-  real(rp) :: k_step   = 1e-7  ! Step size for calculating derivatives
-  real(rp) :: len_step = 1e-6  ! Step size for calculating derivatives
+  real(rp) :: integral_g2_wgt = 1d4
+  real(rp) :: integral_g3_wgt = 1d4
+  real(rp) :: x_wgt           = 1d10
+  real(rp) :: mat6_wgt        = 1d6
+  real(rp) :: drift_len_wgt     = 1d5 
+  real(rp) :: g_step   = 1d-8  ! Step size for calculating derivatives
+  real(rp) :: k_step   = 1d-7  ! Step size for calculating derivatives
+  real(rp) :: len_step = 1d-6  ! Step size for calculating derivatives
   real(rp) :: integration_ds = 0.001 ! meters
   real(rp) :: drift_len_min = .01
   real(rp) :: len_drifts(3)
@@ -388,12 +388,12 @@ y = 0
 y(1:12) = [g2_int, g3_int, 0.0_rp, mat_flatten(wiggler%mat6)]
 
 a_lambda = -1
-chisq_old = 1e10
+chisq_old = 1d10
 
 do i = 1, 100
   call super_mrqmin (y, weight, a, covar, alpha, chisq, wig_func, a_lambda, status)
   if (c%print_results) then
-    if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1e10) then
+    if (chisq/chisq_old < 0.90 .or. i == 10000 .or. a_lambda > 1d10) then
       print *, '---------------------------'
       print '(i6, es12.3, es10.1)', i, chisq, a_lambda
       call yfit_calc (a, yfit, status)
@@ -421,7 +421,7 @@ do i = 1, 100
       chisq_old = chisq
     endif
   endif
-  if (a_lambda > 1e10) exit
+  if (a_lambda > 1d10) exit
 enddo
 
 call out_io (s_blank$, r_name, 'Wiggler fitting: ' // trim(wiggler%name) // '  Merit: \f10.3\ ', r_array = [chisq])

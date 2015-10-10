@@ -277,11 +277,11 @@ ele_loop: do ie = ix_start, ix_end
     write (line, '(4a)') trim(line),  ', fmapfn = "', trim(fieldgrid_output_name), '"'
   
     ! Write field scaling in MV/m
-    call value_to_line (line, 1e-6*absmax_ez, 'volt', rfmt, 'R')
+    call value_to_line (line, 1d-6*absmax_ez, 'volt', rfmt, 'R')
   
     ! Write frequency in MHz
     freq = ele%value(rf_frequency$) * ele%em_field%mode(1)%harmonic
-    call value_to_line (line, 1e-6*freq, 'freq', rfmt, 'R')
+    call value_to_line (line, 1d-6*freq, 'freq', rfmt, 'R')
   
     ! Write phase in rad
     phase_lag = twopi*(ele%value(phi0$) +  ele%value(phi0_err$))
@@ -557,7 +557,7 @@ case (lcavity$, rfcavity$, e_gun$)
     ! Write header
     write (opal_file_unit, '(3a)') ' 2DDynamic XZ', '  # Created from ele: ', trim(ele%name)
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*z_min, 100*nz*z_step, nz, '  # z_min (cm), z_max (cm), n_z_points -1'
-    write (opal_file_unit, '('//rfmt//', a)') 1e-6 * freq, '  # frequency (MHz)'
+    write (opal_file_unit, '('//rfmt//', a)') 1d-6 * freq, '  # frequency (MHz)'
     write (opal_file_unit, '(2'//rfmt//', i8, a)') 100*x_min, 100*nx*x_step, nx, '  # x_min (cm), x_max (cm), n_x_points -1'
 
     ! Scaling for T7 format
@@ -595,7 +595,7 @@ case (lcavity$, rfcavity$, e_gun$)
   !2DMagnetoStatic ZX
   !0.0 2.0 199  # rmin(cm),  rmax(cm),   nr-1
   !-3.0 51.0 4999 #zmin(cm),  zmax(cm).   nz - 1
-  !0.00000e+00 0.00000e+00    ! B_r, B_z 
+  !0.00000d+00 0.00000d+00    ! B_r, B_z 
 
   ! Allocate temporary pt array
   allocate ( pt(0:nx, 0:nz, 1:1) )
@@ -669,8 +669,8 @@ case (lcavity$, rfcavity$, e_gun$)
   ! -6.0  2.0  2.0 1000 #entrance positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
   ! 24.0 28.0 32.0 0    #exit     positions, relative to elemedge: enge start(cm), enge origin (cm), enge end (cm), unused number
   ! 0.0   #coefficient 1 for entrance
-  ! 1e-6  #coefficient 1 for exit
-  ! 2e-6  #coefficient 2 for exit
+  ! 1d-6  #coefficient 1 for exit
+  ! 2d-6  #coefficient 2 for exit
 
   ! We will use just one Enge coefficent, equivalent using a field integral FINT and half gap HGAP (see the Bmad manual)
   ! F_bmad(z) = (1 + exp (c0 + c1 z + ...) )^-1
@@ -799,7 +799,7 @@ do i = 1, n_particle
   gammabeta =  orb%vec(2:6:2) / mc2
   
   ! OPAL has a problem with zero beta_z
-  if ( gammabeta(3) == 0 ) gammabeta(3) = 1e-30
+  if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30
   
   !'track' particles backwards in time and write to file
   write(opal_file_unit, '(6'//rfmt//')') orb%vec(1) - dt*orb%vec(2)/gmc, &   ! x - dt mc2 \beta_x \gamma / \gamma m c

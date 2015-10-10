@@ -253,7 +253,7 @@ do ie = npos1, npos2-1
         if (ele%value(l$) /= 0) ele%a_pole = ele%a_pole * ele%value(l$)
       endif
 
-      if (abs(pdata(dat_indx+43) - 1) > 1e-6) then
+      if (abs(pdata(dat_indx+43) - 1) > 1d-6) then
         call xsif_error ('MULTLIPOLE WITH SCALEFAC: ' // ele%name, &
                          'NOT IMPLEMENTED IN BMAD.')
         if (global_com%exit_on_error) call err_exit
@@ -277,7 +277,7 @@ do ie = npos1, npos2-1
     case (mad_rfcav)
       call add_ele (rfcavity$)
       ele%value(l$)            = pdata(dat_indx)
-      ele%value(voltage$)      = pdata(dat_indx+1) * 1e6
+      ele%value(voltage$)      = pdata(dat_indx+1) * 1d6
       ele%value(phi0$)         = pdata(dat_indx+2)
       ele%value(harmon$)       = pdata(dat_indx+3)
       ele%value(rf_frequency$) = pdata(dat_indx+10)
@@ -304,7 +304,7 @@ do ie = npos1, npos2-1
     case (mad_sepa)
       call add_ele (elseparator$)
       ele%value(l$)        = pdata(dat_indx)
-      ele%value(e_field$)  = pdata(dat_indx+1) * 1e6
+      ele%value(e_field$)  = pdata(dat_indx+1) * 1d6
       ele%value(tilt$)     = pdata(dat_indx+2)
 
     case (mad_roll, mad_srot)
@@ -431,9 +431,9 @@ do ie = npos1, npos2-1
     case (mad_lcav)
       call add_ele (lcavity$)
       ele%value(l$)            = pdata(dat_indx)
-      ele%value(gradient$)     = pdata(dat_indx+2) * 1e6 / ele%value(l$)
+      ele%value(gradient$)     = pdata(dat_indx+2) * 1d6 / ele%value(l$)
       ele%value(phi0$)         = pdata(dat_indx+3)
-      ele%value(rf_frequency$) = pdata(dat_indx+4) * 1e6
+      ele%value(rf_frequency$) = pdata(dat_indx+4) * 1d6
       ele%value(e_loss$)       = pdata(dat_indx+9) 
       aperture     = pdata(dat_indx+12)
 
@@ -512,7 +512,7 @@ if (ibeta0_ptr /= 0) then
   lat%beam_start%vec(4) =  pdata(dat_indx+13)
   lat%beam_start%vec(5) =  pdata(dat_indx+14)
   lat%beam_start%vec(6) =  pdata(dat_indx+15)
-  ele%value(e_tot$) = pdata(dat_indx+26) * 1e9
+  ele%value(e_tot$) = pdata(dat_indx+26) * 1d9
 
   if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
   if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
@@ -543,7 +543,7 @@ if (ibeam_ptr /= 0) then
   lat%beam_start_ele%value(emittance_a$) = pdata(dat_indx+6)
   lat%beam_start_ele%value(emittance_b$) = pdata(dat_indx+8)
 
-  if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = pdata(dat_indx+3) * 1e9
+  if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = pdata(dat_indx+3) * 1d9
 endif
 
 ! Global stuff

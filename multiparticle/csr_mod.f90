@@ -523,7 +523,7 @@ source_ele => branch%ele(ix_source)  ! Pointer to the P' element
 ! Assume a drift before the first element if needed.
 
 if (ix_source == 0) then
-  s0_kick_ele = -1e20  ! something large and negative
+  s0_kick_ele = -1d20  ! something large and negative
 else
   s0_kick_ele = branch%ele(ix_source-1)%s  ! s value at beginning edge of the P' element
 endif
@@ -865,8 +865,8 @@ endif
 ! Use Newton's method until root is bracketed.
 ! Initial d1 is just an approximate guess to get in the ball park.
 
-eps_z = 1e-10 * abs(dz_particles) + 1e-14
-eps_d = 1e-10 * (1 + abs(k_factor%v))
+eps_z = 1d-10 * abs(dz_particles) + 1d-14
+eps_d = 1d-10 * (1 + abs(k_factor%v))
 
 z2 = 0
 if (bin%y2 /= 0) then
@@ -1031,7 +1031,7 @@ if (small_angle_approx) then
 ! General case without small angle approx
 
 else
-  if (abs(phi) < 1e-2) then
+  if (abs(phi) < 1d-2) then
     phi2 = phi**2
     RoneMCos = phi * d * (1.0/2 - phi2/24 + phi2**2/720)
     Rsin = d * (1 - phi2 / 6 + phi2**2 / 120)

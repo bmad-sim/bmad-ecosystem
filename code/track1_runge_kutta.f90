@@ -17,8 +17,8 @@
 !     %particle  -- Particle type [positron$, or electron$]
 !
 !   bmad_com -- Bmad common block.
-!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1e-6.
-!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1e-7.
+!     %rel_tol_adaptive_tracking -- Relative tolerance. Default is 1d-6.
+!     %abs_tol_adaptive_tracking -- Absolute tolerance. Default is 1d-7.
 !
 ! Output:
 !   end_orb    -- Coord_struct: Ending coords.

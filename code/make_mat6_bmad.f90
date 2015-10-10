@@ -254,7 +254,7 @@ case (elseparator$)
   sinh_c = sinh(coef)
   cosh_c = cosh(coef)
 
-  if (abs(coef) < 1e-3) then
+  if (abs(coef) < 1d-3) then
     sinh_k = alpha * (1 + coef**2 / 6 + coef**4/120)
     cosh1_k = alpha * coef * (1.0_rp / 2 + coef**2 / 24 + coef**4 / 720)
   else
@@ -431,7 +431,7 @@ case (lcavity$)
   kmat6(6,5) = om_g * sin_phi
   kmat6(6,6) = 1
 
-  if (abs(dE) <  1e-4*(pc_end+pc_start)) then
+  if (abs(dE) <  1d-4*(pc_end+pc_start)) then
     dp_dg = length * (1 / beta_start - mc2**2 * dE / (2 * pc_start**3) + (mc2 * dE)**2 * E_start / (2 * pc_start**5))
     kmat6(5,5) = 1 - length * (-mc2**2 * kmat6(6,5) / (2 * pc_start**3) + mc2**2 * dE * kmat6(6,5) * E_start / pc_start**5)
     kmat6(5,6) = -length * (-dbeta1_dE1 / beta_start**2 + 2 * mc2**2 * dE / pc_start**4 + &
@@ -469,7 +469,7 @@ case (lcavity$)
     sqrt_8 = 2 * sqrt_2
     voltage_max = gradient_max * length
 
-    if (abs(voltage_max * cos_phi) < 1e-5 * E_start) then
+    if (abs(voltage_max * cos_phi) < 1d-5 * E_start) then
       g = voltage_max / E_start
       alpha = g * (1 + g * cos_phi / 2)  / sqrt_8
       coef = length * beta_start * (1 - voltage_max * cos_phi / (2 * E_start))
@@ -1082,7 +1082,7 @@ case (sbend$)
       
       ! The following was obtained by differentiating the formulas of track_a_bend.
 
-      if (pxy2 < 1e-5) then  
+      if (pxy2 < 1d-5) then  
          ff = pxy2 / (2 * rel_p)
          fg = g * (pz - ff - ff*ff/2 - g_tot*x) - g_err 
          df_dx  = -g_tot
@@ -1109,7 +1109,7 @@ case (sbend$)
       dpx_t_dpy = ct*df_dpy
       dpx_t_dpz = ct*df_dpz
 
-      if (abs(angle) < 1e-5 .and. abs(g_tot * length) < 1e-5) then
+      if (abs(angle) < 1d-5 .and. abs(g_tot * length) < 1d-5) then
         mat6_i(1,1) = 1
         mat6_i(1,2) = length / p_long + length * px**2 / p_long**3 - 3 * g_tot * px * (length * Dy)**2 / (2 * p_long**5) + &
                       g * length * (length *px + x * (p_long - px**2 / p_long)) / p_long**2 + &
@@ -1125,7 +1125,7 @@ case (sbend$)
                       g * length * (length * rel_p + x * px * rel_p / p_long) / p_long**2 - &
                       g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) * rel_p / p_long**4
 
-      elseif (abs(g_tot) < 1e-5 * abs(g)) then
+      elseif (abs(g_tot) < 1d-5 * abs(g)) then
         alpha = p_long * ct - px * st
         dalpha_dpx = dp_long_dpx * ct - st
         dalpha_dpy = dp_long_dpy * ct
@@ -1157,7 +1157,7 @@ case (sbend$)
         deps_dpx = 2*px_t*(ct+st*df_dpx)
         deps_dpy = 2*px_t*st*df_dpy + 2*py
         deps_dpz = 2*px_t*st*df_dpz
-        if (eps < 1e-5 * rel_p2 ) then  ! use small angle approximation
+        if (eps < 1d-5 * rel_p2 ) then  ! use small angle approximation
           eps = eps / (2 * rel_p)
           deps_dx  = deps_dx / (2 * rel_p)
           deps_dpx = deps_dpx / (2 * rel_p)
@@ -1180,7 +1180,7 @@ case (sbend$)
       mat6_i(2,4) = -py * st / p_long
       mat6_i(2,6) = rel_p * st / p_long
 
-      if (abs(g_tot) < 1e-5 * abs(g)) then
+      if (abs(g_tot) < 1d-5 * abs(g)) then
         beta = (1 + g * x) * st / (g * alpha) - &
                g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
         dbeta_dx  = st/alpha - (g_tot*st**2*(1+g*x)*(ct*px+st*p_long))/(g*alpha**3)
@@ -1244,7 +1244,7 @@ case (sbend$)
     ! c0_off is the coordinates *after* the roll at the entrance end
     ! So get the reverse roll matrix and take the inverse.
     dr = 0
-    if (v(angle$) < 1e-20) then
+    if (v(angle$) < 1d-20) then
       axis = [v(angle$)/2, 0.0_rp, 1.0_rp]
     else
       axis = [cos(v(angle$)) - 1, 0.0_rp, sin(v(angle$))]

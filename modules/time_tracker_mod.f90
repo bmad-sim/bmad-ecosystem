@@ -311,7 +311,7 @@ real(rp) :: sqrt_n, err_max, dt, dt_temp, t_new, p2, rel_pc
 real(rp) :: r_err(6), r_temp(6), dr_dt(6)
 real(rp) :: r_scal(6), rel_tol, abs_tol
 real(rp), parameter :: safety = 0.9_rp, p_grow = -0.2_rp
-real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89e-4
+real(rp), parameter :: p_shrink = -0.25_rp, err_con = 1.89d-4
 real(rp), parameter :: tiny = 1.0e-30_rp
 
 logical local_ref_frame, err_flag
@@ -954,7 +954,7 @@ do i = 1, size(bunch%particle)
   case (opal$)  
     gammabeta =  orb%vec(2:6:2) / mass_of(orb%species)
      ! OPAL has a problem with zero beta_s
-    if ( gammabeta(3) == 0 ) gammabeta(3) = 1e-30 
+    if ( gammabeta(3) == 0 ) gammabeta(3) = 1d-30 
     write(time_file_unit, '(6'//rfmt//')')  orb%vec(1), gammabeta(1), &
 										    orb%vec(3), gammabeta(2), &
 											orb%vec(5), gammabeta(3)

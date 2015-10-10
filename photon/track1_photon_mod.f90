@@ -498,8 +498,8 @@ case (grid$)
     iy = target%iy_grid
   else
     call ran_uniform(zran)
-    ix = lb(1) + int((ub(1) - lb(1) + 1 - 1e-10) * zran(1))
-    iy = lb(2) + int((ub(2) - lb(2) + 1 - 1e-10) * zran(2))
+    ix = lb(1) + int((ub(1) - lb(1) + 1 - 1d-10) * zran(1))
+    iy = lb(2) + int((ub(2) - lb(2) + 1 - 1d-10) * zran(2))
   endif
   
   r = target%center%r + ix * (target%corner(1)%r - target%center%r) + &
@@ -1546,7 +1546,7 @@ dl = tan_t * (radius + orb%vec(1)) / (orb%vec(6) - tan_t * orb%vec(2))
 
 st = dl * orb%vec(6)
 ct = radius + orb%vec(1) + dl * orb%vec(2)
-if (abs(st) < 1e-3 * ct) then
+if (abs(st) < 1d-3 * ct) then
   denom = sign (ct * (1 + (st/ct)**2/2 + (st/ct)**4/8), radius)
 else
   denom = sign (sqrt((radius + orb%vec(1) + dl * orb%vec(2))**2 + (dl * orb%vec(6))**2), radius)

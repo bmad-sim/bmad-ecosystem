@@ -1098,7 +1098,7 @@ if (ix_attrib == term$ .and. (ele%key == wiggler$ .or. ele%key == undulator$)) t
   kx = wt%kx
   ky = wt%ky
   kz = wt%kz
-  tol = 1e-5 * (kx**2 + ky**2 + kz**2)
+  tol = 1d-5 * (kx**2 + ky**2 + kz**2)
 
   if (abs(ky**2 - kx**2 - kz**2) < tol) then
     if (plane == x_plane$) then
@@ -4263,7 +4263,7 @@ endif
 
 select case (ref_ele%key)
 case (overlay$, girder$)
-  s_ref_begin = 1e10
+  s_ref_begin = 1d10
   s_ref_end = 0
   do i = 1, ref_ele%n_slave
     slave => pointer_to_slave(ref_ele, i)
@@ -6568,7 +6568,7 @@ do
 
   call evaluate_value ('BAD NUMBER IN: ' // err_str, rval, lat, delim, delim_found, err_flag, sep // cl_delim)
   if (err_flag) return
-  if (abs(rval - nint(rval)) > 1e-10) then
+  if (abs(rval - nint(rval)) > 1d-10) then
     call parser_error ('BAD INTEGER NUMBER IN: ' // err_str)
     return
    end if    

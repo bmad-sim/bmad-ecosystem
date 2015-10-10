@@ -246,7 +246,7 @@ do i_b = 0, ubound(lat%branch, 1)
     ! Check that a true rbend has e1 + e2 = angle.
 
     if (ele%key == sbend$ .and. nint(ele%value(ptc_field_geometry$)) == true_rbend$) then
-      if (abs(ele%value(e1$) + ele%value(e2$) - ele%value(angle$)) > 1e-12) then
+      if (abs(ele%value(e1$) + ele%value(e2$) - ele%value(angle$)) > 1d-12) then
         call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS AN RBEND WITH PTC_FIELD_GEOMETRY = TRUE_RBEND', &

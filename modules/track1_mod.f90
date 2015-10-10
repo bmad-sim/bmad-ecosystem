@@ -529,7 +529,7 @@ do n = 1, n_step
     ! The following is to make sure that a beam entering on-axis remains 
     ! *exactly* on-axis.
 
-    if (pxy2 < 1e-5) then  
+    if (pxy2 < 1d-5) then  
       ff = pxy2 / (2 * rel_p)
       fg = g * (pz - ff - ff*ff/2 - g_tot*x) - g_err
     else
@@ -547,18 +547,18 @@ do n = 1, n_step
       return
     endif
 
-    if (abs(angle) < 1e-5 .and. abs(g_tot * length) < 1e-5) then
+    if (abs(angle) < 1d-5 .and. abs(g_tot * length) < 1d-5) then
       end_orb%vec(1) = end_orb%vec(1) + length * px / p_long - &
                        g_tot * (length * Dy)**2 / (2 * p_long**3) + &
                        g * length * (length * (rel_p2 + px**2 - py**2) + 2 * x * px * p_long) / (2 * p_long**2)
-    elseif (abs(g_tot) < 1e-5 * abs(g)) then
+    elseif (abs(g_tot) < 1d-5 * abs(g)) then
       alpha = p_long * ct - px * st
       end_orb%vec(1) = (p_long * (1 + g * x) - alpha) / (g * alpha) - &
                    g_tot * (Dy * (1 + g * x) * st)**2 / (2 * alpha**3 * g**2) + &
                    g_tot**2 * Dy**2 * ((1 + g * x) * st)**3 * (px * ct + p_long * st) / (2 * alpha**5 * g**3)
     else
       eps = px_t**2 + py**2
-      if (eps < 1e-5 * rel_p2) then  ! use small angle approximation
+      if (eps < 1d-5 * rel_p2) then  ! use small angle approximation
         eps = eps / (2 * rel_p)
         end_orb%vec(1) = (pz + px * st - ct * p_long + g_tot * x * ct + ct - g_err * one_ct + &
                                                                  eps * (eps / (2 * rel_p) - 1)) / g_tot
@@ -570,7 +570,7 @@ do n = 1, n_step
     end_orb%vec(2) = px_t
     end_orb%vec(4) = py
 
-    if (abs(g_tot) < 1e-5 * abs(g)) then
+    if (abs(g_tot) < 1d-5 * abs(g)) then
       beta = (1 + g * x) * st / (g * alpha) - &
              g_tot * (px * ct + p_long * st) * (st * (1 + g * x))**2 / (2 * g**2 * alpha**3)
       end_orb%vec(3) = y + py * beta
@@ -2436,7 +2436,7 @@ mass = mass_of(orbit%species)
 e_tot = ele%value(e_tot$)
 p0c = ele%value(p0c$)
 
-if (abs(orbit%vec(6)) < 1e-6 * mass**2 * p0c / e_tot**3) then
+if (abs(orbit%vec(6)) < 1d-6 * mass**2 * p0c / e_tot**3) then
   orbit%vec(5) = orbit%vec(5) + ele%value(l$) * orbit%vec(6) * (1 - 3 * orbit%vec(6) / 2) * (mass / e_tot)**2
 else
   pc = (1 + orbit%vec(6)) * ele%value(p0c$)

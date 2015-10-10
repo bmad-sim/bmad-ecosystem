@@ -24,13 +24,13 @@ module integration_timer_mod
 !   start    -- Coord_struct: Starting orbit.
 !   orb_max  -- Coord_struct: maximum orbit.
 !   tol      -- Real(rp): Tolerance for the map coefs. 
-!               (Good number is, say, 1e-10).
+!               (Good number is, say, 1d-10).
 !
 !   a_fibre      -- Fibre: Fibre to track through.
 !   orbit(6)     -- Real(dp): Starting orbit.   
 !   orbit_max(6) -- Real(dp): Maximum orbit
 !   tol_dp       -- Real(8): Tolerance for the map coefs. 
-!                   (Good number is, say, 1e-10).
+!                   (Good number is, say, 1d-10).
 !
 ! Output:
 !-
@@ -102,8 +102,8 @@ subroutine integration_timer_fibre (a_fibre, orbit, orbit_max, tol_dp)
   
   print *
   print '(a, 1p, e10.2)', ' Tolerance:', tol_dp
-  print '(a, 1p, 6e10.2)', ' Orbit    :', (orbit(i), i = 1, 6)
-  print '(a, 1p, 6e10.2)', ' Orbit_max:', (orbit_max(i), i = 1, 6)
+  print '(a, 1p, 6d10.2)', ' Orbit    :', (orbit(i), i = 1, 6)
+  print '(a, 1p, 6d10.2)', ' Orbit_max:', (orbit_max(i), i = 1, 6)
   print *, 'Order Steps      Diff      Time'
 
 ! loop over all orders

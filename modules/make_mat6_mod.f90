@@ -99,7 +99,7 @@ real(rp), optional :: z_coef(3), dz_dpz_coef(3)
 sqrt_k = sqrt(abs(k1))
 sk_l = sqrt_k * length
 
-if (abs(sk_l) < 1e-10) then
+if (abs(sk_l) < 1d-10) then
   k_l2 = k1 * length**2
   cx = 1 + k_l2 / 2
   sx = (1 + k_l2 / 6) * length
@@ -129,7 +129,7 @@ endif
 
 if (present(dz_dpz_coef)) then
 
-  if (abs(sk_l) < 1e-10) then
+  if (abs(sk_l) < 1d-10) then
     dcx = -k_l2 / (2 * rel_p)
     dsx = -k_l2 * length / (6 * rel_p)
   else
@@ -212,7 +212,7 @@ f = sqrt(ks4 + 4*k1_2)
 ug = 1 / (4*f)
 alpha2 = (f + ks2) / 2; alpha = sqrt(alpha2)
 
-if (abs(k1) < 1e-2 * f) then
+if (abs(k1) < 1d-2 * f) then
   rk = (k1 / ks2)**2
   beta2 = ks2 * (rk - rk**2 + 2 * rk**3) 
 else
@@ -236,7 +236,7 @@ S2 = S / alpha
 
 Snh1 = Snh * beta
 
-if (abs(beta) < 1e-10) then
+if (abs(beta) < 1d-10) then
   Snh2 = s_len
 else
   Snh2 = Snh / beta
@@ -274,7 +274,7 @@ m0(4,4) = m0(3,3)
 df      = -2 * (ks4 + 2*k1_2) / f
 dalpha2 = df/2 - ks2
 dalpha  = (df/2 - ks2)/(2*alpha)
-if (k1_2 < 1e-5 * ks4) then
+if (k1_2 < 1d-5 * ks4) then
   dbeta   = abs(k1**3/(ks3*ks2)) * (-1 + 3.5 * k1_2/ks4)
 else
   dbeta   = (ks2 + df/2)/(2*beta)
@@ -299,7 +299,7 @@ dS2 = dS / alpha - S * dalpha / alpha2
 
 dSnh1 = dSnh * beta + Snh * dbeta
 
-if (k1_2 < 1e-5 * ks4) then
+if (k1_2 < 1d-5 * ks4) then
   dSnh2 = k1**4 * s_len**3 * (-1/3.0d0 + (40 - ks2 * s_len**2) * k1_2 / (30 * ks4)) / ks3**2
 else
   dSnh2 = dSnh / beta - Snh * dbeta / beta2
@@ -342,7 +342,7 @@ d2_ug = -d2_f/(4*f**2) + df**2/(2*f**3)
 d2_f_f = (df/f)**2 - d2_f / f
 
 d2_alpha  = -dalpha**2/alpha + (d2_f/2+2*ks2)/(2*alpha)
-if (k1_2 < 1e-5 * ks4) then
+if (k1_2 < 1d-5 * ks4) then
   d2_beta = -abs(-3*k1**3/ks**5+5*k1**3/ks**5)
 else
   d2_beta = -dbeta**2/beta + (d2_f/2-2*ks2)/(2*beta)
@@ -365,7 +365,7 @@ d2_S2 = -dS*dalpha/alpha2+dalpha*S*dalpha2/alpha2**2-S*d2_alpha/alpha2+d2_S/alph
 
 d2_Snh1 = Snh*d2_beta+beta*d2_Snh+2*dSnh*dbeta
 
-if (k1_2 < 1e-5 * ks4) then
+if (k1_2 < 1d-5 * ks4) then
   d2_Snh2 = 4*k1**4*s_len**3/(3*ks**6)-2*k1**4*s_len**3/ks**6
 else
   d2_Snh2 = -dSnh*dbeta/beta2+dbeta*Snh*dbeta2/beta2**2-Snh*d2_beta/beta2+d2_Snh/beta-dbeta*dSnh/beta2
@@ -562,7 +562,7 @@ tau_x = -sign (1.0_rp, k_x)
 tau_y =  sign (1.0_rp, k_1)
 
 arg = om_x * length
-if (arg < 1e-6) then
+if (arg < 1d-6) then
   s_x = (1 + tau_x * arg**2 / 6) * length
   c_x = 1 + tau_x * arg**2 / 2
   z2 = g * length**2 / (2 * rel_p)
@@ -577,7 +577,7 @@ else
 endif
 
 arg = om_y * length
-if (arg < 1e-6) then
+if (arg < 1d-6) then
   s_y = (1 + tau_y * arg**2 / 6) * length
   c_y = 1 + tau_y * arg**2 / 2
 elseif (k_1 < 0) then
@@ -1051,7 +1051,7 @@ real(rp) mat4(4,4)
 ks = ks0 / rel_p
 kss = ks / 2
 
-if (abs(length * kss) < 1e-10) then
+if (abs(length * kss) < 1d-10) then
   ll = length
   kl = kss * length 
   kl2 = kl**2

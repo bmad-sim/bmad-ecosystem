@@ -621,7 +621,7 @@ if (i2 /= 0) then
   if (arg > 0) then
     mode%sigE_E = sqrt(arg)
   else
-    mode%sigE_E = 1e30  ! Something large
+    mode%sigE_E = 1d30  ! Something large
   endif
 
 endif
@@ -635,7 +635,7 @@ mode%e_loss = energy_loss
 if (m65*i1 > 0) then
   mode%sig_z = sqrt(i1/m65) * mode%sigE_E
 else   ! Unstable
-  mode%sig_z = 1e30  ! Something large
+  mode%sig_z = 1d30  ! Something large
 endif
 
 mode%z%emittance = mode%sig_z * mode%sigE_E
