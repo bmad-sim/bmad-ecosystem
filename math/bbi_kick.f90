@@ -79,7 +79,7 @@ subroutine bbi_kick (x_norm, y_norm, r, kx, ky)
     if (amp > emax) then
       kx = -x_norm * scale / amp
       ky = -y_norm * scale / amp
-    else if (amp < 1e-4) then
+    else if (amp < 1d-4) then
       kx = -x_norm * scale
       ky = -y_norm * scale
     else

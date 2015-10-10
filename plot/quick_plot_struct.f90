@@ -137,7 +137,7 @@ type qp_state_struct
   type (qp_line_struct) :: grid_line = qp_line_struct(1, light_grey$, solid$)
   real(rp) :: text_scale = 1
   real(rp) :: text_spacing_factor = 0.6
-  real(rp) :: dflt_axis_slop_factor = 1e-3
+  real(rp) :: dflt_axis_slop_factor = 1d-3
   integer :: text_background = -1
   integer :: max_axis_zero_digits = 3
   integer :: dflt_units = dflt_draw$

@@ -60,7 +60,7 @@ character(16) :: r_name = 'spline_evaluate'
 ok = .false.
 
 ix_max = ubound(spline(:), 1)
-dx = 1e-6 * (spline(ix_max)%x - spline(1)%x)   ! something small
+dx = 1d-6 * (spline(ix_max)%x - spline(1)%x)   ! something small
 
 if (x < spline(1)%x - dx) then
   call out_io (s_error$, r_name, 'X EVALUATION POINT LESS THAN LOWER BOUND OF SPLINE INTERVAL')

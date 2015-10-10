@@ -27,7 +27,7 @@ function inverse(funct, y, x1, x2, tol) result (x)
   integer iter
 
   integer, parameter :: itmax = 100
-  real(rp), parameter :: eps = 3.e-8
+  real(rp), parameter :: eps = 3.d-8
 
   interface
      function funct(x)
