@@ -176,16 +176,15 @@ call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 call find_indexx2 (in_lat%ele(0)%name, in_name, in_indexx, 0, -1, ix, add_to_list = .true.)
 
 ele => in_lat%ele(1)
+call init_ele(ele, def_mad_beam$, 0, 1, 0)
 ele%name = 'BEAM'                 ! For MAD compatibility.
-ele%key = def_mad_beam$           
 call set_ele_defaults (ele)
 call find_indexx2 (ele%name, in_name, in_indexx, 0, 0, ix, add_to_list = .true.)
 bp_com%mad_beam_ele => ele
 
 ele => in_lat%ele(2)
+call init_ele(ele, def_parameter$, 0, 2, 0)
 ele%name = 'PARAMETER'           ! For parameters 
-ele%key = def_parameter$
-call set_ele_defaults (ele)
 call find_indexx2 (ele%name, in_name, in_indexx, 0, 1, ix, add_to_list = .true.)
 bp_com%param_ele => ele
 
@@ -830,17 +829,9 @@ branch_loop: do i_loop = 1, n_branch_max
 
     ! Set geometry.
 
-    ix = nint(bp_com%param_ele%value(geometry$))
-    if (ix > 0) then  ! geometry has been set.
-      lat%param%geometry = ix
-    elseif (lat%param%particle == photon$) then
+    if (lat%param%geometry == 0 .and. lat%param%particle == photon$) then
       lat%param%geometry = open$
     endif
-
-    ! Set photon_type
-
-    ix = nint(bp_com%param_ele%value(photon_type$))
-    if (ix > 0) lat%photon_type = ix   ! photon_type has been set.
 
   endif
 

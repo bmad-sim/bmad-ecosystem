@@ -1175,7 +1175,7 @@ end function default_tracking_species
 !+
 ! Subroutine init_lat (lat, n)
 !
-! Subroutine to initialize a BMAD lat.
+! Subroutine to initialize a Bmad lat.
 ! 
 ! Modules needed:
 !   use bmad
@@ -1244,8 +1244,7 @@ end subroutine init_lat
 !+
 ! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)
 !
-! Subroutine to initialize a Bmad element. Element is initialized to be free
-! (not a lord or slave) and all %values set to zero.
+! Subroutine to initialize a Bmad element.
 !
 ! Modules needed:
 !   use bmad

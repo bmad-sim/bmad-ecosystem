@@ -37,9 +37,8 @@ use bmad_parser_mod, except_dummy => bmad_parser2
 implicit none
   
 type (lat_struct), target :: lat
-type (lat_struct), save :: lat2
+type (lat_struct) :: lat2
 type (ele_struct), pointer :: ele
-type (ele_struct), target, save :: mad_beam_ele, param_ele, beam_start_ele, bmad_com_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (parser_ele_struct), pointer :: pele
 type (coord_struct), optional :: orbit(0:)
@@ -49,7 +48,7 @@ type (branch_struct), pointer :: branch
 real(rp) v1, v2
 
 integer ix_word, i, j, ix, ix1, ix2, n_plat_ele, ixx, ele_num, ix_word_1
-integer key, n_max_old, n_loc
+integer key, n_max_old, n_loc, n_def_ele
 integer, pointer :: n_max, n_ptr
 integer, allocatable :: lat_indexx(:)
 
@@ -74,6 +73,7 @@ bp_com%write_digested2 = (.not. bp_com%always_parse)
 bp_com%parser_name = 'bmad_parser2'
 bp_com%input_from_file = .true.
 bp_com%fatal_error_flag = .false.       ! Set True on fatal (must abort now) error 
+debug_line = ''
 
 ! If lat_file = 'FROM: BMAD_PARSER' then bmad_parser2 has been called by 
 ! bmad_parser (after an expand_lattice command). 
@@ -86,40 +86,55 @@ if (lat_file /= 'FROM: BMAD_PARSER') then
   if (err) return
 endif
 
-debug_line = ''
+!
+
 n_max => lat%n_ele_max
+n_def_ele = 5 + size(lat%branch)
+call allocate_plat (plat, n_def_ele)
+if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat)
+
+ele => lat%ele(n_max+1)
+bp_com%mad_beam_ele => ele
+call init_ele(bp_com%mad_beam_ele, def_mad_beam$, 0, n_max+1, 0)
+ele%name = 'BEAM'              ! For MAD compatibility.
+ele%value(n_part$)     = lat%param%n_part
+ele%value(particle$)   = lat%param%particle
+ele%ixx = 1                    ! Pointer to plat%ele() array
+
+ele => lat%ele(n_max+2)
+bp_com%param_ele => ele
+call init_ele (bp_com%param_ele, def_parameter$, 0, n_max+2, 0)
+ele%name = 'PARAMETER'
+ele%value(geometry$) = lat%param%geometry
+ele%value(n_part$)   = lat%param%n_part
+ele%value(particle$) = lat%param%particle
+ele%ixx = 2                    ! Pointer to plat%ele() array
+
+ele => lat%ele(n_max+3)
+call init_ele (ele, def_beam_start$, 0, n_max+3, 0)
+ele%name = 'BEAM_START'
+ele%ixx  = 3                    ! Pointer to plat%ele() array
+
+ele => lat%ele(n_max+4)
+call init_ele (ele, def_bmad_com$, 0, n_max+4, 0)
+ele%name = 'BMAD_COM'
+ele%ixx  = 4                    ! Pointer to plat%ele() array
+
+ele => lat%ele(n_max+5)
+call init_ele (ele, beginning_ele$, 0, n_max+5, 0)
+ele%name = 'BEGINNING'
+ele%ixx  = 5                    ! Pointer to plat%ele() array
+
+do i = 0, ubound(lat%branch, 1)
+  ele => lat%ele(n_max+6+i)
+  call init_ele(ele, line_ele$, 0, n_max+6+i, 0)
+  ele%name = lat%branch(i)%name
+  ele%ixx = 6 + i
+enddo
+
+n_plat_ele = n_def_ele
 n_max_old = n_max
-
-call allocate_plat (plat, 4)
-
-bp_com%mad_beam_ele => mad_beam_ele
-call init_ele(mad_beam_ele)
-mad_beam_ele%name = 'BEAM'              ! For MAD compatibility.
-mad_beam_ele%key = def_mad_beam$        
-mad_beam_ele%value(n_part$)     = lat%param%n_part
-mad_beam_ele%value(particle$)   = lat%param%particle
-mad_beam_ele%ixx = 1                    ! Pointer to plat%ele() array
-
-bp_com%param_ele => param_ele
-call init_ele (param_ele)
-param_ele%name = 'PARAMETER'
-param_ele%key = def_parameter$
-param_ele%value(geometry$) = lat%param%geometry
-param_ele%value(n_part$)   = lat%param%n_part
-param_ele%value(particle$) = lat%param%particle
-param_ele%ixx = 2                    ! Pointer to plat%ele() array
-
-call init_ele (beam_start_ele)
-beam_start_ele%name = 'BEAM_START'
-beam_start_ele%key  = def_beam_start$
-beam_start_ele%ixx  = 3                    ! Pointer to plat%ele() array
-
-call init_ele (bmad_com_ele)
-bmad_com_ele%name = 'BMAD_COM'
-bmad_com_ele%key  = def_bmad_com$
-bmad_com_ele%ixx  = 4                    ! Pointer to plat%ele() array
-
-n_plat_ele = 4
+n_max = n_max + n_def_ele
 
 !-----------------------------------------------------------
 ! main parsing loop
@@ -213,7 +228,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         parsing = .false.
       else
-        call parser_set_attribute (def$, mad_beam_ele, lat, delim, delim_found, err, check_free = .true.)
+        call parser_set_attribute (def$, bp_com%mad_beam_ele, lat, delim, delim_found, err, check_free = .true.)
         if (err) cycle parsing_loop
       endif
     enddo
@@ -310,16 +325,11 @@ parsing_loop: do
 
       ! No wild card matches permitted for these
       if (ele%name == 'BEGINNING' .or. ele%name == 'BEAM' .or. &
-          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START') then
+          ele%name == 'PARAMETER' .or. ele%name == 'BEAM_START' .or. ele%name == 'BMAD_COM') then
         if (word_1 /= ele%name) cycle
       endif
 
-      if (attribute_index (ele, word_2) == 0) then
-        if (wild_and_key0) cycle
-        call parser_error ('BAD ATTRIBUTE')
-        bp_com%parse_line = '' 
-        cycle parsing_loop
-      endif
+      if (wild_and_key0 .and. attribute_index(ele, word_2) == 0) cycle
 
       bp_com%parse_line = parse_line_save
       found = .true.
@@ -499,7 +509,7 @@ enddo parsing_loop
 
 bp_com%input_line_meaningful = .false.
 
-lat%param%geometry = nint(param_ele%value(geometry$))
+lat%param%geometry = nint(bp_com%param_ele%value(geometry$))
 lat%input_taylor_order = bmad_com%taylor_order
 
 if (associated(bp_com%param_ele%descrip)) then
@@ -517,8 +527,8 @@ do i = 0, ubound(lat%branch, 1)
   endif
 enddo
 
-v1 = param_ele%value(n_part$)
-v2 = mad_beam_ele%value(n_part$)
+v1 = bp_com%param_ele%value(n_part$)
+v2 = bp_com%mad_beam_ele%value(n_part$)
 if (lat%param%n_part /= v1 .and. lat%param%n_part /= v2) then
   call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
 else if (v1 /= lat%param%n_part) then
@@ -527,19 +537,18 @@ else
   lat%param%n_part = v2
 endif
 
-ix1 = nint(param_ele%value(particle$))
-ix2 = nint(mad_beam_ele%value(particle$))
+ix1 = nint(bp_com%param_ele%value(particle$))
+ix2 = nint(bp_com%mad_beam_ele%value(particle$))
 if (ix1 /= lat%param%particle .and. ix2 /= lat%param%particle) &
         call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
 lat%param%particle = ix1
 if (ix2 /=  lat%param%particle) lat%param%particle = ix2
 
-
 ! Transfer the new elements to a safe_place
 
-ele_num = n_max - n_max_old
+ele_num = n_max - n_max_old - n_def_ele
 allocate (lat2%ele(1:ele_num))
-lat2%ele(1:ele_num) = lat%ele(n_max_old+1:n_max)
+lat2%ele(1:ele_num) = lat%ele(n_max_old+n_def_ele+1:n_max)
 n_max = n_max_old
 
 ! Do bookkeeping for settable dependent variables.

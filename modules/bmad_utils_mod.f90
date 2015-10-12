@@ -21,7 +21,7 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 ! or a given element.
 !
 ! This routine is an overloaded name for:
-!   pointer_to_branch_given_ele (ele) result (branch_ptr)
+!   pointer_to_branch_given_ele (ele) result (branch_ptr, parameter_is_branch0)
 !   pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
 !
 ! The lattice branch *associated* with a given element is not necessarily the
@@ -40,6 +40,8 @@ private pointer_to_branch_given_name, pointer_to_branch_given_ele
 !   ele         -- Ele_struct: Element contained in the branch.
 !   branch_name -- Character(*): May be a branch name or a branch index.
 !   lat         -- Lat_struct: Lattice to search.
+!   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
+!                     an alternative name for branch(0). Default is False.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the branch.
@@ -1848,7 +1850,7 @@ end subroutine set_lords_status_stale
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+! Function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0) result (branch_ptr)
 !
 ! Function to point to the named lattice branch.
 ! This routine is overloaded by the routine: pointer_to_branch.
@@ -1860,20 +1862,31 @@ end subroutine set_lords_status_stale
 ! Input:
 !   branch_name -- Character(*): May be a branch name or a branch index.
 !   lat         -- Lat_struct: Lattice to search.
+!   parameter_is_branch0 -- logical, optional: If True, 'PARAMETER' is taken to be
+!                     an alternative name for branch(0). Default is False.
 !
 ! Output:
 !   branch_ptr  -- branch_struct, pointer: Pointer to the nameed branch.
 !                   Nullified if there is no such branch.
 !-
 
-function pointer_to_branch_given_name (branch_name, lat) result (branch_ptr)
+function pointer_to_branch_given_name (branch_name, lat, parameter_is_branch0) result (branch_ptr)
 
 type (branch_struct), pointer :: branch_ptr
 type (lat_struct), target :: lat
 
 integer ib, ios
+logical, optional :: parameter_is_branch0
+
 character(*) branch_name
 character(32), parameter :: r_name = 'pointer_to_branch_given_name'
+
+! parameter
+
+if (logic_option(.false., parameter_is_branch0) .and. branch_name == 'PARAMETER') then
+  branch_ptr => lat%branch(0)
+  return
+endif
 
 ! Init in case of error
 
@@ -1884,7 +1897,7 @@ nullify(branch_ptr)
 if (is_integer(trim(branch_name))) then
   read (branch_name, *, iostat = ios) ib
   if (ib < 0 .or. ib > ubound(lat%branch, 1)) then
-    call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // branch_name)
+    !! call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE: ' // branch_name)
     return
   endif
   branch_ptr => lat%branch(ib)
@@ -1898,7 +1911,7 @@ else
       return
     endif
   enddo
-  call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // branch_name)
+  !! call out_io (s_error$, r_name, 'BRANCH NAME NOT FOUND: ' // branch_name)
   return
 endif
 
