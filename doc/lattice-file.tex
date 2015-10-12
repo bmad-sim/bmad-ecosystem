@@ -482,15 +482,10 @@ defining custom attributes is:
 \begin{example}
   parameter[custom_attributeN] = "\{class::\}attribute_name"
 \end{example}
-\vn{custom_attributeN} may be one of:
-\begin{example}
-  custom_attribute1
-  ...
-  custom_attribute5
-\end{example}
-and "\vn{attribute_name}" is the name of the attribute. To restrict the
-custom attribute to a particular element class, the element class
-can be prefixed to the attribute name. Examples:
+Where ``\vn{N}'' is an integer between 1 and 5 and
+"\vn{attribute_name}" is the name of the attribute. To restrict the
+custom attribute to a particular element class, the element class can
+be prefixed to the attribute name. Examples:
 \begin{example}
   parameter[custom_attribute1] = "mag_id"
   parameter[custom_attribute1] = "quadrupole::error_k1"

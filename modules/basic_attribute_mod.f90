@@ -366,7 +366,11 @@ if (.not. attribute_array_init_needed) return
 
 do i = 1, n_key$
 
-  if (i == def_bmad_com$) cycle
+  if (i == def_bmad_com$)   cycle
+  if (i == def_mad_beam$)   cycle
+  if (i == def_beam_start$) cycle
+  if (i == line_ele$)       cycle
+  if (i == def_parameter$)  cycle
 
   call init_attribute_name1 (i, custom_attribute1$,  'CUSTOM_ATTRIBUTE1', private$)
   call init_attribute_name1 (i, custom_attribute2$,  'CUSTOM_ATTRIBUTE2', private$)
@@ -375,6 +379,9 @@ do i = 1, n_key$
   call init_attribute_name1 (i, custom_attribute5$,  'CUSTOM_ATTRIBUTE5', private$)
   call init_attribute_name1 (i, check_sum$, 'check_sum', private$)
   call init_attribute_name1 (i, scratch$,   'scratch', private$)
+
+  if (i == hybrid$)         cycle
+  if (i == beginning_ele$)  cycle
 
   select case (i)
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
@@ -390,30 +397,6 @@ do i = 1, n_key$
     enddo
     enddo
   end select
-
-  select case(i)
-  case (monitor$, instrument$, marker$, detector$)
-    call init_attribute_name1 (i, x_gain_err$,      'X_GAIN_ERR')
-    call init_attribute_name1 (i, y_gain_err$,      'Y_GAIN_ERR')
-    call init_attribute_name1 (i, crunch$,          'CRUNCH')
-    call init_attribute_name1 (i, noise$,           'NOISE')
-    call init_attribute_name1 (i, tilt_calib$,      'TILT_CALIB')
-    call init_attribute_name1 (i, x_gain_calib$,    'X_GAIN_CALIB')
-    call init_attribute_name1 (i, y_gain_calib$,    'Y_GAIN_CALIB')
-    call init_attribute_name1 (i, crunch_calib$,    'CRUNCH_CALIB')
-    call init_attribute_name1 (i, x_offset_calib$,  'X_OFFSET_CALIB')
-    call init_attribute_name1 (i, y_offset_calib$,  'Y_OFFSET_CALIB')
-    call init_attribute_name1 (i, n_sample$,        'N_SAMPLE')
-    call init_attribute_name1 (i, de_eta_meas$,     'DE_ETA_MEAS')
-    call init_attribute_name1 (i, osc_amplitude$,   'OSC_AMPLITUDE')
-  end select
-
-  if (i == hybrid$)         cycle
-  if (i == def_mad_beam$)   cycle
-  if (i == def_parameter$)  cycle
-  if (i == def_beam_start$) cycle
-  if (i == beginning_ele$)  cycle
-  if (i == line_ele$)       cycle
 
   call init_attribute_name1 (i, type$,      'TYPE')
   call init_attribute_name1 (i, alias$,     'ALIAS')
@@ -548,6 +531,23 @@ do i = 1, n_key$
     call init_attribute_name1 (i, bl_hkick$,  'BL_HKICK', quasi_free$)
     call init_attribute_name1 (i, bl_vkick$,  'BL_VKICK', quasi_free$)
   endif
+
+  select case(i)
+  case (monitor$, instrument$, marker$, detector$)
+    call init_attribute_name1 (i, x_gain_err$,      'X_GAIN_ERR')
+    call init_attribute_name1 (i, y_gain_err$,      'Y_GAIN_ERR')
+    call init_attribute_name1 (i, crunch$,          'CRUNCH')
+    call init_attribute_name1 (i, noise$,           'NOISE')
+    call init_attribute_name1 (i, tilt_calib$,      'TILT_CALIB')
+    call init_attribute_name1 (i, x_gain_calib$,    'X_GAIN_CALIB')
+    call init_attribute_name1 (i, y_gain_calib$,    'Y_GAIN_CALIB')
+    call init_attribute_name1 (i, crunch_calib$,    'CRUNCH_CALIB')
+    call init_attribute_name1 (i, x_offset_calib$,  'X_OFFSET_CALIB')
+    call init_attribute_name1 (i, y_offset_calib$,  'Y_OFFSET_CALIB')
+    call init_attribute_name1 (i, n_sample$,        'N_SAMPLE')
+    call init_attribute_name1 (i, de_eta_meas$,     'DE_ETA_MEAS')
+    call init_attribute_name1 (i, osc_amplitude$,   'OSC_AMPLITUDE')
+  end select
 
 enddo
 
@@ -750,9 +750,11 @@ call init_attribute_name1 (def_beam_start$, emittance_z$,             'EMITTANCE
 call init_attribute_name1 (def_beam_start$, sig_e$,                   'SIG_E')
 call init_attribute_name1 (def_beam_start$, sig_z$,                   'SIG_Z')
 
-call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1', override = .true.)
-call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2', override = .true.)
-call init_attribute_name1 (def_parameter$, custom_attribute3$,        'CUSTOM_ATTRIBUTE3', override = .true.)
+call init_attribute_name1 (def_parameter$, custom_attribute1$,        'CUSTOM_ATTRIBUTE1')
+call init_attribute_name1 (def_parameter$, custom_attribute2$,        'CUSTOM_ATTRIBUTE2')
+call init_attribute_name1 (def_parameter$, custom_attribute3$,        'CUSTOM_ATTRIBUTE3')
+call init_attribute_name1 (def_parameter$, custom_attribute4$,        'CUSTOM_ATTRIBUTE4')
+call init_attribute_name1 (def_parameter$, custom_attribute5$,        'CUSTOM_ATTRIBUTE5')
 call init_attribute_name1 (def_parameter$, e_tot$,                    'E_TOT')
 call init_attribute_name1 (def_parameter$, p0c$,                      'P0C')
 call init_attribute_name1 (def_parameter$, geometry$,                 'GEOMETRY')
@@ -767,9 +769,6 @@ call init_attribute_name1 (def_parameter$, no_end_marker$,            'NO_END_MA
 call init_attribute_name1 (def_parameter$, absolute_time_tracking$,   'ABSOLUTE_TIME_TRACKING')
 call init_attribute_name1 (def_parameter$, ptc_exact_model$,          'PTC_EXACT_MODEL')
 call init_attribute_name1 (def_parameter$, ptc_exact_misalign$,       'PTC_EXACT_MISALIGN')
-call init_attribute_name1 (def_parameter$, use_hard_edge_drifts$,     'USE_HARD_EDGE_DRIFTS')
-call init_attribute_name1 (def_parameter$, electric_dipole_moment$,   'ELECTRIC_DIPOLE_MOMENT')
-call init_attribute_name1 (def_parameter$, ptc_max_fringe_order$,     'PTC_MAX_FRINGE_ORDER')
 call init_attribute_name1 (def_parameter$, default_tracking_species$, 'DEFAULT_TRACKING_SPECIES')
 
 call init_attribute_name1 (detector$, l$,                             'L', dependent$)

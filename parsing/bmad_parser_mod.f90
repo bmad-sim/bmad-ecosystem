@@ -401,7 +401,8 @@ if (ele%key == def_beam_start$ .or. ele%key == def_bmad_com$ .or. (ele%key == de
     if (associated(a_ptrs(1)%i, bmad_com%ptc_max_fringe_order))           bp_com%extra%ptc_max_fringe_order_set            = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
-    call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag2)
+    call get_logical (trim(ele%name) // ' ' // word, a_ptrs(1)%l, err_flag)
+    if (err_flag) return
     if (associated(a_ptrs(1)%l, bmad_com%use_hard_edge_drifts))           bp_com%extra%use_hard_edge_drifts_set            = .true.
     if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
     if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
@@ -1389,14 +1390,16 @@ case ('REF_ORBIT_FOLLOWS')
 
 case ('MODE')
   call get_switch (attrib_word, mode_name(1:), ix, err_flag, ele)
-  ele%value(geometry$) = ix
+  ele%value(mode$) = ix
 
 case ('PTC_INTEGRATION_TYPE')
   call get_switch (attrib_word, ptc_integration_type_name(1:), ele%ptc_integration_type, err_flag, ele)
 
 case ('PARTICLE')
   call get_switch (attrib_word, particle_name(:), ix, err_flag, ele)
-  ele%value(particle$) = ix + lbound(particle_name, 1) - 1 
+  branch => pointer_to_branch(ele%name, lat, .true.)
+  if (associated(branch)) branch%param%particle = ix + lbound(particle_name, 1) - 1
+  ele%value(particle$) = ix + lbound(particle_name, 1) - 1
 
 case ('PTC_FIELD_GEOMETRY')
   call get_switch (attrib_word, ptc_field_geometry_name(1:), ix, err_flag, ele)
@@ -1409,11 +1412,13 @@ case ('PTC_FIELD_GEOMETRY')
 
 case ('GEOMETRY')
   call get_switch (attrib_word, geometry_name(1:), ix, err_flag, ele)
+  branch => pointer_to_branch(ele%name, lat, .true.)
+  if (associated(branch)) branch%param%geometry = ix
   ele%value(geometry$) = ix
 
 case ('PHOTON_TYPE')
   call get_switch (attrib_word, photon_type_name(1:), ix, err_flag, ele)
-  ele%value(photon_type$) = ix
+  lat%photon_type = ix   ! photon_type has been set.
 
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
@@ -1552,6 +1557,12 @@ case default   ! normal attribute
           ele%value(p0c$) = -1
         endif
 
+        branch => pointer_to_branch(ele%name, lat, .true.)
+        if (associated(branch)) then
+          branch%ele(0)%value(e_tot$) = value
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(e_tot$))
+        endif
+
       case ('ENERGY')    ! Only in def_mad_beam
         lat%ele(0)%value(e_tot$) = 1d9 * value
         lat%ele(0)%value(p0c$) = -1
@@ -1564,6 +1575,12 @@ case default   ! normal attribute
           ele%value(e_tot$) = -1
         endif
 
+        branch => pointer_to_branch(ele%name, lat, .true.)
+        if (associated(branch)) then
+          branch%ele(0)%value(p0c$) = value
+          call set_flags_for_changed_attribute (branch%ele(0), branch%ele(0)%value(p0c$))
+        endif
+
       case ('PC')    ! Only in def_mad_beam
         lat%ele(0)%value(p0c$) = 1d9 * value
         ele%value(e_tot$) = -1
@@ -1571,6 +1588,10 @@ case default   ! normal attribute
       case ('LR_FREQ_SPREAD')
         call randomize_lr_wake_frequencies (ele, set_done)
         if (set_done) call bp_set_ran_status
+
+      case ('N_PART')
+        branch => pointer_to_branch(ele%name, lat, .true.)
+        if (associated(branch)) branch%param%n_part = value
 
       end select
 
