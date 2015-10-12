@@ -1,27 +1,28 @@
-"bmad_com[max_aperture_limit]"   23.50
-"bmad_com[ptc_max_fringe_order]"   -1
+"bmad_com[max_aperture_limit]"               23.50
+"bmad_com[ptc_max_fringe_order]"          -1
 "bmad_com[convert_to_kinetic_momentum]"    "T"
-"EVAL 1"   -14.0000
-"1 REL"   2.0000
-"2 REL"   2.0000
-"3 REL"   1.0000
-"4 REL"   1.0000
-"5 REL"   3.0000
-"TM1"    "Symp_Lie_Bmad"
-"TM5"    "Runge_Kutta"
-"N3"   4
-"Custom"    "MY_CUSTOM"
-"Pion_Minus"   1.395701800000E+08  -1
-"Muon"   1.056583715000E+08  -1
-"Antiproton"   9.382720460000E+08  -1
-"Electron"   5.109989100000E+05  -1
-"Photon"   0.000000000000E+00  0
-"Positron"   5.109989100000E+05  1
-"Proton"   9.382720460000E+08  1
-"Antimuon"   1.056583715000E+08  1
-"Pion_Plus"   1.395701800000E+08  1
-"Pion_0"   1.349766000000E+08  0
-"XSIF:Twiss"   20.56499970  12.05361620
-"XSIF:Orbit"   1.54985405E-04  1.81420417E-04
-"L2-1"    "PP#1"
-"L2-N"    "42"
+"EVAL 1"    -14.0000
+"1 REL"      2.0000
+"2 REL"      2.0000
+"3 REL"      1.0000
+"4 REL"      1.0000
+"5 REL"      3.0000
+"TM1"      "Symp_Lie_Bmad"
+"TM5"      "Runge_Kutta"
+"N3"       4
+"Custom"   "MY_CUSTOM"
+"Pion_Minus"    1.395701800000E+08    -1
+"Muon"    1.056583715000E+08    -1
+"Antiproton"    9.382720460000E+08    -1
+"Electron"    5.109989100000E+05    -1
+"Photon"    0.000000000000E+00     0
+"Positron"    5.109989100000E+05     1
+"Proton"    9.382720460000E+08     1
+"Antimuon"    1.056583715000E+08     1
+"Pion_Plus"    1.395701800000E+08     1
+"Pion_0"    1.349766000000E+08     0
+"XSIF:Twiss"   20.56499970 12.05361620
+"XSIF:Orbit"   1.54985405E-04 1.81420417E-04
+"L2-1"       "PP#1"
+"L2-N"       "42"
+"Hard-Edge"  "F"
