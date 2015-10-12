@@ -28,7 +28,7 @@ if 'DIST_BASE_DIR'   in os.environ: dist_dir      = os.environ['DIST_BASE_DIR'] 
 class search_com_class:
   def __init__(self):
     self.found_one      = False
-    self.doc            = 'FULL'
+    self.doc_type       = 'FULL'   # (for getf) or 'LIST' (for creating listf.namelist files), or 'SHORT' (for listf)
     self.match_str      = ''
     self.case_sensitive = False
     self.namelist_file  = ''
@@ -63,7 +63,7 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
 
     # If release_dir is defined then we should have found the directory.
     elif release_dir != '': 
-      print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+      print ('CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir)
 
 
   else:
@@ -76,7 +76,7 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
       this_dir = root_dir + release_sub_dir + base_dir
 
     else:
-      print 'CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir
+      print ('CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir)
 
   if this_dir != '': dir_list.append(this_dir)
   return
@@ -86,7 +86,7 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
 # print_help_message function
 
 def print_help_message ():
-  print '''
+  print ('''
   Usage for getf and listf:
     getf  {options} <search_string>
     listf {options} <search_string>
@@ -118,7 +118,7 @@ def print_help_message ():
       cesrv               sim_utils
       examples            tao
       forest              util_programs
-'''
+''')
   sys.exit()
 
 #------------------------------------------------------------------------------------
@@ -203,16 +203,16 @@ def search_f90 (file_name, search_com):
         if re_match_str.match(module_name):
           search_com.found_one = True
           found_one_in_this_file = True
-          if search_com.doc == 'LIST':
+          if search_com.doc_type == 'LIST':
             if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
             have_printed_file_name = True
             search_com.namelist_file.write(module_name + '\n')
-          elif search_com.doc == 'FULL':
-            print '\nFile:', file_name
-            for com in comments: print com.rstrip()          
+          elif search_com.doc_type == 'FULL':
+            print ('\nFile:', file_name)
+            for com in comments: print (com.rstrip())
           else:
-            print '\nFile:', file_name
-            print '    ', line.rstrip()
+            print ('\nFile:' + file_name)
+            print ('    ' + line.rstrip())
 
     if re_module_header_end.match(line2): in_module_header = False
     
@@ -224,7 +224,7 @@ def search_f90 (file_name, search_com):
         for chunk in chunks:
           chunk_match = re_parameter1.match(chunk)
           if chunk_match:
-            if search_com.doc == 'LIST':
+            if search_com.doc_type == 'LIST':
               if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
               have_printed_file_name = True
               search_com.namelist_file.write(chunk_match.group(1) + '\n')
@@ -235,9 +235,9 @@ def search_f90 (file_name, search_com):
                 search_com.found_one = True
                 found_one_in_this_file = True
                 if not have_printed_file_name:
-                  print '\nFile:', file_name
+                  print ('\nFile:' + file_name)
                   have_printed_file_name = True
-                print '    ' + line.rstrip()
+                print ('    ' + line.rstrip())
                 break
 
     # Add to comment block if a comment
@@ -246,7 +246,7 @@ def search_f90 (file_name, search_com):
       if blank_line_found:
         comments = []
         blank_line_found = False
-      if search_com.doc == 'FULL': comments.append(line)
+      if search_com.doc_type == 'FULL': comments.append(line)
       continue
 
     # Match to type or interface statement
@@ -256,24 +256,24 @@ def search_f90 (file_name, search_com):
     if match and 'struct'.startswith(search_com.search_only_for):
       search_com.found_one = True
       found_one_in_this_file = True
-      if search_com.doc == 'LIST':
+      if search_com.doc_type == 'LIST':
         if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
         have_printed_file_name = True
         search_com.namelist_file.write(match.group(2) + '\n')
-      elif search_com.doc == 'FULL':
-        print '\nFile:', file_name
-        for com in comments: print com.rstrip()
-        if len(comments) > 0: print ''
-        print line.rstrip()
+      elif search_com.doc_type == 'FULL':
+        print ('\nFile:' + file_name)
+        for com in comments: print (com.rstrip())
+        if len(comments) > 0: print ('')
+        print (line.rstrip())
         while True:
           line = f90_file.readline()
           if line == '': return
           line2 = line.lstrip().lower()
-          print line.rstrip()
+          print (line.rstrip())
           if re_type_interface_end.match(line2): break
       else:
-        print '\nFile:', file_name
-        print '    ', line.rstrip()
+        print ('\nFile:' + file_name)
+        print ('    ' + line.rstrip())
       comments = []
       continue
 
@@ -283,16 +283,17 @@ def search_f90 (file_name, search_com):
       if re_match_str.match(routine_name[0]) and 'routine'.startswith(search_com.search_only_for):
         search_com.found_one = True
         found_one_in_this_file = True
-        if search_com.doc == 'LIST':
+        if search_com.doc_type == 'LIST':
           if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
           have_printed_file_name = True
           search_com.namelist_file.write(routine_name[0] + '\n')
-        elif search_com.doc == 'FULL':
-          print '\nFile:', file_name
-          for com in comments: print com.rstrip()          
+        elif search_com.doc_type == 'FULL':
+          print ('\nFile:' + file_name)
+          for com in comments: print (com.rstrip())
+          print (line.rstrip())
         else:
-          print '\nFile:', file_name
-          print '    ', line.rstrip()
+          print ('\nFile:' + file_name)
+          print ('    ' + line.rstrip())
 
       # Skip rest of routine including contained routines
 
@@ -408,19 +409,19 @@ def search_c (file_name, search_com):
             is_match = re.search(' ' + search_com.match_str + '_?\s*(\(.*\))\s*{', function_line, re.I)
           if is_match and 'routine'.startswith(search_com.search_only_for):
             search_com.found_one = True
-            if search_com.doc == 'LIST':
+            if search_com.doc_type == 'LIST':
               if not have_printed_file_name: search_com.namelist_file.write('\nFile: '  + search_com.file_name_rel_root + '\n')
               have_printed_file_name = True
               search_com.namelist_file.write(is_match.group(1) + '\n')
-            elif search_com.doc == 'FULL':
-              print '\nFile:', file_name
-              for com in comments: print com.rstrip()
-              for com in lines_after_comments: print com.rstrip()
+            elif search_com.doc_type == 'FULL':
+              print ('\nFile:' + file_name)
+              for com in comments: print (com.rstrip())
+              for com in lines_after_comments: print (com.rstrip())
             else:
               if not found_one_in_this_file: 
-                print '\nFile:', file_name
+                print ('\nFile:' + file_name)
                 found_one_in_this_file = True
-              for com in lines_after_comments: print '    ', com.rstrip()
+              for com in lines_after_comments: print ('    ' + com.rstrip())
 
       elif char == '}':
         n_curly -= 1
@@ -454,17 +455,17 @@ def search_tree (search_base_dir, search_com):
 
   # Open file for namelist output if needed
 
-  if search_com.doc == 'LIST':
+  if search_com.doc_type == 'LIST':
     if os.access(search_base_dir, os.W_OK):
-      print 'Creating:', namelist_file
+      print ('Creating:' + namelist_file)
       search_com.namelist_file = open(namelist_file, 'w')
     else:
-      print 'CANNOT WRITE TO:', namelist_file
+      print ('CANNOT WRITE TO:' + namelist_file)
       return
 
   # If there is an existing searchf.namelist file then use this to see if there are matches.
 
-  if search_com.doc != 'LIST' and os.path.isfile(namelist_file):
+  if search_com.doc_type != 'LIST' and os.path.isfile(namelist_file):
 
     f_namelist = open(namelist_file)
     have_searched_file = False
@@ -520,7 +521,7 @@ def search_all (doc_type):
 
   search_com = search_com_class()
   search_com.found_one = False
-  search_com.doc = doc_type
+  search_com.doc_type = doc_type
 
   #-----------------------------------------------------------
   # Look for arguments
@@ -567,12 +568,12 @@ def search_all (doc_type):
       search_com.search_only_for = s
       if not 'struct'.startswith(s) and not 'routine'.startswith(s) and \
          not 'parameter'.startswith(s) and not 'module'.startswith(s):
-        print '-s ARGUMENT NOT CORRECT.'
+        print ('-s ARGUMENT NOT CORRECT.')
         print_help_message ()
       i += 1
       continue
 
-    print '!!! UNKNOWN ARGUMENT:', arg
+    print ('!!! UNKNOWN ARGUMENT:' + arg)
     print_help_message ()
 
   #----------------------------------------------------------
@@ -604,12 +605,12 @@ def search_all (doc_type):
     choose_path (dir_list, root_dir, 'save', '/CMakeLists.txt', '')
     choose_path (dir_list, root_dir, 'vac', '/CMakeLists.txt', '')
 
-  if search_com.doc == 'LIST':
+  if search_com.doc_type == 'LIST':
     search_com.match_str = '(\w+)'
     if i > 0 and i < len(sys.argv): dir_list = [sys.argv[i]]
   else:
     if i == 0 or i >= len(sys.argv): 
-      print 'NO SEARCH STRING FOUND!'
+      print ('NO SEARCH STRING FOUND!')
       print_help_message()  # Nothing to match to
     match_str_in = sys.argv[i]
     search_com.match_str = match_str_in.replace('*', '\w*') 
@@ -621,10 +622,10 @@ def search_all (doc_type):
 
   # And finish
 
-  if search_com.doc != 'LIST':
+  if search_com.doc_type != 'LIST':
     if not search_com.found_one:
-      print 'Cannot match String:',  match_str_in
-      print 'Use "-h" command line option to list options.'
+      print ('Cannot match String:' + match_str_in)
+      print ('Use "-h" command line option to list options.')
     else:
-      print ''
+      print ('')
 
