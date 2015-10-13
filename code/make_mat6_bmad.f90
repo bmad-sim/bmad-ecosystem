@@ -299,8 +299,7 @@ case (elseparator$)
 !--------------------------------------------------------
 ! Kicker, etc.
 
-case (kicker$, hkicker$, vkicker$, rcollimator$, &
-        ecollimator$, monitor$, instrument$, pipe$)
+case (kicker$, hkicker$, vkicker$, rcollimator$, ecollimator$, monitor$, instrument$, pipe$)
 
   call offset_particle (ele, param, set$, c00, set_hvkicks = .false.)
 

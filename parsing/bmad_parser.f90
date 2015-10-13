@@ -829,7 +829,10 @@ branch_loop: do i_loop = 1, n_branch_max
 
     ! Set geometry.
 
-    if (lat%param%geometry == 0 .and. lat%param%particle == photon$) then
+    ix = nint(bp_com%param_ele%value(geometry$))
+    if (ix > 0) then  ! geometry has been set.
+      lat%param%geometry = ix
+    elseif (lat%param%particle == photon$) then
       lat%param%geometry = open$
     endif
 
