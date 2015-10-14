@@ -1,3 +1,0 @@
-ssh control@cesr29 'do [cesr.dcs.scripts]get_vms_lib_symbols'
-scp control@cesr29:dcs/scripts/vms_lib*.symbols .
-
