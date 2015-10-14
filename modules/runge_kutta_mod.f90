@@ -262,14 +262,22 @@ do n_step = 1, max_step
 
 end do
 
-! Here if step size too small or too many steps
+! Here if step size too small or too many steps.
+! One possibility is that the particle is turning around longitudinally.
+! A particle is considered to be turning around if the z-velocity is less than 10% of the total velocity.
+! Only issue an error message if the particle is *not* turning around since, in this case, there might be an
+! error in how the field is calculated and we must warn the user of this.
 
-call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL WHILE TRACKING THROUGH: ' // ele%name, &
-                               'AT S-POSITION FROM ENTRANCE: \F10.5\ ', &
-                               'COULD BE DUE TO A DISCONTINUITY IN THE FIELD ', &
-                               r_array = [s])
+if (sqrt(orb_end%vec(2)**2 + orb_end%vec(4)**2) / (1 + orb_end%vec(6)) > 0.9) then
+  orb_end%state = lost_z_aperture$
+else
+  call out_io (s_error$, r_name, 'STEP SIZE IS TOO SMALL OR TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
+                                 'AT S-POSITION FROM ENTRANCE: \F10.5\ ', &
+                                 'COULD BE DUE TO A DISCONTINUITY IN THE FIELD ', &
+                                 r_array = [s])
+  orb_end%state = lost$
+endif
 
-orb_end%state = lost$
 err_flag = .false.
 
 !-----------------------------------------------------------------
