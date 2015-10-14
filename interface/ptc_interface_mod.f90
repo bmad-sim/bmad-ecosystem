@@ -2599,9 +2599,6 @@ else
   tilt = ele%value(tilt_tot$)
 endif
 
-print *, 'CONCAT_ELE_TAYLOR DISABLED UNTIL REPAIR IS DONE! PLEASE CONTACT DAVID SAGAN!'
-call err_exit
-
 call dtiltd (tilt, 1, x_ele)
 call mis_fib (fib, x_ele, DEFAULT, .true., entering = .true.)
 
