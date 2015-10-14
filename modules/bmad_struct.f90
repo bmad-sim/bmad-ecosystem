@@ -297,7 +297,7 @@ integer, parameter :: moving_forward$ = -9
 integer, parameter :: alive$ = 1, lost$ = 2
 integer, parameter :: lost_neg_x_aperture$ = 3, lost_pos_x_aperture$ = 4 
 integer, parameter :: lost_neg_y_aperture$ = 5, lost_pos_y_aperture$ = 6
-integer, parameter :: lost_z_aperture$ = 7
+integer, parameter :: lost_z_aperture$ = 7  ! Particle "turned around" when not tracking with time_runge_kutta.
 
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz)

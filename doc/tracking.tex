@@ -106,16 +106,24 @@ The \vn{%state} component will be one of:
 \end{example}
 The \vn{not_set\$} setting indicates that the \vn{coord_struct} has
 not yet been used in tracking. The \vn{alive\$} setting indicates that
-the particle is alive. If a particle is ``dead'', \vn{%state}
-component will be set to on of the other settings. The
+the particle is alive. If a particle is ``dead'', the \vn{%state}
+component will be set to one of the other settings. The
 \vn{lost_neg_x_aperture\$} setting indicates that the particle was
-lost at an aperture on the $-x$ side of the element.  The
-\vn{lost_z_aperture\$} setting is used to indicate an energy aperture
-where a particle has been decelerated to the point where it is turning
-around. The \vn{lost\$} setting is used when neither of the
+lost at an aperture on the $-x$ side of the element. The
+\vn{lost_z_aperture\$} setting is used to indicate that the particle
+tried to ``turn around''. This can happen, for example, with strong
+magnetic fields or when a particle has been decelerated too much.  The
+reason why the particle is marked lost in this case is due to the fact
+that $s$-based tracking algorithms cannot handle particles that
+reverse direction. The exception is that the \vn{time_runge_kutta}
+(\sref{s:tkm}) tracking method can handle particle reversal so in this
+case, particles will not be declared lost if they reverse direction.
+
+The \vn{lost\$} setting is used when neither of the other
 \vn{lost_*_aperture\$} settings are not appropriate. For example,
 \vn{lost\$} is used in Runge-Kutta tracking when the adaptive step
-size becomes too small.
+size becomes too small (this may happen if the fields do not obey
+Maxwell's equations).
 
 To convert the integer value of \vn{%state} to a string that can be 
 printed, use the function \Hyperref{r:coord.state.name}{coord_state_name}
@@ -685,7 +693,7 @@ be used for this. See the \vn{track_many} routine for more details.
 
 Another way to track in the reverse direction is to create a
 ``reversed'' lattice with the elements in reverse order and with
-each lattice element's orientaiton reversed. The routine for this
+each lattice element's orientation reversed. The routine for this
 is \Hyperref{r:lat.reverse}{lat_reverse}.
 
 
