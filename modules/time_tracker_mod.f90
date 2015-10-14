@@ -6,6 +6,7 @@ use em_field_mod
 use wall3d_mod
 use geometry_mod
 use runge_kutta_mod ! for common struct only
+use multipass_mod
 
 contains
 
@@ -96,164 +97,157 @@ if ( present(track) ) then
    t_save = t_rel
 endif 
 
-! Loop to track to next edge
-
-do
-
-  ! Loop over single time steps
-
-  at_edge_flag = .false.
-  exit_flag = .false.
-  err_flag = .true.
-  has_hit = .false. 
- 
+at_edge_flag = .false.
+exit_flag = .false.
+err_flag = .true.
+has_hit = .false. 
+edge_kick_applied  = .false.
   
-  do n_step = 1, max_step
+do n_step = 1, max_step
 
-    ! overstepped edge?
+  ! overstepped edge?
+  if ((orb%vec(5) - s_edge_track)*orb%direction > -ds_safe) then
+  
+    zbrent_needed = .true.
+    if ((orb%vec(5)-s_edge_track)*orb%direction < ds_safe) zbrent_needed = .false.
 
-    if ((orb%vec(5) - s_edge_track)*orb%direction > -ds_safe) then
-      zbrent_needed = .true.
-      if ((orb%vec(5)-s_edge_track)*orb%direction < ds_safe) zbrent_needed = .false.
-
-      add_ds_safe = .true.
-      if (orb%direction == 1 .and. abs(s_edge_track - ele%value(l$)) < ds_safe) then
-        orb%location = downstream_end$
-        add_ds_safe = .false.
-        exit_flag = .true.
-      elseif (orb%direction == -1 .and. abs(s_edge_track) < ds_safe) then
-        orb%location = upstream_end$
-        add_ds_safe = .false.
-        exit_flag = .true.
-      endif
-
-      ! zbrent
-
-      dt_tol = ds_safe / (orb%beta * c_light)
-      if (zbrent_needed) then
-        dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
-        dummy = delta_s_target(dt) ! Final call to set orb
-        dt_did = dt
-      endif
-
-      ! Need to apply hard edge kick. 
-      ! For super_slaves there may be multipole hard edges at a single s-position.
-      edge_kick_applied = .false. 
-      do 
-        if (.not. associated(hard_ele)) exit
-        if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
-        ! Get radius before first edge kick
-        if (.not. edge_kick_applied) then 
-          old_wall_d_radius = wall3d_d_radius (orb%vec, ele)
-          edge_kick_applied = .true. 
-        endif  
-        if (orb%direction == +1) then 
-          ref_time = hard_ele%ref_time - hard_ele%value(delta_ref_time$)
-        else 
-          ref_time = hard_ele%ref_time
-        end if
-        s_save = orb%vec(5)
-        call convert_particle_coordinates_t_to_s(orb, ref_time) 
-        call apply_element_edge_kick (orb, s_edge_hard, t_rel, hard_ele, ele, param, hard_end)
-        call convert_particle_coordinates_s_to_t(orb)
-        orb%vec(5) = s_save
-        call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
-        ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
-        ! So offset s a very tiny amount to avoid this
-        if (add_ds_safe) then
-          orb%vec(5) = orb%vec(5) + orb%direction * ds_safe
-          orb%s = orb%s + orb%direction * ds_safe
-        endif
-      enddo      
-
-
+    add_ds_safe = .true.
+    if (orb%direction == 1 .and. abs(s_edge_track - ele%value(l$)) < ds_safe) then
+      orb%location = downstream_end$
+      add_ds_safe = .false.
+      exit_flag = .true.
+    elseif (orb%direction == -1 .and. abs(s_edge_track) < ds_safe) then
+      orb%location = upstream_end$
+      add_ds_safe = .false.
+      exit_flag = .true.
     endif
 
-    ! Wall check
-    ! Adapted from runge_kutta_mod's odeint_bmad:
-    ! Check if hit wall.
-    ! If so, interpolate position particle at the hit point
+    ! zbrent
 
-    if (runge_kutta_com%check_wall_aperture) then
-      wall_d_radius = wall3d_d_radius (orb%vec, ele)      
-      select case (runge_kutta_com%hit_when)
-      case (outside_wall$)
-        has_hit = (wall_d_radius > 0)
-      case (wall_transition$)
-        has_hit = (wall_d_radius * old_wall_d_radius < 0 .and. n_step > 1)
-        old_wall_d_radius = wall_d_radius
-      case default
-        call out_io (s_fatal$, r_name, 'BAD RUNGE_KUTTA_COM%HIT_WHEN SWITCH SETTING!')
-        if (global_com%exit_on_error) call err_exit
-      end select
-
-      ! Cannot do anything if already hit
-      if (has_hit .and. n_step == 1) then
-        orb%state = lost$
-        exit_flag = .true. 
-      endif
-
-      if (has_hit) then
-        dt_tol = ds_safe / (orb%beta * c_light)
-        ! Skip zbrent if the edge kick moved the particle outside the wall
-        if (n_step /= 1  .and. .not. (edge_kick_applied .and. old_wall_d_radius < 0)) then
-          dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
-          dummy = wall_intersection_func(dt) ! Final call to set orb
-        endif
-        orb%state = lost$
-        ! Convert for wall handler
-        call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
-        call wall_hit_handler_custom (orb, ele, orb%s, orb%t)
-        call convert_particle_coordinates_s_to_t(orb)
-        ! Restore vec(5) to relative s 
-        orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
-      endif
+    dt_tol = ds_safe / (orb%beta * c_light)
+    if (zbrent_needed) then
+      dt = zbrent (delta_s_target, 0.0_rp, dt_did, dt_tol)
+      dummy = delta_s_target(dt) ! Final call to set orb
+      dt_did = dt
     endif
- 
-    if (orb%state /= alive$) exit_flag = .true.
-  
-    !Save track
-    if ( present(track) ) then
-      !Check if we are past a save time, or if exited
-      if (t_rel >= t_save .or. exit_flag) then
-        ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
-        call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
-        ! Query the local field to save
-        call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
-        if (err_flag) return
-        track%field(track%n_pt) = saved_field
-        ! Set next save time 
-        t_save = t_rel + dt_save
+
+    ! Need to apply hard edge kick. 
+    ! For super_slaves there may be multipole hard edges at a single s-position.
+    edge_kick_applied = .false. 
+    do 
+      if (.not. associated(hard_ele)) exit
+      if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
+      ! Get radius before first edge kick
+      if (.not. edge_kick_applied) then 
+        old_wall_d_radius = wall3d_d_radius (orb%vec, ele)
+        edge_kick_applied = .true. 
+      endif  
+      if (orb%direction == +1) then 
+        ref_time = hard_ele%ref_time - hard_ele%value(delta_ref_time$)
+      else 
+        ref_time = hard_ele%ref_time
       end if
-    endif
-
-    ! Exit when the particle hits surface s1 or s2, or hits wall
-    if (exit_flag) then
-      err_flag = .false. 
-      return
-    endif
-
-    ! Single Runge-Kutta step. Updates orb% vec(6), s, and t 
-
-    dt = dt_next
-    orb_old = orb
-    t_old = t_rel
-    call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
-
-    if (orb%direction /= old_direction) then
+      s_save = orb%vec(5)
+      call convert_particle_coordinates_t_to_s(orb, ref_time) 
+      call apply_element_edge_kick (orb, s_edge_hard, t_rel, hard_ele, ele, param, hard_end)
+      call convert_particle_coordinates_s_to_t(orb)
+      orb%vec(5) = s_save
       call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
-      old_direction = orb%direction
+      ! Trying to take a step through a hard edge can drive Runge-Kutta nuts.
+      ! So offset s a very tiny amount to avoid this
+      if (add_ds_safe) then
+        orb%vec(5) = orb%vec(5) + orb%direction * ds_safe
+        orb%s = orb%s + orb%direction * ds_safe
+      endif
+    enddo      
+    
+  endif
+
+  ! Wall check
+  ! Adapted from runge_kutta_mod's odeint_bmad:
+  ! Check if hit wall.
+  ! If so, interpolate position particle at the hit point
+
+  if (runge_kutta_com%check_wall_aperture) then
+    wall_d_radius = wall3d_d_radius (orb%vec, ele)      
+    select case (runge_kutta_com%hit_when)
+    case (outside_wall$)
+      has_hit = (wall_d_radius > 0)
+    case (wall_transition$)
+      has_hit = (wall_d_radius * old_wall_d_radius < 0 .and. n_step > 1)
+      old_wall_d_radius = wall_d_radius
+    case default
+      call out_io (s_fatal$, r_name, 'BAD RUNGE_KUTTA_COM%HIT_WHEN SWITCH SETTING!')
+      if (global_com%exit_on_error) call err_exit
+    end select
+
+    ! Cannot do anything if already hit
+    if (has_hit .and. n_step == 1) then
+      orb%state = lost$
+      exit_flag = .true. 
     endif
 
-  end do
+    if (has_hit) then
+      dt_tol = ds_safe / (orb%beta * c_light)
+      ! Skip zbrent if the edge kick moved the particle outside the wall
+      if (n_step /= 1  .and. .not. (edge_kick_applied .and. old_wall_d_radius < 0)) then
+        dt = zbrent (wall_intersection_func, 0.0_rp, dt_did, dt_tol)
+        dummy = wall_intersection_func(dt) ! Final call to set orb
+      endif
+      orb%state = lost$
+      ! Convert for wall handler
+      call convert_particle_coordinates_t_to_s(orb, ele%ref_time)
+      call wall_hit_handler_custom (orb, ele, orb%s, orb%t)
+      call convert_particle_coordinates_s_to_t(orb)
+      ! Restore vec(5) to relative s 
+      orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
+    endif
+  endif
 
-  ! Did not get to end
+  if (orb%state /= alive$) exit_flag = .true.
 
-  call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
-  orb%location = inside$
-  orb%state = lost$
+  !Save track
+  if ( present(track) ) then
+    !Check if we are past a save time, or if exited
+    if (t_rel >= t_save .or. exit_flag) then
+      ! TODO: Set local_ref_frame=.true., and make sure offset_particle does the right thing
+      call save_a_step (track, ele, param, .false., orb%vec(5), orb, s_save)
+      ! Query the local field to save
+      call em_field_calc (ele, param, orb%vec(5), t_rel, orb, local_ref_frame, saved_field, .false., err_flag)
+      if (err_flag) return
+      track%field(track%n_pt) = saved_field
+      ! Set next save time 
+      t_save = t_rel + dt_save
+    end if
+  endif
 
-enddo
+  ! Exit when the particle hits surface s1 or s2, or hits wall
+  if (exit_flag) then
+    err_flag = .false. 
+    return
+  endif
+
+  ! Single Runge-Kutta step. Updates orb% vec(6), s, and t 
+
+  dt = dt_next
+  orb_old = orb
+  t_old = t_rel
+  call rk_adaptive_time_step (ele, param, orb, t_rel, dt, dt_did, dt_next, local_ref_frame, err)
+
+  if (orb%direction /= old_direction) then
+    call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end)
+    old_direction = orb%direction
+  endif
+
+end do
+
+! Did not get to end
+
+call out_io (s_warn$, r_name, 'STEPS EXCEEDED MAX_STEP FOR ELE: '//ele%name )
+orb%location = inside$
+orb%state = lost$
+
+
 
 !------------------------------------------------------------------------------------------------
 contains
@@ -1004,5 +998,152 @@ end function
 
 end subroutine  write_time_particle_distribution
 
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! subroutine track_until_dead (start_orb, lat, end_orb, track)
+!
+! Subroutine to track a particle arbitrarily through a lattice, forwards or backwards,
+!   until it is lost or exits the lattice.
+!
+!   The starting element is located using start_orb%s.
+!
+! Module needed:
+!   use track1_mod
+!
+! Input:
+!   start_orb   -- coord_struct: Starting coords.
+!   lat         -- lat_stuct: lattice that contains and element at start_orb%s
+
+! Output:
+!   end_orb     -- coord_struct: final coords
+!   track       -- track_struct: (optional) 
+!
+!-
+
+subroutine track_until_dead (start_orb, lat, end_orb, track)
+
+type (lat_struct), target :: lat
+type (branch_struct), pointer :: branch
+type (coord_struct) :: particle
+type (track_struct), optional :: track
+type (coord_struct) :: start_orb, start2_orb, end_orb
+type (ele_struct), pointer :: ele, ele_now
+type (ele_pointer_struct), allocatable :: chain_ele(:)
+
+real(rp) s_rel
+  
+integer :: ix_ele, ix_offset, point_id, iteration
+integer :: ix_pass_now, n_links, ix_pass
+integer, parameter :: max_iteration = 100000
+  
+logical :: wall_flag, exit_flag, err, verbose
+
+character(30), parameter :: r_name = 'track_until_dead'
+  
+!
+
+start2_orb = start_orb
+
+verbose = bmad_com%debug
+
+branch => lat%branch(0)
+ix_ele = element_at_s(branch%lat, start2_orb%s, .true., branch%ix_branch)
+wall_flag = .false.
+exit_flag = .false.
+ele => lat%ele(ix_ele)
+ 
+ 
+track_loop: do iteration = 1, max_iteration
+  
+  s_rel = start2_orb%s - (ele%s - ele%value(L$) )
+  if ( (s_rel <  -bmad_com%significant_length .or. s_rel > ele%value(L$) + bmad_com%significant_length)) then
+	call out_io (s_fatal$, r_name, 'PARTICLE STARTED BEYOND ELEMENT BOUNDS FOR: ' // ele%name)
+    print *, 's_rel: ', s_rel
+    print *, 'start2_orb vec: ', start2_orb%vec
+    print *, 'start2_orb%s: ', start2_orb%s
+    print *, 'ele%s - L ', ele%s -ele%value(L$) 
+    print *, 'ele%s', ele%s 
+    if (global_com%exit_on_error) call err_exit
+  endif
+ 
+  if (verbose) print *, "  Tracking element:", ele%name, ele%ix_ele
+
+  !Track particle until it hits something (beginning, end, wall)
+  if (present(track)) then
+    call track1( start2_orb, ele, lat%param, end_orb, track = track)
+  else
+    call track1( start2_orb, ele, lat%param, end_orb)
+  end if
+
+  !Determine if dead, or next element
+  if (end_orb%state /= alive$) wall_flag = .true.
+
+  if (verbose .and. present(track)) print *, "    Number of track points: ", track%n_pt
+
+  if (verbose .and. wall_flag) print *, "  Particle lost in open area or &
+    hit wall at element index: ", ele%name, ele%ix_ele
+
+  
+  ! get next index
+  ix_offset = end_orb%direction
+  
+  ! Save current element
+  ele_now => ele
+  
+  ! step to next ele
+  ele => pointer_to_next_ele (ele, ix_offset)
+  if (.not. associated(ele) ) exit
+  
+  ! Check for wrap around
+  if (ix_offset == -1 .and. ele%ix_ele == 0) then
+    ! At beginning. Check that the lattice starts with a multipass element
+    call multipass_chain (ele_now, ix_pass_now, n_links, chain_ele)
+    call multipass_chain (ele, ix_pass, n_links)
+    if (ix_pass_now == 1 .and. ix_pass == -1) then
+      ele => pointer_to_next_ele(chain_ele(2)%ele, -1) 
+    else
+      ! No wrap around. Exit.
+      exit
+    endif
+  endif
+  
+  ! Check for end
+  if (ele%ix_ele == branch%n_ele_track) exit_flag = .true. 
+
+  !Exit loop if 
+  if (wall_flag .or. exit_flag) exit
+
+  if (verbose) then
+    print *, '  entering ele:     = ', ele%name, ele%ix_ele
+    print *, '  end_orb%direction = ', end_orb%direction
+    print *, '  end_orb%location  = ', end_orb%location
+  endif
+
+  !Place end_orb%s correctly 
+  if (end_orb%direction == +1) then
+    ! particle arrives at the beginning of the element
+    end_orb%s = ele%s - ele%value(L$) 
+  else
+    ! particle arrives at the beginning of the element
+    end_orb%s = ele%s 
+  endif
+
+  ! Sanity check
+  !if (ix_ele /= ele%ix_ele) then
+  !	call out_io (s_fatal$, r_name, 'IX_ELE INCONSISTENCY IN ELE: ' // ele%name)
+  !   if (global_com%exit_on_error) call err_exit
+  ! endif
+  
+
+  !New start coords for ele
+  start2_orb = end_orb  
+
+end do track_loop
+
+
+end subroutine track_until_dead
 
 end module
