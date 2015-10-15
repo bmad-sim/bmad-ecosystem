@@ -1,6 +1,9 @@
 "bmad_com[max_aperture_limit]"               23.50
 "bmad_com[ptc_max_fringe_order]"          -1
 "bmad_com[convert_to_kinetic_momentum]"    "T"
+"geometry"                                 "Open"
+"quad-custom_attribute2"                   "QQQ"
+"sex-custom_attribute3"                    "ZZZ"
 "EVAL 1"    -14.0000
 "1 REL"      2.0000
 "2 REL"      2.0000
