@@ -1036,10 +1036,10 @@ integer, parameter :: ds_step$ = 67
 integer, parameter :: lord_pad1$ = 68
 integer, parameter :: lord_pad2$ = 69, ref_wavelength$ = 69
 integer, parameter :: scratch$ = 70
-integer, parameter :: custom_attribute1$ = 71   ! For general use
-integer, parameter :: custom_attribute2$ = 72   ! For general use
-integer, parameter :: custom_attribute3$ = 73   ! For general use
-integer, parameter :: custom_attribute4$ = 74   ! For general use
+integer, parameter :: custom_attribute1$ = 71   ! Assumed unique. Do not overload.
+integer, parameter :: custom_attribute2$ = 72   ! Assumed unique. Do not overload.
+integer, parameter :: custom_attribute3$ = 73   ! Assumed unique. Do not overload.
+integer, parameter :: custom_attribute4$ = 74   ! Assumed unique. Do not overload.
 integer, parameter :: custom_attribute5$ = 75, custom_attribute_max$ = 75   ! For general use
 integer, parameter :: x1_limit$ = 76   ! Assumed unique. Do not overload.
 integer, parameter :: x2_limit$ = 77   ! Assumed unique. Do not overload.
