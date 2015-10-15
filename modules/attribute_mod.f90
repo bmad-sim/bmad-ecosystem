@@ -933,18 +933,19 @@ contains
 
 subroutine set_it (ix_attrib)
 
-type (ele_struct) ele
-integer ix_attrib, ix, i
+integer ix_attrib, ix, i, key
 character(40) old_attrib, a_str
+logical warning_given
 
 ! If alias_str is of the form "ele_class::alias_name" then need to split string
 
 a_str = alias_str
+key = 0
 ix = index(alias_str, '::')
 if (ix /= 0) then
   a_str = alias_str(ix+2:)
-  ix = key_name_to_key_index(alias_str(1:ix-1), .true.)
-  if (ix < 1) then
+  key = key_name_to_key_index(alias_str(1:ix-1), .true.)
+  if (key < 1) then
     call out_io (s_error$, r_name, 'ELEMENT CLASS NOT RECOGNIZED: ' // alias_str)
     err_flag = .true.
     return
@@ -961,8 +962,27 @@ endif
 
 ! Set
 
+warning_given = .false.
+
 do i = 1, n_key$
-  if (ix /= 0 .and. ix /= i) cycle
+  if (key /= 0 .and. key /= i) cycle
+  if (i == def_parameter$ .or. i == def_mad_beam$) cycle
+  old_attrib = attribute_name(i, ix_attrib)
+  if (old_attrib /= null_name$ .and. old_attrib /= a_str .and. .not. warning_given) then
+    if (key == 0) then
+      call out_io (s_warn$, r_name, &
+        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
+        'FROM: ' // old_attrib, &
+        'TO:   ' // a_str)
+    else
+      call out_io (s_warn$, r_name, &
+        'A CUSTOM_ATTRIBUTE IS BEING REDENFINED: ' // attrib_str, &
+        'FOR ELEMENT CLASS: ' // key_name(i), &
+        'FROM: ' // old_attrib, &
+        'TO:   ' // a_str)
+    endif
+  endif
+
   call init_attribute_name1 (i, ix_attrib, a_str, override = .true.)
 enddo
 

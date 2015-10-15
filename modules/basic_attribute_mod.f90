@@ -69,6 +69,50 @@ interface attribute_index
   module procedure attribute_index2
 end interface
 
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_name (...) result (attrib_name)
+!
+! Function attribute_name1 (key, ix_att) result (attrib_name)
+!
+! Function to return the name of an attribute for a particular type of 
+! Bmad element. 
+!
+! This routine is an overloaded name for:
+!   attribute_name1 (ele, ix_att) result (attrib_name)
+!   attribute_name2 (key, ix_att) result (attrib_name)
+!
+!
+! Note: attribute_name (key, ix_att) is not able to handle overlay/group control variables.
+! Use attributge_name (ele, ix_att) is this is needed.
+!
+! Input:
+!   ele    -- Ele_struct: 
+!     %key    -- Integer: Key name of element type (e.g. SBEND$, etc.)
+!   key    -- Integer: Key name of element type (e.g. sbend$, etc.)
+!   ix_att -- Integer: Index of attribute (e.g. k1$)
+!
+! Output:
+!   attrib_name -- Character(40): Name of attribute. 
+!      = "!BAD ELE KEY"                 %key is invalid
+!      = "!BAD INDEX"                   ix_att is invalid (out of range).
+!      = "!NULL" (null_name$)           ix_att does not correspond to an attribute or is private.
+!
+! Example:
+!   ele%key = sbend$
+!   name = attribute_name (ele, k1$)
+! Result:
+!   name -> "K1"
+!-
+
+interface attribute_name
+  module procedure attribute_name1
+  module procedure attribute_name2
+end interface
+
+
 contains
 
 !--------------------------------------------------------------------------
@@ -77,7 +121,7 @@ contains
 !+             
 ! Function attribute_index1 (ele, name, full_name) result (attrib_index)
 !
-! Overloaded by attribute_index. See attribute_index for more details 
+! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
 function attribute_index1 (ele, name, full_name) result (attrib_index)
@@ -118,7 +162,7 @@ end function attribute_index1
 !+             
 ! Function attribute_index2 (key, name, full_name) result (attrib_index)
 !
-! Overloaded by attribute_index. See attribute_index for more details 
+! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
 function attribute_index2 (key, name, full_name) result (attrib_index)
@@ -194,33 +238,34 @@ end function attribute_index2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function attribute_name (ele, ix_att) result (attrib_name)
+! Function attribute_name1 (key, ix_att) result (attrib_name)
 !
-! Function to return the name of an attribute for a particular type of 
-! BMAD element. 
-!
-! Modules Needed:
-!   use bmad
-!
-! Input:
-!   ele    -- Ele_struct: 
-!     %key    -- Integer: Key name of element type (e.g. SBEND$, etc.)
-!   ix_att -- Integer: Index of attribute (e.g. k1$)
-!
-! Output:
-!   attrib_name -- Character(40): Name of attribute. 
-!      = "!BAD ELE KEY"                 %key is invalid
-!      = "!BAD INDEX"                   ix_att is invalid (out of range).
-!      = "!NULL" (null_name$)           ix_att does not correspond to an attribute or is private.
-!
-! Example:
-!   ele%key = sbend$
-!   name = attribute_name (ele, k1$)
-! Result:
-!   name -> "K1"
+! Overloaded by attribute_name. See attribute_name for more details.
 !-
 
-function attribute_name (ele, ix_att) result (attrib_name)
+function attribute_name1 (key, ix_att) result (attrib_name)
+
+type (ele_struct) ele
+integer i, key, ix_att, ix
+character(40) attrib_name
+
+!
+
+ele%key = key
+attrib_name = attribute_name2(ele, ix_att)
+
+end function attribute_name1
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Function attribute_name2 (ele, ix_att) result (attrib_name)
+!
+! Overloaded by attribute_name. See attribute_name for more details.
+!-
+
+function attribute_name2 (ele, ix_att) result (attrib_name)
 
 type (ele_struct) ele
 integer i, key, ix_att, ix
@@ -235,7 +280,7 @@ key = ele%key
 if (key <= 0 .or. key > n_key$) then
   attrib_name = '!BAD ELE KEY'
 
-elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, control_var$)) then
+elseif ((key == group$ .or. key == overlay$) .and. is_attribute(ix_att, control_var$)) then
   ix = ix_att - var_offset$
   if (ix > size(ele%control_var)) then
     attrib_name = '!BAD INDEX'
@@ -243,7 +288,7 @@ elseif ((ele%key == group$ .or. ele%key == overlay$) .and. is_attribute(ix_att, 
     attrib_name = ele%control_var(ix)%name
   endif
 
-elseif (ele%key == group$ .and. is_attribute(ix_att, old_control_var$)) then
+elseif (key == group$ .and. is_attribute(ix_att, old_control_var$)) then
   ix = ix_att - old_control_var_offset$
   if (ix > size(ele%control_var)) then
     attrib_name = '!BAD INDEX'
@@ -262,7 +307,7 @@ else
   endif
 endif
 
-end function attribute_name 
+end function attribute_name2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
