@@ -3365,6 +3365,25 @@ else
   endif
   call create_fibre_append (.false., bmadl, ptc_key, EXCEPTION)   ! ptc routine
   ptc_fibre => bmadl%start
+
+  ! NB: Set of pointers only needed if doing stuff other than tracking (like calculating misalignments).
+
+  ptc_fibre%mag%p%dir=>ptc_fibre%dir
+  ptc_fibre%mag%p%beta0=>ptc_fibre%beta0
+  ptc_fibre%mag%p%gamma0i=>ptc_fibre%gamma0i
+  ptc_fibre%mag%p%gambet=>ptc_fibre%gambet
+  ptc_fibre%mag%p%mass=>ptc_fibre%mass
+  ptc_fibre%mag%p%charge=>ptc_fibre%charge
+
+  ptc_fibre%magp%p%dir=>ptc_fibre%dir
+  ptc_fibre%magp%p%beta0=>ptc_fibre%beta0
+  ptc_fibre%magp%p%gamma0i=>ptc_fibre%gamma0i
+  ptc_fibre%magp%p%gambet=>ptc_fibre%gambet
+  ptc_fibre%magp%p%mass=>ptc_fibre%mass
+  ptc_fibre%magp%p%charge=>ptc_fibre%charge
+
+  !
+
   bmadl%closed=.true.
   call ring_l(bmadl, .true.)
   call survey(bmadl)
