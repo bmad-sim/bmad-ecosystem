@@ -903,13 +903,13 @@ endif
 if (allocated(s%plot_page%template)) then
   n = size(s%plot_page%template)
   call move_alloc(s%plot_page%template, temp_template)
-  allocate (s%plot_page%template(n + 35))
+  allocate (s%plot_page%template(n + 36))
   s%plot_page%template(1:n) = temp_template
   deallocate (temp_template)
   np = n
   if (s%plot_page%template(np)%name == 'scratch') np = np - 1
 else
-  allocate (s%plot_page%template(35))
+  allocate (s%plot_page%template(36))
   np = 0
 endif
 
@@ -1472,9 +1472,9 @@ if (all(s%plot_page%template%name /= 'energy')) then
 endif
 
 !---------------
-! eta plot
+! Dispersion plot
 
-if (all(s%plot_page%template%name /= 'eta')) then
+if (all(s%plot_page%template%name /= 'dispersion')) then
   np = np + 1
   plt => s%plot_page%template(np)
 
@@ -1484,8 +1484,8 @@ if (all(s%plot_page%template%name /= 'eta')) then
   allocate (plt%graph(1)%curve(2))
 
   plt = default_plot_g1c2
-  plt%name           = 'eta'
-  plt%description    = 'Dispersion'
+  plt%name           = 'dispersion'
+  plt%description    = 'X & Y Dispersion'
 
   grph => plt%graph(1)
   grph%p => plt
@@ -1503,6 +1503,40 @@ if (all(s%plot_page%template%name /= 'eta')) then
   crv%g => grph
   crv%data_type = 'eta.y'
   crv%legend_text  = '\gy\dY\u'
+endif
+
+!---------------
+! Normal mode Dispersion plot
+
+if (all(s%plot_page%template%name /= 'mode_dispersion')) then
+  np = np + 1
+  plt => s%plot_page%template(np)
+
+  nullify(plt%r)
+  if (allocated(plt%graph)) deallocate (plt%graph)
+  allocate (plt%graph(1))
+  allocate (plt%graph(1)%curve(2))
+
+  plt = default_plot_g1c2
+  plt%name           = 'mode_dispersion'
+  plt%description    = 'A & B Normal Mode Dispersion'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'A & B Normal Mode Dispersion'
+  grph%y%label       = '\gy\dA\u, \gy\dB\u [m]'
+
+  crv => grph%curve(1)
+  crv%name         = 'a'
+  crv%g => grph
+  crv%data_type    = 'eta.a'
+  crv%legend_text  = '\gy\dA\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'b'
+  crv%g => grph
+  crv%data_type = 'eta.b'
+  crv%legend_text  = '\gy\dB\u'
 endif
 
 !---------------
@@ -2113,7 +2147,7 @@ if (all (place(:)%region == '')) then
     call tao_place_cmd ('layout', 'lat_layout')
   else  ! Charged particle
     call tao_place_cmd ('r13', 'beta')
-    call tao_place_cmd ('r23', 'eta')
+    call tao_place_cmd ('r23', 'dispersion')
     call tao_place_cmd ('r33', 'orbit')
     call tao_place_cmd ('layout', 'lat_layout')
   endif
