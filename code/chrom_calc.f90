@@ -110,6 +110,7 @@ endif
 
 if (.not. used_this_lat) then
   lat2 = lat
+  branch2 => lat2%branch(ix_br)
   call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
 endif
 
