@@ -686,7 +686,7 @@ to have all instances of the element have different attribute values
 the setting of the attribute must be after the lattice has been
 expanded (\sref{s:expand}). For example:
 \begin{example}
-  a: quad 
+  a: quad, ... 
   a[x_offset] = 0.001*ran_gauss()
   my_line: line = (a, a)
   use, my_line
@@ -696,7 +696,7 @@ values for \vn{a} gets set in line 2 and so both copies of \vn{a} in
 the lattice get the same value. This is probably not what is wanted.
 On the other hand if the attribute is set after lattice expansion:
 \begin{example}
-  a: quad 
+  a: quad, ...
   my_line: line = (a, a)
   use, my_line
   expand_lattice

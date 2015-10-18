@@ -55,7 +55,7 @@ type (ele_struct) :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct), intent(inout) :: param
 
-real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r, rel_p
+real(rp) x_lim, y_lim, x_particle, y_particle, s_here, r, rel_p, x0, y0
 real(rp) x1_lim, x2_lim, y1_lim, y2_lim, dx1, dx2, dy1, dy2, d_max
 
 integer i, particle_at, physical_end
@@ -137,88 +137,57 @@ end select
 
 !
 
+x_lim = (ele%value(x1_limit$) + ele%value(x2_limit$)) / 2
+y_lim = (ele%value(y1_limit$) + ele%value(y2_limit$)) / 2
+x0 = (ele%value(x2_limit$) - ele%value(x1_limit$)) / 2
+y0 = (ele%value(y2_limit$) - ele%value(y1_limit$)) / 2
+x_particle = x_particle - x0
+y_particle = y_particle - y0
+
+if (.not. bmad_com%aperture_limit_on .or. x_lim == 0 .or. y_lim == 0) then
+  x_lim = bmad_com%max_aperture_limit
+  y_lim = bmad_com%max_aperture_limit
+endif
+
+!
+
 select case (ele%aperture_type)
 
 case (elliptical$)
 
-  if (x_particle < 0) then
-    x_lim = ele%value(x1_limit$)
-  else
-    x_lim = ele%value(x2_limit$)
-  endif
-
-  if (x_lim == 0 .or. .not. bmad_com%aperture_limit_on) x_lim = bmad_com%max_aperture_limit
-
-  if (y_particle < 0) then
-    y_lim = ele%value(y1_limit$)
-  else
-    y_lim = ele%value(y2_limit$)
-  endif
-
-  if (y_lim == 0 .or. .not. bmad_com%aperture_limit_on) y_lim = bmad_com%max_aperture_limit
-
   r = (x_particle / x_lim)**2 + (y_particle / y_lim)**2
-  if (r > 1) then
-    if (abs(x_particle / x_lim) > abs(y_particle / y_lim)) then
-      if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
-      else;                     orb%state = lost_neg_x_aperture$
-      endif
-    else
-      if (y_particle > 0) then; orb%state = lost_pos_y_aperture$
-      else;                     orb%state = lost_neg_y_aperture$
-      endif
+  if (r < 1) return
+
+  if (abs(x_particle / x_lim) > abs(y_particle / y_lim)) then
+    if (x_particle > 0) then; orb%state = lost_pos_x_aperture$
+    else;                     orb%state = lost_neg_x_aperture$
     endif
-    param%unstable_factor = sqrt(r) - 1
+  else
+    if (y_particle > 0) then; orb%state = lost_pos_y_aperture$
+    else;                     orb%state = lost_neg_y_aperture$
+    endif
   endif
+  param%unstable_factor = sqrt(r) - 1
 
 case (rectangular$, auto_aperture$)
 
-  if (ele%value(x1_limit$) == 0) then
-    x1_lim = bmad_com%max_aperture_limit
-  else
-    x1_lim = ele%value(x1_limit$)  
-  endif
-  dx1 = -x_particle - x1_lim ! dx1 positive => past limit
+  if (abs(x_particle) < x_lim .and. abs(y_particle) < y_lim) return
 
-  if (ele%value(x2_limit$) == 0) then
-    x2_lim = bmad_com%max_aperture_limit
-  else
-    x2_lim = ele%value(x2_limit$)  
-  endif
-  dx2 = x_particle - x2_lim
+  if (abs(x_particle/x_lim) > abs(y_particle/y_lim)) then
+    if (x_particle > 0) then
+      orb%state = lost_pos_x_aperture$
+    else
+      orb%state = lost_neg_x_aperture$
+    endif
+    param%unstable_factor = abs(x_particle/x_lim) - 1
 
-  if (ele%value(y1_limit$) == 0) then
-    y1_lim = bmad_com%max_aperture_limit
   else
-    y1_lim = ele%value(y1_limit$)  
-  endif
-  dy1 = -y_particle - y1_lim ! dy1 positive => past limit
-
-  if (ele%value(y2_limit$) == 0) then
-    y2_lim = bmad_com%max_aperture_limit
-  else
-    y2_lim = ele%value(y2_limit$)  
-  endif
-  dy2 = y_particle - y2_lim
-
-  if (dx1 < 0 .and. dx2 < 0 .and. dy1 < 0 .and. dy2 < 0) return
-
-  d_max = max(dx1, dx2, dy1, dy2)
-  if (dx1 == d_max) then
-    orb%state = lost_neg_x_aperture$
-    param%unstable_factor = dx1 / x1_lim - 1
-  elseif (dx2 == d_max) then
-    orb%state = lost_pos_x_aperture$
-    param%unstable_factor = dx2 / x2_lim - 1
-  elseif (dy1 == d_max) then
-    orb%state = lost_neg_y_aperture$
-    param%unstable_factor = dy1 / y1_lim - 1
-  elseif (dy2 == d_max) then
-    orb%state = lost_pos_y_aperture$
-    param%unstable_factor = dy2 / y2_lim - 1
-  else
-    call out_io (s_fatal$, r_name, 'INTERNAL LIMIT CALC FAILURE!')
-    if (global_com%exit_on_error) call err_exit
+    if (y_particle > 0) then
+      orb%state = lost_pos_y_aperture$
+    else
+      orb%state = lost_neg_y_aperture$
+    endif
+    param%unstable_factor = abs(y_particle/y_lim) - 1
   endif
 
 case default
