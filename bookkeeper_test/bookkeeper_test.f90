@@ -8,6 +8,8 @@ implicit none
 
 type (lat_struct), target :: lat, lat2
 type (ele_struct), pointer :: ele, nele
+type (ele_struct) a_ele
+type (coord_struct) orb
 
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(100) str
@@ -96,6 +98,53 @@ write (1, '(a, i4)') '"Next-3" ABS 0', nele%ix_ele
 nele => pointer_to_next_ele(lat%ele(1), -7, .true.)
 write (1, '(a, i4)') '"Next-4" ABS 0', nele%ix_ele
 
+! Aperture
+
+call init_ele(a_ele, quadrupole$)
+a_ele%value(x1_limit$) = 1
+a_ele%value(x2_limit$) = 2
+a_ele%value(y1_limit$) = 3
+a_ele%value(y2_limit$) = 4
+a_ele%slave_status = free$
+a_ele%aperture_type = rectangular$
+a_ele%aperture_at = exit_end$
+a_ele%orientation = -1
+
+orb%vec = [2.1_rp, 0.0_rp, 2.9_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+orb%direction = 1
+
+orb%state = alive$
+call check_aperture_limit (orb, a_ele, second_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-1"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+call check_aperture_limit (orb, a_ele, first_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-2"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+orb%vec = [-1.1_rp, 0.0_rp, 2.9_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call check_aperture_limit (orb, a_ele, first_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-3"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+a_ele%orientation = 1
+orb%direction = -1
+
+orb%vec = [0.9_rp, 0.0_rp, 4.1_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call check_aperture_limit (orb, a_ele, first_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-4"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+orb%vec = [0.9_rp, 0.0_rp, -3.1_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call check_aperture_limit (orb, a_ele, first_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-5"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+a_ele%aperture_type = elliptical$
+a_ele%orientation = -1
+
+orb%vec = [0.2_rp, 0.0_rp, 4.1_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call check_aperture_limit (orb, a_ele, second_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-6"   STR "', trim(coord_state_name(orb%state)), '"' 
+
+orb%vec = [-1.1_rp, 0.0_rp, -0.1_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call check_aperture_limit (orb, a_ele, second_track_edge$, lat%param)
+write (1, '(3a)') '"Aperture-7"   STR "', trim(coord_state_name(orb%state)), '"' 
 
 close(1)
 
