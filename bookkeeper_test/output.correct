@@ -1,27 +1,34 @@
-"Q1#1[L]"   1.5000
-"Q1\Q4[L]"   0.5000
-"Q2\Q4[L]"   6.0000
-"Q3\Q4[L]"   1.5000
-"Q3#1[L]"   1.7000
-"S\LC[L]"   17.0000
-"END[L]"   0.0000
-"Q1[L]"   2.0000
-"Q3[L]"   3.2000
-"Q4[L]"   8.0000
-"Q2[L]"   6.0000
-"LC[L]"   13.0000
-"S[L]"   17.0000
-"OV1[HKICK]"   17.0000
-"OV2[HKICK]"   20.0000
-"OV3[L]"   6.0000
-"GR1[COMMAND]"   7.0000
-"GR2[COMMAND]"   1.0000
-"GR3[COMMAND]"   0.2000
-"GR4[COMMAND]"   8.0000
-"GRN[A]"   0.0100
-"GRN[B]"   2.0000
-"GRN[string]"    "tan(A)*B"
-"Next-1"   0
-"Next-2"   1
-"Next-3"   2
-"Next-4"   1
+"Q1#1[L]"          1.5000
+"Q1\Q4[L]"          0.5000
+"Q2\Q4[L]"          6.0000
+"Q3\Q4[L]"          1.5000
+"Q3#1[L]"          1.7000
+"S\LC[L]"         17.0000
+"END[L]"          0.0000
+"Q1[L]"          2.0000
+"Q3[L]"          3.2000
+"Q4[L]"          8.0000
+"Q2[L]"          6.0000
+"LC[L]"         13.0000
+"S[L]"         17.0000
+"OV1[HKICK]"         17.0000
+"OV2[HKICK]"         20.0000
+"OV3[L]"          6.0000
+"GR1[COMMAND]"          7.0000
+"GR2[COMMAND]"          1.0000
+"GR3[COMMAND]"          0.2000
+"GR4[COMMAND]"          8.0000
+"GRN[A]"          0.0100
+"GRN[B]"          2.0000
+"GRN[string]"  "tan(A)*B"
+"Next-1"    0
+"Next-2"    1
+"Next-3"    2
+"Next-4"    1
+"Aperture-1"    "Alive"
+"Aperture-2"    "Hit +X Side"
+"Aperture-3"    "Hit -X Side"
+"Aperture-4"    "Hit +Y Side"
+"Aperture-5"    "Hit -Y Side"
+"Aperture-6"    "Hit +Y Side"
+"Aperture-7"    "Hit -X Side"
