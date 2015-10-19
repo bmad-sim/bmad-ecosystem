@@ -1361,17 +1361,39 @@ case ('global')
   if (print_bmad_com) then
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters:'
-    nl=nl+1; write(lines(nl), imt) '  ptc_com%taylor_order_ptc   = ', ptc_com%taylor_order_ptc
-    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order      = ', bmad_com%ptc_max_fringe_order
-    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper           = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on           = ', bmad_com%space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on     = ', bmad_com%coherent_synch_rad_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on      = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on = ', bmad_com%radiation_fluctuations_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on          = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts      = ', bmad_com%use_hard_edge_drifts
-    nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on         = ', bmad_com%aperture_limit_on
+    nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit             = ', bmad_com%max_aperture_limit
+    nl=nl+1; write(lines(nl), rmt) '  %d_orb                          = ', bmad_com%d_orb
+    nl=nl+1; write(lines(nl), rmt) '  %default_ds_step                = ', bmad_com%default_ds_step
+    nl=nl+1; write(lines(nl), rmt) '  %significant_length             = ', bmad_com%significant_length
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking               = ', bmad_com%rel_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking               = ', bmad_com%abs_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_adaptive_tracking      = ', bmad_com%rel_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_adaptive_tracking      = ', bmad_com%abs_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking      = ', bmad_com%init_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking       = ', bmad_com%min_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment         = ', bmad_com%electric_dipole_moment
+
+    nl=nl+1; write(lines(nl), imt) '  %taylor_order                   = ', bmad_com%taylor_order
+    nl=nl+1; write(lines(nl), imt) '  %default_integ_order            = ', bmad_com%default_integ_order
+    nl=nl+1; write(lines(nl), imt) '  %ptc_max_fringe_order           = ', bmad_com%ptc_max_fringe_order
+
+    nl=nl+1; write(lines(nl), lmt) '  %use_hard_edge_drifts           = ', bmad_com%use_hard_edge_drifts
+    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                    = ', bmad_com%sr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                    = ', bmad_com%lr_wakes_on
+    nl=nl+1; write(lines(nl), lmt) '  %mat6_track_symmetric           = ', bmad_com%mat6_track_symmetric
+    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                = ', bmad_com%auto_bookkeeper
+    nl=nl+1; write(lines(nl), lmt) '  %space_charge_on                = ', bmad_com%space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %coherent_synch_rad_on          = ', bmad_com%coherent_synch_rad_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on               = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on           = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on      = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps           = ', bmad_com%conserve_taylor_maps
+    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking_default = ', bmad_com%absolute_time_tracking_default
+    nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum    = ', bmad_com%convert_to_kinetic_momentum
+    nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on              = ', bmad_com%aperture_limit_on
+    nl=nl+1; lines(nl) = ''
+    nl=nl+1; lines(nl) = 'PTC_com Parameters:'
+    nl=nl+1; write(lines(nl), imt) '  %taylor_order_ptc               = ', ptc_com%taylor_order_ptc
   endif
 
   if (print_csr_param) then
