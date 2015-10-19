@@ -113,7 +113,12 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
 
   if (.not. s%com%multi_commands_here) then
     do
-      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000) cmd_line
+      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_line
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%name)
+        goto 8000
+      endif
+
       s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
       s%com%cmd_from_cmd_file = .true.
       call string_trim (cmd_line, cmd_line, ix)
