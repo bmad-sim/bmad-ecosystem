@@ -3335,7 +3335,7 @@ if (attribute_index(ele, 'FRINGE_AT') > 0) then  ! If fringe_at is a valid attri
   ptc_key%list%kill_exi_fringe = (ix == entrance_end$ .or. ix == no_end$)
 endif
 
-! Electric fields present?
+! Electric fields present? Everything is an sbend!
 
 if (associated(ele%a_pole_elec)) then
   ptc_key%magnet = 'sbend'
