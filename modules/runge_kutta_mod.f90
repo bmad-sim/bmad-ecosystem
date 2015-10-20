@@ -591,7 +591,7 @@ if (err) return
 
 vel(1:2) = [orbit%vec(2), orbit%vec(4)] / (1 + orbit%vec(6))
 v2 = vel(1)**2 + vel(2)**2
-if (v2 > 1) return
+if (v2 > 0.99999999_rp) return
 vel = orbit%beta * c_light * [vel(1), vel(2), sqrt(1 - v2) * direction]
 E_force = charge_of(orbit%species) * field%E
 B_force = charge_of(orbit%species) * cross_product(vel, field%B)
