@@ -1291,6 +1291,14 @@ case ('USE_HARD_EDGE_DRIFTS')
   call get_logical (attrib_word, bmad_com%use_hard_edge_drifts, err_flag)
   bp_com%extra%use_hard_edge_drifts_set = .true.
 
+case ('SUPERIMPOSE')  ! ele[superimpose] = False case
+  call get_logical (attrib_word, logic, err_flag)
+  if (logic) then
+    ele%lord_status = super_lord$
+  else
+    ele%lord_status = free$
+  endif
+
 case ('APERTURE_AT')
   call get_switch (attrib_word, aperture_at_name(1:), ele%aperture_at, err_flag, ele)
 
@@ -4023,29 +4031,18 @@ if (err) then
   return
 endif
 
-! If no match and the reference element has been defined but not used in the lattice
-! then this is not an error.
+! If the reference element is a group or overlay then this is fine as long as there
+! is only one slave element.
 
 if (n_loc == 0) then
-
-  found = .false.
-  if (present(in_lat)) then
-    do i = 1, in_lat%n_ele_max
-      found = match_wild(in_lat%ele(i)%name, pele%ref_name)
-      if (found) exit
-    enddo
-  endif
-
-  if (.not. found) then
-    call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &
-                       'FOR SUPERPOSITION OF: ' // super_ele_saved%name, pele = pele)
+  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
+  if (n_loc == 0) return
+  if (n_loc > 1) then
+    call parser_error ('CONFUSED SUPERPOSITION. PLEASE CONTACT A BMAD MAINTAINER.')
     return
   endif
 
-  ! If the reference element is a group or overlay then this is fine as long as there
-  ! if only one slave element.
-
-  ref_ele => in_lat%ele(i)
+  ref_ele => eles(1)%ele
   if (ref_ele%key /= group$ .and. ref_ele%key /= overlay$) return
   ref_pele => plat%ele(ref_ele%ixx)
   ref_name = ref_pele%control(1)%name
@@ -4057,10 +4054,9 @@ if (n_loc == 0) then
       return
     endif
   enddo 
-   
+ 
   call lat_ele_locator (ref_name, lat, eles, n_loc, err)
   if (err .or. n_loc == 0) return
-
 endif
 
 ! Tag reference elements using %old_is_on flag which is not otherwise used during parsing.
@@ -4243,6 +4239,49 @@ do
 enddo
 
 end subroutine parser_add_superimpose
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!-
+
+subroutine parser_check_superimpose_valid_ref (ele, lat, pele, in_lat)
+
+implicit none
+
+type (ele_struct) ele
+type (lat_struct) lat
+type (parser_ele_struct) :: pele
+type (lat_struct), optional :: in_lat
+type (ele_pointer_struct), allocatable :: eles(:)
+
+integer n_loc
+logical found, err
+
+! If a superimpose reference element does not appear in the list of elements in the lattice file and
+! does not appear in the final lattice, this is considered a mispelling and is considered an error.
+! Note: Something like "branch_name>>ele_name" may show up in the finished lattice but not the list of
+! elements in the lattice file.
+
+if (.not. bp_com%do_superimpose) return
+if (pele%ref_name == blank_name$) return
+
+call lat_ele_locator (pele%ref_name, lat, eles, n_loc, err)
+if (err) return    ! this error already handled by parser_add_superimpose
+if (n_loc /= 0) return
+
+if (present(in_lat)) then
+  call lat_ele_locator (pele%ref_name, in_lat, eles, n_loc, err)
+  if (n_loc /= 0) return
+endif
+
+call parser_error ('NO MATCH FOR REFERENCE ELEMENT: ' //  pele%ref_name, &      
+                   'FOR SUPERPOSITION OF: ' // ele%name, pele = pele)
+
+end subroutine parser_check_superimpose_valid_ref
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
