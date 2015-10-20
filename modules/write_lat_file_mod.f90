@@ -1638,8 +1638,8 @@ i_unique = 1000
 
 ! Loop over all input elements
 
-branch_out%ele%logic = 0   ! SAD geo
-branch_out%ele%bmad_logic = 0  ! SAD bound
+branch_out%ele%ix_pointer = 0   ! SAD geo
+branch_out%ele%iyy = 0          ! SAD bound
 sad_geo = 0
 old_bs_field = 0
 n_name_change_warn = 0
@@ -1668,8 +1668,8 @@ do
       if (ele%key == patch$ .and. bs_field == 0 .or. old_bs_field == 0) then
         ele%key = null_ele$
         ele%value(bs_field$) = bs_field
-        ele%bmad_logic = 1  ! SAD bound
-        ele%logic = 1  ! SAD geo
+        ele%iyy = 1  ! SAD bound
+        ele%ix_pointer = 1  ! SAD geo
         sad_geo = 1
         nullify (sol_ele)
 
@@ -1684,7 +1684,7 @@ do
         null_ele%value(bs_field$) = bs_field
         call insert_element (lat_out, null_ele, ix_ele, branch%ix_branch, orbit_out)
         sol_ele => branch_out%ele(ix_ele)
-        if (old_bs_field == 0 .or. bs_field == 0) sol_ele%bmad_logic = 1  ! SAD bound
+        if (old_bs_field == 0 .or. bs_field == 0) sol_ele%iyy = 1  ! SAD bound
         ie2 = ie2 + 1
         ix_ele = ix_ele + 1
         ele => branch_out%ele(ix_ele)
@@ -1693,11 +1693,11 @@ do
 
       if (associated(sol_ele)) then  ! Not a converted patch
         if (old_bs_field == 0) then    ! Entering a solenoid
-          branch_out%ele(ix_ele-1)%bmad_logic = 1  ! SAD bound
+          branch_out%ele(ix_ele-1)%iyy = 1  ! SAD bound
           sad_geo = 0
         elseif (bs_field == 0) then    ! Leaving a solenoid
-          branch_out%ele(ix_ele-1)%bmad_logic = 1  ! SAD bound
-          if (sad_geo == 0) branch_out%ele(ix_ele-1)%logic = 1   ! SAD geo
+          branch_out%ele(ix_ele-1)%iyy = 1  ! SAD bound
+          if (sad_geo == 0) branch_out%ele(ix_ele-1)%ix_pointer = 1   ! SAD geo
         endif
       endif
 
@@ -2074,8 +2074,8 @@ if (out_type == 'SAD' .and. bs_field /= 0) then
     ele => branch_out%ele(ie2)
   endif
 
-  ele%bmad_logic = 1  ! SAD bound
-  if (sad_geo == 0) ele%logic = 1   ! SAD geo
+  ele%iyy = 1  ! SAD bound
+  if (sad_geo == 0) ele%ix_pointer = 1   ! SAD geo
 endif
 
 !-------------------------------------------------------------------------------------------------
@@ -2318,8 +2318,8 @@ do ix_ele = ie1, ie2
       case (null_ele$)
         write (line_out, '(3a, es13.5)') 'SOL ', trim(ele%name), ' = ('
         call value_to_line (line_out, val(bs_field$), 'BZ', 'es13.5', 'R', .true., .false.)
-        call value_to_line (line_out, ele%logic * 1.0_rp, 'GEO', 'i0', 'I', .true., .false.)
-        call value_to_line (line_out, ele%bmad_logic * 1.0_rp, 'BOUND', 'i0', 'I', .true., .false.)
+        call value_to_line (line_out, ele%ix_pointer * 1.0_rp, 'GEO', 'i0', 'I', .true., .false.)
+        call value_to_line (line_out, ele%iyy * 1.0_rp, 'BOUND', 'i0', 'I', .true., .false.)
 
       ! SAD
       case (octupole$)
