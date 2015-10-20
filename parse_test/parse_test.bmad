@@ -98,20 +98,21 @@ q2: quad, L=0.1, superimpose, ref = pp, offset = 0.2
 ll: line = (aa, aa, bb, bb, cc, pp)
 use, ll, phot
 
-phot: line = (cap, cry, ff)
+phot: line = (ddd, cap, cry, ff)
 phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
 phot[beta_b] = 10
 
 
+mp: marker, superimpose, offset = 3, ref = phot>>beginning
+
+ddd: drift, l = 10
 ff: fork, to_line = f_line
 qq: quadrupole, l = 1
 f_line: line = (qq)
 f_line[particle] = photon
 mk: marker, superimpose, ref = qq, offset = 0.3
-
-
 
 ! Group using element not in constructed lattice is ok
 
@@ -130,6 +131,6 @@ expand_lattice
 +*[psi_angle] = 2.1
 
 aa[k1] = 2
-a*[tracking_method] = symp_lie_bmad
++a*[tracking_method] = symp_lie_bmad
 
 bmad_com[use_hard_edge_drifts] = F
