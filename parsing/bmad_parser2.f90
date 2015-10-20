@@ -91,7 +91,7 @@ endif
 n_max => lat%n_ele_max
 n_def_ele = 5 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
-if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat)
+if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
 
 ele => lat%ele(n_max+1)
 bp_com%mad_beam_ele => ele
@@ -578,6 +578,7 @@ do i = 1, ele_num
 
   do j = 0, ubound(lat%branch, 1)
     call parser_add_superimpose (lat%branch(j), ele, plat%ele(ixx))
+    call parser_check_superimpose_valid_ref (ele, lat, plat%ele(ixx))
   enddo
 enddo
 

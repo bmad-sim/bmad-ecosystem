@@ -256,6 +256,7 @@ logical :: above_ub_is_err
 ! init
 
 err = .true.
+n_loc = 0
 
 ! key::name construct
 
@@ -291,10 +292,16 @@ if (ix_branch < -1 .or. ix_branch > ubound(lat%branch, 1)) then
   return
 endif
 
+! Note: Branch name not found is treated the same as element name not found.
+! That is, no match and is not an error
+
 ixp = index(name, '>>')
 if (ixp > 0) then
   branch => pointer_to_branch (name(1:ixp-1), lat)
-  if (.not. associated(branch)) return
+  if (.not. associated(branch)) then
+    err = .false.
+    return
+  endif
   ix_branch = branch%ix_branch
   name = name(ixp+2:)
 endif
@@ -329,7 +336,6 @@ if (index(name, "*") /= 0 .or. index(name, "%") /= 0) do_match_wild = .true.
 
 ! search for matches
 
-n_loc = 0
 do k = lbound(lat%branch, 1), ubound(lat%branch, 1)
   n_dup = 0
   if (ix_branch /= -1 .and. k /= ix_branch) cycle

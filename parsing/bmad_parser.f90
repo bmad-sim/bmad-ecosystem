@@ -1024,6 +1024,13 @@ do i = 1, n_max
   enddo
 enddo
 
+! Check for misspellings of superposition reference elements.
+
+do i = 1, n_max
+  if (in_lat%ele(i)%lord_status /= super_lord$) cycle
+  call parser_check_superimpose_valid_ref (in_lat%ele(i), lat, plat%ele(i), in_lat)
+enddo
+
 ! PTC stuff.
 ! Use arbitrary energy above the rest mass energy since when tracking individual elements the
 ! true reference energy is used.
