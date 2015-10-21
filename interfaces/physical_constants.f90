@@ -13,15 +13,17 @@ real(rp), parameter :: fourpi = 4 * pi
 real(rp), parameter :: sqrt_2 = 1.41421356237310d0
 real(rp), parameter :: sqrt_3 = 1.73205080757d0
 
-real(rp), parameter :: e_mass = 0.510998910d-3           ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
-real(rp), parameter :: p_mass   = 0.938272046d0          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
+real(rp), parameter :: e_mass = 0.5109989461d-3           ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_ELECTRON INSTEAD.
+real(rp), parameter :: p_mass   = 0.9382720813d0          ! [GeV] FOR MAD COMPATIBILITY USE ONLY. USE M_PROTON INSTEAD.
 
-real(rp), parameter :: m_electron = 0.510998910d6        ! Mass [eV]
-real(rp), parameter :: m_proton   = 0.938272046d9        ! Mass [eV]
-real(rp), parameter :: m_muon     = 105.6583715d6        ! Mass [eV]
+real(rp), parameter :: m_electron = 0.5109989461d6        ! Mass [eV]
+real(rp), parameter :: m_proton   = 0.9382720813d9        ! Mass [eV]
+real(rp), parameter :: m_muon     = 105.6583745d6        ! Mass [eV]
 
 real(rp), parameter :: m_pion_0 = 134.9766d6             ! Mass [eV]
 real(rp), parameter :: m_pion_charged = 139.57018d6      ! Mass [eV]
+
+real(rp), parameter :: m_deuteron = 1.875612928d9        ! Mass [eV]
 
 real(rp), parameter :: c_light = 2.99792458d8            ! speed of light
 real(rp), parameter :: r_e = 2.8179402894d-15            ! classical electron radius

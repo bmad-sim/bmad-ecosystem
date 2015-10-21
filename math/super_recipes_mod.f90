@@ -174,7 +174,6 @@ end function super_zbrent
 !                   super_mrqmin will halt the calculation and return back to the 
 !                   calling routine. funcs should use positive values for status to
 !                   avoid conflict with gaussj. 
-!                   to the calling routine
 !   alamda      -- Real(rp): See mrqmin in NR for more details.
 !   maska(:)    -- Logical, optional: See mrqmin in NR for more details.
 !                    Default is True for all elements of the array.
