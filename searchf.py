@@ -63,7 +63,7 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
 
     # If release_dir is defined then we should have found the directory.
     elif release_dir != '': 
-      print ('CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir)
+      print ('CANNOT FIND DIRECTORY FOR SEARCHING: ', base_dir)
 
 
   else:
@@ -76,7 +76,7 @@ def choose_path (dir_list, root_dir, base_dir, base_file, release_sub_dir):
       this_dir = root_dir + release_sub_dir + base_dir
 
     else:
-      print ('CANNOT FIND DIRECTORY FOR SEARCHING:', base_dir)
+      print ('CANNOT FIND DIRECTORY FOR SEARCHING: ', base_dir)
 
   if this_dir != '': dir_list.append(this_dir)
   return
@@ -208,10 +208,10 @@ def search_f90 (file_name, search_com):
             have_printed_file_name = True
             search_com.namelist_file.write(module_name + '\n')
           elif search_com.doc_type == 'FULL':
-            print ('\nFile:', file_name)
+            print ('\nFile: ', file_name)
             for com in comments: print (com.rstrip())
           else:
-            print ('\nFile:' + file_name)
+            print ('\nFile: ' + file_name)
             print ('    ' + line.rstrip())
 
     if re_module_header_end.match(line2): in_module_header = False
@@ -235,7 +235,7 @@ def search_f90 (file_name, search_com):
                 search_com.found_one = True
                 found_one_in_this_file = True
                 if not have_printed_file_name:
-                  print ('\nFile:' + file_name)
+                  print ('\nFile: ' + file_name)
                   have_printed_file_name = True
                 print ('    ' + line.rstrip())
                 break
@@ -261,7 +261,7 @@ def search_f90 (file_name, search_com):
         have_printed_file_name = True
         search_com.namelist_file.write(match.group(2) + '\n')
       elif search_com.doc_type == 'FULL':
-        print ('\nFile:' + file_name)
+        print ('\nFile: ' + file_name)
         for com in comments: print (com.rstrip())
         if len(comments) > 0: print ('')
         print (line.rstrip())
@@ -272,7 +272,7 @@ def search_f90 (file_name, search_com):
           print (line.rstrip())
           if re_type_interface_end.match(line2): break
       else:
-        print ('\nFile:' + file_name)
+        print ('\nFile: ' + file_name)
         print ('    ' + line.rstrip())
       comments = []
       continue
@@ -288,11 +288,11 @@ def search_f90 (file_name, search_com):
           have_printed_file_name = True
           search_com.namelist_file.write(routine_name[0] + '\n')
         elif search_com.doc_type == 'FULL':
-          print ('\nFile:' + file_name)
+          print ('\nFile: ' + file_name)
           for com in comments: print (com.rstrip())
           print (line.rstrip())
         else:
-          print ('\nFile:' + file_name)
+          print ('\nFile: ' + file_name)
           print ('    ' + line.rstrip())
 
       # Skip rest of routine including contained routines
@@ -414,12 +414,12 @@ def search_c (file_name, search_com):
               have_printed_file_name = True
               search_com.namelist_file.write(is_match.group(1) + '\n')
             elif search_com.doc_type == 'FULL':
-              print ('\nFile:' + file_name)
+              print ('\nFile: ' + file_name)
               for com in comments: print (com.rstrip())
               for com in lines_after_comments: print (com.rstrip())
             else:
               if not found_one_in_this_file: 
-                print ('\nFile:' + file_name)
+                print ('\nFile: ' + file_name)
                 found_one_in_this_file = True
               for com in lines_after_comments: print ('    ' + com.rstrip())
 
@@ -457,10 +457,10 @@ def search_tree (search_base_dir, search_com):
 
   if search_com.doc_type == 'LIST':
     if os.access(search_base_dir, os.W_OK):
-      print ('Creating:' + namelist_file)
+      print ('Creating: ' + namelist_file)
       search_com.namelist_file = open(namelist_file, 'w')
     else:
-      print ('CANNOT WRITE TO:' + namelist_file)
+      print ('CANNOT WRITE TO: ' + namelist_file)
       return
 
   # If there is an existing searchf.namelist file then use this to see if there are matches.
@@ -573,7 +573,7 @@ def search_all (doc_type):
       i += 1
       continue
 
-    print ('!!! UNKNOWN ARGUMENT:' + arg)
+    print ('!!! UNKNOWN ARGUMENT: ' + arg)
     print_help_message ()
 
   #----------------------------------------------------------
@@ -624,7 +624,7 @@ def search_all (doc_type):
 
   if search_com.doc_type != 'LIST':
     if not search_com.found_one:
-      print ('Cannot match String:' + match_str_in)
+      print ('Cannot match String: ' + match_str_in)
       print ('Use "-h" command line option to list options.')
     else:
       print ('')
