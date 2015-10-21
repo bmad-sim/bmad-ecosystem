@@ -469,7 +469,7 @@ components.
 The master input file can be specified on the command line invoking \srthree.
 If not given, the default name for the master input file is ``\vn{synrad3d.init}''.
 
-Fortran namelist sytax is used (\sref{s:namelist}). Example master input file:
+Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
 \begin{example}
   &synrad3d_parameters
     ix_ele_track_start   = 1      ! Radiation region start lattice element.
@@ -1169,13 +1169,13 @@ complicates the calculation of where a photon hits the wall. The Bmad
 manual has a full explanation but the essential factor is that, since
 the reference orbit is discontinuous in a patch, to avoid a
 discontinuity in the chamber wall, wall interpolation is done using
-the global reference system. This can lead to non-intuative behavior
+the global reference system. This can lead to non-intuitive behavior
 when the region between two wall sections contains both a bend and a
 patch since, without the patch, the center of the chamber follows the
 curved reference orbit but with the patch the chamber wall center
 follows a straight line between the wall sections.
 
-To avoid this nonintuative behavior, if a region between wall sections
+To avoid this non-intuitive behavior, if a region between wall sections
 contains both a patch and a bend, extra sections will be added to
 eliminate this situation.
 
@@ -1532,6 +1532,11 @@ and fourth lines will have zeros.
 In the example given above, the first photon is absorbed at the first
 encounter with the vacuum chamber and the second photon is reflected 3
 times, before being adsorbed on the fourth hit.
+
+Note: If the beam emittances are zero, photons will be generated on
+the central orbit. If there are no steerings powered, the central
+orbit will be the zero orbit and in this case all photons will start
+with $x$ = $px$ = $y$ = 0.
 
 %------------------------------------------------------------------
 \section{Test Modes}

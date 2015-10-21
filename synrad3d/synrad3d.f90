@@ -340,6 +340,7 @@ n_photon_generated = 0
 n_photon_array = 0
 
 allocate (wall_hit(0:10))
+print *, 'Initialization done. Tracking beginning...'
 call run_timer ('START')
 
 !--------------------------------------------------------------------------
