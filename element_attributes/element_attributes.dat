@@ -1,4 +1,4 @@
- 2015-08-06 11:26:04 
+ 2015-10-21 12:40:22 
  
    1   DRIFT                                     22   AB_MULTIPOLE
    2   SBEND                                     11   BEAMBEAM
@@ -30,32 +30,33 @@
   28   BEGINNING_ELE                             25   LCAVITY
   29   LINE_ELE                                  29   LINE_ELE
   30   MATCH                                     14   MARKER
-  31   MONITOR                                   30   MATCH
-  32   INSTRUMENT                                42   MIRROR
-  33   HKICKER                                   31   MONITOR
-  34   VKICKER                                   46   MULTILAYER_MIRROR
-  35   RCOLLIMATOR                               19   MULTIPOLE
-  36   ECOLLIMATOR                               27   NULL_ELE
-  37   GIRDER                                    17   OCTUPOLE
-  38   BEND_SOL_QUAD                              6   OVERLAY
-  39   DEF_BEAM_START                            24   PATCH
-  40   PHOTON_FORK                               40   PHOTON_FORK
-  41   FORK                                      53   PHOTON_INIT
-  42   MIRROR                                    44   PIPE
-  43   CRYSTAL                                    3   QUADRUPOLE
-  44   PIPE                                      18   RBEND
-  45   CAPILLARY                                 35   RCOLLIMATOR
-  46   MULTILAYER_MIRROR                          9   RFCAVITY
-  47   E_GUN                                     56   SAD_MULT
-  48   EM_FIELD                                  54   SAMPLE
-  49   FLOOR_SHIFT                                2   SBEND
-  50   FIDUCIAL                                   5   SEXTUPOLE
-  51   UNDULATOR                                 23   SOLENOID
-  52   DIFFRACTION_PLATE                         13   SOL_QUAD
-  53   PHOTON_INIT                                8   TAYLOR
-  54   SAMPLE                                    51   UNDULATOR
-  55   DETECTOR                                  34   VKICKER
-  56   SAD_MULT                                  12   WIGGLER
+  31   MONITOR                                   57   MASK
+  32   INSTRUMENT                                30   MATCH
+  33   HKICKER                                   42   MIRROR
+  34   VKICKER                                   31   MONITOR
+  35   RCOLLIMATOR                               46   MULTILAYER_MIRROR
+  36   ECOLLIMATOR                               19   MULTIPOLE
+  37   GIRDER                                    27   NULL_ELE
+  38   BEND_SOL_QUAD                             17   OCTUPOLE
+  39   DEF_BEAM_START                             6   OVERLAY
+  40   PHOTON_FORK                               24   PATCH
+  41   FORK                                      40   PHOTON_FORK
+  42   MIRROR                                    53   PHOTON_INIT
+  43   CRYSTAL                                   44   PIPE
+  44   PIPE                                       3   QUADRUPOLE
+  45   CAPILLARY                                 18   RBEND
+  46   MULTILAYER_MIRROR                         35   RCOLLIMATOR
+  47   E_GUN                                      9   RFCAVITY
+  48   EM_FIELD                                  56   SAD_MULT
+  49   FLOOR_SHIFT                               54   SAMPLE
+  50   FIDUCIAL                                   2   SBEND
+  51   UNDULATOR                                  5   SEXTUPOLE
+  52   DIFFRACTION_PLATE                         23   SOLENOID
+  53   PHOTON_INIT                               13   SOL_QUAD
+  54   SAMPLE                                     8   TAYLOR
+  55   DETECTOR                                  51   UNDULATOR
+  56   SAD_MULT                                  34   VKICKER
+  57   MASK                                      12   WIGGLER
  
  !---------------------------------
  22  AB_MULTIPOLE                            
@@ -249,6 +250,7 @@
         88  INIT_DS_ADAPTIVE_TRACKING               
         89  MIN_DS_ADAPTIVE_TRACKING                
         90  FATAL_DS_ADAPTIVE_TRACKING              
+        99  APERTURE_LIMIT_ON                       
  
  !---------------------------------
  38  BEND_SOL_QUAD                           
@@ -613,13 +615,6 @@
         28  EMITTANCE_A                             
         29  EMITTANCE_B                             
         30  EMITTANCE_Z                             
-        70  scratch                                   [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
-        80  check_sum                                 [private]
  
  !---------------------------------
  21  DEF_MAD_BEAM                            
@@ -627,13 +622,6 @@
         25  PARTICLE                                
         53  PC                                      
         54  ENERGY                                  
-        70  scratch                                   [private]
-        71  CUSTOM_ATTRIBUTE1                         [private]
-        72  CUSTOM_ATTRIBUTE2                         [private]
-        73  CUSTOM_ATTRIBUTE3                         [private]
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
-        80  check_sum                                 [private]
  
  !---------------------------------
  26  DEF_PARAMETER                           
@@ -647,19 +635,13 @@
         53  P0C                                     
         54  E_TOT                                   
         55  NO_END_MARKER                           
-        70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                       
         72  CUSTOM_ATTRIBUTE2                       
         73  CUSTOM_ATTRIBUTE3                       
-        74  CUSTOM_ATTRIBUTE4                         [private]
-        75  CUSTOM_ATTRIBUTE5                         [private]
-        80  check_sum                                 [private]
-        81  USE_HARD_EDGE_DRIFTS                    
-        82  PTC_MAX_FRINGE_ORDER                    
-        83  ELECTRIC_DIPOLE_MOMENT                  
+        74  CUSTOM_ATTRIBUTE4                       
+        75  CUSTOM_ATTRIBUTE5                       
         86  LATTICE                                 
         96  ABSOLUTE_TIME_TRACKING                  
-        99  APERTURE_LIMIT_ON                       
        100  PTC_EXACT_MISALIGN                      
        102  PTC_EXACT_MODEL                         
        109  RAN_SEED                                
@@ -668,19 +650,6 @@
  55  DETECTOR                                
          1  L                                       
          2  TILT                                    
-         3  X_GAIN_ERR                              
-         4  Y_GAIN_ERR                              
-         5  CRUNCH                                  
-         6  NOISE                                   
-         7  OSC_AMPLITUDE                           
-         8  X_GAIN_CALIB                            
-        20  Y_GAIN_CALIB                            
-        21  CRUNCH_CALIB                            
-        22  X_OFFSET_CALIB                          
-        23  Y_OFFSET_CALIB                          
-        24  TILT_CALIB                              
-        25  DE_ETA_MEAS                             
-        26  N_SAMPLE                                
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1719,7 +1688,7 @@
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
         21  E_LOSS                                  
-        23  TRAVELING_WAVE                          
+        23  CAVITY_TYPE                             
         24  PHI0                                    
         25  PHI0_ERR                                
         26  PHI0_MULTIPASS                          
@@ -1866,19 +1835,6 @@
  14  MARKER                                  
          1  L                                       
          2  TILT                                    
-         3  X_GAIN_ERR                              
-         4  Y_GAIN_ERR                              
-         5  CRUNCH                                  
-         6  NOISE                                   
-         7  OSC_AMPLITUDE                           
-         8  X_GAIN_CALIB                            
-        20  Y_GAIN_CALIB                            
-        21  CRUNCH_CALIB                            
-        22  X_OFFSET_CALIB                          
-        23  Y_OFFSET_CALIB                          
-        24  TILT_CALIB                              
-        25  DE_ETA_MEAS                             
-        26  N_SAMPLE                                
         33  X_RAY_LINE_LEN                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -1899,6 +1855,67 @@
         59  Z_OFFSET_TOT                            
         60  TILT_TOT                                
         64  ref_time_start                            [private]
+        70  scratch                                   [private]
+        71  CUSTOM_ATTRIBUTE1                         [private]
+        72  CUSTOM_ATTRIBUTE2                         [private]
+        73  CUSTOM_ATTRIBUTE3                         [private]
+        74  CUSTOM_ATTRIBUTE4                         [private]
+        75  CUSTOM_ATTRIBUTE5                         [private]
+        76  X1_LIMIT                                
+        77  X2_LIMIT                                
+        78  Y1_LIMIT                                
+        79  Y2_LIMIT                                
+        80  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       105  IS_ON                                   
+       108  APERTURE_AT                             
+       112  DESCRIP                                 
+       114  WALL                                    
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  ELE_BEGINNING                           
+       124  ELE_CENTER                              
+       125  ELE_END                                 
+       126  REF_BEGINNING                           
+       127  REF_CENTER                              
+       128  REF_END                                 
+       129  CREATE_JUMBO_SLAVE                      
+ 
+ !---------------------------------
+ 57  MASK                                    
+         1  l                                         [private]
+         2  TILT                                    
+         6  FIELD_SCALE_FACTOR                      
+        26  MODE                                    
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        64  ref_time_start                            [private]
+        69  REF_WAVELENGTH                          
         70  scratch                                   [private]
         71  CUSTOM_ATTRIBUTE1                         [private]
         72  CUSTOM_ATTRIBUTE2                         [private]
@@ -2994,7 +3011,7 @@
          9  VOLTAGE                                 
         18  AUTOSCALE_AMPLITUDE                     
         19  AUTOSCALE_PHASE                         
-        23  TRAVELING_WAVE                          
+        23  CAVITY_TYPE                             
         24  PHI0                                    
         25  phi0_err                                  [private]
         26  PHI0_MULTIPASS                          
@@ -3958,14 +3975,14 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    50
-     2    48
-     3    24
-     4    21
-     5    25
-     6    21
-     7    18
-     8    23
+     1    51
+     2    49
+     3    22
+     4    19
+     5    23
+     6    20
+     7    16
+     8    21
      9     8
     10     2
     11     3
@@ -3977,13 +3994,13 @@
     17     4
     18     6
     19    10
-    20    18
-    21    18
-    22    13
-    23    15
-    24    14
-    25    20
-    26    22
+    20    16
+    21    16
+    22    11
+    23    13
+    24    12
+    25    18
+    26    21
     27    12
     28    10
     29    35
@@ -3991,11 +4008,11 @@
     31    29
     32    28
     33    11
-    34    40
-    35    40
-    36    42
-    37    42
-    38    42
+    34    41
+    35    41
+    36    43
+    37    43
+    38    43
     39    22
     40    22
     41    21
@@ -4007,86 +4024,86 @@
     47     3
     48     3
     49     7
-    50    48
+    50    49
     51    34
     52    35
-    53    49
-    54    49
-    55    39
-    56    38
-    57    40
-    58    40
-    59    40
-    60    40
+    53    50
+    54    50
+    55    40
+    56    39
+    57    41
+    58    41
+    59    41
+    60    41
     61    13
     62    25
     63    12
-    64    48
+    64    49
     65    26
     66    26
     67    26
     68    26
-    69    31
-    70    54
-    71    54
-    72    54
-    73    54
-    74    54
-    75    54
-    76    44
-    77    44
-    78    44
-    79    44
-    80    54
-    81     6
+    69    32
+    70    52
+    71    53
+    72    53
+    73    53
+    74    53
+    75    53
+    76    45
+    77    45
+    78    45
+    79    45
+    80    52
+    81     5
     82    52
-    83    30
+    83    29
     84    29
     85    29
     86    18
-    87    47
+    87    48
     88    36
     89    29
     90     4
-    91    48
-    92    48
-    93    47
-    94    45
-    95    44
-    96    45
-    97    44
-    98    44
+    91    49
+    92    49
+    93    48
+    94    46
+    95    45
+    96    46
+    97    45
+    98    45
     99     1
    100    28
    101     2
    102     4
    103    31
    104     2
-   105    38
+   105    39
    106    24
    107     2
-   108    46
+   108    47
    109     6
    110     2
    111    24
-   112    48
+   112    49
    113    14
-   114    38
+   114    39
    115    15
    116     5
-   117    48
-   118    46
-   119    46
-   120    46
-   121    46
-   122    46
-   123    46
-   124    46
-   125    46
-   126    46
-   127    46
-   128    46
-   129    44
+   117    49
+   118    47
+   119    47
+   120    47
+   121    47
+   122    47
+   123    47
+   124    47
+   125    47
+   126    47
+   127    47
+   128    47
+   129    45
    130    23
    131     0
    132     0
@@ -4252,6 +4269,7 @@ Index: 1
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 2
@@ -4303,12 +4321,12 @@ Index: 2
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 3
     SBEND                                   
     RFCAVITY                                
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     DEF_PARAMETER                           
@@ -4329,7 +4347,6 @@ Index: 3
     MULTILAYER_MIRROR                       
     E_GUN                                   
     EM_FIELD                                
-    DETECTOR                                
  
  !---------------------------------
 Index: 4
@@ -4338,7 +4355,6 @@ Index: 4
     RFCAVITY                                
     WIGGLER                                 
     SOL_QUAD                                
-    MARKER                                  
     KICKER                                  
     RBEND                                   
     PATCH                                   
@@ -4353,7 +4369,6 @@ Index: 4
     PIPE                                    
     CAPILLARY                               
     UNDULATOR                               
-    DETECTOR                                
  
  !---------------------------------
 Index: 5
@@ -4362,7 +4377,6 @@ Index: 5
     RFCAVITY                                
     WIGGLER                                 
     SOL_QUAD                                
-    MARKER                                  
     KICKER                                  
     RBEND                                   
     SOLENOID                                
@@ -4380,14 +4394,12 @@ Index: 5
     PIPE                                    
     MULTILAYER_MIRROR                       
     UNDULATOR                               
-    DETECTOR                                
     SAD_MULT                                
  
  !---------------------------------
 Index: 6
     SBEND                                   
     RFCAVITY                                
-    MARKER                                  
     OCTUPOLE                                
     RBEND                                   
     LCAVITY                                 
@@ -4404,8 +4416,8 @@ Index: 6
     PIPE                                    
     E_GUN                                   
     DIFFRACTION_PLATE                       
-    DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 7
@@ -4413,7 +4425,6 @@ Index: 7
     RFCAVITY                                
     BEAMBEAM                                
     WIGGLER                                 
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -4426,7 +4437,6 @@ Index: 7
     PIPE                                    
     E_GUN                                   
     UNDULATOR                               
-    DETECTOR                                
  
  !---------------------------------
 Index: 8
@@ -4434,7 +4444,6 @@ Index: 8
     CUSTOM                                  
     BEAMBEAM                                
     WIGGLER                                 
-    MARKER                                  
     HYBRID                                  
     RBEND                                   
     BEGINNING_ELE                           
@@ -4451,7 +4460,6 @@ Index: 8
     PIPE                                    
     MULTILAYER_MIRROR                       
     UNDULATOR                               
-    DETECTOR                                
     SAD_MULT                                
  
  !---------------------------------
@@ -4549,7 +4557,6 @@ Index: 20
     SBEND                                   
     CUSTOM                                  
     BEAMBEAM                                
-    MARKER                                  
     RBEND                                   
     DEF_PARAMETER                           
     LINE_ELE                                
@@ -4562,7 +4569,6 @@ Index: 20
     MULTILAYER_MIRROR                       
     E_GUN                                   
     PHOTON_INIT                             
-    DETECTOR                                
     SAD_MULT                                
  
  !---------------------------------
@@ -4571,7 +4577,6 @@ Index: 21
     CUSTOM                                  
     ELSEPARATOR                             
     WIGGLER                                 
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -4584,13 +4589,11 @@ Index: 21
     MULTILAYER_MIRROR                       
     UNDULATOR                               
     PHOTON_INIT                             
-    DETECTOR                                
  
  !---------------------------------
 Index: 22
     SBEND                                   
     CUSTOM                                  
-    MARKER                                  
     RBEND                                   
     MATCH                                   
     MONITOR                                 
@@ -4600,14 +4603,12 @@ Index: 22
     PIPE                                    
     MULTILAYER_MIRROR                       
     PHOTON_INIT                             
-    DETECTOR                                
  
  !---------------------------------
 Index: 23
     SBEND                                   
     RFCAVITY                                
     BEAMBEAM                                
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -4618,14 +4619,12 @@ Index: 23
     PIPE                                    
     MULTILAYER_MIRROR                       
     PHOTON_INIT                             
-    DETECTOR                                
  
  !---------------------------------
 Index: 24
     SBEND                                   
     RFCAVITY                                
     BEAMBEAM                                
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     MATCH                                   
@@ -4635,7 +4634,6 @@ Index: 24
     PIPE                                    
     E_GUN                                   
     PHOTON_INIT                             
-    DETECTOR                                
  
  !---------------------------------
 Index: 25
@@ -4643,7 +4641,6 @@ Index: 25
     RFCAVITY                                
     BEAMBEAM                                
     WIGGLER                                 
-    MARKER                                  
     RBEND                                   
     DEF_MAD_BEAM                            
     LCAVITY                                 
@@ -4658,14 +4655,12 @@ Index: 25
     E_GUN                                   
     UNDULATOR                               
     PHOTON_INIT                             
-    DETECTOR                                
  
  !---------------------------------
 Index: 26
     SBEND                                   
     RFCAVITY                                
     BEAMBEAM                                
-    MARKER                                  
     RBEND                                   
     LCAVITY                                 
     DEF_PARAMETER                           
@@ -4683,7 +4678,7 @@ Index: 26
     DIFFRACTION_PLATE                       
     PHOTON_INIT                             
     SAMPLE                                  
-    DETECTOR                                
+    MASK                                    
  
  !---------------------------------
 Index: 27
@@ -4908,6 +4903,7 @@ Index: 34
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 35
@@ -4951,6 +4947,7 @@ Index: 35
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 36
@@ -4996,6 +4993,7 @@ Index: 36
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 37
@@ -5041,6 +5039,7 @@ Index: 37
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 38
@@ -5086,6 +5085,7 @@ Index: 38
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 39
@@ -5295,6 +5295,7 @@ Index: 50
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 51
@@ -5422,6 +5423,7 @@ Index: 53
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 54
@@ -5474,6 +5476,7 @@ Index: 54
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 55
@@ -5516,6 +5519,7 @@ Index: 55
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 56
@@ -5557,6 +5561,7 @@ Index: 56
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 57
@@ -5600,6 +5605,7 @@ Index: 57
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 58
@@ -5643,6 +5649,7 @@ Index: 58
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 59
@@ -5686,6 +5693,7 @@ Index: 59
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 60
@@ -5729,6 +5737,7 @@ Index: 60
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 61
@@ -5839,6 +5848,7 @@ Index: 64
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 65
@@ -5989,6 +5999,7 @@ Index: 69
     UNDULATOR                               
     DIFFRACTION_PLATE                       
     PHOTON_INIT                             
+    MASK                                    
  
  !---------------------------------
 Index: 70
@@ -6010,12 +6021,10 @@ Index: 70
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     NULL_ELE                                
     BEGINNING_ELE                           
     LINE_ELE                                
@@ -6028,7 +6037,6 @@ Index: 70
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6046,6 +6054,7 @@ Index: 70
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 71
@@ -6067,7 +6076,6 @@ Index: 71
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6085,7 +6093,6 @@ Index: 71
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6103,6 +6110,7 @@ Index: 71
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 72
@@ -6124,7 +6132,6 @@ Index: 72
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6142,7 +6149,6 @@ Index: 72
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6160,6 +6166,7 @@ Index: 72
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 73
@@ -6181,7 +6188,6 @@ Index: 73
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6199,7 +6205,6 @@ Index: 73
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6217,6 +6222,7 @@ Index: 73
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 74
@@ -6238,7 +6244,6 @@ Index: 74
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6256,7 +6261,6 @@ Index: 74
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6274,6 +6278,7 @@ Index: 74
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 75
@@ -6295,7 +6300,6 @@ Index: 75
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
@@ -6313,7 +6317,6 @@ Index: 75
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6331,6 +6334,7 @@ Index: 75
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 76
@@ -6378,6 +6382,7 @@ Index: 76
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 77
@@ -6425,6 +6430,7 @@ Index: 77
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 78
@@ -6472,6 +6478,7 @@ Index: 78
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 79
@@ -6519,6 +6526,7 @@ Index: 79
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 80
@@ -6540,12 +6548,10 @@ Index: 80
     OCTUPOLE                                
     RBEND                                   
     MULTIPOLE                               
-    DEF_MAD_BEAM                            
     AB_MULTIPOLE                            
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     NULL_ELE                                
     BEGINNING_ELE                           
     LINE_ELE                                
@@ -6558,7 +6564,6 @@ Index: 80
     ECOLLIMATOR                             
     GIRDER                                  
     BEND_SOL_QUAD                           
-    DEF_BEAM_START                          
     PHOTON_FORK                             
     FORK                                    
     MIRROR                                  
@@ -6576,13 +6581,13 @@ Index: 80
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 81
     RFCAVITY                                
     BEND_SOL_                               
     LCAVITY                                 
-    DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
  
@@ -6610,7 +6615,6 @@ Index: 82
     SOLENOID                                
     PATCH                                   
     LCAVITY                                 
-    DEF_PARAMETER                           
     NULL_ELE                                
     BEGINNING_ELE                           
     LINE_ELE                                
@@ -6640,6 +6644,7 @@ Index: 82
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 83
@@ -6659,7 +6664,6 @@ Index: 83
     BEND_SOL_                               
     SOLENOID                                
     LCAVITY                                 
-    DEF_PARAMETER                           
     BEGINNING_ELE                           
     LINE_ELE                                
     MONITOR                                 
@@ -6808,6 +6812,7 @@ Index: 87
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 88
@@ -6937,6 +6942,7 @@ Index: 91
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 92
@@ -6988,6 +6994,7 @@ Index: 92
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 93
@@ -7038,6 +7045,7 @@ Index: 93
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 94
@@ -7086,6 +7094,7 @@ Index: 94
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 95
@@ -7133,6 +7142,7 @@ Index: 95
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 96
@@ -7181,6 +7191,7 @@ Index: 96
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 97
@@ -7228,6 +7239,7 @@ Index: 97
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 98
@@ -7275,10 +7287,11 @@ Index: 98
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 99
-    DEF_PARAMETER                           
+    BEND_SOL_                               
  
  !---------------------------------
 Index: 100
@@ -7402,6 +7415,7 @@ Index: 105
     DIFFRACTION_PLATE                       
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 106
@@ -7483,6 +7497,7 @@ Index: 108
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 109
@@ -7575,6 +7590,7 @@ Index: 112
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 113
@@ -7633,6 +7649,7 @@ Index: 114
     PHOTON_INIT                             
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 115
@@ -7710,6 +7727,7 @@ Index: 117
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 118
@@ -7759,6 +7777,7 @@ Index: 118
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 119
@@ -7808,6 +7827,7 @@ Index: 119
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 120
@@ -7857,6 +7877,7 @@ Index: 120
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 121
@@ -7906,6 +7927,7 @@ Index: 121
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 122
@@ -7955,6 +7977,7 @@ Index: 122
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 123
@@ -8004,6 +8027,7 @@ Index: 123
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 124
@@ -8053,6 +8077,7 @@ Index: 124
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 125
@@ -8102,6 +8127,7 @@ Index: 125
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 126
@@ -8151,6 +8177,7 @@ Index: 126
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 127
@@ -8200,6 +8227,7 @@ Index: 127
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 128
@@ -8249,6 +8277,7 @@ Index: 128
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 129
@@ -8296,6 +8325,7 @@ Index: 129
     SAMPLE                                  
     DETECTOR                                
     SAD_MULT                                
+    MASK                                    
  
  !---------------------------------
 Index: 130
