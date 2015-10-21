@@ -2229,10 +2229,7 @@ end function pointer_to_lord
 !                       after that, etc. Can be negative. Default = +1.
 !   skip_beginning -- logical, optional: If True then skip beginning element #0
 !                       when wrapping around. Default is False.
-!   follow_fork    -- logical, optional: If True then fork at any fork element if
-!                       the direction of the fork element is appropriate. That is,
-!                       if offset > 0 then fork if fork element direction = 1.
-!                       Default = False.
+!   follow_fork    -- logical, optional: If True then fork at any fork element.
 !
 !   next_ele -- ele_struct, pointer: Element after this_ele (if offset = 1).
 !                Nullified if there is an error. EG bad this_ele.
@@ -2258,7 +2255,7 @@ if (this_ele%ix_ele < 0 .or. this_ele%ix_ele > this_ele%branch%n_ele_max) return
 
 ! Compute offset
 
-n_off = integer_option(+1, offset) 
+n_off = integer_option(+1, offset)
 if (n_off == 0) then
   next_ele => this_ele
   return
@@ -2289,8 +2286,7 @@ if (n_off > 0) then
 
   do i = 1, abs(n_off)
 
-    if (logic_option(.false., follow_fork) .and. nint(an_ele%value(direction$)) == 1 .and. & 
-                            (an_ele%key == fork$ .or. an_ele%key == photon_fork$)) then
+    if (logic_option(.false., follow_fork) .and. (an_ele%key == fork$ .or. an_ele%key == photon_fork$)) then
       ix_ele = nint(an_ele%value(ix_to_element$))
       branch => an_ele%branch%lat%branch(nint(an_ele%value(ix_to_branch$)))
     else

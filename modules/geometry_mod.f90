@@ -186,6 +186,7 @@ if (ele%key == fork$ .or. ele%key == photon_fork$) then
   if (ib > n) then
     ix = nint(ele%value(ix_to_element$))
     lat%branch(ib)%ele(ix)%bookkeeping_state%floor_position = stale$
+    lat%branch(ib)%param%bookkeeping_state%floor_position = stale$
   endif
 endif
 

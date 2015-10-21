@@ -4011,9 +4011,11 @@ super_ele%old_is_on = .false.
 super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 
-! If no refrence point then superposition is simple
+! If no refrence element then superposition is simple.
+! Remember, no reference element implies superposition on branch 0.
 
 if (pele%ref_name == blank_name$) then
+  if (branch%ix_branch /= 0) return
   call compute_super_lord_s (branch%ele(0), super_ele, pele, ix_insert)
   call check_for_multipass_superimpose_problem (branch%ele(0), super_ele, err_flag); if (err_flag) return
   call add_superimpose (lat, super_ele, 0, err_flag, save_null_drift = .true., &
@@ -4411,14 +4413,21 @@ integer ix1, ix2
 !
 
 branch => ref_ele%branch
-err_flag = .true.
 eps = bmad_com%significant_length
 
 ix1 = element_at_s (branch%lat, super_ele%s - super_ele%value(l$) + eps, .true., ref_ele%ix_branch, err_flag)
+if (err_flag) then
+  call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'UPSTREAM ELEMENT EDGE OUT OF BOUNDS.')
+  return
+endif
 ele1 => branch%ele(ix1)
 if (ele1%slave_status == super_slave$) ele1 => pointer_to_lord(ele1, 1)
 
 ix2 = element_at_s (branch%lat, super_ele%s - eps, .false., ref_ele%ix_branch, err_flag)
+if (err_flag) then
+  call parser_error ('BAD SUPERIMPOSE OF: ' // super_ele%name, 'DOWNSTREAM ELEMENT EDGE OUT OF BOUNDS.')
+  return
+endif
 ele2 => branch%ele(ix2)
 if (ele2%slave_status == super_slave$) ele2 => pointer_to_lord(ele2, 1)
 
