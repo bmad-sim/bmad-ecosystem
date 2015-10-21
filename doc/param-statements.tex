@@ -150,15 +150,18 @@ The \vn{parameter[particle]} switch sets the reference particle. Valid settings 
   electron,     positron,   
   muon,         antimuon,
   proton,       antiproton,
-  photon,       pion_0,
-  pion_minus,   pion_plus
+  photon, 
+  pion_minus,   pion_0,         pion_plus
+  deuteron      deuteron_0
 \end{example}
-The setting of the reference particle is used, for example, to
-determine the direction of the field in a magnet and given the
-normalized field strength (EG: \vn{k1} for a quadrupole).  Generally,
-the particles that by default are tracked through a lattice are the
-same as the reference particle. This default behavior can be altered
-by setting \vn{parameter[default_tracking_species]}.
+\vn{deuteron} is the positively striped deuteron and \vn{deuteron_0}
+is the neutral molecule.  The setting of the reference particle is
+used, for example, to determine the direction of the field in a magnet
+and given the normalized field strength (EG: \vn{k1} for a
+quadrupole).  Generally, the particles that by default are tracked
+through a lattice are the same as the reference particle. This default
+behavior can be altered by setting
+\vn{parameter[default_tracking_species]}.
 
   \index{photon_type}
   \item[{parameter[photon_type]}] \Newline
@@ -200,7 +203,7 @@ The \vn{use_hard_edge_drifts} switch determines if a ``hard edge''
 model of certain elements is used. For example, if \vn{runge_kutta}
 tracking is used for an \vn{rfcavity} or \vn{lcavity} using a standing
 wave model then the cavity length should be a multiple of the RF
-wavlength/2. To achieve this, during tracking, the cavity length is
+wavelength/2. To achieve this, during tracking, the cavity length is
 appropriately modified and drifts are inserted at either ends of the
 cavity to keep the total length constant. Default is \vn{True}.
 

@@ -31,6 +31,8 @@ end type
 
 integer, parameter :: not_set$ = -999
 
+integer, parameter :: deuteron_0$ = 9     ! Neutral deuteron
+integer, parameter :: deuteron$   = 8     ! Charged deuteron
 integer, parameter :: ref_particle$ = 6, anti_ref_particle$ = 7
 integer, parameter :: pion_0$     = +5
 integer, parameter :: pion_plus$  = +4
@@ -43,14 +45,16 @@ integer, parameter :: antiproton$ = -2
 integer, parameter :: muon$       = -3
 integer, parameter :: pion_minus$ = -4
 
-character(20), parameter :: particle_name(-4:7) = [&
+character(20), parameter :: particle_name(-4:9) = [&
                 'Pion_Minus       ', 'Muon             ', 'Antiproton       ', 'Electron         ', &
                 'Photon           ', 'Positron         ', 'Proton           ', 'Antimuon         ', &
-                'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle']
+                'Pion_Plus        ', 'Pion_0           ', 'Ref_Particle     ', 'Anti_Ref_Particle', &
+                'Deuteron         ', 'Deuteron_0       ']
 
-integer, parameter :: charge_of(-4:5) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0]
-real(rp), parameter :: mass_of(-4:5) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
-                                m_electron, m_proton, m_muon, m_pion_charged, m_pion_0]
+integer, parameter :: charge_of(-4:9) = [-1, -1, -1, -1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0]
+real(rp), parameter :: mass_of(-4:9) = [m_pion_charged, m_muon, m_proton, m_electron, 0.0_rp, &
+                                m_electron, m_proton, m_muon, m_pion_charged, m_pion_0, 0.0_rp, 0.0_rp, &
+                                m_deuteron, m_deuteron]
 
 real(rp), parameter :: anomalous_moment_of(-4:5) = [0.0_rp, anomalous_mag_moment_muon, &
                         anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
