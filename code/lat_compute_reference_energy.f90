@@ -508,8 +508,10 @@ if (ele_value_has_changed(ele, [p0c$, delta_ref_time$], [1e-3_rp, bmad_com%signi
   old_floor = ele%floor
   call ele_geometry (ele0%floor, ele, ele%floor)
   ele%bookkeeping_state%floor_position = ele0%bookkeeping_state%floor_position
-  if (.not. old_floor == ele%floor) call set_lords_status_stale (ele, floor_position_group$) ! Need to update girders
-  call set_lords_status_stale (ele, ref_energy_group$)
+  if (ele%ix_ele > 0) then ! If element is associated with a lattice
+    if (.not. old_floor == ele%floor) call set_lords_status_stale (ele, floor_position_group$) ! Need to update girders
+    call set_lords_status_stale (ele, ref_energy_group$)
+  endif
 
 endif
 

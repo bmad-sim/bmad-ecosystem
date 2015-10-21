@@ -136,9 +136,10 @@ the points. The attributes that determine these three quantities are:
   ref_origin   = <origin_location>   ! Origin pt on ref element.
 \end{example}
 \vn{ref} sets the reference element. If \vn{ref} is not present then
-the start of the lattice is used. The location of the origin points
-are determined by the setting of \vn{ele_origin} and \vn{ref_origin}.
-The possible settings for these parameters are
+the start of the lattice is used (more precisely, the start of branch
+0 (\sref{s:branch.def})). The location of the origin points are
+determined by the setting of \vn{ele_origin} and \vn{ref_origin}.  The
+possible settings for these parameters are
 \begin{example}
   beginning       ! Beginning (upstream) edge of element
   center          ! Center of element. Default.

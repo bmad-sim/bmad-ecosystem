@@ -3,7 +3,7 @@ module element_at_s_mod
 use bmad_utils_mod
 
 !+
-! Function element_at_s (lat, s, choose_max, ix_branch, err_flag, s_eff, position) result (ix_ele)
+! Function element_at_s (...) result (ix_ele)
 !
 ! Function to return the index of the element at position s.
 !
