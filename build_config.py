@@ -205,7 +205,6 @@ release_build_list = [
                 '/CESR/CESR_progs/plottunes',
                 '/CESR/CESR_progs/res_meas',
                 '/CESR/CESR_progs/scopeget',
-                '/CESR/CESR_progs/scwigcon',
                 '/CESR/CESR_progs/timing_test',
                 '/CESR/CESR_progs/tools',
                 '/CESR/CESR_progs/tune',
