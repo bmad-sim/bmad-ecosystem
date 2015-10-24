@@ -55,7 +55,7 @@
 !                        series will be concatenated with the other elements
 !                        in the hybrid element. 
 !   orb0_arr(0:)   -- Coord_array_struct, optional: Central orbit for taylor stuff.
-!                       Each orb0_arr(i)%orb(:) holds the orbit for the i^th lattice branch
+!                       Each orb0_arr(i)%orbit(:) holds the orbit for the i^th lattice branch
 !
 ! Output:
 !   lat_out   -- lat_struct: Lattice with hybrid elements. 
@@ -251,7 +251,7 @@ do ib = 0, ubound(lat_out%branch, 1)
 
         if (do_taylor) then
           if (present (orb0_arr)) then
-            c0 = orb0_arr(ib)%orb(j_in)
+            c0 = orb0_arr(ib)%orbit(j_in)
           else
             c0%vec = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
           endif

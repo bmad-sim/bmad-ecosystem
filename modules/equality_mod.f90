@@ -242,11 +242,11 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%orb) .eqv. allocated(f2%orb))
+is_eq = is_eq .and. (allocated(f1%orbit) .eqv. allocated(f2%orbit))
 if (.not. is_eq) return
-if (allocated(f1%orb)) is_eq = all(shape(f1%orb) == shape(f2%orb))
+if (allocated(f1%orbit)) is_eq = all(shape(f1%orbit) == shape(f2%orbit))
 if (.not. is_eq) return
-if (allocated(f1%orb)) is_eq = all(f1%orb == f2%orb)
+if (allocated(f1%orbit)) is_eq = all(f1%orbit == f2%orbit)
 
 end function eq_coord_array
 

@@ -16,7 +16,7 @@ contains
 !--------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------
 !+
-! Subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase)
+! Subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase, call_bookkeeper)
 !
 ! Routine to set the phase offset and amplitude scale of the accelerating field if
 ! this field is defined. This routine works on lcavity, rfcavity and e_gun elements.
@@ -54,17 +54,18 @@ contains
 !   use autoscale_mod
 !
 ! Input:
-!  ele        -- ele_struct: RF element or e_gun.
-!  param      -- lat_param_struct: lattice parameters
-!  scale_amp   -- Logical, optional: Scale the amplitude? See above.
-!  scale_phase -- Logical, optional: Scale the phase? See above.
+!  ele             -- ele_struct: RF element or e_gun.
+!  param           -- lat_param_struct: lattice parameters
+!  scale_amp       -- Logical, optional: Scale the amplitude? See above.
+!  scale_phase     -- Logical, optional: Scale the phase? See above.
+!  call_bookkeeper -- Logical, optional: Call lattice_bookkeeper at end? Default is True.
 !
 ! Output:
 !   ele      -- ele_struct: element with phase and amplitude adjusted. 
 !   err_flag -- Logical, Set true if there is an error. False otherwise.
 !-
 
-subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp)
+subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)
 
 use super_recipes_mod
 use nr, only: zbrent
@@ -86,7 +87,7 @@ integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 integer n_pts, n_pts_tot, n_loop, n_loop_max
 
 logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, amp_scale_good
-logical, optional :: scale_phase, scale_amp
+logical, optional :: scale_phase, scale_amp, call_bookkeeper
 logical :: debug = .false.
 
 character(*), parameter :: r_name = 'autoscale_phase_and_amp'
@@ -223,6 +224,7 @@ if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   ele%tracking_method = tracking_method_saved
   ele%value = value_saved
 
+  if (logic_option(.true., call_bookkeeper) .and. ele%ix_ele > 0) call lattice_bookkeeper(ele%branch%lat)
   return
 endif
 
@@ -271,8 +273,8 @@ if (.not. is_lost) then
   endif
 
   if (phase_scale_good .and. amp_scale_good) then
-    call cleanup_this()
     call set_phi0_ref (phi0_ref_original)
+    call cleanup_this()
     return
   endif
 endif
@@ -489,6 +491,8 @@ if (associated (ele%branch)) then
   if (do_scale_amp)   call set_flags_for_changed_attribute (ele, field_scale)
   if (do_scale_phase) call set_flags_for_changed_attribute (ele, phi0_ref)
 endif
+
+if (logic_option(.true., call_bookkeeper) .and. ele%ix_ele > 0) call lattice_bookkeeper(ele%branch%lat)
 
 !------------------------------------
 contains
