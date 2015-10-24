@@ -3,12 +3,19 @@
 !
 ! Subroutine to set a list of locations in a logical array to True.
 !
+! Locations are encoded in the string argument using the following rules:
+!    A "," or a space delimits location numbers 
+!   "i1:i2" specifies a range of locations between i1 and i2 inclusive.
+!     If "i1" is not present then the beginning of the range is taken to be the beginning of the array.
+!     If "i2" is not present then the end of the range is taken to be the end of the array.
+!   "i1:i2:iskip" specifies a range of locations between i1 and i2 skipping every "iskip" elements.
+!   If ix_min is non-negative, a negative number indicates a location that is determined by counting 
+!     backwards from the end of the array with "-1" indicating the end of the array.
+! Examples:
+!     string = '3:37 98, 101:115:2'
+!
 ! Input:
 !   string         -- Character*(*): Array of locations.
-!                        "," or a space delimits location numbers 
-!                        A ":" is used for a range of locations. 
-!                        A second ":" specifies a step increment.
-!                        "*" or "ALL" Sets everything to True.
 !   ix_min         -- Integer: Array minimum.
 !   names(ix_min:) -- Character(*), optional: Array of location names that can be used
 !                       instead used of numbers. Names cannot contain blanks, or ":" 
@@ -35,20 +42,22 @@
 
 subroutine location_decode(string, array, ix_min, num, names, exact_case)
 
-use word_mod
+use sim_utils
 
 implicit none
 
 integer index, start_loc, end_loc, step, ix_word, ix_next, num
-integer ix_min, ios
+integer ix_min, ios, where, ix_max
+integer, parameter :: no_range$ = 0, found_colon1$ = 1, found_colon2$ = 2
 
 character(*) string
 character(len(string)) :: str 
 character(2) :: delimitors = ':,'
 character(1) delim
 character(*), optional :: names(ix_min:)
+character(*), parameter :: r_name = 'location_decode'
 
-logical array(ix_min:), range_found, step_found
+logical array(ix_min:), found
 logical, optional :: exact_case
 
 ! initialize array
@@ -56,98 +65,119 @@ logical, optional :: exact_case
 str = string
 
 array(:) = .false.
-range_found = .false.
-step_found = .false.
+where = no_range$
 ix_next = 1
+ix_max = ubound(array, 1)
+num = -1
 
 do
 
-  call string_trim2 (str(ix_next:), delimitors, str, ix_word, delim, ix_next)
-
-  if (ix_word == 0) exit
+  if (ix_next == 0) then
+    if (delim == ',') then
+      call out_io (s_error$, r_name, 'MISPLACED COMMA')
+      return          
+    endif
+    str = '';  ix_word = 0;  delim = ''
+  else
+    call string_trim2 (str(ix_next:), delimitors, str, ix_word, delim, ix_next)
+  endif
+  if (ix_word == 0 .and. delim == '' .and. where == no_range$) exit
 
   if (str(:ix_word) == 'ALL' .or. str(:ix_word) == 'all' .or. str(:ix_word) == '*') then
     array(:) = .true.
-    if (ix_next == 0) exit
     cycle
   endif
 
   ! Look for a name match
 
-  index = 0
-  if (present(names)) then
+  found = .false.
+  if (present(names) .and. ix_word /= 0) then
     call match_word (str(:ix_word), names, index, exact_case)
     if (index < 0) then
-      print *, 'ERROR: NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word)
-      num = -1
+      call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
       return
     endif
+    ! Correction since match_word assumes that names(:) has lower bound of 1.
+    index = index + (ix_min - 1)  
+    found = .true.
   endif
 
   ! If there is no name match then assume it is a number
 
-  if (index == 0) then
-    read (str(:ix_word), *, iostat = ios) index
-    if (ios /= 0) then
-      print *, 'ERROR: BAD LOCATION: ', str(:ix_word)
-      num = -1
-      return
+  if (.not. found) then
+    if (ix_word == 0) then  ! Use default
+      if (delim == ':') then
+        select case (where)
+        case (found_colon2$)
+          call out_io (s_error$, r_name, 'MISPLACED COLON')
+          return
+        case (found_colon1$)
+          index = ix_max
+        case (no_range$)
+          index = ix_min
+        end select
+
+      else                   ! delim /= ':'
+        select case (where)
+        case (found_colon1$)
+          index = ix_max
+        case (no_range$, found_colon2$)
+          call out_io (s_error$, r_name, 'MISPLACED COMMA')
+          return          
+        end select
+      endif
+
+    else
+      read (str(:ix_word), *, iostat = ios) index
+      if (ios /= 0) then
+        call out_io (s_error$, r_name, 'BAD LOCATION: ' // str(:ix_word))
+        return
+      endif
     endif
-  elseif (.not. step_found) then
-    ! Correction since match_word assumes that names(:) has lower bound of 1.
-    index = index + (ix_min - 1)  
   endif
+
+  ! A negative number means count backwards from the end of the array
+
+  if (index < 0 .and. ix_min >= 0) index = ix_max + 1 + index
 
   ! Check for an error
 
-  if (index < ix_min .or. index > ubound(array,1)) then
-    print *, 'ERROR: LOCATION OUT OF BOUNDS: ', str(:ix_word)
-    num = -1
+  if (index < ix_min .or. index > ix_max) then
+    call out_io (s_error$, r_name, 'LOCATION OUT OF BOUNDS: ' // str(:ix_word))
     return
   endif
 
-  if (step_found) step = index
+  !
+
+  if (where == found_colon2$) step = index
     
   if (delim == ':') then
-    if (range_found) then
-      if (step_found) then
-        print *, 'ERROR: BAD STEP(S) ', str(1:20)
-        num = -1
-        return
-      else
-        step_found = .true.
-        end_loc = index
-      endif
-    else
-      range_found = .true.
+    select case (where)
+    case (found_colon2$)
+      call out_io (s_error$, r_name, 'ERROR: BAD STEP(S) ' // str(1:20))
+      return
+    case (found_colon1$)
+      where = found_colon2$
+      end_loc = index
+    case (no_range$)
+      where = found_colon1$
       start_loc = index
-    endif
+    end select
+
   else
-    if (range_found) then
-      if (step_found) then
-        array(start_loc:end_loc:step) = .true.
-        range_found = .false.
-        step_found = .false.
-      else
-        array(start_loc:index) = .true.
-        range_found = .false.
-      endif
-    else
+    select case (where)
+    case (found_colon2$)
+      array(start_loc:end_loc:step) = .true.
+      where = no_range$
+    case (found_colon1$)
+      array(start_loc:index) = .true.
+      where = no_range$
+    case (no_range$)
       array(index:index) = .true.
-    endif
+    end select
   endif
 
-  if (ix_next == 0) exit
-
 enddo
-
-!--------
-
-if (range_found) then
-  print *, 'ERROR IN LOCATION_DECODE: OPEN RANGE'
-  num = -1
-  return
-endif
 
 ! count number of elements in arrray
                   
