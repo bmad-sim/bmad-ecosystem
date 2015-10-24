@@ -42,7 +42,7 @@ use geometry_mod
 !     orb(0)%vec(6)     -- For a closed lat: Energy at which the closed orbit 
 !                             is computed.
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
-!     orb_array(0)%orb(0) -- Used as the starting point for a linear lattice.
+!     orb_array(0)%orbit(0) -- Used as the starting point for a linear lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
 !   use_beam_start      -- logical, optional: If True, use lat%beam_start instead of orb(0)
 !                            as the initial coords for open geometry lattices. Default is False.
@@ -135,10 +135,10 @@ do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
   if (branch%param%particle == photon$) cycle
   if (i /= 0 .and. branch%param%geometry == open$) then
-    orb_array(i)%orb(0) = orb_array(branch%ix_from_branch)%orb(branch%ix_from_ele) 
+    orb_array(i)%orbit(0) = orb_array(branch%ix_from_branch)%orbit(branch%ix_from_ele) 
     call transfer_twiss (lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele), branch%ele(0))
   endif
-  call twiss_and_track1 (lat, orb_array(i)%orb, i, err_flag)
+  call twiss_and_track1 (lat, orb_array(i)%orbit, i, err_flag)
   if (present(ok)) ok = .not. err_flag
   if (err_flag) return
 enddo 

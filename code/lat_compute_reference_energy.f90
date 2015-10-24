@@ -142,7 +142,7 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
     gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
-    call autoscale_phase_and_amp (gun_ele, branch%param, err); if (err) return
+    call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.); if (err) return
 
     call init_coord (start_orb, zero6, gun_ele, upstream_end$)
     call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
@@ -397,7 +397,7 @@ case (lcavity$)
   endif
 
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call autoscale_phase_and_amp (ele, param, err)
+    call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
     if (err) return
   endif
 
@@ -461,7 +461,7 @@ case default
 
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call autoscale_phase_and_amp (ele, param, err)
+    call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
     if (err) return
   endif
 

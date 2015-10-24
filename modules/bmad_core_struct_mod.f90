@@ -947,152 +947,19 @@ subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photo
 
 implicit none
 
-type (coord_struct) orb, orb2
-type (ele_struct), optional, target :: ele
-
-real(rp), optional :: vec(:), E_photon, t_ref_offset
-real(rp) p0c, e_tot, ref_time
-
+type (coord_struct) orb, orb_temp
+type (ele_struct), optional :: ele
+real(rp), optional :: vec(:), t_ref_offset, E_photon
 integer, optional :: element_end, particle, direction
 logical, optional :: shift_vec6
 
-character(16), parameter :: r_name = 'init_coord1'
+!
 
-! Use temporary orb2 so if actual arg for vec, particle, or E_photon
-! is part of the orb actual arg things do not get overwriten.
+orb_temp = coord_struct()
+if (present(vec)) orb_temp%vec = vec
 
-orb2 = coord_struct()
+call init_coord2 (orb, orb_temp, ele, element_end, particle, direction, E_photon, t_ref_offset, shift_vec6)
 
-orb2%state = alive$
-orb2%p0c = 0
-orb2%direction = integer_option(+1, direction)
-orb2%species = orb%species
-
-! Set %vec
-
-if (present(vec)) then
-  orb2%vec = vec
-else
-  orb2%vec = 0
-endif
-
-! Set location and species
-
-orb2%location = integer_option(upstream_end$, element_end)
-if (orb2%location == start_end$) then
-  if (orb2%direction == 1) then
-    orb2%location = upstream_end$
-  else
-    orb2%location = downstream_end$
-  endif
-endif
-
-orb2%species = integer_option(not_set$, particle)
-
-if (orb2%species == not_set$ .and. present(ele)) then
-  if (associated (ele%branch)) orb2%species = default_tracking_species(ele%branch%param)
-endif
-
-if (orb2%species == not_set$) then
-  call out_io (s_warn$, r_name, 'NO PARTICLE SPECIES GIVEN. USING POSITRONS AS DEFAULT!')
-  orb2%species = positron$
-endif
-
-! Energy values
-
-if (present(ele)) then
-  if (.not. present(element_end)) then
-    call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
-    call err_exit
-  endif
-  if (orb2%location /= upstream_end$ .or. ele%key == beginning_ele$) then
-    p0c = ele%value(p0c$)
-    e_tot = ele%value(e_tot$)
-    ref_time = ele%ref_time
-    if (orb2%location == downstream_end$) orb2%s = ele%s
-  else
-    p0c = ele%value(p0c_start$)
-    e_tot = ele%value(e_tot_start$)
-    ref_time = ele%value(ref_time_start$)
-    orb2%s = ele%s - ele%value(l$)
-  endif
-endif
-
-! Photon
-
-if (orb2%species == photon$) then
-
-  orb2%phase = orb%phase
-  orb2%field = orb%field
-  orb2%path_len = 0
-
-  if (present(ele)) orb2%p0c = p0c
-
-  if (present(E_photon)) then
-    if (E_photon /= 0) orb2%p0c = E_photon
-  endif
-
-  if (orb2%vec(6) >= 0) orb2%vec(6) = sqrt(1 - orb2%vec(2)**2 - orb2%vec(4)**2)
-  orb2%beta = 1
-
-  if (orb2%location == downstream_end$) then
-    orb2%vec(5) = ele%value(l$)
-  else
-    orb2%vec(5) = 0
-  endif
-
-else
-  orb2%spin = orb%spin
-
-endif
-
-! If ele is present...
-
-orb2%ix_ele = -1
-
-if (present(ele)) then
-
-  orb2%ix_ele = ele%ix_ele
-  if (ele%slave_status == slice_slave$ .and. associated(ele%lord)) orb2%ix_ele = ele%lord%ix_ele
-
-  if (ele%key == beginning_ele$) orb2%location = downstream_end$
-
-  if (orb2%species /= photon$) then
-
-    orb2%p0c = p0c
-
-    ! E_gun shift. Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
-    if (logic_option(.true., shift_vec6)) then
-      if (ele%key == beginning_ele$) then
-        orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
-      elseif (ele%key == e_gun$ .or. (ele%key == marker$ .and. ele%value(e_tot_ref_init$) /= 0)) then
-        orb2%vec(6) = orb2%vec(6) + (ele%value(p0c_ref_init$) - ele%value(p0c$)) / ele%value(p0c$)
-      endif
-    endif
-
-    if (orb2%vec(6) == 0) then
-      orb2%beta = p0c / e_tot
-    else
-      call convert_pc_to (p0c * (1 + orb2%vec(6)), orb2%species, beta = orb2%beta)
-    endif
-
-    ! Do not set %t if %beta = 0 since %t may be a good value.
-
-    if (orb2%beta == 0) then
-      if (orb2%vec(5) /= 0) then
-        call out_io (s_error$, r_name, 'Z-POSITION IS NONZERO WITH BETA = 0.', &
-                                       'THIS IS NONSENSE SO SETTING Z TO ZERO.')
-        orb2%vec(5) = 0
-      endif
-    else
-      orb2%t = ref_time - orb2%vec(5) / (orb2%beta * c_light)
-      if (present(t_ref_offset)) orb2%t = orb2%t + t_ref_offset
-    endif
-  endif
-
-endif
-
-orb = orb2
 
 end subroutine init_coord1
 
@@ -1111,27 +978,151 @@ subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_ph
 implicit none
 
 type (coord_struct) orb, orb_in, orb_save
-type (ele_struct), optional :: ele
-real(rp), optional :: t_ref_offset, E_photon
+type (ele_struct), optional, target :: ele
+
+real(rp), optional :: E_photon, t_ref_offset
+real(rp) p0c, e_tot, ref_time
+
 integer, optional :: element_end, particle, direction
 integer species
+
 logical, optional :: shift_vec6
 
-!
+character(16), parameter :: r_name = 'init_coord1'
+
+! Use temporary orb_save so if actual arg for vec, particle, or E_photon
+! is part of the orb actual arg things do not get overwriten.
 
 orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
+orb = orb_in
+
 species = orb_save%species
 if (present(particle)) then
   if (particle /= not_set$) species = particle
 endif
 
-call init_coord1 (orb, orb_in%vec, ele, element_end, species, direction, E_photon, t_ref_offset, shift_vec6)
+if (present(particle)) orb%species = particle
 
-orb%spin      = orb_save%spin
-orb%field     = orb_save%field
-orb%phase     = orb_save%phase
-orb%charge    = orb_save%charge
-if (orb%beta == 0) orb%t = orb_save%t
+if (orb%species == not_set$ .and. present(ele) .and. associated (ele%branch)) then
+  orb%species = default_tracking_species(ele%branch%param)
+endif
+
+if (orb%species == not_set$) then
+  call out_io (s_warn$, r_name, 'NO PARTICLE SPECIES GIVEN. USING POSITRONS AS DEFAULT!')
+  orb%species = positron$
+endif
+
+orb%state = alive$
+if (present(direction)) orb%direction = direction
+
+! Set location and species
+
+if (present(element_end)) orb%location = element_end
+
+if (orb%location == start_end$) then
+  if (orb%direction == 1) then
+    orb%location = upstream_end$
+  else
+    orb%location = downstream_end$
+  endif
+endif
+
+! Energy values
+
+if (present(ele)) then
+  if (.not. present(element_end)) then
+    call out_io (s_fatal$, r_name, 'Rule: "element_end" argument must be present if "ele" argument is.')
+    call err_exit
+  endif
+  if (orb%location /= upstream_end$ .or. ele%key == beginning_ele$) then
+    p0c = ele%value(p0c$)
+    e_tot = ele%value(e_tot$)
+    ref_time = ele%ref_time
+    if (orb%location == downstream_end$) orb%s = ele%s
+  else
+    p0c = ele%value(p0c_start$)
+    e_tot = ele%value(e_tot_start$)
+    ref_time = ele%value(ref_time_start$)
+    orb%s = ele%s - ele%value(l$)
+  endif
+endif
+
+! Photon
+
+if (orb%species == photon$) then
+
+  orb%phase = orb%phase
+  orb%field = orb%field
+  orb%path_len = 0
+  orb%beta = 1
+
+  if (present(ele)) orb%p0c = p0c
+
+  if (present(E_photon)) then
+    if (E_photon /= 0) orb%p0c = E_photon
+  endif
+
+  ! If original particle is not a photon, photon is launched in same direciton as particle 
+  if (orb_save%species /= photon$ .and. orb_save%species /= not_set$) orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
+  orb%vec(6) = orb%direction * sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
+
+  if (orb%location == downstream_end$) then
+    orb%vec(5) = ele%value(l$)
+  else
+    orb%vec(5) = 0
+  endif
+
+else
+  orb%spin = orb%spin
+
+endif
+
+! If ele is present...
+
+orb%ix_ele = -1
+
+if (present(ele)) then
+
+  orb%ix_ele = ele%ix_ele
+  if (ele%slave_status == slice_slave$ .and. associated(ele%lord)) orb%ix_ele = ele%lord%ix_ele
+
+  if (ele%key == beginning_ele$) orb%location = downstream_end$
+
+  if (orb%species /= photon$) then
+
+    orb%p0c = p0c
+
+    ! E_gun shift. Only time p0c_start /= p0c for an init_ele is when there is an e_gun present in the branch.
+    if (logic_option(.true., shift_vec6)) then
+      if (ele%key == beginning_ele$) then
+        orb%vec(6) = orb%vec(6) + (ele%value(p0c_start$) - ele%value(p0c$)) / ele%value(p0c$)
+      elseif (ele%key == e_gun$ .or. (ele%key == marker$ .and. ele%value(e_tot_ref_init$) /= 0)) then
+        orb%vec(6) = orb%vec(6) + (ele%value(p0c_ref_init$) - ele%value(p0c$)) / ele%value(p0c$)
+      endif
+    endif
+
+    if (orb%vec(6) == 0) then
+      orb%beta = p0c / e_tot
+    else
+      call convert_pc_to (p0c * (1 + orb%vec(6)), orb%species, beta = orb%beta)
+    endif
+
+    ! Do not set %t if %beta = 0 since %t may be a good value.
+
+    if (orb%beta == 0) then
+      if (orb%vec(5) /= 0) then
+        call out_io (s_error$, r_name, 'Z-POSITION IS NONZERO WITH BETA = 0.', &
+                                       'THIS IS NONSENSE SO SETTING Z TO ZERO.')
+        orb%vec(5) = 0
+      endif
+
+    else
+      orb%t = ref_time - orb%vec(5) / (orb%beta * c_light)
+      if (present(t_ref_offset)) orb%t = orb%t + t_ref_offset
+    endif
+  endif
+
+endif
 
 end subroutine init_coord2
 
@@ -1829,8 +1820,8 @@ end subroutine reallocate_coord_lat
 ! Subroutine to allocate an allocatable coord_array_struct array to
 ! the proper size for a lattice.
 !
-! Note: Any old coordinates are not saved except for coord_array(:)%orb(0).
-! If, at input, coord_array is not allocated, coord_array(:)%orb(0)%vec is set to zero.
+! Note: Any old coordinates are not saved except for coord_array(:)%orbit(0).
+! If, at input, coord_array is not allocated, coord_array(:)%orbit(0)%vec is set to zero.
 ! In any case, all other %vec components are set to zero.
 !
 ! Modules needed:
@@ -1863,19 +1854,19 @@ if (allocated (coord_array)) then
   if (size(coord_array) /= nb + 1) then
     call reallocate_coord(start, nb)
     do i = 0, nb
-      start(i) = coord_array(i)%orb(0)
+      start(i) = coord_array(i)%orbit(0)
     enddo
     deallocate (coord_array)
     allocate (coord_array(0:nb))
     do i = 0, nb
-      call reallocate_coord (coord_array(i)%orb, lat%branch(i)%n_ele_max)
-      coord_array(i)%orb(0) = start(i)
+      call reallocate_coord (coord_array(i)%orbit, lat%branch(i)%n_ele_max)
+      coord_array(i)%orbit(0) = start(i)
     enddo
   endif
 else
   allocate (coord_array(0:nb))
   do i = 0, nb
-    call reallocate_coord (coord_array(i)%orb, lat%branch(i)%n_ele_max)
+    call reallocate_coord (coord_array(i)%orbit, lat%branch(i)%n_ele_max)
   enddo
 endif
 
