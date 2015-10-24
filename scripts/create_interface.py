@@ -32,6 +32,17 @@ debug = False # Change to True to enable printout
 
 ##################################################################################
 ##################################################################################
+# Deciding if something is a number
+
+def is_number(s):
+  try:
+    float(s.replace('d', 'e').replace('D', 'e'))
+    return True
+  except ValueError:
+    return False
+
+##################################################################################
+##################################################################################
 # For printing of intermediate steps, etc.
 
 def wrap_line (line, indent, cont_char):
@@ -1674,6 +1685,8 @@ for struct in struct_definitions:
       arg.c_side.construct_value = 'false'
     elif '$' in arg.init_value:
       arg.c_side.construct_value = 'Bmad::' + arg.init_value[:-1].upper()
+    elif ('d' in arg.init_value or 'D' in arg.init_value) and is_number(arg.init_value):
+      arg.c_side.construct_value = arg.init_value.replace('d', 'e').replace('D', 'e')
     else:
       arg.c_side.construct_value = arg.init_value
 

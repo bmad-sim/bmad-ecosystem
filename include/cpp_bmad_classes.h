@@ -607,10 +607,10 @@ class Bmad_coord_array_class {};  // Opaque class for pointers to corresponding 
 
 class CPP_coord_array {
 public:
-  CPP_coord_ARRAY orb;
+  CPP_coord_ARRAY orbit;
 
   CPP_coord_array() :
-    orb(CPP_coord_ARRAY(CPP_coord(), 0))
+    orbit(CPP_coord_ARRAY(CPP_coord(), 0))
     {}
 
   ~CPP_coord_array() {

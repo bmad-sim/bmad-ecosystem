@@ -457,26 +457,27 @@ extern "C" void coord_array_to_f2 (Bmad_coord_array_class*, const CPP_coord**, I
 
 extern "C" void coord_array_to_f (const CPP_coord_array& C, Bmad_coord_array_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
-  int n1_orb = C.orb.size();
-  const CPP_coord** z_orb = NULL;
-  if (n1_orb != 0) {
-    z_orb = new const CPP_coord*[n1_orb];
-    for (int i = 0; i < n1_orb; i++) z_orb[i] = &C.orb[i];
+  int n1_orbit = C.orbit.size();
+  const CPP_coord** z_orbit = NULL;
+  if (n1_orbit != 0) {
+    z_orbit = new const CPP_coord*[n1_orbit];
+    for (int i = 0; i < n1_orbit; i++) z_orbit[i] = &C.orbit[i];
   }
 
   // c_side.to_f2_call
-  coord_array_to_f2 (F, z_orb, n1_orb);
+  coord_array_to_f2 (F, z_orbit, n1_orbit);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
- delete[] z_orb;
+ delete[] z_orbit;
 }
 
 // c_side.to_c2_arg
-extern "C" void coord_array_to_c2 (CPP_coord_array& C, Bmad_coord_class** z_orb, Int n1_orb) {
+extern "C" void coord_array_to_c2 (CPP_coord_array& C, Bmad_coord_class** z_orbit, Int
+    n1_orbit) {
 
   // c_side.to_c2_set[type, 1, ALLOC]
-  C.orb.resize(n1_orb);
-  for (int i = 0; i < n1_orb; i++) coord_to_c(z_orb[i], C.orb[i]);
+  C.orbit.resize(n1_orbit);
+  for (int i = 0; i < n1_orbit; i++) coord_to_c(z_orbit[i], C.orbit[i]);
 
 }
 

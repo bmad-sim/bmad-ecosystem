@@ -462,10 +462,10 @@ void set_CPP_coord_array_test_pattern (CPP_coord_array& C, int ix_patt) {
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
-    C.orb.resize(0);
+    C.orbit.resize(0);
   else {
-    C.orb.resize(3);
-    for (unsigned int i = 0; i < C.orb.size(); i++)  {set_CPP_coord_test_pattern(C.orb[i], ix_patt+i+1);}
+    C.orbit.resize(3);
+    for (unsigned int i = 0; i < C.orbit.size(); i++)  {set_CPP_coord_test_pattern(C.orbit[i], ix_patt+i+1);}
   }
 
 

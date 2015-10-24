@@ -1346,12 +1346,12 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine coord_array_to_c2 (C, z_orb, n1_orb) bind(c)
+  subroutine coord_array_to_c2 (C, z_orbit, n1_orbit) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int), value :: n1_orb
-    type(c_ptr) :: z_orb(*)
+    integer(c_int), value :: n1_orbit
+    type(c_ptr) :: z_orbit(*)
   end subroutine
 end interface
 
@@ -1360,25 +1360,25 @@ type(c_ptr), value :: C
 type(coord_array_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
-type(c_ptr), allocatable :: z_orb(:)
-integer(c_int) :: n1_orb
+type(c_ptr), allocatable :: z_orbit(:)
+integer(c_int) :: n1_orbit
 
 !
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_c_trans[type, 1, ALLOC]
- n1_orb = 0
-if (allocated(F%orb)) then
-  n1_orb = size(F%orb); lb1 = lbound(F%orb, 1) - 1
-  allocate (z_orb(n1_orb))
-  do jd1 = 1, n1_orb
-    z_orb(jd1) = c_loc(F%orb(jd1+lb1))
+ n1_orbit = 0
+if (allocated(F%orbit)) then
+  n1_orbit = size(F%orbit); lb1 = lbound(F%orbit, 1) - 1
+  allocate (z_orbit(n1_orbit))
+  do jd1 = 1, n1_orbit
+    z_orbit(jd1) = c_loc(F%orbit(jd1+lb1))
   enddo
 endif
 
 !! f_side.to_c2_call
-call coord_array_to_c2 (C, z_orb, n1_orb)
+call coord_array_to_c2 (C, z_orbit, n1_orbit)
 
 end subroutine coord_array_to_c
 
@@ -1398,7 +1398,7 @@ end subroutine coord_array_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine coord_array_to_f2 (Fp, z_orb, n1_orb) bind(c)
+subroutine coord_array_to_f2 (Fp, z_orbit, n1_orbit) bind(c)
 
 
 implicit none
@@ -1407,22 +1407,22 @@ type(c_ptr), value :: Fp
 type(coord_array_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int), value :: n1_orb
-type(c_ptr) :: z_orb(*)
+integer(c_int), value :: n1_orbit
+type(c_ptr) :: z_orbit(*)
 
 call c_f_pointer (Fp, F)
 
 !! f_side.to_f2_trans[type, 1, ALLOC]
-if (n1_orb == 0) then
-  if (allocated(F%orb)) deallocate(F%orb)
+if (n1_orbit == 0) then
+  if (allocated(F%orbit)) deallocate(F%orbit)
 else
-  if (allocated(F%orb)) then
-    if (n1_orb == 0 .or. any(shape(F%orb) /= [n1_orb])) deallocate(F%orb)
-    if (any(lbound(F%orb) /= 1)) deallocate(F%orb)
+  if (allocated(F%orbit)) then
+    if (n1_orbit == 0 .or. any(shape(F%orbit) /= [n1_orbit])) deallocate(F%orbit)
+    if (any(lbound(F%orbit) /= 1)) deallocate(F%orbit)
   endif
-  if (.not. allocated(F%orb)) allocate(F%orb(1:n1_orb+1-1))
-  do jd1 = 1, n1_orb
-    call coord_to_f (z_orb(jd1), c_loc(F%orb(jd1+1-1)))
+  if (.not. allocated(F%orbit)) allocate(F%orbit(1:n1_orbit+1-1))
+  do jd1 = 1, n1_orbit
+    call coord_to_f (z_orbit(jd1), c_loc(F%orbit(jd1+1-1)))
   enddo
 endif
 

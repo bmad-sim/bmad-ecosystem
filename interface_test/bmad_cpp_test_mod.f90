@@ -741,11 +741,11 @@ offset = 100 * ix_patt
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
-  if (allocated(F%orb)) deallocate (F%orb)
+  if (allocated(F%orbit)) deallocate (F%orbit)
 else
-  if (.not. allocated(F%orb)) allocate (F%orb(-1:1))
-  do jd1 = 1, size(F%orb,1); lb1 = lbound(F%orb,1) - 1
-    call set_coord_test_pattern (F%orb(jd1+lb1), ix_patt+jd1)
+  if (.not. allocated(F%orbit)) allocate (F%orbit(-1:1))
+  do jd1 = 1, size(F%orbit,1); lb1 = lbound(F%orbit,1) - 1
+    call set_coord_test_pattern (F%orbit(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 

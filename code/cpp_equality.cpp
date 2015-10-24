@@ -172,7 +172,7 @@ template bool is_all_equal (const CPP_coord_MATRIX&, const CPP_coord_MATRIX&);
 
 bool operator== (const CPP_coord_array& x, const CPP_coord_array& y) {
   bool is_eq = true;
-  is_eq = is_eq && is_all_equal(x.orb, y.orb);
+  is_eq = is_eq && is_all_equal(x.orbit, y.orbit);
   return is_eq;
 };
 
