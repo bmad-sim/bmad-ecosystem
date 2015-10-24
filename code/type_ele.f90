@@ -255,7 +255,7 @@ if (associated(ele%a_pole)) then
 
   a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
   if (ele%key == multipole$) then
-    call multipole_ele_to_kt (ele, .false., has_nonzero_pole, a,  b)
+    call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a,  b)
     call multipole_ele_to_kt (ele, .true.,  has_nonzero_pole, knl, tn)
   else
     call multipole_ele_to_ab (ele, .false., has_nonzero_pole, a,  b)
