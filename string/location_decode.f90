@@ -42,7 +42,7 @@
 
 subroutine location_decode(string, array, ix_min, num, names, exact_case)
 
-use sim_utils
+use sim_utils, dummy => location_decode
 
 implicit none
 
