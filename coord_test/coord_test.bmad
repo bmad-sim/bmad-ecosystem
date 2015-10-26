@@ -1,3 +1,4 @@
+no_digested
 parameter[e_tot] = 1e6
 
 beam_start[x]  = 0.1

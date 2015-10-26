@@ -8,6 +8,7 @@ program parse_test
 
 use bmad
 use bmad_parser_mod
+use write_lat_file_mod
 
 implicit none
 
@@ -24,6 +25,8 @@ logical err, delim_found
 open (1, file = 'output.now')
 
 call bmad_parser ('parse_test.bmad', lat)
+call write_bmad_lattice_file ('out.bmad', lat)
+call bmad_parser ('out.bmad', lat)
 
 write (1, '(a, f10.2)') '"bmad_com[max_aperture_limit]"          ABS 0', bmad_com%max_aperture_limit
 write (1, '(a, i4)')    '"bmad_com[ptc_max_fringe_order]"        ABS 0', bmad_com%ptc_max_fringe_order
@@ -68,6 +71,8 @@ write (1, '(a, 2es15.8)') '"XSIF:Orbit"  REL 1e-8', orbit(0)%vec(1), orbit(0)%ve
 !
 
 call bmad_parser ('parse_test.bmad', lat, use_line = 'PHOT')
+call write_bmad_lattice_file ('out.bmad', lat)
+call bmad_parser ('out.bmad', lat)
 
 write (1, '(4a)')         '"PHOT-1"    STR ', '"', trim(lat%ele(1)%name), '"'
 write (1, '(2a, i0, a)')  '"PHOT-N"    STR ', '"', lat%n_ele_max, '"'
