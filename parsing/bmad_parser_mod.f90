@@ -1999,14 +1999,14 @@ implicit none
 
 type (ele_struct) ele
 real(rp) coef
-integer i_out, expn(6)
+integer i, i_out, expn(6)
 
 !
 
 if (.not. associated(ele%taylor(1)%term)) then
-  allocate (ele%taylor(1)%term(0), ele%taylor(2)%term(0))
-  allocate (ele%taylor(3)%term(0), ele%taylor(4)%term(0))
-  allocate (ele%taylor(5)%term(0), ele%taylor(6)%term(0))
+  do i = 1, size(ele%taylor)
+    allocate (ele%taylor(i)%term(0))
+  enddo
 endif
 
 if (i_out < 1 .or. i_out > 6) then

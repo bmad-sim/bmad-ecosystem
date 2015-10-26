@@ -349,13 +349,15 @@ type (taylor_struct) tlr
 
 integer, optional, intent(out) :: n_lines
 integer, optional :: max_order
-integer i, j, k, nl, ix
+integer i, j, k, nl, ix, nt
 
 character(*), optional, allocatable :: lines(:)
 character(100), allocatable :: li(:)
 character(40) fmt1, fmt2, fmt
 
 ! If not allocated then not much to do
+
+nt = size(bmad_taylor)
 
 if (.not. associated(bmad_taylor(1)%term)) then
   nl = 2
@@ -366,7 +368,7 @@ if (.not. associated(bmad_taylor(1)%term)) then
 ! Normal case
 
 else
-  nl = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, 6) ])
+  nl = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, nt) ])
   allocate(li(nl))
 
   write (li(1), *) 'Taylor Terms:'
@@ -378,7 +380,7 @@ else
   fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
   fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
 
-  do i = 1, 6
+  do i = 1, nt
     nl=nl+1; li(nl) = ' ---------------------------------------------------'
 
     nullify (tlr%term)
@@ -458,6 +460,43 @@ do i = 1, size(bmad_taylor)
 enddo
 
 end subroutine taylor_make_unit
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine spin_taylor_make_unit (spin_taylor)
+!
+! Subroutine to make the unit spin Taylor map:
+!       S(out) = Map * S(in) = S(in)
+!
+! Modules needed:
+!   use bmad
+!
+! Output:
+!   spin_taylor(3,3) -- Taylor_struct: Unit Taylor map .
+!-
+
+subroutine spin_taylor_make_unit (spin_taylor)
+
+implicit none
+
+type (taylor_struct) spin_taylor(:,:)
+integer i, j
+
+do i = 1, 3; do j = 1, 3
+  spin_taylor(i,j)%ref = 0
+  if (i == j) then
+    call init_taylor_series (spin_taylor(i,j), 1)
+    spin_taylor(i,j)%term(1)%coef = 1.0
+    spin_taylor(i,j)%term(1)%expn = 0
+    spin_taylor(i,j)%term(1)%expn(i) = 1
+  else
+    call init_taylor_series (spin_taylor(i,j), 0)
+  endif
+enddo; enddo
+
+end subroutine spin_taylor_make_unit
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -623,36 +662,46 @@ end subroutine init_taylor_series
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine kill_taylor (bmad_taylor)
+! Subroutine kill_taylor (bmad_taylor, spin_taylor)
 !
-! Subroutine to deallocate a Bmad taylor map.
+! Subroutine to deallocate a taylor map.
+! It is OK if the taylor has already been deallocated.
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   bmad_taylor(:) -- Taylor_struct: Taylor to be deallocated. It is OK
-!                       if bmad_taylor has already been deallocated.
+!   bmad_taylor(:)   -- Taylor_struct, optional: Taylor to be deallocated. 
+!   spin_taylor(3,3) -- Taylor_struct, optional: Taylor to be deallocated. 
 !
 ! Output:
-!   bmad_taylor(:) -- Taylor_struct: deallocated Taylor structure.
+!   bmad_taylor(:)   -- Taylor_struct, optional: deallocated Taylor structure.
+!   spin_taylor(3,3) -- Taylor_struct, optional: Taylor to be deallocated. 
 !-
 
-subroutine kill_taylor (bmad_taylor)
+subroutine kill_taylor (bmad_taylor, spin_taylor)
 
 implicit none
 
-type (taylor_struct) bmad_taylor(:)
+type (taylor_struct), optional :: bmad_taylor(:), spin_taylor(:,:)
 
-integer i
+integer i, j
 
 !
 
-do i = 1, size(bmad_taylor)
-  if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
-enddo
+if (present(bmad_taylor)) then
+  do i = 1, size(bmad_taylor)
+    if (associated(bmad_taylor(i)%term)) deallocate (bmad_taylor(i)%term)
+  enddo
+endif
 
-end subroutine
+if (present(spin_taylor)) then
+  do i = 1, size(spin_taylor, 1); do j = 1, size(spin_taylor, 2)
+    if (associated(spin_taylor(i,j)%term)) deallocate (spin_taylor(i,j)%term)
+  enddo; enddo
+endif
+
+end subroutine kill_taylor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

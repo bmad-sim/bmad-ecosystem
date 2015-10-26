@@ -706,8 +706,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%a_pole, ele%b_pole)
   nullify (ele%a_pole_elec, ele%b_pole_elec)
   nullify (ele%wake)
-  nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
-            ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+  forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
   nullify (ele%ptc_genfield%field)
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
@@ -760,12 +759,11 @@ endif
 
 if (associated (ele%taylor(1)%term)) then
   if (ele%slave_status == slice_slave$ .and. ele%key == taylor$) then
-    nullify (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
-             ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
-
+    forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
   else
-    deallocate (ele%taylor(1)%term, ele%taylor(2)%term, ele%taylor(3)%term, &
-                ele%taylor(4)%term, ele%taylor(5)%term, ele%taylor(6)%term)
+    do i = 1, size(ele%taylor)
+      deallocate (ele%taylor(i)%term)
+    enddo
   endif
 endif
 

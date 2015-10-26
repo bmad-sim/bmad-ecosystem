@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 164
+integer, parameter :: bmad_inc_version$ = 165
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -677,7 +677,8 @@ type ele_struct
   type (rad_int_ele_cache_struct), pointer :: rad_int_cache => null() 
                                                                ! Radiation integral calc cached values 
   type (space_charge_struct), pointer :: space_charge => null()
-  type (taylor_struct) :: taylor(6) = taylor_struct()          ! Taylor terms
+  type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
+  type (taylor_struct) :: spin_taylor(3,3) = taylor_struct()   ! Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
   type (wall3d_struct), pointer :: wall3d => null()            ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()                  ! Wiggler field

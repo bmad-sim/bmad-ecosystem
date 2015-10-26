@@ -15,7 +15,7 @@ coordinates $\Bf r(\Out)$
 \end{equation}
 ${\cal M}$ is made up of six functions ${\cal M}_i: {\cal R}^6
  \rightarrow {\cal R}$. Each of these functions maps to one of the $r(\Out)$
-coordinates. These functions can be expanded in a Taylor
+coordinates. Each of these functions can be expanded in a Taylor
 series and truncated at some order. Each Taylor series is in the form
 \Begineq
   r_i(\Out) = \sum_{j = 1}^N \, C_{ij} \, \prod_{k = 1}^6 \, r_k^{e_{ijk}}(\In)
@@ -93,6 +93,37 @@ Notice that once the coefficient values are determined the reference
 point does not play any role when the Taylor map is evaluated to
 determine the output coordinates as a function of the input
 coordinates.
+
+%-----------------------------------------------------------------
+\section{Spin Taylor Map}
+\label{s:spin.map}
+\index{spin taylor map}
+
+A Taylor map that fully describes spin and orbital motion, would
+consist of nine Taylor series (six for the orbital phase space
+variables and three for the spin components) and each Taylor series
+would be a polynomial in nine variables.
+
+To simplify things, \bmad assumes that the effect on the orbital phase
+space due to the spin orientation is negligible. That is, Stern-Gerlach
+effects are ignored. With this assumption, the orbital part of the map
+is only dependent on the six orbital variables. Furthermore, 
+the three spin Taylor series are linear in the spin coordinates
+and can be cast into matrix form:
+\Begineq
+  S_i(\Out) = \sum_{j} \sigma_{ij} \, S_i(\In)
+\Endeq
+where $\Bf S = (s_x, s_y, s_z)$ is the spin and $\sigma_{ij}$ are
+Taylor series that are only dependent upon the orbit coordinates. The
+proof of this assertion is derived from the
+Thomas-Bargmann-Michel-Telegdi equation (\sref{tbmt}). Since the
+orbital coordinates are assumed independent of the spin, the TBMT
+equation is linear in the spin and thus the transport can be described
+by a matrix. Furthermore, since the spin magnitude is an invarient,
+for given initial orbit coordinates, The $\sigma_{ij}$ matrix must
+just represent a rotation about some axis. While use of the $\sigma$
+matrix increases the number of Taylor series needed from 9 to 15,
+All the series are now only dependent the six orbit coordinates.
 
 %-----------------------------------------------------------------
 \section{Symplectification}

@@ -3738,18 +3738,24 @@ Attributes specific to a \vn{taylor} element are:
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
 \end{example}
-where \vn{<coef>} is a real number and \vn{<out>}, \vn{<e1>},
-\vn{<n1>}, etc. are integers. Notice that the first form uses
-a comma ``,'' to separate the \vn{<coef>} from \vn{<e1>} while
-the second form uses a vertical bar ``|'' to separate \vn{<coef>}
-from \vn{<n1>}.
+A Taylor term has a corfficient \vn{<coef>} which is a real number,
+integer exponents \vn{<e1>}, \vn{<n1>}, etc., and \vn{<out>} signifies
+which output variable the Taylor term is associated with. \vn{<Out>}
+is an integer in the range 1 to 6 for orbital phase space variables
+(\vn{<out>} = 1 for $x$, etc.), and if the term is associated with
+spin, \vn{<out>} is a two character string with each character being
+one of ``\vn{x}'', ``\vn{y}'', or ``\vn{z}''
 
-A term in a Taylor map is of the form
+Notice that the first form above uses a comma ``,'' to separate the
+\vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar
+``|'' to separate \vn{<coef>} from \vn{<n1>}.
+
+For orbital phase space varialbes a term in a Taylor map is of the form
 \Begineq
   x_j({\rm out}) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}({\rm in})
 \Endeq
 where $\Bf x = (x, p_x, y, p_y, z, p_z)$. A term in a Taylor map can
-be specified by one of two forms (see above). The first form specifies
+be specified by one of two forms as shown above. The first form specifies
 the six exponents $e_i$ using the integers \vn{<e1>} corresponding to
 $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in
 a Taylor map that was
@@ -3804,7 +3810,8 @@ element.
 
 Example \vn{taylor} element definition:
 \begin{example}
-  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\}
+  tt: Taylor, \{4:  2.7, 0 0 2 0 0 1\}, \{2:  1.9 | 1 1 2\},
+              \{xz: 0.43 | 2 \}, ...
 \end{example}
 
 A \vn{taylor} element that is ``turned off'' (\vn{is_on} attribute set
