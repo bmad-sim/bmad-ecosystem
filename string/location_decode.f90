@@ -96,10 +96,11 @@ do
     if (index < 0) then
       call out_io (s_error$, r_name, 'NAME MATCHES TO MULTIPLE LOCATIONS: ' // str(:ix_word))
       return
+    elseif (index > 0) then
+      found = .true.
+      ! Correction since match_word assumes that names(:) has lower bound of 1.
+      index = index + (ix_min - 1)  
     endif
-    ! Correction since match_word assumes that names(:) has lower bound of 1.
-    index = index + (ix_min - 1)  
-    found = .true.
   endif
 
   ! If there is no name match then assume it is a number
