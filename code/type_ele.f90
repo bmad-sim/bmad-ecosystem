@@ -735,10 +735,27 @@ if (l_status /= overlay_lord$ .and. l_status /= multipass_lord$ .and. &
       nl = nl + nt
     else
       n_term = 0
-      do i = 1, 6
+      do i = 1, size(ele%taylor)
         n_term = n_term + size(ele%taylor(i)%term)
       enddo
       nl=nl+1; write (li(nl), *) 'Taylor map total number of terms:', n_term
+    endif
+  endif
+
+  if (associated(ele%spin_taylor(1,1)%term)) then
+    nl=nl+1; li(nl) = ' '
+    if (logic_option(.false., type_taylor)) then
+      !! call type_taylors (ele%spin_taylor, lines = li2, n_lines = nt)
+      call re_associate (li, nl+nt+100, .false.)
+      li(1+nl:nt+nl) = li2(1:nt)
+      deallocate (li2)
+      nl = nl + nt
+    else
+      n_term = 0
+      do i = 1, 3; do j = 1, 3
+        n_term = n_term + size(ele%spin_taylor(i,j)%term)
+      enddo; enddo
+      nl=nl+1; write (li(nl), *) 'Spin_Taylor map total number of terms:', n_term
     endif
   endif
 

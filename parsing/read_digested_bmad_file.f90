@@ -424,7 +424,7 @@ real(rp) rdum
 integer i, j, lb1, lb2, lb3, ub1, ub2, ub3, nf, ng, ix_ele, ix_branch, ix_wall3d
 integer n_em_field_mode, i_min(3), i_max(3), ix_ele_in, ix_t(6), ios, k_max, ix_e
 integer ix_wig, ix_r, ix_s, ix_wig_branch, idum1, idum2, idum3, n_var, ix_d, ix_m
-integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch
+integer ix_sr_long, ix_sr_trans, ix_lr, ix_wall3d_branch, ix_st(3,3)
 integer i0, i1, j0, j1, j2
 
 logical error, is_alloc_pt
@@ -435,7 +435,7 @@ error = .true.
 
 read (d_unit, err = 9100, end = 9100) &
         mode3, ix_wig, ix_wig_branch, ix_r, ix_s, ix_wall3d_branch, &
-        idum2, idum3, ix_d, ix_m, ix_t, ix_e, ix_sr_long, ix_sr_trans, &
+        idum2, idum3, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, &
         ix_lr, ix_wall3d, n_em_field_mode, n_var
 read (d_unit, err = 9100, end = 9100) &
         ele%name, ele%type, ele%alias, ele%component_name, ele%x, ele%y, &
@@ -573,15 +573,24 @@ if (ix_e /= 0) then
   call elec_multipole_init (ele)
   read (d_unit, err = 9600) ele%a_pole_elec, ele%b_pole_elec
 endif
-  
-do j = 1, 6
-  if (ix_t(j) == 0) cycle
+
+do j = 1, size(ele%taylor)
+  if (ix_t(j) == -1) cycle
   read (d_unit, err = 9650) ele%taylor(j)%ref
   allocate (ele%taylor(j)%term(ix_t(j)))
   do k = 1, ix_t(j)
     read (d_unit, err = 9700) ele%taylor(j)%term(k)
   enddo
 enddo
+
+do i = 1, 3; do j = 1, 3
+  if (ix_st(i,j) == -1) cycle
+  read (d_unit, err = 9650) ele%spin_taylor(i,j)%ref
+  allocate (ele%spin_taylor(i,j)%term(ix_t(j)))
+  do k = 1, ix_st(i,j)
+    read (d_unit, err = 9700) ele%spin_taylor(i,j)%term(k)
+  enddo
+enddo; enddo
 
 ! If ix_lr is negative then it is a pointer to a previously read wake. 
 ! See write_digested_bmad_file.

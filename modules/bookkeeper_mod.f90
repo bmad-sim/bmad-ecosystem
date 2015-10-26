@@ -2739,7 +2739,7 @@ endif
 ! Kill the taylor map and ptc_genfield if necessary.
 
 if (non_offset_changed .or. (offset_changed .and. ele%taylor_map_includes_offsets)) then
-  if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor)
+  if (associated(ele%taylor(1)%term)) call kill_taylor(ele%taylor, ele%spin_taylor)
   if (associated(ele%ptc_genfield%field)) call kill_ptc_genfield(ele%ptc_genfield%field)
 endif
 

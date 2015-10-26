@@ -737,7 +737,8 @@ particle and the particle.}
 \end{figure}
 
 For charged particles (more correctly, for everything but photons
-(\sref{s:photon.phase.space})), \bmad uses the phase space coordinates
+(\sref{s:photon.phase.space})), \bmad uses the canonical phase space
+coordinates
 \Begineq
   \Bf r(s) = (x, p_x, y, p_y, z, p_z)
 \Endeq
@@ -864,10 +865,15 @@ $\psi_{1,2}$ are complex numbers (\sref{s:spin.dyn}).
 
 \index{phase space coordinates!PTC convention}
 \index{FPP/PTC!phase space convention}
-For those programmers using the PTC\index{PTC/FPP}
-software package directly (ignore
-this if you don't know what is being talked about here), \'Etienne Forest uses,
-by default, a different coordinate system. See Chapter~\sref{c:ptc} for more details.
+For those programmers using the PTC\index{PTC/FPP} software package
+directly (ignore this if you don't know what is being talked about
+here), \'Etienne Forest uses, by default, a different phase space
+coordinates which uses $(t, \Delta E/P_0)$ instead of \bmad's $(z,
+\Delta P/P_0)$. See Chapter~\sref{c:ptc} for more details. Which phase
+space coordinates are ``better'' is a matter of taste. In general, the
+equations of motion in a magnetic field are simpler with $(z, \Delta
+P/P_0)$ while the equations of motion in an electric field are simple
+with $(t, \Delta E/P_0)$.
 
 %-----------------------------------------------------------------------------
 \subsection{Time-based Phase Space Coordinates}
@@ -877,9 +883,9 @@ by default, a different coordinate system. See Chapter~\sref{c:ptc} for more det
 Some specialized routines (for example, time Runge Kutta tracking) use
 the time $t$ as the independent variable for charged particle
 tracking. This is useful when particles can reverse direction since the normal
-$z$ based tracking cannot handle this. [Direction reversal can happen, for example,
+$z$ based tracking cannot handle this. Direction reversal can happen, for example,
 with low energy ``dark current'' electrons that are generated at the
-walls of the vacuum chamber.]
+walls of the vacuum chamber.
 
 When the tracking is time based the phase space coordinates are:
 \Begineq
