@@ -6769,11 +6769,11 @@ interface
   subroutine ele_to_c2 (C, z_name, z_type, z_alias, z_component_name, z_descrip, n_descrip, &
       z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_control_var, n1_control_var, z_em_field, &
       n_em_field, z_floor, z_ptc_genfield, z_mode3, n_mode3, z_photon, n_photon, &
-      z_rad_int_cache, n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, z_wake, &
-      n_wake, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, &
-      z_time_ref_orb_in, z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, &
-      z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, &
-      n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, &
+      z_rad_int_cache, n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, &
+      z_spin_taylor, z_wake, n_wake, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, &
+      z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, z_old_value, z_vec0, &
+      z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, &
+      z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, &
       z_sub_key, z_ix_ele, z_ix_branch, z_slave_status, z_n_slave, z_ix1_slave, z_ix2_slave, &
       z_lord_status, z_n_lord, z_ic1_lord, z_ic2_lord, z_ix_pointer, z_ixx, z_iyy, &
       z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, &
@@ -6799,7 +6799,7 @@ interface
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field
     type(c_ptr), value :: z_floor, z_ptc_genfield, z_mode3, z_photon, z_rad_int_cache, z_space_charge, z_wake
     type(c_ptr), value :: z_wall3d, z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
-    type(c_ptr) :: z_control_var(*), z_taylor(*)
+    type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*)
   end subroutine
 end interface
 
@@ -6818,6 +6818,7 @@ integer(c_int) :: n_photon
 integer(c_int) :: n_rad_int_cache
 integer(c_int) :: n_space_charge
 type(c_ptr) :: z_taylor(6)
+type(c_ptr) :: z_spin_taylor(3*3)
 integer(c_int) :: n_wake
 integer(c_int) :: n_wall3d
 integer(c_int) :: n_wig
@@ -6867,6 +6868,11 @@ if (associated(F%space_charge)) n_space_charge = 1
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
   z_taylor(jd1) = c_loc(F%taylor(jd1+lb1))
 enddo
+!! f_side.to_c_trans[type, 2, NOT]
+do jd1 = 1, size(F%spin_taylor,1); lb1 = lbound(F%spin_taylor,1) - 1
+do jd2 = 1, size(F%spin_taylor,2); lb2 = lbound(F%spin_taylor,2) - 1
+  z_spin_taylor(3*(jd1-1) + jd2) = c_loc(F%spin_taylor(jd1+lb1,jd2+lb2))
+enddo; enddo
 !! f_side.to_c_trans[type, 0, PTR]
 n_wake = 0
 if (associated(F%wake)) n_wake = 1
@@ -6911,22 +6917,23 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     c_loc(F%b), c_loc(F%z), c_loc(F%x), c_loc(F%y), c_loc(F%bookkeeping_state), z_control_var, &
     n1_control_var, c_loc(F%em_field), n_em_field, c_loc(F%floor), c_loc(F%ptc_genfield), &
     c_loc(F%mode3), n_mode3, c_loc(F%photon), n_photon, c_loc(F%rad_int_cache), &
-    n_rad_int_cache, c_loc(F%space_charge), n_space_charge, z_taylor, c_loc(F%wake), n_wake, &
-    c_loc(F%wall3d), n_wall3d, c_loc(F%wig), n_wig, c_loc(F%map_ref_orb_in), &
-    c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), &
-    fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
-    fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), F%gamma_c, F%s, &
-    F%ref_time, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, fvec2vec(F%a_pole, &
-    n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, fvec2vec(F%a_pole_elec, &
-    n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, n1_b_pole_elec), n1_b_pole_elec, &
-    F%key, F%sub_key, F%ix_ele, F%ix_branch, F%slave_status, F%n_slave, F%ix1_slave, &
-    F%ix2_slave, F%lord_status, F%n_lord, F%ic1_lord, F%ic2_lord, F%ix_pointer, F%ixx, F%iyy, &
-    F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%ptc_integration_type, &
-    F%field_calc, F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
-    c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
-    c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
-    c_logic(F%old_is_on), c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%select), &
-    c_logic(F%csr_calc_on), c_logic(F%offset_moves_aperture))
+    n_rad_int_cache, c_loc(F%space_charge), n_space_charge, z_taylor, z_spin_taylor, &
+    c_loc(F%wake), n_wake, c_loc(F%wall3d), n_wall3d, c_loc(F%wig), n_wig, &
+    c_loc(F%map_ref_orb_in), c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), &
+    c_loc(F%time_ref_orb_out), fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, &
+    num_ele_attrib$), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), &
+    F%gamma_c, F%s, F%ref_time, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, &
+    fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, &
+    fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
+    n1_b_pole_elec), n1_b_pole_elec, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%slave_status, &
+    F%n_slave, F%ix1_slave, F%ix2_slave, F%lord_status, F%n_lord, F%ic1_lord, F%ic2_lord, &
+    F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, &
+    F%ptc_integration_type, F%field_calc, F%aperture_at, F%aperture_type, F%orientation, &
+    c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
+    c_logic(F%scale_multipoles), c_logic(F%taylor_map_includes_offsets), &
+    c_logic(F%field_master), c_logic(F%is_on), c_logic(F%old_is_on), c_logic(F%logic), &
+    c_logic(F%bmad_logic), c_logic(F%select), c_logic(F%csr_calc_on), &
+    c_logic(F%offset_moves_aperture))
 
 end subroutine ele_to_c
 
@@ -6949,8 +6956,8 @@ end subroutine ele_to_c
 subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, n_descrip, z_a, &
     z_b, z_z, z_x, z_y, z_bookkeeping_state, z_control_var, n1_control_var, z_em_field, &
     n_em_field, z_floor, z_ptc_genfield, z_mode3, n_mode3, z_photon, n_photon, z_rad_int_cache, &
-    n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, z_wake, n_wake, z_wall3d, &
-    n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
+    n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, z_spin_taylor, z_wake, n_wake, &
+    z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
     z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, &
     z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, &
     n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, z_sub_key, z_ix_ele, z_ix_branch, &
@@ -6993,7 +7000,7 @@ type(space_charge_struct), pointer :: f_space_charge
 real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_s
 real(c_double) :: z_ref_time
 type(em_fields_struct), pointer :: f_em_field
-type(c_ptr) :: z_control_var(*), z_taylor(*)
+type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*)
 type(wall3d_struct), pointer :: f_wall3d
 
 call c_f_pointer (Fp, F)
@@ -7088,6 +7095,12 @@ endif
 do jd1 = 1, size(F%taylor,1); lb1 = lbound(F%taylor,1) - 1
   call taylor_to_f(z_taylor(jd1), c_loc(F%taylor(jd1+lb1)))
 enddo
+!! f_side.to_f2_trans[type, 2, NOT]
+do jd1 = 1, size(F%spin_taylor,1); lb1 = lbound(F%spin_taylor,1) - 1
+do jd2 = 1, size(F%spin_taylor,2); lb2 = lbound(F%spin_taylor,2) - 1
+  call taylor_to_f(z_spin_taylor(3*(jd1-1) + jd2), c_loc(F%spin_taylor(jd1+lb1,jd2+lb2)))
+enddo; enddo
+
 !! f_side.to_f2_trans[type, 0, PTR]
 if (n_wake == 0) then
   if (associated(F%wake)) deallocate(F%wake)

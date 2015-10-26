@@ -1076,6 +1076,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   if (!is_eq) return false;
   if (x.space_charge != NULL) is_eq = (*x.space_charge == *y.space_charge);
   is_eq = is_eq && is_all_equal(x.taylor, y.taylor);
+  is_eq = is_eq && is_all_equal(x.spin_taylor, y.spin_taylor);
   is_eq = is_eq && ((x.wake == NULL) == (y.wake == NULL));
   if (!is_eq) return false;
   if (x.wake != NULL) is_eq = (*x.wake == *y.wake);

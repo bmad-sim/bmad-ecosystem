@@ -2466,6 +2466,7 @@ public:
   CPP_rad_int_ele_cache* rad_int_cache;
   CPP_space_charge* space_charge;
   CPP_taylor_ARRAY taylor;
+  CPP_taylor_MATRIX spin_taylor;
   CPP_wake* wake;
   CPP_wall3d* wall3d;
   CPP_wig* wig;
@@ -2566,6 +2567,7 @@ public:
     rad_int_cache(NULL),
     space_charge(NULL),
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
+    spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 3), 3),
     wake(NULL),
     wall3d(NULL),
     wig(NULL),
