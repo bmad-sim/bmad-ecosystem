@@ -1193,6 +1193,13 @@ logical, optional :: err_print_flag, except_overlay
 
 character(16) :: r_name = 'attribute_free'
 
+! Elements not assocaited with a lattice are considered free.
+
+if (.not. associated(ele%branch)) then
+  free = .true.
+  return
+endif
+
 ! init & check
 
 do_print = logic_option (.true., err_print_flag)
