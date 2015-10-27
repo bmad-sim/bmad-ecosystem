@@ -64,7 +64,7 @@ character(280) parse_line_save, call_file
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical check, err_if_not_found, wild_here, wild_and_key0
+logical err_if_not_found, wild_here, wild_and_key0
 
 ! Init...
 
@@ -333,7 +333,7 @@ parsing_loop: do
 
       bp_com%parse_line = parse_line_save
       found = .true.
-      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = check, wild_and_key0 = wild_and_key0)
+      call parser_set_attribute (redef$, ele, lat, delim, delim_found, err, check_free = .true., wild_and_key0 = wild_and_key0)
       if (.not. err .and. delim_found) then
         call parser_error ('BAD DELIMITER: ' // delim)
         exit
