@@ -841,6 +841,8 @@ endif
 if (allocated(lat%control))  deallocate (lat%control)
 if (allocated(lat%ic))       deallocate (lat%ic)
 
+if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
+
 ! Do not need to deallocate stuff in lat%branch(0) since
 ! these pointers have been deallocated above.
 
