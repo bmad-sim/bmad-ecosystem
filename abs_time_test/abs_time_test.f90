@@ -19,7 +19,7 @@ call init_coord (orb1(0), lat%beam_start, lat%ele(0), downstream_end$)
 call track_all (lat, orb1)
 
 lat%absolute_time_tracking = .true.
-call autoscale_phase_and_amp (lat%ele(2), lat%param, err_flag)
+!!call autoscale_phase_and_amp (lat%ele(2), lat%param, err_flag)
 call lattice_bookkeeper (lat)
 
 call reallocate_coord (orb2, lat%n_ele_max)
@@ -45,7 +45,7 @@ write (1, '(a, es22.12)') '"dvec(3)" ABS  2E-19', orb2(2)%vec(3) - orb1(2)%vec(3
 write (1, '(a, es22.12)') '"dvec(4)" ABS  1E-19', orb2(2)%vec(4) - orb1(2)%vec(4)
 write (1, '(a, es22.12)') '"dvec(5)" ABS  2E-15', orb2(2)%vec(5) - orb1(2)%vec(5)
 write (1, '(a, es22.12)') '"dvec(6)" ABS  5E-15', orb2(2)%vec(6) - orb1(2)%vec(6)
-write (1, '(a, es22.12)') '"dt"      ABS  1E-23', orb2(2)%t - orb1(2)%t
+write (1, '(a, es22.12)') '"c*dt"    ABS  1E-15', c_light * (orb2(2)%t - orb1(2)%t)
 
 close (1)
 
