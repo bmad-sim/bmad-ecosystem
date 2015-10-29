@@ -124,11 +124,7 @@ if (ele%tracking_method == bmad_standard$) then
     ele%value(e_tot$) = e_tot
   endif 
   
-  if (absolute_time_tracking(ele)) then
-    ele%value(phi0_ref$) = -ele%value(rf_frequency$) * ele%value(ref_time_start$)
-  else
-    ele%value(phi0_ref$) = 0
-  endif
+  ele%value(phi0_ref$) = 0
   return
 endif
 

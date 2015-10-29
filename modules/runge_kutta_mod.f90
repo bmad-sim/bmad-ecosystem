@@ -127,7 +127,7 @@ if (ele%key == patch$) s_edge_track = s2
 
 ! Initial time
 
-t = particle_time(orb_end, ele)
+t = particle_ref_time(orb_end, ele)
 
 ! Save initial point
 

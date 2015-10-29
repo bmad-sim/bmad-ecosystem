@@ -167,17 +167,21 @@ appropriate attribute. For example:
 
 changing an element attribute generally involves changing values in the 
 \vn{%ele(i)%value(:)} array. This is done using the 
-\vn{set_ele_attribute} routine. For example:
+\Hyperref{r:set.ele.attribute}{set_ele_attribute} routine. For example:
 \begin{example}
   type (lat_struct) lat
+  type (ele_pointer_struct), allocatable :: eles(:)
+  integer n_loc, n
   logical err_flag, make_xfer_mat
   ...
-  call element_locator ('Q01W', lat, ix_ele)
-  call set_ele_attribute (lat, ix_ele, 'K1', 0.1_rp, err_flag, make_xfer_mat)
+  call lat_ele_locator ('Q01W', lat, eles, n_loc, err_flag)
+  do n = 1, n_loc
+    call set_ele_attribute (eles(n)%ele, 'K1 = 0.1', lat, err_flag)
+  enddo
 \end{example}
 \index{overlay}
-This example sets the \vn{K1} attribute of an element named \vn{Q01W}.
-\vn{set_ele_attribute} checks whether this element is actually free to
+This example sets the \vn{K1} attribute of all elements named \vn{Q01W}.
+\vn{set_ele_attribute} checks whether an element is actually free to
 be varied and sets the \vn{err_flag} logical accordingly. An element's
 attribute may not be freely varied if, for example, the attribute is
 controlled via an \vn{Overlay}.

@@ -2236,31 +2236,20 @@ dependent attribute and is defined to be
 
 The energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = gradient_tot * L * cos(twopi * (phase_particle + phase_ref))
+  dE = gradient_tot * L * cos(\(2\,\pi\) * (\(\phi_\text{particle}\) + \(\phi_\text{ref}\)))
 \end{example}
 \index{multipass}
 where the total gradient is
 \begin{example}
   gradient_tot = (gradient + gradient_err) * field_factor
 \end{example}
-the phase \vn{phase_ref} is
+The phase $\phi_{\text{ref}}$ is
 \begin{example}
-  phase_ref = phi0 + phi0_multipass + phi0_err + phi0_ref
+  \(\phi_{\text{ref}}\) = phi0 + phi0_multipass + phi0_err + phi0_ref
 \end{example}
-and \vn{phase_particle} is
-\begin{example}
-  phase_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
-                 =  t_particle * rf_frequency    ! With absolute time tracking
-\end{example}
-With \vn{relative time tracking}, the phase, \vn{phase_particle}, of the
-particle with respect to the cavity's internal clock is proportional
-to \vn{z} -- the particles' phase space coordinate
-(\sref{s:phase.space}). With \vn{absolute time tracking},
-\vn{phase_particle} is proportional to the absolute time the particle
-reaches the cavity. See section~\sref{s:rf.time} for a discussion on
-relative verses absolute time tracking. The switch to set the type of
-tracking for a lattice is \vn{parameter[absolute_time_tracking]}
-(\sref{s:param}).
+and $\phi_t$ is the part of the phase due to when the particle arrives
+at the cavity and depends upon whether \vn{absolute time tracking} or 
+\vn{relative time tracking} as discussed in \sref{s:rf.time}.
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a
 \vn{multipass} lord. See \sref{s:multipass}.
@@ -2271,14 +2260,14 @@ tracking for a lattice is \vn{parameter[absolute_time_tracking]}
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
 \begin{example}
-  dE(reference) = gradient * L * cos(twopi * phase_ref)
+  dE(reference) = gradient * L * cos(\(2\,\pi\) * \(\phi_{\text{ref}}\))
 \end{example}
 
 The energy kick for a \bmad \vn{lcavity} is consistent with MAD. 
 Note: The MAD8 documentation for an \vn{lcavity} has a wrong
 sign. Essentially the MAD8 documentation gives
 \begin{example}
-  dE = gradient * L * cos(twopi * (phase_ref - phi(z))) ! WRONG
+  dE = gradient * L * cos(\(2\,\pi\) * (\(\phi_{\text{ref}}\) - phi(z))) ! WRONG
 \end{example}
 This is incorrect. 
 
@@ -3354,28 +3343,16 @@ Attributes specific to an \vn{rfcavity} are:
 The \vn{phi0} attribute here is identical to the \vn{lag} attribute of
 \mad. The integrated energy kick felt by a particle, assuming no phase slippage, is 
 \begin{example}
-  dE = -e_charge * voltage * sin(twopi * (phase_particle - phase_ref))
+  dE = -e_charge * voltage * sin(\(2\,\pi\) * (\(\phi_\text{t}\) - \(\phi_\text{ref}\)))
 \end{example}
 \index{multipass}
 where
 \begin{example}
-  phase_ref = phi0 + phi0_multipass + phi0_ref
+  \(\phi_\text{ref}\) = phi0 + phi0_multipass + phi0_ref
 \end{example}
-and
-and \vn{phase_particle} is
-\begin{example}
-  phase_particle = -z * rf_frequency / velocity  ! With relative time tracking (\sref{s:rf.time})
-                 =  t_particle * rf_frequency    ! With absolute time tracking
-\end{example}
-With \vn{relative time tracking}, the phase, \vn{phase_particle}, of
-the particle with respect to the cavity's internal clock is
-proportional to \vn{z} -- the particles' phase space coordinate
-(\sref{s:phase.space}). With \vn{absolute time tracking},
-\vn{phase_particle} is proportional to the absolute time the particle
-reaches the cavity. See section~\sref{s:rf.time} for a discussion on
-relative verses absolute time tracking. The switch to set the type of
-tracking for a lattice is \vn{parameter[absolute_time_tracking]}
-(\sref{s:param}).
+and $\phi_t$ is the part of the phase due to when the particle arrives
+at the cavity and depends upon whether \vn{absolute time tracking} or 
+\vn{relative time tracking} as discussed in \sref{s:rf.time}.
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect
 to a \vn{multipass} lord. See \sref{s:multipass}. \vn{e_charge} is the

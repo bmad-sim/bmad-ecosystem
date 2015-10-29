@@ -259,7 +259,7 @@ Routine to calculate the Touschek lifetime for a lat.
 \label{r:em.field.calc}
 \item[\protect\parbox{6in}{
     em_field_calc (ele, param, s_pos, time, orbit, local_ref_frame, field, \\
-    \hspace*{1in} calc_dfield, err_flag) }] \Newline 
+    \hspace*{1in} calc_dfield, err_flag, potential) }] \Newline 
 Routine to calculate the E and B fields for an element.
 
 \index[routine]{em_field_custom}
@@ -378,7 +378,7 @@ See out_io for more details.
 
 \index[routine]{read_a_line}
 \label{r:read.a.line}
-\item[read_a_line (prompt, line_out, trim_prompt)] \Newline 
+\item[read_a_line (prompt, line_out, trim_prompt, prompt_color, prompt_bold)] \Newline 
 Routine to read a line of input from the terminal.
 The line is also add to the history buffer so that the up-arrow
 
@@ -410,11 +410,6 @@ Routine to type out a file to the screen.
 \label{r:helper.math}
 
 \begin{description}
-
-\index[routine]{abs_sort}
-\label{r:abs.sort}
-\item[abs_sort (array, index, n)] \Newline 
-  Routine to sort by absolute value.
 
 \index[routine]{complex_error_function}
 \label{r:complex.error.function}
@@ -779,7 +774,7 @@ Routine to make sure the attributes of an element are self-consistent.
 
 \index[routine]{autoscale_phase_and_amp}
 \label{r:autoscale.phase.and.amp}
-\item[autoscale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase)] \Newline 
+\item[autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp, call_bookkeeper)] \Newline 
 Routine to set the phase offset and amplitude scale of the accelerating field. 
 This routine works on lcavity, rfcavity and e_gun elements.
 
@@ -805,7 +800,7 @@ Routine to create a group control element.
 
 \index[routine]{create_overlay}
 \label{r:create.overlay}
-\item[create_overlay (lord, attrib_name, contl, err, err_print_flag)] \Newline
+\item[create_overlay (lord, contl, err, err_print_flag)] \Newline
 Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
@@ -829,7 +824,7 @@ and with the elements with reversed orientaiton.
 
 \index[routine]{make_hybrid_lat}
 \label{r:make.hybrid.lat}
-\item[make_hybrid_lat (r_in, keep_ele, remove_markers, r_out, ix_out, use_taylor, orb0)] \Newline
+\item[make_hybrid_lat (lat_in, lat_out, use_taylor, orb0_arr)] \Newline
 Routine to concatenate together elements to make a hybrid lat 
 
 \index[routine]{new_control}
@@ -899,12 +894,6 @@ Routine to set the bookkeeping status block.
     \hspace*{1in} add_suffix, check_sanity, save_null_drift, err_flag)} ] \Newline
 Routine to split a lat at a point.
 
-\index[routine]{update_hybrid_list}
-\label{r:update.hybrid.list}
-\item[update_hybrid_list (lat, n_in, keep_ele, keep_overlays_and_groups)] \Newline
-Routine used to specify a list of element that should not be
-hybridized by \vn{make_hybrid_lat}.
-
 \end{description}
 
 %------------------------------------------------------------------------
@@ -939,11 +928,6 @@ This is an essentially an inverse of routine coords_relative_to_floor.
 \item[floor_w_mat_to_angles (w_mat, theta0, theta, phi, psi, floor0)] \Newline 
 Routine to construct the angles that define the orientation of an element
 in the global "floor" coordinates from the W matrix. See the Bmad manual for more details.
-
-\index[routine]{init_floor}
-\label{r:init.floor}
-\item[init_floor (floor)] \Newline 
-Routine to initialize a floor_position_struct to zero.
 
 \index[routine]{lat_geometry}
 \label{r:lat.geometry}
@@ -1102,7 +1086,7 @@ name known to bmad.
 
 \index[routine]{name_to_list}
 \label{r:name.to.list}
-\item[name_to_list (lat, ele_names, use_ele)] \Newline
+\item[name_to_list (lat, ele_names)] \Newline
 Routine to make a list of the elements in a lat 
 whose name matches the names in the ele_names list. 
 
@@ -1262,7 +1246,7 @@ the attribute name table.
 
 \index[routine]{set_ele_defaults}
 \label{r:set.ele.defaults}
-\item[set_ele_defaults (ele)] \Newline 
+\item[set_ele_defaults (ele, do_allocate)] \Newline 
 Subroutine to set the defaults for an element of a given type.
 
 \index[routine]{set_on_off}
@@ -1391,7 +1375,7 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
 \item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, \\
-  \hspace*{1in} use_matrix_model, include_apertures, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
+  \hspace*{1in} dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 
@@ -1887,7 +1871,9 @@ Routine to concatenate two real_8 taylor series.
 
 \index[routine]{ele_to_fibre}
 \label{r:ele.to.fibre}
-\item[ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, for_layout, tracking_species)] \Newline
+\item[\protect\parbox{6in}{
+    ele_to_fibre (ele, ptc_fibre, param, use_offsets, integ_order, steps, \\
+    \hspace*{1in} for_layout, tracking_species, use_hard_edge_drifts) }] \Newline
 Routine to convert a Bmad element to a PTC fibre element. 
 
 \index[routine]{map_coef}
@@ -2872,7 +2858,7 @@ Routine to initialize a Bmad Taylor series.
 
 \index[routine]{kill_taylor}
 \label{r:kill.taylor}
-\item[kill_taylor (bmad_taylor)] \Newline
+\item[kill_taylor (bmad_taylor, spin_taylor)] \Newline
 Routine to deallocate a Bmad Taylor map. 
 
 \index[routine]{mat6_to_taylor}
@@ -3001,7 +2987,7 @@ integer number of steps spans the length.
 
 \index[routine]{dynamic_aperture}
 \label{r:dynamic.aperture}
-\item[dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture)] \Newline
+\item[dynamic_aperture (lat, orb0, theta_xy, aperture_param, aperture, check_xy_init)] \Newline
 Routine to determine the dynamic aperture of a lattice via tracking. 
 
 \index[routine]{multi_turn_tracking_analysis}
@@ -3331,7 +3317,7 @@ Particle tracking through a single element BMAD_standard style.
 
 \index[routine]{track1_custom}
 \label{r:track1.custom}
-    track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
+    \item[track1_custom (start_orb, ele, param, end_orb, err_flag, finished, track)] \Newline
 Dummy routine for custom tracking.
 
 \index[routine]{track1_postprocess}
@@ -3504,7 +3490,7 @@ Routine to form the 2x2 1-turn transfer matrix from the Twiss parameters.
 
 \index[routine]{normal_mode3_calc}
 \label{r:normal.mode3.calc}
-\item[normal_mode3_calc (t6, tune, B, HV, counter_rotating_z)] \Newline 
+\item[normal_mode3_calc (t6, tunes, B, HV, counter_rotating_z)] \Newline 
 Decompose a 2n x 2n symplectic matrix into normal modes.
 For more details see:
 
@@ -3598,12 +3584,6 @@ Replaced by lat_ele_locator.
 \label{r:element.locator}
 \item[element_locator (ele_name, lat, ix_ele)] \Newline
 Replaced by lat_ele_locator.
-
-\index[routine]{emit_calc}
-\label{r:emit.calc}
-\item[emit_calc (lat, what, mode)] \Newline 
-Routine to calculate the emittance, energy spread, and synchrotron
-integrals. This routine assumes that bends are in the horizontal plane.
 
 \end{description}
 
