@@ -1,6 +1,6 @@
 module opti_de_mod
 
-use precision_def
+use output_mod
 
 type opti_de_param_struct
   real(rp) :: CR = 0.8                    ! Crossover probability
@@ -30,9 +30,9 @@ contains
 !    
 ! Differential Evolution for Optimal Control Problems.
 ! This optimizer is based upon the work of Storn and Price: 
-!   R. Storn, and K. V. Price, "Minimizing the real function of the 
-!   ICEC'96 contest by differential evolution" IEEE conf. on Evolutionary 
-!   Computation, 842-844 (1996).
+!   R. Storn, and K. V. Price, 
+!   "Minimizing the real function of the ICEC'96 contest by differential evolution"
+!   IEEE conf. on Evolutionary  Computation, 842-844 (1996).
 !
 ! Both arrays: v_best(:) and v_del(:) need to have the same size.
 !
@@ -46,13 +46,14 @@ contains
 ! and the average number of crossover parameters is approximately
 !     average crossovers ~ min(D, CR / (1 - CR))
 ! where D is the total number of parameters.
+!
 ! With Binary crossover the probability of crossover of a parameter is 
 ! uncorrelated with the probability of crossover of any other parameter and
 ! the average number of crossovers is
 !     average crossovers = D * CR
 !
 ! The parameters used for the DE are in opti_de_param:
-!                           Default
+!                                 Default
 !   opti_de_param%CR               0.8    ! Crossover Probability.
 !   opti_de_param%F                0.8    !
 !   opti_de_param%l_best           0.0    ! Percentage of best solution used.
@@ -76,7 +77,7 @@ contains
 !   end function
 !
 ! Modules needed:
-!   use opti_mod
+!   use opti_de_mod
 !
 ! Input:
 !   generations -- Integer: Number of generations to evolve.
@@ -92,8 +93,8 @@ contains
 !   best_merit -- Real(rp): Merit at minimum.
 !-
 
-function opti_de (v_best, generations, population, merit_func, &
-                                              v_del, status) result (best_merit)
+function opti_de (v_best, generations, population, merit_func, v_del, status) result (best_merit)
+
 use nr, only: indexx
 
 implicit none
@@ -126,24 +127,25 @@ integer p1, p2, p3, p4, p5
 
 logical this_better_merit, this_best_merit
 
+character(*), parameter :: r_name = 'opti_de'
+
 ! Error check
 
 nd = size(v_best)
 
 if (size(v_del) /= nd) then
-  print *, 'ERROR IN OPTI_DE: ARRAY SIZES NOT THE SAME!'
-  print *, '       FOR V_DEL, AND V_BEST:', size(v_del), nd
+  call out_io (s_error$, r_name, 'ARRAY SIZES NOT THE SAME!', &
+                               'FOR V_DEL, AND V_BEST: \2i6\ ', i_array=[size(v_del), nd])
   if (global_com%exit_on_error) call err_exit
 endif
 
 if (population < 4) then
-  print *, 'ERROR IN OPTI_DE: POPULATION MUST BE AT LEAST 4!', population
+  call out_io (s_error$, r_name, 'POPULATION MUST BE AT LEAST 4! IT IS: \i0\ ', population)
   if (global_com%exit_on_error) call err_exit
 endif
 
 if (population < 6 .and. opti_de_param%use_2nd_diff) then
-  print *, 'ERROR IN OPTI_DE: POPULATION MUST BE AT LEAST 6 WITH'
-  print *, '      USE_2ND_DIFF!', population
+  call out_io (s_error$, r_name, 'POPULATION MUST BE AT LEAST 6 WITH USE_2ND_DIFF! IT IS: \i0\ ', population)
   if (global_com%exit_on_error) call err_exit
 endif
 
@@ -260,8 +262,7 @@ do ng = 1, generations
 
     v1 = trial(p1)%vec + opti_de_param%l_best * (v_best - trial(p1)%vec) + &
                           F * (trial(p2)%vec - trial(p3)%vec)
-    if (opti_de_param%use_2nd_diff) v1 = v1 + &
-                                  F * (trial(p4)%vec - trial(p5)%vec)
+    if (opti_de_param%use_2nd_diff) v1 = v1 + F * (trial(p4)%vec - trial(p5)%vec)
 
     ! Perform crossover
 
