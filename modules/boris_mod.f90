@@ -115,7 +115,7 @@ call reference_energy_correction (ele, orb_end, first_track_edge$)
 
 call offset_particle (ele, param, set$, orb_end, set_hvkicks = .false., set_multipoles = .false.)
 
-t = particle_time(orb_end, ele)
+t = particle_ref_time(orb_end, ele)
 
 ! if we are saving the trajectory then allocate enough space in the arrays
 

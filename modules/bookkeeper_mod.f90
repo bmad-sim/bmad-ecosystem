@@ -1457,10 +1457,10 @@ endif
 ! Save values from old_slice if present
 
 if (present(old_slice)) then
-  ele0%value(p0c$)       = old_slice%value(p0c$)
-  ele0%value(e_tot$)     = old_slice%value(e_tot$)
-  ele0%ref_time  = old_slice%ref_time
-  time_ref_orb_out = old_slice%time_ref_orb_out
+  ele0%value(p0c$)   = old_slice%value(p0c$)
+  ele0%value(e_tot$) = old_slice%value(e_tot$)
+  ele0%ref_time      = old_slice%ref_time
+  time_ref_orb_out   = old_slice%time_ref_orb_out
 endif
 
 !
@@ -1502,7 +1502,7 @@ sliced_ele%field_calc = refer_to_lords$
 if (offset == 0) then
   ele0%value(p0c$)      = ele_in%value(p0c_start$)
   ele0%value(e_tot$)    = ele_in%value(e_tot_start$)
-  ele0%ref_time        = ele_in%value(ref_time_start$)
+  ele0%ref_time         = ele_in%value(ref_time_start$)
   sliced_ele%time_ref_orb_in = ele_in%time_ref_orb_in
 
 elseif (present(old_slice)) then
@@ -1520,7 +1520,7 @@ else
   if (err2_flag) return
   ele0%value(p0c$)      = ele2%value(p0c$)
   ele0%value(e_tot$)    = ele2%value(e_tot$)
-  ele0%ref_time        = ele2%ref_time
+  ele0%ref_time         = ele2%ref_time
   sliced_ele%time_ref_orb_in = ele2%time_ref_orb_out
 endif
 

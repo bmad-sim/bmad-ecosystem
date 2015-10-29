@@ -2875,14 +2875,14 @@ end function absolute_time_tracking
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_time (orbit, ele) result (time)
+! Function particle_ref_time (orbit, ele) result (time)
 !
-! Routine to return the current time for use, for example, 
-! in calculations of time-dependent EM fields.
+! Routine to return the reference time used to calculate the phase of
+! time-dependent EM fields.
 !
-! The oscillations of such fields are synched relative to the absolute clock if 
+! Essentially: The oscillations of EM fields are synched relative to the absolute clock if 
 ! absolute time tracking is used or are synched relative to the reference particle
-! if relative time tracking is used.
+! if relative time tracking is used. See the Bmad manual for more details.
 !
 ! Input:
 !   orbit -- Coord_struct: Particle coordinates
@@ -2892,19 +2892,21 @@ end function absolute_time_tracking
 !   time  -- Real(rp): Current time.
 !-
 
-function particle_time (orbit, ele) result (time)
+function particle_ref_time (orbit, ele) result (time)
 
 type (coord_struct) orbit
 type (ele_struct) ele
 
 real(rp) time
 logical abs_time
-character(16), parameter :: r_name = 'particle_time'
+character(16), parameter :: r_name = 'particle_ref_time'
 
+! With absolute time tracking the reference time is relative to the reference time of the element.
+! This way the phase does not have to be adjusted when switching between absolute and relative time tracking.
 ! Note: e_gun uses absolute time tracking to get around the problem when orbit%beta = 0.
 
 if (absolute_time_tracking(ele)) then
-  time = orbit%t 
+  time = orbit%t - ele%value(ref_time_start$)
 
 else
   if (orbit%beta == 0) then
@@ -2916,7 +2918,7 @@ else
   time = -orbit%vec(5) / (orbit%beta * c_light)
 endif
 
-end function particle_time
+end function particle_ref_time
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

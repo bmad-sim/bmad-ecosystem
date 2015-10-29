@@ -8,20 +8,13 @@
 ! Runge-Kutta time-based tracking. Converts to and from element
 ! coordinates before and after tracking.
 !
-! Note that the argument tref in is arbitrary in the function
-! convert_particle_coordinates_t_to_s, so the value ele%ref_time is
-! used. Consistency is what matters.
-!
 ! Modules Needed:
 !   use time_tracker_mod
 !
 ! Input:
-!   start_orb                  -- coord_struct: starting position, t-based global
-!   ele                    -- ele_struct: element
-!    %value                -- real(rp): attribute values
-!    %ref_time             -- real(rp): time ref particle passes exit end
-!    %s                    -- real(rp): longitudinal ref position at exit end
-!   param                  -- lat_param_struct: lattice parameters
+!   start_orb   -- coord_struct: starting position, t-based global
+!   ele         -- ele_struct: element
+!   param       -- lat_param_struct: lattice parameters
 !
 ! Output:
 !   end_orb     -- coord_struct: end position, t-based global
@@ -48,7 +41,7 @@ type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
-real(rp) dt_step, ref_time, vec6
+real(rp) dt_step, vec6
 real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
 real(rp) s_edge_track, s_edge_hard
 
@@ -64,7 +57,7 @@ logical :: abs_time, err_flag, err
 err_flag = .true.
 
 end_orb = start_orb
-time = particle_time(start_orb, ele)
+time = particle_ref_time(start_orb, ele)
 
 ! If element has zero length, skip tracking
 
@@ -164,10 +157,9 @@ if (end_orb%location /= inside$ .and. end_orb%vec(6) < 0) then
   !set reference time and momentum
   end_orb%p0c = ele%value(p0c_start$)
   end_orb%direction = -1
-  ref_time = ele%ref_time - ele%value(delta_ref_time$)
 
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele%value(ref_time_start$))
   ! call apply_element_edge_kick (end_orb, ele, param, upstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)
@@ -183,9 +175,8 @@ elseif (end_orb%state /= alive$) then
     end_orb%direction = 1
   end if
 
-  ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
                           ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
@@ -194,9 +185,8 @@ elseif (end_orb%location /= inside$ .and. end_orb%vec(6) >= 0) then
   !Particle left exit end going forward
   end_orb%p0c = ele%value(p0c$)
   end_orb%direction = 1
-  ref_time = ele%ref_time
   !ele(t-based) -> ele(s-based)
-  call convert_particle_coordinates_t_to_s(end_orb, ref_time)
+  call convert_particle_coordinates_t_to_s(end_orb, ele%ref_time)
   !call apply_element_edge_kick (end_orb, ele, param, downstream_end$)
   !unset
   call offset_particle (ele, param, unset$, end_orb, set_hvkicks = .false., set_multipoles = .false.)

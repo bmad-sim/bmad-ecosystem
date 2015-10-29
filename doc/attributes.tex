@@ -1944,8 +1944,8 @@ modes (functions). As dissused below, both \vn{grid} and \vn{map} use the
 \vn{field} attribute of an element to specify the needed parameters.
 Examples:
 \begin{example}
-  q: quadrupole, field_type = grid, field = \{grid = \{...\}\}, ...
-  r: rfcavity, field_type = map, field = \{map = \{...\}\}, ...
+  q: quadrupole, field_calc = grid, field = \{grid = \{...\}\}, ...
+  r: rfcavity, field_calc = map, field = \{map = \{...\}\}, ...
 \end{example}
 \index{lcavity}\index{rfcavity}\index{em_field}\index{field}
 Fields so specified can be used with, for example, \vn{runge_kutta}
@@ -2109,13 +2109,14 @@ element.
 A grid of field points in Cartesian coordinates can be specified using the general format:
 \begin{example}
   field = \{
-    grid = \{ 
-      type = <String>,
-      r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
-      dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
-      ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
-      pt(<Integer>, <Integer>, <Integer>) = ( \ldots ),  ! Grid field points
-      \ldots \} \}
+    mode = \{
+      grid = \{ 
+        type = <String>,
+        r0   = (<Real>, <Real>, <Real>),  ! Grid origin 
+        dr   = (<Real>, <Real>, <Real>),  ! Grid spacing
+        ele_anchor_pt = <Position>        ! BEGINNING, CENTER, or END
+        pt(<Integer>, \dots) = ( \ldots ),  ! Grid field points
+        \ldots \} \} \}
 \end{example}
 The \vn{type} switch sets the type of the grid and must come before
 all the other components. The possible settings of \vn{type} are:
@@ -2128,13 +2129,14 @@ The \vn{rotationally_symmetric_rz} setting for \vn{type} is for fields
 that are rotationally symmetric around the $z$ axis. The format for
 this type of grid is
 \begin{example}
-  field = \{grid = \{ 
+  field = \{mode = \{grid = \{ 
     type = rotationally_symmetric_rz,
     r0   = (<r0>, <z0>),        ! Grid origin 
     dr   = (<dr>, <dz>),        ! Grid spacing
-    pt(ir, iz) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
-    \ldots \} \}
+    pt(<ir>, <iz>) = (<E_r>, <E_phi>, <E_z>, <B_r>, <B_phi>, <B_z>)
+    \ldots \} \} \}
 \end{example}
+where \vn{<iz>} can be negative but \vn{<ir>} must be non-negative.
 
 The \vn{xyz} setting for \vn{type} can be used for all fields. The
 format for this type of grid is
@@ -2143,9 +2145,10 @@ format for this type of grid is
     type = xyz,
     r0   = (<x0>,  <y0>, <z0>),   ! Grid origin 
     dr   = (<dx>, <dy>, <dz>),    ! Grid spacing
-    pt(ix, iy, iz) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>)
+    pt(<ix>, <iy>, <iz>) = (<E_x>, <E_y>, <E_z>, <B_x>, <B_y>, <B_z>),
     \ldots \} \}
 \end{example}
+where \vn{<ix>}, \vn{<iy>}, and \vn{<iz>} can be negative.
 
 field components like \vn{<E_z>} can be complex for RF
 fields or simply a real number for DC fields. When a field component
@@ -2156,8 +2159,8 @@ is complex, the syntax for specifying it uses the form:
 where \vn{Re} and \vn{Im} are the real and imaginary parts of the
 component. Example:
 \begin{example}
-  pt(0, 0, 7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
-  pt(0, 0, 7) = (0.12, -0.33, ...)                 ! Real field
+  pt(0, 0, -7) = ((0.34, -4.3), (2.37, 9.34), ...)  ! Complex field
+  pt(0, 0, -7) = (0.12, -0.33, ...)                 ! Real field
 \end{example}
 
 [For clarity sake, the following discusses the \vn{xyz}

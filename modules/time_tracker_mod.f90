@@ -143,7 +143,7 @@ do n_step = 1, max_step
         edge_kick_applied = .true. 
       endif  
       if (orb%direction == +1) then 
-        ref_time = hard_ele%ref_time - hard_ele%value(delta_ref_time$)
+        ref_time = hard_ele%value(ref_time_start$)
       else 
         ref_time = hard_ele%ref_time
       end if

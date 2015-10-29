@@ -25,33 +25,61 @@ Unlike other elements, the kick given a particle going through an
 depends upon the time that the particle enters the element relative to
 some ``RF clock''. \bmad has two modes for calculating this time
 called ``\vn{relative time tracking}'' and ``\vn{absolute time
-tracking}''.
-
-With \vn{relative time tracking}, which \bmad uses by default, the RF
-clock is determined by the reference particle. That is, the RF phase,
-\vn{phi_RF}, seen by a particle is directly related to the particles's
-$z$ phase space coordinate (\sref{s:phase.space})
-\begin{example}
-  phi_RF = phi_particle + phi_ref
-  phi_particle = -z * rf_frequency / particle_velocity
-\end{example}
-where \vn{phi_ref} is a fixed phase offset (generally set in the
-lattice file) and independent of the particle coordinates. With
-\vn{absolute time tracking}, the RF phase is simply determined by the
-absolute time the particle enters the element
-\begin{example}
-  phi_particle = t_particle * rf_frequency
-\end{example}
-The switch to set the type of tracking for a lattice is
+tracking}''. The switch to set the type of tracking for a lattice is
 \vn{parameter[absolute_time_tracking]} (\sref{s:param}).
+
+The phase of the RF, $\phi_\text{rf}$, is determined by
+\Begineq
+  \phi_\text{rf} = \phi_\text{t} + \phi_\text{ref}
+\Endeq
+where $\phi_\text{t}$ is the part of the phase that depends upon
+the time $t$ and $\phi_\text{ref}$ is a fixed phase offset (generally set
+in the lattice file) and independent of the particle coordinates.
+
+With \vn{relative time tracking}, which \bmad uses by default, the
+value of $\phi_\text{t}$ at the entrance to an element is determined
+by by the phase space $z$ coordinate (\sref{s:phase.space}):
+\Begineq
+  \phi_\text{t}(s) = \frac{-z(s) \, f_\text{rf}}{(\beta \, c)}
+  = f_\text{rf} \, (t(s) - t_0(s))
+\Endeq
+where $f_\text{rf}$ is the RF frequency, and $t_0$ is the reference
+time (\sref{s:phase.space}).
+
+With \vn{absolute time tracking}, the RF phase at the entrance to the
+cavity is determined by
+\Begineq
+  \phi_\text{t}(s) = f_\text{rf} \, (t(s) - t_\text{e0})
+\Endeq
+where $t_\text{e0}$ is the \vn{element reference time}. The element
+reference time is, by definition, equal to $t_{0}(s)$ when $s$ is the
+distance from the beginning of the lattice to the entrance of the RF
+element. 
+
+To understand the distinction between $t_0$ and $t_\text{e0}$,
+consider a particle traveling on the reference orbit along side the
+reference particle in a circular ring with one RF cavity. This
+particle always has $z = 0$ and thus, with \vn{relative time
+tracking}, $\phi_t$ will always be zero at the entrance to the cavity.
+With \vn{absolute time tracking}, the particle, on the first turn,
+will have $\phi_t$ equal to zero. However, on subsequent turns the
+phase will increase by $f_\text{rf} \, t_\text{C}$ on each turn where
+$t_\text{C}$ is the revolution time. If $f_\text{rf}$ is some multiple
+of the revolution harmonic, the RF phase with absolute vs relative
+time tracking will be some multiple of $2 \, \pi$ and thus RF kick
+given the particle will be the same in both cases. However, if the RF
+frequency is not some multiple of the revolution harmonic, there will
+be a difference in the RF kicks (except for the kick on the first
+turn).
 
 There are advantages and disadvantages to using either relative or
 absolute time tracking. Absolute time tracking is more correct since
 RF cavities are in reality synced to some clock. The problem with
 absolute time tracking is that the transfer map through the cavity is
-now a function of time and cannot be written as a function of $z$
-unless the total lattice length is a multiple of the RF wavelength.
-This complicates lattice analysis.
+now a function of time and therefore is a function of $z$ and the turn
+number.  This complicates lattice analysis. For example, standard
+element transfer maps use phase space coordinates so with absolute
+time tracking, one has a different map for each turn.
 
 With relative time tracking the transfer map problem is swept under
 the rug. The penalty for using relative time tracking is that results
@@ -59,9 +87,9 @@ can be unphysical. For example, the closed orbit is essentially
 independent of the RF frequency. From a different angle this can be
 viewed as a good feature since if one is only interested in, say,
 calculating the Twiss parameters, it can be an annoyance to have to
-worry that the ring one has constructed have the spacing between RF
-cavities be multiples of the RF wavelength and it is potentially
-confusing to see non-zero closed orbits when one is not expecting it.
+worry that the ring one has constructed have a length that is exactly
+conmensurate with the RF frequency and it is potentially confusing to
+see non-zero closed orbits when one is not expecting it.
 
 The above discussion is limited to the cavity fundamental mode.
 Long-range wake fields, on the other hand, cannot be synchronized to

@@ -155,25 +155,23 @@ The first line shows the file where the structure is located (This is
 system and user dependent so don't be surprised if you get a different
 directory when you use \vn{getf}). The rest of the output shows the
 definition of the \vn{twiss_struct} structure.  The result of issuing
-the command \vn{getf element_locator} is:
+the command \vn{getf relative_tracking_charge} is:
 \begin{example}
-  /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/element_locator.f90
+  File: ../../bmad/modules/bmad_utils_mod.f90
   !+
-  ! Subroutine element_locator (ele_name, lat, ix_ele)
+  ! Function relative_tracking_charge (orbit, param) result (rel_charge)
   !
-  ! Subroutine to locate an element in a lat. 
-  !
-  ! Modules Needed:
-  !   use bmad
+  ! Routine to determine the relative charge/mass of the particle being
+  ! tracked relative to the charge of the reference particle.
   !
   ! Input:
-  !   ele_name -- Character(40): Name of the element to find.
-  !   lat      -- Lat_struct: Lattice to search through.
+  !   orbit -- coord_struct: Particle position structure.
+  !   param -- lat_param_struct: Structure holding the reference particle id.
   !
   ! Output:
-  !   ix_ele -- Integer: Index of element in lat%ele(:) array. 
-  !               ix_ele set to -1 if not found.
+  !   rel_charge -- real(rp): Relative charge/mass
   !-
+  function relative_tracking_charge (orbit, param) result (rel_charge)
 \end{example}
 The first line again shows in what file the subroutine is located.
 The rest of the output explains what the routine does and how it
@@ -183,11 +181,13 @@ The \vn{listf} command is like the \vn{getf} command except that only
 the file name where a routine or structure is found is printed.
 The \vn{listf} command is useful if you
 want to just find out where a routine or structure definition lives.
-For example, the \vn{listf *locator*} command would produce
+For example, the \vn{listf relative*} command would produce
 \begin{example}
-  /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/element_locator.f90
-  /home/cesrulib/cesr_libs/devel/cvssrc/bmad/code/elements_locator.f90
-  /home/cesrulib/cesr_libs/devel/cvssrc/cesr_utils/cesr_locator.f90
+  File: ../../bmad/code/relative_mode_flip.f90
+      function relative_mode_flip (ele1, ele2) result (rel_mode)
+
+  File: ../../bmad/modules/bmad_utils_mod.f90
+      function relative_tracking_charge (orbit, param) result (rel_charge)
 \end{example}
 
 The way \vn{getf} and \vn{listf} work is that they search a list of
