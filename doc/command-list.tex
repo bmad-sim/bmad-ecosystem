@@ -1291,14 +1291,14 @@ Format:
   data \{<data_name>\} 
   derivative <data_name(s)> <var_name(s)>
   dynamic_aperture
-  element \{-all_attributes\} \{-base\} \{-data\} \{-design\} \{-everything\} \{-field\} 
+  element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} 
         \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele_name>
   field <ele> <x> <y> <z> \{t\}
   global \{-bmad_com\} \{-csr_param\} \{-optimization\} \{-ran_state\} 
   graph <graph_name>
   hom
   key_bindings
-  lattice \{-0undef\} \{-all_tracking\} \{-attribute <attrib>\} \{-base\} 
+  lattice \{-0undef\} \{-tracking_elements\} \{-attribute <attrib>\} \{-base\} 
         \{-blank_replacement <string>\} \{-branch <name_or_index>\} 
         \{-custom <file_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} 
         \{-no_label_lines\} \{-no_tail_lines\} \{-orbit\} \{-radiation_integrals\} 
@@ -1497,7 +1497,7 @@ Shows parameters and results of the dynamic aperture calculation.
 %% show element --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show element \{-all\_attributes\} \{-base\} \{-data\} \{-design\} \{-everything\} \{-field\} \\
+  show element \{-attributes\} \{-base\} \{-data\} \{-design\} \{-all\} \{-field\} \\
   \hspace*{0.35in} \{-floor_coords\} \{-no_slaves\} \{-ptc\} \{-taylor\} \{-wall\} \{-xfer_mat\} <ele\_name> }] \Newline
 
 \vskip -0.1in
@@ -1516,10 +1516,10 @@ element), an associated PTC fibre will be created. In this case, only
 the PTC information will be displayed and the other switches will be
 ignored.
 
-If the \vn{-all_attributes} switch is present, then all of the element attributes
+If the \vn{-attributes} switch is present, then all of the element ``attributes''
 will be displayed. The default is is to display only those attributes
-with non-zero values. ``Attributes'' here does not include the cross-section,
-Taylor map and wiggler element parameters.
+with non-zero values. ``Attributes'' here does not include such things as
+the cross-section, Taylor map and wiggler element parameters.
 
 By default, the appropriate element(s) within the \vn{model} lattice
 (\sref{s:universe}) are used. This can be overridden by using the
@@ -1559,9 +1559,9 @@ If the \vn{-xfer_mat} switch is present, the 6x6 transfer matrix (the
 first order part of the transfer map) along with the zeroth order part
 of the transfer map are printed.
 
-The \vn{-everything} switch is equivalent to using:
+The \vn{-all} switch is equivalent to using:
 \begin{example}
-  -all_attributes
+  -attributes
   -field
   -floor_coords
   -taylor
@@ -1574,7 +1574,7 @@ Example:
   show ele quad::z* -no_slaves  ! list all non-slave quadrupole elements with 
                                 !   names beginning with "z".
   show ele q10w                 ! Show a particular lattice element.
-  show ele -all_att 105         ! Show element #105 in the lattice.
+  show ele -att 105             ! Show element #105 in the lattice.
 \end{example}
 
 %% show field --------------------------------------------------------------
@@ -1646,7 +1646,7 @@ Shows all key bindings.
 %% show lattice --------------------------------------------------------------
 
 \item[\protect\parbox{6in}{
-  show lattice \{-0undef\} \{-all\_tracking\} \{-attribute <attrib>\} \{-base\} \\
+  show lattice \{-0undef\} \{-tracking\_elements\} \{-attribute <attrib>\} \{-base\} \\
   \hspace*{0.35in} \{-blank_replacement <string>\}  \{-branch <name_or_index>\} \\
   \hspace*{0.35in} \{-custom <file\_name>\} \{-design\} \{-floor_coords\} \{-lords\} \{-middle\} \\
   \hspace*{0.35in} \{-no\_label\_lines\} \{-no\_tail\_lines\} \{-orbit\} \{-radiation_integrals\} \\
@@ -1693,12 +1693,12 @@ longitudinal position range with \vn{-s}, or by specifying a list
 list is given in section~\sref{s:ele.list.format}.  In this case there
 should be no blank characters in the list.
 
-The \vn{-all_tracking} switch can be used to show all the elements
+The \vn{-tracking_elements} switch can be used to show all the elements
 in the tracking part of the lattice. The
 \vn{<element_list>} is optional but if it is present it must be at the
 end of the command line.
 
-If neither \vn{-all_tracking}, nor a range is given,
+If neither \vn{-tracking_elements}, nor a range is given,
 the first 200 elements are shown.
 
 To customize the output use the command \vn{show lattice -custom
