@@ -35,7 +35,7 @@ contains
 !+
 ! Subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
 !
-! Driver routine for dynamic_aperture. 
+! Driver routine for dynamic_aperture1. 
 ! 
 ! If aperture_scan%param%x_init or %y_init == 0, 
 ! then a separate scan will be done to set them starting with 0.001 m 
@@ -67,27 +67,39 @@ type (coord_struct) orb0
 real(rp), allocatable  :: angle_list(:)
 real(rp) :: delta_angle
 integer :: i, omp_n
+
 logical, optional :: parallel
-character(40) :: r_name = 'dynamic_aperture_scan'
+character(*), parameter :: r_name = 'dynamic_aperture_scan'
 
 ! Angle preparation
 
 ap_param => aperture_scan%param
 
+if (ap_param%n_angle < 1) then
+  call out_io (s_error$, r_name, 'N_ANGLE MUST BE AT LEAST 1')
+  return
+endif
+
 allocate(angle_list(ap_param%n_angle))
-delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle -1)
-do i=1, ap_param%n_angle
-  angle_list(i) = (i-1)*delta_angle + ap_param%min_angle
-enddo
+
+if (ap_param%n_angle == 1) then
+  angle_list(1) = (ap_param%min_angle + ap_param%max_angle) / 2
+else
+  delta_angle = (ap_param%max_angle - ap_param%min_angle)/(ap_param%n_angle -1)
+  do i=1, ap_param%n_angle
+    angle_list(i) = (i-1)*delta_angle + ap_param%min_angle
+  enddo
+endif
 
 ! Array control
+
 if ( allocated(aperture_scan%aperture)) then
   if (size(aperture_scan%aperture) /= ap_param%n_angle) deallocate(aperture_scan%aperture)
 endif
 if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_param%n_angle))
 
-
 ! Auto-set x_init and y_init if they are zero
+
 if (ap_param%x_init == 0) then
   ap_param%x_init = 0.001_rp
   call dynamic_aperture1 (lat, orb0, 0.0_rp, ap_param, aperture, .false.)
@@ -264,7 +276,7 @@ end subroutine dynamic_aperture1
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture_parallel (lat, orb0, theta_xy_list, aperture_param, aperture_list)
+! Subroutine dynamic_aperture1_parallel (lat, orb0, theta_xy_list, aperture_param, aperture_list)
 !
 ! Parallel version of subroutine dynamic_aperture using OpenMP  
 ! to process a list of angles theta_xy_list(:) 
@@ -274,7 +286,7 @@ end subroutine dynamic_aperture1
 !-
 
 
-subroutine dynamic_aperture_parallel(lat, orb0, angle_list, aperture_param, aperture_list)
+subroutine dynamic_aperture1_parallel(lat, orb0, angle_list, aperture_param, aperture_list)
 
 !$ use omp_lib
 
@@ -291,7 +303,7 @@ real(rp) :: angle_list(:)
 integer :: i
 integer :: omp_n, omp_i
 
-character(40) :: r_name = 'dynamic_aperture_parallel'
+character(40) :: r_name = 'dynamic_aperture1_parallel'
 
 !
 
@@ -323,6 +335,6 @@ do i=1, omp_n
 end do
 deallocate(omp_lat, omp_aperture)
   
-end subroutine dynamic_aperture_parallel
+end subroutine dynamic_aperture1_parallel
 
 end module
