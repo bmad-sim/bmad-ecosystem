@@ -1,0 +1,24 @@
+set (EXENAME dynamic_aperture)
+
+FILE (GLOB SRC_FILES dynamic_aperture/*.f90)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  xsif
+  xrlf03
+  xrl
+  sim_utils
+  recipes_f-90_LEPP
+  forest
+  pgplot
+  xsif
+  lapack95
+  lapack
+  blas
+  fgsl
+  gsl
+  gslcblas
+)
