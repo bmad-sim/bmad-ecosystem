@@ -235,7 +235,7 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0
 logical bmad_format, good_opt_only, show_lords, print_wall, show_lost, logic, aligned
 logical err, found, at_ends, first_time, by_s, print_header_lines, all_lat, limited
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves
-logical show_all, name_found, print_taylor, print_em_field, print_all, print_ran_state
+logical show_all, name_found, print_taylor, print_em_field, print_attributes, print_ran_state
 logical print_global, print_optimization, print_bmad_com, print_csr_param, print_ptc
 logical valid_value, print_floor, show_section, is_complex, print_header
 logical, allocatable, save :: picked_uni(:)
@@ -1088,7 +1088,7 @@ case ('element')
   print_floor = .false.
   print_taylor = .false.
   print_em_field = .false.
-  print_all = .false.
+  print_attributes = .false.
   print_data = .false.
   print_wall = .false.
   xfer_mat_print = 0
@@ -1098,10 +1098,10 @@ case ('element')
 
   do
     call tao_next_switch (stuff2, ['-taylor        ', '-em_field      ', &
-                '-all_attributes', '-data          ', '-design        ', &
+                '-all           ', '-data          ', '-design        ', &
                 '-no_slaves     ', '-wall          ', '-base          ', &
                 '-field         ', '-floor_coords  ', '-xfer_mat      ', &
-                '-ptc           ', '-everything    '], switch, err, ix)
+                '-ptc           ', '-everything    ', '-attributes    '], switch, err, ix)
     if (err) return
     select case (switch)
     case ('');                exit
@@ -1112,13 +1112,13 @@ case ('element')
     case ('-base');           lat_type = base$
     case ('-em_field');       print_em_field = .true.  ! Old style. Use "-field".
     case ('-field');          print_em_field = .true.
-    case ('-all_attributes'); print_all = .true.
+    case ('-attributes');     print_attributes = .true.
     case ('-data');           print_data = .true.
     case ('-no_slaves');      print_slaves = .false.
     case ('-wall');           print_wall = .true.
     case ('-ptc');            print_ptc = .true.
-    case ('-everything')
-      print_all = .true.
+    case ('-everything', '-all')
+      print_attributes = .true.
       xfer_mat_print = 6
       print_taylor = .true.
       print_floor = .true.
@@ -1219,7 +1219,7 @@ case ('element')
 
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
-  call type_ele (ele, print_all, xfer_mat_print, print_taylor, &
+  call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, &
             twiss_out, .true., .true., print_floor, print_em_field, print_wall, lines = alloc_lines, n_lines = n)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
@@ -1627,7 +1627,7 @@ case ('lattice')
   do
     call tao_next_switch (stuff2, [ &
         '-branch             ', '-blank_replacement  ', '-lords              ', '-middle             ', &
-        '-all_tracking       ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
+        '-tracking_elements  ', '-0undef             ', '-no_label_lines     ', '-no_tail_lines      ', &
         '-custom             ', '-s                  ', '-radiation_integrals', '-remove_line_if_zero', &
         '-base               ', '-design             ', '-floor_coords       ', '-orbit              ', &
         '-attribute          '], switch, err, ix_s2)
@@ -1638,7 +1638,7 @@ case ('lattice')
     case ('-0undef')
       undef_str = '  0'
 
-    case ('-all_tracking')
+    case ('-tracking_elements')
       all_lat = .true. 
 
     case ('-attribute')
