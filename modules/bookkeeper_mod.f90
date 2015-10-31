@@ -2800,8 +2800,8 @@ case (diffraction_plate$, mask$)
   ele%value(x2_limit$) = -100
   ele%value(y2_limit$) = -100
 
-  do i = 1, size(ele%wall3d%section)
-    sec => ele%wall3d%section(i)
+  do i = 1, size(ele%wall3d(1)%section)
+    sec => ele%wall3d(1)%section(i)
     if (sec%type == opaque$) cycle
     do j = 1, 100
       angle = twopi * j / 100.0_rp

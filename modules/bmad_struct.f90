@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 165
+integer, parameter :: bmad_inc_version$ = 166
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -272,7 +272,12 @@ end type
 
 ! If, say, %ele_anchor_pt = center$ then center of wall is at the center of the element.
 
+integer, parameter :: chamber_wall$ = 1, safe_wall$ = 2
+character(12), parameter :: wall3d_name(2) = [character(12) :: 'Chamber_Wall', 'Safe_Wall']
+
 type wall3d_struct
+  character(40) :: name = ''
+  integer :: type = chamber_wall$
   integer :: n_link = 1                           ! For memory management of ele%wall3d
   real(rp) :: thickness = -1                      ! For diffraction_plate elements
   character(20) :: clear_material = ''            !
@@ -680,7 +685,7 @@ type ele_struct
   type (taylor_struct) :: taylor(6) = taylor_struct()          ! Phase space Taylor map.
   type (taylor_struct) :: spin_taylor(3,3) = taylor_struct()   ! Spin Taylor map.
   type (wake_struct), pointer :: wake => null()                ! Wakes
-  type (wall3d_struct), pointer :: wall3d => null()            ! Chamber or capillary wall
+  type (wall3d_struct), pointer :: wall3d(:) => null()         ! Chamber or capillary wall
   type (wig_struct), pointer :: wig => null()                  ! Wiggler field
   type (coord_struct) :: map_ref_orb_in = coord_struct()       ! Entrance end transfer map ref orbit
   type (coord_struct) :: map_ref_orb_out = coord_struct()      ! Exit end transfer map ref orbit
@@ -816,7 +821,7 @@ type branch_struct
   type (mode_info_struct), pointer :: a => null(), b => null(), z => null()
   type (ele_struct), pointer :: ele(:) => null()
   type (lat_param_struct), pointer :: param => null()
-  type (wall3d_struct), pointer :: wall3d => null()
+  type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_info_struct) ptc
   type (normal_form_struct) normal_form_with_rf, normal_form_no_rf
 end type

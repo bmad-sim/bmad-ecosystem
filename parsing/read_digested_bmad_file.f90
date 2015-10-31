@@ -771,7 +771,7 @@ call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
 close (d_unit)
 return
 
-end subroutine
+end subroutine read_this_ele 
 
 !-----------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------
@@ -779,48 +779,52 @@ end subroutine
 
 subroutine read_this_wall3d (wall3d, error)
 
-type (wall3d_struct), pointer :: wall3d
+type (wall3d_struct), pointer :: wall3d(:)
 
-integer j, k, n_wall_section, ios
+integer i, j, k, n_wall, n_wall_section, ios
 logical error
 
 !
 
 error = .true.
 
-read (d_unit, iostat = ios) n_wall_section
-if (n_wall_section == 0) then
-  error = .false.
-  return
-endif
+read (d_unit, iostat = ios) n_wall
+if (n_wall > 0) allocate(wall3d(n_wall))
 
-if (ios /= 0) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-                                   'ERROR READING WALL3D N_WALL_SECTION NUMBER')
-  close (d_unit)
-  return
-endif
+do i = 1, n_wall
+  read (d_unit, iostat = ios) n_wall_section
+  if (n_wall_section == 0) then
+    error = .false.
+    return
+  endif
 
-allocate(wall3d)
-read (d_unit, iostat = ios) wall3d%ele_anchor_pt, wall3d%superimpose, &
-      wall3d%thickness, wall3d%clear_material, wall3d%opaque_material
+  if (ios /= 0) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                     'ERROR READING WALL3D N_WALL_SECTION NUMBER')
+    close (d_unit)
+    return
+  endif
 
-if (ios /= 0) then
-   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
-                                   'ERROR READING WALL PRIORITY')
-  close (d_unit)
-  return
-endif
+  read (d_unit, iostat = ios) wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
+           wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
 
-call re_allocate (wall3d%section, n_wall_section)
+  if (ios /= 0) then
+     call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', &
+                                     'ERROR READING WALL PRIORITY')
+    close (d_unit)
+    return
+  endif
 
-do j = 1, n_wall_section
-  call read_this_wall3d_section (wall3d%section(j))
+  call re_allocate (wall3d(i)%section, n_wall_section)
+
+  do j = 1, n_wall_section
+    call read_this_wall3d_section (wall3d(i)%section(j))
+  enddo
 enddo
 
 error = .false.
 
-end subroutine
+end subroutine read_this_wall3d
 
 !-----------------------------------------------
 ! contains
@@ -856,4 +860,4 @@ enddo
 
 end subroutine read_this_wall3d_section
 
-end subroutine
+end subroutine read_digested_bmad_file

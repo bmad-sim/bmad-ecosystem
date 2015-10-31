@@ -107,7 +107,7 @@ endif
 
 do
 
-  section => ele%wall3d%section(photon%now%ix_section)
+  section => ele%wall3d(1)%section(photon%now%ix_section)
   vec => photon%now%orb%vec
 
   ! Calculate a resonable step size
@@ -202,7 +202,7 @@ endif
 ! Here if stopping at a boundary plane is to be done...
 ! First see where we need to stop.
 
-section => ele%wall3d%section
+section => ele%wall3d(1)%section
 call bracket_index(section%s, 1, size(section), vec(5), ixc)
 
 if (vec(6) > 0) then   ! Forward going photon

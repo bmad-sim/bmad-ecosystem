@@ -408,9 +408,9 @@ do ib = 0, ubound(lat%branch, 1)
         
         open (iu2, file = trim(path) // 'wall_' // trim(name))
         write (iu2, *) '{ &'
-        write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d%ele_anchor_pt)), ','
-        do i = 1, size(ele%wall3d%section)
-          section => ele%wall3d%section(i)
+        write (iu2, '(2x, 3a)') 'ele_anchor_pt = ', trim(anchor_pt_name(ele%wall3d(1)%ele_anchor_pt)), ','
+        do i = 1, size(ele%wall3d(1)%section)
+          section => ele%wall3d(1)%section(i)
           write (iu2, '(2x, a)')   'section = {'
           write (iu2, '(4x, 3a)')  's     = ', trim(str(section%s)), ','
           if (section%dr_ds /= real_garbage$) write (iu2, '(4x, 3a)')  'dr_ds = ', trim(str(section%s)), ','
@@ -418,7 +418,7 @@ do ib = 0, ubound(lat%branch, 1)
           do j = 1, size(section%v)
             if (j == size(section%v)) then
               end_str = '},'
-              if (i == size(ele%wall3d%section)) end_str = '}}'
+              if (i == size(ele%wall3d(1)%section)) end_str = '}}'
             endif
             v => section%v(j)
             if (v%tilt /= 0) then

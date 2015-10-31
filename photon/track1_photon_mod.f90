@@ -248,17 +248,17 @@ if (.not. ele%is_on) return
 ix_sec = diffraction_plate_or_mask_hit_spot (ele, orbit)
 
 if (ix_sec == 0) then
-  if (ele%wall3d%opaque_material == '') then
+  if (ele%wall3d(1)%opaque_material == '') then
     orbit%state = lost$
     return
   endif
-  material = ele%wall3d%opaque_material
-  thickness = ele%wall3d%thickness
+  material = ele%wall3d(1)%opaque_material
+  thickness = ele%wall3d(1)%thickness
 
 else
-  material = ele%wall3d%clear_material
-  thickness = ele%wall3d%thickness
-  sec => ele%wall3d%section(ix_sec)
+  material = ele%wall3d(1)%clear_material
+  thickness = ele%wall3d(1)%thickness
+  sec => ele%wall3d(1)%section(ix_sec)
   if (sec%material /= '') material = sec%material
   if (sec%thickness >= 0) thickness = sec%thickness
 endif
