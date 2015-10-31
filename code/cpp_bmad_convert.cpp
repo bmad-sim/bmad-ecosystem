@@ -1811,8 +1811,8 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Char z_name, c_Ch
 extern "C" void wall3d_to_c (const Bmad_wall3d_class*, CPP_wall3d&);
 
 // c_side.to_f2_arg
-extern "C" void wall3d_to_f2 (Bmad_wall3d_class*, c_Int&, c_Real&, c_Char, c_Char, c_Bool&,
-    c_Int&, const CPP_wall3d_section**, Int);
+extern "C" void wall3d_to_f2 (Bmad_wall3d_class*, c_Char, c_Int&, c_Int&, c_Real&, c_Char,
+    c_Char, c_Bool&, c_Int&, const CPP_wall3d_section**, Int);
 
 extern "C" void wall3d_to_f (const CPP_wall3d& C, Bmad_wall3d_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1824,18 +1824,23 @@ extern "C" void wall3d_to_f (const CPP_wall3d& C, Bmad_wall3d_class* F) {
   }
 
   // c_side.to_f2_call
-  wall3d_to_f2 (F, C.n_link, C.thickness, C.clear_material.c_str(), C.opaque_material.c_str(),
-      C.superimpose, C.ele_anchor_pt, z_section, n1_section);
+  wall3d_to_f2 (F, C.name.c_str(), C.type, C.n_link, C.thickness, C.clear_material.c_str(),
+      C.opaque_material.c_str(), C.superimpose, C.ele_anchor_pt, z_section, n1_section);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_section;
 }
 
 // c_side.to_c2_arg
-extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Int& z_n_link, c_Real& z_thickness, c_Char
-    z_clear_material, c_Char z_opaque_material, c_Bool& z_superimpose, c_Int& z_ele_anchor_pt,
-    Bmad_wall3d_section_class** z_section, Int n1_section) {
+extern "C" void wall3d_to_c2 (CPP_wall3d& C, c_Char z_name, c_Int& z_type, c_Int& z_n_link,
+    c_Real& z_thickness, c_Char z_clear_material, c_Char z_opaque_material, c_Bool&
+    z_superimpose, c_Int& z_ele_anchor_pt, Bmad_wall3d_section_class** z_section, Int
+    n1_section) {
 
+  // c_side.to_c2_set[character, 0, NOT]
+  C.name = z_name;
+  // c_side.to_c2_set[integer, 0, NOT]
+  C.type = z_type;
   // c_side.to_c2_set[integer, 0, NOT]
   C.n_link = z_n_link;
   // c_side.to_c2_set[real, 0, NOT]
@@ -2658,14 +2663,14 @@ extern "C" void ele_to_f2 (Bmad_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Ch
     const CPP_bookkeeping_state&, const CPP_controller_var**, Int, const CPP_em_fields&, Int,
     const CPP_floor_position&, const CPP_ptc_genfield&, const CPP_mode3&, Int, const
     CPP_photon_element&, Int, const CPP_rad_int_ele_cache&, Int, const CPP_space_charge&, Int,
-    const CPP_taylor**, const CPP_taylor**, const CPP_wake&, Int, const CPP_wall3d&, Int, const
-    CPP_wig&, Int, const CPP_coord&, const CPP_coord&, const CPP_coord&, const CPP_coord&,
-    c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&, c_Real&,
-    c_RealArr, Int, Int, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int,
+    const CPP_taylor**, const CPP_taylor**, const CPP_wake&, Int, const CPP_wall3d**, Int,
+    const CPP_wig&, Int, const CPP_coord&, const CPP_coord&, const CPP_coord&, const
+    CPP_coord&, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_RealArr, c_Real&, c_Real&,
+    c_Real&, c_RealArr, Int, Int, Int, c_RealArr, Int, c_RealArr, Int, c_RealArr, Int,
+    c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -2701,8 +2706,13 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
     {int m = 3*i + j; z_spin_taylor[m] = &C.spin_taylor[i][j];}
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_wake = 0; if (C.wake != NULL) n_wake = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_wall3d = 0; if (C.wall3d != NULL) n_wall3d = 1;
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_wall3d = C.wall3d.size();
+  const CPP_wall3d** z_wall3d = NULL;
+  if (n1_wall3d != 0) {
+    z_wall3d = new const CPP_wall3d*[n1_wall3d];
+    for (int i = 0; i < n1_wall3d; i++) z_wall3d[i] = &C.wall3d[i];
+  }
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_wig = 0; if (C.wig != NULL) n_wig = 1;
   // c_side.to_f_setup[real, 2, NOT]
@@ -2749,7 +2759,7 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
       z_descrip, n_descrip, C.a, C.b, C.z, C.x, C.y, C.bookkeeping_state, z_control_var,
       n1_control_var, *C.em_field, n_em_field, C.floor, C.ptc_genfield, *C.mode3, n_mode3,
       *C.photon, n_photon, *C.rad_int_cache, n_rad_int_cache, *C.space_charge, n_space_charge,
-      z_taylor, z_spin_taylor, *C.wake, n_wake, *C.wall3d, n_wall3d, *C.wig, n_wig,
+      z_taylor, z_spin_taylor, *C.wake, n_wake, z_wall3d, n1_wall3d, *C.wig, n_wig,
       C.map_ref_orb_in, C.map_ref_orb_out, C.time_ref_orb_in, C.time_ref_orb_out, &C.value[0],
       &C.old_value[0], &C.vec0[0], z_mat6, z_c_mat, C.gamma_c, C.s, C.ref_time, z_r, n1_r,
       n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec,
@@ -2763,6 +2773,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_control_var;
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_wall3d;
   // c_side.to_f_cleanup[real, 3, PTR]
   delete[] z_r;
 }
@@ -2778,9 +2790,9 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     Bmad_photon_element_class* z_photon, Int n_photon, Bmad_rad_int_ele_cache_class*
     z_rad_int_cache, Int n_rad_int_cache, Bmad_space_charge_class* z_space_charge, Int
     n_space_charge, const Bmad_taylor_class** z_taylor, const Bmad_taylor_class**
-    z_spin_taylor, Bmad_wake_class* z_wake, Int n_wake, Bmad_wall3d_class* z_wall3d, Int
-    n_wall3d, Bmad_wig_class* z_wig, Int n_wig, const Bmad_coord_class* z_map_ref_orb_in, const
-    Bmad_coord_class* z_map_ref_orb_out, const Bmad_coord_class* z_time_ref_orb_in, const
+    z_spin_taylor, Bmad_wake_class* z_wake, Int n_wake, Bmad_wall3d_class** z_wall3d, Int
+    n1_wall3d, Bmad_wig_class* z_wig, Int n_wig, const Bmad_coord_class* z_map_ref_orb_in,
+    const Bmad_coord_class* z_map_ref_orb_out, const Bmad_coord_class* z_time_ref_orb_in, const
     Bmad_coord_class* z_time_ref_orb_out, c_RealArr z_value, c_RealArr z_old_value, c_RealArr
     z_vec0, c_RealArr z_mat6, c_RealArr z_c_mat, c_Real& z_gamma_c, c_Real& z_s, c_Real&
     z_ref_time, c_RealArr z_r, Int n1_r, Int n2_r, Int n3_r, c_RealArr z_a_pole, Int n1_a_pole,
@@ -2885,13 +2897,9 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     wake_to_c(z_wake, *C.wake);
   }
 
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_wall3d == 0)
-    delete C.wall3d;
-  else {
-    C.wall3d = new CPP_wall3d;
-    wall3d_to_c(z_wall3d, *C.wall3d);
-  }
+  // c_side.to_c2_set[type, 1, PTR]
+  C.wall3d.resize(n1_wall3d);
+  for (int i = 0; i < n1_wall3d; i++) wall3d_to_c(z_wall3d[i], C.wall3d[i]);
 
   // c_side.to_c2_set[type, 0, PTR]
   if (n_wig == 0)
@@ -3172,7 +3180,7 @@ extern "C" void branch_to_c (const Bmad_branch_class*, CPP_branch&);
 // c_side.to_f2_arg
 extern "C" void branch_to_f2 (Bmad_branch_class*, c_Char, c_Int&, c_Int&, c_Int&, c_IntArr,
     Int, c_IntArr, Int, const CPP_mode_info&, Int, const CPP_mode_info&, Int, const
-    CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d&,
+    CPP_mode_info&, Int, const CPP_ele**, Int, const CPP_lat_param&, Int, const CPP_wall3d**,
     Int, const CPP_normal_form&, const CPP_normal_form&);
 
 extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
@@ -3195,16 +3203,23 @@ extern "C" void branch_to_f (const CPP_branch& C, Bmad_branch_class* F) {
   }
   // c_side.to_f_setup[type, 0, PTR]
   unsigned int n_param = 0; if (C.param != NULL) n_param = 1;
-  // c_side.to_f_setup[type, 0, PTR]
-  unsigned int n_wall3d = 0; if (C.wall3d != NULL) n_wall3d = 1;
+  // c_side.to_f_setup[type, 1, PTR]
+  int n1_wall3d = C.wall3d.size();
+  const CPP_wall3d** z_wall3d = NULL;
+  if (n1_wall3d != 0) {
+    z_wall3d = new const CPP_wall3d*[n1_wall3d];
+    for (int i = 0; i < n1_wall3d; i++) z_wall3d[i] = &C.wall3d[i];
+  }
 
   // c_side.to_f2_call
   branch_to_f2 (F, C.name.c_str(), C.ix_branch, C.ix_from_branch, C.ix_from_ele, C.n_ele_track,
       n_n_ele_track, C.n_ele_max, n_n_ele_max, *C.a, n_a, *C.b, n_b, *C.z, n_z, z_ele, n1_ele,
-      *C.param, n_param, *C.wall3d, n_wall3d, C.normal_form_with_rf, C.normal_form_no_rf);
+      *C.param, n_param, z_wall3d, n1_wall3d, C.normal_form_with_rf, C.normal_form_no_rf);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_ele;
+  // c_side.to_f_cleanup[type, 1, PTR]
+ delete[] z_wall3d;
 }
 
 // c_side.to_c2_arg
@@ -3212,7 +3227,7 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
     z_ix_from_branch, c_Int& z_ix_from_ele, c_IntArr z_n_ele_track, Int n_n_ele_track, c_IntArr
     z_n_ele_max, Int n_n_ele_max, Bmad_mode_info_class* z_a, Int n_a, Bmad_mode_info_class*
     z_b, Int n_b, Bmad_mode_info_class* z_z, Int n_z, Bmad_ele_class** z_ele, Int n1_ele,
-    Bmad_lat_param_class* z_param, Int n_param, Bmad_wall3d_class* z_wall3d, Int n_wall3d,
+    Bmad_lat_param_class* z_param, Int n_param, Bmad_wall3d_class** z_wall3d, Int n1_wall3d,
     const Bmad_normal_form_class* z_normal_form_with_rf, const Bmad_normal_form_class*
     z_normal_form_no_rf) {
 
@@ -3276,13 +3291,9 @@ extern "C" void branch_to_c2 (CPP_branch& C, c_Char z_name, c_Int& z_ix_branch, 
     lat_param_to_c(z_param, *C.param);
   }
 
-  // c_side.to_c2_set[type, 0, PTR]
-  if (n_wall3d == 0)
-    delete C.wall3d;
-  else {
-    C.wall3d = new CPP_wall3d;
-    wall3d_to_c(z_wall3d, *C.wall3d);
-  }
+  // c_side.to_c2_set[type, 1, PTR]
+  C.wall3d.resize(n1_wall3d);
+  for (int i = 0; i < n1_wall3d; i++) wall3d_to_c(z_wall3d[i], C.wall3d[i]);
 
   // c_side.to_c2_set[type, 0, NOT]
   normal_form_to_c(z_normal_form_with_rf, C.normal_form_with_rf);

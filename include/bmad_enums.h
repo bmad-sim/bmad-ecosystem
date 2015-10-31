@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 162;
+  const int BMAD_INC_VERSION = 165;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -61,6 +61,7 @@ namespace Bmad {
   const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
   const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10, TRIANGULAR = 11;
   const int ANTECHAMBER = 2;
+  const int CHAMBER_WALL = 1, SAFE_WALL = 2;
   const int X_PLANE = 1, Y_PLANE = 2;
   const int Z_PLANE = 3, N_PLANE = 4, S_PLANE = 5;
   const int MOVING_FORWARD = -9;
@@ -294,6 +295,8 @@ namespace Bmad {
   const int OLD_CONTROL_VAR_OFFSET = 1000;
   const int VAR_OFFSET = 2000;
   const int NOT_SET = -999;
+  const int DEUTERON_0 = 9;
+  const int DEUTERON   = 8;
   const int REF_PARTICLE = 6, ANTI_REF_PARTICLE = 7;
   const int PION_0     = +5;
   const int PION_PLUS  = +4;
@@ -319,13 +322,14 @@ namespace Bmad {
   const double FOURPI = 4 * PI;
   const double SQRT_2 = 1.41421356237310E0;
   const double SQRT_3 = 1.73205080757E0;
-  const double E_MASS = 0.510998910E-3;
-  const double P_MASS   = 0.938272046E0;
-  const double M_ELECTRON = 0.510998910E6;
-  const double M_PROTON   = 0.938272046E9;
-  const double M_MUON     = 105.6583715E6;
+  const double E_MASS = 0.5109989461E-3;
+  const double P_MASS   = 0.9382720813E0;
+  const double M_ELECTRON = 0.5109989461E6;
+  const double M_PROTON   = 0.9382720813E9;
+  const double M_MUON     = 105.6583745E6;
   const double M_PION_0 = 134.9766E6;
   const double M_PION_CHARGED = 139.57018E6;
+  const double M_DEUTERON = 1.875612928E9;
   const double C_LIGHT = 2.99792458E8;
   const double R_E = 2.8179402894E-15;
   const double R_P = R_E * M_ELECTRON / M_PROTON;

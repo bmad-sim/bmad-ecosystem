@@ -2742,25 +2742,32 @@ void set_CPP_wall3d_test_pattern (CPP_wall3d& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
+  // c_side.test_pat[character, 0, NOT]
+  C.name.resize(40);
+  for (unsigned int i = 0; i < C.name.size(); i++)
+    {int rhs = 101 + i + 1 + offset; C.name[i] = 'a' + rhs % 26;}
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 1 + offset; C.n_link = rhs;
+  rhs = 2 + offset; C.type = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 3 + offset; C.n_link = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 2 + offset; C.thickness = rhs;
+  rhs = 4 + offset; C.thickness = rhs;
 
   // c_side.test_pat[character, 0, NOT]
   C.clear_material.resize(20);
   for (unsigned int i = 0; i < C.clear_material.size(); i++)
-    {int rhs = 101 + i + 3 + offset; C.clear_material[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 5 + offset; C.clear_material[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.opaque_material.resize(20);
   for (unsigned int i = 0; i < C.opaque_material.size(); i++)
-    {int rhs = 101 + i + 4 + offset; C.opaque_material[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 6 + offset; C.opaque_material[i] = 'a' + rhs % 26;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 5 + offset; C.superimpose = (rhs % 2 == 0);
+  rhs = 7 + offset; C.superimpose = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 6 + offset; C.ele_anchor_pt = rhs;
+  rhs = 8 + offset; C.ele_anchor_pt = rhs;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 
@@ -4223,12 +4230,12 @@ void set_CPP_ele_test_pattern (CPP_ele& C, int ix_patt) {
     set_CPP_wake_test_pattern((*C.wake), ix_patt);
   }
 
-  // c_side.test_pat[type, 0, PTR]
+  // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
-    C.wall3d = NULL;
+    C.wall3d.resize(0);
   else {
-    C.wall3d = new CPP_wall3d;
-    set_CPP_wall3d_test_pattern((*C.wall3d), ix_patt);
+    C.wall3d.resize(3);
+    for (unsigned int i = 0; i < C.wall3d.size(); i++)  {set_CPP_wall3d_test_pattern(C.wall3d[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 0, PTR]
@@ -4739,12 +4746,12 @@ void set_CPP_branch_test_pattern (CPP_branch& C, int ix_patt) {
     set_CPP_lat_param_test_pattern((*C.param), ix_patt);
   }
 
-  // c_side.test_pat[type, 0, PTR]
+  // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
-    C.wall3d = NULL;
+    C.wall3d.resize(0);
   else {
-    C.wall3d = new CPP_wall3d;
-    set_CPP_wall3d_test_pattern((*C.wall3d), ix_patt);
+    C.wall3d.resize(3);
+    for (unsigned int i = 0; i < C.wall3d.size(); i++)  {set_CPP_wall3d_test_pattern(C.wall3d[i], ix_patt+i+1);}
   }
 
   // c_side.test_pat[type, 0, NOT]

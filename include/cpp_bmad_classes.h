@@ -1748,6 +1748,8 @@ class Bmad_wall3d_class {};  // Opaque class for pointers to corresponding fortr
 
 class CPP_wall3d {
 public:
+  string name;
+  Int type;
   Int n_link;
   Real thickness;
   string clear_material;
@@ -1757,6 +1759,8 @@ public:
   CPP_wall3d_section_ARRAY section;
 
   CPP_wall3d() :
+    name(),
+    type(Bmad::CHAMBER_WALL),
     n_link(1),
     thickness(-1),
     clear_material(),
@@ -2468,7 +2472,7 @@ public:
   CPP_taylor_ARRAY taylor;
   CPP_taylor_MATRIX spin_taylor;
   CPP_wake* wake;
-  CPP_wall3d* wall3d;
+  CPP_wall3d_ARRAY wall3d;
   CPP_wig* wig;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
@@ -2569,7 +2573,7 @@ public:
     taylor(CPP_taylor_ARRAY(CPP_taylor(), 6)),
     spin_taylor(CPP_taylor_ARRAY(CPP_taylor(), 3), 3),
     wake(NULL),
-    wall3d(NULL),
+    wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
     wig(NULL),
     map_ref_orb_in(),
     map_ref_orb_out(),
@@ -2637,7 +2641,6 @@ public:
     delete rad_int_cache;
     delete space_charge;
     delete wake;
-    delete wall3d;
     delete wig;
   }
 
@@ -2756,7 +2759,7 @@ public:
   CPP_mode_info* z;
   CPP_ele_ARRAY ele;
   CPP_lat_param* param;
-  CPP_wall3d* wall3d;
+  CPP_wall3d_ARRAY wall3d;
   CPP_normal_form normal_form_with_rf;
   CPP_normal_form normal_form_no_rf;
 
@@ -2772,7 +2775,7 @@ public:
     z(NULL),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     param(NULL),
-    wall3d(NULL),
+    wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
     normal_form_with_rf(),
     normal_form_no_rf()
     {}
@@ -2784,7 +2787,6 @@ public:
     delete b;
     delete z;
     delete param;
-    delete wall3d;
   }
 
 };   // End Class

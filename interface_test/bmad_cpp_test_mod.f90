@@ -4107,22 +4107,28 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 offset = 100 * ix_patt
 
+!! f_side.test_pat[character, 0, NOT]
+do jd1 = 1, len(F%name)
+  F%name(jd1:jd1) = char(ichar("a") + modulo(100+1+offset+jd1, 26))
+enddo
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 1 + offset; F%n_link = rhs
+rhs = 2 + offset; F%type = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 3 + offset; F%n_link = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 2 + offset; F%thickness = rhs
+rhs = 4 + offset; F%thickness = rhs
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%clear_material)
-  F%clear_material(jd1:jd1) = char(ichar("a") + modulo(100+3+offset+jd1, 26))
+  F%clear_material(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%opaque_material)
-  F%opaque_material(jd1:jd1) = char(ichar("a") + modulo(100+4+offset+jd1, 26))
+  F%opaque_material(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 5 + offset; F%superimpose = (modulo(rhs, 2) == 0)
+rhs = 7 + offset; F%superimpose = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%ele_anchor_pt = rhs
+rhs = 8 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -6199,13 +6205,15 @@ else
   rhs = 29 + offset
   call set_wake_test_pattern (F%wake, ix_patt)
 endif
-!! f_side.test_pat[type, 0, PTR]
+!! f_side.test_pat[type, 1, PTR]
+
 if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
 else
-  if (.not. associated(F%wall3d)) allocate (F%wall3d)
-  rhs = 31 + offset
-  call set_wall3d_test_pattern (F%wall3d, ix_patt)
+  if (.not. associated(F%wall3d)) allocate (F%wall3d(-1:1))
+  do jd1 = 1, size(F%wall3d,1); lb1 = lbound(F%wall3d,1) - 1
+    call set_wall3d_test_pattern (F%wall3d(jd1+lb1), ix_patt+jd1)
+  enddo
 endif
 !! f_side.test_pat[type, 0, PTR]
 if (ix_patt < 3) then
@@ -6845,13 +6853,15 @@ else
   rhs = 17 + offset
   call set_lat_param_test_pattern (F%param, ix_patt)
 endif
-!! f_side.test_pat[type, 0, PTR]
+!! f_side.test_pat[type, 1, PTR]
+
 if (ix_patt < 3) then
   if (associated(F%wall3d)) deallocate (F%wall3d)
 else
-  if (.not. associated(F%wall3d)) allocate (F%wall3d)
-  rhs = 19 + offset
-  call set_wall3d_test_pattern (F%wall3d, ix_patt)
+  if (.not. associated(F%wall3d)) allocate (F%wall3d(-1:1))
+  do jd1 = 1, size(F%wall3d,1); lb1 = lbound(F%wall3d,1) - 1
+    call set_wall3d_test_pattern (F%wall3d(jd1+lb1), ix_patt+jd1)
+  enddo
 endif
 !! f_side.test_pat[type, 0, NOT]
 call set_normal_form_test_pattern (F%normal_form_with_rf, ix_patt)

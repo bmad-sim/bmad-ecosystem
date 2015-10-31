@@ -714,6 +714,8 @@ template bool is_all_equal (const CPP_wall3d_section_MATRIX&, const CPP_wall3d_s
 
 bool operator== (const CPP_wall3d& x, const CPP_wall3d& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.name == y.name);
+  is_eq = is_eq && (x.type == y.type);
   is_eq = is_eq && (x.n_link == y.n_link);
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.clear_material == y.clear_material);
@@ -1080,9 +1082,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && ((x.wake == NULL) == (y.wake == NULL));
   if (!is_eq) return false;
   if (x.wake != NULL) is_eq = (*x.wake == *y.wake);
-  is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
-  if (!is_eq) return false;
-  if (x.wall3d != NULL) is_eq = (*x.wall3d == *y.wall3d);
+  is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
   is_eq = is_eq && ((x.wig == NULL) == (y.wig == NULL));
   if (!is_eq) return false;
   if (x.wig != NULL) is_eq = (*x.wig == *y.wig);
@@ -1215,9 +1215,7 @@ bool operator== (const CPP_branch& x, const CPP_branch& y) {
   is_eq = is_eq && ((x.param == NULL) == (y.param == NULL));
   if (!is_eq) return false;
   if (x.param != NULL) is_eq = (*x.param == *y.param);
-  is_eq = is_eq && ((x.wall3d == NULL) == (y.wall3d == NULL));
-  if (!is_eq) return false;
-  if (x.wall3d != NULL) is_eq = (*x.wall3d == *y.wall3d);
+  is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
   is_eq = is_eq && (x.normal_form_with_rf == y.normal_form_with_rf);
   is_eq = is_eq && (x.normal_form_no_rf == y.normal_form_no_rf);
   return is_eq;

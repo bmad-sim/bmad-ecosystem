@@ -4737,15 +4737,15 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_to_c2 (C, z_n_link, z_thickness, z_clear_material, z_opaque_material, &
-      z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
+  subroutine wall3d_to_c2 (C, z_name, z_type, z_n_link, z_thickness, z_clear_material, &
+      z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_n_link, z_ele_anchor_pt
+    integer(c_int) :: z_type, z_n_link, z_ele_anchor_pt
     integer(c_int), value :: n1_section
     logical(c_bool) :: z_superimpose
-    character(c_char) :: z_clear_material(*), z_opaque_material(*)
+    character(c_char) :: z_name(*), z_clear_material(*), z_opaque_material(*)
     real(c_double) :: z_thickness
     type(c_ptr) :: z_section(*)
   end subroutine
@@ -4774,9 +4774,9 @@ if (allocated(F%section)) then
 endif
 
 !! f_side.to_c2_call
-call wall3d_to_c2 (C, F%n_link, F%thickness, trim(F%clear_material) // c_null_char, &
-    trim(F%opaque_material) // c_null_char, c_logic(F%superimpose), F%ele_anchor_pt, z_section, &
-    n1_section)
+call wall3d_to_c2 (C, trim(F%name) // c_null_char, F%type, F%n_link, F%thickness, &
+    trim(F%clear_material) // c_null_char, trim(F%opaque_material) // c_null_char, &
+    c_logic(F%superimpose), F%ele_anchor_pt, z_section, n1_section)
 
 end subroutine wall3d_to_c
 
@@ -4796,8 +4796,8 @@ end subroutine wall3d_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_to_f2 (Fp, z_n_link, z_thickness, z_clear_material, z_opaque_material, &
-    z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
+subroutine wall3d_to_f2 (Fp, z_name, z_type, z_n_link, z_thickness, z_clear_material, &
+    z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
 
 
 implicit none
@@ -4806,15 +4806,19 @@ type(c_ptr), value :: Fp
 type(wall3d_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_n_link, z_ele_anchor_pt
+integer(c_int) :: z_type, z_n_link, z_ele_anchor_pt
 integer(c_int), value :: n1_section
 logical(c_bool) :: z_superimpose
-character(c_char) :: z_clear_material(*), z_opaque_material(*)
+character(c_char) :: z_name(*), z_clear_material(*), z_opaque_material(*)
 real(c_double) :: z_thickness
 type(c_ptr) :: z_section(*)
 
 call c_f_pointer (Fp, F)
 
+!! f_side.to_f2_trans[character, 0, NOT]
+call to_f_str(z_name, F%name)
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%type = z_type
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_link = z_n_link
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -6770,7 +6774,7 @@ interface
       z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_control_var, n1_control_var, z_em_field, &
       n_em_field, z_floor, z_ptc_genfield, z_mode3, n_mode3, z_photon, n_photon, &
       z_rad_int_cache, n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, &
-      z_spin_taylor, z_wake, n_wake, z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, &
+      z_spin_taylor, z_wake, n_wake, z_wall3d, n1_wall3d, z_wig, n_wig, z_map_ref_orb_in, &
       z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_value, z_old_value, z_vec0, &
       z_mat6, z_c_mat, z_gamma_c, z_s, z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, &
       z_b_pole, n1_b_pole, z_a_pole_elec, n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, &
@@ -6789,7 +6793,7 @@ interface
     integer(c_int) :: z_iyy, z_mat6_calc_method, z_tracking_method, z_spin_tracking_method, z_ptc_integration_type, z_field_calc, z_aperture_at
     integer(c_int) :: z_aperture_type, z_orientation
     integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
-    integer(c_int), value :: n_wake, n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
+    integer(c_int), value :: n_wake, n1_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
     integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec
     logical(c_bool) :: z_symplectify, z_mode_flip, z_multipoles_on, z_scale_multipoles, z_taylor_map_includes_offsets, z_field_master, z_is_on
     logical(c_bool) :: z_old_is_on, z_logic, z_bmad_logic, z_select, z_csr_calc_on, z_offset_moves_aperture
@@ -6798,8 +6802,8 @@ interface
     real(c_double) :: z_ref_time, z_r(*), z_a_pole(*), z_b_pole(*), z_a_pole_elec(*), z_b_pole_elec(*)
     type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field
     type(c_ptr), value :: z_floor, z_ptc_genfield, z_mode3, z_photon, z_rad_int_cache, z_space_charge, z_wake
-    type(c_ptr), value :: z_wall3d, z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
-    type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*)
+    type(c_ptr), value :: z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out
+    type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*), z_wall3d(*)
   end subroutine
 end interface
 
@@ -6820,7 +6824,8 @@ integer(c_int) :: n_space_charge
 type(c_ptr) :: z_taylor(6)
 type(c_ptr) :: z_spin_taylor(3*3)
 integer(c_int) :: n_wake
-integer(c_int) :: n_wall3d
+type(c_ptr), allocatable :: z_wall3d(:)
+integer(c_int) :: n1_wall3d
 integer(c_int) :: n_wig
 integer(c_int) :: n1_r
 integer(c_int) :: n2_r
@@ -6876,9 +6881,15 @@ enddo; enddo
 !! f_side.to_c_trans[type, 0, PTR]
 n_wake = 0
 if (associated(F%wake)) n_wake = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_wall3d = 0
-if (associated(F%wall3d)) n_wall3d = 1
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_wall3d = 0
+if (associated(F%wall3d)) then
+  n1_wall3d = size(F%wall3d); lb1 = lbound(F%wall3d, 1) - 1
+  allocate (z_wall3d(n1_wall3d))
+  do jd1 = 1, n1_wall3d
+    z_wall3d(jd1) = c_loc(F%wall3d(jd1+lb1))
+  enddo
+endif
 !! f_side.to_c_trans[type, 0, PTR]
 n_wig = 0
 if (associated(F%wig)) n_wig = 1
@@ -6918,22 +6929,21 @@ call ele_to_c2 (C, trim(F%name) // c_null_char, trim(F%type) // c_null_char, tri
     n1_control_var, c_loc(F%em_field), n_em_field, c_loc(F%floor), c_loc(F%ptc_genfield), &
     c_loc(F%mode3), n_mode3, c_loc(F%photon), n_photon, c_loc(F%rad_int_cache), &
     n_rad_int_cache, c_loc(F%space_charge), n_space_charge, z_taylor, z_spin_taylor, &
-    c_loc(F%wake), n_wake, c_loc(F%wall3d), n_wall3d, c_loc(F%wig), n_wig, &
-    c_loc(F%map_ref_orb_in), c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), &
-    c_loc(F%time_ref_orb_out), fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, &
-    num_ele_attrib$), fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), &
-    F%gamma_c, F%s, F%ref_time, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, &
-    fvec2vec(F%a_pole, n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, &
-    fvec2vec(F%a_pole_elec, n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, &
-    n1_b_pole_elec), n1_b_pole_elec, F%key, F%sub_key, F%ix_ele, F%ix_branch, F%slave_status, &
-    F%n_slave, F%ix1_slave, F%ix2_slave, F%lord_status, F%n_lord, F%ic1_lord, F%ic2_lord, &
-    F%ix_pointer, F%ixx, F%iyy, F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, &
-    F%ptc_integration_type, F%field_calc, F%aperture_at, F%aperture_type, F%orientation, &
-    c_logic(F%symplectify), c_logic(F%mode_flip), c_logic(F%multipoles_on), &
-    c_logic(F%scale_multipoles), c_logic(F%taylor_map_includes_offsets), &
-    c_logic(F%field_master), c_logic(F%is_on), c_logic(F%old_is_on), c_logic(F%logic), &
-    c_logic(F%bmad_logic), c_logic(F%select), c_logic(F%csr_calc_on), &
-    c_logic(F%offset_moves_aperture))
+    c_loc(F%wake), n_wake, z_wall3d, n1_wall3d, c_loc(F%wig), n_wig, c_loc(F%map_ref_orb_in), &
+    c_loc(F%map_ref_orb_out), c_loc(F%time_ref_orb_in), c_loc(F%time_ref_orb_out), &
+    fvec2vec(F%value, num_ele_attrib$), fvec2vec(F%old_value, num_ele_attrib$), &
+    fvec2vec(F%vec0, 6), mat2vec(F%mat6, 6*6), mat2vec(F%c_mat, 2*2), F%gamma_c, F%s, &
+    F%ref_time, tensor2vec(F%r, n1_r*n2_r*n3_r), n1_r, n2_r, n3_r, fvec2vec(F%a_pole, &
+    n1_a_pole), n1_a_pole, fvec2vec(F%b_pole, n1_b_pole), n1_b_pole, fvec2vec(F%a_pole_elec, &
+    n1_a_pole_elec), n1_a_pole_elec, fvec2vec(F%b_pole_elec, n1_b_pole_elec), n1_b_pole_elec, &
+    F%key, F%sub_key, F%ix_ele, F%ix_branch, F%slave_status, F%n_slave, F%ix1_slave, &
+    F%ix2_slave, F%lord_status, F%n_lord, F%ic1_lord, F%ic2_lord, F%ix_pointer, F%ixx, F%iyy, &
+    F%mat6_calc_method, F%tracking_method, F%spin_tracking_method, F%ptc_integration_type, &
+    F%field_calc, F%aperture_at, F%aperture_type, F%orientation, c_logic(F%symplectify), &
+    c_logic(F%mode_flip), c_logic(F%multipoles_on), c_logic(F%scale_multipoles), &
+    c_logic(F%taylor_map_includes_offsets), c_logic(F%field_master), c_logic(F%is_on), &
+    c_logic(F%old_is_on), c_logic(F%logic), c_logic(F%bmad_logic), c_logic(F%select), &
+    c_logic(F%csr_calc_on), c_logic(F%offset_moves_aperture))
 
 end subroutine ele_to_c
 
@@ -6957,7 +6967,7 @@ subroutine ele_to_f2 (Fp, z_name, z_type, z_alias, z_component_name, z_descrip, 
     z_b, z_z, z_x, z_y, z_bookkeeping_state, z_control_var, n1_control_var, z_em_field, &
     n_em_field, z_floor, z_ptc_genfield, z_mode3, n_mode3, z_photon, n_photon, z_rad_int_cache, &
     n_rad_int_cache, z_space_charge, n_space_charge, z_taylor, z_spin_taylor, z_wake, n_wake, &
-    z_wall3d, n_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
+    z_wall3d, n1_wall3d, z_wig, n_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, &
     z_time_ref_orb_out, z_value, z_old_value, z_vec0, z_mat6, z_c_mat, z_gamma_c, z_s, &
     z_ref_time, z_r, n1_r, n2_r, n3_r, z_a_pole, n1_a_pole, z_b_pole, n1_b_pole, z_a_pole_elec, &
     n1_a_pole_elec, z_b_pole_elec, n1_b_pole_elec, z_key, z_sub_key, z_ix_ele, z_ix_branch, &
@@ -6984,14 +6994,14 @@ integer(c_int) :: z_aperture_type, z_orientation
 type(mode3_struct), pointer :: f_mode3
 type(rad_int_ele_cache_struct), pointer :: f_rad_int_cache
 integer(c_int), value :: n_descrip, n1_control_var, n_em_field, n_mode3, n_photon, n_rad_int_cache, n_space_charge
-integer(c_int), value :: n_wake, n_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
+integer(c_int), value :: n_wake, n1_wall3d, n_wig, n1_r, n2_r, n3_r, n1_a_pole
 integer(c_int), value :: n1_b_pole, n1_a_pole_elec, n1_b_pole_elec
 type(wig_struct), pointer :: f_wig
 type(photon_element_struct), pointer :: f_photon
 type(c_ptr), value :: z_a, z_b, z_z, z_x, z_y, z_bookkeeping_state, z_em_field
 type(c_ptr), value :: z_floor, z_ptc_genfield, z_mode3, z_photon, z_rad_int_cache, z_space_charge, z_wake
-type(c_ptr), value :: z_wall3d, z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_r
-type(c_ptr), value :: z_a_pole, z_b_pole, z_a_pole_elec, z_b_pole_elec
+type(c_ptr), value :: z_wig, z_map_ref_orb_in, z_map_ref_orb_out, z_time_ref_orb_in, z_time_ref_orb_out, z_r, z_a_pole
+type(c_ptr), value :: z_b_pole, z_a_pole_elec, z_b_pole_elec
 real(c_double), pointer :: f_r(:), f_a_pole(:), f_b_pole(:), f_a_pole_elec(:), f_b_pole_elec(:)
 type(wake_struct), pointer :: f_wake
 character(c_char) :: z_name(*), z_type(*), z_alias(*), z_component_name(*), z_descrip(*)
@@ -7000,8 +7010,7 @@ type(space_charge_struct), pointer :: f_space_charge
 real(c_double) :: z_value(*), z_old_value(*), z_vec0(*), z_mat6(*), z_c_mat(*), z_gamma_c, z_s
 real(c_double) :: z_ref_time
 type(em_fields_struct), pointer :: f_em_field
-type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*)
-type(wall3d_struct), pointer :: f_wall3d
+type(c_ptr) :: z_control_var(*), z_taylor(*), z_spin_taylor(*), z_wall3d(*)
 
 call c_f_pointer (Fp, F)
 
@@ -7109,12 +7118,18 @@ else
   call wake_to_f (z_wake, c_loc(F%wake))
 endif
 
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_wall3d == 0) then
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_wall3d == 0) then
   if (associated(F%wall3d)) deallocate(F%wall3d)
 else
-  if (.not. associated(F%wall3d)) allocate(F%wall3d)
-  call wall3d_to_f (z_wall3d, c_loc(F%wall3d))
+  if (associated(F%wall3d)) then
+    if (n1_wall3d == 0 .or. any(shape(F%wall3d) /= [n1_wall3d])) deallocate(F%wall3d)
+    if (any(lbound(F%wall3d) /= 1)) deallocate(F%wall3d)
+  endif
+  if (.not. associated(F%wall3d)) allocate(F%wall3d(1:n1_wall3d+1-1))
+  do jd1 = 1, n1_wall3d
+    call wall3d_to_f (z_wall3d(jd1), c_loc(F%wall3d(jd1+1-1)))
+  enddo
 endif
 
 !! f_side.to_f2_trans[type, 0, PTR]
@@ -7654,15 +7669,15 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine branch_to_c2 (C, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
       z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
-      z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
+      z_ele, n1_ele, z_param, n_param, z_wall3d, n1_wall3d, z_normal_form_with_rf, &
       z_normal_form_no_rf) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    type(c_ptr) :: z_ele(*)
+    type(c_ptr) :: z_ele(*), z_wall3d(*)
     integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
-    integer(c_int), value :: n_wall3d
-    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_wall3d, z_normal_form_with_rf, z_normal_form_no_rf
+    integer(c_int), value :: n1_wall3d
+    type(c_ptr), value :: z_a, z_b, z_z, z_param, z_normal_form_with_rf, z_normal_form_no_rf
     integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele, z_n_ele_track, z_n_ele_max
     character(c_char) :: z_name(*)
   end subroutine
@@ -7681,7 +7696,8 @@ integer(c_int) :: n_z
 type(c_ptr), allocatable :: z_ele(:)
 integer(c_int) :: n1_ele
 integer(c_int) :: n_param
-integer(c_int) :: n_wall3d
+type(c_ptr), allocatable :: z_wall3d(:)
+integer(c_int) :: n1_wall3d
 
 !
 
@@ -7714,15 +7730,21 @@ endif
 !! f_side.to_c_trans[type, 0, PTR]
 n_param = 0
 if (associated(F%param)) n_param = 1
-!! f_side.to_c_trans[type, 0, PTR]
-n_wall3d = 0
-if (associated(F%wall3d)) n_wall3d = 1
+!! f_side.to_c_trans[type, 1, PTR]
+ n1_wall3d = 0
+if (associated(F%wall3d)) then
+  n1_wall3d = size(F%wall3d); lb1 = lbound(F%wall3d, 1) - 1
+  allocate (z_wall3d(n1_wall3d))
+  do jd1 = 1, n1_wall3d
+    z_wall3d(jd1) = c_loc(F%wall3d(jd1+lb1))
+  enddo
+endif
 
 !! f_side.to_c2_call
 call branch_to_c2 (C, trim(F%name) // c_null_char, F%ix_branch, F%ix_from_branch, &
     F%ix_from_ele, F%n_ele_track, n_n_ele_track, F%n_ele_max, n_n_ele_max, c_loc(F%a), n_a, &
-    c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, c_loc(F%wall3d), &
-    n_wall3d, c_loc(F%normal_form_with_rf), c_loc(F%normal_form_no_rf))
+    c_loc(F%b), n_b, c_loc(F%z), n_z, z_ele, n1_ele, c_loc(F%param), n_param, z_wall3d, &
+    n1_wall3d, c_loc(F%normal_form_with_rf), c_loc(F%normal_form_no_rf))
 
 end subroutine branch_to_c
 
@@ -7744,7 +7766,7 @@ end subroutine branch_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine branch_to_f2 (Fp, z_name, z_ix_branch, z_ix_from_branch, z_ix_from_ele, &
     z_n_ele_track, n_n_ele_track, z_n_ele_max, n_n_ele_max, z_a, n_a, z_b, n_b, z_z, n_z, &
-    z_ele, n1_ele, z_param, n_param, z_wall3d, n_wall3d, z_normal_form_with_rf, &
+    z_ele, n1_ele, z_param, n_param, z_wall3d, n1_wall3d, z_normal_form_with_rf, &
     z_normal_form_no_rf) bind(c)
 
 
@@ -7755,16 +7777,15 @@ type(branch_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 integer(c_int) :: z_ix_branch, z_ix_from_branch, z_ix_from_ele
-type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_wall3d
-type(c_ptr), value :: z_normal_form_with_rf, z_normal_form_no_rf
+type(c_ptr), value :: z_n_ele_track, z_n_ele_max, z_a, z_b, z_z, z_param, z_normal_form_with_rf
+type(c_ptr), value :: z_normal_form_no_rf
 type(lat_param_struct), pointer :: f_param
 character(c_char) :: z_name(*)
 integer(c_int), pointer :: f_n_ele_track, f_n_ele_max
 type(mode_info_struct), pointer :: f_a, f_b, f_z
 integer(c_int), value :: n_n_ele_track, n_n_ele_max, n_a, n_b, n_z, n1_ele, n_param
-integer(c_int), value :: n_wall3d
-type(c_ptr) :: z_ele(*)
-type(wall3d_struct), pointer :: f_wall3d
+integer(c_int), value :: n1_wall3d
+type(c_ptr) :: z_ele(*), z_wall3d(*)
 
 call c_f_pointer (Fp, F)
 
@@ -7840,12 +7861,18 @@ else
   call lat_param_to_f (z_param, c_loc(F%param))
 endif
 
-!! f_side.to_f2_trans[type, 0, PTR]
-if (n_wall3d == 0) then
+!! f_side.to_f2_trans[type, 1, PTR]
+if (n1_wall3d == 0) then
   if (associated(F%wall3d)) deallocate(F%wall3d)
 else
-  if (.not. associated(F%wall3d)) allocate(F%wall3d)
-  call wall3d_to_f (z_wall3d, c_loc(F%wall3d))
+  if (associated(F%wall3d)) then
+    if (n1_wall3d == 0 .or. any(shape(F%wall3d) /= [n1_wall3d])) deallocate(F%wall3d)
+    if (any(lbound(F%wall3d) /= 1)) deallocate(F%wall3d)
+  endif
+  if (.not. associated(F%wall3d)) allocate(F%wall3d(1:n1_wall3d+1-1))
+  do jd1 = 1, n1_wall3d
+    call wall3d_to_f (z_wall3d(jd1), c_loc(F%wall3d(jd1+1-1)))
+  enddo
 endif
 
 !! f_side.to_f2_trans[type, 0, NOT]
