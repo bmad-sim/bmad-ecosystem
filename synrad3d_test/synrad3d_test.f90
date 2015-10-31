@@ -82,7 +82,7 @@ enddo
 ! Multi-section test
 
 call sr3d_read_wall_file ('multi_sec.wall', lat%branch(0))
-section => lat%branch(0)%wall3d%section
+section => lat%branch(0)%wall3d(1)%section
 write (1, '(3a)')       '"Multi-sec22-name"  STR  "', trim(section(22)%name), '"'
 write (1, '(3a)')       '"Multi-sec23-name"  STR  "', trim(section(23)%name), '"'
 write (1, '(a, f12.4)') '"Multi-sec22-s"   ABS 0 ', section(22)%s
