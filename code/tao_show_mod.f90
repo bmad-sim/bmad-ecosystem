@@ -3367,7 +3367,7 @@ case ('wall')
     return
   endif
 
-  wall => branch%wall3d
+  wall => branch%wall3d(1)
 
   if (ix_sec > 0) then 
     if (ix_sec > size(wall%section)) then
