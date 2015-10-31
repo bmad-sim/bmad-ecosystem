@@ -55,7 +55,7 @@ print *, 'Max:', max_d
 
 !
 
-wall => lat%branch(0)%wall3d
+wall => lat%branch(0)%wall3d(1)
 
 open (1, file = 'output.now')
 
