@@ -165,31 +165,31 @@ endif
 
 if (a_name(1:10) == 'WALL.SECTION') then
   if (.not. associated(ele%wall3d)) goto 9210
-  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%wall3d%section))
+  n_cc = get_cross_index(a_name, 11, err, 1, size(ele%wall3d(1)%section))
   if (err) goto 9200
 
   if (a_name == 'S') then
     if (n_cc == 1) goto 9210  ! must have s = 0
-    a_ptr%r => ele%wall3d%section(n_cc)%s
+    a_ptr%r => ele%wall3d(1)%section(n_cc)%s
     err_flag = .false.
     return
   endif
 
   if (a_name(1:11) == 'WALL.DR_DS') then
-    a_ptr%r => ele%wall3d%section(n_cc)%dr_ds
+    a_ptr%r => ele%wall3d(1)%section(n_cc)%dr_ds
     err_flag = .false.
     return
   endif
 
   if (a_name(1:1) == 'V') then
-    n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d%section(n_cc)%v))
+    n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
     if (err) goto 9200
     select case (a_name)
-    case ('.X');        a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%x
-    case ('.Y');        a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%y
-    case ('.RADIUS_X'); a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%radius_x
-    case ('.RADIUS_Y'); a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%radius_y
-    case ('.TILT');     a_ptr%r => ele%wall3d%section(n_cc)%v(n_v)%tilt
+    case ('.X');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%x
+    case ('.Y');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%y
+    case ('.RADIUS_X'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_x
+    case ('.RADIUS_Y'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_y
+    case ('.TILT');     a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%tilt
     case default;       goto 9200
     err_flag = .false.
     end select

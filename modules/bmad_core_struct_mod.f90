@@ -488,17 +488,17 @@ end subroutine transfer_wig
 !   use bmad
 !
 ! Input:
-!   wall3d_in  -- Wall3d_struct, pointer: Input wall3dgler field.
+!   wall3d_in(:)  -- Wall3d_struct, pointer: Input wall3dgler field.
 !
 ! Output:
-!   wall3d_out -- Wall3d_struct, pointer: Output wall3dgler field.
+!   wall3d_out(:) -- Wall3d_struct, pointer: Output wall3dgler field.
 !-
 
 subroutine transfer_wall3d (wall3d_in, wall3d_out)
 
 implicit none
 
-type (wall3d_struct), pointer :: wall3d_in, wall3d_out
+type (wall3d_struct), pointer :: wall3d_in(:), wall3d_out(:)
 
 !
 
@@ -847,6 +847,8 @@ if (allocated(lat%attribute_alias)) deallocate(lat%attribute_alias)
 ! these pointers have been deallocated above.
 
 if (allocated (lat%branch)) then
+  call deallocate_wall3d_pointer (lat%branch(0)%wall3d)
+
   do i = 1, ubound(lat%branch, 1)
     call deallocate_ele_array_pointers (lat%branch(i)%ele)
     deallocate (lat%branch(i)%param, lat%branch(i)%a, lat%branch(i)%b, lat%branch(i)%z)
@@ -907,24 +909,27 @@ end subroutine deallocate_ele_array_pointers
 ! Routine to deallocate a wall3d pointer.
 !
 ! Input:
-!   wall3d -- wall3d_struct, pointer: Pointer to wall3d structure.
+!   wall3d(:) -- wall3d_struct, pointer: Pointer to wall3d structure.
 !
 ! Output:
-!   wall3d -- wall3d_struct, pointer: deallocated
+!   wall3d(:) -- wall3d_struct, pointer: deallocated
 !-
 
 subroutine deallocate_wall3d_pointer (wall3d)
 
 implicit none
 
-type (wall3d_struct), pointer :: wall3d
+type (wall3d_struct), pointer :: wall3d(:)
+integer i
 
 !
 
 if (associated (wall3d)) then
   wall3d%n_link = wall3d%n_link - 1
-  if (wall3d%n_link == 0) then
-    deallocate (wall3d%section)
+  if (wall3d(1)%n_link == 0) then
+    do i = 1, size(wall3d)
+      deallocate (wall3d(i)%section)
+    enddo
     deallocate (wall3d)
   else
     nullify(wall3d)

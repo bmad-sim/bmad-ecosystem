@@ -39,12 +39,11 @@ use nr, only: gaussj
 implicit none
 
 type (lat_struct) lat
+type (ele_pointer_struct), allocatable :: ele_sex(:)
 
-integer i, j, n_sex, n_x_sex, n_y_sex
-integer, pointer :: ix_sex(:)
+integer i, j, n_x_sex, n_y_sex, ix, iy, n_sex
 integer, allocatable :: ix_x_sex(:), ix_y_sex(:)
 integer, allocatable :: sex_type(:)
-integer ix
 
 real(rp), allocatable :: sex_y_values(:), sex_x_values(:)
 real(rp) target_x, target_y, chrom_x, chrom_y
@@ -58,15 +57,13 @@ logical err_flag, debug
  
 debug = .false.
 
-call elements_locator_by_key(sextupole$, lat, ix_sex)
-allocate (sex_type(size(ix_sex)))
+call lat_ele_locator('sextupole::*', lat, ele_sex, n_sex, err_flag)
+allocate (sex_type(n_sex))
 
-do i = 1, size(ix_sex)
-  ix = ix_sex(i)
-  if (lat%ele(ix)%value(tilt_tot$) /= 0) then
+do i = 1, n_sex
+  if (ele_sex(i)%ele%value(tilt_tot$) /= 0) then
     sex_type(i) = n_plane$  ! do not use tilted sextupoles 
-  elseif ((lat%ele(ix_sex(i))%a%beta) > & 
-                    (lat%ele(ix_sex(i))%b%beta)) then
+  elseif (ele_sex(i)%ele%a%beta > ele_sex(i)%ele%b%beta) then
     sex_type(i) = x_plane$
   else
     sex_type(i) = y_plane$
@@ -79,8 +76,17 @@ n_y_sex = count(sex_type == y_plane$)
 
 allocate (ix_x_sex(n_x_sex), ix_y_sex(n_y_sex))
 allocate (sex_x_values(n_x_sex), sex_y_values(n_y_sex))
-ix_x_sex = pack(ix_sex, mask = (sex_type == x_plane$))
-ix_y_sex = pack(ix_sex, mask = (sex_type == y_plane$))
+
+ix = 0; iy = 0
+do i = 1, n_sex
+  if (sex_type(i) == x_plane$) then
+    ix = ix + 1
+    ix_x_sex(ix) = ele_sex(i)%ele%ix_ele
+  elseif (sex_type(i) == x_plane$) then
+    iy = iy + 1
+    ix_y_sex(iy) = ele_sex(i)%ele%ix_ele
+  endif
+enddo
 
 delta_x = 0.1
 delta_y = 0.1
@@ -109,7 +115,7 @@ do j = 1, 100
       print *, 'Number of iterations:', j
       print '(1x, a, 2f10.4)', 'Final Chromaticities:', chrom_x0, chrom_y0
     end if
-    deallocate (ix_x_sex, ix_y_sex, ix_sex)
+    deallocate (ix_x_sex, ix_y_sex, ele_sex)
     deallocate (sex_x_values, sex_y_values)
     err_flag = .false.
     return
@@ -142,7 +148,7 @@ end do
 !
 
 print *, 'ERROR IN CHROM_TUNE:  TUNING SEXTUPOLES FAILED!'
-deallocate (ix_x_sex, ix_y_sex, ix_sex)
+deallocate (ix_x_sex, ix_y_sex, ele_sex)
 deallocate (sex_x_values, sex_y_values)
 err_flag = .true.
 

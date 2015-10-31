@@ -1067,9 +1067,12 @@ logical, optional :: is_branch_wall
 
 ! 
 
+nullify(wall3d)
+
 if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. &
                                 ele%key /= mask$ .and. associated (ele%branch)) then
-  wall3d => ele%branch%wall3d
+  if (.not. associated(ele%branch%wall3d)) return
+  wall3d => ele%branch%wall3d(1)
   ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   if (present(is_branch_wall)) is_branch_wall = .true.
   return
@@ -1077,8 +1080,8 @@ endif
 
 if (present(is_branch_wall)) is_branch_wall = .false.
 
-wall3d => ele%wall3d
-if (.not. associated(wall3d)) return
+if (.not. associated(ele%wall3d)) return
+wall3d => ele%wall3d(1)
 
 select case (wall3d%ele_anchor_pt)
 case (anchor_beginning$); ds_offset = -ele%value(l$)
@@ -1149,7 +1152,7 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%key == diffraction_plate$) cycle
     if (ele%key == mask$) cycle
     if (ele%lord_status == multipass_lord$) cycle  ! wall info also in slaves
-    n_sec = n_sec + size(ele%wall3d%section)
+    n_sec = n_sec + size(ele%wall3d(1)%section)
   enddo
 
   if (n_sec == 0) then
@@ -1170,7 +1173,7 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
     if (ele%key == mask$) cycle
-    if (ele%wall3d%superimpose) cycle
+    if (ele%wall3d(1)%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
     call add_in_ele_wall_sections (ele, ele) ; if (err) return
   enddo
@@ -1183,7 +1186,7 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%key == capillary$) cycle
     if (ele%key == diffraction_plate$) cycle
     if (ele%key == mask$) cycle
-    if (.not. ele%wall3d%superimpose) cycle
+    if (.not. ele%wall3d(1)%superimpose) cycle
     if (ele%lord_status == multipass_lord$) cycle
     call superimpose_this_wall (ele, ele) ; if (err) return
   enddo
@@ -1211,11 +1214,11 @@ do i = 0, ubound(lat%branch, 1)
   ! Transfer info from sp to branch%wall3d
   ! branch%wall3d is never mutiply linked.
 
-  if (.not. associated(branch%wall3d)) allocate (branch%wall3d)
-  call re_allocate(branch%wall3d%section, n_sec)
+  if (.not. associated(branch%wall3d)) allocate (branch%wall3d(1))
+  call re_allocate(branch%wall3d(1)%section, n_sec)
 
   do j = 1, n_sec
-    ws => branch%wall3d%section(j)
+    ws => branch%wall3d(1)%section(j)
     call re_allocate(ws%v, size(sp(j)%sec%v))
     ws = sp(j)%sec
     ws%s = sp(j)%s
@@ -1241,7 +1244,7 @@ integer ii, k, ixw, nw, n, ix_wrap1, ix_wrap2
 
 !
 
-wall => wall_ele%wall3d
+wall => wall_ele%wall3d(1)
 nw = size(wall%section)
 
 select case (wall%ele_anchor_pt)
@@ -1343,7 +1346,7 @@ integer ii, ixw1, ixw2, nw, n_del, ix_wrap1, ix_wrap2
 
 !
 
-wall => wall_ele%wall3d
+wall => wall_ele%wall3d(1)
 nw = size(wall%section)
 
 select case (wall%ele_anchor_pt)
@@ -1439,7 +1442,7 @@ integer i, j
 
 !
 
-wall => branch%wall3d
+wall => branch%wall3d(1)
 wall%section%patch_in_region = .false.
 
 do i = 2, size(wall%section)
@@ -1486,7 +1489,7 @@ integer i, ix_sec
 ! Logic: A particle is in a clear section if it is inside the section and outside
 ! all subsiquent opaque sections up to the next clear section.
 
-wall3d => ele%wall3d
+wall3d => ele%wall3d(1)
 ix_section = 0
 ix_sec = 0
 

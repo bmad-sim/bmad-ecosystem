@@ -213,23 +213,6 @@ interface
     character(*) ele_name
   end subroutine
 
-  subroutine elements_locator_by_key (key, lat, indx)
-    import
-    implicit none
-    integer key
-    type (lat_struct) lat
-    integer, pointer :: indx(:)
-  end subroutine
-
-  subroutine elements_locator (ele_name, lat, indx, err)
-    import
-    implicit none
-    character(*) ele_name
-    type (lat_struct) lat
-    integer, allocatable :: indx(:)
-    logical err
-  end subroutine
-
   subroutine find_element_ends (ele, ele1, ele2, ix_multipass)
     import
     implicit none

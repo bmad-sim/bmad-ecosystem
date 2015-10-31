@@ -197,7 +197,7 @@ do i_b = 0, ubound(lat%branch, 1)
         err_flag = .true.
 
       else
-        if (ele%wall3d%section(1)%type /= clear$) then
+        if (ele%wall3d(1)%section(1)%type /= clear$) then
           call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
                       'WHICH IS A ' // key_name(ele%key), &
@@ -205,8 +205,8 @@ do i_b = 0, ubound(lat%branch, 1)
           err_flag = .true.
         endif
 
-        do j = 1, size(ele%wall3d%section)
-          ii = ele%wall3d%section(j)%type
+        do j = 1, size(ele%wall3d(1)%section)
+          ii = ele%wall3d(1)%section(j)%type
           if (ii == opaque$ .or. ii == clear$) cycle
           call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // trim(ele%name) // '  ' // trim(str_ix_ele), &
@@ -339,9 +339,9 @@ do i_b = 0, ubound(lat%branch, 1)
     ! wall3d check
 
     if (associated(ele%wall3d)) then
-      do k = 1, size(ele%wall3d%section)
+      do k = 1, size(ele%wall3d(1)%section)
         if (k > 1) then
-          if (ele%wall3d%section(k-1)%s > ele%wall3d%section(k)%s) then
+          if (ele%wall3d(1)%section(k-1)%s > ele%wall3d(1)%section(k)%s) then
             call out_io (s_fatal$, r_name, &
                   'ELEMENT: ' // ele%name, &
                   'S VALUES FOR WALL3D SECTIONS NOT INCREASING.')

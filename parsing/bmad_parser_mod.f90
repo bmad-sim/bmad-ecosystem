@@ -223,7 +223,7 @@ real(rp), pointer :: r_ptr
 
 integer i, i2, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
-integer ix_bounds(2), iy_bounds(2), i_vec(2), plane
+integer ix_bounds(2), iy_bounds(2), i_vec(2), plane, n_sec
 
 character(40) :: word, str_ix, attrib_word, word2
 character(1) delim, delim1, delim2
@@ -461,12 +461,13 @@ if (word(1:5) == 'WALL.') then
     endif
 
     ix_sec = evaluate_array_index (err_flag, ')', word2, '(=', delim)
-    if (err_flag .or. .not. associated(ele%wall3d) .or. ix_sec < 0 .or. &
-                                                  ix_sec > size(ele%wall3d%section)) then
+    n_sec = -1
+    if (associated(ele%wall3d)) n_sec = size(ele%wall3d(1)%section)
+    if (err_flag .or. ix_sec < 0 .or. ix_sec > n_sec) then
       call parser_error('BAD ' // trim(word) // ' INDEX', 'FOR ELEMENT: ' // ele%name)
       return
     endif
-    section => ele%wall3d%section(ix_sec)
+    section => ele%wall3d(1)%section(ix_sec)
 
     if (word2 == '.S' .and. delim == '=') then
       r_ptr => section%s
@@ -578,7 +579,7 @@ if (attrib_word == 'WALL') then
 
   ! Loop wall3d_struct components.
 
-  allocate (ele%wall3d)
+  allocate (ele%wall3d(1))
 
   wall3d_loop: do    
 
@@ -591,21 +592,21 @@ if (attrib_word == 'WALL') then
     select case (word)
 
     case ('OPAQUE_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d%opaque_material)
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d(1)%opaque_material)
 
     case ('CLEAR_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d%clear_material)
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d(1)%clear_material)
 
     case ('THICKNESS') 
-      call evaluate_value (ele%name, ele%wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
+      call evaluate_value (ele%name, ele%wall3d(1)%thickness, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
-      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d%ele_anchor_pt, err_flag2, ele)
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d(1)%ele_anchor_pt, err_flag2, ele)
       if (err_flag2) return
 
     case ('SUPERIMPOSE')
-      call get_logical ('WALL SUPERIMPOSE', ele%wall3d%superimpose, err_flag2); if (err_flag2) return
+      call get_logical ('WALL SUPERIMPOSE', ele%wall3d(1)%superimpose, err_flag2); if (err_flag2) return
 
     ! Must be "section = {"
 
@@ -617,8 +618,8 @@ if (attrib_word == 'WALL') then
 
       i_section = i_section + 1
       ix_v = 0
-      call re_allocate (ele%wall3d%section, i_section)
-      section => ele%wall3d%section(i_section)
+      call re_allocate (ele%wall3d(1)%section, i_section)
+      section => ele%wall3d(1)%section(i_section)
 
       wall3d_section_loop: do
 
@@ -5156,11 +5157,13 @@ logical kick_set, length_set, set_done, err_flag
 ! Wall3d init.
 
 if (associated(ele%wall3d)) then
-  call wall3d_initializer (ele%wall3d, err_flag)
-  if (err_flag) then
-    call parser_error ('WALL INIT ERROR FOR ELEMENT: ' // ele%name)
-    return
-  endif
+  do n = 1, size(ele%wall3d)
+    call wall3d_initializer (ele%wall3d(n), err_flag)
+    if (err_flag) then
+      call parser_error ('WALL INIT ERROR FOR ELEMENT: ' // ele%name)
+      return
+    endif
+  enddo
 endif
 
 ! Aperture init
@@ -5197,6 +5200,7 @@ case (sbend$, rbend$, sad_mult$)
   angle = ele%value(angle$) 
 
   ! Only one of b_field, g, or rho may be set.
+  ! B_field may not be set for an rbend since, in this case, L is not computable (we don't know the ref energy).
 
   if (ele%value(b_field$) /= 0 .and. ele%key == rbend$) call parser_error &
           ("B_FIELD NOT SETTABLE FOR AN RBEND (USE AN SBEND INSTEAD): " // ele%name)
@@ -5212,19 +5216,21 @@ case (sbend$, rbend$, sad_mult$)
 
   ! if rho is set then this gives g
 
+  if (ele%value(l$) /= 0 .and. angle /= 0 .and. ele%value(g$) /= 0) &
+                      call parser_error ('ANGLE, G, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
+  if (ele%value(l$) /= 0 .and. angle /= 0 .and. ele%value(rho$) /= 0) &
+                      call parser_error ('ANGLE, RHO, AND L ARE ALL SPECIFIED FOR BEND: ' // ele%name)
+
   if (ele%value(rho$) /= 0) ele%value(g$) = 1 / ele%value(rho$)
 
   ! If g and angle are set then this determines l
 
-  if (ele%value(g$) /= 0 .and. angle /= 0) then
-    if (ele%value(l$) /= 0) call parser_error ('ANGLE, G/RHO, AND L SPECIFIED FOR BEND: ' // ele%name)
-    ele%value(l$) = angle / ele%value(g$)
-  endif
+  if (ele%value(g$) /= 0 .and. angle /= 0) ele%value(l$) = angle / ele%value(g$)
 
   ! Convert an rbend to an sbend
 
   if (ele%key == rbend$) then
-
+    ! Note: L may not be zero if g and angle have both been specified and are non-zero.
     if (ele%value(l$) == 0) then
       if (ele%value(l_chord$) == 0) then
         angle = 0
@@ -5233,6 +5239,8 @@ case (sbend$, rbend$, sad_mult$)
       elseif (ele%value(g$) /= 0) then
         angle = 2 * asin(ele%value(l_chord$) * ele%value(g$) / 2)
         ele%value(l$) = ele%value(l_chord$) * angle / (2 * sin(angle/2))
+      else  ! g and angle are zero.
+        ele%value(l$) = ele%value(l_chord$)
       endif
     endif
     
@@ -5245,6 +5253,8 @@ case (sbend$, rbend$, sad_mult$)
   ! 
 
   if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
+    call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
+  elseif (ele%value(g$) /= 0 .and. ele%value(l$) == 0) then
     call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   elseif (ele%value(angle$) /= 0) then
     ele%value(g$) = ele%value(angle$) / ele%value(l$) 

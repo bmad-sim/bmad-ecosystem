@@ -227,7 +227,7 @@ enddo
 do i = 1, 3; do j = 1, 3
   if (associated(ele%spin_taylor(i,j)%term)) ix_st(i,j) = size(ele%spin_taylor(i,j)%term)
 enddo; enddo
-if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d%section)
+if (associated(ele%wall3d))         ix_wall3d = size(ele%wall3d)
 if (associated(ele%em_field))       n_em_field_mode = size(ele%em_field%mode)
 if (associated(ele%control_var))    n_var = size(ele%control_var)
 
@@ -253,6 +253,9 @@ if (associated(ele%wake)) then
 endif
 
 ! Wiggler
+! Go through all the elements before the current element and if some element has the same
+! wiggler model then just set ix_wig, ix_wig_branch to point to this element.
+! Negative sign for ix_wig will signal to read_digested_bmad_file that this is the situation.
 
 if (associated(ele%wig)) then
   wig_branch_loop: do ib = 0, ele%ix_branch
@@ -271,6 +274,9 @@ if (associated(ele%wig)) then
 endif
 
 ! Wall3d
+! Go through all the elements before the current element and if some element has the same
+! wall3d model then just set ix_wall3d, ix_wall3d_branch to point to this element.
+! Negative sign for ix_wall3d will signal to read_digested_bmad_file that this is the situation.
 
 ix_wall3d_branch = 0
 
@@ -281,8 +287,11 @@ if (associated(ele%wall3d)) then
     do ie = 1, ie_max
       ele2 => lat%branch(ib)%ele(ie)
       if (.not. associated(ele2%wall3d)) cycle
-      if (size(ele2%wall3d%section) /= size(ele%wall3d%section)) cycle
-      if (.not. all(ele2%wall3d%section == ele%wall3d%section)) cycle
+      if (size(ele2%wall3d) /= size(ele%wall3d)) cycle
+      do j = 1, size(ele%wall3d)
+        if (size(ele2%wall3d(j)%section) /= size(ele%wall3d(j)%section)) cycle
+        if (.not. all(ele2%wall3d(j)%section == ele%wall3d(j)%section)) cycle
+      enddo
       ix_wall3d = -ie
       ix_wall3d_branch = ib
       exit wall3d_branch_loop
@@ -473,20 +482,23 @@ end subroutine
 
 subroutine write_this_wall3d (wall3d, write_wall)
 
-type (wall3d_struct), pointer :: wall3d
-integer j, k
+type (wall3d_struct), pointer :: wall3d(:)
+integer i, j, k
 logical write_wall
 
 !
 
 if (write_wall) then
 
-  write (d_unit) size(wall3d%section)
-  write (d_unit) wall3d%ele_anchor_pt, wall3d%superimpose, &
-      wall3d%thickness, wall3d%clear_material, wall3d%opaque_material
+  write (d_unit) size(wall3d)
+  do i = 1, size(wall3d)
+    write (d_unit) size(wall3d(i)%section)
+    write (d_unit) wall3d(i)%ele_anchor_pt, wall3d(i)%superimpose, &
+        wall3d(i)%thickness, wall3d(i)%clear_material, wall3d(i)%opaque_material
 
-  do j = lbound(wall3d%section, 1), ubound(wall3d%section, 1)
-    call write_this_wall3d_section (wall3d%section(j))
+    do j = lbound(wall3d(i)%section, 1), ubound(wall3d(i)%section, 1)
+      call write_this_wall3d_section (wall3d(i)%section(j))
+    enddo
   enddo
 
 else

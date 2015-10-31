@@ -1226,6 +1226,10 @@ logical is_eq
 !
 
 is_eq = .true.
+!! f_side.equality_test[character, 0, NOT]
+is_eq = is_eq .and. (f1%name == f2%name)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%type == f2%type)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_link == f2%n_link)
 !! f_side.equality_test[real, 0, NOT]
@@ -1907,11 +1911,12 @@ is_eq = is_eq .and. all(f1%spin_taylor == f2%spin_taylor)
 is_eq = is_eq .and. (associated(f1%wake) .eqv. associated(f2%wake))
 if (.not. is_eq) return
 if (associated(f1%wake)) is_eq = (f1%wake == f2%wake)
-!! f_side.equality_test[type, 0, PTR]
-
+!! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
 if (.not. is_eq) return
-if (associated(f1%wall3d)) is_eq = (f1%wall3d == f2%wall3d)
+if (associated(f1%wall3d)) is_eq = all(shape(f1%wall3d) == shape(f2%wall3d))
+if (.not. is_eq) return
+if (associated(f1%wall3d)) is_eq = all(f1%wall3d == f2%wall3d)
 !! f_side.equality_test[type, 0, PTR]
 
 is_eq = is_eq .and. (associated(f1%wig) .eqv. associated(f2%wig))
@@ -2180,11 +2185,12 @@ if (associated(f1%ele)) is_eq = all(f1%ele == f2%ele)
 is_eq = is_eq .and. (associated(f1%param) .eqv. associated(f2%param))
 if (.not. is_eq) return
 if (associated(f1%param)) is_eq = (f1%param == f2%param)
-!! f_side.equality_test[type, 0, PTR]
-
+!! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
 if (.not. is_eq) return
-if (associated(f1%wall3d)) is_eq = (f1%wall3d == f2%wall3d)
+if (associated(f1%wall3d)) is_eq = all(shape(f1%wall3d) == shape(f2%wall3d))
+if (.not. is_eq) return
+if (associated(f1%wall3d)) is_eq = all(f1%wall3d == f2%wall3d)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%normal_form_with_rf == f2%normal_form_with_rf)
 !! f_side.equality_test[type, 0, NOT]
