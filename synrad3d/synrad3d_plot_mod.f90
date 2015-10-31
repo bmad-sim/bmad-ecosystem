@@ -49,7 +49,7 @@ character(16) x_lab, y_lab, param, reflection_type
 
 ! init
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 
 angle_min = 0
 angle_max = 40
@@ -335,7 +335,7 @@ endif
 
 ! Print wall info
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 n_sec_max = ubound(wall3d%section, 1)
 
 do i = 1, n_sec_max
@@ -470,7 +470,7 @@ logical, allocatable :: in_ante(:)
 
 ! Open plotting window
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 n_sec_max = ubound(wall3d%section, 1)
 
 call qp_open_page ('X', i_chan, plot_param%window_width, plot_param%window_height, 'POINTS')
