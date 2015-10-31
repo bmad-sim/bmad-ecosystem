@@ -761,8 +761,8 @@ enddo
 ! Transfer info to branch%wall3d
 
 if (associated(branch%wall3d)) deallocate (branch%wall3d)
-allocate(branch%wall3d)
-wall3d => branch%wall3d
+allocate(branch%wall3d(1))
+wall3d => branch%wall3d(1)
 
 allocate (wall3d%section(wall%n_section_max))
 do i = 1, wall%n_section_max
@@ -1244,7 +1244,7 @@ logical err_flag
 
 call sr3d_get_section_index (p_orb, branch)
 ix = p_orb%ix_wall_section
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 
 if (logic_option(.false., check_safe)) then
   if (abs(p_orb%orb%vec(1)) < min(wall3d%section(ix)%x_safe, wall3d%section(ix+1)%x_safe) .and. &
@@ -1301,7 +1301,7 @@ integer n_max
 
 ! 
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 n_max = ubound(wall3d%section, 1)
 
 ix_sec => p_orb%ix_wall_section

@@ -226,7 +226,7 @@ logical is_through, checked
 
 ! check for particle outside wall
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 photon%status = inside_the_wall$
 checked = .false.
 
@@ -301,7 +301,7 @@ photon%old = photon%now  ! Save for hit spot calc
 now => photon%now%orb
 dl_left = dl_step
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 
 ele => branch%ele(now%ix_ele)
 s0 = ele%s - ele%value(l$)
@@ -620,7 +620,7 @@ endif
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
 
-wall3d => branch%wall3d
+wall3d => branch%wall3d(1)
 photon1 = photon
 path_len1 = photon%now%orb%path_len
 d_rad0 = real_garbage$
@@ -815,7 +815,7 @@ graze_angle = pi/2 - acos(cos_perp)
 dvec = -2 * cos_perp * dw_perp
 
 if (photon%now%ix_wall_section == not_set$) call sr3d_get_section_index (photon%now, branch)
-surface => branch%wall3d%section(photon%now%ix_wall_section+1)%surface
+surface => branch%wall3d(1)%section(photon%now%ix_wall_section+1)%surface
 
 call photon_reflectivity (graze_angle, photon%now%orb%p0c, surface, reflectivity, rel_reflect_specular)
 wall_hit(n_wall_hit)%reflectivity = reflectivity
