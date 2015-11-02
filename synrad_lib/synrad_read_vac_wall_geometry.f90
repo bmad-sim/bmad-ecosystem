@@ -28,7 +28,6 @@ implicit none
 type (walls_struct), target :: walls
 type (branch_struct) branch
 type (wall_struct), pointer :: minus_side, plus_side
-type (sr3d_wall_struct) wall3d
 
 real(rp), optional :: seg_len_phantom_max
 real(rp) seg_len_max
