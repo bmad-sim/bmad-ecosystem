@@ -218,11 +218,11 @@ character(16), parameter :: location_name(0:3) = [ &
 !   n = upper bound of v(:) array.
 
 integer, parameter :: normal$ = 1, clear$ = 2, opaque$ = 3, trunk$ = 4, trunk1$ = 5, trunk2$ = 6
-integer, parameter :: leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10, triangular$ = 11
-character(16), parameter :: wall3d_section_type_name(11) = [ &
+integer, parameter :: leg1$ = 7, leg2$ = 8, wall_start$ = 9, wall_end$ = 10
+character(16), parameter :: wall3d_section_type_name(10) = [ &
                      'Normal     ', 'Clear      ', 'Opaque     ', 'Trunk      ', &
                      'Trunk1     ', 'Trunk2     ', 'Leg1       ', 'Leg2       ', &
-                     'Wall_Start ', 'Wall_End   ', 'Triangular ']
+                     'Wall_Start ', 'Wall_End   ']
 
 integer, parameter :: antechamber$ = 2
 character(16), parameter :: wall3d_vertex_type_name(2) = ['Normal     ', 'Antechamber']
@@ -258,7 +258,7 @@ type wall3d_section_struct
   real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
   real(rp) :: x0 = 0, y0 = 0                ! Center of section
-  real(rp) :: x_safe = 0, y_safe = 0        ! Defines safe region for faster evaluations.
+  real(rp) :: x_safe = 0, y_safe = 0        ! Defines safe region for faster evaluations. UNUSED. TO BE REMOVED!
   ! Section-to-section spline interpolation of the center of the section
   real(rp) :: dx0_ds = 0                    ! Center of wall derivative
   real(rp) :: dy0_ds = 0                    ! Center of wall derivative
@@ -277,7 +277,7 @@ character(12), parameter :: wall3d_name(2) = [character(12) :: 'Chamber_Wall', '
 
 type wall3d_struct
   character(40) :: name = ''
-  integer :: type = chamber_wall$
+  integer :: type = chamber_wall$                 ! or safe_wall$
   integer :: n_link = 1                           ! For memory management of ele%wall3d
   real(rp) :: thickness = -1                      ! For diffraction_plate elements
   character(20) :: clear_material = ''            !

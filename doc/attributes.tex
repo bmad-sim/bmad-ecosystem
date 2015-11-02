@@ -1417,26 +1417,31 @@ If there is mirror symmetry about the $x$ or $y$ axis for a
 cross-section, the ``mirrored'' vertices, on the ``negative'' side of
 the mirror plane, do not have to be specified. Thus if all the vertex
 points of a cross-section are in the first quadrant, that is, all
-\vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both the
-$x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero or
-positive and some \vn{<x>} values are positive and some are negative,
-mirror symmetry about the $x$ axis is assumed. Finally, if all the
-\vn{<x>} values are zero or positive but some \vn{<y>} values are
-positive and some are negative, symmetry about the $y$ axis is
-assumed. For example, for the first in the above example, since
-all the \vn{<y>} values are non-negative and there are positive and
+\vn{<x>} and \vn{<y>} are zero or positive, mirror symmetry about both
+the $x$ and $y$ axes is assumed. If all the \vn{<y>} values are zero
+or positive and some \vn{<x>} values are positive and some are
+negative, mirror symmetry about the $x$ axis is assumed. Finally, if
+all the \vn{<x>} values are zero or positive but some \vn{<y>} values
+are positive and some are negative, symmetry about the $y$ axis is
+assumed. For example, for the first in the above example, since all
+the \vn{<y>} values are non-negative and there are positive and
 negative \vn{<x>} values, symmetry about the $x$ axis is assumed.
 
 The one exception to the above rule that (\vn{<x>}, \vn{<y>}) is the
 vertex center is when a single vertex \vn{v(1)} is specified for a
 cross-section with a non-zero \vn{<radius_x>}. In this case,
 (\vn{<x>}, \vn{<y>}) are taken to be the center of the circle or
-ellipse. In the example above, the second cross-section is a
-tilted ellipse with center at $(0.003, -0.001)$. If a cross-section
-has a single vertex and \vn{<radius_x>} is
-not specified, the cross-section is a rectangle. For example
+ellipse. For example, if a single vertex is specified for a
+cross-section as:
 \begin{example}
-    section = \{ s = 0.34, v(1) = \{0.03, 0.01\} \}
+  section = \{s = 0.3, v(1) = \{0.03, -0.01, 0.15, 0.08, 0.2\}\}
+\end{example}
+the cross-section will be an ellipse with center at $(0.03, -0.01)$
+with a tilt of $0.2$ and axes radii of $0.15$ and $0.08$. If
+a cross-section has a single vertex and \vn{<radius_x>} is not
+specified, the cross-section is a rectangle. For example
+\begin{example}
+  section = \{s = 0.3, v(1) = \{0.03, 0.01\}\}
 \end{example}
 
 %-----------------------------------------------------------------
@@ -1455,20 +1460,31 @@ as shown in (B).}
 \end{figure}
 
 For \vn{capillary} and vacuum chamber walls, the wall between
-cross-sections, is defined by interpolation. Let $r_{c1}(\theta)$ be
-the radius of the wall as a function of $\theta$ for a given
-cross-section defined at $s = s_1$. Let $r_{c2}(\theta)$ be the radius
-function at the next defined cross-section at $s = s_2$. The wall
-$r_c(\theta, s)$ at any point $s$ between $s_1$ and $s_2$ is defined
-by the equation
+cross-sections, is defined by interpolation. At a given $s$ position,
+the $r, \theta$ coordinate system in the transverse $x, y$ plane is
+defined with respect to an origin $\bfr_O(s)$ given by a linear
+interpolaion of the origins of the cross-sections to either side of the
+given $s$ position. Let $s_1$ denote the position of the cross-section
+just before $s$ and $s_2$ denote the position of the cross-section
+just after $s$. Let $\bfr_{01}$ be the $(x_0, y_0)$ origin defined
+for the cross section at $s_1$ and $\bfr_{02}$ be the $(x_0, y_0)$
+origin defined for the cross section at $s_2$. Then
 \Begineq
-  r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
+  \bfr_O(s) = (1 - \stilde) \, \bfr_{01} + \stilde \, \bfr_{02}
 \Endeq
 where 
 \Begineq
   \stilde \equiv \frac{s - s_1}{s_2 - s_1}
 \Endeq
-and $p_1$ and $p_2$ are cubic polynomials parameterized by
+
+Let $r_{c1}(\theta)$ and $r_{c2}(\theta)$ be the radiusus of the wall
+as a function of $\theta$ for the cross-sections at $s = s_1$ and $s =
+s_2$ respectively. The wall $r_c(\theta, s)$ at any point $s$ between
+$s_1$ and $s_2$ is then defined by the equation
+\Begineq
+  r_c(\theta, s) = p_1(\stilde) \, r_{c1}(\theta) + p_2(\stilde) \, r_{c2}(\theta)
+\Endeq
+where $p_1$ and $p_2$ are cubic polynomials parameterized by
 \begin{align}
   p_1 &= 1 - \stilde + a_1 \, \stilde + a_2 \, \stilde^2 + a_3 \, \stilde^3 \CRNO
   p_2 &= \stilde + b_1 \, \stilde + b_2 \, \stilde^2 + b_3 \, \stilde^3 

@@ -211,6 +211,7 @@ type (ele_struct), pointer :: bele
 type (wig_term_struct), pointer :: wig_term(:)
 type (wig_term_struct), pointer :: wt
 type (all_pointer_struct), allocatable :: a_ptrs(:)
+type (wall3d_struct), pointer :: wall3d_arr(:), wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v_ptr
 type (em_field_mode_struct), pointer :: em_modes(:)
@@ -221,7 +222,7 @@ type (all_pointer_struct) a_ptr
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
 real(rp), pointer :: r_ptr
 
-integer i, i2, j, n, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
+integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
 integer expn(6), ix_attrib, i_section, ix_v, ix_sec, i_mode, i_term, ib, ie, im
 integer ix_bounds(2), iy_bounds(2), i_vec(2), plane, n_sec
 
@@ -552,10 +553,6 @@ endif
 ! wall cross-section definition
 
 if (attrib_word == 'WALL') then
-  if (associated (ele%wall3d)) then
-    call parser_error ('MULTIPLE WALL DEFINITIONS FOR ELEMENT: ' // ele%name)
-    return
-  endif
 
   i_section = 0
   if (.not. expect_this ('=', .true., .true., 'AFTER "WALL"')) return
@@ -579,7 +576,28 @@ if (attrib_word == 'WALL') then
 
   ! Loop wall3d_struct components.
 
-  allocate (ele%wall3d(1))
+  if (associated (ele%wall3d)) then
+    n = size(ele%wall3d)
+    wall3d_arr => ele%wall3d
+    allocate (ele%wall3d(n+1))
+    do i = 1, n
+      wall3d => ele%wall3d(i)
+      n_sec = size(wall3d_arr(i)%section)
+      allocate(wall3d%section(n_sec))
+      do ix_sec = 1, n_sec
+        nn = size(wall3d%section(ix_sec)%v)
+        allocate(wall3d%section(ix_sec)%v(nn))
+      enddo
+      wall3d = wall3d_arr(i)
+      wall3d%n_link = 1
+    enddo
+    call deallocate_wall3d_pointer (wall3d_arr)
+    wall3d => ele%wall3d(n+1)
+  else
+    allocate (ele%wall3d(1))
+    wall3d => ele%wall3d(1)
+  endif
+
 
   wall3d_loop: do    
 
@@ -591,22 +609,25 @@ if (attrib_word == 'WALL') then
 
     select case (word)
 
+    case ('NAME')
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%name)
+
     case ('OPAQUE_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d(1)%opaque_material)
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%opaque_material)
 
     case ('CLEAR_MATERIAL') 
-      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = ele%wall3d(1)%clear_material)
+      call bmad_parser_type_get (ele, word, delim, delim_found, str_out = wall3d%clear_material)
 
     case ('THICKNESS') 
-      call evaluate_value (ele%name, ele%wall3d(1)%thickness, lat, delim, delim_found, err_flag, ',}')
+      call evaluate_value (ele%name, wall3d%thickness, lat, delim, delim_found, err_flag, ',}')
       if (err_flag) return
 
     case ('ELE_ANCHOR_PT')
-      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), ele%wall3d(1)%ele_anchor_pt, err_flag2, ele)
+      call get_switch ('WALL ELE_ANCHOR_PT', anchor_pt_name(1:), wall3d%ele_anchor_pt, err_flag2, ele)
       if (err_flag2) return
 
     case ('SUPERIMPOSE')
-      call get_logical ('WALL SUPERIMPOSE', ele%wall3d(1)%superimpose, err_flag2); if (err_flag2) return
+      call get_logical ('WALL SUPERIMPOSE', wall3d%superimpose, err_flag2); if (err_flag2) return
 
     ! Must be "section = {"
 
@@ -618,8 +639,8 @@ if (attrib_word == 'WALL') then
 
       i_section = i_section + 1
       ix_v = 0
-      call re_allocate (ele%wall3d(1)%section, i_section)
-      section => ele%wall3d(1)%section(i_section)
+      call re_allocate (wall3d%section, i_section)
+      section => wall3d%section(i_section)
 
       wall3d_section_loop: do
 

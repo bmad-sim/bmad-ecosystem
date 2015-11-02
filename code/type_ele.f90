@@ -75,7 +75,7 @@ type (lat_param_struct) param
 
 integer, optional, intent(in) :: type_mat6, twiss_out
 integer, optional, intent(out) :: n_lines
-integer i, i1, j, n, ix, ix_tot, iv, ic, nl2, l_status, a_type, default_val
+integer i, i1, j, n, ix, iw, ix_tot, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle
 
 real(rp) coef, val
@@ -463,47 +463,50 @@ endif
 ! Do not print more than 100 sections.
 
 if (associated(wall3d)) then
-  wall3d => ele%wall3d(1)
-  nl=nl+1; write (li(nl), '(a, i5)') ''
-  nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(wall3d%section)
-  nl=nl+1; write (li(nl), '(a, 2f11.5)') 'Wall region:',  wall3d%section(1)%s, wall3d%section(size(wall3d%section))%s
-  if (logic_option(.false., type_wall)) then
-    nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(wall3d%ele_anchor_pt)
-    select case (ele%key)
-    case (capillary$)
-    case (diffraction_plate$, mask$)
-      nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', wall3d%thickness
-      nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(wall3d%clear_material), '"'
-      nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(wall3d%opaque_material), '"'
-    case default
-      nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', wall3d%superimpose
-    end select
-    n = min(size(wall3d%section), 100)
-    do i = 1, n
-      call re_associate (li, nl+100, .false.) 
-      section => wall3d%section(i)
-      if (section%dr_ds == real_garbage$) then
-        write (str1, '(a)')        ',  dr_ds = Not-set'
-      else
-        write (str1, '(a, f10.6)') ',  dr_ds =', section%dr_ds
-      endif
-      str2 = ''
-      if (ele%key /= capillary$) then
-        write (str2, '(2a)') ',   Type = ', trim(wall3d_section_type_name(section%type))
-      endif
+  do iw = 1, size(ele%wall3d)
+    wall3d => ele%wall3d(iw)
+    nl=nl+1; write (li(nl), '(a, i5)') ''
+    nl=nl+1; write (li(nl), '(2a)') 'Wall name: ', trim(wall3d%name)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Wall Sections:', size(wall3d%section)
+    nl=nl+1; write (li(nl), '(a, 2f11.5)') 'Wall region:',  wall3d%section(1)%s, wall3d%section(size(wall3d%section))%s
+    if (logic_option(.false., type_wall)) then
+      nl=nl+1; write (li(nl), '(2a)') 'Wall%ele_anchor_pt = ', anchor_pt_name(wall3d%ele_anchor_pt)
+      select case (ele%key)
+      case (capillary$)
+      case (diffraction_plate$, mask$)
+        nl=nl+1; write (li(nl), '(a, f10.6)') 'Wall%thickness       = ', wall3d%thickness
+        nl=nl+1; write (li(nl), '(3a)') 'Wall%clear_material  = "', trim(wall3d%clear_material), '"'
+        nl=nl+1; write (li(nl), '(3a)') 'Wall%opaque_material = "', trim(wall3d%opaque_material), '"'
+      case default
+        nl=nl+1; write (li(nl), '(a, l)') 'Wall%superimpose     = ', wall3d%superimpose
+      end select
+      n = min(size(wall3d%section), 100)
+      do i = 1, n
+        call re_associate (li, nl+100, .false.) 
+        section => wall3d%section(i)
+        if (section%dr_ds == real_garbage$) then
+          write (str1, '(a)')        ',  dr_ds = Not-set'
+        else
+          write (str1, '(a, f10.6)') ',  dr_ds =', section%dr_ds
+        endif
+        str2 = ''
+        if (ele%key /= capillary$) then
+          write (str2, '(2a)') ',   Type = ', trim(wall3d_section_type_name(section%type))
+        endif
 
-      nl=nl+1; write (li(nl), '(a, i0, a, f10.6, 2a, 2(f11.6, a), a)') &
-                  'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   (x0, y0) = (', &
-                  section%x0, ',', section%y0, ')', trim(str2)
+        nl=nl+1; write (li(nl), '(a, i0, a, f10.6, 2a, 2(f11.6, a), a)') &
+                    'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   (x0, y0) = (', &
+                    section%x0, ',', section%y0, ')', trim(str2)
 
 
-      do j = 1, size(section%v)
-        v => section%v(j)
-        nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
-                              'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
+        do j = 1, size(section%v)
+          v => section%v(j)
+          nl=nl+1; write (li(nl), '(4x, a, i0, a, 5f11.6)') &
+                                'v(', j, ') =', v%x, v%y, v%radius_x, v%radius_y, v%tilt
+        enddo
       enddo
-    enddo
-  endif
+    endif
+  enddo
 elseif (logic_option(.false., type_wall)) then
   nl=nl+1; write (li(nl), '(a)') 'No associated Wall.'
 endif
