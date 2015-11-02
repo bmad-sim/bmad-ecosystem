@@ -1438,19 +1438,21 @@ subroutine mark_patch_regions (branch)
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
 
-integer i, j
+integer i, j, iw
 
 !
 
-wall => branch%wall3d(1)
-wall%section%patch_in_region = .false.
+do iw = 1, size(branch%wall3d)
 
-do i = 2, size(wall%section)
+  wall => branch%wall3d(iw)
+  wall%section%patch_in_region = .false.
 
-  do j = wall%section(i-1)%ix_ele, wall%section(i)%ix_ele
-    if (branch%ele(j)%key /= patch$) cycle
-    wall%section(i)%patch_in_region = .true.
-    exit
+  do i = 2, size(wall%section)
+    do j = wall%section(i-1)%ix_ele, wall%section(i)%ix_ele
+      if (branch%ele(j)%key /= patch$) cycle
+      wall%section(i)%patch_in_region = .true.
+      exit
+    enddo
   enddo
 
 enddo

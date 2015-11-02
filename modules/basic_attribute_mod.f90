@@ -830,8 +830,6 @@ call init_attribute_name1 (mask$, mode$,                              'MODE')
 call init_attribute_name1 (mask$, field_scale_factor$,                'FIELD_SCALE_FACTOR')
 call init_attribute_name1 (mask$, ref_wavelength$,                    'REF_WAVELENGTH', dependent$)
 
-call init_attribute_name1 (drift$, field_calc$,                     'FIELD_CALC')
-call init_attribute_name1 (drift$, field_master$,                   'FIELD_MASTER')
 call init_attribute_name1 (drift$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (drift$, p0c_start$,                      'p0c_start', private$)
 call init_attribute_name1 (drift$, fringe_type$,                    'fringe_type', private$)
@@ -974,7 +972,7 @@ call init_attribute_name1 (match$, is_on$,                          'IS_ON')
 call init_attribute_name1 (match$, E_tot_start$,                    'E_tot_start', private$)
 call init_attribute_name1 (match$, p0c_start$,                      'p0c_start', private$)
 
-call init_attribute_name1 (monitor$, field_master$,                 'FIELD_MASTER')
+call init_attribute_name1 (monitor$, field_calc$,                   'FIELD_CALC')
 call init_attribute_name1 (monitor$, E_tot_start$,                  'E_tot_start', private$)
 call init_attribute_name1 (monitor$, p0c_start$,                    'p0c_start', private$)
 
