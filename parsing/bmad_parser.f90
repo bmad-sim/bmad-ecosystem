@@ -843,8 +843,11 @@ branch_loop: do i_loop = 1, n_branch_max
   if (ele%value(particle$) == real_garbage$) then
     if (is_photon_fork) then
       branch%param%particle = photon$
+    elseif (branch%ix_from_branch > -1) then
+      branch%param%particle = lat%branch(branch%ix_from_branch)%param%particle
     else
       branch%param%particle = lat%param%particle
+      !! if (branch%ix_branch /= 0) call parser_error ('PARTICLE TYPE NOT SET FOR BRANCH: ' // branch%name)
     endif
   else
     branch%param%particle = ele%value(particle$)
@@ -858,8 +861,7 @@ branch_loop: do i_loop = 1, n_branch_max
       if (n_branch == 0) then
         call out_io (s_warn$, r_name, 'NOTE: THIS LATTICE HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
       else
-        call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', &
-                                      'SETTING THE GEOMETRY TO OPEN.')
+        call out_io (s_warn$, r_name, 'NOTE: BRANCH ' // trim(branch%name) // ' HAS AN LCAVITY.', 'SETTING THE GEOMETRY TO OPEN.')
       endif
       branch%param%geometry = open$
     else
@@ -902,19 +904,16 @@ branch_loop: do i_loop = 1, n_branch_max
     else
       if (ele%value(e_tot$) < 0 .and. ele%value(p0c$) < 0) then
         if (branch%param%particle == photon$) then
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                         'WILL USE 1000 eV!', i_array = [i])
+          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 eV!', warn_only = .true.)
         else
-          call out_io (s_warn$, r_name, 'REFERENCE ENERGY IS NOT SET IN BRANCH: (Index: \i0\) ' // branch%name, &
-                                         'WILL USE 1000 * MC^2!', i_array = [i])
+          call parser_error ('REFERENCE ENERGY IS NOT SET IN BRANCH: ' // branch%name, 'WILL USE 1000 * MC^2!', warn_only = .true.)
         endif
       else
-        call out_io (s_error$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH (Index: \i0\) ' // branch%name,  ' WILL USE 1000 * MC^2!')
+        call parser_error ('REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH ' // branch%name, ' WILL USE 1000 * MC^2!')
       endif
       ele%value(e_tot$) = 1000 * mass_of(branch%param%particle)
       if (branch%param%particle == photon$) ele%value(e_tot$) = 1000
       call convert_total_energy_to (ele%value(e_tot$), branch%param%particle, pc = ele%value(p0c$))
-      bp_com%write_digested = .false.
     endif
 
     ele%value(e_tot_start$) = ele%value(e_tot$)
