@@ -110,7 +110,6 @@ subroutine sr3d_specular_reflection_test (param_file)
 implicit none
 
 type (lat_struct), target :: lat
-type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) :: photon
 type (coord_struct) p
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)

@@ -696,7 +696,6 @@ subroutine sr3d_find_wall_point (photon, branch, x_wall, y_wall, x1_norm, x2_nor
 
 implicit none
 
-type (sr3d_wall_struct), target :: wall
 type (sr3d_photon_track_struct) photon
 type (branch_struct) branch
 

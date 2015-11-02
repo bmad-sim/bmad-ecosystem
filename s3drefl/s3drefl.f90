@@ -12,7 +12,6 @@ use photon_reflection_mod
 
 implicit none
 
-type (sr3d_wall_struct), target :: wall
 type (photon_reflect_surface_struct) :: surface
 
 character(200) surface_reflection_file
