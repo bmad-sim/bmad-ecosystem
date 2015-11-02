@@ -32,7 +32,7 @@ end type
 
 type (do_loop_struct), allocatable, save :: loop(:)
 
-integer i, ix, ix1, ix2
+integer i, j, ix, ix1, ix2
 integer, save :: in_loop = 0 ! in loop nest level
 integer ios, n_level
 character(*) :: cmd_line
@@ -135,9 +135,11 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
     ! replace argument variables
 
     do i = 1, 9
-      ix = index (cmd_line, sub_str(i))
-      if (ix /= 0) cmd_line = cmd_line(1:ix-1) // &
-                          trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
+      do j = 1, 10
+        ix = index (cmd_line, sub_str(i))
+        if (ix == 0) exit
+        cmd_line = cmd_line(1:ix-1) // trim(s%com%cmd_file(n_level)%cmd_arg(i)) // cmd_line(ix+5:)
+      enddo
     enddo
 
     loop1: do
