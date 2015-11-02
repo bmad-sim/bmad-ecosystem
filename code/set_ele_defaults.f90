@@ -112,6 +112,8 @@ case (ecollimator$)
   ele%offset_moves_aperture = .true.
 
 case (em_field$)
+  ele%tracking_method = runge_kutta$
+  ele%mat6_calc_method = tracking$
   ele%value(fringe_type$) = full$
   ele%value(field_factor$) = 1
 
