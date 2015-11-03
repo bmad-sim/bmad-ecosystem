@@ -438,14 +438,6 @@ of element, all elements of that type will be set. For example
   rfcavity::*[voltage] = 3.7             ! Set all RFcavity elements.
 \end{example}
 
-
-A prepended plus sign ``+'' indicates that if no elements are matched to, this
-is not an error. For example
-\begin{example}
-  +sextupole::*[tracking_method] = taylor
-\end{example}
-In this case, it is not an error if there are no sextupoles in the lattice.
-
 The wild cards \vn{``*''}, and \vn{``\%''} can be used to can be used
 (\sref{s:ele.names}). Examples:
 \begin{example}
@@ -454,6 +446,8 @@ The wild cards \vn{``*''}, and \vn{``\%''} can be used to can be used
   Q%1[k1] = 0.234               ! Matches to "Q01" but not "Q001".
 \end{example}
 \index{beginning element}
+Unlike when there are no wild cards used in a name, it is not an error
+if a name with wild cards does not match to any element.
 Note: A name with wild cards will never match to the \vn{BEGINNING} element (\sref{s:use}).
 
 After lattice expansion (\sref{s:expand}), the attributes of specific elements
