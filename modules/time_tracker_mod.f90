@@ -86,7 +86,6 @@ ds_safe = bmad_com%significant_length / 10
 dt_next = dt1
 
 ! local s coordinates for vec(5)
-
 orb%vec(5) = orb%s - (ele%s + ele%value(z_offset_tot$) - ele%value(l$))
 
 call calc_next_fringe_edge (ele, orb%direction, s_edge_track, hard_ele, s_edge_hard, hard_end, .true., orb)
@@ -139,7 +138,7 @@ do n_step = 1, max_step
       if ((orb%vec(5)-s_edge_track)*orb%direction < -ds_safe) exit
       ! Get radius before first edge kick
       if (.not. edge_kick_applied) then 
-        old_wall_d_radius = wall3d_d_radius (orb%vec, ele)
+        old_wall_d_radius = ref_frame_wall3d_d_radius (orb)
         edge_kick_applied = .true. 
       endif  
       if (orb%direction == +1) then 
@@ -169,7 +168,8 @@ do n_step = 1, max_step
   ! If so, interpolate position particle at the hit point
 
   if (runge_kutta_com%check_wall_aperture) then
-    wall_d_radius = wall3d_d_radius (orb%vec, ele)      
+  
+    wall_d_radius = ref_frame_wall3d_d_radius (orb)      
     select case (runge_kutta_com%hit_when)
     case (outside_wall$)
       has_hit = (wall_d_radius > 0)
@@ -278,10 +278,21 @@ logical err_flag
 call rk_time_step1 (ele, param, orb_old, t_old, this_dt, &
 	 				  orb, vec_err, local_ref_frame, err_flag = err_flag)
 				  	 				  
-d_radius = wall3d_d_radius (orb%vec, ele)
+d_radius = ref_frame_wall3d_d_radius (orb)
 t_rel = t_old + this_dt
 
 end function wall_intersection_func
+
+! Wall sections are in the reference frame, not the local frame, so offset before check
+function ref_frame_wall3d_d_radius (orb) result(ref_frame_d_radius)
+type(coord_struct) :: orb, test_orb
+real(rp) :: ref_frame_d_radius
+! Make a copy
+test_orb = orb
+call offset_particle (ele, param, unset$, test_orb, ds_pos=test_orb%vec(5), set_hvkicks = .false., set_multipoles = .false.)
+ref_frame_d_radius = wall3d_d_radius (test_orb%vec, ele)
+end function ref_frame_wall3d_d_radius
+
 
 end subroutine odeint_bmad_time
 
@@ -573,7 +584,7 @@ end subroutine em_field_kick_vector_time
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function particle_in_global_frame (orb, in_time_coordinates, w_mat_out) result (particle) 
+! Function particle_in_global_frame (orb, in_time_coordinates, in_ele_frame, w_mat_out) result (particle) 
 !
 ! Returns the particle in global time coordinates given is coordinates orb in lattice lat.
 !   
@@ -586,13 +597,15 @@ end subroutine em_field_kick_vector_time
 !   branch              -- branch_struct: branch that contains branch%ele(orb%ix_ele)
 !   in_time_coordinates -- Logical (optional): Default is false. If true, orb
 !                            will taken as in time coordinates.    
+!   in_ele_frame        -- Logical (optional): Default is true. If false, ele offsets
+!                            will be ignored.
 !
 ! Result:
 !   particle            -- Coord_struct: particle in global time coordinates
 !
 !-
 
-function particle_in_global_frame (orb, branch, in_time_coordinates, w_mat_out) result (particle)
+function particle_in_global_frame (orb, branch, in_time_coordinates, in_ele_frame, w_mat_out) result (particle)
 
 implicit none
 
@@ -602,21 +615,15 @@ type (floor_position_struct) :: floor_at_particle, global_position
 type (ele_struct), pointer :: ele
 real(rp) :: w_mat(3,3)
 real(rp), optional :: w_mat_out(3,3)
-
-logical, optional :: in_time_coordinates
-logical :: in_t_coord
-
+logical, optional :: in_time_coordinates, in_ele_frame
 character(28), parameter :: r_name = 'particle_in_global_frame'
-
-! optional argument 
-in_t_coord =  logic_option( .false., in_time_coordinates)
 
 !Get last tracked element  
 ele =>  branch%ele(orb%ix_ele)
 
 !Convert to time coordinates
 particle = orb;
-if (.not. in_t_coord) then
+if (.not. logic_option( .false., in_time_coordinates)) then
   call convert_particle_coordinates_s_to_t (particle)
   ! Set vec(5) to be relative to entrance of ele 
   particle%vec(5) =  particle%vec(5) - (ele%s - ele%value(L$))
@@ -628,7 +635,8 @@ floor_at_particle%theta = 0.0_rp
 floor_at_particle%phi = 0.0_rp
 floor_at_particle%psi = 0.0_rp
 ! Get [X,Y,Z] and w_mat for momenta rotation below
-global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, in_ele_frame = .true. , w_mat = w_mat)
+global_position = coords_local_curvilinear_to_floor (floor_at_particle, ele, &
+  in_ele_frame = logic_option(.true., in_ele_frame) , w_mat = w_mat)
 
 !Set x, y, z
 particle%vec(1:5:2) = global_position%r

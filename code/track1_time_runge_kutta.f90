@@ -41,7 +41,7 @@ type (ele_struct), pointer :: hard_ele
 type (track_struct), optional :: track
 type (em_field_struct) :: saved_field
 
-real(rp) dt_step, vec6
+real(rp) dt_step, vec(6), d_radius
 real(rp) s_rel, time, s1, s2, del_s, p0c_save, s_save
 real(rp) s_edge_track, s_edge_hard
 
@@ -83,6 +83,29 @@ if (ele%value(l$) .eq. 0) then
   return
 end if
 
+! Relative s. Adjust to match element edges if close enough
+s_rel =  end_orb%s - (ele%s - ele%value(l$) )
+if ( abs(s_rel)  < bmad_com%significant_length ) then
+  s_rel = 0
+else if ( abs(s_rel - ele%value(l$))  < bmad_com%significant_length ) then
+  s_rel = ele%value(l$)
+endif
+
+!------
+!Check wall
+
+vec = [end_orb%vec(1), 0.0_rp, end_orb%vec(3), 0.0_rp, s_rel, real(end_orb%direction, rp)]
+d_radius = wall3d_d_radius(vec, ele)
+if ( d_radius > 0 ) then
+  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name), &
+    "at d_radius =  \F10.5\ , SETTING TO LOST", r_array = [d_radius])
+  !Particle won't be tracked, so set end = start with the saved state
+  end_orb = start_orb
+  end_orb%state = lost$
+  return
+endif
+
+
 !------
 ! Specify initial time step.
 
@@ -98,12 +121,12 @@ if (end_orb%direction == +1 .and. end_orb%location /= inside$) then
 ! Interior start, reference momentum is at the end. No edge kicks are given
 elseif (end_orb%location == inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
+                        ds_pos =s_rel)
 
 ! Particle is at the exit surface, should be moving backwards
 elseif (end_orb%direction == -1 .and. end_orb%location /= inside$) then
   call offset_particle (ele, param, set$, end_orb, set_hvkicks = .false., set_multipoles = .false., &
-                        ds_pos = end_orb%s - (ele%s - ele%value(l$)) )
+                        ds_pos = s_rel)
 
 else
   call out_io (s_fatal$, r_name, 'CONFUSED PARTICE ENTERING ELEMENT: ' // ele%name)
@@ -113,27 +136,7 @@ endif
 ! ele(s-based) -> ele(t-based)
 
 call convert_particle_coordinates_s_to_t(end_orb)
-s_rel =  end_orb%s - (ele%s - ele%value(l$) )
-if ( abs(s_rel)  < bmad_com%significant_length ) then
-  s_rel = 0
-else if ( abs(s_rel - ele%value(l$))  < bmad_com%significant_length ) then
-  s_rel = ele%value(l$)
-endif
-
 end_orb%vec(5) = s_rel
-
-!------
-!Check wall
-
-if ( wall3d_d_radius(end_orb%vec, ele) > 0 ) then
-
-  call out_io (s_info$, r_name, "PARTICLE STARTED IN REGION OUTSIDE OF WALL: "//trim(ele%name)//", SETTING TO LOST")
-  !Particle won't be tracked, so set end = start with the saved state
-  end_orb = start_orb
-  end_orb%state = lost$
-  return
-
-endif
 
 if ( present(track) ) then
   ! here local_ref_frame is false to avoid calling offset_particle, because we are in time coordinates
