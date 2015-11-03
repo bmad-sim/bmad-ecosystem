@@ -64,7 +64,7 @@ character(280) parse_line_save, call_file
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, xsif_called, err, key_here
 logical end_of_file, finished, good_attrib, wildcards_permitted, integer_permitted
-logical err_if_not_found, wild_here, wild_and_key0
+logical wild_here, wild_and_key0
 
 ! Init...
 
@@ -289,8 +289,10 @@ parsing_loop: do
 
     ! Find associated element and evaluate the attribute value
 
-    err_if_not_found = (.not. word_1(1:1) == '+') 
-    if (word_1(1:1) == '+') word_1 = word_1(2:)
+    if (word_1(1:1) == '+') then
+      word_1 = word_1(2:)
+      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', warn_only = .true.)
+    endif
 
     parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
@@ -298,7 +300,7 @@ parsing_loop: do
 
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = word_1 // '::*'
-      err_if_not_found = .false.
+      wild_here = .true.
     else
       name = word_1
     endif
@@ -347,7 +349,7 @@ parsing_loop: do
     ! If bmad_parser2 has been called from bmad_parser then check if the
     ! element was just not used in the lattice. If so then just ignore it.
 
-    if (.not. found .and. err_if_not_found) then
+    if (.not. found .and. .not. wild_here) then
       if (bp_com%bmad_parser_calling) then
         do i = 0, bp_com%old_lat%n_ele_max
           if (bp_com%old_lat%ele(i)%name == word_1) cycle parsing_loop

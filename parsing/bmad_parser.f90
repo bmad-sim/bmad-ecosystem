@@ -80,7 +80,7 @@ character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, xsif_called, wild_here
-logical end_of_file, ele_found, match_found, err_if_not_found, err, finished, exit_on_error
+logical end_of_file, ele_found, match_found, err, finished, exit_on_error
 logical detected_expand_lattice_cmd, multipass, wild_and_key0, do_energy_bookkeeping
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
@@ -423,8 +423,10 @@ parsing_loop: do
 
     ! Find associated element and evaluate the attribute value...
 
-    err_if_not_found = (.not. word_1(1:1) == '+') 
-    if (word_1(1:1) == '+') word_1 = word_1(2:)
+    if (word_1(1:1) == '+') then 
+      word_1 = word_1(2:)
+      call parser_error ('"+" sign prefix construct deprecated. Please remove it.', warn_only = .true.)
+    endif
 
     ixc = index(word_1, '::')
     wild_here = (index(word_1, '*') /= 0 .or. index(word_1, '%') /= 0) ! Wild card character found
@@ -452,7 +454,7 @@ parsing_loop: do
 
     if (any(word_1 == key_name)) then   ! If Old style "quadrupole[k1] = ..." syntax
       name = '*'
-      err_if_not_found = .false.
+      wild_here = .true.
 
     elseif (ixc == 0) then   ! Simple element name: "q01w[k1] = ..."
       key = 0
@@ -505,7 +507,7 @@ parsing_loop: do
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (.not. ele_found .and. err_if_not_found) call parser_error ('ELEMENT NOT FOUND OR BAD ATTRIBUTE.')
+    if (.not. ele_found .and. .not. wild_here) call parser_error ('ELEMENT NOT FOUND')
 
     cycle parsing_loop
   endif
