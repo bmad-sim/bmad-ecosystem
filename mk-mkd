@@ -45,11 +45,14 @@ DATE1=$(date +"%s")
 func_display_build_time () {
     DATE2=$(date +"%s")
     DIFF=$((${DATE2}-${DATE1}))
-    DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
-    DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
-    DTIME_SEC=$(echo "$(echo ${DTIME:(-3)})*60" | bc)
-    [ "${DTIME_MIN}" != 0 ] && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" || DTIME_MESS="${DTIME_SEC}sec"
-    echo -e "\n${PWD} Compile/Link time: ${DTIME_MESS}\n"
+    if [ "${DIFF}" -gt 0 ]
+	then
+	DTIME=$(echo "scale = 2; ${DIFF}/60" | bc)
+	DTIME_MIN=$(echo "scale = 0; ${DIFF}/60" | bc)
+	DTIME_SEC=$(echo $(echo ${DTIME:(-3)})*60 | bc)
+	[ "${DTIME_MIN}" != 0 ] && DTIME_MESS="${DTIME_MIN}min ${DTIME_SEC}sec" || DTIME_MESS="${DTIME_SEC}sec"
+	echo -e "\n${PWD} Compile/Link time: ${DTIME_MESS}\n"
+    fi
 }
 
 # Assign build type based on invoked name of script.
