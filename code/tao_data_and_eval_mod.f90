@@ -462,8 +462,10 @@ logical found, valid_value, err, taylor_is_complex, use_real_part
 logical, allocatable, save :: good_exp(:), good(:)
 
 ! To save time, don't evaluate if unnecessary when the running an optimizer.
+! Exception: When there are datums that use expressions, things are 
+!   complicated so don't try to save time in this case.
 
-if (s%com%optimizer_running .and. .not. datum%useit_opt) then
+if (s%com%optimizer_running .and. .not. datum%useit_opt .and. .not. s%com%have_datums_using_expressions) then
   datum_value = 0
   valid_value = .false.
   return
