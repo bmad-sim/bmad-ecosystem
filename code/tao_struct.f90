@@ -606,6 +606,7 @@ type tao_common_struct
   logical :: init_data             = .true.   ! Used by custom programs to control Tao init
   logical :: parse_cmd_args        = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
+  logical :: have_datums_using_expressions = .false.
   logical :: noplot_arg_set        = .false.
   logical :: init_tao_file_arg_set = .false.
   logical :: log_startup = .false.             ! '-log_startup' command line argument.

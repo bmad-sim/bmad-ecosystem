@@ -64,6 +64,8 @@ endif
 
 ! Do not do radiation_integrals calc if not needed
 
+s%com%have_datums_using_expressions = .false.
+
 iu0 = lbound(s%u, 1); iu1 = ubound(s%u, 1)
 allocate (do_rad_int_data(iu0:iu1), do_chrom_data(iu0:iu1))
 
@@ -84,6 +86,7 @@ do i = iu0, iu1
                                                        u%calc%rad_int_for_data = .true.
     if (tao_chrom_calc_needed(u%data(j)%data_type, u%data(j)%data_source)) &
                                                        u%calc%chrom_for_data = .true.
+    if (u%data(j)%data_type(1:11) == 'expression:') s%com%have_datums_using_expressions = .true.
   enddo
 enddo
 
