@@ -439,7 +439,6 @@ else
   ! File does not exist.
   ! Add name to list  
   call find_indexx (unique_grid_file, name_indexx, ix_match, add_to_list = .true.)
-  name_indexx%n_max = name_indexx%n_max + 1
   ix_match = name_indexx%n_max
   call get_output_name()
   ! Write new fieldgrid file

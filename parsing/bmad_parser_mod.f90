@@ -5640,7 +5640,7 @@ do k = 1, iseq_tot
 
     call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
     if (j == 0) then  ! if not an sequence, it must be an element
-      call find_indexx (name, in_name, in_indexx, [0, n_max], j)
+      call find_indexx (name, in_name, 0, in_indexx, n_max, j)
       if (j < 0) then  ! if not an element, I don't know what it is
         s_ele%ix_ele = -1       ! Struggle on for now...
         s_ele%type = element$
@@ -5727,7 +5727,7 @@ line_expansion: do
     s_ele => dummy_seq_ele
     s_ele%name = name
     s_ele%ele_orientation = seq%ele(stack(i_lev)%ix_ele)%ele_orientation
-    call find_indexx (name, in_name, in_indexx, [0, n_max], j)
+    call find_indexx (name, in_name, 0, in_indexx, n_max, j)
     if (j < 0) then  ! if not an element it must be a sequence
       call find_indexx (name, seq_name, seq_indexx, iseq_tot, j)
       if (j == 0) then  ! if not a sequence then I don't know what it is
