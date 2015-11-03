@@ -149,7 +149,6 @@ ele_loop: do ie = ix_start, ix_end
   end if
   ! add name to list  
   call find_indexx (ele%name, ele_names, ix_match, add_to_list = .true.)
-  ele_names%n_max = ele_names%n_max + 1
 
   ! Format for numbers
   rfmt = 'es13.5'

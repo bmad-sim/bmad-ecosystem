@@ -172,20 +172,23 @@ endif
 
 bp_com%input_line_meaningful = .true.
 
+n_max => in_lat%n_ele_max   ! Number of elements encountered
+n_max = -1
+
 call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
-call find_indexx (in_lat%ele(0)%name, in_name, in_indexx, [0, -1], ix, add_to_list = .true.)
+call find_indexx (in_lat%ele(0)%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
 ele => in_lat%ele(1)
 call init_ele(ele, def_mad_beam$, 0, 1, 0)
 ele%name = 'BEAM'                 ! For MAD compatibility.
 call set_ele_defaults (ele)
-call find_indexx (ele%name, in_name, in_indexx, [0, 0], ix, add_to_list = .true.)
+call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 bp_com%mad_beam_ele => ele
 
 ele => in_lat%ele(2)
 call init_ele(ele, def_parameter$, 0, 2, 0)
 ele%name = 'PARAMETER'           ! For parameters 
-call find_indexx (ele%name, in_name, in_indexx, [0, 1], ix, add_to_list = .true.)
+call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 bp_com%param_ele => ele
 
 ! Note: All values to beam_start are actually put in lat%beam_start and lat%beam_start_ele
@@ -193,16 +196,13 @@ bp_com%param_ele => ele
 ele => in_lat%ele(3)
 ele%name = 'BEAM_START'           ! For beam starting parameters 
 ele%key = def_beam_start$
-call find_indexx (ele%name, in_name, in_indexx, [0, 2], ix, add_to_list = .true.)
+call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
 ele => in_lat%ele(4)
 ele%name = 'BMAD_COM'           ! Global bmad parameters
 ele%key = def_bmad_com$
-call find_indexx (ele%name, in_name, in_indexx, [0, 3], ix, add_to_list = .true.)
+call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
-
-n_max => in_lat%n_ele_max
-n_max = 4                              ! Number of elements encountered
 
 lat%n_control_max = 0
 detected_expand_lattice_cmd = .false.
@@ -434,7 +434,7 @@ parsing_loop: do
     ! If just a name then we can look this up
 
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
-      call find_indexx (word_1, in_name, in_indexx, [0, n_max], ix)
+      call find_indexx (word_1, in_name, 0, in_indexx, n_max, ix)
       if (ix == -1) then
         call parser_error ('ELEMENT NOT FOUND: ' // word_1)
       else
@@ -622,7 +622,7 @@ parsing_loop: do
 
   match_found = .false.  ! found a match?
 
-  call find_indexx (word_2, in_name, in_indexx, [0, n_max], i)
+  call find_indexx (word_2, in_name, 0, in_indexx, n_max, i)
   if (i >= 0 .and. i < n_max) then ! i < n_max avoids "abc: abc" construct.
     in_lat%ele(n_max) = in_lat%ele(i)
     in_lat%ele(n_max)%ixx = n_max  ! Restore correct value
@@ -781,7 +781,7 @@ branch_loop: do i_loop = 1, n_branch_max
   n_branch = ubound(lat%branch, 1)
   branch => lat%branch(n_branch)
 
-  call find_indexx (this_name, in_name, in_indexx, [0, n_max], ix)
+  call find_indexx (this_name, in_name, 0, in_indexx, n_max, ix)
   ele => in_lat%ele(ix) ! line_ele element associated with this branch.
   ele0 => branch%ele(0)
 
@@ -1013,7 +1013,7 @@ do i = 1, n_max
     pele%control(1:size(pcon)) = pcon
 
     do k = 1, n_ele_use
-      call find_indexx (lat2%ele(k)%name, in_name, in_indexx, [0, n_max], ix, ix2)      
+      call find_indexx (lat2%ele(k)%name, in_name, 0, in_indexx, n_max, ix, ix2)      
       if (ix /= 0) then
         if (in_lat%ele(ix)%key == drift$) cycle
       endif
@@ -1293,8 +1293,8 @@ endif
 
 err = .false.
 
-n_max = n_max + 1
-if (n_max > ubound(in_lat%ele, 1)) then
+n_max = n_max
+if (n_max >= ubound(in_lat%ele, 1)) then
   call allocate_lat_ele_array (in_lat)
   call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
   call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
@@ -1303,8 +1303,8 @@ if (n_max > ubound(in_lat%ele, 1)) then
   call allocate_plat (plat, ubound(in_lat%ele, 1))
 endif
 
-in_lat%ele(n_max)%name = word_1
-call find_indexx (in_lat%ele(n_max)%name, in_name, in_indexx, [0, n_max-1], ix, add_to_list = .true.)
+in_lat%ele(n_max+1)%name = word_1
+call find_indexx (in_lat%ele(n_max+1)%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 in_lat%ele(n_max)%ixx = n_max  ! Pointer to plat%ele() array
 
 plat%ele(n_max)%lat_file = bp_com%current_file%full_name

@@ -275,7 +275,6 @@ do ib = 0, ubound(lat%branch, 1)
       call re_allocate(an_indexx, 2*size(names))
     endif
     call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
-    n_names = n_names + 1
 
     ! Overlays and groups
 
@@ -2135,7 +2134,6 @@ do ix_ele = ie1, ie2
   endif
 
   call find_indexx (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true.)
-  n_names = n_names + 1
 
   !----------
   ! OPAL case
