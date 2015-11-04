@@ -598,8 +598,7 @@ if (attrib_word == 'WALL') then
     wall3d => ele%wall3d(1)
   endif
 
-
-  wall3d_loop: do    
+  wall3d_loop: do
 
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found)
 

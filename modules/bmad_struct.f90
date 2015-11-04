@@ -278,6 +278,7 @@ character(12), parameter :: wall3d_name(2) = [character(12) :: 'Chamber_Wall', '
 type wall3d_struct
   character(40) :: name = ''
   integer :: type = chamber_wall$                 ! or safe_wall$
+  integer :: ix_wall3d = 0                        ! Index in branch%wall3d(:) array.
   integer :: n_link = 1                           ! For memory management of ele%wall3d
   real(rp) :: thickness = -1                      ! For diffraction_plate elements
   character(20) :: clear_material = ''            !
