@@ -1554,15 +1554,17 @@ The exception to the above rule is when a \vn{section} has its
   wall_start
   wall_end
 \end{example}
+\vn{wall_start} and \vn{wall_stop} sections must come in pairs. The
+next section after a \vn{wall_stop} section (if this section is not
+the last section in the lattice) must be a \vn{wall_start} section.
 If a section has a \vn{type} of \vn{wall_start}, the region between
-that section and the previous section will be considered to have no
-wall. If the \vn{wall_start} section is the first section of the
-containing lattice branch, and if the lattice branch has an open
-geometry, then the region of no wall will start at the end of the
-branch. Similarly, if a section has a \vn{type} of \vn{wall_end}, the
-region between that section and the next section (or the end of the
-lattice branch if there is no next seciton and the branch has an open
-geometry) will not have a wall.
+that section and the previous section (which must be a \vn{wall_stop}
+section) will be considered to have no wall. If the \vn{wall_start}
+section is the first section of the lattice branch, the region of no
+wall will start at the beginning of the branch. Similarly, if a
+section has a \vn{type} of \vn{wall_end}, the region between that
+section and the next section (or the end of the lattice branch if
+there is no next seciton) will not have a wall.
 
 The chamber walls of any two elements may not overlap. The exception
 is when the \vn{superimpose} attribute for a wall of an element is set

@@ -98,7 +98,7 @@ character(40) :: r_name = 'capillary_track_photon_to_wall'
 
 ! Check if outside wall
 
-if (wall3d_d_radius (photon%now%orb%vec, ele, ix_section = photon%now%ix_section) >= 0) then
+if (wall3d_d_radius (photon%now%orb%vec, ele, 1, ix_section = photon%now%ix_section) >= 0) then
   photon%now%orb%state = lost$
   return
 endif
@@ -131,7 +131,7 @@ do
 
   call capillary_propagate_photon_a_step (photon, ele, dlen, .true.)
 
-  if (wall3d_d_radius (photon%now%orb%vec, ele, ix_section = photon%now%ix_section) > 0) then
+  if (wall3d_d_radius (photon%now%orb%vec, ele, 1, ix_section = photon%now%ix_section) > 0) then
     call capillary_photon_hit_spot_calc (photon, ele)
     return
   endif
@@ -365,7 +365,7 @@ real(rp), pointer :: vec(:)
 ! perp is a vector perpendicular to the surface tangent plane
 
 photon%old = photon%now
-r = wall3d_d_radius (photon%now%orb%vec, ele, perp)
+r = wall3d_d_radius (photon%now%orb%vec, ele, 1, perp)
 
 ! The component of the photon velocity that is perpendicular to the surface 
 ! tangent gets reflected.
