@@ -9,6 +9,7 @@ set (INC_DIRS
 
 set (LINK_LIBS
   bsim
+	new_bsim
   bmad
   xsif
   xrlf03

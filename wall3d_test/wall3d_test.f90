@@ -32,12 +32,12 @@ do i = 0, 19
   theta = i * twopi / 20.0
   r0(1:5:2) = [10*cos(theta), 10*sin(theta), 3.0_rp]
 
-  d_radius = wall3d_d_radius (r0, ele, perp, origin = origin)
+  d_radius = wall3d_d_radius (r0, ele, 1, perp, origin = origin)
   r_particle = norm2(r0(1:5:2) - origin)
   r_wall = r_particle - d_radius
   r0(1:5:2) = origin + (r0(1:5:2) - origin) * r_wall / r_particle
 
-  d_radius = wall3d_d_radius (r0, ele, perp)
+  d_radius = wall3d_d_radius (r0, ele, 1, perp)
 
   r1 = r0
   r1(1:5:2) = r1(1:5:2) + offset * [-perp(3), 0.0_rp, perp(1)]

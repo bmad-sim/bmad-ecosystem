@@ -88,5 +88,37 @@ write (1, '(3a)')       '"Multi-sec23-name"  STR  "', trim(section(23)%name), '"
 write (1, '(a, f12.4)') '"Multi-sec22-s"   ABS 0 ', section(22)%s
 write (1, '(a, f12.4)') '"Multi-sec23-s"   ABS 0 ', section(23)%s
 write (1, '(a, i3)')    '"Multi-sec-size"  ABS 0  ', size(section)
+close (1)
+
+!--------------------------------------------------------------------------------------------------
+! New synrad3d
+
+call new_synrad3d()
 
 end program
+
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+!--------------------------------------------------------------------------------------------------
+
+subroutine new_synrad3d()
+
+use new_synrad3d_parse_wall
+
+implicit none
+
+type (lat_struct), target :: lat
+
+logical err_flag
+
+!
+
+call bmad_parser('lat.bmad', lat)
+!call sr3d_read_wall_file ('new.wall', lat%branch(0), err_flag)
+
+
+open (1, file = 'output.new')
+
+close(1)
+
+end subroutine
