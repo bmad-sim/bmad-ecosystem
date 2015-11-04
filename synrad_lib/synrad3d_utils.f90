@@ -1261,7 +1261,7 @@ ele => branch%ele(p_orb%orb%ix_ele)
 position = p_orb%orb%vec
 position(5) = p_orb%orb%s - branch%ele(p_orb%orb%ix_ele-1)%s
 
-d_radius = wall3d_d_radius (position, ele, dw_perp, ix, in_antechamber, origin, err_flag)
+d_radius = wall3d_d_radius (position, ele, 1, dw_perp, ix, in_antechamber, origin, err_flag)
 
 end subroutine sr3d_photon_d_radius
 
