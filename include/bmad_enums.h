@@ -23,7 +23,7 @@
 #endif
 
 namespace Bmad {
-  const int BMAD_INC_VERSION = 165;
+  const int BMAD_INC_VERSION = 166;
   const int BMAD_STANDARD = 1, SYMP_LIE_PTC = 2;
   const int RUNGE_KUTTA = 3;
   const int LINEAR = 4, TRACKING = 5, SYMP_MAP = 6;
@@ -59,7 +59,7 @@ namespace Bmad {
   const int UPSTREAM_END = 1, DOWNSTREAM_END = 2;
   const int INSIDE = 3, CENTER_PT = 3, START_END = 99;
   const int NORMAL = 1, CLEAR = 2, OPAQUE = 3, TRUNK = 4, TRUNK1 = 5, TRUNK2 = 6;
-  const int LEG1 = 7, LEG2 = 8, WALL_START = 9, WALL_END = 10, TRIANGULAR = 11;
+  const int LEG1 = 7, LEG2 = 8, WALL_BEGIN = 9, WALL_END = 10;
   const int ANTECHAMBER = 2;
   const int CHAMBER_WALL = 1, SAFE_WALL = 2;
   const int X_PLANE = 1, Y_PLANE = 2;

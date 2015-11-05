@@ -691,10 +691,10 @@ bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   is_eq = is_eq && (x.ix_ele == y.ix_ele);
   is_eq = is_eq && (x.ix_branch == y.ix_branch);
   is_eq = is_eq && (x.patch_in_region == y.patch_in_region);
+  is_eq = is_eq && (x.absolute_vertices_input == y.absolute_vertices_input);
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.s == y.s);
-  is_eq = is_eq && (x.x0 == y.x0);
-  is_eq = is_eq && (x.y0 == y.y0);
+  is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.x_safe == y.x_safe);
   is_eq = is_eq && (x.y_safe == y.y_safe);
   is_eq = is_eq && (x.dx0_ds == y.dx0_ds);
@@ -716,6 +716,7 @@ bool operator== (const CPP_wall3d& x, const CPP_wall3d& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.name == y.name);
   is_eq = is_eq && (x.type == y.type);
+  is_eq = is_eq && (x.ix_wall3d == y.ix_wall3d);
   is_eq = is_eq && (x.n_link == y.n_link);
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.clear_material == y.clear_material);

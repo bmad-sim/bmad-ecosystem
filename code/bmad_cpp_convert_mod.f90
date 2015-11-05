@@ -4559,18 +4559,18 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wall3d_section_to_c2 (C, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
-      z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, z_thickness, z_s, &
-      z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, &
-      z_p1_coef, z_p2_coef) bind(c)
+      z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
+      z_absolute_vertices_input, z_thickness, z_s, z_r0, z_x_safe, z_y_safe, z_dx0_ds, &
+      z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
     integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
     integer(c_int), value :: n1_v, n_surface
-    logical(c_bool) :: z_patch_in_region
+    logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
     character(c_char) :: z_name(*), z_material(*)
-    real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
-    real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+    real(c_double) :: z_thickness, z_s, z_r0(*), z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds
+    real(c_double) :: z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
     type(c_ptr), value :: z_surface
     type(c_ptr) :: z_v(*)
   end subroutine
@@ -4605,9 +4605,9 @@ if (associated(F%surface)) n_surface = 1
 !! f_side.to_c2_call
 call wall3d_section_to_c2 (C, trim(F%name) // c_null_char, trim(F%material) // c_null_char, &
     z_v, n1_v, c_loc(F%surface), n_surface, F%type, F%n_vertex_input, F%ix_ele, F%ix_branch, &
-    c_logic(F%patch_in_region), F%thickness, F%s, F%x0, F%y0, F%x_safe, F%y_safe, F%dx0_ds, &
-    F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), &
-    fvec2vec(F%p2_coef, 3))
+    c_logic(F%patch_in_region), c_logic(F%absolute_vertices_input), F%thickness, F%s, &
+    fvec2vec(F%r0, 2), F%x_safe, F%y_safe, F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), &
+    fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -4628,9 +4628,9 @@ end subroutine wall3d_section_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine wall3d_section_to_f2 (Fp, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
-    z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, z_thickness, z_s, z_x0, &
-    z_y0, z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, &
-    z_p2_coef) bind(c)
+    z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
+    z_absolute_vertices_input, z_thickness, z_s, z_r0, z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds, &
+    z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
 
 
 implicit none
@@ -4642,10 +4642,10 @@ integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 type(photon_reflect_surface_struct), pointer :: f_surface
 integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
 integer(c_int), value :: n1_v, n_surface
-logical(c_bool) :: z_patch_in_region
+logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
 character(c_char) :: z_name(*), z_material(*)
-real(c_double) :: z_thickness, z_s, z_x0, z_y0, z_x_safe, z_y_safe, z_dx0_ds
-real(c_double) :: z_dy0_ds, z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+real(c_double) :: z_thickness, z_s, z_r0(*), z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds
+real(c_double) :: z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
 type(c_ptr), value :: z_surface
 type(c_ptr) :: z_v(*)
 
@@ -4687,14 +4687,14 @@ F%ix_ele = z_ix_ele
 F%ix_branch = z_ix_branch
 !! f_side.to_f2_trans[logical, 0, NOT]
 F%patch_in_region = f_logic(z_patch_in_region)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%absolute_vertices_input = f_logic(z_absolute_vertices_input)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%thickness = z_thickness
 !! f_side.to_f2_trans[real, 0, NOT]
 F%s = z_s
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x0 = z_x0
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y0 = z_y0
+!! f_side.to_f2_trans[real, 1, NOT]
+F%r0 = z_r0(1:2)
 !! f_side.to_f2_trans[real, 0, NOT]
 F%x_safe = z_x_safe
 !! f_side.to_f2_trans[real, 0, NOT]
@@ -4737,12 +4737,13 @@ implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine wall3d_to_c2 (C, z_name, z_type, z_n_link, z_thickness, z_clear_material, &
-      z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
+  subroutine wall3d_to_c2 (C, z_name, z_type, z_ix_wall3d, z_n_link, z_thickness, &
+      z_clear_material, z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, &
+      n1_section) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
-    integer(c_int) :: z_type, z_n_link, z_ele_anchor_pt
+    integer(c_int) :: z_type, z_ix_wall3d, z_n_link, z_ele_anchor_pt
     integer(c_int), value :: n1_section
     logical(c_bool) :: z_superimpose
     character(c_char) :: z_name(*), z_clear_material(*), z_opaque_material(*)
@@ -4774,7 +4775,7 @@ if (allocated(F%section)) then
 endif
 
 !! f_side.to_c2_call
-call wall3d_to_c2 (C, trim(F%name) // c_null_char, F%type, F%n_link, F%thickness, &
+call wall3d_to_c2 (C, trim(F%name) // c_null_char, F%type, F%ix_wall3d, F%n_link, F%thickness, &
     trim(F%clear_material) // c_null_char, trim(F%opaque_material) // c_null_char, &
     c_logic(F%superimpose), F%ele_anchor_pt, z_section, n1_section)
 
@@ -4796,8 +4797,9 @@ end subroutine wall3d_to_c
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine wall3d_to_f2 (Fp, z_name, z_type, z_n_link, z_thickness, z_clear_material, &
-    z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, n1_section) bind(c)
+subroutine wall3d_to_f2 (Fp, z_name, z_type, z_ix_wall3d, z_n_link, z_thickness, &
+    z_clear_material, z_opaque_material, z_superimpose, z_ele_anchor_pt, z_section, n1_section) &
+    bind(c)
 
 
 implicit none
@@ -4806,7 +4808,7 @@ type(c_ptr), value :: Fp
 type(wall3d_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
-integer(c_int) :: z_type, z_n_link, z_ele_anchor_pt
+integer(c_int) :: z_type, z_ix_wall3d, z_n_link, z_ele_anchor_pt
 integer(c_int), value :: n1_section
 logical(c_bool) :: z_superimpose
 character(c_char) :: z_name(*), z_clear_material(*), z_opaque_material(*)
@@ -4819,6 +4821,8 @@ call c_f_pointer (Fp, F)
 call to_f_str(z_name, F%name)
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%type = z_type
+!! f_side.to_f2_trans[integer, 0, NOT]
+F%ix_wall3d = z_ix_wall3d
 !! f_side.to_f2_trans[integer, 0, NOT]
 F%n_link = z_n_link
 !! f_side.to_f2_trans[real, 0, NOT]

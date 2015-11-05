@@ -3985,14 +3985,17 @@ rhs = 9 + offset; F%ix_ele = rhs
 rhs = 10 + offset; F%ix_branch = rhs
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 11 + offset; F%patch_in_region = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 12 + offset; F%absolute_vertices_input = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[real, 0, NOT]
-rhs = 12 + offset; F%thickness = rhs
+rhs = 13 + offset; F%thickness = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 13 + offset; F%s = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 14 + offset; F%x0 = rhs
-!! f_side.test_pat[real, 0, NOT]
-rhs = 15 + offset; F%y0 = rhs
+rhs = 14 + offset; F%s = rhs
+!! f_side.test_pat[real, 1, NOT]
+do jd1 = 1, size(F%r0,1); lb1 = lbound(F%r0,1) - 1
+  rhs = 100 + jd1 + 15 + offset
+  F%r0(jd1+lb1) = rhs
+enddo
 !! f_side.test_pat[real, 0, NOT]
 rhs = 16 + offset; F%x_safe = rhs
 !! f_side.test_pat[real, 0, NOT]
@@ -4114,21 +4117,23 @@ enddo
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 2 + offset; F%type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 3 + offset; F%n_link = rhs
+rhs = 3 + offset; F%ix_wall3d = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 4 + offset; F%n_link = rhs
 !! f_side.test_pat[real, 0, NOT]
-rhs = 4 + offset; F%thickness = rhs
+rhs = 5 + offset; F%thickness = rhs
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%clear_material)
-  F%clear_material(jd1:jd1) = char(ichar("a") + modulo(100+5+offset+jd1, 26))
+  F%clear_material(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
 enddo
 !! f_side.test_pat[character, 0, NOT]
 do jd1 = 1, len(F%opaque_material)
-  F%opaque_material(jd1:jd1) = char(ichar("a") + modulo(100+6+offset+jd1, 26))
+  F%opaque_material(jd1:jd1) = char(ichar("a") + modulo(100+7+offset+jd1, 26))
 enddo
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 7 + offset; F%superimpose = (modulo(rhs, 2) == 0)
+rhs = 8 + offset; F%superimpose = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 8 + offset; F%ele_anchor_pt = rhs
+rhs = 9 + offset; F%ele_anchor_pt = rhs
 !! f_side.test_pat[type, 1, ALLOC]
 
 if (ix_patt < 3) then

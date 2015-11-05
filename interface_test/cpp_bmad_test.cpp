@@ -2655,18 +2655,18 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   // c_side.test_pat[logical, 0, NOT]
   rhs = 11 + offset; C.patch_in_region = (rhs % 2 == 0);
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 12 + offset; C.thickness = rhs;
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 12 + offset; C.absolute_vertices_input = (rhs % 2 == 0);
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 13 + offset; C.s = rhs;
+  rhs = 13 + offset; C.thickness = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 14 + offset; C.x0 = rhs;
+  rhs = 14 + offset; C.s = rhs;
 
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 15 + offset; C.y0 = rhs;
-
+  // c_side.test_pat[real, 1, NOT]
+  for (unsigned int i = 0; i < C.r0.size(); i++)
+    {int rhs = 101 + i + 15 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
   rhs = 16 + offset; C.x_safe = rhs;
 
@@ -2750,24 +2750,27 @@ void set_CPP_wall3d_test_pattern (CPP_wall3d& C, int ix_patt) {
   rhs = 2 + offset; C.type = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 3 + offset; C.n_link = rhs;
+  rhs = 3 + offset; C.ix_wall3d = rhs;
+
+  // c_side.test_pat[integer, 0, NOT]
+  rhs = 4 + offset; C.n_link = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 4 + offset; C.thickness = rhs;
+  rhs = 5 + offset; C.thickness = rhs;
 
   // c_side.test_pat[character, 0, NOT]
   C.clear_material.resize(20);
   for (unsigned int i = 0; i < C.clear_material.size(); i++)
-    {int rhs = 101 + i + 5 + offset; C.clear_material[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 6 + offset; C.clear_material[i] = 'a' + rhs % 26;}
   // c_side.test_pat[character, 0, NOT]
   C.opaque_material.resize(20);
   for (unsigned int i = 0; i < C.opaque_material.size(); i++)
-    {int rhs = 101 + i + 6 + offset; C.opaque_material[i] = 'a' + rhs % 26;}
+    {int rhs = 101 + i + 7 + offset; C.opaque_material[i] = 'a' + rhs % 26;}
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 7 + offset; C.superimpose = (rhs % 2 == 0);
+  rhs = 8 + offset; C.superimpose = (rhs % 2 == 0);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 8 + offset; C.ele_anchor_pt = rhs;
+  rhs = 9 + offset; C.ele_anchor_pt = rhs;
 
   // c_side.test_pat[type, 1, ALLOC]
   if (ix_patt < 3) 

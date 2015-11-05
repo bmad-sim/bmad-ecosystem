@@ -1690,10 +1690,10 @@ public:
   Int ix_ele;
   Int ix_branch;
   Bool patch_in_region;
+  Bool absolute_vertices_input;
   Real thickness;
   Real s;
-  Real x0;
-  Real y0;
+  Real_ARRAY r0;
   Real x_safe;
   Real y_safe;
   Real dx0_ds;
@@ -1714,10 +1714,10 @@ public:
     ix_ele(0),
     ix_branch(0),
     patch_in_region(false),
+    absolute_vertices_input(false),
     thickness(-1),
     s(0.0),
-    x0(0.0),
-    y0(0.0),
+    r0(0.0, 2),
     x_safe(0.0),
     y_safe(0.0),
     dx0_ds(0.0),
@@ -1750,6 +1750,7 @@ class CPP_wall3d {
 public:
   string name;
   Int type;
+  Int ix_wall3d;
   Int n_link;
   Real thickness;
   string clear_material;
@@ -1761,6 +1762,7 @@ public:
   CPP_wall3d() :
     name(),
     type(Bmad::CHAMBER_WALL),
+    ix_wall3d(0),
     n_link(1),
     thickness(-1),
     clear_material(),
