@@ -31,6 +31,8 @@ use basic_bmad_interface
 !
 ! Note: For a photon, orb%vec(5) is set depending upon where the photon is relative to the element.
 ! Note: If the particle is initialized with element_end = inside$, orb%s will not be set.
+! Note: If orb is a photon, and orb_in is not a photon, photon is launched in same direciton as particle 
+!       except if direction is set.
 !
 ! Modules needed:
 !   use bmad
@@ -46,7 +48,8 @@ use basic_bmad_interface
 !   particle     -- Integer, optional: Particle type (electron$, etc.). 
 !                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
 !   dirction     -- Integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
-!                     Default = +1.  
+!                     0 -> Ignore. Default is to not change orb%direction except for photons which get set
+!                     according to orb%vec(6).
 !   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
 !   t_ref_offset -- real(rp), optional: Offset of the reference time. This is non-zero when
 !                     there are multiple bunches and the reference time for a particular particle
@@ -982,26 +985,26 @@ subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_ph
 
 implicit none
 
-type (coord_struct) orb, orb_in, orb_save
+type (coord_struct) orb, orb_in, orb_in_save
 type (ele_struct), optional, target :: ele
 
 real(rp), optional :: E_photon, t_ref_offset
 real(rp) p0c, e_tot, ref_time
 
 integer, optional :: element_end, particle, direction
-integer species
+integer species, dir
 
 logical, optional :: shift_vec6
 
 character(16), parameter :: r_name = 'init_coord1'
 
-! Use temporary orb_save so if actual arg for vec, particle, or E_photon
+! Use temporary orb_in_save so if actual arg for vec, particle, or E_photon
 ! is part of the orb actual arg things do not get overwriten.
 
-orb_save = orb_in  ! Needed if actual args orb and orb_in are the same.
+orb_in_save = orb_in  ! Needed if actual args orb and orb_in are the same.
 orb = orb_in
 
-species = orb_save%species
+species = orb_in_save%species
 if (present(particle)) then
   if (particle /= not_set$) species = particle
 endif
@@ -1018,7 +1021,12 @@ if (orb%species == not_set$) then
 endif
 
 orb%state = alive$
-if (present(direction)) orb%direction = direction
+
+dir = integer_option(0, direction)
+if (dir /= 0) then
+  orb%direction = dir
+  if (orb%species == photon$) orb%vec(6) = orb%direction * abs(orb%vec(6))
+endif
 
 ! Set location and species
 
@@ -1068,7 +1076,7 @@ if (orb%species == photon$) then
   endif
 
   ! If original particle is not a photon, photon is launched in same direciton as particle 
-  if (orb_save%species /= photon$ .and. orb_save%species /= not_set$) orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
+  if (orb_in_save%species /= photon$ .and. orb_in_save%species /= not_set$) orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
   orb%vec(6) = orb%direction * sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
   if (orb%location == downstream_end$) then
