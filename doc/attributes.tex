@@ -1281,17 +1281,18 @@ The topics of the following subsections are:
 The syntax of the \vn{wall} attribute is:
 \begin{example}
   wall = \{
-    superimpose = <T/F>,                     ! Chamber wall only
-    thickness = <real>                       ! Default thickness. 
-    opaque_material = <material_type>        ! Default opaque material. 
-    clear_material = <material_type>         ! Default clear material. 
+    superimpose = <T/F>,               ! Chamber wall only
+    thickness = <real>                 ! Default thickness. 
+    opaque_material = <material_type>  ! Default opaque material. 
+    clear_material = <material_type>   ! Default clear material. 
     section = \{ 
-      type = <section_type>,                 ! Chamber Mask, and Diffraction_plate only
-      s = <longitudinal_position>,           ! Relative to beginning of element.
-      x0 = <value>, y0 = <value>,            ! Section origin
-      material = <material_type>             ! Mask and Diffraction_plate only.
-      thickness = <real>                     ! Mask and Diffraction_plate only.
-      dr_ds = <value>,                       ! Capillary and Chamber only
+      type = <section_type>,           ! Chamber Mask, and Diffraction_plate only
+      s = <longitudinal_position>,     ! Relative to beginning of element.
+      r0 = (<x0>, <y0>),               ! section (x,y) origin
+      absolute_vertices = <T/F>,       ! Vertex nums: abs or relative to r0? Default = F.
+      material = <material_type>,      ! Mask and Diffraction_plate only.
+      thickness = <real>,              ! Mask and Diffraction_plate only.
+      dr_ds = <value>,                 ! Capillary and Chamber only
       v(1) = \{<x>, <y>, <radius_x>, <radius_y>, <tilt>\}, 
       v(2) = \{ ... \},
       ...\},
@@ -1343,15 +1344,17 @@ The wall is defined by a number of cross-sectional slices. For
 chamber walls.  Each cross-section is defined by a longitudinal
 position $s$ relative to the beginning of the element and a number of
 vertices. The verticies are defined with respect to the local sector
-origin $(x_0, y_0)$. The arc between each vertex may be either a
-straight line, an arc of a circle, or a section of an ellipse. For a
-capillary it is mandatory that a cross-section be convex. That is,
-given any two points within the cross-section, all points on the line
-segment connecting them must be within the cross-section.
+origin $r_0$ except if \vn{absolute_vertices} is set to \vn{True} in
+which case the vertex numbers are taken as absolute. The arc between
+each vertex may be either a straight line, an arc of a circle, or a
+section of an ellipse. For a capillary it is mandatory that a
+cross-section be convex. That is, given any two points within the
+cross-section, all points on the line segment connecting them must be
+within the cross-section.
 
 The \vn{v(<j>)} within a cross-section define the vertices for each
 cross-section. The vertices are defined with respect to the section
-origin given by \vn{x0} and \vn{y0}. Each \vn{v(<j>)} has five
+origin given by \vn{r0}. Each \vn{v(<j>)} has five
 parameters. It is mandatory to specify the first two parameters
 \vn{<x>} and \vn{<y>}. Specifying the rest, \vn{<radius_x>},
 \vn{<radius_y>}, and \vn{<tilt>}, is optional. The default values, if
@@ -1554,11 +1557,11 @@ The exception to the above rule is when a \vn{section} has its
   wall_start
   wall_end
 \end{example}
-\vn{wall_start} and \vn{wall_stop} sections must come in pairs. The
-next section after a \vn{wall_stop} section (if this section is not
+\vn{wall_start} and \vn{wall_end} sections must come in pairs. The
+next section after a \vn{wall_end} section (if this section is not
 the last section in the lattice) must be a \vn{wall_start} section.
 If a section has a \vn{type} of \vn{wall_start}, the region between
-that section and the previous section (which must be a \vn{wall_stop}
+that section and the previous section (which must be a \vn{wall_end}
 section) will be considered to have no wall. If the \vn{wall_start}
 section is the first section of the lattice branch, the region of no
 wall will start at the beginning of the branch. Similarly, if a
@@ -1762,7 +1765,7 @@ wall that constructs this geometry is:
       v(1) = \{0, 0, 0.005\},
     section = \{
       type = opaque,
-      x0 = 0.02,
+      r0 = 0.02, 0.00
       v(1) = \{0, 0, 0.005\} \}
 \end{example}
 Clear area \#1 has a clear section and one opaque section. These

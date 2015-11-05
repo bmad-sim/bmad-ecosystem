@@ -219,7 +219,7 @@ type (em_field_mode_struct), pointer :: em_mode
 type (photon_surface_struct), pointer :: surf
 type (all_pointer_struct) a_ptr
 
-real(rp) kx, ky, kz, tol, value, coef, r_vec(10)
+real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2)
 real(rp), pointer :: r_ptr
 
 integer i, i2, j, k, n, nn, ix_word, how, ix_word1, ix_word2, ios, ix, i_out, ix_coef, switch
@@ -676,13 +676,20 @@ if (attrib_word == 'WALL') then
           call evaluate_value (trim(ele%name) // ' ' // word, section%dr_ds, lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
                   
+        case ('ABSOLUTE_VERTICES') 
+          call get_logical (trim(ele%name) // ' ' // word, section%absolute_vertices_input, err_flag)
+          if (err_flag) return
+
         case ('X0') 
-          call evaluate_value (trim(ele%name) // ' ' // word, section%x0, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%r0(1), lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
-                  
+
         case ('Y0') 
-          call evaluate_value (trim(ele%name) // ' ' // word, section%y0, lat, delim, delim_found, err_flag, ',}')
+          call evaluate_value (trim(ele%name) // ' ' // word, section%r0(2), lat, delim, delim_found, err_flag, ',}')
           if (err_flag) return
+
+        case ('R0')
+          if (.not. parse_real_list (lat, trim(ele%name) // ' GRID R0', section%r0, .true.)) return
 
         ! Parse "V() = ..." constructs.
 
@@ -5273,8 +5280,6 @@ case (sbend$, rbend$, sad_mult$)
   ! 
 
   if (ele%value(angle$) /= 0 .and. ele%value(l$) == 0) then
-    call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
-  elseif (ele%value(g$) /= 0 .and. ele%value(l$) == 0) then
     call parser_error ('THE BENDING ANGLE IS NONZERO IN A ZERO LENGTH BEND! ' // ele%name)
   elseif (ele%value(angle$) /= 0) then
     ele%value(g$) = ele%value(angle$) / ele%value(l$) 

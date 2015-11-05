@@ -526,7 +526,7 @@ endif
 
 write (d_unit) sec%name, sec%material, sec%type, sec%n_vertex_input, &
                    sec%ix_ele, sec%ix_branch, sec%patch_in_region, &
-                   sec%thickness, sec%s, sec%x0, sec%y0, sec%x_safe, sec%y_safe, &
+                   sec%thickness, sec%s, sec%r0, sec%x_safe, sec%y_safe, &
                    sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, &
                    sec%p2_coef, nv
 do k = 1, nv

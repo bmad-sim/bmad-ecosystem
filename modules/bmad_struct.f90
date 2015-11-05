@@ -247,7 +247,7 @@ end type
 type wall3d_section_struct
   character(40) :: name = ''                ! Identifying name
   character(20) :: material = ''            ! Material.
-  type (wall3d_vertex_struct), allocatable :: v(:)  ! Array of vertices
+  type (wall3d_vertex_struct), allocatable :: v(:)  ! Array of vertices. Always stored relative.
   type (photon_reflect_surface_struct), pointer :: surface => null()
                                             ! Surface reflectivity tables.
   integer :: type = normal$                 ! normal$, clear$, opaque$, trunk$, trunk1$, leg2$, ...
@@ -255,9 +255,10 @@ type wall3d_section_struct
   integer :: ix_ele = 0                     ! index of lattice element containing section
   integer :: ix_branch = 0                  ! Index of branch lattice element is in.
   logical :: patch_in_region = .false.      ! Patch element exists between this section and previous one?
+  logical :: absolute_vertices_input = .false. ! Input vertex numbers absolute or relative to r0?
   real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
-  real(rp) :: x0 = 0, y0 = 0                ! Center of section
+  real(rp) :: r0(2) = 0                     ! Center of section
   real(rp) :: x_safe = 0, y_safe = 0        ! Defines safe region for faster evaluations. UNUSED. TO BE REMOVED!
   ! Section-to-section spline interpolation of the center of the section
   real(rp) :: dx0_ds = 0                    ! Center of wall derivative

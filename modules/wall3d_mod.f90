@@ -238,6 +238,14 @@ err = .true.
 v => section%v
 n = section%n_vertex_input
 
+! Relative or absolute vertex numbers?
+! Vertex numbers are always stored as relative so need to convert if input numbers are absolute.
+
+if (section%absolute_vertices_input) then
+  v%x = v%x - section%r0(1)
+  v%y = v%y - section%r0(2)
+endif
+
 ! Single vertex is special.
 
 if (n == 1 .and. v(1)%radius_x /= 0) then
@@ -601,11 +609,7 @@ end subroutine calc_wall_radius
 ! Function wall3d_d_radius (position, ele, ix_wall, perp, ix_section, no_wall_here, origin, err_flag) result (d_radius)
 !
 ! Routine to calculate the normalized radius = particle_radius - wall_radius.
-! The radius is measured from the line connecting the section centers and not 
-! the (x,y) = (0,0) origin
-!
-! Note: If the longitudinal position is exactly at a trunk section, the results are not well defined.
-! Solution: Always make sure the particle's position is not at a trunk section. 
+! The radius is measured from the line connecting the centers of the bounding sections.
 !
 ! Module needed:
 !   use wall3d_mod
@@ -646,7 +650,7 @@ real(rp), optional :: perp(3), origin(3)
 
 real(rp), pointer :: vec(:), value(:)
 real(rp) d_radius, r_particle, r_norm, s_rel, spline, cos_theta, sin_theta
-real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp
+real(rp) r1_wall, r2_wall, dr1_dtheta, dr2_dtheta, f_eff, ds, disp, r_wall
 real(rp) p1, p2, dp1, dp2, s_particle, ds_offset, x, y, x0, y0, f
 real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), dr(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
@@ -776,14 +780,14 @@ if (sec2%patch_in_region) then
   ! floor1_0 is sec1 origin in global ref frame
   ! floor2_0 is sec2 origin in global ref frame
   floor_particle = coords_relative_to_floor (ele%floor, [position(1), position(3), position(5) - ele%value(l$)])
-  floor1_0 = coords_relative_to_floor (ele1%floor, [sec1%x0, sec1%y0, sec1%s - ele1%s])
-  floor2_0 = coords_relative_to_floor (ele2%floor, [sec2%x0, sec2%y0, sec2%s - ele2%s])
+  floor1_0 = coords_relative_to_floor (ele1%floor, [sec1%r0, sec1%s - ele1%s])
+  floor2_0 = coords_relative_to_floor (ele2%floor, [sec2%r0, sec2%s - ele2%s])
 
   ! loc_p  is coordinates of particle in ele1 ref frame
   ! loc_1_0 is coordinates of sec1 origin in ele1 ref frame
   ! loc_2_0 is coordinates of sec2 origin in ele1 ref frame
   loc_p = coords_floor_to_relative (ele1%floor, floor_particle, .false.)
-  loc_1_0%r = [sec1%x0, sec1%y0, sec1%s - ele1%s]
+  loc_1_0%r = [sec1%r0, sec1%s - ele1%s]
   loc_2_0 = coords_floor_to_relative (ele1%floor, floor2_0, .false.)
 
   ! Find wall radius for sec1.
@@ -825,7 +829,7 @@ if (sec2%patch_in_region) then
   ! loc_2_0 is coordinates of sec2 origin in ele2 ref frame
   loc_p = coords_floor_to_relative (ele2%floor, floor_particle, .false.)
   loc_1_0 = coords_floor_to_relative (ele2%floor, floor1_0, .false.)
-  loc_2_0%r = [sec2%x0, sec2%y0, sec2%s - ele2%s]
+  loc_2_0%r = [sec2%r0, sec2%s - ele2%s]
 
   ! Find wall radius for sec2.
   dr0 = loc_1_0%r - loc_2_0%r
@@ -937,8 +941,8 @@ else
 
   s_rel = (s_particle - s1) / ds
 
-  x0 = (1 - s_rel) * sec1%x0 + s_rel * sec2%x0
-  y0 = (1 - s_rel) * sec1%y0 + s_rel * sec2%y0
+  x0 = (1 - s_rel) * sec1%r0(1) + s_rel * sec2%r0(1)
+  y0 = (1 - s_rel) * sec1%r0(2) + s_rel * sec2%r0(2)
   x = position(1) - x0; y = position(3) - y0
   r_particle = sqrt(x**2 + y**2)
   if (r_particle /= 0) then
@@ -960,7 +964,8 @@ else
   p1 = 1 - s_rel + sec1%p1_coef(1)*s_rel + sec1%p1_coef(2)*s_rel**2 + sec1%p1_coef(3)*s_rel**3
   p2 =     s_rel + sec1%p2_coef(1)*s_rel + sec1%p2_coef(2)*s_rel**2 + sec1%p2_coef(3)*s_rel**3
 
-  d_radius = r_particle - (p1 * r1_wall + p2 * r2_wall)
+  r_wall = p1 * r1_wall + p2 * r2_wall
+  d_radius = r_particle - r_wall
 
   ! Calculate the surface normal vector
 
@@ -968,7 +973,7 @@ else
 
   if (present (perp)) then
     perp(1:2) = [cos_theta, sin_theta] - [-sin_theta, cos_theta] * &
-                          (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_particle
+                          (p1 * dr1_dtheta + p2 * dr2_dtheta) / r_wall
     dp1 = -1 + sec1%p1_coef(1) + 2 * sec1%p1_coef(2)*s_rel + 3 * sec1%p1_coef(3)*s_rel**2
     dp2 =  1 + sec1%p2_coef(1) + 2 * sec1%p2_coef(2)*s_rel + 3 * sec1%p2_coef(3)*s_rel**2
     perp(3)   = -(dp1 * r1_wall + dp2 * r2_wall) / ds
@@ -976,6 +981,7 @@ else
     ! In a bend dw_perp must be corrected since the true longitudinal "length" at the particle
     ! is, for a horizontal bend, ds * (1 + x/rho) where ds is the length along the reference 
     ! trajectory, x is the transverse displacement, and rho is the bend radius.
+
     if (ele%key == sbend$) then
       if (ele%value(ref_tilt_tot$) == 0) then
         disp = position(1) 
@@ -988,8 +994,8 @@ else
     perp = perp / norm2(perp)  
     ! If section origin line is not aligned with the z-axis then the wall has a "shear"
     ! and the perpendicular vector must be corrected.
-    dx = sec2%x0 - sec1%x0
-    dy = sec2%y0 - sec1%y0
+    dx = sec2%r0(1) - sec1%r0(1)
+    dy = sec2%r0(2) - sec1%r0(2)
     if (dx /= 0 .or. dy /= 0) then
       perp(3) = perp(3) - (perp(1) * dx + perp(2) * dy) / ds
       perp = perp / norm2(perp)
@@ -1011,7 +1017,7 @@ integer ixv
 
 !
 
-x = position(1) - this_sec%x0; y = position(3) - this_sec%y0
+x = position(1) - this_sec%r0(1); y = position(3) - this_sec%r0(2)
 r_particle = sqrt(x**2 + y**2)
 if (r_particle == 0) then
   cos_theta = 1
@@ -1024,9 +1030,9 @@ endif
 call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ixv)
 d_radius = r_particle - r1_wall
 if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
-                          [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r_particle
+                          [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r1_wall
 if (present(no_wall_here)) no_wall_here = (this_sec%v(ixv)%type == antechamber$)  ! This is to be removed shortly...
-if (present(origin)) origin = [this_sec%x0, this_sec%y0, position(5)]
+if (present(origin)) origin = [this_sec%r0, position(5)]
 if (present(err_flag)) err_flag = .false.
 
 end subroutine d_radius_at_section
@@ -1558,7 +1564,7 @@ real(rp) x, y, norm, r_wall, dr_dtheta
 
 !
 
-x = orbit%vec(1) - sec%x0;  y = orbit%vec(3) - sec%y0
+x = orbit%vec(1) - sec%r0(1);  y = orbit%vec(3) - sec%r0(2)
 
 if (x == 0 .and. y == 0) then
   is_in = .true.
