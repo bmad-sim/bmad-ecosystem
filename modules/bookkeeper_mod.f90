@@ -2806,8 +2806,8 @@ case (diffraction_plate$, mask$)
     do j = 1, 100
       angle = twopi * j / 100.0_rp
       call calc_wall_radius (sec%v, cos(angle), sin(angle), r_wall, dr_dtheta)
-      x = sec%x0 + 1.001 * r_wall * cos(angle)
-      y = sec%y0 + 1.001 * r_wall * sin(angle)
+      x = sec%r0(1) + 1.001 * r_wall * cos(angle)
+      y = sec%r0(2) + 1.001 * r_wall * sin(angle)
       ele%value(x1_limit$) = max(ele%value(x1_limit$), -x)
       ele%value(y1_limit$) = max(ele%value(y1_limit$), -y)
       ele%value(x2_limit$) = max(ele%value(x1_limit$), x)

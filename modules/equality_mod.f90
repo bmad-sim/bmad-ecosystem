@@ -1184,14 +1184,14 @@ is_eq = is_eq .and. (f1%ix_ele == f2%ix_ele)
 is_eq = is_eq .and. (f1%ix_branch == f2%ix_branch)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%patch_in_region .eqv. f2%patch_in_region)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%absolute_vertices_input .eqv. f2%absolute_vertices_input)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%thickness == f2%thickness)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s == f2%s)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x0 == f2%x0)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y0 == f2%y0)
+!! f_side.equality_test[real, 1, NOT]
+is_eq = is_eq .and. all(f1%r0 == f2%r0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%x_safe == f2%x_safe)
 !! f_side.equality_test[real, 0, NOT]
@@ -1230,6 +1230,8 @@ is_eq = .true.
 is_eq = is_eq .and. (f1%name == f2%name)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%type == f2%type)
+!! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_wall3d == f2%ix_wall3d)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_link == f2%n_link)
 !! f_side.equality_test[real, 0, NOT]

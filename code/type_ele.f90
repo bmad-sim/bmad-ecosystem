@@ -495,8 +495,8 @@ if (associated(wall3d)) then
         endif
 
         nl=nl+1; write (li(nl), '(a, i0, a, f10.6, 2a, 2(f11.6, a), a)') &
-                    'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   (x0, y0) = (', &
-                    section%x0, ',', section%y0, ')', trim(str2)
+                    'Wall%Section(', i, '):  S =', section%s, trim(str1),  ',   r0 = (', &
+                    section%r0(1), ',', section%r0(2), ')', trim(str2)
 
 
         do j = 1, size(section%v)
