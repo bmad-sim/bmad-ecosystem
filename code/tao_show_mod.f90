@@ -3381,11 +3381,11 @@ case ('wall')
     nl=nl+1; write(lines(nl), '(5a)')            'ele:    ', trim(ele%name), '   (', trim(ele_loc_to_string(ele)), ')'
     nl=nl+1; write(lines(nl), '(2a)')            'type:   ', trim(wall3d_section_type_name(wall_sec%type))
     nl=nl+1; write(lines(nl), '(a, f14.6)')      'S:      ', wall_sec%s
-    nl=nl+1; write(lines(nl), '(3(a, f10.6))')  '(x0, y0):  (', wall_sec%x0, ',', wall_sec%y0, ')'
+    nl=nl+1; write(lines(nl), '(3(a, f10.6))')  ' r0:     (', wall_sec%r0(1), ',', wall_sec%r0(2), ')'
     if (wall_sec%dr_ds == real_garbage$) then
       nl=nl+1; write(lines(nl), '(3(a, f10.6))')  'dr_ds:       Not-Set'
     else
-      nl=nl+1; write(lines(nl), '(3(a, f10.6))')  'dr_ds:      ', wall_sec%dr_ds
+      nl=nl+1; write(lines(nl), '(3(a, f10.6))')  'dr_ds: ', wall_sec%dr_ds
     endif
 
     do j = 1, size(wall_sec%v)
