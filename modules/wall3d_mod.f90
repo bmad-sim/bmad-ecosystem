@@ -1073,7 +1073,7 @@ end function wall3d_d_radius
 ! Output:
 !   wall3d         -- wall3d_struct, pointer: Pointer to the associated wall structure.
 !                       Will be nullified if there is no associated wall.
-!   ds_offset      -- real(rp): Element offset: s(beginning of ele) - s(beginning of wall3d)
+!   ds_offset      -- real(rp), optional: Element offset: s(beginning of ele) - s(beginning of wall3d)
 !   is_branch_wall -- logical, optional: Set True if wall3d points to branch%wall3d.
 !-
 
@@ -1087,7 +1087,7 @@ type (wall3d_struct), pointer :: wall3d
 integer, optional :: ix_wall
 integer iw
 
-real(rp) ds_offset
+real(rp), optional :: ds_offset
 logical, optional :: is_branch_wall
 
 ! 
@@ -1100,7 +1100,7 @@ if (ele%key /= capillary$ .and. ele%key /= diffraction_plate$ .and. &
                                 ele%key /= mask$ .and. associated (ele%branch)) then
   if (.not. associated(ele%branch%wall3d)) return
   wall3d => ele%branch%wall3d(iw)
-  ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
+  if (present(ds_offset)) ds_offset = ele%s - ele%value(l$) - ele%branch%ele(0)%s
   if (present(is_branch_wall)) is_branch_wall = .true.
   return
 endif
@@ -1110,11 +1110,13 @@ if (present(is_branch_wall)) is_branch_wall = .false.
 if (.not. associated(ele%wall3d)) return
 wall3d => ele%wall3d(iw)
 
-select case (wall3d%ele_anchor_pt)
-case (anchor_beginning$); ds_offset = -ele%value(l$)
-case (anchor_center$);    ds_offset = -ele%value(l$) / 2
-case (anchor_end$);       ds_offset = 0 
-end select
+if (present(ds_offset)) then
+  select case (wall3d%ele_anchor_pt)
+  case (anchor_beginning$); ds_offset = -ele%value(l$)
+  case (anchor_center$);    ds_offset = -ele%value(l$) / 2
+  case (anchor_end$);       ds_offset = 0 
+  end select
+endif
 
 end function pointer_to_wall3d
 

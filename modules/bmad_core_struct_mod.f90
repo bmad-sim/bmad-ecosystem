@@ -1023,7 +1023,10 @@ endif
 orb%state = alive$
 
 dir = integer_option(0, direction)
-if (dir /= 0) then
+if (dir == 0) then
+  if (orb%species == photon$ .and. orb%vec(6) > 0) orb%direction = 1
+  if (orb%species == photon$ .and. orb%vec(6) < 0) orb%direction = -1
+else
   orb%direction = dir
   if (orb%species == photon$) orb%vec(6) = orb%direction * abs(orb%vec(6))
 endif
@@ -1076,7 +1079,10 @@ if (orb%species == photon$) then
   endif
 
   ! If original particle is not a photon, photon is launched in same direciton as particle 
-  if (orb_in_save%species /= photon$ .and. orb_in_save%species /= not_set$) orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
+  if (orb_in_save%species /= photon$ .and. orb_in_save%species /= not_set$) then
+    orb%vec(2:4:2) = orb%vec(2:4:2) / (1 + orb%vec(6))
+    if (dir == 0) orb%direction = orb_in_save%direction
+  endif
   orb%vec(6) = orb%direction * sqrt(1 - orb%vec(2)**2 - orb%vec(4)**2)
 
   if (orb%location == downstream_end$) then
