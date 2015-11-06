@@ -1308,8 +1308,8 @@ case ('expression:')
 
   !! else ! Only do this first time through...
     write (dflt_dat_index, '(i0)') datum%ix_d1
-    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, good_exp, &
-               err, .true., datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index)
+    call tao_evaluate_expression (datum%data_type(12:), 0, .false., expression_value_vec, good_exp, err, .true., &
+               datum%stack, 'model', datum%data_source, ele_ref, ele_start, ele, dflt_dat_index, datum%d1%d2%ix_uni)
     if (err) return
     select case (datum%merit_type)
     case ('min')
@@ -2892,7 +2892,7 @@ end subroutine
 !+
 ! Subroutine tao_evaluate_expression (expression, n_size, use_good_user, &
 !      value, good, err_flag, print_err, stack, dflt_component, dflt_source, &
-!      dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
+!      dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_uni)
 !
 ! Mathematically evaluates a character expression.
 !
@@ -2904,12 +2904,13 @@ end subroutine
 !   use_good_user  -- Logical: Use the good_user logical in evaluating good(:)
 !   print_err      -- Logical, optional: If False then supress evaluation error messages.
 !                      This does not affect syntax error messages. Default is True.
-!   dflt_component -- Character(*), optional: Default component to use if not specified in the expression.
+!   dflt_component -- Character(*), optional: Component to use if not specified in the expression. 'model', 'base', or 'design'.
 !   dflt_source    -- Character(*), optional: Default source ('lat', 'data', etc.). Default is ''.
 !   dflt_ele_ref   -- Ele_struct, pointer, optional: Default reference element.
 !   dflt_ele_start -- Ele_struct, pointer, optional: Default start element for ranges.
 !   dflt_ele       -- Ele_struct, pointer, optional: Default element to evaluate at.
-!   dflt_dat_index -- Character(*): Default datum index to use.
+!   dflt_dat_index -- Character(*), optional: Default datum index to use.
+!   dflt_uni       -- Integer, optional: Default universe to use. If 0 or not present, use viewed universe.
 !
 ! Output:
 !   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
@@ -2926,7 +2927,7 @@ end subroutine
 
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, &
           good, err_flag, print_err, stack, dflt_component, dflt_source, &
-          dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index)
+          dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_uni)
 
 use random_mod
 
@@ -2934,6 +2935,7 @@ type (tao_eval_stack1_struct), save :: stk(100)
 type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
+integer, optional :: dflt_uni
 integer i_lev, i_op, i, ios, n, n_size, n__size
 integer op(200), ix_word, i_delim, i2, ix, ix_word2, ixb
 
@@ -3202,7 +3204,7 @@ parsing_loop: do
     else
       call pushit (stk%type, i_lev, numeric$)
       call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
-             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
+             default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component, dflt_uni)
       if (err) then
         if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EVALUATING EXPRESSION: ' // expression, &
@@ -3253,8 +3255,8 @@ parsing_loop: do
       return
     endif
     call pushit (stk%type, i_lev, numeric$)
-    call tao_param_value_routine (word, saved_prefix, stk(i_lev), &
-            err, printit, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
+    call tao_param_value_routine (word, saved_prefix, stk(i_lev), err, printit, &
+            default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component, dflt_uni)
     if (err) then
       if (printit) call out_io (s_error$, r_name, &
                         'ERROR IN EXPRESSION: ' // expression, &
@@ -3401,7 +3403,7 @@ end subroutine tao_evaluate_expression
 !---------------------------------------------------------------------------
 
 subroutine tao_param_value_routine (str, saved_prefix, stack, err_flag, print_err, &
-      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component)
+      dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_index, dflt_component, dflt_uni)
 
 type (tao_eval_stack1_struct) stack
 type (tao_real_pointer_struct), allocatable, save :: re_array(:)
@@ -3409,6 +3411,7 @@ type (tao_integer_array_struct), allocatable, save :: int_array(:)
 type (tao_data_struct) datum
 type (ele_struct), pointer, optional :: dflt_ele_ref, dflt_ele_start, dflt_ele
 
+integer, optional :: dflt_uni
 integer ios, i, n, ix, ix2
 
 character(*) str, saved_prefix
@@ -3525,7 +3528,7 @@ else
 
   if ((source == 'dat' .or. source == 'data') .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
-                        dflt_index = dflt_dat_index, print_err = print_error)
+                        dflt_index = dflt_dat_index, print_err = print_error, ix_uni = dflt_uni)
     stack%type = data_num$
   endif
 
