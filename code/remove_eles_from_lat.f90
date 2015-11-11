@@ -80,6 +80,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (branch%ix_from_branch > -1) branch%ix_from_ele = ibr(branch%ix_from_branch)%new(branch%ix_from_ele)%ix_ele
+  if (branch%ix_from_ele < 0) branch%ix_from_branch = -1
 
   i2 = 0
   do i = 1, branch%n_ele_max
