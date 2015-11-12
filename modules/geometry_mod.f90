@@ -341,7 +341,7 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
         select case (ele0%key)
         case (crystal$)
           if (ele0%value(tilt_corr$) /= 0) then
-            call w_mat_for_tilt(t_mat, ele0%value(tilt_corr$))
+            call w_mat_for_tilt(ele0%value(tilt_corr$), t_mat)
             w_mat = matmul(w_mat, t_mat)
           endif
           rot_angle = ele0%value(bragg_angle_in$) 
@@ -350,11 +350,11 @@ if (key == fiducial$ .or. key == girder$ .or. key == floor_shift$) then
           rot_angle = ele0%value(graze_angle$) - pi/2
         end select
 
-        call w_mat_for_x_pitch (s_mat, -rot_angle)
+        call w_mat_for_x_pitch (-rot_angle, s_mat)
         w_mat = matmul (w_mat, s_mat)
 
         if (ele0%value(ref_tilt_tot$) /= 0) then
-          call w_mat_for_tilt(t_mat, ele0%value(ref_tilt_tot$))
+          call w_mat_for_tilt(ele0%value(ref_tilt_tot$), t_mat)
           w_mat = matmul (t_mat, w_mat)
           t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
           w_mat = matmul (w_mat, t_mat)
@@ -453,10 +453,10 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
       r_vec = 0
     endif
     ! By definition, positive angle is equivalent to negative x_pitch
-    call w_mat_for_x_pitch(s_mat, -angle)
+    call w_mat_for_x_pitch(-angle, s_mat)
 
     if (tlt /= 0) then
-      call w_mat_for_tilt (t_mat, tlt)
+      call w_mat_for_tilt (tlt, t_mat)
 
       r_vec = matmul (t_mat, r_vec)
 
@@ -502,11 +502,11 @@ if (((key == mirror$  .or. key == sbend$ .or. key == multilayer_mirror$) .and. &
     endif
 
     ! By definition, positive angle is equivalent to negative x_pitch
-    call w_mat_for_x_pitch (s_mat, -angle)
+    call w_mat_for_x_pitch (-angle, s_mat)
 
     tlt = ele%value(ref_tilt_tot$)
     if (tlt /= 0) then
-      call w_mat_for_tilt(t_mat, tlt)
+      call w_mat_for_tilt(tlt, t_mat)
       r_vec = matmul(t_mat, r_vec)
       s_mat = matmul (t_mat, s_mat)
       t_mat(1,2) = -t_mat(1,2); t_mat(2,1) = -t_mat(2,1) ! form inverse
@@ -1264,11 +1264,9 @@ end function coords_local_curvilinear_to_floor
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Function coords_element_frame_to_local(ele_position, ele, w_mat) 
-!          result(local_position)
+! Function coords_element_frame_to_local(ele_position, ele, w_mat) result (local_position)
 !
-!  Takes s coordinates relative to beginning of element in ele frame 
-!  an returns Cartesian coordinates relative to ele%floor (end of element)
+!  Returns Cartesian coordinates relative to ele%floor (end of element).
 !
 ! Input:
 !   ele_position    -- floor_position_struct: element frame curvilinear coordinates.
@@ -1286,6 +1284,7 @@ end function coords_local_curvilinear_to_floor
 !                                  v_ele_frame = transpose(w_mat) . v_local
 !
 !-
+
 function coords_element_frame_to_local(ele_position, ele, w_mat) result(local_position)
 
 type (floor_position_struct) :: ele_position, local_position
@@ -1306,7 +1305,7 @@ if (ele%key == sbend$) then
   theta = ele%value(g$)*s
 
   ! In ele frame. Move to center frame
-  call convert_local_curvilinear_to_local_cartesian(ele_position%r(1), s - ele%value(L$)/2, &
+  call convert_ele_to_cartesian_coords_in_bend (ele_position%r(1), s - ele%value(L$)/2, &
                                                     ele%value(g$), local_position%r(1), local_position%r(3))
 
   ! Put into tilted frame
@@ -1320,7 +1319,7 @@ if (ele%key == sbend$) then
  
   if (present(w_mat)) then
     ! Initial rotation to ele's center frame and the tilt
-    call w_mat_for_x_pitch (S_mat0, -(theta-ele%value(angle$)/2))
+    call w_mat_for_x_pitch (-(theta-ele%value(angle$)/2), S_mat0)
     call rotate_mat_z(S_mat0, ele%value(ref_tilt_tot$))
     w_mat = matmul(S_mis, S_mat0)
     w_mat = matmul(Sb, w_mat)
@@ -1390,7 +1389,7 @@ end function coords_curvilinear_to_floor
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_x_pitch (w_mat, x_pitch)
+! Subroutine w_mat_for_x_pitch (x_pitch, w_mat, w_mat_inv)
 ! 
 ! Routine to return the transformation matrix for an x_pitch.
 !
@@ -1401,20 +1400,30 @@ end function coords_curvilinear_to_floor
 !   x_pitch     -- real(rp): pitch angle
 !
 ! Output:
-!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
+!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
 !-   
 
-Subroutine w_mat_for_x_pitch (w_mat, x_pitch)
+Subroutine w_mat_for_x_pitch (x_pitch, w_mat, w_mat_inv)
 
-real(rp) w_mat(3,3), x_pitch, c_ang, s_ang
+real(rp) x_pitch, c_ang, s_ang
+real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
 
 ! An x_pitch corresponds to a rotation around the y axis.
 
 c_ang = cos(x_pitch); s_ang = sin(x_pitch)
 
-w_mat(1,:) = [ c_ang, 0.0_rp,   s_ang]
-w_mat(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
-w_mat(3,:) = [-s_ang, 0.0_rp,   c_ang]
+if (present(w_mat)) then
+  w_mat(1,:) = [ c_ang, 0.0_rp,   s_ang]
+  w_mat(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
+  w_mat(3,:) = [-s_ang, 0.0_rp,   c_ang]
+endif
+
+if (present(w_mat_inv)) then
+  w_mat_inv(1,:) = [ c_ang, 0.0_rp,  -s_ang]
+  w_mat_inv(2,:) = [0.0_rp, 1.0_rp,  0.0_rp]
+  w_mat_inv(3,:) = [ s_ang, 0.0_rp,   c_ang]
+endif
 
 end subroutine w_mat_for_x_pitch
 
@@ -1422,7 +1431,7 @@ end subroutine w_mat_for_x_pitch
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_y_pitch (w_mat, y_pitch)
+! Subroutine w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)
 ! 
 ! Routine to return the transformation matrix for an y_pitch.
 !
@@ -1433,20 +1442,30 @@ end subroutine w_mat_for_x_pitch
 !   y_pitch     -- real(rp): pitch angle
 !
 ! Output:
-!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
+!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
 !-   
 
-Subroutine w_mat_for_y_pitch (w_mat, y_pitch)
+Subroutine w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)
 
-real(rp) w_mat(3,3), y_pitch, c_ang, s_ang
+real(rp) y_pitch, c_ang, s_ang
+real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
 
 ! An y_pitch corresponds to a rotation around the y axis.
 
 c_ang = cos(y_pitch); s_ang = sin(y_pitch)
 
-w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
-w_mat(1,:) = [0.0_rp,  c_ang,   s_ang]
-w_mat(3,:) = [0.0_rp, -s_ang,   c_ang]
+if (present(w_mat)) then
+  w_mat(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+  w_mat(1,:) = [0.0_rp,  c_ang,   s_ang]
+  w_mat(3,:) = [0.0_rp, -s_ang,   c_ang]
+endif
+
+if (present(w_mat_inv)) then
+  w_mat_inv(2,:) = [1.0_rp,  0.0_rp, 0.0_rp]
+  w_mat_inv(1,:) = [0.0_rp,  c_ang,  -s_ang]
+  w_mat_inv(3,:) = [0.0_rp,  s_ang,   c_ang]
+endif
 
 end subroutine w_mat_for_y_pitch
 
@@ -1454,7 +1473,7 @@ end subroutine w_mat_for_y_pitch
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine w_mat_for_tilt (w_mat, tilt)
+! Subroutine w_mat_for_tilt (tilt, w_mat, w_mat_inv)
 ! 
 ! Routine to return the transformation matrix for an tilt.
 !
@@ -1465,34 +1484,40 @@ end subroutine w_mat_for_y_pitch
 !   tilt     -- real(rp): pitch angle
 !
 ! Output:
-!   w_mat(3,3)  -- real(rp): Transformation matrix.
+!   w_mat(3,3)     -- real(rp), optional: Transformation matrix.
+!   w_mat_inv(3,3) -- real(rp), optional: Inverse transformation matrix.
 !-   
 
-Subroutine w_mat_for_tilt (w_mat, tilt)
+Subroutine w_mat_for_tilt (tilt, w_mat, w_mat_inv)
 
-real(rp) w_mat(3,3), tilt, c_ang, s_ang
+real(rp) tilt, c_ang, s_ang
+real(rp), optional :: w_mat(3,3), w_mat_inv(3,3)
 
 ! An tilt corresponds to a rotation around the y axis.
 
 c_ang = cos(tilt); s_ang = sin(tilt)
 
-w_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
-w_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
-w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+if (present(w_mat)) then
+  w_mat(1,:) = [c_ang,  -s_ang,  0.0_dp ]
+  w_mat(2,:) = [s_ang,   c_ang,  0.0_dp ]
+  w_mat(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+endif
+
+if (present(w_mat_inv)) then
+  w_mat_inv(1,:) = [ c_ang,  s_ang,  0.0_dp ]
+  w_mat_inv(2,:) = [-s_ang,  c_ang,  0.0_dp ]
+  w_mat_inv(3,:) = [0.0_dp,  0.0_dp, 1.0_dp ]
+endif
 
 end subroutine w_mat_for_tilt
-
-
-
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine convert_local_curvilinear_to_local_cartesian(x, s, g, xout, zout)
+! Subroutine convert_ele_to_cartesian_coords_in_bend(x, s, g, xout, zout)
 ! 
-! Convert from element frame with curvature g to element frame in Cartesian coordinates
+! Convert from element frame with reference atcurvature g to element frame in Cartesian coordinates
 ! with origin at x=0, s=0
 !
 ! Module needed:
@@ -1504,25 +1529,33 @@ end subroutine w_mat_for_tilt
 !
 ! Output:
 !  xout, zout  -- real(rp): Cartesian x and z relative to the frame at s = 0
-!-  
-subroutine convert_local_curvilinear_to_local_cartesian(x, s, g, xout, zout)
+!-
+
+subroutine convert_ele_to_cartesian_coords_in_bend (x, s, g, xout, zout)
+
 real(rp) :: x, s, g, rho, xout, zout, theta, factor
-xout = x
-zout = s
-if (g == 0) return
+
+!
+
+if (g == 0) then
+  xout = x
+  zout = s
+  return
+endif
+
 rho = 1/g
 theta = s/rho
 factor = (x + rho)
 xout = factor*cos(theta) - rho
 zout = factor*sin(theta)
-end subroutine
 
+end subroutine convert_ele_to_cartesian_coords_in_bend
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine convert_local_cartesian_to_local_curvilinear(x, z, g, xout, sout)
+! Subroutine convert_cartesian_to_ele_coords_in_bend (x, z, g, xout, sout)
 ! 
 ! Convert from element frame Cartesian coordinates to element frame coordinates with curvature g
 ! with origin at x=0, z=0
@@ -1537,13 +1570,19 @@ end subroutine
 ! Output:
 !  xout, sout  -- real(rp): Curvilinear x and s relative to the frame at z = 0
 !-  
-subroutine convert_local_cartesian_to_local_curvilinear(x, z, g, xout, sout)
+
+subroutine convert_cartesian_to_ele_coords_in_bend (x, z, g, xout, sout)
+
 real(rp) :: x, z, g, rho, xout, sout, theta
+
+!
+
 if (g == 0) then
   xout = x
   sout = z
   return
 endif
+
 rho = 1/g
 theta = atan2(z, abs(x + rho)) 
 sout = theta*abs(rho)
@@ -1553,7 +1592,7 @@ else
   xout = z/sin(theta) - rho
 endif
 
-end subroutine
+end subroutine convert_cartesian_to_ele_coords_in_bend
 
 !---------------------------------------------------------------------------
 !+
