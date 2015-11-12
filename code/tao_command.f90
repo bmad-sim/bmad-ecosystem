@@ -493,7 +493,7 @@ case ('set')
   select case (set_word)
   case ('ran_state'); n_word = 2; n_eq = 1
   case ('beam_init', 'bmad_com', 'csr_param', 'data', 'global', 'lattice', 'default', &
-        'opti_de_param', 'var', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm'); n_word = 3; n_eq = 2
+        'opti_de_param', 'var', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 3; n_eq = 10
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('curve', 'element', 'graph', 'plot'); n_word = 4; n_eq = 3
@@ -527,6 +527,8 @@ case ('set')
     call tao_set_global_cmd (cmd_word(1), cmd_word(3))
   case ('graph')
     call tao_set_graph_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
+  case ('key')
+    call tao_set_key_cmd (cmd_word(1), cmd_word(3))    
   case ('lattice')
     call tao_set_lattice_cmd (cmd_word(1), cmd_word(3))
   case ('opti_de_param')
