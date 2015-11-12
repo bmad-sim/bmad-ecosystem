@@ -82,7 +82,7 @@ if (associated (ele%control_var)) then
         err_flag = .false.
         return
       enddo
-      return
+      goto 9000 ! Error message and return
     endif
   endif
 
@@ -93,7 +93,7 @@ if (associated (ele%control_var)) then
     err_flag = .false.
     return
   enddo
-  return
+  goto 9000 ! Error message and return
 endif
 
 !--------------------
@@ -184,6 +184,7 @@ if (a_name(1:10) == 'WALL.SECTION') then
   if (a_name(1:1) == 'V') then
     n_v = get_cross_index(a_name, 2, err, 1, size(ele%wall3d(1)%section(n_cc)%v))
     if (err) goto 9200
+
     select case (a_name)
     case ('.X');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%x
     case ('.Y');        a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%y
@@ -191,8 +192,9 @@ if (a_name(1:10) == 'WALL.SECTION') then
     case ('.RADIUS_Y'); a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%radius_y
     case ('.TILT');     a_ptr%r => ele%wall3d(1)%section(n_cc)%v(n_v)%tilt
     case default;       goto 9200
-    err_flag = .false.
     end select
+
+    err_flag = .false.
     return
   endif
 
@@ -259,18 +261,25 @@ end select
 if (a_name(1:11) == 'CURVATURE_X' .and. a_name(13:14) == '_Y' .and. a_name(16:) == '') then
   ix = index('0123456789', a_name(12:12)) - 1
   iy = index('0123456789', a_name(15:15)) - 1
-  if (ix == -1 .or. iy == -1) return
-  if (ix > ubound(ele%photon%surface%curvature_xy, 1)) return
-  if (iy > ubound(ele%photon%surface%curvature_xy, 2)) return
+  if (ix == -1 .or. iy == -1) goto 9000 ! Error message and return
+  if (ix > ubound(ele%photon%surface%curvature_xy, 1)) goto 9000 ! Error message and return
+  if (iy > ubound(ele%photon%surface%curvature_xy, 2)) goto 9000 ! Error message and return
   a_ptr%r => ele%photon%surface%curvature_xy(ix,iy)
+  err_flag = .false.
+  return
 endif
 
 if (a_name(1:5) == "XMAT_") then
   if (len(a_name) >= 7) then
     ix1 = index('123456', a_name(6:6))
     ix2 = index('123456', a_name(7:7))
-    if (ix1 > 0 .and. ix2 > 0) a_ptr%r => ele%mat6(ix1,ix2)
+    if (ix1 > 0 .and. ix2 > 0) then
+      a_ptr%r => ele%mat6(ix1,ix2)
+      err_flag = .false.
+      return
+    endif
   endif
+  goto 9000 ! Error message and return
 endif
 
 if (associated(a_ptr%r)) then
@@ -282,7 +291,7 @@ endif
 
 ix_a = attribute_index (ele, a_name)
 if (present(ix_attrib)) ix_attrib = ix_a
-if (ix_a < 1) return
+if (ix_a < 1) goto 9000 ! Error message and return
 
 select case (a_name)
 ! attrib_type = is_real$

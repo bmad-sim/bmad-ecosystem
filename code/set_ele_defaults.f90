@@ -186,6 +186,19 @@ case (patch$)
   ele%value(upstream_ele_dir$) = 1
   ele%value(downstream_ele_dir$) = 1
 
+case (photon_init$)
+  ele%value(ds_slice$) = 0.01
+  ele%value(velocity_distribution$) = gaussian$
+  ele%value(energy_distribution$) = gaussian$
+  ele%value(spatial_distribution$) = gaussian$
+  ele%value(transverse_sigma_cut$) = 3
+  ele%value(E_center_relative_to_ref$) = true$
+  if (logic_option(.true., do_allocate)) then
+    if (.not. associated(ele%photon)) allocate(ele%photon)
+    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
+    call init_photon_element_struct(ele%photon)
+  endif
+
 case (rbend$, sbend$)
   ele%value(fintx$) = real_garbage$
   ele%value(hgapx$) = real_garbage$
@@ -233,18 +246,6 @@ case (taylor$)   ! start with unit matrix
 case (wiggler$, undulator$) 
   ele%sub_key = periodic_type$   
   ele%value(polarity$) = 1.0     
-
-case (photon_init$)
-  ele%value(velocity_distribution$) = gaussian$
-  ele%value(energy_distribution$) = gaussian$
-  ele%value(spatial_distribution$) = gaussian$
-  ele%value(transverse_sigma_cut$) = 3
-  ele%value(E_center_relative_to_ref$) = true$
-  if (logic_option(.true., do_allocate)) then
-    if (.not. associated(ele%photon)) allocate(ele%photon)
-    !!! Due to ifort bug cannot do:  ele%photon = photon_element_struct()
-    call init_photon_element_struct(ele%photon)
-  endif
 
 end select
 

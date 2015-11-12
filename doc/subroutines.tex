@@ -800,7 +800,7 @@ Routine to create a group control element.
 
 \index[routine]{create_overlay}
 \label{r:create.overlay}
-\item[create_overlay (lord, contl, err, err_print_flag)] \Newline
+\item[create_overlay (lord, contrl, err, err_print_flag)] \Newline
 Routine to add the controller information to slave elements of an 
 overlay_lord. 
 
@@ -875,6 +875,11 @@ Function to return a pointer to the element at position s.
 \label{r:remove.eles.from.lat}
 \item[remove_eles_from_lat (lat, check_sanity)] \Newline 
 Routine to remove an elements from the lattice.
+
+\index[routine]{set_ele_attribute}
+\label{r:set.ele.attribute}
+\item[set_ele_attribute (ele, set_string, lat, err_flag, err_print_flag)] \Newline 
+Routine to set an element's attribute.
 
 \index[routine]{set_ele_status_stale}
 \label{r:set.ele.status.stale}
@@ -965,17 +970,17 @@ Routine to calculate the longitudinal distance S for the elements in a lat.
 
 \index[routine]{w_mat_for_x_pitch}
 \label{r:w.mat.for.x.pitch}
-\item[w_mat_for_x_pitch (w_mat, x_pitch)] \Newline 
+\item[w_mat_for_x_pitch (x_pitch, w_mat, w_mat_inv)] \Newline 
 Routine to return the transformation matrix for an x_pitch.
 
 \index[routine]{w_mat_for_y_pitch}
 \label{r:w.mat.for.y.pitch}
-\item[w_mat_for_y_pitch (w_mat, y_pitch)] \Newline 
+\item[w_mat_for_y_pitch (y_pitch, w_mat, w_mat_inv)] \Newline 
 Routine to return the transformation matrix for an y_pitch.
 
 \index[routine]{w_mat_for_tilt}
 \label{r:w.mat.for.tilt}
-\item[w_mat_for_tilt (w_mat, tilt)] \Newline 
+\item[w_mat_for_tilt (tilt, w_mat, w_mat_inv)] \Newline 
 Routine to return the transformation matrix for an tilt.
 
 \end{description}
@@ -1375,7 +1380,8 @@ Routine to parse (read in) a Bmad input file to modify an existing lattice.
 \index[routine]{write_lattice_in_foreign_format}
 \label{r:write.lattice.in.foreign.format}
 \item[\protect\parbox{6in}{write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, \\
-  \hspace*{1in} dr12_drift_max, ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
+  \hspace*{1in} use_matrix_model, include_apertures, dr12_drift_max, \\
+  \hspace*{1in} ix_start, ix_end, ix_branch, converted_lat, err)}] \Newline 
 Routine to write a mad or xsif lattice file using the information in
 a lat_struct. 
 

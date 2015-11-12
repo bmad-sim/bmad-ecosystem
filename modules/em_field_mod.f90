@@ -158,7 +158,7 @@ end subroutine save_a_step
 !     %vec(1), %vec(3)  -- Transverse coords. These are the only components used in the calculation.
 !   local_ref_frame 
 !          -- Logical, If True then take the input coordinates and output fields 
-!                as being with respect to the frame of referene of the element (no misalignments). 
+!                as being with respect to the frame of referene of the element (ignore misalignments). 
 !   calc_dfield     
 !          -- Logical, optional: If present and True 
 !                then calculate the field derivatives.
@@ -1050,7 +1050,7 @@ contains
 
 subroutine convert_fields_to_lab_coords()
 
-real(rp) w_mat(3,3), w_inv(3,3), wbx(3,3), wbz(3,3)
+real(rp) w_mat(3,3), w_inv(3,3), wbx(3,3), wbz(3,3), wbz_inv(3,3)
 real(rp) theta
 
 !
@@ -1060,12 +1060,14 @@ if (local_ref_frame) return
 !
 
 if (ele%key == sbend$) then
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_inv)
-  theta = ele%value(g$)*s
-  call w_mat_for_x_pitch (wbx, -(theta-ele%value(angle$)/2))
-  call rotate_mat_z(wbz, ele%value(ref_tilt_tot$))
-  w_mat = matmul(wbx, matmul(w_mat, wbz))
-  if (df_calc) call mat_inverse(w_mat, w_inv)
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat, w_inv)
+  theta = ele%value(g$) * s_rel - ele%value(angle$)/2
+  call w_mat_for_x_pitch (-theta, wbx)
+  if (ele%value(ref_tilt_tot$) /= 0) then
+    call w_mat_for_tilt (ele%value(ref_tilt_tot$), wbz, wbz_inv)
+    wbx = matmul(matmul(wbz, wbx), wbz_inv)
+  endif
+  w_mat = matmul(transpose(wbx), matmul(w_mat, wbx))
 else
   call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
 endif

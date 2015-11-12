@@ -550,7 +550,34 @@ Section~\sref{ss:crystal.ref}.
 The \vn{Element Body} coordinates are the coordinate system attached
 to an element. Without any misalignments, where \vn{``misalignments''}
 are here defined to be any offset, pitch or tilt (\sref{s:offset}),
-the laboratory and element body coordinates are the same.  With
+the laboratory and element body coordinates are the same. For straight
+line elements, given a laboratory coordinate frame $\Lambda_s$ with
+origin a distance $s$ from the beginning of the element, misalignments
+will shift the coordinates to a new reference frame denoted
+$E_s$. The transformation between $\Lambda_s$ and
+$E_s$. is a three step process:
+\Begineq
+  \Lambda_s \longrightarrow \Lambda_\text{mid} 
+  \longrightarrow E_\text{mid} \longrightarrow E_s
+\Endeq
+where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and 
+element reference frames at the center of the element.
+
+
+
+With
+misalignments, the transformation between laboratory coordinates at
+some given $s$ position (here measured from the point on the reference
+trajectory where the beginning of the element would be if there were
+no misalignments) 
+
+
+
+
+
+
+
+With
 misalignments, the transformation at the center of the element from
 laboratory coordinates specified by $(\bfL_\lab, \bfW_\lab)$ to
 element coordinates specified by $(\bfL_\ele, \bfW_\ele)$ is, for
@@ -575,15 +602,19 @@ and
     \end{pmatrix}
     \label{lxyz}
 \Endeq
-the transformation between laboratory and element coordinates at the
-ends of a non-bend element (which are needed for particle tracking)
-can be calculated by concatination, using \Eqs{vwlv} and \eq{wws}, of
-three transformations. For the transformation at the entrance end of
-the element, for example, the first transformation is from laboratory
+
+For particle tracking, the
+The transformation between laboratory coordinates at some given $s$ position and and element coordinates at a given
+position 
+
+the ends of a non-bend element (which are needed for particle tracking)
+can be calculated by concatination, using
+three sub-transformations. For the transformation at the entrance end of
+the element, for example, the first sub-transformation is from laboratory
 entrance coordinates to laboratory coordinates at the center of the
 element. This is just \Eqs{l00l} with the replacement $L \rightarrow
-L/2$. The second transformation is given by \Eqs{swww} above.  The
-last transformaion is from element coordinates at the center back to
+L/2$. The second sub-transformation is given by \Eqs{swww} above.  The
+last sub-transformaion is from element coordinates at the center back to
 element coordinates at the entrance end. This is again given by
 \Eqs{l00l} with the replacement $L \rightarrow -L/2$.
 
@@ -611,7 +642,7 @@ to ``\vn{origin}'' coordinates. In this case, the transformation is
 For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt}
 attribute.  Rather, there is the \vn{roll} attribute and a
 \vn{ref_tilt} attribute. The latter affects both the reference orbit
-and the bend position (\sref{ss:bend.orient}). The transformation at
+and the bend position (\sref{ss:bend.orient}). The sub-transformation at
 the center of the bend from the laboratory coordinates to the element
 coordinates is
 \begin{align}
@@ -629,11 +660,11 @@ where
 
 The transformations between laboratory and element coordinates at the
 ends of the bend are obtaind in the same way as with straight elements
-by using three transformations concatinated together. The first
-transformation is from laboratory entrance coordinates to laboratory
+by using three sub-transformations concatinated together. The first
+sub-transformation is from laboratory entrance coordinates to laboratory
 coordinates at the center of the bend. This is just \Eqs{ltl} with the
 replacement $\alpha_b \rightarrow \alpha_b/2$. The second
-transformation is given by \Eqs{lcmis}. The last transformaion is from
+sub-transformation is given by \Eqs{lcmis}. The last sub-transformaion is from
 element coordinates at the center to element coordinates at the
 entrance end:
 \begin{align}

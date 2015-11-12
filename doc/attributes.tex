@@ -596,6 +596,11 @@ The \vn{tilt} attribute rotates just the physical element. Thus
 the total rotation of the physical element about the entrance $z$
 axis is the sum \vn{tilt} + \vn{ref_tilt}.
 
+Frequently, it is desired to orient reflecting elements with respect
+to the element's surface. This can be done using a \vn{girder} element
+(\sref{s:girder}) which supports the reflecting element and with the
+\vn{girder}'s \vn{origin_ele_ref_pt} attribute set to \vn{center}.
+
 %-----------------------------------------------------------------
 \subsection{Reference Orbit Manipulator Element Orientation}
 \label{ss:manip.orient}
@@ -1138,7 +1143,7 @@ y^0$, or $x^0 \, y^1$ terms (since corresponding \vn{curvature_xN_yM}
 are not permitted), element offsets and pitches can be used
 (\sref{s:offset}).
 
-Some useful formulas: Series expansion for a circle of radius $R$:
+Some useful formulas: Series expansion for a sphere of radius $R$:
 \Begineq
   {-z} = \frac{x^2}{2 \, R} + \frac{x^4}{8 \, R^3} + \frac{x^6}{16 \, R^5} +
          \frac{y^2}{2 \, R} + \frac{y^4}{8 \, R^3} + \frac{y^6}{16 \, R^5} +
@@ -1978,6 +1983,10 @@ However RF fields can only be associated with the following elements:
   lcavity
   rfcavity
 \end{example}
+
+It is important to keep in mind that the fields specified by ``\vn{field
+= \{...\}}'' is only used with \vn{runge_kutta} and \vn{boris}
+tracking. Other tracking methods will ignore these fields.
 
 The syntax for specifying the electromagnetic fields is
 \label{v:field}
