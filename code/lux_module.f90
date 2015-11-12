@@ -29,6 +29,7 @@ end type
 type lux_param_struct
   character(100) :: photon1_out_file = ''
   character(100) :: det_pix_out_file = ''
+  character(100) :: track_out_file = 'track.dat'
   character(100) :: param_file = 'lux.init'
   character(100) :: lattice_file = ''
   character(40) :: photon_init_element = ''       ! element name
@@ -573,6 +574,8 @@ integer n_slice, n_z, ix
 logical err, hit_below_top, hit_above_bottom, hit_right_of_left_edge, hit_left_of_right_edge
 logical old_hit_below_top, old_hit_above_bottom, old_hit_right_of_left_edge, old_hit_left_of_right_edge
 
+character(*), parameter :: r_name = 'lux_tracking_setup'
+
 !-------------------------------------------------------------
 ! photon_init source
 
@@ -601,7 +604,12 @@ if (.not. associated(lux_com%physical_source_ele)) then
 
 else
   call photon_target_setup (lux_com%fork_ele)
-  
+
+  if (photon_init_ele%value(ds_slice$) == 0) then
+    call out_io (s_fatal$, r_name, 'DS_SLICE IS ZERO FOR ELEMENT: ' // photon_init_ele%name)
+    stop
+  endif
+
   n_slice = max(1, nint(physical_source_ele%value(l$) / photon_init_ele%value(ds_slice$)))
   lux_com%n_bend_slice = n_slice
   allocate (lux_com%bend_slice(0:n_slice))
@@ -698,6 +706,12 @@ else
       sl(i)%integrated_emit_prob = sl(i-1)%integrated_emit_prob
     endif
   enddo
+
+  if (sl(n_slice)%integrated_emit_prob == 0) then
+    call out_io (s_fatal$, r_name, 'INTEGRATED PHOTON EMISSION PROBABILITY IS ZERO! NO BENDING FIELD?')
+    stop
+  endif
+
   sl%integrated_emit_prob = sl%integrated_emit_prob / sl(n_slice)%integrated_emit_prob
 
   if (lux_com%verbose) print '(a, i4)', &
@@ -782,6 +796,8 @@ if (lux_param%track_bunch) then
 
   do ip = 1, n
     call add_to_detector_statistics (bunch_start%particle(ip), bunch%particle(ip), intens)
+    ix = bunch%particle(ip)%ix_ele
+    if (bunch%particle(ip)%state /= alive$) t_branch%ele(ix)%ix_pointer = t_branch%ele(ix)%ix_pointer + 1
     if (lux_param%photon1_out_file /= '') then
       call photon1_out (bunch_start%particle(ip), bunch_stop1%particle(ip), bunch%particle(ip), ip)
     endif
@@ -812,6 +828,7 @@ do
   call track_all (lat, photon%orb, t_branch%ix_branch, track_state)
 
   call add_to_detector_statistics (photon%orb(0), photon%orb(nt), intens)
+  if (track_state /= alive$) t_branch%ele(track_state)%ix_pointer = t_branch%ele(track_state)%ix_pointer + 1
 
   ! Write to photon1_out_file
 
@@ -977,6 +994,7 @@ type (surface_grid_struct), pointer :: detec_grid
 type (surface_grid_pt_struct), pointer :: pix
 type (surface_grid_pt_struct) :: p
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele
 
 real(rp) normalization, cut, dtime
 real(rp) total_dead_intens, pix_in_file_intens, norm2
@@ -1176,6 +1194,19 @@ if (lux_param%det_pix_out_file /= '') then
 endif
 
 !------------------------------------------
+! Track out file
+
+if (lux_param%track_out_file /= '') then
+  open (3, file = lux_param%track_out_file)
+  write (3, '(3x, a, 2x, a, 16x, a, 20x, a, 4x, a)') 'Ix', 'Name', 'Class', 'S', '#Lost'
+  do n = 0, lux_com%tracking_branch%n_ele_track
+    ele => lux_com%tracking_branch%ele(n)
+    write (3, '(i4, 2x, a20, a16, f10.3, i8)') n, ele%name, key_name(ele%key), ele%s, ele%ix_pointer
+  enddo
+  close(3)
+endif
+
+!------------------------------------------
 
 call run_timer ('READ', dtime)
 
@@ -1218,6 +1249,7 @@ if (lux_com%verbose) then
   print '(a, f10.2)', &
           ' Simulation time (min):               ', dtime/60
   print *
+  print *, 'Tracking data file:       ', trim(lux_param%track_out_file)
   print *, 'Detector pixel data file: ', trim(lux_param%det_pix_out_file)
   print *, 'Photon1 data file:        ', trim(lux_param%photon1_out_file)
 endif
