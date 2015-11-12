@@ -58,11 +58,12 @@ character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
 
-character(16) :: set_names(20) = [&
+character(16) :: set_names(21) = [&
     'data         ', 'var          ', 'lattice      ', 'global       ', 'plot_page    ', &
     'universe     ', 'curve        ', 'graph        ', 'beam_init    ', 'wave         ', &
     'plot         ', 'bmad_com     ', 'element      ', 'opti_de_param', 'ran_state    ', &
-    'csr_param    ', 'floor_plan   ', 'lat_layout   ', 'geodesic_lm  ', 'default      ']
+    'csr_param    ', 'floor_plan   ', 'lat_layout   ', 'geodesic_lm  ', 'default      ', &
+    'key          ']
 
 logical quit_tao, err, silent, gang, abort
 

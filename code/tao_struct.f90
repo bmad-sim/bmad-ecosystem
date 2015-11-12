@@ -565,7 +565,7 @@ end type
 
 type tao_alias_struct
   character(40) :: name = ''
-  character(100) :: string = ''
+  character(200) :: string = ''
 end type
 
 type tao_command_file_struct
@@ -580,7 +580,7 @@ end type
 ! Also see tao_global_struct.
 
 type tao_common_struct
-  type (tao_alias_struct) alias(100)
+  type (tao_alias_struct) alias(200)
   type (tao_alias_struct) key(100)
   type (tao_universe_struct), pointer :: u_working          ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)

@@ -1596,6 +1596,15 @@ case ('key_bindings')
     nl=nl+1; write(lines(nl), '(i3, 2x, a)') i, str
   enddo
 
+  ! Custom keys
+  do i = 1, size(s%com%key)
+    if (s%com%key(i)%name /= '') then
+      nl=nl+1; write(lines(nl), '(a, 2x, a)') trim(s%com%key(i)%name), trim(s%com%key(i)%string)
+    endif
+  enddo
+
+
+
   result_id = show_what
 
 !----------------------------------------------------------------------
