@@ -42,7 +42,20 @@ character(40) :: this_opt, r_name = 'tao_single_mode'
 
 logical doit, found, err, abort
 
-! parse input.
+
+
+!-------------------------------------------------------
+! Look for custom command key binding
+
+do i = 1, size(s%com%key)
+  if (char == s%com%key(i)%name) then
+    call tao_command (s%com%key(i)%string, err)
+    return
+  endif
+enddo
+
+
+!-------------------------------------------------------
 ! is it a variable change?
 
 do i = 1, 4
@@ -63,15 +76,7 @@ do i = 1, 4
   endif
 enddo
 
-!-------------------------------------------------------
-! Look for command key binding
 
-do i = 1, size(tao_com%key)
-  if (char == tao_com%key(i)%name) then
-    call tao_command (tao_com%key(i)%string, err)
-    return
-  endif
-enddo
 
 !--------------------------------------------------------
 ! not a variable change so must be something else...
