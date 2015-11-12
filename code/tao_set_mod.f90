@@ -6,7 +6,50 @@ use tao_lattice_calc_mod
 use tao_input_struct
 use geodesic_lm
 
+implicit none
+
 contains
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+! Subroutine tao_set_key_cmd (key_str, cmd_str)
+!
+! Associates a command with a key press for single mode.
+!
+! Input:
+!   key_str   -- character(*): keyboard key.
+!   cmd_str   -- character(*): Command associated with key.
+!-
+
+subroutine tao_set_key_cmd (key_str, cmd_str)
+
+integer i, n
+character(*) key_str, cmd_str
+character(*), parameter :: r_name = 'tao_set_key_cmd'
+
+!
+
+do i = 1, size(tao_com%key)
+  if (tao_com%key(i)%name /= '' .and. tao_com%key(i)%name /= key_str) cycle
+
+  if (cmd_str == 'default') then
+    if (tao_com%key(i)%name /= key_str) then
+      call out_io (s_err$, r_name, 'Key has not been set to begin with. Nothing to do.')
+      return
+    endif
+    n = size(tao_com%key)
+    tao_com%key(i:n) = [tao_com%key(i+1:n), alias_struct()]
+  else
+    tao_com%key(i)%name = alias_struct(key_str, cmd_str)
+  endif
+
+  return
+enddo
+
+call out_io (s_err$, r_name, 'KEY TABLE ARRAY OVERFLOW! PLEASE GET HELP!')
+
+end subroutine tao_set_key_cmd
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
