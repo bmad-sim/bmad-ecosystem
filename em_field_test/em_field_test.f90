@@ -41,7 +41,6 @@ elseif (nargs > 0)then
   print_extra = .true.
 endif
 
-
 call bmad_parser (lat_file, lat)
 
 open (1, file = lat_file)

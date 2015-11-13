@@ -1,13 +1,17 @@
 no_digested
-parameter[e_tot] = 1e6
+parameter[p0c] = 1e6 / 3.3356e-3
 parameter[geometry] = open
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
+beam_start[z] = pi/2
+beam_start[x] = 1
+
 d: drift, l = 1
 p1: patch, z_offset = 1, x_pitch = pi/4
 
+b: sbend, l = 1, angle = 2, roll = 0.1, ref_tilt = -1, x_pitch = 0.1, y_pitch = 0.2
 
-p_line: line = (p1, d, p1)
+p_line: line = (p1, d, p1, b)
 
 use, p_line
