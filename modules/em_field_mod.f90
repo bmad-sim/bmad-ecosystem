@@ -1050,7 +1050,7 @@ contains
 
 subroutine convert_fields_to_lab_coords()
 
-real(rp) w_mat(3,3), w_inv(3,3), wbx(3,3), wbz(3,3), wbz_inv(3,3)
+real(rp) w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
 real(rp) theta
 
 !
@@ -1060,16 +1060,17 @@ if (local_ref_frame) return
 !
 
 if (ele%key == sbend$) then
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat, w_inv)
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
   theta = ele%value(g$) * s_rel - ele%value(angle$)/2
-  call w_mat_for_x_pitch (-theta, wbx)
-  if (ele%value(ref_tilt_tot$) /= 0) then
-    call w_mat_for_tilt (ele%value(ref_tilt_tot$), wbz, wbz_inv)
-    wbx = matmul(matmul(wbz, wbx), wbz_inv)
+  call w_mat_for_x_pitch (theta, w_s)
+  if (ele%value(ref_tilt_tot$) == 0) then
+    w_mat = matmul(matmul(w_s, w_mat), transpose(w_s))
+  else
+    call w_mat_for_tilt (ele%value(ref_tilt_tot$), w_rt, w_rt_inv)
+    w_mat = matmul(matmul(matmul(matmul(matmul(w_rt, w_s), w_rt_inv), w_mat), w_rt), transpose(w_s))
   endif
-  w_mat = matmul(transpose(wbx), matmul(w_mat, wbx))
 else
-  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
+  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat)
 endif
 
 field%B = matmul(w_mat, field%B)
@@ -1080,6 +1081,7 @@ if (present(potential)) then
 endif
 
 if (df_calc) then
+  w_inv = transpose(w_mat)
   field%dB = matmul(w_mat, matmul(field%dB, w_inv))
   field%dE = matmul(w_mat, matmul(field%dE, w_inv))
 endif

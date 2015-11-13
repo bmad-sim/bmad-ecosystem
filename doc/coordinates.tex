@@ -1,4 +1,4 @@
-n\chapter{Coordinates}
+\chapter{Coordinates}
 \index{coordinates|hyperbf}
 
 %-----------------------------------------------------------------------------
@@ -425,6 +425,7 @@ $\theta_t$ is the \vn{ref_tilt} angle (\sref{s:offset}), and
   \begin{pmatrix}
     \rho (\cos\alpha_b - 1) \\ 0 \\ \rho \, \sin\alpha_b
   \end{pmatrix}
+  \label{lra1}
 \Endeq
 with $\rho$ being the bend radius (\vn{rho}). 
 Without a \vn{ref_tilt}, $\bfT$ is the unit matrix
@@ -544,8 +545,8 @@ of the Bragg angles for a crystal is given in
 Section~\sref{ss:crystal.ref}.
 
 %-----------------------------------------------------------------------------
-\subsection{Element Misalignment and Origin Shift Transformation}
-\label{s:patch.coords}
+\subsection{Straight Element Misalignment}
+\label{s:straight.mis}
 
 The \vn{Element Body} coordinates are the coordinate system attached
 to an element. Without any misalignments, where \vn{``misalignments''}
@@ -554,80 +555,128 @@ the laboratory and element body coordinates are the same. For straight
 line elements, given a laboratory coordinate frame $\Lambda_s$ with
 origin a distance $s$ from the beginning of the element, misalignments
 will shift the coordinates to a new reference frame denoted
-$E_s$. The transformation between $\Lambda_s$ and
-$E_s$. is a three step process:
+$E_s$. Since misalignments are defined with respect to the middle of
+the element, the transformation between $\Lambda_s$ and $E_s$ is a
+three step process:
 \Begineq
   \Lambda_s \longrightarrow \Lambda_\text{mid} 
   \longrightarrow E_\text{mid} \longrightarrow E_s
+  \label{llee}
 \Endeq
-where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and 
+where $\Lambda_\text{mid}$ and $E_\text{mid}$ are the laboratory and
 element reference frames at the center of the element.
 
-
-
-With
-misalignments, the transformation between laboratory coordinates at
-some given $s$ position (here measured from the point on the reference
-trajectory where the beginning of the element would be if there were
-no misalignments) 
-
-
-
-
-
-
-
-With
-misalignments, the transformation at the center of the element from
-laboratory coordinates specified by $(\bfL_\lab, \bfW_\lab)$ to
-element coordinates specified by $(\bfL_\ele, \bfW_\ele)$ is, for
-straight line elements, given in analogy to \Eqs{vwlv} and \eq{wws} by
+The first and last transformations from $\Lambda_s$ to
+$\Lambda_\text{mid}$ and from $E_\text{mid}$ to $E_s$ use \Eqs{vwlv},
+\eq{wws}, and \eq{l00l} with the replacement $L \rightarrow L/2 - s$
+for the first transformation and $L \rightarrow s - L/2$ for the third
+transformation. The middle transformation, by definition of the
+offset, pitch and tilt parameters is
 \begin{align}
-  \bfV_\ele &= \bfW_\lab \; \bfL_\mis + \bfV_\lab, 
+  \bfL &= 
+    \begin{pmatrix} 
+      \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
+    \end{pmatrix}
     \CRNO
-  \bfW_\ele &= \bfW_\lab \; \bfS_\mis
-    \label{wws2}
-\end{align}
-where, by definition of the offset, pitch and tilt parameters
-\begin{align}
-  \bfL_\mis &\equiv \bfL_\text{off} \CRNO
-  \bfS_\mis &\equiv \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
+  \bfS &= \bfR_{y} (\text{x_pitch}) \; \bfR_{-x} (\text{y_pitch}) \; \bfR_{z} (\text{tilt})
   \label{swww}
 \end{align}
-and
+
+%-----------------------------------------------------------------------------
+\subsection{Bend Element Misalignment}
+\label{s:bend.mis}
+
+\index{rbend!coordinate transformation}\index{sbend!coordinate transformation}
+\index{roll!coordinate transformation}\index{tilt!coordinate transformation}
+For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt}
+attribute.  Rather, there is the \vn{roll} attribute and a
+\vn{ref_tilt} attribute. The latter affects both the reference orbit
+and the bend position (\sref{ss:bend.orient}). Furthermore,
+\vn{ref_tilt} is calculated with respect to the coordinates at the
+beginning of the bend while, like straight elements, \vn{roll},
+offsets, and pitches are calculated with respect to the center of the
+bend. The different reference frame used for \vn{ref_tilt} versus
+everything else means that five transformations are needed to get from
+the laboratory frame to the element frame (see
+\Eq{llee}). Symbolically:
 \Begineq
+  \Lambda_s \longrightarrow \Lambda_\text{mid} 
+  \longrightarrow \Omega_\text{mid} \longrightarrow \Omega_0
+  \longrightarrow E_0 \longrightarrow E_s
+\Endeq
+
+The first transformation, $\Lambda_s$ to $\Lambda_\text{mid}$, from
+laboratory coordinates at $s$ to coordinates at the center is a
+rotation around the center of curvative of the bend and is given by
+\Eqs{vwlv} and \eq{wws} with \Eqs{ltl} and \eq{lra1} with the
+substitution $\alpha_b (\rightarrow L/2 - s)/\rho$.
+
+The second transformation $\Lambda_\text{mid}$ to $\Omega_\text{mid}$
+at the center of the element adds in the misalignments (Note that the
+coordinate frame $\Omega_\text{mid}$ is neither a laboratory frame or
+an element frame so hence the use of a different symbol $\Omega$). The
+appropriate transformation is
+
+\begin{align}
+  \bfL &= \bfL_\text{off} + 
+    \left[ \bfR_z(\text{roll}) - \Bf1 \right] \; \bfR_z(\theta_t) \; \bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
+  \bfS &= \bfR_{y}(\text{x_pitch}) \; \bfR_{-x}(\text{y_pitch}) \; \bfR_z(\text{roll})
+  \label{lcmis}
+\end{align}
+where
+\Begineq
+  \bfL_c = 
+    \begin{pmatrix}
+      \rho (\cos(\alpha_b/2) - 1) \\ 0 \\ \rho \, \sin(\alpha_b/2)
+    \end{pmatrix}
+  , \qquad
   \bfL_\text{off} = 
     \begin{pmatrix} 
       \text{x_offset} \\ \text{y_offset} \\ \text{z_offset} 
     \end{pmatrix}
-    \label{lxyz}
+\Endeq
+The reason why $\bfL$ has a different form from straight line elements
+is due to the fact that the axis of rotation for a \vn{roll} is
+displaced from the $z$-axis of the coordinate system at the center of
+the bend (see \fig{f:roll}).
+
+The third transformation from $\Omega_\text{mid}$ to $\Omega_0$ is
+like the first transformation and rotates from the center of the bend
+to the beginning. Again \Eqs{ltl} and \eq{lra1} are used with the 
+substitution $\alpha_b \rightarrow -L/2\rho$.
+
+The fourth transformation $\Omega_0$ to $E_0$ tilts the referece frame
+by an amount \vn{ref_tilt}:
+\Begineq
+  \bfL = 0, \quad
+  \bfS = \bfR_{z}(\theta_t)
+  \label{l0sr}
 \Endeq
 
-For particle tracking, the
-The transformation between laboratory coordinates at some given $s$ position and and element coordinates at a given
-position 
+The fifth and final transformation, $E_0$ to $E_s$, like the first and
+third, rotates around the center of the bend but in this case, since
+we are dealing with element coordinates, the \vn{ref_tilt} is ignored.
+That is, \Eqs{ltl} and \eq{lra1} are used with the substitutions
+$\theta_t \rightarrow 0$ and $\alpha_b \rightarrow L/\rho$.
 
-the ends of a non-bend element (which are needed for particle tracking)
-can be calculated by concatination, using
-three sub-transformations. For the transformation at the entrance end of
-the element, for example, the first sub-transformation is from laboratory
-entrance coordinates to laboratory coordinates at the center of the
-element. This is just \Eqs{l00l} with the replacement $L \rightarrow
-L/2$. The second sub-transformation is given by \Eqs{swww} above.  The
-last sub-transformaion is from element coordinates at the center back to
-element coordinates at the entrance end. This is again given by
-\Eqs{l00l} with the replacement $L \rightarrow -L/2$.
+%-----------------------------------------------------------------------------
+\subsection{Patch and Floor_Shift Elements Entrance to Exit Transformation}
+\label{s:patch.coords}
 
 \index{patch!coordinate transformation}\index{floor_shift!coordinate transformation}
 For \vn{patch} (\sref{s:patch}) and \vn{floor_shift} (\sref{s:floor.ele})
-elements, the above equations are also used to calculate the the shift
+elements, \Eqs{swww} are used to calculate the the shift
 in the reference coordinates from the entrance end to the exit end of
 the element.
 
+%-----------------------------------------------------------------------------
+\subsection{Fiducial and Girder Elments Origin Shift Transformation}
+\label{s:girder.coords}
+
 \index{girder}\index{fiducial}
-For \vn{fiducial} and \vn{girder} elements the above equations are
-used to calculate the alignment of reference coordinates with respect
-to ``\vn{origin}'' coordinates. In this case, the transformation is
+For \vn{fiducial} and \vn{girder} elements, the alignment of the
+reference coordinates with respect to ``\vn{origin}'' coordinates is
+analogous to \Eqs{swww}. Explicitly:
 \begin{align}
   \bfL &= 
     \begin{pmatrix} 
@@ -635,41 +684,6 @@ to ``\vn{origin}'' coordinates. In this case, the transformation is
     \end{pmatrix}
     \CRNO
   \bfS &= \bfR_{y} (\text{dtheta_origin}) \; \bfR_{-x} (\text{dphi_origin}) \; \bfR_{z} (\text{dpsi_origin})
-\end{align}
-
-\index{rbend!coordinate transformation}\index{sbend!coordinate transformation}
-\index{roll!coordinate transformation}\index{tilt!coordinate transformation}
-For \vn{rbend} and \vn{sbend} elements there is no \vn{tilt}
-attribute.  Rather, there is the \vn{roll} attribute and a
-\vn{ref_tilt} attribute. The latter affects both the reference orbit
-and the bend position (\sref{ss:bend.orient}). The sub-transformation at
-the center of the bend from the laboratory coordinates to the element
-coordinates is
-\begin{align}
-  \bfL_\text{mis} &= \bfL_\text{off} + 
-    \left[ \bfR_z(\text{roll}) - \Bf1 \right] \; \bfR_z(\theta_t) \; \bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
-  \bfS_\text{mis} &= \bfR_{y}(\text{x_pitch}) \; \bfR_{-x}(\text{y_pitch}) \; \bfR_z(\text{roll})
-  \label{lcmis}
-\end{align}
-where
-\Begineq
-  \bfL_c = \begin{pmatrix}
-    \rho (\cos(\alpha_b/2) - 1) \\ 0 \\ \rho \, \sin(\alpha_b/2)
-  \end{pmatrix}
-\Endeq
-
-The transformations between laboratory and element coordinates at the
-ends of the bend are obtaind in the same way as with straight elements
-by using three sub-transformations concatinated together. The first
-sub-transformation is from laboratory entrance coordinates to laboratory
-coordinates at the center of the bend. This is just \Eqs{ltl} with the
-replacement $\alpha_b \rightarrow \alpha_b/2$. The second
-sub-transformation is given by \Eqs{lcmis}. The last sub-transformaion is from
-element coordinates at the center to element coordinates at the
-entrance end:
-\begin{align}
-  \bfL_\text{CEele} &= -\bfR_{y}(\alpha_b/2) \; \bfL_c \CRNO
-  \bfS_\text{CEele} &= \bfR_{y}(\alpha_b/2)
 \end{align}
 
 %-----------------------------------------------------------------------------
