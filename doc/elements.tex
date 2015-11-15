@@ -3218,10 +3218,10 @@ a \vn{photon_init} element is considered to have zero length.
 without an associated physical source element specified by the
 \vn{physical_source} attribute. Without an associated physical source,
 the \vn{photon_init} element completely specifies the initial photon
-spectrum. With an associated physical source element, the photon
-spectrum is determined by the physical source but the shape of the
-spectrum can be modified by setting attributes in the \vn{photon_init}
-element. Example:
+distribution. With an associated physical source element, the photon
+distribution is determined by the physical source but the shape of the
+energy spectrum can be modified by setting attributes in the
+\vn{photon_init} element. Example:
 \begin{example}
   b05w: sbend, l = 3.2, angle = 0.1
   pfork: photon_fork, to_line = c_line, superimpose, ref = b05w, offset = 0.4
@@ -3245,6 +3245,11 @@ it. That is, the \vn{pinit} element essentially serves to associate
 \vn{c_line} with \vn{b03w} for the purposes of photon tracking. Also,
 in this example, \vn{pinit} modifies the photon energy spectrum so
 that only photons whose energy is within 2.1 eV are generated
+
+It is important to note that in the above example, with the
+\vn{photon_init} element having an associated physical source, the
+setting of things like the spatial shape \vn{sig_z}, etc. in the
+\vn{photon_init} element will be ignored.
 
 %-----------------------------------------------------------------
 \section{Quadrupole}
