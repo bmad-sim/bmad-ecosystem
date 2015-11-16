@@ -212,7 +212,7 @@ end subroutine
 ! Basic routine to apply a rotation matrix to mat that rotates components i and j 
 ! in place by angle in the ij plane.
 !
-! mat = rotation(angle).mat
+! mat = rotation(angle) . mat
 !
 ! If sin_angle is not present, the cosines and sines will be computed. 
 ! 
@@ -220,13 +220,13 @@ end subroutine
 !   use rotation_3d_mod
 !
 ! Input:
-!   mat(:,:)           -- real(rp): matrix
+!   mat(3,3)           -- real(rp): matrix
 !   i, j               -- integer: indices to rotate
 !   cos_angle or angle -- real(rp): cosine of the angle to rotate
 !   sin_angle          -- real(rp): sine of the angle to rotate
 !
 ! Output:
-!   vec(:)   -- real(rp): vector 
+!   vec(3)            -- real(rp): vector 
 !-
 
 subroutine rotate_mat(mat, i, j, cos_angle, sin_angle)
@@ -234,6 +234,8 @@ implicit none
 real(rp) :: mat(:,:),  cos_angle, temp, ca, sa
 real(rp), optional :: sin_angle
 integer :: i, j, col
+
+!
 
 if (present(sin_angle)) then
   do col = lbound(mat,2), ubound(mat,2)
@@ -256,7 +258,8 @@ end subroutine
 !+
 ! Subroutine rotate_mat_x(mat, angle)
 !   wrapper for rotate_mat(vec, 2, 3, angle)
-! -
+!-
+
 subroutine rotate_mat_x(mat, angle)
 real(rp) :: mat(:,:), angle
 call rotate_mat(mat, 2, 3, angle)
@@ -266,7 +269,8 @@ end subroutine
 !+
 ! Subroutine rotate_mat_y(mat, angle)
 !   wrapper for rotate_mat(vec, 3, 1, angle)
-! -
+!-
+
 subroutine rotate_mat_y(mat, angle)
 real(rp) :: mat(:,:), angle
 call rotate_mat(mat, 3, 1, angle)
@@ -276,13 +280,11 @@ end subroutine
 !+
 ! Subroutine rotate_mat_z(mat, angle)
 !   wrapper for rotate_mat(vec, 1, 2, angle)
-! -
+!-
+
 subroutine rotate_mat_z(mat, angle)
 real(rp) :: mat(:,:), angle
 call rotate_mat(mat, 1, 2, angle)
 end subroutine 
-
-
-
 
 end module
