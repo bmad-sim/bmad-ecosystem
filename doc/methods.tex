@@ -639,11 +639,11 @@ independent of the setting of \vn{integrator_order}.
 \index{ds_step}
 \index{runge_kutta}\index{time_runge_kutta}
 The \vn{runge_kutta} and \vn{time_runge_kutta} tracking uses adaptive step
-control independent of \vn{ds_step}. These methods use two parameters
-from the \bmad global parameters structure (\sref{s:bmad.params}) namely:
+control independent of \vn{ds_step}. These methods use two \vn{bmad_com} parameters
+\sref{s:bmad.com}) namely:
 \begin{example}
-  bmad_com\%rel_tol_adaptive_tracking
-  bmad_com\%abs_to_adaptive_tracking
+  bmad_com[rel_tol_adaptive_tracking]
+  bmad_com[abs_to_adaptive_tracking]
 \end{example}
 The estimated error of the integration is then bounded by
 \begin{example}

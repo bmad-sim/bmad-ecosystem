@@ -1,38 +1,61 @@
-%\input{simple_header}
+\chapter{Parameter Structures}
+\label{c:param.structs}
 
-\chapter{Bmad Parameter Structures}
+A ``structure'' is a collection of parameters.  \bmad has various
+structures which can be used for various tasks. For example, the
+\vn{beam_init_struct} structure (\sref{s:beam.init}) is used to set
+parameters used to initialize particle beams.
 
-\bmad has various parameters which affect various
-calculations that \bmad performs. A given program may give the user
-access to some of these parameters so, in order to allow the intelligent
-setting of these parameters, this chapter gives an in-depth description.
+A given program may give the user access to some of these structures
+so, in order to allow intelligent parameter setting, this chapter
+gives an in-depth description of the most common ones.
 
-A set of parameters are grouped that affect a particular type of
-calculation are grouped into \vn{``structures''}. Each structure has a
-\vn{``structure name''} (also called a \vn{``type name''}) which
-identifies the list of parameters in the structure.  Additionally,
-there will be an \vn{``instance name''} which is what the user uses to
-refer to this \vn{structure}. For global parameters there will be a
-unique instance name.  For non-global parameters, the instance name
-will be program specific.  It is possible to have multiple instance
-names. For example, in the situation where a program is simulating
+Each structure has a \vn{``structure name''} (also called a \vn{``type
+name''}) which identifies the list of parameters (also called
+``components'') in the structure. Associated with a structure there
+will be an \vn{``instance''} of this structure and this instance will
+have an \vn{``instance name''} which is what the user uses to set
+parameters. It is possible to have multiple instances of a
+structure. For example, in the situation where a program is simulating
 multiple particle beams, there could be multiple \vn{beam_init_struct}
-(\sref{s:beam.init}) instances.  To refer to a particular parameter
-use the syntax
+(\sref{s:beam.init}) instances with one for each beam.
+
+\bmad defines uses some structures to hold global parameters. That is,
+parameters that shared by all code. Each of these structures has
+a single associated instance. These are:
+\begin{center}
+  \begin{tabular}{ll} \toprule
+  Structure           & Instance    \\
+  \midrule
+  bmad_common_stuct   & bmad_com    \\
+  csr_parameter_stuct & csr_param   \\
+  \bottomrule
+  \end{tabular}
+\end{center}
+All other structures will have instance names that are program
+specific.  That is, see the program documentation for the instance
+name(s) used.
+
+To set a particular component of an instance use the syntax
 \begin{example}
-  instance_name%parameter_name
+  instance_name%parameter_name = value
 \end{example}
-For example, To refer to the \vn{max_aperture_limit} parameter in
-Section~\sref{s:bmad.params} the syntax is
+Example:
 \begin{example}
-  bmad_com%max_aperture_limit
+  bmad_com%max_aperture_limit = 10
 \end{example}
+this sets the \vn{max_aperture_limit} parameter of \vn{bmad_com}.
 
 %-----------------------------------------------------------------
-\section{Bmad Global Parameters}
-\label{s:bmad.params}
+\section{Bmad_Common_Struct}
+\label{s:bmad.common}
 \index{Bmad!general parameters|hyperbf}
 
+The \vn{bmad_common_struct} structure contains a set of global
+parameters. There is only one instance
+(\sref{c:param.structs}) of this structure and this instance has the
+name \vn{bmad_com}. The components of this structure along with the
+default values are:
 \index{max_aperture_limit}\index{d_orb(6)}
 \index{grad_loss_sr_wake}\index{default_ds_step}
 \index{rel_tol_tracking}\index{abs_tol_tracking}
@@ -45,9 +68,6 @@ Section~\sref{s:bmad.params} the syntax is
 \index{radiation_fluctuations_on}\index{be_thread_safe}
 \index{absolute_time_tracking_default}
 \index{bmad_common_struct|hyperbf}
-Some overall parameters are stored in the \vn{bmad_common_struct}
-structure. The instance name here is \vn{bmad_com}. The parameters of
-this structure along with the default values are:
 \begin{example}
   type bmad_common_struct
     real(rp) max_aperture_limit = 1e3          ! Max Aperture.
@@ -81,6 +101,12 @@ this structure along with the default values are:
   end type
 \end{example}
 
+Note: \vn{bmad_com} parameters may always be set in a lattice file as
+discussed in Section~\sref{s:bmad.com}. However, thought must be given
+to setting \vn{bmad_com} parameters in a lattice file since that will
+affect every program that uses the lattice.
+
+Parameter description:
 \begin{description}
 \index{aperture_limit_on}
 \item[\vn{\%aperture_limit_on]}] \Newline
@@ -207,14 +233,15 @@ Used for communication between program units for debugging purposes.
 \end{description}
 
 %-----------------------------------------------------------------
-\section{Beam Initialization Parameters}
+\section{Beam_Init_Struct}
 \label{s:beam.init}
 \index{beam initialization parameters|hyperbf}
 
 \index{beam_init_struct|hyperbf}
-Beams of particles are used for simulating inter-bunch intra-bunch effects.
-The \vn{beam_init_struct} structure holds parameters which are used to initialize
-the beam. The parameters of this structure are:
+Beams of particles are used for simulating inter-bunch intra-bunch
+effects. The \vn{beam_init_struct} structure holds parameters which
+are used to initialize a beam. The The parameters of this structure
+are:
 \begin{example}
   type beam_init_struct
     character(16) distribution_type(3)         ! "ELLIPSE", "KV", "GRID", "" (default).
@@ -387,7 +414,7 @@ as \vn{time_runge_kutta}.  All particles are finally converted to
 proper $s$-coordinate distributions for Bmad to use.
 
 %-----------------------------------------------------------------
-\section{CSR Parameters}
+\section{CSR_Parameter_Struct}
 \label{s:csr.params}
 \index{csr parameters|hyperbf}
 
@@ -472,7 +499,7 @@ that it is doing so. So suppress the warning, \vn{print_taylor_warning}
 should be set to False.
 
 %-----------------------------------------------------------------
-\section{DE Optimizer Parameters}
+\section{Opti_DE_Param_Struct}
 \label{s:de.params}
 \index{de optimizer parameters|hyperbf}
 
@@ -516,13 +543,16 @@ generation  is randomly chosen to be within the range
 [0, 2*F] with average F.
 
 %-----------------------------------------------------------------
-\section{Dynamic Aperture Simulation Parameters}
+\section{Dynamic Aperture Simulations: Aperture_Param_Struct}
 
 \index{dynamic_aperture_struct|hyperbf}
 The \vn{dynamic_aperture_struct} is used for dynamic aperture
 calculations. This structure has components:
 \begin{example}
   type aperture_param_struct
+    real(rp) :: min_angle = 0
+    real(rp) :: max_angle = pi
+    integer :: n_angle   = 9
     integer :: n_turn = 100                   ! Number of turns a particle must survive
     real(rp) :: x_init = 1e-3_rp              ! Initial estimate for horizontal aperture
     real(rp) :: y_init = 1e-3_rp              ! Initial estimate for vertical aperture
