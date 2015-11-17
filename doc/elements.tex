@@ -1156,8 +1156,8 @@ The attributes specific to an \vn{e_gun} are
 \index{gradient}\index{gradient_err}
 \index{autoscale_phase}\index{autoscale_amplitude}
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{c:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{c:autoscale}).
+  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
+  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
   gradient     = <Real>    ! Gradient.
   gradient_err = <Real>    ! Gradient error.
   phi0         = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
@@ -2210,8 +2210,8 @@ The attributes specific to an \vn{lcavity} are
 \index{rf_frequency}\index{voltage}\index{cavity_type}
 \index{autoscale_phase}\index{autoscale_amplitude}
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{c:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{c:autoscale}).
+  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
+  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
   cavity_type    = <Switch>  ! Type of cavity.
   gradient       = <Real>    ! Accelerating gradient (V/m).
   gradient_err   = <Real>    ! Accelerating gradient error (V/m).
@@ -2272,7 +2272,7 @@ sign. Essentially the MAD8 documentation gives
 This is incorrect. 
 
 The \vn{field_factor} parameter is used with auto scaling
-(\sref{c:autoscale}). The default value for \vn{field_factor} is 1.
+(\sref{s:autoscale}). The default value for \vn{field_factor} is 1.
 
 When short-range wake fields are being simulated, with
 \vn{bmad_com%sr_wakes_on = True} (\sref{s:bmad.params}), the
@@ -3334,8 +3334,8 @@ General \vn{rfcavity} attributes are:
 \index{autoscale_phase}\index{autoscale_amplitude}
 Attributes specific to an \vn{rfcavity} are:
 \begin{example}
-  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{c:autoscale}).
-  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{c:autoscale}).
+  autoscale_phase     = <Logical>  ! Automatic phase scaling (\sref{s:autoscale}).
+  autoscale_amplitude = <Logical>  ! Automatic amplitude scaling (\sref{s:autoscale}).
   rf_frequency   = <Real>    ! Frequency
   harmon         = <Real>    ! Harmonic number
   voltage        = <Real>    ! Cavity voltage

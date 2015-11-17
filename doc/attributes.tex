@@ -2012,8 +2012,9 @@ The electromagnetic field is specified as a series of \vn{modes}. Each
 \vn{mode} has a \vn{harmonic} number which, if non-zero, identifies it
 as an RF field. The field associated with a mode can be specified
 using a \vn{grid} of data points or by a \vn{map} which specify the
-coefficients of an analytical form for the field.
-The \vn{mode_to_autoscale} parameter is explained in Chapter~\sref{c:autoscale}
+coefficients of an analytical form for the field. The
+\vn{mode_to_autoscale} parameter is explained in
+Section~sref{s:autoscale}
 
 Example:
 \begin{example}
@@ -2089,7 +2090,7 @@ where $f$ is the mode frequency and $f_0$ is the frequency of the
 fundamental.
 
 The phase \vn{phi0_ref} of the fundamental mode can be auto-scaled by
-Bmad (\sref{c:autoscale}) so that a particle with $z = 0$ will go
+Bmad (\sref{s:autoscale}) so that a particle with $z = 0$ will go
 through the cavity on crest for an \vn{e_gun} or  \vn{lcavity} and on the
 zero-crossing for an \vn{rfcavity}. 
 
@@ -2213,6 +2214,78 @@ where \vn{z} is measured from the beginning of the element and
 with \vn{L} being the length of the element. For elements in curvilinear
 coordinates (\vn{sbend}, \vn{bend}) the anchor point is used to orient
 the Cartesian grid. 
+
+%-----------------------------------------------------------------
+\section{Automatic Scaling of Accelerating Fields}
+\label{s:autoscale}
+\index{automatic field scaling|hyperbf}
+
+\index{e_gun}\index{em_field}\index{lcavity}\index{rfcavity}
+The elements that can have accelerating fields are:
+\begin{example}
+  e_gun       ! \sref{s:e.gun}
+  lcavity     ! \sref{s:lcav}
+  rfcavity    ! \sref{s:rfcav}
+\end{example}
+
+The problem that arises with accelerating fields is how to set the
+overall amplitude (and phase if the fields are oscillating) of the
+field so that the reference particle has the desired acceleration. The
+problem becomes even more complicated at non-ultra relativistic
+energies where the velocity is not a constant. In this case, the
+proper amplitude and/or phase settings will depend upon what the
+incoming energy of the reference particle is.
+
+The scaling problem is not present when \vn{bmad_standard} tracking
+(\sref{s:tkm}) is used since \vn{bmad_standard} tracking uses an
+integrated formula that is designed to give the proper acceleration.
+
+To help with the scaling problem, \bmad has the capability to automatically
+scale an accelerating field's amplitude and/or phase. The two
+lattice element parameters that turn on/off auto scaling are (\sref{s:param}):
+\begin{example}
+  autoscale_phase      = <Logical>  ! Automatic phase scaling.
+  autoscale_amplitude  = <Logical>  ! Automatic amplitude scaling.
+\end{example}
+Example:
+\begin{example}
+  rf2: rfcavity, autoscale_phase = F
+\end{example}
+The default value is True for both parameters. 
+
+Scaling takes place during program execution when a lattice is
+initially created (that is, when the lattice file is parsed) and when
+parameters in the lattice that would change the scaling are varied.
+
+The parameters that are varied when the field is auto scaled depend
+upon how the field is calculated. When the fields are specified using
+modes (\sref{s:em.fields}), each mode has a \vn{field_scale} that
+varies the field amplitude and each mode has a phase offset
+\vn{phi0_ref}. Not all modes are involved with auto scaling. For
+example, an \vn{em_field} element may have an accelerating mode along
+with a mode for a solenoid field which is independently powered. In
+this instance, only the accelerating mode should be auto scaled. The
+``primary'' mode that is auto scaled is set by the
+\vn{mode_to_auto scale} component of the \vn{field}
+(\sref{v:field}). Additionally, any other mode (called ``secondary''
+modes) whose \vn{master_scale} is the same as the \vn{master_scale} of
+the primary auto scaled mode will be auto scaled. All modes involved in
+auto scaling have their \vn{field_scale} adjusted by the same ratio.
+Additionally, when the phase is auto scaled, all secondary modes will
+have their \vn{phi0_ref} phases adjusted by the same difference that
+the \vn{phi0_ref} of the primary mode is changed. Example:
+\begin{example}
+  rf2334: lcavity, field_calc = grid, field = \{
+    mode_to_autoscale = 1,
+    mode = \{master_scale = gradient, ...\},   ! Primary mode
+    mode = \{master_scale = gradient, ...\},   ! Secondary mode
+    mode = \{master_scale = none, ...\} \}      ! Not involved in auto scale
+\end{example}
+
+When the fields are {\em not} specified using modes, the element's
+\vn{field_factor} parameter will be used for scaling the amplitude and
+the \vn{phi0_ref} parameter (which is distinct from the \vn{phi0_ref}
+associated with a mode) will be used for varying the phase.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}
