@@ -450,7 +450,8 @@ function setrel64() {
 # Remove all duplicate path entries from variables composed during
 # the above process
 #--------------------------------------------------------------
-export PATH=${`remove_duplicates ${PATH}`%?}
+export NEWPATH=`remove_duplicates ${PATH}`
+export PATH=${NEWPATH%?}
 export LD_LIBRARY_PATH=`remove_duplicates ${LD_LIBRARY_PATH}`
 export DYLD_LIBRARY_PATH=`remove_duplicates ${DYLD_LIBRARY_PATH}`
 export MANPATH=`remove_duplicates ${MANPATH}`
