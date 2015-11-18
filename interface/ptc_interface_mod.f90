@@ -3281,8 +3281,8 @@ case (wiggler$, undulator$)
   ptc_key%magnet = 'wiggler'
 
 case default
-  call out_io (s_fatal$, r_name,  'UNKNOWN ELEMENT CLASS: ' // key_name(ele%key), &
-                                  'FOR ELEMENT: ' // trim(ele%name))
+  call out_io (s_fatal$, r_name, 'CONVERSION TO PTC NOT IMPLEMENTED FOR ELEMENTS OF TYPE ' // trim(key_name(ele%key)), &
+                                 'FOR ELEMENT: ' // trim(ele%name))
   if (global_com%exit_on_error) call err_exit
 
 end select
@@ -3381,13 +3381,6 @@ else
   ptc_fibre%magp%p%gambet=>ptc_fibre%gambet
   ptc_fibre%magp%p%mass=>ptc_fibre%mass
   ptc_fibre%magp%p%charge=>ptc_fibre%charge
-
-  !
-
-  bmadl%closed=.true.
-  call ring_l(bmadl, .true.)
-  call survey(bmadl)
-  call make_node_layout (bmadl)
 endif
 
 ptc_fibre%dir = ele%orientation

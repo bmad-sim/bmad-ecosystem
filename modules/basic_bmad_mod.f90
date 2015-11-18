@@ -56,10 +56,10 @@ real(rp), parameter :: mass_of(-4:9) = [m_pion_charged, m_muon, m_proton, m_elec
                                 m_electron, m_proton, m_muon, m_pion_charged, m_pion_0, 0.0_rp, 0.0_rp, &
                                 m_deuteron, m_deuteron]
 
-real(rp), parameter :: anomalous_moment_of(-4:5) = [0.0_rp, anomalous_mag_moment_muon, &
+real(rp), parameter :: anomalous_moment_of(-4:9) = [0.0_rp, anomalous_mag_moment_muon, &
                         anomalous_mag_moment_proton, anomalous_mag_moment_electron, 0.0_rp, &
                         anomalous_mag_moment_electron, anomalous_mag_moment_proton, &
-                        anomalous_mag_moment_muon, 0.0_rp, 0.0_rp]
+                        anomalous_mag_moment_muon, 0.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, anomalous_mag_moment_deuteron, 0.0_rp]
 
 integer, parameter :: antiparticle(-4:7) = [4, 3, 2, 1, 0, -1, -2, -3, -4, 5, 7, 6]
 
