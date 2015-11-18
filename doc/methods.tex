@@ -441,14 +441,13 @@ method. ``X'' denotes an available method.}
 \index{spin_tracking_method}
 
 The \vn{spin_tracking_method} attribute of an elements sets the
-algorithm that is used for tracking a particle's spin through that
-element. Table~\ref{t:spin.methods} gives which methods are available
-for each type of element.
+algorithm that is used for tracking a particle's spin
+(\sref{s:spin.dyn}) through that element. Table~\ref{t:spin.methods}
+gives which methods are available for each type of element.
 
-Since speed may be an issue, \bmad has an internal global parameter
-called \vn{spin_tracking_on} (\sref{s:bmad.params}) that determines
-whether spin is tracked or not.  Access to this parameter is
-implemented on a program-by-program basis.
+Since speed may be an issue, \bmad has an global parameter called
+\vn{spin_tracking_on} which is part of the \vn{bmad_com} instance
+(\sref{s:bmad.params}) that determines whether spin is tracked or not.
 
 Possible \vn{spin_tracking_method} settings are:
 \begin{description}

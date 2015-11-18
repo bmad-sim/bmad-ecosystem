@@ -78,7 +78,7 @@ type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()
 
-real(rp) s0, x_lim, y_lim, val
+real(rp) s0, x_lim, y_lim, val, spin_vec(3)
 
 character(*) bmad_file
 character(4000) line
@@ -221,6 +221,11 @@ if (lat%beam_start%vec(3) /= 0) write (iu, '(2a)') 'beam_start[y]  = ', trim(str
 if (lat%beam_start%vec(4) /= 0) write (iu, '(2a)') 'beam_start[py] = ', trim(str(lat%beam_start%vec(4)))
 if (lat%beam_start%vec(5) /= 0) write (iu, '(2a)') 'beam_start[z]  = ', trim(str(lat%beam_start%vec(5)))
 if (lat%beam_start%vec(6) /= 0) write (iu, '(2a)') 'beam_start[pz] = ', trim(str(lat%beam_start%vec(6)))
+
+call spinor_to_vec(lat%beam_start, spin_vec)
+if (spin_vec(1) /= 0) write (iu, '(2a)') 'beam_start[spin_x] = ', trim(str(spin_vec(1)))
+if (spin_vec(2) /= 0) write (iu, '(2a)') 'beam_start[spin_y] = ', trim(str(spin_vec(2)))
+if (spin_vec(3) /= 1) write (iu, '(2a)') 'beam_start[spin_z] = ', trim(str(spin_vec(3)))
 
 
 ! Element stuff

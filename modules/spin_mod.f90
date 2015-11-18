@@ -607,7 +607,7 @@ call offset_spin (ele, param, temp_start, set$, (isTreatedHere .or. isKicker))
 
 temp_middle%spin = temp_start%spin
 
-if(isTreatedHere) then
+if (isTreatedHere) then
 
   ! rough estimate of particle coordinates in the element
   temp_middle%vec = (temp_start%vec + temp_end%vec)/2.
@@ -698,7 +698,7 @@ if(isTreatedHere) then
     map%gamma2(3)%coef   = -xi * cos(x / 2.0d0) * (sin(v / 2.0d0))**2
     map%gamma2(4)%expn(:) = [0, 0, 0, 0, 0, 1]
     map%gamma2(4)%coef = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / &
-        (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
+                            (2.0d0 * (1+gamma0))) * cos(x / 2.0d0)
 
     map%gamma3(1)%expn(:) = [0, 0, 0, 1, 0, 0]
     map%gamma3(1)%coef   = (gamma0-1)/gamma0 * sin(x / 2.0d0)
@@ -711,7 +711,7 @@ if(isTreatedHere) then
     map%kappa(3)%coef   =  -xi * (sin(v / 2.0d0))**2 * sin( x / 2.0d0)
     map%kappa(4)%expn(:) = [0, 0, 0, 0, 0, 1]
     map%kappa(4)%coef   = ((xi * gamma0 * sin(v) - anomalous_moment * (1+gamma0) * (gamma0-1) * v) / &
-         (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
+                            (2.0d0 * (1+gamma0))) * sin(x / 2.0d0)
 
   !-----------------------------------------------
   ! solenoid

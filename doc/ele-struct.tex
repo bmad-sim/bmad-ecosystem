@@ -138,7 +138,7 @@ variable must either be defined with the \vn{save} attribute
   logical, save :: init_needed = .false.
   ...
   if (init_needed) then
-    call init_ele (ele)                ! Initialize element once
+    call init_ele (ele, quadrupole\$)     ! Initialize element once
     init_needed = .false.
   endif
 \end{example}
@@ -147,7 +147,7 @@ or the pointers within the variable must be deallocated  with a call to
 \begin{example}
   type (ele_struct) ele  
   ...
-  call init_ele (ele)                ! Initialize element each time
+  call init_ele (ele, sbend\$)            ! Initialize element each time
   ...
   call deallocate_ele_pointers (ele) ! And deallocate.
 \end{example}
@@ -261,9 +261,8 @@ from an index in the \vn{%value} array to a name use the
 \Hyperref{r:attribute.name}{attribute_name} routine. Example:
 \begin{example}
   type (ele_struct) ele
-  call init_ele (ele)    ! Initialize element
-  ele%key = quadrupole$  ! Set element to be a quadrupole
-  ele%value(k1$) = 0.3                                        ! Set K1 value
+  call init_ele (ele, quadrupole\$)    ! Initialize element
+  ele%value(k1\$) = 0.3                                        ! Set K1 value
   print *, 'Index for Quad K1:  ', attribute_index(ele, 'K1') ! prints: `4' (= k1\$)
   print *, 'Name for Quad k1\$: ', attribute_name (ele, k1\$)   ! prints: `K1' 
 \end{example}

@@ -12,8 +12,8 @@ use sim_utils
 ! %ref is the reference point about which the taylor expansion was made
 
 type taylor_term_struct
-  real(rp) :: coef
-  integer :: expn(6)  
+  real(rp) :: coef = 0
+  integer :: expn(6) = 0
 end type
 
 type taylor_struct
@@ -343,7 +343,7 @@ use re_allocate_mod
 
 implicit none
 
-type (taylor_struct), intent(in), target :: bmad_taylor(6)
+type (taylor_struct), intent(in), target :: bmad_taylor(:)
 type (taylor_term_struct), pointer :: tt
 type (taylor_struct) tlr
 
@@ -373,7 +373,7 @@ else
 
   write (li(1), *) 'Taylor Terms:'
   write (li(2), *) &
-        'Out     Coef              Exponents           Order        Reference'
+        'Out      Coef             Exponents           Order        Reference'
   nl = 2
 
 
@@ -427,6 +427,151 @@ else
 endif
 
 end subroutine type_taylors
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines)
+!
+! Subroutine to print or put in a string array a Bmad spin taylor map.
+! If the lines(:) argument is not present, the element information is printed to the terminal.
+!
+! Moudles needed:
+!   use bmad
+!
+! Input:
+!   spin_taylor(3,3)  -- Taylor_struct: Matrix of taylors.
+!   max_order         -- Integer, optional: Maximum order to print.
+!
+! Output:
+!   lines(:)     -- Character(100), allocatable, optional :: Character array to hold the output. 
+!                     If not present, the information is printed to the terminal.
+!   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
+!                     n_lines must be present if lines(:) is. 
+!-
+
+subroutine type_spin_taylors (spin_taylor, max_order, lines, n_lines)
+
+use re_allocate_mod
+
+implicit none
+
+type (taylor_struct), intent(in), target :: spin_taylor(3,3)
+type (taylor_term_struct), pointer :: tt1, tt2, tt3
+type (taylor_struct) tlr1, tlr2, tlr3
+
+real(rp) coef1, coef2, coef3
+
+integer, optional, intent(out) :: n_lines
+integer, optional :: max_order
+integer i, j, k, nl, ix, ixm, n1, n2, n3, ix1, ix2, ix3, exp_m(6)
+
+character(*), optional, allocatable :: lines(:)
+character(100), allocatable :: li(:)
+character(40) fmt
+character(*), parameter :: s_str(3) = ['Sx:', 'Sy:', 'Sz:']
+
+! If not allocated then not much to do
+
+if (.not. associated(spin_taylor(1,1)%term)) then
+  nl = 2
+  allocate (li(nl))
+  li(1) = '---------------------------------------------------'
+  li(2) = 'A Spin Taylor Map Does Not Exist.' 
+
+! Normal case
+
+else
+  nl = 0
+  do i = 1, 3;  do j = 1, 3
+    nl = nl + size(spin_taylor(i,j)%term)
+  enddo;  enddo
+  allocate(li(nl))
+
+  write (li(1), *) 'Spin Taylor Terms:'
+  write (li(2), *) &
+        'Out      Coef_x              Coef_y             Coef_z             Exponents           Order'
+  nl = 2
+
+  do i = 1, 3
+    nl=nl+1; li(nl) = ' ---------------------------------------------------'
+
+    nullify (tlr1%term, tlr2%term, tlr3%term)
+
+    call sort_taylor_terms (spin_taylor(i, 1), tlr1)
+    call sort_taylor_terms (spin_taylor(i, 2), tlr2)
+    call sort_taylor_terms (spin_taylor(i, 3), tlr3)
+
+    n1 = 1; n2 = 1; n3 = 1
+    do
+      nullify (tt1, tt2, tt3)
+      if (n1 /= size(tlr1%term) + 1) tt1 => tlr1%term(n1)
+      if (n2 /= size(tlr2%term) + 1) tt2 => tlr1%term(n2)
+      if (n3 /= size(tlr3%term) + 1) tt3 => tlr1%term(n3)
+
+      ix1 = 10000; ix2 = 10000; ix3 = 10000
+      if (associated(tt1)) ix1 = taylor_exponent_index(tt1%expn)
+      if (associated(tt2)) ix2 = taylor_exponent_index(tt2%expn)
+      if (associated(tt3)) ix3 = taylor_exponent_index(tt3%expn)
+
+      ixm = min(ix1, ix2, ix3)
+      call set_this_coef (ix1, ixm, coef1, tt1, n1, exp_m)
+      call set_this_coef (ix2, ixm, coef2, tt2, n2, exp_m)
+      call set_this_coef (ix3, ixm, coef3, tt3, n3, exp_m)
+
+      if (present(max_order)) then
+        if (sum(exp_m) > max_order) cycle
+      endif
+
+      if (max(abs(coef1), abs(coef2), abs(coef3)) < 1d5) then
+        fmt = '(a, 3f20.12, 6i3, i9)'
+      else
+        fmt = '(a, 1p, 3e20.11, 0p, 6i3, i9)'
+      endif
+
+      nl=nl+1; write (li(nl), fmt) s_str(i), ':', coef1, coef2, coef3, (exp_m(k), k = 1, 6), sum(exp_m)
+    enddo
+
+    deallocate (tlr1%term, tlr2%term, tlr3%term)
+
+  enddo
+endif
+
+! Finish
+
+if (present(lines)) then
+  call re_allocate(lines, nl, .false.)
+  n_lines = nl
+  lines(1:nl) = li(1:nl)
+else
+  do i = 1, nl
+    print '(1x, a)', trim(li(i))
+  enddo
+endif
+
+!----------------------------------------------------------------------------
+contains
+
+subroutine set_this_coef (ix, ixm, coef, tt, n, exp_m)
+
+type (taylor_term_struct) tt
+integer ix, ixm, n, exp_m(6)
+real(rp) coef
+
+!
+
+if (ix == ixm) then
+  coef = tt%coef
+  exp_m = tt%expn
+  n = n + 1
+else
+  coef = 0
+endif
+
+end subroutine set_this_coef
+
+end subroutine type_spin_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
