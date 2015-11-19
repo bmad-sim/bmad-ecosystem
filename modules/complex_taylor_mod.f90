@@ -1,9 +1,13 @@
-module bmad_complex_taylor_mod
-
-! Note: This module is an exact copy of bmad_taylor_mod, with:
+!+
+! Module complex_taylor_mod
+!
+! Note: This module is an exact copy of taylor_mod, with:
 !   taylor -> complex_taylor
 !   real -> complex
 !   format modifications to: type_complex_taylors 
+!-
+
+module complex_taylor_mod
 
 use sim_utils
 

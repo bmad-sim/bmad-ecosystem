@@ -9,7 +9,7 @@ module ptc_interface_mod
 
 use multipole_mod
 use bookkeeper_mod
-use bmad_complex_taylor_mod
+use complex_taylor_mod
 
 interface assignment (=)
   module procedure real_8_equal_taylor
@@ -2791,7 +2791,7 @@ use_offsets = logic_option(ele%taylor_map_includes_offsets, taylor_map_includes_
 
 if (present(orb0)) then
   bmad_taylor(:)%ref = orb0%vec
-  x = orb0%vec  ! = IdentityMap + const
+  x = orb0%vec
 else
   bmad_taylor(:)%ref = 0
   x = 0

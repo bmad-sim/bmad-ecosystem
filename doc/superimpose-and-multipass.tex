@@ -335,8 +335,12 @@ can be varied. Example:
 \begin{example}
   G2: group = \{Q{\#}1, S{\#}1:-1\}, var = \{l\}
 \end{example}
-Another, in this case cleaner, way of doing this is just to vary the
-downstream edge of \vn{Q}:
+The definition of \vn{G2} must be placed in the lattice file after the
+superpositions so that the super slaves referred to by \vn{G2} have
+been created. 
+
+In the above example there is another, cleaner, way of achieving
+the same result by varying the downstream edge of \vn{Q}:
 \begin{example}
   G3: group = \{Q\}, var = \{end_edge\}
 \end{example}
