@@ -20,14 +20,14 @@ type (aperture_param_struct) :: da_param
 type (aperture_data_struct), pointer :: ddat
 type (aperture_scan_struct), target :: da
 
-real(rp) energy(20)
-integer nargs, ios, i, j, n_energy
+real(rp) dpz(20)
+integer nargs, ios, i, j, n_dpz
 
 logical set_rf_off
 
 character(160) in_file, lat_file, dat_file, gnu_command
 
-namelist / params / lat_file, bmad_com, set_rf_off, da_param, energy, dat_file
+namelist / params / lat_file, bmad_com, set_rf_off, da_param, dpz, dat_file
 
 ! Get parameters
 
@@ -53,7 +53,7 @@ endif
 set_rf_off = .false.
 bmad_com%auto_bookkeeper = .false.   ! Makes tracking faster
 bmad_com%absolute_time_tracking_default = .true.
-energy = real_garbage$
+dpz = real_garbage$
 
 read (1, nml = params)
 
@@ -68,8 +68,8 @@ da%param%max_angle = da%param%max_angle * pi / 180
 call bmad_and_xsif_parser (lat_file, lat)
 branch => lat%branch(0)
 
-n_energy = count(energy /= real_garbage$)
-print *, 'Note: Number of energy points: ', n_energy
+n_dpz = count(dpz /= real_garbage$)
+print *, 'Note: Number of dpz points: ', n_dpz
 
 if (set_rf_off) then
   print *, 'Note: RF being turned off for tracking.'
@@ -83,7 +83,7 @@ endif
 print *, 'Data file: ', trim(dat_file)
 
 write (gnu_command, '(a, i0, 3a)') 'gnuplot plotting command: plot for [IDX=1:', &
-                  n_energy, '] "', trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
+                  n_dpz, '] "', trim(dat_file), '" index (IDX-1) u 1:2 w lines title columnheader(1)'
 
 ! Scan
 
@@ -105,15 +105,15 @@ if (rf_is_on(lat%branch(0))) then
   orb0 = orbit(0)
 endif
 
-do i = 1, size(energy)
-  if (energy(i) == real_garbage$) cycle
-  print *, 'Tracking at energy:', energy(i)
+do i = 1, size(dpz)
+  if (dpz(i) == real_garbage$) cycle
+  print *, 'Tracking at dpz:', dpz(i)
 
   if (rf_is_on(lat%branch(0))) then
     orbit = orb0
-    orbit%vec(6) = orbit%vec(6) + energy(i)
+    orbit%vec(6) = orbit%vec(6) + dpz(i)
   else
-    orbit(0)%vec(6) = energy(i)
+    orbit(0)%vec(6) = dpz(i)
     call twiss_and_track (lat, orbit)
 !    call closed_orbit_calc (lat, orbit, 4)
   endif
@@ -122,7 +122,7 @@ do i = 1, size(energy)
 
   write (1, *)
   write (1, *)
-  write (1, '(a, f10.6)') '"Energy =', energy(i), '"'
+  write (1, '(a, f10.6)') '"Dpz =', dpz(i), '"'
   do j = 1, da_param%n_angle
     ddat => da%aperture(j)
     write (1, '(2f11.6, i7, 6x, a, 3x, a)') ddat%x, ddat%y, ddat%i_turn, &
