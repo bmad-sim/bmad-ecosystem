@@ -25,6 +25,7 @@ end type
 type aperture_scan_struct
   type(aperture_data_struct), allocatable :: aperture(:) ! set of apertures at different angles
   type(aperture_param_struct) :: param                   ! parameters used for the scan            
+  type (coord_struct) :: ref_orb                         ! Ref orbit around which the scan is made.
 end type
 
 contains
@@ -33,7 +34,7 @@ contains
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
+! Subroutine dynamic_aperture_scan(lat, aperture_scan, parallel)
 !
 ! Driver routine for dynamic_aperture1. 
 ! 
@@ -45,8 +46,8 @@ contains
 !
 ! Input:
 !   lat                 -- lat_struct: Lat containing the lattice.
-!   orb0                -- coord_struct: Closed orbit at IP.
 !   aperture_scan       -- aperture_scan_struct: 
+!     %ref_orb            -- Reference orbit.
 !   parallel            -- logical, optional :: Use OpenMP parallel routine. 
 !                                               Default: False
 !
@@ -55,7 +56,7 @@ contains
 !     %aperture(:)      -- aperture_data_struct: apertures for each angle
 !-
 
-subroutine dynamic_aperture_scan(lat, orb0, aperture_scan, parallel)
+subroutine dynamic_aperture_scan(lat, aperture_scan, parallel)
 
 !$ use omp_lib
 
@@ -63,7 +64,7 @@ type (lat_struct) :: lat
 type (aperture_scan_struct), target :: aperture_scan
 type (aperture_data_struct) :: aperture
 type (aperture_param_struct), pointer :: ap_param
-type (coord_struct) orb0
+
 real(rp), allocatable  :: angle_list(:)
 real(rp) :: delta_angle
 integer :: i, omp_n
@@ -102,12 +103,12 @@ if (.not. allocated(aperture_scan%aperture)) allocate(aperture_scan%aperture(ap_
 
 if (ap_param%x_init == 0) then
   ap_param%x_init = 0.001_rp
-  call dynamic_aperture1 (lat, orb0, 0.0_rp, ap_param, aperture, .false.)
+  call dynamic_aperture1 (lat, aperture_scan%ref_orb, 0.0_rp, ap_param, aperture, .false.)
   ap_param%x_init = aperture%x
 endif
 if (ap_param%y_init == 0) then
   ap_param%y_init = 0.001_rp
-  call dynamic_aperture1 (lat, orb0, pi/2, ap_param, aperture, .false.)
+  call dynamic_aperture1 (lat, aperture_scan%ref_orb, pi/2, ap_param, aperture, .false.)
   ap_param%y_init = aperture%y
 endif
 
@@ -116,10 +117,10 @@ endif
 omp_n = 1
 !$ omp_n = omp_get_max_threads()
 if (logic_option(.false., parallel) .and. omp_n > 1) then
-  call dynamic_aperture1_parallel(lat, orb0, angle_list, ap_param, aperture_scan%aperture)
+  call dynamic_aperture1_parallel(lat, aperture_scan%ref_orb, angle_list, ap_param, aperture_scan%aperture)
 else
   do i = 1, ap_param%n_angle
-    call dynamic_aperture1 (lat, orb0, angle_list(i), ap_param, aperture_scan%aperture(i))
+    call dynamic_aperture1 (lat, aperture_scan%ref_orb, angle_list(i), ap_param, aperture_scan%aperture(i))
   enddo
 endif
 
