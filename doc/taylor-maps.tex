@@ -31,29 +31,29 @@ The standard \bmad routine for printing a Taylor map might produce something
 like this: 
 \begin{example}
    Taylor Terms:
-    Out     Coef              Exponents           Order        Reference
-   ---------------------------------------------------
-      1:     -0.600000000000  0  0  0  0  0  0        0       0.200000000
-      1:      1.000000000000  1  0  0  0  0  0        1
-      1:      0.145000000000  2  0  0  0  0  0        2
-   ---------------------------------------------------
-      2:     -0.185000000000  0  0  0  0  0  0        0       0.000000000
-      2:      1.300000000000  0  1  0  0  0  0        1
-      2:      3.800000000000  2  0  0  0  0  1        3
-   ---------------------------------------------------
-      3:      1.000000000000  0  0  1  0  0  0        1       0.100000000
-      3:      1.600000000000  0  0  0  1  0  0        1
-      3:    -11.138187077310  1  0  1  0  0  0        2
-   ---------------------------------------------------
-      4:      1.000000000000  0  0  0  1  0  0        1       0.000000000
-   ---------------------------------------------------
-      5:      0.000000000000  0  0  0  0  0  0        0       0.000000000
-      5:      0.000001480008  0  1  0  0  0  0        1
-      5:      1.000000000000  0  0  0  0  1  0        1
-      5:      0.000000000003  0  0  0  0  0  1        1
-      5:      0.000000000003  2  0  0  0  0  0        2
-   ---------------------------------------------------
-      6:      1.000000000000  0  0  0  0  0  1        1       0.000000000
+   Out      Coef             Exponents          Order       Reference
+   --------------------------------------------------
+    1:     -0.600000000000   0  0  0  0  0  0       0       0.200000000
+    1:      1.000000000000   1  0  0  0  0  0       1
+    1:      0.145000000000   2  0  0  0  0  0       2
+   --------------------------------------------------
+    2:     -0.185000000000   0  0  0  0  0  0       0       0.000000000
+    2:      1.300000000000   0  1  0  0  0  0       1
+    2:      3.800000000000   2  0  0  0  0  1       3
+   --------------------------------------------------
+    3:      1.000000000000   0  0  1  0  0  0       1       0.100000000
+    3:      1.600000000000   0  0  0  1  0  0       1
+    3:    -11.138187077310   1  0  1  0  0  0       2
+   --------------------------------------------------
+    4:      1.000000000000   0  0  0  1  0  0       1       0.000000000
+   --------------------------------------------------
+    5:      0.000000000000   0  0  0  0  0  0       0       0.000000000
+    5:      0.000001480008   0  1  0  0  0  0       1
+    5:      1.000000000000   0  0  0  0  1  0       1
+    5:      0.000000000003   0  0  0  0  0  1       1
+    5:      0.000000000003   2  0  0  0  0  0       2
+   --------------------------------------------------
+    6:      1.000000000000   0  0  0  0  0  1       1       0.000000000
 \end{example}
 Each line in the example represents a single \vn{Taylor term}. The
 Taylor terms are grouped into 6 \vn{Taylor series}. There is one
@@ -111,19 +111,49 @@ is only dependent on the six orbital variables. Furthermore,
 the three spin Taylor series are linear in the spin coordinates
 and can be cast into matrix form:
 \Begineq
-  S_i(\Out) = \sum_{j} \sigma_{ij} \, S_i(\In)
+  S_i(\Out) = \sum_{j} \Bf\Lambda_{ij}(x, p_x, y, p_y, z, p_z) \, S_j(\In)
 \Endeq
-where $\Bf S = (s_x, s_y, s_z)$ is the spin and $\sigma_{ij}$ are
+where $\Bf S = (s_x, s_y, s_z)$ is the spin and $\Bf\Lambda_{ij}$ are
 Taylor series that are only dependent upon the orbit coordinates. The
 proof of this assertion is derived from the
 Thomas-Bargmann-Michel-Telegdi equation (\sref{tbmt}). Since the
 orbital coordinates are assumed independent of the spin, the TBMT
 equation is linear in the spin and thus the transport can be described
 by a matrix. Furthermore, since the spin magnitude is an invarient,
-for given initial orbit coordinates, The $\sigma_{ij}$ matrix must
-just represent a rotation about some axis. While use of the $\sigma$
-matrix increases the number of Taylor series needed from 9 to 15,
-All the series are now only dependent the six orbit coordinates.
+for given initial orbit coordinates, The $\Bf\Lambda_{ij}$ matrix,
+evaluated for some given initial orbital starting point, must just
+represent a rotation about some axis. While use of the $\Bf\Lambda$
+matrix increases the number of Taylor series needed from 9 to 15, all
+the series are now only dependent on the six orbit coordinates.
+
+The standard \bmad routine for printing a spin Taylor map will produce
+something like this:
+\begin{example}
+  Spin Taylor Terms:
+  Out      Coef_Sx             Coef_Sy             Coef_Sz         Exponents           Order
+  ------------------------------------------------------------------------------------------
+  Sx:      0.997578865365     -0.023722545559     -0.065373145931  0  0  0  0  0  0        0
+  Sx:      0.048024116689      0.224016548515      0.651545836628  1  0  0  0  0  0        1
+  Sx:      0.073913839237      3.773387956424     -0.241375622985  0  1  0  0  0  0        1
+  Sx:      0.000088025660     -0.175847383558      0.065154583663  0  0  1  0  0  0        1
+  Sx:      0.011482448095     -0.203229450491      0.248967174655  0  0  0  1  0  0        1
+  Sx:     -0.004570765686     -0.223221481877      0.011253589165  0  0  0  0  0  1        1
+  ------------------------------------------------------------------------------------------
+  Sy:     -0.024601782550      0.758858114242     -0.650791145257  0  0  0  0  0  0        0
+  Sy:      0.250393656049     -0.048010912840     -0.065448956042  1  0  0  0  0  0        1
+  Sy:     -3.026316294644     -0.077390919876      0.024161434903  0  1  0  0  0  0        1
+  Sy:      0.175847383558      0.000088025660     -0.006544895604  0  0  1  0  0  0        1
+  Sy:      0.475790583031      1.593617558671      1.840259087206  0  0  0  1  0  0        1
+  Sy:      0.130465180880     -0.461555126948     -0.543130514053  0  0  0  0  0  1        1
+  ------------------------------------------------------------------------------------------
+  Sz:      0.065047364836      0.650823788196      0.756437199671  0  0  0  0  0  0        0
+  Sz:     -0.641804839660      0.064145955197      0.000000000000  1  0  0  0  0  0        1
+  Sz:     -2.278150078216      0.227777622625     -0.000073285574  0  1  0  0  0  0        1
+  Sz:      0.065157851742     -0.006512279715      0.000000000000  0  0  1  0  0  0        1
+  Sz:      0.003853329353     -1.865559860157      1.604759901947  0  0  0  1  0  0        1
+  Sz:      0.119441814079      0.530035130457     -0.466302882633  0  0  0  0  0  1        1
+\end{example}
+The exponents have 
 
 %-----------------------------------------------------------------
 \section{Symplectification}

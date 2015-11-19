@@ -1,9 +1,13 @@
-module bmad_taylor_mod
-
-! Note: The companion bmad_complex_taylor_mod is the same as this one, with 
+!+
+! Module taylor_mod
+!
+! Note: The companion complex_taylor_mod is the same as this one, with 
 !   taylor -> complex_taylor
 !   real -> complex
 ! When editing this file, please update bmad_complex_taylor_mod
+!-
+
+module taylor_mod
 
 use sim_utils
 
@@ -371,14 +375,13 @@ else
   nl = 8 + sum( [(size(bmad_taylor(i)%term), i = 1, nt) ])
   allocate(li(nl))
 
-  write (li(1), *) 'Taylor Terms:'
-  write (li(2), *) &
-        'Out      Coef             Exponents           Order        Reference'
+  write (li(1), '(a)') ' Taylor Terms:'
+  write (li(2), '(a)') ' Out      Coef             Exponents           Order       Reference'
   nl = 2
 
 
-  fmt1 = '(i4, a, f20.12, 6i3, i9, f18.9)'
-  fmt2 = '(i4, a, 1p, e20.11, 0p, 6i3, i9, f18.9)'
+  fmt1 = '(i3, a, f20.12, 1x, 6i3, i9, f18.9)'
+  fmt2 = '(i3, a, 1p, e20.11, 0p, 1x, 6i3, i9, f18.9)'
 
   do i = 1, nt
     nl=nl+1; li(nl) = ' ---------------------------------------------------'
@@ -487,15 +490,14 @@ else
   do i = 1, 3;  do j = 1, 3
     nl = nl + size(spin_taylor(i,j)%term)
   enddo;  enddo
-  allocate(li(nl))
+  allocate(li(nl+5))
 
-  write (li(1), *) 'Spin Taylor Terms:'
-  write (li(2), *) &
-        'Out      Coef_x              Coef_y             Coef_z             Exponents           Order'
+  write (li(1), '(a)') ' Spin Taylor Terms:'
+  write (li(2), '(a)') ' Out      Coef_Sx             Coef_Sy             Coef_Sz          Exponents           Order'
   nl = 2
 
   do i = 1, 3
-    nl=nl+1; li(nl) = ' ---------------------------------------------------'
+    nl=nl+1; li(nl) = ' ------------------------------------------------------------------------------------------'
 
     nullify (tlr1%term, tlr2%term, tlr3%term)
 
@@ -505,17 +507,12 @@ else
 
     n1 = 1; n2 = 1; n3 = 1
     do
-      nullify (tt1, tt2, tt3)
-      if (n1 /= size(tlr1%term) + 1) tt1 => tlr1%term(n1)
-      if (n2 /= size(tlr2%term) + 1) tt2 => tlr1%term(n2)
-      if (n3 /= size(tlr3%term) + 1) tt3 => tlr1%term(n3)
+      ixm = -1
+      call setup_this_term (n1, tlr1, tt1, ix1, ixm)
+      call setup_this_term (n2, tlr2, tt2, ix2, ixm)
+      call setup_this_term (n3, tlr3, tt3, ix3, ixm)
+      if (ixm == -1) exit
 
-      ix1 = 10000; ix2 = 10000; ix3 = 10000
-      if (associated(tt1)) ix1 = taylor_exponent_index(tt1%expn)
-      if (associated(tt2)) ix2 = taylor_exponent_index(tt2%expn)
-      if (associated(tt3)) ix3 = taylor_exponent_index(tt3%expn)
-
-      ixm = min(ix1, ix2, ix3)
       call set_this_coef (ix1, ixm, coef1, tt1, n1, exp_m)
       call set_this_coef (ix2, ixm, coef2, tt2, n2, exp_m)
       call set_this_coef (ix3, ixm, coef3, tt3, n3, exp_m)
@@ -525,12 +522,12 @@ else
       endif
 
       if (max(abs(coef1), abs(coef2), abs(coef3)) < 1d5) then
-        fmt = '(a, 3f20.12, 6i3, i9)'
+        fmt = '(1x, a, 3f20.12, 1x, 6i3, i9)'
       else
-        fmt = '(a, 1p, 3e20.11, 0p, 6i3, i9)'
+        fmt = '(1x, a, 1p, 3e20.11, 0p, 1x, 6i3, i9)'
       endif
 
-      nl=nl+1; write (li(nl), fmt) s_str(i), ':', coef1, coef2, coef3, (exp_m(k), k = 1, 6), sum(exp_m)
+      nl=nl+1; write (li(nl), fmt) s_str(i), coef1, coef2, coef3, (exp_m(k), k = 1, 6), sum(exp_m)
     enddo
 
     deallocate (tlr1%term, tlr2%term, tlr3%term)
@@ -552,6 +549,32 @@ endif
 
 !----------------------------------------------------------------------------
 contains
+
+subroutine setup_this_term (nn, tlr, tt, ixx, ixm)
+
+type (taylor_struct), target :: tlr
+type (taylor_term_struct), pointer :: tt
+integer nn, ixx, ixm
+
+!
+
+nullify(tt)
+ixx = 0
+
+if (nn <= size(tlr%term)) then
+  tt => tlr%term(nn)
+  ixx = taylor_exponent_index(tt%expn)
+  if (ixm == -1) then
+    ixm = ixx
+  else
+    ixm = min(ixm, ixx)
+  endif
+endif
+
+end subroutine setup_this_term
+
+!----------------------------------------------------------------------------
+! contains
 
 subroutine set_this_coef (ix, ixm, coef, tt, n, exp_m)
 

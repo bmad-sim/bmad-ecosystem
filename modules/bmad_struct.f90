@@ -4,8 +4,8 @@
 
 module bmad_struct
 
-use bmad_taylor_mod
-use bmad_complex_taylor_mod
+use taylor_mod
+use complex_taylor_mod
 use random_mod
 use twiss_mod
 use basic_bmad_mod
@@ -1349,9 +1349,9 @@ type (bmad_common_struct), save, target :: bmad_com
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 
 type ptc_common_struct
-  integer :: real_8_map_init                  ! See PTC doc.
-  integer :: taylor_order_ptc = 0             ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3           ! Default to use.
+  integer :: real_8_map_init         ! Set by PTC init routine (called by set_ptc). See PTC doc.
+  integer :: taylor_order_ptc = 0    ! What has been set in PTC. 0 -> not yet set
+  integer :: taylor_order_saved = 3  ! Default to use.
 end type
 
 type (ptc_common_struct), save :: ptc_com
