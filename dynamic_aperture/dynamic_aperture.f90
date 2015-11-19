@@ -118,7 +118,8 @@ do i = 1, size(dpz)
 !    call closed_orbit_calc (lat, orbit, 4)
   endif
 
-  call dynamic_aperture_scan (lat, orbit(0), da)
+  da%ref_orb = orbit(0)
+  call dynamic_aperture_scan (lat, da)
 
   write (1, *)
   write (1, *)
