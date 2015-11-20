@@ -638,6 +638,8 @@ off2 = off
 
 if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   select case (ele%key)
+  case (sbend$)
+    off1 = off * ele%value(g$)
   case (quadrupole$)
     off1 = off * ele%value(k1$)
   case (sextupole$)
@@ -1109,6 +1111,8 @@ y1 = -y
 y2 =  y
 if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
   select case (ele%key)
+  case (sbend$)
+    y2 = y * ele%value(g$)
   case (quadrupole$)
     y2 = y * ele%value(k1$)
   case (sextupole$)
