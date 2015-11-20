@@ -314,6 +314,7 @@ do k = 1, size(graph%curve)
 
   if (curve%data_source == 'beam') then
     beam => u%uni_branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)%beam
+    ele => u%model%lat%branch(curve%ix_branch)%ele(curve%ix_ele_ref_track)
     if (.not. allocated(beam%bunch)) then
       call out_io (s_abort$, r_name, 'NO ALLOCATED BEAM WITH PHASE_SPACE PLOTTING.')
       if (.not. u%is_on) call out_io (s_blank$, r_name, '   REASON: UNIVERSE IS TURNED OFF!')
@@ -339,8 +340,8 @@ do k = 1, size(graph%curve)
       if (curve%ix_bunch /= 0 .and. curve%ix_bunch /= ib) cycle
       p => beam%bunch(ib)%particle
       m = count(beam%bunch(ib)%particle%state == alive$)
-      call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, scratch%axis1)
-      call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2)
+      call tao_phase_space_axis (curve%data_type_x, ix1_ax, p, scratch%axis1, ele)
+      call tao_phase_space_axis (curve%data_type,   ix2_ax, p, scratch%axis2, ele)
       curve%x_symb(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       curve%y_symb(n+1:n+m) = pack(scratch%axis2, mask = (p%state == alive$))
       if (graph%symbol_size_scale > 0) curve%symb_size(n+1:n+m) = pack(graph%symbol_size_scale * &
@@ -540,10 +541,10 @@ do k = 1, n_curve
   call re_allocate (curve%x_symb, n)
   call re_allocate (curve%y_symb, n)
 
-  write(curve%legend_text, '(a, f5.2, a)') '\gd:', 100*da%pz(k), ' %'
+  write(curve%legend_text, '(a, f6.2, a)') '\gd:', 100*da%pz(k), ' %'
 
-  curve%x_line(:) = da%scan(k)%aperture(:)%x
-  curve%y_line(:) = da%scan(k)%aperture(:)%y
+  curve%x_line(:) = da%scan(k)%aperture(:)%x + da%scan(k)%ref_orb%vec(1)
+  curve%y_line(:) = da%scan(k)%aperture(:)%y + da%scan(k)%ref_orb%vec(3)
   curve%x_symb = curve%x_line
   curve%y_symb = curve%y_line
 enddo
@@ -667,7 +668,7 @@ do k = 1, size(graph%curve)
     do ib = 1, size(beam%bunch)
       p => beam%bunch(ib)%particle
       m = size(p)
-      call tao_phase_space_axis (curve%data_type, ix1_ax, p, scratch%axis1)
+      call tao_phase_space_axis (curve%data_type, ix1_ax, p, scratch%axis1, ele)
       data(n+1:n+m) = pack(scratch%axis1, mask = (p%state == alive$))
       if (curve%hist%weight_by_charge) weight(n+1:n+m) = pack(p%charge, mask = (p%state == alive$))
       n = n + count(p%state == alive$)
@@ -764,15 +765,17 @@ end subroutine tao_graph_histogram_setup
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 
-subroutine tao_phase_space_axis (data_type, ix_axis, p, axis, err)
+subroutine tao_phase_space_axis (data_type, ix_axis, p, axis, ele, err)
 
 implicit none
 
 type (coord_struct), optional, target :: p(:)
+type (coord_struct) :: p1
+type (ele_struct), optional :: ele
 
 real(rp), allocatable, optional :: axis(:)
 
-integer ix_axis
+integer ix_axis, i
 
 logical, optional :: err
 
@@ -795,11 +798,21 @@ case ('intensity_y'); ix_axis =  8; if (present(p)) axis = p%field(2)**2
 case ('phase_x');     ix_axis =  9; if (present(p)) axis = p%phase(1)
 case ('phase_y');     ix_axis = 10; if (present(p)) axis = p%phase(2)
 
+
 case ('intensity')
   ix_axis = 11
   if (present(p)) then
     p%charge = p%field(1)**2 + p%field(2)**2
     axis = p%charge
+  endif
+  
+case ('Ja')
+  ix_axis = 12
+  if (present(p) .and. present(ele)) then
+    do i=1, size(p)
+      call convert_coords('LAB', p(i), ele, 'ACTION-ANGLE', p1)
+      axis(i) = p1%vec(1)
+    enddo
   endif
 
 
