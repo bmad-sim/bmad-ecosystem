@@ -721,8 +721,8 @@ else
         if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       endif
       s2_name(i2-1) = trim(s2_name(i2-1)) // trim(expression_op_name(atom%type)) // s2_name(i2)
+      s2(i2-1)%type = atom%type
       i2 = i2 - 1
-      s2%type = atom%type
 
     case (numeric$, variable$)
       i2 = i2 + 1
