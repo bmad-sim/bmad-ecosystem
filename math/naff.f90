@@ -23,6 +23,7 @@
 ! 7) Delete the orthogonalized basis function from the data.
 ! 8) Repeat at step 4 until new frequency components are no longer significant.
 !-
+
 module naff_mod
 
 use physical_constants
@@ -30,6 +31,7 @@ use physical_constants
 implicit none
 
 contains
+
   !+
   ! subroutine naff(data1,data2,freqs,amps,n_freqs,opt_dump_spectra)
   !
@@ -46,25 +48,30 @@ contains
   ! This will also cause other debug information to be printed to stdout.
   !
   ! The steps of NAFF are:
-  ! 1) Estimate peak omega_1 in frequency spectrum using interpolated FFT.
-  ! 2) Refine estimate by using optimizer to maximize <data|e^{i omega_1}>, and also return amplitude of this component.
-  ! 3) Remove e_1 = amp*e^{i omega_i} component from the data.
-  ! 4) Repeat step 1 to estimate the new frequency component.
-  ! 5) Repeat step 2 to refine the new frequency component.
-  ! 6) Use Gram-Schmidt to orthogonalize the new frequency component w.r.t. other components found thus far.
-  ! 7) Delete the orthogonalized basis function from the data.
-  ! 8) Repeat at step 4 until new frequency components are no longer significant.
+  !   1) Estimate peak omega_1 in frequency spectrum using interpolated FFT.
+  !   2) Refine estimate by using optimizer to maximize <data|e^{i omega_1}>, 
+  !      and also return amplitude of this component.
+  !   3) Remove e_1 = amp*e^{i omega_i} component from the data.
+  !   4) Repeat step 1 to estimate the new frequency component.
+  !   5) Repeat step 2 to refine the new frequency component.
+  !   6) Use Gram-Schmidt to orthogonalize the new frequency component w.r.t. other components found thus far.
+  !   7) Delete the orthogonalized basis function from the data.
+  !   8) Repeat at step 4 until new frequency components are no longer significant.
   !
   ! Input:
-  !   data1(:)         - real(rp), real part of data.
+  !   data1(:)         - real(rp), real part of data. Size must be power of 2.
   !   data2(:)         - real(rp), imaginary part of data.
-  !   opt_dump_spectra - integer, optional, spectra written to fort file, also debug info printed.
+  !   opt_dump_spectra - integer, optional, If present write FFT spectra to file named "fort.N"  
+  !                       Also debug info printed on the terminal
+  !
   ! Output:
   !   freqs(:)         - real(rp), frequency components found in units of 0 to 1.
   !   amps(:)          - complex(rp), amplitudes of frequency components.
   !   n_freqs          - integer, number of components found.
   !-
+
   subroutine naff(data1,data2,freqs,amps,n_freqs,opt_dump_spectra)
+
     implicit none
 
     real(rp) data1(:)
@@ -78,14 +85,16 @@ contains
     real(rp) amp_threshold
     real(rp) f_threshold 
     real(rp) freq
-    complex(rp) basis(size(freqs),size(freqs))
+    complex(rp) basis(size(freqs), size(freqs))
     real(rp) temp_array(size(freqs))
     integer sorted(size(freqs))
     integer ix_strongest_freq
 
     integer i, j, max_freqs, size_data
     integer n_freqs
-    logical new_freq
+    logical new_freq, calc_OK
+
+    !
 
     size_data = size(data1)
     max_freqs = size(freqs)
@@ -98,8 +107,12 @@ contains
     data2(:) = data2(:) - sum(data2(:))/size(data2(:))
 
     n_freqs = 0
+    freqs = 0
+    amps = 0
+
     do while( n_freqs .lt. max_freqs )
-      freq = interpolated_fft(data1(:), data2(:), opt_dump_spectrum=opt_dump_spectra, opt_dump_index=0)
+      freq = interpolated_fft(data1(:), data2(:), calc_ok, opt_dump_spectra, 0)
+      if (.not. calc_ok) return
       freq = maximize_projection(freq, data1(:), data2(:))
 
       new_freq = .true.
@@ -162,14 +175,16 @@ contains
     enddo
     freqs(1:n_freqs) = freqs(sorted(1:n_freqs))
     amps(1:n_freqs) = amps(sorted(1:n_freqs))
-  end subroutine
+
+  end subroutine naff
 
   !+
   ! recursive function evaluate_u(basis, tunes, ix, t) result(x)
   !
   ! Evaluates orthogonalized basis function for frequency tunes(ix).
   !-
-  recursive function evaluate_u(basis,tunes,ix,t) result(x)
+
+  recursive function evaluate_u (basis,tunes,ix,t) result(x)
     implicit none
     complex(rp) basis(:,:)
     real(rp) tunes(:)
@@ -183,26 +198,28 @@ contains
     do i=ix-1,1,-1
       x = x - basis(ix,i) * evaluate_u(basis,tunes,i,t)
     enddo
-  end function
+  end function evaluate_u
 
   !+
   ! function evaluate_v
   !
   ! Evaluates Euler's Formula: exp(2pi i tune t)
   !-
+
   function evaluate_v(tune,t) result(a)
     implicit none
     real(rp) tune
     real(rp) t
     complex(rp) a
     a = exp( twopi * (0.0d0,1.0d0) * tune * t)
-  end function
+  end function evaluate_v
 
   !+
   ! function u_onto_v
   !
   ! Evaluates projection of orthogonalized basis function onto Euler's Formula
   !-
+
   function u_onto_v(basis,tunes,N,ia,ib) result(x)
     implicit none
     complex(rp) basis(:,:)
@@ -218,7 +235,7 @@ contains
     do i=ia-1,1,-1
       x = x + conjg(calc_coeff(basis,ia,i)) * easyInt(tunes,N,i,ib) / (N-1)
     enddo
-  end function
+  end function u_onto_v
 
   !+
   ! function u_onto_u
@@ -240,7 +257,7 @@ contains
     do j=ib-1,1,-1 
       x = x + calc_coeff(basis,ib,j) * u_onto_v(basis,tunes,N,ia,j) 
     enddo
-  end function
+  end function u_onto_u
 
   !+
   ! subroutine generate_basis_coeff
@@ -260,7 +277,7 @@ contains
     do j=ix-1,1,-1  
       basis(ix,j) = u_onto_v(basis,tunes,N,j,ix)
     enddo
-  end subroutine
+  end subroutine generate_basis_coeff
 
   !+
   ! function calc_coeff
@@ -299,7 +316,7 @@ contains
       enddo
       coeff = coeff + coeff_term
     enddo
-  end function
+  end function calc_coeff
 
   !+
   ! subroutine get_comask
@@ -329,14 +346,14 @@ contains
       comask(ib+1:ia,ib:ia-1) = submask
     endif
 
-  end subroutine
+  end subroutine get_comask
 
   !+
   ! subroutine int2binvec
   !
   ! Convert an integer to its binary representation.  Used only by get_comask.
   !-
-  subroutine int2binvec(dec,binvec)
+  subroutine int2binvec (dec,binvec)
     implicit none
     integer dec, x, i, binvec(:)
 
@@ -349,7 +366,7 @@ contains
         x = x - 2**(i-1) 
       endif
     enddo
-  end subroutine
+  end subroutine int2binvec
 
   !+
   ! subroutine binvec2comask
@@ -357,7 +374,7 @@ contains
   ! Generates a mask for the basis matrix.  Used for computing coefficients for
   ! orthogonalizing the basis functions.
   !-
-  subroutine binvec2comask(binvec,submask)
+  subroutine binvec2comask (binvec,submask)
     implicit none
     integer binvec(:)
     integer submask(:,:)
@@ -381,13 +398,14 @@ contains
         i=j
       endif
     enddo
-  end subroutine
+  end subroutine binvec2comask
 
   !+
   ! subroutine easyInt
   !
   ! Analytic solution to the integral: int_0^(N-1) conjg(exp(-2pi i nu_i t))*exp(-2pi i nu_j t) dt
   !-
+
   function easyInt(tunes,N,j,k) result(a)
     implicit none
     real(rp) tunes(:)
@@ -398,13 +416,14 @@ contains
     else
       a = (0.0d0,-1.0d0)/twopi/(-tunes(j)+tunes(k)) * ( (1.0d0,0.0d0) - exp( (0.0d0,-1.0d0)*twopi*(-tunes(j)+tunes(k))*(N-1.0d0)) )
     endif
-  end function
+  end function easyInt
 
   !+
   ! subroutine calc_projection
   !
   ! Calculates the projection of the data onto an orthogonalized basis function: <data1(:) + i data2(:) | u_i/sqrt(N-1)>
   !-
+
   subroutine calc_projection(data1, data2, tunes, basis, ix, ak)
     implicit none
 
@@ -425,13 +444,14 @@ contains
       t = i-1.0d0
       ak = ak + conjg(cmplx(data1(i),data2(i))) * evaluate_u(basis,tunes,ix,-t) / sqrt(N-1.0d0)
     enddo
-  end subroutine
+  end subroutine calc_projection
 
   !+
   ! subroutine remove_component
   !
   ! Deletes a component from the data: data1 + i data2 = data1 + i data2 - <ak | u_i/sqrt(N-1)>
   !-
+
   subroutine remove_component(data1, data2, tunes, basis, ix, ak)
     implicit none
 
@@ -457,7 +477,7 @@ contains
       data1(i) = data1(i) - real(component(i))
       data2(i) = data2(i) - aimag(component(i))
     enddo
-  end subroutine
+  end subroutine remove_component
 
   !+
   ! function maximize_projection
@@ -465,7 +485,8 @@ contains
   ! Optimizer that uses Numerical Recipes brent to find a local maximum, which is the frequency that maximizes the projection.
   !
   !-
-  function maximize_projection(seed, data1, data2)
+
+  function maximize_projection (seed, data1, data2)
     use nr
 
     implicit none
@@ -510,7 +531,7 @@ contains
     ! Calculates <data1 + i data2 | exp(i theta)>
     ! Used only by maximize projection.  Uses data global to the module to accomodate stock NR routine.
     !-
-    function special_projection(f)
+    function special_projection (f)
       implicit none
 
       real(rp), intent(in) :: f !fractional frequency.  range [0:1]
@@ -527,8 +548,9 @@ contains
       enddo
 
       special_projection = -abs(ak)
-    end function
-  end function
+    end function special_projection
+
+  end function maximize_projection
 
   !+
   !  function interpolated_fft
@@ -537,13 +559,13 @@ contains
   !  The result is interpolated to improve the accuracy.  Hanning and Gaussian windowing are
   !  available.
   !-
-  function interpolated_fft(data1, data2, opt_dump_spectrum, ak, opt_dump_index)
+
+  function interpolated_fft(data1, data2, calc_ok, opt_dump_spectrum, opt_dump_index)
     use nr
+    use sim_utils
 
     real(rp) data1(:), data2(:)
-    integer, optional :: opt_dump_spectrum
-    integer, optional :: opt_dump_index
-    complex, optional :: ak
+    integer, optional :: opt_dump_spectrum, opt_dump_index
 
     integer dump_spectrum
     integer dump_index
@@ -559,15 +581,12 @@ contains
     integer i
     integer isign
 
-    dump_spectrum = 0
-    if( present(opt_dump_spectrum) ) then
-      dump_spectrum = opt_dump_spectrum
-    endif
+    logical calc_ok
 
-    dump_index = 0
-    if( present(opt_dump_index) ) then
-      dump_index = opt_dump_index
-    endif
+    !
+
+    dump_spectrum = integer_option (0, opt_dump_spectrum)
+    dump_index = integer_option (0, opt_dump_index)
 
     n_samples = size(data1)
     hsamp = (n_samples-1)/2.0d0
@@ -593,13 +612,13 @@ contains
       write(dump_spectrum,*)
     endif
 
-    max_ix = 2
-    do i= 3, n_samples-1
-      if ( fft_amp(max_ix) < fft_amp(i) ) then
-        max_ix = i
-      endif
-    end do
+    max_ix = maxloc(fft_amp(2:n_samples-1), 1) + 1
+    if (fft_amp(max_ix) == 0) then
+      calc_ok = .false.
+      return
+    endif
 
+    calc_ok = .true.
     !Gaussian Interpolation (use with gaussian window)
     lk = log(fft_amp(max_ix))
     lkm = log(fft_amp(max_ix-1))
@@ -613,7 +632,8 @@ contains
     ! lkp = fft_amp(max_ix+1)
     ! A = (lkp-lkm) / 2.0 / (2.0*lk - lkp - lkm)
     ! interpolated_fft = 1.0d0*max_ix/n_samples + A/n_samples
-  end function
+
+  end function interpolated_fft
 
 end module naff_mod
 
