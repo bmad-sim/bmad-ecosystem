@@ -1060,7 +1060,7 @@ case ('dynamic_aperture')
     return
   endif
   
-  do k = 1, size(da%scan)
+  do k = 1, size(u%dynamic_aperture%scan)
     aperture_scan => u%dynamic_aperture%scan(k) 
     nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz
     nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
