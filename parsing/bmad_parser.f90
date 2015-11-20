@@ -149,7 +149,7 @@ do i = 0, ubound(in_lat%ele, 1)
   in_lat%ele(i)%ixx = i   ! Pointer to plat%ele() array
 enddo
 
-call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a few minutes...')
+call out_io (s_info$, r_name, 'Parsing lattice file(s). This might take a minute or so...')
 call parser_file_stack('init')
 call parser_file_stack('push', lat_file, finished, err)  ! open file on stack
 if (err) then
