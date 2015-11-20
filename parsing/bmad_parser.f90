@@ -5,7 +5,7 @@
 !
 ! Because of the time it takes to parse a file bmad_parser will save 
 ! LAT in a "digested" file with the name:
-!               'digested_' // lat_file   
+!               <lat_file>.digested_NNN   
 ! For subsequent calls to the same lat_file, BMAD_PARSER will just read in the
 ! digested file. bmad_parser will always check to see that the digested file
 ! is up-to-date and if not the digested file will not be used.
@@ -38,14 +38,13 @@ use bmad_parser_mod, dummy1 => bmad_parser
 use ptc_interface_mod, dummy2 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
-use spin_mod, dummy5 => bmad_parser
 use random_mod
 
 implicit none
 
 type (lat_struct), target :: lat, in_lat, lat2
 type (ele_struct) this_ele
-type (ele_struct), pointer :: ele, slave, lord, ele2, ele0
+type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, mad_beam_ele, param_ele
 type (ele_struct), save :: marker_ele
 type (seq_struct), target, allocatable :: sequence(:), temp_seq(:)
 type (branch_struct), pointer :: branch0, branch
@@ -53,13 +52,13 @@ type (parser_lat_struct), target :: plat
 type (parser_ele_struct), pointer :: pele
 type (lat_ele_loc_struct) m_slaves(100)
 type (ele_pointer_struct), allocatable :: branch_ele(:)
-type (spin_polar_struct) :: polar
 type (parser_controller_struct), allocatable :: pcon(:)
 
-real(rp) beta, val, vec(3)
+real(rp) beta, val
 
 integer, allocatable :: seq_indexx(:), in_indexx(:)
 
+integer :: ix_param_ele, ix_mad_beam_ele
 integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
 integer  iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc
@@ -179,17 +178,17 @@ call set_ele_defaults (in_lat%ele(0))   ! Defaults for beginning_ele element
 call find_indexx (in_lat%ele(0)%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 
 ele => in_lat%ele(1)
-call init_ele(ele, def_mad_beam$, 0, 1, 0)
+call init_ele(ele, def_mad_beam$, 0, 1, in_lat%branch(0))
 ele%name = 'BEAM'                 ! For MAD compatibility.
 call set_ele_defaults (ele)
 call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
-bp_com%mad_beam_ele => ele
+ix_mad_beam_ele = 1
 
 ele => in_lat%ele(2)
-call init_ele(ele, def_parameter$, 0, 2, 0)
+call init_ele(ele, def_parameter$, 0, 2, in_lat%branch(0))
 ele%name = 'PARAMETER'           ! For parameters 
 call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
-bp_com%param_ele => ele
+ix_param_ele = 2
 
 ! Note: All values to beam_start are actually put in lat%beam_start and lat%beam_start_ele
 
@@ -369,7 +368,7 @@ parsing_loop: do
         call parser_error ('EXPECTING: "," BUT GOT: ' // delim, 'FOR "BEAM" COMMAND')
         exit
       endif
-      call parser_set_attribute (def$, bp_com%mad_beam_ele, in_lat, delim, delim_found, err)
+      call parser_set_attribute (def$, in_lat%ele(ix_mad_beam_ele), in_lat, delim, delim_found, err)
       if (bp_com%fatal_error_flag) exit parsing_loop
     enddo
     cycle parsing_loop
@@ -707,6 +706,9 @@ endif
 ! we now have read in everything. 
 
 bp_com%input_line_meaningful = .false.
+mad_beam_ele => in_lat%ele(ix_mad_beam_ele)
+param_ele    => in_lat%ele(ix_param_ele)
+
 
 ! sort elements and lists and check for duplicates
 ! seq_name(:) and in_name(:) arrays speed up the calls to find_indexx since
@@ -763,7 +765,8 @@ branch_loop: do i_loop = 1, n_branch_max
       use_line_str = use_line_str(ix+1:)
     endif
 
-    call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+    call parser_expand_line (lat, this_name, sequence, in_name, in_indexx, seq_name, seq_indexx, &
+                                                            in_lat, n_ele_use, is_true(param_ele%value(no_end_marker$)))
     if (bp_com%fatal_error_flag) then
       call parser_end_stuff (.false.)
       return
@@ -772,7 +775,8 @@ branch_loop: do i_loop = 1, n_branch_max
 
   else
     ele => branch_ele(1)%ele
-    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, in_lat, plat, created_new_branch)
+    call parser_add_branch (ele, lat, sequence, in_name, in_indexx, seq_name, seq_indexx, &
+                                      is_true(param_ele%value(no_end_marker$)), in_lat, plat, created_new_branch)
     this_name = ele%component_name
     is_photon_fork = (ele%key == photon_fork$)
     n_branch_ele = n_branch_ele - 1
@@ -810,28 +814,29 @@ branch_loop: do i_loop = 1, n_branch_max
     call mat_make_unit (lat%ele(0)%mat6)
     call clear_lat_1turn_mats (lat)
 
-    if (bp_com%mad_beam_ele%value(n_part$) /= 0 .and. bp_com%param_ele%value(n_part$) /= 0) &
-              call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
-    lat%param%n_part = max(bp_com%mad_beam_ele%value(n_part$), bp_com%param_ele%value(n_part$))
+    
+    if (mad_beam_ele%value(n_part$) /= 0 .and. param_ele%value(n_part$) /= 0) &
+                                                       call parser_error ('BOTH "PARAMETER[N_PART]" AND "BEAM, N_PART" SET.')
+    lat%param%n_part = max(mad_beam_ele%value(n_part$), param_ele%value(n_part$))
 
-    ix1 = nint(bp_com%param_ele%value(particle$))
-    ix2 = nint(bp_com%mad_beam_ele%value(particle$))
+    ix1 = nint(param_ele%value(particle$))
+    ix2 = nint(mad_beam_ele%value(particle$))
     if (ix1 /= positron$ .and. ix2 /= positron$) &
             call parser_error ('BOTH "PARAMETER[PARTICLE]" AND "BEAM, PARTICLE" SET.')
     lat%param%particle = ix1
     if (ix2 /=  positron$) lat%param%particle = ix2
 
     ! The lattice name from a "parameter[lattice] = ..." line is 
-    ! stored the bp_com%param_ele%descrip string
+    ! stored the param_ele%descrip string
 
-    if (associated(bp_com%param_ele%descrip)) then
-      lat%lattice = bp_com%param_ele%descrip
-      deallocate (bp_com%param_ele%descrip)
+    if (associated(param_ele%descrip)) then
+      lat%lattice = param_ele%descrip
+      deallocate (param_ele%descrip)
     endif
 
     ! Set geometry.
 
-    ix = nint(bp_com%param_ele%value(geometry$))
+    ix = nint(param_ele%value(geometry$))
     if (ix > 0) then  ! geometry has been set.
       lat%param%geometry = ix
     elseif (lat%param%particle == photon$) then
@@ -874,7 +879,7 @@ branch_loop: do i_loop = 1, n_branch_max
   ! Transfer info from line element if parameters have been set.
 
   branch%param%default_tracking_species = ref_particle$
-  val = bp_com%param_ele%value(default_tracking_species$)
+  val = param_ele%value(default_tracking_species$)
   if (n_branch == 0 .and.  val /= real_garbage$) branch%param%default_tracking_species = nint(val)
   val = ele%value(default_tracking_species$)
   if (val /= real_garbage$) branch%param%default_tracking_species = nint(val)
@@ -1004,7 +1009,7 @@ do i = 1, n_max
     if (k == 0) cycle
     call init_lat (lat2)
     call parser_expand_line (lat2, pele%control(j)%name, sequence, in_name, in_indexx, &
-                                      seq_name, seq_indexx, in_lat, n_ele_use, .false.)
+                                                            seq_name, seq_indexx, in_lat, n_ele_use, .false.)
     ! Put elements from the line expansion into the slave list.
     ! Remember to ignore drifts.
     lord%n_slave = lord%n_slave - 1   ! Remove beam line name
@@ -1092,21 +1097,9 @@ if (err) then
   return
 endif
 
-!
+! Spin
 
-ele => lat%beam_start_ele
-
-vec = [ele%value(spin_x$), ele%value(spin_y$), ele%value(spin_z$)]
-polar = spin_polar_struct(ele%value(spinor_polarization$), ele%value(spinor_theta$), &
-                          ele%value(spinor_phi$), ele%value(spinor_xi$))
-
-if (any(vec /= [0, 0, 1])) then
-  if (polar%polarization /= 1 .or. polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0) &
-          call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
-  call vec_to_polar (vec, polar)
-endif
-
-call polar_to_spinor (polar, lat%beam_start)
+call parser_set_spin (lat%beam_start_ele, lat%beam_start)
 
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 
@@ -1300,8 +1293,6 @@ if (n_max >= ubound(in_lat%ele, 1)) then
   call allocate_lat_ele_array (in_lat)
   call re_allocate2 (in_name, 0, ubound(in_lat%ele, 1))
   call re_allocate2 (in_indexx, 0, ubound(in_lat%ele, 1))
-  bp_com%mad_beam_ele => in_lat%ele(1)
-  bp_com%param_ele => in_lat%ele(2)
   call allocate_plat (plat, ubound(in_lat%ele, 1))
 endif
 

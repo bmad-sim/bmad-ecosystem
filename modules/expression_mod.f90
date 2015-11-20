@@ -714,7 +714,7 @@ else
 
     select case (atom%type)
     case (plus$, minus$, times$, divide$, power$)
-      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2(i2-1)%name = '(' // trim(s2_name(i2-1)) // ')'
+      if (expression_eval_level(s2(i2-1)%type) < expression_eval_level(atom%type)) s2_name(i2-1) = '(' // trim(s2_name(i2-1)) // ')'
       if (atom%type == minus$ .or. atom%type == divide$) then
         if (expression_eval_level(s2(i2)%type) <= expression_eval_level(atom%type)) s2_name(i2) = '(' // trim(s2_name(i2)) // ')'
       else

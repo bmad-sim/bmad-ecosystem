@@ -1252,7 +1252,7 @@ end subroutine init_lat
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)
+! Subroutine init_ele (ele, key, sub_key, ix_ele, branch)
 !
 ! Subroutine to initialize a Bmad element.
 !
@@ -1263,21 +1263,21 @@ end subroutine init_lat
 !   key       -- Integer, optional: Key to initialize to. EG: quadrupole$, etc.
 !   sub_key   -- Integer, optional: Sub-key to initialize to.
 !   ix_ele    -- Integer, optional: ix_ele index to initalize to. Default = -1.
-!   ix_branch -- Integer, optional: Branch index to initalize to. Default = 0.
-!   branch    -- branch_struct: Branch to point ele%branch to. Otherwise ele%branch is nullified.
+!   branch    -- branch_struct: Branch to point ele%branch and ele%ix_branch to.
+!                  Otherwise ele%branch is nullified and ele%ix_branch = 0.
 !
 ! Output:
 !   ele -- Ele_struct: Initialized element.
 !-
 
-subroutine init_ele (ele, key, sub_key, ix_ele, ix_branch, branch)
+subroutine init_ele (ele, key, sub_key, ix_ele, branch)
 
 implicit none
 
 type (ele_struct)  ele
 type (branch_struct), optional, target :: branch
 integer, optional :: key, sub_key
-integer, optional :: ix_branch, ix_ele
+integer, optional :: ix_ele
 
 !
 
@@ -1285,9 +1285,11 @@ call deallocate_ele_pointers (ele)
 
 ele = ele_struct()
 
-if (present(branch)) ele%branch => branch
+if (present(branch)) then
+  ele%branch => branch
+  ele%ix_branch = branch%ix_branch
+endif
 
-if (present(ix_branch)) ele%ix_branch = ix_branch
 if (present(ix_ele)) ele%ix_ele = ix_ele
 
 if (present(key)) ele%key = key

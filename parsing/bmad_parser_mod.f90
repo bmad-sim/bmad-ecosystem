@@ -15,6 +15,8 @@ use attribute_mod
 use superimpose_mod
 use track1_mod
 
+implicit none
+
 private parse_rf_grid, parse_rf_map
 
 ! A "sequence" is a line or a list.
@@ -129,7 +131,6 @@ type bp_var_struct
 end type
 
 type bp_common_struct
-  type (ele_struct), pointer :: param_ele, mad_beam_ele
   type (stack_file_struct), pointer :: current_file
   type (stack_file_struct), pointer :: calling_file
   type (lat_struct), pointer :: old_lat
@@ -5481,7 +5482,7 @@ end subroutine form_digested_bmad_file_name
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
-!                                                        seq_name, seq_indexx, in_lat, plat)
+!                                                        seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch)
 !
 ! Subroutine to do line expansion.
 !
@@ -5490,7 +5491,7 @@ end subroutine form_digested_bmad_file_name
 !-
 
 subroutine parser_add_branch (fork_ele, lat, sequence, in_name, in_indexx, &
-                                                   seq_name, seq_indexx, in_lat, plat, created_new_branch)
+                                                   seq_name, seq_indexx, no_end_marker, in_lat, plat, created_new_branch)
 
 implicit none
 
@@ -5507,7 +5508,7 @@ integer i, j, nb, n_ele_use, n, ix, key
 character(*), allocatable ::  in_name(:), seq_name(:)
 character(40) name
 
-logical created_new_branch
+logical created_new_branch, no_end_marker
 
 !
 
@@ -5524,7 +5525,7 @@ endif
 
 if (created_new_branch) then
   call parser_expand_line (lat, fork_ele%component_name, sequence, in_name, &
-                                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use)
+                                in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
 
   nb = ubound(lat%branch, 1)
   fork_ele%value(ix_to_branch$) = nb
@@ -5575,7 +5576,7 @@ end subroutine parser_add_branch
 !-------------------------------------------------------------------------
 !+
 ! Subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-!                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, allow_end_marker)
+!                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
 !
 ! Subroutine to do line expansion.
 !
@@ -5584,7 +5585,7 @@ end subroutine parser_add_branch
 !-
 
 subroutine parser_expand_line (lat, use_name, sequence, in_name, &
-                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, allow_end_marker)
+                       in_indexx, seq_name, seq_indexx, in_lat, n_ele_use, no_end_marker)
 
 implicit none
 
@@ -5607,7 +5608,7 @@ character(*), allocatable ::  in_name(:), seq_name(:)
 character(*) use_name
 character(40) name
 
-logical, optional :: allow_end_marker
+logical no_end_marker
 
 ! find line corresponding to the "use" statement.
 
@@ -5919,7 +5920,7 @@ deallocate(used_line)
 
 ! Add End marker and make sure it's orientation is consistant
 
-if (is_false(bp_com%param_ele%value(no_end_marker$)) .and. logic_option(.true., allow_end_marker)) then
+if (.not. no_end_marker) then
   n_ele_use = n_ele_use + 1
   ele => ele_line(n_ele_use)
   ele%name = 'END'
@@ -6859,5 +6860,41 @@ end do
 is_ok = .true.
 
 end function parse_real_list2
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine parser_set_spin (bs_ele, orbit)
+!
+! This subroutine is used by bmad_parser and bmad_parser2.
+! This subroutine is not intended for general use.
+!- 
+
+subroutine parser_set_spin (bs_ele, orbit)
+
+use spin_mod
+
+type (ele_struct) bs_ele    ! beam_start element
+type (coord_struct) orbit   
+type (spin_polar_struct) :: polar
+
+real(rp) vec(3)
+
+!
+
+vec = [bs_ele%value(spin_x$), bs_ele%value(spin_y$), bs_ele%value(spin_z$)]
+polar = spin_polar_struct(bs_ele%value(spinor_polarization$), bs_ele%value(spinor_theta$), &
+                          bs_ele%value(spinor_phi$), bs_ele%value(spinor_xi$))
+
+if (any(vec /= [0, 0, 1])) then
+  if (polar%polarization /= 1 .or. polar%theta /= 0 .or. polar%phi /= 0 .or. polar%xi /= 0) &
+          call parser_error ('ERROR SETTING BEAM_START. BOTH SPIN_X/Y/Z AND SPINOR_XXX QUANTITIES SET!')
+  call vec_to_polar (vec, polar)
+endif
+
+call polar_to_spinor (polar, orbit)
+
+end subroutine parser_set_spin
 
 end module
