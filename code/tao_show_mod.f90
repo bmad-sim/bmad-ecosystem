@@ -1059,24 +1059,28 @@ case ('dynamic_aperture')
     nl=nl+1; lines(nl) ='No dynamic aperture specified for this universe'
     return
   endif
-
-  aperture_scan => u%dynamic_aperture%scan(1) 
-  nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz
-  nl=nl+1; write(lines(nl), '(a, i10)')     'n_angle:   ', aperture_scan%param%n_angle
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'min_angle: ', aperture_scan%param%min_angle
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   'max_angle: ', aperture_scan%param%max_angle
-  nl=nl+1; write(lines(nl), '(a, i10)')     '%n_turn:   ', aperture_scan%param%n_turn
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%x_init:   ', aperture_scan%param%x_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%y_init:   ', aperture_scan%param%y_init
-  nl=nl+1; write(lines(nl), '(a, f10.6)')   '%accuracy: ', aperture_scan%param%accuracy
-  if (.not. allocated(aperture_scan%aperture)) then
-    nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
-  else
-    nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
-    do j = 1, size(aperture_scan%aperture)
-      nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
-    enddo
-  endif
+  
+  do k = 1, size(da%scan)
+    aperture_scan => u%dynamic_aperture%scan(k) 
+    nl=nl+1; write(lines(nl), '(a, 99f11.6)') 'pz:        ', u%dynamic_aperture%pz
+    nl=nl+1; write(lines(nl), '(a, 6es14.5)') 'ref_orb%vec:   ', aperture_scan%ref_orb%vec
+    nl=nl+1; write(lines(nl), '(a, i10)')     'n_angle:   ', aperture_scan%param%n_angle
+    nl=nl+1; write(lines(nl), '(a, f10.6)')   'min_angle: ', aperture_scan%param%min_angle
+    nl=nl+1; write(lines(nl), '(a, f10.6)')   'max_angle: ', aperture_scan%param%max_angle
+    nl=nl+1; write(lines(nl), '(a, i10)')     '%n_turn:   ', aperture_scan%param%n_turn
+    nl=nl+1; write(lines(nl), '(a, f10.6)')   '%x_init:   ', aperture_scan%param%x_init
+    nl=nl+1; write(lines(nl), '(a, f10.6)')   '%y_init:   ', aperture_scan%param%y_init
+    nl=nl+1; write(lines(nl), '(a, f10.6)')   '%accuracy: ', aperture_scan%param%accuracy
+    if (.not. allocated(aperture_scan%aperture)) then
+      nl=nl+1; write(lines(nl), '(a20)') 'aperture not calculated for this universe'
+    else
+      nl=nl+1; write(lines(nl), '(2a15)') 'aperture.x', 'aperture.y' 
+      do j = 1, size(aperture_scan%aperture)
+        nl=nl+1; write(lines(nl), '(2es15.7)')   aperture_scan%aperture(j)%x, aperture_scan%aperture(j)%y
+      enddo
+    endif
+  
+  enddo
 
   result_id = show_what
 
