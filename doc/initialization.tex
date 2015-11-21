@@ -2244,18 +2244,18 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &floor_plan_drawing
-    !               name                     Shape     Color     Size     Label Draw?
-    ele_shape(1) = "quadrupole::q*"          "box"     "red"     0.75     "name"  T    
-    ele_shape(2) = "quadrupole::*"           "xbox"    "red"     0.75     "none" 
-    ele_shape(3) = "sbend::*"                "box"     "blue"    0.37     "none"  F
-    ele_shape(4) = "wiggler::*"              "xbox"    "green"   0.50     "name"
-    ele_shape(5) = "var::quad_k1"            "circle"  "purple"  0.25     "name"
-    ele_shape(6) = "data::orbit.x|useit_opt" "x"       "orange"  0.25     "name"
-    ele_shape(7) = "wall::building"          "-"       "black"    0       "-"
+    !               ele_id                   Shape      Color     Size     Label Draw?
+    ele_shape(1) = "quadrupole::q*"          "box"      "red"     0.75     "name"  T    
+    ele_shape(2) = "quadrupole::*"           "xbox"     "red"     0.75     "none" 
+    ele_shape(3) = "sbend::*"                "box"      "blue"    0.37     "none"  F
+    ele_shape(4) = "wiggler::*"              "xbox"     "green"   0.50     "name"
+    ele_shape(5) = "var::quad_k1"            "circle"   "purple"  0.25     "name"
+    ele_shape(6) = "data::orbit.x|design"    "vvar_box" "orange"  0.25     "name"
+    ele_shape(7) = "wall::building"          "-"        "black"    0       "-"
   /
 \end{example}
 A figure is drawn for each lattice element in the lattice that matches the
-\vn{<name>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
+\vn{<ele_id>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
 Thus, in the example above, \vn{ele_shape(1)} will match to all
 quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
 match all quadrupoles. If an element matches more than one shape the
@@ -2268,7 +2268,7 @@ the \vn{set shape} command (\sref{s:set})) to set shape parameters on the
 command line.
 
 Data and variables can also be specified to be drawn by using a
-\vn{name} beginning with \vn{data::} for drawing data and \vn{var::}
+\vn{<ele_id>} beginning with \vn{data::} for drawing data and \vn{var::}
 for drawing variable locations. In the above example, it is assumed
 that a \vn{quad_k1} variable array and a \vn{orbit.x} data array have
 been setup. A circle will be drawn at each element under control of a
@@ -2285,13 +2285,15 @@ The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
 \index{box}\index{xbox}
 \begin{example}
-  "asym_var_box"    -- Like var_box but is not symmetric about the center line. 
+  "asym_var_box"    -- Like var_box but is not symmetric about the center line.
+  "asym_vvar_box"   -- Like var_box but is not symmetric about the center line.
   "box"             -- Rectangular box
   "bow_tie"         -- Bow-tie shape.
   "circle"          -- Circle centered at center of element.
   "diamond"         -- Diamond shape.
   "var_box"         -- Rectangular box with variable height. 
                         The box is symmetric about the center line.
+  "vvar_box"        -- Like var_box.
   "x"               -- "X" centered at center of element
   "xbox"            -- Rectangular box with an x through it.
 \end{example}
@@ -2331,6 +2333,17 @@ will terminate with one side on the centerline and the side on which
 it is drawn will depend upon the the sign of the element
 strength. Note: Not all lattice elements can be used with a
 \vn{var_box} or \vn{asym_var_box}.
+
+A \vn{vvar_box} is like a \vn{var_box} and a \vn{asym_vvar_box} is
+like a \vn{asym_var_box}. The difference is that \vn{vvar_box} and
+\vn{asym_vvar_box} shapes may only be used when the \vn{<ele_id>} is
+associated with data or variables. In this case the height of the box,
+instead of being proportional to the strength of the element, is
+proportional to the value of the associated datum or variable. If no
+datum or variable component is specified in the \vn{ele_id}, the model
+value will be used. Thus in the above example where \vn{ele_id} was
+set to \vn{"data::orbit.x|design"}, the design value is used.
+
 
 The overall size of all the shapes can be scaled using the
 \vn{plot_page} (\sref{s:init.plot}) parameters

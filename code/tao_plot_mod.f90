@@ -321,12 +321,12 @@ type (tao_building_wall_point_struct), pointer :: pt(:)
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
-real(rp) theta, v_vec(3), theta1, dtheta
+real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
 integer i, j, k, n, n_bend, isu, ic, ib, icol
 
-character(40) special_name
+character(40) dat_var_name
 character(20) :: r_name = 'tao_draw_floor_plan'
 
 logical err
@@ -369,15 +369,15 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 0, branch%n_ele_max
     ele => branch%ele(i)
-    ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape, special_name)
+    ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape, dat_var_name, dat_var_value)
     if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
     if (ele%lord_status == multipass_lord$) then
       do j = ele%ix1_slave, ele%ix2_slave
         ic = lat%control(j)%slave%ix_ele
-        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, branch%ele(ic), special_name, ele_shape)
+        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, branch%ele(ic), dat_var_name, dat_var_value, ele_shape)
       enddo
     else
-      call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, special_name, ele_shape)
+      call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, dat_var_name, dat_var_value, ele_shape)
     endif
   enddo
 enddo
@@ -474,22 +474,23 @@ end subroutine tao_draw_floor_plan
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, name_in, ele_shape)
+! Subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, dat_var_name, dat_var_value, ele_shape)
 !
 ! Routine to draw one lattice element or one datum location for the floor plan graph. 
 !
 ! Input:
-!   plot         -- tao_plot_struct: Plot containing the graph.
-!   graph        -- tao_graph_struct: Graph to plot.
-!   ix_uni       -- integer: Universe index.
-!   lat          -- lat_struct: Lattice containing the element.
-!   ele          -- ele_struct: Element to draw.
-!   name_in      -- Character(*): If not blank then name to print beside the element.
-!   ele_shape    -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
-!                    Will be NULL if no associated shape for this element.
+!   plot            -- tao_plot_struct: Plot containing the graph.
+!   graph           -- tao_graph_struct: Graph to plot.
+!   ix_uni          -- integer: Universe index.
+!   lat             -- lat_struct: Lattice containing the element.
+!   ele             -- ele_struct: Element to draw.
+!   dat_var_name    -- Character(*): If not blank then name to print beside the element.
+!   dat_var_value   -- real(rp): Use for vvar_box and asym_vvar_box.
+!   ele_shape       -- tao_ele_shape_struct: Shape to draw from s%plot_page%floor_plan%ele_shape(:) array.
+!                       Will be NULL if no associated shape for this element.
 !-
 
-recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, name_in, ele_shape)
+recursive subroutine tao_draw_ele_for_floor_plan (plot, graph, ix_uni, lat, ele, dat_var_name, dat_var_value, ele_shape)
 
 implicit none
 
@@ -506,7 +507,7 @@ type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 integer ix_uni, i, j, k, icol, isu, n_bend, n, ix, ic, n_mid
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
-real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge
+real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge, dat_var_value
 real(rp) x_bend(0:1000), y_bend(0:1000), dx_bend(0:1000), dy_bend(0:1000)
 real(rp) v_old(3), w_old(3,3), r_vec(3), dr_vec(3), v_vec(3), dv_vec(3)
 real(rp) cos_t, sin_t, cos_p, sin_p, cos_a, sin_a, height
@@ -514,7 +515,7 @@ real(rp) x_inch, y_inch, x0, y0, x1, x2, y1, y2, e1_factor, e2_factor
 real(rp) r0_plus(2), r0_minus(2), dr2_p(2), dr2_m(2), dr_p(2), dr_m(2)
 real(rp) x_min, x_max, y_min, y_max
 
-character(*) name_in
+character(*) dat_var_name
 character(80) str
 character(40) name
 character(40) :: r_name = 'tao_draw_ele_for_floor_plan'
@@ -529,8 +530,7 @@ logical shape_has_box, is_bend
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 
-is_data_or_var = .false.
-if (associated(ele_shape)) is_data_or_var = (ele_shape%ele_id(1:5) == 'dat::' .or. ele_shape%ele_id(1:5) == 'var::')
+is_data_or_var = associated(ele_shape) .and. (ele_shape%ele_id(1:6) == 'data::' .or. ele_shape%ele_id(1:5) == 'var::')
 
 if (is_data_or_var) then  ! pretend this is zero length element
   ele1 => ele2
@@ -636,7 +636,8 @@ off = ele_shape%size * s%plot_page%floor_plan_shape_scale
 off1 = off
 off2 = off
 
-if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
+select case (ele_shape%shape)
+case ('VAR_BOX', 'ASYM_VAR_BOX')
   select case (ele%key)
   case (sbend$)
     off1 = off * ele%value(g$)
@@ -651,7 +652,13 @@ if (ele_shape%shape == 'VAR_BOX' .or. ele_shape%shape == 'ASYM_VAR_BOX') then
   end select
   off2 = off1
   if (ele_shape%shape == 'ASYM_VAR_BOX') off1 = 0
-endif
+case ('VVAR_BOX')
+  off1 = dat_var_value
+  off2 = dat_var_value
+case ('ASYM_VVAR_BOX')
+  off1 = 0
+  off2 = dat_var_value
+endselect
 
 if (s%plot_page%floor_plan_size_is_absolute) then
   draw_units = 'DATA'
@@ -871,8 +878,8 @@ endif
 ! Also place a bend's label to the outside of the bend.
 
 if (ele_shape%label == 'name') then
-  if (name_in /= '') then
-    name = name_in
+  if (dat_var_name /= '') then
+    name = dat_var_name
   elseif (ele%slave_status == multipass_slave$) then
     lord => pointer_to_lord(ele, 1)
     name = lord%name
@@ -1077,13 +1084,14 @@ type (ele_struct) ele
 type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
+real(rp) dat_var_value
 integer section_id, icol
 
-character(40) name_in
+character(40) dat_var_name, this_name
 
 ! Draw element shape...
 
-ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%lat_layout%ele_shape, name_in)
+ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%lat_layout%ele_shape, dat_var_name, dat_var_value)
 if (.not. associated(ele_shape)) return
 if (.not. ele_shape%draw) return
 
@@ -1109,7 +1117,9 @@ if (x2 < graph%x%min) return
 y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
 y1 = -y
 y2 =  y
-if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
+
+select case (ele_shape%shape)
+case ('VAR_BOX', 'ASYM_VAR_BOX')
   select case (ele%key)
   case (sbend$)
     y2 = y * ele%value(g$)
@@ -1124,13 +1134,20 @@ if (shape_name == 'VAR_BOX' .or. shape_name == 'ASYM_VAR_BOX') then
   end select
   y1 = -y2
   if (shape_name == 'ASYM_VAR_BOX') y1 = 0
-end if
+case ('VVAR_BOX')
+  y1 = -dat_var_value
+  y2 = dat_var_value
+case ('ASYM_VVAR_BOX')
+  y1 = 0
+  y2 = dat_var_value
+endselect
 
 y1 = max(graph%y%min, min(y1, graph%y%max))
 y2 = max(graph%y%min, min(y2, graph%y%max))
 
-if (name_in == '') name_in = ele%name
-call draw_shape_for_lat_layout (name_in, ele%s - ele%value(l$) / 2, ele_shape)
+this_name = dat_var_name
+if (this_name == '') this_name = ele%name
+call draw_shape_for_lat_layout (this_name, ele%s - ele%value(l$) / 2, ele_shape)
 
 end subroutine draw_ele_for_lat_layout
 

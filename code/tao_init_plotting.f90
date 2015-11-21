@@ -323,8 +323,12 @@ if (allocated(s%plot_page%lat_layout%ele_shape)) then
     if (e_shape%ele_id(1:6) == 'wall::') cycle
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
+    case ('VVAR_BOX', 'ASYM_VVAR_BOX')
+      if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
+        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id)
+      endif
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // e_shape%shape)
+      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape)
       call err_exit
     end select
   enddo
@@ -335,8 +339,12 @@ if (allocated(s%plot_page%floor_plan%ele_shape)) then
     e_shape => s%plot_page%floor_plan%ele_shape(i)
     select case (e_shape%shape)
     case ('BOX', 'VAR_BOX', 'ASYM_VAR_BOX', 'XBOX', 'DIAMOND', 'BOW_TIE', 'CIRCLE', 'X', 'NONE')
+    case ('VVAR_BOX', 'ASYM_VVAR_BOX')
+      if (e_shape%ele_id(1:6) /= 'data::' .and. e_shape%ele_id(1:5) /= 'var::') then
+        call out_io (s_error$, r_name, 'ELE_SHAPE WITH ', trim(e_shape%shape) // ' MUST BE ASSOCIATED WITH A DATUM OR VARIABLE! NOT: ' // e_shape%ele_id)
+      endif
     case default
-      call out_io (s_fatal$, r_name, 'ERROR: UNKNOWN ELE_SHAPE: ' // e_shape%shape)
+      call out_io (s_fatal$, r_name, 'UNKNOWN ELE_SHAPE: ' // e_shape%shape)
       call err_exit
     end select
   enddo
@@ -821,7 +829,7 @@ n_shape = 0
 do n = 1, size(ele_shape)
   s => ele_shape(n)
   ! Bmad wants ele names upper case but Tao data is case sensitive.
-  if (s%ele_id(1:5) /= 'dat::' .and. s%ele_id(1:5) /= 'var::' .and. &
+  if (s%ele_id(1:6) /= 'data::' .and. s%ele_id(1:5) /= 'var::' .and. &
       s%ele_id(1:5) /= 'lat::' .and. s%ele_id(1:6) /= 'wall::') call str_upcase (s%ele_id, s%ele_id)
   call str_upcase (s%shape,    s%shape)
   call str_upcase (s%color,    s%color)
