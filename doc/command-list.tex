@@ -755,6 +755,7 @@ variables, etc. Format:
   set geodesic_lm <component> = <value>
   set global <component> = <value>
   set graph <graph> <component> = <value>
+  set key <key> = <command>
   set lat_layout <component> = <value>
   set lattice \{n@\}<destination\_lat> = <source\_lat>
   set opti_de_param <component> = <value>
@@ -1038,6 +1039,26 @@ Example:
   set graph orbit.x component = model - design  
                           ! Plot model orbit - design orbit in the graph
 \end{example}
+
+
+%% set key --------------------------------------------------------------
+
+\vskip 0.1 in
+
+\item[set key <key> = <command>] \Newline
+
+\vskip -0.2in
+
+Binds a custom key in single mode to a command string. 
+This will override the default behavior of the key.
+The command \vn{default} will reset the key to its default usage.
+
+Example:
+\begin{example}
+  set key h = veto var *
+  set key j = default
+\end{example}
+
 
 %% set lat_layout --------------------------------------------------------------
 
