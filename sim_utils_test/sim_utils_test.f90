@@ -8,18 +8,34 @@ use bmad
 use str_find_first_substring_module
 use random_mod
 use nr
+use naff_mod
 
 implicit none
 
 type (coord_struct) orbit
-real(rp) array(4), dE
-integer i, which, where
+
+real(rp) array(4), dE, rr(64), ii(64), freq(64)
+complex(rp) amp(64)
+integer i, which, where, n_freq
 logical match
 character(40) str, sub1, sub2, sub3
 
 !
 
 open (1, file = 'output.now')
+
+! naff test
+
+do i = 1, size(rr)
+  rr(i) = cos(i / 3.0_rp)
+  ii(i) = 0 * cos(1 + i / 3.0_rp)
+enddo
+
+call naff (rr, ii, freq, amp, n_freq)
+write (1, '(a, i0)') '"naff-n_freq" ABS 0   ', n_freq
+write (1, '(a, 3es16.8)') '"naff-freq1" REL 1E-6   ', freq(1), amp(1)
+write (1, '(a, 3es16.8)') '"naff-freq2" REL 1E-6   ', freq(2), amp(2)
+write (1, '(a, 3es16.8)') '"naff-freq3" REL 1E-6   ', freq(3), amp(3)
 
 ! Random test
 

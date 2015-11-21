@@ -20,7 +20,7 @@
 "GR4[COMMAND]"          8.0000
 "GRN[A]"          0.0100
 "GRN[B]"          2.0000
-"GRN[string]"  "tan(A)*B"
+"GRN[string]"  "(tan(A)+B)*(0.1/C_LIGHT)^(A+0.2)-A-(1+2)"
 "Next-1"    0
 "Next-2"    1
 "Next-3"    2
