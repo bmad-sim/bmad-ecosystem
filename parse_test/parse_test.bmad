@@ -124,13 +124,13 @@ gzzz: group = {zz*[k1]}, var = {a}
 *[thickness] = 1.3
 *::*[b_param] = -1.1
 
-+*[thickness] = 2.1
+*[thickness] = 2.1
 
 expand_lattice
 
-+*[psi_angle] = 2.1
+*[psi_angle] = 2.1
 
 aa[k1] = 2
-+a*[tracking_method] = symp_lie_bmad
+a*[tracking_method] = symp_lie_bmad
 
 bmad_com[use_hard_edge_drifts] = F

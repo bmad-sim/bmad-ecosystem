@@ -30,5 +30,5 @@ gr1[command] = 7
 gr2[command] = 1
 gr3[command] = 0.2
 
-grn: group = {q1[x_offset]:tan(a)*b, q2[x_offset]:b^2*a}, var = {a,b}, a = 0.01
+grn: group = {q1[x_offset]:(tan(a)+b)*(0.1/c_light)^(a+0.2)-a-(1+2), q2[x_offset]:b^2*a}, var = {a,b}, a = 0.01
 grn[b] = 2
