@@ -282,6 +282,12 @@ do
               'ERROR: ELE_NAME IS BLANK BUT ELE_REF_NAME OR ELE_START_NAME IS NOT FOR: ' // line)
         call err_exit
       endif
+
+      if (index(datum(i)%data_type, 'dat::') /= 0) then
+        call out_io (s_error$, r_name, &
+                     'DATA_TYPE USES OLD "dat::" PREFIX. PLEASE CHANGE TO "data::": ' // datum(i)%data_type)
+        call err_exit
+      endif
     enddo
     call out_io (s_blank$, r_name, 'Init: Read tao_d1_data namelist: ' // d1_data%name)
 
