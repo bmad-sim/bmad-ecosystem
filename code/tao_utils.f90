@@ -1218,6 +1218,11 @@ if (this_err) return
 
 ! Trim 'data::' suffix if present
 
+if (index(dat_name, 'dat::') /= 0) then
+  call out_io (s_error$, r_name, 'NAME USES OLD "dat::" SYNTAX. PLEASE CHANGE TO "data::": ' // dat_name)
+  call err_exit
+endif
+
 if (dat_name(1:6) == 'data::') dat_name = dat_name(6:)
 
 ! Find the d2 data.
@@ -2908,6 +2913,13 @@ character(20) class
 logical, optional :: print_err
 logical err
 
+! 
+
+if (index(str, 'dat::') /= 0) then
+  call out_io (s_error$, r_name, 'NAME USES OLD "dat::" SYNTAX. PLEASE CHANGE TO "data::": ' // str)
+  call err_exit
+endif
+
 !
 
 err = .false.
@@ -3523,6 +3535,11 @@ do k = 1, size(ele_shape)
   if (.not. es%draw) cycle
 
   ! Data
+
+  if (index(es%ele_id, 'dat::') /= 0) then
+    call out_io (s_error$, r_name, 'SHAPE USES OLD "dat::" SYNTAX. PLEASE CHANGE TO "data::": ' // es%ele_id)
+    call err_exit
+  endif
 
   if (es%ele_id(1:6) == 'data::') then
     call tao_find_data (err, es%ele_id, d_array = d_array, log_array = logic_array, re_array = re_array)

@@ -18,10 +18,10 @@ contains
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_lat_data (err, data_name, values, print_err,
+! Subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err,
 !                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
 !
-! Routine to evaluate data "on-the-fly" of the form 
+! Routine to evaluate data with a lat or beam source of the form:
 !     <universe>@lat::<data_type>[<ix_ele_start>&<ix_ele>]|<component>
 !
 ! Input:
@@ -38,7 +38,7 @@ contains
 !   values(:) -- Real(rp), allocatable: Array of datum valuse.
 !-
 
-subroutine tao_evaluate_lat_data (err, data_name, values, print_err, &
+subroutine tao_evaluate_lat_or_beam_data (err, data_name, values, print_err, &
                          default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
 
 type (tao_data_struct) datum
@@ -50,7 +50,7 @@ character(*) data_name
 character(*) default_source
 character(*), optional :: dflt_component
 character(60) name, ele_name, component
-character(40) :: r_name = 'tao_evaluate_lat_data'
+character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:)
 
@@ -214,7 +214,7 @@ endif
 
 err = .false.
 
-end subroutine tao_evaluate_lat_data
+end subroutine tao_evaluate_lat_or_beam_data
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -3267,7 +3267,6 @@ parsing_loop: do
 
   ! If we are here then we have an operation that is waiting to be identified
 
-
   select case (delim)
   case ('+')
     i_delim = plus$
@@ -3286,7 +3285,6 @@ parsing_loop: do
     call out_io (s_error$, r_name, &
                       'DELIMITOR FOUND OUT OF PLACE: ' // delim, &
                       'IN EXPRESSION: ' // expression)
-
       return
   case default
     if (delim_found) then
@@ -3497,7 +3495,7 @@ endif
 ! Look for a lat datum.
 
 if (source == 'lat' .or. source == 'beam') then
-  call tao_evaluate_lat_data (err_flag, name, stack%value, print_err, &
+  call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, &
                                 dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_component)
   call re_allocate (stack%good, size(stack%value))
   stack%good = .not. err_flag
@@ -3520,6 +3518,8 @@ else
   err_flag = .true.
   print_error = print_err
   if (source == '') print_error = .false. ! Don't generate unnecessary messages
+
+  if (index(name, '|') == 0 .and. present(dflt_component)) name = trim(name) // '|' // trim(dflt_component)
   
   if (source == 'var' .or. source == '') then
     call tao_find_var (err_flag, name, re_array = re_array, print_err = print_error)

@@ -1979,14 +1979,6 @@ case ('lattice')
   do i = 1, size(column)
     if (column(i)%name == '') cycle
 
-    ! Convert from old 'dat::' format to 'lat::' format.
-    ix = index(column(i)%name, 'dat::')
-    if (ix /= 0) then
-      call out_io (s_error$, r_name, 'Column uses old "dat::" syntax. Please switch this to "lat::".', &
-                                     'For now, will accept this old syntax...')
-      column(i)%name = column(i)%name(1:ix-1) // 'lat' // column(i)%name(ix+3:)
-    endif
-
     ! Use finer scale for s if needed.
 
     if (what_to_print /= 'custom' .and. column(i)%name == 'ele::#[s]') then
