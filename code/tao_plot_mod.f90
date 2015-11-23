@@ -324,7 +324,7 @@ type (branch_struct), pointer :: branch
 real(rp) theta, v_vec(3), theta1, dtheta, dat_var_value
 real(rp) x_bend(0:1000), y_bend(0:1000)
 
-integer i, j, k, n, n_bend, isu, ic, ib, icol
+integer i, j, k, n, n_bend, isu, ic, ib, icol, ix_shape, ix_shape_min
 
 character(40) dat_var_name
 character(20) :: r_name = 'tao_draw_floor_plan'
@@ -369,16 +369,25 @@ do n = 0, ubound(lat%branch, 1)
   branch%ele%logic = .false.  ! Used to mark as drawn.
   do i = 0, branch%n_ele_max
     ele => branch%ele(i)
-    ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape, dat_var_name, dat_var_value)
-    if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) cycle   ! Nothing to draw
-    if (ele%lord_status == multipass_lord$) then
-      do j = ele%ix1_slave, ele%ix2_slave
-        ic = lat%control(j)%slave%ix_ele
-        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, branch%ele(ic), dat_var_name, dat_var_value, ele_shape)
-      enddo
-    else
-      call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, dat_var_name, dat_var_value, ele_shape)
-    endif
+
+    ix_shape_min = 1
+    do
+      ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%floor_plan%ele_shape(ix_shape_min:), &
+                                                                             dat_var_name, dat_var_value, ix_shape)
+      if (ele%ix_ele > branch%n_ele_track .and. .not. associated(ele_shape)) exit   ! Nothing to draw
+      if (ele%lord_status == multipass_lord$) then
+        do j = ele%ix1_slave, ele%ix2_slave
+          ic = lat%control(j)%slave%ix_ele
+          call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, branch%ele(ic), dat_var_name, dat_var_value, ele_shape)
+        enddo
+      else
+        call tao_draw_ele_for_floor_plan (plot, graph, isu, lat, ele, dat_var_name, dat_var_value, ele_shape)
+      endif
+      if (.not. associated(ele_shape)) exit
+      if (.not. ele_shape%multi) exit
+      ix_shape_min = ix_shape_min + ix_shape
+    enddo
+
   enddo
 enddo
 
@@ -504,7 +513,7 @@ type (floor_position_struct) end1, end2, floor, x_ray
 type (tao_building_wall_point_struct), pointer :: pt(:)
 type (tao_ele_shape_struct), pointer :: ele_shape, branch_shape
 
-integer ix_uni, i, j, k, icol, isu, n_bend, n, ix, ic, n_mid
+integer ix_uni, i, j, k, icol, n_bend, n, ix, ic, n_mid
 
 real(rp) off, off1, off2, angle, rho, dx1, dy1, dx2, dy2, ang, length
 real(rp) dt_x, dt_y, x_center, y_center, dx, dy, theta, e_edge, dat_var_value
@@ -530,7 +539,8 @@ logical shape_has_box, is_bend
 call find_element_ends (ele, ele1, ele2)
 if (.not. associated(ele1)) return
 
-is_data_or_var = associated(ele_shape) .and. (ele_shape%ele_id(1:6) == 'data::' .or. ele_shape%ele_id(1:5) == 'var::')
+is_data_or_var = .false.
+if (associated(ele_shape)) is_data_or_var = (ele_shape%ele_id(1:6) == 'data::' .or. ele_shape%ele_id(1:5) == 'var::')
 
 if (is_data_or_var) then  ! pretend this is zero length element
   ele1 => ele2
@@ -1008,7 +1018,7 @@ call qp_draw_line (graph%x%min, graph%x%max, 0.0_rp, 0.0_rp)
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
   if (ele%slave_status == super_slave$) cycle
-  call draw_ele_for_lat_layout (ele)
+  call draw_ele_for_lat_layout (ele, graph)
 enddo
 
 ! Loop over all control elements.
@@ -1018,7 +1028,7 @@ do i = lat%n_ele_track+1, lat%n_ele_max
   if (ele%lord_status == multipass_lord$) cycle
   branch2 => pointer_to_branch(ele)
   if (branch2%ix_branch /= branch%ix_branch) cycle
-  call draw_ele_for_lat_layout (ele)
+  call draw_ele_for_lat_layout (ele, graph)
 enddo
 
 ! Draw x-axis min max
@@ -1078,76 +1088,84 @@ endif
 !--------------------------------------------------------------------------------------------------
 contains 
 
-subroutine draw_ele_for_lat_layout (ele)
+subroutine draw_ele_for_lat_layout (ele, graph)
 
 type (ele_struct) ele
+type (tao_graph_struct) graph
 type (ele_struct), pointer :: ele1, ele2
 type (tao_ele_shape_struct), pointer :: ele_shape
 
 real(rp) dat_var_value
-integer section_id, icol
+integer section_id, icol, ix_shape_min, ix_shape
 
 character(40) dat_var_name, this_name
 
 ! Draw element shape...
 
-ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%lat_layout%ele_shape, dat_var_name, dat_var_value)
-if (.not. associated(ele_shape)) return
-if (.not. ele_shape%draw) return
+ix_shape_min = 1
+do
+  ele_shape => tao_pointer_to_ele_shape (isu, ele, s%plot_page%lat_layout%ele_shape(ix_shape_min:), &
+                                                                      dat_var_name, dat_var_value, ix_shape)
+  if (.not. associated(ele_shape)) return
+  if (.not. ele_shape%draw) return
 
-shape_name = ele_shape%shape
+  shape_name = ele_shape%shape
 
-call find_element_ends (ele, ele1, ele2)
-if (.not. associated(ele1)) return
-if (ele1%ix_branch /= graph%ix_branch) return
-x1 = ele1%s
-x2 = ele2%s
-! If out of range then try a negative position
-if (branch%param%geometry == closed$ .and. x1 > graph%x%max) then
-  x1 = x1 - lat_len
-  x2 = x2 - lat_len
-endif
-  
-if (x1 > graph%x%max) return
-if (x2 < graph%x%min) return
+  call find_element_ends (ele, ele1, ele2)
+  if (.not. associated(ele1)) return
+  if (ele1%ix_branch /= graph%ix_branch) return
+  x1 = ele1%s
+  x2 = ele2%s
+  ! If out of range then try a negative position
+  if (branch%param%geometry == closed$ .and. x1 > graph%x%max) then
+    x1 = x1 - lat_len
+    x2 = x2 - lat_len
+  endif
+    
+  if (x1 > graph%x%max) return
+  if (x2 < graph%x%min) return
 
-! Here if element is to be drawn...
-! r1 and r2 are the scale factors for the lines below and above the center line.
+  ! Here if element is to be drawn...
+  ! r1 and r2 are the scale factors for the lines below and above the center line.
 
-y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
-y1 = -y
-y2 =  y
+  y = ele_shape%size * s%plot_page%lat_layout_shape_scale 
+  y1 = -y
+  y2 =  y
 
-select case (ele_shape%shape)
-case ('VAR_BOX', 'ASYM_VAR_BOX')
-  select case (ele%key)
-  case (sbend$)
-    y2 = y * ele%value(g$)
-  case (quadrupole$)
-    y2 = y * ele%value(k1$)
-  case (sextupole$)
-    y2 = y * ele%value(k2$)
-  case (octupole$)
-    y2 = y * ele%value(k3$)
-  case (solenoid$)
-    y2 = y * ele%value(ks$)
-  end select
-  y1 = -y2
-  if (shape_name == 'ASYM_VAR_BOX') y1 = 0
-case ('VVAR_BOX')
-  y1 = -dat_var_value
-  y2 = dat_var_value
-case ('ASYM_VVAR_BOX')
-  y1 = 0
-  y2 = dat_var_value
-endselect
+  select case (ele_shape%shape)
+  case ('VAR_BOX', 'ASYM_VAR_BOX')
+    select case (ele%key)
+    case (sbend$)
+      y2 = y * ele%value(g$)
+    case (quadrupole$)
+      y2 = y * ele%value(k1$)
+    case (sextupole$)
+      y2 = y * ele%value(k2$)
+    case (octupole$)
+      y2 = y * ele%value(k3$)
+    case (solenoid$)
+      y2 = y * ele%value(ks$)
+    end select
+    y1 = -y2
+    if (shape_name == 'ASYM_VAR_BOX') y1 = 0
+  case ('VVAR_BOX')
+    y1 = -dat_var_value
+    y2 = dat_var_value
+  case ('ASYM_VVAR_BOX')
+    y1 = 0
+    y2 = dat_var_value
+  endselect
 
-y1 = max(graph%y%min, min(y1, graph%y%max))
-y2 = max(graph%y%min, min(y2, graph%y%max))
+  y1 = max(graph%y%min, min(y1, graph%y%max))
+  y2 = max(graph%y%min, min(y2, graph%y%max))
 
-this_name = dat_var_name
-if (this_name == '') this_name = ele%name
-call draw_shape_for_lat_layout (this_name, ele%s - ele%value(l$) / 2, ele_shape)
+  this_name = dat_var_name
+  if (this_name == '') this_name = ele%name
+  call draw_shape_for_lat_layout (this_name, ele%s - ele%value(l$) / 2, ele_shape)
+
+  if (.not. ele_shape%multi) return
+  ix_shape_min = ix_shape_min + ix_shape
+enddo
 
 end subroutine draw_ele_for_lat_layout
 

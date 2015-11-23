@@ -44,7 +44,6 @@ type (tao_curve_struct), pointer :: c1
 type (tao_plot_region_struct), pointer :: region
 type (tao_d1_data_array_struct), allocatable, save :: d1_array(:)
 type (tao_data_array_struct), allocatable, save :: d_array(:)
-type (tao_ele_shape_struct), pointer :: shape
 type (beam_struct), pointer :: beam
 type (beam_init_struct), pointer :: beam_init
 type (lat_struct), pointer :: lat

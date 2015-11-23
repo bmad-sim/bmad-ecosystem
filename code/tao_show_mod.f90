@@ -2460,16 +2460,16 @@ case ('plot')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
+          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw  Multi'
     nl=nl+1; lines(nl) = &
-          '----------  ----------------------------    --------      -----           ----  -----  ----'
+          '----------  ----------------------------    --------      -----           ----  -----  ----  -----'
 
     do i = 1, size(s%plot_page%floor_plan%ele_shape)
       shape => s%plot_page%floor_plan%ele_shape(i)
       if (shape%ele_id == '') cycle
-      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 2x, l1, 5x, l1)') &
                 'shape', i, shape%ele_id(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw
+                shape%size, shape%label, shape%draw, shape%multi
     enddo
 
     result_id = 'plot:floor_plan'
@@ -2482,16 +2482,16 @@ case ('plot')
     nl=nl+1; lines(nl) = ' '
     nl=nl+1; lines(nl) = 'Element Shapes:'
     nl=nl+1; lines(nl) = &
-          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw'
+          'Shape_Name  Ele_Name                        Shape         Color           Size  Label  Draw  Multi'
     nl=nl+1; lines(nl) = &
-          '----------  ----------------------------    --------      -----           ----  -----  ----'
+          '----------  ----------------------------    --------      -----           ----  -----  ----  -----'
 
     do i = 1, size(s%plot_page%lat_layout%ele_shape)
       shape => s%plot_page%lat_layout%ele_shape(i)
       if (shape%ele_id == '') cycle
-      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 1x, l2, 4x, a)') &
+      nl=nl+1; write(lines(nl), '(a, i0, t13, 3a, f10.1, 2x, a6, 2x, l1, 5x, l1)') &
                 'shape', i, shape%ele_id(1:32), shape%shape(1:14), shape%color(1:10), &
-                shape%size, shape%label, shape%draw
+                shape%size, shape%label, shape%draw, shape%multi
     enddo
 
     result_id = 'plot:lat_layout'
