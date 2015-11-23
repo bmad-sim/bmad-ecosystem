@@ -235,7 +235,7 @@ indicates that the xsif parser is to be used. Alternatively, a
 format. 
 \vn{design_lattice(2)} in the example also specifies a ``secondary
 lattice file'' called \vn{floor_coords.bmad} which will be parsed
-after the ``primary'' \vn{that.lat} file is read. This seconday
+after the ``primary'' \vn{that.lat} file is read. This secondary
 lattice file must only have statements that are valid post lattice
 expansion.  See the \bmad manual manual for a discussion of lattice
 expansion. A secondary lattice file must be in Bmad standard
@@ -293,7 +293,7 @@ then after initialization, the names will be:
 \begin{example}
         QA##1  QB##1  QX    QA##2  QB##2   QB##3
 \end{example}
-Using \vn{\#\#?"} as the suffix is convienient since it corresponds
+Using \vn{\#\#?"} as the suffix is convenient since it corresponds
 to the \bmad standard convention for distinguishing elements of the
 same name. See the \bmad manual for more details on this.
 
@@ -377,7 +377,7 @@ type tao_global_struct
   logical opt_with_base = F             ! use base data in optimization?
   logical optimizer_var_limit_warn = T  ! Warn when vars reach a limit when optimizing?
   logical plot_on = T                   ! Do plotting?
-  logical rf_on = F                     ! RFcavities on?
+  logical rf_on = F                     ! RF cavities on?
   logical svd_retreat_on_merit_increase = T    
   logical var_limits_on = T             ! Respect the variable limits?
   logical var_limit_only_used = F       ! Apply limits only if variable is used in optimization?
@@ -456,7 +456,7 @@ outside of the limits, the value is set at the limit and the
 variable's \vn{good_user} parameter is set to \vn{False} so it will
 not be further varied in the optimization.  The
 \vn{global%var_limit_only_used} switch controls whether only the
-varialbes being optimized are limited or whether all variables are
+variables being optimized are limited or whether all variables are
 limited. The \vn{global%optimizer_var_limit_warn} switch controls
 whether a warning is printed when a variable value goes past a limit.
 
@@ -1419,7 +1419,7 @@ plots go. The syntax of this block is:
     plot_page%legend_text_scale      = <num>    ! Relative to text_height. Def = 0.8
     plot_page%key_table_text_scale   = <num>    ! Relative to text_height. Def = 0.9
     plot_page%floor_plan_size_is_absolute = <logical>  ! Floor plan shape sizes
-                                                       ! scalled to absolute dimensions?
+                                                       ! scaled to absolute dimensions?
     plot_page%floor_plan_shape_scale = <num>    ! Floor_plan shape size scaling.
     plot_page%lat_layout_shape_scale = <num>    ! Lat_layout shape size scaling.
     plot_page%title(i)               = <string>, {<x>, <y>, "<units>", "<justify>"}
@@ -2167,7 +2167,7 @@ An overall rotation of the floor plan can be controlled by setting
 rotations. Example: (\sref{s:init.plot})
 \begin{example}
   &tao_plot_page
-    graph%floor_plan_rotation = 0.5  ! Rotate 180 degress
+    graph%floor_plan_rotation = 0.5  ! Rotate 180 degrees
   /
 \end{example}
 
@@ -2234,7 +2234,7 @@ good for a layout will not necessarily be good for a floor plan.
 The namelist syntax is the same for both:
 \begin{example}
   &lat_layout_drawing
-    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> 
+    ele_shape(i) = "<name>" "<shape>" "<color>" "<size>" "<label>" <draw> <multi>
   /
 
   &floor_plan_drawing
@@ -2244,24 +2244,34 @@ The namelist syntax is the same for both:
 For Example:                 
 \begin{example}
   &floor_plan_drawing
-    !               ele_id                   Shape      Color     Size     Label Draw?
+    !               ele_id                   Shape      Color     Size     Label Draw? Multi?
     ele_shape(1) = "quadrupole::q*"          "box"      "red"     0.75     "name"  T    
     ele_shape(2) = "quadrupole::*"           "xbox"     "red"     0.75     "none" 
-    ele_shape(3) = "sbend::*"                "box"      "blue"    0.37     "none"  F
-    ele_shape(4) = "wiggler::*"              "xbox"     "green"   0.50     "name"
+    ele_shape(3) = "sbend::sb*"              "box"      "blue"    0.37     "none"  T    T
+    ele_shape(3) = "sbend::*"                "box"      "blue"    0.37     "none"  
+    ele_shape(4) = "wiggler::*"              "xbox"     "green"   0.50     "name"  F
     ele_shape(5) = "var::quad_k1"            "circle"   "purple"  0.25     "name"
     ele_shape(6) = "data::orbit.x|design"    "vvar_box" "orange"  0.25     "name"
     ele_shape(7) = "wall::building"          "-"        "black"    0       "-"
   /
 \end{example}
-A figure is drawn for each lattice element in the lattice that matches the
-\vn{<ele_id>} specification (\sref{s:ele.list.format}) of any \vn{ele_shape(:)}.
-Thus, in the example above, \vn{ele_shape(1)} will match to all
-quadrupoles whose name begins with ``q'' and \vn{ele_shape(2)} will
-match all quadrupoles. If an element matches more than one shape the
-first shape matched will be used. For a floor plan, for \vn{wiggler}s that have an
-\vn{x_ray_line_len} attribute, The X-ray line will be drawn if an
-\vn{ele_shape} for a \vn{photon_branch} is present.
+A figure is drawn for each lattice element in the lattice that matches
+the \vn{<ele_id>} specification (\sref{s:ele.list.format}) of any
+\vn{ele_shape(:)}.  Thus, in the example above, \vn{ele_shape(1)} will
+match to all quadrupoles whose name begins with ``q'' and
+\vn{ele_shape(2)} will match all quadrupoles. If an element matches
+more than one shape, what is drawn depends upon the setting of
+\vn{<multi>}. If \vn{<multi>} is False (the default) for the first
+shape matched in the list of shapes, only this shape will be used.  If
+\vn{<multi>} is True for the first shape matched, \tao will look for
+additional matches. Each time a match is found, the setting of
+\vn{<multi>} for that shape will be used to determine whether
+additional shapes are searched for.
+
+For a floor plan, for \vn{wiggler}s or \vn{undulators} that have an
+\vn{x_ray_line_len} attribute (see the \bmad manual), The X-ray line
+will be drawn if an \vn{ele_shape} for a \vn{photon_branch} is
+present.
 
 Use the \vn{show plot -shape} command to see the defined shapes.  use
 the \vn{set shape} command (\sref{s:set})) to set shape parameters on the
@@ -2277,9 +2287,9 @@ drawn where the data is being evaluated but only for datums whose
 \vn{useit_opt} parameter is True.
 
 For \vn{floor_plan} drawings, the building wall
-(\sref{s:building.wall}) can be drawn by specifying an \vn{ele_sape}
+(\sref{s:building.wall}) can be drawn by specifying an \vn{ele_shape}
 whose name is \vn{"wall::building"}. For the building wall, the only
-\vn{ele_shape} attribute that is relavent is the \vn{color}.
+\vn{ele_shape} attribute that is relevant is the \vn{color}.
 
 The \vn{<shape>} parameter is the shape of the figure
 drawn. Valid Shapes are:
@@ -2307,7 +2317,7 @@ transverse to the longitudinal dimension. For \vn{lat_layout}
 drawings, \vn{<size>} = 1.0 corresponds to full scale if the default
 \vn{graph%y%min} = -1 and \vn{graph%y%max} = 1 are used. For For
 {floor_plan} drawings, to determine the size of a shape, \vn{<size>}
-is combinded with the \vn{plot_page} (\sref{s:init.plot}) parameter
+is combined with the \vn{plot_page} (\sref{s:init.plot}) parameter
 \begin{example}
   floor_plan_size_is_absolute  ! Default: False.
 \end{example}
@@ -2353,7 +2363,7 @@ The overall size of all the shapes can be scaled using the
 \end{example}
 
 The text size in both \vn{floor_plan} and \vn{lat_layout}
-plots can be scalled by using the \vn{plot_page} parameter
+plots can be scaled by using the \vn{plot_page} parameter
 \begin{example}
   legend_text_scale          ! Default = 1
 \end{example}

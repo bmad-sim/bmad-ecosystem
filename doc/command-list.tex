@@ -37,7 +37,7 @@ Example:
   change \{-silent\} variable <name>[<locations>] <number>
 \end{example}
 Here the \vn{-silent} argument is optional while the \vn{variable} argument
-is manditory. Appropriate values for \vn{<name>}, \vn{<locations>},
+is mandatory. Appropriate values for \vn{<name>}, \vn{<locations>},
 and \vn{<number>} must be substituted. A possible 
 
 \begin{example}
@@ -795,7 +795,7 @@ Where \vn{<value>} may be one of:
   'MAGENTA'
   'CYAN'
   'GRAY'
-  'DEFAULT'       ! Default forground color
+  'DEFAULT'       ! Default foreground color
 \end{example}
 
 % Use the command:
@@ -1049,8 +1049,8 @@ Example:
 
 \vskip -0.2in
 
-Binds a custom key in single mode to a command string. 
-This will override the default behavior of the key.
+Binds a custom command to a key for use in single mode (\sref{c:single}).
+This will override the default behavior (if there is one) of the key.
 The command \vn{default} will reset the key to its default usage.
 
 Example:
@@ -1262,7 +1262,7 @@ For \vn{set var}, the \vn{<component>}s that can be set are:
   good_user   ! This is what is set by the use, veto, and restore commands.
   step        ! Sets what a "small" variation of the variable is.
   merit_type  ! How merit contribution is calculated.
-  key_bound   ! Model value can be modified using keybard?
+  key_bound   ! Model value can be modified using keyboard?
   key_delta   ! Change in model value when key is pressed.
 \end{example}
 
@@ -1746,7 +1746,7 @@ center of an element. That is the \vn{-middle} switch will have no
 effect on such constructs.
 
 Instead of defining a custom file, the \vn{-attribute <attrib>} switch
-can be used as a shortcut way for custimizing the output columns.
+can be used as a shortcut way for customizing the output columns.
 When using the \vn{-attribute} switch, the first five columns are the
 the same default columns of \vn{index}, \vn{name}, \vn{element key},
 \vn{s} and \vn{length}. All additional columns are determined by the

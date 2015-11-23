@@ -39,8 +39,8 @@ type (tao_graph_input) :: graph, default_graph, master_default_graph
 type (tao_region_input) region(n_region_maxx)
 type (tao_curve_input) curve(n_curve_maxx), curve1, curve2, curve3, curve4
 type (tao_place_input) place(10)
-type (old_tao_ele_shape_struct) shape(20)
-type (tao_ele_shape_struct) ele_shape(20)
+type (old_tao_ele_shape_struct) shape(30)
+type (tao_ele_shape_struct) ele_shape(30)
 type (tao_ele_shape_struct), pointer :: e_shape
 type (qp_symbol_struct) default_symbol
 type (qp_line_struct) default_line
@@ -198,6 +198,8 @@ enddo
 ! Look for old style namelist 
 
 rewind (iu)
+ele_shape(:) = tao_ele_shape_struct()
+
 shape(:)%key_name = ''
 shape(:)%ele_name = ''
 
@@ -210,7 +212,7 @@ if (ios > 0) then
 endif
 
 if (ios == 0) then
-  call out_io (s_warn$, r_name, 'ELEMNET_SHAPES NAMELIST IS DEPRECATED.', &
+  call out_io (s_error$, r_name, 'ELEMNET_SHAPES NAMELIST IS DEPRECATED.', &
                                 'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.')
   do i = 1, size(shape)
     ele_shape(i)%ele_id = shape(i)%ele_name
@@ -239,23 +241,19 @@ if (ios < 0) then
 
   ! Read floor_plan_drawing namelist
 
-  ele_shape(:)%ele_id     = ''
-  ele_shape(:)%label      = 'name'
-  ele_shape(:)%draw       = .true.
-
   rewind (iu)
   read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
   rewind (iu)
   read (iu, nml = floor_plan_drawing, iostat = ios2)
 
-!  if (ios1 >= 0) then
-!    call out_io (s_warn$, r_name, &
-!            'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
-!            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
-!            '      now is used to specify more than element shapes. Please     ', &
-!            '      make the appropriate change in your input file.             ', &
-!            'For now, Tao will accept the old namelist name...                 ')
-!  endif
+  if (ios1 >= 0) then
+    call out_io (s_error$, r_name, &
+            'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
+            '      "floor_plan_drawing to reflect the fact that this namelist  ', &
+            '      now is used to specify more than element shapes. Please     ', &
+            '      make the appropriate change in your input file.             ', &
+            'For now, Tao will accept the old namelist name...                 ')
+  endif
 
   if (ios1 > 0) then 
     rewind (iu)
@@ -275,23 +273,21 @@ if (ios < 0) then
 
   ! Read element_shapes_lat_layout namelist
 
-  ele_shape(:)%ele_id     = ''
-  ele_shape(:)%label      = 'name'
-  ele_shape(:)%draw       = .true.
+  ele_shape(:) = tao_ele_shape_struct()
 
   rewind (iu)
   read (iu, nml = element_shapes_lat_layout, iostat = ios1)
   rewind (iu)
   read (iu, nml = lat_layout_drawing, iostat = ios2)
 
-!  if (ios1 == 0) then
-!    call out_io (s_warn$, r_name, &
-!            'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
-!            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
-!            '      now is used to specify more than element shapes. Please       ', &
-!            '      make the appropriate change in your input file.               ', &
-!            'For now, Tao will accept the old namelist name...                   ')
-!  endif
+  if (ios1 == 0) then
+    call out_io (s_error$, r_name, &
+            'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
+            '      "lattice_list_drawing to reflect the fact that this namelist  ', &
+            '      now is used to specify more than element shapes. Please       ', &
+            '      make the appropriate change in your input file.               ', &
+            'For now, Tao will accept the old namelist name...                   ')
+  endif
 
   if (ios1 == 0) then
     ele_shape(:)%size = ele_shape(:)%size * 1.0 / 40.0 ! scale to current def.
@@ -857,31 +853,31 @@ type (tao_plot_struct), target :: default_plot_g1c1, default_plot_g1c2, default_
 type (tao_plot_struct), allocatable :: temp_template(:)
 type (tao_plot_region_struct), allocatable :: temp_region(:)
 type (tao_ele_shape_struct) :: dflt_lat_layout(25) = [&
-      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   fork$, '*'), &
-      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   crystal$, '*'), &
-      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   detector$, '*'), &
-      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   diffraction_plate$, '*'), &
-      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   e_gun$, '*'), &
-      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   em_field$, '*'), &
-      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  ecollimator$, '*'), &
-      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  instrument$, '*'), &
-      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   lcavity$, '*'), &
-      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  marker$, '*'), &
-      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   mirror$, '*'), &
-      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  monitor$, '*'), &
-      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   multilayer_mirror$, '*'), &
-      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  octupole$, '*'), &
-      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   photon_fork$, '*'), &
-      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   quadrupole$, '*'), &
-      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  rcollimator$, '*'), &
-      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   rfcavity$, '*'), &
-      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   sample$, '*'), &
-      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   sbend$, '*'), &
-      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   sextupole$, '*'), &
-      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  sol_quad$, '*'), &
-      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   solenoid$, '*'), &
-      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   wiggler$, '*'), &
-      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   photon_init$, '*') ]
+      tao_ele_shape_struct('FORK::*',              'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., fork$, '*'), &
+      tao_ele_shape_struct('CRYSTAL::*',           'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., crystal$, '*'), &
+      tao_ele_shape_struct('DETECTOR::*',          'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., detector$, '*'), &
+      tao_ele_shape_struct('DIFFRACTION_PLATE::*', 'BOX',    'CYAN',    0.30_rp, 'name', .true.,   .false., diffraction_plate$, '*'), &
+      tao_ele_shape_struct('E_GUN::*',             'XBOX',   'RED',     0.40_rp, 'name', .true.,   .false., e_gun$, '*'), &
+      tao_ele_shape_struct('EM_FIELD::*',          'XBOX',   'BLUE',    0.40_rp, 'name', .true.,   .false., em_field$, '*'), &
+      tao_ele_shape_struct('ECOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., ecollimator$, '*'), &
+      tao_ele_shape_struct('INSTRUMENT::*',        'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., instrument$, '*'), &
+      tao_ele_shape_struct('LCAVITY::*',           'XBOX',   'RED',     0.50_rp, 'none', .true.,   .false., lcavity$, '*'), &
+      tao_ele_shape_struct('MARKER::*',            'BOX',    'BLUE',    0.30_rp, 'name', .false.,  .false., marker$, '*'), &
+      tao_ele_shape_struct('MIRROR::*',            'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., mirror$, '*'), &
+      tao_ele_shape_struct('MONITOR::*',           'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., monitor$, '*'), &
+      tao_ele_shape_struct('MULTILAYER_MIRROR::*', 'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., multilayer_mirror$, '*'), &
+      tao_ele_shape_struct('OCTUPOLE::*',          'BOX',    'BLACK',   0.30_rp, 'name', .false.,  .false., octupole$, '*'), &
+      tao_ele_shape_struct('PHOTON_FORK::*',       'CIRCLE', 'RED',     0.15_rp, 'name', .true.,   .false., photon_fork$, '*'), &
+      tao_ele_shape_struct('QUADRUPOLE::*',        'XBOX',   'MAGENTA', 0.37_rp, 'name', .true.,   .false., quadrupole$, '*'), &
+      tao_ele_shape_struct('RCOLLIMATOR::*',       'XBOX',   'BLUE',    0.20_rp, 'name', .false.,  .false., rcollimator$, '*'), &
+      tao_ele_shape_struct('RFCAVITY::*',          'XBOX',   'RED',     0.50_rp, 'name', .true.,   .false., rfcavity$, '*'), &
+      tao_ele_shape_struct('SAMPLE::*',            'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., sample$, '*'), &
+      tao_ele_shape_struct('SBEND::*',             'BOX',    'BLACK',   0.20_rp, 'none', .true.,   .false., sbend$, '*'), &
+      tao_ele_shape_struct('SEXTUPOLE::*',         'XBOX',   'GREEN',   0.37_rp, 'none', .true.,   .false., sextupole$, '*'), &
+      tao_ele_shape_struct('SOL_QUAD::*',          'BOX',    'BLACK',   0.40_rp, 'name', .false.,  .false., sol_quad$, '*'), &
+      tao_ele_shape_struct('SOLENOID::*',          'BOX',    'BLUE',    0.30_rp, 'name', .true.,   .false., solenoid$, '*'), &
+      tao_ele_shape_struct('WIGGLER::*',           'XBOX',   'CYAN',    0.50_rp, 'name', .true.,   .false., wiggler$, '*'), &
+      tao_ele_shape_struct('PHOTON_INIT::*',       'BOX',    'BLACK',   0.30_rp, 'name', .true.,   .false., photon_init$, '*') ]
 
 real(rp) y_layout, dx, dy, dz
 integer np, n, nr

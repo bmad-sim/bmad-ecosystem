@@ -62,14 +62,15 @@ end type
 !----------------------------------------------------------------------
 
 type tao_ele_shape_struct    ! for the element layout plot
-  character(60) ele_id       ! element "key::name" to match to.
-  character(16) shape        ! Shape to draw
-  character(16) color        ! Color of shape
-  real(rp) size              ! plot vertical height 
-  character(16) label        ! Can be: 'name', 's', 'none' 
-  logical draw               ! Draw the shape?
-  integer ix_ele_key         ! Extracted from ele_id. 0 => all classes (quadrupole, etc.) 
-  character(40) name_ele     ! Name of element
+  character(60) :: ele_id = ''       ! element "key::name" to match to.
+  character(16) :: shape = ''        ! Shape to draw
+  character(16) :: color = 'black'   ! Color of shape
+  real(rp) :: size = 0               ! plot vertical height 
+  character(16) :: label = 'name'    ! Can be: 'name', 's', 'none' 
+  logical :: draw = .true.           ! Draw the shape?
+  logical :: multi = .false.         ! Can be part of a multi-shape.
+  integer :: ix_ele_key = 0          ! Extracted from ele_id. 0 => all classes (quadrupole, etc.) 
+  character(40) :: name_ele = ''     ! Name of element
 end type
 
 type tao_drawing_struct

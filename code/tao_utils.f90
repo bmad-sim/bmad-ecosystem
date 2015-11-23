@@ -3462,7 +3462,7 @@ end function tao_beam_emit_calc
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value) result (e_shape)
+! Function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
 !
 ! Routine to return the shape associated with a lattice element
 !
@@ -3478,9 +3478,10 @@ end function tao_beam_emit_calc
 !                       Will be set to "" if there is no associated datum or variable.
 !   dat_var_value -- real(rp), optional: Value of datum or variable associated with e_shape.
 !                       Will be set to zero if there is no associated datum or variable.
+!   ix_shape      -- integer, optional: Index of associated shape in ele_shape(:).
 !-
 
-function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value) result (e_shape)
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape) result (e_shape)
 
 implicit none
 
@@ -3497,6 +3498,7 @@ type (tao_real_pointer_struct), allocatable :: re_array(:)
 
 real(rp), optional :: dat_var_value
 
+integer, optional :: ix_shape
 integer ix_uni
 integer j, j2, k, n_ele_track
 
@@ -3517,7 +3519,7 @@ if (ele%slave_status == super_slave$) return
 
 do k = 1, size(ele_shape)
   es => ele_shape(k)
-
+  if (present(ix_shape)) ix_shape = k
   if (.not. es%draw) cycle
 
   ! Data
