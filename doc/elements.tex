@@ -3720,21 +3720,21 @@ Attributes specific to a \vn{taylor} element are:
   \{<out>: <coef>, <e1> <e2> <e3> <e4> <e5> <e6>\}  ! Taylor term. First form.
   \{<out>: <coef> | <n1> <n2> ...\}                 ! Taylor term. Second form.
 \end{example}
-A Taylor term has a corfficient \vn{<coef>} which is a real number,
-integer exponents \vn{<e1>}, \vn{<n1>}, etc., and \vn{<out>} signifies
-which output variable the Taylor term is associated with. \vn{<Out>}
-is an integer in the range 1 to 6 for orbital phase space variables
-(\vn{<out>} = 1 for $x$, etc.), and if the term is associated with
-spin, \vn{<out>} is a two character string with each character being
-one of ``\vn{x}'', ``\vn{y}'', or ``\vn{z}''
-
 Notice that the first form above uses a comma ``,'' to separate the
 \vn{<coef>} from \vn{<e1>}, while the second form uses a vertical bar
 ``|'' to separate \vn{<coef>} from \vn{<n1>}.
 
-For orbital phase space varialbes a term in a Taylor map is of the form
+A Taylor term has a corfficient \vn{<coef>} which is a real number,
+integer exponents \vn{<e1>}, \vn{<n1>}, etc., and \vn{<out>} signifies
+which output variable the Taylor term is associated with.  For orbital
+phase space variables \vn{<Out>} is an integer in the range 1 to 6
+with \vn{<out>} = 1 for $x$, etc. For terms associated with spin,
+\vn{<out>} is a two character string with each character being
+one of ``\vn{x}'', ``\vn{y}'', or ``\vn{z}''. 
+
+For orbital phase space variables a term in a Taylor map is of the form
 \Begineq
-  x_j({\rm out}) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}({\rm in})
+  x_j(\Out) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}(\In)
 \Endeq
 where $\Bf x = (x, p_x, y, p_y, z, p_z)$. A term in a Taylor map can
 be specified by one of two forms as shown above. The first form specifies
@@ -3742,7 +3742,7 @@ the six exponents $e_i$ using the integers \vn{<e1>} corresponding to
 $e_1$, \vn{<e2>} corresponding to $e_2$, etc.  For example, a term in
 a Taylor map that was
 \Begineq
-  p_y({\rm out}) = 2.73 \cdot y^2({\rm in}) \, p_z({\rm in})
+  p_y(\Out) = 2.73 \cdot y^2(\In) \, p_z(\In)
 \Endeq
 would be written as
 \begin{example}
@@ -3777,6 +3777,21 @@ Which is equivalent to
   \{5: 1.0 | 5\}
   \{6: 1.0 | 6\}
 \end{example}
+
+For spin, a Taylor map is associated with one of the components in the
+3x3 spin map matrix (\sref{s:spin.map}). An individual Taylor term is
+of the form
+\Begineq
+  S_j(\Out) = C \cdot \Pi_{i = 1}^6 \, x_i^{e_i}(\In) \, S_k(\In)
+\Endeq
+For example
+\begin{example}
+  \{xz: 0.43 | 1 3 \}
+\end{example}
+is equivalent to
+\Begineq
+  S_x(\Out) = 0.43 \cdot x(\In) \, y(\In) \, S_z(\In)
+\Endeq
 
 A term in a \vn{taylor} element will override any previous term
 with the same \vn{out} and \vn{e1} through \vn{e6} indexes. For example the term:

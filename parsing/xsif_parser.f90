@@ -540,8 +540,8 @@ if (ibeam_ptr /= 0) then
   end select
 
   lat%param%n_part = pdata(dat_indx+14)
-  lat%beam_start_ele%value(emittance_a$) = pdata(dat_indx+6)
-  lat%beam_start_ele%value(emittance_b$) = pdata(dat_indx+8)
+  lat%a%emit = pdata(dat_indx+6)
+  lat%b%emit = pdata(dat_indx+8)
 
   if (pdata(dat_indx+3) /= 0) ele%value(e_tot$) = pdata(dat_indx+3) * 1d9
 endif
