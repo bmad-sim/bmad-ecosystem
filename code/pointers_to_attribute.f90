@@ -143,55 +143,76 @@ case ('BEAM_START')
 
   call re_allocate (ptr_array, 1)
 
-  select case(attrib_name)
+  ix = attribute_index (beam_start, attrib_name)
+  if (ix < 1) then
+    if (do_print) call out_io (s_error$, r_name, &
+           'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
+    call re_allocate(ptr_array, 0)
+    err_flag = .true.
+    return
+  endif
+  if (present(ix_attrib)) ix_attrib = ix
+  select case (ix)
+  case (x$)
+    ptr_array(1)%r => lat%beam_start%vec(1)
+  case (px$)
+    ptr_array(1)%r => lat%beam_start%vec(2)
+  case (y$)
+    ptr_array(1)%r => lat%beam_start%vec(3)
+  case (py$)
+    ptr_array(1)%r => lat%beam_start%vec(4)
+  case (z$)
+    ptr_array(1)%r => lat%beam_start%vec(5)
+  case (pz$)
+    ptr_array(1)%r => lat%beam_start%vec(6)
+  case (field_x$)
+    ptr_array(1)%r => lat%beam_start%field(1)
+  case (field_y$)
+    ptr_array(1)%r => lat%beam_start%field(2)
+  case (phase_x$)
+    ptr_array(1)%r => lat%beam_start%phase(1)
+  case (phase_y$)
+    ptr_array(1)%r => lat%beam_start%phase(2)
+  case (t$)
+    ptr_array(1)%r => lat%beam_start%t
+  case (e_photon$)
+    ptr_array(1)%r => lat%beam_start%p0c
 
-  case ('SPIN_X', 'SPIN_Y', 'SPIN_Z', 'SPINOR_POLARIZATION', 'SPINOR_THETA', 'SPINOR_PHI', 'SPINOR_XI', &
-                       'EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z', 'SIG_E', 'SIG_Z')
-    i = attribute_index(lat%beam_start_ele, attrib_name)
-    ptr_array(1)%r => lat%beam_start_ele%value(i)
+  case (spin_x$)
+    ptr_array(1)%r => lat%ele(0)%value(spin_x$)
+  case (spin_y$)
+    ptr_array(1)%r => lat%ele(0)%value(spin_y$)
+  case (spin_z$)
+    ptr_array(1)%r => lat%ele(0)%value(spin_z$)
+  case (spinor_theta$)
+    ptr_array(1)%r => lat%ele(0)%value(spinor_theta$)
+  case (spinor_phi$)
+    ptr_array(1)%r => lat%ele(0)%value(spinor_phi$)
+  case (spinor_xi$)
+    ptr_array(1)%r => lat%ele(0)%value(spinor_xi$)
+  case (spinor_polarization$)
+    ptr_array(1)%r => lat%ele(0)%value(spinor_polarization$)
+
+  case (emittance_a$)
+    ptr_array(1)%r => lat%a%emit
+  case (emittance_b$)
+    ptr_array(1)%r => lat%b%emit
+  case (emittance_z$)
+    ptr_array(1)%r => lat%z%emit
+  case (sig_x$)
+    ptr_array(1)%r => lat%a%sigma
+  case (sig_y$)
+    ptr_array(1)%r => lat%b%sigma
+  case (sig_z$)
+    ptr_array(1)%r => lat%z%sigma
+  case (sig_e$)
+    ptr_array(1)%r => lat%z%sigmap
 
   case default
-    beam_start%key = def_beam_start$
-    ix = attribute_index (beam_start, attrib_name)
-    if (ix < 1) then
-      if (do_print) call out_io (s_error$, r_name, &
+    if (do_print) call out_io (s_error$, r_name, &
              'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-      call re_allocate(ptr_array, 0)
-      err_flag = .true.
-      return
-    endif
-    if (present(ix_attrib)) ix_attrib = ix
-    select case (ix)
-    case (x$)
-      ptr_array(1)%r => lat%beam_start%vec(1)
-    case (px$)
-      ptr_array(1)%r => lat%beam_start%vec(2)
-    case (y$)
-      ptr_array(1)%r => lat%beam_start%vec(3)
-    case (py$)
-      ptr_array(1)%r => lat%beam_start%vec(4)
-    case (z$)
-      ptr_array(1)%r => lat%beam_start%vec(5)
-    case (pz$)
-      ptr_array(1)%r => lat%beam_start%vec(6)
-    case (field_x$)
-      ptr_array(1)%r => lat%beam_start%field(1)
-    case (field_y$)
-      ptr_array(1)%r => lat%beam_start%field(2)
-    case (phase_x$)
-      ptr_array(1)%r => lat%beam_start%phase(1)
-    case (phase_y$)
-      ptr_array(1)%r => lat%beam_start%phase(2)
-    case (t$)
-      ptr_array(1)%r => lat%beam_start%t
-    case (e_photon$)
-      ptr_array(1)%r => lat%beam_start%p0c
-    case default
-      if (do_print) call out_io (s_error$, r_name, &
-               'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-      call re_allocate(ptr_array, 0)
-      err_flag = .true.
-    end select
+    call re_allocate(ptr_array, 0)
+    err_flag = .true.
   end select
 
   return

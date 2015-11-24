@@ -2343,8 +2343,11 @@ The attributes that characterize the wakes are:
 \end{example}
 
 The formulas used to compute the wake field are given in
-\sref{s:wake.fields}. The wake field is only used when tracking
-bunches and not when tracking single particles.
+\sref{s:wake.fields}. \bmad has two modes for tracking particles. One
+mode tracks individual particles one at a time. The other mode tracks
+bunches of particles. Which mode is used for a given program is
+generally fixed by the program. The wake field is ignored when
+tracking individual particles and only used when tracking bunches.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes}

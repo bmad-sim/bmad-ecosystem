@@ -715,6 +715,14 @@ call init_attribute_name1 (beginning_ele$, pz_beam_start$,               'PZ_BEA
 call init_attribute_name1 (beginning_ele$, abs_time_start$,              'ABS_TIME_START')
 call init_attribute_name1 (beginning_ele$, lattice_type$,                'LATTICE_TYPE') ! For backwards compatibility
 
+call init_attribute_name1 (beginning_ele$, spin_x$,                  'spin_x', private$)
+call init_attribute_name1 (beginning_ele$, spin_y$,                  'spin_y', private$)
+call init_attribute_name1 (beginning_ele$, spin_z$,                  'spin_z', private$)
+call init_attribute_name1 (beginning_ele$, spinor_theta$,            'spinor_theta', private$)
+call init_attribute_name1 (beginning_ele$, spinor_phi$,              'spinor_phi', private$)
+call init_attribute_name1 (beginning_ele$, spinor_xi$,               'spinor_xi', private$)
+call init_attribute_name1 (beginning_ele$, spinor_polarization$,     'spinor_polarization', private$)
+
 attrib_array(line_ele$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (line_ele$, particle$,                    'PARTICLE')
 call init_attribute_name1 (line_ele$, geometry$,                    'GEOMETRY')

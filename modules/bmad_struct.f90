@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 166
+integer, parameter :: bmad_inc_version$ = 167
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -857,7 +857,6 @@ type lat_struct
   type (lat_param_struct) param               ! Parameters
   type (bookkeeping_state_struct) lord_state  ! lord bookkeeping status.
   type (ele_struct) ele_init                  ! For use by any program
-  type (ele_struct) beam_start_ele            ! Element for holding spin info
   type (ele_struct), pointer ::  ele(:) => null()  ! Array of elements [=> branch(0)].
   type (branch_struct), allocatable :: branch(:)   ! Branch(0:) array
   type (control_struct), allocatable :: control(:) ! Control list
@@ -984,37 +983,37 @@ integer, parameter :: fq2$ = 17, sig_vx$ = 17
 integer, parameter :: sig_vy$ = 18, autoscale_amplitude$ = 18
 integer, parameter :: sig_e$ = 19, autoscale_phase$ = 19
 integer, parameter :: d1_thickness$ = 20, voltage_err$ = 20, default_tracking_species$ = 20
-integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20, spin_x$ = 20
+integer, parameter :: n_slice$ = 20, y_gain_calib$ = 20, bragg_angle$ = 20, E_center$ = 20
 integer, parameter :: polarity$ = 21, crunch_calib$ = 21, alpha_angle$ = 21, d2_thickness$ = 21
-integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_to_ref$ = 21, spin_y$ = 21
+integer, parameter :: e_loss$ = 21, dks_ds$ = 21, gap$ = 21, E_center_relative_to_ref$ = 21, spin_x$ = 21
 integer, parameter :: x_offset_calib$ = 22, v1_unitcell$ = 22, psi_angle$ = 22, spatial_distribution$ = 22
-integer, parameter :: spin_z$ = 22
-integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spinor_theta$ = 23
+integer, parameter :: spin_y$ = 22
+integer, parameter :: y_offset_calib$ = 23, v_unitcell$ = 23, v2_unitcell$ = 23, spin_z$ = 23
 integer, parameter :: cavity_type$ = 23, beta_a$ = 23, velocity_distribution$ = 23
-integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24, spinor_phi$ = 24
+integer, parameter :: phi0$ = 24, tilt_calib$ = 24, beta_b$ = 24, energy_distribution$ = 24
 integer, parameter :: phi0_err$ = 25, current$ = 25, l_pole$ = 25, particle$ = 25
-integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25, spinor_xi$ = 25
+integer, parameter :: quad_tilt$ = 25, de_eta_meas$ = 25, alpha_a$ = 25, e_field_x$ = 25
 integer, parameter :: geometry$ = 26, bend_tilt$ = 26, mode$ = 26, alpha_b$ = 26, e_field_y$ = 26
-integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26, spinor_polarization$ = 26
+integer, parameter :: phi0_multipass$ = 26, n_sample$ = 26, origin_ele_ref_pt$ = 26
 integer, parameter :: phi0_ref$ = 27, dx_origin$ =  27, cmat_11$ = 27, scale_field_to_one$ = 27
 integer, parameter :: lattice_type$ = 27, x_quad$ = 27, ds_photon_slice$ = 27
 integer, parameter :: phi0_max$ = 28, dy_origin$ = 28, y_quad$ = 28, photon_type$ = 28
-integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28, emittance_a$ = 28
+integer, parameter :: cmat_12$ = 28, higher_order_fringe_type$ = 28
 integer, parameter :: fringe_type$ = 29, floor_set$ = 29, upstream_ele_dir$ = 29, dz_origin$ = 29
-integer, parameter :: cmat_21$ = 29, emittance_b$ = 29
+integer, parameter :: cmat_21$ = 29
 integer, parameter :: fringe_at$ = 30, dtheta_origin$ = 30, b_param$ = 30, transverse_sigma_cut$ = 30
-integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, emittance_z$ = 30
-integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31
-integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33
+integer, parameter :: downstream_ele_dir$ = 30, cmat_22$ = 30, spinor_theta$ = 30
+integer, parameter :: l_hard_edge$ = 31, dphi_origin$ = 31, ref_cap_gamma$ = 31, ds_slice$ = 31, spinor_phi$ = 31
+integer, parameter :: field_factor$ = 32, dpsi_origin$ = 32, spinor_xi$ = 32
+integer, parameter :: angle$ = 33, n_cell$ = 33, x_ray_line_len$ = 33, spinor_polarization$ = 33
 integer, parameter :: x_pitch$ = 34
 integer, parameter :: y_pitch$ = 35  
 integer, parameter :: x_offset$ = 36
 integer, parameter :: y_offset$ = 37 
 integer, parameter :: z_offset$ = 38 ! Assumed unique. Do not overload further.
-integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39
-integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40
-integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41
+integer, parameter :: hkick$ = 39, d_spacing$ = 39, t_offset$ = 39, x_offset_mult$ = 39, emittance_a$ = 39
+integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40
+integer, parameter :: BL_hkick$ = 41, x_pitch_mult$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41
 integer, parameter :: BL_vkick$ = 42, y_pitch_mult$ = 42, darwin_width_sigma$ = 42
 integer, parameter :: BL_kick$ = 43, coupler_at$ = 43, eps_step_scale$ = 43, pendellosung_period_sigma$ = 43
 integer, parameter :: B_field$ = 44, E_field$ = 44, coupler_phase$ = 44, darwin_width_pi$ = 44
@@ -1349,9 +1348,10 @@ type (bmad_common_struct), save, target :: bmad_com
 ! When parsing a lattice file, %taylor_order_saved will be set to the taylor order of the lattice.
 
 type ptc_common_struct
-  integer :: real_8_map_init         ! Set by PTC init routine (called by set_ptc). See PTC doc.
-  integer :: taylor_order_ptc = 0    ! What has been set in PTC. 0 -> not yet set
-  integer :: taylor_order_saved = 3  ! Default to use.
+  integer :: real_8_map_init            ! Set by PTC init routine (called by set_ptc). See PTC doc.
+  integer :: taylor_order_ptc = 0       ! What has been set in PTC. 0 -> not yet set
+  integer :: taylor_order_saved = 3     ! Default to use.
+  logical :: complex_ptc_used = .false. ! Complex PTC code in use? (EG for spin tracking, normal form anal, etc.)
 end type
 
 type (ptc_common_struct), save :: ptc_com

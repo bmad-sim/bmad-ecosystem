@@ -190,8 +190,6 @@ ele%name = 'PARAMETER'           ! For parameters
 call find_indexx (ele%name, in_name, 0, in_indexx, n_max, ix, add_to_list = .true.)
 ix_param_ele = 2
 
-! Note: All values to beam_start are actually put in lat%beam_start and lat%beam_start_ele
-
 ele => in_lat%ele(3)
 ele%name = 'BEAM_START'           ! For beam starting parameters 
 ele%key = def_beam_start$
@@ -801,7 +799,6 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%version                 = bmad_inc_version$
     lat%input_file_name         = full_lat_file_name             ! save input file  
     lat%beam_start              = in_lat%beam_start
-    lat%beam_start_ele          = in_lat%beam_start_ele
     lat%a                       = in_lat%a
     lat%b                       = in_lat%b
     lat%z                       = in_lat%z
@@ -1099,7 +1096,7 @@ endif
 
 ! Spin
 
-call parser_set_spin (lat%beam_start_ele, lat%beam_start)
+call parser_set_spin (lat%ele(0), lat%beam_start)
 
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 

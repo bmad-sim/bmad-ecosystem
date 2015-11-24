@@ -996,8 +996,8 @@ end function kind_name
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
-!                               n_step, no_cavity, exact_modeling, exact_misalign)
+! Subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
+!                          no_cavity, exact_modeling, exact_misalign, init_complex)
 !
 ! Subroutine to initialize PTC.
 ! This subroutine uses the FPP/PTC routines:
@@ -1034,17 +1034,20 @@ end function kind_name
 !                       Default = False.
 !                       See the PTC guide for more details.
 !   exact_misalign -- logical, optional: Sets the PTC ALWAYS_EXACTMIS variable.
-!                     Default = true.
-!                     See the PTC guide for more details.
+!                       Default = true.
+!                       See the PTC guide for more details.
+!   init_complex   -- logical, optional: If present and True then init complex PTC.
+!                       Note: Complex PTC will also be initialized with bmad_com%spin_tracking_on = T.
 !-
 
-subroutine set_ptc (e_tot, particle, taylor_order, integ_order, &
-                                  n_step, no_cavity, exact_modeling, exact_misalign) 
+subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, &
+                        no_cavity, exact_modeling, exact_misalign, init_complex) 
 
 use mad_like, only: make_states, exact_model, always_exactmis, &
               assignment(=), nocavity, default, operator(+), &
-              berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE
+              berz, init, set_madx, lp, superkill, TIME0, PHASE0, HIGHEST_FRINGE, init_all, SPIN0
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, use_info_m
+use c_tpsa, only: c_verbose
 
 implicit none
 
@@ -1056,9 +1059,9 @@ real(rp), optional :: e_tot
 real(rp), save :: old_e_tot = 0
 real(dp) this_energy
 
-logical, optional :: no_cavity, exact_modeling, exact_misalign
+logical, optional :: no_cavity, exact_modeling, exact_misalign, init_complex
 logical, save :: init_needed = .true., init2_needed = .true.
-logical params_present
+logical params_present, c_verbose_save
 
 character(16) :: r_name = 'set_ptc'
 
@@ -1096,8 +1099,9 @@ if (init_needed .and. params_present) then
 endif
 
 if (present (exact_modeling))     EXACT_MODEL = exact_modeling
-if (present (exact_misalign)) ALWAYS_EXACTMIS = exact_misalign
-if (present(no_cavity))       DEFAULT = DEFAULT+NOCAVITY
+if (present (exact_misalign))     ALWAYS_EXACTMIS = exact_misalign
+if (present(no_cavity))           DEFAULT = DEFAULT + NOCAVITY
+if (bmad_com%spin_tracking_on)    DEFAULT = DEFAULT + SPIN0
 
 if (present (integ_order)) then
   this_method = integ_order
@@ -1112,10 +1116,10 @@ else
   this_steps = 10
 endif
 
-if (present(taylor_order)) then     
+if (present(taylor_order)) then
   t_order = taylor_order
-  if (t_order == 0) t_order = ptc_com%taylor_order_saved 
-  ptc_com%taylor_order_saved = t_order  
+  if (t_order == 0) t_order = ptc_com%taylor_order_saved
+  ptc_com%taylor_order_saved = t_order
 endif
 
 if (params_present) then
@@ -1136,6 +1140,10 @@ if (params_present) then
 endif
 
 ! Do not call init before the call to make_states
+! Note: Once complex_ptc is set to True it remains True forever.
+
+ptc_com%complex_ptc_used = ptc_com%complex_ptc_used .or. logic_option(.false., init_complex) .or. &
+                                                                            bmad_com%spin_tracking_on 
 
 if (.not. init_needed) then  ! If make_states has been called
   t_order = 0
@@ -1144,6 +1152,10 @@ if (.not. init_needed) then  ! If make_states has been called
   if (t_order == 0) t_order = ptc_com%taylor_order_saved
   if (ptc_com%taylor_order_ptc /= t_order) then
     call init (DEFAULT, t_order, 0, berz, nd2, ptc_com%real_8_map_init)
+    c_verbose_save = c_verbose
+    c_verbose = .false.
+    if (ptc_com%complex_ptc_used) call init_all (DEFAULT, t_order, 0)
+    c_verbose = c_verbose_save
     ptc_com%taylor_order_ptc = t_order
   endif
 endif
