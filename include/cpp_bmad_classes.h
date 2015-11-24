@@ -2817,7 +2817,6 @@ public:
   CPP_lat_param param;
   CPP_bookkeeping_state lord_state;
   CPP_ele ele_init;
-  CPP_ele beam_start_ele;
   CPP_ele_ARRAY ele;
   CPP_branch_ARRAY branch;
   CPP_control_ARRAY control;
@@ -2847,7 +2846,6 @@ public:
     param(),
     lord_state(),
     ele_init(),
-    beam_start_ele(),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     branch(CPP_branch_ARRAY(CPP_branch(), 0)),
     control(CPP_control_ARRAY(CPP_control(), 0)),

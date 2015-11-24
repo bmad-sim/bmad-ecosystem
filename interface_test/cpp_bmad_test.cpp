@@ -4857,9 +4857,6 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   // c_side.test_pat[type, 0, NOT]
   set_CPP_ele_test_pattern(C.ele_init, ix_patt);
 
-  // c_side.test_pat[type, 0, NOT]
-  set_CPP_ele_test_pattern(C.beam_start_ele, ix_patt);
-
   // c_side.test_pat[type, 1, PTR]
   if (ix_patt < 3) 
     C.ele.resize(0);
@@ -4899,22 +4896,22 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   set_CPP_pre_tracker_test_pattern(C.pre_tracker, ix_patt);
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 24 + offset; C.version = rhs;
+  rhs = 23 + offset; C.version = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 25 + offset; C.n_ele_track = rhs;
+  rhs = 24 + offset; C.n_ele_track = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 26 + offset; C.n_ele_max = rhs;
+  rhs = 25 + offset; C.n_ele_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 27 + offset; C.n_control_max = rhs;
+  rhs = 26 + offset; C.n_control_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 28 + offset; C.n_ic_max = rhs;
+  rhs = 27 + offset; C.n_ic_max = rhs;
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 29 + offset; C.input_taylor_order = rhs;
+  rhs = 28 + offset; C.input_taylor_order = rhs;
 
   // c_side.test_pat[integer, 1, ALLOC]
   if (ix_patt < 3) 
@@ -4922,16 +4919,16 @@ void set_CPP_lat_test_pattern (CPP_lat& C, int ix_patt) {
   else {
     C.ic.resize(3);
     for (unsigned int i = 0; i < C.ic.size(); i++)
-      {int rhs = 101 + i + 30 + offset; C.ic[i] = rhs;}  }
+      {int rhs = 101 + i + 29 + offset; C.ic[i] = rhs;}  }
 
   // c_side.test_pat[integer, 0, NOT]
-  rhs = 32 + offset; C.photon_type = rhs;
+  rhs = 31 + offset; C.photon_type = rhs;
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 33 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
+  rhs = 32 + offset; C.absolute_time_tracking = (rhs % 2 == 0);
 
   // c_side.test_pat[logical, 0, NOT]
-  rhs = 34 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
+  rhs = 33 + offset; C.ptc_uses_hard_edge_drifts = (rhs % 2 == 0);
 
 
 }
