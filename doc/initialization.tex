@@ -2450,10 +2450,12 @@ A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture cal
   curve(2)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
   curve(2)%draw_symbols = F
+  curve(1)%ix_ele_ref = 0
+  curve(2)%ix_ele_ref = 0
  /
 \end{example}
 
-produces the plot on Fig.~\ref{f:dynamic-aperture}. Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}. If there are more momenta than curves, additional curves will automatically be created.
+produces the plot on Fig.~\ref{f:dynamic-aperture}. Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}. If there are more momenta than curves, additional curves will automatically be created. Note that apertures are calculated at element 0. If \vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Histogram}
