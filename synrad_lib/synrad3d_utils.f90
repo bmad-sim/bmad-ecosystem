@@ -18,9 +18,6 @@ contains
 !
 ! Routine to get the parameters at a photon emission point.
 !
-! Modules needed:
-!   use synrad3d_utils
-!
 ! Input:
 !   branch    -- branch_struct with twiss propagated and mat6s made.
 !   orb(0:*)  -- coord_struct: orbit of particles to use as source of ray.
@@ -156,9 +153,6 @@ end subroutine sr3d_get_emission_pt_params
 !
 ! subroutine sr3d_to initialize a new photon
 !
-! Modules needed:
-!   use synrad3d_utils
-!
 ! Input:
 !   ele_here  -- Ele_struct: Emission is at the exit end of this element (which is a slice_slave).
 !   orb_here  -- coord_struct: orbit of particle emitting the photon.
@@ -240,13 +234,10 @@ end subroutine sr3d_emit_photon
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, d_radius, dw_perp)
+! Subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, d_radius, dw_perp, origin, ix_wall3d)
 !
 ! Routine to calculate the (transverse) radius of the photon  relative to the wall.
 ! Optionally can also caluclate the outwrd normal vector perpendicular to the wall.
-!
-! Modules needed:
-!   use photon_utils
 !
 ! Input:
 !   p_orb          -- coord_struct): Position.
@@ -257,6 +248,7 @@ end subroutine sr3d_emit_photon
 !   no_wall_here   -- logical: True if wall does not longitudinally extend to position.
 !   d_radius       -- real(rp): r_photon - r_wall
 !   dw_perp(3)     -- real(rp), optional: Outward normal vector perpendicular to the wall.
+!   origin(3)      -- real(rp), optional: (x, y, z) origin point of wall cross-section at the photon. 
 !-
 
 subroutine sr3d_photon_d_radius (p_orb, branch, no_wall_here, d_radius, dw_perp, origin, ix_wall3d)

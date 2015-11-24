@@ -265,7 +265,8 @@ contains
 
 function this_y (y_in) result (y_wall)
 
-real(rp) y_in, y_wall, dw_perp(3), origin(3), dr, r_part, r_wall
+real(rp), intent(in) :: y_in
+real(rp) y_wall, dw_perp(3), origin(3), dr, r_part, r_wall
 integer ixs
 logical no_wall_here
 
