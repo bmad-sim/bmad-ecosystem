@@ -21,7 +21,7 @@ subroutine synrad_read_vac_wall_geometry (wall_file, seg_len_max, branch, walls,
 
 use synrad_mod, except => synrad_read_vac_wall_geometry
 use synrad3d_parse_wall
-use synrad3d_wall_to_synrad_walls_mod
+use synrad3d_wall_to_synrad_walls_mod, except2 => synrad_read_vac_wall_geometry
 use filename_mod
 
 implicit none
