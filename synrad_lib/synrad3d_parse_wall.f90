@@ -128,9 +128,9 @@ open (iu, file = file, status = 'old')
 ! Old file format?
 
 if (sr3d_old_wall_file_format(iu)) then
-  print *, 'WALL FILE IS USING AN OLD FORMAT.'
-  print *, 'PLEASE SEE THE SYNRAD3D MANUAL FOR INSTRUCTIONS ON HOW TO CONVERT TO THE NEW FORMAT.'
-  print *, 'STOPPING NOW.'
+  print '(a)', 'WALL FILE IS USING AN OLD FORMAT!!'
+  print '(a)', 'PLEASE SEE THE SYNRAD3D MANUAL FOR INSTRUCTIONS ON HOW TO CONVERT TO THE NEW FORMAT.'
+  print '(a)', 'STOPPING NOW.'
   stop
 endif
 

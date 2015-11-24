@@ -37,9 +37,10 @@ type (branch_struct), target :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
 
+real(rp) dw_perp(3), d_radius
 integer iw
 
-logical absorbed, err
+logical absorbed, err, no_wall_here
 logical, optional :: one_reflection_only
 
 character(*), parameter :: r_name = 's43d_track_photon'
@@ -68,12 +69,22 @@ main_loop: do
 
   ! Switch to another sub-chamber?
 
-  do iw =1, size(branch%wall3d)
+  do iw = 1, size(branch%wall3d)
+    if (iw == photon%now%ix_wall3d) cycle
     call sr3d_photon_status_calc (photon, branch, iw)
+
     if (photon%status == inside_the_wall$) then
       photon%now%ix_wall3d = iw
       cycle main_loop
     endif
+
+    if (photon%status == at_transverse_wall$) then
+      call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, dw_perp, ix_wall3d = iw)
+      if (dot_product (photon%now%orb%vec(2:6:2), dw_perp) < 0) then   ! Traveling into sub-chamber
+        photon%now%ix_wall3d = iw
+        cycle main_loop
+      endif
+    endif  
   enddo
 
   ! Reflect photon
@@ -228,7 +239,7 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d) 
+! Subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d)
 !
 ! Routine to determine if a photon has crossed through the wall or
 ! is at the end of a linear lattice
@@ -239,7 +250,7 @@ end subroutine sr3d_check_if_photon_init_coords_outside_wall
 !   ix_wall3d -- integer, optional: If present then override phton%now%ix_wall3d.
 !
 ! Output:
-!   photon%status -- Integer: is_through_wall$, at_wall_end$, or inside_the_wall$
+!   photon%status -- Integer: is_through_wall$, at_wall_end$, at_transverse_wall$, or inside_the_wall$
 !-
 
 subroutine sr3d_photon_status_calc (photon, branch, ix_wall3d) 
@@ -263,9 +274,15 @@ photon%status = inside_the_wall$
 call sr3d_get_section_index(photon%now, branch, ix_wall3d)
 
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here, d_radius, ix_wall3d = ix_wall3d)
+
+if (abs(d_radius) < sr3d_params%significant_length .and. .not. no_wall_here) then
+  photon%status = at_transverse_wall$
+  return
+endif
+
 if (d_radius > 0 .or. no_wall_here) then
   photon%status = is_through_wall$
-  return 
+  return
 endif    
 
 ! Is at the end of a linear lattice or at the end of the current sub-section?
@@ -350,7 +367,7 @@ wall3d => branch%wall3d(photon%now%ix_wall3d)
 
 ele => branch%ele(now%ix_ele)
 s0 = ele%s - ele%value(l$)
-sl = bmad_com%significant_length 
+sl = sr3d_params%significant_length 
 
 ! Since patch elements have a complicated geometry, the photon s-position may not be
 ! within the interval from the s-position at the ends of the patch

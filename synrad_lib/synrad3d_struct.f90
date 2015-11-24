@@ -73,7 +73,7 @@ type (sr3d_common_struct), target, save :: sr3d_com
 
 ! Misc
 
-integer, parameter :: is_through_wall$ = 0, at_wall_end$ = 1, inside_the_wall$ = 2
+integer, parameter :: is_through_wall$ = 0, at_wall_end$ = 1, inside_the_wall$ = 2, at_transverse_wall$ = 4
 
 type sr3d_plot_param_struct
   real(rp) :: window_width = 800.0_rp, window_height = 400.0_rp
