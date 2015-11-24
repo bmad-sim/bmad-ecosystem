@@ -9,6 +9,7 @@ program synrad3d
 use synrad3d_plot_mod
 use synrad3d_output_mod
 use synrad3d_test_mod
+use synrad3d_parse_wall
 use bookkeeper_mod
 
 implicit none
@@ -17,7 +18,7 @@ type (ele_struct) ele_here
 type (ele_struct), pointer :: ele
 type (lat_struct), target :: lat
 type (coord_struct), allocatable :: orb(:)
-type (coord_struct) orbit_here
+type (coord_struct) orbit_here, orbit, orb1
 type (rad_int_all_ele_struct) rad_int_ele
 type (normal_modes_struct) modes
 type (branch_struct), pointer :: branch
@@ -26,7 +27,6 @@ type (sr3d_photon_track_struct), allocatable, target :: photons(:)
 type (sr3d_photon_track_struct), pointer :: photon
 type (sr3d_plot_param_struct) plot_param
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (sr3d_coord_struct) :: p
 type (random_state_struct) ran_state
 
 real(rp) ds_step_min, d_i0, i0_tot, ds, gx, gy, s_offset
@@ -35,8 +35,8 @@ real(rp) e_filter_min, e_filter_max, s_filter_min, s_filter_max
 real(rp) e_init_filter_min, e_init_filter_max, timer_time
 real(rp) surface_roughness_rms, roughness_correlation_len, rms_set, correlation_set
 
-integer i, n, iu, ix, random_seed, iu_start, j_photon
-integer ix_ele, n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
+integer i, n, iu, ix, random_seed, iu_start, j_photon, ix_ele
+integer n_photon_generated, n_photon_array, i0_ele, n_photon_ele, n_photon_here
 integer ix_ele_track_start, ix_ele_track_end, iu_hit_file, iu_lat_file
 integer photon_direction, num_photons, num_photons_per_pass, n_phot, ios
 integer n_photons_per_pass, num_ignore_generated_outside_wall, ix_photon_out
@@ -60,7 +60,7 @@ namelist / synrad3d_parameters / ix_ele_track_start, ix_ele_track_end, &
             e_init_filter_min, e_init_filter_max, plot_param, surface_reflection_file, &
             surface_roughness_rms, roughness_correlation_len
 
-namelist / start / p, ran_state, random_seed
+namelist / start / orbit, ran_state, random_seed
 
 ! Parse command line args
 
@@ -322,12 +322,6 @@ open (3, file = trim(dat_file) // '_table', recl = 240)
 print *, 'Data file is: ', trim(dat_file)
 print *, 'Data file in table format is: ', trim(dat_file) // '_table'
 
-if (sr3d_params%stop_if_hit_antechamber) then
-  dat2_file = trim(dat_file) // '.antechamber'
-  open (2, file = dat2_file)
-  print *, 'Data file for photons hitting the antechamber: ', trim(dat2_file)
-endif
-
 ! Write header info
 
 call write_this_header (1)
@@ -360,6 +354,10 @@ if (photon_start_input_file /= '') then
 
   photon_loop: do
 
+    n_photon_array = n_photon_array + 1
+    if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
+    photon => photons(n_photon_array)
+
     do
       ran_state%iy = -1  ! To see if ran_state is set by the read.
       random_seed = -1
@@ -367,25 +365,28 @@ if (photon_start_input_file /= '') then
       if (ios < 0) exit photon_loop
       if (ios > 0) then
         print *, 'Error reading photon starting position at photon index:', n_photon_generated
-        call err_exit
+        rewind (1)
+        do
+          read (1, nml = start) ! will generate error message
+        enddo
       endif
-      call sr3d_check_if_photon_init_coords_outside_wall (p, branch, is_inside, num_ignore_generated_outside_wall)
+      ix_ele = element_at_s(lat, photon%start%orb%s, .true., branch%ix_branch)
+      call init_coord (photon%start%orb, orbit%vec, branch%ele(ix_ele), inside$, 0, photon$, orbit%p0c)
+      photon%start%orb%s = orbit%vec(5)
+
+      call sr3d_check_if_photon_init_coords_outside_wall (photon%start, branch, is_inside, num_ignore_generated_outside_wall)
       if (is_inside) exit
     enddo
 
-    p%orb%ix_ele = element_at_s(lat, p%orb%s, .true., branch%ix_branch)
-
     n_photon_generated = n_photon_generated + 1
-    n_photon_array = n_photon_array + 1
-    if (n_photon_array > size(photons)) call reallocate_photon_array (photons, 2*size(photons))
-    photon => photons(n_photon_array)
-    photon%start = p
-    photon%n_wall_hit = 0
     photon%ix_photon_generated = n_photon_generated
+    photon%n_wall_hit = 0
+
     if (ran_state%iy > 0) call ran_default_state (set_state = ran_state)
     if (random_seed > -1) call ran_seed_put (seed = random_seed)
     call check_filter_restrictions(ok, .true.)
     if (.not. ok) cycle
+
     call sr3d_track_photon (photon, branch, wall_hit, err)
 
     ! ix_photon_out is used for generating a file of the photon starting position.
@@ -571,8 +572,6 @@ write (1, '(a36)', rec = 1) line
 
 close (1)
 
-if (sr3d_params%stop_if_hit_antechamber) close (2)
-
 !--------------------------------------------------------------------------------------------
 contains
 
@@ -588,7 +587,6 @@ start_vec = [photon%start%orb%vec(1:4), photon%start%orb%s, photon%start%orb%vec
 now_vec = [photon%now%orb%vec(1:4), photon%now%orb%s, photon%now%orb%vec(6)]
 
 iu = 1
-if (sr3d_params%stop_if_hit_antechamber .and. photon%hit_antechamber) iu = 2
 write (iu, '(2i8, f12.4, 2x, a)') n_photon, photon%n_wall_hit, photon%start%orb%p0c, '! index, n_wall_hit, eV'
 write (iu, '(4f12.6, f12.3, f12.6, a)') start_vec, '  ! Start position'
 write (iu, '(4f12.6, f12.3, f12.6, a)') now_vec,   '  ! End position'
@@ -743,7 +741,6 @@ write (iu, '(a, es10.3)') 'roughness_correlation_len (input)     = ', roughness_
 write (iu, '(a, es10.3)') 'roughness_correlation_len (set value) = ', lat%surface(1)%roughness_correlation_len
 write (iu, '(a, l1)') 'sr3d_params%allow_reflections         = ', sr3d_params%allow_reflections
 write (iu, '(a, l1)') 'sr3d_params%specular_reflection_only  = ', sr3d_params%specular_reflection_only
-write (iu, '(a, l1)') 'sr3d_params%stop_if_hit_antechamber   = ', sr3d_params%stop_if_hit_antechamber
 write (iu, *)
 
 end subroutine

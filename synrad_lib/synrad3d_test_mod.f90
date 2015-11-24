@@ -2,6 +2,7 @@ module synrad3d_test_mod
 
 use synrad3d_track_mod
 use synrad3d_output_mod
+use synrad3d_parse_wall
 
 contains
 
