@@ -12,7 +12,6 @@ set (SRC_DIRS
 set (EXE_SPECS
   cmake.s3drefl
   cmake.bbu
-  cmake.bbu_old
   cmake.dynamic_aperture
   cmake.ibs_linac
   cmake.ibs_ring
