@@ -483,7 +483,8 @@ type (tao_curve_struct), pointer :: curve
 type (tao_curve_struct), allocatable :: temp_curve(:)
 type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
-
+type (aperture_scan_struct), pointer :: scan
+type (coord_struct), allocatable :: orbit(:)
 integer :: i, k, n_curve, n, nc
 
 logical err
@@ -534,8 +535,9 @@ endif
 do k = 1, n_curve 
   
   curve => graph%curve(k)
-  n = size(da%scan(k)%aperture)
-
+  scan => da%scan(k)
+  n = size(scan%aperture)
+  
   call re_allocate (curve%x_line, n)
   call re_allocate (curve%y_line, n)
   call re_allocate (curve%x_symb, n)
@@ -543,8 +545,27 @@ do k = 1, n_curve
 
   write(curve%legend_text, '(a, f6.2, a)') '\gd:', 100*da%pz(k), ' %'
 
-  curve%x_line(:) = da%scan(k)%aperture(:)%x + da%scan(k)%ref_orb%vec(1)
-  curve%y_line(:) = da%scan(k)%aperture(:)%y + da%scan(k)%ref_orb%vec(3)
+  ! propagate to ix_ele_ref
+  if (curve%ix_ele_ref > 0 ) then
+    if (curve%ix_ele_ref > u%model%lat%n_ele_track) then
+      call out_io (s_error$, r_name, 'IX_ELE_REF out of range for curve: ' // tao_curve_name(curve))  
+      return
+    endif 
+  
+    call reallocate_coord(orbit, curve%ix_ele_ref)
+    do i = 1, n
+      orbit(0) = da%scan(k)%ref_orb
+      orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(i)%x
+      orbit(0)%vec(3) = orbit(0)%vec(3) + scan%aperture(i)%y
+      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
+      curve%x_line(i) = orbit(curve%ix_ele_ref)%vec(1)
+      curve%y_line(i) = orbit(curve%ix_ele_ref)%vec(3)
+    enddo
+  else
+    ! use data at ele 0 
+    curve%x_line(:) = scan%aperture(:)%x + scan%ref_orb%vec(1)
+    curve%y_line(:) = scan%aperture(:)%y + scan%ref_orb%vec(3)
+  endif
   curve%x_symb = curve%x_line
   curve%y_symb = curve%y_line
 enddo
