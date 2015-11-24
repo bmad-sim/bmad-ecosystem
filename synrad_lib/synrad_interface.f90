@@ -4,18 +4,6 @@ use synrad_struct
 use bmad_interface
 
 interface
-  subroutine synrad3d_wall_to_synrad_walls (branch, seg_len_max, walls)
-    use synrad3d_struct
-    use synrad_struct
-    implicit none
-    type (branch_struct) branch
-    type (walls_struct) walls
-    real(rp) seg_len_max, s_lat
-    integer geometry
-  end subroutine
-end interface
-
-interface
   subroutine set_wall_eles (wall, branch)
     import
     implicit none

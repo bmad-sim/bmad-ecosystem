@@ -24,7 +24,9 @@
 \newcommand{\vn}{\ttcmd}           
 \newcommand{\Th}{$^{th}$\xspace}
 \newcommand{\Newline}{\hfil \\}
-
+\newcommand{\Bf}[1]{{\bf #1}}
+\newcommand{\bfr}{\Bf r}
+\newcommand{\stilde}{{\widetilde s}}
 
 \newcommand{\bearray}{\begin{eqnarray}}
 \newcommand{\eearray}{\end{eqnarray}}
@@ -92,7 +94,7 @@
 
 \title{ \srthree Photon Tracking Program}
 \author{G. Dugan, D. Sagan}
-\date{May 19, 2015}
+\date{November 24, 2015}
 
 %---------------------------------------------------------------------------------
 
@@ -180,8 +182,7 @@ cross-sections in the $x$-$y$ plane at any point in the machine. The
 = 0$. The \vn{-plot ys} option plots the wall outline in the $y$-$s$
 plane at $x = 0$.
 
-When plotting $x$-$y$ cross-sections, If the cross-section is at a
-\vn{gen_shape} defined cross-section (\sref{ss:wall.def}), symbols
+When plotting $x$-$y$ cross-sections, symbols
 will be drawn at the vertex points \vn{v(i)} that define the
 cross-section.
 
@@ -433,8 +434,8 @@ Fig.~\ref{f:Diffuse.out.of.plane.HE}. These distributions
 have been computed from Eq.~\ref{Eq.diffuse.power}.
 
 %------------------------------------------------------------------
-\section{Input Files} 
-\label{s:prog}
+\section{Master Input File} 
+\label{s:master}
 
 %------------------------------------------------------------------
 \subsection{Fortran Namelist}
@@ -458,13 +459,20 @@ ignored. Within the namelist, anything after an exclamation mark
 \begin{example}
   &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
 \end{example}
-here \vn{section_def} is the namelist name and \vn{section} is a variable
-name.  Notice that here \vn{section} is a ``structure'' which has five
-components.
+here \vn{section_def} is the namelist name and \vn{section} is a
+variable name.  Notice that here \vn{section} is a ``structure'' which
+has five components -- a real number, followed by two strings,
+followed by two real numbers.
+
+Everything is case insensitive except for quoted strings.
+
+Logical values are specified by \vn{True} or \vn{False} or can be
+abbreviated \vn{T} or \vn{F}. Avoid using the dots (periods) that one
+needs in Fortran code.
 
 %------------------------------------------------------------------
-\subsection{Master Input File} 
-\label{s:master.file}
+\subsection{Example Master Input File} 
+\label{s:master.example}
 
 The master input file can be specified on the command line invoking \srthree.
 If not given, the default name for the master input file is ``\vn{synrad3d.init}''.
@@ -509,7 +517,6 @@ Fortran namelist syntax is used (\sref{s:namelist}). Example master input file:
     sr3d_params%dr_track_step_max     = 0.1  ! Photon propagation step size 
     sr3d_params%allow_reflections     = T    ! For testing purposes.
     sr3d_params%allow_absorption      = T    ! For testing purposes.
-    sr3d_params%stop_if_hit_antechamber = F 
   /
 \end{example}
 
@@ -556,7 +563,7 @@ the Bmad format or, if the \vn{lattice_file} string is prefixed by
 \vn{``xsif::''}, may be in xsif format. See the Bmad manual for more details.
   \item[\vn{wall_file}] \Newline
 This string gives the name of the vacuum chamber wall definition
-file. See \sref{ss:wall.def} for more details.
+file. See \sref{s:wall.file} for more details.
   \item[\vn{dat_file}] \Newline
 This string gives the name of the output data file (\sref{ss:main.out}).
 See below for more details.
@@ -583,9 +590,6 @@ photons will always be specularly reflected.
 This parameter, if set False, will cause \srthree suppress absorption
 and to always reflect photons when they hit the chamber wall. This
 parameter is only used for testing purposes.
-  \item[\vn{sr3d_params\%stop_if_hit_antechamber}] \Newline
-This parameter, if set True, will cause \srthree to stop tracking a given photon once
-it hits part of an antechamber wall.
   \item[\vn{sr3d_params\%ds_track_step_max}, \vn{sr3d_params\%dr_track_step_max}] \Newline
 These parameters determine the maximum distance a photon is tracked in
 a given ``step'' see \sref{s:track} for more details.
@@ -657,7 +661,7 @@ the beam emittance is large enough so that, from time-to-time, a
 photon generated at large amplitude will be generated outside the
 wall. \srthree will ignore photons generated outside the wall, and
 generate another one at the same longitudinal position, up to the
-number set by \vn{num_ignore_generated_outside_Wall}. If the number of
+number set by \vn{num_ignore_generated_outside_wall}. If the number of
 photons generated outside the wall exceeds this number, \srthree will
 print an error message and stop.
   \item[\vn{turn_off_kickers_in_lattice}] \Newline
@@ -703,23 +707,391 @@ photons have been generated, \srthree will generate another
 \vn{num_photons} unfiltered photons have been generated.
 
 %------------------------------------------------------------------
-\subsection{Vacuum Chamber Wall Definition} 
-\label{ss:wall.def}
+\section{Vacuum Chamber Definition File} 
+\label{s:wall.file}
+
+The vacuum chamber is defined in the \vn{wall_file} specified in
+the master input file \sref{s:master}. The syntax for specifying the
+vacuum chamber follows Fortran namelist input as explained in
+\sref{s:namelist}.
+
+%------------------------------------------------------------------
+\subsection{Sub-Chambers and Cross-Sections}
+\label{s:sub.chambers}
 
 \begin{figure}[tb]
 \begin{center}
 \includegraphics[width=6in]{chamber-wall.pdf}
-\caption{The chamber wall is defined by a number of cross-sectional slices.}
+\caption{A sub-chamber is defined by a number of cross-sectional slices.}
 \label{f:chamber.wall}
 \end{center}
 \end{figure}
 
-The vacuum chamber wall is defined in the \vn{wall_file} specified in
-the master input file \sref{s:master.file}.  In this file, the vacuum
-chamber wall is defined by specifying the chamber cross-section at a
-number of longitudinal positions. As illustrated in
-\fig{f:chamber.wall}. Each cross-section is specified using a Fortran
-namelist (\sref{s:namelist}) named \vn{section_def}. Example:
+The shape of the vacuum chamber is described by a number of
+``sub-chambers'' (the reason for this will be made clear below).  The
+entire vacuum chamber is the union of all the sub-chambers. That is, a
+photon is considered within the vacuum chamber if, and only if it is
+inside at least one of the sub-chambers. It is perfectly fine for
+sub-chambers to intersect one another. In fact, some overlap is
+desireable to prevent abutting sub-chambers from apearing to be
+separated due to round-off errors in the calculation.
+
+Each sub-chanber is defined by specifying the chamber cross-section at
+a number of longitudinal positions. As illustrated in
+\fig{f:chamber.wall}. Each cross-section is specified using a namelist
+named \vn{place}. The general form of a \vn{place} namelist is:
+\begin{example}
+  &place 
+    section = <s>, "<section_name>", "<section_id>" 
+    surface = "<surface_name>", <is_local?>
+  /
+\end{example} 
+The optional \vn{surface} variable is explained in \sref{ss:surface}.
+Example:
+\begin{example}
+  &place section =   0.0, "arc_std", "beam:dipole_shape" /
+  &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
+  &place section =  82.9, "wig1",    "left_ante:chamB@END"
+  &place section =  91.1, "IR1",     "rectang" /
+\end{example}
+
+The \vn{<s>} values for the cross-sections of a given sub-chamber must
+be in increasing order and there must be one sub-chamber that has a
+cross-section at \vn{<s>} = 0. If the last cross-section of a given
+sub-chamber has \vn{<s>} greater than the end of the lattice, the
+\vn{<s>} value will be reduced to the value at the end of the lattice.
+
+The \vn{<section_name>} is a descriptive name that can be, for example,
+used in plotting. The \vn{<section_name>} is ignored for any calculation.
+The \vn{<section_name>} may be blank.
+
+The \vn{<section_id>} identifies the section. The general format for 
+\vn{<section_id>} is:
+\begin{example}
+  <sub_chamber_id>:<shape_id>@<stop-pt?>
+\end{example}
+For example, if a section is placed like:
+\begin{example}
+  &place section =  74.3, "Near_IR"  "left_ante:chamA@START" /
+\end{example}
+the \vn{<sub_chamber_id>} component is \vn{"left_ante"}, the
+\vn{<shape_id>} component is \vn{"chamA"}, and the \vn{<stop-pt?>}
+component is \vn{"START"}. The \vn{<shape_id>} must always be present
+but \vn{<sub_chamber_id>} and \vn{<stop-pt?>} may be omitted. If
+\vn{<sub_chamber_id>} is omitted, the colon after the
+\vn{<sub_chamber_id>} may be omitted too. If \vn{<stop-pt?>} is
+omitted, the ampersand before the \vn{<stop-pt?>} may be omitted too.
+
+The \vn{<sub_chamber_id>} component specifies which sub-chamber is
+being specified.  If \vn{<sub_chamber_id>} is omitted, the sub-chamber
+name is blank. For example, \vn{":chamC@"}, which is equivalent to
+\vn{"chamC"}, is associated with the sub-chamber whose name is
+blank. Omitting the \vn{<sub_chamber_id>} can always be done if there
+is only one sub-chamber.
+
+The \vn{<stop-pt?>} component specifies if a sub-chamber is beginning
+or ending at a certain longitudinal position. If present,
+\vn{<stop-pt?>} must be:
+\begin{example}
+  "START" or
+  "END"
+A sub-chamber begins with the section with \vn{<stop-pt?>} set to \vn{"START"}
+and ends with the section with \vn{<stop-pt?>} set to \vn{"END"}. Example:
+\begin{example}
+  &place section =    5, "", "left_ante:chamB@END"
+  &place section =  174, ""  "left_ante:chamA@START" /
+  &place section =  182, "", "left_ante:chamB@END"
+  &place section =  936, ""  "left_ante:chamA@START" /
+\end{example}
+In this case there are actually two sub-chambers, both named
+\vn{"left_ante"}.  The one sub-chamber begins at $s = 174$~meters and
+ends at 182~meters.  The second sub-chamber begins at $s =
+936$~meters, wraps around the end of the lattice back to the
+beginning, and ends at 245~meters. This is the only case where
+different sub-chambers can share the same name. Sub-chambers that
+overlap longitudinally may not share the same name. That is, for every
+\vn{"START"} there must be an \vn{"END"} and following is not allowed
+since there is overlap:
+  &place section =  173, ""  "left_ante:chamA@START" /
+  &place section =  174, ""  "left_ante:chamA@START" /
+  &place section =  182, "", "left_ante:chamB@END"
+  &place section =  183, "", "left_ante:chamB@END"
+\end{example}
+A sub-chamber does not have to have a beginning and an ending. In this
+case, the sub-chamber extends along the entire length of the machine.
+
+The \vn{<shape_name>} component of \vn{<section_id>} identifies the
+exact shape of the cross-section. The \vn{<shape_name>} is matched
+with a \vn{shape_def} namelist of the same name. The \vn{shape_def}
+namelist has the format:
+\begin{example}
+  &shape_def
+    name = <shape_name>           ! Name of this shape.
+    r0 = <x_center>, <y_center>   ! Center of section.
+    absolute_vertices = <T/F>     ! Vertex nums relative to r0 or abs? Default = F.
+    v(1) = <x1> <y1> <radius_x1> <radius_y1> <tilt1>
+    v(2) = <x2> <y2> <radius_x2> <radius_y2> <tilt2>
+    v(3) = <x3> <y3> <radius_x3> <radius_y3> <tilt3>
+    ... etc ...
+  /
+\end{example}
+Example:
+\begin{example}
+  ! Anything outside the namelists is ignored.
+  &place section =  65.7, "Near_IR" "rectangular1" /
+  &place section =  74.3, "Arc"     "dipole_shape" /
+  &place section = 100.3, "Arc"     "dipole_shape" /
+
+  &shape_def
+    name = "rectangular1"
+    v(1) =  0.045,  0.025
+  /
+  &shape_def
+    name = "dipole_shape"
+    v(1) =  0.045,  0.025, 0.3, 0.9
+    v(2) = -0.045,  0.025
+    v(3) = -0.045,  0.025, 0.3, 0.9
+    v(4) = -0.045,  0.025
+  /
+\end{example}
+There are three \vn{place} namelists in this example.  The first
+\vn{place} namelist refers to the first \vn{shpae_def} namelist whose
+name is \vn{"rectangular1"}. The other two \vn{place} namelists
+refer to the second \vn{shape_def} namelist named \vn{"dipole_shape"}.
+As seen in this example, multiple \vn{place}s may refer to the
+same \vn{shape_def}.
+
+For a \vn{shape_def} namelist, the \vn{name} labels the shape for use
+by a \vn{place} namelist.  A \vn{shape_def} is specified by a
+``central point'' $r_0$ and a list of connected vertices. Each vertex
+is specified by it's $(x, y)$ coordinates that are with respect to
+$r_0$ except if \vn{absolute_vertices} is set to \vn{True} in which
+case the vertex numbers are absolute. The vertices must ``wind''
+counter-clockwise around the central point. That is, if $(x, y)$
+coordinates of the vertices are expressed in terms of polar $(r,
+\theta)$ coordinates with respect to the central point, the vertices
+must be in order of increasing $\theta$. If all the vertex points have
+non-negative $y$ values, it is assumed that the gen_shape is symmetric
+with respect to the $x$-axis and that only half the vertex points are
+being specified. If all the vertex points have both non-negative $x$
+and $y$ values, it is assumed that the gen_shape is symmetric with
+respect to both the $x$ and $y$ axes.
+
+Between vertices, the wall is assumed to be a straight line except if
+a \vn{<radius_x>} is given. If \vn{<radius_x>} is set to a non-zero
+value for a given vertex, the wall segment between that vertex and the
+vertex before it is the arc of a circle with the given radius. If, in
+addition, \vn{<radius_y>} is given, the arc will be a section of an
+ellipse.  If, in addition to \vn{<radius_x>} and \vn{<radius_y>},
+\vn{<tilt>} is given, then the ellipse will be tilted.
+
+If \vn{<radius_x>} is positive, the arc of the wall is convex. If it
+is negative, the arc is concave. Note that when the wall cross-section
+is concave, there can be problems with the photon tracking. See
+\sref{s:track} for more details.
+
+In the example above, the cross-section at $s = 65.7$~meters is a
+\vn{gen_shape} whose definition is given by the \vn{shape_def}
+with name ``\vn{rectangular1}''.  This \vn{shape_def} defines a rectangle
+with half width 0.045~meters and half height 0.025~meters.
+
+In the above example, ``the \vn{dipole_shape}'' shape is similar to
+the \vn{rectangular1} shape except the right and left sides are
+sections of an ellipse.
+
+%------------------------------------------------------------------
+\subsection{Multi-Section Cross-Section}
+\label{ss:multi.sec}
+
+The \vn{multi-section} cross-section is not actually a single
+cross-section but a repeating pattern of cross-sections. The basic
+repeat pattern is specified by a \vn{multi_place} namelist of
+the form
+\begin{example}
+  &multi_place
+    name = "<multi_name>"
+    section(1) = 0.0,  "<section0_name>", "<section0_id>", ...
+    section(2) = <s1>, "<section1_name>", "<section1_id>", ...
+    section(3) = <s2>, "<section2_name>", "<section2_id>", ...
+    ...
+  /
+\end{example}
+The syntax for any of the \vn{section(n)} sections is the same as
+described above for \vn{rectangular}, \vn{elliptical}, and \vn{gen_shape}.
+shapes. The first section, \vn{section(1)}, must
+have \vn{<s0>} set to 0 and the \vn{<s>} of the other cross-sections
+represent an offset from this 0\Th section. The last
+\vn{section(N)} section must have \vn{<sectionN_name>} set to one of
+\begin{example}
+  open
+  closed
+\end{example}
+and the last \vn{section(N)} must have \vn{<sectionN_id>} set to
+\begin{example}
+  end_marker
+\end{example}
+This last ``\vn{end_marker}'' section is not a real cross-section but
+simply serves as a marker for the end of the basic repeat pattern. The
+significance of the \vn{<sectionN_name>} of the \vn{end_marker} section is
+discussed below. Example:
+\begin{example}
+  &multi_place
+    name = "zig_zag"
+    section(1) = 0.000, "in_zig",  "ellipse1",
+    section(2) = 0.002, "out_zag", "ellipse2",
+    section(3) = 0.003, "open",  "end_marker"
+  /
+\end{example}
+Here the basic repeat pattern is 0.003 meters long and is made up of
+two cross-sections called \vn{in_zig} and \vn{out_zag}.
+
+To position a series of cross-sections, a \vn{place} namelist is used
+general syntax for this is:
+\begin{example}
+  &place 
+    section = <s>, "<section_name>", "<section_id>", <repeat_count> 
+    surface = "<surface_name>", <is_local?>
+  /
+\end{example} 
+The optional \vn{surface} variable is explained in \sref{ss:surface}.
+
+\vn{<s>} is the longitudinal starting position of the series of
+cross-sections, \vn{<section_name>} is not used but must be present to
+keep the format the same as other \vn{place}s. The cross-sections in the
+\vn{multi_place} namelist will be repeated \vn{<repeat_count>}
+times when the sub-chamber wall is constructed. Example:
+\begin{example}
+  &place section = 10.0, "", "zig_zag", 1000 /
+\end{example}
+With this \vn{place}, coupled with the \vn{multi_place}
+example above, an \vn{in_zig} cross-section will be placed at $s =
+10$~meters at the starting point. The basic pattern will repeat 1000
+times and the series of cross-sections will be:
+\begin{example}
+     S       Name
+  10.000     in_zig
+  10.002     out_zag
+  10.003     in_zig
+  10.005     out_zag
+  ...
+  12.997     in_zig
+  12.999     out_zag
+\end{example}
+Since the \vn{end_marker} section is ``open'', the basic pattern is
+repeated exactly 1000 times and there will be 2 * 1000
+cross-sections. If the \vn{end_marker} section is ``closed'', an extra
+\vn{section(1)} cross-section would be added at the end to make the
+ending cross-section the same as the beginning cross-section. In this
+case, if the \vn{end_marker} section is set to ``closed'', a
+\vn{in_zig} cross-section would be added at $s = 13.000$~meters.
+
+  \begin{figure}
+  \centering
+  \includegraphics[width=6in]{fast-sub-chamber.pdf}
+  \caption[Illustrating a fast sub-chamber residing within another sub-chamber.]
+{\label{f:fast}
+A fast sub-chamber with few cross-sections resides within another sub-chamber with
+many cross-sections enabling \srthree to speed up tracking.}
+  \end{figure}
+
+%------------------------------------------------------------------
+\subsection{Fast Sub-Chamber}
+\label{s:fast}
+
+In regions where there are many of cross-sections, which can easily
+happen when a multi-section (\sref{ss:multi.sec}) is used, the
+computation time for photon tracking may become large due to the
+necesity of stopping the photon at each cross-section. This can be
+amelerated by defining a ``fast'' sub-chamber to track through. This
+fast sub-chamber has only a few cross-sections and is nested 
+inside the sub-chamber with the large number of
+cross-sections. \srthree will use the fast sub-chamber for tracking
+when ever possible (\sref{s:track}). This is illustrated in
+\fig{f:fast}.
+
+To designate a fast sub-chamber, prepend the string ``\vn{FAST_}'' to
+the name of the sub-chamber with the large number of cross-sections.
+For example, for a sub-chamber named \vn{"main"}, the name of the fast
+sub-chamber would be \vn{"FAST_main"}. Only one fast sub-chamber may
+be associated with a given sub-chamber.
+
+A fast sub-chamber may extend beyound the sub-chamber it is associated
+with.  The entire vaccum chamber is the union of all sub-chambers
+including the fast ones. That is, in terms of defining the vacuum
+chamber, fast sub-chambers are no different than non-fast ones.
+
+%------------------------------------------------------------------
+\subsection{Sub-Chamber Wall Interpolation} 
+\label{s:wall}
+
+Once a set of sub-chamber cross-sections have been defined, the
+cross-section of the sub-chamber at a given longitudinal position is
+computed using linear interpolation. 
+
+For a given sub-chamber, and 
+at a given $s$ position, the $r, \theta$ coordinate system in the
+transverse $x, y$ plane is defined with respect to an origin
+$\bfr_O(s)$ given by a linear interpolaion of the origins of the
+cross-sections to either side of the given $s$ position. Let $s_1$
+denote the position of the cross-section just before $s$ and $s_2$
+denote the position of the cross-section just after $s$. Let
+$\bfr_{01}$ be the $(x_0, y_0)$ origin defined for the cross section
+at $s_1$ and $\bfr_{02}$ be the $(x_0, y_0)$ origin defined for the
+cross section at $s_2$. Then
+\Begineq
+  \bfr_O(s) = (1 - \stilde) \, \bfr_{01} + \stilde \, \bfr_{02}
+\Endeq
+where 
+\Begineq
+  \stilde \equiv \frac{s - s_1}{s_2 - s_1}
+\Endeq
+
+Let $r_{c1}(\theta)$ and $r_{c2}(\theta)$ be the radiusus of the
+sub-section boundary as a function of $\theta$ for the cross-sections
+at $s = s_1$ and $s = s_2$ respectively. The sub-section boundary
+$r_c(\theta, s)$ at any point $s$ between $s_1$ and $s_2$ is then
+defined by the equation
+\Begineq
+  r_c(\theta, s) = (1 - \stilde) \, r_{c1}(\theta) + \stilde \, r_{c2}(\theta)
+\Endeq
+
+A photon at $(r,\theta, s)$ is inside the sub-chamber if
+\Begineq
+  r < r_w(\theta, s)
+\Endeq
+
+%------------------------------------------------------------------
+\subsection{Sub-Chamber Wall and Patch Elements}
+\label{ss:patch}
+
+A \vn{patch} element, which shifts the reference coordinate system
+complicates the calculation of where a photon hits the wall. The Bmad
+manual has a full explanation but the essential factor is that, since
+the reference orbit is discontinuous in a patch, to avoid a
+discontinuity in the sub-chamber wall, wall interpolation is done using
+the global reference system. This can lead to non-intuitive behavior
+when the region between two wall sections contains both a bend and a
+patch since, without the patch, the center of the sub-chamber follows the
+curved reference orbit but with the patch the sub-chamber wall center
+follows a straight line between the wall sections.
+
+To avoid this non-intuitive behavior, if a region between wall sections
+contains both a patch and a bend, extra sections will be added to
+eliminate this situation.
+
+To simplify matters, \srthree does not allow wall cross-sections to be
+defined whose longitudinal position overlaps any \vn{patch} element.
+
+%------------------------------------------------------------------
+\subsection{Old Wall Format}
+\label{s:old.wall}
+
+Originally, \srthree did not have the concept of sub-chambers. That is,
+there was only one chamber and that chamber was allowed to be concave.
+This was problematical, as discussed above, and motivated the
+development of the sub-chamber concept. This section discusses the old
+format to facillitate conversion from the old format to the new.
+
 \begin{example}
   &section_def section =   0.0, "arc_std", "elliptical", 0.045, 0.025 /
   &section_def section =  74.3, "Near_IR"  "gen_shape:dipole_shape",  /
@@ -728,30 +1100,13 @@ namelist (\sref{s:namelist}) named \vn{section_def}. Example:
                                                        -1, -1, 0.08, 0.01 /
 \end{example}
 
-The general form of a \vn{section_def} namelist is:
-\begin{example}
-  &section_def 
-    section = <s>, "<section_name>", "<section_id>" ... 
-    surface = "<surface_name>", <is_local?>
-  /
-\end{example} 
-The optional \vn{surface} variable is explained in \sref{sss:surface}.
-
-The $<s>$ values for the
-cross-sections must be in increasing order starting at $<s> = 0$ for
-the first cross-section. The exception is that the $<s>$ value for the last
-cross-section is immaterial since \srthree will automatically substitute
-the appropriate $<s>$ value at the end of the lattice.
-
-The \vn{<section_name>} is a descriptive name that can be, for example,
-used in plotting. The \vn{<section_name>} is ignored for any calculation.
 
 The \vn{<section_id>} can have one of five values:
 \begin{example}
-  elliptical                    ! \sref{sss:el.rec}
-  rectangular                   ! \sref{sss:el.rec}
-  gen_shape:<shape_name>        ! \sref{sss:gen}
-  multi_section:<shape_name>    ! \sref{sss:multi.sec}
+  elliptical                   
+  rectangular                  
+  gen_shape:<shape_name>       
+  multi_section:<shape_name>   
 \end{example}
 Historically, the \vn{elliptical} and \vn{rectangular} shapes where
 developed first. The \vn{gen_shape} was developed later and is a
@@ -761,9 +1116,6 @@ section. \vn{Gen_shape} is explained in the
 section after and \vn{multi_section} is explained in the section
 after that.
 
-%------------------------------------------------------------------
-\subsubsection{Elliptical and Rectangular Wall Cross-Sections}
-\label{sss:el.rec}
 
 \begin{figure}[tb]
 \begin{center}
@@ -789,7 +1141,7 @@ The first five parameters -- \vn{<s>}, \vn{<section_name>}
 specified. Values for the other parameters are optional and default to
 the ``unset'' value of -1.
 
-The optional \vn{surface} variable is explained in \sref{sss:surface}.
+The optional \vn{surface} variable is explained in \sref{ss:surface}.
 
 For \vn{elliptical} or \vn{rectangular} shapes, the
 parameters needed to specify the chamber are:
@@ -839,229 +1191,27 @@ Example:
                                                          -1, -1, 0.08, 0.01 /
 \end{example}
 
-%------------------------------------------------------------------
-\subsubsection{Gen_Shape Wall Cross-Sections}
-\label{sss:gen}
 
-The format for a \vn{gen_shape} a cross-section is
-\begin{example}
-  &section_def section = <s>, <section_name>, <section_id> /
-\end{example}
-The \vn{<s>} and \vn{<section_name>} parameters are explained in
-\sref{ss:wall.def}. The \vn{<section_id>} is one of:
-\begin{example}
-  gen_shape:<shape_name>
-\end{example}
-where \vn{<shape_name>} is the \vn{name} of a \vn{gen_shape_def}
-namelist which defines the cross-section. The \vn{gen_shape_def}
-namelist has the parameters:
-\begin{example}
-  &gen_shape_def
-    name = <gen_shape_name>                 ! Name of this shape.
-    v(1) = <x1> <y1> <radius_x1> <radius_y1> <tilt1>
-    v(2) = <x2> <y2> <radius_x2> <radius_y2> <tilt2>
-    v(3) = <x3> <y3> <radius_x3> <radius_y3> <tilt3>
-    ... etc ...
-    ix_vertex_ante  = <iv1>, <iv2>          ! For defining antechamber.
-    ix_vertex_ante2 = <iv1>, <iv2>          ! For defining second antechamber.
-  /
-\end{example}
-
-An example wall definition file is:
-\begin{example}
-  ! Anything outside the namelists is ignored.
-  &section_def section =  65.7, "Near_IR" "gen_shape:rectangular1" /
-  &section_def section =  74.3, "Arc"     "gen_shape:dipole_shape" /
-  &section_def section = 100.3, "Arc"     "gen_shape:dipole_shape" /
-
-  &gen_shape_def
-    name = "rectangular1"
-    v(1) =  0.045,  0.025
-    v(2) = -0.045,  0.025
-    v(3) = -0.045, -0.025
-    v(4) =  0.045, -0.025
-    ix_vertex_ante = 4, 1
-  /
-  &gen_shape_def
-    name = "dipole_shape"
-    v(1) =  0.045,  0.025, 0.3, 0.9
-    v(2) = -0.045,  0.025
-    v(3) = -0.045,  0.025, 0.3, 0.9
-    v(4) = -0.045,  0.025
-  /
-\end{example}
-
-Each \vn{section_def} namelists specify which \vn{gen_shape_def}
-namelist is being used. In this example, the first \vn{section_def}
-refers to the \vn{gen_shape_def} named ``\vn{rectangular1}'', and the
-other two \vn{section_def} namelists refer to the \vn{gen_shape_def}
-named ``\vn{dipole_shape}'' (which is not show). As seen in this
-example, multiple \vn{section_def}s may refer to the same
-\vn{gen_shape_def}.
-
-For a \vn{gen_shape_def} namelist, the \vn{name} labels the shape for
-use by a \vn{section_def} namelist.  A \vn{gen_shape_def} is specified
-as a list of connected vertices. Each vertex is specified by it's $(x,
-y)$ coordinates. The vertices must ``wind'' counter-clockwise around
-the origin. That is, if $(x, y)$ coordinates of the vertices are
-expressed in terms of polar $(r, \theta)$ coordinates, the vertices
-must be in order of increasing $\theta$. If all the vertex points have
-non-negative $y$ values, it is assumed that the gen_shape is symmetric
-with respect to the $x$-axis and that only half the vertex points are
-being specified. If all the vertex points have both non-negative $x$
-and $y$ values, it is assumed that the gen_shape is symmetric with
-respect to both the $x$ and $y$ axes.
-
-Between vertices, the wall is assumed to be a straight line except if
-a \vn{<radius_x>} is given. If \vn{<radius_x>} is set to a non-zero
-value for a given vertex, the wall segment between that vertex and the
-vertex before it is the arc of a circle with the given radius. If, in
-addition, \vn{<radius_y>} is given, the arc will be a section of an
-ellipse.  If, in addition to \vn{<radius_x>} and \vn{<radius_y>},
-\vn{<tilt>} is given, then the ellipse will be tilted.
-
-If \vn{<radius_x>} is positive, the arc of the wall is convex with
-respect to the origin $(x, y) = (0, 0)$. If it is negative, the arc is
-concave. Note that when the wall cross-section is concave, there can
-be problems with the photon tracking. See \sref{s:track} for more
-details.
-
-In the example above, the cross-section at $s = 65.7$~meters is a
-\vn{gen_shape} whose definition is given by the \vn{gen_shape_def}
-with name ``\vn{rectangular1}''.  This \vn{gen_shape_def} defines a rectangle
-with width 0.045~meters and height 0.025~meters. This shape could have been
-defined more simply by taking advantage of the symmetry of the shape: 
-\begin{example}
-  &gen_shape_def
-    name = "rectangular1"
-    v(1) =  0.045,  0.025
-  /
-\end{example}
-
-In the above example, ``the \vn{dipole_shape}'' shape is similar to
-the \vn{rectangular1} shape except the right and left sides are
-sections of an ellipse.
-
-
-In order to use the \vn{sr3d_params%stop_if_hit_antechamber} with
-\vn{gen_shape_def}, the \vn{ix_vertex_ante} indexes can be set to the
-two vertices that define the extent of the antechamber. The
-antechamber is taken to run from \vn{v(ix_vertex_ante(1))}
-counter-clockwise to the vertex \vn{v(ix_vertex_ante(2))} In the above
-example, the antechamber is given to extend from vertex \vn{v(4)}
-counter-clockwise to \vn{v(1)} which is the $x = 0.045$ piece of this
-square chamber.  Notice that if symmetry is used in the input, extra
-vertex points will be generated to ``complete'' the wall
-perimeter. This must be taken into account when setting
-\vn{ix_vertex_ante}. To see these generated vertex points, run
-\srthree with the \vn{-plot xy} option (\sref{s:run}).  If there is a
-second antechamber, \vn{ix_vertex_ante2} can be used.
-
-For a photon hitting the wall between two defined wall cross-sections,
-the photon is considered to have hit the antechamber if points
-$r_{w1}$ and $r_{w2}$ (See Eq.~\ref{rssss}) both correspond to points
-within the antechamber.
-
-%------------------------------------------------------------------
-\subsubsection{Multi_Section Cross-Section}
-\label{sss:multi.sec}
-
-The \vn{multi_section} cross-section is not actually a single
-cross-section but a repeating pattern of cross-sections. The basic
-repeat pattern is specified by a \vn{multi_section_def} namelist of
-the form
-\begin{example}
-  &multi_section_def
-    name = "<multi_name>"
-    section(1) = 0.0,  "<section0_name>", "<section0_id>", ...
-    section(2) = <s1>, "<section1_name>", "<section1_id>", ...
-    section(3) = <s2>, "<section2_name>", "<section2_id>", ...
-    ...
-  /
-\end{example}
-The syntax for any of the \vn{section(n)} sections is the same as
-described above for \vn{rectangular}, \vn{elliptical}, and \vn{gen_shape}.
-shapes. The first section, \vn{section(1)}, must
-have \vn{<s0>} set to 0 and the \vn{<s>} of the other cross-sections
-represent an offset from this 0\Th section. The last
-\vn{section(N)} section must have \vn{<sectionN_name>} set to one of
-\begin{example}
-  open
-  closed
-\end{example}
-and the last \vn{section(N)} must have \vn{<sectionN_id>} set to
-\begin{example}
-  end_marker
-\end{example}
-This last ``\vn{end_marker}'' section is not a real cross-section but
-simply serves as a marker for the end of the basic repeat pattern. The
-significance of the \vn{<sectionN_name>} of the \vn{end_marker} section is
-discussed below. Example:
-\begin{example}
-  &multi_section_def
-    name = "zig_zag"
-    section(1) = 0.000, "in_zig",  "rectangular", 0.09,  0.04
-    section(2) = 0.002, "out_zag", "rectangular", 0.0901 0.04
-    section(3) = 0.003, "open",  "end_marker"
-  /
-\end{example}
-Here the basic repeat pattern is 0.003 meters long and is made up of
-two cross-sections called \vn{in_zig} and \vn{out_zag}.
-
-To position a series of cross-sections, a \vn{section_def} namelist is used
-general syntax for this is:
-\begin{example}
-  &section_def 
-    section = <s>, "<section_name>", "<section_id>", <repeat_count> 
-    surface = "<surface_name>", <is_local?>
-  /
-\end{example} 
-The optional \vn{surface} variable is explained in \sref{sss:surface}.
-
-\vn{<s>} is the longitudinal starting position of the series of
-cross-sections, \vn{<section_name>} is not used but must be present to
-keep the format the same as other \vn{section_def}s, and
-\vn{<section_id>} must be in the form
-\begin{example}
-  multi_section:<multi_name>
-\end{example}
-where \vn{<multi_name>} is the name associated with a
-\vn{multi_section_def} namelist. The cross-sections in the
-\vn{multi_section_def} namelist will be repeated \vn{<repeat_count>}
-times when the chamber wall is constructed. Example
-\begin{example}
-  &section_def section = 10.0, "", "multi_section:zig_zag", 1000 /
-\end{example}
-With this \vn{section_def}, coupled with the \vn{multi_section_def}
-example above, an \vn{in_zig} cross-section will be placed at $s =
-10$~meters at the starting point. The basic pattern will repeat 1000
-times and the series of cross-sections will be:
-\begin{example}
-     S       Name
-  10.000     in_zig
-  10.002     out_zag
-  10.003     in_zig
-  10.005     out_zag
-  ...
-  12.997     in_zig
-  12.999     out_zag
-\end{example}
-Since the \vn{end_marker} section is ``open'', the basic pattern is
-repeated exactly 1000 times and there will be 2 * 1000
-cross-sections. If the \vn{end_marker} section is ``closed'', an extra
-\vn{section(1)} cross-section would be added at the end to make the
-ending cross-section the same as the beginning cross-section. In this
-case, if the \vn{end_marker} section is set to ``closed'', a
-\vn{in_zig} cross-section would be added at $s = 13.000$~meters.
+Prescription for converting:
+\begin{enumerate}
+\item If there are \vn{\&section_def} namelists that use rectangular or elliptical shapes. 
+      That is, no "gen_shape:..." is present then the appropriate \vn{\&shape_def} namelists will have to be created. 
+      If the shape is not convex, the shape will need to be split into sub-chambers.
+\item rename: "gen_shape:..." to "..." in \vn{\&section_def} namelists. 
+      If the shape is not convex, the shape will need to be split into sub-chambers.
+\item If present, remove ``ix_vertex_ante'' and ``ix_vertex_ante2'' lines from \vn{\&gen_shape_def} .
+\item rename: ``\vn{\&section_def}'' to ``\vn{\&place}''.
+\item rename: ``\vn{\&gen_shape_def}'' to ``\vn{\&shape_def}''.
+\end{enumerate}
 
 %------------------------------------------------------------------
 \subsection{Chamber Surface Reflectivity}
-\label{sss:surface}
+\label{ss:surface}
 
 By default, the photon reflectivity of the vacuum chamber wall is
 based on the reflectivity of a 10 nm C film on an Al substrate.
 This default can be changed by setting the following parameters
-in the master input file (\sref{s:master.file}):
+in the master input file (\sref{s:master}):
 \begin{example}
     surface_reflection_file
     surface_roughness_rms
@@ -1082,41 +1232,48 @@ that specifies the surface reflectivity (\sref{s:reflect.file}).
 
 To associate a particular material with a particular region of the
 chamber wall, the optional \vn{surface} variable is set for the
-\vn{section_def} namelist (\sref{ss:wall.def}), at the downstream
+\vn{place} namelist (\sref{s:sub.chambers}), at the downstream
 (maximal $s$) end of the region of interest. The syntax is:
 \begin{example}
-  &section_def
+  &place
     section = ...
     surface  = "<surface_name>", <is_local?>
   /
 \end{example}
 The \vn{<surface_name>} must match the \vn{<surface_name>} of a
-\vn{surface_def} namelist. If \vn{<is_local?>} is \vn{True}, then the
+\vn{surface_def} namelist. The one exception is if \vn{<surface_name>}
+is set to
+\begin{example}
+  ABSORBER
+\end{example}
+In this case the surface is a perfect absorber.
+
+If \vn{<is_local?>} is \vn{True}, then the
 surface material only spans the region from the previous cross-section
 to this one. If \vn{<is_local?>} is \vn{False} or not present, the
-surface material spans from this cross-section back to the next
-previous cross-section where there is a \vn{surface} variable set.  If
-a \vn{section_def} is a \vn{multi_section} cross-section
-(\sref{sss:multi.sec}), and \vn{<is_local?>} is \vn{True} then the material
-only spans the multi_section region.
+surface material spans from the closest previous cross-section where
+there is a \vn{surface} variable set to this cross-section.  If a
+\vn{place} is a \vn{multi_section} cross-section
+(\sref{ss:multi.sec}), and \vn{<is_local?>} is \vn{True} then the
+material only spans the multi_section region.
 
 Example:
 \begin{example}
-  &section_def section = 0.0, "elliptical", ... /
-  &section_def section = 1.0, "elliptical", ... /
-  &section_def 
+  &place section = 0.0, "elliptical", ... /
+  &place section = 1.0, "elliptical", ... /
+  &place 
     section = 3.0, "elliptical", ... /
     surface = "ss", True
   /
-  &section_def
+  &place
     section = 5.0, "multi_section:ms", ...
     section = "ni", True
   /
-  &section_def
+  &place
     section = 7.0 "elliptical", ...
     surface = "cu"
   /
-  &section_def 10.0 section = ... /
+  &place 10.0 section = ... /
 
   &surface_def
     name = "ss"
@@ -1137,52 +1294,6 @@ the materials associated with different regions of the chamber are:
 \end{example}
 
 %------------------------------------------------------------------
-\subsection{Vacuum Chamber Wall Interpolation} 
-\label{s:wall}
-
-Once a set of chamber cross-sections have been defined, the
-cross-section of the chamber at a given longitudinal position is
-computed using linear interpolation. With linear interpolation, the
-cross-section at some point $s_1$ where the chamber cross-section has
-been defined is expressed in cylindrical coordinates.  Thus let
-$r_{w1}(\theta)$ be the radius of the wall as a function of $\theta$
-at $s_1$.  Let $r_{w2}(\theta)$ be the radius of the wall at the next
-defined cross-section at $s_2$. The radius of the wall cross-section,
-$r_w(\theta, s)$ at some position $s$ with $s_1 \le s \le s_2$ is
-\Begineq
-  r_w(\theta, s) = 
-  \frac{s_2 - s}{s_2 - s_1} \, r_{w1}(\theta) + 
-  \frac{s_1 - s}{s_1 - s_2} \, r_{w2}(\theta)
-  \label{rssss}
-\Endeq
-A photon at $(r,\theta, s)$ is inside the chamber if
-\Begineq
-  r < r_w(\theta, s)
-\Endeq
-
-%------------------------------------------------------------------
-\subsubsection{Chamber Wall and Patch Elements}
-\label{sss:patch}
-
-A \vn{patch} element, which shifts the reference coordinate system
-complicates the calculation of where a photon hits the wall. The Bmad
-manual has a full explanation but the essential factor is that, since
-the reference orbit is discontinuous in a patch, to avoid a
-discontinuity in the chamber wall, wall interpolation is done using
-the global reference system. This can lead to non-intuitive behavior
-when the region between two wall sections contains both a bend and a
-patch since, without the patch, the center of the chamber follows the
-curved reference orbit but with the patch the chamber wall center
-follows a straight line between the wall sections.
-
-To avoid this non-intuitive behavior, if a region between wall sections
-contains both a patch and a bend, extra sections will be added to
-eliminate this situation.
-
-To simplify matters, \srthree does not allow wall cross-sections to be
-defined whose longitudinal position overlaps any \vn{patch} element.
-
-%------------------------------------------------------------------
 \subsection{Photon Tracking}
 \label{s:track}
 
@@ -1199,6 +1310,30 @@ aspect ratio. The interpolated cross-section B2 at $s = 0.5$ is seen to be conca
 \label{f:convex-chamber}
 \end{center}
 \end{figure}
+
+When a photon is created, \srthree checks to see if the photon is
+within any sub-chambers. If the photon is not within any sub-chamber,
+that is, if it is outside the vacuum chamber wall, \srthree will
+generate an error message if the number of photons that have been
+generated up to this point exceed
+\vn{num_ignore_generated_outside_wall}. If the created photon is
+within some sub-chamber, the photon will be tracked through that
+sub-chamber until it reaches the edge of the sub-chamber. 
+
+When the photon reaches the edge of the sub-chamber it is going
+through, \srthree checks if there is a suitable alternative
+sub-chamber to switch to. A suitable sub-chamber is any sub-chamber
+the the photon is within or a sub-chamber where the photon is at the
+edge and has velocity directed inward.
+
+If there is a suitable alternative, \srthree will ``transfer'' the
+photon to the alternative sub-chamber and keep tracking. If there is
+no suitable alternative then the photon has hit the wall.
+
+The exception to the above process happens when there is a suitable
+``fast'' chamber (\sref{s:fast}). In this case, the photon may be
+switched from a sub-chamber to the associated fast sub-chamber even
+before the photon has reached the edge of the non-fast sub-chamber.
 
 Photons are tracked in ``steps''. A step consists of propagating a
 photon from it's current position to some new position that is a
@@ -1217,29 +1352,28 @@ and at the point in a bend where a trajectory is closest to the center
 of the bending radius.
 
 After a step, the new photon position is checked to see if it is still
-inside the chamber. If it is not, the point where it has struck the
-chamber wall is calculated via a root finding algorithm.
+inside the sub-chamber. If it is not, the point where it has crossed
+the sub-chamber wall is calculated via a root finding algorithm.
 
-If the new photon position is inside the chamber, there is still the
+If the new photon position is inside the sub-chamber, there is still the
 question as to whether the photon trajectory between the beginning
-step point and the end step point is inside the chamber. If linear
-interpolation is being used locally, \srthree assumes that the chamber
-is ``locally convex''. That is, given the two end points of a step
-with points inside the chamber, it is assumed that the line drawn
-between these two points never touches or goes outside the
-chamber. This locally convex assumption will be true if every
-cross-section $r_w(\theta, s)$ for fixed $s$ is convex where $s$ is in
-the range of longitudinal $s$ positions covered by the step in
+step point and the end step point is inside the sub-chamber. \srthree
+assumes that the sub-chamber is ``locally convex''. That is, given the two
+end points of a step with points inside the sub-chamber, it is assumed
+that the line drawn between these two points never touches or goes
+outside the sub-chamber. This locally convex assumption will be true if
+every cross-section $r_w(\theta, s)$ for fixed $s$ is convex where $s$
+is in the range of longitudinal $s$ positions covered by the step in
 question.
 
-The presence of antechambers clearly violates the locally convex
-assumption as shown in Fig.~\ref{f:convex-chamber}A. Even if two
-cross-sections are themselves convex, an intermediate cross-section
-can be concave as shown in Fig.~\ref{f:convex-chamber}B. How much of a
-problem the possibility that \srthree will not detect some photons
-leaving and then entering the chamber will, of course, depend upon the
-chamber geometry and what is being calculated. One way to treat this
-is to reduce the track step length limits:
+The problem of a concave cross-section is shown in
+Fig.~\ref{f:convex-chamber}A. Furthermore, even if two cross-sections are
+themselves convex, an intermediate cross-section can be concave as
+shown in Fig.~\ref{f:convex-chamber}B. How much of a problem the
+possibility that \srthree will not detect some photons leaving and
+then entering the chamber will, of course, depend upon the chamber
+geometry and what is being calculated. One way to treat this is to
+reduce the track step length limits:
 \begin{example}
     sr3d_params%ds_track_step_max
     sr3d_params%dr_track_step_max
@@ -1261,14 +1395,16 @@ The \vn{photon_start_input_file} file contains a number of
 format for a \vn{\&start} namelist is:
 \begin{example}
   &start
-    p%vec = <x>, <vx/c>, <y>, <vy/c>, <z>, <vz/c>  ! Photon position
-    p%energy = <ev>                                ! Photon energy
+    orbit%vec = <x>, <vx/c>, <y>, <vy/c>, <s>, <vz/c>  ! Photon position
+    orbit%p0c = <ev>                                ! Photon energy
     ran_state = <random_state_struct>
     random_seed = <num>
   /
 \end{example}
-If needed, The \vn{ran_state} and \vn{random_see} parameters can be
-used to initialize the random number generator.
+The \vn{<s>} component of \vn{orbit%vec} is the longitudinal distance
+from the start of the lattice.  If needed, The \vn{ran_state} and
+\vn{random_see} parameters can be used to initialize the random number
+generator.
 
 The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 
@@ -1278,8 +1414,8 @@ The magnitude of the velocity, $\sqrt{v_x^2+v_y^2+v_z^2}/c$ must be 1.
 
 A surface reflectivity file is used to redefine the default chamber
 wall surface reflectivity (By setting \vn{surface_reflection_file}
-in the master input file (\sref{s:master.file})) or to define the
-surface reflectivity for a particular wall material (\sref{sss:surface}).
+in the master input file (\sref{s:master})) or to define the
+surface reflectivity for a particular wall material (\sref{ss:surface}).
 
 The probability for a photon reflecting from a wall is dependent upon
 the grazing angle and the photon energy. For a given graze angle and
@@ -1386,7 +1522,7 @@ angle points.
 \label{ss:main.out}
 
 The format of the \vn{dat_file} (whose name is specified in the master
-input file (\sref{s:master.file})) is as follows:
+input file (\sref{s:master})) is as follows:
 
 The first line in the file gives the \vn{photon_number_factor}.
 If $N_{\gamma}$ is the total number of photons per beam particle
@@ -1524,10 +1660,8 @@ wall. The grazing angle is $\theta_g=\pi/2-\theta_\perp$. The last
 real number on the fourth line is the probability of reflection, computed
 from the X-ray data for the given grazing angle and photon energy.
 
-If the photon is ``adsorbed'' due to reflections being disallowed, or
-the photon is adsorbed due to the photon hitting the antechamber when
-\vn{sr3d_params%stop_if_hit_antechamber} is set True, then the third
-and fourth lines will have zeros.
+If the photon is ``adsorbed'' due to reflections being disallowed, the
+third and fourth lines will have zeros.
 
 In the example given above, the first photon is absorbed at the first
 encounter with the vacuum chamber and the second photon is reflected 3
@@ -1582,8 +1716,8 @@ The \vn{graze_angle_in} is the incident grazing angle in degrees and
 \vn{energy} in the photon energy in eV. \vn{n_photons} are the number
 of reflections to simulate, and \vn{output_file} is the name of the
 output data file. The default data file name is
-"test_diffuse_reflection.dat".  The other parameters are explained in
-\sref{s:master.file}.
+"test_diffuse_reflection.dat". The other parameters are explained in
+\sref{s:master}.
 
 \vn{random_seed} is the random number seed used in by the random
 number generator. If set to 0, the system clock will be used. That is,
@@ -1638,7 +1772,7 @@ prefixed by \vn{``xsif::''}, may be in xsif format. See the Bmad
 manual for more details.
 
 The \vn{wall_file} gives the name of the vacuum chamber will
-definition file. See \sref{ss:wall.def} for more details.
+definition file. See \sref{s:wall.file} for more details.
 
 The \vn{output_file} gives the name of the output data file.
 See \sref{ss:reflection.file} for details of the syntax for this file.
@@ -2159,7 +2293,7 @@ Then we have
 \end{eqnarray}
 
  \begin{eqnarray}
-\left<\int dx dydx'dy'\e^{\imath( v_{x}(x-x')+v_{y}(y-y')+v_{z}(\xi(x,y)-\xi(x',y'))}\right>&=&
+\left<\int dx dydx'dy'\e^{\imath( v_{x}(x-x')p+v_{y}(y-y')+v_{z}(\xi(x,y)-\xi(x',y'))}\right>&=&
 2\pi A\frac{T^{2}}{2g}e^{-T^{2}(v_{x}^{2}+v_{y}^{2})/4g}\end{eqnarray}
 
 For general $g$, we expand the exponential
@@ -3153,7 +3287,7 @@ The default surface roughness for diffuse scattering is 200~nm and the
 default surface roughness correlation length is 5.5~$\mu$m. These
 values can be modified by setting \vn{surface_roughness_rms} and
 \vn{roughness_correlation_len} in the master input file
-(\sref{s:master.file}).
+(\sref{s:master}).
 
 %------------------------------------------------------------------
 \begin{thebibliography}{9}
