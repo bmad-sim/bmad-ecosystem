@@ -1223,13 +1223,13 @@ case ('plot_x_axis_var')
 !----------------------------------------------------------------------------
 ! Case: data_source is a data_array
 
-case ('dat', 'data')
+case ('data')
 
   ! Calculate values
 
   call tao_data_type_substitute (curve%data_type, data_type, curve%ele_ref_name, graph%component)
   call tao_evaluate_expression  (data_type, 0, .true., value_arr, scratch%good, err, &
-                          stack = scratch%stack, dflt_component = graph%component, dflt_source = 'dat')
+                          stack = scratch%stack, dflt_component = graph%component, dflt_source = 'data')
   if (err) then
     graph%why_invalid = 'BAD PLOT COMPONENT: ' // data_type
     return
@@ -1550,7 +1550,7 @@ case ('s')
   if (curve%data_source == 'lat' .and. index(curve%data_type, 'emit.') /= 0) smooth_curve = .false.
 
   if (index(graph%component, 'meas') /= 0 .or. index(graph%component, 'ref') /= 0 .or. &
-      curve%data_source == 'dat' .or. curve%data_source == 'var') then
+      curve%data_source == 'data' .or. curve%data_source == 'var') then
     straight_line_between_syms = .true.
     smooth_curve = .false.
   else

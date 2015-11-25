@@ -123,7 +123,7 @@ wc1 => wg1%curve(1)
 
 wc1%y_axis_scale_factor = 1
 
-if (wc1%data_source == 'data' .or. wc1%data_source == 'dat') then
+if (wc1%data_source == 'data' .or. wc1%data_source == 'data') then
   call tao_find_data (err, wc1%data_type, d1_array = d1_array, ix_uni = wc1%ix_universe)
   d1_dat => d1_array(1)%d1
   wg1%x%min = 0

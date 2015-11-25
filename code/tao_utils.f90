@@ -2753,7 +2753,7 @@ character(40), parameter :: r_name = 'tao_print_command_line_info'
 
 call out_io (s_blank$, r_name, [ &
         'Syntax:                                                                           ', &
-        '  tao {OPTIONS}                                                                   ', &
+        '  <path-to-tao-exe-directory>/tao {OPTIONS}                                                                   ', &
         'Options are:                                                                      ', &
         '  -beam <beam_file>               # Beam init particle positions                  ', &
         '  -beam0 <beam0_file>             # Beam init params (beam size, etc.)            ', &

@@ -3482,7 +3482,7 @@ source = dflt_source
 ix = index(name, '::')
 if (ix /= 0) then
   s = name(max(1,ix-3):ix-1)
-  if (s == 'lat' .or. s == 'ele' .or. s == 'dat' .or. s == 'data' .or. s == 'var') then
+  if (s == 'lat' .or. s == 'ele' .or. s == 'data' .or. s == 'data' .or. s == 'var') then
     source = s
   else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
     source = 'ele'
@@ -3526,7 +3526,7 @@ else
     stack%type = var_num$
   endif
 
-  if ((source == 'dat' .or. source == 'data') .or. (err_flag .and. source == '')) then
+  if (source == 'data' .or. (err_flag .and. source == '')) then
     call tao_find_data (err_flag, name, re_array = re_array, int_array = int_array, &
                         dflt_index = dflt_dat_index, print_err = print_error, ix_uni = dflt_uni)
     stack%type = data_num$
