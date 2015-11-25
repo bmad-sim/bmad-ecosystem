@@ -96,6 +96,7 @@ type (sr3d_wall_struct), target :: wall_in
 type (sr3d_section_input) section
 type (sr3d_multi_section_struct), pointer :: m_sec
 type (sr3d_section_struct), allocatable :: temp_section(:)
+type (wall3d_section_struct), allocatable :: temp_section3d(:)
 type (sr3d_section_struct), pointer :: sec, sec0, sec2
 type (sr3d_section_struct) ref_section
 
@@ -128,7 +129,7 @@ open (iu, file = file, status = 'old')
 ! Old file format?
 
 if (sr3d_old_wall_file_format(iu)) then
-  print '(a)', 'WALL FILE IS USING AN OLD FORMAT!!'
+  print '(2a)', 'WALL FILE IS USING AN OLD FORMAT!! ', trim(wall_file)
   print '(a)', 'PLEASE SEE THE SYNRAD3D MANUAL FOR INSTRUCTIONS ON HOW TO CONVERT TO THE NEW FORMAT.'
   print '(a)', 'STOPPING NOW.'
   stop
@@ -141,7 +142,7 @@ n_surface = 0
 do
   read (iu, nml = surface_def, iostat = ios)
   if (ios > 0) then ! error
-    print *, 'ERROR READING SURFACE_DEF NAMELIST'
+    print *, 'ERROR READING SURFACE_DEF NAMELIST IN WALL FILE: ', trim(wall_file)
     rewind (iu)
     do
       read (iu, nml = surface_def) ! will bomb program with error message
@@ -193,7 +194,8 @@ enddo
 
 print *, 'number of wall cross-sections read:', n_place
 if (n_place < 1) then
-  print *, 'NO WALL SPECIFIED. WILL STOP HERE.'
+  print *, 'NO WALL SPECIFIED IN WALL FILE: ',  trim(wall_file)
+  print *, 'WILL STOP HERE.'
   call err_exit
 endif
 
@@ -253,7 +255,7 @@ rewind(iu)
 do
   read (iu, nml = shape_def, iostat = ios)
   if (ios > 0) then ! If error
-    print *, 'ERROR READING SHAPE_DEF NAMELIST.'
+    print *, 'ERROR READING SHAPE_DEF NAMELIST IN WALL FILE:',  trim(wall_file)
     rewind (iu)
     do
       read (iu, nml = shape_def) ! Generate error message
@@ -324,7 +326,7 @@ outer: do
   i = i + 1
   if (i > wall_in%n_section_max) exit
   ref_section = wall_in%section(i)
-  if (ref_section%section_id /= 'multi_section') cycle
+  if (all(ref_section%section_id /= wall_in%multi_section%name)) cycle
   n_repeat = ref_section%repeat_count
 
   if (n_repeat < 0) then
@@ -422,65 +424,6 @@ if (branch%param%geometry == closed$) then
   endif
 endif
 
-! Regions between wall sections are not allowed to contain both bends and patch elements.
-! If this is the case then add additional sections to avoid this situation
-
-i = 0
-do
-  i = i + 1
-  if (i == wall_in%n_section_max) exit
-
-  ix_ele0 = element_at_s(branch%lat, wall_in%section(i)%s, .true., branch%ix_branch)
-  ix_ele1 = element_at_s(branch%lat, wall_in%section(i+1)%s, .false., branch%ix_branch)
-
-  ix_bend = -1    ! Index of last bend before patch or first bend after patch
-  ix_patch = -1   ! Index of last patch before bend or first patch after bend
-  do j = ix_ele0, ix_ele1
-    if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
-    if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
-  enddo
-
-  if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
-    call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
-    call err_exit
-  endif
-
-  if (ix_bend == -1 .or. ix_patch == -1) cycle
-
-  ! Need to add an additional section
-
-  if (size(wall_in%section) == wall_in%n_section_max) then
-    call move_alloc (wall_in%section, temp_section)
-    n = wall_in%n_section_max
-    allocate (wall_in%section(1:n+10))
-    wall_in%section(1:i) = temp_section(1:i)
-    wall_in%section(i+2:n+1) = temp_section(i+1:n)
-    deallocate (temp_section)
-    wall_in%n_section_max = n + 1
-  endif
-
-  sec => wall_in%section(i+1)
-
-  if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
-    sec = wall_in%section(i)
-    ! Remember: Patch can have negative length
-    sec%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
-  else  ! Add section at beginning of bend, after patch
-    sec = wall_in%section(i+2)
-    ! Remember: Patch can have negative length
-    sec%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
-  endif
-
-  if (sec%name(1:6) /= 'ADDED:') then
-    n = len(sec%name)
-    sec%name = 'ADDED:' // sec%name(1:n-6)
-  endif
-
-  call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', &
-                                r_array = [sec%s])
-
-enddo
-
 ! Associate surface
 
 do i = 1, wall_in%n_section_max
@@ -560,7 +503,6 @@ do i = 1, n_place
   sec3d%name      = wall_in%section(i)%name
   sec3d%type      = wall_in%section(i)%type
   sec3d%ix_branch = branch%ix_branch
-  sec3d%ix_ele    = element_at_s(branch%lat, sec3d%s, .true., branch%ix_branch)
 
   ! Check s ordering
 
@@ -572,25 +514,6 @@ do i = 1, n_place
                 'IS LESS THAN SECTION(i-1)%S: \f0.4\ ', &
                 'FOR I = \i0\ ', &
                 r_array = [sec3d%s, wall3d%section(ns-1)%s], i_array = [i])
-      call err_exit
-    endif
-  endif
-
-
-
-  ! Error if the section is inside a patch element. 
-  ! OK if on the edge but associated element (%ix_ele) may not point to the patch since there may
-  ! be a ambiguity of the coordinate system associated with the section.
-
-  ix = sec3d%ix_ele
-  if (branch%ele(ix)%key == patch$) then
-    if (sec3d%s == branch%ele(ix-1)%s) then
-      sec3d%ix_ele = ix - 1
-    elseif (sec3d%s == branch%ele(ix)%s) then
-      sec3d%ix_ele = ix + 1
-    else
-      call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
-                                     'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
       call err_exit
     endif
   endif
@@ -654,6 +577,94 @@ do i = 1, size(branch%wall3d)
   endif
   wall3d%section(n)%s = s_lat
 enddo
+
+! Regions between wall sections are not allowed to contain both bends and patch elements.
+! If this is the case then add additional sections to avoid this situation
+
+do iw = 1, size(branch%wall3d)
+  wall3d => branch%wall3d(iw)
+
+  i = 0
+  do
+    i = i + 1
+    if (i == size(wall3d%section)) exit
+
+    ix_ele0 = element_at_s(branch%lat, wall3d%section(i)%s,   .true., branch%ix_branch)
+    ix_ele1 = element_at_s(branch%lat, wall3d%section(i+1)%s, .false., branch%ix_branch)
+
+    ix_bend = -1    ! Index of last bend before patch or first bend after patch
+    ix_patch = -1   ! Index of last patch before bend or first patch after bend
+    do j = ix_ele0, ix_ele1
+      if (branch%ele(j)%key == sbend$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_bend = j
+      if (branch%ele(j)%key == patch$ .and. (ix_bend == -1 .or. ix_patch == -1)) ix_patch = j
+    enddo
+
+    if (branch%ele(j)%key == patch$ .and. branch%ele(j)%orientation == -1) then
+      call out_io (s_fatal$, r_name, 'PATCH ELEMENTS WITH ORIENTATION = -1 NOT YET IMPLEMENTED!')
+      call err_exit
+    endif
+
+    if (ix_bend == -1 .or. ix_patch == -1) cycle
+
+    ! Need to add an additional section
+
+    n = size(wall3d%section)
+    call move_alloc (wall3d%section, temp_section3d)
+    allocate (wall3d%section(1:n+1))
+    wall3d%section(1:i) = temp_section3d(1:i)
+    wall3d%section(i+2:n+1) = temp_section3d(i+1:n)
+    deallocate (temp_section3d)
+
+    ! Remember: Patch can have negative length
+
+    sec3d => wall3d%section(i+1)
+
+    if (ix_bend < ix_patch) then  ! Add section at end of bend, before patch
+      sec3d = wall3d%section(i)
+      sec3d%s = min(branch%ele(ix_bend)%s, branch%ele(ix_patch)%s - branch%ele(ix_patch)%value(l$))
+    else  ! Add section at beginning of bend, after patch
+      sec3d = wall3d%section(i+2)
+      sec3d%s = max(branch%ele(ix_bend)%s - branch%ele(ix_bend)%value(l$), branch%ele(ix_patch)%s)
+    endif
+
+    if (sec3d%name(1:6) /= 'ADDED:') then
+      n = len(sec3d%name)
+      sec3d%name = 'ADDED:' // sec3d%name(1:n-6)
+    endif
+
+    call out_io (s_info$, r_name, 'Extra section added to separate bend and patch at s = \f10.2\ ', r_array = [sec3d%s])
+
+  enddo
+enddo
+
+! Associate lattice element with section
+! Error if the section is inside a patch element. 
+! OK if on the edge but associated element (%ix_ele) may not point to the patch since there may
+! be a ambiguity of the coordinate system associated with the section.
+
+do iw = 1, size(branch%wall3d)
+  wall3d => branch%wall3d(iw)
+
+  do iss = 1, size(wall3d%section)
+    sec3d => wall3d%section(iss)
+
+    sec3d%ix_ele    = element_at_s(branch%lat, sec3d%s, .true., branch%ix_branch)
+
+    ix = sec3d%ix_ele
+    if (branch%ele(ix)%key == patch$) then
+      if (sec3d%s == branch%ele(ix-1)%s) then
+        sec3d%ix_ele = ix - 1
+      elseif (sec3d%s == branch%ele(ix)%s) then
+        sec3d%ix_ele = ix + 1
+      else
+        call out_io (s_fatal$, r_name, 'WALL CROSS-SECTION AT S = \f10.3\ ', &
+                                       'IS WITHIN A PATCH ELEMENT. THIS IS NOT ALLOWED.', r_array = [sec3d%s])
+        call err_exit
+      endif
+    endif
+
+  enddo
+enddo 
 
 ! Cleanup
 

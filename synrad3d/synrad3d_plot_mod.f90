@@ -575,8 +575,8 @@ do
       write (label, '(a, f0.3, 3x, a)') 'S: ', s_pos, trim(sub_label)
                 
     else
-      print '(2(a, f0.3), a)', 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, sub_label
-      write (label, '(2(a, f0.3), 3x, a)') 'S: ', s_pos, '  dS: ', s_pos-s_pos_old, trim(sub_label)
+      print '(2(2x, a, f0.3), 2x, a)', 'S: ', s_pos, 'S-S_prev: ', s_pos-s_pos_old, sub_label
+      write (label, '(2(2x, a, f0.3), 2x, a)') 'S: ', s_pos, 'S-S_prev: ', s_pos-s_pos_old, trim(sub_label)
     endif
     label2 = 'Surface: ' // wall3d_select%section(ix_section)%surface%descrip
   else
