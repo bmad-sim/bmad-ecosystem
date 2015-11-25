@@ -1,6 +1,7 @@
 program synrad3d_test
 
 use synrad3d_track_mod
+use synrad3d_parse_wall
 use photon_reflection_mod
 
 implicit none
