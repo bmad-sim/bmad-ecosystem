@@ -485,7 +485,7 @@ type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
 type (aperture_scan_struct), pointer :: scan
 type (coord_struct), allocatable :: orbit(:)
-integer :: i, k, n_curve, n, nc
+integer :: i, j, k, n_da, n_da_curve, n_pa_curve, n, nc
 
 logical err
 
@@ -500,10 +500,31 @@ graph%valid = .false.
 u => tao_pointer_to_universe (graph%ix_universe)
 
 da => u%dynamic_aperture
+n_da = size(da%scan)
+nc = size(graph%curve)
 
-n_curve = size(da%scan)
-if (n_curve == 0) then
+! Count dynamic and physical aperture curves 
+n_da_curve = 0
+n_pa_curve = 0
+do i = 1, nc
+  curve => graph%curve(i)
+  if (is_physical_aperture(curve)) then
+    n_pa_curve = n_pa_curve + 1
+  else
+     n_da_curve = n_da_curve + 1
+     ! Assign a default type 
+     if (curve%data_type =='') curve%data_type = 'dynamic_aperture'
+  endif
+enddo 
+
+if (n_da_curve == 0) then
   write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES DEFINED FOR UNIVERSE ', u%ix_uni
+  return
+endif
+
+! Case where only physical aperture curves are defined
+if (nc == n_pa_curve) then
+  write (graph%why_invalid, '(a, i0)') 'NO DYNAMIC APERTURES CURVES DEFINED FOR UNIVERSE ', u%ix_uni
   return
 endif
 
@@ -512,29 +533,42 @@ if (.not. allocated(da%scan(1)%aperture)) then
   return
 endif
 
-! Automatically create curves based on defined curves,
-!  looping over defined styles
-nc = size(graph%curve)
-if ( nc < n_curve) then
+! If there aren't enough da curves defined for all of the da scan,, 
+! automatically create more da curves based on defined curves,
+! looping over defined styles
+if ( n_da > n_da_curve) then
   allocate(temp_curve(nc))
   call move_alloc(graph%curve, temp_curve)
-  allocate(graph%curve(n_curve))
+  allocate(graph%curve(n_da + n_pa_curve))
   graph%curve(1:nc) = temp_curve(1:nc)
+  k = nc + 1
   i = 0
-  do k=nc+1, n_curve
-    i = i + 1
+  do 
+    i = i+1
     if(i>nc) i = 1
-    graph%curve(k) = graph%curve(i)
+    curve => graph%curve(i)
+    ! Skip pa curves
+    if (is_physical_aperture(curve)) cycle
+    graph%curve(k) = temp_curve(i)
     ! Increment name
     write (graph%curve(k)%name, '(a, i0)') 'c', k
+    if (k == n_da + n_pa_curve) exit
+    k = k+1
   enddo
 endif
+! new number of curves
+nc = n_da_curve + n_pa_curve
 
-! loop over all curves
-
-do k = 1, n_curve 
+! loop over curves
+k=0
+do i = 1, nc
   
-  curve => graph%curve(k)
+  curve => graph%curve(i) 
+  if (is_physical_aperture(curve)) then
+    call tao_curve_physical_aperture_setup(curve)
+    cycle
+  endif
+  k = k + 1
   scan => da%scan(k)
   n = size(scan%aperture)
   
@@ -553,27 +587,130 @@ do k = 1, n_curve
     endif 
   
     call reallocate_coord(orbit, curve%ix_ele_ref)
-    do i = 1, n
+    do j = 1, n
       orbit(0) = da%scan(k)%ref_orb
-      orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(i)%x
-      orbit(0)%vec(3) = orbit(0)%vec(3) + scan%aperture(i)%y
-      call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
-      curve%x_line(i) = orbit(curve%ix_ele_ref)%vec(1)
-      curve%y_line(i) = orbit(curve%ix_ele_ref)%vec(3)
+      orbit(0)%vec(1) = orbit(0)%vec(1) + scan%aperture(j)%x
+      orbit(0)%vec(3) = orbit(0)%vec(3) + scan%aperture(j)%y
+    
+      curve%x_line(j) = orbit(curve%ix_ele_ref)%vec(1)
+      curve%y_line(j) = orbit(curve%ix_ele_ref)%vec(3)
+      
+      ! One more track of ref_orb if centered da is requested  
+      if (curve%data_type == 'dynamic_aperture_centered') then
+        orbit(0) = da%scan(k)%ref_orb
+        call track_many (u%model%lat, orbit, 0, curve%ix_ele_ref, +1)
+        curve%x_line(:) = curve%x_line(:) - orbit(curve%ix_ele_ref)%vec(1)
+        curve%y_line(:) = curve%y_line(:) - orbit(curve%ix_ele_ref)%vec(3)
+      endif
+      
     enddo
   else
     ! use data at ele 0 
-    curve%x_line(:) = scan%aperture(:)%x + scan%ref_orb%vec(1)
-    curve%y_line(:) = scan%aperture(:)%y + scan%ref_orb%vec(3)
+    if (curve%data_type == 'dynamic_aperture_centered') then
+      curve%x_line(:) = scan%aperture(:)%x
+      curve%y_line(:) = scan%aperture(:)%y
+    else
+      curve%x_line(:) = scan%aperture(:)%x + scan%ref_orb%vec(1)
+      curve%y_line(:) = scan%aperture(:)%y + scan%ref_orb%vec(3)
+    endif
   endif
   curve%x_symb = curve%x_line
   curve%y_symb = curve%y_line
 enddo
 
+
 graph%valid = .true.
+
+
+contains
+
+function is_physical_aperture(curve)
+logical :: is_physical_aperture
+type (tao_curve_struct) :: curve
+is_physical_aperture = (curve%data_type == 'physical_aperture')
+end function
 
 end subroutine tao_graph_dynamic_aperture_setup
 
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+subroutine tao_curve_physical_aperture_setup(curve)
+type (tao_curve_struct) :: curve
+type (tao_universe_struct), pointer :: u
+type (ele_struct), pointer :: ele
+real(rp) :: x1, x2, y1, y2, phi
+real(rp) :: large = 1 ! m 
+integer :: i
+integer, parameter :: n = 25 ! points per elliptical quadrant
+character(40) :: r_name = 'tao_curve_physical_aperture_setup'
+
+u => tao_pointer_to_universe (curve%ix_universe)
+! Set to beginning if x_ele_ref out of bounds 
+if (curve%ix_ele_ref < 1 .or. curve%ix_ele_ref > u%model%lat%n_ele_track) then
+  call out_io (s_warn$, r_name, 'IX_ELE_REF out of bounds for: ' // tao_curve_name(curve) //', setting to 1')
+  curve%ix_ele_ref = 1
+endif
+ele =>u%model%lat%ele(curve%ix_ele_ref)
+
+
+x1 = ele%value(x1_limit$)
+x2 = ele%value(x2_limit$)
+y1 = ele%value(y1_limit$)
+y2 = ele%value(y2_limit$)
+if (x1 == 0) x1 = large
+if (x2 == 0) x2 = large
+if (y1 == 0) y1 = large
+if (y2 == 0) y2 = large
+
+
+select case(ele%aperture_type)
+case(elliptical$)
+call alloc_curves(4*n)
+! draw four quadrants
+do i=1, n
+  phi = pi/2*(i-1)/(n-1)
+  curve%x_line(i) = x1*cos(phi) 
+  curve%y_line(i) = y1*sin(phi)
+enddo
+do i=1, n
+  phi = pi/2*(i-1)/(n-1)
+  curve%x_line(i+n) = -x2*sin(phi) 
+  curve%y_line(i+n) =  y1*cos(phi)
+enddo
+do i=1, n
+  phi = pi/2*(i-1)/(n-1)
+  curve%x_line(i+2*n) =  -x2*cos(phi) 
+  curve%y_line(i+2*n) =  -y2*sin(phi)
+enddo
+do i=1, n
+  phi = pi/2*(i-1)/(n-1)
+  curve%x_line(i+3*n) =   x1*sin(phi) 
+  curve%y_line(i+3*n) =  -y2*cos(phi)
+enddo
+
+case(rectangular$)
+  call alloc_curves(5)
+  curve%x_line = [x1, -x2, -x2,  x1, x1]
+  curve%y_line = [y1,  y1, -y2, -y2, y1]
+case default
+  return
+end select
+
+curve%x_symb = curve%x_line
+curve%y_symb = curve%y_line
+
+contains
+subroutine alloc_curves(n)
+integer :: n
+call re_allocate (curve%x_line, n)
+call re_allocate (curve%y_line, n)
+call re_allocate (curve%x_symb, n)
+call re_allocate (curve%y_symb, n)
+end subroutine
+
+end subroutine
 
 
 !----------------------------------------------------------------------------
