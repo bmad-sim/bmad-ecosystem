@@ -110,9 +110,7 @@ elseif (allocated(section)) then
   if (n == n_old) return
   if (.not. logic_option(.true., exact) .and. n < n_old) return
   n_save = min(n, n_old)
-  allocate (temp_section(n_old))
-  temp_section = section 
-  deallocate(section)
+  call move_alloc (section, temp_section)
   allocate (section(n))
   section(1:n_save) = temp_section
   deallocate (temp_section)
@@ -919,7 +917,7 @@ else
 
   if (ele%key == patch$) then
     call out_io (s_fatal$, r_name, &
-          'WALL3D RADIUS CALCULATION FAILURE IN/NEAR PATCH ELEMENT' // trim(ele%name) // '(\i0\)', &
+          'WALL3D RADIUS CALCULATION FAILURE IN/NEAR PATCH ELEMENT: ' // trim(ele%name) // '  (# \i0\)', &
           'THE PROBLEM GENERALLY IS A WALL SECTION TOO NEAR A PATCH ELEMENT.', &
           'SEE THE BMAD MANUAL FOR MORE DETAILS', &
           'THE SOLUTION GENERALLY IS TO MOVE THE WALL SECTION AWAY FROM THE PATH ELEMENT', &
