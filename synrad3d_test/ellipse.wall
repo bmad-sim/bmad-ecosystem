@@ -1,12 +1,12 @@
-&place section =  0,   "", "def1" /
-&place section = 10.0, "", "def2" /
-&place section = 20.0, "", "def3" /
-&place section = 30.0, "", "def4" /
-&place section = 40.0, "", "def5" /
-&place section = 50.0, "", "def6" /
-&place section = 60.0, "", "def7" /
-&place section = 70.0, "", "def8" /
-&place section = 80.0, "", "def9" /
+&place section =  0,   "s1", "def1" /
+&place section = 10.0, "s2", "def2" /
+&place section = 20.0, "s3", "def3" /
+&place section = 30.0, "s4", "def4" /
+&place section = 40.0, "s5", "def5" /
+&place section = 50.0, "s6", "def6" /
+&place section = 60.0, "s7", "def7" /
+&place section = 70.0, "s8", "def8" /
+&place section = 80.0, "s9", "def9" /
 
  
 &shape_def
