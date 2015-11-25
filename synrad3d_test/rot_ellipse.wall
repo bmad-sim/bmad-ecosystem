@@ -1,5 +1,5 @@
-&section_def section =     0.0000, "BEAMPIPE_Q00: 1", "gen_shape:117"   /
-&section_def section =    10.0000, "BEAMPIPE_Q00: 2", "gen_shape:117"   /
+&section_def section =     0.0000, "BEAMPIPE_Q00: 1", "117"   /
+&section_def section =    10.0000, "BEAMPIPE_Q00: 2", "117"   /
 
 &gen_shape_def
   name = "117"
