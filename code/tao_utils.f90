@@ -1223,7 +1223,7 @@ if (index(dat_name, 'dat::') /= 0) then
   call err_exit
 endif
 
-if (dat_name(1:6) == 'data::') dat_name = dat_name(6:)
+if (dat_name(1:6) == 'data::') dat_name = dat_name(7:)
 
 ! Find the d2 data.
 

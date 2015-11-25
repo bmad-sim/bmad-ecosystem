@@ -3481,8 +3481,9 @@ if (.not. allocated(re_array)) allocate (re_array(0))
 source = dflt_source
 ix = index(name, '::')
 if (ix /= 0) then
-  s = name(max(1,ix-3):ix-1)
-  if (s == 'lat' .or. s == 'ele' .or. s == 'data' .or. s == 'data' .or. s == 'var') then
+  s = name(max(1,ix-4):ix-1)
+  if (s(1:1) == '@') s = s(2:)
+  if (s == 'lat' .or. s == 'ele' .or. s == 'data' .or. s == 'var') then
     source = s
   else if (name(max(1,ix-7):ix-1) == 'ele_mid') then
     source = 'ele'
