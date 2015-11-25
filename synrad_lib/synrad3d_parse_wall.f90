@@ -35,7 +35,7 @@ end type
 type sr3d_wall_struct
   type (sr3d_section_struct), allocatable :: section(:)  ! indexed from 1
   type (sr3d_multi_section_struct), allocatable :: multi_section(:)
-  integer n_section_max
+  integer n_place
 end type
 
 !------------------
@@ -104,7 +104,7 @@ real(rp) s_lat, r0(2)
 
 integer i, j, k, n, ix, iu, im, iw, it, iss, ns, ios
 integer, allocatable :: n_sub_sec(:), ix_sort(:)
-integer n_place, n_shape, n_repeat, n_surface, last_type
+integer n_shape, n_repeat, n_surface, last_type
 integer m_max, n_add, n_sub, ix_ele0, ix_ele1, ix_bend, ix_patch
 
 logical, optional :: err_flag
@@ -178,7 +178,7 @@ call sr3d_read_wall_multi_section (iu, wall_in)
 ! First count the cross-section number
 
 rewind(iu)
-n_place = 0
+wall_in%n_place = 0
 do
   read (iu, nml = place, iostat = ios)
   if (ios > 0) then ! error
@@ -188,26 +188,24 @@ do
     enddo  
   endif
   if (ios < 0) exit   ! End of file reached
-  n_place = n_place + 1
+  wall_in%n_place = wall_in%n_place + 1
 enddo
 
 
-print *, 'number of wall cross-sections read:', n_place
-if (n_place < 1) then
+print *, 'number of wall cross-sections read:', wall_in%n_place
+if (wall_in%n_place < 1) then
   print *, 'NO WALL SPECIFIED IN WALL FILE: ',  trim(wall_file)
   print *, 'WILL STOP HERE.'
   call err_exit
 endif
 
 if (allocated(wall_in%section)) deallocate(wall_in%section)
-allocate (wall_in%section(1:n_place))
-wall_in%n_section_max = n_place
-
+allocate (wall_in%section(1:wall_in%n_place))
 
 ! Now transfer info from the file to the wall_in%section array
 
 rewind (iu)
-do i = 1, n_place
+do i = 1, wall_in%n_place
   section%section_id = ''
   section%repeat_count = -1
   section%name = ''
@@ -324,7 +322,7 @@ close (iu)
 i = 0
 outer: do 
   i = i + 1
-  if (i > wall_in%n_section_max) exit
+  if (i > wall_in%n_place) exit
   ref_section = wall_in%section(i)
   if (all(ref_section%section_id /= wall_in%multi_section%name)) cycle
   n_repeat = ref_section%repeat_count
@@ -349,12 +347,12 @@ outer: do
     endif
 
     call move_alloc (wall_in%section, temp_section)
-    n = wall_in%n_section_max
+    n = wall_in%n_place
     allocate (wall_in%section(1:n+n_add-1))
     wall_in%section(1:i-1) = temp_section(1:i-1)
     wall_in%section(i+n_add:n+n_add-1) = temp_section(i+1:n)
     deallocate (temp_section)
-    wall_in%n_section_max = n + n_add - 1
+    wall_in%n_place = n + n_add - 1
 
     do k = 1, n_repeat
       do im = 1, m_max - 1
@@ -383,7 +381,7 @@ enddo outer
 
 ! point to shapes
 
-section_loop: do i = 1, wall_in%n_section_max
+section_loop: do i = 1, wall_in%n_place
   sec => wall_in%section(i)
   do j = 1, size(shape)
     if (sec%section_id /= shape(j)%name) cycle
@@ -398,7 +396,7 @@ enddo section_loop
 
 ! Checks
 
-do i = 1, wall_in%n_section_max
+do i = 1, wall_in%n_place
   sec => wall_in%section(i)
 
   ! Shape checks
@@ -417,7 +415,7 @@ enddo
 
 if (branch%param%geometry == closed$) then
   sec0 => wall_in%section(1)
-  sec  => wall_in%section(wall_in%n_section_max)
+  sec  => wall_in%section(wall_in%n_place)
   if (sec0%section_id /= sec%section_id) then
     call out_io (s_fatal$, r_name, 'FOR A "CLOSED" LATTICE THE LAST WALL CROSS-SECTION MUST BE THE SAME AS THE FIRST.')
     call err_exit
@@ -426,14 +424,14 @@ endif
 
 ! Associate surface
 
-do i = 1, wall_in%n_section_max
+do i = 1, wall_in%n_place
   sec => wall_in%section(i)
   call sr3d_associate_surface (sec%section%surface, sec%surface_name, branch%lat%surface)
 enddo
 
 surface_ptr => branch%lat%surface(1)  ! Default surface
 
-do i = wall_in%n_section_max, 1, -1
+do i = wall_in%n_place, 1, -1
   sec => wall_in%section(i)
 
   if (associated(sec%section%surface)) then
@@ -454,7 +452,7 @@ allocate (sub_name(10), ix_sort(10), n_sub_sec(10))
 n_sub = 0
 n_sub_sec = 0
 
-do i = 1, n_place
+do i = 1, wall_in%n_place
   if (n_sub == size(sub_name)) then
     call re_allocate(sub_name, n_sub+10)
     call re_allocate(ix_sort, n_sub+10, init_val = 0)
@@ -492,7 +490,7 @@ enddo outer_loop
 
 n_sub_sec = 0
 
-do i = 1, n_place
+do i = 1, wall_in%n_place
   call find_indexx(wall_in%section(i)%sub_chamber_name, sub_name, ix_sort, n_sub, iss)
   wall3d => branch%wall3d(iss)
   n_sub_sec(iss) = n_sub_sec(iss) + 1
@@ -827,9 +825,9 @@ do i = 1, n_multi
   do j = 1, n_section
     sec => wall%multi_section(i)%section(j)
     sec_in => section(j)
-    sec%section%name     = sec_in%name
+    sec%name             = sec_in%name
     sec%section_id       = sec_in%section_id
-    sec%section%s        = sec_in%s
+    sec%s                = sec_in%s
   enddo
 enddo
 
