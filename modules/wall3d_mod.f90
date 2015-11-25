@@ -762,6 +762,22 @@ if (sec1%type /= normal$ .and. sec2%type /= normal$) then
 
 endif
 
+! At a section
+
+ds = s2 - s1
+
+if (s_particle == sec1%s .and. (ds /= 0 .or. position(6) > 0)) then
+  call d_radius_at_section(sec1)
+  if (present(origin)) origin = [sec1%r0, position(5)]
+  return
+endif
+
+if (s_particle == sec2%s .and. (ds /= 0 .or. position(6) < 0)) then
+  call d_radius_at_section(sec2)
+  if (present(origin)) origin = [sec2%r0, position(5)]
+  return
+endif
+
 !----------------------------
 ! If we are in a region with a patch then the geometry is more complicated since the section planes
 ! may not be perpendicular to the z-axis
@@ -923,17 +939,6 @@ else
           'THE SOLUTION GENERALLY IS TO MOVE THE WALL SECTION AWAY FROM THE PATH ELEMENT', &
           i_array = [ele%ix_ele])
     if (global_com%exit_on_error) call err_exit
-    return
-  endif
-
-  ds = s2 - s1
-
-  if (ds == 0) then
-    if (position(6) > 0) then
-      call d_radius_at_section(sec1)
-    else
-      call d_radius_at_section(sec2)
-    endif
     return
   endif
 
