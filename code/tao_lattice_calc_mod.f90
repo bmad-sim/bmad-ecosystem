@@ -194,10 +194,15 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
     ! Dynamic aperture calc. Only for rings
 
-    if (u%calc%dynamic_aperture .and. branch%param%geometry == closed$) then
+    if (u%calc%dynamic_aperture) then  
       if (.not. s%global%rf_on) call reallocate_coord (orb, tao_lat%lat%n_ele_track)
       do j=1, size(u%dynamic_aperture%pz)
         scan => u%dynamic_aperture%scan(j)
+        ! Check for open lattice. Only 1 turn is allowed
+        if (branch%param%geometry == open$ .and. (scan%param%n_turn > 1 ))then
+          call out_io (s_fatal$, r_name, 'DYNAMIC APERTURE CALC n_turn > 1 FOR OPEN LATTICE')
+          call err_exit       
+        endif
           
         if (s%global%rf_on) then
           ! pz surrounds the closed orbit
