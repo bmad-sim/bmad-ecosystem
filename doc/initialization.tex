@@ -2442,20 +2442,35 @@ A \vn{dynamic_aperture} drawing displays the results of the dynamic aperture cal
   graph%x_axis_scale_factor = 1000
   graph%y%label = 'y (mm)'
   graph%y%label_offset = .2
-  graph%y%max =  20
+  graph%y%max = 0
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 2
+  graph%n_curve = 3
   curve(1)%y_axis_scale_factor = 1000
   curve(2)%y_axis_scale_factor = 1000
+  curve(3)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
   curve(2)%draw_symbols = F
-  curve(1)%ix_ele_ref = 0
-  curve(2)%ix_ele_ref = 0
- /
+  curve(3)%draw_symbols = F
+  curve(3)%data_type = 'physical_aperture'
+  curve(3)%line%color = 2
+  curve(3)%line%width = 5 
+/
 \end{example}
 
-produces the plot on Fig.~\ref{f:dynamic-aperture}. Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}. If there are more momenta than curves, additional curves will automatically be created. Note that apertures are calculated at element 0. If \vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
+produces the plot on Fig.~\ref{f:dynamic-aperture}.
+Each curve represents a single momentum calculation according to \sref{s:dynamicaperture}.
+If there are more momenta than curves (as in this case), additional curves will automatically be created using the styles of the previous curves. Note that apertures are calculated at element 0. If \vn{curve(i)%ix_ele_ref} is nonzero, then the aperture will be propagated to this element.
+
+Dynamic aperture curves can have the following \vn{%data_type}:
+\begin{example}
+  'dynamic_aperture' or ''    ! (default) points include the reference orbit
+  'dynamic_aperture_centered' ! points are centered (relative to) the reference orbit
+  'physical_aperture'         ! draws the physical aperture based on x1_limit, etc. 
+\end{example}
+
+
+
 
 %-----------------------------------------------------------------
 \subsection{Drawing a Histogram}
