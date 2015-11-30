@@ -20,7 +20,7 @@
 
 
 &tao_dynamic_aperture
- da_init(1)%pz = 0, 0.01
+ da_init(1)%pz = 0, 0.01, 0.015
  da_init(1)%n_angle = 10
  da_init(1)%n_turn = 500 ! This is set low for demonstration purposes.
  da_init(1)%x_init = 0

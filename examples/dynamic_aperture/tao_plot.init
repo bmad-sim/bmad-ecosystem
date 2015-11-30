@@ -41,10 +41,15 @@ Templates define the basics of, say, how to display an orbit.
   graph%y%max = 0
   graph%y%min = 0
   graph%y%major_div = 4
-  graph%n_curve = 2
+  graph%n_curve = 3
   curve(1)%y_axis_scale_factor = 1000
   curve(2)%y_axis_scale_factor = 1000
+  curve(3)%y_axis_scale_factor = 1000
   curve(1)%draw_symbols = F
   curve(2)%draw_symbols = F
+  curve(3)%draw_symbols = F
+  curve(3)%data_type = 'physical_aperture'
+  curve(3)%line%color = 2
+  curve(3)%line%width = 5
  /
 
