@@ -142,4 +142,6 @@ ray%start_floor%theta = modulo2(ray%start_floor%theta, pi)
 
 ray%now_floor = ray%start_floor
 
+ix_ray = ix_ray + 1
+
 end subroutine

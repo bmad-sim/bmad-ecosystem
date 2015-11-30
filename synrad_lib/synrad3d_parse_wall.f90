@@ -122,6 +122,7 @@ namelist / surface_def / name, reflectivity_file
 
 ! Open file
 
+if (present(err_flag)) err_flag = .true.
 iu = lunget()
 call fullfilename (wall_file, file)
 open (iu, file = file, status = 'old')
@@ -669,6 +670,7 @@ enddo
 call mark_patch_regions (branch)
 
 deallocate(shape)
+if (present(err_flag)) err_flag = .false.
 
 end subroutine sr3d_read_wall_file 
 
