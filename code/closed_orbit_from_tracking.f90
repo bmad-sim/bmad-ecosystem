@@ -38,7 +38,7 @@ subroutine closed_orbit_from_tracking (lat, closed_orb, i_dim, &
                                                  eps_rel, eps_abs, init_guess, err_flag)
 
 use bmad_interface, except_dummy => closed_orbit_from_tracking
-use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 
 implicit none
 
@@ -53,6 +53,7 @@ real(rp) orb_diff(6), amp(6)
 real(rp) mat6(6,6), mat6_inv(6,6), mat6_unit(6,6)
 real(rp) start_mat(6,6), end_mat(6,6)
 real(rp) :: error, rel_err(6), abs_err(6)
+real(rp), allocatable :: on_off_save(:)
 
 integer i_dim, i, i1, i2, j, jmax, n_ele, j0, jj, nd, nnd, msk(6), track_state
 
@@ -92,10 +93,7 @@ nd = i_dim
 ! Make sure RF is on if i_dim = 6
 
 if (nd == 2 .or. nd == 4) then
-  ! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
-  lat%ele%bmad_logic = lat%ele%old_is_on
-  call set_on_off (rfcavity$, lat, save_state$)
-  call set_on_off (rfcavity$, lat, off$)
+  call set_on_off (rfcavity$, lat, off_and_save$, saved_values = on_off_save)
 elseif (nd == 6) then
   rf_on = .false.
   do i = 1, lat%n_ele_track
@@ -144,8 +142,7 @@ do j = 1, jmax
   if (all( abs(orb_diff(1:nd)) < abs_err(1:nd) + &
                                        rel_err(1:nd) * amp(1:nd) ) ) then
     if (nd == 2 .or. nd == 4) then
-      call set_on_off (rfcavity$, lat, restore_state$)
-      lat%ele%old_is_on = lat%ele%bmad_logic
+      call set_on_off (rfcavity$, lat, restore_state$, saved_values = on_off_save)
     endif
     bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
     bmad_com%aperture_limit_on = aperture_saved
@@ -153,7 +150,7 @@ do j = 1, jmax
     return
   endif
 
-  ! if we have enough data then form the transfer matrix and invert to get 
+  ! If we have enough data then form the transfer matrix and invert to get 
   ! the new closed orbit guess. 
   ! do not use the matrix if it is very non-symplectic.
   !
@@ -177,8 +174,7 @@ do j = 1, jmax
       j0 = j - nd
       jj = j0 + i
       end_mat(1:nnd,i) = end(jj)%vec(msk(1:nnd)) - end(j0)%vec(msk(1:nnd))
-      start_mat(1:nnd, i) = &
-                    start(jj)%vec(msk(1:nnd)) - start(j0)%vec(msk(1:nnd))
+      start_mat(1:nnd, i) = start(jj)%vec(msk(1:nnd)) - start(j0)%vec(msk(1:nnd))
     enddo
 
     call mat_inverse (start_mat(1:nnd,1:nnd), start_mat(1:nnd, 1:nnd))

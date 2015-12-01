@@ -16,7 +16,6 @@
 ! Note: When using wild cards, it is *not* an error if some of the matched elements do 
 !       not have the the required attribute as long as at least one does.
 ! Note: Alternatively consider the routines:
-!     ele_attribute_value
 !     set_ele_attribute
 !
 ! Modules needed:

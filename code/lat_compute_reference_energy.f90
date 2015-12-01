@@ -564,7 +564,6 @@ logical changed, has_changed
 
 ! For reference energy tracking need to turn off any element offsets and kicks and zero any errors.
 ! If the element is a super_slave then the errors must be zeroed in the super_lord elements also.
-! Note: Avoiding use of ele%old_is_on (use local var saved_is_on instead) in case a calling routine is using it.
 
 ele%old_value = ele%value
 saved_is_on = ele%is_on

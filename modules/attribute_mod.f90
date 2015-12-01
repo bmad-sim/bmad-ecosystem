@@ -786,84 +786,6 @@ end function valid_spin_tracking_method
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Function ele_attribute_value (ele, attrib_name, do_allocation,
-!                            attrib_value, err_flag, err_print_flag, ix_attrib)
-!
-! Returns the value of an element attribute. 
-! This routine has the advantage of being able to handle logical and integer parameters.
-! Logical values are returned as 0 => False, and 1 => True  
-!
-! Note: Use attribute_free to see if the attribute may be varied independently.
-! Note: Alternatively, consider the routines:
-!     pointer_to_attribute
-!     pointers_to_attribute
-!
-! Modules needed:
-!   use bmad
-!
-! Input:
-!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
-!                        will point to a variable within this element.
-!   attrib_name     -- Character(40): Name of attribute. Must be uppercase.
-!                       For example: "HKICK".
-!   do_allocation   -- Logical: If True then do an allocation if needed.
-!                       EG: The multipole An and Bn arrays need to be allocated
-!                       before their use.
-!   err_print_flag  -- Logical, optional: If present and False then suppress
-!                       printing of an error message on error.
-!
-! Output:
-!   attrib_value -- Real(rp): Value of the attribute. If the attribute is a logical, the
-!                    value returned is either 0 (False) or 1 (True).
-!   err_flag     -- Logical: Set True if attribtute not found. False otherwise.
-!   ix_attrib    -- Integer, optional: If applicable then this is the index to the 
-!                     attribute in the ele%value(:), ele%a_pole(:) or ele%b_pole arrays.
-!-
-
-subroutine ele_attribute_value (ele, attrib_name, do_allocation, &
-                                                    attrib_value, err_flag, err_print_flag, ix_attrib)
-
-
-type (ele_struct), target :: ele
-type (all_pointer_struct) :: ptr_attrib
-
-real(rp) attrib_value
-
-integer, optional :: ix_attrib
-
-character(*) attrib_name
-character(24) :: r_name = 'ele_attribute_value'
-
-logical err_flag, do_allocation
-logical, optional :: err_print_flag
-
-!
-
-err_flag = .false.
-
-call pointer_to_attribute (ele, attrib_name, do_allocation, ptr_attrib, err_flag, err_print_flag, ix_attrib)
-
-if (associated(ptr_attrib%r)) then
-  attrib_value = ptr_attrib%r
-elseif (associated(ptr_attrib%i)) then
-  attrib_value = ptr_attrib%i
-elseif (associated(ptr_attrib%l)) then
-  if (ptr_attrib%l) then
-    attrib_value = 1
-  else
-    attrib_value = 0
-  endif
-else
-  attrib_value = 0
-  err_flag = .true.
-endif
-
-end subroutine ele_attribute_value
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine set_attribute_alias (attrib_name, alias_name, err_flag, lat)
 !
 ! Routine to setup an alias for element attributes like custom_attribute1$, etc. in
@@ -995,12 +917,11 @@ end subroutine set_attribute_alias
 !--------------------------------------------------------------------------
 !+
 ! Subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation,
-!                                                ptr_attrib, err_flag, err_print_flag)
+!                                                a_ptr, err_flag, err_print_flag)
 !
 ! Returns a pointer to an attribute of an element ele with attribute index ix_attrib.
 ! 
-! Use of this routine is restricted to attributes that have an index. That is,
-! attributes in the ele%value(:) array and ele%a_pole(:), and ele%b_pole(:) values.
+! Use of this routine is restricted to attributes that have an index like k1$, tracking_method$, etc.
 ! A more general routine is pointer_to_attribute.
 ! Alternatively, consider the routine pointers_to_attribute.
 ! Note: Use attribute_free to see if the attribute may be varied independently.
@@ -1009,7 +930,7 @@ end subroutine set_attribute_alias
 !   use bmad
 !
 ! Input:
-!   ele             -- Ele_struct: After this routine finishes Ptr_attrib 
+!   ele             -- Ele_struct: After this routine finishes A_ptr 
 !                        will point to a variable within this element.
 !   ix_attrib       -- Integer, Attribute index.
 !   do_allocation   -- Logical: If True then do an allocation if needed.
@@ -1019,19 +940,19 @@ end subroutine set_attribute_alias
 !                       printing of an error message on error.
 !
 ! Output:
-!   ptr_attrib -- Real(rp), pointer: Pointer to the attribute.
-!                     Pointer will be deassociated if there is a problem.
+!   a_ptr      -- all_pointer_struct: Pointer to the attribute. 
+!     %r           -- pointer to real attribute. Nullified if error or attribute is not real.               
+!     %i           -- pointer to integer attribute. Nullified if error or attribute is not integer.
+!     %l           -- pointer to logical attribute. Nullified if error or attribute is not logical.               
 !   err_flag   -- Logical: Set True if attribtute not found. False otherwise.
 !-
 
-subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, &
-                                                  ptr_attrib, err_flag, err_print_flag)
+subroutine pointer_to_indexed_attribute (ele, ix_attrib, do_allocation, a_ptr, err_flag, err_print_flag)
 
 implicit none
 
 type (ele_struct), target :: ele
-
-real(rp), pointer :: ptr_attrib
+type (all_pointer_struct) :: a_ptr
 
 integer :: ix_attrib
 integer ix, iy
@@ -1045,7 +966,7 @@ logical, optional :: err_print_flag
 ! Init
 
 err_flag = .true.
-nullify (ptr_attrib)
+nullify (a_ptr%r, a_ptr%i, a_ptr%l)
 do_print = logic_option (.true., err_print_flag)
 
 ! overlay or group
@@ -1054,7 +975,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   if (is_attribute(ix_attrib, control_var$)) then
     ix = ix_attrib - var_offset$ 
     if (ix > size(ele%control_var)) return
-    ptr_attrib => ele%control_var(ix)%value
+    a_ptr%r => ele%control_var(ix)%value
     err_flag = .false.
     return
   endif
@@ -1062,7 +983,7 @@ if (ele%key == overlay$ .or. ele%key == group$) then
   if (is_attribute(ix_attrib, old_control_var$)) then
     ix = ix_attrib - old_control_var_offset$ 
     if (ix > size(ele%control_var)) return
-    ptr_attrib => ele%control_var(ix)%old_value
+    a_ptr%r => ele%control_var(ix)%old_value
     err_flag = .false.
     return
   endif
@@ -1079,7 +1000,7 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
     read (a_name(12:12), *) ix
     read (a_name(15:15), *) iy
     if (ix > ubound(ele%photon%surface%curvature_xy, 1) .or. iy > ubound(ele%photon%surface%curvature_xy, 2)) return
-    ptr_attrib => ele%photon%surface%curvature_xy(ix,iy)
+    a_ptr%r => ele%photon%surface%curvature_xy(ix,iy)
 
   ! Multipole
   else
@@ -1093,9 +1014,9 @@ if (ix_attrib >= a0$ .and. ix_attrib <= b21$) then
     endif
 
     if (ix_attrib >= b0$) then
-      ptr_attrib => ele%b_pole(ix_attrib-b0$)
+      a_ptr%r => ele%b_pole(ix_attrib-b0$)
     else
-      ptr_attrib => ele%a_pole(ix_attrib-a0$)
+      a_ptr%r => ele%a_pole(ix_attrib-a0$)
     endif
   endif
 
@@ -1114,23 +1035,30 @@ if (ix_attrib >= a0_elec$ .and. ix_attrib <= b21_elec$) then
   endif
 
   if (ix_attrib >= b0_elec$) then
-    ptr_attrib => ele%b_pole_elec(ix_attrib-b0_elec$)
+    a_ptr%r => ele%b_pole_elec(ix_attrib-b0_elec$)
   else
-    ptr_attrib => ele%a_pole_elec(ix_attrib-a0_elec$)
+    a_ptr%r => ele%a_pole_elec(ix_attrib-a0_elec$)
   endif
 endif
 
-! Out of bounds
-
-elseif (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
-  if (do_print) call out_io (s_error$, r_name, 'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
-          i_array = [ix_attrib])
-  return
-
-! Otherwise must be in ele%value(:) array
+! If none of the above
 
 else
-  ptr_attrib => ele%value(ix_attrib)
+  select case (ix_attrib)
+  case (is_on$);                          a_ptr%l => ele%is_on
+  case (symplectify$);                    a_ptr%l => ele%symplectify
+  case (mat6_calc_method$);               a_ptr%i => ele%mat6_calc_method
+  case (tracking_method$);                a_ptr%i => ele%tracking_method
+
+  case default
+    ! Out of bounds
+    if (ix_attrib < 1 .or. ix_attrib > num_ele_attrib$) then
+      if (do_print) call out_io (s_error$, r_name, 'INVALID ATTRIBUTE INDEX: \i0\ ', 'FOR THIS ELEMENT: ' // ele%name, &
+          i_array = [ix_attrib])
+      return
+    endif
+    a_ptr%r => ele%value(ix_attrib)
+  end select
 endif
 
 err_flag = .false.

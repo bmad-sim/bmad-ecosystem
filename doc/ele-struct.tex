@@ -107,7 +107,6 @@ The complete structure is shown in this and the following figure.}
   logical taylor_map_includes_offsets       ! Taylor map calculated with element offsets?
   logical field_master           ! Calculate strength from the field value?
   logical is_on                  ! For turning element on/off.
-  logical old_is_on              ! For saving the element on/off state.
   logical logic                  ! For general use. Not used by Bmad.
   logical bmad_logic             ! For Bmad internal use only.
   logical csr_calc_on            ! Coherent synchrotron radiation calculation
@@ -850,14 +849,12 @@ The \vn{lat} argument is only needed if the lattice is to be written to a file u
 \section{Bmad Reserved Variables}
 
 index{ele_struct!\%ixx}
-index{ele_struct!\%old_is_on}
 index{ele_struct!\%bmad_logic}
 index{ele_struct!\%const}
 A number of \vn{ele_struct} components are reserved for use by \bmad routines
 only. These are:
 \begin{example}
   %ixx
-  %old_is_on
   %bmad_logic
 \end{example}
 

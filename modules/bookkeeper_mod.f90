@@ -11,7 +11,7 @@ use expression_mod
 
 implicit none
 
-integer, parameter :: save_state$ = 3, restore_state$ = 4
+integer, parameter :: save_state$ = 3, restore_state$ = 4, off_and_save$ = 5
 
 private control_bookkeeper1, makeup_control_slave
 private makeup_group_lord, makeup_super_slave1, makeup_super_slave
@@ -588,20 +588,20 @@ type (ele_struct) ele
 type (ele_struct), optional :: this_lord
 type (ele_struct), pointer :: my_lord
 type (control_struct) ctl
+type (all_pointer_struct) :: a_ptr
 
 integer dir
 integer ix_attrib, il, ix_slave
 integer, optional :: this_pad
 
 real(rp) coef, new_val, val, val_old, delta
-real(rp), pointer :: r_ptr
 
 character(100) err_str
 
 !
 
-call pointer_to_indexed_attribute (ele, ix_attrib, .false., r_ptr, err_flag)
-if (err_flag) call err_exit
+call pointer_to_indexed_attribute (ele, ix_attrib, .false., a_ptr, err_flag)
+if (err_flag .and. global_com%exit_on_error) call err_exit
 
 call evaluate_expression_stack (ctl%stack, val, err_flag, err_str, lord%control_var, .false.)
 call evaluate_expression_stack (ctl%stack, val_old, err_flag, err_str, lord%control_var, .true.)
@@ -610,9 +610,9 @@ if (err_flag) then
   call out_io (s_error$, r_name, err_str, 'FOR SLAVE: ' // slave%name, 'OF LORD: ' // lord%name)
   return
 endif
-r_ptr = r_ptr + delta * dir
+a_ptr%r = a_ptr%r + delta * dir
 
-call set_flags_for_changed_attribute (ele, r_ptr)
+call set_flags_for_changed_attribute (ele, a_ptr%r)
 ! super_slave length can be varied by a group so don't check this.
 if (ele%slave_status /= super_slave$ .or. ix_attrib /= l$) then
   err_flag = attribute_free (ele, attribute_name(ele, ix_attrib), .true.)
@@ -620,15 +620,15 @@ endif
 
 ! Pad check
 
-if (ele%lord_status == super_lord$ .and. r_ptr < 0) then
+if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
   if (ix_attrib == lord_pad1$) then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
-                                   'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [r_ptr])
+                                   'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
   elseif (ix_attrib == lord_pad2$) then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
-                                   'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [r_ptr])
+                                   'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
   endif
 endif
 
@@ -638,7 +638,8 @@ if (ele%slave_status == super_slave$) then
   if (ix_attrib /= l$) then
     call out_io (s_error$, r_name, &
                   'CONFUSED GROUP IS TRYING TO VARY SUPER_SLAVE ATTRIBUTE: ' // attribute_name(ele, ix_attrib))
-    call err_exit
+    if (global_com%exit_on_error) call err_exit
+    return
   endif
 
   do il = 1, ele%n_lord
@@ -1905,13 +1906,13 @@ type (ele_struct), target :: slave
 type (ele_struct), pointer :: lord, slave0, my_lord, my_slave
 type (branch_struct), pointer :: branch
 type (floor_position_struct) slave_floor
-type (all_pointer_struct) ptr_attrib(20)
+type (all_pointer_struct) ptr_attrib(20), a_ptr
 
 real(rp) ds, s_slave, val_attrib(20)
 real(rp) t, x_off, y_off, x_pitch, y_pitch, l_gs(3), l_g_off(3), l_slave_off_tot(3)
 real(rp) w_slave_inv(3,3), w_gird(3,3), w_gs(3,3), w_gird_mis_tot(3,3)
 real(rp) w_slave_mis_tot(3,3), w_slave_mis(3,3), dr, length
-real(rp), pointer :: v(:), vs(:), tt, r_attrib
+real(rp), pointer :: v(:), vs(:), tt
 
 integer i, j, ix_con, ix, iv, ix_slave, icom, l_stat, n_attrib
 logical err_flag, on_an_offset_girder
@@ -2023,9 +2024,9 @@ do i = 1, slave%n_lord
       return
     endif
 
-    call pointer_to_indexed_attribute (slave, iv, .true., r_attrib, err_flag)
+    call pointer_to_indexed_attribute (slave, iv, .true., a_ptr, err_flag)
     if (err_flag) call err_exit
-    call overlay_change_this(r_attrib, lat%control(ix_con))
+    call overlay_change_this(a_ptr%r, lat%control(ix_con))
   end select
 
 enddo
@@ -2034,14 +2035,14 @@ enddo
 
 do iv = 1, n_attrib
 
-  r_attrib => ptr_attrib(iv)%r
-  if (r_attrib == val_attrib(iv)) cycle
-  r_attrib = val_attrib(iv)
-  call set_flags_for_changed_attribute (slave, r_attrib)
+  a_ptr%r => ptr_attrib(iv)%r
+  if (a_ptr%r == val_attrib(iv)) cycle
+  a_ptr%r = val_attrib(iv)
+  call set_flags_for_changed_attribute (slave, a_ptr%r)
 
   ! If varying length then must update any associated super_lords and super_slaves
 
-  if (associated(r_attrib, slave%value(l$))) then
+  if (associated(a_ptr%r, slave%value(l$))) then
 
     ! If varying a  super_lord length then adjust last super_slave length to match.
     if (slave%lord_status == super_lord$) then
@@ -2051,7 +2052,7 @@ do iv = 1, n_attrib
         length = length + my_slave%value(l$)
       enddo
       my_slave => pointer_to_slave(slave, slave%n_slave)
-      my_slave%value(l$) = r_attrib + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
+      my_slave%value(l$) = a_ptr%r + slave%value(lord_pad1$) + slave%value(lord_pad2$) - length
       call set_flags_for_changed_attribute (my_slave, my_slave%value(l$))
     else
       my_slave => slave
@@ -3274,68 +3275,87 @@ end subroutine set_flags_for_changed_real_attribute
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)
+! Subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, ix_attrib)
 !
-! Subroutine to turn on or off a set of elements (quadrupoles, rfcavities,
-! etc.) in a lattice. An element that is turned off acts like a drift.
+! Routine to turn on or off a set of elements (quadrupoles, rfcavities, etc.) in a lattice. 
+! An element that is turned off acts like a drift.
 ! lat_make_mat6 will be called to remake lat%ele()%mat6.
 !
-! NOTE: When set_on_off is used with switch = save_state$ the state
-! of an element, ele%is_on, is saved in ele%old_is_on. That is, the saved
-! state "history" is only one level deep. A problem arises when a routine 
-! uses set_on_off with switch = save_state$ and then calls a routine which 
-! also calls set_on_off switch = save_state$. For example:
-!     call set_on_off (rfcavity$, lat, save_state$)
-!     call set_on_off (rfcavity$, lat, off$)
-!     call some_subroutine (lat)
-!     call set_on_off (rfcavity$, lat, restore_state$)
-! If some_subroutine also calls set_on_off with switch = save_state$ then
-! ele%old_is_on will be set to False erasing the saved state. The subsequent
-! call to set_on_off with switch = restore_state$ will switch all cavities off.
-! It is thus important to avoid this situation. To help avoid this situation,
-! All Bmad routines in the Bmad library will make sure to preserve ele%old_is_on.
+! This routine can also be used to turn on/off a specific attribute in a set of elements using the
+! ix_attrib and saved_values arguments. For example, to turn on/off the K2 component of all bends. 
+! For real and integer attributes, switch = off$ means to set to zero.
+! For real and integer attributes, switch = on$ and switch = restore_state$ have the same meaning 
+! and the value that is set is optained from the saved_values argument (which must be present.)
 !
 ! Modules needed:
 !   use bmad
 !
 ! Input:
-!   key          -- Integer: Key name of elements to be turned on or off.
-!                      [Key = quadrupole$, etc.]
-!   lat          -- lat_struct: lattice structure holding the elements
-!   switch       -- Integer: 
-!                     on$            => Turn elements on.  
-!                     off$           => Turn elements off. 
-!                     save_state$    => Save present on/off state. 
-!                                         No turning on or off is done.
-!                     restore_state$ => Restore saved on/off state.
-!   orb(0:)     -- Coord_struct, optional: Needed for lat_make_mat6
-!   use_ref_orb -- Logical, optional: If present and true then use 
-!                    ele%map_ref_orb for the reference orbit for
-!                    calculating %mat6. Default is false.
-!   ix_branch   -- integer, optional: If present then only set for 
-!                    this lattice branch.
+!   key             -- integer: Class name of elements to be turned on or off. [quadrupole$, etc.]
+!   lat             -- lat_struct: lattice structure holding the elements.
+!   switch          -- integer: 
+!                       on$            => Turn elements on. If saved_values argument is present, use this.
+!                                          If not present (only for logical attributes), set to True.
+!                       off$           => Turn elements off (but will not store the present state).
+!                       off_and_save$  => Save on/off state and then turn elements off.
+!                       save_state$    => Save present on/off state. No turning on or off is done.
+!                       restore_state$ => Restore saved on/off state from saved_values argument.
+!   orb(0:)         -- coord_struct, optional: Needed for lat_make_mat6
+!   use_ref_orb     -- logical, optional: If present and true then use 
+!                        ele%map_ref_orb for the reference orbit for
+!                        calculating %mat6. Default is false.
+!   ix_branch       -- integer, optional: If present then only set for 
+!                        this lattice branch.
+!   saved_values(:) -- real(rp), allocatable, optional: Saved values of the component.
+!                       Must be present if needed (EG if switch = restore_state$, etc.).
+!   ix_attrib       -- integer, optional: Attribute to turn on/off. Eg: k2$, multipoles_on$, etc.
+!                       Default is is_on$.
+!                   
 !
 ! Output:
-!   lat -- lat_struct: Modified lattice.
+!   lat             -- lat_struct: Modified lattice.
+!   saved_values(:) -- real(rp), allocatable, optional: Saved values of the component.
+!                       Must be present if needed (EG if switch = off_and_save$, etc.).
 !-
 
-subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch)
+subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, ix_attrib)
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (coord_struct), optional :: orb(0:)
+type (all_pointer_struct) a_ptr
 
-integer i, ib, key
-integer, intent(in) :: switch
-integer, optional :: ix_branch
+real(rp), optional, allocatable :: saved_values(:)
+real(rp) old_state
+
+integer :: key, switch
+integer, optional :: ix_branch, ix_attrib
+integer i, ib, ixa, n_set, n_save_old
 
 logical, optional :: use_ref_orb
-logical old_state
+logical err_flag
 
 character(20) :: r_name = 'set_on_off'
 
 !
+
+ixa = integer_option(is_on$, ix_attrib)
+n_save_old = 0
+if (present(saved_values)) n_save_old = size(saved_values)
+
+select case (switch)
+case (restore_state$, off_and_save$, save_state$)
+  if (present(saved_values)) then
+    if (.not. allocated(saved_values)) allocate(saved_values(20))
+  else
+    call out_io (s_fatal$, r_name, 'SAVED_VALUES ARGUMENT NOT PRESENT.')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+end select
+
+!  
 
 do ib = 0, ubound(lat%branch, 1)
 
@@ -3345,31 +3365,53 @@ do ib = 0, ubound(lat%branch, 1)
 
   branch => lat%branch(ib)
 
+  n_set = 0
   do i = 1, branch%n_ele_max
 
     ele => branch%ele(i)
     if (ele%key /= key) cycle
 
-    old_state = ele%is_on
+    n_set = n_set + 1
+
+    call pointer_to_indexed_attribute (ele, ixa, .true., a_ptr, err_flag)
+    if (err_flag) return
+
+    if (present(saved_values)) then
+      if (n_set > size(saved_values)) call re_allocate(saved_values, 2*n_set, .false.)
+    endif
+
+    old_state = value_of_all_ptr(a_ptr)
 
     select case (switch)
     case (on$)
-      ele%is_on = .true.
+      if (present(saved_values)) then
+        call set_value_of(a_ptr, saved_values(n_set))
+      else
+        call set_value_of(a_ptr, true$)
+      endif
+
     case (off$)
-      ele%is_on = .false.
+      call set_value_of(a_ptr, false$)  ! false$ = 0
+
     case (save_state$)
-      ele%old_is_on = ele%is_on
+      saved_values(n_set) = value_of_all_ptr(a_ptr)
       cycle
+
     case (restore_state$)
-      ele%is_on = ele%old_is_on
+      call set_value_of(a_ptr, saved_values(n_set))
+
+    case (off_and_save$)
+      saved_values(n_set) = value_of_all_ptr(a_ptr)
+      call set_value_of(a_ptr, false$)
+
     case default
       call out_io (s_abort$, r_name, 'BAD SWITCH: \i\ ', switch)
       if (global_com%exit_on_error) call err_exit
     end select
 
-    if (old_state .eqv. ele%is_on) cycle
+    if (old_state == value_of_all_ptr(a_ptr)) cycle
 
-    call set_flags_for_changed_attribute (ele, ele%is_on)
+    call set_flags_for_changed_attribute (ele, a_ptr)
 
     if (logic_option (.false., use_ref_orb)) then
       call make_mat6(ele, branch%param, ele%map_ref_orb_in)
@@ -3377,13 +3419,48 @@ do ib = 0, ubound(lat%branch, 1)
       call lat_make_mat6(lat, i, orb, ib)
     endif
 
-    if (key == rfcavity$) then   ! Reset 1-turn maps
-      branch%param%t1_with_rf = 0  
-      branch%param%t1_no_rf = 0    
-    endif
-
   enddo
+
+  if (key == rfcavity$) then   ! Reset 1-turn maps
+    branch%param%t1_with_rf = 0  
+    branch%param%t1_no_rf = 0    
+  endif
+
 enddo
+
+! Error check
+
+if (n_set == 0) return ! No setting done so no error checking needed
+
+if ((switch == on$ .and. (associated(a_ptr%r) .or. associated(a_ptr%i))) .or. &
+    (switch == on$ .and. associated(a_ptr%l) .and. present(saved_values)) .or. &
+     switch == restore_state$) then
+  if (n_save_old < n_set) then
+    call out_io (s_fatal$, r_name, 'SAVED_VALUES IS BEING USED BEFORE BEING SET!')
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+endif
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine set_value_of (a_ptr, val)
+
+type (all_pointer_struct) a_ptr
+real(rp) val
+
+!
+
+if (associated(a_ptr%r)) then
+  a_ptr%r = val
+elseif (associated(a_ptr%i)) then
+  a_ptr%i = nint(val)
+else
+  a_ptr%l = is_true(val)
+endif
+
+end subroutine set_value_of
 
 end subroutine set_on_off
 

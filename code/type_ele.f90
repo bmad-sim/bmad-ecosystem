@@ -51,7 +51,7 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, &
              type_control, type_wake, type_floor_coords, type_field, type_wall, lines, n_lines)
 
 use multipole_mod, except_dummy => type_ele
-use geometry_mod, only: pointer_to_indexed_attribute, coords_relative_to_floor, ele_geometry
+use geometry_mod, only: coords_relative_to_floor, ele_geometry
 use expression_mod
 
 implicit none

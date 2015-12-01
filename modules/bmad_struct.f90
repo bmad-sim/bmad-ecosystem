@@ -18,7 +18,7 @@ use definition, only: genfield, fibre, layout
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 167
+integer, parameter :: bmad_inc_version$ = 168
 
 !-------------------------------------------------------------------------
 ! Note: custom$ = 7, and taylor$ = 8 are taken from the element key list.
@@ -736,8 +736,7 @@ type ele_struct
   logical :: taylor_map_includes_offsets = .true. ! Taylor map calculated with element misalignments?
   logical :: field_master = .false.          ! Calculate strength from the field value?
   logical :: is_on = .true.                  ! For turning element on/off.
-  logical :: old_is_on = .true.              ! For saving the element on/off state.
-  logical :: logic = .false.                 ! For general use. Not used by Bmad.
+  logical :: logic = .false.                 ! For general use. Not used by Bmad (except during lattice parsing).
   logical :: bmad_logic = .false.            ! For Bmad internal use only.
   logical :: select = .false.                ! For element selection. Used by make_hybrid_ring, etc.
   logical :: csr_calc_on = .true.            ! Coherent synchrotron radiation calculation
