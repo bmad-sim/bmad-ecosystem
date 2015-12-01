@@ -6,7 +6,6 @@
 ! Note: Use attribute_free to see if the attribute may be varied independently.
 ! Note: Alternatively consider the routines:
 !     pointers_to_attribute
-!     ele_attribute_value
 !     set_ele_attribute
 !
 ! Modules needed:
@@ -303,7 +302,6 @@ case ('MATCH_END');                      a_ptr%r => ele%value(match_end$)
 case ('MATCH_END_ORBIT');                a_ptr%r => ele%value(match_end_orbit$)
 case ('FLEXIBLE');                       a_ptr%r => ele%value(flexible$)
 case ('SYMPLECTIFY');                    a_ptr%l => ele%symplectify
-case ('IS_ON');                          a_ptr%l => ele%is_on
 case ('ABSOLUTE_TIME_TRACKING');         a_ptr%l => ele%branch%lat%absolute_time_tracking
 case ('CSR_CALC_ON');                    a_ptr%l => ele%csr_calc_on
 case ('TAYLOR_MAP_INCLUDES_OFFSETS');    a_ptr%l => ele%taylor_map_includes_offsets
@@ -328,16 +326,13 @@ case ('FIELD_CALC');                     a_ptr%i => ele%field_calc
 case ('FRINGE_TYPE');                    a_ptr%r => ele%value(fringe_type$)
 case ('GEOMETRY');                       a_ptr%r => ele%value(geometry$)
 case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
-case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('HIGHER_ORDER_FRINGE_TYPE');       a_ptr%r => ele%value(higher_order_fringe_type$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
 case ('PARTICLE');                       a_ptr%i => ele%branch%param%particle
 case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)
 case ('DEFAULT_TRACKING_SPECIES');       a_ptr%i => ele%branch%param%default_tracking_species
 case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
-case ('SPIN_TRACKING_METHOD');           a_ptr%i => ele%spin_tracking_method
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
-case ('TRACKING_METHOD');                a_ptr%i => ele%tracking_method
 case ('REF_ORBIT_FOLLOWS');              a_ptr%r => ele%value(ref_orbit_follows$)
 case ('REF_COORDINATES');                a_ptr%r => ele%value(ref_coordinates$)
 case ('MODE');                           a_ptr%r => ele%value(mode$)
@@ -349,9 +344,9 @@ case ('HARMON_MASTER')
 case ('PTC_MAX_FRINGE_ORDER')
 case ('UPSTREAM_ELE_DIR')
 case ('DOWNSTREAM_ELE_DIR')
-! Real attribute
+! Indexed attribute
 case default
-  call pointer_to_indexed_attribute (ele, ix_a, do_allocation, a_ptr%r, err_flag, err_print_flag)
+  call pointer_to_indexed_attribute (ele, ix_a, do_allocation, a_ptr, err_flag, err_print_flag)
   return
 end select
 

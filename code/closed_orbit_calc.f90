@@ -77,7 +77,7 @@
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag)
 
 use bmad_interface, except_dummy => closed_orbit_calc
-use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 use eigen_mod
 use reverse_mod, only: lat_reverse
 
@@ -91,10 +91,12 @@ type (branch_struct), pointer :: branch
 type (coord_struct)  del_co, del_orb
 type (coord_struct), allocatable, target ::  closed_orb(:)
 type (coord_struct), pointer :: start, end
+type (bmad_common_struct) bmad_com_saved
 
 real(rp) t11_inv(6,6), t1(6,6)
 real(rp) :: amp_co, amp_del, amp_del_old, i1_int, rf_freq, dt
 real(rp) max_eigen, z0, dz_max, dz, z_here, this_amp, dz_norm
+real(rp), allocatable :: on_off_state(:)
 
 complex(rp) eigen_val(6), eigen_vec(6,6)
 
@@ -102,7 +104,7 @@ integer, optional :: direction, ix_branch
 integer j, ie, i_loop, nt, n_ele, i_dim, i_max, dir, nc, track_state
 
 logical, optional, intent(out) :: err_flag
-logical fluct_saved, aperture_saved, damp_saved, err, error
+logical err, error
 
 character(20) :: r_name = 'closed_orbit_calc'
 
@@ -128,10 +130,8 @@ branch => this_lat%branch(integer_option(0, ix_branch))
 
 call reallocate_coord (closed_orb, branch%n_ele_max)  ! allocate if needed
 
-fluct_saved = bmad_com%radiation_fluctuations_on
+bmad_com_saved = bmad_com
 bmad_com%radiation_fluctuations_on = .false.  
-
-aperture_saved = bmad_com%aperture_limit_on
 bmad_com%aperture_limit_on = .false.
 
 n_ele = branch%n_ele_track
@@ -161,7 +161,6 @@ case (4, 5)
 
   !
 
-  damp_saved  = bmad_com%radiation_damping_on
   bmad_com%radiation_damping_on = .false.  ! Want constant energy
 
   if (all(branch%param%t1_no_RF == 0)) &
@@ -169,11 +168,9 @@ case (4, 5)
   t1 = branch%param%t1_no_RF
   start%vec(5) = 0
 
-  ! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+  !
 
-  branch%ele%bmad_logic = branch%ele%old_is_on
-  call set_on_off (rfcavity$, this_lat, save_state$, ix_branch = branch%ix_branch)
-  call set_on_off (rfcavity$, this_lat, off$, ix_branch = branch%ix_branch)
+  call set_on_off (rfcavity$, this_lat, off_and_save$, ix_branch = branch%ix_branch, saved_values = on_off_state)
 
   call make_t11_inv (err)
   if (err) then
@@ -347,14 +344,11 @@ contains
 
 subroutine end_cleanup
 
-if (nt == 4 .or. nt == 5) then
-  call set_on_off (rfcavity$, this_lat, restore_state$, ix_branch = branch%ix_branch)
-  branch%ele%old_is_on = branch%ele%bmad_logic
-  bmad_com%radiation_damping_on = damp_saved   ! restore state
-endif
+bmad_com = bmad_com_saved  ! Restore
 
-bmad_com%radiation_fluctuations_on = fluct_saved  ! restore state
-bmad_com%aperture_limit_on         = aperture_saved
+if (nt == 4 .or. nt == 5) then
+  call set_on_off (rfcavity$, this_lat, restore_state$, ix_branch = branch%ix_branch, saved_values = on_off_state)
+endif
 
 if (dir == -1) then
   closed_orb(1:nt) = closed_orb(nt:1:-1)

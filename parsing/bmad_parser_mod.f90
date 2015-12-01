@@ -354,8 +354,8 @@ if (ele%key == overlay$ .or. ele%key == group$) then
     if (err_flag) return
   endif
 
-  call pointer_to_indexed_attribute (ele, i, .true., r_ptr, err_flag, .true.)
-  r_ptr = value
+  call pointer_to_indexed_attribute (ele, i, .true., a_ptr, err_flag, .true.)
+  a_ptr%r = value
 
   if (attrib_free_problem(word)) return
 
@@ -3854,7 +3854,7 @@ else
   lord = pointer_to_ele(lat, m_slaves(1))  ! Set attributes equal to first slave.
 endif
 
-lord%old_is_on = .false.  ! So parser_add_superimpose will not try to use as ref ele.
+lord%logic = .false.  ! So parser_add_superimpose will not try to use as ref ele.
 lord%lord_status = multipass_lord$
 lord%n_slave = n_multipass
 lord%ix1_slave = 0
@@ -4036,7 +4036,7 @@ call init_ele(super_ele_saved)
 call init_ele(super_ele)
 
 super_ele = super_ele_in
-super_ele%old_is_on = .false.
+super_ele%logic = .false.
 super_ele_saved = super_ele     ! in case super_ele_in changes
 lat => branch%lat
 
@@ -4090,11 +4090,11 @@ if (n_loc == 0) then
   if (err .or. n_loc == 0) return
 endif
 
-! Tag reference elements using %old_is_on flag which is not otherwise used during parsing.
+! Tag reference elements using %logic flag which is not otherwise used during parsing.
 
-branch%ele(:)%old_is_on = .false.  
+branch%ele(:)%logic = .false.  
 do i = 1, n_loc
-  eles(i)%ele%old_is_on = .true. ! Tag reference element.
+  eles(i)%ele%logic = .true. ! Tag reference element.
 enddo
 
 ! Note: branch%n_ele_max will vary when an element is superimposed.
@@ -4112,9 +4112,9 @@ do
      
     if (ref_ele%key == group$ .or. ref_ele%slave_status == super_slave$) cycle
     if (ref_ele%key == girder$) cycle
-    if (.not. ref_ele%old_is_on) cycle
+    if (.not. ref_ele%logic) cycle
 
-    ref_ele%old_is_on = .false.  ! So only use this reference once
+    ref_ele%logic = .false.  ! So only use this reference once
 
     ! If superimposing on a multipass_lord then the superposition
     ! must be done at all multipass locations.

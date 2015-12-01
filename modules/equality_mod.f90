@@ -2039,8 +2039,6 @@ is_eq = is_eq .and. (f1%field_master .eqv. f2%field_master)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%is_on .eqv. f2%is_on)
 !! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%old_is_on .eqv. f2%old_is_on)
-!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%logic .eqv. f2%logic)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%bmad_logic .eqv. f2%bmad_logic)

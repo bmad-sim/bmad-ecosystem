@@ -35,7 +35,7 @@
 subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb)
 
 use bmad_interface, except_dummy => twiss_from_tracking
-use bookkeeper_mod, only: set_on_off, save_state$, restore_state$, off$
+use bookkeeper_mod, only: set_on_off, restore_state$, off_and_save$
 
 implicit none
 
@@ -45,6 +45,7 @@ type (coord_struct), intent(in) :: ref_orb0
 real(rp), optional, intent(in) :: d_orb(:)
 real(rp), intent(out) :: symp_err
 real(rp) delta(0:6), r(6), r0(6), r1(6)
+real(rp), allocatable :: on_off_save(:)
 
 type multi_orb_struct
   type (coord_struct), allocatable :: orb(:) 
@@ -66,11 +67,9 @@ enddo
 call mat_make_unit (mat6_unit)
 n_ele = lat%n_ele_track
 
-! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+! 
 
-lat%ele%bmad_logic = lat%ele%old_is_on
-call set_on_off (rfcavity$, lat, save_state$)
-call set_on_off (rfcavity$, lat, off$)
+call set_on_off (rfcavity$, lat, off_and_save$, saved_values = on_off_save)
 
 delta(0) = 0
 delta(1:6) = bmad_com%d_orb(1:6)
@@ -140,7 +139,6 @@ err_flag = .false.
 
 9000 continue
 
-call set_on_off (rfcavity$, lat, restore_state$)
-lat%ele%old_is_on = lat%ele%bmad_logic
+call set_on_off (rfcavity$, lat, restore_state$, saved_values = on_off_save)
 
 end subroutine

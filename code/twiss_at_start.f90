@@ -36,6 +36,7 @@ type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
 real(rp) eta_vec(4), t0_4(4,4), mat6(6,6), map0(4), m56
+real(rp), allocatable :: on_off_state(:)
 
 integer, optional, intent(in) :: ix_branch
 integer, optional, intent(out) ::status
@@ -64,11 +65,10 @@ if (debug) then
   open (iu, file = 'twiss_at_start.dat')
 endif
 
-! Save %old_is_on state in %bmad_logic to preserve it in case a calling routine is using it.
+!
 
-branch%ele%bmad_logic = branch%ele%old_is_on
-call set_on_off (rfcavity$, lat, save_state$, ix_branch = branch%ix_branch)
-call set_on_off (rfcavity$, lat, off$, use_ref_orb = .true., ix_branch = branch%ix_branch)
+call set_on_off (rfcavity$, lat, off_and_save$, use_ref_orb = .true., &
+                              ix_branch = branch%ix_branch, saved_values = on_off_state)
 
 do n = 1, branch%n_ele_track
   ele => branch%ele(n)
@@ -90,8 +90,8 @@ do n = 1, branch%n_ele_track
   endif
 enddo
 
-call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true., ix_branch = branch%ix_branch)
-branch%ele%old_is_on = branch%ele%bmad_logic
+call set_on_off (rfcavity$, lat, restore_state$, use_ref_orb = .true., &
+                              ix_branch = branch%ix_branch, saved_values = on_off_state)
 
 if (debug) close (iu)
 
