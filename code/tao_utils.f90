@@ -813,6 +813,7 @@ type (ele_struct) ele3
 type (coord_struct), pointer :: this_orb(:)
 type (coord_struct) orb
 type (branch_struct), pointer :: branch
+type (all_pointer_struct) a_ptr
 
 character(*) param_name
 character(*) dflt_source
@@ -914,15 +915,17 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
                 .true., .false., this_orb(ixe-1), orb, branch%ele(ixe-1), ele3, err)
       call tao_orbit_value (parameter, orb, values(n_tot+j), err)
       if (err) then
-        call ele_attribute_value (ele3, parameter, .true., values(n_tot+j), err, print_err)
+        call pointer_to_attribute (ele3, parameter, .true., a_ptr, err, print_err)
         if (err) return
+        values(n_tot+j) = value_of_all_ptr(a_ptr)
       endif
 
     else
       call tao_orbit_value (parameter, this_orb(ixe), values(n_tot+j), err)
       if (err) then
-        call ele_attribute_value (branch%ele(ixe), parameter, .true., values(n_tot+j), err, print_err)
+        call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
         if (err) return
+        values(n_tot+j) = value_of_all_ptr(a_ptr)
       endif
     endif
 
