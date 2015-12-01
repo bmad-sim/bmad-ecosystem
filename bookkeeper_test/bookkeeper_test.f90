@@ -14,6 +14,7 @@ type (coord_struct) orb
 character(40) :: lat_file  = 'bookkeeper_test.bmad'
 character(100) str
 
+real(rp), allocatable :: save(:)
 integer :: i, j, k, nargs
 logical print_extra
 
@@ -40,23 +41,27 @@ do i = 1, lat%n_ele_max
 enddo
 
 call make_hybrid_lat (lat, lat2)
-call write_bmad_lattice_file('out.bmad', lat2)
+call write_bmad_lattice_file('lat2.bmad', lat2)
 
 !-------------
 
 call bmad_parser (lat_file, lat, make_mats6 = .false.)
 
-!
-
 open (1, file = 'output.now', recl = 200)
 
-do i = 1, lat%n_ele_track
+!
+
+call set_on_off (quadrupole$, lat, off_and_save$, saved_values = save, ix_attrib = y_offset$)
+write (1, '(a, 6f10.3)') '"ON_OFF_SAVE"  ABS 0', save(1:4)
+
+do i = 1, lat%n_ele_max
   ele => lat%ele(i)
 
   if (ele%name == 'Q1') then
     write (1, '(a, f10.4)') '"Q1[K1]"     ABS 0', ele%value(k1$) 
     write (1, '(a, f10.4)') '"Q1[TILT]"   ABS 0', ele%value(tilt$) 
     write (1, '(a, f10.4)') '"Q1[HKICK]"  ABS 0', ele%value(hkick$) 
+    write (1, '(a, f10.4)') '"Q1[Y_OFF]"  ABS 0', ele%value(y_offset$) 
   endif
 
   write (1, '(3a, f10.4)') '"', trim(ele%name), '[L]"      ABS 0', ele%value(l$)
