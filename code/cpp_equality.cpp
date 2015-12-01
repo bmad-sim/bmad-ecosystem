@@ -1134,7 +1134,6 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && (x.taylor_map_includes_offsets == y.taylor_map_includes_offsets);
   is_eq = is_eq && (x.field_master == y.field_master);
   is_eq = is_eq && (x.is_on == y.is_on);
-  is_eq = is_eq && (x.old_is_on == y.old_is_on);
   is_eq = is_eq && (x.logic == y.logic);
   is_eq = is_eq && (x.bmad_logic == y.bmad_logic);
   is_eq = is_eq && (x.select == y.select);

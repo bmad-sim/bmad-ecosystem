@@ -2673,7 +2673,7 @@ extern "C" void ele_to_f2 (Bmad_ele_class*, c_Char, c_Char, c_Char, c_Char, c_Ch
     c_RealArr, Int, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&, c_Int&,
     c_Int&, c_Int&, c_Int&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&,
-    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
+    c_Bool&, c_Bool&, c_Bool&, c_Bool&, c_Bool&);
 
 extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
   // c_side.to_f_setup[character, 0, PTR]
@@ -2771,8 +2771,8 @@ extern "C" void ele_to_f (const CPP_ele& C, Bmad_ele_class* F) {
       C.ix_pointer, C.ixx, C.iyy, C.mat6_calc_method, C.tracking_method,
       C.spin_tracking_method, C.ptc_integration_type, C.field_calc, C.aperture_at,
       C.aperture_type, C.orientation, C.symplectify, C.mode_flip, C.multipoles_on,
-      C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master, C.is_on, C.old_is_on,
-      C.logic, C.bmad_logic, C.select, C.csr_calc_on, C.offset_moves_aperture);
+      C.scale_multipoles, C.taylor_map_includes_offsets, C.field_master, C.is_on, C.logic,
+      C.bmad_logic, C.select, C.csr_calc_on, C.offset_moves_aperture);
 
   // c_side.to_f_cleanup[type, 1, PTR]
  delete[] z_control_var;
@@ -2808,8 +2808,8 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
     z_field_calc, c_Int& z_aperture_at, c_Int& z_aperture_type, c_Int& z_orientation, c_Bool&
     z_symplectify, c_Bool& z_mode_flip, c_Bool& z_multipoles_on, c_Bool& z_scale_multipoles,
     c_Bool& z_taylor_map_includes_offsets, c_Bool& z_field_master, c_Bool& z_is_on, c_Bool&
-    z_old_is_on, c_Bool& z_logic, c_Bool& z_bmad_logic, c_Bool& z_select, c_Bool&
-    z_csr_calc_on, c_Bool& z_offset_moves_aperture) {
+    z_logic, c_Bool& z_bmad_logic, c_Bool& z_select, c_Bool& z_csr_calc_on, c_Bool&
+    z_offset_moves_aperture) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -3029,8 +3029,6 @@ extern "C" void ele_to_c2 (CPP_ele& C, c_Char z_name, c_Char z_type, c_Char z_al
   C.field_master = z_field_master;
   // c_side.to_c2_set[logical, 0, NOT]
   C.is_on = z_is_on;
-  // c_side.to_c2_set[logical, 0, NOT]
-  C.old_is_on = z_old_is_on;
   // c_side.to_c2_set[logical, 0, NOT]
   C.logic = z_logic;
   // c_side.to_c2_set[logical, 0, NOT]

@@ -2523,7 +2523,6 @@ public:
   Bool taylor_map_includes_offsets;
   Bool field_master;
   Bool is_on;
-  Bool old_is_on;
   Bool logic;
   Bool bmad_logic;
   Bool select;
@@ -2624,7 +2623,6 @@ public:
     taylor_map_includes_offsets(true),
     field_master(false),
     is_on(true),
-    old_is_on(true),
     logic(false),
     bmad_logic(false),
     select(false),

@@ -6386,17 +6386,15 @@ rhs = 87 + offset; F%field_master = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 88 + offset; F%is_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 89 + offset; F%old_is_on = (modulo(rhs, 2) == 0)
+rhs = 89 + offset; F%logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 90 + offset; F%logic = (modulo(rhs, 2) == 0)
+rhs = 90 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 91 + offset; F%bmad_logic = (modulo(rhs, 2) == 0)
+rhs = 91 + offset; F%select = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 92 + offset; F%select = (modulo(rhs, 2) == 0)
+rhs = 92 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 93 + offset; F%csr_calc_on = (modulo(rhs, 2) == 0)
-!! f_side.test_pat[logical, 0, NOT]
-rhs = 94 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
+rhs = 93 + offset; F%offset_moves_aperture = (modulo(rhs, 2) == 0)
 
 end subroutine set_ele_test_pattern
 
