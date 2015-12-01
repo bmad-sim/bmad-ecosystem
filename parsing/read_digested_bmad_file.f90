@@ -839,9 +839,8 @@ integer nv
 
 read (d_unit, iostat = ios) sec%name, sec%material, sec%type, sec%n_vertex_input, &
                    sec%ix_ele, sec%ix_branch, sec%patch_in_region, &
-                   sec%thickness, sec%s, sec%r0, sec%x_safe, sec%y_safe, &
-                   sec%dx0_ds, sec%dy0_ds, sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, &
-                   sec%p2_coef, nv
+                   sec%thickness, sec%s, sec%r0, sec%dx0_ds, sec%dy0_ds, &
+                   sec%x0_coef, sec%y0_coef, sec%dr_ds, sec%p1_coef, sec%p2_coef, nv
 if (ios /= 0) then
   call out_io(s_error$, r_name, 'ERROR READING DIGESTED FILE.', 'ERROR READING WALL3D SECTION')
   close (d_unit)

@@ -895,6 +895,8 @@ integer i
 
 !
 
+if (.not. associated(eles)) return
+
 do i = lbound(eles, 1), ubound(eles, 1)
   call deallocate_ele_pointers (eles(i))
 enddo

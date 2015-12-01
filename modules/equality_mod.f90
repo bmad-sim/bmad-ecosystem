@@ -1193,10 +1193,6 @@ is_eq = is_eq .and. (f1%s == f2%s)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
 !! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%x_safe == f2%x_safe)
-!! f_side.equality_test[real, 0, NOT]
-is_eq = is_eq .and. (f1%y_safe == f2%y_safe)
-!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dx0_ds == f2%dx0_ds)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dy0_ds == f2%dy0_ds)
