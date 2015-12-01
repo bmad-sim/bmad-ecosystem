@@ -2,14 +2,14 @@ no_digested
 parameter[geometry] = open
 parameter[e_tot] = 1e6
 
-q1: quadrupole, l = 2, k1 = 1
-q2: quadrupole, l = 2, k1 = 2
-q3: quadrupole, l = 2, k1 = 3
+q1: quadrupole, l = 2, k1 = 1e-3, y_offset = 0.1
+q2: quadrupole, l = 2, k1 = 2e-3, y_offset = 0.2
+q3: quadrupole, l = 2, k1 = 3e-3, y_offset = 0.3
 
-q4: quadrupole, l = 4, superimpose, ref = q2, offset = 0.5, ref_origin = center
+q4: quadrupole, l = 4, superimpose, ref = q2, offset = 0.5, ref_origin = center, y_offset = 0.4
 
-ov1: overlay = {q1[k1]:-1, q1[tilt]:2}, hkick = 10
-ov2: overlay = {q1[k1]:3, q1[tilt], q1}, hkick = 20
+ov1: overlay = {q1[k1]:-1e-3, q1[tilt]:2}, hkick = 1
+ov2: overlay = {q1[k1]:3e-3, q1[tilt], q1}, hkick = 2
 ov3: overlay = {q2}, l = 6
 
 gr1: group = {ov1[hkick]}, k3 = 5
