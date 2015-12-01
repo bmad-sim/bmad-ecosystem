@@ -224,9 +224,6 @@ character(16), parameter :: wall3d_section_type_name(10) = [ &
                      'Trunk1     ', 'Trunk2     ', 'Leg1       ', 'Leg2       ', &
                      'Wall_Start ', 'Wall_End   ']
 
-integer, parameter :: antechamber$ = 2
-character(16), parameter :: wall3d_vertex_type_name(2) = ['Normal     ', 'Antechamber']
-
 ! Note: Component order in wall3d_vertex_struct is important since sr3d_read_wall_file uses
 ! a namelist read to input vertex points
 
@@ -237,7 +234,7 @@ type wall3d_vertex_struct
   real(rp) :: tilt = 0          ! Tilt of ellipse
   real(rp) :: angle = 0         ! Angle of (x, y) point.
   real(rp) :: x0 = 0, y0 = 0    ! Center of ellipse
-  integer :: type = normal$     ! or antechamber$
+  integer :: type = normal$     ! No longer used.
 end type
 
 ! A beam pipe or capillary cross-section is a collection of vertexes.
@@ -259,7 +256,6 @@ type wall3d_section_struct
   real(rp) :: thickness = -1                ! Material thickness.
   real(rp) :: s = 0                         ! Longitudinal position
   real(rp) :: r0(2) = 0                     ! Center of section
-  real(rp) :: x_safe = 0, y_safe = 0        ! Defines safe region for faster evaluations. UNUSED. TO BE REMOVED!
   ! Section-to-section spline interpolation of the center of the section
   real(rp) :: dx0_ds = 0                    ! Center of wall derivative
   real(rp) :: dy0_ds = 0                    ! Center of wall derivative

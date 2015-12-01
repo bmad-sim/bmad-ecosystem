@@ -920,12 +920,6 @@ if (sec2%patch_in_region) then
     
   endif
 
-  ! Calculate antechamber status. Note: This is to be removed shortly...
-
-  if (present(no_wall_here)) then
-    no_wall_here = (sec1%v(ix_vertex1)%type == antechamber$ .and. sec2%v(ix_vertex2)%type == antechamber$)
-  endif
-
 !----------------------------
 ! non-patch region
 
@@ -955,12 +949,6 @@ else
 
   call calc_wall_radius (sec1%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ix_vertex1)
   call calc_wall_radius (sec2%v, cos_theta, sin_theta, r2_wall, dr2_dtheta, ix_vertex2)
-
-  ! Calculate antechamber status. Note: This is to be removed shortly...
-
-  if (present(no_wall_here)) then
-    no_wall_here = (sec1%v(ix_vertex1)%type == antechamber$ .and. sec2%v(ix_vertex2)%type == antechamber$)
-  endif
 
   ! Interpolate to get d_radius
 
@@ -1034,7 +1022,6 @@ call calc_wall_radius (this_sec%v, cos_theta, sin_theta, r1_wall, dr1_dtheta, ix
 d_radius = r_particle - r1_wall
 if (present(perp)) perp = [cos_theta, sin_theta, 0.0_rp] - &
                           [-sin_theta, cos_theta, 0.0_rp] * dr1_dtheta / r1_wall
-if (present(no_wall_here)) no_wall_here = (this_sec%v(ixv)%type == antechamber$)  ! This is to be removed shortly...
 if (present(origin)) origin = [this_sec%r0, position(5)]
 if (present(err_flag)) err_flag = .false.
 
