@@ -500,8 +500,9 @@ if (n_em_field_mode > 0) then
 
     if (ng > 0) then
       allocate (mode%grid)
-      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, mode%grid%type, mode%grid%file, &
-                                mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt
+      read (d_unit, err = 9140) lb1, ub1, lb2, ub2, lb3, ub3, &
+                        mode%grid%type, mode%grid%file, &
+                        mode%grid%dr, mode%grid%r0, mode%grid%ele_anchor_pt, mode%grid%curved_coords
       allocate (mode%grid%pt(lb1:ub1, lb2:ub2, lb3:ub3))
       do j = lb3, ub3
         read (d_unit, err = 9140) mode%grid%pt(:,:,j)
