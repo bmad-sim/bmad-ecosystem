@@ -1030,6 +1030,7 @@ public:
   CPP_em_field_grid_pt_TENSOR pt;
   Real_ARRAY dr;
   Real_ARRAY r0;
+  Bool curved_coords;
 
   CPP_em_field_grid() :
     file(),
@@ -1038,7 +1039,8 @@ public:
     n_link(1),
     pt(CPP_em_field_grid_pt_MATRIX(CPP_em_field_grid_pt_ARRAY(CPP_em_field_grid_pt(), 0), 0), 0),
     dr(0.0, 3),
-    r0(0.0, 3)
+    r0(0.0, 3),
+    curved_coords(false)
     {}
 
   ~CPP_em_field_grid() {
@@ -1694,8 +1696,6 @@ public:
   Real thickness;
   Real s;
   Real_ARRAY r0;
-  Real x_safe;
-  Real y_safe;
   Real dx0_ds;
   Real dy0_ds;
   Real_ARRAY x0_coef;
@@ -1718,8 +1718,6 @@ public:
     thickness(-1),
     s(0.0),
     r0(0.0, 2),
-    x_safe(0.0),
-    y_safe(0.0),
     dx0_ds(0.0),
     dy0_ds(0.0),
     x0_coef(0.0, 4),

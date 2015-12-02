@@ -2652,15 +2652,16 @@ implicit none
 interface
   !! f_side.to_c2_f2_sub_arg
   subroutine em_field_grid_to_c2 (C, z_file, z_type, z_ele_anchor_pt, z_n_link, z_pt, n1_pt, &
-      n2_pt, n3_pt, z_dr, z_r0) bind(c)
+      n2_pt, n3_pt, z_dr, z_r0, z_curved_coords) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
+    integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
     integer(c_int), value :: n1_pt, n2_pt, n3_pt
+    logical(c_bool) :: z_curved_coords
+    character(c_char) :: z_file(*)
     real(c_double) :: z_dr(*), z_r0(*)
     type(c_ptr) :: z_pt(*)
-    integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
-    character(c_char) :: z_file(*)
   end subroutine
 end interface
 
@@ -2693,7 +2694,7 @@ endif
 
 !! f_side.to_c2_call
 call em_field_grid_to_c2 (C, trim(F%file) // c_null_char, F%type, F%ele_anchor_pt, F%n_link, &
-    z_pt, n1_pt, n2_pt, n3_pt, fvec2vec(F%dr, 3), fvec2vec(F%r0, 3))
+    z_pt, n1_pt, n2_pt, n3_pt, fvec2vec(F%dr, 3), fvec2vec(F%r0, 3), c_logic(F%curved_coords))
 
 end subroutine em_field_grid_to_c
 
@@ -2714,7 +2715,7 @@ end subroutine em_field_grid_to_c
 
 !! f_side.to_c2_f2_sub_arg
 subroutine em_field_grid_to_f2 (Fp, z_file, z_type, z_ele_anchor_pt, z_n_link, z_pt, n1_pt, &
-    n2_pt, n3_pt, z_dr, z_r0) bind(c)
+    n2_pt, n3_pt, z_dr, z_r0, z_curved_coords) bind(c)
 
 
 implicit none
@@ -2723,11 +2724,12 @@ type(c_ptr), value :: Fp
 type(em_field_grid_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
+integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
 integer(c_int), value :: n1_pt, n2_pt, n3_pt
+logical(c_bool) :: z_curved_coords
+character(c_char) :: z_file(*)
 real(c_double) :: z_dr(*), z_r0(*)
 type(c_ptr) :: z_pt(*)
-integer(c_int) :: z_type, z_ele_anchor_pt, z_n_link
-character(c_char) :: z_file(*)
 
 call c_f_pointer (Fp, F)
 
@@ -2757,6 +2759,8 @@ endif
 F%dr = z_dr(1:3)
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:3)
+!! f_side.to_f2_trans[logical, 0, NOT]
+F%curved_coords = f_logic(z_curved_coords)
 
 end subroutine em_field_grid_to_f2
 
@@ -4560,8 +4564,8 @@ interface
   !! f_side.to_c2_f2_sub_arg
   subroutine wall3d_section_to_c2 (C, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
       z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
-      z_absolute_vertices_input, z_thickness, z_s, z_r0, z_x_safe, z_y_safe, z_dx0_ds, &
-      z_dy0_ds, z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+      z_absolute_vertices_input, z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, &
+      z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -4569,8 +4573,8 @@ interface
     integer(c_int), value :: n1_v, n_surface
     logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
     character(c_char) :: z_name(*), z_material(*)
-    real(c_double) :: z_thickness, z_s, z_r0(*), z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds
-    real(c_double) :: z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+    real(c_double) :: z_thickness, z_s, z_r0(*), z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
+    real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
     type(c_ptr), value :: z_surface
     type(c_ptr) :: z_v(*)
   end subroutine
@@ -4606,8 +4610,8 @@ if (associated(F%surface)) n_surface = 1
 call wall3d_section_to_c2 (C, trim(F%name) // c_null_char, trim(F%material) // c_null_char, &
     z_v, n1_v, c_loc(F%surface), n_surface, F%type, F%n_vertex_input, F%ix_ele, F%ix_branch, &
     c_logic(F%patch_in_region), c_logic(F%absolute_vertices_input), F%thickness, F%s, &
-    fvec2vec(F%r0, 2), F%x_safe, F%y_safe, F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), &
-    fvec2vec(F%y0_coef, 4), F%dr_ds, fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
+    fvec2vec(F%r0, 2), F%dx0_ds, F%dy0_ds, fvec2vec(F%x0_coef, 4), fvec2vec(F%y0_coef, 4), &
+    F%dr_ds, fvec2vec(F%p1_coef, 3), fvec2vec(F%p2_coef, 3))
 
 end subroutine wall3d_section_to_c
 
@@ -4629,8 +4633,8 @@ end subroutine wall3d_section_to_c
 !! f_side.to_c2_f2_sub_arg
 subroutine wall3d_section_to_f2 (Fp, z_name, z_material, z_v, n1_v, z_surface, n_surface, &
     z_type, z_n_vertex_input, z_ix_ele, z_ix_branch, z_patch_in_region, &
-    z_absolute_vertices_input, z_thickness, z_s, z_r0, z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds, &
-    z_x0_coef, z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
+    z_absolute_vertices_input, z_thickness, z_s, z_r0, z_dx0_ds, z_dy0_ds, z_x0_coef, &
+    z_y0_coef, z_dr_ds, z_p1_coef, z_p2_coef) bind(c)
 
 
 implicit none
@@ -4644,8 +4648,8 @@ integer(c_int) :: z_type, z_n_vertex_input, z_ix_ele, z_ix_branch
 integer(c_int), value :: n1_v, n_surface
 logical(c_bool) :: z_patch_in_region, z_absolute_vertices_input
 character(c_char) :: z_name(*), z_material(*)
-real(c_double) :: z_thickness, z_s, z_r0(*), z_x_safe, z_y_safe, z_dx0_ds, z_dy0_ds
-real(c_double) :: z_x0_coef(*), z_y0_coef(*), z_dr_ds, z_p1_coef(*), z_p2_coef(*)
+real(c_double) :: z_thickness, z_s, z_r0(*), z_dx0_ds, z_dy0_ds, z_x0_coef(*), z_y0_coef(*)
+real(c_double) :: z_dr_ds, z_p1_coef(*), z_p2_coef(*)
 type(c_ptr), value :: z_surface
 type(c_ptr) :: z_v(*)
 
@@ -4695,10 +4699,6 @@ F%thickness = z_thickness
 F%s = z_s
 !! f_side.to_f2_trans[real, 1, NOT]
 F%r0 = z_r0(1:2)
-!! f_side.to_f2_trans[real, 0, NOT]
-F%x_safe = z_x_safe
-!! f_side.to_f2_trans[real, 0, NOT]
-F%y_safe = z_y_safe
 !! f_side.to_f2_trans[real, 0, NOT]
 F%dx0_ds = z_dx0_ds
 !! f_side.to_f2_trans[real, 0, NOT]

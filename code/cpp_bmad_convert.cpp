@@ -940,7 +940,7 @@ extern "C" void em_field_grid_to_c (const Bmad_em_field_grid_class*, CPP_em_fiel
 
 // c_side.to_f2_arg
 extern "C" void em_field_grid_to_f2 (Bmad_em_field_grid_class*, c_Char, c_Int&, c_Int&, c_Int&,
-    const CPP_em_field_grid_pt**, Int, Int, Int, c_RealArr, c_RealArr);
+    const CPP_em_field_grid_pt**, Int, Int, Int, c_RealArr, c_RealArr, c_Bool&);
 
 extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, Bmad_em_field_grid_class* F) {
   // c_side.to_f_setup[type, 3, ALLOC]
@@ -960,7 +960,7 @@ extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, Bmad_em_field_gr
 
   // c_side.to_f2_call
   em_field_grid_to_f2 (F, C.file.c_str(), C.type, C.ele_anchor_pt, C.n_link, z_pt, n1_pt,
-      n2_pt, n3_pt, &C.dr[0], &C.r0[0]);
+      n2_pt, n3_pt, &C.dr[0], &C.r0[0], C.curved_coords);
 
   // c_side.to_f_cleanup[type, 3, ALLOC]
   delete[] z_pt;
@@ -969,7 +969,7 @@ extern "C" void em_field_grid_to_f (const CPP_em_field_grid& C, Bmad_em_field_gr
 // c_side.to_c2_arg
 extern "C" void em_field_grid_to_c2 (CPP_em_field_grid& C, c_Char z_file, c_Int& z_type, c_Int&
     z_ele_anchor_pt, c_Int& z_n_link, Bmad_em_field_grid_pt_class** z_pt, Int n1_pt, Int n2_pt,
-    Int n3_pt, c_RealArr z_dr, c_RealArr z_r0) {
+    Int n3_pt, c_RealArr z_dr, c_RealArr z_r0, c_Bool& z_curved_coords) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.file = z_file;
@@ -994,6 +994,8 @@ extern "C" void em_field_grid_to_c2 (CPP_em_field_grid& C, c_Char z_file, c_Int&
   C.dr << z_dr;
   // c_side.to_c2_set[real, 1, NOT]
   C.r0 << z_r0;
+  // c_side.to_c2_set[logical, 0, NOT]
+  C.curved_coords = z_curved_coords;
 }
 
 //--------------------------------------------------------------------
@@ -1717,8 +1719,8 @@ extern "C" void wall3d_section_to_c (const Bmad_wall3d_section_class*, CPP_wall3
 // c_side.to_f2_arg
 extern "C" void wall3d_section_to_f2 (Bmad_wall3d_section_class*, c_Char, c_Char, const
     CPP_wall3d_vertex**, Int, const CPP_photon_reflect_surface&, Int, c_Int&, c_Int&, c_Int&,
-    c_Int&, c_Bool&, c_Bool&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_Real&, c_Real&,
-    c_RealArr, c_RealArr, c_Real&, c_RealArr, c_RealArr);
+    c_Int&, c_Bool&, c_Bool&, c_Real&, c_Real&, c_RealArr, c_Real&, c_Real&, c_RealArr,
+    c_RealArr, c_Real&, c_RealArr, c_RealArr);
 
 extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_section_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
@@ -1734,8 +1736,8 @@ extern "C" void wall3d_section_to_f (const CPP_wall3d_section& C, Bmad_wall3d_se
   // c_side.to_f2_call
   wall3d_section_to_f2 (F, C.name.c_str(), C.material.c_str(), z_v, n1_v, *C.surface,
       n_surface, C.type, C.n_vertex_input, C.ix_ele, C.ix_branch, C.patch_in_region,
-      C.absolute_vertices_input, C.thickness, C.s, &C.r0[0], C.x_safe, C.y_safe, C.dx0_ds,
-      C.dy0_ds, &C.x0_coef[0], &C.y0_coef[0], C.dr_ds, &C.p1_coef[0], &C.p2_coef[0]);
+      C.absolute_vertices_input, C.thickness, C.s, &C.r0[0], C.dx0_ds, C.dy0_ds, &C.x0_coef[0],
+      &C.y0_coef[0], C.dr_ds, &C.p1_coef[0], &C.p2_coef[0]);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_v;
@@ -1746,9 +1748,8 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Char z_name, c_Ch
     Bmad_wall3d_vertex_class** z_v, Int n1_v, Bmad_photon_reflect_surface_class* z_surface, Int
     n_surface, c_Int& z_type, c_Int& z_n_vertex_input, c_Int& z_ix_ele, c_Int& z_ix_branch,
     c_Bool& z_patch_in_region, c_Bool& z_absolute_vertices_input, c_Real& z_thickness, c_Real&
-    z_s, c_RealArr z_r0, c_Real& z_x_safe, c_Real& z_y_safe, c_Real& z_dx0_ds, c_Real&
-    z_dy0_ds, c_RealArr z_x0_coef, c_RealArr z_y0_coef, c_Real& z_dr_ds, c_RealArr z_p1_coef,
-    c_RealArr z_p2_coef) {
+    z_s, c_RealArr z_r0, c_Real& z_dx0_ds, c_Real& z_dy0_ds, c_RealArr z_x0_coef, c_RealArr
+    z_y0_coef, c_Real& z_dr_ds, c_RealArr z_p1_coef, c_RealArr z_p2_coef) {
 
   // c_side.to_c2_set[character, 0, NOT]
   C.name = z_name;
@@ -1784,10 +1785,6 @@ extern "C" void wall3d_section_to_c2 (CPP_wall3d_section& C, c_Char z_name, c_Ch
   C.s = z_s;
   // c_side.to_c2_set[real, 1, NOT]
   C.r0 << z_r0;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.x_safe = z_x_safe;
-  // c_side.to_c2_set[real, 0, NOT]
-  C.y_safe = z_y_safe;
   // c_side.to_c2_set[real, 0, NOT]
   C.dx0_ds = z_dx0_ds;
   // c_side.to_c2_set[real, 0, NOT]

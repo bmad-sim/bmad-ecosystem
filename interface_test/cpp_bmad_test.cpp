@@ -1341,6 +1341,9 @@ void set_CPP_em_field_grid_test_pattern (CPP_em_field_grid& C, int ix_patt) {
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.r0.size(); i++)
     {int rhs = 101 + i + 10 + offset; C.r0[i] = rhs;}
+  // c_side.test_pat[logical, 0, NOT]
+  rhs = 11 + offset; C.curved_coords = (rhs % 2 == 0);
+
 
 }
 
@@ -2668,32 +2671,26 @@ void set_CPP_wall3d_section_test_pattern (CPP_wall3d_section& C, int ix_patt) {
   for (unsigned int i = 0; i < C.r0.size(); i++)
     {int rhs = 101 + i + 15 + offset; C.r0[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 16 + offset; C.x_safe = rhs;
+  rhs = 16 + offset; C.dx0_ds = rhs;
 
   // c_side.test_pat[real, 0, NOT]
-  rhs = 17 + offset; C.y_safe = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 18 + offset; C.dx0_ds = rhs;
-
-  // c_side.test_pat[real, 0, NOT]
-  rhs = 19 + offset; C.dy0_ds = rhs;
+  rhs = 17 + offset; C.dy0_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.x0_coef.size(); i++)
-    {int rhs = 101 + i + 20 + offset; C.x0_coef[i] = rhs;}
+    {int rhs = 101 + i + 18 + offset; C.x0_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.y0_coef.size(); i++)
-    {int rhs = 101 + i + 21 + offset; C.y0_coef[i] = rhs;}
+    {int rhs = 101 + i + 19 + offset; C.y0_coef[i] = rhs;}
   // c_side.test_pat[real, 0, NOT]
-  rhs = 22 + offset; C.dr_ds = rhs;
+  rhs = 20 + offset; C.dr_ds = rhs;
 
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p1_coef.size(); i++)
-    {int rhs = 101 + i + 23 + offset; C.p1_coef[i] = rhs;}
+    {int rhs = 101 + i + 21 + offset; C.p1_coef[i] = rhs;}
   // c_side.test_pat[real, 1, NOT]
   for (unsigned int i = 0; i < C.p2_coef.size(); i++)
-    {int rhs = 101 + i + 24 + offset; C.p2_coef[i] = rhs;}
+    {int rhs = 101 + i + 22 + offset; C.p2_coef[i] = rhs;}
 
 }
 

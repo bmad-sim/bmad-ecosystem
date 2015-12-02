@@ -374,6 +374,7 @@ bool operator== (const CPP_em_field_grid& x, const CPP_em_field_grid& y) {
   is_eq = is_eq && is_all_equal(x.pt, y.pt);
   is_eq = is_eq && is_all_equal(x.dr, y.dr);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
+  is_eq = is_eq && (x.curved_coords == y.curved_coords);
   return is_eq;
 };
 
@@ -695,8 +696,6 @@ bool operator== (const CPP_wall3d_section& x, const CPP_wall3d_section& y) {
   is_eq = is_eq && (x.thickness == y.thickness);
   is_eq = is_eq && (x.s == y.s);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
-  is_eq = is_eq && (x.x_safe == y.x_safe);
-  is_eq = is_eq && (x.y_safe == y.y_safe);
   is_eq = is_eq && (x.dx0_ds == y.dx0_ds);
   is_eq = is_eq && (x.dy0_ds == y.dy0_ds);
   is_eq = is_eq && is_all_equal(x.x0_coef, y.x0_coef);
