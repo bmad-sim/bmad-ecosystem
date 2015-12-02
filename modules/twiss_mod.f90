@@ -50,11 +50,11 @@ type (twiss_struct)  twiss1, twiss2
 
 integer i, j, stat
 
-real(rp) t0(4,4), U(4,4), V(4,4), V_inv(4,4)
+real(rp) t0(4,4), U(4,4), V(4,4)
 real(rp) Ubar(4,4), Vbar(4,4), G(4,4), G_inv(4,4)
 real(rp) t0_11(2,2), t0_12(2,2), t0_21(2,2), t0_22(2,2)
-real(rp) c(2,2), c_conj(2,2), H(2,2), temp2(2,2)
-real(rp) g1(2,2), g2(2,2), g1_inv(2,2), g2_inv(2,2)
+real(rp) c(2,2), H(2,2)
+real(rp) g1(2,2), g2(2,2)
 real(rp) gamma, det_H, det,  trace_t0_diff, denom, scalar
 logical type_out
 character(20), parameter :: r_name = 'mat_symp_decouple'
@@ -74,9 +74,7 @@ enddo
 
 ! Construct H matrix (MGB eq 12)
 
-call mat_symp_conj (t0_21, temp2)
-H = t0_12 + temp2
-
+H = t0_12 + mat_symp_conj (t0_21)
 
 ! Compute traces and
 ! compute DET_H and determine if we are in a stop band (MGB Eq. 14)
@@ -100,20 +98,17 @@ gamma = sqrt(0.5 + 0.5 * sqrt(trace_t0_diff**2 / denom))
 
 scalar = -sign(1.0_rp, trace_t0_diff) / (gamma * sqrt(denom))
 c = scalar * H
-call mat_symp_conj (c, c_conj)
 
-! Compute matrix V and inverse V_INV (MGB Eq. 10)
+! Compute matrix V (MGB Eq. 10)
 
 V = 0
 forall (i = 1:4) v(i,i) = gamma 
 V(1:2,3:4) = c
-V(3:4,1:2) = -c_conj
-
-call mat_symp_conj (V, V_inv)
+V(3:4,1:2) = -mat_symp_conj(c)
 
 ! Compute uncoupled matrix U (MGB Eq. 10)
 
-U = matmul (matmul (V_inv, t0), V)
+U = matmul (matmul (mat_symp_conj(V), t0), V)
 
 ! check that the eigen modes are stable
 
@@ -162,12 +157,9 @@ G = 0
 G(1:2,1:2) = g1
 G(3:4,3:4) = g2
 
-call mat_symp_conj (g1, g1_inv)
-call mat_symp_conj (g2, g2_inv)
-
 G_inv = 0
-G_inv(1:2,1:2) = g1_inv
-G_inv(3:4,3:4) = g2_inv
+G_inv(1:2,1:2) = mat_symp_conj(g1)
+G_inv(3:4,3:4) = mat_symp_conj(g2)
 
 ! Compute Vbar (PPB/DLR Eq. 3++)
 

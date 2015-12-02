@@ -29,7 +29,7 @@ integer i
 
 ! Init
 
-call mat_symp_conj (ele%c_mat, c_conj)
+c_conj = mat_symp_conj (ele%c_mat)
 
 ! construct v_max
 

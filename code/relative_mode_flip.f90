@@ -24,7 +24,7 @@ implicit none
 
 type (ele_struct)  ele1, ele2
 
-real(rp) mat4(4,4), conj_mat(2,2), det_aa, det_ab
+real(rp) mat4(4,4), det_aa, det_ab
 
 logical rel_mode
 
@@ -52,8 +52,7 @@ mat4(3,3) = ele2%gamma_c
 mat4(4,4) = ele2%gamma_c
 mat4(3,4) = 0
 mat4(4,3) = 0
-call mat_symp_conj (ele2%c_mat, conj_mat)
-mat4(3:4,1:2) = -conj_mat
+mat4(3:4,1:2) = -mat_symp_conj(ele2%c_mat)
 
 ! smallness of determinant is indicator of whether ele1 a-mode has nearly the
 ! same eigen plane with ele2 b-mode
